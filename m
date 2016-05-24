@@ -1,213 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42878 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754578AbcEQJ1D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2016 05:27:03 -0400
-Date: Tue, 17 May 2016 12:26:28 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH/RFC v2 0/4] Meta-data video device type
-Message-ID: <20160517092628.GA26360@valkosipuli.retiisi.org.uk>
-References: <1463012283-3078-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <57359DBE.4090904@xs4all.nl>
- <104553394.R3AD42rbhA@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <104553394.R3AD42rbhA@avalon>
+Received: from mga11.intel.com ([192.55.52.93]:5228 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756470AbcEXQvB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 12:51:01 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [RFC v2 17/21] DocBook: media: Document the V4L2 request API
+Date: Tue, 24 May 2016 19:47:27 +0300
+Message-Id: <1464108451-28142-18-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-On Mon, May 16, 2016 at 12:21:17PM +0300, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Friday 13 May 2016 11:26:22 Hans Verkuil wrote:
-> > On 05/12/2016 02:17 AM, Laurent Pinchart wrote:
-> > > Hello,
-> > > 
-> > > This RFC patch series is a second attempt at adding support for passing
-> > > statistics data to userspace using a standard API.
-> > > 
-> > > The core requirements haven't changed. Statistics data capture requires
-> > > zero-copy and decoupling statistics buffers from images buffers, in order
-> > > to make statistics data available to userspace as soon as they're
-> > > captured. For those reasons the early consensus we have reached is to use
-> > > a video device node with a buffer queue to pass statistics buffers using
-> > > the V4L2 API, and this new RFC version doesn't challenge that.
-> > > 
-> > > The major change compared to the previous version is how the first patch
-> > > has been split in two. Patch 1/4 now adds a new metadata buffer type and
-> > > format (including their support in videobuf2-v4l2), usable with regular
-> > > V4L2 video device nodes, while patch 2/4 adds the new metadata video
-> > > device type. Metadata buffer queues are thus usable on both the regular
-> > > V4L2 device nodes and the new metadata device nodes.
-> > > 
-> > > This change was driven by the fact that an important category of use cases
-> > > doesn't differentiate between metadata and image data in hardware at the
-> > > DMA engine level. With such hardware (CSI-2 receivers in particular, but
-> > > other bus types could also fall into this category) a stream containing
-> > > both metadata and image data virtual streams is transmitted over a single
-> > > physical link. The receiver demultiplexes, filters and routes the virtual
-> > > streams to further hardware blocks, and in many cases, directly to DMA
-> > > engines that are part of the receiver. Those DMA engines can capture a
-> > > single virtual stream to memory, with as many DMA engines physically
-> > > present in the device as the number of virtual streams that can be
-> > > captured concurrently. All those DMA engines are usually identical and
-> > > don't care about the type of data they receive and capture. For that
-> > > reason limiting the metadata buffer type to metadata device nodes would
-> > > require creating two device nodes for each DMA engine (and possibly more
-> > > later if we need to capture other types of data). Not only would this
-> > > make the API more complex to use for applications, it wouldn't bring any
-> > > added value as the video and metadata device nodes associated with a DMA
-> > > engine couldn't be used concurrently anyway, as they both correspond to
-> > > the same hardware resource.
-> > > 
-> > > For this reason the ability to capture metadata on a video device node is
-> > > useful and desired, and is implemented patch 1/4 using a dedicated video
-> > > buffers queue. In the CSI-2 case a driver will create two buffer queues
-> > > internally for the same DMA engine, and can select which one to use based
-> > > on the buffer type passed for instance to the REQBUFS ioctl (details
-> > > still need to be discussed here).
-> > 
-> > Not quite. It still has only one vb2_queue, you just change the type
-> > depending on what mode it is in (video or meta data). Similar to raw vs
-> > sliced VBI.
-> > 
-> > In the latter case it is the VIDIOC_S_FMT call that changes the vb2_queue
-> > type depending on whether raw or sliced VBI is requested. That's probably
-> > where I would do this for video vs meta as well.
-> 
-> That sounds good to me. I didn't know we had support for changing the type of 
-> a vb2 queue at runtime, that's good news :-)
-> 
-> > There is one big thing missing here: how does userspace know in this case
-> > whether it will get metadata or video? Who decides which CSI virtual stream
-> > is routed to which video node?
-> 
-> I've replied to Sakari's e-mail about this.
-> 
-> > > A device that contains DMA engines dedicated to
-> > > metadata would create a single buffer queue and implement metadata capture
-> > > only.
-> > > 
-> > > Patch 2/4 then adds a dedicated metadata device node type that is limited
-> > > to metadata capture. Support for metadata on video device nodes isn't
-> > > removed though, both device node types support metadata capture. I have
-> > > included this patch as the code existed in the previous version of the
-> > > series (and was explicitly requested during review of an earlier
-> > > version), but I don't really see what value this would bring compared to
-> > > just using video device nodes.
-> > 
-> > I'm inclined to agree with you.
-> 
-> Great :-) Should I just drop patch 2/4 then ? Sakari, Mauro, would that be 
-> fine with you ?
+The V4L2 request API consists in extensions to existing V4L2 ioctls.
+Document it.
 
-I do encourage dropping that patch, yes!
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ Documentation/DocBook/media/v4l/common.xml         |  2 +
+ Documentation/DocBook/media/v4l/io.xml             |  9 ++-
+ Documentation/DocBook/media/v4l/request-api.xml    | 90 ++++++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-prepare-buf.xml       |  9 +++
+ Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |  6 ++
+ 5 files changed, 113 insertions(+), 3 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/request-api.xml
 
-> 
-> > > As before patch 3/4 defines a first metadata format for the R-Car VSP1 1-D
-> > > statistics format as an example, and the new patch 4/4 adds support for
-> > > the histogram engine to the VSP1 driver. The implementation uses a
-> > > metadata device node, and switching to a video device node wouldn't
-> > > require more than applying the following one-liner patch.
-> > > 
-> > > -       histo->queue.type = V4L2_BUF_TYPE_META_CAPTURE;
-> > > +       histo->queue.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> > 
-> > You probably mean replacing this:
-> > 
-> > 	histo->video.vfl_type = VFL_TYPE_META;
-> > 
-> > by this:
-> > 
-> > 	histo->video.vfl_type = VFL_TYPE_GRABBER;
-> 
-> Yes, of course, my bad.
-> 
-> > > Beside whether patch 2/4 should be included or not (I would prefer
-> > > dropping it) and how to select the active queue on a multi-type video
-> > > device node (through the REQBUFS ioctl or through a diffent mean), one
-> > > point that remains to be discussed is what information to include in the
-> > > metadata format. Patch 1/1 defines the new metadata format as
-> > > 
-> > > struct v4l2_meta_format {
-> > > 	__u32				dataformat;
-> > > 	__u32				buffersize;
-> > > 	__u8				reserved[24];
-> > > } __attribute__ ((packed));
-> > > 
-> > > but at least in the CSI-2 case metadata is, as image data, transmitted in
-> > > lines and the receiver needs to be programmed with the line length and the
-> > > number of lines for proper operation. We started discussing this on IRC
-> > > but haven't reached a conclusion yet.
-
-In two-dimensional DMA there may be padding added at the end of the line. We
-also need bytesperline.
-
-Metadata may be also packed the same way as the pixel data for the frame,
-albeit it only contains 8 bits per "sample", leaving empty bytes in between.
-
-> 
-> This is the last problem that needs to be solved. We can possibly postpone it 
-> as I don't need width/height for now.
-
-The three fields consume already half of the reserved space. How about
-__u32[16] or such?
-
-> 
-> > > Laurent Pinchart (4):
-> > >   v4l: Add metadata buffer type and format
-> > >   v4l: Add metadata video device type
-> > >   v4l: Define a pixel format for the R-Car VSP1 1-D histogram engine
-> > >   v4l: vsp1: Add HGO support
-> > >  
-> > >  Documentation/DocBook/media/v4l/dev-meta.xml       |  97 ++++
-> > >  .../DocBook/media/v4l/pixfmt-meta-vsp1-hgo.xml     | 307 +++++++++++++
-> > >  Documentation/DocBook/media/v4l/pixfmt.xml         |   9 +
-> > >  Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
-> > >  drivers/media/platform/Kconfig                     |   1 +
-> > >  drivers/media/platform/vsp1/Makefile               |   2 +
-> > >  drivers/media/platform/vsp1/vsp1.h                 |   3 +
-> > >  drivers/media/platform/vsp1/vsp1_drm.c             |   2 +-
-> > >  drivers/media/platform/vsp1/vsp1_drv.c             |  37 +-
-> > >  drivers/media/platform/vsp1/vsp1_entity.c          | 131 +++++-
-> > >  drivers/media/platform/vsp1/vsp1_entity.h          |   7 +-
-> > >  drivers/media/platform/vsp1/vsp1_hgo.c             | 496 ++++++++++++++++
-> > >  drivers/media/platform/vsp1/vsp1_hgo.h             |  50 +++
-> > >  drivers/media/platform/vsp1/vsp1_histo.c           | 307 +++++++++++++
-> > >  drivers/media/platform/vsp1/vsp1_histo.h           |  68 +++
-> > >  drivers/media/platform/vsp1/vsp1_pipe.c            |  30 +-
-> > >  drivers/media/platform/vsp1/vsp1_pipe.h            |   2 +
-> > >  drivers/media/platform/vsp1/vsp1_regs.h            |  24 +-
-> > >  drivers/media/platform/vsp1/vsp1_video.c           |  22 +-
-> > >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  19 +
-> > >  drivers/media/v4l2-core/v4l2-dev.c                 |  37 +-
-> > >  drivers/media/v4l2-core/v4l2-ioctl.c               |  40 ++
-> > >  drivers/media/v4l2-core/videobuf2-v4l2.c           |   3 +
-> > >  include/media/v4l2-dev.h                           |   3 +-
-> > >  include/media/v4l2-ioctl.h                         |   8 +
-> > >  include/uapi/linux/media.h                         |   2 +
-> > >  include/uapi/linux/videodev2.h                     |  17 +
-> > >  27 files changed, 1678 insertions(+), 47 deletions(-)
-> > >  create mode 100644 Documentation/DocBook/media/v4l/dev-meta.xml
-> > >  create mode 100644
-> > >  Documentation/DocBook/media/v4l/pixfmt-meta-vsp1-hgo.xml
-> > >  create mode 100644 drivers/media/platform/vsp1/vsp1_hgo.c
-> > >  create mode 100644 drivers/media/platform/vsp1/vsp1_hgo.h
-> > >  create mode 100644 drivers/media/platform/vsp1/vsp1_histo.c
-> > >  create mode 100644 drivers/media/platform/vsp1/vsp1_histo.h
-
+diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
+index 8b5e014..30cb0f2 100644
+--- a/Documentation/DocBook/media/v4l/common.xml
++++ b/Documentation/DocBook/media/v4l/common.xml
+@@ -1073,6 +1073,8 @@ dheight = format.fmt.pix.height;
+ 
+   &sub-selection-api;
+ 
++  &sub-request-api;
++
+   <section id="streaming-par">
+     <title>Streaming Parameters</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index e09025d..5695bc8 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -833,10 +833,13 @@ is the file descriptor associated with a DMABUF buffer.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved2</structfield></entry>
++	    <entry><structfield>request</structfield></entry>
+ 	    <entry></entry>
+-	    <entry>A place holder for future extensions. Drivers and applications
+-must set this to 0.</entry>
++	    <entry>ID of the request to associate the buffer to. Set by the
++	    application for &VIDIOC-QBUF; and &VIDIOC-PREPARE-BUF;. Set to zero
++	    by the application and the driver in all other cases. See
++	    <xref linkend="v4l2-requests" /> for more information.
++	    </entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+diff --git a/Documentation/DocBook/media/v4l/request-api.xml b/Documentation/DocBook/media/v4l/request-api.xml
+new file mode 100644
+index 0000000..992f25a
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/request-api.xml
+@@ -0,0 +1,90 @@
++<section id="v4l2-requests">
++
++  <title>Experimental API for request handling</title>
++
++  <note>
++    <title>Experimental</title>
++    <para>This is an <link linkend="experimental">experimental</link>
++    interface and may change in the future.</para>
++  </note>
++
++  <section>
++    <title>Introduction</title>
++
++<para>It is often useful to apply certain settings when a buffer is about to be
++filled by the DMA capture of a video capture device, ensuring that those
++settings are applied in time for them to be used with that buffer.</para>
++
++<para>One of the prime use-cases of this is Android's CameraHAL v3 which
++requires per-frame configuration support. Other use-cases are possible as well:
++changing codec settings (bit rate, etc.) starting with a specific buffer,
++preparing a configuration to be applied at a certain time, etc.</para>
++
++<para>The request API is the way V4L2 solves this problem.</para>
++
++  </section>
++
++  <section>
++    <title>Request Objects</title>
++
++<para>At the core of the request API is the request object. Applications store
++configuration parameters such as V4L2 controls, formats and selection rectangles
++in request objects and then associate those request objects for processing with
++specific buffers.</para>
++
++<para>Request objects are created and managed through the media controller
++device node. Details on request object management can be found in the
++<link linkend="media-ioc-request-cmd">media controller request API</link>
++documentation and are outside the scope of the V4L2 request API. Once a request
++object is created it can be referenced by its ID in the V4L2 ioctls that support
++requests.</para>
++
++<para>Applications can store controls, subdev formats and subdev selection
++rectangles in requests. To do so they use the usual V4L2 ioctls
++&VIDIOC-S-EXT-CTRLS;, &VIDIOC-SUBDEV-S-FMT; and &VIDIOC-SUBDEV-S-SELECTION; with
++the <structfield>request</structfield> field of the associated structure set to
++the request ID (for subdev formats and selection rectangles the
++<structfield>which</structfield> field need to be additionally set to
++<constant>V4L2_SUBDEV_FORMAT_REQUEST</constant>). Controls, formats and
++selection rectangles will be processed as usual but will be stored in the
++request instead of applied to the device.
++</para>
++
++<para>Parameters stored in requests can further be retrieved by calling the
++&VIDIOC-G-EXT-CTRLS;, &VIDIOC-SUBDEV-G-FMT; or &VIDIOC-SUBDEV-G-SELECTION;
++ioctls similarly with the <structfield>request</structfield> field of the
++associated structure set to the request ID.
++</para>
++
++  </section>
++
++  <section>
++    <title>Applying Requests</title>
++
++<para>The simplest way to apply a request is to associated it with a buffer.
++This is done by setting the <structfield>request</structfield> field of the
++&v4l2-buffer; to the request ID when queuing the buffer with the &VIDIOC-QBUF;
++ioctl.
++</para>
++
++<para>Once a buffer is queued with a non-zero request ID the driver will apply
++all parameters stored in the request atomically. The parameters are guaranteed
++to come in effect before the buffer starts being transferred and after all
++previous buffers have been complete.
++</para>
++
++<para>For devices with multiple video nodes requests might need to be applied
++synchronously with several buffers. This is achieved by first preparing (but not
++queuing) all the related buffers using the &VIDIOC-PREPARE-BUF; ioctl with the
++<structfield>request</structfield> field of the &v4l2-buffer; set to the request
++ID. Once this is done the request is queued using the
++<constant>MEDIA_REQ_CMD_QUEUE</constant> command of the &MEDIA-IOC-REQUEST-CMD;
++ioctl on the media controller device node. The driver will then queue all
++buffers prepared for the request as if the &VIDIOC-QBUF; ioctl was called on all
++of them and will apply the request parameters atomically and synchronously with
++the transfer of the buffers.
++</para>
++
++  </section>
++
++</section>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+index 7bde698..2c5b72c1 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+@@ -59,6 +59,15 @@ not required, the application can use one of
+ <constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant> flags to skip the respective
+ step.</para>
+ 
++    <para>Applications can prepare a buffer to be processed for a specific
++request. To do so they set the <structfield>request</structfield> field of the
++struct <structname>v4l2_buffer</structname> to the request ID. The buffer will
++then be automatically queued when the request is processed as if the
++<constant>VIDIOC_QBUF</constant> ioctl was called at that time by the
++application. For more information about requests see
++<xref linkend="v4l2-requests" />.
++</para>
++
+     <para>The <structname>v4l2_buffer</structname> structure is
+ specified in <xref linkend="buffer" />.</para>
+   </refsect1>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+index 8b98a0e..742f1dd 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+@@ -80,6 +80,12 @@ to a filled-in array of &v4l2-plane; and the <structfield>length</structfield>
+ field must be set to the number of elements in that array.
+ </para>
+ 
++    <para>Applications can reference a request to be applied when the buffer is
++processed. To do so they set the <structfield>request</structfield> field of the
++struct <structname>v4l2_buffer</structname> to the request ID. For more
++information about requests see <xref linkend="v4l2-requests" />.
++</para>
++
+     <para>To enqueue a <link linkend="mmap">memory mapped</link>
+ buffer applications set the <structfield>memory</structfield>
+ field to <constant>V4L2_MEMORY_MMAP</constant>. When
 -- 
-Kind regards,
+1.9.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
