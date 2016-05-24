@@ -1,87 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iodev.co.uk ([82.211.30.53]:34220 "EHLO iodev.co.uk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751161AbcEDOxQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 10:53:16 -0400
-Date: Wed, 4 May 2016 11:53:06 -0300
-From: Ismael Luceno <ismael@iodev.co.uk>
-To: Andrey Utkin <andrey_utkin@fastmail.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	chall@corp.bluecherry.net, maintainers@bluecherrydvr.com
-Subject: Re: [PATCH 1/2] solo6x10: Set FRAME_BUF_SIZE to 200KB
-Message-ID: <20160504145305.GC9208@pirotess.lan>
-References: <1461986229-11949-1-git-send-email-ismael@iodev.co.uk>
- <20160504133408.GA18570@acer>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160504133408.GA18570@acer>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:42036 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751477AbcEXDBa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2016 23:01:30 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 2DEDF1800BE
+	for <linux-media@vger.kernel.org>; Tue, 24 May 2016 05:01:24 +0200 (CEST)
+Date: Tue, 24 May 2016 05:01:24 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160524030124.2DEDF1800BE@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/May/2016 16:34, Andrey Utkin wrote:
-> On Sat, Apr 30, 2016 at 12:17:08AM -0300, Ismael Luceno wrote:
-> > Such frame size is met in practice. Also report oversized frames.
-> > 
-> > Based on patches by Andrey Utkin <andrey.utkin@corp.bluecherry.net>.
-> 
-> If it is based on my patches([1] [2]), then why you claim authorship and
-> why you don't let me know (at last CCing me)?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Wasn't my intention, I gave you credit, I just merged the changes
-and reworked the warning and commit message.
+Results of the daily build of media_tree:
 
-The whole point to have solo6x10 mainlined was to get rid of the
-out-of-tree driver and convert the DKMS package to use media_build,
-thus mainline should be kept in sync, so why are you not submitting
-the patches yourself? I should have nothing to do with that.
+date:		Tue May 24 04:00:27 CEST 2016
+git branch:	test
+git hash:	bc2b80ee3490651904f121eac1c8fb7652d48253
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
 
-> Do you know that 200 KiB is not the limit, just as previous value? I
-> haven't researched subj deep enough to figure out proven good value for
-> new buffer size.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-I know, I know it depends on the quantization matrix, and it should
-be possible to infer the limit, but like you I didn't do the research,
-the difference is that I don't get paid to do it anymore.
+Detailed results are available here:
 
-> It's both laughable and infuriating for me to spectate your behaviour of
-> "stealth driver developer".
-> You have added yourself back to driver maintainers in MAINTAINERS file
-> after your quit without letting us know.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Why the attack?
+Full logs are available here:
 
-I didn't quit, I was dismissed, and the remaining ~5k USD I'm owed
-was never paid. Curtis: any comment on that?
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-Also, I don't see what's the problem in re-adding myself, and I
-don't understand why I was removed in the first place, it's not up
-to Bluecherry, is it?
+The Media Infrastructure API from this daily build is here:
 
-> You are not affiliated with Bluecherry for two years, and you are not
-> informed about how the driver is working in production on customers
-> setups. So you are not aware what are real issues with it. BTW do you
-> still have a sample of actual hardware? Yeah, I agree that this can be
-> argument against Bluecherry and lack of openness in its bug tracking.
-
-You attend Bluecherry customers' needs because you're part of
-Bluecherry; like you said I'm not, and I certainly don't get paid to
-care about the out-of-tree driver issues or it's bug tracker.
-
-And yes, I still have the hardware.
-
-> But you are also not open and not collaborating.
-
-What do you think I should do? Seriously, I don't get it.
-
-> The point of my accusation to you is that you seem to be just gaining
-> "kernel developer" score for nobody's (except your CV's) benefit.
-> Development and maintenance is what Hans Verkuil, Krzysztof Halasa and
-> others do to this driver, but not this.
-> 
-> Sorry to be harsh.
-
-I think you're the only one keeping such a score, and I never claimed
-my work being more or superior to anyone's else.
-
-You're out of your mind, man.
+http://www.xs4all.nl/~hverkuil/spec/media.html
