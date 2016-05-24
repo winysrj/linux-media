@@ -1,52 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:48218 "EHLO lists.s-osg.org"
+Received: from mga09.intel.com ([134.134.136.24]:54078 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751632AbcEKUi3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2016 16:38:29 -0400
-Date: Wed, 11 May 2016 17:38:23 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: David R <david@unsolicited.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	gregkh@linuxfoundation.org, Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: Patch: V4L stable versions 4.5.3 and 4.5.4
-Message-ID: <20160511173823.7d0dca7e@recife.lan>
-In-Reply-To: <57338272.4080908@unsolicited.net>
-References: <57337E39.40105@unsolicited.net>
-	<57338272.4080908@unsolicited.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1756464AbcEXQvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 12:51:00 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: [RFC v2 15/21] media: Add poll support
+Date: Tue, 24 May 2016 19:47:25 +0300
+Message-Id: <1464108451-28142-16-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi David,
+Implement poll for events. POLLPRI is used to notify users on incoming
+events.
 
-Em Wed, 11 May 2016 20:05:22 +0100
-David R <david@unsolicited.net> escreveu:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-device.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-> On 11/05/16 19:47, David R wrote:
-> > Hi
-> > 
-> > Please consider applying the attached patch (or something like it) to
-> > V4L2, and whatever is appropriate to the mainstream kernel. Without this
-> > my media server crashes and burns at boot.
-> > 
-> > See https://lkml.org/lkml/2016/5/7/88 for more details
-> > 
-> > Thanks
-> > David
-> >   
-> I see the offending patch was reverted earlier today. My box is fine
-> with my (more simple) alternative, but your call.
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 2ff8b29..25f7aea 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -1041,6 +1041,33 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 		ioctl_info, ARRAY_SIZE(ioctl_info));
+ }
+ 
++unsigned int media_device_poll(struct file *filp, struct poll_table_struct *wait)
++{
++	struct media_device_fh *fh = media_device_fh(filp);
++	struct media_device *mdev = to_media_device(fh->fh.devnode);
++	unsigned int poll_events = poll_requested_events(wait);
++	int ret = 0;
++
++	if (poll_events & (POLLIN | POLLOUT))
++		return POLLERR;
++
++	if (poll_events & POLLPRI) {
++		unsigned long flags;
++		bool empty;
++
++		spin_lock_irqsave(&mdev->req_lock, flags);
++		empty = list_empty(&fh->kevents.head);
++		spin_unlock_irqrestore(&mdev->req_lock, flags);
++
++		if (empty)
++			poll_wait(filp, &fh->kevents.wait, wait);
++		else
++			ret |= POLLPRI;
++	}
++
++	return ret;
++}
++
+ #ifdef CONFIG_COMPAT
+ 
+ struct media_links_enum32 {
+@@ -1095,6 +1122,7 @@ static const struct media_file_operations media_device_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = media_device_open,
+ 	.ioctl = media_device_ioctl,
++	.poll = media_device_poll,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl = media_device_compat_ioctl,
+ #endif /* CONFIG_COMPAT */
+-- 
+1.9.1
 
-Yes, I noticed the bug earlier today, while testing a DVB device.
-As this affects 2 stable releases plus the upcoming Kernel 4.6,
-I decided to just revert it for now, while we don't solve the
-issue.
-
-Your patch looks good. So, eventually it will be merged on a new
-version of this patch, after we test it properly.
-
-Thanks!
-Mauro
