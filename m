@@ -1,68 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43294 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751649AbcEGMXX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 May 2016 08:23:23 -0400
-Date: Sat, 7 May 2016 09:23:15 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v4.6] media fixes
-Message-ID: <20160507092315.044558e4@recife.lan>
+Received: from mail-bn1bon0091.outbound.protection.outlook.com ([157.56.111.91]:46526
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752500AbcEXJqs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 05:46:48 -0400
+From: Dragos Bogdan <dragos.bogdan@analog.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Lars-Peter Clausen <lars@metafoo.de>,
+	<linux-media@vger.kernel.org>,
+	Dragos Bogdan <dragos.bogdan@analog.com>
+Subject: [PATCH] [media] adv7604: Add support for hardware reset
+Date: Tue, 24 May 2016 12:13:22 +0300
+Message-ID: <1464081202-25043-1-git-send-email-dragos.bogdan@analog.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+The part can be reset by a low pulse on the RESET pin (i.e. a hardware reset) with a minimum width of 5 ms. It is recommended to wait 5 ms after the low pulse before an I2C write is performed to the part.
+For safety reasons, the delays will be 10 ms.
+The RESET pin can be tied high, so the GPIO is optional.
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.6-5
-
-For:
-  - deadlock fixes on driver probe at exynos4-is and s43-camif drivers;
-  - a build breakage if media controller is enabled and USB or PCI is
-    built as module.
-
-Thanks!
-Mauro
-
+Signed-off-by: Dragos Bogdan <dragos.bogdan@analog.com>
 ---
+ drivers/media/i2c/adv7604.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-PS.: the USB/PCI fix didn't reach linux-next yet, because I was able to
-	merge it only on Friday. I'm confident that it does what it is
-	meant to do, the reported of the bug is also happy, and we got
-	no reports from kbuild robot with randconfigs, but feel free to
-	postpone it to next week if you want to.
-
-The following changes since commit 89a095668304e8a02502ffd35edacffdbf49aa8c:
-
-  [media] vb2-memops: Fix over allocation of frame vectors (2016-04-25 10:22:55 -0300)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.6-5
-
-for you to fetch changes up to b34ecd5aa34800aefa9e2990a805243ec9348437:
-
-  [media] media-device: fix builds when USB or PCI is compiled as module (2016-05-05 08:01:34 -0300)
-
-----------------------------------------------------------------
-media fixes for v4.6-rc7
-
-----------------------------------------------------------------
-Marek Szyprowski (2):
-      [media] media: exynos4-is: fix deadlock on driver probe
-      [media] media: s3c-camif: fix deadlock on driver probe()
-
-Mauro Carvalho Chehab (1):
-      [media] media-device: fix builds when USB or PCI is compiled as module
-
- drivers/media/media-device.c                  |  8 ++++----
- drivers/media/platform/exynos4-is/media-dev.c | 13 ++-----------
- drivers/media/platform/s3c-camif/camif-core.c | 12 +++---------
- 3 files changed, 9 insertions(+), 24 deletions(-)
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 41a1bfc..fac0ff1 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -164,6 +164,7 @@ struct adv76xx_state {
+ 	struct adv76xx_platform_data pdata;
+ 
+ 	struct gpio_desc *hpd_gpio[4];
++	struct gpio_desc *reset_gpio;
+ 
+ 	struct v4l2_subdev sd;
+ 	struct media_pad pads[ADV76XX_PAD_MAX];
+@@ -2996,6 +2997,21 @@ static int configure_regmaps(struct adv76xx_state *state)
+ 	return 0;
+ }
+ 
++static int adv76xx_reset(struct adv76xx_state *state)
++{
++	if (state->reset_gpio) {
++		/* ADV76XX can be reset by a low reset pulse of minimum 5 ms. */
++		gpiod_set_value_cansleep(state->reset_gpio, 0);
++		mdelay(10);
++		gpiod_set_value_cansleep(state->reset_gpio, 1);
++		/* It is recommended to wait 5 ms after the low pulse before */
++		/* an I2C write is performed to the ADV76XX. */
++		mdelay(10);
++	}
++
++	return 0;
++}
++
+ static int adv76xx_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+@@ -3059,6 +3075,12 @@ static int adv76xx_probe(struct i2c_client *client,
+ 		if (state->hpd_gpio[i])
+ 			v4l_info(client, "Handling HPD %u GPIO\n", i);
+ 	}
++	state->reset_gpio = devm_gpiod_get_optional(&client->dev, "reset",
++								GPIOD_OUT_HIGH);
++	if (IS_ERR(state->reset_gpio))
++		return PTR_ERR(state->reset_gpio);
++
++	adv76xx_reset(state);
+ 
+ 	state->timings = cea640x480;
+ 	state->format = adv76xx_format_info(state, MEDIA_BUS_FMT_YUYV8_2X8);
+-- 
+2.1.4
 
