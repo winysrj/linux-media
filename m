@@ -1,120 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:59000 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752484AbcEMIgM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 May 2016 04:36:12 -0400
-Subject: Re: [PATCH v4 6/8] media: rcar-vin: initialize EDID data
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-References: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
- <1462975376-491-7-git-send-email-ulrich.hecht+renesas@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <573591F4.4050901@xs4all.nl>
-Date: Fri, 13 May 2016 10:36:04 +0200
-MIME-Version: 1.0
-In-Reply-To: <1462975376-491-7-git-send-email-ulrich.hecht+renesas@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mga11.intel.com ([192.55.52.93]:36539 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753016AbcEXQu7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 12:50:59 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [RFC v2 06/21] media: Add per-entity request data support
+Date: Tue, 24 May 2016 19:47:16 +0300
+Message-Id: <1464108451-28142-7-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/11/2016 04:02 PM, Ulrich Hecht wrote:
-> Initializes the decoder subdevice with a fixed EDID blob.
-> 
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Allow subsystems to associate data with entities in each request. This
+will be used by the V4L2 subdev core to store pad formats in requests.
 
-Instead implement the g/s_edid ioctls.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-You truly cannot default to an EDID. When an EDID is set the HPD will go high.
-But you don't know the EDID here, the contents of the EDID is something that
-only userspace will know depending on the type of device you're building.
+---
 
-In practice userspace will overwrite the EDID with the real one and so the HPD
-will go down and up again. And while transmitters are supposed to handle that
-cleanly, in reality this is a different story.
+Changes since v0:
 
-Just add the g/s_edid ioctls and you can use 'v4l2-ctl --set-edid=edid=hdmi' to
-fill in a default EDID.
+- Dereference requests without holding the list lock
+- Remove requests from global list when closing the fh
+---
+ drivers/media/media-device.c | 71 ++++++++++++++++++++++++++++++++++++++++++++
+ include/media/media-device.h |  7 +++++
+ include/media/media-entity.h | 12 ++++++++
+ 3 files changed, 90 insertions(+)
 
-I won't accept this patch since I know from my own experience that this doesn't
-work.
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 16fcc20..462823f 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -109,12 +109,18 @@ EXPORT_SYMBOL_GPL(media_device_request_get);
+ 
+ static void media_device_request_release(struct kref *kref)
+ {
++	struct media_entity_request_data *data, *next;
+ 	struct media_device_request *req =
+ 		container_of(kref, struct media_device_request, kref);
+ 	struct media_device *mdev = req->mdev;
+ 
+ 	dev_dbg(mdev->dev, "release request %u\n", req->id);
+ 
++	list_for_each_entry_safe(data, next, &req->data, list) {
++		list_del(&data->list);
++		data->release(data);
++	}
++
+ 	ida_simple_remove(&mdev->req_ids, req->id);
+ 
+ 	mdev->ops->req_free(mdev, req);
+@@ -126,6 +132,70 @@ void media_device_request_put(struct media_device_request *req)
+ }
+ EXPORT_SYMBOL_GPL(media_device_request_put);
+ 
++/**
++ * media_device_request_get_entity_data - Get per-entity data
++ * @req: The request
++ * @entity: The entity
++ *
++ * Search and return per-entity data (as a struct media_entity_request_data
++ * instance) associated with the given entity for the request, as previously
++ * registered by a call to media_device_request_set_entity_data().
++ *
++ * The caller is expected to hold a reference to the request. Per-entity data is
++ * not reference counted, the returned pointer will be valid only as long as the
++ * reference to the request is held.
++ *
++ * Return the data instance pointer or NULL if no data could be found.
++ */
++struct media_entity_request_data *
++media_device_request_get_entity_data(struct media_device_request *req,
++				     struct media_entity *entity)
++{
++	struct media_entity_request_data *data;
++	unsigned long flags;
++
++	spin_lock_irqsave(&req->mdev->req_lock, flags);
++
++	list_for_each_entry(data, &req->data, list) {
++		if (data->entity == entity)
++			goto done;
++	}
++
++	data = NULL;
++
++done:
++	spin_unlock_irqrestore(&req->mdev->req_lock, flags);
++	return data;
++}
++EXPORT_SYMBOL_GPL(media_device_request_get_entity_data);
++
++/**
++ * media_device_request_set_entity_data - Set per-entity data
++ * @req: The request
++ * @entity: The entity
++ * @data: The data
++ *
++ * Record the given per-entity data as being associated with the entity for the
++ * request.
++ *
++ * Only one per-entity data instance can be associated with a request. The
++ * caller is responsible for enforcing this requirement.
++ *
++ * Ownership of the per-entity data is transferred to the request when calling
++ * this function. The data will be freed automatically when the last reference
++ * to the request is released.
++ */
++void media_device_request_set_entity_data(struct media_device_request *req,
++	struct media_entity *entity, struct media_entity_request_data *data)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&req->mdev->req_lock, flags);
++	list_add_tail(&data->list, &req->data);
++	spin_unlock_irqrestore(&req->mdev->req_lock, flags);
++}
++EXPORT_SYMBOL_GPL(media_device_request_set_entity_data);
++
+ static int media_device_request_alloc(struct media_device *mdev,
+ 				      struct file *filp,
+ 				      struct media_request_cmd *cmd)
+@@ -152,6 +222,7 @@ static int media_device_request_alloc(struct media_device *mdev,
+ 	req->filp = filp;
+ 	req->state = MEDIA_DEVICE_REQUEST_STATE_IDLE;
+ 	kref_init(&req->kref);
++	INIT_LIST_HEAD(&req->data);
+ 
+ 	spin_lock_irqsave(&mdev->req_lock, flags);
+ 	list_add_tail(&req->list, &mdev->requests);
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index acb7181..d4e2929 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -281,6 +281,7 @@ enum media_device_request_state {
+  * @fh_list: List entry in the media file handle requests list
+  * @state: The state of the request, MEDIA_DEVICE_REQUEST_STATE_*,
+  *	   access to state serialised by mdev->req_lock
++ * @data: Per-entity data list
+  */
+ struct media_device_request {
+ 	u32 id;
+@@ -290,6 +291,7 @@ struct media_device_request {
+ 	struct list_head list;
+ 	struct list_head fh_list;
+ 	enum media_device_request_state state;
++	struct list_head data;
+ };
+ 
+ /**
+@@ -768,5 +770,10 @@ void media_device_request_get(struct media_device_request *req);
+ void media_device_request_put(struct media_device_request *req);
+ void media_device_request_complete(struct media_device *mdev,
+ 				   struct media_device_request *req);
++struct media_entity_request_data *
++media_device_request_get_entity_data(struct media_device_request *req,
++				     struct media_entity *entity);
++void media_device_request_set_entity_data(struct media_device_request *req,
++	struct media_entity *entity, struct media_entity_request_data *data);
+ 
+ #endif
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index cbb266f..cdc2e6c 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -557,6 +557,18 @@ void media_gobj_create(struct media_device *mdev,
+  */
+ void media_gobj_destroy(struct media_gobj *gobj);
+ 
++/*
++ * struct media_entity_request_data - Per-entity request data
++ * @entity: Entity this data belongs to
++ * @release: Release operation to free the data
++ * @list: List entry in the media_device_request data list
++ */
++struct media_entity_request_data {
++	struct media_entity *entity;
++	void (*release)(struct media_entity_request_data *data);
++	struct list_head list;
++};
++
+ /**
+  * media_entity_pads_init() - Initialize the entity pads
+  *
+-- 
+1.9.1
 
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 46 +++++++++++++++++++++++++++++
->  1 file changed, 46 insertions(+)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index 10a5c10..5bb3c3b 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -765,6 +765,41 @@ static void rvin_notify(struct v4l2_subdev *sd,
->  	}
->  }
->  
-> +static u8 edid[256] = {
-> +	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
-> +	0x48, 0xAE, 0x9C, 0x27, 0x00, 0x00, 0x00, 0x00,
-> +	0x19, 0x12, 0x01, 0x03, 0x80, 0x00, 0x00, 0x78,
-> +	0x0E, 0x00, 0xB2, 0xA0, 0x57, 0x49, 0x9B, 0x26,
-> +	0x10, 0x48, 0x4F, 0x2F, 0xCF, 0x00, 0x31, 0x59,
-> +	0x45, 0x59, 0x61, 0x59, 0x81, 0x99, 0x01, 0x01,
-> +	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3A,
-> +	0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C,
-> +	0x46, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E,
-> +	0x00, 0x00, 0x00, 0xFD, 0x00, 0x31, 0x55, 0x18,
-> +	0x5E, 0x11, 0x00, 0x0A, 0x20, 0x20, 0x20, 0x20,
-> +	0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x43,
-> +	0x20, 0x39, 0x30, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
-> +	0x0A, 0x0A, 0x0A, 0x0A, 0x00, 0x00, 0x00, 0x10,
-> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x68,
-> +	0x02, 0x03, 0x1a, 0xc0, 0x48, 0xa2, 0x10, 0x04,
-> +	0x02, 0x01, 0x21, 0x14, 0x13, 0x23, 0x09, 0x07,
-> +	0x07, 0x65, 0x03, 0x0c, 0x00, 0x10, 0x00, 0xe2,
-> +	0x00, 0x2a, 0x01, 0x1d, 0x00, 0x80, 0x51, 0xd0,
-> +	0x1c, 0x20, 0x40, 0x80, 0x35, 0x00, 0x00, 0x00,
-> +	0x00, 0x00, 0x00, 0x1e, 0x8c, 0x0a, 0xd0, 0x8a,
-> +	0x20, 0xe0, 0x2d, 0x10, 0x10, 0x3e, 0x96, 0x00,
-> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00,
-> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd7
-> +};
-> +
->  int rvin_v4l2_probe(struct rvin_dev *vin)
->  {
->  	struct v4l2_subdev_format fmt = {
-> @@ -870,5 +905,16 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
->  	v4l2_info(&vin->v4l2_dev, "Device registered as %s\n",
->  		  video_device_node_name(&vin->vdev));
->  
-> +	{
-> +		struct v4l2_subdev_edid rvin_edid = {
-> +			.pad = 0,
-> +			.start_block = 0,
-> +			.blocks = 2,
-> +			.edid = edid,
-> +		};
-> +		v4l2_subdev_call(sd, pad, set_edid,
-> +				&rvin_edid);
-> +	}
-> +
->  	return ret;
->  }
-> 
