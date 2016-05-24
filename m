@@ -1,139 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35506 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932899AbcEKODb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2016 10:03:31 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v4 5/8] media: rcar-vin: add DV timings support
-Date: Wed, 11 May 2016 16:02:53 +0200
-Message-Id: <1462975376-491-6-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:64592 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756472AbcEXQvC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 12:51:02 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [RFC v2 16/21] DocBook: media: Document the media request API
+Date: Tue, 24 May 2016 19:47:26 +0300
+Message-Id: <1464108451-28142-17-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds ioctls DV_TIMINGS_CAP, ENUM_DV_TIMINGS, G_DV_TIMINGS, S_DV_TIMINGS,
-and QUERY_DV_TIMINGS.
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+The media request API is made of a new ioctl to implement request
+management. Document it.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+
+Strip off the reserved fields.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 82 +++++++++++++++++++++++++++++
- 1 file changed, 82 insertions(+)
+ .../DocBook/media/v4l/media-controller.xml         |   1 +
+ .../DocBook/media/v4l/media-ioc-request-cmd.xml    | 188 +++++++++++++++++++++
+ 2 files changed, 189 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/media-ioc-request-cmd.xml
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 3788f8a..10a5c10 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -400,6 +400,10 @@ static int rvin_enum_input(struct file *file, void *priv,
- 
- 	i->type = V4L2_INPUT_TYPE_CAMERA;
- 	i->std = vin->vdev.tvnorms;
+diff --git a/Documentation/DocBook/media/v4l/media-controller.xml b/Documentation/DocBook/media/v4l/media-controller.xml
+index 5f2fc07..2a5a5d0 100644
+--- a/Documentation/DocBook/media/v4l/media-controller.xml
++++ b/Documentation/DocBook/media/v4l/media-controller.xml
+@@ -101,5 +101,6 @@
+   &sub-media-ioc-g-topology;
+   &sub-media-ioc-enum-entities;
+   &sub-media-ioc-enum-links;
++  &sub-media-ioc-request-cmd;
+   &sub-media-ioc-setup-link;
+ </appendix>
+diff --git a/Documentation/DocBook/media/v4l/media-ioc-request-cmd.xml b/Documentation/DocBook/media/v4l/media-ioc-request-cmd.xml
+new file mode 100644
+index 0000000..4f4acea
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/media-ioc-request-cmd.xml
+@@ -0,0 +1,188 @@
++<refentry id="media-ioc-request-cmd">
++  <refmeta>
++    <refentrytitle>ioctl MEDIA_IOC_REQUEST_CMD</refentrytitle>
++    &manvol;
++  </refmeta>
 +
-+	if (v4l2_subdev_has_op(sd, pad, dv_timings_cap))
-+		i->capabilities = V4L2_IN_CAP_DV_TIMINGS;
++  <refnamediv>
++    <refname>MEDIA_IOC_REQUEST_CMD</refname>
++    <refpurpose>Manage media device requests</refpurpose>
++  </refnamediv>
 +
- 	strlcpy(i->name, "Camera", sizeof(i->name));
- 
- 	return 0;
-@@ -478,6 +482,78 @@ static int rvin_subscribe_event(struct v4l2_fh *fh,
- 	return v4l2_ctrl_subscribe_event(fh, sub);
- }
- 
-+static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
-+				    struct v4l2_enum_dv_timings *timings)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+	struct v4l2_subdev *sd = vin_to_source(vin);
-+	int pad, ret;
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct media_request_cmd *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
 +
-+	pad = timings->pad;
-+	timings->pad = vin->src_pad_idx;
++  <refsect1>
++    <title>Arguments</title>
 +
-+	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>File descriptor returned by
++	  <link linkend='media-func-open'><function>open()</function></link>.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>MEDIA_IOC_REQUEST_CMD</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
 +
-+	timings->pad = pad;
++  <refsect1>
++    <title>Description</title>
 +
-+	return ret;
-+}
++    <para>The MEDIA_IOC_REQUEST_CMD ioctl allow applications to manage media
++    device requests. A request is an object that can group media device
++    configuration parameters, including subsystem-specific parameters, in order
++    to apply all the parameters atomically. Applications are responsible for
++    allocating and deleting requests, filling them with configuration parameters
++    and (synchronously) applying or (asynchronously) queuing them.</para>
 +
-+static int rvin_s_dv_timings(struct file *file, void *priv_fh,
-+				    struct v4l2_dv_timings *timings)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+	struct v4l2_subdev *sd = vin_to_source(vin);
-+	int err;
++    <para>Request operations are performed by calling the MEDIA_IOC_REQUEST_CMD
++    ioctl with a pointer to a &media-request-cmd; with the
++    <structfield>cmd</structfield> set to the appropriate command.
++    <xref linkend="media-request-commands" /> lists the commands supported by
++    the ioctl.</para>
 +
-+	err = v4l2_subdev_call(sd,
-+			video, s_dv_timings, timings);
-+	if (!err) {
-+		vin->source.width = timings->bt.width;
-+		vin->source.height = timings->bt.height;
-+		vin->format.width = timings->bt.width;
-+		vin->format.height = timings->bt.height;
-+	}
-+	return err;
-+}
++    <para>The &media-request-cmd; <structfield>request</structfield> field
++    contains the ID of the request on which the command operates. For the
++    <constant>MEDIA_REQ_CMD_ALLOC</constant> command the field is set to zero
++    by applications and filled by the driver. For all other commands the field
++    is set by applications and left untouched by the driver.</para>
 +
-+static int rvin_g_dv_timings(struct file *file, void *priv_fh,
-+				    struct v4l2_dv_timings *timings)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+	struct v4l2_subdev *sd = vin_to_source(vin);
++    <para>To allocate a new request applications use the
++    <constant>MEDIA_REQ_CMD_ALLOC</constant>. The driver will allocate a new
++    request and return its ID in the <structfield>request</structfield> field.
++    </para>
 +
-+	return v4l2_subdev_call(sd,
-+			video, g_dv_timings, timings);
-+}
++    <para>Requests are reference-counted. A newly allocate request is referenced
++    by the media device file handled on which it has been created, and can be
++    later referenced by subsystem-specific operations using the request ID.
++    Requests will thus be automatically deleted when they're not longer used
++    after the media device file handle is closed.</para>
 +
-+static int rvin_query_dv_timings(struct file *file, void *priv_fh,
-+				    struct v4l2_dv_timings *timings)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+	struct v4l2_subdev *sd = vin_to_source(vin);
++    <para>If a request isn't needed applications can delete it using the
++    <constant>MEDIA_REQ_CMD_DELETE</constant> command. The driver will drop the
++    reference to the request stored in the media device file handle. The request
++    will not be usable through the MEDIA_IOC_REQUEST_CMD ioctl anymore, but will
++    only be deleted when the last reference is released. If no other reference
++    exists when the delete command is invoked the request will be deleted
++    immediately.</para>
 +
-+	return v4l2_subdev_call(sd,
-+			video, query_dv_timings, timings);
-+}
++    <para>After creating a request applications should fill it with
++    configuration parameters. This is performed through subsystem-specific
++    request APIs outside the scope of the media controller API. See the
++    appropriate subsystem APIs for more information, including how they interact
++    with the MEDIA_IOC_REQUEST_CMD ioctl.</para>
 +
-+static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
-+				    struct v4l2_dv_timings_cap *cap)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+	struct v4l2_subdev *sd = vin_to_source(vin);
-+	int pad, ret;
++    <para>Once a request contains all the desired configuration parameters it
++    can be applied synchronously or queued asynchronously. To apply a request
++    applications use the <constant>MEDIA_REQ_CMD_APPLY</constant> command. The
++    driver will apply all configuration parameters stored in the request to the
++    device atomically. The ioctl will return once all parameters have been
++    applied, but it should be noted that they might not have fully taken effect
++    yet.</para>
 +
-+	pad = cap->pad;
-+	cap->pad = vin->src_pad_idx;
++    <para>To queue a request applications use the
++    <constant>MEDIA_REQ_CMD_QUEUE</constant> command. The driver will queue the
++    request for processing and return immediately. The request will then be
++    processed and applied after all previously queued requests.</para>
 +
-+	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
++    <para>Once a request has been queued applications are not allowed to modify
++    its configuration parameters until the request has been fully processed.
++    Any attempt to do so will result in the related subsystem API returning
++    an error. The media device request API doesn't notify applications of
++    request processing completion, this is left to the other subsystems APIs to
++    implement.</para>
 +
-+	cap->pad = pad;
++    <table pgwide="1" frame="none" id="media-request-cmd">
++      <title>struct <structname>media_request_cmd</structname></title>
++      <tgroup cols="3">
++        &cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>cmd</structfield></entry>
++	    <entry>Command, set by the application. See
++	    <xref linkend="media-request-commands" /> for the list of supported
++	    commands.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>request</structfield></entry>
++	    <entry>Request ID, set by the driver for the
++	    <constant>MEDIA_REQ_CMD_ALLOC</constant> and by the application
++	    for all other commands.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
 +
-+	return ret;
-+}
++    <table frame="none" pgwide="1" id="media-request-commands">
++      <title>Media request commands</title>
++      <tgroup cols="2">
++        <colspec colname="c1"/>
++        <colspec colname="c2"/>
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>MEDIA_REQ_CMD_ALLOC</constant></entry>
++	    <entry>Allocate a new request.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>MEDIA_REQ_CMD_DELETE</constant></entry>
++	    <entry>Delete a request.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>MEDIA_REQ_CMD_APPLY</constant></entry>
++	    <entry>Apply all settings from a request.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>MEDIA_REQ_CMD_QUEUE</constant></entry>
++	    <entry>Queue a request for processing.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
 +
- static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
- 	.vidioc_querycap		= rvin_querycap,
- 	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
-@@ -494,6 +570,12 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
- 	.vidioc_g_input			= rvin_g_input,
- 	.vidioc_s_input			= rvin_s_input,
- 
-+	.vidioc_dv_timings_cap		= rvin_dv_timings_cap,
-+	.vidioc_enum_dv_timings		= rvin_enum_dv_timings,
-+	.vidioc_g_dv_timings		= rvin_g_dv_timings,
-+	.vidioc_s_dv_timings		= rvin_s_dv_timings,
-+	.vidioc_query_dv_timings	= rvin_query_dv_timings,
++  <refsect1>
++    &return-value;
 +
- 	.vidioc_querystd		= rvin_querystd,
- 	.vidioc_g_std			= rvin_g_std,
- 	.vidioc_s_std			= rvin_s_std,
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>The &media-request-cmd; specifies an invalid command or
++	  references a non-existing request.
++	  </para>
++	</listitem>
++	<term><errorcode>ENOSYS</errorcode></term>
++	<listitem>
++	  <para>The &media-request-cmd; specifies the
++	  <constant>MEDIA_REQ_CMD_QUEUE</constant> or
++	  <constant>MEDIA_REQ_CMD_APPLY</constant> and that command isn't
++	  implemented by the device.
++	  </para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
 -- 
-2.7.4
+1.9.1
 
