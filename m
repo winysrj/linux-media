@@ -1,112 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:62249 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752610AbcEDT3D (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 15:29:03 -0400
-Date: Wed, 4 May 2016 21:28:45 +0200
-From: Stefan Lippers-Hollmann <s.l-h@gmx.de>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for v4.6-rc1] media updates
-Message-ID: <20160504212845.21dab7c8@mir>
-In-Reply-To: <CA+55aFyE82Hi29az_MG9oG0=AEg1o++Wng_DO2RvNHQsSOz87g@mail.gmail.com>
-References: <20160315080552.3cc5d146@recife.lan>
-	<20160503233859.0f6506fa@mir>
-	<CA+55aFxAor=MJSGFkynu72AQN75bNTh9kewLR4xe8CpjHQQvZQ@mail.gmail.com>
-	<20160504063902.0af2f4d7@mir>
-	<CA+55aFyE82Hi29az_MG9oG0=AEg1o++Wng_DO2RvNHQsSOz87g@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_//D.fC5zdrxpwRT1/mvrnY+K"; protocol="application/pgp-signature"
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:32213 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754532AbcEXKVW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 06:21:22 -0400
+Subject: Re: [RESEND PATCH] [media] s5p-mfc: don't close instance after free
+ OUTPUT buffers
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	linux-kernel@vger.kernel.org
+References: <1462572682-5195-1-git-send-email-javier@osg.samsung.com>
+Cc: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	ayaka <ayaka@soulik.info>, Shuah Khan <shuahkh@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <ae33ff08-0766-973e-3181-98fb01a76b9e@samsung.com>
+Date: Tue, 24 May 2016 12:21:17 +0200
+MIME-version: 1.0
+In-reply-to: <1462572682-5195-1-git-send-email-javier@osg.samsung.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_//D.fC5zdrxpwRT1/mvrnY+K
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hello,
 
-Hi
 
-On 2016-05-04, Linus Torvalds wrote:
-> On Tue, May 3, 2016 at 9:39 PM, Stefan Lippers-Hollmann <s.l-h@gmx.de> wr=
-ote:
-> >
-> > Just as a cross-check, this (incomplete, but au0828, cx231xx and em28xx
-> > aren't needed/ loaded on my system) crude revert avoids the problem for
-> > me on v4.6-rc6-113-g83858a7. =20
->=20
-> Hmm.
->=20
-> That just open-codes __media_device_usb_init().
->=20
-> The main difference seems to be that __media_device_usb_init() ends up
-> having that
->=20
->      #ifdef CONFIG_USB
->      #endif
->=20
-> around it.
->=20
-> I think that is bogus.
->=20
-> What happens if you replace that #ifdef CONFIG_USB in
-> __media_device_usb_init() with
->=20
->     #if CONFIG_USB || (MODULE && CONFIG_USB_MODULE)
-[...]
+On 2016-05-07 00:11, Javier Martinez Canillas wrote:
+> From: ayaka <ayaka@soulik.info>
+>
+> User-space applications can use the VIDIOC_REQBUFS ioctl to determine if a
+> memory mapped, user pointer or DMABUF based I/O is supported by the driver.
+>
+> So a set of VIDIOC_REQBUFS ioctl calls will be made with count 0 and then
+> the real VIDIOC_REQBUFS call with count == n. But for count 0, the driver
+> not only frees the buffer but also closes the MFC instance and s5p_mfc_ctx
+> state is set to MFCINST_FREE.
+>
+> The VIDIOC_REQBUFS handler for the output device checks if the s5p_mfc_ctx
+> state is set to MFCINST_INIT (which happens on an VIDIOC_S_FMT) and fails
+> otherwise. So after a VIDIOC_REQBUFS(n), future VIDIOC_REQBUFS(n) calls
+> will fails unless a VIDIOC_S_FMT ioctl calls happens before the reqbufs.
+>
+> But applications may first set the format and then attempt to determine
+> the I/O methods supported by the driver (for example Gstramer does it) so
+> the state won't be set to MFCINST_INIT again and VIDIOC_REQBUFS will fail.
+>
+> To avoid this issue, only free the buffers on VIDIOC_REQBUFS(0) but don't
+> close the MFC instance to allow future VIDIOC_REQBUFS(n) calls to succeed.
+>
+> Signed-off-by: ayaka <ayaka@soulik.info>
+> [javier: Rewrote changelog to explain the problem more detailed]
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-that throws
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-drivers/media/media-device.c: In function '__media_device_usb_init':
-drivers/media/media-device.c:878:5: warning: "CONFIG_USB" is not defined [-=
-Wundef]
- #if CONFIG_USB || (MODULE && CONFIG_USB_MODULE)
-     ^
+>
+> ---
+> Hello,
+>
+> This is a resend of a patch posted by Ayaka some time ago [0].
+> Without $SUBJECT, trying to decode a video using Gstramer fails
+> on an Exynos5422 Odroid XU4 board with following error message:
+>
+> $ gst-launch-1.0 filesrc location=test.mov ! qtdemux ! h264parse ! v4l2video0dec ! videoconvert ! autovideosink
+>
+> Setting pipeline to PAUSED ...
+> Pipeline is PREROLLING ...
+> [ 3947.114756] vidioc_reqbufs:576: Only V4L2_MEMORY_MAP is supported
+> [ 3947.114771] vidioc_reqbufs:576: Only V4L2_MEMORY_MAP is supported
+> [ 3947.114903] reqbufs_output:484: Reqbufs called in an invalid state
+> [ 3947.114913] reqbufs_output:510: Failed allocating buffers for OUTPUT queue
+> ERROR: from element /GstPipeline:pipeline0/v4l2video0dec:v4l2video0dec0: Failed to allocate required memory.
+> Additional debug info:
+> gstv4l2videodec.c(575): gst_v4l2_video_dec_handle_frame (): /GstPipeline:pipeline0/v4l2video0dec:v4l2video0dec0:
+> Buffer pool activation failed
+> ERROR: pipeline doesn't want to preroll.
+> Setting pipeline to NULL ...
+> Freeing pipeline ...
+>
+> [0]: https://patchwork.linuxtv.org/patch/32794/
+>
+> Best regards,
+> Javier
+>
+>   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 1 -
+>   1 file changed, 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> index f2d6376ce618..8b9467de2d6a 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> @@ -474,7 +474,6 @@ static int reqbufs_output(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx,
+>   		ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
+>   		if (ret)
+>   			goto out;
+> -		s5p_mfc_close_mfc_inst(dev, ctx);
+>   		ctx->src_bufs_cnt = 0;
+>   		ctx->output_state = QUEUE_FREE;
+>   	} else if (ctx->output_state == QUEUE_FREE) {
 
-however, taking arch/arm/mach-omap1/include/mach/usb.h as example,=20
-changing it to=20
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -875,7 +875,7 @@ void __media_device_usb_init(struct medi
- 			     const char *board_name,
- 			     const char *driver_name)
- {
--#ifdef CONFIG_USB
-+#if defined(CONFIG_USB) || defined(CONFIG_USB_MODULE)
- 	mdev->dev =3D &udev->dev;
-=20
- 	if (driver_name)
-
-indeed fixes the problem for me
-
-Thanks a lot!
-
-Regards
-	Stefan Lippers-Hollmann
-
---Sig_//D.fC5zdrxpwRT1/mvrnY+K
-Content-Type: application/pgp-signature
-Content-Description: Digitale Signatur von OpenPGP
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXKk1tAAoJEL/gLWWx0ULtYs8P/0c/OtHC22oIJzs8bEoQSZiG
-nsnlkJZr8SVlYg2qOtPmvaZC8ajYuGQOH0UGMIADZ+A30Vs/wN092cN/93/sO/O+
-v1W3ExIy1Rzwj7naZXPTC4EUlI+vCPjqHWnlCHNoTgqC/xnAFwr42aON6HyGZ94k
-nxYFxJ76WyfnutEA48rYFDXG46njN01RJXQV4iYfhUL6aMNEGffBncyp/E2NHVV+
-luUiCLFFg5R49bzh9YOk4KbrXtdaJm2zRFwPukN+oZ05nMvgt3FIohaML0ZoCHQ2
-9HuICcFV6wwmMuPMr3d/NF8OreRAucxu5UMcyQlx0jRRuWHJh1pkQWt9CaAhEQUf
-nJRuSaa8cgzcJGrtxVm8SafGfPdJ0eDjpcg7WDWvEEqH344emIiHXTmd8stBChvE
-aH462t300y8zXvNTCPDMcloI9kOExKJOJXGTjpS6TMs60RT6EB5ofkzLZvfzWlrq
-g3YLas5me0MYxs5cb6uA+aUitWADq2XHGKxj7Fn6Ae8Cua19xpLe2BRQPQlg97wm
-OvaKPh97LGnuLxb36jKgnUfK9woUmPB1FiiCW28srEm84MaZaNK5knJ9053lv258
-XNsrFXal+sWOXhlP8xMrwuzGNoKXU9FJht0tQnB2Ep0WmS7x3Fi0ZHNMbycrJgOg
-O4um+d0uYKPprW0WRgA6
-=YlDY
------END PGP SIGNATURE-----
-
---Sig_//D.fC5zdrxpwRT1/mvrnY+K--
