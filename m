@@ -1,60 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:34704 "EHLO
-	mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756012AbcEWNnq (ORCPT
+Received: from resqmta-po-08v.sys.comcast.net ([96.114.154.167]:35127 "EHLO
+	resqmta-po-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753048AbcEXX7S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2016 09:43:46 -0400
-Received: by mail-it0-f66.google.com with SMTP id k76so4968081ita.1
-        for <linux-media@vger.kernel.org>; Mon, 23 May 2016 06:43:45 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1463907991-7916-29-git-send-email-geert@linux-m68k.org>
-References: <1463907991-7916-1-git-send-email-geert@linux-m68k.org>
-	<1463907991-7916-29-git-send-email-geert@linux-m68k.org>
-Date: Mon, 23 May 2016 09:29:51 -0400
-Message-ID: <CABxcv=kuQa_A03bdkgBjHF3XyOWY1C6y4j_k9z2CRVSf5gVeXw@mail.gmail.com>
-Subject: Re: [PATCH 28/54] MAINTAINERS: Add file patterns for media device
- tree bindings
-From: Javier Martinez Canillas <javier@dowhile0.org>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Tue, 24 May 2016 19:59:18 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, javier@osg.samsung.com,
+	inki.dae@samsung.com, g.liakhovetski@gmx.de,
+	jh1009.sung@samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2 0/2] Media Device Allocator API
+Date: Tue, 24 May 2016 17:39:46 -0600
+Message-Id: <cover.1464132578.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Geert,
+Media Device Allocator API to allows multiple drivers share a media device.
+Using this API, drivers can allocate a media device with the shared struct
+device as the key. Once the media device is allocated by a driver, other
+drivers can get a reference to it. The media device is released when all
+the references are released.
 
-On Sun, May 22, 2016 at 5:06 AM, Geert Uytterhoeven
-<geert@linux-m68k.org> wrote:
-> Submitters of device tree binding documentation may forget to CC
-> the subsystem maintainer if this is missing.
->
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Cc: linux-media@vger.kernel.org
-> ---
-> Please apply this patch directly if you want to be involved in device
-> tree binding documentation for your subsystem.
-> ---
->  MAINTAINERS | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 7acb65bb2590a321..c230cd9ec8aefe45 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -7376,6 +7376,7 @@ W:        https://linuxtv.org
->  Q:     http://patchwork.kernel.org/project/linux-media/list/
->  T:     git git://linuxtv.org/media_tree.git
->  S:     Maintained
-> +F:     Documentation/devicetree/bindings/media/
->  F:     Documentation/dvb/
->  F:     Documentation/video4linux/
->  F:     Documentation/DocBook/media/
+This patch series has been tested with au0828 and snd-usb-audio drivers.
+snd-us-audio patch isn't included in this series. Once this patch series
+is reviews and gets a stable state, I will send out the snd-usb-audio
+patch.
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Changes since Patch v1 series: (based on Hans Virkuil's review)
+- Removed media_device_get() and media_device_allocate(). These are
+  unnecessary.
+- media_device_usb_allocate() holds media_device_lock to do allocate
+  and initialize the media device.
+- Changed media_device_put() to media_device_delete() for symmetry with
+  media_device_*_allocate().
+- Dropped media_device_unregister_put(). au0828 calls media_device_delete()
+  instead.
 
-Best regards,
-Javier
+Shuah Khan (2):
+  media: Media Device Allocator API
+  media: change au0828 to use Media Device Allocator API
+
+ drivers/media/Makefile                 |   3 +-
+ drivers/media/media-dev-allocator.c    | 120 +++++++++++++++++++++++++++++++++
+ drivers/media/usb/au0828/au0828-core.c |  12 ++--
+ drivers/media/usb/au0828/au0828.h      |   1 +
+ include/media/media-dev-allocator.h    |  85 +++++++++++++++++++++++
+ 5 files changed, 212 insertions(+), 9 deletions(-)
+ create mode 100644 drivers/media/media-dev-allocator.c
+ create mode 100644 include/media/media-dev-allocator.h
+
+-- 
+2.7.4
+
