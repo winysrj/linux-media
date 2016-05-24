@@ -1,346 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:44906 "EHLO mga09.intel.com"
+Received: from lists.s-osg.org ([54.187.51.154]:38292 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751244AbcEINQb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2016 09:16:31 -0400
-Subject: Re: [PATCH v2.1 3/5] media: Refactor copying IOCTL arguments from and
- to user space
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com
-References: <1462360855-23354-4-git-send-email-sakari.ailus@linux.intel.com>
- <1462367391-21503-1-git-send-email-sakari.ailus@linux.intel.com>
- <2507022.47E6MxOJNv@avalon>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <57308DAA.1000404@linux.intel.com>
-Date: Mon, 9 May 2016 16:16:26 +0300
+	id S1751790AbcEXRNO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 13:13:14 -0400
+Subject: Re: [PATCH 2/3] media: add media_device_unregister_put() interface
+To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	hans.verkuil@cisco.com, chehabrafael@gmail.com,
+	javier@osg.samsung.com, inki.dae@samsung.com,
+	g.liakhovetski@gmx.de, jh1009.sung@samsung.com
+References: <cover.1463158822.git.shuahkh@osg.samsung.com>
+ <14efd8cc91d49e34936fd227d1208429d16e3fa0.1463158822.git.shuahkh@osg.samsung.com>
+ <5742EBDA.1010902@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <57448BA7.3040107@osg.samsung.com>
+Date: Tue, 24 May 2016 11:13:11 -0600
 MIME-Version: 1.0
-In-Reply-To: <2507022.47E6MxOJNv@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <5742EBDA.1010902@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Many thanks for the review!
-
-Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday 04 May 2016 16:09:51 Sakari Ailus wrote:
->> Refactor copying the IOCTL argument structs from the user space and back,
->> in order to reduce code copied around and make the implementation more
->> robust.
+On 05/23/2016 05:39 AM, Hans Verkuil wrote:
+> On 05/13/2016 07:09 PM, Shuah Khan wrote:
+>> Add media_device_unregister_put() interface to release reference to a media
+>> device allocated using the Media Device Allocator API. The media device is
+>> unregistered and freed when the last driver that holds the reference to the
+>> media device releases the reference. The media device is unregistered and
+>> freed in the kref put handler.
 >>
->> As a result, the copying is done while not holding the graph mutex.
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 >> ---
->> since v2:
->>
->> - Remove function to calculate maximum argument size, replace by a char
->>   array of 256 or kmalloc() if that's too small.
->>
->>  drivers/media/media-device.c | 194 +++++++++++++++++++---------------------
->>  1 file changed, 94 insertions(+), 100 deletions(-)
+>>  drivers/media/media-device.c | 11 +++++++++++
+>>  include/media/media-device.h | 15 +++++++++++++++
+>>  2 files changed, 26 insertions(+)
 >>
 >> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
->> index 9b5a88d..0797e4b 100644
+>> index 33a9952..b5c279a 100644
 >> --- a/drivers/media/media-device.c
 >> +++ b/drivers/media/media-device.c
->> @@ -59,27 +59,24 @@ static int media_device_close(struct file *filp)
+>> @@ -36,6 +36,7 @@
+>>  #include <media/media-device.h>
+>>  #include <media/media-devnode.h>
+>>  #include <media/media-entity.h>
+>> +#include <media/media-dev-allocator.h>
+>>  
+>>  #ifdef CONFIG_MEDIA_CONTROLLER
+>>  
+>> @@ -818,6 +819,16 @@ void media_device_unregister(struct media_device *mdev)
 >>  }
->>
->>  static int media_device_get_info(struct media_device *dev,
->> -				 struct media_device_info __user *__info)
->> +				 struct media_device_info *info)
->>  {
->> -	struct media_device_info info;
->> -
->> -	memset(&info, 0, sizeof(info));
->> +	memset(info, 0, sizeof(*info));
->>
->>  	if (dev->driver_name[0])
->> -		strlcpy(info.driver, dev->driver_name, sizeof(info.driver));
->> +		strlcpy(info->driver, dev->driver_name, sizeof(info->driver));
->>  	else
->> -		strlcpy(info.driver, dev->dev->driver->name, sizeof(info.driver));
->> +		strlcpy(info->driver, dev->dev->driver->name,
->> +			sizeof(info->driver));
->>
->> -	strlcpy(info.model, dev->model, sizeof(info.model));
->> -	strlcpy(info.serial, dev->serial, sizeof(info.serial));
->> -	strlcpy(info.bus_info, dev->bus_info, sizeof(info.bus_info));
->> +	strlcpy(info->model, dev->model, sizeof(info->model));
->> +	strlcpy(info->serial, dev->serial, sizeof(info->serial));
->> +	strlcpy(info->bus_info, dev->bus_info, sizeof(info->bus_info));
->>
->> -	info.media_version = MEDIA_API_VERSION;
->> -	info.hw_revision = dev->hw_revision;
->> -	info.driver_version = dev->driver_version;
->> +	info->media_version = MEDIA_API_VERSION;
->> +	info->hw_revision = dev->hw_revision;
->> +	info->driver_version = dev->driver_version;
->>
->> -	if (copy_to_user(__info, &info, sizeof(*__info)))
->> -		return -EFAULT;
->>  	return 0;
->>  }
->>
->> @@ -101,29 +98,25 @@ static struct media_entity *find_entity(struct
->> media_device *mdev, u32 id) }
->>
->>  static long media_device_enum_entities(struct media_device *mdev,
->> -				       struct media_entity_desc __user *uent)
->> +				       struct media_entity_desc *entd)
->>  {
->>  	struct media_entity *ent;
->> -	struct media_entity_desc u_ent;
->> -
->> -	memset(&u_ent, 0, sizeof(u_ent));
->> -	if (copy_from_user(&u_ent.id, &uent->id, sizeof(u_ent.id)))
->> -		return -EFAULT;
->> -
->> -	ent = find_entity(mdev, u_ent.id);
->>
->> +	ent = find_entity(mdev, entd->id);
->>  	if (ent == NULL)
->>  		return -EINVAL;
->>
->> -	u_ent.id = media_entity_id(ent);
->> +	memset(entd, 0, sizeof(*entd));
->> +
->> +	entd->id = media_entity_id(ent);
->>  	if (ent->name)
->> -		strlcpy(u_ent.name, ent->name, sizeof(u_ent.name));
->> -	u_ent.type = ent->function;
->> -	u_ent.revision = 0;		/* Unused */
->> -	u_ent.flags = ent->flags;
->> -	u_ent.group_id = 0;		/* Unused */
->> -	u_ent.pads = ent->num_pads;
->> -	u_ent.links = ent->num_links - ent->num_backlinks;
->> +		strlcpy(entd->name, ent->name, sizeof(entd->name));
->> +	entd->type = ent->function;
->> +	entd->revision = 0;		/* Unused */
->> +	entd->flags = ent->flags;
->> +	entd->group_id = 0;		/* Unused */
->> +	entd->pads = ent->num_pads;
->> +	entd->links = ent->num_links - ent->num_backlinks;
->>
->>  	/*
->>  	 * Workaround for a bug at media-ctl <= v1.10 that makes it to
->> @@ -139,14 +132,13 @@ static long media_device_enum_entities(struct
->> media_device *mdev, if (ent->function < MEDIA_ENT_F_OLD_BASE ||
->>  	    ent->function > MEDIA_ENT_T_DEVNODE_UNKNOWN) {
->>  		if (is_media_entity_v4l2_subdev(ent))
->> -			u_ent.type = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
->> +			entd->type = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
->>  		else if (ent->function != MEDIA_ENT_F_IO_V4L)
->> -			u_ent.type = MEDIA_ENT_T_DEVNODE_UNKNOWN;
->> +			entd->type = MEDIA_ENT_T_DEVNODE_UNKNOWN;
->>  	}
->>
->> -	memcpy(&u_ent.raw, &ent->info, sizeof(ent->info));
->> -	if (copy_to_user(uent, &u_ent, sizeof(u_ent)))
->> -		return -EFAULT;
->> +	memcpy(&entd->raw, &ent->info, sizeof(ent->info));
->> +
->>  	return 0;
->>  }
->>
->> @@ -158,8 +150,8 @@ static void media_device_kpad_to_upad(const struct
->> media_pad *kpad, upad->flags = kpad->flags;
->>  }
->>
->> -static long __media_device_enum_links(struct media_device *mdev,
->> -				      struct media_links_enum *links)
->> +static long media_device_enum_links(struct media_device *mdev,
->> +				    struct media_links_enum *links)
->>  {
->>  	struct media_entity *entity;
->>
->> @@ -206,64 +198,35 @@ static long __media_device_enum_links(struct
->> media_device *mdev, return 0;
->>  }
->>
->> -static long media_device_enum_links(struct media_device *mdev,
->> -				    struct media_links_enum __user *ulinks)
->> -{
->> -	struct media_links_enum links;
->> -	int rval;
->> -
->> -	if (copy_from_user(&links, ulinks, sizeof(links)))
->> -		return -EFAULT;
->> -
->> -	rval = __media_device_enum_links(mdev, &links);
->> -	if (rval < 0)
->> -		return rval;
->> -
->> -	if (copy_to_user(ulinks, &links, sizeof(*ulinks)))
->> -		return -EFAULT;
->> -
->> -	return 0;
->> -}
->> -
->>  static long media_device_setup_link(struct media_device *mdev,
->> -				    struct media_link_desc __user *_ulink)
->> +				    struct media_link_desc *linkd)
->>  {
->>  	struct media_link *link = NULL;
->> -	struct media_link_desc ulink;
->>  	struct media_entity *source;
->>  	struct media_entity *sink;
->> -	int ret;
->> -
->> -	if (copy_from_user(&ulink, _ulink, sizeof(ulink)))
->> -		return -EFAULT;
->>
->>  	/* Find the source and sink entities and link.
->>  	 */
->> -	source = find_entity(mdev, ulink.source.entity);
->> -	sink = find_entity(mdev, ulink.sink.entity);
->> +	source = find_entity(mdev, linkd->source.entity);
->> +	sink = find_entity(mdev, linkd->sink.entity);
->>
->>  	if (source == NULL || sink == NULL)
->>  		return -EINVAL;
->>
->> -	if (ulink.source.index >= source->num_pads ||
->> -	    ulink.sink.index >= sink->num_pads)
->> +	if (linkd->source.index >= source->num_pads ||
->> +	    linkd->sink.index >= sink->num_pads)
->>  		return -EINVAL;
->>
->> -	link = media_entity_find_link(&source->pads[ulink.source.index],
->> -				      &sink->pads[ulink.sink.index]);
->> +	link = media_entity_find_link(&source->pads[linkd->source.index],
->> +				      &sink->pads[linkd->sink.index]);
->>  	if (link == NULL)
->>  		return -EINVAL;
->>
->>  	/* Setup the link on both entities. */
->> -	ret = __media_entity_setup_link(link, ulink.flags);
->> -
->> -	if (copy_to_user(_ulink, &ulink, sizeof(ulink)))
->> -		return -EFAULT;
->> -
->> -	return ret;
->> +	return __media_entity_setup_link(link, linkd->flags);
->>  }
->>
->> -static long __media_device_get_topology(struct media_device *mdev,
->> +static long media_device_get_topology(struct media_device *mdev,
->>  				      struct media_v2_topology *topo)
->>  {
->>  	struct media_entity *entity;
->> @@ -400,35 +363,50 @@ static long __media_device_get_topology(struct
->> media_device *mdev, return ret;
->>  }
->>
->> -static long media_device_get_topology(struct media_device *mdev,
->> -				      struct media_v2_topology __user *utopo)
->> +static long copy_arg_from_user(void *karg, void __user *uarg, unsigned int
->> cmd) {
->> -	struct media_v2_topology ktopo;
->> -	int ret;
->> -
->> -	if (copy_from_user(&ktopo, utopo, sizeof(ktopo)))
->> +	/* All media IOCTLs are _IOWR() */
->> +	if (copy_from_user(karg, uarg, _IOC_SIZE(cmd)))
->>  		return -EFAULT;
->>
->> -	ret = __media_device_get_topology(mdev, &ktopo);
->> -	if (ret < 0)
->> -		return ret;
->> +	return 0;
->> +}
->>
->> -	if (copy_to_user(utopo, &ktopo, sizeof(*utopo)))
->> +static long copy_arg_to_user(void __user *uarg, void *karg, unsigned int
->> cmd) +{
->> +	/* All media IOCTLs are _IOWR() */
->> +	if (copy_to_user(uarg, karg, _IOC_SIZE(cmd)))
->>  		return -EFAULT;
->>
->>  	return 0;
->>  }
->>
->> -#define MEDIA_IOC(__cmd, func)						\
->> -	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
->> -		.cmd = MEDIA_IOC_##__cmd,				\
->> -		.fn = (long (*)(struct media_device *, void __user *))func,    \
->> +#ifdef CONFIG_COMPAT
->> +/* Only compat IOCTLs need this right now. */
->> +static long copy_arg_to_user_nop(void __user *uarg, void *karg,
->> +				 unsigned int cmd)
+>>  EXPORT_SYMBOL_GPL(media_device_unregister);
+>>  
+>> +void media_device_unregister_put(struct media_device *mdev)
 >> +{
->> +	return 0;
+>> +	if (mdev == NULL)
+>> +		return;
+>> +
+>> +	dev_dbg(mdev->dev, "%s: mdev %p\n", __func__, mdev);
+>> +	media_device_put(mdev);
 >> +}
->> +#endif
+>> +EXPORT_SYMBOL_GPL(media_device_unregister_put);
 >> +
->> +#define MEDIA_IOC_ARG(__cmd, func, from_user, to_user)	\
->> +	[_IOC_NR(MEDIA_IOC_##__cmd)] = {		\
->> +		.cmd = MEDIA_IOC_##__cmd,		\
->> +		.fn = (long (*)(struct media_device *, void *))func,	\
->> +		.arg_from_user = from_user,		\
->> +		.arg_to_user = to_user,			\
->>  	}
->>
->> +#define MEDIA_IOC(__cmd, func)						\
->> +	MEDIA_IOC_ARG(__cmd, func, copy_arg_from_user, copy_arg_to_user)
->> +
->>  /* the table is indexed by _IOC_NR(cmd) */
->>  struct media_ioctl_info {
->>  	unsigned int cmd;
->> -	long (*fn)(struct media_device *dev, void __user *arg);
->> +	long (*fn)(struct media_device *dev, void *arg);
->> +	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
->> +	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
->>  };
->>
->>  static inline long is_valid_ioctl(const struct media_ioctl_info *info,
->> @@ -445,6 +423,7 @@ static long __media_device_ioctl(
->>  	struct media_devnode *devnode = media_devnode_data(filp);
->>  	struct media_device *dev = to_media_device(devnode);
->>  	const struct media_ioctl_info *info;
->> +	char __karg[256], *karg = __karg;
->>  	long ret;
->>
->>  	ret = is_valid_ioctl(info_array, info_array_len, cmd);
->> @@ -453,10 +432,24 @@ static long __media_device_ioctl(
->>
->>  	info = &info_array[_IOC_NR(cmd)];
->>
->> +	if (_IOC_SIZE(info->cmd) > sizeof(__karg)) {
->> +		karg = kmalloc(_IOC_SIZE(info->cmd), GFP_KERNEL);
->> +		if (!karg)
->> +			return -ENOMEM;
->> +	}
->> +
->> +	info->arg_from_user(karg, arg, cmd);
->> +
->>  	mutex_lock(&dev->graph_mutex);
->> -	ret = info->fn(dev, arg);
->> +	ret = info->fn(dev, karg);
->>  	mutex_unlock(&dev->graph_mutex);
->>
->> +	if (!ret)
 > 
-> How about if (!ret && info->arg_to_user) instead, and getting rid of 
-> copy_arg_to_user_nop() ?
+> I don't really see the need for a new unregister_put function. The only thing
+> it adds compared to media_device_put is the 'if (mdev == NULL)' check.
+> 
+> Is that check needed at all?
 
-I thought of that, but I decided to optimise the common case ---  which
-is that the argument is copied back and forth. Not copying the argument
-back is a very special case, we use it for a single compat IOCTL.
+Yeah. My reasoning for keeping this for symmetry in drivers
+with _register() and _unregister(). However, drivers already
+required to call media_device_put() in _register error legs.
 
-That said, we could use it for the proper ENUM_LINKS as well. Still that
-does not change what's normal.
+> 
+> I would probably go for an API like this:
+> 
+> <brainstorm mode on>
+> 
+> /* Not sure if there should be a void *priv as the last argument */
+> int (*mdev_init_fnc)(struct media_device *mdev, struct device *dev);
+> 
+> /* Perhaps a void *priv is needed to pass to mdev_init_fnc?
+>    The callback is there to initialize the media_device and it's called
+>    with the lock held.
+> */
+> struct media_device *media_device_allocate(struct device *dev, mdev_init_fnc fnc);
+> 
+> /* Helper function for usb devices */
+> struct media_device *media_device_usb_allocate(struct usb_device *udev,
+> 					       char *driver_name);
+> 
+> /* counterpart of media_device_allocate, that makes more sense than allocate/put IMHO */
+> void media_device_release(struct media_device *mdev);
 
--- 
-Kind regards,
+We already have a media_device_release() that gets used as devnode->release
+back. I will use a different name, media_device_usb_free() or something
+similar.
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+> 
+> <brainstorm mode off>
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>>  static void media_device_release_devres(struct device *dev, void *res)
+>>  {
+>>  }
+>> diff --git a/include/media/media-device.h b/include/media/media-device.h
+>> index f743ae2..8bd836e 100644
+>> --- a/include/media/media-device.h
+>> +++ b/include/media/media-device.h
+>> @@ -499,6 +499,18 @@ int __must_check __media_device_register(struct media_device *mdev,
+>>  void media_device_unregister(struct media_device *mdev);
+>>  
+>>  /**
+>> + * media_device_unregister_put() - Unregisters a media device element
+>> + *
+>> + * @mdev:	pointer to struct &media_device
+>> + *
+>> + * Should be called to unregister media device allocated with Media Device
+>> + * Allocator API media_device_get() interface.
+>> + * It is safe to call this function on an unregistered (but initialised)
+>> + * media device.
+>> + */
+>> +void media_device_unregister_put(struct media_device *mdev);
+>> +
+>> +/**
+>>   * media_device_register_entity() - registers a media entity inside a
+>>   *	previously registered media device.
+>>   *
+>> @@ -658,6 +670,9 @@ static inline int media_device_register(struct media_device *mdev)
+>>  static inline void media_device_unregister(struct media_device *mdev)
+>>  {
+>>  }
+>> +static inline void media_device_unregister_put(struct media_device *mdev)
+>> +{
+>> +}
+>>  static inline int media_device_register_entity(struct media_device *mdev,
+>>  						struct media_entity *entity)
+>>  {
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
