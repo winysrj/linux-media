@@ -1,62 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42461 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751001AbcEIRSB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2016 13:18:01 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 2/2] [media] em28xx: add missing USB IDs
-Date: Mon,  9 May 2016 14:16:19 -0300
-Message-Id: <628288d08a6162aa50e4dbd5918a9867b4c40e2f.1462814171.git.mchehab@osg.samsung.com>
-In-Reply-To: <685f11097ab21221d734a259f2ba20684ffe3f05.1462814171.git.mchehab@osg.samsung.com>
-References: <685f11097ab21221d734a259f2ba20684ffe3f05.1462814171.git.mchehab@osg.samsung.com>
-In-Reply-To: <685f11097ab21221d734a259f2ba20684ffe3f05.1462814171.git.mchehab@osg.samsung.com>
-References: <685f11097ab21221d734a259f2ba20684ffe3f05.1462814171.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pf0-f173.google.com ([209.85.192.173]:36769 "EHLO
+	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756244AbcEXPG3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 11:06:29 -0400
+Received: by mail-pf0-f173.google.com with SMTP id c189so7847939pfb.3
+        for <linux-media@vger.kernel.org>; Tue, 24 May 2016 08:06:29 -0700 (PDT)
+From: Wu-Cheng Li <wuchengli@chromium.org>
+To: mchehab@osg.samsung.com, hverkuil@xs4all.nl, crope@iki.fi,
+	ricardo.ribalda@gmail.com, p.zabel@pengutronix.de,
+	wuchengli@chromium.org, shuahkh@osg.samsung.com,
+	hans.verkuil@cisco.com, renesas@ideasonboard.com,
+	guennadi.liakhovetski@intel.com, sakari.ailus@linux.intel.com,
+	posciak@chromium.org, djkurtz@chromium.org,
+	tiffany.lin@mediatek.com, pc.chen@mediatek.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v1 3/3] V4L: add VP9 format documentation
+Date: Tue, 24 May 2016 23:05:23 +0800
+Message-Id: <1464102324-53965-4-git-send-email-wuchengli@chromium.org>
+In-Reply-To: <1464102324-53965-1-git-send-email-wuchengli@chromium.org>
+References: <1464102324-53965-1-git-send-email-wuchengli@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add missing USB id's for em281xx devices.
+Add documentation for V4L2_PIX_FMT_VP9.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
 ---
- Documentation/video4linux/CARDLIST.em28xx | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ Documentation/DocBook/media/v4l/pixfmt.xml | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/Documentation/video4linux/CARDLIST.em28xx b/Documentation/video4linux/CARDLIST.em28xx
-index ae9d5a852305..82eb4e4b6f69 100644
---- a/Documentation/video4linux/CARDLIST.em28xx
-+++ b/Documentation/video4linux/CARDLIST.em28xx
-@@ -76,9 +76,9 @@
-  75 -> Dikom DK300                              (em2882)
-  76 -> KWorld PlusTV 340U or UB435-Q (ATSC)     (em2870)        [1b80:a340]
-  77 -> EM2874 Leadership ISDBT                  (em2874)
-- 78 -> PCTV nanoStick T2 290e                   (em28174)
-+ 78 -> PCTV nanoStick T2 290e                   (em28174)       [2013:024f]
-  79 -> Terratec Cinergy H5                      (em2884)        [eb1a:2885,0ccd:10a2,0ccd:10ad,0ccd:10b6]
-- 80 -> PCTV DVB-S2 Stick (460e)                 (em28174)
-+ 80 -> PCTV DVB-S2 Stick (460e)                 (em28174)       [2013:024c]
-  81 -> Hauppauge WinTV HVR 930C                 (em2884)        [2040:1605]
-  82 -> Terratec Cinergy HTC Stick               (em2884)        [0ccd:00b2]
-  83 -> Honestech Vidbox NW03                    (em2860)        [eb1a:5006]
-@@ -90,10 +90,10 @@
-  89 -> Delock 61959                             (em2874)        [1b80:e1cc]
-  90 -> KWorld USB ATSC TV Stick UB435-Q V2      (em2874)        [1b80:e346]
-  91 -> SpeedLink Vicious And Devine Laplace webcam (em2765)        [1ae7:9003,1ae7:9004]
-- 92 -> PCTV DVB-S2 Stick (461e)                 (em28178)
-+ 92 -> PCTV DVB-S2 Stick (461e)                 (em28178)       [2013:0258]
-  93 -> KWorld USB ATSC TV Stick UB435-Q V3      (em2874)        [1b80:e34c]
-- 94 -> PCTV tripleStick (292e)                  (em28178)
-+ 94 -> PCTV tripleStick (292e)                  (em28178)       [2013:025f,2040:0264]
-  95 -> Leadtek VC100                            (em2861)        [0413:6f07]
-- 96 -> Terratec Cinergy T2 Stick HD             (em28178)
-+ 96 -> Terratec Cinergy T2 Stick HD             (em28178)       [eb1a:8179]
-  97 -> Elgato EyeTV Hybrid 2008 INT             (em2884)        [0fd9:0018]
-- 98 -> PLEX PX-BCUD                             (em28178)
-+ 98 -> PLEX PX-BCUD                             (em28178)       [3275:0085]
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 5a08aee..ab915c3 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -1735,6 +1735,11 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+ 		<entry>'VP80'</entry>
+ 		<entry>VP8 video elementary stream.</entry>
+ 	  </row>
++	  <row id="V4L2-PIX-FMT-VP9">
++		<entry><constant>V4L2_PIX_FMT_VP9</constant></entry>
++		<entry>'VP90'</entry>
++		<entry>VP9 video elementary stream.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
 -- 
-2.5.5
+2.8.0.rc3.226.g39d4020
 
