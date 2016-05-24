@@ -1,284 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33272 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754623AbcEPTea (ORCPT
+Received: from resqmta-po-02v.sys.comcast.net ([96.114.154.161]:44411 "EHLO
+	resqmta-po-02v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752543AbcEXX7S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 May 2016 15:34:30 -0400
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, pawel.moll@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org, pali.rohar@gmail.com,
-	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH v2 3/6] ir-rx51: use PWM framework instead of OMAP dmtimer
-Date: Mon, 16 May 2016 22:34:11 +0300
-Message-Id: <1463427254-7728-4-git-send-email-ivo.g.dimitrov.75@gmail.com>
-In-Reply-To: <1463427254-7728-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <1463427254-7728-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+	Tue, 24 May 2016 19:59:18 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, javier@osg.samsung.com,
+	inki.dae@samsung.com, g.liakhovetski@gmx.de,
+	jh1009.sung@samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2 2/2] media: change au0828 to use Media Device Allocator API
+Date: Tue, 24 May 2016 17:39:48 -0600
+Message-Id: <15e1c5eebc0d4270236355e656dff8f402ceb616.1464132578.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1464132578.git.shuahkh@osg.samsung.com>
+References: <cover.1464132578.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1464132578.git.shuahkh@osg.samsung.com>
+References: <cover.1464132578.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert driver to use PWM framework instead of calling dmtimer functions
-directly for PWM timer. Remove paragraph about writing to the Free Software
-Foundation's mailing address while at it.
+Change au0828 to use Media Device Allocator API to allocate media device
+with the parent usb struct device as the key, so it can be shared with the
+snd usb audio driver.
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- arch/arm/mach-omap2/board-rx51-peripherals.c |  1 -
- arch/arm/mach-omap2/pdata-quirks.c           |  1 -
- drivers/media/rc/ir-rx51.c                   | 85 ++++++++++++++--------------
- include/linux/platform_data/media/ir-rx51.h  |  2 -
- 4 files changed, 44 insertions(+), 45 deletions(-)
+ drivers/media/usb/au0828/au0828-core.c | 12 ++++--------
+ drivers/media/usb/au0828/au0828.h      |  1 +
+ 2 files changed, 5 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 9a70739..e487575 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -1242,7 +1242,6 @@ static struct pwm_omap_dmtimer_pdata __maybe_unused pwm_dmtimer_pdata = {
- #if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
- static struct lirc_rx51_platform_data rx51_lirc_data = {
- 	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
--	.pwm_timer = 9, /* Use GPT 9 for CIR */
- #if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
- 	.dmtimer = &pwm_dmtimer_pdata,
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index bf53553..fc5f122 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -157,9 +157,7 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+ 	dev->media_dev->enable_source = NULL;
+ 	dev->media_dev->disable_source = NULL;
+ 
+-	media_device_unregister(dev->media_dev);
+-	media_device_cleanup(dev->media_dev);
+-	kfree(dev->media_dev);
++	media_device_delete(dev->media_dev);
+ 	dev->media_dev = NULL;
  #endif
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index ea3a7d5..af65781 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -491,7 +491,6 @@ static struct pwm_omap_dmtimer_pdata pwm_dmtimer_pdata = {
+ }
+@@ -212,14 +210,10 @@ static int au0828_media_device_init(struct au0828_dev *dev,
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_device *mdev;
  
- static struct lirc_rx51_platform_data __maybe_unused rx51_lirc_data = {
- 	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
--	.pwm_timer = 9, /* Use GPT 9 for CIR */
- #if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
- 	.dmtimer = &pwm_dmtimer_pdata,
+-	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
++	mdev = media_device_usb_allocate(udev, KBUILD_MODNAME);
+ 	if (!mdev)
+ 		return -ENOMEM;
+ 
+-	/* check if media device is already initialized */
+-	if (!mdev->dev)
+-		media_device_usb_init(mdev, udev, udev->product);
+-
+ 	dev->media_dev = mdev;
  #endif
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index da839c3..5096ef3 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -12,13 +12,7 @@
-  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  *  GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- *
-  */
--
- #include <linux/clk.h>
- #include <linux/module.h>
- #include <linux/interrupt.h>
-@@ -26,6 +20,7 @@
- #include <linux/platform_device.h>
- #include <linux/sched.h>
- #include <linux/wait.h>
-+#include <linux/pwm.h>
- 
- #include <media/lirc.h>
- #include <media/lirc_dev.h>
-@@ -43,7 +38,7 @@
- #define TIMER_MAX_VALUE 0xffffffff
- 
- struct lirc_rx51 {
--	pwm_omap_dmtimer *pwm_timer;
-+	struct pwm_device *pwm;
- 	pwm_omap_dmtimer *pulse_timer;
- 	struct pwm_omap_dmtimer_pdata *dmtimer;
- 	struct device	     *dev;
-@@ -58,32 +53,28 @@ struct lirc_rx51 {
- 	int		wbuf[WBUF_LEN];
- 	int		wbuf_index;
- 	unsigned long	device_is_open;
--	int		pwm_timer_num;
- };
- 
- static void lirc_rx51_on(struct lirc_rx51 *lirc_rx51)
- {
--	lirc_rx51->dmtimer->set_pwm(lirc_rx51->pwm_timer, 0, 1,
--				PWM_OMAP_DMTIMER_TRIGGER_OVERFLOW_AND_COMPARE);
-+	pwm_enable(lirc_rx51->pwm);
- }
- 
- static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
- {
--	lirc_rx51->dmtimer->set_pwm(lirc_rx51->pwm_timer, 0, 1,
--				    PWM_OMAP_DMTIMER_TRIGGER_NONE);
-+	pwm_disable(lirc_rx51->pwm);
- }
- 
- static int init_timing_params(struct lirc_rx51 *lirc_rx51)
- {
--	u32 load, match;
--
--	load = -(lirc_rx51->fclk_khz * 1000 / lirc_rx51->freq);
--	match = -(lirc_rx51->duty_cycle * -load / 100);
--	lirc_rx51->dmtimer->set_load(lirc_rx51->pwm_timer, 1, load);
--	lirc_rx51->dmtimer->set_match(lirc_rx51->pwm_timer, 1, match);
--	lirc_rx51->dmtimer->write_counter(lirc_rx51->pwm_timer, TIMER_MAX_VALUE - 2);
--	lirc_rx51->dmtimer->start(lirc_rx51->pwm_timer);
-+	struct pwm_device *pwm = lirc_rx51->pwm;
-+	int duty, period = DIV_ROUND_CLOSEST(NSEC_PER_SEC, lirc_rx51->freq);
-+
-+	duty = DIV_ROUND_CLOSEST(lirc_rx51->duty_cycle * period, 100);
- 	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
-+
-+	pwm_config(pwm, duty, period);
-+
- 	lirc_rx51->dmtimer->start(lirc_rx51->pulse_timer);
- 
- 	lirc_rx51->match = 0;
-@@ -165,7 +156,7 @@ end:
- 	/* Stop TX here */
- 	lirc_rx51_off(lirc_rx51);
- 	lirc_rx51->wbuf_index = -1;
--	lirc_rx51->dmtimer->stop(lirc_rx51->pwm_timer);
-+
- 	lirc_rx51->dmtimer->stop(lirc_rx51->pulse_timer);
- 	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
- 	wake_up_interruptible(&lirc_rx51->wqueue);
-@@ -176,13 +167,13 @@ end:
- static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
- {
- 	struct clk *clk_fclk;
--	int retval, pwm_timer = lirc_rx51->pwm_timer_num;
-+	int retval;
- 
--	lirc_rx51->pwm_timer = lirc_rx51->dmtimer->request_specific(pwm_timer);
--	if (lirc_rx51->pwm_timer == NULL) {
--		dev_err(lirc_rx51->dev, ": Error requesting GPT%d timer\n",
--			pwm_timer);
--		return -EBUSY;
-+	lirc_rx51->pwm = pwm_get(lirc_rx51->dev, NULL);
-+	if (IS_ERR(lirc_rx51->pwm)) {
-+		retval = PTR_ERR(lirc_rx51->pwm);
-+		dev_err(lirc_rx51->dev, ": pwm_get failed: %d\n", retval);
-+		return retval;
- 	}
- 
- 	lirc_rx51->pulse_timer = lirc_rx51->dmtimer->request();
-@@ -192,15 +183,11 @@ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
- 		goto err1;
- 	}
- 
--	lirc_rx51->dmtimer->set_source(lirc_rx51->pwm_timer,
--				       PWM_OMAP_DMTIMER_SRC_SYS_CLK);
- 	lirc_rx51->dmtimer->set_source(lirc_rx51->pulse_timer,
- 				       PWM_OMAP_DMTIMER_SRC_SYS_CLK);
--
--	lirc_rx51->dmtimer->enable(lirc_rx51->pwm_timer);
- 	lirc_rx51->dmtimer->enable(lirc_rx51->pulse_timer);
--
--	lirc_rx51->irq_num = lirc_rx51->dmtimer->get_irq(lirc_rx51->pulse_timer);
-+	lirc_rx51->irq_num =
-+			lirc_rx51->dmtimer->get_irq(lirc_rx51->pulse_timer);
- 	retval = request_irq(lirc_rx51->irq_num, lirc_rx51_interrupt_handler,
- 			     IRQF_SHARED, "lirc_pulse_timer", lirc_rx51);
- 	if (retval) {
-@@ -208,7 +195,7 @@ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
- 		goto err2;
- 	}
- 
--	clk_fclk = lirc_rx51->dmtimer->get_fclk(lirc_rx51->pwm_timer);
-+	clk_fclk = lirc_rx51->dmtimer->get_fclk(lirc_rx51->pulse_timer);
- 	lirc_rx51->fclk_khz = clk_get_rate(clk_fclk) / 1000;
- 
  	return 0;
-@@ -216,7 +203,7 @@ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
- err2:
- 	lirc_rx51->dmtimer->free(lirc_rx51->pulse_timer);
- err1:
--	lirc_rx51->dmtimer->free(lirc_rx51->pwm_timer);
-+	pwm_put(lirc_rx51->pwm);
+@@ -487,6 +481,8 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+ 		/* register media device */
+ 		ret = media_device_register(dev->media_dev);
+ 		if (ret) {
++			media_device_delete(dev->media_dev);
++			dev->media_dev = NULL;
+ 			dev_err(&udev->dev,
+ 				"Media Device Register Error: %d\n", ret);
+ 			return ret;
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index dd7b378..4bf1b0c 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -35,6 +35,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-fh.h>
+ #include <media/media-device.h>
++#include <media/media-dev-allocator.h>
  
- 	return retval;
- }
-@@ -226,11 +213,10 @@ static int lirc_rx51_free_port(struct lirc_rx51 *lirc_rx51)
- 	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
- 	free_irq(lirc_rx51->irq_num, lirc_rx51);
- 	lirc_rx51_off(lirc_rx51);
--	lirc_rx51->dmtimer->disable(lirc_rx51->pwm_timer);
- 	lirc_rx51->dmtimer->disable(lirc_rx51->pulse_timer);
--	lirc_rx51->dmtimer->free(lirc_rx51->pwm_timer);
- 	lirc_rx51->dmtimer->free(lirc_rx51->pulse_timer);
- 	lirc_rx51->wbuf_index = -1;
-+	pwm_put(lirc_rx51->pwm);
- 
- 	return 0;
- }
-@@ -387,7 +373,6 @@ static int lirc_rx51_release(struct inode *inode, struct file *file)
- }
- 
- static struct lirc_rx51 lirc_rx51 = {
--	.freq		= 38000,
- 	.duty_cycle	= 50,
- 	.wbuf_index	= -1,
- };
-@@ -445,14 +430,34 @@ static int lirc_rx51_resume(struct platform_device *dev)
- 
- static int lirc_rx51_probe(struct platform_device *dev)
- {
-+	struct pwm_device *pwm;
-+
- 	lirc_rx51_driver.features = LIRC_RX51_DRIVER_FEATURES;
- 	lirc_rx51.pdata = dev->dev.platform_data;
-+
-+	if (!lirc_rx51.pdata) {
-+		dev_err(&dev->dev, "Platform Data is missing\n");
-+		return -ENXIO;
-+	}
-+
- 	if (!lirc_rx51.pdata->dmtimer) {
- 		dev_err(&dev->dev, "no dmtimer?\n");
- 		return -ENODEV;
- 	}
- 
--	lirc_rx51.pwm_timer_num = lirc_rx51.pdata->pwm_timer;
-+	pwm = pwm_get(&dev->dev, NULL);
-+	if (IS_ERR(pwm)) {
-+		int err = PTR_ERR(pwm);
-+
-+		if (err != -EPROBE_DEFER)
-+			dev_err(&dev->dev, "pwm_get failed: %d\n", err);
-+		return err;
-+	}
-+
-+	/* Use default, in case userspace does not set the carrier */
-+	lirc_rx51.freq = DIV_ROUND_CLOSEST(pwm_get_period(pwm), NSEC_PER_SEC);
-+	pwm_put(pwm);
-+
- 	lirc_rx51.dmtimer = lirc_rx51.pdata->dmtimer;
- 	lirc_rx51.dev = &dev->dev;
- 	lirc_rx51_driver.dev = &dev->dev;
-@@ -464,8 +469,6 @@ static int lirc_rx51_probe(struct platform_device *dev)
- 		       lirc_rx51_driver.minor);
- 		return lirc_rx51_driver.minor;
- 	}
--	dev_info(lirc_rx51.dev, "registration ok, minor: %d, pwm: %d\n",
--		 lirc_rx51_driver.minor, lirc_rx51.pwm_timer_num);
- 
- 	return 0;
- }
-diff --git a/include/linux/platform_data/media/ir-rx51.h b/include/linux/platform_data/media/ir-rx51.h
-index 3038120..6acf22d 100644
---- a/include/linux/platform_data/media/ir-rx51.h
-+++ b/include/linux/platform_data/media/ir-rx51.h
-@@ -2,8 +2,6 @@
- #define _LIRC_RX51_H
- 
- struct lirc_rx51_platform_data {
--	int pwm_timer;
--
- 	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
- 	struct pwm_omap_dmtimer_pdata *dmtimer;
- };
+ /* DVB */
+ #include "demux.h"
 -- 
-1.9.1
+2.7.4
 
