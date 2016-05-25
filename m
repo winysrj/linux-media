@@ -1,79 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42654 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754529AbcEQJHW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2016 05:07:22 -0400
-Date: Tue, 17 May 2016 12:06:46 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/4] Support setting control from values stored in a file
-Message-ID: <20160517090646.GZ26360@valkosipuli.retiisi.org.uk>
-References: <1463392932-28307-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1463392932-28307-5-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from lists.s-osg.org ([54.187.51.154]:43866 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753900AbcEYP50 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2016 11:57:26 -0400
+Subject: Re: [PATCH v4 5/7] ARM: Exynos: remove code for MFC custom reserved
+ memory handling
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
+ <1464096690-23605-6-git-send-email-m.szyprowski@samsung.com>
+Cc: devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Uli Middelberg <uli@middelberg.de>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <0e488519-cbb9-6fdf-264a-1526d267096a@osg.samsung.com>
+Date: Wed, 25 May 2016 11:57:14 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1463392932-28307-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1464096690-23605-6-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hello Marek,
 
-Thanks for the set!
-
-On Mon, May 16, 2016 at 01:02:12PM +0300, Laurent Pinchart wrote:
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  yavta.c | 24 ++++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
+On 05/24/2016 09:31 AM, Marek Szyprowski wrote:
+> Once MFC driver has been converted to generic reserved memory bindings,
+> there is no need for custom memory reservation code.
 > 
-> diff --git a/yavta.c b/yavta.c
-> index 4b531a0360fe..d0bcf7f19c7b 100644
-> --- a/yavta.c
-> +++ b/yavta.c
-> @@ -1225,6 +1225,30 @@ static int video_parse_control_array(const struct v4l2_query_ext_ctrl *query,
->  
->  	for ( ; isspace(*val); ++val) { };
->  
-> +	if (*val == '<') {
-> +		/* Read the control value from the given file. */
-> +		ssize_t size;
-> +		int fd;
-> +
-> +		val++;
-> +		fd = open(val, O_RDONLY);
-> +		if (fd < 0) {
-> +			printf("unable to open control file `%s'\n", val);
-> +			return -EINVAL;
-> +		}
-> +
-> +		size = read(fd, ctrl->ptr, ctrl->size);
-> +		if (size != (ssize_t)ctrl->size) {
-> +			printf("error reading control file `%s' (%s)\n", val,
-> +			       strerror(errno));
-> +			close(fd);
-> +			return -EINVAL;
-> +		}
-> +
-> +		close(fd);
-> +		return 0;
-> +	}
-> +
->  	if (*val++ != '{')
->  		return -EINVAL;
->  
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
 
-How about adding a new command line option to read the value from a file? I
-think that'd be cleaner. I'd also add support for writing binary values to a
-file, that would be quite convenient. Write support could be done later as
-well.
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-For patches 1--3:
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+Best regards,
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
