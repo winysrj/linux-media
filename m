@@ -1,92 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:50002 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752423AbcEDPJJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 11:09:09 -0400
-Date: Wed, 4 May 2016 09:09:01 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Jani Nikula <jani.nikula@intel.com>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Dan Allen <dan@opendevise.io>,
-	Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media\@vger.kernel.org linux-media"
-	<linux-media@vger.kernel.org>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160504090901.334c2ae7@lwn.net>
-In-Reply-To: <87y47qlz35.fsf@intel.com>
-References: <20160213145317.247c63c7@lwn.net>
-	<20160303155037.705f33dd@recife.lan>
-	<86egbrm9hw.fsf@hiro.keithp.com>
-	<1457076530.13171.13.camel@winder.org.uk>
-	<CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com>
-	<87a8m9qoy8.fsf@intel.com>
-	<20160308082948.4e2e0f82@recife.lan>
-	<CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com>
-	<20160308103922.48d87d9d@recife.lan>
-	<20160308123921.6f2248ab@recife.lan>
-	<20160309182709.7ab1e5db@recife.lan>
-	<87fuvypr2h.fsf@intel.com>
-	<20160310122101.2fca3d79@recife.lan>
-	<AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de>
-	<8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de>
-	<20160412094620.4fbf05c0@lwn.net>
-	<CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com>
-	<CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com>
-	<54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de>
-	<874maef8km.fsf@intel.com>
-	<13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de>
-	<87y47qlz35.fsf@intel.com>
+Received: from mail-lf0-f50.google.com ([209.85.215.50]:32932 "EHLO
+	mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751163AbcEYTgI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2016 15:36:08 -0400
+Received: by mail-lf0-f50.google.com with SMTP id e131so22653115lfb.0
+        for <linux-media@vger.kernel.org>; Wed, 25 May 2016 12:36:07 -0700 (PDT)
+Subject: Re: [PATCH 8/8] [media] rcar-vin: add Gen2 and Gen3 fallback
+ compatibility strings
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+	linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl
+References: <1464203409-1279-1-git-send-email-niklas.soderlund@ragnatech.se>
+ <1464203409-1279-9-git-send-email-niklas.soderlund@ragnatech.se>
+Cc: linux-renesas-soc@vger.kernel.org,
+	=?UTF-8?Q?Niklas_S=c3=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <26f0ba3a-2324-23ce-0933-452fe7e16542@cogentembedded.com>
+Date: Wed, 25 May 2016 22:36:02 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1464203409-1279-9-git-send-email-niklas.soderlund@ragnatech.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 04 May 2016 16:41:50 +0300
-Jani Nikula <jani.nikula@intel.com> wrote:
+On 05/25/2016 10:10 PM, Niklas Söderlund wrote:
 
-> On Wed, 04 May 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
-> > In reST the directive might look like:
-> >
-> > <reST-SNIP> -----
-> > Device Instance and Driver Handling
-> > ===================================
-> >
-> > .. kernel-doc::  drivers/gpu/drm/drm_drv.c
-> >    :doc:      driver instance overview
-> >    :exported:
-> >
-> > <reST-SNAP> -----  
-> 
-> Yes, I think something like this, parsed by sphinx directly (via some
-> extension perhaps), should be the end goal. I am not sure if it should
-> be the immediate first goal though or whether we should reuse the
-> existing docproc for now.
+> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>
+> These are present in the soc-camera version of this driver and it's time
+> to add them to this driver as well.
+>
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index 520690c..87041db 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -33,6 +33,8 @@ static const struct of_device_id rvin_of_id_table[] = {
+>  	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+>  	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
+>  	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
+> +	{ .compatible = "renesas,rcar-gen3-vin", .data = (void *)RCAR_GEN3 },
+> +	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
 
-I think all of this makes sense.  It would be really nice to have the
-directives in the native sphinx language like that.  I *don't* think we
-need to aim for that at the outset; the docproc approach works until we can
-properly get rid of it.  What would be *really* nice would be to get
-support for the kernel-doc directive into the sphinx upstream.
+    What's the point of adding the H3 specific compatibility string in the 
+previous patch then? The fallback stings were added not have to updated the 
+driver for every new SoC exactly.
 
-> > <reST-comment-SNAP> --------------
-> >
-> > Comments with the ":reST:" tag could be exported and pass-through
-> > to sphinx.  
-> 
-> Disagreed on most of the above.
+MBR, Sergei
 
-Agreed with the disagreement here.  We can't be adding ":reST:" tags to
-comments; I anticipate a wee bit of pushback if we try.  It needs to work
-with the comments as they are now.  It seems that should be possible.
-
-Thanks,
-
-jon
