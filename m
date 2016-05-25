@@ -1,104 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33947 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932896AbcEKODh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2016 10:03:37 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk,
-	Rob Taylor <rob.taylor@codethink.co.uk>,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v4 7/8] ARM: dts: lager: Add entries for VIN HDMI input support
-Date: Wed, 11 May 2016 16:02:55 +0200
-Message-Id: <1462975376-491-8-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:44171 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751840AbcEYRLw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2016 13:11:52 -0400
+Subject: Re: [PATCH v4 6/7] ARM: dts: exynos: convert MFC device to generic
+ reserved memory bindings
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
+ <1464096690-23605-7-git-send-email-m.szyprowski@samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Uli Middelberg <uli@middelberg.de>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Message-ID: <0158bb7a-02cf-bbb3-f903-d99c7351dfc4@osg.samsung.com>
+Date: Wed, 25 May 2016 13:11:39 -0400
+MIME-Version: 1.0
+In-Reply-To: <1464096690-23605-7-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: William Towle <william.towle@codethink.co.uk>
+Hello Marek,
 
-Add DT entries for vin0, vin0_pins, and adv7612.
+On 05/24/2016 09:31 AM, Marek Szyprowski wrote:
+> This patch replaces custom properties for defining reserved memory
+> regions with generic reserved memory bindings for MFC video codec
+> device.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
 
-Sets the 'default-input' property for ADV7612, enabling image and video
-capture without the need to have userspace specifying routing.
+[snip]
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-[uli: added interrupt, renamed endpoint, merged default-input]
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- arch/arm/boot/dts/r8a7790-lager.dts | 39 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+> +
+> +/ {
+> +	reserved-memory {
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		ranges;
+> +
+> +		mfc_left: region@51000000 {
+> +			compatible = "shared-dma-pool";
+> +			no-map;
+> +			reg = <0x51000000 0x800000>;
+> +		};
+> +
+> +		mfc_right: region@43000000 {
+> +			compatible = "shared-dma-pool";
+> +			no-map;
+> +			reg = <0x43000000 0x800000>;
+> +		};
+> +	};
 
-diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
-index 749ba02..7e53f5c 100644
---- a/arch/arm/boot/dts/r8a7790-lager.dts
-+++ b/arch/arm/boot/dts/r8a7790-lager.dts
-@@ -427,6 +427,11 @@
- 		function = "usb2";
- 	};
- 
-+	vin0_pins: vin0 {
-+		groups = "vin0_data24", "vin0_sync", "vin0_clkenb", "vin0_clk";
-+		function = "vin0";
-+	};
-+
- 	vin1_pins: vin {
- 		groups = "vin1_data8", "vin1_clk";
- 		function = "vin1";
-@@ -607,6 +612,21 @@
- 		reg = <0x12>;
- 	};
- 
-+	hdmi-in@4c {
-+		compatible = "adi,adv7612";
-+		reg = <0x4c>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
-+		remote = <&vin0>;
-+		default-input = <0>;
-+
-+		port {
-+			adv7612: endpoint {
-+				remote-endpoint = <&vin0ep0>;
-+			};
-+		};
-+	};
-+
- 	composite-in@20 {
- 		compatible = "adi,adv7180";
- 		reg = <0x20>;
-@@ -722,6 +742,25 @@
- 	status = "okay";
- };
- 
-+/* HDMI video input */
-+&vin0 {
-+	pinctrl-0 = <&vin0_pins>;
-+	pinctrl-names = "default";
-+
-+	status = "ok";
-+
-+	port {
-+		vin0ep0: endpoint {
-+			remote-endpoint = <&adv7612>;
-+			bus-width = <24>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+			data-active = <1>;
-+		};
-+	};
-+};
-+
- /* composite video input */
- &vin1 {
- 	pinctrl-0 = <&vin1_pins>;
+I've a question probably for a follow up patch, but do you know what's a
+sane default size for these? I needed to bump the mfc_left size from 8 MiB
+to 16 MiB in order to decode a 480p H264 video using GStramer. So clearly
+the default sizes are not that useful.
+
+> +};
+> diff --git a/arch/arm/boot/dts/exynos4210-origen.dts b/arch/arm/boot/dts/exynos4210-origen.dts
+> index ad7394c..f5e4eb2 100644
+> --- a/arch/arm/boot/dts/exynos4210-origen.dts
+> +++ b/arch/arm/boot/dts/exynos4210-origen.dts
+> @@ -18,6 +18,7 @@
+>  #include "exynos4210.dtsi"
+>  #include <dt-bindings/gpio/gpio.h>
+>  #include <dt-bindings/input/input.h>
+> +#include "exynos-mfc-reserved-memory.dtsi"
+>  
+>  / {
+>  	model = "Insignal Origen evaluation board based on Exynos4210";
+> @@ -288,8 +289,7 @@
+>  };
+>  
+>  &mfc {
+> -	samsung,mfc-r = <0x43000000 0x800000>;
+> -	samsung,mfc-l = <0x51000000 0x800000>;
+> +	memory-region = <&mfc_left>, <&mfc_right>;
+>  	status = "okay";
+
+I wonder if shouldn't be better to include the exynos-mfc-reserved-memory.dtsi
+on each SoC dtsi and set the memory-regions in the MFC node instead of doing
+it on each DTS, and let DTS to just replace with its own memory regions if the
+default sizes are not suitable for them.
+
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+Best regards,
 -- 
-2.7.4
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
