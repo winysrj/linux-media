@@ -1,325 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:40658 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753528AbcEMRJ6 (ORCPT
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:32951 "EHLO
+	mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755476AbcEYRgQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 May 2016 13:09:58 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, hans.verkuil@cisco.com,
-	chehabrafael@gmail.com, javier@osg.samsung.com,
-	inki.dae@samsung.com, g.liakhovetski@gmx.de,
-	jh1009.sung@samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 1/3] media: Media Device Allocator API
-Date: Fri, 13 May 2016 11:09:23 -0600
-Message-Id: <efdba25cd9ad3b5fa025ed91613921641058a727.1463158822.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1463158822.git.shuahkh@osg.samsung.com>
-References: <cover.1463158822.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1463158822.git.shuahkh@osg.samsung.com>
-References: <cover.1463158822.git.shuahkh@osg.samsung.com>
+	Wed, 25 May 2016 13:36:16 -0400
+Date: Wed, 25 May 2016 12:36:14 -0500
+From: Rob Herring <robh@kernel.org>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Uli Middelberg <uli@middelberg.de>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH v4 2/7] media: s5p-mfc: use generic reserved memory
+ bindings
+Message-ID: <20160525173614.GA8309@rob-hp-laptop>
+References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
+ <1464096690-23605-3-git-send-email-m.szyprowski@samsung.com>
+ <a14c4f45-64c9-f72d-532b-ad1ff53fa9eb@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <a14c4f45-64c9-f72d-532b-ad1ff53fa9eb@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Media Device Allocator API to allows multiple drivers share a media device.
-Using this API, drivers can allocate a media device with the shared struct
-device as the key. Once the media device is allocated by a driver, other
-drivers can get a reference to it. The media device is released when all
-the references are released.
+On Wed, May 25, 2016 at 11:18:59AM -0400, Javier Martinez Canillas wrote:
+> Hello Marek,
+> 
+> On 05/24/2016 09:31 AM, Marek Szyprowski wrote:
+> > Use generic reserved memory bindings and mark old, custom properties
+> > as obsoleted.
+> > 
+> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> > ---
+> >  .../devicetree/bindings/media/s5p-mfc.txt          | 39 +++++++++++++++++-----
+> >  1 file changed, 31 insertions(+), 8 deletions(-)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+> > index 2d5787e..92c94f5 100644
+> > --- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
+> > +++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+> > @@ -21,15 +21,18 @@ Required properties:
+> >    - clock-names : from common clock binding: must contain "mfc",
+> >  		  corresponding to entry in the clocks property.
+> >  
+> > -  - samsung,mfc-r : Base address of the first memory bank used by MFC
+> > -		    for DMA contiguous memory allocation and its size.
+> > -
+> > -  - samsung,mfc-l : Base address of the second memory bank used by MFC
+> > -		    for DMA contiguous memory allocation and its size.
+> > -
+> >  Optional properties:
+> >    - power-domains : power-domain property defined with a phandle
+> >  			   to respective power domain.
+> > +  - memory-region : from reserved memory binding: phandles to two reserved
+> > +	memory regions, first is for "left" mfc memory bus interfaces,
+> > +	second if for the "right" mfc memory bus, used when no SYSMMU
+> > +	support is available
+> > +
+> > +Obsolete properties:
+> > +  - samsung,mfc-r, samsung,mfc-l : support removed, please use memory-region
+> > +	property instead
+> > +
+> > 
+> 
+> I wonder if we should maintain backward compatibility for this driver
+> since s5p-mfc memory allocation won't work with an old FDT if support
+> for the old properties are removed.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/Makefile              |   3 +-
- drivers/media/media-dev-allocator.c | 139 ++++++++++++++++++++++++++++++++++++
- include/media/media-dev-allocator.h | 118 ++++++++++++++++++++++++++++++
- 3 files changed, 259 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/media-dev-allocator.c
- create mode 100644 include/media/media-dev-allocator.h
+Well, minimally the commit log should indicate that compatibility is 
+being broken.
 
-diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-index e608bbc..b08f091 100644
---- a/drivers/media/Makefile
-+++ b/drivers/media/Makefile
-@@ -2,7 +2,8 @@
- # Makefile for the kernel multimedia device drivers.
- #
- 
--media-objs	:= media-device.o media-devnode.o media-entity.o
-+media-objs	:= media-device.o media-devnode.o media-entity.o \
-+		   media-dev-allocator.o
- 
- #
- # I2C drivers should come before other drivers, otherwise they'll fail
-diff --git a/drivers/media/media-dev-allocator.c b/drivers/media/media-dev-allocator.c
-new file mode 100644
-index 0000000..b49ab55
---- /dev/null
-+++ b/drivers/media/media-dev-allocator.c
-@@ -0,0 +1,139 @@
-+/*
-+ * media-dev-allocator.c - Media Controller Device Allocator API
-+ *
-+ * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
-+ * Copyright (c) 2016 Samsung Electronics Co., Ltd.
-+ *
-+ * This file is released under the GPLv2.
-+ * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ */
-+
-+/*
-+ * This file adds a global refcounted Media Controller Device Instance API.
-+ * A system wide global media device list is managed and each media device
-+ * includes a kref count. The last put on the media device releases the media
-+ * device instance.
-+ *
-+*/
-+
-+#include <linux/slab.h>
-+#include <linux/kref.h>
-+#include <linux/usb.h>
-+#include <media/media-device.h>
-+
-+static LIST_HEAD(media_device_list);
-+static DEFINE_MUTEX(media_device_lock);
-+
-+struct media_device_instance {
-+	struct media_device mdev;
-+	struct list_head list;
-+	struct device *dev;
-+	struct kref refcount;
-+};
-+
-+static inline struct media_device_instance *
-+to_media_device_instance(struct media_device *mdev)
-+{
-+	return container_of(mdev, struct media_device_instance, mdev);
-+}
-+
-+static void media_device_instance_release(struct kref *kref)
-+{
-+	struct media_device_instance *mdi =
-+		container_of(kref, struct media_device_instance, refcount);
-+
-+	dev_dbg(mdi->mdev.dev, "%s: mdev=%p\n", __func__, &mdi->mdev);
-+
-+	mutex_lock(&media_device_lock);
-+
-+	media_device_unregister(&mdi->mdev);
-+	media_device_cleanup(&mdi->mdev);
-+
-+	list_del(&mdi->list);
-+	mutex_unlock(&media_device_lock);
-+
-+	kfree(mdi);
-+}
-+
-+static struct media_device *__media_device_get(struct device *dev,
-+					       bool allocate)
-+{
-+	struct media_device_instance *mdi;
-+
-+	mutex_lock(&media_device_lock);
-+
-+	list_for_each_entry(mdi, &media_device_list, list) {
-+		if (mdi->dev == dev) {
-+			kref_get(&mdi->refcount);
-+			dev_dbg(dev, "%s: get mdev=%p\n",
-+				 __func__, &mdi->mdev);
-+			goto done;
-+		}
-+	}
-+
-+	if (!allocate) {
-+		mdi = NULL;
-+		goto done;
-+	}
-+
-+	mdi = kzalloc(sizeof(*mdi), GFP_KERNEL);
-+	if (!mdi)
-+		goto done;
-+
-+	mdi->dev = dev;
-+	kref_init(&mdi->refcount);
-+	list_add_tail(&mdi->list, &media_device_list);
-+
-+	dev_dbg(dev, "%s: alloc mdev=%p\n", __func__, &mdi->mdev);
-+
-+done:
-+	mutex_unlock(&media_device_lock);
-+
-+	return mdi ? &mdi->mdev : NULL;
-+}
-+
-+struct media_device *media_device_allocate(struct device *dev)
-+{
-+	dev_dbg(dev, "%s\n", __func__);
-+	return __media_device_get(dev, true);
-+}
-+EXPORT_SYMBOL_GPL(media_device_allocate);
-+
-+struct media_device *media_device_usb_allocate(struct usb_device *udev,
-+					       char *driver_name)
-+{
-+	struct media_device *mdev;
-+
-+	mdev = media_device_allocate(&udev->dev);
-+	if (!mdev)
-+		return ERR_PTR(-ENOMEM);
-+
-+	/* check if media device is already initialized */
-+	mutex_lock(&media_device_lock);
-+	if (!mdev->dev)
-+		__media_device_usb_init(mdev, udev, udev->product,
-+					driver_name);
-+	mutex_unlock(&media_device_lock);
-+
-+	return mdev;
-+}
-+EXPORT_SYMBOL_GPL(media_device_usb_allocate);
-+
-+/* don't allocate - get reference if one is found */
-+struct media_device *media_device_get(struct media_device *mdev)
-+{
-+	struct media_device_instance *mdi = to_media_device_instance(mdev);
-+
-+	dev_dbg(mdi->mdev.dev, "%s: mdev=%p\n", __func__, &mdi->mdev);
-+	return __media_device_get(mdi->dev, false);
-+}
-+EXPORT_SYMBOL_GPL(media_device_get);
-+
-+void media_device_put(struct media_device *mdev)
-+{
-+	struct media_device_instance *mdi = to_media_device_instance(mdev);
-+
-+	dev_dbg(mdi->mdev.dev, "%s: mdev=%p\n", __func__, &mdi->mdev);
-+	kref_put(&mdi->refcount, media_device_instance_release);
-+}
-+EXPORT_SYMBOL_GPL(media_device_put);
-diff --git a/include/media/media-dev-allocator.h b/include/media/media-dev-allocator.h
-new file mode 100644
-index 0000000..a63dfc6
---- /dev/null
-+++ b/include/media/media-dev-allocator.h
-@@ -0,0 +1,118 @@
-+/*
-+ * media-dev-allocator.h - Media Controller Device Allocator API
-+ *
-+ * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
-+ * Copyright (c) 2016 Samsung Electronics Co., Ltd.
-+ *
-+ * This file is released under the GPLv2.
-+ * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ */
-+
-+/*
-+ * This file adds a global ref-counted Media Controller Device Instance API.
-+ * A system wide global media device list is managed and each media device
-+ * includes a kref count. The last put on the media device releases the media
-+ * device instance.
-+*/
-+
-+#ifndef _MEDIA_DEV_ALLOCTOR_H
-+#define _MEDIA_DEV_ALLOCTOR_H
-+
-+struct usb_device;
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+/**
-+ * DOC: Media Controller Device Allocator API
-+ *
-+ * When media device belongs to more than one driver, the shared media device
-+ * is allocated with the shared struct device as the key for look ups.
-+ *
-+ * Shared media device should stay in registered state until the last driver
-+ * unregisters it. In addition, media device should be released when all the
-+ * references are released. Each driver gets a reference to the media device
-+ * during probe, when it allocates the media device. If media device is already
-+ * allocated, allocate API bumps up the refcount and return the existing media
-+ * device. Driver puts the reference back from its disconnect routine when it
-+ * calls media_device_unregister_put().
-+ *
-+ * Media device is unregistered and cleaned up from the kref put handler to
-+ * ensure that the media device stays in registered state until the last driver
-+ * unregisters the media device.
-+ *
-+ * Media Device can be in any the following states:
-+ *
-+ * - Allocated
-+ * - Registered (could be tied to more than one driver)
-+ * - Unregistered and released in the kref put handler.
-+ *
-+ * Driver Usage:
-+ *
-+ * Drivers should use the media-core routines to get register reference and
-+ * use the media_device_unregister_put() routine to make sure the shared
-+ * media device delete is handled correctly.
-+ *
-+ * driver probe:
-+ *	Call media_device_usb_allocate() to allocate or get a reference
-+ *	Call media_device_register(), if media devnode isn't registered
-+ *
-+ * driver disconnect:
-+ *	Call media_device_unregister_put() to put the reference.
-+ *
-+ */
-+
-+/**
-+ * media_device_usb_allocate() - Allocate and return media device
-+ *
-+ * @udev - struct usb_device pointer
-+ * @driver_name
-+ *
-+ * This interface should be called to allocate a media device when multiple
-+ * drivers share usb_device and the media device. This interface allocates
-+ * media device and calls media_device_usb_init() to initialize it.
-+ *
-+ */
-+struct media_device *media_device_usb_allocate(struct usb_device *udev,
-+					       char *driver_name);
-+/**
-+ * media_device_allocate() - Allocate and return global media device
-+ *
-+ * @dev - struct device pointer
-+ *
-+ * This interface should be called to allocate media device. A new media
-+ * device instance is created and added to the system wide media device
-+ * instance list. If media device instance exists, media_device_allocate()
-+ * increments the reference count and returns the media device. When more
-+ * than one driver control the media device, the first driver to probe will
-+ * allocate and the second driver when it calls  media_device_allocate(),
-+ * it will get a reference.
-+ *
-+ */
-+struct media_device *media_device_allocate(struct device *dev);
-+/**
-+ * media_device_get() -	Get reference to a registered media device.
-+ *
-+ * @mdev - struct media_device pointer
-+ *
-+ * This interface should be called to get a reference to an allocated media
-+ * device.
-+ */
-+struct media_device *media_device_get(struct media_device *mdev);
-+/**
-+ * media_device_put() - Release media device. Calls kref_put().
-+ *
-+ * @mdev - struct media_device pointer
-+ *
-+ * This interface should be called to put Media Device Instance kref.
-+ */
-+void media_device_put(struct media_device *mdev);
-+#else
-+static inline struct media_device *media_device_usb_allocate(
-+			struct usb_device *udev, char *driver_name)
-+			{ return NULL; }
-+static inline struct media_device *media_device_allocate(struct device *dev)
-+			{ return NULL; }
-+static inline struct media_device *media_device_get(struct media_device *mdev)
-+			{ return NULL; }
-+static inline void media_device_put(struct media_device *mdev) { }
-+#endif /* CONFIG_MEDIA_CONTROLLER */
-+#endif
--- 
-2.7.4
-
+Rob
