@@ -1,48 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58094 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755453AbcE0API (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2016 20:15:08 -0400
-Subject: Re: How should I use kernel-defined i2c structs in this driver
-To: Andrey Utkin <andrey_utkin@fastmail.com>,
-	kernel-mentors@selenic.com, devel@driverdev.osuosl.org,
-	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <20160526135953.GA20697@zver>
-Cc: andrey.utkin@corp.bluecherry.net
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <85a38a7c-d970-426a-5710-bbdf955cab58@iki.fi>
-Date: Fri, 27 May 2016 03:14:59 +0300
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:35803 "EHLO
+	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751838AbcEYTTv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2016 15:19:51 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl
+Cc: linux-renesas-soc@vger.kernel.org,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	William Towle <william.towle@codethink.co.uk>,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 2/8] media: rcar_vin: Use correct pad number in try_fmt
+Date: Wed, 25 May 2016 21:10:03 +0200
+Message-Id: <1464203409-1279-3-git-send-email-niklas.soderlund@ragnatech.se>
+In-Reply-To: <1464203409-1279-1-git-send-email-niklas.soderlund@ragnatech.se>
+References: <1464203409-1279-1-git-send-email-niklas.soderlund@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20160526135953.GA20697@zver>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/26/2016 04:59 PM, Andrey Utkin wrote:
-> Could anybody please give a hint - which kernel-defined i2c objects, and how
-> many of them, I need to define and use to substitute these driver-defined
-> functions i2c_read(), i2c_write() ?
-> https://github.com/bluecherrydvr/linux/blob/release/tw5864/1.16/drivers/media/pci/tw5864/tw5864-config.c
-> In a word, there's 4 chips with different addresses, to which this code
-> communicates via main chip's dedicated registers.
-> Do i need a single i2c_adapter or several?
-> Do i need i2c_client entities?
-> where should I put what is named "devid" here?
->
-> Thanks in advance.
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 
-It depends how those are connected at hardware level. Quickly looking I 
-think "devid" is here to select proper I2C adapter. So I think there is 
-4 I2C adapters and each of those adapter has 1 slave device. Is that 
-correct? If yes, then register 4 I2C adapters and register single client 
-for each of those adapters.
+Fix rcar_vin_try_fmt's use of an inappropriate pad number when calling
+the subdev set_fmt function - for the ADV7612, IDs should be non-zero.
 
-regards
-Antti
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+[uli: adapted to rcar-vin rewrite]
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 929816b..3788f8a 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -98,7 +98,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 					struct rvin_source_fmt *source)
+ {
+ 	struct v4l2_subdev *sd;
+-	struct v4l2_subdev_pad_config pad_cfg;
++	struct v4l2_subdev_pad_config *pad_cfg;
+ 	struct v4l2_subdev_format format = {
+ 		.which = which,
+ 	};
+@@ -108,10 +108,16 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 
+ 	v4l2_fill_mbus_format(&format.format, pix, vin->source.code);
+ 
++	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
++	if (pad_cfg == NULL)
++		return -ENOMEM;
++
++	format.pad = vin->src_pad_idx;
++
+ 	ret = v4l2_device_call_until_err(sd->v4l2_dev, 0, pad, set_fmt,
+-					 &pad_cfg, &format);
++					 pad_cfg, &format);
+ 	if (ret < 0)
+-		return ret;
++		goto cleanup;
+ 
+ 	v4l2_fill_pix_format(pix, &format.format);
+ 
+@@ -121,6 +127,8 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
+ 		source->height);
+ 
++cleanup:
++	v4l2_subdev_free_pad_config(pad_cfg);
+ 	return 0;
+ }
+ 
 -- 
-http://palosaari.fi/
+2.8.2
+
