@@ -1,86 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.15]:46777 "EHLO imap.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752202AbcEPQHy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 May 2016 12:07:54 -0400
-Received: from mail-vk0-f46.google.com (mail-vk0-f46.google.com [209.85.213.46])
-	by imap.netup.ru (Postfix) with ESMTPA id 6D9BF7BC297
-	for <linux-media@vger.kernel.org>; Mon, 16 May 2016 18:58:36 +0300 (MSK)
-Received: by mail-vk0-f46.google.com with SMTP id f66so218462760vkh.2
-        for <linux-media@vger.kernel.org>; Mon, 16 May 2016 08:58:36 -0700 (PDT)
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:35791 "EHLO
+	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751780AbcEYTTv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2016 15:19:51 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl
+Cc: linux-renesas-soc@vger.kernel.org,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	William Towle <william.towle@codethink.co.uk>,
+	Rob Taylor <rob.taylor@codethink.co.uk>,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 1/8] media: rcar-vin: pad-aware driver initialisation
+Date: Wed, 25 May 2016 21:10:02 +0200
+Message-Id: <1464203409-1279-2-git-send-email-niklas.soderlund@ragnatech.se>
+In-Reply-To: <1464203409-1279-1-git-send-email-niklas.soderlund@ragnatech.se>
+References: <1464203409-1279-1-git-send-email-niklas.soderlund@ragnatech.se>
 MIME-Version: 1.0
-From: Abylay Ospan <aospan@netup.ru>
-Date: Mon, 16 May 2016 11:58:15 -0400
-Message-ID: <CAK3bHNUPOORumndTHSQyLa0OAnE1Ob4SLR=CoLZMbi5C-P4e4w@mail.gmail.com>
-Subject: [GIT PULL] NetUP Universal DVB (revision 1.4)
-To: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 
-Please pull code from my repository (details below). Repository is
-based on linux-next. If it's better to send patch-by-patch basis
-please let me know - i will prepare emails.
+Add detection of source pad number for drivers aware of the media controller
+API, so that rcar-vin can create device nodes to support modern drivers such
+as adv7604.c (for HDMI on Lager) and the converted adv7180.c (for composite)
+underneath.
 
-This patches adding support for our NetUP Universal DVB card revision
-1.4 (ISDB-T added to this revision). This achieved by using new Sony
-tuner HELENE (CXD2858ER) and new Sony demodulator ARTEMIS (CXD2854ER).
-And other fixes for our cards in this repository too.
+Building rcar_vin gains a dependency on CONFIG_MEDIA_CONTROLLER, in
+line with requirements for building the drivers associated with it.
 
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+[uli: adapted to rcar-vin rewrite]
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 16 ++++++++++++++++
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  2 ++
+ 2 files changed, 18 insertions(+)
 
-The following changes since commit 862c0314778e27de4cd4c47f12fe7e4232a7181d:
-
-  [media] Fix DVB-T tuning (2016-05-16 10:37:45 -0400)
-
-are available in the git repository at:
-
-  https://github.com/aospan/linux-netup-1.4.git
-
-for you to fetch changes up to fecf505c4bef3a5f1783370db4de66f3de465443:
-
-  [media] fix typo in SONY demodulator description (2016-05-16 10:57:04 -0400)
-
-----------------------------------------------------------------
-Abylay Ospan (14):
-      [media] Add support Sony HELENE Sat/Ter Tuner
-      [media] Add support Sony CXD2854ER demodulator
-      [media] Fix DVB-S/S2 tune for sony ascot3a tuner
-      [media] New hw revision 1.4 of NetUP Universal DVB card added
-      [media] Fix CAM module memory read/write
-      MAINTAINERS: Add a maintainer for netup_unidvb, cxd2841er,
-horus3a, ascot2e
-      [media] Add carrier offset calculation for DVB-T
-      [media] Sanity check when initializing DVB-S/S2 demodulator
-      [media] Fix DVB-T frequency offset calculation
-      [media] ISDB-T retune and offset fix and DVB-C bw fix
-      [media] fix DVB-S/S2 tuning
-      [media] support DVB-T2 for SONY CXD2841/54
-      [media] Change frontend allocation strategy for NetUP Universal DVB cards
-      [media] fix typo in SONY demodulator description
-
- MAINTAINERS                                        |    5 +
- drivers/media/dvb-frontends/Kconfig                |    7 +
- drivers/media/dvb-frontends/Makefile               |    1 +
- drivers/media/dvb-frontends/cxd2841er.c            | 1467
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------
- drivers/media/dvb-frontends/cxd2841er.h            |   24 +-
- drivers/media/dvb-frontends/cxd2841er_priv.h       |    1 +
- drivers/media/dvb-frontends/helene.c               | 1042
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/helene.h               |   79 +++++
- drivers/media/dvb-frontends/horus3a.c              |   26 +-
- drivers/media/pci/netup_unidvb/Kconfig             |    7 +-
- drivers/media/pci/netup_unidvb/netup_unidvb.h      |   10 +
- drivers/media/pci/netup_unidvb/netup_unidvb_ci.c   |    4 +-
- drivers/media/pci/netup_unidvb/netup_unidvb_core.c |  170 +++++++----
- 13 files changed, 2432 insertions(+), 411 deletions(-)
- create mode 100644 drivers/media/dvb-frontends/helene.c
- create mode 100644 drivers/media/dvb-frontends/helene.h
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 0bc4487..929816b 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -683,6 +683,9 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	struct v4l2_mbus_framefmt *mf = &fmt.format;
+ 	struct video_device *vdev = &vin->vdev;
+ 	struct v4l2_subdev *sd = vin_to_source(vin);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	int pad_idx;
++#endif
+ 	int ret;
+ 
+ 	v4l2_set_subdev_hostdata(sd, vin);
+@@ -729,6 +732,19 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+ 		V4L2_CAP_READWRITE;
+ 
++	vin->src_pad_idx = 0;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
++		if (sd->entity.pads[pad_idx].flags
++				== MEDIA_PAD_FL_SOURCE)
++			break;
++	if (pad_idx >= sd->entity.num_pads)
++		return -EINVAL;
++
++	vin->src_pad_idx = pad_idx;
++#endif
++	fmt.pad = vin->src_pad_idx;
++
+ 	/* Try to improve our guess of a reasonable window format */
+ 	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
+ 	if (ret) {
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 544a3b3..a6dd6db 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -87,6 +87,7 @@ struct rvin_graph_entity {
+  *
+  * @vdev:		V4L2 video device associated with VIN
+  * @v4l2_dev:		V4L2 device
++ * @src_pad_idx:	source pad index for media controller drivers
+  * @ctrl_handler:	V4L2 control handler
+  * @notifier:		V4L2 asynchronous subdevs notifier
+  * @entity:		entity in the DT for subdevice
+@@ -117,6 +118,7 @@ struct rvin_dev {
+ 
+ 	struct video_device vdev;
+ 	struct v4l2_device v4l2_dev;
++	int src_pad_idx;
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	struct v4l2_async_notifier notifier;
+ 	struct rvin_graph_entity entity;
 -- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+2.8.2
+
