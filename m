@@ -1,98 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59886 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752168AbcEXMW7 (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:35796 "EHLO
+	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751232AbcEYTTv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 08:22:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Dragos Bogdan <dragos.bogdan@analog.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] adv7604: Add support for hardware reset
-Date: Tue, 24 May 2016 15:23:13 +0300
-Message-ID: <91532796.nYkeRRUBbm@avalon>
-In-Reply-To: <1464081202-25043-1-git-send-email-dragos.bogdan@analog.com>
-References: <1464081202-25043-1-git-send-email-dragos.bogdan@analog.com>
+	Wed, 25 May 2016 15:19:51 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl
+Cc: linux-renesas-soc@vger.kernel.org,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 0/8] rcar-vin: Enable Gen3 support
+Date: Wed, 25 May 2016 21:10:01 +0200
+Message-Id: <1464203409-1279-1-git-send-email-niklas.soderlund@ragnatech.se>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dragos,
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-On Tuesday 24 May 2016 12:13:22 Dragos Bogdan wrote:
-> The part can be reset by a low pulse on the RESET pin (i.e. a hardware
-> reset) with a minimum width of 5 ms. It is recommended to wait 5 ms after
-> the low pulse before an I2C write is performed to the part. For safety
-> reasons, the delays will be 10 ms.
-> The RESET pin can be tied high, so the GPIO is optional.
-> 
-> Signed-off-by: Dragos Bogdan <dragos.bogdan@analog.com>
-> ---
->  drivers/media/i2c/adv7604.c | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 41a1bfc..fac0ff1 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -164,6 +164,7 @@ struct adv76xx_state {
->  	struct adv76xx_platform_data pdata;
-> 
->  	struct gpio_desc *hpd_gpio[4];
-> +	struct gpio_desc *reset_gpio;
-> 
->  	struct v4l2_subdev sd;
->  	struct media_pad pads[ADV76XX_PAD_MAX];
-> @@ -2996,6 +2997,21 @@ static int configure_regmaps(struct adv76xx_state
-> *state) return 0;
->  }
-> 
-> +static int adv76xx_reset(struct adv76xx_state *state)
-> +{
-> +	if (state->reset_gpio) {
-> +		/* ADV76XX can be reset by a low reset pulse of minimum 5 ms. */
-> +		gpiod_set_value_cansleep(state->reset_gpio, 0);
-> +		mdelay(10);
+Hi,
 
-A busy loop of 10ms is very long, please use usleep_range() instead. As the 
-minimum is 5ms and you're fine with 10ms, you can use usleep_range(5000, 
-10000).
+This series enable Gen3 support for the rcar-vin driver. It is based on 
+top of the media_tree:
 
-> +		gpiod_set_value_cansleep(state->reset_gpio, 1);
-> +		/* It is recommended to wait 5 ms after the low pulse before */
-> +		/* an I2C write is performed to the ADV76XX. */
-> +		mdelay(10);
+git://linuxtv.org/media_tree.git master
 
-Ditto.
+And it depends on the first rcar-vin patch at which I hope soon will 
+enter the media tree:
 
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static int adv76xx_probe(struct i2c_client *client,
->  			 const struct i2c_device_id *id)
->  {
-> @@ -3059,6 +3075,12 @@ static int adv76xx_probe(struct i2c_client *client,
->  		if (state->hpd_gpio[i])
->  			v4l_info(client, "Handling HPD %u GPIO\n", i);
->  	}
-> +	state->reset_gpio = devm_gpiod_get_optional(&client->dev, "reset",
-> +								GPIOD_OUT_HIGH);
-> +	if (IS_ERR(state->reset_gpio))
-> +		return PTR_ERR(state->reset_gpio);
-> +
-> +	adv76xx_reset(state);
-> 
->  	state->timings = cea640x480;
->  	state->format = adv76xx_format_info(state, MEDIA_BUS_FMT_YUYV8_2X8);
+https://patchwork.linuxtv.org/patch/34129/
+
+This is a rather large patch since unfortunately the subdevice and input 
+selection on Gen3 are much more complex than on Gen2, see individual 
+patches for a more detailed explanation.
+
+- Patch 1-3 picks up work done by Ulrich so that effort is not wasted 
+  before the driver is updated for Gen3.
+- Patch 4-6 are the big patches where the driver learns how to work with 
+  Gen3.
+- Patch 7-8 add compatible strings for Gen3 and fallback strings that 
+  are present in the old soc-camera driver but not in this new driver.
+
+The series is tested on Koelsch for Gen2 and it works as expected. If 
+one wants to test the HDMI input the patch 'r8a7791-koelsch.dts: add 
+HDMI input' from Hans Verkuil are needed to add it to DT . The driver 
+passes a v4l2-compliance on Gen2 without errors or warnings.  And there 
+are no problems grabbing frames using the CVBS or HDMI input sources 
+using qv4l2.
+
+For Gen3 there are more drivers needed to get working video input 
+running. To be able to grab frames drivers are needed for the R-Car 
+CSI-2 interface and the ADV7482 devices which are not yet present in the 
+kernel. Prototypes for thees two drivers exist and a wiki page at 
+http://elinux.org/R-Car/Tests:rcar-vin talks about how to test it all 
+together.
+
+Whit thees prototype drivers for CSI-2 and ADV7482 the rcar-vin driver 
+pass the v4l2-compliance tool without errors or warnings on CVBS inputs.  
+On HDMI inputs it complains about missing DV features, this is because 
+the prototype ADV7482 do not yet implement thees operations and are not 
+a fault in the rcar-vin driver.
+
+Disregarding the v4l2-compliance result there is no issue grabbing 
+frames from both CVBS and HDMI input sources on Salvator-X. But more 
+work is needed on the prototype drivers before they are ready to be 
+submitted for upstream.
+
+Niklas Söderlund (5):
+  [media] rcar-vin: allow subdevices to be bound late
+  [media] rcar-vin: add Gen3 HW registers
+  [media] rcar-vin: add shared subdevice groups
+  [media] rcar-vin: enable Gen3
+  [media] rcar-vin: add Gen2 and Gen3 fallback compatibility strings
+
+Ulrich Hecht (3):
+  media: rcar-vin: pad-aware driver initialisation
+  media: rcar_vin: Use correct pad number in try_fmt
+  media: rcar-vin: add DV timings support
+
+ .../devicetree/bindings/media/rcar_vin.txt         |  218 +++-
+ drivers/media/platform/rcar-vin/Kconfig            |    2 +-
+ drivers/media/platform/rcar-vin/Makefile           |    2 +-
+ drivers/media/platform/rcar-vin/rcar-core.c        |  474 ++++++---
+ drivers/media/platform/rcar-vin/rcar-dma.c         |  202 +++-
+ drivers/media/platform/rcar-vin/rcar-group.c       | 1122 ++++++++++++++++++++
+ drivers/media/platform/rcar-vin/rcar-group.h       |  139 +++
+ drivers/media/platform/rcar-vin/rcar-v4l2.c        |  449 ++++----
+ drivers/media/platform/rcar-vin/rcar-vin.h         |   83 +-
+ 9 files changed, 2253 insertions(+), 438 deletions(-)
+ create mode 100644 drivers/media/platform/rcar-vin/rcar-group.c
+ create mode 100644 drivers/media/platform/rcar-vin/rcar-group.h
 
 -- 
-Regards,
-
-Laurent Pinchart
+2.8.2
 
