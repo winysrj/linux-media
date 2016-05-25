@@ -1,43 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:55680 "EHLO mail.kernel.org"
+Received: from lists.s-osg.org ([54.187.51.154]:42933 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752179AbcEZTJQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2016 15:09:16 -0400
+	id S1750812AbcEYM0A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2016 08:26:00 -0400
+Date: Wed, 25 May 2016 09:25:50 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: mchehab@infradead.org, LMML <linux-media@vger.kernel.org>
+Subject: [ANNONCE] Kaffeine ported to Qt5/KF5
+Message-ID: <20160525092550.702bee78@recife.lan>
 MIME-Version: 1.0
-In-Reply-To: <1464096690-23605-2-git-send-email-m.szyprowski@samsung.com>
-References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com> <1464096690-23605-2-git-send-email-m.szyprowski@samsung.com>
-From: Rob Herring <robh@kernel.org>
-Date: Thu, 26 May 2016 14:08:51 -0500
-Message-ID: <CAL_JsqJxbVnj+FYz_f34QhM+Cf2gvpwZJZy4pKkNW2VnAmEa=w@mail.gmail.com>
-Subject: Re: [PATCH v4 1/7] of: reserved_mem: add support for using more than
- one region for given device
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Uli Middelberg <uli@middelberg.de>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 24, 2016 at 8:31 AM, Marek Szyprowski
-<m.szyprowski@samsung.com> wrote:
-> This patch allows device drivers to initialize more than one reserved
-> memory region assigned to given device. When driver needs to use more
-> than one reserved memory region, it should allocate child devices and
-> initialize regions by index for each of its child devices.
->
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->  drivers/of/of_reserved_mem.c    | 85 +++++++++++++++++++++++++++++++----------
->  include/linux/of_reserved_mem.h | 25 ++++++++++--
->  2 files changed, 86 insertions(+), 24 deletions(-)
+Hi,
 
-Acked-by: Rob Herring <robh@kernel.org>
+As Kaffeine is the GUI application I use to test DVB cards, I've been working
+for a while to improve it. 
+
+Initially, I changed it to use libdvbv5, allowing it to work properly with
+devices that support multiple delivery systems on the same frontend and to
+support other standards like ISDB-T.
+
+Today, I completed another milestone: Kaffeine is now poarted from Qt4/KDE 4
+to Qt5/KDE Foundations 5!
+
+While I'm working to merge those patches at Kaffeine upstream, you
+can test what I've done so far at:
+	https://git.linuxtv.org/mchehab/kaffeine.git/log/?h=kde5
+
+If you prefer to keep using Qt 4/KDE 4, you could use the master
+branch instead:
+	https://git.linuxtv.org/mchehab/kaffeine.git/log/
+
+Personally, I think that the visual with KDE 5 is better, but the
+functionality should be the same on both versions.
+
+PS.: There is one caveat with Qt5: the VLC backend, used to play
+videos, don't work fine with Xinput2 mouse changes that happened
+with qt5.5. This is a known bug, and there is a fix at VLC, but
+only for Qt4:
+	https://mailman.videolan.org/pipermail/vlc-commits/2015-October/032674.html
+
+This is harmless for Digital TV play, but it is annoying for DVD,
+because it breaks DVD Menus. While this is not fixed, the
+workaround is to compile Qt5 without Xinput2, using the --no-xinput2
+./configure option and re-building Qt5.
+
+Please test and report any bugs to me, c/c the media ML.
+
+Enjoy!
+Mauro
