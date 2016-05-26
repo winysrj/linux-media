@@ -1,62 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:36574 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751630AbcEOHmL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 May 2016 03:42:11 -0400
-Message-ID: <1463298116.4185.5.camel@collabora.com>
-Subject: Re: gstreamer: v4l2videodec plugin
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-To: Stanimir Varbanov <svarbanov@mm-sol.com>,
-	Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-	Discussion of the development of and with GStreamer
-	<gstreamer-devel@lists.freedesktop.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Rob Clark <robdclark@gmail.com>
-Cc: ayaka <ayaka@soulik.info>
-Date: Sun, 15 May 2016 10:41:56 +0300
-In-Reply-To: <5735941E.6020703@mm-sol.com>
-References: <570B9285.9000209@linaro.org> <570B9454.6020307@linaro.org>
-	 <1460391908.30296.12.camel@collabora.com> <570CB882.4090805@linaro.org>
-	 <1460476636.2842.10.camel@collabora.com> <5735941E.6020703@mm-sol.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-ncYzggkMXuZZ4mOVTHmz"
-Mime-Version: 1.0
+Received: from mail.kernel.org ([198.145.29.136]:55680 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752179AbcEZTJQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 May 2016 15:09:16 -0400
+MIME-Version: 1.0
+In-Reply-To: <1464096690-23605-2-git-send-email-m.szyprowski@samsung.com>
+References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com> <1464096690-23605-2-git-send-email-m.szyprowski@samsung.com>
+From: Rob Herring <robh@kernel.org>
+Date: Thu, 26 May 2016 14:08:51 -0500
+Message-ID: <CAL_JsqJxbVnj+FYz_f34QhM+Cf2gvpwZJZy4pKkNW2VnAmEa=w@mail.gmail.com>
+Subject: Re: [PATCH v4 1/7] of: reserved_mem: add support for using more than
+ one region for given device
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Uli Middelberg <uli@middelberg.de>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, May 24, 2016 at 8:31 AM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> This patch allows device drivers to initialize more than one reserved
+> memory region assigned to given device. When driver needs to use more
+> than one reserved memory region, it should allocate child devices and
+> initialize regions by index for each of its child devices.
+>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  drivers/of/of_reserved_mem.c    | 85 +++++++++++++++++++++++++++++++----------
+>  include/linux/of_reserved_mem.h | 25 ++++++++++--
+>  2 files changed, 86 insertions(+), 24 deletions(-)
 
---=-ncYzggkMXuZZ4mOVTHmz
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-Le vendredi 13 mai 2016 =C3=A0 11:45 +0300, Stanimir Varbanov a =C3=A9crit=
-=C2=A0:
-> One thing which bothers me is how the extra-controls property
-> working,
-> i.e. I failed to change the h264 profile for example with below
-> construct:
->=20
-> extra-controls=3D"controls,h264_profile=3D4;"
-
-Yes, and profile should be negotiated with downstream in GStreamer. For
-common controls, like bitrate, it should be exposed as separate
-properties instead.
-
-Nicolas
---=-ncYzggkMXuZZ4mOVTHmz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEABECAAYFAlc4KEQACgkQcVMCLawGqBy9cgCfb3GP8vLXzpxwLgB0RtY5lvZn
-JlEAoKk0ZJC596dJ9SwOuzEv0dLiU4Py
-=2LgY
------END PGP SIGNATURE-----
-
---=-ncYzggkMXuZZ4mOVTHmz--
-
+Acked-by: Rob Herring <robh@kernel.org>
