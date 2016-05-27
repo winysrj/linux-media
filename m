@@ -1,60 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52758 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752500AbcEPKCW (ORCPT
+Received: from zeniv.linux.org.uk ([195.92.253.2]:33886 "EHLO
+	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750927AbcE0WFH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 May 2016 06:02:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: sakari.ailus@iki.fi
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 4/4] Support setting control from values stored in a file
-Date: Mon, 16 May 2016 13:02:12 +0300
-Message-Id: <1463392932-28307-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1463392932-28307-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1463392932-28307-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 27 May 2016 18:05:07 -0400
+Date: Fri, 27 May 2016 23:04:58 +0100
+From: Al Viro <viro@ZenIV.linux.org.uk>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	David Airlie <airlied@linux.ie>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Adrian Hunter <adrian.hunter@intel.com>,
+	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Bob Peterson <rpeterso@redhat.com>, linux-acpi@vger.kernel.org,
+	iommu@lists.linux-foundation.org, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	v9fs-developer@lists.sourceforge.net
+Subject: Re: [PATCH] remove lots of IS_ERR_VALUE abuses
+Message-ID: <20160527220458.GV14480@ZenIV.linux.org.uk>
+References: <1464384685-347275-1-git-send-email-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1464384685-347275-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- yavta.c | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+On Fri, May 27, 2016 at 11:23:25PM +0200, Arnd Bergmann wrote:
 
-diff --git a/yavta.c b/yavta.c
-index 4b531a0360fe..d0bcf7f19c7b 100644
---- a/yavta.c
-+++ b/yavta.c
-@@ -1225,6 +1225,30 @@ static int video_parse_control_array(const struct v4l2_query_ext_ctrl *query,
- 
- 	for ( ; isspace(*val); ++val) { };
- 
-+	if (*val == '<') {
-+		/* Read the control value from the given file. */
-+		ssize_t size;
-+		int fd;
-+
-+		val++;
-+		fd = open(val, O_RDONLY);
-+		if (fd < 0) {
-+			printf("unable to open control file `%s'\n", val);
-+			return -EINVAL;
-+		}
-+
-+		size = read(fd, ctrl->ptr, ctrl->size);
-+		if (size != (ssize_t)ctrl->size) {
-+			printf("error reading control file `%s' (%s)\n", val,
-+			       strerror(errno));
-+			close(fd);
-+			return -EINVAL;
-+		}
-+
-+		close(fd);
-+		return 0;
-+	}
-+
- 	if (*val++ != '{')
- 		return -EINVAL;
- 
--- 
-2.7.3
+> @@ -837,7 +837,7 @@ static int load_flat_shared_library(int id, struct lib_info *libs)
+>  
+>  	res = prepare_binprm(&bprm);
+>  
+> -	if (!IS_ERR_VALUE(res))
+> +	if (res >= 0)
 
+	if (res == 0), please - prepare_binprm() returns 0 or -E...
+
+> --- a/net/9p/client.c
+> +++ b/net/9p/client.c
+> @@ -521,7 +521,7 @@ static int p9_check_errors(struct p9_client *c, struct p9_req_t *req)
+>  		if (p9_is_proto_dotu(c))
+>  			err = -ecode;
+>  
+> -		if (!err || !IS_ERR_VALUE(err)) {
+> +		if (!err || !IS_ERR_VALUE((unsigned long)err)) {
+
+Not really - it's actually
+		if (p9_is_proto_dotu(c) && ecode < 512)
+			err = -ecode;
+
+		if (!err) {
+			...
+> @@ -608,7 +608,7 @@ static int p9_check_zc_errors(struct p9_client *c, struct p9_req_t *req,
+>  		if (p9_is_proto_dotu(c))
+>  			err = -ecode;
+>  
+> -		if (!err || !IS_ERR_VALUE(err)) {
+> +		if (!err || !IS_ERR_VALUE((unsigned long)err)) {
+
+Ditto.
