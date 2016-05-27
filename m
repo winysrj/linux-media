@@ -1,121 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:45082 "EHLO pokefinder.org"
+Received: from lists.s-osg.org ([54.187.51.154]:56916 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752697AbcEDMHu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 08:07:50 -0400
-Date: Wed, 4 May 2016 14:07:28 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Peter Rosin <peda@axentia.se>
-Cc: linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Crestez Dan Leonard <leonard.crestez@intel.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
-Subject: Re: [PATCH v7 16/24] i2c: allow adapter drivers to override the
- adapter locking
-Message-ID: <20160504120728.GA2120@tetsubishi>
-References: <1461165484-2314-1-git-send-email-peda@axentia.se>
- <1461165484-2314-17-git-send-email-peda@axentia.se>
- <20160503213807.GA2018@tetsubishi>
- <0b4136b2-e555-9bc0-9003-898d686de7a1@axentia.se>
+	id S1752315AbcE0Uo5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2016 16:44:57 -0400
+Subject: Re: [PATCH v2 1/2] media: Media Device Allocator API
+To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	hans.verkuil@cisco.com, chehabrafael@gmail.com,
+	javier@osg.samsung.com, inki.dae@samsung.com,
+	g.liakhovetski@gmx.de, jh1009.sung@samsung.com
+References: <cover.1464132578.git.shuahkh@osg.samsung.com>
+ <90f39ad8de612214e52d7be35be3077b7510786a.1464132578.git.shuahkh@osg.samsung.com>
+ <57484B11.2060400@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <5748B1BF.8050400@osg.samsung.com>
+Date: Fri, 27 May 2016 14:44:47 -0600
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="EVF5PPMfhYS0aIcm"
-Content-Disposition: inline
-In-Reply-To: <0b4136b2-e555-9bc0-9003-898d686de7a1@axentia.se>
+In-Reply-To: <57484B11.2060400@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 05/27/2016 07:26 AM, Hans Verkuil wrote:
+> On 05/25/2016 01:39 AM, Shuah Khan wrote:
+>> Media Device Allocator API to allows multiple drivers share a media device.
+>> Using this API, drivers can allocate a media device with the shared struct
+>> device as the key. Once the media device is allocated by a driver, other
+>> drivers can get a reference to it. The media device is released when all
+>> the references are released.
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/Makefile              |   3 +-
+>>  drivers/media/media-dev-allocator.c | 120 ++++++++++++++++++++++++++++++++++++
+>>  include/media/media-dev-allocator.h |  85 +++++++++++++++++++++++++
+>>  3 files changed, 207 insertions(+), 1 deletion(-)
+>>  create mode 100644 drivers/media/media-dev-allocator.c
+>>  create mode 100644 include/media/media-dev-allocator.h
+>>
+>> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+>> index e608bbc..b08f091 100644
+>> --- a/drivers/media/Makefile
+>> +++ b/drivers/media/Makefile
+>> @@ -2,7 +2,8 @@
+>>  # Makefile for the kernel multimedia device drivers.
+>>  #
+>>  
+>> -media-objs	:= media-device.o media-devnode.o media-entity.o
+>> +media-objs	:= media-device.o media-devnode.o media-entity.o \
+>> +		   media-dev-allocator.o
+>>  
+>>  #
+>>  # I2C drivers should come before other drivers, otherwise they'll fail
+>> diff --git a/drivers/media/media-dev-allocator.c b/drivers/media/media-dev-allocator.c
+>> new file mode 100644
+>> index 0000000..b8c9811
+>> --- /dev/null
+>> +++ b/drivers/media/media-dev-allocator.c
+>> @@ -0,0 +1,120 @@
+>> +/*
+>> + * media-dev-allocator.c - Media Controller Device Allocator API
+>> + *
+>> + * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
+>> + * Copyright (c) 2016 Samsung Electronics Co., Ltd.
+>> + *
+>> + * This file is released under the GPLv2.
+>> + * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> + */
+>> +
+>> +/*
+>> + * This file adds a global refcounted Media Controller Device Instance API.
+>> + * A system wide global media device list is managed and each media device
+>> + * includes a kref count. The last put on the media device releases the media
+>> + * device instance.
+>> + *
+>> +*/
+>> +
+>> +#include <linux/slab.h>
+>> +#include <linux/kref.h>
+>> +#include <linux/usb.h>
+>> +#include <media/media-device.h>
+>> +
+>> +static LIST_HEAD(media_device_list);
+>> +static DEFINE_MUTEX(media_device_lock);
+>> +
+>> +struct media_device_instance {
+>> +	struct media_device mdev;
+>> +	struct list_head list;
+>> +	struct device *dev;
+>> +	struct kref refcount;
+>> +};
+>> +
+>> +static inline struct media_device_instance *
+>> +to_media_device_instance(struct media_device *mdev)
+>> +{
+>> +	return container_of(mdev, struct media_device_instance, mdev);
+>> +}
+>> +
+>> +static void media_device_instance_release(struct kref *kref)
+>> +{
+>> +	struct media_device_instance *mdi =
+>> +		container_of(kref, struct media_device_instance, refcount);
+>> +
+>> +	dev_dbg(mdi->mdev.dev, "%s: mdev=%p\n", __func__, &mdi->mdev);
+>> +
+>> +	mutex_lock(&media_device_lock);
+>> +
+>> +	media_device_unregister(&mdi->mdev);
+>> +	media_device_cleanup(&mdi->mdev);
+>> +
+>> +	list_del(&mdi->list);
+>> +	mutex_unlock(&media_device_lock);
+>> +
+>> +	kfree(mdi);
+>> +}
+>> +
+> 
+> Add a comment here saying that media_device_lock has to be locked when
+> calling this get function.
+> 
 
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Fixed all the comments and sent patch v3. Thanks again for the review.
 
-Hi Peter,
+-- Shuah
 
-thanks for the detailed explanation!
-
-> So maybe there should be only one flag, e.g. I2C_LOCK_ROOT_ADAPTER?
-> I.e. perhaps leave the future for later?
-
-I think this makes the current code easier understandable at this point,
-but I'll leave the decision to you. I am fine with both. Maybe a few
-words of explanation would be good if you want to keep both flags.
-
-> Hmmm, I just now realized that you were not really suggesting any
-> changes other than to the commit message. Oh well, I can perhaps
-> rephrase some of the above in the commit message if you think that
-> we should not unnecessarily touch the code at this point...
-
-Yes, updated commit description is enough for me now. If you want to
-change to one flag, we should do it incrementally. I think I can apply
-this as a fixup until around rc3 I'd say.
-
-> > I think this kerneldoc should be moved to i2c_lock_adapter and/or
-> > i2c_lock_bus() which are now in i2c.h. This is what users will use, not
-> > this static, adapter-specific implementation. I think it is enough to
-> > have a comment here explaining what is special in handling adapters.
->=20
-> Yes, I was not really satisfied with having documentation on static
-> functions. But if I move it, there is no natural home for the current
-> i2c_trylock_adapter docs, and I'd hate killing documentation that
-> still applies. Do you have a suggestion? Maybe keep that one doc at
-> the static i2c_trylock_adapter for now and move it to ->trylock_bus
-> when someone decides to write kerneldoc for struct i2c_adapter?
-
-Well, because I think redundancy is acceptable when it comes to
-documentation, how about keeping the chunks you already have and copy an
-adapted one over to the functions in i2c.h?
-
-Regards,
-
-   Wolfram
-
-
---EVF5PPMfhYS0aIcm
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXKeX/AAoJEBQN5MwUoCm2NhUP+gJfYDPv13oeKO37qURjrb6m
-SGtDXU6IBzsRuaSyeuyw3u1HF/r5MqkhpCnzHNbi2Y+zUNEVdUCAd2Fio4YSmaRg
-A2ltXMJ0UYY8m7atTw783cFQrJjAwe5UKeeKyACnHtRWAsmMq+VOEEJ5pTwgi781
-mCly/bHhOWdxdX4NiIulKpsi63B1EbUV4FfS316IWwXVaPdkZhHePABLk3AyS/vL
-CpyUacaFKFj64KzzNbb/jxMGghaTi8UTMf4Gpwx3C8jvOn0YpOBciQmcVmmI78XB
-BhNEPRxkpS7Eq+bNTr7bAKVv2vNEHryJksWndIZdbXhNEE/B5Fk8mMddr05BnVVq
-0ilfFNrC67u19Q/+Eaol8nREbZd2QFs4wvpW7I/KcG6Wt8N6OSFAgN0W+7r3v46d
-txQn6TnhIFdHTDm6uHZWES8/OlTqsYQprRHwrfQL7cJciqEgvPcu6j2YDtsAR474
-FvWtkZ5aIQ9sxpybIdfrIc9qX+zfdrhw0FjdGr9rjgT7lmz8GlK+3EG1DfvWysSj
-V2C57p01OZmsa9G+agbiCWksdsoQVSwXuhEGeyugPetTxM4tFgNL3WE854cKXfIf
-KzaNqJjJ3JkWzGEIXvnkhkEoWAH6lrgS6fVlg6ZgnBUGQ4v9MIxMCL16F+9c0jDO
-hzSohn+EASvNcWA11Oza
-=FVh7
------END PGP SIGNATURE-----
-
---EVF5PPMfhYS0aIcm--
