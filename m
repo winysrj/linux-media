@@ -1,120 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:36023 "EHLO
-	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750916AbcEIPIF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2016 11:08:05 -0400
-Received: by mail-wm0-f42.google.com with SMTP id n129so142042180wmn.1
-        for <linux-media@vger.kernel.org>; Mon, 09 May 2016 08:08:04 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, zoltan.kuscsik@linaro.org,
-	sumit.semwal@linaro.org, cc.ma@mediatek.com,
-	pascal.brand@linaro.org, joakim.bech@linaro.org,
-	dan.caprita@windriver.com
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v7 0/3] Secure Memory Allocation Framework
-Date: Mon,  9 May 2016 17:07:36 +0200
-Message-Id: <1462806459-8124-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:46305 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754225AbcE0M4e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2016 08:56:34 -0400
+Subject: Re: [PATCH v2 8/8] Input: atmel_mxt_ts - add support for reference
+ data
+To: Nick Dyer <nick.dyer@itdev.co.uk>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>
+References: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
+ <1462381638-7818-9-git-send-email-nick.dyer@itdev.co.uk>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <574843F2.9060309@xs4all.nl>
+Date: Fri, 27 May 2016 14:56:18 +0200
+MIME-Version: 1.0
+In-Reply-To: <1462381638-7818-9-git-send-email-nick.dyer@itdev.co.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-version 7 changes:
- - rebased on kernel 4.6-rc7
- - simplify secure module API
- - add vma ops to be able to detect mmap/munmap calls
- - add ioctl to get number and allocator names
- - update libsmaf with adding tests
-   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
- - add debug log in fake secure module
+On 05/04/2016 07:07 PM, Nick Dyer wrote:
+> There are different datatypes available from a maXTouch chip. Add
+> support to retrieve reference data as well.
+> 
+> Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
+> ---
+>  drivers/input/touchscreen/atmel_mxt_ts.c | 66 +++++++++++++++++++++++++++-----
+>  1 file changed, 56 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+> index fca1096..1d9909f 100644
+> --- a/drivers/input/touchscreen/atmel_mxt_ts.c
+> +++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+> @@ -135,6 +135,7 @@ struct t9_range {
+>  /* MXT_DEBUG_DIAGNOSTIC_T37 */
+>  #define MXT_DIAGNOSTIC_PAGEUP	0x01
+>  #define MXT_DIAGNOSTIC_DELTAS	0x10
+> +#define MXT_DIAGNOSTIC_REFS	0x11
+>  #define MXT_DIAGNOSTIC_SIZE	128
+>  
+>  #define MXT_FAMILY_1386			160
+> @@ -247,6 +248,12 @@ struct mxt_dbg {
+>  	int input;
+>  };
+>  
+> +enum v4l_dbg_inputs {
+> +	MXT_V4L_INPUT_DELTAS,
+> +	MXT_V4L_INPUT_REFS,
+> +	MXT_V4L_INPUT_MAX,
+> +};
+> +
+>  static const struct v4l2_file_operations mxt_video_fops = {
+>  	.owner = THIS_MODULE,
+>  	.open = v4l2_fh_open,
+> @@ -2270,6 +2277,7 @@ static void mxt_buffer_queue(struct vb2_buffer *vb)
+>  	struct mxt_data *data = vb2_get_drv_priv(vb->vb2_queue);
+>  	u16 *ptr;
+>  	int ret;
+> +	u8 mode;
+>  
+>  	ptr = vb2_plane_vaddr(vb, 0);
+>  	if (!ptr) {
+> @@ -2277,7 +2285,18 @@ static void mxt_buffer_queue(struct vb2_buffer *vb)
+>  		goto fault;
+>  	}
+>  
+> -	ret = mxt_read_diagnostic_debug(data, MXT_DIAGNOSTIC_DELTAS, ptr);
+> +	switch (data->dbg.input) {
+> +	case MXT_V4L_INPUT_DELTAS:
+> +	default:
+> +		mode = MXT_DIAGNOSTIC_DELTAS;
+> +		break;
+> +
+> +	case MXT_V4L_INPUT_REFS:
+> +		mode = MXT_DIAGNOSTIC_REFS;
+> +		break;
+> +	}
+> +
+> +	ret = mxt_read_diagnostic_debug(data, mode, ptr);
+>  	if (ret)
+>  		goto fault;
+>  
+> @@ -2327,13 +2346,22 @@ static int mxt_vidioc_querycap(struct file *file, void *priv,
+>  static int mxt_vidioc_enum_input(struct file *file, void *priv,
+>  				   struct v4l2_input *i)
+>  {
+> -	if (i->index > 0)
+> +	if (i->index >= MXT_V4L_INPUT_MAX)
+>  		return -EINVAL;
+>  
+>  	i->type = V4L2_INPUT_TYPE_CAMERA;
+>  	i->std = V4L2_STD_UNKNOWN;
+>  	i->capabilities = 0;
+> -	strlcpy(i->name, "Mutual References", sizeof(i->name));
+> +
+> +	switch (i->index) {
+> +	case MXT_V4L_INPUT_REFS:
+> +		strlcpy(i->name, "Mutual References", sizeof(i->name));
+> +		break;
+> +	case MXT_V4L_INPUT_DELTAS:
+> +		strlcpy(i->name, "Mutual Deltas", sizeof(i->name));
+> +		break;
+> +	}
+> +
+>  	return 0;
+>  }
+>  
+> @@ -2341,12 +2369,16 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
+>  {
+>  	struct v4l2_pix_format *f = &data->dbg.format;
+>  
+> -	if (i > 0)
+> +	if (i >= MXT_V4L_INPUT_MAX)
+>  		return -EINVAL;
+>  
+> +	if (i == MXT_V4L_INPUT_DELTAS)
+> +		f->pixelformat = V4L2_PIX_FMT_YS16;
+> +	else
+> +		f->pixelformat = V4L2_PIX_FMT_Y16;
+> +
+>  	f->width = data->xy_switch ? data->ysize : data->xsize;
+>  	f->height = data->xy_switch ? data->xsize : data->ysize;
+> -	f->pixelformat = V4L2_PIX_FMT_YS16;
+>  	f->field = V4L2_FIELD_NONE;
+>  	f->colorspace = V4L2_COLORSPACE_SRGB;
+>  	f->bytesperline = f->width * sizeof(u16);
+> @@ -2383,12 +2415,26 @@ static int mxt_vidioc_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  static int mxt_vidioc_enum_fmt(struct file *file, void *priv,
+>  				 struct v4l2_fmtdesc *fmt)
+>  {
+> -	if (fmt->index > 0 || fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> +	if (fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> +		return -EINVAL;
+> +
+> +	switch (fmt->index) {
+> +	case 0:
+> +		fmt->pixelformat = V4L2_PIX_FMT_Y16;
+> +		strlcpy(fmt->description, "16-bit unsigned raw debug data",
+> +			sizeof(fmt->description));
+> +		break;
+> +
+> +	case 1:
+> +		fmt->pixelformat = V4L2_PIX_FMT_YS16;
+> +		strlcpy(fmt->description, "16-bit signed raw debug data",
+> +			sizeof(fmt->description));
+> +		break;
 
-version 6 changes:
- - rebased on kernel 4.5-rc4
- - fix mmapping bug while requested allocation size isn't a a multiple of
-   PAGE_SIZE (add a test for this in libsmaf)
+Same as I mentioned in the other patch: don't set the description here.
 
-version 5 changes:
- - rebased on kernel 4.3-rc6
- - rework locking schema and make handle status use an atomic_t
- - add a fake secure module to allow performing tests without trusted
-   environment
+> +
+> +	default:
+>  		return -EINVAL;
+> +	}
+>  
+> -	fmt->pixelformat = V4L2_PIX_FMT_YS16;
+> -	strlcpy(fmt->description, "16-bit raw debug data",
+> -		sizeof(fmt->description));
+>  	fmt->flags = 0;
+>  	return 0;
+>  }
+> @@ -2410,7 +2456,7 @@ static int mxt_vidioc_enum_framesizes(struct file *file, void *priv,
+>  static int mxt_vidioc_enum_frameintervals(struct file *file, void *priv,
+>  					  struct v4l2_frmivalenum *f)
+>  {
+> -	if ((f->index > 0) || (f->pixel_format != V4L2_PIX_FMT_YS16))
+> +	if (f->index > 0)
+>  		return -EINVAL;
+>  
+>  	f->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+> 
 
-version 4 changes:
- - rebased on kernel 4.3-rc3
- - fix missing EXPORT_SYMBOL for smaf_create_handle()
+Regards,
 
-version 3 changes:
- - Remove ioctl for allocator selection instead provide the name of
-   the targeted allocator with allocation request.
-   Selecting allocator from userland isn't the prefered way of working
-   but is needed when the first user of the buffer is a software component.
- - Fix issues in case of error while creating smaf handle.
- - Fix module license.
- - Update libsmaf and tests to care of the SMAF API evolution
-   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
-
-version 2 changes:
- - Add one ioctl to allow allocator selection from userspace.
-   This is required for the uses case where the first user of
-   the buffer is a software IP which can't perform dma_buf attachement.
- - Add name and ranking to allocator structure to be able to sort them.
- - Create a tiny library to test SMAF:
-   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
- - Fix one issue when try to secure buffer without secure module registered
-
-The outcome of the previous RFC about how do secure data path was the need
-of a secure memory allocator (https://lkml.org/lkml/2015/5/5/551)
-
-SMAF goal is to provide a framework that allow allocating and securing
-memory by using dma_buf. Each platform have it own way to perform those two
-features so SMAF design allow to register helper modules to perform them.
-
-To be sure to select the best allocation method for devices SMAF implement
-deferred allocation mechanism: memory allocation is only done when the first
-device effectively required it.
-Allocator modules have to implement a match() to let SMAF know if they are
-compatibles with devices needs.
-This patch set provide an example of allocator module which use
-dma_{alloc/free/mmap}_attrs() and check if at least one device have
-coherent_dma_mask set to DMA_BIT_MASK(32) in match function.
-I have named smaf-cma.c like it is done for drm_gem_cma_helper.c even if
-a better name could be found for this file.
-
-Secure modules are responsibles of granting and revoking devices access rights
-on the memory. Secure module is also called to check if CPU map memory into
-kernel and user address spaces.
-An example of secure module implementation can be found here:
-http://git.linaro.org/people/benjamin.gaignard/optee-sdp.git
-This code isn't yet part of the patch set because it depends on generic TEE
-which is still under discussion (https://lwn.net/Articles/644646/)
-
-For allocation part of SMAF code I get inspirated by Sumit Semwal work about
-constraint aware allocator.
-
-Benjamin Gaignard (3):
-  create SMAF module
-  SMAF: add CMA allocator
-  SMAF: add fake secure module
-
- drivers/Kconfig                |   2 +
- drivers/Makefile               |   1 +
- drivers/smaf/Kconfig           |  17 +
- drivers/smaf/Makefile          |   3 +
- drivers/smaf/smaf-cma.c        | 199 +++++++++++
- drivers/smaf/smaf-core.c       | 794 +++++++++++++++++++++++++++++++++++++++++
- drivers/smaf/smaf-fakesecure.c |  85 +++++
- include/linux/smaf-allocator.h |  54 +++
- include/linux/smaf-secure.h    |  73 ++++
- include/uapi/linux/smaf.h      |  66 ++++
- 10 files changed, 1294 insertions(+)
- create mode 100644 drivers/smaf/Kconfig
- create mode 100644 drivers/smaf/Makefile
- create mode 100644 drivers/smaf/smaf-cma.c
- create mode 100644 drivers/smaf/smaf-core.c
- create mode 100644 drivers/smaf/smaf-fakesecure.c
- create mode 100644 include/linux/smaf-allocator.h
- create mode 100644 include/linux/smaf-secure.h
- create mode 100644 include/uapi/linux/smaf.h
-
--- 
-1.9.1
-
+	Hans
