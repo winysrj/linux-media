@@ -1,116 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60279 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753296AbcEXWiI (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33301 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755559AbcE0RTe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 18:38:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [v4l-utils PATCH v1.1 2/2] mediactl: Separate entity and pad parsing
-Date: Wed, 25 May 2016 01:38:22 +0300
-Message-ID: <6283972.6M3G8a2Qjm@avalon>
-In-Reply-To: <1464123393-14336-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <3496464.NH5W0U7aUq@avalon> <1464123393-14336-1-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 27 May 2016 13:19:34 -0400
+Received: by mail-wm0-f65.google.com with SMTP id a136so268698wme.0
+        for <linux-media@vger.kernel.org>; Fri, 27 May 2016 10:19:33 -0700 (PDT)
+From: Kieran Bingham <kieran@ksquared.org.uk>
+To: laurent.pinchart@ideasonboard.com,
+	linux-renesas-soc@vger.kernel.org, kieran@ksquared.org.uk
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: [PATCH 4/4] arm64: dts: r8a7795: add FCPF device nodes
+Date: Fri, 27 May 2016 18:19:25 +0100
+Message-Id: <1464369565-12259-6-git-send-email-kieran@bingham.xyz>
+In-Reply-To: <1464369565-12259-1-git-send-email-kieran@bingham.xyz>
+References: <1464369565-12259-1-git-send-email-kieran@bingham.xyz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Provide nodes for the FCP devices dedicated to the FDP device channels.
 
-Thank you for the patch.
+Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+---
+ arch/arm64/boot/dts/renesas/r8a7795.dtsi | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-On Tuesday 24 May 2016 23:56:33 Sakari Ailus wrote:
-> Sometimes it's useful to be able to parse the entity independent of the pad.
-> Separate entity parsing into media_parse_entity().
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  utils/media-ctl/libmediactl.c | 29 +++++++++++++++++++++++++----
->  utils/media-ctl/mediactl.h    | 14 ++++++++++++++
->  2 files changed, 39 insertions(+), 4 deletions(-)
-> 
-> diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
-> index 78caa7c..498dfd1 100644
-> --- a/utils/media-ctl/libmediactl.c
-> +++ b/utils/media-ctl/libmediactl.c
-> @@ -781,10 +781,10 @@ int media_device_add_entity(struct media_device
-> *media, return 0;
->  }
-> 
-> -struct media_pad *media_parse_pad(struct media_device *media,
-> -				  const char *p, char **endp)
-> +struct media_entity *media_parse_entity(struct media_device *media,
-> +					const char *p, char **endp)
->  {
-> -	unsigned int entity_id, pad;
-> +	unsigned int entity_id;
->  	struct media_entity *entity;
->  	char *end;
-> 
-> @@ -827,7 +827,28 @@ struct media_pad *media_parse_pad(struct media_device
-> *media, return NULL;
->  		}
->  	}
-> -	for (; isspace(*end); ++end);
-> +	for (p = end; isspace(*p); ++p);
-> +
-> +	*endp = (char *)p;
-> +
-> +	return entity;
-> +}
-> +
-> +struct media_pad *media_parse_pad(struct media_device *media,
-> +				  const char *p, char **endp)
-> +{
-> +	unsigned int pad;
-> +	struct media_entity *entity;
-> +	char *end;
-> +
-> +	if (endp == NULL)
-> +		endp = &end;
-> +
-> +	entity = media_parse_entity(media, p, &end);
-> +	if (!entity) {
-> +		*endp = end;
-> +		return NULL;
-> +	}
-> 
->  	if (*end != ':') {
->  		media_dbg(media, "Expected ':'\n", *end);
-> diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
-> index b5a92f5..af36051 100644
-> --- a/utils/media-ctl/mediactl.h
-> +++ b/utils/media-ctl/mediactl.h
-> @@ -367,6 +367,20 @@ int media_setup_link(struct media_device *media,
->  int media_reset_links(struct media_device *media);
-> 
->  /**
-> + * @brief Parse string to an entity on the media device.
-> + * @param media - media device.
-> + * @param p - input string
-> + * @param endp - pointer to string where parsing ended
-> + *
-> + * Parse NULL terminated string describing an entity and return its
-> + * struct media_entity instance.
-> + *
-> + * @return Pointer to struct media_entity on success, NULL on failure.
-> + */
-> +struct media_entity *media_parse_entity(struct media_device *media,
-> +					const char *p, char **endp);
-> +
-> +/**
->   * @brief Parse string to a pad on the media device.
->   * @param media - media device.
->   * @param p - input string
-
+diff --git a/arch/arm64/boot/dts/renesas/r8a7795.dtsi b/arch/arm64/boot/dts/renesas/r8a7795.dtsi
+index 26df3001617e..14f086b9036d 100644
+--- a/arch/arm64/boot/dts/renesas/r8a7795.dtsi
++++ b/arch/arm64/boot/dts/renesas/r8a7795.dtsi
+@@ -1610,5 +1610,26 @@
+ 			interrupts = <0 436 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&cpg CPG_MOD 728>;
+ 		};
++
++		fcpf0: fcp@fe950000 {
++			compatible = "renesas,r8a7795-fcpf", "renesas,fcpf";
++			reg = <0 0xfe950000 0 0x200>;
++			clocks = <&cpg CPG_MOD 615>;
++			power-domains = <&sysc R8A7795_PD_A3VP>;
++		};
++
++		fcpf1: fcp@fe951000 {
++			compatible = "renesas,r8a7795-fcpf", "renesas,fcpf";
++			reg = <0 0xfe951000 0 0x200>;
++			clocks = <&cpg CPG_MOD 614>;
++			power-domains = <&sysc R8A7795_PD_A3VP>;
++		};
++
++		fcpf2: fcp@fe952000 {
++			compatible = "renesas,r8a7795-fcpf", "renesas,fcpf";
++			reg = <0 0xfe952000 0 0x200>;
++			clocks = <&cpg CPG_MOD 613>;
++			power-domains = <&sysc R8A7795_PD_A3VP>;
++		};
+ 	};
+ };
 -- 
-Regards,
-
-Laurent Pinchart
+2.5.0
 
