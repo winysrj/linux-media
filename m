@@ -1,110 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57229 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751886AbcEVCOK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 May 2016 22:14:10 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2 2/6] mt2060: add param to split long i2c writes
-Date: Sun, 22 May 2016 05:13:47 +0300
-Message-Id: <1463883231-14329-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1463883231-14329-1-git-send-email-crope@iki.fi>
-References: <1463883231-14329-1-git-send-email-crope@iki.fi>
+Received: from mail-wm0-f48.google.com ([74.125.82.48]:33188 "EHLO
+	mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754055AbcE0WCO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2016 18:02:14 -0400
+Received: by mail-wm0-f48.google.com with SMTP id s131so6084747wme.0
+        for <linux-media@vger.kernel.org>; Fri, 27 May 2016 15:02:13 -0700 (PDT)
+Subject: Re: [PATCH] remove lots of IS_ERR_VALUE abuses
+To: Arnd Bergmann <arnd@arndb.de>,
+	Linus Torvalds <torvalds@linux-foundation.org>
+References: <1464384685-347275-1-git-send-email-arnd@arndb.de>
+Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	David Airlie <airlied@linux.ie>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Adrian Hunter <adrian.hunter@intel.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Bob Peterson <rpeterso@redhat.com>, linux-acpi@vger.kernel.org,
+	iommu@lists.linux-foundation.org, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	v9fs-developer@lists.sourceforge.net
+From: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Message-ID: <5748C3E1.2060004@linaro.org>
+Date: Fri, 27 May 2016 23:02:09 +0100
+MIME-Version: 1.0
+In-Reply-To: <1464384685-347275-1-git-send-email-arnd@arndb.de>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add configuration parameter to split long i2c writes as some I2C
-adapters cannot write 10 bytes used as a one go.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/mt2060.c      | 21 +++++++++++++++++----
- drivers/media/tuners/mt2060.h      |  3 +++
- drivers/media/tuners/mt2060_priv.h |  1 +
- 3 files changed, 21 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/tuners/mt2060.c b/drivers/media/tuners/mt2060.c
-index aa8280a..6e16a9f 100644
---- a/drivers/media/tuners/mt2060.c
-+++ b/drivers/media/tuners/mt2060.c
-@@ -71,13 +71,24 @@ static int mt2060_writereg(struct mt2060_priv *priv, u8 reg, u8 val)
- // Writes a set of consecutive registers
- static int mt2060_writeregs(struct mt2060_priv *priv,u8 *buf, u8 len)
- {
-+	int rem, val_len;
-+	u8 xfer_buf[16];
- 	struct i2c_msg msg = {
--		.addr = priv->cfg->i2c_address, .flags = 0, .buf = buf, .len = len
-+		.addr = priv->cfg->i2c_address, .flags = 0, .buf = xfer_buf
- 	};
--	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
--		printk(KERN_WARNING "mt2060 I2C write failed (len=%i)\n",(int)len);
--		return -EREMOTEIO;
-+
-+	for (rem = len - 1; rem > 0; rem -= priv->i2c_max_regs) {
-+		val_len = min_t(int, rem, priv->i2c_max_regs);
-+		msg.len = 1 + val_len;
-+		xfer_buf[0] = buf[0] + len - 1 - rem;
-+		memcpy(&xfer_buf[1], &buf[1 + len - 1 - rem], val_len);
-+
-+		if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
-+			printk(KERN_WARNING "mt2060 I2C write failed (len=%i)\n", val_len);
-+			return -EREMOTEIO;
-+		}
- 	}
-+
- 	return 0;
- }
- 
-@@ -370,6 +381,7 @@ struct dvb_frontend * mt2060_attach(struct dvb_frontend *fe, struct i2c_adapter
- 	priv->cfg      = cfg;
- 	priv->i2c      = i2c;
- 	priv->if1_freq = if1;
-+	priv->i2c_max_regs = ~0;
- 
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1); /* open i2c_gate */
-@@ -427,6 +439,7 @@ static int mt2060_probe(struct i2c_client *client,
- 	dev->i2c = client->adapter;
- 	dev->if1_freq = pdata->if1 ? pdata->if1 : 1220;
- 	dev->client = client;
-+	dev->i2c_max_regs = pdata->i2c_write_max ? pdata->i2c_write_max - 1 : ~0;
- 
- 	ret = mt2060_readreg(dev, REG_PART_REV, &chip_id);
- 	if (ret) {
-diff --git a/drivers/media/tuners/mt2060.h b/drivers/media/tuners/mt2060.h
-index 05c0d55..f0572ac 100644
---- a/drivers/media/tuners/mt2060.h
-+++ b/drivers/media/tuners/mt2060.h
-@@ -34,12 +34,15 @@ struct i2c_adapter;
-  * struct mt2060_platform_data - Platform data for the mt2060 driver
-  * @clock_out: Clock output setting. 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1.
-  * @if1: First IF used [MHz]. 0 defaults to 1220.
-+ * @i2c_write_max: Maximum number of bytes I2C adapter can write at once.
-+ *  0 defaults to maximum.
-  * @dvb_frontend: DVB frontend.
-  */
- 
- struct mt2060_platform_data {
- 	u8 clock_out;
- 	u16 if1;
-+	unsigned int i2c_write_max:5;
- 	struct dvb_frontend *dvb_frontend;
- };
- 
-diff --git a/drivers/media/tuners/mt2060_priv.h b/drivers/media/tuners/mt2060_priv.h
-index dfc4a06..f0fdb83 100644
---- a/drivers/media/tuners/mt2060_priv.h
-+++ b/drivers/media/tuners/mt2060_priv.h
-@@ -98,6 +98,7 @@ struct mt2060_priv {
- 	struct i2c_client *client;
- 	struct mt2060_config config;
- 
-+	u8 i2c_max_regs;
- 	u32 frequency;
- 	u16 if1_freq;
- 	u8  fmfreq;
--- 
-http://palosaari.fi/
+On 27/05/16 22:23, Arnd Bergmann wrote:
+>   drivers/acpi/acpi_dbg.c                          | 22 +++++++++++-----------
+>   drivers/ata/sata_highbank.c                      |  2 +-
+>   drivers/clk/tegra/clk-tegra210.c                 |  2 +-
+>   drivers/cpufreq/omap-cpufreq.c                   |  2 +-
+>   drivers/crypto/caam/ctrl.c                       |  2 +-
+>   drivers/dma/sun4i-dma.c                          | 16 ++++++++--------
+>   drivers/gpio/gpio-xlp.c                          |  2 +-
+>   drivers/gpu/drm/sti/sti_vtg.c                    |  4 ++--
+>   drivers/gpu/drm/tilcdc/tilcdc_tfp410.c           |  2 +-
+>   drivers/gpu/host1x/hw/intr_hw.c                  |  2 +-
+>   drivers/iommu/arm-smmu-v3.c                      | 18 +++++++++---------
+...
+>   drivers/mmc/host/sdhci-of-at91.c                 |  2 +-
+>   drivers/mmc/host/sdhci.c                         |  4 ++--
+>   drivers/net/ethernet/freescale/fman/fman.c       |  2 +-
+>   drivers/net/ethernet/freescale/fman/fman_muram.c |  4 ++--
+>   drivers/net/ethernet/freescale/fman/fman_muram.h |  4 ++--
+>   drivers/net/wireless/ti/wlcore/spi.c             |  4 ++--
+>   drivers/nvmem/core.c                             | 22 +++++++++++-----------
 
+For nvmem part,
+
+Acked-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+
+>   drivers/tty/serial/amba-pl011.c                  |  2 +-
+>   drivers/tty/serial/sprd_serial.c                 |  2 +-
+>   drivers/video/fbdev/da8xx-fb.c                   |  4 ++--
+>   fs/afs/write.c                                   |  4 ----
+>   fs/binfmt_flat.c                                 |  6 +++---
+>   fs/gfs2/dir.c                                    | 15 +++++++++------
+>   kernel/pid.c                                     |  2 +-
+>   net/9p/client.c                                  |  4 ++--
+>   sound/soc/qcom/lpass-platform.c                  |  4 ++--
+There is already a patch for this in Mark Brown's sound tree,
+
+https://git.kernel.org/cgit/linux/kernel/git/broonie/sound.git/commit/?h=for-linus&id=cef794f76485f4a4e6affd851ae9f9d0eb4287a5
+
+Thanks,
+srini
+>   38 files changed, 100 insertions(+), 101 deletions(-)
