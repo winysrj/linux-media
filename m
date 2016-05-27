@@ -1,62 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55919 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932120AbcEKQ2y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2016 12:28:54 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, stable@vgar.kernel.org
-Subject: [PATCH] Revert "[media] videobuf2-v4l2: Verify planes array in buffer dequeueing"
-Date: Wed, 11 May 2016 13:27:07 -0300
-Message-Id: <575aa5711a62f79c5f973011b415403fd3d3b7c7.1462984023.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from ns.mm-sol.com ([37.157.136.199]:38323 "EHLO extserv.mm-sol.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754957AbcE0PjP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2016 11:39:15 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, geert@linux-m68k.org, matrandg@cisco.com,
+	linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+	Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v3 0/2] OV5645 camera sensor driver
+Date: Fri, 27 May 2016 18:38:48 +0300
+Message-Id: <1464363530-2253-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch causes a Kernel panic when called on a DVB driver.
+This is the third version of the OV5645 camera sensor driver patchset.
 
-This reverts commit 2c1f6951a8a82e6de0d82b1158b5e493fc6c54ab.
+Changes from version 2 include:
+- external camera clock configuration is moved from DT to driver;
+- pwdn-gpios renamed to enable-gpios;
+- switched polarity of reset-gpios to the more intuitive active low;
+- added Kconfig dependency to OF;
+- return values checks;
+- regulators and gpios are now required (not optional);
+- regulators names renamed;
+- power counter variable changed to a bool power state;
+- ov5645_registered() is removed and sensor id reading moved to probe().
 
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: stable@vgar.kernel.org
-Fixes: 2c1f6951a8a8 ("[media] videobuf2-v4l2: Verify planes array in buffer dequeueing")
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/v4l2-core/videobuf2-v4l2.c | 6 ------
- 1 file changed, 6 deletions(-)
+Changes from version 1 include:
+- patch split to dt binding doc patch and driver patch;
+- changes in power on/off logic - s_power is now not called on
+  open/close;
+- using assigned-clock-rates in dt for setting camera external
+  clock rate;
+- correct api for gpio handling;
+- return values checks;
+- style fixes.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 7f366f1b0377..0b1b8c7b6ce5 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -74,11 +74,6 @@ static int __verify_planes_array(struct vb2_buffer *vb, const struct v4l2_buffer
- 	return 0;
- }
- 
--static int __verify_planes_array_core(struct vb2_buffer *vb, const void *pb)
--{
--	return __verify_planes_array(vb, pb);
--}
--
- /**
-  * __verify_length() - Verify that the bytesused value for each plane fits in
-  * the plane length and that the data offset doesn't exceed the bytesused value.
-@@ -442,7 +437,6 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
- }
- 
- static const struct vb2_buf_ops v4l2_buf_ops = {
--	.verify_planes_array	= __verify_planes_array_core,
- 	.fill_user_buffer	= __fill_v4l2_buffer,
- 	.fill_vb2_buffer	= __fill_vb2_buffer,
- 	.copy_timestamp		= __copy_timestamp,
+Todor Tomov (2):
+  [media] media: i2c/ov5645: add the device tree binding document
+  media: Add a driver for the ov5645 camera sensor.
+
+ .../devicetree/bindings/media/i2c/ov5645.txt       |   50 +
+ drivers/media/i2c/Kconfig                          |   12 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/ov5645.c                         | 1369 ++++++++++++++++++++
+ 4 files changed, 1432 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
+ create mode 100644 drivers/media/i2c/ov5645.c
+
 -- 
-2.5.5
+1.9.1
 
