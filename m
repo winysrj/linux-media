@@ -1,123 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:59478 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751771AbcEBC6r (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35833 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932588AbcE0RTb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 May 2016 22:58:47 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 8C8E21800C7
-	for <linux-media@vger.kernel.org>; Mon,  2 May 2016 04:58:41 +0200 (CEST)
-Date: Mon, 02 May 2016 04:58:41 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160502025841.8C8E21800C7@tschai.lan>
+	Fri, 27 May 2016 13:19:31 -0400
+Received: by mail-wm0-f68.google.com with SMTP id e3so239754wme.2
+        for <linux-media@vger.kernel.org>; Fri, 27 May 2016 10:19:31 -0700 (PDT)
+From: Kieran Bingham <kieran@ksquared.org.uk>
+To: laurent.pinchart@ideasonboard.com,
+	linux-renesas-soc@vger.kernel.org, kieran@ksquared.org.uk
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: [PATCH 1/4] v4l: Extend FCP compatible list to support the FDP
+Date: Fri, 27 May 2016 18:19:22 +0100
+Message-Id: <1464369565-12259-3-git-send-email-kieran@bingham.xyz>
+In-Reply-To: <1464369565-12259-1-git-send-email-kieran@bingham.xyz>
+References: <1464369565-12259-1-git-send-email-kieran@bingham.xyz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The FCP must be powered up for the FDP1 to function, even when the FDP1
+does not make use of the FCNL features. Extend the compatible list
+to allow us to use the power domain and runtime-pm support.
 
-Results of the daily build of media_tree:
+Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+---
+ drivers/media/platform/rcar-fcp.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-date:		Mon May  2 04:00:15 CEST 2016
-git branch:	test
-git hash:	45c175c4ae9695d6d2f30a45ab7f3866cfac184b
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3413-g618cd5c
-host hardware:	x86_64
-host os:	4.5.0-164
+diff --git a/drivers/media/platform/rcar-fcp.c b/drivers/media/platform/rcar-fcp.c
+index 6a7bcc3028b1..0ff6b1edf1db 100644
+--- a/drivers/media/platform/rcar-fcp.c
++++ b/drivers/media/platform/rcar-fcp.c
+@@ -160,6 +160,7 @@ static int rcar_fcp_remove(struct platform_device *pdev)
+ 
+ static const struct of_device_id rcar_fcp_of_match[] = {
+ 	{ .compatible = "renesas,fcpv" },
++	{ .compatible = "renesas,fcpf" },
+ 	{ },
+ };
+ 
+-- 
+2.5.0
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
