@@ -1,122 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43659 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752282AbcEGN0M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 May 2016 09:26:12 -0400
-Date: Sat, 7 May 2016 10:26:06 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Soeren Moch <smoch@web.de>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH] media: dvb_ringbuffer: Add memory barriers
-Message-ID: <20160507102606.73e86c0d@recife.lan>
-In-Reply-To: <20160507102235.22e096d8@recife.lan>
-References: <1451248920-4935-1-git-send-email-smoch@web.de>
-	<56B7997C.1070503@web.de>
-	<20160507102235.22e096d8@recife.lan>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:33314 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754774AbcE0SSo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2016 14:18:44 -0400
+Received: by mail-lb0-f174.google.com with SMTP id k7so33549328lbm.0
+        for <linux-media@vger.kernel.org>; Fri, 27 May 2016 11:18:43 -0700 (PDT)
+Subject: Re: [PATCH 8/8] [media] rcar-vin: add Gen2 and Gen3 fallback
+ compatibility strings
+To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl, linux-renesas-soc@vger.kernel.org
+References: <1464203409-1279-1-git-send-email-niklas.soderlund@ragnatech.se>
+ <1464203409-1279-9-git-send-email-niklas.soderlund@ragnatech.se>
+ <26f0ba3a-2324-23ce-0933-452fe7e16542@cogentembedded.com>
+ <20160527113656.GI8307@bigcity.dyn.berto.se>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <3c671425-a949-6a6d-c162-6a6e793ac76b@cogentembedded.com>
+Date: Fri, 27 May 2016 21:18:39 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20160527113656.GI8307@bigcity.dyn.berto.se>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 7 May 2016 10:22:35 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+Hello.
 
-> Hi Soeren,
-> 
-> Em Sun, 7 Feb 2016 20:22:36 +0100
-> Soeren Moch <smoch@web.de> escreveu:
-> 
-> > On 27.12.2015 21:41, Soeren Moch wrote:
-> > > Implement memory barriers according to Documentation/circular-buffers.txt:
-> > > - use smp_store_release() to update ringbuffer read/write pointers
-> > > - use smp_load_acquire() to load write pointer on reader side
-> > > - use ACCESS_ONCE() to load read pointer on writer side
-> > >
-> > > This fixes data stream corruptions observed e.g. on an ARM Cortex-A9
-> > > quad core system with different types (PCI, USB) of DVB tuners.
-> > >
-> > > Signed-off-by: Soeren Moch <smoch@web.de>
-> > > Cc: stable@vger.kernel.org # 3.14+  
-> > 
-> > Mauro,
-> > 
-> > any news or comments on this?
-> > Since this is a real fix for broken behaviour, can you pick this up, please?
-> 
-> The problem here is that I'm very reluctant to touch at the DVB core
-> without doing some tests myself, as things like locking can be
-> very sensible.
+On 05/27/2016 02:36 PM, Niklas Söderlund wrote:
 
-In addition, it is good if other DVB developers could also test it.
-Even being sent for some time, until now, nobody else tested it.
+>>> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>>>
+>>> These are present in the soc-camera version of this driver and it's time
+>>> to add them to this driver as well.
+>>>
+>>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>>> ---
+>>>  drivers/media/platform/rcar-vin/rcar-core.c | 2 ++
+>>>  1 file changed, 2 insertions(+)
+>>>
+>>> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+>>> index 520690c..87041db 100644
+>>> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+>>> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+>>> @@ -33,6 +33,8 @@ static const struct of_device_id rvin_of_id_table[] = {
+>>>  	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+>>>  	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
+>>>  	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
+>>> +	{ .compatible = "renesas,rcar-gen3-vin", .data = (void *)RCAR_GEN3 },
+>>> +	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
+>>
+>>    What's the point of adding the H3 specific compatibility string in the
+>> previous patch then? The fallback stings were added not have to updated the
+>> driver for every new SoC exactly.
+>
+> Since this driver aims to replace the previous R-Car VIN driver which
+> uses soc-camera I think it also should contain all the compatibility
+> strings that the soc-camera driver do.
 
-> 
-> I'll try to find some time to take a look on it for Kernel 4.8,
-> but I'd like to reproduce the bug locally.
-> 
-> Could you please provide me enough info to reproduce it (and
-> eventually some test MPEG-TS where you know this would happen)?
-> 
-> I have two DekTek RF generators here, so I should be able to
-> play such TS and see what happens with and without the patch
-> on x86, arm32 and arm64.
+    Indeed. And I'm not seeing the gen2/3 strings there yet (I thought Simon 
+had already pushed them there). Nevermind then.
 
-Ah,  forgot to mention, but checkpatch.pl wants comments for the memory
-barriers:
+MBR, Sergei
 
-WARNING: memory barrier without comment
-#52: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:58:
-+	return (rbuf->pread == smp_load_acquire(&rbuf->pwrite));
-
-WARNING: memory barrier without comment
-#70: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:79:
-+	avail = smp_load_acquire(&rbuf->pwrite) - rbuf->pread;
-
-WARNING: memory barrier without comment
-#79: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:89:
-+	smp_store_release(&rbuf->pread, smp_load_acquire(&rbuf->pwrite));
-
-WARNING: memory barrier without comment
-#87: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:96:
-+	smp_store_release(&rbuf->pread, 0);
-
-WARNING: memory barrier without comment
-#88: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:97:
-+	smp_store_release(&rbuf->pwrite, 0);
-
-WARNING: memory barrier without comment
-#97: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:123:
-+		smp_store_release(&rbuf->pread, 0);
-
-WARNING: memory barrier without comment
-#103: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:128:
-+	smp_store_release(&rbuf->pread, (rbuf->pread + todo) % rbuf->size);
-
-WARNING: memory barrier without comment
-#112: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:143:
-+		smp_store_release(&rbuf->pread, 0);
-
-WARNING: memory barrier without comment
-#117: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:147:
-+	smp_store_release(&rbuf->pread, (rbuf->pread + todo) % rbuf->size);
-
-WARNING: memory barrier without comment
-#126: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:162:
-+		smp_store_release(&rbuf->pwrite, 0);
-
-WARNING: memory barrier without comment
-#130: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:165:
-+	smp_store_release(&rbuf->pwrite, (rbuf->pwrite + todo) % rbuf->size);
-
-WARNING: memory barrier without comment
-#139: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:185:
-+		smp_store_release(&rbuf->pwrite, 0);
-
-WARNING: memory barrier without comment
-#145: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:190:
-+	smp_store_release(&rbuf->pwrite, (rbuf->pwrite + todo) % rbuf->size);
-
-Thanks,
-Mauro
