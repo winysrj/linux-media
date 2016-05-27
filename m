@@ -1,97 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:40200 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751514AbcEUUiR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 May 2016 16:38:17 -0400
-Received: from benjamin-desktop.lan (c-0a08e555.03-170-73746f36.cust.bredbandsbolaget.se [85.229.8.10])
-	(Authenticated sender: ed8153)
-	by smtp.bredband2.com (Postfix) with ESMTPA id B90A629190
-	for <linux-media@vger.kernel.org>; Sat, 21 May 2016 22:38:11 +0200 (CEST)
-From: Benjamin Larsson <benjamin@southpole.se>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] rtl2832: add support for slave ts pid filter
-Date: Sat, 21 May 2016 22:38:11 +0200
-Message-Id: <1463863091-535-1-git-send-email-benjamin@southpole.se>
+Received: from lists.s-osg.org ([54.187.51.154]:56901 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756499AbcE0Ult (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2016 16:41:49 -0400
+Subject: Re: [PATCH v4 2/7] media: s5p-mfc: use generic reserved memory
+ bindings
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Rob Herring <robh@kernel.org>
+References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
+ <1464096690-23605-3-git-send-email-m.szyprowski@samsung.com>
+ <a14c4f45-64c9-f72d-532b-ad1ff53fa9eb@osg.samsung.com>
+ <20160525173614.GA8309@rob-hp-laptop>
+ <709cf900-86dd-5020-d516-24caa971d74a@samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Uli Middelberg <uli@middelberg.de>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Message-ID: <78803037-2aa8-0d62-c69a-f95caec393ab@osg.samsung.com>
+Date: Fri, 27 May 2016 16:41:34 -0400
+MIME-Version: 1.0
+In-Reply-To: <709cf900-86dd-5020-d516-24caa971d74a@samsung.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The rtl2832 demod has 2 sets of PID filters. This patch enables
-the filter support when using a slave demod.
+Hello Marek,
 
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
----
- drivers/media/dvb-frontends/rtl2832.c      | 21 ++++++++++++++++++---
- drivers/media/dvb-frontends/rtl2832_priv.h |  1 +
- 2 files changed, 19 insertions(+), 3 deletions(-)
+On 05/27/2016 02:37 AM, Marek Szyprowski wrote:
+> Hello,
+> 
+> 
+> On 2016-05-25 19:36, Rob Herring wrote:
+>> On Wed, May 25, 2016 at 11:18:59AM -0400, Javier Martinez Canillas wrote:
+>>> Hello Marek,
+>>>
+>>> On 05/24/2016 09:31 AM, Marek Szyprowski wrote:
+>>>> Use generic reserved memory bindings and mark old, custom properties
+>>>> as obsoleted.
+>>>>
+>>>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>>>> ---
+>>>>   .../devicetree/bindings/media/s5p-mfc.txt          | 39 +++++++++++++++++-----
+>>>>   1 file changed, 31 insertions(+), 8 deletions(-)
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+>>>> index 2d5787e..92c94f5 100644
+>>>> --- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
+>>>> +++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+>>>> @@ -21,15 +21,18 @@ Required properties:
+>>>>     - clock-names : from common clock binding: must contain "mfc",
+>>>>             corresponding to entry in the clocks property.
+>>>>   -  - samsung,mfc-r : Base address of the first memory bank used by MFC
+>>>> -            for DMA contiguous memory allocation and its size.
+>>>> -
+>>>> -  - samsung,mfc-l : Base address of the second memory bank used by MFC
+>>>> -            for DMA contiguous memory allocation and its size.
+>>>> -
+>>>>   Optional properties:
+>>>>     - power-domains : power-domain property defined with a phandle
+>>>>                  to respective power domain.
+>>>> +  - memory-region : from reserved memory binding: phandles to two reserved
+>>>> +    memory regions, first is for "left" mfc memory bus interfaces,
+>>>> +    second if for the "right" mfc memory bus, used when no SYSMMU
+>>>> +    support is available
+>>>> +
+>>>> +Obsolete properties:
+>>>> +  - samsung,mfc-r, samsung,mfc-l : support removed, please use memory-region
+>>>> +    property instead
+>>>> +
+>>>>
+>>> I wonder if we should maintain backward compatibility for this driver
+>>> since s5p-mfc memory allocation won't work with an old FDT if support
+>>> for the old properties are removed.
+>> Well, minimally the commit log should indicate that compatibility is
+>> being broken.
+> 
+> Compatibility is only partially broken. I add this to the commit message. Old
+> bindings will still work with the new driver when IOMMU is enabled - in such case reserved
+> memory regions are ignored so this should not be a big issue. Using IOMMU also increases
+> total memory space for the video buffers without wasting it as 'reserved'. Hope that
+> once those patches are merged, the IOMMU can be finally enabled in the exynos_defconfig.
+>
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index 7c96f76..fe771b9 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -409,6 +409,7 @@ static int rtl2832_init(struct dvb_frontend *fe)
- 	c->post_bit_count.len = 1;
- 	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 	dev->sleeping = false;
-+	dev->slave_ts = 0;
- 
- 	return 0;
- err:
-@@ -1124,10 +1125,16 @@ static int rtl2832_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
- 	else
- 		u8tmp = 0x00;
- 
--	ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
-+	if (dev->slave_ts) {
-+		ret = rtl2832_update_bits(client, 0x021, 0xc0, u8tmp);
-+	} else {
-+		ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
-+	}
- 	if (ret)
- 		goto err;
- 
-+	dev->slave_ts = 1;
-+
- 	return 0;
- err:
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
-@@ -1159,14 +1166,22 @@ static int rtl2832_pid_filter(struct dvb_frontend *fe, u8 index, u16 pid,
- 	buf[1] = (dev->filters >>  8) & 0xff;
- 	buf[2] = (dev->filters >> 16) & 0xff;
- 	buf[3] = (dev->filters >> 24) & 0xff;
--	ret = rtl2832_bulk_write(client, 0x062, buf, 4);
-+
-+	if (dev->slave_ts)
-+		ret = rtl2832_bulk_write(client, 0x022, buf, 4);
-+	else
-+		ret = rtl2832_bulk_write(client, 0x062, buf, 4);
- 	if (ret)
- 		goto err;
- 
- 	/* add PID */
- 	buf[0] = (pid >> 8) & 0xff;
- 	buf[1] = (pid >> 0) & 0xff;
--	ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
-+
-+	if (dev->slave_ts)
-+		ret = rtl2832_bulk_write(client, 0x026 + 2 * index, buf, 2);
-+	else
-+		ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
- 	if (ret)
- 		goto err;
- 
-diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
-index 6b875f4..561f8ab 100644
---- a/drivers/media/dvb-frontends/rtl2832_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2832_priv.h
-@@ -45,6 +45,7 @@ struct rtl2832_dev {
- 	bool sleeping;
- 	struct delayed_work i2c_gate_work;
- 	unsigned long filters; /* PID filter */
-+	unsigned long slave_ts;
- };
- 
- struct rtl2832_reg_entry {
+Yes, a problem is that some Exynos machines (for example the Snow and Peach
+Chromebooks) fail to boot when IOMMU is enabled due the bootloader leaving
+the FIMD enabled doing DMA operations automatically as you found before.
+
+You proposed to add a "iommu-reserved-mapping" property [0] but that never
+landed due not having an agreement on how should be fixed properly IIUC [1].
+
+So that has to be fixed before enabling the Exynos IOMMU support by default.
+
+[0]: http://www.spinics.net/lists/arm-kernel/msg415501.html
+[1]: http://www.spinics.net/lists/arm-kernel/msg419747.html 
+
+Best regards,
 -- 
-2.5.0
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
