@@ -1,290 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:37631 "EHLO
-	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753936AbcETPUX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 May 2016 11:20:23 -0400
-Received: by mail-wm0-f54.google.com with SMTP id a17so177940135wme.0
-        for <linux-media@vger.kernel.org>; Fri, 20 May 2016 08:20:22 -0700 (PDT)
-Subject: Re: [PATCH v2 2/2] media: Add a driver for the ov5645 camera sensor.
-To: Todor Tomov <todor.tomov@linaro.org>, robh+dt@kernel.org,
-	pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, geert@linux-m68k.org, matrandg@cisco.com,
-	linux-media@vger.kernel.org
-References: <1463572208-8826-1-git-send-email-todor.tomov@linaro.org>
- <1463572208-8826-3-git-send-email-todor.tomov@linaro.org>
-Cc: laurent.pinchart@ideasonboard.com
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <573F2B31.1070807@linaro.org>
-Date: Fri, 20 May 2016 18:20:17 +0300
-MIME-Version: 1.0
-In-Reply-To: <1463572208-8826-3-git-send-email-todor.tomov@linaro.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mga01.intel.com ([192.55.52.88]:36594 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751411AbcE0MsD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2016 08:48:03 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de
+Subject: [PATCH 5/6] v4l: Add 14-bit raw bayer pixel format definitions
+Date: Fri, 27 May 2016 15:44:39 +0300
+Message-Id: <1464353080-18300-6-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1464353080-18300-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1464353080-18300-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Todor,
+The formats added by this patch are:
 
-Thanks for the patch, few comments below.
+	V4L2_PIX_FMT_SBGGR14
+	V4L2_PIX_FMT_SGBRG14
+	V4L2_PIX_FMT_SGRBG14
+	V4L2_PIX_FMT_SRGGB14
 
-On 05/18/2016 02:50 PM, Todor Tomov wrote:
-> The ov5645 sensor from Omnivision supports up to 2592x1944
-> and CSI2 interface.
-> 
-> The driver adds support for the following modes:
-> - 1280x960
-> - 1920x1080
-> - 2592x1944
-> 
-> Output format is packed 8bit UYVY.
-> 
-> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-> ---
->  drivers/media/i2c/Kconfig  |   11 +
->  drivers/media/i2c/Makefile |    1 +
->  drivers/media/i2c/ov5645.c | 1425 ++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 1437 insertions(+)
->  create mode 100644 drivers/media/i2c/ov5645.c
-> 
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> index 521bbf1..aa17eba 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -490,6 +490,17 @@ config VIDEO_OV2659
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called ov2659.
->  
-> +config VIDEO_OV5645
-> +	tristate "OmniVision OV5645 sensor support"
-> +	depends on I2C && VIDEO_V4L2
-> +	depends on MEDIA_CAMERA_SUPPORT
+Signed-off-by: Jouni Ukkonen <jouni.ukkonen@intel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/DocBook/media/v4l/pixfmt-srggb14.xml | 90 ++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
+ include/uapi/linux/videodev2.h                     |  4 +
+ 3 files changed, 95 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
 
-depends on OF ?
-
-<cut>
-
-> +
-> +struct ov5645 {
-> +	struct i2c_client *i2c_client;
-> +	struct device *dev;
-> +	struct v4l2_subdev sd;
-> +	struct media_pad pad;
-> +	struct v4l2_of_endpoint ep;
-> +	struct v4l2_mbus_framefmt fmt;
-> +	struct v4l2_rect crop;
-> +	struct clk *xclk;
-> +	u32 xclk_freq;
-
-this become unused?
-
-> +
-> +	struct regulator *io_regulator;
-> +	struct regulator *core_regulator;
-> +	struct regulator *analog_regulator;
-> +
-> +	enum ov5645_mode current_mode;
-> +
-> +	/* Cached control values */
-> +	struct v4l2_ctrl_handler ctrls;
-> +	struct v4l2_ctrl *saturation;
-> +	struct v4l2_ctrl *hflip;
-> +	struct v4l2_ctrl *vflip;
-> +	struct v4l2_ctrl *autogain;
-> +	struct v4l2_ctrl *autoexposure;
-> +	struct v4l2_ctrl *awb;
-> +	struct v4l2_ctrl *pattern;
-> +
-> +	struct mutex power_lock; /* lock to protect power state */
-> +	int power;
-> +
-> +	struct gpio_desc *pwdn_gpio;
-> +	struct gpio_desc *rst_gpio;
-> +};
-> +
-> +static inline struct ov5645 *to_ov5645(struct v4l2_subdev *sd)
-> +{
-> +	return container_of(sd, struct ov5645, sd);
-> +}
-
-<cut>
-
-> +static int ov5645_s_power(struct v4l2_subdev *sd, int on)
-> +{
-> +	struct ov5645 *ov5645 = to_ov5645(sd);
-> +	int ret = 0;
-> +
-> +	dev_dbg(ov5645->dev, "%s: on = %d\n", __func__, on);
-> +
-> +	mutex_lock(&ov5645->power_lock);
-> +
-> +	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
-> +	 * update the power state.
-> +	 */
-> +	if (ov5645->power == !on) {
-> +		if (on) {
-> +			ret = ov5645_set_power_on(ov5645);
-> +			if (ret < 0) {
-> +				dev_err(ov5645->dev, "could not set power %s\n",
-> +					on ? "on" : "off");
-> +				goto exit;
-> +			}
-> +
-> +			ret = ov5645_init(ov5645);
-> +			if (ret < 0) {
-> +				dev_err(ov5645->dev,
-> +					"could not set init registers\n");
-> +				goto exit;
-> +			}
-> +
-> +			ov5645_write_reg(ov5645, OV5645_SYSTEM_CTRL0,
-> +					 OV5645_SYSTEM_CTRL0_STOP);
-
-please check the error code.
-
-> +		} else {
-> +			ov5645_set_power_off(ov5645);
-> +		}
-> +
-> +		/* Update the power count. */
-> +		ov5645->power += on ? 1 : -1;
-> +		WARN_ON(ov5645->power < 0);
-> +	}
-> +
-> +exit:
-> +	mutex_unlock(&ov5645->power_lock);
-> +
-> +	return ret;
-> +}
-> +
-
-<cut>
-
-> +
-> +static int ov5645_registered(struct v4l2_subdev *subdev)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
-> +	struct ov5645 *ov5645 = to_ov5645(subdev);
-> +	u8 chip_id_high, chip_id_low;
-> +	int ret;
-> +
-> +	ov5645_s_power(&ov5645->sd, true);
-
-check for error here and on the other places where call s_power.
-
-> +
-> +	ret = ov5645_read_reg(ov5645, OV5645_CHIP_ID_HIGH_REG, &chip_id_high);
-> +	if (ret < 0 || chip_id_high != OV5645_CHIP_ID_HIGH) {
-> +		dev_err(ov5645->dev, "could not read ID high\n");
-> +		ret = -ENODEV;
-> +		goto reg_power_off;
-> +	}
-> +	ret = ov5645_read_reg(ov5645, OV5645_CHIP_ID_LOW_REG, &chip_id_low);
-> +	if (ret < 0 || chip_id_low != OV5645_CHIP_ID_LOW) {
-> +		dev_err(ov5645->dev, "could not read ID low\n");
-> +		ret = -ENODEV;
-> +		goto reg_power_off;
-> +	}
-> +
-> +	dev_info(&client->dev, "OV5645 detected at address 0x%02x\n",
-> +		 client->addr);
-> +
-> +	ov5645_s_power(&ov5645->sd, false);
-> +
-> +	return 0;
-> +
-> +reg_power_off:
-> +	ov5645_s_power(&ov5645->sd, false);
-> +	return ret;
-> +}
-> +
-> +static int ov5645_s_stream(struct v4l2_subdev *subdev, int enable)
-> +{
-> +	struct ov5645 *ov5645 = to_ov5645(subdev);
-> +	int ret;
-> +
-> +	dev_dbg(ov5645->dev, "%s: enable = %d\n", __func__, enable);
-> +
-> +	if (enable) {
-> +		ret = ov5645_change_mode(ov5645, ov5645->current_mode);
-> +		if (ret < 0) {
-> +			dev_err(ov5645->dev, "could not set mode %d\n",
-> +				ov5645->current_mode);
-> +			return ret;
-> +		}
-> +		ret = v4l2_ctrl_handler_setup(&ov5645->ctrls);
-> +		if (ret < 0) {
-> +			dev_err(ov5645->dev, "could not sync v4l2 controls\n");
-> +			return ret;
-> +		}
-> +		ov5645_write_reg(ov5645, OV5645_SYSTEM_CTRL0,
-> +				 OV5645_SYSTEM_CTRL0_START);
-
-Error code check here and below.
-
-> +	} else {
-> +		ov5645_write_reg(ov5645, OV5645_SYSTEM_CTRL0,
-> +				 OV5645_SYSTEM_CTRL0_STOP);
-> +	}
-> +
-> +	return 0;
-> +}
-
-<cut>
-
-> +static int ov5645_probe(struct i2c_client *client,
-> +			const struct i2c_device_id *id)
-> +{
-> +	struct device *dev = &client->dev;
-> +	struct device_node *endpoint;
-> +	struct ov5645 *ov5645;
-> +	int ret = 0;
-
-no need to initialize
-
-<cut>
-
-> +
-> +	ov5645->io_regulator = devm_regulator_get(dev, "dovdd");
-> +	if (IS_ERR(ov5645->io_regulator)) {
-> +		switch(PTR_ERR(ov5645->io_regulator)) {
-> +		case -ENODEV:
-> +			/* Regulator is optional so this is ok - continue */
-
-if the regulator is optional then use devm_regulator_get_optional, thus
-you can avoid checking ov5645->io_regulator for NULL.
-
-and the error handling will be simply
-
-if (IS_ERR(ret_reg))
-	return PTR_ERR(ret_reg);
-
-<cut>
-
-> +
-> +	ov5645->pwdn_gpio = devm_gpiod_get(dev, "pwdn", GPIOD_OUT_LOW);
-> +	if (IS_ERR(ov5645->pwdn_gpio)) {
-> +		switch(PTR_ERR(ov5645->pwdn_gpio)) {
-> +		case -ENOENT:
-> +			/* GPIO is optional so this is ok - continue */
-
-you can use devm_gpiod_get_optional then.
-
-> +			ov5645->pwdn_gpio = NULL;
-> +			dev_dbg(dev, "power down gpio not present\n");
-> +			break;
-> +		case -EPROBE_DEFER:
-> +			dev_dbg(dev, "power down gpio probe defered\n");
-> +			return -EPROBE_DEFER;
-> +		default:
-> +			dev_err(dev, "cannot get power down gpio\n");
-> +			return PTR_ERR(ov5645->pwdn_gpio);
-> +		}
-> +	}
-
-
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
+new file mode 100644
+index 0000000..7e82d7e
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
+@@ -0,0 +1,90 @@
++    <refentry>
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_SRGGB14 ('RG14'),
++	 V4L2_PIX_FMT_SGRBG14 ('BA14'),
++	 V4L2_PIX_FMT_SGBRG14 ('GB14'),
++	 V4L2_PIX_FMT_SBGGR14 ('BG14'),
++	 </refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname id="V4L2-PIX-FMT-SRGGB14"><constant>V4L2_PIX_FMT_SRGGB14</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGRBG14"><constant>V4L2_PIX_FMT_SGRBG14</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGBRG14"><constant>V4L2_PIX_FMT_SGBRG14</constant></refname>
++	<refname id="V4L2-PIX-FMT-SBGGR14"><constant>V4L2_PIX_FMT_SBGGR14</constant></refname>
++	<refpurpose>14-bit Bayer formats expanded to 16 bits</refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
++
++	<para>These four pixel formats are raw sRGB / Bayer formats with
++14 bits per colour. Each colour component is stored in a 16-bit word, with 2
++unused high bits filled with zeros. Each n-pixel row contains n/2 green samples
++and n/2 blue or red samples, with alternating red and blue rows. Bytes are
++stored in memory in little endian order. They are conventionally described
++as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example of one of these
++formats</para>
++
++    <example>
++      <title><constant>V4L2_PIX_FMT_SBGGR14</constant> 4 &times; 4
++pixel image</title>
++
++      <formalpara>
++	<title>Byte Order.</title>
++	<para>Each cell is one byte, high 2 bits in high bytes are 0.
++	  <informaltable frame="none">
++	    <tgroup cols="5" align="center">
++	      <colspec align="left" colwidth="2*" />
++	      <tbody valign="top">
++		<row>
++		  <entry>start&nbsp;+&nbsp;0:</entry>
++		  <entry>B<subscript>00low</subscript></entry>
++		  <entry>B<subscript>00high</subscript></entry>
++		  <entry>G<subscript>01low</subscript></entry>
++		  <entry>G<subscript>01high</subscript></entry>
++		  <entry>B<subscript>02low</subscript></entry>
++		  <entry>B<subscript>02high</subscript></entry>
++		  <entry>G<subscript>03low</subscript></entry>
++		  <entry>G<subscript>03high</subscript></entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;8:</entry>
++		  <entry>G<subscript>10low</subscript></entry>
++		  <entry>G<subscript>10high</subscript></entry>
++		  <entry>R<subscript>11low</subscript></entry>
++		  <entry>R<subscript>11high</subscript></entry>
++		  <entry>G<subscript>12low</subscript></entry>
++		  <entry>G<subscript>12high</subscript></entry>
++		  <entry>R<subscript>13low</subscript></entry>
++		  <entry>R<subscript>13high</subscript></entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;16:</entry>
++		  <entry>B<subscript>20low</subscript></entry>
++		  <entry>B<subscript>20high</subscript></entry>
++		  <entry>G<subscript>21low</subscript></entry>
++		  <entry>G<subscript>21high</subscript></entry>
++		  <entry>B<subscript>22low</subscript></entry>
++		  <entry>B<subscript>22high</subscript></entry>
++		  <entry>G<subscript>23low</subscript></entry>
++		  <entry>G<subscript>23high</subscript></entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;24:</entry>
++		  <entry>G<subscript>30low</subscript></entry>
++		  <entry>G<subscript>30high</subscript></entry>
++		  <entry>R<subscript>31low</subscript></entry>
++		  <entry>R<subscript>31high</subscript></entry>
++		  <entry>G<subscript>32low</subscript></entry>
++		  <entry>G<subscript>32high</subscript></entry>
++		  <entry>R<subscript>33low</subscript></entry>
++		  <entry>R<subscript>33high</subscript></entry>
++		</row>
++	      </tbody>
++	    </tgroup>
++	  </informaltable>
++	</para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 457337e..29e9d7c 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -1594,6 +1594,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+     &sub-srggb10dpcm8;
+     &sub-srggb12;
+     &sub-srggb12p;
++    &sub-srggb14;
+   </section>
+ 
+   <section id="yuv-formats">
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 7ace868..2c4b076 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -581,6 +581,10 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
+ #define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
+ #define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
++#define V4L2_PIX_FMT_SBGGR14 v4l2_fourcc('B', 'G', '1', '4') /* 14  BGBG.. GRGR.. */
++#define V4L2_PIX_FMT_SGBRG14 v4l2_fourcc('G', 'B', '1', '4') /* 14  GBGB.. RGRG.. */
++#define V4L2_PIX_FMT_SGRBG14 v4l2_fourcc('B', 'A', '1', '4') /* 14  GRGR.. BGBG.. */
++#define V4L2_PIX_FMT_SRGGB14 v4l2_fourcc('R', 'G', '1', '4') /* 14  RGRG.. GBGB.. */
+ #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
+ 
+ /* compressed formats */
 -- 
-regards,
-Stan
+1.9.1
+
