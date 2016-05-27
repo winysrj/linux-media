@@ -1,86 +1,291 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:57892 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751203AbcEENCS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 May 2016 09:02:18 -0400
-Date: Thu, 5 May 2016 07:02:10 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Jani Nikula <jani.nikula@intel.com>,
-	Markus Heiser <markus.heiser@darmarit.de>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	"Dan Allen" <dan@opendevise.io>,
-	Russel Winder <russel@winder.org.uk>,
-	"Keith Packard" <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org linux-media"
-	<linux-media@vger.kernel.org>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160505070210.477a568c@lwn.net>
-In-Reply-To: <20160504145738.34e6bf5a@recife.lan>
-References: <87fuvypr2h.fsf@intel.com>
-	<20160310122101.2fca3d79@recife.lan>
-	<AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de>
-	<8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de>
-	<20160412094620.4fbf05c0@lwn.net>
-	<CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com>
-	<CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com>
-	<54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de>
-	<874maef8km.fsf@intel.com>
-	<13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de>
-	<20160504134346.GY14148@phenom.ffwll.local>
-	<44110C0C-2E98-4470-9DB1-B72406E901A0@darmarit.de>
-	<87inytn6n2.fsf@intel.com>
-	<20160504135035.1f055fa7@recife.lan>
-	<20160504105936.34c2697f@lwn.net>
-	<20160504145738.34e6bf5a@recife.lan>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:56759 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751222AbcE0N0r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2016 09:26:47 -0400
+Subject: Re: [PATCH v2 1/2] media: Media Device Allocator API
+To: Shuah Khan <shuahkh@osg.samsung.com>, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	hans.verkuil@cisco.com, chehabrafael@gmail.com,
+	javier@osg.samsung.com, inki.dae@samsung.com,
+	g.liakhovetski@gmx.de, jh1009.sung@samsung.com
+References: <cover.1464132578.git.shuahkh@osg.samsung.com>
+ <90f39ad8de612214e52d7be35be3077b7510786a.1464132578.git.shuahkh@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <57484B11.2060400@xs4all.nl>
+Date: Fri, 27 May 2016 15:26:41 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <90f39ad8de612214e52d7be35be3077b7510786a.1464132578.git.shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 4 May 2016 14:57:38 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
-
-> Also, media documentation is not just one more documentation. It is
-> the biggest one we have, and that has more changes than any other
-> documentation under Documentation/DocBook:
+On 05/25/2016 01:39 AM, Shuah Khan wrote:
+> Media Device Allocator API to allows multiple drivers share a media device.
+> Using this API, drivers can allocate a media device with the shared struct
+> device as the key. Once the media device is allocated by a driver, other
+> drivers can get a reference to it. The media device is released when all
+> the references are released.
 > 
-> $ git lg --since 01/01/2015 ` ls *.tmpl|grep -v media`|wc -l
-> 116
-> $ git lg --since 01/01/2015 ` ls *.tmpl|grep media` `find media/ -type f`|wc -l
-> 179
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/Makefile              |   3 +-
+>  drivers/media/media-dev-allocator.c | 120 ++++++++++++++++++++++++++++++++++++
+>  include/media/media-dev-allocator.h |  85 +++++++++++++++++++++++++
+>  3 files changed, 207 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/media/media-dev-allocator.c
+>  create mode 100644 include/media/media-dev-allocator.h
 > 
-> It also is more than twice the size of the other DocBook docs:
+> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+> index e608bbc..b08f091 100644
+> --- a/drivers/media/Makefile
+> +++ b/drivers/media/Makefile
+> @@ -2,7 +2,8 @@
+>  # Makefile for the kernel multimedia device drivers.
+>  #
+>  
+> -media-objs	:= media-device.o media-devnode.o media-entity.o
+> +media-objs	:= media-device.o media-devnode.o media-entity.o \
+> +		   media-dev-allocator.o
+>  
+>  #
+>  # I2C drivers should come before other drivers, otherwise they'll fail
+> diff --git a/drivers/media/media-dev-allocator.c b/drivers/media/media-dev-allocator.c
+> new file mode 100644
+> index 0000000..b8c9811
+> --- /dev/null
+> +++ b/drivers/media/media-dev-allocator.c
+> @@ -0,0 +1,120 @@
+> +/*
+> + * media-dev-allocator.c - Media Controller Device Allocator API
+> + *
+> + * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
+> + * Copyright (c) 2016 Samsung Electronics Co., Ltd.
+> + *
+> + * This file is released under the GPLv2.
+> + * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> + */
+> +
+> +/*
+> + * This file adds a global refcounted Media Controller Device Instance API.
+> + * A system wide global media device list is managed and each media device
+> + * includes a kref count. The last put on the media device releases the media
+> + * device instance.
+> + *
+> +*/
+> +
+> +#include <linux/slab.h>
+> +#include <linux/kref.h>
+> +#include <linux/usb.h>
+> +#include <media/media-device.h>
+> +
+> +static LIST_HEAD(media_device_list);
+> +static DEFINE_MUTEX(media_device_lock);
+> +
+> +struct media_device_instance {
+> +	struct media_device mdev;
+> +	struct list_head list;
+> +	struct device *dev;
+> +	struct kref refcount;
+> +};
+> +
+> +static inline struct media_device_instance *
+> +to_media_device_instance(struct media_device *mdev)
+> +{
+> +	return container_of(mdev, struct media_device_instance, mdev);
+> +}
+> +
+> +static void media_device_instance_release(struct kref *kref)
+> +{
+> +	struct media_device_instance *mdi =
+> +		container_of(kref, struct media_device_instance, refcount);
+> +
+> +	dev_dbg(mdi->mdev.dev, "%s: mdev=%p\n", __func__, &mdi->mdev);
+> +
+> +	mutex_lock(&media_device_lock);
+> +
+> +	media_device_unregister(&mdi->mdev);
+> +	media_device_cleanup(&mdi->mdev);
+> +
+> +	list_del(&mdi->list);
+> +	mutex_unlock(&media_device_lock);
+> +
+> +	kfree(mdi);
+> +}
+> +
+
+Add a comment here saying that media_device_lock has to be locked when
+calling this get function.
+
+> +static struct media_device *__media_device_get(struct device *dev,
+> +					       bool allocate)
+
+I think you can just drop the allocate argument: you're always allocating if
+the media_device wasn't found.
+
+> +{
+> +	struct media_device_instance *mdi;
+> +
+> +	list_for_each_entry(mdi, &media_device_list, list) {
+> +		if (mdi->dev == dev) {
+> +			kref_get(&mdi->refcount);
+> +			dev_dbg(dev, "%s: get mdev=%p\n",
+> +				 __func__, &mdi->mdev);
+> +			goto done;
+
+Just say 'return &mdi->mdev;', no goto needed.
+
+> +		}
+> +	}
+> +
+> +	if (!allocate) {
+> +		mdi = NULL;
+> +		goto done;
+> +	}
+> +
+> +	mdi = kzalloc(sizeof(*mdi), GFP_KERNEL);
+> +	if (!mdi)
+> +		goto done;
+
+Same here, just do 'return NULL;'
+
+> +
+> +	mdi->dev = dev;
+> +	kref_init(&mdi->refcount);
+> +	list_add_tail(&mdi->list, &media_device_list);
+> +
+> +	dev_dbg(dev, "%s: alloc mdev=%p\n", __func__, &mdi->mdev);
+> +done:
+> +	return mdi ? &mdi->mdev : NULL;
+> +}
+> +
+> +struct media_device *media_device_usb_allocate(struct usb_device *udev,
+> +					       char *driver_name)
+> +{
+> +	struct media_device *mdev;
+> +
+> +	mutex_lock(&media_device_lock);
+> +	mdev = __media_device_get(&udev->dev, true);
+> +	if (!mdev) {
+> +		mutex_unlock(&media_device_lock);
+> +		return ERR_PTR(-ENOMEM);
+> +	}
+> +
+> +	/* check if media device is already initialized */
+> +	if (!mdev->dev)
+> +		__media_device_usb_init(mdev, udev, udev->product,
+> +					driver_name);
+> +	mutex_unlock(&media_device_lock);
+> +
+> +	dev_dbg(&udev->dev, "%s\n", __func__);
+> +	return mdev;
+> +}
+> +EXPORT_SYMBOL_GPL(media_device_usb_allocate);
+> +
+> +void media_device_delete(struct media_device *mdev)
+> +{
+> +	struct media_device_instance *mdi = to_media_device_instance(mdev);
+> +
+> +	dev_dbg(mdi->mdev.dev, "%s: mdev=%p\n", __func__, &mdi->mdev);
+> +	kref_put(&mdi->refcount, media_device_instance_release);
+> +}
+> +EXPORT_SYMBOL_GPL(media_device_delete);
+> diff --git a/include/media/media-dev-allocator.h b/include/media/media-dev-allocator.h
+> new file mode 100644
+> index 0000000..fda032b
+> --- /dev/null
+> +++ b/include/media/media-dev-allocator.h
+> @@ -0,0 +1,85 @@
+> +/*
+> + * media-dev-allocator.h - Media Controller Device Allocator API
+> + *
+> + * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
+> + * Copyright (c) 2016 Samsung Electronics Co., Ltd.
+> + *
+> + * This file is released under the GPLv2.
+> + * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> + */
+> +
+> +/*
+> + * This file adds a global ref-counted Media Controller Device Instance API.
+> + * A system wide global media device list is managed and each media device
+> + * includes a kref count. The last put on the media device releases the media
+> + * device instance.
+> +*/
+> +
+> +#ifndef _MEDIA_DEV_ALLOCTOR_H
+> +#define _MEDIA_DEV_ALLOCTOR_H
+> +
+> +struct usb_device;
+> +
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +/**
+> + * DOC: Media Controller Device Allocator API
+> + *
+> + * When media device belongs to more than one driver, the shared media device
+> + * is allocated with the shared struct device as the key for look ups.
+> + *
+> + * Shared media device should stay in registered state until the last driver
+> + * unregisters it. In addition, media device should be released when all the
+> + * references are released. Each driver gets a reference to the media device
+> + * during probe, when it allocates the media device. If media device is already
+> + * allocated, allocate API bumps up the refcount and return the existing media
+> + * device. Driver puts the reference back from its disconnect routine when it
+> + * calls media_device_delete().
+> + *
+> + * Media device is unregistered and cleaned up from the kref put handler to
+> + * ensure that the media device stays in registered state until the last driver
+> + * unregisters the media device.
+> + *
+> + * Driver Usage:
+> + *
+> + * Drivers should use the media-core routines to get register reference and
+> + * call media_device_delete() routine to make sure the shared media device
+> + * delete is handled correctly.
+> + *
+> + * driver probe:
+> + *	Call media_device_usb_allocate() to allocate or get a reference
+> + *	Call media_device_register(), if media devnode isn't registered
+> + *
+> + * driver disconnect:
+> + *	Call media_device_delete() to free the media_device. Free'ing is
+> + *	handled by the put handler.
+> + *
+> + */
+> +
+> +/**
+> + * media_device_usb_allocate() - Allocate and return media device
+> + *
+> + * @udev - struct usb_device pointer
+> + * @driver_name
+> + *
+> + * This interface should be called to allocate a media device when multiple
+> + * drivers share usb_device and the media device. This interface allocates
+> + * media device and calls media_device_usb_init() to initialize it.
+> + *
+> + */
+> +struct media_device *media_device_usb_allocate(struct usb_device *udev,
+> +					       char *driver_name);
+> +/**
+> + * media_device_delete() - Release media device. Calls kref_put().
+> + *
+> + * @mdev - struct media_device pointer
+> + *
+> + * This interface should be called to put Media Device Instance kref.
+> + */
+> +void media_device_delete(struct media_device *mdev);
+> +#else
+> +static inline struct media_device *media_device_usb_allocate(
+> +			struct usb_device *udev, char *driver_name)
+> +			{ return NULL; }
+> +static inline void media_device_delete(struct media_device *mdev) { }
+> +#endif /* CONFIG_MEDIA_CONTROLLER */
+> +#endif
 > 
-> $ wc -l $(ls *.tmpl|grep  media) `find media/ -type f`|tail -1
->   82275 total
-> $ wc -l $(ls *.tmpl|grep -v media)|tail -1
->   29568 total
-> 
-> E. g. media corresponds to 60% of the number of patches and 73% of
-> the DocBook stuff.
 
-These numbers are not entirely representative, I have to say.  You're
-ignoring the kerneldoc comments - which is what much of the "DocBook"
-documents are made of, and which is the focus of much of this activity.  If
-you could find a way to count those, you'd get a different picture.
+Regards,
 
-But I don't think that really matters; there doesn't seem to be *that* much
-disagreement here.
-
-The media book is important; we want it to be a part of the overall kernel
-documentation suite and not stuck in some DocBook ghetto.  I agree that we
-should have an idea for a plausible path for *all* of our documentation.
-But I'm also concerned about delaying this work yet again; we have
-developers trying to push forward with improved documentation, and they've
-had to wait a year for this stuff - so far.
-
-Thanks,
-
-jon
+	Hans
