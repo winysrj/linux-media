@@ -1,181 +1,438 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:26815 "EHLO mga11.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:37689 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751046AbcEDNOA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 09:14:00 -0400
+	id S1751130AbcE0MsT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2016 08:48:19 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH 1/3] media: Move media_device link_notify operation to an ops structure
-Date: Wed,  4 May 2016 14:25:31 +0300
-Message-Id: <1462361133-23887-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1462361133-23887-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1462361133-23887-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: g.liakhovetski@gmx.de, Jouni Ukkonen <jouni.ukkonen@intel.com>
+Subject: [PATCH 4/6] media: Add 1X14 14-bit raw bayer media bus code definitions
+Date: Fri, 27 May 2016 15:44:38 +0300
+Message-Id: <1464353080-18300-5-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1464353080-18300-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1464353080-18300-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+From: Jouni Ukkonen <jouni.ukkonen@intel.com>
 
-This will allow adding new operations without increasing the
-media_device structure size for drivers that don't implement any media
-device operation.
+The codes will be called:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+	MEDIA_BUS_FMT_SBGGR14_1X14
+	MEDIA_BUS_FMT_SGBRG14_1X14
+	MEDIA_BUS_FMT_SGRBG14_1X14
+	MEDIA_BUS_FMT_SRGGB14_1X14
 
-Fix compilation error for the omap3isp driver.
-
+Signed-off-by: Jouni Ukkonen <jouni.ukkonen@intel.com>
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/media-entity.c                  | 11 ++++++-----
- drivers/media/platform/exynos4-is/media-dev.c |  6 +++++-
- drivers/media/platform/omap3isp/isp.c         |  6 +++++-
- drivers/staging/media/omap4iss/iss.c          |  6 +++++-
- include/media/media-device.h                  | 16 ++++++++++++----
- 5 files changed, 33 insertions(+), 12 deletions(-)
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 162 +++++++++++++++++++--
+ include/uapi/linux/media-bus-format.h              |   6 +-
+ 2 files changed, 154 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index c53c1d5..301fd4f 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -806,17 +806,18 @@ int __media_entity_setup_link(struct media_link *link, u32 flags)
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 199c84e..6d45dc8 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -1098,22 +1098,24 @@ see <xref linkend="colorspaces" />.</entry>
  
- 	mdev = source->graph_obj.mdev;
+       <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-bayer">
+ 	<title>Bayer Formats</title>
+-	<tgroup cols="15">
++	<tgroup cols="17">
+ 	  <colspec colname="id" align="left" />
+ 	  <colspec colname="code" align="center"/>
+ 	  <colspec colname="bit" />
+-	  <colspec colnum="4" colname="b11" align="center" />
+-	  <colspec colnum="5" colname="b10" align="center" />
+-	  <colspec colnum="6" colname="b09" align="center" />
+-	  <colspec colnum="7" colname="b08" align="center" />
+-	  <colspec colnum="8" colname="b07" align="center" />
+-	  <colspec colnum="9" colname="b06" align="center" />
+-	  <colspec colnum="10" colname="b05" align="center" />
+-	  <colspec colnum="11" colname="b04" align="center" />
+-	  <colspec colnum="12" colname="b03" align="center" />
+-	  <colspec colnum="13" colname="b02" align="center" />
+-	  <colspec colnum="14" colname="b01" align="center" />
+-	  <colspec colnum="15" colname="b00" align="center" />
++	  <colspec colnum="4" colname="b13" align="center" />
++	  <colspec colnum="5" colname="b12" align="center" />
++	  <colspec colnum="6" colname="b11" align="center" />
++	  <colspec colnum="7" colname="b10" align="center" />
++	  <colspec colnum="8" colname="b09" align="center" />
++	  <colspec colnum="9" colname="b08" align="center" />
++	  <colspec colnum="10" colname="b07" align="center" />
++	  <colspec colnum="11" colname="b06" align="center" />
++	  <colspec colnum="12" colname="b05" align="center" />
++	  <colspec colnum="13" colname="b04" align="center" />
++	  <colspec colnum="14" colname="b03" align="center" />
++	  <colspec colnum="15" colname="b02" align="center" />
++	  <colspec colnum="16" colname="b01" align="center" />
++	  <colspec colnum="17" colname="b00" align="center" />
+ 	  <spanspec namest="b11" nameend="b00" spanname="b0" />
+ 	  <thead>
+ 	    <row>
+@@ -1126,6 +1128,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry></entry>
+ 	      <entry></entry>
+ 	      <entry>Bit</entry>
++	      <entry>13</entry>
++	      <entry>12</entry>
+ 	      <entry>11</entry>
+ 	      <entry>10</entry>
+ 	      <entry>9</entry>
+@@ -1149,6 +1153,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>b<subscript>7</subscript></entry>
+ 	      <entry>b<subscript>6</subscript></entry>
+ 	      <entry>b<subscript>5</subscript></entry>
+@@ -1166,6 +1172,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>g<subscript>7</subscript></entry>
+ 	      <entry>g<subscript>6</subscript></entry>
+ 	      <entry>g<subscript>5</subscript></entry>
+@@ -1183,6 +1191,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>g<subscript>7</subscript></entry>
+ 	      <entry>g<subscript>6</subscript></entry>
+ 	      <entry>g<subscript>5</subscript></entry>
+@@ -1200,6 +1210,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>r<subscript>7</subscript></entry>
+ 	      <entry>r<subscript>6</subscript></entry>
+ 	      <entry>r<subscript>5</subscript></entry>
+@@ -1217,6 +1229,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>b<subscript>7</subscript></entry>
+ 	      <entry>b<subscript>6</subscript></entry>
+ 	      <entry>b<subscript>5</subscript></entry>
+@@ -1234,6 +1248,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>g<subscript>7</subscript></entry>
+ 	      <entry>g<subscript>6</subscript></entry>
+ 	      <entry>g<subscript>5</subscript></entry>
+@@ -1251,6 +1267,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>g<subscript>7</subscript></entry>
+ 	      <entry>g<subscript>6</subscript></entry>
+ 	      <entry>g<subscript>5</subscript></entry>
+@@ -1268,6 +1286,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>r<subscript>7</subscript></entry>
+ 	      <entry>r<subscript>6</subscript></entry>
+ 	      <entry>r<subscript>5</subscript></entry>
+@@ -1285,6 +1305,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>b<subscript>7</subscript></entry>
+ 	      <entry>b<subscript>6</subscript></entry>
+ 	      <entry>b<subscript>5</subscript></entry>
+@@ -1302,6 +1324,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>g<subscript>7</subscript></entry>
+ 	      <entry>g<subscript>6</subscript></entry>
+ 	      <entry>g<subscript>5</subscript></entry>
+@@ -1319,6 +1343,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>g<subscript>7</subscript></entry>
+ 	      <entry>g<subscript>6</subscript></entry>
+ 	      <entry>g<subscript>5</subscript></entry>
+@@ -1336,6 +1362,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>r<subscript>7</subscript></entry>
+ 	      <entry>r<subscript>6</subscript></entry>
+ 	      <entry>r<subscript>5</subscript></entry>
+@@ -1353,6 +1381,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>0</entry>
+ 	      <entry>0</entry>
+ 	      <entry>0</entry>
+@@ -1370,6 +1400,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>b<subscript>7</subscript></entry>
+ 	      <entry>b<subscript>6</subscript></entry>
+ 	      <entry>b<subscript>5</subscript></entry>
+@@ -1387,6 +1419,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>b<subscript>7</subscript></entry>
+ 	      <entry>b<subscript>6</subscript></entry>
+ 	      <entry>b<subscript>5</subscript></entry>
+@@ -1404,6 +1438,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>0</entry>
+ 	      <entry>0</entry>
+ 	      <entry>0</entry>
+@@ -1421,6 +1457,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>b<subscript>9</subscript></entry>
+ 	      <entry>b<subscript>8</subscript></entry>
+ 	      <entry>b<subscript>7</subscript></entry>
+@@ -1438,6 +1476,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>b<subscript>1</subscript></entry>
+ 	      <entry>b<subscript>0</subscript></entry>
+ 	      <entry>0</entry>
+@@ -1455,6 +1495,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>b<subscript>1</subscript></entry>
+ 	      <entry>b<subscript>0</subscript></entry>
+ 	      <entry>0</entry>
+@@ -1472,6 +1514,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>b<subscript>9</subscript></entry>
+ 	      <entry>b<subscript>8</subscript></entry>
+ 	      <entry>b<subscript>7</subscript></entry>
+@@ -1487,6 +1531,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry></entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>b<subscript>9</subscript></entry>
+ 	      <entry>b<subscript>8</subscript></entry>
+ 	      <entry>b<subscript>7</subscript></entry>
+@@ -1504,6 +1550,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry></entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>g<subscript>9</subscript></entry>
+ 	      <entry>g<subscript>8</subscript></entry>
+ 	      <entry>g<subscript>7</subscript></entry>
+@@ -1521,6 +1569,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry></entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>g<subscript>9</subscript></entry>
+ 	      <entry>g<subscript>8</subscript></entry>
+ 	      <entry>g<subscript>7</subscript></entry>
+@@ -1538,6 +1588,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry></entry>
+ 	      <entry>-</entry>
+ 	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>r<subscript>9</subscript></entry>
+ 	      <entry>r<subscript>8</subscript></entry>
+ 	      <entry>r<subscript>7</subscript></entry>
+@@ -1553,6 +1605,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>MEDIA_BUS_FMT_SBGGR12_1X12</entry>
+ 	      <entry>0x3008</entry>
+ 	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>b<subscript>11</subscript></entry>
+ 	      <entry>b<subscript>10</subscript></entry>
+ 	      <entry>b<subscript>9</subscript></entry>
+@@ -1570,6 +1624,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>MEDIA_BUS_FMT_SGBRG12_1X12</entry>
+ 	      <entry>0x3010</entry>
+ 	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>g<subscript>11</subscript></entry>
+ 	      <entry>g<subscript>10</subscript></entry>
+ 	      <entry>g<subscript>9</subscript></entry>
+@@ -1587,6 +1643,8 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>MEDIA_BUS_FMT_SGRBG12_1X12</entry>
+ 	      <entry>0x3011</entry>
+ 	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
+ 	      <entry>g<subscript>11</subscript></entry>
+ 	      <entry>g<subscript>10</subscript></entry>
+ 	      <entry>g<subscript>9</subscript></entry>
+@@ -1604,6 +1662,84 @@ see <xref linkend="colorspaces" />.</entry>
+ 	      <entry>MEDIA_BUS_FMT_SRGGB12_1X12</entry>
+ 	      <entry>0x3012</entry>
+ 	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>r<subscript>11</subscript></entry>
++	      <entry>r<subscript>10</subscript></entry>
++	      <entry>r<subscript>9</subscript></entry>
++	      <entry>r<subscript>8</subscript></entry>
++	      <entry>r<subscript>7</subscript></entry>
++	      <entry>r<subscript>6</subscript></entry>
++	      <entry>r<subscript>5</subscript></entry>
++	      <entry>r<subscript>4</subscript></entry>
++	      <entry>r<subscript>3</subscript></entry>
++	      <entry>r<subscript>2</subscript></entry>
++	      <entry>r<subscript>1</subscript></entry>
++	      <entry>r<subscript>0</subscript></entry>
++	    </row>
++	    <row id="MEDIA-BUS-FMT-SBGGR14-1X14">
++	      <entry>MEDIA_BUS_FMT_SBGGR14_1X14</entry>
++	      <entry>0x3019</entry>
++	      <entry></entry>
++	      <entry>b<subscript>13</subscript></entry>
++	      <entry>b<subscript>12</subscript></entry>
++	      <entry>b<subscript>11</subscript></entry>
++	      <entry>b<subscript>10</subscript></entry>
++	      <entry>b<subscript>9</subscript></entry>
++	      <entry>b<subscript>8</subscript></entry>
++	      <entry>b<subscript>7</subscript></entry>
++	      <entry>b<subscript>6</subscript></entry>
++	      <entry>b<subscript>5</subscript></entry>
++	      <entry>b<subscript>4</subscript></entry>
++	      <entry>b<subscript>3</subscript></entry>
++	      <entry>b<subscript>2</subscript></entry>
++	      <entry>b<subscript>1</subscript></entry>
++	      <entry>b<subscript>0</subscript></entry>
++	    </row>
++	    <row id="MEDIA-BUS-FMT-SGBRG14-1X14">
++	      <entry>MEDIA_BUS_FMT_SGBRG14_1X14</entry>
++	      <entry>0x301a</entry>
++	      <entry></entry>
++	      <entry>g<subscript>13</subscript></entry>
++	      <entry>g<subscript>12</subscript></entry>
++	      <entry>g<subscript>11</subscript></entry>
++	      <entry>g<subscript>10</subscript></entry>
++	      <entry>g<subscript>9</subscript></entry>
++	      <entry>g<subscript>8</subscript></entry>
++	      <entry>g<subscript>7</subscript></entry>
++	      <entry>g<subscript>6</subscript></entry>
++	      <entry>g<subscript>5</subscript></entry>
++	      <entry>g<subscript>4</subscript></entry>
++	      <entry>g<subscript>3</subscript></entry>
++	      <entry>g<subscript>2</subscript></entry>
++	      <entry>g<subscript>1</subscript></entry>
++	      <entry>g<subscript>0</subscript></entry>
++	    </row>
++	    <row id="MEDIA-BUS-FMT-SGRBG14-1X14">
++	      <entry>MEDIA_BUS_FMT_SGRBG14_1X14</entry>
++	      <entry>0x301b</entry>
++	      <entry></entry>
++	      <entry>g<subscript>13</subscript></entry>
++	      <entry>g<subscript>12</subscript></entry>
++	      <entry>g<subscript>11</subscript></entry>
++	      <entry>g<subscript>10</subscript></entry>
++	      <entry>g<subscript>9</subscript></entry>
++	      <entry>g<subscript>8</subscript></entry>
++	      <entry>g<subscript>7</subscript></entry>
++	      <entry>g<subscript>6</subscript></entry>
++	      <entry>g<subscript>5</subscript></entry>
++	      <entry>g<subscript>4</subscript></entry>
++	      <entry>g<subscript>3</subscript></entry>
++	      <entry>g<subscript>2</subscript></entry>
++	      <entry>g<subscript>1</subscript></entry>
++	      <entry>g<subscript>0</subscript></entry>
++	    </row>
++	    <row id="MEDIA-BUS-FMT-SRGGB14-1X14">
++	      <entry>MEDIA_BUS_FMT_SRGGB14_1X14</entry>
++	      <entry>0x301c</entry>
++	      <entry></entry>
++	      <entry>r<subscript>13</subscript></entry>
++	      <entry>r<subscript>12</subscript></entry>
+ 	      <entry>r<subscript>11</subscript></entry>
+ 	      <entry>r<subscript>10</subscript></entry>
+ 	      <entry>r<subscript>9</subscript></entry>
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 190d491..1dff459 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -97,7 +97,7 @@
+ #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
+ #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
  
--	if (mdev->link_notify) {
--		ret = mdev->link_notify(link, flags,
--					MEDIA_DEV_NOTIFY_PRE_LINK_CH);
-+	if (mdev->ops && mdev->ops->link_notify) {
-+		ret = mdev->ops->link_notify(link, flags,
-+					     MEDIA_DEV_NOTIFY_PRE_LINK_CH);
- 		if (ret < 0)
- 			return ret;
- 	}
+-/* Bayer - next is	0x3019 */
++/* Bayer - next is	0x301d */
+ #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
+ #define MEDIA_BUS_FMT_SGBRG8_1X8		0x3013
+ #define MEDIA_BUS_FMT_SGRBG8_1X8		0x3002
+@@ -122,6 +122,10 @@
+ #define MEDIA_BUS_FMT_SGBRG12_1X12		0x3010
+ #define MEDIA_BUS_FMT_SGRBG12_1X12		0x3011
+ #define MEDIA_BUS_FMT_SRGGB12_1X12		0x3012
++#define MEDIA_BUS_FMT_SBGGR14_1X14		0x3019
++#define MEDIA_BUS_FMT_SGBRG14_1X14		0x301a
++#define MEDIA_BUS_FMT_SGRBG14_1X14		0x301b
++#define MEDIA_BUS_FMT_SRGGB14_1X14		0x301c
  
- 	ret = __media_entity_setup_link_notify(link, flags);
- 
--	if (mdev->link_notify)
--		mdev->link_notify(link, flags, MEDIA_DEV_NOTIFY_POST_LINK_CH);
-+	if (mdev->ops && mdev->ops->link_notify)
-+		mdev->ops->link_notify(link, flags,
-+				       MEDIA_DEV_NOTIFY_POST_LINK_CH);
- 
- 	return ret;
- }
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index 04348b5..1ed1a9e 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -1190,6 +1190,10 @@ static int fimc_md_link_notify(struct media_link *link, unsigned int flags,
- 	return ret ? -EPIPE : 0;
- }
- 
-+static const struct media_device_ops fimc_md_ops = {
-+	.link_notify = fimc_md_link_notify,
-+};
-+
- static ssize_t fimc_md_sysfs_show(struct device *dev,
- 				  struct device_attribute *attr, char *buf)
- {
-@@ -1416,7 +1420,7 @@ static int fimc_md_probe(struct platform_device *pdev)
- 
- 	strlcpy(fmd->media_dev.model, "SAMSUNG S5P FIMC",
- 		sizeof(fmd->media_dev.model));
--	fmd->media_dev.link_notify = fimc_md_link_notify;
-+	fmd->media_dev.ops = &fimc_md_ops;
- 	fmd->media_dev.dev = dev;
- 
- 	v4l2_dev = &fmd->v4l2_dev;
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 5d54e2c..0321d84 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -657,6 +657,10 @@ static irqreturn_t isp_isr(int irq, void *_isp)
- 	return IRQ_HANDLED;
- }
- 
-+static const struct media_device_ops isp_media_ops = {
-+	.link_notify = v4l2_pipeline_link_notify,
-+};
-+
- /* -----------------------------------------------------------------------------
-  * Pipeline stream management
-  */
-@@ -1680,7 +1684,7 @@ static int isp_register_entities(struct isp_device *isp)
- 	strlcpy(isp->media_dev.model, "TI OMAP3 ISP",
- 		sizeof(isp->media_dev.model));
- 	isp->media_dev.hw_revision = isp->revision;
--	isp->media_dev.link_notify = v4l2_pipeline_link_notify;
-+	isp->media_dev.ops = &isp_media_ops;
- 	media_device_init(&isp->media_dev);
- 
- 	isp->v4l2_dev.mdev = &isp->media_dev;
-diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-index c5a5138..355a704 100644
---- a/drivers/staging/media/omap4iss/iss.c
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -362,6 +362,10 @@ static irqreturn_t iss_isr(int irq, void *_iss)
- 	return IRQ_HANDLED;
- }
- 
-+static const struct media_device_ops iss_media_ops = {
-+	.link_notify = v4l2_pipeline_link_notify,
-+};
-+
- /* -----------------------------------------------------------------------------
-  * Pipeline stream management
-  */
-@@ -988,7 +992,7 @@ static int iss_register_entities(struct iss_device *iss)
- 	strlcpy(iss->media_dev.model, "TI OMAP4 ISS",
- 		sizeof(iss->media_dev.model));
- 	iss->media_dev.hw_revision = iss->revision;
--	iss->media_dev.link_notify = v4l2_pipeline_link_notify;
-+	iss->media_dev.ops = &iss_media_ops;
- 	ret = media_device_register(&iss->media_dev);
- 	if (ret < 0) {
- 		dev_err(iss->dev, "Media device registration failed (%d)\n",
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index a9b33c4..19c8ed4 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -280,6 +280,16 @@ struct media_entity_notify {
- };
- 
- /**
-+ * struct media_device_ops - Media device operations
-+ * @link_notify: Link state change notification callback. This callback is
-+ *		 called with the graph_mutex held.
-+ */
-+struct media_device_ops {
-+	int (*link_notify)(struct media_link *link, u32 flags,
-+			   unsigned int notification);
-+};
-+
-+/**
-  * struct media_device - Media device
-  * @dev:	Parent device
-  * @devnode:	Media device node
-@@ -311,8 +321,7 @@ struct media_entity_notify {
-  * @enable_source: Enable Source Handler function pointer
-  * @disable_source: Disable Source Handler function pointer
-  *
-- * @link_notify: Link state change notification callback. This callback is
-- *		 called with the graph_mutex held.
-+ * @ops:	Operation handler callbacks
-  *
-  * This structure represents an abstract high-level media device. It allows easy
-  * access to entities and provides basic media device-level support. The
-@@ -379,8 +388,7 @@ struct media_device {
- 			     struct media_pipeline *pipe);
- 	void (*disable_source)(struct media_entity *entity);
- 
--	int (*link_notify)(struct media_link *link, u32 flags,
--			   unsigned int notification);
-+	const struct media_device_ops *ops;
- };
- 
- /* We don't need to include pci.h or usb.h here */
+ /* JPEG compressed formats - next is	0x4002 */
+ #define MEDIA_BUS_FMT_JPEG_1X8			0x4001
 -- 
 1.9.1
 
