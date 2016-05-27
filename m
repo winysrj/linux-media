@@ -1,46 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47513 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751891AbcEVCOK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 May 2016 22:14:10 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2 6/6] MAINTAINERS: add zd1301 DVB USB interface driver
-Date: Sun, 22 May 2016 05:13:51 +0300
-Message-Id: <1463883231-14329-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1463883231-14329-1-git-send-email-crope@iki.fi>
-References: <1463883231-14329-1-git-send-email-crope@iki.fi>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34831 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932915AbcE0RTd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2016 13:19:33 -0400
+Received: by mail-wm0-f67.google.com with SMTP id e3so239920wme.2
+        for <linux-media@vger.kernel.org>; Fri, 27 May 2016 10:19:32 -0700 (PDT)
+From: Kieran Bingham <kieran@ksquared.org.uk>
+To: laurent.pinchart@ideasonboard.com,
+	linux-renesas-soc@vger.kernel.org, kieran@ksquared.org.uk
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: [PATCH 3/4] dt-bindings: Document Renesas R-Car FCP power-domains usage
+Date: Fri, 27 May 2016 18:19:24 +0100
+Message-Id: <1464369565-12259-5-git-send-email-kieran@bingham.xyz>
+In-Reply-To: <1464369565-12259-1-git-send-email-kieran@bingham.xyz>
+References: <1464369565-12259-1-git-send-email-kieran@bingham.xyz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DVB USB interface driver for ZyDAS ZD1301 chip.
+The example misses the power-domains usage, and documentation that the
+property is used by the node.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
 ---
- MAINTAINERS | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ Documentation/devicetree/bindings/media/renesas,fcp.txt | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index a4ae460..d2559e1 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -12400,6 +12400,15 @@ Q:	https://patchwork.linuxtv.org/project/linux-media/list/
- S:	Maintained
- F:	drivers/media/dvb-frontends/zd1301_demod*
+diff --git a/Documentation/devicetree/bindings/media/renesas,fcp.txt b/Documentation/devicetree/bindings/media/renesas,fcp.txt
+index 1c0718b501ef..464bb7ae4b92 100644
+--- a/Documentation/devicetree/bindings/media/renesas,fcp.txt
++++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
+@@ -21,6 +21,8 @@ are paired with. These DT bindings currently support the FCPV and FCPF.
  
-+ZD1301 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	https://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	https://patchwork.linuxtv.org/project/linux-media/list/
-+S:	Maintained
-+F:	drivers/media/usb/dvb-usb-v2/zd1301*
-+
- ZPOOL COMPRESSED PAGE STORAGE API
- M:	Dan Streetman <ddstreet@ieee.org>
- L:	linux-mm@kvack.org
+  - reg: the register base and size for the device registers
+  - clocks: Reference to the functional clock
++ - power-domains : power-domain property defined with a phandle
++                           to respective power domain.
+ 
+ 
+ Device node example
+@@ -30,4 +32,5 @@ Device node example
+ 		compatible = "renesas,r8a7795-fcpv", "renesas,fcpv";
+ 		reg = <0 0xfea2f000 0 0x200>;
+ 		clocks = <&cpg CPG_MOD 602>;
++		power-domains = <&sysc R8A7795_PD_A3VP>;
+ 	};
 -- 
-http://palosaari.fi/
+2.5.0
 
