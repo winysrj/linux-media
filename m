@@ -1,85 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54221 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932086AbcEBTUl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 May 2016 15:20:41 -0400
-Subject: Re: [PATCH v7 16/24] i2c: allow adapter drivers to override the
- adapter locking
-To: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>
-References: <1461165484-2314-1-git-send-email-peda@axentia.se>
- <1461165484-2314-17-git-send-email-peda@axentia.se>
- <20160428205018.GA3553@katana>
- <470abe38-ab5f-2d0a-305b-e1a3253ce5a9@axentia.se>
- <20160429071604.GB1870@katana>
- <357e6fda-73b3-fb7f-c341-97f09af1943f@axentia.se>
-Cc: linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Crestez Dan Leonard <leonard.crestez@intel.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <5727A873.4080400@iki.fi>
-Date: Mon, 2 May 2016 22:20:19 +0300
+Received: from zencphosting06.zen.co.uk ([82.71.204.9]:54993 "EHLO
+	zencphosting06.zen.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750727AbcE0Mwq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2016 08:52:46 -0400
+Subject: Re: [PATCH v2 2/8] [media] Add signed 16-bit pixel format
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>
+References: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
+ <1462381638-7818-3-git-send-email-nick.dyer@itdev.co.uk>
+ <57483FD1.9080704@xs4all.nl>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+Message-ID: <82b68931-0da1-bd26-87c1-1cd9e2296f71@itdev.co.uk>
+Date: Fri, 27 May 2016 13:52:13 +0100
 MIME-Version: 1.0
-In-Reply-To: <357e6fda-73b3-fb7f-c341-97f09af1943f@axentia.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <57483FD1.9080704@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/29/2016 12:16 PM, Peter Rosin wrote:
-> On 2016-04-29 09:16, Wolfram Sang wrote:
->>> Yes, obviously... I'll make that change locally and wait for the rest.
->> Another nit: You could use '--strict' with checkpatch and see if you
->> want to fix the issues reported. I am not keen on those (except for
->> 'space around operators'), it's a matter of taste I guess, but maybe you
->> like some of the suggestions.
->>
-> Yes, they look like reasonable complaints.
->
-> So, I fixed all of them locally except the complaint about lack of comment
-> on the new struct mutex member in struct si2168_dev (patch 21/24),
-> because that patch is Anttis and he's the maintainer of that driver...
->
-> Antti, if you want that fixed as part of this series, send a suitable comment
-> for the mutex this way and I'll incorporate it.
+On 27/05/2016 13:38, Hans Verkuil wrote:
+> On 05/04/2016 07:07 PM, Nick Dyer wrote:
+>> +    <refname><constant>V4L2_PIX_FMT_YS16</constant></refname>
+>> +    <refpurpose>Grey-scale image</refpurpose>
+>> +  </refnamediv>
+>> +  <refsect1>
+>> +    <title>Description</title>
+>> +
+>> +    <para>This is a signed grey-scale image with a depth of 16 bits per
+>> +pixel. The most significant byte is stored at higher memory addresses
+>> +(little-endian).</para>
+> 
+> I'm not sure this should be described in terms of grey-scale, since negative
+> values make no sense for that. How are these values supposed to be interpreted
+> if you want to display them? -32768 == black and 32767 is white?
 
-Ah, I never ran checkpatch with --strict option...
+We have written a utility to display this data and it is able to display
+the values mapped to grayscale or color:
+https://github.com/ndyer/heatmap/blob/master/src/display.c#L44
 
-CHECK: struct mutex definition without comment
-#202: FILE: drivers/media/dvb-frontends/si2168_priv.h:32:
-+	struct mutex i2c_mutex;
+An example of the output is here:
+https://www.youtube.com/watch?v=Uj4T6fUCySw
 
-If you wish you could add some comment for it, but for me it is still 
-pretty much self explaining. It is lock to protect firmware command 
-execution. Command is executed always with I2C write and then poll reply 
-using I2C read until it timeouts or answers with "ready" status.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+The data is intrinsically signed because that's how the low level touch
+controller treats it. I'm happy to change it to "Signed image" if you think
+that would be better.
