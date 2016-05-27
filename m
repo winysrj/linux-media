@@ -1,72 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:50469 "EHLO lists.s-osg.org"
+Received: from mga01.intel.com ([192.55.52.88]:36594 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754885AbcEBTOm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 May 2016 15:14:42 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH v2] s5p-mfc: Don't try to put pm->clock if lookup failed
-Date: Mon,  2 May 2016 15:14:22 -0400
-Message-Id: <1462216462-32665-1-git-send-email-javier@osg.samsung.com>
+	id S1751411AbcE0MsA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2016 08:48:00 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de
+Subject: [PATCH 1/6] v4l: Correct the ordering of LSBs of the 10-bit raw packed formats
+Date: Fri, 27 May 2016 15:44:35 +0300
+Message-Id: <1464353080-18300-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1464353080-18300-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1464353080-18300-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Failing to get the struct s5p_mfc_pm .clock is a non-fatal error so the
-clock field can have a errno pointer value. But s5p_mfc_final_pm() only
-checks if .clock is not NULL before attempting to unprepare and put it.
+The 10-bit packed raw bayer format documented that the data of the first
+pixel of a four-pixel group was found in the first byte and the two
+highest bits of the fifth byte. This was not entirely correct. The two
+bits in the fifth byte are the two lowest bits. The second pixel occupies
+the second byte and third and fourth least significant bits and so on.
 
-This leads to the following warning in clk_put() due s5p_mfc_final_pm():
-
-WARNING: CPU: 3 PID: 1023 at drivers/clk/clk.c:2814 s5p_mfc_final_pm+0x48/0x74 [s5p_mfc]
-CPU: 3 PID: 1023 Comm: rmmod Tainted: G        W       4.6.0-rc6-next-20160502-00005-g5a15a49106bc #9
-Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
-[<c010e1bc>] (unwind_backtrace) from [<c010af28>] (show_stack+0x10/0x14)
-[<c010af28>] (show_stack) from [<c032485c>] (dump_stack+0x88/0x9c)
-[<c032485c>] (dump_stack) from [<c011b8e8>] (__warn+0xe8/0x100)
-[<c011b8e8>] (__warn) from [<c011b9b0>] (warn_slowpath_null+0x20/0x28)
-[<c011b9b0>] (warn_slowpath_null) from [<bf16004c>] (s5p_mfc_final_pm+0x48/0x74 [s5p_mfc])
-[<bf16004c>] (s5p_mfc_final_pm [s5p_mfc]) from [<bf157414>] (s5p_mfc_remove+0x8c/0x94 [s5p_mfc])
-[<bf157414>] (s5p_mfc_remove [s5p_mfc]) from [<c03fe1f8>] (platform_drv_remove+0x24/0x3c)
-[<c03fe1f8>] (platform_drv_remove) from [<c03fcc70>] (__device_release_driver+0x84/0x110)
-[<c03fcc70>] (__device_release_driver) from [<c03fcdd8>] (driver_detach+0xac/0xb0)
-[<c03fcdd8>] (driver_detach) from [<c03fbff8>] (bus_remove_driver+0x4c/0xa0)
-[<c03fbff8>] (bus_remove_driver) from [<c01886a8>] (SyS_delete_module+0x174/0x1b8)
-[<c01886a8>] (SyS_delete_module) from [<c01078c0>] (ret_fast_syscall+0x0/0x3c)
-
-Assign the pointer to NULL in case of a lookup failure to fix the issue.
-
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
+ .../DocBook/media/v4l/pixfmt-srggb10p.xml          | 32 +++++++++++-----------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-Changes in v2:
-- Set the clock pointer to NULL instead of checking for !IS_ERR_OR_NULL().
-  Suggested by Arnd Bergmann.
-
- drivers/media/platform/s5p-mfc/s5p_mfc_pm.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-index 5f97a3398c11..9f7522104333 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-@@ -54,6 +54,7 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
- 		pm->clock = clk_get(&dev->plat_dev->dev, MFC_SCLK_NAME);
- 		if (IS_ERR(pm->clock)) {
- 			mfc_info("Failed to get MFC special clock control\n");
-+			pm->clock = NULL;
- 		} else {
- 			clk_set_rate(pm->clock, MFC_SCLK_RATE);
- 			ret = clk_prepare_enable(pm->clock);
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
+index a8cc102..747822b 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
+@@ -47,10 +47,10 @@
+ 		  <entry>G<subscript>01high</subscript></entry>
+ 		  <entry>B<subscript>02high</subscript></entry>
+ 		  <entry>G<subscript>03high</subscript></entry>
+-		  <entry>B<subscript>00low</subscript>(bits 7--6)
+-			 G<subscript>01low</subscript>(bits 5--4)
+-			 B<subscript>02low</subscript>(bits 3--2)
+-			 G<subscript>03low</subscript>(bits 1--0)
++		  <entry>G<subscript>03low</subscript>(bits 7--6)
++			 B<subscript>02low</subscript>(bits 5--4)
++			 G<subscript>01low</subscript>(bits 3--2)
++			 B<subscript>00low</subscript>(bits 1--0)
+ 		  </entry>
+ 		</row>
+ 		<row>
+@@ -59,10 +59,10 @@
+ 		  <entry>R<subscript>11high</subscript></entry>
+ 		  <entry>G<subscript>12high</subscript></entry>
+ 		  <entry>R<subscript>13high</subscript></entry>
+-		  <entry>G<subscript>10low</subscript>(bits 7--6)
+-			 R<subscript>11low</subscript>(bits 5--4)
+-			 G<subscript>12low</subscript>(bits 3--2)
+-			 R<subscript>13low</subscript>(bits 1--0)
++		  <entry>R<subscript>13low</subscript>(bits 7--6)
++			 G<subscript>12low</subscript>(bits 5--4)
++			 R<subscript>11low</subscript>(bits 3--2)
++			 G<subscript>10low</subscript>(bits 1--0)
+ 		  </entry>
+ 		</row>
+ 		<row>
+@@ -71,10 +71,10 @@
+ 		  <entry>G<subscript>21high</subscript></entry>
+ 		  <entry>B<subscript>22high</subscript></entry>
+ 		  <entry>G<subscript>23high</subscript></entry>
+-		  <entry>B<subscript>20low</subscript>(bits 7--6)
+-			 G<subscript>21low</subscript>(bits 5--4)
+-			 B<subscript>22low</subscript>(bits 3--2)
+-			 G<subscript>23low</subscript>(bits 1--0)
++		  <entry>G<subscript>23low</subscript>(bits 7--6)
++			 B<subscript>22low</subscript>(bits 5--4)
++			 G<subscript>21low</subscript>(bits 3--2)
++			 B<subscript>20low</subscript>(bits 1--0)
+ 		  </entry>
+ 		</row>
+ 		<row>
+@@ -83,10 +83,10 @@
+ 		  <entry>R<subscript>31high</subscript></entry>
+ 		  <entry>G<subscript>32high</subscript></entry>
+ 		  <entry>R<subscript>33high</subscript></entry>
+-		  <entry>G<subscript>30low</subscript>(bits 7--6)
+-			 R<subscript>31low</subscript>(bits 5--4)
+-			 G<subscript>32low</subscript>(bits 3--2)
+-			 R<subscript>33low</subscript>(bits 1--0)
++		  <entry>R<subscript>33low</subscript>(bits 7--6)
++			 G<subscript>32low</subscript>(bits 5--4)
++			 R<subscript>31low</subscript>(bits 3--2)
++			 G<subscript>30low</subscript>(bits 1--0)
+ 		  </entry>
+ 		</row>
+ 	      </tbody>
 -- 
-2.5.5
+1.9.1
 
