@@ -1,51 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49067 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750954AbcEKHqH (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:54919 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932168AbcE0DA2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2016 03:46:07 -0400
-Received: from avalon.localnet (85-23-193-79.bb.dnainternet.fi [85.23.193.79])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 402722004D
-	for <linux-media@vger.kernel.org>; Wed, 11 May 2016 09:44:56 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Thu, 26 May 2016 23:00:28 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 9311B180165
+	for <linux-media@vger.kernel.org>; Fri, 27 May 2016 05:00:22 +0200 (CEST)
+Date: Fri, 27 May 2016 05:00:22 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.7] uvcvideo fixes
-Date: Wed, 11 May 2016 10:46:34 +0300
-Message-ID: <487662138.z7K0SjRaAr@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160527030022.9311B180165@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The following changes since commit aff093d4bbca91f543e24cde2135f393b8130f4b:
+Results of the daily build of media_tree:
 
-  [media] exynos-gsc: avoid build warning without CONFIG_OF (2016-05-09 
-18:38:33 -0300)
+date:		Fri May 27 04:00:28 CEST 2016
+git branch:	test
+git hash:	bc2b80ee3490651904f121eac1c8fb7652d48253
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
 
-are available in the git repository at:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-  git://linuxtv.org/pinchartl/media.git uvc/next
+Detailed results are available here:
 
-for you to fetch changes up to f169fec5a6c40a3328b953c774a6a092e7688df2:
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-  uvcvideo: Correct speed testing (2016-05-10 01:12:55 +0300)
+Full logs are available here:
 
-----------------------------------------------------------------
-Nicolas Dufresne (1):
-      uvcvideo: Fix bytesperline calculation for planar YUV
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-Oliver Neukum (1):
-      uvcvideo: Correct speed testing
+The Media Infrastructure API from this daily build is here:
 
- drivers/media/usb/uvc/uvc_v4l2.c  | 19 +++++++++++++++++--
- drivers/media/usb/uvc/uvc_video.c |  1 +
- 2 files changed, 18 insertions(+), 2 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
