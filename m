@@ -1,51 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34831 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932915AbcE0RTd (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:34969 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752834AbcE1Qno (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2016 13:19:33 -0400
-Received: by mail-wm0-f67.google.com with SMTP id e3so239920wme.2
-        for <linux-media@vger.kernel.org>; Fri, 27 May 2016 10:19:32 -0700 (PDT)
-From: Kieran Bingham <kieran@ksquared.org.uk>
-To: laurent.pinchart@ideasonboard.com,
-	linux-renesas-soc@vger.kernel.org, kieran@ksquared.org.uk
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: [PATCH 3/4] dt-bindings: Document Renesas R-Car FCP power-domains usage
-Date: Fri, 27 May 2016 18:19:24 +0100
-Message-Id: <1464369565-12259-5-git-send-email-kieran@bingham.xyz>
-In-Reply-To: <1464369565-12259-1-git-send-email-kieran@bingham.xyz>
-References: <1464369565-12259-1-git-send-email-kieran@bingham.xyz>
+	Sat, 28 May 2016 12:43:44 -0400
+Date: Sat, 28 May 2016 22:13:39 +0530
+From: Amitoj Kaur Chawla <amitoj1606@gmail.com>
+To: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: julia.lawall@lip6.fr
+Subject: [PATCH] saa7164: Replace if and BUG with BUG_ON
+Message-ID: <20160528164339.GA31143@amitoj-Inspiron-3542>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The example misses the power-domains usage, and documentation that the
-property is used by the node.
+Replace if condition and BUG() with a BUG_ON having the conditional
+expression of the if statement as argument.
 
-Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+The Coccinelle semantic patch used to make this change is as follows:
+@@ expression E,f; @@
+
+(
+  if (<+... f(...) ...+>) { BUG(); }
+|
+- if (E) { BUG(); }
++ BUG_ON(E);
+)
+
+Signed-off-by: Amitoj Kaur Chawla <amitoj1606@gmail.com>
 ---
- Documentation/devicetree/bindings/media/renesas,fcp.txt | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/pci/saa7164/saa7164-encoder.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,fcp.txt b/Documentation/devicetree/bindings/media/renesas,fcp.txt
-index 1c0718b501ef..464bb7ae4b92 100644
---- a/Documentation/devicetree/bindings/media/renesas,fcp.txt
-+++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
-@@ -21,6 +21,8 @@ are paired with. These DT bindings currently support the FCPV and FCPF.
+diff --git a/drivers/media/pci/saa7164/saa7164-encoder.c b/drivers/media/pci/saa7164/saa7164-encoder.c
+index 1b184c3..32a353d 100644
+--- a/drivers/media/pci/saa7164/saa7164-encoder.c
++++ b/drivers/media/pci/saa7164/saa7164-encoder.c
+@@ -1022,8 +1022,7 @@ int saa7164_encoder_register(struct saa7164_port *port)
  
-  - reg: the register base and size for the device registers
-  - clocks: Reference to the functional clock
-+ - power-domains : power-domain property defined with a phandle
-+                           to respective power domain.
+ 	dprintk(DBGLVL_ENC, "%s()\n", __func__);
  
+-	if (port->type != SAA7164_MPEG_ENCODER)
+-		BUG();
++	BUG_ON(port->type != SAA7164_MPEG_ENCODER);
  
- Device node example
-@@ -30,4 +32,5 @@ Device node example
- 		compatible = "renesas,r8a7795-fcpv", "renesas,fcpv";
- 		reg = <0 0xfea2f000 0 0x200>;
- 		clocks = <&cpg CPG_MOD 602>;
-+		power-domains = <&sysc R8A7795_PD_A3VP>;
- 	};
+ 	/* Sanity check that the PCI configuration space is active */
+ 	if (port->hwcfg.BARLocation == 0) {
+@@ -1151,8 +1150,7 @@ void saa7164_encoder_unregister(struct saa7164_port *port)
+ 
+ 	dprintk(DBGLVL_ENC, "%s(port=%d)\n", __func__, port->nr);
+ 
+-	if (port->type != SAA7164_MPEG_ENCODER)
+-		BUG();
++	BUG_ON(port->type != SAA7164_MPEG_ENCODER);
+ 
+ 	if (port->v4l_device) {
+ 		if (port->v4l_device->minor != -1)
 -- 
-2.5.0
+1.9.1
 
