@@ -1,118 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:61547 "EHLO mout.gmx.net"
+Received: from mail.astim.si ([93.103.6.239]:37079 "EHLO mail.astim.si"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752382AbcE2Onf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 May 2016 10:43:35 -0400
-Date: Sun, 29 May 2016 16:43:25 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Jeremy Gebben <jgebben@codeaurora.org>
-cc: linux-media@vger.kernel.org
-Subject: Re: multi-sensor media controller
-In-Reply-To: <21de7cb7-69b1-94bd-584a-e5494bfb7dc8@codeaurora.org>
-Message-ID: <Pine.LNX.4.64.1605291626360.24272@axis700.grange>
-References: <21de7cb7-69b1-94bd-584a-e5494bfb7dc8@codeaurora.org>
+	id S1751231AbcE1JqF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 May 2016 05:46:05 -0400
+Received: from PCSaso ([192.168.10.2])
+	by mail.astim.si (8.14.4/8.14.4) with ESMTP id u4S9SoLj022848
+	for <linux-media@vger.kernel.org>; Sat, 28 May 2016 11:28:52 +0200
+From: "Saso Slavicic" <saso.linux@astim.si>
+To: <linux-media@vger.kernel.org>
+Subject: ascot2e.c off by one bug
+Date: Sat, 28 May 2016 11:28:43 +0200
+Message-ID: <000f01d1b8c3$54af4080$fe0dc180$@astim.si>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Language: sl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jeremy,
+Hi,
 
-On Fri, 27 May 2016, Jeremy Gebben wrote:
+Tuning a card with Sony ASCOT2E produces the following error:
 
-> Hi,
-> 
-> Can someone give me a quick sanity check on a media controller set up?
-> 
-> We have have devices (well, phones) that can have 2 or more sensors and 2 or
-> more 'front end' ISPs.  The ISPs take CSI input from a sensor, and can produce
-> Bayer and YUV output to memory. There is a bridge between the sensors and ISPs
-> which allow any ISP to receive input from any sensor. We would (eventually)
-> like to use the request API to ensure that sensor and ISP settings match for
-> every frame.
-> 
-> We use this hardware in several different ways, some of the interesting ones
-> are described below:
-> 
-> 1. 2 sensors running independently, and possibly at different frame rates. For
-> example in video chat you might want a "Picture in Picture" setup where you
-> send output from both a front and back sensor.
-> (note: 'B' is the bridge)
-> 
-> SENSOR_A --> B --> ISP_X --> BUFFERS
->              B
-> SENSOR_B --> B --> ISP_Y --> BUFFERS
-> 
-> 2. Single sensor, dual ISP. High resolution use of a single sensor may
-> require both ISPs to work on different regions of the image. For example,
-> ISP_X might process the left half of the image while ISP_Y processes the
-> right.
-> 
-> SENSOR_A --> B --> ISP_X ----> BUFFERS
->              B --> ISP_Y --/
->              B
-> 
-> 3. 2 different types of sensors working together to produce a single set of
-> images. Processing must be synchronized, and eventually the buffers from
-> SENSOR_A and SENSOR_C will be combined by other processing not shown here.
-> 
-> SENSOR_A --> B --> ISP_X --> BUFFERS
-> SENSOR_C --> B --> ISP_Y --> BUFFERS
->              B
-> 
-> It seems to me that the way to do handle all these cases would be to put all
-> of the hardware in a single media_device:
-> 
->  +----------------------+
->  |  SENSOR_A  B  ISP_X  |
->  |  SENSOR_C  B         |
->  |  SENSOR_B  B  ISP_Y  |
->  +----------------------+
-> 
-> This makes cases #2 and #3 above easy to configure.
+	kernel: i2c i2c-9: wr reg=0006: len=11 is too big!
 
-Yes, agree.
+MAX_WRITE_REGSIZE is defined as 10, buf[MAX_WRITE_REGSIZE + 1] buffer is
+used in ascot2e_write_regs().
 
-> But the topology can get
-> rather large if the number of sensors and ISPs goes up.
+The problem is that exactly 10 bytes are written in ascot2e_set_params():
 
-We've seen some rather large topology graphs already :)
+	/* Set BW_OFFSET (0x0F) value from parameter table */
+	data[9] = ascot2e_sett[tv_system].bw_offset;
+	ascot2e_write_regs(priv, 0x06, data, 10);
 
-> Also, case #1 could be
-> a little strange because there would be 2 independent sets of requests coming
-> to the same media_device at the same time.
+The test in write_regs is as follows:
 
-Do you mean, because request API calls are made to the /dev/media0 device? 
-I don't remember the details, is this how the API is supposed to be used? 
-Isn't there a way to direct the calls to specific /dev/video* devices or 
-to subdevices?
+	if (len + 1 >= sizeof(buf))
 
-> Am I on the right track here?
-> 
-> I did find Guennadi's presentation about multi-stream:
-> https://linuxtv.org/downloads/presentations/media_summit_2016_san_diego/v4l2-multistream.pdf
-> 
-> ...but I'm not sure I follow all of it from the slides alone, and
-> we don't have the mux/demux hardware that was the focus of his presentation.
+10 + 1 = 11 and that would be exactly the size of buf. Since 10 bytes +
+buf[0] = reg would seem to fit into buf[], this shouldn't be an error.
 
-Doesn't your bridge also perform the mux-demux role in some 
-configurations? But that isn't the main point anyway. As a part of a 
-solution for the multi-stream set up, the use of stream routing has been 
-proposed. So, using that, you might be able to represent your bridge as a 
-stream router. Details of a routing API are still to be clarified.
+The following patch fixes the problem for me, I have tested the card and it
+seems to be working fine.
 
-Thanks
-Guennadi
+---
+ drivers/media/dvb-frontends/ascot2e.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> Thanks,
-> 
-> Jeremy
-> 
-> -- 
->  The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
->  a Linux Foundation Collaborative Project
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/dvb-frontends/ascot2e.c
+b/drivers/media/dvb-frontends/ascot2e.c
+--- a/drivers/media/dvb-frontends/ascot2e.c
++++ b/drivers/media/dvb-frontends/ascot2e.c
+@@ -132,7 +132,7 @@ static int ascot2e_write_regs(struct ascot2e_priv *priv,
+ 		}
+ 	};
+ 
+-	if (len + 1 >= sizeof(buf)) {
++	if (len + 1 > sizeof(buf)) {
+ 		dev_warn(&priv->i2c->dev,"wr reg=%04x: len=%d is too
+big!\n",
+ 			 reg, len + 1);
+ 		return -E2BIG;
+
+Regards,
+Saso Slavicic
+
+
