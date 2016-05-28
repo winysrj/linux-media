@@ -1,119 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:33585 "EHLO
-	mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810AbcEQSfl (ORCPT
+Received: from mail-ig0-f194.google.com ([209.85.213.194]:35952 "EHLO
+	mail-ig0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750742AbcE1TD4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2016 14:35:41 -0400
-Date: Tue, 17 May 2016 20:33:40 +0200
-From: Marcus Folkesson <marcus.folkesson@gmail.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-	patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	sakari.ailus@iki.fi
-Subject: Re: [PATCH] support for AD5820 camera auto-focus coil
-Message-ID: <20160517183340.GA10358@gmail.com>
-References: <20160517181927.GA28741@amd>
+	Sat, 28 May 2016 15:03:56 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160517181927.GA28741@amd>
+In-Reply-To: <1464369565-12259-5-git-send-email-kieran@bingham.xyz>
+References: <1464369565-12259-1-git-send-email-kieran@bingham.xyz>
+	<1464369565-12259-5-git-send-email-kieran@bingham.xyz>
+Date: Sat, 28 May 2016 21:03:55 +0200
+Message-ID: <CAMuHMdUvRN2ysYJ9g0daOD8sD7O5XcrZkKbWr0X_L7mG25Ocww@mail.gmail.com>
+Subject: Re: [PATCH 3/4] dt-bindings: Document Renesas R-Car FCP power-domains usage
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Kieran Bingham <kieran@ksquared.org.uk>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-renesas-soc@vger.kernel.org,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Hi Kieran,
 
-On Tue, May 17, 2016 at 08:19:27PM +0200, Pavel Machek wrote:
-> +static int ad5820_set_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct ad5820_device *coil =
-> +		container_of(ctrl->handler, struct ad5820_device, ctrls);
-> +	u32 code;
-> +	int r = 0;
-> +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_FOCUS_ABSOLUTE:
-> +		coil->focus_absolute = ctrl->val;
-> +		return ad5820_update_hw(coil);
-> +
-> +	case V4L2_CID_FOCUS_AD5820_RAMP_TIME:
-> +		code = RAMP_US_TO_CODE(ctrl->val);
-> +		ctrl->val = CODE_TO_RAMP_US(code);
-> +		coil->focus_ramp_time = ctrl->val;
-> +		break;
-> +
-> +	case V4L2_CID_FOCUS_AD5820_RAMP_MODE:
-> +		coil->focus_ramp_mode = ctrl->val;
-> +		break;
-> +	}
-> +
-> +	return r;
+On Fri, May 27, 2016 at 7:19 PM, Kieran Bingham <kieran@ksquared.org.uk> wrote:
+> The example misses the power-domains usage, and documentation that the
+> property is used by the node.
+>
+> Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
 
-Just return 0 instead, r is not used.
+Thanks for your patch!
 
-> +static int ad5820_registered(struct v4l2_subdev *subdev)
-> +{
-> +	static const int CHECK_VALUE = 0x3FF0;
+> ---
+>  Documentation/devicetree/bindings/media/renesas,fcp.txt | 3 +++
+>  1 file changed, 3 insertions(+)
+>
+> diff --git a/Documentation/devicetree/bindings/media/renesas,fcp.txt b/Documentation/devicetree/bindings/media/renesas,fcp.txt
+> index 1c0718b501ef..464bb7ae4b92 100644
+> --- a/Documentation/devicetree/bindings/media/renesas,fcp.txt
+> +++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
+> @@ -21,6 +21,8 @@ are paired with. These DT bindings currently support the FCPV and FCPF.
+>
+>   - reg: the register base and size for the device registers
+>   - clocks: Reference to the functional clock
+> + - power-domains : power-domain property defined with a phandle
+> +                           to respective power domain.
 
-CHECK_VALUE is not used?
+I'd write "power domain specifier" instead of "phandle". While SYSC on R-Car
+Gen3 uses #power-domain-cells = 0, the FCP module may show up on another
+SoC that uses a different value, needing more than just a phandle.
 
-> +static int ad5820_probe(struct i2c_client *client,
-> +			const struct i2c_device_id *devid)
-> +{
-> +	struct ad5820_device *coil;
-> +	int ret = 0;
-> +
-> +	coil = kzalloc(sizeof(*coil), GFP_KERNEL);
-> +	if (coil == NULL)
-> +		return -ENOMEM;
-> +
-> +	mutex_init(&coil->power_lock);
-> +
-> +	v4l2_i2c_subdev_init(&coil->subdev, client, &ad5820_ops);
-> +	coil->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	coil->subdev.internal_ops = &ad5820_internal_ops;
-> +	strcpy(coil->subdev.name, "ad5820 focus");
-> +
-> +	ret = media_entity_pads_init(&coil->subdev.entity, 0, NULL);
-> +	if (ret < 0) {
-> +		kfree(coil);
-> +		return ret;
-> +	}
-> +
-> +	ret = v4l2_async_register_subdev(&coil->subdev);
-> +	if (ret < 0)
+In fact I'm inclined to leave out the power-domains property completely:
+it's not a feature of the FCP, but of the SoC the FCP is part of.
+power-domains properties may appear in any device node where needed.
 
-Do we need to call media_entity_cleanup() here?
+>  Device node example
+> @@ -30,4 +32,5 @@ Device node example
+>                 compatible = "renesas,r8a7795-fcpv", "renesas,fcpv";
+>                 reg = <0 0xfea2f000 0 0x200>;
+>                 clocks = <&cpg CPG_MOD 602>;
+> +               power-domains = <&sysc R8A7795_PD_A3VP>;
 
-> +static int __init ad5820_init(void)
-> +{
-> +	int rval;
-> +
-> +	rval = i2c_add_driver(&ad5820_i2c_driver);
-> +	if (rval)
-> +		printk(KERN_INFO "%s: failed registering " AD5820_NAME "\n",
-> +		       __func__);
-> +
-> +	return rval;
-> +}
-> +
-> +static void __exit ad5820_exit(void)
-> +{
-> +	i2c_del_driver(&ad5820_i2c_driver);
-> +}
-> +
-> +
-> +module_init(ad5820_init);
-> +module_exit(ad5820_exit);
+Adding it to the example doesn't hurt, though.
 
+Gr{oetje,eeting}s,
 
-Use module_i2c_driver() instead.
+                        Geert
 
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-Cheers
-Marcus Folkesson
-
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
