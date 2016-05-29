@@ -1,100 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:44171 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751840AbcEYRLw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2016 13:11:52 -0400
-Subject: Re: [PATCH v4 6/7] ARM: dts: exynos: convert MFC device to generic
- reserved memory bindings
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
- <1464096690-23605-7-git-send-email-m.szyprowski@samsung.com>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Uli Middelberg <uli@middelberg.de>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Message-ID: <0158bb7a-02cf-bbb3-f903-d99c7351dfc4@osg.samsung.com>
-Date: Wed, 25 May 2016 13:11:39 -0400
-MIME-Version: 1.0
-In-Reply-To: <1464096690-23605-7-git-send-email-m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38037 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751890AbcE2C7w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 May 2016 22:59:52 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id AEAB71804A4
+	for <linux-media@vger.kernel.org>; Sun, 29 May 2016 04:59:46 +0200 (CEST)
+Date: Sun, 29 May 2016 04:59:46 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160529025946.AEAB71804A4@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Marek,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 05/24/2016 09:31 AM, Marek Szyprowski wrote:
-> This patch replaces custom properties for defining reserved memory
-> regions with generic reserved memory bindings for MFC video codec
-> device.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
+Results of the daily build of media_tree:
 
-[snip]
+date:		Sun May 29 04:00:24 CEST 2016
+git branch:	test
+git hash:	bc2b80ee3490651904f121eac1c8fb7652d48253
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
 
-> +
-> +/ {
-> +	reserved-memory {
-> +		#address-cells = <1>;
-> +		#size-cells = <1>;
-> +		ranges;
-> +
-> +		mfc_left: region@51000000 {
-> +			compatible = "shared-dma-pool";
-> +			no-map;
-> +			reg = <0x51000000 0x800000>;
-> +		};
-> +
-> +		mfc_right: region@43000000 {
-> +			compatible = "shared-dma-pool";
-> +			no-map;
-> +			reg = <0x43000000 0x800000>;
-> +		};
-> +	};
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-I've a question probably for a follow up patch, but do you know what's a
-sane default size for these? I needed to bump the mfc_left size from 8 MiB
-to 16 MiB in order to decode a 480p H264 video using GStramer. So clearly
-the default sizes are not that useful.
+Detailed results are available here:
 
-> +};
-> diff --git a/arch/arm/boot/dts/exynos4210-origen.dts b/arch/arm/boot/dts/exynos4210-origen.dts
-> index ad7394c..f5e4eb2 100644
-> --- a/arch/arm/boot/dts/exynos4210-origen.dts
-> +++ b/arch/arm/boot/dts/exynos4210-origen.dts
-> @@ -18,6 +18,7 @@
->  #include "exynos4210.dtsi"
->  #include <dt-bindings/gpio/gpio.h>
->  #include <dt-bindings/input/input.h>
-> +#include "exynos-mfc-reserved-memory.dtsi"
->  
->  / {
->  	model = "Insignal Origen evaluation board based on Exynos4210";
-> @@ -288,8 +289,7 @@
->  };
->  
->  &mfc {
-> -	samsung,mfc-r = <0x43000000 0x800000>;
-> -	samsung,mfc-l = <0x51000000 0x800000>;
-> +	memory-region = <&mfc_left>, <&mfc_right>;
->  	status = "okay";
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-I wonder if shouldn't be better to include the exynos-mfc-reserved-memory.dtsi
-on each SoC dtsi and set the memory-regions in the MFC node instead of doing
-it on each DTS, and let DTS to just replace with its own memory regions if the
-default sizes are not suitable for them.
+Full logs are available here:
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
