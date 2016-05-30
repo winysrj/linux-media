@@ -1,136 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58216 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753208AbcEBIjZ (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:8403 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754782AbcE3M3a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 May 2016 04:39:25 -0400
-Subject: Re: [PATCH v2] media: vb2-dma-contig: configure DMA max segment size
- properly
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <57220299.3000807@xs4all.nl>
- <1461849603-6313-1-git-send-email-m.szyprowski@samsung.com>
- <20160429112110.GI32125@valkosipuli.retiisi.org.uk>
- <2318434a-176b-82c6-c55a-115778354201@samsung.com>
- <20160429135601.GA26360@valkosipuli.retiisi.org.uk>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <57271235.9030004@xs4all.nl>
-Date: Mon, 2 May 2016 10:39:17 +0200
+	Mon, 30 May 2016 08:29:30 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
+	<Tiffany.lin@mediatek.com>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH v3 1/9] VPU: mediatek: Add decode support
+Date: Mon, 30 May 2016 20:29:15 +0800
+Message-ID: <1464611363-14936-2-git-send-email-tiffany.lin@mediatek.com>
+In-Reply-To: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
+References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
 MIME-Version: 1.0
-In-Reply-To: <20160429135601.GA26360@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/29/16 15:56, Sakari Ailus wrote:
-> Hi Marek,
-> 
-> On Fri, Apr 29, 2016 at 01:39:43PM +0200, Marek Szyprowski wrote:
->> Hi Sakari,
->>
->>
->> On 2016-04-29 13:21, Sakari Ailus wrote:
->>> Hi Marek,
->>>
->>> Thanks for the patch!
->>>
->>> On Thu, Apr 28, 2016 at 03:20:03PM +0200, Marek Szyprowski wrote:
->>>> This patch lets vb2-dma-contig memory allocator to configure DMA max
->>>> segment size properly for the client device. Setting it is needed to let
->>>> DMA-mapping subsystem to create a single, contiguous mapping in DMA
->>>> address space. This is essential for all devices, which use dma-contig
->>>> videobuf2 memory allocator and shared buffers (in USERPTR or DMAbuf modes
->>>> of operations).
->>>>
->>>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->>>> ---
->>>> Hello,
->>>>
->>>> This patch is a follow-up of my previous attempts to let Exynos
->>>> multimedia devices to work properly with shared buffers when IOMMU is
->>>> enabled:
->>>> 1. https://www.mail-archive.com/linux-media@vger.kernel.org/msg96946.html
->>>> 2. http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/97316
->>>> 3. https://patchwork.linuxtv.org/patch/30870/
->>>>
->>>> As sugested by Hans, configuring DMA max segment size should be done by
->>>> videobuf2-dma-contig module instead of requiring all device drivers to
->>>> do it on their own.
->>>>
->>>> Here is some backgroud why this is done in videobuf2-dc not in the
->>>> respective generic bus code:
->>>> http://lists.infradead.org/pipermail/linux-arm-kernel/2014-November/305913.html
->>>>
->>>> Best regards,
->>>> Marek Szyprowski
->>>>
->>>> changelog:
->>>> v2:
->>>> - fixes typos and other language issues in the comments
->>>>
->>>> v1: http://article.gmane.org/gmane.linux.kernel.samsung-soc/53690
->>>> ---
->>>>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 39 ++++++++++++++++++++++++++
->>>>  1 file changed, 39 insertions(+)
->>>>
->>>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->>>> index 461ae55eaa98..d0382d62954d 100644
->>>> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
->>>> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->>>> @@ -443,6 +443,36 @@ static void vb2_dc_put_userptr(void *buf_priv)
->>>>  }
->>>>  /*
->>>> + * To allow mapping the scatter-list into a single chunk in the DMA
->>>> + * address space, the device is required to have the DMA max segment
->>>> + * size parameter set to a value larger than the buffer size. Otherwise,
->>>> + * the DMA-mapping subsystem will split the mapping into max segment
->>>> + * size chunks. This function increases the DMA max segment size
->>>> + * parameter to let DMA-mapping map a buffer as a single chunk in DMA
->>>> + * address space.
->>>> + * This code assumes that the DMA-mapping subsystem will merge all
->>>> + * scatter-list segments if this is really possible (for example when
->>>> + * an IOMMU is available and enabled).
->>>> + * Ideally, this parameter should be set by the generic bus code, but it
->>>> + * is left with the default 64KiB value due to historical litmiations in
->>>> + * other subsystems (like limited USB host drivers) and there no good
->>>> + * place to set it to the proper value. It is done here to avoid fixing
->>>> + * all the vb2-dc client drivers.
->>>> + */
->>>> +static int vb2_dc_set_max_seg_size(struct device *dev, unsigned int size)
->>>> +{
->>>> +	if (!dev->dma_parms) {
->>>> +		dev->dma_parms = kzalloc(sizeof(dev->dma_parms), GFP_KERNEL);
->>> Doesn't this create a memory leak? Do consider that devices may be also
->>> removed from the system at runtime.
->>>
->>> Looks very nice otherwise.
->>
->> Yes it does, but there is completely no way to determine when to do that
->> (dma_params might have been already allocated by the bus code). The whole
->> dma_params idea and its handling is a bit messy. IMHO we can leave this
->> for now until dma_params gets cleaned up (I remember someone said that he
->> has this on his todo list, but I don't remember now who it was...).
-> 
-> You could fix this in a V4L2-specific way by storing the information whether
-> you've allocated the dma-params e.g. in struct video_device. That's probably
-> not worth the trouble, especially if someone's about to have a better
-> solution.
-> 
-> I'd add a "FIXME: ..." comment so we won't forget about it.
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
+From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
 
-I agree with Sakari, please add a FIXME here explaining the issue.
-I'll pick up the v3 patch for a pull request on Wednesday.
+VPU driver add decode support
 
-Regards,
+Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+---
+ drivers/media/platform/mtk-vpu/mtk_vpu.c |   12 ++++++++++++
+ drivers/media/platform/mtk-vpu/mtk_vpu.h |   27 +++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+)
 
-	Hans
+diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.c b/drivers/media/platform/mtk-vpu/mtk_vpu.c
+index b60d02c..ca23b1f 100644
+--- a/drivers/media/platform/mtk-vpu/mtk_vpu.c
++++ b/drivers/media/platform/mtk-vpu/mtk_vpu.c
+@@ -134,6 +134,8 @@ struct vpu_wdt {
+  *
+  * @signaled:		the signal of vpu initialization completed
+  * @fw_ver:		VPU firmware version
++ * @dec_capability:	decoder capability which is not used for now and
++ *			the value is reserved for future use
+  * @enc_capability:	encoder capability which is not used for now and
+  *			the value is reserved for future use
+  * @wq:			wait queue for VPU initialization status
+@@ -141,6 +143,7 @@ struct vpu_wdt {
+ struct vpu_run {
+ 	u32 signaled;
+ 	char fw_ver[VPU_FW_VER_LEN];
++	unsigned int	dec_capability;
+ 	unsigned int	enc_capability;
+ 	wait_queue_head_t wq;
+ };
+@@ -415,6 +418,14 @@ int vpu_wdt_reg_handler(struct platform_device *pdev,
+ }
+ EXPORT_SYMBOL_GPL(vpu_wdt_reg_handler);
+ 
++unsigned int vpu_get_vdec_hw_capa(struct platform_device *pdev)
++{
++	struct mtk_vpu *vpu = platform_get_drvdata(pdev);
++
++	return vpu->run.dec_capability;
++}
++EXPORT_SYMBOL_GPL(vpu_get_vdec_hw_capa);
++
+ unsigned int vpu_get_venc_hw_capa(struct platform_device *pdev)
+ {
+ 	struct mtk_vpu *vpu = platform_get_drvdata(pdev);
+@@ -600,6 +611,7 @@ static void vpu_init_ipi_handler(void *data, unsigned int len, void *priv)
+ 
+ 	vpu->run.signaled = run->signaled;
+ 	strncpy(vpu->run.fw_ver, run->fw_ver, VPU_FW_VER_LEN);
++	vpu->run.dec_capability = run->dec_capability;
+ 	vpu->run.enc_capability = run->enc_capability;
+ 	wake_up_interruptible(&vpu->run.wq);
+ }
+diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.h b/drivers/media/platform/mtk-vpu/mtk_vpu.h
+index 5ab37f0..f457479 100644
+--- a/drivers/media/platform/mtk-vpu/mtk_vpu.h
++++ b/drivers/media/platform/mtk-vpu/mtk_vpu.h
+@@ -37,6 +37,18 @@ typedef void (*ipi_handler_t) (void *data,
+ 			 command to VPU.
+ 			 For other IPI below, AP should send the request
+ 			 to VPU to trigger the interrupt.
++ * @IPI_VDEC_H264:	 The interrupt from vpu is to notify kernel to
++			 handle H264 vidoe decoder job, and vice versa.
++			 Decode output format is always MT21 no matter what
++			 the input format is.
++ * @IPI_VDEC_VP8:	 The interrupt from is to notify kernel to
++			 handle VP8 video decoder job, and vice versa.
++			 Decode output format is always MT21 no matter what
++			 the input format is.
++ * @IPI_VDEC_VP9:	 The interrupt from vpu is to notify kernel to
++			 handle VP9 video decoder job, and vice versa.
++			 Decode output format is always MT21 no matter what
++			 the input format is.
+  * @IPI_VENC_H264:	 The interrupt from vpu is to notify kernel to
+ 			 handle H264 video encoder job, and vice versa.
+  * @IPI_VENC_VP8:	 The interrupt fro vpu is to notify kernel to
+@@ -46,6 +58,9 @@ typedef void (*ipi_handler_t) (void *data,
+ 
+ enum ipi_id {
+ 	IPI_VPU_INIT = 0,
++	IPI_VDEC_H264,
++	IPI_VDEC_VP8,
++	IPI_VDEC_VP9,
+ 	IPI_VENC_H264,
+ 	IPI_VENC_VP8,
+ 	IPI_MAX,
+@@ -55,10 +70,12 @@ enum ipi_id {
+  * enum rst_id - reset id to register reset function for VPU watchdog timeout
+  *
+  * @VPU_RST_ENC: encoder reset id
++ * @VPU_RST_DEC: decoder reset id
+  * @VPU_RST_MAX: maximum reset id
+  */
+ enum rst_id {
+ 	VPU_RST_ENC,
++	VPU_RST_DEC,
+ 	VPU_RST_MAX,
+ };
+ 
+@@ -125,6 +142,16 @@ struct platform_device *vpu_get_plat_device(struct platform_device *pdev);
+ int vpu_wdt_reg_handler(struct platform_device *pdev,
+ 			void vpu_wdt_reset_func(void *),
+ 			void *priv, enum rst_id id);
++
++/**
++ * vpu_get_vdec_hw_capa - get video decoder hardware capability
++ *
++ * @pdev:	VPU platform device
++ *
++ * Return: video decoder hardware capability
++ **/
++unsigned int vpu_get_vdec_hw_capa(struct platform_device *pdev);
++
+ /**
+  * vpu_get_venc_hw_capa - get video encoder hardware capability
+  *
+-- 
+1.7.9.5
+
