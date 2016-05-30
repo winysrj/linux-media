@@ -1,59 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out5-smtp.messagingengine.com ([66.111.4.29]:47571 "EHLO
-	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752937AbcEEQJr (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33864 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752561AbcE3KJP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 May 2016 12:09:47 -0400
-Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
-	by mailout.nyi.internal (Postfix) with ESMTP id 8542820869
-	for <linux-media@vger.kernel.org>; Thu,  5 May 2016 12:09:46 -0400 (EDT)
-Message-Id: <1462464586.3004166.599182921.0162873F@webmail.messagingengine.com>
-From: Will Manley <will@williammanley.net>
-To: linux-media@vger.kernel.org
-Cc: amy.zhou@magewell.net
+	Mon, 30 May 2016 06:09:15 -0400
+Received: by mail-wm0-f67.google.com with SMTP id n129so21036435wmn.1
+        for <linux-media@vger.kernel.org>; Mon, 30 May 2016 03:09:14 -0700 (PDT)
+Subject: Re: [PATCH 3/4] dt-bindings: Document Renesas R-Car FCP power-domains
+ usage
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+References: <1464369565-12259-1-git-send-email-kieran@bingham.xyz>
+ <1464369565-12259-5-git-send-email-kieran@bingham.xyz>
+ <CAMuHMdUvRN2ysYJ9g0daOD8sD7O5XcrZkKbWr0X_L7mG25Ocww@mail.gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-renesas-soc@vger.kernel.org,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+From: Kieran Bingham <kieran@ksquared.org.uk>
+Message-ID: <574C1148.5070708@bingham.xyz>
+Date: Mon, 30 May 2016 11:09:12 +0100
 MIME-Version: 1.0
+In-Reply-To: <CAMuHMdUvRN2ysYJ9g0daOD8sD7O5XcrZkKbWr0X_L7mG25Ocww@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain
-Subject: Driver for Magewell PCIe capture cards
-Reply-To: will@williammanley.net
-Date: Thu, 05 May 2016 17:09:46 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi There
+Hi Geert,
 
-Magewell are a manufacturer of video-capture devices.  They have both
-USB and PCIe devices.  The USB devices use the upstream uvcvideo driver
-and Magewell currently provide proprietary drivers for their PCIe
-products.
+On 28/05/16 20:03, Geert Uytterhoeven wrote:
+> Hi Kieran,
+> 
+> On Fri, May 27, 2016 at 7:19 PM, Kieran Bingham <kieran@ksquared.org.uk> wrote:
+>> The example misses the power-domains usage, and documentation that the
+>> property is used by the node.
+>>
+>> Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+> 
+> Thanks for your patch!
+> 
+>> ---
+>>  Documentation/devicetree/bindings/media/renesas,fcp.txt | 3 +++
+>>  1 file changed, 3 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/renesas,fcp.txt b/Documentation/devicetree/bindings/media/renesas,fcp.txt
+>> index 1c0718b501ef..464bb7ae4b92 100644
+>> --- a/Documentation/devicetree/bindings/media/renesas,fcp.txt
+>> +++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
+>> @@ -21,6 +21,8 @@ are paired with. These DT bindings currently support the FCPV and FCPF.
+>>
+>>   - reg: the register base and size for the device registers
+>>   - clocks: Reference to the functional clock
+>> + - power-domains : power-domain property defined with a phandle
+>> +                           to respective power domain.
+> 
+> I'd write "power domain specifier" instead of "phandle". While SYSC on R-Car
+> Gen3 uses #power-domain-cells = 0, the FCP module may show up on another
+> SoC that uses a different value, needing more than just a phandle.
+> 
+> In fact I'm inclined to leave out the power-domains property completely:
+> it's not a feature of the FCP, but of the SoC the FCP is part of.
+> power-domains properties may appear in any device node where needed.
 
-http://www.magewell.com/
+I'm happy to just drop this part. It was mainly the addition to the
+example I was after, as I had followed the example, and thus missed the
+power-domain setting.
 
-I've approached Magewell about having upstream Linux drivers for these
-PCIe devices and they are open to sharing hardware documentation and the
-sources to their proprietary drivers under an NDA for the purpose of
-developing an upstream Linux driver.  This is where I'm hoping that the
-linux driver project can help out.
+>>  Device node example
+>> @@ -30,4 +32,5 @@ Device node example
+>>                 compatible = "renesas,r8a7795-fcpv", "renesas,fcpv";
+>>                 reg = <0 0xfea2f000 0 0x200>;
+>>                 clocks = <&cpg CPG_MOD 602>;
+>> +               power-domains = <&sysc R8A7795_PD_A3VP>;
+> 
+> Adding it to the example doesn't hurt, though.
 
-My interest in this is that I want to be using Magewell PCIe capture
-cards in my company's products ( https://stb-tester.com/ ), but I don't
-want to be stuck with proprietary drivers.  I'm hoping I can facilitate
-because I have some limited kernel developer experience, but I wouldn't
-be confident enough to write an entire v4l driver myself.
+Ok, I'll adjust and just keep the example in v2.
 
-I'd originally posted this to the linux driver project mailing list[1]. 
-Greg KH suggested I repost here as there aren't many v4l developers on
-that list.
+-- 
+Regards
 
-[1]:
-http://thread.gmane.org/gmane.linux.drivers.driver-project.devel/88218
-
-Please let me know what additional information I can provide to get this
-process started.
-
-Thanks
-
-Will
----
-William Manley
-stb-tester.com
+Kieran Bingham
