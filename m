@@ -1,50 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:51078 "EHLO butterbrot.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756429AbcEaUP5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2016 16:15:57 -0400
-From: Florian Echtler <floe@butterbrot.org>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: linux-input@vger.kernel.org, Florian Echtler <floe@butterbrot.org>,
-	Martin Kaltenbrunner <modin@yuri.at>
-Subject: [PATCH v2 3/3] sur40: fix occasional oopses on device close
-Date: Tue, 31 May 2016 22:15:33 +0200
-Message-Id: <1464725733-22119-3-git-send-email-floe@butterbrot.org>
-In-Reply-To: <1464725733-22119-1-git-send-email-floe@butterbrot.org>
-References: <1464725733-22119-1-git-send-email-floe@butterbrot.org>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:12214 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751658AbcE3H3B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 May 2016 03:29:01 -0400
+Subject: Re: [PATCH v4 5/7] ARM: Exynos: remove code for MFC custom reserved
+ memory handling
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
+ <1464096690-23605-6-git-send-email-m.szyprowski@samsung.com>
+Cc: devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Uli Middelberg <uli@middelberg.de>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Message-id: <574BEBB8.8040606@samsung.com>
+Date: Mon, 30 May 2016 09:28:56 +0200
+MIME-version: 1.0
+In-reply-to: <1464096690-23605-6-git-send-email-m.szyprowski@samsung.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Closing the V4L2 device sometimes triggers a kernel oops.
-Present patch fixes this.
+On 05/24/2016 03:31 PM, Marek Szyprowski wrote:
+> Once MFC driver has been converted to generic reserved memory bindings,
+> there is no need for custom memory reservation code.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  arch/arm/mach-exynos/Makefile      |  2 -
+>  arch/arm/mach-exynos/exynos.c      | 19 --------
+>  arch/arm/mach-exynos/mfc.h         | 16 -------
+>  arch/arm/mach-exynos/s5p-dev-mfc.c | 93 --------------------------------------
+>  4 files changed, 130 deletions(-)
+>  delete mode 100644 arch/arm/mach-exynos/mfc.h
+>  delete mode 100644 arch/arm/mach-exynos/s5p-dev-mfc.c
 
-Signed-off-by: Martin Kaltenbrunner <modin@yuri.at>
-Signed-off-by: Florian Echtler <floe@butterbrot.org>
----
- drivers/input/touchscreen/sur40.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Thanks, applied.
 
-diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-index 64e588c..85dedc1 100644
---- a/drivers/input/touchscreen/sur40.c
-+++ b/drivers/input/touchscreen/sur40.c
-@@ -448,7 +448,7 @@ static void sur40_process_video(struct sur40_state *sur40)
- 
- 	/* return error if streaming was stopped in the meantime */
- 	if (sur40->sequence == -1)
--		goto err_poll;
-+		return;
- 
- 	/* mark as finished */
- 	new_buf->vb.vb2_buf.timestamp = ktime_get_ns();
-@@ -736,6 +736,7 @@ static int sur40_start_streaming(struct vb2_queue *vq, unsigned int count)
- static void sur40_stop_streaming(struct vb2_queue *vq)
- {
- 	struct sur40_state *sur40 = vb2_get_drv_priv(vq);
-+	vb2_wait_for_all_buffers(vq);
- 	sur40->sequence = -1;
- 
- 	/* Release all active buffers */
--- 
-1.9.1
+What is your final decision for DTS patches? Which approach for MFC
+reserved memory node?
+
+Krzysztof
 
