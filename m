@@ -1,71 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56460 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755373AbcESXkb (ORCPT
+Received: from nasmtp01.atmel.com ([192.199.1.245]:37658 "EHLO
+	ussmtp01.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751316AbcEaHHg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2016 19:40:31 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v4 0/6] R-Car VSP: Add and set media entities functions
-Date: Fri, 20 May 2016 02:40:26 +0300
-Message-Id: <1463701232-22008-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Tue, 31 May 2016 03:07:36 -0400
+From: Songjun Wu <songjun.wu@atmel.com>
+To: <g.liakhovetski@gmx.de>, <laurent.pinchart@ideasonboard.com>,
+	<nicolas.ferre@atmel.com>, <robh@kernel.org>
+CC: <linux-arm-kernel@lists.infradead.org>,
+	Songjun Wu <songjun.wu@atmel.com>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	<devicetree@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	=?UTF-8?q?Richard=20R=C3=B6jfors?= <richard@puffinpack.se>,
+	Benoit Parrot <bparrot@ti.com>,
+	Kumar Gala <galak@codeaurora.org>,
+	<linux-kernel@vger.kernel.org>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mark Rutland <mark.rutland@arm.com>,
+	<linux-media@vger.kernel.org>,
+	Simon Horman <horms+renesas@verge.net.au>
+Subject: [PATCH v3 0/2] [media] atmel-isc: add driver for Atmel ISC
+Date: Tue, 31 May 2016 14:58:21 +0800
+Message-ID: <1464677903-28412-1-git-send-email-songjun.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+The Image Sensor Controller driver includes two parts.
+1) Driver code to implement the ISC function.
+2) Device tree binding documentation, it describes how
+   to add the ISC in device tree.
 
-This patch series adds new media entities functions for video processing and
-video statistics computation, and updates the VSP driver to use the new
-functions.
+Changes in v3:
+- Add pm runtime feature.
+- Modify the isc clock code since the dt is changed.
+- Remove the 'atmel,sensor-preferred'.
+- Modify the isc clock node according to the Rob's remarks.
 
-Patches 1/6 and 2/6 define and document the new functions. They have been
-submitted previously in the "[PATCH v2 00/54] R-Car VSP improvements for v4.7"
-patch series, this version takes feedback received over e-mail and IRC into
-account.
+Changes in v2:
+- Add "depends on COMMON_CLK" and "VIDEO_V4L2_SUBDEV_API"
+  in Kconfig file.
+- Correct typos and coding style according to Laurent's remarks.
+- Delete the loop while in 'isc_clk_enable' function.
+- Replace 'hsync_active', 'vsync_active' and 'pclk_sample'
+  with 'pfe_cfg0' in struct isc_subdev_entity.
+- Add the code to support VIDIOC_CREATE_BUFS in
+  'isc_queue_setup' function.
+- Invoke isc_config to configure register in
+  'isc_start_streaming' function.
+- Add the struct completion 'comp' to synchronize with
+  the frame end interrupt in 'isc_stop_streaming' function.
+- Check the return value of the clk_prepare_enable
+  in 'isc_open' function.
+- Set the default format in 'isc_open' function.
+- Add an exit condition in the loop while in 'isc_config'.
+- Delete the hardware setup operation in 'isc_set_format'.
+- Refuse format modification during streaming
+  in 'isc_s_fmt_vid_cap' function.
+- Invoke v4l2_subdev_alloc_pad_config to allocate and
+  initialize the pad config in 'isc_async_complete' function.
+- Remove the '.owner  = THIS_MODULE,' in atmel_isc_driver.
+- Replace the module_platform_driver_probe() with
+  module_platform_driver().
+- Remove the unit address of the endpoint.
+- Add the unit address to the clock node.
+- Avoid using underscores in node names.
+- Drop the "0x" in the unit address of the i2c node.
+- Modify the description of 'atmel,sensor-preferred'.
+- Add the description for the ISC internal clock.
 
-Patches 3/6 to 5/6 prepare the VSP driver to report the correct entity
-functions. They make sure that the LIF will never be exposed to userspace as
-no function currently exists for that block, and it isn't clear at the moment
-what new function should be added. As the LIF is only needed when the VSP is
-controlled directly from the DU driver without being exposed to userspace, a
-function isn't needed for the LIF anyway.
+Songjun Wu (2):
+  [media] atmel-isc: add the Image Sensor Controller code
+  [media] atmel-isc: DT binding for Image Sensor Controller driver
 
-Patch 6/6 finally sets functions for all the VSP entities.
-
-The code is based on top of the "[PATCH/RFC v2 0/4] Meta-data video device
-type" patch series, although it doesn't strictly depend on it. For convenience
-I've pushed all patches to
-
-	git://linuxtv.org/pinchartl/media.git vsp1/functions
-
-Laurent Pinchart (6):
-  media: Add video processing entity functions
-  media: Add video statistics computation functions
-  v4l: vsp1: Base link creation on availability of entities
-  v4l: vsp1: Don't register media device when userspace API is disabled
-  v4l: vsp1: Don't create LIF entity when the userspace API is enabled
-  v4l: vsp1: Set entities functions
-
- Documentation/DocBook/media/v4l/media-types.xml | 64 +++++++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_bru.c          |  3 +-
- drivers/media/platform/vsp1/vsp1_drv.c          | 36 +++++++-------
- drivers/media/platform/vsp1/vsp1_entity.c       |  3 +-
- drivers/media/platform/vsp1/vsp1_entity.h       |  2 +-
- drivers/media/platform/vsp1/vsp1_hgo.c          |  3 +-
- drivers/media/platform/vsp1/vsp1_hsit.c         |  5 +-
- drivers/media/platform/vsp1/vsp1_lif.c          |  7 ++-
- drivers/media/platform/vsp1/vsp1_lut.c          |  3 +-
- drivers/media/platform/vsp1/vsp1_rpf.c          |  3 +-
- drivers/media/platform/vsp1/vsp1_sru.c          |  3 +-
- drivers/media/platform/vsp1/vsp1_uds.c          |  3 +-
- drivers/media/platform/vsp1/vsp1_wpf.c          |  3 +-
- include/uapi/linux/media.h                      | 10 ++++
- 14 files changed, 119 insertions(+), 29 deletions(-)
+ .../devicetree/bindings/media/atmel-isc.txt        |   88 ++
+ drivers/media/platform/Kconfig                     |    1 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/atmel/Kconfig               |    9 +
+ drivers/media/platform/atmel/Makefile              |    1 +
+ drivers/media/platform/atmel/atmel-isc-regs.h      |  276 ++++
+ drivers/media/platform/atmel/atmel-isc.c           | 1610 ++++++++++++++++++++
+ 7 files changed, 1987 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
+ create mode 100644 drivers/media/platform/atmel/Kconfig
+ create mode 100644 drivers/media/platform/atmel/Makefile
+ create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
+ create mode 100644 drivers/media/platform/atmel/atmel-isc.c
 
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
 
