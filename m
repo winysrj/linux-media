@@ -1,46 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56482 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755345AbcESXl7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2016 19:41:59 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 1/3] v4l: vsp1: Fix typo in register field names
-Date: Fri, 20 May 2016 02:41:56 +0300
-Message-Id: <1463701318-22081-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1463701318-22081-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1463701318-22081-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from butterbrot.org ([176.9.106.16]:51075 "EHLO butterbrot.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756411AbcEaUPx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 May 2016 16:15:53 -0400
+From: Florian Echtler <floe@butterbrot.org>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: linux-input@vger.kernel.org, Florian Echtler <floe@butterbrot.org>,
+	Martin Kaltenbrunner <modin@yuri.at>
+Subject: [PATCH v2 2/3] sur40: lower poll interval to fix occasional FPS drops to ~56 FPS
+Date: Tue, 31 May 2016 22:15:32 +0200
+Message-Id: <1464725733-22119-2-git-send-email-floe@butterbrot.org>
+In-Reply-To: <1464725733-22119-1-git-send-email-floe@butterbrot.org>
+References: <1464725733-22119-1-git-send-email-floe@butterbrot.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VI6_RPF_ALPH_SEL ALPHA0 and ALPHA1 fields are inverted, swap them.
+The framerate sometimes drops below 60 Hz if the poll interval is too high.
+Lowering it to the minimum of 1 ms fixes this.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Martin Kaltenbrunner <modin@yuri.at>
+Signed-off-by: Florian Echtler <floe@butterbrot.org>
 ---
- drivers/media/platform/vsp1/vsp1_regs.h | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/input/touchscreen/sur40.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
-index 927b5fb94c48..7657545a75ed 100644
---- a/drivers/media/platform/vsp1/vsp1_regs.h
-+++ b/drivers/media/platform/vsp1/vsp1_regs.h
-@@ -154,10 +154,10 @@
- #define VI6_RPF_ALPH_SEL_AEXT_EXT	(1 << 18)
- #define VI6_RPF_ALPH_SEL_AEXT_ONE	(2 << 18)
- #define VI6_RPF_ALPH_SEL_AEXT_MASK	(3 << 18)
--#define VI6_RPF_ALPH_SEL_ALPHA0_MASK	(0xff << 8)
--#define VI6_RPF_ALPH_SEL_ALPHA0_SHIFT	8
--#define VI6_RPF_ALPH_SEL_ALPHA1_MASK	(0xff << 0)
--#define VI6_RPF_ALPH_SEL_ALPHA1_SHIFT	0
-+#define VI6_RPF_ALPH_SEL_ALPHA1_MASK	(0xff << 8)
-+#define VI6_RPF_ALPH_SEL_ALPHA1_SHIFT	8
-+#define VI6_RPF_ALPH_SEL_ALPHA0_MASK	(0xff << 0)
-+#define VI6_RPF_ALPH_SEL_ALPHA0_SHIFT	0
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index 4b1f703..64e588c 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -126,7 +126,7 @@ struct sur40_image_header {
+ #define VIDEO_PACKET_SIZE  16384
  
- #define VI6_RPF_VRTCOL_SET		0x0318
- #define VI6_RPF_VRTCOL_SET_LAYA_MASK	(0xff << 24)
+ /* polling interval (ms) */
+-#define POLL_INTERVAL 4
++#define POLL_INTERVAL 1
+ 
+ /* maximum number of contacts FIXME: this is a guess? */
+ #define MAX_CONTACTS 64
 -- 
-2.7.3
+1.9.1
 
