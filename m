@@ -1,66 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40166 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752424AbcEDQ1c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 12:27:32 -0400
-Date: Wed, 4 May 2016 19:26:57 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, mchehab@osg.samsung.com
-Subject: Re: [PATCH v2 4/5] media: Add flags to tell whether to take graph
- mutex for an IOCTL
-Message-ID: <20160504162656.GL26360@valkosipuli.retiisi.org.uk>
-References: <1462360855-23354-1-git-send-email-sakari.ailus@linux.intel.com>
- <1462360855-23354-5-git-send-email-sakari.ailus@linux.intel.com>
- <572A0C50.5070007@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <572A0C50.5070007@osg.samsung.com>
+Received: from butterbrot.org ([176.9.106.16]:51071 "EHLO butterbrot.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756398AbcEaUPt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 May 2016 16:15:49 -0400
+From: Florian Echtler <floe@butterbrot.org>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: linux-input@vger.kernel.org, Florian Echtler <floe@butterbrot.org>,
+	Martin Kaltenbrunner <modin@yuri.at>
+Subject: [PATCH v2 1/3] sur40: properly report a single frame rate of 60 FPS
+Date: Tue, 31 May 2016 22:15:31 +0200
+Message-Id: <1464725733-22119-1-git-send-email-floe@butterbrot.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
+The device hardware is always running at 60 FPS, so report this both via
+PARM_IOCTL and ENUM_FRAMEINTERVALS.
 
-Thanks for the review!
+Signed-off-by: Martin Kaltenbrunner <modin@yuri.at>
+Signed-off-by: Florian Echtler <floe@butterbrot.org>
+---
+ drivers/input/touchscreen/sur40.c | 20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-On Wed, May 04, 2016 at 08:50:56AM -0600, Shuah Khan wrote:
-> On 05/04/2016 05:20 AM, Sakari Ailus wrote:
-> > New IOCTLs (especially for the request API) do not necessarily need the
-> > graph mutex acquired. Leave this up to the drivers.
-> 
-> Sakari,
-> 
-> Does this mean drivers have to hold the graph mutex as needed?
-> My concern with this is that we will have graph_mutex holds in
-> driver code in addition to the ones we have now. My concern with
-> referencing graph_mutex from driver code is lack of abstraction.
-> If we ever need to change grahp-mutex in the media-core, if it
-> is exposed to drivers, then there will be lot of changes.
-> 
-> Could we look into avoiding drivers referencing graph_mutex
-> directly?
-
-I think we rather need to get rid of the graph mutex in the end; it's a bit
-like the big kernel lock right now: most operations on the graph, whatever
-they are, need it.
-
-The case for not acquiring it (I have request API and events in mind, in
-particular) for some IOCTLs is there. Drivers may need to acquire other
-mutexes while holding the graph mutex, and the locking order has to be
-maintained in order to avoid deadlocks.
-
-Dequeueing events does not need the graph mutex, whereas requests changing
-the graph state would need it for the time being.
-
-The reason there's a flag to acquire the graph mutex (rather than not
-acquiring it) is that it'd be easier to spot where it's needed.
-
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index 880c40b..4b1f703 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -788,6 +788,19 @@ static int sur40_vidioc_fmt(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++static int sur40_ioctl_parm(struct file *file, void *priv,
++			    struct v4l2_streamparm *p)
++{
++	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	p->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
++	p->parm.capture.timeperframe.numerator = 1;
++	p->parm.capture.timeperframe.denominator = 60;
++	p->parm.capture.readbuffers = 3;
++	return 0;
++}
++
+ static int sur40_vidioc_enum_fmt(struct file *file, void *priv,
+ 				 struct v4l2_fmtdesc *f)
+ {
+@@ -814,13 +827,13 @@ static int sur40_vidioc_enum_framesizes(struct file *file, void *priv,
+ static int sur40_vidioc_enum_frameintervals(struct file *file, void *priv,
+ 					    struct v4l2_frmivalenum *f)
+ {
+-	if ((f->index > 1) || (f->pixel_format != V4L2_PIX_FMT_GREY)
++	if ((f->index > 0) || (f->pixel_format != V4L2_PIX_FMT_GREY)
+ 		|| (f->width  != sur40_video_format.width)
+ 		|| (f->height != sur40_video_format.height))
+ 			return -EINVAL;
+ 
+ 	f->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+-	f->discrete.denominator  = 60/(f->index+1);
++	f->discrete.denominator  = 60;
+ 	f->discrete.numerator = 1;
+ 	return 0;
+ }
+@@ -880,6 +893,9 @@ static const struct v4l2_ioctl_ops sur40_video_ioctl_ops = {
+ 	.vidioc_enum_framesizes = sur40_vidioc_enum_framesizes,
+ 	.vidioc_enum_frameintervals = sur40_vidioc_enum_frameintervals,
+ 
++	.vidioc_g_parm = sur40_ioctl_parm,
++	.vidioc_s_parm = sur40_ioctl_parm,
++
+ 	.vidioc_enum_input	= sur40_vidioc_enum_input,
+ 	.vidioc_g_input		= sur40_vidioc_g_input,
+ 	.vidioc_s_input		= sur40_vidioc_s_input,
 -- 
-Kind regards,
+1.9.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
