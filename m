@@ -1,101 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:37658 "EHLO
-	ussmtp01.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751316AbcEaHHg (ORCPT
+Received: from mail-yw0-f195.google.com ([209.85.161.195]:33115 "EHLO
+	mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754329AbcEaOdZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2016 03:07:36 -0400
-From: Songjun Wu <songjun.wu@atmel.com>
-To: <g.liakhovetski@gmx.de>, <laurent.pinchart@ideasonboard.com>,
-	<nicolas.ferre@atmel.com>, <robh@kernel.org>
-CC: <linux-arm-kernel@lists.infradead.org>,
-	Songjun Wu <songjun.wu@atmel.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	<devicetree@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	=?UTF-8?q?Richard=20R=C3=B6jfors?= <richard@puffinpack.se>,
-	Benoit Parrot <bparrot@ti.com>,
-	Kumar Gala <galak@codeaurora.org>,
-	<linux-kernel@vger.kernel.org>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mark Rutland <mark.rutland@arm.com>,
-	<linux-media@vger.kernel.org>,
-	Simon Horman <horms+renesas@verge.net.au>
-Subject: [PATCH v3 0/2] [media] atmel-isc: add driver for Atmel ISC
-Date: Tue, 31 May 2016 14:58:21 +0800
-Message-ID: <1464677903-28412-1-git-send-email-songjun.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Tue, 31 May 2016 10:33:25 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-kernel@vger.kernel.org,
+	Gustavo Padovan <gustavo.padovan@collabora.co.uk>
+Subject: [PATCH 1/2] MAINTAINERS: add entry for the Sync File Framework
+Date: Tue, 31 May 2016 11:33:15 -0300
+Message-Id: <1464705196-24369-1-git-send-email-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Image Sensor Controller driver includes two parts.
-1) Driver code to implement the ISC function.
-2) Device tree binding documentation, it describes how
-   to add the ISC in device tree.
+From: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
 
-Changes in v3:
-- Add pm runtime feature.
-- Modify the isc clock code since the dt is changed.
-- Remove the 'atmel,sensor-preferred'.
-- Modify the isc clock node according to the Rob's remarks.
+Add Gustavo as maintainer for the Sync File Framework. Sumit is
+co-maintainer as he maintains drivers/dma-buf/. It also uses Sumit's
+tree as base.
 
-Changes in v2:
-- Add "depends on COMMON_CLK" and "VIDEO_V4L2_SUBDEV_API"
-  in Kconfig file.
-- Correct typos and coding style according to Laurent's remarks.
-- Delete the loop while in 'isc_clk_enable' function.
-- Replace 'hsync_active', 'vsync_active' and 'pclk_sample'
-  with 'pfe_cfg0' in struct isc_subdev_entity.
-- Add the code to support VIDIOC_CREATE_BUFS in
-  'isc_queue_setup' function.
-- Invoke isc_config to configure register in
-  'isc_start_streaming' function.
-- Add the struct completion 'comp' to synchronize with
-  the frame end interrupt in 'isc_stop_streaming' function.
-- Check the return value of the clk_prepare_enable
-  in 'isc_open' function.
-- Set the default format in 'isc_open' function.
-- Add an exit condition in the loop while in 'isc_config'.
-- Delete the hardware setup operation in 'isc_set_format'.
-- Refuse format modification during streaming
-  in 'isc_s_fmt_vid_cap' function.
-- Invoke v4l2_subdev_alloc_pad_config to allocate and
-  initialize the pad config in 'isc_async_complete' function.
-- Remove the '.owner  = THIS_MODULE,' in atmel_isc_driver.
-- Replace the module_platform_driver_probe() with
-  module_platform_driver().
-- Remove the unit address of the endpoint.
-- Add the unit address to the clock node.
-- Avoid using underscores in node names.
-- Drop the "0x" in the unit address of the i2c node.
-- Modify the description of 'atmel,sensor-preferred'.
-- Add the description for the ISC internal clock.
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
+Acked-by: Sumit Semwal <sumit.semwal@linaro.org>
+Acked-by: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+---
+ MAINTAINERS | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-Songjun Wu (2):
-  [media] atmel-isc: add the Image Sensor Controller code
-  [media] atmel-isc: DT binding for Image Sensor Controller driver
-
- .../devicetree/bindings/media/atmel-isc.txt        |   88 ++
- drivers/media/platform/Kconfig                     |    1 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/atmel/Kconfig               |    9 +
- drivers/media/platform/atmel/Makefile              |    1 +
- drivers/media/platform/atmel/atmel-isc-regs.h      |  276 ++++
- drivers/media/platform/atmel/atmel-isc.c           | 1610 ++++++++++++++++++++
- 7 files changed, 1987 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
- create mode 100644 drivers/media/platform/atmel/Kconfig
- create mode 100644 drivers/media/platform/atmel/Makefile
- create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
- create mode 100644 drivers/media/platform/atmel/atmel-isc.c
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index fb487d9..0891228 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3677,6 +3677,17 @@ F:	include/linux/*fence.h
+ F:	Documentation/dma-buf-sharing.txt
+ T:	git git://git.linaro.org/people/sumitsemwal/linux-dma-buf.git
+ 
++SYNC FILE FRAMEWORK
++M:	Sumit Semwal <sumit.semwal@linaro.org>
++R:	Gustavo Padovan <gustavo@padovan.org>
++S:	Maintained
++L:	linux-media@vger.kernel.org
++L:	dri-devel@lists.freedesktop.org
++F:	drivers/dma-buf/sync_file.c
++F:	include/linux/sync_file.h
++F:	Documentation/sync_file.txt
++T:	git git://git.linaro.org/people/sumitsemwal/linux-dma-buf.git
++
+ DMA GENERIC OFFLOAD ENGINE SUBSYSTEM
+ M:	Vinod Koul <vinod.koul@intel.com>
+ L:	dmaengine@vger.kernel.org
 -- 
-2.7.4
+2.5.5
 
