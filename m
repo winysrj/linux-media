@@ -1,71 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.74]:56457 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752439AbcEJNTn (ORCPT
+Received: from mail-io0-f195.google.com ([209.85.223.195]:34444 "EHLO
+	mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751283AbcEaHRK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 May 2016 09:19:43 -0400
-From: Alban Bedel <alban.bedel@avionic-design.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Tue, 31 May 2016 03:17:10 -0400
+MIME-Version: 1.0
+In-Reply-To: <1464677903-28412-1-git-send-email-songjun.wu@atmel.com>
+References: <1464677903-28412-1-git-send-email-songjun.wu@atmel.com>
+Date: Tue, 31 May 2016 09:17:09 +0200
+Message-ID: <CAMuHMdV5pqAEea7v7WbQ2FSSve92avte4B=j53-12s842D-Xdg@mail.gmail.com>
+Subject: Re: [PATCH v3 0/2] [media] atmel-isc: add driver for Atmel ISC
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Songjun Wu <songjun.wu@atmel.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-kernel@vger.kernel.org,
-	Alban Bedel <alban.bedel@avionic-design.de>
-Subject: [PATCH] [media] v4l2-async: Pass the v4l2_async_subdev to the unbind callback
-Date: Tue, 10 May 2016 15:19:14 +0200
-Message-Id: <1462886354-2115-1-git-send-email-alban.bedel@avionic-design.de>
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	Rob Herring <robh@kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	=?UTF-8?Q?Richard_R=C3=B6jfors?= <richard@puffinpack.se>,
+	Benoit Parrot <bparrot@ti.com>,
+	Kumar Gala <galak@codeaurora.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Simon Horman <horms+renesas@verge.net.au>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_async_cleanup() is always called before before calling the
-unbind() callback. However v4l2_async_cleanup() clear the asd member,
-so when calling the unbind() callback the v4l2_async_subdev is always
-NULL. To fix this save the asd before calling v4l2_async_cleanup().
+Hi Songjun,
 
-Signed-off-by: Alban Bedel <alban.bedel@avionic-design.de>
----
- drivers/media/v4l2-core/v4l2-async.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+On Tue, May 31, 2016 at 8:58 AM, Songjun Wu <songjun.wu@atmel.com> wrote:
+> The Image Sensor Controller driver includes two parts.
+> 1) Driver code to implement the ISC function.
+> 2) Device tree binding documentation, it describes how
+>    to add the ISC in device tree.
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index a4b224d..ceb28d4 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -220,6 +220,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 	list_del(&notifier->list);
- 
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-+		struct v4l2_async_subdev *asd = sd->asd;
- 		struct device *d;
- 
- 		d = get_device(sd->dev);
-@@ -230,7 +231,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 		device_release_driver(d);
- 
- 		if (notifier->unbind)
--			notifier->unbind(notifier, sd, sd->asd);
-+			notifier->unbind(notifier, sd, asd);
- 
- 		/*
- 		 * Store device at the device cache, in order to call
-@@ -313,6 +314,7 @@ EXPORT_SYMBOL(v4l2_async_register_subdev);
- void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
- {
- 	struct v4l2_async_notifier *notifier = sd->notifier;
-+	struct v4l2_async_subdev *asd = sd->asd;
- 
- 	if (!sd->asd) {
- 		if (!list_empty(&sd->async_list))
-@@ -327,7 +329,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
- 	v4l2_async_cleanup(sd);
- 
- 	if (notifier->unbind)
--		notifier->unbind(notifier, sd, sd->asd);
-+		notifier->unbind(notifier, sd, asd);
- 
- 	mutex_unlock(&list_lock);
- }
--- 
-2.8.2
+Please reduce the CC list. Not everyone who ever touched a line in the
+files you modified is working on media or atmel devices.
 
+get_maintainer.pl gives hints, not exact lists of people.
+
+Thanks!
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
