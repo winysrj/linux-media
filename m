@@ -1,59 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:39441 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754936AbcFQIGh (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44536 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752901AbcFAPYp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 04:06:37 -0400
-Subject: Re: [PATCHv16 10/13] cec: adv7842: add cec support
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <1461937948-22936-1-git-send-email-hverkuil@xs4all.nl>
- <1461937948-22936-11-git-send-email-hverkuil@xs4all.nl>
- <20160616182228.1bd755d5@recife.lan>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
-	lars@opdenkamp.eu, linux@arm.linux.org.uk,
-	Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5763AF87.2030700@xs4all.nl>
-Date: Fri, 17 Jun 2016 10:06:31 +0200
+	Wed, 1 Jun 2016 11:24:45 -0400
+Date: Wed, 1 Jun 2016 18:24:39 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	pali.rohar@gmail.com, sre@kernel.org,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Subject: Re: [PATCHv5] support for AD5820 camera auto-focus coil
+Message-ID: <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
+References: <20160521054336.GA27123@amd>
+ <573FFF51.1000004@gmail.com>
+ <20160521105607.GA20071@amd>
+ <574049EF.2090208@gmail.com>
+ <20160524090433.GA1277@amd>
+ <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+ <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
+ <20160531213437.GA28397@amd>
 MIME-Version: 1.0
-In-Reply-To: <20160616182228.1bd755d5@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160531213437.GA28397@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/2016 11:22 PM, Mauro Carvalho Chehab wrote:
-> Em Fri, 29 Apr 2016 15:52:25 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Pavel,
+
+On Tue, May 31, 2016 at 11:34:37PM +0200, Pavel Machek wrote:
+> On Wed 2016-06-01 00:22:22, Sakari Ailus wrote:
+> > Hi Pavel,
+> > 
+> > On Fri, May 27, 2016 at 10:51:40PM +0200, Pavel Machek wrote:
+> > > 
+> > > This adds support for AD5820 autofocus coil, found for example in
+> > > Nokia N900 smartphone.
+> > > 
+> > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > 
+> > The patch looks good to me but then I came to think of a question I've
+> > missed so far: is there DT documentation somewhere for the properties used
+> > by the driver? I might put that to a separate patch, and cc the relevant
+> > list.
 > 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Add CEC support to the adv7842 driver.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Well, it does not use any dt properties. So there's not really much to
+> discuss with dt people...
 > 
-> Won't review patches 10-13, as the same reviews I made for patch 9
-> very likely applies.
-> 
-> As this series is causing non-staging drivers to be dependent of a
-> staging driver, I'll wait for the next version that should be
-> solving this issue.
-> 
-> For the new 9-13 patches, please be sure that checkpatch will be
-> happy. For the staging stuff, the checkpatch issues can be solved
-> later, as I'll re-check against checkpatch when it moves from staging
-> to mainstream.
+> Maybe "ad5820" needs to go to list of simple i2c drivers somewhere,
+> but...
 
-I have to make changes anyway so I'll make a new pull request later
-today fixing all the comments and replacing unsigned with unsigned int
-(which is a majority of all the checkpatch warnings).
+It's an I2C device and it does use a regulator. Not a lot, though, these are
+both quite basic stuff. This should still be documented as the people who
+write the DT bindings (in general) aren't expected to read driver code as
+well. That's at least my understanding.
 
-Did I mention yet how much I hate this new checkpatch warning? In almost all
-cases I agree with the checkpatch rules, but this one is just stupid IMHO.
+-- 
+Kind regards,
 
-Oh well, I'll make the change. Perhaps it will grow on me over time.
-
-Regards,
-
-	Hans
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
