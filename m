@@ -1,77 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:38795 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750899AbcFQHNT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 03:13:19 -0400
-Subject: Re: [PATCH 4/6] [media] s5p-jpeg: only fill driver's name in
- capabilities driver field
-To: Javier Martinez Canillas <javier@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-References: <1466113235-25909-1-git-send-email-javier@osg.samsung.com>
- <1466113235-25909-5-git-send-email-javier@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5763A30A.5060201@xs4all.nl>
-Date: Fri, 17 Jun 2016 09:13:14 +0200
-MIME-Version: 1.0
-In-Reply-To: <1466113235-25909-5-git-send-email-javier@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:15434 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1161156AbcFAQkQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2016 12:40:16 -0400
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	Nick Dyer <nick.dyer@itdev.co.uk>
+Subject: [PATCH v3 8/8] Input: atmel_mxt_ts - add support for reference data
+Date: Wed,  1 Jun 2016 17:39:52 +0100
+Message-Id: <1464799192-28034-9-git-send-email-nick.dyer@itdev.co.uk>
+In-Reply-To: <1464799192-28034-1-git-send-email-nick.dyer@itdev.co.uk>
+References: <1464799192-28034-1-git-send-email-nick.dyer@itdev.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/2016 11:40 PM, Javier Martinez Canillas wrote:
-> The driver fills in both the struct v4l2_capability driver and card fields
-> the same values, that is the driver's name plus the information if the dev
-> is a decoder or an encoder.
-> 
-> But the driver field has a fixed length of 16 bytes so the filled data is
-> truncated:
-> 
-> Driver Info (not using libv4l2):
->         Driver name   : s5p-jpeg decode
->         Card type     : s5p-jpeg decoder
->         Bus info      : platform:11f50000.jpeg
->         Driver version: 4.7.0
-> 
-> Also, this field should only contain the driver's name so use just that.
-> The information if the device is a decoder or an encoder is in the card
-> type field anyways.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+There are different datatypes available from a maXTouch chip. Add
+support to retrieve reference data as well.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 58 ++++++++++++++++++++++++++++----
+ 1 file changed, 51 insertions(+), 7 deletions(-)
 
-Thanks!
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 7d8002d..d9e0906 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -135,6 +135,7 @@ struct t9_range {
+ /* MXT_DEBUG_DIAGNOSTIC_T37 */
+ #define MXT_DIAGNOSTIC_PAGEUP	0x01
+ #define MXT_DIAGNOSTIC_DELTAS	0x10
++#define MXT_DIAGNOSTIC_REFS	0x11
+ #define MXT_DIAGNOSTIC_SIZE	128
+ 
+ #define MXT_FAMILY_1386			160
+@@ -247,6 +248,12 @@ struct mxt_dbg {
+ 	int input;
+ };
+ 
++enum v4l_dbg_inputs {
++	MXT_V4L_INPUT_DELTAS,
++	MXT_V4L_INPUT_REFS,
++	MXT_V4L_INPUT_MAX,
++};
++
+ static const struct v4l2_file_operations mxt_video_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = v4l2_fh_open,
+@@ -2268,6 +2275,7 @@ static void mxt_buffer_queue(struct vb2_buffer *vb)
+ 	struct mxt_data *data = vb2_get_drv_priv(vb->vb2_queue);
+ 	u16 *ptr;
+ 	int ret;
++	u8 mode;
+ 
+ 	ptr = vb2_plane_vaddr(vb, 0);
+ 	if (!ptr) {
+@@ -2275,7 +2283,18 @@ static void mxt_buffer_queue(struct vb2_buffer *vb)
+ 		goto fault;
+ 	}
+ 
+-	ret = mxt_read_diagnostic_debug(data, MXT_DIAGNOSTIC_DELTAS, ptr);
++	switch (data->dbg.input) {
++	case MXT_V4L_INPUT_DELTAS:
++	default:
++		mode = MXT_DIAGNOSTIC_DELTAS;
++		break;
++
++	case MXT_V4L_INPUT_REFS:
++		mode = MXT_DIAGNOSTIC_REFS;
++		break;
++	}
++
++	ret = mxt_read_diagnostic_debug(data, mode, ptr);
+ 	if (ret)
+ 		goto fault;
+ 
+@@ -2320,11 +2339,20 @@ static int mxt_vidioc_querycap(struct file *file, void *priv,
+ static int mxt_vidioc_enum_input(struct file *file, void *priv,
+ 				   struct v4l2_input *i)
+ {
+-	if (i->index > 0)
++	if (i->index >= MXT_V4L_INPUT_MAX)
+ 		return -EINVAL;
+ 
+ 	i->type = V4L2_INPUT_TYPE_TOUCH_SENSOR;
+-	strlcpy(i->name, "Mutual References", sizeof(i->name));
++
++	switch (i->index) {
++	case MXT_V4L_INPUT_REFS:
++		strlcpy(i->name, "Mutual References", sizeof(i->name));
++		break;
++	case MXT_V4L_INPUT_DELTAS:
++		strlcpy(i->name, "Mutual Deltas", sizeof(i->name));
++		break;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -2332,12 +2360,16 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
+ {
+ 	struct v4l2_pix_format *f = &data->dbg.format;
+ 
+-	if (i > 0)
++	if (i >= MXT_V4L_INPUT_MAX)
+ 		return -EINVAL;
+ 
++	if (i == MXT_V4L_INPUT_DELTAS)
++		f->pixelformat = V4L2_PIX_FMT_YS16;
++	else
++		f->pixelformat = V4L2_PIX_FMT_Y16;
++
+ 	f->width = data->xy_switch ? data->ysize : data->xsize;
+ 	f->height = data->xy_switch ? data->xsize : data->ysize;
+-	f->pixelformat = V4L2_PIX_FMT_YS16;
+ 	f->field = V4L2_FIELD_NONE;
+ 	f->colorspace = V4L2_COLORSPACE_RAW;
+ 	f->bytesperline = f->width * sizeof(u16);
+@@ -2375,10 +2407,22 @@ static int mxt_vidioc_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ static int mxt_vidioc_enum_fmt(struct file *file, void *priv,
+ 				 struct v4l2_fmtdesc *fmt)
+ {
+-	if (fmt->index > 0 || fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++	if (fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	switch (fmt->index) {
++	case 0:
++		fmt->pixelformat = V4L2_PIX_FMT_Y16;
++		break;
++
++	case 1:
++		fmt->pixelformat = V4L2_PIX_FMT_YS16;
++		break;
++
++	default:
+ 		return -EINVAL;
++	}
+ 
+-	fmt->pixelformat = V4L2_PIX_FMT_YS16;
+ 	return 0;
+ }
+ 
+-- 
+2.5.0
 
-Hans
-
-> ---
-> 
->  drivers/media/platform/s5p-jpeg/jpeg-core.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> index e3ff3d4bd72e..f9fb52a53e79 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> @@ -1246,12 +1246,12 @@ static int s5p_jpeg_querycap(struct file *file, void *priv,
->  	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
->  
->  	if (ctx->mode == S5P_JPEG_ENCODE) {
-> -		strlcpy(cap->driver, S5P_JPEG_M2M_NAME " encoder",
-> +		strlcpy(cap->driver, S5P_JPEG_M2M_NAME,
->  			sizeof(cap->driver));
->  		strlcpy(cap->card, S5P_JPEG_M2M_NAME " encoder",
->  			sizeof(cap->card));
->  	} else {
-> -		strlcpy(cap->driver, S5P_JPEG_M2M_NAME " decoder",
-> +		strlcpy(cap->driver, S5P_JPEG_M2M_NAME,
->  			sizeof(cap->driver));
->  		strlcpy(cap->card, S5P_JPEG_M2M_NAME " decoder",
->  			sizeof(cap->card));
-> 
