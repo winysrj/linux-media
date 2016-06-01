@@ -1,74 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:33374 "EHLO
-	mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750732AbcEYS7L (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:56641 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757197AbcFAC2u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2016 14:59:11 -0400
-Date: Wed, 25 May 2016 13:59:08 -0500
-From: Rob Herring <robh@kernel.org>
-To: roliveir <Ramiro.Oliveira@synopsys.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	mchehab@osg.samsung.com, CARLOS.PALMINHA@synopsys.com
-Subject: Re: [RFC 1/2] Add OV5647 device tree documentation
-Message-ID: <20160525185908.GA12900@rob-hp-laptop>
-References: <cover.1464112779.git.roliveir@synopsys.com>
- <c98fab2075cefbe155c99b99f7b09cdad67514a8.1464112779.git.roliveir@synopsys.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <c98fab2075cefbe155c99b99f7b09cdad67514a8.1464112779.git.roliveir@synopsys.com>
+	Tue, 31 May 2016 22:28:50 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1F0E9180160
+	for <linux-media@vger.kernel.org>; Wed,  1 Jun 2016 04:28:45 +0200 (CEST)
+Date: Wed, 01 Jun 2016 04:28:45 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160601022845.1F0E9180160@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 24, 2016 at 07:16:47PM +0100, roliveir wrote:
-> Signed-off-by: roliveir <roliveir@synopsys.com>
-> ---
->  .../devicetree/bindings/media/i2c/ov5647.txt       | 29 ++++++++++++++++++++++
->  1 file changed, 29 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-> new file mode 100644
-> index 0000000..fa6b09c
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-> @@ -0,0 +1,29 @@
-> +Omnivision OV5657 raw image sensor
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-5657?
+Results of the daily build of media_tree:
 
-> +---------------------------------
-> +
-> +OV5657 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
-> +and CCI (I2C compatible) control bus.
-> +
-> +Required properties:
-> +
-> +- compatible	: "ov5647";
-> +- reg		: I2C slave address of the sensor;
-> +- clocks	: should contain list of phandle and clock specifier pairs
-> +		  according to common clock bindings for the clocks described
-> +		  in the clock-names property;
+date:		Wed Jun  1 04:00:24 CEST 2016
+git branch:	test
+git hash:	de42e7655d504ceeda53e009b8860ba4bd007ab5
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
 
-Need to state how many clocks and the order.
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-i686: ERRORS
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-x86_64: ERRORS
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-> +- clock-names	: should contain "extclk" entry for the sensor's EXTCLK clock;
-> +
-> +Optional properties:
-> +
-> +- clock-frequency : the frequency at which the "extclk" clock should be
-> +		    configured to operate, in Hz; if this property is not
-> +		    specified default 27 MHz value will be used.
-> +
-> +The common video interfaces bindings (see video-interfaces.txt) should be
-> +used to specify link to the image data receiver. The OV5657 device
-> +node should contain one 'port' child node with an 'endpoint' subnode.
-> +
-> +Following properties are valid for the endpoint node:
-> +
-> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
-> +  video-interfaces.txt.  The sensor supports only two data lanes.
-> -- 
-> 2.8.1
-> 
-> 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
