@@ -1,69 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:35767 "EHLO
-	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755542AbcFHPfn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2016 11:35:43 -0400
-Received: by mail-wm0-f42.google.com with SMTP id v199so69616206wmv.0
-        for <linux-media@vger.kernel.org>; Wed, 08 Jun 2016 08:35:42 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAL_JsqKNpx09UFkGB0n9W0GkAv8OVUdRN8cYriau83SdD6xnuw@mail.gmail.com>
-References: <20160607143425.GE1165@e106497-lin.cambridge.arm.com>
- <1465368713-17866-1-git-send-email-m.szyprowski@samsung.com> <CAL_JsqKNpx09UFkGB0n9W0GkAv8OVUdRN8cYriau83SdD6xnuw@mail.gmail.com>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Wed, 8 Jun 2016 21:05:22 +0530
-Message-ID: <CAO_48GFTbqQ0jRj93+cuax=F3Lf0DCnCnnuk8_pxkPKoXZwU4w@mail.gmail.com>
-Subject: Re: [PATCH] of: reserved_mem: restore old behavior when no region is defined
-To: Rob Herring <robh@kernel.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Liviu Dudau <liviu.dudau@arm.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:47163 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932108AbcFAQkE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2016 12:40:04 -0400
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
 	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
+Subject: [PATCH v3 0/8] Input: atmel_mxt_ts - output raw touch diagnostic data via V4L
+Date: Wed,  1 Jun 2016 17:39:44 +0100
+Message-Id: <1464799192-28034-1-git-send-email-nick.dyer@itdev.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 8 June 2016 at 18:35, Rob Herring <robh@kernel.org> wrote:
-> On Wed, Jun 8, 2016 at 1:51 AM, Marek Szyprowski
-> <m.szyprowski@samsung.com> wrote:
->> Change return value back to -ENODEV when no region is defined for given
->> device. This restores old behavior of this function, as some drivers rely
->> on such error code.
->>
->> Reported-by: Liviu Dudau <liviu.dudau@arm.com>
->> Fixes: 59ce4039727ef40 ("of: reserved_mem: add support for using more than
->>        one region for given device")
->> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->> ---
->>  drivers/of/of_reserved_mem.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->
-Looks reasonable; FWIW
-Reviewed-by: Sumit Semwal <sumit.semwal@linaro.org>
-> Acked-by: Rob Herring <robh@kernel.org>
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+This is a series of patches to add diagnostic data support to the Atmel
+maXTouch driver. It's a rewrite of the previous implementation which output via
+debugfs: it now uses a V4L2 device in a similar way to the sur40 driver.
 
+There are significant performance advantages to putting this code into the
+driver.  The algorithm for retrieving the data has been fairly consistent
+across a range of chips, with the exception of the mXT1386 series (see patch).
 
+We have a utility which can read the data and display it in a useful format:
+    https://github.com/ndyer/heatmap/commits/heatmap-v4l
 
--- 
-Thanks and regards,
+These patches are also available from
+    https://github.com/ndyer/linux/commits/diagnostic-v4l
 
-Sumit Semwal
-Linaro Mobile Group - Kernel Team Lead
-Linaro.org │ Open source software for ARM SoCs
+Changes in v3:
+- Address V4L2 review comments from Hans Verkuil
+- Run v4l-compliance and fix all issues - needs minor patch here:
+  https://github.com/ndyer/v4l-utils/commit/cf50469773f
+
+Changes in v2:
+- Split pixfmt changes into separate commit and add DocBook
+- Introduce VFL_TYPE_TOUCH_SENSOR and /dev/v4l-touch
+- Remove "single node" support for now, it may be better to treat it as metadata later
+- Explicitly set VFL_DIR_RX
+- Fix Kconfig
+
