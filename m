@@ -1,110 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54671 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751646AbcFTQXd (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:47296 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750938AbcFBHVO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 12:23:33 -0400
-Subject: Re: [PATCH v4 8/9] Input: atmel_mxt_ts - add support for reference
- data
-To: Nick Dyer <nick.dyer@itdev.co.uk>
-References: <1466172988-3698-1-git-send-email-nick.dyer@itdev.co.uk>
- <1466172988-3698-9-git-send-email-nick.dyer@itdev.co.uk>
- <5768152E.7070905@xs4all.nl>
- <d5a7f130-ef12-2e1d-c842-eef62899a31a@itdev.co.uk>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
+	Thu, 2 Jun 2016 03:21:14 -0400
+Received: from [192.168.1.137] (marune.xs4all.nl [80.101.105.217])
+	by tschai.lan (Postfix) with ESMTPSA id 75EF7180B7D
+	for <linux-media@vger.kernel.org>; Thu,  2 Jun 2016 09:21:09 +0200 (CEST)
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <57681853.9020703@xs4all.nl>
-Date: Mon, 20 Jun 2016 18:22:43 +0200
+Subject: [GIT PULL FOR v4.8] Remove deprecated drivers
+Message-ID: <574FDE65.5080206@xs4all.nl>
+Date: Thu, 2 Jun 2016 09:21:09 +0200
 MIME-Version: 1.0
-In-Reply-To: <d5a7f130-ef12-2e1d-c842-eef62899a31a@itdev.co.uk>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/20/2016 06:18 PM, Nick Dyer wrote:
-> On 20/06/2016 17:09, Hans Verkuil wrote:
->> On 06/17/2016 04:16 PM, Nick Dyer wrote:
->>> @@ -2325,11 +2344,20 @@ static int mxt_vidioc_querycap(struct file *file, void *priv,
->>>  static int mxt_vidioc_enum_input(struct file *file, void *priv,
->>>  				   struct v4l2_input *i)
->>>  {
->>> -	if (i->index > 0)
->>> +	if (i->index >= MXT_V4L_INPUT_MAX)
->>>  		return -EINVAL;
->>>  
->>>  	i->type = V4L2_INPUT_TYPE_TOUCH_SENSOR;
->>> -	strlcpy(i->name, "Mutual References", sizeof(i->name));
->>> +
->>> +	switch (i->index) {
->>> +	case MXT_V4L_INPUT_REFS:
->>> +		strlcpy(i->name, "Mutual References", sizeof(i->name));
->>> +		break;
->>> +	case MXT_V4L_INPUT_DELTAS:
->>> +		strlcpy(i->name, "Mutual Deltas", sizeof(i->name));
->>
->> I don't think this name is very clear. I have no idea how to interpret "Mutual"
->> in this context.
-> 
-> "Mutual" is a touch domain specific term, it means the delta value is for
-> the capacitance between the horizontal and vertical lines at a particular
-> "node" on the touchscreen matrix, see
-> https://en.wikipedia.org/wiki/Touchscreen#Mutual_capacitance
-> 
-> I'll put in a comment.
-
-As I mentioned in an earlier review, we need a v4l-touch interface description anyway.
-I think it might be useful to describe some of these touch-specific terms there.
-That way that could be a useful reference for end-users.
-
-Nobody reads comments, but people do read the spec (well, I do).
+Speaks for itself.
 
 Regards,
 
 	Hans
 
-> 
->>
->>> +		break;
->>> +	}
->>> +
->>>  	return 0;
->>>  }
->>>  
->>> @@ -2337,12 +2365,16 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
->>>  {
->>>  	struct v4l2_pix_format *f = &data->dbg.format;
->>>  
->>> -	if (i > 0)
->>> +	if (i >= MXT_V4L_INPUT_MAX)
->>>  		return -EINVAL;
->>>  
->>> +	if (i == MXT_V4L_INPUT_DELTAS)
->>> +		f->pixelformat = V4L2_PIX_FMT_YS16;
->>> +	else
->>> +		f->pixelformat = V4L2_PIX_FMT_Y16;
->>
->> You probably need a V4L2_TOUCH_FMT_U16 or something for this as well. It certainly
->> needs to be documented.
-> 
-> OK, will change this.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+The following changes since commit 6a2cf60b3e6341a3163d3cac3f4bede126c2e894:
+
+  Merge tag 'v4.7-rc1' into patchwork (2016-05-30 18:16:14 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.8a
+
+for you to fetch changes up to f57b08d9fd0dee6f087e6333f55520e4fe2281f7:
+
+  staging/media: remove deprecated timb driver (2016-06-02 09:10:58 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (4):
+      staging/media: remove deprecated mx2 driver
+      staging/media: remove deprecated mx3 driver
+      staging/media: remove deprecated omap1 driver
+      staging/media: remove deprecated timb driver
+
+ drivers/staging/media/Kconfig              |    8 -
+ drivers/staging/media/Makefile             |    4 -
+ drivers/staging/media/mx2/Kconfig          |   15 -
+ drivers/staging/media/mx2/Makefile         |    3 -
+ drivers/staging/media/mx2/TODO             |   10 -
+ drivers/staging/media/mx2/mx2_camera.c     | 1636 ---------------------------------------------------------------------------
+ drivers/staging/media/mx3/Kconfig          |   15 -
+ drivers/staging/media/mx3/Makefile         |    3 -
+ drivers/staging/media/mx3/TODO             |   10 -
+ drivers/staging/media/mx3/mx3_camera.c     | 1264 ----------------------------------------------------------
+ drivers/staging/media/omap1/Kconfig        |   13 -
+ drivers/staging/media/omap1/Makefile       |    3 -
+ drivers/staging/media/omap1/TODO           |    8 -
+ drivers/staging/media/omap1/omap1_camera.c | 1702 ------------------------------------------------------------------------------
+ drivers/staging/media/timb/Kconfig         |   11 -
+ drivers/staging/media/timb/Makefile        |    1 -
+ drivers/staging/media/timb/timblogiw.c     |  870 ----------------------------------------
+ 17 files changed, 5576 deletions(-)
+ delete mode 100644 drivers/staging/media/mx2/Kconfig
+ delete mode 100644 drivers/staging/media/mx2/Makefile
+ delete mode 100644 drivers/staging/media/mx2/TODO
+ delete mode 100644 drivers/staging/media/mx2/mx2_camera.c
+ delete mode 100644 drivers/staging/media/mx3/Kconfig
+ delete mode 100644 drivers/staging/media/mx3/Makefile
+ delete mode 100644 drivers/staging/media/mx3/TODO
+ delete mode 100644 drivers/staging/media/mx3/mx3_camera.c
+ delete mode 100644 drivers/staging/media/omap1/Kconfig
+ delete mode 100644 drivers/staging/media/omap1/Makefile
+ delete mode 100644 drivers/staging/media/omap1/TODO
+ delete mode 100644 drivers/staging/media/omap1/omap1_camera.c
+ delete mode 100644 drivers/staging/media/timb/Kconfig
+ delete mode 100644 drivers/staging/media/timb/Makefile
+ delete mode 100644 drivers/staging/media/timb/timblogiw.c
