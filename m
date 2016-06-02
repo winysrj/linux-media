@@ -1,41 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45331
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751736AbcFYRvK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jun 2016 13:51:10 -0400
-Date: Sat, 25 Jun 2016 14:51:04 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Nick Whitehead <nick@mistoffolees.me.uk>
-Cc: linux-media@vger.kernel.org
-Subject: Re: libdvbv5 EIT schedule reading
-Message-ID: <20160625145104.185bf2d6@recife.lan>
-In-Reply-To: <576EB7AE.5070502@mistoffolees.me.uk>
-References: <576EB7AE.5070502@mistoffolees.me.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:17847 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161376AbcFBQb3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2016 12:31:29 -0400
+Subject: Re: [PATCH v4 5/7] ARM: Exynos: remove code for MFC custom reserved
+ memory handling
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
+ <1464096690-23605-6-git-send-email-m.szyprowski@samsung.com>
+ <574BEBB8.8040606@samsung.com>
+ <5a12a8be-0402-dc0c-d242-5d9f3145e001@osg.samsung.com>
+Cc: devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Uli Middelberg <uli@middelberg.de>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Message-id: <57505F5B.90101@samsung.com>
+Date: Thu, 02 Jun 2016 18:31:23 +0200
+MIME-version: 1.0
+In-reply-to: <5a12a8be-0402-dc0c-d242-5d9f3145e001@osg.samsung.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 25 Jun 2016 17:56:14 +0100
-Nick Whitehead <nick@mistoffolees.me.uk> escreveu:
-
-> In using libdvbv5 to read off-air EIT (UK freeview), I find that to read 
-> the full schedule one needs to rrad tables with TIDs 0x50 to 
-> (potentially) 0x5f. However in descriptors.c only table 0x50 is given an 
-> initialiser function, and so 0x51 onwards cannot be read as it stands.
+On 06/02/2016 05:20 PM, Javier Martinez Canillas wrote:
+> Hello Krzysztof,
 > 
-> Therefore I have made a small change to descriptors.c (attached) to to 
-> add initialisers for 0x51-0x5f (and actually 0x60-0x6f). I have not used 
-> the latter, but the former certainly allows me to read all future 
-> events, whereas with 0x50 alone, could only read 3 days.
+> On 05/30/2016 03:28 AM, Krzysztof Kozlowski wrote:
+>> On 05/24/2016 03:31 PM, Marek Szyprowski wrote:
+>>> Once MFC driver has been converted to generic reserved memory bindings,
+>>> there is no need for custom memory reservation code.
+>>>
+>>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>>> ---
+>>>  arch/arm/mach-exynos/Makefile      |  2 -
+>>>  arch/arm/mach-exynos/exynos.c      | 19 --------
+>>>  arch/arm/mach-exynos/mfc.h         | 16 -------
+>>>  arch/arm/mach-exynos/s5p-dev-mfc.c | 93 --------------------------------------
+>>>  4 files changed, 130 deletions(-)
+>>>  delete mode 100644 arch/arm/mach-exynos/mfc.h
+>>>  delete mode 100644 arch/arm/mach-exynos/s5p-dev-mfc.c
+>>
+>> Thanks, applied.
+>>
+> 
+> This patch can't be applied before patches 2/5 and 3/5, or the custom
+> memory regions reservation will break with the current s5p-mfc driver.
 
-Good catch! Yeah, several table IDs were missing initialization, including
-0x4F.
+Yes, I know. As I understood from talk with Marek, the driver is broken
+now so continuous work was not chosen. If it is not correct and full
+bisectability is required, then entire patchset requires special
+handling - I need a stable tag from media tree. Without this everything
+will be broken anyway.
 
-Added a fix on this patch:
-	https://git.linuxtv.org/v4l-utils.git/commit/?id=3740ca0f500b916490b5b7b7f3ee493eb06cd092
+Best regards,
+Krzysztof
 
-Thanks,
-Mauro
