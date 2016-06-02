@@ -1,45 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33601 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752245AbcFTMe7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 08:34:59 -0400
-Date: Mon, 20 Jun 2016 14:31:48 +0200
-From: Richard Cochran <richardcochran@gmail.com>
-To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Cc: Henrik Austad <henrik@austad.us>,
-	Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-	alsa-devel@alsa-project.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@linaro.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [alsa-devel] [very-RFC 0/8] TSN driver for the kernel
-Message-ID: <20160620123148.GA5846@localhost.localdomain>
-References: <1465686096-22156-1-git-send-email-henrik@austad.us>
- <20160613114713.GA9544@localhost.localdomain>
- <20160613195136.GC2441@netboy>
- <20160614121844.54a125a5@lxorguk.ukuu.org.uk>
- <5760C84C.40408@sakamocchi.jp>
- <20160615080602.GA13555@localhost.localdomain>
- <5764DA85.3050801@sakamocchi.jp>
- <20160618224549.GF32724@icarus.home.austad.us>
- <9a5abd48-4da3-945d-53c9-b6d37010ab0d@linux.intel.com>
- <20160620121838.GA5257@localhost.localdomain>
+Received: from zencphosting06.zen.co.uk ([82.71.204.9]:36622 "EHLO
+	zencphosting06.zen.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932875AbcFBPOZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2016 11:14:25 -0400
+Subject: Re: [PATCH v3 0/8] Input: atmel_mxt_ts - output raw touch diagnostic
+ data via V4L
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+References: <1464799192-28034-1-git-send-email-nick.dyer@itdev.co.uk>
+ <20160601181700.GD4114@dtor-ws>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+Message-ID: <d8c40054-359c-5e21-6c1f-be38fd2368db@itdev.co.uk>
+Date: Thu, 2 Jun 2016 16:14:10 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160620121838.GA5257@localhost.localdomain>
+In-Reply-To: <20160601181700.GD4114@dtor-ws>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 20, 2016 at 02:18:38PM +0200, Richard Cochran wrote:
-> Documentation/sound/alsa/timestamping.txt says:
+Hi Dmitry-
 
-   Examples of typestamping with HDaudio:
+On 01/06/2016 19:17, Dmitry Torokhov wrote:
+> On Wed, Jun 01, 2016 at 05:39:44PM +0100, Nick Dyer wrote:
+>> This is a series of patches to add diagnostic data support to the Atmel
+>> maXTouch driver. It's a rewrite of the previous implementation which output via
+>> debugfs: it now uses a V4L2 device in a similar way to the sur40 driver.
+>
+> I do not have any objections other than some nits form the input side;
+> majority of the review should come from V4L2 side here...
 
-   1. DMA timestamp, no compensation for DMA+analog delay
-   $ ./audio_time  -p --ts_type=1
+Thanks for the review. I've hopefully fixed the issues you raised and
+pushed it to
+    https://github.com/ndyer/linux/commits/diagnostic-v4l-20160602
 
-Where is this "audio_time" program of which you speak?
+I will wait for the V4L2 folks to comment before posting a [PATCH v4]
 
-Thanks,
-Richard
+cheers
+
+Nick
