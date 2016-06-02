@@ -1,63 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55099 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752097AbcFPLSk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2016 07:18:40 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] [media] media-devnode.h: Fix documentation
-Date: Thu, 16 Jun 2016 08:18:35 -0300
-Message-Id: <0db5c79989de2c68d5abb7ba891bfdb3cd3b7e05.1466075912.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from lists.s-osg.org ([54.187.51.154]:39882 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932293AbcFBPUv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Jun 2016 11:20:51 -0400
+Subject: Re: [PATCH v4 5/7] ARM: Exynos: remove code for MFC custom reserved
+ memory handling
+To: Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
+ <1464096690-23605-6-git-send-email-m.szyprowski@samsung.com>
+ <574BEBB8.8040606@samsung.com>
+Cc: devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Uli Middelberg <uli@middelberg.de>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <5a12a8be-0402-dc0c-d242-5d9f3145e001@osg.samsung.com>
+Date: Thu, 2 Jun 2016 11:20:40 -0400
+MIME-Version: 1.0
+In-Reply-To: <574BEBB8.8040606@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Two parameters were documented with a wrong name, and a struct
-device pointer description was missing.
+Hello Krzysztof,
 
-That caused the following warnings, when building documentation:
+On 05/30/2016 03:28 AM, Krzysztof Kozlowski wrote:
+> On 05/24/2016 03:31 PM, Marek Szyprowski wrote:
+>> Once MFC driver has been converted to generic reserved memory bindings,
+>> there is no need for custom memory reservation code.
+>>
+>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> ---
+>>  arch/arm/mach-exynos/Makefile      |  2 -
+>>  arch/arm/mach-exynos/exynos.c      | 19 --------
+>>  arch/arm/mach-exynos/mfc.h         | 16 -------
+>>  arch/arm/mach-exynos/s5p-dev-mfc.c | 93 --------------------------------------
+>>  4 files changed, 130 deletions(-)
+>>  delete mode 100644 arch/arm/mach-exynos/mfc.h
+>>  delete mode 100644 arch/arm/mach-exynos/s5p-dev-mfc.c
+> 
+> Thanks, applied.
+>
 
-include/media/media-devnode.h:102: warning: No description found for parameter 'media_dev'
-include/media/media-devnode.h:126: warning: No description found for parameter 'mdev'
-include/media/media-devnode.h:126: warning: Excess function parameter 'media_dev' description in 'media_devnode_register'
-
-Rename the description, to match the function parameter and fix
-Documentation.
-
-No funcional changes.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- include/media/media-devnode.h | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-index f0b7dd79fb92..37d494805944 100644
---- a/include/media/media-devnode.h
-+++ b/include/media/media-devnode.h
-@@ -69,8 +69,9 @@ struct media_file_operations {
+This patch can't be applied before patches 2/5 and 3/5, or the custom
+memory regions reservation will break with the current s5p-mfc driver.
  
- /**
-  * struct media_devnode - Media device node
-+ * @media_dev:	pointer to struct &media_device
-  * @fops:	pointer to struct &media_file_operations with media device ops
-- * @dev:	struct device pointer for the media controller device
-+ * @dev:	pointer to struct &device containing the media controller device
-  * @cdev:	struct cdev pointer character device
-  * @parent:	parent device
-  * @minor:	device node minor number
-@@ -107,7 +108,7 @@ struct media_devnode {
- /**
-  * media_devnode_register - register a media device node
-  *
-- * @media_dev: struct media_device we want to register a device node
-+ * @mdev: struct media_device we want to register a device node
-  * @devnode: media device node structure we want to register
-  * @owner: should be filled with %THIS_MODULE
-  *
+> What is your final decision for DTS patches? Which approach for MFC
+> reserved memory node?
+> 
+> Krzysztof
+> 
+ 
+Best regards,
 -- 
-2.5.5
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
