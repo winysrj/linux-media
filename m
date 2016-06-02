@@ -1,45 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33430 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753145AbcFJVVR (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59392 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932126AbcFBHqW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2016 17:21:17 -0400
-Subject: Re: [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime functions
- when not needed.
-To: Tony Lindgren <tony@atomide.com>
-References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160509193624.GH5995@atomide.com> <5730F840.3050807@gmail.com>
- <20160610102225.GS22406@atomide.com>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org, pali.rohar@gmail.com
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Message-ID: <575B2F48.4090707@gmail.com>
-Date: Sat, 11 Jun 2016 00:21:12 +0300
+	Thu, 2 Jun 2016 03:46:22 -0400
+Date: Thu, 2 Jun 2016 10:45:45 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	pali.rohar@gmail.com, sre@kernel.org,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Subject: Re: [PATCHv5] support for AD5820 camera auto-focus coil
+Message-ID: <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
+References: <20160521105607.GA20071@amd>
+ <574049EF.2090208@gmail.com>
+ <20160524090433.GA1277@amd>
+ <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+ <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
+ <20160531213437.GA28397@amd>
+ <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
+ <20160601220840.GA21946@amd>
 MIME-Version: 1.0
-In-Reply-To: <20160610102225.GS22406@atomide.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160601220840.GA21946@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Jun 02, 2016 at 12:08:40AM +0200, Pavel Machek wrote:
+> On Wed 2016-06-01 18:24:39, Sakari Ailus wrote:
+> > Hi Pavel,
+> 
+> > > Well, it does not use any dt properties. So there's not really much to
+> > > discuss with dt people...
+> > > 
+> > > Maybe "ad5820" needs to go to list of simple i2c drivers somewhere,
+> > > but...
+> > 
+> > It's an I2C device and it does use a regulator. Not a lot, though, these are
+> > both quite basic stuff. This should still be documented as the people who
+> > write the DT bindings (in general) aren't expected to read driver code as
+> > well. That's at least my understanding.
+> 
+> Yep, you are right, I forgot about the regulator. Something like this?
+> 
+> Thanks,
+> 									Pavel
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> new file mode 100644
+> index 0000000..87c98f1
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
 
-On 10.06.2016 13:22, Tony Lindgren wrote:
->
-> OK. And I just applied the related dts changes. Please repost the driver
-> changes and DT binding doc with Rob's ack to the driver maintainers to
-> apply.
->
+I might use the compatible string as such as a part of the file name. Up to
+you.
 
-Already did, see https://lkml.org/lkml/2016/5/16/429
+> @@ -0,0 +1,20 @@
+> +* Analog Devices AD5820 autofocus coil
+> +
+> +Required Properties:
+> +
+> +  - compatible: Must contain "adi,ad5820"
+> +
+> +  - reg: I2C slave address
+> +
+> +  - VANA-supply: supply of voltage for VANA pin
+> +
+> +Example:
+> +
+> +       /* D/A converter for auto-focus */
 
-Shall I do anything else?
+There is definitely D/A conversion happening there but I'm not sure I'd
+characterise the device as such. They're typically called "voice coil
+drivers", perhaps because the devices are similar to a parts of a
+loudspeaker.
 
-Thanks,
-Ivo
+> +       ad5820: dac@0c {
+> +               compatible = "adi,ad5820";
+> +               reg = <0x0c>;
+> +
+> +               VANA-supply = <&vaux4>;
+> +       };
+> +
+> 
+> 
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
