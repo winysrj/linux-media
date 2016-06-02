@@ -1,126 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:33160 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751650AbcFBN4L (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:42111 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751708AbcFBC2n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Jun 2016 09:56:11 -0400
-Subject: Re: i.mx6 camera interface (CSI) and mainline kernel
-To: Tim Harvey <tharvey@gateworks.com>,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <20160223114943.GA10944@frolo.macqel>
- <20160223141258.GA5097@frolo.macqel> <4956050.OLrYA1VK2G@avalon>
- <56D79B49.50009@mentor.com> <56D7E59B.6050605@xs4all.nl>
- <20160303083643.GA4303@frolo.macqel> <56D87824.8000707@mentor.com>
- <CAJ+vNU2kPgESnjTZokU3qNR6QAbU3G8HGwc7ahg4jDpeS_xjHg@mail.gmail.com>
- <56DF852A.30702@mentor.com>
- <CAJ+vNU0cWUZNcP=suP0rnhG-EqVov5ODk0fKpd4rqf9Setw7Gw@mail.gmail.com>
- <56E0BBE5.4060104@mentor.com>
- <CAJ+vNU2U3TRXzDJsau22qghUmwx2WQkOp8NVzZ=PxrhxV0yozg@mail.gmail.com>
-Cc: Philippe De Muyter <phdm@macq.eu>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <57503AEE.1040907@xs4all.nl>
-Date: Thu, 2 Jun 2016 15:55:58 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAJ+vNU2U3TRXzDJsau22qghUmwx2WQkOp8NVzZ=PxrhxV0yozg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Wed, 1 Jun 2016 22:28:43 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 3CF0B1800DC
+	for <linux-media@vger.kernel.org>; Thu,  2 Jun 2016 04:28:37 +0200 (CEST)
+Date: Thu, 02 Jun 2016 04:28:37 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160602022837.3CF0B1800DC@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On 06/02/2016 03:29 PM, Tim Harvey wrote:
-> On Wed, Mar 9, 2016 at 4:12 PM, Steve Longerbeam
-> <steve_longerbeam@mentor.com> wrote:
->> On 03/09/2016 02:44 PM, Tim Harvey wrote:
->>> On Tue, Mar 8, 2016 at 6:06 PM, Steve Longerbeam
->>> <steve_longerbeam@mentor.com> wrote:
->>>> On 03/07/2016 08:19 AM, Tim Harvey wrote:
->>> <snip>
->>>>
->>>> Hi Tim, good to hear it works for you on the Ventana boards.
->>>>
->>>> I've just pushed some more commits to the mx6-media-staging branch that
->>>> get the drivers/media/i2c/adv7180.c subdev working with the imx6 capture
->>>> backend. Images look perfect when switching to UYVY8_2X8 mbus code instead
->>>> of YUYV8_2X8. But I'm holding off on that change because this subdev is used
->>>> by Renesas targets and would likely corrupt captured images for those
->>>> targets. But I believe UYVY is the correct transmit order according to the
->>>> BT.656 standard.
->>>>
->>>> Another thing that should also be changed in drivers/media/i2c/adv7180.c
->>>> is the field type. It should be V4L2_FIELD_SEQ_TB for NTSC and V4L2_FIELD_SEQ_BT
->>>> for PAL.
->>>>
->>>> Steve
->>>>
->>>>
->>> Steve,
->>>
->>> with your latest patches, I'm crashing with an null-pointer-deref in
->>> adv7180_set_pad_format. What is your kernel config for
->>> CONFIG_MEDIA_CONTROLLER and CONFIG_VIDEO_V4L2_SUBDEV_API?
->>
->> Right, I thought I fixed that, I was passing a NULL pad_cfg for
->> TRY_FORMAT, but that was fixed. Maybe you fetched a version
->> of mx6-media-staging while I was in the middle of debugging?
->> Try fetching again.
->>
->> I tried with both CONFIG_MEDIA_CONTROLLER and
->> CONFIG_VIDEO_V4L2_SUBDEV_API enabled and both disabled, and
->> I don't get the null deref in adv7180_set_pad_format.
->>
->>
->>>
->>> Your tree contains about 16 or so patches on top of linux-media for
->>> imx6 capture. Are you close to the point where you will be posting a
->>> patch series? If so, please CC me for testing with the adv7180 sensor.
->>
->> I guess I can try posting a series again, but there will likely be push-back from
->> Pengutronix. They have their own video capture driver for imx6. Last I heard (a while ago!)
->> their version did not implement scaling, colorspace conversion, or image rotation via
->> the IC. Instead their driver sends raw camera frames directly to memory, and image
->> conversion is carried out by separate mem2mem device. Our capture driver does
->> image conversion (scaling, CSC, and rotation) natively using the IC pre-processing channel.
->> We also have a mem2mem device that does conversion using IC post-processing,
->> which I have included in mx6-media-staging.
->>
->> Also IIRC they did some pretty slick stuff with a video bus multiplexer subdev, which
->> can multiplex video from different sensors either using the internal mux in the SoC,
->> or can control an external mux via gpio. Our driver only supports the internal mux,
->> and does it with a platform data function.
->>
->> But like I said, I don't what the latest status is of the Pengutronix video capture support.
->>
->> Btw, I just pushed an update of mx6-media-staging that implements vidioc_[gs]_selection.
->>
->> Steve
->>
->>
-> 
-> Steve,
-> 
-> Some time has passed without any IMX6 CSI drivers or response from
-> Pengutronix and Hans has agreed to add either/both drivers to staging.
-> Do you have time to rebase and re-post your driver(s)? Maybe that will
-> get the ball rolling on this final huge missing feature for the IMX6
-> in mainline.
+date:		Thu Jun  2 04:00:27 CEST 2016
+git branch:	test
+git hash:	de42e7655d504ceeda53e009b8860ba4bd007ab5
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
 
-Right. All that is needed is for someone to take the latest version, make it compile
-in the media_tree in drivers/media/staging and post the patch (just take care to keep
-the correct copyrights, Signed-off-by's etc.) and I'll be happy to take it. This is
-exactly what staging is for. I think it will greatly increases the chances of this
-code being improved for mainline. And I'm happy to take both drivers as well, again,
-that's what staging is for.
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-i686: ERRORS
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-x86_64: ERRORS
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-I've been thinking of doing this myself, but I just don't have the time.
+Detailed results are available here:
 
-Ideally this is done by the authors, but if they don't have time either then someone
-else can do this.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Regards,
+Full logs are available here:
 
-	Hans
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
