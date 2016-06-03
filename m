@@ -1,293 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:33497 "EHLO
-	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932163AbcFNWvU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 18:51:20 -0400
-Received: by mail-pf0-f194.google.com with SMTP id c74so306666pfb.0
-        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:19 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 20/38] ARM: dts: imx6-sabresd: add video capture ports and connections
-Date: Tue, 14 Jun 2016 15:49:16 -0700
-Message-Id: <1465944574-15745-21-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:52589 "EHLO
+	smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932476AbcFCRg5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2016 13:36:57 -0400
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: mchehab@osg.samsung.com, robh+dt@kernel.org,
+	Ramiro.Oliveira@synopsys.com, CARLOS.PALMINHA@synopsys.com
+Subject: [PATCH 1/2] Add OV5647 device tree documentation
+Date: Fri,  3 Jun 2016 18:36:40 +0100
+Message-Id: <4221809485a46dbf12b883a8207784553fd776a3.1464966020.git.roliveir@synopsys.com>
+In-Reply-To: <cover.1464966020.git.roliveir@synopsys.com>
+References: <cover.1464966020.git.roliveir@synopsys.com>
+In-Reply-To: <cover.1464966020.git.roliveir@synopsys.com>
+References: <cover.1464966020.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Defines the host ipu-capture device node and two camera sensors:
-parallel-bus OV5642 and MIPI CSI-2 OV5640.
+From: roliveir <roliveir@synopsys.com>
 
-The host capture device connects to the OV5642 via the parallel-bus
-mux input on the ipu1_csi0_mux.
-
-The host capture device connects to the OV5640 via the MIPI CSI-2
-receiver (directly on virtual channel 1 to ipu1_csi1 on imx6q, and
-indirectly via the ipu1_csi1_mux on imx6dl).
-
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
 ---
- arch/arm/boot/dts/imx6dl-sabresd.dts   |  44 +++++++++++
- arch/arm/boot/dts/imx6q-sabresd.dts    |  16 ++++
- arch/arm/boot/dts/imx6qdl-sabresd.dtsi | 139 ++++++++++++++++++++++++++++++++-
- 3 files changed, 198 insertions(+), 1 deletion(-)
+ .../devicetree/bindings/media/i2c/ov5647.txt          | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
 
-diff --git a/arch/arm/boot/dts/imx6dl-sabresd.dts b/arch/arm/boot/dts/imx6dl-sabresd.dts
-index 1e45f2f..0a4bfc2 100644
---- a/arch/arm/boot/dts/imx6dl-sabresd.dts
-+++ b/arch/arm/boot/dts/imx6dl-sabresd.dts
-@@ -15,3 +15,47 @@
- 	model = "Freescale i.MX6 DualLite SABRE Smart Device Board";
- 	compatible = "fsl,imx6dl-sabresd", "fsl,imx6dl";
- };
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+new file mode 100644
+index 0000000..5e4aa49
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+@@ -0,0 +1,19 @@
++Omnivision OV5657 raw image sensor
++---------------------------------
 +
-+&ipu1_csi1_from_ipu1_csi1_mux {
-+	data-lanes = <0 1>;
-+	clock-lanes = <2>;
-+};
++OV5657 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
++and CCI (I2C compatible) control bus.
 +
-+&ipu1_csi1_mux {
-+	status = "okay";
-+};
++Required properties:
 +
-+/*
-+ * if the OV5642 sensor is enabled, the ipu1_csi0_mux is also enabled,
-+ * but we don't want to find the OV5640 through ipu1_csi0_mux path to the
-+ * mipi-csi2 receiver, so shutdown the link to the mipi-csi2 receiver at
-+ * all virtual channels.
-+*/
-+#ifdef __ENABLE_OV5642__
-+&ipu1_csi0_mux_from_mipi_vc0 {
-+	remote-endpoint = <>;
-+};
-+&ipu1_csi0_mux_from_mipi_vc1 {
-+	remote-endpoint = <>;
-+};
-+&ipu1_csi0_mux_from_mipi_vc2 {
-+	remote-endpoint = <>;
-+};
-+&ipu1_csi0_mux_from_mipi_vc3 {
-+	remote-endpoint = <>;
-+};
-+#endif
++- compatible	: "ov5647";
++- reg		: I2C slave address of the sensor;
 +
-+/*
-+ * shutdown links to mipi-csi2 channels 0,2,3 through ipu1_csi1_mux. The
-+ * OV5640 is on VC1, so it must be found only on that ipu1_csi1_mux input.
-+ */
-+&ipu1_csi1_mux_from_mipi_vc0 {
-+	remote-endpoint = <>;
-+};
-+&ipu1_csi1_mux_from_mipi_vc2 {
-+	remote-endpoint = <>;
-+};
-+&ipu1_csi1_mux_from_mipi_vc3 {
-+	remote-endpoint = <>;
-+};
-diff --git a/arch/arm/boot/dts/imx6q-sabresd.dts b/arch/arm/boot/dts/imx6q-sabresd.dts
-index 9cbdfe7..ade6305 100644
---- a/arch/arm/boot/dts/imx6q-sabresd.dts
-+++ b/arch/arm/boot/dts/imx6q-sabresd.dts
-@@ -23,3 +23,19 @@
- &sata {
- 	status = "okay";
- };
++The common video interfaces bindings (see video-interfaces.txt) should be
++used to specify link to the image data receiver. The OV5647 device
++node should contain one 'port' child node with an 'endpoint' subnode.
 +
-+&ipu1_csi1_from_mipi_vc1 {
-+	data-lanes = <0 1>;
-+	clock-lanes = <2>;
-+};
++Following properties are valid for the endpoint node:
 +
-+/*
-+ * if the OV5642 sensor is enabled, the ipu1_csi0_mux is also enabled,
-+ * but we don't want to find the OV5640 through ipu1_csi0_mux path, so
-+ * shutdown the link to the mipi-csi2 receiver.
-+*/
-+#ifdef __ENABLE_OV5642__
-+&ipu1_csi0_mux_from_mipi_vc0 {
-+	remote-endpoint = <>;
-+};
-+#endif
-diff --git a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
-index 5248e7b..ce575e6 100644
---- a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
-@@ -10,6 +10,10 @@
-  * http://www.gnu.org/copyleft/gpl.html
-  */
- 
-+/* Uncomment to enable parallel interface OV5642 on i2c1 and port csi0 */
-+/* #define __ENABLE_OV5642__ */
-+
-+#include <dt-bindings/clock/imx6qdl-clock.h>
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/input/input.h>
- 
-@@ -144,6 +148,54 @@
- 			};
- 		};
- 	};
-+
-+#ifdef __ENABLE_OV5642__
-+	ipucap0: ipucap@0 {
-+		compatible = "fsl,imx-video-capture";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_ipu1_csi0>;
-+		ports = <&ipu1_csi0>;
-+		status = "okay";
-+	};
-+#endif
-+
-+	ipucap1: ipucap@1 {
-+		compatible = "fsl,imx-video-capture";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		ports = <&ipu1_csi1>;
-+		status = "okay";
-+	};
-+};
-+
-+#ifdef __ENABLE_OV5642__
-+&ipu1_csi0_from_ipu1_csi0_mux {
-+	bus-width = <8>;
-+	data-shift = <12>; /* Lines 19:12 used */
-+	hsync-active = <1>;
-+	vsync-active = <1>;
-+};
-+
-+&ipu1_csi0_mux_from_parallel_sensor {
-+	remote-endpoint = <&ov5642_to_ipu1_csi0_mux>;
-+};
-+
-+&ipu1_csi0_mux {
-+	status = "okay";
-+};
-+#endif
-+
-+&mipi_csi {
-+	status = "okay";
-+};
-+
-+/* Incoming port from sensor */
-+&mipi_csi_from_mipi_sensor {
-+	remote-endpoint = <&ov5640_to_mipi_csi>;
-+	data-lanes = <0 1>;
-+	clock-lanes = <2>;
- };
- 
- &audmux {
-@@ -214,7 +266,34 @@
- 			0x8014 /* 4:FN_DMICCDAT */
- 			0x0000 /* 5:Default */
- 		>;
--       };
-+	};
-+
-+#ifdef __ENABLE_OV5642__
-+	camera: ov5642@3c {
-+		compatible = "ovti,ov5642";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_ov5642>;
-+		clocks = <&clks IMX6QDL_CLK_CKO>;
-+		clock-names = "xclk";
-+		reg = <0x3c>;
-+		xclk = <24000000>;
-+		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
-+		AVDD-supply = <&vgen5_reg>;  /* 2.8v, rev C board is VGEN3
-+			      		     	rev B board is VGEN5 */
-+		DVDD-supply = <&vgen2_reg>;  /* 1.5v*/
-+		pwdn-gpios = <&gpio1 16 1>;   /* SD1_DAT0 */
-+		reset-gpios = <&gpio1 17 0>; /* SD1_DAT1 */
-+
-+		port {
-+			ov5642_to_ipu1_csi0_mux: endpoint {
-+				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+				bus-width = <8>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+			};
-+		};
-+	};
-+#endif
- };
- 
- &i2c2 {
-@@ -322,6 +401,34 @@
- 			};
- 		};
- 	};
-+
-+	mipi_camera: ov5640@3c {
-+		compatible = "ovti,ov5640_mipi";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_ov5640>;
-+		reg = <0x3c>;
-+		clocks = <&clks IMX6QDL_CLK_CKO>;
-+		clock-names = "xclk";
-+		xclk = <24000000>;
-+		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
-+		AVDD-supply = <&vgen5_reg>;  /* 2.8v, rev C board is VGEN3
-+			      		     	rev B board is VGEN5 */
-+		DVDD-supply = <&vgen2_reg>;  /* 1.5v*/
-+		pwdn-gpios = <&gpio1 19 0>; /* SD1_DAT2 */
-+		reset-gpios = <&gpio1 20 1>; /* SD1_CLK */
-+
-+		port {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			ov5640_to_mipi_csi: endpoint@1 {
-+				reg = <1>;
-+				remote-endpoint = <&mipi_csi_from_mipi_sensor>;
-+				data-lanes = <0 1>;
-+				clock-lanes = <2>;
-+			};
-+		};
-+	};
- };
- 
- &i2c3 {
-@@ -426,6 +533,36 @@
- 			>;
- 		};
- 
-+		pinctrl_ov5640: ov5640grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_SD1_DAT2__GPIO1_IO19 0x80000000
-+				MX6QDL_PAD_SD1_CLK__GPIO1_IO20  0x80000000
-+			>;
-+		};
-+
-+		pinctrl_ov5642: ov5642grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x80000000
-+				MX6QDL_PAD_SD1_DAT1__GPIO1_IO17 0x80000000
-+			>;
-+		};
-+
-+		pinctrl_ipu1_csi0: ipu1grp-csi0 {
-+			fsl,pins = <
-+				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x80000000
-+				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x80000000
-+				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x80000000
-+				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x80000000
-+				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x80000000
-+				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x80000000
-+				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x80000000
-+				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x80000000
-+				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x80000000
-+				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC      0x80000000
-+				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC     0x80000000
-+			>;
-+		};
-+
- 		pinctrl_pcie: pciegrp {
- 			fsl,pins = <
- 				MX6QDL_PAD_GPIO_17__GPIO7_IO12	0x1b0b0
++- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
++  video-interfaces.txt.  The sensor supports only two data lanes.
 -- 
-1.9.1
+2.8.1
+
 
