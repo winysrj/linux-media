@@ -1,149 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:2716 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1161508AbcFAQk1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2016 12:40:27 -0400
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	Nick Dyer <nick.dyer@itdev.co.uk>
-Subject: [PATCH v3 5/8] Input: atmel_mxt_ts - read touchscreen size
-Date: Wed,  1 Jun 2016 17:39:49 +0100
-Message-Id: <1464799192-28034-6-git-send-email-nick.dyer@itdev.co.uk>
-In-Reply-To: <1464799192-28034-1-git-send-email-nick.dyer@itdev.co.uk>
-References: <1464799192-28034-1-git-send-email-nick.dyer@itdev.co.uk>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:60378 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751159AbcFCG5v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2016 02:57:51 -0400
+Subject: Re: [PATCH v4 5/7] ARM: Exynos: remove code for MFC custom reserved
+ memory handling
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
+ <1464096690-23605-6-git-send-email-m.szyprowski@samsung.com>
+ <574BEBB8.8040606@samsung.com>
+ <5a12a8be-0402-dc0c-d242-5d9f3145e001@osg.samsung.com>
+ <57505F5B.90101@samsung.com>
+ <e715a7d0-eb25-9d68-27ad-25cf03c499ca@osg.samsung.com>
+Cc: devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Uli Middelberg <uli@middelberg.de>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Message-id: <57512A6A.1050209@samsung.com>
+Date: Fri, 03 Jun 2016 08:57:46 +0200
+MIME-version: 1.0
+In-reply-to: <e715a7d0-eb25-9d68-27ad-25cf03c499ca@osg.samsung.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The touchscreen may have a margin where not all the matrix is used. Read
-the parameters from T9 and T100 and take account of the difference.
+On 06/02/2016 07:25 PM, Javier Martinez Canillas wrote:
+> Hello Krzysztof,
+> 
+> On 06/02/2016 12:31 PM, Krzysztof Kozlowski wrote:
+>> On 06/02/2016 05:20 PM, Javier Martinez Canillas wrote:
+>>> Hello Krzysztof,
+>>>
+>>> On 05/30/2016 03:28 AM, Krzysztof Kozlowski wrote:
+>>>> On 05/24/2016 03:31 PM, Marek Szyprowski wrote:
+>>>>> Once MFC driver has been converted to generic reserved memory bindings,
+>>>>> there is no need for custom memory reservation code.
+>>>>>
+>>>>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>>>>> ---
+>>>>>  arch/arm/mach-exynos/Makefile      |  2 -
+>>>>>  arch/arm/mach-exynos/exynos.c      | 19 --------
+>>>>>  arch/arm/mach-exynos/mfc.h         | 16 -------
+>>>>>  arch/arm/mach-exynos/s5p-dev-mfc.c | 93 --------------------------------------
+>>>>>  4 files changed, 130 deletions(-)
+>>>>>  delete mode 100644 arch/arm/mach-exynos/mfc.h
+>>>>>  delete mode 100644 arch/arm/mach-exynos/s5p-dev-mfc.c
+>>>>
+>>>> Thanks, applied.
+>>>>
+>>>
+>>> This patch can't be applied before patches 2/5 and 3/5, or the custom
+>>> memory regions reservation will break with the current s5p-mfc driver.
+>>
+>> Yes, I know. As I understood from talk with Marek, the driver is broken
+>> now so continuous work was not chosen. If it is not correct and full
+> 
+> It's true that the driven is currently broken in mainline and is not really
+> stable, I posted fixes for all the issues I found (mostly in module removal
+> and insert paths).
+> 
+> But with just the following patch from Ayaka on top of mainline, I'm able to
+> have video decoding working: https://lkml.org/lkml/2016/5/6/577
 
-Note: this does not read the XORIGIN/YORIGIN fields so it assumes that
-the touchscreen starts at (0,0)
+Which is still a "future" patch, not current state...
+> 
+> Marek mentioned that bisectability is only partially broken because the old
+> binding will still work after this series if IOMMU is enabled (because the
+> properties are ignored in this case). But will break if IOMMU isn't enabled
+> which will be the case for some boards that fails to boot with IOMMU due the
+> bootloader leaving the FIMD enabled doing DMA operations automatically AFAIU. 
+> 
+> Now, I'm OK with not keeping backwards compatibility for the MFC dt bindings
+> since arguably the driver has been broken for a long time and nobody cared
+> and also I don't think anyone in practice boots a new kernel with an old DTB
+> for Exynos.
+> 
+> But I don't think is correct to introduce a new issue as is the case if this
+> patch is applied before the previous patches in the series since this causes
+> the driver to probe to fail and the following warn on boot (while it used to
+> at least probe correctly in mainline):
 
-Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
----
- drivers/input/touchscreen/atmel_mxt_ts.c | 43 +++++++++++++++++++++++++++-----
- 1 file changed, 37 insertions(+), 6 deletions(-)
+Okay but the patches will go through separate tree. This is not a
+problem, as I said, I just need a stable tag from media tree with first
+four patches (Mauro?).
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index 8608cb1..ac4126c 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -103,6 +103,8 @@ struct t7_config {
- 
- /* MXT_TOUCH_MULTI_T9 field */
- #define MXT_T9_CTRL		0
-+#define MXT_T9_XSIZE		3
-+#define MXT_T9_YSIZE		4
- #define MXT_T9_ORIENT		9
- #define MXT_T9_RANGE		18
- 
-@@ -148,7 +150,9 @@ struct t37_debug {
- #define MXT_T100_CTRL		0
- #define MXT_T100_CFG1		1
- #define MXT_T100_TCHAUX		3
-+#define MXT_T100_XSIZE		9
- #define MXT_T100_XRANGE		13
-+#define MXT_T100_YSIZE		20
- #define MXT_T100_YRANGE		24
- 
- #define MXT_T100_CFG_SWITCHXY	BIT(5)
-@@ -257,6 +261,8 @@ struct mxt_data {
- 	unsigned int max_x;
- 	unsigned int max_y;
- 	bool xy_switch;
-+	u8 xsize;
-+	u8 ysize;
- 	bool in_bootloader;
- 	u16 mem_size;
- 	u8 t100_aux_ampl;
-@@ -1710,6 +1716,18 @@ static int mxt_read_t9_resolution(struct mxt_data *data)
- 		return -EINVAL;
- 
- 	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T9_XSIZE,
-+			       sizeof(data->xsize), &data->xsize);
-+	if (error)
-+		return error;
-+
-+	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T9_YSIZE,
-+			       sizeof(data->ysize), &data->ysize);
-+	if (error)
-+		return error;
-+
-+	error = __mxt_read_reg(client,
- 			       object->start_address + MXT_T9_RANGE,
- 			       sizeof(range), &range);
- 	if (error)
-@@ -1759,6 +1777,18 @@ static int mxt_read_t100_config(struct mxt_data *data)
- 
- 	data->max_y = get_unaligned_le16(&range_y);
- 
-+	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T100_XSIZE,
-+			       sizeof(data->xsize), &data->xsize);
-+	if (error)
-+		return error;
-+
-+	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T100_YSIZE,
-+			       sizeof(data->ysize), &data->ysize);
-+	if (error)
-+		return error;
-+
- 	/* read orientation config */
- 	error =  __mxt_read_reg(client,
- 				object->start_address + MXT_T100_CFG1,
-@@ -2116,7 +2146,7 @@ static int mxt_convert_debug_pages(struct mxt_data *data, u16 *outbuf)
- 		outbuf[i] = mxt_get_debug_value(data, x, y);
- 
- 		/* Next value */
--		if (++x >= data->info.matrix_xsize) {
-+		if (++x >= data->xsize) {
- 			x = 0;
- 			y++;
- 		}
-@@ -2271,8 +2301,8 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
- 	if (i > 0)
- 		return -EINVAL;
- 
--	f->width = data->info.matrix_xsize;
--	f->height = data->info.matrix_ysize;
-+	f->width = data->xsize;
-+	f->height = data->ysize;
- 	f->pixelformat = V4L2_PIX_FMT_YS16;
- 	f->field = V4L2_FIELD_NONE;
- 	f->colorspace = V4L2_COLORSPACE_RAW;
-@@ -2387,9 +2417,10 @@ static void mxt_debug_init(struct mxt_data *data)
- 	dbg->t37_address = object->start_address;
- 
- 	/* Calculate size of data and allocate buffer */
--	dbg->t37_nodes = data->info.matrix_xsize * data->info.matrix_ysize;
--	dbg->t37_pages = dbg->t37_nodes * sizeof(u16)
--					/ sizeof(dbg->t37_buf->data) + 1;
-+	dbg->t37_nodes = data->xsize * data->ysize;
-+	dbg->t37_pages = ((data->xsize * data->info.matrix_ysize)
-+			  * sizeof(u16) / sizeof(dbg->t37_buf->data)) + 1;
-+
- 
- 	dbg->t37_buf = devm_kzalloc(&data->client->dev,
- 				     sizeof(struct t37_debug) * dbg->t37_pages,
--- 
-2.5.0
+Best regards,
+Krzysztof
 
