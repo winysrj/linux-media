@@ -1,52 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0130.hostedemail.com ([216.40.44.130]:45816 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751823AbcFLHmj (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36744 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750731AbcFCCcc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2016 03:42:39 -0400
-Message-ID: <1465716910.25087.88.camel@perches.com>
-Subject: Re: [very-RFC 5/8] Add TSN machinery to drive the traffic from a
- shim over the network
-From: Joe Perches <joe@perches.com>
-To: Henrik Austad <henrik@austad.us>, linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
-	linux-netdev@vger.kernel.org, henrk@austad.us,
-	Henrik Austad <haustad@cisco.com>,
-	"David S. Miller" <davem@davemloft.net>
-Date: Sun, 12 Jun 2016 00:35:10 -0700
-In-Reply-To: <1465683741-20390-6-git-send-email-henrik@austad.us>
-References: <1465683741-20390-1-git-send-email-henrik@austad.us>
-	 <1465683741-20390-6-git-send-email-henrik@austad.us>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Thu, 2 Jun 2016 22:32:32 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id D30BD1800DC
+	for <linux-media@vger.kernel.org>; Fri,  3 Jun 2016 04:32:26 +0200 (CEST)
+Date: Fri, 03 Jun 2016 04:32:26 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160603023226.D30BD1800DC@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2016-06-12 at 00:22 +0200, Henrik Austad wrote:
-> From: Henrik Austad <haustad@cisco.com>
-> 
-> In short summary:
-> 
-> * tsn_core.c is the main driver of tsn, all new links go through
->   here and all data to/form the shims are handled here
->   core also manages the shim-interface.
-[]
-> diff --git a/net/tsn/tsn_configfs.c b/net/tsn/tsn_configfs.c
-[]
-> +static inline struct tsn_link *to_tsn_link(struct config_item *item)
-> +{
-> +	/* this line causes checkpatch to WARN. making checkpatch happy,
-> +	 * makes code messy..
-> +	 */
-> +	return item ? container_of(to_config_group(item), struct tsn_link, group) : NULL;
-> +}
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-How about
+Results of the daily build of media_tree:
 
-static inline struct tsn_link *to_tsn_link(struct config_item *item)
-{
-	if (!item)
-		return NULL;
-	return container_of(to_config_group(item), struct tsn_link, group);
-}
+date:		Fri Jun  3 04:00:21 CEST 2016
+git branch:	test
+git hash:	de42e7655d504ceeda53e009b8860ba4bd007ab5
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
+
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-i686: ERRORS
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-x86_64: ERRORS
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
