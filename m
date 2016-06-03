@@ -1,44 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vie01a-qmta-at02-1.mx.upcmail.net ([62.179.121.175]:10627 "EHLO
-	vie01a-qmta-at02-1.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752354AbcFVOIm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2016 10:08:42 -0400
-Received: from [172.31.218.22] (helo=vie01a-dmta-at01-1.mx.upcmail.net)
-	by vie01a-pqmta-at02.mx.upcmail.net with esmtp (Exim 4.87)
-	(envelope-from <hurda@chello.at>)
-	id 1bFifD-0005tC-Ai
-	for linux-media@vger.kernel.org; Wed, 22 Jun 2016 15:57:55 +0200
-Received: from [172.31.216.43] (helo=vie01a-pemc-psmtp-pe01)
-	by vie01a-dmta-at01.mx.upcmail.net with esmtp (Exim 4.87)
-	(envelope-from <hurda@chello.at>)
-	id 1bFifA-0005qB-OJ
-	for linux-media@vger.kernel.org; Wed, 22 Jun 2016 15:57:52 +0200
-Message-ID: <576A995F.2050505@chello.at>
-Date: Wed, 22 Jun 2016 15:57:51 +0200
-From: Hurda <hurda@chello.at>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Problems with Si2168 DVB-C card (cx23885)
-References: <10ab0033-763e-94d8-f638-716c5b2507e8@ipvs.uni-stuttgart.de>
-In-Reply-To: <10ab0033-763e-94d8-f638-716c5b2507e8@ipvs.uni-stuttgart.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:13906 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752792AbcFCJ77 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2016 05:59:59 -0400
+Subject: [ATTN] Re: [PATCH v4 5/7] ARM: Exynos: remove code for MFC custom
+ reserved memory handling
+To: Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	linux-media@vger.kernel.org
+References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
+ <1464096690-23605-6-git-send-email-m.szyprowski@samsung.com>
+ <574BEBB8.8040606@samsung.com>
+ <5a12a8be-0402-dc0c-d242-5d9f3145e001@osg.samsung.com>
+ <57505F5B.90101@samsung.com>
+ <e715a7d0-eb25-9d68-27ad-25cf03c499ca@osg.samsung.com>
+ <57512A6A.1050209@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	Kamil Debski <k.debski@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Uli Middelberg <uli@middelberg.de>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <5751550D.3080404@samsung.com>
+Date: Fri, 03 Jun 2016 11:59:41 +0200
+MIME-version: 1.0
+In-reply-to: <57512A6A.1050209@samsung.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 06/03/2016 08:57 AM, Krzysztof Kozlowski wrote:
+> On 06/02/2016 07:25 PM, Javier Martinez Canillas wrote:
+>> On 06/02/2016 12:31 PM, Krzysztof Kozlowski wrote:
+>>> On 06/02/2016 05:20 PM, Javier Martinez Canillas wrote:
+>>>> On 05/30/2016 03:28 AM, Krzysztof Kozlowski wrote:
+>>>>> On 05/24/2016 03:31 PM, Marek Szyprowski wrote:
+>>>>>> Once MFC driver has been converted to generic reserved memory bindings,
+>>>>>> there is no need for custom memory reservation code.
+>>>>>>
+>>>>>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>>>>>> ---
+>>>>>>  arch/arm/mach-exynos/Makefile      |  2 -
+>>>>>>  arch/arm/mach-exynos/exynos.c      | 19 --------
+>>>>>>  arch/arm/mach-exynos/mfc.h         | 16 -------
+>>>>>>  arch/arm/mach-exynos/s5p-dev-mfc.c | 93 -----------------------------
+>>>>>>  4 files changed, 130 deletions(-)
+>>>>>>  delete mode 100644 arch/arm/mach-exynos/mfc.h
+>>>>>>  delete mode 100644 arch/arm/mach-exynos/s5p-dev-mfc.c
+>>>>>
+>>>>> Thanks, applied.
+>>>>
+>>>> This patch can't be applied before patches 2/5 and 3/5, or the custom
+>>>> memory regions reservation will break with the current s5p-mfc driver.
+>>>
+>>> Yes, I know. As I understood from talk with Marek, the driver is broken
+>>> now so continuous work was not chosen. If it is not correct and full
+>>
+>> It's true that the driven is currently broken in mainline and is not really
+>> stable, I posted fixes for all the issues I found (mostly in module removal
+>> and insert paths).
+>>
+>> But with just the following patch from Ayaka on top of mainline, I'm able to
+>> have video decoding working: https://lkml.org/lkml/2016/5/6/577
+> 
+> Which is still a "future" patch, not current state...
+>>
+>> Marek mentioned that bisectability is only partially broken because the old
+>> binding will still work after this series if IOMMU is enabled (because the
+>> properties are ignored in this case). But will break if IOMMU isn't enabled
+>> which will be the case for some boards that fails to boot with IOMMU due the
+>> bootloader leaving the FIMD enabled doing DMA operations automatically AFAIU. 
+>>
+>> Now, I'm OK with not keeping backwards compatibility for the MFC dt bindings
+>> since arguably the driver has been broken for a long time and nobody cared
+>> and also I don't think anyone in practice boots a new kernel with an old DTB
+>> for Exynos.
+>>
+>> But I don't think is correct to introduce a new issue as is the case if this
+>> patch is applied before the previous patches in the series since this causes
+>> the driver to probe to fail and the following warn on boot (while it used to
+>> at least probe correctly in mainline):
+> 
+> Okay but the patches will go through separate tree. This is not a
+> problem, as I said, I just need a stable tag from media tree with first
+> four patches (Mauro?).
 
-> kernel: si2168 8-0064: found a 'Silicon Labs Si2168-B40'
-> kernel: si2168 8-0064: downloading firmware from file
-> 'dvb-demod-si2168-b40-01.fw'
-> kernel: si2168 8-0064: firmware version: 4.0.19
->
->
-> Distribution is Arch. Kernel version is 4.6.2.
+I have prepared a topic branch including media patches from this patch
+series and the dependency fix patches from Javier and Marek.
+So this could be used as a topic branch to pull into media master branch
+and a dependency topic branch for Krzysztof's samsung-soc tree.
+Mauro, can we do it this way? I already talked to Kamil about this.
 
-IIRC you have to use firmware-version 4.0.11 in pre-4.8-kernels.
-http://palosaari.fi/linux/v4l-dvb/firmware/Si2168/Si2168-B40/4.0.11/
-There was a message on this mailing list a few weeks ago (May 21st, regarding 
-DVBSky T330).
+---8<----
+The following changes since commit 1a695a905c18548062509178b98bc91e67510864:
 
-Might work with that.
+  Linux 4.7-rc1 (2016-05-29 09:29:24 -0700)
+
+are available in the git repository at:
+
+  git://linuxtv.org/snawrocki/samsung.git for-v4.8/media/exynos-mfc
+
+for you to fetch changes up to 04f776734c4e03e33111d3d5a994b589870df623:
+
+  media: s5p-mfc: add iommu support (2016-06-03 11:13:45 +0200)
+
+----------------------------------------------------------------
+Javier Martinez Canillas (3):
+      s5p-mfc: Set device name for reserved memory region devs
+      s5p-mfc: Add release callback for memory region devs
+      s5p-mfc: Fix race between s5p_mfc_probe() and s5p_mfc_open()
+
+Marek Szyprowski (6):
+      media: vb2-dma-contig: add helper for setting dma max seg size
+      media: set proper max seg size for devices on Exynos SoCs
+      of: reserved_mem: add support for using more than one region for given device
+      media: s5p-mfc: use generic reserved memory bindings
+      media: s5p-mfc: replace custom reserved memory handling code with generic one
+      media: s5p-mfc: add iommu support
+
+ Documentation/devicetree/bindings/media/s5p-mfc.txt |  39 ++++-
+ drivers/media/platform/exynos-gsc/gsc-core.c        |   2 +
+ drivers/media/platform/exynos4-is/fimc-core.c       |   2 +
+ drivers/media/platform/exynos4-is/fimc-is.c         |   2 +
+ drivers/media/platform/exynos4-is/fimc-lite.c       |   2 +
+ drivers/media/platform/s5p-g2d/g2d.c                |   2 +
+ drivers/media/platform/s5p-jpeg/jpeg-core.c         |   2 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c            | 198 ++++++++++++++-----------
+ drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h      |  79 ++++++++++
+ drivers/media/platform/s5p-tv/mixer_video.c         |   2 +
+ drivers/media/v4l2-core/videobuf2-dma-contig.c      |  53 +++++++
+ drivers/of/of_reserved_mem.c                        |  85 ++++++++---
+ include/linux/of_reserved_mem.h                     |  25 +++-
+ include/media/videobuf2-dma-contig.h                |   2 +
+ 14 files changed, 379 insertions(+), 116 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
+---8<----
+
+-- 
+Regards,
+Sylwester
