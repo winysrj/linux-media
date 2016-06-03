@@ -1,74 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:35583 "EHLO
-	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752404AbcFNWvJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 18:51:09 -0400
-Received: by mail-pf0-f196.google.com with SMTP id t190so301570pfb.2
-        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:08 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 06/38] gpu: ipu-v3: Add ipu_set_vdi_src_mux()
-Date: Tue, 14 Jun 2016 15:49:02 -0700
-Message-Id: <1465944574-15745-7-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35154 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751312AbcFCGTd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2016 02:19:33 -0400
+Date: Fri, 3 Jun 2016 08:19:29 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	pali.rohar@gmail.com, sre@kernel.org,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH] device tree description for AD5820 camera auto-focus coil
+Message-ID: <20160603061929.GA3601@amd>
+References: <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+ <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
+ <20160531213437.GA28397@amd>
+ <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
+ <20160601220840.GA21946@amd>
+ <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
+ <20160602193027.GB7984@amd>
+ <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds ipu_set_vdi_src_mux() that selects the VDIC input
-(from CSI or memory).
+On Fri 2016-06-03 00:27:46, Sakari Ailus wrote:
+> On Thu, Jun 02, 2016 at 09:30:27PM +0200, Pavel Machek wrote:
+> > 
+> > Add documentation for ad5820 device tree binding.
+> > 
+> > Signed-off-by: Pavel Machek <pavel@denx.de>
+> 
+> Thanks, Pavel!!
+> 
+> Can I pick the two patches (this one + the driver) or would you like to send
+> a pull request? In the latter case you can add:
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/gpu/ipu-v3/ipu-common.c | 20 ++++++++++++++++++++
- include/video/imx-ipu-v3.h      |  1 +
- 2 files changed, 21 insertions(+)
+Yes please, pick up the two patches.
 
-diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
-index 6d1676e..374100e 100644
---- a/drivers/gpu/ipu-v3/ipu-common.c
-+++ b/drivers/gpu/ipu-v3/ipu-common.c
-@@ -730,6 +730,26 @@ void ipu_set_ic_src_mux(struct ipu_soc *ipu, int csi_id, bool vdi)
- }
- EXPORT_SYMBOL_GPL(ipu_set_ic_src_mux);
- 
-+/*
-+ * Set the source for the VDIC. Selects either from CSI[01] or memory.
-+ */
-+void ipu_set_vdi_src_mux(struct ipu_soc *ipu, bool csi)
-+{
-+	unsigned long flags;
-+	u32 val;
-+
-+	spin_lock_irqsave(&ipu->lock, flags);
-+
-+	val = ipu_cm_read(ipu, IPU_FS_PROC_FLOW1);
-+	val &= ~(0x3 << 28);
-+	if (csi)
-+		val |= (0x01 << 28);
-+	ipu_cm_write(ipu, val, IPU_FS_PROC_FLOW1);
-+
-+	spin_unlock_irqrestore(&ipu->lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(ipu_set_vdi_src_mux);
-+
- 
- /* IDMAC Channel Linking */
- 
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 0a39c64..586979e 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -152,6 +152,7 @@ int ipu_idmac_channel_irq(struct ipu_soc *ipu, struct ipuv3_channel *channel,
- int ipu_get_num(struct ipu_soc *ipu);
- void ipu_set_csi_src_mux(struct ipu_soc *ipu, int csi_id, bool mipi_csi2);
- void ipu_set_ic_src_mux(struct ipu_soc *ipu, int csi_id, bool vdi);
-+void ipu_set_vdi_src_mux(struct ipu_soc *ipu, bool csi);
- void ipu_dump(struct ipu_soc *ipu);
- 
- /*
+Best regards,
+									Pavel
+
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+
 -- 
-1.9.1
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
