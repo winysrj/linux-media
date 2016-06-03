@@ -1,51 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35006 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753055AbcFOLtN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2016 07:49:13 -0400
-Date: Wed, 15 Jun 2016 13:49:08 +0200
-From: Richard Cochran <richardcochran@gmail.com>
-To: Henrik Austad <henrik@austad.us>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@vger.kernel.org, netdev@vger.kernel.org,
-	henrk@austad.us, Henrik Austad <haustad@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Takashi Iwai <tiwai@suse.de>, Mark Brown <broonie@kernel.org>
-Subject: Re: [very-RFC 7/8] AVB ALSA - Add ALSA shim for TSN
-Message-ID: <20160615114908.GB31281@localhost.localdomain>
-References: <1465686096-22156-1-git-send-email-henrik@austad.us>
- <1465686096-22156-8-git-send-email-henrik@austad.us>
+Received: from lists.s-osg.org ([54.187.51.154]:48296 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750726AbcFCXnu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jun 2016 19:43:50 -0400
+Received: from recife.lan (unknown [191.250.47.254])
+	by lists.s-osg.org (Postfix) with ESMTPSA id AB290E28A5
+	for <linux-media@vger.kernel.org>; Fri,  3 Jun 2016 16:44:31 -0700 (PDT)
+Date: Fri, 3 Jun 2016 20:43:43 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: LMML <linux-media@vger.kernel.org>
+Subject: [ANNOUNCE] Kaffeine v2.0
+Message-ID: <20160603204343.3c0bfdd5@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1465686096-22156-8-git-send-email-henrik@austad.us>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that I understand better...
+Hi,
 
-On Sun, Jun 12, 2016 at 01:01:35AM +0200, Henrik Austad wrote:
-> Userspace is supposed to reserve bandwidth, find StreamID etc.
-> 
-> To use as a Talker:
-> 
-> mkdir /config/tsn/test/eth0/talker
-> cd /config/tsn/test/eth0/talker
-> echo 65535 > buffer_size
-> echo 08:00:27:08:9f:c3 > remote_mac
-> echo 42 > stream_id
-> echo alsa > enabled
+For those interested, I wrote an article about the usage of Kaffeine 2.0 to
+watch Digital TV:
+	https://blogs.s-osg.org/watching-digital-tv-via-kaffeine/
 
-This is exactly why configfs is the wrong interface.  If you implement
-the AVB device in alsa-lib user space, then you can handle the
-reservations, configuration, UDP sockets, etc, in a way transparent to
-the aplay program.
+Kaffeine 2.0 is based on KDE Frameworks 5, Qt5 and libdvbv5. It supports:
+ATSC, DVB-T/T2, DVB-S/S2, DVB-C and ISDB-T.
 
-Heck, if done properly, your layer could discover the AVB nodes in the
-network and present each one as a separate device...
+There are packages (that I'm aware of) for openSUSE and Gentoo. I added
+instructions to build it also for Fedora and Ubuntu.
 
-Thanks,
-Richard
+Kaffeine homepage is at: https://www.kde.org/applications/multimedia/kaffeine/
 
+We'll be using this ML and #linuxtv for Kaffeine discussions.
 
+Regards,
+Mauro
