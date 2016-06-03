@@ -1,108 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33182 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752067AbcFTKMb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 06:12:31 -0400
-MIME-Version: 1.0
-In-Reply-To: <5767BD2F.5070205@xs4all.nl>
-References: <1466413304-8328-1-git-send-email-ricardo.ribalda@gmail.com> <5767BD2F.5070205@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Mon, 20 Jun 2016 12:12:09 +0200
-Message-ID: <CAPybu_251cQ7xiHm4Lb71iTE+79LfgLmP6jhaKEzwgAcvv9sJQ@mail.gmail.com>
-Subject: Re: [PATCH] vb2: V4L2_BUF_FLAG_DONE is set after DQBUF
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Dimitrios Katsaros <patcherwork@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:54755 "EHLO
+	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751773AbcFCLfN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2016 07:35:13 -0400
+Message-ID: <1464953708.2432.51.camel@hadess.net>
+Subject: Re: NTSC/PAL resolution support for "EasyCap" device
+From: Bastien Nocera <hadess@hadess.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Date: Fri, 03 Jun 2016 13:35:08 +0200
+In-Reply-To: <1495486.1uKbyyPPu6@avalon>
+References: <1464691129.3878.59.camel@hadess.net>
+	 <2081548.sYXtIeXGjI@avalon> <1464951211.2432.44.camel@hadess.net>
+	 <1495486.1uKbyyPPu6@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Good catch :)
+On Fri, 2016-06-03 at 14:08 +0300, Laurent Pinchart wrote:
+> 
+<snip>
+> > Full lsusb below.
+> 
+> Thanks. The device only advertises two resolutions, 640x480 and
+> 352x288.
 
-I will prepare the new version. Btw, can I also merge
-vb2_internal_dqbuf and vb2_dqbuf in one function? Seems a bit
-overkilled that split.
+As I read.
 
-Regarding v42l_compliance... I can take care of that if you dare :)
+> > > If the device doesn't expose resolutions other than the above
+> > > two, the
+> > > box could be lying, or the device could use non-standard
+> > > extensions to UVC
+> > > to support additional resolutions. The first step would be to try
+> > > the
+> > > camera in a  Windows machine to see if additional resolutions are
+> > > available (without installing any additional device-specific
+> > > software).
+> > 
+> > I should be able to find a Windows somewhere, but which application
+> > should I use to see if those resolutions are indeed available?
+> 
+> My (lack of) Windows knowledge doesn't allow me to answer that
+> question, but 
+> I'm sure searching online will give you answers.
 
-Best regards!
+"AMCap" seems to be the simplest software for that purpose, and it only
+shows "640x480".
 
-On Mon, Jun 20, 2016 at 11:53 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 06/20/2016 11:01 AM, Ricardo Ribalda Delgado wrote:
->> According to the doc, V4L2_BUF_FLAG_DONE is cleared after DQBUF:
->>
->> V4L2_BUF_FLAG_DONE 0x00000004  ... After calling the VIDIOC_QBUF or
->> VIDIOC_DQBUF it is always cleared ...
->>
->> Unfortunately, it seems that videobuf2 keeps it set after DQBUF. This
->> can be tested with vivid and dev_debug:
->>
->> [257604.338082] video1: VIDIOC_DQBUF: 71:33:25.00260479 index=3,
->> type=vid-cap, flags=0x00002004, field=none, sequence=163,
->> memory=userptr, bytesused=460800, offset/userptr=0x344b000,
->> length=460800
->>
->> This patch changes the order when fill_user_buffer() is called,
->> to follow the documentation.
->>
->> Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
->> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
->
-> Sorry, this won't work. Calling __vb2_dqbuf will overwrite the state
-> VB2_BUF_STATE_ERROR and so the V4L2_BUF_FLAG_ERROR flag will never be
-> set. The same is true for the last 'if' in the __fill_v4l2_buffer()
-> function.
->
-> I think it might be better to keep this code and instead change the
-> vb2_internal_dqbuf function to just clear the DONE flag after calling
-> vb2_core_dqbuf.
->
-> It would be nice to have a v4l2_compliance check for this as well.
->
-> Regards,
->
->         Hans
->
->> ---
->>  drivers/media/v4l2-core/videobuf2-core.c | 8 ++++----
->>  1 file changed, 4 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->> index 633fc1ab1d7a..63981f28075e 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -1771,10 +1771,6 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
->>       if (pindex)
->>               *pindex = vb->index;
->>
->> -     /* Fill buffer information for the userspace */
->> -     if (pb)
->> -             call_void_bufop(q, fill_user_buffer, vb, pb);
->> -
->>       /* Remove from videobuf queue */
->>       list_del(&vb->queued_entry);
->>       q->queued_count--;
->> @@ -1784,6 +1780,10 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
->>       /* go back to dequeued state */
->>       __vb2_dqbuf(vb);
->>
->> +     /* Fill buffer information for the userspace */
->> +     if (pb)
->> +             call_void_bufop(q, fill_user_buffer, vb, pb);
->> +
->>       dprintk(1, "dqbuf of buffer %d, with state %d\n",
->>                       vb->index, vb->state);
->>
->>
+> > BTW, given the price of the device, I'd be fine getting one for you
+> > to
+> > test (6€ from eBay, shipping included).
+> 
+> Thanks, but I'm already overwhelmed with work, I'd rather have you
+> performing 
+> the tests. Beside, I have no Windows machine :-)
 
+I've started the process of yelling at the vendor.
 
-
--- 
-Ricardo Ribalda
+Cheers
