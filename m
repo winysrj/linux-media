@@ -1,90 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35669 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751704AbcF3NBL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2016 09:01:11 -0400
-Received: by mail-wm0-f65.google.com with SMTP id a66so22649101wme.2
-        for <linux-media@vger.kernel.org>; Thu, 30 Jun 2016 06:01:10 -0700 (PDT)
-Subject: Re: [PATCH] v4l: ioctl: Clear the v4l2_pix_format_mplane reserved
- field
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org
-References: <1467120010-30973-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-From: Kieran Bingham <kieran@ksquared.org.uk>
-Message-ID: <5775149C.7080506@bingham.xyz>
-Date: Thu, 30 Jun 2016 13:46:20 +0100
-MIME-Version: 1.0
-In-Reply-To: <1467120010-30973-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:35081 "EHLO
+	mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750829AbcFDXrc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jun 2016 19:47:32 -0400
+Received: by mail-qk0-f174.google.com with SMTP id p22so10178200qka.2
+        for <linux-media@vger.kernel.org>; Sat, 04 Jun 2016 16:47:31 -0700 (PDT)
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+To: <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [RESEND/PATCH 0/6] media: tw686x: Improvements
+Date: Sat,  4 Jun 2016 20:47:14 -0300
+Message-Id: <1465084040-6112-1-git-send-email-ezequiel@vanguardiasur.com.ar>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+v4.7-rc1 is out, and so here's a resend of this patchset.
+The first submission didn't get any reviews, but it
+was tested by Tim Harvey (thanks!).
 
-Thanks - this fixes the issue I saw.
+This patchset contains two groups of improvements:
 
-On 28/06/16 14:20, Laurent Pinchart wrote:
-> The S_FMT and TRY_FMT handlers in multiplane mode attempt at clearing
-> the reserved fields of the v4l2_format structure after the pix_mp
-> member. However, the reserved fields are inside pix_mp, not after it.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+ * Add support for frame (zero-copy) DMA mode,
+   and also scatter-gather DMA mode.
 
-Tested-by: Kieran Bingham <kieran@bingham.xyz>
+ * Audio improvements: prevent hw param changes,
+   and allow period size configuration.
 
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> Kieran, this should fix the v4l2-compliance failures you saw when not clearing
-> pix_mp.reserved manually in the FDP1 driver. Could you please test it ?
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 19d3aee3b374..86332072a575 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1508,7 +1508,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
->  	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
->  		if (unlikely(!is_rx || !is_vid || !ops->vidioc_s_fmt_vid_cap_mplane))
->  			break;
-> -		CLEAR_AFTER_FIELD(p, fmt.pix_mp);
-> +		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
->  		return ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
->  	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
->  		if (unlikely(!is_rx || !is_vid || !ops->vidioc_s_fmt_vid_overlay))
-> @@ -1536,7 +1536,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
->  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
->  		if (unlikely(!is_tx || !is_vid || !ops->vidioc_s_fmt_vid_out_mplane))
->  			break;
-> -		CLEAR_AFTER_FIELD(p, fmt.pix_mp);
-> +		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
->  		return ops->vidioc_s_fmt_vid_out_mplane(file, fh, arg);
->  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
->  		if (unlikely(!is_tx || !is_vid || !ops->vidioc_s_fmt_vid_out_overlay))
-> @@ -1598,7 +1598,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
->  	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
->  		if (unlikely(!is_rx || !is_vid || !ops->vidioc_try_fmt_vid_cap_mplane))
->  			break;
-> -		CLEAR_AFTER_FIELD(p, fmt.pix_mp);
-> +		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
->  		return ops->vidioc_try_fmt_vid_cap_mplane(file, fh, arg);
->  	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
->  		if (unlikely(!is_rx || !is_vid || !ops->vidioc_try_fmt_vid_overlay))
-> @@ -1626,7 +1626,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
->  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
->  		if (unlikely(!is_tx || !is_vid || !ops->vidioc_try_fmt_vid_out_mplane))
->  			break;
-> -		CLEAR_AFTER_FIELD(p, fmt.pix_mp);
-> +		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
->  		return ops->vidioc_try_fmt_vid_out_mplane(file, fh, arg);
->  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
->  		if (unlikely(!is_tx || !is_vid || !ops->vidioc_try_fmt_vid_out_overlay))
-> 
+The DMA modes are selected at module insertion time,
+through a module parameter called dma_mode.
+
+While it should be theoretically possible to switch this at
+runtime, I believe the complexity involved does not worth the
+benefit: users will be interested in some specific use case,
+and thus will set the DMA mode right from the start.
+
+Note that in scatter-gather mode, only V4L2_FIELD_SEQ_TB
+is possible. As far as I can see, in this DMA mode, the
+device delivers a sequential top-bottom field frame,
+and cannot deliver separate top/bottom frames.
+
+The only sane thing we can do is limit the DMA length
+and get a top (or bottom field), but I doubt that's
+useful for anyone.
+
+Then again, any additional support can be done as follow
+up patches. For instance, the current series does not add
+support for the "FIELD" mode provided by the device.
+
+The reason for this is that it looked quite complex, and
+required a lot of changes. I'd really like to avoid adding
+any complexity until we have some users demanding it.
+
+Any feedback is welcome!
+
+Patchset based on v4.7-rc1.
+
+Ezequiel Garcia (6):
+  tw686x: Introduce an interface to support multiple DMA modes
+  tw686x: Add support for DMA contiguous interlaced frame mode
+  tw686x: Add support for DMA scatter-gather mode
+  tw686x: audio: Implement non-memcpy capture
+  tw686x: audio: Allow to configure the period size
+  tw686x: audio: Prevent hw param changes while busy
+
+ drivers/media/pci/tw686x/Kconfig        |   2 +
+ drivers/media/pci/tw686x/tw686x-audio.c |  92 ++++--
+ drivers/media/pci/tw686x/tw686x-core.c  |  56 +++-
+ drivers/media/pci/tw686x/tw686x-regs.h  |   9 +
+ drivers/media/pci/tw686x/tw686x-video.c | 492 +++++++++++++++++++++++++-------
+ drivers/media/pci/tw686x/tw686x.h       |  41 ++-
+ 6 files changed, 544 insertions(+), 148 deletions(-)
 
 -- 
-Regards
+2.7.0
 
-Kieran Bingham
