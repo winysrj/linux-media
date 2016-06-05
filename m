@@ -1,164 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:21638 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751706AbcF0OtJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 10:49:09 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:32823 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751315AbcFEC2b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Jun 2016 22:28:31 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 477151800DC
+	for <linux-media@vger.kernel.org>; Sun,  5 Jun 2016 04:28:25 +0200 (CEST)
+Date: Sun, 05 Jun 2016 04:28:25 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH v2.1 6/9] v4l: Add 14-bit raw bayer pixel format definitions
-Date: Mon, 27 Jun 2016 17:45:24 +0300
-Message-Id: <1467038724-27562-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1466439608-22890-7-git-send-email-sakari.ailus@linux.intel.com>
-References: <1466439608-22890-7-git-send-email-sakari.ailus@linux.intel.com>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160605022825.477151800DC@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The formats added by this patch are:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-	V4L2_PIX_FMT_SBGGR14
-	V4L2_PIX_FMT_SGBRG14
-	V4L2_PIX_FMT_SGRBG14
-	V4L2_PIX_FMT_SRGGB14
+Results of the daily build of media_tree:
 
-Signed-off-by: Jouni Ukkonen <jouni.ukkonen@intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-since v2:
+date:		Sun Jun  5 04:00:26 CEST 2016
+git branch:	test
+git hash:	de42e7655d504ceeda53e009b8860ba4bd007ab5
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
 
-- Use "GR14" instead of "BA14" 4cc for V4L2_PIX_FMT_SGRBG14.
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-i686: ERRORS
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-x86_64: ERRORS
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
- Documentation/DocBook/media/v4l/pixfmt-srggb14.xml | 91 ++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
- include/uapi/linux/videodev2.h                     |  4 +
- 3 files changed, 96 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
+Detailed results are available here:
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
-new file mode 100644
-index 0000000..5139c45
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
-@@ -0,0 +1,91 @@
-+    <refentry>
-+      <refmeta>
-+	<refentrytitle>V4L2_PIX_FMT_SRGGB14 ('RG14'),
-+	 V4L2_PIX_FMT_SGRBG14 ('GR14'),
-+	 V4L2_PIX_FMT_SGBRG14 ('GB14'),
-+	 V4L2_PIX_FMT_SBGGR14 ('BG14')
-+	 </refentrytitle>
-+	&manvol;
-+      </refmeta>
-+      <refnamediv>
-+	<refname id="V4L2-PIX-FMT-SRGGB14"><constant>V4L2_PIX_FMT_SRGGB14</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SGRBG14"><constant>V4L2_PIX_FMT_SGRBG14</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SGBRG14"><constant>V4L2_PIX_FMT_SGBRG14</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SBGGR14"><constant>V4L2_PIX_FMT_SBGGR14</constant></refname>
-+	<refpurpose>14-bit Bayer formats expanded to 16 bits</refpurpose>
-+      </refnamediv>
-+      <refsect1>
-+	<title>Description</title>
-+
-+	<para>These four pixel formats are raw sRGB / Bayer formats with
-+14 bits per colour. Each colour component is stored in a 16-bit word, with 2
-+unused high bits filled with zeros. Each n-pixel row contains n/2 green samples
-+and n/2 blue or red samples, with alternating red and blue rows. Bytes are
-+stored in memory in little endian order. They are conventionally described
-+as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example of one of these
-+formats:</para>
-+
-+    <example>
-+      <title><constant>V4L2_PIX_FMT_SBGGR14</constant> 4 &times; 4
-+pixel image</title>
-+
-+      <formalpara>
-+	<title>Byte Order.</title>
-+	<para>Each cell is one byte, the 2 most significant bits in the high
-+	  bytes are 0.
-+	  <informaltable frame="none">
-+	    <tgroup cols="5" align="center">
-+	      <colspec align="left" colwidth="2*" />
-+	      <tbody valign="top">
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;0:</entry>
-+		  <entry>B<subscript>00low</subscript></entry>
-+		  <entry>B<subscript>00high</subscript></entry>
-+		  <entry>G<subscript>01low</subscript></entry>
-+		  <entry>G<subscript>01high</subscript></entry>
-+		  <entry>B<subscript>02low</subscript></entry>
-+		  <entry>B<subscript>02high</subscript></entry>
-+		  <entry>G<subscript>03low</subscript></entry>
-+		  <entry>G<subscript>03high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;8:</entry>
-+		  <entry>G<subscript>10low</subscript></entry>
-+		  <entry>G<subscript>10high</subscript></entry>
-+		  <entry>R<subscript>11low</subscript></entry>
-+		  <entry>R<subscript>11high</subscript></entry>
-+		  <entry>G<subscript>12low</subscript></entry>
-+		  <entry>G<subscript>12high</subscript></entry>
-+		  <entry>R<subscript>13low</subscript></entry>
-+		  <entry>R<subscript>13high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;16:</entry>
-+		  <entry>B<subscript>20low</subscript></entry>
-+		  <entry>B<subscript>20high</subscript></entry>
-+		  <entry>G<subscript>21low</subscript></entry>
-+		  <entry>G<subscript>21high</subscript></entry>
-+		  <entry>B<subscript>22low</subscript></entry>
-+		  <entry>B<subscript>22high</subscript></entry>
-+		  <entry>G<subscript>23low</subscript></entry>
-+		  <entry>G<subscript>23high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;24:</entry>
-+		  <entry>G<subscript>30low</subscript></entry>
-+		  <entry>G<subscript>30high</subscript></entry>
-+		  <entry>R<subscript>31low</subscript></entry>
-+		  <entry>R<subscript>31high</subscript></entry>
-+		  <entry>G<subscript>32low</subscript></entry>
-+		  <entry>G<subscript>32high</subscript></entry>
-+		  <entry>R<subscript>33low</subscript></entry>
-+		  <entry>R<subscript>33high</subscript></entry>
-+		</row>
-+	      </tbody>
-+	    </tgroup>
-+	  </informaltable>
-+	</para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 457337e..29e9d7c 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -1594,6 +1594,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
-     &sub-srggb10dpcm8;
-     &sub-srggb12;
-     &sub-srggb12p;
-+    &sub-srggb14;
-   </section>
- 
-   <section id="yuv-formats">
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 7ace868..86af01a 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -581,6 +581,10 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
- #define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
- #define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
-+#define V4L2_PIX_FMT_SBGGR14 v4l2_fourcc('B', 'G', '1', '4') /* 14  BGBG.. GRGR.. */
-+#define V4L2_PIX_FMT_SGBRG14 v4l2_fourcc('G', 'B', '1', '4') /* 14  GBGB.. RGRG.. */
-+#define V4L2_PIX_FMT_SGRBG14 v4l2_fourcc('G', 'R', '1', '4') /* 14  GRGR.. BGBG.. */
-+#define V4L2_PIX_FMT_SRGGB14 v4l2_fourcc('R', 'G', '1', '4') /* 14  RGRG.. GBGB.. */
- #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
- 
- /* compressed formats */
--- 
-2.7.4
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
