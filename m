@@ -1,72 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45645 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750894AbcF0I6d (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:58517 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750826AbcFELp7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 04:58:33 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
-	=?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
+	Sun, 5 Jun 2016 07:45:59 -0400
+Received: from [192.168.1.137] (marune.xs4all.nl [80.101.105.217])
+	by tschai.lan (Postfix) with ESMTPSA id AF0C0180BF1
+	for <linux-media@vger.kernel.org>; Sun,  5 Jun 2016 13:45:53 +0200 (CEST)
+Subject: Re: cron job: media_tree daily build: ERRORS
+To: linux-media@vger.kernel.org
+References: <20160604022858.1A2721800DC@tschai.lan>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.8] tw686x enhancements
-Message-ID: <c5db5fbb-46f2-3d93-3267-5d1d02a8213e@xs4all.nl>
-Date: Mon, 27 Jun 2016 10:58:28 +0200
+Message-ID: <ae23df45-c939-4a4c-4a03-41f5ad143286@xs4all.nl>
+Date: Sun, 5 Jun 2016 13:45:53 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20160604022858.1A2721800DC@tschai.lan>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This improves the tw686x driver, adding support for features that were formerly
-only available in the staging tw686x driver.
-
-Krzysztof, please let us know if there are features that you need that are not
-available in this driver. Otherwise I plan to remove the staging driver for
-kernel 4.9.
-
-Ezequiel, as a future follow-up patch it might be nice to automatically choose
-between contig/memcpy and sg based on the requested field format.
-
-Right now this is determined by dma_mode, but that can be improved.
-
-It would also simplify the dma_mode since that would then be a bool saying
-whether or not it should memcpy for stability.
-
-I'm not postponing merging this series for that since this is already a
-substantial improvement.
+Should be fixed again for the next daily build.
 
 Regards,
 
 	Hans
 
-The following changes since commit 0db5c79989de2c68d5abb7ba891bfdb3cd3b7e05:
-
-  [media] media-devnode.h: Fix documentation (2016-06-16 08:14:56 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.8b
-
-for you to fetch changes up to f600ab6de581ab45751bbc157e507b0ec1c6cc1a:
-
-  tw686x: be explicit about the possible dma_mode options (2016-06-27 10:28:59 +0200)
-
-----------------------------------------------------------------
-Ezequiel Garcia (6):
-      tw686x: Introduce an interface to support multiple DMA modes
-      tw686x: Add support for DMA contiguous interlaced frame mode
-      tw686x: Add support for DMA scatter-gather mode
-      tw686x: audio: Implement non-memcpy capture
-      tw686x: audio: Allow to configure the period size
-      tw686x: audio: Prevent hw param changes while busy
-
-Hans Verkuil (1):
-      tw686x: be explicit about the possible dma_mode options
-
- drivers/media/pci/tw686x/Kconfig        |   2 +
- drivers/media/pci/tw686x/tw686x-audio.c |  92 +++++++++---
- drivers/media/pci/tw686x/tw686x-core.c  |  56 ++++++-
- drivers/media/pci/tw686x/tw686x-regs.h  |   9 ++
- drivers/media/pci/tw686x/tw686x-video.c | 492 +++++++++++++++++++++++++++++++++++++++++++++++-------------
- drivers/media/pci/tw686x/tw686x.h       |  41 ++++-
- 6 files changed, 544 insertions(+), 148 deletions(-)
+On 06/04/2016 04:28 AM, Hans Verkuil wrote:
+> This message is generated daily by a cron job that builds media_tree for
+> the kernels and architectures in the list below.
+> 
+> Results of the daily build of media_tree:
+> 
+> date:		Sat Jun  4 04:00:23 CEST 2016
+> git branch:	test
+> git hash:	de42e7655d504ceeda53e009b8860ba4bd007ab5
+> gcc version:	i686-linux-gcc (GCC) 5.3.0
+> sparse version:	v0.5.0-56-g7647c77
+> smatch version:	v0.5.0-3428-gdfe27cf
+> host hardware:	x86_64
+> host os:	4.5.0-264
+> 
+> linux-git-arm-at91: ERRORS
+> linux-git-arm-davinci: ERRORS
+> linux-git-arm-exynos: ERRORS
+> linux-git-arm-mx: ERRORS
+> linux-git-arm-omap: ERRORS
+> linux-git-arm-omap1: ERRORS
+> linux-git-arm-pxa: ERRORS
+> linux-git-blackfin-bf561: ERRORS
+> linux-git-i686: OK
+> linux-git-m32r: OK
+> linux-git-mips: ERRORS
+> linux-git-powerpc64: OK
+> linux-git-sh: ERRORS
+> linux-git-x86_64: OK
+> linux-2.6.36.4-i686: ERRORS
+> linux-2.6.37.6-i686: ERRORS
+> linux-2.6.38.8-i686: ERRORS
+> linux-2.6.39.4-i686: ERRORS
+> linux-3.0.60-i686: ERRORS
+> linux-3.1.10-i686: ERRORS
+> linux-3.2.37-i686: ERRORS
+> linux-3.3.8-i686: ERRORS
+> linux-3.4.27-i686: ERRORS
+> linux-3.5.7-i686: ERRORS
+> linux-3.6.11-i686: ERRORS
+> linux-3.7.4-i686: ERRORS
+> linux-3.8-i686: ERRORS
+> linux-3.9.2-i686: ERRORS
+> linux-3.10.1-i686: ERRORS
+> linux-3.11.1-i686: ERRORS
+> linux-3.12.23-i686: ERRORS
+> linux-3.13.11-i686: ERRORS
+> linux-3.14.9-i686: ERRORS
+> linux-3.15.2-i686: ERRORS
+> linux-3.16.7-i686: ERRORS
+> linux-3.17.8-i686: ERRORS
+> linux-3.18.7-i686: ERRORS
+> linux-3.19-i686: ERRORS
+> linux-4.0-i686: ERRORS
+> linux-4.1.1-i686: ERRORS
+> linux-4.2-i686: ERRORS
+> linux-4.3-i686: ERRORS
+> linux-4.4-i686: ERRORS
+> linux-4.5-i686: ERRORS
+> linux-4.6-i686: ERRORS
+> linux-4.7-rc1-i686: OK
+> linux-2.6.36.4-x86_64: ERRORS
+> linux-2.6.37.6-x86_64: ERRORS
+> linux-2.6.38.8-x86_64: ERRORS
+> linux-2.6.39.4-x86_64: ERRORS
+> linux-3.0.60-x86_64: ERRORS
+> linux-3.1.10-x86_64: ERRORS
+> linux-3.2.37-x86_64: ERRORS
+> linux-3.3.8-x86_64: ERRORS
+> linux-3.4.27-x86_64: ERRORS
+> linux-3.5.7-x86_64: ERRORS
+> linux-3.6.11-x86_64: ERRORS
+> linux-3.7.4-x86_64: ERRORS
+> linux-3.8-x86_64: ERRORS
+> linux-3.9.2-x86_64: ERRORS
+> linux-3.10.1-x86_64: ERRORS
+> linux-3.11.1-x86_64: ERRORS
+> linux-3.12.23-x86_64: ERRORS
+> linux-3.13.11-x86_64: ERRORS
+> linux-3.14.9-x86_64: ERRORS
+> linux-3.15.2-x86_64: ERRORS
+> linux-3.16.7-x86_64: ERRORS
+> linux-3.17.8-x86_64: ERRORS
+> linux-3.18.7-x86_64: ERRORS
+> linux-3.19-x86_64: ERRORS
+> linux-4.0-x86_64: ERRORS
+> linux-4.1.1-x86_64: ERRORS
+> linux-4.2-x86_64: ERRORS
+> linux-4.3-x86_64: ERRORS
+> linux-4.4-x86_64: ERRORS
+> linux-4.5-x86_64: ERRORS
+> linux-4.6-x86_64: ERRORS
+> linux-4.7-rc1-x86_64: OK
+> apps: OK
+> spec-git: OK
+> sparse: WARNINGS
+> smatch: WARNINGS
+> 
+> Detailed results are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+> 
+> Full logs are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+> 
+> The Media Infrastructure API from this daily build is here:
+> 
+> http://www.xs4all.nl/~hverkuil/spec/media.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
