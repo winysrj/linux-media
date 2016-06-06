@@ -1,370 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:59636 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751713AbcF0LKg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 07:10:36 -0400
-Subject: Re: [PATCH v5 3/9] Input: atmel_mxt_ts - output diagnostic debug via
- v4l2 device
-To: Nick Dyer <nick.dyer@itdev.co.uk>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>
-References: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
- <1466633313-15339-4-git-send-email-nick.dyer@itdev.co.uk>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5c42bde0-9ed2-c4b9-20eb-8380bc1b0d94@xs4all.nl>
-Date: Mon, 27 Jun 2016 13:10:29 +0200
+Received: from the.earth.li ([46.43.34.31]:39152 "EHLO the.earth.li"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750764AbcFFNYC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Jun 2016 09:24:02 -0400
+Date: Mon, 6 Jun 2016 14:23:59 +0100
+From: Jonathan McDowell <noodles@earth.li>
+To: linux-media@vger.kernel.org
+Cc: trivial@kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] Remove spurious blank lines in dw2101 kernel messages
+Message-ID: <20160606132359.GE7616@earth.li>
 MIME-Version: 1.0
-In-Reply-To: <1466633313-15339-4-git-send-email-nick.dyer@itdev.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/23/2016 12:08 AM, Nick Dyer wrote:
-> Register a video device to output T37 diagnostic data.
-> 
-> Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
-> ---
->  drivers/input/touchscreen/Kconfig        |   6 +-
->  drivers/input/touchscreen/atmel_mxt_ts.c | 244 +++++++++++++++++++++++++++++++
->  2 files changed, 248 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
-> index da96ecf..7c1c5ec 100644
-> --- a/drivers/input/touchscreen/Kconfig
-> +++ b/drivers/input/touchscreen/Kconfig
-> @@ -117,9 +117,11 @@ config TOUCHSCREEN_ATMEL_MXT
->  
->  config TOUCHSCREEN_ATMEL_MXT_T37
->  	bool "Support T37 Diagnostic Data"
-> -	depends on TOUCHSCREEN_ATMEL_MXT
-> +	depends on TOUCHSCREEN_ATMEL_MXT && VIDEO_V4L2
-> +	select VIDEOBUF2_VMALLOC
->  	help
-> -	  Say Y here if you want support for the T37 Diagnostic Data object.
-> +	  Say Y here if you want support to output data from the T37
-> +	  Diagnostic Data object using a V4L device.
->  
->  config TOUCHSCREEN_AUO_PIXCIR
->  	tristate "AUO in-cell touchscreen using Pixcir ICs"
-> diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-> index 0048233..7780d38 100644
-> --- a/drivers/input/touchscreen/atmel_mxt_ts.c
-> +++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-> @@ -28,6 +28,10 @@
->  #include <linux/of.h>
->  #include <linux/slab.h>
->  #include <asm/unaligned.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/videobuf2-v4l2.h>
-> +#include <media/videobuf2-vmalloc.h>
->  
->  /* Firmware files */
->  #define MXT_FW_NAME		"maxtouch.fw"
-> @@ -224,6 +228,23 @@ struct mxt_dbg {
->  	struct t37_debug *t37_buf;
->  	unsigned int t37_pages;
->  	unsigned int t37_nodes;
-> +
-> +	struct v4l2_device v4l2;
-> +	struct v4l2_pix_format format;
-> +	struct video_device vdev;
-> +	struct vb2_queue queue;
-> +	struct mutex lock;
-> +	int input;
-> +};
-> +
-> +static const struct v4l2_file_operations mxt_video_fops = {
-> +	.owner = THIS_MODULE,
-> +	.open = v4l2_fh_open,
-> +	.release = vb2_fop_release,
-> +	.unlocked_ioctl = video_ioctl2,
-> +	.read = vb2_fop_read,
-> +	.mmap = vb2_fop_mmap,
-> +	.poll = vb2_fop_poll,
->  };
->  
->  /* Each client has this additional data */
-> @@ -279,6 +300,11 @@ struct mxt_data {
->  	struct completion crc_completion;
->  };
->  
-> +struct mxt_vb2_buffer {
-> +	struct vb2_buffer	vb;
-> +	struct list_head	list;
-> +};
-> +
->  static size_t mxt_obj_size(const struct mxt_object *obj)
->  {
->  	return obj->size_minus_one + 1;
-> @@ -1525,6 +1551,11 @@ static void mxt_free_input_device(struct mxt_data *data)
->  
->  static void mxt_free_object_table(struct mxt_data *data)
->  {
-> +#ifdef CONFIG_TOUCHSCREEN_ATMEL_MXT_T37
-> +	video_unregister_device(&data->dbg.vdev);
-> +	v4l2_device_unregister(&data->dbg.v4l2);
-> +#endif
-> +
->  	kfree(data->object_table);
->  	data->object_table = NULL;
->  	kfree(data->msg_buf);
-> @@ -2157,10 +2188,191 @@ wait_cmd:
->  	return mxt_convert_debug_pages(data, outbuf);
->  }
->  
-> +static int mxt_queue_setup(struct vb2_queue *q,
-> +		       unsigned int *nbuffers, unsigned int *nplanes,
-> +		       unsigned int sizes[], void *alloc_ctxs[])
-> +{
-> +	struct mxt_data *data = q->drv_priv;
-> +	size_t size = data->dbg.t37_nodes * sizeof(u16);
-> +
-> +	if (*nplanes)
-> +		return sizes[0] < size ? -EINVAL : 0;
-> +
-> +	*nplanes = 1;
-> +	sizes[0] = size;
-> +
-> +	return 0;
-> +}
-> +
-> +static void mxt_buffer_queue(struct vb2_buffer *vb)
-> +{
-> +	struct mxt_data *data = vb2_get_drv_priv(vb->vb2_queue);
-> +	u16 *ptr;
-> +	int ret;
-> +
-> +	ptr = vb2_plane_vaddr(vb, 0);
-> +	if (!ptr) {
-> +		dev_err(&data->client->dev, "Error acquiring frame ptr\n");
-> +		goto fault;
-> +	}
-> +
-> +	ret = mxt_read_diagnostic_debug(data, MXT_DIAGNOSTIC_DELTAS, ptr);
-> +	if (ret)
-> +		goto fault;
-> +
-> +	vb2_set_plane_payload(vb, 0, data->dbg.t37_nodes * sizeof(u16));
-> +	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
-> +	return;
-> +
-> +fault:
-> +	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
-> +}
-> +
-> +/* V4L2 structures */
-> +static const struct vb2_ops mxt_queue_ops = {
-> +	.queue_setup		= mxt_queue_setup,
-> +	.buf_queue		= mxt_buffer_queue,
-> +	.wait_prepare		= vb2_ops_wait_prepare,
-> +	.wait_finish		= vb2_ops_wait_finish,
-> +};
-> +
-> +static const struct vb2_queue mxt_queue = {
-> +	.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-> +	.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ,
-> +	.buf_struct_size = sizeof(struct mxt_vb2_buffer),
-> +	.ops = &mxt_queue_ops,
-> +	.mem_ops = &vb2_vmalloc_memops,
-> +	.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC,
-> +	.min_buffers_needed = 1,
-> +};
-> +
-> +static int mxt_vidioc_querycap(struct file *file, void *priv,
-> +				 struct v4l2_capability *cap)
-> +{
-> +	struct mxt_data *data = video_drvdata(file);
-> +
-> +	strlcpy(cap->driver, "atmel_mxt_ts", sizeof(cap->driver));
-> +	strlcpy(cap->card, "atmel_mxt_ts touch", sizeof(cap->card));
-> +	snprintf(cap->bus_info, sizeof(cap->bus_info),
-> +		 "I2C:%s", dev_name(&data->client->dev));
-> +	return 0;
-> +}
-> +
-> +static int mxt_vidioc_enum_input(struct file *file, void *priv,
-> +				   struct v4l2_input *i)
-> +{
-> +	if (i->index > 0)
-> +		return -EINVAL;
-> +
-> +	i->type = V4L2_INPUT_TYPE_TOUCH;
-> +	strlcpy(i->name, "Mutual References", sizeof(i->name));
+The DW2102 DVB-S/S2 driver uses the info() logging function from
+dvb-usb.h. This function already appends a newline to the provided log
+message, causing the dmesg output from DW2102 to include blank lines.
+Fix this by removing the newline in the calls to info().
 
-How about "Mutual Capacitance References"?
+Signed-off-by: Jonathan McDowell <noodles@earth.li>
 
-> +	return 0;
-> +}
-> +
-> +static int mxt_set_input(struct mxt_data *data, unsigned int i)
-> +{
-> +	struct v4l2_pix_format *f = &data->dbg.format;
-> +
-> +	if (i > 0)
-> +		return -EINVAL;
-> +
-> +	f->width = data->info.matrix_xsize;
-> +	f->height = data->info.matrix_ysize;
-> +	f->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
-> +	f->field = V4L2_FIELD_NONE;
-> +	f->colorspace = V4L2_COLORSPACE_RAW;
-> +	f->bytesperline = f->width * sizeof(u16);
-> +	f->sizeimage = f->width * f->height * sizeof(u16);
-> +
-> +	data->dbg.input = i;
-> +
-> +	return 0;
-> +}
-> +
-> +static int mxt_vidioc_s_input(struct file *file, void *priv, unsigned int i)
-> +{
-> +	return mxt_set_input(video_drvdata(file), i);
-> +}
-> +
-> +static int mxt_vidioc_g_input(struct file *file, void *priv, unsigned int *i)
-> +{
-> +	struct mxt_data *data = video_drvdata(file);
-> +
-> +	*i = data->dbg.input;
-> +
-> +	return 0;
-> +}
-> +
-> +static int mxt_vidioc_fmt(struct file *file, void *priv, struct v4l2_format *f)
-> +{
-> +	struct mxt_data *data = video_drvdata(file);
-> +
-> +	f->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +	f->fmt.pix = data->dbg.format;
-> +
-> +	return 0;
-> +}
-> +
-> +static int mxt_vidioc_enum_fmt(struct file *file, void *priv,
-> +				 struct v4l2_fmtdesc *fmt)
-> +{
-> +	if (fmt->index > 0 || fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;
-> +
-> +	fmt->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
-> +	return 0;
-> +}
-> +
-> +static int mxt_vidioc_g_parm(struct file *file, void *fh,
-> +			     struct v4l2_streamparm *a)
-> +{
-> +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;
-> +
-> +	a->parm.capture.readbuffers = 1;
-> +	a->parm.capture.timeperframe.numerator = 1;
-> +	a->parm.capture.timeperframe.denominator = 10;
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_ioctl_ops mxt_video_ioctl_ops = {
-> +	.vidioc_querycap        = mxt_vidioc_querycap,
-> +
-> +	.vidioc_enum_fmt_vid_cap = mxt_vidioc_enum_fmt,
-> +	.vidioc_s_fmt_vid_cap   = mxt_vidioc_fmt,
-> +	.vidioc_g_fmt_vid_cap   = mxt_vidioc_fmt,
-> +	.vidioc_try_fmt_vid_cap	= mxt_vidioc_fmt,
-> +	.vidioc_g_parm		= mxt_vidioc_g_parm,
-> +
-> +	.vidioc_enum_input      = mxt_vidioc_enum_input,
-> +	.vidioc_g_input         = mxt_vidioc_g_input,
-> +	.vidioc_s_input         = mxt_vidioc_s_input,
-> +
-> +	.vidioc_reqbufs         = vb2_ioctl_reqbufs,
-> +	.vidioc_create_bufs     = vb2_ioctl_create_bufs,
-> +	.vidioc_querybuf        = vb2_ioctl_querybuf,
-> +	.vidioc_qbuf            = vb2_ioctl_qbuf,
-> +	.vidioc_dqbuf           = vb2_ioctl_dqbuf,
-> +	.vidioc_expbuf          = vb2_ioctl_expbuf,
-> +
-> +	.vidioc_streamon        = vb2_ioctl_streamon,
-> +	.vidioc_streamoff       = vb2_ioctl_streamoff,
-> +};
-> +
-> +static const struct video_device mxt_video_device = {
-> +	.name = "Atmel maxTouch",
-> +	.fops = &mxt_video_fops,
-> +	.ioctl_ops = &mxt_video_ioctl_ops,
-> +	.release = video_device_release_empty,
-> +	.device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
-> +		       V4L2_CAP_STREAMING,
+-----
+diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
+index 14ef25d..687f740 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.c
++++ b/drivers/media/usb/dvb-usb/dw2102.c
+@@ -896,7 +896,7 @@ static int su3000_power_ctrl(struct dvb_usb_device *d, int i)
+ 	struct dw2102_state *state = (struct dw2102_state *)d->priv;
+ 	u8 obuf[] = {0xde, 0};
+ 
+-	info("%s: %d, initialized %d\n", __func__, i, state->initialized);
++	info("%s: %d, initialized %d", __func__, i, state->initialized);
+ 
+ 	if (i && !state->initialized) {
+ 		state->initialized = 1;
+@@ -943,7 +943,7 @@ static int su3000_identify_state(struct usb_device *udev,
+ 				 struct dvb_usb_device_description **desc,
+ 				 int *cold)
+ {
+-	info("%s\n", __func__);
++	info("%s", __func__);
+ 
+ 	*cold = 0;
+ 	return 0;
+@@ -1197,7 +1197,7 @@ static int dw2104_frontend_attach(struct dvb_usb_adapter *d)
+ 				tuner_ops->set_bandwidth = stb6100_set_bandw;
+ 				tuner_ops->get_bandwidth = stb6100_get_bandw;
+ 				d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-				info("Attached STV0900+STB6100!\n");
++				info("Attached STV0900+STB6100!");
+ 				return 0;
+ 			}
+ 		}
+@@ -1211,7 +1211,7 @@ static int dw2104_frontend_attach(struct dvb_usb_adapter *d)
+ 					&dw2104_stv6110_config,
+ 					&d->dev->i2c_adap)) {
+ 				d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-				info("Attached STV0900+STV6110A!\n");
++				info("Attached STV0900+STV6110A!");
+ 				return 0;
+ 			}
+ 		}
+@@ -1222,7 +1222,7 @@ static int dw2104_frontend_attach(struct dvb_usb_adapter *d)
+ 				&d->dev->i2c_adap);
+ 		if (d->fe_adap[0].fe != NULL) {
+ 			d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-			info("Attached cx24116!\n");
++			info("Attached cx24116!");
+ 			return 0;
+ 		}
+ 	}
+@@ -1233,7 +1233,7 @@ static int dw2104_frontend_attach(struct dvb_usb_adapter *d)
+ 		dvb_attach(ts2020_attach, d->fe_adap[0].fe,
+ 			&dw2104_ts2020_config, &d->dev->i2c_adap);
+ 		d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-		info("Attached DS3000!\n");
++		info("Attached DS3000!");
+ 		return 0;
+ 	}
+ 
+@@ -1252,7 +1252,7 @@ static int dw2102_frontend_attach(struct dvb_usb_adapter *d)
+ 					&d->dev->i2c_adap);
+ 		if (d->fe_adap[0].fe != NULL) {
+ 			d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-			info("Attached si21xx!\n");
++			info("Attached si21xx!");
+ 			return 0;
+ 		}
+ 	}
+@@ -1264,7 +1264,7 @@ static int dw2102_frontend_attach(struct dvb_usb_adapter *d)
+ 			if (dvb_attach(stb6000_attach, d->fe_adap[0].fe, 0x61,
+ 					&d->dev->i2c_adap)) {
+ 				d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-				info("Attached stv0288!\n");
++				info("Attached stv0288!");
+ 				return 0;
+ 			}
+ 		}
+@@ -1276,7 +1276,7 @@ static int dw2102_frontend_attach(struct dvb_usb_adapter *d)
+ 					&d->dev->i2c_adap);
+ 		if (d->fe_adap[0].fe != NULL) {
+ 			d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-			info("Attached stv0299!\n");
++			info("Attached stv0299!");
+ 			return 0;
+ 		}
+ 	}
+@@ -1288,7 +1288,7 @@ static int dw3101_frontend_attach(struct dvb_usb_adapter *d)
+ 	d->fe_adap[0].fe = dvb_attach(tda10023_attach, &dw3101_tda10023_config,
+ 				&d->dev->i2c_adap, 0x48);
+ 	if (d->fe_adap[0].fe != NULL) {
+-		info("Attached tda10023!\n");
++		info("Attached tda10023!");
+ 		return 0;
+ 	}
+ 	return -EIO;
+@@ -1302,7 +1302,7 @@ static int zl100313_frontend_attach(struct dvb_usb_adapter *d)
+ 		if (dvb_attach(zl10039_attach, d->fe_adap[0].fe, 0x60,
+ 				&d->dev->i2c_adap)) {
+ 			d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-			info("Attached zl100313+zl10039!\n");
++			info("Attached zl100313+zl10039!");
+ 			return 0;
+ 		}
+ 	}
+@@ -1327,7 +1327,7 @@ static int stv0288_frontend_attach(struct dvb_usb_adapter *d)
+ 
+ 	dw210x_op_rw(d->dev->udev, 0x8a, 0, 0, obuf, 2, DW210X_WRITE_MSG);
+ 
+-	info("Attached stv0288+stb6000!\n");
++	info("Attached stv0288+stb6000!");
+ 
+ 	return 0;
+ 
+@@ -1352,7 +1352,7 @@ static int ds3000_frontend_attach(struct dvb_usb_adapter *d)
+ 
+ 	dw210x_op_rw(d->dev->udev, 0x8a, 0, 0, obuf, 2, DW210X_WRITE_MSG);
+ 
+-	info("Attached ds3000+ts2020!\n");
++	info("Attached ds3000+ts2020!");
+ 
+ 	return 0;
+ }
+@@ -1370,7 +1370,7 @@ static int prof_7500_frontend_attach(struct dvb_usb_adapter *d)
+ 
+ 	dw210x_op_rw(d->dev->udev, 0x8a, 0, 0, obuf, 2, DW210X_WRITE_MSG);
+ 
+-	info("Attached STV0900+STB6100A!\n");
++	info("Attached STV0900+STB6100A!");
+ 
+ 	return 0;
+ }
+@@ -1418,11 +1418,11 @@ static int su3000_frontend_attach(struct dvb_usb_adapter *d)
+ 	if (dvb_attach(ts2020_attach, d->fe_adap[0].fe,
+ 				&dw2104_ts2020_config,
+ 				&d->dev->i2c_adap)) {
+-		info("Attached DS3000/TS2020!\n");
++		info("Attached DS3000/TS2020!");
+ 		return 0;
+ 	}
+ 
+-	info("Failed to attach DS3000/TS2020!\n");
++	info("Failed to attach DS3000/TS2020!");
+ 	return -EIO;
+ }
+ 
+@@ -1467,12 +1467,12 @@ static int t220_frontend_attach(struct dvb_usb_adapter *d)
+ 	if (d->fe_adap[0].fe != NULL) {
+ 		if (dvb_attach(tda18271_attach, d->fe_adap[0].fe, 0x60,
+ 					&d->dev->i2c_adap, &tda18271_config)) {
+-			info("Attached TDA18271HD/CXD2820R!\n");
++			info("Attached TDA18271HD/CXD2820R!");
+ 			return 0;
+ 		}
+ 	}
+ 
+-	info("Failed to attach TDA18271HD/CXD2820R!\n");
++	info("Failed to attach TDA18271HD/CXD2820R!");
+ 	return -EIO;
+ }
+ 
+@@ -1493,11 +1493,11 @@ static int m88rs2000_frontend_attach(struct dvb_usb_adapter *d)
+ 	if (dvb_attach(ts2020_attach, d->fe_adap[0].fe,
+ 				&dw2104_ts2020_config,
+ 				&d->dev->i2c_adap)) {
+-		info("Attached RS2000/TS2020!\n");
++		info("Attached RS2000/TS2020!");
+ 		return 0;
+ 	}
+ 
+-	info("Failed to attach RS2000/TS2020!\n");
++	info("Failed to attach RS2000/TS2020!");
+ 	return -EIO;
+ }
+ 
+-----
 
-Should there be a CAP_TOUCH here?
+J.
 
-> +};
-> +
->  static void mxt_debug_init(struct mxt_data *data)
->  {
->  	struct mxt_dbg *dbg = &data->dbg;
->  	struct mxt_object *object;
-> +	int error;
->  
->  	object = mxt_get_object(data, MXT_GEN_COMMAND_T6);
->  	if (!object)
-> @@ -2189,8 +2401,40 @@ static void mxt_debug_init(struct mxt_data *data)
->  	if (!dbg->t37_buf)
->  		goto error;
->  
-> +	/* init channel to zero */
-> +	mxt_set_input(data, 0);
-> +
-> +	/* register video device */
-> +	snprintf(dbg->v4l2.name, sizeof(dbg->v4l2.name), "%s", "atmel_mxt_ts");
-> +	error = v4l2_device_register(&data->client->dev, &dbg->v4l2);
-> +	if (error)
-> +		goto error;
-> +
-> +	/* initialize the queue */
-> +	mutex_init(&dbg->lock);
-> +	dbg->queue = mxt_queue;
-> +	dbg->queue.drv_priv = data;
-> +	dbg->queue.lock = &dbg->lock;
-> +
-> +	error = vb2_queue_init(&dbg->queue);
-> +	if (error)
-> +		goto error_unreg_v4l2;
-> +
-> +	dbg->vdev = mxt_video_device;
-> +	dbg->vdev.v4l2_dev = &dbg->v4l2;
-> +	dbg->vdev.lock = &dbg->lock;
-> +	dbg->vdev.vfl_dir = VFL_DIR_RX;
-> +	dbg->vdev.queue = &dbg->queue;
-> +	video_set_drvdata(&dbg->vdev, data);
-> +
-> +	error = video_register_device(&dbg->vdev, VFL_TYPE_TOUCH, -1);
-> +	if (error)
-> +		goto error_unreg_v4l2;
-> +
->  	return;
->  
-> +error_unreg_v4l2:
-> +	v4l2_device_unregister(&dbg->v4l2);
->  error:
->  	dev_warn(&data->client->dev, "Error initializing T37\n");
->  }
-> 
-
-Regards,
-
-	Hans
+-- 
+/-\                             |       Hats off to the insane.
+|@/  Debian GNU/Linux Developer |
+\-                              |
