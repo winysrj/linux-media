@@ -1,49 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:34696 "EHLO
-	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752404AbcFNWvN (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:52698 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752272AbcFFDA3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 18:51:13 -0400
-Received: by mail-pf0-f193.google.com with SMTP id 66so305924pfy.1
-        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:13 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
+	Sun, 5 Jun 2016 23:00:29 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 2A0921800DC
+	for <linux-media@vger.kernel.org>; Mon,  6 Jun 2016 05:00:24 +0200 (CEST)
+Date: Mon, 06 Jun 2016 05:00:24 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Suresh Dhandapani <Suresh.Dhandapani@in.bosch.com>
-Subject: [PATCH 12/38] gpu: ipu-v3: Fix CSI0 blur in NTSC format
-Date: Tue, 14 Jun 2016 15:49:08 -0700
-Message-Id: <1465944574-15745-13-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160606030024.2A0921800DC@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Suresh Dhandapani <Suresh.Dhandapani@in.bosch.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This patch will change the register IPU_CSI0_CCIR_CODE_2 value from
-0x40596 to 0x405A6. The change is related to the Start of field 1
-first blanking line command bit[5-3] for NTSC format only. This
-change is dependent with ADV chip where the NEWAVMODE is set to 0
-in register 0x31. Setting NEWAVMODE to "0" in ADV means "EAV/SAV
-codes generated to suit analog devices encoders".
+Results of the daily build of media_tree:
 
-Signed-off-by: Suresh Dhandapani <Suresh.Dhandapani@in.bosch.com>
----
- drivers/gpu/ipu-v3/ipu-csi.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+date:		Mon Jun  6 04:00:15 CEST 2016
+git branch:	test
+git hash:	de42e7655d504ceeda53e009b8860ba4bd007ab5
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
 
-diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
-index 0eac28c..ec81958 100644
---- a/drivers/gpu/ipu-v3/ipu-csi.c
-+++ b/drivers/gpu/ipu-v3/ipu-csi.c
-@@ -422,7 +422,7 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
- 
- 			ipu_csi_write(csi, 0xD07DF | CSI_CCIR_ERR_DET_EN,
- 					  CSI_CCIR_CODE_1);
--			ipu_csi_write(csi, 0x40596, CSI_CCIR_CODE_2);
-+			ipu_csi_write(csi, 0x405A6, CSI_CCIR_CODE_2);
- 			ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
- 		} else {
- 			dev_err(csi->ipu->dev,
--- 
-1.9.1
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
