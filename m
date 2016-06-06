@@ -1,48 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57726 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751639AbcF0Mdp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 08:33:45 -0400
-Received: from avalon.localnet (33.154-246-81.adsl-dyn.isp.belgacom.be [81.246.154.33])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 04CC320010
-	for <linux-media@vger.kernel.org>; Mon, 27 Jun 2016 14:31:13 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.8] V4L2 core fixes
-Date: Mon, 27 Jun 2016 15:34:07 +0300
-Message-ID: <1532561.v6UYOJVH7L@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:30294 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751321AbcFFJE4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2016 05:04:56 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0O8C007MAEK67500@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 06 Jun 2016 10:04:54 +0100 (BST)
+Subject: Re: [PATCH] [media]: Driver for Toshiba et8ek8 5MP sensor
+To: Pavel Machek <pavel@ucw.cz>,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+References: <20160501134122.GG26360@valkosipuli.retiisi.org.uk>
+ <1462287004-21099-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160524111901.GB18307@amd>
+Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
+	linux-media@vger.kernel.org
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <57553CA5.40908@samsung.com>
+Date: Mon, 06 Jun 2016 11:04:37 +0200
+MIME-version: 1.0
+In-reply-to: <20160524111901.GB18307@amd>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 05/24/2016 01:19 PM, Pavel Machek wrote:
+>> +/*
+>> > + * Write a list of registers to i2c device.
+>> > + *
+>> > + * The list of registers is terminated by ET8EK8_REG_TERM.
+>> > + * Returns zero if successful, or non-zero otherwise.
+>> > + */
+>> > +static int et8ek8_i2c_write_regs(struct i2c_client *client,
+>> > +				 const struct et8ek8_reg reglist[])
+>> > +{
+>> > +	int r, cnt = 0;
+>> > +	const struct et8ek8_reg *next, *wnext;
+>> > +
+>> > +	if (!client->adapter)
+>> > +		return -ENODEV;
+>> > +
+>> > +	if (reglist == NULL)
+>
+> (!reglist) ? :-). Actually, you can keep your preffered style there,
+> but maybe ammount of if (something that can not happen) return
+> ... should be reduced. Noone should ever call this without valid
+> reglist or client->adapter, right?
+> 
+>> > +		return -EINVAL;
+>> > +
+>> > +	/* Initialize list pointers to the start of the list */
+>> > +	next = wnext = reglist;
+>> > +
+>> > +	do {
+>> > +		/*
+>> > +		 * We have to go through the list to figure out how
+>> > +		 * many regular writes we have in a row
+>> > +		 */
+>> > +		while (next->type != ET8EK8_REG_TERM
+>> > +		       && next->type != ET8EK8_REG_DELAY) {
+>> > +			/*
+>> > +			 * Here we check that the actual length fields
+>> > +			 * are valid
+>> > +			 */
+>> > +			if (next->type != ET8EK8_REG_8BIT
+>> > +			    &&  next->type != ET8EK8_REG_16BIT) {
+> Extra space after &&
+> 
+>> > +				dev_err(&client->dev,
+>> > +					"Invalid value on entry %d 0x%x\n",
+>> > +					cnt, next->type);
+>> > +				return -EINVAL;
+>> > +			}
+>
+> And maybe this could be just BUG_ON(). 
 
-The following changes since commit 0db5c79989de2c68d5abb7ba891bfdb3cd3b7e05:
+It definitively doesn't look like a BUG_ON() would be appropriate here,
+it's just an unexpected condition in some I2C write function of a rather
+not critical device from the whole system operation stability point
+of view. Perhaps you just meant WARN_ON()?
 
-  [media] media-devnode.h: Fix documentation (2016-06-16 08:14:56 -0300)
+BUG_ON() should be used with care, when the condition is not recoverable,
+otherwise we are just making debugging unnecessarily harder.
 
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git v4l2/core
-
-for you to fetch changes up to 7dccb13aef849b9e9e02faa3c46269bb130297d3:
-
-  videodev2.h: Fix V4L2_PIX_FMT_YUV411P description (2016-06-27 15:32:54 
-+0300)
-
-----------------------------------------------------------------
-Laurent Pinchart (2):
-      videodev2.h: Group YUV 3 planes formats together
-      videodev2.h: Fix V4L2_PIX_FMT_YUV411P description
-
- include/uapi/linux/videodev2.h | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+http://lkml.iu.edu/hypermail/linux/kernel/1506.1/00062.html
+http://yarchive.net/comp/linux/BUG.html
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Thanks,
+Sylwester
