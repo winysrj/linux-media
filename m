@@ -1,301 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:32890 "EHLO
-	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161270AbcFMNBG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2016 09:01:06 -0400
-Received: by mail-lf0-f66.google.com with SMTP id u74so11213212lff.0
-        for <linux-media@vger.kernel.org>; Mon, 13 Jun 2016 06:01:04 -0700 (PDT)
-Date: Mon, 13 Jun 2016 15:00:59 +0200
-From: Henrik Austad <henrik@austad.us>
-To: Richard Cochran <richardcochran@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@vger.kernel.org, netdev@vger.kernel.org,
-	henrik@austad.us, Arnd Bergmann <arnd@linaro.org>
-Subject: Re: [very-RFC 0/8] TSN driver for the kernel
-Message-ID: <20160613130059.GA20320@sisyphus.home.austad.us>
-References: <1465686096-22156-1-git-send-email-henrik@austad.us>
- <20160613114713.GA9544@localhost.localdomain>
+Received: from lists.s-osg.org ([54.187.51.154]:44234 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752944AbcFFXNR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Jun 2016 19:13:17 -0400
+Subject: Re: [PATCH 2/2] [media] media-device: dynamically allocate struct
+ media_devnode
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <cover.1462633500.git.mchehab@osg.samsung.com>
+ <83247b8a21c292a08949b3fe619cc56dc4709896.1462633500.git.mchehab@osg.samsung.com>
+ <20160606084500.GW26360@valkosipuli.retiisi.org.uk>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
+	<chehabrafael@gmail.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <57560388.7030903@osg.samsung.com>
+Date: Mon, 6 Jun 2016 17:13:12 -0600
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wRRV7LY7NUeQGEoC"
-Content-Disposition: inline
-In-Reply-To: <20160613114713.GA9544@localhost.localdomain>
+In-Reply-To: <20160606084500.GW26360@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sakari,
 
---wRRV7LY7NUeQGEoC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 06/06/2016 02:45 AM, Sakari Ailus wrote:
+> Hi Mauro,
+> 
+> On Sat, May 07, 2016 at 12:12:09PM -0300, Mauro Carvalho Chehab wrote:
+>> struct media_devnode is currently embedded at struct media_device.
+>>
+>> While this works fine during normal usage, it leads to a race
+>> condition during devnode unregister. the problem is that drivers
+>> assume that, after calling media_device_unregister(), the struct
+>> that contains media_device can be freed. This is not true, as it
+>> can't be freed until userspace closes all opened /dev/media devnodes.
+>>
+>> In other words, if the media devnode is still open, and media_device
+>> gets freed, any call to an ioctl will make the core to try to access
+>> struct media_device, with will cause an use-after-free and even GPF.
+>>
+>> Fix this by dynamically allocating the struct media_devnode and only
+>> freeing it when it is safe.
+> 
+> A few general comments on the patch --- I agree we've had the problem from
+> the day one, but it's really started showing up recently. I agree with the
+> taken approach of separating the lifetimes of both media device and the
+> devnode. However, I don't think the patch as such is enough.
 
-On Mon, Jun 13, 2016 at 01:47:13PM +0200, Richard Cochran wrote:
-> Henrik,
+It is more like, we started actively testing for this problem. I added a new
+test under selftests/media for this problem. Laurent brought this up at our
+Finland media summit and I have been looking to solve this since then starting
+with writing a test to reliably reproduce the problem.
 
-Hi Richard,
+You are right that this patch alone isn't enough and I sent in another patch that
+sets cdev kref parent to media_devnode struct device kref.
 
-> On Sun, Jun 12, 2016 at 01:01:28AM +0200, Henrik Austad wrote:
-> > There are at least one AVB-driver (the AV-part of TSN) in the kernel
-> > already,
->=20
-> Which driver is that?
+https://patchwork.linuxtv.org/patch/34201/
 
-drivers/net/ethernet/renesas/
+> 
+> For one, there are some issue that remain. In particular, access to the data
+> structures (i.e. media_device and media_devnode) aren't serialised: the
+> IOCTL or a system call passes media-devnode framework asynchronously with a
+> possible unregister() call coming from media_device_unregister() (in
+> media-device.c). This may, unless I'm mistaken, to the following sequence:
+> 
+> process 1				process 2
+> fd = open(/dev/media0)
+> 
+> 					media_device_unregister()
+> 						(things are being cleaned up
+> 						here but the devnode isn't
+> 						unregistered yet)
+> 					...
+> ioctl(fd, ...)
+> __media_ioctl()
+> media_devnode_is_registered()
+> 	(returns true here)
+> 					...
+> 					media_devnode_unregister()
+> 					...
+> 					(driver releases the media device
+> 					memory)
+> 
+> media_device_ioctl()
+> 	(By this point
+> 	devnode->media_dev does not
+> 	point to allocated memory.
+> 	Bad things will happen here.)
+> 
+> 
+> You could try to serialise the operations. I wonder how ugly that might
+> be, and I'm not sure this would be a workable approach.
 
-> > however this driver aims to solve a wider scope as TSN can do
-> > much more than just audio. A very basic ALSA-driver is added to the end
-> > that allows you to play music between 2 machines using aplay in one end
-> > and arecord | aplay on the other (some fiddling required) We have plans
-> > for doing the same for v4l2 eventually (but there are other fishes to
-> > fry first). The same goes for a TSN_SOCK type approach as well.
->=20
-> Please, no new socket type for this.
+I don't believe this problem can be solved with serializing operations.
+media_devnode_is_registered() relies on media devnode to be valid until
+the corresponding close is done.
 
-The idea was to create a tsn-driver and then allow userspace to use it=20
-either for media or for whatever else they'd like - and then a socket made=
-=20
-sense. Or so I thought :)
+We have:
 
-What is the rationale for no new sockets? To avoid cluttering? or do=20
-sockets have a drawback I'm not aware of?
+struct media_device embedding struct media_devnode and media_devnode
+embeds cdev. Each one of these have their own refcounts. media_device
+can be released even when the cdev is busy. When media_device is released,
+media_devnode goes away. The only sure way to ensure media_devnode sticks
+around is by dynamically allocating it. This decouples media_devnode life
+time management from media_device management. Granted media_devnode is tied
+to media_device, but by decoupling, we make the media_devnode_is_registered()
+safe even when media_device is released.
 
-> > What remains
-> > - tie to (g)PTP properly, currently using ktime_get() for presentation
-> >   time
-> > - get time from shim into TSN and vice versa
->=20
-> ... and a whole lot more, see below.
->=20
-> > - let shim create/manage buffer
->=20
-> (BTW, shim is a terrible name for that.)
+The next step is coupling media_devnode cdev lifetime with media_devnode
+lifetime, by setting devnode strucr device kobj as the cdev kobj parent.
+Please see the following patch I sent out:
 
-So something thin that is placed between to subystems should rather be=20
-called.. flimsy? The point of the name was to indicate that it glued 2=20
-pieces together. If you have a better suggestion, I'm all ears.
+https://patchwork.linuxtv.org/patch/34201/
 
-> [sigh]
->=20
-> People have been asking me about TSN and Linux, and we've made some
-> thoughts about it.  The interest is there, and so I am glad to see
-> discussion on this topic.
+This patch ensures devnode isn't released until the last application
+closes the device and the last cdev kobj parent is released.
 
-I'm not aware of any such discussions, could you point me to where TSN has=
-=20
-been discussed, it would be nice to see other peoples thought on the matter=
-=20
-(which was one of the ideas behind this series in the first place)
+> 
+> Secondly, a dependency is created from media devnode (i.e. media devnode
+> becomes aware of the media device). This is against the original design of
+> the two, as the media devnode was intended for other kinds of device nodes
+> as well and is more generic than media device. I'm not necessarily arguing
+> we have to keep it this way (as media devnode is only used by media device),
+> but if we're not keeping it then it'd make sense to unify the two to keep it
+> clean.
 
-> Having said that, your series does not even begin to address the real
-> issues.=20
+Unless there is a string reason to not make media devnode aware of the media
+device, this is a good direction. As such, our current design is not ideal.
+media devnode isn't aware of the structure its life depends on. :)
 
-Well, in all honesty, I did say so :) It is marked as "very-RFC", and not=
-=20
-for being included in the kernel as-is. I also made a short list of the=20
-most crucial bits missing.
+> 
+> 
+> Have you thought about taking a reference to the said structs (by the means
+> of kref) where one is acquired?
+> 
+> That way, we should be able to rather easily keep around everything that's
+> needed until the last remaining user has gone away: opening a file handle
+> should get a reference to both media device and media devnode as well as
+> registering them (media_device_register() and media_devnode_register()).
 
-I know there are real issues, but solving these won't matter if you don't=
-=20
-have anything useful to do with it. I decided to start by adding a thin=20
-ALSA-driver and then continue to work with the kernel infrastructure.=20
-Having something that works-ish makes it a lot easier to test and get=20
-others interested in, especially when you are not deeply involved in a=20
-subsystem.
+Please see above. The patch I sent out does this exactly. Decoupling devnode
+from media_device structure is necessary to avoid multiple concurrent lifetimes.
 
-At one point you get to where you need input from other more intimate with=
-=20
-then inner workings of the different subsystems to see how things should be=
-=20
-created without making too much of a mess. So where we are :)
+I do think, this is a good direction for us to go. I also have media device
+allocator patch API out and reviewed which is based on these two patches and
+it is simple and clean as I could rely on this problem being addressed with
+these two patches.
 
-My primary motivation was to
-a) gather feedback (which you have provided, and for which I am very=20
-   grateful)
-b) get the discussion going on how/if TSN should be added to the kernel
-
-> I did not review the patches too carefully (because the
-> important stuff is missing), but surely configfs is the wrong
-> interface for this.=20
-
-Why is configfs wrong?
-
-Unless you want to implement discovery and enumeration and srp-negotiation=
-=20
-in the kernel, you need userspace to handle this. Once userspace has done=
-=20
-all that (found priority-codes, streamIDs, vlanIDs and all the required=20
-bits), then userspace can create a new link. For that I find ConfigFS to be=
-=20
-quite useful and up to the task.
-
-In my opinion, it also makes for a much tidier and saner interface than=20
-some obscure dark-magic ioctl()
-
-> In the end, we will be able to support TSN using
-> the existing networking and audio interfaces, adding appropriate
-> extensions.
-
-I surely hope so, but as I'm not deep into the networking part of the=20
-kernel finding those appropriate extensions is hard - which is why we=20
-started writing a standalone module-
-
-> Your patch features a buffer shared by networking and audio.  This
-> isn't strictly necessary for TSN, and it may be harmful.=20
-
-At one stage, data has to flow in/out of the network, and whoever's using=
-=20
-TSN probably need to store data somewhere as well, so you need some form of=
-=20
-buffering at one place in the path the data flows through.
-
-That being said, one of the bits on my plate is to remove the=20
-"TSN-hosted-buffer" and let TSN read/write data via the shim_ops. What the=
-=20
-best set of functions where are, remain to be seen, but it should provide a=
-=20
-way to move data from either a single frame or a "few frames" to the shime=
-=20
-(err.. <descriptive word for a thin layer slapped between 2 largers=20
-subsystems in the kernel> ;)
-
-> The
-> Listeners are supposed to calculate the delay from frame reception to
-> the DA conversion.  They can easily include the time needed for a user
-> space program to parse the frames, copy (and combine/convert) the
-> data, and re-start the audio transfer.  A flexible TSN implementation
-> will leave all of the format and encoding task to the userland.  After
-> all, TSN will some include more that just AV data, as you know.
-
-Yes, or a ALSA-driver capable of same task. But yes, you need a way to=20
-propagate the presentation-time (and maybe a timestamp for when a frame was=
-=20
-received) to the final destination of the samples. As far as I've been able=
-=20
-to tell, this is not possible in the kernel at the moment.
-
-> Lets take a look at the big picture.  One aspect of TSN is already
-> fully supported, namely the gPTP.  Using the linuxptp user stack and a
-> modern kernel, you have a complete 802.1AS-2011 solution.
-
-Yes, I thought so, which is also why I have put that to the side and why=20
-I'm using ktime_get() for timestamps at the moment. There's also the issue=
-=20
-of hooking the time into ALSA/V4L2
-
-> Here is what is missing to support audio TSN:
->=20
-> * User Space
->=20
-> 1. A proper userland stack for AVDECC, MAAP, FQTSS, and so on.  The
->    OpenAVB project does not offer much beyond simple examples.
-
-yes, I've noticed. I've refered to an imaginary 'tsnctl' in the code, which=
-=20
-is supposed to be a "userspace catch-all for TSN-housekeeping". You=20
-probably need a tsnd or similar as well to send keepalive frames etc.
-
-> 2. A user space audio application that puts it all together, making
->    use of the services in #1, the linuxptp gPTP service, the ALSA
->    services, and the network connections.  This program will have all
->    the knowledge about packet formats, AV encodings, and the local HW
->    capabilities.  This program cannot yet be written, as we still need
->    some kernel work in the audio and networking subsystems.
-
-Why? the whole point should be to make it as easy for userspace as=20
-possible. If you need to tailor each individual media-appliation to use=20
-AVB, it is not going to be very useful outside pro-Audio. Sure, there will=
-=20
-be challenges, but one key element here should be to *not* require=20
-upgrading every single media application.
-
-Then, back to the suggestion of adding a TSN_SOCKET (which you didn't like,=
-=20
-but can we agree on a term "raw interface to TSN", and mode of transport=20
-can be defined later? ), was to let those applications that are TSN-aware=
-=20
-to do what they need to do, whether it is controlling robots or media=20
-streams.
+thanks,
+-- Shuah
 
 
-> * Kernel Space
->=20
-> 1. Providing frames with a future transmit time.  For normal sockets,
->    this can be in the CMESG data.  For mmap'ed buffers, we will need a
->    new format.  (I think Arnd is working on a new layout.)
-
-Ah, I was unaware of this, both CMESG and mmap buffers.
-
-What is the accuracy of deferred transmit? If you have a class A stream,=20
-you push out a new frame every 125 us, you may end up with=20
-accuracy-constraints lower than that if you want to be able to state "send=
-=20
-frame X at time Y".
-
-> 2. Time based qdisc for transmitted frames.  For MACs that support
->    this (like the i210), we only have to place the frame into the
->    correct queue.  For normal HW, we want to be able to reserve a time
->    window in which non-TSN frames are blocked.  This is some work, but
->    in the end it should be a generic solution that not only works
->    "perfectly" with TSN HW but also provides best effort service using
->    any NIC.
-
-Yes, that would be very nice, and something like that is the ultimate goal=
-=20
-of the netdev_ops I added, even though it is a far way away from that now.
-
-> 3. ALSA support for tunable AD/DA clocks.  The rate of the Listener's
->    DA clock must match that of the Talker and the other Listeners.
->    Either you adjust it in HW using a VCO or similar, or you do
->    adaptive sample rate conversion in the application. (And that is
->    another reason for *not* having a shared kernel buffer.)  For the
->    Talker, either you adjust the AD clock to match the PTP time, or
->    you measure the frequency offset.
-
-Yes, this is something missing that must be adressed. And yes, I know=20
-sharing a buffer the way the alsa-shim is currently doing is bad.
-
-> 4. ALSA support for time triggered playback.  The patch series
->    completely ignore the critical issue of media clock recovery.  The
->    Listener must buffer the stream in order to play it exactly at a
->    specified time.  It cannot simply send the stream ASAP to the audio
->    HW, because some other Listener might need longer.  AFAICT, there
->    is nothing in ALSA that allows you to say, sample X should be
->    played at time Y.
->=20
-> These are some ideas about implementing TSN.  Maybe some of it is
-> wrong (especially about ALSA), but we definitely need a proper design
-> to get the kernel parts right.  There is plenty of work to do, but we
-> really don't need some hacky, in-kernel buffer with hard coded audio
-> formats.
-
-Well, the hard-coded audio format you refer to is placed with the avb_alsa=
-=20
-shim, avtp_du is part of the actual TSN-header so that is not audio-only.=
-=20
-And yes, it must be separated.
-
-Apart from requiring media-applications to know about AVB, I don't think=20
-we really disagree on anything. As I said, the main motivation for=20
-submitting this now was to kick off a discussion, get some critical=20
-response (your email was awesome - thanks!) and start steering the=20
-development in the right direction.
-
-Regards,
-
---=20
-Henrik Austad
-
---wRRV7LY7NUeQGEoC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlderosACgkQ6k5VT6v45llX+gCg6ZYf4zcATylvYG2RDhbUv/k5
-OzwAoNSUTIRUKWqxXGf1Bb8tDg8meaSn
-=Z1nI
------END PGP SIGNATURE-----
-
---wRRV7LY7NUeQGEoC--
