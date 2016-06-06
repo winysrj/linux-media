@@ -1,111 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38390 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932853AbcFTPNj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 11:13:39 -0400
-Subject: Re: [PATCH 1/6] v4l: Correct the ordering of LSBs of the 10-bit raw
- packed formats
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-References: <1464353080-18300-1-git-send-email-sakari.ailus@linux.intel.com>
- <1464353080-18300-2-git-send-email-sakari.ailus@linux.intel.com>
-Cc: g.liakhovetski@gmx.de,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <576807DC.1060902@xs4all.nl>
-Date: Mon, 20 Jun 2016 17:12:28 +0200
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:35807 "EHLO
+	mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751973AbcFFOij (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2016 10:38:39 -0400
+Date: Mon, 6 Jun 2016 09:38:37 -0500
+From: Rob Herring <robh@kernel.org>
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	mchehab@osg.samsung.com, CARLOS.PALMINHA@synopsys.com
+Subject: Re: [PATCH 1/2] Add OV5647 device tree documentation
+Message-ID: <20160606143837.GA22997@rob-hp-laptop>
+References: <cover.1464966020.git.roliveir@synopsys.com>
+ <4221809485a46dbf12b883a8207784553fd776a3.1464966020.git.roliveir@synopsys.com>
 MIME-Version: 1.0
-In-Reply-To: <1464353080-18300-2-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4221809485a46dbf12b883a8207784553fd776a3.1464966020.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/27/2016 02:44 PM, Sakari Ailus wrote:
-> The 10-bit packed raw bayer format documented that the data of the first
-> pixel of a four-pixel group was found in the first byte and the two
-> highest bits of the fifth byte. This was not entirely correct. The two
-> bits in the fifth byte are the two lowest bits. The second pixel occupies
-> the second byte and third and fourth least significant bits and so on.
-
-This is used by the uvc driver. Has this been verified against a UVC webcam
-that supports this format? Laurent, do you have such a device?
-
-Just in case UVC actually supports this as it is documented today.
-
-Regards,
-
-	Hans
-
+On Fri, Jun 03, 2016 at 06:36:40PM +0100, Ramiro Oliveira wrote:
+> From: roliveir <roliveir@synopsys.com>
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
 > ---
->  .../DocBook/media/v4l/pixfmt-srggb10p.xml          | 32 +++++++++++-----------
->  1 file changed, 16 insertions(+), 16 deletions(-)
+>  .../devicetree/bindings/media/i2c/ov5647.txt          | 19 +++++++++++++++++++
+>  1 file changed, 19 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
 > 
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
-> index a8cc102..747822b 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
-> @@ -47,10 +47,10 @@
->  		  <entry>G<subscript>01high</subscript></entry>
->  		  <entry>B<subscript>02high</subscript></entry>
->  		  <entry>G<subscript>03high</subscript></entry>
-> -		  <entry>B<subscript>00low</subscript>(bits 7--6)
-> -			 G<subscript>01low</subscript>(bits 5--4)
-> -			 B<subscript>02low</subscript>(bits 3--2)
-> -			 G<subscript>03low</subscript>(bits 1--0)
-> +		  <entry>G<subscript>03low</subscript>(bits 7--6)
-> +			 B<subscript>02low</subscript>(bits 5--4)
-> +			 G<subscript>01low</subscript>(bits 3--2)
-> +			 B<subscript>00low</subscript>(bits 1--0)
->  		  </entry>
->  		</row>
->  		<row>
-> @@ -59,10 +59,10 @@
->  		  <entry>R<subscript>11high</subscript></entry>
->  		  <entry>G<subscript>12high</subscript></entry>
->  		  <entry>R<subscript>13high</subscript></entry>
-> -		  <entry>G<subscript>10low</subscript>(bits 7--6)
-> -			 R<subscript>11low</subscript>(bits 5--4)
-> -			 G<subscript>12low</subscript>(bits 3--2)
-> -			 R<subscript>13low</subscript>(bits 1--0)
-> +		  <entry>R<subscript>13low</subscript>(bits 7--6)
-> +			 G<subscript>12low</subscript>(bits 5--4)
-> +			 R<subscript>11low</subscript>(bits 3--2)
-> +			 G<subscript>10low</subscript>(bits 1--0)
->  		  </entry>
->  		</row>
->  		<row>
-> @@ -71,10 +71,10 @@
->  		  <entry>G<subscript>21high</subscript></entry>
->  		  <entry>B<subscript>22high</subscript></entry>
->  		  <entry>G<subscript>23high</subscript></entry>
-> -		  <entry>B<subscript>20low</subscript>(bits 7--6)
-> -			 G<subscript>21low</subscript>(bits 5--4)
-> -			 B<subscript>22low</subscript>(bits 3--2)
-> -			 G<subscript>23low</subscript>(bits 1--0)
-> +		  <entry>G<subscript>23low</subscript>(bits 7--6)
-> +			 B<subscript>22low</subscript>(bits 5--4)
-> +			 G<subscript>21low</subscript>(bits 3--2)
-> +			 B<subscript>20low</subscript>(bits 1--0)
->  		  </entry>
->  		</row>
->  		<row>
-> @@ -83,10 +83,10 @@
->  		  <entry>R<subscript>31high</subscript></entry>
->  		  <entry>G<subscript>32high</subscript></entry>
->  		  <entry>R<subscript>33high</subscript></entry>
-> -		  <entry>G<subscript>30low</subscript>(bits 7--6)
-> -			 R<subscript>31low</subscript>(bits 5--4)
-> -			 G<subscript>32low</subscript>(bits 3--2)
-> -			 R<subscript>33low</subscript>(bits 1--0)
-> +		  <entry>R<subscript>33low</subscript>(bits 7--6)
-> +			 G<subscript>32low</subscript>(bits 5--4)
-> +			 R<subscript>31low</subscript>(bits 3--2)
-> +			 G<subscript>30low</subscript>(bits 1--0)
->  		  </entry>
->  		</row>
->  	      </tbody>
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+> new file mode 100644
+> index 0000000..5e4aa49
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+> @@ -0,0 +1,19 @@
+> +Omnivision OV5657 raw image sensor
+
+Still 5657?
+
+> +---------------------------------
+> +
+> +OV5657 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
+> +and CCI (I2C compatible) control bus.
+> +
+> +Required properties:
+> +
+> +- compatible	: "ov5647";
+
+Needs vendor prefix?
+
+> +- reg		: I2C slave address of the sensor;
+
+What happened to the clocks property. I'm pretty sure the driver always 
+needs to know the input clock freq.
+
+> +
+> +The common video interfaces bindings (see video-interfaces.txt) should be
+> +used to specify link to the image data receiver. The OV5647 device
+> +node should contain one 'port' child node with an 'endpoint' subnode.
+> +
+> +Following properties are valid for the endpoint node:
+> +
+> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
+> +  video-interfaces.txt.  The sensor supports only two data lanes.
+> -- 
+> 2.8.1
+> 
 > 
