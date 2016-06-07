@@ -1,47 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59593 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:50733 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753138AbcFOMJp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2016 08:09:45 -0400
-Subject: Re: [PATCH] [media] v4l2-ioctl.c: fix warning due wrong check in
- v4l_cropcap()
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-kernel@vger.kernel.org
-References: <1465935497-30002-1-git-send-email-javier@osg.samsung.com>
- <5760F114.6010809@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media@vger.kernel.org
+	id S1423389AbcFGWdJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jun 2016 18:33:09 -0400
+Subject: Re: [PATCH 1/3] ARM: dts: exynos: replace hardcoded reserved memory
+ ranges with auto-allocated ones
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <2241b7f4-4565-d17b-10f3-5c27cd9985da@osg.samsung.com>
+ <1465301018-9671-1-git-send-email-m.szyprowski@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <84124307-c08c-56b9-308e-9ac0fb83696c@osg.samsung.com>
-Date: Wed, 15 Jun 2016 08:09:37 -0400
+Message-ID: <0b4685cb-7fae-2dca-8136-4949a40bc3e9@osg.samsung.com>
+Date: Tue, 7 Jun 2016 18:32:59 -0400
 MIME-Version: 1.0
-In-Reply-To: <5760F114.6010809@xs4all.nl>
+In-Reply-To: <1465301018-9671-1-git-send-email-m.szyprowski@samsung.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+Hello Marek,
 
-On 06/15/2016 02:09 AM, Hans Verkuil wrote:
-> On 06/14/2016 10:18 PM, Javier Martinez Canillas wrote:
->> Commit 95dd7b7e30f3 ("[media] v4l2-ioctl.c: improve cropcap compatibility
->> code") tried to check if both .vidioc_cropcap and .vidioc_g_selection are
->> NULL ops and warn if that was the case, but unfortunately the logic isn't
->> correct and instead checks for .vidioc_cropcap == NULL twice.
->>
->> So the v4l2 core will print the following warning if a driver has the ops
->> .vidioc_g_selection set but no .vidioc_cropcap callback:
+On 06/07/2016 08:03 AM, Marek Szyprowski wrote:
+> Generic reserved memory regions bindings allow to automatically allocate
+> region of given parameters (alignment and size), so use this feature
+> instead of the hardcoded values, which had no dependency on the real
+> hardware. This patch also increases "left" region from 8MiB to 16MiB to
+> make the codec really usable with nowadays steams (with 8MiB reserved
+> region it was not even possible to decode 480p H264 video).
 > 
-> This fix is already queued up for 4.7.
->
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
 
-Thanks, and sorry for missing that you already had a fix queued for this.
- 
-> Regards,
-> 
-> 	Hans
-> 
->>
+The patch looks good to me and I've also tested it on an Exynos5800 Peach
+Pi Chromebook and an Exynos5420 Odroid XU4 board.
+
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
 Best regards,
 -- 
