@@ -1,561 +1,738 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58024 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751661AbcFRPiE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jun 2016 11:38:04 -0400
-Date: Sat, 18 Jun 2016 17:37:59 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org
-Subject: [PATCHv4] support for AD5820 camera auto-focus coil
-Message-ID: <20160618153759.GA15595@amd>
-References: <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
- <20160602193027.GB7984@amd>
- <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
- <20160605190716.GA11321@amd>
- <575512E5.5030000@gmail.com>
- <20160611220654.GC26360@valkosipuli.retiisi.org.uk>
- <20160612084811.GA27446@amd>
- <20160612112253.GD26360@valkosipuli.retiisi.org.uk>
- <20160613191753.GA17459@amd>
- <20160617213545.GH24980@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160617213545.GH24980@valkosipuli.retiisi.org.uk>
+Received: from mail.kapsi.fi ([217.30.184.167]:45535 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750818AbcFGFzb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jun 2016 01:55:31 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] af9035: fix logging
+Date: Tue,  7 Jun 2016 08:55:11 +0300
+Message-Id: <1465278911-27964-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds support for AD5820 autofocus coil, found for example in
-Nokia N900 smartphone.
+Remove __func__ and KBUILD_MODNAME from logging formatters and pass
+USB interface device instead, so logging can be done correctly.
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-v2: simple cleanups, fix error paths, simplify probe
+ drivers/media/usb/dvb-usb-v2/af9035.c | 193 +++++++++++++++++-----------------
+ 1 file changed, 97 insertions(+), 96 deletions(-)
 
-v3: more cleanups, remove printk, add include
-
-v4: add uapi definitions
-
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 993dc50..77313a1 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -279,6 +279,13 @@ config VIDEO_ML86V7667
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ml86v7667.
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index a8ab592..eabede4 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -49,6 +49,7 @@ static int af9035_ctrl_msg(struct dvb_usb_device *d, struct usb_req *req)
+ #define CHECKSUM_LEN 2
+ #define USB_TIMEOUT 2000
+ 	struct state *state = d_to_priv(d);
++	struct usb_interface *intf = d->intf;
+ 	int ret, wlen, rlen;
+ 	u16 checksum, tmp_checksum;
  
-+config VIDEO_AD5820
-+	tristate "AD5820 lens voice coil support"
-+	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-+	---help---
-+	  This is a driver for the AD5820 camera lens voice coil.
-+	  It is used for example in Nokia N900 (RX-51).
-+
- config VIDEO_SAA7110
- 	tristate "Philips SAA7110 video decoder"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index 94f2c99..34434ae 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -19,6 +20,7 @@ obj-$(CONFIG_VIDEO_SAA717X) += saa717x.o
- obj-$(CONFIG_VIDEO_SAA7127) += saa7127.o
- obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
- obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
-+obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
- obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
- obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
- obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
-diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
-new file mode 100644
-index 0000000..a1be956
---- /dev/null
-+++ b/drivers/media/i2c/ad5820.c
-@@ -0,0 +1,430 @@
-+/*
-+ * drivers/media/i2c/ad5820.c
-+ *
-+ * AD5820 DAC driver for camera voice coil focus.
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Copyright (C) 2007 Texas Instruments
-+ * Copyright (C) 2016 Pavel Machek <pavel@ucw.cz>
-+ *
-+ * Contact: Tuukka Toivonen <tuukkat76@gmail.com>
-+ *	    Sakari Ailus <sakari.ailus@iki.fi>
-+ *
-+ * Based on af_d88.c by Texas Instruments.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+
-+#include <linux/errno.h>
-+#include <linux/i2c.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/regulator/consumer.h>
-+
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
-+
-+#include <uapi/linux/ad5820.h>
-+
-+#define AD5820_NAME		"ad5820"
-+
-+/* Register definitions */
-+#define AD5820_POWER_DOWN		(1 << 15)
-+#define AD5820_DAC_SHIFT		4
-+#define AD5820_RAMP_MODE_LINEAR		(0 << 3)
-+#define AD5820_RAMP_MODE_64_16		(1 << 3)
-+
-+#define CODE_TO_RAMP_US(s)	((s) == 0 ? 0 : (1 << ((s) - 1)) * 50)
-+#define RAMP_US_TO_CODE(c)	fls(((c) + ((c)>>1)) / 50)
-+
-+#define to_ad5820_device(sd)	container_of(sd, struct ad5820_device, subdev)
-+
-+struct ad5820_device {
-+	struct v4l2_subdev subdev;
-+	struct ad5820_platform_data *platform_data;
-+	struct regulator *vana;
-+
-+	struct v4l2_ctrl_handler ctrls;
-+	u32 focus_absolute;
-+	u32 focus_ramp_time;
-+	u32 focus_ramp_mode;
-+
-+	struct mutex power_lock;
-+	int power_count;
-+
-+	int standby : 1;
-+};
-+
-+static int ad5820_write(struct ad5820_device *coil, u16 data)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&coil->subdev);
-+	struct i2c_msg msg;
-+	int r;
-+
-+	if (!client->adapter)
-+		return -ENODEV;
-+
-+	data = cpu_to_be16(data);
-+	msg.addr  = client->addr;
-+	msg.flags = 0;
-+	msg.len   = 2;
-+	msg.buf   = (u8 *)&data;
-+
-+	r = i2c_transfer(client->adapter, &msg, 1);
-+	if (r < 0) {
-+		dev_err(&client->dev, "write failed, error %d\n", r);
-+		return r;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * Calculate status word and write it to the device based on current
-+ * values of V4L2 controls. It is assumed that the stored V4L2 control
-+ * values are properly limited and rounded.
-+ */
-+static int ad5820_update_hw(struct ad5820_device *coil)
-+{
-+	u16 status;
-+
-+	status = RAMP_US_TO_CODE(coil->focus_ramp_time);
-+	status |= coil->focus_ramp_mode
-+		? AD5820_RAMP_MODE_64_16 : AD5820_RAMP_MODE_LINEAR;
-+	status |= coil->focus_absolute << AD5820_DAC_SHIFT;
-+
-+	if (coil->standby)
-+		status |= AD5820_POWER_DOWN;
-+
-+	return ad5820_write(coil, status);
-+}
-+
-+/*
-+ * Power handling
-+ */
-+static int ad5820_power_off(struct ad5820_device *coil, int standby)
-+{
-+	int ret = 0, ret2;
-+
-+	/*
-+	 * Go to standby first as real power off my be denied by the hardware
-+	 * (single power line control for both coil and sensor).
-+	 */
-+	if (standby) {
-+		coil->standby = 1;
-+		ret = ad5820_update_hw(coil);
-+	}
-+
-+	ret2 = regulator_disable(coil->vana);
-+	if (ret)
-+		return ret;
-+	return ret2;
-+}
-+
-+static int ad5820_power_on(struct ad5820_device *coil, int restore)
-+{
-+	int ret;
-+
-+	ret = regulator_enable(coil->vana);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (restore) {
-+		/* Restore the hardware settings. */
-+		coil->standby = 0;
-+		ret = ad5820_update_hw(coil);
-+		if (ret)
-+			goto fail;
-+	}
-+	return 0;
-+
-+fail:
-+	coil->standby = 1;
-+	regulator_disable(coil->vana);
-+
-+	return ret;
-+}
-+
-+/*
-+ * V4L2 controls
-+ */
-+static int ad5820_set_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct ad5820_device *coil =
-+		container_of(ctrl->handler, struct ad5820_device, ctrls);
-+	u32 code;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_FOCUS_ABSOLUTE:
-+		coil->focus_absolute = ctrl->val;
-+		return ad5820_update_hw(coil);
-+
-+	case V4L2_CID_AD5820_RAMP_TIME:
-+		code = RAMP_US_TO_CODE(ctrl->val);
-+		ctrl->val = CODE_TO_RAMP_US(code);
-+		coil->focus_ramp_time = ctrl->val;
-+		break;
-+
-+	case V4L2_CID_AD5820_RAMP_MODE:
-+		coil->focus_ramp_mode = ctrl->val;
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops ad5820_ctrl_ops = {
-+	.s_ctrl = ad5820_set_ctrl,
-+};
-+
-+static const char * const ad5820_focus_menu[] = {
-+	"Linear ramp",
-+	"64/16 ramp",
-+};
-+
-+static const struct v4l2_ctrl_config ad5820_ctrls[] = {
-+	{
-+		.ops		= &ad5820_ctrl_ops,
-+		.id		= V4L2_CID_AD5820_RAMP_TIME,
-+		.type		= V4L2_CTRL_TYPE_INTEGER,
-+		.name		= "Focus ramping time [us]",
-+		.min		= 0,
-+		.max		= 3200,
-+		.step		= 50,
-+		.def		= 0,
-+		.flags		= 0,
-+	},
-+	{
-+		.ops		= &ad5820_ctrl_ops,
-+		.id		= V4L2_CID_AD5820_RAMP_MODE,
-+		.type		= V4L2_CTRL_TYPE_MENU,
-+		.name		= "Focus ramping mode",
-+		.min		= 0,
-+		.max		= ARRAY_SIZE(ad5820_focus_menu),
-+		.step		= 0,
-+		.def		= 0,
-+		.flags		= 0,
-+		.qmenu		= ad5820_focus_menu,
-+	},
-+};
-+
-+
-+static int ad5820_init_controls(struct ad5820_device *coil)
-+{
-+	unsigned int i;
-+
-+	v4l2_ctrl_handler_init(&coil->ctrls, ARRAY_SIZE(ad5820_ctrls) + 1);
-+
-+	/*
-+	 * V4L2_CID_FOCUS_ABSOLUTE
-+	 *
-+	 * Minimum current is 0 mA, maximum is 100 mA. Thus, 1 code is
-+	 * equivalent to 100/1023 = 0.0978 mA. Nevertheless, we do not use [mA]
-+	 * for focus position, because it is meaningless for user. Meaningful
-+	 * would be to use focus distance or even its inverse, but since the
-+	 * driver doesn't have sufficiently knowledge to do the conversion, we
-+	 * will just use abstract codes here. In any case, smaller value = focus
-+	 * position farther from camera. The default zero value means focus at
-+	 * infinity, and also least current consumption.
-+	 */
-+	v4l2_ctrl_new_std(&coil->ctrls, &ad5820_ctrl_ops,
-+			  V4L2_CID_FOCUS_ABSOLUTE, 0, 1023, 1, 0);
-+
-+	/* V4L2_CID_TEST_PATTERN and V4L2_CID_MODE_* */
-+	for (i = 0; i < ARRAY_SIZE(ad5820_ctrls); ++i)
-+		v4l2_ctrl_new_custom(&coil->ctrls, &ad5820_ctrls[i], NULL);
-+
-+	if (coil->ctrls.error)
-+		return coil->ctrls.error;
-+
-+	coil->focus_absolute = 0;
-+	coil->focus_ramp_time = 0;
-+	coil->focus_ramp_mode = 0;
-+
-+	coil->subdev.ctrl_handler = &coil->ctrls;
-+
-+	return 0;
-+}
-+
-+/*
-+ * V4L2 subdev operations
-+ */
-+static int ad5820_registered(struct v4l2_subdev *subdev)
-+{
-+	struct ad5820_device *coil = to_ad5820_device(subdev);
-+
-+	return ad5820_init_controls(coil);
-+}
-+
-+static int
-+ad5820_set_power(struct v4l2_subdev *subdev, int on)
-+{
-+	struct ad5820_device *coil = to_ad5820_device(subdev);
-+	int ret = 0;
-+
-+	mutex_lock(&coil->power_lock);
-+
-+	/*
-+	 * If the power count is modified from 0 to != 0 or from != 0 to 0,
-+	 * update the power state.
-+	 */
-+	if (coil->power_count == !on) {
-+		ret = on ? ad5820_power_on(coil, 1) : ad5820_power_off(coil, 1);
-+		if (ret < 0)
-+			goto done;
-+	}
-+
-+	/* Update the power count. */
-+	coil->power_count += on ? 1 : -1;
-+	WARN_ON(coil->power_count < 0);
-+
-+done:
-+	mutex_unlock(&coil->power_lock);
-+	return ret;
-+}
-+
-+static int ad5820_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	return ad5820_set_power(sd, 1);
-+}
-+
-+static int ad5820_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	return ad5820_set_power(sd, 0);
-+}
-+
-+static const struct v4l2_subdev_core_ops ad5820_core_ops = {
-+	.s_power = ad5820_set_power,
-+};
-+
-+static const struct v4l2_subdev_ops ad5820_ops = {
-+	.core = &ad5820_core_ops,
-+};
-+
-+static const struct v4l2_subdev_internal_ops ad5820_internal_ops = {
-+	.registered = ad5820_registered,
-+	.open = ad5820_open,
-+	.close = ad5820_close,
-+};
-+
-+/*
-+ * I2C driver
-+ */
-+#ifdef CONFIG_PM
-+
-+static int ad5820_suspend(struct device *dev)
-+{
-+	struct i2c_client *client = container_of(dev, struct i2c_client, dev);
-+	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-+	struct ad5820_device *coil = to_ad5820_device(subdev);
-+
-+	if (!coil->power_count)
-+		return 0;
-+
-+	return ad5820_power_off(coil, 0);
-+}
-+
-+static int ad5820_resume(struct device *dev)
-+{
-+	struct i2c_client *client = container_of(dev, struct i2c_client, dev);
-+	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-+	struct ad5820_device *coil = to_ad5820_device(subdev);
-+
-+	if (!coil->power_count)
-+		return 0;
-+
-+	return ad5820_power_on(coil, 1);
-+}
-+
-+#else
-+
-+#define ad5820_suspend	NULL
-+#define ad5820_resume	NULL
-+
-+#endif /* CONFIG_PM */
-+
-+static int ad5820_probe(struct i2c_client *client,
-+			const struct i2c_device_id *devid)
-+{
-+	struct ad5820_device *coil;
-+	int ret;
-+
-+	coil = devm_kzalloc(&client->dev, sizeof(*coil), GFP_KERNEL);
-+	if (!coil)
-+		return -ENOMEM;
-+
-+	coil->vana = devm_regulator_get(&client->dev, "VANA");
-+	if (IS_ERR(coil->vana)) {
-+		ret = PTR_ERR(coil->vana);
-+		if (ret != -EPROBE_DEFER)
-+			dev_err(&client->dev, "could not get regulator for vana\n");
-+		return ret;
-+	}
-+	
-+	mutex_init(&coil->power_lock);
-+
-+	v4l2_i2c_subdev_init(&coil->subdev, client, &ad5820_ops);
-+	coil->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	coil->subdev.internal_ops = &ad5820_internal_ops;
-+	strcpy(coil->subdev.name, "ad5820 focus");
-+
-+	ret = media_entity_pads_init(&coil->subdev.entity, 0, NULL);
-+	if (ret < 0)
-+		goto cleanup2;
-+
-+	ret = v4l2_async_register_subdev(&coil->subdev);
-+	if (ret < 0)
-+		goto cleanup;
-+
-+	return ret;
-+
-+cleanup2:
-+	mutex_destroy(&coil->power_lock);
-+cleanup:
-+	media_entity_cleanup(&coil->subdev.entity);
-+	return ret;
-+}
-+
-+static int __exit ad5820_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-+	struct ad5820_device *coil = to_ad5820_device(subdev);
-+
-+	v4l2_device_unregister_subdev(&coil->subdev);
-+	v4l2_ctrl_handler_free(&coil->ctrls);
-+	media_entity_cleanup(&coil->subdev.entity);
-+	mutex_destroy(&coil->power_lock);
-+	return 0;
-+}
-+
-+static const struct i2c_device_id ad5820_id_table[] = {
-+	{ AD5820_NAME, 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, ad5820_id_table);
-+
-+static SIMPLE_DEV_PM_OPS(ad5820_pm, ad5820_suspend, ad5820_resume);
-+
-+static struct i2c_driver ad5820_i2c_driver = {
-+	.driver		= {
-+		.name	= AD5820_NAME,
-+		.pm	= &ad5820_pm,
-+	},
-+	.probe		= ad5820_probe,
-+	.remove		= __exit_p(ad5820_remove),
-+	.id_table	= ad5820_id_table,
-+};
-+
-+module_i2c_driver(ad5820_i2c_driver);
-+
-+MODULE_AUTHOR("Tuukka Toivonen");
-+MODULE_DESCRIPTION("AD5820 camera lens driver");
-+MODULE_LICENSE("GPL");
-diff --git a/include/uapi/linux/ad5820.h b/include/uapi/linux/ad5820.h
-new file mode 100644
-index 0000000..4e541e8
---- /dev/null
-+++ b/include/uapi/linux/ad5820.h
-@@ -0,0 +1,18 @@
-+/*
-+ * AD5820 DAC driver for camera voice coil focus.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ */
-+
-+#ifndef __LINUX_AD5820_H
-+#define __LINUX_AD5820_H
-+
-+#include <linux/v4l2-controls.h>
-+
-+/* Control IDs specific to the AD5820 driver as defined by V4L2 */
-+#define V4L2_CID_AD5820_RAMP_TIME	(V4L2_CID_AD5820_BASE + 0)
-+#define V4L2_CID_AD5820_RAMP_MODE	(V4L2_CID_AD5820_BASE + 1)
-+
-+#endif
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index b6a357a..015e90b 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -180,6 +181,10 @@ enum v4l2_colorfx {
-  * We reserve 16 controls for this driver. */
- #define V4L2_CID_USER_TC358743_BASE		(V4L2_CID_USER_BASE + 0x1080)
+@@ -57,8 +58,8 @@ static int af9035_ctrl_msg(struct dvb_usb_device *d, struct usb_req *req)
+ 	/* buffer overflow check */
+ 	if (req->wlen > (BUF_LEN - REQ_HDR_LEN - CHECKSUM_LEN) ||
+ 			req->rlen > (BUF_LEN - ACK_HDR_LEN - CHECKSUM_LEN)) {
+-		dev_err(&d->udev->dev, "%s: too much data wlen=%d rlen=%d\n",
+-				KBUILD_MODNAME, req->wlen, req->rlen);
++		dev_err(&intf->dev, "too much data wlen=%d rlen=%d\n",
++			req->wlen, req->rlen);
+ 		ret = -EINVAL;
+ 		goto exit;
+ 	}
+@@ -94,10 +95,8 @@ static int af9035_ctrl_msg(struct dvb_usb_device *d, struct usb_req *req)
+ 	checksum = af9035_checksum(state->buf, rlen - 2);
+ 	tmp_checksum = (state->buf[rlen - 2] << 8) | state->buf[rlen - 1];
+ 	if (tmp_checksum != checksum) {
+-		dev_err(&d->udev->dev,
+-				"%s: command=%02x checksum mismatch (%04x != %04x)\n",
+-				KBUILD_MODNAME, req->cmd, tmp_checksum,
+-				checksum);
++		dev_err(&intf->dev, "command=%02x checksum mismatch (%04x != %04x)\n",
++			req->cmd, tmp_checksum, checksum);
+ 		ret = -EIO;
+ 		goto exit;
+ 	}
+@@ -110,8 +109,8 @@ static int af9035_ctrl_msg(struct dvb_usb_device *d, struct usb_req *req)
+ 			goto exit;
+ 		}
  
-+/* The base for the ad5820 driver controls.
-+ * We reserve 16 controls for this driver. */
-+#define V4L2_CID_AD5820_BASE			(V4L2_CID_USER_BASE + 0x1090)
-+
- /* MPEG-class control IDs */
- /* The MPEG controls are applicable to all codec controls
-  * and the 'MPEG' part of the define is historical */
-
-
-
+-		dev_dbg(&d->udev->dev, "%s: command=%02x failed fw error=%d\n",
+-				__func__, req->cmd, state->buf[2]);
++		dev_dbg(&intf->dev, "command=%02x failed fw error=%d\n",
++			req->cmd, state->buf[2]);
+ 		ret = -EIO;
+ 		goto exit;
+ 	}
+@@ -122,20 +121,20 @@ static int af9035_ctrl_msg(struct dvb_usb_device *d, struct usb_req *req)
+ exit:
+ 	mutex_unlock(&d->usb_mutex);
+ 	if (ret < 0)
+-		dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++		dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+ /* write multiple registers */
+ static int af9035_wr_regs(struct dvb_usb_device *d, u32 reg, u8 *val, int len)
+ {
++	struct usb_interface *intf = d->intf;
+ 	u8 wbuf[MAX_XFER_SIZE];
+ 	u8 mbox = (reg >> 16) & 0xff;
+ 	struct usb_req req = { CMD_MEM_WR, mbox, 6 + len, wbuf, 0, NULL };
+ 
+ 	if (6 + len > sizeof(wbuf)) {
+-		dev_warn(&d->udev->dev, "%s: i2c wr: len=%d is too big!\n",
+-			 KBUILD_MODNAME, len);
++		dev_warn(&intf->dev, "i2c wr: len=%d is too big!\n", len);
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+@@ -198,6 +197,7 @@ static int af9035_add_i2c_dev(struct dvb_usb_device *d, const char *type,
+ {
+ 	int ret, num;
+ 	struct state *state = d_to_priv(d);
++	struct usb_interface *intf = d->intf;
+ 	struct i2c_client *client;
+ 	struct i2c_board_info board_info = {
+ 		.addr = addr,
+@@ -212,11 +212,10 @@ static int af9035_add_i2c_dev(struct dvb_usb_device *d, const char *type,
+ 			break;
+ 	}
+ 
+-	dev_dbg(&d->udev->dev, "%s: num=%d\n", __func__, num);
++	dev_dbg(&intf->dev, "num=%d\n", num);
+ 
+ 	if (num == AF9035_I2C_CLIENT_MAX) {
+-		dev_err(&d->udev->dev, "%s: I2C client out of index\n",
+-				KBUILD_MODNAME);
++		dev_err(&intf->dev, "I2C client out of index\n");
+ 		ret = -ENODEV;
+ 		goto err;
+ 	}
+@@ -240,7 +239,7 @@ static int af9035_add_i2c_dev(struct dvb_usb_device *d, const char *type,
+ 	state->i2c_client[num] = client;
+ 	return 0;
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -248,6 +247,7 @@ static void af9035_del_i2c_dev(struct dvb_usb_device *d)
+ {
+ 	int num;
+ 	struct state *state = d_to_priv(d);
++	struct usb_interface *intf = d->intf;
+ 	struct i2c_client *client;
+ 
+ 	/* find last used client */
+@@ -257,11 +257,10 @@ static void af9035_del_i2c_dev(struct dvb_usb_device *d)
+ 			break;
+ 	}
+ 
+-	dev_dbg(&d->udev->dev, "%s: num=%d\n", __func__, num);
++	dev_dbg(&intf->dev, "num=%d\n", num);
+ 
+ 	if (num == -1) {
+-		dev_err(&d->udev->dev, "%s: I2C client out of index\n",
+-				KBUILD_MODNAME);
++		dev_err(&intf->dev, "I2C client out of index\n");
+ 		goto err;
+ 	}
+ 
+@@ -276,7 +275,7 @@ static void af9035_del_i2c_dev(struct dvb_usb_device *d)
+ 	state->i2c_client[num] = NULL;
+ 	return;
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed\n", __func__);
++	dev_dbg(&intf->dev, "failed\n");
+ }
+ 
+ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+@@ -496,6 +495,7 @@ static struct i2c_algorithm af9035_i2c_algo = {
+ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+ {
+ 	struct state *state = d_to_priv(d);
++	struct usb_interface *intf = d->intf;
+ 	int ret;
+ 	u8 wbuf[1] = { 1 };
+ 	u8 rbuf[4];
+@@ -513,10 +513,8 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	dev_info(&d->udev->dev,
+-			"%s: prechip_version=%02x chip_version=%02x chip_type=%04x\n",
+-			KBUILD_MODNAME, state->prechip_version,
+-			state->chip_version, state->chip_type);
++	dev_info(&intf->dev, "prechip_version=%02x chip_version=%02x chip_type=%04x\n",
++		 state->prechip_version, state->chip_version, state->chip_type);
+ 
+ 	if (state->chip_type == 0x9135) {
+ 		if (state->chip_version == 0x02)
+@@ -536,7 +534,7 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	dev_dbg(&d->udev->dev, "%s: reply=%*ph\n", __func__, 4, rbuf);
++	dev_dbg(&intf->dev, "reply=%*ph\n", 4, rbuf);
+ 	if (rbuf[0] || rbuf[1] || rbuf[2] || rbuf[3])
+ 		ret = WARM;
+ 	else
+@@ -545,7 +543,7 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+ 	return ret;
+ 
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -553,6 +551,7 @@ err:
+ static int af9035_download_firmware_old(struct dvb_usb_device *d,
+ 		const struct firmware *fw)
+ {
++	struct usb_interface *intf = d->intf;
+ 	int ret, i, j, len;
+ 	u8 wbuf[1];
+ 	struct usb_req req = { 0, 0, 0, NULL, 0, NULL };
+@@ -583,14 +582,12 @@ static int af9035_download_firmware_old(struct dvb_usb_device *d,
+ 		hdr_checksum = fw->data[fw->size - i + 5] << 8;
+ 		hdr_checksum |= fw->data[fw->size - i + 6] << 0;
+ 
+-		dev_dbg(&d->udev->dev,
+-				"%s: core=%d addr=%04x data_len=%d checksum=%04x\n",
+-				__func__, hdr_core, hdr_addr, hdr_data_len,
+-				hdr_checksum);
++		dev_dbg(&intf->dev, "core=%d addr=%04x data_len=%d checksum=%04x\n",
++			hdr_core, hdr_addr, hdr_data_len, hdr_checksum);
+ 
+ 		if (((hdr_core != 1) && (hdr_core != 2)) ||
+ 				(hdr_data_len > i)) {
+-			dev_dbg(&d->udev->dev, "%s: bad firmware\n", __func__);
++			dev_dbg(&intf->dev, "bad firmware\n");
+ 			break;
+ 		}
+ 
+@@ -621,18 +618,17 @@ static int af9035_download_firmware_old(struct dvb_usb_device *d,
+ 
+ 		i -= hdr_data_len + HDR_SIZE;
+ 
+-		dev_dbg(&d->udev->dev, "%s: data uploaded=%zu\n",
+-				__func__, fw->size - i);
++		dev_dbg(&intf->dev, "data uploaded=%zu\n", fw->size - i);
+ 	}
+ 
+ 	/* print warn if firmware is bad, continue and see what happens */
+ 	if (i)
+-		dev_warn(&d->udev->dev, "%s: bad firmware\n", KBUILD_MODNAME);
++		dev_warn(&intf->dev, "bad firmware\n");
+ 
+ 	return 0;
+ 
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -640,6 +636,7 @@ err:
+ static int af9035_download_firmware_new(struct dvb_usb_device *d,
+ 		const struct firmware *fw)
+ {
++	struct usb_interface *intf = d->intf;
+ 	int ret, i, i_prev;
+ 	struct usb_req req_fw_dl = { CMD_FW_SCATTER_WR, 0, 0, NULL, 0, NULL };
+ 	#define HDR_SIZE 7
+@@ -669,15 +666,14 @@ static int af9035_download_firmware_new(struct dvb_usb_device *d,
+ 			if (ret < 0)
+ 				goto err;
+ 
+-			dev_dbg(&d->udev->dev, "%s: data uploaded=%d\n",
+-					__func__, i);
++			dev_dbg(&intf->dev, "data uploaded=%d\n", i);
+ 		}
+ 	}
+ 
+ 	return 0;
+ 
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -685,6 +681,7 @@ err:
+ static int af9035_download_firmware(struct dvb_usb_device *d,
+ 		const struct firmware *fw)
+ {
++	struct usb_interface *intf = d->intf;
+ 	struct state *state = d_to_priv(d);
+ 	int ret;
+ 	u8 wbuf[1];
+@@ -693,7 +690,7 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
+ 	struct usb_req req = { 0, 0, 0, NULL, 0, NULL };
+ 	struct usb_req req_fw_ver = { CMD_FW_QUERYINFO, 0, 1, wbuf, 4, rbuf };
+ 
+-	dev_dbg(&d->udev->dev, "%s:\n", __func__);
++	dev_dbg(&intf->dev, "\n");
+ 
+ 	/*
+ 	 * In case of dual tuner configuration we need to do some extra
+@@ -773,25 +770,25 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
+ 		goto err;
+ 
+ 	if (!(rbuf[0] || rbuf[1] || rbuf[2] || rbuf[3])) {
+-		dev_err(&d->udev->dev, "%s: firmware did not run\n",
+-				KBUILD_MODNAME);
++		dev_err(&intf->dev, "firmware did not run\n");
+ 		ret = -ENODEV;
+ 		goto err;
+ 	}
+ 
+-	dev_info(&d->udev->dev, "%s: firmware version=%d.%d.%d.%d",
+-			KBUILD_MODNAME, rbuf[0], rbuf[1], rbuf[2], rbuf[3]);
++	dev_info(&intf->dev, "firmware version=%d.%d.%d.%d",
++		 rbuf[0], rbuf[1], rbuf[2], rbuf[3]);
+ 
+ 	return 0;
+ 
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+ 
+ static int af9035_read_config(struct dvb_usb_device *d)
+ {
++	struct usb_interface *intf = d->intf;
+ 	struct state *state = d_to_priv(d);
+ 	int ret, i;
+ 	u8 tmp;
+@@ -826,7 +823,7 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 			goto err;
+ 
+ 		if (tmp == 0x00) {
+-			dev_dbg(&d->udev->dev, "%s: no eeprom\n", __func__);
++			dev_dbg(&intf->dev, "no eeprom\n");
+ 			goto skip_eeprom;
+ 		}
+ 	} else if (state->chip_type == 0x9306) {
+@@ -847,8 +844,7 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 	if (tmp == 1 || tmp == 3 || tmp == 5)
+ 		state->dual_mode = true;
+ 
+-	dev_dbg(&d->udev->dev, "%s: ts mode=%d dual mode=%d\n", __func__,
+-			tmp, state->dual_mode);
++	dev_dbg(&intf->dev, "ts mode=%d dual mode=%d\n", tmp, state->dual_mode);
+ 
+ 	if (state->dual_mode) {
+ 		/* read 2nd demodulator I2C address */
+@@ -861,8 +857,7 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 		if (tmp)
+ 			state->af9033_i2c_addr[1] = tmp;
+ 
+-		dev_dbg(&d->udev->dev, "%s: 2nd demod I2C addr=%02x\n",
+-				__func__, tmp);
++		dev_dbg(&intf->dev, "2nd demod I2C addr=%02x\n", tmp);
+ 	}
+ 
+ 	addr = state->eeprom_addr;
+@@ -873,8 +868,7 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 		if (ret < 0)
+ 			goto err;
+ 
+-		dev_dbg(&d->udev->dev, "%s: [%d]tuner=%02x\n",
+-				__func__, i, tmp);
++		dev_dbg(&intf->dev, "[%d]tuner=%02x\n", i, tmp);
+ 
+ 		/* tuner sanity check */
+ 		if (state->chip_type == 0x9135) {
+@@ -903,10 +897,8 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 		}
+ 
+ 		if (state->af9033_config[i].tuner != tmp) {
+-			dev_info(&d->udev->dev,
+-					"%s: [%d] overriding tuner from %02x to %02x\n",
+-					KBUILD_MODNAME, i, tmp,
+-					state->af9033_config[i].tuner);
++			dev_info(&intf->dev, "[%d] overriding tuner from %02x to %02x\n",
++				 i, tmp, state->af9033_config[i].tuner);
+ 		}
+ 
+ 		switch (state->af9033_config[i].tuner) {
+@@ -926,9 +918,8 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 		case AF9033_TUNER_IT9135_62:
+ 			break;
+ 		default:
+-			dev_warn(&d->udev->dev,
+-					"%s: tuner id=%02x not supported, please report!",
+-					KBUILD_MODNAME, tmp);
++			dev_warn(&intf->dev, "tuner id=%02x not supported, please report!",
++				 tmp);
+ 		}
+ 
+ 		/* disable dual mode if driver does not support it */
+@@ -945,9 +936,7 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 				break;
+ 			default:
+ 				state->dual_mode = false;
+-				dev_info(&d->udev->dev,
+-						"%s: driver does not support 2nd tuner and will disable it",
+-						KBUILD_MODNAME);
++				dev_info(&intf->dev, "driver does not support 2nd tuner and will disable it");
+ 		}
+ 
+ 		/* tuner IF frequency */
+@@ -963,7 +952,7 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 
+ 		tmp16 |= tmp << 8;
+ 
+-		dev_dbg(&d->udev->dev, "%s: [%d]IF=%d\n", __func__, i, tmp16);
++		dev_dbg(&intf->dev, "[%d]IF=%d\n", i, tmp16);
+ 
+ 		addr += 0x10; /* shift for the 2nd tuner params */
+ 	}
+@@ -991,9 +980,8 @@ skip_eeprom:
+ 		switch (le16_to_cpu(d->udev->descriptor.idProduct)) {
+ 		case USB_PID_AVERMEDIA_A867:
+ 		case USB_PID_AVERMEDIA_TWINSTAR:
+-			dev_info(&d->udev->dev,
+-				"%s: Device may have issues with I2C read operations. Enabling fix.\n",
+-				KBUILD_MODNAME);
++			dev_info(&intf->dev,
++				 "Device may have issues with I2C read operations. Enabling fix.\n");
+ 			state->no_read = true;
+ 			break;
+ 		}
+@@ -1001,7 +989,7 @@ skip_eeprom:
+ 	return 0;
+ 
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -1009,10 +997,11 @@ err:
+ static int af9035_tua9001_tuner_callback(struct dvb_usb_device *d,
+ 		int cmd, int arg)
+ {
++	struct usb_interface *intf = d->intf;
+ 	int ret;
+ 	u8 val;
+ 
+-	dev_dbg(&d->udev->dev, "%s: cmd=%d arg=%d\n", __func__, cmd, arg);
++	dev_dbg(&intf->dev, "cmd=%d arg=%d\n", cmd, arg);
+ 
+ 	/*
+ 	 * CEN     always enabled by hardware wiring
+@@ -1046,7 +1035,7 @@ static int af9035_tua9001_tuner_callback(struct dvb_usb_device *d,
+ 	return 0;
+ 
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -1055,6 +1044,7 @@ err:
+ static int af9035_fc0011_tuner_callback(struct dvb_usb_device *d,
+ 		int cmd, int arg)
+ {
++	struct usb_interface *intf = d->intf;
+ 	int ret;
+ 
+ 	switch (cmd) {
+@@ -1112,7 +1102,7 @@ static int af9035_fc0011_tuner_callback(struct dvb_usb_device *d,
+ 	return 0;
+ 
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -1138,9 +1128,10 @@ static int af9035_frontend_callback(void *adapter_priv, int component,
+ {
+ 	struct i2c_adapter *adap = adapter_priv;
+ 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
++	struct usb_interface *intf = d->intf;
+ 
+-	dev_dbg(&d->udev->dev, "%s: component=%d cmd=%d arg=%d\n",
+-			__func__, component, cmd, arg);
++	dev_dbg(&intf->dev, "component=%d cmd=%d arg=%d\n",
++		component, cmd, arg);
+ 
+ 	switch (component) {
+ 	case DVB_FRONTEND_COMPONENT_TUNER:
+@@ -1163,9 +1154,10 @@ static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct state *state = adap_to_priv(adap);
+ 	struct dvb_usb_device *d = adap_to_d(adap);
++	struct usb_interface *intf = d->intf;
+ 	int ret;
+ 
+-	dev_dbg(&d->udev->dev, "%s: adap->id=%d\n", __func__, adap->id);
++	dev_dbg(&intf->dev, "adap->id=%d\n", adap->id);
+ 
+ 	if (!state->af9033_config[adap->id].tuner) {
+ 		/* unsupported tuner */
+@@ -1192,7 +1184,7 @@ static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
+ 	return 0;
+ 
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -1201,11 +1193,12 @@ static int it930x_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct state *state = adap_to_priv(adap);
+ 	struct dvb_usb_device *d = adap_to_d(adap);
++	struct usb_interface *intf = d->intf;
+ 	int ret;
+ 	struct si2168_config si2168_config;
+ 	struct i2c_adapter *adapter;
+ 
+-	dev_dbg(&d->udev->dev, "adap->id=%d\n", adap->id);
++	dev_dbg(&intf->dev, "adap->id=%d\n", adap->id);
+ 
+ 	memset(&si2168_config, 0, sizeof(si2168_config));
+ 	si2168_config.i2c_adapter = &adapter;
+@@ -1228,7 +1221,7 @@ static int it930x_frontend_attach(struct dvb_usb_adapter *adap)
+ 	return 0;
+ 
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -1237,9 +1230,10 @@ static int af9035_frontend_detach(struct dvb_usb_adapter *adap)
+ {
+ 	struct state *state = adap_to_priv(adap);
+ 	struct dvb_usb_device *d = adap_to_d(adap);
++	struct usb_interface *intf = d->intf;
+ 	int demod2;
+ 
+-	dev_dbg(&d->udev->dev, "%s: adap->id=%d\n", __func__, adap->id);
++	dev_dbg(&intf->dev, "adap->id=%d\n", adap->id);
+ 
+ 	/*
+ 	 * For dual tuner devices we have to resolve 2nd demod client, as there
+@@ -1315,12 +1309,13 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct state *state = adap_to_priv(adap);
+ 	struct dvb_usb_device *d = adap_to_d(adap);
++	struct usb_interface *intf = d->intf;
+ 	int ret;
+ 	struct dvb_frontend *fe;
+ 	struct i2c_msg msg[1];
+ 	u8 tuner_addr;
+ 
+-	dev_dbg(&d->udev->dev, "%s: adap->id=%d\n", __func__, adap->id);
++	dev_dbg(&intf->dev, "adap->id=%d\n", adap->id);
+ 
+ 	/*
+ 	 * XXX: Hack used in that function: we abuse unused I2C address bit [7]
+@@ -1558,7 +1553,7 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
+ 	return 0;
+ 
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -1567,10 +1562,11 @@ static int it930x_tuner_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct state *state = adap_to_priv(adap);
+ 	struct dvb_usb_device *d = adap_to_d(adap);
++	struct usb_interface *intf = d->intf;
+ 	int ret;
+ 	struct si2157_config si2157_config;
+ 
+-	dev_dbg(&d->udev->dev, "%s: adap->id=%d\n", __func__, adap->id);
++	dev_dbg(&intf->dev, "adap->id=%d\n", adap->id);
+ 
+ 	/* I2C master bus 2 clock speed 300k */
+ 	ret = af9035_wr_reg(d, 0x00f6a7, 0x07);
+@@ -1626,7 +1622,7 @@ static int it930x_tuner_attach(struct dvb_usb_adapter *adap)
+ 	return 0;
+ 
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -1636,8 +1632,9 @@ static int it930x_tuner_detach(struct dvb_usb_adapter *adap)
+ {
+ 	struct state *state = adap_to_priv(adap);
+ 	struct dvb_usb_device *d = adap_to_d(adap);
++	struct usb_interface *intf = d->intf;
+ 
+-	dev_dbg(&d->udev->dev, "adap->id=%d\n", adap->id);
++	dev_dbg(&intf->dev, "adap->id=%d\n", adap->id);
+ 
+ 	if (adap->id == 1) {
+ 		if (state->i2c_client[3])
+@@ -1655,8 +1652,9 @@ static int af9035_tuner_detach(struct dvb_usb_adapter *adap)
+ {
+ 	struct state *state = adap_to_priv(adap);
+ 	struct dvb_usb_device *d = adap_to_d(adap);
++	struct usb_interface *intf = d->intf;
+ 
+-	dev_dbg(&d->udev->dev, "%s: adap->id=%d\n", __func__, adap->id);
++	dev_dbg(&intf->dev, "adap->id=%d\n", adap->id);
+ 
+ 	switch (state->af9033_config[adap->id].tuner) {
+ 	case AF9033_TUNER_TUA9001:
+@@ -1682,6 +1680,7 @@ static int af9035_tuner_detach(struct dvb_usb_adapter *adap)
+ static int af9035_init(struct dvb_usb_device *d)
+ {
+ 	struct state *state = d_to_priv(d);
++	struct usb_interface *intf = d->intf;
+ 	int ret, i;
+ 	u16 frame_size = (d->udev->speed == USB_SPEED_FULL ? 5 : 87) * 188 / 4;
+ 	u8 packet_size = (d->udev->speed == USB_SPEED_FULL ? 64 : 512) / 4;
+@@ -1706,9 +1705,8 @@ static int af9035_init(struct dvb_usb_device *d)
+ 		{ 0x80f9a4, 0x00, 0x01 },
+ 	};
+ 
+-	dev_dbg(&d->udev->dev,
+-			"%s: USB speed=%d frame_size=%04x packet_size=%02x\n",
+-			__func__, d->udev->speed, frame_size, packet_size);
++	dev_dbg(&intf->dev, "USB speed=%d frame_size=%04x packet_size=%02x\n",
++		d->udev->speed, frame_size, packet_size);
+ 
+ 	/* init endpoints */
+ 	for (i = 0; i < ARRAY_SIZE(tab); i++) {
+@@ -1721,7 +1719,7 @@ static int af9035_init(struct dvb_usb_device *d)
+ 	return 0;
+ 
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -1729,6 +1727,7 @@ err:
+ static int it930x_init(struct dvb_usb_device *d)
+ {
+ 	struct state *state = d_to_priv(d);
++	struct usb_interface *intf = d->intf;
+ 	int ret, i;
+ 	u16 frame_size = (d->udev->speed == USB_SPEED_FULL ? 5 : 816) * 188 / 4;
+ 	u8 packet_size = (d->udev->speed == USB_SPEED_FULL ? 64 : 512) / 4;
+@@ -1788,9 +1787,8 @@ static int it930x_init(struct dvb_usb_device *d)
+ 		{ 0x00da5a, 0x1f, 0xff }, /* ts_fail_ignore */
+ 	};
+ 
+-	dev_dbg(&d->udev->dev,
+-			"%s: USB speed=%d frame_size=%04x packet_size=%02x\n",
+-			__func__, d->udev->speed, frame_size, packet_size);
++	dev_dbg(&intf->dev, "USB speed=%d frame_size=%04x packet_size=%02x\n",
++		d->udev->speed, frame_size, packet_size);
+ 
+ 	/* init endpoints */
+ 	for (i = 0; i < ARRAY_SIZE(tab); i++) {
+@@ -1803,7 +1801,7 @@ static int it930x_init(struct dvb_usb_device *d)
+ 
+ 	return 0;
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -1812,6 +1810,7 @@ err:
+ #if IS_ENABLED(CONFIG_RC_CORE)
+ static int af9035_rc_query(struct dvb_usb_device *d)
+ {
++	struct usb_interface *intf = d->intf;
+ 	int ret;
+ 	u32 key;
+ 	u8 buf[4];
+@@ -1837,14 +1836,14 @@ static int af9035_rc_query(struct dvb_usb_device *d)
+ 					buf[2] << 8  | buf[3]);
+ 	}
+ 
+-	dev_dbg(&d->udev->dev, "%s: %*ph\n", __func__, 4, buf);
++	dev_dbg(&intf->dev, "%*ph\n", 4, buf);
+ 
+ 	rc_keydown(d->rc_dev, RC_TYPE_NEC, key, 0);
+ 
+ 	return 0;
+ 
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -1852,6 +1851,7 @@ err:
+ static int af9035_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
+ {
+ 	struct state *state = d_to_priv(d);
++	struct usb_interface *intf = d->intf;
+ 	int ret;
+ 	u8 tmp;
+ 
+@@ -1859,7 +1859,7 @@ static int af9035_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	dev_dbg(&d->udev->dev, "%s: ir_mode=%02x\n", __func__, tmp);
++	dev_dbg(&intf->dev, "ir_mode=%02x\n", tmp);
+ 
+ 	/* don't activate rc if in HID mode or if not available */
+ 	if (tmp == 5) {
+@@ -1868,7 +1868,7 @@ static int af9035_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
+ 		if (ret < 0)
+ 			goto err;
+ 
+-		dev_dbg(&d->udev->dev, "%s: ir_type=%02x\n", __func__, tmp);
++		dev_dbg(&intf->dev, "ir_type=%02x\n", tmp);
+ 
+ 		switch (tmp) {
+ 		case 0: /* NEC */
+@@ -1891,7 +1891,7 @@ static int af9035_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
+ 	return 0;
+ 
+ err:
+-	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&intf->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -1903,8 +1903,9 @@ static int af9035_get_stream_config(struct dvb_frontend *fe, u8 *ts_type,
+ 		struct usb_data_stream_properties *stream)
+ {
+ 	struct dvb_usb_device *d = fe_to_d(fe);
++	struct usb_interface *intf = d->intf;
+ 
+-	dev_dbg(&d->udev->dev, "%s: adap=%d\n", __func__, fe_to_adap(fe)->id);
++	dev_dbg(&intf->dev, "adap=%d\n", fe_to_adap(fe)->id);
+ 
+ 	if (d->udev->speed == USB_SPEED_FULL)
+ 		stream->u.bulk.buffersize = 5 * 188;
+@@ -1956,7 +1957,7 @@ static int af9035_probe(struct usb_interface *intf,
+ 	if ((le16_to_cpu(udev->descriptor.idVendor) == USB_VID_TERRATEC) &&
+ 			(le16_to_cpu(udev->descriptor.idProduct) == 0x0099)) {
+ 		if (!strcmp("Afatech", manufacturer)) {
+-			dev_dbg(&udev->dev, "%s: rejecting device\n", __func__);
++			dev_dbg(&udev->dev, "rejecting device\n");
+ 			return -ENODEV;
+ 		}
+ 	}
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+http://palosaari.fi/
+
