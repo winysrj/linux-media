@@ -1,38 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:4663 "EHLO mga11.intel.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:47839 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932450AbcFTQ04 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 12:26:56 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH v2 0/7] New raw bayer format definitions, fixes
-Date: Mon, 20 Jun 2016 19:20:01 +0300
-Message-Id: <1466439608-22890-1-git-send-email-sakari.ailus@linux.intel.com>
+	id S1751500AbcFGGnN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jun 2016 02:43:13 -0400
+Received: from dyn3-82-128-184-205.psoas.suomi.net ([82.128.184.205] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
+	(Exim 4.80)
+	(envelope-from <crope@iki.fi>)
+	id 1bAAjG-0006K2-TS
+	for linux-media@vger.kernel.org; Tue, 07 Jun 2016 09:43:10 +0300
+To: LMML <linux-media@vger.kernel.org>
+From: Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL 4.8] mn88473 fixes
+Message-ID: <375477f1-9d8b-901f-0ed6-ee0e1d67236d@iki.fi>
+Date: Tue, 7 Jun 2016 09:43:10 +0300
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+The following changes since commit 6a2cf60b3e6341a3163d3cac3f4bede126c2e894:
 
-These patches fix and add new raw bayer format definitions. 12-bit packed
-V4L2 format definition is added as well as definitions of 14-bit media bus
-codes as well as unpacked and packed V4L2 formats.
+   Merge tag 'v4.7-rc1' into patchwork (2016-05-30 18:16:14 -0300)
 
-No driver uses them right now, yet they're common formats needed by newer
-devices that use higher bit depths so adding them would make sense.
+are available in the git repository at:
 
-since v1:
+   git://linuxtv.org/anttip/media_tree.git mn88473
 
-- Fix issues Hans pointed out in his review,
+for you to fetch changes up to e8af1316e5b16fb39b8b41274e66f474cc6144fd:
 
-- add one patch to fix similar issues in already defined 10-bit and 12-bit
-  formats found in 14-bit format definitions.
+   mn88473: fix typo (2016-06-07 09:08:21 +0300)
 
-The previous set with the review comments can be found here:
+----------------------------------------------------------------
+Antti Palosaari (1):
+       mn88473: fix error path on probe()
 
-<URL:http://www.spinics.net/lists/linux-media/msg100763.html>
+Julia Lawall (1):
+       mn88473: fix typo
+
+  drivers/media/dvb-frontends/mn88473.c | 7 ++++---
+  1 file changed, 4 insertions(+), 3 deletions(-)
 
 -- 
-Kind regards,
-Sakari
-
+http://palosaari.fi/
