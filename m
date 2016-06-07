@@ -1,49 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:56190 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103AbcFGLcb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2016 07:32:31 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	linux-next@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Mark Brown <broonie@kernel.org>, linaro-kernel@lists.linaro.org
-Subject: [PATCH] media: s5p-mfc: fix compilation issue on archs other than ARM
- (32bit)
-Date: Tue, 07 Jun 2016 13:32:16 +0200
-Message-id: <1465299136-8596-1-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <20160607105823.GT7510@sirena.org.uk>
-References: <20160607105823.GT7510@sirena.org.uk>
+Received: from lists.s-osg.org ([54.187.51.154]:48160 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932558AbcFGNLm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jun 2016 09:11:42 -0400
+Date: Tue, 7 Jun 2016 10:11:33 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
+	<chehabrafael@gmail.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: Re: [PATCH 2/2] [media] media-device: dynamically allocate struct
+ media_devnode
+Message-ID: <20160607101133.5f13426c@recife.lan>
+In-Reply-To: <57560388.7030903@osg.samsung.com>
+References: <cover.1462633500.git.mchehab@osg.samsung.com>
+	<83247b8a21c292a08949b3fe619cc56dc4709896.1462633500.git.mchehab@osg.samsung.com>
+	<20160606084500.GW26360@valkosipuli.retiisi.org.uk>
+	<57560388.7030903@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes build break caused by lack of dma-iommu API on ARM64
-(this API is specific to ARM 32bit architecture).
+Em Mon, 6 Jun 2016 17:13:12 -0600
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> > A few general comments on the patch --- I agree we've had the problem from
+> > the day one, but it's really started showing up recently. I agree with the
+> > taken approach of separating the lifetimes of both media device and the
+> > devnode. However, I don't think the patch as such is enough.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
-index 5d1d1c2..6962132 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
-@@ -14,7 +14,7 @@
- #define S5P_MFC_IOMMU_DMA_BASE	0x20000000lu
- #define S5P_MFC_IOMMU_DMA_SIZE	SZ_256M
- 
--#ifdef CONFIG_EXYNOS_IOMMU
-+#if defined(CONFIG_EXYNOS_IOMMU) && defined(CONFIG_ARM_DMA_USE_IOMMU)
- 
- #include <asm/dma-iommu.h>
- 
--- 
-1.9.2
+Do you or Laurent has an alternative patchset to fix those issues? From 
+where I sit, we have a serious bug that it is already known for a while,
+but nobody really tried to fix so far, except for Shuah and myself.
 
+So, if you don't have any alternative patch ready to be merged, I'll
+apply what we have later today, together with the patch that fixes cdev
+livetime management:
+	https://patchwork.linuxtv.org/patch/34201/
+
+This will allow it to be tested to a broader audience and check if
+the known issues will be fixed. I'll add a C/C stable, but my plan is
+to not send it as a fix for 4.7. Instead, to keep the fixes on our tree
+up to the next merge window, giving us ~5 weeks for testing.
+
+As this is a Kernel only issue, it can be changed later if someone pops
+up with a better approach.
+
+Regards,
+Mauro
