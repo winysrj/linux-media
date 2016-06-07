@@ -1,149 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:17027 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751255AbcFVWIq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2016 18:08:46 -0400
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	nick.dyer@itdev.co.uk
-Subject: [PATCH v5 4/9] Input: atmel_mxt_ts - read touchscreen size
-Date: Wed, 22 Jun 2016 23:08:28 +0100
-Message-Id: <1466633313-15339-5-git-send-email-nick.dyer@itdev.co.uk>
-In-Reply-To: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
-References: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
+Received: from mail.kapsi.fi ([217.30.184.167]:52958 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750760AbcFGH5p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jun 2016 03:57:45 -0400
+Received: from dyn3-82-128-184-205.psoas.suomi.net ([82.128.184.205] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
+	(Exim 4.80)
+	(envelope-from <crope@iki.fi>)
+	id 1bABtP-0001hN-7z
+	for linux-media@vger.kernel.org; Tue, 07 Jun 2016 10:57:43 +0300
+To: LMML <linux-media@vger.kernel.org>
+From: Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL 4.8] mn88472
+Message-ID: <790dd3a2-b6ee-753c-ca31-87b2099f5d2b@iki.fi>
+Date: Tue, 7 Jun 2016 10:57:42 +0300
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The touchscreen may have a margin where not all the matrix is used. Read
-the parameters from T9 and T100 and take account of the difference.
+The following changes since commit 6a2cf60b3e6341a3163d3cac3f4bede126c2e894:
 
-Note: this does not read the XORIGIN/YORIGIN fields so it assumes that
-the touchscreen starts at (0,0)
+   Merge tag 'v4.7-rc1' into patchwork (2016-05-30 18:16:14 -0300)
 
-Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
----
- drivers/input/touchscreen/atmel_mxt_ts.c | 42 +++++++++++++++++++++++++++-----
- 1 file changed, 36 insertions(+), 6 deletions(-)
+are available in the git repository at:
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index 7780d38..8ef61d7 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -103,6 +103,8 @@ struct t7_config {
- 
- /* MXT_TOUCH_MULTI_T9 field */
- #define MXT_T9_CTRL		0
-+#define MXT_T9_XSIZE		3
-+#define MXT_T9_YSIZE		4
- #define MXT_T9_ORIENT		9
- #define MXT_T9_RANGE		18
- 
-@@ -150,7 +152,9 @@ struct t37_debug {
- #define MXT_T100_CTRL		0
- #define MXT_T100_CFG1		1
- #define MXT_T100_TCHAUX		3
-+#define MXT_T100_XSIZE		9
- #define MXT_T100_XRANGE		13
-+#define MXT_T100_YSIZE		20
- #define MXT_T100_YRANGE		24
- 
- #define MXT_T100_CFG_SWITCHXY	BIT(5)
-@@ -259,6 +263,8 @@ struct mxt_data {
- 	unsigned int max_x;
- 	unsigned int max_y;
- 	bool xy_switch;
-+	u8 xsize;
-+	u8 ysize;
- 	bool in_bootloader;
- 	u16 mem_size;
- 	u8 t100_aux_ampl;
-@@ -1714,6 +1720,18 @@ static int mxt_read_t9_resolution(struct mxt_data *data)
- 		return -EINVAL;
- 
- 	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T9_XSIZE,
-+			       sizeof(data->xsize), &data->xsize);
-+	if (error)
-+		return error;
-+
-+	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T9_YSIZE,
-+			       sizeof(data->ysize), &data->ysize);
-+	if (error)
-+		return error;
-+
-+	error = __mxt_read_reg(client,
- 			       object->start_address + MXT_T9_RANGE,
- 			       sizeof(range), &range);
- 	if (error)
-@@ -1763,6 +1781,18 @@ static int mxt_read_t100_config(struct mxt_data *data)
- 
- 	data->max_y = get_unaligned_le16(&range_y);
- 
-+	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T100_XSIZE,
-+			       sizeof(data->xsize), &data->xsize);
-+	if (error)
-+		return error;
-+
-+	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T100_YSIZE,
-+			       sizeof(data->ysize), &data->ysize);
-+	if (error)
-+		return error;
-+
- 	/* read orientation config */
- 	error =  __mxt_read_reg(client,
- 				object->start_address + MXT_T100_CFG1,
-@@ -2121,7 +2151,7 @@ static int mxt_convert_debug_pages(struct mxt_data *data, u16 *outbuf)
- 		outbuf[i] = mxt_get_debug_value(data, x, y);
- 
- 		/* Next value */
--		if (++x >= data->info.matrix_xsize) {
-+		if (++x >= data->xsize) {
- 			x = 0;
- 			y++;
- 		}
-@@ -2276,8 +2306,8 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
- 	if (i > 0)
- 		return -EINVAL;
- 
--	f->width = data->info.matrix_xsize;
--	f->height = data->info.matrix_ysize;
-+	f->width = data->xsize;
-+	f->height = data->ysize;
- 	f->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
- 	f->field = V4L2_FIELD_NONE;
- 	f->colorspace = V4L2_COLORSPACE_RAW;
-@@ -2392,9 +2422,9 @@ static void mxt_debug_init(struct mxt_data *data)
- 	dbg->t37_address = object->start_address;
- 
- 	/* Calculate size of data and allocate buffer */
--	dbg->t37_nodes = data->info.matrix_xsize * data->info.matrix_ysize;
--	dbg->t37_pages = DIV_ROUND_UP(dbg->t37_nodes * sizeof(u16),
--				      sizeof(dbg->t37_buf->data));
-+	dbg->t37_nodes = data->xsize * data->ysize;
-+	dbg->t37_pages = DIV_ROUND_UP(data->xsize * data->info.matrix_ysize *
-+				      sizeof(u16), sizeof(dbg->t37_buf->data));
- 
- 	dbg->t37_buf = devm_kmalloc_array(&data->client->dev, dbg->t37_pages,
- 					  sizeof(struct t37_debug), GFP_KERNEL);
+   git://linuxtv.org/anttip/media_tree.git mn88472
+
+for you to fetch changes up to 4f4a390b2f195e5c26be370a4bc85183d6919aac:
+
+   rtl28xxu: sort the config symbols which are auto-selected (2016-06-07 
+10:46:02 +0300)
+
+----------------------------------------------------------------
+Antti Palosaari (3):
+       rtl28xxu: increase failed I2C msg repeat count to 3
+       mn88472: finalize driver
+       mn88472: move out of staging to media
+
+Julia Lawall (1):
+       mn88472: fix typo
+
+Martin Blumenstingl (2):
+       rtl28xxu: auto-select more DVB-frontends and tuners
+       rtl28xxu: sort the config symbols which are auto-selected
+
+  MAINTAINERS 
+|   4 +-
+  drivers/media/dvb-frontends/Kconfig 
+|   8 ++
+  drivers/media/dvb-frontends/Makefile 
+|   1 +
+  drivers/{staging/media/mn88472 => media/dvb-frontends}/mn88472.c 
+| 519 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----------------------------------------------------
+  drivers/media/dvb-frontends/mn88472.h 
+|  45 +++++-----
+  drivers/{staging/media/mn88472 => media/dvb-frontends}/mn88472_priv.h 
+|  11 ++-
+  drivers/media/usb/dvb-usb-v2/Kconfig 
+|  13 ++-
+  drivers/media/usb/dvb-usb-v2/rtl28xxu.c 
+|   2 +-
+  drivers/staging/media/Kconfig 
+|   2 -
+  drivers/staging/media/Makefile 
+|   1 -
+  drivers/staging/media/mn88472/Kconfig 
+|   7 --
+  drivers/staging/media/mn88472/Makefile 
+|   5 --
+  drivers/staging/media/mn88472/TODO 
+|  21 -----
+  13 files changed, 327 insertions(+), 312 deletions(-)
+  rename drivers/{staging/media/mn88472 => 
+media/dvb-frontends}/mn88472.c (58%)
+  rename drivers/{staging/media/mn88472 => 
+media/dvb-frontends}/mn88472_priv.h (88%)
+  delete mode 100644 drivers/staging/media/mn88472/Kconfig
+  delete mode 100644 drivers/staging/media/mn88472/Makefile
+  delete mode 100644 drivers/staging/media/mn88472/TODO
+
 -- 
-2.5.0
-
+http://palosaari.fi/
