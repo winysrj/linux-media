@@ -1,119 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52953 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753946AbcFTTLx (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37448 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751126AbcFGDAx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 15:11:53 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+	Mon, 6 Jun 2016 23:00:53 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 099D718020A
+	for <linux-media@vger.kernel.org>; Tue,  7 Jun 2016 05:00:32 +0200 (CEST)
+Date: Tue, 07 Jun 2016 05:00:31 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 05/24] media: Add video processing entity functions
-Date: Mon, 20 Jun 2016 22:10:23 +0300
-Message-Id: <1466449842-29502-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160607030032.099D718020A@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add composer, pixel formatter, pixel encoding converter and scaler
-functions.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/DocBook/media/v4l/media-types.xml | 55 +++++++++++++++++++++++++
- include/uapi/linux/media.h                      |  9 ++++
- 2 files changed, 64 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/Documentation/DocBook/media/v4l/media-types.xml b/Documentation/DocBook/media/v4l/media-types.xml
-index 5e3f20fdcf17..60fe841f8846 100644
---- a/Documentation/DocBook/media/v4l/media-types.xml
-+++ b/Documentation/DocBook/media/v4l/media-types.xml
-@@ -121,6 +121,61 @@
- 	    <entry><constant>MEDIA_ENT_F_AUDIO_MIXER</constant></entry>
- 	    <entry>Audio Mixer Function Entity.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_COMPOSER</constant></entry>
-+	    <entry>Video composer (blender). An entity capable of video
-+		   composing must have at least two sink pads and one source
-+		   pad, and composes input video frames onto output video
-+		   frames. Composition can be performed using alpha blending,
-+		   color keying, raster operations (ROP), stitching or any other
-+		   means.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER</constant></entry>
-+	    <entry>Video pixel formatter. An entity capable of pixel formatting
-+		   must have at least one sink pad and one source pad. Read
-+		   pixel formatters read pixels from memory and perform a subset
-+		   of unpacking, cropping, color keying, alpha multiplication
-+		   and pixel encoding conversion. Write pixel formatters perform
-+		   a subset of dithering, pixel encoding conversion and packing
-+		   and write pixels to memory.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV</constant></entry>
-+	    <entry>Video pixel encoding converter. An entity capable of pixel
-+		   enconding conversion must have at least one sink pad and one
-+		   source pad, and convert the encoding of pixels received on
-+		   its sink pad(s) to a different encoding output on its source
-+		   pad(s). Pixel encoding conversion includes but isn't limited
-+		   to RGB to/from HSV, RGB to/from YUV and CFA (Bayer) to RGB
-+		   conversions.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_LUT</constant></entry>
-+	    <entry>Video look-up table. An entity capable of video lookup table
-+		   processing must have one sink pad and one source pad. It uses
-+		   the values of the pixels received on its sink pad to look up
-+		   entries in internal tables and output them on its source pad.
-+		   The lookup processing can be performed on all components
-+		   separately or combine them for multi-dimensional table
-+		   lookups.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_SCALER</constant></entry>
-+	    <entry>Video scaler. An entity capable of video scaling must have
-+		   at least one sink pad and one source pad, and scale the
-+		   video frame(s) received on its sink pad(s) to a different
-+		   resolution output on its source pad(s). The range of
-+		   supported scaling ratios is entity-specific and can differ
-+		   between the horizontal and vertical directions (in particular
-+		   scaling can be supported in one direction only). Binning and
-+		   skipping are considered as scaling.
-+	    </entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index df59edee25d1..3136686c4bd0 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -95,6 +95,15 @@ struct media_device_info {
- #define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03003)
- 
- /*
-+ * Processing entities
-+ */
-+#define MEDIA_ENT_F_PROC_VIDEO_COMPOSER		(MEDIA_ENT_F_BASE + 0x4001)
-+#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER	(MEDIA_ENT_F_BASE + 0x4002)
-+#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV	(MEDIA_ENT_F_BASE + 0x4003)
-+#define MEDIA_ENT_F_PROC_VIDEO_LUT		(MEDIA_ENT_F_BASE + 0x4004)
-+#define MEDIA_ENT_F_PROC_VIDEO_SCALER		(MEDIA_ENT_F_BASE + 0x4005)
-+
-+/*
-  * Connectors
-  */
- /* It is a responsibility of the entity drivers to add connectors and links */
--- 
-Regards,
+date:		Tue Jun  7 04:00:24 CEST 2016
+git branch:	test
+git hash:	de42e7655d504ceeda53e009b8860ba4bd007ab5
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
 
-Laurent Pinchart
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
