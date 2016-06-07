@@ -1,109 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f182.google.com ([209.85.216.182]:35255 "EHLO
-	mail-qt0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752449AbcF2CRy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2016 22:17:54 -0400
-Received: by mail-qt0-f182.google.com with SMTP id f89so17855921qtd.2
-        for <linux-media@vger.kernel.org>; Tue, 28 Jun 2016 19:17:54 -0700 (PDT)
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, Hans Verkuil <hverkuil@xs4all.nl>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH 2/2] tw686x: Support VIDIOC_{S,G}_PARM ioctls
-Date: Tue, 28 Jun 2016 23:17:35 -0300
-Message-Id: <20160629021735.24463-2-ezequiel@vanguardiasur.com.ar>
-In-Reply-To: <20160629021735.24463-1-ezequiel@vanguardiasur.com.ar>
-References: <20160629021735.24463-1-ezequiel@vanguardiasur.com.ar>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58838 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193AbcFGHKI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2016 03:10:08 -0400
+Date: Tue, 7 Jun 2016 09:10:04 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	pali.rohar@gmail.com, sre@kernel.org,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org
+Subject: [PATCHv2] device tree description for AD5820 camera auto-focus coil
+Message-ID: <20160607071003.GA11796@amd>
+References: <20160524090433.GA1277@amd>
+ <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+ <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
+ <20160531213437.GA28397@amd>
+ <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
+ <20160601220840.GA21946@amd>
+ <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
+ <20160602193027.GB7984@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160602193027.GB7984@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the frame rate can be properly set, this commit adds support
-for S_PARM and G_PARM.
 
-Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Add documentation for ad5820 device tree binding.
+
+Signed-off-by: Pavel Machek <pavel@denx.de>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Rob Herring <robh@kernel.org>
+
 ---
- drivers/media/pci/tw686x/tw686x-video.c | 46 ++++++++++++++++++++++++++++++---
- 1 file changed, 43 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-index 3131f9305313..40b5b835d452 100644
---- a/drivers/media/pci/tw686x/tw686x-video.c
-+++ b/drivers/media/pci/tw686x/tw686x-video.c
-@@ -437,9 +437,6 @@ static void tw686x_set_framerate(struct tw686x_video_channel *vc,
- {
- 	unsigned int i;
- 
--	if (vc->fps == fps)
--		return;
--
- 	i = tw686x_fps_idx(fps, TW686X_MAX_FPS(vc->video_standard));
- 	reg_write(vc->dev, VIDEO_FIELD_CTRL[vc->ch], fps_map[i]);
- 	vc->fps = tw686x_real_fps(i, TW686X_MAX_FPS(vc->video_standard));
-@@ -843,6 +840,12 @@ static int tw686x_s_std(struct file *file, void *priv, v4l2_std_id id)
- 	ret = tw686x_g_fmt_vid_cap(file, priv, &f);
- 	if (!ret)
- 		tw686x_s_fmt_vid_cap(file, priv, &f);
+v2: Fixed nit in example, added acks.
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+new file mode 100644
+index 0000000..fb70ca5
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+@@ -0,0 +1,19 @@
++* Analog Devices AD5820 autofocus coil
 +
-+	/*
-+	 * Frame decimation depends on the chosen standard,
-+	 * so reset it to the current value.
-+	 */
-+	tw686x_set_framerate(vc, vc->fps);
- 	return 0;
- }
- 
-@@ -912,6 +915,40 @@ static int tw686x_g_std(struct file *file, void *priv, v4l2_std_id *id)
- 	return 0;
- }
- 
-+static int tw686x_g_parm(struct file *file, void *priv,
-+			 struct v4l2_streamparm *sp)
-+{
-+	struct tw686x_video_channel *vc = video_drvdata(file);
-+	struct v4l2_captureparm *cp = &sp->parm.capture;
++Required Properties:
 +
-+	if (sp->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+	sp->parm.capture.readbuffers = 3;
++  - compatible: Must contain "adi,ad5820"
 +
-+	cp->capability = V4L2_CAP_TIMEPERFRAME;
-+	cp->timeperframe.numerator = 1;
-+	cp->timeperframe.denominator = vc->fps;
-+	return 0;
-+}
++  - reg: I2C slave address
 +
-+static int tw686x_s_parm(struct file *file, void *priv,
-+			 struct v4l2_streamparm *sp)
-+{
-+	struct tw686x_video_channel *vc = video_drvdata(file);
-+	struct v4l2_captureparm *cp = &sp->parm.capture;
-+	unsigned int denominator = cp->timeperframe.denominator;
-+	unsigned int numerator = cp->timeperframe.numerator;
-+	unsigned int fps;
++  - VANA-supply: supply of voltage for VANA pin
 +
-+	if (vb2_is_busy(&vc->vidq))
-+		return -EBUSY;
++Example:
 +
-+	fps = (!numerator || !denominator) ? 0 : denominator / numerator;
-+	if (vc->fps != fps)
-+		tw686x_set_framerate(vc, fps);
-+	return tw686x_g_parm(file, priv, sp);
-+}
++       ad5820: coil@c {
++               compatible = "adi,ad5820";
++               reg = <0x0c>;
 +
- static int tw686x_enum_fmt_vid_cap(struct file *file, void *priv,
- 				   struct v4l2_fmtdesc *f)
- {
-@@ -998,6 +1035,9 @@ static const struct v4l2_ioctl_ops tw686x_video_ioctl_ops = {
- 	.vidioc_g_std			= tw686x_g_std,
- 	.vidioc_s_std			= tw686x_s_std,
- 
-+	.vidioc_g_parm			= tw686x_g_parm,
-+	.vidioc_s_parm			= tw686x_s_parm,
++               VANA-supply = <&vaux4>;
++       };
 +
- 	.vidioc_enum_input		= tw686x_enum_input,
- 	.vidioc_g_input			= tw686x_g_input,
- 	.vidioc_s_input			= tw686x_s_input,
+
+
 -- 
-2.9.0
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
