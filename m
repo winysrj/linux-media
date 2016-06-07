@@ -1,71 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47225 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964804AbcFMMRh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2016 08:17:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran@ksquared.org.uk>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, linux-media@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/3] dt-bindings: Update Renesas R-Car FCP DT binding
-Date: Mon, 13 Jun 2016 15:17:41 +0300
-Message-ID: <2159488.zJIIWenpjG@avalon>
-In-Reply-To: <1465479695-18644-2-git-send-email-kieran@bingham.xyz>
-References: <1465479695-18644-1-git-send-email-kieran@bingham.xyz> <1465479695-18644-2-git-send-email-kieran@bingham.xyz>
+Received: from mail.kapsi.fi ([217.30.184.167]:59406 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754029AbcFGTEO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jun 2016 15:04:14 -0400
+Received: from dyn3-82-128-184-205.psoas.suomi.net ([82.128.184.205] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
+	(Exim 4.80)
+	(envelope-from <crope@iki.fi>)
+	id 1bAMIM-0004P7-Qn
+	for linux-media@vger.kernel.org; Tue, 07 Jun 2016 22:04:11 +0300
+To: LMML <linux-media@vger.kernel.org>
+From: Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL 4.8] af9035
+Message-ID: <ba41ecf5-d862-5f17-f8ab-9ca2e85287ee@iki.fi>
+Date: Tue, 7 Jun 2016 22:04:10 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+The following changes since commit 94d0eaa419871a6e2783f8c131b1d76d5f2a5524:
 
-Thank you for the patch.
+   [media] mn88472: move out of staging to media (2016-06-07 15:46:47 -0300)
 
-On Thursday 09 Jun 2016 14:41:32 Kieran Bingham wrote:
-> The FCP driver, can also support the FCPF variant for FDP1 compatible
-> processing.
+are available in the git repository at:
 
-With the comma dropped,
+   git://linuxtv.org/anttip/media_tree.git af9035
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+for you to fetch changes up to 04c5e503b7f0e1dc3bb40b2ed1f4ab7e6e43e5fd:
 
-> Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
-> ---
->  Documentation/devicetree/bindings/media/renesas,fcp.txt | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/renesas,fcp.txt
-> b/Documentation/devicetree/bindings/media/renesas,fcp.txt index
-> 6a12960609d8..271dcfdb5a76 100644
-> --- a/Documentation/devicetree/bindings/media/renesas,fcp.txt
-> +++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
-> @@ -7,12 +7,14 @@ conversion of AXI transactions in order to reduce the
-> memory bandwidth.
-> 
->  There are three types of FCP: FCP for Codec (FCPC), FCP for VSP (FCPV) and
-> FCP for FDP (FCPF). Their configuration and behaviour depend on the module
-> they -are paired with. These DT bindings currently support the FCPV only.
-> +are paired with. These DT bindings currently support the FCPV and FCPF.
-> 
->   - compatible: Must be one or more of the following
-> 
->     - "renesas,r8a7795-fcpv" for R8A7795 (R-Car H3) compatible 'FCP for VSP'
-> +   - "renesas,r8a7795-fcpf" for R8A7795 (R-Car H3) compatible 'FCP for
-> FDP' - "renesas,fcpv" for generic compatible 'FCP for VSP'
-> +   - "renesas,fcpf" for generic compatible 'FCP for FDP'
-> 
->     When compatible with the generic version, nodes must list the
->     SoC-specific version corresponding to the platform first, followed by
-> the
+   af9035: fix logging (2016-06-07 22:02:33 +0300)
+
+----------------------------------------------------------------
+Alessandro Radicati (2):
+       af9035: I2C combined write + read transaction fix
+       af9035: fix for MXL5007T devices with I2C read issues
+
+Antti Palosaari (1):
+       af9035: fix logging
+
+  drivers/media/usb/dvb-usb-v2/af9035.c | 227 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------------------------
+  drivers/media/usb/dvb-usb-v2/af9035.h |   1 +
+  2 files changed, 133 insertions(+), 95 deletions(-)
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
