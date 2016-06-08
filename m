@@ -1,51 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38578 "EHLO lists.s-osg.org"
+Received: from foss.arm.com ([217.140.101.70]:52239 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753966AbcFPQGp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2016 12:06:45 -0400
-Subject: Re: [PATCH 1/3] drivers/media/dvb-core/en50221: use kref to manage
- struct dvb_ca_private
-To: Max Kellermann <max@duempel.org>, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com
-References: <146602170216.9818.6967531646383934202.stgit@woodpecker.blarg.de>
-Cc: linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <5762CE93.3080404@osg.samsung.com>
-Date: Thu, 16 Jun 2016 10:06:43 -0600
+	id S1756457AbcFHKtW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Jun 2016 06:49:22 -0400
+Date: Wed, 8 Jun 2016 11:49:19 +0100
+From: Liviu Dudau <liviu.dudau@arm.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+	Kamil Debski <k.debski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH] of: reserved_mem: restore old behavior when no region is
+ defined
+Message-ID: <20160608104919.GI1165@e106497-lin.cambridge.arm.com>
+References: <20160607143425.GE1165@e106497-lin.cambridge.arm.com>
+ <1465368713-17866-1-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <146602170216.9818.6967531646383934202.stgit@woodpecker.blarg.de>
 Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <1465368713-17866-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/15/2016 02:15 PM, Max Kellermann wrote:
-> Don't free the object until the file handle has been closed.  Fixes
-> use-after-free bug which occurs when I disconnect my DVB-S received
-> while VDR is running.
+On Wed, Jun 08, 2016 at 08:51:53AM +0200, Marek Szyprowski wrote:
+> Change return value back to -ENODEV when no region is defined for given
+> device. This restores old behavior of this function, as some drivers rely
+> on such error code.
+> 
+> Reported-by: Liviu Dudau <liviu.dudau@arm.com>
+> Fixes: 59ce4039727ef40 ("of: reserved_mem: add support for using more than
+>        one region for given device")
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Which file handle? /dev/dvb---
+Reviewed-by: Liviu Dudau <Liviu.Dudau@arm.com>
 
-There seems to be a problem in the driver release routine:
-dvb_ca_en50221_release() routine:
+> ---
+>  drivers/of/of_reserved_mem.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/of/of_reserved_mem.c b/drivers/of/of_reserved_mem.c
+> index 3cf129f..06af99f 100644
+> --- a/drivers/of/of_reserved_mem.c
+> +++ b/drivers/of/of_reserved_mem.c
+> @@ -334,7 +334,7 @@ int of_reserved_mem_device_init_by_idx(struct device *dev,
+>  
+>  	target = of_parse_phandle(np, "memory-region", idx);
+>  	if (!target)
+> -		return -EINVAL;
+> +		return -ENODEV;
+>  
+>  	rmem = __find_rmem(target);
+>  	of_node_put(target);
+> -- 
+> 1.9.2
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
 
-	kfree(ca->slot_info);
-	dvb_unregister_device(ca->dvbdev);
-	kfree(ca);
-
-I think this should be since ioctl references slot info
-
-	dvb_unregister_device(ca->dvbdev);
-	kfree(ca->slot_info);
-	kfree(ca);
-
-I think dvb_ca_en50221_release() and dvb_ca_en50221_io_do_ioctl()
-should serialize access to ca. dvb_ca_en50221_io_do_ioctl() holds
-the ioctl_mutex, however, dvb_ca_en50221_release() could happen while
-ioctl is in progress. Maybe you can try fixing those first.
-
-As I mentioned in my review on your 3/3 patch, adding a kref here
-adds more refcounted objects to the mix. You want to avoid that.
-
-thanks,
--- Shuah
+-- 
+====================
+| I would like to |
+| fix the world,  |
+| but they're not |
+| giving me the   |
+ \ source code!  /
+  ---------------
+    ¯\_(ツ)_/¯
