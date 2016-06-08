@@ -1,107 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45861 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754624AbcFTQFx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 12:05:53 -0400
-Subject: Re: [PATCH 5/6] v4l: Add 14-bit raw bayer pixel format definitions
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-References: <1464353080-18300-1-git-send-email-sakari.ailus@linux.intel.com>
- <1464353080-18300-6-git-send-email-sakari.ailus@linux.intel.com>
- <57680ACB.3050109@xs4all.nl> <576813B9.9050407@linux.intel.com>
-Cc: g.liakhovetski@gmx.de
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5768145B.2010306@xs4all.nl>
-Date: Mon, 20 Jun 2016 18:05:47 +0200
-MIME-Version: 1.0
-In-Reply-To: <576813B9.9050407@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43859 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755741AbcFHX62 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2016 19:58:28 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 4/5] v4l: vsp1: lut: Expose configuration through a control
+Date: Thu,  9 Jun 2016 02:58:15 +0300
+Message-Id: <1465430296-22644-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1465430296-22644-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1465430296-22644-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/20/2016 06:03 PM, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> Hans Verkuil wrote:
->> On 05/27/2016 02:44 PM, Sakari Ailus wrote:
->>> The formats added by this patch are:
->>>
->>> 	V4L2_PIX_FMT_SBGGR14
->>> 	V4L2_PIX_FMT_SGBRG14
->>> 	V4L2_PIX_FMT_SGRBG14
->>> 	V4L2_PIX_FMT_SRGGB14
->>>
->>> Signed-off-by: Jouni Ukkonen <jouni.ukkonen@intel.com>
->>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>> ---
->>>  Documentation/DocBook/media/v4l/pixfmt-srggb14.xml | 90 ++++++++++++++++++++++
->>>  Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
->>>  include/uapi/linux/videodev2.h                     |  4 +
->>>  3 files changed, 95 insertions(+)
->>>  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
->>>
->>> diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
->>> new file mode 100644
->>> index 0000000..7e82d7e
->>> --- /dev/null
->>> +++ b/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
->>> @@ -0,0 +1,90 @@
->>> +    <refentry>
->>> +      <refmeta>
->>> +	<refentrytitle>V4L2_PIX_FMT_SRGGB14 ('RG14'),
->>> +	 V4L2_PIX_FMT_SGRBG14 ('BA14'),
->>> +	 V4L2_PIX_FMT_SGBRG14 ('GB14'),
->>> +	 V4L2_PIX_FMT_SBGGR14 ('BG14'),
->>
->> Same comma problem.
-> 
-> Fixed.
-> 
->>
->>> +	 </refentrytitle>
->>> +	&manvol;
->>> +      </refmeta>
->>> +      <refnamediv>
->>> +	<refname id="V4L2-PIX-FMT-SRGGB14"><constant>V4L2_PIX_FMT_SRGGB14</constant></refname>
->>> +	<refname id="V4L2-PIX-FMT-SGRBG14"><constant>V4L2_PIX_FMT_SGRBG14</constant></refname>
->>> +	<refname id="V4L2-PIX-FMT-SGBRG14"><constant>V4L2_PIX_FMT_SGBRG14</constant></refname>
->>> +	<refname id="V4L2-PIX-FMT-SBGGR14"><constant>V4L2_PIX_FMT_SBGGR14</constant></refname>
->>> +	<refpurpose>14-bit Bayer formats expanded to 16 bits</refpurpose>
->>> +      </refnamediv>
->>> +      <refsect1>
->>> +	<title>Description</title>
->>> +
->>> +	<para>These four pixel formats are raw sRGB / Bayer formats with
->>> +14 bits per colour. Each colour component is stored in a 16-bit word, with 2
->>> +unused high bits filled with zeros. Each n-pixel row contains n/2 green samples
->>> +and n/2 blue or red samples, with alternating red and blue rows. Bytes are
->>> +stored in memory in little endian order. They are conventionally described
->>> +as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example of one of these
->>> +formats</para>
->>
->> s/formats/formats:/
-> 
-> Fixed.
-> 
->>> +
->>> +    <example>
->>> +      <title><constant>V4L2_PIX_FMT_SBGGR14</constant> 4 &times; 4
->>> +pixel image</title>
->>> +
->>> +      <formalpara>
->>> +	<title>Byte Order.</title>
->>> +	<para>Each cell is one byte, high 2 bits in high bytes are 0.
->>
->> s/high 2/the high 2/
-> 
-> After re-reading the patch, I changed this to "Each cell is one byte,
-> the 2 most significant bits in the high bytes are 0".
+Replace the custom ioctl with a V4L2 control in order to standardize the
+API.
 
-That is indeed better, although I would also say "two most" instead of "2 most".
-It's slightly weird to have "one byte" followed by "2 most". Could be me, though.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_lut.c | 74 ++++++++++++++++++++++------------
+ drivers/media/platform/vsp1/vsp1_lut.h |  6 +--
+ include/uapi/linux/vsp1.h              | 34 ----------------
+ 3 files changed, 52 insertions(+), 62 deletions(-)
+ delete mode 100644 include/uapi/linux/vsp1.h
 
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index 9a2c55b3570a..4c2d1e3ddaf0 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -13,7 +13,6 @@
+ 
+ #include <linux/device.h>
+ #include <linux/gfp.h>
+-#include <linux/vsp1.h>
+ 
+ #include <media/v4l2-subdev.h>
+ 
+@@ -35,43 +34,60 @@ static inline void vsp1_lut_write(struct vsp1_lut *lut, struct vsp1_dl_list *dl,
+ }
+ 
+ /* -----------------------------------------------------------------------------
+- * V4L2 Subdevice Core Operations
++ * Controls
+  */
+ 
+-static int lut_set_table(struct vsp1_lut *lut, struct vsp1_lut_config *config)
++#define V4L2_CID_VSP1_LUT_TABLE			(V4L2_CID_USER_BASE + 1)
++
++static int lut_set_table(struct vsp1_lut *lut, struct v4l2_ctrl *ctrl)
+ {
+ 	struct vsp1_dl_body *dlb;
+ 	unsigned int i;
+ 
+-	dlb = vsp1_dl_fragment_alloc(lut->entity.vsp1, ARRAY_SIZE(config->lut));
++	dlb = vsp1_dl_fragment_alloc(lut->entity.vsp1, 256);
+ 	if (!dlb)
+ 		return -ENOMEM;
+ 
+-	for (i = 0; i < ARRAY_SIZE(config->lut); ++i)
++	for (i = 0; i < 256; ++i)
+ 		vsp1_dl_fragment_write(dlb, VI6_LUT_TABLE + 4 * i,
+-				       config->lut[i]);
++				       ctrl->p_new.p_u32[i]);
+ 
+-	mutex_lock(&lut->lock);
+ 	swap(lut->lut, dlb);
+-	mutex_unlock(&lut->lock);
+ 
+ 	vsp1_dl_fragment_free(dlb);
+ 	return 0;
+ }
+ 
+-static long lut_ioctl(struct v4l2_subdev *subdev, unsigned int cmd, void *arg)
++static int lut_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	struct vsp1_lut *lut = to_lut(subdev);
+-
+-	switch (cmd) {
+-	case VIDIOC_VSP1_LUT_CONFIG:
+-		return lut_set_table(lut, arg);
++	struct vsp1_lut *lut =
++		container_of(ctrl->handler, struct vsp1_lut, ctrls);
+ 
+-	default:
+-		return -ENOIOCTLCMD;
++	switch (ctrl->id) {
++	case V4L2_CID_VSP1_LUT_TABLE:
++		lut_set_table(lut, ctrl);
++		break;
+ 	}
++
++	return 0;
+ }
+ 
++static const struct v4l2_ctrl_ops lut_ctrl_ops = {
++	.s_ctrl = lut_s_ctrl,
++};
++
++static const struct v4l2_ctrl_config lut_table_control = {
++	.ops = &lut_ctrl_ops,
++	.id = V4L2_CID_VSP1_LUT_TABLE,
++	.name = "Look-Up Table",
++	.type = V4L2_CTRL_TYPE_U32,
++	.min = 0x00000000,
++	.max = 0x00ffffff,
++	.step = 1,
++	.def = 0,
++	.dims = { 256},
++};
++
+ /* -----------------------------------------------------------------------------
+  * V4L2 Subdevice Pad Operations
+  */
+@@ -147,10 +163,6 @@ static int lut_set_format(struct v4l2_subdev *subdev,
+  * V4L2 Subdevice Operations
+  */
+ 
+-static struct v4l2_subdev_core_ops lut_core_ops = {
+-	.ioctl = lut_ioctl,
+-};
+-
+ static struct v4l2_subdev_pad_ops lut_pad_ops = {
+ 	.init_cfg = vsp1_entity_init_cfg,
+ 	.enum_mbus_code = lut_enum_mbus_code,
+@@ -160,7 +172,6 @@ static struct v4l2_subdev_pad_ops lut_pad_ops = {
+ };
+ 
+ static struct v4l2_subdev_ops lut_ops = {
+-	.core	= &lut_core_ops,
+ 	.pad    = &lut_pad_ops,
+ };
+ 
+@@ -176,12 +187,14 @@ static void lut_configure(struct vsp1_entity *entity,
+ 
+ 	vsp1_lut_write(lut, dl, VI6_LUT_CTRL, VI6_LUT_CTRL_EN);
+ 
+-	mutex_lock(&lut->lock);
++	mutex_lock(lut->ctrls.lock);
++
+ 	if (lut->lut) {
+ 		vsp1_dl_list_add_fragment(dl, lut->lut);
+ 		lut->lut = NULL;
+ 	}
+-	mutex_unlock(&lut->lock);
++
++	mutex_unlock(lut->ctrls.lock);
+ }
+ 
+ static const struct vsp1_entity_operations lut_entity_ops = {
+@@ -201,8 +214,6 @@ struct vsp1_lut *vsp1_lut_create(struct vsp1_device *vsp1)
+ 	if (lut == NULL)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	mutex_init(&lut->lock);
+-
+ 	lut->entity.ops = &lut_entity_ops;
+ 	lut->entity.type = VSP1_ENTITY_LUT;
+ 
+@@ -211,5 +222,18 @@ struct vsp1_lut *vsp1_lut_create(struct vsp1_device *vsp1)
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
++	/* Initialize the control handler. */
++	v4l2_ctrl_handler_init(&lut->ctrls, 1);
++	v4l2_ctrl_new_custom(&lut->ctrls, &lut_table_control, NULL);
++
++	lut->entity.subdev.ctrl_handler = &lut->ctrls;
++
++	if (lut->ctrls.error) {
++		dev_err(vsp1->dev, "lut: failed to initialize controls\n");
++		ret = lut->ctrls.error;
++		vsp1_entity_destroy(&lut->entity);
++		return ERR_PTR(ret);
++	}
++
+ 	return lut;
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.h b/drivers/media/platform/vsp1/vsp1_lut.h
+index cef874f22b6a..021898fc0ce5 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.h
++++ b/drivers/media/platform/vsp1/vsp1_lut.h
+@@ -13,9 +13,8 @@
+ #ifndef __VSP1_LUT_H__
+ #define __VSP1_LUT_H__
+ 
+-#include <linux/mutex.h>
+-
+ #include <media/media-entity.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-subdev.h>
+ 
+ #include "vsp1_entity.h"
+@@ -28,7 +27,8 @@ struct vsp1_device;
+ struct vsp1_lut {
+ 	struct vsp1_entity entity;
+ 
+-	struct mutex lock;
++	struct v4l2_ctrl_handler ctrls;
++
+ 	struct vsp1_dl_body *lut;
+ };
+ 
+diff --git a/include/uapi/linux/vsp1.h b/include/uapi/linux/vsp1.h
+deleted file mode 100644
+index 9a823696d816..000000000000
+--- a/include/uapi/linux/vsp1.h
++++ /dev/null
+@@ -1,34 +0,0 @@
+-/*
+- * vsp1.h
+- *
+- * Renesas R-Car VSP1 - User-space API
+- *
+- * Copyright (C) 2013 Renesas Corporation
+- *
+- * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef __VSP1_USER_H__
+-#define __VSP1_USER_H__
+-
+-#include <linux/types.h>
+-#include <linux/videodev2.h>
+-
+-/*
+- * Private IOCTLs
+- *
+- * VIDIOC_VSP1_LUT_CONFIG - Configure the lookup table
+- */
+-
+-#define VIDIOC_VSP1_LUT_CONFIG \
+-	_IOWR('V', BASE_VIDIOC_PRIVATE + 1, struct vsp1_lut_config)
+-
+-struct vsp1_lut_config {
+-	__u32 lut[256];
+-};
+-
+-#endif	/* __VSP1_USER_H__ */
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
