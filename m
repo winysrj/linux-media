@@ -1,75 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:34110 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751442AbcFRR4c (ORCPT
+Received: from resqmta-po-11v.sys.comcast.net ([96.114.154.170]:35357 "EHLO
+	resqmta-ch2-11v.sys.comcast.net" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932909AbcFIBfS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jun 2016 13:56:32 -0400
-Date: Sat, 18 Jun 2016 10:56:28 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-input@vger.kernel.org
-Subject: Re: [PATCH 0/2] input: add support for HDMI CEC
-Message-ID: <20160618175628.GB15429@dtor-ws>
-References: <1466261428-12616-1-git-send-email-hverkuil@xs4all.nl>
- <20160618162655.GC12210@dtor-ws>
- <57657D38.9080007@xs4all.nl>
- <20160618144408.5017c321@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160618144408.5017c321@recife.lan>
+	Wed, 8 Jun 2016 21:35:18 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: kyungmin.park@samsung.com, k.debski@samsung.com,
+	jtp.park@samsung.com, mchehab@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: s5p-mfc fix memory leak in s5p_mfc_remove()
+Date: Wed,  8 Jun 2016 19:35:15 -0600
+Message-Id: <1465436115-13880-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jun 18, 2016 at 02:44:08PM -0300, Mauro Carvalho Chehab wrote:
-> Em Sat, 18 Jun 2016 18:56:24 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
-> > On 06/18/2016 06:26 PM, Dmitry Torokhov wrote:
-> > > Hi Hans,
-> > > 
-> > > On Sat, Jun 18, 2016 at 04:50:26PM +0200, Hans Verkuil wrote:  
-> > >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> > >>
-> > >> Hi Dmitry,
-> > >>
-> > >> This patch series adds input support for the HDMI CEC bus through which
-> > >> remote control keys can be passed from one HDMI device to another.
-> > >>
-> > >> This has been posted before as part of the HDMI CEC patch series. We are
-> > >> going to merge that in linux-media for 4.8, but these two patches have to
-> > >> go through linux-input.
-> > >>
-> > >> Only the rc-cec keymap file depends on this, and we will take care of that
-> > >> dependency (we'll postpone merging that until both these input patches and
-> > >> our own CEC patches have been merged in mainline).  
-> > > 
-> > > If it would be easier for you I am perfectly fine with these patches
-> > > going through media tree; you have my acks on them.  
-> > 
-> > You're not expecting any changes to these headers for 4.8 that might
-> > cause merge conflicts? That was Mauro's concern.
-> > 
-> > If not, then I would prefer it to go through the media tree to simplify
-> > the dependencies, but it's up to Mauro.
-> 
-> Hi Dmitry,
-> 
-> My main concern is with patch 2, as it could conflict with some other
-> patch on your tree, as I suspect it should be somewhat common to add
-> new keystrokes from time to time, on your tree. As there's just one patch 
-> affected by it from Hans CEC patch series, with adds the keymap to be 
-> used by the remote controller CEC patch, it won't be a big issue to 
-> delay just that patch to be sent upstream after both your and my trees 
-> would be merged.
+s5p_mfc_remove() fails to release encoder and decoder video devices.
 
-Mauro,
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-I created an immutable branch "cec-defines" based on 4.6; I'll also
-merge it into 4.7.
-
-Thanks.
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 274b4f1..af61f54 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1317,7 +1317,9 @@ static int s5p_mfc_remove(struct platform_device *pdev)
+ 	destroy_workqueue(dev->watchdog_workqueue);
+ 
+ 	video_unregister_device(dev->vfd_enc);
++	video_device_release(dev->vfd_enc);
+ 	video_unregister_device(dev->vfd_dec);
++	video_device_release(dev->vfd_dec);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ 	s5p_mfc_release_firmware(dev);
+ 	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[0]);
 -- 
-Dmitry
+2.7.4
+
