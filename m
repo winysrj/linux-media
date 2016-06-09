@@ -1,59 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:55710 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752549AbcF2NVE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2016 09:21:04 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [PATCH 15/15] include: lirc: add set length and frequency ioctl options
-Date: Wed, 29 Jun 2016 22:20:44 +0900
-Message-id: <1467206444-9935-16-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
-References: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:37893 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750756AbcFIUZa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2016 16:25:30 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH] [media] s5p-mfc: use vb2_is_streaming() to check vb2 queue status
+Date: Thu,  9 Jun 2016 16:25:14 -0400
+Message-Id: <1465503914-22936-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Lirc framework works mainly with receivers, but there is
-nothing that prevents us from using it for transmitters as well.
+The streaming field in struct vb2_queue is meant to be private and should
+not be used by drivers directly, instead the vb2_is_streaming() function
+should be used to check the videobuf2 queue streaming status.
 
-For that we need to have more control on the device frequency to
-set (which is a new concept fro LIRC) and we also need to provide
-to userspace, as feedback, the values of the used frequency and
-length.
-
-Add the LIRC_SET_LENGTH, LIRC_GET_FREQUENCY and
-LIRC_SET_FREQUENCY ioctl commands in order to allow the above
-mentioned operations.
-
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 ---
- include/uapi/linux/lirc.h | 4 ++++
- 1 file changed, 4 insertions(+)
 
-diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
-index 4b3ab29..94a0d8c 100644
---- a/include/uapi/linux/lirc.h
-+++ b/include/uapi/linux/lirc.h
-@@ -106,6 +106,7 @@
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 038215c198ac..d3b01e92ee80 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -423,7 +423,7 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 	pix_mp = &f->fmt.pix_mp;
+ 	if (ret)
+ 		return ret;
+-	if (ctx->vq_src.streaming || ctx->vq_dst.streaming) {
++	if (vb2_is_streaming(&ctx->vq_src) || vb2_is_streaming(&ctx->vq_dst)) {
+ 		v4l2_err(&dev->v4l2_dev, "%s queue busy\n", __func__);
+ 		ret = -EBUSY;
+ 		goto out;
+@@ -820,7 +820,7 @@ static int vidioc_decoder_cmd(struct file *file, void *priv,
+ 		if (cmd->flags != 0)
+ 			return -EINVAL;
  
- /* code length in bits, currently only for LIRC_MODE_LIRCCODE */
- #define LIRC_GET_LENGTH                _IOR('i', 0x0000000f, __u32)
-+#define LIRC_SET_LENGTH                _IOW('i', 0x00000010, __u32)
+-		if (!ctx->vq_src.streaming)
++		if (!vb2_is_streaming(&ctx->vq_src))
+ 			return -EINVAL;
  
- #define LIRC_SET_SEND_MODE             _IOW('i', 0x00000011, __u32)
- #define LIRC_SET_REC_MODE              _IOW('i', 0x00000012, __u32)
-@@ -165,4 +166,7 @@
- 
- #define LIRC_SET_WIDEBAND_RECEIVER     _IOW('i', 0x00000023, __u32)
- 
-+#define LIRC_GET_FREQUENCY             _IOR('i', 0x00000024, __u32)
-+#define LIRC_SET_FREQUENCY             _IOW('i', 0x00000025, __u32)
-+
- #endif
+ 		spin_lock_irqsave(&dev->irqlock, flags);
 -- 
-2.8.1
+2.5.5
 
