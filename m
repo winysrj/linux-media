@@ -1,56 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zencphosting06.zen.co.uk ([82.71.204.9]:39412 "EHLO
-	zencphosting06.zen.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750970AbcFAQXO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2016 12:23:14 -0400
-Subject: Re: [PATCH v2 4/8] Input: atmel_mxt_ts - output diagnostic debug via
- v4l2 device
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>
-References: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
- <1462381638-7818-5-git-send-email-nick.dyer@itdev.co.uk>
- <57484386.2050809@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-Message-ID: <64eabe26-1140-6d6e-e379-e54525c3e53e@itdev.co.uk>
-Date: Wed, 1 Jun 2016 17:22:56 +0100
+Received: from mail.kapsi.fi ([217.30.184.167]:39848 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752721AbcFIPlO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2016 11:41:14 -0400
+Subject: Re: dvb-core: how should i2c subdev drivers be attached?
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Akihiro TSUKADA <tskd08@gmail.com>
+References: <52775753-47c4-bfdf-b8f5-48bdf8ceb6e5@gmail.com>
+ <20160609122449.5cfc16cc@recife.lan>
+Cc: linux-media@vger.kernel.org
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <07669546-908f-f81c-26e5-af7b720229b3@iki.fi>
+Date: Thu, 9 Jun 2016 18:41:10 +0300
 MIME-Version: 1.0
-In-Reply-To: <57484386.2050809@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <20160609122449.5cfc16cc@recife.lan>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27/05/2016 13:54, Hans Verkuil wrote:
-> Hi Nick,
+On 06/09/2016 06:24 PM, Mauro Carvalho Chehab wrote:
+> Hi Akihiro,
+>
+> Em Thu, 09 Jun 2016 21:49:33 +0900
+> Akihiro TSUKADA <tskd08@gmail.com> escreveu:
+>
+>> Hi,
+>> excuse me for taking up a very old post again,
+>> but I'd like to know the status of the patch:
+>>   https://patchwork.linuxtv.org/patch/27922/
+>> , which provides helper code for defining/loading i2c DVB subdev drivers.
+>>
+>> Was it rejected and
+>
+> It was not rejected. It is just that I didn't have time yet to think
+> about that, and Antti has a different view.
+>
+> The thing is that, whatever we do, it should work fine on drivers that
+> also exposes the tuner via V4L2. One of the reasons is that devices
+> that also allow the usage for SDR use the V4L2 core for the SDR part.
+>
+>> each i2c demod/tuner drivers should provide its own version of "attach" code?
+>
+> Antti took this path, but I don't like it. Lots of duplicated and complex
+> stuff. Also, some static analyzers refuse to check it (like smatch),
+> due to its complexity.
+>
+>> Or is it acceptable (with some modifications) ?
+>
+> I guess we should discuss a way of doing it that will be acceptable
+> on existing drivers. Perhaps you should try to do such change for
+> an hybrid driver like em28xx or cx231xx. There are a few ISDB-T
+> devices using them. Not sure how easy would be to find one of those
+> in Japan, though.
+>
+>>
+>> Although not many drivers currently use i2c binding model (and use dvb_attach()),
+>> but I expect that coming DVB subdev drivers will have a similar attach code,
+>> including module request/ref-counting, device creation,
+>> (re-)using i2c_board_info.platformdata to pass around both config parameters
+>> and the resulting i2c_client* & dvb_frontend*.
+>>
+>> Since I have a plan to split out demod/tuner drivers from pci/pt1 dvb-usb/friio
+>> integrated drivers (because those share the tc90522 demod driver with pt3, and
+>> friio also shares the bridge chip with gl861),
+>> it would be nice if I can use the helper code,
+>> instead of re-iterating similar "attach" code.
 
-Thanks for the useful review. Most of it is straightforward and I've
-updated it in a new version of these patches which I will post now.
+IMHO only thing which makes it looking complex is that module reference 
+counting - otherwise it is just standard I2C binding. Ideally I2C 
+modules should be possible to unbind and unload at runtime and also load 
+and bind. There is "suppress_bind_attrs = true" set to prevent runtime 
+unbinding and try_module_get() is to prevent module unloading. For me 
+eyes all that is still some workaround - and now you want put this 
+workaround to some generic code. Please find correct solutions for those 
+two problems and then there we can get rid of things totally - no need 
+to make generic functions at all.
 
-I think the open question is whether you're happy with the
-V4L2_PIX_FMT_YS16 or whether I need to rename it. For what it's worth,
-Synaptics RMI4 also emits 16 bit signed, see
+regards
+Antti
 
-https://github.com/wanam/Adam-Kernel-GS4/blob/master/drivers/input/touchscreen/rmi_f54.c#L1831
-
-> On 05/04/2016 07:07 PM, Nick Dyer wrote:
-> BTW, did you run v4l2-compliance? I think it should work if you just do:
-> 
-> v4l2-compliance -d /dev/v4l-touch0
-
-Yes, and I've now fixed all issues that I could find with it. I had to do
-some minor updates to support the touch sensor stuff, see:
-    https://github.com/ndyer/v4l-utils/commits/touch-sensor
+-- 
+http://palosaari.fi/
