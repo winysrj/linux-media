@@ -1,99 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43495 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751951AbcF2Wnh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2016 18:43:37 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Ira Krufky <mkrufky@linuxtv.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Jiri Kosina <jkosina@suse.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 05/10] au8522: remove au8522_read_ber() ops
-Date: Wed, 29 Jun 2016 19:43:21 -0300
-Message-Id: <1b9a13b1a6be99eb656ff8bbbcd4465bd0e1d2eb.1467240152.git.mchehab@s-opensource.com>
-In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
-References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
-In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
-References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
+Received: from ns.mm-sol.com ([37.157.136.199]:57452 "EHLO extserv.mm-sol.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751898AbcFIL7i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2016 07:59:38 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, geert@linux-m68k.org, matrandg@cisco.com,
+	linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+	Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v4 0/2] OV5645 camera sensor driver
+Date: Thu,  9 Jun 2016 14:59:16 +0300
+Message-Id: <1465473558-3492-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's no code on au8522 to get the bit error rate.
-Remove the fake function that were returning the number of
-uncorrected error blocks as if they were ber.
+This is the fourth version of the OV5645 camera sensor driver patchset.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-frontends/au8522_dig.c | 30 ++++++++++--------------------
- 1 file changed, 10 insertions(+), 20 deletions(-)
+Only one change since version 3:
+- build failure on kernel v4.7-rc1 fixed:
+  s/media_entity_init/media_entity_pads_init/
 
-diff --git a/drivers/media/dvb-frontends/au8522_dig.c b/drivers/media/dvb-frontends/au8522_dig.c
-index aebee53903cc..22d837494cc7 100644
---- a/drivers/media/dvb-frontends/au8522_dig.c
-+++ b/drivers/media/dvb-frontends/au8522_dig.c
-@@ -787,15 +787,6 @@ static void au8522_get_stats(struct dvb_frontend *fe, enum fe_status status)
- 	c->block_error.stat[0].scale = FE_SCALE_COUNTER;
- 	c->block_error.stat[0].uvalue = state->ucblocks;
- }
--static int au8522_read_signal_strength(struct dvb_frontend *fe,
--				       u16 *signal_strength)
--{
--	struct au8522_state *state = fe->demodulator_priv;
--
--	*signal_strength = state->strength;
--
--	return 0;
--}
- 
- static int au8522_read_status(struct dvb_frontend *fe, enum fe_status *status)
- {
-@@ -857,6 +848,16 @@ static int au8522_read_status(struct dvb_frontend *fe, enum fe_status *status)
- 	return 0;
- }
- 
-+static int au8522_read_signal_strength(struct dvb_frontend *fe,
-+				       u16 *signal_strength)
-+{
-+	struct au8522_state *state = fe->demodulator_priv;
-+
-+	*signal_strength = state->strength;
-+
-+	return 0;
-+}
-+
- static int au8522_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- {
- 	struct au8522_state *state = fe->demodulator_priv;
-@@ -866,16 +867,6 @@ static int au8522_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- 	return 0;
- }
- 
--static int au8522_read_ber(struct dvb_frontend *fe, u32 *ber)
--{
--	struct au8522_state *state = fe->demodulator_priv;
--
--	/* FIXME: This is so wrong! */
--	*ber = state->ucblocks;
--
--	return 0;
--}
--
- static int au8522_get_frontend(struct dvb_frontend *fe,
- 			       struct dtv_frontend_properties *c)
- {
-@@ -987,7 +978,6 @@ static struct dvb_frontend_ops au8522_ops = {
- 	.get_frontend         = au8522_get_frontend,
- 	.get_tune_settings    = au8522_get_tune_settings,
- 	.read_status          = au8522_read_status,
--	.read_ber             = au8522_read_ber,
- 	.read_signal_strength = au8522_read_signal_strength,
- 	.read_snr             = au8522_read_snr,
- 	.read_ucblocks        = au8522_read_ucblocks,
+Changes from version 2 include:
+- external camera clock configuration is moved from DT to driver;
+- pwdn-gpios renamed to enable-gpios;
+- switched polarity of reset-gpios to the more intuitive active low;
+- added Kconfig dependency to OF;
+- return values checks;
+- regulators and gpios are now required (not optional);
+- regulators names renamed;
+- power counter variable changed to a bool power state;
+- ov5645_registered() is removed and sensor id reading moved to probe().
+
+Changes from version 1 include:
+- patch split to dt binding doc patch and driver patch;
+- changes in power on/off logic - s_power is now not called on
+  open/close;
+- using assigned-clock-rates in dt for setting camera external
+  clock rate;
+- correct api for gpio handling;
+- return values checks;
+- style fixes.
+
+Todor Tomov (2):
+  media: i2c/ov5645: add the device tree binding document
+  media: Add a driver for the ov5645 camera sensor.
+
+ .../devicetree/bindings/media/i2c/ov5645.txt       |   50 +
+ drivers/media/i2c/Kconfig                          |   12 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/ov5645.c                         | 1369 ++++++++++++++++++++
+ 4 files changed, 1432 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
+ create mode 100644 drivers/media/i2c/ov5645.c
+
 -- 
-2.7.4
+1.9.1
 
