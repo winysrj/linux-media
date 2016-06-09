@@ -1,252 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dliviu.plus.com ([80.229.23.120]:44510 "EHLO smtp.dudau.co.uk"
+Received: from lists.s-osg.org ([54.187.51.154]:37139 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423750AbcFHKn1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jun 2016 06:43:27 -0400
-Date: Wed, 8 Jun 2016 11:36:30 +0100
-From: Liviu Dudau <liviu@dudau.co.uk>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Uli Middelberg <uli@middelberg.de>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH v4 3/7] media: s5p-mfc: replace custom reserved memory
- handling code with generic one
-Message-ID: <20160608103629.GD21784@bart.dudau.co.uk>
-References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
- <1464096690-23605-4-git-send-email-m.szyprowski@samsung.com>
+	id S1750810AbcFITfd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2016 15:35:33 -0400
+Date: Thu, 9 Jun 2016 16:35:28 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: dvb-core: how should i2c subdev drivers be attached?
+Message-ID: <20160609163528.67394569@recife.lan>
+In-Reply-To: <a67edaab-4da2-6ccf-9b2a-08f95cc1072e@iki.fi>
+References: <52775753-47c4-bfdf-b8f5-48bdf8ceb6e5@gmail.com>
+	<20160609122449.5cfc16cc@recife.lan>
+	<07669546-908f-f81c-26e5-af7b720229b3@iki.fi>
+	<20160609131813.710e1ab2@recife.lan>
+	<f89f96f0-40a3-6e50-5d83-0cfaf50e8089@iki.fi>
+	<20160609153015.108e4d98@recife.lan>
+	<a67edaab-4da2-6ccf-9b2a-08f95cc1072e@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1464096690-23605-4-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 24, 2016 at 03:31:26PM +0200, Marek Szyprowski wrote:
-> This patch removes custom code for initialization and handling of
-> reserved memory regions in s5p-mfc driver and replaces it with generic
-> reserved memory regions api.
-> 
-> s5p-mfc driver now handles two reserved memory regions defined by
-> generic reserved memory bindings. Support for non-dt platform has been
-> removed, because all supported platforms have been already converted to
-> device tree.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc.c | 138 ++++++++++++++-----------------
->  1 file changed, 63 insertions(+), 75 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> index d1d9d388..fff5f43 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> @@ -22,6 +22,7 @@
->  #include <media/v4l2-event.h>
->  #include <linux/workqueue.h>
->  #include <linux/of.h>
-> +#include <linux/of_reserved_mem.h>
->  #include <media/videobuf2-v4l2.h>
->  #include "s5p_mfc_common.h"
->  #include "s5p_mfc_ctrl.h"
-> @@ -1043,66 +1044,71 @@ static const struct v4l2_file_operations s5p_mfc_fops = {
->  	.mmap = s5p_mfc_mmap,
->  };
->  
-> -static int match_child(struct device *dev, void *data)
-> -{
-> -	if (!dev_name(dev))
-> -		return 0;
-> -	return !strcmp(dev_name(dev), (char *)data);
-> -}
-> -
-> +/* DMA memory related helper functions */
->  static void s5p_mfc_memdev_release(struct device *dev)
->  {
-> -	dma_release_declared_memory(dev);
-> +	of_reserved_mem_device_release(dev);
->  }
->  
-> -static void *mfc_get_drv_data(struct platform_device *pdev);
-> -
-> -static int s5p_mfc_alloc_memdevs(struct s5p_mfc_dev *dev)
-> +static struct device *s5p_mfc_alloc_memdev(struct device *dev,
-> +					   const char *name, unsigned int idx)
->  {
-> -	unsigned int mem_info[2] = { };
-> +	struct device *child;
-> +	int ret;
->  
-> -	dev->mem_dev_l = devm_kzalloc(&dev->plat_dev->dev,
-> -			sizeof(struct device), GFP_KERNEL);
-> -	if (!dev->mem_dev_l) {
-> -		mfc_err("Not enough memory\n");
-> -		return -ENOMEM;
-> +	child = devm_kzalloc(dev, sizeof(struct device), GFP_KERNEL);
-> +	if (!child)
-> +		return NULL;
-> +
-> +	device_initialize(child);
-> +	dev_set_name(child, "%s:%s", dev_name(dev), name);
-> +	child->parent = dev;
-> +	child->bus = dev->bus;
-> +	child->coherent_dma_mask = dev->coherent_dma_mask;
-> +	child->dma_mask = dev->dma_mask;
-> +	child->release = s5p_mfc_memdev_release;
-> +
-> +	if (device_add(child) == 0) {
-> +		ret = of_reserved_mem_device_init_by_idx(child, dev->of_node,
-> +							 idx);
-> +		if (ret == 0)
-> +			return child;
->  	}
->  
-> -	dev_set_name(dev->mem_dev_l, "%s", "s5p-mfc-l");
-> -	dev->mem_dev_l->release = s5p_mfc_memdev_release;
-> -	device_initialize(dev->mem_dev_l);
-> -	of_property_read_u32_array(dev->plat_dev->dev.of_node,
-> -			"samsung,mfc-l", mem_info, 2);
-> -	if (dma_declare_coherent_memory(dev->mem_dev_l, mem_info[0],
-> -				mem_info[0], mem_info[1],
-> -				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE) == 0) {
-> -		mfc_err("Failed to declare coherent memory for\n"
-> -		"MFC device\n");
-> -		return -ENOMEM;
-> -	}
-> +	put_device(child);
-> +	return NULL;
-> +}
->  
-> -	dev->mem_dev_r = devm_kzalloc(&dev->plat_dev->dev,
-> -			sizeof(struct device), GFP_KERNEL);
-> -	if (!dev->mem_dev_r) {
-> -		mfc_err("Not enough memory\n");
-> -		return -ENOMEM;
-> -	}
-> +static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
-> +{
-> +	struct device *dev = &mfc_dev->plat_dev->dev;
->  
-> -	dev_set_name(dev->mem_dev_r, "%s", "s5p-mfc-r");
-> -	dev->mem_dev_r->release = s5p_mfc_memdev_release;
-> -	device_initialize(dev->mem_dev_r);
-> -	of_property_read_u32_array(dev->plat_dev->dev.of_node,
-> -			"samsung,mfc-r", mem_info, 2);
-> -	if (dma_declare_coherent_memory(dev->mem_dev_r, mem_info[0],
-> -				mem_info[0], mem_info[1],
-> -				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE) == 0) {
-> -		pr_err("Failed to declare coherent memory for\n"
-> -		"MFC device\n");
-> -		return -ENOMEM;
-> +	/*
-> +	 * Create and initialize virtual devices for accessing
-> +	 * reserved memory regions.
-> +	 */
-> +	mfc_dev->mem_dev_l = s5p_mfc_alloc_memdev(dev, "left",
-> +						  MFC_BANK1_ALLOC_CTX);
-> +	if (!mfc_dev->mem_dev_l)
-> +		return -ENODEV;
-> +	mfc_dev->mem_dev_r = s5p_mfc_alloc_memdev(dev, "right",
-> +						  MFC_BANK2_ALLOC_CTX);
-> +	if (!mfc_dev->mem_dev_r) {
-> +		device_unregister(mfc_dev->mem_dev_l);
-> +		return -ENODEV;
->  	}
-> +
->  	return 0;
->  }
->  
-> +static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
-> +{
-> +	device_unregister(mfc_dev->mem_dev_l);
-> +	device_unregister(mfc_dev->mem_dev_r);
-> +}
-> +
-> +static void *mfc_get_drv_data(struct platform_device *pdev);
-> +
->  /* MFC probe function */
->  static int s5p_mfc_probe(struct platform_device *pdev)
->  {
-> @@ -1128,12 +1134,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
->  
->  	dev->variant = mfc_get_drv_data(pdev);
->  
-> -	ret = s5p_mfc_init_pm(dev);
-> -	if (ret < 0) {
-> -		dev_err(&pdev->dev, "failed to get mfc clock source\n");
-> -		return ret;
-> -	}
-> -
->  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  
->  	dev->regs_base = devm_ioremap_resource(&pdev->dev, res);
-> @@ -1154,25 +1154,16 @@ static int s5p_mfc_probe(struct platform_device *pdev)
->  		goto err_res;
->  	}
->  
-> -	if (pdev->dev.of_node) {
-> -		ret = s5p_mfc_alloc_memdevs(dev);
-> -		if (ret < 0)
-> -			goto err_res;
-> -	} else {
-> -		dev->mem_dev_l = device_find_child(&dev->plat_dev->dev,
-> -				"s5p-mfc-l", match_child);
-> -		if (!dev->mem_dev_l) {
-> -			mfc_err("Mem child (L) device get failed\n");
-> -			ret = -ENODEV;
-> -			goto err_res;
-> -		}
-> -		dev->mem_dev_r = device_find_child(&dev->plat_dev->dev,
-> -				"s5p-mfc-r", match_child);
-> -		if (!dev->mem_dev_r) {
-> -			mfc_err("Mem child (R) device get failed\n");
-> -			ret = -ENODEV;
-> -			goto err_res;
-> -		}
-> +	ret = s5p_mfc_configure_dma_memory(dev);
-> +	if (ret < 0) {
-> +		dev_err(&pdev->dev, "failed to configure DMA memory\n");
-> +		return ret;
-> +	}
-> +
-> +	ret = s5p_mfc_init_pm(dev);
-> +	if (ret < 0) {
-> +		dev_err(&pdev->dev, "failed to get mfc clock source\n");
+Antti,
 
-Should you not be calling s5p_mfc_unconfigure_dma_memory(dev) here? It looks
-like you are leaking memory.
+Em Thu, 09 Jun 2016 22:14:12 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Best regards,
-Liviu
-
-
-> +		return ret;
->  	}
->  
->  	vb2_dma_contig_set_max_seg_size(dev->mem_dev_l, DMA_BIT_MASK(32));
-> @@ -1309,12 +1300,9 @@ static int s5p_mfc_remove(struct platform_device *pdev)
->  	s5p_mfc_release_firmware(dev);
->  	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[0]);
->  	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[1]);
-> +	s5p_mfc_unconfigure_dma_memory(dev);
->  	vb2_dma_contig_clear_max_seg_size(dev->mem_dev_l);
->  	vb2_dma_contig_clear_max_seg_size(dev->mem_dev_r);
-> -	if (pdev->dev.of_node) {
-> -		put_device(dev->mem_dev_l);
-> -		put_device(dev->mem_dev_r);
-> -	}
->  
->  	s5p_mfc_final_pm(dev);
->  	return 0;
-> -- 
-> 1.9.2
+> On 06/09/2016 09:30 PM, Mauro Carvalho Chehab wrote:
+> > Em Thu, 9 Jun 2016 19:38:04 +0300
+> > Antti Palosaari <crope@iki.fi> escreveu:  
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-samsung-soc" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>> The V4L2 core handles everything that it is needed for it to work, and
+> >>> no extra code is needed to do module_put() or i2c_unregister_device().  
+> >>
+> >> That example attachs 2 I2C drivers, as your example only 1.  
+> >
+> > Well, on V4L2, 2 I2C drivers, two statements.
+> >  
+> >> Also it
+> >> populates all the config to platform data on both I2C driver.  
+> >
+> > Yes, this is annoying, but lots of the converted entries are
+> > doing the same crap, instead of using a const var outside
+> > the code.
+> >  
+> >> Which
+> >> annoys me is that try_module_get/module_put functionality.  
+> >
+> > That is scary, as any failure there would prevent removing/unbinding
+> > a module. The core or some helper function should be handle it,
+> > to avoid the risk of get twice, put twice, never call put, etc.
+> >  
+> >> You should be ideally able to unbind (and bind) modules like that:
+> >> echo 6-0008 > /sys/bus/i2c/drivers/a8293/unbind  
+> >
+> > I guess unbinding a V4L2 module in real time won't cause any
+> > crash (obviously, the device will stop work properly, if you
+> > remove a component that it is being used).
+> >
+> > I actually tested remove/reinsert the I2C remote controller
+> > drivers a long time ago, while looking at some bugs. Those are
+> > usually harder to get it right, as most of them have a poll logic
+> > internally to get IR events on every 10ms. I guess I tested
+> > removing/reinserting the tuner too, but that was at the
+> > "stone ages"... to old for me to remember what I did.
+> >
+> > Yet, I don't see any troubles preventing the I2C "slave" drivers to
+> > be unbound before the master, by increasing their module refcounts
+> > during their usage.
+> >  
+> >> and as it is not possible, that stuff is here to avoid problems. Some
+> >> study is needed in order to find out how dynamic unbind/bind could be
+> >> get working and after that I hope whole ref counting could be removed.
+> >> Currently you cannot allow remove module as it leads to unbind, which
+> >> does not work.  
+> 
+> I did tons of work in order to get things work properly with I2C 
+> binding. And following things are now possible due to that:
+> * Kernel logging. You could now use standard dev_ logging.
+> * regmap. Could now use regmap in order to cover register access.
+> * I2C-mux. No need for i2c_gate_control.
+> 
+> And everytime there is someone asking why just don't do things like 
+> earlier :S
+> 
+> I really don't want add any new hacks but implement things as much as 
+> possible the way driver core makes possible. For long ran I feel it is 
+> better approach to follow driver core than make own hacks. Until someone 
+> study things and says it is not possible to implement things like core 
+> offers, then lets implement things. That's bind/unbind is one thing to 
+> study, another thing is power-management.
+
+Nobody is proposing to add hacks. I'm with you with that: hacks
+should be removed (like that hybrid_instance ugly code used by most
+hybrid tuners).
+
+We should, however, put common code at the core or provide helper
+functions, in order to:
+
+1) Make life easier for developers to add support for new boards;
+
+2) Prevent, as much as possible, the risk of developer's mistakes
+   to cause harm to the drivers;
+
+3) Simplify the logic at the drivers, and, if possible, remove that
+   long per-card switch() at the dvb part of the hybrid drivers;
+
+4) Prevent, as much as possible, the risk of developer's mistakes
+   to cause harm to the drivers;
+
+5) Allow the code to be better reviewed by static code analyzers.
+
+> 
+> I suspect bind/unbind could be simple like just:
+> i2c_driver_remove()
+> {
+>      if (frontend_is_running)
+>          return -EBUSY;
+> 
+>      kfree(dev)
+>      return 0;
+> }
+
+The above code is racy, as some other request to the frontend
+may arrive between the if() statement and kfree(). A kref would
+likely be safer.
+
+Thanks,
+Mauro
