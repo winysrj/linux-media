@@ -1,134 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34417 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752826AbcFVTXE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2016 15:23:04 -0400
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
-	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [RESEND PATCH v2 4/5] ir-rx51: add DT support to driver
-Date: Wed, 22 Jun 2016 22:22:20 +0300
-Message-Id: <1466623341-30130-5-git-send-email-ivo.g.dimitrov.75@gmail.com>
-In-Reply-To: <1466623341-30130-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <1466623341-30130-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:34744 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752441AbcFIPYz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2016 11:24:55 -0400
+Date: Thu, 9 Jun 2016 12:24:49 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Akihiro TSUKADA <tskd08@gmail.com>
+Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Subject: Re: dvb-core: how should i2c subdev drivers be attached?
+Message-ID: <20160609122449.5cfc16cc@recife.lan>
+In-Reply-To: <52775753-47c4-bfdf-b8f5-48bdf8ceb6e5@gmail.com>
+References: <52775753-47c4-bfdf-b8f5-48bdf8ceb6e5@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With the upcoming removal of legacy boot, lets add support to one of the
-last N900 drivers remaining without it. As the driver still uses omap
-dmtimer, add auxdata as well.
+Hi Akihiro,
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Acked-by: Rob Herring <robh@kernel.org>
+Em Thu, 09 Jun 2016 21:49:33 +0900
+Akihiro TSUKADA <tskd08@gmail.com> escreveu:
+
+> Hi,
+> excuse me for taking up a very old post again,
+> but I'd like to know the status of the patch:
+>   https://patchwork.linuxtv.org/patch/27922/
+> , which provides helper code for defining/loading i2c DVB subdev drivers.
+> 
+> Was it rejected and 
+
+It was not rejected. It is just that I didn't have time yet to think
+about that, and Antti has a different view. 
+
+The thing is that, whatever we do, it should work fine on drivers that
+also exposes the tuner via V4L2. One of the reasons is that devices
+that also allow the usage for SDR use the V4L2 core for the SDR part.
+
+> each i2c demod/tuner drivers should provide its own version of "attach" code?
+
+Antti took this path, but I don't like it. Lots of duplicated and complex
+stuff. Also, some static analyzers refuse to check it (like smatch),
+due to its complexity.
+
+> Or is it acceptable (with some modifications) ?
+
+I guess we should discuss a way of doing it that will be acceptable
+on existing drivers. Perhaps you should try to do such change for
+an hybrid driver like em28xx or cx231xx. There are a few ISDB-T
+devices using them. Not sure how easy would be to find one of those
+in Japan, though.
+
+> 
+> Although not many drivers currently use i2c binding model (and use dvb_attach()),
+> but I expect that coming DVB subdev drivers will have a similar attach code,
+> including module request/ref-counting, device creation,
+> (re-)using i2c_board_info.platformdata to pass around both config parameters
+> and the resulting i2c_client* & dvb_frontend*.
+> 
+> Since I have a plan to split out demod/tuner drivers from pci/pt1 dvb-usb/friio
+> integrated drivers (because those share the tc90522 demod driver with pt3, and
+> friio also shares the bridge chip with gl861),
+> it would be nice if I can use the helper code,
+> instead of re-iterating similar "attach" code.
+
+Yeah, sure.
+
 ---
- .../devicetree/bindings/media/nokia,n900-ir          | 20 ++++++++++++++++++++
- arch/arm/mach-omap2/pdata-quirks.c                   |  6 +-----
- drivers/media/rc/ir-rx51.c                           | 11 ++++++++++-
- 3 files changed, 31 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/nokia,n900-ir
 
-diff --git a/Documentation/devicetree/bindings/media/nokia,n900-ir b/Documentation/devicetree/bindings/media/nokia,n900-ir
-new file mode 100644
-index 0000000..13a18ce
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/nokia,n900-ir
-@@ -0,0 +1,20 @@
-+Device-Tree bindings for LIRC TX driver for Nokia N900(RX51)
-+
-+Required properties:
-+	- compatible: should be "nokia,n900-ir".
-+	- pwms: specifies PWM used for IR signal transmission.
-+
-+Example node:
-+
-+	pwm9: dmtimer-pwm@9 {
-+		compatible = "ti,omap-dmtimer-pwm";
-+		ti,timers = <&timer9>;
-+		ti,clock-source = <0x00>; /* timer_sys_ck */
-+		#pwm-cells = <3>;
-+	};
-+
-+	ir: n900-ir {
-+		compatible = "nokia,n900-ir";
-+
-+		pwms = <&pwm9 0 26316 0>; /* 38000 Hz */
-+	};
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 278bb8f..0d7b05a 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -273,8 +273,6 @@ static struct platform_device omap3_rom_rng_device = {
- 	},
- };
- 
--static struct platform_device rx51_lirc_device;
--
- static void __init nokia_n900_legacy_init(void)
- {
- 	hsmmc2_internal_input_clk();
-@@ -293,10 +291,7 @@ static void __init nokia_n900_legacy_init(void)
- 
- 		pr_info("RX-51: Registering OMAP3 HWRNG device\n");
- 		platform_device_register(&omap3_rom_rng_device);
--
- 	}
--
--	platform_device_register(&rx51_lirc_device);
- }
- 
- static void __init omap3_tao3530_legacy_init(void)
-@@ -531,6 +526,7 @@ static struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
- 		       &omap3_iommu_pdata),
- 	OF_DEV_AUXDATA("ti,omap3-hsmmc", 0x4809c000, "4809c000.mmc", &mmc_pdata[0]),
- 	OF_DEV_AUXDATA("ti,omap3-hsmmc", 0x480b4000, "480b4000.mmc", &mmc_pdata[1]),
-+	OF_DEV_AUXDATA("nokia,n900-ir", 0, "n900-ir", &rx51_lirc_data),
- 	/* Only on am3517 */
- 	OF_DEV_AUXDATA("ti,davinci_mdio", 0x5c030000, "davinci_mdio.0", NULL),
- 	OF_DEV_AUXDATA("ti,am3517-emac", 0x5c000000, "davinci_emac.0",
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 5096ef3..1cbb43d 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -21,6 +21,7 @@
- #include <linux/sched.h>
- #include <linux/wait.h>
- #include <linux/pwm.h>
-+#include <linux/of.h>
- 
- #include <media/lirc.h>
- #include <media/lirc_dev.h>
-@@ -478,6 +479,14 @@ static int lirc_rx51_remove(struct platform_device *dev)
- 	return lirc_unregister_driver(lirc_rx51_driver.minor);
- }
- 
-+static const struct of_device_id lirc_rx51_match[] = {
-+	{
-+		.compatible = "nokia,n900-ir",
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, lirc_rx51_match);
-+
- struct platform_driver lirc_rx51_platform_driver = {
- 	.probe		= lirc_rx51_probe,
- 	.remove		= lirc_rx51_remove,
-@@ -485,7 +494,7 @@ struct platform_driver lirc_rx51_platform_driver = {
- 	.resume		= lirc_rx51_resume,
- 	.driver		= {
- 		.name	= DRIVER_NAME,
--		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(lirc_rx51_match),
- 	},
- };
- module_platform_driver(lirc_rx51_platform_driver);
+An unrelated thing:
+
+I'm now helping to to maintain Kaffeine upstream. I recently added
+support for both ISDB-T and DVB-T2. It would be nice if you could
+add support there for ISDB-S too.
+
+You can find the kaffeine repository at kde.org. I'm also keeping
+an updated copy at linuxtv.org:
+	git://anongit.kde.org/kaffeine	(official repo)
+	https://git.linuxtv.org/mchehab/kaffeine.git/
+	
+
 -- 
-1.9.1
-
+Thanks,
+Mauro
