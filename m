@@ -1,68 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57721 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751601AbcF0M3R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 08:29:17 -0400
-Received: from avalon.localnet (33.154-246-81.adsl-dyn.isp.belgacom.be [81.246.154.33])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id A4FC220010
-	for <linux-media@vger.kernel.org>; Mon, 27 Jun 2016 14:26:44 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.8] Sensors and decoders fixes
-Date: Mon, 27 Jun 2016 15:29:38 +0300
-Message-ID: <3710617.QTXFmHdbAK@avalon>
+Received: from lists.s-osg.org ([54.187.51.154]:33825 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750796AbcFIM3S (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2016 08:29:18 -0400
+Date: Thu, 9 Jun 2016 09:29:13 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sean Young <sean@mess.org>
+Cc: kbuild test robot <lkp@intel.com>, kbuild-all@01.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] rc: Remove init_ir_raw_event and
+ DEFINE_IR_RAW_EVENT
+Message-ID: <20160609092913.075c0e45@recife.lan>
+In-Reply-To: <20160413093651.GA9875@gofer.mess.org>
+References: <1460464072-2245-1-git-send-email-sean@mess.org>
+	<201604131446.hEjbhLyL%fengguang.wu@intel.com>
+	<20160413093651.GA9875@gofer.mess.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Em Wed, 13 Apr 2016 10:36:51 +0100
+Sean Young <sean@mess.org> escreveu:
 
-The following changes since commit 0db5c79989de2c68d5abb7ba891bfdb3cd3b7e05:
+> On Wed, Apr 13, 2016 at 02:07:49PM +0800, kbuild test robot wrote:
+> > Hi Sean,
+> > 
+> > [auto build test ERROR on linuxtv-media/master]
+> > [also build test ERROR on v4.6-rc3 next-20160412]
+> > [if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
+> > 
+> > url:    https://github.com/0day-ci/linux/commits/Sean-Young/rc-Remove-init_ir_raw_event-and-DEFINE_IR_RAW_EVENT/20160412-203118
+> > base:   git://linuxtv.org/media_tree.git master
+> > config: openrisc-allmodconfig (attached as .config)
+> > reproduce:
+> >         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+> >         chmod +x ~/bin/make.cross
+> >         # save the attached .config to linux build tree
+> >         make.cross ARCH=openrisc 
+> > 
+> > All errors (new ones prefixed by >>):
+> > 
+> >    drivers/media/i2c/cx25840/cx25840-ir.c: In function 'cx25840_ir_rx_read':  
+> > >> drivers/media/i2c/cx25840/cx25840-ir.c:710:4: error: unknown field 'duration' specified in initializer  
+> > --
+> >    drivers/media/rc/streamzap.c: In function 'streamzap_callback':  
+> > >> drivers/media/rc/streamzap.c:258:6: error: unknown field 'duration' specified in initializer  
+> > 
+> > vim +/duration +710 drivers/media/i2c/cx25840/cx25840-ir.c
+> > 
+> >    704			v = (unsigned) pulse_width_count_to_ns(
+> >    705					  (u16) (p->hw_fifo_data & FIFO_RXTX), divider);
+> >    706			if (v > IR_MAX_DURATION)
+> >    707				v = IR_MAX_DURATION;
+> >    708	
+> >    709			p->ir_core_data = (struct ir_raw_event)  
+> >  > 710				{ .pulse = u, .duration = v, .timeout = w };  
+> 
+> Looks like gcc 4.5.1 does not handle anonymous union initializers properly.
+> 
+> https://gcc.gnu.org/bugzilla/show_bug.cgi?id=10676
+> 
+> I don't think this patch can be reworked without it.
 
-  [media] media-devnode.h: Fix documentation (2016-06-16 08:14:56 -0300)
+So, let's not apply it. According with Documentation/Changes, the
+minimal gcc version we should support is 3.2.
 
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git sensors/next
-
-for you to fetch changes up to 84052e33262dd7940408e179c68bbf70e93cacb1:
-
-  adv7604: Don't ignore pad number in subdev DV timings pad operations 
-(2016-06-27 15:27:53 +0300)
-
-----------------------------------------------------------------
-Axel Lin (1):
-      v4l: mt9v032: Remove duplicate test for I2C_FUNC_SMBUS_WORD_DATA 
-functionality
-
-Guennadi Liakhovetski (1):
-      v4l: mt9t001: fix clean up in case of power-on failures
-
-Julia Lawall (1):
-      v4l: mt9t001: constify v4l2_subdev_internal_ops structure
-
-Laurent Pinchart (2):
-      v4l: mt9v032: Remove unneeded header
-      adv7604: Don't ignore pad number in subdev DV timings pad operations
-
-Markus Pargmann (2):
-      v4l: mt9v032: Do not unset master_mode
-      v4l: mt9v032: Add V4L2 controls for AEC and AGC
-
-Sakari Ailus (1):
-      smiapp: Remove useless rval assignment in smiapp_get_pdata()
-
- drivers/media/i2c/adv7604.c            |  46 +++++--
- drivers/media/i2c/mt9t001.c            |  17 ++-
- drivers/media/i2c/mt9v032.c            | 279 ++++++++++++++++++++++++--------
- drivers/media/i2c/smiapp/smiapp-core.c |   4 +-
- 4 files changed, 260 insertions(+), 86 deletions(-)
-
--- 
 Regards,
-
-Laurent Pinchart
-
+Mauro
