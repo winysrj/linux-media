@@ -1,49 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f44.google.com ([209.85.218.44]:33639 "EHLO
-	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932289AbcFLPBA (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51286 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751665AbcFIWhG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2016 11:01:00 -0400
-Received: by mail-oi0-f44.google.com with SMTP id u201so48889522oie.0
-        for <linux-media@vger.kernel.org>; Sun, 12 Jun 2016 08:01:00 -0700 (PDT)
+	Thu, 9 Jun 2016 18:37:06 -0400
+Date: Fri, 10 Jun 2016 01:37:02 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	pali.rohar@gmail.com, sre@kernel.org,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCHv2] device tree description for AD5820 camera auto-focus
+ coil
+Message-ID: <20160609223701.GZ26360@valkosipuli.retiisi.org.uk>
+References: <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+ <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
+ <20160531213437.GA28397@amd>
+ <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
+ <20160601220840.GA21946@amd>
+ <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
+ <20160602193027.GB7984@amd>
+ <20160607071003.GA11796@amd>
 MIME-Version: 1.0
-From: Kenny Ho <y2kenny@gmail.com>
-Date: Sun, 12 Jun 2016 11:00:58 -0400
-Message-ID: <CAOWid-cb+sAat6Y9WT3K+p5P8BmyWoXO37+xGY=9+zQVKdPGNA@mail.gmail.com>
-Subject: Build failure on Ubuntu 16.04
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160607071003.GA11796@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-make -C /home/kho/git/media_build/v4l allyesconfig
-make[1]: Entering directory '/home/kho/git/media_build/v4l'
-No version yet, using 4.4.0-24-generic
-make[2]: Entering directory '/home/kho/git/media_build/linux'
-Applying patches for kernel 4.4.0-24-generic
-patch -s -f -N -p1 -i ../backports/api_version.patch
-patch -s -f -N -p1 -i ../backports/pr_fmt.patch
-patch -s -f -N -p1 -i ../backports/debug.patch
-patch -s -f -N -p1 -i ../backports/drx39xxj.patch
-patch -s -f -N -p1 -i ../backports/v4.6_i2c_mux.patch
-2 out of 23 hunks FAILED
-Makefile:137: recipe for target 'apply_patches' failed
-make[2]: *** [apply_patches] Error 1
-make[2]: Leaving directory '/home/kho/git/media_build/linux'
-Makefile:369: recipe for target 'allyesconfig' failed
-make[1]: *** [allyesconfig] Error 2
-make[1]: Leaving directory '/home/kho/git/media_build/v4l'
-Makefile:26: recipe for target 'allyesconfig' failed
-make: *** [allyesconfig] Error 2
-can't select all drivers at ./build line 490.
+On Tue, Jun 07, 2016 at 09:10:04AM +0200, Pavel Machek wrote:
+> 
+> Add documentation for ad5820 device tree binding.
+> 
+> Signed-off-by: Pavel Machek <pavel@denx.de>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Rob Herring <robh@kernel.org>
 
-$ lsb_release -a
-No LSB modules are available.
-Distributor ID:    Ubuntu
-Description:    Ubuntu 16.04 LTS
-Release:    16.04
-Codename:    xenial
+Thanks!
 
-$ uname -a
-Linux stationx 4.4.0-24-generic #43-Ubuntu SMP Wed Jun 8 19:27:37 UTC
-2016 x86_64 x86_64 x86_64 GNU/Linux
+I've replaced the patch in my tree, will send a pull req later.
+
+-- 
+Cheers,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
