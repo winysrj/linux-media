@@ -1,111 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57303 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751454AbcFHVoT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jun 2016 17:44:19 -0400
-Subject: Re: [PATCH] media: s5p-mfc: fix error path in driver probe
-To: Liviu Dudau <liviu@dudau.co.uk>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <20160608103629.GD21784@bart.dudau.co.uk>
- <1465385620-4396-1-git-send-email-m.szyprowski@samsung.com>
- <20160608143544.GF21784@bart.dudau.co.uk>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <575891A8.5030607@osg.samsung.com>
-Date: Wed, 8 Jun 2016 15:44:08 -0600
-MIME-Version: 1.0
-In-Reply-To: <20160608143544.GF21784@bart.dudau.co.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35971 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932780AbcFIRiG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2016 13:38:06 -0400
+Received: by mail-wm0-f65.google.com with SMTP id m124so12360962wme.3
+        for <linux-media@vger.kernel.org>; Thu, 09 Jun 2016 10:38:05 -0700 (PDT)
+From: Kieran Bingham <kieran@ksquared.org.uk>
+To: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Kieran Bingham <kieran@ksquared.org.uk>
+Subject: [PATCH RFC 2/2] MAINTAINERS: Add support for FDP driver
+Date: Thu,  9 Jun 2016 18:37:59 +0100
+Message-Id: <1465493879-5419-3-git-send-email-kieran@bingham.xyz>
+In-Reply-To: <1465493879-5419-1-git-send-email-kieran@bingham.xyz>
+References: <1465493879-5419-1-git-send-email-kieran@bingham.xyz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
+Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+---
+ MAINTAINERS | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-On 06/08/2016 08:35 AM, Liviu Dudau wrote:
-> On Wed, Jun 08, 2016 at 01:33:40PM +0200, Marek Szyprowski wrote:
->> This patch fixes the error path in the driver probe, so in case of
->> any failure, the resources are not leaked.
->>
->> Reported-by: Liviu Dudau <liviu.dudau@arm.com>
->> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> 
-> Looks good to me now! If it is useful:
-> 
-> Acked-by: Liviu Dudau <Liviu.Dudau@arm.com>
-> 
->> ---
->>  drivers/media/platform/s5p-mfc/s5p_mfc.c | 14 +++++++++-----
->>  1 file changed, 9 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> index 6ee620ee8cd5..1f3a7ee753db 100644
->> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> @@ -1159,7 +1159,10 @@ static int s5p_mfc_probe(struct platform_device *pdev)
->>  	dev->variant = mfc_get_drv_data(pdev);
->>  
->>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> -
->> +	if (res == NULL) {
->> +		dev_err(&pdev->dev, "failed to get io resource\n");
->> +		return -ENOENT;
->> +	}
->>  	dev->regs_base = devm_ioremap_resource(&pdev->dev, res);
->>  	if (IS_ERR(dev->regs_base))
->>  		return PTR_ERR(dev->regs_base);
->> @@ -1167,15 +1170,14 @@ static int s5p_mfc_probe(struct platform_device *pdev)
->>  	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
->>  	if (res == NULL) {
->>  		dev_err(&pdev->dev, "failed to get irq resource\n");
->> -		ret = -ENOENT;
->> -		goto err_res;
->> +		return -ENOENT;
->>  	}
->>  	dev->irq = res->start;
->>  	ret = devm_request_irq(&pdev->dev, dev->irq, s5p_mfc_irq,
->>  					0, pdev->name, dev);
->>  	if (ret) {
->>  		dev_err(&pdev->dev, "Failed to install irq (%d)\n", ret);
->> -		goto err_res;
->> +		return ret;
->>  	}
->>  
->>  	ret = s5p_mfc_configure_dma_memory(dev);
->> @@ -1187,7 +1189,7 @@ static int s5p_mfc_probe(struct platform_device *pdev)
->>  	ret = s5p_mfc_init_pm(dev);
->>  	if (ret < 0) {
->>  		dev_err(&pdev->dev, "failed to get mfc clock source\n");
->> -		return ret;
->> +		goto err_dma;
->>  	}
->>  
->>  	vb2_dma_contig_set_max_seg_size(dev->mem_dev_l, DMA_BIT_MASK(32));
->> @@ -1301,6 +1303,8 @@ err_mem_init_ctx_1:
->>  	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[0]);
->>  err_res:
-
-While you are at it, could you change this to err_pm. err_res doesn't
-match the actual failure.
-
-thanks,
--- Shuah
-
->>  	s5p_mfc_final_pm(dev);
->> +err_dma:
->> +	s5p_mfc_unconfigure_dma_memory(dev);
->>  
->>  	pr_debug("%s-- with error\n", __func__);
->>  	return ret;
->> -- 
->> 1.9.2
->>
-> 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 66de4da2d244..bc083b58e478 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7312,6 +7312,15 @@ S:	Supported
+ F:	Documentation/devicetree/bindings/media/renesas,vsp1.txt
+ F:	drivers/media/platform/vsp1/
+ 
++MEDIA DRIVERS FOR RENESAS - FDP1
++M:	Kieran Bingham <kieran@bingham.xyz>
++L:	linux-media@vger.kernel.org
++L:	linux-renesas-soc@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Supported
++F:	Documentation/devicetree/bindings/media/renesas,fdp1.txt
++F:	drivers/media/platform/rcar_fdp1.c
++
+ MEDIA DRIVERS FOR ASCOT2E
+ M:	Sergey Kozlov <serjk@netup.ru>
+ L:	linux-media@vger.kernel.org
+-- 
+2.7.4
 
