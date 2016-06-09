@@ -1,43 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52953 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932449AbcFTTMB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 15:12:01 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 11/24] v4l: vsp1: pipe: Fix typo in comment
-Date: Mon, 20 Jun 2016 22:10:29 +0300
-Message-Id: <1466449842-29502-12-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from ns.mm-sol.com ([37.157.136.199]:57450 "EHLO extserv.mm-sol.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751901AbcFIL7i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2016 07:59:38 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, geert@linux-m68k.org, matrandg@cisco.com,
+	linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+	Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v4 1/2] media: i2c/ov5645: add the device tree binding document
+Date: Thu,  9 Jun 2016 14:59:17 +0300
+Message-Id: <1465473558-3492-2-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1465473558-3492-1-git-send-email-todor.tomov@linaro.org>
+References: <1465473558-3492-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vsp1_pipeline wq field is a wait queue, not a work queue. Fix the
-comment accordingly.
+Add the document for ov5645 device tree binding.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+Acked-by: Rob Herring <robh@kernel.org>
 ---
- drivers/media/platform/vsp1/vsp1_pipe.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .../devicetree/bindings/media/i2c/ov5645.txt       | 50 ++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index 3ecd3c1794a9..2cbf1a5ea1fb 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -61,7 +61,7 @@ enum vsp1_pipeline_state {
-  * @pipe: the media pipeline
-  * @irqlock: protects the pipeline state
-  * @state: current state
-- * @wq: work queue to wait for state change completion
-+ * @wq: wait queue to wait for state change completion
-  * @frame_end: frame end interrupt handler
-  * @lock: protects the pipeline use count and stream count
-  * @kref: pipeline reference count
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5645.txt b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+new file mode 100644
+index 0000000..468cf83
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+@@ -0,0 +1,50 @@
++* Omnivision 1/4-Inch 5Mp CMOS Digital Image Sensor
++
++The Omnivision OV5645 is a 1/4-Inch CMOS active pixel digital image sensor with
++an active array size of 2592H x 1944V. It is programmable through a serial I2C
++interface.
++
++Required Properties:
++- compatible: Value should be "ovti,ov5645".
++- clocks: Reference to the xclk clock.
++- clock-names: Should be "xclk".
++- enable-gpios: Chip enable GPIO. Polarity is GPIO_ACTIVE_HIGH.
++- reset-gpios: Chip reset GPIO. Polarity is GPIO_ACTIVE_LOW.
++- vdddo-supply: Chip digital IO regulator.
++- vdda-supply: Chip analog regulator.
++- vddd-supply: Chip digital core regulator.
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	&i2c1 {
++		...
++
++		ov5645: ov5645@78 {
++			compatible = "ovti,ov5645";
++			reg = <0x78>;
++
++			enable-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
++			reset-gpios = <&gpio5 20 GPIO_ACTIVE_LOW>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&camera_rear_default>;
++
++			clocks = <&clks 200>;
++			clock-names = "xclk";
++
++			vdddo-supply = <&camera_dovdd_1v8>;
++			vdda-supply = <&camera_avdd_2v8>;
++			vddd-supply = <&camera_dvdd_1v2>;
++
++			port {
++				ov5645_ep: endpoint {
++					clock-lanes = <1>;
++					data-lanes = <0 2>;
++					remote-endpoint = <&csi0_ep>;
++				};
++			};
++		};
++	};
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
