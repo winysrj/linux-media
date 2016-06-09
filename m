@@ -1,98 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53960 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751088AbcFUX7W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2016 19:59:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Pavel Machek <pavel@ucw.cz>, Hans Verkuil <hverkuil@xs4all.nl>,
-	pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-	patrikbachan@gmail.com, serge@hallyn.com, tuukkat76@gmail.com,
-	mchehab@osg.samsung.com, linux-media@vger.kernel.org
-Subject: Re: camera application for testing (was Re: v4l subdevs without big device)
-Date: Wed, 22 Jun 2016 02:59:40 +0300
-Message-ID: <1500395.gQ70N9eqVS@avalon>
-In-Reply-To: <20160501140831.GH26360@valkosipuli.retiisi.org.uk>
-References: <20160428084546.GA9957@amd> <20160429221359.GA29297@amd> <20160501140831.GH26360@valkosipuli.retiisi.org.uk>
+Received: from lists.s-osg.org ([54.187.51.154]:32952 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751560AbcFIJio (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2016 05:38:44 -0400
+Date: Thu, 9 Jun 2016 06:38:38 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Max Kellermann <max@duempel.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/6] drivers/media/dvb-core/en50221: postpone release
+ until file is closed
+Message-ID: <20160609063838.0ac83d84@recife.lan>
+In-Reply-To: <145856702263.21117.11870746253652920203.stgit@woodpecker.blarg.de>
+References: <145856701730.21117.7759662061999658129.stgit@woodpecker.blarg.de>
+	<145856702263.21117.11870746253652920203.stgit@woodpecker.blarg.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Em Mon, 21 Mar 2016 14:30:22 +0100
+Max Kellermann <max@duempel.org> escreveu:
 
-On Sunday 01 May 2016 17:08:31 Sakari Ailus wrote:
-> On Sat, Apr 30, 2016 at 12:13:59AM +0200, Pavel Machek wrote:
-> > Hi!
-> > 
-> > What is reasonable camera application for testing?
-> > 
-> > N900 looks like a low-end digital camera. I have now have the hardware
-> > working (can set focus to X cm using command line), but that's not
-> > going to be useful for taking photos.
-> 
-> I guess you already knew about omap3camd; it's proprietary but from purely
-> practical point of view it'd be an option to support taking photos on the
-> N900. That would not be extensible any way, the best possible functionality
-> is limited what the daemon implements.
-> 
-> I'm just mentioning the option of implementing wrapper for the omap3camd so
-> that it can work with upsteam APIs, I don't propose that however.
-> 
-> > In particular, who is going to do computation neccessary for
-> > autofocus, whitebalance and exposure/gain?
-> 
-> I think libv4l itself has algorithms to control at least some of these. It
-> relies on the image data so the CPU time consumption will be high.
-> 
-> AFAIR Laurent has also worked on implementing some algorithms that use the
-> histogram and some of the statistics. Add him to cc list.
+> Fixes use-after-free bug which occurs when I disconnect my DVB-S
+> received while VDR is running.
 
-http://git.ideasonboard.org/omap3-isp-live.git
+I guess that the best way to fix it is to use a kref() that would be also
+incremented at open() and decremented at release(). 
 
-That's outdated and might not run or compile anymore. The code is more of a 
-proof of concept implementation, but it could be used as a starting point. 
-With an infinite amount of free time I'd love to work on an open-source 
-project for computational cameras, integrating it with libv4l.
+This works better than adding other non-standard ways to manage data livetime
+cycle.
 
-> > There's http://fcam.garage.maemo.org/gettingStarted.html that should
-> > work on maemo, but a) it is not in Debian, b) it has non-trivial
-> > dependencies and c) will be a lot of fun to get working...
-> > (and d), will not be too useful, anyway, due to 1sec shutter lag:
->
-> I believe this will be shorter nowadays. I don't remember the exact
-> technical solution which the text below refers to but I'm pretty sure it'll
-> be better with the current upstream. API-wise, there's work to be done there
-> (to port FCAM to upsteram APIs) but it's a possibility.
+Regards,
+Mauro
+
 > 
-> > Fast resolution switching (less shutter lag)
-> > FCam is built on top of V4L2, which doesn't handle rapidly varying
-> > resolutions. When a Shot with a different resolution to the previous
-> > one comes down the pipeline, FCam currently flushes the entire V4L2
-> > pipeline, shuts down and restarts the whole camera subsystem, then
-> > starts streaming at the new resolution. This takes a long time (nearly
-> > a second), and is the cause of the horrible shutter lag on the N900. A
-> > brave kernel hacker may be able to reduce this time by fiddling with
-> > the FCam ISP kernel modules and the guts of the FCam library source
-> > (primarily Daemon.cpp).
-> > Anyone who solves this one will have our undying gratitude. An ideal
-> > solution would be able to insert a 5MP capture into a stream of
-> > 640x480 frames running at 30fps, without skipping more than the frame
-> > time of the 5MP capture. That is, the viewfinder would effectively
-> > stay live while taking a photograph.
-> > 
-> > )
-> > 
-> > Any other application I should look at? Thanks,
+> Signed-off-by: Max Kellermann <max@duempel.org>
+> ---
+>  drivers/media/dvb-core/dvb_ca_en50221.c |   23 ++++++++++++++++++++++-
+>  1 file changed, 22 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+> index e33364c..dfc686a 100644
+> --- a/drivers/media/dvb-core/dvb_ca_en50221.c
+> +++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+> @@ -148,6 +148,9 @@ struct dvb_ca_private {
+>  	/* Flag indicating if the CA device is open */
+>  	unsigned int open:1;
+>  
+> +	/* Flag indicating if the CA device is released */
+> +	unsigned int released:1;
+> +
+>  	/* Flag indicating the thread should wake up now */
+>  	unsigned int wakeup:1;
+>  
+> @@ -1392,6 +1395,11 @@ static int dvb_ca_en50221_io_read_condition(struct dvb_ca_private *ca,
+>  	int found = 0;
+>  	u8 hdr[2];
+>  
+> +	if (ca->released) {
+> +		*result = -ENODEV;
+> +		return 1;
+> +	}
+> +
+>  	slot = ca->next_read_slot;
+>  	while ((slot_count < ca->slot_count) && (!found)) {
+>  		if (ca->slot_info[slot].slot_state != DVB_CA_SLOTSTATE_RUNNING)
+> @@ -1595,6 +1603,9 @@ static int dvb_ca_en50221_io_release(struct inode *inode, struct file *file)
+>  
+>  	err = dvb_generic_release(inode, file);
+>  
+> +	if (ca->released)
+> +		dvb_ca_private_free(ca);
+> +
+>  	module_put(ca->pub->owner);
+>  
+>  	return err;
+> @@ -1701,6 +1712,7 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
+>  	}
+>  	init_waitqueue_head(&ca->wait_queue);
+>  	ca->open = 0;
+> +	ca->released = 0;
+>  	ca->wakeup = 0;
+>  	ca->next_read_slot = 0;
+>  	pubca->private = ca;
+> @@ -1765,12 +1777,21 @@ void dvb_ca_en50221_release(struct dvb_ca_en50221 *pubca)
+>  
+>  	dprintk("%s\n", __func__);
+>  
+> +	BUG_ON(ca->released);
+> +
+>  	/* shutdown the thread if there was one */
+>  	kthread_stop(ca->thread);
+>  
+>  	for (i = 0; i < ca->slot_count; i++) {
+>  		dvb_ca_en50221_slot_shutdown(ca, i);
+>  	}
+> -	dvb_ca_private_free(ca);
+> +
+> +	if (ca->open) {
+> +		ca->released = 1;
+> +		mb();
+> +		wake_up_interruptible(&ca->wait_queue);
+> +	} else
+> +		dvb_ca_private_free(ca);
+> +
+>  	pubca->private = NULL;
+>  }
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Thanks,
+Mauro
