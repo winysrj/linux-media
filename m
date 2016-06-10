@@ -1,93 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:55590 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750864AbcFRJBu (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34454 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753548AbcFJMd6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jun 2016 05:01:50 -0400
-Subject: Re: [PATCH 00/38] i.MX5/6 Video Capture
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-	Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Jack Mitchell <ml@embed.me.uk>, linux-media@vger.kernel.org
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
- <64c29bbc-2273-2a9d-3059-ab8f62dc531b@embed.me.uk>
- <576202D0.6010608@mentor.com>
- <597d73df-0fa0-fa8d-e0e5-0ad8b2c49bcf@embed.me.uk>
- <5762DB8A.8090906@mentor.com> <5763A248.1040905@xs4all.nl>
- <576434D3.1040908@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <57650DF7.1040008@xs4all.nl>
-Date: Sat, 18 Jun 2016 11:01:43 +0200
+	Fri, 10 Jun 2016 08:33:58 -0400
+Received: by mail-wm0-f68.google.com with SMTP id n184so17628759wmn.1
+        for <linux-media@vger.kernel.org>; Fri, 10 Jun 2016 05:33:58 -0700 (PDT)
+Subject: Re: [PATCH RFC 1/2] v4l: platform: Add Renesas R-Car FDP1 Driver
+To: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	linux-media@vger.kernel.org
+References: <1465493879-5419-1-git-send-email-kieran@bingham.xyz>
+ <1465493879-5419-2-git-send-email-kieran@bingham.xyz>
+Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Kieran Bingham <kieran@ksquared.org.uk>
+Message-ID: <575AB3A8.4090905@bingham.xyz>
+Date: Fri, 10 Jun 2016 13:33:44 +0100
 MIME-Version: 1.0
-In-Reply-To: <576434D3.1040908@gmail.com>
+In-Reply-To: <1465493879-5419-2-git-send-email-kieran@bingham.xyz>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/17/2016 07:35 PM, Steve Longerbeam wrote:
-> 
-> 
-> On 06/17/2016 12:10 AM, Hans Verkuil wrote:
->> On 06/16/2016 07:02 PM, Steve Longerbeam wrote:
->>> On 06/16/2016 02:49 AM, Jack Mitchell wrote:
->>>> On 16/06/16 02:37, Steve Longerbeam wrote:
->>>>> Hi Jack,
->>>>>
->>>>> On 06/15/2016 03:43 AM, Jack Mitchell wrote:
->>>>>> <snip>
->>>>>> Trying to use a user pointer rather than mmap also fails and causes a kernel splat.
->>>>>>
->>>>> Hmm, I've tested userptr with the mem2mem driver, but maybe never
->>>>> with video capture. I tried "v4l2-ctl -d/dev/video0 --stream-user=8" but
->>>>> that returns "VIDIOC_QBUF: failed: Invalid argument", haven't tracked
->>>>> down why (could be a bug in v4l2-ctl). Can you share the splat?
->>>>>
->>>> On re-checking the splat was the same v4l_cropcap that was mentioned before so I don't think it's related. The error I get back is:
->>>>
->>>> VIDIOC_QBUF error 22, Invalid argument
->>>>
->>>> I'm using the example program the the v4l2 docs [1].
->>> I found the cause at least in my case. After enabling dynamic debug in
->>> videobuf2-dma-contig.c, "v4l2-ctl -d/dev/video0 --stream-user=8" gives
->>> me
->>>
->>> [  468.826046] user data must be aligned to 64 bytes
->>>
->>>
->>>
->>> But even getting past that alignment issue, I've only tested userptr (in mem2mem
->>> driver) by giving the driver a user address of a mmap'ed kernel contiguous
->>> buffer. A true discontiguous user buffer may not work, the IPU DMA does not
->>> support scatter-gather.
->> I don't think VB2_USERPTR should be enabled in this case due to the DMA limitations.
->> It won't allow you to use malloc()ed memory and the hack that allows you to pass
->> contiguous memory is superseded by the DMABUF mode.
-> 
-> Hi Hans, yes, I was going to suggest that. I will remove USERPTR
-> from both capture and mem2mem io_modes flags. Although I can
-> see where userptr support is still useful, that is for legacy middleware
-> that are still using mmap'ed userptrs and have not yet converted to
-> passing around dmabuf fd's.
-> 
-> But I've been perplexed for while on this, why vb2_dc_get_userptr() 
-> resorts to
-> scatter-gather (when the given user buffer is found not to have valid 
-> pfn's).
-> Shouldn't it be assumed that driver users of the vb2 dma-contig allocator
-> only support contiguous dma as the name implies? Maybe the issue is that
-> users that set VB2_USERPTR are implying they support scatter/gather, but
-> users of vb2-dma-contig could also be implying they do not, and would be
-> using vb2-dma-sg if that were the case.
+Today I learned about make C=1
 
-At the end of the vb2_dc_get_userptr() function it checks if the result
-is physically contiguous (the call to vb2_dc_get_contiguous_size). If not,
-then it returns an error.
+So ... reviewing my own patch, consider the following sparse warnings
+'fixed up'
 
-I hate it that dma_contig accepts user pointers at all, it should never
-have been implemented like that. There is no way for applications to know
-that even though the driver support USERPTR, the buffer still has to be
-phys. contig. :-(
+I'll run make C=1 before any future submissions from now on.
 
-Regards,
 
-	Hans
+On 09/06/16 18:37, Kieran Bingham wrote:
+> The FDP1 driver performs advanced de-interlacing on a memory 2 memory
+> based video stream, and supports conversion from YCbCr/YUV
+> to RGB pixel formats
+> 
+> Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+> ---
+>  drivers/media/platform/Kconfig     |   13 +
+>  drivers/media/platform/Makefile    |    1 +
+>  drivers/media/platform/rcar_fdp1.c | 2038 ++++++++++++++++++++++++++++++++++++
+>  3 files changed, 2052 insertions(+)
+>  create mode 100644 drivers/media/platform/rcar_fdp1.c
+
+...
+
+> +/* FDP1 Lookup tables range from 0...255 only */
+> +unsigned char fdp1_diff_adj[256] = {
+sparse: warning: symbol '...' was not declared. Should it be static?
++ static unsigned...
+
+> +	0x00, 0x24, 0x43, 0x5E, 0x76, 0x8C, 0x9E, 0xAF,
+...
+> +	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+> +};
+> +
+> +unsigned char fdp1_sad_adj[256] = {
+likewise
+
+> +	0x00, 0x24, 0x43, 0x5E, 0x76, 0x8C, 0x9E, 0xAF,
+...
+> +	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+> +};
+> +
+> +unsigned char fdp1_bld_gain[256] = {
+and again ...
+> +	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+...
+> +	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80
+> +};
+> +
+> +unsigned char fdp1_dif_gain[256] = {
+> +	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+...
+> +	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80
+> +};
+> +
+> +unsigned char fdp1_mdet[256] = {
+and finally for the lut...
+> +	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+...
+> +	0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF
+> +};
+> +
+...
+
+> +static void fdp1_write(struct fdp1_dev *fdp1, u32 val, unsigned int reg)
+> +{
+> +	if (debug >= 2)
+> +		dprintk(fdp1, "Write to %p\n", fdp1->regs + reg);
+> +
+> +	iowrite32(val, fdp1->regs + reg);
+> +}
+> +
+> +
+> +void fdp1_print_regs32(struct fdp1_dev *fdp1)
+Another +static
+
+...
+
+> +static struct fdp1_plane_addrs vb2_dc_to_pa(struct vb2_v4l2_buffer *buf,
+> +		unsigned int planes)
+> +{
+> +	struct fdp1_plane_addrs pa = { 0 };
+
+sparse: warning: missing braces around initializer
++ struct fdp1_plane_addrs pa = { { 0 } };
+
+-- 
+Regards
+
+Kieran Bingham
