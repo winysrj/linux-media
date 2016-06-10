@@ -1,102 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.246]:59956 "EHLO
-	ussmtp01.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752515AbcFGHVk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2016 03:21:40 -0400
-From: Songjun Wu <songjun.wu@atmel.com>
-To: <laurent.pinchart@ideasonboard.com>, <nicolas.ferre@atmel.com>,
-	<boris.brezillon@free-electrons.com>,
-	<alexandre.belloni@free-electrons.com>, <robh@kernel.org>
-CC: Songjun Wu <songjun.wu@atmel.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	<devicetree@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	=?UTF-8?q?Richard=20R=C3=B6jfors?= <richard@puffinpack.se>,
-	Benoit Parrot <bparrot@ti.com>,
-	Kumar Gala <galak@codeaurora.org>,
-	<linux-kernel@vger.kernel.org>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mark Rutland <mark.rutland@arm.com>,
-	<linux-media@vger.kernel.org>,
-	Simon Horman <horms+renesas@verge.net.au>
-Subject: [PATCH v4 0/2] [media] atmel-isc: add driver for Atmel ISC
-Date: Tue, 7 Jun 2016 15:11:51 +0800
-Message-ID: <1465283513-30224-1-git-send-email-songjun.wu@atmel.com>
+Received: from muru.com ([72.249.23.125]:55880 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932570AbcFJKWb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jun 2016 06:22:31 -0400
+Date: Fri, 10 Jun 2016 03:22:26 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	thierry.reding@gmail.com, bcousson@baylibre.com,
+	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	sre@kernel.org, pali.rohar@gmail.com
+Subject: Re: [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime functions
+ when not needed.
+Message-ID: <20160610102225.GS22406@atomide.com>
+References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160509193624.GH5995@atomide.com>
+ <5730F840.3050807@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5730F840.3050807@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Image Sensor Controller driver includes two parts.
-1) Driver code to implement the ISC function.
-2) Device tree binding documentation, it describes how
-   to add the ISC in device tree.
+* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160509 13:52]:
+> Hi,
+> 
+> On  9.05.2016 22:36, Tony Lindgren wrote:
+> > * Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160507 08:24]:
+> > > once omap_dm_timer_start() is called, which calls omap_dm_timer_enable()
+> > > and thus pm_runtime_get_sync(), it doesn't make sense to call PM runtime
+> > > functions again before omap_dm_timer_stop is called(). Otherwise PM runtime
+> > > functions called in omap_dm_timer_enable/disable lead to long and unneeded
+> > > delays.
+> > > 
+> > > Fix that by implementing an "enabled" counter, so the PM runtime functions
+> > > get called only when really needed.
+> > > 
+> > > Without that patch Nokia N900 IR TX driver (ir-rx51) does not function.
+> > 
+> 
+> Well, I just tested again, with the $subject patch reverted and
+> contradictory to my own words, it worked just fine. I believe the reason is
+> that I did hrtimer "migration" after I did the $subject patch. I was
+> thinking the reason for the slow transmission was PWM dmtimer, but now it
+> turns out it has been the "pulse" dmtimer. So, I think the $subject patch
+> should be dropped.
+> 
+> > We should use pm_runtime for the refcounting though and call PM runtime
+> > unconditionally. Can you try to follow the standard PM runtime usage
+> > like this:
+> > 
+> 
+> It works without that, but on the other hand, I finally have some reference
+> on how PM runtime API should be called :).
 
-Changes in v4:
-- Modify the isc clock code since the dt is changed.
-- Remove the isc clock nodes.
+OK. And I just applied the related dts changes. Please repost the driver
+changes and DT binding doc with Rob's ack to the driver maintainers to
+apply.
 
-Changes in v3:
-- Add pm runtime feature.
-- Modify the isc clock code since the dt is changed.
-- Remove the 'atmel,sensor-preferred'.
-- Modify the isc clock node according to the Rob's remarks.
+Regards,
 
-Changes in v2:
-- Add "depends on COMMON_CLK" and "VIDEO_V4L2_SUBDEV_API"
-  in Kconfig file.
-- Correct typos and coding style according to Laurent's remarks
-- Delete the loop while in 'isc_clk_enable' function.
-- Add the code to support VIDIOC_CREATE_BUFS in
-  'isc_queue_setup' function.
-- Invoke isc_config to configure register in
-  'isc_start_streaming' function.
-- Add the struct completion 'comp' to synchronize with
-  the frame end interrupt in 'isc_stop_streaming' function.
-- Check the return value of the clk_prepare_enable
-  in 'isc_open' function.
-- Set the default format in 'isc_open' function.
-- Add an exit condition in the loop while in 'isc_config'.
-- Delete the hardware setup operation in 'isc_set_format'.
-- Refuse format modification during streaming
-  in 'isc_s_fmt_vid_cap' function.
-- Invoke v4l2_subdev_alloc_pad_config to allocate and
-  initialize the pad config in 'isc_async_complete' function.
-- Remove the '.owner  = THIS_MODULE,' in atmel_isc_driver.
-- Replace the module_platform_driver_probe() with
-  module_platform_driver().
-- Remove the unit address of the endpoint.
-- Add the unit address to the clock node.
-- Avoid using underscores in node names.
-- Drop the "0x" in the unit address of the i2c node.
-- Modify the description of 'atmel,sensor-preferred'.
-- Add the description for the ISC internal clock.
-
-Songjun Wu (2):
-  [media] atmel-isc: add the Image Sensor Controller code
-  [media] atmel-isc: DT binding for Image Sensor Controller driver
-
- .../devicetree/bindings/media/atmel-isc.txt        |   69 +
- drivers/media/platform/Kconfig                     |    1 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/atmel/Kconfig               |    9 +
- drivers/media/platform/atmel/Makefile              |    1 +
- drivers/media/platform/atmel/atmel-isc-regs.h      |  276 ++++
- drivers/media/platform/atmel/atmel-isc.c           | 1580 ++++++++++++++++++++
- 7 files changed, 1938 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
- create mode 100644 drivers/media/platform/atmel/Kconfig
- create mode 100644 drivers/media/platform/atmel/Makefile
- create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
- create mode 100644 drivers/media/platform/atmel/atmel-isc.c
-
--- 
-2.7.4
-
+Tony
