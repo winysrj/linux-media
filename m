@@ -1,71 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:47945 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751673AbcF1T5x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2016 15:57:53 -0400
-Subject: Re: [PATCH v2 0/2] Media Device Allocator API
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	inki.dae@samsung.com, g.liakhovetski@gmx.de
-References: <cover.1464132578.git.shuahkh@osg.samsung.com>
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	chehabrafael@gmail.com, javier@osg.samsung.com,
-	jh1009.sung@samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <5772D686.30902@osg.samsung.com>
-Date: Tue, 28 Jun 2016 13:56:54 -0600
-MIME-Version: 1.0
-In-Reply-To: <cover.1464132578.git.shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:39227 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750929AbcFKCZz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jun 2016 22:25:55 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 09F971800F0
+	for <linux-media@vger.kernel.org>; Sat, 11 Jun 2016 04:25:49 +0200 (CEST)
+Date: Sat, 11 Jun 2016 04:25:48 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160611022549.09F971800F0@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/24/2016 05:39 PM, Shuah Khan wrote:
-> Media Device Allocator API to allows multiple drivers share a media device.
-> Using this API, drivers can allocate a media device with the shared struct
-> device as the key. Once the media device is allocated by a driver, other
-> drivers can get a reference to it. The media device is released when all
-> the references are released.
-> 
-> This patch series has been tested with au0828 and snd-usb-audio drivers.
-> snd-us-audio patch isn't included in this series. Once this patch series
-> is reviews and gets a stable state, I will send out the snd-usb-audio
-> patch.
-> 
-> Changes since Patch v1 series: (based on Hans Virkuil's review)
-> - Removed media_device_get() and media_device_allocate(). These are
->   unnecessary.
-> - media_device_usb_allocate() holds media_device_lock to do allocate
->   and initialize the media device.
-> - Changed media_device_put() to media_device_delete() for symmetry with
->   media_device_*_allocate().
-> - Dropped media_device_unregister_put(). au0828 calls media_device_delete()
->   instead.
-> 
-> Shuah Khan (2):
->   media: Media Device Allocator API
->   media: change au0828 to use Media Device Allocator API
-> 
->  drivers/media/Makefile                 |   3 +-
->  drivers/media/media-dev-allocator.c    | 120 +++++++++++++++++++++++++++++++++
->  drivers/media/usb/au0828/au0828-core.c |  12 ++--
->  drivers/media/usb/au0828/au0828.h      |   1 +
->  include/media/media-dev-allocator.h    |  85 +++++++++++++++++++++++
->  5 files changed, 212 insertions(+), 9 deletions(-)
->  create mode 100644 drivers/media/media-dev-allocator.c
->  create mode 100644 include/media/media-dev-allocator.h
-> 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-Hi Mauro,
+date:		Sat Jun 11 04:00:24 CEST 2016
+git branch:	test
+git hash:	cc650b65bea5613f04a0523c3ee2b91df371e175
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
 
-Are you planning to get this inot 4,8-rc1? 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-i686: ERRORS
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-x86_64: ERRORS
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-The first patch is now at [PATCH v3] media: Media Device Allocator API
-that has been reviewed by Hans.
+Detailed results are available here:
 
-https://lkml.org/lkml/2016/5/27/530
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-thanks,
--- Shuah
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
