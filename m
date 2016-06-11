@@ -1,99 +1,394 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59392 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932126AbcFBHqW (ORCPT
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:18970 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752746AbcFKXBo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Jun 2016 03:46:22 -0400
-Date: Thu, 2 Jun 2016 10:45:45 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [PATCHv5] support for AD5820 camera auto-focus coil
-Message-ID: <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
-References: <20160521105607.GA20071@amd>
- <574049EF.2090208@gmail.com>
- <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
- <20160531213437.GA28397@amd>
- <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
- <20160601220840.GA21946@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160601220840.GA21946@amd>
+	Sat, 11 Jun 2016 19:01:44 -0400
+From: Henrik Austad <henrik@austad.us>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
+	netdev@vger.kernel.org, henrk@austad.us,
+	Henrik Austad <haustad@cisco.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Ingo Molnar <mingo@redhat.com>
+Subject: [very-RFC 6/8] Add TSN event-tracing
+Date: Sun, 12 Jun 2016 01:01:34 +0200
+Message-Id: <1465686096-22156-7-git-send-email-henrik@austad.us>
+In-Reply-To: <1465686096-22156-1-git-send-email-henrik@austad.us>
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 02, 2016 at 12:08:40AM +0200, Pavel Machek wrote:
-> On Wed 2016-06-01 18:24:39, Sakari Ailus wrote:
-> > Hi Pavel,
-> 
-> > > Well, it does not use any dt properties. So there's not really much to
-> > > discuss with dt people...
-> > > 
-> > > Maybe "ad5820" needs to go to list of simple i2c drivers somewhere,
-> > > but...
-> > 
-> > It's an I2C device and it does use a regulator. Not a lot, though, these are
-> > both quite basic stuff. This should still be documented as the people who
-> > write the DT bindings (in general) aren't expected to read driver code as
-> > well. That's at least my understanding.
-> 
-> Yep, you are right, I forgot about the regulator. Something like this?
-> 
-> Thanks,
-> 									Pavel
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-> new file mode 100644
-> index 0000000..87c98f1
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+From: Henrik Austad <haustad@cisco.com>
 
-I might use the compatible string as such as a part of the file name. Up to
-you.
+This needs refactoring and should be updated to use TRACE_CLASS, but for
+now it provides a fair debug-window into TSN.
 
-> @@ -0,0 +1,20 @@
-> +* Analog Devices AD5820 autofocus coil
-> +
-> +Required Properties:
-> +
-> +  - compatible: Must contain "adi,ad5820"
-> +
-> +  - reg: I2C slave address
-> +
-> +  - VANA-supply: supply of voltage for VANA pin
-> +
-> +Example:
-> +
-> +       /* D/A converter for auto-focus */
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Steven Rostedt <rostedt@goodmis.org> (maintainer:TRACING)
+Cc: Ingo Molnar <mingo@redhat.com> (maintainer:TRACING)
+Signed-off-by: Henrik Austad <haustad@cisco.com>
+---
+ include/trace/events/tsn.h | 349 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 349 insertions(+)
+ create mode 100644 include/trace/events/tsn.h
 
-There is definitely D/A conversion happening there but I'm not sure I'd
-characterise the device as such. They're typically called "voice coil
-drivers", perhaps because the devices are similar to a parts of a
-loudspeaker.
-
-> +       ad5820: dac@0c {
-> +               compatible = "adi,ad5820";
-> +               reg = <0x0c>;
-> +
-> +               VANA-supply = <&vaux4>;
-> +       };
-> +
-> 
-> 
-
+diff --git a/include/trace/events/tsn.h b/include/trace/events/tsn.h
+new file mode 100644
+index 0000000..ac1f31b
+--- /dev/null
++++ b/include/trace/events/tsn.h
+@@ -0,0 +1,349 @@
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM tsn
++
++#if !defined(_TRACE_TSN_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_TSN_H
++
++#include <linux/tsn.h>
++#include <linux/tracepoint.h>
++
++#include <linux/if_ether.h>
++#include <linux/if_vlan.h>
++/* #include <linux/skbuff.h> */
++
++/* FIXME: update to TRACE_CLASS to reduce overhead */
++TRACE_EVENT(tsn_buffer_write,
++
++	TP_PROTO(struct tsn_link *link,
++		size_t bytes),
++
++	TP_ARGS(link, bytes),
++
++	TP_STRUCT__entry(
++		__field(u64, stream_id)
++		__field(size_t, size)
++		__field(size_t, bsize)
++		__field(size_t, size_left)
++		__field(void *, buffer)
++		__field(void *, head)
++		__field(void *, tail)
++		__field(void *, end)
++		),
++
++	TP_fast_assign(
++		__entry->stream_id = link->stream_id;
++		__entry->size = bytes;
++		__entry->bsize = link->used_buffer_size;
++		__entry->size_left = (link->head - link->tail) % link->used_buffer_size;
++		__entry->buffer = link->buffer;
++		__entry->head = link->head;
++		__entry->tail = link->tail;
++		__entry->end = link->end;
++		),
++
++	TP_printk("stream_id=%llu, copy=%zd, buffer: %zd, avail=%zd, [buffer=%p, head=%p, tail=%p, end=%p]",
++		__entry->stream_id, __entry->size, __entry->bsize, __entry->size_left,
++		__entry->buffer,    __entry->head, __entry->tail,  __entry->end)
++
++	);
++
++TRACE_EVENT(tsn_buffer_write_net,
++
++	TP_PROTO(struct tsn_link *link,
++		size_t bytes),
++
++	TP_ARGS(link, bytes),
++
++	TP_STRUCT__entry(
++		__field(u64, stream_id)
++		__field(size_t, size)
++		__field(size_t, bsize)
++		__field(size_t, size_left)
++		__field(void *, buffer)
++		__field(void *, head)
++		__field(void *, tail)
++		__field(void *, end)
++		),
++
++	TP_fast_assign(
++		__entry->stream_id = link->stream_id;
++		__entry->size = bytes;
++		__entry->bsize = link->used_buffer_size;
++		__entry->size_left = (link->head - link->tail) % link->used_buffer_size;
++		__entry->buffer = link->buffer;
++		__entry->head = link->head;
++		__entry->tail = link->tail;
++		__entry->end = link->end;
++		),
++
++	TP_printk("stream_id=%llu, copy=%zd, buffer: %zd, avail=%zd, [buffer=%p, head=%p, tail=%p, end=%p]",
++		__entry->stream_id, __entry->size, __entry->bsize, __entry->size_left,
++		__entry->buffer,    __entry->head, __entry->tail,  __entry->end)
++
++	);
++
++
++TRACE_EVENT(tsn_buffer_read,
++
++	TP_PROTO(struct tsn_link *link,
++		size_t bytes),
++
++	TP_ARGS(link, bytes),
++
++	TP_STRUCT__entry(
++		__field(u64, stream_id)
++		__field(size_t, size)
++		__field(size_t, bsize)
++		__field(size_t, size_left)
++		__field(void *, buffer)
++		__field(void *, head)
++		__field(void *, tail)
++		__field(void *, end)
++		),
++
++	TP_fast_assign(
++		__entry->stream_id = link->stream_id;
++		__entry->size = bytes;
++		__entry->bsize = link->used_buffer_size;
++		__entry->size_left = (link->head - link->tail) % link->used_buffer_size;
++		__entry->buffer = link->buffer;
++		__entry->head = link->head;
++		__entry->tail = link->tail;
++		__entry->end = link->end;
++		),
++
++	TP_printk("stream_id=%llu, copy=%zd, buffer: %zd, avail=%zd, [buffer=%p, head=%p, tail=%p, end=%p]",
++		__entry->stream_id, __entry->size, __entry->bsize, __entry->size_left,
++		__entry->buffer,    __entry->head, __entry->tail,  __entry->end)
++
++	);
++
++TRACE_EVENT(tsn_refill,
++
++	TP_PROTO(struct tsn_link *link,
++		size_t reported_avail),
++
++	TP_ARGS(link, reported_avail),
++
++	TP_STRUCT__entry(
++		__field(u64, stream_id)
++		__field(size_t, bsize)
++		__field(size_t, size_left)
++		__field(size_t, reported_left)
++		__field(size_t, low_water)
++		),
++
++	TP_fast_assign(
++		__entry->stream_id = link->stream_id;
++		__entry->bsize = link->used_buffer_size;
++		__entry->size_left = (link->head - link->tail) % link->used_buffer_size;
++		__entry->reported_left = reported_avail;
++		__entry->low_water = link->low_water_mark;
++		),
++
++	TP_printk("stream_id=%llu, buffer=%zd, avail=%zd, reported=%zd, low=%zd",
++		__entry->stream_id, __entry->bsize, __entry->size_left, __entry->reported_left, __entry->low_water)
++	);
++
++TRACE_EVENT(tsn_send_batch,
++
++	TP_PROTO(struct tsn_link *link,
++		int num_send,
++		u64 ts_base_ns,
++		u64 ts_delta_ns),
++
++	TP_ARGS(link, num_send, ts_base_ns, ts_delta_ns),
++
++	TP_STRUCT__entry(
++		__field(u64, stream_id)
++		__field(int, seqnr)
++		__field(int, num_send)
++		__field(u64, ts_base_ns)
++		__field(u64, ts_delta_ns)
++		),
++
++	TP_fast_assign(
++		__entry->stream_id   = link->stream_id;
++		__entry->seqnr	     = (int)link->last_seqnr;
++		__entry->ts_base_ns  = ts_base_ns;
++		__entry->ts_delta_ns = ts_delta_ns;
++		__entry->num_send    = num_send;
++		),
++
++	TP_printk("stream_id=%llu, seqnr=%d, num_send=%d, ts_base_ns=%llu, ts_delta_ns=%llu",
++		__entry->stream_id, __entry->seqnr, __entry->num_send, __entry->ts_base_ns, __entry->ts_delta_ns)
++	);
++
++
++TRACE_EVENT(tsn_rx_handler,
++
++	TP_PROTO(struct tsn_link *link,
++		const struct ethhdr *ethhdr,
++		u64 sid),
++
++	TP_ARGS(link, ethhdr, sid),
++
++	TP_STRUCT__entry(
++		__field(char *, name)
++		__field(u16, proto)
++		__field(u64, sid)
++		__field(u64, link_sid)
++		),
++	TP_fast_assign(
++		__entry->name  = link->nic->name;
++		__entry->proto = ethhdr->h_proto;
++		__entry->sid   = sid;
++		__entry->link_sid = link->stream_id;
++		),
++
++	TP_printk("name=%s, proto: 0x%04x, stream_id=%llu, link->sid=%llu",
++		__entry->name, ntohs(__entry->proto), __entry->sid, __entry->link_sid)
++	);
++
++TRACE_EVENT(tsn_du,
++
++	TP_PROTO(struct tsn_link *link,
++		size_t bytes),
++
++	TP_ARGS(link, bytes),
++
++	TP_STRUCT__entry(
++		__field(u64, link_sid)
++		__field(size_t, bytes)
++		),
++	TP_fast_assign(
++		__entry->link_sid = link->stream_id;
++		__entry->bytes = bytes;
++		),
++
++	TP_printk("stream_id=%llu,bytes=%zu",
++		__entry->link_sid, __entry->bytes)
++);
++
++TRACE_EVENT(tsn_set_buffer,
++
++	TP_PROTO(struct tsn_link *link, size_t bufsize),
++
++	TP_ARGS(link, bufsize),
++
++	TP_STRUCT__entry(
++		__field(u64,  stream_id)
++		__field(size_t, size)
++		),
++
++	TP_fast_assign(
++		__entry->stream_id = link->stream_id;
++		__entry->size = bufsize;
++		),
++
++	TP_printk("stream_id=%llu,buffer_size=%zu",
++		__entry->stream_id, __entry->size)
++
++	);
++
++TRACE_EVENT(tsn_free_buffer,
++
++	TP_PROTO(struct tsn_link *link),
++
++	TP_ARGS(link),
++
++	TP_STRUCT__entry(
++		__field(u64,  stream_id)
++		__field(size_t,	 bufsize)
++		),
++
++	TP_fast_assign(
++		__entry->stream_id = link->stream_id;
++		__entry->bufsize = link->buffer_size;
++		),
++
++	TP_printk("stream_id=%llu,size:%zd",
++		__entry->stream_id, __entry->bufsize)
++
++	);
++
++TRACE_EVENT(tsn_buffer_drain,
++
++	TP_PROTO(struct tsn_link *link, size_t used),
++
++	TP_ARGS(link, used),
++
++	TP_STRUCT__entry(
++		__field(u64, stream_id)
++		__field(size_t, used)
++	),
++
++	TP_fast_assign(
++		__entry->stream_id = link->stream_id;
++		__entry->used = used;
++	),
++
++	TP_printk("stream_id=%llu,used=%zu",
++		__entry->stream_id, __entry->used)
++
++);
++/* TODO: too long, need cleanup.
++ */
++TRACE_EVENT(tsn_pre_tx,
++
++	TP_PROTO(struct tsn_link *link, struct sk_buff *skb, size_t bytes),
++
++	TP_ARGS(link, skb, bytes),
++
++	TP_STRUCT__entry(
++		__field(u64, stream_id)
++		__field(u32, vlan_tag)
++		__field(size_t, bytes)
++		__field(size_t, data_len)
++		__field(unsigned int, headlen)
++		__field(u16, protocol)
++		__field(u16, prot_native)
++		__field(int, tx_idx)
++		__field(u16, mac_len)
++		__field(u16, hdr_len)
++		__field(u16, vlan_tci)
++		__field(u16, mac_header)
++		__field(unsigned int, tail)
++		__field(unsigned int, end)
++		__field(unsigned int, truesize)
++		),
++
++	TP_fast_assign(
++		__entry->stream_id = link->stream_id;
++		__entry->vlan_tag = (skb_vlan_tag_present(skb) ? skb_vlan_tag_get(skb) : 0);
++		__entry->bytes = bytes;
++		__entry->data_len = skb->data_len;
++		__entry->headlen = skb_headlen(skb);
++		__entry->protocol = ntohs(vlan_get_protocol(skb));
++		__entry->prot_native = ntohs(skb->protocol);
++		__entry->tx_idx = skb_get_queue_mapping(skb);
++
++		__entry->mac_len = skb->mac_len;
++		__entry->hdr_len = skb->hdr_len;
++		__entry->vlan_tci = skb->vlan_tci;
++		__entry->mac_header = skb->mac_header;
++		__entry->tail = (unsigned int)skb->tail;
++		__entry->end  = (unsigned int)skb->end;
++		__entry->truesize = skb->truesize;
++		),
++
++	TP_printk("stream_id=%llu,vlan_tag=0x%04x,data_size=%zd,data_len=%zd,headlen=%u,proto=0x%04x (0x%04x),tx_idx=%d,mac_len=%u,hdr_len=%u,vlan_tci=0x%02x,mac_header=0x%02x,tail=%u,end=%u,truesize=%u",
++		__entry->stream_id,
++		__entry->vlan_tag,
++		__entry->bytes,
++		__entry->data_len,
++		__entry->headlen,
++		__entry->protocol,
++		__entry->prot_native, __entry->tx_idx,
++		__entry->mac_len,
++		__entry->hdr_len,
++		__entry->vlan_tci,
++		__entry->mac_header,
++		__entry->tail,
++		__entry->end,
++		__entry->truesize)
++	);
++
++#endif	/* _TRACE_TSN_H || TRACE_HEADER_MULTI_READ */
++
++#include <trace/define_trace.h>
 -- 
-Kind regards,
+2.7.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
