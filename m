@@ -1,63 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:54108 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751416AbcFRPDJ (ORCPT
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:16607 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752303AbcFKXBn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jun 2016 11:03:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv18 10/15] cec: add compat32 ioctl support
-Date: Sat, 18 Jun 2016 17:02:43 +0200
-Message-Id: <1466262168-12805-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
-References: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 11 Jun 2016 19:01:43 -0400
+From: Henrik Austad <henrik@austad.us>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
+	netdev@vger.kernel.org, henrk@austad.us,
+	Henrik Austad <haustad@cisco.com>
+Subject: [very-RFC 8/8] MAINTAINERS: add TSN/AVB-entries
+Date: Sun, 12 Jun 2016 01:01:36 +0200
+Message-Id: <1465686096-22156-9-git-send-email-henrik@austad.us>
+In-Reply-To: <1465686096-22156-1-git-send-email-henrik@austad.us>
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Henrik Austad <haustad@cisco.com>
 
-The CEC ioctls didn't have compat32 support, so they returned -ENOTTY
-when used in a 32 bit application on a 64 bit kernel.
+Not sure how relevant this is other than making a point about
+maintaining it.
 
-Since all the CEC ioctls are 32-bit compatible adding support for this
-API is trivial.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Henrik Austad <haustad@cisco.com>
 ---
- fs/compat_ioctl.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ MAINTAINERS | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
-index bd01b92..c1e9f29 100644
---- a/fs/compat_ioctl.c
-+++ b/fs/compat_ioctl.c
-@@ -57,6 +57,7 @@
- #include <linux/i2c-dev.h>
- #include <linux/atalk.h>
- #include <linux/gfp.h>
-+#include <linux/cec.h>
+diff --git a/MAINTAINERS b/MAINTAINERS
+index ed42cb6..ef5d926 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -11634,6 +11634,20 @@ T:	git git://linuxtv.org/anttip/media_tree.git
+ S:	Maintained
+ F:	drivers/media/tuners/tua9001*
  
- #include "internal.h"
- 
-@@ -1377,6 +1378,17 @@ COMPATIBLE_IOCTL(VIDEO_GET_NAVI)
- COMPATIBLE_IOCTL(VIDEO_SET_ATTRIBUTES)
- COMPATIBLE_IOCTL(VIDEO_GET_SIZE)
- COMPATIBLE_IOCTL(VIDEO_GET_FRAME_RATE)
-+/* cec */
-+COMPATIBLE_IOCTL(CEC_ADAP_G_CAPS)
-+COMPATIBLE_IOCTL(CEC_ADAP_G_LOG_ADDRS)
-+COMPATIBLE_IOCTL(CEC_ADAP_S_LOG_ADDRS)
-+COMPATIBLE_IOCTL(CEC_ADAP_G_PHYS_ADDR)
-+COMPATIBLE_IOCTL(CEC_ADAP_S_PHYS_ADDR)
-+COMPATIBLE_IOCTL(CEC_G_MODE)
-+COMPATIBLE_IOCTL(CEC_S_MODE)
-+COMPATIBLE_IOCTL(CEC_TRANSMIT)
-+COMPATIBLE_IOCTL(CEC_RECEIVE)
-+COMPATIBLE_IOCTL(CEC_DQEVENT)
- 
- /* joystick */
- COMPATIBLE_IOCTL(JSIOCGVERSION)
++TSN CORE DRIVER
++M:	Henrik Austad <haustad@cisco.com>
++L:	linux-kernel@vger.kernel.org
++S:	Supported
++F:	drivers/net/tsn/
++F:	include/linux/tsn.h
++F:	include/trace/events/tsn.h
++
++TSN_AVB_DRIVER
++M:	Henrik Austad <haustad@cisco.com>
++L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
++S:	Supported
++F:	drivers/media/avb/
++
+ TULIP NETWORK DRIVERS
+ L:	netdev@vger.kernel.org
+ L:	linux-parisc@vger.kernel.org
 -- 
-2.8.1
+2.7.4
 
