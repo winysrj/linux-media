@@ -1,66 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56114 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751454AbcFXN0I (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34017 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751873AbcFKLPY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2016 09:26:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/3] uvcvideo: initialise the entity function field
-Date: Fri, 24 Jun 2016 16:26:29 +0300
-Message-ID: <2830501.QdemJ557Im@avalon>
-In-Reply-To: <Pine.LNX.4.64.1606241326030.23461@axis700.grange>
-References: <Pine.LNX.4.64.1606241312130.23461@axis700.grange> <Pine.LNX.4.64.1606241326030.23461@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sat, 11 Jun 2016 07:15:24 -0400
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: sakari.ailus@iki.fi
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+	linux-media@vger.kernel.org, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	mchehab@osg.samsung.com, devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH v2 2/2] media: et8ek8: Add documentation
+Date: Sat, 11 Jun 2016 14:14:40 +0300
+Message-Id: <1465643680-21866-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <1465643680-21866-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <1465643680-21866-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Add DT bindings description
 
-Thank you for the patch.
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+---
+ .../bindings/media/i2c/toshiba,et8ek8.txt          | 50 ++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
 
-On Friday 24 Jun 2016 13:28:55 Guennadi Liakhovetski wrote:
-> Since a recent commit:
-> 
-> [media] media-device: move media entity register/unregister functions
-> 
-> drivers have to set entity function before registering an entity. Fix
-> the uvcvideo driver to comply with this.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  drivers/media/usb/uvc/uvc_entity.c | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_entity.c
-> b/drivers/media/usb/uvc/uvc_entity.c index ac386bb..d93f413 100644
-> --- a/drivers/media/usb/uvc/uvc_entity.c
-> +++ b/drivers/media/usb/uvc/uvc_entity.c
-> @@ -88,6 +88,11 @@ static int uvc_mc_init_entity(struct uvc_video_chain
-> *chain, if (ret < 0)
->  			return ret;
-> 
-> +		if (UVC_ENTITY_TYPE(entity) == UVC_ITT_CAMERA)
-> +			entity->subdev.entity.function = 
-MEDIA_ENT_F_CAM_SENSOR;
-> +		else
-> +			entity->subdev.entity.function = MEDIA_ENT_F_IO_V4L;
-> +
-
-I've discussed this some time ago with Hans (over IRC if I recall correctly). 
-We need to define new functions, as not all UVC entities map to the existing 
-ones. MEDIA_ENT_F_CAM_SENSOR should be fine for UVC_ITT_CAMERA, but 
-MEDIA_ENT_F_IO_V4L isn't right as a default.
-
->  		ret = v4l2_device_register_subdev(&chain->dev->vdev,
->  						  &entity->subdev);
->  	} else if (entity->vdev != NULL) {
-
+diff --git a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
+new file mode 100644
+index 0000000..997d268
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
+@@ -0,0 +1,50 @@
++Toshiba et8ek8 5MP sensor
++
++Toshiba et8ek8 5MP sensor is an image sensor found in Nokia N900 device
++
++More detailed documentation can be found in
++Documentation/devicetree/bindings/media/video-interfaces.txt .
++
++
++Mandatory properties
++--------------------
++
++- compatible: "toshiba,et8ek8"
++- reg: I2C address (0x3e, or an alternative address)
++- vana-supply: Analogue voltage supply (VANA), 2.8 volts
++- clocks: External clock to the sensor
++- clock-frequency: Frequency of the external clock to the sensor
++- reset-gpios: XSHUTDOWN GPIO
++
++
++Endpoint node mandatory properties
++----------------------------------
++
++- remote-endpoint: A phandle to the bus receiver's endpoint node.
++
++Endpoint node optional properties
++----------------------------------
++
++- clock-lanes: <0>
++- data-lanes: <1..n>
++
++Example
++-------
++
++&i2c3 {
++	clock-frequency = <400000>;
++
++	cam1: camera@3e {
++		compatible = "toshiba,et8ek8";
++		reg = <0x3e>;
++		vana-supply = <&vaux4>;
++		clocks = <&isp 0>;
++		clock-frequency = <9600000>;
++		reset-gpio = <&gpio4 6 GPIO_ACTIVE_HIGH>; /* 102 */
++		port {
++			csi_cam1: endpoint {
++				remote-endpoint = <&csi_out1>;
++			};
++		};
++	};
++};
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
