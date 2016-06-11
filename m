@@ -1,84 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37576 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751784AbcF0NcT (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:35592 "EHLO
+	mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932365AbcFKWui (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 09:32:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Florian Echtler <floe@butterbrot.org>
-Subject: [PATCHv5 04/13] sur40: set q->dev instead of allocating a context
-Date: Mon, 27 Jun 2016 15:31:55 +0200
-Message-Id: <1467034324-37626-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
-References: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 11 Jun 2016 18:50:38 -0400
+Received: by mail-lf0-f67.google.com with SMTP id w130so5440617lfd.2
+        for <linux-media@vger.kernel.org>; Sat, 11 Jun 2016 15:50:37 -0700 (PDT)
+Date: Sun, 12 Jun 2016 00:50:29 +0200
+From: Henrik Austad <henrik@austad.us>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
+	netdev@vger.kernel.org, henrk@austad.us,
+	Henrik Austad <haustad@cisco.com>,
+	"David S. Miller" <davem@davemloft.net>
+Subject: Re: [very-RFC 1/8] TSN: add documentation
+Message-ID: <20160611225029.GC10685@sisyphus.home.austad.us>
+References: <1465683741-20390-1-git-send-email-henrik@austad.us>
+ <1465683741-20390-2-git-send-email-henrik@austad.us>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1465683741-20390-2-git-send-email-henrik@austad.us>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Sun, Jun 12, 2016 at 12:22:14AM +0200, Henrik Austad wrote:
+> From: Henrik Austad <haustad@cisco.com>
 
-Stop using alloc_ctx and just fill in the device pointer.
+Clearing up the netdev-typo
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Florian Echtler <floe@butterbrot.org>
----
- drivers/input/touchscreen/sur40.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+> 
+> Describe the overall design behind the TSN standard, the TSN-driver,
+> requirements to userspace and new functionality introduced.
+> 
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Signed-off-by: Henrik Austad <haustad@cisco.com>
+> ---
+>  Documentation/TSN/tsn.txt | 147 ++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 147 insertions(+)
+>  create mode 100644 Documentation/TSN/tsn.txt
+> 
+> Index: linux/Documentation/TSN/tsn.txt
+> ===================================================================
+> --- /dev/null
+> +++ linux/Documentation/TSN/tsn.txt
+> @@ -0,0 +1,188 @@
+> +		Time Sensitive Networking (TSN)
+> +		-------------------------------
+> +
+> +[work in progress]
+> +
+> +1. Motivation
+> +=============
+> +
+> +TSN is a set of open standards, formerly known as 'AVB' (Audio/Video
+> +Bridging). It was renamed to TSN to better reflect that it can do much
+> +more than just media transport.
+> +
+> +TSN is a way to create reliable streams across a network without loss of
+> +frames due to congestion in the network. By using gPTP (a specialized
+> +IEEE-1588v2 PTP profile), the time can be synchronized with sub-us
+> +granularity across all the connected devices in the AVB domain.
+> +
+> +2. Intro to AVB/TSN
+> +===================
+> +
+> +The original standards were written with Audio/Video in mind, so the
+> +initial standards refer to this as 'AVB'. In later standards, this has
+> +changed to TSN, and AVB now refers to a service you can add on top of
+> +TSN. Hopefully it will not be too confusing.
+> +
+> +In this document, we refer to the infrastructure part as TSN and AVB to
+> +the ALSA/V4L2 shim which can be added on top of TSN to provide a
+> +media-service.
+> +
+> +TSN operates with 'streams', and one stream can contain pretty much
+> +whatever you like. Currently, only media has been defined properly
+> +though, which is why you only have media-subtypes for the
+> +avtp_subtype-field.
+> +
+> +For a media-setup, one stream can contain multiple channels, all going
+> +to the same destination. A destination can be a single Listener
+> +(singlecast) or a group of Listeners (multicast).
+> +
+> +2.1 Endpoints
+> +
+> +A TSN 'endpoint' is where a stream either originates or ends -what
+> +others would call sources (Talkers) and sinks (Listeners). Looking back
+> +at pre-TSN when this was called AVB, these names make a bit more sense.
+> +
+> +Common for both types, they need to be PTPv2 capable, i.e. you need to
+> +timestamp gPTP frames upon ingress/egress to improve the accuracy of
+> +PTP.
+> +
+> +2.1.1 Talkers
+> +
+> +Hardware requirements:
+> +- Multiple Tx-queues
+> +- Credit based shaper on at least one of the queues for pacing the
+> +  frames onto the network
+> +- VLAN capable
+> +
+> +2.1.2 Listener
+> +
+> +A Listener does not have the same requirements as a Talker as it cannot
+> +control the pace of the incoming frames anyway. It is beneficial if the
+> +NIC understands VLANs and has a few Rx-queues so that you can steer all
+> +TSN-frames to a dedicated queue.
+> +
+> +2.2 Bridges
+> +
+> +What TSN calls switches that are TSN-capable. They must be able to
+> +prioritize TSN-streams, have the credit-based shaper available for that
+> +class, support SRP, support gPTP and so on.
+> +
+> +2.3 Relevant standards
+> +
+> +* IEEE 802.1BA-2011 Audio Video Bridging (AVB) Systems
+> +
+> +* IEEE 802.1Q-2011 sec 34 and 35
+> +
+> +  What is referred to as:
+> +  IEEE 802.1Qav (Forwarding and Queueing for Time-sensitive Streams)
+> +  IEEE 802.1Qat (Stream Registration protocol)
+> +
+> +* IEEE 802.1AS gPTP
+> +
+> +  A PTPv2 profile (from IEEE 1588) tailored for this domain. Notable
+> +  changes include the requirement that all nodes in the network must be
+> +  gPTP capable (i.e. no traversing non-PTP entities), and it allows
+> +  traffic over a wider range of medium that what "pure" PTPv2 allows.
+> +
+> +* IEEE 1722 AVTP Layer 2 Transport Protocol for Time-Sensitive
+> +  Applications in Bridged Local Area Networks
+> +
+> +* IEEE 1722.1 Device Discovery, Connection Management and Control for 1722
+> +
+> +  What allows AVB (TSN) devices to handle discovery, enumeration and
+> +  control, basically let you connect 2 devices from a 3rd
+> +
+> +  In this (in the scope of the Linux kernel TSN driver) must be done
+> +  purely from userspace as we do not want the kernel to suddenly attach
+> +  to a remote system without the user's knowledge. This is further
+> +  reflected in how the attributes for the link is managed via ConfigFS.
+> +
+> +
+> +3. Overview and/or design of the TSN-driver
+> +===========================================
+> +
+> +The driver handles the shifting of data for TSN-streams. Anything else
+> +is left for userspace to handle. This includes stream reservation (using
+> +some sort of MSRP client), negotiating multicast addresses, finding the
+> +value of the different attributes and connect application(s) to the
+> +exposed devices (currently we only have an ALSA-device).
+> +
+> +       	       /--------------------\
+> +       	       |                    |
+> +	       |  Media application |
+> +	       |       	       	    |
+> +	       \--------------------/
+> +		     | 	      |
+> +       	  +----------+	      +----+
+> +	  | 			   |
+> +	  | 			   |
+> +     +------------+		   |
+> +     |   ALSA  	  |		   |
+> +     +------------+		   |
+> +	  |			   |
+> +	  |			   |
+> +     +------------+          +--------------+
+> +     | 	avb_alsa  | 	     | tsn_configfs |
+> +     | (tsn-shim) |	     +--------------+
+> +     +------------+ 		   |
+> +       	  |  	    		   |
+> +	  |    	  		   |
+> +	  +------+     	  	   |
+> +	   	 |		   |
+> +       	       	 |		   |
+> +            +------------+	   |
+> + 	    |  tsn_core  |<--------+
+> +            +------------+
+> +       	       	 |
+> +		 |
+> +            +------------+
+> +       	    |  tsn_net   |
+> +            +------------+
+> +		 |
+> +		 |
+> +	    +------------+
+> +	    |  network	 |
+> +       	    | subsystem  |
+> +	    +------------+
+> +	       	 |
+> +		 |
+> +		...
+> +
+> +
+> +3.1 Terms and concepts
+> +
+> +TSN uses the concept of streams and shims.
+> +
+> +- A shim is a thin wrapper that binds TSN to another subsystem (or
+> +  directly to userspace). avb_alsa is an example of such a shim.
+> +
+> +- A stream is the only data TSN cares about. What the data inside the
+> +  stream represents, is left for the associated shim to handle. TSN will
+> +  verify the headers up to the protocol specific header and then pass it
+> +  along to the shim.
+> +
+> +Note: currently, only the data-unit part is implemented, the control
+> +part, in which 1722.1 (discovery and enumeration) is part, is not
+> +handled.
+> +
+> +3.2 Userspace requirements
+> +
+> +(msrp-client, "tsnctl"-tool
+> +
+> +4. Creating a new link from userspace
+> +=====================================
+> +
+> +[coming]
+> +
+> +
+> +5. Creating a new shim
+> +======================
+> +
+> +shim_ops
+> +[coming]
+> +
+> +
+> +6. Other resources:
+> +===================
+> +
+> +https://en.wikipedia.org/wiki/Audio_Video_Bridging
 
-diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-index 880c40b..cc4bd3e 100644
---- a/drivers/input/touchscreen/sur40.c
-+++ b/drivers/input/touchscreen/sur40.c
-@@ -151,7 +151,6 @@ struct sur40_state {
- 	struct mutex lock;
- 
- 	struct vb2_queue queue;
--	struct vb2_alloc_ctx *alloc_ctx;
- 	struct list_head buf_list;
- 	spinlock_t qlock;
- 	int sequence;
-@@ -580,19 +579,13 @@ static int sur40_probe(struct usb_interface *interface,
- 	sur40->queue = sur40_queue;
- 	sur40->queue.drv_priv = sur40;
- 	sur40->queue.lock = &sur40->lock;
-+	sur40->queue.dev = sur40->dev;
- 
- 	/* initialize the queue */
- 	error = vb2_queue_init(&sur40->queue);
- 	if (error)
- 		goto err_unreg_v4l2;
- 
--	sur40->alloc_ctx = vb2_dma_sg_init_ctx(sur40->dev);
--	if (IS_ERR(sur40->alloc_ctx)) {
--		dev_err(sur40->dev, "Can't allocate buffer context");
--		error = PTR_ERR(sur40->alloc_ctx);
--		goto err_unreg_v4l2;
--	}
--
- 	sur40->vdev = sur40_video_device;
- 	sur40->vdev.v4l2_dev = &sur40->v4l2;
- 	sur40->vdev.lock = &sur40->lock;
-@@ -633,7 +626,6 @@ static void sur40_disconnect(struct usb_interface *interface)
- 
- 	video_unregister_device(&sur40->vdev);
- 	v4l2_device_unregister(&sur40->v4l2);
--	vb2_dma_sg_cleanup_ctx(sur40->alloc_ctx);
- 
- 	input_unregister_polled_device(sur40->input);
- 	input_free_polled_device(sur40->input);
-@@ -655,11 +647,8 @@ static int sur40_queue_setup(struct vb2_queue *q,
- 		       unsigned int *nbuffers, unsigned int *nplanes,
- 		       unsigned int sizes[], void *alloc_ctxs[])
- {
--	struct sur40_state *sur40 = vb2_get_drv_priv(q);
--
- 	if (q->num_buffers + *nbuffers < 3)
- 		*nbuffers = 3 - q->num_buffers;
--	alloc_ctxs[0] = sur40->alloc_ctx;
- 
- 	if (*nplanes)
- 		return sizes[0] < sur40_video_format.sizeimage ? -EINVAL : 0;
 -- 
-2.8.1
-
+Henrik Austad
