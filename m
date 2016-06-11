@@ -1,511 +1,860 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36629 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751865AbcF0Nca (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:34953 "EHLO
+	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932114AbcFKWzl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 09:32:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCHv5 12/13] media/platform: convert drivers to use the new vb2_queue dev field
-Date: Mon, 27 Jun 2016 15:32:03 +0200
-Message-Id: <1467034324-37626-13-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
-References: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 11 Jun 2016 18:55:41 -0400
+Received: by mail-lf0-f66.google.com with SMTP id w130so5444086lfd.2
+        for <linux-media@vger.kernel.org>; Sat, 11 Jun 2016 15:55:40 -0700 (PDT)
+Date: Sun, 12 Jun 2016 00:55:36 +0200
+From: Henrik Austad <henrik@austad.us>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
+	netdev@vger.kernel.org, henrk@austad.us,
+	Henrik Austad <haustad@cisco.com>,
+	"David S. Miller" <davem@davemloft.net>
+Subject: Re: [very-RFC 4/8] Add TSN header for the driver
+Message-ID: <20160611225536.GI10685@sisyphus.home.austad.us>
+References: <1465683741-20390-1-git-send-email-henrik@austad.us>
+ <1465683741-20390-5-git-send-email-henrik@austad.us>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1465683741-20390-5-git-send-email-henrik@austad.us>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Clearing up netdev-typo
+-H
 
-Stop using alloc_ctx and just fill in the device pointer.
+On Sun, Jun 12, 2016 at 12:22:17AM +0200, Henrik Austad wrote:
+> From: Henrik Austad <haustad@cisco.com>
+> 
+> This defines the general TSN headers for network packets, the
+> shim-interface and the central 'tsn_list' structure.
+> 
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Signed-off-by: Henrik Austad <haustad@cisco.com>
+> ---
+>  include/linux/tsn.h | 806 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 806 insertions(+)
+>  create mode 100644 include/linux/tsn.h
+> 
+> diff --git a/include/linux/tsn.h b/include/linux/tsn.h
+> new file mode 100644
+> index 0000000..0e1f732b
+> --- /dev/null
+> +++ b/include/linux/tsn.h
+> @@ -0,0 +1,806 @@
+> +/*   TSN - Time Sensitive Networking
+> + *
+> + *   Copyright (C) 2016- Henrik Austad <haustad@cisco.com>
+> + *
+> + *   This program is free software; you can redistribute it and/or modify
+> + *   it under the terms of the GNU General Public License as published by
+> + *   the Free Software Foundation; either version 2 of the License, or
+> + *   (at your option) any later version.
+> + *
+> + *   This program is distributed in the hope that it will be useful,
+> + *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *   GNU General Public License for more details.
+> + */
+> +#ifndef _TSN_H
+> +#define _TSN_H
+> +#include <linux/list.h>
+> +#include <linux/configfs.h>
+> +#include <linux/hrtimer.h>
+> +
+> +/* The naming here can be a bit confusing as we call it TSN but naming
+> + * suggests 'AVB'. Reason: IEE 1722 was written before the working group
+> + * was renamed to Time Sensitive Networking.
+> + *
+> + * To be precise. TSN describes the protocol for shipping data, AVB is a
+> + * medialayer which you can build on top of TSN.
+> + *
+> + * For this reason the frames are given avb-names whereas the functions
+> + * use tsn_-naming.
+> + */
+> +
+> +/* 7 bit value 0x00 - 0x7F */
+> +enum avtp_subtype {
+> +	AVTP_61883_IIDC = 0,
+> +	AVTP_MMA = 0x1,
+> +	AVTP_MAAP = 0x7e,
+> +	AVTP_EXPERIMENTAL = 0x7f,
+> +};
+> +
+> +/*		NOTE NOTE NOTE !!
+> + * The headers below use bitfields extensively and verifications
+> + * are needed when using little-endian vs big-endian systems.
+> + */
+> +
+> +/* Common part of avtph header
+> + *
+> + * AVB Transport Protocol Common Header
+> + *
+> + * Defined in 1722-2011 Sec. 5.2
+> + */
+> +struct avtp_ch {
+> +#if defined(__LITTLE_ENDIAN_BITFIELD)
+> +	/* use avtp_subtype enum.
+> +	 */
+> +	u8 subtype:7;
+> +
+> +	/* Controlframe: 1
+> +	 * Dataframe   : 0
+> +	 */
+> +	u8 cd:1;
+> +
+> +	/* Type specific data, part 1 */
+> +	u8 tsd_1:4;
+> +
+> +	/* In current version of AVB, only 0 is valid, all other values
+> +	 * are reserved for future versions.
+> +	 */
+> +	u8 version:3;
+> +
+> +	/* Valid StreamID in frame
+> +	 *
+> +	 * ControlData not related to a specific stream should clear
+> +	 * this (and have stream_id = 0), _all_ other values should set
+> +	 * this to 1.
+> +	 */
+> +	u8 sv:1;
+> +#elif defined(__BIG_ENDIAN_BITFIELD)
+> +	u8 cd:1;
+> +	u8 subtype:7;
+> +	u8 sv:1;
+> +	u8 version:3;
+> +	u8 tsd_1:4;
+> +#else
+> +#error "Unknown Endianness, cannot determine bitfield ordering"
+> +#endif
+> +	/* Type specific data (adjacent to tsd_1, but split due to bitfield) */
+> +	u16 tsd_2;
+> +	u64 stream_id;
+> +
+> +	/*
+> +	 * payload by subtype
+> +	 */
+> +	u8 pbs[0];
+> +} __packed;
+> +
+> +/* AVTPDU Common Control header format
+> + * IEEE 1722#5.3
+> + */
+> +struct avtpc_header {
+> +#if defined(__LITTLE_ENDIAN_BITFIELD)
+> +	u8 subtype:7;
+> +	u8 cd:1;
+> +	u8 control_data:4;
+> +	u8 version:3;
+> +	u8 sv:1;
+> +	u16 control_data_length:11;
+> +	u16 status:5;
+> +#elif defined(__BIG_ENDIAN_BITFIELD)
+> +	u8 cd:1;
+> +	u8 subtype:7;
+> +	u8 sv:1;
+> +	u8 version:3;
+> +	u8 control_data:4;
+> +	u16 status:5;
+> +	u16 control_data_length:11;
+> +#else
+> +#error "Unknown Endianness, cannot determine bitfield ordering"
+> +#endif
+> +	u64 stream_id;
+> +} __packed;
+> +
+> +/* AVTP common stream data AVTPDU header format
+> + * IEEE 1722#5.4
+> + */
+> +struct avtpdu_header {
+> +#if defined(__LITTLE_ENDIAN_BITFIELD)
+> +	u8 subtype:7;
+> +	u8 cd:1;
+> +
+> +	/* avtp_timestamp valid */
+> +	u8 tv: 1;
+> +
+> +	/* gateway_info valid */
+> +	u8 gv:1;
+> +
+> +	/* reserved */
+> +	u8 r:1;
+> +
+> +	/*
+> +	 * Media clock Restart toggle
+> +	 */
+> +	u8 mr:1;
+> +
+> +	u8 version:3;
+> +
+> +	/* StreamID valid */
+> +	u8 sv:1;
+> +	u8 seqnr;
+> +
+> +	/* Timestamp uncertain */
+> +	u8 tu:1;
+> +	u8 r2:7;
+> +#elif defined(__BIG_ENDIAN_BITFIELD)
+> +	u8 cd:1;
+> +	u8 subtype:7;
+> +
+> +	u8 sv:1;
+> +	u8 version:3;
+> +	u8 mr:1;
+> +	u8 r:1;
+> +	u8 gv:1;
+> +	u8 tv: 1;
+> +
+> +	u8 seqnr;
+> +	u8 r2:7;
+> +	u8 tu:1;
+> +#else
+> +#error "Unknown Endianness, cannot determine bitfield ordering"
+> +#endif
+> +
+> +	u64 stream_id;
+> +
+> +	u32 avtp_timestamp;
+> +	u32 gateway_info;
+> +
+> +	/* Stream Data Length */
+> +	u16 sd_len;
+> +
+> +	/* Protocol specific header, derived from avtp_subtype */
+> +	u16 psh;
+> +
+> +	/* Stream Payload Data 0 to n octets
+> +	 * n so that total size < MTU
+> +	 */
+> +	u8 data[0];
+> +} __packed;
+> +
+> +
+> +/**
+> + * struct tsn_list - The top level container of TSN
+> + *
+> + * This is what tsn_configfs refers to as 'tier-0'
+> + *
+> + * @head List of TSN cards
+> + * @lock lock protecting global entries
+> + * @tsn_subsys Ref to ConfigFS subsystem
+> + *
+> + * @running: hrtimer is running driving data out
+> + * @tsn_timer: hrtimer container
+> + * @num_avail Number of available TSN NICs exposed through ConfigFS
+> + */
+> +struct tsn_list {
+> +	struct list_head head;
+> +	struct mutex lock;
+> +	struct configfs_subsystem tsn_subsys;
+> +
+> +	/*
+> +	 * TSN-timer is running. Not to be confused with the per-link
+> +	 * disabled flag which indicates if a remote client, like aplay,
+> +	 * is pushing data to it.
+> +	 */
+> +	atomic_t running;
+> +	struct hrtimer tsn_timer;
+> +	unsigned int period_ns;
+> +
+> +
+> +	size_t num_avail;
+> +};
+> +
+> +/**
+> + * struct tsn_nic
+> + *
+> + * Individual TSN-capable NICs, or 'tier-1' struct
+> + *
+> + * @list linked list of all TSN NICs
+> + * @group configfs group
+> + * @dev corresponding net_device
+> + * @dma_size : size of the DMA buffer
+> + * @dma_handle: housekeeping DMA-stuff
+> + * @dma_mem : pointer to memory region we're using for DMAing to the NIC
+> + * @name Name of NIC (same as name in dev), TO BE REMOVED
+> + * @txq Size of Tx-queue. TO BE REMOVED
+> + * @rx_registered flag indicating if a handler is registered for the nic
+> + * @capable: if the NIC is capable for proper TSN traffic or if it must
+> + *	     be emulated in software.
+> + *
+> + */
+> +struct tsn_nic {
+> +	struct list_head list;
+> +	struct config_group group;
+> +	struct net_device *dev;
+> +	struct tsn_list *tsn_list;
+> +
+> +	size_t dma_size;
+> +	dma_addr_t dma_handle;
+> +	void *dma_mem;
+> +
+> +	char *name;
+> +	int txq;
+> +	u8 rx_registered:1;
+> +	u8 capable:1;
+> +	u8 reserved:6;
+> +};
+> +
+> +struct tsn_shim_ops;
+> +/**
+> + * tsn_link - Structure describing a single TSN link
+> + *
+> + */
+> +struct tsn_link {
+> +	/*
+> +	 * Lock for protecting the buffer
+> +	 */
+> +	spinlock_t lock;
+> +
+> +	struct config_group group;
+> +	struct tsn_nic *nic;
+> +	struct hlist_node node;
+> +
+> +	/* The link itself is active, and the tsn_core will treat it as
+> +	 * an active participant and feed data from it to the
+> +	 * network. This places some restrictions on which attributes
+> +	 * can be changed.
+> +	 *
+> +	 * 1: active
+> +	 * 0: inactive
+> +	 */
+> +	atomic_t active;
+> +
+> +	u64 timer_period_ns;
+> +
+> +	/* Pointer to media-specific data.
+> +	 * e.g. struct avb_chip
+> +	 */
+> +	void *media_chip;
+> +
+> +	u64 stream_id;
+> +
+> +	/*
+> +	 * The max required size for a _single_ TSN frame.
+> +	 *
+> +	 * To be used instead of channels and sample_freq.
+> +	 */
+> +	u16 max_payload_size;
+> +	u16 shim_header_size;
+> +
+> +	/*
+> +	 * Size of buffer (in bytes) to use when handling data to/from
+> +	 * NIC.
+> +	 *
+> +	 * Smaller size will result in client being called more often
+> +	 * but also provides lower latencies.
+> +	 */
+> +	size_t buffer_size;
+> +	size_t used_buffer_size;
+> +
+> +	/*
+> +	 * Used when frames are constructed and shipped to the network
+> +	 * layer. If this is true, 0-frames will be sent insted of data
+> +	 * from the buffer.
+> +	 */
+> +	atomic_t buffer_active;
+> +
+> +	/*
+> +	 * ringbuffer for incoming or outging traffic
+> +	 * +-----------------------------------+
+> +	 * |                  ##########       |
+> +	 * +-----------------------------------+
+> +	 * ^                  ^         ^      ^
+> +	 * buffer           tail      head    end
+> +	 *
+> +	 * Buffer: start of memory area
+> +	 * tail: first byte of data in buffer
+> +	 * head: first unused slot in which to store new data
+> +	 *
+> +	 * head,tail is used to represent the position of 'live data' in
+> +	 * the buffer.
+> +	 */
+> +	void *buffer;
+> +	void *head;
+> +	void *tail;
+> +	void *end;
+> +
+> +	/* Number of bytes to run refill/drain callbacks */
+> +	size_t low_water_mark;
+> +	size_t high_water_mark;
+> +
+> +
+> +	/*
+> +	 * callback ops.
+> +	 */
+> +	struct tsn_shim_ops *ops;
+> +
+> +	/*
+> +	 * EndStation Type
+> +	 *
+> +	 * Either Talker or Listener
+> +	 *
+> +	 * 1: We are *Talker*, i.e. producing data to send
+> +	 * 0: We are *Listener*, i.e. we receive data from another ES.
+> +	 *
+> +	 * This is for a single link, so even though an end-station can
+> +	 * be both Talker *and* Listener, a link can only be one.
+> +	 */
+> +	u8 estype_talker;
+> +
+> +	/*
+> +	 * Link will use buffer managed by the shim. For this to work,
+> +	 * the shim must:
+> +	 *
+> +	 * - call tsn_use_external_buffer(link, size);
+> +	 * - provide tsn_shim_buffer_swap(link) in tsn_shim_ops
+> +	 */
+> +	u8 external_buffer;
+> +
+> +	u8 last_seqnr;
+> +
+> +	/*
+> +	 * Class can be either A or B
+> +	 *
+> +	 * ClassA: every 125us
+> +	 * ClassB: every 250us
+> +	 *
+> +	 * This will also affect how large each frame will be.
+> +	 */
+> +	u8 class_a:1;
+> +
+> +	/*
+> +	 * Any AVTP data stream must set the 802.1Q vlan id and priority
+> +	 * Code point. This should be obtained from MSRP, default values
+> +	 * are:
+> +	 *
+> +	 * pvid: SR_PVID 2
+> +	 * pcp: Class A: 3
+> +	 *	Class B: 2
+> +	 *
+> +	 * See IEEE 802.1Q-2011, Sec 35.2.2.9.3 and table 6-6 in 6.6.2
+> +	 * for details
+> +	 */
+> +	u8 pcp_a:3;
+> +	u8 pcp_b:3;
+> +	u16 vlan_id:12;
+> +
+> +	u8 remote_mac[6];
+> +};
+> +
+> +/**
+> + * tsn_link_on - make link active
+> + *
+> + * This cause most of the attributes to be treated read-only since we
+> + * will have to re-negotiate with the network if most of these
+> + * parameters change.
+> + *
+> + * Note: this means that the link will be handled by the rx-handler or
+> + * the timer callback, but until the link_buffer is set active (via
+> + * tsn_lb_on()), actual data is not moved.
+> + *
+> + * @link: link being set to active
+> + */
+> +static inline void tsn_link_on(struct tsn_link *link)
+> +{
+> +	if (link)
+> +		atomic_set(&link->active, 1);
+> +}
+> +
+> +/**
+> + * tsn_link_off - make link inactive
+> + *
+> + * The link will now be ignored by timer callback or the
+> + * rx-handler. Attributes can be mostly freely changed (we assume that
+> + * userspace sets values that are negotiated properly).
+> + *
+> + * @link: link to deactivate
+> + */
+> +static inline void tsn_link_off(struct tsn_link *link)
+> +{
+> +	if (link)
+> +		atomic_set(&link->active, 0);
+> +}
+> +
+> +/**
+> + * tsn_link_is_on - query link to see if it is active
+> + *
+> + * Mostly used by tsn_configfs to respect the "read-only" once link is
+> + * configured and made active.
+> + *
+> + * @link active link
+> + * @returns 1 if active/on, 0 otherwise
+> + */
+> +static inline int tsn_link_is_on(struct tsn_link *link)
+> +{
+> +	if (link)
+> +		return atomic_read(&link->active);
+> +	return 0;
+> +}
+> +
+> +/**
+> + * tsn_set_buffer_size - adjust buffersize to match a shim
+> + *
+> + * This will not allocate (or deallcoate) memory, just adjust how much
+> + * of the buffer allocated in tsn_prepare_link is being used. tsn_
+> + * expects tsn_clear_buffer_size() to be invoked when stream is closed.
+> + */
+> +int tsn_set_buffer_size(struct tsn_link *link, size_t bsize);
+> +int tsn_clear_buffer_size(struct tsn_link *link);
+> +
+> +/**
+> + * tsn_buffer_write write data into the buffer from shim
+> + *
+> + * This is called from the shim-driver when more data is available and
+> + * data needs to be pushed out to the network.
+> + *
+> + * NOTE: This is used when TSN handles the databuffer. This will not be
+> + *	 needed for "shim-hosted" buffers.
+> + *
+> + * _If_ this function is called when the link is inactive, it will
+> + * _enable_ the link (i.e. link will mark the buffer as 'active'). Do
+> + * not copy data into the buffer unless you are ready to start sending
+> + * frames!
+> + *
+> + * @link active link
+> + * @src	the buffer to copy data from
+> + * @bytes bytes to copy
+> + * @return bytes copied from link->buffer or negative error
+> + */
+> +int tsn_buffer_write(struct tsn_link *link, void *src, size_t bytes);
+> +
+> +
+> +/**
+> + * tsn_buffer_read - read data from link->buffer and give to shim
+> + *
+> + * When we act as a listener, this is what the shim (should|will) call
+> + * to grab data. It typically grabs much more data than the _net
+> + * equivalent. It also do not trigger a refill-event the same way
+> + * buffer_read_net does.
+> + *
+> + * @param link current link that holds the buffer
+> + * @param buffer the buffer to copy into, must be at least of size bytes
+> + * @param bytes number of bytes.
+> + *
+> + * Note that this routine does NOT CARE about channels, samplesize etc,
+> + * it is a _pure_ copy that handles ringbuffer wraps etc.
+> + *
+> + * This function have side-effects as it will update internal tsn_link
+> + * values.
+> + *
+> + * @return Bytes copied into link->buffer, negative value upon error.
+> + */
+> +int tsn_buffer_read(struct tsn_link *link, void *buffer, size_t bytes);
+> +
+> +/**
+> + * tsn_lb_enable - TSN Link Buffer Enable
+> + *
+> + * Mark the link as "buffer-enabled" which will let the core start
+> + * shifting data in/out of the buffer instead of ignoring incoming
+> + * frames or sending "nullframes".
+> + *
+> + * This is for the network-end of the tsn-buffer, i.e.
+> + * - when enabled frames *from* the network will be inserted into the buffer,
+> + * - or frames going *out* will include data from the buffer instead of sending
+> + *   null-frames.
+> + *
+> + * When disabled, data will be zero'd, e.g Tx will send NULL-frames and
+> + * Rx will silently drop the frames.
+> + *
+> + * @link: active link
+> + */
+> +static inline void tsn_lb_enable(struct tsn_link *link)
+> +{
+> +	if (link)
+> +		atomic_set(&link->buffer_active, 1);
+> +}
+> +
+> +/**
+> + * tsn_lb_disable - stop using the buffer for the net-side of TSN
+> + *
+> + * When we close a stream, we do not necessarily tear down the link, and
+> + * we need to handle the data in some way.
+> + */
+> +static inline void tsn_lb_disable(struct tsn_link *link)
+> +{
+> +	if (link)
+> +		atomic_set(&link->buffer_active, 0);
+> +}
+> +
+> +/**
+> + * tsn_lb() - query if we have disabled pushing of data to/from link-buffer
+> + *
+> + * @param struct tsn_link *link - active link
+> + * @returns 1 if link is enabled
+> + */
+> +static inline int tsn_lb(struct tsn_link *link)
+> +{
+> +	if (link)
+> +		return atomic_read(&link->buffer_active);
+> +
+> +	/* if link is NULL; buffer not active */
+> +	return 0;
+> +}
+> +
+> +
+> +/**
+> + * Shim ops - what tsn_core use when calling back into the shim. All ops
+> + * must be reentrant.
+> + */
+> +#define SHIM_NAME_SIZE 32
+> +struct tsn_shim_ops {
+> +
+> +	/* internal linked list used by tsn_core to keep track of all
+> +	 * shims.
+> +	 */
+> +	struct list_head head;
+> +
+> +	/**
+> +	 * name - a unique name identifying this shim
+> +	 *
+> +	 * This is what userspace use to indicate to core what SHIM a
+> +	 * particular link will use. If the name is already present,
+> +	 * core will reject this name.
+> +	 */
+> +	char shim_name[SHIM_NAME_SIZE];
+> +
+> +	/**
+> +	 * probe - callback when a new link of this type is instantiated.
+> +	 *
+> +	 * When a new link is brought online, this is called once the
+> +	 * essential parts of tsn_core has finiesh. Once probe_cb has
+> +	 * finisehd, the shim _must_ be ready to accept data to/from
+> +	 * tsn_core. On the other hand, due to the final steps of setup,
+> +	 * it cannot expect to be called into action immediately after
+> +	 * probe has finished.
+> +	 *
+> +	 * In other words, shim must be ready, but core doesn't have to
+> +	 *
+> +	 * @param : a particular link to pass along to the probe-function.
+> +	 */
+> +	int (*probe)(struct tsn_link *link);
+> +
+> +	/**
+> +	 * buffer_swap - set a new buffer for the link. [OPTIONAL]
+> +	 *
+> +	 * Used when external buffering is enabled.
+> +	 *
+> +	 * When called, a new buffer must be returned WITHOUT blocking
+> +	 * as this will be called from interrupt context.
+> +	 *
+> +	 * The buffer returned from the shim must be at least the size
+> +	 * of used_buffer_size.
+> +	 *
+> +	 * @param current link
+> +	 * @param old_buffer the buffer that are no longer needed
+> +	 * @param used number of bytes in buffer that has been filled with data.
+> +	 * @return new buffer to use
+> +	 */
+> +	void * (*buffer_swap)(struct tsn_link *link, void *old_buffer,
+> +			      size_t used);
+> +
+> +	/**
+> +	 * buffer_refill - signal shim that more data is required
+> +	 * @link Active link
+> +	 *
+> +	 * This function should not do anything that can preempt the
+> +	 * task (kmalloc, sleeping lock) or invoke actions that can take
+> +	 * a long time to complete.
+> +	 *
+> +	 * This will be called from tsn_buffer_read_net() when available
+> +	 * data in the buffer drops below low_water_mark. It will be
+> +	 * called with the link-lock *held*
+> +	 */
+> +	size_t (*buffer_refill)(struct tsn_link *link);
+> +
+> +	/**
+> +	 * buffer_drain - shim need to copy data from buffer
+> +	 *
+> +	 * This will be called from tsn_buffer_write_net() when data in
+> +	 * the buffer exceeds high_water_mark.
+> +	 *
+> +	 * The expected behavior is for the shim to then fill data into
+> +	 * the buffer via tsn_buffer_write()
+> +	 */
+> +	size_t (*buffer_drain)(struct tsn_link *link);
+> +
+> +	/**
+> +	 * media_close - shut down media controller properly
+> +	 *
+> +	 * when the link is closed/removed for some reason
+> +	 * external to the media controller (ALSA soundcard, v4l2 driver
+> +	 * etc), we call this to clean up.
+> +	 *
+> +	 * Normal operation is stopped before media_close is called, but
+> +	 * all references should be valid. TSN core expects media_close
+> +	 * to handle any local cleanup, once returned, any references in
+> +	 * stale tsn_links cannot be trusted.
+> +	 *
+> +	 * @link: current link where data is stored
+> +	 * @returns: 0 upon success, negative on error.
+> +	 */
+> +	int (*media_close)(struct tsn_link *link);
+> +
+> +	/**
+> +	 * hdr_size - ask shim how large the header is
+> +	 *
+> +	 * Needed when reserving space in skb for transmitting data.
+> +	 *
+> +	 * @link: current link where data is stored
+> +	 * @return: size of header for this shim
+> +	 */
+> +	size_t (*hdr_size)(struct tsn_link *link);
+> +
+> +	/**
+> +	 * copy_size - ask client how much from the buffer to include in
+> +	 *	       the next frame.
+> +	 *
+> +	 *	       This is for *outgoing* frames, incoming frames
+> +	 *	       have 'sd_len' set in the header.
+> +	 *
+> +	 *	       Note: copy_size should not return a size larger
+> +	 *		     than link->max_payload_size
+> +	 */
+> +	size_t (*copy_size)(struct tsn_link *link);
+> +
+> +	/**
+> +	 * validate_header - let the shim validate subtype-header
+> +	 *
+> +	 * Both psh and data may (or may not) contain headers that need
+> +	 * validating. This is the responsibility of the shim to
+> +	 * validate, and ops->valdiate_header() will be called before
+> +	 * any data is copied from the incoming frame and into the
+> +	 * buffer.
+> +	 *
+> +	 * Important: tsn_core expects validate_header to _not_ alter
+> +	 * the contents of the frame, and ideally, validate_header could
+> +	 * be called multiple times and give the same result.
+> +	 *
+> +	 * @param: active link owning the new data
+> +	 * @param: start of data-unit header
+> +	 *
+> +	 * This function will be called from interrupt-context and MUST
+> +	 * NOT take any locks.
+> +	 */
+> +	int (*validate_header)(struct tsn_link *link,
+> +			       struct avtpdu_header *header);
+> +
+> +	/**
+> +	 * assemble_header - add shim-specific headers
+> +	 *
+> +	 * This adds the headers required by the current shim after the
+> +	 * generic 1722-header.
+> +	 *
+> +	 * @param: active link
+> +	 * @param: start of data-unit header
+> +	 * @param: size of data to send in this frame
+> +	 * @return void
+> +	 */
+> +	void (*assemble_header)(struct tsn_link *link,
+> +				struct avtpdu_header *header, size_t bytes);
+> +
+> +	/**
+> +	 * get_payload_data - get a pointer to where the data is stored
+> +	 *
+> +	 * core will use the pointer (or drop it if NULL is returned)
+> +	 * and copy header->sd_len bytes of *consecutive* data from the
+> +	 * target memory and into the buffer memory.
+> +	 *
+> +	 * This is called with relevant locks held, from interrupt context.
+> +	 *
+> +	 * @param link active link
+> +	 * @param header header of frame, which contains data
+> +	 * @returns pointer to memory to copy from
+> +	 */
+> +	void * (*get_payload_data)(struct tsn_link *link,
+> +				   struct avtpdu_header *header);
+> +};
+> +/**
+> + * tsn_shim_register_ops - register shim-callbacks for a given shim
+> + *
+> + * @param shim_ops - callbacks. The ops-struct should be kept intact for
+> + *		     as long as the driver is running.
+> + *
+> + *
+> + */
+> +int tsn_shim_register_ops(struct tsn_shim_ops *shim_ops);
+> +
+> +/**
+> + * tsn_shim_deregister_ops - remove callback for module
+> + *
+> + * Completely remove shim_ops. This will close any links currently using
+> + * this shim. Note: the links will be closed, but _not_ removed.
+> + *
+> + * @param shim_ops ops associated with this shim
+> + */
+> +void tsn_shim_deregister_ops(struct tsn_shim_ops *shim_ops);
+> +
+> +/**
+> + * tsn_shim_get_active : return the name of the currently loaded shim
+> + *
+> + * @param current link
+> + * @return name of shim (matches an entry from exported triggers)
+> + */
+> +char *tsn_shim_get_active(struct tsn_link *link);
+> +
+> +/**
+> + * tsn_shim_find_by_name find shim_ops by name
+> + *
+> + * @param name of shim
+> + * @return shim or NULL if not found/error.
+> + */
+> +struct tsn_shim_ops *tsn_shim_find_by_name(const char *name);
+> +
+> +/**
+> + * tsn_shim_export_probe_triggers - export a list of registered shims
+> + *
+> + * @param page to write content into
+> + * @returns length of data written to page
+> + */
+> +ssize_t tsn_shim_export_probe_triggers(char *page);
+> +
+> +/**
+> + * tsn_get_framesize - get the size of the next TSN frame to send
+> + *
+> + * This will call into the shim to get the next chunk of data to
+> + * read. Some sanitychecking is performed, i.e.
+> + *
+> + * 0 <= size <= max_payload_size
+> + *
+> + * @param struct tsn_link *link active link
+> + * @returns size of frame in bytes or negative on error.
+> + */
+> +static inline size_t tsn_shim_get_framesize(struct tsn_link *link)
+> +{
+> +	size_t ret;
+> +
+> +	ret = link->ops->copy_size(link);
+> +	if (ret <= link->max_payload_size)
+> +		return ret;
+> +	return link->max_payload_size;
+> +}
+> +
+> +/**
+> + * tsn_get_hdr_size - get the size of the shim-specific header size
+> + *
+> + * The shim will add it's own header to the frame.
+> + */
+> +static inline size_t tsn_shim_get_hdr_size(struct tsn_link *link)
+> +{
+> +	size_t ret;
+> +
+> +	if (!link || !link->ops->hdr_size)
+> +		return -EINVAL;
+> +	ret = link->ops->hdr_size(link);
+> +	if (ret > link->max_payload_size)
+> +		return -EINVAL;
+> +	return ret;
+> +}
+> +
+> +#endif	/* _TSN_H */
+> -- 
+> 2.7.4
+> 
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/exynos4-is/fimc-capture.c   |  7 ++-----
- drivers/media/platform/exynos4-is/fimc-core.c      | 10 ----------
- drivers/media/platform/exynos4-is/fimc-core.h      |  3 ---
- drivers/media/platform/exynos4-is/fimc-is.c        | 13 +------------
- drivers/media/platform/exynos4-is/fimc-is.h        |  2 --
- drivers/media/platform/exynos4-is/fimc-isp-video.c |  9 +++------
- drivers/media/platform/exynos4-is/fimc-isp.h       |  2 --
- drivers/media/platform/exynos4-is/fimc-lite.c      | 18 +++---------------
- drivers/media/platform/exynos4-is/fimc-lite.h      |  2 --
- drivers/media/platform/exynos4-is/fimc-m2m.c       |  6 +++---
- drivers/media/platform/s5p-mfc/s5p_mfc.c           | 18 +-----------------
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  2 --
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       | 10 ++++------
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 14 +++++---------
- 14 files changed, 22 insertions(+), 94 deletions(-)
-
-diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-index bf47d3b..512b254 100644
---- a/drivers/media/platform/exynos4-is/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -354,11 +354,9 @@ static int queue_setup(struct vb2_queue *vq,
- 	if (*num_planes) {
- 		if (*num_planes != fmt->memplanes)
- 			return -EINVAL;
--		for (i = 0; i < *num_planes; i++) {
-+		for (i = 0; i < *num_planes; i++)
- 			if (sizes[i] < (wh * fmt->depth[i]) / 8)
- 				return -EINVAL;
--			allocators[i] = ctx->fimc_dev->alloc_ctx;
--		}
- 		return 0;
- 	}
- 
-@@ -371,8 +369,6 @@ static int queue_setup(struct vb2_queue *vq,
- 			sizes[i] = frame->payload[i];
- 		else
- 			sizes[i] = max_t(u32, size, frame->payload[i]);
--
--		allocators[i] = ctx->fimc_dev->alloc_ctx;
- 	}
- 
- 	return 0;
-@@ -1779,6 +1775,7 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
- 	q->buf_struct_size = sizeof(struct fimc_vid_buffer);
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->lock = &fimc->lock;
-+	q->dev = &fimc->pdev->dev;
- 
- 	ret = vb2_queue_init(q);
- 	if (ret)
-diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
-index 368f44f..8f89ca2 100644
---- a/drivers/media/platform/exynos4-is/fimc-core.c
-+++ b/drivers/media/platform/exynos4-is/fimc-core.c
-@@ -1018,20 +1018,11 @@ static int fimc_probe(struct platform_device *pdev)
- 			goto err_sd;
- 	}
- 
--	/* Initialize contiguous memory allocator */
- 	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
--	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
--	if (IS_ERR(fimc->alloc_ctx)) {
--		ret = PTR_ERR(fimc->alloc_ctx);
--		goto err_gclk;
--	}
- 
- 	dev_dbg(dev, "FIMC.%d registered successfully\n", fimc->id);
- 	return 0;
- 
--err_gclk:
--	if (!pm_runtime_enabled(dev))
--		clk_disable(fimc->clock[CLK_GATE]);
- err_sd:
- 	fimc_unregister_capture_subdev(fimc);
- err_sclk:
-@@ -1124,7 +1115,6 @@ static int fimc_remove(struct platform_device *pdev)
- 	pm_runtime_set_suspended(&pdev->dev);
- 
- 	fimc_unregister_capture_subdev(fimc);
--	vb2_dma_contig_cleanup_ctx(fimc->alloc_ctx);
- 	vb2_dma_contig_clear_max_seg_size(&pdev->dev);
- 
- 	clk_disable(fimc->clock[CLK_BUS]);
-diff --git a/drivers/media/platform/exynos4-is/fimc-core.h b/drivers/media/platform/exynos4-is/fimc-core.h
-index 6b74354..5615fef 100644
---- a/drivers/media/platform/exynos4-is/fimc-core.h
-+++ b/drivers/media/platform/exynos4-is/fimc-core.h
-@@ -307,7 +307,6 @@ struct fimc_m2m_device {
-  */
- struct fimc_vid_cap {
- 	struct fimc_ctx			*ctx;
--	struct vb2_alloc_ctx		*alloc_ctx;
- 	struct v4l2_subdev		subdev;
- 	struct exynos_video_entity	ve;
- 	struct media_pad		vd_pad;
-@@ -417,7 +416,6 @@ struct fimc_ctx;
-  * @m2m:	memory-to-memory V4L2 device information
-  * @vid_cap:	camera capture device information
-  * @state:	flags used to synchronize m2m and capture mode operation
-- * @alloc_ctx:	videobuf2 memory allocator context
-  * @pipeline:	fimc video capture pipeline data structure
-  */
- struct fimc_dev {
-@@ -436,7 +434,6 @@ struct fimc_dev {
- 	struct fimc_m2m_device		m2m;
- 	struct fimc_vid_cap		vid_cap;
- 	unsigned long			state;
--	struct vb2_alloc_ctx		*alloc_ctx;
- };
- 
- /**
-diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
-index bd98b56..32ca55f 100644
---- a/drivers/media/platform/exynos4-is/fimc-is.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is.c
-@@ -204,9 +204,6 @@ static int fimc_is_register_subdevs(struct fimc_is *is)
- 	if (ret < 0)
- 		return ret;
- 
--	/* Initialize memory allocator context for the ISP DMA. */
--	is->isp.alloc_ctx = is->alloc_ctx;
--
- 	for_each_compatible_node(i2c_bus, NULL, FIMC_IS_I2C_COMPATIBLE) {
- 		for_each_available_child_of_node(i2c_bus, child) {
- 			ret = fimc_is_parse_sensor_config(is, index, child);
-@@ -848,18 +845,13 @@ static int fimc_is_probe(struct platform_device *pdev)
- 		goto err_pm;
- 
- 	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
--	is->alloc_ctx = vb2_dma_contig_init_ctx(dev);
--	if (IS_ERR(is->alloc_ctx)) {
--		ret = PTR_ERR(is->alloc_ctx);
--		goto err_pm;
--	}
- 	/*
- 	 * Register FIMC-IS V4L2 subdevs to this driver. The video nodes
- 	 * will be created within the subdev's registered() callback.
- 	 */
- 	ret = fimc_is_register_subdevs(is);
- 	if (ret < 0)
--		goto err_vb;
-+		goto err_pm;
- 
- 	ret = fimc_is_debugfs_create(is);
- 	if (ret < 0)
-@@ -878,8 +870,6 @@ err_dfs:
- 	fimc_is_debugfs_remove(is);
- err_sd:
- 	fimc_is_unregister_subdevs(is);
--err_vb:
--	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
- err_pm:
- 	if (!pm_runtime_enabled(dev))
- 		fimc_is_runtime_suspend(dev);
-@@ -940,7 +930,6 @@ static int fimc_is_remove(struct platform_device *pdev)
- 		fimc_is_runtime_suspend(dev);
- 	free_irq(is->irq, is);
- 	fimc_is_unregister_subdevs(is);
--	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
- 	vb2_dma_contig_clear_max_seg_size(dev);
- 	fimc_is_put_clocks(is);
- 	fimc_is_debugfs_remove(is);
-diff --git a/drivers/media/platform/exynos4-is/fimc-is.h b/drivers/media/platform/exynos4-is/fimc-is.h
-index 386eb49..3a82c6a 100644
---- a/drivers/media/platform/exynos4-is/fimc-is.h
-+++ b/drivers/media/platform/exynos4-is/fimc-is.h
-@@ -233,7 +233,6 @@ struct chain_config {
-  * @pdev: pointer to FIMC-IS platform device
-  * @pctrl: pointer to pinctrl structure for this device
-  * @v4l2_dev: pointer to top the level v4l2_device
-- * @alloc_ctx: videobuf2 memory allocator context
-  * @lock: mutex serializing video device and the subdev operations
-  * @slock: spinlock protecting this data structure and the hw registers
-  * @clocks: FIMC-LITE gate clock
-@@ -256,7 +255,6 @@ struct fimc_is {
- 	struct fimc_is_sensor		sensor[FIMC_IS_SENSORS_NUM];
- 	struct fimc_is_setfile		setfile;
- 
--	struct vb2_alloc_ctx		*alloc_ctx;
- 	struct v4l2_ctrl_handler	ctrl_handler;
- 
- 	struct mutex			lock;
-diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
-index c081672..abc3389 100644
---- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
-+++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
-@@ -57,20 +57,16 @@ static int isp_video_capture_queue_setup(struct vb2_queue *vq,
- 	if (*num_planes) {
- 		if (*num_planes != fmt->memplanes)
- 			return -EINVAL;
--		for (i = 0; i < *num_planes; i++) {
-+		for (i = 0; i < *num_planes; i++)
- 			if (sizes[i] < (wh * fmt->depth[i]) / 8)
- 				return -EINVAL;
--			allocators[i] = isp->alloc_ctx;
--		}
- 		return 0;
- 	}
- 
- 	*num_planes = fmt->memplanes;
- 
--	for (i = 0; i < fmt->memplanes; i++) {
-+	for (i = 0; i < fmt->memplanes; i++)
- 		sizes[i] = (wh * fmt->depth[i]) / 8;
--		allocators[i] = isp->alloc_ctx;
--	}
- 
- 	return 0;
- }
-@@ -597,6 +593,7 @@ int fimc_isp_video_device_register(struct fimc_isp *isp,
- 	q->drv_priv = isp;
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->lock = &isp->video_lock;
-+	q->dev = &isp->pdev->dev;
- 
- 	ret = vb2_queue_init(q);
- 	if (ret < 0)
-diff --git a/drivers/media/platform/exynos4-is/fimc-isp.h b/drivers/media/platform/exynos4-is/fimc-isp.h
-index e0686b5..3cdd524 100644
---- a/drivers/media/platform/exynos4-is/fimc-isp.h
-+++ b/drivers/media/platform/exynos4-is/fimc-isp.h
-@@ -148,7 +148,6 @@ struct fimc_is_video {
- /**
-  * struct fimc_isp - FIMC-IS ISP data structure
-  * @pdev: pointer to FIMC-IS platform device
-- * @alloc_ctx: videobuf2 memory allocator context
-  * @subdev: ISP v4l2_subdev
-  * @subdev_pads: the ISP subdev media pads
-  * @test_pattern: test pattern controls
-@@ -161,7 +160,6 @@ struct fimc_is_video {
-  */
- struct fimc_isp {
- 	struct platform_device		*pdev;
--	struct vb2_alloc_ctx		*alloc_ctx;
- 	struct v4l2_subdev		subdev;
- 	struct media_pad		subdev_pads[FIMC_ISP_SD_PADS_NUM];
- 	struct v4l2_mbus_framefmt	src_fmt;
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index 27cb620..f5a27a9 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -371,20 +371,16 @@ static int queue_setup(struct vb2_queue *vq,
- 	if (*num_planes) {
- 		if (*num_planes != fmt->memplanes)
- 			return -EINVAL;
--		for (i = 0; i < *num_planes; i++) {
-+		for (i = 0; i < *num_planes; i++)
- 			if (sizes[i] < (wh * fmt->depth[i]) / 8)
- 				return -EINVAL;
--			allocators[i] = fimc->alloc_ctx;
--		}
- 		return 0;
- 	}
- 
- 	*num_planes = fmt->memplanes;
- 
--	for (i = 0; i < fmt->memplanes; i++) {
-+	for (i = 0; i < fmt->memplanes; i++)
- 		sizes[i] = (wh * fmt->depth[i]) / 8;
--		allocators[i] = fimc->alloc_ctx;
--	}
- 
- 	return 0;
- }
-@@ -1300,6 +1296,7 @@ static int fimc_lite_subdev_registered(struct v4l2_subdev *sd)
- 	q->drv_priv = fimc;
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->lock = &fimc->lock;
-+	q->dev = &fimc->pdev->dev;
- 
- 	ret = vb2_queue_init(q);
- 	if (ret < 0)
-@@ -1552,11 +1549,6 @@ static int fimc_lite_probe(struct platform_device *pdev)
- 	}
- 
- 	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
--	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
--	if (IS_ERR(fimc->alloc_ctx)) {
--		ret = PTR_ERR(fimc->alloc_ctx);
--		goto err_clk_dis;
--	}
- 
- 	fimc_lite_set_default_config(fimc);
- 
-@@ -1564,9 +1556,6 @@ static int fimc_lite_probe(struct platform_device *pdev)
- 		fimc->index);
- 	return 0;
- 
--err_clk_dis:
--	if (!pm_runtime_enabled(dev))
--		clk_disable(fimc->clock);
- err_sd:
- 	fimc_lite_unregister_capture_subdev(fimc);
- err_clk_put:
-@@ -1652,7 +1641,6 @@ static int fimc_lite_remove(struct platform_device *pdev)
- 	pm_runtime_disable(dev);
- 	pm_runtime_set_suspended(dev);
- 	fimc_lite_unregister_capture_subdev(fimc);
--	vb2_dma_contig_cleanup_ctx(fimc->alloc_ctx);
- 	vb2_dma_contig_clear_max_seg_size(dev);
- 	fimc_lite_clk_put(fimc);
- 
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.h b/drivers/media/platform/exynos4-is/fimc-lite.h
-index 11690d5..9ae1e96 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.h
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.h
-@@ -113,7 +113,6 @@ struct flite_buffer {
-  * @ve: exynos video device entity structure
-  * @v4l2_dev: pointer to top the level v4l2_device
-  * @fh: v4l2 file handle
-- * @alloc_ctx: videobuf2 memory allocator context
-  * @subdev: FIMC-LITE subdev
-  * @vd_pad: media (sink) pad for the capture video node
-  * @subdev_pads: the subdev media pads
-@@ -148,7 +147,6 @@ struct fimc_lite {
- 	struct exynos_video_entity ve;
- 	struct v4l2_device	*v4l2_dev;
- 	struct v4l2_fh		fh;
--	struct vb2_alloc_ctx	*alloc_ctx;
- 	struct v4l2_subdev	subdev;
- 	struct media_pad	vd_pad;
- 	struct media_pad	subdev_pads[FLITE_SD_PADS_NUM];
-diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c b/drivers/media/platform/exynos4-is/fimc-m2m.c
-index 55ec4c9..365f06e 100644
---- a/drivers/media/platform/exynos4-is/fimc-m2m.c
-+++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
-@@ -195,10 +195,8 @@ static int fimc_queue_setup(struct vb2_queue *vq,
- 		return -EINVAL;
- 
- 	*num_planes = f->fmt->memplanes;
--	for (i = 0; i < f->fmt->memplanes; i++) {
-+	for (i = 0; i < f->fmt->memplanes; i++)
- 		sizes[i] = f->payload[i];
--		allocators[i] = ctx->fimc_dev->alloc_ctx;
--	}
- 	return 0;
- }
- 
-@@ -562,6 +560,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	src_vq->lock = &ctx->fimc_dev->lock;
-+	src_vq->dev = &ctx->fimc_dev->pdev->dev;
- 
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
-@@ -575,6 +574,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	dst_vq->lock = &ctx->fimc_dev->lock;
-+	dst_vq->dev = &ctx->fimc_dev->pdev->dev;
- 
- 	return vb2_queue_init(dst_vq);
- }
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 6ee620e..8ca99af 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1191,23 +1191,13 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 	}
- 
- 	vb2_dma_contig_set_max_seg_size(dev->mem_dev_l, DMA_BIT_MASK(32));
--	dev->alloc_ctx[0] = vb2_dma_contig_init_ctx(dev->mem_dev_l);
--	if (IS_ERR(dev->alloc_ctx[0])) {
--		ret = PTR_ERR(dev->alloc_ctx[0]);
--		goto err_res;
--	}
- 	vb2_dma_contig_set_max_seg_size(dev->mem_dev_r, DMA_BIT_MASK(32));
--	dev->alloc_ctx[1] = vb2_dma_contig_init_ctx(dev->mem_dev_r);
--	if (IS_ERR(dev->alloc_ctx[1])) {
--		ret = PTR_ERR(dev->alloc_ctx[1]);
--		goto err_mem_init_ctx_1;
--	}
- 
- 	mutex_init(&dev->mfc_mutex);
- 
- 	ret = s5p_mfc_alloc_firmware(dev);
- 	if (ret)
--		goto err_alloc_fw;
-+		goto err_res;
- 
- 	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
- 	if (ret)
-@@ -1295,10 +1285,6 @@ err_dec_alloc:
- 	v4l2_device_unregister(&dev->v4l2_dev);
- err_v4l2_dev_reg:
- 	s5p_mfc_release_firmware(dev);
--err_alloc_fw:
--	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[1]);
--err_mem_init_ctx_1:
--	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[0]);
- err_res:
- 	s5p_mfc_final_pm(dev);
- 
-@@ -1322,8 +1308,6 @@ static int s5p_mfc_remove(struct platform_device *pdev)
- 	video_unregister_device(dev->vfd_dec);
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 	s5p_mfc_release_firmware(dev);
--	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[0]);
--	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[1]);
- 	s5p_mfc_unconfigure_dma_memory(dev);
- 	vb2_dma_contig_clear_max_seg_size(dev->mem_dev_l);
- 	vb2_dma_contig_clear_max_seg_size(dev->mem_dev_r);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 9eb2481..1ce379a 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -285,7 +285,6 @@ struct s5p_mfc_priv_buf {
-  * @watchdog_cnt:	counter for the watchdog
-  * @watchdog_workqueue:	workqueue for the watchdog
-  * @watchdog_work:	worker for the watchdog
-- * @alloc_ctx:		videobuf2 allocator contexts for two memory banks
-  * @enter_suspend:	flag set when entering suspend
-  * @ctx_buf:		common context memory (MFCv6)
-  * @warn_start:		hardware error code from which warnings start
-@@ -328,7 +327,6 @@ struct s5p_mfc_dev {
- 	struct timer_list watchdog_timer;
- 	struct workqueue_struct *watchdog_workqueue;
- 	struct work_struct watchdog_work;
--	void *alloc_ctx[2];
- 	unsigned long enter_suspend;
- 
- 	struct s5p_mfc_priv_buf ctx_buf;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index a01a373..eab6ec4 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -930,16 +930,14 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 		psize[1] = ctx->chroma_size;
- 
- 		if (IS_MFCV6_PLUS(dev))
--			allocators[0] =
--				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
-+			allocators[0] = &ctx->dev->mem_dev_l;
- 		else
--			allocators[0] =
--				ctx->dev->alloc_ctx[MFC_BANK2_ALLOC_CTX];
--		allocators[1] = ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
-+			allocators[0] = &ctx->dev->mem_dev_r;
-+		allocators[1] = &ctx->dev->mem_dev_l;
- 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE &&
- 		   ctx->state == MFCINST_INIT) {
- 		psize[0] = ctx->dec_src_buf_size;
--		allocators[0] = ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
-+		allocators[0] = &ctx->dev->mem_dev_l;
- 	} else {
- 		mfc_err("This video node is dedicated to decoding. Decoding not initialized\n");
- 		return -EINVAL;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 2f76aba..7ee9ad7 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -1831,7 +1831,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 		if (*buf_count > MFC_MAX_BUFFERS)
- 			*buf_count = MFC_MAX_BUFFERS;
- 		psize[0] = ctx->enc_dst_buf_size;
--		allocators[0] = ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
-+		allocators[0] = &ctx->dev->mem_dev_l;
- 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
- 		if (ctx->src_fmt)
- 			*plane_count = ctx->src_fmt->num_planes;
-@@ -1847,15 +1847,11 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 		psize[1] = ctx->chroma_size;
- 
- 		if (IS_MFCV6_PLUS(dev)) {
--			allocators[0] =
--				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
--			allocators[1] =
--				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
-+			allocators[0] = &ctx->dev->mem_dev_l;
-+			allocators[1] = &ctx->dev->mem_dev_l;
- 		} else {
--			allocators[0] =
--				ctx->dev->alloc_ctx[MFC_BANK2_ALLOC_CTX];
--			allocators[1] =
--				ctx->dev->alloc_ctx[MFC_BANK2_ALLOC_CTX];
-+			allocators[0] = &ctx->dev->mem_dev_r;
-+			allocators[1] = &ctx->dev->mem_dev_r;
- 		}
- 	} else {
- 		mfc_err("invalid queue type: %d\n", vq->type);
 -- 
-2.8.1
-
+Henrik Austad
