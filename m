@@ -1,62 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zencphosting06.zen.co.uk ([82.71.204.9]:54646 "EHLO
-	zencphosting06.zen.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932082AbcFMQlJ (ORCPT
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:44549 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752917AbcFKWcq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2016 12:41:09 -0400
-Subject: Re: [PATCH v3 0/8] Input: atmel_mxt_ts - output raw touch diagnostic
- data via V4L
-To: Hans Verkuil <hverkuil@xs4all.nl>
-References: <1464799192-28034-1-git-send-email-nick.dyer@itdev.co.uk>
- <20160601181700.GD4114@dtor-ws>
- <d8c40054-359c-5e21-6c1f-be38fd2368db@itdev.co.uk>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-Message-ID: <65c7873a-439d-fc84-50b4-f63a7934e9db@itdev.co.uk>
-Date: Mon, 13 Jun 2016 17:40:52 +0100
-MIME-Version: 1.0
-In-Reply-To: <d8c40054-359c-5e21-6c1f-be38fd2368db@itdev.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sat, 11 Jun 2016 18:32:46 -0400
+From: Henrik Austad <henrik@austad.us>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
+	linux-netdev@vger.kernel.org, henrk@austad.us,
+	Henrik Austad <henrik@austad.us>,
+	"David S. Miller" <davem@davemloft.net>
+Subject: [very-RFC 2/8] TSN: Add the standard formerly known as AVB to the kernel
+Date: Sun, 12 Jun 2016 00:22:15 +0200
+Message-Id: <1465683741-20390-3-git-send-email-henrik@austad.us>
+In-Reply-To: <1465683741-20390-1-git-send-email-henrik@austad.us>
+References: <1465683741-20390-1-git-send-email-henrik@austad.us>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/06/2016 16:14, Nick Dyer wrote:
-> On 01/06/2016 19:17, Dmitry Torokhov wrote:
->> On Wed, Jun 01, 2016 at 05:39:44PM +0100, Nick Dyer wrote:
->>> This is a series of patches to add diagnostic data support to the Atmel
->>> maXTouch driver. It's a rewrite of the previous implementation which output via
->>> debugfs: it now uses a V4L2 device in a similar way to the sur40 driver.
->>
->> I do not have any objections other than some nits form the input side;
->> majority of the review should come from V4L2 side here...
-> 
-> Thanks for the review. I've hopefully fixed the issues you raised and
-> pushed it to
->     https://github.com/ndyer/linux/commits/diagnostic-v4l-20160602
-> 
-> I will wait for the V4L2 folks to comment before posting a [PATCH v4]
+TSN provides a mechanism to create reliable, jitter-free, low latency
+guaranteed bandwidth links over a local network. It does this by
+reserving a path through the network. Support for TSN must be found in
+both the NIC as well as in the network itself.
 
-Hi Hans-
+This adds required hooks into netdev_ops so that the core TSN driver can
+use this when configuring a new NIC or setting up a new link.
 
-I've done a bit of further work on this now, so unless you have any
-conerns, I'm going to post an update to the patch set in the next couple of
-days.
+Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Henrik Austad <henrik@austad.us>
+---
+ include/linux/netdevice.h | 32 ++++++++++++++++++++++++++++++++
+ net/Kconfig               |  1 +
+ net/tsn/Kconfig           | 32 ++++++++++++++++++++++++++++++++
+ 3 files changed, 65 insertions(+)
+ create mode 100644 net/tsn/Kconfig
 
-cheers
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index f45929c..de025eb 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -109,6 +109,13 @@ enum netdev_tx {
+ };
+ typedef enum netdev_tx netdev_tx_t;
+ 
++#if IS_ENABLED(CONFIG_TSN)
++enum sr_class {
++	SR_CLASS_A = 1,
++	SR_CLASS_B = 2,
++};
++#endif
++
+ /*
+  * Current order: NETDEV_TX_MASK > NET_XMIT_MASK >= 0 is significant;
+  * hard_start_xmit() return < NET_XMIT_MASK means skb was consumed.
+@@ -902,6 +909,22 @@ struct tc_to_netdev {
+  *
+  * void (*ndo_poll_controller)(struct net_device *dev);
+  *
++ *	TSN functions (if CONFIG_TSN)
++ *
++ * int (*ndo_tsn_capable)(struct net_device *dev);
++ *	If a particular device is capable of sustaining TSN traffic
++ *	provided current configuration
++ * int (*ndo_tsn_link_configure)(struct net_device *dev,
++ *				 enum sr_class class,
++ *				 u16 framesize,
++ *				 u16 vid);
++ *     - When a new TSN link is either added or removed, this is called to
++ *       update the bandwidth for the particular stream-class
++ *     - The framesize is the size of the _entire_ frame, not just the
++ *       payload since the full size is required to allocate bandwidth through
++ *       the credit based shaper in the NIC
++ *     - the vlan_id is the configured vlan for TSN in this session.
++ *
+  *	SR-IOV management functions.
+  * int (*ndo_set_vf_mac)(struct net_device *dev, int vf, u8* mac);
+  * int (*ndo_set_vf_vlan)(struct net_device *dev, int vf, u16 vlan, u8 qos);
+@@ -1148,6 +1171,15 @@ struct net_device_ops {
+ #ifdef CONFIG_NET_RX_BUSY_POLL
+ 	int			(*ndo_busy_poll)(struct napi_struct *dev);
+ #endif
++
++#if IS_ENABLED(CONFIG_TSN)
++	int			(*ndo_tsn_capable)(struct net_device *dev);
++	int			(*ndo_tsn_link_configure)(struct net_device *dev,
++							  enum sr_class class,
++							  u16 framesize,
++							  u16 vid);
++#endif	/* CONFIG_TSN */
++
+ 	int			(*ndo_set_vf_mac)(struct net_device *dev,
+ 						  int queue, u8 *mac);
+ 	int			(*ndo_set_vf_vlan)(struct net_device *dev,
+diff --git a/net/Kconfig b/net/Kconfig
+index ff40562..fa9f691 100644
+--- a/net/Kconfig
++++ b/net/Kconfig
+@@ -215,6 +215,7 @@ source "net/802/Kconfig"
+ source "net/bridge/Kconfig"
+ source "net/dsa/Kconfig"
+ source "net/8021q/Kconfig"
++source "net/tsn/Kconfig"
+ source "net/decnet/Kconfig"
+ source "net/llc/Kconfig"
+ source "net/ipx/Kconfig"
+diff --git a/net/tsn/Kconfig b/net/tsn/Kconfig
+new file mode 100644
+index 0000000..1fc3c1d
+--- /dev/null
++++ b/net/tsn/Kconfig
+@@ -0,0 +1,32 @@
++#
++# Configuration for 802.1 Time Sensitive Networking (TSN)
++#
++
++config TSN
++	tristate "802.1 TSN Support"
++	depends on VLAN_8021Q && PTP_1588_CLOCK && CONFIGFS_FS
++	---help---
++	  Select this if you want to enable TSN on capable interfaces.
++
++	  TSN allows you to set up deterministic links on your LAN (only
++	  L2 is currently supported). Once loaded, the driver will probe
++	  all available interfaces if they are capable of supporting TSN
++	  links.
++
++	  Once loaded, a directory in configfs called tsn/ will expose
++	  the capable NICs and allow userspace to create
++	  links. Userspace must provide us with a StreamID as well as
++	  reserving bandwidth through the network and once this is done,
++	  a new link can be created by issuing a mkdir() in configfs and
++	  updating the attributes for the new link.
++
++	  TSN itself does not produce nor consume data, it is dependent
++	  upon 'shims' doing this, which can be virtually anything. ALSA
++	  is a good candidate.
++
++	  For more information, refer to the TSN-documentation in the
++	  kernel documentation repository.
++
++	  The resulting module will be called 'tsn'
++
++	  If unsure, say N.
+-- 
+2.7.4
 
-Nick
