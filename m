@@ -1,152 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52954 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932163AbcFTTNx (ORCPT
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:36431 "EHLO
+	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932102AbcFKWt6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 15:13:53 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 20/24] v4l: vsp1: Simplify alpha propagation
-Date: Mon, 20 Jun 2016 22:10:38 +0300
-Message-Id: <1466449842-29502-21-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Sat, 11 Jun 2016 18:49:58 -0400
+Received: by mail-lf0-f68.google.com with SMTP id h68so8549261lfh.3
+        for <linux-media@vger.kernel.org>; Sat, 11 Jun 2016 15:49:57 -0700 (PDT)
+Date: Sun, 12 Jun 2016 00:49:54 +0200
+From: Henrik Austad <henrik@austad.us>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
+	netdev@vger.kernel.org, henrk@austad.us
+Subject: Re: [very-RFC 0/8] TSN driver for the kernel
+Message-ID: <20160611224954.GB10685@sisyphus.home.austad.us>
+References: <1465683741-20390-1-git-send-email-henrik@austad.us>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1465683741-20390-1-git-send-email-henrik@austad.us>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We don't need to walk the pipeline when propagating the alpha value as
-all the information needed for propagation is already available from the
-pipeline structure.
+On Sun, Jun 12, 2016 at 12:22:13AM +0200, Henrik Austad wrote:
+> Hi all
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_pipe.c | 42 +++++++--------------------------
- drivers/media/platform/vsp1/vsp1_pipe.h |  4 +---
- drivers/media/platform/vsp1/vsp1_rpf.c  |  2 +-
- drivers/media/platform/vsp1/vsp1_uds.c  |  4 +++-
- drivers/media/platform/vsp1/vsp1_uds.h  |  2 +-
- 5 files changed, 14 insertions(+), 40 deletions(-)
+Sorry.. I somehow managed to mess up the address to netdev, so if you feel 
+like replying to this, use this as it has the correct netdev-address.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index b695bee9e55c..0dd7c163c8d5 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -317,46 +317,20 @@ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
-  * to be scaled, we disable alpha scaling when the UDS input has a fixed alpha
-  * value. The UDS then outputs a fixed alpha value which needs to be programmed
-  * from the input RPF alpha.
-- *
-- * This function can only be called from a subdev s_stream handler as it
-- * requires a valid display list context.
-  */
- void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
--				   struct vsp1_entity *input,
--				   struct vsp1_dl_list *dl,
--				   unsigned int alpha)
-+				   struct vsp1_dl_list *dl, unsigned int alpha)
- {
--	struct vsp1_entity *entity;
--	struct media_pad *pad;
-+	if (!pipe->uds)
-+		return;
- 
--	/* The alpha value doesn't need to be propagated to the HGO, use
--	 * vsp1_entity_remote_pad() to traverse the graph.
-+	/* The BRU background color has a fixed alpha value set to 255, the
-+	 * output alpha value is thus always equal to 255.
- 	 */
-+	if (pipe->uds_input->type == VSP1_ENTITY_BRU)
-+		alpha = 255;
- 
--	pad = vsp1_entity_remote_pad(&input->pads[RWPF_PAD_SOURCE]);
--
--	while (pad) {
--		if (!is_media_entity_v4l2_subdev(pad->entity))
--			break;
--
--		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
--
--		/* The BRU background color has a fixed alpha value set to 255,
--		 * the output alpha value is thus always equal to 255.
--		 */
--		if (entity->type == VSP1_ENTITY_BRU)
--			alpha = 255;
--
--		if (entity->type == VSP1_ENTITY_UDS) {
--			struct vsp1_uds *uds = to_uds(&entity->subdev);
--
--			vsp1_uds_set_alpha(uds, dl, alpha);
--			break;
--		}
--
--		pad = &entity->pads[entity->source_pad];
--		pad = vsp1_entity_remote_pad(pad);
--	}
-+	vsp1_uds_set_alpha(pipe->uds, dl, alpha);
- }
- 
- void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index 2cbf1a5ea1fb..bd42effe405e 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -119,9 +119,7 @@ bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe);
- void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe);
- 
- void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
--				   struct vsp1_entity *input,
--				   struct vsp1_dl_list *dl,
--				   unsigned int alpha);
-+				   struct vsp1_dl_list *dl, unsigned int alpha);
- 
- void vsp1_pipelines_suspend(struct vsp1_device *vsp1);
- void vsp1_pipelines_resume(struct vsp1_device *vsp1);
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index bcfa5bce12fb..2a734b131110 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -206,7 +206,7 @@ static void rpf_configure(struct vsp1_entity *entity,
- 		vsp1_rpf_write(rpf, dl, VI6_RPF_MULT_ALPHA, mult);
- 	}
- 
--	vsp1_pipeline_propagate_alpha(pipe, &rpf->entity, dl, rpf->alpha);
-+	vsp1_pipeline_propagate_alpha(pipe, dl, rpf->alpha);
- 
- 	vsp1_rpf_write(rpf, dl, VI6_RPF_MSK_CTRL, 0);
- 	vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_CTRL, 0);
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-index e916f454e3a4..5291f8b36688 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.c
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -40,9 +40,11 @@ static inline void vsp1_uds_write(struct vsp1_uds *uds, struct vsp1_dl_list *dl,
-  * Scaling Computation
-  */
- 
--void vsp1_uds_set_alpha(struct vsp1_uds *uds, struct vsp1_dl_list *dl,
-+void vsp1_uds_set_alpha(struct vsp1_entity *entity, struct vsp1_dl_list *dl,
- 			unsigned int alpha)
- {
-+	struct vsp1_uds *uds = to_uds(&entity->subdev);
-+
- 	vsp1_uds_write(uds, dl, VI6_UDS_ALPVAL,
- 		       alpha << VI6_UDS_ALPVAL_VAL0_SHIFT);
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.h b/drivers/media/platform/vsp1/vsp1_uds.h
-index 5c8cbfcad4cc..7bf3cdcffc65 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.h
-+++ b/drivers/media/platform/vsp1/vsp1_uds.h
-@@ -35,7 +35,7 @@ static inline struct vsp1_uds *to_uds(struct v4l2_subdev *subdev)
- 
- struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index);
- 
--void vsp1_uds_set_alpha(struct vsp1_uds *uds, struct vsp1_dl_list *dl,
-+void vsp1_uds_set_alpha(struct vsp1_entity *uds, struct vsp1_dl_list *dl,
- 			unsigned int alpha);
- 
- #endif /* __VSP1_UDS_H__ */
+again, sorry
+
+> (series based on v4.7-rc2)
+> 
+> This is a *very* early RFC for a TSN-driver in the kernel. It has been
+> floating around in my repo for a while and I would appreciate some
+> feedback on the overall design to avoid doing some major blunders.
+> 
+> TSN: Time Sensitive Networking, formely known as AVB (Audio/Video
+> Bridging).
+> 
+> There are at least one AVB-driver (the AV-part of TSN) in the kernel
+> already, however this driver aims to solve a wider scope as TSN can do
+> much more than just audio. A very basic ALSA-driver is added to the end
+> that allows you to play music between 2 machines using aplay in one end
+> and arecord | aplay on the other (some fiddling required) We have plans
+> for doing the same for v4l2 eventually (but there are other fishes to
+> fry first). The same goes for a TSN_SOCK type approach as well.
+> 
+> TSN is all about providing infrastructure. Allthough there are a few
+> very interesting uses for TSN (reliable, deterministic network for audio
+> and video), once you have that reliable link, you can do a lot more.
+> 
+> Some notes on the design:
+> 
+> The driver is directed via ConfigFS as we need userspace to handle
+> stream-reservation (MSRP), discovery and enumeration (IEEE 1722.1) and
+> whatever other management is needed. Once we have all the required
+> attributes, we can create link using mkdir, and use write() to set the
+> attributes. Once ready, specify the 'shim' (basically a thin wrapper
+> between TSN and another subsystem) and we start pushing out frames.
+> 
+> The network part: it ties directly into the rx-handler for receive and
+> writes skb's using netdev_start_xmit(). This could probably be
+> improved. 2 new fields in netdev_ops have been introduced, and the Intel
+> igb-driver has been updated (as this is available as a PCI-e card). The
+> igb-driver works-ish
+> 
+> 
+> What remains
+> - tie to (g)PTP properly, currently using ktime_get() for presentation
+>   time
+> - get time from shim into TSN and vice versa
+> - let shim create/manage buffer
+> 
+> Henrik Austad (8):
+>   TSN: add documentation
+>   TSN: Add the standard formerly known as AVB to the kernel
+>   Adding TSN-driver to Intel I210 controller
+>   Add TSN header for the driver
+>   Add TSN machinery to drive the traffic from a shim over the network
+>   Add TSN event-tracing
+>   AVB ALSA - Add ALSA shim for TSN
+>   MAINTAINERS: add TSN/AVB-entries
+> 
+>  Documentation/TSN/tsn.txt                 | 147 +++++
+>  MAINTAINERS                               |  14 +
+>  drivers/media/Kconfig                     |  15 +
+>  drivers/media/Makefile                    |   3 +-
+>  drivers/media/avb/Makefile                |   5 +
+>  drivers/media/avb/avb_alsa.c              | 742 +++++++++++++++++++++++
+>  drivers/media/avb/tsn_iec61883.h          | 124 ++++
+>  drivers/net/ethernet/intel/Kconfig        |  18 +
+>  drivers/net/ethernet/intel/igb/Makefile   |   2 +-
+>  drivers/net/ethernet/intel/igb/igb.h      |  19 +
+>  drivers/net/ethernet/intel/igb/igb_main.c |  10 +-
+>  drivers/net/ethernet/intel/igb/igb_tsn.c  | 396 ++++++++++++
+>  include/linux/netdevice.h                 |  32 +
+>  include/linux/tsn.h                       | 806 ++++++++++++++++++++++++
+>  include/trace/events/tsn.h                | 349 +++++++++++
+>  net/Kconfig                               |   1 +
+>  net/Makefile                              |   1 +
+>  net/tsn/Kconfig                           |  32 +
+>  net/tsn/Makefile                          |   6 +
+>  net/tsn/tsn_configfs.c                    | 623 +++++++++++++++++++
+>  net/tsn/tsn_core.c                        | 975 ++++++++++++++++++++++++++++++
+>  net/tsn/tsn_header.c                      | 203 +++++++
+>  net/tsn/tsn_internal.h                    | 383 ++++++++++++
+>  net/tsn/tsn_net.c                         | 403 ++++++++++++
+>  24 files changed, 5306 insertions(+), 3 deletions(-)
+>  create mode 100644 Documentation/TSN/tsn.txt
+>  create mode 100644 drivers/media/avb/Makefile
+>  create mode 100644 drivers/media/avb/avb_alsa.c
+>  create mode 100644 drivers/media/avb/tsn_iec61883.h
+>  create mode 100644 drivers/net/ethernet/intel/igb/igb_tsn.c
+>  create mode 100644 include/linux/tsn.h
+>  create mode 100644 include/trace/events/tsn.h
+>  create mode 100644 net/tsn/Kconfig
+>  create mode 100644 net/tsn/Makefile
+>  create mode 100644 net/tsn/tsn_configfs.c
+>  create mode 100644 net/tsn/tsn_core.c
+>  create mode 100644 net/tsn/tsn_header.c
+>  create mode 100644 net/tsn/tsn_internal.h
+>  create mode 100644 net/tsn/tsn_net.c
+> 
+> --
+> 2.7.4
+
 -- 
-Regards,
-
-Laurent Pinchart
-
+Henrik Austad
