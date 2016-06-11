@@ -1,59 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:57753 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751502AbcFRPDI (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36775 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751499AbcFKPkD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jun 2016 11:03:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv18 09/15] cec/TODO: add TODO file so we know why this is still in staging
-Date: Sat, 18 Jun 2016 17:02:42 +0200
-Message-Id: <1466262168-12805-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
-References: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 11 Jun 2016 11:40:03 -0400
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: sakari.ailus@iki.fi
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+	linux-media@vger.kernel.org, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	mchehab@osg.samsung.com, devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH v3 0/2] media: add et8ek8 camera sensor driver and documentation
+Date: Sat, 11 Jun 2016 18:39:51 +0300
+Message-Id: <1465659593-16858-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This series adds driver for Toshiba et8ek8 camera sensor found in Nokia N900
 
-Explain why cec.c is still in staging.
+Changes from v2:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/cec/TODO | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
- create mode 100644 drivers/staging/media/cec/TODO
+ - fix build when CONFIG_PM is not defined
 
-diff --git a/drivers/staging/media/cec/TODO b/drivers/staging/media/cec/TODO
-new file mode 100644
-index 0000000..e3c384a
---- /dev/null
-+++ b/drivers/staging/media/cec/TODO
-@@ -0,0 +1,23 @@
-+The reason why cec.c is still in staging is that I would like
-+to have a bit more confidence in the uABI. The kABI is fine,
-+no problem there, but I would like to let the public API mature
-+a bit.
-+
-+Once I'm confident that I didn't miss anything then the cec.c source
-+can move to drivers/media and the linux/cec.h and linux/cec-funcs.h
-+headers can move to uapi/linux and added to uapi/linux/Kbuild to make
-+them public.
-+
-+Hopefully this will happen later in 2016.
-+
-+Other TODOs:
-+
-+- Add a flag to inhibit passing CEC RC messages to the rc subsystem.
-+  Applications should be able to choose this when calling S_LOG_ADDRS.
-+- Convert cec.txt to sphinx.
-+- If the reply field of cec_msg is set then when the reply arrives it
-+  is only sent to the filehandle that transmitted the original message
-+  and not to any followers. Should this behavior change or perhaps
-+  controlled through a cec_msg flag?
-+
-+Hans Verkuil <hans.verkuil@cisco.com>
+Changes from v1:
+
+ - driver and documentation split into separate patches
+ - removed custom controls
+ - code changed according to the comments on v1
+
+Ivaylo Dimitrov (2):
+  media: Driver for Toshiba et8ek8 5MP sensor
+  media: et8ek8: Add documentation
+
+ .../bindings/media/i2c/toshiba,et8ek8.txt          |   50 +
+ drivers/media/i2c/Kconfig                          |    1 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/et8ek8/Kconfig                   |    6 +
+ drivers/media/i2c/et8ek8/Makefile                  |    2 +
+ drivers/media/i2c/et8ek8/et8ek8_driver.c           | 1593 ++++++++++++++++++++
+ drivers/media/i2c/et8ek8/et8ek8_mode.c             |  590 ++++++++
+ drivers/media/i2c/et8ek8/et8ek8_reg.h              |   96 ++
+ 8 files changed, 2339 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
+ create mode 100644 drivers/media/i2c/et8ek8/Kconfig
+ create mode 100644 drivers/media/i2c/et8ek8/Makefile
+ create mode 100644 drivers/media/i2c/et8ek8/et8ek8_driver.c
+ create mode 100644 drivers/media/i2c/et8ek8/et8ek8_mode.c
+ create mode 100644 drivers/media/i2c/et8ek8/et8ek8_reg.h
+
 -- 
-2.8.1
+1.9.1
 
