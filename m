@@ -1,94 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:56895 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750985AbcFNLIP (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41039 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752602AbcFLC1E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 07:08:15 -0400
-Message-ID: <1465902488.27938.7.camel@mtksdaap41>
-Subject: Re: [PATCH v3 0/9] Add MT8173 Video Decoder Driver
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hansverk@cisco.com>
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	"Daniel Kurtz" <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	"Eddie Huang" <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	<tiffany.lin@mediatek.com>
-Date: Tue, 14 Jun 2016 19:08:08 +0800
-In-Reply-To: <575746EE.3030706@cisco.com>
-References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
-	 <20160607112235.475c2e4c@recife.lan> <575746EE.3030706@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+	Sat, 11 Jun 2016 22:27:04 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 123EE1804BE
+	for <linux-media@vger.kernel.org>; Sun, 12 Jun 2016 04:26:58 +0200 (CEST)
+Date: Sun, 12 Jun 2016 04:26:58 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160612022658.123EE1804BE@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On Wed, 2016-06-08 at 07:13 +0900, Hans Verkuil wrote:
-> 
-> On 06/07/2016 11:22 PM, Mauro Carvalho Chehab wrote:
-> > Em Mon, 30 May 2016 20:29:14 +0800
-> > Tiffany Lin <tiffany.lin@mediatek.com> escreveu:
-> >
-> >> ==============
-> >>   Introduction
-> >> ==============
-> >>
-> >> The purpose of this series is to add the driver for video codec hw embedded in the Mediatek's MT8173 SoCs.
-> >> Mediatek Video Codec is able to handle video decoding of in a range of formats.
-> >>
-> >> This patch series add Mediatek block format V4L2_PIX_FMT_MT21, the decoder driver will decoded bitstream to
-> >> V4L2_PIX_FMT_MT21 format.
-> >>
-> >> This patch series rely on MTK VPU driver in patch series "Add MT8173 Video Encoder Driver and VPU Driver"[1]
-> >> and patch "CHROMIUM: v4l: Add V4L2_PIX_FMT_VP9 definition"[2] for VP9 support.
-> >> Mediatek Video Decoder driver rely on VPU driver to load, communicate with VPU.
-> >>
-> >> Internally the driver uses videobuf2 framework and MTK IOMMU and MTK SMI both have been merged in v4.6-rc1.
-> >>
-> >> [1]https://patchwork.linuxtv.org/patch/33734/
-> >> [2]https://chromium-review.googlesource.com/#/c/245241/
-> >
-> > Hmm... I'm not seeing the firmware for this driver at the
-> > linux-firmware tree:
-> > 	https://git.kernel.org/cgit/linux/kernel/git/firmware/linux-firmware.git/log/
-> >
-> > Nor I'm seeing any pull request for them. Did you send it?
-> > I'll only merge the driver upstream after seeing such pull request.
-> 
-Sorry, I am not familiar with how to upstream firmware.
-Do you mean we need to upstream vpu firmware first before merge encoder
-driver upstream?
+date:		Sun Jun 12 04:00:43 CEST 2016
+git branch:	test
+git hash:	cc650b65bea5613f04a0523c3ee2b91df371e175
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
 
-In
-https://git.kernel.org/cgit/linux/kernel/git/firmware/linux-firmware.git/tree/README, it mentions that 
-"To submit firmware to this repository, please send either a git binary
-diff or preferably a git pull request to: linux-firmware@kernel.org and
-also cc: to related mailing lists."
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-i686: ERRORS
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-x86_64: ERRORS
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-How we made a git pull request to linux-firmware@kernel.org? 
-How we find out related mailing lists?
+Detailed results are available here:
 
-best regards,
-Tiffany
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-> Mauro, are you confusing the decoder and encoder driver? I haven't thoroughly reviewed the decoder driver
-> yet, so there is no pull request for the decoder driver.
-> 
-> The only pull request I made was for the encoder driver.
-> 
-> Regards,
-> 
-> 	Hans
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
