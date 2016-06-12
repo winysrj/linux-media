@@ -1,48 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:40952 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751673AbcF1Lwe (ORCPT
+Received: from smtprelay0130.hostedemail.com ([216.40.44.130]:45816 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751823AbcFLHmj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2016 07:52:34 -0400
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Ulrich Hecht <ulrich.hecht+renesas@gmail.co>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.8] rcar-vin patches
-Message-ID: <577264F9.5040506@xs4all.nl>
-Date: Tue, 28 Jun 2016 13:52:25 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Sun, 12 Jun 2016 03:42:39 -0400
+Message-ID: <1465716910.25087.88.camel@perches.com>
+Subject: Re: [very-RFC 5/8] Add TSN machinery to drive the traffic from a
+ shim over the network
+From: Joe Perches <joe@perches.com>
+To: Henrik Austad <henrik@austad.us>, linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
+	linux-netdev@vger.kernel.org, henrk@austad.us,
+	Henrik Austad <haustad@cisco.com>,
+	"David S. Miller" <davem@davemloft.net>
+Date: Sun, 12 Jun 2016 00:35:10 -0700
+In-Reply-To: <1465683741-20390-6-git-send-email-henrik@austad.us>
+References: <1465683741-20390-1-git-send-email-henrik@austad.us>
+	 <1465683741-20390-6-git-send-email-henrik@austad.us>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Updated these patches.
+On Sun, 2016-06-12 at 00:22 +0200, Henrik Austad wrote:
+> From: Henrik Austad <haustad@cisco.com>
+> 
+> In short summary:
+> 
+> * tsn_core.c is the main driver of tsn, all new links go through
+>   here and all data to/form the shims are handled here
+>   core also manages the shim-interface.
+[]
+> diff --git a/net/tsn/tsn_configfs.c b/net/tsn/tsn_configfs.c
+[]
+> +static inline struct tsn_link *to_tsn_link(struct config_item *item)
+> +{
+> +	/* this line causes checkpatch to WARN. making checkpatch happy,
+> +	 * makes code messy..
+> +	 */
+> +	return item ? container_of(to_config_group(item), struct tsn_link, group) : NULL;
+> +}
 
-Ulrich, sorry, the compile error was my fault: I added these patches in the
-wrong order.
+How about
 
-Regards,
-
-	Hans
-
-The following changes since commit 904aef0f9f6deff94223c0ce93eb598c47dd3aad:
-
-  [media] v4l2-ctrl.h: fix comments (2016-06-28 08:07:04 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.8c
-
-for you to fetch changes up to e86f5324263ff8a3f1a49dbada27f076c4327005:
-
-  media: rcar-vin: add DV timings support (2016-06-28 13:50:35 +0200)
-
-----------------------------------------------------------------
-Ulrich Hecht (3):
-      media: rcar-vin: pad-aware driver initialisation
-      media: rcar_vin: Use correct pad number in try_fmt
-      media: rcar-vin: add DV timings support
-
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 112 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---
- drivers/media/platform/rcar-vin/rcar-vin.h  |   2 ++
- 2 files changed, 111 insertions(+), 3 deletions(-)
+static inline struct tsn_link *to_tsn_link(struct config_item *item)
+{
+	if (!item)
+		return NULL;
+	return container_of(to_config_group(item), struct tsn_link, group);
+}
