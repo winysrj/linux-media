@@ -1,249 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43859 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755741AbcFHX62 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2016 19:58:28 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 4/5] v4l: vsp1: lut: Expose configuration through a control
-Date: Thu,  9 Jun 2016 02:58:15 +0300
-Message-Id: <1465430296-22644-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1465430296-22644-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1465430296-22644-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33006 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932525AbcFLLXB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jun 2016 07:23:01 -0400
+Date: Sun, 12 Jun 2016 14:22:53 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	pali.rohar@gmail.com, sre@kernel.org,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH] userspace API definitions for auto-focus coil
+Message-ID: <20160612112253.GD26360@valkosipuli.retiisi.org.uk>
+References: <20160531213437.GA28397@amd>
+ <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
+ <20160601220840.GA21946@amd>
+ <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
+ <20160602193027.GB7984@amd>
+ <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
+ <20160605190716.GA11321@amd>
+ <575512E5.5030000@gmail.com>
+ <20160611220654.GC26360@valkosipuli.retiisi.org.uk>
+ <20160612084811.GA27446@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160612084811.GA27446@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the custom ioctl with a V4L2 control in order to standardize the
-API.
+Hi Pavel,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_lut.c | 74 ++++++++++++++++++++++------------
- drivers/media/platform/vsp1/vsp1_lut.h |  6 +--
- include/uapi/linux/vsp1.h              | 34 ----------------
- 3 files changed, 52 insertions(+), 62 deletions(-)
- delete mode 100644 include/uapi/linux/vsp1.h
+On Sun, Jun 12, 2016 at 10:48:11AM +0200, Pavel Machek wrote:
+> Hi!
+> 
+> > > >Add userspace API definitions.
+> > > >
+> > > >Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > > >
+> > > >diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> > > >index b6a357a..23011cc 100644
+> > > >--- a/include/uapi/linux/v4l2-controls.h
+> > > >+++ b/include/uapi/linux/v4l2-controls.h
+> > > >@@ -974,4 +975,9 @@ enum v4l2_detect_md_mode {
+> > > >  #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
+> > > >  #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
+> > > >
+> > > >+/* Control IDs specific to the AD5820 driver as defined by V4L2 */
+> > > >+#define V4L2_CID_FOCUS_AD5820_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x10af)
+> > 
+> > Please check V4L2_CID_USER_*_BASE. That's how custom controls are handled
+> > nowadays.
+> 
+> So something like this?
+> 
+> Thanks,
+> 									Pavel
+> 
+> diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
+> index 2efa5dc1..b04b471 100644
+> --- a/drivers/media/i2c/ad5820.c
+> +++ b/drivers/media/i2c/ad5820.c
+> @@ -40,6 +40,11 @@
+>  #define AD5820_RAMP_MODE_LINEAR		(0 << 3)
+>  #define AD5820_RAMP_MODE_64_16		(1 << 3)
+>  
+> +/* Control IDs specific to the AD5820 driver as defined by V4L2 */
+> +#define V4L2_CID_FOCUS_AD5820_RAMP_TIME		(V4L2_CID_USER_AD5820_BASE+0)
+> +#define V4L2_CID_FOCUS_AD5820_RAMP_MODE		(V4L2_CID_FOCUS_AD5820_BASE+1)
+> +
+> +
 
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index 9a2c55b3570a..4c2d1e3ddaf0 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -13,7 +13,6 @@
- 
- #include <linux/device.h>
- #include <linux/gfp.h>
--#include <linux/vsp1.h>
- 
- #include <media/v4l2-subdev.h>
- 
-@@ -35,43 +34,60 @@ static inline void vsp1_lut_write(struct vsp1_lut *lut, struct vsp1_dl_list *dl,
- }
- 
- /* -----------------------------------------------------------------------------
-- * V4L2 Subdevice Core Operations
-+ * Controls
-  */
- 
--static int lut_set_table(struct vsp1_lut *lut, struct vsp1_lut_config *config)
-+#define V4L2_CID_VSP1_LUT_TABLE			(V4L2_CID_USER_BASE + 1)
-+
-+static int lut_set_table(struct vsp1_lut *lut, struct v4l2_ctrl *ctrl)
- {
- 	struct vsp1_dl_body *dlb;
- 	unsigned int i;
- 
--	dlb = vsp1_dl_fragment_alloc(lut->entity.vsp1, ARRAY_SIZE(config->lut));
-+	dlb = vsp1_dl_fragment_alloc(lut->entity.vsp1, 256);
- 	if (!dlb)
- 		return -ENOMEM;
- 
--	for (i = 0; i < ARRAY_SIZE(config->lut); ++i)
-+	for (i = 0; i < 256; ++i)
- 		vsp1_dl_fragment_write(dlb, VI6_LUT_TABLE + 4 * i,
--				       config->lut[i]);
-+				       ctrl->p_new.p_u32[i]);
- 
--	mutex_lock(&lut->lock);
- 	swap(lut->lut, dlb);
--	mutex_unlock(&lut->lock);
- 
- 	vsp1_dl_fragment_free(dlb);
- 	return 0;
- }
- 
--static long lut_ioctl(struct v4l2_subdev *subdev, unsigned int cmd, void *arg)
-+static int lut_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct vsp1_lut *lut = to_lut(subdev);
--
--	switch (cmd) {
--	case VIDIOC_VSP1_LUT_CONFIG:
--		return lut_set_table(lut, arg);
-+	struct vsp1_lut *lut =
-+		container_of(ctrl->handler, struct vsp1_lut, ctrls);
- 
--	default:
--		return -ENOIOCTLCMD;
-+	switch (ctrl->id) {
-+	case V4L2_CID_VSP1_LUT_TABLE:
-+		lut_set_table(lut, ctrl);
-+		break;
- 	}
-+
-+	return 0;
- }
- 
-+static const struct v4l2_ctrl_ops lut_ctrl_ops = {
-+	.s_ctrl = lut_s_ctrl,
-+};
-+
-+static const struct v4l2_ctrl_config lut_table_control = {
-+	.ops = &lut_ctrl_ops,
-+	.id = V4L2_CID_VSP1_LUT_TABLE,
-+	.name = "Look-Up Table",
-+	.type = V4L2_CTRL_TYPE_U32,
-+	.min = 0x00000000,
-+	.max = 0x00ffffff,
-+	.step = 1,
-+	.def = 0,
-+	.dims = { 256},
-+};
-+
- /* -----------------------------------------------------------------------------
-  * V4L2 Subdevice Pad Operations
-  */
-@@ -147,10 +163,6 @@ static int lut_set_format(struct v4l2_subdev *subdev,
-  * V4L2 Subdevice Operations
-  */
- 
--static struct v4l2_subdev_core_ops lut_core_ops = {
--	.ioctl = lut_ioctl,
--};
--
- static struct v4l2_subdev_pad_ops lut_pad_ops = {
- 	.init_cfg = vsp1_entity_init_cfg,
- 	.enum_mbus_code = lut_enum_mbus_code,
-@@ -160,7 +172,6 @@ static struct v4l2_subdev_pad_ops lut_pad_ops = {
- };
- 
- static struct v4l2_subdev_ops lut_ops = {
--	.core	= &lut_core_ops,
- 	.pad    = &lut_pad_ops,
- };
- 
-@@ -176,12 +187,14 @@ static void lut_configure(struct vsp1_entity *entity,
- 
- 	vsp1_lut_write(lut, dl, VI6_LUT_CTRL, VI6_LUT_CTRL_EN);
- 
--	mutex_lock(&lut->lock);
-+	mutex_lock(lut->ctrls.lock);
-+
- 	if (lut->lut) {
- 		vsp1_dl_list_add_fragment(dl, lut->lut);
- 		lut->lut = NULL;
- 	}
--	mutex_unlock(&lut->lock);
-+
-+	mutex_unlock(lut->ctrls.lock);
- }
- 
- static const struct vsp1_entity_operations lut_entity_ops = {
-@@ -201,8 +214,6 @@ struct vsp1_lut *vsp1_lut_create(struct vsp1_device *vsp1)
- 	if (lut == NULL)
- 		return ERR_PTR(-ENOMEM);
- 
--	mutex_init(&lut->lock);
--
- 	lut->entity.ops = &lut_entity_ops;
- 	lut->entity.type = VSP1_ENTITY_LUT;
- 
-@@ -211,5 +222,18 @@ struct vsp1_lut *vsp1_lut_create(struct vsp1_device *vsp1)
- 	if (ret < 0)
- 		return ERR_PTR(ret);
- 
-+	/* Initialize the control handler. */
-+	v4l2_ctrl_handler_init(&lut->ctrls, 1);
-+	v4l2_ctrl_new_custom(&lut->ctrls, &lut_table_control, NULL);
-+
-+	lut->entity.subdev.ctrl_handler = &lut->ctrls;
-+
-+	if (lut->ctrls.error) {
-+		dev_err(vsp1->dev, "lut: failed to initialize controls\n");
-+		ret = lut->ctrls.error;
-+		vsp1_entity_destroy(&lut->entity);
-+		return ERR_PTR(ret);
-+	}
-+
- 	return lut;
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.h b/drivers/media/platform/vsp1/vsp1_lut.h
-index cef874f22b6a..021898fc0ce5 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.h
-+++ b/drivers/media/platform/vsp1/vsp1_lut.h
-@@ -13,9 +13,8 @@
- #ifndef __VSP1_LUT_H__
- #define __VSP1_LUT_H__
- 
--#include <linux/mutex.h>
--
- #include <media/media-entity.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-subdev.h>
- 
- #include "vsp1_entity.h"
-@@ -28,7 +27,8 @@ struct vsp1_device;
- struct vsp1_lut {
- 	struct vsp1_entity entity;
- 
--	struct mutex lock;
-+	struct v4l2_ctrl_handler ctrls;
-+
- 	struct vsp1_dl_body *lut;
- };
- 
-diff --git a/include/uapi/linux/vsp1.h b/include/uapi/linux/vsp1.h
-deleted file mode 100644
-index 9a823696d816..000000000000
---- a/include/uapi/linux/vsp1.h
-+++ /dev/null
-@@ -1,34 +0,0 @@
--/*
-- * vsp1.h
-- *
-- * Renesas R-Car VSP1 - User-space API
-- *
-- * Copyright (C) 2013 Renesas Corporation
-- *
-- * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#ifndef __VSP1_USER_H__
--#define __VSP1_USER_H__
--
--#include <linux/types.h>
--#include <linux/videodev2.h>
--
--/*
-- * Private IOCTLs
-- *
-- * VIDIOC_VSP1_LUT_CONFIG - Configure the lookup table
-- */
--
--#define VIDIOC_VSP1_LUT_CONFIG \
--	_IOWR('V', BASE_VIDIOC_PRIVATE + 1, struct vsp1_lut_config)
--
--struct vsp1_lut_config {
--	__u32 lut[256];
--};
--
--#endif	/* __VSP1_USER_H__ */
+We could still define these in a header file that can be included by the
+user space. Please use V4L2_CID_AD5820 prefix.
+
+A separate header file should be used, e.g. include/uapi/linux/ad5820.h.
+
+>  #define CODE_TO_RAMP_US(s)	((s) == 0 ? 0 : (1 << ((s) - 1)) * 50)
+>  #define RAMP_US_TO_CODE(c)	fls(((c) + ((c)>>1)) / 50)
+>  
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 23011cc..4b24546 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -181,6 +181,10 @@ enum v4l2_colorfx {
+>   * We reserve 16 controls for this driver. */
+>  #define V4L2_CID_USER_TC358743_BASE		(V4L2_CID_USER_BASE + 0x1080)
+>  
+> +/* The base for the ad5820 driver controls.
+> + * We reserve 16 controls for this driver. */
+> +#define V4L2_CID_USER_AD5820_BASE		(V4L2_CID_USER_BASE + 0x1090)
+> +
+>  /* MPEG-class control IDs */
+>  /* The MPEG controls are applicable to all codec controls
+>   * and the 'MPEG' part of the define is historical */
+> @@ -986,9 +990,4 @@ enum v4l2_detect_md_mode {
+>  #define V4L2_CID_MODE_SENSITIVITY		(V4L2_CID_MODE_CLASS_BASE+6)
+>  #define V4L2_CID_MODE_OPSYSCLOCK		(V4L2_CID_MODE_CLASS_BASE+7)
+>  
+> -/* Control IDs specific to the AD5820 driver as defined by V4L2 */
+> -#define V4L2_CID_FOCUS_AD5820_BASE 		(V4L2_CTRL_CLASS_CAMERA | 0x10af)
+> -#define V4L2_CID_FOCUS_AD5820_RAMP_TIME		(V4L2_CID_FOCUS_AD5820_BASE+0)
+> -#define V4L2_CID_FOCUS_AD5820_RAMP_MODE		(V4L2_CID_FOCUS_AD5820_BASE+1)
+> -
+>  #endif
+> 
+> 
+
 -- 
-Regards,
+Kind regards,
 
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
