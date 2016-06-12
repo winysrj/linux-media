@@ -1,140 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36629 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751858AbcF0NcW (ORCPT
+Received: from smtp-proxy002.phy.lolipop.jp ([157.7.104.43]:35326 "EHLO
+	smtp-proxy002.phy.lolipop.jp" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750708AbcFLEaa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 09:32:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv5 06/13] staging/media: convert drivers to use the new vb2_queue dev field
-Date: Mon, 27 Jun 2016 15:31:57 +0200
-Message-Id: <1467034324-37626-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
-References: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
+	Sun, 12 Jun 2016 00:30:30 -0400
+Subject: Re: [very-RFC 0/8] TSN driver for the kernel
+To: Henrik Austad <henrik@austad.us>, alsa-devel@alsa-project.org
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
+ <575CD93C.50006@sakamocchi.jp>
+Cc: netdev@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@vger.kernel.org, henrk@austad.us
+From: Takashi Sakamoto <o-takashi@sakamocchi.jp>
+Message-ID: <575CE560.9090608@sakamocchi.jp>
+Date: Sun, 12 Jun 2016 13:30:24 +0900
+MIME-Version: 1.0
+In-Reply-To: <575CD93C.50006@sakamocchi.jp>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Jun 12 2016 12:38, Takashi Sakamoto wrote:
+> In your patcset, there's no actual codes about how to handle any
+> interrupt contexts (software / hardware), how to handle packet payload,
+> and so on. Especially, for recent sound subsystem, the timing of
+> generating interrupts and which context does what works are important to
+> reduce playback/capture latency and power consumption.
+> 
+> Of source, your intention of this patchset is to show your early concept
+> of TSN feature. Nevertheless, both of explaination and codes are
+> important to the other developers who have little knowledges about TSN,
+> AVB and AES-64 such as me.
 
-Stop using alloc_ctx and just fill in the device pointer.
+Oops. Your 5th patch was skipped by alsa-project.org. I guess that size
+of the patch is too large to the list service. I can see it:
+http://marc.info/?l=linux-netdev&m=146568672728661&w=2
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 10 +---------
- drivers/staging/media/davinci_vpfe/vpfe_video.h |  2 --
- drivers/staging/media/omap4iss/iss_video.c      | 10 +---------
- drivers/staging/media/omap4iss/iss_video.h      |  1 -
- 4 files changed, 2 insertions(+), 21 deletions(-)
+As long as seeing the patch, packets are queueing in hrtimer callbacks
+every 1 seconds.
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index ea3ddec..77e66e7 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -542,7 +542,6 @@ static int vpfe_release(struct file *file)
- 		video->io_usrs = 0;
- 		/* Free buffers allocated */
- 		vb2_queue_release(&video->buffer_queue);
--		vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
- 	}
- 	/* Decrement device users counter */
- 	video->usrs--;
-@@ -1115,7 +1114,6 @@ vpfe_buffer_queue_setup(struct vb2_queue *vq,
- 
- 	*nplanes = 1;
- 	sizes[0] = size;
--	alloc_ctxs[0] = video->alloc_ctx;
- 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
- 		 "nbuffers=%d, size=%lu\n", *nbuffers, size);
- 	return 0;
-@@ -1350,12 +1348,6 @@ static int vpfe_reqbufs(struct file *file, void *priv,
- 	video->memory = req_buf->memory;
- 
- 	/* Initialize videobuf2 queue as per the buffer type */
--	video->alloc_ctx = vb2_dma_contig_init_ctx(vpfe_dev->pdev);
--	if (IS_ERR(video->alloc_ctx)) {
--		v4l2_err(&vpfe_dev->v4l2_dev, "Failed to get the context\n");
--		return PTR_ERR(video->alloc_ctx);
--	}
--
- 	q = &video->buffer_queue;
- 	q->type = req_buf->type;
- 	q->io_modes = VB2_MMAP | VB2_USERPTR;
-@@ -1365,11 +1357,11 @@ static int vpfe_reqbufs(struct file *file, void *priv,
- 	q->mem_ops = &vb2_dma_contig_memops;
- 	q->buf_struct_size = sizeof(struct vpfe_cap_buffer);
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	q->dev = vpfe_dev->pdev;
- 
- 	ret = vb2_queue_init(q);
- 	if (ret) {
- 		v4l2_err(&vpfe_dev->v4l2_dev, "vb2_queue_init() failed\n");
--		vb2_dma_contig_cleanup_ctx(vpfe_dev->pdev);
- 		return ret;
- 	}
- 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-index 653334d..aaec440 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.h
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-@@ -123,8 +123,6 @@ struct vpfe_video_device {
- 	/* Used to store pixel format */
- 	struct v4l2_format			fmt;
- 	struct vb2_queue			buffer_queue;
--	/* allocator-specific contexts for each plane */
--	struct vb2_alloc_ctx *alloc_ctx;
- 	/* Queue of filled frames */
- 	struct list_head			dma_queue;
- 	spinlock_t				irqlock;
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index cf8da23..3c077e3 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -310,8 +310,6 @@ static int iss_video_queue_setup(struct vb2_queue *vq,
- 	if (sizes[0] == 0)
- 		return -EINVAL;
- 
--	alloc_ctxs[0] = video->alloc_ctx;
--
- 	*count = min(*count, video->capture_mem / PAGE_ALIGN(sizes[0]));
- 
- 	return 0;
-@@ -1017,13 +1015,6 @@ static int iss_video_open(struct file *file)
- 		goto done;
- 	}
- 
--	video->alloc_ctx = vb2_dma_contig_init_ctx(video->iss->dev);
--	if (IS_ERR(video->alloc_ctx)) {
--		ret = PTR_ERR(video->alloc_ctx);
--		omap4iss_put(video->iss);
--		goto done;
--	}
--
- 	q = &handle->queue;
- 
- 	q->type = video->type;
-@@ -1033,6 +1024,7 @@ static int iss_video_open(struct file *file)
- 	q->mem_ops = &vb2_dma_contig_memops;
- 	q->buf_struct_size = sizeof(struct iss_buffer);
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	q->dev = video->iss->dev;
- 
- 	ret = vb2_queue_init(q);
- 	if (ret) {
-diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
-index c8bd295..d7e05d0 100644
---- a/drivers/staging/media/omap4iss/iss_video.h
-+++ b/drivers/staging/media/omap4iss/iss_video.h
-@@ -170,7 +170,6 @@ struct iss_video {
- 	spinlock_t qlock;		/* protects dmaqueue and error */
- 	struct list_head dmaqueue;
- 	enum iss_video_dmaqueue_flags dmaqueue_flags;
--	struct vb2_alloc_ctx *alloc_ctx;
- 
- 	const struct iss_video_operations *ops;
- };
--- 
-2.8.1
+(This is a high level discussion and it's OK to ignore it for the
+moment. When writing packet-oriented drivers for sound subsystem, you
+need to pay special attention to accuracy of the number of PCM frames
+transferred currently, and granularity of the number of PCM frames
+transferred by one operation. In this case, snd_avb_hw,
+snd_avb_pcm_pointer(), tsn_buffer_write_net() and tsn_buffer_read_net()
+are involved in this discussion. You can see ALSA developers' struggle
+in USB audio device class drivers and (of cource) IEC 61883-1/6 drivers.)
 
+
+Regards
+
+Takashi Sakamoto
