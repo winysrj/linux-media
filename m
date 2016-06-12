@@ -1,55 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.15]:50137 "EHLO imap.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750847AbcFXEW4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2016 00:22:56 -0400
-Received: from mail-vk0-f51.google.com (mail-vk0-f51.google.com [209.85.213.51])
-	by imap.netup.ru (Postfix) with ESMTPA id 9F26B7CE837
-	for <linux-media@vger.kernel.org>; Fri, 24 Jun 2016 07:22:52 +0300 (MSK)
-Received: by mail-vk0-f51.google.com with SMTP id c2so104885653vkg.1
-        for <linux-media@vger.kernel.org>; Thu, 23 Jun 2016 21:22:52 -0700 (PDT)
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:34789 "EHLO
+	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751381AbcFLIb1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jun 2016 04:31:27 -0400
+Received: by mail-lf0-f68.google.com with SMTP id k192so8971628lfb.1
+        for <linux-media@vger.kernel.org>; Sun, 12 Jun 2016 01:31:26 -0700 (PDT)
+Date: Sun, 12 Jun 2016 10:31:22 +0200
+From: Henrik Austad <henrik@austad.us>
+To: Takashi Sakamoto <o-takashi@sakamocchi.jp>
+Cc: alsa-devel@alsa-project.org, netdev@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
+	henrk@austad.us
+Subject: Re: [very-RFC 0/8] TSN driver for the kernel
+Message-ID: <20160612083122.GB32724@icarus.home.austad.us>
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
+ <575CD93C.50006@sakamocchi.jp>
+ <575CE560.9090608@sakamocchi.jp>
 MIME-Version: 1.0
-From: Abylay Ospan <aospan@netup.ru>
-Date: Fri, 24 Jun 2016 00:22:32 -0400
-Message-ID: <CAK3bHNVSGkHjvVYYdz+0B5Ro_gJi-M2p6hVLee=PUGrrimB7Ng@mail.gmail.com>
-Subject: Who wants 'Open Hardware' _truly_ universal USB DTV receiver ?
-To: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="aM3YZ0Iwxop3KEKx"
+Content-Disposition: inline
+In-Reply-To: <575CE560.9090608@sakamocchi.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Everybody,
 
-I'm developing truly universal USB DTV receiver with CI-slot. And I'v
-decided to make it Open Hardware, but I need your help :) Please,
-donate $1-20 or pre-order for $70 on my indiegogo campaign located
-here:
-https://igg.me/at/jokertv/x
+--aM3YZ0Iwxop3KEKx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'v decided to make following things:
+On Sun, Jun 12, 2016 at 01:30:24PM +0900, Takashi Sakamoto wrote:
+> On Jun 12 2016 12:38, Takashi Sakamoto wrote:
+> > In your patcset, there's no actual codes about how to handle any
+> > interrupt contexts (software / hardware), how to handle packet payload,
+> > and so on. Especially, for recent sound subsystem, the timing of
+> > generating interrupts and which context does what works are important to
+> > reduce playback/capture latency and power consumption.
+> >=20
+> > Of source, your intention of this patchset is to show your early concept
+> > of TSN feature. Nevertheless, both of explaination and codes are
+> > important to the other developers who have little knowledges about TSN,
+> > AVB and AES-64 such as me.
+>=20
+> Oops. Your 5th patch was skipped by alsa-project.org. I guess that size
+> of the patch is too large to the list service. I can see it:
+> http://marc.info/?l=3Dlinux-netdev&m=3D146568672728661&w=3D2
+>=20
+> As long as seeing the patch, packets are queueing in hrtimer callbacks
+> every 1 seconds.
 
-* If this campaign will be funded for 100% ($50k) I will make this
-project Open Hardware ! All schematic and PCB will be available on
-http://jokersys.com website.
+Actually, the hrtimer fires every 1ms, and that part is something I have to=
+=20
+do something about, also because it sends of the same number of frames=20
+every time, regardless of how accurate the internal timer is to the rest of=
+=20
+the network (there's no backpressure from the networking layer).
 
-* If this campaign will be funded for 200% ($100k) I will donate 10
-pcs. of Joker TV gadget for educational organizations (just drop me
-email with brief description of your educational program).
+> (This is a high level discussion and it's OK to ignore it for the
+> moment. When writing packet-oriented drivers for sound subsystem, you
+> need to pay special attention to accuracy of the number of PCM frames
+> transferred currently, and granularity of the number of PCM frames
+> transferred by one operation. In this case, snd_avb_hw,
+> snd_avb_pcm_pointer(), tsn_buffer_write_net() and tsn_buffer_read_net()
+> are involved in this discussion. You can see ALSA developers' struggle
+> in USB audio device class drivers and (of cource) IEC 61883-1/6 drivers.)
 
-* If this campaign will be funded for 300% ($150k) I will prepare OSx
-drivers for MacBooks. Open source, of course :) Linux/Windows drivers
-will be available on open-source by default.
+Ah, good point. Any particular parts of the USB-subsystem I should start=20
+looking at? Knowing where to start looking is a tremendous help
 
-Let's make best DTV receiver together ! Please share this info with
-friends or on open-source/open-hardware sites/forums, etc !
-Big thanks for all !
+Thanks for the feedback!
 
--- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+--=20
+Henrik Austad
 
-P.S.
-Sorry, if this message looks like advertisement or commercial. Hope
-for your understanding !
+--aM3YZ0Iwxop3KEKx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlddHdoACgkQ6k5VT6v45llG3wCgqAG/ur2mhrFeG832BSvdd2Gq
+K4MAnjoJZoCKvUGX8+im5CilGy6kQ8of
+=UjHz
+-----END PGP SIGNATURE-----
+
+--aM3YZ0Iwxop3KEKx--
