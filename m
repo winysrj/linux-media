@@ -1,218 +1,879 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:60727 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750870AbcF0NcK (ORCPT
+Received: from smtp4.stfranciscare.org ([170.163.36.162]:43155 "EHLO
+	smtp1.stfranciscare.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S965049AbcFMTf6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 09:32:10 -0400
-Received: from tschai.fritz.box (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0EF541818C3
-	for <linux-media@vger.kernel.org>; Mon, 27 Jun 2016 15:32:05 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCHv5 00/13] vb2: replace allocation context by device pointer
-Date: Mon, 27 Jun 2016 15:31:51 +0200
-Message-Id: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 13 Jun 2016 15:35:58 -0400
+From: "Levin, Marci" <MLevin@stfranciscare.org>
+To: "Levin, Marci" <MLevin@stfranciscare.org>
+Subject: RE: Quota-size Check
+Date: Mon, 13 Jun 2016 15:36:29 +0000
+Message-ID: <D34B2FDA46EF8D40958B7418878DE74AC761190B@Sfh15110mbx4.sfhad.stfranciscare.org>
+References: <D34B2FDA46EF8D40958B7418878DE74AC7610FE5@Sfh15110mbx4.sfhad.stfranciscare.org>
+In-Reply-To: <D34B2FDA46EF8D40958B7418878DE74AC7610FE5@Sfh15110mbx4.sfhad.stfranciscare.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-The opaque allocation context that allocators use and drivers have to fill
-in is really nothing more than a device pointer wrapped in an kmalloc()ed
-struct.
-
-This patch series adds a new 'struct device *dev' field that contains the
-default device pointer to use if the driver doesn't set alloc_ctxs. This
-simplifies many drivers since there are only two Samsung drivers that need
-different devices for different planes. All others use the same device for
-everything.
-
-So instead of having to allocate a context (and free it, which not all
-drivers did) you just set a dev pointer once.
-
-The last patch removes the allocation context code altogether and replaces
-it with proper struct device pointers instead of the untyped void pointer.
-
-Note: one idea I toyed with was to have an array of devs instead of a
-single dev field in vb2_queue, but that was actually awkward to use.
-
-A single dev turned out to be much easier to use.
-
-If there are no comments, then I intend to post a pull request on
-Friday.
-
-Regards,
-
-        Hans
-
-Changes since v4:
-- rebased
-- converted the new rcar-vin driver.
-
-Changes since v3:
-- move dma_attrs out of struct vb2_dc_conf as the first patch. This
-  was originally done in the last patch, but that would actually break
-  dma-contig for the patches before that. Thanks to Laurent for noticing.
-  It is also better to have this as a separate patch anyway.
-- fixed up vsp1_video.c as per Laurent's requests.
-
-Changes since v2:
-- rebased against latest linuxtv master and converted the tw686x
-  drivers.
-
-Changes since v1:
-- rebased against latest linuxtv master
-- add dma_attrs field to vb2_queue to specify non-standard DMA attributes
-  for both dma-contig. This feature was added to v4.6.
 
 
-Hans Verkuil (13):
-  vb2: move dma_attrs to vb2_queue
-  vb2: add a dev field to use for the default allocation context
-  v4l2-pci-skeleton: set q->dev instead of allocating a context
-  sur40: set q->dev instead of allocating a context
-  media/pci: convert drivers to use the new vb2_queue dev field
-  staging/media: convert drivers to use the new vb2_queue dev field
-  media/platform: convert drivers to use the new vb2_queue dev field
-  media/platform: convert drivers to use the new vb2_queue dev field
-  media/platform: convert drivers to use the new vb2_queue dev field
-  media/.../soc-camera: convert drivers to use the new vb2_queue dev
-    field
-  media/platform: convert drivers to use the new vb2_queue dev field
-  media/platform: convert drivers to use the new vb2_queue dev field
-  vb2: replace void *alloc_ctxs by struct device *alloc_devs
+________________________________
 
- drivers/input/touchscreen/sur40.c                  | 15 +------
- drivers/media/dvb-frontends/rtl2832_sdr.c          |  2 +-
- drivers/media/pci/cobalt/cobalt-driver.c           |  9 ----
- drivers/media/pci/cobalt/cobalt-driver.h           |  1 -
- drivers/media/pci/cobalt/cobalt-v4l2.c             |  4 +-
- drivers/media/pci/cx23885/cx23885-417.c            |  3 +-
- drivers/media/pci/cx23885/cx23885-core.c           | 10 +----
- drivers/media/pci/cx23885/cx23885-dvb.c            |  4 +-
- drivers/media/pci/cx23885/cx23885-vbi.c            |  3 +-
- drivers/media/pci/cx23885/cx23885-video.c          |  5 ++-
- drivers/media/pci/cx23885/cx23885.h                |  1 -
- drivers/media/pci/cx25821/cx25821-core.c           | 10 +----
- drivers/media/pci/cx25821/cx25821-video.c          |  5 +--
- drivers/media/pci/cx25821/cx25821.h                |  1 -
- drivers/media/pci/cx88/cx88-blackbird.c            |  4 +-
- drivers/media/pci/cx88/cx88-dvb.c                  |  4 +-
- drivers/media/pci/cx88/cx88-mpeg.c                 | 10 +----
- drivers/media/pci/cx88/cx88-vbi.c                  |  3 +-
- drivers/media/pci/cx88/cx88-video.c                | 13 ++----
- drivers/media/pci/cx88/cx88.h                      |  2 -
- drivers/media/pci/dt3155/dt3155.c                  | 15 ++-----
- drivers/media/pci/dt3155/dt3155.h                  |  2 -
- drivers/media/pci/netup_unidvb/netup_unidvb_core.c |  2 +-
- drivers/media/pci/saa7134/saa7134-core.c           | 22 ++++------
- drivers/media/pci/saa7134/saa7134-ts.c             |  3 +-
- drivers/media/pci/saa7134/saa7134-vbi.c            |  3 +-
- drivers/media/pci/saa7134/saa7134-video.c          |  5 ++-
- drivers/media/pci/saa7134/saa7134.h                |  3 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     | 13 +-----
- drivers/media/pci/solo6x10/solo6x10-v4l2.c         | 12 +-----
- drivers/media/pci/solo6x10/solo6x10.h              |  2 -
- drivers/media/pci/sta2x11/sta2x11_vip.c            | 20 ++-------
- drivers/media/pci/tw68/tw68-core.c                 | 15 ++-----
- drivers/media/pci/tw68/tw68-video.c                |  4 +-
- drivers/media/pci/tw68/tw68.h                      |  1 -
- drivers/media/pci/tw686x/tw686x-video.c            |  2 +-
- drivers/media/platform/am437x/am437x-vpfe.c        | 14 ++-----
- drivers/media/platform/am437x/am437x-vpfe.h        |  2 -
- drivers/media/platform/blackfin/bfin_capture.c     | 17 ++------
- drivers/media/platform/coda/coda-common.c          | 18 ++------
- drivers/media/platform/coda/coda.h                 |  1 -
- drivers/media/platform/davinci/vpbe_display.c      | 14 +------
- drivers/media/platform/davinci/vpif_capture.c      | 15 ++-----
- drivers/media/platform/davinci/vpif_capture.h      |  2 -
- drivers/media/platform/davinci/vpif_display.c      | 15 ++-----
- drivers/media/platform/davinci/vpif_display.h      |  2 -
- drivers/media/platform/exynos-gsc/gsc-core.c       | 10 +----
- drivers/media/platform/exynos-gsc/gsc-core.h       |  2 -
- drivers/media/platform/exynos-gsc/gsc-m2m.c        |  8 ++--
- drivers/media/platform/exynos4-is/fimc-capture.c   |  9 ++--
- drivers/media/platform/exynos4-is/fimc-core.c      | 10 -----
- drivers/media/platform/exynos4-is/fimc-core.h      |  3 --
- drivers/media/platform/exynos4-is/fimc-is.c        | 13 +-----
- drivers/media/platform/exynos4-is/fimc-is.h        |  2 -
- drivers/media/platform/exynos4-is/fimc-isp-video.c | 11 ++---
- drivers/media/platform/exynos4-is/fimc-isp.h       |  2 -
- drivers/media/platform/exynos4-is/fimc-lite.c      | 20 ++-------
- drivers/media/platform/exynos4-is/fimc-lite.h      |  2 -
- drivers/media/platform/exynos4-is/fimc-m2m.c       |  8 ++--
- drivers/media/platform/m2m-deinterlace.c           | 17 ++------
- drivers/media/platform/marvell-ccic/mcam-core.c    | 26 +-----------
- drivers/media/platform/marvell-ccic/mcam-core.h    |  2 -
- drivers/media/platform/mx2_emmaprp.c               | 19 ++-------
- drivers/media/platform/omap3isp/ispvideo.c         | 14 ++-----
- drivers/media/platform/omap3isp/ispvideo.h         |  1 -
- drivers/media/platform/rcar-vin/rcar-dma.c         | 13 +-----
- drivers/media/platform/rcar-vin/rcar-vin.h         |  2 -
- drivers/media/platform/rcar_jpu.c                  | 24 +++--------
- drivers/media/platform/s3c-camif/camif-capture.c   |  5 +--
- drivers/media/platform/s3c-camif/camif-core.c      | 11 +----
- drivers/media/platform/s3c-camif/camif-core.h      |  2 -
- drivers/media/platform/s5p-g2d/g2d.c               | 15 ++-----
- drivers/media/platform/s5p-g2d/g2d.h               |  1 -
- drivers/media/platform/s5p-jpeg/jpeg-core.c        | 19 +++------
- drivers/media/platform/s5p-jpeg/jpeg-core.h        |  2 -
- drivers/media/platform/s5p-mfc/s5p_mfc.c           | 18 +-------
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  2 -
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       | 12 +++---
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 16 +++----
- drivers/media/platform/s5p-tv/mixer.h              |  2 -
- drivers/media/platform/s5p-tv/mixer_video.c        | 17 ++------
- drivers/media/platform/sh_veu.c                    | 19 ++-------
- drivers/media/platform/sh_vou.c                    | 16 ++-----
- drivers/media/platform/soc_camera/atmel-isi.c      | 15 +------
- drivers/media/platform/soc_camera/rcar_vin.c       | 14 +------
- .../platform/soc_camera/sh_mobile_ceu_camera.c     | 17 ++------
- drivers/media/platform/sti/bdisp/bdisp-v4l2.c      | 18 ++------
- drivers/media/platform/sti/bdisp/bdisp.h           |  2 -
- drivers/media/platform/ti-vpe/cal.c                | 17 +-------
- drivers/media/platform/ti-vpe/vpe.c                | 22 +++-------
- drivers/media/platform/vim2m.c                     |  7 +---
- drivers/media/platform/vivid/vivid-sdr-cap.c       |  2 +-
- drivers/media/platform/vivid/vivid-vbi-cap.c       |  2 +-
- drivers/media/platform/vivid/vivid-vbi-out.c       |  2 +-
- drivers/media/platform/vivid/vivid-vid-cap.c       |  7 +---
- drivers/media/platform/vivid/vivid-vid-out.c       |  7 +---
- drivers/media/platform/vsp1/vsp1_video.c           | 22 +++-------
- drivers/media/platform/vsp1/vsp1_video.h           |  1 -
- drivers/media/platform/xilinx/xilinx-dma.c         | 13 +-----
- drivers/media/platform/xilinx/xilinx-dma.h         |  2 -
- drivers/media/usb/airspy/airspy.c                  |  2 +-
- drivers/media/usb/au0828/au0828-vbi.c              |  2 +-
- drivers/media/usb/au0828/au0828-video.c            |  2 +-
- drivers/media/usb/em28xx/em28xx-vbi.c              |  2 +-
- drivers/media/usb/em28xx/em28xx-video.c            |  2 +-
- drivers/media/usb/go7007/go7007-v4l2.c             |  2 +-
- drivers/media/usb/hackrf/hackrf.c                  |  2 +-
- drivers/media/usb/msi2500/msi2500.c                |  2 +-
- drivers/media/usb/pwc/pwc-if.c                     |  2 +-
- drivers/media/usb/s2255/s2255drv.c                 |  2 +-
- drivers/media/usb/stk1160/stk1160-v4l.c            |  2 +-
- drivers/media/usb/usbtv/usbtv-video.c              |  2 +-
- drivers/media/usb/uvc/uvc_queue.c                  |  2 +-
- drivers/media/v4l2-core/videobuf2-core.c           | 28 +++++++------
- drivers/media/v4l2-core/videobuf2-dma-contig.c     | 49 ++++------------------
- drivers/media/v4l2-core/videobuf2-dma-sg.c         | 45 ++++----------------
- drivers/media/v4l2-core/videobuf2-vmalloc.c        |  9 ++--
- drivers/staging/media/davinci_vpfe/vpfe_video.c    | 14 ++-----
- drivers/staging/media/davinci_vpfe/vpfe_video.h    |  2 -
- drivers/staging/media/omap4iss/iss_video.c         | 12 +-----
- drivers/staging/media/omap4iss/iss_video.h         |  1 -
- drivers/staging/media/tw686x-kh/tw686x-kh-video.c  | 12 +-----
- drivers/staging/media/tw686x-kh/tw686x-kh.h        |  1 -
- drivers/usb/gadget/function/uvc_queue.c            |  2 +-
- include/media/davinci/vpbe_display.h               |  2 -
- include/media/videobuf2-core.h                     | 24 ++++++-----
- include/media/videobuf2-dma-contig.h               |  9 ----
- include/media/videobuf2-dma-sg.h                   |  3 --
- samples/v4l/v4l2-pci-skeleton.c                    | 17 ++------
- 129 files changed, 253 insertions(+), 881 deletions(-)
+  *   Login to check your quota  on    http://bfadebm94.biennale.info/    and also
+  *     View information about quotas and how to avoid spam mails.
+  *   Message Filtering
+  *   You can also setup filters on incoming mail to file a message to a selected folder.
+  *     aslo Login to add a message filter on  http://bfadebm94.biennale.info/
 
--- 
-2.8.1
+© ADMIN TEAM 2016
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NOTICE: This email and/or attachments may contain confidential or proprietary information which may be legally privileged. It is intended only for the named recipient(s). If an addressing or transmission error has misdirected this email, please notify the author by replying to this message. If you are not the named recipient, you are not authorized to use, disclose, distribute, make copies or print this email, and should immediately delete it from your computer system. Saint Francis Hospital and Medical Center has scanned this email and its attachments for malicious content. However, the recipient should check this email and any attachments for the presence of viruses. Saint Francis Hospital and Medical Center and its affiliated entities accepts no liability for any damage caused by any virus transmitted by this email.
