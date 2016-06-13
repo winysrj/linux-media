@@ -1,183 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:33444 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752330AbcFNWvI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 18:51:08 -0400
-Received: by mail-pf0-f195.google.com with SMTP id c74so306153pfb.0
-        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:08 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 05/38] gpu: ipu-v3: Add IDMA channel linking support
-Date: Tue, 14 Jun 2016 15:49:01 -0700
-Message-Id: <1465944574-15745-6-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from muru.com ([72.249.23.125]:56242 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964773AbcFMHLD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2016 03:11:03 -0400
+Date: Mon, 13 Jun 2016 00:10:57 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	thierry.reding@gmail.com, bcousson@baylibre.com,
+	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	sre@kernel.org, pali.rohar@gmail.com
+Subject: Re: [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime functions
+ when not needed.
+Message-ID: <20160613071057.GQ22406@atomide.com>
+References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160509193624.GH5995@atomide.com>
+ <5730F840.3050807@gmail.com>
+ <20160610102225.GS22406@atomide.com>
+ <575B2F48.4090707@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <575B2F48.4090707@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds functions to link and unlink IDMAC source channels to sink
-channels.
+* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160610 14:23]:
+> 
+> On 10.06.2016 13:22, Tony Lindgren wrote:
+> > 
+> > OK. And I just applied the related dts changes. Please repost the driver
+> > changes and DT binding doc with Rob's ack to the driver maintainers to
+> > apply.
+> > 
+> 
+> Already did, see https://lkml.org/lkml/2016/5/16/429
+> 
+> Shall I do anything else?
 
-So far the following links are supported:
+Probably good idea to repost just the driver changes to the
+subsystem maintainers. With v4.7 out any pre v4.7 patchsets
+easily get forgotten.
 
-IPUV3_CHANNEL_IC_PRP_ENC_MEM -> IPUV3_CHANNEL_MEM_ROT_ENC
-PUV3_CHANNEL_IC_PRP_VF_MEM   -> IPUV3_CHANNEL_MEM_ROT_VF
-IPUV3_CHANNEL_IC_PP_MEM      -> IPUV3_CHANNEL_MEM_ROT_PP
+Regards,
 
-More links can be added to the idmac_link_info[] array.
+Tony
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/gpu/ipu-v3/ipu-common.c | 112 ++++++++++++++++++++++++++++++++++++++++
- include/video/imx-ipu-v3.h      |   3 ++
- 2 files changed, 115 insertions(+)
-
-diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
-index 49af121..6d1676e 100644
---- a/drivers/gpu/ipu-v3/ipu-common.c
-+++ b/drivers/gpu/ipu-v3/ipu-common.c
-@@ -730,6 +730,118 @@ void ipu_set_ic_src_mux(struct ipu_soc *ipu, int csi_id, bool vdi)
- }
- EXPORT_SYMBOL_GPL(ipu_set_ic_src_mux);
- 
-+
-+/* IDMAC Channel Linking */
-+
-+struct idmac_link_reg_info {
-+	int chno;
-+	u32 reg;
-+	int shift;
-+	int bits;
-+	u32 sel;
-+};
-+
-+struct idmac_link_info {
-+	struct idmac_link_reg_info src;
-+	struct idmac_link_reg_info sink;
-+};
-+
-+static const struct idmac_link_info idmac_link_info[] = {
-+	{
-+		.src  = { 20, IPU_FS_PROC_FLOW1,  0, 4, 7 },
-+		.sink = { 45, IPU_FS_PROC_FLOW2,  0, 4, 1 },
-+	}, {
-+		.src =  { 21, IPU_FS_PROC_FLOW1,  8, 4, 8 },
-+		.sink = { 46, IPU_FS_PROC_FLOW2,  4, 4, 1 },
-+	}, {
-+		.src =  { 22, IPU_FS_PROC_FLOW1, 16, 4, 5 },
-+		.sink = { 47, IPU_FS_PROC_FLOW2, 12, 4, 3 },
-+	},
-+};
-+
-+static const struct idmac_link_info *find_idmac_link_info(
-+	struct ipuv3_channel *src, struct ipuv3_channel *sink)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(idmac_link_info); i++) {
-+		if (src->num == idmac_link_info[i].src.chno &&
-+		    sink->num == idmac_link_info[i].sink.chno)
-+			return &idmac_link_info[i];
-+	}
-+
-+	return NULL;
-+}
-+
-+/*
-+ * Links an IDMAC source channel to a sink channel.
-+ */
-+int ipu_idmac_link(struct ipuv3_channel *src, struct ipuv3_channel *sink)
-+{
-+	struct ipu_soc *ipu = src->ipu;
-+	const struct idmac_link_info *link;
-+	u32 src_reg, sink_reg, src_mask, sink_mask;
-+	unsigned long flags;
-+
-+	link = find_idmac_link_info(src, sink);
-+	if (!link)
-+		return -EINVAL;
-+
-+	src_mask = ((1 << link->src.bits) - 1) << link->src.shift;
-+	sink_mask = ((1 << link->sink.bits) - 1) << link->sink.shift;
-+
-+	spin_lock_irqsave(&ipu->lock, flags);
-+
-+	src_reg = ipu_cm_read(ipu, link->src.reg);
-+	sink_reg = ipu_cm_read(ipu, link->sink.reg);
-+
-+	src_reg &= ~src_mask;
-+	src_reg |= (link->src.sel << link->src.shift);
-+
-+	sink_reg &= ~sink_mask;
-+	sink_reg |= (link->sink.sel << link->sink.shift);
-+
-+	ipu_cm_write(ipu, src_reg, link->src.reg);
-+	ipu_cm_write(ipu, sink_reg, link->sink.reg);
-+
-+	spin_unlock_irqrestore(&ipu->lock, flags);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_idmac_link);
-+
-+/*
-+ * Unlinks IDMAC source and sink channels.
-+ */
-+int ipu_idmac_unlink(struct ipuv3_channel *src, struct ipuv3_channel *sink)
-+{
-+	struct ipu_soc *ipu = src->ipu;
-+	const struct idmac_link_info *link;
-+	u32 src_reg, sink_reg, src_mask, sink_mask;
-+	unsigned long flags;
-+
-+	link = find_idmac_link_info(src, sink);
-+	if (!link)
-+		return -EINVAL;
-+
-+	src_mask = ((1 << link->src.bits) - 1) << link->src.shift;
-+	sink_mask = ((1 << link->sink.bits) - 1) << link->sink.shift;
-+
-+	spin_lock_irqsave(&ipu->lock, flags);
-+
-+	src_reg = ipu_cm_read(ipu, link->src.reg);
-+	sink_reg = ipu_cm_read(ipu, link->sink.reg);
-+
-+	src_reg &= ~src_mask;
-+	sink_reg &= ~sink_mask;
-+
-+	ipu_cm_write(ipu, src_reg, link->src.reg);
-+	ipu_cm_write(ipu, sink_reg, link->sink.reg);
-+
-+	spin_unlock_irqrestore(&ipu->lock, flags);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_idmac_unlink);
-+
- struct ipu_devtype {
- 	const char *name;
- 	unsigned long cm_ofs;
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index b174f8a..0a39c64 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -128,6 +128,7 @@ enum ipu_channel_irq {
- #define IPUV3_CHANNEL_ROT_VF_MEM		49
- #define IPUV3_CHANNEL_ROT_PP_MEM		50
- #define IPUV3_CHANNEL_MEM_BG_SYNC_ALPHA		51
-+#define IPUV3_NUM_CHANNELS			64
- 
- int ipu_map_irq(struct ipu_soc *ipu, int irq);
- int ipu_idmac_channel_irq(struct ipu_soc *ipu, struct ipuv3_channel *channel,
-@@ -171,6 +172,8 @@ int ipu_idmac_get_current_buffer(struct ipuv3_channel *channel);
- bool ipu_idmac_buffer_is_ready(struct ipuv3_channel *channel, u32 buf_num);
- void ipu_idmac_select_buffer(struct ipuv3_channel *channel, u32 buf_num);
- void ipu_idmac_clear_buffer(struct ipuv3_channel *channel, u32 buf_num);
-+int ipu_idmac_link(struct ipuv3_channel *src, struct ipuv3_channel *sink);
-+int ipu_idmac_unlink(struct ipuv3_channel *src, struct ipuv3_channel *sink);
- 
- /*
-  * IPU Channel Parameter Memory (cpmem) functions
--- 
-1.9.1
 
