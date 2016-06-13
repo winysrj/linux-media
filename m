@@ -1,82 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f67.google.com ([209.85.220.67]:35404 "EHLO
-	mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751263AbcFRQZU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jun 2016 12:25:20 -0400
-Date: Sat, 18 Jun 2016 09:25:15 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Hans Verkuil <hansverk@cisco.com>,
-	Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv16 08/13] DocBook/media: add CEC documentation
-Message-ID: <20160618162515.GB12210@dtor-ws>
-References: <1461937948-22936-1-git-send-email-hverkuil@xs4all.nl>
- <1461937948-22936-9-git-send-email-hverkuil@xs4all.nl>
- <20160616180958.03b9d759@recife.lan>
- <5763ADBD.3050502@xs4all.nl>
- <20160617065028.7410ae46@recife.lan>
- <5763DA56.20402@xs4all.nl>
- <20160617083738.491c01ae@recife.lan>
+Received: from muru.com ([72.249.23.125]:56257 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965050AbcFMHkE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2016 03:40:04 -0400
+Date: Mon, 13 Jun 2016 00:39:59 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	thierry.reding@gmail.com, bcousson@baylibre.com,
+	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	sre@kernel.org, pali.rohar@gmail.com
+Subject: Re: [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime functions
+ when not needed.
+Message-ID: <20160613073958.GR22406@atomide.com>
+References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160509193624.GH5995@atomide.com>
+ <5730F840.3050807@gmail.com>
+ <20160610102225.GS22406@atomide.com>
+ <575B2F48.4090707@gmail.com>
+ <20160613071057.GQ22406@atomide.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20160617083738.491c01ae@recife.lan>
+In-Reply-To: <20160613071057.GQ22406@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 17, 2016 at 08:37:38AM -0300, Mauro Carvalho Chehab wrote:
-> Em Fri, 17 Jun 2016 13:09:10 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
-> > On 06/17/2016 11:50 AM, Mauro Carvalho Chehab wrote:
-> > One area where I am uncertain is when remote control messages are received and
-> > passed on by the framework to the RC input device.
+* Tony Lindgren <tony@atomide.com> [160613 00:10]:
+> * Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160610 14:23]:
 > > 
-> > Suppose the application is the one receiving a password, then that password appears
-> > both in the input device and the cec device. What I think will be useful is if the
-> > application can prevent the use of an input device to pass on remote control messages.
+> > On 10.06.2016 13:22, Tony Lindgren wrote:
+> > > 
+> > > OK. And I just applied the related dts changes. Please repost the driver
+> > > changes and DT binding doc with Rob's ack to the driver maintainers to
+> > > apply.
+> > > 
 > > 
-> > CEC_ADAP_S_LOG_ADDRS has a flags field that I intended for just that purpose.
+> > Already did, see https://lkml.org/lkml/2016/5/16/429
 > > 
-> > Note that RC messages are always passed on to CEC followers even if there is an
-> > input device since some RC messages have additional arguments that the rc subsystem
-> > can't handle. Also I think that it is often easier to handle all messages from the
-> > same CEC device instead of having to read from two devices (cec and input). I
-> > actually considered removing the input support, but it turned out to be useful in
-> > existing video streaming apps since they don't need to add special cec support to
-> > handle remote control presses.
-> > 
-> > Question: is there a way for applications to get exclusive access to an input device?
-> > Or can anyone always read from it?
+> > Shall I do anything else?
 > 
-> That's a very good question. I did a quick test to check how this is
-> currently protected, by running:
-> 
-> $ strace ir-keytable -t
-> ...
-> open("/dev/input/event12", O_RDONLY)    = -1 EACCES (Permission denied)
-> ...
-> 
-> It turns that the input device was created by udev with those
-> permissions:
-> 
-> crw-rw---- 1 root input 13, 76 Jun 17 08:26 /dev/input/event12
-> 
-> Changing access to 666 allowed to run ir-keytable -t without the
-> need of being root.
-> 
-> Yet, maybe there's a way to get exclusive access to input/event
-> device, but I never needed to go that deep at the input subsystem.
-> Maybe Dmitry could shed some light on that. Adding him in the loop.
+> Probably good idea to repost just the driver changes to the
+> subsystem maintainers. With v4.7 out any pre v4.7 patchsets
+> easily get forgotten.
 
-EVIOCGRAB ioctl will do what you want.
+Heh s/v4.7/v4.6/ :)
 
-Thanks.
-
--- 
-Dmitry
+Tony
