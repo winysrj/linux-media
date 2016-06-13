@@ -1,96 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39521 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932232AbcFCLIJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2016 07:08:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bastien Nocera <hadess@hadess.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: NTSC/PAL resolution support for "EasyCap" device
-Date: Fri, 03 Jun 2016 14:08:12 +0300
-Message-ID: <1495486.1uKbyyPPu6@avalon>
-In-Reply-To: <1464951211.2432.44.camel@hadess.net>
-References: <1464691129.3878.59.camel@hadess.net> <2081548.sYXtIeXGjI@avalon> <1464951211.2432.44.camel@hadess.net>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:50759 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933106AbcFMC0U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jun 2016 22:26:20 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id F31611800E5
+	for <linux-media@vger.kernel.org>; Mon, 13 Jun 2016 04:26:13 +0200 (CEST)
+Date: Mon, 13 Jun 2016 04:26:13 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160613022613.F31611800E5@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bastien,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Friday 03 Jun 2016 12:53:31 Bastien Nocera wrote:
-> On Fri, 2016-06-03 at 01:37 +0300, Laurent Pinchart wrote:
-> > On Tuesday 31 May 2016 12:38:49 Bastien Nocera wrote:
-> >> Hey,
-> >> 
-> >> I saw your commits to add quirks for Arkmicro "webcams". I recently
-> >> bought a dirt cheap "EasyCap" device on eBay, but it only seems to
-> >> support 640x480 instead of the native "NRSC" resolution as
-> >> mentioned on the device's box.
-> >> 
-> >> $ v4l2-ctl --list-formats-ext -d /dev/video0 
-> >> ioctl: VIDIOC_ENUM_FMT
-> >> 
-> >> 	Index       : 0
-> >> 	Type        : Video Capture
-> >> 	Pixel Format: 'MJPG' (compressed)
-> >> 	Name        : Motion-JPEG
-> >> 	
-> >> 		Size: Discrete 640x480
-> >> 		
-> >> 			Interval: Discrete 0.017s (60.000 fps)
-> >> 			Interval: Discrete 0.033s (30.000 fps)
-> >> 			Interval: Discrete 0.067s (15.000 fps)
-> >> 			Interval: Discrete 0.200s (5.000 fps)
-> >> 		
-> >> 		Size: Discrete 352x288
-> >> 		
-> >> 			Interval: Discrete 0.017s (60.000 fps)
-> >> 			Interval: Discrete 0.033s (30.000 fps)
-> >> 			Interval: Discrete 0.067s (15.000 fps)
-> >> 			Interval: Discrete 0.200s (5.000 fps)
-> >> 
-> >> Device is:
-> >> Bus 003 Device 066: ID 18ec:5850 Arkmicro Technologies Inc. 
-> >> 
-> >> In your professional opinion, should I try using
-> >> UVC_QUIRK_PROBE_DEF or UVC_QUIRK_PROBE_MINMAX as a quirk for this device?
-> >> Is there a stand-alone driver somewhere that I can use for testing
-> >> (rather than recompiling a whole kernel)?
-> > 
-> > Those quirks will not affect the available resolutions.
-> 
-> OK. I also made my own testing tree to copy/paste those devices.
-> 
-> > UVC devices expose a list of resolutions they support through the USB 
-> > descriptors, and the uvcvideo device merely uses that list to expose
-> > supported  resolutions to userspace.
-> 
-> Full lsusb below.
+Results of the daily build of media_tree:
 
-Thanks. The device only advertises two resolutions, 640x480 and 352x288.
+date:		Mon Jun 13 04:00:28 CEST 2016
+git branch:	test
+git hash:	cc650b65bea5613f04a0523c3ee2b91df371e175
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
 
-> > If the device doesn't expose resolutions other than the above two, the
-> > box could be lying, or the device could use non-standard extensions to UVC
-> > to support additional resolutions. The first step would be to try the
-> > camera in a  Windows machine to see if additional resolutions are
-> > available (without installing any additional device-specific software).
-> 
-> I should be able to find a Windows somewhere, but which application
-> should I use to see if those resolutions are indeed available?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-i686: ERRORS
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-x86_64: ERRORS
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-My (lack of) Windows knowledge doesn't allow me to answer that question, but 
-I'm sure searching online will give you answers.
+Detailed results are available here:
 
-> BTW, given the price of the device, I'd be fine getting one for you to
-> test (6€ from eBay, shipping included).
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Thanks, but I'm already overwhelmed with work, I'd rather have you performing 
-the tests. Beside, I have no Windows machine :-)
+Full logs are available here:
 
--- 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-Laurent Pinchart
+The Media Infrastructure API from this daily build is here:
 
+http://www.xs4all.nl/~hverkuil/spec/media.html
