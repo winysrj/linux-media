@@ -1,92 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:58742 "EHLO mail.kernel.org"
+Received: from lists.s-osg.org ([54.187.51.154]:39798 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753146AbcFOMsr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2016 08:48:47 -0400
-Date: Wed, 15 Jun 2016 14:48:42 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: "Andrew F. Davis" <afd@ti.com>
-Cc: kbuild test robot <lkp@intel.com>, kbuild-all@01.org,
-	Russell King <linux@armlinux.org.uk>,
-	Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Wolfram Sang <wsa@the-dreams.de>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Rusty Russell <rusty@rustcorp.com.au>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	id S1423745AbcFMPir (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2016 11:38:47 -0400
+Subject: Re: [PATCH] media: s5p-mfc fix memory leak in s5p_mfc_remove()
+To: Javier Martinez Canillas <javier@dowhile0.org>
+References: <1465436115-13880-1-git-send-email-shuahkh@osg.samsung.com>
+ <CABxcv=nT_zp2BkvSV04sqaXmZGnQz=z-cGURDJwUW7hthD6-Fw@mail.gmail.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>, jtp.park@samsung.com,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Ulf Hansson <ulf.hansson@linaro.org>,
-	Lauro Ramos Venancio <lauro.venancio@openbossa.org>,
-	Aloisio Almeida Jr <aloisio.almeida@openbossa.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Ingo Molnar <mingo@kernel.org>, linux-pwm@vger.kernel.org,
-	lguest@lists.ozlabs.org, linux-wireless@vger.kernel.org,
-	linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-leds@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] hsi: Build hsi_boardinfo.c into hsi core if enabled
-Message-ID: <20160615124842.GA6702@earth>
-References: <201606140808.bRJtAy1i%fengguang.wu@intel.com>
- <57602D10.4080708@ti.com>
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <575ED37E.4010204@osg.samsung.com>
+Date: Mon, 13 Jun 2016 09:38:38 -0600
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="h31gzZEtNLTqOjlF"
-Content-Disposition: inline
-In-Reply-To: <57602D10.4080708@ti.com>
+In-Reply-To: <CABxcv=nT_zp2BkvSV04sqaXmZGnQz=z-cGURDJwUW7hthD6-Fw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 06/13/2016 07:42 AM, Javier Martinez Canillas wrote:
+> Hello Shuah,
+> 
+> On Wed, Jun 8, 2016 at 9:35 PM, Shuah Khan <shuahkh@osg.samsung.com> wrote:
+>> s5p_mfc_remove() fails to release encoder and decoder video devices.
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/platform/s5p-mfc/s5p_mfc.c | 2 ++
+>>  1 file changed, 2 insertions(+)
+>>
+>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+>> index 274b4f1..af61f54 100644
+>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+>> @@ -1317,7 +1317,9 @@ static int s5p_mfc_remove(struct platform_device *pdev)
+>>         destroy_workqueue(dev->watchdog_workqueue);
+>>
+>>         video_unregister_device(dev->vfd_enc);
+>> +       video_device_release(dev->vfd_enc);
+>>         video_unregister_device(dev->vfd_dec);
+>> +       video_device_release(dev->vfd_dec);
+>>         v4l2_device_unregister(&dev->v4l2_dev);
+>>         s5p_mfc_release_firmware(dev);
+>>         vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[0]);
+>> --
+> 
+> Can you please do the remove operations in the inverse order of their
+> counterparts? IOW to do the release for both encoder and decoder after
+> their unregistration.
+> 
 
---h31gzZEtNLTqOjlF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I considered that. No problem. I will move both release after the
+video_unregister_device(dev->vfd_dec), releasing enc first and then
+the dec
 
-Hi Andrew,
+> 
+> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> 
 
-On Tue, Jun 14, 2016 at 11:13:04AM -0500, Andrew F. Davis wrote:
-> If the HSI core is built as a module hsi_boardinfo may still
-> be built-in as its Kconfig type is bool, which can cause build
-> issues. Fix this by building this code into the HSI core when
-> enabled.
->=20
-> Reported-by: kbuild test robot <lkp@intel.com>
-> Signed-off-by: Andrew F. Davis <afd@ti.com>
-> ---
-> This build error seems to be due to Kconfig symbol CONFIG_HSI_BOARDINFO
-> being a bool but depending on a tristate (CONFIG_HSI). This is normally
-> okay when it is just a flag to enable a feature in source, but the
-> helper code file hsi_boardinfo.c is built as a separate entity when
-> enabled. This patch is probably how it was intended, and is more like
-> how others do this kind of thing.
->=20
-> This patch should be applied before the parent patch:
+thanks,
+-- Shuah
 
-Thanks, I applied both patches.
-
--- Sebastian
-
---h31gzZEtNLTqOjlF
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJXYU6oAAoJENju1/PIO/qae6QP/35LQ3B8vO2lZZLD3fJoRLEz
-yJp80KFgWVGLlJIxoywl6Lm8tK1b48miCd73ee7Euagta3zJqZMutPO3lCiaExQh
-QXIykcVyzZXxa6AELhlPXbJlffoetyTvq7n831+Hk1IqhwOgCpm8jSVszgw11fyH
-FIDtsW7QpUnhq/lBIl+6yc8OYszH3N69Cv0sS3J5neDT2W9dochTcv01JEMAmFIL
-8TWT+5hZ/7WvvXt2tDJ03uP7aNbpDOAhutNaAjsYZEA9pX+SVa17O9eQGT5tAT5a
-0pWIFazcVt06+phTF28XlkPqVhSA0wtXeRoyLuz+UHFjGWJiwmbKTJ6QipFclEL7
-yXNE8V+g2FRiH4ZqBQ3EQtzusatln5CixirVF1wtPXp75mpZ9XHynDS2tvI6GmO+
-7jPGFRtp8QueA6LzlQN6AskCEm7BpVX2CbwTc4k3W5BDn3kmeVKdcd7a5fVLfN7Z
-y6e3kkYa8MSNfu/GFEXzeYfraIrtjwE2JfcqjDp8SgOcEaxI46n5fXNhqs4Mq/Kd
-FXUswYrJPl+hbCAklxt0YouQP55fzhBBc6FZIf3sCg/Tw1RhUs7ka0X0yKwGBp1r
-K8rHk8x9QA7ypJ66vOr4bYmqvXn5SzBb6pF4HkKLFDIrWYTrym/z2uD+H4wFq6ZN
-3viKiXS2qFAhhSbKm82E
-=h2dd
------END PGP SIGNATURE-----
-
---h31gzZEtNLTqOjlF--
