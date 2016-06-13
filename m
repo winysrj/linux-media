@@ -1,59 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50389 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751351AbcFRMYk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jun 2016 08:24:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv17 10/16] cec/TODO: add TODO file so we know why this is still in staging
-Date: Sat, 18 Jun 2016 14:24:12 +0200
-Message-Id: <1466252658-39819-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1466252658-39819-1-git-send-email-hverkuil@xs4all.nl>
-References: <1466252658-39819-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.17.21]:51546 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1423867AbcFMPda (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2016 11:33:30 -0400
+Date: Mon, 13 Jun 2016 17:33:01 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH/RFC v2 4/4] v4l: vsp1: Add HGO support
+In-Reply-To: <1463012283-3078-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1606131726380.18676@axis700.grange>
+References: <1463012283-3078-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1463012283-3078-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent,
 
-Explain why cec.c is still in staging.
+On Thu, 12 May 2016, Laurent Pinchart wrote:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/cec/TODO | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
- create mode 100644 drivers/staging/media/cec/TODO
+> The HGO is a Histogram Generator One-Dimension. It computes per-channel
+> histograms over a configurable region of the image with optional
+> subsampling.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-diff --git a/drivers/staging/media/cec/TODO b/drivers/staging/media/cec/TODO
-new file mode 100644
-index 0000000..e3c384a
---- /dev/null
-+++ b/drivers/staging/media/cec/TODO
-@@ -0,0 +1,23 @@
-+The reason why cec.c is still in staging is that I would like
-+to have a bit more confidence in the uABI. The kABI is fine,
-+no problem there, but I would like to let the public API mature
-+a bit.
-+
-+Once I'm confident that I didn't miss anything then the cec.c source
-+can move to drivers/media and the linux/cec.h and linux/cec-funcs.h
-+headers can move to uapi/linux and added to uapi/linux/Kbuild to make
-+them public.
-+
-+Hopefully this will happen later in 2016.
-+
-+Other TODOs:
-+
-+- Add a flag to inhibit passing CEC RC messages to the rc subsystem.
-+  Applications should be able to choose this when calling S_LOG_ADDRS.
-+- Convert cec.txt to sphinx.
-+- If the reply field of cec_msg is set then when the reply arrives it
-+  is only sent to the filehandle that transmitted the original message
-+  and not to any followers. Should this behavior change or perhaps
-+  controlled through a cec_msg flag?
-+
-+Hans Verkuil <hans.verkuil@cisco.com>
--- 
-2.8.1
+[snip]
 
+Do I understand this correctly, that with this if such a metadata device 
+is opened, while no video data is streaming, all calls will succeed, but 
+no buffers will be dequeued, i.e. the user-space application will hang in 
+DQBUF or poll() / select() indefinitely?
+
+Thanks
+Guennadi
