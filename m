@@ -1,104 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34045 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753180AbcFTNa2 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59999 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752033AbcFMTBN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 09:30:28 -0400
-Received: by mail-wm0-f66.google.com with SMTP id 187so14145652wmz.1
-        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2016 06:30:27 -0700 (PDT)
-Date: Mon, 20 Jun 2016 15:30:18 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Mathias Krause <minipli@googlemail.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-	Brad Spengler <spender@grsecurity.net>,
-	PaX Team <pageexec@freemail.hu>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: Re: [PATCH 1/3] dma-buf: propagate errors from dma_buf_describe() on
- debugfs read
-Message-ID: <20160620133018.GJ23520@phenom.ffwll.local>
-References: <1466339491-12639-1-git-send-email-minipli@googlemail.com>
- <1466339491-12639-2-git-send-email-minipli@googlemail.com>
+	Mon, 13 Jun 2016 15:01:13 -0400
+Subject: Re: LinuxTv doesn't build anymore after upgrading Ubuntu to 3.13.0-88
+To: Andreas Matthies <a.matthies@gmx.net>, linux-media@vger.kernel.org
+References: <575EE9D9.3030502@gmx.net> <575EF39A.4010609@xs4all.nl>
+ <575F00DA.2020009@gmx.net>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <575F02F4.2000501@xs4all.nl>
+Date: Mon, 13 Jun 2016 21:01:08 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1466339491-12639-2-git-send-email-minipli@googlemail.com>
+In-Reply-To: <575F00DA.2020009@gmx.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 19, 2016 at 02:31:29PM +0200, Mathias Krause wrote:
-> The callback function dma_buf_describe() returns an int not void so the
-> function pointer cast in dma_buf_show() is wrong. dma_buf_describe() can
-> also fail when acquiring the mutex gets interrupted so always returning
-> 0 in dma_buf_show() is wrong, too.
-> 
-> Fix both issues by avoiding the indirection via dma_buf_show() and call
-> dma_buf_describe() directly. Rename it to dma_buf_debug_show() to get it
-> in line with the other functions.
-> 
-> This type mismatch was caught by the PaX RAP plugin.
-> 
-> Signed-off-by: Mathias Krause <minipli@googlemail.com>
-> Cc: Sumit Semwal <sumit.semwal@linaro.org>
-> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-> Cc: Brad Spengler <spender@grsecurity.net>
-> Cc: PaX Team <pageexec@freemail.hu>
-> ---
->  drivers/dma-buf/dma-buf.c |   14 +++-----------
->  1 file changed, 3 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index 6355ab38d630..7094b19bb495 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -824,7 +824,7 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
->  EXPORT_SYMBOL_GPL(dma_buf_vunmap);
->  
->  #ifdef CONFIG_DEBUG_FS
-> -static int dma_buf_describe(struct seq_file *s)
-> +static int dma_buf_debug_show(struct seq_file *s, void *unused)
->  {
->  	int ret;
->  	struct dma_buf *buf_obj;
-> @@ -879,17 +879,9 @@ static int dma_buf_describe(struct seq_file *s)
->  	return 0;
->  }
->  
-> -static int dma_buf_show(struct seq_file *s, void *unused)
-> -{
-> -	void (*func)(struct seq_file *) = s->private;
-> -
-> -	func(s);
-> -	return 0;
-> -}
-> -
->  static int dma_buf_debug_open(struct inode *inode, struct file *file)
->  {
-> -	return single_open(file, dma_buf_show, inode->i_private);
-> +	return single_open(file, dma_buf_debug_show, NULL);
->  }
->  
->  static const struct file_operations dma_buf_debug_fops = {
-> @@ -913,7 +905,7 @@ static int dma_buf_init_debugfs(void)
->  		return err;
->  	}
->  
-> -	err = dma_buf_debugfs_create_file("bufinfo", dma_buf_describe);
-> +	err = dma_buf_debugfs_create_file("bufinfo", NULL);
+On 06/13/2016 08:52 PM, Andreas Matthies wrote:
+> But now I get
+> ...
+>    CC [M]  /home/andreas/Downloads/media_build/v4l/uvc_v4l2.o
+>    CC [M]  /home/andreas/Downloads/media_build/v4l/uvc_video.o
+> /home/andreas/Downloads/media_build/v4l/uvc_video.c: In function 
+> 'uvc_endpoint_max_bpi':
+> /home/andreas/Downloads/media_build/v4l/uvc_video.c:1473:7: error: 
+> 'USB_SPEED_SUPER_PLUS' undeclared (first use in this function)
+>    case USB_SPEED_SUPER_PLUS:
+>         ^
 
-This indirection now doesn't make much sense I think. I think more
-sensible to instead pass drm_buf_debug_show, since that's the
-parametrization that matters. Or just inline that one too.
--Daniel
+When building for 4.6? I know this fails for older kernels but it should be fine
+for the 4.6 kernel.
 
->  
->  	if (err)
->  		pr_debug("dma_buf: debugfs: failed to create node bufinfo\n");
-> -- 
-> 1.7.10.4
+I'll make a patch fixing this some time this week though.
+
+Regards,
+
+	Hans
+
+> /home/andreas/Downloads/media_build/v4l/uvc_video.c:1473:7: note: each 
+> undeclared identifier is reported only once for each function it appears in
+> make[3]: *** [/home/andreas/Downloads/media_build/v4l/uvc_video.o] Fehler 1
+> make[2]: *** [_module_/home/andreas/Downloads/media_build/v4l] Error 2
+> ...
 > 
-
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+> Am 13.06.2016 um 19:55 schrieb Hans Verkuil:
+>> On 06/13/2016 07:14 PM, Andreas Matthies wrote:
+>>> Hi.
+>>>
+>>> Seems that there's a problem in v4.6_i2c_mux.patch. After Ubuntu was
+>>> upgraded to 3.13.0-88 I tried to rebuild the tv drivers and get
+>>>
+>>> make[2]: Entering directory `/home/andreas/Downloads/media_build/linux'
+>>> Applying patches for kernel 3.13.0-88-generic
+>>> patch -s -f -N -p1 -i ../backports/api_version.patch
+>>> patch -s -f -N -p1 -i ../backports/pr_fmt.patch
+>>> patch -s -f -N -p1 -i ../backports/debug.patch
+>>> patch -s -f -N -p1 -i ../backports/drx39xxj.patch
+>>> patch -s -f -N -p1 -i ../backports/v4.6_i2c_mux.patch
+>>> 2 out of 23 hunks FAILED
+>>> make[2]: *** [apply_patches] Error 1
+>> Fixed. Thanks for reporting this.
+>>
+>> Regards,
+>>
+>> 	Hans
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
