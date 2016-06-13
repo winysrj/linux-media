@@ -1,125 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35501 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1160995AbcFGVdn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2016 17:33:43 -0400
-Received: by mail-wm0-f66.google.com with SMTP id k184so20938911wme.2
-        for <linux-media@vger.kernel.org>; Tue, 07 Jun 2016 14:33:43 -0700 (PDT)
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: benjamin@southpole.se, crope@iki.fi,
-	Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Subject: [PATCH v3] [media] rtl2832: add support for slave ts pid filter
-Date: Tue,  7 Jun 2016 23:31:47 +0200
-Message-Id: <20160607213147.18373-1-martin.blumenstingl@googlemail.com>
-In-Reply-To: <1463932987-10526-1-git-send-email-martin.blumenstingl@googlemail.com>
-References: <1463932987-10526-1-git-send-email-martin.blumenstingl@googlemail.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:32888 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423545AbcFMSsj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2016 14:48:39 -0400
+Subject: Re: [PATCH 0/7] ir-rx51 driver fixes
+To: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>,
+	tony@atomide.com
+References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <201606132017.38629@pali>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	thierry.reding@gmail.com, bcousson@baylibre.com,
+	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	sre@kernel.org
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Message-ID: <575F0002.4060809@gmail.com>
+Date: Mon, 13 Jun 2016 21:48:34 +0300
+MIME-Version: 1.0
+In-Reply-To: <201606132017.38629@pali>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The rtl2832 demod has 2 sets of PID filters. This patch enables
-the filter support when using a slave demod.
+Hi,
 
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
-Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
----
-changes since v2:
-- rebased to make the patch apply again
-- removed explicit initialization of dev->slave_ts as
-  rtl2832_slave_ts_ctrl is always called when activating the frontend
+On 13.06.2016 21:17, Pali Rohár wrote:
+> On Saturday 07 May 2016 17:21:41 Ivaylo Dimitrov wrote:
+>> ir-rx51 is a driver for Nokia N900 IR transmitter. The current series
+>> fixes the remaining problems in the driver:
+>>
+>>   - replace GP timer 9 with PWM framework usage
+>>   - replace pulse width timer dmtimer usage with hrtimer
+>>   - add DT support to the driver
+>>   - add driver to the board DTS
+>>
+>> Pathes 2 and 5 are needed so the driver to function correctly,
+>> without those PWM either refuses to set the needed carrier frequency
+>> (patch 2) or there are such a delays in the PWM framework, code that
+>> transmission duration raises to ~5s instead of half a second.
+>>
+>> Ivaylo Dimitrov (6):
+>>    pwm: omap-dmtimer: Allow for setting dmtimer clock source
+>>    [media] ir-rx51: use PWM framework instead of OMAP dmtimer
+>>    [media] ir-rx51: add DT support to driver
+>>    ARM: OMAP: dmtimer: Do not call PM runtime functions when not
+>> needed. [media] ir-rx51: use hrtimer instead of dmtimer
+>>    ARM: dts: n900: enable lirc-rx51 driver
+>>
+>> Tony Lindgren (1):
+>>    ir-rx51: Fix build after multiarch changes broke it
+>>
+>>   .../devicetree/bindings/media/nokia,lirc-rx51      |  19 ++
+>>   .../devicetree/bindings/pwm/pwm-omap-dmtimer.txt   |   4 +
+>>   arch/arm/boot/dts/omap3-n900.dts                   |  12 ++
+>>   arch/arm/mach-omap2/board-rx51-peripherals.c       |   5 -
+>>   arch/arm/mach-omap2/pdata-quirks.c                 |  10 +-
+>>   arch/arm/plat-omap/dmtimer.c                       |   9 +-
+>>   arch/arm/plat-omap/include/plat/dmtimer.h          |   1 +
+>>   drivers/media/rc/Kconfig                           |   2 +-
+>>   drivers/media/rc/ir-rx51.c                         | 229
+>> +++++++-------------- drivers/pwm/pwm-omap-dmtimer.c
+>>      |  12 +- include/linux/platform_data/media/ir-rx51.h        |
+>> 3 -
+>>   11 files changed, 131 insertions(+), 175 deletions(-)
+>>   create mode 100644
+>> Documentation/devicetree/bindings/media/nokia,lirc-rx51
+>
+> Patch series looks good, you can add my Acked-by.
+>
 
-This patch was originally written by Benjamin Larsson, all I did was
-rebasing the patch and to extend the dev_dbg statements with the
-slave_ts information.
-This also supersedes the following patch:
-https://patchwork.linuxtv.org/patch/34358/
+There is a newer series, please look at https://lkml.org/lkml/2016/5/16/429
 
- drivers/media/dvb-frontends/rtl2832.c      | 25 +++++++++++++++++++------
- drivers/media/dvb-frontends/rtl2832_priv.h |  1 +
- 2 files changed, 20 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index bfb6bee..c16c69e 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -947,6 +947,8 @@ static int rtl2832_slave_ts_ctrl(struct i2c_client *client, bool enable)
- 			goto err;
- 	}
- 
-+	dev->slave_ts = enable;
-+
- 	return 0;
- err:
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
-@@ -960,7 +962,7 @@ static int rtl2832_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
- 	int ret;
- 	u8 u8tmp;
- 
--	dev_dbg(&client->dev, "onoff=%d\n", onoff);
-+	dev_dbg(&client->dev, "onoff=%d, slave_ts=%d\n", onoff, dev->slave_ts);
- 
- 	/* enable / disable PID filter */
- 	if (onoff)
-@@ -968,7 +970,10 @@ static int rtl2832_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
- 	else
- 		u8tmp = 0x00;
- 
--	ret = regmap_update_bits(dev->regmap, 0x061, 0xc0, u8tmp);
-+	if (dev->slave_ts)
-+		ret = regmap_update_bits(dev->regmap, 0x021, 0xc0, u8tmp);
-+	else
-+		ret = regmap_update_bits(dev->regmap, 0x061, 0xc0, u8tmp);
- 	if (ret)
- 		goto err;
- 
-@@ -986,8 +991,8 @@ static int rtl2832_pid_filter(struct dvb_frontend *fe, u8 index, u16 pid,
- 	int ret;
- 	u8 buf[4];
- 
--	dev_dbg(&client->dev, "index=%d pid=%04x onoff=%d\n",
--		index, pid, onoff);
-+	dev_dbg(&client->dev, "index=%d pid=%04x onoff=%d slave_ts=%d\n",
-+		index, pid, onoff, dev->slave_ts);
- 
- 	/* skip invalid PIDs (0x2000) */
- 	if (pid > 0x1fff || index > 32)
-@@ -1003,14 +1008,22 @@ static int rtl2832_pid_filter(struct dvb_frontend *fe, u8 index, u16 pid,
- 	buf[1] = (dev->filters >>  8) & 0xff;
- 	buf[2] = (dev->filters >> 16) & 0xff;
- 	buf[3] = (dev->filters >> 24) & 0xff;
--	ret = regmap_bulk_write(dev->regmap, 0x062, buf, 4);
-+
-+	if (dev->slave_ts)
-+		ret = regmap_bulk_write(dev->regmap, 0x022, buf, 4);
-+	else
-+		ret = regmap_bulk_write(dev->regmap, 0x062, buf, 4);
- 	if (ret)
- 		goto err;
- 
- 	/* add PID */
- 	buf[0] = (pid >> 8) & 0xff;
- 	buf[1] = (pid >> 0) & 0xff;
--	ret = regmap_bulk_write(dev->regmap, 0x066 + 2 * index, buf, 2);
-+
-+	if (dev->slave_ts)
-+		ret = regmap_bulk_write(dev->regmap, 0x026 + 2 * index, buf, 2);
-+	else
-+		ret = regmap_bulk_write(dev->regmap, 0x066 + 2 * index, buf, 2);
- 	if (ret)
- 		goto err;
- 
-diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
-index c1a8a69..9a6d01a 100644
---- a/drivers/media/dvb-frontends/rtl2832_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2832_priv.h
-@@ -44,6 +44,7 @@ struct rtl2832_dev {
- 	bool sleeping;
- 	struct delayed_work i2c_gate_work;
- 	unsigned long filters; /* PID filter */
-+	bool slave_ts;
- };
- 
- struct rtl2832_reg_entry {
--- 
-2.8.3
-
+Ivo
