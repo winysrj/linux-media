@@ -1,66 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45252
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755504AbcFQLH3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 07:07:29 -0400
-Date: Fri, 17 Jun 2016 08:07:23 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 05/13] v4l: vsp1: Add FCP support
-Message-ID: <20160617080723.7a760bf1@recife.lan>
-In-Reply-To: <1461620198-13428-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	<1461620198-13428-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mout.gmx.net ([212.227.17.20]:60225 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1423173AbcFMROH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2016 13:14:07 -0400
+Received: from [192.168.1.20] ([188.108.122.80]) by mail.gmx.com (mrgmx101)
+ with ESMTPSA (Nemesis) id 0LiY3U-1biGHe3wJY-00cepD for
+ <linux-media@vger.kernel.org>; Mon, 13 Jun 2016 19:14:03 +0200
+To: linux-media@vger.kernel.org
+From: Andreas Matthies <a.matthies@gmx.net>
+Subject: LinuxTv doesn't build anymore after upgrading Ubuntu to 3.13.0-88
+Message-ID: <575EE9D9.3030502@gmx.net>
+Date: Mon, 13 Jun 2016 19:14:01 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 26 Apr 2016 00:36:30 +0300
-Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com> escreveu:
+Hi.
 
-> On some platforms the VSP performs memory accesses through an FCP. When
-> that's the case get a reference to the FCP from the VSP DT node and
-> enable/disable it at runtime as needed.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  .../devicetree/bindings/media/renesas,vsp1.txt      |  5 +++++
->  drivers/media/platform/Kconfig                      |  1 +
->  drivers/media/platform/vsp1/vsp1.h                  |  2 ++
->  drivers/media/platform/vsp1/vsp1_drv.c              | 21 ++++++++++++++++++++-
->  4 files changed, 28 insertions(+), 1 deletion(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/renesas,vsp1.txt b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-> index 627405abd144..9b695bcbf219 100644
-> --- a/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-> +++ b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-> @@ -14,6 +14,11 @@ Required properties:
->    - interrupts: VSP interrupt specifier.
->    - clocks: A phandle + clock-specifier pair for the VSP functional clock.
->  
-> +Optional properties:
-> +
-> +  - renesas,fcp: A phandle referencing the FCP that handles memory accesses
-> +                 for the VSP. Not needed on Gen2, mandatory on Gen3.
-> +
->  
->  Example: R8A7790 (R-Car H2) VSP1-S node
->  
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index f453910050be..a3304466e628 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -264,6 +264,7 @@ config VIDEO_RENESAS_VSP1
->  	tristate "Renesas VSP1 Video Processing Engine"
->  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
->  	depends on (ARCH_RENESAS && OF) || COMPILE_TEST
-> +	depends on !ARM64 || VIDEO_RENESAS_FCP
+Seems that there's a problem in v4.6_i2c_mux.patch. After Ubuntu was 
+upgraded to 3.13.0-88 I tried to rebuild the tv drivers and get
 
-It sounds that this will break compile-test on ARM64 for no good reason.
+make[2]: Entering directory `/home/andreas/Downloads/media_build/linux'
+Applying patches for kernel 3.13.0-88-generic
+patch -s -f -N -p1 -i ../backports/api_version.patch
+patch -s -f -N -p1 -i ../backports/pr_fmt.patch
+patch -s -f -N -p1 -i ../backports/debug.patch
+patch -s -f -N -p1 -i ../backports/drx39xxj.patch
+patch -s -f -N -p1 -i ../backports/v4.6_i2c_mux.patch
+2 out of 23 hunks FAILED
+make[2]: *** [apply_patches] Error 1
 
-Thanks,
-Mauro
+Here's the reject file rtl2832.c.rej:
+--- drivers/media/dvb-frontends/rtl2832.c
++++ drivers/media/dvb-frontends/rtl2832.c
+@@ -1124,7 +1280,7 @@
+      else
+          u8tmp = 0x00;
+
+-    ret = regmap_update_bits(dev->regmap, 0x061, 0xc0, u8tmp);
++    ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
+      if (ret)
+          goto err;
+
+@@ -1159,14 +1315,14 @@
+      buf[1] = (dev->filters >>  8) & 0xff;
+      buf[2] = (dev->filters >> 16) & 0xff;
+      buf[3] = (dev->filters >> 24) & 0xff;
+-    ret = regmap_bulk_write(dev->regmap, 0x062, buf, 4);
++    ret = rtl2832_bulk_write(client, 0x062, buf, 4);
+      if (ret)
+          goto err;
+
+      /* add PID */
+      buf[0] = (pid >> 8) & 0xff;
+      buf[1] = (pid >> 0) & 0xff;
+-    ret = regmap_bulk_write(dev->regmap, 0x066 + 2 * index, buf, 2);
++    ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
+      if (ret)
+          goto err;
+
+And here's what the source file contains for the first reject:
+...
+     else
+         u8tmp = 0x00;
+
+     if (dev->slave_ts)
+         ret = regmap_update_bits(dev->regmap, 0x021, 0xc0, u8tmp);
+     else
+         ret = regmap_update_bits(dev->regmap, 0x061, 0xc0, u8tmp);
+     if (ret)
+         goto err;
+...
+
+Hope you can make the drivers compile again soon.
+
+. Andreas
+
+
+
