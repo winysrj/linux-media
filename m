@@ -1,60 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34823 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751745AbcF0STn (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47225 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964804AbcFMMRh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 14:19:43 -0400
-Subject: Re: [RESEND PATCH v2 1/5] ir-rx51: Fix build after multiarch changes
- broke it
-To: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
-References: <1466623341-30130-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1466623341-30130-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <201606231948.51640@pali>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org, pavel@ucw.cz,
-	Neil Armstrong <narmstrong@baylibre.com>
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Message-ID: <57716E27.2040702@gmail.com>
-Date: Mon, 27 Jun 2016 21:19:19 +0300
+	Mon, 13 Jun 2016 08:17:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran@ksquared.org.uk>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, linux-media@vger.kernel.org,
+	linux-renesas-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/3] dt-bindings: Update Renesas R-Car FCP DT binding
+Date: Mon, 13 Jun 2016 15:17:41 +0300
+Message-ID: <2159488.zJIIWenpjG@avalon>
+In-Reply-To: <1465479695-18644-2-git-send-email-kieran@bingham.xyz>
+References: <1465479695-18644-1-git-send-email-kieran@bingham.xyz> <1465479695-18644-2-git-send-email-kieran@bingham.xyz>
 MIME-Version: 1.0
-In-Reply-To: <201606231948.51640@pali>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Kieran,
 
+Thank you for the patch.
 
-On 23.06.2016 20:48, Pali Rohár wrote:
-> On Wednesday 22 June 2016 21:22:17 Ivaylo Dimitrov wrote:
->> The ir-rx51 driver for n900 has been disabled since the multiarch
->> changes as plat include directory no longer is SoC specific.
->>
->> Let's fix it with minimal changes to pass the dmtimer calls in
->> pdata. Then the following changes can be done while things can
->> be tested to be working for each change:
->>
->> 1. Change the non-pwm dmtimer to use just hrtimer if possible
->>
->> 2. Change the pwm dmtimer to use Linux PWM API with the new
->>     drivers/pwm/pwm-omap-dmtimer.c and remove the direct calls
->>     to dmtimer functions
->>
->> 3. Parse configuration from device tree and drop the pdata
->>
->> Note compilation of this depends on the previous patch
->> "ARM: OMAP2+: Add more functions to pwm pdata for ir-rx51".
->
-> I think that this extensive description is not needed for commit
-> message. Just for email discussion.
->
+On Thursday 09 Jun 2016 14:41:32 Kieran Bingham wrote:
+> The FCP driver, can also support the FCPF variant for FDP1 compatible
+> processing.
 
-I guess Tony can strip the description a bit before applying.
+With the comma dropped,
 
-Ivo
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+> ---
+>  Documentation/devicetree/bindings/media/renesas,fcp.txt | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/renesas,fcp.txt
+> b/Documentation/devicetree/bindings/media/renesas,fcp.txt index
+> 6a12960609d8..271dcfdb5a76 100644
+> --- a/Documentation/devicetree/bindings/media/renesas,fcp.txt
+> +++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
+> @@ -7,12 +7,14 @@ conversion of AXI transactions in order to reduce the
+> memory bandwidth.
+> 
+>  There are three types of FCP: FCP for Codec (FCPC), FCP for VSP (FCPV) and
+> FCP for FDP (FCPF). Their configuration and behaviour depend on the module
+> they -are paired with. These DT bindings currently support the FCPV only.
+> +are paired with. These DT bindings currently support the FCPV and FCPF.
+> 
+>   - compatible: Must be one or more of the following
+> 
+>     - "renesas,r8a7795-fcpv" for R8A7795 (R-Car H3) compatible 'FCP for VSP'
+> +   - "renesas,r8a7795-fcpf" for R8A7795 (R-Car H3) compatible 'FCP for
+> FDP' - "renesas,fcpv" for generic compatible 'FCP for VSP'
+> +   - "renesas,fcpf" for generic compatible 'FCP for FDP'
+> 
+>     When compatible with the generic version, nodes must list the
+>     SoC-specific version corresponding to the platform first, followed by
+> the
+
+-- 
+Regards,
+
+Laurent Pinchart
+
