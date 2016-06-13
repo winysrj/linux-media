@@ -1,57 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eumx.net ([91.82.101.43]:43277 "EHLO owm.eumx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752659AbcFPJsd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2016 05:48:33 -0400
-Subject: Re: [PATCH 00/38] i.MX5/6 Video Capture
-To: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	linux-media@vger.kernel.org
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
- <64c29bbc-2273-2a9d-3059-ab8f62dc531b@embed.me.uk>
- <576202D0.6010608@mentor.com>
-From: Jack Mitchell <ml@embed.me.uk>
-Message-ID: <597d73df-0fa0-fa8d-e0e5-0ad8b2c49bcf@embed.me.uk>
-Date: Thu, 16 Jun 2016 10:49:19 +0100
-MIME-Version: 1.0
-In-Reply-To: <576202D0.6010608@mentor.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from sirokuusama2.dnainternet.net ([83.102.40.153]:55214 "EHLO
+	sirokuusama2.dnainternet.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1423534AbcFMOLL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2016 10:11:11 -0400
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH] dw2102: add USB ID for Terratec Cinergy S2 Rev.3
+Date: Mon, 13 Jun 2016 17:04:50 +0300
+Message-Id: <1465826690-11770-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add the USB ID for Terratec Cinergy S2 Rev.3 (0ccd:0102).
 
-On 16/06/16 02:37, Steve Longerbeam wrote:
-> Hi Jack,
->
-> On 06/15/2016 03:43 AM, Jack Mitchell wrote:
->> <snip>
->> Trying to use a user pointer rather than mmap also fails and causes a kernel splat.
->>
->
-> Hmm, I've tested userptr with the mem2mem driver, but maybe never
-> with video capture. I tried "v4l2-ctl -d/dev/video0 --stream-user=8" but
-> that returns "VIDIOC_QBUF: failed: Invalid argument", haven't tracked
-> down why (could be a bug in v4l2-ctl). Can you share the splat?
->
+Curiously dvb-usb-ids included already the USB ID for TERRATEC_CINERGY_S2_R3 even if the device was not supported.
 
-On re-checking the splat was the same v4l_cropcap that was mentioned 
-before so I don't think it's related. The error I get back is:
+Reported-by: Christian Knippel <namerp@googlemail.com>
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/usb/dvb-usb/dw2102.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-VIDIOC_QBUF error 22, Invalid argument
+diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
+index 49b55d7..961f64e 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.c
++++ b/drivers/media/usb/dvb-usb/dw2102.c
+@@ -1641,6 +1641,7 @@ enum dw2102_table_entry {
+ 	TEVII_S421,
+ 	TEVII_S632,
+ 	TERRATEC_CINERGY_S2_R2,
++	TERRATEC_CINERGY_S2_R3,
+ 	GOTVIEW_SAT_HD,
+ 	GENIATECH_T220,
+ 	TECHNOTREND_S2_4600,
+@@ -1669,6 +1670,7 @@ static struct usb_device_id dw2102_table[] = {
+ 	[TEVII_S421] = {USB_DEVICE(0x9022, USB_PID_TEVII_S421)},
+ 	[TEVII_S632] = {USB_DEVICE(0x9022, USB_PID_TEVII_S632)},
+ 	[TERRATEC_CINERGY_S2_R2] = {USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_S2_R2)},
++	[TERRATEC_CINERGY_S2_R3] = {USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_S2_R3)},
+ 	[GOTVIEW_SAT_HD] = {USB_DEVICE(0x1FE1, USB_PID_GOTVIEW_SAT_HD)},
+ 	[GENIATECH_T220] = {USB_DEVICE(0x1f4d, 0xD220)},
+ 	[TECHNOTREND_S2_4600] = {USB_DEVICE(USB_VID_TECHNOTREND,
+@@ -2083,7 +2085,7 @@ static struct dvb_usb_device_properties su3000_properties = {
+ 		}},
+ 		}
+ 	},
+-	.num_device_descs = 5,
++	.num_device_descs = 6,
+ 	.devices = {
+ 		{ "SU3000HD DVB-S USB2.0",
+ 			{ &dw2102_table[GENIATECH_SU3000], NULL },
+@@ -2101,6 +2103,10 @@ static struct dvb_usb_device_properties su3000_properties = {
+ 			{ &dw2102_table[TERRATEC_CINERGY_S2_R2], NULL },
+ 			{ NULL },
+ 		},
++		{ "Terratec Cinergy S2 USB HD Rev.3",
++			{ &dw2102_table[TERRATEC_CINERGY_S2_R3], NULL },
++			{ NULL },
++		},
+ 		{ "GOTVIEW Satellite HD",
+ 			{ &dw2102_table[GOTVIEW_SAT_HD], NULL },
+ 			{ NULL },
+-- 
+2.5.0
 
-I'm using the example program the the v4l2 docs [1].
-
-Cheers,
-Jack
-
-[1] https://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html
-
->
->> Apart from that and a few v4l2-compliance tests failing which you already mentioned, it seems to work OK. I'll try and do some more testing and see if I can come back with some more feedback.
->
-> Thanks!
->
->
-> Steve
->
