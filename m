@@ -1,58 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:48257 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754038AbcFPVlW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2016 17:41:22 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH 3/6] [media] s5p-jpeg: set capablity bus_info as required by VIDIOC_QUERYCAP
-Date: Thu, 16 Jun 2016 17:40:32 -0400
-Message-Id: <1466113235-25909-4-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1466113235-25909-1-git-send-email-javier@osg.samsung.com>
-References: <1466113235-25909-1-git-send-email-javier@osg.samsung.com>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:36740 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753042AbcFNWve (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2016 18:51:34 -0400
+Received: by mail-pf0-f196.google.com with SMTP id 62so299545pfd.3
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:33 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 38/38] ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
+Date: Tue, 14 Jun 2016 15:49:34 -0700
+Message-Id: <1465944574-15745-39-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver doesn't set the struct v4l2_capability cap_info field so the
-v4l2-compliance tool reports the following errors for VIDIOC_QUERYCAP:
+Enable imx v4l2 staging drivers. For video capture on
+the SabreAuto, the ADV7180 video decoder also requires the
+i2c-mux-gpio and the max7310 port expander.
 
-Required ioctls:
-                VIDIOC_QUERYCAP returned 0 (Success)
-                fail: v4l2-compliance.cpp(304): string empty
-                fail: v4l2-compliance.cpp(528): check_ustring(vcap.bus_info, sizeof(vcap.bus_info))
-        test VIDIOC_QUERYCAP: FAIL
-
-This patch fixes by setting the field in VIDIOC_QUERYCAP ioctl handler:
-
-Required ioctls:
-                VIDIOC_QUERYCAP returned 0 (Success)
-        test VIDIOC_QUERYCAP: OK
-
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
+ arch/arm/configs/imx_v6_v7_defconfig | 2 ++
+ 1 file changed, 2 insertions(+)
 
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 17bc94092864..e3ff3d4bd72e 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1256,7 +1256,8 @@ static int s5p_jpeg_querycap(struct file *file, void *priv,
- 		strlcpy(cap->card, S5P_JPEG_M2M_NAME " decoder",
- 			sizeof(cap->card));
- 	}
--	cap->bus_info[0] = 0;
-+	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-+		 dev_name(ctx->jpeg->dev));
- 	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
+diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
+index 21339ce..8b1590a 100644
+--- a/arch/arm/configs/imx_v6_v7_defconfig
++++ b/arch/arm/configs/imx_v6_v7_defconfig
+@@ -327,6 +327,8 @@ CONFIG_FSL_EDMA=y
+ CONFIG_IMX_SDMA=y
+ CONFIG_MXS_DMA=y
+ CONFIG_STAGING=y
++CONFIG_STAGING_MEDIA=y
++CONFIG_VIDEO_IMX=y
+ # CONFIG_IOMMU_SUPPORT is not set
+ CONFIG_IIO=y
+ CONFIG_VF610_ADC=y
 -- 
-2.5.5
+1.9.1
 
