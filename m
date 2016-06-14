@@ -1,208 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43484 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751914AbcF2Wng (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33306 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752618AbcFNS0V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2016 18:43:36 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Ira Krufky <mkrufky@linuxtv.org>
-Subject: [PATCH 10/10] lgdt3306a: better handle RF fake strength
-Date: Wed, 29 Jun 2016 19:43:26 -0300
-Message-Id: <1b52edc257e266b814302fb3f5035b66104ebffb.1467240152.git.mchehab@s-opensource.com>
-In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
-References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
-In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
-References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
+	Tue, 14 Jun 2016 14:26:21 -0400
+Date: Tue, 14 Jun 2016 20:26:15 +0200
+From: Richard Cochran <richardcochran@gmail.com>
+To: Henrik Austad <henrik@austad.us>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Arnd Bergmann <arnd@linaro.org>
+Subject: Re: [very-RFC 0/8] TSN driver for the kernel
+Message-ID: <20160614182615.GA2741@netboy>
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
+ <20160613114713.GA9544@localhost.localdomain>
+ <20160613130059.GA20320@sisyphus.home.austad.us>
+ <20160613193208.GA2441@netboy>
+ <20160614093000.GB21689@sisyphus.home.austad.us>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160614093000.GB21689@sisyphus.home.austad.us>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's a logic at lgdt3306a with emulates the signal strength
-via SNR measures. Such logic should be used for dvbv5 stats
-as well, so change the code to provide a more coherent
-data to userspace.
+On Tue, Jun 14, 2016 at 11:30:00AM +0200, Henrik Austad wrote:
+> So loop data from kernel -> userspace -> kernelspace and finally back to 
+> userspace and the media application?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-frontends/lgdt3306a.c | 121 ++++++++++++++++++--------------
- 1 file changed, 67 insertions(+), 54 deletions(-)
+Huh?  I wonder where you got that idea.  Let me show an example of
+what I mean.
 
-diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-index 6b686c3a44ce..446dc264701a 100644
---- a/drivers/media/dvb-frontends/lgdt3306a.c
-+++ b/drivers/media/dvb-frontends/lgdt3306a.c
-@@ -65,6 +65,7 @@ struct lgdt3306a_state {
- 	enum fe_modulation current_modulation;
- 	u32 current_frequency;
- 	u32 snr;
-+	u16 strength;
- };
- 
- /*
-@@ -1573,10 +1574,74 @@ lgdt3306a_qam_lock_poll(struct lgdt3306a_state *state)
- 	return LG3306_UNLOCK;
- }
- 
-+
-+static u16 lgdt3306a_fake_strength(struct dvb_frontend *fe)
-+{
-+	struct lgdt3306a_state *state = fe->demodulator_priv;
-+	u16 snr; /* snr_x10 */
-+	int ret;
-+	u32 ref_snr; /* snr*100 */
-+	u32 str;
-+
-+	/*
-+	 * Calculate some sort of "strength" from SNR
-+	 */
-+
-+	switch (state->current_modulation) {
-+	case VSB_8:
-+		 ref_snr = 1600; /* 16dB */
-+		 break;
-+	case QAM_64:
-+		 ref_snr = 2200; /* 22dB */
-+		 break;
-+	case QAM_256:
-+		 ref_snr = 2800; /* 28dB */
-+		 break;
-+	default:
-+		return 0;
-+	}
-+
-+	ret = fe->ops.read_snr(fe, &snr);
-+	if (lg_chkerr(ret))
-+		return 0;
-+
-+	if (state->snr <= (ref_snr - 100))
-+		str = 0;
-+	else if (state->snr <= ref_snr)
-+		str = (0xffff * 65) / 100; /* 65% */
-+	else {
-+		str = state->snr - ref_snr;
-+		str /= 50;
-+		str += 78; /* 78%-100% */
-+		if (str > 100)
-+			str = 100;
-+		str = (0xffff * str) / 100;
-+	}
-+
-+	return (u16)str;
-+}
-+
- static void lgdt3306a_get_stats(struct dvb_frontend *fe, enum fe_status status)
- {
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct lgdt3306a_state *state = fe->demodulator_priv;
-+	int ret;
-+
-+	if (fe->ops.tuner_ops.get_rf_strength) {
-+		state->strength = 0;
-+
-+		ret = fe->ops.tuner_ops.get_rf_strength(fe, &state->strength);
-+		if (ret == 0)
-+			dbg_info("strength=%d\n", state->strength);
-+		else
-+			dbg_info("fe->ops.tuner_ops.get_rf_strength() failed\n");
-+
-+	} else {
-+		state->strength = lgdt3306a_fake_strength(fe);
-+		p->cnr.stat[0].scale = FE_SCALE_RELATIVE;
-+
-+		dbg_info("strength=%d\n", state->strength);
-+	}
- 
- 	if (!(status & FE_HAS_LOCK))
- 		return;
-@@ -1589,17 +1654,8 @@ static int lgdt3306a_read_status(struct dvb_frontend *fe,
- 				 enum fe_status *status)
- {
- 	struct lgdt3306a_state *state = fe->demodulator_priv;
--	u16 strength = 0;
- 	int ret = 0;
- 
--	if (fe->ops.tuner_ops.get_rf_strength) {
--		ret = fe->ops.tuner_ops.get_rf_strength(fe, &strength);
--		if (ret == 0)
--			dbg_info("strength=%d\n", strength);
--		else
--			dbg_info("fe->ops.tuner_ops.get_rf_strength() failed\n");
--	}
--
- 	*status = 0;
- 	if (lgdt3306a_neverlock_poll(state) == LG3306_NL_LOCK) {
- 		*status |= FE_HAS_SIGNAL;
-@@ -1633,13 +1689,11 @@ static int lgdt3306a_read_status(struct dvb_frontend *fe,
- 		state->snr = 0;
- 	}
- 
--
- 	lgdt3306a_get_stats(fe, *status);
- 
- 	return ret;
- }
- 
--
- static int lgdt3306a_read_snr(struct dvb_frontend *fe, u16 *snr)
- {
- 	struct lgdt3306a_state *state = fe->demodulator_priv;
-@@ -1652,52 +1706,11 @@ static int lgdt3306a_read_snr(struct dvb_frontend *fe, u16 *snr)
- static int lgdt3306a_read_signal_strength(struct dvb_frontend *fe,
- 					 u16 *strength)
- {
--	/*
--	 * Calculate some sort of "strength" from SNR
--	 */
- 	struct lgdt3306a_state *state = fe->demodulator_priv;
--	u16 snr; /* snr_x10 */
--	int ret;
--	u32 ref_snr; /* snr*100 */
--	u32 str;
- 
--	*strength = 0;
-+	*strength = state->strength;
- 
--	switch (state->current_modulation) {
--	case VSB_8:
--		 ref_snr = 1600; /* 16dB */
--		 break;
--	case QAM_64:
--		 ref_snr = 2200; /* 22dB */
--		 break;
--	case QAM_256:
--		 ref_snr = 2800; /* 28dB */
--		 break;
--	default:
--		return -EINVAL;
--	}
--
--	ret = fe->ops.read_snr(fe, &snr);
--	if (lg_chkerr(ret))
--		goto fail;
--
--	if (state->snr <= (ref_snr - 100))
--		str = 0;
--	else if (state->snr <= ref_snr)
--		str = (0xffff * 65) / 100; /* 65% */
--	else {
--		str = state->snr - ref_snr;
--		str /= 50;
--		str += 78; /* 78%-100% */
--		if (str > 100)
--			str = 100;
--		str = (0xffff * str) / 100;
--	}
--	*strength = (u16)str;
--	dbg_info("strength=%u\n", *strength);
--
--fail:
--	return ret;
-+	return 0;
- }
- 
- /* ------------------------------------------------------------------------ */
--- 
-2.7.4
+	void listener()
+	{
+		int in = socket();
+		int out = open("/dev/dsp");
+		char buf[];
 
+		while (1) {
+			recv(in, buf, packetsize);
+			write(out, buf + offset, datasize);
+		}
+	}
+
+See?
+
+> Yes, I know some audio apps "use networking", I can stream netradio, I can 
+> use jack to connect devices using RTP and probably a whole lot of other 
+> applications do similar things. However, AVB is more about using the 
+> network as a virtual sound-card.
+
+That is news to me.  I don't recall ever having seen AVB described
+like that before.
+
+> For the media application, it should not 
+> have to care if the device it is using is a soudncard inside the box or a 
+> set of AVB-capable speakers somewhere on the network.
+
+So you would like a remote listener to appear in the system as a local
+PCM audio sink?  And a remote talker would be like a local media URL?
+Sounds unworkable to me, but even if you were to implement it, the
+logic would surely belong in alsa-lib and not in the kernel.  Behind
+the enulated device, the library would run a loop like the example,
+above.
+
+In any case, your patches don't implement that sort of thing at all,
+do they?
+
+Thanks,
+Richard
