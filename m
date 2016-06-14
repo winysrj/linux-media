@@ -1,72 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:3879 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750787AbcFVWIm (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:34655 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751190AbcFNWvF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2016 18:08:42 -0400
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	nick.dyer@itdev.co.uk
-Subject: [PATCH v5 0/9] Output raw touch data via V4L2
-Date: Wed, 22 Jun 2016 23:08:24 +0100
-Message-Id: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
+	Tue, 14 Jun 2016 18:51:05 -0400
+Received: by mail-pf0-f193.google.com with SMTP id 66so305533pfy.1
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:04 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 00/38] i.MX5/6 Video Capture
+Date: Tue, 14 Jun 2016 15:48:56 -0700
+Message-Id: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a series of patches to add output of raw touch diagnostic data via V4L2
-to the Atmel maXTouch and Synaptics RMI4 drivers.
+Tested on imx6q SabreAuto with ADV7180, and imx6q SabreSD with
+mipi-csi2 OV5640. There is device-tree support also for imx6qdl
+SabreLite, but that is not tested. Also, this driver should
+theoretically work on i.MX5 targets, but that is also untested.
 
-It's a rewrite of the previous implementation which output via debugfs: it now
-uses a V4L2 device in a similar way to the sur40 driver.
+Not run through v4l2-compliance yet, but that is in my queue.
 
-We have a utility which can read the data and display it in a useful format:
-    https://github.com/ndyer/heatmap/commits/heatmap-v4l
 
-These patches are also available from
-    https://github.com/ndyer/linux/commits/v4l-touch-2016-06-22
+Philipp Zabel (2):
+  ARM: dts: imx6qdl: Add mipi_ipu1/2 video muxes, mipi_csi, and their
+    connections
+  media: imx: Add video switch
 
-Changes in v5 (Hans Verkuil review):
-- Update v4l2-core:
-  - Add VFL_TYPE_TOUCH, V4L2_BUF_TYPE_TOUCH_CAPTURE and V4L2_CAP_TOUCH
-  - Change V4L2_INPUT_TYPE_TOUCH_SENSOR to V4L2_INPUT_TYPE_TOUCH
-  - Improve DocBook documentation
-  - Add FMT definitions for touch data
-  - Note this will need the latest version of the heatmap util
-- Synaptics RMI4 driver:
-  - Remove some less important non full frame report types
-  - Switch report type names to const char * array
-  - Move a static array to inside context struct
-- Split sur40 changes to a separate commit
+Steve Longerbeam (35):
+  gpu: ipu-v3: Add Video Deinterlacer unit
+  gpu: ipu-cpmem: Add ipu_cpmem_set_uv_offset()
+  gpu: ipu-cpmem: Add ipu_cpmem_get_burstsize()
+  gpu: ipu-v3: Add ipu_get_num()
+  gpu: ipu-v3: Add IDMA channel linking support
+  gpu: ipu-v3: Add ipu_set_vdi_src_mux()
+  gpu: ipu-v3: Add VDI input IDMAC channels
+  gpu: ipu-v3: Add ipu_csi_set_src()
+  gpu: ipu-v3: Add ipu_ic_set_src()
+  gpu: ipu-v3: set correct full sensor frame for PAL/NTSC
+  gpu: ipu-v3: Fix CSI data format for 16-bit media bus formats
+  gpu: ipu-v3: Fix IRT usage
+  gpu: ipu-ic: Add complete image conversion support with tiling
+  gpu: ipu-ic: allow multiple handles to ic
+  gpu: ipu-v3: rename CSI client device
+  ARM: dts: imx6qdl: Flesh out MIPI CSI2 receiver node
+  ARM: dts: imx6-sabrelite: add video capture ports and connections
+  ARM: dts: imx6-sabresd: add video capture ports and connections
+  ARM: dts: imx6-sabreauto: create i2cmux for i2c3
+  ARM: dts: imx6-sabreauto: add reset-gpios property for max7310
+  ARM: dts: imx6-sabreauto: add pinctrl for gpt input capture
+  ARM: dts: imx6-sabreauto: add video capture ports and connections
+  ARM: dts: imx6qdl: add mem2mem device for sabre* boards
+  gpio: pca953x: Add reset-gpios property
+  clocksource/drivers/imx: add input capture support
+  v4l: Add signal lock status to source change events
+  media: Add camera interface driver for i.MX5/6
+  media: imx: Add MIPI CSI-2 Receiver driver
+  media: imx: Add support for MIPI CSI-2 OV5640
+  media: imx: Add support for Parallel OV5642
+  media: imx: Add support for ADV7180 Video Decoder
+  media: adv7180: add power pin control
+  media: adv7180: implement g_parm
+  media: Add i.MX5/6 mem2mem driver
+  ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
 
-Changes in v4:
-- Address nits from the input side in atmel_mxt_ts patches (Dmitry Torokhov)
-- Add Synaptics RMI4 F54 support patch
+Suresh Dhandapani (1):
+  gpu: ipu-v3: Fix CSI0 blur in NTSC format
 
-Changes in v3:
-- Address V4L2 review comments from Hans Verkuil
-- Run v4l-compliance and fix all issues - needs minor patch here:
-  https://github.com/ndyer/v4l-utils/commit/cf50469773f
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   12 +-
+ Documentation/devicetree/bindings/media/imx.txt    |  449 ++
+ Documentation/video4linux/imx_camera.txt           |  243 ++
+ arch/arm/boot/dts/imx6dl-sabresd.dts               |   44 +
+ arch/arm/boot/dts/imx6dl.dtsi                      |  183 +
+ arch/arm/boot/dts/imx6q-sabreauto.dts              |    7 +
+ arch/arm/boot/dts/imx6q-sabrelite.dts              |    6 +
+ arch/arm/boot/dts/imx6q-sabresd.dts                |   22 +
+ arch/arm/boot/dts/imx6q.dtsi                       |  120 +
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi           |  166 +-
+ arch/arm/boot/dts/imx6qdl-sabrelite.dtsi           |   95 +
+ arch/arm/boot/dts/imx6qdl-sabresd.dtsi             |  145 +-
+ arch/arm/boot/dts/imx6qdl.dtsi                     |   13 +
+ arch/arm/configs/imx_v6_v7_defconfig               |    2 +
+ drivers/clocksource/timer-imx-gpt.c                |  463 ++-
+ drivers/gpio/gpio-pca953x.c                        |   28 +
+ drivers/gpu/ipu-v3/Makefile                        |    2 +-
+ drivers/gpu/ipu-v3/ipu-common.c                    |  155 +-
+ drivers/gpu/ipu-v3/ipu-cpmem.c                     |   13 +
+ drivers/gpu/ipu-v3/ipu-csi.c                       |   36 +-
+ drivers/gpu/ipu-v3/ipu-ic.c                        | 1769 +++++++-
+ drivers/gpu/ipu-v3/ipu-prv.h                       |    7 +
+ drivers/gpu/ipu-v3/ipu-vdi.c                       |  266 ++
+ drivers/media/i2c/adv7180.c                        |   73 +
+ drivers/staging/media/Kconfig                      |    2 +
+ drivers/staging/media/Makefile                     |    1 +
+ drivers/staging/media/imx/Kconfig                  |   35 +
+ drivers/staging/media/imx/Makefile                 |    2 +
+ drivers/staging/media/imx/capture/Kconfig          |   42 +
+ drivers/staging/media/imx/capture/Makefile         |   10 +
+ drivers/staging/media/imx/capture/adv7180.c        | 1533 +++++++
+ drivers/staging/media/imx/capture/imx-camif.c      | 2496 +++++++++++
+ drivers/staging/media/imx/capture/imx-camif.h      |  281 ++
+ drivers/staging/media/imx/capture/imx-csi.c        |  195 +
+ drivers/staging/media/imx/capture/imx-ic-prpenc.c  |  660 +++
+ drivers/staging/media/imx/capture/imx-of.c         |  354 ++
+ drivers/staging/media/imx/capture/imx-of.h         |   18 +
+ drivers/staging/media/imx/capture/imx-smfc.c       |  505 +++
+ drivers/staging/media/imx/capture/imx-vdic.c       |  994 +++++
+ .../staging/media/imx/capture/imx-video-switch.c   |  348 ++
+ drivers/staging/media/imx/capture/mipi-csi2.c      |  373 ++
+ drivers/staging/media/imx/capture/ov5640-mipi.c    | 2318 +++++++++++
+ drivers/staging/media/imx/capture/ov5642.c         | 4333 ++++++++++++++++++++
+ drivers/staging/media/imx/m2m/Makefile             |    1 +
+ drivers/staging/media/imx/m2m/imx-m2m.c            | 1049 +++++
+ include/linux/mxc_icap.h                           |   20 +
+ include/media/imx.h                                |   15 +
+ include/uapi/Kbuild                                |    1 +
+ include/uapi/linux/v4l2-controls.h                 |    8 +
+ include/uapi/linux/videodev2.h                     |    1 +
+ include/uapi/media/Kbuild                          |    3 +
+ include/uapi/media/adv718x.h                       |   42 +
+ include/uapi/media/imx.h                           |   22 +
+ include/video/imx-ipu-v3.h                         |   96 +-
+ 54 files changed, 19946 insertions(+), 131 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/imx.txt
+ create mode 100644 Documentation/video4linux/imx_camera.txt
+ create mode 100644 drivers/gpu/ipu-v3/ipu-vdi.c
+ create mode 100644 drivers/staging/media/imx/Kconfig
+ create mode 100644 drivers/staging/media/imx/Makefile
+ create mode 100644 drivers/staging/media/imx/capture/Kconfig
+ create mode 100644 drivers/staging/media/imx/capture/Makefile
+ create mode 100644 drivers/staging/media/imx/capture/adv7180.c
+ create mode 100644 drivers/staging/media/imx/capture/imx-camif.c
+ create mode 100644 drivers/staging/media/imx/capture/imx-camif.h
+ create mode 100644 drivers/staging/media/imx/capture/imx-csi.c
+ create mode 100644 drivers/staging/media/imx/capture/imx-ic-prpenc.c
+ create mode 100644 drivers/staging/media/imx/capture/imx-of.c
+ create mode 100644 drivers/staging/media/imx/capture/imx-of.h
+ create mode 100644 drivers/staging/media/imx/capture/imx-smfc.c
+ create mode 100644 drivers/staging/media/imx/capture/imx-vdic.c
+ create mode 100644 drivers/staging/media/imx/capture/imx-video-switch.c
+ create mode 100644 drivers/staging/media/imx/capture/mipi-csi2.c
+ create mode 100644 drivers/staging/media/imx/capture/ov5640-mipi.c
+ create mode 100644 drivers/staging/media/imx/capture/ov5642.c
+ create mode 100644 drivers/staging/media/imx/m2m/Makefile
+ create mode 100644 drivers/staging/media/imx/m2m/imx-m2m.c
+ create mode 100644 include/linux/mxc_icap.h
+ create mode 100644 include/media/imx.h
+ create mode 100644 include/uapi/media/Kbuild
+ create mode 100644 include/uapi/media/adv718x.h
+ create mode 100644 include/uapi/media/imx.h
 
-Changes in v2:
-- Split pixfmt changes into separate commit and add DocBook
-- Introduce VFL_TYPE_TOUCH_SENSOR and /dev/v4l-touch
-- Remove "single node" support for now, it may be better to treat it as
-  metadata later
-- Explicitly set VFL_DIR_RX
-- Fix Kconfig
+-- 
+1.9.1
 
