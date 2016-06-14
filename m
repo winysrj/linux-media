@@ -1,105 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:37929 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751543AbcFVMAA (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:36650 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752963AbcFNWvM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2016 08:00:00 -0400
-Date: Wed, 22 Jun 2016 13:52:18 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com,
-	sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-	patrikbachan@gmail.com, serge@hallyn.com, tuukkat76@gmail.com,
-	mchehab@osg.samsung.com, linux-media@vger.kernel.org
-Subject: Re: camera application for testing (was Re: v4l subdevs without big
- device)
-Message-ID: <20160622115218.GA27606@amd>
-References: <20160428084546.GA9957@amd>
- <20160429221359.GA29297@amd>
- <20160501140831.GH26360@valkosipuli.retiisi.org.uk>
- <1500395.gQ70N9eqVS@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1500395.gQ70N9eqVS@avalon>
+	Tue, 14 Jun 2016 18:51:12 -0400
+Received: by mail-pf0-f196.google.com with SMTP id 62so298593pfd.3
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:12 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 10/38] gpu: ipu-v3: set correct full sensor frame for PAL/NTSC
+Date: Tue, 14 Jun 2016 15:49:06 -0700
+Message-Id: <1465944574-15745-11-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Set the sensor full frame based on whether the passed in mbus_fmt
+is 720x480 (NTSC) or 720x576 (PAL).
 
-> > I think libv4l itself has algorithms to control at least some of these. It
-> > relies on the image data so the CPU time consumption will be high.
-> > 
-> > AFAIR Laurent has also worked on implementing some algorithms that use the
-> > histogram and some of the statistics. Add him to cc list.
-> 
-> http://git.ideasonboard.org/omap3-isp-live.git
-> 
-> That's outdated and might not run or compile anymore. The code is
-> more of a
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/gpu/ipu-v3/ipu-csi.c | 20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-Lets see, it compiles with this hack:
-
-index 6f3ffbe..935f41d 100644
---- a/isp/v4l2.c
-+++ b/isp/v4l2.c
-@@ -292,7 +292,7 @@ struct v4l2_device *v4l2_open(const char *devname)
-         * driver (>= v3.19) will set both CAPTURE and OUTPUT in the
-         * capabilities field.
-         */
--       capabilities = cap.device_caps ? : cap.capabilities;
-+       capabilities = /* cap.device_caps ? : */ cap.capabilities;
- 
-        if (capabilities & V4L2_CAP_VIDEO_CAPTURE)
-                dev->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
-
-I can try to run it, but I guess I'll need kernel with camera support.
-
-pavel@n900:/my/omap3-isp-live$ LD_LIBRARY_PATH=isp ./snapshot
-media_open: Can't open media device /dev/media0
-error: unable to open media device /dev/media0
-Segmentation fault (core dumped)
-
-I tried again on kernel with camera:
-
-pavel@n900:/my/omap3-isp-live$ LD_LIBRARY_PATH=isp ./snapshot
-error: unable to locate sensor.
-Segmentation fault (core dumped)
-pavel@n900:/my/omap3-isp-live$
-
-Here's the fix for coredump:
-
-diff --git a/isp/subdev.c b/isp/subdev.c
-index 9b36234..c74514e 100644
---- a/isp/subdev.c
-+++ b/isp/subdev.c
-@@ -75,6 +75,8 @@ int v4l2_subdev_open(struct media_entity *entity)
- 
- void v4l2_subdev_close(struct media_entity *entity)
+diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
+index 336dc06..07c7091 100644
+--- a/drivers/gpu/ipu-v3/ipu-csi.c
++++ b/drivers/gpu/ipu-v3/ipu-csi.c
+@@ -365,10 +365,14 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
  {
-+  if (!entity)
-+    return;
-        if (entity->fd == -1)
-                return;
-
-Let me investigate some more.
-
-> proof of concept implementation, but it could be used as a starting point. 
-> With an infinite amount of free time I'd love to work on an open-source 
-> project for computational cameras, integrating it with libv4l.
-
-For the record, I pushed my code to
-
-https://gitlab.com/pavelm/fcam-dev
-
-Best regards,
-
-									Pavel
+ 	struct ipu_csi_bus_config cfg;
+ 	unsigned long flags;
+-	u32 data = 0;
++	u32 width, height, data = 0;
+ 
+ 	fill_csi_bus_cfg(&cfg, mbus_cfg, mbus_fmt);
+ 
++	/* set default sensor frame width and height */
++	width = mbus_fmt->width;
++	height = mbus_fmt->height;
++
+ 	/* Set the CSI_SENS_CONF register remaining fields */
+ 	data |= cfg.data_width << CSI_SENS_CONF_DATA_WIDTH_SHIFT |
+ 		cfg.data_fmt << CSI_SENS_CONF_DATA_FMT_SHIFT |
+@@ -386,11 +390,6 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
+ 
+ 	ipu_csi_write(csi, data, CSI_SENS_CONF);
+ 
+-	/* Setup sensor frame size */
+-	ipu_csi_write(csi,
+-		      (mbus_fmt->width - 1) | ((mbus_fmt->height - 1) << 16),
+-		      CSI_SENS_FRM_SIZE);
+-
+ 	/* Set CCIR registers */
+ 
+ 	switch (cfg.clk_mode) {
+@@ -408,11 +407,12 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
+ 			 * Field1BlankEnd = 0x7, Field1BlankStart = 0x3,
+ 			 * Field1ActiveEnd = 0x5, Field1ActiveStart = 0x1
+ 			 */
++			height = 625; /* framelines for PAL */
++
+ 			ipu_csi_write(csi, 0x40596 | CSI_CCIR_ERR_DET_EN,
+ 					  CSI_CCIR_CODE_1);
+ 			ipu_csi_write(csi, 0xD07DF, CSI_CCIR_CODE_2);
+ 			ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+-
+ 		} else if (mbus_fmt->width == 720 && mbus_fmt->height == 480) {
+ 			/*
+ 			 * NTSC case
+@@ -422,6 +422,8 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
+ 			 * Field1BlankEnd = 0x6, Field1BlankStart = 0x2,
+ 			 * Field1ActiveEnd = 0x4, Field1ActiveStart = 0
+ 			 */
++			height = 525; /* framelines for NTSC */
++
+ 			ipu_csi_write(csi, 0xD07DF | CSI_CCIR_ERR_DET_EN,
+ 					  CSI_CCIR_CODE_1);
+ 			ipu_csi_write(csi, 0x40596, CSI_CCIR_CODE_2);
+@@ -447,6 +449,10 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
+ 		break;
+ 	}
+ 
++	/* Setup sensor frame size */
++	ipu_csi_write(csi, (width - 1) | ((height - 1) << 16),
++		      CSI_SENS_FRM_SIZE);
++
+ 	dev_dbg(csi->ipu->dev, "CSI_SENS_CONF = 0x%08X\n",
+ 		ipu_csi_read(csi, CSI_SENS_CONF));
+ 	dev_dbg(csi->ipu->dev, "CSI_ACT_FRM_SIZE = 0x%08X\n",
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.9.1
+
