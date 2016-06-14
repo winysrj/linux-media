@@ -1,597 +1,1159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:47592 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932121AbcF3I3T (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:33558 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753028AbcFNWvd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2016 04:29:19 -0400
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, hch@infradead.org,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Vineet Gupta <vgupta@synopsys.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Stefano Stabellini <sstabellini@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will.deacon@arm.com>,
-	Haavard Skinnemoen <hskinnemoen@gmail.com>,
-	Hans-Christian Egtvedt <egtvedt@samfundet.no>,
-	Tony Luck <tony.luck@intel.com>,
-	Fenghua Yu <fenghua.yu@intel.com>,
-	James Hogan <james.hogan@imgtec.com>,
-	Ralf Baechle <ralf@linux-mips.org>,
-	Jonas Bonn <jonas@southpole.se>,
-	"James E.J. Bottomley" <jejb@parisc-linux.org>,
-	Helge Deller <deller@gmx.de>, Arnd Bergmann <arnd@arndb.de>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	Paul Mackerras <paulus@samba.org>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Mark Yao <mark.yao@rock-chips.com>,
-	David Airlie <airlied@linux.ie>,
-	Heiko Stuebner <heiko@sntech.de>,
-	Joerg Roedel <joro@8bytes.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-doc@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org,
-	xen-devel@lists.xenproject.org, linux-ia64@vger.kernel.org,
-	linux-metag@vger.kernel.org, linux-mips@linux-mips.org,
-	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	dri-devel@lists.freedesktop.org,
-	linux-rockchip@lists.infradead.org,
-	iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
-Subject: [PATCH v5 43/44] dma-mapping: Remove dma_get_attr
-Date: Thu, 30 Jun 2016 10:26:10 +0200
-Message-id: <1467275171-6298-43-git-send-email-k.kozlowski@samsung.com>
-In-reply-to: <1467275171-6298-1-git-send-email-k.kozlowski@samsung.com>
-References: <1467275019-30789-1-git-send-email-k.kozlowski@samsung.com>
- <1467275171-6298-1-git-send-email-k.kozlowski@samsung.com>
+	Tue, 14 Jun 2016 18:51:33 -0400
+Received: by mail-pf0-f196.google.com with SMTP id c74so307200pfb.0
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:33 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 37/38] media: Add i.MX5/6 mem2mem driver
+Date: Tue, 14 Jun 2016 15:49:33 -0700
+Message-Id: <1465944574-15745-38-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After switching DMA attributes to unsigned long it is easier to just
-compare the bits.
+Adds a V4L2 mem2mem driver for i.MX5/6 SoC. Uses the IPU IC image
+converter (post-processor task) to perform scaling, rotation, and
+color space conversion.
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-[for avr32]
-Acked-by: Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>
-[for arc]
-Acked-by: Vineet Gupta <vgupta@synopsys.com>
-[for arm64 and dma-iommu]
-Acked-by: Robin Murphy <robin.murphy@arm.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- Documentation/DMA-API.txt                      |  4 +--
- arch/arc/mm/dma.c                              |  4 +--
- arch/arm/mm/dma-mapping.c                      | 36 ++++++++++++--------------
- arch/arm/xen/mm.c                              |  4 +--
- arch/arm64/mm/dma-mapping.c                    | 10 +++----
- arch/avr32/mm/dma-coherent.c                   |  4 +--
- arch/ia64/sn/pci/pci_dma.c                     | 10 ++-----
- arch/metag/kernel/dma.c                        |  2 +-
- arch/mips/mm/dma-default.c                     |  6 ++---
- arch/openrisc/kernel/dma.c                     |  4 +--
- arch/parisc/kernel/pci-dma.c                   |  2 +-
- arch/powerpc/platforms/cell/iommu.c            | 12 ++++-----
- drivers/gpu/drm/rockchip/rockchip_drm_gem.c    |  2 +-
- drivers/iommu/dma-iommu.c                      |  2 +-
- drivers/media/v4l2-core/videobuf2-dma-contig.c |  2 +-
- include/linux/dma-mapping.h                    | 10 -------
- 16 files changed, 47 insertions(+), 67 deletions(-)
+ Documentation/devicetree/bindings/media/imx.txt |   25 +-
+ drivers/staging/media/imx/Kconfig               |   12 +
+ drivers/staging/media/imx/Makefile              |    1 +
+ drivers/staging/media/imx/m2m/Makefile          |    1 +
+ drivers/staging/media/imx/m2m/imx-m2m.c         | 1049 +++++++++++++++++++++++
+ 5 files changed, 1087 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/staging/media/imx/m2m/Makefile
+ create mode 100644 drivers/staging/media/imx/m2m/imx-m2m.c
 
-diff --git a/Documentation/DMA-API.txt b/Documentation/DMA-API.txt
-index 24f9688bb98a..1d26eeb6b5f6 100644
---- a/Documentation/DMA-API.txt
-+++ b/Documentation/DMA-API.txt
-@@ -422,9 +422,7 @@ void whizco_dma_map_sg_attrs(struct device *dev, dma_addr_t dma_addr,
- 			     unsigned long attrs)
- {
- 	....
--	int foo =  dma_get_attr(DMA_ATTR_FOO, attrs);
--	....
--	if (foo)
-+	if (attrs & DMA_ATTR_FOO)
- 		/* twizzle the frobnozzle */
- 	....
+diff --git a/Documentation/devicetree/bindings/media/imx.txt b/Documentation/devicetree/bindings/media/imx.txt
+index 1f2ca4b..12ef06c 100644
+--- a/Documentation/devicetree/bindings/media/imx.txt
++++ b/Documentation/devicetree/bindings/media/imx.txt
+@@ -1,4 +1,27 @@
+-Freescale i.MX Video Capture
++Freescale i.MX Video Capture, Mem2Mem
++
++Video Mem2Mem node
++------------------
++
++This is the imx video mem2mem device node. The mem2mem node is an IPU
++client and uses the register-level primitives of the IPU, so it does
++not require reg or interrupt properties. Only a compatible property
++and the ipu phandle is required.
++
++Required properties:
++- compatible	: "fsl,imx-video-mem2mem";
++- ipu           : the ipu phandle;
++
++Example:
++
++/ {
++	ipum2m0: ipum2m@ipu1 {
++		compatible = "fsl,imx-video-mem2mem";
++		ipu = <&ipu1>;
++		status = "okay";
++	};
++};
++
  
-diff --git a/arch/arc/mm/dma.c b/arch/arc/mm/dma.c
-index 3d1f467d1792..74bbe68dce9d 100644
---- a/arch/arc/mm/dma.c
-+++ b/arch/arc/mm/dma.c
-@@ -46,7 +46,7 @@ static void *arc_dma_alloc(struct device *dev, size_t size,
- 	 *   (vs. always going to memory - thus are faster)
- 	 */
- 	if ((is_isa_arcv2() && ioc_exists) ||
--	    dma_get_attr(DMA_ATTR_NON_CONSISTENT, attrs))
-+	    (attrs & DMA_ATTR_NON_CONSISTENT))
- 		need_coh = 0;
- 
- 	/*
-@@ -95,7 +95,7 @@ static void arc_dma_free(struct device *dev, size_t size, void *vaddr,
- 	struct page *page = virt_to_page(dma_handle);
- 	int is_non_coh = 1;
- 
--	is_non_coh = dma_get_attr(DMA_ATTR_NON_CONSISTENT, attrs) ||
-+	is_non_coh = (attrs & DMA_ATTR_NON_CONSISTENT) ||
- 			(is_isa_arcv2() && ioc_exists);
- 
- 	if (PageHighMem(page) || !is_non_coh)
-diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
-index ebb3fde99043..43e03b5293d0 100644
---- a/arch/arm/mm/dma-mapping.c
-+++ b/arch/arm/mm/dma-mapping.c
-@@ -126,7 +126,7 @@ static dma_addr_t arm_dma_map_page(struct device *dev, struct page *page,
- 	     unsigned long offset, size_t size, enum dma_data_direction dir,
- 	     unsigned long attrs)
- {
--	if (!dma_get_attr(DMA_ATTR_SKIP_CPU_SYNC, attrs))
-+	if ((attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
- 		__dma_page_cpu_to_dev(page, offset, size, dir);
- 	return pfn_to_dma(dev, page_to_pfn(page)) + offset;
- }
-@@ -155,7 +155,7 @@ static dma_addr_t arm_coherent_dma_map_page(struct device *dev, struct page *pag
- static void arm_dma_unmap_page(struct device *dev, dma_addr_t handle,
- 		size_t size, enum dma_data_direction dir, unsigned long attrs)
- {
--	if (!dma_get_attr(DMA_ATTR_SKIP_CPU_SYNC, attrs))
-+	if ((attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
- 		__dma_page_dev_to_cpu(pfn_to_page(dma_to_pfn(dev, handle)),
- 				      handle & ~PAGE_MASK, size, dir);
- }
-@@ -622,9 +622,9 @@ static void __free_from_contiguous(struct device *dev, struct page *page,
- 
- static inline pgprot_t __get_dma_pgprot(unsigned long attrs, pgprot_t prot)
- {
--	prot = dma_get_attr(DMA_ATTR_WRITE_COMBINE, attrs) ?
--			    pgprot_writecombine(prot) :
--			    pgprot_dmacoherent(prot);
-+	prot = (attrs & DMA_ATTR_WRITE_COMBINE) ?
-+			pgprot_writecombine(prot) :
-+			pgprot_dmacoherent(prot);
- 	return prot;
- }
- 
-@@ -744,7 +744,7 @@ static void *__dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
- 		.gfp = gfp,
- 		.prot = prot,
- 		.caller = caller,
--		.want_vaddr = !dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, attrs),
-+		.want_vaddr = ((attrs & DMA_ATTR_NO_KERNEL_MAPPING) == 0),
- 	};
- 
- #ifdef CONFIG_DMA_API_DEBUG
-@@ -887,7 +887,7 @@ static void __arm_dma_free(struct device *dev, size_t size, void *cpu_addr,
- 		.size = PAGE_ALIGN(size),
- 		.cpu_addr = cpu_addr,
- 		.page = page,
--		.want_vaddr = !dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, attrs),
-+		.want_vaddr = ((attrs & DMA_ATTR_NO_KERNEL_MAPPING) == 0),
- 	};
- 
- 	buf = arm_dma_buffer_find(cpu_addr);
-@@ -1267,7 +1267,7 @@ static struct page **__iommu_alloc_buffer(struct device *dev, size_t size,
- 	if (!pages)
- 		return NULL;
- 
--	if (dma_get_attr(DMA_ATTR_FORCE_CONTIGUOUS, attrs))
-+	if (attrs & DMA_ATTR_FORCE_CONTIGUOUS)
- 	{
- 		unsigned long order = get_order(size);
- 		struct page *page;
-@@ -1285,7 +1285,7 @@ static struct page **__iommu_alloc_buffer(struct device *dev, size_t size,
- 	}
- 
- 	/* Go straight to 4K chunks if caller says it's OK. */
--	if (dma_get_attr(DMA_ATTR_ALLOC_SINGLE_PAGES, attrs))
-+	if (attrs & DMA_ATTR_ALLOC_SINGLE_PAGES)
- 		order_idx = ARRAY_SIZE(iommu_order_array) - 1;
- 
- 	/*
-@@ -1346,7 +1346,7 @@ static int __iommu_free_buffer(struct device *dev, struct page **pages,
- 	int count = size >> PAGE_SHIFT;
- 	int i;
- 
--	if (dma_get_attr(DMA_ATTR_FORCE_CONTIGUOUS, attrs)) {
-+	if (attrs & DMA_ATTR_FORCE_CONTIGUOUS) {
- 		dma_release_from_contiguous(dev, pages[0], count);
- 	} else {
- 		for (i = 0; i < count; i++)
-@@ -1445,7 +1445,7 @@ static struct page **__iommu_get_pages(void *cpu_addr, unsigned long attrs)
- 	if (__in_atomic_pool(cpu_addr, PAGE_SIZE))
- 		return __atomic_get_pages(cpu_addr);
- 
--	if (dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, attrs))
-+	if (attrs & DMA_ATTR_NO_KERNEL_MAPPING)
- 		return cpu_addr;
- 
- 	area = find_vm_area(cpu_addr);
-@@ -1512,7 +1512,7 @@ static void *arm_iommu_alloc_attrs(struct device *dev, size_t size,
- 	if (*handle == DMA_ERROR_CODE)
- 		goto err_buffer;
- 
--	if (dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, attrs))
-+	if (attrs & DMA_ATTR_NO_KERNEL_MAPPING)
- 		return pages;
- 
- 	addr = __iommu_alloc_remap(pages, size, gfp, prot,
-@@ -1583,7 +1583,7 @@ void arm_iommu_free_attrs(struct device *dev, size_t size, void *cpu_addr,
- 		return;
- 	}
- 
--	if (!dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, attrs)) {
-+	if ((attrs & DMA_ATTR_NO_KERNEL_MAPPING) == 0) {
- 		dma_common_free_remap(cpu_addr, size,
- 			VM_ARM_DMA_CONSISTENT | VM_USERMAP);
- 	}
-@@ -1653,8 +1653,7 @@ static int __map_sg_chunk(struct device *dev, struct scatterlist *sg,
- 		phys_addr_t phys = page_to_phys(sg_page(s));
- 		unsigned int len = PAGE_ALIGN(s->offset + s->length);
- 
--		if (!is_coherent &&
--			!dma_get_attr(DMA_ATTR_SKIP_CPU_SYNC, attrs))
-+		if (!is_coherent && (attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
- 			__dma_page_cpu_to_dev(sg_page(s), s->offset, s->length, dir);
- 
- 		prot = __dma_direction_to_prot(dir);
-@@ -1767,8 +1766,7 @@ static void __iommu_unmap_sg(struct device *dev, struct scatterlist *sg,
- 		if (sg_dma_len(s))
- 			__iommu_remove_mapping(dev, sg_dma_address(s),
- 					       sg_dma_len(s));
--		if (!is_coherent &&
--		    !dma_get_attr(DMA_ATTR_SKIP_CPU_SYNC, attrs))
-+		if (!is_coherent && (attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
- 			__dma_page_dev_to_cpu(sg_page(s), s->offset,
- 					      s->length, dir);
- 	}
-@@ -1892,7 +1890,7 @@ static dma_addr_t arm_iommu_map_page(struct device *dev, struct page *page,
- 	     unsigned long offset, size_t size, enum dma_data_direction dir,
- 	     unsigned long attrs)
- {
--	if (!dma_get_attr(DMA_ATTR_SKIP_CPU_SYNC, attrs))
-+	if ((attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
- 		__dma_page_cpu_to_dev(page, offset, size, dir);
- 
- 	return arm_coherent_iommu_map_page(dev, page, offset, size, dir, attrs);
-@@ -1943,7 +1941,7 @@ static void arm_iommu_unmap_page(struct device *dev, dma_addr_t handle,
- 	if (!iova)
- 		return;
- 
--	if (!dma_get_attr(DMA_ATTR_SKIP_CPU_SYNC, attrs))
-+	if ((attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
- 		__dma_page_dev_to_cpu(page, offset, size, dir);
- 
- 	iommu_unmap(mapping->domain, iova, len);
-diff --git a/arch/arm/xen/mm.c b/arch/arm/xen/mm.c
-index fc67ed236a10..d062f08f5020 100644
---- a/arch/arm/xen/mm.c
-+++ b/arch/arm/xen/mm.c
-@@ -102,7 +102,7 @@ void __xen_dma_map_page(struct device *hwdev, struct page *page,
- {
- 	if (is_device_dma_coherent(hwdev))
- 		return;
--	if (dma_get_attr(DMA_ATTR_SKIP_CPU_SYNC, attrs))
-+	if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
- 		return;
- 
- 	__xen_dma_page_cpu_to_dev(hwdev, dev_addr, size, dir);
-@@ -115,7 +115,7 @@ void __xen_dma_unmap_page(struct device *hwdev, dma_addr_t handle,
- {
- 	if (is_device_dma_coherent(hwdev))
- 		return;
--	if (dma_get_attr(DMA_ATTR_SKIP_CPU_SYNC, attrs))
-+	if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
- 		return;
- 
- 	__xen_dma_page_dev_to_cpu(hwdev, handle, size, dir);
-diff --git a/arch/arm64/mm/dma-mapping.c b/arch/arm64/mm/dma-mapping.c
-index 65f69943b1cb..e82763af137f 100644
---- a/arch/arm64/mm/dma-mapping.c
-+++ b/arch/arm64/mm/dma-mapping.c
-@@ -32,7 +32,7 @@
- static pgprot_t __get_dma_pgprot(unsigned long attrs, pgprot_t prot,
- 				 bool coherent)
- {
--	if (!coherent || dma_get_attr(DMA_ATTR_WRITE_COMBINE, attrs))
-+	if (!coherent || (attrs & DMA_ATTR_WRITE_COMBINE))
- 		return pgprot_writecombine(prot);
- 	return prot;
- }
-@@ -701,7 +701,7 @@ static dma_addr_t __iommu_map_page(struct device *dev, struct page *page,
- 	dma_addr_t dev_addr = iommu_dma_map_page(dev, page, offset, size, prot);
- 
- 	if (!iommu_dma_mapping_error(dev, dev_addr) &&
--	    !dma_get_attr(DMA_ATTR_SKIP_CPU_SYNC, attrs))
-+	    (attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
- 		__iommu_sync_single_for_device(dev, dev_addr, size, dir);
- 
- 	return dev_addr;
-@@ -711,7 +711,7 @@ static void __iommu_unmap_page(struct device *dev, dma_addr_t dev_addr,
- 			       size_t size, enum dma_data_direction dir,
- 			       unsigned long attrs)
- {
--	if (!dma_get_attr(DMA_ATTR_SKIP_CPU_SYNC, attrs))
-+	if ((attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
- 		__iommu_sync_single_for_cpu(dev, dev_addr, size, dir);
- 
- 	iommu_dma_unmap_page(dev, dev_addr, size, dir, attrs);
-@@ -751,7 +751,7 @@ static int __iommu_map_sg_attrs(struct device *dev, struct scatterlist *sgl,
- {
- 	bool coherent = is_device_dma_coherent(dev);
- 
--	if (!dma_get_attr(DMA_ATTR_SKIP_CPU_SYNC, attrs))
-+	if ((attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
- 		__iommu_sync_sg_for_device(dev, sgl, nelems, dir);
- 
- 	return iommu_dma_map_sg(dev, sgl, nelems,
-@@ -763,7 +763,7 @@ static void __iommu_unmap_sg_attrs(struct device *dev,
- 				   enum dma_data_direction dir,
- 				   unsigned long attrs)
- {
--	if (!dma_get_attr(DMA_ATTR_SKIP_CPU_SYNC, attrs))
-+	if ((attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
- 		__iommu_sync_sg_for_cpu(dev, sgl, nelems, dir);
- 
- 	iommu_dma_unmap_sg(dev, sgl, nelems, dir, attrs);
-diff --git a/arch/avr32/mm/dma-coherent.c b/arch/avr32/mm/dma-coherent.c
-index fc51f4421933..58610d0df7ed 100644
---- a/arch/avr32/mm/dma-coherent.c
-+++ b/arch/avr32/mm/dma-coherent.c
-@@ -109,7 +109,7 @@ static void *avr32_dma_alloc(struct device *dev, size_t size,
- 		return NULL;
- 	phys = page_to_phys(page);
- 
--	if (dma_get_attr(DMA_ATTR_WRITE_COMBINE, attrs)) {
-+	if (attrs & DMA_ATTR_WRITE_COMBINE) {
- 		/* Now, map the page into P3 with write-combining turned on */
- 		*handle = phys;
- 		return __ioremap(phys, size, _PAGE_BUFFER);
-@@ -123,7 +123,7 @@ static void avr32_dma_free(struct device *dev, size_t size,
- {
- 	struct page *page;
- 
--	if (dma_get_attr(DMA_ATTR_WRITE_COMBINE, attrs)) {
-+	if (attrs & DMA_ATTR_WRITE_COMBINE) {
- 		iounmap(cpu_addr);
- 
- 		page = phys_to_page(handle);
-diff --git a/arch/ia64/sn/pci/pci_dma.c b/arch/ia64/sn/pci/pci_dma.c
-index 6b78fc953c4b..74c934a997bb 100644
---- a/arch/ia64/sn/pci/pci_dma.c
-+++ b/arch/ia64/sn/pci/pci_dma.c
-@@ -183,14 +183,11 @@ static dma_addr_t sn_dma_map_page(struct device *dev, struct page *page,
- 	unsigned long phys_addr;
- 	struct pci_dev *pdev = to_pci_dev(dev);
- 	struct sn_pcibus_provider *provider = SN_PCIDEV_BUSPROVIDER(pdev);
--	int dmabarr;
--
--	dmabarr = dma_get_attr(DMA_ATTR_WRITE_BARRIER, attrs);
- 
- 	BUG_ON(!dev_is_pci(dev));
- 
- 	phys_addr = __pa(cpu_addr);
--	if (dmabarr)
-+	if (attrs & DMA_ATTR_WRITE_BARRIER)
- 		dma_addr = provider->dma_map_consistent(pdev, phys_addr,
- 							size, SN_DMA_ADDR_PHYS);
- 	else
-@@ -280,9 +277,6 @@ static int sn_dma_map_sg(struct device *dev, struct scatterlist *sgl,
- 	struct pci_dev *pdev = to_pci_dev(dev);
- 	struct sn_pcibus_provider *provider = SN_PCIDEV_BUSPROVIDER(pdev);
- 	int i;
--	int dmabarr;
--
--	dmabarr = dma_get_attr(DMA_ATTR_WRITE_BARRIER, attrs);
- 
- 	BUG_ON(!dev_is_pci(dev));
- 
-@@ -292,7 +286,7 @@ static int sn_dma_map_sg(struct device *dev, struct scatterlist *sgl,
- 	for_each_sg(sgl, sg, nhwentries, i) {
- 		dma_addr_t dma_addr;
- 		phys_addr = SG_ENT_PHYS_ADDRESS(sg);
--		if (dmabarr)
-+		if (attrs & DMA_ATTR_WRITE_BARRIER)
- 			dma_addr = provider->dma_map_consistent(pdev,
- 								phys_addr,
- 								sg->length,
-diff --git a/arch/metag/kernel/dma.c b/arch/metag/kernel/dma.c
-index d68f498e82a1..0db31e24c541 100644
---- a/arch/metag/kernel/dma.c
-+++ b/arch/metag/kernel/dma.c
-@@ -337,7 +337,7 @@ static int metag_dma_mmap(struct device *dev, struct vm_area_struct *vma,
- 	struct metag_vm_region *c;
- 	int ret = -ENXIO;
- 
--	if (dma_get_attr(DMA_ATTR_WRITE_COMBINE, attrs))
-+	if (attrs & DMA_ATTR_WRITE_COMBINE)
- 		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
- 	else
- 		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-diff --git a/arch/mips/mm/dma-default.c b/arch/mips/mm/dma-default.c
-index 0ed9000dc1ff..b2eadd6fa9a1 100644
---- a/arch/mips/mm/dma-default.c
-+++ b/arch/mips/mm/dma-default.c
-@@ -141,7 +141,7 @@ static void *mips_dma_alloc_coherent(struct device *dev, size_t size,
- 	 * XXX: seems like the coherent and non-coherent implementations could
- 	 * be consolidated.
- 	 */
--	if (dma_get_attr(DMA_ATTR_NON_CONSISTENT, attrs))
-+	if (attrs & DMA_ATTR_NON_CONSISTENT)
- 		return mips_dma_alloc_noncoherent(dev, size, dma_handle, gfp);
- 
- 	gfp = massage_gfp_flags(dev, gfp);
-@@ -182,7 +182,7 @@ static void mips_dma_free_coherent(struct device *dev, size_t size, void *vaddr,
- 	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
- 	struct page *page = NULL;
- 
--	if (dma_get_attr(DMA_ATTR_NON_CONSISTENT, attrs)) {
-+	if (attrs & DMA_ATTR_NON_CONSISTENT) {
- 		mips_dma_free_noncoherent(dev, size, vaddr, dma_handle);
- 		return;
- 	}
-@@ -214,7 +214,7 @@ static int mips_dma_mmap(struct device *dev, struct vm_area_struct *vma,
- 
- 	pfn = page_to_pfn(virt_to_page((void *)addr));
- 
--	if (dma_get_attr(DMA_ATTR_WRITE_COMBINE, attrs))
-+	if (attrs & DMA_ATTR_WRITE_COMBINE)
- 		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
- 	else
- 		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-diff --git a/arch/openrisc/kernel/dma.c b/arch/openrisc/kernel/dma.c
-index 50eb1f26c540..140c99140649 100644
---- a/arch/openrisc/kernel/dma.c
-+++ b/arch/openrisc/kernel/dma.c
-@@ -100,7 +100,7 @@ or1k_dma_alloc(struct device *dev, size_t size,
- 
- 	va = (unsigned long)page;
- 
--	if (!dma_get_attr(DMA_ATTR_NON_CONSISTENT, attrs)) {
-+	if ((attrs & DMA_ATTR_NON_CONSISTENT) == 0) {
- 		/*
- 		 * We need to iterate through the pages, clearing the dcache for
- 		 * them and setting the cache-inhibit bit.
-@@ -124,7 +124,7 @@ or1k_dma_free(struct device *dev, size_t size, void *vaddr,
- 		.mm = &init_mm
- 	};
- 
--	if (!dma_get_attr(DMA_ATTR_NON_CONSISTENT, attrs)) {
-+	if ((attrs & DMA_ATTR_NON_CONSISTENT) == 0) {
- 		/* walk_page_range shouldn't be able to fail here */
- 		WARN_ON(walk_page_range(va, va + size, &walk));
- 	}
-diff --git a/arch/parisc/kernel/pci-dma.c b/arch/parisc/kernel/pci-dma.c
-index 845fdd52e4c5..02d9ed0f3949 100644
---- a/arch/parisc/kernel/pci-dma.c
-+++ b/arch/parisc/kernel/pci-dma.c
-@@ -581,7 +581,7 @@ static void *pcx_dma_alloc(struct device *dev, size_t size,
- {
- 	void *addr;
- 
--	if (!dma_get_attr(DMA_ATTR_NON_CONSISTENT, attrs))
-+	if ((attrs & DMA_ATTR_NON_CONSISTENT) == 0)
- 		return NULL;
- 
- 	addr = (void *)__get_free_pages(flag, get_order(size));
-diff --git a/arch/powerpc/platforms/cell/iommu.c b/arch/powerpc/platforms/cell/iommu.c
-index c8e11e020335..6128bdb428b2 100644
---- a/arch/powerpc/platforms/cell/iommu.c
-+++ b/arch/powerpc/platforms/cell/iommu.c
-@@ -193,7 +193,7 @@ static int tce_build_cell(struct iommu_table *tbl, long index, long npages,
- 	base_pte = CBE_IOPTE_PP_W | CBE_IOPTE_PP_R | CBE_IOPTE_M |
- 		CBE_IOPTE_SO_RW | (window->ioid & CBE_IOPTE_IOID_Mask);
- #endif
--	if (unlikely(dma_get_attr(DMA_ATTR_WEAK_ORDERING, attrs)))
-+	if (unlikely(attrs & DMA_ATTR_WEAK_ORDERING))
- 		base_pte &= ~CBE_IOPTE_SO_RW;
- 
- 	io_pte = (unsigned long *)tbl->it_base + (index - tbl->it_offset);
-@@ -600,7 +600,7 @@ static dma_addr_t dma_fixed_map_page(struct device *dev, struct page *page,
- 				     enum dma_data_direction direction,
- 				     unsigned long attrs)
- {
--	if (iommu_fixed_is_weak == dma_get_attr(DMA_ATTR_WEAK_ORDERING, attrs))
-+	if (iommu_fixed_is_weak == (attrs & DMA_ATTR_WEAK_ORDERING))
- 		return dma_direct_ops.map_page(dev, page, offset, size,
- 					       direction, attrs);
- 	else
-@@ -613,7 +613,7 @@ static void dma_fixed_unmap_page(struct device *dev, dma_addr_t dma_addr,
- 				 size_t size, enum dma_data_direction direction,
- 				 unsigned long attrs)
- {
--	if (iommu_fixed_is_weak == dma_get_attr(DMA_ATTR_WEAK_ORDERING, attrs))
-+	if (iommu_fixed_is_weak == (attrs & DMA_ATTR_WEAK_ORDERING))
- 		dma_direct_ops.unmap_page(dev, dma_addr, size, direction,
- 					  attrs);
- 	else
-@@ -625,7 +625,7 @@ static int dma_fixed_map_sg(struct device *dev, struct scatterlist *sg,
- 			   int nents, enum dma_data_direction direction,
- 			   unsigned long attrs)
- {
--	if (iommu_fixed_is_weak == dma_get_attr(DMA_ATTR_WEAK_ORDERING, attrs))
-+	if (iommu_fixed_is_weak == (attrs & DMA_ATTR_WEAK_ORDERING))
- 		return dma_direct_ops.map_sg(dev, sg, nents, direction, attrs);
- 	else
- 		return ppc_iommu_map_sg(dev, cell_get_iommu_table(dev), sg,
-@@ -637,7 +637,7 @@ static void dma_fixed_unmap_sg(struct device *dev, struct scatterlist *sg,
- 			       int nents, enum dma_data_direction direction,
- 			       unsigned long attrs)
- {
--	if (iommu_fixed_is_weak == dma_get_attr(DMA_ATTR_WEAK_ORDERING, attrs))
-+	if (iommu_fixed_is_weak == (attrs & DMA_ATTR_WEAK_ORDERING))
- 		dma_direct_ops.unmap_sg(dev, sg, nents, direction, attrs);
- 	else
- 		ppc_iommu_unmap_sg(cell_get_iommu_table(dev), sg, nents,
-@@ -1162,7 +1162,7 @@ static int __init setup_iommu_fixed(char *str)
- 	pciep = of_find_node_by_type(NULL, "pcie-endpoint");
- 
- 	if (strcmp(str, "weak") == 0 || (pciep && strcmp(str, "strong") != 0))
--		iommu_fixed_is_weak = 1;
-+		iommu_fixed_is_weak = DMA_ATTR_WEAK_ORDERING;
- 
- 	of_node_put(pciep);
- 
-diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_gem.c b/drivers/gpu/drm/rockchip/rockchip_drm_gem.c
-index 7b1788e2a808..4a28d6348c76 100644
---- a/drivers/gpu/drm/rockchip/rockchip_drm_gem.c
-+++ b/drivers/gpu/drm/rockchip/rockchip_drm_gem.c
-@@ -273,7 +273,7 @@ void *rockchip_gem_prime_vmap(struct drm_gem_object *obj)
- {
- 	struct rockchip_gem_object *rk_obj = to_rockchip_obj(obj);
- 
--	if (dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, rk_obj->dma_attrs))
-+	if (rk_obj->dma_attrs & DMA_ATTR_NO_KERNEL_MAPPING)
- 		return NULL;
- 
- 	return rk_obj->kvaddr;
-diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-index 6c1bda504fb1..08a1e2f3690f 100644
---- a/drivers/iommu/dma-iommu.c
-+++ b/drivers/iommu/dma-iommu.c
-@@ -306,7 +306,7 @@ struct page **iommu_dma_alloc(struct device *dev, size_t size, gfp_t gfp,
- 	} else {
- 		size = ALIGN(size, min_size);
- 	}
--	if (dma_get_attr(DMA_ATTR_ALLOC_SINGLE_PAGES, attrs))
-+	if (attrs & DMA_ATTR_ALLOC_SINGLE_PAGES)
- 		alloc_sizes = min_size;
- 
- 	count = PAGE_ALIGN(size) >> PAGE_SHIFT;
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 8009a582326b..d2ab541614b8 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -160,7 +160,7 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size,
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
--	if (!dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, buf->attrs))
-+	if ((buf->attrs & DMA_ATTR_NO_KERNEL_MAPPING) == 0)
- 		buf->vaddr = buf->cookie;
- 
- 	/* Prevent the device from being released while the buffer is used */
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index 1fd9860487b1..d8fb67783cb7 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -101,16 +101,6 @@ static inline int is_device_dma_capable(struct device *dev)
- 	return dev->dma_mask != NULL && *dev->dma_mask != DMA_MASK_NONE;
- }
- 
--/**
-- * dma_get_attr - check for a specific attribute
-- * @attr: attribute to look for
-- * @attrs: attributes to check within
-- */
--static inline bool dma_get_attr(unsigned long attr, unsigned long attrs)
--{
--	return !!(attr & attrs);
--}
--
- #ifdef CONFIG_HAVE_GENERIC_DMA_COHERENT
- /*
-  * These three functions are only for dma allocator.
+ Video Capture node
+ ------------------
+diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
+index 65e1645..3305daa 100644
+--- a/drivers/staging/media/imx/Kconfig
++++ b/drivers/staging/media/imx/Kconfig
+@@ -21,3 +21,15 @@ config VIDEO_IMX_CAMERA
+ if VIDEO_IMX_CAMERA
+ source "drivers/staging/media/imx/capture/Kconfig"
+ endif
++
++config VIDEO_IMX_M2M
++	tristate "i.MX5/6 Mem2Mem driver"
++	depends on VIDEO_IMX && VIDEO_DEV
++	select VIDEOBUF2_DMA_CONTIG
++	select V4L2_MEM2MEM_DEV
++	default y
++	---help---
++	  Use the IPU IC Post-processor on the i.MX5/6 SoC for mem2mem
++	  processing of buffers. Operations include scaling, rotation,
++	  and color space conversion. The driver implements tiling to
++	  support scaling up to 4096x4096.
+diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
+index 7c97629..b9e31d8 100644
+--- a/drivers/staging/media/imx/Makefile
++++ b/drivers/staging/media/imx/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_VIDEO_IMX_CAMERA) += capture/
++obj-$(CONFIG_VIDEO_IMX_M2M) += m2m/
+diff --git a/drivers/staging/media/imx/m2m/Makefile b/drivers/staging/media/imx/m2m/Makefile
+new file mode 100644
+index 0000000..287d258
+--- /dev/null
++++ b/drivers/staging/media/imx/m2m/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_VIDEO_IMX_M2M) += imx-m2m.o
+diff --git a/drivers/staging/media/imx/m2m/imx-m2m.c b/drivers/staging/media/imx/m2m/imx-m2m.c
+new file mode 100644
+index 0000000..599f20e
+--- /dev/null
++++ b/drivers/staging/media/imx/m2m/imx-m2m.c
+@@ -0,0 +1,1049 @@
++/*
++ * This is a mem2mem driver for the Freescale i.MX5/6 SOC. It carries out
++ * color-space conversion, downsizing, resizing, and rotation transformations
++ * on input buffers using the IPU Image Converter's Post-Processing task.
++ *
++ * Based on mem2mem_testdev.c by Pawel Osciak.
++ *
++ * Copyright (c) 2012-2013 Mentor Graphics Inc.
++ * Steve Longerbeam <steve_longerbeam@mentor.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the
++ * License, or (at your option) any later version
++ */
++#include <linux/module.h>
++#include <linux/delay.h>
++#include <linux/fs.h>
++#include <linux/timer.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
++#include <linux/log2.h>
++
++#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <media/v4l2-mem2mem.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-ctrls.h>
++#include <media/videobuf2-dma-contig.h>
++#include <video/imx-ipu-v3.h>
++#include <media/imx.h>
++
++MODULE_DESCRIPTION("i.MX5/6 Post-Processing mem2mem device");
++MODULE_AUTHOR("Steve Longerbeam <steve_longerbeam@mentor.com>");
++MODULE_LICENSE("GPL");
++MODULE_VERSION("0.1");
++
++static int instrument;
++module_param(instrument, int, 0);
++MODULE_PARM_DESC(instrument, "1 = enable conversion time measurement");
++
++/* Flags that indicate a format can be used for capture/output */
++#define MEM2MEM_CAPTURE BIT(0)
++#define MEM2MEM_OUTPUT  BIT(1)
++
++#define MEM2MEM_NAME		"imx-m2m"
++
++/* Per queue */
++#define MEM2MEM_DEF_NUM_BUFS	VIDEO_MAX_FRAME
++/* In bytes, per queue */
++#define MEM2MEM_VID_MEM_LIMIT	SZ_256M
++
++#define dprintk(dev, fmt, arg...) \
++	v4l2_dbg(1, 1, &dev->v4l2_dev, "%s: " fmt, __func__, ## arg)
++
++struct m2mx_ctx;
++
++struct m2mx_dev {
++	struct v4l2_device	v4l2_dev;
++	struct video_device	*vfd;
++	struct device           *ipu_dev;
++	struct ipu_soc          *ipu;
++
++	struct mutex		dev_mutex;
++
++	struct v4l2_m2m_dev	*m2m_dev;
++	struct vb2_alloc_ctx    *alloc_ctx;
++};
++
++struct m2mx_ctx {
++	struct v4l2_fh          fh;
++	struct m2mx_dev	*dev;
++
++	struct ipu_ic           *ic;
++	struct image_converter_ctx *ic_ctx;
++
++	/* The rotation controls */
++	struct v4l2_ctrl_handler ctrl_hdlr;
++	int                     rotation; /* degrees */
++	bool                    hflip;
++	bool                    vflip;
++
++	/* derived from rotation, hflip, vflip controls */
++	enum ipu_rotate_mode    rot_mode;
++
++	/* has the IC image converter been preapred */
++	bool                    image_converter_ready;
++
++	/* Abort requested by m2m */
++	bool			aborting;
++
++	/* Source and destination image data */
++	struct ipu_image  image[2];
++
++	/* for instrumenting */
++	struct timespec   start;
++};
++
++#define fh_to_ctx(p) container_of(p, struct m2mx_ctx, fh)
++
++enum {
++	V4L2_M2M_SRC = 0,
++	V4L2_M2M_DST = 1,
++};
++
++static const struct v4l2_ctrl_config m2mx_std_ctrl[] = {
++	{
++		.id	= V4L2_CID_HFLIP,
++		.type	= V4L2_CTRL_TYPE_BOOLEAN,
++		.name	= "Horizontal Flip",
++		.def	= 0,
++		.min	= 0,
++		.max	= 1,
++		.step	= 1,
++	}, {
++		.id	= V4L2_CID_VFLIP,
++		.type	= V4L2_CTRL_TYPE_BOOLEAN,
++		.name	= "Vertical Flip",
++		.def	= 0,
++		.min	= 0,
++		.max	= 1,
++		.step	= 1,
++	}, {
++		.id	= V4L2_CID_ROTATE,
++		.type	= V4L2_CTRL_TYPE_INTEGER,
++		.name	= "Rotation",
++		.def	= 0,
++		.min	= 0,
++		.max	= 270,
++		.step	= 90,
++	},
++};
++
++#define M2MX_NUM_STD_CONTROLS ARRAY_SIZE(m2mx_std_ctrl)
++
++static struct ipu_image *get_image_data(struct m2mx_ctx *ctx,
++					enum v4l2_buf_type type)
++{
++	switch (type) {
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		return &ctx->image[V4L2_M2M_SRC];
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++		return &ctx->image[V4L2_M2M_DST];
++	default:
++		break;
++	}
++	return NULL;
++}
++
++/*
++ * mem2mem callbacks
++ */
++
++static void m2mx_job_abort(void *priv)
++{
++	struct m2mx_ctx *ctx = priv;
++
++	/* Will cancel the transaction in the next interrupt handler */
++	ipu_image_convert_abort(ctx->ic_ctx);
++	ctx->aborting = true;
++}
++
++static void m2mx_lock(void *priv)
++{
++	struct m2mx_ctx *ctx = priv;
++	struct m2mx_dev *dev = ctx->dev;
++
++	mutex_lock(&dev->dev_mutex);
++}
++
++static void m2mx_unlock(void *priv)
++{
++	struct m2mx_ctx *ctx = priv;
++	struct m2mx_dev *dev = ctx->dev;
++
++	mutex_unlock(&dev->dev_mutex);
++}
++
++static void m2mx_device_run(void *priv)
++{
++	struct m2mx_ctx *ctx = priv;
++	struct m2mx_dev *dev = ctx->dev;
++	struct vb2_v4l2_buffer *src_buf, *dst_buf;
++	dma_addr_t s_phys, d_phys;
++
++	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
++	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
++
++	s_phys = vb2_dma_contig_plane_dma_addr(&src_buf->vb2_buf, 0);
++	d_phys = vb2_dma_contig_plane_dma_addr(&dst_buf->vb2_buf, 0);
++	if (!s_phys || !d_phys) {
++		v4l2_err(&dev->v4l2_dev,
++			 "Acquiring kernel pointers to buffers failed\n");
++		return;
++	}
++
++	if (instrument)
++		getnstimeofday(&ctx->start);
++
++	ipu_image_convert_run(ctx->ic_ctx, s_phys, d_phys);
++}
++
++static void m2mx_convert_complete(void *data,
++				   struct image_converter_run *run,
++				   int err)
++{
++	struct m2mx_ctx *ctx = data;
++	struct m2mx_dev *dev = ctx->dev;
++	struct vb2_v4l2_buffer *src_vb, *dst_vb;
++
++	if (!ctx->aborting) {
++		src_vb = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
++		dst_vb = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
++
++		v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
++		v4l2_m2m_buf_done(dst_vb, VB2_BUF_STATE_DONE);
++
++		if (instrument) {
++			struct timespec ts, diff;
++			unsigned long interval;
++
++			getnstimeofday(&ts);
++			diff = timespec_sub(ts, ctx->start);
++			interval = diff.tv_sec * 1000 * 1000 +
++				diff.tv_nsec / 1000;
++			v4l2_info(&ctx->dev->v4l2_dev,
++				  "buf%d completed in %lu usec\n",
++				  dst_vb->vb2_buf.index, interval);
++		}
++	}
++
++	v4l2_m2m_job_finish(dev->m2m_dev, ctx->fh.m2m_ctx);
++}
++
++/*
++ * video ioctls
++ */
++static int vidioc_querycap(struct file *file, void *fh,
++			   struct v4l2_capability *cap)
++{
++	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
++	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
++	cap->bus_info[0] = 0;
++	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++
++	return 0;
++}
++
++static int enum_fmt(struct v4l2_fmtdesc *f, u32 type)
++{
++	const char *desc;
++	u32 fourcc;
++	int ret;
++
++	ret = ipu_image_convert_enum_format(f->index, &desc, &fourcc);
++	if (ret)
++		return ret;
++
++	strncpy(f->description, desc, sizeof(f->description) - 1);
++	f->pixelformat = fourcc;
++	return 0;
++}
++
++static int vidioc_enum_fmt_vid_cap(struct file *file, void *fh,
++				   struct v4l2_fmtdesc *f)
++{
++	return enum_fmt(f, MEM2MEM_CAPTURE);
++}
++
++static int vidioc_enum_fmt_vid_out(struct file *file, void *fh,
++				   struct v4l2_fmtdesc *f)
++{
++	return enum_fmt(f, MEM2MEM_OUTPUT);
++}
++
++static int m2mx_g_fmt(struct m2mx_ctx *ctx, struct v4l2_format *f)
++{
++	struct vb2_queue *vq;
++	struct ipu_image *image;
++
++	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
++	if (!vq)
++		return -EINVAL;
++
++	image = get_image_data(ctx, f->type);
++	if (!image)
++		return -EINVAL;
++
++	f->fmt.pix = image->pix;
++
++	return 0;
++}
++
++static int vidioc_g_fmt_vid_out(struct file *file, void *fh,
++				struct v4l2_format *f)
++{
++	struct m2mx_ctx *ctx = fh_to_ctx(fh);
++
++	return m2mx_g_fmt(ctx, f);
++}
++
++static int vidioc_g_fmt_vid_cap(struct file *file, void *fh,
++				struct v4l2_format *f)
++{
++	struct m2mx_ctx *ctx = fh_to_ctx(fh);
++
++	return m2mx_g_fmt(ctx, f);
++}
++
++static int m2mx_try_fmt(struct m2mx_ctx *ctx, struct v4l2_format *f)
++{
++	struct ipu_image test_in, test_out;
++	struct ipu_image *pin, *pout;
++	int ret;
++
++	pin = get_image_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
++	pout = get_image_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
++
++	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++		test_out.pix = f->fmt.pix;
++		test_in = *pin;
++	} else {
++		test_in.pix = f->fmt.pix;
++		test_out = *pout;
++	}
++
++	ret = ipu_image_convert_adjust(&test_in, &test_out, ctx->rot_mode);
++	if (ret)
++		return ret;
++
++	f->fmt.pix = (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) ?
++		test_out.pix : test_in.pix;
++
++	return 0;
++}
++
++static int vidioc_try_fmt_vid_cap(struct file *file, void *fh,
++				  struct v4l2_format *f)
++{
++	struct m2mx_ctx *ctx = fh_to_ctx(fh);
++
++	return m2mx_try_fmt(ctx, f);
++}
++
++static int vidioc_try_fmt_vid_out(struct file *file, void *fh,
++				  struct v4l2_format *f)
++{
++	struct m2mx_ctx *ctx = fh_to_ctx(fh);
++
++	return m2mx_try_fmt(ctx, f);
++}
++
++static int m2mx_s_fmt(struct m2mx_ctx *ctx, struct v4l2_format *f)
++{
++	struct m2mx_dev *dev = ctx->dev;
++	struct ipu_image test_in, test_out;
++	struct ipu_image *pin, *pout;
++	struct vb2_queue *vq;
++	int ret;
++
++	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
++	if (!vq)
++		return -EINVAL;
++
++	if (vb2_is_busy(vq)) {
++		v4l2_err(&dev->v4l2_dev, "%s: queue busy\n", __func__);
++		return -EBUSY;
++	}
++
++	pin = get_image_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
++	pout = get_image_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
++
++	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++		test_out.pix = f->fmt.pix;
++		test_in = *pin;
++	} else {
++		test_in.pix = f->fmt.pix;
++		test_out = *pout;
++	}
++
++	ret = ipu_image_convert_adjust(&test_in, &test_out, ctx->rot_mode);
++	if (ret)
++		return ret;
++
++	f->fmt.pix = (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) ?
++		test_out.pix : test_in.pix;
++	*pin = test_in;
++	*pout = test_out;
++
++	return 0;
++}
++
++static int vidioc_s_fmt_vid_cap(struct file *file, void *fh,
++				struct v4l2_format *f)
++{
++	struct m2mx_ctx *ctx = fh_to_ctx(fh);
++
++	return m2mx_s_fmt(ctx, f);
++}
++
++static int vidioc_s_fmt_vid_out(struct file *file, void *fh,
++				struct v4l2_format *f)
++{
++	struct m2mx_ctx *ctx = fh_to_ctx(fh);
++
++	return m2mx_s_fmt(ctx, f);
++}
++
++static int vidioc_reqbufs(struct file *file, void *fh,
++			  struct v4l2_requestbuffers *reqbufs)
++{
++	struct m2mx_ctx *ctx = fh_to_ctx(fh);
++
++	return v4l2_m2m_reqbufs(file, ctx->fh.m2m_ctx, reqbufs);
++}
++
++static int vidioc_querybuf(struct file *file, void *fh,
++			   struct v4l2_buffer *buf)
++{
++	struct m2mx_ctx *ctx = fh_to_ctx(fh);
++
++	return v4l2_m2m_querybuf(file, ctx->fh.m2m_ctx, buf);
++}
++
++static int vidioc_qbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
++{
++	struct m2mx_ctx *ctx = fh_to_ctx(fh);
++
++	return v4l2_m2m_qbuf(file, ctx->fh.m2m_ctx, buf);
++}
++
++static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
++{
++	struct m2mx_ctx *ctx = fh_to_ctx(fh);
++
++	return v4l2_m2m_dqbuf(file, ctx->fh.m2m_ctx, buf);
++}
++
++static int vidioc_expbuf(struct file *file, void *fh,
++			 struct v4l2_exportbuffer *eb)
++{
++	struct m2mx_ctx *ctx = fh_to_ctx(fh);
++
++	return v4l2_m2m_expbuf(file, ctx->fh.m2m_ctx, eb);
++}
++
++static int vidioc_streamon(struct file *file, void *fh,
++			   enum v4l2_buf_type type)
++{
++	struct m2mx_ctx *ctx = fh_to_ctx(fh);
++
++	return v4l2_m2m_streamon(file, ctx->fh.m2m_ctx, type);
++}
++
++static int vidioc_streamoff(struct file *file, void *fh,
++			    enum v4l2_buf_type type)
++{
++	struct m2mx_ctx *ctx = fh_to_ctx(fh);
++
++	return v4l2_m2m_streamoff(file, ctx->fh.m2m_ctx, type);
++}
++
++static int m2mx_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct m2mx_ctx *ctx = container_of(ctrl->handler,
++					     struct m2mx_ctx, ctrl_hdlr);
++	struct m2mx_dev *dev = ctx->dev;
++	enum ipu_rotate_mode rot_mode;
++	struct ipu_image *in, *out;
++	struct vb2_queue *vq;
++	bool hflip, vflip;
++	int rotation;
++	int ret;
++
++	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
++	if (!vq)
++		return -EINVAL;
++
++	/* can't change rotation mid-streaming */
++	if (vb2_is_streaming(vq)) {
++		v4l2_err(&dev->v4l2_dev, "%s: not allowed while streaming\n",
++			 __func__);
++		return -EBUSY;
++	}
++
++	in = get_image_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
++	out = get_image_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
++
++	rotation = ctx->rotation;
++	hflip = ctx->hflip;
++	vflip = ctx->vflip;
++
++	switch (ctrl->id) {
++	case V4L2_CID_HFLIP:
++		hflip = (ctrl->val == 1);
++		break;
++	case V4L2_CID_VFLIP:
++		vflip = (ctrl->val == 1);
++		break;
++	case V4L2_CID_ROTATE:
++		rotation = ctrl->val;
++		break;
++	default:
++		v4l2_err(&dev->v4l2_dev, "Invalid control\n");
++		return -EINVAL;
++	}
++
++	ret = ipu_degrees_to_rot_mode(&rot_mode, rotation, hflip, vflip);
++	if (ret)
++		return ret;
++
++	/*
++	 * make sure this rotation will work with current src/dest
++	 * rectangles before setting
++	 */
++	ret = ipu_image_convert_verify(in, out, rot_mode);
++	if (ret)
++		return ret;
++
++	ctx->rotation = rotation;
++	ctx->hflip = hflip;
++	ctx->vflip = vflip;
++	ctx->rot_mode = rot_mode;
++
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops m2mx_ctrl_ops = {
++	.s_ctrl = m2mx_s_ctrl,
++};
++
++static int m2mx_init_controls(struct m2mx_ctx *ctx)
++{
++	struct v4l2_ctrl_handler *hdlr = &ctx->ctrl_hdlr;
++	const struct v4l2_ctrl_config *c;
++	int i, ret;
++
++	v4l2_ctrl_handler_init(hdlr, M2MX_NUM_STD_CONTROLS);
++
++	for (i = 0; i < M2MX_NUM_STD_CONTROLS; i++) {
++		c = &m2mx_std_ctrl[i];
++		v4l2_ctrl_new_std(hdlr, &m2mx_ctrl_ops,
++				  c->id, c->min, c->max, c->step, c->def);
++	}
++
++	if (hdlr->error) {
++		ret = hdlr->error;
++		goto free_ctrls;
++	}
++
++	ctx->fh.ctrl_handler = hdlr;
++	ret = v4l2_ctrl_handler_setup(hdlr);
++	if (ret)
++		goto free_ctrls;
++
++	return 0;
++
++free_ctrls:
++	v4l2_ctrl_handler_free(hdlr);
++	return ret;
++}
++
++static const struct v4l2_ioctl_ops m2mx_ioctl_ops = {
++	.vidioc_querycap	= vidioc_querycap,
++
++	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap	= vidioc_g_fmt_vid_cap,
++	.vidioc_try_fmt_vid_cap	= vidioc_try_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap	= vidioc_s_fmt_vid_cap,
++
++	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
++	.vidioc_g_fmt_vid_out	= vidioc_g_fmt_vid_out,
++	.vidioc_try_fmt_vid_out	= vidioc_try_fmt_vid_out,
++	.vidioc_s_fmt_vid_out	= vidioc_s_fmt_vid_out,
++
++	.vidioc_reqbufs		= vidioc_reqbufs,
++	.vidioc_querybuf	= vidioc_querybuf,
++
++	.vidioc_qbuf		= vidioc_qbuf,
++	.vidioc_dqbuf		= vidioc_dqbuf,
++	.vidioc_expbuf		= vidioc_expbuf,
++
++	.vidioc_streamon	= vidioc_streamon,
++	.vidioc_streamoff	= vidioc_streamoff,
++};
++
++/*
++ * Queue operations
++ */
++
++static int m2mx_queue_setup(struct vb2_queue *vq,
++			     unsigned int *nbuffers, unsigned int *nplanes,
++			     unsigned int sizes[], void *alloc_ctxs[])
++{
++	struct m2mx_ctx *ctx = vb2_get_drv_priv(vq);
++	struct ipu_image *image;
++	unsigned int count = *nbuffers;
++
++	image = get_image_data(ctx, vq->type);
++	if (!image)
++		return -EINVAL;
++
++	while (image->pix.sizeimage * count > MEM2MEM_VID_MEM_LIMIT)
++		count--;
++
++	*nplanes = 1;
++	*nbuffers = count;
++	sizes[0] = image->pix.sizeimage;
++
++	alloc_ctxs[0] = ctx->dev->alloc_ctx;
++
++	return 0;
++}
++
++static int m2mx_buf_prepare(struct vb2_buffer *vb)
++{
++	struct m2mx_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++	struct m2mx_dev *dev = ctx->dev;
++	struct ipu_image *image;
++
++	image = get_image_data(ctx, vb->vb2_queue->type);
++	if (!image)
++		return -EINVAL;
++
++	if (vb2_plane_size(vb, 0) < image->pix.sizeimage) {
++		v4l2_err(&dev->v4l2_dev,
++			 "%s: data will not fit into plane (%lu < %lu)\n",
++			 __func__, vb2_plane_size(vb, 0),
++			 (long)image->pix.sizeimage);
++		return -EINVAL;
++	}
++
++	vb2_set_plane_payload(vb, 0, image->pix.sizeimage);
++
++	return 0;
++}
++
++static void m2mx_buf_queue(struct vb2_buffer *vb)
++{
++	struct m2mx_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++
++	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, to_vb2_v4l2_buffer(vb));
++}
++
++static void m2mx_wait_prepare(struct vb2_queue *q)
++{
++	struct m2mx_ctx *ctx = vb2_get_drv_priv(q);
++
++	m2mx_unlock(ctx);
++}
++
++static void m2mx_wait_finish(struct vb2_queue *q)
++{
++	struct m2mx_ctx *ctx = vb2_get_drv_priv(q);
++
++	m2mx_lock(ctx);
++}
++
++static int m2mx_start_streaming(struct vb2_queue *q, unsigned int count)
++{
++	struct m2mx_ctx *ctx = vb2_get_drv_priv(q);
++	struct ipu_image *pin, *pout;
++
++	/*
++	 * mem2mem requires streamon at both sides, capture and output,
++	 * and we only want to prepare the ipu-ic image converter once.
++	 */
++	if (ctx->image_converter_ready)
++		return 0;
++
++	pin = get_image_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
++	pout = get_image_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
++
++	ctx->ic_ctx = ipu_image_convert_prepare(ctx->ic, pin, pout,
++						ctx->rot_mode,
++						m2mx_convert_complete, ctx);
++	if (IS_ERR(ctx->ic_ctx))
++		return PTR_ERR(ctx->ic_ctx);
++
++	ctx->image_converter_ready = true;
++	return 0;
++}
++
++static void m2mx_stop_streaming(struct vb2_queue *q)
++{
++	struct m2mx_ctx *ctx = vb2_get_drv_priv(q);
++
++	if (ctx->image_converter_ready) {
++		ipu_image_convert_unprepare(ctx->ic_ctx);
++		ctx->image_converter_ready = false;
++	}
++}
++
++static struct vb2_ops m2mx_qops = {
++	.queue_setup	 = m2mx_queue_setup,
++	.buf_prepare	 = m2mx_buf_prepare,
++	.buf_queue	 = m2mx_buf_queue,
++	.wait_prepare	 = m2mx_wait_prepare,
++	.wait_finish	 = m2mx_wait_finish,
++	.start_streaming = m2mx_start_streaming,
++	.stop_streaming  = m2mx_stop_streaming,
++};
++
++static int queue_init(void *priv, struct vb2_queue *src_vq,
++		      struct vb2_queue *dst_vq)
++{
++	struct m2mx_ctx *ctx = priv;
++	int ret;
++
++	memset(src_vq, 0, sizeof(*src_vq));
++	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
++	src_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
++	src_vq->drv_priv = ctx;
++	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++	src_vq->ops = &m2mx_qops;
++	src_vq->mem_ops = &vb2_dma_contig_memops;
++	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++
++	ret = vb2_queue_init(src_vq);
++	if (ret)
++		return ret;
++
++	memset(dst_vq, 0, sizeof(*dst_vq));
++	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
++	dst_vq->drv_priv = ctx;
++	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++	dst_vq->ops = &m2mx_qops;
++	dst_vq->mem_ops = &vb2_dma_contig_memops;
++	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++
++	return vb2_queue_init(dst_vq);
++}
++
++/*
++ * File operations
++ */
++static int m2mx_open(struct file *file)
++{
++	struct m2mx_dev *dev = video_drvdata(file);
++	struct ipu_image *in, *out;
++	struct m2mx_ctx *ctx;
++	int ret = 0;
++
++	if (mutex_lock_interruptible(&dev->dev_mutex))
++		return -ERESTARTSYS;
++
++	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
++	if (!ctx) {
++		ret = -ENOMEM;
++		goto unlock;
++	}
++	ctx->dev = dev;
++
++	ctx->ic = ipu_ic_get(dev->ipu, IC_TASK_POST_PROCESSOR);
++	if (IS_ERR(ctx->ic)) {
++		v4l2_err(&dev->v4l2_dev, "could not get IC PP\n");
++		ret = PTR_ERR(ctx->ic);
++		goto error_free;
++	}
++
++	v4l2_fh_init(&ctx->fh, dev->vfd);
++	file->private_data = &ctx->fh;
++	v4l2_fh_add(&ctx->fh);
++
++	ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
++	if (IS_ERR(ctx->fh.m2m_ctx)) {
++		ret = PTR_ERR(ctx->fh.m2m_ctx);
++		goto error_fh;
++	}
++
++	/*
++	 * set some defaults for output and capture image formats.
++	 * default for both is 640x480 RGB565.
++	 */
++	in = get_image_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
++	out = get_image_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
++	in->pix.width = out->pix.width = 640;
++	in->pix.height = out->pix.height = 480;
++	in->pix.pixelformat = V4L2_PIX_FMT_RGB565;
++	out->pix.pixelformat = V4L2_PIX_FMT_RGB565;
++	in->pix.sizeimage =
++		(in->pix.width * in->pix.height * 16) >> 3;
++	out->pix.sizeimage =
++		(out->pix.width * out->pix.height * 16) >> 3;
++
++	ret = m2mx_init_controls(ctx);
++	if (ret)
++		goto error_m2m_ctx;
++
++	mutex_unlock(&dev->dev_mutex);
++	return 0;
++
++error_m2m_ctx:
++	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
++error_fh:
++	v4l2_fh_del(&ctx->fh);
++	v4l2_fh_exit(&ctx->fh);
++	ipu_ic_put(ctx->ic);
++error_free:
++	kfree(ctx);
++unlock:
++	mutex_unlock(&dev->dev_mutex);
++	return ret;
++}
++
++static int m2mx_release(struct file *file)
++{
++	struct m2mx_dev *dev = video_drvdata(file);
++	struct m2mx_ctx *ctx = fh_to_ctx(file->private_data);
++
++	mutex_lock(&dev->dev_mutex);
++
++	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
++	v4l2_ctrl_handler_free(&ctx->ctrl_hdlr);
++	v4l2_fh_del(&ctx->fh);
++	v4l2_fh_exit(&ctx->fh);
++	ipu_ic_put(ctx->ic);
++	kfree(ctx);
++
++	mutex_unlock(&dev->dev_mutex);
++	return 0;
++}
++
++static unsigned int m2mx_poll(struct file *file,
++			       struct poll_table_struct *wait)
++{
++	struct m2mx_dev *dev = video_drvdata(file);
++	struct m2mx_ctx *ctx = fh_to_ctx(file->private_data);
++	int ret;
++
++	if (mutex_lock_interruptible(&dev->dev_mutex))
++		return -ERESTARTSYS;
++
++	ret = v4l2_m2m_poll(file, ctx->fh.m2m_ctx, wait);
++
++	mutex_unlock(&dev->dev_mutex);
++	return ret;
++}
++
++static int m2mx_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct m2mx_dev *dev = video_drvdata(file);
++	struct m2mx_ctx *ctx = fh_to_ctx(file->private_data);
++	int ret;
++
++	if (mutex_lock_interruptible(&dev->dev_mutex))
++		return -ERESTARTSYS;
++
++	ret = v4l2_m2m_mmap(file, ctx->fh.m2m_ctx, vma);
++
++	mutex_unlock(&dev->dev_mutex);
++	return ret;
++}
++
++static const struct v4l2_file_operations m2mx_fops = {
++	.owner		= THIS_MODULE,
++	.open		= m2mx_open,
++	.release	= m2mx_release,
++	.poll		= m2mx_poll,
++	.unlocked_ioctl	= video_ioctl2,
++	.mmap		= m2mx_mmap,
++};
++
++static struct video_device m2mx_videodev = {
++	.name		= MEM2MEM_NAME,
++	.fops		= &m2mx_fops,
++	.ioctl_ops	= &m2mx_ioctl_ops,
++	.minor		= -1,
++	.release	= video_device_release,
++	.vfl_dir	= VFL_DIR_M2M,
++};
++
++static struct v4l2_m2m_ops m2m_ops = {
++	.device_run	= m2mx_device_run,
++	.job_abort	= m2mx_job_abort,
++	.lock		= m2mx_lock,
++	.unlock		= m2mx_unlock,
++};
++
++static int of_dev_node_match(struct device *dev, void *data)
++{
++	return dev->of_node == data;
++}
++
++static struct ipu_soc *m2mx_get_ipu(struct m2mx_dev *dev,
++				     struct device_node *node)
++{
++	struct device_node *ipu_node;
++	struct device *ipu_dev;
++	struct ipu_soc *ipu;
++
++	ipu_node = of_parse_phandle(node, "ipu", 0);
++	if (!ipu_node) {
++		v4l2_err(&dev->v4l2_dev, "missing ipu phandle!\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	ipu_dev = bus_find_device(&platform_bus_type, NULL,
++				  ipu_node, of_dev_node_match);
++	of_node_put(ipu_node);
++
++	if (!ipu_dev) {
++		v4l2_err(&dev->v4l2_dev, "failed to find ipu device!\n");
++		return ERR_PTR(-ENODEV);
++	}
++
++	device_lock(ipu_dev);
++
++	if (!ipu_dev->driver || !try_module_get(ipu_dev->driver->owner)) {
++		ipu = ERR_PTR(-EPROBE_DEFER);
++		v4l2_warn(&dev->v4l2_dev, "IPU driver not loaded\n");
++		device_unlock(ipu_dev);
++		goto dev_put;
++	}
++
++	dev->ipu_dev = ipu_dev;
++	ipu = dev_get_drvdata(ipu_dev);
++
++	device_unlock(ipu_dev);
++	return ipu;
++dev_put:
++	put_device(ipu_dev);
++	return ipu;
++}
++
++static void m2mx_put_ipu(struct m2mx_dev *dev)
++{
++	if (!IS_ERR_OR_NULL(dev->ipu_dev)) {
++		module_put(dev->ipu_dev->driver->owner);
++		put_device(dev->ipu_dev);
++	}
++}
++
++static int m2mx_probe(struct platform_device *pdev)
++{
++	struct device_node *node = pdev->dev.of_node;
++	struct m2mx_dev *dev;
++	struct video_device *vfd;
++	int ret;
++
++	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
++	if (!dev)
++		return -ENOMEM;
++
++	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
++	if (ret)
++		return ret;
++
++	pdev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
++
++	/* get our IPU */
++	dev->ipu = m2mx_get_ipu(dev, node);
++	if (IS_ERR(dev->ipu)) {
++		v4l2_err(&dev->v4l2_dev, "could not get ipu\n");
++		ret = PTR_ERR(dev->ipu);
++		goto unreg_dev;
++	}
++
++	mutex_init(&dev->dev_mutex);
++
++	vfd = video_device_alloc();
++	if (!vfd) {
++		v4l2_err(&dev->v4l2_dev, "Failed to allocate video device\n");
++		ret = -ENOMEM;
++		goto unreg_dev;
++	}
++
++	*vfd = m2mx_videodev;
++	vfd->v4l2_dev = &dev->v4l2_dev;
++	vfd->lock = &dev->dev_mutex;
++
++	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
++	if (IS_ERR(dev->m2m_dev)) {
++		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
++		ret = PTR_ERR(dev->m2m_dev);
++		video_device_release(vfd);
++		goto unreg_dev;
++	}
++
++	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
++	if (ret) {
++		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
++		video_device_release(vfd);
++		goto rel_m2m;
++	}
++
++	video_set_drvdata(vfd, dev);
++	snprintf(vfd->name, sizeof(vfd->name), "%s", m2mx_videodev.name);
++	dev->vfd = vfd;
++	v4l2_info(&dev->v4l2_dev,
++		  "Device registered as /dev/video%d, on ipu%d\n",
++		  vfd->num, ipu_get_num(dev->ipu));
++
++	platform_set_drvdata(pdev, dev);
++
++	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
++	if (IS_ERR(dev->alloc_ctx)) {
++		v4l2_err(&dev->v4l2_dev, "Failed to alloc vb2 context\n");
++		ret = PTR_ERR(dev->alloc_ctx);
++		goto unreg_vdev;
++	}
++
++	return 0;
++
++unreg_vdev:
++	video_unregister_device(dev->vfd);
++rel_m2m:
++	v4l2_m2m_release(dev->m2m_dev);
++unreg_dev:
++	v4l2_device_unregister(&dev->v4l2_dev);
++	return ret;
++}
++
++static int m2mx_remove(struct platform_device *pdev)
++{
++	struct m2mx_dev *dev =
++		(struct m2mx_dev *)platform_get_drvdata(pdev);
++
++	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_NAME "\n");
++	m2mx_put_ipu(dev);
++	v4l2_m2m_release(dev->m2m_dev);
++	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
++	video_unregister_device(dev->vfd);
++
++	v4l2_device_unregister(&dev->v4l2_dev);
++
++	return 0;
++}
++
++static const struct of_device_id m2mx_dt_ids[] = {
++	{ .compatible = "fsl,imx-video-mem2mem" },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, m2mx_dt_ids);
++
++static struct platform_driver m2mx_pdrv = {
++	.probe		= m2mx_probe,
++	.remove		= m2mx_remove,
++	.driver		= {
++		.name	= MEM2MEM_NAME,
++		.owner	= THIS_MODULE,
++		.of_match_table	= m2mx_dt_ids,
++	},
++};
++
++module_platform_driver(m2mx_pdrv);
 -- 
 1.9.1
 
