@@ -1,449 +1,422 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:49091 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751913AbcFTPZz (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:33491 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752999AbcFNWvS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 11:25:55 -0400
-Subject: Re: [PATCH 4/6] media: Add 1X14 14-bit raw bayer media bus code
- definitions
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-References: <1464353080-18300-1-git-send-email-sakari.ailus@linux.intel.com>
- <1464353080-18300-5-git-send-email-sakari.ailus@linux.intel.com>
-Cc: g.liakhovetski@gmx.de, Jouni Ukkonen <jouni.ukkonen@intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <57680A69.4040705@xs4all.nl>
-Date: Mon, 20 Jun 2016 17:23:21 +0200
-MIME-Version: 1.0
-In-Reply-To: <1464353080-18300-5-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Tue, 14 Jun 2016 18:51:18 -0400
+Received: by mail-pf0-f196.google.com with SMTP id c74so306617pfb.0
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:18 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 18/38] ARM: dts: imx6qdl: Add mipi_ipu1/2 video muxes, mipi_csi, and their connections
+Date: Tue, 14 Jun 2016 15:49:14 -0700
+Message-Id: <1465944574-15745-19-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/27/2016 02:44 PM, Sakari Ailus wrote:
-> From: Jouni Ukkonen <jouni.ukkonen@intel.com>
-> 
-> The codes will be called:
-> 
-> 	MEDIA_BUS_FMT_SBGGR14_1X14
-> 	MEDIA_BUS_FMT_SGBRG14_1X14
-> 	MEDIA_BUS_FMT_SGRBG14_1X14
-> 	MEDIA_BUS_FMT_SRGGB14_1X14
-> 
-> Signed-off-by: Jouni Ukkonen <jouni.ukkonen@intel.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+This patch adds the device tree graph connecting the input multiplexers
+to the IPU CSIs and the MIPI-CSI2 gasket on i.MX6.
 
-	Hans
+On i.MX6Q/D two two-input multiplexers in front of IPU1 CSI0 and IPU2 CSI1
+allow to select between CSI0/1 parallel input pads and the MIPI CSI-2 virtual
+channels 0/3.
 
-> ---
->  Documentation/DocBook/media/v4l/subdev-formats.xml | 162 +++++++++++++++++++--
->  include/uapi/linux/media-bus-format.h              |   6 +-
->  2 files changed, 154 insertions(+), 14 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> index 199c84e..6d45dc8 100644
-> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> @@ -1098,22 +1098,24 @@ see <xref linkend="colorspaces" />.</entry>
->  
->        <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-bayer">
->  	<title>Bayer Formats</title>
-> -	<tgroup cols="15">
-> +	<tgroup cols="17">
->  	  <colspec colname="id" align="left" />
->  	  <colspec colname="code" align="center"/>
->  	  <colspec colname="bit" />
-> -	  <colspec colnum="4" colname="b11" align="center" />
-> -	  <colspec colnum="5" colname="b10" align="center" />
-> -	  <colspec colnum="6" colname="b09" align="center" />
-> -	  <colspec colnum="7" colname="b08" align="center" />
-> -	  <colspec colnum="8" colname="b07" align="center" />
-> -	  <colspec colnum="9" colname="b06" align="center" />
-> -	  <colspec colnum="10" colname="b05" align="center" />
-> -	  <colspec colnum="11" colname="b04" align="center" />
-> -	  <colspec colnum="12" colname="b03" align="center" />
-> -	  <colspec colnum="13" colname="b02" align="center" />
-> -	  <colspec colnum="14" colname="b01" align="center" />
-> -	  <colspec colnum="15" colname="b00" align="center" />
-> +	  <colspec colnum="4" colname="b13" align="center" />
-> +	  <colspec colnum="5" colname="b12" align="center" />
-> +	  <colspec colnum="6" colname="b11" align="center" />
-> +	  <colspec colnum="7" colname="b10" align="center" />
-> +	  <colspec colnum="8" colname="b09" align="center" />
-> +	  <colspec colnum="9" colname="b08" align="center" />
-> +	  <colspec colnum="10" colname="b07" align="center" />
-> +	  <colspec colnum="11" colname="b06" align="center" />
-> +	  <colspec colnum="12" colname="b05" align="center" />
-> +	  <colspec colnum="13" colname="b04" align="center" />
-> +	  <colspec colnum="14" colname="b03" align="center" />
-> +	  <colspec colnum="15" colname="b02" align="center" />
-> +	  <colspec colnum="16" colname="b01" align="center" />
-> +	  <colspec colnum="17" colname="b00" align="center" />
->  	  <spanspec namest="b11" nameend="b00" spanname="b0" />
->  	  <thead>
->  	    <row>
-> @@ -1126,6 +1128,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry></entry>
->  	      <entry></entry>
->  	      <entry>Bit</entry>
-> +	      <entry>13</entry>
-> +	      <entry>12</entry>
->  	      <entry>11</entry>
->  	      <entry>10</entry>
->  	      <entry>9</entry>
-> @@ -1149,6 +1153,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>b<subscript>7</subscript></entry>
->  	      <entry>b<subscript>6</subscript></entry>
->  	      <entry>b<subscript>5</subscript></entry>
-> @@ -1166,6 +1172,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>g<subscript>7</subscript></entry>
->  	      <entry>g<subscript>6</subscript></entry>
->  	      <entry>g<subscript>5</subscript></entry>
-> @@ -1183,6 +1191,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>g<subscript>7</subscript></entry>
->  	      <entry>g<subscript>6</subscript></entry>
->  	      <entry>g<subscript>5</subscript></entry>
-> @@ -1200,6 +1210,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>r<subscript>7</subscript></entry>
->  	      <entry>r<subscript>6</subscript></entry>
->  	      <entry>r<subscript>5</subscript></entry>
-> @@ -1217,6 +1229,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>b<subscript>7</subscript></entry>
->  	      <entry>b<subscript>6</subscript></entry>
->  	      <entry>b<subscript>5</subscript></entry>
-> @@ -1234,6 +1248,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>g<subscript>7</subscript></entry>
->  	      <entry>g<subscript>6</subscript></entry>
->  	      <entry>g<subscript>5</subscript></entry>
-> @@ -1251,6 +1267,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>g<subscript>7</subscript></entry>
->  	      <entry>g<subscript>6</subscript></entry>
->  	      <entry>g<subscript>5</subscript></entry>
-> @@ -1268,6 +1286,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>r<subscript>7</subscript></entry>
->  	      <entry>r<subscript>6</subscript></entry>
->  	      <entry>r<subscript>5</subscript></entry>
-> @@ -1285,6 +1305,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>b<subscript>7</subscript></entry>
->  	      <entry>b<subscript>6</subscript></entry>
->  	      <entry>b<subscript>5</subscript></entry>
-> @@ -1302,6 +1324,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>g<subscript>7</subscript></entry>
->  	      <entry>g<subscript>6</subscript></entry>
->  	      <entry>g<subscript>5</subscript></entry>
-> @@ -1319,6 +1343,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>g<subscript>7</subscript></entry>
->  	      <entry>g<subscript>6</subscript></entry>
->  	      <entry>g<subscript>5</subscript></entry>
-> @@ -1336,6 +1362,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>r<subscript>7</subscript></entry>
->  	      <entry>r<subscript>6</subscript></entry>
->  	      <entry>r<subscript>5</subscript></entry>
-> @@ -1353,6 +1381,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>0</entry>
->  	      <entry>0</entry>
->  	      <entry>0</entry>
-> @@ -1370,6 +1400,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>b<subscript>7</subscript></entry>
->  	      <entry>b<subscript>6</subscript></entry>
->  	      <entry>b<subscript>5</subscript></entry>
-> @@ -1387,6 +1419,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>b<subscript>7</subscript></entry>
->  	      <entry>b<subscript>6</subscript></entry>
->  	      <entry>b<subscript>5</subscript></entry>
-> @@ -1404,6 +1438,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>0</entry>
->  	      <entry>0</entry>
->  	      <entry>0</entry>
-> @@ -1421,6 +1457,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>b<subscript>9</subscript></entry>
->  	      <entry>b<subscript>8</subscript></entry>
->  	      <entry>b<subscript>7</subscript></entry>
-> @@ -1438,6 +1476,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>b<subscript>1</subscript></entry>
->  	      <entry>b<subscript>0</subscript></entry>
->  	      <entry>0</entry>
-> @@ -1455,6 +1495,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>b<subscript>1</subscript></entry>
->  	      <entry>b<subscript>0</subscript></entry>
->  	      <entry>0</entry>
-> @@ -1472,6 +1514,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>b<subscript>9</subscript></entry>
->  	      <entry>b<subscript>8</subscript></entry>
->  	      <entry>b<subscript>7</subscript></entry>
-> @@ -1487,6 +1531,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry></entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>b<subscript>9</subscript></entry>
->  	      <entry>b<subscript>8</subscript></entry>
->  	      <entry>b<subscript>7</subscript></entry>
-> @@ -1504,6 +1550,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry></entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>g<subscript>9</subscript></entry>
->  	      <entry>g<subscript>8</subscript></entry>
->  	      <entry>g<subscript>7</subscript></entry>
-> @@ -1521,6 +1569,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry></entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>g<subscript>9</subscript></entry>
->  	      <entry>g<subscript>8</subscript></entry>
->  	      <entry>g<subscript>7</subscript></entry>
-> @@ -1538,6 +1588,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry></entry>
->  	      <entry>-</entry>
->  	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>r<subscript>9</subscript></entry>
->  	      <entry>r<subscript>8</subscript></entry>
->  	      <entry>r<subscript>7</subscript></entry>
-> @@ -1553,6 +1605,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>MEDIA_BUS_FMT_SBGGR12_1X12</entry>
->  	      <entry>0x3008</entry>
->  	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>b<subscript>11</subscript></entry>
->  	      <entry>b<subscript>10</subscript></entry>
->  	      <entry>b<subscript>9</subscript></entry>
-> @@ -1570,6 +1624,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>MEDIA_BUS_FMT_SGBRG12_1X12</entry>
->  	      <entry>0x3010</entry>
->  	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>g<subscript>11</subscript></entry>
->  	      <entry>g<subscript>10</subscript></entry>
->  	      <entry>g<subscript>9</subscript></entry>
-> @@ -1587,6 +1643,8 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>MEDIA_BUS_FMT_SGRBG12_1X12</entry>
->  	      <entry>0x3011</entry>
->  	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
->  	      <entry>g<subscript>11</subscript></entry>
->  	      <entry>g<subscript>10</subscript></entry>
->  	      <entry>g<subscript>9</subscript></entry>
-> @@ -1604,6 +1662,84 @@ see <xref linkend="colorspaces" />.</entry>
->  	      <entry>MEDIA_BUS_FMT_SRGGB12_1X12</entry>
->  	      <entry>0x3012</entry>
->  	      <entry></entry>
-> +	      <entry>-</entry>
-> +	      <entry>-</entry>
-> +	      <entry>r<subscript>11</subscript></entry>
-> +	      <entry>r<subscript>10</subscript></entry>
-> +	      <entry>r<subscript>9</subscript></entry>
-> +	      <entry>r<subscript>8</subscript></entry>
-> +	      <entry>r<subscript>7</subscript></entry>
-> +	      <entry>r<subscript>6</subscript></entry>
-> +	      <entry>r<subscript>5</subscript></entry>
-> +	      <entry>r<subscript>4</subscript></entry>
-> +	      <entry>r<subscript>3</subscript></entry>
-> +	      <entry>r<subscript>2</subscript></entry>
-> +	      <entry>r<subscript>1</subscript></entry>
-> +	      <entry>r<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row id="MEDIA-BUS-FMT-SBGGR14-1X14">
-> +	      <entry>MEDIA_BUS_FMT_SBGGR14_1X14</entry>
-> +	      <entry>0x3019</entry>
-> +	      <entry></entry>
-> +	      <entry>b<subscript>13</subscript></entry>
-> +	      <entry>b<subscript>12</subscript></entry>
-> +	      <entry>b<subscript>11</subscript></entry>
-> +	      <entry>b<subscript>10</subscript></entry>
-> +	      <entry>b<subscript>9</subscript></entry>
-> +	      <entry>b<subscript>8</subscript></entry>
-> +	      <entry>b<subscript>7</subscript></entry>
-> +	      <entry>b<subscript>6</subscript></entry>
-> +	      <entry>b<subscript>5</subscript></entry>
-> +	      <entry>b<subscript>4</subscript></entry>
-> +	      <entry>b<subscript>3</subscript></entry>
-> +	      <entry>b<subscript>2</subscript></entry>
-> +	      <entry>b<subscript>1</subscript></entry>
-> +	      <entry>b<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row id="MEDIA-BUS-FMT-SGBRG14-1X14">
-> +	      <entry>MEDIA_BUS_FMT_SGBRG14_1X14</entry>
-> +	      <entry>0x301a</entry>
-> +	      <entry></entry>
-> +	      <entry>g<subscript>13</subscript></entry>
-> +	      <entry>g<subscript>12</subscript></entry>
-> +	      <entry>g<subscript>11</subscript></entry>
-> +	      <entry>g<subscript>10</subscript></entry>
-> +	      <entry>g<subscript>9</subscript></entry>
-> +	      <entry>g<subscript>8</subscript></entry>
-> +	      <entry>g<subscript>7</subscript></entry>
-> +	      <entry>g<subscript>6</subscript></entry>
-> +	      <entry>g<subscript>5</subscript></entry>
-> +	      <entry>g<subscript>4</subscript></entry>
-> +	      <entry>g<subscript>3</subscript></entry>
-> +	      <entry>g<subscript>2</subscript></entry>
-> +	      <entry>g<subscript>1</subscript></entry>
-> +	      <entry>g<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row id="MEDIA-BUS-FMT-SGRBG14-1X14">
-> +	      <entry>MEDIA_BUS_FMT_SGRBG14_1X14</entry>
-> +	      <entry>0x301b</entry>
-> +	      <entry></entry>
-> +	      <entry>g<subscript>13</subscript></entry>
-> +	      <entry>g<subscript>12</subscript></entry>
-> +	      <entry>g<subscript>11</subscript></entry>
-> +	      <entry>g<subscript>10</subscript></entry>
-> +	      <entry>g<subscript>9</subscript></entry>
-> +	      <entry>g<subscript>8</subscript></entry>
-> +	      <entry>g<subscript>7</subscript></entry>
-> +	      <entry>g<subscript>6</subscript></entry>
-> +	      <entry>g<subscript>5</subscript></entry>
-> +	      <entry>g<subscript>4</subscript></entry>
-> +	      <entry>g<subscript>3</subscript></entry>
-> +	      <entry>g<subscript>2</subscript></entry>
-> +	      <entry>g<subscript>1</subscript></entry>
-> +	      <entry>g<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row id="MEDIA-BUS-FMT-SRGGB14-1X14">
-> +	      <entry>MEDIA_BUS_FMT_SRGGB14_1X14</entry>
-> +	      <entry>0x301c</entry>
-> +	      <entry></entry>
-> +	      <entry>r<subscript>13</subscript></entry>
-> +	      <entry>r<subscript>12</subscript></entry>
->  	      <entry>r<subscript>11</subscript></entry>
->  	      <entry>r<subscript>10</subscript></entry>
->  	      <entry>r<subscript>9</subscript></entry>
-> diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-> index 190d491..1dff459 100644
-> --- a/include/uapi/linux/media-bus-format.h
-> +++ b/include/uapi/linux/media-bus-format.h
-> @@ -97,7 +97,7 @@
->  #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
->  #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
->  
-> -/* Bayer - next is	0x3019 */
-> +/* Bayer - next is	0x301d */
->  #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
->  #define MEDIA_BUS_FMT_SGBRG8_1X8		0x3013
->  #define MEDIA_BUS_FMT_SGRBG8_1X8		0x3002
-> @@ -122,6 +122,10 @@
->  #define MEDIA_BUS_FMT_SGBRG12_1X12		0x3010
->  #define MEDIA_BUS_FMT_SGRBG12_1X12		0x3011
->  #define MEDIA_BUS_FMT_SRGGB12_1X12		0x3012
-> +#define MEDIA_BUS_FMT_SBGGR14_1X14		0x3019
-> +#define MEDIA_BUS_FMT_SGBRG14_1X14		0x301a
-> +#define MEDIA_BUS_FMT_SGRBG14_1X14		0x301b
-> +#define MEDIA_BUS_FMT_SRGGB14_1X14		0x301c
->  
->  /* JPEG compressed formats - next is	0x4002 */
->  #define MEDIA_BUS_FMT_JPEG_1X8			0x4001
-> 
+On i.MX6DL/S two five-input multiplexers in front of IPU1 CSI0 and IPU1 CSI1
+allow to select between CSI0/1 parallel input pads and any of the four MIPI
+CSI-2 virtual channels.
+
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/boot/dts/imx6dl.dtsi  | 183 +++++++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/imx6q.dtsi   | 120 +++++++++++++++++++++++++++
+ arch/arm/boot/dts/imx6qdl.dtsi |   6 ++
+ 3 files changed, 309 insertions(+)
+
+diff --git a/arch/arm/boot/dts/imx6dl.dtsi b/arch/arm/boot/dts/imx6dl.dtsi
+index 9a4c22c..8813df3 100644
+--- a/arch/arm/boot/dts/imx6dl.dtsi
++++ b/arch/arm/boot/dts/imx6dl.dtsi
+@@ -109,6 +109,118 @@
+ 		compatible = "fsl,imx-gpu-subsystem";
+ 		cores = <&gpu_2d>, <&gpu_3d>;
+ 	};
++
++	ipu1_csi0_mux: videomux@0 {
++		compatible = "imx-video-mux";
++		reg = <0x34 0x07>;
++		gpr = <&gpr>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		status = "disabled";
++
++		port@0 {
++			reg = <0>;
++
++			ipu1_csi0_mux_from_mipi_vc0: endpoint {
++				remote-endpoint = <&mipi_vc0_to_ipu1_csi0_mux>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			ipu1_csi0_mux_from_mipi_vc1: endpoint {
++				remote-endpoint = <&mipi_vc1_to_ipu1_csi0_mux>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			ipu1_csi0_mux_from_mipi_vc2: endpoint {
++				remote-endpoint = <&mipi_vc2_to_ipu1_csi0_mux>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			ipu1_csi0_mux_from_mipi_vc3: endpoint {
++				remote-endpoint = <&mipi_vc3_to_ipu1_csi0_mux>;
++			};
++		};
++
++		port@4 {
++			reg = <4>;
++
++			ipu1_csi0_mux_from_parallel_sensor: endpoint {
++			};
++		};
++
++		port@5 {
++			reg = <5>;
++
++			ipu1_csi0_mux_to_ipu1_csi0: endpoint {
++				remote-endpoint = <&ipu1_csi0_from_ipu1_csi0_mux>;
++			};
++		};
++	};
++
++	ipu1_csi1_mux: videomux@1 {
++		compatible = "imx-video-mux";
++		reg = <0x34 0x38>;
++		gpr = <&gpr>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		status = "disabled";
++
++		port@0 {
++			reg = <0>;
++
++			ipu1_csi1_mux_from_mipi_vc0: endpoint {
++				remote-endpoint = <&mipi_vc0_to_ipu1_csi1_mux>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			ipu1_csi1_mux_from_mipi_vc1: endpoint {
++				remote-endpoint = <&mipi_vc1_to_ipu1_csi1_mux>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			ipu1_csi1_mux_from_mipi_vc2: endpoint {
++				remote-endpoint = <&mipi_vc2_to_ipu1_csi1_mux>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			ipu1_csi1_mux_from_mipi_vc3: endpoint {
++				remote-endpoint = <&mipi_vc3_to_ipu1_csi1_mux>;
++			};
++		};
++
++		port@4 {
++			reg = <4>;
++
++			ipu1_csi1_mux_from_parallel_sensor: endpoint {
++			};
++		};
++
++		port@5 {
++			reg = <5>;
++
++			ipu1_csi1_mux_to_ipu1_csi1: endpoint {
++				remote-endpoint = <&ipu1_csi1_from_ipu1_csi1_mux>;
++			};
++		};
++	};
+ };
+ 
+ &gpt {
+@@ -131,3 +243,74 @@
+ &vpu {
+ 	compatible = "fsl,imx6dl-vpu", "cnm,coda960";
+ };
++
++&ipu1_csi1 {
++	ipu1_csi1_from_ipu1_csi1_mux: endpoint {
++		remote-endpoint = <&ipu1_csi1_mux_to_ipu1_csi1>;
++	};
++};
++
++&mipi_csi {
++	port@0 {
++		reg = <0>;
++
++		mipi_csi_from_mipi_sensor: endpoint {
++		};
++	};
++
++	port@1 {
++		reg = <1>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		mipi_vc0_to_ipu1_csi0_mux: endpoint@0 {
++			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc0>;
++		};
++
++		mipi_vc0_to_ipu1_csi1_mux: endpoint@1 {
++			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc0>;
++		};
++	};
++
++	port@2 {
++		reg = <2>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		mipi_vc1_to_ipu1_csi0_mux: endpoint@0 {
++			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc1>;
++		};
++
++		mipi_vc1_to_ipu1_csi1_mux: endpoint@1 {
++			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc1>;
++		};
++	};
++
++	port@3 {
++		reg = <3>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		mipi_vc2_to_ipu1_csi0_mux: endpoint@0 {
++			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc2>;
++		};
++
++		mipi_vc2_to_ipu1_csi1_mux: endpoint@1 {
++			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc2>;
++		};
++	};
++
++	port@4 {
++		reg = <4>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		mipi_vc3_to_ipu1_csi0_mux: endpoint@0 {
++			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc3>;
++		};
++
++		mipi_vc3_to_ipu1_csi1_mux: endpoint@1 {
++			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc3>;
++		};
++	};
++};
+diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
+index c30c836..a487658 100644
+--- a/arch/arm/boot/dts/imx6q.dtsi
++++ b/arch/arm/boot/dts/imx6q.dtsi
+@@ -143,10 +143,18 @@
+ 
+ 			ipu2_csi0: port@0 {
+ 				reg = <0>;
++
++				ipu2_csi0_from_mipi_vc2: endpoint {
++					remote-endpoint = <&mipi_vc2_to_ipu2_csi0>;
++				};
+ 			};
+ 
+ 			ipu2_csi1: port@1 {
+ 				reg = <1>;
++
++				ipu2_csi1_from_ipu2_csi1_mux: endpoint {
++					remote-endpoint = <&ipu2_csi1_mux_to_ipu2_csi1>;
++				};
+ 			};
+ 
+ 			ipu2_di0: port@2 {
+@@ -207,6 +215,71 @@
+ 		compatible = "fsl,imx-gpu-subsystem";
+ 		cores = <&gpu_2d>, <&gpu_3d>, <&gpu_vg>;
+ 	};
++
++
++	ipu1_csi0_mux: videomux@0 {
++		compatible = "imx-video-mux";
++		reg = <0x04 0x80000>;
++		gpr = <&gpr>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		status = "disabled";
++
++		port@0 {
++			reg = <0>;
++
++			ipu1_csi0_mux_from_mipi_vc0: endpoint {
++				remote-endpoint = <&mipi_vc0_to_ipu1_csi0_mux>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			ipu1_csi0_mux_from_parallel_sensor: endpoint {
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			ipu1_csi0_mux_to_ipu1_csi0: endpoint {
++				remote-endpoint = <&ipu1_csi0_from_ipu1_csi0_mux>;
++			};
++		};
++	};
++
++	ipu2_csi1_mux: videomux@1 {
++		compatible = "imx-video-mux";
++		reg = <0x04 0x100000>;
++		gpr = <&gpr>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		status = "disabled";
++
++		port@0 {
++			reg = <0>;
++
++			ipu2_csi1_mux_from_mipi_vc3: endpoint {
++				remote-endpoint = <&mipi_vc3_to_ipu2_csi1_mux>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			ipu2_csi1_mux_from_parallel_sensor: endpoint {
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			ipu2_csi1_mux_to_ipu2_csi1: endpoint {
++				remote-endpoint = <&ipu2_csi1_from_ipu2_csi1_mux>;
++			};
++		};
++	};
+ };
+ 
+ &hdmi {
+@@ -229,6 +302,12 @@
+ 	};
+ };
+ 
++&ipu1_csi1 {
++	ipu1_csi1_from_mipi_vc1: endpoint {
++		remote-endpoint = <&mipi_vc1_to_ipu1_csi1>;
++	};
++};
++
+ &ldb {
+ 	clocks = <&clks IMX6QDL_CLK_LDB_DI0_SEL>, <&clks IMX6QDL_CLK_LDB_DI1_SEL>,
+ 		 <&clks IMX6QDL_CLK_IPU1_DI0_SEL>, <&clks IMX6QDL_CLK_IPU1_DI1_SEL>,
+@@ -275,6 +354,47 @@
+ 	};
+ };
+ 
++&mipi_csi {
++	port@0 {
++		reg = <0>;
++
++		mipi_csi_from_mipi_sensor: endpoint {
++		};
++	};
++
++	port@1 {
++		reg = <1>;
++
++		mipi_vc0_to_ipu1_csi0_mux: endpoint {
++			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc0>;
++		};
++	};
++
++	port@2 {
++		reg = <2>;
++
++		mipi_vc1_to_ipu1_csi1: endpoint {
++			remote-endpoint = <&ipu1_csi1_from_mipi_vc1>;
++		};
++	};
++
++	port@3 {
++		reg = <3>;
++
++		mipi_vc2_to_ipu2_csi0: endpoint {
++			remote-endpoint = <&ipu2_csi0_from_mipi_vc2>;
++		};
++	};
++
++	port@4 {
++		reg = <4>;
++
++		mipi_vc3_to_ipu2_csi1_mux: endpoint {
++			remote-endpoint = <&ipu2_csi1_mux_from_mipi_vc3>;
++		};
++	};
++};
++
+ &mipi_dsi {
+ 	ports {
+ 		port@2 {
+diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+index 50499eb..838d1d5 100644
+--- a/arch/arm/boot/dts/imx6qdl.dtsi
++++ b/arch/arm/boot/dts/imx6qdl.dtsi
+@@ -1121,6 +1121,8 @@
+ 			mipi_csi: mipi@021dc000 {
+ 				compatible = "fsl,imx-mipi-csi2";
+ 				reg = <0x021dc000 0x4000>;
++				#address-cells = <1>;
++				#size-cells = <0>;
+ 				interrupts = <0 100 0x04>, <0 101 0x04>;
+ 				clocks = <&clks IMX6QDL_CLK_HSI_TX>,
+ 					 <&clks IMX6QDL_CLK_VIDEO_27M>,
+@@ -1226,6 +1228,10 @@
+ 
+ 			ipu1_csi0: port@0 {
+ 				reg = <0>;
++
++				ipu1_csi0_from_ipu1_csi0_mux: endpoint {
++					remote-endpoint = <&ipu1_csi0_mux_to_ipu1_csi0>;
++				};
+ 			};
+ 
+ 			ipu1_csi1: port@1 {
+-- 
+1.9.1
+
