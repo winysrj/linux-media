@@ -1,67 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45085
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754034AbcFPTxk (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:33473 "EHLO
+	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752833AbcFNWvO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2016 15:53:40 -0400
-Date: Thu, 16 Jun 2016 16:53:34 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
-	lars@opdenkamp.eu, linux@arm.linux.org.uk,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv16 05/13] cec/TODO: add TODO file so we know why this is
- still in staging
-Message-ID: <20160616165334.05e94cf0@recife.lan>
-In-Reply-To: <1461937948-22936-6-git-send-email-hverkuil@xs4all.nl>
-References: <1461937948-22936-1-git-send-email-hverkuil@xs4all.nl>
-	<1461937948-22936-6-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 14 Jun 2016 18:51:14 -0400
+Received: by mail-pf0-f194.google.com with SMTP id c74so306402pfb.0
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:14 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 13/38] gpu: ipu-v3: Fix IRT usage
+Date: Tue, 14 Jun 2016 15:49:09 -0700
+Message-Id: <1465944574-15745-14-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 29 Apr 2016 15:52:20 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+There can be multiple IC tasks using the IRT, so the IRT needs
+a separate use counter. Create a private ipu_irt_enable() to
+enable the IRT module when any IC task requires rotation, and
+ipu_irt_disable() when a task no longer needs the IRT.
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Explain why cec.c is still in staging.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/gpu/ipu-v3/ipu-ic.c | 43 ++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 34 insertions(+), 9 deletions(-)
 
-Hmm... as this is for staging, even having pointed several things to
-be improved, I may end merging this series. Will decide after finishing
-the patch review.
+diff --git a/drivers/gpu/ipu-v3/ipu-ic.c b/drivers/gpu/ipu-v3/ipu-ic.c
+index f306a9c..5329bfe 100644
+--- a/drivers/gpu/ipu-v3/ipu-ic.c
++++ b/drivers/gpu/ipu-v3/ipu-ic.c
+@@ -160,6 +160,7 @@ struct ipu_ic_priv {
+ 	spinlock_t lock;
+ 	struct ipu_soc *ipu;
+ 	int use_count;
++	int irt_use_count;
+ 	struct ipu_ic task[IC_NUM_TASKS];
+ };
+ 
+@@ -379,8 +380,6 @@ void ipu_ic_task_disable(struct ipu_ic *ic)
+ 
+ 	ipu_ic_write(ic, ic_conf, IC_CONF);
+ 
+-	ic->rotation = ic->graphics = false;
+-
+ 	spin_unlock_irqrestore(&priv->lock, flags);
+ }
+ EXPORT_SYMBOL_GPL(ipu_ic_task_disable);
+@@ -639,22 +638,44 @@ int ipu_ic_set_src(struct ipu_ic *ic, int csi_id, bool vdi)
+ }
+ EXPORT_SYMBOL_GPL(ipu_ic_set_src);
+ 
++static void ipu_irt_enable(struct ipu_ic *ic)
++{
++	struct ipu_ic_priv *priv = ic->priv;
++
++	if (!priv->irt_use_count)
++		ipu_module_enable(priv->ipu, IPU_CONF_ROT_EN);
++
++	priv->irt_use_count++;
++}
++
++static void ipu_irt_disable(struct ipu_ic *ic)
++{
++	struct ipu_ic_priv *priv = ic->priv;
++
++	priv->irt_use_count--;
++
++	if (!priv->irt_use_count)
++		ipu_module_disable(priv->ipu, IPU_CONF_ROT_EN);
++
++	if (priv->irt_use_count < 0)
++		priv->irt_use_count = 0;
++}
++
+ int ipu_ic_enable(struct ipu_ic *ic)
+ {
+ 	struct ipu_ic_priv *priv = ic->priv;
+ 	unsigned long flags;
+-	u32 module = IPU_CONF_IC_EN;
+ 
+ 	spin_lock_irqsave(&priv->lock, flags);
+ 
+-	if (ic->rotation)
+-		module |= IPU_CONF_ROT_EN;
+-
+ 	if (!priv->use_count)
+-		ipu_module_enable(priv->ipu, module);
++		ipu_module_enable(priv->ipu, IPU_CONF_IC_EN);
+ 
+ 	priv->use_count++;
+ 
++	if (ic->rotation)
++		ipu_irt_enable(ic);
++
+ 	spin_unlock_irqrestore(&priv->lock, flags);
+ 
+ 	return 0;
+@@ -665,18 +686,22 @@ int ipu_ic_disable(struct ipu_ic *ic)
+ {
+ 	struct ipu_ic_priv *priv = ic->priv;
+ 	unsigned long flags;
+-	u32 module = IPU_CONF_IC_EN | IPU_CONF_ROT_EN;
+ 
+ 	spin_lock_irqsave(&priv->lock, flags);
+ 
+ 	priv->use_count--;
+ 
+ 	if (!priv->use_count)
+-		ipu_module_disable(priv->ipu, module);
++		ipu_module_disable(priv->ipu, IPU_CONF_IC_EN);
+ 
+ 	if (priv->use_count < 0)
+ 		priv->use_count = 0;
+ 
++	if (ic->rotation)
++		ipu_irt_disable(ic);
++
++	ic->rotation = ic->graphics = false;
++
+ 	spin_unlock_irqrestore(&priv->lock, flags);
+ 
+ 	return 0;
+-- 
+1.9.1
 
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/staging/media/cec/TODO | 13 +++++++++++++
->  1 file changed, 13 insertions(+)
->  create mode 100644 drivers/staging/media/cec/TODO
-> 
-> diff --git a/drivers/staging/media/cec/TODO b/drivers/staging/media/cec/TODO
-> new file mode 100644
-> index 0000000..c0751ef
-> --- /dev/null
-> +++ b/drivers/staging/media/cec/TODO
-> @@ -0,0 +1,13 @@
-> +The reason why cec.c is still in staging is that I would like
-> +to have a bit more confidence in the uABI. The kABI is fine,
-> +no problem there, but I would like to let the public API mature
-> +a bit.
-> +
-> +Once I'm confident that I didn't miss anything then the cec.c source
-> +can move to drivers/media and the linux/cec.h and linux/cec-funcs.h
-> +headers can move to uapi/linux and added to uapi/linux/Kbuild to make
-> +them public.
-> +
-> +Hopefully this will happen later in 2016.
-> +
-> +Hans Verkuil <hans.verkuil@cisco.com>
-
-
-
-Thanks,
-Mauro
