@@ -1,153 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35811 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932761AbcFLVsT (ORCPT
+Received: from mail-vk0-f43.google.com ([209.85.213.43]:36512 "EHLO
+	mail-vk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751363AbcFNIo5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2016 17:48:19 -0400
-Subject: Re: [PATCH 1/1] v4l: Add camera voice coil lens control class,
- current control
-To: Sakari Ailus <sakari.ailus@linux.intel.com>, pavel@ucw.cz
-References: <20160527205140.GA26767@amd>
- <1465764110-7736-1-git-send-email-sakari.ailus@linux.intel.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com,
-	Sakari Ailus <sakari.ailus@iki.fi>
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Message-ID: <575DD89F.20607@gmail.com>
-Date: Mon, 13 Jun 2016 00:48:15 +0300
+	Tue, 14 Jun 2016 04:44:57 -0400
+Received: by mail-vk0-f43.google.com with SMTP id u64so100782929vkf.3
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 01:44:57 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1465764110-7736-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <575746EE.3030706@cisco.com>
+References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
+ <20160607112235.475c2e4c@recife.lan> <575746EE.3030706@cisco.com>
+From: =?UTF-8?B?V3UtQ2hlbmcgTGkgKOadjuWLmeiqoCk=?=
+	<wuchengli@chromium.org>
+Date: Tue, 14 Jun 2016 16:44:36 +0800
+Message-ID: <CAOMLVLjnktOoDWseZBwsFwLbym8mX7CQzOHW3tbum1yWJjfFNA@mail.gmail.com>
+Subject: Re: [PATCH v3 0/9] Add MT8173 Video Decoder Driver
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Daniel Thompson <daniel.thompson@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org,
+	Lin PoChun <PoChun.Lin@mediatek.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, Jun 8, 2016 at 6:13 AM, Hans Verkuil <hansverk@cisco.com> wrote:
+>
+>
+> On 06/07/2016 11:22 PM, Mauro Carvalho Chehab wrote:
+>>
+>> Em Mon, 30 May 2016 20:29:14 +0800
+>> Tiffany Lin <tiffany.lin@mediatek.com> escreveu:
+>>
+>>> ==============
+>>>   Introduction
+>>> ==============
+>>>
+>>> The purpose of this series is to add the driver for video codec hw
+>>> embedded in the Mediatek's MT8173 SoCs.
+>>> Mediatek Video Codec is able to handle video decoding of in a range of
+>>> formats.
+>>>
+>>> This patch series add Mediatek block format V4L2_PIX_FMT_MT21, the
+>>> decoder driver will decoded bitstream to
+>>> V4L2_PIX_FMT_MT21 format.
+>>>
+>>> This patch series rely on MTK VPU driver in patch series "Add MT8173
+>>> Video Encoder Driver and VPU Driver"[1]
+>>> and patch "CHROMIUM: v4l: Add V4L2_PIX_FMT_VP9 definition"[2] for VP9
+>>> support.
+>>> Mediatek Video Decoder driver rely on VPU driver to load, communicate
+>>> with VPU.
+>>>
+>>> Internally the driver uses videobuf2 framework and MTK IOMMU and MTK SMI
+>>> both have been merged in v4.6-rc1.
+>>>
+>>> [1]https://patchwork.linuxtv.org/patch/33734/
+>>> [2]https://chromium-review.googlesource.com/#/c/245241/
+>>
+>>
+>> Hmm... I'm not seeing the firmware for this driver at the
+>> linux-firmware tree:
+>>
+>> https://git.kernel.org/cgit/linux/kernel/git/firmware/linux-firmware.git/log/
+Tiffany. Can you check the license and add the firmware to linux-firmware?
 
-On 12.06.2016 23:41, Sakari Ailus wrote:
-> From: Sakari Ailus <sakari.ailus@iki.fi>
+For the information, both encoder and decoder drivers require the
+firmware to work.
+>>
+>> Nor I'm seeing any pull request for them. Did you send it?
+>> I'll only merge the driver upstream after seeing such pull request.
 >
-> Add a V4L2 control class for voice coil lens driver devices.  These are
-> simple devices that are used to move a camera lens from its resting
-> position.
 >
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> Hi Pavel,
+> Mauro, are you confusing the decoder and encoder driver? I haven't
+> thoroughly reviewed the decoder driver
+> yet, so there is no pull request for the decoder driver.
 >
-> I also don't think the FOCUS_ABSOLUTE controls is a really good one for
-> the voice coil lens current. I expect more voice coil lens controls
-> (linear vs. PWM mode, ringing compensation...) to be needed so I think
-> it's worth a new class.
+> The only pull request I made was for the encoder driver.
 >
-
-Right, I still think movement mode should be standard control :)
-
-> Cc others, too...
+> Regards,
 >
-> Kind regards,
-> Sakari
+>         Hans
 >
->   Documentation/DocBook/media/v4l/controls.xml | 55 +++++++++++++++++++++++++++-
->   include/uapi/linux/v4l2-controls.h           |  7 ++++
->   2 files changed, 61 insertions(+), 1 deletion(-)
->
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index e2e5484..aa7169c 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -5502,4 +5502,57 @@ receiving given frequency when that control is set. This is a read-only control.
->           </tgroup>
->         </table>
->       </section>
-> -</section>
-> +
-> +    <section id="voice-coil-controls">
-> +      <title>Voice Coil Control Reference</title>
-> +
-> +      <para>The Voice Coil class controls are used to control voice
-> +      coil lens devices. These are very simple devices that consist of
-> +      a voice coil, a spring and a lens. The current applied on a
-
-There should be a magnet as well.
-
-> +      voice coil is used to move the lens away from the resting
-> +      position which typically is (close to) infinity.</para>
-> +
-> +      <table pgwide="1" frame="none" id="voice-coil-control-id">
-> +      <title>Voice Coil Control IDs</title>
-> +
-> +      <tgroup cols="4">
-> +        <colspec colname="c1" colwidth="1*" />
-> +        <colspec colname="c2" colwidth="6*" />
-> +        <colspec colname="c3" colwidth="2*" />
-> +        <colspec colname="c4" colwidth="6*" />
-> +        <spanspec namest="c1" nameend="c2" spanname="id" />
-> +        <spanspec namest="c2" nameend="c4" spanname="descr" />
-> +        <thead>
-> +          <row>
-> +            <entry spanname="id" align="left">ID</entry>
-> +            <entry align="left">Type</entry>
-> +          </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-> +          </row>
-> +        </thead>
-> +        <tbody valign="top">
-> +          <row><entry></entry></row>
-> +          <row>
-> +            <entry spanname="id"><constant>V4L2_CID_VOICE_COIL_CLASS</constant>&nbsp;</entry>
-> +            <entry>class</entry>
-> +          </row><row><entry spanname="descr">The Voice Coil class
-> +descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
-> +description of this control class.</entry>
-> +          </row>
-> +          <row>
-> +            <entry spanname="id"><constant>V4L2_CID_VOICE_COIL_CURRENT</constant>&nbsp;</entry>
-> +            <entry>integer</entry>
-
-I think this is no better than FOCUS_ABSOLUTE - nor "absolute" neither 
-"current" give any idea where is the lens (relatively to the rest 
-position) without userspace doing some calculations. What about 
-V4L2_CID_VOICE_COIL_POSITION, 0.000%-100.000% (pcm units)?
-
-> +          </row><row><entry spanname="descr">Current applied on a
-> +          voice coil. The more current is applied, the more is the
-> +          position of the lens moved from its resting position. Do
-> +          note that there may be a ringing effect; the lens will
-> +          oscillate after changing the current applied unless the
-> +          device implements ringing compensation.
-> +          </entry>
-> +          </row>
-> +        </tbody>
-> +      </tgroup>
-> +      </table>
-> +
-> +      </section>
-> +
-> +  </section>
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index b6a357a..c6b1261 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -62,6 +62,7 @@
->   #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
->   #define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
->   #define V4L2_CTRL_CLASS_DETECT		0x00a30000	/* Detection controls */
-> +#define V4L2_CTRL_CLASS_VOICE_COIL	0x00a40000	/* Voice coil lens driver */
->
->   /* User-class control IDs */
->
-> @@ -974,4 +975,10 @@ enum v4l2_detect_md_mode {
->   #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
->   #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
->
-> +/*  Voice coil lens driver control IDs defined by V4L2 */
-> +#define V4L2_CID_VOICE_COIL_CLASS_BASE		(V4L2_CTRL_CLASS_VOICE_COIL | 0x900)
-> +#define V4L2_CID_VOICE_COIL_CLASS		(V4L2_CTRL_CLASS_VOICE_COIL | 1)
-> +
-> +#define V4L2_CID_VOICE_COIL_CURRENT		(V4L2_CID_VOICE_COIL_CLASS_BASE + 1)
-> +
->   #endif
->
-
-Ivo
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
