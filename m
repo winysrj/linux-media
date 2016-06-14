@@ -1,100 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57764 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750870AbcF0NSV (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:33548 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932194AbcFNWvb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 09:18:21 -0400
-Received: from avalon.localnet (33.154-246-81.adsl-dyn.isp.belgacom.be [81.246.154.33])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 7318120010
-	for <linux-media@vger.kernel.org>; Mon, 27 Jun 2016 15:15:48 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Tue, 14 Jun 2016 18:51:31 -0400
+Received: by mail-pf0-f193.google.com with SMTP id c74so307109pfb.0
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:31 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.8] R-Car VSP1 driver changes
-Date: Mon, 27 Jun 2016 16:18:42 +0300
-Message-ID: <1711847.sx4iRKJVU6@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 35/38] media: adv7180: add power pin control
+Date: Tue, 14 Jun 2016 15:49:31 -0700
+Message-Id: <1465944574-15745-36-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Some targets control the ADV7180 power pin via a gpio, so add
+support for "pwdn-gpio" device node and pin control.
 
-The following changes since commit c3f34a4bdd596127000666c17bbf8ba1c3d2d332:
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/media/i2c/adv7180.c | 51 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
 
-  [media] v4l: vsp1: Remove deprecated DRM API (2016-06-20 20:09:10 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git vsp1/flip
-
-for you to fetch changes up to 1ae8abb4289a1c71d3aeec90431f5a5d0e88ad72:
-
-  v4l: vsp1: wpf: Add flipping support (2016-06-22 13:33:11 +0300)
-
-The commits are based on top of the vsp1 branch of your tree.
-
-----------------------------------------------------------------
-Laurent Pinchart (23):
-      v4l: vsp1: Fix typo in register field names
-      v4l: vsp1: Fix descriptions of Gen2 VSP instances
-      v4l: vsp1: Fix crash when resetting pipeline
-      v4l: vsp1: pipe: Fix typo in comment
-      v4l: vsp1: Constify operation structures
-      v4l: vsp1: Stop the pipeline upon the first STREAMOFF
-      v4l: vsp1: sru: Fix intensity control ID
-      media: Add video processing entity functions
-      media: Add video statistics computation functions
-      v4l: vsp1: Base link creation on availability of entities
-      v4l: vsp1: Don't register media device when userspace API is disabled
-      v4l: vsp1: Don't create LIF entity when the userspace API is enabled
-      v4l: vsp1: Set entities functions
-      v4l: vsp1: dl: Don't free fragments with interrupts disabled
-      v4l: vsp1: lut: Initialize the mutex
-      v4l: vsp1: lut: Expose configuration through a control
-      v4l: vsp1: Add Cubic Look Up Table (CLU) support
-      v4l: vsp1: Support runtime modification of controls
-      v4l: vsp1: lut: Support runtime modification of controls
-      v4l: vsp1: clu: Support runtime modification of controls
-      v4l: vsp1: Simplify alpha propagation
-      v4l: vsp1: rwpf: Support runtime modification of controls
-      v4l: vsp1: wpf: Add flipping support
-
- Documentation/DocBook/media/v4l/media-types.xml |  64 +++++++
- drivers/media/platform/vsp1/Makefile            |   3 +-
- drivers/media/platform/vsp1/vsp1.h              |   5 +
- drivers/media/platform/vsp1/vsp1_bru.c          |  12 +-
- drivers/media/platform/vsp1/vsp1_clu.c          | 292 +++++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_clu.h          |  48 ++++++
- drivers/media/platform/vsp1/vsp1_dl.c           |  72 ++++++--
- drivers/media/platform/vsp1/vsp1_drm.c          |   6 +-
- drivers/media/platform/vsp1/vsp1_drv.c          |  69 +++++---
- drivers/media/platform/vsp1/vsp1_entity.c       |   4 +-
- drivers/media/platform/vsp1/vsp1_entity.h       |   5 +-
- drivers/media/platform/vsp1/vsp1_hsit.c         |  14 +-
- drivers/media/platform/vsp1/vsp1_lif.c          |  16 +-
- drivers/media/platform/vsp1/vsp1_lut.c          | 101 +++++++----
- drivers/media/platform/vsp1/vsp1_lut.h          |   7 +-
- drivers/media/platform/vsp1/vsp1_pipe.c         |  54 ++----
- drivers/media/platform/vsp1/vsp1_pipe.h         |   6 +-
- drivers/media/platform/vsp1/vsp1_regs.h         |  24 ++-
- drivers/media/platform/vsp1/vsp1_rpf.c          |  31 ++--
- drivers/media/platform/vsp1/vsp1_rwpf.c         |   6 +-
- drivers/media/platform/vsp1/vsp1_rwpf.h         |  14 +-
- drivers/media/platform/vsp1/vsp1_sru.c          |  14 +-
- drivers/media/platform/vsp1/vsp1_uds.c          |  16 +-
- drivers/media/platform/vsp1/vsp1_uds.h          |   2 +-
- drivers/media/platform/vsp1/vsp1_video.c        |  14 +-
- drivers/media/platform/vsp1/vsp1_wpf.c          | 161 ++++++++++++++++--
- include/uapi/linux/media.h                      |  10 ++
- include/uapi/linux/vsp1.h                       |  34 ----
- 28 files changed, 891 insertions(+), 213 deletions(-)
- create mode 100644 drivers/media/platform/vsp1/vsp1_clu.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_clu.h
- delete mode 100644 include/uapi/linux/vsp1.h
-
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index b77b0a4..b3bb19f 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -26,6 +26,7 @@
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+ #include <linux/of.h>
++#include <linux/of_gpio.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-event.h>
+@@ -192,6 +193,7 @@ struct adv7180_state {
+ 	struct media_pad	pad;
+ 	struct mutex		mutex; /* mutual excl. when accessing chip */
+ 	int			irq;
++	int			pwdn_gpio;
+ 	v4l2_std_id		curr_norm;
+ 	bool			powered;
+ 	bool			streaming;
+@@ -442,6 +444,19 @@ static int adv7180_g_std(struct v4l2_subdev *sd, v4l2_std_id *norm)
+ 	return 0;
+ }
+ 
++static void adv7180_set_power_pin(struct adv7180_state *state, bool on)
++{
++	if (!gpio_is_valid(state->pwdn_gpio))
++		return;
++
++	if (on) {
++		gpio_set_value_cansleep(state->pwdn_gpio, 1);
++		usleep_range(5000, 5001);
++	} else {
++		gpio_set_value_cansleep(state->pwdn_gpio, 0);
++	}
++}
++
+ static int adv7180_set_power(struct adv7180_state *state, bool on)
+ {
+ 	u8 val;
+@@ -1185,6 +1200,8 @@ static int init_device(struct adv7180_state *state)
+ 
+ 	mutex_lock(&state->mutex);
+ 
++	adv7180_set_power_pin(state, true);
++
+ 	adv7180_write(state, ADV7180_REG_PWR_MAN, ADV7180_PWR_MAN_RES);
+ 	usleep_range(5000, 10000);
+ 
+@@ -1232,6 +1249,34 @@ out_unlock:
+ 	return ret;
+ }
+ 
++static int adv7180_of_parse(struct adv7180_state *state)
++{
++	struct i2c_client *client = state->client;
++	struct device_node *np = client->dev.of_node;
++	int ret;
++
++	ret = of_get_named_gpio(np, "pwdn-gpio", 0);
++
++	if (gpio_is_valid(ret)) {
++		state->pwdn_gpio = ret;
++		ret = devm_gpio_request_one(&client->dev,
++					    state->pwdn_gpio,
++					    GPIOF_OUT_INIT_HIGH,
++					    "adv7180_pwdn");
++		if (ret < 0) {
++			v4l_err(client, "request for power pin failed\n");
++			return ret;
++		}
++	} else {
++		if (ret == -EPROBE_DEFER)
++			return ret;
++		/* assume a power-down gpio is not required */
++		state->pwdn_gpio = -1;
++	}
++
++	return 0;
++}
++
+ static int adv7180_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+@@ -1254,6 +1299,10 @@ static int adv7180_probe(struct i2c_client *client,
+ 	state->field = V4L2_FIELD_INTERLACED;
+ 	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
+ 
++	ret = adv7180_of_parse(state);
++	if (ret)
++		return ret;
++
+ 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
+ 		state->csi_client = i2c_new_dummy(client->adapter,
+ 				ADV7180_DEFAULT_CSI_I2C_ADDR);
+@@ -1345,6 +1394,8 @@ static int adv7180_remove(struct i2c_client *client)
+ 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2)
+ 		i2c_unregister_device(state->csi_client);
+ 
++	adv7180_set_power_pin(state, false);
++
+ 	mutex_destroy(&state->mutex);
+ 
+ 	return 0;
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
