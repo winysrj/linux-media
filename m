@@ -1,102 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50093 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754558AbcFPO4m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2016 10:56:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-	<niklas.soderlund@ragnatech.se>
-Cc: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
-	hverkuil@xs4all.nl, linux-renesas-soc@vger.kernel.org,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	William Towle <william.towle@codethink.co.uk>,
-	Niklas =?ISO-8859-1?Q?S=F6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: Re: [PATCH 2/8] media: rcar_vin: Use correct pad number in try_fmt
-Date: Thu, 16 Jun 2016 17:56:52 +0300
-Message-ID: <1916444.6UK1f8kFN6@avalon>
-In-Reply-To: <1464203409-1279-3-git-send-email-niklas.soderlund@ragnatech.se>
-References: <1464203409-1279-1-git-send-email-niklas.soderlund@ragnatech.se> <1464203409-1279-3-git-send-email-niklas.soderlund@ragnatech.se>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from lists.s-osg.org ([54.187.51.154]:53250 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751392AbcFNUSi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2016 16:18:38 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH] [media] v4l2-ioctl.c: fix warning due wrong check in v4l_cropcap()
+Date: Tue, 14 Jun 2016 16:18:17 -0400
+Message-Id: <1465935497-30002-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Niklas,
+Commit 95dd7b7e30f3 ("[media] v4l2-ioctl.c: improve cropcap compatibility
+code") tried to check if both .vidioc_cropcap and .vidioc_g_selection are
+NULL ops and warn if that was the case, but unfortunately the logic isn't
+correct and instead checks for .vidioc_cropcap == NULL twice.
 
-Thank you for the patch.
+So the v4l2 core will print the following warning if a driver has the ops
+.vidioc_g_selection set but no .vidioc_cropcap callback:
 
-On Wednesday 25 May 2016 21:10:03 Niklas Söderlund wrote:
-> From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> 
-> Fix rcar_vin_try_fmt's use of an inappropriate pad number when calling
-> the subdev set_fmt function - for the ADV7612, IDs should be non-zero.
-> 
-> Signed-off-by: William Towle <william.towle@codethink.co.uk>
-> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> [uli: adapted to rcar-vin rewrite]
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 14 +++++++++++---
->  1 file changed, 11 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index 929816b..3788f8a 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -98,7 +98,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
->  					struct rvin_source_fmt *source)
->  {
->  	struct v4l2_subdev *sd;
-> -	struct v4l2_subdev_pad_config pad_cfg;
-> +	struct v4l2_subdev_pad_config *pad_cfg;
->  	struct v4l2_subdev_format format = {
->  		.which = which,
->  	};
-> @@ -108,10 +108,16 @@ static int __rvin_try_format_source(struct rvin_dev
-> *vin,
-> 
->  	v4l2_fill_mbus_format(&format.format, pix, vin->source.code);
-> 
-> +	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
-> +	if (pad_cfg == NULL)
-> +		return -ENOMEM;
-> +
-> +	format.pad = vin->src_pad_idx;
-> +
->  	ret = v4l2_device_call_until_err(sd->v4l2_dev, 0, pad, set_fmt,
-> -					 &pad_cfg, &format);
-> +					 pad_cfg, &format);
+WARNING: CPU: 2 PID: 4058 at drivers/media/v4l2-core/v4l2-ioctl.c:2174 v4l_cropcap+0x188/0x198 [videodev]
+[<c010e1ac>] (unwind_backtrace) from [<c010af38>] (show_stack+0x10/0x14)
+[<c010af38>] (show_stack) from [<c032481c>] (dump_stack+0x88/0x9c)
+[<c032481c>] (dump_stack) from [<c011a82c>] (__warn+0xe8/0x100)
+[<c011a82c>] (__warn) from [<c011a8f4>] (warn_slowpath_null+0x20/0x28)
+[<c011a8f4>] (warn_slowpath_null) from [<bf04a9ec>] (v4l_cropcap+0x188/0x198 [videodev])
+[<bf04a9ec>] (v4l_cropcap [videodev]) from [<bf04c728>] (__video_do_ioctl+0x298/0x30c [videodev])
+[<bf04c728>] (__video_do_ioctl [videodev]) from [<bf04c110>] (video_usercopy+0x174/0x4e8 [videodev])
+[<bf04c110>] (video_usercopy [videodev]) from [<bf0475c8>] (v4l2_ioctl+0xc4/0xd8 [videodev])
+[<bf0475c8>] (v4l2_ioctl [videodev]) from [<c01efa78>] (do_vfs_ioctl+0x9c/0x8e4)
+[<c01efa78>] (do_vfs_ioctl) from [<c01f02f4>] (SyS_ioctl+0x34/0x5c)
+[<c01f02f4>] (SyS_ioctl) from [<c01078c0>] (ret_fast_syscall+0x0/0x3c)
 
-pad_cfg is subdev-specific, you can't use v4l2_device_call_until_err(). You 
-should use v4l2_subdev_call() instead. This will obviously not be enough if we 
-have more than one subdev in the pipeline, but the code is broken in that case 
-anyway.
+Fixes: 95dd7b7e30f3 ("[media] v4l2-ioctl.c: improve cropcap compatibility code")
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
->  	if (ret < 0)
-> -		return ret;
-> +		goto cleanup;
-> 
->  	v4l2_fill_pix_format(pix, &format.format);
-> 
-> @@ -121,6 +127,8 @@ static int __rvin_try_format_source(struct rvin_dev
-> *vin, vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
->  		source->height);
-> 
-> +cleanup:
+---
 
-Nitpicking, I'd name the label "done".
+ drivers/media/v4l2-core/v4l2-ioctl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> +	v4l2_subdev_free_pad_config(pad_cfg);
->  	return 0;
->  }
-
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 28e5be2c2eef..528390f33b53 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2171,7 +2171,7 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
+ 	 * The determine_valid_ioctls() call already should ensure
+ 	 * that this can never happen, but just in case...
+ 	 */
+-	if (WARN_ON(!ops->vidioc_cropcap && !ops->vidioc_cropcap))
++	if (WARN_ON(!ops->vidioc_cropcap && !ops->vidioc_g_selection))
+ 		return -ENOTTY;
+ 
+ 	if (ops->vidioc_cropcap)
 -- 
-Regards,
-
-Laurent Pinchart
+2.5.5
 
