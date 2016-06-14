@@ -1,90 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-09v.sys.comcast.net ([96.114.154.168]:57501 "EHLO
-	resqmta-po-09v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751487AbcF3VfG (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33465 "EHLO
+	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752979AbcFNWvN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2016 17:35:06 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-	javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [RFC PATCH] media: s5p-mfc - remove vidioc_g_crop
-Date: Thu, 30 Jun 2016 15:35:02 -0600
-Message-Id: <1467322502-11180-1-git-send-email-shuahkh@osg.samsung.com>
+	Tue, 14 Jun 2016 18:51:13 -0400
+Received: by mail-pf0-f195.google.com with SMTP id c74so306322pfb.0
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:13 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 11/38] gpu: ipu-v3: Fix CSI data format for 16-bit media bus formats
+Date: Tue, 14 Jun 2016 15:49:07 -0700
+Message-Id: <1465944574-15745-12-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove vidioc_g_crop() from s5p-mfc decoder. Without its s_crop counterpart
-g_crop is not useful. Delete it.
+The CSI data format was being programmed incorrectly for the
+1x16 media bus formats. The CSI data format for 16-bit must
+be bayer/generic (CSI_SENS_CONF_DATA_FMT_BAYER).
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Suggested-by: Carsten Resch <Carsten.Resch@de.bosch.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 42 ----------------------------
- 1 file changed, 42 deletions(-)
+ drivers/gpu/ipu-v3/ipu-csi.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index a01a373..ee7b189 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -766,47 +766,6 @@ static const struct v4l2_ctrl_ops s5p_mfc_dec_ctrl_ops = {
- 	.g_volatile_ctrl = s5p_mfc_dec_g_v_ctrl,
- };
- 
--/* Get cropping information */
--static int vidioc_g_crop(struct file *file, void *priv,
--		struct v4l2_crop *cr)
--{
--	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
--	struct s5p_mfc_dev *dev = ctx->dev;
--	u32 left, right, top, bottom;
--
--	if (ctx->state != MFCINST_HEAD_PARSED &&
--	ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
--					&& ctx->state != MFCINST_FINISHED) {
--			mfc_err("Cannont set crop\n");
--			return -EINVAL;
--		}
--	if (ctx->src_fmt->fourcc == V4L2_PIX_FMT_H264) {
--		left = s5p_mfc_hw_call(dev->mfc_ops, get_crop_info_h, ctx);
--		right = left >> S5P_FIMV_SHARED_CROP_RIGHT_SHIFT;
--		left = left & S5P_FIMV_SHARED_CROP_LEFT_MASK;
--		top = s5p_mfc_hw_call(dev->mfc_ops, get_crop_info_v, ctx);
--		bottom = top >> S5P_FIMV_SHARED_CROP_BOTTOM_SHIFT;
--		top = top & S5P_FIMV_SHARED_CROP_TOP_MASK;
--		cr->c.left = left;
--		cr->c.top = top;
--		cr->c.width = ctx->img_width - left - right;
--		cr->c.height = ctx->img_height - top - bottom;
--		mfc_debug(2, "Cropping info [h264]: l=%d t=%d "
--			"w=%d h=%d (r=%d b=%d fw=%d fh=%d\n", left, top,
--			cr->c.width, cr->c.height, right, bottom,
--			ctx->buf_width, ctx->buf_height);
--	} else {
--		cr->c.left = 0;
--		cr->c.top = 0;
--		cr->c.width = ctx->img_width;
--		cr->c.height = ctx->img_height;
--		mfc_debug(2, "Cropping info: w=%d h=%d fw=%d "
--			"fh=%d\n", cr->c.width,	cr->c.height, ctx->buf_width,
--							ctx->buf_height);
--	}
--	return 0;
--}
--
- static int vidioc_decoder_cmd(struct file *file, void *priv,
- 			      struct v4l2_decoder_cmd *cmd)
- {
-@@ -880,7 +839,6 @@ static const struct v4l2_ioctl_ops s5p_mfc_dec_ioctl_ops = {
- 	.vidioc_expbuf = vidioc_expbuf,
- 	.vidioc_streamon = vidioc_streamon,
- 	.vidioc_streamoff = vidioc_streamoff,
--	.vidioc_g_crop = vidioc_g_crop,
- 	.vidioc_decoder_cmd = vidioc_decoder_cmd,
- 	.vidioc_subscribe_event = vidioc_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
+index 07c7091..0eac28c 100644
+--- a/drivers/gpu/ipu-v3/ipu-csi.c
++++ b/drivers/gpu/ipu-v3/ipu-csi.c
+@@ -258,12 +258,8 @@ static int mbus_code_to_bus_cfg(struct ipu_csi_bus_config *cfg, u32 mbus_code)
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY8_1X16:
+-		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_UYVY;
+-		cfg->mipi_dt = MIPI_DT_YUV422;
+-		cfg->data_width = IPU_CSI_DATA_WIDTH_16;
+-		break;
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+-		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_YUYV;
++		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
+ 		cfg->mipi_dt = MIPI_DT_YUV422;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_16;
+ 		break;
 -- 
-2.7.4
+1.9.1
 
