@@ -1,241 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:55668 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753924AbcFGMDs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2016 08:03:48 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH 2/3] ARM: dts: exynos: move MFC reserved memory regions from
- boards to .dtsi
-Date: Tue, 07 Jun 2016 14:03:37 +0200
-Message-id: <1465301018-9671-2-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1465301018-9671-1-git-send-email-m.szyprowski@samsung.com>
-References: <2241b7f4-4565-d17b-10f3-5c27cd9985da@osg.samsung.com>
- <1465301018-9671-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:35591 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752793AbcFNWvK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2016 18:51:10 -0400
+Received: by mail-pf0-f193.google.com with SMTP id t190so301639pfb.2
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:10 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 08/38] gpu: ipu-v3: Add ipu_csi_set_src()
+Date: Tue, 14 Jun 2016 15:49:04 -0700
+Message-Id: <1465944574-15745-9-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch moves assigning reserved memory regions from each board dts
-to common exynos-mfc-reserved-memory.dtsi file, where those regions are
-defined.
+Adds ipu_csi_set_src() which is just a wrapper around
+ipu_set_csi_src_mux().
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- arch/arm/boot/dts/exynos-mfc-reserved-memory.dtsi  | 4 ++++
- arch/arm/boot/dts/exynos4210-origen.dts            | 1 -
- arch/arm/boot/dts/exynos4210-smdkv310.dts          | 1 -
- arch/arm/boot/dts/exynos4412-odroid-common.dtsi    | 1 -
- arch/arm/boot/dts/exynos4412-origen.dts            | 1 -
- arch/arm/boot/dts/exynos4412-smdk4412.dts          | 1 -
- arch/arm/boot/dts/exynos5250-arndale.dts           | 4 ----
- arch/arm/boot/dts/exynos5250-smdk5250.dts          | 4 ----
- arch/arm/boot/dts/exynos5250-spring.dts            | 4 ----
- arch/arm/boot/dts/exynos5420-arndale-octa.dts      | 4 ----
- arch/arm/boot/dts/exynos5420-peach-pit.dts         | 4 ----
- arch/arm/boot/dts/exynos5420-smdk5420.dts          | 4 ----
- arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi | 4 ----
- arch/arm/boot/dts/exynos5800-peach-pi.dts          | 4 ----
- 14 files changed, 4 insertions(+), 37 deletions(-)
+ drivers/gpu/ipu-v3/ipu-csi.c | 8 ++++++++
+ include/video/imx-ipu-v3.h   | 1 +
+ 2 files changed, 9 insertions(+)
 
-diff --git a/arch/arm/boot/dts/exynos-mfc-reserved-memory.dtsi b/arch/arm/boot/dts/exynos-mfc-reserved-memory.dtsi
-index da3ced9..f78c14c 100644
---- a/arch/arm/boot/dts/exynos-mfc-reserved-memory.dtsi
-+++ b/arch/arm/boot/dts/exynos-mfc-reserved-memory.dtsi
-@@ -29,3 +29,7 @@
- 		};
- 	};
- };
+diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
+index 06631ac..336dc06 100644
+--- a/drivers/gpu/ipu-v3/ipu-csi.c
++++ b/drivers/gpu/ipu-v3/ipu-csi.c
+@@ -609,6 +609,14 @@ int ipu_csi_set_skip_smfc(struct ipu_csi *csi, u32 skip,
+ }
+ EXPORT_SYMBOL_GPL(ipu_csi_set_skip_smfc);
+ 
++int ipu_csi_set_src(struct ipu_csi *csi, u32 vc, bool select_mipi_csi2)
++{
++	ipu_set_csi_src_mux(csi->ipu, csi->id, select_mipi_csi2);
 +
-+&mfc {
-+	memory-region = <&mfc_left>, <&mfc_right>;
-+};
-diff --git a/arch/arm/boot/dts/exynos4210-origen.dts b/arch/arm/boot/dts/exynos4210-origen.dts
-index f5e4eb2..07a00dd 100644
---- a/arch/arm/boot/dts/exynos4210-origen.dts
-+++ b/arch/arm/boot/dts/exynos4210-origen.dts
-@@ -289,7 +289,6 @@
- };
- 
- &mfc {
--	memory-region = <&mfc_left>, <&mfc_right>;
- 	status = "okay";
- };
- 
-diff --git a/arch/arm/boot/dts/exynos4210-smdkv310.dts b/arch/arm/boot/dts/exynos4210-smdkv310.dts
-index de917f0..2fab072 100644
---- a/arch/arm/boot/dts/exynos4210-smdkv310.dts
-+++ b/arch/arm/boot/dts/exynos4210-smdkv310.dts
-@@ -134,7 +134,6 @@
- };
- 
- &mfc {
--	memory-region = <&mfc_left>, <&mfc_right>;
- 	status = "okay";
- };
- 
-diff --git a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-index 13972ca..b3c95d2 100644
---- a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-+++ b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-@@ -510,7 +510,6 @@
- };
- 
- &mfc {
--	memory-region = <&mfc_left>, <&mfc_right>;
- 	status = "okay";
- };
- 
-diff --git a/arch/arm/boot/dts/exynos4412-origen.dts b/arch/arm/boot/dts/exynos4412-origen.dts
-index 2959fc8..547ae04 100644
---- a/arch/arm/boot/dts/exynos4412-origen.dts
-+++ b/arch/arm/boot/dts/exynos4412-origen.dts
-@@ -483,7 +483,6 @@
- };
- 
- &mfc {
--	memory-region = <&mfc_left>, <&mfc_right>;
- 	status = "okay";
- };
- 
-diff --git a/arch/arm/boot/dts/exynos4412-smdk4412.dts b/arch/arm/boot/dts/exynos4412-smdk4412.dts
-index 9b6d561..d4f9383 100644
---- a/arch/arm/boot/dts/exynos4412-smdk4412.dts
-+++ b/arch/arm/boot/dts/exynos4412-smdk4412.dts
-@@ -113,7 +113,6 @@
- };
- 
- &mfc {
--	memory-region = <&mfc_left>, <&mfc_right>;
- 	status = "okay";
- };
- 
-diff --git a/arch/arm/boot/dts/exynos5250-arndale.dts b/arch/arm/boot/dts/exynos5250-arndale.dts
-index 39940f4..ea70603 100644
---- a/arch/arm/boot/dts/exynos5250-arndale.dts
-+++ b/arch/arm/boot/dts/exynos5250-arndale.dts
-@@ -516,10 +516,6 @@
- 	status = "okay";
- };
- 
--&mfc {
--	memory-region = <&mfc_left>, <&mfc_right>;
--};
--
- &mmc_0 {
- 	status = "okay";
- 	num-slots = <1>;
-diff --git a/arch/arm/boot/dts/exynos5250-smdk5250.dts b/arch/arm/boot/dts/exynos5250-smdk5250.dts
-index 9fac874..381af13 100644
---- a/arch/arm/boot/dts/exynos5250-smdk5250.dts
-+++ b/arch/arm/boot/dts/exynos5250-smdk5250.dts
-@@ -344,10 +344,6 @@
- 	status = "okay";
- };
- 
--&mfc {
--	memory-region = <&mfc_left>, <&mfc_right>;
--};
--
- &mmc_0 {
- 	status = "okay";
- 	num-slots = <1>;
-diff --git a/arch/arm/boot/dts/exynos5250-spring.dts b/arch/arm/boot/dts/exynos5250-spring.dts
-index 784130b..44f4292 100644
---- a/arch/arm/boot/dts/exynos5250-spring.dts
-+++ b/arch/arm/boot/dts/exynos5250-spring.dts
-@@ -425,10 +425,6 @@
- 	status = "okay";
- };
- 
--&mfc {
--	memory-region = <&mfc_left>, <&mfc_right>;
--};
--
- &mmc_0 {
- 	status = "okay";
- 	num-slots = <1>;
-diff --git a/arch/arm/boot/dts/exynos5420-arndale-octa.dts b/arch/arm/boot/dts/exynos5420-arndale-octa.dts
-index b8b5f3a..39a3b81 100644
---- a/arch/arm/boot/dts/exynos5420-arndale-octa.dts
-+++ b/arch/arm/boot/dts/exynos5420-arndale-octa.dts
-@@ -347,10 +347,6 @@
- 	};
- };
- 
--&mfc {
--	memory-region = <&mfc_left>, <&mfc_right>;
--};
--
- &mmc_0 {
- 	status = "okay";
- 	broken-cd;
-diff --git a/arch/arm/boot/dts/exynos5420-peach-pit.dts b/arch/arm/boot/dts/exynos5420-peach-pit.dts
-index 5bd3f07..fe57423 100644
---- a/arch/arm/boot/dts/exynos5420-peach-pit.dts
-+++ b/arch/arm/boot/dts/exynos5420-peach-pit.dts
-@@ -689,10 +689,6 @@
- 	status = "okay";
- };
- 
--&mfc {
--	memory-region = <&mfc_left>, <&mfc_right>;
--};
--
- &mmc_0 {
- 	status = "okay";
- 	num-slots = <1>;
-diff --git a/arch/arm/boot/dts/exynos5420-smdk5420.dts b/arch/arm/boot/dts/exynos5420-smdk5420.dts
-index 5206f41..ed8f342 100644
---- a/arch/arm/boot/dts/exynos5420-smdk5420.dts
-+++ b/arch/arm/boot/dts/exynos5420-smdk5420.dts
-@@ -355,10 +355,6 @@
- 	};
- };
- 
--&mfc {
--	memory-region = <&mfc_left>, <&mfc_right>;
--};
--
- &mmc_0 {
- 	status = "okay";
- 	broken-cd;
-diff --git a/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi b/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi
-index d52a80f..d562530 100644
---- a/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi
-+++ b/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi
-@@ -495,10 +495,6 @@
- 	};
- };
- 
--&mfc {
--	memory-region = <&mfc_left>, <&mfc_right>;
--};
--
- &mmc_0 {
- 	status = "okay";
- 	mmc-pwrseq = <&emmc_pwrseq>;
-diff --git a/arch/arm/boot/dts/exynos5800-peach-pi.dts b/arch/arm/boot/dts/exynos5800-peach-pi.dts
-index 65482b7..5ec71e2 100644
---- a/arch/arm/boot/dts/exynos5800-peach-pi.dts
-+++ b/arch/arm/boot/dts/exynos5800-peach-pi.dts
-@@ -664,10 +664,6 @@
- 	status = "okay";
- };
- 
--&mfc {
--	memory-region = <&mfc_left>, <&mfc_right>;
--};
--
- &mmc_0 {
- 	status = "okay";
- 	num-slots = <1>;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(ipu_csi_set_src);
++
+ int ipu_csi_set_dest(struct ipu_csi *csi, enum ipu_csi_dest csi_dest)
+ {
+ 	unsigned long flags;
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 2302fc5..57b487d 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -301,6 +301,7 @@ int ipu_csi_set_mipi_datatype(struct ipu_csi *csi, u32 vc,
+ 			      struct v4l2_mbus_framefmt *mbus_fmt);
+ int ipu_csi_set_skip_smfc(struct ipu_csi *csi, u32 skip,
+ 			  u32 max_ratio, u32 id);
++int ipu_csi_set_src(struct ipu_csi *csi, u32 vc, bool select_mipi_csi2);
+ int ipu_csi_set_dest(struct ipu_csi *csi, enum ipu_csi_dest csi_dest);
+ int ipu_csi_enable(struct ipu_csi *csi);
+ int ipu_csi_disable(struct ipu_csi *csi);
 -- 
-1.9.2
+1.9.1
 
