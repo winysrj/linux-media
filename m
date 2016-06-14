@@ -1,90 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:34789 "EHLO
-	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751381AbcFLIb1 (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:34696 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752404AbcFNWvN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2016 04:31:27 -0400
-Received: by mail-lf0-f68.google.com with SMTP id k192so8971628lfb.1
-        for <linux-media@vger.kernel.org>; Sun, 12 Jun 2016 01:31:26 -0700 (PDT)
-Date: Sun, 12 Jun 2016 10:31:22 +0200
-From: Henrik Austad <henrik@austad.us>
-To: Takashi Sakamoto <o-takashi@sakamocchi.jp>
-Cc: alsa-devel@alsa-project.org, netdev@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
-	henrk@austad.us
-Subject: Re: [very-RFC 0/8] TSN driver for the kernel
-Message-ID: <20160612083122.GB32724@icarus.home.austad.us>
-References: <1465686096-22156-1-git-send-email-henrik@austad.us>
- <575CD93C.50006@sakamocchi.jp>
- <575CE560.9090608@sakamocchi.jp>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="aM3YZ0Iwxop3KEKx"
-Content-Disposition: inline
-In-Reply-To: <575CE560.9090608@sakamocchi.jp>
+	Tue, 14 Jun 2016 18:51:13 -0400
+Received: by mail-pf0-f193.google.com with SMTP id 66so305924pfy.1
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:13 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Suresh Dhandapani <Suresh.Dhandapani@in.bosch.com>
+Subject: [PATCH 12/38] gpu: ipu-v3: Fix CSI0 blur in NTSC format
+Date: Tue, 14 Jun 2016 15:49:08 -0700
+Message-Id: <1465944574-15745-13-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Suresh Dhandapani <Suresh.Dhandapani@in.bosch.com>
 
---aM3YZ0Iwxop3KEKx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This patch will change the register IPU_CSI0_CCIR_CODE_2 value from
+0x40596 to 0x405A6. The change is related to the Start of field 1
+first blanking line command bit[5-3] for NTSC format only. This
+change is dependent with ADV chip where the NEWAVMODE is set to 0
+in register 0x31. Setting NEWAVMODE to "0" in ADV means "EAV/SAV
+codes generated to suit analog devices encoders".
 
-On Sun, Jun 12, 2016 at 01:30:24PM +0900, Takashi Sakamoto wrote:
-> On Jun 12 2016 12:38, Takashi Sakamoto wrote:
-> > In your patcset, there's no actual codes about how to handle any
-> > interrupt contexts (software / hardware), how to handle packet payload,
-> > and so on. Especially, for recent sound subsystem, the timing of
-> > generating interrupts and which context does what works are important to
-> > reduce playback/capture latency and power consumption.
-> >=20
-> > Of source, your intention of this patchset is to show your early concept
-> > of TSN feature. Nevertheless, both of explaination and codes are
-> > important to the other developers who have little knowledges about TSN,
-> > AVB and AES-64 such as me.
->=20
-> Oops. Your 5th patch was skipped by alsa-project.org. I guess that size
-> of the patch is too large to the list service. I can see it:
-> http://marc.info/?l=3Dlinux-netdev&m=3D146568672728661&w=3D2
->=20
-> As long as seeing the patch, packets are queueing in hrtimer callbacks
-> every 1 seconds.
+Signed-off-by: Suresh Dhandapani <Suresh.Dhandapani@in.bosch.com>
+---
+ drivers/gpu/ipu-v3/ipu-csi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Actually, the hrtimer fires every 1ms, and that part is something I have to=
-=20
-do something about, also because it sends of the same number of frames=20
-every time, regardless of how accurate the internal timer is to the rest of=
-=20
-the network (there's no backpressure from the networking layer).
+diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
+index 0eac28c..ec81958 100644
+--- a/drivers/gpu/ipu-v3/ipu-csi.c
++++ b/drivers/gpu/ipu-v3/ipu-csi.c
+@@ -422,7 +422,7 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
+ 
+ 			ipu_csi_write(csi, 0xD07DF | CSI_CCIR_ERR_DET_EN,
+ 					  CSI_CCIR_CODE_1);
+-			ipu_csi_write(csi, 0x40596, CSI_CCIR_CODE_2);
++			ipu_csi_write(csi, 0x405A6, CSI_CCIR_CODE_2);
+ 			ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+ 		} else {
+ 			dev_err(csi->ipu->dev,
+-- 
+1.9.1
 
-> (This is a high level discussion and it's OK to ignore it for the
-> moment. When writing packet-oriented drivers for sound subsystem, you
-> need to pay special attention to accuracy of the number of PCM frames
-> transferred currently, and granularity of the number of PCM frames
-> transferred by one operation. In this case, snd_avb_hw,
-> snd_avb_pcm_pointer(), tsn_buffer_write_net() and tsn_buffer_read_net()
-> are involved in this discussion. You can see ALSA developers' struggle
-> in USB audio device class drivers and (of cource) IEC 61883-1/6 drivers.)
-
-Ah, good point. Any particular parts of the USB-subsystem I should start=20
-looking at? Knowing where to start looking is a tremendous help
-
-Thanks for the feedback!
-
---=20
-Henrik Austad
-
---aM3YZ0Iwxop3KEKx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlddHdoACgkQ6k5VT6v45llG3wCgqAG/ur2mhrFeG832BSvdd2Gq
-K4MAnjoJZoCKvUGX8+im5CilGy6kQ8of
-=UjHz
------END PGP SIGNATURE-----
-
---aM3YZ0Iwxop3KEKx--
