@@ -1,50 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52953 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933127AbcFTTOA (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:34663 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751560AbcFNWvG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 15:14:00 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+	Tue, 14 Jun 2016 18:51:06 -0400
+Received: by mail-pf0-f196.google.com with SMTP id 66so305630pfy.1
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:06 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 24/24] v4l: vsp1: Stop the pipeline upon the first STREAMOFF
-Date: Mon, 20 Jun 2016 22:10:42 +0300
-Message-Id: <1466449842-29502-25-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 02/38] gpu: ipu-cpmem: Add ipu_cpmem_set_uv_offset()
+Date: Tue, 14 Jun 2016 15:48:58 -0700
+Message-Id: <1465944574-15745-3-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The device is stopped when STREAMOFF is called on the last video node in
-the pipeline. This results in possible memory corruption and/or crashes,
-as userspace could free buffers while the hardware is still writing to
-them, and the frame completion interrupt handler could try to access
-buffers that don't exist anymore.
+Adds ipu_cpmem_set_uv_offset(), to set planar U/V offsets.
 
-Fix this by stopping the pipeline upon the first STREAMOFF call, not the
-last.
-
-Reported-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/ipu-v3/ipu-cpmem.c | 7 +++++++
+ include/video/imx-ipu-v3.h     | 1 +
+ 2 files changed, 8 insertions(+)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index f2cb19bd86ca..7d491b7b29e2 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -686,7 +686,7 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
- 	int ret;
+diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
+index 6494a4d..a36c35e 100644
+--- a/drivers/gpu/ipu-v3/ipu-cpmem.c
++++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
+@@ -253,6 +253,13 @@ void ipu_cpmem_set_buffer(struct ipuv3_channel *ch, int bufnum, dma_addr_t buf)
+ }
+ EXPORT_SYMBOL_GPL(ipu_cpmem_set_buffer);
  
- 	mutex_lock(&pipe->lock);
--	if (--pipe->stream_count == 0) {
-+	if (--pipe->stream_count == pipe->num_inputs) {
- 		/* Stop the pipeline. */
- 		ret = vsp1_pipeline_stop(pipe);
- 		if (ret == -ETIMEDOUT)
++void ipu_cpmem_set_uv_offset(struct ipuv3_channel *ch, u32 u_off, u32 v_off)
++{
++	ipu_ch_param_write_field(ch, IPU_FIELD_UBO, u_off / 8);
++	ipu_ch_param_write_field(ch, IPU_FIELD_VBO, v_off / 8);
++}
++EXPORT_SYMBOL_GPL(ipu_cpmem_set_uv_offset);
++
+ void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride)
+ {
+ 	ipu_ch_param_write_field(ch, IPU_FIELD_SO, 1);
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 22662a1..904fd12 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -194,6 +194,7 @@ void ipu_cpmem_set_resolution(struct ipuv3_channel *ch, int xres, int yres);
+ void ipu_cpmem_set_stride(struct ipuv3_channel *ch, int stride);
+ void ipu_cpmem_set_high_priority(struct ipuv3_channel *ch);
+ void ipu_cpmem_set_buffer(struct ipuv3_channel *ch, int bufnum, dma_addr_t buf);
++void ipu_cpmem_set_uv_offset(struct ipuv3_channel *ch, u32 u_off, u32 v_off);
+ void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride);
+ void ipu_cpmem_set_axi_id(struct ipuv3_channel *ch, u32 id);
+ void ipu_cpmem_set_burstsize(struct ipuv3_channel *ch, int burstsize);
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
