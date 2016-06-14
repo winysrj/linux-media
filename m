@@ -1,150 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43490 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751953AbcF2Wnh (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:39948 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1422658AbcFNCgE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2016 18:43:37 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Michael Ira Krufky <mkrufky@linuxtv.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"David S. Miller" <davem@davemloft.net>
-Subject: [PATCH 09/10] au8522/xc5000: use the new get_rf_attenuation() ops
-Date: Wed, 29 Jun 2016 19:43:25 -0300
-Message-Id: <be523787ff2a90fbe71ad00f1b953a4eb907dc61.1467240152.git.mchehab@s-opensource.com>
-In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
-References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
-In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
-References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
+	Mon, 13 Jun 2016 22:36:04 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 4E7BF1825E5
+	for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 04:35:57 +0200 (CEST)
+Date: Tue, 14 Jun 2016 04:35:57 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160614023557.4E7BF1825E5@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch to the new get_rf_attenuation(), in order to remove
-some hacks at au8522.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-frontends/au8522_dig.c | 26 +++++++++++---------
- drivers/media/tuners/xc5000.c            | 42 ++++++++++++++------------------
- 2 files changed, 32 insertions(+), 36 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/dvb-frontends/au8522_dig.c b/drivers/media/dvb-frontends/au8522_dig.c
-index 518040228064..46887cc2225b 100644
---- a/drivers/media/dvb-frontends/au8522_dig.c
-+++ b/drivers/media/dvb-frontends/au8522_dig.c
-@@ -734,27 +734,29 @@ static void au8522_get_stats(struct dvb_frontend *fe, enum fe_status status)
- 	}
- 
- 	/* Get (or estimate) RF strength */
--	if (fe->ops.tuner_ops.get_rf_strength) {
-+	if (fe->ops.tuner_ops.get_rf_attenuation) {
-+		s32 strength;
-+
- 		/* If the tuner has RF strength, use it */
--
- 		if (fe->ops.i2c_gate_ctrl)
- 			fe->ops.i2c_gate_ctrl(fe, 1);
--		ret = fe->ops.tuner_ops.get_rf_strength(fe, &state->strength);
-+		strength = fe->ops.tuner_ops.get_rf_attenuation(fe);
- 		if (fe->ops.i2c_gate_ctrl)
- 			fe->ops.i2c_gate_ctrl(fe, 0);
--		if (ret < 0)
--			state->strength = 0;
- 
--		/*
--		 * FIXME: As this frontend is used only with au0828, and,
--		 * currently, the tuner is eiter xc5000 or tda18271, and
--		 * only the first implements get_rf_strength(), we'll assume
--		 * that the strength will be returned in dB.
--		 */
--		c->strength.stat[0].svalue = 35000 - 1000 * (65535 - state->strength) / 256;
- 		c->strength.stat[0].scale = FE_SCALE_DECIBEL;
-+		c->strength.stat[0].svalue = 35000 - strength;
-+
-+		dprintk("Signal strength = %d.%02d dBm\n",
-+	                strength / 1000, (strength % 1000) / 10);
-+
-+
-+		/* For DVBv3 legacy support, adjust scale */
-+		strength = 65535 - strength;
-+		state->strength = (strength < 0) ? 0 : strength;
- 	} else {
- 		u32 tmp;
-+
- 		/*
- 		 * If it doen't, estimate from SNR
- 		 * (borrowed from lgdt330x.c)
-diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
-index 91ad392eb60c..1eb57150b1f6 100644
---- a/drivers/media/tuners/xc5000.c
-+++ b/drivers/media/tuners/xc5000.c
-@@ -569,24 +569,18 @@ static int xc_get_totalgain(struct xc5000_priv *priv, u16 *totalgain)
- 	return xc5000_readreg(priv, XREG_TOTALGAIN, totalgain);
- }
- 
--static int xc5000_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
-+static s32 xc5000_get_rf_attenuation(struct dvb_frontend *fe)
- {
- 	struct xc5000_priv *priv = fe->tuner_priv;
- 	int ret;
--	u16 gain = 0;
--
--	*strength = 0;
-+	u16 gain = 65535;
- 
- 	ret = xc_get_totalgain(priv, &gain);
- 	if (ret < 0)
--		return ret;
-+		return 256000;
- 
--	*strength = 65535 - gain;
--
--	dprintk(1, "Signal strength = 0x%04x (gain = 0x%04x)\n",
--		*strength, gain);
--
--	return 0;
-+	/* In theory, it will range from 256 dB to 0 dB */
-+	return (1000 * gain) / 256;
- }
- 
- static u16 wait_for_lock(struct xc5000_priv *priv)
-@@ -1399,20 +1393,20 @@ static const struct dvb_tuner_ops xc5000_tuner_ops = {
- 		.frequency_step =      50000,
- 	},
- 
--	.release	   = xc5000_release,
--	.init		   = xc5000_init,
--	.sleep		   = xc5000_sleep,
--	.suspend	   = xc5000_suspend,
--	.resume		   = xc5000_resume,
-+	.release	    = xc5000_release,
-+	.init		    = xc5000_init,
-+	.sleep		    = xc5000_sleep,
-+	.suspend	    = xc5000_suspend,
-+	.resume		    = xc5000_resume,
- 
--	.set_config	   = xc5000_set_config,
--	.set_params	   = xc5000_set_digital_params,
--	.set_analog_params = xc5000_set_analog_params,
--	.get_frequency	   = xc5000_get_frequency,
--	.get_if_frequency  = xc5000_get_if_frequency,
--	.get_bandwidth	   = xc5000_get_bandwidth,
--	.get_status	   = xc5000_get_status,
--	.get_rf_strength   = xc5000_get_rf_strength
-+	.set_config	    = xc5000_set_config,
-+	.set_params	    = xc5000_set_digital_params,
-+	.set_analog_params  = xc5000_set_analog_params,
-+	.get_frequency	    = xc5000_get_frequency,
-+	.get_if_frequency   = xc5000_get_if_frequency,
-+	.get_bandwidth	    = xc5000_get_bandwidth,
-+	.get_status	    = xc5000_get_status,
-+	.get_rf_attenuation = xc5000_get_rf_attenuation,
- };
- 
- struct dvb_frontend *xc5000_attach(struct dvb_frontend *fe,
--- 
-2.7.4
+date:		Tue Jun 14 04:00:16 CEST 2016
+git branch:	test
+git hash:	cc650b65bea5613f04a0523c3ee2b91df371e175
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-i686: OK
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-x86_64: OK
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
