@@ -1,65 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp02asnl.sandia.gov ([198.102.153.117]:41273 "EHLO
-	smtp02asnl.sandia.gov" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751424AbcF3Mn2 convert rfc822-to-8bit (ORCPT
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:35488 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751153AbcFNLSy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2016 08:43:28 -0400
-From: "Greci, Matthew J" <mjgreci@sandia.gov>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [EXTERNAL] Re: Caspa Driver mt9v032
-Date: Thu, 30 Jun 2016 12:38:08 +0000
-Message-ID: <1467290288890.97547@sandia.gov>
-References: <1467209880585.21400@sandia.gov>,<1700455.NvClNHWQva@avalon>
-In-Reply-To: <1700455.NvClNHWQva@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Tue, 14 Jun 2016 07:18:54 -0400
+Date: Tue, 14 Jun 2016 12:18:44 +0100
+From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+To: Richard Cochran <richardcochran@gmail.com>
+Cc: Henrik Austad <henrik@austad.us>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
+	netdev@vger.kernel.org, henrk@austad.us,
+	Arnd Bergmann <arnd@linaro.org>
+Subject: Re: [very-RFC 0/8] TSN driver for the kernel
+Message-ID: <20160614121844.54a125a5@lxorguk.ukuu.org.uk>
+In-Reply-To: <20160613195136.GC2441@netboy>
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
+	<20160613114713.GA9544@localhost.localdomain>
+	<20160613195136.GC2441@netboy>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Could you give me an idea of what you mean in terms of C or from the Linux userspace?
+On Mon, 13 Jun 2016 21:51:36 +0200
+Richard Cochran <richardcochran@gmail.com> wrote:
 
-Thank you,
-Matthew Greci
-505-280-1921
+> On Mon, Jun 13, 2016 at 01:47:13PM +0200, Richard Cochran wrote:
+> > 3. ALSA support for tunable AD/DA clocks.  The rate of the Listener's
+> >    DA clock must match that of the Talker and the other Listeners.
+> >    Either you adjust it in HW using a VCO or similar, or you do
+> >    adaptive sample rate conversion in the application. (And that is
+> >    another reason for *not* having a shared kernel buffer.)  For the
+> >    Talker, either you adjust the AD clock to match the PTP time, or
+> >    you measure the frequency offset.  
+> 
+> Actually, we already have support for tunable clock-like HW elements,
+> namely the dynamic posix clock API.  It is trivial to write a driver
+> for VCO or the like.  I am just not too familiar with the latest high
+> end audio devices.
 
-________________________________________
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Sent: Wednesday, June 29, 2016 5:23 PM
-To: Greci, Matthew J
-Subject: [EXTERNAL] Re: Caspa Driver mt9v032
+Why high end ? Even the most basic USB audio is frame based and
+isosynchronous to the USB clock. It also reports back the delay
+properties.
 
-Hi Matthew,
-
-On Wednesday 29 Jun 2016 14:18:00 Greci, Matthew J wrote:
-> Hello,
->
-> I am running Poky Yocto on a Gumstix Overo board and I loaded the driver for
-> the Gumstix Caspa board which is called 'mt9v023'. Running 'modinfo
-> mt9v032' shows you are the author of mt9v032.ko.
->
-> I was looking for a way to modify the driver source code to fix a yellow
-> tint/hue from appearing in all the images. I have tied to make adjusts via
-> ioctl() but it seems to V4L2 capabilities are possible.
->
-> Please let me know if you are still working on this or not and if you can
-> help or can direct me to someone that can help.
-
-I'm not actively working on the mt9v032 driver anymore, but I can still try to
-help you. I would recommend CC'ing the linux-media@vger.kernel.org mailing
-list when requesting help from the community, as other developers subscribed
-to that list might be able to assist you as well.
-
-The MT9V032 sensor doesn't seem to have per-component gains, so I'm not sure
-you would be able to fix the problem through the sensor driver. You could
-however use the image processing feature of the OMAP3 ISP, and in particular
-of the preview engine, to set per-channel gains or perform other processing
-that could fix the problem.
-
---
-Regards,
-
-Laurent Pinchart
-
+Alan
