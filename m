@@ -1,126 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:48043 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752334AbcF2NVA (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33493 "EHLO
+	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932114AbcFNWvT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2016 09:21:00 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [PATCH 03/15] lirc_dev: remove unnecessary debug prints
-Date: Wed, 29 Jun 2016 22:20:32 +0900
-Message-id: <1467206444-9935-4-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
-References: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
+	Tue, 14 Jun 2016 18:51:19 -0400
+Received: by mail-pf0-f195.google.com with SMTP id c74so306638pfb.0
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:18 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 19/38] ARM: dts: imx6-sabrelite: add video capture ports and connections
+Date: Tue, 14 Jun 2016 15:49:15 -0700
+Message-Id: <1465944574-15745-20-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
----
- drivers/media/rc/lirc_dev.c | 25 -------------------------
- 1 file changed, 25 deletions(-)
+Defines the host video capture device node and an OV5642 camera sensor
+node on i2c2. The host capture device connects to the OV5642 via the
+parallel-bus mux input on the ipu1_csi0_mux.
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index fa562a3..ee997ab 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -80,8 +80,6 @@ static void lirc_irctl_init(struct irctl *ir)
+Note there is a pin conflict with GPIO6. This pin functions as a power
+input pin to the OV5642, but ENET requires it to wake-up the ARM cores
+on normal RX and TX packet done events (see 6261c4c8). So by default,
+capture is disabled, enable by uncommenting __OV5642_CAPTURE__ macro.
+Ethernet will still work just not quite as well.
+
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/boot/dts/imx6qdl-sabrelite.dtsi | 95 ++++++++++++++++++++++++++++++++
+ 1 file changed, 95 insertions(+)
+
+diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+index c47fe6c..9709183 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+@@ -39,9 +39,20 @@
+  *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  *     OTHER DEALINGS IN THE SOFTWARE.
+  */
++
++#include <dt-bindings/clock/imx6qdl-clock.h>
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/input.h>
  
- static void lirc_irctl_cleanup(struct irctl *ir)
- {
--	dev_dbg(ir->d.dev, LOGHEAD "cleaning up\n", ir->d.name, ir->d.minor);
--
- 	device_destroy(lirc_class, MKDEV(MAJOR(lirc_base_dev), ir->d.minor));
++/*
++ * Uncomment the following macro to enable OV5642 video capture
++ * support. There is a pin conflict for GPIO6 between ENET wake-up
++ * interrupt function and power-down pin function for the OV5642.
++ * ENET will still work when enabling OV5642 capture, just not
++ * quite as well.
++ */
++/* #define __OV5642_CAPTURE__ */
++
+ / {
+ 	chosen {
+ 		stdout-path = &uart2;
+@@ -218,8 +229,37 @@
+ 			};
+ 		};
+ 	};
++
++#ifdef __OV5642_CAPTURE__
++	ipucap0: ipucap@0 {
++		compatible = "fsl,imx-video-capture";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ipu1_csi0>;
++		ports = <&ipu1_csi0>;
++		status = "okay";
++	};
++#endif
++};
++
++#ifdef __OV5642_CAPTURE__
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <8>;
++	data-shift = <12>; /* Lines 19:12 used */
++	hsync-active = <1>;
++	vync-active = <1>;
+ };
  
- 	if (ir->buf != ir->d.rbuf) {
-@@ -127,9 +125,6 @@ static int lirc_thread(void *irctl)
- {
- 	struct irctl *ir = irctl;
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&ov5642_to_ipu1_csi0_mux>;
++};
++
++&ipu1_csi0_mux {
++	status = "okay";
++};
++#endif
++	
+ &audmux {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_audmux>;
+@@ -271,8 +311,11 @@
+ 	txd1-skew-ps = <0>;
+ 	txd2-skew-ps = <0>;
+ 	txd3-skew-ps = <0>;
++#ifndef __OV5642_CAPTURE__
+ 	interrupts-extended = <&gpio1 6 IRQ_TYPE_LEVEL_HIGH>,
+ 			      <&intc 0 119 IRQ_TYPE_LEVEL_HIGH>;
++
++#endif
+ 	status = "okay";
+ };
  
--	dev_dbg(ir->d.dev, LOGHEAD "poll thread started\n",
--		ir->d.name, ir->d.minor);
--
- 	do {
- 		if (ir->open) {
- 			if (ir->jiffies_to_wait) {
-@@ -146,9 +141,6 @@ static int lirc_thread(void *irctl)
- 		}
- 	} while (!kthread_should_stop());
+@@ -301,6 +344,30 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c2>;
+ 	status = "okay";
++
++#ifdef __OV5642_CAPTURE__
++	camera: ov5642@3c {
++		compatible = "ovti,ov5642";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5642>;
++		clocks = <&clks IMX6QDL_CLK_CKO2>;
++		clock-names = "xclk";
++		reg = <0x3c>;
++		xclk = <24000000>;
++		reset-gpios = <&gpio1 8 0>;
++		pwdn-gpios = <&gpio1 6 0>;
++		gp-gpios = <&gpio1 16 0>;
++
++		port {
++			ov5642_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <8>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++			};
++		};
++	};
++#endif
+ };
  
--	dev_dbg(ir->d.dev, LOGHEAD "poll thread ended\n",
--		ir->d.name, ir->d.minor);
--
- 	return 0;
- }
+ &i2c3 {
+@@ -373,7 +440,9 @@
+ 				MX6QDL_PAD_RGMII_RX_CTL__RGMII_RX_CTL	0x1b0b0
+ 				/* Phy reset */
+ 				MX6QDL_PAD_EIM_D23__GPIO3_IO23		0x000b0
++#ifndef __OV5642_CAPTURE__
+ 				MX6QDL_PAD_GPIO_6__ENET_IRQ		0x000b1
++#endif
+ 			>;
+ 		};
  
-@@ -277,8 +269,6 @@ static int lirc_allocate_driver(struct lirc_driver *d)
- 		goto out;
- 	}
+@@ -448,6 +517,32 @@
+ 			>;
+ 		};
  
--	dev_dbg(d->dev, "lirc_dev: lirc_register_driver: sample_rate: %d\n",
--		d->sample_rate);
- 	if (d->sample_rate) {
- 		if (2 > d->sample_rate || HZ < d->sample_rate) {
- 			dev_err(d->dev, "lirc_dev: lirc_register_driver: "
-@@ -525,10 +515,6 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
- 	}
- 
- error:
--	if (ir)
--		dev_dbg(ir->d.dev, LOGHEAD "open result = %d\n",
--			ir->d.name, ir->d.minor, retval);
--
- 	mutex_unlock(&lirc_dev_lock);
- 
- 	nonseekable_open(inode, file);
-@@ -550,8 +536,6 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
- 
- 	cdev = ir->cdev;
- 
--	dev_dbg(ir->d.dev, LOGHEAD "close called\n", ir->d.name, ir->d.minor);
--
- 	ret = mutex_lock_killable(&lirc_dev_lock);
- 	WARN_ON(ret);
- 
-@@ -586,8 +570,6 @@ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait)
- 		return POLLERR;
- 	}
- 
--	dev_dbg(ir->d.dev, LOGHEAD "poll called\n", ir->d.name, ir->d.minor);
--
- 	if (!ir->attached)
- 		return POLLERR;
- 
-@@ -683,9 +665,6 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 		result = -EINVAL;
- 	}
- 
--	dev_dbg(ir->d.dev, LOGHEAD "ioctl result = %d\n",
--		ir->d.name, ir->d.minor, result);
--
- 	mutex_unlock(&ir->irctl_lock);
- 
- 	return result;
-@@ -790,8 +769,6 @@ out_locked:
- 
- out_unlocked:
- 	kfree(buf);
--	dev_dbg(ir->d.dev, LOGHEAD "read result = %s (%d)\n",
--		ir->d.name, ir->d.minor, ret ? "<fail>" : "<ok>", ret);
- 
- 	return ret ? ret : written;
- }
-@@ -814,8 +791,6 @@ ssize_t lirc_dev_fop_write(struct file *file, const char __user *buffer,
- 		return -ENODEV;
- 	}
- 
--	dev_dbg(ir->d.dev, LOGHEAD "write called\n", ir->d.name, ir->d.minor);
--
- 	if (!ir->attached)
- 		return -ENODEV;
- 
++		pinctrl_ipu1_csi0: ipu1grp-csi0 {
++			fsl,pins = <
++				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x80000000
++				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x80000000
++				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x80000000
++				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x80000000
++				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x80000000
++				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x80000000
++				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x80000000
++				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x80000000
++				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x80000000
++				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC      0x80000000
++				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC     0x80000000
++				MX6QDL_PAD_CSI0_DATA_EN__IPU1_CSI0_DATA_EN 0x80000000
++			>;
++		};
++
++		pinctrl_ov5642: ov5642grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x80000000
++				MX6QDL_PAD_GPIO_6__GPIO1_IO06   0x80000000
++				MX6QDL_PAD_GPIO_8__GPIO1_IO08   0x80000000
++				MX6QDL_PAD_GPIO_3__CCM_CLKO2    0x80000000
++			>;
++		};
++
+ 		pinctrl_pwm1: pwm1grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_SD1_DAT3__PWM1_OUT 0x1b0b1
 -- 
-2.8.1
+1.9.1
 
