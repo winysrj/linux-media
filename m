@@ -1,41 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:51546 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423867AbcFMPda (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2016 11:33:30 -0400
-Date: Mon, 13 Jun 2016 17:33:01 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH/RFC v2 4/4] v4l: vsp1: Add HGO support
-In-Reply-To: <1463012283-3078-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1606131726380.18676@axis700.grange>
-References: <1463012283-3078-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1463012283-3078-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34255 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751153AbcFNREz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2016 13:04:55 -0400
+Date: Tue, 14 Jun 2016 19:04:44 +0200
+From: Richard Cochran <richardcochran@gmail.com>
+To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+Cc: Henrik Austad <henrik@austad.us>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
+	netdev@vger.kernel.org, henrk@austad.us,
+	Arnd Bergmann <arnd@linaro.org>
+Subject: Re: [very-RFC 0/8] TSN driver for the kernel
+Message-ID: <20160614170442.GA1825@netboy>
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
+ <20160613114713.GA9544@localhost.localdomain>
+ <20160613195136.GC2441@netboy>
+ <20160614121844.54a125a5@lxorguk.ukuu.org.uk>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160614121844.54a125a5@lxorguk.ukuu.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On Thu, 12 May 2016, Laurent Pinchart wrote:
-
-> The HGO is a Histogram Generator One-Dimension. It computes per-channel
-> histograms over a configurable region of the image with optional
-> subsampling.
+On Tue, Jun 14, 2016 at 12:18:44PM +0100, One Thousand Gnomes wrote:
+> On Mon, 13 Jun 2016 21:51:36 +0200
+> Richard Cochran <richardcochran@gmail.com> wrote:
+> > 
+> > Actually, we already have support for tunable clock-like HW elements,
+> > namely the dynamic posix clock API.  It is trivial to write a driver
+> > for VCO or the like.  I am just not too familiar with the latest high
+> > end audio devices.
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> Why high end ? Even the most basic USB audio is frame based and
+> isosynchronous to the USB clock. It also reports back the delay
+> properties.
 
-[snip]
+Well, I guess I should have said, I am not too familiar with the
+breadth of current audio hardware, high end or low end.  Of course I
+would like to see even consumer devices work with AVB, but it is up to
+the ALSA people to make that happen.  So far, nothing has been done,
+afaict.
 
-Do I understand this correctly, that with this if such a metadata device 
-is opened, while no video data is streaming, all calls will succeed, but 
-no buffers will be dequeued, i.e. the user-space application will hang in 
-DQBUF or poll() / select() indefinitely?
+Thanks,
+Richard
 
-Thanks
-Guennadi
