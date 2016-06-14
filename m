@@ -1,128 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:33473 "EHLO
-	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752833AbcFNWvO (ORCPT
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:36149 "EHLO
+	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752004AbcFNJaH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 18:51:14 -0400
-Received: by mail-pf0-f194.google.com with SMTP id c74so306402pfb.0
-        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:14 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 13/38] gpu: ipu-v3: Fix IRT usage
-Date: Tue, 14 Jun 2016 15:49:09 -0700
-Message-Id: <1465944574-15745-14-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+	Tue, 14 Jun 2016 05:30:07 -0400
+Received: by mail-lf0-f68.google.com with SMTP id a2so696045lfe.3
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 02:30:06 -0700 (PDT)
+Date: Tue, 14 Jun 2016 11:30:00 +0200
+From: Henrik Austad <henrik@austad.us>
+To: Richard Cochran <richardcochran@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Arnd Bergmann <arnd@linaro.org>
+Subject: Re: [very-RFC 0/8] TSN driver for the kernel
+Message-ID: <20160614093000.GB21689@sisyphus.home.austad.us>
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
+ <20160613114713.GA9544@localhost.localdomain>
+ <20160613130059.GA20320@sisyphus.home.austad.us>
+ <20160613193208.GA2441@netboy>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BwCQnh7xodEAoBMC"
+Content-Disposition: inline
+In-Reply-To: <20160613193208.GA2441@netboy>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There can be multiple IC tasks using the IRT, so the IRT needs
-a separate use counter. Create a private ipu_irt_enable() to
-enable the IRT module when any IC task requires rotation, and
-ipu_irt_disable() when a task no longer needs the IRT.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/gpu/ipu-v3/ipu-ic.c | 43 ++++++++++++++++++++++++++++++++++---------
- 1 file changed, 34 insertions(+), 9 deletions(-)
+--BwCQnh7xodEAoBMC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/gpu/ipu-v3/ipu-ic.c b/drivers/gpu/ipu-v3/ipu-ic.c
-index f306a9c..5329bfe 100644
---- a/drivers/gpu/ipu-v3/ipu-ic.c
-+++ b/drivers/gpu/ipu-v3/ipu-ic.c
-@@ -160,6 +160,7 @@ struct ipu_ic_priv {
- 	spinlock_t lock;
- 	struct ipu_soc *ipu;
- 	int use_count;
-+	int irt_use_count;
- 	struct ipu_ic task[IC_NUM_TASKS];
- };
- 
-@@ -379,8 +380,6 @@ void ipu_ic_task_disable(struct ipu_ic *ic)
- 
- 	ipu_ic_write(ic, ic_conf, IC_CONF);
- 
--	ic->rotation = ic->graphics = false;
--
- 	spin_unlock_irqrestore(&priv->lock, flags);
- }
- EXPORT_SYMBOL_GPL(ipu_ic_task_disable);
-@@ -639,22 +638,44 @@ int ipu_ic_set_src(struct ipu_ic *ic, int csi_id, bool vdi)
- }
- EXPORT_SYMBOL_GPL(ipu_ic_set_src);
- 
-+static void ipu_irt_enable(struct ipu_ic *ic)
-+{
-+	struct ipu_ic_priv *priv = ic->priv;
-+
-+	if (!priv->irt_use_count)
-+		ipu_module_enable(priv->ipu, IPU_CONF_ROT_EN);
-+
-+	priv->irt_use_count++;
-+}
-+
-+static void ipu_irt_disable(struct ipu_ic *ic)
-+{
-+	struct ipu_ic_priv *priv = ic->priv;
-+
-+	priv->irt_use_count--;
-+
-+	if (!priv->irt_use_count)
-+		ipu_module_disable(priv->ipu, IPU_CONF_ROT_EN);
-+
-+	if (priv->irt_use_count < 0)
-+		priv->irt_use_count = 0;
-+}
-+
- int ipu_ic_enable(struct ipu_ic *ic)
- {
- 	struct ipu_ic_priv *priv = ic->priv;
- 	unsigned long flags;
--	u32 module = IPU_CONF_IC_EN;
- 
- 	spin_lock_irqsave(&priv->lock, flags);
- 
--	if (ic->rotation)
--		module |= IPU_CONF_ROT_EN;
--
- 	if (!priv->use_count)
--		ipu_module_enable(priv->ipu, module);
-+		ipu_module_enable(priv->ipu, IPU_CONF_IC_EN);
- 
- 	priv->use_count++;
- 
-+	if (ic->rotation)
-+		ipu_irt_enable(ic);
-+
- 	spin_unlock_irqrestore(&priv->lock, flags);
- 
- 	return 0;
-@@ -665,18 +686,22 @@ int ipu_ic_disable(struct ipu_ic *ic)
- {
- 	struct ipu_ic_priv *priv = ic->priv;
- 	unsigned long flags;
--	u32 module = IPU_CONF_IC_EN | IPU_CONF_ROT_EN;
- 
- 	spin_lock_irqsave(&priv->lock, flags);
- 
- 	priv->use_count--;
- 
- 	if (!priv->use_count)
--		ipu_module_disable(priv->ipu, module);
-+		ipu_module_disable(priv->ipu, IPU_CONF_IC_EN);
- 
- 	if (priv->use_count < 0)
- 		priv->use_count = 0;
- 
-+	if (ic->rotation)
-+		ipu_irt_disable(ic);
-+
-+	ic->rotation = ic->graphics = false;
-+
- 	spin_unlock_irqrestore(&priv->lock, flags);
- 
- 	return 0;
--- 
-1.9.1
+On Mon, Jun 13, 2016 at 09:32:10PM +0200, Richard Cochran wrote:
+> On Mon, Jun 13, 2016 at 03:00:59PM +0200, Henrik Austad wrote:
+> > On Mon, Jun 13, 2016 at 01:47:13PM +0200, Richard Cochran wrote:
+> > > Which driver is that?
+> >=20
+> > drivers/net/ethernet/renesas/
+>=20
+> That driver is merely a PTP capable MAC driver, nothing more.
+> Although AVB is in the device name, the driver doesn't implement
+> anything beyond the PTP bits.
 
+Yes, I think they do the rest from userspace, not sure though :)
+
+> > What is the rationale for no new sockets? To avoid cluttering? or do=20
+> > sockets have a drawback I'm not aware of?
+>=20
+> The current raw sockets will work just fine.  Again, there should be a
+> application that sits in between with the network socket and the audio
+> interface.
+
+So loop data from kernel -> userspace -> kernelspace and finally back to=20
+userspace and the media application? I agree that you need a way to pipe=20
+the incoming data directly from the network to userspace for those TSN=20
+users that can handle it. But again, for media-applications that don't know=
+=20
+(or care) about AVB, it should be fed to ALSA/v4l2 directly and not jump=20
+between kernel and userspace an extra round.
+
+I get the point of not including every single audio/video encoder in the=20
+kernel, but raw audio should be piped directly to alsa. V4L2 has a way of=
+=20
+piping encoded video through the system and to the media application (in=20
+order to support cameras that to encoding). The same approach should be=20
+doable for AVB, no? (someone from alsa/v4l2 should probably comment on=20
+this)
+
+> > Why is configfs wrong?
+>=20
+> Because the application will use the already existing network and
+> audio interfaces to configure the system.
+
+Configuring this via the audio-interface is going to be a challenge since=
+=20
+you need to configure the stream through the network before you can create=
+=20
+the audio interface. If not, you will have to either drop data or block the=
+=20
+caller until the link has been fully configured.
+
+This is actually the reason why configfs is used in the series now, as it=
+=20
+allows userspace to figure out all the different attributes and configure=
+=20
+the link before letting ALSA start pushing data.
+
+> > > Lets take a look at the big picture.  One aspect of TSN is already
+> > > fully supported, namely the gPTP.  Using the linuxptp user stack and a
+> > > modern kernel, you have a complete 802.1AS-2011 solution.
+> >=20
+> > Yes, I thought so, which is also why I have put that to the side and wh=
+y=20
+> > I'm using ktime_get() for timestamps at the moment. There's also the is=
+sue=20
+> > of hooking the time into ALSA/V4L2
+>=20
+> So lets get that issue solved before anything else.  It is absolutely
+> essential for TSN.  Without the synchronization, you are only playing
+> audio over the network.  We already have software for that.
+
+Yes, I agree, presentation-time and local time needs to be handled=20
+properly. The same for adjusting sample-rate etc. This is a lot of work, so=
+=20
+I hope you can understand why I started out with a simple approach to spark=
+=20
+a discussion before moving on to the larger bits.
+
+> > > 2. A user space audio application that puts it all together, making
+> > >    use of the services in #1, the linuxptp gPTP service, the ALSA
+> > >    services, and the network connections.  This program will have all
+> > >    the knowledge about packet formats, AV encodings, and the local HW
+> > >    capabilities.  This program cannot yet be written, as we still need
+> > >    some kernel work in the audio and networking subsystems.
+> >=20
+> > Why?
+>=20
+> Because user space is right place to place the knowledge of the myriad
+> formats and options.
+
+Se response above, better to let anything but uncompressed raw data trickle=
+=20
+through.
+
+> > the whole point should be to make it as easy for userspace as=20
+> > possible. If you need to tailor each individual media-appliation to use=
+=20
+> > AVB, it is not going to be very useful outside pro-Audio. Sure, there w=
+ill=20
+> > be challenges, but one key element here should be to *not* require=20
+> > upgrading every single media application.
+> >=20
+> > Then, back to the suggestion of adding a TSN_SOCKET (which you didn't l=
+ike,=20
+> > but can we agree on a term "raw interface to TSN", and mode of transpor=
+t=20
+> > can be defined later? ), was to let those applications that are TSN-awa=
+re=20
+> > to do what they need to do, whether it is controlling robots or media=
+=20
+> > streams.
+>=20
+> First you say you don't want ot upgrade media applications, but then
+> you invent a new socket type.  That is a contradiction in terms.
+
+Hehe, no, bad phrasing on my part. I want *both* (hence the shim-interface)=
+=20
+:)
+
+> Audio apps already use networking, and they already use the audio
+> subsystem.  We need to help them get their job done by providing the
+> missing kernel interfaces.  They don't need extra magic buffering the
+> kernel.  They already can buffer audio data by themselves.
+
+Yes, I know some audio apps "use networking", I can stream netradio, I can=
+=20
+use jack to connect devices using RTP and probably a whole lot of other=20
+applications do similar things. However, AVB is more about using the=20
+network as a virtual sound-card. For the media application, it should not=
+=20
+have to care if the device it is using is a soudncard inside the box or a=
+=20
+set of AVB-capable speakers somewhere on the network.
+
+> > > * Kernel Space
+> > >=20
+> > > 1. Providing frames with a future transmit time.  For normal sockets,
+> > >    this can be in the CMESG data.  For mmap'ed buffers, we will need a
+> > >    new format.  (I think Arnd is working on a new layout.)
+> >=20
+> > Ah, I was unaware of this, both CMESG and mmap buffers.
+> >=20
+> > What is the accuracy of deferred transmit? If you have a class A stream=
+,=20
+> > you push out a new frame every 125 us, you may end up with=20
+> > accuracy-constraints lower than that if you want to be able to state "s=
+end=20
+> > frame X at time Y".
+>=20
+> I have no idea what you are asking here.
+
+I assumed that when you had a mmap'd buffer you'd have to specify a point=
+=20
+in time at which the frame should be sent. And since a class A has a 125us=
+=20
+interval of sending frames, you have to be able to send frames with enough=
+=20
+accuray to that. That's a pretty strict deadline coming from userspace. But=
+=20
+as they say, never assume.
+
+I have a lot to dig into, and I've gotten a lot of very useful pointers. I=
+=20
+should be busy for a while
+
+--=20
+Henrik Austad
+
+--BwCQnh7xodEAoBMC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAldfzpgACgkQ6k5VT6v45llNyACg1S6RQAZXdtgThRcX3qXrR0UV
+EH8AoKb4CquWIFkaIKv3fpPLxCKWR4na
+=PTPK
+-----END PGP SIGNATURE-----
+
+--BwCQnh7xodEAoBMC--
