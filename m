@@ -1,240 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45260
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753506AbcFQLhp (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:49013 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750849AbcFOGJb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 07:37:45 -0400
-Date: Fri, 17 Jun 2016 08:37:38 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
-	lars@opdenkamp.eu, linux@arm.linux.org.uk,
-	Hans Verkuil <hansverk@cisco.com>,
-	Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCHv16 08/13] DocBook/media: add CEC documentation
-Message-ID: <20160617083738.491c01ae@recife.lan>
-In-Reply-To: <5763DA56.20402@xs4all.nl>
-References: <1461937948-22936-1-git-send-email-hverkuil@xs4all.nl>
-	<1461937948-22936-9-git-send-email-hverkuil@xs4all.nl>
-	<20160616180958.03b9d759@recife.lan>
-	<5763ADBD.3050502@xs4all.nl>
-	<20160617065028.7410ae46@recife.lan>
-	<5763DA56.20402@xs4all.nl>
+	Wed, 15 Jun 2016 02:09:31 -0400
+Subject: Re: [PATCH] [media] v4l2-ioctl.c: fix warning due wrong check in
+ v4l_cropcap()
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	linux-kernel@vger.kernel.org
+References: <1465935497-30002-1-git-send-email-javier@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5760F114.6010809@xs4all.nl>
+Date: Wed, 15 Jun 2016 08:09:24 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1465935497-30002-1-git-send-email-javier@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 17 Jun 2016 13:09:10 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 06/14/2016 10:18 PM, Javier Martinez Canillas wrote:
+> Commit 95dd7b7e30f3 ("[media] v4l2-ioctl.c: improve cropcap compatibility
+> code") tried to check if both .vidioc_cropcap and .vidioc_g_selection are
+> NULL ops and warn if that was the case, but unfortunately the logic isn't
+> correct and instead checks for .vidioc_cropcap == NULL twice.
+> 
+> So the v4l2 core will print the following warning if a driver has the ops
+> .vidioc_g_selection set but no .vidioc_cropcap callback:
 
-> On 06/17/2016 11:50 AM, Mauro Carvalho Chehab wrote:
-> >>>> +	  <row>
-> >>>> +	    <entry><constant>CEC_MODE_MONITOR</constant></entry>
-> >>>> +	    <entry>0xe0</entry>
-> >>>> +	    <entry>Put the file descriptor into monitor mode. Can only be used in combination
-> >>>> +	    with <constant>CEC_MODE_NO_INITIATOR</constant>, otherwise &EINVAL; will be
-> >>>> +	    returned. In monitor mode all messages this CEC device transmits and all messages
-> >>>> +	    it receives (both broadcast messages and directed messages for one its logical
-> >>>> +	    addresses) will be reported. This is very useful for debugging.</entry>
-> >>>> +	  </row>
-> >>>> +	  <row>
-> >>>> +	    <entry><constant>CEC_MODE_MONITOR_ALL</constant></entry>
-> >>>> +	    <entry>0xf0</entry>
-> >>>> +	    <entry>Put the file descriptor into 'monitor all' mode. Can only be used in combination
-> >>>> +            with <constant>CEC_MODE_NO_INITIATOR</constant>, otherwise &EINVAL; will be
-> >>>> +            returned. In 'monitor all' mode all messages this CEC device transmits and all messages
-> >>>> +            it receives, including directed messages for other CEC devices will be reported. This
-> >>>> +	    is very useful for debugging, but not all devices support this. This mode requires that
-> >>>> +	    the <constant>CEC_CAP_MONITOR_ALL</constant> capability is set, and depending on the
-> >>>> +	    hardware, you may have to be root to select this mode.</entry>  
-> >>>
-> >>> Please mention the error codes when it fails.  
-> >>
-> >> Ack.
-> >>
-> >>> "and depending on the hardware, you may have to be root to select this mode."
-> >>>
-> >>> No. We should define if CAP_SYS_ADMIN (or maybe CAP_NET_ADMIN, with
-> >>> is required to set promiscuous mode for network) will be required or
-> >>> not and enforce it for all hardware.  
-> >>
-> >> Ack for CAP_SYS_ADMIN (or possible NET_ADMIN, I'll look into that).
-> > 
-> > Thanks.
-> > 
-> >>> IMHO, putting the device into monitor mode should require it.  
-> >>
-> >> No. The CEC 2.0 spec explicitly recommends that the CEC adapter should be able to
-> >> monitor all messages.
-> > 
-> > What the hardware should or should not do is one thing. The other
-> > thing is what permissions are needed in order to use such
-> > feature.
-> > 
-> > I don't doubt that a similar requirement exists on 802.x, or on some
-> > industry standard document requiring that all Ethernet hardware should 
-> > support promiscuous mode. Yet, for security reasons, enabling such feature 
-> > requires special caps on Linux.
-> > 
-> >> The problem is that 1) not all hardware supports this, and 2)
-> >> hardware that does support this tends to mention that it is for testing only and
-> >> it shouldn't be used otherwise.
-> >>
-> >> If the hardware is fine with allowing monitoring of all messages, then anyone
-> >> should be able to do that. 
-> > 
-> > Why?
-> 
-> The spec recommends that this is supported in order for applications to take advantage
-> of seeing such traffic to optimize their performance (i.e. by sniffing traffic you can see which
-> devices are there so you don't have to discover them). The underlying reason is that
-> the CEC bus is so hopelessly slow, so any mechanism that helps avoids having to use
-> the bus is good.
-> 
-> From the HDMI 2.0 spec (section 11.4):
-> 
-> "Polling can and should be skipped if other CEC traffic shows that a device is present.
->  Hence, a device should not poll a certain Logical Address within at least one Minimum
->  Polling Period after the following CEC events occur between the device that is polling
->  and the device whose Logical Address is to be polled:
-> 
->  - A directly addressed message, sent to that Logical Address, was acknowledged.
->  - A directly addressed message has been sent from that Logical Address.
->  - A broadcast message has been sent from that Logical Address.
-> 
->  It is recommended that, if the device is capable of monitoring CEC traffic directed to
->  other devices, then this capability should also be used to further reduce the need for polling.
->  In this case, such a device should not poll a certain Logical Address for at least one
->  Minimum Polling Period after it detects that that Logical Address acknowledged a directed
->  message initiated from any Logical Address, or any message was sent from that Logical Address."
-> 
-> I wouldn't have required CAP_*_ADMIN at all if it wasn't for the scary language in some of the
-> hardware specs that I have seen.
-> 
-> (see below before replying to this :-) )
-> 
-> > 
-> >> But if it comes with all these 'for testing only' caveats,
-> >> then I think it should should be protected against 'casual' use. Unfortunately they
-> >> never tell you why it should be used for testing only (overly cautious or could
-> >> something actually fail when in this mode?).
-> >>
-> >> The reality is that being able to monitor the CEC bus is extremely useful when debugging.
-> > 
-> > Well, it can be debugged as root. That's not an issue. The issue
-> > here is if sniffing the traffic by a normal user could leak
-> > something that should not usually be seen by a normal user, like
-> > a Netflix password, that was typed via the RC, for example.
-> 
-> Interesting example. I hadn't thought of that.
-> 
-> OK, so I'm going to change the code so CAP_SYS/NET_ADMIN is required for the
-> monitoring mode. It can always be relaxed later, but this password sniffing
-> example is quite convincing actually.
-> 
-> The HDMI 2.0 polling recommendation can still be met since this would be handled
-> in the CEC framework (not implemented today, but it is planned since it is fairly
-> easy to do so). Since that's all inside the kernel nothing is leaked to non-root
-> applications.
+This fix is already queued up for 4.7.
 
-Ok, makes sense to me.
+Regards,
 
-> One area where I am uncertain is when remote control messages are received and
-> passed on by the framework to the RC input device.
-> 
-> Suppose the application is the one receiving a password, then that password appears
-> both in the input device and the cec device. What I think will be useful is if the
-> application can prevent the use of an input device to pass on remote control messages.
-> 
-> CEC_ADAP_S_LOG_ADDRS has a flags field that I intended for just that purpose.
-> 
-> Note that RC messages are always passed on to CEC followers even if there is an
-> input device since some RC messages have additional arguments that the rc subsystem
-> can't handle. Also I think that it is often easier to handle all messages from the
-> same CEC device instead of having to read from two devices (cec and input). I
-> actually considered removing the input support, but it turned out to be useful in
-> existing video streaming apps since they don't need to add special cec support to
-> handle remote control presses.
-> 
-> Question: is there a way for applications to get exclusive access to an input device?
-> Or can anyone always read from it?
-
-That's a very good question. I did a quick test to check how this is
-currently protected, by running:
-
-$ strace ir-keytable -t
-...
-open("/dev/input/event12", O_RDONLY)    = -1 EACCES (Permission denied)
-...
-
-It turns that the input device was created by udev with those
-permissions:
-
-crw-rw---- 1 root input 13, 76 Jun 17 08:26 /dev/input/event12
-
-Changing access to 666 allowed to run ir-keytable -t without the
-need of being root.
-
-Yet, maybe there's a way to get exclusive access to input/event
-device, but I never needed to go that deep at the input subsystem.
-Maybe Dmitry could shed some light on that. Adding him in the loop.
-
-> So I am thinking that I add a flag to inhibit the use of the input device if set.
-
-There are two different situations here:
-
-1) if the code is originated by the machine (e. g. what LIRC calls
-TX mode), I don't see any reason to inhibit it by a normal user that
-has permission to use the device node;
-
-2) if the Linux machine is receiving RC events via CEC (the "RX"
-mode - with is what the RC event devices implement nowadays), then
-the user needs to have permission to read from the evdev. Yeah,
-we need to have a way to protect passwords typed on IR. So, some
-sort of way to inhibit it is needed.
-
-> This would be in a follow-on patch and it's added to the TODO file in the initial
-> patch series.
-
-Ok.
-
-> Comments?
-> 
-> >> The simple MONITOR mode is different in that it requires no special hardware configuration.
-> >> But it won't be able to see directed messages between CEC devices other than us.
-> >>
-> >> On a related note: if an application tries to become initiator or follower and someone
-> >> else has already exclusive access, then EBUSY is returned. I based this on what happens
-> >> in V4L2 with the S_PRIORITY ioctl.
-> >>
-> >> However, I think EACCES is a much better error code. It's probably what S_PRIO should
-> >> have used as well.
-> >>
-> >> Do you agree?
-> > 
-> > Not really. EACCES sounds more like a permanent problem, while EBUSY
-> > is always a temporary issue.
-> > 
-> > The problem with EACESS is that the user may think that the file
-> > permissions at the /dev/cec? are wrong.
-> 
-> Hmm, OK. I'm not entirely convinced, but I don't think it is a big deal either.
-> 
-> Besides, now I don't need to change anything :-)
-
-OK.
+	Hans
 
 > 
-> Regards,
+> WARNING: CPU: 2 PID: 4058 at drivers/media/v4l2-core/v4l2-ioctl.c:2174 v4l_cropcap+0x188/0x198 [videodev]
+> [<c010e1ac>] (unwind_backtrace) from [<c010af38>] (show_stack+0x10/0x14)
+> [<c010af38>] (show_stack) from [<c032481c>] (dump_stack+0x88/0x9c)
+> [<c032481c>] (dump_stack) from [<c011a82c>] (__warn+0xe8/0x100)
+> [<c011a82c>] (__warn) from [<c011a8f4>] (warn_slowpath_null+0x20/0x28)
+> [<c011a8f4>] (warn_slowpath_null) from [<bf04a9ec>] (v4l_cropcap+0x188/0x198 [videodev])
+> [<bf04a9ec>] (v4l_cropcap [videodev]) from [<bf04c728>] (__video_do_ioctl+0x298/0x30c [videodev])
+> [<bf04c728>] (__video_do_ioctl [videodev]) from [<bf04c110>] (video_usercopy+0x174/0x4e8 [videodev])
+> [<bf04c110>] (video_usercopy [videodev]) from [<bf0475c8>] (v4l2_ioctl+0xc4/0xd8 [videodev])
+> [<bf0475c8>] (v4l2_ioctl [videodev]) from [<c01efa78>] (do_vfs_ioctl+0x9c/0x8e4)
+> [<c01efa78>] (do_vfs_ioctl) from [<c01f02f4>] (SyS_ioctl+0x34/0x5c)
+> [<c01f02f4>] (SyS_ioctl) from [<c01078c0>] (ret_fast_syscall+0x0/0x3c)
 > 
-> 	Hans
-
-
-
-Thanks,
-Mauro
+> Fixes: 95dd7b7e30f3 ("[media] v4l2-ioctl.c: improve cropcap compatibility code")
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> 
+> ---
+> 
+>  drivers/media/v4l2-core/v4l2-ioctl.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index 28e5be2c2eef..528390f33b53 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -2171,7 +2171,7 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
+>  	 * The determine_valid_ioctls() call already should ensure
+>  	 * that this can never happen, but just in case...
+>  	 */
+> -	if (WARN_ON(!ops->vidioc_cropcap && !ops->vidioc_cropcap))
+> +	if (WARN_ON(!ops->vidioc_cropcap && !ops->vidioc_g_selection))
+>  		return -ENOTTY;
+>  
+>  	if (ops->vidioc_cropcap)
+> 
