@@ -1,79 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:38724 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753283AbcFJVeA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2016 17:34:00 -0400
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49345 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750935AbcFOQJ1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2016 12:09:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Dragos Bogdan <dragos.bogdan@analog.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] [media] adv7604: Add support for hardware reset
+Date: Wed, 15 Jun 2016 19:09:34 +0300
+Message-ID: <1986640.t9SmG4kvzc@avalon>
+In-Reply-To: <1464100407-5935-1-git-send-email-dragos.bogdan@analog.com>
+References: <1464100407-5935-1-git-send-email-dragos.bogdan@analog.com>
 MIME-Version: 1.0
-In-Reply-To: <CAMuHMdWQZjE+AnPry6PiVc69PVdZ_2zstOKR==B6nywun2Om9Q@mail.gmail.com>
-References: <1465479695-18644-1-git-send-email-kieran@bingham.xyz>
- <1465479695-18644-3-git-send-email-kieran@bingham.xyz> <20160610173914.GA20505@rob-hp-laptop>
- <CAMuHMdWQZjE+AnPry6PiVc69PVdZ_2zstOKR==B6nywun2Om9Q@mail.gmail.com>
-From: Rob Herring <robh@kernel.org>
-Date: Fri, 10 Jun 2016 16:33:36 -0500
-Message-ID: <CAL_JsqLd+sXeEtq+chtrCxyDgyBm9s3giCC+ri8oMvfVLjunaA@mail.gmail.com>
-Subject: Re: [PATCH 2/3] dt-bindings: Document Renesas R-Car FCP power-domains usage
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Kieran Bingham <kieran@ksquared.org.uk>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	"open list:MEDIA DRIVERS FOR RENESAS - FCP"
-	<linux-media@vger.kernel.org>,
-	"open list:MEDIA DRIVERS FOR RENESAS - FCP"
-	<linux-renesas-soc@vger.kernel.org>,
-	"open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-	<devicetree@vger.kernel.org>,
-	open list <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 10, 2016 at 2:11 PM, Geert Uytterhoeven
-<geert@linux-m68k.org> wrote:
-> Hi Rob,
->
-> On Fri, Jun 10, 2016 at 7:39 PM, Rob Herring <robh@kernel.org> wrote:
->> On Thu, Jun 09, 2016 at 02:41:33PM +0100, Kieran Bingham wrote:
->>> The power domain must be specified to bring the device out of module
->>> standby. Document this in the example provided, so that new additions
->>> are not missed.
->>>
->>> Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
->>> ---
->>>  Documentation/devicetree/bindings/media/renesas,fcp.txt | 1 +
->>>  1 file changed, 1 insertion(+)
->>>
->>> diff --git a/Documentation/devicetree/bindings/media/renesas,fcp.txt b/Documentation/devicetree/bindings/media/renesas,fcp.txt
->>> index 271dcfdb5a76..6a55f5215221 100644
->>> --- a/Documentation/devicetree/bindings/media/renesas,fcp.txt
->>> +++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
->>> @@ -31,4 +31,5 @@ Device node example
->>>               compatible = "renesas,r8a7795-fcpv", "renesas,fcpv";
->>>               reg = <0 0xfea2f000 0 0x200>;
->>>               clocks = <&cpg CPG_MOD 602>;
->>> +             power-domains = <&sysc R8A7795_PD_A3VP>;
->>
->> This needs to be documented above too, not just the example.
->
-> Why? Power domains are an optional feature, whose presence depends
-> on the platform, not on the device.
+Hi Dragos,
 
-Examples are not documentation. The binding should stand on its own
-without the example.
+Thank you for the patch.
 
-How did I know this is optional unless you document it as optional?
-How many power domains does the device have?
+On Tuesday 24 May 2016 17:33:27 Dragos Bogdan wrote:
+> The part can be reset by a low pulse on the RESET pin (i.e. a hardware
+> reset) with a minimum width of 5 ms. It is recommended to wait 5 ms
+> after the low pulse before an I2C write is performed to the part.
+> For safety reasons, the delays will be between 5 and 10 ms.
+> 
+> The RESET pin can be tied high, so the GPIO is optional.
+> 
+> Signed-off-by: Dragos Bogdan <dragos.bogdan@analog.com>
+> ---
+> Changes since v1:
+>  - Replace mdelay() with usleep_range();
+>  - Limit the comments to 75 characters per line.
+> 
+>  drivers/media/i2c/adv7604.c | 22 ++++++++++++++++++++++
+>  1 file changed, 22 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 41a1bfc..73c79bb 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -164,6 +164,7 @@ struct adv76xx_state {
+>  	struct adv76xx_platform_data pdata;
+> 
+>  	struct gpio_desc *hpd_gpio[4];
+> +	struct gpio_desc *reset_gpio;
+> 
+>  	struct v4l2_subdev sd;
+>  	struct media_pad pads[ADV76XX_PAD_MAX];
+> @@ -2996,6 +2997,21 @@ static int configure_regmaps(struct adv76xx_state
+> *state) return 0;
+>  }
+> 
+> +static int adv76xx_reset(struct adv76xx_state *state)
 
-> Hence "power-domains" properties may appear in any device node.
-> Having to document them in every single binding document is overkill.
+Given that the function always returns 0 and that the return value is never 
+checked I'd turn it into a void function.
 
-We do it for everything else pretty much. There's some exceptions like "status".
+> +{
+> +	if (state->reset_gpio) {
 
-I agree that we get a bunch of redundancy with random text describing
-the properties. I'm all for a structured syntax that can distill the
-device bindings down to the pertainent information. If only someone
-proposed using yaml or something...
+Nitpicking, if you write this as
 
-Rob
+	if (!state->reset_gpio)
+		return;
+
+then you can lower the indendation of the following code block. That's a 
+matter of style and preferences though, so I'll let you decide what you 
+prefer.
+
+Apart from that,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> +		/* ADV76XX can be reset by a low reset pulse of minimum 5 ms. */
+> +		gpiod_set_value_cansleep(state->reset_gpio, 0);
+> +		usleep_range(5000, 10000);
+> +		gpiod_set_value_cansleep(state->reset_gpio, 1);
+> +		/* It is recommended to wait 5 ms after the low pulse before */
+> +		/* an I2C write is performed to the ADV76XX. */
+> +		usleep_range(5000, 10000);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static int adv76xx_probe(struct i2c_client *client,
+>  			 const struct i2c_device_id *id)
+>  {
+> @@ -3059,6 +3075,12 @@ static int adv76xx_probe(struct i2c_client *client,
+>  		if (state->hpd_gpio[i])
+>  			v4l_info(client, "Handling HPD %u GPIO\n", i);
+>  	}
+> +	state->reset_gpio = devm_gpiod_get_optional(&client->dev, "reset",
+> +								GPIOD_OUT_HIGH);
+> +	if (IS_ERR(state->reset_gpio))
+> +		return PTR_ERR(state->reset_gpio);
+> +
+> +	adv76xx_reset(state);
+> 
+>  	state->timings = cea640x480;
+>  	state->format = adv76xx_format_info(state, MEDIA_BUS_FMT_YUYV8_2X8);
+
+-- 
+Regards,
+
+Laurent Pinchart
+
