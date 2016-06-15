@@ -1,60 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39874 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753802AbcFQWGX (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:15908 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751493AbcFOGs4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 18:06:23 -0400
-Date: Sat, 18 Jun 2016 00:06:15 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: ivo.g.dimitrov.75@gmail.com, pali.rohar@gmail.com, sre@kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 1/1] v4l: Add camera voice coil lens control class,
- current control
-Message-ID: <20160617220614.GA31380@amd>
-References: <20160527205140.GA26767@amd>
- <1465764110-7736-1-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1465764110-7736-1-git-send-email-sakari.ailus@linux.intel.com>
+	Wed, 15 Jun 2016 02:48:56 -0400
+Message-id: <5760FA52.7010806@samsung.com>
+Date: Wed, 15 Jun 2016 08:48:50 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Russell King <linux@armlinux.org.uk>,
+	Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Sebastian Reichel <sre@kernel.org>,
+	Wolfram Sang <wsa@the-dreams.de>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Lauro Ramos Venancio <lauro.venancio@openbossa.org>,
+	Aloisio Almeida Jr <aloisio.almeida@openbossa.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Ingo Molnar <mingo@kernel.org>, linux-pwm@vger.kernel.org,
+	lguest@lists.ozlabs.org, linux-wireless@vger.kernel.org,
+	linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-leds@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 12/12] leds: Only descend into leds directory when
+ CONFIG_NEW_LEDS is set
+References: <20160613200211.14790-1-afd@ti.com>
+ <20160613200211.14790-13-afd@ti.com>
+In-reply-to: <20160613200211.14790-13-afd@ti.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Hi Andrew,
 
-> -</section>
-> +
-> +    <section id="voice-coil-controls">
-> +      <title>Voice Coil Control Reference</title>
-> +
-> +      <para>The Voice Coil class controls are used to control voice
-> +      coil lens devices. These are very simple devices that consist of
-> +      a voice coil, a spring and a lens. The current applied on a
+Thanks for the patch.
 
-"on the"?
-
-> +      voice coil is used to move the lens away from the resting
-> +      position which typically is (close to) infinity.</para>
-
-Insert explanation that this all is for autofocus somewhere?
-
->  /* User-class control IDs */
->  
-> @@ -974,4 +975,10 @@ enum v4l2_detect_md_mode {
->  #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
->  #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
->  
-> +/*  Voice coil lens driver control IDs defined by V4L2 */
-
-Too many spaces after '/*'. 
-
-Otherwise, you have my "acked-by".
+Please address the issue [1] raised by test bot and resubmit.
 
 Thanks,
-									Pavel
+Jacek Anaszewski
+
+[1] https://lkml.org/lkml/2016/6/13/1091
+
+On 06/13/2016 10:02 PM, Andrew F. Davis wrote:
+> When CONFIG_NEW_LEDS is not set make will still descend into the leds
+> directory but nothing will be built. This produces unneeded build
+> artifacts and messages in addition to slowing the build. Fix this here.
+>
+> Signed-off-by: Andrew F. Davis <afd@ti.com>
+> ---
+>   drivers/Makefile | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/Makefile b/drivers/Makefile
+> index 567e32c..fa514d5 100644
+> --- a/drivers/Makefile
+> +++ b/drivers/Makefile
+> @@ -127,7 +127,7 @@ obj-$(CONFIG_CPU_FREQ)		+= cpufreq/
+>   obj-$(CONFIG_CPU_IDLE)		+= cpuidle/
+>   obj-$(CONFIG_MMC)		+= mmc/
+>   obj-$(CONFIG_MEMSTICK)		+= memstick/
+> -obj-y				+= leds/
+> +obj-$(CONFIG_NEW_LEDS)		+= leds/
+>   obj-$(CONFIG_INFINIBAND)	+= infiniband/
+>   obj-$(CONFIG_SGI_SN)		+= sn/
+>   obj-y				+= firmware/
+>
+
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Best regards,
+Jacek Anaszewski
