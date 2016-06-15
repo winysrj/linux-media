@@ -1,75 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43493 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751927AbcF2Wng (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34524 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161005AbcFOMOt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2016 18:43:36 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Michael Ira Krufky <mkrufky@linuxtv.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 02/10] au8522: use the RF strentgh provided by the tuner
-Date: Wed, 29 Jun 2016 19:43:18 -0300
-Message-Id: <314f7a0ded01b76e0c2ff3c1dc44c5cfd01ad445.1467240152.git.mchehab@s-opensource.com>
-In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
-References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
-In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
-References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
+	Wed, 15 Jun 2016 08:14:49 -0400
+Received: by mail-wm0-f66.google.com with SMTP id 187so3542441wmz.1
+        for <linux-media@vger.kernel.org>; Wed, 15 Jun 2016 05:14:49 -0700 (PDT)
+Subject: Re: [PATCH] v4l2-ctrl.h: fix comments
+To: Hans Verkuil <hansverk@cisco.com>,
+	linux-media <linux-media@vger.kernel.org>
+References: <57612985.902@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+From: Ian Arkver <ian.arkver.dev@gmail.com>
+Message-ID: <509823ac-4d3b-fd20-08fd-764130db261f@gmail.com>
+Date: Wed, 15 Jun 2016 13:14:46 +0100
+MIME-Version: 1.0
+In-Reply-To: <57612985.902@cisco.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The usage of SNR to estimate the signal strength is a poor man's
-approach. The best is to use the RF strength as measured by the
-tuner. So, use it, if available.
+On 15/06/16 11:10, Hans Verkuil wrote:
+> The comments for the unlocked v4l2_ctrl_s_ctrl* functions were wrong (copy
+> and pasted from the locked variants). Fix this, since it is confusing.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> index 0bc9b35..e9e87e023 100644
+> --- a/include/media/v4l2-ctrls.h
+> +++ b/include/media/v4l2-ctrls.h
+> @@ -759,9 +759,9 @@ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
+>    * @ctrl:	The control.
+>    * @val:	The new value.
+>    *
+> - * This set the control's new value safely by going through the control
+> - * framework. This function will lock the control's handler, so it cannot be
+> - * used from within the &v4l2_ctrl_ops functions.
+> + * This sets the control's new value safely by going through the control
+> + * framework. This function assumes the control's handler is already locked,
+> + * allowing it to be used from within the &v4l2_ctrl_ops functions.
+>    *
+>    * This function is for integer type controls only.
+>    */
+> @@ -771,7 +771,7 @@ int __v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
+>    * @ctrl:	The control.
+>    * @val:	The new value.
+>    *
+> - * This set the control's new value safely by going through the control
+> + * This sets the control's new value safely by going through the control
+>    * framework. This function will lock the control's handler, so it cannot be
+>    * used from within the &v4l2_ctrl_ops functions.
+>    *
+> @@ -807,9 +807,9 @@ s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl);
+>    * @ctrl:	The control.
+>    * @val:	The new value.
+>    *
+> - * This set the control's new value safely by going through the control
+> - * framework. This function will lock the control's handler, so it cannot be
+> - * used from within the &v4l2_ctrl_ops functions.
+> + * This sets the control's new value safely by going through the control
+> + * framework. This function assumes the control's handler is already locked,
+> + * allowing it to be used from within the &v4l2_ctrl_ops functions.
+>    *
+>    * This function is for 64-bit integer type controls only.
+>    */
+> @@ -821,9 +821,9 @@ int __v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val);
+>    * @ctrl:	The control.
+>    * @val:	The new value.
+>    *
+> - * This set the control's new value safely by going through the control
+> - * framework. This function will lock the control's handler, so it cannot be
+> - * used from within the &v4l2_ctrl_ops functions.
+> + * This sets the control's new value safely by going through the control
+> + * framework. This function does not lock the control's handler, allowing it to
+> + * be used from within the &v4l2_ctrl_ops functions.
+>    *
+>    * This function is for 64-bit integer type controls only.
+>    */
+I think this comment is above v4l2_ctrl_s_ctrl_int64, without the 
+underscores. Doesn't this fn take the lock, or have I missed a patch 
+that removes that?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-frontends/au8522_dig.c | 22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/au8522_dig.c b/drivers/media/dvb-frontends/au8522_dig.c
-index e676b9461a59..ee14fd48c414 100644
---- a/drivers/media/dvb-frontends/au8522_dig.c
-+++ b/drivers/media/dvb-frontends/au8522_dig.c
-@@ -767,16 +767,30 @@ static int au8522_read_snr(struct dvb_frontend *fe, u16 *snr)
- static int au8522_read_signal_strength(struct dvb_frontend *fe,
- 				       u16 *signal_strength)
- {
--	/* borrowed from lgdt330x.c
-+	u16 snr;
-+	u32 tmp;
-+	int ret;
-+
-+	/* If the tuner has RF strength, use it */
-+	if (fe->ops.tuner_ops.get_rf_strength) {
-+		if (fe->ops.i2c_gate_ctrl)
-+			fe->ops.i2c_gate_ctrl(fe, 1);
-+		ret = fe->ops.tuner_ops.get_rf_strength(fe, signal_strength);
-+		if (fe->ops.i2c_gate_ctrl)
-+			fe->ops.i2c_gate_ctrl(fe, 0);
-+		return ret;
-+	}
-+
-+	/*
-+	 * If it doen't, estimate from SNR
-+	 * (borrowed from lgdt330x.c)
- 	 *
- 	 * Calculate strength from SNR up to 35dB
- 	 * Even though the SNR can go higher than 35dB,
- 	 * there is some comfort factor in having a range of
- 	 * strong signals that can show at 100%
- 	 */
--	u16 snr;
--	u32 tmp;
--	int ret = au8522_read_snr(fe, &snr);
-+	ret = au8522_read_snr(fe, &snr);
- 
- 	*signal_strength = 0;
- 
--- 
-2.7.4
-
+> @@ -843,9 +843,9 @@ static inline int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
+>    * @ctrl:	The control.
+>    * @s:		The new string.
+>    *
+> - * This set the control's new string safely by going through the control
+> - * framework. This function will lock the control's handler, so it cannot be
+> - * used from within the &v4l2_ctrl_ops functions.
+> + * This sets the control's new string safely by going through the control
+> + * framework. This function assumes the control's handler is already locked,
+> + * allowing it to be used from within the &v4l2_ctrl_ops functions.
+>    *
+>    * This function is for string type controls only.
+>    */
+> @@ -857,7 +857,7 @@ int __v4l2_ctrl_s_ctrl_string(struct v4l2_ctrl *ctrl, const char *s);
+>    * @ctrl:	The control.
+>    * @s:		The new string.
+>    *
+> - * This set the control's new string safely by going through the control
+> + * This sets the control's new string safely by going through the control
+>    * framework. This function will lock the control's handler, so it cannot be
+>    * used from within the &v4l2_ctrl_ops functions.
+>    *
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Ian
