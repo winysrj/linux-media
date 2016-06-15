@@ -1,42 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:54108 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751316AbcFRPC5 (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36501 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932114AbcFOLlw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jun 2016 11:02:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv18 01/15] input.h: add BUS_CEC type
-Date: Sat, 18 Jun 2016 17:02:34 +0200
-Message-Id: <1466262168-12805-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
-References: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 15 Jun 2016 07:41:52 -0400
+Date: Wed, 15 Jun 2016 13:41:47 +0200
+From: Richard Cochran <richardcochran@gmail.com>
+To: Henrik Austad <henrik@austad.us>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Arnd Bergmann <arnd@linaro.org>
+Subject: Re: [very-RFC 0/8] TSN driver for the kernel
+Message-ID: <20160615114147.GA31281@localhost.localdomain>
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
+ <20160613114713.GA9544@localhost.localdomain>
+ <20160613130059.GA20320@sisyphus.home.austad.us>
+ <20160613193208.GA2441@netboy>
+ <20160614093000.GB21689@sisyphus.home.austad.us>
+ <20160614182615.GA2741@netboy>
+ <20160614203810.GC21689@sisyphus.home.austad.us>
+ <20160615070441.GB2919@netboy>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160615070441.GB2919@netboy>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Jun 15, 2016 at 09:04:41AM +0200, Richard Cochran wrote:
+> On Tue, Jun 14, 2016 at 10:38:10PM +0200, Henrik Austad wrote:
+> > Whereas I want to do 
+> > 
+> > aplay some_song.wav
+> 
+> Can you please explain how your patches accomplish this?
 
-Inputs can come in over the HDMI CEC bus, so add a new type for this.
+Never mind.  Looking back, I found it in patch #7.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
----
- include/uapi/linux/input.h | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
-index 0111384..c514941 100644
---- a/include/uapi/linux/input.h
-+++ b/include/uapi/linux/input.h
-@@ -247,6 +247,7 @@ struct input_mask {
- #define BUS_ATARI		0x1B
- #define BUS_SPI			0x1C
- #define BUS_RMI			0x1D
-+#define BUS_CEC			0x1E
- 
- /*
-  * MT_TOOL types
--- 
-2.8.1
-
+Thanks,
+Richard
