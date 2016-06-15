@@ -1,105 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54098 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754830AbcFTVAD (ORCPT
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:38301 "EHLO
+	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753148AbcFOIKg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 17:00:03 -0400
-Date: Mon, 20 Jun 2016 23:59:04 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sebastian Reichel <sre@kernel.org>,
-	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	pali.rohar@gmail.com, linux-media@vger.kernel.org
-Subject: Re: Nokia N900 cameras -- pipeline setup in python (was Re: [RFC
- PATCH 00/24] Make Nokia N900 cameras working)
-Message-ID: <20160620205904.GL24980@valkosipuli.retiisi.org.uk>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160427030850.GA17034@earth>
- <20160617164226.GA27876@amd>
- <20160617171214.GA5830@amd>
+	Wed, 15 Jun 2016 04:10:36 -0400
+Received: by mail-wm0-f47.google.com with SMTP id m124so23573109wme.1
+        for <linux-media@vger.kernel.org>; Wed, 15 Jun 2016 01:10:35 -0700 (PDT)
+Subject: Re: EIT off-air tables for HD in UK
+To: Nick Whitehead <nick@mistoffolees.me.uk>,
+	linux-media@vger.kernel.org
+References: <57604D76.30705@mistoffolees.me.uk>
+From: Jemma Denson <jdenson@gmail.com>
+Message-ID: <e943e6e6-b5eb-446a-6a8f-585dfee8353c@gmail.com>
+Date: Wed, 15 Jun 2016 09:10:32 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160617171214.GA5830@amd>
+In-Reply-To: <57604D76.30705@mistoffolees.me.uk>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+On 14/06/16 19:31, Nick Whitehead wrote:
+> I've just started to use this to recover EIT information from the 
+> transmitted stream (UK, freeview).
+>
+> I've managed to get the tables OK, but the EIT name / description for 
+> all HD channels is scrambled. Some research indicates these are 
+> huffman encoded for an unclear reason.
+>
+> Given the right tables, it should be possible therefore to decode them 
+> when they appear in the linked list of descriptors in each event. 
+> However, it appears that dvb_parse_string() called all the way down 
+> from dvb_read_sections() converts the character sets name / 
+> description strings so that they can no longer be decoded. If huffman 
+> encoded, I think the first character of each is a 0x1f, followed by a 
+> 0x01 or 0x02 which probably indicates the table to use.
+>
+> It seems to me therefore that the 0x1f needs to be picked up in the 
+> switch (*src) {} at line 395 in parse_string.c, and huffman decode 
+> done there. After the return from dvb_parse_string(), and certainly 
+> when they appear in the EIT table, it's too late.
+>
+> I am not sure if I'm right about all this as I know very little about 
+> DVB. However it looks like that to me. Have I got this right or is 
+> already successfully handled somewhere I haven't realised?
+>
+>
 
-On Fri, Jun 17, 2016 at 07:12:14PM +0200, Pavel Machek wrote:
-> Hi!
-> 
-> > First, I re-did pipeline setup in python, it seems slightly less hacky
-> > then in shell.
-> > 
-> > I tried to modify fcam-dev to work with the new interface, but was not
-> > successful so far. I can post patches if someone is interested
-> > (mplayer works for me, but that's not too suitable for taking photos).
-> > 
-> > I tried to get gstreamer to work, with something like:
-> 
-> While trying to debug gstreamer, I ran v4l2-compliance, and it seems
-> to suggest that QUERYCAP is required... but it is not present on
-> /dev/video2 or video6.
+FYI mythtv decodes the EIT successfully so is probably a good place to 
+start looking. The original patch to add it in is here: 
+https://svn.mythtv.org/trac/attachment/ticket/5365/freesat_epg.diff
+AFAIK Freeview HD is done the same way as Freesat.
 
-It's not saying that it wouldn't be present, but the content appears wrong.
-It should have the real bus information there rather than just "media".
+Jemma.
 
-See e.g. drivers/media/platform/vsp1/vsp1_drv.c . I suppose that should be
-right.
 
-Feel free to submit a patch. :-)
-
-> 
-> Any ideas? (Kernel is based on Ivaylo 's github tree, IIRC).
-> 
-> Thanks,
-> 									Pavel
-> 
-> pavel@n900:/my/v4l-utils/utils$ ./v4l2-compliance/v4l2-compliance -d /dev/video6
-> Driver Info:
-> 	Driver name   : ispvideo
-> 	Card type     : OMAP3 ISP resizer output
-> 	Bus info      : media
-> 	Driver version: 4.6.0
-> 	Capabilities  : 0x84200003
-> 		Video Capture
-> 		Video Output
-> 		Streaming
-> 		Extended Pix Format
-> 		Device Capabilities
-> 	Device Caps   : 0x04200001
-> 		Video Capture
-> 		Streaming
-> 		Extended Pix Format
-> 
-> Compliance test for device /dev/video6 (not using libv4l2):
-> 
-> Required ioctls:
-> 		fail: v4l2-compliance.cpp(537): missing bus_info prefix ('media')
-> 	test VIDIOC_QUERYCAP: FAIL
-> 
-> Allow for multiple opens:
-> 	test second video open: OK
-> 		fail: v4l2-compliance.cpp(537): missing bus_info prefix ('media')
-> 	test VIDIOC_QUERYCAP: FAIL
-> 	test VIDIOC_G/S_PRIORITY: OK
-> 
-> pavel@n900:/my/v4l-utils/utils$ sudo ./v4l2-compliance/v4l2-compliance -d /dev/video2
-> Driver Info:
-> 	Driver name   : ispvideo
-> 	Card type     : OMAP3 ISP CCDC output
-> ...
-> Compliance test for device /dev/video2 (not using libv4l2):
-> 
-> Required ioctls:
-> 		fail: v4l2-compliance.cpp(537): missing bus_info prefix ('media')
-> 	test VIDIOC_QUERYCAP: FAIL
-> 
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
