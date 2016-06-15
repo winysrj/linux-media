@@ -1,60 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:36702 "EHLO
-	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161143AbcFOWbG (ORCPT
+Received: from mail-it0-f46.google.com ([209.85.214.46]:37100 "EHLO
+	mail-it0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751529AbcFOJ0W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2016 18:31:06 -0400
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Lee Jones <lee.jones@linaro.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [PATCH 2/3] staging: media: omap1: fix sensor probe not working anymore
-Date: Thu, 16 Jun 2016 00:29:49 +0200
-Message-Id: <1466029790-31094-3-git-send-email-jmkrzyszt@gmail.com>
-In-Reply-To: <1466029790-31094-1-git-send-email-jmkrzyszt@gmail.com>
-References: <1466029790-31094-1-git-send-email-jmkrzyszt@gmail.com>
+	Wed, 15 Jun 2016 05:26:22 -0400
+Received: by mail-it0-f46.google.com with SMTP id e5so15349034ith.0
+        for <linux-media@vger.kernel.org>; Wed, 15 Jun 2016 02:26:21 -0700 (PDT)
+From: Patrick Ohly <patrick.ohly@intel.com>
+To: linux-media@vger.kernel.org
+Cc: patrick.ohly@intel.com
+Subject: [PATCH] jpeg_memsrcdest: extend feature check
+Date: Wed, 15 Jun 2016 11:26:05 +0200
+Message-Id: <1465982765-580-1-git-send-email-patrick.ohly@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After clock_start() removal from from soc_camera_probe() (commit
-9aea470b39 '[media] soc-camera: switch I2C subdevice drivers to use
-v4l2-clk', introduced in v3.11), it occurred omap1_camera's sensor
-can't be probed successfully without its clock being turned on in
-advance. Fix that by surrounding soc_camera_host_register() invocation
-with clock_start() / clock_stop().
+libjpeg.h in OpenEmbedded master (from libjpeg-turbo 1.5.0) provides
+these methods if "JPEG_LIB_VERSION >= 80 ||
+defined(MEM_SRCDST_SUPPORTED)".
 
-Created and tested on Amstrad Delta against Linux-4.7-rc3 with
-'staging: media: omap1: fix null pointer dereference in
-omap1_cam_probe()' applied.
+The support for the jpeg_mem functions was added even when not
+emulating the libjpeg8 API, controlled via the MEM_SRCDST_SUPPORTED
+define, so checking for the version alone is not enough anymore.
 
-Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+See https://github.com/libjpeg-turbo/libjpeg-turbo/commit/ab70623eb29e09e67222be5b9e1ea320fe5aa0e9
+
+This fixes errors about conflicting declarations (signed vs. unsigned
+char).
+
+Signed-off-by: Patrick Ohly <patrick.ohly@intel.com>
 ---
- drivers/staging/media/omap1/omap1_camera.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ lib/libv4lconvert/jpeg_memsrcdest.c | 4 ++--
+ lib/libv4lconvert/jpeg_memsrcdest.h | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/staging/media/omap1/omap1_camera.c b/drivers/staging/media/omap1/omap1_camera.c
-index dc35d30..9b6140a 100644
---- a/drivers/staging/media/omap1/omap1_camera.c
-+++ b/drivers/staging/media/omap1/omap1_camera.c
-@@ -1650,7 +1650,11 @@ static int omap1_cam_probe(struct platform_device *pdev)
- 	pcdev->soc_host.v4l2_dev.dev	= &pdev->dev;
- 	pcdev->soc_host.nr		= pdev->id;
+diff --git a/lib/libv4lconvert/jpeg_memsrcdest.c b/lib/libv4lconvert/jpeg_memsrcdest.c
+index 323e7af..578c465 100644
+--- a/lib/libv4lconvert/jpeg_memsrcdest.c
++++ b/lib/libv4lconvert/jpeg_memsrcdest.c
+@@ -30,8 +30,8 @@
+ #include "jpeg_memsrcdest.h"
  
--	err = soc_camera_host_register(&pcdev->soc_host);
-+	err = omap1_cam_clock_start(&pcdev->soc_host);
-+	if (!err) {
-+		err = soc_camera_host_register(&pcdev->soc_host);
-+		omap1_cam_clock_stop(&pcdev->soc_host);
-+	}
- 	if (err)
- 		return err;
+ /* libjpeg8 and later come with their own (API compatible) memory source
+-   and dest */
+-#if JPEG_LIB_VERSION < 80
++   and dest, and older versions may have it backported */
++#if JPEG_LIB_VERSION < 80 && !defined(MEM_SRCDST_SUPPORTED)
  
+ /* Expanded data source object for memory input */
+ 
+diff --git a/lib/libv4lconvert/jpeg_memsrcdest.h b/lib/libv4lconvert/jpeg_memsrcdest.h
+index 28a6477..b13bf3f 100644
+--- a/lib/libv4lconvert/jpeg_memsrcdest.h
++++ b/lib/libv4lconvert/jpeg_memsrcdest.h
+@@ -1,6 +1,6 @@
+ #include <jpeglib.h>
+ 
+-#if JPEG_LIB_VERSION < 80
++#if JPEG_LIB_VERSION < 80 && !defined(MEM_SRCDST_SUPPORTED)
+ 
+ void
+ jpeg_mem_src (j_decompress_ptr cinfo, unsigned char * buffer,
 -- 
-2.7.3
+2.1.4
 
