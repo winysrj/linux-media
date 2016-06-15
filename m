@@ -1,79 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40681 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751629AbcFXPcN (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49585 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932939AbcFOXdK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2016 11:32:13 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Patrick Boettcher <patrick.boettcher@posteo.de>
-Subject: [PATCH 13/19] dib0090: comment out the unused tables
-Date: Fri, 24 Jun 2016 12:31:54 -0300
-Message-Id: <cf47faca25e29ffb74c883675a9bada065d9ea10.1466782238.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1466782238.git.mchehab@s-opensource.com>
-References: <cover.1466782238.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1466782238.git.mchehab@s-opensource.com>
-References: <cover.1466782238.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Wed, 15 Jun 2016 19:33:10 -0400
+Received: from avalon.bb.dnainternet.fi (85-23-193-79.bb.dnainternet.fi [85.23.193.79])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 68DBF20099
+	for <linux-media@vger.kernel.org>; Thu, 16 Jun 2016 01:30:56 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] videodev2.h: Group YUV 3 planes formats together
+Date: Thu, 16 Jun 2016 02:33:14 +0300
+Message-Id: <1466033594-10120-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those tables are currently unused, so comment them out:
+The formats are interleaved with the YUV packed and miscellaneous
+formats, making the result confusing especially with the YUV444 format
+being packed and not planar like YUV410 or YUV420. Move them to their
+own group as the 2 planes or 3 non-contiguous planes formats to clarify
+the header.
 
-drivers/media/dvb-frontends/dib0090.c:852:18: warning: 'rf_ramp_pwm_sband' defined but not used [-Wunused-const-variable=]
- static const u16 rf_ramp_pwm_sband[] = {
-                  ^~~~~~~~~~~~~~~~~
-drivers/media/dvb-frontends/dib0090.c:800:18: warning: 'bb_ramp_pwm_boost' defined but not used [-Wunused-const-variable=]
- static const u16 bb_ramp_pwm_boost[] = {
-                  ^~~~~~~~~~~~~~~~~
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/dvb-frontends/dib0090.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ include/uapi/linux/videodev2.h | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/dib0090.c b/drivers/media/dvb-frontends/dib0090.c
-index d879dc0607f4..14c403254fe0 100644
---- a/drivers/media/dvb-frontends/dib0090.c
-+++ b/drivers/media/dvb-frontends/dib0090.c
-@@ -797,6 +797,8 @@ static const u16 bb_ramp_pwm_normal[] = {
- 	(0  << 9) | 400, /* BB_RAMP6 */
- };
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 8f951917be74..50ff346c4118 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -504,22 +504,16 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_UV8     v4l2_fourcc('U', 'V', '8', ' ') /*  8  UV 4:4 */
  
-+#if 0
-+/* Currently unused */
- static const u16 bb_ramp_pwm_boost[] = {
- 	550, /* max BB gain in 10th of dB */
- 	8, /* ramp_slope = 1dB of gain -> clock_ticks_per_db = clk_khz / ramp_slope -> BB_RAMP2 */
-@@ -806,6 +808,7 @@ static const u16 bb_ramp_pwm_boost[] = {
- 	(2  << 9) | 208, /* BB_RAMP5 = 29dB */
- 	(0  << 9) | 440, /* BB_RAMP6 */
- };
-+#endif
+ /* Luminance+Chrominance formats */
+-#define V4L2_PIX_FMT_YVU410  v4l2_fourcc('Y', 'V', 'U', '9') /*  9  YVU 4:1:0     */
+-#define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y', 'V', '1', '2') /* 12  YVU 4:2:0     */
+ #define V4L2_PIX_FMT_YUYV    v4l2_fourcc('Y', 'U', 'Y', 'V') /* 16  YUV 4:2:2     */
+ #define V4L2_PIX_FMT_YYUV    v4l2_fourcc('Y', 'Y', 'U', 'V') /* 16  YUV 4:2:2     */
+ #define V4L2_PIX_FMT_YVYU    v4l2_fourcc('Y', 'V', 'Y', 'U') /* 16 YVU 4:2:2 */
+ #define V4L2_PIX_FMT_UYVY    v4l2_fourcc('U', 'Y', 'V', 'Y') /* 16  YUV 4:2:2     */
+ #define V4L2_PIX_FMT_VYUY    v4l2_fourcc('V', 'Y', 'U', 'Y') /* 16  YUV 4:2:2     */
+-#define V4L2_PIX_FMT_YUV422P v4l2_fourcc('4', '2', '2', 'P') /* 16  YVU422 planar */
+-#define V4L2_PIX_FMT_YUV411P v4l2_fourcc('4', '1', '1', 'P') /* 16  YVU411 planar */
+ #define V4L2_PIX_FMT_Y41P    v4l2_fourcc('Y', '4', '1', 'P') /* 12  YUV 4:1:1     */
+ #define V4L2_PIX_FMT_YUV444  v4l2_fourcc('Y', '4', '4', '4') /* 16  xxxxyyyy uuuuvvvv */
+ #define V4L2_PIX_FMT_YUV555  v4l2_fourcc('Y', 'U', 'V', 'O') /* 16  YUV-5-5-5     */
+ #define V4L2_PIX_FMT_YUV565  v4l2_fourcc('Y', 'U', 'V', 'P') /* 16  YUV-5-6-5     */
+ #define V4L2_PIX_FMT_YUV32   v4l2_fourcc('Y', 'U', 'V', '4') /* 32  YUV-8-8-8-8   */
+-#define V4L2_PIX_FMT_YUV410  v4l2_fourcc('Y', 'U', 'V', '9') /*  9  YUV 4:1:0     */
+-#define V4L2_PIX_FMT_YUV420  v4l2_fourcc('Y', 'U', '1', '2') /* 12  YUV 4:2:0     */
+ #define V4L2_PIX_FMT_HI240   v4l2_fourcc('H', 'I', '2', '4') /*  8  8-bit color   */
+ #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2') /*  8  YUV 4:2:0 16x16 macroblocks */
+ #define V4L2_PIX_FMT_M420    v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:2:0 2 lines y, 1 line uv interleaved */
+@@ -540,6 +534,14 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
+ #define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 16x16 macroblocks */
  
- static const u16 rf_ramp_pwm_cband[] = {
- 	314, /* max RF gain in 10th of dB */
-@@ -849,6 +852,8 @@ static const u16 rf_ramp_pwm_uhf[] = {
- 	(0  << 10) | 580, /* GAIN_4_2, LNA 4 */
- };
- 
-+#if 0
-+/* Currently unused */
- static const u16 rf_ramp_pwm_sband[] = {
- 	253, /* max RF gain in 10th of dB */
- 	38, /* ramp_slope = 1dB of gain -> clock_ticks_per_db = clk_khz / ramp_slope -> RF_RAMP2 */
-@@ -862,6 +867,7 @@ static const u16 rf_ramp_pwm_sband[] = {
- 	(0  << 10) | 0, /* GAIN_4_1, LNA 4 = 0dB */
- 	(0  << 10) | 0, /* GAIN_4_2, LNA 4 */
- };
-+#endif
- 
- struct slope {
- 	s16 range;
++/* three planes - Y Cb, Cr */
++#define V4L2_PIX_FMT_YUV410  v4l2_fourcc('Y', 'U', 'V', '9') /*  9  YUV 4:1:0     */
++#define V4L2_PIX_FMT_YVU410  v4l2_fourcc('Y', 'V', 'U', '9') /*  9  YVU 4:1:0     */
++#define V4L2_PIX_FMT_YUV411P v4l2_fourcc('4', '1', '1', 'P') /* 16  YVU411 planar */
++#define V4L2_PIX_FMT_YUV420  v4l2_fourcc('Y', 'U', '1', '2') /* 12  YUV 4:2:0     */
++#define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y', 'V', '1', '2') /* 12  YVU 4:2:0     */
++#define V4L2_PIX_FMT_YUV422P v4l2_fourcc('4', '2', '2', 'P') /* 16  YVU422 planar */
++
+ /* three non contiguous planes - Y, Cb, Cr */
+ #define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12  YUV420 planar */
+ #define V4L2_PIX_FMT_YVU420M v4l2_fourcc('Y', 'M', '2', '1') /* 12  YVU420 planar */
 -- 
-2.7.4
+Regards,
 
+Laurent Pinchart
 
