@@ -1,54 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45366 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932383AbcFBV1u (ORCPT
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:36684 "EHLO
+	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932141AbcFOWay (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Jun 2016 17:27:50 -0400
-Date: Fri, 3 Jun 2016 00:27:46 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH] device tree description for AD5820 camera auto-focus coil
-Message-ID: <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
-References: <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
- <20160531213437.GA28397@amd>
- <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
- <20160601220840.GA21946@amd>
- <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
- <20160602193027.GB7984@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160602193027.GB7984@amd>
+	Wed, 15 Jun 2016 18:30:54 -0400
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Lee Jones <lee.jones@linaro.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [PATCH 1/3] staging: media: omap1: fix null pointer dereference in omap1_cam_probe()
+Date: Thu, 16 Jun 2016 00:29:48 +0200
+Message-Id: <1466029790-31094-2-git-send-email-jmkrzyszt@gmail.com>
+In-Reply-To: <1466029790-31094-1-git-send-email-jmkrzyszt@gmail.com>
+References: <1466029790-31094-1-git-send-email-jmkrzyszt@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 02, 2016 at 09:30:27PM +0200, Pavel Machek wrote:
-> 
-> Add documentation for ad5820 device tree binding.
-> 
-> Signed-off-by: Pavel Machek <pavel@denx.de>
+Commit 76e543382bd4 ("staging: media: omap1: Switch to
+devm_ioremap_resource") moved assignment of struct resource *res =
+platform_get_resource() several lines down. That resulted in the
+following error:
 
-Thanks, Pavel!!
+[    3.793237] Unable to handle kernel NULL pointer dereference at virtual address 00000004
+[    3.802198] pgd = c0004000
+[    3.805202] [00000004] *pgd=00000000
+[    3.809373] Internal error: Oops: c5 [#1] ARM
+[    3.814070] CPU: 0 PID: 1 Comm: swapper Not tainted 4.6.0-rc1+ #70
+[    3.820570] Hardware name: Amstrad E3 (Delta)
+[    3.825232] task: c1819440 ti: c181e000 task.ti: c181e000
+[    3.830973] PC is at omap1_cam_probe+0x48/0x2d4
+[    3.835873] LR is at devres_add+0x20/0x28
 
-Can I pick the two patches (this one + the driver) or would you like to send
-a pull request? In the latter case you can add:
+Move the assignment back up where it was before - it is used to build
+an argument for a subsequent devm_kzalloc(). Also, restore the check
+for null value of res - it shouldn't hurt.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+While being at it:
+- follow the recently introduced convention of direct return
+  instead of jump to return with err value assigned,
+- drop no longer needed res member from the definition of struct
+  omap1_cam_dev.
 
+Created and tested on Amstrad Delta aginst Linux-4.7-rc3
+
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+---
+ drivers/staging/media/omap1/omap1_camera.c | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/staging/media/omap1/omap1_camera.c b/drivers/staging/media/omap1/omap1_camera.c
+index 54b8dd2..dc35d30 100644
+--- a/drivers/staging/media/omap1/omap1_camera.c
++++ b/drivers/staging/media/omap1/omap1_camera.c
+@@ -158,7 +158,6 @@ struct omap1_cam_dev {
+ 	int				dma_ch;
+ 
+ 	struct omap1_cam_platform_data	*pdata;
+-	struct resource			*res;
+ 	unsigned long			pflags;
+ 	unsigned long			camexclk;
+ 
+@@ -1569,11 +1568,10 @@ static int omap1_cam_probe(struct platform_device *pdev)
+ 	unsigned int irq;
+ 	int err = 0;
+ 
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	irq = platform_get_irq(pdev, 0);
+-	if ((int)irq <= 0) {
+-		err = -ENODEV;
+-		goto exit;
+-	}
++	if (!res || (int)irq <= 0)
++		return -ENODEV;
+ 
+ 	clk = devm_clk_get(&pdev->dev, "armper_ck");
+ 	if (IS_ERR(clk))
+@@ -1614,7 +1612,6 @@ static int omap1_cam_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&pcdev->capture);
+ 	spin_lock_init(&pcdev->lock);
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	base = devm_ioremap_resource(&pdev->dev, res);
+ 	if (IS_ERR(base))
+ 		return PTR_ERR(base);
+@@ -1663,7 +1660,6 @@ static int omap1_cam_probe(struct platform_device *pdev)
+ 
+ exit_free_dma:
+ 	omap_free_dma(pcdev->dma_ch);
+-exit:
+ 	return err;
+ }
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.3
+
