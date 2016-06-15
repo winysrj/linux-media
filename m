@@ -1,125 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55202 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751328AbcFKWHE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2016 18:07:04 -0400
-Date: Sun, 12 Jun 2016 01:06:55 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH] userspace API definitions for auto-focus coil
-Message-ID: <20160611220654.GC26360@valkosipuli.retiisi.org.uk>
-References: <20160527205140.GA26767@amd>
- <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
- <20160531213437.GA28397@amd>
- <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
- <20160601220840.GA21946@amd>
- <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
- <20160602193027.GB7984@amd>
- <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
- <20160605190716.GA11321@amd>
- <575512E5.5030000@gmail.com>
+Received: from mail.kernel.org ([198.145.29.136]:48532 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751907AbcFOSll (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2016 14:41:41 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <575512E5.5030000@gmail.com>
+In-Reply-To: <20160615043116.GG26360@valkosipuli.retiisi.org.uk>
+References: <1465659593-16858-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1465659593-16858-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160614220517.GA23504@rob-hp-laptop> <20160615043116.GG26360@valkosipuli.retiisi.org.uk>
+From: Rob Herring <robh@kernel.org>
+Date: Wed, 15 Jun 2016 13:41:18 -0500
+Message-ID: <CAL_JsqKDxnc-pTOcdbL4iWFB9qU5924N0TV0NFw=A-zGN8boXQ@mail.gmail.com>
+Subject: Re: [PATCH v3 2/2] media: et8ek8: Add documentation
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	Sebastian Reichel <sre@kernel.org>,
+	=?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>,
+	Pavel Machek <pavel@ucw.cz>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ivaylo,
+On Tue, Jun 14, 2016 at 11:31 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Rob,
+>
+> On Tue, Jun 14, 2016 at 05:05:17PM -0500, Rob Herring wrote:
+>> On Sat, Jun 11, 2016 at 06:39:53PM +0300, Ivaylo Dimitrov wrote:
+>> > Add DT bindings description
+>>
+>> Not exactly the best commit msg.
+>>
+>> >
+>> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+>> > ---
+>> >  .../bindings/media/i2c/toshiba,et8ek8.txt          | 50 ++++++++++++++++++++++
+>> >  1 file changed, 50 insertions(+)
+>> >  create mode 100644 Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
+>> >
+>> > diff --git a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
+>> > new file mode 100644
+>> > index 0000000..997d268
+>> > --- /dev/null
+>> > +++ b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
+>> > @@ -0,0 +1,50 @@
+>> > +Toshiba et8ek8 5MP sensor
+>> > +
+>> > +Toshiba et8ek8 5MP sensor is an image sensor found in Nokia N900 device
+>> > +
+>> > +More detailed documentation can be found in
+>> > +Documentation/devicetree/bindings/media/video-interfaces.txt .
+>> > +
+>> > +
+>> > +Mandatory properties
+>> > +--------------------
+>> > +
+>> > +- compatible: "toshiba,et8ek8"
+>> > +- reg: I2C address (0x3e, or an alternative address)
+>> > +- vana-supply: Analogue voltage supply (VANA), 2.8 volts
+>>
+>> > +- clocks: External clock to the sensor
+>> > +- clock-frequency: Frequency of the external clock to the sensor
+>>
+>> These should be mutually-exclusive. If you have a clock, then you can
+>> get the frequency at runtime.
+>
+> Yes, you can. But the intention is to set the frequency: the sensor requires
+> a particular, pre-determined frequency. Typically this is specific to the
+> board.
 
-On Mon, Jun 06, 2016 at 09:06:29AM +0300, Ivaylo Dimitrov wrote:
-> Hi,
-> 
-> On  5.06.2016 22:07, Pavel Machek wrote:
-> >Add userspace API definitions.
-> >
-> >Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> >
-> >diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> >index b6a357a..23011cc 100644
-> >--- a/include/uapi/linux/v4l2-controls.h
-> >+++ b/include/uapi/linux/v4l2-controls.h
-> >@@ -974,4 +975,9 @@ enum v4l2_detect_md_mode {
-> >  #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
-> >  #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
-> >
-> >+/* Control IDs specific to the AD5820 driver as defined by V4L2 */
-> >+#define V4L2_CID_FOCUS_AD5820_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x10af)
+Okay, then state that in the description.
 
-Please check V4L2_CID_USER_*_BASE. That's how custom controls are handled
-nowadays.
-
-> >+#define V4L2_CID_FOCUS_AD5820_RAMP_TIME	(V4L2_CID_FOCUS_AD5820_BASE+0)
-> >+#define V4L2_CID_FOCUS_AD5820_RAMP_MODE	(V4L2_CID_FOCUS_AD5820_BASE+1)
-> >+
-> >  #endif
-> >
-> 
-> Sakari, what about adding those as standard camera controls? It seems ad5820
-> is not the only VCM driver to implement "antiringing" controls, http://rohmfs.rohm.com/en/products/databook/datasheet/ic/motor/mobile_module/bu64241gwz-e.pdf
-> is another example I found by quick search.
-
-These controls however seem to be related to some thing else --- configuring
-the driver to drive the lens little by little to the target using a
-pre-defined step time and size. I presume it is intended for something else,
-most likely for performing a full search for a regular AF algorithm. I also
-wonder how much this functionality is used nowadays, most devices use
-continuous AF algorithm that has little or no use for such. It also provides
-no help in synchronising lens movement to exposure of the AF window.
-
-Now that I think about this, the original implementation in N900 very likely
-did not use either of the two controls; the device driver was still written
-to provide access to full capabilities of the chip. And that one had no
-continuous AF.
-
-> What about:
-> 
-> #define V4L2_CID_FOCUS_STEP_MODE xxx
-> enum v4l2_cid_focus_step_mode {
-> V4L2_CID_FOCUS_STEP_MODE_DIRECT,
-> V4L2_CID_FOCUS_STEP_MODE_LINEAR,
-> V4L2_CID_FOCUS_STEP_MODE_AUTO
-> };
-> #define V4L2_CID_FOCUS_STEP_TIME xxx+1
-> 
-> Also, how the userspace(or the kernel) is notified by v4l that there is an
-> event? The point is - I think it is a good idea to notify when VCM has
-> completed its movement, we can start a timer based on the current position,
-> mode, step time etc and notify after the pre-calculated movement time.
-
-You'd have to start modelling the movement of the lens somehow. And for
-that, we'd need to know about the lens and the spring in the kernel, too. I
-presume that's already a lot of the algorithm to get the lens moving, and
-supposing this is in the kernel, what else would go to the kernel?
-
-These device provide very basic functionality for moving the lens; current
-is applied on a coil and that has the effect of moving the lens, bringing
-the focus distance closer as more current is applied but that's pretty much
-it: there's no reliable way to focus at a particular distance for example.
-
-I might as well drop the two controls, up to you. If someone ever needs them
-they can always be reintroduced. I'd be happy to get a new patch, the
-current driver patch does not compile (just tried) as the definitions of
-these controls are missing.
-
-Ringing compensation functionality present in the other chip should be far
-more useful.
-
-If there are AF experts reading this, feel free to challenge me. :-) I can't
-claim to be one.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Rob
