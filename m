@@ -1,120 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50087 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751275AbcFPO4c convert rfc822-to-8bit (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:36702 "EHLO
+	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161143AbcFOWbG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2016 10:56:32 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-	<niklas.soderlund@ragnatech.se>
-Cc: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
-	hverkuil@xs4all.nl, linux-renesas-soc@vger.kernel.org,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	William Towle <william.towle@codethink.co.uk>,
-	Rob Taylor <rob.taylor@codethink.co.uk>,
-	Niklas =?ISO-8859-1?Q?S=F6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: Re: [PATCH 1/8] media: rcar-vin: pad-aware driver initialisation
-Date: Thu, 16 Jun 2016 17:56:41 +0300
-Message-ID: <1642916.YUlojpEMv4@avalon>
-In-Reply-To: <1464203409-1279-2-git-send-email-niklas.soderlund@ragnatech.se>
-References: <1464203409-1279-1-git-send-email-niklas.soderlund@ragnatech.se> <1464203409-1279-2-git-send-email-niklas.soderlund@ragnatech.se>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+	Wed, 15 Jun 2016 18:31:06 -0400
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Lee Jones <lee.jones@linaro.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Subject: [PATCH 2/3] staging: media: omap1: fix sensor probe not working anymore
+Date: Thu, 16 Jun 2016 00:29:49 +0200
+Message-Id: <1466029790-31094-3-git-send-email-jmkrzyszt@gmail.com>
+In-Reply-To: <1466029790-31094-1-git-send-email-jmkrzyszt@gmail.com>
+References: <1466029790-31094-1-git-send-email-jmkrzyszt@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Niklas,
+After clock_start() removal from from soc_camera_probe() (commit
+9aea470b39 '[media] soc-camera: switch I2C subdevice drivers to use
+v4l2-clk', introduced in v3.11), it occurred omap1_camera's sensor
+can't be probed successfully without its clock being turned on in
+advance. Fix that by surrounding soc_camera_host_register() invocation
+with clock_start() / clock_stop().
 
-Thank you for the patch.
+Created and tested on Amstrad Delta against Linux-4.7-rc3 with
+'staging: media: omap1: fix null pointer dereference in
+omap1_cam_probe()' applied.
 
-On Wednesday 25 May 2016 21:10:02 Niklas Söderlund wrote:
-> From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> 
-> Add detection of source pad number for drivers aware of the media controller
-> API, so that rcar-vin can create device nodes to support modern drivers
-> such as adv7604.c (for HDMI on Lager) and the converted adv7180.c (for
-> composite) underneath.
-> 
-> Building rcar_vin gains a dependency on CONFIG_MEDIA_CONTROLLER, in
-> line with requirements for building the drivers associated with it.
-> 
-> Signed-off-by: William Towle <william.towle@codethink.co.uk>
-> Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-> [uli: adapted to rcar-vin rewrite]
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 16 ++++++++++++++++
->  drivers/media/platform/rcar-vin/rcar-vin.h  |  2 ++
->  2 files changed, 18 insertions(+)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index 0bc4487..929816b 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -683,6 +683,9 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
->  	struct v4l2_mbus_framefmt *mf = &fmt.format;
->  	struct video_device *vdev = &vin->vdev;
->  	struct v4l2_subdev *sd = vin_to_source(vin);
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
+Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+---
+ drivers/staging/media/omap1/omap1_camera.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-I think you can get rid of conditional compilation here and below. Patch 2/8 
-calls v4l2_subdev_alloc_pad_config() unconditionally, which depends on 
-CONFIG_MEDIA_CONTROLLER.
-
-> +	int pad_idx;
-> +#endif
->  	int ret;
-> 
->  	v4l2_set_subdev_hostdata(sd, vin);
-> @@ -729,6 +732,19 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
->  	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
->  		V4L2_CAP_READWRITE;
-> 
-> +	vin->src_pad_idx = 0;
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
-> +		if (sd->entity.pads[pad_idx].flags
-> +				== MEDIA_PAD_FL_SOURCE)
-
-No need for a line break.
-
-> +			break;
-> +	if (pad_idx >= sd->entity.num_pads)
-> +		return -EINVAL;
-> +
-> +	vin->src_pad_idx = pad_idx;
-> +#endif
-> +	fmt.pad = vin->src_pad_idx;
-> +
->  	/* Try to improve our guess of a reasonable window format */
->  	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
->  	if (ret) {
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
-> b/drivers/media/platform/rcar-vin/rcar-vin.h index 544a3b3..a6dd6db 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -87,6 +87,7 @@ struct rvin_graph_entity {
->   *
->   * @vdev:		V4L2 video device associated with VIN
->   * @v4l2_dev:		V4L2 device
-> + * @src_pad_idx:	source pad index for media controller drivers
->   * @ctrl_handler:	V4L2 control handler
->   * @notifier:		V4L2 asynchronous subdevs notifier
->   * @entity:		entity in the DT for subdevice
-> @@ -117,6 +118,7 @@ struct rvin_dev {
-> 
->  	struct video_device vdev;
->  	struct v4l2_device v4l2_dev;
-> +	int src_pad_idx;
->  	struct v4l2_ctrl_handler ctrl_handler;
->  	struct v4l2_async_notifier notifier;
->  	struct rvin_graph_entity entity;
-
+diff --git a/drivers/staging/media/omap1/omap1_camera.c b/drivers/staging/media/omap1/omap1_camera.c
+index dc35d30..9b6140a 100644
+--- a/drivers/staging/media/omap1/omap1_camera.c
++++ b/drivers/staging/media/omap1/omap1_camera.c
+@@ -1650,7 +1650,11 @@ static int omap1_cam_probe(struct platform_device *pdev)
+ 	pcdev->soc_host.v4l2_dev.dev	= &pdev->dev;
+ 	pcdev->soc_host.nr		= pdev->id;
+ 
+-	err = soc_camera_host_register(&pcdev->soc_host);
++	err = omap1_cam_clock_start(&pcdev->soc_host);
++	if (!err) {
++		err = soc_camera_host_register(&pcdev->soc_host);
++		omap1_cam_clock_stop(&pcdev->soc_host);
++	}
+ 	if (err)
+ 		return err;
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.3
 
