@@ -1,55 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:57651 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751858AbcF3MV4 (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35023 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752736AbcFOIGI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2016 08:21:56 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Simon Horman <horms+renesas@verge.net.au>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 2/2] [media] vsp1: clarify FCP dependency
-Date: Thu, 30 Jun 2016 14:23:03 +0200
-Message-Id: <20160630122325.4002029-2-arnd@arndb.de>
-In-Reply-To: <20160630122325.4002029-1-arnd@arndb.de>
-References: <20160630122325.4002029-1-arnd@arndb.de>
+	Wed, 15 Jun 2016 04:06:08 -0400
+Date: Wed, 15 Jun 2016 10:06:02 +0200
+From: Richard Cochran <richardcochran@gmail.com>
+To: Takashi Sakamoto <o-takashi@sakamocchi.jp>
+Cc: alsa-devel@alsa-project.org, netdev@vger.kernel.org,
+	Henrik Austad <henrik@austad.us>, linux-kernel@vger.kernel.org,
+	Arnd Bergmann <arnd@linaro.org>, alsa-devel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [very-RFC 0/8] TSN driver for the kernel
+Message-ID: <20160615080602.GA13555@localhost.localdomain>
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
+ <20160613114713.GA9544@localhost.localdomain>
+ <20160613195136.GC2441@netboy>
+ <20160614121844.54a125a5@lxorguk.ukuu.org.uk>
+ <5760C84C.40408@sakamocchi.jp>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5760C84C.40408@sakamocchi.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The newly added FCP support in the vsp1 driver causes a link error
-when CONFIG_RENESAS_FCP=m, since it's not reachable by built-in code:
+On Wed, Jun 15, 2016 at 12:15:24PM +0900, Takashi Sakamoto wrote:
+> > On Mon, Jun 13, 2016 at 01:47:13PM +0200, Richard Cochran wrote:
+> >> I have seen audio PLL/multiplier chips that will take, for example, a
+> >> 10 kHz input and produce your 48 kHz media clock.  With the right HW
+> >> design, you can tell your PTP Hardware Clock to produce a 10000 PPS,
+> >> and you will have a synchronized AVB endpoint.  The software is all
+> >> there already.  Somebody should tell the ALSA guys about it.
+> 
+> Just from my curiosity, could I ask you more explanation for it in ALSA
+> side?
 
-drivers/media/built-in.o: In function `vsp1_remove':
-:(.text+0xdeca0): undefined reference to `rcar_fcp_put'
-drivers/media/built-in.o: In function `vsp1_probe':
-:(.text+0xdef44): undefined reference to `rcar_fcp_get'
+(Disclaimer: I really don't know too much about ALSA, expect that is
+fairly big and complex ;)
 
-We already have a conditional dependency on FCP that requires
-it for ARM64, so for all others we just have to prevent setting
-RENESAS_VSP1=y when RENESAS_FCP=m by extending the FCP dependency.
+Here is what I think ALSA should provide:
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: 94fcdf829793 ("[media] v4l: vsp1: Add FCP support")
----
- drivers/media/platform/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+- The DA and AD clocks should appear as attributes of the HW device.
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 9d0a3ffe36d2..8b6ac7d08289 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -265,7 +265,7 @@ config VIDEO_RENESAS_VSP1
- 	tristate "Renesas VSP1 Video Processing Engine"
- 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
- 	depends on (ARCH_RENESAS && OF) || COMPILE_TEST
--	depends on !ARM64 || VIDEO_RENESAS_FCP
-+	depends on (!ARM64 && !VIDEO_RENESAS_FCP) || VIDEO_RENESAS_FCP
- 	select VIDEOBUF2_DMA_CONTIG
- 	---help---
- 	  This is a V4L2 driver for the Renesas VSP1 video processing engine.
--- 
-2.9.0
+- There should be a method for measuring the DA/AD clock rate with
+  respect to both the system time and the PTP Hardware Clock (PHC)
+  time.
 
+- There should be a method for adjusting the DA/AD clock rate if
+  possible.  If not, then ALSA should fall back to sample rate
+  conversion.
+
+- There should be a method to determine the time delay from the point
+  when the audio data are enqueued into ALSA until they pass through
+  the D/A converter.  If this cannot be known precisely, then the
+  library should provide an estimate with an error bound.
+
+- I think some AVB use cases will need to know the time delay from A/D
+  until the data are available to the local application.  (Distributed
+  microphones?  I'm not too sure about that.)
+
+- If the DA/AD clocks are connected to other clock devices in HW,
+  there should be a way to find this out in SW.  For example, if SW
+  can see the PTP-PHC-PLL-DA relationship from the above example, then
+  it knows how to synchronize the DA clock using the network.
+
+  [ Implementing this point involves other subsystems beyond ALSA.  It
+    isn't really necessary for people designing AVB systems, since
+    they know their designs, but it would be nice to have for writing
+    generic applications that can deal with any kind of HW setup. ]
+
+> In ALSA, sampling rate conversion should be in userspace, not in kernel
+> land. In alsa-lib, sampling rate conversion is implemented in shared object.
+> When userspace applications start playbacking/capturing, depending on PCM
+> node to access, these applications load the shared object and convert PCM
+> frames from buffer in userspace to mmapped DMA-buffer, then commit them.
+
+The AVB use case places an additional requirement on the rate
+conversion.  You will need to adjust the frequency on the fly, as the
+stream is playing.  I would guess that ALSA doesn't have that option?
+
+Thanks,
+Richard
