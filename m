@@ -1,87 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59817 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752215AbcFLHyW (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35185 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753132AbcFOMnq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2016 03:54:22 -0400
-Date: Sun, 12 Jun 2016 09:54:17 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH] userspace API definitions for auto-focus coil
-Message-ID: <20160612075416.GA1160@amd>
-References: <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
- <20160531213437.GA28397@amd>
- <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
- <20160601220840.GA21946@amd>
- <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
- <20160602193027.GB7984@amd>
- <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
- <20160605190716.GA11321@amd>
- <575512E5.5030000@gmail.com>
- <20160611220654.GC26360@valkosipuli.retiisi.org.uk>
+	Wed, 15 Jun 2016 08:43:46 -0400
+Date: Wed, 15 Jun 2016 14:43:41 +0200
+From: Richard Cochran <richardcochran@gmail.com>
+To: Henrik Austad <henrik@austad.us>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@vger.kernel.org, netdev@vger.kernel.org,
+	henrk@austad.us, Henrik Austad <haustad@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Takashi Iwai <tiwai@suse.de>, Mark Brown <broonie@kernel.org>
+Subject: Re: [very-RFC 7/8] AVB ALSA - Add ALSA shim for TSN
+Message-ID: <20160615124341.GA2405@localhost.localdomain>
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
+ <1465686096-22156-8-git-send-email-henrik@austad.us>
+ <20160615114908.GB31281@localhost.localdomain>
+ <20160615121303.GB5950@sisyphus.home.austad.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20160611220654.GC26360@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20160615121303.GB5950@sisyphus.home.austad.us>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+On Wed, Jun 15, 2016 at 02:13:03PM +0200, Henrik Austad wrote:
+> On Wed, Jun 15, 2016 at 01:49:08PM +0200, Richard Cochran wrote:
+> And how would v4l2 benefit from this being in alsalib? Should we require 
+> both V4L and ALSA to implement the same, or should we place it in a common 
+> place for all.
 
-> > >@@ -974,4 +975,9 @@ enum v4l2_detect_md_mode {
-> > >  #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
-> > >  #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
-> > >
-> > >+/* Control IDs specific to the AD5820 driver as defined by V4L2 */
-> > >+#define V4L2_CID_FOCUS_AD5820_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x10af)
+I don't require V4L to implement anything.  You were the one wanting
+AVB "devices".  Go ahead and do that, but in user space please.  We
+don't want to have kernel code that sends arbitrary Layer2 and UDP
+media packets.
+
+The example you present of using aplay over the network is a cute
+idea, but after all it is a trivial application.  I have nothing
+against creating virtual ALSA devices (if done properly), but that
+model won't work for more realistic AVB networks.
+
+> And what about those systems that want to use TSN but is not a 
+> media-device, they should be given a raw-socket to send traffic over, 
+> should they also implement something in a library?
+
+A raw socket is the way to do it, yes.
+
+Since TSN is about bandwidth reservation and time triggered Ethernet,
+decoupled from the contents of the streams, each new TSN application
+will have to see what works best.  If common ground is found, then a
+library makes sense to do.
+
+At this point, it is way too early to guess how that will look.  But
+media packet formats clearly belong in user space.
+
+> So no, here I think configfs is an apt choice.
 > 
-> Please check V4L2_CID_USER_*_BASE. That's how custom controls are handled
-> nowadays.
+> > Heck, if done properly, your layer could discover the AVB nodes in the
+> > network and present each one as a separate device...
+> 
+> No, you definately do not want the kernel to automagically add devices 
+> whenever something pops up on the network, for this you need userspace to 
+> be in control. 1722.1 should not be handled in-kernel.
 
-Let me see...
+The layer should be in user space.  Alsa-lib *is* user space.
 
-> Now that I think about this, the original implementation in N900 very likely
-> did not use either of the two controls; the device driver was still written
-> to provide access to full capabilities of the chip. And that one had no
-> continuous AF.
-
-I'm not sure about the original implementation, but fcam-dev library
-(which is our best chance for usable camera) does use both:
-
-pavel@duo:~/g/fcam-dev$ grep -ri RAMP_TIME .
-./.svn/pristine/05/0574680922f59e07bd49e16a951d69421690a323.svn-base:
-int val = ioctlSet(V4L2_CID_FOCUS_AD5820_RAMP_TIME,
-1000000.0f/diopterRateToTickRate(speed));
-./src/N900/Lens.cpp:    int val =
-ioctlSet(V4L2_CID_FOCUS_AD5820_RAMP_TIME,
-1000000.0f/diopterRateToTickRate(speed));
-pavel@duo:~/g/fcam-dev$ grep -ri RAMP_MODE .
-./.svn/pristine/05/0574680922f59e07bd49e16a951d69421690a323.svn-base:
-ioctlSet(V4L2_CID_FOCUS_AD5820_RAMP_MODE, 0);
-./src/N900/Lens.cpp:    ioctlSet(V4L2_CID_FOCUS_AD5820_RAMP_MODE, 0);
-pavel@duo:~/g/fcam-dev$
-
-> I might as well drop the two controls, up to you. If someone ever needs them
-> they can always be reintroduced. I'd be happy to get a new patch, the
-> current driver patch does not compile (just tried) as the definitions of
-> these controls are missing.
-
-I'd prefer to keep the controls, as we have userspace using them. I
-got it to compile but have yet to get it to work (subdevs split, so it
-needs some modifications).
-
-Best regards,
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Thanks,
+Richard
