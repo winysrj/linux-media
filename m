@@ -1,62 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:54755 "EHLO
-	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751773AbcFCLfN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2016 07:35:13 -0400
-Message-ID: <1464953708.2432.51.camel@hadess.net>
-Subject: Re: NTSC/PAL resolution support for "EasyCap" device
-From: Bastien Nocera <hadess@hadess.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Date: Fri, 03 Jun 2016 13:35:08 +0200
-In-Reply-To: <1495486.1uKbyyPPu6@avalon>
-References: <1464691129.3878.59.camel@hadess.net>
-	 <2081548.sYXtIeXGjI@avalon> <1464951211.2432.44.camel@hadess.net>
-	 <1495486.1uKbyyPPu6@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:36763 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750882AbcFOKru (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2016 06:47:50 -0400
+Subject: Re: [PATCH 00/38] i.MX5/6 Video Capture
+To: Jack Mitchell <ml@embed.me.uk>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	linux-media@vger.kernel.org
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+ <64c29bbc-2273-2a9d-3059-ab8f62dc531b@embed.me.uk>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5761324D.6020607@xs4all.nl>
+Date: Wed, 15 Jun 2016 12:47:41 +0200
+MIME-Version: 1.0
+In-Reply-To: <64c29bbc-2273-2a9d-3059-ab8f62dc531b@embed.me.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2016-06-03 at 14:08 +0300, Laurent Pinchart wrote:
+On 06/15/16 12:43, Jack Mitchell wrote:
+> On 14/06/16 23:48, Steve Longerbeam wrote:
+>> Tested on imx6q SabreAuto with ADV7180, and imx6q SabreSD with
+>> mipi-csi2 OV5640. There is device-tree support also for imx6qdl
+>> SabreLite, but that is not tested. Also, this driver should
+>> theoretically work on i.MX5 targets, but that is also untested.
 > 
-<snip>
-> > Full lsusb below.
+> I tested this on a sabrelite with ov5640 MIPI camera. I managed to capture multiple images of a few different resolutions without issue. I did get a kernel splat at one point though:
 > 
-> Thanks. The device only advertises two resolutions, 640x480 and
-> 352x288.
+> [  905.469680] WARNING: CPU: 3 PID: 349 at drivers/media/v4l2-core/v4l2-ioctl.c:2174 v4l_cropcap+0x15c/0x190
 
-As I read.
+Known bug. Fix is waiting to be merged.
 
-> > > If the device doesn't expose resolutions other than the above
-> > > two, the
-> > > box could be lying, or the device could use non-standard
-> > > extensions to UVC
-> > > to support additional resolutions. The first step would be to try
-> > > the
-> > > camera in a  Windows machine to see if additional resolutions are
-> > > available (without installing any additional device-specific
-> > > software).
-> > 
-> > I should be able to find a Windows somewhere, but which application
-> > should I use to see if those resolutions are indeed available?
+Regards,
+
+	Hans
+
+> [  905.482308] Modules linked in: dw_hdmi_ahb_audio evbug
+> [  905.489079] CPU: 3 PID: 349 Comm: capture-example Tainted: G        W       4.7.0-rc1-00095-g921736c0-dirty #7
+> [  905.502069] Hardware name: Freescale i.MX6 Quad/DualLite (Device Tree)
+> [  905.510116] Backtrace:
+> [  905.514066] [<c010c1b0>] (dump_backtrace) from [<c010c3a8>] (show_stack+0x18/0x1c)
+> [  905.523161]  r7:00000000 r6:600f0013 r5:00000000 r4:c0e21bbc
+> [  905.530442] [<c010c390>] (show_stack) from [<c03e9468>] (dump_stack+0xb4/0xe8)
+> [  905.539210] [<c03e93b4>] (dump_stack) from [<c012473c>] (__warn+0xd8/0x104)
+> [  905.547680]  r9:c06219b0 r8:0000087e r7:00000009 r6:c0c51b10 r5:00000000 r4:00000000
+> [  905.557086] [<c0124664>] (__warn) from [<c012481c>] (warn_slowpath_null+0x28/0x30)
+> [  905.566172]  r9:c5e09680 r8:00000000 r7:c63c0e00 r6:c5e09680 r5:c0a7b2fc r4:c6223e18
+> [  905.575577] [<c01247f4>] (warn_slowpath_null) from [<c06219b0>] (v4l_cropcap+0x15c/0x190)
+> [  905.585296] [<c0621854>] (v4l_cropcap) from [<c0623678>] (__video_do_ioctl+0x280/0x300)
+> [  905.594824]  r8:00000000 r7:c6248000 r6:c02c563a r5:00000003 r4:c0621854
+> [  905.603176] [<c06233f8>] (__video_do_ioctl) from [<c06230c4>] (video_usercopy+0x208/0x520)
+> [  905.612994]  r10:c6223e18 r9:c5e09680 r8:bef3fb60 r7:00000000 r6:00000000 r5:0000002c
+> [  905.622542]  r4:c02c563a
+> [  905.626692] [<c0622ebc>] (video_usercopy) from [<c06233f0>] (video_ioctl2+0x14/0x1c)
+> [  905.636129]  r10:00000000 r9:c6222000 r8:c62e0088 r7:bef3fb60 r6:c02c563a r5:c5e09680
+> [  905.645837]  r4:c6248000
+> [  905.650146] [<c06233dc>] (video_ioctl2) from [<c061e098>] (v4l2_ioctl+0xac/0xe8)
+> [  905.659402] [<c061dfec>] (v4l2_ioctl) from [<c022c2c8>] (do_vfs_ioctl+0x9c/0xa28)
+> [  905.668768]  r9:c6222000 r8:00000003 r7:c022cc90 r6:c5e09680 r5:c61fcc68 r4:bef3fb60
+> [  905.678598] [<c022c22c>] (do_vfs_ioctl) from [<c022cc90>] (SyS_ioctl+0x3c/0x64)
+> [  905.687898]  r10:00000000 r9:c6222000 r8:bef3fb60 r7:c02c563a r6:c5e09680 r5:00000003
+> [  905.697911]  r4:c5e09680
+> [  905.702505] [<c022cc54>] (SyS_ioctl) from [<c0107c20>] (ret_fast_syscall+0x0/0x1c)
+> [  905.712135]  r9:c6222000 r8:c0107dc4 r7:00000036 r6:000107cc r5:00000000 r4:00012170
+> [  905.722143] ---[ end trace 772a5fdfa424cbd1 ]---
 > 
-> My (lack of) Windows knowledge doesn't allow me to answer that
-> question, but 
-> I'm sure searching online will give you answers.
-
-"AMCap" seems to be the simplest software for that purpose, and it only
-shows "640x480".
-
-> > BTW, given the price of the device, I'd be fine getting one for you
-> > to
-> > test (6€ from eBay, shipping included).
+> Trying to use a user pointer rather than mmap also fails and causes a kernel splat.
 > 
-> Thanks, but I'm already overwhelmed with work, I'd rather have you
-> performing 
-> the tests. Beside, I have no Windows machine :-)
-
-I've started the process of yelling at the vendor.
-
-Cheers
+> Apart from that and a few v4l2-compliance tests failing which you already mentioned, it seems to work OK. I'll try and do some more testing and see if I can come back with some more feedback.
+> 
+> Tested-by: Jack Mitchell <jack@tuxable.co.uk>
+> 
+> Cheers,
+> Jack.
+> 
+>>
+>> Not run through v4l2-compliance yet, but that is in my queue.
+>>
+>>
+>> Philipp Zabel (2):
+>>   ARM: dts: imx6qdl: Add mipi_ipu1/2 video muxes, mipi_csi, and their
+>>     connections
+>>   media: imx: Add video switch
+>>
+>> Steve Longerbeam (35):
+>>   gpu: ipu-v3: Add Video Deinterlacer unit
+>>   gpu: ipu-cpmem: Add ipu_cpmem_set_uv_offset()
+>>   gpu: ipu-cpmem: Add ipu_cpmem_get_burstsize()
+>>   gpu: ipu-v3: Add ipu_get_num()
+>>   gpu: ipu-v3: Add IDMA channel linking support
+>>   gpu: ipu-v3: Add ipu_set_vdi_src_mux()
+>>   gpu: ipu-v3: Add VDI input IDMAC channels
+>>   gpu: ipu-v3: Add ipu_csi_set_src()
+>>   gpu: ipu-v3: Add ipu_ic_set_src()
+>>   gpu: ipu-v3: set correct full sensor frame for PAL/NTSC
+>>   gpu: ipu-v3: Fix CSI data format for 16-bit media bus formats
+>>   gpu: ipu-v3: Fix IRT usage
+>>   gpu: ipu-ic: Add complete image conversion support with tiling
+>>   gpu: ipu-ic: allow multiple handles to ic
+>>   gpu: ipu-v3: rename CSI client device
+>>   ARM: dts: imx6qdl: Flesh out MIPI CSI2 receiver node
+>>   ARM: dts: imx6-sabrelite: add video capture ports and connections
+>>   ARM: dts: imx6-sabresd: add video capture ports and connections
+>>   ARM: dts: imx6-sabreauto: create i2cmux for i2c3
+>>   ARM: dts: imx6-sabreauto: add reset-gpios property for max7310
+>>   ARM: dts: imx6-sabreauto: add pinctrl for gpt input capture
+>>   ARM: dts: imx6-sabreauto: add video capture ports and connections
+>>   ARM: dts: imx6qdl: add mem2mem device for sabre* boards
+>>   gpio: pca953x: Add reset-gpios property
+>>   clocksource/drivers/imx: add input capture support
+>>   v4l: Add signal lock status to source change events
+>>   media: Add camera interface driver for i.MX5/6
+>>   media: imx: Add MIPI CSI-2 Receiver driver
+>>   media: imx: Add support for MIPI CSI-2 OV5640
+>>   media: imx: Add support for Parallel OV5642
+>>   media: imx: Add support for ADV7180 Video Decoder
+>>   media: adv7180: add power pin control
+>>   media: adv7180: implement g_parm
+>>   media: Add i.MX5/6 mem2mem driver
+>>   ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
+>>
+>> Suresh Dhandapani (1):
+>>   gpu: ipu-v3: Fix CSI0 blur in NTSC format
+>>
+>>  Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   12 +-
+>>  Documentation/devicetree/bindings/media/imx.txt    |  449 ++
+>>  Documentation/video4linux/imx_camera.txt           |  243 ++
+>>  arch/arm/boot/dts/imx6dl-sabresd.dts               |   44 +
+>>  arch/arm/boot/dts/imx6dl.dtsi                      |  183 +
+>>  arch/arm/boot/dts/imx6q-sabreauto.dts              |    7 +
+>>  arch/arm/boot/dts/imx6q-sabrelite.dts              |    6 +
+>>  arch/arm/boot/dts/imx6q-sabresd.dts                |   22 +
+>>  arch/arm/boot/dts/imx6q.dtsi                       |  120 +
+>>  arch/arm/boot/dts/imx6qdl-sabreauto.dtsi           |  166 +-
+>>  arch/arm/boot/dts/imx6qdl-sabrelite.dtsi           |   95 +
+>>  arch/arm/boot/dts/imx6qdl-sabresd.dtsi             |  145 +-
+>>  arch/arm/boot/dts/imx6qdl.dtsi                     |   13 +
+>>  arch/arm/configs/imx_v6_v7_defconfig               |    2 +
+>>  drivers/clocksource/timer-imx-gpt.c                |  463 ++-
+>>  drivers/gpio/gpio-pca953x.c                        |   28 +
+>>  drivers/gpu/ipu-v3/Makefile                        |    2 +-
+>>  drivers/gpu/ipu-v3/ipu-common.c                    |  155 +-
+>>  drivers/gpu/ipu-v3/ipu-cpmem.c                     |   13 +
+>>  drivers/gpu/ipu-v3/ipu-csi.c                       |   36 +-
+>>  drivers/gpu/ipu-v3/ipu-ic.c                        | 1769 +++++++-
+>>  drivers/gpu/ipu-v3/ipu-prv.h                       |    7 +
+>>  drivers/gpu/ipu-v3/ipu-vdi.c                       |  266 ++
+>>  drivers/media/i2c/adv7180.c                        |   73 +
+>>  drivers/staging/media/Kconfig                      |    2 +
+>>  drivers/staging/media/Makefile                     |    1 +
+>>  drivers/staging/media/imx/Kconfig                  |   35 +
+>>  drivers/staging/media/imx/Makefile                 |    2 +
+>>  drivers/staging/media/imx/capture/Kconfig          |   42 +
+>>  drivers/staging/media/imx/capture/Makefile         |   10 +
+>>  drivers/staging/media/imx/capture/adv7180.c        | 1533 +++++++
+>>  drivers/staging/media/imx/capture/imx-camif.c      | 2496 +++++++++++
+>>  drivers/staging/media/imx/capture/imx-camif.h      |  281 ++
+>>  drivers/staging/media/imx/capture/imx-csi.c        |  195 +
+>>  drivers/staging/media/imx/capture/imx-ic-prpenc.c  |  660 +++
+>>  drivers/staging/media/imx/capture/imx-of.c         |  354 ++
+>>  drivers/staging/media/imx/capture/imx-of.h         |   18 +
+>>  drivers/staging/media/imx/capture/imx-smfc.c       |  505 +++
+>>  drivers/staging/media/imx/capture/imx-vdic.c       |  994 +++++
+>>  .../staging/media/imx/capture/imx-video-switch.c   |  348 ++
+>>  drivers/staging/media/imx/capture/mipi-csi2.c      |  373 ++
+>>  drivers/staging/media/imx/capture/ov5640-mipi.c    | 2318 +++++++++++
+>>  drivers/staging/media/imx/capture/ov5642.c         | 4333 ++++++++++++++++++++
+>>  drivers/staging/media/imx/m2m/Makefile             |    1 +
+>>  drivers/staging/media/imx/m2m/imx-m2m.c            | 1049 +++++
+>>  include/linux/mxc_icap.h                           |   20 +
+>>  include/media/imx.h                                |   15 +
+>>  include/uapi/Kbuild                                |    1 +
+>>  include/uapi/linux/v4l2-controls.h                 |    8 +
+>>  include/uapi/linux/videodev2.h                     |    1 +
+>>  include/uapi/media/Kbuild                          |    3 +
+>>  include/uapi/media/adv718x.h                       |   42 +
+>>  include/uapi/media/imx.h                           |   22 +
+>>  include/video/imx-ipu-v3.h                         |   96 +-
+>>  54 files changed, 19946 insertions(+), 131 deletions(-)
+>>  create mode 100644 Documentation/devicetree/bindings/media/imx.txt
+>>  create mode 100644 Documentation/video4linux/imx_camera.txt
+>>  create mode 100644 drivers/gpu/ipu-v3/ipu-vdi.c
+>>  create mode 100644 drivers/staging/media/imx/Kconfig
+>>  create mode 100644 drivers/staging/media/imx/Makefile
+>>  create mode 100644 drivers/staging/media/imx/capture/Kconfig
+>>  create mode 100644 drivers/staging/media/imx/capture/Makefile
+>>  create mode 100644 drivers/staging/media/imx/capture/adv7180.c
+>>  create mode 100644 drivers/staging/media/imx/capture/imx-camif.c
+>>  create mode 100644 drivers/staging/media/imx/capture/imx-camif.h
+>>  create mode 100644 drivers/staging/media/imx/capture/imx-csi.c
+>>  create mode 100644 drivers/staging/media/imx/capture/imx-ic-prpenc.c
+>>  create mode 100644 drivers/staging/media/imx/capture/imx-of.c
+>>  create mode 100644 drivers/staging/media/imx/capture/imx-of.h
+>>  create mode 100644 drivers/staging/media/imx/capture/imx-smfc.c
+>>  create mode 100644 drivers/staging/media/imx/capture/imx-vdic.c
+>>  create mode 100644 drivers/staging/media/imx/capture/imx-video-switch.c
+>>  create mode 100644 drivers/staging/media/imx/capture/mipi-csi2.c
+>>  create mode 100644 drivers/staging/media/imx/capture/ov5640-mipi.c
+>>  create mode 100644 drivers/staging/media/imx/capture/ov5642.c
+>>  create mode 100644 drivers/staging/media/imx/m2m/Makefile
+>>  create mode 100644 drivers/staging/media/imx/m2m/imx-m2m.c
+>>  create mode 100644 include/linux/mxc_icap.h
+>>  create mode 100644 include/media/imx.h
+>>  create mode 100644 include/uapi/media/Kbuild
+>>  create mode 100644 include/uapi/media/adv718x.h
+>>  create mode 100644 include/uapi/media/imx.h
+>>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
