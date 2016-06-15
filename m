@@ -1,125 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:6066 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751341AbcFVWIr (ORCPT
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:37797 "EHLO
+	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933212AbcFOUZK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2016 18:08:47 -0400
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	nick.dyer@itdev.co.uk
-Subject: [PATCH v5 5/9] Input: atmel_mxt_ts - handle diagnostic data orientation
-Date: Wed, 22 Jun 2016 23:08:29 +0100
-Message-Id: <1466633313-15339-6-git-send-email-nick.dyer@itdev.co.uk>
-In-Reply-To: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
-References: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
+	Wed, 15 Jun 2016 16:25:10 -0400
+Received: by mail-wm0-f54.google.com with SMTP id a66so28779587wme.0
+        for <linux-media@vger.kernel.org>; Wed, 15 Jun 2016 13:25:09 -0700 (PDT)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Ulrich Eckhardt <uli-lirc@uli-eckhardt.de>
+From: Gregor Jasny <gjasny@googlemail.com>
+Subject: Need help with ir-keytable imon bug report
+Message-ID: <ac402439-e317-9d83-6c70-df592cc3cf63@googlemail.com>
+Date: Wed, 15 Jun 2016 22:25:06 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Invert the diagnostic data to match the orientation of the input device.
+Hello,
 
-Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
----
- drivers/input/touchscreen/atmel_mxt_ts.c | 26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+could someone please help me triaging the following ir-keytable bug? The
+reporter complains that the 'other' IR protocol results in double clicks
+and we should set the device to RC6 instead:
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index 8ef61d7..3f7e357 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -125,6 +125,8 @@ struct t9_range {
- 
- /* MXT_TOUCH_MULTI_T9 orient */
- #define MXT_T9_ORIENT_SWITCH	(1 << 0)
-+#define MXT_T9_ORIENT_INVERTX	(1 << 1)
-+#define MXT_T9_ORIENT_INVERTY	(1 << 2)
- 
- /* MXT_SPT_COMMSCONFIG_T18 */
- #define MXT_COMMS_CTRL		0
-@@ -158,6 +160,8 @@ struct t37_debug {
- #define MXT_T100_YRANGE		24
- 
- #define MXT_T100_CFG_SWITCHXY	BIT(5)
-+#define MXT_T100_CFG_INVERTY	BIT(6)
-+#define MXT_T100_CFG_INVERTX	BIT(7)
- 
- #define MXT_T100_TCHAUX_VECT	BIT(0)
- #define MXT_T100_TCHAUX_AMPL	BIT(1)
-@@ -262,6 +266,8 @@ struct mxt_data {
- 	unsigned int irq;
- 	unsigned int max_x;
- 	unsigned int max_y;
-+	bool invertx;
-+	bool inverty;
- 	bool xy_switch;
- 	u8 xsize;
- 	u8 ysize;
-@@ -1747,6 +1753,8 @@ static int mxt_read_t9_resolution(struct mxt_data *data)
- 		return error;
- 
- 	data->xy_switch = orient & MXT_T9_ORIENT_SWITCH;
-+	data->invertx = orient & MXT_T9_ORIENT_INVERTX;
-+	data->inverty = orient & MXT_T9_ORIENT_INVERTY;
- 
- 	return 0;
- }
-@@ -1801,6 +1809,8 @@ static int mxt_read_t100_config(struct mxt_data *data)
- 		return error;
- 
- 	data->xy_switch = cfg & MXT_T100_CFG_SWITCHXY;
-+	data->invertx = cfg & MXT_T100_CFG_INVERTX;
-+	data->inverty = cfg & MXT_T100_CFG_INVERTY;
- 
- 	/* allocate aux bytes */
- 	error =  __mxt_read_reg(client,
-@@ -2145,13 +2155,19 @@ static int mxt_convert_debug_pages(struct mxt_data *data, u16 *outbuf)
- 	struct mxt_dbg *dbg = &data->dbg;
- 	unsigned int x = 0;
- 	unsigned int y = 0;
--	unsigned int i;
-+	unsigned int i, rx, ry;
- 
- 	for (i = 0; i < dbg->t37_nodes; i++) {
--		outbuf[i] = mxt_get_debug_value(data, x, y);
-+		/* Handle orientation */
-+		rx = data->xy_switch ? y : x;
-+		ry = data->xy_switch ? x : y;
-+		rx = data->invertx ? (data->xsize - 1 - rx) : rx;
-+		ry = data->inverty ? (data->ysize - 1 - ry) : ry;
-+
-+		outbuf[i] = mxt_get_debug_value(data, rx, ry);
- 
- 		/* Next value */
--		if (++x >= data->xsize) {
-+		if (++x >= (data->xy_switch ? data->ysize : data->xsize)) {
- 			x = 0;
- 			y++;
- 		}
-@@ -2306,8 +2322,8 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
- 	if (i > 0)
- 		return -EINVAL;
- 
--	f->width = data->xsize;
--	f->height = data->ysize;
-+	f->width = data->xy_switch ? data->ysize : data->xsize;
-+	f->height = data->xy_switch ? data->xsize : data->ysize;
- 	f->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
- 	f->field = V4L2_FIELD_NONE;
- 	f->colorspace = V4L2_COLORSPACE_RAW;
--- 
-2.5.0
+https://bugs.launchpad.net/ubuntu/+source/v4l-utils/+bug/1579760
 
+This is what we have in v4l-utils:
+https://git.linuxtv.org/v4l-utils.git/tree/utils/keytable/rc_keymaps/imon_pad
+
+Thanks for you help,
+Gregor
