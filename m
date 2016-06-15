@@ -1,209 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49334 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753425AbcFQGJS (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:33572 "EHLO
+	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753154AbcFOMNJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 02:09:18 -0400
-Date: Fri, 17 Jun 2016 09:08:43 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: fix media devnode ioctl/syscall and unregister
- race
-Message-ID: <20160617060843.GE24980@valkosipuli.retiisi.org.uk>
-References: <1465580243-7274-1-git-send-email-shuahkh@osg.samsung.com>
+	Wed, 15 Jun 2016 08:13:09 -0400
+Received: by mail-lf0-f66.google.com with SMTP id l188so1242505lfe.0
+        for <linux-media@vger.kernel.org>; Wed, 15 Jun 2016 05:13:08 -0700 (PDT)
+Date: Wed, 15 Jun 2016 14:13:03 +0200
+From: Henrik Austad <henrik@austad.us>
+To: Richard Cochran <richardcochran@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@vger.kernel.org, netdev@vger.kernel.org,
+	henrk@austad.us, Henrik Austad <haustad@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Takashi Iwai <tiwai@suse.de>, Mark Brown <broonie@kernel.org>
+Subject: Re: [very-RFC 7/8] AVB ALSA - Add ALSA shim for TSN
+Message-ID: <20160615121303.GB5950@sisyphus.home.austad.us>
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
+ <1465686096-22156-8-git-send-email-henrik@austad.us>
+ <20160615114908.GB31281@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="IrhDeMKUP4DT/M7F"
 Content-Disposition: inline
-In-Reply-To: <1465580243-7274-1-git-send-email-shuahkh@osg.samsung.com>
+In-Reply-To: <20160615114908.GB31281@localhost.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
 
-On Fri, Jun 10, 2016 at 11:37:23AM -0600, Shuah Khan wrote:
-> Media devnode open/ioctl could be in progress when media device unregister
-> is initiated. System calls and ioctls check media device registered status
-> at the beginning, however, there is a window where unregister could be in
-> progress without changing the media devnode status to unregistered.
-> 
-> process 1				process 2
-> fd = open(/dev/media0)
-> media_devnode_is_registered()
-> 	(returns true here)
-> 
-> 					media_device_unregister()
-> 						(unregister is in progress
-> 						and devnode isn't
-> 						unregistered yet)
-> 					...
-> ioctl(fd, ...)
-> __media_ioctl()
-> media_devnode_is_registered()
-> 	(returns true here)
-> 					...
-> 					media_devnode_unregister()
-> 					...
-> 					(driver releases the media device
-> 					memory)
-> 
-> media_device_ioctl()
-> 	(By this point
-> 	devnode->media_dev does not
-> 	point to allocated memory.
-> 	use-after free in in mutex_lock_nested)
-> 
-> BUG: KASAN: use-after-free in mutex_lock_nested+0x79c/0x800 at addr
-> ffff8801ebe914f0
-> 
-> Fix it by clearing register bit when unregister starts to avoid the race.
+--IrhDeMKUP4DT/M7F
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Does this patch solve the problem? You'd have to take the mutex for the
-duration of the IOCTL which I don't see the patch doing.
+On Wed, Jun 15, 2016 at 01:49:08PM +0200, Richard Cochran wrote:
+> Now that I understand better...
+>=20
+> On Sun, Jun 12, 2016 at 01:01:35AM +0200, Henrik Austad wrote:
+> > Userspace is supposed to reserve bandwidth, find StreamID etc.
+> >=20
+> > To use as a Talker:
+> >=20
+> > mkdir /config/tsn/test/eth0/talker
+> > cd /config/tsn/test/eth0/talker
+> > echo 65535 > buffer_size
+> > echo 08:00:27:08:9f:c3 > remote_mac
+> > echo 42 > stream_id
+> > echo alsa > enabled
+>=20
+> This is exactly why configfs is the wrong interface.  If you implement
+> the AVB device in alsa-lib user space, then you can handle the
+> reservations, configuration, UDP sockets, etc, in a way transparent to
+> the aplay program.
 
-Instead of serialising operations using mutexes, I believe a proper fix for
-this is to take a reference to the data structures required.
+And how would v4l2 benefit from this being in alsalib? Should we require=20
+both V4L and ALSA to implement the same, or should we place it in a common=
+=20
+place for all.
 
-> 
-> process 1                               process 2
-> fd = open(/dev/media0)
-> media_devnode_is_registered()
->         (could return true here)
-> 
->                                         media_device_unregister()
->                                                 (clear the register bit,
-> 						 then start unregister.)
->                                         ...
-> ioctl(fd, ...)
-> __media_ioctl()
-> media_devnode_is_registered()
->         (return false here, ioctl
-> 	 returns I/O error, and
-> 	 will not access media
-> 	 device memory)
->                                         ...
->                                         media_devnode_unregister()
->                                         ...
->                                         (driver releases the media device
-> 					 memory)
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reported-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
-> 
-> Test Procedure and Results:
-> 
-> https://drive.google.com/file/d/0B0NIL0BQg-AlN1VxT2oyTXBPRHc/view?usp=sharing
-> 
->  drivers/media/media-device.c  | 15 ++++++++-------
->  drivers/media/media-devnode.c |  8 +++++++-
->  include/media/media-devnode.h | 16 ++++++++++++++--
->  3 files changed, 29 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 33a9952..1795abe 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -732,6 +732,7 @@ int __must_check __media_device_register(struct media_device *mdev,
->  	if (ret < 0) {
->  		/* devnode free is handled in media_devnode_*() */
->  		mdev->devnode = NULL;
-> +		media_devnode_unregister_prepare(devnode);
->  		media_devnode_unregister(devnode);
->  		return ret;
->  	}
-> @@ -788,6 +789,9 @@ void media_device_unregister(struct media_device *mdev)
->  		return;
->  	}
->  
-> +	/* Clear the devnode register bit to avoid races with media dev open */
-> +	media_devnode_unregister_prepare(mdev->devnode);
-> +
->  	/* Remove all entities from the media device */
->  	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
->  		__media_device_unregister_entity(entity);
-> @@ -808,13 +812,10 @@ void media_device_unregister(struct media_device *mdev)
->  
->  	dev_dbg(mdev->dev, "Media device unregistered\n");
->  
-> -	/* Check if mdev devnode was registered */
-> -	if (media_devnode_is_registered(mdev->devnode)) {
-> -		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
-> -		media_devnode_unregister(mdev->devnode);
-> -		/* devnode free is handled in media_devnode_*() */
-> -		mdev->devnode = NULL;
-> -	}
-> +	device_remove_file(&mdev->devnode->dev, &dev_attr_model);
-> +	media_devnode_unregister(mdev->devnode);
-> +	/* devnode free is handled in media_devnode_*() */
-> +	mdev->devnode = NULL;
->  }
->  EXPORT_SYMBOL_GPL(media_device_unregister);
->  
-> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-> index 5b605ff..f2772ba 100644
-> --- a/drivers/media/media-devnode.c
-> +++ b/drivers/media/media-devnode.c
-> @@ -287,7 +287,7 @@ cdev_add_error:
->  	return ret;
->  }
->  
-> -void media_devnode_unregister(struct media_devnode *devnode)
-> +void media_devnode_unregister_prepare(struct media_devnode *devnode)
->  {
->  	/* Check if devnode was ever registered at all */
->  	if (!media_devnode_is_registered(devnode))
-> @@ -295,6 +295,12 @@ void media_devnode_unregister(struct media_devnode *devnode)
->  
->  	mutex_lock(&media_devnode_lock);
->  	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
-> +	mutex_unlock(&media_devnode_lock);
-> +}
-> +
-> +void media_devnode_unregister(struct media_devnode *devnode)
-> +{
-> +	mutex_lock(&media_devnode_lock);
->  	/* Delete the cdev on this minor as well */
->  	cdev_del(&devnode->cdev);
->  	mutex_unlock(&media_devnode_lock);
-> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-> index 5bb3b0e..f0b7dd7 100644
-> --- a/include/media/media-devnode.h
-> +++ b/include/media/media-devnode.h
-> @@ -126,14 +126,26 @@ int __must_check media_devnode_register(struct media_device *mdev,
->  					struct module *owner);
->  
->  /**
-> + * media_devnode_unregister_prepare - clear the media device node register bit
-> + * @devnode: the device node to prepare for unregister
-> + *
-> + * This clears the passed device register bit. Future open calls will be met
-> + * with errors. Should be called before media_devnode_unregister() to avoid
-> + * races with unregister and device file open calls.
-> + *
-> + * This function can safely be called if the device node has never been
-> + * registered or has already been unregistered.
-> + */
-> +void media_devnode_unregister_prepare(struct media_devnode *devnode);
-> +
-> +/**
->   * media_devnode_unregister - unregister a media device node
->   * @devnode: the device node to unregister
->   *
->   * This unregisters the passed device. Future open calls will be met with
->   * errors.
->   *
-> - * This function can safely be called if the device node has never been
-> - * registered or has already been unregistered.
-> + * Should be called after media_devnode_unregister_prepare()
->   */
->  void media_devnode_unregister(struct media_devnode *devnode);
->  
+And what about those systems that want to use TSN but is not a=20
+media-device, they should be given a raw-socket to send traffic over,=20
+should they also implement something in a library?
 
--- 
-Regards,
+So no, here I think configfs is an apt choice.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> Heck, if done properly, your layer could discover the AVB nodes in the
+> network and present each one as a separate device...
+
+No, you definately do not want the kernel to automagically add devices=20
+whenever something pops up on the network, for this you need userspace to=
+=20
+be in control. 1722.1 should not be handled in-kernel.
+
+
+--=20
+Henrik Austad
+
+--IrhDeMKUP4DT/M7F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAldhRk8ACgkQ6k5VT6v45lkURwCg0w3I+b0cfTOtO8D9xLT4Hj+A
+yTsAoKdQJqdMmus+EVZ29VY24bS7s9t8
+=b685
+-----END PGP SIGNATURE-----
+
+--IrhDeMKUP4DT/M7F--
