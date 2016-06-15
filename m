@@ -1,44 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:36740 "EHLO
-	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753042AbcFNWve (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 18:51:34 -0400
-Received: by mail-pf0-f196.google.com with SMTP id 62so299545pfd.3
-        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:33 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
+Received: from mout.gmx.net ([212.227.15.19]:53116 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932370AbcFOOy7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2016 10:54:59 -0400
+Received: from [172.26.21.242] ([194.95.94.56]) by mail.gmx.com (mrgmx001)
+ with ESMTPSA (Nemesis) id 0MDQp3-1bBn9z24kP-00Gsz2 for
+ <linux-media@vger.kernel.org>; Wed, 15 Jun 2016 16:54:50 +0200
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 38/38] ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
-Date: Tue, 14 Jun 2016 15:49:34 -0700
-Message-Id: <1465944574-15745-39-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+From: Ferda Mravenec <ferda.mravenec@gmx.de>
+Subject: Astrometa DVB-T2 not working correctly with Kernel 4.6
+Message-ID: <de3746f2-9a98-b919-5211-873fc02a30cd@gmx.de>
+Date: Wed, 15 Jun 2016 16:54:49 +0200
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------5524875C311807F69FBBEF0B"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable imx v4l2 staging drivers. For video capture on
-the SabreAuto, the ADV7180 video decoder also requires the
-i2c-mux-gpio and the max7310 port expander.
+This is a multi-part message in MIME format.
+--------------5524875C311807F69FBBEF0B
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/configs/imx_v6_v7_defconfig | 2 ++
- 1 file changed, 2 insertions(+)
+Hello everybody,
 
-diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
-index 21339ce..8b1590a 100644
---- a/arch/arm/configs/imx_v6_v7_defconfig
-+++ b/arch/arm/configs/imx_v6_v7_defconfig
-@@ -327,6 +327,8 @@ CONFIG_FSL_EDMA=y
- CONFIG_IMX_SDMA=y
- CONFIG_MXS_DMA=y
- CONFIG_STAGING=y
-+CONFIG_STAGING_MEDIA=y
-+CONFIG_VIDEO_IMX=y
- # CONFIG_IOMMU_SUPPORT is not set
- CONFIG_IIO=y
- CONFIG_VF610_ADC=y
--- 
-1.9.1
+I own this TV stick:
 
+https://www.linuxtv.org/wiki/index.php/Astrometa_DVB-T2
+
+It uses different chips to decode DVB-T and DVB-T2 streams, the required 
+modules are rtl2832 and mn88473.
+Up until linux 4.5 it worked correctly, in 4.6 only DVB-T works.
+In 4.6 the mn88473 module isn’t loaded automatically and can’t be loaded 
+manually, since it doesn’t exist in the system.
+
+In 4.6 the module has been moved from staging to dvb-frontends.
+I tried to build it with
+
+make M=drivers/media/dvb-frontends
+
+which gave me *.ko files for the other frontends, but not for mn88473.
+
+I attached the relevant output of dmesg.
+
+Regards
+Ferda
+
+--------------5524875C311807F69FBBEF0B
+Content-Type: text/plain; charset=UTF-8;
+ name="dmesg_4.5"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="dmesg_4.5"
+
+dXNiIDItNDogbmV3IGhpZ2gtc3BlZWQgVVNCIGRldmljZSBudW1iZXIgNiB1c2luZyB4aGNp
+X2hjZAp1c2IgMi00OiBkdmJfdXNiX3YyOiBmb3VuZCBhICdBc3Ryb21ldGEgRFZCLVQyJyBp
+biB3YXJtIHN0YXRlCnVzYiAyLTQ6IGR2Yl91c2JfdjI6IHdpbGwgcGFzcyB0aGUgY29tcGxl
+dGUgTVBFRzIgdHJhbnNwb3J0IHN0cmVhbSB0byB0aGUgc29mdHdhcmUgZGVtdXhlcgpEVkI6
+IHJlZ2lzdGVyaW5nIG5ldyBhZGFwdGVyIChBc3Ryb21ldGEgRFZCLVQyKQppMmMgaTJjLTg6
+IEFkZGVkIG11bHRpcGxleGVkIGkyYyBidXMgOQpydGwyODMyIDgtMDAxMDogUmVhbHRlayBS
+VEwyODMyIHN1Y2Nlc3NmdWxseSBhdHRhY2hlZAptbjg4NDczOiBtb2R1bGUgaXMgZnJvbSB0
+aGUgc3RhZ2luZyBkaXJlY3RvcnksIHRoZSBxdWFsaXR5IGlzIHVua25vd24sIHlvdSBoYXZl
+IGJlZW4gd2FybmVkLgptbjg4NDczIDgtMDAxODogUGFuYXNvbmljIE1OODg0NzMgc3VjY2Vz
+c2Z1bGx5IGF0dGFjaGVkCnVzYiAyLTQ6IERWQjogcmVnaXN0ZXJpbmcgYWRhcHRlciAwIGZy
+b250ZW5kIDAgKFJlYWx0ZWsgUlRMMjgzMiAoRFZCLVQpKS4uLgp1c2IgMi00OiBEVkI6IHJl
+Z2lzdGVyaW5nIGFkYXB0ZXIgMCBmcm9udGVuZCAxIChQYW5hc29uaWMgTU44ODQ3MykuLi4K
+cjgyMHQgOS0wMDNhOiBjcmVhdGluZyBuZXcgaW5zdGFuY2UKcjgyMHQgOS0wMDNhOiBSYWZh
+ZWwgTWljcm8gcjgyMHQgc3VjY2Vzc2Z1bGx5IGlkZW50aWZpZWQKcjgyMHQgOS0wMDNhOiBh
+dHRhY2hpbmcgZXhpc3RpbmcgaW5zdGFuY2UKcjgyMHQgOS0wMDNhOiBSYWZhZWwgTWljcm8g
+cjgyMHQgc3VjY2Vzc2Z1bGx5IGlkZW50aWZpZWQKcnRsMjgzMl9zZHIgcnRsMjgzMl9zZHIu
+MS5hdXRvOiBSZWdpc3RlcmVkIGFzIHN3cmFkaW8wCnJ0bDI4MzJfc2RyIHJ0bDI4MzJfc2Ry
+LjEuYXV0bzogUmVhbHRlayBSVEwyODMyIFNEUiBhdHRhY2hlZApydGwyODMyX3NkciBydGwy
+ODMyX3Nkci4xLmF1dG86IFNEUiBBUEkgaXMgc3RpbGwgc2xpZ2h0bHkgZXhwZXJpbWVudGFs
+IGFuZCBmdW5jdGlvbmFsaXR5IGNoYW5nZXMgbWF5IGZvbGxvdwpSZWdpc3RlcmVkIElSIGtl
+eW1hcCByYy1lbXB0eQppbnB1dDogQXN0cm9tZXRhIERWQi1UMiBhcyAvZGV2aWNlcy9wY2kw
+MDAwOjAwLzAwMDA6MDA6MTQuMC91c2IyLzItNC9yYy9yYzAvaW5wdXQxNwpyYyByYzA6IEFz
+dHJvbWV0YSBEVkItVDIgYXMgL2RldmljZXMvcGNpMDAwMDowMC8wMDAwOjAwOjE0LjAvdXNi
+Mi8yLTQvcmMvcmMwCnVzYiAyLTQ6IGR2Yl91c2JfdjI6IHNjaGVkdWxlIHJlbW90ZSBxdWVy
+eSBpbnRlcnZhbCB0byAyMDAgbXNlY3MKdXNiIDItNDogZHZiX3VzYl92MjogJ0FzdHJvbWV0
+YSBEVkItVDInIHN1Y2Nlc3NmdWxseSBpbml0aWFsaXplZCBhbmQgY29ubmVjdGVkCnVzYmNv
+cmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgZHZiX3VzYl9ydGwyOHh4dQps
+aXJjX2RldjogSVIgUmVtb3RlIENvbnRyb2wgZHJpdmVyIHJlZ2lzdGVyZWQsIG1ham9yIDI0
+NCAKcmMgcmMwOiBsaXJjX2RldjogZHJpdmVyIGlyLWxpcmMtY29kZWMgKGR2Yl91c2JfcnRs
+Mjh4eHUpIHJlZ2lzdGVyZWQgYXQgbWlub3IgPSAwCklSIExJUkMgYnJpZGdlIGhhbmRsZXIg
+aW5pdGlhbGl6ZWQK
+--------------5524875C311807F69FBBEF0B
+Content-Type: text/plain; charset=UTF-8;
+ name="dmesg_4.6"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="dmesg_4.6"
+
+dXNiIDItNDogbmV3IGhpZ2gtc3BlZWQgVVNCIGRldmljZSBudW1iZXIgNiB1c2luZyB4aGNp
+X2hjZAp1c2IgMi00OiBkdmJfdXNiX3YyOiBmb3VuZCBhICdBc3Ryb21ldGEgRFZCLVQyJyBp
+biB3YXJtIHN0YXRlCnVzYiAyLTQ6IGR2Yl91c2JfdjI6IHdpbGwgcGFzcyB0aGUgY29tcGxl
+dGUgTVBFRzIgdHJhbnNwb3J0IHN0cmVhbSB0byB0aGUgc29mdHdhcmUgZGVtdXhlcgpEVkI6
+IHJlZ2lzdGVyaW5nIG5ldyBhZGFwdGVyIChBc3Ryb21ldGEgRFZCLVQyKQppMmMgaTJjLTg6
+IEFkZGVkIG11bHRpcGxleGVkIGkyYyBidXMgOQpydGwyODMyIDgtMDAxMDogUmVhbHRlayBS
+VEwyODMyIHN1Y2Nlc3NmdWxseSBhdHRhY2hlZAp1c2IgMi00OiBEVkI6IHJlZ2lzdGVyaW5n
+IGFkYXB0ZXIgMCBmcm9udGVuZCAwIChSZWFsdGVrIFJUTDI4MzIgKERWQi1UKSkuLi4Kcjgy
+MHQgOS0wMDNhOiBjcmVhdGluZyBuZXcgaW5zdGFuY2UKcjgyMHQgOS0wMDNhOiBSYWZhZWwg
+TWljcm8gcjgyMHQgc3VjY2Vzc2Z1bGx5IGlkZW50aWZpZWQKcnRsMjgzMl9zZHIgcnRsMjgz
+Ml9zZHIuMS5hdXRvOiBSZWdpc3RlcmVkIGFzIHN3cmFkaW8wCnJ0bDI4MzJfc2RyIHJ0bDI4
+MzJfc2RyLjEuYXV0bzogUmVhbHRlayBSVEwyODMyIFNEUiBhdHRhY2hlZApTRFIgQVBJIGlz
+IHN0aWxsIHNsaWdodGx5IGV4cGVyaW1lbnRhbCBhbmQgZnVuY3Rpb25hbGl0eSBjaGFuZ2Vz
+IG1heSBmb2xsb3cKUmVnaXN0ZXJlZCBJUiBrZXltYXAgcmMtZW1wdHkKaW5wdXQ6IEFzdHJv
+bWV0YSBEVkItVDIgYXMgL2RldmljZXMvcGNpMDAwMDowMC8wMDAwOjAwOjE0LjAvdXNiMi8y
+LTQvcmMvcmMwL2lucHV0MTcKQXN0cm9tZXRhIERWQi1UMiBhcyAvZGV2aWNlcy9wY2kwMDAw
+OjAwLzAwMDA6MDA6MTQuMC91c2IyLzItNC9yYy9yYzAKdXNiIDItNDogZHZiX3VzYl92Mjog
+c2NoZWR1bGUgcmVtb3RlIHF1ZXJ5IGludGVydmFsIHRvIDIwMCBtc2Vjcwp1c2IgMi00OiBk
+dmJfdXNiX3YyOiAnQXN0cm9tZXRhIERWQi1UMicgc3VjY2Vzc2Z1bGx5IGluaXRpYWxpemVk
+IGFuZCBjb25uZWN0ZWQKdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZl
+ciBkdmJfdXNiX3J0bDI4eHh1CmxpcmNfZGV2OiBJUiBSZW1vdGUgQ29udHJvbCBkcml2ZXIg
+cmVnaXN0ZXJlZCwgbWFqb3IgMjQyIApyYyByYzA6IGxpcmNfZGV2OiBkcml2ZXIgaXItbGly
+Yy1jb2RlYyAoZHZiX3VzYl9ydGwyOHh4dSkgcmVnaXN0ZXJlZCBhdCBtaW5vciA9IDAKSVIg
+TElSQyBicmlkZ2UgaGFuZGxlciBpbml0aWFsaXplZAo=
+--------------5524875C311807F69FBBEF0B--
