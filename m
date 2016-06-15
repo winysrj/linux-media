@@ -1,129 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:36431 "EHLO
-	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932102AbcFKWt6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2016 18:49:58 -0400
-Received: by mail-lf0-f68.google.com with SMTP id h68so8549261lfh.3
-        for <linux-media@vger.kernel.org>; Sat, 11 Jun 2016 15:49:57 -0700 (PDT)
-Date: Sun, 12 Jun 2016 00:49:54 +0200
-From: Henrik Austad <henrik@austad.us>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
-	netdev@vger.kernel.org, henrk@austad.us
-Subject: Re: [very-RFC 0/8] TSN driver for the kernel
-Message-ID: <20160611224954.GB10685@sisyphus.home.austad.us>
-References: <1465683741-20390-1-git-send-email-henrik@austad.us>
+Received: from swift.blarg.de ([78.47.110.205]:56320 "EHLO swift.blarg.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752137AbcFOUY0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2016 16:24:26 -0400
+Subject: [PATCH 1/3] drivers/media/dvb-core/en50221: use kref to manage
+ struct dvb_ca_private
+From: Max Kellermann <max@duempel.org>
+To: linux-media@vger.kernel.org, shuahkh@osg.samsung.com,
+	mchehab@osg.samsung.com
+Cc: linux-kernel@vger.kernel.org
+Date: Wed, 15 Jun 2016 22:15:02 +0200
+Message-ID: <146602170216.9818.6967531646383934202.stgit@woodpecker.blarg.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1465683741-20390-1-git-send-email-henrik@austad.us>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 12, 2016 at 12:22:13AM +0200, Henrik Austad wrote:
-> Hi all
+Don't free the object until the file handle has been closed.  Fixes
+use-after-free bug which occurs when I disconnect my DVB-S received
+while VDR is running.
 
-Sorry.. I somehow managed to mess up the address to netdev, so if you feel 
-like replying to this, use this as it has the correct netdev-address.
+Signed-off-by: Max Kellermann <max@duempel.org>
+---
+ drivers/media/dvb-core/dvb_ca_en50221.c |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
-again, sorry
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index b1e3a26..b5b5b19 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -123,6 +123,7 @@ struct dvb_ca_slot {
+ 
+ /* Private CA-interface information */
+ struct dvb_ca_private {
++	struct kref refcount;
+ 
+ 	/* pointer back to the public data structure */
+ 	struct dvb_ca_en50221 *pub;
+@@ -173,6 +174,22 @@ static void dvb_ca_private_free(struct dvb_ca_private *ca)
+ 	kfree(ca);
+ }
+ 
++static void dvb_ca_private_release(struct kref *ref)
++{
++	struct dvb_ca_private *ca = container_of(ref, struct dvb_ca_private, refcount);
++	dvb_ca_private_free(ca);
++}
++
++static void dvb_ca_private_get(struct dvb_ca_private *ca)
++{
++	kref_get(&ca->refcount);
++}
++
++static void dvb_ca_private_put(struct dvb_ca_private *ca)
++{
++	kref_put(&ca->refcount, dvb_ca_private_release);
++}
++
+ static void dvb_ca_en50221_thread_wakeup(struct dvb_ca_private *ca);
+ static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot, u8 * ebuf, int ecount);
+ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot, u8 * ebuf, int ecount);
+@@ -1570,6 +1587,8 @@ static int dvb_ca_en50221_io_open(struct inode *inode, struct file *file)
+ 	dvb_ca_en50221_thread_update_delay(ca);
+ 	dvb_ca_en50221_thread_wakeup(ca);
+ 
++	dvb_ca_private_get(ca);
++
+ 	return 0;
+ }
+ 
+@@ -1598,6 +1617,8 @@ static int dvb_ca_en50221_io_release(struct inode *inode, struct file *file)
+ 
+ 	module_put(ca->pub->owner);
+ 
++	dvb_ca_private_put(ca);
++
+ 	return err;
+ }
+ 
+@@ -1693,6 +1714,7 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
+ 		ret = -ENOMEM;
+ 		goto exit;
+ 	}
++	kref_init(&ca->refcount);
+ 	ca->pub = pubca;
+ 	ca->flags = flags;
+ 	ca->slot_count = slot_count;
+@@ -1772,6 +1794,6 @@ void dvb_ca_en50221_release(struct dvb_ca_en50221 *pubca)
+ 	for (i = 0; i < ca->slot_count; i++) {
+ 		dvb_ca_en50221_slot_shutdown(ca, i);
+ 	}
+-	dvb_ca_private_free(ca);
++	dvb_ca_private_put(ca);
+ 	pubca->private = NULL;
+ }
 
-> (series based on v4.7-rc2)
-> 
-> This is a *very* early RFC for a TSN-driver in the kernel. It has been
-> floating around in my repo for a while and I would appreciate some
-> feedback on the overall design to avoid doing some major blunders.
-> 
-> TSN: Time Sensitive Networking, formely known as AVB (Audio/Video
-> Bridging).
-> 
-> There are at least one AVB-driver (the AV-part of TSN) in the kernel
-> already, however this driver aims to solve a wider scope as TSN can do
-> much more than just audio. A very basic ALSA-driver is added to the end
-> that allows you to play music between 2 machines using aplay in one end
-> and arecord | aplay on the other (some fiddling required) We have plans
-> for doing the same for v4l2 eventually (but there are other fishes to
-> fry first). The same goes for a TSN_SOCK type approach as well.
-> 
-> TSN is all about providing infrastructure. Allthough there are a few
-> very interesting uses for TSN (reliable, deterministic network for audio
-> and video), once you have that reliable link, you can do a lot more.
-> 
-> Some notes on the design:
-> 
-> The driver is directed via ConfigFS as we need userspace to handle
-> stream-reservation (MSRP), discovery and enumeration (IEEE 1722.1) and
-> whatever other management is needed. Once we have all the required
-> attributes, we can create link using mkdir, and use write() to set the
-> attributes. Once ready, specify the 'shim' (basically a thin wrapper
-> between TSN and another subsystem) and we start pushing out frames.
-> 
-> The network part: it ties directly into the rx-handler for receive and
-> writes skb's using netdev_start_xmit(). This could probably be
-> improved. 2 new fields in netdev_ops have been introduced, and the Intel
-> igb-driver has been updated (as this is available as a PCI-e card). The
-> igb-driver works-ish
-> 
-> 
-> What remains
-> - tie to (g)PTP properly, currently using ktime_get() for presentation
->   time
-> - get time from shim into TSN and vice versa
-> - let shim create/manage buffer
-> 
-> Henrik Austad (8):
->   TSN: add documentation
->   TSN: Add the standard formerly known as AVB to the kernel
->   Adding TSN-driver to Intel I210 controller
->   Add TSN header for the driver
->   Add TSN machinery to drive the traffic from a shim over the network
->   Add TSN event-tracing
->   AVB ALSA - Add ALSA shim for TSN
->   MAINTAINERS: add TSN/AVB-entries
-> 
->  Documentation/TSN/tsn.txt                 | 147 +++++
->  MAINTAINERS                               |  14 +
->  drivers/media/Kconfig                     |  15 +
->  drivers/media/Makefile                    |   3 +-
->  drivers/media/avb/Makefile                |   5 +
->  drivers/media/avb/avb_alsa.c              | 742 +++++++++++++++++++++++
->  drivers/media/avb/tsn_iec61883.h          | 124 ++++
->  drivers/net/ethernet/intel/Kconfig        |  18 +
->  drivers/net/ethernet/intel/igb/Makefile   |   2 +-
->  drivers/net/ethernet/intel/igb/igb.h      |  19 +
->  drivers/net/ethernet/intel/igb/igb_main.c |  10 +-
->  drivers/net/ethernet/intel/igb/igb_tsn.c  | 396 ++++++++++++
->  include/linux/netdevice.h                 |  32 +
->  include/linux/tsn.h                       | 806 ++++++++++++++++++++++++
->  include/trace/events/tsn.h                | 349 +++++++++++
->  net/Kconfig                               |   1 +
->  net/Makefile                              |   1 +
->  net/tsn/Kconfig                           |  32 +
->  net/tsn/Makefile                          |   6 +
->  net/tsn/tsn_configfs.c                    | 623 +++++++++++++++++++
->  net/tsn/tsn_core.c                        | 975 ++++++++++++++++++++++++++++++
->  net/tsn/tsn_header.c                      | 203 +++++++
->  net/tsn/tsn_internal.h                    | 383 ++++++++++++
->  net/tsn/tsn_net.c                         | 403 ++++++++++++
->  24 files changed, 5306 insertions(+), 3 deletions(-)
->  create mode 100644 Documentation/TSN/tsn.txt
->  create mode 100644 drivers/media/avb/Makefile
->  create mode 100644 drivers/media/avb/avb_alsa.c
->  create mode 100644 drivers/media/avb/tsn_iec61883.h
->  create mode 100644 drivers/net/ethernet/intel/igb/igb_tsn.c
->  create mode 100644 include/linux/tsn.h
->  create mode 100644 include/trace/events/tsn.h
->  create mode 100644 net/tsn/Kconfig
->  create mode 100644 net/tsn/Makefile
->  create mode 100644 net/tsn/tsn_configfs.c
->  create mode 100644 net/tsn/tsn_core.c
->  create mode 100644 net/tsn/tsn_header.c
->  create mode 100644 net/tsn/tsn_internal.h
->  create mode 100644 net/tsn/tsn_net.c
-> 
-> --
-> 2.7.4
-
--- 
-Henrik Austad
