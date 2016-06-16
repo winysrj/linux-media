@@ -1,59 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34068 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807AbcFQS5P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 14:57:15 -0400
-Received: by mail-wm0-f66.google.com with SMTP id 187so79152wmz.1
-        for <linux-media@vger.kernel.org>; Fri, 17 Jun 2016 11:57:14 -0700 (PDT)
-From: Mathias Krause <minipli@googlemail.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org,
-	Mathias Krause <minipli@googlemail.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	PaX Team <pageexec@freemail.hu>
-Subject: [PATCH] dma-buf: propagate errors from dma_buf_describe() on debugfs read
-Date: Fri, 17 Jun 2016 20:57:03 +0200
-Message-Id: <1466189823-21489-1-git-send-email-minipli@googlemail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:48247 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753992AbcFPVlM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2016 17:41:12 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH 1/6] [media] s5p-mfc: set capablity bus_info as required by VIDIOC_QUERYCAP
+Date: Thu, 16 Jun 2016 17:40:30 -0400
+Message-Id: <1466113235-25909-2-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1466113235-25909-1-git-send-email-javier@osg.samsung.com>
+References: <1466113235-25909-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The callback function dma_buf_describe() returns an int not void so the
-function pointer cast in dma_buf_show() is wrong. dma_buf_describe() can
-also fail when acquiring the mutex gets interrupted so always returning
-0 in dma_buf_show() is wrong, too.
+The driver doesn't set the struct v4l2_capability bus_info field so the
+v4l2-compliance tool reports the following errors for VIDIOC_QUERYCAP:
 
-Fix both issues by casting the function pointer to the correct type and
-propagate its return value.
+Required ioctls:
+                VIDIOC_QUERYCAP returned 0 (Success)
+                fail: v4l2-compliance.cpp(304): string empty
+                fail: v4l2-compliance.cpp(528): check_ustring(vcap.bus_info, sizeof(vcap.bus_info))
+        test VIDIOC_QUERYCAP: FAIL
 
-This type mismatch was caught by the PaX RAP plugin.
+This patch fixes by setting the field in VIDIOC_QUERYCAP ioctl handler:
 
-Signed-off-by: Mathias Krause <minipli@googlemail.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: PaX Team <pageexec@freemail.hu>
+Required ioctls:
+                VIDIOC_QUERYCAP returned 0 (Success)
+        test VIDIOC_QUERYCAP: OK
+
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 ---
- drivers/dma-buf/dma-buf.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index 6355ab38d630..0f2a4592fdd2 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -881,10 +881,9 @@ static int dma_buf_describe(struct seq_file *s)
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 3 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index f2d6376ce618..4a40df22fd63 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -267,7 +267,8 @@ static int vidioc_querycap(struct file *file, void *priv,
  
- static int dma_buf_show(struct seq_file *s, void *unused)
- {
--	void (*func)(struct seq_file *) = s->private;
-+	int (*func)(struct seq_file *) = s->private;
+ 	strncpy(cap->driver, dev->plat_dev->name, sizeof(cap->driver) - 1);
+ 	strncpy(cap->card, dev->plat_dev->name, sizeof(cap->card) - 1);
+-	cap->bus_info[0] = 0;
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
++		 dev_name(&dev->plat_dev->dev));
+ 	/*
+ 	 * This is only a mem-to-mem video device. The capture and output
+ 	 * device capability flags are left only for backward compatibility
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 034b5c1d35a1..dd466ea6429e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -945,7 +945,8 @@ static int vidioc_querycap(struct file *file, void *priv,
  
--	func(s);
--	return 0;
-+	return func(s);
- }
- 
- static int dma_buf_debug_open(struct inode *inode, struct file *file)
+ 	strncpy(cap->driver, dev->plat_dev->name, sizeof(cap->driver) - 1);
+ 	strncpy(cap->card, dev->plat_dev->name, sizeof(cap->card) - 1);
+-	cap->bus_info[0] = 0;
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
++		 dev_name(&dev->plat_dev->dev));
+ 	/*
+ 	 * This is only a mem-to-mem video device. The capture and output
+ 	 * device capability flags are left only for backward compatibility
 -- 
-1.7.10.4
+2.5.5
 
