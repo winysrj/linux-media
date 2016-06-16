@@ -1,113 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34454 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753548AbcFJMd6 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45085
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754034AbcFPTxk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2016 08:33:58 -0400
-Received: by mail-wm0-f68.google.com with SMTP id n184so17628759wmn.1
-        for <linux-media@vger.kernel.org>; Fri, 10 Jun 2016 05:33:58 -0700 (PDT)
-Subject: Re: [PATCH RFC 1/2] v4l: platform: Add Renesas R-Car FDP1 Driver
-To: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	linux-media@vger.kernel.org
-References: <1465493879-5419-1-git-send-email-kieran@bingham.xyz>
- <1465493879-5419-2-git-send-email-kieran@bingham.xyz>
-Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Kieran Bingham <kieran@ksquared.org.uk>
-Message-ID: <575AB3A8.4090905@bingham.xyz>
-Date: Fri, 10 Jun 2016 13:33:44 +0100
+	Thu, 16 Jun 2016 15:53:40 -0400
+Date: Thu, 16 Jun 2016 16:53:34 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
+	lars@opdenkamp.eu, linux@arm.linux.org.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv16 05/13] cec/TODO: add TODO file so we know why this is
+ still in staging
+Message-ID: <20160616165334.05e94cf0@recife.lan>
+In-Reply-To: <1461937948-22936-6-git-send-email-hverkuil@xs4all.nl>
+References: <1461937948-22936-1-git-send-email-hverkuil@xs4all.nl>
+	<1461937948-22936-6-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1465493879-5419-2-git-send-email-kieran@bingham.xyz>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Today I learned about make C=1
+Em Fri, 29 Apr 2016 15:52:20 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-So ... reviewing my own patch, consider the following sparse warnings
-'fixed up'
-
-I'll run make C=1 before any future submissions from now on.
-
-
-On 09/06/16 18:37, Kieran Bingham wrote:
-> The FDP1 driver performs advanced de-interlacing on a memory 2 memory
-> based video stream, and supports conversion from YCbCr/YUV
-> to RGB pixel formats
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+> Explain why cec.c is still in staging.
+
+Hmm... as this is for staging, even having pointed several things to
+be improved, I may end merging this series. Will decide after finishing
+the patch review.
+
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > ---
->  drivers/media/platform/Kconfig     |   13 +
->  drivers/media/platform/Makefile    |    1 +
->  drivers/media/platform/rcar_fdp1.c | 2038 ++++++++++++++++++++++++++++++++++++
->  3 files changed, 2052 insertions(+)
->  create mode 100644 drivers/media/platform/rcar_fdp1.c
-
-...
-
-> +/* FDP1 Lookup tables range from 0...255 only */
-> +unsigned char fdp1_diff_adj[256] = {
-sparse: warning: symbol '...' was not declared. Should it be static?
-+ static unsigned...
-
-> +	0x00, 0x24, 0x43, 0x5E, 0x76, 0x8C, 0x9E, 0xAF,
-...
-> +	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
-> +};
+>  drivers/staging/media/cec/TODO | 13 +++++++++++++
+>  1 file changed, 13 insertions(+)
+>  create mode 100644 drivers/staging/media/cec/TODO
+> 
+> diff --git a/drivers/staging/media/cec/TODO b/drivers/staging/media/cec/TODO
+> new file mode 100644
+> index 0000000..c0751ef
+> --- /dev/null
+> +++ b/drivers/staging/media/cec/TODO
+> @@ -0,0 +1,13 @@
+> +The reason why cec.c is still in staging is that I would like
+> +to have a bit more confidence in the uABI. The kABI is fine,
+> +no problem there, but I would like to let the public API mature
+> +a bit.
 > +
-> +unsigned char fdp1_sad_adj[256] = {
-likewise
-
-> +	0x00, 0x24, 0x43, 0x5E, 0x76, 0x8C, 0x9E, 0xAF,
-...
-> +	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
-> +};
+> +Once I'm confident that I didn't miss anything then the cec.c source
+> +can move to drivers/media and the linux/cec.h and linux/cec-funcs.h
+> +headers can move to uapi/linux and added to uapi/linux/Kbuild to make
+> +them public.
 > +
-> +unsigned char fdp1_bld_gain[256] = {
-and again ...
-> +	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-...
-> +	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80
-> +};
+> +Hopefully this will happen later in 2016.
 > +
-> +unsigned char fdp1_dif_gain[256] = {
-> +	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-...
-> +	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80
-> +};
-> +
-> +unsigned char fdp1_mdet[256] = {
-and finally for the lut...
-> +	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-...
-> +	0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF
-> +};
-> +
-...
+> +Hans Verkuil <hans.verkuil@cisco.com>
 
-> +static void fdp1_write(struct fdp1_dev *fdp1, u32 val, unsigned int reg)
-> +{
-> +	if (debug >= 2)
-> +		dprintk(fdp1, "Write to %p\n", fdp1->regs + reg);
-> +
-> +	iowrite32(val, fdp1->regs + reg);
-> +}
-> +
-> +
-> +void fdp1_print_regs32(struct fdp1_dev *fdp1)
-Another +static
 
-...
 
-> +static struct fdp1_plane_addrs vb2_dc_to_pa(struct vb2_v4l2_buffer *buf,
-> +		unsigned int planes)
-> +{
-> +	struct fdp1_plane_addrs pa = { 0 };
-
-sparse: warning: missing braces around initializer
-+ struct fdp1_plane_addrs pa = { { 0 } };
-
--- 
-Regards
-
-Kieran Bingham
+Thanks,
+Mauro
