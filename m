@@ -1,83 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zencphosting06.zen.co.uk ([82.71.204.9]:52568 "EHLO
-	zencphosting06.zen.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751415AbcFXNsc (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50093 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754558AbcFPO4m convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2016 09:48:32 -0400
-Subject: Re: [PATCH v5 1/9] [media] v4l2-core: Add support for touch devices
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
- <1466633313-15339-2-git-send-email-nick.dyer@itdev.co.uk>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-Message-ID: <1c9fda7b-441b-0110-bd10-b1b654e016de@itdev.co.uk>
-Date: Fri, 24 Jun 2016 14:48:14 +0100
+	Thu, 16 Jun 2016 10:56:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+	<niklas.soderlund@ragnatech.se>
+Cc: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl, linux-renesas-soc@vger.kernel.org,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	William Towle <william.towle@codethink.co.uk>,
+	Niklas =?ISO-8859-1?Q?S=F6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: Re: [PATCH 2/8] media: rcar_vin: Use correct pad number in try_fmt
+Date: Thu, 16 Jun 2016 17:56:52 +0300
+Message-ID: <1916444.6UK1f8kFN6@avalon>
+In-Reply-To: <1464203409-1279-3-git-send-email-niklas.soderlund@ragnatech.se>
+References: <1464203409-1279-1-git-send-email-niklas.soderlund@ragnatech.se> <1464203409-1279-3-git-send-email-niklas.soderlund@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <1466633313-15339-2-git-send-email-nick.dyer@itdev.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello Niklas,
 
+Thank you for the patch.
 
-On 22/06/2016 23:08, Nick Dyer wrote:
-> Some touch controllers send out touch data in a similar way to a
-> greyscale frame grabber.
+On Wednesday 25 May 2016 21:10:03 Niklas Söderlund wrote:
+> From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 > 
-> Use a new device prefix v4l-touch for these devices, to stop generic
-> capture software from treating them as webcams.
+> Fix rcar_vin_try_fmt's use of an inappropriate pad number when calling
+> the subdev set_fmt function - for the ADV7612, IDs should be non-zero.
 > 
-> Add formats:
-> - V4L2_TCH_FMT_DELTA_TD16 for signed 16-bit touch deltas
-> - V4L2_TCH_FMT_DELTA_TD08 for signed 16-bit touch deltas
-> - V4L2_TCH_FMT_TU16 for unsigned 16-bit touch data
-> - V4L2_TCH_FMT_TU08 for unsigned 8-bit touch data
-> 
-> This support will be used by:
-> * Atmel maXTouch (atmel_mxt_ts)
-> * Synaptics RMI4.
-> * sur40
-> 
-> Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
+> Signed-off-by: William Towle <william.towle@codethink.co.uk>
+> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> [uli: adapted to rcar-vin rewrite]
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 > ---
-[...]
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 8f95191..7e19782 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -143,6 +143,7 @@ enum v4l2_buf_type {
->  	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
->  	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
->  	V4L2_BUF_TYPE_SDR_OUTPUT           = 12,
-> +	V4L2_BUF_TYPE_TOUCH_CAPTURE        = 13,
->  	/* Deprecated, do not use */
->  	V4L2_BUF_TYPE_PRIVATE              = 0x80,
->  };
-> @@ -440,6 +441,8 @@ struct v4l2_capability {
->  #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
->  #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
->  
-> +#define V4L2_CAP_TOUCH			0x00100000  /* Is a touch device */
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 14 +++++++++++---
+>  1 file changed, 11 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index 929816b..3788f8a 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -98,7 +98,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+>  					struct rvin_source_fmt *source)
+>  {
+>  	struct v4l2_subdev *sd;
+> -	struct v4l2_subdev_pad_config pad_cfg;
+> +	struct v4l2_subdev_pad_config *pad_cfg;
+>  	struct v4l2_subdev_format format = {
+>  		.which = which,
+>  	};
+> @@ -108,10 +108,16 @@ static int __rvin_try_format_source(struct rvin_dev
+> *vin,
+> 
+>  	v4l2_fill_mbus_format(&format.format, pix, vin->source.code);
+> 
+> +	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
+> +	if (pad_cfg == NULL)
+> +		return -ENOMEM;
+> +
+> +	format.pad = vin->src_pad_idx;
+> +
+>  	ret = v4l2_device_call_until_err(sd->v4l2_dev, 0, pad, set_fmt,
+> -					 &pad_cfg, &format);
+> +					 pad_cfg, &format);
 
-Apologies, this should have been
-#define V4L2_CAP_TOUCH                 0x10000000
+pad_cfg is subdev-specific, you can't use v4l2_device_call_until_err(). You 
+should use v4l2_subdev_call() instead. This will obviously not be enough if we 
+have more than one subdev in the pipeline, but the code is broken in that case 
+anyway.
 
-You will find my changes to v4l2-compliance to support these changes here:
-https://github.com/ndyer/v4l-utils
+>  	if (ret < 0)
+> -		return ret;
+> +		goto cleanup;
+> 
+>  	v4l2_fill_pix_format(pix, &format.format);
+> 
+> @@ -121,6 +127,8 @@ static int __rvin_try_format_source(struct rvin_dev
+> *vin, vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
+>  		source->height);
+> 
+> +cleanup:
 
-I've tested the atmel_mxt_ts version of this with v4l2-compliance on Pixel 2.
+Nitpicking, I'd name the label "done".
+
+> +	v4l2_subdev_free_pad_config(pad_cfg);
+>  	return 0;
+>  }
+
+-- 
+Regards,
+
+Laurent Pinchart
+
