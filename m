@@ -1,79 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:50496 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753945AbcFQBCg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2016 21:02:36 -0400
-Date: Thu, 16 Jun 2016 22:02:31 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Ulrich Eckhardt <uli-lirc@uli-eckhardt.de>
-Subject: Re: Need help with ir-keytable imon bug report
-Message-ID: <20160616220231.69616e84@recife.lan>
-In-Reply-To: <ac402439-e317-9d83-6c70-df592cc3cf63@googlemail.com>
-References: <ac402439-e317-9d83-6c70-df592cc3cf63@googlemail.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45124
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754695AbcFPVWg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2016 17:22:36 -0400
+Date: Thu, 16 Jun 2016 18:22:28 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
+	lars@opdenkamp.eu, linux@arm.linux.org.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv16 10/13] cec: adv7842: add cec support
+Message-ID: <20160616182228.1bd755d5@recife.lan>
+In-Reply-To: <1461937948-22936-11-git-send-email-hverkuil@xs4all.nl>
+References: <1461937948-22936-1-git-send-email-hverkuil@xs4all.nl>
+	<1461937948-22936-11-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HI Gregor,
+Em Fri, 29 Apr 2016 15:52:25 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Em Wed, 15 Jun 2016 22:25:06 +0200
-Gregor Jasny <gjasny@googlemail.com> escreveu:
-
-> Hello,
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> could someone please help me triaging the following ir-keytable bug? The
-> reporter complains that the 'other' IR protocol results in double clicks
-> and we should set the device to RC6 instead:
+> Add CEC support to the adv7842 driver.
 > 
-> https://bugs.launchpad.net/ubuntu/+source/v4l-utils/+bug/1579760
-> 
-> This is what we have in v4l-utils:
-> https://git.linuxtv.org/v4l-utils.git/tree/utils/keytable/rc_keymaps/imon_pad
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-The way it works is that the keymap table comes from the Kernel driver.
+Won't review patches 10-13, as the same reviews I made for patch 9
+very likely applies.
 
-The scripts at v4l-utils just copies whatever is there.
+As this series is causing non-staging drivers to be dependent of a
+staging driver, I'll wait for the next version that should be
+solving this issue.
 
-Please notice that the IMON keymap is used by only one Kernel driver:
-drivers/media/rc/imon.c, with supports two different protocols: RC6 and
-a proprietary one (the driver calls it iMON protocol).
-The driver actually supports two types of IR key maps, depending
-on the protocol:
+For the new 9-13 patches, please be sure that checkpatch will be
+happy. For the staging stuff, the checkpatch issues can be solved
+later, as I'll re-check against checkpatch when it moves from staging
+to mainstream.
 
-	if (ictx->rc_type == RC_BIT_RC6_MCE)
-		rdev->map_name = RC_MAP_IMON_MCE;
-	else
-		rdev->map_name = RC_MAP_IMON_PAD;
+Regards,
+Mauro
 
-In other words, it uses either the code at:
-	drivers/media/IR/keymaps/rc-imon-pad.c (for the IMON protocol)
-or
-	drivers/media/rc/keymaps/rc-imon-mce.c (for RC6)
-
-I suspect that the user is selecting the wrong keymap on the BZ
-you mentioned. It should be using: 
-	utils/keytable/rc_keymaps/imon_mce
-
-if his device came with a RC6 IR. There's another possibility:
-maybe some newer devices come with a different keymap than the
-one available when the driver was originally written.
-
-That's said, from his report:
-
-	$ sudo ir-keytable
-	Found /sys/class/rc/rc0/ (/dev/input/event4) with:
-	 Driver imon, table rc-imon-pad
-	 Supported protocols: other
-
-It should be listing both "other" and "RC6" protocols there.
-It sounds a Kernel regression. I remember one Kernel patch once
-broke the list of protocols. Maybe the fix patch were not applied
-on Ubuntu, or maybe some other regression happened.
-
--- 
 Thanks,
 Mauro
