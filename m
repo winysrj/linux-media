@@ -1,57 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:35322 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932661AbcFIRiY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2016 13:38:24 -0400
-Received: by mail-pa0-f43.google.com with SMTP id hl6so15170613pac.2
-        for <linux-media@vger.kernel.org>; Thu, 09 Jun 2016 10:38:23 -0700 (PDT)
-Subject: Re: dvb-core: how should i2c subdev drivers be attached?
-References: <52775753-47c4-bfdf-b8f5-48bdf8ceb6e5@gmail.com>
- <20160609122449.5cfc16cc@recife.lan>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-From: Akihiro TSUKADA <tskd08@gmail.com>
-Message-ID: <7bad6df3-ae9b-2e2f-3718-830d59e12513@gmail.com>
-Date: Fri, 10 Jun 2016 02:38:14 +0900
-MIME-Version: 1.0
-In-Reply-To: <20160609122449.5cfc16cc@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:55099 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752097AbcFPLSk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2016 07:18:40 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] [media] media-devnode.h: Fix documentation
+Date: Thu, 16 Jun 2016 08:18:35 -0300
+Message-Id: <0db5c79989de2c68d5abb7ba891bfdb3cd3b7e05.1466075912.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-thanks for the replys.
+Two parameters were documented with a wrong name, and a struct
+device pointer description was missing.
 
-so, the new i2c "attach" helper code should
-1. be usable for V4L2-DVB multi-functional(hybrid) tuner devices
-   (or at least co-exist well with them),
-2. properly ref-count driver module
-   to prevent (accidental) 'unload before use' by users.
-3. a. block un-binding of the device while in use,
-   b. support run-time {un-,}binding of the devices
-      via sysfs by users (to switch drivers?).
-Is this right?
+That caused the following warnings, when building documentation:
 
-> I guess we should discuss a way of doing it that will be acceptable
-> on existing drivers. Perhaps you should try to do such change for
-> an hybrid driver like em28xx or cx231xx. There are a few ISDB-T
-> devices using them. Not sure how easy would be to find one of those
-> in Japan, though.
+include/media/media-devnode.h:102: warning: No description found for parameter 'media_dev'
+include/media/media-devnode.h:126: warning: No description found for parameter 'mdev'
+include/media/media-devnode.h:126: warning: Excess function parameter 'media_dev' description in 'media_devnode_register'
 
-I'll look into those drivers' code, to begin with.
-(I'm pretty sure those devices are hardly found here in Japan).
+Rename the description, to match the function parameter and fix
+Documentation.
 
-> I'm now helping to to maintain Kaffeine upstream. I recently added
-> support for both ISDB-T and DVB-T2. It would be nice if you could
-> add support there for ISDB-S too.
+No funcional changes.
 
-All the channels in ISDB-S are scrambled,
-unlike ISDB-T(jp) where non-scrambled '1-seg' channels are delivered.
-In Japan, it will be considered illegal to desramble them with
-a non-authorized software that lacks private copy-guard encryption.
-So, unfortunately, there will be no legitimate OSS player for ISDB-S.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ include/media/media-devnode.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-regards,
-akihiro
+diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+index f0b7dd79fb92..37d494805944 100644
+--- a/include/media/media-devnode.h
++++ b/include/media/media-devnode.h
+@@ -69,8 +69,9 @@ struct media_file_operations {
+ 
+ /**
+  * struct media_devnode - Media device node
++ * @media_dev:	pointer to struct &media_device
+  * @fops:	pointer to struct &media_file_operations with media device ops
+- * @dev:	struct device pointer for the media controller device
++ * @dev:	pointer to struct &device containing the media controller device
+  * @cdev:	struct cdev pointer character device
+  * @parent:	parent device
+  * @minor:	device node minor number
+@@ -107,7 +108,7 @@ struct media_devnode {
+ /**
+  * media_devnode_register - register a media device node
+  *
+- * @media_dev: struct media_device we want to register a device node
++ * @mdev: struct media_device we want to register a device node
+  * @devnode: media device node structure we want to register
+  * @owner: should be filled with %THIS_MODULE
+  *
+-- 
+2.5.5
 
