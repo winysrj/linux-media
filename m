@@ -1,86 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49573 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750899AbcFQHLh (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:58961 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932251AbcFPBeR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 03:11:37 -0400
-Subject: Re: [PATCH 1/6] [media] s5p-mfc: set capablity bus_info as required
- by VIDIOC_QUERYCAP
-To: Javier Martinez Canillas <javier@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-References: <1466113235-25909-1-git-send-email-javier@osg.samsung.com>
- <1466113235-25909-2-git-send-email-javier@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5763A2A3.7000401@xs4all.nl>
-Date: Fri, 17 Jun 2016 09:11:31 +0200
+	Wed, 15 Jun 2016 21:34:17 -0400
+Subject: Re: [PATCH 35/38] media: adv7180: add power pin control
+To: Lars-Peter Clausen <lars@metafoo.de>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	<linux-media@vger.kernel.org>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+ <1465944574-15745-36-git-send-email-steve_longerbeam@mentor.com>
+ <57617CDE.905@metafoo.de>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <57620216.9040502@mentor.com>
+Date: Wed, 15 Jun 2016 18:34:14 -0700
 MIME-Version: 1.0
-In-Reply-To: <1466113235-25909-2-git-send-email-javier@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <57617CDE.905@metafoo.de>
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/2016 11:40 PM, Javier Martinez Canillas wrote:
-> The driver doesn't set the struct v4l2_capability bus_info field so the
-> v4l2-compliance tool reports the following errors for VIDIOC_QUERYCAP:
-> 
-> Required ioctls:
->                 VIDIOC_QUERYCAP returned 0 (Success)
->                 fail: v4l2-compliance.cpp(304): string empty
->                 fail: v4l2-compliance.cpp(528): check_ustring(vcap.bus_info, sizeof(vcap.bus_info))
->         test VIDIOC_QUERYCAP: FAIL
-> 
-> This patch fixes by setting the field in VIDIOC_QUERYCAP ioctl handler:
-> 
-> Required ioctls:
->                 VIDIOC_QUERYCAP returned 0 (Success)
->         test VIDIOC_QUERYCAP: OK
-> 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Hi Lars,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On 06/15/2016 09:05 AM, Lars-Peter Clausen wrote:
+> On 06/15/2016 12:49 AM, Steve Longerbeam wrote:
+>> +		usleep_range(5000, 5001);
+> That's kind of not how usleep_range() (the emphasis is on range) is supposed
+> to be used. You typically dont care too much about the upper limit here so
+> something like maybe 10000 is more appropriate.
 
-Thanks!
+Good point, I fixed this as well as all other instances of
+usleep_range() in the patch set.
 
-	Hans
+>
+>> +static int adv7180_of_parse(struct adv7180_state *state)
+>> +{
+>> +	struct i2c_client *client = state->client;
+>> +	struct device_node *np = client->dev.of_node;
+>> +	int ret;
+>> +
+>> +	ret = of_get_named_gpio(np, "pwdn-gpio", 0);
+>> +
+>> +	if (gpio_is_valid(ret)) {
+>> +		state->pwdn_gpio = ret;
+>> +		ret = devm_gpio_request_one(&client->dev,
+>> +					    state->pwdn_gpio,
+>> +					    GPIOF_OUT_INIT_HIGH,
+>> +					    "adv7180_pwdn");
+>
+> This should use the new GPIO descriptor API. That will also make the code
+> devicetree independent. Otherwise patch looks OK.
 
-> ---
-> 
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 3 ++-
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 3 ++-
->  2 files changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> index f2d6376ce618..4a40df22fd63 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> @@ -267,7 +267,8 @@ static int vidioc_querycap(struct file *file, void *priv,
->  
->  	strncpy(cap->driver, dev->plat_dev->name, sizeof(cap->driver) - 1);
->  	strncpy(cap->card, dev->plat_dev->name, sizeof(cap->card) - 1);
-> -	cap->bus_info[0] = 0;
-> +	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-> +		 dev_name(&dev->plat_dev->dev));
->  	/*
->  	 * This is only a mem-to-mem video device. The capture and output
->  	 * device capability flags are left only for backward compatibility
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> index 034b5c1d35a1..dd466ea6429e 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> @@ -945,7 +945,8 @@ static int vidioc_querycap(struct file *file, void *priv,
->  
->  	strncpy(cap->driver, dev->plat_dev->name, sizeof(cap->driver) - 1);
->  	strncpy(cap->card, dev->plat_dev->name, sizeof(cap->card) - 1);
-> -	cap->bus_info[0] = 0;
-> +	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-> +		 dev_name(&dev->plat_dev->dev));
->  	/*
->  	 * This is only a mem-to-mem video device. The capture and output
->  	 * device capability flags are left only for backward compatibility
-> 
+Thanks for the heads-up. I converted to gpiod here, and in all other
+patches in the set that were using the deprecated API. Also took the
+time to review the active low/high flags in the device tree, and made
+sure they are correct and are using the explicit flags GPIO_ACTIVE_*.
+
+The changes are in a new branch mx6-media-staging-v2.1 in my fork
+on github (git@github.com:slongerbeam/mediatree.git).
+
+Retested on SabreSD and SabreAuto, still working as before.
+
+Steve
+
