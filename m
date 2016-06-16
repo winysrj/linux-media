@@ -1,49 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:15581 "EHLO mga14.intel.com"
+Received: from lists.s-osg.org ([54.187.51.154]:40379 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751453AbcFVMhi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2016 08:37:38 -0400
-Subject: Re: [alsa-devel] [very-RFC 0/8] TSN driver for the kernel
-To: Richard Cochran <richardcochran@gmail.com>
-References: <20160613114713.GA9544@localhost.localdomain>
- <20160613195136.GC2441@netboy> <20160614121844.54a125a5@lxorguk.ukuu.org.uk>
- <5760C84C.40408@sakamocchi.jp> <20160615080602.GA13555@localhost.localdomain>
- <5764DA85.3050801@sakamocchi.jp>
- <20160618224549.GF32724@icarus.home.austad.us>
- <9a5abd48-4da3-945d-53c9-b6d37010ab0d@linux.intel.com>
- <20160620121838.GA5257@localhost.localdomain>
- <07283da9-f6d1-c3b1-7989-a6fce7ca0ee6@linux.intel.com>
- <20160621194001.GB2489@netboy>
-Cc: alsa-devel@alsa-project.org, netdev@vger.kernel.org,
-	Henrik Austad <henrik@austad.us>, linux-kernel@vger.kernel.org,
-	Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-	Arnd Bergmann <arnd@linaro.org>, linux-media@vger.kernel.org
-From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Message-ID: <04675515-ff64-0acc-f0f0-7714e20c1485@linux.intel.com>
-Date: Wed, 22 Jun 2016 05:36:42 -0700
+	id S1754303AbcFPSzb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2016 14:55:31 -0400
+Subject: Re: [PATCH 2/3] drivers/media/media-entity: clear media_gobj.mdev in
+ _destroy()
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
+References: <146602170216.9818.6967531646383934202.stgit@woodpecker.blarg.de>
+ <146602170722.9818.9277146367995018321.stgit@woodpecker.blarg.de>
+ <5762D2A0.605@osg.samsung.com> <20160616184353.GB3727@swift.blarg.de>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <5762F620.3010709@osg.samsung.com>
+Date: Thu, 16 Jun 2016 12:55:28 -0600
 MIME-Version: 1.0
-In-Reply-To: <20160621194001.GB2489@netboy>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20160616184353.GB3727@swift.blarg.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 6/21/16 12:40 PM, Richard Cochran wrote:
-> On Tue, Jun 21, 2016 at 10:45:18AM -0700, Pierre-Louis Bossart wrote:
->> You can experiment with the 'dma' and 'link' timestamps today on any
->> HDaudio-based device. Like I said the synchronized part has not been
->> upstreamed yet (delays + dependency on ART-to-TSC conversions that made it
->> in the kernel recently)
->
-> Can you point me to any open source apps using the dma/link
-> timestamps?
+On 06/16/2016 12:43 PM, Max Kellermann wrote:
+> On 2016/06/16 18:24, Shuah Khan <shuahkh@osg.samsung.com> wrote:
+>> On 06/15/2016 02:15 PM, Max Kellermann wrote:
+>>> media_gobj_destroy() may be called twice on one instance - once by
+>>> media_device_unregister() and again by dvb_media_device_free().  The
+>>> function media_remove_intf_links() establishes and documents the
+>>> convention that mdev==NULL means that the object is not registered,
+>>> but nobody ever NULLs this variable.  So this patch really implements
+>>> this behavior, and adds another mdev==NULL check to
+>>> media_gobj_destroy() to protect against double removal.
+>>
+>> Are you seeing null pointer dereference on gobj->mdev? In any case,
+>> we have to look at if there is a missing mutex hold that creates a
+>> race between media_device_unregister() and dvb_media_device_free()
+>>
+>> I don't this patch will solve the race condition.
+> 
+> I think we misunderstand.  This is not about a race condition.  And
+> the problem cannot be a NULL pointer dereference.
+> 
+> That's because nobody NULLs the pointer!
 
-Those timestamps are only used in custom applications at the moment, not 
-'mainstream' open source.
-It takes time for new kernel capabilities to trickle into userspace, 
-applications usually align on the lowest hardware common denominator. In 
-addition, most applications don't access the kernel directly but go 
-through an audio server or HAL which needs to be updated as well so it's 
-a two-level dependency. These timestamps can be directly mappped to the 
-Android AudioTrack.getTimeStamp API though.
+I see 7 calls to media_gobj_destroy(). In 6 cases, calling routines
+fee the pointer that contains the graph_obj.
 
+__media_device_unregister_entity() sets mdev ot null.
+
+entity->graph_obj.mdev = NULL;
+
+That is why I am confused when you say it never set to null.
+
+thanks,
+-- Shuah
