@@ -1,87 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:19553 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751551AbcFHLd7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2016 07:33:59 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Liviu Dudau <liviu@dudau.co.uk>
-Subject: [PATCH] media: s5p-mfc: fix error path in driver probe
-Date: Wed, 08 Jun 2016 13:33:40 +0200
-Message-id: <1465385620-4396-1-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <20160608103629.GD21784@bart.dudau.co.uk>
-References: <20160608103629.GD21784@bart.dudau.co.uk>
+Received: from eumx.net ([91.82.101.43]:43277 "EHLO owm.eumx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752659AbcFPJsd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2016 05:48:33 -0400
+Subject: Re: [PATCH 00/38] i.MX5/6 Video Capture
+To: Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	linux-media@vger.kernel.org
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+ <64c29bbc-2273-2a9d-3059-ab8f62dc531b@embed.me.uk>
+ <576202D0.6010608@mentor.com>
+From: Jack Mitchell <ml@embed.me.uk>
+Message-ID: <597d73df-0fa0-fa8d-e0e5-0ad8b2c49bcf@embed.me.uk>
+Date: Thu, 16 Jun 2016 10:49:19 +0100
+MIME-Version: 1.0
+In-Reply-To: <576202D0.6010608@mentor.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes the error path in the driver probe, so in case of
-any failure, the resources are not leaked.
 
-Reported-by: Liviu Dudau <liviu.dudau@arm.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+On 16/06/16 02:37, Steve Longerbeam wrote:
+> Hi Jack,
+>
+> On 06/15/2016 03:43 AM, Jack Mitchell wrote:
+>> <snip>
+>> Trying to use a user pointer rather than mmap also fails and causes a kernel splat.
+>>
+>
+> Hmm, I've tested userptr with the mem2mem driver, but maybe never
+> with video capture. I tried "v4l2-ctl -d/dev/video0 --stream-user=8" but
+> that returns "VIDIOC_QBUF: failed: Invalid argument", haven't tracked
+> down why (could be a bug in v4l2-ctl). Can you share the splat?
+>
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 6ee620ee8cd5..1f3a7ee753db 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1159,7 +1159,10 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 	dev->variant = mfc_get_drv_data(pdev);
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--
-+	if (res == NULL) {
-+		dev_err(&pdev->dev, "failed to get io resource\n");
-+		return -ENOENT;
-+	}
- 	dev->regs_base = devm_ioremap_resource(&pdev->dev, res);
- 	if (IS_ERR(dev->regs_base))
- 		return PTR_ERR(dev->regs_base);
-@@ -1167,15 +1170,14 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
- 	if (res == NULL) {
- 		dev_err(&pdev->dev, "failed to get irq resource\n");
--		ret = -ENOENT;
--		goto err_res;
-+		return -ENOENT;
- 	}
- 	dev->irq = res->start;
- 	ret = devm_request_irq(&pdev->dev, dev->irq, s5p_mfc_irq,
- 					0, pdev->name, dev);
- 	if (ret) {
- 		dev_err(&pdev->dev, "Failed to install irq (%d)\n", ret);
--		goto err_res;
-+		return ret;
- 	}
- 
- 	ret = s5p_mfc_configure_dma_memory(dev);
-@@ -1187,7 +1189,7 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 	ret = s5p_mfc_init_pm(dev);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "failed to get mfc clock source\n");
--		return ret;
-+		goto err_dma;
- 	}
- 
- 	vb2_dma_contig_set_max_seg_size(dev->mem_dev_l, DMA_BIT_MASK(32));
-@@ -1301,6 +1303,8 @@ err_mem_init_ctx_1:
- 	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[0]);
- err_res:
- 	s5p_mfc_final_pm(dev);
-+err_dma:
-+	s5p_mfc_unconfigure_dma_memory(dev);
- 
- 	pr_debug("%s-- with error\n", __func__);
- 	return ret;
--- 
-1.9.2
+On re-checking the splat was the same v4l_cropcap that was mentioned 
+before so I don't think it's related. The error I get back is:
 
+VIDIOC_QBUF error 22, Invalid argument
+
+I'm using the example program the the v4l2 docs [1].
+
+Cheers,
+Jack
+
+[1] https://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html
+
+>
+>> Apart from that and a few v4l2-compliance tests failing which you already mentioned, it seems to work OK. I'll try and do some more testing and see if I can come back with some more feedback.
+>
+> Thanks!
+>
+>
+> Steve
+>
