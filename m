@@ -1,86 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52958 "EHLO mail.kapsi.fi"
+Received: from lists.s-osg.org ([54.187.51.154]:48252 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750760AbcFGH5p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jun 2016 03:57:45 -0400
-Received: from dyn3-82-128-184-205.psoas.suomi.net ([82.128.184.205] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
-	(Exim 4.80)
-	(envelope-from <crope@iki.fi>)
-	id 1bABtP-0001hN-7z
-	for linux-media@vger.kernel.org; Tue, 07 Jun 2016 10:57:43 +0300
-To: LMML <linux-media@vger.kernel.org>
-From: Antti Palosaari <crope@iki.fi>
-Subject: [GIT PULL 4.8] mn88472
-Message-ID: <790dd3a2-b6ee-753c-ca31-87b2099f5d2b@iki.fi>
-Date: Tue, 7 Jun 2016 10:57:42 +0300
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1753994AbcFPVlV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2016 17:41:21 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH 2/6] [media] s5p-mfc: improve v4l2_capability driver and card fields
+Date: Thu, 16 Jun 2016 17:40:31 -0400
+Message-Id: <1466113235-25909-3-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1466113235-25909-1-git-send-email-javier@osg.samsung.com>
+References: <1466113235-25909-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 6a2cf60b3e6341a3163d3cac3f4bede126c2e894:
+According to the V4L2 documentation the driver and card fields should be
+used to identify the driver and the device but the s5p-mfc driver fills
+those field using the platform device name, which in turn is the name of
+the device DT node.
 
-   Merge tag 'v4.7-rc1' into patchwork (2016-05-30 18:16:14 -0300)
+So not only the filled information isn't correct but also the same values
+are used in all the fields for both the encoder and decoder video devices.
 
-are available in the git repository at:
+Before this patch:
 
-   git://linuxtv.org/anttip/media_tree.git mn88472
+Driver Info (not using libv4l2):
+        Driver name   : 11000000.codec
+        Card type     : 11000000.codec
+        Bus info      : platform:11000000.codec
+        Driver version: 4.7.0
 
-for you to fetch changes up to 4f4a390b2f195e5c26be370a4bc85183d6919aac:
+Driver Info (not using libv4l2):
+        Driver name   : 11000000.codec
+        Card type     : 11000000.codec
+        Bus info      : platform:11000000.codec
+        Driver version: 4.7.0
 
-   rtl28xxu: sort the config symbols which are auto-selected (2016-06-07 
-10:46:02 +0300)
+After this patch:
 
-----------------------------------------------------------------
-Antti Palosaari (3):
-       rtl28xxu: increase failed I2C msg repeat count to 3
-       mn88472: finalize driver
-       mn88472: move out of staging to media
+Driver Info (not using libv4l2):
+        Driver name   : s5p-mfc
+        Card type     : s5p-mfc-dec
+        Bus info      : platform:11000000.codec
+        Driver version: 4.7.0
 
-Julia Lawall (1):
-       mn88472: fix typo
+Driver Info (not using libv4l2):
+        Driver name   : s5p-mfc
+        Card type     : s5p-mfc-enc
+        Bus info      : platform:11000000.codec
+        Driver version: 4.7.0
 
-Martin Blumenstingl (2):
-       rtl28xxu: auto-select more DVB-frontends and tuners
-       rtl28xxu: sort the config symbols which are auto-selected
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
 
-  MAINTAINERS 
-|   4 +-
-  drivers/media/dvb-frontends/Kconfig 
-|   8 ++
-  drivers/media/dvb-frontends/Makefile 
-|   1 +
-  drivers/{staging/media/mn88472 => media/dvb-frontends}/mn88472.c 
-| 519 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----------------------------------------------------
-  drivers/media/dvb-frontends/mn88472.h 
-|  45 +++++-----
-  drivers/{staging/media/mn88472 => media/dvb-frontends}/mn88472_priv.h 
-|  11 ++-
-  drivers/media/usb/dvb-usb-v2/Kconfig 
-|  13 ++-
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.c 
-|   2 +-
-  drivers/staging/media/Kconfig 
-|   2 -
-  drivers/staging/media/Makefile 
-|   1 -
-  drivers/staging/media/mn88472/Kconfig 
-|   7 --
-  drivers/staging/media/mn88472/Makefile 
-|   5 --
-  drivers/staging/media/mn88472/TODO 
-|  21 -----
-  13 files changed, 327 insertions(+), 312 deletions(-)
-  rename drivers/{staging/media/mn88472 => 
-media/dvb-frontends}/mn88472.c (58%)
-  rename drivers/{staging/media/mn88472 => 
-media/dvb-frontends}/mn88472_priv.h (88%)
-  delete mode 100644 drivers/staging/media/mn88472/Kconfig
-  delete mode 100644 drivers/staging/media/mn88472/Makefile
-  delete mode 100644 drivers/staging/media/mn88472/TODO
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        | 1 -
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 2 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    | 4 ++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    | 4 ++--
+ 4 files changed, 6 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 6ee620ee8cd5..a936f89fa54a 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -35,7 +35,6 @@
+ #include "s5p_mfc_cmd.h"
+ #include "s5p_mfc_pm.h"
+ 
+-#define S5P_MFC_NAME		"s5p-mfc"
+ #define S5P_MFC_DEC_NAME	"s5p-mfc-dec"
+ #define S5P_MFC_ENC_NAME	"s5p-mfc-enc"
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 9eb2481ec292..a10dcd244ff0 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -25,6 +25,8 @@
+ #include "regs-mfc.h"
+ #include "regs-mfc-v8.h"
+ 
++#define S5P_MFC_NAME		"s5p-mfc"
++
+ /* Definitions related to MFC memory */
+ 
+ /* Offset base used to differentiate between CAPTURE and OUTPUT
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 4a40df22fd63..5793b0d8ee0c 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -265,8 +265,8 @@ static int vidioc_querycap(struct file *file, void *priv,
+ {
+ 	struct s5p_mfc_dev *dev = video_drvdata(file);
+ 
+-	strncpy(cap->driver, dev->plat_dev->name, sizeof(cap->driver) - 1);
+-	strncpy(cap->card, dev->plat_dev->name, sizeof(cap->card) - 1);
++	strncpy(cap->driver, S5P_MFC_NAME, sizeof(cap->driver) - 1);
++	strncpy(cap->card, dev->vfd_dec->name, sizeof(cap->card) - 1);
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
+ 		 dev_name(&dev->plat_dev->dev));
+ 	/*
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index dd466ea6429e..1220559d4874 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -943,8 +943,8 @@ static int vidioc_querycap(struct file *file, void *priv,
+ {
+ 	struct s5p_mfc_dev *dev = video_drvdata(file);
+ 
+-	strncpy(cap->driver, dev->plat_dev->name, sizeof(cap->driver) - 1);
+-	strncpy(cap->card, dev->plat_dev->name, sizeof(cap->card) - 1);
++	strncpy(cap->driver, S5P_MFC_NAME, sizeof(cap->driver) - 1);
++	strncpy(cap->card, dev->vfd_enc->name, sizeof(cap->card) - 1);
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
+ 		 dev_name(&dev->plat_dev->dev));
+ 	/*
 -- 
-http://palosaari.fi/
+2.5.5
+
