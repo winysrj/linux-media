@@ -1,96 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45238 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932383AbcFBVXq (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50087 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751275AbcFPO4c convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Jun 2016 17:23:46 -0400
-Date: Fri, 3 Jun 2016 00:23:39 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [PATCHv5] support for AD5820 camera auto-focus coil
-Message-ID: <20160602212338.GS26360@valkosipuli.retiisi.org.uk>
-References: <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
- <20160531213437.GA28397@amd>
- <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
- <20160601220840.GA21946@amd>
- <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
- <20160602192737.GA7984@amd>
+	Thu, 16 Jun 2016 10:56:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+	<niklas.soderlund@ragnatech.se>
+Cc: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl, linux-renesas-soc@vger.kernel.org,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	William Towle <william.towle@codethink.co.uk>,
+	Rob Taylor <rob.taylor@codethink.co.uk>,
+	Niklas =?ISO-8859-1?Q?S=F6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: Re: [PATCH 1/8] media: rcar-vin: pad-aware driver initialisation
+Date: Thu, 16 Jun 2016 17:56:41 +0300
+Message-ID: <1642916.YUlojpEMv4@avalon>
+In-Reply-To: <1464203409-1279-2-git-send-email-niklas.soderlund@ragnatech.se>
+References: <1464203409-1279-1-git-send-email-niklas.soderlund@ragnatech.se> <1464203409-1279-2-git-send-email-niklas.soderlund@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160602192737.GA7984@amd>
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 02, 2016 at 09:27:37PM +0200, Pavel Machek wrote:
-> On Thu 2016-06-02 10:45:45, Sakari Ailus wrote:
-> > On Thu, Jun 02, 2016 at 12:08:40AM +0200, Pavel Machek wrote:
-> > > On Wed 2016-06-01 18:24:39, Sakari Ailus wrote:
-> > > > Hi Pavel,
-> > > 
-> > > > > Well, it does not use any dt properties. So there's not really much to
-> > > > > discuss with dt people...
-> > > > > 
-> > > > > Maybe "ad5820" needs to go to list of simple i2c drivers somewhere,
-> > > > > but...
-> > > > 
-> > > > It's an I2C device and it does use a regulator. Not a lot, though, these are
-> > > > both quite basic stuff. This should still be documented as the people who
-> > > > write the DT bindings (in general) aren't expected to read driver code as
-> > > > well. That's at least my understanding.
-> > > 
-> > > Yep, you are right, I forgot about the regulator. Something like this?
-> > > 
-> > > Thanks,
-> > > 									Pavel
-> > > 
-> > > diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-> > > new file mode 100644
-> > > index 0000000..87c98f1
-> > > --- /dev/null
-> > > +++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-> > 
-> > I might use the compatible string as such as a part of the file name. Up to
-> > you.
-> 
-> Sorry, can't do that, for consistency with other ad* files in the directory.
-> 
-> > > @@ -0,0 +1,20 @@
-> > > +* Analog Devices AD5820 autofocus coil
-> > > +
-> > > +Required Properties:
-> > > +
-> > > +  - compatible: Must contain "adi,ad5820"
-> > > +
-> > > +  - reg: I2C slave address
-> > > +
-> > > +  - VANA-supply: supply of voltage for VANA pin
-> > > +
-> > > +Example:
-> > > +
-> > > +       /* D/A converter for auto-focus */
-> > 
-> > There is definitely D/A conversion happening there but I'm not sure I'd
-> > characterise the device as such. They're typically called "voice coil
-> > drivers", perhaps because the devices are similar to a parts of a
-> > loudspeaker.
-> 
-> Well, I'm pretty sure I did not invent that comment, but I can drop
-> it.
+Hello Niklas,
 
-Both are fine for me.
+Thank you for the patch.
+
+On Wednesday 25 May 2016 21:10:02 Niklas Söderlund wrote:
+> From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> 
+> Add detection of source pad number for drivers aware of the media controller
+> API, so that rcar-vin can create device nodes to support modern drivers
+> such as adv7604.c (for HDMI on Lager) and the converted adv7180.c (for
+> composite) underneath.
+> 
+> Building rcar_vin gains a dependency on CONFIG_MEDIA_CONTROLLER, in
+> line with requirements for building the drivers associated with it.
+> 
+> Signed-off-by: William Towle <william.towle@codethink.co.uk>
+> Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+> [uli: adapted to rcar-vin rewrite]
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 16 ++++++++++++++++
+>  drivers/media/platform/rcar-vin/rcar-vin.h  |  2 ++
+>  2 files changed, 18 insertions(+)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index 0bc4487..929816b 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -683,6 +683,9 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+>  	struct v4l2_mbus_framefmt *mf = &fmt.format;
+>  	struct video_device *vdev = &vin->vdev;
+>  	struct v4l2_subdev *sd = vin_to_source(vin);
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+
+I think you can get rid of conditional compilation here and below. Patch 2/8 
+calls v4l2_subdev_alloc_pad_config() unconditionally, which depends on 
+CONFIG_MEDIA_CONTROLLER.
+
+> +	int pad_idx;
+> +#endif
+>  	int ret;
+> 
+>  	v4l2_set_subdev_hostdata(sd, vin);
+> @@ -729,6 +732,19 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+>  	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+>  		V4L2_CAP_READWRITE;
+> 
+> +	vin->src_pad_idx = 0;
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
+> +		if (sd->entity.pads[pad_idx].flags
+> +				== MEDIA_PAD_FL_SOURCE)
+
+No need for a line break.
+
+> +			break;
+> +	if (pad_idx >= sd->entity.num_pads)
+> +		return -EINVAL;
+> +
+> +	vin->src_pad_idx = pad_idx;
+> +#endif
+> +	fmt.pad = vin->src_pad_idx;
+> +
+>  	/* Try to improve our guess of a reasonable window format */
+>  	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
+>  	if (ret) {
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
+> b/drivers/media/platform/rcar-vin/rcar-vin.h index 544a3b3..a6dd6db 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -87,6 +87,7 @@ struct rvin_graph_entity {
+>   *
+>   * @vdev:		V4L2 video device associated with VIN
+>   * @v4l2_dev:		V4L2 device
+> + * @src_pad_idx:	source pad index for media controller drivers
+>   * @ctrl_handler:	V4L2 control handler
+>   * @notifier:		V4L2 asynchronous subdevs notifier
+>   * @entity:		entity in the DT for subdevice
+> @@ -117,6 +118,7 @@ struct rvin_dev {
+> 
+>  	struct video_device vdev;
+>  	struct v4l2_device v4l2_dev;
+> +	int src_pad_idx;
+>  	struct v4l2_ctrl_handler ctrl_handler;
+>  	struct v4l2_async_notifier notifier;
+>  	struct rvin_graph_entity entity;
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Regards,
+
+Laurent Pinchart
+
