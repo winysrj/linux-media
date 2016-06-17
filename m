@@ -1,68 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sirokuusama2.dnainternet.net ([83.102.40.153]:55214 "EHLO
-	sirokuusama2.dnainternet.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423534AbcFMOLL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2016 10:11:11 -0400
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH] dw2102: add USB ID for Terratec Cinergy S2 Rev.3
-Date: Mon, 13 Jun 2016 17:04:50 +0300
-Message-Id: <1465826690-11770-1-git-send-email-olli.salonen@iki.fi>
+Received: from swift.blarg.de ([78.47.110.205]:47663 "EHLO swift.blarg.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752988AbcFQNEG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jun 2016 09:04:06 -0400
+Date: Fri, 17 Jun 2016 15:04:03 +0200
+From: Max Kellermann <max@duempel.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, shuahkh@osg.samsung.com,
+	mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/3] drivers/media/media-entity: clear media_gobj.mdev in
+ _destroy()
+Message-ID: <20160617130403.GA9229@swift.blarg.de>
+References: <146602170216.9818.6967531646383934202.stgit@woodpecker.blarg.de>
+ <146602170722.9818.9277146367995018321.stgit@woodpecker.blarg.de>
+ <20160617125317.GF24980@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160617125317.GF24980@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the USB ID for Terratec Cinergy S2 Rev.3 (0ccd:0102).
+On 2016/06/17 14:53, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> On Wed, Jun 15, 2016 at 10:15:07PM +0200, Max Kellermann wrote:
+> > media_gobj_destroy() may be called twice on one instance - once by
+> > media_device_unregister() and again by dvb_media_device_free().  The
+> 
+> Is that something that should really happen, and why? The same object should
+> not be unregistered more than once --- in many call paths gobj
+> unregistration is followed by kfree() on the gobj.
 
-Curiously dvb-usb-ids included already the USB ID for TERRATEC_CINERGY_S2_R3 even if the device was not supported.
+True, it should not happen, and I think the code is currently
+misdesigned (or I just don't grasp it correctly; I may be wrong).
 
-Reported-by: Christian Knippel <namerp@googlemail.com>
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/usb/dvb-usb/dw2102.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+The "gobj" is inserted into a linked list, the list's owner
+(media_device) feels responsible to free items in that list.  Plus,
+the dvb_device instances holds a pointer and also tries to free it.
 
-diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
-index 49b55d7..961f64e 100644
---- a/drivers/media/usb/dvb-usb/dw2102.c
-+++ b/drivers/media/usb/dvb-usb/dw2102.c
-@@ -1641,6 +1641,7 @@ enum dw2102_table_entry {
- 	TEVII_S421,
- 	TEVII_S632,
- 	TERRATEC_CINERGY_S2_R2,
-+	TERRATEC_CINERGY_S2_R3,
- 	GOTVIEW_SAT_HD,
- 	GENIATECH_T220,
- 	TECHNOTREND_S2_4600,
-@@ -1669,6 +1670,7 @@ static struct usb_device_id dw2102_table[] = {
- 	[TEVII_S421] = {USB_DEVICE(0x9022, USB_PID_TEVII_S421)},
- 	[TEVII_S632] = {USB_DEVICE(0x9022, USB_PID_TEVII_S632)},
- 	[TERRATEC_CINERGY_S2_R2] = {USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_S2_R2)},
-+	[TERRATEC_CINERGY_S2_R3] = {USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_S2_R3)},
- 	[GOTVIEW_SAT_HD] = {USB_DEVICE(0x1FE1, USB_PID_GOTVIEW_SAT_HD)},
- 	[GENIATECH_T220] = {USB_DEVICE(0x1f4d, 0xD220)},
- 	[TECHNOTREND_S2_4600] = {USB_DEVICE(USB_VID_TECHNOTREND,
-@@ -2083,7 +2085,7 @@ static struct dvb_usb_device_properties su3000_properties = {
- 		}},
- 		}
- 	},
--	.num_device_descs = 5,
-+	.num_device_descs = 6,
- 	.devices = {
- 		{ "SU3000HD DVB-S USB2.0",
- 			{ &dw2102_table[GENIATECH_SU3000], NULL },
-@@ -2101,6 +2103,10 @@ static struct dvb_usb_device_properties su3000_properties = {
- 			{ &dw2102_table[TERRATEC_CINERGY_S2_R2], NULL },
- 			{ NULL },
- 		},
-+		{ "Terratec Cinergy S2 USB HD Rev.3",
-+			{ &dw2102_table[TERRATEC_CINERGY_S2_R3], NULL },
-+			{ NULL },
-+		},
- 		{ "GOTVIEW Satellite HD",
- 			{ &dw2102_table[GOTVIEW_SAT_HD], NULL },
- 			{ NULL },
--- 
-2.5.0
+Usually, dvbdev.c destruction gets called first, which removes the
+"gobj" from the linked list, and media_device never sees it during its
+own destruction.  But that ordering is all but guaranteed.  It just
+happens to be that way under "normal" circumstances.
 
+None of this makes any sense to me.  There appears to be lots of bogus
+and unsafe code.  I'm still waiting for somebody with more clue to
+enlighten me.
+
+Max
