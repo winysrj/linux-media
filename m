@@ -1,68 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:36933 "EHLO
-	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751197AbcFAGHO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2016 02:07:14 -0400
-Received: by mail-wm0-f54.google.com with SMTP id z87so14391948wmh.0
-        for <linux-media@vger.kernel.org>; Tue, 31 May 2016 23:07:14 -0700 (PDT)
-MIME-Version: 1.0
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Wed, 1 Jun 2016 11:36:53 +0530
-Message-ID: <CAO_48GEPozg6yajkqtXDtbOT_r=8Ve3g5o1xkRRVPhaBmTfbxA@mail.gmail.com>
-Subject: [GIT PULL]: minor dma-buf updates for 4.7
-To: Linus Torvalds <torvalds@linux-foundation.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Tom Gall <tom.gall@linaro.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46183 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754091AbcFQDYI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2016 23:24:08 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id B62491800EC
+	for <linux-media@vger.kernel.org>; Fri, 17 Jun 2016 05:24:02 +0200 (CEST)
+Date: Fri, 17 Jun 2016 05:24:02 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160617032402.B62491800EC@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-A tiny pull request with mostly cosmetic changes in dma-buf for 4.7;
-may I request you to please pull?
+Results of the daily build of media_tree:
 
+date:		Fri Jun 17 04:00:23 CEST 2016
+git branch:	test
+git hash:	59f0bc11848f8f3242bc1fefae670e745929cd7b
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
 
-The following changes since commit 852f42a69b93dc71507adedeed876d57b8c2c2fa:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-  Merge branch 'uuid' (lib/uuid fixes from Andy) (2016-05-30 15:27:07 -0700)
+Detailed results are available here:
 
-are available in the git repository at:
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/sumits/dma-buf.git
-tags/dma-buf-for-4.7
+Full logs are available here:
 
-for you to fetch changes up to b02da6f8236148009c22167cd7013d5ce04a2d37:
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-  dma-buf: use vma_pages() (2016-05-31 22:17:05 +0530)
+The Media Infrastructure API from this daily build is here:
 
-----------------------------------------------------------------
-Minor dma-buf updates for 4.7:
-- use of vma_pages instead of explicit computation.
-- DocBook and headerdoc updates for dma-buf.
-
-----------------------------------------------------------------
-Luis de Bethencourt (1):
-      fence: add missing descriptions for fence
-
-Muhammad Falak R Wani (1):
-      dma-buf: use vma_pages()
-
-Rob Clark (3):
-      dma-buf: headerdoc fixes
-      reservation: add headerdoc comments
-      doc: update/fixup dma-buf related DocBook
-
- Documentation/DocBook/device-drivers.tmpl | 36 ++++++++++++++--
- drivers/dma-buf/dma-buf.c                 |  7 +--
- drivers/dma-buf/reservation.c             | 72 +++++++++++++++++++++++++++++--
- include/linux/dma-buf.h                   | 13 ++++--
- include/linux/fence.h                     |  2 +
- include/linux/reservation.h               | 53 +++++++++++++++++++++++
- 6 files changed, 169 insertions(+), 14 deletions(-)
-
-Thanks and best regards,
-Sumit.
+http://www.xs4all.nl/~hverkuil/spec/media.html
