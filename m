@@ -1,82 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34555 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752233AbcF3Qui (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2016 12:50:38 -0400
-Received: by mail-wm0-f67.google.com with SMTP id 187so24376788wmz.1
-        for <linux-media@vger.kernel.org>; Thu, 30 Jun 2016 09:50:37 -0700 (PDT)
-From: Kieran Bingham <kieran@ksquared.org.uk>
-To: laurent.pinchart@ideasonboard.com, robh+dt@kernel.org,
-	mark.rutland@arm.com
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kieran@ksquared.org.uk
-Subject: [PATCH v2 3/3] dt-bindings: Add Renesas R-Car FDP1 bindings
-Date: Thu, 30 Jun 2016 17:50:30 +0100
-Message-Id: <1467305430-25660-4-git-send-email-kieran@bingham.xyz>
-In-Reply-To: <1467305430-25660-1-git-send-email-kieran@bingham.xyz>
-References: <1467305430-25660-1-git-send-email-kieran@bingham.xyz>
+Received: from lists.s-osg.org ([54.187.51.154]:50496 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753945AbcFQBCg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2016 21:02:36 -0400
+Date: Thu, 16 Jun 2016 22:02:31 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Ulrich Eckhardt <uli-lirc@uli-eckhardt.de>
+Subject: Re: Need help with ir-keytable imon bug report
+Message-ID: <20160616220231.69616e84@recife.lan>
+In-Reply-To: <ac402439-e317-9d83-6c70-df592cc3cf63@googlemail.com>
+References: <ac402439-e317-9d83-6c70-df592cc3cf63@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The FDP1 is a de-interlacing module which converts interlaced video to
-progressive video. It is also capable of performing pixel format conversion
-between YCbCr/YUV formats and RGB formats.
+HI Gregor,
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
----
-Changes since v1:
- - title fixed
- - Interrupts property documented
- - version specific compatibles removed as we have a hw version register
- - label removed from device node example
-   * (fdp1 is not referenced by other nodes)
+Em Wed, 15 Jun 2016 22:25:06 +0200
+Gregor Jasny <gjasny@googlemail.com> escreveu:
 
- .../devicetree/bindings/media/renesas,fdp1.txt     | 33 ++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,fdp1.txt
+> Hello,
+> 
+> could someone please help me triaging the following ir-keytable bug? The
+> reporter complains that the 'other' IR protocol results in double clicks
+> and we should set the device to RC6 instead:
+> 
+> https://bugs.launchpad.net/ubuntu/+source/v4l-utils/+bug/1579760
+> 
+> This is what we have in v4l-utils:
+> https://git.linuxtv.org/v4l-utils.git/tree/utils/keytable/rc_keymaps/imon_pad
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,fdp1.txt b/Documentation/devicetree/bindings/media/renesas,fdp1.txt
-new file mode 100644
-index 000000000000..e6abd2a17e66
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,fdp1.txt
-@@ -0,0 +1,33 @@
-+Renesas R-Car Fine Display Processor (FDP1)
-+-------------------------------------------
-+
-+The FDP1 is a de-interlacing module which converts interlaced video to
-+progressive video. It is capable of performing pixel format conversion between
-+YCbCr/YUV formats and RGB formats. Only YCbCr/YUV formats are supported as
-+an input to the module.
-+
-+ - compatible: Must be the following
-+
-+   - "renesas,fdp1" for generic compatible
-+
-+ - reg: the register base and size for the device registers
-+ - interrupts : interrupt specifier for the FDP1 instance
-+ - clocks: reference to the functional clock
-+ - renesas,fcp: reference to the FCPF connected to the FDP1
-+
-+Optional properties:
-+ - power-domains : power-domain property defined with a power domain specifier
-+                            to respective power domain.
-+
-+
-+Device node example
-+-------------------
-+
-+	fdp1@fe940000 {
-+		compatible = "renesas,fdp1";
-+		reg = <0 0xfe940000 0 0x2400>;
-+		interrupts = <GIC_SPI 262 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 119>;
-+		power-domains = <&sysc R8A7795_PD_A3VP>;
-+		renesas,fcp = <&fcpf0>;
-+	};
+The way it works is that the keymap table comes from the Kernel driver.
+
+The scripts at v4l-utils just copies whatever is there.
+
+Please notice that the IMON keymap is used by only one Kernel driver:
+drivers/media/rc/imon.c, with supports two different protocols: RC6 and
+a proprietary one (the driver calls it iMON protocol).
+The driver actually supports two types of IR key maps, depending
+on the protocol:
+
+	if (ictx->rc_type == RC_BIT_RC6_MCE)
+		rdev->map_name = RC_MAP_IMON_MCE;
+	else
+		rdev->map_name = RC_MAP_IMON_PAD;
+
+In other words, it uses either the code at:
+	drivers/media/IR/keymaps/rc-imon-pad.c (for the IMON protocol)
+or
+	drivers/media/rc/keymaps/rc-imon-mce.c (for RC6)
+
+I suspect that the user is selecting the wrong keymap on the BZ
+you mentioned. It should be using: 
+	utils/keytable/rc_keymaps/imon_mce
+
+if his device came with a RC6 IR. There's another possibility:
+maybe some newer devices come with a different keymap than the
+one available when the driver was originally written.
+
+That's said, from his report:
+
+	$ sudo ir-keytable
+	Found /sys/class/rc/rc0/ (/dev/input/event4) with:
+	 Driver imon, table rc-imon-pad
+	 Supported protocols: other
+
+It should be listing both "other" and "RC6" protocols there.
+It sounds a Kernel regression. I remember one Kernel patch once
+broke the list of protocols. Maybe the fix patch were not applied
+on Ubuntu, or maybe some other regression happened.
+
 -- 
-2.7.4
-
+Thanks,
+Mauro
