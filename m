@@ -1,125 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45171 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751818AbcFYDF0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2016 23:05:26 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 185E2180CCA
-	for <linux-media@vger.kernel.org>; Sat, 25 Jun 2016 05:05:19 +0200 (CEST)
-Date: Sat, 25 Jun 2016 05:05:19 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160625030519.185E2180CCA@tschai.lan>
+Received: from eumx.net ([91.82.101.43]:36579 "EHLO owm.eumx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752847AbcFQQIx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jun 2016 12:08:53 -0400
+Subject: Re: [19/38] ARM: dts: imx6-sabrelite: add video capture ports and
+ connections
+To: Gary Bisson <gary.bisson@boundarydevices.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>
+References: <1465944574-15745-20-git-send-email-steve_longerbeam@mentor.com>
+ <20160616083231.GA6548@t450s.lan> <20160617151814.GA16378@t450s.lan>
+Cc: linux-media@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Jack Mitchell <ml@embed.me.uk>
+Message-ID: <d966c112-2a54-8d8c-a0fb-4fcc5a47d8aa@embed.me.uk>
+Date: Fri, 17 Jun 2016 17:09:28 +0100
+MIME-Version: 1.0
+In-Reply-To: <20160617151814.GA16378@t450s.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
 
-date:		Sat Jun 25 04:00:29 CEST 2016
-git branch:	test
-git hash:	59f0bc11848f8f3242bc1fefae670e745929cd7b
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+On 17/06/16 16:18, Gary Bisson wrote:
+> Steve, All,
+>
+> On Thu, Jun 16, 2016 at 10:32:31AM +0200, Gary Bisson wrote:
+>> Steve, All,
+>>
+>> On Tue, Jun 14, 2016 at 03:49:15PM -0700, Steve Longerbeam wrote:
+>>> Defines the host video capture device node and an OV5642 camera sensor
+>>> node on i2c2. The host capture device connects to the OV5642 via the
+>>> parallel-bus mux input on the ipu1_csi0_mux.
+>>>
+>>> Note there is a pin conflict with GPIO6. This pin functions as a power
+>>> input pin to the OV5642, but ENET requires it to wake-up the ARM cores
+>>> on normal RX and TX packet done events (see 6261c4c8). So by default,
+>>> capture is disabled, enable by uncommenting __OV5642_CAPTURE__ macro.
+>>> Ethernet will still work just not quite as well.
+>>
+>> Actually the following patch fixes this issue and has already been
+>> applied on Shawn's tree:
+>> https://patchwork.kernel.org/patch/9153523/
+>>
+>> Also, this follow-up patch declared the HW workaround for SabreLite:
+>> https://patchwork.kernel.org/patch/9153525/
+>>
+>> So ideally, once those two patches land on your base tree, you could get
+>> rid of the #define and remove the HW workaround declaration.
+>>
+>> Finally, I'll test the series on Sabre-Lite this week.
+>
+> I've applied this series on top of Shawn tree (for-next branch) in order
+> not to worry about the GPIO6 workaround.
+>
+> Although the camera seems to get enumerated properly, I can't seem to
+> get anything from it. See log:
+> http://pastebin.com/xnw1ujUq
+>
+> In your cover letter, you said that you have not run through
+> v4l2-compliance. How have you tested the capture?
+>
+> Also, why isn't the OV5640 MIPI camera declared on the SabreLite device
+> tree?
+>
+> Let me know if I can help testing/updating things on the SabreLite.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mtk: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+Hi Gary,
 
-Detailed results are available here:
+I have been testing the ov5640 MIPI on the Sabrelite. Patch is at [1]. 
+Careful of the GPIO numbers as I am using an eCon sensor which has 
+slightly different pin routing to the boundarydevices sensor. Let me 
+know how you get on, I've managed to get images out of the device so 
+it's working to a degree.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+Cheers,
+Jack.
 
-Full logs are available here:
+Tuxable Ltd,
+London, UK
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+[1] http://ix.io/TTg
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+>
+> Regards,
+> Gary
+> --
