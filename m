@@ -1,124 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35831 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751496AbcFTNcB (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:51031 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752847AbcFQTAu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 09:32:01 -0400
-Received: by mail-wm0-f65.google.com with SMTP id a66so9028185wme.2
-        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2016 06:32:00 -0700 (PDT)
-Date: Mon, 20 Jun 2016 15:31:57 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Mathias Krause <minipli@googlemail.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-	Brad Spengler <spender@grsecurity.net>,
-	PaX Team <pageexec@freemail.hu>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: Re: [PATCH 3/3] dma-buf: remove dma_buf_debugfs_create_file()
-Message-ID: <20160620133157.GK23520@phenom.ffwll.local>
-References: <1466339491-12639-1-git-send-email-minipli@googlemail.com>
- <1466339491-12639-4-git-send-email-minipli@googlemail.com>
+	Fri, 17 Jun 2016 15:00:50 -0400
+Subject: tchellRe: [19/38] ARM: dts: imx6-sabrelite: add video capture ports
+ and connections
+To: Gary Bisson <gary.bisson@boundarydevices.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>
+References: <1465944574-15745-20-git-send-email-steve_longerbeam@mentor.com>
+ <20160616083231.GA6548@t450s.lan> <20160617151814.GA16378@t450s.lan>
+CC: <linux-media@vger.kernel.org>, Jack Mitchell <ml@embed.me.uk>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <576448DE.1040002@mentor.com>
+Date: Fri, 17 Jun 2016 12:00:46 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1466339491-12639-4-git-send-email-minipli@googlemail.com>
+In-Reply-To: <20160617151814.GA16378@t450s.lan>
+Content-Type: multipart/mixed;
+	boundary="------------010200000601060401080003"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 19, 2016 at 02:31:31PM +0200, Mathias Krause wrote:
-> There is only a single user of dma_buf_debugfs_create_file() and that
-> one got the function pointer cast wrong. With that one fixed, there is
-> no need to have a wrapper for debugfs_create_file(), just call it
-> directly.
-> 
-> With no users left, we can remove dma_buf_debugfs_create_file().
-> 
-> While at it, simplify the error handling in dma_buf_init_debugfs()
-> slightly.
-> 
-> Signed-off-by: Mathias Krause <minipli@googlemail.com>
+--------------010200000601060401080003
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 
-ah, here's the 2nd part, feel free to ignore my earlier comments. On the
-series:
 
-Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-> Cc: Sumit Semwal <sumit.semwal@linaro.org>
-> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-> ---
->  drivers/dma-buf/dma-buf.c |   29 +++++++++--------------------
->  include/linux/dma-buf.h   |    2 --
->  2 files changed, 9 insertions(+), 22 deletions(-)
-> 
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index f03e51561199..20ce0687b111 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -895,22 +895,22 @@ static struct dentry *dma_buf_debugfs_dir;
->  
->  static int dma_buf_init_debugfs(void)
->  {
-> +	struct dentry *d;
->  	int err = 0;
->  
-> -	dma_buf_debugfs_dir = debugfs_create_dir("dma_buf", NULL);
-> +	d = debugfs_create_dir("dma_buf", NULL);
-> +	if (IS_ERR(d))
-> +		return PTR_ERR(d);
->  
-> -	if (IS_ERR(dma_buf_debugfs_dir)) {
-> -		err = PTR_ERR(dma_buf_debugfs_dir);
-> -		dma_buf_debugfs_dir = NULL;
-> -		return err;
-> -	}
-> +	dma_buf_debugfs_dir = d;
->  
-> -	err = dma_buf_debugfs_create_file("bufinfo", NULL);
-> -
-> -	if (err) {
-> +	d = debugfs_create_file("bufinfo", S_IRUGO, dma_buf_debugfs_dir,
-> +				NULL, &dma_buf_debug_fops);
-> +	if (IS_ERR(d)) {
->  		pr_debug("dma_buf: debugfs: failed to create node bufinfo\n");
->  		debugfs_remove_recursive(dma_buf_debugfs_dir);
->  		dma_buf_debugfs_dir = NULL;
-> +		err = PTR_ERR(d);
->  	}
->  
->  	return err;
-> @@ -921,17 +921,6 @@ static void dma_buf_uninit_debugfs(void)
->  	if (dma_buf_debugfs_dir)
->  		debugfs_remove_recursive(dma_buf_debugfs_dir);
->  }
-> -
-> -int dma_buf_debugfs_create_file(const char *name,
-> -				int (*write)(struct seq_file *))
-> -{
-> -	struct dentry *d;
-> -
-> -	d = debugfs_create_file(name, S_IRUGO, dma_buf_debugfs_dir,
-> -			write, &dma_buf_debug_fops);
-> -
-> -	return PTR_ERR_OR_ZERO(d);
-> -}
->  #else
->  static inline int dma_buf_init_debugfs(void)
->  {
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index 4551c6f2a6c4..e0b0741ae671 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -242,6 +242,4 @@ int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
->  		 unsigned long);
->  void *dma_buf_vmap(struct dma_buf *);
->  void dma_buf_vunmap(struct dma_buf *, void *vaddr);
-> -int dma_buf_debugfs_create_file(const char *name,
-> -				int (*write)(struct seq_file *));
->  #endif /* __DMA_BUF_H__ */
-> -- 
-> 1.7.10.4
-> 
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+On 06/17/2016 08:18 AM, Gary Bisson wrote:
+> Steve, All,
+>
+> On Thu, Jun 16, 2016 at 10:32:31AM +0200, Gary Bisson wrote:
+>> Steve, All,
+>>
+>> On Tue, Jun 14, 2016 at 03:49:15PM -0700, Steve Longerbeam wrote:
+>>> Defines the host video capture device node and an OV5642 camera sensor
+>>> node on i2c2. The host capture device connects to the OV5642 via the
+>>> parallel-bus mux input on the ipu1_csi0_mux.
+>>>
+>>> Note there is a pin conflict with GPIO6. This pin functions as a power
+>>> input pin to the OV5642, but ENET requires it to wake-up the ARM cores
+>>> on normal RX and TX packet done events (see 6261c4c8). So by default,
+>>> capture is disabled, enable by uncommenting __OV5642_CAPTURE__ macro.
+>>> Ethernet will still work just not quite as well.
+>> Actually the following patch fixes this issue and has already been
+>> applied on Shawn's tree:
+>> https://patchwork.kernel.org/patch/9153523/
+>>
+>> Also, this follow-up patch declared the HW workaround for SabreLite:
+>> https://patchwork.kernel.org/patch/9153525/
+>>
+>> So ideally, once those two patches land on your base tree, you could get
+>> rid of the #define and remove the HW workaround declaration.
+>>
+>> Finally, I'll test the series on Sabre-Lite this week.
+> I've applied this series on top of Shawn tree (for-next branch) in order
+> not to worry about the GPIO6 workaround.
+>
+> Although the camera seems to get enumerated properly, I can't seem to
+> get anything from it. See log:
+> http://pastebin.com/xnw1ujUq
+
+Hi Gary, the driver does not implement vidioc_cropcap, it has
+switched to the new selection APIs and v4l2src should be using
+vidioc_g_selection instead of vidioc_cropcap.
+
+>
+> In your cover letter, you said that you have not run through
+> v4l2-compliance. How have you tested the capture?
+
+I use v4l2-ctl, and have used v4l2src in the past, but that was before
+switching to the selection APIs. Try the attached hack that adds
+vidioc_cropcap back in, and see how far you get on SabreLite with
+v4l2src. I tried  the following on SabreAuto:
+
+gst-launch-1.0 v4l2src io_mode=4 ! 
+"video/x-raw,format=RGB16,width=640,height=480" ! fbdevsink
+
+>
+> Also, why isn't the OV5640 MIPI camera declared on the SabreLite device
+> tree?
+
+See Jack Mitchell's patch at http://ix.io/TTg. Thanks Jack! I will work on
+incorporating it.
+
+
+Steve
+
+
+
+--------------010200000601060401080003
+Content-Type: text/x-patch; name="vidioc_cropcap.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="vidioc_cropcap.diff"
+
+diff --git a/drivers/staging/media/imx/capture/imx-camif.c b/drivers/staging/media/imx/capture/imx-camif.c
+index 9c247e0..2c51bc7 100644
+--- a/drivers/staging/media/imx/capture/imx-camif.c
++++ b/drivers/staging/media/imx/capture/imx-camif.c
+@@ -1561,6 +1561,23 @@ static int vidioc_s_parm(struct file *file, void *fh,
+ 	return v4l2_subdev_call(dev->sensor->sd, video, s_parm, a);
+ }
+ 
++static int vidioc_cropcap(struct file *file, void *priv,
++			  struct v4l2_cropcap *cropcap)
++{
++	struct imxcam_ctx *ctx = file2ctx(file);
++	struct imxcam_dev *dev = ctx->dev;
++
++	if (cropcap->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
++	    cropcap->type != V4L2_BUF_TYPE_VIDEO_OVERLAY)
++		return -EINVAL;
++
++	cropcap->bounds = dev->crop_bounds;
++	cropcap->defrect = dev->crop_defrect;
++	cropcap->pixelaspect.numerator = 1;
++	cropcap->pixelaspect.denominator = 1;
++	return 0;
++}
++
+ static int vidioc_g_selection(struct file *file, void *priv,
+ 			      struct v4l2_selection *sel)
+ {
+@@ -1794,6 +1811,7 @@ static const struct v4l2_ioctl_ops imxcam_ioctl_ops = {
+ 	.vidioc_g_parm          = vidioc_g_parm,
+ 	.vidioc_s_parm          = vidioc_s_parm,
+ 
++	.vidioc_cropcap		= vidioc_cropcap,
+ 	.vidioc_g_selection     = vidioc_g_selection,
+ 	.vidioc_s_selection     = vidioc_s_selection,
+ 
+
+--------------010200000601060401080003--
