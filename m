@@ -1,80 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:52916 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932106AbcF3MVB (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45240
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751711AbcFQKMT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2016 08:21:01 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 1/2] [media] vsp1: use __maybe_unused for PM handlers
-Date: Thu, 30 Jun 2016 14:23:02 +0200
-Message-Id: <20160630122325.4002029-1-arnd@arndb.de>
+	Fri, 17 Jun 2016 06:12:19 -0400
+Date: Fri, 17 Jun 2016 07:12:12 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
+	lars@opdenkamp.eu, linux@arm.linux.org.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv16 10/13] cec: adv7842: add cec support
+Message-ID: <20160617071212.2d9ae124@recife.lan>
+In-Reply-To: <5763AF87.2030700@xs4all.nl>
+References: <1461937948-22936-1-git-send-email-hverkuil@xs4all.nl>
+	<1461937948-22936-11-git-send-email-hverkuil@xs4all.nl>
+	<20160616182228.1bd755d5@recife.lan>
+	<5763AF87.2030700@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Building without CONFIG_PM results in a harmless warning from
-slightly incorrect #ifdef guards:
+Em Fri, 17 Jun 2016 10:06:31 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-drivers/media/platform/vsp1/vsp1_drv.c:525:12: error: 'vsp1_pm_runtime_resume' defined but not used [-Werror=unused-function]
-drivers/media/platform/vsp1/vsp1_drv.c:516:12: error: 'vsp1_pm_runtime_suspend' defined but not used [-Werror=unused-function]
+> On 06/16/2016 11:22 PM, Mauro Carvalho Chehab wrote:
+> > Em Fri, 29 Apr 2016 15:52:25 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> Add CEC support to the adv7842 driver.
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>  
+> > 
+> > Won't review patches 10-13, as the same reviews I made for patch 9
+> > very likely applies.
+> > 
+> > As this series is causing non-staging drivers to be dependent of a
+> > staging driver, I'll wait for the next version that should be
+> > solving this issue.
+> > 
+> > For the new 9-13 patches, please be sure that checkpatch will be
+> > happy. For the staging stuff, the checkpatch issues can be solved
+> > later, as I'll re-check against checkpatch when it moves from staging
+> > to mainstream.  
+> 
+> I have to make changes anyway so I'll make a new pull request later
+> today fixing all the comments and replacing unsigned with unsigned int
+> (which is a majority of all the checkpatch warnings).
 
-This removes the existing #ifdef and instead marks all four
-PM functions as __maybe_unused.
+Ok.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: 1e6af546ee66 ("[media] v4l: vsp1: Implement runtime PM support")
----
- drivers/media/platform/vsp1/vsp1_drv.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+> Did I mention yet how much I hate this new checkpatch warning? In almost all
+> cases I agree with the checkpatch rules, but this one is just stupid IMHO.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index e655639af7e2..0c7fd43d6fb7 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -491,8 +491,7 @@ void vsp1_device_put(struct vsp1_device *vsp1)
-  * Power Management
-  */
- 
--#ifdef CONFIG_PM_SLEEP
--static int vsp1_pm_suspend(struct device *dev)
-+static int __maybe_unused vsp1_pm_suspend(struct device *dev)
- {
- 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
- 
-@@ -502,7 +501,7 @@ static int vsp1_pm_suspend(struct device *dev)
- 	return 0;
- }
- 
--static int vsp1_pm_resume(struct device *dev)
-+static int __maybe_unused vsp1_pm_resume(struct device *dev)
- {
- 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
- 
-@@ -511,9 +510,8 @@ static int vsp1_pm_resume(struct device *dev)
- 
- 	return 0;
- }
--#endif
- 
--static int vsp1_pm_runtime_suspend(struct device *dev)
-+static int __maybe_unused vsp1_pm_runtime_suspend(struct device *dev)
- {
- 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
- 
-@@ -522,7 +520,7 @@ static int vsp1_pm_runtime_suspend(struct device *dev)
- 	return 0;
- }
- 
--static int vsp1_pm_runtime_resume(struct device *dev)
-+static int __maybe_unused vsp1_pm_runtime_resume(struct device *dev)
- {
- 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
- 	int ret;
--- 
-2.9.0
+This is the commit that added such rule:
 
+commit a1ce18e4f941d2039aa3bdeee17db968919eac2f
+Author: Joe Perches <joe@perches.com>
+Date:   Tue Mar 15 14:58:03 2016 -0700
+
+    checkpatch: warn on bare unsigned or signed declarations without int
+    
+    Kernel style prefers "unsigned int <foo>" over "unsigned <foo>" and
+    "signed int <foo>" over "signed <foo>".
+    
+    Emit a warning for these simple signed/unsigned <foo> declarations.  Fix
+    it too if desired.
+    
+    Signed-off-by: Joe Perches <joe@perches.com>
+    Acked-by: David S. Miller <davem@davemloft.net>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+
+So, the people to blame are mentioned on it. I was actually
+expecting to see any rationale for that decision, but the log
+is useless on that sense. Maybe there are some discussions at
+LKML explaining that.
+
+At least on the patch thread, no mention why it was done:
+	https://www.spinics.net/lists/kernel/msg2205100.html
+
+That's said, it sounds that the checkpatch autofix rule should 
+do the changes for you, according with the comments.
+
+There is a patch to sparc that does this:
+
+git ls-files arch/sparc | \
+  xargs ./scripts/checkpatch.pl -f --fix-inplace --types=unspecified_int
+
+I guess I'll just run that on our subsystem, and we're done with
+that, removing the risc of having to merge hundreds of stupid
+checkpatch fixup stuff for the existing code, and distracting
+ourselves from patches that really matters.
+
+> 
+> Oh well, I'll make the change. Perhaps it will grow on me over time.
+> 
+> Regards,
+> 
+> 	Hans
+
+
+
+Thanks,
+Mauro
