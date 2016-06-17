@@ -1,50 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:10331 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755629AbcFGPcD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2016 11:32:03 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0O8E00MX4R5AJG80@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 07 Jun 2016 16:31:58 +0100 (BST)
-Received: from AMDN2410 ([106.120.46.21])
- by eusync1.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
- 64bit (built May  5 2014))
- with ESMTPA id <0O8E0011RR5A2Q80@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 07 Jun 2016 16:31:58 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL] mem2mem changes
-Date: Tue, 07 Jun 2016 17:31:57 +0200
-Message-id: <01c501d1c0d1$baca1a00$305e4e00$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58226 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932629AbcFQMxv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jun 2016 08:53:51 -0400
+Date: Fri, 17 Jun 2016 15:53:17 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Max Kellermann <max@duempel.org>
+Cc: linux-media@vger.kernel.org, shuahkh@osg.samsung.com,
+	mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/3] drivers/media/media-entity: clear media_gobj.mdev in
+ _destroy()
+Message-ID: <20160617125317.GF24980@valkosipuli.retiisi.org.uk>
+References: <146602170216.9818.6967531646383934202.stgit@woodpecker.blarg.de>
+ <146602170722.9818.9277146367995018321.stgit@woodpecker.blarg.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <146602170722.9818.9277146367995018321.stgit@woodpecker.blarg.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 9bd5d8696fd50a10d830e2ad7f9d4e67e0bbbae2:
+Hi Max,
 
-  [media] s5p-mfc: don't close instance after free OUTPUT buffers
-(2016-06-07 10:45:37 -0300)
+On Wed, Jun 15, 2016 at 10:15:07PM +0200, Max Kellermann wrote:
+> media_gobj_destroy() may be called twice on one instance - once by
+> media_device_unregister() and again by dvb_media_device_free().  The
 
-are available in the git repository at:
+Is that something that should really happen, and why? The same object should
+not be unregistered more than once --- in many call paths gobj
+unregistration is followed by kfree() on the gobj.
 
-  git://linuxtv.org/kdebski/media_tree_2.git master-20160607
+> function media_remove_intf_links() establishes and documents the
+> convention that mdev==NULL means that the object is not registered,
+> but nobody ever NULLs this variable.  So this patch really implements
+> this behavior, and adds another mdev==NULL check to
+> media_gobj_destroy() to protect against double removal.
+> 
+> Signed-off-by: Max Kellermann <max@duempel.org>
+> ---
+>  drivers/media/media-entity.c |    6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index d8a2299..9526338 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -203,10 +203,16 @@ void media_gobj_destroy(struct media_gobj *gobj)
+>  {
+>  	dev_dbg_obj(__func__, gobj);
+>  
+> +	/* Do nothing if the object is not linked. */
+> +	if (gobj->mdev == NULL)
+> +		return;
+> +
+>  	gobj->mdev->topology_version++;
+>  
+>  	/* Remove the object from mdev list */
+>  	list_del(&gobj->list);
+> +
+> +	gobj->mdev = NULL;
+>  }
+>  
+>  int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
+> 
 
-for you to fetch changes up to 8bc18e6d9b0b97ff32eab2563d94f9f758bc93d4:
+-- 
+Regards,
 
-  s5p-mfc: fix a typo in s5p_mfc_dec (2016-06-07 16:29:55 +0200)
-
-----------------------------------------------------------------
-ayaka (3):
-      s5p-mfc: Add handling of buffer freeing reqbufs request
-      s5p-mfc: remove unnecessary check in try_fmt
-      s5p-mfc: fix a typo in s5p_mfc_dec
-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 12 +++---------
- 2 files changed, 4 insertions(+), 10 deletions(-)
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
