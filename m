@@ -1,107 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:36609 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752413AbcFURRr (ORCPT
+Received: from mail-pa0-f68.google.com ([209.85.220.68]:34148 "EHLO
+	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751097AbcFQTBs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2016 13:17:47 -0400
-Received: by mail-pa0-f53.google.com with SMTP id wo6so8096523pac.3
-        for <linux-media@vger.kernel.org>; Tue, 21 Jun 2016 10:17:32 -0700 (PDT)
+	Fri, 17 Jun 2016 15:01:48 -0400
+Received: by mail-pa0-f68.google.com with SMTP id us13so6278095pab.1
+        for <linux-media@vger.kernel.org>; Fri, 17 Jun 2016 12:01:48 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 Subject: Re: [19/38] ARM: dts: imx6-sabrelite: add video capture ports and
  connections
-To: Jack Mitchell <ml@embed.me.uk>,
-	Gary Bisson <gary.bisson@boundarydevices.com>
+To: Gary Bisson <gary.bisson@boundarydevices.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>
 References: <1465944574-15745-20-git-send-email-steve_longerbeam@mentor.com>
  <20160616083231.GA6548@t450s.lan> <20160617151814.GA16378@t450s.lan>
- <57644915.3010006@gmail.com> <20160620093351.GA24310@t450s.lan>
- <d9bd2b49-e36b-6082-e31a-99d6c8c70b2c@embed.me.uk>
- <20160620101603.GA817@t450s.lan>
- <92b3d1fc-1e4d-db42-625b-4751fcb3ff10@embed.me.uk>
-Cc: linux-media@vger.kernel.org
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <576976A4.2090406@gmail.com>
-Date: Tue, 21 Jun 2016 10:17:24 -0700
+Cc: linux-media@vger.kernel.org, Jack Mitchell <ml@embed.me.uk>
+Message-ID: <57644915.3010006@gmail.com>
+Date: Fri, 17 Jun 2016 12:01:41 -0700
 MIME-Version: 1.0
-In-Reply-To: <92b3d1fc-1e4d-db42-625b-4751fcb3ff10@embed.me.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20160617151814.GA16378@t450s.lan>
+Content-Type: multipart/mixed;
+ boundary="------------050701020300060502050209"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/20/2016 03:44 AM, Jack Mitchell wrote:
+This is a multi-part message in MIME format.
+--------------050701020300060502050209
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+
+
+
+On 06/17/2016 08:18 AM, Gary Bisson wrote:
+> Steve, All,
 >
->
-> On 20/06/16 11:16, Gary Bisson wrote:
->> Jack, All,
+> On Thu, Jun 16, 2016 at 10:32:31AM +0200, Gary Bisson wrote:
+>> Steve, All,
 >>
->> On Mon, Jun 20, 2016 at 10:44:44AM +0100, Jack Mitchell wrote:
->>> <snip>
->>>> I've tried that patch have a some comments:
->>>> - When applied, no capture shows up any more, instead I have two m2m
->>>>   v4l2 devices [1].
->>>> - OV5640 Mipi is assigned the same address as OV5642, therefore both
+>> On Tue, Jun 14, 2016 at 03:49:15PM -0700, Steve Longerbeam wrote:
+>>> Defines the host video capture device node and an OV5642 camera sensor
+>>> node on i2c2. The host capture device connects to the OV5642 via the
+>>> parallel-bus mux input on the ipu1_csi0_mux.
 >>>
->>> Yes, I only have one device attached in my scenario.
+>>> Note there is a pin conflict with GPIO6. This pin functions as a power
+>>> input pin to the OV5642, but ENET requires it to wake-up the ARM cores
+>>> on normal RX and TX packet done events (see 6261c4c8). So by default,
+>>> capture is disabled, enable by uncommenting __OV5642_CAPTURE__ macro.
+>>> Ethernet will still work just not quite as well.
+>> Actually the following patch fixes this issue and has already been
+>> applied on Shawn's tree:
+>> https://patchwork.kernel.org/patch/9153523/
 >>
->> Thanks for confirming.
+>> Also, this follow-up patch declared the HW workaround for SabreLite:
+>> https://patchwork.kernel.org/patch/9153525/
 >>
->>>>   can't work at the same time right now. There's a register in the
->>>>   camera that allows to modify its I2C address, see this patch [2].
->>>> - How is the mclk working in this patch? It should be using the PWM3
->>>
->>> As mentioned I have an eCon sensor board [1] which generates it's own clock
->>> on the board and as such I don't need the PWM signal, just the two GPIOs.
+>> So ideally, once those two patches land on your base tree, you could get
+>> rid of the #define and remove the HW workaround declaration.
 >>
->> Oh ok, thanks I didn't this sensor board was different than ours [1].
->>
->> But in your patch, you specifically disable pwm3, what's the reason for
->> it?
+>> Finally, I'll test the series on Sabre-Lite this week.
+> I've applied this series on top of Shawn tree (for-next branch) in order
+> not to worry about the GPIO6 workaround.
 >
-> Yes, it uses the GPIO on the PWM3 pin (beats me why...) so I had to specifically disable it to stop the pin muxing clash.
+> Although the camera seems to get enumerated properly, I can't seem to
+> get anything from it. See log:
+> http://pastebin.com/xnw1ujUq
+
+Hi Gary, the driver does not implement vidioc_cropcap, it has
+switched to the new selection APIs and v4l2src should be using
+vidioc_g_selection instead of vidioc_cropcap.
+
 >
+> In your cover letter, you said that you have not run through
+> v4l2-compliance. How have you tested the capture?
 
-Hi Jack, in your patch, the PWM3 pin (which is SD1_DAT1 operating as GPIO1_IO17)
-is being used as the power-down pin for your OV5640 board.
+I use v4l2-ctl, and have used v4l2src in the past, but that was before
+switching to the selection APIs. Try the attached hack that adds
+vidioc_cropcap back in, and see how far you get on SabreLite with
+v4l2src. I tried  the following on SabreAuto:
 
-Anyway, I didn't realize this was a different camera from the boundary-devices
-module (https://boundarydevices.com/product/nit6x_5mp_mipi/).
+gst-launch-1.0 v4l2src io_mode=4 ! 
+"video/x-raw,format=RGB16,width=640,height=480" ! fbdevsink
 
-I would like to add support in the DT for the BD module, but I am unable to test/debug
-as I don't have one. I'm wondering if someone could lend me one, along with the
-schematics. I have the OV5642 parallel interface module for the SabreLite, so I'd love
-to get my hands on the OV5640 mipi module as that would allow testing of multiple
-camera capture which I've never been able to do before.
+>
+> Also, why isn't the OV5640 MIPI camera declared on the SabreLite device
+> tree?
 
-In the meantime I am going to omit support for this module in the sabrelite DT (there's
-also the problem of the i2c bus address conflict on the same i2c2 bus with the ov5642).
-
-Or if someone can add support for the BD module later that would be great.
+See Jack Mitchell's patch at http://ix.io/TTg. Thanks Jack! I will work on
+incorporating it.
 
 
 Steve
 
->>
->>>>   output to generate a ~22MHz clock. I would expect the use of a
->>>>   pwm-clock node [3].
->>>>
->>>> Also another remark on both OV5642 and OV5640 patches, is it recommended
->>>> to use 0x80000000 pin muxing value? This leaves it to the bootloader to
->>>
->>> I also wondered about this, but didn't know if the pinmux driver did this
->>> based on the define name? I tried it both ways and it worked so I just left
->>> it as it was.
->>
->> Actually my phrasing is wrong, the muxing is ok. Yes depending on the
->> name a pin will be muxed to one function or another. The problem is the
->> pad configuration (pull-up, pull-down etc..). I am not surprised that it
->> works, because the bootloader should properly set those. But it would be
->> safer IMO not to rely on it.
->
-> Ah ok, makes sense.
->
->>
->> Regards,
->> Gary
->>
->> [1] https://boundarydevices.com/product/nit6x_5mp_mipi/
->>
 
+
+
+--------------050701020300060502050209
+Content-Type: text/x-patch;
+ name="vidioc_cropcap.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="vidioc_cropcap.diff"
+
+diff --git a/drivers/staging/media/imx/capture/imx-camif.c b/drivers/staging/media/imx/capture/imx-camif.c
+index 9c247e0..2c51bc7 100644
+--- a/drivers/staging/media/imx/capture/imx-camif.c
++++ b/drivers/staging/media/imx/capture/imx-camif.c
+@@ -1561,6 +1561,23 @@ static int vidioc_s_parm(struct file *file, void *fh,
+ 	return v4l2_subdev_call(dev->sensor->sd, video, s_parm, a);
+ }
+ 
++static int vidioc_cropcap(struct file *file, void *priv,
++			  struct v4l2_cropcap *cropcap)
++{
++	struct imxcam_ctx *ctx = file2ctx(file);
++	struct imxcam_dev *dev = ctx->dev;
++
++	if (cropcap->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
++	    cropcap->type != V4L2_BUF_TYPE_VIDEO_OVERLAY)
++		return -EINVAL;
++
++	cropcap->bounds = dev->crop_bounds;
++	cropcap->defrect = dev->crop_defrect;
++	cropcap->pixelaspect.numerator = 1;
++	cropcap->pixelaspect.denominator = 1;
++	return 0;
++}
++
+ static int vidioc_g_selection(struct file *file, void *priv,
+ 			      struct v4l2_selection *sel)
+ {
+@@ -1794,6 +1811,7 @@ static const struct v4l2_ioctl_ops imxcam_ioctl_ops = {
+ 	.vidioc_g_parm          = vidioc_g_parm,
+ 	.vidioc_s_parm          = vidioc_s_parm,
+ 
++	.vidioc_cropcap		= vidioc_cropcap,
+ 	.vidioc_g_selection     = vidioc_g_selection,
+ 	.vidioc_s_selection     = vidioc_s_selection,
+ 
+
+
+--------------050701020300060502050209--
