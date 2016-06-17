@@ -1,53 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.135]:51279 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752772AbcF2O0G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2016 10:26:06 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from muru.com ([72.249.23.125]:56590 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933404AbcFQKDL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jun 2016 06:03:11 -0400
+Date: Fri, 17 Jun 2016 03:03:07 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Kamil Debski <kamil@wypas.org>, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 3/3] [media] cec: add RC_CORE dependency
-Date: Wed, 29 Jun 2016 16:26:36 +0200
-Message-Id: <20160629142749.4125434-3-arnd@arndb.de>
-In-Reply-To: <20160629142749.4125434-1-arnd@arndb.de>
-References: <20160629142749.4125434-1-arnd@arndb.de>
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [RFC] [PATCH 0/3] media: an attempt to refresh omap1_camera
+ driver
+Message-ID: <20160617100307.GE22406@atomide.com>
+References: <1466097694-8660-1-git-send-email-jmkrzyszt@gmail.com>
+ <5763A114.2080309@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5763A114.2080309@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We cannot build the cec driver when the RC core is a module
-and cec is built-in:
+* Hans Verkuil <hverkuil@xs4all.nl> [160617 00:07]:
+> Hi Janusz,
+> 
+> On 06/16/2016 07:21 PM, Janusz Krzysztofik wrote:
+> > As requested by media subsystem maintainers, here is an attempt to 
+> > convert the omap1_camera driver to the vb2 framework. Also, conversion 
+> > to the dmaengine framework, long awaited by ARM/OMAP maintainers, is 
+> > done.
 
-drivers/staging/built-in.o: In function `cec_allocate_adapter':
-:(.text+0x134): undefined reference to `rc_allocate_device'
-drivers/staging/built-in.o: In function `cec_register_adapter':
-:(.text+0x304): undefined reference to `rc_register_device'
+Janusz, thanks for updating to the dmaengine :)
 
-This adds an explicit dependency to avoid this case. We still
-allow building when CONFIG_RC_CORE is disabled completely,
-as the driver has checks for this case itself.
+> > Next, I'm going to approach removal of soc-camera dependency. Please 
+> > let me know how much time I have for that, i.e., when the soc-camera
+> > framework is going to be depreciated.
+> 
+> Well, it is already deprecated (i.e. new drivers cannot use it), but it won't
+> be removed any time soon. There are still drivers depending on it, and some
+> aren't easy to rewrite.
+> 
+> I have to say that it is totally unexpected to see that this omap1 driver is still
+> used. In fact, we've already merged a patch that removed it for the upcoming
+> 4.8 kernel. Based on this new development I'll revert that for the omap1
+> driver.
+> 
+> Out of curiosity: is supporting the Amstrad Delta something you do as a hobby
+> or are there other reasons?
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/staging/media/cec/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+Hmm if that IP old phone works fine with mainline kernel, why not keep
+using it? :)
 
-diff --git a/drivers/staging/media/cec/Kconfig b/drivers/staging/media/cec/Kconfig
-index cd523590ea6f..b83b4d83946d 100644
---- a/drivers/staging/media/cec/Kconfig
-+++ b/drivers/staging/media/cec/Kconfig
-@@ -1,6 +1,7 @@
- config MEDIA_CEC
- 	tristate "CEC API (EXPERIMENTAL)"
- 	depends on MEDIA_SUPPORT
-+	depends on RC_CORE || !RC_CORE
- 	select MEDIA_CEC_EDID
- 	---help---
- 	  Enable the CEC API.
--- 
-2.9.0
+> A final note: once you've managed to drop the soc-camera dependency you should
+> run the v4l2-compliance test over the video node (https://git.linuxtv.org/v4l-utils.git/).
+> 
+> If that passes without failures, then this driver is in good shape and can be
+> moved out of staging again.
 
+Sounds good to me also, thanks guys.
+
+Tony
