@@ -1,73 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:56899 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752043AbcF2NVG (ORCPT
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:38645 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161071AbcFQPSW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2016 09:21:06 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [PATCH 14/15] lirc_dev: fix potential segfault
-Date: Wed, 29 Jun 2016 22:20:43 +0900
-Message-id: <1467206444-9935-15-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
-References: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
+	Fri, 17 Jun 2016 11:18:22 -0400
+Received: by mail-wm0-f50.google.com with SMTP id m124so4004245wme.1
+        for <linux-media@vger.kernel.org>; Fri, 17 Jun 2016 08:18:21 -0700 (PDT)
+Date: Fri, 17 Jun 2016 17:18:15 +0200
+From: Gary Bisson <gary.bisson@boundarydevices.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [19/38] ARM: dts: imx6-sabrelite: add video capture ports and
+ connections
+Message-ID: <20160617151814.GA16378@t450s.lan>
+References: <1465944574-15745-20-git-send-email-steve_longerbeam@mentor.com>
+ <20160616083231.GA6548@t450s.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160616083231.GA6548@t450s.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When opening or closing a lirc character device, the framework
-provides to the user the possibility to keep track of opening or
-closing of the device by calling two functions:
+Steve, All,
 
- - set_use_inc() when opening the device
- - set_use_dec() when closing the device
+On Thu, Jun 16, 2016 at 10:32:31AM +0200, Gary Bisson wrote:
+> Steve, All,
+> 
+> On Tue, Jun 14, 2016 at 03:49:15PM -0700, Steve Longerbeam wrote:
+> > Defines the host video capture device node and an OV5642 camera sensor
+> > node on i2c2. The host capture device connects to the OV5642 via the
+> > parallel-bus mux input on the ipu1_csi0_mux.
+> > 
+> > Note there is a pin conflict with GPIO6. This pin functions as a power
+> > input pin to the OV5642, but ENET requires it to wake-up the ARM cores
+> > on normal RX and TX packet done events (see 6261c4c8). So by default,
+> > capture is disabled, enable by uncommenting __OV5642_CAPTURE__ macro.
+> > Ethernet will still work just not quite as well.
+> 
+> Actually the following patch fixes this issue and has already been
+> applied on Shawn's tree:
+> https://patchwork.kernel.org/patch/9153523/
+> 
+> Also, this follow-up patch declared the HW workaround for SabreLite:
+> https://patchwork.kernel.org/patch/9153525/
+> 
+> So ideally, once those two patches land on your base tree, you could get
+> rid of the #define and remove the HW workaround declaration.
+> 
+> Finally, I'll test the series on Sabre-Lite this week.
 
-if those are not set by the lirc user, the system segfaults.
-Check the pointer value before calling the above functions.
+I've applied this series on top of Shawn tree (for-next branch) in order
+not to worry about the GPIO6 workaround.
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
----
- drivers/media/rc/lirc_dev.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+Although the camera seems to get enumerated properly, I can't seem to
+get anything from it. See log:
+http://pastebin.com/xnw1ujUq
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 0a3d65d..58dabdc 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -412,7 +412,10 @@ int lirc_unregister_driver(int minor)
- 			ir->d.name, ir->d.minor);
- 		wake_up_interruptible(&ir->buf->wait_poll);
- 		mutex_lock(&ir->irctl_lock);
--		ir->d.set_use_dec(ir->d.data);
-+
-+		if (ir->d.set_use_dec)
-+			ir->d.set_use_dec(ir->d.data);
-+
- 		module_put(cdev->owner);
- 		mutex_unlock(&ir->irctl_lock);
- 	} else {
-@@ -471,7 +474,8 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
- 	cdev = ir->cdev;
- 	if (try_module_get(cdev->owner)) {
- 		ir->open++;
--		retval = ir->d.set_use_inc(ir->d.data);
-+		if (ir->d.set_use_inc)
-+			retval = ir->d.set_use_inc(ir->d.data);
- 
- 		if (retval) {
- 			module_put(cdev->owner);
-@@ -512,7 +516,8 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
- 
- 	ir->open--;
- 	if (ir->attached) {
--		ir->d.set_use_dec(ir->d.data);
-+		if (ir->d.set_use_dec)
-+			ir->d.set_use_dec(ir->d.data);
- 		module_put(cdev->owner);
- 	} else {
- 		lirc_irctl_cleanup(ir);
--- 
-2.8.1
+In your cover letter, you said that you have not run through
+v4l2-compliance. How have you tested the capture?
 
+Also, why isn't the OV5640 MIPI camera declared on the SabreLite device
+tree?
+
+Let me know if I can help testing/updating things on the SabreLite.
+
+Regards,
+Gary
