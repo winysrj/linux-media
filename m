@@ -1,62 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:35591 "EHLO
-	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752793AbcFNWvK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 18:51:10 -0400
-Received: by mail-pf0-f193.google.com with SMTP id t190so301639pfb.2
-        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:10 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 08/38] gpu: ipu-v3: Add ipu_csi_set_src()
-Date: Tue, 14 Jun 2016 15:49:04 -0700
-Message-Id: <1465944574-15745-9-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from lists.s-osg.org ([54.187.51.154]:54412 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751309AbcFQNmv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jun 2016 09:42:51 -0400
+Subject: Re: [PATCH] media: fix media devnode ioctl/syscall and unregister
+ race
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <1465580243-7274-1-git-send-email-shuahkh@osg.samsung.com>
+ <20160617060843.GE24980@valkosipuli.retiisi.org.uk>
+Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <5763FE4C.3040007@osg.samsung.com>
+Date: Fri, 17 Jun 2016 07:42:36 -0600
+MIME-Version: 1.0
+In-Reply-To: <20160617060843.GE24980@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds ipu_csi_set_src() which is just a wrapper around
-ipu_set_csi_src_mux().
+On 06/17/2016 12:08 AM, Sakari Ailus wrote:
+> Hi Shuah,
+> 
+> On Fri, Jun 10, 2016 at 11:37:23AM -0600, Shuah Khan wrote:
+>> Media devnode open/ioctl could be in progress when media device unregister
+>> is initiated. System calls and ioctls check media device registered status
+>> at the beginning, however, there is a window where unregister could be in
+>> progress without changing the media devnode status to unregistered.
+>>
+>> process 1				process 2
+>> fd = open(/dev/media0)
+>> media_devnode_is_registered()
+>> 	(returns true here)
+>>
+>> 					media_device_unregister()
+>> 						(unregister is in progress
+>> 						and devnode isn't
+>> 						unregistered yet)
+>> 					...
+>> ioctl(fd, ...)
+>> __media_ioctl()
+>> media_devnode_is_registered()
+>> 	(returns true here)
+>> 					...
+>> 					media_devnode_unregister()
+>> 					...
+>> 					(driver releases the media device
+>> 					memory)
+>>
+>> media_device_ioctl()
+>> 	(By this point
+>> 	devnode->media_dev does not
+>> 	point to allocated memory.
+>> 	use-after free in in mutex_lock_nested)
+>>
+>> BUG: KASAN: use-after-free in mutex_lock_nested+0x79c/0x800 at addr
+>> ffff8801ebe914f0
+>>
+>> Fix it by clearing register bit when unregister starts to avoid the race.
+> 
+> Does this patch solve the problem? You'd have to take the mutex for the
+> duration of the IOCTL which I don't see the patch doing.
+> 
+> Instead of serialising operations using mutexes, I believe a proper fix for
+> this is to take a reference to the data structures required.
+> 
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/gpu/ipu-v3/ipu-csi.c | 8 ++++++++
- include/video/imx-ipu-v3.h   | 1 +
- 2 files changed, 9 insertions(+)
+It fixes the problem Mauro and I have seen. It closes the window enough
+to avoid problem. We have disconnected data structure issue as you pointed
+out. media devnode register/unregister are protected by media_devnode_lock
+and the graph is protected by graph_mutex. I avoided taking the mutex for
+the entire duration of the ioctl.
 
-diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
-index 06631ac..336dc06 100644
---- a/drivers/gpu/ipu-v3/ipu-csi.c
-+++ b/drivers/gpu/ipu-v3/ipu-csi.c
-@@ -609,6 +609,14 @@ int ipu_csi_set_skip_smfc(struct ipu_csi *csi, u32 skip,
- }
- EXPORT_SYMBOL_GPL(ipu_csi_set_skip_smfc);
- 
-+int ipu_csi_set_src(struct ipu_csi *csi, u32 vc, bool select_mipi_csi2)
-+{
-+	ipu_set_csi_src_mux(csi->ipu, csi->id, select_mipi_csi2);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_csi_set_src);
-+
- int ipu_csi_set_dest(struct ipu_csi *csi, enum ipu_csi_dest csi_dest)
- {
- 	unsigned long flags;
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 2302fc5..57b487d 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -301,6 +301,7 @@ int ipu_csi_set_mipi_datatype(struct ipu_csi *csi, u32 vc,
- 			      struct v4l2_mbus_framefmt *mbus_fmt);
- int ipu_csi_set_skip_smfc(struct ipu_csi *csi, u32 skip,
- 			  u32 max_ratio, u32 id);
-+int ipu_csi_set_src(struct ipu_csi *csi, u32 vc, bool select_mipi_csi2);
- int ipu_csi_set_dest(struct ipu_csi *csi, enum ipu_csi_dest csi_dest);
- int ipu_csi_enable(struct ipu_csi *csi);
- int ipu_csi_disable(struct ipu_csi *csi);
--- 
-1.9.1
+I think what you are suggesting is that the ioctl take a reference to
+media_device? One reason I avoided that is by doing that we will end up
+with 3 different objects with varied lifetimes dependent on each other.
+We have media_devnode and cdev dependency which handled by using devnode
+struct dev as cdev parent. It is possible to link media_device to devnode
+lifetime, by having media_ioctl or media_opne take reference to media_device.
+Is that what you have in mind?
+
+thanks,
+-- Shuah
 
