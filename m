@@ -1,60 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35154 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751312AbcFCGTd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2016 02:19:33 -0400
-Date: Fri, 3 Jun 2016 08:19:29 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH] device tree description for AD5820 camera auto-focus coil
-Message-ID: <20160603061929.GA3601@amd>
-References: <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
- <20160531213437.GA28397@amd>
- <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
- <20160601220840.GA21946@amd>
- <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
- <20160602193027.GB7984@amd>
- <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:38795 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750899AbcFQHNT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jun 2016 03:13:19 -0400
+Subject: Re: [PATCH 4/6] [media] s5p-jpeg: only fill driver's name in
+ capabilities driver field
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	linux-kernel@vger.kernel.org
+References: <1466113235-25909-1-git-send-email-javier@osg.samsung.com>
+ <1466113235-25909-5-git-send-email-javier@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5763A30A.5060201@xs4all.nl>
+Date: Fri, 17 Jun 2016 09:13:14 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
+In-Reply-To: <1466113235-25909-5-git-send-email-javier@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 2016-06-03 00:27:46, Sakari Ailus wrote:
-> On Thu, Jun 02, 2016 at 09:30:27PM +0200, Pavel Machek wrote:
-> > 
-> > Add documentation for ad5820 device tree binding.
-> > 
-> > Signed-off-by: Pavel Machek <pavel@denx.de>
+On 06/16/2016 11:40 PM, Javier Martinez Canillas wrote:
+> The driver fills in both the struct v4l2_capability driver and card fields
+> the same values, that is the driver's name plus the information if the dev
+> is a decoder or an encoder.
 > 
-> Thanks, Pavel!!
+> But the driver field has a fixed length of 16 bytes so the filled data is
+> truncated:
 > 
-> Can I pick the two patches (this one + the driver) or would you like to send
-> a pull request? In the latter case you can add:
-
-Yes please, pick up the two patches.
-
-Best regards,
-									Pavel
-
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Driver Info (not using libv4l2):
+>         Driver name   : s5p-jpeg decode
+>         Card type     : s5p-jpeg decoder
+>         Bus info      : platform:11f50000.jpeg
+>         Driver version: 4.7.0
 > 
+> Also, this field should only contain the driver's name so use just that.
+> The information if the device is a decoder or an encoder is in the card
+> type field anyways.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Thanks!
+
+Hans
+
+> ---
+> 
+>  drivers/media/platform/s5p-jpeg/jpeg-core.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> index e3ff3d4bd72e..f9fb52a53e79 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> @@ -1246,12 +1246,12 @@ static int s5p_jpeg_querycap(struct file *file, void *priv,
+>  	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+>  
+>  	if (ctx->mode == S5P_JPEG_ENCODE) {
+> -		strlcpy(cap->driver, S5P_JPEG_M2M_NAME " encoder",
+> +		strlcpy(cap->driver, S5P_JPEG_M2M_NAME,
+>  			sizeof(cap->driver));
+>  		strlcpy(cap->card, S5P_JPEG_M2M_NAME " encoder",
+>  			sizeof(cap->card));
+>  	} else {
+> -		strlcpy(cap->driver, S5P_JPEG_M2M_NAME " decoder",
+> +		strlcpy(cap->driver, S5P_JPEG_M2M_NAME,
+>  			sizeof(cap->driver));
+>  		strlcpy(cap->card, S5P_JPEG_M2M_NAME " decoder",
+>  			sizeof(cap->card));
+> 
