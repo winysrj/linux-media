@@ -1,105 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:33921 "EHLO
-	mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153AbcFNIgB (ORCPT
+Received: from nasmtp01.atmel.com ([192.199.1.245]:39997 "EHLO
+	ussmtp01.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752337AbcFQJHl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 04:36:01 -0400
-Received: by mail-lf0-f67.google.com with SMTP id l184so3424537lfl.1
-        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 01:36:00 -0700 (PDT)
-Date: Tue, 14 Jun 2016 10:35:55 +0200
-From: Henrik Austad <henrik@austad.us>
-To: John Fastabend <john.fastabend@gmail.com>
-Cc: Richard Cochran <richardcochran@gmail.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@vger.kernel.org, netdev@vger.kernel.org,
-	henrik@austad.us, Arnd Bergmann <arnd@linaro.org>
-Subject: Re: [very-RFC 0/8] TSN driver for the kernel
-Message-ID: <20160614083555.GA21689@sisyphus.home.austad.us>
-References: <1465686096-22156-1-git-send-email-henrik@austad.us>
- <20160613114713.GA9544@localhost.localdomain>
- <575ED7BC.4000803@gmail.com>
+	Fri, 17 Jun 2016 05:07:41 -0400
+From: Songjun Wu <songjun.wu@atmel.com>
+To: <laurent.pinchart@ideasonboard.com>, <nicolas.ferre@atmel.com>,
+	<boris.brezillon@free-electrons.com>,
+	<alexandre.belloni@free-electrons.com>, <robh@kernel.org>
+CC: <linux-arm-kernel@lists.infradead.org>,
+	Songjun Wu <songjun.wu@atmel.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	=?UTF-8?q?Niklas=20S=C3=83=C2=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	=?UTF-8?q?Richard=20R=C3=B6jfors?= <richard@puffinpack.se>,
+	Benoit Parrot <bparrot@ti.com>,
+	Kumar Gala <galak@codeaurora.org>,
+	<linux-kernel@vger.kernel.org>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	<devicetree@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mark Rutland <mark.rutland@arm.com>,
+	<linux-media@vger.kernel.org>,
+	Simon Horman <horms+renesas@verge.net.au>
+Subject: [PATCH v5 0/2] [media] atmel-isc: add driver for Atmel ISC
+Date: Fri, 17 Jun 2016 16:57:12 +0800
+Message-ID: <1466153854-30272-1-git-send-email-songjun.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LQksG6bCIzRHxTLp"
-Content-Disposition: inline
-In-Reply-To: <575ED7BC.4000803@gmail.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The Image Sensor Controller driver includes two parts.
+1) Driver code to implement the ISC function.
+2) Device tree binding documentation, it describes how
+   to add the ISC in device tree.
 
---LQksG6bCIzRHxTLp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Changes in v5:
+- Modify the macro definition and the related code.
+- Add clock names.
 
-On Mon, Jun 13, 2016 at 08:56:44AM -0700, John Fastabend wrote:
-> On 16-06-13 04:47 AM, Richard Cochran wrote:
-> > [...]
-> > Here is what is missing to support audio TSN:
-> >=20
-> > * User Space
-> >=20
-> > 1. A proper userland stack for AVDECC, MAAP, FQTSS, and so on.  The
-> >    OpenAVB project does not offer much beyond simple examples.
-> >=20
-> > 2. A user space audio application that puts it all together, making
-> >    use of the services in #1, the linuxptp gPTP service, the ALSA
-> >    services, and the network connections.  This program will have all
-> >    the knowledge about packet formats, AV encodings, and the local HW
-> >    capabilities.  This program cannot yet be written, as we still need
-> >    some kernel work in the audio and networking subsystems.
-> >=20
-> > * Kernel Space
-> >=20
-> > 1. Providing frames with a future transmit time.  For normal sockets,
-> >    this can be in the CMESG data.  For mmap'ed buffers, we will need a
-> >    new format.  (I think Arnd is working on a new layout.)
-> >=20
-> > 2. Time based qdisc for transmitted frames.  For MACs that support
-> >    this (like the i210), we only have to place the frame into the
-> >    correct queue.  For normal HW, we want to be able to reserve a time
-> >    window in which non-TSN frames are blocked.  This is some work, but
-> >    in the end it should be a generic solution that not only works
-> >    "perfectly" with TSN HW but also provides best effort service using
-> >    any NIC.
-> >=20
->=20
-> When I looked at this awhile ago I convinced myself that it could fit
-> fairly well into the DCB stack (DCB is also part of 802.1Q). A lot of
-> the traffic class to queue mappings and priories could be handled here.
-> It might be worth taking a look at ./net/sched/mqprio.c and ./net/dcb/.
+Changes in v4:
+- Modify the isc clock code since the dt is changed.
+- Remove the isc clock nodes.
 
-Interesting, I'll have a look at dcb and mqprio, I'm not familiar with=20
-those systems. Thanks for pointing those out!
+Changes in v3:
+- Add pm runtime feature.
+- Modify the isc clock code since the dt is changed.
+- Remove the 'atmel,sensor-preferred'.
+- Modify the isc clock node according to the Rob's remarks.
 
-I hope that the complexity doesn't run crazy though, TSN is not aimed at=20
-datacentra, a lot of the endpoints are going to be embedded devices,=20
-introducing a massive stack for handling every eventuality in 802.1q is=20
-going to be counter productive.
+Changes in v2:
+- Add "depends on COMMON_CLK" and "VIDEO_V4L2_SUBDEV_API"
+  in Kconfig file.
+- Correct typos and coding style according to Laurent's remarks
+- Delete the loop while in 'isc_clk_enable' function.
+- Replace 'hsync_active', 'vsync_active' and 'pclk_sample'
+  with 'pfe_cfg0' in struct isc_subdev_entity.
+- Add the code to support VIDIOC_CREATE_BUFS in
+  'isc_queue_setup' function.
+- Invoke isc_config to configure register in
+  'isc_start_streaming' function.
+- Add the struct completion 'comp' to synchronize with
+  the frame end interrupt in 'isc_stop_streaming' function.
+- Check the return value of the clk_prepare_enable
+  in 'isc_open' function.
+- Set the default format in 'isc_open' function.
+- Add an exit condition in the loop while in 'isc_config'.
+- Delete the hardware setup operation in 'isc_set_format'.
+- Refuse format modification during streaming
+  in 'isc_s_fmt_vid_cap' function.
+- Invoke v4l2_subdev_alloc_pad_config to allocate and
+  initialize the pad config in 'isc_async_complete' function.
+- Remove the '.owner  = THIS_MODULE,' in atmel_isc_driver.
+- Replace the module_platform_driver_probe() with
+  module_platform_driver().
+- Remove the unit address of the endpoint.
+- Add the unit address to the clock node.
+- Avoid using underscores in node names.
+- Drop the "0x" in the unit address of the i2c node.
+- Modify the description of 'atmel,sensor-preferred'.
+- Add the description for the ISC internal clock.
 
-> Unfortunately I didn't get too far along but we probably don't want
-> another mechanism to map hw queues/tcs/etc if the existing interfaces
-> work or can be extended to support this.
+Songjun Wu (2):
+  [media] atmel-isc: add the Image Sensor Controller code
+  [media] atmel-isc: DT binding for Image Sensor Controller driver
 
-Sure, I get that, as long as the complexity for setting up a link doesn't=
-=20
-go through the roof :)
+ .../devicetree/bindings/media/atmel-isc.txt        |   64 +
+ drivers/media/platform/Kconfig                     |    1 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/atmel/Kconfig               |    9 +
+ drivers/media/platform/atmel/Makefile              |    1 +
+ drivers/media/platform/atmel/atmel-isc-regs.h      |  165 ++
+ drivers/media/platform/atmel/atmel-isc.c           | 1569 ++++++++++++++++++++
+ 7 files changed, 1811 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
+ create mode 100644 drivers/media/platform/atmel/Kconfig
+ create mode 100644 drivers/media/platform/atmel/Makefile
+ create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
+ create mode 100644 drivers/media/platform/atmel/atmel-isc.c
 
-Thanks!
+-- 
+2.7.4
 
---=20
-Henrik Austad
-
---LQksG6bCIzRHxTLp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAldfwesACgkQ6k5VT6v45lm4UgCgx5tJr0oxqxBs3gOFge4/WGxn
-2OYAoPFryz9agirAG2n5bXTRHKBQbDo3
-=Nu4n
------END PGP SIGNATURE-----
-
---LQksG6bCIzRHxTLp--
