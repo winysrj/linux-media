@@ -1,82 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56033 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751316AbcFRPC7 (ORCPT
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:51392 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750751AbcFQOQh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jun 2016 11:02:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv18 02/15] rc: Add HDMI CEC protocol handling
-Date: Sat, 18 Jun 2016 17:02:35 +0200
-Message-Id: <1466262168-12805-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
-References: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 17 Jun 2016 10:16:37 -0400
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
+Subject: [PATCH v4 0/9] Output raw touch data via V4L2
+Date: Fri, 17 Jun 2016 15:16:19 +0100
+Message-Id: <1466172988-3698-1-git-send-email-nick.dyer@itdev.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+This is a series of patches to add output of raw touch diagnostic data via V4L2
+to the Atmel maXTouch and Synaptics RMI4 drivers.
 
-Add handling of remote control events coming from the HDMI CEC bus
-and the new protocol required for that.
+It's a rewrite of the previous implementation which output via debugfs: it now
+uses a V4L2 device in a similar way to the sur40 driver.
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/rc/rc-main.c | 1 +
- include/media/rc-map.h     | 5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+We have a utility which can read the data and display it in a useful format:
+    https://github.com/ndyer/heatmap/commits/heatmap-v4l
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 7dfc7c2..c717eaf 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -804,6 +804,7 @@ static const struct {
- 	{ RC_BIT_SHARP,		"sharp",	"ir-sharp-decoder"	},
- 	{ RC_BIT_MCE_KBD,	"mce_kbd",	"ir-mce_kbd-decoder"	},
- 	{ RC_BIT_XMP,		"xmp",		"ir-xmp-decoder"	},
-+	{ RC_BIT_CEC,		"cec",		NULL			},
- };
- 
- /**
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index 7844e98..6e6557d 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -31,6 +31,7 @@ enum rc_type {
- 	RC_TYPE_RC6_MCE		= 16,	/* MCE (Philips RC6-6A-32 subtype) protocol */
- 	RC_TYPE_SHARP		= 17,	/* Sharp protocol */
- 	RC_TYPE_XMP		= 18,	/* XMP protocol */
-+	RC_TYPE_CEC		= 19,	/* CEC protocol */
- };
- 
- #define RC_BIT_NONE		0ULL
-@@ -53,6 +54,7 @@ enum rc_type {
- #define RC_BIT_RC6_MCE		(1ULL << RC_TYPE_RC6_MCE)
- #define RC_BIT_SHARP		(1ULL << RC_TYPE_SHARP)
- #define RC_BIT_XMP		(1ULL << RC_TYPE_XMP)
-+#define RC_BIT_CEC		(1ULL << RC_TYPE_CEC)
- 
- #define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | \
- 			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
-@@ -61,7 +63,7 @@ enum rc_type {
- 			 RC_BIT_NEC | RC_BIT_SANYO | RC_BIT_MCE_KBD | \
- 			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
- 			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
--			 RC_BIT_XMP)
-+			 RC_BIT_XMP | RC_BIT_CEC)
- 
- 
- #define RC_SCANCODE_UNKNOWN(x)			(x)
-@@ -123,6 +125,7 @@ void rc_map_init(void);
- #define RC_MAP_BEHOLD_COLUMBUS           "rc-behold-columbus"
- #define RC_MAP_BEHOLD                    "rc-behold"
- #define RC_MAP_BUDGET_CI_OLD             "rc-budget-ci-old"
-+#define RC_MAP_CEC                       "rc-cec"
- #define RC_MAP_CINERGY_1400              "rc-cinergy-1400"
- #define RC_MAP_CINERGY                   "rc-cinergy"
- #define RC_MAP_DELOCK_61959              "rc-delock-61959"
--- 
-2.8.1
+These patches are also available from
+    https://github.com/ndyer/linux/commits/v4l-touch-2016-06-17
+
+Changes in v4:
+- Address nits from the input side in atmel_mxt_ts patches (Dmitry Torokhov)
+- Add Synaptics RMI4 F54 support patch
+
+Changes in v3:
+- Address V4L2 review comments from Hans Verkuil
+- Run v4l-compliance and fix all issues - needs minor patch here:
+  https://github.com/ndyer/v4l-utils/commit/cf50469773f
+
+Changes in v2:
+- Split pixfmt changes into separate commit and add DocBook
+- Introduce VFL_TYPE_TOUCH_SENSOR and /dev/v4l-touch
+- Remove "single node" support for now, it may be better to treat it as metadata later
+- Explicitly set VFL_DIR_RX
+- Fix Kconfig
 
