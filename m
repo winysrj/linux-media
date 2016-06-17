@@ -1,99 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60776 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751871AbcF0L0f (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:50759 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752024AbcFQQVM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 07:26:35 -0400
-Subject: Re: [PATCH v5 0/9] Output raw touch data via V4L2
-To: Nick Dyer <nick.dyer@itdev.co.uk>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>
-References: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
+	Fri, 17 Jun 2016 12:21:12 -0400
+Subject: Re: [PATCH v2.1 5/5] media: Support variable size IOCTL arguments
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+References: <1462360855-23354-6-git-send-email-sakari.ailus@linux.intel.com>
+ <1462403217-4584-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <30c68dab-b970-03d5-797b-3376d9d0dc10@xs4all.nl>
-Date: Mon, 27 Jun 2016 13:26:28 +0200
+Message-ID: <57642371.4010400@xs4all.nl>
+Date: Fri, 17 Jun 2016 18:21:05 +0200
 MIME-Version: 1.0
-In-Reply-To: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
+In-Reply-To: <1462403217-4584-1-git-send-email-sakari.ailus@linux.intel.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/23/2016 12:08 AM, Nick Dyer wrote:
-> This is a series of patches to add output of raw touch diagnostic data via V4L2
-> to the Atmel maXTouch and Synaptics RMI4 drivers.
+On 05/05/2016 01:06 AM, Sakari Ailus wrote:
+> Instead of checking for a strict size for the IOCTL arguments, place
+> minimum and maximum limits.
 > 
-> It's a rewrite of the previous implementation which output via debugfs: it now
-> uses a V4L2 device in a similar way to the sur40 driver.
+> As an additional bonus, IOCTL handlers will be able to check whether the
+> caller actually set (using the argument size) the field vs. assigning it
+> to zero. Separate macro can be provided for that.
 > 
-> We have a utility which can read the data and display it in a useful format:
->     https://github.com/ndyer/heatmap/commits/heatmap-v4l
+> This will be easier for applications as well since there is no longer the
+> problem of setting the reserved fields zero, or at least it is a lesser
+> problem.
 > 
-> These patches are also available from
->     https://github.com/ndyer/linux/commits/v4l-touch-2016-06-22
-> 
-> Changes in v5 (Hans Verkuil review):
-> - Update v4l2-core:
->   - Add VFL_TYPE_TOUCH, V4L2_BUF_TYPE_TOUCH_CAPTURE and V4L2_CAP_TOUCH
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-The use of V4L2_CAP_TOUCH and V4L2_BUF_TYPE_TOUCH_CAPTURE is very inconsistent.
-What is the rationale of adding V4L2_BUF_TYPE_TOUCH_CAPTURE? I can't remember
-asking for it.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-And wouldn't the use of V4L2_BUF_TYPE_TOUCH_CAPTURE break userspace for sur40?
+I think it is important to have exact matches instead of using a min-max range.
+Issues related to alignment problems on different architectures (32/64 bits,
+how padding in struct is handled, etc.) that could cause a different size should
+be caught by the validation check. Any size other than this discrete list of
+allowed sizes is an indication that something is seriously wrong on the kernel or
+userspace side.
 
-I'm ambiguous towards having a V4L2_BUF_TYPE_TOUCH_CAPTURE, to be honest.
-
-I would also recommend renaming V4L2_CAP_TOUCH to V4L2_CAP_TOUCH_CAPTURE.
-
-I can imagine an embedded usb gadget device that outputs touch data to a PC.
+If we get ioctls that have a variable-sized array at the end, then that should
+be signaled differently in the media_ioctl_info struct. We'll handle that when
+that happens.
 
 Regards,
 
 	Hans
 
->   - Change V4L2_INPUT_TYPE_TOUCH_SENSOR to V4L2_INPUT_TYPE_TOUCH
->   - Improve DocBook documentation
->   - Add FMT definitions for touch data
->   - Note this will need the latest version of the heatmap util
-> - Synaptics RMI4 driver:
->   - Remove some less important non full frame report types
->   - Switch report type names to const char * array
->   - Move a static array to inside context struct
-> - Split sur40 changes to a separate commit
+> ---
+> since v2:
 > 
-> Changes in v4:
-> - Address nits from the input side in atmel_mxt_ts patches (Dmitry Torokhov)
-> - Add Synaptics RMI4 F54 support patch
+> - Use a list of supported argument sizes instead of a minimum value.
 > 
-> Changes in v3:
-> - Address V4L2 review comments from Hans Verkuil
-> - Run v4l-compliance and fix all issues - needs minor patch here:
->   https://github.com/ndyer/v4l-utils/commit/cf50469773f
+>  drivers/media/media-device.c | 52 +++++++++++++++++++++++++++++++++++++++-----
+>  1 file changed, 47 insertions(+), 5 deletions(-)
 > 
-> Changes in v2:
-> - Split pixfmt changes into separate commit and add DocBook
-> - Introduce VFL_TYPE_TOUCH_SENSOR and /dev/v4l-touch
-> - Remove "single node" support for now, it may be better to treat it as
->   metadata later
-> - Explicitly set VFL_DIR_RX
-> - Fix Kconfig
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index e88e6d3..5cfeccf 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -393,32 +393,71 @@ static long copy_arg_to_user_nop(void __user *uarg, void *karg,
+>  /* Do acquire the graph mutex */
+>  #define MEDIA_IOC_FL_GRAPH_MUTEX	BIT(0)
+>  
+> -#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
+> +#define MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz, from_user, to_user)	\
+>  	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
+>  		.cmd = MEDIA_IOC_##__cmd,				\
+>  		.fn = (long (*)(struct media_device *, void *))func,	\
+>  		.flags = fl,						\
+> +		.alt_arg_sizes = alt_sz,				\
+>  		.arg_from_user = from_user,				\
+>  		.arg_to_user = to_user,					\
+>  	}
+>  
+> -#define MEDIA_IOC(__cmd, func, fl)					\
+> -	MEDIA_IOC_ARG(__cmd, func, fl, copy_arg_from_user, copy_arg_to_user)
+> +#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
+> +	MEDIA_IOC_SZ_ARG(__cmd, func, fl, NULL, from_user, to_user)
+> +
+> +#define MEDIA_IOC_SZ(__cmd, func, fl, alt_sz)			\
+> +	MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz,		\
+> +			 copy_arg_from_user, copy_arg_to_user)
+> +
+> +#define MEDIA_IOC(__cmd, func, fl)				\
+> +	MEDIA_IOC_ARG(__cmd, func, fl,				\
+> +		      copy_arg_from_user, copy_arg_to_user)
+>  
+>  /* the table is indexed by _IOC_NR(cmd) */
+>  struct media_ioctl_info {
+>  	unsigned int cmd;
+>  	long (*fn)(struct media_device *dev, void *arg);
+>  	unsigned short flags;
+> +	const unsigned short *alt_arg_sizes;
+>  	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
+>  	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
+>  };
+>  
+> +#define MASK_IOC_SIZE(cmd) \
+> +	((cmd) & ~(_IOC_SIZEMASK << _IOC_SIZESHIFT))
+> +
+>  static inline long is_valid_ioctl(const struct media_ioctl_info *info,
+>  				  unsigned int len, unsigned int cmd)
+>  {
+> -	return (_IOC_NR(cmd) >= len
+> -		|| info[_IOC_NR(cmd)].cmd != cmd) ? -ENOIOCTLCMD : 0;
+> +	const unsigned short *alt_arg_sizes;
+> +
+> +	if (unlikely(_IOC_NR(cmd) >= len))
+> +		return -ENOIOCTLCMD;
+> +
+> +	info += _IOC_NR(cmd);
+> +
+> +	if (info->cmd == cmd)
+> +		return 0;
+> +
+> +	/*
+> +	 * Verify that the size-dependent patch of the IOCTL command
+> +	 * matches and that the size does not exceed the principal
+> +	 * argument size.
+> +	 */
+> +	if (unlikely(MASK_IOC_SIZE(info->cmd) != MASK_IOC_SIZE(cmd)
+> +		     || _IOC_SIZE(info->cmd) < _IOC_SIZE(cmd)))
+> +		return -ENOIOCTLCMD;
+> +
+> +	alt_arg_sizes = info->alt_arg_sizes;
+> +	if (unlikely(!alt_arg_sizes))
+> +		return -ENOIOCTLCMD;
+> +
+> +	for (; *alt_arg_sizes; alt_arg_sizes++)
+> +		if (_IOC_SIZE(cmd) == *alt_arg_sizes)
+> +			return 0;
+> +
+> +	return -ENOIOCTLCMD;
+>  }
+>  
+>  static long __media_device_ioctl(
+> @@ -445,6 +484,9 @@ static long __media_device_ioctl(
+>  
+>  	info->arg_from_user(karg, arg, cmd);
+>  
+> +	/* Set the rest of the argument struct to zero */
+> +	memset(karg + _IOC_SIZE(cmd), 0, _IOC_SIZE(info->cmd) - _IOC_SIZE(cmd));
+> +
+>  	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
+>  		mutex_lock(&dev->graph_mutex);
+>  
 > 
