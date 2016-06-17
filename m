@@ -1,187 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50100 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751562AbcFPPFE convert rfc822-to-8bit (ORCPT
+Received: from mail-lf0-f50.google.com ([209.85.215.50]:35502 "EHLO
+	mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754347AbcFQIAC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2016 11:05:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-	<niklas.soderlund@ragnatech.se>
-Cc: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
-	hverkuil@xs4all.nl, linux-renesas-soc@vger.kernel.org,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	Niklas =?ISO-8859-1?Q?S=F6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: Re: [PATCH 3/8] media: rcar-vin: add DV timings support
-Date: Thu, 16 Jun 2016 18:05:14 +0300
-Message-ID: <1536149.DWb34yPSHI@avalon>
-In-Reply-To: <1464203409-1279-4-git-send-email-niklas.soderlund@ragnatech.se>
-References: <1464203409-1279-1-git-send-email-niklas.soderlund@ragnatech.se> <1464203409-1279-4-git-send-email-niklas.soderlund@ragnatech.se>
+	Fri, 17 Jun 2016 04:00:02 -0400
+Received: by mail-lf0-f50.google.com with SMTP id l188so52862714lfe.2
+        for <linux-media@vger.kernel.org>; Fri, 17 Jun 2016 01:00:01 -0700 (PDT)
+Date: Fri, 17 Jun 2016 10:59:50 +0300
+From: Pekka Paalanen <ppaalanen@gmail.com>
+To: Rob Clark <robdclark@gmail.com>
+Cc: Tom Cooksey <tom.cooksey@arm.com>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"mesa-dev@lists.freedesktop.org" <mesa-dev@lists.freedesktop.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Daniel Stone <daniel@fooishbar.org>,
+	Emil Velikov <emil.velikov@collabora.co.uk>,
+	Louis-Francis =?UTF-8?B?UmF0dMOp?= =?UTF-8?B?LUJvdWxpYW5uZQ==?=
+	<louis-francis.ratte-boulianne@collabora.co.uk>
+Subject: Re: [Mesa-dev] [RFC] New dma_buf -> EGLImage EGL extension - Final
+ spec published!
+Message-ID: <20160617105950.1a909309@eldfell>
+In-Reply-To: <CAF6AEGtG5h3z6b=+T1pSBpxSDS6r9Jz7UnaoGN4tVgU7RUZg6Q@mail.gmail.com>
+References: <512b52ab.02de420a.7040.7417SMTPIN_ADDED_BROKEN@mx.google.com>
+	<CAF6AEGtG5h3z6b=+T1pSBpxSDS6r9Jz7UnaoGN4tVgU7RUZg6Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/lg0z1_94g+Ch.wjxO8LtS__"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Niklas,
+--Sig_/lg0z1_94g+Ch.wjxO8LtS__
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Thank you for the patch.
+On Thu, 16 Jun 2016 10:40:51 -0400
+Rob Clark <robdclark@gmail.com> wrote:
 
-On Wednesday 25 May 2016 21:10:04 Niklas Söderlund wrote:
-> From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> 
-> Adds ioctls DV_TIMINGS_CAP, ENUM_DV_TIMINGS, G_DV_TIMINGS, S_DV_TIMINGS,
-> and QUERY_DV_TIMINGS.
-> 
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 82 ++++++++++++++++++++++++++
->  1 file changed, 82 insertions(+)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index 3788f8a..10a5c10 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -400,6 +400,10 @@ static int rvin_enum_input(struct file *file, void
-> *priv,
-> 
->  	i->type = V4L2_INPUT_TYPE_CAMERA;
->  	i->std = vin->vdev.tvnorms;
-> +
-> +	if (v4l2_subdev_has_op(sd, pad, dv_timings_cap))
-> +		i->capabilities = V4L2_IN_CAP_DV_TIMINGS;
-> +
->  	strlcpy(i->name, "Camera", sizeof(i->name));
-> 
->  	return 0;
-> @@ -478,6 +482,78 @@ static int rvin_subscribe_event(struct v4l2_fh *fh,
->  	return v4l2_ctrl_subscribe_event(fh, sub);
->  }
-> 
-> +static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
-> +				    struct v4l2_enum_dv_timings *timings)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	struct v4l2_subdev *sd = vin_to_source(vin);
-> +	int pad, ret;
+> So, if we wanted to extend this to support the fourcc-modifiers that
+> we have on the kernel side for compressed/tiled/etc formats, what
+> would be the right approach?
+>=20
+> A new version of the existing extension or a new
+> EGL_EXT_image_dma_buf_import2 extension, or ??
 
-pad can't be negative, you can make it an unsigned int.
+Hi Rob,
 
-	unsigned int pad = timings->pad;
-	int ret;
+there are actually several things it might be nice to add:
 
-	timings->pad = vin->src_pad_idx;
+- a fourth plane, to match what DRM AddFB2 supports
 
-> +
-> +	pad = timings->pad;
-> +	timings->pad = vin->src_pad_idx;
-> +
-> +	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
-> +
-> +	timings->pad = pad;
-> +
-> +	return ret;
-> +}
-> +
-> +static int rvin_s_dv_timings(struct file *file, void *priv_fh,
-> +				    struct v4l2_dv_timings *timings)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	struct v4l2_subdev *sd = vin_to_source(vin);
-> +	int err;
+- the 64-bit fb modifiers
 
-The driver uses ret instead of err, let's keep it that way.
+- queries for which pixel formats are supported by EGL, so a display
+  server can tell the applications that before the application goes and
+  tries with a random bunch of them, shooting in the dark
 
-> +
-> +	err = v4l2_subdev_call(sd,
-> +			video, s_dv_timings, timings);
+- queries for which modifiers are supported for each pixel format, ditto
 
-No need for a line break.
+I discussed these with Emil in the past, and it seems an appropriate
+approach might be the following.
 
-> +	if (!err) {
+Adding the 4th plane can be done as revising the existing
+EGL_EXT_image_dma_buf_import extension. The plane count is tied to
+pixel formats (and modifiers?), so the user does not need to know
+specifically whether the EGL implementation could handle a 4th plane or
+not. It is implied by the pixel format.
 
-I'd write this
+Adding the fb modifiers needs to be a new extension, so that users can
+tell if they are supported or not. This is to avoid the following false
+failure: if user assumes modifiers are always supported, it will (may?)
+provide zero modifiers explicitly. If EGL implementation does not
+handle modifiers this would be rejected as unrecognized attributes,
+while if the zero modifiers were not given explicitly, everything would
+just work.
 
-	if (ret)
-		return ret;
+The queries obviously(?) need a new extension. It might make sense
+to bundle both modifier support and the queries in the same new
+extension.
 
-(with a return 0; at the end of the function) to lower the indentation level 
-of the code below.
+We have some rough old WIP code at
+https://git.collabora.com/cgit/user/lfrb/mesa.git/log/?h=3DT1410-modifiers
+https://git.collabora.com/cgit/user/lfrb/egl-specs.git/log/?h=3DT1410
 
-> +		vin->source.width = timings->bt.width;
-> +		vin->source.height = timings->bt.height;
-> +		vin->format.width = timings->bt.width;
-> +		vin->format.height = timings->bt.height;
-> +	}
-> +	return err;
-> +}
-> +
-> +static int rvin_g_dv_timings(struct file *file, void *priv_fh,
-> +				    struct v4l2_dv_timings *timings)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	struct v4l2_subdev *sd = vin_to_source(vin);
-> +
-> +	return v4l2_subdev_call(sd,
-> +			video, g_dv_timings, timings);
 
-No need for a line break.
+> On Mon, Feb 25, 2013 at 6:54 AM, Tom Cooksey <tom.cooksey@arm.com> wrote:
+> > Hi All,
+> >
+> > The final spec has had enum values assigned and been published on Khron=
+os:
+> >
+> > http://www.khronos.org/registry/egl/extensions/EXT/EGL_EXT_image_dma_bu=
+f_import.txt
+> >
+> > Thanks to all who've provided input.
 
-> +}
-> +
-> +static int rvin_query_dv_timings(struct file *file, void *priv_fh,
-> +				    struct v4l2_dv_timings *timings)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	struct v4l2_subdev *sd = vin_to_source(vin);
-> +
-> +	return v4l2_subdev_call(sd,
-> +			video, query_dv_timings, timings);
+May I also pull your attention to a detail with the existing spec and
+Mesa behaviour I am asking about in
+https://lists.freedesktop.org/archives/mesa-dev/2016-June/120249.html
+"What is EGL_EXT_image_dma_buf_import image orientation as a GL texture?"
+Doing a dmabuf import seems to imply an y-flip AFAICT.
 
-No need for a line break.
 
-> +}
-> +
-> +static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
-> +				    struct v4l2_dv_timings_cap *cap)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	struct v4l2_subdev *sd = vin_to_source(vin);
-> +	int pad, ret;
+Thanks,
+pq
 
-Same comment as above about pad not being negative.
+--Sig_/lg0z1_94g+Ch.wjxO8LtS__
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-> +
-> +	pad = cap->pad;
-> +	cap->pad = vin->src_pad_idx;
-> +
-> +	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
-> +
-> +	cap->pad = pad;
-> +
-> +	return ret;
-> +}
-> +
->  static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
->  	.vidioc_querycap		= rvin_querycap,
->  	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
-> @@ -494,6 +570,12 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
->  	.vidioc_g_input			= rvin_g_input,
->  	.vidioc_s_input			= rvin_s_input,
-> 
-> +	.vidioc_dv_timings_cap		= rvin_dv_timings_cap,
-> +	.vidioc_enum_dv_timings		= rvin_enum_dv_timings,
-> +	.vidioc_g_dv_timings		= rvin_g_dv_timings,
-> +	.vidioc_s_dv_timings		= rvin_s_dv_timings,
-> +	.vidioc_query_dv_timings	= rvin_query_dv_timings,
-> +
->  	.vidioc_querystd		= rvin_querystd,
->  	.vidioc_g_std			= rvin_g_std,
->  	.vidioc_s_std			= rvin_s_std,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
--- 
-Regards,
+iQIVAwUBV2Ot/SNf5bQRqqqnAQjM3g//c7NZh/CwNZiJMeC5SxCHqw+ubv114O05
+Wqi83ESgDyIO+s0+eXdjkGw9UvfQiQOBRryrPOJtVI6psfkYHUMaLqh20jFxX5Di
+ThufCHZMaq6IFIBAuIVR0++5AMLHS+BM9a5l5rebx4ZkKKKOOORqL4wLGdRQT3Vl
+t36eJ2kyLJXjJ8yIIV482M65Gf/DYpNz3kADCYCL/IwwqGjXzV/R6ejkqF0K31Q+
+oh1XMAJIs8zWumfXqv2qfgKq2JmnHYA+FkqV4akJ1cP23oPmx+81Gghr7vbHSnpE
+Y4Wuh4KeRge7QSGPLLP4MEPiInzKUf//ZQZxRsaflUahgmMgsh7mTNLNQR/nSCSQ
+2RMQd0DQAvtWWmNejub8DcXSoHHryBEpepqjWzeIuUTk+WbQdVrJBr2XuyfNZKxg
+RdXMUH08xkU/FtOPvqxCAYcqUmS1B9kJUw+4lhuzCbDBA7+45i+FfxHW5Wt6/ye4
+T3ms9g89hTxh0YIFsTI1Bzgni9HXys2QFruWrD/O9Xm0qKR5Rr4HgeXrbS0xKJ/V
+RMoRSNEkdd8blk7HMs9GqoTQQ1gTDpiENconiE8aTGAqnkRxucy410erUAYSOV6q
+wMFRWCe5p04hrdP58NlBTUUKnO4zcNkNZl8wHRMXTg8gbv+b2c/yEsQ5jL6IWkI3
+BMnMDsUs7NY=
+=VPBE
+-----END PGP SIGNATURE-----
 
-Laurent Pinchart
-
+--Sig_/lg0z1_94g+Ch.wjxO8LtS__--
