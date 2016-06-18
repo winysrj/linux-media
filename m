@@ -1,81 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:48532 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751907AbcFOSll (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2016 14:41:41 -0400
-MIME-Version: 1.0
-In-Reply-To: <20160615043116.GG26360@valkosipuli.retiisi.org.uk>
-References: <1465659593-16858-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1465659593-16858-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160614220517.GA23504@rob-hp-laptop> <20160615043116.GG26360@valkosipuli.retiisi.org.uk>
-From: Rob Herring <robh@kernel.org>
-Date: Wed, 15 Jun 2016 13:41:18 -0500
-Message-ID: <CAL_JsqKDxnc-pTOcdbL4iWFB9qU5924N0TV0NFw=A-zGN8boXQ@mail.gmail.com>
-Subject: Re: [PATCH v3 2/2] media: et8ek8: Add documentation
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58035 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751597AbcFRPit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Jun 2016 11:38:49 -0400
+Date: Sat, 18 Jun 2016 17:38:46 +0200
+From: Pavel Machek <pavel@ucw.cz>
 To: Sakari Ailus <sakari.ailus@iki.fi>
 Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	Sebastian Reichel <sre@kernel.org>,
-	=?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>,
-	Pavel Machek <pavel@ucw.cz>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	pali.rohar@gmail.com, sre@kernel.org,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH] userspace API definitions for auto-focus coil
+Message-ID: <20160618153846.GA15662@amd>
+References: <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
+ <20160602193027.GB7984@amd>
+ <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
+ <20160605190716.GA11321@amd>
+ <575512E5.5030000@gmail.com>
+ <20160611220654.GC26360@valkosipuli.retiisi.org.uk>
+ <20160612084811.GA27446@amd>
+ <20160612112253.GD26360@valkosipuli.retiisi.org.uk>
+ <20160613191753.GA17459@amd>
+ <20160617213545.GH24980@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160617213545.GH24980@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 14, 2016 at 11:31 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Rob,
->
-> On Tue, Jun 14, 2016 at 05:05:17PM -0500, Rob Herring wrote:
->> On Sat, Jun 11, 2016 at 06:39:53PM +0300, Ivaylo Dimitrov wrote:
->> > Add DT bindings description
->>
->> Not exactly the best commit msg.
->>
->> >
->> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
->> > ---
->> >  .../bindings/media/i2c/toshiba,et8ek8.txt          | 50 ++++++++++++++++++++++
->> >  1 file changed, 50 insertions(+)
->> >  create mode 100644 Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
->> >
->> > diff --git a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
->> > new file mode 100644
->> > index 0000000..997d268
->> > --- /dev/null
->> > +++ b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
->> > @@ -0,0 +1,50 @@
->> > +Toshiba et8ek8 5MP sensor
->> > +
->> > +Toshiba et8ek8 5MP sensor is an image sensor found in Nokia N900 device
->> > +
->> > +More detailed documentation can be found in
->> > +Documentation/devicetree/bindings/media/video-interfaces.txt .
->> > +
->> > +
->> > +Mandatory properties
->> > +--------------------
->> > +
->> > +- compatible: "toshiba,et8ek8"
->> > +- reg: I2C address (0x3e, or an alternative address)
->> > +- vana-supply: Analogue voltage supply (VANA), 2.8 volts
->>
->> > +- clocks: External clock to the sensor
->> > +- clock-frequency: Frequency of the external clock to the sensor
->>
->> These should be mutually-exclusive. If you have a clock, then you can
->> get the frequency at runtime.
->
-> Yes, you can. But the intention is to set the frequency: the sensor requires
-> a particular, pre-determined frequency. Typically this is specific to the
-> board.
+Hi!
 
-Okay, then state that in the description.
+> > Not V4L2_CID_USER_AD5820...?
+> 
+> The rest of the controls have no USER as part of the macro name, so I
+> wouldn't use it here either.
 
-Rob
+Ok.
+
+> > Ok, separate header file for 2 lines seemed like a bit of overkill,
+> > but why not.
+> 
+> That follows an existing pattern of how controls have been implemented in
+> other drivers.
+
+Ok.
+
+> Could you merge this with the driver patch? I've dropped that from my ad5820
+> branch as it does not compile.
+
+Yes, merged patch should be in your inbox now.
+
+Thanks,
+									Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
