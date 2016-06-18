@@ -1,78 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58838 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751193AbcFGHKI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2016 03:10:08 -0400
-Date: Tue, 7 Jun 2016 09:10:04 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org
-Subject: [PATCHv2] device tree description for AD5820 camera auto-focus coil
-Message-ID: <20160607071003.GA11796@amd>
-References: <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
- <20160531213437.GA28397@amd>
- <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
- <20160601220840.GA21946@amd>
- <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
- <20160602193027.GB7984@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160602193027.GB7984@amd>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:50438 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751408AbcFROui (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Jun 2016 10:50:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org, dmitry.torokhov@gmail.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/2] input.h: add BUS_CEC type
+Date: Sat, 18 Jun 2016 16:50:27 +0200
+Message-Id: <1466261428-12616-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1466261428-12616-1-git-send-email-hverkuil@xs4all.nl>
+References: <1466261428-12616-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add documentation for ad5820 device tree binding.
+Inputs can come in over the HDMI CEC bus, so add a new type for this.
 
-Signed-off-by: Pavel Machek <pavel@denx.de>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Rob Herring <robh@kernel.org>
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
+ include/uapi/linux/input.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-v2: Fixed nit in example, added acks.
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-new file mode 100644
-index 0000000..fb70ca5
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-@@ -0,0 +1,19 @@
-+* Analog Devices AD5820 autofocus coil
-+
-+Required Properties:
-+
-+  - compatible: Must contain "adi,ad5820"
-+
-+  - reg: I2C slave address
-+
-+  - VANA-supply: supply of voltage for VANA pin
-+
-+Example:
-+
-+       ad5820: coil@c {
-+               compatible = "adi,ad5820";
-+               reg = <0x0c>;
-+
-+               VANA-supply = <&vaux4>;
-+       };
-+
-
-
+diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
+index 0111384..c514941 100644
+--- a/include/uapi/linux/input.h
++++ b/include/uapi/linux/input.h
+@@ -247,6 +247,7 @@ struct input_mask {
+ #define BUS_ATARI		0x1B
+ #define BUS_SPI			0x1C
+ #define BUS_RMI			0x1D
++#define BUS_CEC			0x1E
+ 
+ /*
+  * MT_TOOL types
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.8.1
+
