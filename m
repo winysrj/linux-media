@@ -1,53 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0193.hostedemail.com ([216.40.44.193]:34081 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751680AbcF3A1b (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:57132 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751011AbcFRMY2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2016 20:27:31 -0400
-Message-ID: <1467246446.24287.118.camel@perches.com>
-Subject: Re: [PATCH 04/15] lirc_dev: replace printk with pr_* or dev_*
-From: Joe Perches <joe@perches.com>
-To: Andi Shyti <andi.shyti@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi@etezian.org>
-Date: Wed, 29 Jun 2016 17:27:26 -0700
-In-Reply-To: <1467206444-9935-5-git-send-email-andi.shyti@samsung.com>
-References: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
-	 <1467206444-9935-5-git-send-email-andi.shyti@samsung.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Sat, 18 Jun 2016 08:24:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv17 01/16] input.h: add BUS_CEC type
+Date: Sat, 18 Jun 2016 14:24:03 +0200
+Message-Id: <1466252658-39819-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1466252658-39819-1-git-send-email-hverkuil@xs4all.nl>
+References: <1466252658-39819-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2016-06-29 at 22:20 +0900, Andi Shyti wrote:
-> This patch mutes also all the checkpatch warnings related to
-> printk.
-> 
-> Reword all the printouts so that the string doesn't need to be
-> split, which fixes the following checkpatch warning:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Adding
+Inputs can come in over the HDMI CEC bus, so add a new type for this.
 
-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
+ include/uapi/linux/input.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-before any #include would allow these to be prefixed
-automatically and allow the embedded prefixes to be removed.
-> diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-[]
-> @@ -240,59 +240,51 @@ static int lirc_allocate_driver(struct lirc_driver *d)
->  	int err;
->  
->  	if (!d) {
-> -		printk(KERN_ERR "lirc_dev: lirc_register_driver: "
-> -		       "driver pointer must be not NULL!\n");
-> +		pr_err("lirc_dev: driver pointer must be not NULL!\n");
->  		err = -EBADRQC;
->  		goto out;
->  	}
+diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
+index 0111384..c514941 100644
+--- a/include/uapi/linux/input.h
++++ b/include/uapi/linux/input.h
+@@ -247,6 +247,7 @@ struct input_mask {
+ #define BUS_ATARI		0x1B
+ #define BUS_SPI			0x1C
+ #define BUS_RMI			0x1D
++#define BUS_CEC			0x1E
+ 
+ /*
+  * MT_TOOL types
+-- 
+2.8.1
 
-		pr_err("driver pointer must not be NULL!\n");
-
-And typical multiple line statement alignment is to
-the open parenthesis.
