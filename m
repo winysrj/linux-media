@@ -1,1676 +1,1025 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:35681 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932209AbcFNWvc (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56033 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751450AbcFRPDE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 18:51:32 -0400
-Received: by mail-pf0-f195.google.com with SMTP id t190so302529pfb.2
-        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:31 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
+	Sat, 18 Jun 2016 11:03:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 34/38] media: imx: Add support for ADV7180 Video Decoder
-Date: Tue, 14 Jun 2016 15:49:30 -0700
-Message-Id: <1465944574-15745-35-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv18 06/15] cec.h: add cec header
+Date: Sat, 18 Jun 2016 17:02:39 +0200
+Message-Id: <1466262168-12805-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
+References: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver is based on adv7180.c from Freescale imx_3.10.17_1.0.0_beta
-branch, modified heavily for code cleanup and converted from int-device
-to subdev.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+This header contains the CEC public API. Since the CEC framework will
+initially be part of staging this header is kept out of include/uapi for
+the time being until the CEC framework will be moved out of staging.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/imx/capture/Kconfig   |    7 +
- drivers/staging/media/imx/capture/Makefile  |    1 +
- drivers/staging/media/imx/capture/adv7180.c | 1533 +++++++++++++++++++++++++++
- include/uapi/linux/v4l2-controls.h          |    4 +
- include/uapi/media/Kbuild                   |    1 +
- include/uapi/media/adv718x.h                |   42 +
- 6 files changed, 1588 insertions(+)
- create mode 100644 drivers/staging/media/imx/capture/adv7180.c
- create mode 100644 include/uapi/media/adv718x.h
+ include/linux/cec.h | 987 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 987 insertions(+)
+ create mode 100644 include/linux/cec.h
 
-diff --git a/drivers/staging/media/imx/capture/Kconfig b/drivers/staging/media/imx/capture/Kconfig
-index 42d87db..6897192 100644
---- a/drivers/staging/media/imx/capture/Kconfig
-+++ b/drivers/staging/media/imx/capture/Kconfig
-@@ -32,4 +32,11 @@ config IMX_CAMERA_OV5640_MIPI
-        ---help---
-          MIPI CSI-2 OV5640 Camera support.
- 
-+config IMX_CAMERA_ADV7180
-+       tristate "Analog Devices ADV7180 Video Decoder support"
-+       depends on VIDEO_IMX_CAMERA
-+       default y
-+       ---help---
-+         Analog Devices ADV7180 Video Decoder support.
-+
- endmenu
-diff --git a/drivers/staging/media/imx/capture/Makefile b/drivers/staging/media/imx/capture/Makefile
-index 07633be..c8f891a 100644
---- a/drivers/staging/media/imx/capture/Makefile
-+++ b/drivers/staging/media/imx/capture/Makefile
-@@ -7,3 +7,4 @@ obj-$(CONFIG_IMX_MIPI_CSI2) += mipi-csi2.o
- obj-$(CONFIG_IMX_VIDEO_SWITCH) += imx-video-switch.o
- obj-$(CONFIG_IMX_CAMERA_OV5640_MIPI) += ov5640-mipi.o
- obj-$(CONFIG_IMX_CAMERA_OV5642) += ov5642.o
-+obj-$(CONFIG_IMX_CAMERA_ADV7180) += adv7180.o
-diff --git a/drivers/staging/media/imx/capture/adv7180.c b/drivers/staging/media/imx/capture/adv7180.c
+diff --git a/include/linux/cec.h b/include/linux/cec.h
 new file mode 100644
-index 0000000..297c543
+index 0000000..0fd0e31
 --- /dev/null
-+++ b/drivers/staging/media/imx/capture/adv7180.c
-@@ -0,0 +1,1533 @@
++++ b/include/linux/cec.h
+@@ -0,0 +1,987 @@
 +/*
-+ * Analog Device ADV7180 video decoder driver
++ * cec - HDMI Consumer Electronics Control public header
 + *
-+ * Copyright (c) 2012-2014 Mentor Graphics Inc.
-+ * Copyright 2005-2012 Freescale Semiconductor, Inc. All Rights Reserved.
++ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
 + *
-+ * This program is free software; you can redistribute it and/or modify
++ * This program is free software; you may redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
 + */
 +
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/ctype.h>
++#ifndef _CEC_UAPI_H
++#define _CEC_UAPI_H
++
 +#include <linux/types.h>
-+#include <linux/delay.h>
-+#include <linux/gpio.h>
-+#include <linux/semaphore.h>
-+#include <linux/device.h>
-+#include <linux/i2c.h>
-+#include <linux/interrupt.h>
-+#include <linux/of_device.h>
-+#include <linux/of_gpio.h>
-+#include <linux/wait.h>
-+#include <linux/videodev2.h>
-+#include <linux/workqueue.h>
-+#include <linux/regulator/consumer.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-of.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-event.h>
-+#include <media/adv718x.h>
 +
-+struct adv7180_dev {
-+	struct i2c_client *i2c_client;
-+	struct device *dev;
-+	struct v4l2_subdev sd;
-+	struct v4l2_of_endpoint ep; /* the parsed DT endpoint info */
-+	struct v4l2_ctrl_handler ctrl_hdl;
-+	struct v4l2_mbus_framefmt fmt;
-+	struct v4l2_captureparm streamcap;
-+	int rev_id;
-+	bool on;
++#define CEC_MAX_MSG_SIZE	16
 +
-+	bool locked;             /* locked to signal */
-+
-+	struct regulator *dvddio;
-+	struct regulator *dvdd;
-+	struct regulator *avdd;
-+	struct regulator *pvdd;
-+	int pwdn_gpio;
-+
-+	v4l2_std_id std_id;
-+
-+	/* Standard index of ADV7180. */
-+	int video_idx;
-+
-+	/* Current analog input mux */
-+	int current_input;
-+
-+	struct mutex mutex;
++/**
++ * struct cec_msg - CEC message structure.
++ * @ts:		Timestamp in nanoseconds using CLOCK_MONOTONIC. Set by the
++ *		driver. It is set when the message transmission has finished
++ *		and it is set when a message was received.
++ * @len:	Length in bytes of the message.
++ * @timeout:	The timeout (in ms) that is used to timeout CEC_RECEIVE.
++ *		Set to 0 if you want to wait forever. This timeout can also be
++ *		used with CEC_TRANSMIT as the timeout for waiting for a reply.
++ *		If 0, then it will use a 1 second timeout instead of waiting
++ *		forever as is done with CEC_RECEIVE.
++ * @sequence:	The framework assigns a sequence number to messages that are
++ *		sent. This can be used to track replies to previously sent
++ *		messages.
++ * @flags:	Set to 0.
++ * @rx_status:	The message receive status bits. Set by the driver.
++ * @tx_status:	The message transmit status bits. Set by the driver.
++ * @msg:	The message payload.
++ * @reply:	This field is ignored with CEC_RECEIVE and is only used by
++ *		CEC_TRANSMIT. If non-zero, then wait for a reply with this
++ *		opcode. Set to CEC_MSG_FEATURE_ABORT if you want to wait for
++ *		a possible ABORT reply. If there was an error when sending the
++ *		msg or FeatureAbort was returned, then reply is set to 0.
++ *		If reply is non-zero upon return, then len/msg are set to
++ *		the received message.
++ *		If reply is zero upon return and status has the
++ *		CEC_TX_STATUS_FEATURE_ABORT bit set, then len/msg are set to
++ *		the received feature abort message.
++ *		If reply is zero upon return and status has the
++ *		CEC_TX_STATUS_MAX_RETRIES bit set, then no reply was seen at
++ *		all. If reply is non-zero for CEC_TRANSMIT and the message is a
++ *		broadcast, then -EINVAL is returned.
++ *		if reply is non-zero, then timeout is set to 1000 (the required
++ *		maximum response time).
++ * @tx_arb_lost_cnt: The number of 'Arbitration Lost' events. Set by the driver.
++ * @tx_nack_cnt: The number of 'Not Acknowledged' events. Set by the driver.
++ * @tx_low_drive_cnt: The number of 'Low Drive Detected' events. Set by the
++ *		driver.
++ * @tx_error_cnt: The number of 'Error' events. Set by the driver.
++ */
++struct cec_msg {
++	__u64 ts;
++	__u32 len;
++	__u32 timeout;
++	__u32 sequence;
++	__u32 flags;
++	__u8 rx_status;
++	__u8 tx_status;
++	__u8 msg[CEC_MAX_MSG_SIZE];
++	__u8 reply;
++	__u8 tx_arb_lost_cnt;
++	__u8 tx_nack_cnt;
++	__u8 tx_low_drive_cnt;
++	__u8 tx_error_cnt;
 +};
 +
-+static inline struct adv7180_dev *to_adv7180_dev(struct v4l2_subdev *sd)
++/**
++ * cec_msg_initiator - return the initiator's logical address.
++ * @msg:	the message structure
++ */
++static inline __u8 cec_msg_initiator(const struct cec_msg *msg)
 +{
-+	return container_of(sd, struct adv7180_dev, sd);
++	return msg->msg[0] >> 4;
 +}
 +
-+static inline struct adv7180_dev *ctrl_to_adv7180_dev(struct v4l2_ctrl *ctrl)
++/**
++ * cec_msg_destination - return the destination's logical address.
++ * @msg:	the message structure
++ */
++static inline __u8 cec_msg_destination(const struct cec_msg *msg)
 +{
-+	return container_of(ctrl->handler, struct adv7180_dev, ctrl_hdl);
++	return msg->msg[0] & 0xf;
 +}
 +
-+/*! List of input video formats supported. The video formats is corresponding
-+ * with v4l2 id in video_fmt_t
++/**
++ * cec_msg_opcode - return the opcode of the message, -1 for poll
++ * @msg:	the message structure
 + */
-+enum {
-+	ADV7180_NTSC = 0,	/*!< Locked on (M) NTSC video signal. */
-+	ADV7180_PAL,		/*!< (B, G, H, I, N)PAL video signal. */
-+};
++static inline int cec_msg_opcode(const struct cec_msg *msg)
++{
++	return msg->len > 1 ? msg->msg[1] : -1;
++}
 +
-+/*! Number of video standards supported (including 'not locked' signal). */
-+#define ADV7180_STD_MAX		(ADV7180_PAL + 1)
-+
-+/* video standard info */
-+struct adv7180_std_info {
-+	unsigned long width;
-+	unsigned long height;
-+	struct v4l2_standard std;
-+};
-+
-+static struct adv7180_std_info adv7180_std[] = {
-+	[ADV7180_NTSC] = {
-+		.width = 720,
-+		.height = 480,
-+		.std = {
-+			.id = V4L2_STD_NTSC,
-+			.name = "NTSC",
-+			.framelines = 525,
-+			.frameperiod = {
-+				.numerator = 1001,
-+				.denominator = 30000,
-+			},
-+		},
-+	},
-+	[ADV7180_PAL] = {
-+		.width = 720,
-+		.height = 576,
-+		.std = {
-+			.id = V4L2_STD_PAL,
-+			.name = "PAL",
-+			.framelines = 625,
-+			.frameperiod = {
-+				.numerator = 1,
-+				.denominator = 25,
-+			},
-+		},
-+	},
-+};
-+
-+#define IF_NAME                    "adv7180"
-+
-+/* Main Register Map */
-+#define ADV7180_INPUT_CTL              0x00	/* Input Control */
-+#define ADV7180_EXT_OUT_CTL            0x04
-+#define ADV7180_STATUS_1               0x10	/* Status #1 */
-+#define   ADV7180_IN_LOCK              (1 << 0)
-+#define   ADV7180_LOST_LOCK            (1 << 1)
-+#define   ADV7180_FSC_LOCK             (1 << 2)
-+#define   ADV7180_AD_RESULT_BIT        4
-+#define   ADV7180_AD_RESULT_MASK       (0x7 << ADV7180_AD_RESULT_BIT)
-+#define   ADV7180_AD_NTSC              0
-+#define   ADV7180_AD_NTSC_4_43         1
-+#define   ADV7180_AD_PAL_M             2
-+#define   ADV7180_AD_PAL_60            3
-+#define   ADV7180_AD_PAL               4
-+#define   ADV7180_AD_SECAM             5
-+#define   ADV7180_AD_PAL_N             6
-+#define   ADV7180_AD_SECAM_525         7
-+#define ADV7180_CONTRAST               0x08	/* Contrast */
-+#define ADV7180_BRIGHTNESS             0x0a	/* Brightness */
-+#define ADV7180_HUE_REG                0x0b	/* Signed, inverted */
-+#define ADV7180_DEF_Y                  0x0c
-+#define   ADV7180_DEF_VAL_EN           (1 << 0)
-+#define   ADV7180_DEF_VAL_AUTO_EN      (1 << 1)
-+#define   ADV7180_DEF_Y_BIT            2
-+#define   ADV7180_DEF_Y_MASK           (0x3f << ADV7180_DEF_Y_BIT)
-+#define ADV7180_DEF_C                  0x0d
-+#define   ADV7180_DEF_CB_BIT           0
-+#define   ADV7180_DEF_CB_MASK          (0xf << ADV7180_DEF_CB_BIT)
-+#define   ADV7180_DEF_CR_BIT           4
-+#define   ADV7180_DEF_CR_MASK          (0xf << ADV7180_DEF_CR_BIT)
-+#define ADV7180_ADI_CTL_1              0x0e
-+#define ADV7180_PWR_MNG                0x0f     /* Power Management */
-+#define ADV7180_IDENT                  0x11	/* IDENT */
-+#define ADV7180_ANALOG_CLAMP_CTL       0x14
-+#define ADV7180_SHAP_FILTER_CTL_1      0x17
-+#define ADV7180_VSYNC_FIELD_CTL_1      0x31	/* VSYNC Field Control #1 */
-+#define ADV7180_MANUAL_WIN_CTL_1       0x3d	/* Manual Window Control 1 */
-+#define ADV7180_MANUAL_WIN_CTL_2       0x3e     /* Manual Window Control 2 */
-+#define ADV7180_MANUAL_WIN_CTL_3       0x3f     /* Manual Window Control 3 */
-+#define ADV7180_CTI_DNR                0x4d
-+#define   ADV7180_CTI_EN               (1 << 0) /* CTI enable */
-+#define   ADV7180_CTI_AB_EN            (1 << 1) /* CTI Alpha Blend enable */
-+#define   ADV7180_CTI_AB_BIT           2 /* CTI Alpha Blend sharpness */
-+#define   ADV7180_CTI_AB_MASK          (0x3 << ADV7180_CTI_AB_BIT)
-+#define   ADV7180_DNR_EN               (1 << 5) /* DNR enable */
-+#define ADV7180_CTI_THRESH             0x4e /* CTI Chroma Amplitude Threshold */
-+#define ADV7180_DNR_THRESH1            0x50
-+#define ADV7180_LOCK_COUNT             0x51
-+#define ADV7180_CVBS_TRIM              0x52
-+#define ADV7180_SD_OFFSET_CB           0xe1	/* SD Offset Cb */
-+#define ADV7180_SD_OFFSET_CR           0xe2	/* SD Offset Cr */
-+#define ADV7180_SD_SATURATION_CB       0xe3	/* SD Saturation Cb */
-+#define ADV7180_SD_SATURATION_CR       0xe4	/* SD Saturation Cr */
-+#define ADV7180_DRIVE_STRENGTH         0xf4
-+#define ADV7180_LUMA_PEAK_GAIN         0xfb
-+#define ADV7180_DNR_THRESH2            0xfc
-+/* Interrupt Register Map */
-+#define ADV7180_INT_CONFIG_1           0x40     /* Interrupt Config 1 */
-+#define ADV7180_INT_STATUS_1           0x42     /* Interrupt Status 1 (r/o) */
-+#define   ADV7180_INT_SD_LOCK          (1 << 0)
-+#define   ADV7180_INT_SD_UNLOCK        (1 << 1)
-+#define ADV7180_INT_CLEAR_1            0x43     /* Interrupt Clear 1 (w/o) */
-+#define ADV7180_INT_MASK_1             0x44     /* Interrupt Mask 1 */
-+#define ADV7180_INT_RAW_STATUS_2       0x45   /* Interrupt Raw Status 2 (r/o) */
-+#define  ADV7180_INT_SD_FIELD          (1 << 4)
-+#define ADV7180_INT_STATUS_2           0x46     /* Interrupt Status 2 (r/o) */
-+#define  ADV7180_INT_SD_FIELD_CHNG     (1 << 4)
-+#define ADV7180_INT_CLEAR_2            0x47     /* Interrupt Clear 2 (w/o) */
-+#define ADV7180_INT_MASK_2             0x48     /* Interrupt Mask 2 */
-+#define ADV7180_INT_RAW_STATUS_3       0x49   /* Interrupt Raw Status 3 (r/o) */
-+#define   ADV7180_INT_SD_V_LOCK        (1 << 1)
-+#define ADV7180_INT_STATUS_3           0x4a   /* Interrupt Status 3 (r/o) */
-+#define   ADV7180_INT_SD_V_LOCK_CHNG   (1 << 1)
-+#define   ADV7180_INT_SD_H_LOCK_CHNG   (1 << 2)
-+#define   ADV7180_INT_SD_AD_CHNG       (1 << 3)
-+#define ADV7180_INT_CLEAR_3            0x4b     /* Interrupt Clear 3 (w/o) */
-+#define ADV7180_INT_MASK_3             0x4c     /* Interrupt Mask 3 */
-+
-+struct adv7180_inputs_t {
-+	const char *desc;   /* Analog input description */
-+	u8 insel;           /* insel bits to select this input */
-+};
-+
-+/* Analog Inputs on 64-Lead and 48-Lead LQFP */
-+static const struct adv7180_inputs_t adv7180_inputs_64_48[] = {
-+	{ .insel = 0x00, .desc = "ADV7180 Composite on Ain1" },
-+	{ .insel = 0x01, .desc = "ADV7180 Composite on Ain2" },
-+	{ .insel = 0x02, .desc = "ADV7180 Composite on Ain3" },
-+	{ .insel = 0x03, .desc = "ADV7180 Composite on Ain4" },
-+	{ .insel = 0x04, .desc = "ADV7180 Composite on Ain5" },
-+	{ .insel = 0x05, .desc = "ADV7180 Composite on Ain6" },
-+	{ .insel = 0x06, .desc = "ADV7180 Y/C on Ain1/4" },
-+	{ .insel = 0x07, .desc = "ADV7180 Y/C on Ain2/5" },
-+	{ .insel = 0x08, .desc = "ADV7180 Y/C on Ain3/6" },
-+	{ .insel = 0x09, .desc = "ADV7180 YPbPr on Ain1/4/5" },
-+	{ .insel = 0x0a, .desc = "ADV7180 YPbPr on Ain2/3/6" },
-+};
-+
-+#define NUM_INPUTS_64_48 ARRAY_SIZE(adv7180_inputs_64_48)
-+
-+#if 0
-+/*
-+ * FIXME: there is no way to distinguish LQFP vs LFCSP chips, so
-+ * we will just have to assume LQFP.
++/**
++ * cec_msg_is_broadcast - return true if this is a broadcast message.
++ * @msg:	the message structure
 + */
-+/* Analog Inputs on 40-Lead and 32-Lead LFCSP */
-+static const struct adv7180_inputs_t adv7180_inputs_40_32[] = {
-+	{ .insel = 0x00, .desc = "ADV7180 Composite on Ain1" },
-+	{ .insel = 0x03, .desc = "ADV7180 Composite on Ain2" },
-+	{ .insel = 0x04, .desc = "ADV7180 Composite on Ain3" },
-+	{ .insel = 0x06, .desc = "ADV7180 Y/C on Ain1/2" },
-+	{ .insel = 0x09, .desc = "ADV7180 YPbPr on Ain1/2/3" },
-+};
++static inline bool cec_msg_is_broadcast(const struct cec_msg *msg)
++{
++	return (msg->msg[0] & 0xf) == 0xf;
++}
 +
-+#define NUM_INPUTS_40_32 ARRAY_SIZE(adv7180_inputs_40_32)
-+#endif
++/**
++ * cec_msg_init - initialize the message structure.
++ * @msg:	the message structure
++ * @initiator:	the logical address of the initiator
++ * @destination:the logical address of the destination (0xf for broadcast)
++ *
++ * The whole structure is zeroed, the len field is set to 1 (i.e. a poll
++ * message) and the initiator and destination are filled in.
++ */
++static inline void cec_msg_init(struct cec_msg *msg,
++				__u8 initiator, __u8 destination)
++{
++	memset(msg, 0, sizeof(*msg));
++	msg->msg[0] = (initiator << 4) | destination;
++	msg->len = 1;
++}
 +
-+struct adv7180_reg_tbl_t {
-+	u8 reg;
-+	u8 val;
-+};
++/**
++ * cec_msg_set_reply_to - fill in destination/initiator in a reply message.
++ * @msg:	the message structure for the reply
++ * @orig:	the original message structure
++ *
++ * Set the msg destination to the orig initiator and the msg initiator to the
++ * orig destination. Note that msg and orig may be the same pointer, in which
++ * case the change is done in place.
++ */
++static inline void cec_msg_set_reply_to(struct cec_msg *msg,
++					struct cec_msg *orig)
++{
++	/* The destination becomes the initiator and vice versa */
++	msg->msg[0] = (cec_msg_destination(orig) << 4) |
++		      cec_msg_initiator(orig);
++	msg->reply = msg->timeout = 0;
++}
++
++/* cec status field */
++#define CEC_TX_STATUS_OK		(1 << 0)
++#define CEC_TX_STATUS_ARB_LOST		(1 << 1)
++#define CEC_TX_STATUS_NACK		(1 << 2)
++#define CEC_TX_STATUS_LOW_DRIVE		(1 << 3)
++#define CEC_TX_STATUS_ERROR		(1 << 4)
++#define CEC_TX_STATUS_MAX_RETRIES	(1 << 5)
++
++#define CEC_RX_STATUS_OK		(1 << 0)
++#define CEC_RX_STATUS_TIMEOUT		(1 << 1)
++#define CEC_RX_STATUS_FEATURE_ABORT	(1 << 2)
++
++static inline bool cec_msg_status_is_ok(const struct cec_msg *msg)
++{
++	if (msg->tx_status && !(msg->tx_status & CEC_TX_STATUS_OK))
++		return false;
++	if (msg->rx_status && !(msg->rx_status & CEC_RX_STATUS_OK))
++		return false;
++	if (!msg->tx_status && !msg->rx_status)
++		return false;
++	return !(msg->rx_status & CEC_RX_STATUS_FEATURE_ABORT);
++}
++
++#define CEC_LOG_ADDR_INVALID		0xff
++#define CEC_PHYS_ADDR_INVALID		0xffff
 +
 +/*
-+ * this is a special reg value inserted into a register table
-+ * indicating a delay is required in msec given in val
++ * The maximum number of logical addresses one device can be assigned to.
++ * The CEC 2.0 spec allows for only 2 logical addresses at the moment. The
++ * Analog Devices CEC hardware supports 3. So let's go wild and go for 4.
 + */
-+#define ADV_DELAY  255
++#define CEC_MAX_LOG_ADDRS 4
++
++/* The logical addresses defined by CEC 2.0 */
++#define CEC_LOG_ADDR_TV			0
++#define CEC_LOG_ADDR_RECORD_1		1
++#define CEC_LOG_ADDR_RECORD_2		2
++#define CEC_LOG_ADDR_TUNER_1		3
++#define CEC_LOG_ADDR_PLAYBACK_1		4
++#define CEC_LOG_ADDR_AUDIOSYSTEM	5
++#define CEC_LOG_ADDR_TUNER_2		6
++#define CEC_LOG_ADDR_TUNER_3		7
++#define CEC_LOG_ADDR_PLAYBACK_2		8
++#define CEC_LOG_ADDR_RECORD_3		9
++#define CEC_LOG_ADDR_TUNER_4		10
++#define CEC_LOG_ADDR_PLAYBACK_3		11
++#define CEC_LOG_ADDR_BACKUP_1		12
++#define CEC_LOG_ADDR_BACKUP_2		13
++#define CEC_LOG_ADDR_SPECIFIC		14
++#define CEC_LOG_ADDR_UNREGISTERED	15 /* as initiator address */
++#define CEC_LOG_ADDR_BROADCAST		15 /* ad destination address */
++
++/* The logical address types that the CEC device wants to claim */
++#define CEC_LOG_ADDR_TYPE_TV		0
++#define CEC_LOG_ADDR_TYPE_RECORD	1
++#define CEC_LOG_ADDR_TYPE_TUNER		2
++#define CEC_LOG_ADDR_TYPE_PLAYBACK	3
++#define CEC_LOG_ADDR_TYPE_AUDIOSYSTEM	4
++#define CEC_LOG_ADDR_TYPE_SPECIFIC	5
++#define CEC_LOG_ADDR_TYPE_UNREGISTERED	6
++/*
++ * Switches should use UNREGISTERED.
++ * Processors should use SPECIFIC.
++ */
++
++#define CEC_LOG_ADDR_MASK_TV		(1 << CEC_LOG_ADDR_TV)
++#define CEC_LOG_ADDR_MASK_RECORD	((1 << CEC_LOG_ADDR_RECORD_1) | \
++					 (1 << CEC_LOG_ADDR_RECORD_2) | \
++					 (1 << CEC_LOG_ADDR_RECORD_3))
++#define CEC_LOG_ADDR_MASK_TUNER		((1 << CEC_LOG_ADDR_TUNER_1) | \
++					 (1 << CEC_LOG_ADDR_TUNER_2) | \
++					 (1 << CEC_LOG_ADDR_TUNER_3) | \
++					 (1 << CEC_LOG_ADDR_TUNER_4))
++#define CEC_LOG_ADDR_MASK_PLAYBACK	((1 << CEC_LOG_ADDR_PLAYBACK_1) | \
++					 (1 << CEC_LOG_ADDR_PLAYBACK_2) | \
++					 (1 << CEC_LOG_ADDR_PLAYBACK_3))
++#define CEC_LOG_ADDR_MASK_AUDIOSYSTEM	(1 << CEC_LOG_ADDR_AUDIOSYSTEM)
++#define CEC_LOG_ADDR_MASK_BACKUP	((1 << CEC_LOG_ADDR_BACKUP_1) | \
++					 (1 << CEC_LOG_ADDR_BACKUP_2))
++#define CEC_LOG_ADDR_MASK_SPECIFIC	(1 << CEC_LOG_ADDR_SPECIFIC)
++#define CEC_LOG_ADDR_MASK_UNREGISTERED	(1 << CEC_LOG_ADDR_UNREGISTERED)
++
++static inline bool cec_has_tv(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_TV;
++}
++
++static inline bool cec_has_record(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_RECORD;
++}
++
++static inline bool cec_has_tuner(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_TUNER;
++}
++
++static inline bool cec_has_playback(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_PLAYBACK;
++}
++
++static inline bool cec_has_audiosystem(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_AUDIOSYSTEM;
++}
++
++static inline bool cec_has_backup(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_BACKUP;
++}
++
++static inline bool cec_has_specific(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_SPECIFIC;
++}
++
++static inline bool cec_is_unregistered(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_UNREGISTERED;
++}
++
++static inline bool cec_is_unconfigured(__u16 log_addr_mask)
++{
++	return log_addr_mask == 0;
++}
 +
 +/*
-+ * This is the original register set from Freescale's adv7180
-+ * driver. Most of these registers and their values are undocumented,
-+ * and do not conform with Analog Device's Register Settings
-+ * Recommendations document for CVBS autodetect mode.
-+ * Later edit: This table has been stripped of the entries specifying
-+ * the same value as the register default value after reset (according
-+ * to ADV7180 datasheet rev J), in order to decrease the device
-+ * initialization time.
++ * Use this if there is no vendor ID (CEC_G_VENDOR_ID) or if the vendor ID
++ * should be disabled (CEC_S_VENDOR_ID)
 + */
-+static const struct adv7180_reg_tbl_t adv7180_fsl_init_reg[] = {
-+	{ 0x02, 0x04 }, { 0x03, 0x00 }, { 0x04, 0x45 }, { 0x05, 0x00 },
-+	{ 0x06, 0x02 }, { 0x13, 0x00 }, { 0x15, 0x00 }, { 0x16, 0x00 },
-+	{ 0xF1, 0x19 }, { 0x1A, 0x00 }, { 0x1B, 0x00 }, { 0x1C, 0x00 },
-+	{ 0x1D, 0x40 }, { 0x1E, 0x00 }, { 0x1F, 0x00 }, { 0x20, 0x00 },
-+	{ 0x21, 0x00 }, { 0x22, 0x00 }, { 0x23, 0xC0 }, { 0x24, 0x00 },
-+	{ 0x25, 0x00 }, { 0x26, 0x00 }, { 0x28, 0x00 }, { 0x29, 0x00 },
-+	{ 0x2A, 0x00 }, { 0x2D, 0xF4 }, { 0x2E, 0x00 }, { 0x2F, 0xF0 },
-+	{ 0x30, 0x00 }, { 0x31, 0x02 }, { 0x3B, 0x05 }, { 0x3C, 0x58 },
-+	{ 0x3E, 0x64 }, { 0x3F, 0xE4 }, { 0x40, 0x90 }, { 0x42, 0x7E },
-+	{ 0x43, 0xA4 }, { 0x44, 0xFF }, { 0x45, 0xB6 }, { 0x46, 0x12 },
-+	{ 0x4F, 0x08 }, { 0x51, 0xA4 }, { 0x53, 0x4E }, { 0x54, 0x80 },
-+	{ 0x55, 0x00 }, { 0x56, 0x10 }, { 0x57, 0x00 }, { 0x5A, 0x00 },
-+	{ 0x5B, 0x00 }, { 0x5C, 0x00 }, { 0x5D, 0x00 }, { 0x5E, 0x00 },
-+	{ 0x5F, 0x00 }, { 0x60, 0x00 }, { 0x61, 0x00 }, { 0x62, 0x20 },
-+	{ 0x63, 0x00 }, { 0x64, 0x00 }, { 0x65, 0x00 }, { 0x66, 0x00 },
-+	{ 0x67, 0x03 }, { 0x68, 0x01 }, { 0x69, 0x00 }, { 0x6A, 0x00 },
-+	{ 0x6B, 0xC0 }, { 0x6C, 0x00 }, { 0x6D, 0x00 }, { 0x6E, 0x00 },
-+	{ 0x6F, 0x00 }, { 0x70, 0x00 }, { 0x71, 0x00 }, { 0x72, 0x00 },
-+	{ 0x73, 0x10 }, { 0x74, 0x04 }, { 0x75, 0x01 }, { 0x76, 0x00 },
-+	{ 0x77, 0x3F }, { 0x78, 0xFF }, { 0x79, 0xFF }, { 0x7A, 0xFF },
-+	{ 0x7B, 0x1E }, { 0x7C, 0xC0 }, { 0x7D, 0x00 }, { 0x7E, 0x00 },
-+	{ 0x7F, 0x00 }, { 0x80, 0x00 }, { 0x81, 0xC0 }, { 0x82, 0x04 },
-+	{ 0x83, 0x00 }, { 0x84, 0x0C }, { 0x85, 0x02 }, { 0x86, 0x03 },
-+	{ 0x87, 0x63 }, { 0x88, 0x5A }, { 0x89, 0x08 }, { 0x8A, 0x10 },
-+	{ 0x8B, 0x00 }, { 0x8C, 0x40 }, { 0x8D, 0x00 }, { 0x8E, 0x40 },
-+	{ 0x90, 0x00 }, { 0x91, 0x50 }, { 0x92, 0x00 }, { 0x93, 0x00 },
-+	{ 0x94, 0x00 }, { 0x95, 0x00 }, { 0x96, 0x00 }, { 0x97, 0xF0 },
-+	{ 0x98, 0x00 }, { 0x99, 0x00 }, { 0x9A, 0x00 }, { 0x9B, 0x00 },
-+	{ 0x9C, 0x00 }, { 0x9D, 0x00 }, { 0x9E, 0x00 }, { 0x9F, 0x00 },
-+	{ 0xA0, 0x00 }, { 0xA1, 0x00 }, { 0xA2, 0x00 }, { 0xA3, 0x00 },
-+	{ 0xA4, 0x00 }, { 0xA5, 0x00 }, { 0xA6, 0x00 }, { 0xA7, 0x00 },
-+	{ 0xA8, 0x00 }, { 0xA9, 0x00 }, { 0xAA, 0x00 }, { 0xAB, 0x00 },
-+	{ 0xAC, 0x00 }, { 0xAD, 0x00 }, { 0xAE, 0x60 }, { 0xAF, 0x00 },
-+	{ 0xB0, 0x00 }, { 0xB1, 0x60 }, { 0xB3, 0x54 }, { 0xB4, 0x00 },
-+	{ 0xB5, 0x00 }, { 0xB6, 0x00 }, { 0xB7, 0x13 }, { 0xB8, 0x03 },
-+	{ 0xB9, 0x33 }, { 0xBF, 0x02 }, { 0xC0, 0x00 }, { 0xC1, 0x00 },
-+	{ 0xC2, 0x00 }, { 0xC4, 0x00 }, { 0xC5, 0x81 }, { 0xC6, 0x00 },
-+	{ 0xC7, 0x00 }, { 0xC8, 0x00 }, { 0xC9, 0x04 }, { 0xCC, 0x69 },
-+	{ 0xCD, 0x00 }, { 0xCE, 0x01 }, { 0xCF, 0xB4 }, { 0xD0, 0x00 },
-+	{ 0xD1, 0x10 }, { 0xD2, 0xFF }, { 0xD3, 0xFF }, { 0xD4, 0x7F },
-+	{ 0xD5, 0x7F }, { 0xD6, 0x3E }, { 0xD7, 0x08 }, { 0xD8, 0x3C },
-+	{ 0xD9, 0x08 }, { 0xDA, 0x3C }, { 0xDB, 0x9B }, { 0xDE, 0x00 },
-+	{ 0xDF, 0x00 }, { 0xE0, 0x14 }, { 0xEE, 0x00 }, { 0xEF, 0x4A },
-+	{ 0xF0, 0x44 }, { 0xF1, 0x0C }, { 0xF2, 0x32 }, { 0xF4, 0x3F },
-+	{ 0xF5, 0xE0 }, { 0xF6, 0x69 }, { 0xF7, 0x10 }, { 0xFA, 0xFA }
-+};
++#define CEC_VENDOR_ID_NONE		0xffffffff
 +
++/* The message handling modes */
++/* Modes for initiator */
++#define CEC_MODE_NO_INITIATOR		(0x0 << 0)
++#define CEC_MODE_INITIATOR		(0x1 << 0)
++#define CEC_MODE_EXCL_INITIATOR		(0x2 << 0)
++#define CEC_MODE_INITIATOR_MSK		0x0f
++
++/* Modes for follower */
++#define CEC_MODE_NO_FOLLOWER		(0x0 << 4)
++#define CEC_MODE_FOLLOWER		(0x1 << 4)
++#define CEC_MODE_EXCL_FOLLOWER		(0x2 << 4)
++#define CEC_MODE_EXCL_FOLLOWER_PASSTHRU	(0x3 << 4)
++#define CEC_MODE_MONITOR		(0xe << 4)
++#define CEC_MODE_MONITOR_ALL		(0xf << 4)
++#define CEC_MODE_FOLLOWER_MSK		0xf0
++
++/* Userspace has to configure the physical address */
++#define CEC_CAP_PHYS_ADDR	(1 << 0)
++/* Userspace has to configure the logical addresses */
++#define CEC_CAP_LOG_ADDRS	(1 << 1)
++/* Userspace can transmit messages (and thus become follower as well) */
++#define CEC_CAP_TRANSMIT	(1 << 2)
 +/*
-+ * This is Analog Device's Register Settings Recommendation for CVBS
-+ * autodetect mode. It is here for future reference only, we don't use
-+ * it yet because autodetect doesn't work very well when the chip is
-+ * initialized with this set.
++ * Passthrough all messages instead of processing them.
 + */
-+static const struct adv7180_reg_tbl_t __maybe_unused
-+adv7180_cvbs_autodetect[] = {
-+	/* Set analog mux for Composite Ain1 */
-+	{ ADV7180_INPUT_CTL, 0x00 },
-+	/* ADI Required Write: Reset Clamp Circuitry */
-+	{ ADV7180_ANALOG_CLAMP_CTL, 0x30 },
-+	/* Enable SFL Output */
-+	{ ADV7180_EXT_OUT_CTL, 0x57 },
-+	/* Select SH1 Chroma Shaping Filter */
-+	{ ADV7180_SHAP_FILTER_CTL_1, 0x41 },
-+	/* Enable NEWAVMODE */
-+	{ ADV7180_VSYNC_FIELD_CTL_1, 0x02 },
-+	/* ADI Required Write: optimize windowing function Step 1,2,3 */
-+	{ ADV7180_MANUAL_WIN_CTL_1, 0xA2 },
-+	{ ADV7180_MANUAL_WIN_CTL_2, 0x6A },
-+	{ ADV7180_MANUAL_WIN_CTL_3, 0xA0 },
-+	/* ADI Required Write: Enable ADC step 1,2,3 */
-+	{ ADV7180_ADI_CTL_1, 0x80 }, /* undocumented bit 7 */
-+	{ 0x55, 0x81 },              /* undocumented register 0x55 */
-+	{ ADV7180_ADI_CTL_1, 0x00 },
-+	/* Recommended AFE I BIAS Setting for CVBS mode */
-+	{ ADV7180_CVBS_TRIM, 0x0D },
++#define CEC_CAP_PASSTHROUGH	(1 << 3)
++/* Supports remote control */
++#define CEC_CAP_RC		(1 << 4)
++/* Hardware can monitor all messages, not just directed and broadcast. */
++#define CEC_CAP_MONITOR_ALL	(1 << 5)
++
++/**
++ * struct cec_caps - CEC capabilities structure.
++ * @driver: name of the CEC device driver.
++ * @name: name of the CEC device. @driver + @name must be unique.
++ * @available_log_addrs: number of available logical addresses.
++ * @capabilities: capabilities of the CEC adapter.
++ * @version: version of the CEC adapter framework.
++ */
++struct cec_caps {
++	char driver[32];
++	char name[32];
++	__u32 available_log_addrs;
++	__u32 capabilities;
++	__u32 version;
 +};
 +
-+#define ADV7180_VOLTAGE_ANALOG               1800000
-+#define ADV7180_VOLTAGE_DIGITAL_CORE         1800000
-+#define ADV7180_VOLTAGE_DIGITAL_IO           3300000
-+#define ADV7180_VOLTAGE_PLL                  1800000
-+
-+static int adv7180_regulator_enable(struct adv7180_dev *sensor)
-+{
-+	struct device *dev = sensor->dev;
-+	int ret = 0;
-+
-+	sensor->dvddio = devm_regulator_get(dev, "DOVDD");
-+	if (!IS_ERR(sensor->dvddio)) {
-+		regulator_set_voltage(sensor->dvddio,
-+				      ADV7180_VOLTAGE_DIGITAL_IO,
-+				      ADV7180_VOLTAGE_DIGITAL_IO);
-+		ret = regulator_enable(sensor->dvddio);
-+		if (ret) {
-+			v4l2_err(&sensor->sd, "set io voltage failed\n");
-+			return ret;
-+		}
-+	} else {
-+		v4l2_warn(&sensor->sd, "cannot get io voltage\n");
-+	}
-+
-+	sensor->dvdd = devm_regulator_get(dev, "DVDD");
-+	if (!IS_ERR(sensor->dvdd)) {
-+		regulator_set_voltage(sensor->dvdd,
-+				      ADV7180_VOLTAGE_DIGITAL_CORE,
-+				      ADV7180_VOLTAGE_DIGITAL_CORE);
-+		ret = regulator_enable(sensor->dvdd);
-+		if (ret) {
-+			v4l2_err(&sensor->sd, "set core voltage failed\n");
-+			return ret;
-+		}
-+	} else {
-+		v4l2_warn(&sensor->sd, "cannot get core voltage\n");
-+	}
-+
-+	sensor->avdd = devm_regulator_get(dev, "AVDD");
-+	if (!IS_ERR(sensor->avdd)) {
-+		regulator_set_voltage(sensor->avdd,
-+				      ADV7180_VOLTAGE_ANALOG,
-+				      ADV7180_VOLTAGE_ANALOG);
-+		ret = regulator_enable(sensor->avdd);
-+		if (ret) {
-+			v4l2_err(&sensor->sd, "set analog voltage failed\n");
-+			return ret;
-+		}
-+	} else {
-+		v4l2_warn(&sensor->sd, "cannot get analog voltage\n");
-+	}
-+
-+	sensor->pvdd = devm_regulator_get(dev, "PVDD");
-+	if (!IS_ERR(sensor->pvdd)) {
-+		regulator_set_voltage(sensor->pvdd,
-+				      ADV7180_VOLTAGE_PLL,
-+				      ADV7180_VOLTAGE_PLL);
-+		ret = regulator_enable(sensor->pvdd);
-+		if (ret) {
-+			v4l2_err(&sensor->sd, "set pll voltage failed\n");
-+			return ret;
-+		}
-+	} else {
-+		v4l2_warn(&sensor->sd, "cannot get pll voltage\n");
-+	}
-+
-+	return ret;
-+}
-+
-+static void adv7180_regulator_disable(struct adv7180_dev *sensor)
-+{
-+	if (sensor->dvddio)
-+		regulator_disable(sensor->dvddio);
-+
-+	if (sensor->dvdd)
-+		regulator_disable(sensor->dvdd);
-+
-+	if (sensor->avdd)
-+		regulator_disable(sensor->avdd);
-+
-+	if (sensor->pvdd)
-+		regulator_disable(sensor->pvdd);
-+}
-+
-+/***********************************************************************
-+ * I2C transfer.
-+ ***********************************************************************/
-+
-+/*! Read one register from a ADV7180 i2c slave device.
-+ *
-+ *  @param *reg		register in the device we wish to access.
-+ *
-+ *  @return		       0 if success, an error code otherwise.
++/**
++ * struct cec_log_addrs - CEC logical addresses structure.
++ * @log_addr: the claimed logical addresses. Set by the driver.
++ * @log_addr_mask: current logical address mask. Set by the driver.
++ * @cec_version: the CEC version that the adapter should implement. Set by the
++ *	caller.
++ * @num_log_addrs: how many logical addresses should be claimed. Set by the
++ *	caller.
++ * @vendor_id: the vendor ID of the device. Set by the caller.
++ * @flags: set to 0.
++ * @osd_name: the OSD name of the device. Set by the caller.
++ * @primary_device_type: the primary device type for each logical address.
++ *	Set by the caller.
++ * @log_addr_type: the logical address types. Set by the caller.
++ * @all_device_types: CEC 2.0: all device types represented by the logical
++ *	address. Set by the caller.
++ * @features:	CEC 2.0: The logical address features. Set by the caller.
 + */
-+static int adv7180_read_reg(struct adv7180_dev *sensor, u8 reg, u8 *val)
-+{
-+	int ret;
++struct cec_log_addrs {
++	__u8 log_addr[CEC_MAX_LOG_ADDRS];
++	__u16 log_addr_mask;
++	__u8 cec_version;
++	__u8 num_log_addrs;
++	__u32 vendor_id;
++	__u32 flags;
++	char osd_name[15];
++	__u8 primary_device_type[CEC_MAX_LOG_ADDRS];
++	__u8 log_addr_type[CEC_MAX_LOG_ADDRS];
 +
-+	ret = i2c_smbus_read_byte_data(sensor->i2c_client, reg);
-+	if (ret < 0) {
-+		v4l2_err(&sensor->sd, "%s: read reg error: reg=%2x\n",
-+			 __func__, reg);
-+		return ret;
-+	}
++	/* CEC 2.0 */
++	__u8 all_device_types[CEC_MAX_LOG_ADDRS];
++	__u8 features[CEC_MAX_LOG_ADDRS][12];
++};
 +
-+	*val = ret;
-+	return 0;
-+}
++/* Events */
 +
-+/*! Write one register of a ADV7180 i2c slave device.
-+ *
-+ *  @param *reg		register in the device we wish to access.
-+ *
-+ *  @return		       0 if success, an error code otherwise.
++/* Event that occurs when the adapter state changes */
++#define CEC_EVENT_STATE_CHANGE		1
++/*
++ * This event is sent when messages are lost because the application
++ * didn't empty the message queue in time
 + */
-+static int adv7180_write_reg(struct adv7180_dev *sensor, u8 reg, u8 val)
-+{
-+	int ret = i2c_smbus_write_byte_data(sensor->i2c_client, reg, val);
++#define CEC_EVENT_LOST_MSGS		2
 +
-+	if (ret < 0)
-+		v4l2_err(&sensor->sd, "%s: write reg error:reg=%2x,val=%2x\n",
-+			 __func__, reg, val);
-+	return ret;
-+}
++#define CEC_EVENT_FL_INITIAL_STATE	(1 << 0)
 +
-+#define ADV7180_READ_REG(s, r, v) {				\
-+		ret = adv7180_read_reg((s), (r), (v));		\
-+		if (ret)					\
-+			return ret;				\
-+	}
-+#define ADV7180_WRITE_REG(s, r, v) {				\
-+		ret = adv7180_write_reg((s), (r), (v));		\
-+		if (ret)					\
-+			return ret;				\
-+	}
++/**
++ * struct cec_event_state_change - used when the CEC adapter changes state.
++ * @phys_addr: the current physical address
++ * @log_addr_mask: the current logical address mask
++ */
++struct cec_event_state_change {
++	__u16 phys_addr;
++	__u16 log_addr_mask;
++};
 +
-+static int adv7180_load_reg_tbl(struct adv7180_dev *sensor,
-+				const struct adv7180_reg_tbl_t *tbl, int n)
-+{
-+	int ret, i;
++/**
++ * struct cec_event_lost_msgs - tells you how many messages were lost due.
++ * @lost_msgs: how many messages were lost.
++ */
++struct cec_event_lost_msgs {
++	__u32 lost_msgs;
++};
 +
-+	for (i = 0; i < n; i++) {
-+		if (tbl[i].reg == ADV_DELAY) {
-+			unsigned long usec = (unsigned long)tbl[i].val * 1000;
-+
-+			usleep_range(usec, usec + 1);
-+			continue;
-+		}
-+
-+		ADV7180_WRITE_REG(sensor, tbl[i].reg, tbl[i].val);
-+	}
-+
-+	return 0;
-+}
-+
-+/* Read AD_RESULT to get the autodetected video standard */
-+static int adv7180_get_autodetect_std(struct adv7180_dev *sensor,
-+				      u8 stat1, bool *status_change)
-+{
-+	int ad_result, idx = ADV7180_PAL;
-+	v4l2_std_id std = V4L2_STD_PAL;
-+
-+	*status_change = false;
-+
-+	/*
-+	 * When the chip loses lock, it continues to send data at whatever
-+	 * standard was detected before, so leave the standard at the last
-+	 * detected standard.
-+	 */
-+	if (!sensor->locked)
-+		return 0; /* no status change */
-+
-+	ad_result = (stat1 & ADV7180_AD_RESULT_MASK) >> ADV7180_AD_RESULT_BIT;
-+
-+	switch (ad_result) {
-+	case ADV7180_AD_PAL:
-+		std = V4L2_STD_PAL;
-+		idx = ADV7180_PAL;
-+		break;
-+	case ADV7180_AD_PAL_M:
-+		std = V4L2_STD_PAL_M;
-+		/* PAL M is very similar to NTSC (same lines/field) */
-+		idx = ADV7180_NTSC;
-+		break;
-+	case ADV7180_AD_PAL_N:
-+		std = V4L2_STD_PAL_N;
-+		idx = ADV7180_PAL;
-+		break;
-+	case ADV7180_AD_PAL_60:
-+		std = V4L2_STD_PAL_60;
-+		/* PAL 60 has same lines as NTSC */
-+		idx = ADV7180_NTSC;
-+		break;
-+	case ADV7180_AD_NTSC:
-+		std = V4L2_STD_NTSC;
-+		idx = ADV7180_NTSC;
-+		break;
-+	case ADV7180_AD_NTSC_4_43:
-+		std = V4L2_STD_NTSC_443;
-+		idx = ADV7180_NTSC;
-+		break;
-+	case ADV7180_AD_SECAM:
-+		std = V4L2_STD_SECAM;
-+		idx = ADV7180_PAL;
-+		break;
-+	case ADV7180_AD_SECAM_525:
-+		/*
-+		 * FIXME: could not find any info on "SECAM 525", assume
-+		 * it is SECAM but with NTSC line standard.
-+		 */
-+		std = V4L2_STD_SECAM;
-+		idx = ADV7180_NTSC;
-+		break;
-+	}
-+
-+	if (std != sensor->std_id) {
-+		sensor->video_idx = idx;
-+		sensor->std_id = std;
-+		sensor->streamcap.timeperframe =
-+			adv7180_std[sensor->video_idx].std.frameperiod;
-+		sensor->fmt.width = adv7180_std[sensor->video_idx].width;
-+		sensor->fmt.height = adv7180_std[sensor->video_idx].height;
-+		*status_change = true;
-+	}
-+
-+	return 0;
-+}
-+
-+/* Update lock status */
-+static int adv7180_update_lock_status(struct adv7180_dev *sensor,
-+				      u8 stat1, bool *status_change)
-+{
-+	u8 int_stat1, int_stat3, int_raw_stat3;
-+	u8 int_mask1, int_mask3;
-+	int ret;
-+
-+	/* Switch to interrupt register map */
-+	ADV7180_WRITE_REG(sensor, ADV7180_ADI_CTL_1, 0x20);
-+
-+	ADV7180_READ_REG(sensor, ADV7180_INT_MASK_1, &int_mask1);
-+	ADV7180_READ_REG(sensor, ADV7180_INT_MASK_3, &int_mask3);
-+
-+	ADV7180_READ_REG(sensor, ADV7180_INT_STATUS_1, &int_stat1);
-+	ADV7180_READ_REG(sensor, ADV7180_INT_STATUS_3, &int_stat3);
-+
-+	int_stat1 &= int_mask1;
-+	int_stat3 &= int_mask3;
-+
-+	/* clear the interrupts */
-+	ADV7180_WRITE_REG(sensor, ADV7180_INT_CLEAR_1, int_stat1);
-+	ADV7180_WRITE_REG(sensor, ADV7180_INT_CLEAR_1, 0);
-+	ADV7180_WRITE_REG(sensor, ADV7180_INT_CLEAR_3, int_stat3);
-+	ADV7180_WRITE_REG(sensor, ADV7180_INT_CLEAR_3, 0);
-+
-+	ADV7180_READ_REG(sensor, ADV7180_INT_RAW_STATUS_3, &int_raw_stat3);
-+
-+	/* Switch back to normal register map */
-+	ADV7180_WRITE_REG(sensor, ADV7180_ADI_CTL_1, 0x00);
-+
-+	*status_change = ((stat1 & ADV7180_LOST_LOCK) || int_stat1 ||
-+			  int_stat3);
-+
-+	sensor->locked = ((stat1 & ADV7180_IN_LOCK) &&
-+			  (stat1 & ADV7180_FSC_LOCK) &&
-+			  (int_raw_stat3 & ADV7180_INT_SD_V_LOCK));
-+
-+	return 0;
-+}
-+
-+static void adv7180_power(struct adv7180_dev *sensor, bool enable)
-+{
-+	if (enable && !sensor->on) {
-+		if (gpio_is_valid(sensor->pwdn_gpio))
-+			gpio_set_value_cansleep(sensor->pwdn_gpio, 1);
-+
-+		usleep_range(5000, 5001);
-+		adv7180_write_reg(sensor, ADV7180_PWR_MNG, 0);
-+	} else if (!enable && sensor->on) {
-+		adv7180_write_reg(sensor, ADV7180_PWR_MNG, 0x24);
-+
-+		if (gpio_is_valid(sensor->pwdn_gpio))
-+			gpio_set_value_cansleep(sensor->pwdn_gpio, 0);
-+	}
-+
-+	sensor->on = enable;
-+}
-+
-+/* threaded irq handler */
-+static irqreturn_t adv7180_interrupt(int irq, void *dev_id)
-+{
-+	struct adv7180_dev *sensor = dev_id;
-+	bool std_change, lock_status_change;
-+	struct v4l2_event ev = {
-+		.type = V4L2_EVENT_SOURCE_CHANGE,
-+		.u.src_change.changes = 0,
++/**
++ * struct cec_event - CEC event structure
++ * @ts: the timestamp of when the event was sent.
++ * @event: the event.
++ * array.
++ * @state_change: the event payload for CEC_EVENT_STATE_CHANGE.
++ * @lost_msgs: the event payload for CEC_EVENT_LOST_MSGS.
++ * @raw: array to pad the union.
++ */
++struct cec_event {
++	__u64 ts;
++	__u32 event;
++	__u32 flags;
++	union {
++		struct cec_event_state_change state_change;
++		struct cec_event_lost_msgs lost_msgs;
++		__u32 raw[16];
 +	};
-+	u8 stat1;
++};
 +
-+	mutex_lock(&sensor->mutex);
++/* ioctls */
 +
-+	adv7180_read_reg(sensor, ADV7180_STATUS_1, &stat1);
-+
-+	adv7180_update_lock_status(sensor, stat1, &lock_status_change);
-+	adv7180_get_autodetect_std(sensor, stat1, &std_change);
-+
-+	mutex_unlock(&sensor->mutex);
-+
-+	if (lock_status_change)
-+		ev.u.src_change.changes |= V4L2_EVENT_SRC_CH_LOCK_STATUS;
-+	if (std_change)
-+		ev.u.src_change.changes |= V4L2_EVENT_SRC_CH_RESOLUTION;
-+
-+	if (ev.u.src_change.changes)
-+		v4l2_subdev_notify_event(&sensor->sd, &ev);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static const struct adv7180_inputs_t *
-+adv7180_find_input(struct adv7180_dev *sensor, u32 insel)
-+{
-+	int i;
-+
-+	for (i = 0; i < NUM_INPUTS_64_48; i++) {
-+		if (insel == adv7180_inputs_64_48[i].insel)
-+			return &adv7180_inputs_64_48[i];
-+	}
-+
-+	return NULL;
-+}
-+
-+/* --------------- Subdev Operations --------------- */
-+
-+static int adv7180_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
-+{
-+	struct adv7180_dev *sensor = to_adv7180_dev(sd);
-+	bool std_change, lsc;
-+	int ret = 0;
-+	u8 stat1;
-+
-+	mutex_lock(&sensor->mutex);
-+
-+	/*
-+	 * If we have the ADV7180 irq, we can just return the currently
-+	 * detected standard. Otherwise we have to poll the AD_RESULT
-+	 * bits every time querystd() is called.
-+	 */
-+	if (!sensor->i2c_client->irq) {
-+		adv7180_read_reg(sensor, ADV7180_STATUS_1, &stat1);
-+
-+		ret = adv7180_update_lock_status(sensor, stat1, &lsc);
-+		if (ret)
-+			goto unlock;
-+		ret = adv7180_get_autodetect_std(sensor, stat1, &std_change);
-+		if (ret)
-+			goto unlock;
-+	}
-+
-+	*std = sensor->std_id;
-+
-+unlock:
-+	mutex_unlock(&sensor->mutex);
-+	return ret;
-+}
-+
-+static int adv7180_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	return 0;
-+}
-+
-+static int adv7180_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
-+{
-+	struct adv7180_dev *sensor = to_adv7180_dev(sd);
-+	struct v4l2_captureparm *cparm = &a->parm.capture;
-+
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	memset(a, 0, sizeof(*a));
-+	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	cparm->capability = sensor->streamcap.capability;
-+	cparm->timeperframe = sensor->streamcap.timeperframe;
-+	cparm->capturemode = sensor->streamcap.capturemode;
-+
-+	return 0;
-+}
-+
-+static int adv7180_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
-+{
-+	return 0;
-+}
-+
-+static int adv7180_get_fmt(struct v4l2_subdev *sd,
-+			   struct v4l2_subdev_pad_config *cfg,
-+			   struct v4l2_subdev_format *format)
-+{
-+	struct adv7180_dev *sensor = to_adv7180_dev(sd);
-+	struct v4l2_mbus_framefmt *mf = &format->format;
-+
-+	if (format->pad)
-+		return -EINVAL;
-+
-+	*mf = sensor->fmt;
-+
-+	return 0;
-+}
++/* Adapter capabilities */
++#define CEC_ADAP_G_CAPS		_IOWR('a',  0, struct cec_caps)
 +
 +/*
-+ * This driver autodetects a standard video mode, so we don't allow
-+ * setting a mode, just return the current autodetected mode.
-+ */
-+static int adv7180_set_fmt(struct v4l2_subdev *sd,
-+			   struct v4l2_subdev_pad_config *cfg,
-+			   struct v4l2_subdev_format *format)
-+{
-+	struct adv7180_dev *sensor = to_adv7180_dev(sd);
-+	struct v4l2_mbus_framefmt *mf = &format->format;
-+
-+	if (format->pad)
-+		return -EINVAL;
-+
-+	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
-+		mf = &cfg->try_fmt;
-+
-+	*mf = sensor->fmt;
-+
-+	return 0;
-+}
-+
-+
-+/* Controls */
-+
-+static int adv7180_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct adv7180_dev *sensor = ctrl_to_adv7180_dev(ctrl);
-+	int ret = 0;
-+	u8 tmp;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_BRIGHTNESS:
-+		tmp = ctrl->val;
-+		ADV7180_WRITE_REG(sensor, ADV7180_BRIGHTNESS, tmp);
-+		break;
-+	case V4L2_CID_CONTRAST:
-+		tmp = ctrl->val;
-+		ADV7180_WRITE_REG(sensor, ADV7180_CONTRAST, tmp);
-+		break;
-+	case V4L2_CID_SATURATION:
-+		tmp = ctrl->val;
-+		ADV7180_WRITE_REG(sensor, ADV7180_SD_SATURATION_CB, tmp);
-+		ADV7180_WRITE_REG(sensor, ADV7180_SD_SATURATION_CR, tmp);
-+		break;
-+	case V4L2_CID_HUE:
-+		tmp = ctrl->val;
-+		/* Hue is inverted according to HSL chart */
-+		ADV7180_WRITE_REG(sensor, ADV7180_HUE_REG, -tmp);
-+		break;
-+	case V4L2_CID_ADV718x_OFF_CR:
-+		tmp = ctrl->val + 128;
-+		ADV7180_WRITE_REG(sensor, ADV7180_SD_OFFSET_CR, tmp);
-+		break;
-+	case V4L2_CID_ADV718x_OFF_CB:
-+		tmp = ctrl->val + 128;
-+		ADV7180_WRITE_REG(sensor, ADV7180_SD_OFFSET_CB, tmp);
-+		break;
-+	case V4L2_CID_ADV718x_FREERUN_ENABLE:
-+		ADV7180_READ_REG(sensor, ADV7180_DEF_Y, &tmp);
-+		tmp &= ~ADV7180_DEF_VAL_AUTO_EN;
-+		if (ctrl->val)
-+			tmp |= ADV7180_DEF_VAL_AUTO_EN;
-+		ADV7180_WRITE_REG(sensor, ADV7180_DEF_Y, tmp);
-+		break;
-+	case V4L2_CID_ADV718x_FORCE_FREERUN:
-+		ADV7180_READ_REG(sensor, ADV7180_DEF_Y, &tmp);
-+		tmp &= ~ADV7180_DEF_VAL_EN;
-+		if (ctrl->val)
-+			tmp |= ADV7180_DEF_VAL_EN;
-+		ADV7180_WRITE_REG(sensor, ADV7180_DEF_Y, tmp);
-+		break;
-+	case V4L2_CID_ADV718x_FREERUN_Y:
-+		ADV7180_READ_REG(sensor, ADV7180_DEF_Y, &tmp);
-+		tmp &= ~ADV7180_DEF_Y_MASK;
-+		tmp |= (ctrl->val << ADV7180_DEF_Y_BIT);
-+		ADV7180_WRITE_REG(sensor, ADV7180_DEF_Y, tmp);
-+		break;
-+	case V4L2_CID_ADV718x_FREERUN_CB:
-+		ADV7180_READ_REG(sensor, ADV7180_DEF_C, &tmp);
-+		tmp &= ~ADV7180_DEF_CB_MASK;
-+		tmp |= (ctrl->val << ADV7180_DEF_CB_BIT);
-+		ADV7180_WRITE_REG(sensor, ADV7180_DEF_C, tmp);
-+		break;
-+	case V4L2_CID_ADV718x_FREERUN_CR:
-+		ADV7180_READ_REG(sensor, ADV7180_DEF_C, &tmp);
-+		tmp &= ~ADV7180_DEF_CR_MASK;
-+		tmp |= (ctrl->val << ADV7180_DEF_CR_BIT);
-+		ADV7180_WRITE_REG(sensor, ADV7180_DEF_C, tmp);
-+		break;
-+	case V4L2_CID_ADV718x_CTI_ENABLE:
-+		ADV7180_READ_REG(sensor, ADV7180_CTI_DNR, &tmp);
-+		tmp &= ~ADV7180_CTI_EN;
-+		if (ctrl->val)
-+			tmp |= ADV7180_CTI_EN;
-+		ADV7180_WRITE_REG(sensor, ADV7180_CTI_DNR, tmp);
-+		break;
-+	case V4L2_CID_ADV718x_CTI_AB_ENABLE:
-+		ADV7180_READ_REG(sensor, ADV7180_CTI_DNR, &tmp);
-+		tmp &= ~ADV7180_CTI_AB_EN;
-+		if (ctrl->val)
-+			tmp |= ADV7180_CTI_AB_EN;
-+		ADV7180_WRITE_REG(sensor, ADV7180_CTI_DNR, tmp);
-+		break;
-+	case V4L2_CID_ADV718x_CTI_AB:
-+		ADV7180_READ_REG(sensor, ADV7180_CTI_DNR, &tmp);
-+		tmp &= ~ADV7180_CTI_AB_MASK;
-+		tmp |= (ctrl->val << ADV7180_CTI_AB_BIT);
-+		ADV7180_WRITE_REG(sensor, ADV7180_CTI_DNR, tmp);
-+		break;
-+	case V4L2_CID_ADV718x_CTI_THRESH:
-+		tmp = ctrl->val;
-+		ADV7180_WRITE_REG(sensor, ADV7180_CTI_THRESH, tmp);
-+		break;
-+	case V4L2_CID_ADV718x_DNR_ENABLE:
-+		ADV7180_READ_REG(sensor, ADV7180_CTI_DNR, &tmp);
-+		tmp &= ~ADV7180_DNR_EN;
-+		if (ctrl->val)
-+			tmp |= ADV7180_DNR_EN;
-+		ADV7180_WRITE_REG(sensor, ADV7180_CTI_DNR, tmp);
-+		break;
-+	case V4L2_CID_ADV718x_DNR_THRESH1:
-+		tmp = ctrl->val;
-+		ADV7180_WRITE_REG(sensor, ADV7180_DNR_THRESH1, tmp);
-+		break;
-+	case V4L2_CID_ADV718x_LUMA_PEAK_GAIN:
-+		tmp = ctrl->val;
-+		ADV7180_WRITE_REG(sensor, ADV7180_LUMA_PEAK_GAIN, tmp);
-+		break;
-+	case V4L2_CID_ADV718x_DNR_THRESH2:
-+		tmp = ctrl->val;
-+		ADV7180_WRITE_REG(sensor, ADV7180_DNR_THRESH2, tmp);
-+		break;
-+	default:
-+		ret = -EPERM;
-+		break;
-+	}
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_ctrl_ops adv7180_ctrl_ops = {
-+	.s_ctrl = adv7180_s_ctrl,
-+};
-+
-+/* supported standard controls */
-+static const struct v4l2_ctrl_config adv7180_std_ctrl[] = {
-+	{
-+		.id = V4L2_CID_BRIGHTNESS,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Brightness",
-+		.def =   0,
-+		.min =   0,
-+		.max = 255,
-+		.step =  1,
-+	}, {
-+		.id = V4L2_CID_SATURATION,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Saturation",
-+		.def = 128,
-+		.min =   0,
-+		.max = 255,
-+		.step =  1,
-+	}, {
-+		.id = V4L2_CID_CONTRAST,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Contrast",
-+		.def = 128,
-+		.min =   0,
-+		.max = 255,
-+		.step =  1,
-+	}, {
-+		.id = V4L2_CID_HUE,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Hue",
-+		.def =    0,
-+		.min = -127,
-+		.max =  128,
-+		.step =   1,
-+	},
-+};
-+
-+#define ADV7180_NUM_STD_CONTROLS ARRAY_SIZE(adv7180_std_ctrl)
-+
-+/* supported custom controls */
-+static const struct v4l2_ctrl_config adv7180_custom_ctrl[] = {
-+	{
-+		.ops = &adv7180_ctrl_ops,
-+		.id = V4L2_CID_ADV718x_OFF_CR,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Offset Cr",
-+		.def =    0, /*    0 mV offset applied to the Cr channel */
-+		.min = -128, /* −312 mV offset applied to the Cr channel */
-+		.max =  127, /* +312 mV offset applied to the Cr channel */
-+		.step =   1,
-+	}, {
-+		.ops = &adv7180_ctrl_ops,
-+		.id = V4L2_CID_ADV718x_OFF_CB,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Offset Cb",
-+		.def =    0, /*    0 mV offset applied to the Cb channel */
-+		.min = -128, /* −312 mV offset applied to the Cb channel */
-+		.max =  127, /* +312 mV offset applied to the Cb channel */
-+		.step =   1,
-+	}, {
-+		.ops = &adv7180_ctrl_ops,
-+		.id = V4L2_CID_ADV718x_FREERUN_ENABLE,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.name = "Freerun Enable",
-+		.def =  1,
-+		.min =  0,
-+		.max =  1,
-+		.step = 1,
-+	}, {
-+		.ops = &adv7180_ctrl_ops,
-+		.id = V4L2_CID_ADV718x_FORCE_FREERUN,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.name = "Force Freerun",
-+		.def =  0,
-+		.min =  0,
-+		.max =  1,
-+		.step = 1,
-+	}, {
-+		.ops = &adv7180_ctrl_ops,
-+		.id = V4L2_CID_ADV718x_FREERUN_Y,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Freerun Y",
-+		.def =  13,
-+		.min =   0,
-+		.max =  63,
-+		.step =  1,
-+	}, {
-+		.ops = &adv7180_ctrl_ops,
-+		.id = V4L2_CID_ADV718x_FREERUN_CB,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Freerun Cb",
-+		.def =  12,
-+		.min =   0,
-+		.max =  15,
-+		.step =  1,
-+	}, {
-+		.ops = &adv7180_ctrl_ops,
-+		.id = V4L2_CID_ADV718x_FREERUN_CR,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Freerun Cr",
-+		.def =   7,
-+		.min =   0,
-+		.max =  15,
-+		.step =  1,
-+	}, {
-+		.ops = &adv7180_ctrl_ops,
-+		.id = V4L2_CID_ADV718x_CTI_ENABLE,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.name = "CTI Enable",
-+		.def =  0,
-+		.min =  0,
-+		.max =  1,
-+		.step = 1,
-+	}, {
-+		.ops = &adv7180_ctrl_ops,
-+		.id = V4L2_CID_ADV718x_CTI_AB_ENABLE,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.name = "CTI AB Enable",
-+		.def =  0,
-+		.min =  0,
-+		.max =  1,
-+		.step = 1,
-+	}, {
-+		.ops = &adv7180_ctrl_ops,
-+		.id = V4L2_CID_ADV718x_CTI_AB,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "CTI AB Sharpness",
-+		.def =  3,
-+		.min =  0,
-+		.max =  3,
-+		.step = 1,
-+	}, {
-+		.ops = &adv7180_ctrl_ops,
-+		.id = V4L2_CID_ADV718x_CTI_THRESH,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "CTI Threshold",
-+		.def =   8,
-+		.min =   0,
-+		.max = 255,
-+		.step =  1,
-+	}, {
-+		.ops = &adv7180_ctrl_ops,
-+		.id = V4L2_CID_ADV718x_DNR_ENABLE,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.name = "DNR Enable",
-+		.def =  1,
-+		.min =  0,
-+		.max =  1,
-+		.step = 1,
-+	}, {
-+		.ops = &adv7180_ctrl_ops,
-+		.id = V4L2_CID_ADV718x_DNR_THRESH1,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "DNR1 Threshold",
-+		.def =   8,
-+		.min =   0,
-+		.max = 255,
-+		.step =  1,
-+	}, {
-+		.ops = &adv7180_ctrl_ops,
-+		.id = V4L2_CID_ADV718x_LUMA_PEAK_GAIN,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Luma Peak Gain",
-+		.def =  64,
-+		.min =   0,
-+		.max = 255,
-+		.step =  1,
-+	}, {
-+		.ops = &adv7180_ctrl_ops,
-+		.id = V4L2_CID_ADV718x_DNR_THRESH2,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "DNR2 Threshold",
-+		.def =   4,
-+		.min =   0,
-+		.max = 255,
-+		.step =  1,
-+	},
-+};
-+
-+#define ADV7180_NUM_CUSTOM_CONTROLS ARRAY_SIZE(adv7180_custom_ctrl)
-+
-+#define ADV7180_NUM_CONTROLS \
-+	(ADV7180_NUM_STD_CONTROLS + ADV7180_NUM_CUSTOM_CONTROLS)
-+
-+static int adv7180_init_controls(struct adv7180_dev *sensor)
-+{
-+	const struct v4l2_ctrl_config *c;
-+	int i, err;
-+
-+	v4l2_ctrl_handler_init(&sensor->ctrl_hdl, ADV7180_NUM_CONTROLS);
-+
-+	for (i = 0; i < ADV7180_NUM_STD_CONTROLS; i++) {
-+		c = &adv7180_std_ctrl[i];
-+
-+		v4l2_ctrl_new_std(&sensor->ctrl_hdl, &adv7180_ctrl_ops,
-+				  c->id, c->min, c->max, c->step, c->def);
-+	}
-+
-+	for (i = 0; i < ADV7180_NUM_CUSTOM_CONTROLS; i++) {
-+		c = &adv7180_custom_ctrl[i];
-+
-+		v4l2_ctrl_new_custom(&sensor->ctrl_hdl, c, NULL);
-+	}
-+
-+	sensor->sd.ctrl_handler = &sensor->ctrl_hdl;
-+	if (sensor->ctrl_hdl.error) {
-+		err = sensor->ctrl_hdl.error;
-+		goto error;
-+	}
-+
-+	err = v4l2_ctrl_handler_setup(&sensor->ctrl_hdl);
-+	if (err)
-+		goto error;
-+
-+	return 0;
-+
-+ error:
-+	v4l2_ctrl_handler_free(&sensor->ctrl_hdl);
-+	v4l2_err(&sensor->sd, "%s: error %d\n", __func__, err);
-+
-+	return err;
-+}
-+
-+static int adv7180_enum_frame_size(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_pad_config *cfg,
-+				   struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	struct adv7180_dev *sensor = to_adv7180_dev(sd);
-+
-+	if (fse->pad)
-+		return -EINVAL;
-+	if (fse->index || fse->code != sensor->fmt.code)
-+		return -EINVAL;
-+
-+	fse->min_width = adv7180_std[sensor->video_idx].width;
-+	fse->max_width = fse->min_width;
-+	fse->min_height = adv7180_std[sensor->video_idx].height;
-+	fse->max_height = fse->min_height;
-+
-+	return 0;
-+}
-+
-+static int adv7180_g_input_status(struct v4l2_subdev *sd, u32 *status)
-+{
-+	struct adv7180_dev *sensor = to_adv7180_dev(sd);
-+
-+	mutex_lock(&sensor->mutex);
-+
-+	*status = 0;
-+
-+	if (sensor->on) {
-+		if (!sensor->locked)
-+			*status = V4L2_IN_ST_NO_SIGNAL | V4L2_IN_ST_NO_SYNC;
-+	} else {
-+		*status = V4L2_IN_ST_NO_POWER;
-+	}
-+
-+	mutex_unlock(&sensor->mutex);
-+
-+	return 0;
-+}
-+
-+static int adv7180_s_routing(struct v4l2_subdev *sd, u32 input,
-+			     u32 output, u32 config)
-+{
-+	struct adv7180_dev *sensor = to_adv7180_dev(sd);
-+	const struct adv7180_inputs_t *advinput;
-+	struct v4l2_event ev = {
-+		.type = V4L2_EVENT_SOURCE_CHANGE,
-+		.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
-+	};
-+
-+	advinput = adv7180_find_input(sensor, input);
-+	if (!advinput)
-+		return -EINVAL;
-+
-+	mutex_lock(&sensor->mutex);
-+
-+	if (input == sensor->current_input)
-+		goto out;
-+
-+	adv7180_write_reg(sensor, ADV7180_INPUT_CTL, advinput->insel);
-+
-+	/* ADI Required Write: Reset Clamp Circuitry */
-+	adv7180_write_reg(sensor, ADV7180_ANALOG_CLAMP_CTL, 0x30);
-+
-+	sensor->current_input = input;
-+
-+	v4l2_subdev_notify_event(&sensor->sd, &ev);
-+out:
-+	mutex_unlock(&sensor->mutex);
-+	return 0;
-+}
-+
-+static int adv7180_enum_mbus_code(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_pad_config *cfg,
-+				  struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	struct adv7180_dev *sensor = to_adv7180_dev(sd);
-+
-+	if (code->pad)
-+		return -EINVAL;
-+	if (code->index != 0)
-+		return -EINVAL;
-+
-+	code->code = sensor->fmt.code;
-+
-+	return 0;
-+}
-+
-+static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
-+				 struct v4l2_mbus_config *cfg)
-+{
-+	struct adv7180_dev *sensor = to_adv7180_dev(sd);
-+
-+	cfg->type = V4L2_MBUS_BT656;
-+	cfg->flags = sensor->ep.bus.parallel.flags;
-+
-+	return 0;
-+}
-+
-+static int adv7180_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	return 0;
-+}
-+
-+static int adv7180_subscribe_event(struct v4l2_subdev *sd,
-+				   struct v4l2_fh *fh,
-+				   struct v4l2_event_subscription *sub)
-+{
-+	switch (sub->type) {
-+	case V4L2_EVENT_SOURCE_CHANGE:
-+		return v4l2_src_change_event_subdev_subscribe(sd, fh, sub);
-+	case V4L2_EVENT_CTRL:
-+		return v4l2_ctrl_subdev_subscribe_event(sd, fh, sub);
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static struct v4l2_subdev_core_ops adv7180_core_ops = {
-+	.subscribe_event = adv7180_subscribe_event,
-+	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
-+	.s_power = adv7180_s_power,
-+	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-+	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-+	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
-+	.g_ctrl = v4l2_subdev_g_ctrl,
-+	.s_ctrl = v4l2_subdev_s_ctrl,
-+	.queryctrl = v4l2_subdev_queryctrl,
-+	.querymenu = v4l2_subdev_querymenu,
-+};
-+
-+static struct v4l2_subdev_video_ops adv7180_video_ops = {
-+	.s_parm = adv7180_s_parm,
-+	.g_parm = adv7180_g_parm,
-+	.g_input_status = adv7180_g_input_status,
-+	.s_routing = adv7180_s_routing,
-+	.querystd = adv7180_querystd,
-+	.g_mbus_config  = adv7180_g_mbus_config,
-+	.s_stream = adv7180_s_stream,
-+};
-+
-+static struct v4l2_subdev_pad_ops adv7180_pad_ops = {
-+	.enum_mbus_code = adv7180_enum_mbus_code,
-+	.get_fmt = adv7180_get_fmt,
-+	.set_fmt = adv7180_set_fmt,
-+	.enum_frame_size = adv7180_enum_frame_size,
-+};
-+
-+static struct v4l2_subdev_ops adv7180_subdev_ops = {
-+	.core = &adv7180_core_ops,
-+	.video = &adv7180_video_ops,
-+	.pad = &adv7180_pad_ops,
-+};
-+
-+/***********************************************************************
-+ * I2C client and driver.
-+ ***********************************************************************/
-+
-+/*! ADV7180 Reset function.
++ * phys_addr is either 0 (if this is the CEC root device)
++ * or a valid physical address obtained from the sink's EDID
++ * as read by this CEC device (if this is a source device)
++ * or a physical address obtained and modified from a sink
++ * EDID and used for a sink CEC device.
++ * If nothing is connected, then phys_addr is 0xffff.
++ * See HDMI 1.4b, section 8.7 (Physical Address).
 + *
-+ *  @return		None.
++ * The CEC_ADAP_S_PHYS_ADDR ioctl may not be available if that is handled
++ * internally.
 + */
-+static int adv7180_hard_reset(struct adv7180_dev *sensor)
-+{
-+	/* assert reset bit */
-+	adv7180_write_reg(sensor, ADV7180_PWR_MNG, 0x80);
-+	usleep_range(5000, 5001);
-+
-+	return adv7180_load_reg_tbl(sensor, adv7180_fsl_init_reg,
-+				    ARRAY_SIZE(adv7180_fsl_init_reg));
-+}
++#define CEC_ADAP_G_PHYS_ADDR	_IOR('a',  1, __u16)
++#define CEC_ADAP_S_PHYS_ADDR	_IOW('a',  2, __u16)
 +
 +/*
-+ * Enable the SD_UNLOCK and SD_AD_CHNG interrupts.
++ * Configure the CEC adapter. It sets the device type and which
++ * logical types it will try to claim. It will return which
++ * logical addresses it could actually claim.
++ * An error is returned if the adapter is disabled or if there
++ * is no physical address assigned.
 + */
-+static int adv7180_enable_interrupts(struct adv7180_dev *sensor)
-+{
-+	int ret;
 +
-+	/* Switch to interrupt register map */
-+	ADV7180_WRITE_REG(sensor, ADV7180_ADI_CTL_1, 0x20);
-+	/* INTRQ active low, active until cleared */
-+	ADV7180_WRITE_REG(sensor, ADV7180_INT_CONFIG_1, 0xd5);
-+	/* unmask SD_UNLOCK and SD_LOCK */
-+	ADV7180_WRITE_REG(sensor, ADV7180_INT_MASK_1,
-+			  ADV7180_INT_SD_UNLOCK | ADV7180_INT_SD_LOCK);
-+	/* unmask SD_AD_CHNG and SD_V_LOCK_CHNG */
-+	ADV7180_WRITE_REG(sensor, ADV7180_INT_MASK_3,
-+			  ADV7180_INT_SD_AD_CHNG | ADV7180_INT_SD_V_LOCK_CHNG);
-+	/* Switch back to normal register map */
-+	ADV7180_WRITE_REG(sensor, ADV7180_ADI_CTL_1, 0x00);
++#define CEC_ADAP_G_LOG_ADDRS	_IOR('a',  3, struct cec_log_addrs)
++#define CEC_ADAP_S_LOG_ADDRS	_IOWR('a',  4, struct cec_log_addrs)
 +
-+	return 0;
-+}
++/* Transmit/receive a CEC command */
++#define CEC_TRANSMIT		_IOWR('a',  5, struct cec_msg)
++#define CEC_RECEIVE		_IOWR('a',  6, struct cec_msg)
 +
-+/*!
-+ * ADV7180 I2C probe function.
-+ * Function set in i2c_driver struct.
-+ * Called by insmod.
-+ *
-+ *  @param *adapter	I2C adapter descriptor.
-+ *
-+ *  @return		Error code indicating success or failure.
-+ */
-+static int adv7180_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *id)
-+{
-+	struct device_node *endpoint;
-+	struct adv7180_dev *sensor;
-+	struct device_node *np;
-+	const char *norm = "pal";
-+	bool std_change, lsc;
-+	u8 stat1, rev_id;
-+	int ret = 0;
++/* Dequeue CEC events */
++#define CEC_DQEVENT		_IOWR('a',  7, struct cec_event)
 +
-+	sensor = devm_kzalloc(&client->dev, sizeof(struct adv7180_dev),
-+			      GFP_KERNEL);
-+	if (!sensor)
-+		return -ENOMEM;
-+
-+	sensor->dev = &client->dev;
-+	np = sensor->dev->of_node;
-+
-+	ret = of_property_read_string(np, "default-std", &norm);
-+	if (ret < 0 && ret != -EINVAL) {
-+		dev_err(sensor->dev, "error reading default-std property!\n");
-+		return ret;
-+	}
-+	if (!strcasecmp(norm, "pal")) {
-+		sensor->std_id = V4L2_STD_PAL;
-+		sensor->video_idx = ADV7180_PAL;
-+		dev_info(sensor->dev, "defaulting to PAL!\n");
-+	} else if (!strcasecmp(norm, "ntsc")) {
-+		sensor->std_id = V4L2_STD_NTSC;
-+		sensor->video_idx = ADV7180_NTSC;
-+		dev_info(sensor->dev, "defaulting to NTSC!\n");
-+	} else {
-+		dev_err(sensor->dev, "invalid default-std value: '%s'!\n",
-+			norm);
-+		return -EINVAL;
-+	}
-+
-+	/* Set initial values for the sensor struct. */
-+	sensor->i2c_client = client;
-+	sensor->streamcap.timeperframe =
-+		adv7180_std[sensor->video_idx].std.frameperiod;
-+	sensor->fmt.width = adv7180_std[sensor->video_idx].width;
-+	sensor->fmt.height = adv7180_std[sensor->video_idx].height;
-+	sensor->fmt.code = MEDIA_BUS_FMT_UYVY8_2X8;
-+	sensor->fmt.field = V4L2_FIELD_SEQ_BT;
-+
-+	mutex_init(&sensor->mutex);
-+
-+	endpoint = of_graph_get_next_endpoint(np, NULL);
-+	if (!endpoint) {
-+		dev_err(sensor->dev, "endpoint node not found\n");
-+		return -EINVAL;
-+	}
-+
-+	v4l2_of_parse_endpoint(endpoint, &sensor->ep);
-+	if (sensor->ep.bus_type != V4L2_MBUS_BT656) {
-+		dev_err(sensor->dev, "invalid bus type, must be bt.656\n");
-+		return -EINVAL;
-+	}
-+	of_node_put(endpoint);
-+
-+	ret = of_get_named_gpio(np, "pwdn-gpio", 0);
-+	if (gpio_is_valid(ret)) {
-+		sensor->pwdn_gpio = ret;
-+		ret = devm_gpio_request_one(sensor->dev,
-+					    sensor->pwdn_gpio,
-+					    GPIOF_OUT_INIT_HIGH,
-+					    "adv7180_pwdn");
-+		if (ret < 0) {
-+			dev_err(sensor->dev,
-+				"request for power down gpio failed\n");
-+			return ret;
-+		}
-+	} else {
-+		if (ret == -EPROBE_DEFER)
-+			return ret;
-+		/* assume a power-down gpio is not required */
-+		sensor->pwdn_gpio = -1;
-+	}
-+
-+	adv7180_regulator_enable(sensor);
-+
-+	/* Power on the chip */
-+	adv7180_power(sensor, true);
-+
-+	/*! ADV7180 initialization. */
-+	ret = adv7180_hard_reset(sensor);
-+	if (ret) {
-+		dev_err(sensor->dev, "hard reset failed!\n");
-+		goto cleanup;
-+	}
-+
-+	/*! Read the revision ID of the chip */
-+	ret = adv7180_read_reg(sensor, ADV7180_IDENT, &rev_id);
-+	if (ret < 0) {
-+		dev_err(sensor->dev,
-+			"failed to read ADV7180 IDENT register!\n");
-+		ret = -ENODEV;
-+		goto cleanup;
-+	}
-+	sensor->rev_id = rev_id;
-+
-+	dev_info(sensor->dev, "Analog Devices ADV7180 Rev 0x%02X detected!\n",
-+		 sensor->rev_id);
-+
-+	v4l2_i2c_subdev_init(&sensor->sd, client, &adv7180_subdev_ops);
-+
-+	/* see if there is a signal lock already */
-+	adv7180_read_reg(sensor, ADV7180_STATUS_1, &stat1);
-+
-+	ret = adv7180_update_lock_status(sensor, stat1, &lsc);
-+	if (ret < 0)
-+		goto cleanup;
-+	ret = adv7180_get_autodetect_std(sensor, stat1, &std_change);
-+	if (ret < 0)
-+		goto cleanup;
-+
-+	if (sensor->i2c_client->irq) {
-+		ret = request_threaded_irq(sensor->i2c_client->irq,
-+					   NULL, adv7180_interrupt,
-+					   IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-+					   IF_NAME, sensor);
-+		if (ret < 0) {
-+			dev_err(sensor->dev, "Failed to register irq %d\n",
-+				sensor->i2c_client->irq);
-+			goto cleanup;
-+		}
-+
-+		adv7180_enable_interrupts(sensor);
-+
-+		dev_info(sensor->dev, "Registered irq %d\n",
-+			 sensor->i2c_client->irq);
-+	}
-+
-+	ret = adv7180_init_controls(sensor);
-+	if (ret)
-+		goto irqfree;
-+
-+	ret = v4l2_async_register_subdev(&sensor->sd);
-+	if (ret)
-+		goto free_ctrls;
-+
-+	return 0;
-+
-+free_ctrls:
-+	v4l2_ctrl_handler_free(&sensor->ctrl_hdl);
-+irqfree:
-+	if (sensor->i2c_client->irq)
-+		free_irq(sensor->i2c_client->irq, sensor);
-+cleanup:
-+	adv7180_power(sensor, false);
-+	adv7180_regulator_disable(sensor);
-+	return ret;
-+}
-+
-+/*!
-+ * ADV7180 I2C detach function.
-+ * Called on rmmod.
-+ *
-+ *  @param *client	struct i2c_client*.
-+ *
-+ *  @return		Error code indicating success or failure.
-+ */
-+static int adv7180_detach(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct adv7180_dev *sensor = to_adv7180_dev(sd);
-+
-+	if (sensor->i2c_client->irq)
-+		free_irq(sensor->i2c_client->irq, sensor);
-+
-+	v4l2_async_unregister_subdev(&sensor->sd);
-+	v4l2_device_unregister_subdev(sd);
-+	v4l2_ctrl_handler_free(&sensor->ctrl_hdl);
-+
-+	/* Power off the chip */
-+	adv7180_power(sensor, false);
-+
-+	adv7180_regulator_disable(sensor);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id adv7180_id[] = {
-+	{ "adv7180", 0 },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(i2c, adv7180_id);
-+
-+static const struct of_device_id adv7180_dt_ids[] = {
-+	{ .compatible = "adi,adv7180" },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, adv7180_dt_ids);
-+
-+static struct i2c_driver adv7180_driver = {
-+	.driver = {
-+		.name	= "adv7180",
-+		.owner	= THIS_MODULE,
-+		.of_match_table	= adv7180_dt_ids,
-+	},
-+	.id_table	= adv7180_id,
-+	.probe		= adv7180_probe,
-+	.remove		= adv7180_detach,
-+};
-+
-+module_i2c_driver(adv7180_driver);
-+
-+MODULE_AUTHOR("Freescale Semiconductor, Inc.");
-+MODULE_DESCRIPTION("Analog Devices ADV7180 Subdev driver");
-+MODULE_LICENSE("GPL");
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 9343950..005c82b 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -184,6 +184,10 @@ enum v4l2_colorfx {
-  * We reserve 16 controls for this driver. */
- #define V4L2_CID_USER_IMX_BASE			(V4L2_CID_USER_BASE + 0x1090)
- 
-+/* The base for the ADV718x sensor controls.
-+ * We reserve 32 controls for this driver. */
-+#define V4L2_CID_USER_ADV718X_BASE		(V4L2_CID_USER_BASE + 0x10a0)
-+
- /* MPEG-class control IDs */
- /* The MPEG controls are applicable to all codec controls
-  * and the 'MPEG' part of the define is historical */
-diff --git a/include/uapi/media/Kbuild b/include/uapi/media/Kbuild
-index fa78958..5b064a9 100644
---- a/include/uapi/media/Kbuild
-+++ b/include/uapi/media/Kbuild
-@@ -1,2 +1,3 @@
- # UAPI Header export list
- header-y += imx.h
-+header-y += adv718x.h
-diff --git a/include/uapi/media/adv718x.h b/include/uapi/media/adv718x.h
-new file mode 100644
-index 0000000..79abb7d
---- /dev/null
-+++ b/include/uapi/media/adv718x.h
-@@ -0,0 +1,42 @@
 +/*
-+ * Copyright (c) 2014-2015 Mentor Graphics Inc.
++ * Get and set the message handling mode for this filehandle.
++ */
++#define CEC_G_MODE		_IOR('a',  8, __u32)
++#define CEC_S_MODE		_IOW('a',  9, __u32)
++
++/*
++ * The remainder of this header defines all CEC messages and operands.
++ * The format matters since it the cec-ctl utility parses it to generate
++ * code for implementing all these messages.
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the
-+ * License, or (at your option) any later version
++ * Comments ending with 'Feature' group messages for each feature.
++ * If messages are part of multiple features, then the "Has also"
++ * comment is used to list the previously defined messages that are
++ * supported by the feature.
++ *
++ * Before operands are defined a comment is added that gives the
++ * name of the operand and in brackets the variable name of the
++ * corresponding argument in the cec-funcs.h function.
 + */
 +
-+#ifndef __UAPI_MEDIA_ADV718X_H__
-+#define __UAPI_MEDIA_ADV718X_H__
++/* Messages */
 +
-+enum adv718x_ctrl_id {
-+	V4L2_CID_ADV718x_OFF_CB = (V4L2_CID_USER_ADV718X_BASE + 0),
-+	V4L2_CID_ADV718x_OFF_CR,
-+	V4L2_CID_ADV718x_FREERUN_ENABLE,
-+	V4L2_CID_ADV718x_FORCE_FREERUN,
-+	V4L2_CID_ADV718x_FREERUN_Y,
-+	V4L2_CID_ADV718x_FREERUN_CB,
-+	V4L2_CID_ADV718x_FREERUN_CR,
-+	/* Chroma Transient Improvement Controls */
-+	V4L2_CID_ADV718x_CTI_ENABLE,
-+	V4L2_CID_ADV718x_CTI_AB_ENABLE,
-+	V4L2_CID_ADV718x_CTI_AB,
-+	V4L2_CID_ADV718x_CTI_THRESH,
-+	/* Digital Noise Reduction and Lumanance Peaking Gain Controls */
-+	V4L2_CID_ADV718x_DNR_ENABLE,
-+	V4L2_CID_ADV718x_DNR_THRESH1,
-+	V4L2_CID_ADV718x_LUMA_PEAK_GAIN,
-+	V4L2_CID_ADV718x_DNR_THRESH2,
-+	/* ADV7182 specific controls */
-+	V4L2_CID_ADV7182_FREERUN_PAT_SEL,
-+	V4L2_CID_ADV7182_ACE_ENABLE,
-+	V4L2_CID_ADV7182_ACE_LUMA_GAIN,
-+	V4L2_CID_ADV7182_ACE_RESPONSE_SPEED,
-+	V4L2_CID_ADV7182_ACE_CHROMA_GAIN,
-+	V4L2_CID_ADV7182_ACE_CHROMA_MAX,
-+	V4L2_CID_ADV7182_ACE_GAMMA_GAIN,
-+	V4L2_CID_ADV7182_DITHER_ENABLE,
-+};
++/* One Touch Play Feature */
++#define CEC_MSG_ACTIVE_SOURCE				0x82
++#define CEC_MSG_IMAGE_VIEW_ON				0x04
++#define CEC_MSG_TEXT_VIEW_ON				0x0d
++
++
++/* Routing Control Feature */
++
++/*
++ * Has also:
++ *	CEC_MSG_ACTIVE_SOURCE
++ */
++
++#define CEC_MSG_INACTIVE_SOURCE				0x9d
++#define CEC_MSG_REQUEST_ACTIVE_SOURCE			0x85
++#define CEC_MSG_ROUTING_CHANGE				0x80
++#define CEC_MSG_ROUTING_INFORMATION			0x81
++#define CEC_MSG_SET_STREAM_PATH				0x86
++
++
++/* Standby Feature */
++#define CEC_MSG_STANDBY					0x36
++
++
++/* One Touch Record Feature */
++#define CEC_MSG_RECORD_OFF				0x0b
++#define CEC_MSG_RECORD_ON				0x09
++/* Record Source Type Operand (rec_src_type) */
++#define CEC_OP_RECORD_SRC_OWN				1
++#define CEC_OP_RECORD_SRC_DIGITAL			2
++#define CEC_OP_RECORD_SRC_ANALOG			3
++#define CEC_OP_RECORD_SRC_EXT_PLUG			4
++#define CEC_OP_RECORD_SRC_EXT_PHYS_ADDR			5
++/* Service Identification Method Operand (service_id_method) */
++#define CEC_OP_SERVICE_ID_METHOD_BY_DIG_ID		0
++#define CEC_OP_SERVICE_ID_METHOD_BY_CHANNEL		1
++/* Digital Service Broadcast System Operand (dig_bcast_system) */
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ARIB_GEN	0x00
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ATSC_GEN	0x01
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_DVB_GEN		0x02
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ARIB_BS		0x08
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ARIB_CS		0x09
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ARIB_T		0x0a
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ATSC_CABLE	0x10
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ATSC_SAT	0x11
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ATSC_T		0x12
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_DVB_C		0x18
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_DVB_S		0x19
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_DVB_S2		0x1a
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_DVB_T		0x1b
++/* Analogue Broadcast Type Operand (ana_bcast_type) */
++#define CEC_OP_ANA_BCAST_TYPE_CABLE			0
++#define CEC_OP_ANA_BCAST_TYPE_SATELLITE			1
++#define CEC_OP_ANA_BCAST_TYPE_TERRESTRIAL		2
++/* Broadcast System Operand (bcast_system) */
++#define CEC_OP_BCAST_SYSTEM_PAL_BG			0x00
++#define CEC_OP_BCAST_SYSTEM_SECAM_LQ			0x01 /* SECAM L' */
++#define CEC_OP_BCAST_SYSTEM_PAL_M			0x02
++#define CEC_OP_BCAST_SYSTEM_NTSC_M			0x03
++#define CEC_OP_BCAST_SYSTEM_PAL_I			0x04
++#define CEC_OP_BCAST_SYSTEM_SECAM_DK			0x05
++#define CEC_OP_BCAST_SYSTEM_SECAM_BG			0x06
++#define CEC_OP_BCAST_SYSTEM_SECAM_L			0x07
++#define CEC_OP_BCAST_SYSTEM_PAL_DK			0x08
++#define CEC_OP_BCAST_SYSTEM_OTHER			0x1f
++/* Channel Number Format Operand (channel_number_fmt) */
++#define CEC_OP_CHANNEL_NUMBER_FMT_1_PART		0x01
++#define CEC_OP_CHANNEL_NUMBER_FMT_2_PART		0x02
++
++#define CEC_MSG_RECORD_STATUS				0x0a
++/* Record Status Operand (rec_status) */
++#define CEC_OP_RECORD_STATUS_CUR_SRC			0x01
++#define CEC_OP_RECORD_STATUS_DIG_SERVICE		0x02
++#define CEC_OP_RECORD_STATUS_ANA_SERVICE		0x03
++#define CEC_OP_RECORD_STATUS_EXT_INPUT			0x04
++#define CEC_OP_RECORD_STATUS_NO_DIG_SERVICE		0x05
++#define CEC_OP_RECORD_STATUS_NO_ANA_SERVICE		0x06
++#define CEC_OP_RECORD_STATUS_NO_SERVICE			0x07
++#define CEC_OP_RECORD_STATUS_INVALID_EXT_PLUG		0x09
++#define CEC_OP_RECORD_STATUS_INVALID_EXT_PHYS_ADDR	0x0a
++#define CEC_OP_RECORD_STATUS_UNSUP_CA			0x0b
++#define CEC_OP_RECORD_STATUS_NO_CA_ENTITLEMENTS		0x0c
++#define CEC_OP_RECORD_STATUS_CANT_COPY_SRC		0x0d
++#define CEC_OP_RECORD_STATUS_NO_MORE_COPIES		0x0e
++#define CEC_OP_RECORD_STATUS_NO_MEDIA			0x10
++#define CEC_OP_RECORD_STATUS_PLAYING			0x11
++#define CEC_OP_RECORD_STATUS_ALREADY_RECORDING		0x12
++#define CEC_OP_RECORD_STATUS_MEDIA_PROT			0x13
++#define CEC_OP_RECORD_STATUS_NO_SIGNAL			0x14
++#define CEC_OP_RECORD_STATUS_MEDIA_PROBLEM		0x15
++#define CEC_OP_RECORD_STATUS_NO_SPACE			0x16
++#define CEC_OP_RECORD_STATUS_PARENTAL_LOCK		0x17
++#define CEC_OP_RECORD_STATUS_TERMINATED_OK		0x1a
++#define CEC_OP_RECORD_STATUS_ALREADY_TERM		0x1b
++#define CEC_OP_RECORD_STATUS_OTHER			0x1f
++
++#define CEC_MSG_RECORD_TV_SCREEN			0x0f
++
++
++/* Timer Programming Feature */
++#define CEC_MSG_CLEAR_ANALOGUE_TIMER			0x33
++/* Recording Sequence Operand (recording_seq) */
++#define CEC_OP_REC_SEQ_SUNDAY				0x01
++#define CEC_OP_REC_SEQ_MONDAY				0x02
++#define CEC_OP_REC_SEQ_TUESDAY				0x04
++#define CEC_OP_REC_SEQ_WEDNESDAY			0x08
++#define CEC_OP_REC_SEQ_THURSDAY				0x10
++#define CEC_OP_REC_SEQ_FRIDAY				0x20
++#define CEC_OP_REC_SEQ_SATERDAY				0x40
++#define CEC_OP_REC_SEQ_ONCE_ONLY			0x00
++
++#define CEC_MSG_CLEAR_DIGITAL_TIMER			0x99
++
++#define CEC_MSG_CLEAR_EXT_TIMER				0xa1
++/* External Source Specifier Operand (ext_src_spec) */
++#define CEC_OP_EXT_SRC_PLUG				0x04
++#define CEC_OP_EXT_SRC_PHYS_ADDR			0x05
++
++#define CEC_MSG_SET_ANALOGUE_TIMER			0x34
++#define CEC_MSG_SET_DIGITAL_TIMER			0x97
++#define CEC_MSG_SET_EXT_TIMER				0xa2
++
++#define CEC_MSG_SET_TIMER_PROGRAM_TITLE			0x67
++#define CEC_MSG_TIMER_CLEARED_STATUS			0x43
++/* Timer Cleared Status Data Operand (timer_cleared_status) */
++#define CEC_OP_TIMER_CLR_STAT_RECORDING			0x00
++#define CEC_OP_TIMER_CLR_STAT_NO_MATCHING		0x01
++#define CEC_OP_TIMER_CLR_STAT_NO_INFO			0x02
++#define CEC_OP_TIMER_CLR_STAT_CLEARED			0x80
++
++#define CEC_MSG_TIMER_STATUS				0x35
++/* Timer Overlap Warning Operand (timer_overlap_warning) */
++#define CEC_OP_TIMER_OVERLAP_WARNING_NO_OVERLAP		0
++#define CEC_OP_TIMER_OVERLAP_WARNING_OVERLAP		1
++/* Media Info Operand (media_info) */
++#define CEC_OP_MEDIA_INFO_UNPROT_MEDIA			0
++#define CEC_OP_MEDIA_INFO_PROT_MEDIA			1
++#define CEC_OP_MEDIA_INFO_NO_MEDIA			2
++/* Programmed Indicator Operand (prog_indicator) */
++#define CEC_OP_PROG_IND_NOT_PROGRAMMED			0
++#define CEC_OP_PROG_IND_PROGRAMMED			1
++/* Programmed Info Operand (prog_info) */
++#define CEC_OP_PROG_INFO_ENOUGH_SPACE			0x08
++#define CEC_OP_PROG_INFO_NOT_ENOUGH_SPACE		0x09
++#define CEC_OP_PROG_INFO_MIGHT_NOT_BE_ENOUGH_SPACE	0x0b
++#define CEC_OP_PROG_INFO_NONE_AVAILABLE			0x0a
++/* Not Programmed Error Info Operand (prog_error) */
++#define CEC_OP_PROG_ERROR_NO_FREE_TIMER			0x01
++#define CEC_OP_PROG_ERROR_DATE_OUT_OF_RANGE		0x02
++#define CEC_OP_PROG_ERROR_REC_SEQ_ERROR			0x03
++#define CEC_OP_PROG_ERROR_INV_EXT_PLUG			0x04
++#define CEC_OP_PROG_ERROR_INV_EXT_PHYS_ADDR		0x05
++#define CEC_OP_PROG_ERROR_CA_UNSUPP			0x06
++#define CEC_OP_PROG_ERROR_INSUF_CA_ENTITLEMENTS		0x07
++#define CEC_OP_PROG_ERROR_RESOLUTION_UNSUPP		0x08
++#define CEC_OP_PROG_ERROR_PARENTAL_LOCK			0x09
++#define CEC_OP_PROG_ERROR_CLOCK_FAILURE			0x0a
++#define CEC_OP_PROG_ERROR_DUPLICATE			0x0e
++
++
++/* System Information Feature */
++#define CEC_MSG_CEC_VERSION				0x9e
++/* CEC Version Operand (cec_version) */
++#define CEC_OP_CEC_VERSION_1_3A				4
++#define CEC_OP_CEC_VERSION_1_4				5
++#define CEC_OP_CEC_VERSION_2_0				6
++
++#define CEC_MSG_GET_CEC_VERSION				0x9f
++#define CEC_MSG_GIVE_PHYSICAL_ADDR			0x83
++#define CEC_MSG_GET_MENU_LANGUAGE			0x91
++#define CEC_MSG_REPORT_PHYSICAL_ADDR			0x84
++/* Primary Device Type Operand (prim_devtype) */
++#define CEC_OP_PRIM_DEVTYPE_TV				0
++#define CEC_OP_PRIM_DEVTYPE_RECORD			1
++#define CEC_OP_PRIM_DEVTYPE_TUNER			3
++#define CEC_OP_PRIM_DEVTYPE_PLAYBACK			4
++#define CEC_OP_PRIM_DEVTYPE_AUDIOSYSTEM			5
++#define CEC_OP_PRIM_DEVTYPE_SWITCH			6
++#define CEC_OP_PRIM_DEVTYPE_PROCESSOR			7
++
++#define CEC_MSG_SET_MENU_LANGUAGE			0x32
++#define CEC_MSG_REPORT_FEATURES				0xa6	/* HDMI 2.0 */
++/* All Device Types Operand (all_device_types) */
++#define CEC_OP_ALL_DEVTYPE_TV				0x80
++#define CEC_OP_ALL_DEVTYPE_RECORD			0x40
++#define CEC_OP_ALL_DEVTYPE_TUNER			0x20
++#define CEC_OP_ALL_DEVTYPE_PLAYBACK			0x10
++#define CEC_OP_ALL_DEVTYPE_AUDIOSYSTEM			0x08
++#define CEC_OP_ALL_DEVTYPE_SWITCH			0x04
++/*
++ * And if you wondering what happened to PROCESSOR devices: those should
++ * be mapped to a SWITCH.
++ */
++
++/* Valid for RC Profile and Device Feature operands */
++#define CEC_OP_FEAT_EXT					0x80	/* Extension bit */
++/* RC Profile Operand (rc_profile) */
++#define CEC_OP_FEAT_RC_TV_PROFILE_NONE			0x00
++#define CEC_OP_FEAT_RC_TV_PROFILE_1			0x02
++#define CEC_OP_FEAT_RC_TV_PROFILE_2			0x06
++#define CEC_OP_FEAT_RC_TV_PROFILE_3			0x0a
++#define CEC_OP_FEAT_RC_TV_PROFILE_4			0x0e
++#define CEC_OP_FEAT_RC_SRC_HAS_DEV_ROOT_MENU		0x50
++#define CEC_OP_FEAT_RC_SRC_HAS_DEV_SETUP_MENU		0x48
++#define CEC_OP_FEAT_RC_SRC_HAS_CONTENTS_MENU		0x44
++#define CEC_OP_FEAT_RC_SRC_HAS_MEDIA_TOP_MENU		0x42
++#define CEC_OP_FEAT_RC_SRC_HAS_MEDIA_CONTEXT_MENU	0x41
++/* Device Feature Operand (dev_features) */
++#define CEC_OP_FEAT_DEV_HAS_RECORD_TV_SCREEN		0x40
++#define CEC_OP_FEAT_DEV_HAS_SET_OSD_STRING		0x20
++#define CEC_OP_FEAT_DEV_HAS_DECK_CONTROL		0x10
++#define CEC_OP_FEAT_DEV_HAS_SET_AUDIO_RATE		0x08
++#define CEC_OP_FEAT_DEV_SINK_HAS_ARC_TX			0x04
++#define CEC_OP_FEAT_DEV_SOURCE_HAS_ARC_RX		0x02
++
++#define CEC_MSG_GIVE_FEATURES				0xa5	/* HDMI 2.0 */
++
++
++/* Deck Control Feature */
++#define CEC_MSG_DECK_CONTROL				0x42
++/* Deck Control Mode Operand (deck_control_mode) */
++#define CEC_OP_DECK_CTL_MODE_SKIP_FWD			1
++#define CEC_OP_DECK_CTL_MODE_SKIP_REV			2
++#define CEC_OP_DECK_CTL_MODE_STOP			3
++#define CEC_OP_DECK_CTL_MODE_EJECT			4
++
++#define CEC_MSG_DECK_STATUS				0x1b
++/* Deck Info Operand (deck_info) */
++#define CEC_OP_DECK_INFO_PLAY				0x11
++#define CEC_OP_DECK_INFO_RECORD				0x12
++#define CEC_OP_DECK_INFO_PLAY_REV			0x13
++#define CEC_OP_DECK_INFO_STILL				0x14
++#define CEC_OP_DECK_INFO_SLOW				0x15
++#define CEC_OP_DECK_INFO_SLOW_REV			0x16
++#define CEC_OP_DECK_INFO_FAST_FWD			0x17
++#define CEC_OP_DECK_INFO_FAST_REV			0x18
++#define CEC_OP_DECK_INFO_NO_MEDIA			0x19
++#define CEC_OP_DECK_INFO_STOP				0x1a
++#define CEC_OP_DECK_INFO_SKIP_FWD			0x1b
++#define CEC_OP_DECK_INFO_SKIP_REV			0x1c
++#define CEC_OP_DECK_INFO_INDEX_SEARCH_FWD		0x1d
++#define CEC_OP_DECK_INFO_INDEX_SEARCH_REV		0x1e
++#define CEC_OP_DECK_INFO_OTHER				0x1f
++
++#define CEC_MSG_GIVE_DECK_STATUS			0x1a
++/* Status Request Operand (status_req) */
++#define CEC_OP_STATUS_REQ_ON				1
++#define CEC_OP_STATUS_REQ_OFF				2
++#define CEC_OP_STATUS_REQ_ONCE				3
++
++#define CEC_MSG_PLAY					0x41
++/* Play Mode Operand (play_mode) */
++#define CEC_OP_PLAY_MODE_PLAY_FWD			0x24
++#define CEC_OP_PLAY_MODE_PLAY_REV			0x20
++#define CEC_OP_PLAY_MODE_PLAY_STILL			0x25
++#define CEC_OP_PLAY_MODE_PLAY_FAST_FWD_MIN		0x05
++#define CEC_OP_PLAY_MODE_PLAY_FAST_FWD_MED		0x06
++#define CEC_OP_PLAY_MODE_PLAY_FAST_FWD_MAX		0x07
++#define CEC_OP_PLAY_MODE_PLAY_FAST_REV_MIN		0x09
++#define CEC_OP_PLAY_MODE_PLAY_FAST_REV_MED		0x0a
++#define CEC_OP_PLAY_MODE_PLAY_FAST_REV_MAX		0x0b
++#define CEC_OP_PLAY_MODE_PLAY_SLOW_FWD_MIN		0x15
++#define CEC_OP_PLAY_MODE_PLAY_SLOW_FWD_MED		0x16
++#define CEC_OP_PLAY_MODE_PLAY_SLOW_FWD_MAX		0x17
++#define CEC_OP_PLAY_MODE_PLAY_SLOW_REV_MIN		0x19
++#define CEC_OP_PLAY_MODE_PLAY_SLOW_REV_MED		0x1a
++#define CEC_OP_PLAY_MODE_PLAY_SLOW_REV_MAX		0x1b
++
++
++/* Tuner Control Feature */
++#define CEC_MSG_GIVE_TUNER_DEVICE_STATUS		0x08
++#define CEC_MSG_SELECT_ANALOGUE_SERVICE			0x92
++#define CEC_MSG_SELECT_DIGITAL_SERVICE			0x93
++#define CEC_MSG_TUNER_DEVICE_STATUS			0x07
++/* Recording Flag Operand (rec_flag) */
++#define CEC_OP_REC_FLAG_USED				0
++#define CEC_OP_REC_FLAG_NOT_USED			1
++/* Tuner Display Info Operand (tuner_display_info) */
++#define CEC_OP_TUNER_DISPLAY_INFO_DIGITAL		0
++#define CEC_OP_TUNER_DISPLAY_INFO_NONE			1
++#define CEC_OP_TUNER_DISPLAY_INFO_ANALOGUE		2
++
++#define CEC_MSG_TUNER_STEP_DECREMENT			0x06
++#define CEC_MSG_TUNER_STEP_INCREMENT			0x05
++
++
++/* Vendor Specific Commands Feature */
++
++/*
++ * Has also:
++ *	CEC_MSG_CEC_VERSION
++ *	CEC_MSG_GET_CEC_VERSION
++ */
++#define CEC_MSG_DEVICE_VENDOR_ID			0x87
++#define CEC_MSG_GIVE_DEVICE_VENDOR_ID			0x8c
++#define CEC_MSG_VENDOR_COMMAND				0x89
++#define CEC_MSG_VENDOR_COMMAND_WITH_ID			0xa0
++#define CEC_MSG_VENDOR_REMOTE_BUTTON_DOWN		0x8a
++#define CEC_MSG_VENDOR_REMOTE_BUTTON_UP			0x8b
++
++
++/* OSD Display Feature */
++#define CEC_MSG_SET_OSD_STRING				0x64
++/* Display Control Operand (disp_ctl) */
++#define CEC_OP_DISP_CTL_DEFAULT				0x00
++#define CEC_OP_DISP_CTL_UNTIL_CLEARED			0x40
++#define CEC_OP_DISP_CTL_CLEAR				0x80
++
++
++/* Device OSD Transfer Feature */
++#define CEC_MSG_GIVE_OSD_NAME				0x46
++#define CEC_MSG_SET_OSD_NAME				0x47
++
++
++/* Device Menu Control Feature */
++#define CEC_MSG_MENU_REQUEST				0x8d
++/* Menu Request Type Operand (menu_req) */
++#define CEC_OP_MENU_REQUEST_ACTIVATE			0x00
++#define CEC_OP_MENU_REQUEST_DEACTIVATE			0x01
++#define CEC_OP_MENU_REQUEST_QUERY			0x02
++
++#define CEC_MSG_MENU_STATUS				0x8e
++/* Menu State Operand (menu_state) */
++#define CEC_OP_MENU_STATE_ACTIVATED			0x00
++#define CEC_OP_MENU_STATE_DEACTIVATED			0x01
++
++#define CEC_MSG_USER_CONTROL_PRESSED			0x44
++/* UI Broadcast Type Operand (ui_bcast_type) */
++#define CEC_OP_UI_BCAST_TYPE_TOGGLE_ALL			0x00
++#define CEC_OP_UI_BCAST_TYPE_TOGGLE_DIG_ANA		0x01
++#define CEC_OP_UI_BCAST_TYPE_ANALOGUE			0x10
++#define CEC_OP_UI_BCAST_TYPE_ANALOGUE_T			0x20
++#define CEC_OP_UI_BCAST_TYPE_ANALOGUE_CABLE		0x30
++#define CEC_OP_UI_BCAST_TYPE_ANALOGUE_SAT		0x40
++#define CEC_OP_UI_BCAST_TYPE_DIGITAL			0x50
++#define CEC_OP_UI_BCAST_TYPE_DIGITAL_T			0x60
++#define CEC_OP_UI_BCAST_TYPE_DIGITAL_CABLE		0x70
++#define CEC_OP_UI_BCAST_TYPE_DIGITAL_SAT		0x80
++#define CEC_OP_UI_BCAST_TYPE_DIGITAL_COM_SAT		0x90
++#define CEC_OP_UI_BCAST_TYPE_DIGITAL_COM_SAT2		0x91
++#define CEC_OP_UI_BCAST_TYPE_IP				0xa0
++/* UI Sound Presentation Control Operand (ui_snd_pres_ctl) */
++#define CEC_OP_UI_SND_PRES_CTL_DUAL_MONO		0x10
++#define CEC_OP_UI_SND_PRES_CTL_KARAOKE			0x20
++#define CEC_OP_UI_SND_PRES_CTL_DOWNMIX			0x80
++#define CEC_OP_UI_SND_PRES_CTL_REVERB			0x90
++#define CEC_OP_UI_SND_PRES_CTL_EQUALIZER		0xa0
++#define CEC_OP_UI_SND_PRES_CTL_BASS_UP			0xb1
++#define CEC_OP_UI_SND_PRES_CTL_BASS_NEUTRAL		0xb2
++#define CEC_OP_UI_SND_PRES_CTL_BASS_DOWN		0xb3
++#define CEC_OP_UI_SND_PRES_CTL_TREBLE_UP		0xc1
++#define CEC_OP_UI_SND_PRES_CTL_TREBLE_NEUTRAL		0xc2
++#define CEC_OP_UI_SND_PRES_CTL_TREBLE_DOWN		0xc3
++
++#define CEC_MSG_USER_CONTROL_RELEASED			0x45
++
++
++/* Remote Control Passthrough Feature */
++
++/*
++ * Has also:
++ *	CEC_MSG_USER_CONTROL_PRESSED
++ *	CEC_MSG_USER_CONTROL_RELEASED
++ */
++
++
++/* Power Status Feature */
++#define CEC_MSG_GIVE_DEVICE_POWER_STATUS		0x8f
++#define CEC_MSG_REPORT_POWER_STATUS			0x90
++/* Power Status Operand (pwr_state) */
++#define CEC_OP_POWER_STATUS_ON				0
++#define CEC_OP_POWER_STATUS_STANDBY			1
++#define CEC_OP_POWER_STATUS_TO_ON			2
++#define CEC_OP_POWER_STATUS_TO_STANDBY			3
++
++
++/* General Protocol Messages */
++#define CEC_MSG_FEATURE_ABORT				0x00
++/* Abort Reason Operand (reason) */
++#define CEC_OP_ABORT_UNRECOGNIZED_OP			0
++#define CEC_OP_ABORT_INCORRECT_MODE			1
++#define CEC_OP_ABORT_NO_SOURCE				2
++#define CEC_OP_ABORT_INVALID_OP				3
++#define CEC_OP_ABORT_REFUSED				4
++#define CEC_OP_ABORT_UNDETERMINED			5
++
++#define CEC_MSG_ABORT					0xff
++
++
++/* System Audio Control Feature */
++
++/*
++ * Has also:
++ *	CEC_MSG_USER_CONTROL_PRESSED
++ *	CEC_MSG_USER_CONTROL_RELEASED
++ */
++#define CEC_MSG_GIVE_AUDIO_STATUS			0x71
++#define CEC_MSG_GIVE_SYSTEM_AUDIO_MODE_STATUS		0x7d
++#define CEC_MSG_REPORT_AUDIO_STATUS			0x7a
++/* Audio Mute Status Operand (aud_mute_status) */
++#define CEC_OP_AUD_MUTE_STATUS_OFF			0
++#define CEC_OP_AUD_MUTE_STATUS_ON			1
++
++#define CEC_MSG_REPORT_SHORT_AUDIO_DESCRIPTOR		0xa3
++#define CEC_MSG_REQUEST_SHORT_AUDIO_DESCRIPTOR		0xa4
++#define CEC_MSG_SET_SYSTEM_AUDIO_MODE			0x72
++/* System Audio Status Operand (sys_aud_status) */
++#define CEC_OP_SYS_AUD_STATUS_OFF			0
++#define CEC_OP_SYS_AUD_STATUS_ON			1
++
++#define CEC_MSG_SYSTEM_AUDIO_MODE_REQUEST		0x70
++#define CEC_MSG_SYSTEM_AUDIO_MODE_STATUS		0x7e
++/* Audio Format ID Operand (audio_format_id) */
++#define CEC_OP_AUD_FMT_ID_CEA861			0
++#define CEC_OP_AUD_FMT_ID_CEA861_CXT			1
++
++
++/* Audio Rate Control Feature */
++#define CEC_MSG_SET_AUDIO_RATE				0x9a
++/* Audio Rate Operand (audio_rate) */
++#define CEC_OP_AUD_RATE_OFF				0
++#define CEC_OP_AUD_RATE_WIDE_STD			1
++#define CEC_OP_AUD_RATE_WIDE_FAST			2
++#define CEC_OP_AUD_RATE_WIDE_SLOW			3
++#define CEC_OP_AUD_RATE_NARROW_STD			4
++#define CEC_OP_AUD_RATE_NARROW_FAST			5
++#define CEC_OP_AUD_RATE_NARROW_SLOW			6
++
++
++/* Audio Return Channel Control Feature */
++#define CEC_MSG_INITIATE_ARC				0xc0
++#define CEC_MSG_REPORT_ARC_INITIATED			0xc1
++#define CEC_MSG_REPORT_ARC_TERMINATED			0xc2
++#define CEC_MSG_REQUEST_ARC_INITIATION			0xc3
++#define CEC_MSG_REQUEST_ARC_TERMINATION			0xc4
++#define CEC_MSG_TERMINATE_ARC				0xc5
++
++
++/* Dynamic Audio Lipsync Feature */
++/* Only for CEC 2.0 and up */
++#define CEC_MSG_REQUEST_CURRENT_LATENCY			0xa7
++#define CEC_MSG_REPORT_CURRENT_LATENCY			0xa8
++/* Low Latency Mode Operand (low_latency_mode) */
++#define CEC_OP_LOW_LATENCY_MODE_OFF			0
++#define CEC_OP_LOW_LATENCY_MODE_ON			1
++/* Audio Output Compensated Operand (audio_out_compensated) */
++#define CEC_OP_AUD_OUT_COMPENSATED_NA			0
++#define CEC_OP_AUD_OUT_COMPENSATED_DELAY		1
++#define CEC_OP_AUD_OUT_COMPENSATED_NO_DELAY		2
++#define CEC_OP_AUD_OUT_COMPENSATED_PARTIAL_DELAY	3
++
++
++/* Capability Discovery and Control Feature */
++#define CEC_MSG_CDC_MESSAGE				0xf8
++/* Ethernet-over-HDMI: nobody ever does this... */
++#define CEC_MSG_CDC_HEC_INQUIRE_STATE			0x00
++#define CEC_MSG_CDC_HEC_REPORT_STATE			0x01
++/* HEC Functionality State Operand (hec_func_state) */
++#define CEC_OP_HEC_FUNC_STATE_NOT_SUPPORTED		0
++#define CEC_OP_HEC_FUNC_STATE_INACTIVE			1
++#define CEC_OP_HEC_FUNC_STATE_ACTIVE			2
++#define CEC_OP_HEC_FUNC_STATE_ACTIVATION_FIELD		3
++/* Host Functionality State Operand (host_func_state) */
++#define CEC_OP_HOST_FUNC_STATE_NOT_SUPPORTED		0
++#define CEC_OP_HOST_FUNC_STATE_INACTIVE			1
++#define CEC_OP_HOST_FUNC_STATE_ACTIVE			2
++/* ENC Functionality State Operand (enc_func_state) */
++#define CEC_OP_ENC_FUNC_STATE_EXT_CON_NOT_SUPPORTED	0
++#define CEC_OP_ENC_FUNC_STATE_EXT_CON_INACTIVE		1
++#define CEC_OP_ENC_FUNC_STATE_EXT_CON_ACTIVE		2
++/* CDC Error Code Operand (cdc_errcode) */
++#define CEC_OP_CDC_ERROR_CODE_NONE			0
++#define CEC_OP_CDC_ERROR_CODE_CAP_UNSUPPORTED		1
++#define CEC_OP_CDC_ERROR_CODE_WRONG_STATE		2
++#define CEC_OP_CDC_ERROR_CODE_OTHER			3
++/* HEC Support Operand (hec_support) */
++#define CEC_OP_HEC_SUPPORT_NO				0
++#define CEC_OP_HEC_SUPPORT_YES				1
++/* HEC Activation Operand (hec_activation) */
++#define CEC_OP_HEC_ACTIVATION_ON			0
++#define CEC_OP_HEC_ACTIVATION_OFF			1
++
++#define CEC_MSG_CDC_HEC_SET_STATE_ADJACENT		0x02
++#define CEC_MSG_CDC_HEC_SET_STATE			0x03
++/* HEC Set State Operand (hec_set_state) */
++#define CEC_OP_HEC_SET_STATE_DEACTIVATE			0
++#define CEC_OP_HEC_SET_STATE_ACTIVATE			1
++
++#define CEC_MSG_CDC_HEC_REQUEST_DEACTIVATION		0x04
++#define CEC_MSG_CDC_HEC_NOTIFY_ALIVE			0x05
++#define CEC_MSG_CDC_HEC_DISCOVER			0x06
++/* Hotplug Detect messages */
++#define CEC_MSG_CDC_HPD_SET_STATE			0x10
++/* HPD State Operand (hpd_state) */
++#define CEC_OP_HPD_STATE_CP_EDID_DISABLE		0
++#define CEC_OP_HPD_STATE_CP_EDID_ENABLE			1
++#define CEC_OP_HPD_STATE_CP_EDID_DISABLE_ENABLE		2
++#define CEC_OP_HPD_STATE_EDID_DISABLE			3
++#define CEC_OP_HPD_STATE_EDID_ENABLE			4
++#define CEC_OP_HPD_STATE_EDID_DISABLE_ENABLE		5
++#define CEC_MSG_CDC_HPD_REPORT_STATE			0x11
++/* HPD Error Code Operand (hpd_error) */
++#define CEC_OP_HPD_ERROR_NONE				0
++#define CEC_OP_HPD_ERROR_INITIATOR_NOT_CAPABLE		1
++#define CEC_OP_HPD_ERROR_INITIATOR_WRONG_STATE		2
++#define CEC_OP_HPD_ERROR_OTHER				3
++#define CEC_OP_HPD_ERROR_NONE_NO_VIDEO			4
 +
 +#endif
 -- 
-1.9.1
+2.8.1
 
