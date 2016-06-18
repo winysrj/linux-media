@@ -1,59 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:33439 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752274AbcFNWvH (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:57132 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751513AbcFRMYl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 18:51:07 -0400
-Received: by mail-pf0-f195.google.com with SMTP id c74so306098pfb.0
-        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:06 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
+	Sat, 18 Jun 2016 08:24:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 03/38] gpu: ipu-cpmem: Add ipu_cpmem_get_burstsize()
-Date: Tue, 14 Jun 2016 15:48:59 -0700
-Message-Id: <1465944574-15745-4-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv17 11/16] cec: add compat32 ioctl support
+Date: Sat, 18 Jun 2016 14:24:13 +0200
+Message-Id: <1466252658-39819-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1466252658-39819-1-git-send-email-hverkuil@xs4all.nl>
+References: <1466252658-39819-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds ipu_cpmem_get_burstsize().
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+The CEC ioctls didn't have compat32 support, so they returned -ENOTTY
+when used in a 32 bit application on a 64 bit kernel.
+
+Since all the CEC ioctls are 32-bit compatible adding support for this
+API is trivial.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/gpu/ipu-v3/ipu-cpmem.c | 6 ++++++
- include/video/imx-ipu-v3.h     | 1 +
- 2 files changed, 7 insertions(+)
+ fs/compat_ioctl.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
-index a36c35e..fcb7dc8 100644
---- a/drivers/gpu/ipu-v3/ipu-cpmem.c
-+++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
-@@ -275,6 +275,12 @@ void ipu_cpmem_set_axi_id(struct ipuv3_channel *ch, u32 id)
- }
- EXPORT_SYMBOL_GPL(ipu_cpmem_set_axi_id);
+diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
+index bd01b92..c1e9f29 100644
+--- a/fs/compat_ioctl.c
++++ b/fs/compat_ioctl.c
+@@ -57,6 +57,7 @@
+ #include <linux/i2c-dev.h>
+ #include <linux/atalk.h>
+ #include <linux/gfp.h>
++#include <linux/cec.h>
  
-+int ipu_cpmem_get_burstsize(struct ipuv3_channel *ch)
-+{
-+	return ipu_ch_param_read_field(ch, IPU_FIELD_NPB) + 1;
-+}
-+EXPORT_SYMBOL_GPL(ipu_cpmem_get_burstsize);
-+
- void ipu_cpmem_set_burstsize(struct ipuv3_channel *ch, int burstsize)
- {
- 	ipu_ch_param_write_field(ch, IPU_FIELD_NPB, burstsize - 1);
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 904fd12..60540ead 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -197,6 +197,7 @@ void ipu_cpmem_set_buffer(struct ipuv3_channel *ch, int bufnum, dma_addr_t buf);
- void ipu_cpmem_set_uv_offset(struct ipuv3_channel *ch, u32 u_off, u32 v_off);
- void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride);
- void ipu_cpmem_set_axi_id(struct ipuv3_channel *ch, u32 id);
-+int ipu_cpmem_get_burstsize(struct ipuv3_channel *ch);
- void ipu_cpmem_set_burstsize(struct ipuv3_channel *ch, int burstsize);
- void ipu_cpmem_set_block_mode(struct ipuv3_channel *ch);
- void ipu_cpmem_set_rotation(struct ipuv3_channel *ch,
+ #include "internal.h"
+ 
+@@ -1377,6 +1378,17 @@ COMPATIBLE_IOCTL(VIDEO_GET_NAVI)
+ COMPATIBLE_IOCTL(VIDEO_SET_ATTRIBUTES)
+ COMPATIBLE_IOCTL(VIDEO_GET_SIZE)
+ COMPATIBLE_IOCTL(VIDEO_GET_FRAME_RATE)
++/* cec */
++COMPATIBLE_IOCTL(CEC_ADAP_G_CAPS)
++COMPATIBLE_IOCTL(CEC_ADAP_G_LOG_ADDRS)
++COMPATIBLE_IOCTL(CEC_ADAP_S_LOG_ADDRS)
++COMPATIBLE_IOCTL(CEC_ADAP_G_PHYS_ADDR)
++COMPATIBLE_IOCTL(CEC_ADAP_S_PHYS_ADDR)
++COMPATIBLE_IOCTL(CEC_G_MODE)
++COMPATIBLE_IOCTL(CEC_S_MODE)
++COMPATIBLE_IOCTL(CEC_TRANSMIT)
++COMPATIBLE_IOCTL(CEC_RECEIVE)
++COMPATIBLE_IOCTL(CEC_DQEVENT)
+ 
+ /* joystick */
+ COMPATIBLE_IOCTL(JSIOCGVERSION)
 -- 
-1.9.1
+2.8.1
 
