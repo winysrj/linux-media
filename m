@@ -1,348 +1,529 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53674 "EHLO
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:39396 "EHLO
 	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751376AbcFYNGt (ORCPT
+	by vger.kernel.org with ESMTP id S1751434AbcFRMYm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jun 2016 09:06:49 -0400
+	Sat, 18 Jun 2016 08:24:42 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv19 02/14] cec-edid: add module for EDID CEC helper functions
-Date: Sat, 25 Jun 2016 15:06:26 +0200
-Message-Id: <1466859998-17640-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1466859998-17640-1-git-send-email-hverkuil@xs4all.nl>
-References: <1466859998-17640-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv17 12/16] cec: adv7604: add cec support.
+Date: Sat, 18 Jun 2016 14:24:14 +0200
+Message-Id: <1466252658-39819-13-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1466252658-39819-1-git-send-email-hverkuil@xs4all.nl>
+References: <1466252658-39819-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The cec-edid module contains helper functions to find and manipulate
-the CEC physical address inside an EDID. Even if the CEC support itself
-is disabled, drivers will still need these functions. Which is the
-reason this is module is separate from the upcoming CEC framework.
+Add CEC support to the adv7604 driver.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
+[k.debski@samsung.com: add missing methods cec/io_write_and_or]
+[k.debski@samsung.com: change adv7604 to adv76xx in added functions]
+[hansverk@cisco.com: use _clr_set instead of _and_or]
 ---
- drivers/media/Kconfig    |   3 +
- drivers/media/Makefile   |   2 +
- drivers/media/cec-edid.c | 168 +++++++++++++++++++++++++++++++++++++++++++++++
- include/media/cec-edid.h | 104 +++++++++++++++++++++++++++++
- 4 files changed, 277 insertions(+)
- create mode 100644 drivers/media/cec-edid.c
- create mode 100644 include/media/cec-edid.h
+ drivers/media/i2c/Kconfig   |   9 ++
+ drivers/media/i2c/adv7604.c | 332 +++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 305 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index a8518fb..052dcf7 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -80,6 +80,9 @@ config MEDIA_RC_SUPPORT
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 993dc50..b7e3c8a 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -209,6 +209,7 @@ config VIDEO_ADV7604
+ 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+ 	depends on GPIOLIB || COMPILE_TEST
+ 	select HDMI
++	select MEDIA_CEC_EDID
+ 	---help---
+ 	  Support for the Analog Devices ADV7604 video decoder.
  
- 	  Say Y when you have a TV or an IR device.
+@@ -218,6 +219,14 @@ config VIDEO_ADV7604
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called adv7604.
  
-+config MEDIA_CEC_EDID
-+	tristate
++config VIDEO_ADV7604_CEC
++	bool "Enable Analog Devices ADV7604 CEC support"
++	depends on VIDEO_ADV7604 && MEDIA_CEC
++	default n
++	---help---
++	  When selected the adv7604 will support the optional
++	  HDMI CEC feature.
 +
- #
- # Media controller
- #	Selectable only for webcam/grabbers, as other drivers don't use it
-diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-index e608bbc..b56f013 100644
---- a/drivers/media/Makefile
-+++ b/drivers/media/Makefile
-@@ -2,6 +2,8 @@
- # Makefile for the kernel multimedia device drivers.
- #
+ config VIDEO_ADV7842
+ 	tristate "Analog Devices ADV7842 decoder"
+ 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index beb2841..3c9f001 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -40,6 +40,7 @@
+ #include <linux/regmap.h>
  
-+obj-$(CONFIG_MEDIA_CEC_EDID) += cec-edid.o
-+
- media-objs	:= media-device.o media-devnode.o media-entity.o
+ #include <media/i2c/adv7604.h>
++#include <media/cec.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-event.h>
+@@ -80,6 +81,8 @@ MODULE_LICENSE("GPL");
  
- #
-diff --git a/drivers/media/cec-edid.c b/drivers/media/cec-edid.c
-new file mode 100644
-index 0000000..7001824
---- /dev/null
-+++ b/drivers/media/cec-edid.c
-@@ -0,0 +1,168 @@
-+/*
-+ * cec-edid - HDMI Consumer Electronics Control EDID & CEC helper functions
-+ *
-+ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you may redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
+ #define ADV76XX_OP_SWAP_CB_CR				(1 << 0)
+ 
++#define ADV76XX_MAX_ADDRS (3)
 +
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/types.h>
-+#include <media/cec-edid.h>
+ enum adv76xx_type {
+ 	ADV7604,
+ 	ADV7611,
+@@ -184,6 +187,12 @@ struct adv76xx_state {
+ 	u16 spa_port_a[2];
+ 	struct v4l2_fract aspect_ratio;
+ 	u32 rgb_quantization_range;
 +
-+/*
-+ * This EDID is expected to be a CEA-861 compliant, which means that there are
-+ * at least two blocks and one or more of the extensions blocks are CEA-861
-+ * blocks.
-+ *
-+ * The returned location is guaranteed to be < size - 1.
-+ */
-+static unsigned int cec_get_edid_spa_location(const u8 *edid, unsigned int size)
++	struct cec_adapter *cec_adap;
++	u8   cec_addr[ADV76XX_MAX_ADDRS];
++	u8   cec_valid_addrs;
++	bool cec_enabled_adap;
++
+ 	struct workqueue_struct *work_queues;
+ 	struct delayed_work delayed_work_enable_hotplug;
+ 	bool restart_stdi_once;
+@@ -381,7 +390,8 @@ static inline int io_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ 	return regmap_write(state->regmap[ADV76XX_PAGE_IO], reg, val);
+ }
+ 
+-static inline int io_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
++static inline int io_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask,
++				   u8 val)
+ {
+ 	return io_write(sd, reg, (io_read(sd, reg) & ~mask) | val);
+ }
+@@ -414,6 +424,12 @@ static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ 	return regmap_write(state->regmap[ADV76XX_PAGE_CEC], reg, val);
+ }
+ 
++static inline int cec_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask,
++				   u8 val)
 +{
-+	unsigned int blocks = size / 128;
-+	unsigned int block;
-+	u8 d;
++	return cec_write(sd, reg, (cec_read(sd, reg) & ~mask) | val);
++}
 +
-+	/* Sanity check: at least 2 blocks and a multiple of the block size */
-+	if (blocks < 2 || size % 128)
-+		return 0;
+ static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+@@ -872,9 +888,9 @@ static int adv76xx_s_detect_tx_5v_ctrl(struct v4l2_subdev *sd)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 	const struct adv76xx_chip_info *info = state->info;
++	u16 cable_det = info->read_cable_det(sd);
+ 
+-	return v4l2_ctrl_s_ctrl(state->detect_tx_5v_ctrl,
+-				info->read_cable_det(sd));
++	return v4l2_ctrl_s_ctrl(state->detect_tx_5v_ctrl, cable_det);
+ }
+ 
+ static int find_and_set_predefined_video_timings(struct v4l2_subdev *sd,
+@@ -1900,6 +1916,210 @@ static int adv76xx_set_format(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
++#if IS_ENABLED(CONFIG_VIDEO_ADV7604_CEC)
++static void adv76xx_cec_tx_raw_status(struct v4l2_subdev *sd, u8 tx_raw_status)
++{
++	struct adv76xx_state *state = to_state(sd);
 +
-+	/*
-+	 * If there are fewer extension blocks than the size, then update
-+	 * 'blocks'. It is allowed to have more extension blocks than the size,
-+	 * since some hardware can only read e.g. 256 bytes of the EDID, even
-+	 * though more blocks are present. The first CEA-861 extension block
-+	 * should normally be in block 1 anyway.
-+	 */
-+	if (edid[0x7e] + 1 < blocks)
-+		blocks = edid[0x7e] + 1;
++	if ((cec_read(sd, 0x11) & 0x01) == 0) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: tx disabled\n", __func__);
++		return;
++	}
 +
-+	for (block = 1; block < blocks; block++) {
-+		unsigned int offset = block * 128;
++	if (tx_raw_status & 0x02) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: arbitration lost\n",
++			 __func__);
++		cec_transmit_done(state->cec_adap, CEC_TX_STATUS_ARB_LOST,
++				  1, 0, 0, 0);
++	}
++	if (tx_raw_status & 0x04) {
++		u8 status;
++		u8 nack_cnt;
++		u8 low_drive_cnt;
 +
-+		/* Skip any non-CEA-861 extension blocks */
-+		if (edid[offset] != 0x02 || edid[offset + 1] != 0x03)
-+			continue;
++		v4l2_dbg(1, debug, sd, "%s: tx raw: retry failed\n", __func__);
++		/*
++		 * We set this status bit since this hardware performs
++		 * retransmissions.
++		 */
++		status = CEC_TX_STATUS_MAX_RETRIES;
++		nack_cnt = cec_read(sd, 0x14) & 0xf;
++		if (nack_cnt)
++			status |= CEC_TX_STATUS_NACK;
++		low_drive_cnt = cec_read(sd, 0x14) >> 4;
++		if (low_drive_cnt)
++			status |= CEC_TX_STATUS_LOW_DRIVE;
++		cec_transmit_done(state->cec_adap, status,
++				  0, nack_cnt, low_drive_cnt, 0);
++		return;
++	}
++	if (tx_raw_status & 0x01) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: ready ok\n", __func__);
++		cec_transmit_done(state->cec_adap, CEC_TX_STATUS_OK, 0, 0, 0, 0);
++		return;
++	}
++}
 +
-+		/* search Vendor Specific Data Block (tag 3) */
-+		d = edid[offset + 2] & 0x7f;
-+		/* Check if there are Data Blocks */
-+		if (d <= 4)
-+			continue;
-+		if (d > 4) {
-+			unsigned int i = offset + 4;
-+			unsigned int end = offset + d;
++static void adv76xx_cec_isr(struct v4l2_subdev *sd, bool *handled)
++{
++	struct adv76xx_state *state = to_state(sd);
++	u8 cec_irq;
 +
-+			/* Note: 'end' is always < 'size' */
-+			do {
-+				u8 tag = edid[i] >> 5;
-+				u8 len = edid[i] & 0x1f;
++	/* cec controller */
++	cec_irq = io_read(sd, 0x4d) & 0x0f;
++	if (!cec_irq)
++		return;
 +
-+				if (tag == 3 && len >= 5 && i + len <= end)
-+					return i + 4;
-+				i += len + 1;
-+			} while (i < end);
++	v4l2_dbg(1, debug, sd, "%s: cec: irq 0x%x\n", __func__, cec_irq);
++	adv76xx_cec_tx_raw_status(sd, cec_irq);
++	if (cec_irq & 0x08) {
++		struct cec_msg msg;
++
++		msg.len = cec_read(sd, 0x25) & 0x1f;
++		if (msg.len > 16)
++			msg.len = 16;
++
++		if (msg.len) {
++			u8 i;
++
++			for (i = 0; i < msg.len; i++)
++				msg.msg[i] = cec_read(sd, i + 0x15);
++			cec_write(sd, 0x26, 0x01); /* re-enable rx */
++			cec_received_msg(state->cec_adap, &msg);
 +		}
++	}
++
++	/* note: the bit order is swapped between 0x4d and 0x4e */
++	cec_irq = ((cec_irq & 0x08) >> 3) | ((cec_irq & 0x04) >> 1) |
++		  ((cec_irq & 0x02) << 1) | ((cec_irq & 0x01) << 3);
++	io_write(sd, 0x4e, cec_irq);
++
++	if (handled)
++		*handled = true;
++}
++
++static int adv76xx_cec_adap_enable(struct cec_adapter *adap, bool enable)
++{
++	struct adv76xx_state *state = adap->priv;
++	struct v4l2_subdev *sd = &state->sd;
++
++	if (!state->cec_enabled_adap && enable) {
++		cec_write_clr_set(sd, 0x2a, 0x01, 0x01); /* power up cec */
++		cec_write(sd, 0x2c, 0x01);	/* cec soft reset */
++		cec_write_clr_set(sd, 0x11, 0x01, 0); /* initially disable tx */
++		/* enabled irqs: */
++		/* tx: ready */
++		/* tx: arbitration lost */
++		/* tx: retry timeout */
++		/* rx: ready */
++		io_write_clr_set(sd, 0x50, 0x0f, 0x0f);
++		cec_write(sd, 0x26, 0x01);            /* enable rx */
++	} else if (state->cec_enabled_adap && !enable) {
++		/* disable cec interrupts */
++		io_write_clr_set(sd, 0x50, 0x0f, 0x00);
++		/* disable address mask 1-3 */
++		cec_write_clr_set(sd, 0x27, 0x70, 0x00);
++		/* power down cec section */
++		cec_write_clr_set(sd, 0x2a, 0x01, 0x00);
++		state->cec_valid_addrs = 0;
++	}
++	state->cec_enabled_adap = enable;
++	adv76xx_s_detect_tx_5v_ctrl(sd);
++	return 0;
++}
++
++static int adv76xx_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
++{
++	struct adv76xx_state *state = adap->priv;
++	struct v4l2_subdev *sd = &state->sd;
++	unsigned int i, free_idx = ADV76XX_MAX_ADDRS;
++
++	if (!state->cec_enabled_adap)
++		return addr == CEC_LOG_ADDR_INVALID ? 0 : -EIO;
++
++	if (addr == CEC_LOG_ADDR_INVALID) {
++		cec_write_clr_set(sd, 0x27, 0x70, 0);
++		state->cec_valid_addrs = 0;
++		return 0;
++	}
++
++	for (i = 0; i < ADV76XX_MAX_ADDRS; i++) {
++		bool is_valid = state->cec_valid_addrs & (1 << i);
++
++		if (free_idx == ADV76XX_MAX_ADDRS && !is_valid)
++			free_idx = i;
++		if (is_valid && state->cec_addr[i] == addr)
++			return 0;
++	}
++	if (i == ADV76XX_MAX_ADDRS) {
++		i = free_idx;
++		if (i == ADV76XX_MAX_ADDRS)
++			return -ENXIO;
++	}
++	state->cec_addr[i] = addr;
++	state->cec_valid_addrs |= 1 << i;
++
++	switch (i) {
++	case 0:
++		/* enable address mask 0 */
++		cec_write_clr_set(sd, 0x27, 0x10, 0x10);
++		/* set address for mask 0 */
++		cec_write_clr_set(sd, 0x28, 0x0f, addr);
++		break;
++	case 1:
++		/* enable address mask 1 */
++		cec_write_clr_set(sd, 0x27, 0x20, 0x20);
++		/* set address for mask 1 */
++		cec_write_clr_set(sd, 0x28, 0xf0, addr << 4);
++		break;
++	case 2:
++		/* enable address mask 2 */
++		cec_write_clr_set(sd, 0x27, 0x40, 0x40);
++		/* set address for mask 1 */
++		cec_write_clr_set(sd, 0x29, 0x0f, addr);
++		break;
 +	}
 +	return 0;
 +}
 +
-+u16 cec_get_edid_phys_addr(const u8 *edid, unsigned int size,
-+			   unsigned int *offset)
++static int adv76xx_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
++				     u32 signal_free_time, struct cec_msg *msg)
 +{
-+	unsigned int loc = cec_get_edid_spa_location(edid, size);
-+
-+	if (offset)
-+		*offset = loc;
-+	if (loc == 0)
-+		return CEC_PHYS_ADDR_INVALID;
-+	return (edid[loc] << 8) | edid[loc + 1];
-+}
-+EXPORT_SYMBOL_GPL(cec_get_edid_phys_addr);
-+
-+void cec_set_edid_phys_addr(u8 *edid, unsigned int size, u16 phys_addr)
-+{
-+	unsigned int loc = cec_get_edid_spa_location(edid, size);
-+	u8 sum = 0;
++	struct adv76xx_state *state = adap->priv;
++	struct v4l2_subdev *sd = &state->sd;
++	u8 len = msg->len;
 +	unsigned int i;
 +
-+	if (loc == 0)
-+		return;
-+	edid[loc] = phys_addr >> 8;
-+	edid[loc + 1] = phys_addr & 0xff;
-+	loc &= ~0x7f;
-+
-+	/* update the checksum */
-+	for (i = loc; i < loc + 127; i++)
-+		sum += edid[i];
-+	edid[i] = 256 - sum;
-+}
-+EXPORT_SYMBOL_GPL(cec_set_edid_phys_addr);
-+
-+u16 cec_phys_addr_for_input(u16 phys_addr, u8 input)
-+{
-+	/* Check if input is sane */
-+	if (WARN_ON(input == 0 || input > 0xf))
-+		return CEC_PHYS_ADDR_INVALID;
-+
-+	if (phys_addr == 0)
-+		return input << 12;
-+
-+	if ((phys_addr & 0x0fff) == 0)
-+		return phys_addr | (input << 8);
-+
-+	if ((phys_addr & 0x00ff) == 0)
-+		return phys_addr | (input << 4);
-+
-+	if ((phys_addr & 0x000f) == 0)
-+		return phys_addr | input;
-+
 +	/*
-+	 * All nibbles are used so no valid physical addresses can be assigned
-+	 * to the input.
++	 * The number of retries is the number of attempts - 1, but retry
++	 * at least once. It's not clear if a value of 0 is allowed, so
++	 * let's do at least one retry.
 +	 */
-+	return CEC_PHYS_ADDR_INVALID;
-+}
-+EXPORT_SYMBOL_GPL(cec_phys_addr_for_input);
++	cec_write_clr_set(sd, 0x12, 0x70, max(1, attempts - 1) << 4);
 +
-+int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port)
-+{
-+	int i;
++	if (len > 16) {
++		v4l2_err(sd, "%s: len exceeded 16 (%d)\n", __func__, len);
++		return -EINVAL;
++	}
 +
-+	if (parent)
-+		*parent = phys_addr;
-+	if (port)
-+		*port = 0;
-+	if (phys_addr == CEC_PHYS_ADDR_INVALID)
-+		return 0;
-+	for (i = 0; i < 16; i += 4)
-+		if (phys_addr & (0xf << i))
-+			break;
-+	if (i == 16)
-+		return 0;
-+	if (parent)
-+		*parent = phys_addr & (0xfff0 << i);
-+	if (port)
-+		*port = (phys_addr >> i) & 0xf;
-+	for (i += 4; i < 16; i += 4)
-+		if ((phys_addr & (0xf << i)) == 0)
-+			return -EINVAL;
++	/* write data */
++	for (i = 0; i < len; i++)
++		cec_write(sd, i, msg->msg[i]);
++
++	/* set length (data + header) */
++	cec_write(sd, 0x10, len);
++	/* start transmit, enable tx */
++	cec_write(sd, 0x11, 0x01);
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(cec_phys_addr_validate);
 +
-+MODULE_AUTHOR("Hans Verkuil <hans.verkuil@cisco.com>");
-+MODULE_DESCRIPTION("CEC EDID helper functions");
-+MODULE_LICENSE("GPL");
-diff --git a/include/media/cec-edid.h b/include/media/cec-edid.h
-new file mode 100644
-index 0000000..bdf731e
---- /dev/null
-+++ b/include/media/cec-edid.h
-@@ -0,0 +1,104 @@
-+/*
-+ * cec-edid - HDMI Consumer Electronics Control & EDID helpers
-+ *
-+ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you may redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
++static const struct cec_adap_ops adv76xx_cec_adap_ops = {
++	.adap_enable = adv76xx_cec_adap_enable,
++	.adap_log_addr = adv76xx_cec_adap_log_addr,
++	.adap_transmit = adv76xx_cec_adap_transmit,
++};
++#endif
 +
-+#ifndef _MEDIA_CEC_EDID_H
-+#define _MEDIA_CEC_EDID_H
+ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+@@ -1945,6 +2165,11 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 			*handled = true;
+ 	}
+ 
++#if IS_ENABLED(CONFIG_VIDEO_ADV7604_CEC)
++	/* cec */
++	adv76xx_cec_isr(sd, handled);
++#endif
 +
-+#include <linux/types.h>
+ 	/* tx 5v detect */
+ 	tx_5v = irq_reg_0x70 & info->cable_det_mask;
+ 	if (tx_5v) {
+@@ -1994,39 +2219,12 @@ static int adv76xx_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 	return 0;
+ }
+ 
+-static int get_edid_spa_location(const u8 *edid)
+-{
+-	u8 d;
+-
+-	if ((edid[0x7e] != 1) ||
+-	    (edid[0x80] != 0x02) ||
+-	    (edid[0x81] != 0x03)) {
+-		return -1;
+-	}
+-
+-	/* search Vendor Specific Data Block (tag 3) */
+-	d = edid[0x82] & 0x7f;
+-	if (d > 4) {
+-		int i = 0x84;
+-		int end = 0x80 + d;
+-
+-		do {
+-			u8 tag = edid[i] >> 5;
+-			u8 len = edid[i] & 0x1f;
+-
+-			if ((tag == 3) && (len >= 5))
+-				return i + 4;
+-			i += len + 1;
+-		} while (i < end);
+-	}
+-	return -1;
+-}
+-
+ static int adv76xx_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 	const struct adv76xx_chip_info *info = state->info;
+-	int spa_loc;
++	unsigned int spa_loc;
++	u16 pa;
+ 	int err;
+ 	int i;
+ 
+@@ -2057,6 +2255,10 @@ static int adv76xx_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 		edid->blocks = 2;
+ 		return -E2BIG;
+ 	}
++	pa = cec_get_edid_phys_addr(edid->edid, edid->blocks * 128, &spa_loc);
++	err = cec_phys_addr_validate(pa, &pa, NULL);
++	if (err)
++		return err;
+ 
+ 	v4l2_dbg(2, debug, sd, "%s: write EDID pad %d, edid.present = 0x%x\n",
+ 			__func__, edid->pad, state->edid.present);
+@@ -2066,9 +2268,12 @@ static int adv76xx_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 	adv76xx_set_hpd(state, 0);
+ 	rep_write_clr_set(sd, info->edid_enable_reg, 0x0f, 0x00);
+ 
+-	spa_loc = get_edid_spa_location(edid->edid);
+-	if (spa_loc < 0)
+-		spa_loc = 0xc0; /* Default value [REF_02, p. 116] */
++	/*
++	 * Return an error if no location of the source physical address
++	 * was found.
++	 */
++	if (spa_loc == 0)
++		return -EINVAL;
+ 
+ 	switch (edid->pad) {
+ 	case ADV76XX_PAD_HDMI_PORT_A:
+@@ -2128,6 +2333,7 @@ static int adv76xx_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 		v4l2_err(sd, "error enabling edid (0x%x)\n", state->edid.present);
+ 		return -EIO;
+ 	}
++	cec_s_phys_addr(state->cec_adap, pa, false);
+ 
+ 	/* enable hotplug after 100 ms */
+ 	queue_delayed_work(state->work_queues,
+@@ -2252,8 +2458,19 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
+ 			((edid_enabled & 0x02) ? "Yes" : "No"),
+ 			((edid_enabled & 0x04) ? "Yes" : "No"),
+ 			((edid_enabled & 0x08) ? "Yes" : "No"));
+-	v4l2_info(sd, "CEC: %s\n", !!(cec_read(sd, 0x2a) & 0x01) ?
++	v4l2_info(sd, "CEC: %s\n", state->cec_enabled_adap ?
+ 			"enabled" : "disabled");
++	if (state->cec_enabled_adap) {
++		int i;
 +
-+#define CEC_PHYS_ADDR_INVALID		0xffff
-+#define cec_phys_addr_exp(pa) \
-+	((pa) >> 12), ((pa) >> 8) & 0xf, ((pa) >> 4) & 0xf, (pa) & 0xf
++		for (i = 0; i < ADV76XX_MAX_ADDRS; i++) {
++			bool is_valid = state->cec_valid_addrs & (1 << i);
 +
-+/**
-+ * cec_get_edid_phys_addr() - find and return the physical address
-+ *
-+ * @edid:	pointer to the EDID data
-+ * @size:	size in bytes of the EDID data
-+ * @offset:	If not %NULL then the location of the physical address
-+ *		bytes in the EDID will be returned here. This is set to 0
-+ *		if there is no physical address found.
-+ *
-+ * Return: the physical address or CEC_PHYS_ADDR_INVALID if there is none.
-+ */
-+u16 cec_get_edid_phys_addr(const u8 *edid, unsigned int size,
-+			   unsigned int *offset);
++			if (is_valid)
++				v4l2_info(sd, "CEC Logical Address: 0x%x\n",
++					  state->cec_addr[i]);
++		}
++	}
+ 
+ 	v4l2_info(sd, "-----Signal status-----\n");
+ 	cable_det = info->read_cable_det(sd);
+@@ -2363,6 +2580,24 @@ static int adv76xx_subscribe_event(struct v4l2_subdev *sd,
+ 	}
+ }
+ 
++static int adv76xx_registered(struct v4l2_subdev *sd)
++{
++	struct adv76xx_state *state = to_state(sd);
++	int err;
 +
-+/**
-+ * cec_set_edid_phys_addr() - find and set the physical address
-+ *
-+ * @edid:	pointer to the EDID data
-+ * @size:	size in bytes of the EDID data
-+ * @phys_addr:	the new physical address
-+ *
-+ * This function finds the location of the physical address in the EDID
-+ * and fills in the given physical address and updates the checksum
-+ * at the end of the EDID block. It does nothing if the EDID doesn't
-+ * contain a physical address.
-+ */
-+void cec_set_edid_phys_addr(u8 *edid, unsigned int size, u16 phys_addr);
++	err = cec_register_adapter(state->cec_adap);
++	if (err)
++		cec_delete_adapter(state->cec_adap);
++	return err;
++}
 +
-+/**
-+ * cec_phys_addr_for_input() - calculate the PA for an input
-+ *
-+ * @phys_addr:	the physical address of the parent
-+ * @input:	the number of the input port, must be between 1 and 15
-+ *
-+ * This function calculates a new physical address based on the input
-+ * port number. For example:
-+ *
-+ * PA = 0.0.0.0 and input = 2 becomes 2.0.0.0
-+ *
-+ * PA = 3.0.0.0 and input = 1 becomes 3.1.0.0
-+ *
-+ * PA = 3.2.1.0 and input = 5 becomes 3.2.1.5
-+ *
-+ * PA = 3.2.1.3 and input = 5 becomes f.f.f.f since it maxed out the depth.
-+ *
-+ * Return: the new physical address or CEC_PHYS_ADDR_INVALID.
-+ */
-+u16 cec_phys_addr_for_input(u16 phys_addr, u8 input);
++static void adv76xx_unregistered(struct v4l2_subdev *sd)
++{
++	struct adv76xx_state *state = to_state(sd);
 +
-+/**
-+ * cec_phys_addr_validate() - validate a physical address from an EDID
-+ *
-+ * @phys_addr:	the physical address to validate
-+ * @parent:	if not %NULL, then this is filled with the parents PA.
-+ * @port:	if not %NULL, then this is filled with the input port.
-+ *
-+ * This validates a physical address as read from an EDID. If the
-+ * PA is invalid (such as 1.0.1.0 since '0' is only allowed at the end),
-+ * then it will return -EINVAL.
-+ *
-+ * The parent PA is passed into %parent and the input port is passed into
-+ * %port. For example:
-+ *
-+ * PA = 0.0.0.0: has parent 0.0.0.0 and input port 0.
-+ *
-+ * PA = 1.0.0.0: has parent 0.0.0.0 and input port 1.
-+ *
-+ * PA = 3.2.0.0: has parent 3.0.0.0 and input port 2.
-+ *
-+ * PA = f.f.f.f: has parent f.f.f.f and input port 0.
-+ *
-+ * Return: 0 if the PA is valid, -EINVAL if not.
-+ */
-+int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port);
++	cec_unregister_adapter(state->cec_adap);
++}
 +
-+#endif /* _MEDIA_CEC_EDID_H */
+ /* ----------------------------------------------------------------------- */
+ 
+ static const struct v4l2_ctrl_ops adv76xx_ctrl_ops = {
+@@ -2406,6 +2641,11 @@ static const struct v4l2_subdev_ops adv76xx_ops = {
+ 	.pad = &adv76xx_pad_ops,
+ };
+ 
++static const struct v4l2_subdev_internal_ops adv76xx_int_ops = {
++	.registered = adv76xx_registered,
++	.unregistered = adv76xx_unregistered,
++};
++
+ /* -------------------------- custom ctrls ---------------------------------- */
+ 
+ static const struct v4l2_ctrl_config adv7604_ctrl_analog_sampling_phase = {
+@@ -3069,6 +3309,7 @@ static int adv76xx_probe(struct i2c_client *client,
+ 		id->name, i2c_adapter_id(client->adapter),
+ 		client->addr);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
++	sd->internal_ops = &adv76xx_int_ops;
+ 
+ 	/* Configure IO Regmap region */
+ 	err = configure_regmap(state, ADV76XX_PAGE_IO);
+@@ -3212,6 +3453,18 @@ static int adv76xx_probe(struct i2c_client *client,
+ 	err = adv76xx_core_init(sd);
+ 	if (err)
+ 		goto err_entity;
++
++#if IS_ENABLED(CONFIG_VIDEO_ADV7604_CEC)
++	state->cec_adap = cec_allocate_adapter(&adv76xx_cec_adap_ops,
++		state, dev_name(&client->dev),
++		CEC_CAP_TRANSMIT | CEC_CAP_LOG_ADDRS |
++		CEC_CAP_PASSTHROUGH | CEC_CAP_RC, ADV76XX_MAX_ADDRS,
++		&client->dev);
++	err = PTR_ERR_OR_ZERO(state->cec_adap);
++	if (err)
++		goto err_entity;
++#endif
++
+ 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
+ 			client->addr << 1, client->adapter->name);
+ 
+@@ -3240,6 +3493,13 @@ static int adv76xx_remove(struct i2c_client *client)
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 	struct adv76xx_state *state = to_state(sd);
+ 
++	/* disable interrupts */
++	io_write(sd, 0x40, 0);
++	io_write(sd, 0x41, 0);
++	io_write(sd, 0x46, 0);
++	io_write(sd, 0x6e, 0);
++	io_write(sd, 0x73, 0);
++
+ 	cancel_delayed_work(&state->delayed_work_enable_hotplug);
+ 	destroy_workqueue(state->work_queues);
+ 	v4l2_async_unregister_subdev(sd);
 -- 
 2.8.1
 
