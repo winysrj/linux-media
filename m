@@ -1,68 +1,344 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from v-smtpgw2.han.skanova.net ([81.236.60.205]:44350 "EHLO
-	v-smtpgw2.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752056AbcFZPks (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:39396 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751434AbcFRMYe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jun 2016 11:40:48 -0400
-Subject: Re: media_build & cx23885
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <bb9fb742-7975-5c9a-1abc-bfd1a456d462@mbox200.swipnet.se>
- <1c7bbf34-eb2a-5f26-5058-d5c6585f698b@xs4all.nl>
-From: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
-Message-ID: <af5ef8f7-685b-b21d-155d-15dc3ffa22c3@mbox200.swipnet.se>
-Date: Sun, 26 Jun 2016 17:40:48 +0200
-MIME-Version: 1.0
-In-Reply-To: <1c7bbf34-eb2a-5f26-5058-d5c6585f698b@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 18 Jun 2016 08:24:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv17 06/16] cec-edid: add module for EDID CEC helper functions
+Date: Sat, 18 Jun 2016 14:24:08 +0200
+Message-Id: <1466252658-39819-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1466252658-39819-1-git-send-email-hverkuil@xs4all.nl>
+References: <1466252658-39819-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2016-06-26 17:07, Hans Verkuil wrote:
-> On 06/26/2016 04:29 PM, Torbjorn Jansson wrote:
->> Hello
->>
->> if i use media_build and modprobe cx23885 i get:
->> # modprobe cx23885
->> modprobe: ERROR: could not insert 'cx23885': Exec format error
->>
->> and on dmesg i get:
->> frame_vector: exports duplicate symbol frame_vector_create (owned by kernel)
->
-> The frame_vector.ko module was incorrectly installed in /lib/modules/`uname -r`
-> (probably in the kernel/mm directory). Your kernel already has that module
-> compiled in, so that's the reason for the duplicate symbol.
->
-> Remove that module and run 'depmod -a' and it should work again.
->
-> I've seen this before, but I don't know why media_build compiles and installs it
-> for a kernel that doesn't need it.
->
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-thanks, that helped.
-i removed frame_vector.ko and that solved the problem.
+The cec-edid module contains helper functions to find and manipulate
+the CEC physical address inside an EDID. Even if the CEC support itself
+is disabled, drivers will still need these functions. Which is the
+reason this is module is separate from the upcoming CEC framework.
 
-is it possible that the media_build scripts always make the module but 
-only installs frame_vector.ko based on some conditions?
-if so, it might be my own fault.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/Kconfig          |   3 +
+ drivers/media/Makefile         |   2 +
+ drivers/media/cec-edid.c       | 139 +++++++++++++++++++++++++++++++++++++++++
+ drivers/staging/media/Kconfig  |   2 +
+ drivers/staging/media/Makefile |   1 +
+ include/media/cec-edid.h       | 104 ++++++++++++++++++++++++++++++
+ 6 files changed, 251 insertions(+)
+ create mode 100644 drivers/media/cec-edid.c
+ create mode 100644 include/media/cec-edid.h
 
-because i test different media build versions i want an easy way to 
-remove just the modules produced by media build so i tend to first build 
-it normally but instead of make install i copy over the modules manually.
-copying all *.ko modules under media_build/v4l to /lib/modules/`uname 
--r`/updates/media and then run depmod.
-
-this way i can just revert by deleting the entire updates/media folder 
-and wont have to go thru loads of different folders and hunt for the 
-relevant .ko files.
-
-anyway, wish i had asked you earlier back in february/march when i first 
-ran into this frame_vector problem.
-now i can hopefully continue my troubleshooting, i suspect i need to fix 
-some application problems too since it looks like this driver (compared 
-to the old from dvbsky) don't support the old dvb api for getting signal 
-strength causing application issues since the program is not yet updated 
-fully to new dvb api.
-
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index a8518fb..052dcf7 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -80,6 +80,9 @@ config MEDIA_RC_SUPPORT
+ 
+ 	  Say Y when you have a TV or an IR device.
+ 
++config MEDIA_CEC_EDID
++	tristate
++
+ #
+ # Media controller
+ #	Selectable only for webcam/grabbers, as other drivers don't use it
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index e608bbc..b56f013 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -2,6 +2,8 @@
+ # Makefile for the kernel multimedia device drivers.
+ #
+ 
++obj-$(CONFIG_MEDIA_CEC_EDID) += cec-edid.o
++
+ media-objs	:= media-device.o media-devnode.o media-entity.o
+ 
+ #
+diff --git a/drivers/media/cec-edid.c b/drivers/media/cec-edid.c
+new file mode 100644
+index 0000000..ce3b915
+--- /dev/null
++++ b/drivers/media/cec-edid.c
+@@ -0,0 +1,139 @@
++/*
++ * cec-edid - HDMI Consumer Electronics Control EDID & CEC helper functions
++ *
++ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/types.h>
++#include <media/cec-edid.h>
++
++static unsigned int cec_get_edid_spa_location(const u8 *edid, unsigned int size)
++{
++	u8 d;
++
++	if (size < 256)
++		return 0;
++
++	if (edid[0x7e] != 1 || edid[0x80] != 0x02 || edid[0x81] != 0x03)
++		return 0;
++
++	/* search Vendor Specific Data Block (tag 3) */
++	d = edid[0x82] & 0x7f;
++	if (d > 4) {
++		int i = 0x84;
++		int end = 0x80 + d;
++
++		do {
++			u8 tag = edid[i] >> 5;
++			u8 len = edid[i] & 0x1f;
++
++			if (tag == 3 && len >= 5)
++				return i + 4;
++			i += len + 1;
++		} while (i < end);
++	}
++	return 0;
++}
++
++u16 cec_get_edid_phys_addr(const u8 *edid, unsigned int size,
++			   unsigned int *offset)
++{
++	unsigned int loc = cec_get_edid_spa_location(edid, size);
++
++	if (offset)
++		*offset = loc;
++	if (loc == 0)
++		return CEC_PHYS_ADDR_INVALID;
++	return (edid[loc] << 8) | edid[loc + 1];
++}
++EXPORT_SYMBOL_GPL(cec_get_edid_phys_addr);
++
++void cec_set_edid_phys_addr(u8 *edid, unsigned int size, u16 phys_addr)
++{
++	unsigned int loc = cec_get_edid_spa_location(edid, size);
++	u8 sum = 0;
++	unsigned int i;
++
++	if (loc == 0)
++		return;
++	edid[loc] = phys_addr >> 8;
++	edid[loc + 1] = phys_addr & 0xff;
++	loc &= ~0x7f;
++
++	/* update the checksum */
++	for (i = loc; i < loc + 127; i++)
++		sum += edid[i];
++	edid[i] = 256 - sum;
++}
++EXPORT_SYMBOL_GPL(cec_set_edid_phys_addr);
++
++u16 cec_phys_addr_for_input(u16 phys_addr, u8 input)
++{
++	/* Check if input is sane */
++	if (WARN_ON(input == 0 || input > 0xf))
++		return CEC_PHYS_ADDR_INVALID;
++
++	if (phys_addr == 0)
++		return input << 12;
++
++	if ((phys_addr & 0x0fff) == 0)
++		return phys_addr | (input << 8);
++
++	if ((phys_addr & 0x00ff) == 0)
++		return phys_addr | (input << 4);
++
++	if ((phys_addr & 0x000f) == 0)
++		return phys_addr | input;
++
++	/*
++	 * All nibbles are used so no valid physical addresses can be assigned
++	 * to the input.
++	 */
++	return CEC_PHYS_ADDR_INVALID;
++}
++EXPORT_SYMBOL_GPL(cec_phys_addr_for_input);
++
++int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port)
++{
++	int i;
++
++	if (parent)
++		*parent = phys_addr;
++	if (port)
++		*port = 0;
++	if (phys_addr == CEC_PHYS_ADDR_INVALID)
++		return 0;
++	for (i = 0; i < 16; i += 4)
++		if (phys_addr & (0xf << i))
++			break;
++	if (i == 16)
++		return 0;
++	if (parent)
++		*parent = phys_addr & (0xfff0 << i);
++	if (port)
++		*port = (phys_addr >> i) & 0xf;
++	for (i += 4; i < 16; i += 4)
++		if ((phys_addr & (0xf << i)) == 0)
++			return -EINVAL;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(cec_phys_addr_validate);
++
++MODULE_AUTHOR("Hans Verkuil <hans.verkuil@cisco.com>");
++MODULE_DESCRIPTION("CEC EDID helper functions");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+index ee91868..7ce679e 100644
+--- a/drivers/staging/media/Kconfig
++++ b/drivers/staging/media/Kconfig
+@@ -21,6 +21,8 @@ if STAGING_MEDIA
+ # Please keep them in alphabetic order
+ source "drivers/staging/media/bcm2048/Kconfig"
+ 
++source "drivers/staging/media/cec/Kconfig"
++
+ source "drivers/staging/media/cxd2099/Kconfig"
+ 
+ source "drivers/staging/media/davinci_vpfe/Kconfig"
+diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+index 8c05d0a..2d213dd 100644
+--- a/drivers/staging/media/Makefile
++++ b/drivers/staging/media/Makefile
+@@ -1,4 +1,5 @@
+ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
++obj-$(CONFIG_MEDIA_CEC)		+= cec/
+ obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
+ obj-$(CONFIG_LIRC_STAGING)	+= lirc/
+ obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
+diff --git a/include/media/cec-edid.h b/include/media/cec-edid.h
+new file mode 100644
+index 0000000..bdf731e
+--- /dev/null
++++ b/include/media/cec-edid.h
+@@ -0,0 +1,104 @@
++/*
++ * cec-edid - HDMI Consumer Electronics Control & EDID helpers
++ *
++ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef _MEDIA_CEC_EDID_H
++#define _MEDIA_CEC_EDID_H
++
++#include <linux/types.h>
++
++#define CEC_PHYS_ADDR_INVALID		0xffff
++#define cec_phys_addr_exp(pa) \
++	((pa) >> 12), ((pa) >> 8) & 0xf, ((pa) >> 4) & 0xf, (pa) & 0xf
++
++/**
++ * cec_get_edid_phys_addr() - find and return the physical address
++ *
++ * @edid:	pointer to the EDID data
++ * @size:	size in bytes of the EDID data
++ * @offset:	If not %NULL then the location of the physical address
++ *		bytes in the EDID will be returned here. This is set to 0
++ *		if there is no physical address found.
++ *
++ * Return: the physical address or CEC_PHYS_ADDR_INVALID if there is none.
++ */
++u16 cec_get_edid_phys_addr(const u8 *edid, unsigned int size,
++			   unsigned int *offset);
++
++/**
++ * cec_set_edid_phys_addr() - find and set the physical address
++ *
++ * @edid:	pointer to the EDID data
++ * @size:	size in bytes of the EDID data
++ * @phys_addr:	the new physical address
++ *
++ * This function finds the location of the physical address in the EDID
++ * and fills in the given physical address and updates the checksum
++ * at the end of the EDID block. It does nothing if the EDID doesn't
++ * contain a physical address.
++ */
++void cec_set_edid_phys_addr(u8 *edid, unsigned int size, u16 phys_addr);
++
++/**
++ * cec_phys_addr_for_input() - calculate the PA for an input
++ *
++ * @phys_addr:	the physical address of the parent
++ * @input:	the number of the input port, must be between 1 and 15
++ *
++ * This function calculates a new physical address based on the input
++ * port number. For example:
++ *
++ * PA = 0.0.0.0 and input = 2 becomes 2.0.0.0
++ *
++ * PA = 3.0.0.0 and input = 1 becomes 3.1.0.0
++ *
++ * PA = 3.2.1.0 and input = 5 becomes 3.2.1.5
++ *
++ * PA = 3.2.1.3 and input = 5 becomes f.f.f.f since it maxed out the depth.
++ *
++ * Return: the new physical address or CEC_PHYS_ADDR_INVALID.
++ */
++u16 cec_phys_addr_for_input(u16 phys_addr, u8 input);
++
++/**
++ * cec_phys_addr_validate() - validate a physical address from an EDID
++ *
++ * @phys_addr:	the physical address to validate
++ * @parent:	if not %NULL, then this is filled with the parents PA.
++ * @port:	if not %NULL, then this is filled with the input port.
++ *
++ * This validates a physical address as read from an EDID. If the
++ * PA is invalid (such as 1.0.1.0 since '0' is only allowed at the end),
++ * then it will return -EINVAL.
++ *
++ * The parent PA is passed into %parent and the input port is passed into
++ * %port. For example:
++ *
++ * PA = 0.0.0.0: has parent 0.0.0.0 and input port 0.
++ *
++ * PA = 1.0.0.0: has parent 0.0.0.0 and input port 1.
++ *
++ * PA = 3.2.0.0: has parent 3.0.0.0 and input port 2.
++ *
++ * PA = f.f.f.f: has parent f.f.f.f and input port 0.
++ *
++ * Return: 0 if the PA is valid, -EINVAL if not.
++ */
++int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port);
++
++#endif /* _MEDIA_CEC_EDID_H */
+-- 
+2.8.1
 
