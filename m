@@ -1,71 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:36207 "EHLO
-	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751501AbcFTJRa (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:57753 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751502AbcFRPDI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 05:17:30 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hans.verkuil@cisco.com, Dimitrios Katsaros <patcherwork@gmail.com>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH] vb2: V4L2_BUF_FLAG_DONE is set after DQBUF
-Date: Mon, 20 Jun 2016 11:01:44 +0200
-Message-Id: <1466413304-8328-1-git-send-email-ricardo.ribalda@gmail.com>
+	Sat, 18 Jun 2016 11:03:08 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv18 09/15] cec/TODO: add TODO file so we know why this is still in staging
+Date: Sat, 18 Jun 2016 17:02:42 +0200
+Message-Id: <1466262168-12805-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
+References: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-According to the doc, V4L2_BUF_FLAG_DONE is cleared after DQBUF:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-V4L2_BUF_FLAG_DONE 0x00000004  ... After calling the VIDIOC_QBUF or
-VIDIOC_DQBUF it is always cleared ...
+Explain why cec.c is still in staging.
 
-Unfortunately, it seems that videobuf2 keeps it set after DQBUF. This
-can be tested with vivid and dev_debug:
-
-[257604.338082] video1: VIDIOC_DQBUF: 71:33:25.00260479 index=3,
-type=vid-cap, flags=0x00002004, field=none, sequence=163,
-memory=userptr, bytesused=460800, offset/userptr=0x344b000,
-length=460800
-
-This patch changes the order when fill_user_buffer() is called,
-to follow the documentation.
-
-Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/staging/media/cec/TODO | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+ create mode 100644 drivers/staging/media/cec/TODO
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 633fc1ab1d7a..63981f28075e 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1771,10 +1771,6 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
- 	if (pindex)
- 		*pindex = vb->index;
- 
--	/* Fill buffer information for the userspace */
--	if (pb)
--		call_void_bufop(q, fill_user_buffer, vb, pb);
--
- 	/* Remove from videobuf queue */
- 	list_del(&vb->queued_entry);
- 	q->queued_count--;
-@@ -1784,6 +1780,10 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
- 	/* go back to dequeued state */
- 	__vb2_dqbuf(vb);
- 
-+	/* Fill buffer information for the userspace */
-+	if (pb)
-+		call_void_bufop(q, fill_user_buffer, vb, pb);
+diff --git a/drivers/staging/media/cec/TODO b/drivers/staging/media/cec/TODO
+new file mode 100644
+index 0000000..e3c384a
+--- /dev/null
++++ b/drivers/staging/media/cec/TODO
+@@ -0,0 +1,23 @@
++The reason why cec.c is still in staging is that I would like
++to have a bit more confidence in the uABI. The kABI is fine,
++no problem there, but I would like to let the public API mature
++a bit.
 +
- 	dprintk(1, "dqbuf of buffer %d, with state %d\n",
- 			vb->index, vb->state);
- 
++Once I'm confident that I didn't miss anything then the cec.c source
++can move to drivers/media and the linux/cec.h and linux/cec-funcs.h
++headers can move to uapi/linux and added to uapi/linux/Kbuild to make
++them public.
++
++Hopefully this will happen later in 2016.
++
++Other TODOs:
++
++- Add a flag to inhibit passing CEC RC messages to the rc subsystem.
++  Applications should be able to choose this when calling S_LOG_ADDRS.
++- Convert cec.txt to sphinx.
++- If the reply field of cec_msg is set then when the reply arrives it
++  is only sent to the filehandle that transmitted the original message
++  and not to any followers. Should this behavior change or perhaps
++  controlled through a cec_msg flag?
++
++Hans Verkuil <hans.verkuil@cisco.com>
 -- 
 2.8.1
 
