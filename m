@@ -1,34 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:38786 "EHLO
-	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751320AbcFNOvs (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:53870 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751408AbcFROud (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 10:51:48 -0400
-Received: by mail-wm0-f44.google.com with SMTP id m124so126812267wme.1
-        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 07:51:48 -0700 (PDT)
-MIME-Version: 1.0
-From: "Lucas C. Villa Real" <lucasvr@gobolinux.org>
-Date: Tue, 14 Jun 2016 11:51:46 -0300
-Message-ID: <CAAvzgtYPpM6YrMaQsxg5cpAZ_iJKRCLc37r9T9kjWWbgppRtRA@mail.gmail.com>
-Subject: [ANNOUNCE] DemuxFS v1.1
+	Sat, 18 Jun 2016 10:50:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Cc: linux-input@vger.kernel.org, dmitry.torokhov@gmail.com
+Subject: [PATCH 0/2] input: add support for HDMI CEC
+Date: Sat, 18 Jun 2016 16:50:26 +0200
+Message-Id: <1466261428-12616-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greetings, all!
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I am happy to announce a new release of DemuxFS, the MPEG-2
-demultiplexer file system.
+Hi Dmitry,
 
-DemuxFS sniffs MPEG-2 TS streams and exposes the decoded contents
-(including interactive programs and firmware updates) as a virtual
-filesystem. Tables are represented under directories of their own
-(e.g., /PMT, /PAT, /EIT) and their properties are shown as regular
-files. Audio and video streams can be inspected and played back
-straight from FIFO files.
+This patch series adds input support for the HDMI CEC bus through which
+remote control keys can be passed from one HDMI device to another.
 
-The code and further details are available at https://github.com/lucasvr/demuxfs
+This has been posted before as part of the HDMI CEC patch series. We are
+going to merge that in linux-media for 4.8, but these two patches have to
+go through linux-input.
 
-Thanks!
-Lucas
+Only the rc-cec keymap file depends on this, and we will take care of that
+dependency (we'll postpone merging that until both these input patches and
+our own CEC patches have been merged in mainline).
+
+Regards,
+
+	Hans
+
+Hans Verkuil (1):
+  input.h: add BUS_CEC type
+
+Kamil Debski (1):
+  HID: add HDMI CEC specific keycodes
+
+ include/uapi/linux/input-event-codes.h | 31 +++++++++++++++++++++++++++++++
+ include/uapi/linux/input.h             |  1 +
+ 2 files changed, 32 insertions(+)
+
+-- 
+2.8.1
+
