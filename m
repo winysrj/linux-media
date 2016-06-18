@@ -1,43 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52954 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753723AbcFTTLu (ORCPT
+Received: from fallback1.mail.ru ([94.100.181.184]:33239 "EHLO
+	fallback1.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751405AbcFRPN5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 15:11:50 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+	Sat, 18 Jun 2016 11:13:57 -0400
+From: Alexander Shiyan <shc_work@mail.ru>
 To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 04/24] v4l: vsp1: Don't create HGO entity when the userspace API is disabled
-Date: Mon, 20 Jun 2016 22:10:22 +0300
-Message-Id: <1466449842-29502-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Alexander Shiyan <shc_work@mail.ru>
+Subject: [PATCH] media: coda: Fix probe() if reset controller is missing
+Date: Sat, 18 Jun 2016 17:45:15 +0300
+Message-Id: <1466261116-9212-1-git-send-email-shc_work@mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The HGO is never used in the DRM pipeline, there is thus no need to
-create an HGO entity when the userspace API is disabled.
+Commit 39b4da71ca334354f30941067f214ea2f2b92f3e (reset: use ENOTSUPP
+instead of ENOSYS) changed return value for reset controller if it missing.
+This patch changes the CODA driver to handle this value.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
 ---
- drivers/media/platform/vsp1/vsp1_drv.c | 2 +-
+ drivers/media/platform/coda/coda-common.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 3e94e1921656..0d3624a05ef1 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -282,7 +282,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 
- 	list_add_tail(&vsp1->hst->entity.list_dev, &vsp1->entities);
- 
--	if (vsp1->info->features & VSP1_HAS_HGO) {
-+	if (vsp1->info->features & VSP1_HAS_HGO && vsp1->info->uapi) {
- 		vsp1->hgo = vsp1_hgo_create(vsp1);
- 		if (IS_ERR(vsp1->hgo)) {
- 			ret = PTR_ERR(vsp1->hgo);
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 133ab9f..098653d 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -2226,7 +2226,7 @@ static int coda_probe(struct platform_device *pdev)
+ 	dev->rstc = devm_reset_control_get_optional(&pdev->dev, NULL);
+ 	if (IS_ERR(dev->rstc)) {
+ 		ret = PTR_ERR(dev->rstc);
+-		if (ret == -ENOENT || ret == -ENOSYS) {
++		if (ret == -ENOENT || ret == -ENOTSUPP) {
+ 			dev->rstc = NULL;
+ 		} else {
+ 			dev_err(&pdev->dev, "failed get reset control: %d\n",
 -- 
-Regards,
-
-Laurent Pinchart
+2.4.9
 
