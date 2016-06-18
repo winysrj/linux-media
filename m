@@ -1,50 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59406 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754029AbcFGTEO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jun 2016 15:04:14 -0400
-Received: from dyn3-82-128-184-205.psoas.suomi.net ([82.128.184.205] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
-	(Exim 4.80)
-	(envelope-from <crope@iki.fi>)
-	id 1bAMIM-0004P7-Qn
-	for linux-media@vger.kernel.org; Tue, 07 Jun 2016 22:04:11 +0300
-To: LMML <linux-media@vger.kernel.org>
-From: Antti Palosaari <crope@iki.fi>
-Subject: [GIT PULL 4.8] af9035
-Message-ID: <ba41ecf5-d862-5f17-f8ab-9ca2e85287ee@iki.fi>
-Date: Tue, 7 Jun 2016 22:04:10 +0300
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:55590 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750864AbcFRJBu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Jun 2016 05:01:50 -0400
+Subject: Re: [PATCH 00/38] i.MX5/6 Video Capture
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Jack Mitchell <ml@embed.me.uk>, linux-media@vger.kernel.org
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+ <64c29bbc-2273-2a9d-3059-ab8f62dc531b@embed.me.uk>
+ <576202D0.6010608@mentor.com>
+ <597d73df-0fa0-fa8d-e0e5-0ad8b2c49bcf@embed.me.uk>
+ <5762DB8A.8090906@mentor.com> <5763A248.1040905@xs4all.nl>
+ <576434D3.1040908@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <57650DF7.1040008@xs4all.nl>
+Date: Sat, 18 Jun 2016 11:01:43 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <576434D3.1040908@gmail.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 94d0eaa419871a6e2783f8c131b1d76d5f2a5524:
+On 06/17/2016 07:35 PM, Steve Longerbeam wrote:
+> 
+> 
+> On 06/17/2016 12:10 AM, Hans Verkuil wrote:
+>> On 06/16/2016 07:02 PM, Steve Longerbeam wrote:
+>>> On 06/16/2016 02:49 AM, Jack Mitchell wrote:
+>>>> On 16/06/16 02:37, Steve Longerbeam wrote:
+>>>>> Hi Jack,
+>>>>>
+>>>>> On 06/15/2016 03:43 AM, Jack Mitchell wrote:
+>>>>>> <snip>
+>>>>>> Trying to use a user pointer rather than mmap also fails and causes a kernel splat.
+>>>>>>
+>>>>> Hmm, I've tested userptr with the mem2mem driver, but maybe never
+>>>>> with video capture. I tried "v4l2-ctl -d/dev/video0 --stream-user=8" but
+>>>>> that returns "VIDIOC_QBUF: failed: Invalid argument", haven't tracked
+>>>>> down why (could be a bug in v4l2-ctl). Can you share the splat?
+>>>>>
+>>>> On re-checking the splat was the same v4l_cropcap that was mentioned before so I don't think it's related. The error I get back is:
+>>>>
+>>>> VIDIOC_QBUF error 22, Invalid argument
+>>>>
+>>>> I'm using the example program the the v4l2 docs [1].
+>>> I found the cause at least in my case. After enabling dynamic debug in
+>>> videobuf2-dma-contig.c, "v4l2-ctl -d/dev/video0 --stream-user=8" gives
+>>> me
+>>>
+>>> [  468.826046] user data must be aligned to 64 bytes
+>>>
+>>>
+>>>
+>>> But even getting past that alignment issue, I've only tested userptr (in mem2mem
+>>> driver) by giving the driver a user address of a mmap'ed kernel contiguous
+>>> buffer. A true discontiguous user buffer may not work, the IPU DMA does not
+>>> support scatter-gather.
+>> I don't think VB2_USERPTR should be enabled in this case due to the DMA limitations.
+>> It won't allow you to use malloc()ed memory and the hack that allows you to pass
+>> contiguous memory is superseded by the DMABUF mode.
+> 
+> Hi Hans, yes, I was going to suggest that. I will remove USERPTR
+> from both capture and mem2mem io_modes flags. Although I can
+> see where userptr support is still useful, that is for legacy middleware
+> that are still using mmap'ed userptrs and have not yet converted to
+> passing around dmabuf fd's.
+> 
+> But I've been perplexed for while on this, why vb2_dc_get_userptr() 
+> resorts to
+> scatter-gather (when the given user buffer is found not to have valid 
+> pfn's).
+> Shouldn't it be assumed that driver users of the vb2 dma-contig allocator
+> only support contiguous dma as the name implies? Maybe the issue is that
+> users that set VB2_USERPTR are implying they support scatter/gather, but
+> users of vb2-dma-contig could also be implying they do not, and would be
+> using vb2-dma-sg if that were the case.
 
-   [media] mn88472: move out of staging to media (2016-06-07 15:46:47 -0300)
+At the end of the vb2_dc_get_userptr() function it checks if the result
+is physically contiguous (the call to vb2_dc_get_contiguous_size). If not,
+then it returns an error.
 
-are available in the git repository at:
+I hate it that dma_contig accepts user pointers at all, it should never
+have been implemented like that. There is no way for applications to know
+that even though the driver support USERPTR, the buffer still has to be
+phys. contig. :-(
 
-   git://linuxtv.org/anttip/media_tree.git af9035
+Regards,
 
-for you to fetch changes up to 04c5e503b7f0e1dc3bb40b2ed1f4ab7e6e43e5fd:
-
-   af9035: fix logging (2016-06-07 22:02:33 +0300)
-
-----------------------------------------------------------------
-Alessandro Radicati (2):
-       af9035: I2C combined write + read transaction fix
-       af9035: fix for MXL5007T devices with I2C read issues
-
-Antti Palosaari (1):
-       af9035: fix logging
-
-  drivers/media/usb/dvb-usb-v2/af9035.c | 227 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------------------------
-  drivers/media/usb/dvb-usb-v2/af9035.h |   1 +
-  2 files changed, 133 insertions(+), 95 deletions(-)
-
-
--- 
-http://palosaari.fi/
+	Hans
