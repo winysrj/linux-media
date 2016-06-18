@@ -1,900 +1,2897 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:3247 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750829AbcFDX1n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Jun 2016 19:27:43 -0400
-Date: Sun, 5 Jun 2016 07:27:03 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kbuild-all@01.org, Sakari Ailus <sakari.ailus@iki.fi>,
-	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [PATCHv5] support for AD5820 camera auto-focus coil
-Message-ID: <201606050736.juGfm1Mr%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="VbJkn9YxBvnuCH5J"
-Content-Disposition: inline
-In-Reply-To: <20160527205140.GA26767@amd>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:37871 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751497AbcFRPDI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Jun 2016 11:03:08 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Kamil Debski <kamil@wypas.org>
+Subject: [PATCHv18 08/15] cec: add HDMI CEC framework
+Date: Sat, 18 Jun 2016 17:02:41 +0200
+Message-Id: <1466262168-12805-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
+References: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---VbJkn9YxBvnuCH5J
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The added HDMI CEC framework provides a generic kernel interface for
+HDMI CEC devices.
 
-Hi,
+Note that the CEC framework is added to staging/media and that the
+cec.h and cec-funcs.h headers are not exported yet. While the kABI
+is mature, I would prefer to allow the uABI some more time before
+it is mainlined in case it needs more tweaks.
 
-[auto build test ERROR on linuxtv-media/master]
-[also build test ERROR on v4.7-rc1 next-20160603]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-
-url:    https://github.com/0day-ci/linux/commits/Pavel-Machek/support-for-AD5820-camera-auto-focus-coil/20160528-045306
-base:   git://linuxtv.org/media_tree.git master
-config: tile-allyesconfig (attached as .config)
-compiler: tilegx-linux-gcc (GCC) 4.6.2
-reproduce:
-        wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # save the attached .config to linux build tree
-        make.cross ARCH=tile 
-
-All errors (new ones prefixed by >>):
-
-   drivers/media/i2c/ad5820.c: In function 'ad5820_set_ctrl':
-   drivers/media/i2c/ad5820.c:168:7: error: 'V4L2_CID_FOCUS_AD5820_RAMP_TIME' undeclared (first use in this function)
-   drivers/media/i2c/ad5820.c:168:7: note: each undeclared identifier is reported only once for each function it appears in
->> drivers/media/i2c/ad5820.c:174:7: error: 'V4L2_CID_FOCUS_AD5820_RAMP_MODE' undeclared (first use in this function)
-   drivers/media/i2c/ad5820.c: At top level:
-   drivers/media/i2c/ad5820.c:194:10: error: 'V4L2_CID_FOCUS_AD5820_RAMP_TIME' undeclared here (not in a function)
-   drivers/media/i2c/ad5820.c:205:10: error: 'V4L2_CID_FOCUS_AD5820_RAMP_MODE' undeclared here (not in a function)
-
-vim +/V4L2_CID_FOCUS_AD5820_RAMP_MODE +174 drivers/media/i2c/ad5820.c
-
-   162	
-   163		switch (ctrl->id) {
-   164		case V4L2_CID_FOCUS_ABSOLUTE:
-   165			coil->focus_absolute = ctrl->val;
-   166			return ad5820_update_hw(coil);
-   167	
- > 168		case V4L2_CID_FOCUS_AD5820_RAMP_TIME:
-   169			code = RAMP_US_TO_CODE(ctrl->val);
-   170			ctrl->val = CODE_TO_RAMP_US(code);
-   171			coil->focus_ramp_time = ctrl->val;
-   172			break;
-   173	
- > 174		case V4L2_CID_FOCUS_AD5820_RAMP_MODE:
-   175			coil->focus_ramp_mode = ctrl->val;
-   176			break;
-   177		}
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+[k.debski@samsung.com: Merged CEC Updates commit by Hans Verkuil]
+[k.debski@samsung.com: Merged Update author commit by Hans Verkuil]
+[k.debski@samsung.com: change kthread handling when setting logical
+address]
+[k.debski@samsung.com: code cleanup and fixes]
+[k.debski@samsung.com: add missing CEC commands to match spec]
+[k.debski@samsung.com: add RC framework support]
+[k.debski@samsung.com: move and edit documentation]
+[k.debski@samsung.com: add vendor id reporting]
+[k.debski@samsung.com: add possibility to clear assigned logical
+addresses]
+[k.debski@samsung.com: documentation fixes, clenaup and expansion]
+[k.debski@samsung.com: reorder of API structs and add reserved fields]
+[k.debski@samsung.com: fix handling of events and fix 32/64bit timespec
+problem]
+[k.debski@samsung.com: add sequence number handling]
+[k.debski@samsung.com: add passthrough mode]
+[k.debski@samsung.com: fix CEC defines, add missing CEC 2.0 commands]
+minor additions]
+Signed-off-by: Kamil Debski <kamil@wypas.org>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ MAINTAINERS                        |   16 +
+ drivers/staging/media/Kconfig      |    2 +
+ drivers/staging/media/Makefile     |    1 +
+ drivers/staging/media/cec/Kconfig  |    8 +
+ drivers/staging/media/cec/Makefile |    1 +
+ drivers/staging/media/cec/cec.c    | 2512 ++++++++++++++++++++++++++++++++++++
+ include/media/cec.h                |  236 ++++
+ 7 files changed, 2776 insertions(+)
+ create mode 100644 drivers/staging/media/cec/Kconfig
+ create mode 100644 drivers/staging/media/cec/Makefile
+ create mode 100644 drivers/staging/media/cec/cec.c
+ create mode 100644 include/media/cec.h
 
---VbJkn9YxBvnuCH5J
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 02299fd..c424596 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2847,6 +2847,22 @@ F:	drivers/net/ieee802154/cc2520.c
+ F:	include/linux/spi/cc2520.h
+ F:	Documentation/devicetree/bindings/net/ieee802154/cc2520.txt
+ 
++CEC DRIVER
++M:	Hans Verkuil <hans.verkuil@cisco.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++W:	http://linuxtv.org
++S:	Supported
++F:	Documentation/cec.txt
++F:	Documentation/DocBook/media/v4l/cec*
++F:	drivers/staging/media/cec/cec.c
++F:	drivers/media/cec-edid.c
++F:	drivers/media/rc/keymaps/rc-cec.c
++F:	include/media/cec.h
++F:	include/media/cec-edid.h
++F:	include/linux/cec.h
++F:	include/linux/cec-funcs.h
++
+ CELL BROADBAND ENGINE ARCHITECTURE
+ M:	Arnd Bergmann <arnd@arndb.de>
+ L:	linuxppc-dev@lists.ozlabs.org
+diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+index ee91868..7ce679e 100644
+--- a/drivers/staging/media/Kconfig
++++ b/drivers/staging/media/Kconfig
+@@ -21,6 +21,8 @@ if STAGING_MEDIA
+ # Please keep them in alphabetic order
+ source "drivers/staging/media/bcm2048/Kconfig"
+ 
++source "drivers/staging/media/cec/Kconfig"
++
+ source "drivers/staging/media/cxd2099/Kconfig"
+ 
+ source "drivers/staging/media/davinci_vpfe/Kconfig"
+diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+index 8c05d0a..2d213dd 100644
+--- a/drivers/staging/media/Makefile
++++ b/drivers/staging/media/Makefile
+@@ -1,4 +1,5 @@
+ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
++obj-$(CONFIG_MEDIA_CEC)		+= cec/
+ obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
+ obj-$(CONFIG_LIRC_STAGING)	+= lirc/
+ obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
+diff --git a/drivers/staging/media/cec/Kconfig b/drivers/staging/media/cec/Kconfig
+new file mode 100644
+index 0000000..3297a54
+--- /dev/null
++++ b/drivers/staging/media/cec/Kconfig
+@@ -0,0 +1,8 @@
++config MEDIA_CEC
++	tristate "CEC API (EXPERIMENTAL)"
++	select MEDIA_CEC_EDID
++	---help---
++	  Enable the CEC API.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called cec.
+diff --git a/drivers/staging/media/cec/Makefile b/drivers/staging/media/cec/Makefile
+new file mode 100644
+index 0000000..7a7532e
+--- /dev/null
++++ b/drivers/staging/media/cec/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_MEDIA_CEC) += cec.o
+diff --git a/drivers/staging/media/cec/cec.c b/drivers/staging/media/cec/cec.c
+new file mode 100644
+index 0000000..8634773
+--- /dev/null
++++ b/drivers/staging/media/cec/cec.c
+@@ -0,0 +1,2512 @@
++/*
++ * cec - HDMI Consumer Electronics Control framework
++ *
++ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include <linux/errno.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/kmod.h>
++#include <linux/ktime.h>
++#include <linux/slab.h>
++#include <linux/mm.h>
++#include <linux/string.h>
++#include <linux/types.h>
++#include <linux/uaccess.h>
++#include <linux/version.h>
++#include <media/cec-edid.h>
++#include <media/cec.h>
++
++#define CEC_NUM_DEVICES	256
++#define CEC_NAME	"cec"
++
++static int debug;
++module_param(debug, int, 0644);
++MODULE_PARM_DESC(debug, "debug level (0-2)");
++
++/*
++ * 400 ms is the time it takes for one 16 byte message to be
++ * transferred and 5 is the maximum number of retries. Add
++ * another 100 ms as a margin. So if the transmit doesn't
++ * finish before that time something is really wrong and we
++ * have to time out.
++ *
++ * This is a sign that something it really wrong and a warning
++ * will be issued.
++ */
++#define CEC_XFER_TIMEOUT_MS (5 * 400 + 100)
++
++#define dprintk(lvl, fmt, arg...)					\
++	do {								\
++		if (lvl <= debug)					\
++			pr_info("cec-%s: " fmt, adap->name, ## arg);	\
++	} while (0)
++
++#define call_op(adap, op, arg...) \
++	(adap->ops->op ? adap->ops->op(adap, ## arg) : 0)
++
++#define call_void_op(adap, op, arg...)			\
++	do {						\
++		if (adap->ops->op)			\
++			adap->ops->op(adap, ## arg);	\
++	} while (0)
++
++static dev_t cec_dev_t;
++
++/* Active devices */
++static DEFINE_MUTEX(cec_devnode_lock);
++static DECLARE_BITMAP(cec_devnode_nums, CEC_NUM_DEVICES);
++
++static struct dentry *top_cec_dir;
++
++/* dev to cec_devnode */
++#define to_cec_devnode(cd) container_of(cd, struct cec_devnode, dev)
++
++/* devnode to cec_adapter */
++#define to_cec_adapter(node) container_of(node, struct cec_adapter, devnode)
++
++static inline struct cec_devnode *cec_devnode_data(struct file *filp)
++{
++	struct cec_fh *fh = filp->private_data;
++
++	return &fh->adap->devnode;
++}
++
++static int cec_log_addr2idx(const struct cec_adapter *adap, u8 log_addr)
++{
++	int i;
++
++	for (i = 0; i < adap->log_addrs.num_log_addrs; i++)
++		if (adap->log_addrs.log_addr[i] == log_addr)
++			return i;
++	return -1;
++}
++
++static unsigned int cec_log_addr2dev(const struct cec_adapter *adap, u8 log_addr)
++{
++	int i = cec_log_addr2idx(adap, log_addr);
++
++	return adap->log_addrs.primary_device_type[i < 0 ? 0 : i];
++}
++
++/* Initialize the event queues for the filehandle. */
++static int cec_queue_event_init(struct cec_fh *fh)
++{
++	/* This has the size of the event queue for each event type. */
++	static const unsigned int queue_sizes[CEC_NUM_EVENTS] = {
++		2,	/* CEC_EVENT_STATE_CHANGE */
++		1,	/* CEC_EVENT_LOST_MSGS */
++	};
++	unsigned int i;
++
++	for (i = 0; i < CEC_NUM_EVENTS; i++) {
++		fh->evqueue[i].events = kcalloc(queue_sizes[i],
++				sizeof(struct cec_event), GFP_KERNEL);
++		if (!fh->evqueue[i].events) {
++			while (i--) {
++				kfree(fh->evqueue[i].events);
++				fh->evqueue[i].events = NULL;
++				fh->evqueue[i].elems = 0;
++			}
++			return -ENOMEM;
++		}
++		fh->evqueue[i].elems = queue_sizes[i];
++	}
++	return 0;
++}
++
++static void cec_queue_event_free(struct cec_fh *fh)
++{
++	unsigned int i;
++
++	for (i = 0; i < CEC_NUM_EVENTS; i++)
++		kfree(fh->evqueue[i].events);
++}
++
++/*
++ * Queue a new event for this filehandle. If ts == 0, then set it
++ * to the current time.
++ */
++static void cec_queue_event_fh(struct cec_fh *fh,
++			       const struct cec_event *new_ev, u64 ts)
++{
++	struct cec_event_queue *evq = &fh->evqueue[new_ev->event - 1];
++	struct cec_event *ev;
++
++	if (ts == 0)
++		ts = ktime_get_ns();
++
++	mutex_lock(&fh->lock);
++	ev = evq->events + evq->num_events;
++	/* Overwrite the last event if there is no more room for the new event */
++	if (evq->num_events == evq->elems) {
++		ev--;
++	} else {
++		evq->num_events++;
++		fh->events++;
++	}
++	*ev = *new_ev;
++	ev->ts = ts;
++	mutex_unlock(&fh->lock);
++	wake_up_interruptible(&fh->wait);
++}
++
++/* Queue a new event for all open filehandles. */
++static void cec_queue_event(struct cec_adapter *adap,
++			    const struct cec_event *ev)
++{
++	u64 ts = ktime_get_ns();
++	struct cec_fh *fh;
++
++	mutex_lock(&adap->devnode.fhs_lock);
++	list_for_each_entry(fh, &adap->devnode.fhs, list)
++		cec_queue_event_fh(fh, ev, ts);
++	mutex_unlock(&adap->devnode.fhs_lock);
++}
++
++/*
++ * Queue a new message for this filehandle. If there is no more room
++ * in the queue, then send the LOST_MSGS event instead.
++ */
++static void cec_queue_msg_fh(struct cec_fh *fh, const struct cec_msg *msg)
++{
++	struct cec_event ev_lost_msg = {
++		.event = CEC_EVENT_LOST_MSGS,
++	};
++	struct cec_msg_entry *entry;
++
++	mutex_lock(&fh->lock);
++	if (fh->queued_msgs == CEC_MAX_MSG_QUEUE_SZ)
++		goto lost_msgs;
++	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
++	if (!entry)
++		goto lost_msgs;
++
++	entry->msg = *msg;
++	list_add(&entry->list, &fh->msgs);
++	fh->queued_msgs++;
++	mutex_unlock(&fh->lock);
++	wake_up_interruptible(&fh->wait);
++	return;
++
++lost_msgs:
++	ev_lost_msg.lost_msgs.lost_msgs = ++fh->lost_msgs;
++	mutex_unlock(&fh->lock);
++	cec_queue_event_fh(fh, &ev_lost_msg, 0);
++}
++
++/*
++ * Queue the message for those filehandles that are in monitor mode.
++ * If valid_la is true (this message is for us or was sent by us),
++ * then pass it on to any monitoring filehandle. If this message
++ * isn't for us or from us, then only give it to filehandles that
++ * are in MONITOR_ALL mode.
++ *
++ * This can only happen if the CEC_CAP_MONITOR_ALL capability is
++ * set and the CEC adapter was placed in 'monitor all' mode.
++ */
++static void cec_queue_msg_monitor(struct cec_adapter *adap,
++				  const struct cec_msg *msg,
++				  bool valid_la)
++{
++	struct cec_fh *fh;
++	u32 monitor_mode = valid_la ? CEC_MODE_MONITOR :
++				      CEC_MODE_MONITOR_ALL;
++
++	mutex_lock(&adap->devnode.fhs_lock);
++	list_for_each_entry(fh, &adap->devnode.fhs, list) {
++		if (fh->mode_follower >= monitor_mode)
++			cec_queue_msg_fh(fh, msg);
++	}
++	mutex_unlock(&adap->devnode.fhs_lock);
++}
++
++/*
++ * Queue the message for follower filehandles.
++ */
++static void cec_queue_msg_followers(struct cec_adapter *adap,
++				    const struct cec_msg *msg)
++{
++	struct cec_fh *fh;
++
++	mutex_lock(&adap->devnode.fhs_lock);
++	list_for_each_entry(fh, &adap->devnode.fhs, list) {
++		if (fh->mode_follower == CEC_MODE_FOLLOWER)
++			cec_queue_msg_fh(fh, msg);
++	}
++	mutex_unlock(&adap->devnode.fhs_lock);
++}
++
++/* Notify userspace of an adapter state change. */
++static void cec_post_state_event(struct cec_adapter *adap)
++{
++	struct cec_event ev = {
++		.event = CEC_EVENT_STATE_CHANGE,
++	};
++
++	ev.state_change.phys_addr = adap->phys_addr;
++	ev.state_change.log_addr_mask = adap->log_addrs.log_addr_mask;
++	cec_queue_event(adap, &ev);
++}
++
++/*
++ * A CEC transmit (and a possible wait for reply) completed.
++ * If this was in blocking mode, then complete it, otherwise
++ * queue the message for userspace to dequeue later.
++ *
++ * This function is called with adap->lock held.
++ */
++static void cec_data_completed(struct cec_data *data)
++{
++	/*
++	 * Delete this transmit from the filehandle's xfer_list since
++	 * we're done with it.
++	 *
++	 * Note that if the filehandle is closed before this transmit
++	 * finished, then the release() function will set data->fh to NULL.
++	 * Without that we would be referring to a closed filehandle.
++	 */
++	if (data->fh)
++		list_del(&data->xfer_list);
++
++	if (data->blocking) {
++		/*
++		 * Someone is blocking so mark the message as completed
++		 * and call complete.
++		 */
++		data->completed = true;
++		complete(&data->c);
++	} else {
++		/*
++		 * No blocking, so just queue the message if needed and
++		 * free the memory.
++		 */
++		if (data->fh)
++			cec_queue_msg_fh(data->fh, &data->msg);
++		kfree(data);
++	}
++}
++
++/*
++ * A pending CEC transmit needs to be cancelled, either because the CEC
++ * adapter is disabled or the transmit takes an impossibly long time to
++ * finish.
++ *
++ * This function is called with adap->lock held.
++ */
++static void cec_data_cancel(struct cec_data *data)
++{
++	/*
++	 * It's either the current transmit, or it is a pending
++	 * transmit. Take the appropriate action to clear it.
++	 */
++	if (data->adap->transmitting == data)
++		data->adap->transmitting = NULL;
++	else
++		list_del_init(&data->list);
++
++	/* Mark it as an error */
++	data->msg.ts = ktime_get_ns();
++	data->msg.tx_status = CEC_TX_STATUS_ERROR |
++			      CEC_TX_STATUS_MAX_RETRIES;
++	data->attempts = 0;
++	data->msg.tx_error_cnt = 1;
++	data->msg.reply = 0;
++	/* Queue transmitted message for monitoring purposes */
++	cec_queue_msg_monitor(data->adap, &data->msg, 1);
++
++	cec_data_completed(data);
++}
++
++/*
++ * Main CEC state machine
++ *
++ * Wait until the thread should be stopped, or we are not transmitting and
++ * a new transmit message is queued up, in which case we start transmitting
++ * that message. When the adapter finished transmitting the message it will
++ * call cec_transmit_done().
++ *
++ * If the adapter is disabled, then remove all queued messages instead.
++ *
++ * If the current transmit times out, then cancel that transmit.
++ */
++static int cec_thread_func(void *_adap)
++{
++	struct cec_adapter *adap = _adap;
++
++	for (;;) {
++		unsigned int signal_free_time;
++		struct cec_data *data;
++		bool timeout = false;
++		u8 attempts;
++
++		if (adap->transmitting) {
++			int err;
++
++			/*
++			 * We are transmitting a message, so add a timeout
++			 * to prevent the state machine to get stuck waiting
++			 * for this message to finalize and add a check to
++			 * see if the adapter is disabled in which case the
++			 * transmit should be canceled.
++			 */
++			err = wait_event_interruptible_timeout(adap->kthread_waitq,
++				kthread_should_stop() ||
++				adap->phys_addr == CEC_PHYS_ADDR_INVALID ||
++				(!adap->transmitting &&
++				 !list_empty(&adap->transmit_queue)),
++				msecs_to_jiffies(CEC_XFER_TIMEOUT_MS));
++			timeout = err == 0;
++		} else {
++			/* Otherwise we just wait for something to happen. */
++			wait_event_interruptible(adap->kthread_waitq,
++				kthread_should_stop() ||
++				(!adap->transmitting &&
++				 !list_empty(&adap->transmit_queue)));
++		}
++
++		mutex_lock(&adap->lock);
++
++		if (adap->phys_addr == CEC_PHYS_ADDR_INVALID ||
++		    kthread_should_stop()) {
++			/*
++			 * If the adapter is disabled, or we're asked to stop,
++			 * then cancel any pending transmits.
++			 */
++			while (!list_empty(&adap->transmit_queue)) {
++				data = list_first_entry(&adap->transmit_queue,
++							struct cec_data, list);
++				cec_data_cancel(data);
++			}
++			if (adap->transmitting)
++				cec_data_cancel(adap->transmitting);
++
++			/*
++			 * Cancel the pending timeout work. We have to unlock
++			 * the mutex when flushing the work since
++			 * cec_wait_timeout() will take it. This is OK since
++			 * no new entries can be added to wait_queue as long
++			 * as adap->transmitting is NULL, which it is due to
++			 * the cec_data_cancel() above.
++			 */
++			while (!list_empty(&adap->wait_queue)) {
++				data = list_first_entry(&adap->wait_queue,
++							struct cec_data, list);
++
++				if (!cancel_delayed_work(&data->work)) {
++					mutex_unlock(&adap->lock);
++					flush_scheduled_work();
++					mutex_lock(&adap->lock);
++				}
++				cec_data_cancel(data);
++			}
++			goto unlock;
++		}
++
++		if (adap->transmitting && timeout) {
++			/*
++			 * If we timeout, then log that. This really shouldn't
++			 * happen and is an indication of a faulty CEC adapter
++			 * driver, or the CEC bus is in some weird state.
++			 */
++			dprintk(0, "message %*ph timed out!\n",
++				adap->transmitting->msg.len,
++				adap->transmitting->msg.msg);
++			/* Just give up on this. */
++			cec_data_cancel(adap->transmitting);
++			goto unlock;
++		}
++
++		/*
++		 * If we are still transmitting, or there is nothing new to
++		 * transmit, then just continue waiting.
++		 */
++		if (adap->transmitting || list_empty(&adap->transmit_queue))
++			goto unlock;
++
++		/* Get a new message to transmit */
++		data = list_first_entry(&adap->transmit_queue,
++					struct cec_data, list);
++		list_del_init(&data->list);
++		/* Make this the current transmitting message */
++		adap->transmitting = data;
++
++		/*
++		 * Suggested number of attempts as per the CEC 2.0 spec:
++		 * 4 attempts is the default, except for 'secondary poll
++		 * messages', i.e. poll messages not sent during the adapter
++		 * configuration phase when it allocates logical addresses.
++		 */
++		if (data->msg.len == 1 && adap->is_configured)
++			attempts = 2;
++		else
++			attempts = 4;
++
++		/* Set the suggested signal free time */
++		if (data->attempts) {
++			/* should be >= 3 data bit periods for a retry */
++			signal_free_time = CEC_SIGNAL_FREE_TIME_RETRY;
++		} else if (data->new_initiator) {
++			/* should be >= 5 data bit periods for new initiator */
++			signal_free_time = CEC_SIGNAL_FREE_TIME_NEW_INITIATOR;
++		} else {
++			/*
++			 * should be >= 7 data bit periods for sending another
++			 * frame immediately after another.
++			 */
++			signal_free_time = CEC_SIGNAL_FREE_TIME_NEXT_XFER;
++		}
++		if (data->attempts == 0)
++			data->attempts = attempts;
++
++		/* Tell the adapter to transmit, cancel on error */
++		if (adap->ops->adap_transmit(adap, data->attempts,
++					     signal_free_time, &data->msg))
++			cec_data_cancel(data);
++
++unlock:
++		mutex_unlock(&adap->lock);
++
++		if (kthread_should_stop())
++			break;
++	}
++	return 0;
++}
++
++/*
++ * Called by the CEC adapter if a transmit finished.
++ */
++void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
++		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt)
++{
++	struct cec_data *data;
++	struct cec_msg *msg;
++
++	dprintk(2, "cec_transmit_done %02x\n", status);
++	mutex_lock(&adap->lock);
++	data = adap->transmitting;
++	if (!data) {
++		/*
++		 * This can happen if a transmit was issued and the cable is
++		 * unplugged while the transmit is ongoing. Ignore this
++		 * transmit in that case.
++		 */
++		dprintk(1, "cec_transmit_done without an ongoing transmit!\n");
++		goto unlock;
++	}
++
++	msg = &data->msg;
++
++	/* Drivers must fill in the status! */
++	WARN_ON(status == 0);
++	msg->ts = ktime_get_ns();
++	msg->tx_status |= status;
++	msg->tx_arb_lost_cnt += arb_lost_cnt;
++	msg->tx_nack_cnt += nack_cnt;
++	msg->tx_low_drive_cnt += low_drive_cnt;
++	msg->tx_error_cnt += error_cnt;
++
++	/* Mark that we're done with this transmit */
++	adap->transmitting = NULL;
++
++	/*
++	 * If there are still retry attempts left and there was an error and
++	 * the hardware didn't signal that it retried itself (by setting
++	 * CEC_TX_STATUS_MAX_RETRIES), then we will retry ourselves.
++	 */
++	if (data->attempts > 1 &&
++	    !(status & (CEC_TX_STATUS_MAX_RETRIES | CEC_TX_STATUS_OK))) {
++		/* Retry this message */
++		data->attempts--;
++		/* Add the message in front of the transmit queue */
++		list_add(&data->list, &adap->transmit_queue);
++		goto wake_thread;
++	}
++
++	data->attempts = 0;
++
++	/* Always set CEC_TX_STATUS_MAX_RETRIES on error */
++	if (!(status & CEC_TX_STATUS_OK))
++		msg->tx_status |= CEC_TX_STATUS_MAX_RETRIES;
++
++	/* Queue transmitted message for monitoring purposes */
++	cec_queue_msg_monitor(adap, msg, 1);
++
++	/*
++	 * Clear reply on error of if the adapter is no longer
++	 * configured. It makes no sense to wait for a reply in
++	 * this case.
++	 */
++	if (!(status & CEC_TX_STATUS_OK) || !adap->is_configured)
++		msg->reply = 0;
++
++	if (msg->timeout) {
++		/*
++		 * Queue the message into the wait queue if we want to wait
++		 * for a reply.
++		 */
++		list_add_tail(&data->list, &adap->wait_queue);
++		schedule_delayed_work(&data->work,
++				      msecs_to_jiffies(msg->timeout));
++	} else {
++		/* Otherwise we're done */
++		cec_data_completed(data);
++	}
++
++wake_thread:
++	/*
++	 * Wake up the main thread to see if another message is ready
++	 * for transmitting or to retry the current message.
++	 */
++	wake_up_interruptible(&adap->kthread_waitq);
++unlock:
++	mutex_unlock(&adap->lock);
++}
++EXPORT_SYMBOL_GPL(cec_transmit_done);
++
++/*
++ * Called when waiting for a reply times out.
++ */
++static void cec_wait_timeout(struct work_struct *work)
++{
++	struct cec_data *data = container_of(work, struct cec_data, work.work);
++	struct cec_adapter *adap = data->adap;
++
++	mutex_lock(&adap->lock);
++	/*
++	 * Sanity check in case the timeout and the arrival of the message
++	 * happened at the same time.
++	 */
++	if (list_empty(&data->list))
++		goto unlock;
++
++	/* Mark the message as timed out */
++	list_del_init(&data->list);
++	data->msg.ts = ktime_get_ns();
++	data->msg.rx_status = CEC_RX_STATUS_TIMEOUT;
++	cec_data_completed(data);
++unlock:
++	mutex_unlock(&adap->lock);
++}
++
++/*
++ * Transmit a message. The fh argument may be NULL if the transmit is not
++ * associated with a specific filehandle.
++ *
++ * This function is called with adap->lock held.
++ */
++static int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
++			       struct cec_fh *fh, bool block)
++{
++	struct cec_data *data;
++	u8 last_initiator = 0xff;
++	unsigned int timeout;
++	int res = 0;
++
++	if (msg->reply && msg->timeout == 0) {
++		/* Make sure the timeout isn't 0. */
++		msg->timeout = 1000;
++	}
++
++	/* Sanity checks */
++	if (msg->len == 0 || msg->len > CEC_MAX_MSG_SIZE) {
++		dprintk(1, "cec_transmit_msg: invalid length %d\n", msg->len);
++		return -EINVAL;
++	}
++	if (msg->timeout && msg->len == 1) {
++		dprintk(1, "cec_transmit_msg: can't reply for poll msg\n");
++		return -EINVAL;
++	}
++	if (msg->len == 1) {
++		if (cec_msg_initiator(msg) != 0xf ||
++		    cec_msg_destination(msg) == 0xf) {
++			dprintk(1, "cec_transmit_msg: invalid poll message\n");
++			return -EINVAL;
++		}
++		if (cec_has_log_addr(adap, cec_msg_destination(msg))) {
++			/*
++			 * If the destination is a logical address our adapter
++			 * has already claimed, then just NACK this.
++			 * It depends on the hardware what it will do with a
++			 * POLL to itself (some OK this), so it is just as
++			 * easy to handle it here so the behavior will be
++			 * consistent.
++			 */
++			msg->tx_status = CEC_TX_STATUS_NACK |
++					 CEC_TX_STATUS_MAX_RETRIES;
++			msg->tx_nack_cnt = 1;
++			return 0;
++		}
++	}
++	if (msg->len > 1 && !cec_msg_is_broadcast(msg) &&
++	    cec_has_log_addr(adap, cec_msg_destination(msg))) {
++		dprintk(1, "cec_transmit_msg: destination is the adapter itself\n");
++		return -EINVAL;
++	}
++	if (cec_msg_initiator(msg) != 0xf &&
++	    !cec_has_log_addr(adap, cec_msg_initiator(msg))) {
++		dprintk(1, "cec_transmit_msg: initiator has unknown logical address %d\n",
++			cec_msg_initiator(msg));
++		return -EINVAL;
++	}
++	if (!adap->is_configured && !adap->is_configuring)
++		return -ENONET;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	if (msg->len > 1 && msg->msg[1] == CEC_MSG_CDC_MESSAGE) {
++		msg->msg[2] = adap->phys_addr >> 8;
++		msg->msg[3] = adap->phys_addr & 0xff;
++	}
++
++	if (msg->timeout)
++		dprintk(2, "cec_transmit_msg: %*ph (wait for 0x%02x%s)\n",
++			msg->len, msg->msg, msg->reply, !block ? ", nb" : "");
++	else
++		dprintk(2, "cec_transmit_msg: %*ph%s\n",
++			msg->len, msg->msg, !block ? " (nb)" : "");
++
++	msg->rx_status = 0;
++	msg->tx_status = 0;
++	msg->tx_arb_lost_cnt = 0;
++	msg->tx_nack_cnt = 0;
++	msg->tx_low_drive_cnt = 0;
++	msg->tx_error_cnt = 0;
++	data->msg = *msg;
++	data->fh = fh;
++	data->adap = adap;
++	data->blocking = block;
++
++	/*
++	 * Determine if this message follows a message from the same
++	 * initiator. Needed to determine the free signal time later on.
++	 */
++	if (msg->len > 1) {
++		if (!(list_empty(&adap->transmit_queue))) {
++			const struct cec_data *last;
++
++			last = list_last_entry(&adap->transmit_queue,
++					       const struct cec_data, list);
++			last_initiator = cec_msg_initiator(&last->msg);
++		} else if (adap->transmitting) {
++			last_initiator =
++				cec_msg_initiator(&adap->transmitting->msg);
++		}
++	}
++	data->new_initiator = last_initiator != cec_msg_initiator(msg);
++	init_completion(&data->c);
++	INIT_DELAYED_WORK(&data->work, cec_wait_timeout);
++
++	data->msg.sequence = adap->sequence++;
++	if (fh)
++		list_add_tail(&data->xfer_list, &fh->xfer_list);
++	list_add_tail(&data->list, &adap->transmit_queue);
++	if (!adap->transmitting)
++		wake_up_interruptible(&adap->kthread_waitq);
++
++	/* All done if we don't need to block waiting for completion */
++	if (!block)
++		return 0;
++
++	/*
++	 * If we don't get a completion before this time something is really
++	 * wrong and we time out.
++	 */
++	timeout = CEC_XFER_TIMEOUT_MS;
++	/* Add the requested timeout if we have to wait for a reply as well */
++	if (msg->timeout)
++		timeout += msg->timeout;
++
++	/*
++	 * Release the lock and wait, retake the lock afterwards.
++	 */
++	mutex_unlock(&adap->lock);
++	res = wait_for_completion_killable_timeout(&data->c,
++						   msecs_to_jiffies(timeout));
++	mutex_lock(&adap->lock);
++
++	if (data->completed) {
++		/* The transmit completed (possibly with an error) */
++		*msg = data->msg;
++		kfree(data);
++		return 0;
++	}
++	/*
++	 * The wait for completion timed out or was interrupted, so mark this
++	 * as non-blocking and disconnect from the filehandle since it is
++	 * still 'in flight'. When it finally completes it will just drop the
++	 * result silently.
++	 */
++	data->blocking = false;
++	if (data->fh)
++		list_del(&data->xfer_list);
++	data->fh = NULL;
++
++	if (res == 0) { /* timed out */
++		/* Check if the reply or the transmit failed */
++		if (msg->timeout && (msg->tx_status & CEC_TX_STATUS_OK))
++			msg->rx_status = CEC_RX_STATUS_TIMEOUT;
++		else
++			msg->tx_status = CEC_TX_STATUS_MAX_RETRIES;
++	}
++	return res > 0 ? 0 : res;
++}
++
++/* Helper function to be used by drivers and this framework. */
++int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
++		     bool block)
++{
++	int ret;
++
++	mutex_lock(&adap->lock);
++	ret = cec_transmit_msg_fh(adap, msg, NULL, block);
++	mutex_unlock(&adap->lock);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(cec_transmit_msg);
++
++/*
++ * I don't like forward references but without this the low-level
++ * cec_received_msg() function would come after a bunch of high-level
++ * CEC protocol handling functions. That was very confusing.
++ */
++static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
++			      bool is_reply);
++
++/* Called by the CEC adapter if a message is received */
++void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg)
++{
++	struct cec_data *data;
++	u8 msg_init = cec_msg_initiator(msg);
++	u8 msg_dest = cec_msg_destination(msg);
++	bool is_reply = false;
++	bool valid_la = true;
++
++	mutex_lock(&adap->lock);
++	msg->ts = ktime_get_ns();
++	msg->rx_status = CEC_RX_STATUS_OK;
++	msg->tx_status = 0;
++	msg->sequence = msg->reply = msg->timeout = 0;
++	msg->flags = 0;
++
++	dprintk(2, "cec_received_msg: %*ph\n", msg->len, msg->msg);
++
++	/* Check if this message was for us (directed or broadcast). */
++	if (!cec_msg_is_broadcast(msg))
++		valid_la = cec_has_log_addr(adap, msg_dest);
++
++	/* It's a valid message and not a poll or CDC message */
++	if (valid_la && msg->len > 1 && msg->msg[1] != CEC_MSG_CDC_MESSAGE) {
++		u8 cmd = msg->msg[1];
++		bool abort = cmd == CEC_MSG_FEATURE_ABORT;
++
++		/* The aborted command is in msg[2] */
++		if (abort)
++			cmd = msg->msg[2];
++
++		/*
++		 * Walk over all transmitted messages that are waiting for a
++		 * reply.
++		 */
++		list_for_each_entry(data, &adap->wait_queue, list) {
++			struct cec_msg *dst = &data->msg;
++			u8 dst_reply;
++
++			/* Does the command match? */
++			if ((abort && cmd != dst->msg[1]) ||
++			    (!abort && cmd != dst->reply))
++				continue;
++
++			/* Does the addressing match? */
++			if (msg_init != cec_msg_destination(dst) &&
++			    !cec_msg_is_broadcast(dst))
++				continue;
++
++			/* We got a reply */
++			msg->sequence = dst->sequence;
++			dst_reply = dst->reply;
++			*dst = *msg;
++			dst->reply = dst_reply;
++			if (abort) {
++				dst->reply = 0;
++				dst->rx_status |= CEC_RX_STATUS_FEATURE_ABORT;
++			}
++			/* Remove it from the wait_queue */
++			list_del_init(&data->list);
++
++			/* Cancel the pending timeout work */
++			if (!cancel_delayed_work(&data->work)) {
++				mutex_unlock(&adap->lock);
++				flush_scheduled_work();
++				mutex_lock(&adap->lock);
++			}
++			/*
++			 * Mark this as a reply, provided someone is still
++			 * waiting for the answer.
++			 */
++			if (data->fh)
++				is_reply = true;
++			cec_data_completed(data);
++			break;
++		}
++	}
++	mutex_unlock(&adap->lock);
++
++	/* Pass the message on to any monitoring filehandles */
++	cec_queue_msg_monitor(adap, msg, valid_la);
++
++	/* We're done if it is not for us or a poll message */
++	if (!valid_la || msg->len <= 1)
++		return;
++
++	/*
++	 * Process the message on the protocol level. If is_reply is true,
++	 * then cec_receive_notify() won't pass on the reply to the listener(s)
++	 * since that was already done by cec_data_completed() above.
++	 */
++	cec_receive_notify(adap, msg, is_reply);
++}
++EXPORT_SYMBOL_GPL(cec_received_msg);
++
++/* High-level core CEC message handling */
++
++/* Transmit the Report Features message */
++static int cec_report_features(struct cec_adapter *adap, unsigned int la_idx)
++{
++	struct cec_msg msg = { };
++	const struct cec_log_addrs *las = &adap->log_addrs;
++	const u8 *features = las->features[la_idx];
++	bool op_is_dev_features = false;
++	unsigned int idx;
++
++	/* This is 2.0 and up only */
++	if (adap->log_addrs.cec_version < CEC_OP_CEC_VERSION_2_0)
++		return 0;
++
++	/* Report Features */
++	msg.msg[0] = (las->log_addr[la_idx] << 4) | 0x0f;
++	msg.len = 4;
++	msg.msg[1] = CEC_MSG_REPORT_FEATURES;
++	msg.msg[2] = adap->log_addrs.cec_version;
++	msg.msg[3] = las->all_device_types[la_idx];
++
++	/* Write RC Profiles first, then Device Features */
++	for (idx = 0; idx < sizeof(las->features[0]); idx++) {
++		msg.msg[msg.len++] = features[idx];
++		if ((features[idx] & CEC_OP_FEAT_EXT) == 0) {
++			if (op_is_dev_features)
++				break;
++			op_is_dev_features = true;
++		}
++	}
++	return cec_transmit_msg(adap, &msg, false);
++}
++
++/* Transmit the Report Physical Address message */
++static int cec_report_phys_addr(struct cec_adapter *adap, unsigned int la_idx)
++{
++	const struct cec_log_addrs *las = &adap->log_addrs;
++	struct cec_msg msg = { };
++
++	/* Report Physical Address */
++	msg.msg[0] = (las->log_addr[la_idx] << 4) | 0x0f;
++	cec_msg_report_physical_addr(&msg, adap->phys_addr,
++				     las->primary_device_type[la_idx]);
++	dprintk(2, "config: la %d pa %x.%x.%x.%x\n",
++		las->log_addr[la_idx],
++			cec_phys_addr_exp(adap->phys_addr));
++	return cec_transmit_msg(adap, &msg, false);
++}
++
++/* Transmit the Feature Abort message */
++static int cec_feature_abort_reason(struct cec_adapter *adap,
++				    struct cec_msg *msg, u8 reason)
++{
++	struct cec_msg tx_msg = { };
++
++	/*
++	 * Don't reply with CEC_MSG_FEATURE_ABORT to a CEC_MSG_FEATURE_ABORT
++	 * message!
++	 */
++	if (msg->msg[1] == CEC_MSG_FEATURE_ABORT)
++		return 0;
++	cec_msg_set_reply_to(&tx_msg, msg);
++	cec_msg_feature_abort(&tx_msg, msg->msg[1], reason);
++	return cec_transmit_msg(adap, &tx_msg, false);
++}
++
++static int cec_feature_abort(struct cec_adapter *adap, struct cec_msg *msg)
++{
++	return cec_feature_abort_reason(adap, msg,
++					CEC_OP_ABORT_UNRECOGNIZED_OP);
++}
++
++static int cec_feature_refused(struct cec_adapter *adap, struct cec_msg *msg)
++{
++	return cec_feature_abort_reason(adap, msg,
++					CEC_OP_ABORT_REFUSED);
++}
++
++/*
++ * Called when a CEC message is received. This function will do any
++ * necessary core processing. The is_reply bool is true if this message
++ * is a reply to an earlier transmit.
++ *
++ * The message is either a broadcast message or a valid directed message.
++ */
++static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
++			      bool is_reply)
++{
++	bool is_broadcast = cec_msg_is_broadcast(msg);
++	u8 dest_laddr = cec_msg_destination(msg);
++	u8 init_laddr = cec_msg_initiator(msg);
++	u8 devtype = cec_log_addr2dev(adap, dest_laddr);
++	int la_idx = cec_log_addr2idx(adap, dest_laddr);
++	bool is_directed = la_idx >= 0;
++	bool from_unregistered = init_laddr == 0xf;
++	struct cec_msg tx_cec_msg = { };
++
++	dprintk(1, "cec_receive_notify: %*ph\n", msg->len, msg->msg);
++
++	if (adap->ops->received) {
++		/* Allow drivers to process the message first */
++		if (adap->ops->received(adap, msg) != -ENOMSG)
++			return 0;
++	}
++
++	/*
++	 * REPORT_PHYSICAL_ADDR, CEC_MSG_USER_CONTROL_PRESSED and
++	 * CEC_MSG_USER_CONTROL_RELEASED messages always have to be
++	 * handled by the CEC core, even if the passthrough mode is on.
++	 * The others are just ignored if passthrough mode is on.
++	 */
++	switch (msg->msg[1]) {
++	case CEC_MSG_GET_CEC_VERSION:
++	case CEC_MSG_GIVE_DEVICE_VENDOR_ID:
++	case CEC_MSG_ABORT:
++	case CEC_MSG_GIVE_DEVICE_POWER_STATUS:
++	case CEC_MSG_GIVE_PHYSICAL_ADDR:
++	case CEC_MSG_GIVE_OSD_NAME:
++	case CEC_MSG_GIVE_FEATURES:
++		/*
++		 * Skip processing these messages if the passthrough mode
++		 * is on.
++		 */
++		if (adap->passthrough)
++			goto skip_processing;
++		/* Ignore if addressing is wrong */
++		if (is_broadcast || from_unregistered)
++			return 0;
++		break;
++
++	case CEC_MSG_USER_CONTROL_PRESSED:
++	case CEC_MSG_USER_CONTROL_RELEASED:
++		/* Wrong addressing mode: don't process */
++		if (is_broadcast || from_unregistered)
++			goto skip_processing;
++		break;
++
++	case CEC_MSG_REPORT_PHYSICAL_ADDR:
++		/*
++		 * This message is always processed, regardless of the
++		 * passthrough setting.
++		 *
++		 * Exception: don't process if wrong addressing mode.
++		 */
++		if (!is_broadcast)
++			goto skip_processing;
++		break;
++
++	default:
++		break;
++	}
++
++	cec_msg_set_reply_to(&tx_cec_msg, msg);
++
++	switch (msg->msg[1]) {
++	/* The following messages are processed but still passed through */
++	case CEC_MSG_REPORT_PHYSICAL_ADDR:
++		adap->phys_addrs[init_laddr] =
++			(msg->msg[2] << 8) | msg->msg[3];
++		dprintk(1, "Reported physical address %04x for logical address %d\n",
++			adap->phys_addrs[init_laddr], init_laddr);
++		break;
++
++	case CEC_MSG_USER_CONTROL_PRESSED:
++		if (!(adap->capabilities & CEC_CAP_RC))
++			break;
++
++#if IS_ENABLED(CONFIG_RC_CORE)
++		switch (msg->msg[2]) {
++		/*
++		 * Play function, this message can have variable length
++		 * depending on the specific play function that is used.
++		 */
++		case 0x60:
++			if (msg->len == 2)
++				rc_keydown(adap->rc, RC_TYPE_CEC,
++					   msg->msg[2], 0);
++			else
++				rc_keydown(adap->rc, RC_TYPE_CEC,
++					   msg->msg[2] << 8 | msg->msg[3], 0);
++			break;
++		/*
++		 * Other function messages that are not handled.
++		 * Currently the RC framework does not allow to supply an
++		 * additional parameter to a keypress. These "keys" contain
++		 * other information such as channel number, an input number
++		 * etc.
++		 * For the time being these messages are not processed by the
++		 * framework and are simply forwarded to the user space.
++		 */
++		case 0x56: case 0x57:
++		case 0x67: case 0x68: case 0x69: case 0x6a:
++			break;
++		default:
++			rc_keydown(adap->rc, RC_TYPE_CEC, msg->msg[2], 0);
++			break;
++		}
++#endif
++		break;
++
++	case CEC_MSG_USER_CONTROL_RELEASED:
++		if (!(adap->capabilities & CEC_CAP_RC))
++			break;
++#if IS_ENABLED(CONFIG_RC_CORE)
++		rc_keyup(adap->rc);
++#endif
++		break;
++
++	/*
++	 * The remaining messages are only processed if the passthrough mode
++	 * is off.
++	 */
++	case CEC_MSG_GET_CEC_VERSION:
++		cec_msg_cec_version(&tx_cec_msg, adap->log_addrs.cec_version);
++		return cec_transmit_msg(adap, &tx_cec_msg, false);
++
++	case CEC_MSG_GIVE_PHYSICAL_ADDR:
++		/* Do nothing for CEC switches using addr 15 */
++		if (devtype == CEC_OP_PRIM_DEVTYPE_SWITCH && dest_laddr == 15)
++			return 0;
++		cec_msg_report_physical_addr(&tx_cec_msg, adap->phys_addr, devtype);
++		return cec_transmit_msg(adap, &tx_cec_msg, false);
++
++	case CEC_MSG_GIVE_DEVICE_VENDOR_ID:
++		if (adap->log_addrs.vendor_id == CEC_VENDOR_ID_NONE)
++			return cec_feature_abort(adap, msg);
++		cec_msg_device_vendor_id(&tx_cec_msg, adap->log_addrs.vendor_id);
++		return cec_transmit_msg(adap, &tx_cec_msg, false);
++
++	case CEC_MSG_ABORT:
++		/* Do nothing for CEC switches */
++		if (devtype == CEC_OP_PRIM_DEVTYPE_SWITCH)
++			return 0;
++		return cec_feature_refused(adap, msg);
++
++	case CEC_MSG_GIVE_OSD_NAME: {
++		if (adap->log_addrs.osd_name[0] == 0)
++			return cec_feature_abort(adap, msg);
++		cec_msg_set_osd_name(&tx_cec_msg, adap->log_addrs.osd_name);
++		return cec_transmit_msg(adap, &tx_cec_msg, false);
++	}
++
++	case CEC_MSG_GIVE_FEATURES:
++		if (adap->log_addrs.cec_version >= CEC_OP_CEC_VERSION_2_0)
++			return cec_report_features(adap, la_idx);
++		return 0;
++
++	default:
++		/*
++		 * Unprocessed messages are aborted if userspace isn't doing
++		 * any processing either.
++		 */
++		if (is_directed && !is_reply && !adap->follower_cnt &&
++		    !adap->cec_follower && msg->msg[1] != CEC_MSG_FEATURE_ABORT)
++			return cec_feature_abort(adap, msg);
++		break;
++	}
++
++skip_processing:
++	/* If this was a reply, then we're done */
++	if (is_reply)
++		return 0;
++
++	/*
++	 * Send to the exclusive follower if there is one, otherwise send
++	 * to all followers.
++	 */
++	if (adap->cec_follower)
++		cec_queue_msg_fh(adap->cec_follower, msg);
++	else
++		cec_queue_msg_followers(adap, msg);
++	return 0;
++}
++
++/*
++ * Attempt to claim a specific logical address.
++ *
++ * This function is called with adap->lock held.
++ */
++static int cec_config_log_addr(struct cec_adapter *adap,
++			       unsigned int idx,
++			       unsigned int log_addr)
++{
++	struct cec_log_addrs *las = &adap->log_addrs;
++	struct cec_msg msg = { };
++	int err;
++
++	if (cec_has_log_addr(adap, log_addr))
++		return 0;
++
++	/* Send poll message */
++	msg.len = 1;
++	msg.msg[0] = 0xf0 | log_addr;
++	err = cec_transmit_msg_fh(adap, &msg, NULL, true);
++
++	/*
++	 * While trying to poll the physical address was reset
++	 * and the adapter was unconfigured, so bail out.
++	 */
++	if (!adap->is_configuring)
++		return -EINTR;
++
++	if (err)
++		return err;
++
++	if (msg.tx_status & CEC_TX_STATUS_OK)
++		return 0;
++
++	/*
++	 * Message not acknowledged, so this logical
++	 * address is free to use.
++	 */
++	err = adap->ops->adap_log_addr(adap, log_addr);
++	if (err)
++		return err;
++
++	las->log_addr[idx] = log_addr;
++	las->log_addr_mask |= 1 << log_addr;
++	adap->phys_addrs[log_addr] = adap->phys_addr;
++
++	dprintk(2, "claimed addr %d (%d)\n", log_addr,
++		las->primary_device_type[idx]);
++	return 1;
++}
++
++/*
++ * Unconfigure the adapter: clear all logical addresses and send
++ * the state changed event.
++ *
++ * This function is called with adap->lock held.
++ */
++static void cec_adap_unconfigure(struct cec_adapter *adap)
++{
++	WARN_ON(adap->ops->adap_log_addr(adap, CEC_LOG_ADDR_INVALID));
++	adap->log_addrs.log_addr_mask = 0;
++	adap->is_configuring = false;
++	adap->is_configured = false;
++	memset(adap->phys_addrs, 0xff, sizeof(adap->phys_addrs));
++	wake_up_interruptible(&adap->kthread_waitq);
++	cec_post_state_event(adap);
++}
++
++/*
++ * Attempt to claim the required logical addresses.
++ */
++static int cec_config_thread_func(void *arg)
++{
++	/* The various LAs for each type of device */
++	static const u8 tv_log_addrs[] = {
++		CEC_LOG_ADDR_TV, CEC_LOG_ADDR_SPECIFIC,
++		CEC_LOG_ADDR_INVALID
++	};
++	static const u8 record_log_addrs[] = {
++		CEC_LOG_ADDR_RECORD_1, CEC_LOG_ADDR_RECORD_2,
++		CEC_LOG_ADDR_RECORD_3,
++		CEC_LOG_ADDR_BACKUP_1, CEC_LOG_ADDR_BACKUP_2,
++		CEC_LOG_ADDR_INVALID
++	};
++	static const u8 tuner_log_addrs[] = {
++		CEC_LOG_ADDR_TUNER_1, CEC_LOG_ADDR_TUNER_2,
++		CEC_LOG_ADDR_TUNER_3, CEC_LOG_ADDR_TUNER_4,
++		CEC_LOG_ADDR_BACKUP_1, CEC_LOG_ADDR_BACKUP_2,
++		CEC_LOG_ADDR_INVALID
++	};
++	static const u8 playback_log_addrs[] = {
++		CEC_LOG_ADDR_PLAYBACK_1, CEC_LOG_ADDR_PLAYBACK_2,
++		CEC_LOG_ADDR_PLAYBACK_3,
++		CEC_LOG_ADDR_BACKUP_1, CEC_LOG_ADDR_BACKUP_2,
++		CEC_LOG_ADDR_INVALID
++	};
++	static const u8 audiosystem_log_addrs[] = {
++		CEC_LOG_ADDR_AUDIOSYSTEM,
++		CEC_LOG_ADDR_INVALID
++	};
++	static const u8 specific_use_log_addrs[] = {
++		CEC_LOG_ADDR_SPECIFIC,
++		CEC_LOG_ADDR_BACKUP_1, CEC_LOG_ADDR_BACKUP_2,
++		CEC_LOG_ADDR_INVALID
++	};
++	static const u8 *type2addrs[6] = {
++		[CEC_LOG_ADDR_TYPE_TV] = tv_log_addrs,
++		[CEC_LOG_ADDR_TYPE_RECORD] = record_log_addrs,
++		[CEC_LOG_ADDR_TYPE_TUNER] = tuner_log_addrs,
++		[CEC_LOG_ADDR_TYPE_PLAYBACK] = playback_log_addrs,
++		[CEC_LOG_ADDR_TYPE_AUDIOSYSTEM] = audiosystem_log_addrs,
++		[CEC_LOG_ADDR_TYPE_SPECIFIC] = specific_use_log_addrs,
++	};
++	static const u16 type2mask[] = {
++		[CEC_LOG_ADDR_TYPE_TV] = CEC_LOG_ADDR_MASK_TV,
++		[CEC_LOG_ADDR_TYPE_RECORD] = CEC_LOG_ADDR_MASK_RECORD,
++		[CEC_LOG_ADDR_TYPE_TUNER] = CEC_LOG_ADDR_MASK_TUNER,
++		[CEC_LOG_ADDR_TYPE_PLAYBACK] = CEC_LOG_ADDR_MASK_PLAYBACK,
++		[CEC_LOG_ADDR_TYPE_AUDIOSYSTEM] = CEC_LOG_ADDR_MASK_AUDIOSYSTEM,
++		[CEC_LOG_ADDR_TYPE_SPECIFIC] = CEC_LOG_ADDR_MASK_SPECIFIC,
++	};
++	struct cec_adapter *adap = arg;
++	struct cec_log_addrs *las = &adap->log_addrs;
++	int err;
++	int i, j;
++
++	mutex_lock(&adap->lock);
++	dprintk(1, "physical address: %x.%x.%x.%x, claim %d logical addresses\n",
++		cec_phys_addr_exp(adap->phys_addr), las->num_log_addrs);
++	las->log_addr_mask = 0;
++
++	if (las->log_addr_type[0] == CEC_LOG_ADDR_TYPE_UNREGISTERED)
++		goto configured;
++
++	for (i = 0; i < las->num_log_addrs; i++) {
++		unsigned int type = las->log_addr_type[i];
++		const u8 *la_list;
++		u8 last_la;
++
++		/*
++		 * The TV functionality can only map to physical address 0.
++		 * For any other address, try the Specific functionality
++		 * instead as per the spec.
++		 */
++		if (adap->phys_addr && type == CEC_LOG_ADDR_TYPE_TV)
++			type = CEC_LOG_ADDR_TYPE_SPECIFIC;
++
++		la_list = type2addrs[type];
++		last_la = las->log_addr[i];
++		las->log_addr[i] = CEC_LOG_ADDR_INVALID;
++		if (last_la == CEC_LOG_ADDR_INVALID ||
++		    last_la == CEC_LOG_ADDR_UNREGISTERED ||
++		    !(last_la & type2mask[type]))
++			last_la = la_list[0];
++
++		err = cec_config_log_addr(adap, i, last_la);
++		if (err > 0) /* Reused last LA */
++			continue;
++
++		if (err < 0)
++			goto unconfigure;
++
++		for (j = 0; la_list[j] != CEC_LOG_ADDR_INVALID; j++) {
++			/* Tried this one already, skip it */
++			if (la_list[j] == last_la)
++				continue;
++			/* The backup addresses are CEC 2.0 specific */
++			if ((la_list[j] == CEC_LOG_ADDR_BACKUP_1 ||
++			     la_list[j] == CEC_LOG_ADDR_BACKUP_2) &&
++			    las->cec_version < CEC_OP_CEC_VERSION_2_0)
++				continue;
++
++			err = cec_config_log_addr(adap, i, la_list[j]);
++			if (err == 0) /* LA is in use */
++				continue;
++			if (err < 0)
++				goto unconfigure;
++			/* Done, claimed an LA */
++			break;
++		}
++
++		if (la_list[j] == CEC_LOG_ADDR_INVALID)
++			dprintk(1, "could not claim LA %d\n", i);
++	}
++
++configured:
++	if (adap->log_addrs.log_addr_mask == 0) {
++		/* Fall back to unregistered */
++		las->log_addr[0] = CEC_LOG_ADDR_UNREGISTERED;
++		las->log_addr_mask = 1 << las->log_addr[0];
++	}
++	adap->is_configured = true;
++	adap->is_configuring = false;
++	cec_post_state_event(adap);
++	mutex_unlock(&adap->lock);
++
++	for (i = 0; i < las->num_log_addrs; i++) {
++		if (las->log_addr[i] == CEC_LOG_ADDR_INVALID)
++			continue;
++
++		/*
++		 * Report Features must come first according
++		 * to CEC 2.0
++		 */
++		if (las->log_addr[i] != CEC_LOG_ADDR_UNREGISTERED)
++			cec_report_features(adap, i);
++		cec_report_phys_addr(adap, i);
++	}
++	mutex_lock(&adap->lock);
++	adap->kthread_config = NULL;
++	mutex_unlock(&adap->lock);
++	complete(&adap->config_completion);
++	return 0;
++
++unconfigure:
++	for (i = 0; i < las->num_log_addrs; i++)
++		las->log_addr[i] = CEC_LOG_ADDR_INVALID;
++	cec_adap_unconfigure(adap);
++	adap->kthread_config = NULL;
++	mutex_unlock(&adap->lock);
++	complete(&adap->config_completion);
++	return 0;
++}
++
++/*
++ * Called from either __cec_s_phys_addr or __cec_s_log_addrs to claim the
++ * logical addresses.
++ *
++ * This function is called with adap->lock held.
++ */
++static void cec_claim_log_addrs(struct cec_adapter *adap, bool block)
++{
++	if (WARN_ON(adap->is_configuring || adap->is_configured))
++		return;
++
++	init_completion(&adap->config_completion);
++
++	/* Ready to kick off the thread */
++	adap->is_configuring = true;
++	adap->kthread_config = kthread_run(cec_config_thread_func, adap,
++					   "ceccfg-%s", adap->name);
++	if (IS_ERR(adap->kthread_config)) {
++		adap->kthread_config = NULL;
++	} else if (block) {
++		mutex_unlock(&adap->lock);
++		wait_for_completion(&adap->config_completion);
++		mutex_lock(&adap->lock);
++	}
++}
++
++/* Set a new physical address and send an event notifying userspace of this.
++ *
++ * This function is called with adap->lock held.
++ */
++static void __cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block)
++{
++	if (phys_addr == adap->phys_addr)
++		return;
++
++	if (phys_addr == CEC_PHYS_ADDR_INVALID ||
++	    adap->phys_addr != CEC_PHYS_ADDR_INVALID) {
++		adap->phys_addr = CEC_PHYS_ADDR_INVALID;
++		cec_post_state_event(adap);
++		cec_adap_unconfigure(adap);
++		/* Disabling monitor all mode should always succeed */
++		if (adap->monitor_all_cnt)
++			WARN_ON(call_op(adap, adap_monitor_all_enable, false));
++		WARN_ON(adap->ops->adap_enable(adap, false));
++		if (phys_addr == CEC_PHYS_ADDR_INVALID)
++			return;
++	}
++
++	if (adap->ops->adap_enable(adap, true))
++		return;
++
++	if (adap->monitor_all_cnt &&
++	    call_op(adap, adap_monitor_all_enable, true)) {
++		WARN_ON(adap->ops->adap_enable(adap, false));
++		return;
++	}
++	adap->phys_addr = phys_addr;
++	cec_post_state_event(adap);
++	if (adap->log_addrs.num_log_addrs)
++		cec_claim_log_addrs(adap, block);
++}
++
++void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block)
++{
++	if (IS_ERR_OR_NULL(adap))
++		return;
++
++	if (WARN_ON(adap->capabilities & CEC_CAP_PHYS_ADDR))
++		return;
++	mutex_lock(&adap->lock);
++	__cec_s_phys_addr(adap, phys_addr, block);
++	mutex_unlock(&adap->lock);
++}
++EXPORT_SYMBOL_GPL(cec_s_phys_addr);
++
++/*
++ * Called from either the ioctl or a driver to set the logical addresses.
++ *
++ * This function is called with adap->lock held.
++ */
++static int __cec_s_log_addrs(struct cec_adapter *adap,
++			     struct cec_log_addrs *log_addrs, bool block)
++{
++	u16 type_mask = 0;
++	int i;
++
++	if (!log_addrs || log_addrs->num_log_addrs == 0) {
++		adap->log_addrs.num_log_addrs = 0;
++		cec_adap_unconfigure(adap);
++		return 0;
++	}
++
++	/* Ensure the osd name is 0-terminated */
++	log_addrs->osd_name[sizeof(log_addrs->osd_name) - 1] = '\0';
++
++	/* Sanity checks */
++	if (log_addrs->num_log_addrs > adap->available_log_addrs) {
++		dprintk(1, "num_log_addrs > %d\n", adap->available_log_addrs);
++		return -EINVAL;
++	}
++
++	/*
++	 * Vendor ID is a 24 bit number, so check if the value is
++	 * within the correct range.
++	 */
++	if (log_addrs->vendor_id != CEC_VENDOR_ID_NONE &&
++	    (log_addrs->vendor_id & 0xff000000) != 0)
++		return -EINVAL;
++
++	if (log_addrs->cec_version != CEC_OP_CEC_VERSION_1_4 &&
++	    log_addrs->cec_version != CEC_OP_CEC_VERSION_2_0)
++		return -EINVAL;
++
++	if (log_addrs->num_log_addrs > 1)
++		for (i = 0; i < log_addrs->num_log_addrs; i++)
++			if (log_addrs->log_addr_type[i] ==
++					CEC_LOG_ADDR_TYPE_UNREGISTERED) {
++				dprintk(1, "num_log_addrs > 1 can't be combined with unregistered LA\n");
++				return -EINVAL;
++			}
++
++	if (log_addrs->cec_version < CEC_OP_CEC_VERSION_2_0) {
++		memset(log_addrs->all_device_types, 0,
++		       sizeof(log_addrs->all_device_types));
++		memset(log_addrs->features, 0, sizeof(log_addrs->features));
++	}
++
++	for (i = 0; i < log_addrs->num_log_addrs; i++) {
++		u8 *features = log_addrs->features[i];
++		bool op_is_dev_features = false;
++
++		log_addrs->log_addr[i] = CEC_LOG_ADDR_INVALID;
++		if (type_mask & (1 << log_addrs->log_addr_type[i])) {
++			dprintk(1, "duplicate logical address type\n");
++			return -EINVAL;
++		}
++		type_mask |= 1 << log_addrs->log_addr_type[i];
++		if ((type_mask & (1 << CEC_LOG_ADDR_TYPE_RECORD)) &&
++		    (type_mask & (1 << CEC_LOG_ADDR_TYPE_PLAYBACK))) {
++			/* Record already contains the playback functionality */
++			dprintk(1, "invalid record + playback combination\n");
++			return -EINVAL;
++		}
++		if (log_addrs->primary_device_type[i] >
++					CEC_OP_PRIM_DEVTYPE_PROCESSOR) {
++			dprintk(1, "unknown primary device type\n");
++			return -EINVAL;
++		}
++		if (log_addrs->primary_device_type[i] == 2) {
++			dprintk(1, "invalid primary device type\n");
++			return -EINVAL;
++		}
++		if (log_addrs->log_addr_type[i] > CEC_LOG_ADDR_TYPE_UNREGISTERED) {
++			dprintk(1, "unknown logical address type\n");
++			return -EINVAL;
++		}
++		if (log_addrs->cec_version < CEC_OP_CEC_VERSION_2_0)
++			continue;
++
++		for (i = 0; i < sizeof(log_addrs->features[0]); i++) {
++			if ((features[i] & 0x80) == 0) {
++				if (op_is_dev_features)
++					break;
++				op_is_dev_features = true;
++			}
++		}
++		if (!op_is_dev_features || i == sizeof(log_addrs->features[0])) {
++			dprintk(1, "malformed features\n");
++			return -EINVAL;
++		}
++	}
++
++	if (log_addrs->cec_version >= CEC_OP_CEC_VERSION_2_0) {
++		if (log_addrs->num_log_addrs > 2) {
++			dprintk(1, "CEC 2.0 allows no more than 2 logical addresses\n");
++			return -EINVAL;
++		}
++		if (log_addrs->num_log_addrs == 2) {
++			if (!(type_mask & ((1 << CEC_LOG_ADDR_TYPE_AUDIOSYSTEM) |
++					   (1 << CEC_LOG_ADDR_TYPE_TV)))) {
++				dprintk(1, "Two LAs is only allowed for audiosystem and TV\n");
++				return -EINVAL;
++			}
++			if (!(type_mask & ((1 << CEC_LOG_ADDR_TYPE_PLAYBACK) |
++					   (1 << CEC_LOG_ADDR_TYPE_RECORD)))) {
++				dprintk(1, "An audiosystem/TV can only be combined with record or playback\n");
++				return -EINVAL;
++			}
++		}
++	}
++
++	log_addrs->log_addr_mask = adap->log_addrs.log_addr_mask;
++	adap->log_addrs = *log_addrs;
++	if (adap->phys_addr != CEC_PHYS_ADDR_INVALID)
++		cec_claim_log_addrs(adap, block);
++	return 0;
++}
++
++int cec_s_log_addrs(struct cec_adapter *adap,
++		    struct cec_log_addrs *log_addrs, bool block)
++{
++	int err;
++
++	if (WARN_ON(adap->capabilities & CEC_CAP_LOG_ADDRS))
++		return -EINVAL;
++	mutex_lock(&adap->lock);
++	err = __cec_s_log_addrs(adap, log_addrs, block);
++	mutex_unlock(&adap->lock);
++	return err;
++}
++EXPORT_SYMBOL_GPL(cec_s_log_addrs);
++
++/*
++ * Log the current state of the CEC adapter.
++ * Very useful for debugging.
++ */
++static int cec_status(struct seq_file *file, void *priv)
++{
++	struct cec_adapter *adap = dev_get_drvdata(file->private);
++	struct cec_data *data;
++
++	mutex_lock(&adap->lock);
++	seq_printf(file, "configured: %d\n", adap->is_configured);
++	seq_printf(file, "configuring: %d\n", adap->is_configuring);
++	seq_printf(file, "phys_addr: %x.%x.%x.%x\n",
++		   cec_phys_addr_exp(adap->phys_addr));
++	seq_printf(file, "number of LAs: %d\n", adap->log_addrs.num_log_addrs);
++	seq_printf(file, "LA mask: 0x%04x\n", adap->log_addrs.log_addr_mask);
++	if (adap->cec_follower)
++		seq_printf(file, "has CEC follower%s\n",
++			   adap->passthrough ? " (in passthrough mode)" : "");
++	if (adap->cec_initiator)
++		seq_puts(file, "has CEC initiator\n");
++	if (adap->monitor_all_cnt)
++		seq_printf(file, "file handles in Monitor All mode: %u\n",
++			   adap->monitor_all_cnt);
++	data = adap->transmitting;
++	if (data)
++		seq_printf(file, "transmitting message: %*ph (reply: %02x)\n",
++			   data->msg.len, data->msg.msg, data->msg.reply);
++	list_for_each_entry(data, &adap->transmit_queue, list) {
++		seq_printf(file, "queued tx message: %*ph (reply: %02x)\n",
++			   data->msg.len, data->msg.msg, data->msg.reply);
++	}
++	list_for_each_entry(data, &adap->wait_queue, list) {
++		seq_printf(file, "message waiting for reply: %*ph (reply: %02x)\n",
++			   data->msg.len, data->msg.msg, data->msg.reply);
++	}
++
++	call_void_op(adap, adap_status, file);
++	mutex_unlock(&adap->lock);
++	return 0;
++}
++
++/* CEC file operations */
++
++static unsigned int cec_poll(struct file *filp,
++			     struct poll_table_struct *poll)
++{
++	struct cec_devnode *devnode = cec_devnode_data(filp);
++	struct cec_fh *fh = filp->private_data;
++	struct cec_adapter *adap = fh->adap;
++	unsigned int res = 0;
++
++	if (!devnode->registered)
++		return POLLERR | POLLHUP;
++	mutex_lock(&adap->lock);
++	if (adap->is_configured)
++		res |= POLLOUT | POLLWRNORM;
++	if (fh->queued_msgs)
++		res |= POLLIN | POLLRDNORM;
++	if (fh->events)
++		res |= POLLPRI;
++	poll_wait(filp, &fh->wait, poll);
++	mutex_unlock(&adap->lock);
++	return res;
++}
++
++/*
++ * Helper functions to keep track of the 'monitor all' use count.
++ *
++ * These functions are called with adap->lock held.
++ */
++static int cec_monitor_all_cnt_inc(struct cec_adapter *adap)
++{
++	int ret = 0;
++
++	if (adap->monitor_all_cnt == 0)
++		ret = call_op(adap, adap_monitor_all_enable, 1);
++	if (ret == 0)
++		adap->monitor_all_cnt++;
++	return ret;
++}
++
++static void cec_monitor_all_cnt_dec(struct cec_adapter *adap)
++{
++	adap->monitor_all_cnt--;
++	if (adap->monitor_all_cnt == 0)
++		WARN_ON(call_op(adap, adap_monitor_all_enable, 0));
++}
++
++/* Called by CEC_RECEIVE: wait for a message to arrive */
++static int cec_receive_msg(struct cec_fh *fh, struct cec_msg *msg, bool block)
++{
++	int res;
++
++	do {
++		mutex_lock(&fh->lock);
++		/* Are there received messages queued up? */
++		if (fh->queued_msgs) {
++			/* Yes, return the first one */
++			struct cec_msg_entry *entry =
++				list_first_entry(&fh->msgs,
++						 struct cec_msg_entry, list);
++
++			list_del(&entry->list);
++			*msg = entry->msg;
++			kfree(entry);
++			fh->queued_msgs--;
++			res = 0;
++		} else {
++			/* No, return EAGAIN in non-blocking mode or wait */
++			res = -EAGAIN;
++		}
++		mutex_unlock(&fh->lock);
++		/* Return when in non-blocking mode or if we have a message */
++		if (!block || !res)
++			break;
++
++		if (msg->timeout) {
++			/* The user specified a timeout */
++			res = wait_event_interruptible_timeout(fh->wait,
++							       fh->queued_msgs,
++				msecs_to_jiffies(msg->timeout));
++			if (res == 0)
++				res = -ETIMEDOUT;
++			else if (res > 0)
++				res = 0;
++		} else {
++			/* Wait indefinitely */
++			res = wait_event_interruptible(fh->wait,
++						       fh->queued_msgs);
++		}
++		/* Exit on error, otherwise loop to get the new message */
++	} while (!res);
++	return res;
++}
++
++static bool cec_is_busy(const struct cec_adapter *adap,
++			const struct cec_fh *fh)
++{
++	bool valid_initiator = adap->cec_initiator && adap->cec_initiator == fh;
++	bool valid_follower = adap->cec_follower && adap->cec_follower == fh;
++
++	/*
++	 * Exclusive initiators and followers can always access the CEC adapter
++	 */
++	if (valid_initiator || valid_follower)
++		return false;
++	/*
++	 * All others can only access the CEC adapter if there is no
++	 * exclusive initiator and they are in INITIATOR mode.
++	 */
++	return adap->cec_initiator ||
++	       fh->mode_initiator == CEC_MODE_NO_INITIATOR;
++}
++
++static long cec_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
++{
++	struct cec_devnode *devnode = cec_devnode_data(filp);
++	struct cec_fh *fh = filp->private_data;
++	struct cec_adapter *adap = fh->adap;
++	bool block = !(filp->f_flags & O_NONBLOCK);
++	void __user *parg = (void __user *)arg;
++	int err = 0;
++
++	if (!devnode->registered)
++		return -EIO;
++
++	switch (cmd) {
++	case CEC_ADAP_G_CAPS: {
++		struct cec_caps caps = {};
++
++		strlcpy(caps.driver, adap->devnode.parent->driver->name,
++			sizeof(caps.driver));
++		strlcpy(caps.name, adap->name, sizeof(caps.name));
++		caps.available_log_addrs = adap->available_log_addrs;
++		caps.capabilities = adap->capabilities;
++		caps.version = LINUX_VERSION_CODE;
++		if (copy_to_user(parg, &caps, sizeof(caps)))
++			return -EFAULT;
++		break;
++	}
++
++	case CEC_TRANSMIT: {
++		struct cec_msg msg = {};
++
++		if (!(adap->capabilities & CEC_CAP_TRANSMIT))
++			return -ENOTTY;
++		if (copy_from_user(&msg, parg, sizeof(msg)))
++			return -EFAULT;
++		mutex_lock(&adap->lock);
++		if (!adap->is_configured) {
++			err = -ENONET;
++		} else if (cec_is_busy(adap, fh)) {
++			err = -EBUSY;
++		} else {
++			if (!block || !msg.reply)
++				fh = NULL;
++			err = cec_transmit_msg_fh(adap, &msg, fh, block);
++		}
++		mutex_unlock(&adap->lock);
++		if (err)
++			return err;
++		if (copy_to_user(parg, &msg, sizeof(msg)))
++			return -EFAULT;
++		break;
++	}
++
++	case CEC_RECEIVE: {
++		struct cec_msg msg = {};
++
++		if (copy_from_user(&msg, parg, sizeof(msg)))
++			return -EFAULT;
++		mutex_lock(&adap->lock);
++		if (!adap->is_configured)
++			err = -ENONET;
++		mutex_unlock(&adap->lock);
++		if (err)
++			return err;
++
++		err = cec_receive_msg(fh, &msg, block);
++		if (err)
++			return err;
++		if (copy_to_user(parg, &msg, sizeof(msg)))
++			return -EFAULT;
++		break;
++	}
++
++	case CEC_DQEVENT: {
++		struct cec_event_queue *evq = NULL;
++		struct cec_event *ev = NULL;
++		u64 ts = ~0ULL;
++		unsigned int i;
++
++		mutex_lock(&fh->lock);
++		while (!fh->events && block) {
++			mutex_unlock(&fh->lock);
++			err = wait_event_interruptible(fh->wait, fh->events);
++			if (err)
++				return err;
++			mutex_lock(&fh->lock);
++		}
++
++		/* Find the oldest event */
++		for (i = 0; i < CEC_NUM_EVENTS; i++) {
++			struct cec_event_queue *q = fh->evqueue + i;
++
++			if (q->num_events && q->events->ts <= ts) {
++				evq = q;
++				ev = q->events;
++				ts = ev->ts;
++			}
++		}
++		err = -EAGAIN;
++		if (ev) {
++			if (copy_to_user(parg, ev, sizeof(*ev))) {
++				err = -EFAULT;
++			} else {
++				unsigned int j;
++
++				evq->num_events--;
++				fh->events--;
++				/*
++				 * Reset lost message counter after returning
++				 * this event.
++				 */
++				if (ev->event == CEC_EVENT_LOST_MSGS)
++					fh->lost_msgs = 0;
++				for (j = 0; j < evq->num_events; j++)
++					evq->events[j] = evq->events[j + 1];
++				err = 0;
++			}
++		}
++		mutex_unlock(&fh->lock);
++		return err;
++	}
++
++	case CEC_ADAP_G_PHYS_ADDR: {
++		u16 phys_addr;
++
++		mutex_lock(&adap->lock);
++		phys_addr = adap->phys_addr;
++		if (copy_to_user(parg, &phys_addr, sizeof(adap->phys_addr)))
++			err = -EFAULT;
++		mutex_unlock(&adap->lock);
++		break;
++	}
++
++	case CEC_ADAP_S_PHYS_ADDR: {
++		u16 phys_addr;
++
++		if (!(adap->capabilities & CEC_CAP_PHYS_ADDR))
++			return -ENOTTY;
++		if (copy_from_user(&phys_addr, parg, sizeof(phys_addr)))
++			return -EFAULT;
++
++		err = cec_phys_addr_validate(phys_addr, NULL, NULL);
++		if (err)
++			return err;
++		mutex_lock(&adap->lock);
++		if (cec_is_busy(adap, fh))
++			err = -EBUSY;
++		else
++			__cec_s_phys_addr(adap, phys_addr, block);
++		mutex_unlock(&adap->lock);
++		break;
++	}
++
++	case CEC_ADAP_G_LOG_ADDRS: {
++		struct cec_log_addrs log_addrs;
++
++		mutex_lock(&adap->lock);
++		log_addrs = adap->log_addrs;
++		if (!adap->is_configured)
++			memset(log_addrs.log_addr, CEC_LOG_ADDR_INVALID,
++			       sizeof(log_addrs.log_addr));
++		mutex_unlock(&adap->lock);
++
++		if (copy_to_user(parg, &log_addrs, sizeof(log_addrs)))
++			return -EFAULT;
++		break;
++	}
++
++	case CEC_ADAP_S_LOG_ADDRS: {
++		struct cec_log_addrs log_addrs;
++
++		if (!(adap->capabilities & CEC_CAP_LOG_ADDRS))
++			return -ENOTTY;
++		if (copy_from_user(&log_addrs, parg, sizeof(log_addrs)))
++			return -EFAULT;
++		log_addrs.flags = 0;
++		mutex_lock(&adap->lock);
++		if (adap->is_configuring)
++			err = -EBUSY;
++		else if (log_addrs.num_log_addrs && adap->is_configured)
++			err = -EBUSY;
++		else if (cec_is_busy(adap, fh))
++			err = -EBUSY;
++		else
++			err = __cec_s_log_addrs(adap, &log_addrs, block);
++		if (!err)
++			log_addrs = adap->log_addrs;
++		mutex_unlock(&adap->lock);
++		if (!err && copy_to_user(parg, &log_addrs, sizeof(log_addrs)))
++			return -EFAULT;
++		break;
++	}
++
++	case CEC_G_MODE: {
++		u32 mode = fh->mode_initiator | fh->mode_follower;
++
++		if (copy_to_user(parg, &mode, sizeof(mode)))
++			return -EFAULT;
++		break;
++	}
++
++	case CEC_S_MODE: {
++		u32 mode;
++		u8 mode_initiator;
++		u8 mode_follower;
++
++		if (copy_from_user(&mode, parg, sizeof(mode)))
++			return -EFAULT;
++		if (mode & ~(CEC_MODE_INITIATOR_MSK | CEC_MODE_FOLLOWER_MSK))
++			return -EINVAL;
++
++		mode_initiator = mode & CEC_MODE_INITIATOR_MSK;
++		mode_follower = mode & CEC_MODE_FOLLOWER_MSK;
++
++		if (mode_initiator > CEC_MODE_EXCL_INITIATOR ||
++		    mode_follower > CEC_MODE_MONITOR_ALL)
++			return -EINVAL;
++
++		if (mode_follower == CEC_MODE_MONITOR_ALL &&
++		    !(adap->capabilities & CEC_CAP_MONITOR_ALL))
++			return -EINVAL;
++
++		/* Follower modes should always be able to send CEC messages */
++		if ((mode_initiator == CEC_MODE_NO_INITIATOR ||
++		     !(adap->capabilities & CEC_CAP_TRANSMIT)) &&
++		    mode_follower >= CEC_MODE_FOLLOWER &&
++		    mode_follower <= CEC_MODE_EXCL_FOLLOWER_PASSTHRU)
++			return -EINVAL;
++
++		/* Monitor modes require CEC_MODE_NO_INITIATOR */
++		if (mode_initiator && mode_follower >= CEC_MODE_MONITOR)
++			return -EINVAL;
++
++		/* Monitor modes require CAP_NET_ADMIN */
++		if (mode_follower >= CEC_MODE_MONITOR && !capable(CAP_NET_ADMIN))
++			return -EPERM;
++
++		mutex_lock(&adap->lock);
++		/*
++		 * You can't become exclusive follower if someone else already
++		 * has that job.
++		 */
++		if ((mode_follower == CEC_MODE_EXCL_FOLLOWER ||
++		     mode_follower == CEC_MODE_EXCL_FOLLOWER_PASSTHRU) &&
++		    adap->cec_follower && adap->cec_follower != fh)
++			err = -EBUSY;
++		/*
++		 * You can't become exclusive initiator if someone else already
++		 * has that job.
++		 */
++		if (mode_initiator == CEC_MODE_EXCL_INITIATOR &&
++		    adap->cec_initiator && adap->cec_initiator != fh)
++			err = -EBUSY;
++
++		if (!err) {
++			bool old_mon_all = fh->mode_follower == CEC_MODE_MONITOR_ALL;
++			bool new_mon_all = mode_follower == CEC_MODE_MONITOR_ALL;
++
++			if (old_mon_all != new_mon_all) {
++				if (new_mon_all)
++					err = cec_monitor_all_cnt_inc(adap);
++				else
++					cec_monitor_all_cnt_dec(adap);
++			}
++		}
++
++		if (err) {
++			mutex_unlock(&adap->lock);
++			break;
++		}
++
++		if (fh->mode_follower == CEC_MODE_FOLLOWER)
++			adap->follower_cnt--;
++		if (mode_follower == CEC_MODE_FOLLOWER)
++			adap->follower_cnt++;
++		if (mode_follower == CEC_MODE_EXCL_FOLLOWER ||
++		    mode_follower == CEC_MODE_EXCL_FOLLOWER_PASSTHRU) {
++			adap->passthrough =
++				mode_follower == CEC_MODE_EXCL_FOLLOWER_PASSTHRU;
++			adap->cec_follower = fh;
++		} else if (adap->cec_follower == fh) {
++			adap->passthrough = false;
++			adap->cec_follower = NULL;
++		}
++		if (mode_initiator == CEC_MODE_EXCL_INITIATOR)
++			adap->cec_initiator = fh;
++		else if (adap->cec_initiator == fh)
++			adap->cec_initiator = NULL;
++		fh->mode_initiator = mode_initiator;
++		fh->mode_follower = mode_follower;
++		mutex_unlock(&adap->lock);
++		break;
++	}
++
++	default:
++		return -ENOTTY;
++	}
++	return err;
++}
++
++static int cec_open(struct inode *inode, struct file *filp)
++{
++	struct cec_devnode *devnode =
++		container_of(inode->i_cdev, struct cec_devnode, cdev);
++	struct cec_adapter *adap = to_cec_adapter(devnode);
++	struct cec_fh *fh = kzalloc(sizeof(*fh), GFP_KERNEL);
++	/*
++	 * Initial events that are automatically sent when the cec device is
++	 * opened.
++	 */
++	struct cec_event ev_state = {
++		.event = CEC_EVENT_STATE_CHANGE,
++		.flags = CEC_EVENT_FL_INITIAL_STATE,
++	};
++	int ret;
++
++	if (!fh)
++		return -ENOMEM;
++
++	ret = cec_queue_event_init(fh);
++
++	if (ret) {
++		kfree(fh);
++		return ret;
++	}
++
++	INIT_LIST_HEAD(&fh->msgs);
++	INIT_LIST_HEAD(&fh->xfer_list);
++	mutex_init(&fh->lock);
++	init_waitqueue_head(&fh->wait);
++
++	fh->mode_initiator = CEC_MODE_INITIATOR;
++	fh->adap = adap;
++
++	/*
++	 * Check if the cec device is available. This needs to be done with
++	 * the cec_devnode_lock held to prevent an open/unregister race:
++	 * without the lock, the device could be unregistered and freed between
++	 * the devnode->registered check and get_device() calls, leading to
++	 * a crash.
++	 */
++	mutex_lock(&cec_devnode_lock);
++	/*
++	 * return ENXIO if the cec device has been removed
++	 * already or if it is not registered anymore.
++	 */
++	if (!devnode->registered) {
++		mutex_unlock(&cec_devnode_lock);
++		cec_queue_event_free(fh);
++		kfree(fh);
++		return -ENXIO;
++	}
++	/* and increase the device refcount */
++	get_device(&devnode->dev);
++	mutex_unlock(&cec_devnode_lock);
++
++	filp->private_data = fh;
++
++	mutex_lock(&devnode->fhs_lock);
++	/* Queue up initial state events */
++	ev_state.state_change.phys_addr = adap->phys_addr;
++	ev_state.state_change.log_addr_mask = adap->log_addrs.log_addr_mask;
++	cec_queue_event_fh(fh, &ev_state, 0);
++
++	list_add(&fh->list, &devnode->fhs);
++	mutex_unlock(&devnode->fhs_lock);
++
++	return 0;
++}
++
++/* Override for the release function */
++static int cec_release(struct inode *inode, struct file *filp)
++{
++	struct cec_devnode *devnode = cec_devnode_data(filp);
++	struct cec_adapter *adap = to_cec_adapter(devnode);
++	struct cec_fh *fh = filp->private_data;
++
++	mutex_lock(&adap->lock);
++	if (adap->cec_initiator == fh)
++		adap->cec_initiator = NULL;
++	if (adap->cec_follower == fh) {
++		adap->cec_follower = NULL;
++		adap->passthrough = false;
++	}
++	if (fh->mode_follower == CEC_MODE_FOLLOWER)
++		adap->follower_cnt--;
++	if (fh->mode_follower == CEC_MODE_MONITOR_ALL)
++		cec_monitor_all_cnt_dec(adap);
++	mutex_unlock(&adap->lock);
++
++	mutex_lock(&devnode->fhs_lock);
++	list_del(&fh->list);
++	mutex_unlock(&devnode->fhs_lock);
++
++	/* Unhook pending transmits from this filehandle. */
++	mutex_lock(&adap->lock);
++	while (!list_empty(&fh->xfer_list)) {
++		struct cec_data *data =
++			list_first_entry(&fh->xfer_list, struct cec_data, xfer_list);
++
++		data->blocking = false;
++		data->fh = NULL;
++		list_del(&data->xfer_list);
++	}
++	mutex_unlock(&adap->lock);
++	while (!list_empty(&fh->msgs)) {
++		struct cec_msg_entry *entry =
++			list_first_entry(&fh->msgs, struct cec_msg_entry, list);
++
++		list_del(&entry->list);
++		kfree(entry);
++	}
++	cec_queue_event_free(fh);
++	kfree(fh);
++
++	/*
++	 * decrease the refcount unconditionally since the release()
++	 * return value is ignored.
++	 */
++	put_device(&devnode->dev);
++	filp->private_data = NULL;
++	return 0;
++}
++
++static const struct file_operations cec_devnode_fops = {
++	.owner = THIS_MODULE,
++	.open = cec_open,
++	.unlocked_ioctl = cec_ioctl,
++	.release = cec_release,
++	.poll = cec_poll,
++	.llseek = no_llseek,
++};
++
++/* Called when the last user of the cec device exits. */
++static void cec_devnode_release(struct device *cd)
++{
++	struct cec_devnode *devnode = to_cec_devnode(cd);
++
++	mutex_lock(&cec_devnode_lock);
++
++	/* Mark device node number as free */
++	clear_bit(devnode->minor, cec_devnode_nums);
++
++	mutex_unlock(&cec_devnode_lock);
++	cec_delete_adapter(to_cec_adapter(devnode));
++}
++
++static struct bus_type cec_bus_type = {
++	.name = CEC_NAME,
++};
++
++/**
++ * cec_devnode_register - register a cec device node
++ * @devnode: cec device node structure we want to register
++ *
++ * The registration code assigns minor numbers and registers the new device node
++ * with the kernel. An error is returned if no free minor number can be found,
++ * or if the registration of the device node fails.
++ *
++ * Zero is returned on success.
++ *
++ * Note that if the cec_devnode_register call fails, the release() callback of
++ * the cec_devnode structure is *not* called, so the caller is responsible for
++ * freeing any data.
++ */
++static int __must_check cec_devnode_register(struct cec_devnode *devnode,
++					     struct module *owner)
++{
++	int minor;
++	int ret;
++
++	/* Initialization */
++	INIT_LIST_HEAD(&devnode->fhs);
++	mutex_init(&devnode->fhs_lock);
++
++	/* Part 1: Find a free minor number */
++	mutex_lock(&cec_devnode_lock);
++	minor = find_next_zero_bit(cec_devnode_nums, CEC_NUM_DEVICES, 0);
++	if (minor == CEC_NUM_DEVICES) {
++		mutex_unlock(&cec_devnode_lock);
++		pr_err("could not get a free minor\n");
++		return -ENFILE;
++	}
++
++	set_bit(minor, cec_devnode_nums);
++	mutex_unlock(&cec_devnode_lock);
++
++	devnode->minor = minor;
++	devnode->dev.bus = &cec_bus_type;
++	devnode->dev.devt = MKDEV(MAJOR(cec_dev_t), minor);
++	devnode->dev.release = cec_devnode_release;
++	devnode->dev.parent = devnode->parent;
++	dev_set_name(&devnode->dev, "cec%d", devnode->minor);
++	device_initialize(&devnode->dev);
++
++	/* Part 2: Initialize and register the character device */
++	cdev_init(&devnode->cdev, &cec_devnode_fops);
++	devnode->cdev.kobj.parent = &devnode->dev.kobj;
++	devnode->cdev.owner = owner;
++
++	ret = cdev_add(&devnode->cdev, devnode->dev.devt, 1);
++	if (ret < 0) {
++		pr_err("%s: cdev_add failed\n", __func__);
++		goto clr_bit;
++	}
++
++	ret = device_add(&devnode->dev);
++	if (ret)
++		goto cdev_del;
++
++	devnode->registered = true;
++	return 0;
++
++cdev_del:
++	cdev_del(&devnode->cdev);
++clr_bit:
++	clear_bit(devnode->minor, cec_devnode_nums);
++	put_device(&devnode->dev);
++	return ret;
++}
++
++/**
++ * cec_devnode_unregister - unregister a cec device node
++ * @devnode: the device node to unregister
++ *
++ * This unregisters the passed device. Future open calls will be met with
++ * errors.
++ *
++ * This function can safely be called if the device node has never been
++ * registered or has already been unregistered.
++ */
++static void cec_devnode_unregister(struct cec_devnode *devnode)
++{
++	struct cec_fh *fh;
++
++	/* Check if devnode was never registered or already unregistered */
++	if (!devnode->registered || devnode->unregistered)
++		return;
++
++	mutex_lock(&devnode->fhs_lock);
++	list_for_each_entry(fh, &devnode->fhs, list)
++		wake_up_interruptible(&fh->wait);
++	mutex_unlock(&devnode->fhs_lock);
++
++	devnode->registered = false;
++	devnode->unregistered = true;
++	device_del(&devnode->dev);
++	cdev_del(&devnode->cdev);
++	put_device(&devnode->dev);
++}
++
++struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
++					 void *priv, const char *name, u32 caps,
++					 u8 available_las, struct device *parent)
++{
++	struct cec_adapter *adap;
++	int res;
++
++	if (WARN_ON(!parent))
++		return ERR_PTR(-EINVAL);
++	if (WARN_ON(!caps))
++		return ERR_PTR(-EINVAL);
++	if (WARN_ON(!ops))
++		return ERR_PTR(-EINVAL);
++	if (WARN_ON(!available_las || available_las > CEC_MAX_LOG_ADDRS))
++		return ERR_PTR(-EINVAL);
++	adap = kzalloc(sizeof(*adap), GFP_KERNEL);
++	if (!adap)
++		return ERR_PTR(-ENOMEM);
++	adap->owner = parent->driver->owner;
++	adap->devnode.parent = parent;
++	strlcpy(adap->name, name, sizeof(adap->name));
++	adap->phys_addr = CEC_PHYS_ADDR_INVALID;
++	adap->log_addrs.cec_version = CEC_OP_CEC_VERSION_2_0;
++	adap->log_addrs.vendor_id = CEC_VENDOR_ID_NONE;
++	adap->capabilities = caps;
++	adap->available_log_addrs = available_las;
++	adap->sequence = 0;
++	adap->ops = ops;
++	adap->priv = priv;
++	memset(adap->phys_addrs, 0xff, sizeof(adap->phys_addrs));
++	mutex_init(&adap->lock);
++	INIT_LIST_HEAD(&adap->transmit_queue);
++	INIT_LIST_HEAD(&adap->wait_queue);
++	init_waitqueue_head(&adap->kthread_waitq);
++
++	adap->kthread = kthread_run(cec_thread_func, adap, "cec-%s", name);
++	if (IS_ERR(adap->kthread)) {
++		pr_err("cec-%s: kernel_thread() failed\n", name);
++		res = PTR_ERR(adap->kthread);
++		kfree(adap);
++		return ERR_PTR(res);
++	}
++
++	if (!(caps & CEC_CAP_RC))
++		return adap;
++
++#if IS_ENABLED(CONFIG_RC_CORE)
++	/* Prepare the RC input device */
++	adap->rc = rc_allocate_device();
++	if (!adap->rc) {
++		pr_err("cec-%s: failed to allocate memory for rc_dev\n",
++		       name);
++		kthread_stop(adap->kthread);
++		kfree(adap);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	snprintf(adap->input_name, sizeof(adap->input_name),
++		 "RC for %s", name);
++	snprintf(adap->input_phys, sizeof(adap->input_phys),
++		 "%s/input0", name);
++
++	adap->rc->input_name = adap->input_name;
++	adap->rc->input_phys = adap->input_phys;
++	adap->rc->input_id.bustype = BUS_CEC;
++	adap->rc->input_id.vendor = 0;
++	adap->rc->input_id.product = 0;
++	adap->rc->input_id.version = 1;
++	adap->rc->dev.parent = parent;
++	adap->rc->driver_type = RC_DRIVER_SCANCODE;
++	adap->rc->allowed_protocols = RC_BIT_CEC;
++	adap->rc->priv = adap;
++	adap->rc->map_name = RC_MAP_CEC;
++	adap->rc->timeout = MS_TO_NS(100);
++#else
++	adap->capabilities &= ~CEC_CAP_RC;
++#endif
++	return adap;
++}
++EXPORT_SYMBOL_GPL(cec_allocate_adapter);
++
++int cec_register_adapter(struct cec_adapter *adap)
++{
++	int res;
++
++	if (IS_ERR_OR_NULL(adap))
++		return 0;
++
++#if IS_ENABLED(CONFIG_RC_CORE)
++	if (adap->capabilities & CEC_CAP_RC) {
++		res = rc_register_device(adap->rc);
++
++		if (res) {
++			pr_err("cec-%s: failed to prepare input device\n",
++			       adap->name);
++			rc_free_device(adap->rc);
++			adap->rc = NULL;
++			return res;
++		}
++	}
++#endif
++
++	res = cec_devnode_register(&adap->devnode, adap->owner);
++#if IS_ENABLED(CONFIG_RC_CORE)
++	if (res) {
++		/* Note: rc_unregister also calls rc_free */
++		rc_unregister_device(adap->rc);
++		adap->rc = NULL;
++		return res;
++	}
++#endif
++
++	dev_set_drvdata(&adap->devnode.dev, adap);
++	if (!top_cec_dir)
++		return 0;
++
++	adap->cec_dir = debugfs_create_dir(dev_name(&adap->devnode.dev), top_cec_dir);
++	if (IS_ERR_OR_NULL(adap->cec_dir)) {
++		pr_warn("cec-%s: Failed to create debugfs dir\n", adap->name);
++		return 0;
++	}
++	adap->status_file = debugfs_create_devm_seqfile(&adap->devnode.dev,
++		"status", adap->cec_dir, cec_status);
++	if (IS_ERR_OR_NULL(adap->status_file)) {
++		pr_warn("cec-%s: Failed to create status file\n", adap->name);
++		debugfs_remove_recursive(adap->cec_dir);
++		adap->cec_dir = NULL;
++	}
++	return 0;
++}
++EXPORT_SYMBOL_GPL(cec_register_adapter);
++
++void cec_unregister_adapter(struct cec_adapter *adap)
++{
++	if (IS_ERR_OR_NULL(adap))
++		return;
++
++#if IS_ENABLED(CONFIG_RC_CORE)
++	/* Note: rc_unregister also calls rc_free */
++	rc_unregister_device(adap->rc);
++	adap->rc = NULL;
++#endif
++	debugfs_remove_recursive(adap->cec_dir);
++	cec_devnode_unregister(&adap->devnode);
++}
++EXPORT_SYMBOL_GPL(cec_unregister_adapter);
++
++void cec_delete_adapter(struct cec_adapter *adap)
++{
++	if (IS_ERR_OR_NULL(adap))
++		return;
++	mutex_lock(&adap->lock);
++	__cec_s_phys_addr(adap, CEC_PHYS_ADDR_INVALID, false);
++	mutex_unlock(&adap->lock);
++	kthread_stop(adap->kthread);
++	if (adap->kthread_config)
++		kthread_stop(adap->kthread_config);
++#if IS_ENABLED(CONFIG_RC_CORE)
++	if (adap->rc)
++		rc_free_device(adap->rc);
++#endif
++	kfree(adap);
++}
++EXPORT_SYMBOL_GPL(cec_delete_adapter);
++
++/*
++ *	Initialise cec for linux
++ */
++static int __init cec_devnode_init(void)
++{
++	int ret;
++
++	pr_info("Linux cec interface: v0.10\n");
++	ret = alloc_chrdev_region(&cec_dev_t, 0, CEC_NUM_DEVICES,
++				  CEC_NAME);
++	if (ret < 0) {
++		pr_warn("cec: unable to allocate major\n");
++		return ret;
++	}
++
++	top_cec_dir = debugfs_create_dir("cec", NULL);
++	if (IS_ERR_OR_NULL(top_cec_dir)) {
++		pr_warn("cec: Failed to create debugfs cec dir\n");
++		top_cec_dir = NULL;
++	}
++
++	ret = bus_register(&cec_bus_type);
++	if (ret < 0) {
++		unregister_chrdev_region(cec_dev_t, CEC_NUM_DEVICES);
++		pr_warn("cec: bus_register failed\n");
++		return -EIO;
++	}
++
++	return 0;
++}
++
++static void __exit cec_devnode_exit(void)
++{
++	debugfs_remove_recursive(top_cec_dir);
++	bus_unregister(&cec_bus_type);
++	unregister_chrdev_region(cec_dev_t, CEC_NUM_DEVICES);
++}
++
++subsys_initcall(cec_devnode_init);
++module_exit(cec_devnode_exit)
++
++MODULE_AUTHOR("Hans Verkuil <hans.verkuil@cisco.com>");
++MODULE_DESCRIPTION("Device node registration for cec drivers");
++MODULE_LICENSE("GPL");
+diff --git a/include/media/cec.h b/include/media/cec.h
+new file mode 100644
+index 0000000..25d89b1
+--- /dev/null
++++ b/include/media/cec.h
+@@ -0,0 +1,236 @@
++/*
++ * cec - HDMI Consumer Electronics Control support header
++ *
++ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef _MEDIA_CEC_H
++#define _MEDIA_CEC_H
++
++#include <linux/poll.h>
++#include <linux/fs.h>
++#include <linux/debugfs.h>
++#include <linux/device.h>
++#include <linux/cdev.h>
++#include <linux/kthread.h>
++#include <linux/timer.h>
++#include <linux/cec-funcs.h>
++#include <media/rc-core.h>
++#include <media/cec-edid.h>
++
++/**
++ * struct cec_devnode - cec device node
++ * @dev:	cec device
++ * @cdev:	cec character device
++ * @parent:	parent device
++ * @minor:	device node minor number
++ * @registered:	the device was correctly registered
++ * @unregistered: the device was unregistered
++ * @fhs_lock:	lock to control access to the filehandle list
++ * @fhs:	the list of open filehandles (cec_fh)
++ *
++ * This structure represents a cec-related device node.
++ *
++ * The @parent is a physical device. It must be set by core or device drivers
++ * before registering the node.
++ */
++struct cec_devnode {
++	/* sysfs */
++	struct device dev;
++	struct cdev cdev;
++	struct device *parent;
++
++	/* device info */
++	int minor;
++	bool registered;
++	bool unregistered;
++	struct mutex fhs_lock;
++	struct list_head fhs;
++};
++
++struct cec_adapter;
++struct cec_data;
++
++struct cec_data {
++	struct list_head list;
++	struct list_head xfer_list;
++	struct cec_adapter *adap;
++	struct cec_msg msg;
++	struct cec_fh *fh;
++	struct delayed_work work;
++	struct completion c;
++	u8 attempts;
++	bool new_initiator;
++	bool blocking;
++	bool completed;
++};
++
++struct cec_msg_entry {
++	struct list_head	list;
++	struct cec_msg		msg;
++};
++
++#define CEC_NUM_EVENTS		CEC_EVENT_LOST_MSGS
++
++struct cec_event_queue {
++	unsigned int		elems;
++	unsigned int		num_events;
++	struct cec_event	*events;
++};
++
++struct cec_fh {
++	struct list_head	list;
++	struct list_head	xfer_list;
++	struct cec_adapter	*adap;
++	u8			mode_initiator;
++	u8			mode_follower;
++
++	/* Events */
++	wait_queue_head_t	wait;
++	unsigned int		events;
++	struct cec_event_queue	evqueue[CEC_NUM_EVENTS];
++	struct mutex		lock;
++	struct list_head	msgs; /* queued messages */
++	unsigned int		queued_msgs;
++	unsigned int		lost_msgs;
++};
++
++#define CEC_SIGNAL_FREE_TIME_RETRY		3
++#define CEC_SIGNAL_FREE_TIME_NEW_INITIATOR	5
++#define CEC_SIGNAL_FREE_TIME_NEXT_XFER		7
++
++/* The nominal data bit period is 2.4 ms */
++#define CEC_FREE_TIME_TO_USEC(ft)		((ft) * 2400)
++
++struct cec_adap_ops {
++	/* Low-level callbacks */
++	int (*adap_enable)(struct cec_adapter *adap, bool enable);
++	int (*adap_monitor_all_enable)(struct cec_adapter *adap, bool enable);
++	int (*adap_log_addr)(struct cec_adapter *adap, u8 logical_addr);
++	int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
++			     u32 signal_free_time, struct cec_msg *msg);
++	void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
++
++	/* High-level CEC message callback */
++	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
++};
++
++/*
++ * The minimum message length you can receive (excepting poll messages) is 2.
++ * With a transfer rate of at most 36 bytes per second this makes 18 messages
++ * per second worst case.
++ *
++ * We queue at most 10 seconds worth of messages.
++ */
++#define CEC_MAX_MSG_QUEUE_SZ		(18 * 10)
++
++struct cec_adapter {
++	struct module *owner;
++	char name[32];
++	struct cec_devnode devnode;
++	struct mutex lock;
++	struct rc_dev *rc;
++
++	struct list_head transmit_queue;
++	struct list_head wait_queue;
++	struct cec_data *transmitting;
++
++	struct task_struct *kthread_config;
++	struct completion config_completion;
++
++	struct task_struct *kthread;
++	wait_queue_head_t kthread_waitq;
++	wait_queue_head_t waitq;
++
++	const struct cec_adap_ops *ops;
++	void *priv;
++	u32 capabilities;
++	u8 available_log_addrs;
++
++	u16 phys_addr;
++	bool is_configuring;
++	bool is_configured;
++	u32 monitor_all_cnt;
++	u32 follower_cnt;
++	struct cec_fh *cec_follower;
++	struct cec_fh *cec_initiator;
++	bool passthrough;
++	struct cec_log_addrs log_addrs;
++
++	struct dentry *cec_dir;
++	struct dentry *status_file;
++
++	u16 phys_addrs[15];
++	u32 sequence;
++
++	char input_name[32];
++	char input_phys[32];
++	char input_drv[32];
++};
++
++static inline bool cec_has_log_addr(const struct cec_adapter *adap, u8 log_addr)
++{
++	return adap->log_addrs.log_addr_mask & (1 << log_addr);
++}
++
++static inline bool cec_is_sink(const struct cec_adapter *adap)
++{
++	return adap->phys_addr == 0;
++}
++
++#if IS_ENABLED(CONFIG_MEDIA_CEC)
++struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
++		void *priv, const char *name, u32 caps, u8 available_las,
++		struct device *parent);
++int cec_register_adapter(struct cec_adapter *adap);
++void cec_unregister_adapter(struct cec_adapter *adap);
++void cec_delete_adapter(struct cec_adapter *adap);
++
++int cec_s_log_addrs(struct cec_adapter *adap, struct cec_log_addrs *log_addrs,
++		    bool block);
++void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr,
++		     bool block);
++int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
++		     bool block);
++
++/* Called by the adapter */
++void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
++		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
++void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
++
++#else
++
++static inline int cec_register_adapter(struct cec_adapter *adap)
++{
++	return 0;
++}
++
++static inline void cec_unregister_adapter(struct cec_adapter *adap)
++{
++}
++
++static inline void cec_delete_adapter(struct cec_adapter *adap)
++{
++}
++
++static inline void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr,
++				   bool block)
++{
++}
++
++#endif
++
++#endif /* _MEDIA_CEC_H */
+-- 
+2.8.1
 
-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
-/LoCAA==
-
---VbJkn9YxBvnuCH5J--
