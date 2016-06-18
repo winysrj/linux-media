@@ -1,41 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35915 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752574AbcFOHL6 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50389 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751351AbcFRMYk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2016 03:11:58 -0400
-Date: Wed, 15 Jun 2016 09:11:53 +0200
-From: Richard Cochran <richardcochran@gmail.com>
-To: Henrik Austad <henrik@austad.us>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Arnd Bergmann <arnd@linaro.org>
-Subject: Re: [very-RFC 0/8] TSN driver for the kernel
-Message-ID: <20160615071153.GC2919@netboy>
-References: <1465686096-22156-1-git-send-email-henrik@austad.us>
- <20160613114713.GA9544@localhost.localdomain>
- <20160613130059.GA20320@sisyphus.home.austad.us>
- <20160613193208.GA2441@netboy>
- <20160614093000.GB21689@sisyphus.home.austad.us>
- <20160614182615.GA2741@netboy>
- <20160614203810.GC21689@sisyphus.home.austad.us>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160614203810.GC21689@sisyphus.home.austad.us>
+	Sat, 18 Jun 2016 08:24:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv17 10/16] cec/TODO: add TODO file so we know why this is still in staging
+Date: Sat, 18 Jun 2016 14:24:12 +0200
+Message-Id: <1466252658-39819-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1466252658-39819-1-git-send-email-hverkuil@xs4all.nl>
+References: <1466252658-39819-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 14, 2016 at 10:38:10PM +0200, Henrik Austad wrote:
-> Where is your media-application in this?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Um, that *is* a media application.  It plays music on the sound card.
+Explain why cec.c is still in staging.
 
-> You only loop the audio from 
-> network to the dsp, is the media-application attached to the dsp-device?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/staging/media/cec/TODO | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+ create mode 100644 drivers/staging/media/cec/TODO
 
-Sorry, I thought the old OSS API would be familiar and easy to
-understand.  The /dev/dsp is the sound card.
+diff --git a/drivers/staging/media/cec/TODO b/drivers/staging/media/cec/TODO
+new file mode 100644
+index 0000000..e3c384a
+--- /dev/null
++++ b/drivers/staging/media/cec/TODO
+@@ -0,0 +1,23 @@
++The reason why cec.c is still in staging is that I would like
++to have a bit more confidence in the uABI. The kABI is fine,
++no problem there, but I would like to let the public API mature
++a bit.
++
++Once I'm confident that I didn't miss anything then the cec.c source
++can move to drivers/media and the linux/cec.h and linux/cec-funcs.h
++headers can move to uapi/linux and added to uapi/linux/Kbuild to make
++them public.
++
++Hopefully this will happen later in 2016.
++
++Other TODOs:
++
++- Add a flag to inhibit passing CEC RC messages to the rc subsystem.
++  Applications should be able to choose this when calling S_LOG_ADDRS.
++- Convert cec.txt to sphinx.
++- If the reply field of cec_msg is set then when the reply arrives it
++  is only sent to the filehandle that transmitted the original message
++  and not to any followers. Should this behavior change or perhaps
++  controlled through a cec_msg flag?
++
++Hans Verkuil <hans.verkuil@cisco.com>
+-- 
+2.8.1
 
-Thanks,
-Richard
