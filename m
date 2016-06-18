@@ -1,186 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:33493 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932114AbcFNWvT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 18:51:19 -0400
-Received: by mail-pf0-f195.google.com with SMTP id c74so306638pfb.0
-        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:18 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
+Received: from meine-oma.de ([5.135.213.152]:55100 "EHLO meine-oma.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751258AbcFRQTq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Jun 2016 12:19:46 -0400
+Received: from localhost ([127.0.0.1] helo=webmail.meine-oma.de)
+	by meine-oma.de with esmtp (Exim 4.87)
+	(envelope-from <himbeere@meine-oma.de>)
+	id 1bEIb0-0001xS-Ld
+	for linux-media@vger.kernel.org; Sat, 18 Jun 2016 17:55:42 +0200
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="=_b59d1b9c348d4a7f924bc29538e1a128"
+Content-Transfer-Encoding: 7bit
+Date: Sat, 18 Jun 2016 17:55:41 +0200
+From: Thomas Stein <himbeere@meine-oma.de>
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 19/38] ARM: dts: imx6-sabrelite: add video capture ports and connections
-Date: Tue, 14 Jun 2016 15:49:15 -0700
-Message-Id: <1465944574-15745-20-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+Subject: dvb usb stick Hauppauge WinTV-soloHD
+Message-ID: <abfe17ade84725100f405e5b1f6228b8@webmail.meine-oma.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Defines the host video capture device node and an OV5642 camera sensor
-node on i2c2. The host capture device connects to the OV5642 via the
-parallel-bus mux input on the ipu1_csi0_mux.
+--=_b59d1b9c348d4a7f924bc29538e1a128
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
 
-Note there is a pin conflict with GPIO6. This pin functions as a power
-input pin to the OV5642, but ENET requires it to wake-up the ARM cores
-on normal RX and TX packet done events (see 6261c4c8). So by default,
-capture is disabled, enable by uncommenting __OV5642_CAPTURE__ macro.
-Ethernet will still work just not quite as well.
+Hello.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/boot/dts/imx6qdl-sabrelite.dtsi | 95 ++++++++++++++++++++++++++++++++
- 1 file changed, 95 insertions(+)
+I'm trying to get a dvb usb stick Hauppauge WinTV-soloHD running. I saw 
+there is general support already in the kernel.
+https://git.linuxtv.org/media_tree.git/commit/?id=1efc21701d94ed0c5b91467b042bed8b8becd5cc
 
-diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
-index c47fe6c..9709183 100644
---- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
-@@ -39,9 +39,20 @@
-  *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-  *     OTHER DEALINGS IN THE SOFTWARE.
-  */
-+
-+#include <dt-bindings/clock/imx6qdl-clock.h>
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/input/input.h>
- 
-+/*
-+ * Uncomment the following macro to enable OV5642 video capture
-+ * support. There is a pin conflict for GPIO6 between ENET wake-up
-+ * interrupt function and power-down pin function for the OV5642.
-+ * ENET will still work when enabling OV5642 capture, just not
-+ * quite as well.
-+ */
-+/* #define __OV5642_CAPTURE__ */
-+
- / {
- 	chosen {
- 		stdout-path = &uart2;
-@@ -218,8 +229,37 @@
- 			};
- 		};
- 	};
-+
-+#ifdef __OV5642_CAPTURE__
-+	ipucap0: ipucap@0 {
-+		compatible = "fsl,imx-video-capture";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_ipu1_csi0>;
-+		ports = <&ipu1_csi0>;
-+		status = "okay";
-+	};
-+#endif
-+};
-+
-+#ifdef __OV5642_CAPTURE__
-+&ipu1_csi0_from_ipu1_csi0_mux {
-+	bus-width = <8>;
-+	data-shift = <12>; /* Lines 19:12 used */
-+	hsync-active = <1>;
-+	vync-active = <1>;
- };
- 
-+&ipu1_csi0_mux_from_parallel_sensor {
-+	remote-endpoint = <&ov5642_to_ipu1_csi0_mux>;
-+};
-+
-+&ipu1_csi0_mux {
-+	status = "okay";
-+};
-+#endif
-+	
- &audmux {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_audmux>;
-@@ -271,8 +311,11 @@
- 	txd1-skew-ps = <0>;
- 	txd2-skew-ps = <0>;
- 	txd3-skew-ps = <0>;
-+#ifndef __OV5642_CAPTURE__
- 	interrupts-extended = <&gpio1 6 IRQ_TYPE_LEVEL_HIGH>,
- 			      <&intc 0 119 IRQ_TYPE_LEVEL_HIGH>;
-+
-+#endif
- 	status = "okay";
- };
- 
-@@ -301,6 +344,30 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_i2c2>;
- 	status = "okay";
-+
-+#ifdef __OV5642_CAPTURE__
-+	camera: ov5642@3c {
-+		compatible = "ovti,ov5642";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_ov5642>;
-+		clocks = <&clks IMX6QDL_CLK_CKO2>;
-+		clock-names = "xclk";
-+		reg = <0x3c>;
-+		xclk = <24000000>;
-+		reset-gpios = <&gpio1 8 0>;
-+		pwdn-gpios = <&gpio1 6 0>;
-+		gp-gpios = <&gpio1 16 0>;
-+
-+		port {
-+			ov5642_to_ipu1_csi0_mux: endpoint {
-+				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+				bus-width = <8>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+			};
-+		};
-+	};
-+#endif
- };
- 
- &i2c3 {
-@@ -373,7 +440,9 @@
- 				MX6QDL_PAD_RGMII_RX_CTL__RGMII_RX_CTL	0x1b0b0
- 				/* Phy reset */
- 				MX6QDL_PAD_EIM_D23__GPIO3_IO23		0x000b0
-+#ifndef __OV5642_CAPTURE__
- 				MX6QDL_PAD_GPIO_6__ENET_IRQ		0x000b1
-+#endif
- 			>;
- 		};
- 
-@@ -448,6 +517,32 @@
- 			>;
- 		};
- 
-+		pinctrl_ipu1_csi0: ipu1grp-csi0 {
-+			fsl,pins = <
-+				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x80000000
-+				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x80000000
-+				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x80000000
-+				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x80000000
-+				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x80000000
-+				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x80000000
-+				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x80000000
-+				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x80000000
-+				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x80000000
-+				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC      0x80000000
-+				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC     0x80000000
-+				MX6QDL_PAD_CSI0_DATA_EN__IPU1_CSI0_DATA_EN 0x80000000
-+			>;
-+		};
-+
-+		pinctrl_ov5642: ov5642grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x80000000
-+				MX6QDL_PAD_GPIO_6__GPIO1_IO06   0x80000000
-+				MX6QDL_PAD_GPIO_8__GPIO1_IO08   0x80000000
-+				MX6QDL_PAD_GPIO_3__CCM_CLKO2    0x80000000
-+			>;
-+		};
-+
- 		pinctrl_pwm1: pwm1grp {
- 			fsl,pins = <
- 				MX6QDL_PAD_SD1_DAT3__PWM1_OUT 0x1b0b1
--- 
-1.9.1
+I'm able to use this device for dvb-t but not dvb-t2. I'm living in 
+berlin so it should work. w_scan is scanning dvb-t2 and seems
+to find channels:
 
+Scanning DVB-T2...
+Scanning 7MHz frequencies...
+177500: (time: 02:17.828)
+184500: (time: 02:19.828)
+191500: (time: 02:21.876)
+198500: (time: 02:23.924)
+205500: (time: 02:25.971)
+212500: (time: 02:27.971)
+219500: (time: 02:30.021)
+226500: (time: 02:32.071)
+Scanning 8MHz frequencies...
+474000: (time: 02:34.120)
+482000: (time: 02:36.121)
+490000: (time: 02:38.169)
+498000: (time: 02:40.219)
+506000: skipped (already known transponder)
+514000: (time: 02:42.268)
+522000: skipped (already known transponder)
+530000: (time: 02:44.318)
+538000: (time: 02:46.368)
+546000: (time: 02:48.417)
+554000: (time: 02:50.417)
+562000: (time: 02:52.467)
+570000: skipped (already known transponder)
+578000: (time: 02:54.467)
+586000: (time: 02:56.469)
+594000: (time: 02:58.469)
+602000: (time: 03:00.518)
+610000: (time: 03:02.567)
+618000: skipped (already known transponder)
+626000: (time: 03:04.617)
+634000: (time: 03:06.617)
+642000: (time: 03:08.667)         signal ok:    QAM_AUTO f = 642000 kHz 
+I999B8C999D999T999G999Y999P0 (0:0:0)
+         QAM_AUTO f = 642000 kHz I999B8C999D999T999G999Y999P0 (0:0:0) : 
+updating transport_stream_id: -> (0:0:16481)
+         QAM_AUTO f = 642000 kHz I999B8C999D999T999G999Y999P0 (0:0:16481) 
+: updating network_id -> (0:12352:16481)
+         QAM_AUTO f = 642000 kHz I999B8C999D999T999G999Y999P0 
+(0:12352:16481) : updating original_network_id -> (8468:12352:16481)
+         updating transponder:
+            (QAM_AUTO f = 642000 kHz I999B8C999D999T999G999Y999P0 
+(8468:12352:16481)) 0x0000
+         to (QAM_AUTO f = 650000 kHz I999B8C999D999T32G16Y999P0 
+(8468:12352:16481)) 0x4004
+         new transponder: (QAM_AUTO f = 642000 kHz I999B8C0D0T32G16Y0P1 
+(8468:12352:16497)) 0x4004
+650000: skipped (already known transponder)
+658000: skipped (already known transponder)
+666000: (time: 03:10.382)
+674000: (time: 03:12.429)
+682000: skipped (already known transponder)
+690000: (time: 03:14.476)
+698000: (time: 03:16.528)
+706000: skipped (already known transponder)
+714000: (time: 03:18.575)
+722000: (time: 03:20.623)
+730000: (time: 03:22.669)
+738000: (time: 03:24.716)
+746000: (time: 03:26.764)
+754000: skipped (already known transponder)
+762000: (time: 03:28.811)
+770000: (time: 03:30.860)
+778000: skipped (already known transponder)
+786000: (time: 03:32.908)
+794000: (time: 03:34.953)
+802000: (time: 03:36.999)
+810000: (time: 03:39.045)
+818000: (time: 03:41.045)
+826000: (time: 03:43.091)
+834000: (time: 03:45.137)
+842000: (time: 03:47.185)
+850000: (time: 03:49.231)
+858000: (time: 03:51.277)
+
+So the question is, what is going wrong? When i start vlc with dvb-t2 
+channels file for berlin i get:
+
+[00007f7e0c01a0e8] ts demux error: cannot peek
+
+Any hints appreciated.
+
+cheers
+t.
+--=_b59d1b9c348d4a7f924bc29538e1a128
+Content-Transfer-Encoding: 7bit
+Content-Type: application/pgp-keys;
+ name=0xF5437AA0.asc
+Content-Disposition: attachment;
+ filename=0xF5437AA0.asc;
+ size=5281
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v2
+
+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
+=2FIa
+-----END PGP PUBLIC KEY BLOCK-----
+
+--=_b59d1b9c348d4a7f924bc29538e1a128--
