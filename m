@@ -1,528 +1,319 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54671 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752123AbcFTQVo (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:54108 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751416AbcFRPDC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 12:21:44 -0400
-Subject: Re: [PATCH v4 9/9] Input: synaptics-rmi4 - add support for F54
- diagnostics
-To: Nick Dyer <nick.dyer@itdev.co.uk>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>
-References: <1466172988-3698-1-git-send-email-nick.dyer@itdev.co.uk>
- <1466172988-3698-10-git-send-email-nick.dyer@itdev.co.uk>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
+	Sat, 18 Jun 2016 11:03:02 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <576817C3.1090806@xs4all.nl>
-Date: Mon, 20 Jun 2016 18:20:19 +0200
-MIME-Version: 1.0
-In-Reply-To: <1466172988-3698-10-git-send-email-nick.dyer@itdev.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv18 05/15] cec-edid: add module for EDID CEC helper functions
+Date: Sat, 18 Jun 2016 17:02:38 +0200
+Message-Id: <1466262168-12805-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
+References: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/17/2016 04:16 PM, Nick Dyer wrote:
-> Function 54 implements access to various RMI4 diagnostic features.
-> 
-> This patch adds support for retrieving this data. It registers a V4L2
-> device to output the data to user space.
-> 
-> Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
-> ---
->  drivers/input/rmi4/Kconfig      |  11 +
->  drivers/input/rmi4/Makefile     |   1 +
->  drivers/input/rmi4/rmi_bus.c    |   3 +
->  drivers/input/rmi4/rmi_driver.h |   1 +
->  drivers/input/rmi4/rmi_f54.c    | 743 ++++++++++++++++++++++++++++++++++++++++
->  5 files changed, 759 insertions(+)
->  create mode 100644 drivers/input/rmi4/rmi_f54.c
-> 
-> diff --git a/drivers/input/rmi4/Kconfig b/drivers/input/rmi4/Kconfig
-> index f73df24..f3418b6 100644
-> --- a/drivers/input/rmi4/Kconfig
-> +++ b/drivers/input/rmi4/Kconfig
-> @@ -61,3 +61,14 @@ config RMI4_F30
->  
->  	  Function 30 provides GPIO and LED support for RMI4 devices. This
->  	  includes support for buttons on TouchPads and ClickPads.
-> +
-> +config RMI4_F54
-> +	bool "RMI4 Function 54 (Analog diagnostics)"
-> +	depends on RMI4_CORE
-> +	depends on VIDEO_V4L2
-> +	select VIDEOBUF2_VMALLOC
-> +	help
-> +	  Say Y here if you want to add support for RMI4 function 54
-> +
-> +	  Function 54 provides access to various diagnostic features in certain
-> +	  RMI4 touch sensors.
-> diff --git a/drivers/input/rmi4/Makefile b/drivers/input/rmi4/Makefile
-> index 95c00a7..0bafc85 100644
-> --- a/drivers/input/rmi4/Makefile
-> +++ b/drivers/input/rmi4/Makefile
-> @@ -7,6 +7,7 @@ rmi_core-$(CONFIG_RMI4_2D_SENSOR) += rmi_2d_sensor.o
->  rmi_core-$(CONFIG_RMI4_F11) += rmi_f11.o
->  rmi_core-$(CONFIG_RMI4_F12) += rmi_f12.o
->  rmi_core-$(CONFIG_RMI4_F30) += rmi_f30.o
-> +rmi_core-$(CONFIG_RMI4_F54) += rmi_f54.o
->  
->  # Transports
->  obj-$(CONFIG_RMI4_I2C) += rmi_i2c.o
-> diff --git a/drivers/input/rmi4/rmi_bus.c b/drivers/input/rmi4/rmi_bus.c
-> index b368b05..3aedc65 100644
-> --- a/drivers/input/rmi4/rmi_bus.c
-> +++ b/drivers/input/rmi4/rmi_bus.c
-> @@ -315,6 +315,9 @@ static struct rmi_function_handler *fn_handlers[] = {
->  #ifdef CONFIG_RMI4_F30
->  	&rmi_f30_handler,
->  #endif
-> +#ifdef CONFIG_RMI4_F54
-> +	&rmi_f54_handler,
-> +#endif
->  };
->  
->  static void __rmi_unregister_function_handlers(int start_idx)
-> diff --git a/drivers/input/rmi4/rmi_driver.h b/drivers/input/rmi4/rmi_driver.h
-> index 6e140fa..8dfbebe 100644
-> --- a/drivers/input/rmi4/rmi_driver.h
-> +++ b/drivers/input/rmi4/rmi_driver.h
-> @@ -102,4 +102,5 @@ extern struct rmi_function_handler rmi_f01_handler;
->  extern struct rmi_function_handler rmi_f11_handler;
->  extern struct rmi_function_handler rmi_f12_handler;
->  extern struct rmi_function_handler rmi_f30_handler;
-> +extern struct rmi_function_handler rmi_f54_handler;
->  #endif
-> diff --git a/drivers/input/rmi4/rmi_f54.c b/drivers/input/rmi4/rmi_f54.c
-> new file mode 100644
-> index 0000000..bd06788
-> --- /dev/null
-> +++ b/drivers/input/rmi4/rmi_f54.c
-> @@ -0,0 +1,743 @@
-> +/*
-> + * Copyright (c) 2012-2015 Synaptics Incorporated
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License version 2 as published by
-> + * the Free Software Foundation.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/rmi.h>
-> +#include <linux/input.h>
-> +#include <linux/slab.h>
-> +#include <linux/delay.h>
-> +#include <linux/i2c.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/videobuf2-v4l2.h>
-> +#include <media/videobuf2-vmalloc.h>
-> +#include "rmi_driver.h"
-> +
-> +#define F54_NAME		"rmi4_f54"
-> +
-> +/* F54 data offsets */
-> +#define F54_REPORT_DATA_OFFSET  3
-> +#define F54_FIFO_OFFSET         1
-> +#define F54_NUM_TX_OFFSET       1
-> +#define F54_NUM_RX_OFFSET       0
-> +
-> +/* F54 commands */
-> +#define F54_GET_REPORT          1
-> +#define F54_FORCE_CAL           2
-> +
-> +/* Fixed sizes of reports */
-> +#define F54_QUERY_LEN			27
-> +#define F54_FULL_RAW_CAP_MIN_MAX_SIZE   4
-> +#define F54_HIGH_RESISTANCE_SIZE(rx, tx) \
-> +					(2 * ((rx) * (tx) + (rx) + (tx) + 3))
-> +#define F54_MAX_REPORT_SIZE(rx, tx)	F54_HIGH_RESISTANCE_SIZE((rx), (tx))
-> +
-> +/* F54 capabilities */
-> +#define F54_CAP_BASELINE	(1 << 2)
-> +#define F54_CAP_IMAGE8		(1 << 3)
-> +#define F54_CAP_IMAGE16		(1 << 6)
-> +
-> +enum f54_report_type {
-> +	F54_REPORT_NONE = 0,
-> +	F54_8BIT_IMAGE = 1,
-> +	F54_16BIT_IMAGE = 2,
-> +	F54_RAW_16BIT_IMAGE = 3,
-> +	F54_HIGH_RESISTANCE = 4,
-> +	F54_TX_TO_TX_SHORT = 5,
-> +	F54_RX_TO_RX1 = 7,
-> +	F54_TRUE_BASELINE = 9,
-> +	F54_FULL_RAW_CAP_MIN_MAX = 13,
-> +	F54_RX_OPENS1 = 14,
-> +	F54_TX_OPEN = 15,
-> +	F54_TX_TO_GROUND = 16,
-> +	F54_RX_TO_RX2 = 17,
-> +	F54_RX_OPENS2 = 18,
-> +	F54_FULL_RAW_CAP = 19,
-> +	F54_FULL_RAW_CAP_RX_COUPLING_COMP = 20,
-> +	F54_MAX_REPORT_TYPE,
-> +};
-> +
-> +struct f54_data {
-> +	struct rmi_function *fn;
-> +
-> +	u8 qry[F54_QUERY_LEN];
-> +	u8 num_rx_electrodes;
-> +	u8 num_tx_electrodes;
-> +	u8 capabilities;
-> +	u16 clock_rate;
-> +	u8 family;
-> +
-> +	enum f54_report_type report_type;
-> +	u8 *report_data;
-> +	int report_size;
-> +
-> +	bool is_busy;
-> +	struct mutex status_mutex;
-> +	struct mutex data_mutex;
-> +
-> +	struct workqueue_struct *workqueue;
-> +	struct delayed_work work;
-> +	unsigned long timeout;
-> +
-> +	struct completion cmd_done;
-> +
-> +	/* V4L2 support */
-> +	struct v4l2_device v4l2;
-> +	struct v4l2_pix_format format;
-> +	struct video_device vdev;
-> +	struct vb2_queue queue;
-> +	struct mutex lock;
-> +	int input;
-> +	enum f54_report_type inputs[F54_MAX_REPORT_TYPE];
-> +};
-> +
-> +/*
-> + * Basic checks on report_type to ensure we write a valid type
-> + * to the sensor.
-> + */
-> +static bool is_f54_report_type_valid(struct f54_data *f54,
-> +				     enum f54_report_type reptype)
-> +{
-> +	switch (reptype) {
-> +	case F54_8BIT_IMAGE:
-> +		return f54->capabilities & F54_CAP_IMAGE8;
-> +	case F54_16BIT_IMAGE:
-> +	case F54_RAW_16BIT_IMAGE:
-> +		return f54->capabilities & F54_CAP_IMAGE16;
-> +	case F54_TRUE_BASELINE:
-> +		return f54->capabilities & F54_CAP_IMAGE16;
-> +	case F54_HIGH_RESISTANCE:
-> +	case F54_TX_TO_TX_SHORT:
-> +	case F54_RX_TO_RX1:
-> +	case F54_FULL_RAW_CAP_MIN_MAX:
-> +	case F54_RX_OPENS1:
-> +	case F54_TX_OPEN:
-> +	case F54_TX_TO_GROUND:
-> +	case F54_RX_TO_RX2:
-> +	case F54_RX_OPENS2:
-> +	case F54_FULL_RAW_CAP:
-> +	case F54_FULL_RAW_CAP_RX_COUPLING_COMP:
-> +		return true;
-> +	default:
-> +		return false;
-> +	}
-> +}
-> +
-> +static enum f54_report_type rmi_f54_get_reptype(struct f54_data *f54,
-> +						unsigned int i)
-> +{
-> +	if (i > F54_MAX_REPORT_TYPE)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This should be >=
+The cec-edid module contains helper functions to find and manipulate
+the CEC physical address inside an EDID. Even if the CEC support itself
+is disabled, drivers will still need these functions. Which is the
+reason this is module is separate from the upcoming CEC framework.
 
-> +		return F54_REPORT_NONE;
-> +
-> +	return f54->inputs[i];
-> +}
-> +
-> +static void rmi_f54_create_input_map(struct f54_data *f54)
-> +{
-> +	int i = 0;
-> +	enum f54_report_type reptype;
-> +
-> +	for (reptype = 1; reptype < F54_MAX_REPORT_TYPE; reptype++) {
-> +		if (!is_f54_report_type_valid(f54, reptype))
-> +			continue;
-> +
-> +		f54->inputs[i++] = reptype;
-> +	}
-> +
-> +	/* Remaining values are zero via kzalloc */
-> +}
-> +
-> +static int rmi_f54_request_report(struct rmi_function *fn, u8 report_type)
-> +{
-> +	struct f54_data *f54 = dev_get_drvdata(&fn->dev);
-> +	struct rmi_device *rmi_dev = fn->rmi_dev;
-> +	int error;
-> +
-> +	/* Write Report Type into F54_AD_Data0 */
-> +	if (f54->report_type != report_type) {
-> +		error = rmi_write(rmi_dev, f54->fn->fd.data_base_addr,
-> +				  report_type);
-> +		if (error)
-> +			return error;
-> +		f54->report_type = report_type;
-> +	}
-> +
-> +	/*
-> +	 * Small delay after disabling interrupts to avoid race condition
-> +	 * in firmare. This value is a bit higher than absolutely necessary.
-> +	 * Should be removed once issue is resolved in firmware.
-> +	 */
-> +	usleep_range(2000, 3000);
-> +
-> +	mutex_lock(&f54->data_mutex);
-> +
-> +	error = rmi_write(rmi_dev, fn->fd.command_base_addr, F54_GET_REPORT);
-> +	if (error < 0)
-> +		return error;
-> +
-> +	init_completion(&f54->cmd_done);
-> +
-> +	f54->is_busy = 1;
-> +	f54->timeout = jiffies + msecs_to_jiffies(100);
-> +
-> +	queue_delayed_work(f54->workqueue, &f54->work, 0);
-> +
-> +	mutex_unlock(&f54->data_mutex);
-> +
-> +	return 0;
-> +}
-> +
-> +static int rmi_f54_get_report_size(struct f54_data *f54)
-> +{
-> +	u8 rx = f54->num_rx_electrodes ? : f54->num_rx_electrodes;
-> +	u8 tx = f54->num_tx_electrodes ? : f54->num_tx_electrodes;
-> +	int size;
-> +
-> +	switch (rmi_f54_get_reptype(f54, f54->input)) {
-> +	case F54_8BIT_IMAGE:
-> +		size = rx * tx;
-> +		break;
-> +	case F54_16BIT_IMAGE:
-> +	case F54_RAW_16BIT_IMAGE:
-> +	case F54_TRUE_BASELINE:
-> +	case F54_FULL_RAW_CAP:
-> +	case F54_FULL_RAW_CAP_RX_COUPLING_COMP:
-> +		size = 2 * rx * tx;
-> +		break;
-> +	case F54_HIGH_RESISTANCE:
-> +		size = F54_HIGH_RESISTANCE_SIZE(rx, tx);
-> +		break;
-> +	case F54_FULL_RAW_CAP_MIN_MAX:
-> +		size = F54_FULL_RAW_CAP_MIN_MAX_SIZE;
-> +		break;
-> +	case F54_TX_TO_TX_SHORT:
-> +	case F54_TX_OPEN:
-> +	case F54_TX_TO_GROUND:
-> +		size =  (tx + 7) / 8;
-> +		break;
-> +	case F54_RX_TO_RX1:
-> +	case F54_RX_OPENS1:
-> +		if (rx < tx)
-> +			size = 2 * rx * rx;
-> +		else
-> +			size = 2 * rx * tx;
-> +		break;
-> +	case F54_RX_TO_RX2:
-> +	case F54_RX_OPENS2:
-> +		if (rx <= tx)
-> +			size = 0;
-> +		else
-> +			size = 2 * rx * (rx - tx);
-> +		break;
-> +	default:
-> +		size = 0;
-> +	}
-> +
-> +	return size;
-> +}
-> +
-> +static const struct v4l2_file_operations rmi_f54_video_fops = {
-> +	.owner = THIS_MODULE,
-> +	.open = v4l2_fh_open,
-> +	.release = vb2_fop_release,
-> +	.unlocked_ioctl = video_ioctl2,
-> +	.read = vb2_fop_read,
-> +	.mmap = vb2_fop_mmap,
-> +	.poll = vb2_fop_poll,
-> +};
-> +
-> +static int rmi_f54_queue_setup(struct vb2_queue *q,
-> +			       unsigned int *nbuffers, unsigned int *nplanes,
-> +			       unsigned int sizes[], void *alloc_ctxs[])
-> +{
-> +	struct f54_data *f54 = q->drv_priv;
-> +
-> +	if (*nplanes)
-> +		return sizes[0] < rmi_f54_get_report_size(f54) ? -EINVAL : 0;
-> +
-> +	*nplanes = 1;
-> +	sizes[0] = rmi_f54_get_report_size(f54);
-> +
-> +	return 0;
-> +}
-> +
-> +static void rmi_f54_buffer_queue(struct vb2_buffer *vb)
-> +{
-> +	struct f54_data *f54 = vb2_get_drv_priv(vb->vb2_queue);
-> +	u16 *ptr;
-> +	enum vb2_buffer_state state;
-> +	enum f54_report_type reptype;
-> +	int ret;
-> +
-> +	mutex_lock(&f54->status_mutex);
-> +
-> +	reptype = rmi_f54_get_reptype(f54, f54->input);
-> +	if (reptype == F54_REPORT_NONE) {
-> +		state = VB2_BUF_STATE_ERROR;
-> +		goto done;
-> +	}
-> +
-> +	if (f54->is_busy) {
-> +		state = VB2_BUF_STATE_ERROR;
-> +		goto done;
-> +	}
-> +
-> +	ret = rmi_f54_request_report(f54->fn, reptype);
-> +	if (ret) {
-> +		dev_err(&f54->fn->dev, "Error requesting F54 report\n");
-> +		state = VB2_BUF_STATE_ERROR;
-> +		goto done;
-> +	}
-> +
-> +	/* get frame data */
-> +	mutex_lock(&f54->data_mutex);
-> +
-> +	while (f54->is_busy) {
-> +		mutex_unlock(&f54->data_mutex);
-> +		if (!wait_for_completion_timeout(&f54->cmd_done,
-> +						 msecs_to_jiffies(1000))) {
-> +			dev_err(&f54->fn->dev, "Timed out\n");
-> +			state = VB2_BUF_STATE_ERROR;
-> +			goto done;
-> +		}
-> +		mutex_lock(&f54->data_mutex);
-> +	}
-> +
-> +	ptr = vb2_plane_vaddr(vb, 0);
-> +	if (!ptr) {
-> +		dev_err(&f54->fn->dev, "Error acquiring frame ptr\n");
-> +		state = VB2_BUF_STATE_ERROR;
-> +		goto data_done;
-> +	}
-> +
-> +	memcpy(ptr, f54->report_data, f54->report_size);
-> +	vb2_set_plane_payload(vb, 0, rmi_f54_get_report_size(f54));
-> +	state = VB2_BUF_STATE_DONE;
-> +
-> +data_done:
-> +	mutex_unlock(&f54->data_mutex);
-> +done:
-> +	vb2_buffer_done(vb, state);
-> +	mutex_unlock(&f54->status_mutex);
-> +}
-> +
-> +/* V4L2 structures */
-> +static const struct vb2_ops rmi_f54_queue_ops = {
-> +	.queue_setup            = rmi_f54_queue_setup,
-> +	.buf_queue              = rmi_f54_buffer_queue,
-> +	.wait_prepare           = vb2_ops_wait_prepare,
-> +	.wait_finish            = vb2_ops_wait_finish,
-> +};
-> +
-> +static const struct vb2_queue rmi_f54_queue = {
-> +	.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-> +	.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ,
-> +	.buf_struct_size = sizeof(struct vb2_buffer),
-> +	.ops = &rmi_f54_queue_ops,
-> +	.mem_ops = &vb2_vmalloc_memops,
-> +	.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC,
-> +	.min_buffers_needed = 1,
-> +};
-> +
-> +static int rmi_f54_vidioc_querycap(struct file *file, void *priv,
-> +				   struct v4l2_capability *cap)
-> +{
-> +	struct f54_data *f54 = video_drvdata(file);
-> +
-> +	strlcpy(cap->driver, F54_NAME, sizeof(cap->driver));
-> +	strlcpy(cap->card, SYNAPTICS_INPUT_DEVICE_NAME, sizeof(cap->card));
-> +	strlcpy(cap->bus_info, dev_name(&f54->fn->dev), sizeof(cap->bus_info));
-> +
-> +	return 0;
-> +}
-> +
-> +static const char *rmi_f54_reptype_str(enum f54_report_type reptype)
-> +{
-> +	switch (reptype) {
-> +	default:
-> +	case F54_REPORT_NONE: return "No report";
-> +	case F54_8BIT_IMAGE: return "8 bit image";
-> +	case F54_16BIT_IMAGE: return "16 bit image";
-> +	case F54_RAW_16BIT_IMAGE: return "Raw 16 bit image";
-> +	case F54_HIGH_RESISTANCE: return "High resistance";
-> +	case F54_TX_TO_TX_SHORT: return "TX to TX short";
-> +	case F54_RX_TO_RX1: return "RX to RX1";
-> +	case F54_TRUE_BASELINE: return "True baseline";
-> +	case F54_FULL_RAW_CAP_MIN_MAX: return "Full raw cap min max";
-> +	case F54_RX_OPENS1: return "RX open S1";
-> +	case F54_TX_OPEN: return "TX open";
-> +	case F54_TX_TO_GROUND: return "TX to ground";
-> +	case F54_RX_TO_RX2: return "RX to RX2";
-> +	case F54_RX_OPENS2: return "RX Open S2";
-> +	case F54_FULL_RAW_CAP: return "Full raw cap";
-> +	case F54_FULL_RAW_CAP_RX_COUPLING_COMP:
-> +		return "Full raw cap RX coupling comp";
-> +	case F54_MAX_REPORT_TYPE: return "Max report type";
-> +	}
-> +}
-> +
-> +static int rmi_f54_vidioc_enum_input(struct file *file, void *priv,
-> +				     struct v4l2_input *i)
-> +{
-> +	struct f54_data *f54 = video_drvdata(file);
-> +	enum f54_report_type reptype;
-> +
-> +	reptype = rmi_f54_get_reptype(f54, i->index);
-> +	if (reptype == F54_REPORT_NONE)
-> +		return -EINVAL;
-> +
-> +	i->type = V4L2_INPUT_TYPE_TOUCH_SENSOR;
-> +	strlcpy(i->name, rmi_f54_reptype_str(reptype), sizeof(i->name));
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/Kconfig    |   3 +
+ drivers/media/Makefile   |   2 +
+ drivers/media/cec-edid.c | 139 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/media/cec-edid.h | 104 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 248 insertions(+)
+ create mode 100644 drivers/media/cec-edid.c
+ create mode 100644 include/media/cec-edid.h
 
-Hmm, this doesn't feel right, but I don't have enough knowledge to decide if
-using inputs for this is the right approach.
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index a8518fb..052dcf7 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -80,6 +80,9 @@ config MEDIA_RC_SUPPORT
+ 
+ 	  Say Y when you have a TV or an IR device.
+ 
++config MEDIA_CEC_EDID
++	tristate
++
+ #
+ # Media controller
+ #	Selectable only for webcam/grabbers, as other drivers don't use it
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index e608bbc..b56f013 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -2,6 +2,8 @@
+ # Makefile for the kernel multimedia device drivers.
+ #
+ 
++obj-$(CONFIG_MEDIA_CEC_EDID) += cec-edid.o
++
+ media-objs	:= media-device.o media-devnode.o media-entity.o
+ 
+ #
+diff --git a/drivers/media/cec-edid.c b/drivers/media/cec-edid.c
+new file mode 100644
+index 0000000..ce3b915
+--- /dev/null
++++ b/drivers/media/cec-edid.c
+@@ -0,0 +1,139 @@
++/*
++ * cec-edid - HDMI Consumer Electronics Control EDID & CEC helper functions
++ *
++ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/types.h>
++#include <media/cec-edid.h>
++
++static unsigned int cec_get_edid_spa_location(const u8 *edid, unsigned int size)
++{
++	u8 d;
++
++	if (size < 256)
++		return 0;
++
++	if (edid[0x7e] != 1 || edid[0x80] != 0x02 || edid[0x81] != 0x03)
++		return 0;
++
++	/* search Vendor Specific Data Block (tag 3) */
++	d = edid[0x82] & 0x7f;
++	if (d > 4) {
++		int i = 0x84;
++		int end = 0x80 + d;
++
++		do {
++			u8 tag = edid[i] >> 5;
++			u8 len = edid[i] & 0x1f;
++
++			if (tag == 3 && len >= 5)
++				return i + 4;
++			i += len + 1;
++		} while (i < end);
++	}
++	return 0;
++}
++
++u16 cec_get_edid_phys_addr(const u8 *edid, unsigned int size,
++			   unsigned int *offset)
++{
++	unsigned int loc = cec_get_edid_spa_location(edid, size);
++
++	if (offset)
++		*offset = loc;
++	if (loc == 0)
++		return CEC_PHYS_ADDR_INVALID;
++	return (edid[loc] << 8) | edid[loc + 1];
++}
++EXPORT_SYMBOL_GPL(cec_get_edid_phys_addr);
++
++void cec_set_edid_phys_addr(u8 *edid, unsigned int size, u16 phys_addr)
++{
++	unsigned int loc = cec_get_edid_spa_location(edid, size);
++	u8 sum = 0;
++	unsigned int i;
++
++	if (loc == 0)
++		return;
++	edid[loc] = phys_addr >> 8;
++	edid[loc + 1] = phys_addr & 0xff;
++	loc &= ~0x7f;
++
++	/* update the checksum */
++	for (i = loc; i < loc + 127; i++)
++		sum += edid[i];
++	edid[i] = 256 - sum;
++}
++EXPORT_SYMBOL_GPL(cec_set_edid_phys_addr);
++
++u16 cec_phys_addr_for_input(u16 phys_addr, u8 input)
++{
++	/* Check if input is sane */
++	if (WARN_ON(input == 0 || input > 0xf))
++		return CEC_PHYS_ADDR_INVALID;
++
++	if (phys_addr == 0)
++		return input << 12;
++
++	if ((phys_addr & 0x0fff) == 0)
++		return phys_addr | (input << 8);
++
++	if ((phys_addr & 0x00ff) == 0)
++		return phys_addr | (input << 4);
++
++	if ((phys_addr & 0x000f) == 0)
++		return phys_addr | input;
++
++	/*
++	 * All nibbles are used so no valid physical addresses can be assigned
++	 * to the input.
++	 */
++	return CEC_PHYS_ADDR_INVALID;
++}
++EXPORT_SYMBOL_GPL(cec_phys_addr_for_input);
++
++int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port)
++{
++	int i;
++
++	if (parent)
++		*parent = phys_addr;
++	if (port)
++		*port = 0;
++	if (phys_addr == CEC_PHYS_ADDR_INVALID)
++		return 0;
++	for (i = 0; i < 16; i += 4)
++		if (phys_addr & (0xf << i))
++			break;
++	if (i == 16)
++		return 0;
++	if (parent)
++		*parent = phys_addr & (0xfff0 << i);
++	if (port)
++		*port = (phys_addr >> i) & 0xf;
++	for (i += 4; i < 16; i += 4)
++		if ((phys_addr & (0xf << i)) == 0)
++			return -EINVAL;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(cec_phys_addr_validate);
++
++MODULE_AUTHOR("Hans Verkuil <hans.verkuil@cisco.com>");
++MODULE_DESCRIPTION("CEC EDID helper functions");
++MODULE_LICENSE("GPL");
+diff --git a/include/media/cec-edid.h b/include/media/cec-edid.h
+new file mode 100644
+index 0000000..bdf731e
+--- /dev/null
++++ b/include/media/cec-edid.h
+@@ -0,0 +1,104 @@
++/*
++ * cec-edid - HDMI Consumer Electronics Control & EDID helpers
++ *
++ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef _MEDIA_CEC_EDID_H
++#define _MEDIA_CEC_EDID_H
++
++#include <linux/types.h>
++
++#define CEC_PHYS_ADDR_INVALID		0xffff
++#define cec_phys_addr_exp(pa) \
++	((pa) >> 12), ((pa) >> 8) & 0xf, ((pa) >> 4) & 0xf, (pa) & 0xf
++
++/**
++ * cec_get_edid_phys_addr() - find and return the physical address
++ *
++ * @edid:	pointer to the EDID data
++ * @size:	size in bytes of the EDID data
++ * @offset:	If not %NULL then the location of the physical address
++ *		bytes in the EDID will be returned here. This is set to 0
++ *		if there is no physical address found.
++ *
++ * Return: the physical address or CEC_PHYS_ADDR_INVALID if there is none.
++ */
++u16 cec_get_edid_phys_addr(const u8 *edid, unsigned int size,
++			   unsigned int *offset);
++
++/**
++ * cec_set_edid_phys_addr() - find and set the physical address
++ *
++ * @edid:	pointer to the EDID data
++ * @size:	size in bytes of the EDID data
++ * @phys_addr:	the new physical address
++ *
++ * This function finds the location of the physical address in the EDID
++ * and fills in the given physical address and updates the checksum
++ * at the end of the EDID block. It does nothing if the EDID doesn't
++ * contain a physical address.
++ */
++void cec_set_edid_phys_addr(u8 *edid, unsigned int size, u16 phys_addr);
++
++/**
++ * cec_phys_addr_for_input() - calculate the PA for an input
++ *
++ * @phys_addr:	the physical address of the parent
++ * @input:	the number of the input port, must be between 1 and 15
++ *
++ * This function calculates a new physical address based on the input
++ * port number. For example:
++ *
++ * PA = 0.0.0.0 and input = 2 becomes 2.0.0.0
++ *
++ * PA = 3.0.0.0 and input = 1 becomes 3.1.0.0
++ *
++ * PA = 3.2.1.0 and input = 5 becomes 3.2.1.5
++ *
++ * PA = 3.2.1.3 and input = 5 becomes f.f.f.f since it maxed out the depth.
++ *
++ * Return: the new physical address or CEC_PHYS_ADDR_INVALID.
++ */
++u16 cec_phys_addr_for_input(u16 phys_addr, u8 input);
++
++/**
++ * cec_phys_addr_validate() - validate a physical address from an EDID
++ *
++ * @phys_addr:	the physical address to validate
++ * @parent:	if not %NULL, then this is filled with the parents PA.
++ * @port:	if not %NULL, then this is filled with the input port.
++ *
++ * This validates a physical address as read from an EDID. If the
++ * PA is invalid (such as 1.0.1.0 since '0' is only allowed at the end),
++ * then it will return -EINVAL.
++ *
++ * The parent PA is passed into %parent and the input port is passed into
++ * %port. For example:
++ *
++ * PA = 0.0.0.0: has parent 0.0.0.0 and input port 0.
++ *
++ * PA = 1.0.0.0: has parent 0.0.0.0 and input port 1.
++ *
++ * PA = 3.2.0.0: has parent 3.0.0.0 and input port 2.
++ *
++ * PA = f.f.f.f: has parent f.f.f.f and input port 0.
++ *
++ * Return: 0 if the PA is valid, -EINVAL if not.
++ */
++int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port);
++
++#endif /* _MEDIA_CEC_EDID_H */
+-- 
+2.8.1
 
-One thing that strikes me as odd is that both F54_8BIT_IMAGE and F54_16BIT_IMAGE
-both seem to return signed 16 bit samples. I would expect this to result in
-different pixel formats.
-
-I have no idea what all these inputs mean. Are they all actually needed?
-Would this perhaps be better implemented through a menu control?
-
-I generally go by the philosophy that if I can't understand it, then it is
-likely that others won't either :-)
-
-Regards,
-
-	Hans
