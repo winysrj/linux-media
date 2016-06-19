@@ -1,57 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:29905 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751879AbcF1P3f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2016 11:29:35 -0400
-Received: from [10.47.79.81] ([10.47.79.81])
-	(authenticated bits=0)
-	by aer-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id u5SFT7uJ020782
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2016 15:29:07 GMT
-From: Hans Verkuil <hansverk@cisco.com>
-Subject: [GIT PULL FOR v4.8] Two more CEC patches
-To: linux-media <linux-media@vger.kernel.org>
-Message-ID: <577297C3.2060403@cisco.com>
-Date: Tue, 28 Jun 2016 17:29:07 +0200
+Received: from butterbrot.org ([176.9.106.16]:57042 "EHLO butterbrot.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751697AbcFSLPz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jun 2016 07:15:55 -0400
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	mchehab@osg.samsung.com, Martin Kaltenbrunner <modin@yuri.at>
+From: Florian Echtler <floe@butterbrot.org>
+Subject: sur40: DMA-SG and performance question
+Message-ID: <57667EE2.10501@butterbrot.org>
+Date: Sun, 19 Jun 2016 13:15:46 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="K0PAKXIFuhNUmucqLHNWsTD2Ifa3J8dXK"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(apologies if this is a duplicate, the first attempt to mail this seemed to fail).
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--K0PAKXIFuhNUmucqLHNWsTD2Ifa3J8dXK
+Content-Type: multipart/mixed; boundary="ckOvgvKEdIubxHT4hVo6fp5x87c2vuigK"
+From: Florian Echtler <floe@butterbrot.org>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+ mchehab@osg.samsung.com, Martin Kaltenbrunner <modin@yuri.at>
+Message-ID: <57667EE2.10501@butterbrot.org>
+Subject: sur40: DMA-SG and performance question
 
-This adds the missing rc-cec keymap module and a bug fix patch.
+--ckOvgvKEdIubxHT4hVo6fp5x87c2vuigK
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-I originally thought the rc-cec module was already merged in the cec topic branch,
-but I later discovered that it wasn't.
+Hello everyone,
 
-Regards,
+I've been doing some latency testing on my sur40 driver, and I've
+measured over 160 ms of round-trip delay (with an external high-speed
+camera, delay between lighting up an LED and seeing the on-screen
+response in the video stream).
 
-	Hans
+I'm aware that this value has to factor in screen refresh rates etc.,
+but it still seems to me that at least 100 ms have to be accounted for
+purely by image acquisition and delivery.
 
-The following changes since commit c7169ad5616229b87cabf886bc5f9cbd1fc35a5f:
+My question now is: can any of this latency be caused by my usage of
+DMA-SG (see [1] ff.), or is this a zero-copy operation, i.e. the data is
+delivered directly to the V4L2 buffer from the USB host controller?
 
-  [media] DocBook/media: add CEC documentation (2016-06-28 11:45:24 -0300)
+Thanks & best regards, Florian
 
-are available in the git repository at:
+[1]
+https://git.kernel.org/cgit/linux/kernel/git/mchehab/linux-media.git/tree=
+/drivers/input/touchscreen/sur40.c#n431
+--=20
+SENT FROM MY DEC VT50 TERMINAL
 
-  git://linuxtv.org/hverkuil/media_tree.git cec-topic2
 
-for you to fetch changes up to 4049cdd6d38815017c553a76c958181d11861133:
+--ckOvgvKEdIubxHT4hVo6fp5x87c2vuigK--
 
-  cec-adap: on reply, restore the tx_status value from the transmit (2016-06-28 17:05:24 +0200)
+--K0PAKXIFuhNUmucqLHNWsTD2Ifa3J8dXK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-----------------------------------------------------------------
-Hans Verkuil (1):
-      cec-adap: on reply, restore the tx_status value from the transmit
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-Kamil Debski (1):
-      rc-cec: Add HDMI CEC keymap module
+iEYEARECAAYFAldmfucACgkQ7CzyshGvatiXYACg4bQlctlnvuafJniI8kiDADhu
+htkAoJ57k+4G6K6jFPnzyHoZGGoPN8Aw
+=pc0j
+-----END PGP SIGNATURE-----
 
- drivers/media/rc/keymaps/Makefile    |   1 +
- drivers/media/rc/keymaps/rc-cec.c    | 182 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/staging/media/cec/cec-adap.c |   1 +
- 3 files changed, 184 insertions(+)
- create mode 100644 drivers/media/rc/keymaps/rc-cec.c
+--K0PAKXIFuhNUmucqLHNWsTD2Ifa3J8dXK--
