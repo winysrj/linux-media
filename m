@@ -1,70 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39798 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423745AbcFMPir (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2016 11:38:47 -0400
-Subject: Re: [PATCH] media: s5p-mfc fix memory leak in s5p_mfc_remove()
-To: Javier Martinez Canillas <javier@dowhile0.org>
-References: <1465436115-13880-1-git-send-email-shuahkh@osg.samsung.com>
- <CABxcv=nT_zp2BkvSV04sqaXmZGnQz=z-cGURDJwUW7hthD6-Fw@mail.gmail.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>, jtp.park@samsung.com,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <575ED37E.4010204@osg.samsung.com>
-Date: Mon, 13 Jun 2016 09:38:38 -0600
-MIME-Version: 1.0
-In-Reply-To: <CABxcv=nT_zp2BkvSV04sqaXmZGnQz=z-cGURDJwUW7hthD6-Fw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp2.provo.novell.com ([137.65.250.81]:42796 "EHLO
+	smtp2.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754701AbcFTUHg (ORCPT
+	<rfc822;groupwise-linux-media@vger.kernel.org:0:0>);
+	Mon, 20 Jun 2016 16:07:36 -0400
+From: Davidlohr Bueso <dave@stgolabs.net>
+To: peterz@infradead.org, mingo@kernel.org
+Cc: davem@davemloft.net, cw00.choi@samsung.com,
+	dougthompson@xmission.com, bp@alien8.de, mchehab@osg.samsung.com,
+	gregkh@linuxfoundation.org, pfg@sgi.com, jikos@kernel.org,
+	hans.verkuil@cisco.com, awalls@md.metrocast.net,
+	dledford@redhat.com, sean.hefty@intel.com, kys@microsoft.com,
+	heiko.carstens@de.ibm.com, James.Bottomley@HansenPartnership.com,
+	sumit.semwal@linaro.org, schwidefsky@de.ibm.com,
+	linux-kernel@vger.kernel.org, dave@stgolabs.net,
+	linux-media@vger.kernel.org, Davidlohr Bueso <dbueso@suse.de>
+Subject: [PATCH 07/12] drivers/media: Employ atomic_fetch_inc()
+Date: Mon, 20 Jun 2016 13:05:59 -0700
+Message-Id: <1466453164-13185-8-git-send-email-dave@stgolabs.net>
+In-Reply-To: <1466453164-13185-1-git-send-email-dave@stgolabs.net>
+References: <1466453164-13185-1-git-send-email-dave@stgolabs.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/13/2016 07:42 AM, Javier Martinez Canillas wrote:
-> Hello Shuah,
-> 
-> On Wed, Jun 8, 2016 at 9:35 PM, Shuah Khan <shuahkh@osg.samsung.com> wrote:
->> s5p_mfc_remove() fails to release encoder and decoder video devices.
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->> ---
->>  drivers/media/platform/s5p-mfc/s5p_mfc.c | 2 ++
->>  1 file changed, 2 insertions(+)
->>
->> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> index 274b4f1..af61f54 100644
->> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> @@ -1317,7 +1317,9 @@ static int s5p_mfc_remove(struct platform_device *pdev)
->>         destroy_workqueue(dev->watchdog_workqueue);
->>
->>         video_unregister_device(dev->vfd_enc);
->> +       video_device_release(dev->vfd_enc);
->>         video_unregister_device(dev->vfd_dec);
->> +       video_device_release(dev->vfd_dec);
->>         v4l2_device_unregister(&dev->v4l2_dev);
->>         s5p_mfc_release_firmware(dev);
->>         vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[0]);
->> --
-> 
-> Can you please do the remove operations in the inverse order of their
-> counterparts? IOW to do the release for both encoder and decoder after
-> their unregistration.
-> 
+Now that we have fetch_inc() we can stop using inc_return() - 1.
 
-I considered that. No problem. I will move both release after the
-video_unregister_device(dev->vfd_dec), releasing enc first and then
-the dec
+These are very similar to the existing OP-RETURN primitives we already
+have, except they return the value of the atomic variable _before_
+modification.
 
-> 
-> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> 
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Andy Walls <awalls@md.metrocast.net>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+---
+ drivers/media/pci/cobalt/cobalt-driver.c | 2 +-
+ drivers/media/pci/cx18/cx18-driver.c     | 2 +-
+ drivers/media/v4l2-core/v4l2-device.c    | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-thanks,
--- Shuah
+diff --git a/drivers/media/pci/cobalt/cobalt-driver.c b/drivers/media/pci/cobalt/cobalt-driver.c
+index 8d6f04fc8013..70dfcb0c6a72 100644
+--- a/drivers/media/pci/cobalt/cobalt-driver.c
++++ b/drivers/media/pci/cobalt/cobalt-driver.c
+@@ -683,7 +683,7 @@ static int cobalt_probe(struct pci_dev *pci_dev,
+ 	int i;
+ 
+ 	/* FIXME - module parameter arrays constrain max instances */
+-	i = atomic_inc_return(&cobalt_instance) - 1;
++	i = atomic_fetch_inc(&cobalt_instance);
+ 
+ 	cobalt = kzalloc(sizeof(struct cobalt), GFP_ATOMIC);
+ 	if (cobalt == NULL)
+diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
+index 260e462d91b4..5cb3408c6859 100644
+--- a/drivers/media/pci/cx18/cx18-driver.c
++++ b/drivers/media/pci/cx18/cx18-driver.c
+@@ -908,7 +908,7 @@ static int cx18_probe(struct pci_dev *pci_dev,
+ 	struct cx18 *cx;
+ 
+ 	/* FIXME - module parameter arrays constrain max instances */
+-	i = atomic_inc_return(&cx18_instance) - 1;
++	i = atomic_fetch_inc(&cx18_instance);
+ 	if (i >= CX18_MAX_CARDS) {
+ 		printk(KERN_ERR "cx18: cannot manage card %d, driver has a "
+ 		       "limit of 0 - %d\n", i, CX18_MAX_CARDS - 1);
+diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+index 06fa5f1b2cff..1bc5b68c2724 100644
+--- a/drivers/media/v4l2-core/v4l2-device.c
++++ b/drivers/media/v4l2-core/v4l2-device.c
+@@ -76,7 +76,7 @@ EXPORT_SYMBOL_GPL(v4l2_device_put);
+ int v4l2_device_set_name(struct v4l2_device *v4l2_dev, const char *basename,
+ 						atomic_t *instance)
+ {
+-	int num = atomic_inc_return(instance) - 1;
++	int num = atomic_fetch_inc(instance);
+ 	int len = strlen(basename);
+ 
+ 	if (basename[len - 1] >= '0' && basename[len - 1] <= '9')
+-- 
+2.6.6
 
