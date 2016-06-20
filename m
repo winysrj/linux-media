@@ -1,38 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47882 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750723AbcFGHwz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jun 2016 03:52:55 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2] rtl28xxu: increase failed I2C msg repeat count to 3
-Date: Tue,  7 Jun 2016 10:52:35 +0300
-Message-Id: <1465285955-22427-1-git-send-email-crope@iki.fi>
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:36344 "EHLO
+	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752337AbcFTNG7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2016 09:06:59 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	hans.verkuil@cisco.com, hverkuil@xs4all.nl
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v3 2/4] vb2: Merge vb2_internal_dqbuf and vb2_dqbuf
+Date: Mon, 20 Jun 2016 14:47:23 +0200
+Message-Id: <1466426845-25673-2-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1466426845-25673-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1466426845-25673-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-1 and 2 wasn't enough for mn88472 chip on Astrometa device,
-so increase it to 3.
+After all the code refactoring, vb2_internal_dqbuf is only called by
+vb2_dqbuf.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Since the function it is very simple, there is no need to have two
+functions.
+
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 39 ++++++++++++++------------------
+ 1 file changed, 17 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index eb7af8c..6643762 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -624,7 +624,7 @@ static int rtl28xxu_identify_state(struct dvb_usb_device *d, const char **name)
- 	dev_dbg(&d->intf->dev, "chip_id=%u\n", dev->chip_id);
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 6d14df3d615d..7dff2b688a9f 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -621,27 +621,6 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ }
+ EXPORT_SYMBOL_GPL(vb2_qbuf);
  
- 	/* Retry failed I2C messages */
--	d->i2c_adap.retries = 1;
-+	d->i2c_adap.retries = 3;
- 	d->i2c_adap.timeout = msecs_to_jiffies(10);
+-static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b,
+-		bool nonblocking)
+-{
+-	int ret;
+-
+-	if (b->type != q->type) {
+-		dprintk(1, "invalid buffer type\n");
+-		return -EINVAL;
+-	}
+-
+-	ret = vb2_core_dqbuf(q, NULL, b, nonblocking);
+-
+-	/*
+-	 *  After calling the VIDIOC_DQBUF V4L2_BUF_FLAG_DONE must be
+-	 *  cleared.
+-	 */
+-	b->flags &= ~V4L2_BUF_FLAG_DONE;
+-
+-	return ret;
+-}
+-
+ /**
+  * vb2_dqbuf() - Dequeue a buffer to the userspace
+  * @q:		videobuf2 queue
+@@ -665,11 +644,27 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b,
+  */
+ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
+ {
++	int ret;
++
+ 	if (vb2_fileio_is_active(q)) {
+ 		dprintk(1, "file io in progress\n");
+ 		return -EBUSY;
+ 	}
+-	return vb2_internal_dqbuf(q, b, nonblocking);
++
++	if (b->type != q->type) {
++		dprintk(1, "invalid buffer type\n");
++		return -EINVAL;
++	}
++
++	ret = vb2_core_dqbuf(q, NULL, b, nonblocking);
++
++	/*
++	 *  After calling the VIDIOC_DQBUF V4L2_BUF_FLAG_DONE must be
++	 *  cleared.
++	 */
++	b->flags &= ~V4L2_BUF_FLAG_DONE;
++
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(vb2_dqbuf);
  
- 	return WARM;
 -- 
-http://palosaari.fi/
+2.8.1
 
