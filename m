@@ -1,126 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-07v.sys.comcast.net ([96.114.154.166]:54067 "EHLO
-	resqmta-po-07v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752420AbcF1TRY (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34045 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753180AbcFTNa2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2016 15:17:24 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, mchehab@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH REBASE 3/3] media: s5p-mfc fix null pointer deference in clk_core_enable()
-Date: Tue, 28 Jun 2016 13:17:18 -0600
-Message-Id: <31e7be847d7dad6ed0f8ede41a55b1fdb9bdcb06.1467140929.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1467140929.git.shuahkh@osg.samsung.com>
-References: <cover.1467140929.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1467140929.git.shuahkh@osg.samsung.com>
-References: <cover.1467140929.git.shuahkh@osg.samsung.com>
+	Mon, 20 Jun 2016 09:30:28 -0400
+Received: by mail-wm0-f66.google.com with SMTP id 187so14145652wmz.1
+        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2016 06:30:27 -0700 (PDT)
+Date: Mon, 20 Jun 2016 15:30:18 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Mathias Krause <minipli@googlemail.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	Brad Spengler <spender@grsecurity.net>,
+	PaX Team <pageexec@freemail.hu>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: Re: [PATCH 1/3] dma-buf: propagate errors from dma_buf_describe() on
+ debugfs read
+Message-ID: <20160620133018.GJ23520@phenom.ffwll.local>
+References: <1466339491-12639-1-git-send-email-minipli@googlemail.com>
+ <1466339491-12639-2-git-send-email-minipli@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1466339491-12639-2-git-send-email-minipli@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix null pointer deference in clk_core_enable() when driver unbind is run
-when there is an application has an active pipeline playing.
+On Sun, Jun 19, 2016 at 02:31:29PM +0200, Mathias Krause wrote:
+> The callback function dma_buf_describe() returns an int not void so the
+> function pointer cast in dma_buf_show() is wrong. dma_buf_describe() can
+> also fail when acquiring the mutex gets interrupted so always returning
+> 0 in dma_buf_show() is wrong, too.
+> 
+> Fix both issues by avoiding the indirection via dma_buf_show() and call
+> dma_buf_describe() directly. Rename it to dma_buf_debug_show() to get it
+> in line with the other functions.
+> 
+> This type mismatch was caught by the PaX RAP plugin.
+> 
+> Signed-off-by: Mathias Krause <minipli@googlemail.com>
+> Cc: Sumit Semwal <sumit.semwal@linaro.org>
+> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+> Cc: Brad Spengler <spender@grsecurity.net>
+> Cc: PaX Team <pageexec@freemail.hu>
+> ---
+>  drivers/dma-buf/dma-buf.c |   14 +++-----------
+>  1 file changed, 3 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> index 6355ab38d630..7094b19bb495 100644
+> --- a/drivers/dma-buf/dma-buf.c
+> +++ b/drivers/dma-buf/dma-buf.c
+> @@ -824,7 +824,7 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
+>  EXPORT_SYMBOL_GPL(dma_buf_vunmap);
+>  
+>  #ifdef CONFIG_DEBUG_FS
+> -static int dma_buf_describe(struct seq_file *s)
+> +static int dma_buf_debug_show(struct seq_file *s, void *unused)
+>  {
+>  	int ret;
+>  	struct dma_buf *buf_obj;
+> @@ -879,17 +879,9 @@ static int dma_buf_describe(struct seq_file *s)
+>  	return 0;
+>  }
+>  
+> -static int dma_buf_show(struct seq_file *s, void *unused)
+> -{
+> -	void (*func)(struct seq_file *) = s->private;
+> -
+> -	func(s);
+> -	return 0;
+> -}
+> -
+>  static int dma_buf_debug_open(struct inode *inode, struct file *file)
+>  {
+> -	return single_open(file, dma_buf_show, inode->i_private);
+> +	return single_open(file, dma_buf_debug_show, NULL);
+>  }
+>  
+>  static const struct file_operations dma_buf_debug_fops = {
+> @@ -913,7 +905,7 @@ static int dma_buf_init_debugfs(void)
+>  		return err;
+>  	}
+>  
+> -	err = dma_buf_debugfs_create_file("bufinfo", dma_buf_describe);
+> +	err = dma_buf_debugfs_create_file("bufinfo", NULL);
 
-s5p_mfc_release() gets called after s5p_mfc_final_pm() disables and does
-clk_put() and s5p_mfc_release() attempts to enable clock and runs into
-null pointer deference accessing invalid pointer.
+This indirection now doesn't make much sense I think. I think more
+sensible to instead pass drm_buf_debug_show, since that's the
+parametrization that matters. Or just inline that one too.
+-Daniel
 
-[ 4869.434709] Unable to handle kernel NULL pointer dereference at virtual addr0
-[ 4869.441312] pgd = e91ac000
-[ 4869.443996] [00000010] *pgd=ba4f7835
-[ 4869.447552] Internal error: Oops: 17 [#1] PREEMPT SMP ARM
-[ 4869.452921] Modules linked in: cpufreq_userspace cpufreq_powersave cpufreq_ca
-[ 4869.471728] CPU: 4 PID: 2965 Comm: lt-gst-launch-1 Not tainted 4.7.0-rc2-nex0
-[ 4869.481778] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
-[ 4869.487844] task: e91f1e00 ti: ed650000 task.ti: ed650000
-[ 4869.493227] PC is at clk_core_enable+0x4c/0x98
-[ 4869.497637] LR is at clk_core_enable+0x40/0x98
-[ 4869.502056] pc : [<c0559714>]    lr : [<c0559708>]    psr: 60060093
-[ 4869.502056] sp : ed651f18  ip : 00000000  fp : 002641b4
-[ 4869.513493] r10: e9088c08  r9 : 00000008  r8 : ed676d68
-[ 4869.518692] r7 : ee3ac000  r6 : bf16b3c0  r5 : a0060013  r4 : ee37a8c0
-[ 4869.525191] r3 : 00000000  r2 : 00000001  r1 : 00000004  r0 : 00000000
-[ 4869.531692] Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment noe
-[ 4869.538883] Control: 10c5387d  Table: 691ac06a  DAC: 00000051
-[ 4869.544603] Process lt-gst-launch-1 (pid: 2965, stack limit = 0xed650210)
-[ 4869.551361] Stack: (0xed651f18 to 0xed652000)
-[ 4869.555694] 1f00:                                                       ee373
-[ 4869.563841] 1f20: bf16b3c0 c055a0e0 ee3ac004 ed676c10 bf16b3c0 bf1558e0 e9080
-[ 4869.571986] 1f40: 00000000 ee98a510 ee502e40 bf047344 e9088c00 ee986938 00004
-[ 4869.580132] 1f60: 00000000 00000000 e91f2204 00000000 c0b4658c e91f1e00 c0100
-[ 4869.588277] 1f80: 00000000 c0135c58 ed650000 c0107904 ed651fb0 00000006 c0104
-[ 4869.596423] 1fa0: 00229500 b6581000 b6f7b544 c0107794 00000000 00000002 b6f90
-[ 4869.604568] 1fc0: 00229500 b6581000 b6f7b544 00000006 0017b600 0002c038 00264
-[ 4869.612714] 1fe0: 00000000 bee56ef0 00000000 b6d49612 00060030 00000006 00000
-[ 4869.620865] [<c0559714>] (clk_core_enable) from [<c055a0e0>] (clk_enable+0x2)
-[ 4869.628509] [<c055a0e0>] (clk_enable) from [<bf1558e0>] (s5p_mfc_release+0x3)
-[ 4869.637111] [<bf1558e0>] (s5p_mfc_release [s5p_mfc]) from [<bf047344>] (v4l2)
-[ 4869.646706] [<bf047344>] (v4l2_release [videodev]) from [<c01e4274>] (__fput)
-[ 4869.654745] [<c01e4274>] (__fput) from [<c0135c58>] (task_work_run+0x94/0xc8)
-[ 4869.661852] [<c0135c58>] (task_work_run) from [<c010a9d4>] (do_work_pending+)
-[ 4869.669735] [<c010a9d4>] (do_work_pending) from [<c0107794>] (slow_work_pend)
-[ 4869.677878] Code: ebffffef e3500000 18bd8070 e5943004 (e5933010)
+>  
+>  	if (err)
+>  		pr_debug("dma_buf: debugfs: failed to create node bufinfo\n");
+> -- 
+> 1.7.10.4
+> 
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_pm.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-index 9f75221..930dc2d 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-@@ -77,8 +77,10 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
- 
- err_s_clk:
- 	clk_put(pm->clock);
-+	pm->clock = NULL;
- err_p_ip_clk:
- 	clk_put(pm->clock_gate);
-+	pm->clock_gate = NULL;
- err_g_ip_clk:
- 	return ret;
- }
-@@ -89,9 +91,11 @@ void s5p_mfc_final_pm(struct s5p_mfc_dev *dev)
- 	    pm->clock) {
- 		clk_disable_unprepare(pm->clock);
- 		clk_put(pm->clock);
-+		pm->clock = NULL;
- 	}
- 	clk_unprepare(pm->clock_gate);
- 	clk_put(pm->clock_gate);
-+	pm->clock_gate = NULL;
- #ifdef CONFIG_PM
- 	pm_runtime_disable(pm->device);
- #endif
-@@ -99,12 +103,13 @@ void s5p_mfc_final_pm(struct s5p_mfc_dev *dev)
- 
- int s5p_mfc_clock_on(void)
- {
--	int ret;
-+	int ret = 0;
- #ifdef CLK_DEBUG
- 	atomic_inc(&clk_ref);
- 	mfc_debug(3, "+ %d\n", atomic_read(&clk_ref));
- #endif
--	ret = clk_enable(pm->clock_gate);
-+	if (!IS_ERR_OR_NULL(pm->clock_gate))
-+		ret = clk_enable(pm->clock_gate);
- 	return ret;
- }
- 
-@@ -114,7 +119,8 @@ void s5p_mfc_clock_off(void)
- 	atomic_dec(&clk_ref);
- 	mfc_debug(3, "- %d\n", atomic_read(&clk_ref));
- #endif
--	clk_disable(pm->clock_gate);
-+	if (!IS_ERR_OR_NULL(pm->clock_gate))
-+		clk_disable(pm->clock_gate);
- }
- 
- int s5p_mfc_power_on(void)
 -- 
-2.7.4
-
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
