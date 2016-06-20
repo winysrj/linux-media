@@ -1,58 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:33796 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753188AbcFOUcM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2016 16:32:12 -0400
-Subject: Re: [PATCH 3/3] drivers/media/media-device: fix double free bug in
- _unregister()
-To: Max Kellermann <max@duempel.org>, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com
-References: <146602170216.9818.6967531646383934202.stgit@woodpecker.blarg.de>
- <146602171226.9818.8828702464432665144.stgit@woodpecker.blarg.de>
-Cc: linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <5761BB4A.9040309@osg.samsung.com>
-Date: Wed, 15 Jun 2016 14:32:10 -0600
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:41170 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752276AbcFTQTI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2016 12:19:08 -0400
+Subject: Re: [PATCH v4 8/9] Input: atmel_mxt_ts - add support for reference
+ data
+To: Hans Verkuil <hverkuil@xs4all.nl>
+References: <1466172988-3698-1-git-send-email-nick.dyer@itdev.co.uk>
+ <1466172988-3698-9-git-send-email-nick.dyer@itdev.co.uk>
+ <5768152E.7070905@xs4all.nl>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+Message-ID: <d5a7f130-ef12-2e1d-c842-eef62899a31a@itdev.co.uk>
+Date: Mon, 20 Jun 2016 17:18:30 +0100
 MIME-Version: 1.0
-In-Reply-To: <146602171226.9818.8828702464432665144.stgit@woodpecker.blarg.de>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <5768152E.7070905@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/15/2016 02:15 PM, Max Kellermann wrote:
-> While removing all interfaces in media_device_unregister(), all
-> media_interface pointers are freed.  This is illegal and results in
-> double kfree() if any media_interface is still linked at this point;
-> maybe because a userspace process still has a file handle.  Once the
-> process closes the file handle, dvb_media_device_free() gets called,
-> which frees the dvb_device.intf_devnode again.
+On 20/06/2016 17:09, Hans Verkuil wrote:
+> On 06/17/2016 04:16 PM, Nick Dyer wrote:
+>> @@ -2325,11 +2344,20 @@ static int mxt_vidioc_querycap(struct file *file, void *priv,
+>>  static int mxt_vidioc_enum_input(struct file *file, void *priv,
+>>  				   struct v4l2_input *i)
+>>  {
+>> -	if (i->index > 0)
+>> +	if (i->index >= MXT_V4L_INPUT_MAX)
+>>  		return -EINVAL;
+>>  
+>>  	i->type = V4L2_INPUT_TYPE_TOUCH_SENSOR;
+>> -	strlcpy(i->name, "Mutual References", sizeof(i->name));
+>> +
+>> +	switch (i->index) {
+>> +	case MXT_V4L_INPUT_REFS:
+>> +		strlcpy(i->name, "Mutual References", sizeof(i->name));
+>> +		break;
+>> +	case MXT_V4L_INPUT_DELTAS:
+>> +		strlcpy(i->name, "Mutual Deltas", sizeof(i->name));
 > 
-> This patch removes the unnecessary kfree() call, and documents who's
-> responsible for really freeing it.
-> 
-> Signed-off-by: Max Kellermann <max@duempel.org>
-> ---
->  drivers/media/media-device.c |    4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 33a9952..1db4707 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -799,9 +799,11 @@ void media_device_unregister(struct media_device *mdev)
->  	/* Remove all interfaces from the media device */
->  	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
->  				 graph_obj.list) {
-> +		/* unlink the interface, but don't free it here; the
-> +		   module which created it is responsible for freeing
-> +		   it */
->  		__media_remove_intf_links(intf);
->  		media_gobj_destroy(&intf->graph_obj);
-> -		kfree(intf);
+> I don't think this name is very clear. I have no idea how to interpret "Mutual"
+> in this context.
 
-This change introduces memory leaks, since drivers are relying on
-media_device_unregister() to free interfaces.
+"Mutual" is a touch domain specific term, it means the delta value is for
+the capacitance between the horizontal and vertical lines at a particular
+"node" on the touchscreen matrix, see
+https://en.wikipedia.org/wiki/Touchscreen#Mutual_capacitance
 
-thanks,
--- Shuah
+I'll put in a comment.
+
+> 
+>> +		break;
+>> +	}
+>> +
+>>  	return 0;
+>>  }
+>>  
+>> @@ -2337,12 +2365,16 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
+>>  {
+>>  	struct v4l2_pix_format *f = &data->dbg.format;
+>>  
+>> -	if (i > 0)
+>> +	if (i >= MXT_V4L_INPUT_MAX)
+>>  		return -EINVAL;
+>>  
+>> +	if (i == MXT_V4L_INPUT_DELTAS)
+>> +		f->pixelformat = V4L2_PIX_FMT_YS16;
+>> +	else
+>> +		f->pixelformat = V4L2_PIX_FMT_Y16;
+> 
+> You probably need a V4L2_TOUCH_FMT_U16 or something for this as well. It certainly
+> needs to be documented.
+
+OK, will change this.
+
