@@ -1,72 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58226 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932629AbcFQMxv (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49728 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751828AbcFTPZz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 08:53:51 -0400
-Date: Fri, 17 Jun 2016 15:53:17 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Max Kellermann <max@duempel.org>
-Cc: linux-media@vger.kernel.org, shuahkh@osg.samsung.com,
-	mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/3] drivers/media/media-entity: clear media_gobj.mdev in
- _destroy()
-Message-ID: <20160617125317.GF24980@valkosipuli.retiisi.org.uk>
-References: <146602170216.9818.6967531646383934202.stgit@woodpecker.blarg.de>
- <146602170722.9818.9277146367995018321.stgit@woodpecker.blarg.de>
+	Mon, 20 Jun 2016 11:25:55 -0400
+Subject: Re: [PATCH 5/6] v4l: Add 14-bit raw bayer pixel format definitions
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+References: <1464353080-18300-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1464353080-18300-6-git-send-email-sakari.ailus@linux.intel.com>
+Cc: g.liakhovetski@gmx.de
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <57680ACB.3050109@xs4all.nl>
+Date: Mon, 20 Jun 2016 17:24:59 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <146602170722.9818.9277146367995018321.stgit@woodpecker.blarg.de>
+In-Reply-To: <1464353080-18300-6-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Max,
-
-On Wed, Jun 15, 2016 at 10:15:07PM +0200, Max Kellermann wrote:
-> media_gobj_destroy() may be called twice on one instance - once by
-> media_device_unregister() and again by dvb_media_device_free().  The
-
-Is that something that should really happen, and why? The same object should
-not be unregistered more than once --- in many call paths gobj
-unregistration is followed by kfree() on the gobj.
-
-> function media_remove_intf_links() establishes and documents the
-> convention that mdev==NULL means that the object is not registered,
-> but nobody ever NULLs this variable.  So this patch really implements
-> this behavior, and adds another mdev==NULL check to
-> media_gobj_destroy() to protect against double removal.
+On 05/27/2016 02:44 PM, Sakari Ailus wrote:
+> The formats added by this patch are:
 > 
-> Signed-off-by: Max Kellermann <max@duempel.org>
+> 	V4L2_PIX_FMT_SBGGR14
+> 	V4L2_PIX_FMT_SGBRG14
+> 	V4L2_PIX_FMT_SGRBG14
+> 	V4L2_PIX_FMT_SRGGB14
+> 
+> Signed-off-by: Jouni Ukkonen <jouni.ukkonen@intel.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
->  drivers/media/media-entity.c |    6 ++++++
->  1 file changed, 6 insertions(+)
+>  Documentation/DocBook/media/v4l/pixfmt-srggb14.xml | 90 ++++++++++++++++++++++
+>  Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
+>  include/uapi/linux/videodev2.h                     |  4 +
+>  3 files changed, 95 insertions(+)
+>  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
 > 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index d8a2299..9526338 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -203,10 +203,16 @@ void media_gobj_destroy(struct media_gobj *gobj)
->  {
->  	dev_dbg_obj(__func__, gobj);
->  
-> +	/* Do nothing if the object is not linked. */
-> +	if (gobj->mdev == NULL)
-> +		return;
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
+> new file mode 100644
+> index 0000000..7e82d7e
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
+> @@ -0,0 +1,90 @@
+> +    <refentry>
+> +      <refmeta>
+> +	<refentrytitle>V4L2_PIX_FMT_SRGGB14 ('RG14'),
+> +	 V4L2_PIX_FMT_SGRBG14 ('BA14'),
+> +	 V4L2_PIX_FMT_SGBRG14 ('GB14'),
+> +	 V4L2_PIX_FMT_SBGGR14 ('BG14'),
+
+Same comma problem.
+
+> +	 </refentrytitle>
+> +	&manvol;
+> +      </refmeta>
+> +      <refnamediv>
+> +	<refname id="V4L2-PIX-FMT-SRGGB14"><constant>V4L2_PIX_FMT_SRGGB14</constant></refname>
+> +	<refname id="V4L2-PIX-FMT-SGRBG14"><constant>V4L2_PIX_FMT_SGRBG14</constant></refname>
+> +	<refname id="V4L2-PIX-FMT-SGBRG14"><constant>V4L2_PIX_FMT_SGBRG14</constant></refname>
+> +	<refname id="V4L2-PIX-FMT-SBGGR14"><constant>V4L2_PIX_FMT_SBGGR14</constant></refname>
+> +	<refpurpose>14-bit Bayer formats expanded to 16 bits</refpurpose>
+> +      </refnamediv>
+> +      <refsect1>
+> +	<title>Description</title>
 > +
->  	gobj->mdev->topology_version++;
->  
->  	/* Remove the object from mdev list */
->  	list_del(&gobj->list);
+> +	<para>These four pixel formats are raw sRGB / Bayer formats with
+> +14 bits per colour. Each colour component is stored in a 16-bit word, with 2
+> +unused high bits filled with zeros. Each n-pixel row contains n/2 green samples
+> +and n/2 blue or red samples, with alternating red and blue rows. Bytes are
+> +stored in memory in little endian order. They are conventionally described
+> +as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example of one of these
+> +formats</para>
+
+s/formats/formats:/
+
 > +
-> +	gobj->mdev = NULL;
->  }
+> +    <example>
+> +      <title><constant>V4L2_PIX_FMT_SBGGR14</constant> 4 &times; 4
+> +pixel image</title>
+> +
+> +      <formalpara>
+> +	<title>Byte Order.</title>
+> +	<para>Each cell is one byte, high 2 bits in high bytes are 0.
+
+s/high 2/the high 2/
+
+> +	  <informaltable frame="none">
+> +	    <tgroup cols="5" align="center">
+> +	      <colspec align="left" colwidth="2*" />
+> +	      <tbody valign="top">
+> +		<row>
+> +		  <entry>start&nbsp;+&nbsp;0:</entry>
+> +		  <entry>B<subscript>00low</subscript></entry>
+> +		  <entry>B<subscript>00high</subscript></entry>
+> +		  <entry>G<subscript>01low</subscript></entry>
+> +		  <entry>G<subscript>01high</subscript></entry>
+> +		  <entry>B<subscript>02low</subscript></entry>
+> +		  <entry>B<subscript>02high</subscript></entry>
+> +		  <entry>G<subscript>03low</subscript></entry>
+> +		  <entry>G<subscript>03high</subscript></entry>
+> +		</row>
+> +		<row>
+> +		  <entry>start&nbsp;+&nbsp;8:</entry>
+> +		  <entry>G<subscript>10low</subscript></entry>
+> +		  <entry>G<subscript>10high</subscript></entry>
+> +		  <entry>R<subscript>11low</subscript></entry>
+> +		  <entry>R<subscript>11high</subscript></entry>
+> +		  <entry>G<subscript>12low</subscript></entry>
+> +		  <entry>G<subscript>12high</subscript></entry>
+> +		  <entry>R<subscript>13low</subscript></entry>
+> +		  <entry>R<subscript>13high</subscript></entry>
+> +		</row>
+> +		<row>
+> +		  <entry>start&nbsp;+&nbsp;16:</entry>
+> +		  <entry>B<subscript>20low</subscript></entry>
+> +		  <entry>B<subscript>20high</subscript></entry>
+> +		  <entry>G<subscript>21low</subscript></entry>
+> +		  <entry>G<subscript>21high</subscript></entry>
+> +		  <entry>B<subscript>22low</subscript></entry>
+> +		  <entry>B<subscript>22high</subscript></entry>
+> +		  <entry>G<subscript>23low</subscript></entry>
+> +		  <entry>G<subscript>23high</subscript></entry>
+> +		</row>
+> +		<row>
+> +		  <entry>start&nbsp;+&nbsp;24:</entry>
+> +		  <entry>G<subscript>30low</subscript></entry>
+> +		  <entry>G<subscript>30high</subscript></entry>
+> +		  <entry>R<subscript>31low</subscript></entry>
+> +		  <entry>R<subscript>31high</subscript></entry>
+> +		  <entry>G<subscript>32low</subscript></entry>
+> +		  <entry>G<subscript>32high</subscript></entry>
+> +		  <entry>R<subscript>33low</subscript></entry>
+> +		  <entry>R<subscript>33high</subscript></entry>
+> +		</row>
+> +	      </tbody>
+> +	    </tgroup>
+> +	  </informaltable>
+> +	</para>
+> +      </formalpara>
+> +    </example>
+> +  </refsect1>
+> +</refentry>
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+> index 457337e..29e9d7c 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+> @@ -1594,6 +1594,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+>      &sub-srggb10dpcm8;
+>      &sub-srggb12;
+>      &sub-srggb12p;
+> +    &sub-srggb14;
+>    </section>
 >  
->  int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
+>    <section id="yuv-formats">
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 7ace868..2c4b076 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -581,6 +581,10 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
+>  #define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
+>  #define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
+> +#define V4L2_PIX_FMT_SBGGR14 v4l2_fourcc('B', 'G', '1', '4') /* 14  BGBG.. GRGR.. */
+> +#define V4L2_PIX_FMT_SGBRG14 v4l2_fourcc('G', 'B', '1', '4') /* 14  GBGB.. RGRG.. */
+> +#define V4L2_PIX_FMT_SGRBG14 v4l2_fourcc('B', 'A', '1', '4') /* 14  GRGR.. BGBG.. */
+> +#define V4L2_PIX_FMT_SRGGB14 v4l2_fourcc('R', 'G', '1', '4') /* 14  RGRG.. GBGB.. */
+>  #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
+>  
+>  /* compressed formats */
 > 
 
--- 
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Hans
