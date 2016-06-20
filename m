@@ -1,66 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58712 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751433AbcFRQEZ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52954 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753477AbcFTTLz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jun 2016 12:04:25 -0400
-Date: Sat, 18 Jun 2016 18:04:23 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, sakari.ailus@iki.fi,
-	sre@kernel.org, linux-media@vger.kernel.org, robh+dt@kernel.org,
-	pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	mchehab@osg.samsung.com, devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 1/2] media: Driver for Toshiba et8ek8 5MP sensor
-Message-ID: <20160618160423.GB16792@amd>
-References: <1465659593-16858-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1465659593-16858-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160618152259.GC8392@amd>
- <201606181737.33116@pali>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201606181737.33116@pali>
+	Mon, 20 Jun 2016 15:11:55 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 08/24] v4l: vsp1: Don't register media device when userspace API is disabled
+Date: Mon, 20 Jun 2016 22:10:26 +0300
+Message-Id: <1466449842-29502-9-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+The media device doesn't need to be exposed to userspace when the VSP is
+fully controlled by the DU driver. Don't register it in that case.
 
-> > > +	.reglist = {
-> > > +		{ .ptr = &mode1_poweron_mode2_16vga_2592x1968_12_07fps },
-> > > +		{ .ptr = &mode1_16vga_2592x1968_13_12fps_dpcm10_8 },
-> > > +		{ .ptr = &mode3_4vga_1296x984_29_99fps_dpcm10_8 },
-> > > +		{ .ptr = &mode4_svga_864x656_29_88fps },
-> > > +		{ .ptr = &mode5_vga_648x492_29_93fps },
-> > > +		{ .ptr = &mode2_16vga_2592x1968_3_99fps },
-> > > +		{ .ptr = &mode_648x492_5fps },
-> > > +		{ .ptr = &mode3_4vga_1296x984_5fps },
-> > > +		{ .ptr = &mode_4vga_1296x984_25fps_dpcm10_8 },
-> > > +		{ .ptr = 0 }
-> > > +	}
-> > > +};
-> > 
-> > I'd say .ptr = NULL.
-> > 
-> 
-> Anyway, this code was generated from configuration ini files and perl 
-> script available from: https://gitorious.org/omap3camera/camera-firmware
-> 
-> Originally in Maemo above C structure is compiled into binary file and 
-> via request_firmware() loaded from userspace to kernel driver.
-> 
-> For me this sounds like a big overkill, so I included above reglist code 
-> direcly into et8ek8 kernel driver to avoid request_firmware() and 
-> separate userspace storage...
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drv.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-Yep, that makes sense, thanks for explanation. I guess that means that
-we should put a comment on top of the file explaining what is going
-on.
-
-Best regards,
-									Pavel
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index c42576825ad4..cd56cad3abd9 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -218,7 +218,8 @@ static void vsp1_destroy_entities(struct vsp1_device *vsp1)
+ 	}
+ 
+ 	v4l2_device_unregister(&vsp1->v4l2_dev);
+-	media_device_unregister(&vsp1->media_dev);
++	if (vsp1->info->uapi)
++		media_device_unregister(&vsp1->media_dev);
+ 	media_device_cleanup(&vsp1->media_dev);
+ 
+ 	if (!vsp1->info->uapi)
+@@ -403,14 +404,15 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 	/* Register subdev nodes if the userspace API is enabled or initialize
+ 	 * the DRM pipeline otherwise.
+ 	 */
+-	if (vsp1->info->uapi)
++	if (vsp1->info->uapi) {
+ 		ret = v4l2_device_register_subdev_nodes(&vsp1->v4l2_dev);
+-	else
+-		ret = vsp1_drm_init(vsp1);
+-	if (ret < 0)
+-		goto done;
++		if (ret < 0)
++			goto done;
+ 
+-	ret = media_device_register(mdev);
++		ret = media_device_register(mdev);
++	} else {
++		ret = vsp1_drm_init(vsp1);
++	}
+ 
+ done:
+ 	if (ret < 0)
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Regards,
+
+Laurent Pinchart
+
