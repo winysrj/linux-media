@@ -1,133 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:34180 "EHLO
-	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751577AbcFTJHO (ORCPT
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:38859 "EHLO
+	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752056AbcFTKQX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 05:07:14 -0400
-Received: by mail-lf0-f68.google.com with SMTP id l184so4832626lfl.1
-        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2016 02:07:05 -0700 (PDT)
-Date: Mon, 20 Jun 2016 11:06:56 +0200
-From: Henrik Austad <henrik@austad.us>
-To: Takashi Sakamoto <o-takashi@sakamocchi.jp>
-Cc: Richard Cochran <richardcochran@gmail.com>,
-	alsa-devel@alsa-project.org, netdev@vger.kernel.org,
-	Arnd Bergmann <arnd@linaro.org>, linux-media@vger.kernel.org
-Subject: Re: [very-RFC 0/8] TSN driver for the kernel
-Message-ID: <20160620090656.GB8011@sisyphus.home.austad.us>
-References: <1465686096-22156-1-git-send-email-henrik@austad.us>
- <20160613114713.GA9544@localhost.localdomain>
- <20160613195136.GC2441@netboy>
- <20160614121844.54a125a5@lxorguk.ukuu.org.uk>
- <5760C84C.40408@sakamocchi.jp>
- <20160615080602.GA13555@localhost.localdomain>
- <5764DA85.3050801@sakamocchi.jp>
- <20160618224549.GF32724@icarus.home.austad.us>
- <5766B01B.9070903@sakamocchi.jp>
+	Mon, 20 Jun 2016 06:16:23 -0400
+Received: by mail-wm0-f52.google.com with SMTP id r201so54533121wme.1
+        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2016 03:16:09 -0700 (PDT)
+Date: Mon, 20 Jun 2016 12:16:03 +0200
+From: Gary Bisson <gary.bisson@boundarydevices.com>
+To: Jack Mitchell <ml@embed.me.uk>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [19/38] ARM: dts: imx6-sabrelite: add video capture ports and
+ connections
+Message-ID: <20160620101603.GA817@t450s.lan>
+References: <1465944574-15745-20-git-send-email-steve_longerbeam@mentor.com>
+ <20160616083231.GA6548@t450s.lan>
+ <20160617151814.GA16378@t450s.lan>
+ <57644915.3010006@gmail.com>
+ <20160620093351.GA24310@t450s.lan>
+ <d9bd2b49-e36b-6082-e31a-99d6c8c70b2c@embed.me.uk>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tsOsTdHNUZQcU9Ye"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <5766B01B.9070903@sakamocchi.jp>
+In-Reply-To: <d9bd2b49-e36b-6082-e31a-99d6c8c70b2c@embed.me.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Jack, All,
 
---tsOsTdHNUZQcU9Ye
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, Jun 20, 2016 at 10:44:44AM +0100, Jack Mitchell wrote:
+> <snip>
+> > I've tried that patch have a some comments:
+> > - When applied, no capture shows up any more, instead I have two m2m
+> >   v4l2 devices [1].
+> > - OV5640 Mipi is assigned the same address as OV5642, therefore both
+> 
+> Yes, I only have one device attached in my scenario.
 
-On Sun, Jun 19, 2016 at 11:45:47PM +0900, Takashi Sakamoto wrote:
-> (remove C.C. to lkml. This is not so major feature.)
->=20
-> On Jun 19 2916 07:45, Henrik Austad wrote:
-> >snip
-> >
-> >802.1Q gives you low latency through the network, but more importantly, =
-no
-> >dropped frames. gPTP gives you a central reference to time.
->=20
-> When such a long message is required, it means that we don't have
-> enough premises for this discussion.
+Thanks for confirming.
 
-Isn't a discussion part of how information is conveyed and finding parts=20
-that require more knowledge?
+> >   can't work at the same time right now. There's a register in the
+> >   camera that allows to modify its I2C address, see this patch [2].
+> > - How is the mclk working in this patch? It should be using the PWM3
+> 
+> As mentioned I have an eCon sensor board [1] which generates it's own clock
+> on the board and as such I don't need the PWM signal, just the two GPIOs.
 
-> You have just interests in gPTP and transferring AVTPDUs, while no
-> interests in the others such as "what the basic ideas of TSN come
-> from" and "the reason that IEEE 1722 refers to IEC 61883 series
-> which is originally designed for IEEE 1394 bus" and "the reason that
-> I was motivated to join in this discussion even though not a netdev
-> developer".
+Oh ok, thanks I didn't this sensor board was different than ours [1].
 
-I'm sorry, I'm not sure I follow you here. What do you mean I don't have=20
-any interest in where TSN comes from? or the reason why 1722 use IEC 61883?=
-=20
-What about "they picked 61883 because it made sense?"
+But in your patch, you specifically disable pwm3, what's the reason for
+it?
 
-gPTP itself is *not* about transffering audio-data, it is about agreeing on=
-=20
-a common time so that when you *do* transfer audio-data, the samplerate=20
-actually means something.
+> >   output to generate a ~22MHz clock. I would expect the use of a
+> >   pwm-clock node [3].
+> > 
+> > Also another remark on both OV5642 and OV5640 patches, is it recommended
+> > to use 0x80000000 pin muxing value? This leaves it to the bootloader to
+> 
+> I also wondered about this, but didn't know if the pinmux driver did this
+> based on the define name? I tried it both ways and it worked so I just left
+> it as it was.
 
-Let me ask you this; if you have 2 sound-cards in your computer and you=20
-want to attach a mic to one and speakers to the other, how do you solve=20
-streaming of audio from the mic to the speaker If you answer does not=20
-contain something akin to "different timing-domain issues", I'd be very=20
-surprised.
+Actually my phrasing is wrong, the muxing is ok. Yes depending on the
+name a pin will be muxed to one function or another. The problem is the
+pad configuration (pull-up, pull-down etc..). I am not surprised that it
+works, because the bootloader should properly set those. But it would be
+safer IMO not to rely on it.
 
-If you are interested in TSN for transferring *anything*, _including_=20
-audio, you *have* to take gPTP into consideration. Just as you have to=20
-think about stream reservation, compliant hardware and all the different=20
-subsystems you are going to run into, either via kernel or via userspace.
+Regards,
+Gary
 
-> Here, could I ask you a question? Do you know a role of cycle start
-> packet of IEEE Std 1394?
-
-No, I do not.
-
-I have only passing knowledge of the firewire standard, I've looked at the=
-=20
-encoding described in 1722 and added that to the alsa shim as an example of=
-=20
-how to use TSN. As I stated, this was a *very* early version and I would=20
-like to use TSN for audio - and more work is needed.
-
-> If you think it's not related to this discussion, please tell it to
-> me. Then I'll drop out from this thread.
-
-There are tons of details left and right, and as I said, I'm not  all to=20
-familiar with firewire. I know that one of the authors behind the firewire=
-=20
-standard happened to be part of 1722 standard.
-
-I am currently working my way through the firewire-stak paper you've=20
-written, and I have gotten a lot of pointers to other areas I need to dig=
-=20
-into so I should be busy for a while.
-
-That being said, Richard's point about a way to find sample-rate of a=20
-hardware device and ways to influence that, is important for AVB/TSN.
-
-> History Repeats itself.
-
-?
-
-> Takashi Sakamoto
-
---=20
-Henrik Austad
-
---tsOsTdHNUZQcU9Ye
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAldnsjAACgkQ6k5VT6v45lmoigCeIIaItq1VgOUztudYjepQYaJf
-Fa8Anjte/cQzdBzNC5bW02x2AK+rx96S
-=CK9G
------END PGP SIGNATURE-----
-
---tsOsTdHNUZQcU9Ye--
+[1] https://boundarydevices.com/product/nit6x_5mp_mipi/
