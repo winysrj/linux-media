@@ -1,74 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:38859 "EHLO
-	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752056AbcFTKQX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 06:16:23 -0400
-Received: by mail-wm0-f52.google.com with SMTP id r201so54533121wme.1
-        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2016 03:16:09 -0700 (PDT)
-Date: Mon, 20 Jun 2016 12:16:03 +0200
-From: Gary Bisson <gary.bisson@boundarydevices.com>
-To: Jack Mitchell <ml@embed.me.uk>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [19/38] ARM: dts: imx6-sabrelite: add video capture ports and
- connections
-Message-ID: <20160620101603.GA817@t450s.lan>
-References: <1465944574-15745-20-git-send-email-steve_longerbeam@mentor.com>
- <20160616083231.GA6548@t450s.lan>
- <20160617151814.GA16378@t450s.lan>
- <57644915.3010006@gmail.com>
- <20160620093351.GA24310@t450s.lan>
- <d9bd2b49-e36b-6082-e31a-99d6c8c70b2c@embed.me.uk>
+Received: from mga14.intel.com ([192.55.52.115]:37500 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753012AbcFTQDP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2016 12:03:15 -0400
+Subject: Re: [PATCH 5/6] v4l: Add 14-bit raw bayer pixel format definitions
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de
+References: <1464353080-18300-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1464353080-18300-6-git-send-email-sakari.ailus@linux.intel.com>
+ <57680ACB.3050109@xs4all.nl>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <576813B9.9050407@linux.intel.com>
+Date: Mon, 20 Jun 2016 19:03:05 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d9bd2b49-e36b-6082-e31a-99d6c8c70b2c@embed.me.uk>
+In-Reply-To: <57680ACB.3050109@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jack, All,
+Hi Hans,
 
-On Mon, Jun 20, 2016 at 10:44:44AM +0100, Jack Mitchell wrote:
-> <snip>
-> > I've tried that patch have a some comments:
-> > - When applied, no capture shows up any more, instead I have two m2m
-> >   v4l2 devices [1].
-> > - OV5640 Mipi is assigned the same address as OV5642, therefore both
+Hans Verkuil wrote:
+> On 05/27/2016 02:44 PM, Sakari Ailus wrote:
+>> The formats added by this patch are:
+>>
+>> 	V4L2_PIX_FMT_SBGGR14
+>> 	V4L2_PIX_FMT_SGBRG14
+>> 	V4L2_PIX_FMT_SGRBG14
+>> 	V4L2_PIX_FMT_SRGGB14
+>>
+>> Signed-off-by: Jouni Ukkonen <jouni.ukkonen@intel.com>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> ---
+>>  Documentation/DocBook/media/v4l/pixfmt-srggb14.xml | 90 ++++++++++++++++++++++
+>>  Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
+>>  include/uapi/linux/videodev2.h                     |  4 +
+>>  3 files changed, 95 insertions(+)
+>>  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
+>> new file mode 100644
+>> index 0000000..7e82d7e
+>> --- /dev/null
+>> +++ b/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
+>> @@ -0,0 +1,90 @@
+>> +    <refentry>
+>> +      <refmeta>
+>> +	<refentrytitle>V4L2_PIX_FMT_SRGGB14 ('RG14'),
+>> +	 V4L2_PIX_FMT_SGRBG14 ('BA14'),
+>> +	 V4L2_PIX_FMT_SGBRG14 ('GB14'),
+>> +	 V4L2_PIX_FMT_SBGGR14 ('BG14'),
 > 
-> Yes, I only have one device attached in my scenario.
+> Same comma problem.
 
-Thanks for confirming.
+Fixed.
 
-> >   can't work at the same time right now. There's a register in the
-> >   camera that allows to modify its I2C address, see this patch [2].
-> > - How is the mclk working in this patch? It should be using the PWM3
 > 
-> As mentioned I have an eCon sensor board [1] which generates it's own clock
-> on the board and as such I don't need the PWM signal, just the two GPIOs.
-
-Oh ok, thanks I didn't this sensor board was different than ours [1].
-
-But in your patch, you specifically disable pwm3, what's the reason for
-it?
-
-> >   output to generate a ~22MHz clock. I would expect the use of a
-> >   pwm-clock node [3].
-> > 
-> > Also another remark on both OV5642 and OV5640 patches, is it recommended
-> > to use 0x80000000 pin muxing value? This leaves it to the bootloader to
+>> +	 </refentrytitle>
+>> +	&manvol;
+>> +      </refmeta>
+>> +      <refnamediv>
+>> +	<refname id="V4L2-PIX-FMT-SRGGB14"><constant>V4L2_PIX_FMT_SRGGB14</constant></refname>
+>> +	<refname id="V4L2-PIX-FMT-SGRBG14"><constant>V4L2_PIX_FMT_SGRBG14</constant></refname>
+>> +	<refname id="V4L2-PIX-FMT-SGBRG14"><constant>V4L2_PIX_FMT_SGBRG14</constant></refname>
+>> +	<refname id="V4L2-PIX-FMT-SBGGR14"><constant>V4L2_PIX_FMT_SBGGR14</constant></refname>
+>> +	<refpurpose>14-bit Bayer formats expanded to 16 bits</refpurpose>
+>> +      </refnamediv>
+>> +      <refsect1>
+>> +	<title>Description</title>
+>> +
+>> +	<para>These four pixel formats are raw sRGB / Bayer formats with
+>> +14 bits per colour. Each colour component is stored in a 16-bit word, with 2
+>> +unused high bits filled with zeros. Each n-pixel row contains n/2 green samples
+>> +and n/2 blue or red samples, with alternating red and blue rows. Bytes are
+>> +stored in memory in little endian order. They are conventionally described
+>> +as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example of one of these
+>> +formats</para>
 > 
-> I also wondered about this, but didn't know if the pinmux driver did this
-> based on the define name? I tried it both ways and it worked so I just left
-> it as it was.
+> s/formats/formats:/
 
-Actually my phrasing is wrong, the muxing is ok. Yes depending on the
-name a pin will be muxed to one function or another. The problem is the
-pad configuration (pull-up, pull-down etc..). I am not surprised that it
-works, because the bootloader should properly set those. But it would be
-safer IMO not to rely on it.
+Fixed.
 
-Regards,
-Gary
+>> +
+>> +    <example>
+>> +      <title><constant>V4L2_PIX_FMT_SBGGR14</constant> 4 &times; 4
+>> +pixel image</title>
+>> +
+>> +      <formalpara>
+>> +	<title>Byte Order.</title>
+>> +	<para>Each cell is one byte, high 2 bits in high bytes are 0.
+> 
+> s/high 2/the high 2/
 
-[1] https://boundarydevices.com/product/nit6x_5mp_mipi/
+After re-reading the patch, I changed this to "Each cell is one byte,
+the 2 most significant bits in the high bytes are 0".
+
+> 
+>> +	  <informaltable frame="none">
+>> +	    <tgroup cols="5" align="center">
+>> +	      <colspec align="left" colwidth="2*" />
+>> +	      <tbody valign="top">
+>> +		<row>
+>> +		  <entry>start&nbsp;+&nbsp;0:</entry>
+>> +		  <entry>B<subscript>00low</subscript></entry>
+>> +		  <entry>B<subscript>00high</subscript></entry>
+>> +		  <entry>G<subscript>01low</subscript></entry>
+>> +		  <entry>G<subscript>01high</subscript></entry>
+>> +		  <entry>B<subscript>02low</subscript></entry>
+>> +		  <entry>B<subscript>02high</subscript></entry>
+>> +		  <entry>G<subscript>03low</subscript></entry>
+>> +		  <entry>G<subscript>03high</subscript></entry>
+>> +		</row>
+>> +		<row>
+>> +		  <entry>start&nbsp;+&nbsp;8:</entry>
+>> +		  <entry>G<subscript>10low</subscript></entry>
+>> +		  <entry>G<subscript>10high</subscript></entry>
+>> +		  <entry>R<subscript>11low</subscript></entry>
+>> +		  <entry>R<subscript>11high</subscript></entry>
+>> +		  <entry>G<subscript>12low</subscript></entry>
+>> +		  <entry>G<subscript>12high</subscript></entry>
+>> +		  <entry>R<subscript>13low</subscript></entry>
+>> +		  <entry>R<subscript>13high</subscript></entry>
+>> +		</row>
+>> +		<row>
+>> +		  <entry>start&nbsp;+&nbsp;16:</entry>
+>> +		  <entry>B<subscript>20low</subscript></entry>
+>> +		  <entry>B<subscript>20high</subscript></entry>
+>> +		  <entry>G<subscript>21low</subscript></entry>
+>> +		  <entry>G<subscript>21high</subscript></entry>
+>> +		  <entry>B<subscript>22low</subscript></entry>
+>> +		  <entry>B<subscript>22high</subscript></entry>
+>> +		  <entry>G<subscript>23low</subscript></entry>
+>> +		  <entry>G<subscript>23high</subscript></entry>
+>> +		</row>
+>> +		<row>
+>> +		  <entry>start&nbsp;+&nbsp;24:</entry>
+>> +		  <entry>G<subscript>30low</subscript></entry>
+>> +		  <entry>G<subscript>30high</subscript></entry>
+>> +		  <entry>R<subscript>31low</subscript></entry>
+>> +		  <entry>R<subscript>31high</subscript></entry>
+>> +		  <entry>G<subscript>32low</subscript></entry>
+>> +		  <entry>G<subscript>32high</subscript></entry>
+>> +		  <entry>R<subscript>33low</subscript></entry>
+>> +		  <entry>R<subscript>33high</subscript></entry>
+>> +		</row>
+>> +	      </tbody>
+>> +	    </tgroup>
+>> +	  </informaltable>
+>> +	</para>
+>> +      </formalpara>
+>> +    </example>
+>> +  </refsect1>
+>> +</refentry>
+>> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+>> index 457337e..29e9d7c 100644
+>> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
+>> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+>> @@ -1594,6 +1594,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+>>      &sub-srggb10dpcm8;
+>>      &sub-srggb12;
+>>      &sub-srggb12p;
+>> +    &sub-srggb14;
+>>    </section>
+>>  
+>>    <section id="yuv-formats">
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index 7ace868..2c4b076 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -581,6 +581,10 @@ struct v4l2_pix_format {
+>>  #define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
+>>  #define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
+>>  #define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
+>> +#define V4L2_PIX_FMT_SBGGR14 v4l2_fourcc('B', 'G', '1', '4') /* 14  BGBG.. GRGR.. */
+>> +#define V4L2_PIX_FMT_SGBRG14 v4l2_fourcc('G', 'B', '1', '4') /* 14  GBGB.. RGRG.. */
+>> +#define V4L2_PIX_FMT_SGRBG14 v4l2_fourcc('B', 'A', '1', '4') /* 14  GRGR.. BGBG.. */
+>> +#define V4L2_PIX_FMT_SRGGB14 v4l2_fourcc('R', 'G', '1', '4') /* 14  RGRG.. GBGB.. */
+>>  #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
+>>  
+>>  /* compressed formats */
+>>
+> 
+> Regards,
+> 
+> 	Hans
+> 
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
