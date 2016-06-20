@@ -1,76 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45205
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754013AbcFQIyl (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:37704 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752115AbcFTJzk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 04:54:41 -0400
-Date: Fri, 17 Jun 2016 05:54:35 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Gregor Jasny <gjasny@googlemail.com>
-Subject: Re: Can you look at this apps build warning?
-Message-ID: <20160617055435.6cbd1b5d@recife.lan>
-In-Reply-To: <5763A448.1010003@xs4all.nl>
-References: <5763A448.1010003@xs4all.nl>
+	Mon, 20 Jun 2016 05:55:40 -0400
+Subject: Re: [PATCH] vb2: V4L2_BUF_FLAG_DONE is set after DQBUF
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	hans.verkuil@cisco.com, Dimitrios Katsaros <patcherwork@gmail.com>
+References: <1466413304-8328-1-git-send-email-ricardo.ribalda@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5767BD2F.5070205@xs4all.nl>
+Date: Mon, 20 Jun 2016 11:53:51 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1466413304-8328-1-git-send-email-ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 17 Jun 2016 09:18:32 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> Hi Mauro,
+On 06/20/2016 11:01 AM, Ricardo Ribalda Delgado wrote:
+> According to the doc, V4L2_BUF_FLAG_DONE is cleared after DQBUF:
 > 
-> From the daily build:
+> V4L2_BUF_FLAG_DONE 0x00000004  ... After calling the VIDIOC_QBUF or
+> VIDIOC_DQBUF it is always cleared ...
 > 
-> apps: WARNINGS
-> dvb-sat.c:188:14: warning: unused variable 's' [-Wunused-variable]
+> Unfortunately, it seems that videobuf2 keeps it set after DQBUF. This
+> can be tested with vivid and dev_debug:
 > 
-> The fix is easy of course (delete static char s[1024];), but it is a bit surprising and I just
-> want to make sure there isn't something else going on.
+> [257604.338082] video1: VIDIOC_DQBUF: 71:33:25.00260479 index=3,
+> type=vid-cap, flags=0x00002004, field=none, sequence=163,
+> memory=userptr, bytesused=460800, offset/userptr=0x344b000,
+> length=460800
+> 
+> This patch changes the order when fill_user_buffer() is called,
+> to follow the documentation.
+> 
+> Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 
-Thanks for noticing.
+Sorry, this won't work. Calling __vb2_dqbuf will overwrite the state
+VB2_BUF_STATE_ERROR and so the V4L2_BUF_FLAG_ERROR flag will never be
+set. The same is true for the last 'if' in the __fill_v4l2_buffer()
+function.
 
-That line is bogus. I added it together with some other debug code,
-while I was trying to understand why the newer libdvbv5.mo was not
-being used on my system.
+I think it might be better to keep this code and instead change the
+vb2_internal_dqbuf function to just clear the DONE flag after calling
+vb2_core_dqbuf.
 
-There's actually an weird issue that was happening on my system.
-Here, I installed v4l-utils at the /usr/local prefix.
+It would be nice to have a v4l2_compliance check for this as well.
 
-For the dvbv5-scan, it should load the v4l-utils.mo translation.
+Regards,
 
-It did it right:
+	Hans
 
-open("/usr/local/share/locale/pt_BR.utf8/LC_MESSAGES/v4l-utils.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
-open("/usr/local/share/locale/pt_BR/LC_MESSAGES/v4l-utils.mo", O_RDONLY) = 3
-
-But, for the library, it looked only at the /usr prefix:
-
-open("/usr/share/locale/pt_BR.utf8/LC_MESSAGES/libdvbv5.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
-open("/usr/share/locale/pt_BR/LC_MESSAGES/libdvbv5.mo", O_RDONLY) = 3
-
-So, it was loading an old copy of the translation messages.
-
-Btw, there is a similar issue I noticed a few weeks ago,
-related to pkg-config: it is also not looking for libdvbv5.pc
-at /usr/local prefix. I also had to manually force pkg-config
-to also seek under /usr/local by setting an env var:
-
-export PKG_CONFIG_PATH=$(pkg-config --variable pc_path pkg-config):/usr/local/lib/pkgconfig
-
-I didn't try to identify the reason for that yet. I *suspect* that 
-this is not related to v4l-utils autoconfig, but, instead, to some
-patches that are missing when pkg-config and glibc search patches
-on Fedora 23.
-
-In any case, I'm c/c Gregor. He may know a little bit more about
-such issues.
-
-Anyway, with regards to the unused code, just fixed it upstream.
-
-Thanks,
-Mauro
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 633fc1ab1d7a..63981f28075e 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1771,10 +1771,6 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
+>  	if (pindex)
+>  		*pindex = vb->index;
+>  
+> -	/* Fill buffer information for the userspace */
+> -	if (pb)
+> -		call_void_bufop(q, fill_user_buffer, vb, pb);
+> -
+>  	/* Remove from videobuf queue */
+>  	list_del(&vb->queued_entry);
+>  	q->queued_count--;
+> @@ -1784,6 +1780,10 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
+>  	/* go back to dequeued state */
+>  	__vb2_dqbuf(vb);
+>  
+> +	/* Fill buffer information for the userspace */
+> +	if (pb)
+> +		call_void_bufop(q, fill_user_buffer, vb, pb);
+> +
+>  	dprintk(1, "dqbuf of buffer %d, with state %d\n",
+>  			vb->index, vb->state);
+>  
+> 
