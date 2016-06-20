@@ -1,91 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:37704 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752115AbcFTJzk (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48586 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754527AbcFTRFo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 05:55:40 -0400
-Subject: Re: [PATCH] vb2: V4L2_BUF_FLAG_DONE is set after DQBUF
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hans.verkuil@cisco.com, Dimitrios Katsaros <patcherwork@gmail.com>
-References: <1466413304-8328-1-git-send-email-ricardo.ribalda@gmail.com>
+	Mon, 20 Jun 2016 13:05:44 -0400
+Subject: Re: [PATCH v2 1/7] v4l: Correct the ordering of LSBs of the 10-bit
+ raw packed formats
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+References: <1466439608-22890-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1466439608-22890-2-git-send-email-sakari.ailus@linux.intel.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5767BD2F.5070205@xs4all.nl>
-Date: Mon, 20 Jun 2016 11:53:51 +0200
+Message-ID: <576821D9.5090303@xs4all.nl>
+Date: Mon, 20 Jun 2016 19:03:21 +0200
 MIME-Version: 1.0
-In-Reply-To: <1466413304-8328-1-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1466439608-22890-2-git-send-email-sakari.ailus@linux.intel.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/20/2016 11:01 AM, Ricardo Ribalda Delgado wrote:
-> According to the doc, V4L2_BUF_FLAG_DONE is cleared after DQBUF:
+On 06/20/2016 06:20 PM, Sakari Ailus wrote:
+> The 10-bit packed raw bayer format documented that the data of the first
+> pixel of a four-pixel group was found in the first byte and the two
+> highest bits of the fifth byte. This was not entirely correct. The two
+> bits in the fifth byte are the two lowest bits. The second pixel occupies
+> the second byte and third and fourth least significant bits and so on.
 > 
-> V4L2_BUF_FLAG_DONE 0x00000004  ... After calling the VIDIOC_QBUF or
-> VIDIOC_DQBUF it is always cleared ...
-> 
-> Unfortunately, it seems that videobuf2 keeps it set after DQBUF. This
-> can be tested with vivid and dev_debug:
-> 
-> [257604.338082] video1: VIDIOC_DQBUF: 71:33:25.00260479 index=3,
-> type=vid-cap, flags=0x00002004, field=none, sequence=163,
-> memory=userptr, bytesused=460800, offset/userptr=0x344b000,
-> length=460800
-> 
-> This patch changes the order when fill_user_buffer() is called,
-> to follow the documentation.
-> 
-> Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Sorry, this won't work. Calling __vb2_dqbuf will overwrite the state
-VB2_BUF_STATE_ERROR and so the V4L2_BUF_FLAG_ERROR flag will never be
-set. The same is true for the last 'if' in the __fill_v4l2_buffer()
-function.
-
-I think it might be better to keep this code and instead change the
-vb2_internal_dqbuf function to just clear the DONE flag after calling
-vb2_core_dqbuf.
-
-It would be nice to have a v4l2_compliance check for this as well.
+As mentioned, this needs confirmation. I wonder, isn't this specified in the UVC
+spec?
 
 Regards,
 
 	Hans
 
 > ---
->  drivers/media/v4l2-core/videobuf2-core.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
+>  .../DocBook/media/v4l/pixfmt-srggb10p.xml          | 32 +++++++++++-----------
+>  1 file changed, 16 insertions(+), 16 deletions(-)
 > 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 633fc1ab1d7a..63981f28075e 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1771,10 +1771,6 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
->  	if (pindex)
->  		*pindex = vb->index;
->  
-> -	/* Fill buffer information for the userspace */
-> -	if (pb)
-> -		call_void_bufop(q, fill_user_buffer, vb, pb);
-> -
->  	/* Remove from videobuf queue */
->  	list_del(&vb->queued_entry);
->  	q->queued_count--;
-> @@ -1784,6 +1780,10 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
->  	/* go back to dequeued state */
->  	__vb2_dqbuf(vb);
->  
-> +	/* Fill buffer information for the userspace */
-> +	if (pb)
-> +		call_void_bufop(q, fill_user_buffer, vb, pb);
-> +
->  	dprintk(1, "dqbuf of buffer %d, with state %d\n",
->  			vb->index, vb->state);
->  
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
+> index a8cc102..747822b 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10p.xml
+> @@ -47,10 +47,10 @@
+>  		  <entry>G<subscript>01high</subscript></entry>
+>  		  <entry>B<subscript>02high</subscript></entry>
+>  		  <entry>G<subscript>03high</subscript></entry>
+> -		  <entry>B<subscript>00low</subscript>(bits 7--6)
+> -			 G<subscript>01low</subscript>(bits 5--4)
+> -			 B<subscript>02low</subscript>(bits 3--2)
+> -			 G<subscript>03low</subscript>(bits 1--0)
+> +		  <entry>G<subscript>03low</subscript>(bits 7--6)
+> +			 B<subscript>02low</subscript>(bits 5--4)
+> +			 G<subscript>01low</subscript>(bits 3--2)
+> +			 B<subscript>00low</subscript>(bits 1--0)
+>  		  </entry>
+>  		</row>
+>  		<row>
+> @@ -59,10 +59,10 @@
+>  		  <entry>R<subscript>11high</subscript></entry>
+>  		  <entry>G<subscript>12high</subscript></entry>
+>  		  <entry>R<subscript>13high</subscript></entry>
+> -		  <entry>G<subscript>10low</subscript>(bits 7--6)
+> -			 R<subscript>11low</subscript>(bits 5--4)
+> -			 G<subscript>12low</subscript>(bits 3--2)
+> -			 R<subscript>13low</subscript>(bits 1--0)
+> +		  <entry>R<subscript>13low</subscript>(bits 7--6)
+> +			 G<subscript>12low</subscript>(bits 5--4)
+> +			 R<subscript>11low</subscript>(bits 3--2)
+> +			 G<subscript>10low</subscript>(bits 1--0)
+>  		  </entry>
+>  		</row>
+>  		<row>
+> @@ -71,10 +71,10 @@
+>  		  <entry>G<subscript>21high</subscript></entry>
+>  		  <entry>B<subscript>22high</subscript></entry>
+>  		  <entry>G<subscript>23high</subscript></entry>
+> -		  <entry>B<subscript>20low</subscript>(bits 7--6)
+> -			 G<subscript>21low</subscript>(bits 5--4)
+> -			 B<subscript>22low</subscript>(bits 3--2)
+> -			 G<subscript>23low</subscript>(bits 1--0)
+> +		  <entry>G<subscript>23low</subscript>(bits 7--6)
+> +			 B<subscript>22low</subscript>(bits 5--4)
+> +			 G<subscript>21low</subscript>(bits 3--2)
+> +			 B<subscript>20low</subscript>(bits 1--0)
+>  		  </entry>
+>  		</row>
+>  		<row>
+> @@ -83,10 +83,10 @@
+>  		  <entry>R<subscript>31high</subscript></entry>
+>  		  <entry>G<subscript>32high</subscript></entry>
+>  		  <entry>R<subscript>33high</subscript></entry>
+> -		  <entry>G<subscript>30low</subscript>(bits 7--6)
+> -			 R<subscript>31low</subscript>(bits 5--4)
+> -			 G<subscript>32low</subscript>(bits 3--2)
+> -			 R<subscript>33low</subscript>(bits 1--0)
+> +		  <entry>R<subscript>33low</subscript>(bits 7--6)
+> +			 G<subscript>32low</subscript>(bits 5--4)
+> +			 R<subscript>31low</subscript>(bits 3--2)
+> +			 G<subscript>30low</subscript>(bits 1--0)
+>  		  </entry>
+>  		</row>
+>  	      </tbody>
 > 
