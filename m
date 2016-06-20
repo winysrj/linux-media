@@ -1,109 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:39997 "EHLO
-	ussmtp01.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752337AbcFQJHl (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:35090 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751524AbcFTDEA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 05:07:41 -0400
-From: Songjun Wu <songjun.wu@atmel.com>
-To: <laurent.pinchart@ideasonboard.com>, <nicolas.ferre@atmel.com>,
-	<boris.brezillon@free-electrons.com>,
-	<alexandre.belloni@free-electrons.com>, <robh@kernel.org>
-CC: <linux-arm-kernel@lists.infradead.org>,
-	Songjun Wu <songjun.wu@atmel.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	=?UTF-8?q?Niklas=20S=C3=83=C2=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	=?UTF-8?q?Richard=20R=C3=B6jfors?= <richard@puffinpack.se>,
-	Benoit Parrot <bparrot@ti.com>,
-	Kumar Gala <galak@codeaurora.org>,
-	<linux-kernel@vger.kernel.org>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-	<devicetree@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mark Rutland <mark.rutland@arm.com>,
-	<linux-media@vger.kernel.org>,
-	Simon Horman <horms+renesas@verge.net.au>
-Subject: [PATCH v5 0/2] [media] atmel-isc: add driver for Atmel ISC
-Date: Fri, 17 Jun 2016 16:57:12 +0800
-Message-ID: <1466153854-30272-1-git-send-email-songjun.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Sun, 19 Jun 2016 23:04:00 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 60D62180CC6
+	for <linux-media@vger.kernel.org>; Mon, 20 Jun 2016 05:00:35 +0200 (CEST)
+Date: Mon, 20 Jun 2016 05:00:35 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160620030035.60D62180CC6@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Image Sensor Controller driver includes two parts.
-1) Driver code to implement the ISC function.
-2) Device tree binding documentation, it describes how
-   to add the ISC in device tree.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Changes in v5:
-- Modify the macro definition and the related code.
-- Add clock names.
+Results of the daily build of media_tree:
 
-Changes in v4:
-- Modify the isc clock code since the dt is changed.
-- Remove the isc clock nodes.
+date:		Mon Jun 20 04:00:17 CEST 2016
+git branch:	test
+git hash:	59f0bc11848f8f3242bc1fefae670e745929cd7b
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
 
-Changes in v3:
-- Add pm runtime feature.
-- Modify the isc clock code since the dt is changed.
-- Remove the 'atmel,sensor-preferred'.
-- Modify the isc clock node according to the Rob's remarks.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-Changes in v2:
-- Add "depends on COMMON_CLK" and "VIDEO_V4L2_SUBDEV_API"
-  in Kconfig file.
-- Correct typos and coding style according to Laurent's remarks
-- Delete the loop while in 'isc_clk_enable' function.
-- Replace 'hsync_active', 'vsync_active' and 'pclk_sample'
-  with 'pfe_cfg0' in struct isc_subdev_entity.
-- Add the code to support VIDIOC_CREATE_BUFS in
-  'isc_queue_setup' function.
-- Invoke isc_config to configure register in
-  'isc_start_streaming' function.
-- Add the struct completion 'comp' to synchronize with
-  the frame end interrupt in 'isc_stop_streaming' function.
-- Check the return value of the clk_prepare_enable
-  in 'isc_open' function.
-- Set the default format in 'isc_open' function.
-- Add an exit condition in the loop while in 'isc_config'.
-- Delete the hardware setup operation in 'isc_set_format'.
-- Refuse format modification during streaming
-  in 'isc_s_fmt_vid_cap' function.
-- Invoke v4l2_subdev_alloc_pad_config to allocate and
-  initialize the pad config in 'isc_async_complete' function.
-- Remove the '.owner  = THIS_MODULE,' in atmel_isc_driver.
-- Replace the module_platform_driver_probe() with
-  module_platform_driver().
-- Remove the unit address of the endpoint.
-- Add the unit address to the clock node.
-- Avoid using underscores in node names.
-- Drop the "0x" in the unit address of the i2c node.
-- Modify the description of 'atmel,sensor-preferred'.
-- Add the description for the ISC internal clock.
+Detailed results are available here:
 
-Songjun Wu (2):
-  [media] atmel-isc: add the Image Sensor Controller code
-  [media] atmel-isc: DT binding for Image Sensor Controller driver
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
- .../devicetree/bindings/media/atmel-isc.txt        |   64 +
- drivers/media/platform/Kconfig                     |    1 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/atmel/Kconfig               |    9 +
- drivers/media/platform/atmel/Makefile              |    1 +
- drivers/media/platform/atmel/atmel-isc-regs.h      |  165 ++
- drivers/media/platform/atmel/atmel-isc.c           | 1569 ++++++++++++++++++++
- 7 files changed, 1811 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
- create mode 100644 drivers/media/platform/atmel/Kconfig
- create mode 100644 drivers/media/platform/atmel/Makefile
- create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
- create mode 100644 drivers/media/platform/atmel/atmel-isc.c
+Full logs are available here:
 
--- 
-2.7.4
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
