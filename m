@@ -1,92 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:34169 "EHLO
-	mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751225AbcFJRk7 (ORCPT
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:35512 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753534AbcFTJd6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2016 13:40:59 -0400
-Date: Fri, 10 Jun 2016 12:40:57 -0500
-From: Rob Herring <robh@kernel.org>
-To: Kieran Bingham <kieran@ksquared.org.uk>
-Cc: Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	"open list:MEDIA DRIVERS FOR RENESAS - FDP1"
-	<linux-media@vger.kernel.org>,
-	"open list:MEDIA DRIVERS FOR RENESAS - FDP1"
-	<linux-renesas-soc@vger.kernel.org>,
-	"open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-	<devicetree@vger.kernel.org>,
-	open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 3/3] dt-bindings: Add Renesas R-Car FDP1 bindings
-Message-ID: <20160610174057.GA21480@rob-hp-laptop>
-References: <1465479695-18644-1-git-send-email-kieran@bingham.xyz>
- <1465479695-18644-4-git-send-email-kieran@bingham.xyz>
+	Mon, 20 Jun 2016 05:33:58 -0400
+Received: by mail-wm0-f44.google.com with SMTP id v199so61107633wmv.0
+        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2016 02:33:58 -0700 (PDT)
+Date: Mon, 20 Jun 2016 11:33:51 +0200
+From: Gary Bisson <gary.bisson@boundarydevices.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org, Jack Mitchell <ml@embed.me.uk>
+Subject: Re: [19/38] ARM: dts: imx6-sabrelite: add video capture ports and
+ connections
+Message-ID: <20160620093351.GA24310@t450s.lan>
+References: <1465944574-15745-20-git-send-email-steve_longerbeam@mentor.com>
+ <20160616083231.GA6548@t450s.lan>
+ <20160617151814.GA16378@t450s.lan>
+ <57644915.3010006@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1465479695-18644-4-git-send-email-kieran@bingham.xyz>
+In-Reply-To: <57644915.3010006@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 09, 2016 at 02:41:34PM +0100, Kieran Bingham wrote:
-> The FDP1 is a de-interlacing module which converts interlaced video to
-> progressive video. It is also capable of performing pixel format conversion
-> between YCbCr/YUV formats and RGB formats.
+Steve, Jack, All,
+
+On Fri, Jun 17, 2016 at 12:01:41PM -0700, Steve Longerbeam wrote:
 > 
-> Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
-> ---
->  .../devicetree/bindings/media/renesas,fdp1.txt     | 34 ++++++++++++++++++++++
->  1 file changed, 34 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/renesas,fdp1.txt
+> On 06/17/2016 08:18 AM, Gary Bisson wrote:
+> > Steve, All,
+> > 
+> > On Thu, Jun 16, 2016 at 10:32:31AM +0200, Gary Bisson wrote:
+> > > Steve, All,
+> > > 
+> > > On Tue, Jun 14, 2016 at 03:49:15PM -0700, Steve Longerbeam wrote:
+> > > > Defines the host video capture device node and an OV5642 camera sensor
+> > > > node on i2c2. The host capture device connects to the OV5642 via the
+> > > > parallel-bus mux input on the ipu1_csi0_mux.
+> > > > 
+> > > > Note there is a pin conflict with GPIO6. This pin functions as a power
+> > > > input pin to the OV5642, but ENET requires it to wake-up the ARM cores
+> > > > on normal RX and TX packet done events (see 6261c4c8). So by default,
+> > > > capture is disabled, enable by uncommenting __OV5642_CAPTURE__ macro.
+> > > > Ethernet will still work just not quite as well.
+> > > Actually the following patch fixes this issue and has already been
+> > > applied on Shawn's tree:
+> > > https://patchwork.kernel.org/patch/9153523/
+> > > 
+> > > Also, this follow-up patch declared the HW workaround for SabreLite:
+> > > https://patchwork.kernel.org/patch/9153525/
+> > > 
+> > > So ideally, once those two patches land on your base tree, you could get
+> > > rid of the #define and remove the HW workaround declaration.
+> > > 
+> > > Finally, I'll test the series on Sabre-Lite this week.
+> > I've applied this series on top of Shawn tree (for-next branch) in order
+> > not to worry about the GPIO6 workaround.
+> > 
+> > Although the camera seems to get enumerated properly, I can't seem to
+> > get anything from it. See log:
+> > http://pastebin.com/xnw1ujUq
 > 
-> diff --git a/Documentation/devicetree/bindings/media/renesas,fdp1.txt b/Documentation/devicetree/bindings/media/renesas,fdp1.txt
-> new file mode 100644
-> index 000000000000..e2da2aec5e9f
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/renesas,fdp1.txt
-> @@ -0,0 +1,34 @@
-> +Renesas R-Car Fine Display Processor (FDP1)
-> +-----------------------------------------------
-> +
-> +The FDP1 is a de-interlacing module which converts interlaced video to
-> +progressive video. It is capable of performing pixel format conversion between
-> +YCbCr/YUV formats and RGB formats. Only YCbCr/YUV formats are supported as
-> +an input to the module.
-> +
-> + - compatible: Must be one or more of the following
-> +
-> +   - "renesas,r8a7795-fdp1" for R8A7795 (R-Car H3)
-> +   - "renesas,r8a7796-fdp1" for R8A7796 (R-Car M3-W)
-> +   - "renesas,fdp1" for generic compatible
-> +
-> +   When compatible with the generic version, nodes must list the
-> +   SoC-specific version corresponding to the platform first, followed by the
-> +   family-specific and/or generic versions.
-> +
-> + - reg: the register base and size for the device registers
-> + - clocks: Reference to the functional clock
-> + - renesas,fcp: Reference to the FCPF connected to the FDP1
-> +
-> +
-> +Device node example
-> +-------------------
-> +
-> +	fdp1ch1: fdp1@fe940000 {
-> +		compatible = "renesas,r8a7795-fdp1", "renesas,fdp1";
-> +		reg = <0 0xfe940000 0 0x2400>;
-> +		interrupts = <GIC_SPI 262 IRQ_TYPE_LEVEL_HIGH>;
-> +		clocks = <&cpg CPG_MOD 119>;
-> +		power-domains = <&sysc R8A7795_PD_A3VP>;
+> Hi Gary, the driver does not implement vidioc_cropcap, it has
+> switched to the new selection APIs and v4l2src should be using
+> vidioc_g_selection instead of vidioc_cropcap.
 
-Not documented.
+I confirm this was the issue, your patch fixes it.
 
-> +		renesas,fcp = <&fcpf0>;
-> +	};
-> \ No newline at end of file
-
-Fix this.
-
-> -- 
-> 2.7.4
+> > In your cover letter, you said that you have not run through
+> > v4l2-compliance. How have you tested the capture?
 > 
+> I use v4l2-ctl, and have used v4l2src in the past, but that was before
+> switching to the selection APIs. Try the attached hack that adds
+> vidioc_cropcap back in, and see how far you get on SabreLite with
+> v4l2src. I tried  the following on SabreAuto:
+> 
+> gst-launch-1.0 v4l2src io_mode=4 !
+> "video/x-raw,format=RGB16,width=640,height=480" ! fbdevsink
+
+I confirm that works with OV5642 on SabreLite:
+Tested-by: Gary Bisson <gary.bisson@boundarydevices.com>
+
+> > Also, why isn't the OV5640 MIPI camera declared on the SabreLite device
+> > tree?
+> 
+> See Jack Mitchell's patch at http://ix.io/TTg. Thanks Jack! I will work on
+> incorporating it.
+
+I've tried that patch have a some comments:
+- When applied, no capture shows up any more, instead I have two m2m
+  v4l2 devices [1].
+- OV5640 Mipi is assigned the same address as OV5642, therefore both
+  can't work at the same time right now. There's a register in the
+  camera that allows to modify its I2C address, see this patch [2].
+- How is the mclk working in this patch? It should be using the PWM3
+  output to generate a ~22MHz clock. I would expect the use of a
+  pwm-clock node [3].
+
+Also another remark on both OV5642 and OV5640 patches, is it recommended
+to use 0x80000000 pin muxing value? This leaves it to the bootloader to
+properly setup the I/O. It sounds safer to properly set them up in the
+device tree in my opinion in order not to be dependent on the bootloader.
+
+All the above remarks said, thanks for this work on i.MX camera support,
+that feature will be highly appreciated.
+
+Regards,
+Gary
+
+[1] http://pastebin.com/i5MrhB1h
+[2] https://github.com/boundarydevices/linux-imx6/commit/f915806d
+[3] http://lxr.free-electrons.com/source/Documentation/devicetree/bindings/clock/pwm-clock.txt
