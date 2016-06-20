@@ -1,48 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35971 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932780AbcFIRiG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2016 13:38:06 -0400
-Received: by mail-wm0-f65.google.com with SMTP id m124so12360962wme.3
-        for <linux-media@vger.kernel.org>; Thu, 09 Jun 2016 10:38:05 -0700 (PDT)
-From: Kieran Bingham <kieran@ksquared.org.uk>
-To: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Kieran Bingham <kieran@ksquared.org.uk>
-Subject: [PATCH RFC 2/2] MAINTAINERS: Add support for FDP driver
-Date: Thu,  9 Jun 2016 18:37:59 +0100
-Message-Id: <1465493879-5419-3-git-send-email-kieran@bingham.xyz>
-In-Reply-To: <1465493879-5419-1-git-send-email-kieran@bingham.xyz>
-References: <1465493879-5419-1-git-send-email-kieran@bingham.xyz>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52953 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753982AbcFTTL5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2016 15:11:57 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 09/24] v4l: vsp1: Don't create LIF entity when the userspace API is enabled
+Date: Mon, 20 Jun 2016 22:10:27 +0300
+Message-Id: <1466449842-29502-10-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
----
- MAINTAINERS | 9 +++++++++
- 1 file changed, 9 insertions(+)
+The LIF is only used when feeding the VSP output to the DU. The only way
+to do so is by controlling the VSP directly from the DU driver and
+disabling the VSP userspace API. There is thus no need to create a LIF
+entity when the userspace API is enabled, as it can't be used in that
+case.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 66de4da2d244..bc083b58e478 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -7312,6 +7312,15 @@ S:	Supported
- F:	Documentation/devicetree/bindings/media/renesas,vsp1.txt
- F:	drivers/media/platform/vsp1/
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drv.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index cd56cad3abd9..7b9d95a6af23 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -182,19 +182,15 @@ static int vsp1_uapi_create_links(struct vsp1_device *vsp1)
  
-+MEDIA DRIVERS FOR RENESAS - FDP1
-+M:	Kieran Bingham <kieran@bingham.xyz>
-+L:	linux-media@vger.kernel.org
-+L:	linux-renesas-soc@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Supported
-+F:	Documentation/devicetree/bindings/media/renesas,fdp1.txt
-+F:	drivers/media/platform/rcar_fdp1.c
-+
- MEDIA DRIVERS FOR ASCOT2E
- M:	Sergey Kozlov <serjk@netup.ru>
- L:	linux-media@vger.kernel.org
+ 	for (i = 0; i < vsp1->info->wpf_count; ++i) {
+ 		/* Connect the video device to the WPF. All connections are
+-		 * immutable except for the WPF0 source link if a LIF is
+-		 * present.
++		 * immutable.
+ 		 */
+ 		struct vsp1_rwpf *wpf = vsp1->wpf[i];
+-		unsigned int flags = MEDIA_LNK_FL_ENABLED;
+-
+-		if (!(vsp1->info->features & VSP1_HAS_LIF) || i != 0)
+-			flags |= MEDIA_LNK_FL_IMMUTABLE;
+ 
+ 		ret = media_create_pad_link(&wpf->entity.subdev.entity,
+ 					    RWPF_PAD_SOURCE,
+ 					    &wpf->video->video.entity, 0,
+-					    flags);
++					    MEDIA_LNK_FL_IMMUTABLE |
++					    MEDIA_LNK_FL_ENABLED);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+@@ -293,7 +289,11 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 		list_add_tail(&vsp1->hgo->entity.list_dev, &vsp1->entities);
+ 	}
+ 
+-	if (vsp1->info->features & VSP1_HAS_LIF) {
++	/* The LIF is only supported when used in conjunction with the DU, in
++	 * which case the userspace API is disabled. If the userspace API is
++	 * enabled skip the LIF, even when present.
++	 */
++	if (vsp1->info->features & VSP1_HAS_LIF && !vsp1->info->uapi) {
+ 		vsp1->lif = vsp1_lif_create(vsp1);
+ 		if (IS_ERR(vsp1->lif)) {
+ 			ret = PTR_ERR(vsp1->lif);
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
 
