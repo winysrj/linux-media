@@ -1,125 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:45844 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755500AbcFHChg (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:55772 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752822AbcFTHzJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jun 2016 22:37:36 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2A7B01800D5
-	for <linux-media@vger.kernel.org>; Wed,  8 Jun 2016 04:37:30 +0200 (CEST)
-Date: Wed, 08 Jun 2016 04:37:30 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160608023730.2A7B01800D5@tschai.lan>
+	Mon, 20 Jun 2016 03:55:09 -0400
+Message-id: <57679E38.3080901@samsung.com>
+Date: Mon, 20 Jun 2016 09:41:44 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Russell King <linux@armlinux.org.uk>,
+	Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Sebastian Reichel <sre@kernel.org>,
+	Wolfram Sang <wsa@the-dreams.de>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Lauro Ramos Venancio <lauro.venancio@openbossa.org>,
+	Aloisio Almeida Jr <aloisio.almeida@openbossa.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Ingo Molnar <mingo@kernel.org>, linux-pwm@vger.kernel.org,
+	lguest@lists.ozlabs.org, linux-wireless@vger.kernel.org,
+	linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-leds@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 12/12] leds: Only descend into leds directory when
+ CONFIG_NEW_LEDS is set
+References: <20160613200211.14790-1-afd@ti.com>
+ <20160613200211.14790-13-afd@ti.com> <5760FA52.7010806@samsung.com>
+ <57647DBD.2010406@ti.com>
+In-reply-to: <57647DBD.2010406@ti.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 06/18/2016 12:46 AM, Andrew F. Davis wrote:
+> On 06/15/2016 01:48 AM, Jacek Anaszewski wrote:
+>> Hi Andrew,
+>>
+>> Thanks for the patch.
+>>
+>> Please address the issue [1] raised by test bot and resubmit.
+>>
+>> Thanks,
+>> Jacek Anaszewski
+>>
+>> [1] https://lkml.org/lkml/2016/6/13/1091
+>>
+>
+> It looks like some systems use 'gpio_led_register_device' to make an
+> in-memory copy of their LED device table so the original can be removed
+> as .init.rodata. This doesn't necessarily depend on the LED subsystem
+> but it kind of seems useless when the rest of the subsystem is disabled.
+>
+> One solution could be to use a dummy 'gpio_led_register_device' when the
+> subsystem is not enabled.
 
-Results of the daily build of media_tree:
+It sounds good. Please add a no-op version of gpio_led_register_device()
+to include/leds.h, in a separate patch.
 
-date:		Wed Jun  8 04:00:25 CEST 2016
-git branch:	test
-git hash:	4566b2543d89542cdd7fe940579787a160eba883
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.5.0-264
+Thanks,
+Jacek Anaszewski
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: ERRORS
-linux-4.5-i686: ERRORS
-linux-4.6-i686: OK
-linux-4.7-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: ERRORS
-linux-4.5-x86_64: ERRORS
-linux-4.6-x86_64: OK
-linux-4.7-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+> Another is just to remove the five or so uses
+> of 'gpio_led_register_device' and have those systems register LED device
+> tables like other systems do.
+>
+> If nether of these are acceptable then this patch can be dropped from
+> this series for now.
+>
+> Thanks,
+> Andrew
+>
+>> On 06/13/2016 10:02 PM, Andrew F. Davis wrote:
+>>> When CONFIG_NEW_LEDS is not set make will still descend into the leds
+>>> directory but nothing will be built. This produces unneeded build
+>>> artifacts and messages in addition to slowing the build. Fix this here.
+>>>
+>>> Signed-off-by: Andrew F. Davis <afd@ti.com>
+>>> ---
+>>>    drivers/Makefile | 2 +-
+>>>    1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/Makefile b/drivers/Makefile
+>>> index 567e32c..fa514d5 100644
+>>> --- a/drivers/Makefile
+>>> +++ b/drivers/Makefile
+>>> @@ -127,7 +127,7 @@ obj-$(CONFIG_CPU_FREQ)        += cpufreq/
+>>>    obj-$(CONFIG_CPU_IDLE)        += cpuidle/
+>>>    obj-$(CONFIG_MMC)        += mmc/
+>>>    obj-$(CONFIG_MEMSTICK)        += memstick/
+>>> -obj-y                += leds/
+>>> +obj-$(CONFIG_NEW_LEDS)        += leds/
+>>>    obj-$(CONFIG_INFINIBAND)    += infiniband/
+>>>    obj-$(CONFIG_SGI_SN)        += sn/
+>>>    obj-y                += firmware/
+>>>
+>>
+>>
+>
+>
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
