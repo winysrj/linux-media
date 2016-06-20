@@ -1,168 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:62820 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750882AbcFQOQh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 10:16:37 -0400
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	Nick Dyer <nick.dyer@itdev.co.uk>
-Subject: [PATCH v4 1/9] [media] Add signed 16-bit pixel format
-Date: Fri, 17 Jun 2016 15:16:20 +0100
-Message-Id: <1466172988-3698-2-git-send-email-nick.dyer@itdev.co.uk>
-In-Reply-To: <1466172988-3698-1-git-send-email-nick.dyer@itdev.co.uk>
-References: <1466172988-3698-1-git-send-email-nick.dyer@itdev.co.uk>
+Received: from bear.ext.ti.com ([198.47.19.11]:45802 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751828AbcFTWVy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2016 18:21:54 -0400
+Subject: [PATCH] leds: Add no-op gpio_led_register_device when LED subsystem
+ is disabled
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+References: <20160613200211.14790-1-afd@ti.com>
+ <20160613200211.14790-13-afd@ti.com> <5760FA52.7010806@samsung.com>
+ <57647DBD.2010406@ti.com> <57679E38.3080901@samsung.com>
+CC: Russell King <linux@armlinux.org.uk>,
+	Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Sebastian Reichel <sre@kernel.org>,
+	Wolfram Sang <wsa@the-dreams.de>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Lauro Ramos Venancio <lauro.venancio@openbossa.org>,
+	Aloisio Almeida Jr <aloisio.almeida@openbossa.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Ingo Molnar <mingo@kernel.org>, <linux-pwm@vger.kernel.org>,
+	<lguest@lists.ozlabs.org>, <linux-wireless@vger.kernel.org>,
+	<linux-mmc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-gpio@vger.kernel.org>, <linux-i2c@vger.kernel.org>,
+	<linuxppc-dev@lists.ozlabs.org>, <linux-leds@vger.kernel.org>,
+	<linux-media@vger.kernel.org>
+From: "Andrew F. Davis" <afd@ti.com>
+Message-ID: <57686A94.2010704@ti.com>
+Date: Mon, 20 Jun 2016 17:13:40 -0500
+MIME-Version: 1.0
+In-Reply-To: <57679E38.3080901@samsung.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This will be used for output of raw touch delta data. This format is
-used by Atmel maXTouch (atmel_mxt_ts) and also Synaptics RMI4.
+Some systems use 'gpio_led_register_device' to make an in-memory copy of
+their LED device table so the original can be removed as .init.rodata.
+When the LED subsystem is not enabled source in the led directory is not
+built and so this function may be undefined. Fix this here.
 
-Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
+Signed-off-by: Andrew F. Davis <afd@ti.com>
 ---
- Documentation/DocBook/media/v4l/pixfmt-ys16.xml | 79 +++++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml      |  1 +
- drivers/media/v4l2-core/v4l2-ioctl.c            |  1 +
- include/uapi/linux/videodev2.h                  |  1 +
- 4 files changed, 82 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-ys16.xml
+ include/linux/leds.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-ys16.xml b/Documentation/DocBook/media/v4l/pixfmt-ys16.xml
-new file mode 100644
-index 0000000..f92d65e
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-ys16.xml
-@@ -0,0 +1,79 @@
-+<refentry id="V4L2-PIX-FMT-YS16">
-+  <refmeta>
-+    <refentrytitle>V4L2_PIX_FMT_YS16 ('YS16')</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+  <refnamediv>
-+    <refname><constant>V4L2_PIX_FMT_YS16</constant></refname>
-+    <refpurpose>Grey-scale image</refpurpose>
-+  </refnamediv>
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>This is a signed grey-scale image with a depth of 16 bits per
-+pixel. The most significant byte is stored at higher memory addresses
-+(little-endian).</para>
-+
-+    <example>
-+      <title><constant>V4L2_PIX_FMT_YS16</constant> 4 &times; 4
-+pixel image</title>
-+
-+      <formalpara>
-+	<title>Byte Order.</title>
-+	<para>Each cell is one byte.
-+	  <informaltable frame="none">
-+	    <tgroup cols="9" align="center">
-+	      <colspec align="left" colwidth="2*" />
-+	      <tbody valign="top">
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;0:</entry>
-+		  <entry>Y'<subscript>00low</subscript></entry>
-+		  <entry>Y'<subscript>00high</subscript></entry>
-+		  <entry>Y'<subscript>01low</subscript></entry>
-+		  <entry>Y'<subscript>01high</subscript></entry>
-+		  <entry>Y'<subscript>02low</subscript></entry>
-+		  <entry>Y'<subscript>02high</subscript></entry>
-+		  <entry>Y'<subscript>03low</subscript></entry>
-+		  <entry>Y'<subscript>03high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;8:</entry>
-+		  <entry>Y'<subscript>10low</subscript></entry>
-+		  <entry>Y'<subscript>10high</subscript></entry>
-+		  <entry>Y'<subscript>11low</subscript></entry>
-+		  <entry>Y'<subscript>11high</subscript></entry>
-+		  <entry>Y'<subscript>12low</subscript></entry>
-+		  <entry>Y'<subscript>12high</subscript></entry>
-+		  <entry>Y'<subscript>13low</subscript></entry>
-+		  <entry>Y'<subscript>13high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;16:</entry>
-+		  <entry>Y'<subscript>20low</subscript></entry>
-+		  <entry>Y'<subscript>20high</subscript></entry>
-+		  <entry>Y'<subscript>21low</subscript></entry>
-+		  <entry>Y'<subscript>21high</subscript></entry>
-+		  <entry>Y'<subscript>22low</subscript></entry>
-+		  <entry>Y'<subscript>22high</subscript></entry>
-+		  <entry>Y'<subscript>23low</subscript></entry>
-+		  <entry>Y'<subscript>23high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;24:</entry>
-+		  <entry>Y'<subscript>30low</subscript></entry>
-+		  <entry>Y'<subscript>30high</subscript></entry>
-+		  <entry>Y'<subscript>31low</subscript></entry>
-+		  <entry>Y'<subscript>31high</subscript></entry>
-+		  <entry>Y'<subscript>32low</subscript></entry>
-+		  <entry>Y'<subscript>32high</subscript></entry>
-+		  <entry>Y'<subscript>33low</subscript></entry>
-+		  <entry>Y'<subscript>33high</subscript></entry>
-+		</row>
-+	      </tbody>
-+	    </tgroup>
-+	  </informaltable>
-+	</para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 5a08aee..f3e3e6d 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -1619,6 +1619,7 @@ information.</para>
-     &sub-y12;
-     &sub-y10b;
-     &sub-y16;
-+    &sub-ys16;
-     &sub-y16-be;
-     &sub-y8i;
-     &sub-y12i;
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 28e5be2..ecf7e0b 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1164,6 +1164,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_PIX_FMT_Y10:		descr = "10-bit Greyscale"; break;
- 	case V4L2_PIX_FMT_Y12:		descr = "12-bit Greyscale"; break;
- 	case V4L2_PIX_FMT_Y16:		descr = "16-bit Greyscale"; break;
-+	case V4L2_PIX_FMT_YS16:		descr = "16-bit Greyscale (Signed)"; break;
- 	case V4L2_PIX_FMT_Y16_BE:	descr = "16-bit Greyscale BE"; break;
- 	case V4L2_PIX_FMT_Y10BPACK:	descr = "10-bit Greyscale (Packed)"; break;
- 	case V4L2_PIX_FMT_PAL8:		descr = "8-bit Palette"; break;
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 8f95191..e0125cf 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -493,6 +493,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_Y12     v4l2_fourcc('Y', '1', '2', ' ') /* 12  Greyscale     */
- #define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y', '1', '6', ' ') /* 16  Greyscale     */
- #define V4L2_PIX_FMT_Y16_BE  v4l2_fourcc_be('Y', '1', '6', ' ') /* 16  Greyscale BE  */
-+#define V4L2_PIX_FMT_YS16    v4l2_fourcc('Y', 'S', '1', '6') /* signed 16-bit Greyscale */
- 
- /* Grey bit-packed formats */
- #define V4L2_PIX_FMT_Y10BPACK    v4l2_fourcc('Y', '1', '0', 'B') /* 10  Greyscale bit-packed */
+diff --git a/include/linux/leds.h b/include/linux/leds.h
+index d2b1306..a4a3da6 100644
+--- a/include/linux/leds.h
++++ b/include/linux/leds.h
+@@ -386,8 +386,16 @@ struct gpio_led_platform_data {
+                                        unsigned long *delay_off);
+ };
+
++#ifdef CONFIG_NEW_LEDS
+ struct platform_device *gpio_led_register_device(
+                int id, const struct gpio_led_platform_data *pdata);
++#else
++static inline struct platform_device *gpio_led_register_device(
++               int id, const struct gpio_led_platform_data *pdata)
++{
++       return 0;
++}
++#endif
+
+ enum cpu_led_event {
+        CPU_LED_IDLE_START,     /* CPU enters idle */
 -- 
-2.5.0
-
+2.9.0
