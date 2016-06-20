@@ -1,101 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:54195 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751706AbcF0M1i (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 08:27:38 -0400
-Date: Mon, 27 Jun 2016 14:27:31 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 01/24] v4l: Add metadata buffer type and format
-In-Reply-To: <1466449842-29502-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1606271357560.8022@axis700.grange>
-References: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1466449842-29502-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:55228 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752264AbcFTMku (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2016 08:40:50 -0400
+Subject: Re: [PATCH v2 4/4] vb2: V4L2_BUF_FLAG_DONE is set after DQBUF
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	hans.verkuil@cisco.com, hverkuil@xs4all.nl
+References: <1466425809-23469-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1466425809-23469-4-git-send-email-ricardo.ribalda@gmail.com>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <5767E3C7.3060603@cisco.com>
+Date: Mon, 20 Jun 2016 14:38:31 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <1466425809-23469-4-git-send-email-ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On 06/20/2016 02:30 PM, Ricardo Ribalda Delgado wrote:
+> According to the doc, V4L2_BUF_FLAG_DONE is cleared after DQBUF:
+>
+> V4L2_BUF_FLAG_DONE 0x00000004  ... After calling the VIDIOC_QBUF or
+> VIDIOC_DQBUF it is always cleared ...
+>
+> Unfortunately, it seems that videobuf2 keeps it set after DQBUF. This
+> can be tested with vivid and dev_debug:
+>
+> [257604.338082] video1: VIDIOC_DQBUF: 71:33:25.00260479 index=3,
+> type=vid-cap, flags=0x00002004, field=none, sequence=163,
+> memory=userptr, bytesused=460800, offset/userptr=0x344b000,
+> length=460800
+>
+> This patch forces FLAG_DONE to 0 after calling DQBUF.
 
-Just one question to this patch:
+Can you change this to be patch 1/4? That makes it much easier to backport to
+older kernels. I'm not sure if I'll actually do that, but putting this patch
+at the end makes it harder than it needs to be.
 
-On Mon, 20 Jun 2016, Laurent Pinchart wrote:
+Regards,
 
-> The metadata buffer type is used to transfer metadata between userspace
-> and kernelspace through a V4L2 buffers queue. It comes with a new
-> metadata capture capability and format description.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+	Hans
+
+>
+> Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 > ---
->  Documentation/DocBook/media/v4l/dev-meta.xml  | 93 +++++++++++++++++++++++++++
->  Documentation/DocBook/media/v4l/v4l2.xml      |  1 +
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 19 ++++++
->  drivers/media/v4l2-core/v4l2-dev.c            | 16 +++--
->  drivers/media/v4l2-core/v4l2-ioctl.c          | 34 ++++++++++
->  drivers/media/v4l2-core/videobuf2-v4l2.c      |  3 +
->  include/media/v4l2-ioctl.h                    |  8 +++
->  include/uapi/linux/videodev2.h                | 14 ++++
->  8 files changed, 182 insertions(+), 6 deletions(-)
->  create mode 100644 Documentation/DocBook/media/v4l/dev-meta.xml
-> 
-> diff --git a/Documentation/DocBook/media/v4l/dev-meta.xml b/Documentation/DocBook/media/v4l/dev-meta.xml
-> new file mode 100644
-> index 000000000000..9b5b1fba2007
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/dev-meta.xml
-> @@ -0,0 +1,93 @@
-> +  <title>Metadata Interface</title>
+>   drivers/media/v4l2-core/videobuf2-v4l2.c | 6 ++++++
+>   1 file changed, 6 insertions(+)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> index ba3467468e55..9cfbb6e4bc28 100644
+> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> @@ -654,6 +654,12 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
+>
+>   	ret = vb2_core_dqbuf(q, NULL, b, nonblocking);
+>
+> +	/*
+> +	 *  After calling the VIDIOC_DQBUF V4L2_BUF_FLAG_DONE must be
+> +	 *  cleared.
+> +	 */
+> +	b->flags &= ~V4L2_BUF_FLAG_DONE;
 > +
-> +  <note>
-> +    <title>Experimental</title>
-> +    <para>This is an <link linkend="experimental"> experimental </link>
-> +    interface and may change in the future.</para>
-> +  </note>
-> +
-> +  <para>
-> +Metadata refers to any non-image data that supplements video frames with
-> +additional information. This may include statistics computed over the image
-> +or frame capture parameters supplied by the image source. This interface is
-> +intended for transfer of metadata to userspace and control of that operation.
-> +  </para>
-> +
-> +  <para>
-> +The metadata interface is implemented on video capture devices. The device can
-> +be dedicated to metadata or can implement both video and metadata capture as
-> +specified in its reported capabilities.
-> +  </para>
-> +
-> +  <section>
-> +    <title>Querying Capabilities</title>
-> +
-> +    <para>
-> +Devices supporting the metadata interface set the
-> +<constant>V4L2_CAP_META_CAPTURE</constant> flag in the
-> +<structfield>capabilities</structfield> field of &v4l2-capability;
-> +returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device can capture
-> +metadata to memory.
-> +    </para>
-> +    <para>
-> +At least one of the read/write or streaming I/O methods must be supported.
-> +    </para>
-> +  </section>
-> +
-> +  <section>
-> +    <title>Data Format Negotiation</title>
-> +
-> +    <para>
-> +The metadata device uses the <link linkend="format">format</link> ioctls to
-> +select the capture format. The metadata buffer content format is bound to that
-> +selectable format. In addition to the basic
-> +<link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
-> +must be supported as well.
+>   	return ret;
+>   }
+>   EXPORT_SYMBOL_GPL(vb2_dqbuf);
+>
 
-Why does ENUM_FMT have to be supported? As far as I understand, you 
-haven't implemented it for VSP1, I followed that example and haven't 
-implemented it for UVC either.
-
-Thanks
-Guennadi
