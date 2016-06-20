@@ -1,79 +1,394 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:32888 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423545AbcFMSsj (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52953 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753427AbcFTTLn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2016 14:48:39 -0400
-Subject: Re: [PATCH 0/7] ir-rx51 driver fixes
-To: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>,
-	tony@atomide.com
-References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <201606132017.38629@pali>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Message-ID: <575F0002.4060809@gmail.com>
-Date: Mon, 13 Jun 2016 21:48:34 +0300
-MIME-Version: 1.0
-In-Reply-To: <201606132017.38629@pali>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	Mon, 20 Jun 2016 15:11:43 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 02/24] v4l: Define a pixel format for the R-Car VSP1 1-D histogram engine
+Date: Mon, 20 Jun 2016 22:10:20 +0300
+Message-Id: <1466449842-29502-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The format is used on the R-Car VSP1 video queues that carry
+1-D histogram statistics data.
 
-On 13.06.2016 21:17, Pali Rohár wrote:
-> On Saturday 07 May 2016 17:21:41 Ivaylo Dimitrov wrote:
->> ir-rx51 is a driver for Nokia N900 IR transmitter. The current series
->> fixes the remaining problems in the driver:
->>
->>   - replace GP timer 9 with PWM framework usage
->>   - replace pulse width timer dmtimer usage with hrtimer
->>   - add DT support to the driver
->>   - add driver to the board DTS
->>
->> Pathes 2 and 5 are needed so the driver to function correctly,
->> without those PWM either refuses to set the needed carrier frequency
->> (patch 2) or there are such a delays in the PWM framework, code that
->> transmission duration raises to ~5s instead of half a second.
->>
->> Ivaylo Dimitrov (6):
->>    pwm: omap-dmtimer: Allow for setting dmtimer clock source
->>    [media] ir-rx51: use PWM framework instead of OMAP dmtimer
->>    [media] ir-rx51: add DT support to driver
->>    ARM: OMAP: dmtimer: Do not call PM runtime functions when not
->> needed. [media] ir-rx51: use hrtimer instead of dmtimer
->>    ARM: dts: n900: enable lirc-rx51 driver
->>
->> Tony Lindgren (1):
->>    ir-rx51: Fix build after multiarch changes broke it
->>
->>   .../devicetree/bindings/media/nokia,lirc-rx51      |  19 ++
->>   .../devicetree/bindings/pwm/pwm-omap-dmtimer.txt   |   4 +
->>   arch/arm/boot/dts/omap3-n900.dts                   |  12 ++
->>   arch/arm/mach-omap2/board-rx51-peripherals.c       |   5 -
->>   arch/arm/mach-omap2/pdata-quirks.c                 |  10 +-
->>   arch/arm/plat-omap/dmtimer.c                       |   9 +-
->>   arch/arm/plat-omap/include/plat/dmtimer.h          |   1 +
->>   drivers/media/rc/Kconfig                           |   2 +-
->>   drivers/media/rc/ir-rx51.c                         | 229
->> +++++++-------------- drivers/pwm/pwm-omap-dmtimer.c
->>      |  12 +- include/linux/platform_data/media/ir-rx51.h        |
->> 3 -
->>   11 files changed, 131 insertions(+), 175 deletions(-)
->>   create mode 100644
->> Documentation/devicetree/bindings/media/nokia,lirc-rx51
->
-> Patch series looks good, you can add my Acked-by.
->
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ .../DocBook/media/v4l/pixfmt-meta-vsp1-hgo.xml     | 307 +++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |   9 +
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
+ include/uapi/linux/videodev2.h                     |   3 +
+ 4 files changed, 320 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-meta-vsp1-hgo.xml
 
-There is a newer series, please look at https://lkml.org/lkml/2016/5/16/429
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-meta-vsp1-hgo.xml b/Documentation/DocBook/media/v4l/pixfmt-meta-vsp1-hgo.xml
+new file mode 100644
+index 000000000000..b40bd10695d2
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-meta-vsp1-hgo.xml
+@@ -0,0 +1,307 @@
++<refentry id="V4L2-META-FMT-VSP1-HGO">
++  <refmeta>
++    <refentrytitle>V4L2_META_FMT_VSP1_HGO ('VSPH')</refentrytitle>
++    &manvol;
++  </refmeta>
++  <refnamediv>
++    <refname>
++      <constant>V4L2_META_FMT_VSP1_HGO</constant>
++    </refname>
++    <refpurpose>Renesas R-Car VSP1 1-D Histogram Data</refpurpose>
++  </refnamediv>
++  <refsect1>
++    <title>Description</title>
++    <para>
++This format describes histogram data generated by the Renesas R-Car VSP1 1-D
++Histogram (HGO) engine.
++    </para>
++    <para>
++The VSP1 HGO is a histogram computation engine that can operate on RGB, YCrCb
++or HSV data. It operates on a possibly cropped and subsampled input image and
++computes the minimum, maximum and sum of all pixels as well as per-channel
++histograms.
++    </para>
++The HGO can compute histograms independently per channel, on the maximum of the
++three channels (RGB data only) or on the Y channel only (YCbCr only). It can
++additionally output the histogram with 64 or 256 bins, resulting in four
++possible modes of operation.
++      <itemizedlist>
++	<listitem>
++	  <para>
++	    In <emphasis>64 bins normal mode</emphasis>, the HGO operates
++	    on the three channels independently to compute three 64-bins
++	    histograms. RGB, YCbCr and HSV image formats are supported.
++	  </para>
++	</listitem>
++	<listitem>
++	  <para>
++	    In <emphasis>64 bins maximum mode</emphasis>, the HGO operates
++	    on the maximum of the (R, G, B) channels to compute a single
++	    64-bins histogram. Only the RGB image format is supported.
++	  </para>
++	</listitem>
++	<listitem>
++	  <para>
++	    In <emphasis>256 bins normal mode</emphasis>, the HGO operates
++	    on the Y channel to compute a single 256-bins histogram. Only the
++	    YCbCr image format is supported.
++	  </para>
++	</listitem>
++	<listitem>
++	  <para>
++	    In <emphasis>256 bins maximum mode</emphasis>, the HGO operates
++	    on the maximum of the (R, G, B) channels to compute a single
++	    256-bins histogram. Only the RGB image format is supported.
++	  </para>
++	</listitem>
++      </itemizedlist>
++    <para>
++    </para>
++    <para>
++All data is stored in memory in little endian format. Each cell in the tables
++below contains one byte.
++    </para>
++    <table frame="none">
++      <title>VSP1 HGO Data - 64 Bins, Normal Mode (792 bytes)</title>
++      <tgroup cols="5">
++	<colspec colnum="1" colname="offset" align="left" />
++	<colspec colnum="2" colname="b3"     align="center" />
++	<colspec colnum="3" colname="b2"     align="center" />
++	<colspec colnum="4" colname="b1"     align="center" />
++	<colspec colnum="5" colname="b0"     align="center" />
++	<spanspec namest="b3" nameend="b0" spanname="word" colsep="1" align="center" />
++	<thead>
++	  <row>
++	    <entry>Offset</entry>
++	    <entry spanname="word">Memory</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>[31:24]</entry>
++	    <entry>[23:16]</entry>
++	    <entry>[15:8]</entry>
++	    <entry>[7:0]</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row>
++	    <entry>0</entry>
++	    <entry>-</entry>
++	    <entry>R/Cr/H max [7:0]</entry>
++	    <entry>-</entry>
++	    <entry>R/Cr/H min [7:0]</entry>
++	  </row>
++	  <row>
++	    <entry>4</entry>
++	    <entry>-</entry>
++	    <entry>G/Y/S max [7:0]</entry>
++	    <entry>-</entry>
++	    <entry>G/Y/S min [7:0]</entry>
++	  </row>
++	  <row>
++	    <entry>8</entry>
++	    <entry>-</entry>
++	    <entry>B/Cb/V max [7:0]</entry>
++	    <entry>-</entry>
++	    <entry>B/Cb/V min [7:0]</entry>
++	  </row>
++	  <row>
++	    <entry>12</entry>
++	    <entry spanname="word">R/Cr/H sum [31:0]</entry>
++	  </row>
++	  <row>
++	    <entry>16</entry>
++	    <entry spanname="word">G/Y/S sum [31:0]</entry>
++	  </row>
++	  <row>
++	    <entry>20</entry>
++	    <entry spanname="word">B/Cb/V sum [31:0]</entry>
++	  </row>
++	  <row>
++	    <entry>24</entry>
++	    <entry spanname="word">R/Cr/H bin 0 [31:0]</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry spanname="word">...</entry>
++	  </row>
++	  <row>
++	    <entry>276</entry>
++	    <entry spanname="word">R/Cr/H bin 63 [31:0]</entry>
++	  </row>
++	  <row>
++	    <entry>280</entry>
++	    <entry spanname="word">G/Y/S bin 0 [31:0]</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry spanname="word">...</entry>
++	  </row>
++	  <row>
++	    <entry>532</entry>
++	    <entry spanname="word">G/Y/S bin 63 [31:0]</entry>
++	  </row>
++	  <row>
++	    <entry>536</entry>
++	    <entry spanname="word">B/Cb/V bin 0 [31:0]</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry spanname="word">...</entry>
++	  </row>
++	  <row>
++	    <entry>788</entry>
++	    <entry spanname="word">B/Cb/V bin 63 [31:0]</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++    <table frame="none">
++      <title>VSP1 HGO Data - 64 Bins, Max Mode (264 bytes)</title>
++      <tgroup cols="5">
++	<colspec colnum="1" colname="offset" align="left" />
++	<colspec colnum="2" colname="b3"     align="center" />
++	<colspec colnum="3" colname="b2"     align="center" />
++	<colspec colnum="4" colname="b1"     align="center" />
++	<colspec colnum="5" colname="b0"     align="center" />
++	<spanspec namest="b3" nameend="b0" spanname="word" colsep="1" align="center" />
++	<thead>
++	  <row>
++	    <entry>Offset</entry>
++	    <entry spanname="word">Memory</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>[31:24]</entry>
++	    <entry>[23:16]</entry>
++	    <entry>[15:8]</entry>
++	    <entry>[7:0]</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row>
++	    <entry>0</entry>
++	    <entry>-</entry>
++	    <entry>max(R,G,B) max [7:0]</entry>
++	    <entry>-</entry>
++	    <entry>max(R,G,B) min [7:0]</entry>
++	  </row>
++	  <row>
++	    <entry>4</entry>
++	    <entry spanname="word">max(R,G,B) sum [31:0]</entry>
++	  </row>
++	  <row>
++	    <entry>8</entry>
++	    <entry spanname="word">max(R,G,B) bin 0 [31:0]</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry spanname="word">...</entry>
++	  </row>
++	  <row>
++	    <entry>260</entry>
++	    <entry spanname="word">max(R,G,B) bin 63 [31:0]</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++    <table frame="none">
++      <title>VSP1 HGO Data - 256 Bins, Normal Mode (1032 bytes)</title>
++      <tgroup cols="5">
++	<colspec colnum="1" colname="offset" align="left" />
++	<colspec colnum="2" colname="b3"     align="center" />
++	<colspec colnum="3" colname="b2"     align="center" />
++	<colspec colnum="4" colname="b1"     align="center" />
++	<colspec colnum="5" colname="b0"     align="center" />
++	<spanspec namest="b3" nameend="b0" spanname="word" colsep="1" align="center" />
++	<thead>
++	  <row>
++	    <entry>Offset</entry>
++	    <entry spanname="word">Memory</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>[31:24]</entry>
++	    <entry>[23:16]</entry>
++	    <entry>[15:8]</entry>
++	    <entry>[7:0]</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row>
++	    <entry>0</entry>
++	    <entry>-</entry>
++	    <entry>Y max [7:0]</entry>
++	    <entry>-</entry>
++	    <entry>Y min [7:0]</entry>
++	  </row>
++	  <row>
++	    <entry>4</entry>
++	    <entry spanname="word">Y sum [31:0]</entry>
++	  </row>
++	  <row>
++	    <entry>8</entry>
++	    <entry spanname="word">Y bin 0 [31:0]</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry spanname="word">...</entry>
++	  </row>
++	  <row>
++	    <entry>1028</entry>
++	    <entry spanname="word">Y bin 255 [31:0]</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++    <table frame="none">
++      <title>VSP1 HGO Data - 256 Bins, Max Mode (1032 bytes)</title>
++      <tgroup cols="5">
++	<colspec colnum="1" colname="offset" align="left" />
++	<colspec colnum="2" colname="b3"     align="center" />
++	<colspec colnum="3" colname="b2"     align="center" />
++	<colspec colnum="4" colname="b1"     align="center" />
++	<colspec colnum="5" colname="b0"     align="center" />
++	<spanspec namest="b3" nameend="b0" spanname="word" colsep="1" align="center" />
++	<thead>
++	  <row>
++	    <entry>Offset</entry>
++	    <entry spanname="word">Memory</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>[31:24]</entry>
++	    <entry>[23:16]</entry>
++	    <entry>[15:8]</entry>
++	    <entry>[7:0]</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row>
++	    <entry>0</entry>
++	    <entry>-</entry>
++	    <entry>max(R,G,B) max [7:0]</entry>
++	    <entry>-</entry>
++	    <entry>max(R,G,B) min [7:0]</entry>
++	  </row>
++	  <row>
++	    <entry>4</entry>
++	    <entry spanname="word">max(R,G,B) sum [31:0]</entry>
++	  </row>
++	  <row>
++	    <entry>8</entry>
++	    <entry spanname="word">max(R,G,B) bin 0 [31:0]</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry spanname="word">...</entry>
++	  </row>
++	  <row>
++	    <entry>1028</entry>
++	    <entry spanname="word">max(R,G,B) bin 255 [31:0]</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 5a08aeea4360..bd67539abf47 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -1740,6 +1740,15 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+     </table>
+   </section>
+ 
++  <section id="meta-formats">
++    <title>Metadata Formats</title>
++
++    <para>These formats are used for metadata.</para>
++
++    &sub-meta-vsp1-hgo;
++
++  </section>
++
+   <section id="sdr-formats">
+     <title>SDR Formats</title>
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 5d003152ff68..6a74dcac738e 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1258,6 +1258,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
+ 	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
+ 	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
++	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
+ 
+ 	default:
+ 		/* Compressed formats */
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 5fbd30ca9b1e..0c72202525c6 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -635,6 +635,9 @@ struct v4l2_pix_format {
+ #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
+ #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
+ 
++/* Meta-data formats */
++#define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 Histogram */
++
+ /* priv field value to indicates that subsequent fields are valid. */
+ #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
+ 
+-- 
+Regards,
 
-Ivo
+Laurent Pinchart
+
