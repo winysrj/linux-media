@@ -1,80 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([198.47.19.12]:51706 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751364AbcFNQNx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 12:13:53 -0400
-Subject: [PATCH] hsi: Build hsi_boardinfo.c into hsi core if enabled
-To: kbuild test robot <lkp@intel.com>
-References: <201606140808.bRJtAy1i%fengguang.wu@intel.com>
-CC: <kbuild-all@01.org>, Russell King <linux@armlinux.org.uk>,
-	Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Sebastian Reichel <sre@kernel.org>,
-	Wolfram Sang <wsa@the-dreams.de>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Rusty Russell <rusty@rustcorp.com.au>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Ulf Hansson <ulf.hansson@linaro.org>,
-	Lauro Ramos Venancio <lauro.venancio@openbossa.org>,
-	Aloisio Almeida Jr <aloisio.almeida@openbossa.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Ingo Molnar <mingo@kernel.org>, <linux-pwm@vger.kernel.org>,
-	<lguest@lists.ozlabs.org>, <linux-wireless@vger.kernel.org>,
-	<linux-mmc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-gpio@vger.kernel.org>, <linux-i2c@vger.kernel.org>,
-	<linuxppc-dev@lists.ozlabs.org>, <linux-leds@vger.kernel.org>,
-	<linux-media@vger.kernel.org>
-From: "Andrew F. Davis" <afd@ti.com>
-Message-ID: <57602D10.4080708@ti.com>
-Date: Tue, 14 Jun 2016 11:13:04 -0500
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35831 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496AbcFTNcB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2016 09:32:01 -0400
+Received: by mail-wm0-f65.google.com with SMTP id a66so9028185wme.2
+        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2016 06:32:00 -0700 (PDT)
+Date: Mon, 20 Jun 2016 15:31:57 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Mathias Krause <minipli@googlemail.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	Brad Spengler <spender@grsecurity.net>,
+	PaX Team <pageexec@freemail.hu>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: Re: [PATCH 3/3] dma-buf: remove dma_buf_debugfs_create_file()
+Message-ID: <20160620133157.GK23520@phenom.ffwll.local>
+References: <1466339491-12639-1-git-send-email-minipli@googlemail.com>
+ <1466339491-12639-4-git-send-email-minipli@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <201606140808.bRJtAy1i%fengguang.wu@intel.com>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1466339491-12639-4-git-send-email-minipli@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the HSI core is built as a module hsi_boardinfo may still
-be built-in as its Kconfig type is bool, which can cause build
-issues. Fix this by building this code into the HSI core when
-enabled.
+On Sun, Jun 19, 2016 at 02:31:31PM +0200, Mathias Krause wrote:
+> There is only a single user of dma_buf_debugfs_create_file() and that
+> one got the function pointer cast wrong. With that one fixed, there is
+> no need to have a wrapper for debugfs_create_file(), just call it
+> directly.
+> 
+> With no users left, we can remove dma_buf_debugfs_create_file().
+> 
+> While at it, simplify the error handling in dma_buf_init_debugfs()
+> slightly.
+> 
+> Signed-off-by: Mathias Krause <minipli@googlemail.com>
 
-Reported-by: kbuild test robot <lkp@intel.com>
-Signed-off-by: Andrew F. Davis <afd@ti.com>
----
-This build error seems to be due to Kconfig symbol CONFIG_HSI_BOARDINFO
-being a bool but depending on a tristate (CONFIG_HSI). This is normally
-okay when it is just a flag to enable a feature in source, but the
-helper code file hsi_boardinfo.c is built as a separate entity when
-enabled. This patch is probably how it was intended, and is more like
-how others do this kind of thing.
+ah, here's the 2nd part, feel free to ignore my earlier comments. On the
+series:
 
-This patch should be applied before the parent patch:
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> Cc: Sumit Semwal <sumit.semwal@linaro.org>
+> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+> ---
+>  drivers/dma-buf/dma-buf.c |   29 +++++++++--------------------
+>  include/linux/dma-buf.h   |    2 --
+>  2 files changed, 9 insertions(+), 22 deletions(-)
+> 
+> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> index f03e51561199..20ce0687b111 100644
+> --- a/drivers/dma-buf/dma-buf.c
+> +++ b/drivers/dma-buf/dma-buf.c
+> @@ -895,22 +895,22 @@ static struct dentry *dma_buf_debugfs_dir;
+>  
+>  static int dma_buf_init_debugfs(void)
+>  {
+> +	struct dentry *d;
+>  	int err = 0;
+>  
+> -	dma_buf_debugfs_dir = debugfs_create_dir("dma_buf", NULL);
+> +	d = debugfs_create_dir("dma_buf", NULL);
+> +	if (IS_ERR(d))
+> +		return PTR_ERR(d);
+>  
+> -	if (IS_ERR(dma_buf_debugfs_dir)) {
+> -		err = PTR_ERR(dma_buf_debugfs_dir);
+> -		dma_buf_debugfs_dir = NULL;
+> -		return err;
+> -	}
+> +	dma_buf_debugfs_dir = d;
+>  
+> -	err = dma_buf_debugfs_create_file("bufinfo", NULL);
+> -
+> -	if (err) {
+> +	d = debugfs_create_file("bufinfo", S_IRUGO, dma_buf_debugfs_dir,
+> +				NULL, &dma_buf_debug_fops);
+> +	if (IS_ERR(d)) {
+>  		pr_debug("dma_buf: debugfs: failed to create node bufinfo\n");
+>  		debugfs_remove_recursive(dma_buf_debugfs_dir);
+>  		dma_buf_debugfs_dir = NULL;
+> +		err = PTR_ERR(d);
+>  	}
+>  
+>  	return err;
+> @@ -921,17 +921,6 @@ static void dma_buf_uninit_debugfs(void)
+>  	if (dma_buf_debugfs_dir)
+>  		debugfs_remove_recursive(dma_buf_debugfs_dir);
+>  }
+> -
+> -int dma_buf_debugfs_create_file(const char *name,
+> -				int (*write)(struct seq_file *))
+> -{
+> -	struct dentry *d;
+> -
+> -	d = debugfs_create_file(name, S_IRUGO, dma_buf_debugfs_dir,
+> -			write, &dma_buf_debug_fops);
+> -
+> -	return PTR_ERR_OR_ZERO(d);
+> -}
+>  #else
+>  static inline int dma_buf_init_debugfs(void)
+>  {
+> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+> index 4551c6f2a6c4..e0b0741ae671 100644
+> --- a/include/linux/dma-buf.h
+> +++ b/include/linux/dma-buf.h
+> @@ -242,6 +242,4 @@ int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
+>  		 unsigned long);
+>  void *dma_buf_vmap(struct dma_buf *);
+>  void dma_buf_vunmap(struct dma_buf *, void *vaddr);
+> -int dma_buf_debugfs_create_file(const char *name,
+> -				int (*write)(struct seq_file *));
+>  #endif /* __DMA_BUF_H__ */
+> -- 
+> 1.7.10.4
+> 
 
- drivers/hsi/Makefile              | 3 ++-
- drivers/hsi/{hsi.c => hsi_core.c} | 0
- 2 files changed, 2 insertions(+), 1 deletion(-)
- rename drivers/hsi/{hsi.c => hsi_core.c} (100%)
-
-diff --git a/drivers/hsi/Makefile b/drivers/hsi/Makefile
-index 360371e..9694478 100644
---- a/drivers/hsi/Makefile
-+++ b/drivers/hsi/Makefile
-@@ -1,7 +1,8 @@
- #
- # Makefile for HSI
- #
--obj-$(CONFIG_HSI_BOARDINFO)    += hsi_boardinfo.o
- obj-$(CONFIG_HSI)              += hsi.o
-+hsi-objs                       := hsi_core.o
-+hsi-$(CONFIG_HSI_BOARDINFO)    += hsi_boardinfo.o
- obj-y                          += controllers/
- obj-y                          += clients/
-diff --git a/drivers/hsi/hsi.c b/drivers/hsi/hsi_core.c
-similarity index 100%
-rename from drivers/hsi/hsi.c
-rename to drivers/hsi/hsi_core.c
 -- 
-2.8.3
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
