@@ -1,85 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:34744 "EHLO lists.s-osg.org"
+Received: from mga11.intel.com ([192.55.52.93]:25679 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752441AbcFIPYz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jun 2016 11:24:55 -0400
-Date: Thu, 9 Jun 2016 12:24:49 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Akihiro TSUKADA <tskd08@gmail.com>
-Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Subject: Re: dvb-core: how should i2c subdev drivers be attached?
-Message-ID: <20160609122449.5cfc16cc@recife.lan>
-In-Reply-To: <52775753-47c4-bfdf-b8f5-48bdf8ceb6e5@gmail.com>
-References: <52775753-47c4-bfdf-b8f5-48bdf8ceb6e5@gmail.com>
+	id S932597AbcFTLYt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2016 07:24:49 -0400
+Subject: Re: [alsa-devel] [very-RFC 0/8] TSN driver for the kernel
+To: Henrik Austad <henrik@austad.us>,
+	Takashi Sakamoto <o-takashi@sakamocchi.jp>
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
+ <20160613114713.GA9544@localhost.localdomain> <20160613195136.GC2441@netboy>
+ <20160614121844.54a125a5@lxorguk.ukuu.org.uk> <5760C84C.40408@sakamocchi.jp>
+ <20160615080602.GA13555@localhost.localdomain>
+ <5764DA85.3050801@sakamocchi.jp>
+ <20160618224549.GF32724@icarus.home.austad.us>
+Cc: alsa-devel@alsa-project.org, netdev@vger.kernel.org,
+	Richard Cochran <richardcochran@gmail.com>,
+	linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@linaro.org>,
+	linux-media@vger.kernel.org
+From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Message-ID: <9a5abd48-4da3-945d-53c9-b6d37010ab0d@linux.intel.com>
+Date: Mon, 20 Jun 2016 13:08:27 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20160618224549.GF32724@icarus.home.austad.us>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Akihiro,
 
-Em Thu, 09 Jun 2016 21:49:33 +0900
-Akihiro TSUKADA <tskd08@gmail.com> escreveu:
+> Presentation time is either set by
+> a) Local sound card performing capture (in which case it will be 'capture
+>    time')
+> b) Local media application sending a stream accross the network
+>    (time when the sample should be played out remotely)
+> c) Remote media application streaming data *to* host, in which case it will
+>    be local presentation time on local  soundcard
+>
+>> This value is dominant to the number of events included in an IEC 61883-1
+>> packet. If this TSN subsystem decides it, most of these items don't need
+>> to be in ALSA.
+>
+> Not sure if I understand this correctly.
+>
+> TSN should have a reference to the timing-domain of each *local*
+> sound-device (for local capture or playback) as well as the shared
+> time-reference provided by gPTP.
+>
+> Unless an End-station acts as GrandMaster for the gPTP-domain, time set
+> forth by gPTP is inmutable and cannot be adjusted. It follows that the
+> sample-frequency of the local audio-devices must be adjusted, or the
+> audio-streams to/from said devices must be resampled.
 
-> Hi,
-> excuse me for taking up a very old post again,
-> but I'd like to know the status of the patch:
->   https://patchwork.linuxtv.org/patch/27922/
-> , which provides helper code for defining/loading i2c DVB subdev drivers.
-> 
-> Was it rejected and 
+The ALSA API provides support for 'audio' timestamps (playback/capture 
+rate defined by audio subsystem) and 'system' timestamps (typically 
+linked to TSC/ART) with one option to take synchronized timestamps 
+should the hardware support them.
+The intent was that the 'audio' timestamps are translated to a shared 
+time reference managed in userspace by gPTP, which in turn would define 
+if (adaptive) audio sample rate conversion is needed. There is no 
+support at the moment for a 'play_at' function in ALSA, only means to 
+control a feedback loop.
 
-It was not rejected. It is just that I didn't have time yet to think
-about that, and Antti has a different view. 
 
-The thing is that, whatever we do, it should work fine on drivers that
-also exposes the tuner via V4L2. One of the reasons is that devices
-that also allow the usage for SDR use the V4L2 core for the SDR part.
 
-> each i2c demod/tuner drivers should provide its own version of "attach" code?
 
-Antti took this path, but I don't like it. Lots of duplicated and complex
-stuff. Also, some static analyzers refuse to check it (like smatch),
-due to its complexity.
 
-> Or is it acceptable (with some modifications) ?
-
-I guess we should discuss a way of doing it that will be acceptable
-on existing drivers. Perhaps you should try to do such change for
-an hybrid driver like em28xx or cx231xx. There are a few ISDB-T
-devices using them. Not sure how easy would be to find one of those
-in Japan, though.
-
-> 
-> Although not many drivers currently use i2c binding model (and use dvb_attach()),
-> but I expect that coming DVB subdev drivers will have a similar attach code,
-> including module request/ref-counting, device creation,
-> (re-)using i2c_board_info.platformdata to pass around both config parameters
-> and the resulting i2c_client* & dvb_frontend*.
-> 
-> Since I have a plan to split out demod/tuner drivers from pci/pt1 dvb-usb/friio
-> integrated drivers (because those share the tc90522 demod driver with pt3, and
-> friio also shares the bridge chip with gl861),
-> it would be nice if I can use the helper code,
-> instead of re-iterating similar "attach" code.
-
-Yeah, sure.
-
----
-
-An unrelated thing:
-
-I'm now helping to to maintain Kaffeine upstream. I recently added
-support for both ISDB-T and DVB-T2. It would be nice if you could
-add support there for ISDB-S too.
-
-You can find the kaffeine repository at kde.org. I'm also keeping
-an updated copy at linuxtv.org:
-	git://anongit.kde.org/kaffeine	(official repo)
-	https://git.linuxtv.org/mchehab/kaffeine.git/
-	
-
--- 
-Thanks,
-Mauro
