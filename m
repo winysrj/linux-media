@@ -1,125 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:38243 "EHLO
-	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751638AbcF0Ppl convert rfc822-to-8bit (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:49718 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750726AbcFUGZ2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 11:45:41 -0400
-Received: by mail-wm0-f49.google.com with SMTP id r201so121294838wme.1
-        for <linux-media@vger.kernel.org>; Mon, 27 Jun 2016 08:45:40 -0700 (PDT)
+	Tue, 21 Jun 2016 02:25:28 -0400
+Subject: Re: [PATCH v2 1/7] v4l: Correct the ordering of LSBs of the 10-bit
+ raw packed formats
+To: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+References: <1466439608-22890-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1466439608-22890-2-git-send-email-sakari.ailus@linux.intel.com>
+ <576821D9.5090303@xs4all.nl> <5768545E.4070706@destevenson.freeserve.co.uk>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5768DDB9.30900@xs4all.nl>
+Date: Tue, 21 Jun 2016 08:24:57 +0200
 MIME-Version: 1.0
-In-Reply-To: <527358bfde61acf7ac1a6e5bfc737f5645ba05a7.1461770668.git.mchehab@osg.samsung.com>
-References: <a3c0afb9b600b5284d6643bc165241eb1b81cdf6.1461770188.git.mchehab@osg.samsung.com>
- <527358bfde61acf7ac1a6e5bfc737f5645ba05a7.1461770668.git.mchehab@osg.samsung.com>
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Date: Mon, 27 Jun 2016 12:45:38 -0300
-Message-ID: <CAAEAJfD=kGG1+3zBS8A+PvVTEBva_Bw-ipNWGORGRnD1ttaqKg@mail.gmail.com>
-Subject: Re: [PATCH v3] tw686x: use a formula instead of two tables for div
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <5768545E.4070706@destevenson.freeserve.co.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 06/20/2016 10:38 PM, Dave Stevenson wrote:
+> Hi Hans.
+> 
+> On 20/06/16 18:03, Hans Verkuil wrote:
+>> On 06/20/2016 06:20 PM, Sakari Ailus wrote:
+>>> The 10-bit packed raw bayer format documented that the data of the first
+>>> pixel of a four-pixel group was found in the first byte and the two
+>>> highest bits of the fifth byte. This was not entirely correct. The two
+>>> bits in the fifth byte are the two lowest bits. The second pixel occupies
+>>> the second byte and third and fourth least significant bits and so on.
+>>>
+>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> As mentioned, this needs confirmation. I wonder, isn't this specified in the UVC
+>> spec?
 
-Thanks a lot for the patch.
+I can't find anything in the uvc spec. This format was apparently added for an
+Intel R200 3D camera, so I suspect it followed the SMIA/CSI standard and that
+the doc is indeed wrong.
 
-On 27 April 2016 at 12:27, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Instead of using two tables to estimate the temporal decimation
-> factor, use a formula. This allows to get the closest fps, with
-> sounds better than the current tables.
->
-> Compile-tested only.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-> [media] tw686x: cleanup the fps estimation code
->
-> There are some issues with the old code:
->         1) it uses two static tables;
->         2) some values for 50Hz standards are wrong;
->         3) it doesn't store the real framerate.
->
-> This patch fixes the above issues.
->
-> Compile-tested only.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-> -
->
-> v3: Patch v2 were actually a diff patch against PATCH v1. Fold the two patches in one.
->
-> PS.: With this patch, it should be easy to add support for
-> VIDIOC_G_PARM and VIDIOC_S_PARM, as vc->fps will now store the
-> real frame rate, with should be used when returning from those
-> functions.
->
-> ---
->  drivers/media/pci/tw686x/tw686x-video.c | 110 +++++++++++++++++++++-----------
->  1 file changed, 73 insertions(+), 37 deletions(-)
->
-> diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-> index 253e10823ba3..b247a7b4ddd8 100644
-> --- a/drivers/media/pci/tw686x/tw686x-video.c
-> +++ b/drivers/media/pci/tw686x/tw686x-video.c
-> @@ -43,53 +43,89 @@ static const struct tw686x_format formats[] = {
->         }
->  };
->
-> -static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
-> +static const unsigned int fps_map[15] = {
-> +       /*
-> +        * bit 31 enables selecting the field control register
-> +        * bits 0-29 are a bitmask with fields that will be output.
-> +        * For NTSC (and PAL-M, PAL-60), all 30 bits are used.
-> +        * For other PAL standards, only the first 25 bits are used.
-> +        */
+So:
 
-I ran a few tests and it worked perfectly fine for 60Hz standards.
-For 50Hz standards, or at least for PAL-Nc, it didn't
-work so well, and the real FPS was too different from the requested
-one. I need to look into it some more.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> +       0x00000000, /* output all fields */
-> +       0x80000006, /* 2 fps (60Hz), 2 fps (50Hz) */
-> +       0x80018006, /* 4 fps (60Hz), 4 fps (50Hz) */
-> +       0x80618006, /* 6 fps (60Hz), 6 fps (50Hz) */
-> +       0x81818186, /* 8 fps (60Hz), 8 fps (50Hz) */
-> +       0x86186186, /* 10 fps (60Hz), 8 fps (50Hz) */
-> +       0x86619866, /* 12 fps (60Hz), 10 fps (50Hz) */
-> +       0x86666666, /* 14 fps (60Hz), 12 fps (50Hz) */
-> +       0x9999999e, /* 16 fps (60Hz), 14 fps (50Hz) */
-> +       0x99e6799e, /* 18 fps (60Hz), 16 fps (50Hz) */
-> +       0x9e79e79e, /* 20 fps (60Hz), 16 fps (50Hz) */
-> +       0x9e7e7e7e, /* 22 fps (60Hz), 18 fps (50Hz) */
-> +       0x9fe7f9fe, /* 24 fps (60Hz), 20 fps (50Hz) */
-> +       0x9ffe7ffe, /* 26 fps (60Hz), 22 fps (50Hz) */
-> +       0x9ffffffe, /* 28 fps (60Hz), 24 fps (50Hz) */
+Regards,
 
-Why this particular selection of fps values and bits set in each case?
-Is it arbitrary?
+	Hans
 
-> +};
-> +
-> +static unsigned int tw686x_real_fps(unsigned int index, unsigned int max_fps)
-> +{
-> +       unsigned int i, bits, c = 0;
-> +
-> +       if (!index || index >= ARRAY_SIZE(fps_map))
-> +               return max_fps;
-> +
-> +       bits = fps_map[index];
-> +       for (i = 0; i < max_fps; i++)
-> +               if ((1 << i) & bits)
-> +                       c++;
-> +
-
-We can use hweight_long here to count the number of bits set.
-If you are OK with it, I can rework the patch and submit a new version.
--- 
-Ezequiel García, VanguardiaSur
-www.vanguardiasur.com.ar
+>>
+>> Regards,
+>>
+>> 	Hans
+> I'm assuming this is intended to be the same format as generated by many 
+> Bayer sensors.
+> Those are defined in both the SMIA CCP2 (section 7.9), and MIPI CSI2 
+> (section 11.4.4) specs. Whilst nominally restricted, they are both 
+> available via unofficial websites if you Google for them (I'm happy to 
+> send links, but didn't want to break mailing list rules by just posting 
+> them).
+> CSI2 draft spec Figure 98 "RAW10 Data Transmission on CSI-2 Bus Bitwise 
+> Illustration" is probably the clearest confirmation of the bit ordering.
+> 
+> dcraw from http://www.cybercom.net/~dcoffin/dcraw/ can consume Raw10 via 
+> nokia_load_raw
+>      for (dp=data, col=0; col < raw_width; dp+=5, col+=4)
+>        FORC4 RAW(row,col+c) = (dp[c] << 2) | (dp[4] >> (c << 1) & 3);
+> 
+> And checking against the Raspberry Pi hardware simulator, the RAW10 
+> parser code has
+>              for (i = 0; i < width; i++) {
+>                 switch ((i + tile_x) & 3) {
+>                    case 0:  val = (buf[0] << 2) | (buf[4] & 3); break;
+>                    case 1:  val = (buf[1] << 2) | ((buf[4] >> 2) & 3); 
+> break;
+>                    case 2:  val = (buf[2] << 2) | ((buf[4] >> 4) & 3); 
+> break;
+>                    default: val = (buf[3] << 2) | ((buf[4] >> 6) & 3);
+> 
+> 
+> All of those agree with Sakari's update that the first pixel's LSBits 
+> are in bits 1..0 of byte 5, 2nd pixel in bits 3..2, etc.
+> 
+> Regards,
+>    Dave
+> (working on the Pi CSI2 receiver V4L2 driver as there is now sufficient 
+> data in the public domain to do it. I'll be wanting these formats!)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
