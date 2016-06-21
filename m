@@ -1,61 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:35352 "EHLO
-	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752686AbcFKWrd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2016 18:47:33 -0400
-Received: by mail-lf0-f65.google.com with SMTP id w130so5438540lfd.2
-        for <linux-media@vger.kernel.org>; Sat, 11 Jun 2016 15:47:32 -0700 (PDT)
-Date: Sun, 12 Jun 2016 00:47:28 +0200
-From: Henrik Austad <henrik@austad.us>
-To: David Miller <davem@davemloft.net>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@vger.kernel.org, netdev@vger.kernel.org,
-	henrk@austad.us, haustad@cisco.com
-Subject: Re: [very-RFC 1/8] TSN: add documentation
-Message-ID: <20160611224728.GA10685@sisyphus.home.austad.us>
-References: <1465683741-20390-1-git-send-email-henrik@austad.us>
- <1465683741-20390-2-git-send-email-henrik@austad.us>
- <20160611.153510.1132155249275383253.davem@davemloft.net>
+Received: from mout.web.de ([212.227.17.12]:50627 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751624AbcFUKHH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jun 2016 06:07:07 -0400
+Received: from [192.168.2.22] ([93.201.251.79]) by smtp.web.de (mrweb101) with
+ ESMTPSA (Nemesis) id 0LilAv-1bnGpC1B9x-00cxTA for
+ <linux-media@vger.kernel.org>; Tue, 21 Jun 2016 12:06:59 +0200
+To: linux-media@vger.kernel.org
+From: "W.Pelser" <w.pelser@web.de>
+Subject: Thread dvb-t
+Message-ID: <53a15417-f223-2512-0553-0dd82aa3e2dc@web.de>
+Date: Tue, 21 Jun 2016 12:06:57 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="x+6KMIRAuhnl3hBn"
-Content-Disposition: inline
-In-Reply-To: <20160611.153510.1132155249275383253.davem@davemloft.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+At  2015-12-17  I sent this to you:
 
---x+6KMIRAuhnl3hBn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>https://bugzilla.kernel.org/show_bug.cgi?id=109521 > > Bug ID: 109521 > 
+Summary: kernel 4.4-RCx does not connect DVB-T USB Stick during > resume 
+from hibernate This is a regression, because the earlier desktop-kernel 
+did not have this bug. It came up with default-kernel. Is there any 
+chance for me to get it fixed, or can I forget it?
 
-On Sat, Jun 11, 2016 at 03:35:10PM -0700, David Miller wrote:
->=20
-> Networking patches not CC:'d to netdev@vger.kernel.org are unlikely to
-> be reviewed by networking developers at all.
 
-Oh no! I messed up git send-email and wrote linux-netdev@vger instead of=20
-netdev@vger.
-
-What would be the best approach? Resend series to netdev@vger? I don't want=
-=20
-to spam too many lists either.
-
---=20
-Henrik Austad
-
---x+6KMIRAuhnl3hBn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAldclQAACgkQ6k5VT6v45lmEmgCeIP4AuvPwVEO5MJFJjlcAgEWq
-zdsAoOA+vATHaEMCRhUuEb7uhvKFL2kI
-=p2tc
------END PGP SIGNATURE-----
-
---x+6KMIRAuhnl3hBn--
