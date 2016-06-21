@@ -1,72 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50162 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752655AbcFPQzS convert rfc822-to-8bit (ORCPT
+Received: from mail-ob0-f195.google.com ([209.85.214.195]:36391 "EHLO
+	mail-ob0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751785AbcFULKO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2016 12:55:18 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-	<niklas.soderlund@ragnatech.se>
-Cc: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
-	hverkuil@xs4all.nl, linux-renesas-soc@vger.kernel.org,
-	Niklas =?ISO-8859-1?Q?S=F6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: Re: [PATCH 7/8] [media] rcar-vin: enable Gen3
-Date: Thu, 16 Jun 2016 19:55:28 +0300
-Message-ID: <58668562.0vKzljaCLa@avalon>
-In-Reply-To: <1464203409-1279-8-git-send-email-niklas.soderlund@ragnatech.se>
-References: <1464203409-1279-1-git-send-email-niklas.soderlund@ragnatech.se> <1464203409-1279-8-git-send-email-niklas.soderlund@ragnatech.se>
+	Tue, 21 Jun 2016 07:10:14 -0400
+Received: by mail-ob0-f195.google.com with SMTP id du1so2097324obc.3
+        for <linux-media@vger.kernel.org>; Tue, 21 Jun 2016 04:10:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <1466492640-12551-1-git-send-email-chris@chris-wilson.co.uk>
+References: <1466492640-12551-1-git-send-email-chris@chris-wilson.co.uk>
+From: Daniel Vetter <daniel@ffwll.ch>
+Date: Tue, 21 Jun 2016 10:44:15 +0200
+Message-ID: <CAKMK7uHRATM5FFxF54C6LcBp+6h0yzbs+BmNK-2b5VO477-Abg@mail.gmail.com>
+Subject: Re: [PATCH] dma-buf: Wait on the reservation object when sync'ing
+ before CPU access
+To: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: dri-devel <dri-devel@lists.freedesktop.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+	Sean Paul <seanpaul@google.com>,
+	Zach Reizner <zachr@google.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
-
-Thank you for the patch.
-
-On Wednesday 25 May 2016 21:10:08 Niklas Söderlund wrote:
-> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+On Tue, Jun 21, 2016 at 08:04:00AM +0100, Chris Wilson wrote:
+> Rendering operations to the dma-buf are tracked implicitly via the
+> reservation_object (dmabuf->resv). This is used to allow poll() to
+> wait upon outstanding rendering (or just query the current status of
+> rendering). The dma-buf sync ioctl allows userspace to prepare the
+> dma-buf for CPU access, which should include waiting upon rendering.
+> (Some drivers may need to do more work to ensure that the dma-buf mmap
+> is coherent as well as complete.)
+>
+> Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+> Cc: Sumit Semwal <sumit.semwal@linaro.org>
+> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+> Cc: linux-media@vger.kernel.org
+> Cc: dri-devel@lists.freedesktop.org
+> Cc: linaro-mm-sig@lists.linaro.org
+> Cc: linux-kernel@vger.kernel.org
 > ---
->  drivers/media/platform/rcar-vin/Kconfig     | 2 +-
->  drivers/media/platform/rcar-vin/rcar-core.c | 1 +
->  2 files changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/Kconfig
-> b/drivers/media/platform/rcar-vin/Kconfig index b2ff2d4..ca3ea91 100644
-> --- a/drivers/media/platform/rcar-vin/Kconfig
-> +++ b/drivers/media/platform/rcar-vin/Kconfig
-> @@ -5,7 +5,7 @@ config VIDEO_RCAR_VIN
->  	select VIDEOBUF2_DMA_CONTIG
->  	---help---
->  	  Support for Renesas R-Car Video Input (VIN) driver.
-> -	  Supports R-Car Gen2 SoCs.
-> +	  Supports R-Car Gen2 and Gen3 SoCs.
-> 
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called rcar-vin.
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
-> b/drivers/media/platform/rcar-vin/rcar-core.c index d901ad0..520690c 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -26,6 +26,7 @@
->  #include "rcar-vin.h"
-> 
->  static const struct of_device_id rvin_of_id_table[] = {
-> +	{ .compatible = "renesas,vin-r8a7795", .data = (void *)RCAR_GEN3 },
+>
+> I'm wondering whether it makes sense just to always do the wait first.
+> It is one of the first operations every driver has to make. A driver
+> that wants to implement it differently (e.g. they can special case
+> native waits) will still require a wait on the reservation object to
+> finish external rendering.
 
-This isn't needed with patch 8/8. I'd drop this hunk, and merge the previous 
-one into 8/8.
+Worst case (if the driver uses reservation objects also internally) we'll
+end up calling this twice. It should be cheap enough to do that. I'll add
+a few folks who might want to chip in with an opinion ...
+-Daniel
 
->  	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
->  	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
->  	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
+> -Chris
+>
+> ---
+>  drivers/dma-buf/dma-buf.c | 18 ++++++++++++++++++
+>  1 file changed, 18 insertions(+)
+>
+> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> index ddaee60ae52a..123f14b8e882 100644
+> --- a/drivers/dma-buf/dma-buf.c
+> +++ b/drivers/dma-buf/dma-buf.c
+> @@ -586,6 +586,22 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
+>  }
+>  EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
+>
+> +static int __dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
+> +      enum dma_data_direction direction)
+> +{
+> + bool write = (direction == DMA_BIDIRECTIONAL ||
+> +      direction == DMA_TO_DEVICE);
+> + struct reservation_object *resv = dma_buf->resv;
+> + long ret;
+> +
+> + /* Wait on any implicit rendering fences */
+> + ret = reservation_object_wait_timeout_rcu(resv, write, true,
+> +  MAX_SCHEDULE_TIMEOUT);
+> + if (ret < 0)
+> + return ret;
+> +
+> + return 0;
+> +}
+>
+>  /**
+>   * dma_buf_begin_cpu_access - Must be called before accessing a dma_buf from the
+> @@ -607,6 +623,8 @@ int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
+>
+>   if (dmabuf->ops->begin_cpu_access)
+>   ret = dmabuf->ops->begin_cpu_access(dmabuf, direction);
+> + else
+> + ret = __dma_buf_begin_cpu_access(dmabuf, direction);
+>
+>   return ret;
+>  }
+> --
+> 2.8.1
+>
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
