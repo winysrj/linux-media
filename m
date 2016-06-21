@@ -1,112 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:35674 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750787AbcFVWIs (ORCPT
+Received: from smtp-proxy001.phy.lolipop.jp ([157.7.104.42]:57756 "EHLO
+	smtp-proxy001.phy.lolipop.jp" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932277AbcFUCbx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2016 18:08:48 -0400
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	nick.dyer@itdev.co.uk
-Subject: [PATCH v5 6/9] Input: atmel_mxt_ts - add diagnostic data support for mXT1386
-Date: Wed, 22 Jun 2016 23:08:30 +0100
-Message-Id: <1466633313-15339-7-git-send-email-nick.dyer@itdev.co.uk>
-In-Reply-To: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
-References: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
+	Mon, 20 Jun 2016 22:31:53 -0400
+Subject: Re: [very-RFC 0/8] TSN driver for the kernel
+To: Henrik Austad <henrik@austad.us>
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
+ <20160613114713.GA9544@localhost.localdomain> <20160613195136.GC2441@netboy>
+ <20160614121844.54a125a5@lxorguk.ukuu.org.uk> <5760C84C.40408@sakamocchi.jp>
+ <20160615080602.GA13555@localhost.localdomain>
+ <5764DA85.3050801@sakamocchi.jp>
+ <20160618224549.GF32724@icarus.home.austad.us>
+ <5766B01B.9070903@sakamocchi.jp>
+ <20160620090656.GB8011@sisyphus.home.austad.us>
+Cc: Richard Cochran <richardcochran@gmail.com>,
+	alsa-devel@alsa-project.org, netdev@vger.kernel.org,
+	Arnd Bergmann <arnd@linaro.org>, linux-media@vger.kernel.org
+From: Takashi Sakamoto <o-takashi@sakamocchi.jp>
+Message-ID: <5768A4DA.1030809@sakamocchi.jp>
+Date: Tue, 21 Jun 2016 11:22:18 +0900
+MIME-Version: 1.0
+In-Reply-To: <20160620090656.GB8011@sisyphus.home.austad.us>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mXT1386 family of chips have a different architecture which splits
-the diagnostic data into 3 columns.
+On 2016年06月20日 18:06, Henrik Austad wrote:
+> On Sun, Jun 19, 2016 at 11:45:47PM +0900, Takashi Sakamoto wrote:
+>> (remove C.C. to lkml. This is not so major feature.)
+>>
+>> On Jun 19 2916 07:45, Henrik Austad wrote:
+>>> snip
+>>>
+>>> 802.1Q gives you low latency through the network, but more importantly, no
+>>> dropped frames. gPTP gives you a central reference to time.
+>>
+>> When such a long message is required, it means that we don't have
+>> enough premises for this discussion.
+>
+> Isn't a discussion part of how information is conveyed and finding parts
+> that require more knowledge?
+>
+>> You have just interests in gPTP and transferring AVTPDUs, while no
+>> interests in the others such as "what the basic ideas of TSN come
+>> from" and "the reason that IEEE 1722 refers to IEC 61883 series
+>> which is originally designed for IEEE 1394 bus" and "the reason that
+>> I was motivated to join in this discussion even though not a netdev
+>> developer".
+>
+> I'm sorry, I'm not sure I follow you here. What do you mean I don't have
+> any interest in where TSN comes from? or the reason why 1722 use IEC 61883?
+> What about "they picked 61883 because it made sense?"
+>
+> gPTP itself is *not* about transffering audio-data, it is about agreeing on
+> a common time so that when you *do* transfer audio-data, the samplerate
+> actually means something.
+>
+> Let me ask you this; if you have 2 sound-cards in your computer and you
+> want to attach a mic to one and speakers to the other, how do you solve
+> streaming of audio from the mic to the speaker If you answer does not
+> contain something akin to "different timing-domain issues", I'd be very
+> surprised.
+>
+> If you are interested in TSN for transferring *anything*, _including_
+> audio, you *have* to take gPTP into consideration. Just as you have to
+> think about stream reservation, compliant hardware and all the different
+> subsystems you are going to run into, either via kernel or via userspace.
+>
+>> Here, could I ask you a question? Do you know a role of cycle start
+>> packet of IEEE Std 1394?
+>
+> No, I do not.
+>
+> I have only passing knowledge of the firewire standard, I've looked at the
+> encoding described in 1722 and added that to the alsa shim as an example of
+> how to use TSN. As I stated, this was a *very* early version and I would
+> like to use TSN for audio - and more work is needed.
+>
+>> If you think it's not related to this discussion, please tell it to
+>> me. Then I'll drop out from this thread.
+>
+> There are tons of details left and right, and as I said, I'm not  all to
+> familiar with firewire. I know that one of the authors behind the firewire
+> standard happened to be part of 1722 standard.
+>
+> I am currently working my way through the firewire-stak paper you've
+> written, and I have gotten a lot of pointers to other areas I need to dig
+> into so I should be busy for a while.
+>
+> That being said, Richard's point about a way to find sample-rate of a
+> hardware device and ways to influence that, is important for AVB/TSN.
+>
+>> History Repeats itself.
+>
+> ?
 
-Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
----
- drivers/input/touchscreen/atmel_mxt_ts.c | 31 ++++++++++++++++++++++++++++---
- 1 file changed, 28 insertions(+), 3 deletions(-)
+OK. Bye.
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index 3f7e357..739d138 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -137,6 +137,10 @@ struct t9_range {
- #define MXT_DIAGNOSTIC_DELTAS	0x10
- #define MXT_DIAGNOSTIC_SIZE	128
- 
-+#define MXT_FAMILY_1386			160
-+#define MXT1386_COLUMNS			3
-+#define MXT1386_PAGES_PER_COLUMN	8
-+
- struct t37_debug {
- #ifdef CONFIG_TOUCHSCREEN_ATMEL_MXT_T37
- 	u8 mode;
-@@ -2140,13 +2144,27 @@ recheck:
- static u16 mxt_get_debug_value(struct mxt_data *data, unsigned int x,
- 			       unsigned int y)
- {
-+	struct mxt_info *info = &data->info;
- 	struct mxt_dbg *dbg = &data->dbg;
- 	unsigned int ofs, page;
-+	unsigned int col = 0;
-+	unsigned int col_width;
-+
-+	if (info->family_id == MXT_FAMILY_1386) {
-+		col_width = info->matrix_ysize / MXT1386_COLUMNS;
-+		col = y / col_width;
-+		y = y % col_width;
-+	} else {
-+		col_width = info->matrix_ysize;
-+	}
- 
--	ofs = (y + (x * data->info.matrix_ysize)) * sizeof(u16);
-+	ofs = (y + (x * col_width)) * sizeof(u16);
- 	page = ofs / MXT_DIAGNOSTIC_SIZE;
- 	ofs %= MXT_DIAGNOSTIC_SIZE;
- 
-+	if (info->family_id == MXT_FAMILY_1386)
-+		page += col * MXT1386_PAGES_PER_COLUMN;
-+
- 	return get_unaligned_le16(&dbg->t37_buf[page].data[ofs]);
- }
- 
-@@ -2416,6 +2434,7 @@ static const struct video_device mxt_video_device = {
- 
- static void mxt_debug_init(struct mxt_data *data)
- {
-+	struct mxt_info *info = &data->info;
- 	struct mxt_dbg *dbg = &data->dbg;
- 	struct mxt_object *object;
- 	int error;
-@@ -2439,8 +2458,14 @@ static void mxt_debug_init(struct mxt_data *data)
- 
- 	/* Calculate size of data and allocate buffer */
- 	dbg->t37_nodes = data->xsize * data->ysize;
--	dbg->t37_pages = DIV_ROUND_UP(data->xsize * data->info.matrix_ysize *
--				      sizeof(u16), sizeof(dbg->t37_buf->data));
-+
-+	if (info->family_id == MXT_FAMILY_1386)
-+		dbg->t37_pages = MXT1386_COLUMNS * MXT1386_PAGES_PER_COLUMN;
-+	else
-+		dbg->t37_pages = DIV_ROUND_UP(data->xsize *
-+					      data->info.matrix_ysize *
-+					      sizeof(u16),
-+					      sizeof(dbg->t37_buf->data));
- 
- 	dbg->t37_buf = devm_kmalloc_array(&data->client->dev, dbg->t37_pages,
- 					  sizeof(struct t37_debug), GFP_KERNEL);
--- 
-2.5.0
 
+Takashi Sakamoto
