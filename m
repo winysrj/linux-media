@@ -1,13 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:8213 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752594AbcF3Rqt (ORCPT
+Received: from zencphosting06.zen.co.uk ([82.71.204.9]:57566 "EHLO
+	zencphosting06.zen.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751099AbcFUWRH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2016 13:46:49 -0400
-From: Nick Dyer <nick@shmanahar.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Tue, 21 Jun 2016 18:17:07 -0400
+Subject: Re: [PATCH v4 9/9] Input: synaptics-rmi4 - add support for F54
+ diagnostics
+To: Hans Verkuil <hverkuil@xs4all.nl>
+References: <1466172988-3698-1-git-send-email-nick.dyer@itdev.co.uk>
+ <1466172988-3698-10-git-send-email-nick.dyer@itdev.co.uk>
+ <576817C3.1090806@xs4all.nl>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
 	linux-media@vger.kernel.org,
 	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
 	Benson Leung <bleung@chromium.org>,
@@ -20,142 +24,57 @@ Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
 	Dudley Du <dudl@cypress.com>,
 	Andrew de los Reyes <adlr@chromium.org>,
 	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	jon.older@itdev.co.uk, nick.dyer@itdev.co.uk,
-	Nick Dyer <nick@shmanahar.org>
-Subject: [PATCH v6 09/11] Input: atmel_mxt_ts - add support for reference data
-Date: Thu, 30 Jun 2016 18:38:52 +0100
-Message-Id: <1467308334-12580-10-git-send-email-nick@shmanahar.org>
-In-Reply-To: <1467308334-12580-1-git-send-email-nick@shmanahar.org>
-References: <1467308334-12580-1-git-send-email-nick@shmanahar.org>
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+Message-ID: <35cae2f6-7c5c-ba7d-1bf4-28f83f19e6a5@itdev.co.uk>
+Date: Tue, 21 Jun 2016 23:16:56 +0100
+MIME-Version: 1.0
+In-Reply-To: <576817C3.1090806@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are different datatypes available from a maXTouch chip. Add
-support to retrieve reference data as well.
+On 20/06/2016 17:20, Hans Verkuil wrote:
+> On 06/17/2016 04:16 PM, Nick Dyer wrote:
+>> +static int rmi_f54_vidioc_enum_input(struct file *file, void *priv,
+>> +				     struct v4l2_input *i)
+>> +{
+>> +	struct f54_data *f54 = video_drvdata(file);
+>> +	enum f54_report_type reptype;
+>> +
+>> +	reptype = rmi_f54_get_reptype(f54, i->index);
+>> +	if (reptype == F54_REPORT_NONE)
+>> +		return -EINVAL;
+>> +
+>> +	i->type = V4L2_INPUT_TYPE_TOUCH_SENSOR;
+>> +	strlcpy(i->name, rmi_f54_reptype_str(reptype), sizeof(i->name));
+> 
+> Hmm, this doesn't feel right, but I don't have enough knowledge to decide if
+> using inputs for this is the right approach.
+> 
+> One thing that strikes me as odd is that both F54_8BIT_IMAGE and F54_16BIT_IMAGE
+> both seem to return signed 16 bit samples. I would expect this to result in
+> different pixel formats.
 
-Signed-off-by: Nick Dyer <nick@shmanahar.org>
----
- drivers/input/touchscreen/atmel_mxt_ts.c | 57 ++++++++++++++++++++++++++++----
- 1 file changed, 51 insertions(+), 6 deletions(-)
+Yes, you're right. I've had a look at this area now and fixed it up. I've
+added pixel formats for the various types of touch data so we will never
+emit anything that's not under V4L2_TCH_FMT.
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index 7c4d937..f75f2ce 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -135,6 +135,7 @@ struct t9_range {
- /* MXT_DEBUG_DIAGNOSTIC_T37 */
- #define MXT_DIAGNOSTIC_PAGEUP	0x01
- #define MXT_DIAGNOSTIC_DELTAS	0x10
-+#define MXT_DIAGNOSTIC_REFS	0x11
- #define MXT_DIAGNOSTIC_SIZE	128
- 
- #define MXT_FAMILY_1386			160
-@@ -249,6 +250,12 @@ struct mxt_dbg {
- 	int input;
- };
- 
-+enum v4l_dbg_inputs {
-+	MXT_V4L_INPUT_DELTAS,
-+	MXT_V4L_INPUT_REFS,
-+	MXT_V4L_INPUT_MAX,
-+};
-+
- static const struct v4l2_file_operations mxt_video_fops = {
- 	.owner = THIS_MODULE,
- 	.open = v4l2_fh_open,
-@@ -2273,6 +2280,7 @@ static void mxt_buffer_queue(struct vb2_buffer *vb)
- 	struct mxt_data *data = vb2_get_drv_priv(vb->vb2_queue);
- 	u16 *ptr;
- 	int ret;
-+	u8 mode;
- 
- 	ptr = vb2_plane_vaddr(vb, 0);
- 	if (!ptr) {
-@@ -2280,7 +2288,18 @@ static void mxt_buffer_queue(struct vb2_buffer *vb)
- 		goto fault;
- 	}
- 
--	ret = mxt_read_diagnostic_debug(data, MXT_DIAGNOSTIC_DELTAS, ptr);
-+	switch (data->dbg.input) {
-+	case MXT_V4L_INPUT_DELTAS:
-+	default:
-+		mode = MXT_DIAGNOSTIC_DELTAS;
-+		break;
-+
-+	case MXT_V4L_INPUT_REFS:
-+		mode = MXT_DIAGNOSTIC_REFS;
-+		break;
-+	}
-+
-+	ret = mxt_read_diagnostic_debug(data, mode, ptr);
- 	if (ret)
- 		goto fault;
- 
-@@ -2325,11 +2344,21 @@ static int mxt_vidioc_querycap(struct file *file, void *priv,
- static int mxt_vidioc_enum_input(struct file *file, void *priv,
- 				   struct v4l2_input *i)
- {
--	if (i->index > 0)
-+	if (i->index >= MXT_V4L_INPUT_MAX)
- 		return -EINVAL;
- 
- 	i->type = V4L2_INPUT_TYPE_TOUCH;
--	strlcpy(i->name, "Mutual Capacitance Deltas", sizeof(i->name));
-+
-+	switch (i->index) {
-+	case MXT_V4L_INPUT_REFS:
-+		strlcpy(i->name, "Mutual Capacitance References",
-+			sizeof(i->name));
-+		break;
-+	case MXT_V4L_INPUT_DELTAS:
-+		strlcpy(i->name, "Mutual Capacitance Deltas", sizeof(i->name));
-+		break;
-+	}
-+
- 	return 0;
- }
- 
-@@ -2337,12 +2366,16 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
- {
- 	struct v4l2_pix_format *f = &data->dbg.format;
- 
--	if (i > 0)
-+	if (i >= MXT_V4L_INPUT_MAX)
- 		return -EINVAL;
- 
-+	if (i == MXT_V4L_INPUT_DELTAS)
-+		f->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
-+	else
-+		f->pixelformat = V4L2_TCH_FMT_TU16;
-+
- 	f->width = data->xy_switch ? data->ysize : data->xsize;
- 	f->height = data->xy_switch ? data->xsize : data->ysize;
--	f->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
- 	f->field = V4L2_FIELD_NONE;
- 	f->colorspace = V4L2_COLORSPACE_RAW;
- 	f->bytesperline = f->width * sizeof(u16);
-@@ -2383,7 +2416,19 @@ static int mxt_vidioc_enum_fmt(struct file *file, void *priv,
- 	if (fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
- 
--	fmt->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
-+	switch (fmt->index) {
-+	case 0:
-+		fmt->pixelformat = V4L2_TCH_FMT_TU16;
-+		break;
-+
-+	case 1:
-+		fmt->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
- 	return 0;
- }
- 
--- 
-2.5.0
+I've also worked on adding the DocBook documentation that was missing,
+cribbing from SDR as you suggested. I think I've found all the places it
+was needed now.
 
+> I have no idea what all these inputs mean. Are they all actually needed?
+> Would this perhaps be better implemented through a menu control?
+
+These are the various types of tuning or fault finding data that users
+expect to be able to access via the RMI4 F54 diagnostics function. Although
+I would have to do some digging to give an detailed use case for each one.
+Due to the way that F54 is implemented, only one data source can be
+selected at once. So it seemed fairly reasonable to me to map it to inputs.
+
+> I generally go by the philosophy that if I can't understand it, then it is
+> likely that others won't either :-)
+
+No problem.
