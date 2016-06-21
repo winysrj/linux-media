@@ -1,70 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:38645 "EHLO
-	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161071AbcFQPSW (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:59431 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753387AbcFUDAN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 11:18:22 -0400
-Received: by mail-wm0-f50.google.com with SMTP id m124so4004245wme.1
-        for <linux-media@vger.kernel.org>; Fri, 17 Jun 2016 08:18:21 -0700 (PDT)
-Date: Fri, 17 Jun 2016 17:18:15 +0200
-From: Gary Bisson <gary.bisson@boundarydevices.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [19/38] ARM: dts: imx6-sabrelite: add video capture ports and
- connections
-Message-ID: <20160617151814.GA16378@t450s.lan>
-References: <1465944574-15745-20-git-send-email-steve_longerbeam@mentor.com>
- <20160616083231.GA6548@t450s.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160616083231.GA6548@t450s.lan>
+	Mon, 20 Jun 2016 23:00:13 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 107CF18045B
+	for <linux-media@vger.kernel.org>; Tue, 21 Jun 2016 04:58:23 +0200 (CEST)
+Date: Tue, 21 Jun 2016 04:58:22 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160621025823.107CF18045B@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Steve, All,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Thu, Jun 16, 2016 at 10:32:31AM +0200, Gary Bisson wrote:
-> Steve, All,
-> 
-> On Tue, Jun 14, 2016 at 03:49:15PM -0700, Steve Longerbeam wrote:
-> > Defines the host video capture device node and an OV5642 camera sensor
-> > node on i2c2. The host capture device connects to the OV5642 via the
-> > parallel-bus mux input on the ipu1_csi0_mux.
-> > 
-> > Note there is a pin conflict with GPIO6. This pin functions as a power
-> > input pin to the OV5642, but ENET requires it to wake-up the ARM cores
-> > on normal RX and TX packet done events (see 6261c4c8). So by default,
-> > capture is disabled, enable by uncommenting __OV5642_CAPTURE__ macro.
-> > Ethernet will still work just not quite as well.
-> 
-> Actually the following patch fixes this issue and has already been
-> applied on Shawn's tree:
-> https://patchwork.kernel.org/patch/9153523/
-> 
-> Also, this follow-up patch declared the HW workaround for SabreLite:
-> https://patchwork.kernel.org/patch/9153525/
-> 
-> So ideally, once those two patches land on your base tree, you could get
-> rid of the #define and remove the HW workaround declaration.
-> 
-> Finally, I'll test the series on Sabre-Lite this week.
+Results of the daily build of media_tree:
 
-I've applied this series on top of Shawn tree (for-next branch) in order
-not to worry about the GPIO6 workaround.
+date:		Tue Jun 21 04:00:24 CEST 2016
+git branch:	test
+git hash:	59f0bc11848f8f3242bc1fefae670e745929cd7b
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
 
-Although the camera seems to get enumerated properly, I can't seem to
-get anything from it. See log:
-http://pastebin.com/xnw1ujUq
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-In your cover letter, you said that you have not run through
-v4l2-compliance. How have you tested the capture?
+Detailed results are available here:
 
-Also, why isn't the OV5640 MIPI camera declared on the SabreLite device
-tree?
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Let me know if I can help testing/updating things on the SabreLite.
+Full logs are available here:
 
-Regards,
-Gary
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
