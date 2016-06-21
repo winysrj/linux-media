@@ -1,149 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:12728 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752478AbcFQOQk (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:16501 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751506AbcFUNLI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 10:16:40 -0400
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	Nick Dyer <nick.dyer@itdev.co.uk>
-Subject: [PATCH v4 5/9] Input: atmel_mxt_ts - read touchscreen size
-Date: Fri, 17 Jun 2016 15:16:24 +0100
-Message-Id: <1466172988-3698-6-git-send-email-nick.dyer@itdev.co.uk>
-In-Reply-To: <1466172988-3698-1-git-send-email-nick.dyer@itdev.co.uk>
-References: <1466172988-3698-1-git-send-email-nick.dyer@itdev.co.uk>
+	Tue, 21 Jun 2016 09:11:08 -0400
+Message-id: <57693CE5.7050904@samsung.com>
+Date: Tue, 21 Jun 2016 15:11:01 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Russell King <linux@armlinux.org.uk>,
+	Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Sebastian Reichel <sre@kernel.org>,
+	Wolfram Sang <wsa@the-dreams.de>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Lauro Ramos Venancio <lauro.venancio@openbossa.org>,
+	Aloisio Almeida Jr <aloisio.almeida@openbossa.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Ingo Molnar <mingo@kernel.org>, linux-pwm@vger.kernel.org,
+	lguest@lists.ozlabs.org, linux-wireless@vger.kernel.org,
+	linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-leds@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] leds: Add no-op gpio_led_register_device when LED
+ subsystem is disabled
+References: <20160613200211.14790-1-afd@ti.com>
+ <20160613200211.14790-13-afd@ti.com> <5760FA52.7010806@samsung.com>
+ <57647DBD.2010406@ti.com> <57679E38.3080901@samsung.com>
+ <57686A94.2010704@ti.com> <5768E815.5080706@samsung.com>
+ <5769297A.4050608@ti.com>
+In-reply-to: <5769297A.4050608@ti.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The touchscreen may have a margin where not all the matrix is used. Read
-the parameters from T9 and T100 and take account of the difference.
+On 06/21/2016 01:48 PM, Andrew F. Davis wrote:
+> On 06/21/2016 02:09 AM, Jacek Anaszewski wrote:
+>> Hi Andrew,
+>>
+>> This patch doesn't apply, please rebase onto recent LED tree.
+>>
+>> On 06/21/2016 12:13 AM, Andrew F. Davis wrote:
+>>> Some systems use 'gpio_led_register_device' to make an in-memory copy of
+>>> their LED device table so the original can be removed as .init.rodata.
+>>> When the LED subsystem is not enabled source in the led directory is not
+>>> built and so this function may be undefined. Fix this here.
+>>>
+>>> Signed-off-by: Andrew F. Davis <afd@ti.com>
+>>> ---
+>>>    include/linux/leds.h | 8 ++++++++
+>>>    1 file changed, 8 insertions(+)
+>>>
+>>> diff --git a/include/linux/leds.h b/include/linux/leds.h
+>>> index d2b1306..a4a3da6 100644
+>>> --- a/include/linux/leds.h
+>>> +++ b/include/linux/leds.h
+>>> @@ -386,8 +386,16 @@ struct gpio_led_platform_data {
+>>>                                           unsigned long *delay_off);
+>>
+>> Currently there is some stuff here, and in fact it has been for
+>> a long time.
+>>
+>> Patch "[PATCH 12/12] leds: Only descend into leds directory when
+>> CONFIG_NEW_LEDS is set" also doesn't apply.
+>> What repository are you using?
+>>
+>
+> v4.7-rc4, it may not apply due to the surrounding lines being changed in
+> the other patches which may not be applied to your tree. It is a single
+> line change per patch so hopefully the merge conflict resolutions will
+> be trivial.
+>
+> A better solution could have been getting an ack from each maintainer
+> and having someone pull the whole series into one tree, but parts have
+> already been picked so it may be a little late for that.
 
-Note: this does not read the XORIGIN/YORIGIN fields so it assumes that
-the touchscreen starts at (0,0)
+OK, I resolved the issues and applied, thanks.
 
-Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
----
- drivers/input/touchscreen/atmel_mxt_ts.c | 42 +++++++++++++++++++++++++++-----
- 1 file changed, 36 insertions(+), 6 deletions(-)
+>>>    };
+>>>
+>>> +#ifdef CONFIG_NEW_LEDS
+>>>    struct platform_device *gpio_led_register_device(
+>>>                   int id, const struct gpio_led_platform_data *pdata);
+>>> +#else
+>>> +static inline struct platform_device *gpio_led_register_device(
+>>> +               int id, const struct gpio_led_platform_data *pdata)
+>>> +{
+>>> +       return 0;
+>>> +}
+>>> +#endif
+>>>
+>>>    enum cpu_led_event {
+>>>           CPU_LED_IDLE_START,     /* CPU enters idle */
+>>>
+>>
+>>
+>
+>
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index 3a7f705..3c5b7d3 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -103,6 +103,8 @@ struct t7_config {
- 
- /* MXT_TOUCH_MULTI_T9 field */
- #define MXT_T9_CTRL		0
-+#define MXT_T9_XSIZE		3
-+#define MXT_T9_YSIZE		4
- #define MXT_T9_ORIENT		9
- #define MXT_T9_RANGE		18
- 
-@@ -150,7 +152,9 @@ struct t37_debug {
- #define MXT_T100_CTRL		0
- #define MXT_T100_CFG1		1
- #define MXT_T100_TCHAUX		3
-+#define MXT_T100_XSIZE		9
- #define MXT_T100_XRANGE		13
-+#define MXT_T100_YSIZE		20
- #define MXT_T100_YRANGE		24
- 
- #define MXT_T100_CFG_SWITCHXY	BIT(5)
-@@ -259,6 +263,8 @@ struct mxt_data {
- 	unsigned int max_x;
- 	unsigned int max_y;
- 	bool xy_switch;
-+	u8 xsize;
-+	u8 ysize;
- 	bool in_bootloader;
- 	u16 mem_size;
- 	u8 t100_aux_ampl;
-@@ -1714,6 +1720,18 @@ static int mxt_read_t9_resolution(struct mxt_data *data)
- 		return -EINVAL;
- 
- 	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T9_XSIZE,
-+			       sizeof(data->xsize), &data->xsize);
-+	if (error)
-+		return error;
-+
-+	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T9_YSIZE,
-+			       sizeof(data->ysize), &data->ysize);
-+	if (error)
-+		return error;
-+
-+	error = __mxt_read_reg(client,
- 			       object->start_address + MXT_T9_RANGE,
- 			       sizeof(range), &range);
- 	if (error)
-@@ -1763,6 +1781,18 @@ static int mxt_read_t100_config(struct mxt_data *data)
- 
- 	data->max_y = get_unaligned_le16(&range_y);
- 
-+	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T100_XSIZE,
-+			       sizeof(data->xsize), &data->xsize);
-+	if (error)
-+		return error;
-+
-+	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T100_YSIZE,
-+			       sizeof(data->ysize), &data->ysize);
-+	if (error)
-+		return error;
-+
- 	/* read orientation config */
- 	error =  __mxt_read_reg(client,
- 				object->start_address + MXT_T100_CFG1,
-@@ -2121,7 +2151,7 @@ static int mxt_convert_debug_pages(struct mxt_data *data, u16 *outbuf)
- 		outbuf[i] = mxt_get_debug_value(data, x, y);
- 
- 		/* Next value */
--		if (++x >= data->info.matrix_xsize) {
-+		if (++x >= data->xsize) {
- 			x = 0;
- 			y++;
- 		}
-@@ -2276,8 +2306,8 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
- 	if (i > 0)
- 		return -EINVAL;
- 
--	f->width = data->info.matrix_xsize;
--	f->height = data->info.matrix_ysize;
-+	f->width = data->xsize;
-+	f->height = data->ysize;
- 	f->pixelformat = V4L2_PIX_FMT_YS16;
- 	f->field = V4L2_FIELD_NONE;
- 	f->colorspace = V4L2_COLORSPACE_RAW;
-@@ -2392,9 +2422,9 @@ static void mxt_debug_init(struct mxt_data *data)
- 	dbg->t37_address = object->start_address;
- 
- 	/* Calculate size of data and allocate buffer */
--	dbg->t37_nodes = data->info.matrix_xsize * data->info.matrix_ysize;
--	dbg->t37_pages = DIV_ROUND_UP(dbg->t37_nodes * sizeof(u16),
--				      sizeof(dbg->t37_buf->data));
-+	dbg->t37_nodes = data->xsize * data->ysize;
-+	dbg->t37_pages = DIV_ROUND_UP(data->xsize * data->info.matrix_ysize *
-+				      sizeof(u16), sizeof(dbg->t37_buf->data));
- 
- 	dbg->t37_buf = devm_kmalloc_array(&data->client->dev, dbg->t37_pages,
- 					  sizeof(struct t37_debug), GFP_KERNEL);
+
 -- 
-2.5.0
-
+Best regards,
+Jacek Anaszewski
