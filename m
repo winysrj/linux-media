@@ -1,50 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:35274 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753524AbcFTQ7F (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:16902 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752024AbcFUHLp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 12:59:05 -0400
-Subject: Re: [PATCH v2 2/7] v4l: Fix number of zeroed high order bits in
- 12-bit raw format defs
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Tue, 21 Jun 2016 03:11:45 -0400
+Message-id: <5768E815.5080706@samsung.com>
+Date: Tue, 21 Jun 2016 09:09:09 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Russell King <linux@armlinux.org.uk>,
+	Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Sebastian Reichel <sre@kernel.org>,
+	Wolfram Sang <wsa@the-dreams.de>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Lauro Ramos Venancio <lauro.venancio@openbossa.org>,
+	Aloisio Almeida Jr <aloisio.almeida@openbossa.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Ingo Molnar <mingo@kernel.org>, linux-pwm@vger.kernel.org,
+	lguest@lists.ozlabs.org, linux-wireless@vger.kernel.org,
+	linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-gpio@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-leds@vger.kernel.org,
 	linux-media@vger.kernel.org
-References: <1466439608-22890-1-git-send-email-sakari.ailus@linux.intel.com>
- <1466439608-22890-3-git-send-email-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <57681FAB.6010201@xs4all.nl>
-Date: Mon, 20 Jun 2016 18:54:03 +0200
-MIME-Version: 1.0
-In-Reply-To: <1466439608-22890-3-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH] leds: Add no-op gpio_led_register_device when LED
+ subsystem is disabled
+References: <20160613200211.14790-1-afd@ti.com>
+ <20160613200211.14790-13-afd@ti.com> <5760FA52.7010806@samsung.com>
+ <57647DBD.2010406@ti.com> <57679E38.3080901@samsung.com>
+ <57686A94.2010704@ti.com>
+In-reply-to: <57686A94.2010704@ti.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/20/2016 06:20 PM, Sakari Ailus wrote:
-> The number of high order bits in samples was documented to be 6 for 12-bit
-> data. This is clearly wrong, fix it.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Hi Andrew,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+This patch doesn't apply, please rebase onto recent LED tree.
 
-	Hans
-
+On 06/21/2016 12:13 AM, Andrew F. Davis wrote:
+> Some systems use 'gpio_led_register_device' to make an in-memory copy of
+> their LED device table so the original can be removed as .init.rodata.
+> When the LED subsystem is not enabled source in the led directory is not
+> built and so this function may be undefined. Fix this here.
+>
+> Signed-off-by: Andrew F. Davis <afd@ti.com>
 > ---
->  Documentation/DocBook/media/v4l/pixfmt-srggb12.xml | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb12.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb12.xml
-> index 0c8e4ad..4394101 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt-srggb12.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-srggb12.xml
-> @@ -31,7 +31,7 @@ pixel image</title>
->  
->        <formalpara>
->  	<title>Byte Order.</title>
-> -	<para>Each cell is one byte, high 6 bits in high bytes are 0.
-> +	<para>Each cell is one byte, high 4 bits in high bytes are 0.
->  	  <informaltable frame="none">
->  	    <tgroup cols="5" align="center">
->  	      <colspec align="left" colwidth="2*" />
-> 
+>   include/linux/leds.h | 8 ++++++++
+>   1 file changed, 8 insertions(+)
+>
+> diff --git a/include/linux/leds.h b/include/linux/leds.h
+> index d2b1306..a4a3da6 100644
+> --- a/include/linux/leds.h
+> +++ b/include/linux/leds.h
+> @@ -386,8 +386,16 @@ struct gpio_led_platform_data {
+>                                          unsigned long *delay_off);
+
+Currently there is some stuff here, and in fact it has been for
+a long time.
+
+Patch "[PATCH 12/12] leds: Only descend into leds directory when
+CONFIG_NEW_LEDS is set" also doesn't apply.
+What repository are you using?
+
+>   };
+>
+> +#ifdef CONFIG_NEW_LEDS
+>   struct platform_device *gpio_led_register_device(
+>                  int id, const struct gpio_led_platform_data *pdata);
+> +#else
+> +static inline struct platform_device *gpio_led_register_device(
+> +               int id, const struct gpio_led_platform_data *pdata)
+> +{
+> +       return 0;
+> +}
+> +#endif
+>
+>   enum cpu_led_event {
+>          CPU_LED_IDLE_START,     /* CPU enters idle */
+>
+
+
+-- 
+Best regards,
+Jacek Anaszewski
