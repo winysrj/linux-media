@@ -1,152 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:57719 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752138AbcF2NU7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2016 09:20:59 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [PATCH 02/15] lirc_dev: allow bufferless driver registration
-Date: Wed, 29 Jun 2016 22:20:31 +0900
-Message-id: <1467206444-9935-3-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
-References: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
+Received: from mga01.intel.com ([192.55.52.88]:45440 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751804AbcFURTs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jun 2016 13:19:48 -0400
+Subject: Re: [alsa-devel] [very-RFC 0/8] TSN driver for the kernel
+To: Richard Cochran <richardcochran@gmail.com>
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
+ <20160613114713.GA9544@localhost.localdomain> <20160613195136.GC2441@netboy>
+ <20160614121844.54a125a5@lxorguk.ukuu.org.uk> <5760C84C.40408@sakamocchi.jp>
+ <20160615080602.GA13555@localhost.localdomain>
+ <5764DA85.3050801@sakamocchi.jp>
+ <20160618224549.GF32724@icarus.home.austad.us>
+ <9a5abd48-4da3-945d-53c9-b6d37010ab0d@linux.intel.com>
+ <20160620121838.GA5257@localhost.localdomain>
+ <20160620123148.GA5846@localhost.localdomain>
+Cc: Henrik Austad <henrik@austad.us>,
+	Takashi Sakamoto <o-takashi@sakamocchi.jp>,
+	alsa-devel@alsa-project.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@linaro.org>,
+	linux-media@vger.kernel.org
+From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Message-ID: <8a0e9fad-846a-5924-3e6b-348c2d6c2aec@linux.intel.com>
+Date: Tue, 21 Jun 2016 10:18:30 -0700
+MIME-Version: 1.0
+In-Reply-To: <20160620123148.GA5846@localhost.localdomain>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some drivers don't necessarily need to have a FIFO managed buffer
-for their transfers. Drivers now should call
-lirc_register_bufferless_driver in order to handle the buffer
-themselves.
+On 6/20/16 5:31 AM, Richard Cochran wrote:
+> On Mon, Jun 20, 2016 at 02:18:38PM +0200, Richard Cochran wrote:
+>> Documentation/sound/alsa/timestamping.txt says:
+>
+>    Examples of typestamping with HDaudio:
+>
+>    1. DMA timestamp, no compensation for DMA+analog delay
+>    $ ./audio_time  -p --ts_type=1
+>
+> Where is this "audio_time" program of which you speak?
 
-The function works exaclty like lirc_register_driver except of
-the buffer allocation.
-
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
----
- drivers/media/rc/lirc_dev.c | 44 ++++++++++++++++++++++++++++++++++----------
- include/media/lirc_dev.h    | 12 ++++++++++++
- 2 files changed, 46 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 5716978..fa562a3 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -205,12 +205,14 @@ err_out:
- 
- static int lirc_allocate_buffer(struct irctl *ir)
- {
--	int err;
-+	int err = 0;
- 	int bytes_in_key;
- 	unsigned int chunk_size;
- 	unsigned int buffer_size;
- 	struct lirc_driver *d = &ir->d;
- 
-+	mutex_lock(&lirc_dev_lock);
-+
- 	bytes_in_key = BITS_TO_LONGS(d->code_length) +
- 						(d->code_length % 8 ? 1 : 0);
- 	buffer_size = d->buffer_size ? d->buffer_size : BUFLEN / bytes_in_key;
-@@ -220,21 +222,26 @@ static int lirc_allocate_buffer(struct irctl *ir)
- 		ir->buf = d->rbuf;
- 	} else {
- 		ir->buf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
--		if (!ir->buf)
--			return -ENOMEM;
-+		if (!ir->buf) {
-+			err = -ENOMEM;
-+			goto out;
-+		}
- 
- 		err = lirc_buffer_init(ir->buf, chunk_size, buffer_size);
- 		if (err) {
- 			kfree(ir->buf);
--			return err;
-+			goto out;
- 		}
- 	}
- 	ir->chunk_size = ir->buf->chunk_size;
- 
--	return 0;
-+out:
-+	mutex_unlock(&lirc_dev_lock);
-+
-+	return err;
- }
- 
--int lirc_register_driver(struct lirc_driver *d)
-+static int lirc_allocate_driver(struct lirc_driver *d)
- {
- 	struct irctl *ir;
- 	int minor;
-@@ -342,10 +349,6 @@ int lirc_register_driver(struct lirc_driver *d)
- 	/* some safety check 8-) */
- 	d->name[sizeof(d->name)-1] = '\0';
- 
--	err = lirc_allocate_buffer(ir);
--	if (err)
--		goto out_lock;
--
- 	if (d->features == 0)
- 		d->features = LIRC_CAN_REC_LIRCCODE;
- 
-@@ -385,8 +388,29 @@ out_lock:
- out:
- 	return err;
- }
-+
-+int lirc_register_driver(struct lirc_driver *d)
-+{
-+	int err, minor;
-+
-+	minor = lirc_allocate_driver(d);
-+	if (minor < 0)
-+		return minor;
-+
-+	err = lirc_allocate_buffer(irctls[minor]);
-+	if (err)
-+		lirc_unregister_driver(minor);
-+
-+	return err ? err : minor;
-+}
- EXPORT_SYMBOL(lirc_register_driver);
- 
-+int lirc_register_bufferless_driver(struct lirc_driver *d)
-+{
-+	return lirc_allocate_driver(d);
-+}
-+EXPORT_SYMBOL(lirc_register_bufferless_driver);
-+
- int lirc_unregister_driver(int minor)
- {
- 	struct irctl *ir;
-diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
-index 0ab59a5..8bed57a 100644
---- a/include/media/lirc_dev.h
-+++ b/include/media/lirc_dev.h
-@@ -214,6 +214,18 @@ struct lirc_driver {
-  */
- extern int lirc_register_driver(struct lirc_driver *d);
- 
-+/* int lirc_register_bufferless_driver - allocates a lirc bufferless driver
-+ * @d: reference to the lirc_driver to initialize
-+ *
-+ * The difference between lirc_register_driver and
-+ * lirc_register_bufferless_driver is that the latter doesn't allocate any
-+ * buffer, which means that the driver using the lirc_driver should take care of
-+ * it by itself.
-+ *
-+ * returns 0 on success or a the negative errno number in case of failure.
-+ */
-+extern int lirc_register_bufferless_driver(struct lirc_driver *d);
-+
- /* returns negative value on error or 0 if success
- */
- extern int lirc_unregister_driver(int minor);
--- 
-2.8.1
+alsa-lib/test
 
