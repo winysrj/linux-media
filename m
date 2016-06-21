@@ -1,61 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:32838 "EHLO
-	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750869AbcF0PiN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 11:38:13 -0400
-Received: by mail-wm0-f50.google.com with SMTP id r190so21903015wmr.0
-        for <linux-media@vger.kernel.org>; Mon, 27 Jun 2016 08:37:42 -0700 (PDT)
+Received: from mga04.intel.com ([192.55.52.120]:17707 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751606AbcFURtf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jun 2016 13:49:35 -0400
+Subject: Re: [alsa-devel] [very-RFC 0/8] TSN driver for the kernel
+To: Richard Cochran <richardcochran@gmail.com>
+References: <1465686096-22156-1-git-send-email-henrik@austad.us>
+ <20160613114713.GA9544@localhost.localdomain> <20160613195136.GC2441@netboy>
+ <20160614121844.54a125a5@lxorguk.ukuu.org.uk> <5760C84C.40408@sakamocchi.jp>
+ <20160615080602.GA13555@localhost.localdomain>
+ <5764DA85.3050801@sakamocchi.jp>
+ <20160618224549.GF32724@icarus.home.austad.us>
+ <9a5abd48-4da3-945d-53c9-b6d37010ab0d@linux.intel.com>
+ <20160620121838.GA5257@localhost.localdomain>
+Cc: alsa-devel@alsa-project.org, netdev@vger.kernel.org,
+	Henrik Austad <henrik@austad.us>, linux-kernel@vger.kernel.org,
+	Takashi Sakamoto <o-takashi@sakamocchi.jp>,
+	Arnd Bergmann <arnd@linaro.org>, linux-media@vger.kernel.org
+From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Message-ID: <07283da9-f6d1-c3b1-7989-a6fce7ca0ee6@linux.intel.com>
+Date: Tue, 21 Jun 2016 10:45:18 -0700
 MIME-Version: 1.0
-In-Reply-To: <d4ce2282-1ad9-369c-fc37-92fe402a0e13@xs4all.nl>
-References: <d4ce2282-1ad9-369c-fc37-92fe402a0e13@xs4all.nl>
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Date: Mon, 27 Jun 2016 12:37:40 -0300
-Message-ID: <CAAEAJfBD-pnM1HkdNgPzVVaLV07jTGKKk-OX+-SNczxUZwJ3-g@mail.gmail.com>
-Subject: Re: [PATCH] tw686x: be explicit about the possible dma_mode options
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20160620121838.GA5257@localhost.localdomain>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27 June 2016 at 05:31, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Users won't know what to put in this module option if it isn't
-> described.
+On 6/20/16 5:18 AM, Richard Cochran wrote:
+> On Mon, Jun 20, 2016 at 01:08:27PM +0200, Pierre-Louis Bossart wrote:
+>> The ALSA API provides support for 'audio' timestamps (playback/capture rate
+>> defined by audio subsystem) and 'system' timestamps (typically linked to
+>> TSC/ART) with one option to take synchronized timestamps should the hardware
+>> support them.
 >
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-> Ezequiel, this sits on top of your tw686x patch series and will be part of the pull
-> request.
-
-It looks good.
-
-Thanks!
-
-> ---
->  drivers/media/pci/tw686x/tw686x-core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> Thanks for the info.  I just skimmed Documentation/sound/alsa/timestamping.txt.
 >
-> diff --git a/drivers/media/pci/tw686x/tw686x-core.c b/drivers/media/pci/tw686x/tw686x-core.c
-> index 586bc67..71a0453 100644
-> --- a/drivers/media/pci/tw686x/tw686x-core.c
-> +++ b/drivers/media/pci/tw686x/tw686x-core.c
-> @@ -91,7 +91,7 @@ static int tw686x_dma_mode_set(const char *val, struct kernel_param *kp)
->  }
->  module_param_call(dma_mode, tw686x_dma_mode_set, tw686x_dma_mode_get,
->                   &dma_mode, S_IRUGO|S_IWUSR);
-> -MODULE_PARM_DESC(dma_mode, "DMA operation mode");
-> +MODULE_PARM_DESC(dma_mode, "DMA operation mode (memcpy/contig/sg, default=memcpy)");
+> That is fairly new, only since v4.1.  Are then any apps in the wild
+> that I can look at?  AFAICT, OpenAVB, gstreamer, etc, don't use the
+> new API.
+
+The ALSA API supports a generic .get_time_info callback, its 
+implementation is for now limited to a regular 'DMA' or 'link' timestamp 
+for HDaudio - the difference being which counters are used and how close 
+they are to the link serializer. The synchronized part is still WIP but 
+should come 'soon'
+
 >
->  void tw686x_disable_channel(struct tw686x_dev *dev, unsigned int channel)
->  {
-> --
-> 2.8.1
+>> The intent was that the 'audio' timestamps are translated to a shared time
+>> reference managed in userspace by gPTP, which in turn would define if
+>> (adaptive) audio sample rate conversion is needed. There is no support at
+>> the moment for a 'play_at' function in ALSA, only means to control a
+>> feedback loop.
 >
+> Documentation/sound/alsa/timestamping.txt says:
+>
+>   If supported in hardware, the absolute link time could also be used
+>   to define a precise start time (patches WIP)
+>
+> Two questions:
+>
+> 1. Where are the patches?  (If some are coming, I would appreciate
+>    being on CC!)
+>
+> 2. Can you mention specific HW that would support this?
 
+You can experiment with the 'dma' and 'link' timestamps today on any 
+HDaudio-based device. Like I said the synchronized part has not been 
+upstreamed yet (delays + dependency on ART-to-TSC conversions that made 
+it in the kernel recently)
 
-
--- 
-Ezequiel García, VanguardiaSur
-www.vanguardiasur.com.ar
