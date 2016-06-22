@@ -1,46 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:33035 "EHLO mga11.intel.com"
+Received: from butterbrot.org ([176.9.106.16]:50593 "EHLO butterbrot.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161033AbcFGQfK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jun 2016 12:35:10 -0400
-Date: Tue, 7 Jun 2016 23:26:01 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-Cc: kbuild-all@01.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Abylay Ospan <aospan@netup.ru>
-Subject: [PATCH] fix semicolon.cocci warnings
-Message-ID: <20160607152601.GA107570@lkp-hsx03>
-References: <201606072359.sx3UFPIy%fengguang.wu@intel.com>
+	id S1752510AbcFVLzX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2016 07:55:23 -0400
+Subject: Re: [PATCH v4 2/9] [media] v4l2-core: Add VFL_TYPE_TOUCH_SENSOR
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Nick Dyer <nick.dyer@itdev.co.uk>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>
+References: <1466172988-3698-1-git-send-email-nick.dyer@itdev.co.uk>
+ <1466172988-3698-3-git-send-email-nick.dyer@itdev.co.uk>
+ <5767DAE4.3000202@xs4all.nl>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	mchehab@osg.samsung.com
+From: Florian Echtler <floe@butterbrot.org>
+Message-ID: <576A7B03.30206@butterbrot.org>
+Date: Wed, 22 Jun 2016 13:48:19 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201606072359.sx3UFPIy%fengguang.wu@intel.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+In-Reply-To: <5767DAE4.3000202@xs4all.nl>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="ISUCCAgTkCwJQo46GUIaT48UGd6cQpp2W"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/dvb-frontends/helene.c:750:2-3: Unneeded semicolon
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--ISUCCAgTkCwJQo46GUIaT48UGd6cQpp2W
+Content-Type: multipart/mixed; boundary="G9vPtNkIDxIaEiQBv5VJV38dTT4thkKhf"
+From: Florian Echtler <floe@butterbrot.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>, Nick Dyer <nick.dyer@itdev.co.uk>,
+ Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-media@vger.kernel.org,
+ Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+ Benson Leung <bleung@chromium.org>, Alan Bowens <Alan.Bowens@atmel.com>,
+ Javier Martinez Canillas <javier@osg.samsung.com>,
+ Chris Healy <cphealy@gmail.com>, Henrik Rydberg <rydberg@bitmath.org>,
+ Andrew Duggan <aduggan@synaptics.com>, James Chen <james.chen@emc.com.tw>,
+ Dudley Du <dudl@cypress.com>, Andrew de los Reyes <adlr@chromium.org>,
+ sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+ mchehab@osg.samsung.com
+Message-ID: <576A7B03.30206@butterbrot.org>
+Subject: Re: [PATCH v4 2/9] [media] v4l2-core: Add VFL_TYPE_TOUCH_SENSOR
+References: <1466172988-3698-1-git-send-email-nick.dyer@itdev.co.uk>
+ <1466172988-3698-3-git-send-email-nick.dyer@itdev.co.uk>
+ <5767DAE4.3000202@xs4all.nl>
+In-Reply-To: <5767DAE4.3000202@xs4all.nl>
+
+--G9vPtNkIDxIaEiQBv5VJV38dTT4thkKhf
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+On 20.06.2016 14:00, Hans Verkuil wrote:
+> On 06/17/2016 04:16 PM, Nick Dyer wrote:
+>> Some touch controllers send out raw touch data in a similar way to a
+>> greyscale frame grabber. Add a new device type for these devices.
+>>
+>> Use a new device prefix v4l-touch for these devices, to stop generic
+>> capture software from treating them as webcams.
+>>
+>> Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
+>> ---
+>>  drivers/input/touchscreen/sur40.c    |  4 ++--
+>>  drivers/media/v4l2-core/v4l2-dev.c   | 13 ++++++++++---
+>>  drivers/media/v4l2-core/v4l2-ioctl.c | 15 ++++++++++-----
+>>  include/media/v4l2-dev.h             |  3 ++-
+>>  include/uapi/linux/videodev2.h       |  1 +
+
+Generally a good idea in my opinion, but I think the SUR40 is a special
+case: the whole point of putting in a V4L2 driver was that software like
+reacTIVision, which already has a V4L2 interface, can then use that
+device like any other camera.
+
+Come to think of it, wouldn't it make sense to expose the other touch
+devices as generic frame grabbers, too, so you can easily view the debug
+output with any generic tool like cheese?
+
+Best, Florian
+--=20
+SENT FROM MY DEC VT50 TERMINAL
 
 
- Remove unneeded semicolon.
+--G9vPtNkIDxIaEiQBv5VJV38dTT4thkKhf--
 
-Generated by: scripts/coccinelle/misc/semicolon.cocci
+--ISUCCAgTkCwJQo46GUIaT48UGd6cQpp2W
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-CC: Abylay Ospan <aospan@netup.ru>
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
----
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
- helene.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+iEYEARECAAYFAldqewQACgkQ7CzyshGvatjsqwCfYO5yV5e2+qrPwBIV1ZJ49zyC
+G7cAoIYUhXZMAmdZTNhFnM4PrH8eF7Um
+=q3DS
+-----END PGP SIGNATURE-----
 
---- a/drivers/media/dvb-frontends/helene.c
-+++ b/drivers/media/dvb-frontends/helene.c
-@@ -747,7 +747,7 @@ static int helene_set_params(struct dvb_
- 		data[6] = 0x78;
- 		data[7] = 0x08;
- 		data[8] = 0x30;
--	};
-+	}
- 	helene_write_regs(priv, 0x5E, data, 9);
- 
- 	/* LT_AMP_EN should be 0 */
+--ISUCCAgTkCwJQo46GUIaT48UGd6cQpp2W--
