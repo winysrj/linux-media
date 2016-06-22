@@ -1,48 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33995 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751104AbcFXFk2 (ORCPT
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:17027 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751255AbcFVWIq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2016 01:40:28 -0400
-Received: by mail-wm0-f65.google.com with SMTP id 187so2193140wmz.1
-        for <linux-media@vger.kernel.org>; Thu, 23 Jun 2016 22:40:28 -0700 (PDT)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 9/9] media: rc: nuvoton: remove two unused elements in struct
- nvt_dev
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <f176b83d-75ce-ed7e-a167-d6c661c2f672@gmail.com>
-Date: Fri, 24 Jun 2016 07:40:02 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Wed, 22 Jun 2016 18:08:46 -0400
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	nick.dyer@itdev.co.uk
+Subject: [PATCH v5 4/9] Input: atmel_mxt_ts - read touchscreen size
+Date: Wed, 22 Jun 2016 23:08:28 +0100
+Message-Id: <1466633313-15339-5-git-send-email-nick.dyer@itdev.co.uk>
+In-Reply-To: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
+References: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These two fields are not used and can be removed.
+The touchscreen may have a margin where not all the matrix is used. Read
+the parameters from T9 and T100 and take account of the difference.
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+Note: this does not read the XORIGIN/YORIGIN fields so it assumes that
+the touchscreen starts at (0,0)
+
+Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
 ---
- drivers/media/rc/nuvoton-cir.h | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/input/touchscreen/atmel_mxt_ts.c | 42 +++++++++++++++++++++++++++-----
+ 1 file changed, 36 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
-index 65324ef..acf735f 100644
---- a/drivers/media/rc/nuvoton-cir.h
-+++ b/drivers/media/rc/nuvoton-cir.h
-@@ -111,12 +111,8 @@ struct nvt_dev {
- 	u8 chip_minor;
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 7780d38..8ef61d7 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -103,6 +103,8 @@ struct t7_config {
  
- 	/* hardware features */
--	bool hw_learning_capable;
- 	bool hw_tx_capable;
+ /* MXT_TOUCH_MULTI_T9 field */
+ #define MXT_T9_CTRL		0
++#define MXT_T9_XSIZE		3
++#define MXT_T9_YSIZE		4
+ #define MXT_T9_ORIENT		9
+ #define MXT_T9_RANGE		18
  
--	/* rx settings */
--	bool learning_enabled;
--
- 	/* carrier period = 1 / frequency */
- 	u32 carrier;
- };
+@@ -150,7 +152,9 @@ struct t37_debug {
+ #define MXT_T100_CTRL		0
+ #define MXT_T100_CFG1		1
+ #define MXT_T100_TCHAUX		3
++#define MXT_T100_XSIZE		9
+ #define MXT_T100_XRANGE		13
++#define MXT_T100_YSIZE		20
+ #define MXT_T100_YRANGE		24
+ 
+ #define MXT_T100_CFG_SWITCHXY	BIT(5)
+@@ -259,6 +263,8 @@ struct mxt_data {
+ 	unsigned int max_x;
+ 	unsigned int max_y;
+ 	bool xy_switch;
++	u8 xsize;
++	u8 ysize;
+ 	bool in_bootloader;
+ 	u16 mem_size;
+ 	u8 t100_aux_ampl;
+@@ -1714,6 +1720,18 @@ static int mxt_read_t9_resolution(struct mxt_data *data)
+ 		return -EINVAL;
+ 
+ 	error = __mxt_read_reg(client,
++			       object->start_address + MXT_T9_XSIZE,
++			       sizeof(data->xsize), &data->xsize);
++	if (error)
++		return error;
++
++	error = __mxt_read_reg(client,
++			       object->start_address + MXT_T9_YSIZE,
++			       sizeof(data->ysize), &data->ysize);
++	if (error)
++		return error;
++
++	error = __mxt_read_reg(client,
+ 			       object->start_address + MXT_T9_RANGE,
+ 			       sizeof(range), &range);
+ 	if (error)
+@@ -1763,6 +1781,18 @@ static int mxt_read_t100_config(struct mxt_data *data)
+ 
+ 	data->max_y = get_unaligned_le16(&range_y);
+ 
++	error = __mxt_read_reg(client,
++			       object->start_address + MXT_T100_XSIZE,
++			       sizeof(data->xsize), &data->xsize);
++	if (error)
++		return error;
++
++	error = __mxt_read_reg(client,
++			       object->start_address + MXT_T100_YSIZE,
++			       sizeof(data->ysize), &data->ysize);
++	if (error)
++		return error;
++
+ 	/* read orientation config */
+ 	error =  __mxt_read_reg(client,
+ 				object->start_address + MXT_T100_CFG1,
+@@ -2121,7 +2151,7 @@ static int mxt_convert_debug_pages(struct mxt_data *data, u16 *outbuf)
+ 		outbuf[i] = mxt_get_debug_value(data, x, y);
+ 
+ 		/* Next value */
+-		if (++x >= data->info.matrix_xsize) {
++		if (++x >= data->xsize) {
+ 			x = 0;
+ 			y++;
+ 		}
+@@ -2276,8 +2306,8 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
+ 	if (i > 0)
+ 		return -EINVAL;
+ 
+-	f->width = data->info.matrix_xsize;
+-	f->height = data->info.matrix_ysize;
++	f->width = data->xsize;
++	f->height = data->ysize;
+ 	f->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
+ 	f->field = V4L2_FIELD_NONE;
+ 	f->colorspace = V4L2_COLORSPACE_RAW;
+@@ -2392,9 +2422,9 @@ static void mxt_debug_init(struct mxt_data *data)
+ 	dbg->t37_address = object->start_address;
+ 
+ 	/* Calculate size of data and allocate buffer */
+-	dbg->t37_nodes = data->info.matrix_xsize * data->info.matrix_ysize;
+-	dbg->t37_pages = DIV_ROUND_UP(dbg->t37_nodes * sizeof(u16),
+-				      sizeof(dbg->t37_buf->data));
++	dbg->t37_nodes = data->xsize * data->ysize;
++	dbg->t37_pages = DIV_ROUND_UP(data->xsize * data->info.matrix_ysize *
++				      sizeof(u16), sizeof(dbg->t37_buf->data));
+ 
+ 	dbg->t37_buf = devm_kmalloc_array(&data->client->dev, dbg->t37_pages,
+ 					  sizeof(struct t37_debug), GFP_KERNEL);
 -- 
-2.9.0
+2.5.0
 
