@@ -1,128 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-08v.sys.comcast.net ([96.114.154.167]:37583 "EHLO
-	resqmta-po-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751601AbcFVAWd (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36758 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751077AbcFVLU3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2016 20:22:33 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, mchehab@kernel.org
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, shuah@kernel.org
-Subject: [PATCH] media: s5p-mfc fix null pointer deference in clk_core_enable()
-Date: Tue, 21 Jun 2016 18:22:29 -0600
-Message-Id: <1466554949-12018-1-git-send-email-shuahkh@osg.samsung.com>
+	Wed, 22 Jun 2016 07:20:29 -0400
+Date: Wed, 22 Jun 2016 13:18:30 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sebastian Reichel <sre@kernel.org>,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	pali.rohar@gmail.com, linux-media@vger.kernel.org
+Subject: Re: Nokia N900 cameras -- pipeline setup in python (was Re: [RFC
+ PATCH 00/24] Make Nokia N900 cameras working)
+Message-ID: <20160622111830.GA26788@amd>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160427030850.GA17034@earth>
+ <20160617164226.GA27876@amd>
+ <20160617171214.GA5830@amd>
+ <20160620205904.GL24980@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160620205904.GL24980@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix null pointer deference in clk_core_enable() when driver unbind is run
-when there is an application has an active pipeline playing. At this point,
-system hangs and needs to be power cycled.
+Hi!
 
-s5p_mfc_release() gets called after s5p_mfc_final_pm() disables and does
-clk_put() and s5p_mfc_release() attempts to enable clock and runs into
-null pointer deference accessing invalid pointer. With this fix, null
-pointer dereference is fixed and there is no hang.
+I tried to capture 1.2Mpix images, then scale them down to 800x600
+using hardware... and results were  kernel dying.
 
-Run unbind while the following pipeline is playing:
-gst-launch-1.0 filesrc location=/home/odroid/GH3_MOV_HD.mp4 ! qtdemux !
-    h264parse ! v4l2video4dec ! videoconvert ! autovideosink
+[12552.400146] [<c062561c>] (isp_video_start_streaming) from
+[<c061c6e8>] (vb2_start_streaming+0x5c/0x154)
+[12552.400146] [<c061c6e8>] (vb2_start_streaming) from [<c061e5f8>]
+(vb2_core_streamon+0x104/0x160)
+[12552.400177] [<c061e5f8>] (vb2_core_streamon) from [<c0625260>]
+(isp_video_streamon+0x17c/0x27c)
+[12552.400207] [<c0625260>] (isp_video_streamon) from [<c0607a28>]
+(v4l_streamon+0x18/0x1c)
+[12552.400238] [<c0607a28>] (v4l_streamon) from [<c06096ac>]
+(__video_do_ioctl+0x24c/0x2e8)
+[12552.400268] [<c06096ac>] (__video_do_ioctl) from [<c060b2b0>]
+(video_usercopy+0x110/0x600)
+[12552.400299] [<c060b2b0>] (video_usercopy) from [<c060645c>]
+(v4l2_ioctl+0x98/0xb8)
+[12552.400329] [<c060645c>] (v4l2_ioctl) from [<c0269d28>]
+(do_vfs_ioctl+0x80/0x948)
+[12552.400329] [<c0269d28>] (do_vfs_ioctl) from [<c026a654>]
+(SyS_ioctl+0x64/0x74)
+[12552.400360] [<c026a654>] (SyS_ioctl) from [<c0107860>]
+(ret_fast_syscall+0x0/0x3c)
+[12552.400390] ---[ end trace b4627b34449829a7 ]---
+[12552.400421] In-band Error seen by MPU  at address 0
+[12552.400421] ------------[ cut here ]------------
+[12552.400451] WARNING: CPU: 0 PID: 3936 at
+drivers/bus/omap_l3_smx.c:166 omap3_l3_app_irq+0xcc/0x124
+[12552.400482] Modules linked in:
+[12552.400482] CPU: 0 PID: 3936 Comm: mplayer Tainted: G        W
+4.6.0-177572-g501bb64-dirty #360
+[12552.400512] Hardware name: Nokia RX-51 board
 
-[ 4869.434709] Unable to handle kernel NULL pointer dereference at virtual addr0
-[ 4869.441312] pgd = e91ac000
-[ 4869.443996] [00000010] *pgd=ba4f7835
-[ 4869.447552] Internal error: Oops: 17 [#1] PREEMPT SMP ARM
-[ 4869.452921] Modules linked in: cpufreq_userspace cpufreq_powersave cpufreq_ca
-[ 4869.471728] CPU: 4 PID: 2965 Comm: lt-gst-launch-1 Not tainted 4.7.0-rc2-nex0
-[ 4869.481778] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
-[ 4869.487844] task: e91f1e00 ti: ed650000 task.ti: ed650000
-[ 4869.493227] PC is at clk_core_enable+0x4c/0x98
-[ 4869.497637] LR is at clk_core_enable+0x40/0x98
-[ 4869.502056] pc : [<c0559714>]    lr : [<c0559708>]    psr: 60060093
-[ 4869.502056] sp : ed651f18  ip : 00000000  fp : 002641b4
-[ 4869.513493] r10: e9088c08  r9 : 00000008  r8 : ed676d68
-[ 4869.518692] r7 : ee3ac000  r6 : bf16b3c0  r5 : a0060013  r4 : ee37a8c0
-[ 4869.525191] r3 : 00000000  r2 : 00000001  r1 : 00000004  r0 : 00000000
-[ 4869.531692] Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment noe
-[ 4869.538883] Control: 10c5387d  Table: 691ac06a  DAC: 00000051
-[ 4869.544603] Process lt-gst-launch-1 (pid: 2965, stack limit = 0xed650210)
-[ 4869.551361] Stack: (0xed651f18 to 0xed652000)
-[ 4869.555694] 1f00:                                                       ee373
-[ 4869.563841] 1f20: bf16b3c0 c055a0e0 ee3ac004 ed676c10 bf16b3c0 bf1558e0 e9080
-[ 4869.571986] 1f40: 00000000 ee98a510 ee502e40 bf047344 e9088c00 ee986938 00004
-[ 4869.580132] 1f60: 00000000 00000000 e91f2204 00000000 c0b4658c e91f1e00 c0100
-[ 4869.588277] 1f80: 00000000 c0135c58 ed650000 c0107904 ed651fb0 00000006 c0104
-[ 4869.596423] 1fa0: 00229500 b6581000 b6f7b544 c0107794 00000000 00000002 b6f90
-[ 4869.604568] 1fc0: 00229500 b6581000 b6f7b544 00000006 0017b600 0002c038 00264
-[ 4869.612714] 1fe0: 00000000 bee56ef0 00000000 b6d49612 00060030 00000006 00000
-[ 4869.620865] [<c0559714>] (clk_core_enable) from [<c055a0e0>] (clk_enable+0x2)
-[ 4869.628509] [<c055a0e0>] (clk_enable) from [<bf1558e0>] (s5p_mfc_release+0x3)
-[ 4869.637111] [<bf1558e0>] (s5p_mfc_release [s5p_mfc]) from [<bf047344>] (v4l2)
-[ 4869.646706] [<bf047344>] (v4l2_release [videodev]) from [<c01e4274>] (__fput)
-[ 4869.654745] [<c01e4274>] (__fput) from [<c0135c58>] (task_work_run+0x94/0xc8)
-[ 4869.661852] [<c0135c58>] (task_work_run) from [<c010a9d4>] (do_work_pending+)
-[ 4869.669735] [<c010a9d4>] (do_work_pending) from [<c0107794>] (slow_work_pend)
-[ 4869.677878] Code: ebffffef e3500000 18bd8070 e5943004 (e5933010)
+I did more experiments before, and usually it does not end like
+this. Usually, when I set up capture with greater resolution than cca
+800x600, I get 4 copies of image above each other.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_pm.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+If you know how to get images with greater resolution, let me know.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-index d011f30..d88f1ba 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-@@ -76,8 +76,10 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
- 
- err_s_clk:
- 	clk_put(pm->clock);
-+	pm->clock = NULL;
- err_p_ip_clk:
- 	clk_put(pm->clock_gate);
-+	pm->clock_gate = NULL;
- err_g_ip_clk:
- 	return ret;
- }
-@@ -88,9 +90,11 @@ void s5p_mfc_final_pm(struct s5p_mfc_dev *dev)
- 	    !IS_ERR_OR_NULL(pm->clock)) {
- 		clk_disable_unprepare(pm->clock);
- 		clk_put(pm->clock);
-+		pm->clock = NULL;
- 	}
- 	clk_unprepare(pm->clock_gate);
- 	clk_put(pm->clock_gate);
-+	pm->clock_gate = NULL;
- #ifdef CONFIG_PM
- 	pm_runtime_disable(pm->device);
- #endif
-@@ -98,12 +102,13 @@ void s5p_mfc_final_pm(struct s5p_mfc_dev *dev)
- 
- int s5p_mfc_clock_on(void)
- {
--	int ret;
-+	int ret = 0;
- #ifdef CLK_DEBUG
- 	atomic_inc(&clk_ref);
- 	mfc_debug(3, "+ %d\n", atomic_read(&clk_ref));
- #endif
--	ret = clk_enable(pm->clock_gate);
-+	if (!IS_ERR_OR_NULL(pm->clock_gate))
-+		ret = clk_enable(pm->clock_gate);
- 	return ret;
- }
- 
-@@ -113,7 +118,8 @@ void s5p_mfc_clock_off(void)
- 	atomic_dec(&clk_ref);
- 	mfc_debug(3, "- %d\n", atomic_read(&clk_ref));
- #endif
--	clk_disable(pm->clock_gate);
-+	if (!IS_ERR_OR_NULL(pm->clock_gate))
-+		clk_disable(pm->clock_gate);
- }
- 
- int s5p_mfc_power_on(void)
+Best regards,
+									Pavel
 -- 
-2.7.4
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
