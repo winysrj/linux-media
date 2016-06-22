@@ -1,256 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:32948 "EHLO
-	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932125AbcFASMR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2016 14:12:17 -0400
-Date: Wed, 1 Jun 2016 11:12:13 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Nick Dyer <nick.dyer@itdev.co.uk>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
-Subject: Re: [PATCH v3 1/8] Input: atmel_mxt_ts - add support for T37
- diagnostic data
-Message-ID: <20160601181213.GA4114@dtor-ws>
-References: <1464799192-28034-1-git-send-email-nick.dyer@itdev.co.uk>
- <1464799192-28034-2-git-send-email-nick.dyer@itdev.co.uk>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54575 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752223AbcFVRO5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2016 13:14:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	mchehab@kernel.org, hans.verkuil@cisco.com,
+	linux-samsung-soc@vger.kernel.org,
+	mjpeg-users@lists.sourceforge.net, devel@driverdev.osuosl.org,
+	lars@metafoo.de
+Subject: Re: [PATCH 1/2] [media] v4l: vsp1: Split pad operations between rpf and wpf
+Date: Wed, 22 Jun 2016 20:15:18 +0300
+Message-ID: <2990331.pv9We224T0@avalon>
+In-Reply-To: <20160622001925.30077-2-niklas.soderlund+renesas@ragnatech.se>
+References: <20160622001925.30077-1-niklas.soderlund+renesas@ragnatech.se> <20160622001925.30077-2-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1464799192-28034-2-git-send-email-nick.dyer@itdev.co.uk>
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nick,
+Hi Niklas,
 
-On Wed, Jun 01, 2016 at 05:39:45PM +0100, Nick Dyer wrote:
-> Atmel maXTouch devices have a T37 object which can be used to read raw
-> touch deltas from the device. This consists of an array of 16-bit
-> integers, one for each node on the touchscreen matrix.
+Thank you for the patch.
+
+On Wednesday 22 Jun 2016 02:19:24 Niklas Söderlund wrote:
+> This is done in preparation to move s_stream from v4l2_subdev_video_ops
+> to v4l2_subdev_pad_ops. Only wpf implements s_stream so it will no
+> longer be possible to share the v4l2_subdev_pad_ops once s_stream is
+> moved.
 > 
-> Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
+> Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 > ---
->  drivers/input/touchscreen/atmel_mxt_ts.c | 152 +++++++++++++++++++++++++++++++
->  1 file changed, 152 insertions(+)
+>  drivers/media/platform/vsp1/vsp1_rpf.c  | 12 +++++++++-
+>  drivers/media/platform/vsp1/vsp1_rwpf.c | 40 +++++++++++------------------
+>  drivers/media/platform/vsp1/vsp1_rwpf.h | 20 +++++++++++++++++
+>  drivers/media/platform/vsp1/vsp1_wpf.c  | 12 +++++++++-
+>  4 files changed, 57 insertions(+), 27 deletions(-)
 > 
-> diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-> index 5af7907..21f42ed 100644
-> --- a/drivers/input/touchscreen/atmel_mxt_ts.c
-> +++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-> @@ -124,6 +124,17 @@ struct t9_range {
->  #define MXT_COMMS_CTRL		0
->  #define MXT_COMMS_CMD		1
->  
-> +/* MXT_DEBUG_DIAGNOSTIC_T37 */
-> +#define MXT_DIAGNOSTIC_PAGEUP	0x01
-> +#define MXT_DIAGNOSTIC_DELTAS	0x10
-> +#define MXT_DIAGNOSTIC_SIZE	128
-> +
-> +struct t37_debug {
-> +	u8 mode;
-> +	u8 page;
-> +	u8 data[MXT_DIAGNOSTIC_SIZE];
+> diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c
+> b/drivers/media/platform/vsp1/vsp1_rpf.c index 49168db..fabe8b2 100644
+> --- a/drivers/media/platform/vsp1/vsp1_rpf.c
+> +++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+> @@ -38,8 +38,18 @@ static inline void vsp1_rpf_write(struct vsp1_rwpf *rpf,
+>   * V4L2 Subdevice Operations
+>   */
+> 
+> +const struct v4l2_subdev_pad_ops vsp1_rpf_pad_ops = {
+
+This should be static const.
+
+> +	.init_cfg = vsp1_entity_init_cfg,
+> +	.enum_mbus_code = vsp1_rwpf_enum_mbus_code,
+> +	.enum_frame_size = vsp1_rwpf_enum_frame_size,
+> +	.get_fmt = vsp1_subdev_get_pad_format,
+> +	.set_fmt = vsp1_rwpf_set_format,
+> +	.get_selection = vsp1_rwpf_get_selection,
+> +	.set_selection = vsp1_rwpf_set_selection,
 > +};
 > +
->  /* Define for MXT_GEN_COMMAND_T6 */
->  #define MXT_BOOT_VALUE		0xa5
->  #define MXT_RESET_VALUE		0x01
-> @@ -205,6 +216,14 @@ struct mxt_object {
->  	u8 num_report_ids;
->  } __packed;
->  
-> +struct mxt_dbg {
-> +	u16 t37_address;
-> +	u16 diag_cmd_address;
-> +	struct t37_debug *t37_buf;
-> +	unsigned int t37_pages;
-> +	unsigned int t37_nodes;
-> +};
-> +
->  /* Each client has this additional data */
->  struct mxt_data {
->  	struct i2c_client *client;
-> @@ -233,6 +252,7 @@ struct mxt_data {
->  	u8 num_touchids;
->  	u8 multitouch;
->  	struct t7_config t7_cfg;
-> +	struct mxt_dbg dbg;
->  
->  	/* Cached parameters from object table */
->  	u16 T5_address;
-> @@ -2043,6 +2063,136 @@ recheck:
->  	return 0;
->  }
->  
-> +static u16 mxt_get_debug_value(struct mxt_data *data, unsigned int x,
-> +			       unsigned int y)
-> +{
-> +	struct mxt_dbg *dbg = &data->dbg;
-> +	unsigned int ofs, page;
-> +
-> +	ofs = (y + (x * data->info.matrix_ysize)) * sizeof(u16);
-> +	page = ofs / MXT_DIAGNOSTIC_SIZE;
-> +	ofs %= MXT_DIAGNOSTIC_SIZE;
-> +
-> +	return get_unaligned_le16(&dbg->t37_buf[page].data[ofs]);
-> +}
-> +
-> +static int mxt_convert_debug_pages(struct mxt_data *data, u16 *outbuf)
-> +{
-> +	struct mxt_dbg *dbg = &data->dbg;
-> +	unsigned int x = 0;
-> +	unsigned int y = 0;
-> +	unsigned int i;
-> +
-> +	for (i = 0; i < dbg->t37_nodes; i++) {
-> +		outbuf[i] = mxt_get_debug_value(data, x, y);
-> +
-> +		/* Next value */
-> +		if (++x >= data->info.matrix_xsize) {
-> +			x = 0;
-> +			y++;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int mxt_read_diagnostic_debug(struct mxt_data *data, u8 mode,
-> +				     u16 *outbuf)
-> +{
-> +	struct mxt_dbg *dbg = &data->dbg;
-> +	int retries = 0;
-> +	int page;
-> +	int ret;
-> +	u8 cmd = mode;
-> +	struct t37_debug *p;
-> +	u8 cmd_poll;
-> +
-> +	for (page = 0; page < dbg->t37_pages; page++) {
-> +		p = dbg->t37_buf + page;
-> +
-> +		ret = mxt_write_reg(data->client, dbg->diag_cmd_address,
-> +				    cmd);
-> +		if (ret)
-> +			return ret;
-> +
-> +		retries = 0;
-> +		msleep(20);
-> +wait_cmd:
-> +		/* Read back command byte */
-> +		ret = __mxt_read_reg(data->client, dbg->diag_cmd_address,
-> +				     sizeof(cmd_poll), &cmd_poll);
-> +		if (ret)
-> +			return ret;
-> +
-> +		/* Field is cleared once the command has been processed */
-> +		if (cmd_poll) {
-> +			if (retries++ > 100)
-> +				return -EINVAL;
-> +
-> +			msleep(20);
-> +			goto wait_cmd;
-> +		}
-> +
-> +		/* Read T37 page */
-> +		ret = __mxt_read_reg(data->client, dbg->t37_address,
-> +				sizeof(struct t37_debug), p);
-> +		if (ret)
-> +			return ret;
-> +
-> +		if ((p->mode != mode) || (p->page != page)) {
-
-No need for extra parenthesis.
-
-> +			dev_err(&data->client->dev, "T37 page mismatch\n");
-> +			return -EINVAL;
-> +		}
-> +
-> +		dev_dbg(&data->client->dev, "%s page:%d retries:%d\n",
-> +			__func__, page, retries);
-> +
-> +		/* For remaining pages, write PAGEUP rather than mode */
-> +		cmd = MXT_DIAGNOSTIC_PAGEUP;
-> +	}
-> +
-> +	return mxt_convert_debug_pages(data, outbuf);
-> +}
-> +
-> +static void mxt_debug_init(struct mxt_data *data)
-> +{
-> +	struct mxt_dbg *dbg = &data->dbg;
-> +	struct mxt_object *object;
-> +
-> +	object = mxt_get_object(data, MXT_GEN_COMMAND_T6);
-> +	if (!object)
-> +		return;
-> +
-> +	dbg->diag_cmd_address = object->start_address + MXT_COMMAND_DIAGNOSTIC;
-> +
-> +	object = mxt_get_object(data, MXT_DEBUG_DIAGNOSTIC_T37);
-> +	if (!object)
-> +		return;
-> +
-> +	if (mxt_obj_size(object) != sizeof(struct t37_debug)) {
-> +		dev_warn(&data->client->dev, "Bad T37 size");
-> +		return;
-> +	}
-> +
-> +	dbg->t37_address = object->start_address;
-> +
-> +	/* Calculate size of data and allocate buffer */
-> +	dbg->t37_nodes = data->info.matrix_xsize * data->info.matrix_ysize;
-> +	dbg->t37_pages = dbg->t37_nodes * sizeof(u16)
-> +					/ sizeof(dbg->t37_buf->data) + 1;
-> +
-> +	dbg->t37_buf = devm_kzalloc(&data->client->dev,
-> +				     sizeof(struct t37_debug) * dbg->t37_pages,
-> +				     GFP_KERNEL);
-
-devm_kcalloc() or devm_kmalloc_array() if memory does not need to be
-zeroed out.
-
-> +	if (!dbg->t37_buf)
-> +		goto error;
-> +
-> +	return;
-> +
-> +error:
-> +	dev_err(&data->client->dev, "Error initialising T37 diagnostic data\n");
-
-Why do we only emit this message if memory allocation fails? And if it
-is intentional why don't we do it inline?
-
-> +}
-> +
->  static int mxt_configure_objects(struct mxt_data *data,
->  				 const struct firmware *cfg)
+>  static struct v4l2_subdev_ops rpf_ops = {
+> -	.pad    = &vsp1_rwpf_pad_ops,
+> +	.pad    = &vsp1_rpf_pad_ops,
+>  };
+> 
+>  /*
+> ---------------------------------------------------------------------------
+> -- diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c
+> b/drivers/media/platform/vsp1/vsp1_rwpf.c index 3b6e032..ff03b9c 100644
+> --- a/drivers/media/platform/vsp1/vsp1_rwpf.c
+> +++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
+> @@ -31,9 +31,9 @@ struct v4l2_rect *vsp1_rwpf_get_crop(struct vsp1_rwpf
+> *rwpf, * V4L2 Subdevice Pad Operations
+>   */
+> 
+> -static int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
+> -				    struct v4l2_subdev_pad_config *cfg,
+> -				    struct v4l2_subdev_mbus_code_enum *code)
+> +int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
+> +			     struct v4l2_subdev_pad_config *cfg,
+> +			     struct v4l2_subdev_mbus_code_enum *code)
 >  {
-> @@ -2070,6 +2220,8 @@ static int mxt_configure_objects(struct mxt_data *data,
->  		dev_warn(dev, "No touch object detected\n");
->  	}
->  
-> +	mxt_debug_init(data);
-> +
->  	dev_info(dev,
->  		 "Family: %u Variant: %u Firmware V%u.%u.%02X Objects: %u\n",
->  		 info->family_id, info->variant_id, info->version >> 4,
-> -- 
-> 2.5.0
+>  	static const unsigned int codes[] = {
+>  		MEDIA_BUS_FMT_ARGB8888_1X32,
+> @@ -48,9 +48,9 @@ static int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev
+> *subdev, return 0;
+>  }
 > 
+> -static int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
+> -				     struct v4l2_subdev_pad_config *cfg,
+> -				     struct v4l2_subdev_frame_size_enum *fse)
+> +int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
+> +			      struct v4l2_subdev_pad_config *cfg,
+> +			      struct v4l2_subdev_frame_size_enum *fse)
+>  {
+>  	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
+> 
+> @@ -59,9 +59,9 @@ static int vsp1_rwpf_enum_frame_size(struct v4l2_subdev
+> *subdev, rwpf->max_height);
+>  }
+> 
+> -static int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
+> -				struct v4l2_subdev_pad_config *cfg,
+> -				struct v4l2_subdev_format *fmt)
+> +int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
+> +			 struct v4l2_subdev_pad_config *cfg,
+> +			 struct v4l2_subdev_format *fmt)
+>  {
+>  	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
+>  	struct v4l2_subdev_pad_config *config;
+> @@ -113,9 +113,9 @@ static int vsp1_rwpf_set_format(struct v4l2_subdev
+> *subdev, return 0;
+>  }
+> 
+> -static int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
+> -				   struct v4l2_subdev_pad_config *cfg,
+> -				   struct v4l2_subdev_selection *sel)
+> +int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
+> +			    struct v4l2_subdev_pad_config *cfg,
+> +			    struct v4l2_subdev_selection *sel)
+>  {
+>  	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
+>  	struct v4l2_subdev_pad_config *config;
+> @@ -150,9 +150,9 @@ static int vsp1_rwpf_get_selection(struct v4l2_subdev
+> *subdev, return 0;
+>  }
+> 
+> -static int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
+> -				   struct v4l2_subdev_pad_config *cfg,
+> -				   struct v4l2_subdev_selection *sel)
+> +int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
+> +			    struct v4l2_subdev_pad_config *cfg,
+> +			    struct v4l2_subdev_selection *sel)
+>  {
+>  	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
+>  	struct v4l2_subdev_pad_config *config;
+> @@ -209,16 +209,6 @@ static int vsp1_rwpf_set_selection(struct v4l2_subdev
+> *subdev, return 0;
+>  }
+> 
+> -const struct v4l2_subdev_pad_ops vsp1_rwpf_pad_ops = {
 
-Thanks.
+You can also remove the declaration of the structure from vsp1_rwpf.h.
+
+> -	.init_cfg = vsp1_entity_init_cfg,
+> -	.enum_mbus_code = vsp1_rwpf_enum_mbus_code,
+> -	.enum_frame_size = vsp1_rwpf_enum_frame_size,
+> -	.get_fmt = vsp1_subdev_get_pad_format,
+> -	.set_fmt = vsp1_rwpf_set_format,
+> -	.get_selection = vsp1_rwpf_get_selection,
+> -	.set_selection = vsp1_rwpf_set_selection,
+> -};
+> -
+>  /*
+> ---------------------------------------------------------------------------
+> -- * Controls
+>   */
+> diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h
+> b/drivers/media/platform/vsp1/vsp1_rwpf.h index 9ff7c78..5ed4be5 100644
+> --- a/drivers/media/platform/vsp1/vsp1_rwpf.h
+> +++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+> @@ -74,6 +74,26 @@ extern const struct v4l2_subdev_pad_ops
+> vsp1_rwpf_pad_ops;
+> 
+>  struct v4l2_rect *vsp1_rwpf_get_crop(struct vsp1_rwpf *rwpf,
+>  				     struct v4l2_subdev_pad_config *config);
+> +
+> +int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
+> +			     struct v4l2_subdev_pad_config *cfg,
+> +			     struct v4l2_subdev_mbus_code_enum *code);
+> +
+> +int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
+> +			      struct v4l2_subdev_pad_config *cfg,
+> +			      struct v4l2_subdev_frame_size_enum *fse);
+> +
+> +int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
+> +			 struct v4l2_subdev_pad_config *cfg,
+> +			 struct v4l2_subdev_format *fmt);
+> +
+> +int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
+> +			    struct v4l2_subdev_pad_config *cfg,
+> +			    struct v4l2_subdev_selection *sel);
+> +
+> +int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
+> +			    struct v4l2_subdev_pad_config *cfg,
+> +			    struct v4l2_subdev_selection *sel);
+
+You can remove the white lines between the functions as an indication they 
+belong to the same group, and I'd add a white line here.
+
+>  /**
+>   * vsp1_rwpf_set_memory - Configure DMA addresses for a [RW]PF
+>   * @rwpf: the [RW]PF instance
+> diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c
+> b/drivers/media/platform/vsp1/vsp1_wpf.c index 6c91eaa..75fe7de 100644
+> --- a/drivers/media/platform/vsp1/vsp1_wpf.c
+> +++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+> @@ -62,13 +62,23 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int
+> enable) * V4L2 Subdevice Operations
+>   */
+> 
+> +const struct v4l2_subdev_pad_ops vsp1_wpf_pad_ops = {
+
+This should be static const.
+
+> +	.init_cfg = vsp1_entity_init_cfg,
+> +	.enum_mbus_code = vsp1_rwpf_enum_mbus_code,
+> +	.enum_frame_size = vsp1_rwpf_enum_frame_size,
+> +	.get_fmt = vsp1_subdev_get_pad_format,
+> +	.set_fmt = vsp1_rwpf_set_format,
+> +	.get_selection = vsp1_rwpf_get_selection,
+> +	.set_selection = vsp1_rwpf_set_selection,
+> +};
+> +
+>  static struct v4l2_subdev_video_ops wpf_video_ops = {
+>  	.s_stream = wpf_s_stream,
+>  };
+> 
+>  static struct v4l2_subdev_ops wpf_ops = {
+>  	.video	= &wpf_video_ops,
+> -	.pad    = &vsp1_rwpf_pad_ops,
+> +	.pad    = &vsp1_wpf_pad_ops,
+>  };
+> 
+>  /*
+> ---------------------------------------------------------------------------
+> --
 
 -- 
-Dmitry
+Regards,
+
+Laurent Pinchart
+
