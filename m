@@ -1,134 +1,284 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:51031 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752847AbcFQTAu (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33479 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751286AbcFVTXC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 15:00:50 -0400
-Subject: tchellRe: [19/38] ARM: dts: imx6-sabrelite: add video capture ports
- and connections
-To: Gary Bisson <gary.bisson@boundarydevices.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>
-References: <1465944574-15745-20-git-send-email-steve_longerbeam@mentor.com>
- <20160616083231.GA6548@t450s.lan> <20160617151814.GA16378@t450s.lan>
-CC: <linux-media@vger.kernel.org>, Jack Mitchell <ml@embed.me.uk>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <576448DE.1040002@mentor.com>
-Date: Fri, 17 Jun 2016 12:00:46 -0700
-MIME-Version: 1.0
-In-Reply-To: <20160617151814.GA16378@t450s.lan>
-Content-Type: multipart/mixed;
-	boundary="------------010200000601060401080003"
+	Wed, 22 Jun 2016 15:23:02 -0400
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com,
+	linux@arm.linux.org.uk, mchehab@osg.samsung.com
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [RESEND PATCH v2 3/5] ir-rx51: use PWM framework instead of OMAP dmtimer
+Date: Wed, 22 Jun 2016 22:22:19 +0300
+Message-Id: <1466623341-30130-4-git-send-email-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <1466623341-30130-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <1466623341-30130-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---------------010200000601060401080003
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Convert driver to use PWM framework instead of calling dmtimer functions
+directly for PWM timer. Remove paragraph about writing to the Free Software
+Foundation's mailing address while at it.
 
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |  1 -
+ arch/arm/mach-omap2/pdata-quirks.c           |  1 -
+ drivers/media/rc/ir-rx51.c                   | 85 ++++++++++++++--------------
+ include/linux/platform_data/media/ir-rx51.h  |  2 -
+ 4 files changed, 44 insertions(+), 45 deletions(-)
 
-
-On 06/17/2016 08:18 AM, Gary Bisson wrote:
-> Steve, All,
->
-> On Thu, Jun 16, 2016 at 10:32:31AM +0200, Gary Bisson wrote:
->> Steve, All,
->>
->> On Tue, Jun 14, 2016 at 03:49:15PM -0700, Steve Longerbeam wrote:
->>> Defines the host video capture device node and an OV5642 camera sensor
->>> node on i2c2. The host capture device connects to the OV5642 via the
->>> parallel-bus mux input on the ipu1_csi0_mux.
->>>
->>> Note there is a pin conflict with GPIO6. This pin functions as a power
->>> input pin to the OV5642, but ENET requires it to wake-up the ARM cores
->>> on normal RX and TX packet done events (see 6261c4c8). So by default,
->>> capture is disabled, enable by uncommenting __OV5642_CAPTURE__ macro.
->>> Ethernet will still work just not quite as well.
->> Actually the following patch fixes this issue and has already been
->> applied on Shawn's tree:
->> https://patchwork.kernel.org/patch/9153523/
->>
->> Also, this follow-up patch declared the HW workaround for SabreLite:
->> https://patchwork.kernel.org/patch/9153525/
->>
->> So ideally, once those two patches land on your base tree, you could get
->> rid of the #define and remove the HW workaround declaration.
->>
->> Finally, I'll test the series on Sabre-Lite this week.
-> I've applied this series on top of Shawn tree (for-next branch) in order
-> not to worry about the GPIO6 workaround.
->
-> Although the camera seems to get enumerated properly, I can't seem to
-> get anything from it. See log:
-> http://pastebin.com/xnw1ujUq
-
-Hi Gary, the driver does not implement vidioc_cropcap, it has
-switched to the new selection APIs and v4l2src should be using
-vidioc_g_selection instead of vidioc_cropcap.
-
->
-> In your cover letter, you said that you have not run through
-> v4l2-compliance. How have you tested the capture?
-
-I use v4l2-ctl, and have used v4l2src in the past, but that was before
-switching to the selection APIs. Try the attached hack that adds
-vidioc_cropcap back in, and see how far you get on SabreLite with
-v4l2src. I tried  the following on SabreAuto:
-
-gst-launch-1.0 v4l2src io_mode=4 ! 
-"video/x-raw,format=RGB16,width=640,height=480" ! fbdevsink
-
->
-> Also, why isn't the OV5640 MIPI camera declared on the SabreLite device
-> tree?
-
-See Jack Mitchell's patch at http://ix.io/TTg. Thanks Jack! I will work on
-incorporating it.
-
-
-Steve
-
-
-
---------------010200000601060401080003
-Content-Type: text/x-patch; name="vidioc_cropcap.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename="vidioc_cropcap.diff"
-
-diff --git a/drivers/staging/media/imx/capture/imx-camif.c b/drivers/staging/media/imx/capture/imx-camif.c
-index 9c247e0..2c51bc7 100644
---- a/drivers/staging/media/imx/capture/imx-camif.c
-+++ b/drivers/staging/media/imx/capture/imx-camif.c
-@@ -1561,6 +1561,23 @@ static int vidioc_s_parm(struct file *file, void *fh,
- 	return v4l2_subdev_call(dev->sensor->sd, video, s_parm, a);
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 9a70739..e487575 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -1242,7 +1242,6 @@ static struct pwm_omap_dmtimer_pdata __maybe_unused pwm_dmtimer_pdata = {
+ #if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
+ static struct lirc_rx51_platform_data rx51_lirc_data = {
+ 	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
+-	.pwm_timer = 9, /* Use GPT 9 for CIR */
+ #if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
+ 	.dmtimer = &pwm_dmtimer_pdata,
+ #endif
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 6571ad9..278bb8f 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -491,7 +491,6 @@ static struct pwm_omap_dmtimer_pdata pwm_dmtimer_pdata = {
+ 
+ static struct lirc_rx51_platform_data __maybe_unused rx51_lirc_data = {
+ 	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
+-	.pwm_timer = 9, /* Use GPT 9 for CIR */
+ #if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
+ 	.dmtimer = &pwm_dmtimer_pdata,
+ #endif
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index da839c3..5096ef3 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -12,13 +12,7 @@
+  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+- *
+  */
+-
+ #include <linux/clk.h>
+ #include <linux/module.h>
+ #include <linux/interrupt.h>
+@@ -26,6 +20,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/sched.h>
+ #include <linux/wait.h>
++#include <linux/pwm.h>
+ 
+ #include <media/lirc.h>
+ #include <media/lirc_dev.h>
+@@ -43,7 +38,7 @@
+ #define TIMER_MAX_VALUE 0xffffffff
+ 
+ struct lirc_rx51 {
+-	pwm_omap_dmtimer *pwm_timer;
++	struct pwm_device *pwm;
+ 	pwm_omap_dmtimer *pulse_timer;
+ 	struct pwm_omap_dmtimer_pdata *dmtimer;
+ 	struct device	     *dev;
+@@ -58,32 +53,28 @@ struct lirc_rx51 {
+ 	int		wbuf[WBUF_LEN];
+ 	int		wbuf_index;
+ 	unsigned long	device_is_open;
+-	int		pwm_timer_num;
+ };
+ 
+ static void lirc_rx51_on(struct lirc_rx51 *lirc_rx51)
+ {
+-	lirc_rx51->dmtimer->set_pwm(lirc_rx51->pwm_timer, 0, 1,
+-				PWM_OMAP_DMTIMER_TRIGGER_OVERFLOW_AND_COMPARE);
++	pwm_enable(lirc_rx51->pwm);
  }
  
-+static int vidioc_cropcap(struct file *file, void *priv,
-+			  struct v4l2_cropcap *cropcap)
-+{
-+	struct imxcam_ctx *ctx = file2ctx(file);
-+	struct imxcam_dev *dev = ctx->dev;
-+
-+	if (cropcap->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-+	    cropcap->type != V4L2_BUF_TYPE_VIDEO_OVERLAY)
-+		return -EINVAL;
-+
-+	cropcap->bounds = dev->crop_bounds;
-+	cropcap->defrect = dev->crop_defrect;
-+	cropcap->pixelaspect.numerator = 1;
-+	cropcap->pixelaspect.denominator = 1;
-+	return 0;
-+}
-+
- static int vidioc_g_selection(struct file *file, void *priv,
- 			      struct v4l2_selection *sel)
+ static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
  {
-@@ -1794,6 +1811,7 @@ static const struct v4l2_ioctl_ops imxcam_ioctl_ops = {
- 	.vidioc_g_parm          = vidioc_g_parm,
- 	.vidioc_s_parm          = vidioc_s_parm,
+-	lirc_rx51->dmtimer->set_pwm(lirc_rx51->pwm_timer, 0, 1,
+-				    PWM_OMAP_DMTIMER_TRIGGER_NONE);
++	pwm_disable(lirc_rx51->pwm);
+ }
  
-+	.vidioc_cropcap		= vidioc_cropcap,
- 	.vidioc_g_selection     = vidioc_g_selection,
- 	.vidioc_s_selection     = vidioc_s_selection,
+ static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+ {
+-	u32 load, match;
+-
+-	load = -(lirc_rx51->fclk_khz * 1000 / lirc_rx51->freq);
+-	match = -(lirc_rx51->duty_cycle * -load / 100);
+-	lirc_rx51->dmtimer->set_load(lirc_rx51->pwm_timer, 1, load);
+-	lirc_rx51->dmtimer->set_match(lirc_rx51->pwm_timer, 1, match);
+-	lirc_rx51->dmtimer->write_counter(lirc_rx51->pwm_timer, TIMER_MAX_VALUE - 2);
+-	lirc_rx51->dmtimer->start(lirc_rx51->pwm_timer);
++	struct pwm_device *pwm = lirc_rx51->pwm;
++	int duty, period = DIV_ROUND_CLOSEST(NSEC_PER_SEC, lirc_rx51->freq);
++
++	duty = DIV_ROUND_CLOSEST(lirc_rx51->duty_cycle * period, 100);
+ 	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
++
++	pwm_config(pwm, duty, period);
++
+ 	lirc_rx51->dmtimer->start(lirc_rx51->pulse_timer);
  
+ 	lirc_rx51->match = 0;
+@@ -165,7 +156,7 @@ end:
+ 	/* Stop TX here */
+ 	lirc_rx51_off(lirc_rx51);
+ 	lirc_rx51->wbuf_index = -1;
+-	lirc_rx51->dmtimer->stop(lirc_rx51->pwm_timer);
++
+ 	lirc_rx51->dmtimer->stop(lirc_rx51->pulse_timer);
+ 	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
+ 	wake_up_interruptible(&lirc_rx51->wqueue);
+@@ -176,13 +167,13 @@ end:
+ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
+ {
+ 	struct clk *clk_fclk;
+-	int retval, pwm_timer = lirc_rx51->pwm_timer_num;
++	int retval;
+ 
+-	lirc_rx51->pwm_timer = lirc_rx51->dmtimer->request_specific(pwm_timer);
+-	if (lirc_rx51->pwm_timer == NULL) {
+-		dev_err(lirc_rx51->dev, ": Error requesting GPT%d timer\n",
+-			pwm_timer);
+-		return -EBUSY;
++	lirc_rx51->pwm = pwm_get(lirc_rx51->dev, NULL);
++	if (IS_ERR(lirc_rx51->pwm)) {
++		retval = PTR_ERR(lirc_rx51->pwm);
++		dev_err(lirc_rx51->dev, ": pwm_get failed: %d\n", retval);
++		return retval;
+ 	}
+ 
+ 	lirc_rx51->pulse_timer = lirc_rx51->dmtimer->request();
+@@ -192,15 +183,11 @@ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
+ 		goto err1;
+ 	}
+ 
+-	lirc_rx51->dmtimer->set_source(lirc_rx51->pwm_timer,
+-				       PWM_OMAP_DMTIMER_SRC_SYS_CLK);
+ 	lirc_rx51->dmtimer->set_source(lirc_rx51->pulse_timer,
+ 				       PWM_OMAP_DMTIMER_SRC_SYS_CLK);
+-
+-	lirc_rx51->dmtimer->enable(lirc_rx51->pwm_timer);
+ 	lirc_rx51->dmtimer->enable(lirc_rx51->pulse_timer);
+-
+-	lirc_rx51->irq_num = lirc_rx51->dmtimer->get_irq(lirc_rx51->pulse_timer);
++	lirc_rx51->irq_num =
++			lirc_rx51->dmtimer->get_irq(lirc_rx51->pulse_timer);
+ 	retval = request_irq(lirc_rx51->irq_num, lirc_rx51_interrupt_handler,
+ 			     IRQF_SHARED, "lirc_pulse_timer", lirc_rx51);
+ 	if (retval) {
+@@ -208,7 +195,7 @@ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
+ 		goto err2;
+ 	}
+ 
+-	clk_fclk = lirc_rx51->dmtimer->get_fclk(lirc_rx51->pwm_timer);
++	clk_fclk = lirc_rx51->dmtimer->get_fclk(lirc_rx51->pulse_timer);
+ 	lirc_rx51->fclk_khz = clk_get_rate(clk_fclk) / 1000;
+ 
+ 	return 0;
+@@ -216,7 +203,7 @@ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
+ err2:
+ 	lirc_rx51->dmtimer->free(lirc_rx51->pulse_timer);
+ err1:
+-	lirc_rx51->dmtimer->free(lirc_rx51->pwm_timer);
++	pwm_put(lirc_rx51->pwm);
+ 
+ 	return retval;
+ }
+@@ -226,11 +213,10 @@ static int lirc_rx51_free_port(struct lirc_rx51 *lirc_rx51)
+ 	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
+ 	free_irq(lirc_rx51->irq_num, lirc_rx51);
+ 	lirc_rx51_off(lirc_rx51);
+-	lirc_rx51->dmtimer->disable(lirc_rx51->pwm_timer);
+ 	lirc_rx51->dmtimer->disable(lirc_rx51->pulse_timer);
+-	lirc_rx51->dmtimer->free(lirc_rx51->pwm_timer);
+ 	lirc_rx51->dmtimer->free(lirc_rx51->pulse_timer);
+ 	lirc_rx51->wbuf_index = -1;
++	pwm_put(lirc_rx51->pwm);
+ 
+ 	return 0;
+ }
+@@ -387,7 +373,6 @@ static int lirc_rx51_release(struct inode *inode, struct file *file)
+ }
+ 
+ static struct lirc_rx51 lirc_rx51 = {
+-	.freq		= 38000,
+ 	.duty_cycle	= 50,
+ 	.wbuf_index	= -1,
+ };
+@@ -445,14 +430,34 @@ static int lirc_rx51_resume(struct platform_device *dev)
+ 
+ static int lirc_rx51_probe(struct platform_device *dev)
+ {
++	struct pwm_device *pwm;
++
+ 	lirc_rx51_driver.features = LIRC_RX51_DRIVER_FEATURES;
+ 	lirc_rx51.pdata = dev->dev.platform_data;
++
++	if (!lirc_rx51.pdata) {
++		dev_err(&dev->dev, "Platform Data is missing\n");
++		return -ENXIO;
++	}
++
+ 	if (!lirc_rx51.pdata->dmtimer) {
+ 		dev_err(&dev->dev, "no dmtimer?\n");
+ 		return -ENODEV;
+ 	}
+ 
+-	lirc_rx51.pwm_timer_num = lirc_rx51.pdata->pwm_timer;
++	pwm = pwm_get(&dev->dev, NULL);
++	if (IS_ERR(pwm)) {
++		int err = PTR_ERR(pwm);
++
++		if (err != -EPROBE_DEFER)
++			dev_err(&dev->dev, "pwm_get failed: %d\n", err);
++		return err;
++	}
++
++	/* Use default, in case userspace does not set the carrier */
++	lirc_rx51.freq = DIV_ROUND_CLOSEST(pwm_get_period(pwm), NSEC_PER_SEC);
++	pwm_put(pwm);
++
+ 	lirc_rx51.dmtimer = lirc_rx51.pdata->dmtimer;
+ 	lirc_rx51.dev = &dev->dev;
+ 	lirc_rx51_driver.dev = &dev->dev;
+@@ -464,8 +469,6 @@ static int lirc_rx51_probe(struct platform_device *dev)
+ 		       lirc_rx51_driver.minor);
+ 		return lirc_rx51_driver.minor;
+ 	}
+-	dev_info(lirc_rx51.dev, "registration ok, minor: %d, pwm: %d\n",
+-		 lirc_rx51_driver.minor, lirc_rx51.pwm_timer_num);
+ 
+ 	return 0;
+ }
+diff --git a/include/linux/platform_data/media/ir-rx51.h b/include/linux/platform_data/media/ir-rx51.h
+index 3038120..6acf22d 100644
+--- a/include/linux/platform_data/media/ir-rx51.h
++++ b/include/linux/platform_data/media/ir-rx51.h
+@@ -2,8 +2,6 @@
+ #define _LIRC_RX51_H
+ 
+ struct lirc_rx51_platform_data {
+-	int pwm_timer;
+-
+ 	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
+ 	struct pwm_omap_dmtimer_pdata *dmtimer;
+ };
+-- 
+1.9.1
 
---------------010200000601060401080003--
