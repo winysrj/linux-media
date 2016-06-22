@@ -1,59 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34420 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752120AbcFFWcb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2016 18:32:31 -0400
-Message-ID: <5755F9FB.9050309@gmail.com>
-Date: Mon, 06 Jun 2016 23:32:27 +0100
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59840 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752346AbcFVHqM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2016 03:46:12 -0400
+Date: Wed, 22 Jun 2016 10:22:15 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	pali.rohar@gmail.com, linux-media@vger.kernel.org
+Subject: Re: Nokia N900 cameras -- pipeline setup in python (was Re: [RFC
+ PATCH 00/24] Make Nokia N900 cameras working)
+Message-ID: <20160622072214.GR24980@valkosipuli.retiisi.org.uk>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160427030850.GA17034@earth>
+ <20160617164226.GA27876@amd>
+ <20160617171214.GA5830@amd>
+ <20160620205904.GL24980@valkosipuli.retiisi.org.uk>
+ <20160621180549.GA9602@amd>
 MIME-Version: 1.0
-To: kbuild test robot <fengguang.wu@intel.com>
-CC: no To-header on input <kbuild-all@01.org>,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: undefined reference to `dma_common_mmap'
-References: <200201100056.UF9oEzeg%fengguang.wu@intel.com> <20160606083705.GA2324@sudip-tp>
-In-Reply-To: <20160606083705.GA2324@sudip-tp>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160621180549.GA9602@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 06 June 2016 09:37 AM, Sudip Mukherjee wrote:
-> On Thu, Jan 10, 2002 at 12:50:58AM +0800, kbuild test robot wrote:
->> Hi,
->>
->> It's probably a bug fix that unveils the link errors.
->>
->> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
->> head:   af8c34ce6ae32addda3788d54a7e340cad22516b
->> commit: 420520766a796d36076111139ba1e4fb1aadeadd [media] media: Kconfig: add dependency of HAS_DMA
->> date:   in the future
->> config: m32r-allyesconfig (attached as .config)
->> compiler: m32r-linux-gcc (GCC) 4.9.0
->> reproduce:
->>          wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
->>          chmod +x ~/bin/make.cross
->>          git checkout 420520766a796d36076111139ba1e4fb1aadeadd
->>          # save the attached .config to linux build tree
->>          make.cross ARCH=m32r
->
-> Thanks, i will reproduce this tonight and see. But just fyi, i am no
-> longer using my sudip@vectorindia.org because of a change in dayjob.
-> I would have missed this mail unless the date of the mail was showing
-> as Jan 10, 2002.
+Hi Pavel,
 
-Before this patch m32r allyesconfig used to fail with the error:
-../drivers/media/v4l2-core/videobuf2-dma-contig.c: In function 
-'vb2_dc_get_userptr':
-../drivers/media/v4l2-core/videobuf2-dma-contig.c:484:28: error: 
-implicit declaration of function 'dma_get_cache_alignment' 
-[-Werror=implicit-function-declaration]
-   unsigned long dma_align = dma_get_cache_alignment();
+On Tue, Jun 21, 2016 at 08:05:49PM +0200, Pavel Machek wrote:
+> Hi!
+> 
+> > > > First, I re-did pipeline setup in python, it seems slightly less hacky
+> > > > then in shell.
+> > > > 
+> > > > I tried to modify fcam-dev to work with the new interface, but was not
+> > > > successful so far. I can post patches if someone is interested
+> > > > (mplayer works for me, but that's not too suitable for taking photos).
+> > > > 
+> > > > I tried to get gstreamer to work, with something like:
+> > > 
+> > > While trying to debug gstreamer, I ran v4l2-compliance, and it seems
+> > > to suggest that QUERYCAP is required... but it is not present on
+> > > /dev/video2 or video6.
+> > 
+> > It's not saying that it wouldn't be present, but the content appears wrong.
+> > It should have the real bus information there rather than just "media".
+> > 
+> > See e.g. drivers/media/platform/vsp1/vsp1_drv.c . I suppose that should be
+> > right.
+> > 
+> > Feel free to submit a patch. :-)
+> 
+> For now I'd not know what to change, sorry :-(. Perhaps we can debug
+> it after the support is merged into mainline.
 
-and build never went past this point. This concerned patch fixed the 
-error and brought out new errors which were never known before this patch.
+A single line change to change the bus field contents to the actual bus
+address.
 
-Regards
-Sudip
+	grep -A1 platform: drivers/media/platform/vsp1/vsp1_drv.c
+
+> 
+> Another weirdness:
+> 
+> yavta, on v4l-subdev12 :
+> 
+> control 0x00a40906 `Sensivity' min 0 max 0 step 1 default 0 current 65536.
+> 
+> Min and max being the same, I don't think I can control the
+> sensitivity. I guess I'll have to provid  more light for the tests for
+> now...
+
+That control should be removed. I think I concluded its value is the same
+for all the modes...
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
