@@ -1,233 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:52991 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750907AbcFSN1l (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:37929 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751543AbcFVMAA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jun 2016 09:27:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] rc-cec: Add HDMI CEC keymap module
-Date: Sun, 19 Jun 2016 15:27:32 +0200
-Message-Id: <1466342852-5748-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1466342852-5748-1-git-send-email-hverkuil@xs4all.nl>
-References: <1466342852-5748-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 22 Jun 2016 08:00:00 -0400
+Date: Wed, 22 Jun 2016 13:52:18 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com,
+	sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+	patrikbachan@gmail.com, serge@hallyn.com, tuukkat76@gmail.com,
+	mchehab@osg.samsung.com, linux-media@vger.kernel.org
+Subject: Re: camera application for testing (was Re: v4l subdevs without big
+ device)
+Message-ID: <20160622115218.GA27606@amd>
+References: <20160428084546.GA9957@amd>
+ <20160429221359.GA29297@amd>
+ <20160501140831.GH26360@valkosipuli.retiisi.org.uk>
+ <1500395.gQ70N9eqVS@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1500395.gQ70N9eqVS@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+Hi!
 
-Add the keymap module for HDMI CEC remote control commands.
+> > I think libv4l itself has algorithms to control at least some of these. It
+> > relies on the image data so the CPU time consumption will be high.
+> > 
+> > AFAIR Laurent has also worked on implementing some algorithms that use the
+> > histogram and some of the statistics. Add him to cc list.
+> 
+> http://git.ideasonboard.org/omap3-isp-live.git
+> 
+> That's outdated and might not run or compile anymore. The code is
+> more of a
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/rc/keymaps/Makefile |   1 +
- drivers/media/rc/keymaps/rc-cec.c | 182 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 183 insertions(+)
- create mode 100644 drivers/media/rc/keymaps/rc-cec.c
+Lets see, it compiles with this hack:
 
-diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
-index fbbd3bb..9cffcc6 100644
---- a/drivers/media/rc/keymaps/Makefile
-+++ b/drivers/media/rc/keymaps/Makefile
-@@ -18,6 +18,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-behold.o \
- 			rc-behold-columbus.o \
- 			rc-budget-ci-old.o \
-+			rc-cec.o \
- 			rc-cinergy-1400.o \
- 			rc-cinergy.o \
- 			rc-delock-61959.o \
-diff --git a/drivers/media/rc/keymaps/rc-cec.c b/drivers/media/rc/keymaps/rc-cec.c
-new file mode 100644
-index 0000000..354c8e7
---- /dev/null
-+++ b/drivers/media/rc/keymaps/rc-cec.c
-@@ -0,0 +1,182 @@
-+/* Keytable for the CEC remote control
-+ *
-+ * Copyright (c) 2015 by Kamil Debski
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <media/rc-map.h>
-+#include <linux/module.h>
-+
-+/*
-+ * CEC Spec "High-Definition Multimedia Interface Specification" can be obtained
-+ * here: http://xtreamerdev.googlecode.com/files/CEC_Specs.pdf
-+ * The list of control codes is listed in Table 27: User Control Codes p. 95
-+ */
-+
-+static struct rc_map_table cec[] = {
-+	{ 0x00, KEY_OK },
-+	{ 0x01, KEY_UP },
-+	{ 0x02, KEY_DOWN },
-+	{ 0x03, KEY_LEFT },
-+	{ 0x04, KEY_RIGHT },
-+	{ 0x05, KEY_RIGHT_UP },
-+	{ 0x06, KEY_RIGHT_DOWN },
-+	{ 0x07, KEY_LEFT_UP },
-+	{ 0x08, KEY_LEFT_DOWN },
-+	{ 0x09, KEY_ROOT_MENU }, /* CEC Spec: Device Root Menu - see Note 2 */
-+	/*
-+	 * Note 2: This is the initial display that a device shows. It is
-+	 * device-dependent and can be, for example, a contents menu, setup
-+	 * menu, favorite menu or other menu. The actual menu displayed
-+	 * may also depend on the device's current state.
-+	 */
-+	{ 0x0a, KEY_SETUP },
-+	{ 0x0b, KEY_MENU }, /* CEC Spec: Contents Menu */
-+	{ 0x0c, KEY_FAVORITES }, /* CEC Spec: Favorite Menu */
-+	{ 0x0d, KEY_EXIT },
-+	/* 0x0e-0x0f: Reserved */
-+	{ 0x10, KEY_MEDIA_TOP_MENU },
-+	{ 0x11, KEY_CONTEXT_MENU },
-+	/* 0x12-0x1c: Reserved */
-+	{ 0x1d, KEY_DIGITS }, /* CEC Spec: select/toggle a Number Entry Mode */
-+	{ 0x1e, KEY_NUMERIC_11 },
-+	{ 0x1f, KEY_NUMERIC_12 },
-+	/* 0x20-0x29: Keys 0 to 9 */
-+	{ 0x20, KEY_NUMERIC_0 },
-+	{ 0x21, KEY_NUMERIC_1 },
-+	{ 0x22, KEY_NUMERIC_2 },
-+	{ 0x23, KEY_NUMERIC_3 },
-+	{ 0x24, KEY_NUMERIC_4 },
-+	{ 0x25, KEY_NUMERIC_5 },
-+	{ 0x26, KEY_NUMERIC_6 },
-+	{ 0x27, KEY_NUMERIC_7 },
-+	{ 0x28, KEY_NUMERIC_8 },
-+	{ 0x29, KEY_NUMERIC_9 },
-+	{ 0x2a, KEY_DOT },
-+	{ 0x2b, KEY_ENTER },
-+	{ 0x2c, KEY_CLEAR },
-+	/* 0x2d-0x2e: Reserved */
-+	{ 0x2f, KEY_NEXT_FAVORITE }, /* CEC Spec: Next Favorite */
-+	{ 0x30, KEY_CHANNELUP },
-+	{ 0x31, KEY_CHANNELDOWN },
-+	{ 0x32, KEY_PREVIOUS }, /* CEC Spec: Previous Channel */
-+	{ 0x33, KEY_SOUND }, /* CEC Spec: Sound Select */
-+	{ 0x34, KEY_VIDEO }, /* 0x34: CEC Spec: Input Select */
-+	{ 0x35, KEY_INFO }, /* CEC Spec: Display Information */
-+	{ 0x36, KEY_HELP },
-+	{ 0x37, KEY_PAGEUP },
-+	{ 0x38, KEY_PAGEDOWN },
-+	/* 0x39-0x3f: Reserved */
-+	{ 0x40, KEY_POWER },
-+	{ 0x41, KEY_VOLUMEUP },
-+	{ 0x42, KEY_VOLUMEDOWN },
-+	{ 0x43, KEY_MUTE },
-+	{ 0x44, KEY_PLAYCD },
-+	{ 0x45, KEY_STOPCD },
-+	{ 0x46, KEY_PAUSECD },
-+	{ 0x47, KEY_RECORD },
-+	{ 0x48, KEY_REWIND },
-+	{ 0x49, KEY_FASTFORWARD },
-+	{ 0x4a, KEY_EJECTCD }, /* CEC Spec: Eject */
-+	{ 0x4b, KEY_FORWARD },
-+	{ 0x4c, KEY_BACK },
-+	{ 0x4d, KEY_STOP_RECORD }, /* CEC Spec: Stop-Record */
-+	{ 0x4e, KEY_PAUSE_RECORD }, /* CEC Spec: Pause-Record */
-+	/* 0x4f: Reserved */
-+	{ 0x50, KEY_ANGLE },
-+	{ 0x51, KEY_TV2 },
-+	{ 0x52, KEY_VOD }, /* CEC Spec: Video on Demand */
-+	{ 0x53, KEY_EPG },
-+	{ 0x54, KEY_TIME }, /* CEC Spec: Timer */
-+	{ 0x55, KEY_CONFIG },
-+	/*
-+	 * The following codes are hard to implement at this moment, as they
-+	 * carry an additional additional argument. Most likely changes to RC
-+	 * framework are necessary.
-+	 * For now they are interpreted by the CEC framework as non keycodes
-+	 * and are passed as messages enabling user application to parse them.
-+	 */
-+	/* 0x56: CEC Spec: Select Broadcast Type */
-+	/* 0x57: CEC Spec: Select Sound presentation */
-+	{ 0x58, KEY_AUDIO_DESC }, /* CEC 2.0 and up */
-+	{ 0x59, KEY_WWW }, /* CEC 2.0 and up */
-+	{ 0x5a, KEY_3D_MODE }, /* CEC 2.0 and up */
-+	/* 0x5b-0x5f: Reserved */
-+	{ 0x60, KEY_PLAYCD }, /* CEC Spec: Play Function */
-+	{ 0x6005, KEY_FASTFORWARD },
-+	{ 0x6006, KEY_FASTFORWARD },
-+	{ 0x6007, KEY_FASTFORWARD },
-+	{ 0x6015, KEY_SLOW },
-+	{ 0x6016, KEY_SLOW },
-+	{ 0x6017, KEY_SLOW },
-+	{ 0x6009, KEY_FASTREVERSE },
-+	{ 0x600a, KEY_FASTREVERSE },
-+	{ 0x600b, KEY_FASTREVERSE },
-+	{ 0x6019, KEY_SLOWREVERSE },
-+	{ 0x601a, KEY_SLOWREVERSE },
-+	{ 0x601b, KEY_SLOWREVERSE },
-+	{ 0x6020, KEY_REWIND },
-+	{ 0x6024, KEY_PLAYCD },
-+	{ 0x6025, KEY_PAUSECD },
-+	{ 0x61, KEY_PLAYPAUSE }, /* CEC Spec: Pause-Play Function */
-+	{ 0x62, KEY_RECORD }, /* Spec: Record Function */
-+	{ 0x63, KEY_PAUSE_RECORD }, /* CEC Spec: Pause-Record Function */
-+	{ 0x64, KEY_STOPCD }, /* CEC Spec: Stop Function */
-+	{ 0x65, KEY_MUTE }, /* CEC Spec: Mute Function */
-+	{ 0x66, KEY_UNMUTE }, /* CEC Spec: Restore the volume */
-+	/*
-+	 * The following codes are hard to implement at this moment, as they
-+	 * carry an additional additional argument. Most likely changes to RC
-+	 * framework are necessary.
-+	 * For now they are interpreted by the CEC framework as non keycodes
-+	 * and are passed as messages enabling user application to parse them.
-+	 */
-+	/* 0x67: CEC Spec: Tune Function */
-+	/* 0x68: CEC Spec: Seleect Media Function */
-+	/* 0x69: CEC Spec: Select A/V Input Function */
-+	/* 0x6a: CEC Spec: Select Audio Input Function */
-+	{ 0x6b, KEY_POWER }, /* CEC Spec: Power Toggle Function */
-+	{ 0x6c, KEY_SLEEP }, /* CEC Spec: Power Off Function */
-+	{ 0x6d, KEY_WAKEUP }, /* CEC Spec: Power On Function */
-+	/* 0x6e-0x70: Reserved */
-+	{ 0x71, KEY_BLUE }, /* CEC Spec: F1 (Blue) */
-+	{ 0x72, KEY_RED }, /* CEC Spec: F2 (Red) */
-+	{ 0x73, KEY_GREEN }, /* CEC Spec: F3 (Green) */
-+	{ 0x74, KEY_YELLOW }, /* CEC Spec: F4 (Yellow) */
-+	{ 0x75, KEY_F5 },
-+	{ 0x76, KEY_DATA }, /* CEC Spec: Data - see Note 3 */
-+	/*
-+	 * Note 3: This is used, for example, to enter or leave a digital TV
-+	 * data broadcast application.
-+	 */
-+	/* 0x77-0xff: Reserved */
-+};
-+
-+static struct rc_map_list cec_map = {
-+	.map = {
-+		.scan		= cec,
-+		.size		= ARRAY_SIZE(cec),
-+		.rc_type	= RC_TYPE_CEC,
-+		.name		= RC_MAP_CEC,
-+	}
-+};
-+
-+static int __init init_rc_map_cec(void)
-+{
-+	return rc_map_register(&cec_map);
-+}
-+
-+static void __exit exit_rc_map_cec(void)
-+{
-+	rc_map_unregister(&cec_map);
-+}
-+
-+module_init(init_rc_map_cec);
-+module_exit(exit_rc_map_cec);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Kamil Debski");
+index 6f3ffbe..935f41d 100644
+--- a/isp/v4l2.c
++++ b/isp/v4l2.c
+@@ -292,7 +292,7 @@ struct v4l2_device *v4l2_open(const char *devname)
+         * driver (>= v3.19) will set both CAPTURE and OUTPUT in the
+         * capabilities field.
+         */
+-       capabilities = cap.device_caps ? : cap.capabilities;
++       capabilities = /* cap.device_caps ? : */ cap.capabilities;
+ 
+        if (capabilities & V4L2_CAP_VIDEO_CAPTURE)
+                dev->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+
+I can try to run it, but I guess I'll need kernel with camera support.
+
+pavel@n900:/my/omap3-isp-live$ LD_LIBRARY_PATH=isp ./snapshot
+media_open: Can't open media device /dev/media0
+error: unable to open media device /dev/media0
+Segmentation fault (core dumped)
+
+I tried again on kernel with camera:
+
+pavel@n900:/my/omap3-isp-live$ LD_LIBRARY_PATH=isp ./snapshot
+error: unable to locate sensor.
+Segmentation fault (core dumped)
+pavel@n900:/my/omap3-isp-live$
+
+Here's the fix for coredump:
+
+diff --git a/isp/subdev.c b/isp/subdev.c
+index 9b36234..c74514e 100644
+--- a/isp/subdev.c
++++ b/isp/subdev.c
+@@ -75,6 +75,8 @@ int v4l2_subdev_open(struct media_entity *entity)
+ 
+ void v4l2_subdev_close(struct media_entity *entity)
+ {
++  if (!entity)
++    return;
+        if (entity->fd == -1)
+                return;
+
+Let me investigate some more.
+
+> proof of concept implementation, but it could be used as a starting point. 
+> With an infinite amount of free time I'd love to work on an open-source 
+> project for computational cameras, integrating it with libv4l.
+
+For the record, I pushed my code to
+
+https://gitlab.com/pavelm/fcam-dev
+
+Best regards,
+
+									Pavel
 -- 
-2.8.1
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
