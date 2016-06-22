@@ -1,240 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([92.60.52.57]:55585 "EHLO shell.v3.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750970AbcFANEG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Jun 2016 09:04:06 -0400
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Federico Simoncelli <fsimonce@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Patrick Keshishian <pkeshish@gmail.com>,
-	linux-media@vger.kernel.org, Lubomir Rintel <lkundrak@v3.sk>
-Subject: [PATCH] [media] usbtv: clarify the licensing
-Date: Wed,  1 Jun 2016 15:03:44 +0200
-Message-Id: <1464786224-15612-1-git-send-email-lkundrak@v3.sk>
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:35674 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750787AbcFVWIs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2016 18:08:48 -0400
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	nick.dyer@itdev.co.uk
+Subject: [PATCH v5 6/9] Input: atmel_mxt_ts - add diagnostic data support for mXT1386
+Date: Wed, 22 Jun 2016 23:08:30 +0100
+Message-Id: <1466633313-15339-7-git-send-email-nick.dyer@itdev.co.uk>
+In-Reply-To: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
+References: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-OpenBSD would like to reuse some code but consider the licensing not
-clear enough. Let's clarify it a bit so that it suits their conventions:
+The mXT1386 family of chips have a different architecture which splits
+the diagnostic data into 3 columns.
 
-1.) Keep the "extra text" away from the copyright statement and the
-rights grant.
-
-2.) Add the warranty disclaimer -- it should not be legally required,
-nevertheless the clause 1. of the rights grant refest to it.
-
-Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
-Acked-by: Federico Simoncelli <fsimonce@redhat.com>
+Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
 ---
- drivers/media/usb/usbtv/usbtv-audio.c | 28 ++++++++++++++++++------
- drivers/media/usb/usbtv/usbtv-core.c  | 40 +++++++++++++++++++++++------------
- drivers/media/usb/usbtv/usbtv-video.c | 40 +++++++++++++++++++++++------------
- drivers/media/usb/usbtv/usbtv.h       | 22 +++++++++++++++----
- 4 files changed, 93 insertions(+), 37 deletions(-)
+ drivers/input/touchscreen/atmel_mxt_ts.c | 31 ++++++++++++++++++++++++++++---
+ 1 file changed, 28 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/usbtv/usbtv-audio.c b/drivers/media/usb/usbtv/usbtv-audio.c
-index 78c12d2..d4b4db3 100644
---- a/drivers/media/usb/usbtv/usbtv-audio.c
-+++ b/drivers/media/usb/usbtv/usbtv-audio.c
-@@ -1,13 +1,6 @@
- /*
-- * Fushicai USBTV007 Audio-Video Grabber Driver
-- *
-- * Product web site:
-- * http://www.fushicai.com/products_detail/&productId=d05449ee-b690-42f9-a661-aa7353894bed.html
-- *
-  * Copyright (c) 2013 Federico Simoncelli
-  * All rights reserved.
-- * No physical hardware was harmed running Windows during the
-- * reverse-engineering activity
-  *
-  * Redistribution and use in source and binary forms, with or without
-  * modification, are permitted provided that the following conditions
-@@ -20,6 +13,27 @@
-  *
-  * Alternatively, this software may be distributed under the terms of the
-  * GNU General Public License ("GPL").
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ */
-+/*
-+ * Fushicai USBTV007 Audio-Video Grabber Driver
-+ *
-+ * Product web site:
-+ * http://www.fushicai.com/products_detail/&productId=d05449ee-b690-42f9-a661-aa7353894bed.html
-+ *
-+ * No physical hardware was harmed running Windows during the
-+ * reverse-engineering activity
-  */
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 3f7e357..739d138 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -137,6 +137,10 @@ struct t9_range {
+ #define MXT_DIAGNOSTIC_DELTAS	0x10
+ #define MXT_DIAGNOSTIC_SIZE	128
  
- #include <sound/core.h>
-diff --git a/drivers/media/usb/usbtv/usbtv-core.c b/drivers/media/usb/usbtv/usbtv-core.c
-index 29428be..dc76fd4 100644
---- a/drivers/media/usb/usbtv/usbtv-core.c
-+++ b/drivers/media/usb/usbtv/usbtv-core.c
-@@ -1,19 +1,6 @@
- /*
-- * Fushicai USBTV007 Audio-Video Grabber Driver
-- *
-- * Product web site:
-- * http://www.fushicai.com/products_detail/&productId=d05449ee-b690-42f9-a661-aa7353894bed.html
-- *
-- * Following LWN articles were very useful in construction of this driver:
-- * Video4Linux2 API series: http://lwn.net/Articles/203924/
-- * videobuf2 API explanation: http://lwn.net/Articles/447435/
-- * Thanks go to Jonathan Corbet for providing this quality documentation.
-- * He is awesome.
-- *
-  * Copyright (c) 2013 Lubomir Rintel
-  * All rights reserved.
-- * No physical hardware was harmed running Windows during the
-- * reverse-engineering activity
-  *
-  * Redistribution and use in source and binary forms, with or without
-  * modification, are permitted provided that the following conditions
-@@ -26,6 +13,33 @@
-  *
-  * Alternatively, this software may be distributed under the terms of the
-  * GNU General Public License ("GPL").
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ */
-+/*
-+ * Fushicai USBTV007 Audio-Video Grabber Driver
-+ *
-+ * Product web site:
-+ * http://www.fushicai.com/products_detail/&productId=d05449ee-b690-42f9-a661-aa7353894bed.html
-+ *
-+ * Following LWN articles were very useful in construction of this driver:
-+ * Video4Linux2 API series: http://lwn.net/Articles/203924/
-+ * videobuf2 API explanation: http://lwn.net/Articles/447435/
-+ * Thanks go to Jonathan Corbet for providing this quality documentation.
-+ * He is awesome.
-+ *
-+ * No physical hardware was harmed running Windows during the
-+ * reverse-engineering activity
-  */
++#define MXT_FAMILY_1386			160
++#define MXT1386_COLUMNS			3
++#define MXT1386_PAGES_PER_COLUMN	8
++
+ struct t37_debug {
+ #ifdef CONFIG_TOUCHSCREEN_ATMEL_MXT_T37
+ 	u8 mode;
+@@ -2140,13 +2144,27 @@ recheck:
+ static u16 mxt_get_debug_value(struct mxt_data *data, unsigned int x,
+ 			       unsigned int y)
+ {
++	struct mxt_info *info = &data->info;
+ 	struct mxt_dbg *dbg = &data->dbg;
+ 	unsigned int ofs, page;
++	unsigned int col = 0;
++	unsigned int col_width;
++
++	if (info->family_id == MXT_FAMILY_1386) {
++		col_width = info->matrix_ysize / MXT1386_COLUMNS;
++		col = y / col_width;
++		y = y % col_width;
++	} else {
++		col_width = info->matrix_ysize;
++	}
  
- #include "usbtv.h"
-diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
-index f6cfad4..d94d5c5 100644
---- a/drivers/media/usb/usbtv/usbtv-video.c
-+++ b/drivers/media/usb/usbtv/usbtv-video.c
-@@ -1,19 +1,6 @@
- /*
-- * Fushicai USBTV007 Audio-Video Grabber Driver
-- *
-- * Product web site:
-- * http://www.fushicai.com/products_detail/&productId=d05449ee-b690-42f9-a661-aa7353894bed.html
-- *
-- * Following LWN articles were very useful in construction of this driver:
-- * Video4Linux2 API series: http://lwn.net/Articles/203924/
-- * videobuf2 API explanation: http://lwn.net/Articles/447435/
-- * Thanks go to Jonathan Corbet for providing this quality documentation.
-- * He is awesome.
-- *
-  * Copyright (c) 2013 Lubomir Rintel
-  * All rights reserved.
-- * No physical hardware was harmed running Windows during the
-- * reverse-engineering activity
-  *
-  * Redistribution and use in source and binary forms, with or without
-  * modification, are permitted provided that the following conditions
-@@ -26,6 +13,33 @@
-  *
-  * Alternatively, this software may be distributed under the terms of the
-  * GNU General Public License ("GPL").
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ */
-+/*
-+ * Fushicai USBTV007 Audio-Video Grabber Driver
-+ *
-+ * Product web site:
-+ * http://www.fushicai.com/products_detail/&productId=d05449ee-b690-42f9-a661-aa7353894bed.html
-+ *
-+ * Following LWN articles were very useful in construction of this driver:
-+ * Video4Linux2 API series: http://lwn.net/Articles/203924/
-+ * videobuf2 API explanation: http://lwn.net/Articles/447435/
-+ * Thanks go to Jonathan Corbet for providing this quality documentation.
-+ * He is awesome.
-+ *
-+ * No physical hardware was harmed running Windows during the
-+ * reverse-engineering activity
-  */
+-	ofs = (y + (x * data->info.matrix_ysize)) * sizeof(u16);
++	ofs = (y + (x * col_width)) * sizeof(u16);
+ 	page = ofs / MXT_DIAGNOSTIC_SIZE;
+ 	ofs %= MXT_DIAGNOSTIC_SIZE;
  
- #include <media/v4l2-ioctl.h>
-diff --git a/drivers/media/usb/usbtv/usbtv.h b/drivers/media/usb/usbtv/usbtv.h
-index 161b38d..011f9fd 100644
---- a/drivers/media/usb/usbtv/usbtv.h
-+++ b/drivers/media/usb/usbtv/usbtv.h
-@@ -1,10 +1,6 @@
- /*
-- * Fushicai USBTV007 Audio-Video Grabber Driver
-- *
-  * Copyright (c) 2013 Lubomir Rintel
-  * All rights reserved.
-- * No physical hardware was harmed running Windows during the
-- * reverse-engineering activity
-  *
-  * Redistribution and use in source and binary forms, with or without
-  * modification, are permitted provided that the following conditions
-@@ -17,6 +13,24 @@
-  *
-  * Alternatively, this software may be distributed under the terms of the
-  * GNU General Public License ("GPL").
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ */
-+/*
-+ * Fushicai USBTV007 Audio-Video Grabber Driver
-+ *
-+ * No physical hardware was harmed running Windows during the
-+ * reverse-engineering activity
-  */
++	if (info->family_id == MXT_FAMILY_1386)
++		page += col * MXT1386_PAGES_PER_COLUMN;
++
+ 	return get_unaligned_le16(&dbg->t37_buf[page].data[ofs]);
+ }
  
- #include <linux/module.h>
+@@ -2416,6 +2434,7 @@ static const struct video_device mxt_video_device = {
+ 
+ static void mxt_debug_init(struct mxt_data *data)
+ {
++	struct mxt_info *info = &data->info;
+ 	struct mxt_dbg *dbg = &data->dbg;
+ 	struct mxt_object *object;
+ 	int error;
+@@ -2439,8 +2458,14 @@ static void mxt_debug_init(struct mxt_data *data)
+ 
+ 	/* Calculate size of data and allocate buffer */
+ 	dbg->t37_nodes = data->xsize * data->ysize;
+-	dbg->t37_pages = DIV_ROUND_UP(data->xsize * data->info.matrix_ysize *
+-				      sizeof(u16), sizeof(dbg->t37_buf->data));
++
++	if (info->family_id == MXT_FAMILY_1386)
++		dbg->t37_pages = MXT1386_COLUMNS * MXT1386_PAGES_PER_COLUMN;
++	else
++		dbg->t37_pages = DIV_ROUND_UP(data->xsize *
++					      data->info.matrix_ysize *
++					      sizeof(u16),
++					      sizeof(dbg->t37_buf->data));
+ 
+ 	dbg->t37_buf = devm_kmalloc_array(&data->client->dev, dbg->t37_pages,
+ 					  sizeof(struct t37_debug), GFP_KERNEL);
 -- 
-2.5.5
+2.5.0
 
