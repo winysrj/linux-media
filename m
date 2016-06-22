@@ -1,143 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:50539 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751941AbcF0MXC (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54543 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750880AbcFVQb5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 08:23:02 -0400
-Subject: Re: [PATCH v5 0/9] Output raw touch data via V4L2
-To: Nick Dyer <nick.dyer@itdev.co.uk>
-References: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
- <30c68dab-b970-03d5-797b-3376d9d0dc10@xs4all.nl>
- <8be600b6-a424-ddda-8672-1aed4e925fe8@itdev.co.uk>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <693d1756-dab4-b05c-0607-f391f63f1d62@xs4all.nl>
-Date: Mon, 27 Jun 2016 14:22:52 +0200
+	Wed, 22 Jun 2016 12:31:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH/RFC v2 1/4] v4l: Add metadata buffer type and format
+Date: Wed, 22 Jun 2016 19:32:16 +0300
+Message-ID: <1728823.iiGB2m7upr@avalon>
+In-Reply-To: <5742D6CC.8040909@xs4all.nl>
+References: <1463012283-3078-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1463012283-3078-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <5742D6CC.8040909@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <8be600b6-a424-ddda-8672-1aed4e925fe8@itdev.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/27/2016 01:57 PM, Nick Dyer wrote:
-> Hi Hans-
-> 
-> Thanks for reviewing this again in such detail.
-> 
-> On 27/06/2016 12:26, Hans Verkuil wrote:
->> On 06/23/2016 12:08 AM, Nick Dyer wrote:
->>> This is a series of patches to add output of raw touch diagnostic data via V4L2
->>> to the Atmel maXTouch and Synaptics RMI4 drivers.
->>>
->>> It's a rewrite of the previous implementation which output via debugfs: it now
->>> uses a V4L2 device in a similar way to the sur40 driver.
->>>
->>> We have a utility which can read the data and display it in a useful format:
->>>     https://github.com/ndyer/heatmap/commits/heatmap-v4l
->>>
->>> These patches are also available from
->>>     https://github.com/ndyer/linux/commits/v4l-touch-2016-06-22
->>>
->>> Changes in v5 (Hans Verkuil review):
->>> - Update v4l2-core:
->>>   - Add VFL_TYPE_TOUCH, V4L2_BUF_TYPE_TOUCH_CAPTURE and V4L2_CAP_TOUCH
->>
->> The use of V4L2_CAP_TOUCH and V4L2_BUF_TYPE_TOUCH_CAPTURE is very inconsistent.
->> What is the rationale of adding V4L2_BUF_TYPE_TOUCH_CAPTURE? I can't remember
->> asking for it.
-> 
-> I am afraid that I missed updating atmel_mxt_ts from
-> V4L2_BUF_TYPE_VIDEO_CAPTURE to V4L2_BUF_TYPE_TOUCH_CAPTURE, which has
-> confused the situation.
-> 
-> Perhaps I read too much into your request that I look at the way that SDR
-> is treated. When I started going through the code paths in v4l2-core and
-> v4l2-compliance, it seemed cleaner to treat touch as completely separate,
-> hence introducing the new BUF_TYPE. I'm happy to try it without this.
+Hi Hans,
 
-Yeah, I didn't mean that you had to add a new BUF_TYPE. My remark was related to
-ensuring that all occurrences in the spec where they talk about the various
-/dev/video/radio/etc. devices are extended with v4l-touch as well.
+Thank you for the review.
 
+On Monday 23 May 2016 12:09:16 Hans Verkuil wrote:
+> On 05/12/2016 02:18 AM, Laurent Pinchart wrote:
+> > The metadata buffer type is used to transfer metadata between userspace
+> > and kernelspace through a V4L2 buffers queue. It comes with a new
+> > metadata capture capability and format description.
 > 
->> And wouldn't the use of V4L2_BUF_TYPE_TOUCH_CAPTURE break userspace for sur40?
+> Thanks for the patch! I have some comments/suggestions below:
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> > ---
+> > 
+> >  Documentation/DocBook/media/v4l/dev-meta.xml  | 93 ++++++++++++++++++++++
+> >  Documentation/DocBook/media/v4l/v4l2.xml      |  1 +
+> >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 19 ++++++
+> >  drivers/media/v4l2-core/v4l2-dev.c            | 16 +++--
+> >  drivers/media/v4l2-core/v4l2-ioctl.c          | 34 ++++++++++
+> >  drivers/media/v4l2-core/videobuf2-v4l2.c      |  3 +
+> >  include/media/v4l2-ioctl.h                    |  8 +++
+> >  include/uapi/linux/videodev2.h                | 14 ++++
+> >  8 files changed, 182 insertions(+), 6 deletions(-)
+> >  create mode 100644 Documentation/DocBook/media/v4l/dev-meta.xml
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/dev-meta.xml
+> > b/Documentation/DocBook/media/v4l/dev-meta.xml new file mode 100644
+> > index 000000000000..9b5b1fba2007
+> > --- /dev/null
+> > +++ b/Documentation/DocBook/media/v4l/dev-meta.xml
+> > @@ -0,0 +1,93 @@
+> > +  <title>Metadata Interface</title>
+> > +
+> > +  <note>
+> > +    <title>Experimental</title>
+> > +    <para>This is an <link linkend="experimental"> experimental </link>
 > 
-> I think it is likely, yes. And it looks like that would make Florian unhappy.
-> 
->> I'm ambiguous towards having a V4L2_BUF_TYPE_TOUCH_CAPTURE, to be honest.
->>
->> I would also recommend renaming V4L2_CAP_TOUCH to V4L2_CAP_TOUCH_CAPTURE.
-> 
-> Do you agree with the following changes:
-> 
-> - Rename V4L2_CAP_TOUCH to V4L2_CAP_TOUCH_CAPTURE.
-> 
-> - Touch devices should register both V4L2_CAP_VIDEO_CAPTURE and
-> V4L2_CAP_TOUCH_CAPTURE.
-> 
-> - Get rid of V4L2_BUF_TYPE_TOUCH_CAPTURE and use
-> V4L2_BUF_TYPE_VIDEO_CAPTURE. In v4l2-ioctl.c if we need to force particular
-> pix formats for touch, it will need to look at V4L2_CAP_TOUCH_CAPTURE.
+> No space before/after 'experimental'. It will look ugly in the docbook (I
+> tried it :-) ).
 
-Actually, I think we have two choices, depending on whether we use a
-BUF_TYPE_TOUCH_CAPTURE or not.
+Will be fixed in the next version.
 
-1) If we go with a BUF_TYPE_TOUCH_CAPTURE, then:
+> > +    interface and may change in the future.</para>
+> > +  </note>
+> > +
+> > +  <para>
+> > +Metadata refers to any non-image data that supplements video frames with
+> > +additional information. This may include statistics computed over the
+> > +image or frame capture parameters supplied by the image source. This
+> > +interface is intended for transfer of metadata to userspace and control
+> > +of that operation.
+>
+> I think it can also be in the other direction. I'm thinking of metadata
+> needed by codecs. I'm not sure if it should be mentioned that this is not
+> supported at the moment and that the ML should be contacted for more info
+> if someone wants this.
 
-- we need a V4L2_CAP_TOUCH_CAPTURE
-- no V4L2_CAP_VIDEO_CAPTURE will be set (since that would indicate support for
-  BUF_TYPE_VIDEO_CAPTURE, which we don't have anymore).
-- new callbacks for g/s/try/enum_fmt_tch_cap should be added to v4l2-ioctl.h.
+Metadata for codecs make sense, but given that the topic hasn't been 
+researched yet, I've kept metadata support focused on the capture side only 
+for now. I propose revisiting the topic if (or rather when) someone needs 
+metadata support on output video nodes.
 
-2) Alternatively, if we want to keep using BUF_TYPE_VIDEO_CAPTURE, then:
+> > +  </para>
+> > +
+> > +  <para>
+> > +The metadata interface is implemented on video capture devices. The
+> > device can
+>
+> s/on/for/?
 
-- we keep V4L2_CAP_TOUCH which is combined with CAP_VIDEO_CAPTURE (and perhaps
-  VIDEO_OUTPUT in the future). The CAP_TOUCH just says that this is a touch
-  device, not a video device, but otherwise it acts the same.
-
-I'd go with 2, since I see no reason to add a new BUF_TYPE for this.
-It acts exactly like video after all, with only a few restrictions (i.e. no
-colorspace info or interlaced). And adding a new BUF_TYPE will likely break
-the existing sur40 app.
-
+I meant "on video capture device nodes", I'll fix that.
+ 
+> > +be dedicated to metadata or can implement both video and metadata capture
+> > +as specified in its reported capabilities.
+> > +  </para>
+> > +
+> > +  <section>
+> > +    <title>Querying Capabilities</title>
+> > +
+> > +    <para>
+> > +Devices supporting the metadata interface set the
+> > +<constant>V4L2_CAP_META_CAPTURE</constant> flag in the
+> > +<structfield>capabilities</structfield> field of &v4l2-capability;
+> > +returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device can
+> > +capture metadata to memory.
+> > +    </para>
 > 
-> Your other review comments look straightforward to address - thanks.
+> I know this is a copy and paste from the other interface descriptions, but
+> it is rather outdated. I would write this instead:
 > 
-> I should say, you can see my current changes to v4l2-compliance here:
-> https://github.com/ndyer/v4l-utils/commit/07e00c33
+>  <para>
+> Device nodes supporting the metadata interface set the
+> <constant>V4L2_CAP_META_CAPTURE</constant> flag in the
+> <structfield>device_caps</structfield> field of &v4l2-capability;
+> returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device node can
+> capture metadata to memory.
+>  </para>
+
+Will be fixed in the next version.
+ 
+> Any driver using this will be recent and always have a valid device_caps
+> field (which, as you know, didn't exist in old kernels).
 > 
-> Should I post them along with the kernel patches next time?
+> I find the capabilities field fairly useless in most cases due to the fact
+> that it contains the capabilities of all device nodes created by the device
+> driver.
 
-Yes, please.
+I agree.
 
+> > +    <para>
+> > +At least one of the read/write or streaming I/O methods must be
+> > supported.
+> > +    </para>
+> > +  </section>
+> > +
+> > +  <section>
+> > +    <title>Data Format Negotiation</title>
+> > +
+> > +    <para>
+> > +The metadata device uses the <link linkend="format">format</link> ioctls
+> > to +select the capture format. The metadata buffer content format is
+> > bound to that +selectable format. In addition to the basic
+> > +<link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
+> > +must be supported as well.
+> > +    </para>
+> > +
+> > +    <para>
+> > +To use the <link linkend="format">format</link> ioctls applications set
+> > the +<structfield>type</structfield> field of a &v4l2-format; to
+> > +<constant>V4L2_BUF_TYPE_META_CAPTURE</constant> and use the
+> > &v4l2-meta-format; +<structfield>meta</structfield> member of the
+> > <structfield>fmt</structfield> +union as needed per the desired
+> > operation.
+> > +Currently there are two fields, <structfield>dataformat</structfield> and
+> > +<structfield>buffersize</structfield>, of struct &v4l2-meta-format; that
+> > are +used. Content of the <structfield>dataformat</structfield> is the
+> > V4L2 FourCC +code of the data format. The
+> > <structfield>buffersize</structfield> field is the +maximum buffer size
+> > in bytes required for data transfer, set by the driver in +order to
+> > inform applications.
+> 
+> Should it be mentioned here that changing the video format might change the
+> buffersize? In case the buffersize is always a multiple of the width?
+
+I'll reply to Sakari's mail further down in this thread about this.
+
+> > +    </para>
+> > +
+> > +    <table pgwide="1" frame="none" id="v4l2-meta-format">
+> > +      <title>struct <structname>v4l2_meta_format</structname></title>
+> > +      <tgroup cols="3">
+> > +        &cs-str;
+> > +        <tbody valign="top">
+> > +          <row>
+> > +            <entry>__u32</entry>
+> > +            <entry><structfield>dataformat</structfield></entry>
+> > +            <entry>
+> > +The data format, set by the application. This is a little endian
+> > +<link linkend="v4l2-fourcc">four character code</link>.
+> > +V4L2 defines metadata formats in <xref linkend="meta-formats" />.
+> > +           </entry>
+> > +          </row>
+> > +          <row>
+> > +            <entry>__u32</entry>
+> > +            <entry><structfield>buffersize</structfield></entry>
+> > +            <entry>
+> > +Maximum size in bytes required for data. Value is set by the driver.
+> > +           </entry>
+> > +          </row>
+> > +          <row>
+> > +            <entry>__u8</entry>
+> > +            <entry><structfield>reserved[24]</structfield></entry>
+> > +            <entry>This array is reserved for future extensions.
+> > +Drivers and applications must set it to zero.</entry>
+> > +          </row>
+> > +        </tbody>
+> > +      </tgroup>
+> > +    </table>
+> > +
+> > +  </section>
+
+[snip]
+
+> > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
+> > b/drivers/media/v4l2-core/v4l2-ioctl.c index 28e5be2c2eef..5d003152ff68
+> > 100644
+> > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+
+[snip]
+
+> > @@ -1534,6 +1558,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops
+> > *ops,
+> >  			break;
+> >  		CLEAR_AFTER_FIELD(p, fmt.sdr);
+> >  		return ops->vidioc_s_fmt_sdr_out(file, fh, arg);
+> > +	case V4L2_BUF_TYPE_META_CAPTURE:
+> > +		if (unlikely(!is_rx || !is_vid ||
+> > !ops->vidioc_s_fmt_meta_cap))
+> > +			break;
+> > +		CLEAR_AFTER_FIELD(p, fmt.meta);
+> 
+> I would suggest using "CLEAR_FROM_FIELD(p, fmt.meta.reserved)" here. Of
+> course, you'd need to add a new CLEAR_FROM_FIELD macro for this.
+> 
+> I think this also should be used for the SDR_CAPTURE/OUTPUT types and
+> possibly for other types as well (can be done later of course).
+> 
+> This would also zero the reserved field, so drivers don't need to care about
+> it.
+
+Will be fixed in the next version (in v4l_g_fmt() too).
+
+> > +		return ops->vidioc_s_fmt_meta_cap(file, fh, arg);
+> >  	}
+> >  	return -EINVAL;
+> >  }
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-> 
->>
->> I can imagine an embedded usb gadget device that outputs touch data to a PC.
->>
->> Regards,
->>
->> 	Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
