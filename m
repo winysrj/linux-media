@@ -1,63 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:34135 "EHLO
-	mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751193AbcF1L7Y (ORCPT
+Received: from zencphosting06.zen.co.uk ([82.71.204.9]:56524 "EHLO
+	zencphosting06.zen.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752259AbcFVMAA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2016 07:59:24 -0400
+	Wed, 22 Jun 2016 08:00:00 -0400
+Subject: Re: [PATCH v4 2/9] [media] v4l2-core: Add VFL_TYPE_TOUCH_SENSOR
+To: Florian Echtler <floe@butterbrot.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>
+References: <1466172988-3698-1-git-send-email-nick.dyer@itdev.co.uk>
+ <1466172988-3698-3-git-send-email-nick.dyer@itdev.co.uk>
+ <5767DAE4.3000202@xs4all.nl> <576A7B03.30206@butterbrot.org>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	mchehab@osg.samsung.com
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+Message-ID: <02dea636-03a0-6c45-3c7e-7b01868a0f32@itdev.co.uk>
+Date: Wed, 22 Jun 2016 12:59:39 +0100
 MIME-Version: 1.0
-In-Reply-To: <20160628083238.5fe7e32b@recife.lan>
-References: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
- <1462975376-491-4-git-send-email-ulrich.hecht+renesas@gmail.com> <20160628083238.5fe7e32b@recife.lan>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 28 Jun 2016 13:59:22 +0200
-Message-ID: <CAMuHMdUWjTe53bR-u39vn_TKjdWiB5UwO+jJmmk3_u-fe94Jgw@mail.gmail.com>
-Subject: Re: [PATCH v4 3/8] media: rcar_vin: Use correct pad number in try_fmt
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	=?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Ian Molton <ian.molton@codethink.co.uk>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	William Towle <william.towle@codethink.co.uk>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <576A7B03.30206@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 22/06/2016 12:48, Florian Echtler wrote:
+> On 20.06.2016 14:00, Hans Verkuil wrote:
+>> On 06/17/2016 04:16 PM, Nick Dyer wrote:
+>>> Some touch controllers send out raw touch data in a similar way to a
+>>> greyscale frame grabber. Add a new device type for these devices.
+>>>
+>>> Use a new device prefix v4l-touch for these devices, to stop generic
+>>> capture software from treating them as webcams.
+>>>
+>>> Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
+>>> ---
+>>>  drivers/input/touchscreen/sur40.c    |  4 ++--
+>>>  drivers/media/v4l2-core/v4l2-dev.c   | 13 ++++++++++---
+>>>  drivers/media/v4l2-core/v4l2-ioctl.c | 15 ++++++++++-----
+>>>  include/media/v4l2-dev.h             |  3 ++-
+>>>  include/uapi/linux/videodev2.h       |  1 +
+> 
+> Generally a good idea in my opinion, but I think the SUR40 is a special
+> case: the whole point of putting in a V4L2 driver was that software like
+> reacTIVision, which already has a V4L2 interface, can then use that
+> device like any other camera.
 
-On Tue, Jun 28, 2016 at 1:32 PM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> Em Wed, 11 May 2016 16:02:51 +0200
-> Ulrich Hecht <ulrich.hecht+renesas@gmail.com> escreveu:
->
->> Fix rcar_vin_try_fmt's use of an inappropriate pad number when calling
->> the subdev set_fmt function - for the ADV7612, IDs should be non-zero.
->>
->> Signed-off-by: William Towle <william.towle@codethink.co.uk>
->> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
->> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->> [uli: adapted to rcar-vin rewrite]
->
-> Please use [email@domain: some revierwer note], as stated at Documentation/SubmittingPatches.
+Thanks. I see that reactivision definitely uses this already
+(https://github.com/mkalten/reacTIVision/issues/3 ) and we don't want to
+break it - I've split the sur40.c change out of this patch now so it can be
+considered separately.
 
-"While there is nothing mandatory about this, it
- seems like prepending the description with your mail and/or name, all
- enclosed in square brackets, is noticeable enough to make it obvious that
- you are responsible for last-minute changes."
+> Come to think of it, wouldn't it make sense to expose the other touch
+> devices as generic frame grabbers, too, so you can easily view the debug
+> output with any generic tool like cheese?
 
-Hence a name should be sufficient.
+While I like the idea of being able to use the generic tools, I think we
+needed to do something to stop these devices turning up in e.g. video
+conferencing software - it would cause a lot of confusion. There's nothing
+stopping particular tools adding the necessary code to handle touch devices
+if they feel their users want it.
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Also, the RMI4 and Atmel mXT touchscreens output signed data, which
+unfortunately would confuse the generic tools.
