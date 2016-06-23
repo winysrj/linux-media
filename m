@@ -1,141 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f68.google.com ([209.85.220.68]:34148 "EHLO
-	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751097AbcFQTBs (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49625 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750866AbcFWDBq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 15:01:48 -0400
-Received: by mail-pa0-f68.google.com with SMTP id us13so6278095pab.1
-        for <linux-media@vger.kernel.org>; Fri, 17 Jun 2016 12:01:48 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Subject: Re: [19/38] ARM: dts: imx6-sabrelite: add video capture ports and
- connections
-To: Gary Bisson <gary.bisson@boundarydevices.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>
-References: <1465944574-15745-20-git-send-email-steve_longerbeam@mentor.com>
- <20160616083231.GA6548@t450s.lan> <20160617151814.GA16378@t450s.lan>
-Cc: linux-media@vger.kernel.org, Jack Mitchell <ml@embed.me.uk>
-Message-ID: <57644915.3010006@gmail.com>
-Date: Fri, 17 Jun 2016 12:01:41 -0700
-MIME-Version: 1.0
-In-Reply-To: <20160617151814.GA16378@t450s.lan>
-Content-Type: multipart/mixed;
- boundary="------------050701020300060502050209"
+	Wed, 22 Jun 2016 23:01:46 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DD028181929
+	for <linux-media@vger.kernel.org>; Thu, 23 Jun 2016 05:01:39 +0200 (CEST)
+Date: Thu, 23 Jun 2016 05:01:39 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160623030139.DD028181929@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050701020300060502050209
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
+date:		Thu Jun 23 04:00:28 CEST 2016
+git branch:	test
+git hash:	59f0bc11848f8f3242bc1fefae670e745929cd7b
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-On 06/17/2016 08:18 AM, Gary Bisson wrote:
-> Steve, All,
->
-> On Thu, Jun 16, 2016 at 10:32:31AM +0200, Gary Bisson wrote:
->> Steve, All,
->>
->> On Tue, Jun 14, 2016 at 03:49:15PM -0700, Steve Longerbeam wrote:
->>> Defines the host video capture device node and an OV5642 camera sensor
->>> node on i2c2. The host capture device connects to the OV5642 via the
->>> parallel-bus mux input on the ipu1_csi0_mux.
->>>
->>> Note there is a pin conflict with GPIO6. This pin functions as a power
->>> input pin to the OV5642, but ENET requires it to wake-up the ARM cores
->>> on normal RX and TX packet done events (see 6261c4c8). So by default,
->>> capture is disabled, enable by uncommenting __OV5642_CAPTURE__ macro.
->>> Ethernet will still work just not quite as well.
->> Actually the following patch fixes this issue and has already been
->> applied on Shawn's tree:
->> https://patchwork.kernel.org/patch/9153523/
->>
->> Also, this follow-up patch declared the HW workaround for SabreLite:
->> https://patchwork.kernel.org/patch/9153525/
->>
->> So ideally, once those two patches land on your base tree, you could get
->> rid of the #define and remove the HW workaround declaration.
->>
->> Finally, I'll test the series on Sabre-Lite this week.
-> I've applied this series on top of Shawn tree (for-next branch) in order
-> not to worry about the GPIO6 workaround.
->
-> Although the camera seems to get enumerated properly, I can't seem to
-> get anything from it. See log:
-> http://pastebin.com/xnw1ujUq
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mtk: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-Hi Gary, the driver does not implement vidioc_cropcap, it has
-switched to the new selection APIs and v4l2src should be using
-vidioc_g_selection instead of vidioc_cropcap.
+Detailed results are available here:
 
->
-> In your cover letter, you said that you have not run through
-> v4l2-compliance. How have you tested the capture?
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-I use v4l2-ctl, and have used v4l2src in the past, but that was before
-switching to the selection APIs. Try the attached hack that adds
-vidioc_cropcap back in, and see how far you get on SabreLite with
-v4l2src. I tried  the following on SabreAuto:
+Full logs are available here:
 
-gst-launch-1.0 v4l2src io_mode=4 ! 
-"video/x-raw,format=RGB16,width=640,height=480" ! fbdevsink
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
->
-> Also, why isn't the OV5640 MIPI camera declared on the SabreLite device
-> tree?
+The Media Infrastructure API from this daily build is here:
 
-See Jack Mitchell's patch at http://ix.io/TTg. Thanks Jack! I will work on
-incorporating it.
-
-
-Steve
-
-
-
-
---------------050701020300060502050209
-Content-Type: text/x-patch;
- name="vidioc_cropcap.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="vidioc_cropcap.diff"
-
-diff --git a/drivers/staging/media/imx/capture/imx-camif.c b/drivers/staging/media/imx/capture/imx-camif.c
-index 9c247e0..2c51bc7 100644
---- a/drivers/staging/media/imx/capture/imx-camif.c
-+++ b/drivers/staging/media/imx/capture/imx-camif.c
-@@ -1561,6 +1561,23 @@ static int vidioc_s_parm(struct file *file, void *fh,
- 	return v4l2_subdev_call(dev->sensor->sd, video, s_parm, a);
- }
- 
-+static int vidioc_cropcap(struct file *file, void *priv,
-+			  struct v4l2_cropcap *cropcap)
-+{
-+	struct imxcam_ctx *ctx = file2ctx(file);
-+	struct imxcam_dev *dev = ctx->dev;
-+
-+	if (cropcap->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-+	    cropcap->type != V4L2_BUF_TYPE_VIDEO_OVERLAY)
-+		return -EINVAL;
-+
-+	cropcap->bounds = dev->crop_bounds;
-+	cropcap->defrect = dev->crop_defrect;
-+	cropcap->pixelaspect.numerator = 1;
-+	cropcap->pixelaspect.denominator = 1;
-+	return 0;
-+}
-+
- static int vidioc_g_selection(struct file *file, void *priv,
- 			      struct v4l2_selection *sel)
- {
-@@ -1794,6 +1811,7 @@ static const struct v4l2_ioctl_ops imxcam_ioctl_ops = {
- 	.vidioc_g_parm          = vidioc_g_parm,
- 	.vidioc_s_parm          = vidioc_s_parm,
- 
-+	.vidioc_cropcap		= vidioc_cropcap,
- 	.vidioc_g_selection     = vidioc_g_selection,
- 	.vidioc_s_selection     = vidioc_s_selection,
- 
-
-
---------------050701020300060502050209--
+http://www.xs4all.nl/~hverkuil/spec/media.html
