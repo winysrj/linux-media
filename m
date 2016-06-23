@@ -1,70 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36680 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752415AbcF1TTQ (ORCPT
+Received: from mail-lf0-f42.google.com ([209.85.215.42]:36470 "EHLO
+	mail-lf0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751662AbcFWKiz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2016 15:19:16 -0400
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-To: linux-amlogic@lists.infradead.org, linux-media@vger.kernel.org
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, carlo@caione.org,
-	khilman@baylibre.com, mchehab@kernel.org,
-	devicetree@vger.kernel.org, narmstrong@baylibre.com,
-	Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Subject: [PATCH v3 0/4] Add Meson 8b / GXBB support to the IR driver
-Date: Tue, 28 Jun 2016 21:17:58 +0200
-Message-Id: <20160628191802.21227-1-martin.blumenstingl@googlemail.com>
-In-Reply-To: <20160626210622.5257-1-martin.blumenstingl@googlemail.com>
-References: <20160626210622.5257-1-martin.blumenstingl@googlemail.com>
+	Thu, 23 Jun 2016 06:38:55 -0400
+Received: by mail-lf0-f42.google.com with SMTP id q132so92688031lfe.3
+        for <linux-media@vger.kernel.org>; Thu, 23 Jun 2016 03:38:52 -0700 (PDT)
+Date: Thu, 23 Jun 2016 12:38:48 +0200
+From: Henrik Austad <henrik@austad.us>
+To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+	Richard Cochran <richardcochran@gmail.com>
+Cc: alsa-devel@alsa-project.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@linaro.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [alsa-devel] [very-RFC 0/8] TSN driver for the kernel
+Message-ID: <20160623103848.GG32724@icarus.home.austad.us>
+References: <20160613114713.GA9544@localhost.localdomain>
+ <20160613195136.GC2441@netboy>
+ <20160614121844.54a125a5@lxorguk.ukuu.org.uk>
+ <5760C84C.40408@sakamocchi.jp>
+ <20160615080602.GA13555@localhost.localdomain>
+ <5764DA85.3050801@sakamocchi.jp>
+ <20160618224549.GF32724@icarus.home.austad.us>
+ <9a5abd48-4da3-945d-53c9-b6d37010ab0d@linux.intel.com>
+ <20160620121838.GA5257@localhost.localdomain>
+ <07283da9-f6d1-c3b1-7989-a6fce7ca0ee6@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="kadn00tgSopKmJ1H"
+Content-Disposition: inline
+In-Reply-To: <07283da9-f6d1-c3b1-7989-a6fce7ca0ee6@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Newer Amlogic platforms (Meson 8b and GXBB) use a slightly different
-register layout for their Infrared Remoete Controller. The decoder mode
-is now configured in another register. Without the changes to the
-meson-ir driver we are simply getting incorrect "durations" reported
-from the hardware (because the hardware is not in time measurement aka
-software decode mode).
 
-This problem was also noticed by some people trying to use this on an
-ODROID-C1 and ODROID-C2 - the workaround there (probably because the
-datasheets were not publicy available yet at that time) was to switch
-to ir_raw_event_store_edge (which leaves it up to the kernel to measure
-the duration of a pulse). See [0] and [1] for the corresponding
-patches.
+--kadn00tgSopKmJ1H
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Tue, Jun 21, 2016 at 10:45:18AM -0700, Pierre-Louis Bossart wrote:
+> On 6/20/16 5:18 AM, Richard Cochran wrote:
+> >On Mon, Jun 20, 2016 at 01:08:27PM +0200, Pierre-Louis Bossart wrote:
+> >>The ALSA API provides support for 'audio' timestamps (playback/capture =
+rate
+> >>defined by audio subsystem) and 'system' timestamps (typically linked to
+> >>TSC/ART) with one option to take synchronized timestamps should the har=
+dware
+> >>support them.
+> >
+> >Thanks for the info.  I just skimmed Documentation/sound/alsa/timestampi=
+ng.txt.
+> >
+> >That is fairly new, only since v4.1.  Are then any apps in the wild
+> >that I can look at?  AFAICT, OpenAVB, gstreamer, etc, don't use the
+> >new API.
+>=20
+> The ALSA API supports a generic .get_time_info callback, its implementati=
+on
+> is for now limited to a regular 'DMA' or 'link' timestamp for HDaudio - t=
+he
+> difference being which counters are used and how close they are to the li=
+nk
+> serializer. The synchronized part is still WIP but should come 'soon'
 
-Changes in v3:
-- based on the patches of Neil Armstrong
-- depending on the platform either the old (default) or new registers
-  (this has to be enabled explicitly by using "amlogic,meson8b-ir" or
-  "amlogic,meson-gxbb-ir")
-- the changes to arch/arm/boot/dts/meson.dtsi are not part of this
-  series anymore, because the size specified there is valid for the
-  Meson 6b version of the IR decoder
-- Add the IR decoder to meson-gxbb.dtsi and enable it on the supported
-  boards
+Interesting, would you mind CCing me in on those patches?
 
+> >>The intent was that the 'audio' timestamps are translated to a shared t=
+ime
+> >>reference managed in userspace by gPTP, which in turn would define if
+> >>(adaptive) audio sample rate conversion is needed. There is no support =
+at
+> >>the moment for a 'play_at' function in ALSA, only means to control a
+> >>feedback loop.
+> >
+> >Documentation/sound/alsa/timestamping.txt says:
+> >
+> >  If supported in hardware, the absolute link time could also be used
+> >  to define a precise start time (patches WIP)
+> >
+> >Two questions:
+> >
+> >1. Where are the patches?  (If some are coming, I would appreciate
+> >   being on CC!)
+> >
+> >2. Can you mention specific HW that would support this?
+>=20
+> You can experiment with the 'dma' and 'link' timestamps today on any
+> HDaudio-based device. Like I said the synchronized part has not been
+> upstreamed yet (delays + dependency on ART-to-TSC conversions that made it
+> in the kernel recently)
 
-[0] https://github.com/erdoukki/linux-amlogic-1/commit/969b2e2242fb14a13cb651f9a1cf771b599c958b
-[1] http://forum.odroid.com/viewtopic.php?f=135&t=20504
+Ok, I think I see a way to hook this into timestamps from the skbuf on=20
+incoming frames and a somewhat messy way on outgoing. Having time coupled=
+=20
+with 'avail' and 'delay' is useful, and from the looks of it, 'link'-time=
+=20
+is the appropriate level to add this.
 
+I'm working on storing the time in the tsn_link struct I use, and then read=
+=20
+that from the avb_alsa-shim. Details are still a bit fuzzy though, but I=20
+plan to do that and then see what audio-time gives me once it is up and=20
+running.
 
-Martin Blumenstingl (1):
-  ARM64: dts: meson-gxbb: Enable the the IR decoder on supported boards
+Richard: is it fair to assume that if ptp4l is running and is part of a PTP=
+=20
+domain, ktime_get() will return PTP-adjusted time for the system? -Or do I=
+=20
+also need to run phc2sys in order to sync the system-time to PTP-time? Note=
+=20
+that this is for outgoing traffic, Rx should perhaps use the timestamp=20
+in skb.
 
-Neil Armstrong (3):
-  dt-bindings: media: meson-ir: Add Meson8b and GXBB compatible strings
-  media: rc: meson-ir: Add support for newer versions of the IR decoder
-  ARM64: meson-gxbb: Add Infrared Remote Controller decoder
+Hooking into ktime_get() instead of directly to the PTP-subsystem (if that=
+=20
+is even possible) makes it a lot easier to debug when running this in a VM=
+=20
+as it doesn't *have* to use PTP-time when I'm crashing a new kernel :)
 
- .../devicetree/bindings/media/meson-ir.txt         |  5 +++-
- .../arm64/boot/dts/amlogic/meson-gxbb-odroidc2.dts |  4 +++
- arch/arm64/boot/dts/amlogic/meson-gxbb-p20x.dtsi   |  4 +++
- .../boot/dts/amlogic/meson-gxbb-vega-s95.dtsi      |  4 +++
- arch/arm64/boot/dts/amlogic/meson-gxbb.dtsi        |  7 ++++++
- drivers/media/rc/meson-ir.c                        | 29 ++++++++++++++++++----
- 6 files changed, 47 insertions(+), 6 deletions(-)
+Thanks!
 
--- 
-2.9.0
+--=20
+Henrik Austad
 
+--kadn00tgSopKmJ1H
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAldrvDgACgkQ6k5VT6v45llUQgCg9HrQkKbcPOCNa3udtOfhheRD
+6SUAniWcrLovzBEtoAXePkXLHEHbduNC
+=CzGG
+-----END PGP SIGNATURE-----
+
+--kadn00tgSopKmJ1H--
