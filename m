@@ -1,577 +1,518 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37570 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751476AbcFYNHA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jun 2016 09:07:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv19 11/14] cec: adv7842: add cec support
-Date: Sat, 25 Jun 2016 15:06:35 +0200
-Message-Id: <1466859998-17640-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1466859998-17640-1-git-send-email-hverkuil@xs4all.nl>
-References: <1466859998-17640-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.17.21]:60825 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750996AbcFXL3L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2016 07:29:11 -0400
+Date: Fri, 24 Jun 2016 13:29:07 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 3/3] uvcvideo: add a metadata device node
+In-Reply-To: <Pine.LNX.4.64.1606241312130.23461@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1606241327550.23461@axis700.grange>
+References: <Pine.LNX.4.64.1606241312130.23461@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Some UVC video cameras contain metadata in their payload headers. This
+patch extracts that data, skipping the standard part of the header, on
+both bulk and isochronous endpoints and makes it available to the user
+space on a separate video node, using the V4L2_CAP_META_CAPTURE
+capability and the V4L2_BUF_TYPE_META_CAPTURE buffer queue type. Even
+though different cameras will have different metadata formats, we use
+the same V4L2_META_FMT_UVC pixel format for all of them. Users have to
+parse data, based on the specific camera model information.
 
-Add CEC support to the adv7842 driver.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
 ---
- drivers/media/i2c/Kconfig   |   8 +
- drivers/media/i2c/adv7842.c | 368 ++++++++++++++++++++++++++++++++++++--------
- 2 files changed, 313 insertions(+), 63 deletions(-)
+ drivers/media/usb/uvc/Makefile       |   2 +-
+ drivers/media/usb/uvc/uvc_driver.c   |  10 ++
+ drivers/media/usb/uvc/uvc_isight.c   |   2 +-
+ drivers/media/usb/uvc/uvc_metadata.c | 234 +++++++++++++++++++++++++++++++++++
+ drivers/media/usb/uvc/uvc_v4l2.c     |   2 +-
+ drivers/media/usb/uvc/uvc_video.c    |  59 +++++++--
+ drivers/media/usb/uvc/uvcvideo.h     |  12 +-
+ 7 files changed, 309 insertions(+), 12 deletions(-)
+ create mode 100644 drivers/media/usb/uvc/uvc_metadata.c
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index a2c44cb..0179d10 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -230,6 +230,7 @@ config VIDEO_ADV7842
- 	tristate "Analog Devices ADV7842 decoder"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
- 	select HDMI
-+	select MEDIA_CEC_EDID
- 	---help---
- 	  Support for the Analog Devices ADV7842 video decoder.
+diff --git a/drivers/media/usb/uvc/Makefile b/drivers/media/usb/uvc/Makefile
+index c26d12f..06c7cd3 100644
+--- a/drivers/media/usb/uvc/Makefile
++++ b/drivers/media/usb/uvc/Makefile
+@@ -1,5 +1,5 @@
+ uvcvideo-objs  := uvc_driver.o uvc_queue.o uvc_v4l2.o uvc_video.o uvc_ctrl.o \
+-		  uvc_status.o uvc_isight.o uvc_debugfs.o
++		  uvc_status.o uvc_isight.o uvc_debugfs.o uvc_metadata.o
+ ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
+ uvcvideo-objs  += uvc_entity.o
+ endif
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 302e284..1a75ff0 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1740,6 +1740,9 @@ static void uvc_unregister_video(struct uvc_device *dev)
  
-@@ -239,6 +240,13 @@ config VIDEO_ADV7842
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called adv7842.
+ 		video_unregister_device(&stream->vdev);
  
-+config VIDEO_ADV7842_CEC
-+	bool "Enable Analog Devices ADV7842 CEC support"
-+	depends on VIDEO_ADV7842 && MEDIA_CEC
-+	---help---
-+	  When selected the adv7842 will support the optional
-+	  HDMI CEC feature.
++		if (video_is_registered(&stream->meta.vdev))
++			video_unregister_device(&stream->meta.vdev);
 +
- config VIDEO_BT819
- 	tristate "BT819A VideoStream decoder"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index ecaacb0..ad7dcfc 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -39,6 +39,7 @@
- #include <linux/workqueue.h>
- #include <linux/v4l2-dv-timings.h>
- #include <linux/hdmi.h>
-+#include <media/cec.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-event.h>
- #include <media/v4l2-ctrls.h>
-@@ -79,6 +80,8 @@ MODULE_LICENSE("GPL");
+ 		uvc_debugfs_cleanup_stream(stream);
+ 	}
  
- #define ADV7842_OP_SWAP_CB_CR				(1 << 0)
+@@ -1800,6 +1803,13 @@ static int uvc_register_video(struct uvc_device *dev,
+ 		return ret;
+ 	}
  
-+#define ADV7842_MAX_ADDRS (3)
-+
- /*
- **********************************************************************
- *
-@@ -142,6 +145,11 @@ struct adv7842_state {
- 	struct v4l2_ctrl *free_run_color_ctrl_manual;
- 	struct v4l2_ctrl *free_run_color_ctrl;
- 	struct v4l2_ctrl *rgb_quantization_range_ctrl;
-+
-+	struct cec_adapter *cec_adap;
-+	u8   cec_addr[ADV7842_MAX_ADDRS];
-+	u8   cec_valid_addrs;
-+	bool cec_enabled_adap;
- };
- 
- /* Unsupported timings. This device cannot support 720p30. */
-@@ -418,9 +426,9 @@ static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state->i2c_cec, reg, val);
- }
- 
--static inline int cec_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int cec_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
- {
--	return cec_write(sd, reg, (cec_read(sd, reg) & mask) | val);
-+	return cec_write(sd, reg, (cec_read(sd, reg) & ~mask) | val);
- }
- 
- static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
-@@ -696,6 +704,18 @@ adv7842_get_dv_timings_cap(struct v4l2_subdev *sd)
- 
- /* ----------------------------------------------------------------------- */
- 
-+static u16 adv7842_read_cable_det(struct v4l2_subdev *sd)
-+{
-+	u8 reg = io_read(sd, 0x6f);
-+	u16 val = 0;
-+
-+	if (reg & 0x02)
-+		val |= 1; /* port A */
-+	if (reg & 0x01)
-+		val |= 2; /* port B */
-+	return val;
-+}
-+
- static void adv7842_delayed_work_enable_hotplug(struct work_struct *work)
- {
- 	struct delayed_work *dwork = to_delayed_work(work);
-@@ -762,50 +782,18 @@ static int edid_write_vga_segment(struct v4l2_subdev *sd)
- 	return 0;
- }
- 
--static int edid_spa_location(const u8 *edid)
--{
--	u8 d;
--
--	/*
--	 * TODO, improve and update for other CEA extensions
--	 * currently only for 1 segment (256 bytes),
--	 * i.e. 1 extension block and CEA revision 3.
--	 */
--	if ((edid[0x7e] != 1) ||
--	    (edid[0x80] != 0x02) ||
--	    (edid[0x81] != 0x03)) {
--		return -EINVAL;
--	}
--	/*
--	 * search Vendor Specific Data Block (tag 3)
--	 */
--	d = edid[0x82] & 0x7f;
--	if (d > 4) {
--		int i = 0x84;
--		int end = 0x80 + d;
--		do {
--			u8 tag = edid[i]>>5;
--			u8 len = edid[i] & 0x1f;
--
--			if ((tag == 3) && (len >= 5))
--				return i + 4;
--			i += len + 1;
--		} while (i < end);
--	}
--	return -EINVAL;
--}
--
- static int edid_write_hdmi_segment(struct v4l2_subdev *sd, u8 port)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct adv7842_state *state = to_state(sd);
--	const u8 *val = state->hdmi_edid.edid;
--	int spa_loc = edid_spa_location(val);
-+	const u8 *edid = state->hdmi_edid.edid;
-+	int spa_loc;
-+	u16 pa;
- 	int err = 0;
- 	int i;
- 
--	v4l2_dbg(2, debug, sd, "%s: write EDID on port %c (spa at 0x%x)\n",
--			__func__, (port == ADV7842_EDID_PORT_A) ? 'A' : 'B', spa_loc);
-+	v4l2_dbg(2, debug, sd, "%s: write EDID on port %c\n",
-+			__func__, (port == ADV7842_EDID_PORT_A) ? 'A' : 'B');
- 
- 	/* HPA disable on port A and B */
- 	io_write_and_or(sd, 0x20, 0xcf, 0x00);
-@@ -816,24 +804,33 @@ static int edid_write_hdmi_segment(struct v4l2_subdev *sd, u8 port)
- 	if (!state->hdmi_edid.present)
- 		return 0;
- 
-+	pa = cec_get_edid_phys_addr(edid, 256, &spa_loc);
-+	err = cec_phys_addr_validate(pa, &pa, NULL);
-+	if (err)
-+		return err;
-+
 +	/*
-+	 * Return an error if no location of the source physical address
-+	 * was found.
++	 * Register a metadata node. TODO: shall this only be enabled for some
++	 * cameras?
 +	 */
-+	if (spa_loc == 0)
-+		return -EINVAL;
++	if (!(dev->quirks & UVC_QUIRK_BUILTIN_ISIGHT))
++		uvc_meta_register(stream);
 +
- 	/* edid segment pointer '0' for HDMI ports */
- 	rep_write_and_or(sd, 0x77, 0xef, 0x00);
+ 	if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		stream->chain->caps |= V4L2_CAP_VIDEO_CAPTURE;
+ 	else
+diff --git a/drivers/media/usb/uvc/uvc_isight.c b/drivers/media/usb/uvc/uvc_isight.c
+index 8510e725..fb940cf 100644
+--- a/drivers/media/usb/uvc/uvc_isight.c
++++ b/drivers/media/usb/uvc/uvc_isight.c
+@@ -100,7 +100,7 @@ static int isight_decode(struct uvc_video_queue *queue, struct uvc_buffer *buf,
+ }
  
- 	for (i = 0; !err && i < 256; i += I2C_SMBUS_BLOCK_MAX)
- 		err = adv_smbus_write_i2c_block_data(state->i2c_edid, i,
--						     I2C_SMBUS_BLOCK_MAX, val + i);
-+						     I2C_SMBUS_BLOCK_MAX, edid + i);
- 	if (err)
- 		return err;
- 
--	if (spa_loc < 0)
--		spa_loc = 0xc0; /* Default value [REF_02, p. 199] */
--
- 	if (port == ADV7842_EDID_PORT_A) {
--		rep_write(sd, 0x72, val[spa_loc]);
--		rep_write(sd, 0x73, val[spa_loc + 1]);
-+		rep_write(sd, 0x72, edid[spa_loc]);
-+		rep_write(sd, 0x73, edid[spa_loc + 1]);
- 	} else {
--		rep_write(sd, 0x74, val[spa_loc]);
--		rep_write(sd, 0x75, val[spa_loc + 1]);
-+		rep_write(sd, 0x74, edid[spa_loc]);
-+		rep_write(sd, 0x75, edid[spa_loc + 1]);
- 	}
- 	rep_write(sd, 0x76, spa_loc & 0xff);
- 	rep_write_and_or(sd, 0x77, 0xbf, (spa_loc >> 2) & 0x40);
-@@ -853,6 +850,7 @@ static int edid_write_hdmi_segment(struct v4l2_subdev *sd, u8 port)
- 				(port == ADV7842_EDID_PORT_A) ? 'A' : 'B');
- 		return -EIO;
- 	}
-+	cec_s_phys_addr(state->cec_adap, pa, false);
- 
- 	/* enable hotplug after 200 ms */
- 	queue_delayed_work(state->work_queues,
-@@ -983,20 +981,11 @@ static int adv7842_s_register(struct v4l2_subdev *sd,
- static int adv7842_s_detect_tx_5v_ctrl(struct v4l2_subdev *sd)
+ void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream,
+-		struct uvc_buffer *buf)
++			struct uvc_buffer *buf, struct uvc_buffer *meta_buf)
  {
- 	struct adv7842_state *state = to_state(sd);
--	int prev = v4l2_ctrl_g_ctrl(state->detect_tx_5v_ctrl);
--	u8 reg_io_6f = io_read(sd, 0x6f);
--	int val = 0;
--
--	if (reg_io_6f & 0x02)
--		val |= 1; /* port A */
--	if (reg_io_6f & 0x01)
--		val |= 2; /* port B */
-+	u16 cable_det = adv7842_read_cable_det(sd);
+ 	int ret, i;
  
--	v4l2_dbg(1, debug, sd, "%s: 0x%x -> 0x%x\n", __func__, prev, val);
-+	v4l2_dbg(1, debug, sd, "%s: 0x%x\n", __func__, cable_det);
- 
--	if (val != prev)
--		return v4l2_ctrl_s_ctrl(state->detect_tx_5v_ctrl, val);
--	return 0;
-+	return v4l2_ctrl_s_ctrl(state->detect_tx_5v_ctrl, cable_det);
- }
- 
- static int find_and_set_predefined_video_timings(struct v4l2_subdev *sd,
-@@ -2170,6 +2159,207 @@ static void adv7842_irq_enable(struct v4l2_subdev *sd, bool enable)
- 	}
- }
- 
-+#if IS_ENABLED(CONFIG_VIDEO_ADV7842_CEC)
-+static void adv7842_cec_tx_raw_status(struct v4l2_subdev *sd, u8 tx_raw_status)
+diff --git a/drivers/media/usb/uvc/uvc_metadata.c b/drivers/media/usb/uvc/uvc_metadata.c
+new file mode 100644
+index 0000000..54f326c
+--- /dev/null
++++ b/drivers/media/usb/uvc/uvc_metadata.c
+@@ -0,0 +1,234 @@
++/*
++ *      uvc_metadata.c  --  USB Video Class driver - Metadata handling
++ *
++ *      Copyright (C) 2016
++ *          Guennadi Liakhovetski (guennadi.liakhovetski@intel.com)
++ *
++ *      This program is free software; you can redistribute it and/or modify
++ *      it under the terms of the GNU General Public License as published by
++ *      the Free Software Foundation; either version 2 of the License, or
++ *      (at your option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/usb.h>
++#include <linux/videodev2.h>
++
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-v4l2.h>
++#include <media/videobuf2-vmalloc.h>
++
++#include "uvcvideo.h"
++
++static inline struct uvc_buffer *to_uvc_buffer(struct vb2_v4l2_buffer *vbuf)
 +{
-+	struct adv7842_state *state = to_state(sd);
-+
-+	if ((cec_read(sd, 0x11) & 0x01) == 0) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: tx disabled\n", __func__);
-+		return;
-+	}
-+
-+	if (tx_raw_status & 0x02) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: arbitration lost\n",
-+			 __func__);
-+		cec_transmit_done(state->cec_adap, CEC_TX_STATUS_ARB_LOST,
-+				  1, 0, 0, 0);
-+		return;
-+	}
-+	if (tx_raw_status & 0x04) {
-+		u8 status;
-+		u8 nack_cnt;
-+		u8 low_drive_cnt;
-+
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: retry failed\n", __func__);
-+		/*
-+		 * We set this status bit since this hardware performs
-+		 * retransmissions.
-+		 */
-+		status = CEC_TX_STATUS_MAX_RETRIES;
-+		nack_cnt = cec_read(sd, 0x14) & 0xf;
-+		if (nack_cnt)
-+			status |= CEC_TX_STATUS_NACK;
-+		low_drive_cnt = cec_read(sd, 0x14) >> 4;
-+		if (low_drive_cnt)
-+			status |= CEC_TX_STATUS_LOW_DRIVE;
-+		cec_transmit_done(state->cec_adap, status,
-+				  0, nack_cnt, low_drive_cnt, 0);
-+		return;
-+	}
-+	if (tx_raw_status & 0x01) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: ready ok\n", __func__);
-+		cec_transmit_done(state->cec_adap, CEC_TX_STATUS_OK, 0, 0, 0, 0);
-+		return;
-+	}
++	return container_of(vbuf, struct uvc_buffer, buf);
 +}
 +
-+static void adv7842_cec_isr(struct v4l2_subdev *sd, bool *handled)
++/* -----------------------------------------------------------------------------
++ * videobuf2 Queue Operations
++ */
++
++/*
++ * Actually 253 bytes, but 256 is just a nicer number. We keep the buffer size
++ * constant and just set .usedbytes accordingly
++ */
++#define UVC_PAYLOAD_HEADER_MAX_SIZE 256
++
++static int meta_queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
++			    unsigned int *nplanes, unsigned int sizes[],
++			    void *alloc_ctxs[])
 +{
-+	u8 cec_irq;
++	if (*nplanes) {
++		if (*nplanes != 1)
++			return -EINVAL;
 +
-+	/* cec controller */
-+	cec_irq = io_read(sd, 0x93) & 0x0f;
-+	if (!cec_irq)
-+		return;
++		if (sizes[0] < UVC_PAYLOAD_HEADER_MAX_SIZE)
++			return -EINVAL;
 +
-+	v4l2_dbg(1, debug, sd, "%s: cec: irq 0x%x\n", __func__, cec_irq);
-+	adv7842_cec_tx_raw_status(sd, cec_irq);
-+	if (cec_irq & 0x08) {
-+		struct adv7842_state *state = to_state(sd);
-+		struct cec_msg msg;
-+
-+		msg.len = cec_read(sd, 0x25) & 0x1f;
-+		if (msg.len > 16)
-+			msg.len = 16;
-+
-+		if (msg.len) {
-+			u8 i;
-+
-+			for (i = 0; i < msg.len; i++)
-+				msg.msg[i] = cec_read(sd, i + 0x15);
-+			cec_write(sd, 0x26, 0x01); /* re-enable rx */
-+			cec_received_msg(state->cec_adap, &msg);
-+		}
-+	}
-+
-+	io_write(sd, 0x94, cec_irq);
-+
-+	if (handled)
-+		*handled = true;
-+}
-+
-+static int adv7842_cec_adap_enable(struct cec_adapter *adap, bool enable)
-+{
-+	struct adv7842_state *state = adap->priv;
-+	struct v4l2_subdev *sd = &state->sd;
-+
-+	if (!state->cec_enabled_adap && enable) {
-+		cec_write_clr_set(sd, 0x2a, 0x01, 0x01); /* power up cec */
-+		cec_write(sd, 0x2c, 0x01);	/* cec soft reset */
-+		cec_write_clr_set(sd, 0x11, 0x01, 0); /* initially disable tx */
-+		/* enabled irqs: */
-+		/* tx: ready */
-+		/* tx: arbitration lost */
-+		/* tx: retry timeout */
-+		/* rx: ready */
-+		io_write_clr_set(sd, 0x96, 0x0f, 0x0f);
-+		cec_write(sd, 0x26, 0x01);            /* enable rx */
-+	} else if (state->cec_enabled_adap && !enable) {
-+		/* disable cec interrupts */
-+		io_write_clr_set(sd, 0x96, 0x0f, 0x00);
-+		/* disable address mask 1-3 */
-+		cec_write_clr_set(sd, 0x27, 0x70, 0x00);
-+		/* power down cec section */
-+		cec_write_clr_set(sd, 0x2a, 0x01, 0x00);
-+		state->cec_valid_addrs = 0;
-+	}
-+	state->cec_enabled_adap = enable;
-+	return 0;
-+}
-+
-+static int adv7842_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
-+{
-+	struct adv7842_state *state = adap->priv;
-+	struct v4l2_subdev *sd = &state->sd;
-+	unsigned int i, free_idx = ADV7842_MAX_ADDRS;
-+
-+	if (!state->cec_enabled_adap)
-+		return addr == CEC_LOG_ADDR_INVALID ? 0 : -EIO;
-+
-+	if (addr == CEC_LOG_ADDR_INVALID) {
-+		cec_write_clr_set(sd, 0x27, 0x70, 0);
-+		state->cec_valid_addrs = 0;
 +		return 0;
 +	}
 +
-+	for (i = 0; i < ADV7842_MAX_ADDRS; i++) {
-+		bool is_valid = state->cec_valid_addrs & (1 << i);
++	*nplanes = 1;
++	sizes[0] = UVC_PAYLOAD_HEADER_MAX_SIZE;
 +
-+		if (free_idx == ADV7842_MAX_ADDRS && !is_valid)
-+			free_idx = i;
-+		if (is_valid && state->cec_addr[i] == addr)
-+			return 0;
-+	}
-+	if (i == ADV7842_MAX_ADDRS) {
-+		i = free_idx;
-+		if (i == ADV7842_MAX_ADDRS)
-+			return -ENXIO;
-+	}
-+	state->cec_addr[i] = addr;
-+	state->cec_valid_addrs |= 1 << i;
-+
-+	switch (i) {
-+	case 0:
-+		/* enable address mask 0 */
-+		cec_write_clr_set(sd, 0x27, 0x10, 0x10);
-+		/* set address for mask 0 */
-+		cec_write_clr_set(sd, 0x28, 0x0f, addr);
-+		break;
-+	case 1:
-+		/* enable address mask 1 */
-+		cec_write_clr_set(sd, 0x27, 0x20, 0x20);
-+		/* set address for mask 1 */
-+		cec_write_clr_set(sd, 0x28, 0xf0, addr << 4);
-+		break;
-+	case 2:
-+		/* enable address mask 2 */
-+		cec_write_clr_set(sd, 0x27, 0x40, 0x40);
-+		/* set address for mask 1 */
-+		cec_write_clr_set(sd, 0x29, 0x0f, addr);
-+		break;
-+	}
 +	return 0;
 +}
 +
-+static int adv7842_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
-+				     u32 signal_free_time, struct cec_msg *msg)
++static int meta_buffer_prepare(struct vb2_buffer *vb)
 +{
-+	struct adv7842_state *state = adap->priv;
-+	struct v4l2_subdev *sd = &state->sd;
-+	u8 len = msg->len;
-+	unsigned int i;
++	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
++	struct uvc_buffer *buf = to_uvc_buffer(vbuf);
 +
-+	/*
-+	 * The number of retries is the number of attempts - 1, but retry
-+	 * at least once. It's not clear if a value of 0 is allowed, so
-+	 * let's do at least one retry.
-+	 */
-+	cec_write_clr_set(sd, 0x12, 0x70, max(1, attempts - 1) << 4);
-+
-+	if (len > 16) {
-+		v4l2_err(sd, "%s: len exceeded 16 (%d)\n", __func__, len);
++	if (vb->num_planes != 1)
 +		return -EINVAL;
-+	}
 +
-+	/* write data */
-+	for (i = 0; i < len; i++)
-+		cec_write(sd, i, msg->msg[i]);
++	if (vb2_plane_size(vb, 0) < UVC_PAYLOAD_HEADER_MAX_SIZE)
++		return -EINVAL;
 +
-+	/* set length (data + header) */
-+	cec_write(sd, 0x10, len);
-+	/* start transmit, enable tx */
-+	cec_write(sd, 0x11, 0x01);
++	buf->state = UVC_BUF_STATE_QUEUED;
++	buf->error = 0;
++	buf->mem = vb2_plane_vaddr(vb, 0);
++	buf->length = vb2_plane_size(vb, 0);
++	buf->bytesused = 0;
++
 +	return 0;
 +}
 +
-+static const struct cec_adap_ops adv7842_cec_adap_ops = {
-+	.adap_enable = adv7842_cec_adap_enable,
-+	.adap_log_addr = adv7842_cec_adap_log_addr,
-+	.adap_transmit = adv7842_cec_adap_transmit,
++static void meta_buffer_queue(struct vb2_buffer *vb)
++{
++	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
++	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
++	struct uvc_buffer *buf = to_uvc_buffer(vbuf);
++	unsigned long flags;
++
++	spin_lock_irqsave(&queue->irqlock, flags);
++	list_add_tail(&buf->queue, &queue->irqqueue);
++	spin_unlock_irqrestore(&queue->irqlock, flags);
++}
++
++static int meta_start_streaming(struct vb2_queue *vq, unsigned int count)
++{
++	return 0;
++}
++
++static void meta_stop_streaming(struct vb2_queue *vq)
++{
++	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
++	struct uvc_buffer *buffer;
++	unsigned long flags;
++
++	spin_lock_irqsave(&queue->irqlock, flags);
++
++	/* Remove all buffers from the IRQ queue. */
++	list_for_each_entry(buffer, &queue->irqqueue, queue)
++		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
++	INIT_LIST_HEAD(&queue->irqqueue);
++
++	spin_unlock_irqrestore(&queue->irqlock, flags);
++}
++
++static struct vb2_ops uvc_meta_queue_ops = {
++	.queue_setup = meta_queue_setup,
++	.buf_prepare = meta_buffer_prepare,
++	.buf_queue = meta_buffer_queue,
++	.wait_prepare = vb2_ops_wait_prepare,
++	.wait_finish = vb2_ops_wait_finish,
++	.start_streaming = meta_start_streaming,
++	.stop_streaming = meta_stop_streaming,
 +};
-+#endif
 +
- static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- {
- 	struct adv7842_state *state = to_state(sd);
-@@ -2241,6 +2431,11 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 			*handled = true;
- 	}
- 
-+#if IS_ENABLED(CONFIG_VIDEO_ADV7842_CEC)
-+	/* cec */
-+	adv7842_cec_isr(sd, handled);
-+#endif
++/* -----------------------------------------------------------------------------
++ * V4L2 ioctls
++ */
 +
- 	/* tx 5v detect */
- 	if (irq_status[2] & 0x3) {
- 		v4l2_dbg(1, debug, sd, "%s: irq tx_5v\n", __func__);
-@@ -2321,10 +2516,12 @@ static int adv7842_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *e)
- 	case ADV7842_EDID_PORT_A:
- 	case ADV7842_EDID_PORT_B:
- 		memset(&state->hdmi_edid.edid, 0, 256);
--		if (e->blocks)
-+		if (e->blocks) {
- 			state->hdmi_edid.present |= 0x04 << e->pad;
--		else
-+		} else {
- 			state->hdmi_edid.present &= ~(0x04 << e->pad);
-+			adv7842_s_detect_tx_5v_ctrl(sd);
-+		}
- 		memcpy(&state->hdmi_edid.edid, e->edid, 128 * e->blocks);
- 		err = edid_write_hdmi_segment(sd, e->pad);
- 		break;
-@@ -2509,8 +2706,19 @@ static int adv7842_cp_log_status(struct v4l2_subdev *sd)
- 	v4l2_info(sd, "HPD A %s, B %s\n",
- 		  reg_io_0x21 & 0x02 ? "enabled" : "disabled",
- 		  reg_io_0x21 & 0x01 ? "enabled" : "disabled");
--	v4l2_info(sd, "CEC %s\n", !!(cec_read(sd, 0x2a) & 0x01) ?
-+	v4l2_info(sd, "CEC: %s\n", state->cec_enabled_adap ?
- 			"enabled" : "disabled");
-+	if (state->cec_enabled_adap) {
-+		int i;
++static int meta_v4l2_querycap(struct file *file, void *fh,
++			      struct v4l2_capability *cap)
++{
++	struct v4l2_fh *vfh = file->private_data;
++	struct uvc_streaming *stream = video_get_drvdata(vfh->vdev);
 +
-+		for (i = 0; i < ADV7842_MAX_ADDRS; i++) {
-+			bool is_valid = state->cec_valid_addrs & (1 << i);
++	cap->device_caps = V4L2_CAP_META_CAPTURE
++			 | V4L2_CAP_STREAMING;
++	cap->capabilities = V4L2_CAP_DEVICE_CAPS | cap->device_caps
++			  | stream->chain->caps;
 +
-+			if (is_valid)
-+				v4l2_info(sd, "CEC Logical Address: 0x%x\n",
-+					  state->cec_addr[i]);
-+		}
++	strlcpy(cap->driver, "uvcvideo", sizeof(cap->driver));
++	strlcpy(cap->card, vfh->vdev->name, sizeof(cap->card));
++	usb_make_path(stream->dev->udev, cap->bus_info, sizeof(cap->bus_info));
++
++	return 0;
++}
++
++static int meta_v4l2_get_format(struct file *file, void *fh,
++				struct v4l2_format *format)
++{
++	struct v4l2_fh *vfh = file->private_data;
++	struct v4l2_meta_format *fmt = &format->fmt.meta;
++
++	if (format->type != vfh->vdev->queue->type)
++		return -EINVAL;
++
++	memset(fmt, 0, sizeof(*fmt));
++
++	fmt->dataformat = V4L2_META_FMT_UVC;
++	fmt->buffersize = UVC_PAYLOAD_HEADER_MAX_SIZE;
++
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops uvc_meta_ioctl_ops = {
++	.vidioc_querycap		= meta_v4l2_querycap,
++	.vidioc_g_fmt_meta_cap		= meta_v4l2_get_format,
++	.vidioc_s_fmt_meta_cap		= meta_v4l2_get_format,
++	.vidioc_try_fmt_meta_cap	= meta_v4l2_get_format,
++	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
++	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++};
++
++/* -----------------------------------------------------------------------------
++ * V4L2 File Operations
++ */
++
++static struct v4l2_file_operations uvc_meta_fops = {
++	.owner = THIS_MODULE,
++	.unlocked_ioctl = video_ioctl2,
++	.open = v4l2_fh_open,
++	.release = vb2_fop_release,
++	.poll = vb2_fop_poll,
++	.mmap = vb2_fop_mmap,
++};
++
++int uvc_meta_register(struct uvc_streaming *stream)
++{
++	struct uvc_device *dev = stream->dev;
++	struct uvc_meta_dev *meta = &stream->meta;
++	struct video_device *vdev = &meta->vdev;
++	struct uvc_video_queue *quvc = &meta->queue;
++	struct vb2_queue *queue = &quvc->queue;
++	int ret;
++
++	vdev->v4l2_dev = &dev->vdev;
++	vdev->fops = &uvc_meta_fops;
++	vdev->ioctl_ops = &uvc_meta_ioctl_ops;
++	vdev->release = video_device_release_empty;
++	vdev->prio = &stream->chain->prio;
++	vdev->vfl_dir = VFL_DIR_RX;
++	strlcpy(vdev->name, dev->name, sizeof(vdev->name));
++
++	video_set_drvdata(vdev, stream);
++
++	/* Initialize the video buffer queue. */
++	queue->type = V4L2_BUF_TYPE_META_CAPTURE;
++	queue->io_modes = VB2_MMAP | VB2_USERPTR;
++	queue->drv_priv = quvc;
++	queue->buf_struct_size = sizeof(struct uvc_buffer);
++	queue->ops = &uvc_meta_queue_ops;
++	queue->mem_ops = &vb2_vmalloc_memops;
++	queue->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
++		| V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
++	queue->lock = &quvc->mutex;
++	ret = vb2_queue_init(queue);
++	if (ret < 0)
++		return ret;
++
++	mutex_init(&quvc->mutex);
++	spin_lock_init(&quvc->irqlock);
++	INIT_LIST_HEAD(&quvc->irqqueue);
++
++	vdev->queue = queue;
++
++	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
++	if (ret < 0)
++		uvc_printk(KERN_ERR, "Failed to register metadata device (%d).\n", ret);
++
++	return ret;
++}
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index ee295f3..9e6e2fb 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -572,7 +572,7 @@ static int uvc_ioctl_querycap(struct file *file, void *fh,
+ 	strlcpy(cap->card, vdev->name, sizeof(cap->card));
+ 	usb_make_path(stream->dev->udev, cap->bus_info, sizeof(cap->bus_info));
+ 	cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
+-			  | chain->caps;
++			  | V4L2_CAP_META_CAPTURE | chain->caps;
+ 	if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+ 	else
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 79827dd..52e2d45 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1202,8 +1202,42 @@ static void uvc_video_validate_buffer(const struct uvc_streaming *stream,
+ /*
+  * Completion handler for video URBs.
+  */
++static void uvc_video_decode_meta(struct uvc_streaming *stream,
++			struct uvc_buffer *buf, struct uvc_buffer *meta_buf,
++			u8 *mem, int length)
++{
++	size_t header_len = 2;
++
++	if (!meta_buf)
++		return;
++
++	if (mem[1] & UVC_STREAM_PTS)
++		/* dwPresentationTime is included */
++		header_len += 4;
++	if (mem[1] & UVC_STREAM_SCR)
++		/* scrSourceClock is included */
++		header_len += 6;
++
++	if (length > header_len) {
++		size_t nbytes = min_t(unsigned int,
++				      length - header_len, meta_buf->length);
++
++		meta_buf->buf.sequence = buf->buf.sequence;
++		meta_buf->buf.field = buf->buf.field;
++		meta_buf->buf.vb2_buf.timestamp =
++			buf->buf.vb2_buf.timestamp;
++
++		memcpy(meta_buf->mem, mem + header_len, nbytes);
++		meta_buf->bytesused = nbytes;
++		meta_buf->state = UVC_BUF_STATE_READY;
++
++		uvc_queue_next_buffer(&stream->meta.queue,
++				      meta_buf);
 +	}
++}
++
+ static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
+-	struct uvc_buffer *buf)
++			struct uvc_buffer *buf, struct uvc_buffer *meta_buf)
+ {
+ 	u8 *mem;
+ 	int ret, i;
+@@ -1233,6 +1267,8 @@ static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
+ 		if (ret < 0)
+ 			continue;
  
- 	v4l2_info(sd, "-----Signal status-----\n");
- 	if (state->hdmi_port_a) {
-@@ -3031,6 +3239,24 @@ static int adv7842_subscribe_event(struct v4l2_subdev *sd,
- 	}
++		uvc_video_decode_meta(stream, buf, meta_buf, mem, ret);
++
+ 		/* Decode the payload data. */
+ 		uvc_video_decode_data(stream, buf, mem + ret,
+ 			urb->iso_frame_desc[i].actual_length - ret);
+@@ -1249,7 +1285,7 @@ static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
  }
  
-+static int adv7842_registered(struct v4l2_subdev *sd)
-+{
-+	struct adv7842_state *state = to_state(sd);
-+	int err;
-+
-+	err = cec_register_adapter(state->cec_adap);
-+	if (err)
-+		cec_delete_adapter(state->cec_adap);
-+	return err;
-+}
-+
-+static void adv7842_unregistered(struct v4l2_subdev *sd)
-+{
-+	struct adv7842_state *state = to_state(sd);
-+
-+	cec_unregister_adapter(state->cec_adap);
-+}
-+
- /* ----------------------------------------------------------------------- */
+ static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream,
+-	struct uvc_buffer *buf)
++			struct uvc_buffer *buf, struct uvc_buffer *meta_buf)
+ {
+ 	u8 *mem;
+ 	int len, ret;
+@@ -1283,6 +1319,8 @@ static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream,
+ 			memcpy(stream->bulk.header, mem, ret);
+ 			stream->bulk.header_size = ret;
  
- static const struct v4l2_ctrl_ops adv7842_ctrl_ops = {
-@@ -3077,6 +3303,11 @@ static const struct v4l2_subdev_ops adv7842_ops = {
- 	.pad = &adv7842_pad_ops,
++			uvc_video_decode_meta(stream, buf, meta_buf, mem, ret);
++
+ 			mem += ret;
+ 			len -= ret;
+ 		}
+@@ -1306,8 +1344,7 @@ static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream,
+ 			uvc_video_decode_end(stream, buf, stream->bulk.header,
+ 				stream->bulk.payload_size);
+ 			if (buf->state == UVC_BUF_STATE_READY)
+-				buf = uvc_queue_next_buffer(&stream->queue,
+-							    buf);
++				uvc_queue_next_buffer(&stream->queue, buf);
+ 		}
+ 
+ 		stream->bulk.header_size = 0;
+@@ -1317,7 +1354,7 @@ static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream,
+ }
+ 
+ static void uvc_video_encode_bulk(struct urb *urb, struct uvc_streaming *stream,
+-	struct uvc_buffer *buf)
++	struct uvc_buffer *buf, struct uvc_buffer *meta_buf)
+ {
+ 	u8 *mem = urb->transfer_buffer;
+ 	int len = stream->urb_size, ret;
+@@ -1363,7 +1400,8 @@ static void uvc_video_complete(struct urb *urb)
+ {
+ 	struct uvc_streaming *stream = urb->context;
+ 	struct uvc_video_queue *queue = &stream->queue;
+-	struct uvc_buffer *buf = NULL;
++	struct uvc_video_queue *qmeta = &stream->meta.queue;
++	struct uvc_buffer *buf = NULL, *buf_meta = NULL;
+ 	unsigned long flags;
+ 	int ret;
+ 
+@@ -1382,6 +1420,7 @@ static void uvc_video_complete(struct urb *urb)
+ 	case -ECONNRESET:	/* usb_unlink_urb() called. */
+ 	case -ESHUTDOWN:	/* The endpoint is being disabled. */
+ 		uvc_queue_cancel(queue, urb->status == -ESHUTDOWN);
++		uvc_queue_cancel(qmeta, urb->status == -ESHUTDOWN);
+ 		return;
+ 	}
+ 
+@@ -1391,7 +1430,13 @@ static void uvc_video_complete(struct urb *urb)
+ 				       queue);
+ 	spin_unlock_irqrestore(&queue->irqlock, flags);
+ 
+-	stream->decode(urb, stream, buf);
++	spin_lock_irqsave(&qmeta->irqlock, flags);
++	if (!list_empty(&qmeta->irqqueue))
++		buf_meta = list_first_entry(&qmeta->irqqueue, struct uvc_buffer,
++					    queue);
++	spin_unlock_irqrestore(&qmeta->irqlock, flags);
++
++	stream->decode(urb, stream, buf, buf_meta);
+ 
+ 	if ((ret = usb_submit_urb(urb, GFP_ATOMIC)) < 0) {
+ 		uvc_printk(KERN_ERR, "Failed to resubmit video URB (%d).\n",
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index a61c55b..7e2e220 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -455,6 +455,11 @@ struct uvc_stats_stream {
+ 	unsigned int max_sof;		/* Maximum STC.SOF value */
  };
  
-+static const struct v4l2_subdev_internal_ops adv7842_int_ops = {
-+	.registered = adv7842_registered,
-+	.unregistered = adv7842_unregistered,
++struct uvc_meta_dev {
++	struct video_device vdev;
++	struct uvc_video_queue queue;
 +};
 +
- /* -------------------------- custom ctrls ---------------------------------- */
- 
- static const struct v4l2_ctrl_config adv7842_ctrl_analog_sampling_phase = {
-@@ -3241,6 +3472,7 @@ static int adv7842_probe(struct i2c_client *client,
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &adv7842_ops);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
-+	sd->internal_ops = &adv7842_int_ops;
- 	state->mode = pdata->mode;
- 
- 	state->hdmi_port_a = pdata->input == ADV7842_SELECT_HDMI_PORT_A;
-@@ -3331,6 +3563,17 @@ static int adv7842_probe(struct i2c_client *client,
- 	if (err)
- 		goto err_entity;
- 
-+#if IS_ENABLED(CONFIG_VIDEO_ADV7842_CEC)
-+	state->cec_adap = cec_allocate_adapter(&adv7842_cec_adap_ops,
-+		state, dev_name(&client->dev),
-+		CEC_CAP_TRANSMIT | CEC_CAP_LOG_ADDRS |
-+		CEC_CAP_PASSTHROUGH | CEC_CAP_RC, ADV7842_MAX_ADDRS,
-+		&client->dev);
-+	err = PTR_ERR_OR_ZERO(state->cec_adap);
-+	if (err)
-+		goto err_entity;
-+#endif
+ struct uvc_streaming {
+ 	struct list_head list;
+ 	struct uvc_device *dev;
+@@ -486,7 +491,9 @@ struct uvc_streaming {
+ 	unsigned int frozen : 1;
+ 	struct uvc_video_queue queue;
+ 	void (*decode) (struct urb *urb, struct uvc_streaming *video,
+-			struct uvc_buffer *buf);
++			struct uvc_buffer *buf, struct uvc_buffer *meta_buf);
 +
- 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
- 		  client->addr << 1, client->adapter->name);
- 	return 0;
-@@ -3355,7 +3598,6 @@ static int adv7842_remove(struct i2c_client *client)
- 	struct adv7842_state *state = to_state(sd);
++	struct uvc_meta_dev meta;
  
- 	adv7842_irq_enable(sd, false);
--
- 	cancel_delayed_work(&state->delayed_work_enable_hotplug);
- 	destroy_workqueue(state->work_queues);
- 	v4l2_device_unregister_subdev(sd);
+ 	/* Context data used by the bulk completion handler. */
+ 	struct {
+@@ -698,6 +705,7 @@ extern int uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
+ void uvc_video_clock_update(struct uvc_streaming *stream,
+ 			    struct vb2_v4l2_buffer *vbuf,
+ 			    struct uvc_buffer *buf);
++int uvc_meta_register(struct uvc_streaming *stream);
+ 
+ /* Status */
+ extern int uvc_status_init(struct uvc_device *dev);
+@@ -754,7 +762,7 @@ extern struct usb_host_endpoint *uvc_find_endpoint(
+ 
+ /* Quirks support */
+ void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream,
+-		struct uvc_buffer *buf);
++		struct uvc_buffer *buf, struct uvc_buffer *meta_buf);
+ 
+ /* debugfs and statistics */
+ int uvc_debugfs_init(void);
 -- 
-2.8.1
+1.9.3
 
