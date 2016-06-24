@@ -1,57 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:38301 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753148AbcFOIKg (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:40625 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751568AbcFXPcM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2016 04:10:36 -0400
-Received: by mail-wm0-f47.google.com with SMTP id m124so23573109wme.1
-        for <linux-media@vger.kernel.org>; Wed, 15 Jun 2016 01:10:35 -0700 (PDT)
-Subject: Re: EIT off-air tables for HD in UK
-To: Nick Whitehead <nick@mistoffolees.me.uk>,
-	linux-media@vger.kernel.org
-References: <57604D76.30705@mistoffolees.me.uk>
-From: Jemma Denson <jdenson@gmail.com>
-Message-ID: <e943e6e6-b5eb-446a-6a8f-585dfee8353c@gmail.com>
-Date: Wed, 15 Jun 2016 09:10:32 +0100
+	Fri, 24 Jun 2016 11:32:12 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 00/19] Fix new warnings detected by GCC 6.1
+Date: Fri, 24 Jun 2016 12:31:41 -0300
+Message-Id: <cover.1466782238.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-In-Reply-To: <57604D76.30705@mistoffolees.me.uk>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14/06/16 19:31, Nick Whitehead wrote:
-> I've just started to use this to recover EIT information from the 
-> transmitted stream (UK, freeview).
->
-> I've managed to get the tables OK, but the EIT name / description for 
-> all HD channels is scrambled. Some research indicates these are 
-> huffman encoded for an unclear reason.
->
-> Given the right tables, it should be possible therefore to decode them 
-> when they appear in the linked list of descriptors in each event. 
-> However, it appears that dvb_parse_string() called all the way down 
-> from dvb_read_sections() converts the character sets name / 
-> description strings so that they can no longer be decoded. If huffman 
-> encoded, I think the first character of each is a 0x1f, followed by a 
-> 0x01 or 0x02 which probably indicates the table to use.
->
-> It seems to me therefore that the 0x1f needs to be picked up in the 
-> switch (*src) {} at line 395 in parse_string.c, and huffman decode 
-> done there. After the return from dvb_parse_string(), and certainly 
-> when they appear in the EIT table, it's too late.
->
-> I am not sure if I'm right about all this as I know very little about 
-> DVB. However it looks like that to me. Have I got this right or is 
-> already successfully handled somewhere I haven't realised?
->
->
+After upgrading to Fedora 24, new warnings started to popup. Fix them.
 
-FYI mythtv decodes the EIT successfully so is probably a good place to 
-start looking. The original patch to add it in is here: 
-https://svn.mythtv.org/trac/attachment/ticket/5365/freesat_epg.diff
-AFAIK Freeview HD is done the same way as Freesat.
+Mauro Carvalho Chehab (19):
+  usbvision: remove some unused vars
+  exynos4-is: remove some unused vars
+  cx18: use macros instead of static const vars
+  m5602_core: move skeletons to the .c file
+  m5602_s5k4aa: move skeletons to the .c file
+  m5602_mt9m111: move skeletons to the .c file
+  m5602_ov9650: move skeletons to the .c file
+  m5602_s5k83a: move skeletons to the .c file
+  m5602_po1030: move skeletons to the .c file
+  m5602_ov7660: move skeletons to the .c file
+  cx25821-alsa: shutup a Gcc 6.1 warning
+  drxj: comment out the unused nicam_presc_table_val table
+  dib0090: comment out the unused tables
+  r820t: comment out two ancillary tables
+  zr36016: remove some unused tables
+  vivid: remove some unused vars
+  em28xx-dvb: remove some left over
+  adv7842: comment out a table useful for debug
+  bdisp: move the V/H filter spec to bdisp-hw.c
 
-Jemma.
+ drivers/media/dvb-frontends/dib0090.c           |   6 +
+ drivers/media/dvb-frontends/drx39xyj/drxj.c     |   3 +
+ drivers/media/i2c/adv7842.c                     |   3 +
+ drivers/media/pci/cx18/cx18-driver.c            |   2 +-
+ drivers/media/pci/cx18/cx18-driver.h            |   6 +-
+ drivers/media/pci/cx18/cx18-ioctl.c             |   2 +-
+ drivers/media/pci/cx18/cx18-streams.c           |  12 +-
+ drivers/media/pci/cx18/cx18-vbi.c               |   6 +-
+ drivers/media/pci/cx25821/cx25821-alsa.c        |   2 +-
+ drivers/media/pci/zoran/zr36016.c               |   4 -
+ drivers/media/platform/exynos4-is/mipi-csis.c   |  17 --
+ drivers/media/platform/sti/bdisp/bdisp-filter.h | 304 -----------------------
+ drivers/media/platform/sti/bdisp/bdisp-hw.c     | 305 ++++++++++++++++++++++++
+ drivers/media/platform/vivid/vivid-sdr-cap.c    |   2 -
+ drivers/media/platform/vivid/vivid-vid-cap.c    |   3 +-
+ drivers/media/radio/radio-aztech.c              |   1 -
+ drivers/media/tuners/r820t.c                    |  29 +--
+ drivers/media/usb/em28xx/em28xx-dvb.c           |  11 -
+ drivers/media/usb/gspca/m5602/m5602_bridge.h    |  15 --
+ drivers/media/usb/gspca/m5602/m5602_core.c      |  15 ++
+ drivers/media/usb/gspca/m5602/m5602_mt9m111.c   | 144 +++++++++++
+ drivers/media/usb/gspca/m5602/m5602_mt9m111.h   | 144 -----------
+ drivers/media/usb/gspca/m5602/m5602_ov7660.c    | 153 ++++++++++++
+ drivers/media/usb/gspca/m5602/m5602_ov7660.h    | 153 ------------
+ drivers/media/usb/gspca/m5602/m5602_ov9650.c    | 152 ++++++++++++
+ drivers/media/usb/gspca/m5602/m5602_ov9650.h    | 150 ------------
+ drivers/media/usb/gspca/m5602/m5602_po1030.c    | 104 ++++++++
+ drivers/media/usb/gspca/m5602/m5602_po1030.h    | 104 --------
+ drivers/media/usb/gspca/m5602/m5602_s5k4aa.c    | 199 ++++++++++++++++
+ drivers/media/usb/gspca/m5602/m5602_s5k4aa.h    | 197 ---------------
+ drivers/media/usb/gspca/m5602/m5602_s5k83a.c    | 124 ++++++++++
+ drivers/media/usb/gspca/m5602/m5602_s5k83a.h    | 124 ----------
+ drivers/media/usb/usbvision/usbvision-core.c    |   5 -
+ 33 files changed, 1239 insertions(+), 1262 deletions(-)
+
+-- 
+2.7.4
 
 
