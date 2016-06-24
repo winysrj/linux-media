@@ -1,48 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from v-smtpgw2.han.skanova.net ([81.236.60.205]:38543 "EHLO
-	v-smtpgw2.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752408AbcFVR5R (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33995 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751104AbcFXFk2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2016 13:57:17 -0400
-Subject: Re: Problems with Si2168 DVB-C card (cx23885)
-To: Hurda <hurda@chello.at>, linux-media@vger.kernel.org
-References: <10ab0033-763e-94d8-f638-716c5b2507e8@ipvs.uni-stuttgart.de>
- <576A995F.2050505@chello.at>
-From: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
-Message-ID: <a917e696-300b-d2f8-c75f-7dbe45eba51a@mbox200.swipnet.se>
-Date: Wed, 22 Jun 2016 19:57:32 +0200
+	Fri, 24 Jun 2016 01:40:28 -0400
+Received: by mail-wm0-f65.google.com with SMTP id 187so2193140wmz.1
+        for <linux-media@vger.kernel.org>; Thu, 23 Jun 2016 22:40:28 -0700 (PDT)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 9/9] media: rc: nuvoton: remove two unused elements in struct
+ nvt_dev
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <f176b83d-75ce-ed7e-a167-d6c661c2f672@gmail.com>
+Date: Fri, 24 Jun 2016 07:40:02 +0200
 MIME-Version: 1.0
-In-Reply-To: <576A995F.2050505@chello.at>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2016-06-22 15:57, Hurda wrote:
->
->> kernel: si2168 8-0064: found a 'Silicon Labs Si2168-B40'
->> kernel: si2168 8-0064: downloading firmware from file
->> 'dvb-demod-si2168-b40-01.fw'
->> kernel: si2168 8-0064: firmware version: 4.0.19
->>
->>
->> Distribution is Arch. Kernel version is 4.6.2.
->
-> IIRC you have to use firmware-version 4.0.11 in pre-4.8-kernels.
-> http://palosaari.fi/linux/v4l-dvb/firmware/Si2168/Si2168-B40/4.0.11/
-> There was a message on this mailing list a few weeks ago (May 21st,
-> regarding DVBSky T330).
->
-> Might work with that.
+These two fields are not used and can be removed.
 
-i got a similar card but for dvb-t2 i also found out that one of the 
-firmware files must be a specific version.
-the one i got from dvbskys firmware package did not work at all except 
-with their binary blob driver.
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/nuvoton-cir.h | 4 ----
+ 1 file changed, 4 deletions(-)
 
-but i'm not yet able to properly test my card since i'm still on 4.4 
-kernel (fedora 22) and media_build is broken when modprobing cx23885 
-module, dmesg complains about duplicate symbol and modprobe fails with 
-exec format error.
-
+diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
+index 65324ef..acf735f 100644
+--- a/drivers/media/rc/nuvoton-cir.h
++++ b/drivers/media/rc/nuvoton-cir.h
+@@ -111,12 +111,8 @@ struct nvt_dev {
+ 	u8 chip_minor;
+ 
+ 	/* hardware features */
+-	bool hw_learning_capable;
+ 	bool hw_tx_capable;
+ 
+-	/* rx settings */
+-	bool learning_enabled;
+-
+ 	/* carrier period = 1 / frequency */
+ 	u32 carrier;
+ };
+-- 
+2.9.0
 
