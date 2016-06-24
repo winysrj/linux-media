@@ -1,58 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:36954 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751511AbcF0Jav (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:32877 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751522AbcFXSAk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 05:30:51 -0400
-Subject: Re: [PATCH v4 6/8] media: rcar-vin: initialize EDID data
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	niklas.soderlund@ragnatech.se
-References: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
- <1462975376-491-7-git-send-email-ulrich.hecht+renesas@gmail.com>
- <573591F4.4050901@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <fb91b675-d87f-4b7a-ae3b-ab7a61759393@xs4all.nl>
-Date: Mon, 27 Jun 2016 11:30:45 +0200
-MIME-Version: 1.0
-In-Reply-To: <573591F4.4050901@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 24 Jun 2016 14:00:40 -0400
+From: Colin King <colin.king@canonical.com>
+To: Sergey Kozlov <serjk@netup.ru>, Abylay Ospan <aospan@netup.ru>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] netup_unidvb: trivial fix of spelling mistake "initizalize" -> "initialize"
+Date: Fri, 24 Jun 2016 19:00:24 +0100
+Message-Id: <1466791224-18641-1-git-send-email-colin.king@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ulrich,
+From: Colin Ian King <colin.king@canonical.com>
 
-On 05/13/2016 10:36 AM, Hans Verkuil wrote:
-> On 05/11/2016 04:02 PM, Ulrich Hecht wrote:
->> Initializes the decoder subdevice with a fixed EDID blob.
->>
->> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> 
-> Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Instead implement the g/s_edid ioctls.
-> 
-> You truly cannot default to an EDID. When an EDID is set the HPD will go high.
-> But you don't know the EDID here, the contents of the EDID is something that
-> only userspace will know depending on the type of device you're building.
-> 
-> In practice userspace will overwrite the EDID with the real one and so the HPD
-> will go down and up again. And while transmitters are supposed to handle that
-> cleanly, in reality this is a different story.
-> 
-> Just add the g/s_edid ioctls and you can use 'v4l2-ctl --set-edid=edid=hdmi' to
-> fill in a default EDID.
-> 
-> I won't accept this patch since I know from my own experience that this doesn't
-> work.
+trivial fix to spelling mistake in dev_err message
 
-I haven't seen a follow-up on this. Can you do a v5? It's likely that will be the
-last version and I can commit this.
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/pci/netup_unidvb/netup_unidvb_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks!
+diff --git a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
+index d278d4e..c2ec4e2 100644
+--- a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
++++ b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
+@@ -975,7 +975,7 @@ wq_create_err:
+ 	kfree(ndev);
+ dev_alloc_err:
+ 	dev_err(&pci_dev->dev,
+-		"%s(): failed to initizalize device\n", __func__);
++		"%s(): failed to initialize device\n", __func__);
+ 	return -EIO;
+ }
+ 
+-- 
+2.8.1
 
-	Hans
