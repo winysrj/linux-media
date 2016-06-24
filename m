@@ -1,439 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:36468 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754596AbcFTQZM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 12:25:12 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:42676 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751554AbcFXDDS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jun 2016 23:03:18 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1BDE8181A06
+	for <linux-media@vger.kernel.org>; Fri, 24 Jun 2016 05:03:12 +0200 (CEST)
+Date: Fri, 24 Jun 2016 05:03:12 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, Jouni Ukkonen <jouni.ukkonen@intel.com>
-Subject: [PATCH v2 5/7] media: Add 1X14 14-bit raw bayer media bus code definitions
-Date: Mon, 20 Jun 2016 19:20:06 +0300
-Message-Id: <1466439608-22890-6-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1466439608-22890-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1466439608-22890-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160624030312.1BDE8181A06@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jouni Ukkonen <jouni.ukkonen@intel.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The codes will be called:
+Results of the daily build of media_tree:
 
-	MEDIA_BUS_FMT_SBGGR14_1X14
-	MEDIA_BUS_FMT_SGBRG14_1X14
-	MEDIA_BUS_FMT_SGRBG14_1X14
-	MEDIA_BUS_FMT_SRGGB14_1X14
+date:		Fri Jun 24 04:00:17 CEST 2016
+git branch:	test
+git hash:	59f0bc11848f8f3242bc1fefae670e745929cd7b
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-Signed-off-by: Jouni Ukkonen <jouni.ukkonen@intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 162 +++++++++++++++++++--
- include/uapi/linux/media-bus-format.h              |   6 +-
- 2 files changed, 154 insertions(+), 14 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mtk: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 199c84e..6d45dc8 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -1098,22 +1098,24 @@ see <xref linkend="colorspaces" />.</entry>
- 
-       <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-bayer">
- 	<title>Bayer Formats</title>
--	<tgroup cols="15">
-+	<tgroup cols="17">
- 	  <colspec colname="id" align="left" />
- 	  <colspec colname="code" align="center"/>
- 	  <colspec colname="bit" />
--	  <colspec colnum="4" colname="b11" align="center" />
--	  <colspec colnum="5" colname="b10" align="center" />
--	  <colspec colnum="6" colname="b09" align="center" />
--	  <colspec colnum="7" colname="b08" align="center" />
--	  <colspec colnum="8" colname="b07" align="center" />
--	  <colspec colnum="9" colname="b06" align="center" />
--	  <colspec colnum="10" colname="b05" align="center" />
--	  <colspec colnum="11" colname="b04" align="center" />
--	  <colspec colnum="12" colname="b03" align="center" />
--	  <colspec colnum="13" colname="b02" align="center" />
--	  <colspec colnum="14" colname="b01" align="center" />
--	  <colspec colnum="15" colname="b00" align="center" />
-+	  <colspec colnum="4" colname="b13" align="center" />
-+	  <colspec colnum="5" colname="b12" align="center" />
-+	  <colspec colnum="6" colname="b11" align="center" />
-+	  <colspec colnum="7" colname="b10" align="center" />
-+	  <colspec colnum="8" colname="b09" align="center" />
-+	  <colspec colnum="9" colname="b08" align="center" />
-+	  <colspec colnum="10" colname="b07" align="center" />
-+	  <colspec colnum="11" colname="b06" align="center" />
-+	  <colspec colnum="12" colname="b05" align="center" />
-+	  <colspec colnum="13" colname="b04" align="center" />
-+	  <colspec colnum="14" colname="b03" align="center" />
-+	  <colspec colnum="15" colname="b02" align="center" />
-+	  <colspec colnum="16" colname="b01" align="center" />
-+	  <colspec colnum="17" colname="b00" align="center" />
- 	  <spanspec namest="b11" nameend="b00" spanname="b0" />
- 	  <thead>
- 	    <row>
-@@ -1126,6 +1128,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry></entry>
- 	      <entry></entry>
- 	      <entry>Bit</entry>
-+	      <entry>13</entry>
-+	      <entry>12</entry>
- 	      <entry>11</entry>
- 	      <entry>10</entry>
- 	      <entry>9</entry>
-@@ -1149,6 +1153,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>b<subscript>7</subscript></entry>
- 	      <entry>b<subscript>6</subscript></entry>
- 	      <entry>b<subscript>5</subscript></entry>
-@@ -1166,6 +1172,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>g<subscript>7</subscript></entry>
- 	      <entry>g<subscript>6</subscript></entry>
- 	      <entry>g<subscript>5</subscript></entry>
-@@ -1183,6 +1191,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>g<subscript>7</subscript></entry>
- 	      <entry>g<subscript>6</subscript></entry>
- 	      <entry>g<subscript>5</subscript></entry>
-@@ -1200,6 +1210,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>r<subscript>7</subscript></entry>
- 	      <entry>r<subscript>6</subscript></entry>
- 	      <entry>r<subscript>5</subscript></entry>
-@@ -1217,6 +1229,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>b<subscript>7</subscript></entry>
- 	      <entry>b<subscript>6</subscript></entry>
- 	      <entry>b<subscript>5</subscript></entry>
-@@ -1234,6 +1248,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>g<subscript>7</subscript></entry>
- 	      <entry>g<subscript>6</subscript></entry>
- 	      <entry>g<subscript>5</subscript></entry>
-@@ -1251,6 +1267,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>g<subscript>7</subscript></entry>
- 	      <entry>g<subscript>6</subscript></entry>
- 	      <entry>g<subscript>5</subscript></entry>
-@@ -1268,6 +1286,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>r<subscript>7</subscript></entry>
- 	      <entry>r<subscript>6</subscript></entry>
- 	      <entry>r<subscript>5</subscript></entry>
-@@ -1285,6 +1305,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>b<subscript>7</subscript></entry>
- 	      <entry>b<subscript>6</subscript></entry>
- 	      <entry>b<subscript>5</subscript></entry>
-@@ -1302,6 +1324,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>g<subscript>7</subscript></entry>
- 	      <entry>g<subscript>6</subscript></entry>
- 	      <entry>g<subscript>5</subscript></entry>
-@@ -1319,6 +1343,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>g<subscript>7</subscript></entry>
- 	      <entry>g<subscript>6</subscript></entry>
- 	      <entry>g<subscript>5</subscript></entry>
-@@ -1336,6 +1362,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>r<subscript>7</subscript></entry>
- 	      <entry>r<subscript>6</subscript></entry>
- 	      <entry>r<subscript>5</subscript></entry>
-@@ -1353,6 +1381,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>0</entry>
- 	      <entry>0</entry>
- 	      <entry>0</entry>
-@@ -1370,6 +1400,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>b<subscript>7</subscript></entry>
- 	      <entry>b<subscript>6</subscript></entry>
- 	      <entry>b<subscript>5</subscript></entry>
-@@ -1387,6 +1419,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>b<subscript>7</subscript></entry>
- 	      <entry>b<subscript>6</subscript></entry>
- 	      <entry>b<subscript>5</subscript></entry>
-@@ -1404,6 +1438,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>0</entry>
- 	      <entry>0</entry>
- 	      <entry>0</entry>
-@@ -1421,6 +1457,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>b<subscript>9</subscript></entry>
- 	      <entry>b<subscript>8</subscript></entry>
- 	      <entry>b<subscript>7</subscript></entry>
-@@ -1438,6 +1476,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>b<subscript>1</subscript></entry>
- 	      <entry>b<subscript>0</subscript></entry>
- 	      <entry>0</entry>
-@@ -1455,6 +1495,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>b<subscript>1</subscript></entry>
- 	      <entry>b<subscript>0</subscript></entry>
- 	      <entry>0</entry>
-@@ -1472,6 +1514,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>b<subscript>9</subscript></entry>
- 	      <entry>b<subscript>8</subscript></entry>
- 	      <entry>b<subscript>7</subscript></entry>
-@@ -1487,6 +1531,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry></entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>b<subscript>9</subscript></entry>
- 	      <entry>b<subscript>8</subscript></entry>
- 	      <entry>b<subscript>7</subscript></entry>
-@@ -1504,6 +1550,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry></entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>g<subscript>9</subscript></entry>
- 	      <entry>g<subscript>8</subscript></entry>
- 	      <entry>g<subscript>7</subscript></entry>
-@@ -1521,6 +1569,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry></entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>g<subscript>9</subscript></entry>
- 	      <entry>g<subscript>8</subscript></entry>
- 	      <entry>g<subscript>7</subscript></entry>
-@@ -1538,6 +1588,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry></entry>
- 	      <entry>-</entry>
- 	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>r<subscript>9</subscript></entry>
- 	      <entry>r<subscript>8</subscript></entry>
- 	      <entry>r<subscript>7</subscript></entry>
-@@ -1553,6 +1605,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>MEDIA_BUS_FMT_SBGGR12_1X12</entry>
- 	      <entry>0x3008</entry>
- 	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>b<subscript>11</subscript></entry>
- 	      <entry>b<subscript>10</subscript></entry>
- 	      <entry>b<subscript>9</subscript></entry>
-@@ -1570,6 +1624,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>MEDIA_BUS_FMT_SGBRG12_1X12</entry>
- 	      <entry>0x3010</entry>
- 	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>g<subscript>11</subscript></entry>
- 	      <entry>g<subscript>10</subscript></entry>
- 	      <entry>g<subscript>9</subscript></entry>
-@@ -1587,6 +1643,8 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>MEDIA_BUS_FMT_SGRBG12_1X12</entry>
- 	      <entry>0x3011</entry>
- 	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
- 	      <entry>g<subscript>11</subscript></entry>
- 	      <entry>g<subscript>10</subscript></entry>
- 	      <entry>g<subscript>9</subscript></entry>
-@@ -1604,6 +1662,84 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>MEDIA_BUS_FMT_SRGGB12_1X12</entry>
- 	      <entry>0x3012</entry>
- 	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>r<subscript>11</subscript></entry>
-+	      <entry>r<subscript>10</subscript></entry>
-+	      <entry>r<subscript>9</subscript></entry>
-+	      <entry>r<subscript>8</subscript></entry>
-+	      <entry>r<subscript>7</subscript></entry>
-+	      <entry>r<subscript>6</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="MEDIA-BUS-FMT-SBGGR14-1X14">
-+	      <entry>MEDIA_BUS_FMT_SBGGR14_1X14</entry>
-+	      <entry>0x3019</entry>
-+	      <entry></entry>
-+	      <entry>b<subscript>13</subscript></entry>
-+	      <entry>b<subscript>12</subscript></entry>
-+	      <entry>b<subscript>11</subscript></entry>
-+	      <entry>b<subscript>10</subscript></entry>
-+	      <entry>b<subscript>9</subscript></entry>
-+	      <entry>b<subscript>8</subscript></entry>
-+	      <entry>b<subscript>7</subscript></entry>
-+	      <entry>b<subscript>6</subscript></entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="MEDIA-BUS-FMT-SGBRG14-1X14">
-+	      <entry>MEDIA_BUS_FMT_SGBRG14_1X14</entry>
-+	      <entry>0x301a</entry>
-+	      <entry></entry>
-+	      <entry>g<subscript>13</subscript></entry>
-+	      <entry>g<subscript>12</subscript></entry>
-+	      <entry>g<subscript>11</subscript></entry>
-+	      <entry>g<subscript>10</subscript></entry>
-+	      <entry>g<subscript>9</subscript></entry>
-+	      <entry>g<subscript>8</subscript></entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="MEDIA-BUS-FMT-SGRBG14-1X14">
-+	      <entry>MEDIA_BUS_FMT_SGRBG14_1X14</entry>
-+	      <entry>0x301b</entry>
-+	      <entry></entry>
-+	      <entry>g<subscript>13</subscript></entry>
-+	      <entry>g<subscript>12</subscript></entry>
-+	      <entry>g<subscript>11</subscript></entry>
-+	      <entry>g<subscript>10</subscript></entry>
-+	      <entry>g<subscript>9</subscript></entry>
-+	      <entry>g<subscript>8</subscript></entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="MEDIA-BUS-FMT-SRGGB14-1X14">
-+	      <entry>MEDIA_BUS_FMT_SRGGB14_1X14</entry>
-+	      <entry>0x301c</entry>
-+	      <entry></entry>
-+	      <entry>r<subscript>13</subscript></entry>
-+	      <entry>r<subscript>12</subscript></entry>
- 	      <entry>r<subscript>11</subscript></entry>
- 	      <entry>r<subscript>10</subscript></entry>
- 	      <entry>r<subscript>9</subscript></entry>
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 190d491..1dff459 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -97,7 +97,7 @@
- #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
- #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
- 
--/* Bayer - next is	0x3019 */
-+/* Bayer - next is	0x301d */
- #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
- #define MEDIA_BUS_FMT_SGBRG8_1X8		0x3013
- #define MEDIA_BUS_FMT_SGRBG8_1X8		0x3002
-@@ -122,6 +122,10 @@
- #define MEDIA_BUS_FMT_SGBRG12_1X12		0x3010
- #define MEDIA_BUS_FMT_SGRBG12_1X12		0x3011
- #define MEDIA_BUS_FMT_SRGGB12_1X12		0x3012
-+#define MEDIA_BUS_FMT_SBGGR14_1X14		0x3019
-+#define MEDIA_BUS_FMT_SGBRG14_1X14		0x301a
-+#define MEDIA_BUS_FMT_SGRBG14_1X14		0x301b
-+#define MEDIA_BUS_FMT_SRGGB14_1X14		0x301c
- 
- /* JPEG compressed formats - next is	0x4002 */
- #define MEDIA_BUS_FMT_JPEG_1X8			0x4001
--- 
-1.9.1
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
