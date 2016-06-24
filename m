@@ -1,124 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:50759 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933106AbcFMC0U (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:40640 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751558AbcFXPcM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2016 22:26:20 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id F31611800E5
-	for <linux-media@vger.kernel.org>; Mon, 13 Jun 2016 04:26:13 +0200 (CEST)
-Date: Mon, 13 Jun 2016 04:26:13 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160613022613.F31611800E5@tschai.lan>
+	Fri, 24 Jun 2016 11:32:12 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Erik Andren <erik.andren@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 04/19] m5602_core: move skeletons to the .c file
+Date: Fri, 24 Jun 2016 12:31:45 -0300
+Message-Id: <511ebc093c3c8342ad68622616b29808b8eac571.1466782238.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1466782238.git.mchehab@s-opensource.com>
+References: <cover.1466782238.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1466782238.git.mchehab@s-opensource.com>
+References: <cover.1466782238.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The mc5602_brigde.h is included at m5602 submodules. This
+causes Gcc 6.1 to complain:
 
-Results of the daily build of media_tree:
+drivers/media/usb/gspca/m5602/m5602_bridge.h:124:28: warning: 'sensor_urb_skeleton' defined but not used [-Wunused-const-variable=]
+ static const unsigned char sensor_urb_skeleton[] = {
+                            ^~~~~~~~~~~~~~~~~~~
+drivers/media/usb/gspca/m5602/m5602_bridge.h:119:28: warning: 'bridge_urb_skeleton' defined but not used [-Wunused-const-variable=]
+ static const unsigned char bridge_urb_skeleton[] = {
+                           ^~~~~~~~~~~~~~~~~~~
 
-date:		Mon Jun 13 04:00:28 CEST 2016
-git branch:	test
-git hash:	cc650b65bea5613f04a0523c3ee2b91df371e175
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.5.0-264
+Let's shut up gcc 6.1 warnings by moving those data structures
+to the core, as they're used only there.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: ERRORS
-linux-4.5-i686: ERRORS
-linux-4.6-i686: ERRORS
-linux-4.7-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: ERRORS
-linux-4.5-x86_64: ERRORS
-linux-4.6-x86_64: ERRORS
-linux-4.7-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/gspca/m5602/m5602_bridge.h | 15 ---------------
+ drivers/media/usb/gspca/m5602/m5602_core.c   | 15 +++++++++++++++
+ 2 files changed, 15 insertions(+), 15 deletions(-)
 
-Detailed results are available here:
+diff --git a/drivers/media/usb/gspca/m5602/m5602_bridge.h b/drivers/media/usb/gspca/m5602/m5602_bridge.h
+index 19eb1a64f9d6..43ebc03d844d 100644
+--- a/drivers/media/usb/gspca/m5602/m5602_bridge.h
++++ b/drivers/media/usb/gspca/m5602/m5602_bridge.h
+@@ -115,21 +115,6 @@
+ 
+ /*****************************************************************************/
+ 
+-/* A skeleton used for sending messages to the m5602 bridge */
+-static const unsigned char bridge_urb_skeleton[] = {
+-	0x13, 0x00, 0x81, 0x00
+-};
+-
+-/* A skeleton used for sending messages to the sensor */
+-static const unsigned char sensor_urb_skeleton[] = {
+-	0x23, M5602_XB_GPIO_EN_H, 0x81, 0x06,
+-	0x23, M5602_XB_MISC_CTRL, 0x81, 0x80,
+-	0x13, M5602_XB_I2C_DEV_ADDR, 0x81, 0x00,
+-	0x13, M5602_XB_I2C_REG_ADDR, 0x81, 0x00,
+-	0x13, M5602_XB_I2C_DATA, 0x81, 0x00,
+-	0x13, M5602_XB_I2C_CTRL, 0x81, 0x11
+-};
+-
+ struct sd {
+ 	struct gspca_dev gspca_dev;
+ 
+diff --git a/drivers/media/usb/gspca/m5602/m5602_core.c b/drivers/media/usb/gspca/m5602/m5602_core.c
+index d926e62cb80b..e4a0658e3f83 100644
+--- a/drivers/media/usb/gspca/m5602/m5602_core.c
++++ b/drivers/media/usb/gspca/m5602/m5602_core.c
+@@ -37,6 +37,21 @@ static const struct usb_device_id m5602_table[] = {
+ 
+ MODULE_DEVICE_TABLE(usb, m5602_table);
+ 
++/* A skeleton used for sending messages to the sensor */
++static const unsigned char sensor_urb_skeleton[] = {
++	0x23, M5602_XB_GPIO_EN_H, 0x81, 0x06,
++	0x23, M5602_XB_MISC_CTRL, 0x81, 0x80,
++	0x13, M5602_XB_I2C_DEV_ADDR, 0x81, 0x00,
++	0x13, M5602_XB_I2C_REG_ADDR, 0x81, 0x00,
++	0x13, M5602_XB_I2C_DATA, 0x81, 0x00,
++	0x13, M5602_XB_I2C_CTRL, 0x81, 0x11
++};
++
++/* A skeleton used for sending messages to the m5602 bridge */
++static const unsigned char bridge_urb_skeleton[] = {
++	0x13, 0x00, 0x81, 0x00
++};
++
+ /* Reads a byte from the m5602 */
+ int m5602_read_bridge(struct sd *sd, const u8 address, u8 *i2c_data)
+ {
+-- 
+2.7.4
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
