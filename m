@@ -1,65 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45328
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750979AbcFXULB (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33720 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751160AbcFXFkU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2016 16:11:01 -0400
-Date: Fri, 24 Jun 2016 17:10:55 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Luis de Bethencourt <luisbg@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 11/19] cx25821-alsa: shutup a Gcc 6.1 warning
-Message-ID: <20160624171055.7c744bae@recife.lan>
-In-Reply-To: <576D7022.5090208@osg.samsung.com>
-References: <cover.1466782238.git.mchehab@s-opensource.com>
-	<114e877a8f89113ffdef8c6a751048c660a6c9f3.1466782238.git.mchehab@s-opensource.com>
-	<576D7022.5090208@osg.samsung.com>
+	Fri, 24 Jun 2016 01:40:20 -0400
+Received: by mail-wm0-f66.google.com with SMTP id r201so2202631wme.0
+        for <linux-media@vger.kernel.org>; Thu, 23 Jun 2016 22:40:19 -0700 (PDT)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 2/9] media: rc: nuvoton: clean up initialization of wakeup
+ registers
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <4bc6b760-553d-5687-f71e-2f7b331818ec@gmail.com>
+Date: Fri, 24 Jun 2016 07:39:04 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 24 Jun 2016 18:38:42 +0100
-Luis de Bethencourt <luisbg@osg.samsung.com> escreveu:
+The registers defining wakeup sequence handling are set when the
+wakeup sequence is set via sysfs. There's no need to initialize them
+otherwise.
 
-> On 24/06/16 16:31, Mauro Carvalho Chehab wrote:
-> > The PCI device ID table is only used if compiled with modules
-> > support. When compiled with modules disabled, this is now
-> > producing this bogus warning:
-> > 
-> > drivers/media/pci/cx25821/cx25821-alsa.c:696:35: warning: 'cx25821_audio_pci_tbl' defined but not used [-Wunused-const-variable=]
-> >  static const struct pci_device_id cx25821_audio_pci_tbl[] = {
-> >                                    ^~~~~~~~~~~~~~~~~~~~~
-> > 
-> > Fix it by annotating that the function may not be used.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> >  drivers/media/pci/cx25821/cx25821-alsa.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/pci/cx25821/cx25821-alsa.c b/drivers/media/pci/cx25821/cx25821-alsa.c
-> > index b602eba2b601..df189b16af12 100644
-> > --- a/drivers/media/pci/cx25821/cx25821-alsa.c
-> > +++ b/drivers/media/pci/cx25821/cx25821-alsa.c
-> > @@ -693,7 +693,7 @@ static int snd_cx25821_pcm(struct cx25821_audio_dev *chip, int device,
-> >   * Only boards with eeprom and byte 1 at eeprom=1 have it
-> >   */
-> >  
-> > -static const struct pci_device_id cx25821_audio_pci_tbl[] = {
-> > +static const struct pci_device_id __maybe_unused cx25821_audio_pci_tbl[] = {
-> >  	{0x14f1, 0x0920, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
-> >  	{0,}
-> >  };
-> >   
-> 
-> In which branch is this happening? I can't seem to be able to reproduce it.
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/nuvoton-cir.c | 25 +++----------------------
+ 1 file changed, 3 insertions(+), 22 deletions(-)
 
-It is at the master branch. It appears if compiled with W=1 and
-gcc 6.1.
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index b32f3bf..c8999cc 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -564,34 +564,15 @@ static void nvt_cir_regs_init(struct nvt_dev *nvt)
+ 
+ static void nvt_cir_wake_regs_init(struct nvt_dev *nvt)
+ {
+-	/* set number of bytes needed for wake from s3 (default 65) */
+-	nvt_cir_wake_reg_write(nvt, CIR_WAKE_FIFO_CMP_BYTES,
+-			       CIR_WAKE_FIFO_CMP_DEEP);
+-
+-	/* set tolerance/variance allowed per byte during wake compare */
+-	nvt_cir_wake_reg_write(nvt, CIR_WAKE_CMP_TOLERANCE,
+-			       CIR_WAKE_FIFO_CMP_TOL);
+-
+-	/* set sample limit count (PE interrupt raised when reached) */
+-	nvt_cir_wake_reg_write(nvt, CIR_RX_LIMIT_COUNT >> 8, CIR_WAKE_SLCH);
+-	nvt_cir_wake_reg_write(nvt, CIR_RX_LIMIT_COUNT & 0xff, CIR_WAKE_SLCL);
+-
+-	/* set cir wake fifo rx trigger level (currently 67) */
+-	nvt_cir_wake_reg_write(nvt, CIR_WAKE_FIFOCON_RX_TRIGGER_LEV,
+-			       CIR_WAKE_FIFOCON);
+-
+ 	/*
+-	 * Enable TX and RX, specific carrier on = low, off = high, and set
+-	 * sample period (currently 50us)
++	 * Disable RX, set specific carrier on = low, off = high,
++	 * and sample period (currently 50us)
+ 	 */
+-	nvt_cir_wake_reg_write(nvt, CIR_WAKE_IRCON_MODE0 | CIR_WAKE_IRCON_RXEN |
++	nvt_cir_wake_reg_write(nvt, CIR_WAKE_IRCON_MODE0 |
+ 			       CIR_WAKE_IRCON_R | CIR_WAKE_IRCON_RXINV |
+ 			       CIR_WAKE_IRCON_SAMPLE_PERIOD_SEL,
+ 			       CIR_WAKE_IRCON);
+ 
+-	/* clear cir wake rx fifo */
+-	nvt_clear_cir_wake_fifo(nvt);
+-
+ 	/* clear any and all stray interrupts */
+ 	nvt_cir_wake_reg_write(nvt, 0xff, CIR_WAKE_IRSTS);
+ 
+-- 
+2.9.0
 
-Thanks,
-Mauro
