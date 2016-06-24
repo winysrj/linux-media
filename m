@@ -1,59 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35673 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161277AbcFMS6o (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56114 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751454AbcFXN0I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2016 14:58:44 -0400
-Subject: Re: [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime functions
- when not needed.
-To: Tony Lindgren <tony@atomide.com>
-References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160509193624.GH5995@atomide.com> <5730F840.3050807@gmail.com>
- <20160610102225.GS22406@atomide.com> <575B2F48.4090707@gmail.com>
- <20160613071057.GQ22406@atomide.com>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org, pali.rohar@gmail.com
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Message-ID: <575F025F.7000101@gmail.com>
-Date: Mon, 13 Jun 2016 21:58:39 +0300
+	Fri, 24 Jun 2016 09:26:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/3] uvcvideo: initialise the entity function field
+Date: Fri, 24 Jun 2016 16:26:29 +0300
+Message-ID: <2830501.QdemJ557Im@avalon>
+In-Reply-To: <Pine.LNX.4.64.1606241326030.23461@axis700.grange>
+References: <Pine.LNX.4.64.1606241312130.23461@axis700.grange> <Pine.LNX.4.64.1606241326030.23461@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <20160613071057.GQ22406@atomide.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Guennadi,
 
-On 13.06.2016 10:10, Tony Lindgren wrote:
-> * Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160610 14:23]:
->>
->> On 10.06.2016 13:22, Tony Lindgren wrote:
->>>
->>> OK. And I just applied the related dts changes. Please repost the driver
->>> changes and DT binding doc with Rob's ack to the driver maintainers to
->>> apply.
->>>
->>
->> Already did, see https://lkml.org/lkml/2016/5/16/429
->>
->> Shall I do anything else?
->
-> Probably good idea to repost just the driver changes to the
-> subsystem maintainers. With v4.7 out any pre v4.7 patchsets
-> easily get forgotten.
->
+Thank you for the patch.
 
-Sorry for the maybe stupid question, but does this mean that I should 
-send separate patches instead of series? Or the series without what 
-you've already applied?
+On Friday 24 Jun 2016 13:28:55 Guennadi Liakhovetski wrote:
+> Since a recent commit:
+> 
+> [media] media-device: move media entity register/unregister functions
+> 
+> drivers have to set entity function before registering an entity. Fix
+> the uvcvideo driver to comply with this.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  drivers/media/usb/uvc/uvc_entity.c | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_entity.c
+> b/drivers/media/usb/uvc/uvc_entity.c index ac386bb..d93f413 100644
+> --- a/drivers/media/usb/uvc/uvc_entity.c
+> +++ b/drivers/media/usb/uvc/uvc_entity.c
+> @@ -88,6 +88,11 @@ static int uvc_mc_init_entity(struct uvc_video_chain
+> *chain, if (ret < 0)
+>  			return ret;
+> 
+> +		if (UVC_ENTITY_TYPE(entity) == UVC_ITT_CAMERA)
+> +			entity->subdev.entity.function = 
+MEDIA_ENT_F_CAM_SENSOR;
+> +		else
+> +			entity->subdev.entity.function = MEDIA_ENT_F_IO_V4L;
+> +
 
-Thanks,
-Ivo
+I've discussed this some time ago with Hans (over IRC if I recall correctly). 
+We need to define new functions, as not all UVC entities map to the existing 
+ones. MEDIA_ENT_F_CAM_SENSOR should be fine for UVC_ITT_CAMERA, but 
+MEDIA_ENT_F_IO_V4L isn't right as a default.
+
+>  		ret = v4l2_device_register_subdev(&chain->dev->vdev,
+>  						  &entity->subdev);
+>  	} else if (entity->vdev != NULL) {
+
+-- 
+Regards,
+
+Laurent Pinchart
+
