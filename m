@@ -1,90 +1,363 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34017 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751873AbcFKLPY (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:40634 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751166AbcFXPcM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2016 07:15:24 -0400
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-To: sakari.ailus@iki.fi
-Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
-	linux-media@vger.kernel.org, robh+dt@kernel.org,
-	pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	mchehab@osg.samsung.com, devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH v2 2/2] media: et8ek8: Add documentation
-Date: Sat, 11 Jun 2016 14:14:40 +0300
-Message-Id: <1465643680-21866-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
-In-Reply-To: <1465643680-21866-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <1465643680-21866-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+	Fri, 24 Jun 2016 11:32:12 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Erik Andren <erik.andren@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 07/19] m5602_ov9650: move skeletons to the .c file
+Date: Fri, 24 Jun 2016 12:31:48 -0300
+Message-Id: <14ccffa3c1497dff59707f7e55888d83a4896bfe.1466782238.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1466782238.git.mchehab@s-opensource.com>
+References: <cover.1466782238.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1466782238.git.mchehab@s-opensource.com>
+References: <cover.1466782238.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT bindings description
+The header file has some private static structures that
+are used only by the C file. Move those structures to the C file,
+in order to shut up gcc 6.1 warnings.
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- .../bindings/media/i2c/toshiba,et8ek8.txt          | 50 ++++++++++++++++++++++
- 1 file changed, 50 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
+ drivers/media/usb/gspca/m5602/m5602_ov9650.c | 152 +++++++++++++++++++++++++++
+ drivers/media/usb/gspca/m5602/m5602_ov9650.h | 150 --------------------------
+ 2 files changed, 152 insertions(+), 150 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-new file mode 100644
-index 0000000..997d268
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-@@ -0,0 +1,50 @@
-+Toshiba et8ek8 5MP sensor
+diff --git a/drivers/media/usb/gspca/m5602/m5602_ov9650.c b/drivers/media/usb/gspca/m5602/m5602_ov9650.c
+index 59bc62bfae26..4544d3a1ad58 100644
+--- a/drivers/media/usb/gspca/m5602/m5602_ov9650.c
++++ b/drivers/media/usb/gspca/m5602/m5602_ov9650.c
+@@ -1,3 +1,4 @@
 +
-+Toshiba et8ek8 5MP sensor is an image sensor found in Nokia N900 device
+ /*
+  * Driver for the ov9650 sensor
+  *
+@@ -23,6 +24,157 @@
+ static int ov9650_s_ctrl(struct v4l2_ctrl *ctrl);
+ static void ov9650_dump_registers(struct sd *sd);
+ 
++static const unsigned char preinit_ov9650[][3] = {
++	/* [INITCAM] */
++	{BRIDGE, M5602_XB_MCU_CLK_DIV, 0x02},
++	{BRIDGE, M5602_XB_MCU_CLK_CTRL, 0xb0},
++	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
++	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
++	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
++	{BRIDGE, M5602_XB_SENSOR_CTRL, 0x00},
 +
-+More detailed documentation can be found in
-+Documentation/devicetree/bindings/media/video-interfaces.txt .
-+
-+
-+Mandatory properties
-+--------------------
-+
-+- compatible: "toshiba,et8ek8"
-+- reg: I2C address (0x3e, or an alternative address)
-+- vana-supply: Analogue voltage supply (VANA), 2.8 volts
-+- clocks: External clock to the sensor
-+- clock-frequency: Frequency of the external clock to the sensor
-+- reset-gpios: XSHUTDOWN GPIO
-+
-+
-+Endpoint node mandatory properties
-+----------------------------------
-+
-+- remote-endpoint: A phandle to the bus receiver's endpoint node.
-+
-+Endpoint node optional properties
-+----------------------------------
-+
-+- clock-lanes: <0>
-+- data-lanes: <1..n>
-+
-+Example
-+-------
-+
-+&i2c3 {
-+	clock-frequency = <400000>;
-+
-+	cam1: camera@3e {
-+		compatible = "toshiba,et8ek8";
-+		reg = <0x3e>;
-+		vana-supply = <&vaux4>;
-+		clocks = <&isp 0>;
-+		clock-frequency = <9600000>;
-+		reset-gpio = <&gpio4 6 GPIO_ACTIVE_HIGH>; /* 102 */
-+		port {
-+			csi_cam1: endpoint {
-+				remote-endpoint = <&csi_out1>;
-+			};
-+		};
-+	};
++	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x08},
++	{BRIDGE, M5602_XB_GPIO_DIR, 0x05},
++	{BRIDGE, M5602_XB_GPIO_DAT, 0x04},
++	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
++	{BRIDGE, M5602_XB_GPIO_DIR_H, 0x06},
++	{BRIDGE, M5602_XB_GPIO_DAT_H, 0x00},
++	{BRIDGE, M5602_XB_GPIO_DAT, 0x00},
++	{BRIDGE, M5602_XB_I2C_CLK_DIV, 0x0a},
++	/* Reset chip */
++	{SENSOR, OV9650_COM7, OV9650_REGISTER_RESET},
++	/* Enable double clock */
++	{SENSOR, OV9650_CLKRC, 0x80},
++	/* Do something out of spec with the power */
++	{SENSOR, OV9650_OFON, 0x40}
 +};
++
++static const unsigned char init_ov9650[][3] = {
++	/* [INITCAM] */
++	{BRIDGE, M5602_XB_MCU_CLK_DIV, 0x02},
++	{BRIDGE, M5602_XB_MCU_CLK_CTRL, 0xb0},
++	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
++	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
++	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
++	{BRIDGE, M5602_XB_SENSOR_CTRL, 0x00},
++
++	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x08},
++	{BRIDGE, M5602_XB_GPIO_DIR, 0x05},
++	{BRIDGE, M5602_XB_GPIO_DAT, 0x04},
++	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
++	{BRIDGE, M5602_XB_GPIO_DIR_H, 0x06},
++	{BRIDGE, M5602_XB_GPIO_DAT_H, 0x00},
++	{BRIDGE, M5602_XB_GPIO_DAT, 0x00},
++	{BRIDGE, M5602_XB_I2C_CLK_DIV, 0x0a},
++
++	/* Reset chip */
++	{SENSOR, OV9650_COM7, OV9650_REGISTER_RESET},
++	/* One extra reset is needed in order to make the sensor behave
++	   properly when resuming from ram, could be a timing issue */
++	{SENSOR, OV9650_COM7, OV9650_REGISTER_RESET},
++
++	/* Enable double clock */
++	{SENSOR, OV9650_CLKRC, 0x80},
++	/* Do something out of spec with the power */
++	{SENSOR, OV9650_OFON, 0x40},
++
++	/* Set fast AGC/AEC algorithm with unlimited step size */
++	{SENSOR, OV9650_COM8, OV9650_FAST_AGC_AEC |
++			      OV9650_AEC_UNLIM_STEP_SIZE},
++
++	{SENSOR, OV9650_CHLF, 0x10},
++	{SENSOR, OV9650_ARBLM, 0xbf},
++	{SENSOR, OV9650_ACOM38, 0x81},
++	/* Turn off color matrix coefficient double option */
++	{SENSOR, OV9650_COM16, 0x00},
++	/* Enable color matrix for RGB/YUV, Delay Y channel,
++	set output Y/UV delay to 1 */
++	{SENSOR, OV9650_COM13, 0x19},
++	/* Enable digital BLC, Set output mode to U Y V Y */
++	{SENSOR, OV9650_TSLB, 0x0c},
++	/* Limit the AGC/AEC stable upper region */
++	{SENSOR, OV9650_COM24, 0x00},
++	/* Enable HREF and some out of spec things */
++	{SENSOR, OV9650_COM12, 0x73},
++	/* Set all DBLC offset signs to positive and
++	do some out of spec stuff */
++	{SENSOR, OV9650_DBLC1, 0xdf},
++	{SENSOR, OV9650_COM21, 0x06},
++	{SENSOR, OV9650_RSVD35, 0x91},
++	/* Necessary, no camera stream without it */
++	{SENSOR, OV9650_RSVD16, 0x06},
++	{SENSOR, OV9650_RSVD94, 0x99},
++	{SENSOR, OV9650_RSVD95, 0x99},
++	{SENSOR, OV9650_RSVD96, 0x04},
++	/* Enable full range output */
++	{SENSOR, OV9650_COM15, 0x0},
++	/* Enable HREF at optical black, enable ADBLC bias,
++	enable ADBLC, reset timings at format change */
++	{SENSOR, OV9650_COM6, 0x4b},
++	/* Subtract 32 from the B channel bias */
++	{SENSOR, OV9650_BBIAS, 0xa0},
++	/* Subtract 32 from the Gb channel bias */
++	{SENSOR, OV9650_GbBIAS, 0xa0},
++	/* Do not bypass the analog BLC and to some out of spec stuff */
++	{SENSOR, OV9650_Gr_COM, 0x00},
++	/* Subtract 32 from the R channel bias */
++	{SENSOR, OV9650_RBIAS, 0xa0},
++	/* Subtract 32 from the R channel bias */
++	{SENSOR, OV9650_RBIAS, 0x0},
++	{SENSOR, OV9650_COM26, 0x80},
++	{SENSOR, OV9650_ACOMA9, 0x98},
++	/* Set the AGC/AEC stable region upper limit */
++	{SENSOR, OV9650_AEW, 0x68},
++	/* Set the AGC/AEC stable region lower limit */
++	{SENSOR, OV9650_AEB, 0x5c},
++	/* Set the high and low limit nibbles to 3 */
++	{SENSOR, OV9650_VPT, 0xc3},
++	/* Set the Automatic Gain Ceiling (AGC) to 128x,
++	drop VSYNC at frame drop,
++	limit exposure timing,
++	drop frame when the AEC step is larger than the exposure gap */
++	{SENSOR, OV9650_COM9, 0x6e},
++	/* Set VSYNC negative, Set RESET to SLHS (slave mode horizontal sync)
++	and set PWDN to SLVS (slave mode vertical sync) */
++	{SENSOR, OV9650_COM10, 0x42},
++	/* Set horizontal column start high to default value */
++	{SENSOR, OV9650_HSTART, 0x1a}, /* 210 */
++	/* Set horizontal column end */
++	{SENSOR, OV9650_HSTOP, 0xbf}, /* 1534 */
++	/* Complementing register to the two writes above */
++	{SENSOR, OV9650_HREF, 0xb2},
++	/* Set vertical row start high bits */
++	{SENSOR, OV9650_VSTRT, 0x02},
++	/* Set vertical row end low bits */
++	{SENSOR, OV9650_VSTOP, 0x7e},
++	/* Set complementing vertical frame control */
++	{SENSOR, OV9650_VREF, 0x10},
++	{SENSOR, OV9650_ADC, 0x04},
++	{SENSOR, OV9650_HV, 0x40},
++
++	/* Enable denoise, and white-pixel erase */
++	{SENSOR, OV9650_COM22, OV9650_DENOISE_ENABLE |
++		 OV9650_WHITE_PIXEL_ENABLE |
++		 OV9650_WHITE_PIXEL_OPTION},
++
++	/* Enable VARIOPIXEL */
++	{SENSOR, OV9650_COM3, OV9650_VARIOPIXEL},
++	{SENSOR, OV9650_COM4, OV9650_QVGA_VARIOPIXEL},
++
++	/* Put the sensor in soft sleep mode */
++	{SENSOR, OV9650_COM2, OV9650_SOFT_SLEEP | OV9650_OUTPUT_DRIVE_2X},
++};
++
++static const unsigned char res_init_ov9650[][3] = {
++	{SENSOR, OV9650_COM2, OV9650_OUTPUT_DRIVE_2X},
++
++	{BRIDGE, M5602_XB_LINE_OF_FRAME_H, 0x82},
++	{BRIDGE, M5602_XB_LINE_OF_FRAME_L, 0x00},
++	{BRIDGE, M5602_XB_PIX_OF_LINE_H, 0x82},
++	{BRIDGE, M5602_XB_PIX_OF_LINE_L, 0x00},
++	{BRIDGE, M5602_XB_SIG_INI, 0x01}
++};
++
+ /* Vertically and horizontally flips the image if matched, needed for machines
+    where the sensor is mounted upside down */
+ static
+diff --git a/drivers/media/usb/gspca/m5602/m5602_ov9650.h b/drivers/media/usb/gspca/m5602/m5602_ov9650.h
+index f9f5870da60f..ce3db062c740 100644
+--- a/drivers/media/usb/gspca/m5602/m5602_ov9650.h
++++ b/drivers/media/usb/gspca/m5602/m5602_ov9650.h
+@@ -156,154 +156,4 @@ static const struct m5602_sensor ov9650 = {
+ 	.disconnect = ov9650_disconnect,
+ };
+ 
+-static const unsigned char preinit_ov9650[][3] = {
+-	/* [INITCAM] */
+-	{BRIDGE, M5602_XB_MCU_CLK_DIV, 0x02},
+-	{BRIDGE, M5602_XB_MCU_CLK_CTRL, 0xb0},
+-	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
+-	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
+-	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
+-	{BRIDGE, M5602_XB_SENSOR_CTRL, 0x00},
+-
+-	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x08},
+-	{BRIDGE, M5602_XB_GPIO_DIR, 0x05},
+-	{BRIDGE, M5602_XB_GPIO_DAT, 0x04},
+-	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
+-	{BRIDGE, M5602_XB_GPIO_DIR_H, 0x06},
+-	{BRIDGE, M5602_XB_GPIO_DAT_H, 0x00},
+-	{BRIDGE, M5602_XB_GPIO_DAT, 0x00},
+-	{BRIDGE, M5602_XB_I2C_CLK_DIV, 0x0a},
+-	/* Reset chip */
+-	{SENSOR, OV9650_COM7, OV9650_REGISTER_RESET},
+-	/* Enable double clock */
+-	{SENSOR, OV9650_CLKRC, 0x80},
+-	/* Do something out of spec with the power */
+-	{SENSOR, OV9650_OFON, 0x40}
+-};
+-
+-static const unsigned char init_ov9650[][3] = {
+-	/* [INITCAM] */
+-	{BRIDGE, M5602_XB_MCU_CLK_DIV, 0x02},
+-	{BRIDGE, M5602_XB_MCU_CLK_CTRL, 0xb0},
+-	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
+-	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
+-	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
+-	{BRIDGE, M5602_XB_SENSOR_CTRL, 0x00},
+-
+-	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x08},
+-	{BRIDGE, M5602_XB_GPIO_DIR, 0x05},
+-	{BRIDGE, M5602_XB_GPIO_DAT, 0x04},
+-	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
+-	{BRIDGE, M5602_XB_GPIO_DIR_H, 0x06},
+-	{BRIDGE, M5602_XB_GPIO_DAT_H, 0x00},
+-	{BRIDGE, M5602_XB_GPIO_DAT, 0x00},
+-	{BRIDGE, M5602_XB_I2C_CLK_DIV, 0x0a},
+-
+-	/* Reset chip */
+-	{SENSOR, OV9650_COM7, OV9650_REGISTER_RESET},
+-	/* One extra reset is needed in order to make the sensor behave
+-	   properly when resuming from ram, could be a timing issue */
+-	{SENSOR, OV9650_COM7, OV9650_REGISTER_RESET},
+-
+-	/* Enable double clock */
+-	{SENSOR, OV9650_CLKRC, 0x80},
+-	/* Do something out of spec with the power */
+-	{SENSOR, OV9650_OFON, 0x40},
+-
+-	/* Set fast AGC/AEC algorithm with unlimited step size */
+-	{SENSOR, OV9650_COM8, OV9650_FAST_AGC_AEC |
+-			      OV9650_AEC_UNLIM_STEP_SIZE},
+-
+-	{SENSOR, OV9650_CHLF, 0x10},
+-	{SENSOR, OV9650_ARBLM, 0xbf},
+-	{SENSOR, OV9650_ACOM38, 0x81},
+-	/* Turn off color matrix coefficient double option */
+-	{SENSOR, OV9650_COM16, 0x00},
+-	/* Enable color matrix for RGB/YUV, Delay Y channel,
+-	set output Y/UV delay to 1 */
+-	{SENSOR, OV9650_COM13, 0x19},
+-	/* Enable digital BLC, Set output mode to U Y V Y */
+-	{SENSOR, OV9650_TSLB, 0x0c},
+-	/* Limit the AGC/AEC stable upper region */
+-	{SENSOR, OV9650_COM24, 0x00},
+-	/* Enable HREF and some out of spec things */
+-	{SENSOR, OV9650_COM12, 0x73},
+-	/* Set all DBLC offset signs to positive and
+-	do some out of spec stuff */
+-	{SENSOR, OV9650_DBLC1, 0xdf},
+-	{SENSOR, OV9650_COM21, 0x06},
+-	{SENSOR, OV9650_RSVD35, 0x91},
+-	/* Necessary, no camera stream without it */
+-	{SENSOR, OV9650_RSVD16, 0x06},
+-	{SENSOR, OV9650_RSVD94, 0x99},
+-	{SENSOR, OV9650_RSVD95, 0x99},
+-	{SENSOR, OV9650_RSVD96, 0x04},
+-	/* Enable full range output */
+-	{SENSOR, OV9650_COM15, 0x0},
+-	/* Enable HREF at optical black, enable ADBLC bias,
+-	enable ADBLC, reset timings at format change */
+-	{SENSOR, OV9650_COM6, 0x4b},
+-	/* Subtract 32 from the B channel bias */
+-	{SENSOR, OV9650_BBIAS, 0xa0},
+-	/* Subtract 32 from the Gb channel bias */
+-	{SENSOR, OV9650_GbBIAS, 0xa0},
+-	/* Do not bypass the analog BLC and to some out of spec stuff */
+-	{SENSOR, OV9650_Gr_COM, 0x00},
+-	/* Subtract 32 from the R channel bias */
+-	{SENSOR, OV9650_RBIAS, 0xa0},
+-	/* Subtract 32 from the R channel bias */
+-	{SENSOR, OV9650_RBIAS, 0x0},
+-	{SENSOR, OV9650_COM26, 0x80},
+-	{SENSOR, OV9650_ACOMA9, 0x98},
+-	/* Set the AGC/AEC stable region upper limit */
+-	{SENSOR, OV9650_AEW, 0x68},
+-	/* Set the AGC/AEC stable region lower limit */
+-	{SENSOR, OV9650_AEB, 0x5c},
+-	/* Set the high and low limit nibbles to 3 */
+-	{SENSOR, OV9650_VPT, 0xc3},
+-	/* Set the Automatic Gain Ceiling (AGC) to 128x,
+-	drop VSYNC at frame drop,
+-	limit exposure timing,
+-	drop frame when the AEC step is larger than the exposure gap */
+-	{SENSOR, OV9650_COM9, 0x6e},
+-	/* Set VSYNC negative, Set RESET to SLHS (slave mode horizontal sync)
+-	and set PWDN to SLVS (slave mode vertical sync) */
+-	{SENSOR, OV9650_COM10, 0x42},
+-	/* Set horizontal column start high to default value */
+-	{SENSOR, OV9650_HSTART, 0x1a}, /* 210 */
+-	/* Set horizontal column end */
+-	{SENSOR, OV9650_HSTOP, 0xbf}, /* 1534 */
+-	/* Complementing register to the two writes above */
+-	{SENSOR, OV9650_HREF, 0xb2},
+-	/* Set vertical row start high bits */
+-	{SENSOR, OV9650_VSTRT, 0x02},
+-	/* Set vertical row end low bits */
+-	{SENSOR, OV9650_VSTOP, 0x7e},
+-	/* Set complementing vertical frame control */
+-	{SENSOR, OV9650_VREF, 0x10},
+-	{SENSOR, OV9650_ADC, 0x04},
+-	{SENSOR, OV9650_HV, 0x40},
+-
+-	/* Enable denoise, and white-pixel erase */
+-	{SENSOR, OV9650_COM22, OV9650_DENOISE_ENABLE |
+-		 OV9650_WHITE_PIXEL_ENABLE |
+-		 OV9650_WHITE_PIXEL_OPTION},
+-
+-	/* Enable VARIOPIXEL */
+-	{SENSOR, OV9650_COM3, OV9650_VARIOPIXEL},
+-	{SENSOR, OV9650_COM4, OV9650_QVGA_VARIOPIXEL},
+-
+-	/* Put the sensor in soft sleep mode */
+-	{SENSOR, OV9650_COM2, OV9650_SOFT_SLEEP | OV9650_OUTPUT_DRIVE_2X},
+-};
+-
+-static const unsigned char res_init_ov9650[][3] = {
+-	{SENSOR, OV9650_COM2, OV9650_OUTPUT_DRIVE_2X},
+-
+-	{BRIDGE, M5602_XB_LINE_OF_FRAME_H, 0x82},
+-	{BRIDGE, M5602_XB_LINE_OF_FRAME_L, 0x00},
+-	{BRIDGE, M5602_XB_PIX_OF_LINE_H, 0x82},
+-	{BRIDGE, M5602_XB_PIX_OF_LINE_L, 0x00},
+-	{BRIDGE, M5602_XB_SIG_INI, 0x01}
+-};
+ #endif
 -- 
-1.9.1
+2.7.4
+
 
