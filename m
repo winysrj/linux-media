@@ -1,56 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51286 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751665AbcFIWhG (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:45293 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751082AbcFXQUR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jun 2016 18:37:06 -0400
-Date: Fri, 10 Jun 2016 01:37:02 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCHv2] device tree description for AD5820 camera auto-focus
- coil
-Message-ID: <20160609223701.GZ26360@valkosipuli.retiisi.org.uk>
-References: <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
- <20160531213437.GA28397@amd>
- <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
- <20160601220840.GA21946@amd>
- <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
- <20160602193027.GB7984@amd>
- <20160607071003.GA11796@amd>
+	Fri, 24 Jun 2016 12:20:17 -0400
+Subject: Re: [PATCH 01/24] v4l: Add metadata buffer type and format
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org
+References: <1466449842-29502-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1466449842-29502-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <fcc32004-82dd-45af-a737-019f81dea8e0@xs4all.nl>
+Cc: linux-renesas-soc@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <a9c9ec51-15c3-675b-55cd-9b471b0ec20a@xs4all.nl>
+Date: Fri, 24 Jun 2016 18:20:12 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160607071003.GA11796@amd>
+In-Reply-To: <fcc32004-82dd-45af-a737-019f81dea8e0@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 07, 2016 at 09:10:04AM +0200, Pavel Machek wrote:
+On 06/24/2016 05:57 PM, Hans Verkuil wrote:
+> On 06/20/2016 09:10 PM, Laurent Pinchart wrote:
+>> The metadata buffer type is used to transfer metadata between userspace
+>> and kernelspace through a V4L2 buffers queue. It comes with a new
+>> metadata capture capability and format description.
+>>
+>> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 > 
-> Add documentation for ad5820 device tree binding.
-> 
-> Signed-off-by: Pavel Machek <pavel@denx.de>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Rob Herring <robh@kernel.org>
+> I am willing to Ack this, provided Sakari and Guennadi Ack this as well. They know
+> more about metadata handling in various types of hardware than I do, so I feel
+> their Acks are important here.
 
-Thanks!
+Actually, I would like to see more about how applications can associate frames with
+metadata (if such a correspondence exists).
 
-I've replaced the patch in my tree, will send a pull req later.
+There was an irc discussion about that here:
 
--- 
-Cheers,
+https://linuxtv.org/irc/irclogger_log/v4l?date=2016-06-24,Fri
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Guennadi's uvc patches may be useful as a testbed for figuring this out.
+
+Regards,
+
+	Hans
