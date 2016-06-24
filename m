@@ -1,51 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49959 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752086AbcFZPHg (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:40681 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751629AbcFXPcN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jun 2016 11:07:36 -0400
-Subject: Re: media_build & cx23885
-To: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <bb9fb742-7975-5c9a-1abc-bfd1a456d462@mbox200.swipnet.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1c7bbf34-eb2a-5f26-5058-d5c6585f698b@xs4all.nl>
-Date: Sun, 26 Jun 2016 17:07:30 +0200
-MIME-Version: 1.0
-In-Reply-To: <bb9fb742-7975-5c9a-1abc-bfd1a456d462@mbox200.swipnet.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Fri, 24 Jun 2016 11:32:13 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Patrick Boettcher <patrick.boettcher@posteo.de>
+Subject: [PATCH 13/19] dib0090: comment out the unused tables
+Date: Fri, 24 Jun 2016 12:31:54 -0300
+Message-Id: <cf47faca25e29ffb74c883675a9bada065d9ea10.1466782238.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1466782238.git.mchehab@s-opensource.com>
+References: <cover.1466782238.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1466782238.git.mchehab@s-opensource.com>
+References: <cover.1466782238.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/26/2016 04:29 PM, Torbjorn Jansson wrote:
-> Hello
-> 
-> if i use media_build and modprobe cx23885 i get:
-> # modprobe cx23885
-> modprobe: ERROR: could not insert 'cx23885': Exec format error
-> 
-> and on dmesg i get:
-> frame_vector: exports duplicate symbol frame_vector_create (owned by kernel)
+Those tables are currently unused, so comment them out:
 
-The frame_vector.ko module was incorrectly installed in /lib/modules/`uname -r`
-(probably in the kernel/mm directory). Your kernel already has that module
-compiled in, so that's the reason for the duplicate symbol.
+drivers/media/dvb-frontends/dib0090.c:852:18: warning: 'rf_ramp_pwm_sband' defined but not used [-Wunused-const-variable=]
+ static const u16 rf_ramp_pwm_sband[] = {
+                  ^~~~~~~~~~~~~~~~~
+drivers/media/dvb-frontends/dib0090.c:800:18: warning: 'bb_ramp_pwm_boost' defined but not used [-Wunused-const-variable=]
+ static const u16 bb_ramp_pwm_boost[] = {
+                  ^~~~~~~~~~~~~~~~~
 
-Remove that module and run 'depmod -a' and it should work again.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-frontends/dib0090.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-I've seen this before, but I don't know why media_build compiles and installs it
-for a kernel that doesn't need it.
+diff --git a/drivers/media/dvb-frontends/dib0090.c b/drivers/media/dvb-frontends/dib0090.c
+index d879dc0607f4..14c403254fe0 100644
+--- a/drivers/media/dvb-frontends/dib0090.c
++++ b/drivers/media/dvb-frontends/dib0090.c
+@@ -797,6 +797,8 @@ static const u16 bb_ramp_pwm_normal[] = {
+ 	(0  << 9) | 400, /* BB_RAMP6 */
+ };
+ 
++#if 0
++/* Currently unused */
+ static const u16 bb_ramp_pwm_boost[] = {
+ 	550, /* max BB gain in 10th of dB */
+ 	8, /* ramp_slope = 1dB of gain -> clock_ticks_per_db = clk_khz / ramp_slope -> BB_RAMP2 */
+@@ -806,6 +808,7 @@ static const u16 bb_ramp_pwm_boost[] = {
+ 	(2  << 9) | 208, /* BB_RAMP5 = 29dB */
+ 	(0  << 9) | 440, /* BB_RAMP6 */
+ };
++#endif
+ 
+ static const u16 rf_ramp_pwm_cband[] = {
+ 	314, /* max RF gain in 10th of dB */
+@@ -849,6 +852,8 @@ static const u16 rf_ramp_pwm_uhf[] = {
+ 	(0  << 10) | 580, /* GAIN_4_2, LNA 4 */
+ };
+ 
++#if 0
++/* Currently unused */
+ static const u16 rf_ramp_pwm_sband[] = {
+ 	253, /* max RF gain in 10th of dB */
+ 	38, /* ramp_slope = 1dB of gain -> clock_ticks_per_db = clk_khz / ramp_slope -> RF_RAMP2 */
+@@ -862,6 +867,7 @@ static const u16 rf_ramp_pwm_sband[] = {
+ 	(0  << 10) | 0, /* GAIN_4_1, LNA 4 = 0dB */
+ 	(0  << 10) | 0, /* GAIN_4_2, LNA 4 */
+ };
++#endif
+ 
+ struct slope {
+ 	s16 range;
+-- 
+2.7.4
 
-Regards,
 
-	Hans
-
-> 
-> any idea whats causing this?
-> this prevents one of my cards from working with media_build
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
