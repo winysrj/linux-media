@@ -1,122 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:40509 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751849AbcFKWcc (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53674 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751376AbcFYNGt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2016 18:32:32 -0400
-From: Henrik Austad <henrik@austad.us>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
-	linux-netdev@vger.kernel.org, henrk@austad.us,
-	Henrik Austad <haustad@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Takashi Iwai <tiwai@suse.de>, Mark Brown <broonie@kernel.org>
-Subject: [very-RFC 7/8] AVB ALSA - Add ALSA shim for TSN
-Date: Sun, 12 Jun 2016 00:22:20 +0200
-Message-Id: <1465683741-20390-8-git-send-email-henrik@austad.us>
-In-Reply-To: <1465683741-20390-1-git-send-email-henrik@austad.us>
-References: <1465683741-20390-1-git-send-email-henrik@austad.us>
+	Sat, 25 Jun 2016 09:06:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv19 02/14] cec-edid: add module for EDID CEC helper functions
+Date: Sat, 25 Jun 2016 15:06:26 +0200
+Message-Id: <1466859998-17640-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1466859998-17640-1-git-send-email-hverkuil@xs4all.nl>
+References: <1466859998-17640-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Henrik Austad <haustad@cisco.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This exposes a *very* rudimentary and simplistic ALSA driver that hooks
-into TSN to create a device for userspace.
+The cec-edid module contains helper functions to find and manipulate
+the CEC physical address inside an EDID. Even if the CEC support itself
+is disabled, drivers will still need these functions. Which is the
+reason this is module is separate from the upcoming CEC framework.
 
-It currently only supports 44.1/48kHz sampling, 2ch, S16_LE
-
-Userspace is supposed to reserve bandwidth, find StreamID etc.
-
-To use as a Talker:
-
-mkdir /config/tsn/test/eth0/talker
-cd /config/tsn/test/eth0/talker
-echo 65535 > buffer_size
-echo 08:00:27:08:9f:c3 > remote_mac
-echo 42 > stream_id
-echo alsa > enabled
-
-aplay -Ddefault:CARD=avb -c2 -r48000 -fS16_LE /opt/rickroll.wav
-
-The same applies to Listener and arecord.
-
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Mark Brown <broonie@kernel.org>
-Signed-off-by: Henrik Austad <haustad@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/Kconfig            |  15 +
- drivers/media/Makefile           |   3 +-
- drivers/media/avb/Makefile       |   5 +
- drivers/media/avb/avb_alsa.c     | 742 +++++++++++++++++++++++++++++++++++++++
- drivers/media/avb/tsn_iec61883.h | 124 +++++++
- 5 files changed, 888 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/avb/Makefile
- create mode 100644 drivers/media/avb/avb_alsa.c
- create mode 100644 drivers/media/avb/tsn_iec61883.h
+ drivers/media/Kconfig    |   3 +
+ drivers/media/Makefile   |   2 +
+ drivers/media/cec-edid.c | 168 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/media/cec-edid.h | 104 +++++++++++++++++++++++++++++
+ 4 files changed, 277 insertions(+)
+ create mode 100644 drivers/media/cec-edid.c
+ create mode 100644 include/media/cec-edid.h
 
 diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index a8518fb..14ad1d9 100644
+index a8518fb..052dcf7 100644
 --- a/drivers/media/Kconfig
 +++ b/drivers/media/Kconfig
-@@ -217,3 +217,18 @@ source "drivers/media/tuners/Kconfig"
- source "drivers/media/dvb-frontends/Kconfig"
+@@ -80,6 +80,9 @@ config MEDIA_RC_SUPPORT
  
- endif # MEDIA_SUPPORT
+ 	  Say Y when you have a TV or an IR device.
+ 
++config MEDIA_CEC_EDID
++	tristate
 +
-+config MEDIA_AVB_ALSA
-+       tristate "ALSA part of AVB over TSN"
-+       depends on TSN
-+       help
-+
-+         Enable the ALSA device that hoooks into TSN and allows the
-+         computer to send ethernet frames over the network carrying
-+         audio-data to selected hosts.
-+
-+	 This must be configured by userspace as MSRP and IEEE 1722.1
-+	 (discovery and enumeration) is not implemented within the
-+	 kernel.
-+
-+	 If unsure, say N
-\ No newline at end of file
+ #
+ # Media controller
+ #	Selectable only for webcam/grabbers, as other drivers don't use it
 diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-index e608bbc..a1ca09e 100644
+index e608bbc..b56f013 100644
 --- a/drivers/media/Makefile
 +++ b/drivers/media/Makefile
-@@ -20,6 +20,7 @@ endif
+@@ -2,6 +2,8 @@
+ # Makefile for the kernel multimedia device drivers.
+ #
  
- obj-$(CONFIG_VIDEO_DEV) += v4l2-core/
- obj-$(CONFIG_DVB_CORE)  += dvb-core/
-+obj-$(CONFIG_AVB) += avb/
- 
- # There are both core and drivers at RC subtree - merge before drivers
- obj-y += rc/
-@@ -30,4 +31,4 @@ obj-y += rc/
- 
- obj-y += common/ platform/ pci/ usb/ mmc/ firewire/
- obj-$(CONFIG_VIDEO_DEV) += radio/
--
-+obj-$(CONFIG_MEDIA_AVB_ALSA) += avb/
-diff --git a/drivers/media/avb/Makefile b/drivers/media/avb/Makefile
-new file mode 100644
-index 0000000..5d6302c
---- /dev/null
-+++ b/drivers/media/avb/Makefile
-@@ -0,0 +1,5 @@
-+#
-+# Makefile for the ALSA shim in AVB/TSN
-+#
++obj-$(CONFIG_MEDIA_CEC_EDID) += cec-edid.o
 +
-+obj-$(CONFIG_MEDIA_AVB_ALSA) += avb_alsa.o
-diff --git a/drivers/media/avb/avb_alsa.c b/drivers/media/avb/avb_alsa.c
+ media-objs	:= media-device.o media-devnode.o media-entity.o
+ 
+ #
+diff --git a/drivers/media/cec-edid.c b/drivers/media/cec-edid.c
 new file mode 100644
-index 0000000..9aff7d3
+index 0000000..7001824
 --- /dev/null
-+++ b/drivers/media/avb/avb_alsa.c
-@@ -0,0 +1,742 @@
-+/* Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights
-+ * reserved.
++++ b/drivers/media/cec-edid.c
+@@ -0,0 +1,168 @@
++/*
++ * cec-edid - HDMI Consumer Electronics Control EDID & CEC helper functions
++ *
++ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
 + *
 + * This program is free software; you may redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published by
@@ -131,862 +83,266 @@ index 0000000..9aff7d3
 + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 + * SOFTWARE.
 + */
-+#include <linux/platform_device.h>
-+#include <sound/pcm_params.h>
++
 +#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <sound/core.h>
-+#include <sound/pcm.h>
++#include <linux/kernel.h>
++#include <linux/types.h>
++#include <media/cec-edid.h>
 +
-+#include <linux/tsn.h>
-+#include "tsn_iec61883.h"
-+
-+struct avb_chip {
-+	struct snd_card *card;
-+	struct tsn_link *link;
-+	struct snd_pcm *pcm;
-+	struct snd_pcm_substream *substream;
-+
-+	/* Need a reference to this when we unregister the platform
-+	 * driver.
-+	 */
-+	struct platform_device *device;
-+
-+	/* on first copy, we set a few values, use this to make sure we
-+	 * only do this once.
-+	 */
-+	u8 first_copy;
-+
-+	u8 sample_size;
-+	u8 channels;
-+
-+	/* current idx in 10ms set of frames
-+	 * class A: 80
-+	 * class B: 40
-+	 *
-+	 * This is mostly relevant for 44.1kHz samplefreq
-+	 */
-+	u8 num_10ms_series;
-+
-+	u32 sample_freq;
-+};
-+
-+/* currently, only playback is implemented in TSN layer
++/*
++ * This EDID is expected to be a CEA-861 compliant, which means that there are
++ * at least two blocks and one or more of the extensions blocks are CEA-861
++ * blocks.
 + *
-+
-+ * FIXMEs: (should be set according to the active TSN link)
-+ * - format
-+ * - rates
-+ * - channels
++ * The returned location is guaranteed to be < size - 1.
 + */
-+static struct snd_pcm_hardware snd_avb_hw = {
-+	.info = SNDRV_PCM_INFO_INTERLEAVED,
-+	.formats = SNDRV_PCM_FMTBIT_S16_LE,
-+	.rates = SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000,
-+	.rate_min = 44100,
-+	.rate_max = 48000,
-+	.channels_min = 2,
-+	.channels_max = 2,
-+	.period_bytes_min = 4096,
-+	.period_bytes_max = 32768,
-+	.buffer_bytes_max = 32768,
-+	.periods_min = 1,
-+	.periods_max = 1024,
-+	.fifo_size   = 0,
-+};
-+
-+static size_t snd_avb_copy_size(struct tsn_link *link);
-+
-+
-+static int _set_chip_values(struct avb_chip *avb_chip,
-+			struct snd_pcm_runtime *runtime)
++static unsigned int cec_get_edid_spa_location(const u8 *edid, unsigned int size)
 +{
-+	if (!avb_chip->first_copy)
++	unsigned int blocks = size / 128;
++	unsigned int block;
++	u8 d;
++
++	/* Sanity check: at least 2 blocks and a multiple of the block size */
++	if (blocks < 2 || size % 128)
 +		return 0;
 +
-+
 +	/*
-+	 * first copy, we now know that runtime has all the correct
-+	 * values set, we can grab channels and rate. Sample_size
-+	 * (runtime->format) is currently hard-coded to S16_LE.
++	 * If there are fewer extension blocks than the size, then update
++	 * 'blocks'. It is allowed to have more extension blocks than the size,
++	 * since some hardware can only read e.g. 256 bytes of the EDID, even
++	 * though more blocks are present. The first CEA-861 extension block
++	 * should normally be in block 1 anyway.
 +	 */
-+	avb_chip->channels = runtime->channels;
-+	avb_chip->sample_freq = runtime->rate;
-+	avb_chip->sample_size = 16;
++	if (edid[0x7e] + 1 < blocks)
++		blocks = edid[0x7e] + 1;
 +
-+	if (snd_avb_copy_size(avb_chip->link) > avb_chip->link->max_payload_size) {
-+		pr_err("%s: Resulting payload-size is larger (%zd) than available (%u)\n",
-+			__func__, snd_avb_copy_size(avb_chip->link),
-+			avb_chip->link->max_payload_size);
-+		return -EINVAL;
-+	}
-+	avb_chip->first_copy = 0;
-+	return 0;
-+}
++	for (block = 1; block < blocks; block++) {
++		unsigned int offset = block * 128;
 +
-+static int _snd_avb_open(struct avb_chip *avb_chip,
-+			struct snd_pcm_runtime *runtime)
-+{
-+	/*
-+	 * We do not know what some of these values are until we see the
-+	 * first copy. We set to sane defaults where we don't have exact
-+	 * content.
-+	 */
-+	avb_chip->channels = 0;
-+	avb_chip->sample_size = 0;
-+	avb_chip->sample_freq = 0;
-+	avb_chip->num_10ms_series = 0;
-+	avb_chip->first_copy = 1;
++		/* Skip any non-CEA-861 extension blocks */
++		if (edid[offset] != 0x02 || edid[offset + 1] != 0x03)
++			continue;
 +
-+	runtime->hw = snd_avb_hw;
-+	runtime->buffer_size = avb_chip->link->buffer_size;
-+	return 0;
-+}
++		/* search Vendor Specific Data Block (tag 3) */
++		d = edid[offset + 2] & 0x7f;
++		/* Check if there are Data Blocks */
++		if (d <= 4)
++			continue;
++		if (d > 4) {
++			unsigned int i = offset + 4;
++			unsigned int end = offset + d;
 +
-+/*
-+ * bytes_to_frames()
-+ * frames_to_bytes()
-+ *
-+ * frames_to_bytes(runtime, runtrime->period_size);
-+ *
-+ * Interrupt callbacks:
-+ * The field traonsfer_ack_begin and transfer_ack_end are called at the
-+ * beginning and at the end of snd_pcm_period_elapsed(), respectively.
-+ */
-+static int snd_avb_playback_open(struct snd_pcm_substream *substream)
-+{
-+	struct snd_pcm_runtime *runtime = substream->runtime;
-+	struct avb_chip *avb_chip = snd_pcm_substream_chip(substream);
-+	int ret = 0;
++			/* Note: 'end' is always < 'size' */
++			do {
++				u8 tag = edid[i] >> 5;
++				u8 len = edid[i] & 0x1f;
 +
-+	/*
-+	 * we've opened the PCM before probe returned properly and
-+	 * stored link in the struct.
-+	 */
-+	if (!avb_chip || !avb_chip->link) {
-+		pr_err("%s: Chip-data or link not available, cannot continue\n",
-+			__func__);
-+		return -EINVAL;
-+	}
-+	if (!avb_chip->link->estype_talker) {
-+		pr_info("Link (%llu) not registered as Talker, cannot do playback\n",
-+			avb_chip->link->stream_id);
-+		return -EINVAL;
-+	}
-+
-+	ret = _snd_avb_open(avb_chip, runtime);
-+	if (ret < 0) {
-+		pr_err("%s: Could not open playback-device (requested %d ch, %zd buffer)",
-+			__func__, avb_chip->channels,
-+			avb_chip->link->buffer_size);
-+		return ret;
-+	}
-+	pr_info("%s: %d channel PCM stream opened successfully, buffersize: %zd\n",
-+		__func__, avb_chip->channels, avb_chip->link->buffer_size);
-+	return 0;
-+}
-+
-+static int snd_avb_playback_close(struct snd_pcm_substream *substream)
-+{
-+	struct avb_chip *avb_chip = snd_pcm_substream_chip(substream);
-+
-+	tsn_lb_disable(avb_chip->link);
-+
-+	pr_info("%s: something happened\n", __func__);
-+	return 0;
-+}
-+
-+/*
-+ * snd_avb snd_avb.0: BUG: ,
-+ *		      pos = 12288,
-+ *		      buffer size = 8192,
-+ *		      period size = 2048
-+ *
-+ * Playback is when we *send* data to a remote speaker
-+ */
-+static int snd_avb_playback_copy(struct snd_pcm_substream *substream,
-+				int channel,
-+				snd_pcm_uframes_t pos,
-+				void *src,
-+				snd_pcm_uframes_t count)
-+{
-+	struct snd_pcm_runtime *runtime = substream->runtime;
-+	struct avb_chip *avb_chip = snd_pcm_substream_chip(substream);
-+	size_t bytes;
-+	int ret;
-+
-+	/*
-+	 * From alsadoc:
-+	 *
-+	 * You need to check the channel argument, and if it's -1, copy
-+	 * the whole channels. Otherwise, you have to copy only the
-+	 * specified channel. Please check isa/gus/gus_pcm.c as an
-+	 * example.
-+	 */
-+	if (channel != -1) {
-+		pr_err("%s: partial copy not supportet\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	ret = _set_chip_values(avb_chip, runtime);
-+	if (ret != 0)
-+		return ret;
-+
-+	bytes = frames_to_bytes(runtime, count);
-+	ret = tsn_buffer_write(avb_chip->link, src, bytes);
-+	if (ret != bytes) {
-+		pr_err("%s: Incorrect copy (%zd, %d) corruption possible\n",
-+		       __func__, bytes, ret);
-+		return -EIO;
-+	}
-+	return 0;
-+}
-+
-+static int snd_avb_capture_open(struct snd_pcm_substream *substream)
-+{
-+	struct snd_pcm_runtime *runtime = substream->runtime;
-+	struct avb_chip *avb_chip = snd_pcm_substream_chip(substream);
-+	int ret = 0;
-+
-+	if (!avb_chip || !avb_chip->link) {
-+		pr_err("%s: Chip-data or link not available, cannot continue\n",
-+		       __func__);
-+		return -EINVAL;
-+	}
-+	if (avb_chip->link->estype_talker) {
-+		pr_info("Link (%llu) registered as Talker, cannot capture\n",
-+			avb_chip->link->stream_id);
-+		return -EINVAL;
-+	}
-+	ret = _snd_avb_open(avb_chip, runtime);
-+	if (ret < 0) {
-+		pr_err("%s: Could not open capture-device (requested %d ch, %zd buffer)",
-+			__func__, avb_chip->channels,
-+			avb_chip->link->buffer_size);
-+		return ret;
-+	}
-+	tsn_lb_enable(avb_chip->link);
-+	pr_info("%s: %d channel PCM stream opened successfully, buffersize: %zd\n",
-+		__func__, avb_chip->channels, avb_chip->link->buffer_size);
-+	return 0;
-+}
-+
-+static int snd_avb_capture_close(struct snd_pcm_substream *substream)
-+{
-+	struct avb_chip *avb_chip = snd_pcm_substream_chip(substream);
-+
-+	if (!avb_chip || !avb_chip->link)
-+		return -EINVAL;
-+	pr_err("%s: closing stream\n", __func__);
-+
-+	tsn_lb_disable(avb_chip->link);
-+
-+	return 0;
-+}
-+
-+static int snd_avb_capture_copy(struct snd_pcm_substream *substream,
-+				int channel,
-+				snd_pcm_uframes_t pos,
-+				void *src,
-+				snd_pcm_uframes_t count)
-+{
-+	struct snd_pcm_runtime *runtime = substream->runtime;
-+	struct avb_chip *avb_chip = snd_pcm_substream_chip(substream);
-+	size_t bytes;
-+	int ret;
-+
-+	bytes = frames_to_bytes(runtime, count);
-+	ret = tsn_buffer_read(avb_chip->link, src, bytes);
-+	if (ret != bytes) {
-+		pr_err("%s: incorrect copy (%zd, %d), corrupt capture possible\n",
-+			__func__, bytes, ret);
-+		tsn_lb_disable(avb_chip->link);
-+		return -EIO;
-+	}
-+	return 0;
-+}
-+
-+static int snd_avb_silence(struct snd_pcm_substream *substream,
-+				int channel, snd_pcm_uframes_t pos,
-+				snd_pcm_uframes_t count)
-+{
-+	/* FIXME, should do more than nothing */
-+	return 0;
-+}
-+
-+/*
-+ * Called when the client defines buffer_size, period_size, format etc
-+ * for the pcm substream.
-+ *
-+ * This is where link->buffer is allocated and link->buffer_size is
-+ * defined.
-+ *
-+ * We are called in the beginning of snd_pcm_hw_params in
-+ * sound/core/pcm_native.c, we cannot override runtime-values as they
-+ * are updated from hw_params.
-+ */
-+static int snd_avb_pcm_hw_params(struct snd_pcm_substream *substream,
-+				struct snd_pcm_hw_params *hw_params)
-+{
-+	struct avb_chip *avb_chip = snd_pcm_substream_chip(substream);
-+	unsigned int bsize = params_buffer_bytes(hw_params);
-+	int ret = 0;
-+
-+	/* We need this reference for the refill callback so that we can
-+	 * call snd_pcm_period_elapsed();
-+	 */
-+	avb_chip->substream = substream;
-+	ret = tsn_set_buffer_size(avb_chip->link, bsize);
-+	if (ret < 0) {
-+		pr_err("%s: could not set buffer_size (alsa requested too large? (%d)\n",
-+			__func__, ret);
-+		goto out;
-+	}
-+
-+	avb_chip->num_10ms_series = 0;
-+	pr_info("%s: successfully set hw-params\n", __func__);
-+out:
-+	return ret;
-+}
-+
-+static int snd_avb_pcm_hw_free(struct snd_pcm_substream *substream)
-+{
-+	struct avb_chip *avb_chip = snd_pcm_substream_chip(substream);
-+
-+	if (!avb_chip || !avb_chip->link)
-+		return -EINVAL;
-+	tsn_clear_buffer_size(avb_chip->link);
-+	pr_info("%s: something happened\n", __func__);
-+	avb_chip->substream = NULL;
-+	return 0;
-+}
-+
-+static int snd_avb_pcm_prepare(struct snd_pcm_substream *substream)
-+{
-+	/* verify that samplerate, freq and size is what we have set in
-+	 * the link.
-+	 */
-+
-+	return 0;
-+}
-+
-+/*
-+ * When the PCM stream is started, stopped, paused etc.
-+ *
-+ * Atomic function (some lock is being held by PCM layer)
-+ */
-+static int snd_avb_pcm_trigger(struct snd_pcm_substream *substream,
-+			       int cmd)
-+{
-+	struct avb_chip *avb_chip = snd_pcm_substream_chip(substream);
-+
-+	switch (cmd) {
-+	case SNDRV_PCM_TRIGGER_START:
-+	case SNDRV_PCM_TRIGGER_RESUME:
-+		/* pr_err("%s: starting for some reason\n", __func__); */
-+		tsn_lb_enable(avb_chip->link);
-+		break;
-+	case SNDRV_PCM_TRIGGER_STOP:
-+	case SNDRV_PCM_TRIGGER_SUSPEND:
-+		/* memset buffer to 0 */
-+		/* pr_err("%s: stopping for some reason\n", __func__); */
-+		tsn_lb_disable(avb_chip->link);
-+		break;
-+	default:
-+		pr_info("%s: cmd: %d (return -EINVAL)\n", __func__, cmd);
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * current hw-position in the buffer, in frames from 0 to buffer_size -1
-+ *
-+ * Need to know where the hw-pointer is and how this corresponds to the
-+ * underlying TSN-buffer setup
-+ *
-+ * Atomic function (some lock is being held by PCM layer)
-+ *
-+ */
-+static snd_pcm_uframes_t snd_avb_pcm_pointer(struct snd_pcm_substream *substream)
-+{
-+	struct avb_chip *avb_chip = snd_pcm_substream_chip(substream);
-+	struct tsn_link *link = avb_chip->link;
-+	snd_pcm_uframes_t pointer;
-+
-+	if (link->estype_talker)
-+		pointer = bytes_to_frames(substream->runtime,
-+					  link->tail - link->buffer);
-+	else
-+		pointer = bytes_to_frames(substream->runtime,
-+					  link->head - link->buffer);
-+	return pointer;
-+}
-+
-+static struct snd_pcm_ops snd_avb_playback_ops = {
-+	.open      = snd_avb_playback_open,
-+	.close     = snd_avb_playback_close,
-+	.copy	   = snd_avb_playback_copy,
-+	.silence   = snd_avb_silence,
-+	.ioctl     = snd_pcm_lib_ioctl,
-+	.hw_params = snd_avb_pcm_hw_params,
-+	.hw_free   = snd_avb_pcm_hw_free,
-+	.prepare   = snd_avb_pcm_prepare,
-+	.trigger   = snd_avb_pcm_trigger,
-+	.pointer   = snd_avb_pcm_pointer,
-+};
-+
-+static struct snd_pcm_ops snd_avb_capture_ops = {
-+	.open      = snd_avb_capture_open,
-+	.close     = snd_avb_capture_close,
-+	.copy	   = snd_avb_capture_copy,
-+	.silence   = snd_avb_silence,
-+	.ioctl     = snd_pcm_lib_ioctl,
-+	.hw_params = snd_avb_pcm_hw_params,
-+	.hw_free   = snd_avb_pcm_hw_free,
-+	.prepare   = snd_avb_pcm_prepare,
-+	.trigger   = snd_avb_pcm_trigger,
-+	.pointer   = snd_avb_pcm_pointer,
-+};
-+
-+/*
-+ * Callback for tsn_core for moving data into the buffer.
-+ *
-+ * This should be a wrapper (replace it with) the refill-functionality ALSA use.
-+ */
-+static size_t snd_avb_refill(struct tsn_link *link)
-+{
-+	struct avb_chip *avb_chip = link->media_chip;
-+
-+	if (avb_chip && avb_chip->substream) {
-+		snd_pcm_period_elapsed(avb_chip->substream);
-+		return 0;
-+	}
-+	return -EINVAL;
-+}
-+
-+static size_t snd_avb_drain(struct tsn_link *link)
-+{
-+	struct avb_chip *avb_chip = link->media_chip;
-+
-+	if (avb_chip && avb_chip->substream) {
-+		snd_pcm_period_elapsed(avb_chip->substream);
-+		return 0;
-+	}
-+	return -EINVAL;
-+}
-+
-+static size_t snd_avb_hdr_size(struct tsn_link *link)
-+{
-+	/* return the size of the iec61883-6 audio header */
-+	return _iec61883_hdr_len();
-+}
-+
-+static size_t snd_avb_copy_size(struct tsn_link *link)
-+{
-+	struct avb_chip *chip = link->media_chip;
-+	/* use values in avb_chip, not link */
-+	size_t framesize = (chip->sample_size >> 3) * chip->channels;
-+	size_t numframes = 0;
-+
-+	if (!chip->sample_freq)
-+		return link->max_payload_size;
-+
-+	/* size of each frame (samples per frame, sample-size && class)
-+	 * sample_size: 16 -> 2
-+	 * spframe :    12 (class b)
-+	 * channels:     2
-+	 *
-+	 * framesize:  2*12*2 -> 48
-+	 */
-+
-+	switch (chip->sample_freq) {
-+	case 44100:
-+		/*
-+		 * Class B: 40 frames, first 12 bytes, next 39 should be 11
-+		 */
-+		if (!link->class_a) {
-+			numframes = (chip->num_10ms_series ? 11 : 12);
-+			chip->num_10ms_series++;
-+			if (chip->num_10ms_series > 39)
-+				chip->num_10ms_series = 0;
-+		} else {
-+			/* Class A slightly more involved
-+			 * Need 41 6 bytes and 39 5 bytes
-+			 *
-+			 * If 0th is set to 6, remaining odd idx should
-+			 * be 6, even (except 0th) to be 6
-+			 */
-+			numframes = 5;
-+			if (!chip->num_10ms_series ||
-+			    (chip->num_10ms_series % 0x2))
-+				numframes++;
-+			chip->num_10ms_series++;
-+			if (chip->num_10ms_series > 79)
-+				chip->num_10ms_series = 0;
++				if (tag == 3 && len >= 5 && i + len <= end)
++					return i + 4;
++				i += len + 1;
++			} while (i < end);
 +		}
-+		break;
-+	case 48000:
-+		numframes = (link->class_a ? 6 : 12);
-+		break;
-+	default:
-+		pr_err("Unsupported sample_freq (%d), disabling link\n",
-+		       chip->sample_freq);
-+		tsn_lb_disable(link);
-+		return -EINVAL;
 +	}
-+	return numframes * framesize;
-+}
-+
-+static void snd_avb_assemble_iidc(struct tsn_link *link,
-+				  struct avtpdu_header *header, size_t bytes)
-+{
-+	_iec61883_hdr_assemble(header, bytes);
-+}
-+
-+static int snd_avb_validate_iidc(struct tsn_link *link,
-+				 struct avtpdu_header *header)
-+{
-+	return _iec61883_hdr_verify(header);
-+}
-+
-+static void *snd_avb_get_payload_data(struct tsn_link *link,
-+				      struct avtpdu_header *header)
-+{
-+	return _iec61883_payload(header);
-+}
-+
-+static int snd_avb_new_pcm(struct avb_chip *avb_chip, int device)
-+{
-+	struct snd_pcm *pcm;
-+	int err;
-+
-+	err = snd_pcm_new(avb_chip->card, "AVB PCM", device, 1, 1, &pcm);
-+	if (err < 0)
-+		return err;
-+	pcm->private_data = avb_chip;
-+	strcpy(pcm->name, "AVB PCM");
-+	avb_chip->pcm = pcm;
-+
-+	/* only playback at the moment, once we implement capture, we
-+	 * need to grab the Talker/Listener from TSN link
-+	 */
-+	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &snd_avb_playback_ops);
-+	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE,  &snd_avb_capture_ops);
-+
 +	return 0;
-+
 +}
-+static int snd_avb_probe(struct platform_device *devptr)
-+{
-+	int err;
-+	struct snd_card *card;
-+	struct avb_chip *avb_chip;
 +
-+	pr_info("%s: starting\n", __func__);
++u16 cec_get_edid_phys_addr(const u8 *edid, unsigned int size,
++			   unsigned int *offset)
++{
++	unsigned int loc = cec_get_edid_spa_location(edid, size);
++
++	if (offset)
++		*offset = loc;
++	if (loc == 0)
++		return CEC_PHYS_ADDR_INVALID;
++	return (edid[loc] << 8) | edid[loc + 1];
++}
++EXPORT_SYMBOL_GPL(cec_get_edid_phys_addr);
++
++void cec_set_edid_phys_addr(u8 *edid, unsigned int size, u16 phys_addr)
++{
++	unsigned int loc = cec_get_edid_spa_location(edid, size);
++	u8 sum = 0;
++	unsigned int i;
++
++	if (loc == 0)
++		return;
++	edid[loc] = phys_addr >> 8;
++	edid[loc + 1] = phys_addr & 0xff;
++	loc &= ~0x7f;
++
++	/* update the checksum */
++	for (i = loc; i < loc + 127; i++)
++		sum += edid[i];
++	edid[i] = 256 - sum;
++}
++EXPORT_SYMBOL_GPL(cec_set_edid_phys_addr);
++
++u16 cec_phys_addr_for_input(u16 phys_addr, u8 input)
++{
++	/* Check if input is sane */
++	if (WARN_ON(input == 0 || input > 0xf))
++		return CEC_PHYS_ADDR_INVALID;
++
++	if (phys_addr == 0)
++		return input << 12;
++
++	if ((phys_addr & 0x0fff) == 0)
++		return phys_addr | (input << 8);
++
++	if ((phys_addr & 0x00ff) == 0)
++		return phys_addr | (input << 4);
++
++	if ((phys_addr & 0x000f) == 0)
++		return phys_addr | input;
 +
 +	/*
-+	 * older kernel use snd_card_create. This is handled by
-+	 * tsn_compat.h in an attempt to make it easier to backport to
-+	 * older kernels.
++	 * All nibbles are used so no valid physical addresses can be assigned
++	 * to the input.
 +	 */
-+	err = snd_card_new(&devptr->dev, 1, "avb", THIS_MODULE,
-+			   sizeof(struct avb_chip), &card);
-+	if (err < 0) {
-+		pr_err("%s: trouble creating new card -> %d\n",
-+			__func__, err);
-+		return err;
-+	}
-+	avb_chip = card->private_data;
-+	avb_chip->card = card;
++	return CEC_PHYS_ADDR_INVALID;
++}
++EXPORT_SYMBOL_GPL(cec_phys_addr_for_input);
 +
++int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port)
++{
++	int i;
 +
-+	/* create PCM device*/
-+	err = snd_avb_new_pcm(avb_chip, 0);
-+	if (err < 0) {
-+		pr_err("%s: could not create new PCM device\n", __func__);
-+		goto err_out;
-+	}
-+
-+	/* register card */
-+	pr_info("%s: ready to register card\n", __func__);
-+	strcpy(card->driver, "Avb");
-+	strcpy(card->shortname, "Avb");
-+	sprintf(card->longname, "Avb %i", devptr->id + 1);
-+	err = snd_card_register(card);
-+	if (err < 0) {
-+		pr_err("%s: Could not register card -> %d\n",
-+			__func__, err);
-+		snd_card_free(card);
-+		return err;
-+	}
-+
-+	if (err == 0) {
-+		platform_set_drvdata(devptr, card);
-+		pr_info("%s: Successfully initialized %s\n",
-+			__func__, card->shortname);
++	if (parent)
++		*parent = phys_addr;
++	if (port)
++		*port = 0;
++	if (phys_addr == CEC_PHYS_ADDR_INVALID)
 +		return 0;
-+	}
-+err_out:
-+	snd_card_free(card);
-+	return err;
-+}
-+
-+/*
-+ * We are here as a result from being removed via
-+ * tsn_link->shim_ops->media_close, which is snd_avb_close()
-+ */
-+static int snd_avb_remove(struct platform_device *devptr)
-+{
-+	struct snd_card *card     = platform_get_drvdata(devptr);
-+	struct avb_chip *avb_chip = card->private_data;
-+
-+	/* Make sure link holds no ref to this now dead card */
-+	if (avb_chip && avb_chip->link) {
-+		avb_chip->link->media_chip = NULL;
-+		avb_chip->link = NULL;
-+	}
-+
-+	/* call into link->ops->media_close() ? */
-+	snd_card_free(card);
-+	return 0;
-+}
-+
-+static struct platform_driver snd_avb_driver = {
-+	.probe  = snd_avb_probe,
-+	.remove = snd_avb_remove,
-+	.driver = {
-+		.name = "snd_avb",
-+		.pm   = NULL,	/* don't care about Power Management */
-+	},
-+};
-+
-+static int snd_avb_close(struct tsn_link *link)
-+{
-+	struct avb_chip *avb_chip = link->media_chip;
-+
-+	if (!link->media_chip)
++	for (i = 0; i < 16; i += 4)
++		if (phys_addr & (0xf << i))
++			break;
++	if (i == 16)
 +		return 0;
-+
-+	pr_info("%s: Removing device\n", __func__);
-+
-+	platform_device_unregister(avb_chip->device);
-+	/* platform unregister will call into snd_avb_remove */
-+	platform_driver_unregister(&snd_avb_driver);
-+
-+	/* update link to remove pointer to now invalid memory */
-+	link->media_chip = NULL;
++	if (parent)
++		*parent = phys_addr & (0xfff0 << i);
++	if (port)
++		*port = (phys_addr >> i) & 0xf;
++	for (i += 4; i < 16; i += 4)
++		if ((phys_addr & (0xf << i)) == 0)
++			return -EINVAL;
 +	return 0;
 +}
++EXPORT_SYMBOL_GPL(cec_phys_addr_validate);
 +
-+static int snd_avb_new(struct tsn_link *link)
-+{
-+	struct avb_chip *avb_chip;
-+	struct snd_card *card;
-+	struct platform_device *device;
-+	int err;
-+
-+	err = platform_driver_register(&snd_avb_driver);
-+	if (err < 0) {
-+		pr_info("%s: trouble registering driver %d, unreg. partial driver and abort.\n",
-+			__func__, err);
-+		return err;
-+	}
-+
-+	/*
-+	 * We only register a single card for now, look to
-+	 * /sys/devices/platform/snd_avb.0 for content.
-+	 *
-+	 * Probe will be triggered if name is same as .name in platform_driver
-+	 */
-+	device = platform_device_register_simple("snd_avb", 0, NULL, 0);
-+	if (IS_ERR(device)) {
-+		pr_info("%s: ERROR registering simple platform-device\n",
-+			__func__);
-+		platform_driver_unregister(&snd_avb_driver);
-+		return -ENODEV;
-+	}
-+
-+	/* store data in driver so we can access it in .probe */
-+	card = platform_get_drvdata(device);
-+	if (card == NULL) {
-+		pr_info("%s: Did not get anything from platform_get_drvdata()\n",
-+			__func__);
-+		platform_device_unregister(device);
-+		return -ENODEV;
-+	}
-+	avb_chip = card->private_data;
-+	avb_chip->device = device;
-+	avb_chip->link = link;
-+
-+	link->media_chip = avb_chip;
-+
-+	return 0;
-+}
-+
-+static struct tsn_shim_ops shim_ops = {
-+	.shim_name	 = "alsa",
-+	.probe		 = snd_avb_new,
-+	.buffer_refill   = snd_avb_refill,
-+	.buffer_drain    = snd_avb_drain,
-+	.media_close     = snd_avb_close,
-+	.hdr_size        = snd_avb_hdr_size,
-+	.copy_size       = snd_avb_copy_size,
-+	.assemble_header = snd_avb_assemble_iidc,
-+	.validate_header = snd_avb_validate_iidc,
-+	.get_payload_data = snd_avb_get_payload_data,
-+};
-+
-+static int __init avb_alsa_init(void)
-+{
-+	if (tsn_shim_register_ops(&shim_ops)) {
-+		pr_err("Could not register ALSA-shim with TSN\n");
-+		return -EINVAL;
-+	}
-+	pr_info("AVB ALSA added OK\n");
-+	return 0;
-+}
-+
-+static void __exit avb_alsa_exit(void)
-+{
-+	tsn_shim_deregister_ops(&shim_ops);
-+}
-+
-+module_init(avb_alsa_init);
-+module_exit(avb_alsa_exit);
-+MODULE_AUTHOR("Henrik Austad");
++MODULE_AUTHOR("Hans Verkuil <hans.verkuil@cisco.com>");
++MODULE_DESCRIPTION("CEC EDID helper functions");
 +MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("TSN ALSA shim driver");
-diff --git a/drivers/media/avb/tsn_iec61883.h b/drivers/media/avb/tsn_iec61883.h
+diff --git a/include/media/cec-edid.h b/include/media/cec-edid.h
 new file mode 100644
-index 0000000..bf26138
+index 0000000..bdf731e
 --- /dev/null
-+++ b/drivers/media/avb/tsn_iec61883.h
-@@ -0,0 +1,124 @@
-+#ifndef TSN_IEC61883_H
-+#define TSN_IEC61883_H
-+#include <linux/tsn.h>
-+
++++ b/include/media/cec-edid.h
+@@ -0,0 +1,104 @@
 +/*
-+ * psh:
-+ *  tag:2
-+ *  channel:6
-+ *  tcode:4
-+ *  sy:4
-+ * See IEEE 1722.1 :: 6.2 for details
++ * cec-edid - HDMI Consumer Electronics Control & EDID helpers
++ *
++ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
 + */
-+struct iec61883_tag {
-+	u8 tag:2;
-+	u8 channel:6;
-+	u8 tcode:4;
-+	u8 sy:4;
-+} __packed;
 +
-+struct iec61883_audio_header {
-+	u8 sid:6;
-+	u8 cip_1:2;
++#ifndef _MEDIA_CEC_EDID_H
++#define _MEDIA_CEC_EDID_H
 +
-+	u8 dbs:8;
++#include <linux/types.h>
 +
-+	u8 rsv:2;		/* reserved */
-+	u8 sph:1;
-+	u8 qpc:3;
-+	u8 fn:2;
++#define CEC_PHYS_ADDR_INVALID		0xffff
++#define cec_phys_addr_exp(pa) \
++	((pa) >> 12), ((pa) >> 8) & 0xf, ((pa) >> 4) & 0xf, (pa) & 0xf
 +
-+	u8 dbc;
++/**
++ * cec_get_edid_phys_addr() - find and return the physical address
++ *
++ * @edid:	pointer to the EDID data
++ * @size:	size in bytes of the EDID data
++ * @offset:	If not %NULL then the location of the physical address
++ *		bytes in the EDID will be returned here. This is set to 0
++ *		if there is no physical address found.
++ *
++ * Return: the physical address or CEC_PHYS_ADDR_INVALID if there is none.
++ */
++u16 cec_get_edid_phys_addr(const u8 *edid, unsigned int size,
++			   unsigned int *offset);
 +
-+	u8 fmt:6;
-+	u8 cip_2:2;
-+	u8 fdf;
-+	u16 syt;
-+	u8 payload[0];
-+} __packed;
++/**
++ * cec_set_edid_phys_addr() - find and set the physical address
++ *
++ * @edid:	pointer to the EDID data
++ * @size:	size in bytes of the EDID data
++ * @phys_addr:	the new physical address
++ *
++ * This function finds the location of the physical address in the EDID
++ * and fills in the given physical address and updates the checksum
++ * at the end of the EDID block. It does nothing if the EDID doesn't
++ * contain a physical address.
++ */
++void cec_set_edid_phys_addr(u8 *edid, unsigned int size, u16 phys_addr);
 +
-+static inline size_t _iec61883_hdr_len(void)
-+{
-+	return sizeof(struct iec61883_audio_header);
-+}
++/**
++ * cec_phys_addr_for_input() - calculate the PA for an input
++ *
++ * @phys_addr:	the physical address of the parent
++ * @input:	the number of the input port, must be between 1 and 15
++ *
++ * This function calculates a new physical address based on the input
++ * port number. For example:
++ *
++ * PA = 0.0.0.0 and input = 2 becomes 2.0.0.0
++ *
++ * PA = 3.0.0.0 and input = 1 becomes 3.1.0.0
++ *
++ * PA = 3.2.1.0 and input = 5 becomes 3.2.1.5
++ *
++ * PA = 3.2.1.3 and input = 5 becomes f.f.f.f since it maxed out the depth.
++ *
++ * Return: the new physical address or CEC_PHYS_ADDR_INVALID.
++ */
++u16 cec_phys_addr_for_input(u16 phys_addr, u8 input);
 +
-+static inline int _iec61883_hdr_verify(struct avtpdu_header *hdr)
-+{
-+	struct iec61883_audio_header *dh;
-+	struct iec61883_tag *psh;
++/**
++ * cec_phys_addr_validate() - validate a physical address from an EDID
++ *
++ * @phys_addr:	the physical address to validate
++ * @parent:	if not %NULL, then this is filled with the parents PA.
++ * @port:	if not %NULL, then this is filled with the input port.
++ *
++ * This validates a physical address as read from an EDID. If the
++ * PA is invalid (such as 1.0.1.0 since '0' is only allowed at the end),
++ * then it will return -EINVAL.
++ *
++ * The parent PA is passed into %parent and the input port is passed into
++ * %port. For example:
++ *
++ * PA = 0.0.0.0: has parent 0.0.0.0 and input port 0.
++ *
++ * PA = 1.0.0.0: has parent 0.0.0.0 and input port 1.
++ *
++ * PA = 3.2.0.0: has parent 3.0.0.0 and input port 2.
++ *
++ * PA = f.f.f.f: has parent f.f.f.f and input port 0.
++ *
++ * Return: 0 if the PA is valid, -EINVAL if not.
++ */
++int cec_phys_addr_validate(u16 phys_addr, u16 *parent, u16 *port);
 +
-+	if (hdr->subtype != AVTP_61883_IIDC)
-+		return -EINVAL;
-+	dh  = (struct iec61883_audio_header *)&hdr->data;
-+	psh = (struct iec61883_tag *)&hdr->psh;
-+
-+	/* Verify 61883 header */
-+	if (psh->tag != 1 || psh->channel != 31 ||
-+		psh->tcode != 0xA || psh->sy != 0)
-+		return -EINVAL;
-+
-+	/* check flags that should be static from frame to frame */
-+	if (dh->cip_1 != 0 || dh->sid != 0x3f || dh->qpc != 0 || dh->fn != 0 ||
-+		dh->sph != 0 || dh->cip_2 != 2)
-+		return -EINVAL;
-+
-+	if (dh->dbs != ntohs(hdr->sd_len)*2 || dh->dbc != hdr->seqnr)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static inline void _iec61883_hdr_assemble(struct avtpdu_header *hdr,
-+					  size_t bytes)
-+{
-+	struct iec61883_tag *psh;
-+	struct iec61883_audio_header *dh;
-+
-+	if (bytes > 0x7f)
-+		pr_warn("%s: hdr->dbs will overflow, malformed frame will be the result\n",
-+			__func__);
-+
-+
-+	hdr->subtype = AVTP_61883_IIDC;
-+
-+	/* IIDC 61883 header */
-+	psh = (struct iec61883_tag *)&hdr->psh;
-+	psh->tag = 1;
-+	psh->channel = 31;      /* 0x1f */
-+	psh->tcode = 0xA;
-+	psh->sy = 0;
-+
-+	dh = (struct iec61883_audio_header *)&hdr->data;
-+	dh->cip_1 = 0;
-+	dh->sid = 63;           /* 0x3f */
-+	dh->dbs = (u8)(bytes*2); /* number of quadlets of data in AVTPDU */
-+	dh->qpc = 0;
-+	dh->fn = 0;
-+	dh->sph = 0;
-+	dh->dbc = hdr->seqnr;
-+	dh->cip_2 = 2;
-+
-+	/*
-+	 * FMT (Format ID): same as specified in iec 61883-1:2003
-+	 *
-+	 * For IEC 61883-6, it shall be 0x10 (16) to define Audio and
-+	 * Music data
-+	 */
-+	dh->fmt = 0x10;
-+
-+	/* FIXME: find value
-+	 * Could be sampling-freq, but 8 bits give 0 - 65kHz sampling.
-+	 */
-+	dh->fdf = 0;
-+
-+	dh->syt = 0xFFFF;
-+}
-+
-+static inline void *_iec61883_payload(struct avtpdu_header *hdr)
-+{
-+	struct iec61883_audio_header *dh = (struct iec61883_audio_header *)&hdr->data;
-+	/* TODO: add some basic checks before returning payload ? */
-+	return &dh->payload;
-+}
-+
-+#endif	/* TSN_IEC61883_H */
++#endif /* _MEDIA_CEC_EDID_H */
 -- 
-2.7.4
+2.8.1
 
