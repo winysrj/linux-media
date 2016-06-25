@@ -1,63 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:34218 "EHLO
-	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752326AbcFTMcr (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45171 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751818AbcFYDF0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 08:32:47 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hans.verkuil@cisco.com, hverkuil@xs4all.nl
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v2 4/4] vb2: V4L2_BUF_FLAG_DONE is set after DQBUF
-Date: Mon, 20 Jun 2016 14:30:09 +0200
-Message-Id: <1466425809-23469-4-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1466425809-23469-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1466425809-23469-1-git-send-email-ricardo.ribalda@gmail.com>
+	Fri, 24 Jun 2016 23:05:26 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 185E2180CCA
+	for <linux-media@vger.kernel.org>; Sat, 25 Jun 2016 05:05:19 +0200 (CEST)
+Date: Sat, 25 Jun 2016 05:05:19 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160625030519.185E2180CCA@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-According to the doc, V4L2_BUF_FLAG_DONE is cleared after DQBUF:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-V4L2_BUF_FLAG_DONE 0x00000004  ... After calling the VIDIOC_QBUF or
-VIDIOC_DQBUF it is always cleared ...
+Results of the daily build of media_tree:
 
-Unfortunately, it seems that videobuf2 keeps it set after DQBUF. This
-can be tested with vivid and dev_debug:
+date:		Sat Jun 25 04:00:29 CEST 2016
+git branch:	test
+git hash:	59f0bc11848f8f3242bc1fefae670e745929cd7b
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-[257604.338082] video1: VIDIOC_DQBUF: 71:33:25.00260479 index=3,
-type=vid-cap, flags=0x00002004, field=none, sequence=163,
-memory=userptr, bytesused=460800, offset/userptr=0x344b000,
-length=460800
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mtk: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-This patch forces FLAG_DONE to 0 after calling DQBUF.
+Detailed results are available here:
 
-Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/v4l2-core/videobuf2-v4l2.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index ba3467468e55..9cfbb6e4bc28 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -654,6 +654,12 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
- 
- 	ret = vb2_core_dqbuf(q, NULL, b, nonblocking);
- 
-+	/*
-+	 *  After calling the VIDIOC_DQBUF V4L2_BUF_FLAG_DONE must be
-+	 *  cleared.
-+	 */
-+	b->flags &= ~V4L2_BUF_FLAG_DONE;
-+
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(vb2_dqbuf);
--- 
-2.8.1
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
