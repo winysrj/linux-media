@@ -1,1907 +1,892 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33942 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751496AbcFRPDH (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49821 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751491AbcFYNHD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jun 2016 11:03:07 -0400
+	Sat, 25 Jun 2016 09:07:03 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>, Kamil Debski <kamil@wypas.org>,
+Cc: Kamil Debski <kamil@wypas.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv18 04/15] DocBook/media: add CEC documentation
-Date: Sat, 18 Jun 2016 17:02:37 +0200
-Message-Id: <1466262168-12805-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
-References: <1466262168-12805-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [PATCHv19 13/14] cec: s5p-cec: Add s5p-cec driver
+Date: Sat, 25 Jun 2016 15:06:37 +0200
+Message-Id: <1466859998-17640-14-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1466859998-17640-1-git-send-email-hverkuil@xs4all.nl>
+References: <1466859998-17640-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Kamil Debski <kamil@wypas.org>
 
-Add DocBook documentation for the CEC API.
+Add CEC interface driver present in the Samsung Exynos range of
+SoCs.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-[k.debski@samsung.com: add documentation for passthrough mode]
-[k.debski@samsung.com: minor fixes and change of reserved field sizes]
+The following files were based on work by SangPil Moon:
+- exynos_hdmi_cec.h
+- exynos_hdmi_cecctl.c
+
 Signed-off-by: Kamil Debski <kamil@wypas.org>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/DocBook/device-drivers.tmpl          |   3 +
- Documentation/DocBook/media/Makefile               |   2 +
- Documentation/DocBook/media/v4l/biblio.xml         |  10 +
- Documentation/DocBook/media/v4l/cec-api.xml        |  75 +++++
- Documentation/DocBook/media/v4l/cec-func-close.xml |  64 ++++
- Documentation/DocBook/media/v4l/cec-func-ioctl.xml |  78 +++++
- Documentation/DocBook/media/v4l/cec-func-open.xml  | 104 +++++++
- Documentation/DocBook/media/v4l/cec-func-poll.xml  |  94 ++++++
- .../DocBook/media/v4l/cec-ioc-adap-g-caps.xml      | 151 ++++++++++
- .../DocBook/media/v4l/cec-ioc-adap-g-log-addrs.xml | 329 +++++++++++++++++++++
- .../DocBook/media/v4l/cec-ioc-adap-g-phys-addr.xml |  86 ++++++
- .../DocBook/media/v4l/cec-ioc-dqevent.xml          | 195 ++++++++++++
- Documentation/DocBook/media/v4l/cec-ioc-g-mode.xml | 255 ++++++++++++++++
- .../DocBook/media/v4l/cec-ioc-receive.xml          | 265 +++++++++++++++++
- Documentation/DocBook/media_api.tmpl               |   6 +-
- 15 files changed, 1716 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/DocBook/media/v4l/cec-api.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-func-close.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-func-ioctl.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-func-open.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-func-poll.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-adap-g-caps.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-adap-g-log-addrs.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-adap-g-phys-addr.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-dqevent.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-mode.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-receive.xml
+ .../devicetree/bindings/media/s5p-cec.txt          |  31 +++
+ MAINTAINERS                                        |   7 +
+ drivers/media/platform/Kconfig                     |  10 +
+ drivers/media/platform/Makefile                    |   1 +
+ drivers/media/platform/s5p-cec/Makefile            |   2 +
+ drivers/media/platform/s5p-cec/exynos_hdmi_cec.h   |  38 +++
+ .../media/platform/s5p-cec/exynos_hdmi_cecctrl.c   | 209 +++++++++++++++
+ drivers/media/platform/s5p-cec/regs-cec.h          |  96 +++++++
+ drivers/media/platform/s5p-cec/s5p_cec.c           | 295 +++++++++++++++++++++
+ drivers/media/platform/s5p-cec/s5p_cec.h           |  76 ++++++
+ 10 files changed, 765 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/s5p-cec.txt
+ create mode 100644 drivers/media/platform/s5p-cec/Makefile
+ create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
+ create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
+ create mode 100644 drivers/media/platform/s5p-cec/regs-cec.h
+ create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.c
+ create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.h
 
-diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-index de79efd..a20a45b 100644
---- a/Documentation/DocBook/device-drivers.tmpl
-+++ b/Documentation/DocBook/device-drivers.tmpl
-@@ -272,6 +272,9 @@ X!Isound/sound_firmware.c
- !Iinclude/media/media-devnode.h
- !Iinclude/media/media-entity.h
-     </sect1>
-+    <sect1><title>Consumer Electronics Control devices</title>
-+!Iinclude/media/cec-edid.h
-+    </sect1>
+diff --git a/Documentation/devicetree/bindings/media/s5p-cec.txt b/Documentation/devicetree/bindings/media/s5p-cec.txt
+new file mode 100644
+index 0000000..925ab4d
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/s5p-cec.txt
+@@ -0,0 +1,31 @@
++* Samsung HDMI CEC driver
++
++The HDMI CEC module is present is Samsung SoCs and its purpose is to
++handle communication between HDMI connected devices over the CEC bus.
++
++Required properties:
++  - compatible : value should be following
++	"samsung,s5p-cec"
++
++  - reg : Physical base address of the IP registers and length of memory
++	  mapped region.
++
++  - interrupts : HDMI CEC interrupt number to the CPU.
++  - clocks : from common clock binding: handle to HDMI CEC clock.
++  - clock-names : from common clock binding: must contain "hdmicec",
++		  corresponding to entry in the clocks property.
++  - samsung,syscon-phandle - phandle to the PMU system controller
++
++Example:
++
++hdmicec: cec@100B0000 {
++	compatible = "samsung,s5p-cec";
++	reg = <0x100B0000 0x200>;
++	interrupts = <0 114 0>;
++	clocks = <&clock CLK_HDMI_CEC>;
++	clock-names = "hdmicec";
++	samsung,syscon-phandle = <&pmu_system_controller>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&hdmi_cec>;
++	status = "okay";
++};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 848d37d..7f76a3b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -1642,6 +1642,13 @@ L:	linux-media@vger.kernel.org
+ S:	Maintained
+ F:	drivers/media/platform/s5p-tv/
  
-   </chapter>
++ARM/SAMSUNG S5P SERIES HDMI CEC SUBSYSTEM SUPPORT
++M:	Kyungmin Park <kyungmin.park@samsung.com>
++L:	linux-arm-kernel@lists.infradead.org
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/platform/s5p-cec/
++
+ ARM/SAMSUNG S5P SERIES JPEG CODEC SUPPORT
+ M:	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+ M:	Jacek Anaszewski <j.anaszewski@samsung.com>
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 382f393..5677175 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -108,6 +108,16 @@ config VIDEO_S3C_CAMIF
+ source "drivers/media/platform/soc_camera/Kconfig"
+ source "drivers/media/platform/exynos4-is/Kconfig"
+ source "drivers/media/platform/s5p-tv/Kconfig"
++
++config VIDEO_SAMSUNG_S5P_CEC
++	tristate "Samsung S5P CEC driver"
++	depends on VIDEO_DEV && MEDIA_CEC && (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
++	---help---
++	  This is a driver for Samsung S5P HDMI CEC interface. It uses the
++	  generic CEC framework interface.
++	  CEC bus is present in the HDMI connector and enables communication
++	  between compatible devices.
++
+ source "drivers/media/platform/am437x/Kconfig"
+ source "drivers/media/platform/xilinx/Kconfig"
+ source "drivers/media/platform/rcar-vin/Kconfig"
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 99cf315..9a2fe95 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -28,6 +28,7 @@ obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
  
-diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-index 2840ff4..fdc1386 100644
---- a/Documentation/DocBook/media/Makefile
-+++ b/Documentation/DocBook/media/Makefile
-@@ -64,6 +64,7 @@ IOCTLS = \
- 	$(shell perl -ne 'print "$$1 " if /\#define\s+([A-Z][^\s]+)\s+_IO/' $(srctree)/include/uapi/linux/dvb/net.h) \
- 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/uapi/linux/dvb/video.h) \
- 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/uapi/linux/media.h) \
-+	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/cec.h) \
- 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/uapi/linux/v4l2-subdev.h) \
- 
- DEFINES = \
-@@ -100,6 +101,7 @@ STRUCTS = \
- 	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s]+)\s+/ && !/_old/)' $(srctree)/include/uapi/linux/dvb/net.h) \
- 	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s]+)\s+/)' $(srctree)/include/uapi/linux/dvb/video.h) \
- 	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/media.h) \
-+	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/cec.h) \
- 	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/v4l2-subdev.h) \
- 	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/v4l2-mediabus.h)
- 
-diff --git a/Documentation/DocBook/media/v4l/biblio.xml b/Documentation/DocBook/media/v4l/biblio.xml
-index 9beb30f..87f1d24 100644
---- a/Documentation/DocBook/media/v4l/biblio.xml
-+++ b/Documentation/DocBook/media/v4l/biblio.xml
-@@ -342,6 +342,16 @@ in the frequency range from 87,5 to 108,0 MHz</title>
-       <subtitle>Specification Version 1.4a</subtitle>
-     </biblioentry>
- 
-+    <biblioentry id="hdmi2">
-+      <abbrev>HDMI2</abbrev>
-+      <authorgroup>
-+	<corpauthor>HDMI Licensing LLC
-+(<ulink url="http://www.hdmi.org">http://www.hdmi.org</ulink>)</corpauthor>
-+      </authorgroup>
-+      <title>High-Definition Multimedia Interface</title>
-+      <subtitle>Specification Version 2.0</subtitle>
-+    </biblioentry>
-+
-     <biblioentry id="dp">
-       <abbrev>DP</abbrev>
-       <authorgroup>
-diff --git a/Documentation/DocBook/media/v4l/cec-api.xml b/Documentation/DocBook/media/v4l/cec-api.xml
+ obj-$(CONFIG_VIDEO_S3C_CAMIF) 		+= s3c-camif/
+ obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS4_IS) 	+= exynos4-is/
++obj-$(CONFIG_VIDEO_SAMSUNG_S5P_CEC)	+= s5p-cec/
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC)	+= s5p-mfc/
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
+diff --git a/drivers/media/platform/s5p-cec/Makefile b/drivers/media/platform/s5p-cec/Makefile
 new file mode 100644
-index 0000000..7062c1f
+index 0000000..0e2cf45
 --- /dev/null
-+++ b/Documentation/DocBook/media/v4l/cec-api.xml
-@@ -0,0 +1,75 @@
-+<partinfo>
-+  <authorgroup>
-+    <author>
-+      <firstname>Hans</firstname>
-+      <surname>Verkuil</surname>
-+      <affiliation><address><email>hans.verkuil@cisco.com</email></address></affiliation>
-+      <contrib>Initial version.</contrib>
-+    </author>
-+  </authorgroup>
-+  <copyright>
-+    <year>2016</year>
-+    <holder>Hans Verkuil</holder>
-+  </copyright>
-+
-+  <revhistory>
-+    <!-- Put document revisions here, newest first. -->
-+    <revision>
-+      <revnumber>1.0.0</revnumber>
-+      <date>2016-03-17</date>
-+      <authorinitials>hv</authorinitials>
-+      <revremark>Initial revision</revremark>
-+    </revision>
-+  </revhistory>
-+</partinfo>
-+
-+<title>CEC API</title>
-+
-+<chapter id="cec-api">
-+  <title>CEC: Consumer Electronics Control</title>
-+
-+  <section id="cec-intro">
-+    <title>Introduction</title>
-+    <para>
-+      Note: this documents the proposed CEC API. This API is not yet finalized and
-+      is currently only available as a staging kernel module.
-+    </para>
-+    <para>HDMI connectors provide a single pin for use by the Consumer Electronics
-+    Control protocol. This protocol allows different devices connected by an HDMI cable
-+    to communicate. The protocol for CEC version 1.4 is defined in supplements 1 (CEC)
-+    and 2 (HEAC or HDMI Ethernet and Audio Return Channel) of the HDMI 1.4a
-+    (<xref linkend="hdmi" />) specification and the extensions added to CEC version 2.0
-+    are defined in chapter 11 of the HDMI 2.0 (<xref linkend="hdmi2" />) specification.
-+    </para>
-+
-+    <para>The bitrate is very slow (effectively no more than 36 bytes per second) and
-+    is based on the ancient AV.link protocol used in old SCART connectors. The protocol
-+    closely resembles a crazy Rube Goldberg contraption and is an unholy mix of low and
-+    high level messages. Some messages, especially those part of the HEAC protocol layered
-+    on top of CEC, need to be handled by the kernel, others can be handled either by the
-+    kernel or by userspace.</para>
-+
-+    <para>In addition, CEC can be implemented in HDMI receivers, transmitters and in USB
-+    devices that have an HDMI input and an HDMI output and that control just the CEC pin.</para>
-+
-+    <para>Drivers that support CEC will create a CEC device node (/dev/cecX)
-+    to give userspace access to the CEC adapter. The &CEC-ADAP-G-CAPS; ioctl will tell userspace
-+    what it is allowed to do.</para>
-+  </section>
-+</chapter>
-+
-+<appendix id="cec-user-func">
-+  <title>Function Reference</title>
-+  <!-- Keep this alphabetically sorted. -->
-+  &sub-cec-func-open;
-+  &sub-cec-func-close;
-+  &sub-cec-func-ioctl;
-+  &sub-cec-func-poll;
-+  <!-- All ioctls go here. -->
-+  &sub-cec-ioc-adap-g-caps;
-+  &sub-cec-ioc-adap-g-log-addrs;
-+  &sub-cec-ioc-adap-g-phys-addr;
-+  &sub-cec-ioc-dqevent;
-+  &sub-cec-ioc-g-mode;
-+  &sub-cec-ioc-receive;
-+</appendix>
-diff --git a/Documentation/DocBook/media/v4l/cec-func-close.xml b/Documentation/DocBook/media/v4l/cec-func-close.xml
++++ b/drivers/media/platform/s5p-cec/Makefile
+@@ -0,0 +1,2 @@
++obj-$(CONFIG_VIDEO_SAMSUNG_S5P_CEC)	+= s5p-cec.o
++s5p-cec-y += s5p_cec.o exynos_hdmi_cecctrl.o
+diff --git a/drivers/media/platform/s5p-cec/exynos_hdmi_cec.h b/drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
 new file mode 100644
-index 0000000..0812c8c
+index 0000000..3e4fc7b
 --- /dev/null
-+++ b/Documentation/DocBook/media/v4l/cec-func-close.xml
-@@ -0,0 +1,64 @@
-+<refentry id="cec-func-close">
-+  <refmeta>
-+    <refentrytitle>cec close()</refentrytitle>
-+    &manvol;
-+  </refmeta>
++++ b/drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
+@@ -0,0 +1,38 @@
++/* drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
++ *
++ * Copyright (c) 2010, 2014 Samsung Electronics
++ *		http://www.samsung.com/
++ *
++ * Header file for interface of Samsung Exynos hdmi cec hardware
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+  <refnamediv>
-+    <refname>cec-close</refname>
-+    <refpurpose>Close a cec device</refpurpose>
-+  </refnamediv>
++#ifndef _EXYNOS_HDMI_CEC_H_
++#define _EXYNOS_HDMI_CEC_H_ __FILE__
 +
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcsynopsisinfo>#include &lt;unistd.h&gt;</funcsynopsisinfo>
-+      <funcprototype>
-+	<funcdef>int <function>close</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
++#include <linux/regmap.h>
++#include <linux/miscdevice.h>
++#include "s5p_cec.h"
 +
-+  <refsect1>
-+    <title>Arguments</title>
++void s5p_cec_set_divider(struct s5p_cec_dev *cec);
++void s5p_cec_enable_rx(struct s5p_cec_dev *cec);
++void s5p_cec_mask_rx_interrupts(struct s5p_cec_dev *cec);
++void s5p_cec_unmask_rx_interrupts(struct s5p_cec_dev *cec);
++void s5p_cec_mask_tx_interrupts(struct s5p_cec_dev *cec);
++void s5p_cec_unmask_tx_interrupts(struct s5p_cec_dev *cec);
++void s5p_cec_reset(struct s5p_cec_dev *cec);
++void s5p_cec_tx_reset(struct s5p_cec_dev *cec);
++void s5p_cec_rx_reset(struct s5p_cec_dev *cec);
++void s5p_cec_threshold(struct s5p_cec_dev *cec);
++void s5p_cec_copy_packet(struct s5p_cec_dev *cec, char *data,
++			 size_t count, u8 retries);
++void s5p_cec_set_addr(struct s5p_cec_dev *cec, u32 addr);
++u32 s5p_cec_get_status(struct s5p_cec_dev *cec);
++void s5p_clr_pending_tx(struct s5p_cec_dev *cec);
++void s5p_clr_pending_rx(struct s5p_cec_dev *cec);
++void s5p_cec_get_rx_buf(struct s5p_cec_dev *cec, u32 size, u8 *buffer);
 +
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>
-+      Note: this documents the proposed CEC API. This API is not yet finalized and
-+      is currently only available as a staging kernel module.
-+    </para>
-+
-+    <para>Closes the cec device. Resources associated with the file descriptor
-+    are freed. The device configuration remain unchanged.</para>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Return Value</title>
-+
-+    <para><function>close</function> returns 0 on success. On error, -1 is
-+    returned, and <varname>errno</varname> is set appropriately. Possible error
-+    codes are:</para>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EBADF</errorcode></term>
-+	<listitem>
-+	  <para><parameter>fd</parameter> is not a valid open file descriptor.
-+	  </para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/cec-func-ioctl.xml b/Documentation/DocBook/media/v4l/cec-func-ioctl.xml
++#endif /* _EXYNOS_HDMI_CEC_H_ */
+diff --git a/drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c b/drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
 new file mode 100644
-index 0000000..f92817a
+index 0000000..ce95e0f
 --- /dev/null
-+++ b/Documentation/DocBook/media/v4l/cec-func-ioctl.xml
-@@ -0,0 +1,78 @@
-+<refentry id="cec-func-ioctl">
-+  <refmeta>
-+    <refentrytitle>cec ioctl()</refentrytitle>
-+    &manvol;
-+  </refmeta>
++++ b/drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
+@@ -0,0 +1,209 @@
++/* drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
++ *
++ * Copyright (c) 2009, 2014 Samsung Electronics
++ *		http://www.samsung.com/
++ *
++ * cec ftn file for Samsung TVOUT driver
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+  <refnamediv>
-+    <refname>cec-ioctl</refname>
-+    <refpurpose>Control a cec device</refpurpose>
-+  </refnamediv>
++#include <linux/io.h>
++#include <linux/device.h>
 +
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcsynopsisinfo>#include &lt;sys/ioctl.h&gt;</funcsynopsisinfo>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>void *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
++#include "exynos_hdmi_cec.h"
++#include "regs-cec.h"
 +
-+  <refsect1>
-+    <title>Arguments</title>
++#define S5P_HDMI_FIN			24000000
++#define CEC_DIV_RATIO			320000
 +
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>CEC ioctl request code as defined in the cec.h header file,
-+	  for example CEC_ADAP_G_CAPS.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para>Pointer to a request-specific structure.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
++#define CEC_MESSAGE_BROADCAST_MASK	0x0F
++#define CEC_MESSAGE_BROADCAST		0x0F
++#define CEC_FILTER_THRESHOLD		0x15
 +
-+  <refsect1>
-+    <title>Description</title>
-+    <para>
-+      Note: this documents the proposed CEC API. This API is not yet finalized and
-+      is currently only available as a staging kernel module.
-+    </para>
++void s5p_cec_set_divider(struct s5p_cec_dev *cec)
++{
++	u32 div_ratio, div_val;
++	unsigned int reg;
 +
-+    <para>The <function>ioctl()</function> function manipulates cec device
-+    parameters. The argument <parameter>fd</parameter> must be an open file
-+    descriptor.</para>
-+    <para>The ioctl <parameter>request</parameter> code specifies the cec
-+    function to be called. It has encoded in it whether the argument is an
-+    input, output or read/write parameter, and the size of the argument
-+    <parameter>argp</parameter> in bytes.</para>
-+    <para>Macros and structures definitions specifying cec ioctl requests and
-+    their parameters are located in the cec.h header file. All cec ioctl
-+    requests, their respective function and parameters are specified in
-+    <xref linkend="cec-user-func" />.</para>
-+  </refsect1>
++	div_ratio  = S5P_HDMI_FIN / CEC_DIV_RATIO - 1;
 +
-+  <refsect1>
-+    &return-value;
++	if (regmap_read(cec->pmu, EXYNOS_HDMI_PHY_CONTROL, &reg)) {
++		dev_err(cec->dev, "failed to read phy control\n");
++		return;
++	}
 +
-+    <para>Request-specific error codes are listed in the
-+    individual requests descriptions.</para>
-+    <para>When an ioctl that takes an output or read/write parameter fails,
-+    the parameter remains unmodified.</para>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/cec-func-open.xml b/Documentation/DocBook/media/v4l/cec-func-open.xml
++	reg = (reg & ~(0x3FF << 16)) | (div_ratio << 16);
++
++	if (regmap_write(cec->pmu, EXYNOS_HDMI_PHY_CONTROL, reg)) {
++		dev_err(cec->dev, "failed to write phy control\n");
++		return;
++	}
++
++	div_val = CEC_DIV_RATIO * 0.00005 - 1;
++
++	writeb(0x0, cec->reg + S5P_CEC_DIVISOR_3);
++	writeb(0x0, cec->reg + S5P_CEC_DIVISOR_2);
++	writeb(0x0, cec->reg + S5P_CEC_DIVISOR_1);
++	writeb(div_val, cec->reg + S5P_CEC_DIVISOR_0);
++}
++
++void s5p_cec_enable_rx(struct s5p_cec_dev *cec)
++{
++	u8 reg;
++
++	reg = readb(cec->reg + S5P_CEC_RX_CTRL);
++	reg |= S5P_CEC_RX_CTRL_ENABLE;
++	writeb(reg, cec->reg + S5P_CEC_RX_CTRL);
++}
++
++void s5p_cec_mask_rx_interrupts(struct s5p_cec_dev *cec)
++{
++	u8 reg;
++
++	reg = readb(cec->reg + S5P_CEC_IRQ_MASK);
++	reg |= S5P_CEC_IRQ_RX_DONE;
++	reg |= S5P_CEC_IRQ_RX_ERROR;
++	writeb(reg, cec->reg + S5P_CEC_IRQ_MASK);
++}
++
++void s5p_cec_unmask_rx_interrupts(struct s5p_cec_dev *cec)
++{
++	u8 reg;
++
++	reg = readb(cec->reg + S5P_CEC_IRQ_MASK);
++	reg &= ~S5P_CEC_IRQ_RX_DONE;
++	reg &= ~S5P_CEC_IRQ_RX_ERROR;
++	writeb(reg, cec->reg + S5P_CEC_IRQ_MASK);
++}
++
++void s5p_cec_mask_tx_interrupts(struct s5p_cec_dev *cec)
++{
++	u8 reg;
++
++	reg = readb(cec->reg + S5P_CEC_IRQ_MASK);
++	reg |= S5P_CEC_IRQ_TX_DONE;
++	reg |= S5P_CEC_IRQ_TX_ERROR;
++	writeb(reg, cec->reg + S5P_CEC_IRQ_MASK);
++
++}
++
++void s5p_cec_unmask_tx_interrupts(struct s5p_cec_dev *cec)
++{
++	u8 reg;
++
++	reg = readb(cec->reg + S5P_CEC_IRQ_MASK);
++	reg &= ~S5P_CEC_IRQ_TX_DONE;
++	reg &= ~S5P_CEC_IRQ_TX_ERROR;
++	writeb(reg, cec->reg + S5P_CEC_IRQ_MASK);
++}
++
++void s5p_cec_reset(struct s5p_cec_dev *cec)
++{
++	u8 reg;
++
++	writeb(S5P_CEC_RX_CTRL_RESET, cec->reg + S5P_CEC_RX_CTRL);
++	writeb(S5P_CEC_TX_CTRL_RESET, cec->reg + S5P_CEC_TX_CTRL);
++
++	reg = readb(cec->reg + 0xc4);
++	reg &= ~0x1;
++	writeb(reg, cec->reg + 0xc4);
++}
++
++void s5p_cec_tx_reset(struct s5p_cec_dev *cec)
++{
++	writeb(S5P_CEC_TX_CTRL_RESET, cec->reg + S5P_CEC_TX_CTRL);
++}
++
++void s5p_cec_rx_reset(struct s5p_cec_dev *cec)
++{
++	u8 reg;
++
++	writeb(S5P_CEC_RX_CTRL_RESET, cec->reg + S5P_CEC_RX_CTRL);
++
++	reg = readb(cec->reg + 0xc4);
++	reg &= ~0x1;
++	writeb(reg, cec->reg + 0xc4);
++}
++
++void s5p_cec_threshold(struct s5p_cec_dev *cec)
++{
++	writeb(CEC_FILTER_THRESHOLD, cec->reg + S5P_CEC_RX_FILTER_TH);
++	writeb(0, cec->reg + S5P_CEC_RX_FILTER_CTRL);
++}
++
++void s5p_cec_copy_packet(struct s5p_cec_dev *cec, char *data,
++			 size_t count, u8 retries)
++{
++	int i = 0;
++	u8 reg;
++
++	while (i < count) {
++		writeb(data[i], cec->reg + (S5P_CEC_TX_BUFF0 + (i * 4)));
++		i++;
++	}
++
++	writeb(count, cec->reg + S5P_CEC_TX_BYTES);
++	reg = readb(cec->reg + S5P_CEC_TX_CTRL);
++	reg |= S5P_CEC_TX_CTRL_START;
++	reg &= ~0x70;
++	reg |= retries << 4;
++
++	if ((data[0] & CEC_MESSAGE_BROADCAST_MASK) == CEC_MESSAGE_BROADCAST) {
++		dev_dbg(cec->dev, "Broadcast");
++		reg |= S5P_CEC_TX_CTRL_BCAST;
++	} else {
++		dev_dbg(cec->dev, "No Broadcast");
++		reg &= ~S5P_CEC_TX_CTRL_BCAST;
++	}
++
++	writeb(reg, cec->reg + S5P_CEC_TX_CTRL);
++	dev_dbg(cec->dev, "cec-tx: cec count (%zu): %*ph", count,
++		(int)count, data);
++}
++
++void s5p_cec_set_addr(struct s5p_cec_dev *cec, u32 addr)
++{
++	writeb(addr & 0x0F, cec->reg + S5P_CEC_LOGIC_ADDR);
++}
++
++u32 s5p_cec_get_status(struct s5p_cec_dev *cec)
++{
++	u32 status = 0;
++
++	status = readb(cec->reg + S5P_CEC_STATUS_0);
++	status |= readb(cec->reg + S5P_CEC_STATUS_1) << 8;
++	status |= readb(cec->reg + S5P_CEC_STATUS_2) << 16;
++	status |= readb(cec->reg + S5P_CEC_STATUS_3) << 24;
++
++	dev_dbg(cec->dev, "status = 0x%x!\n", status);
++
++	return status;
++}
++
++void s5p_clr_pending_tx(struct s5p_cec_dev *cec)
++{
++	writeb(S5P_CEC_IRQ_TX_DONE | S5P_CEC_IRQ_TX_ERROR,
++					cec->reg + S5P_CEC_IRQ_CLEAR);
++}
++
++void s5p_clr_pending_rx(struct s5p_cec_dev *cec)
++{
++	writeb(S5P_CEC_IRQ_RX_DONE | S5P_CEC_IRQ_RX_ERROR,
++					cec->reg + S5P_CEC_IRQ_CLEAR);
++}
++
++void s5p_cec_get_rx_buf(struct s5p_cec_dev *cec, u32 size, u8 *buffer)
++{
++	u32 i = 0;
++	char debug[40];
++
++	while (i < size) {
++		buffer[i] = readb(cec->reg + S5P_CEC_RX_BUFF0 + (i * 4));
++		sprintf(debug + i * 2, "%02x ", buffer[i]);
++		i++;
++	}
++	dev_dbg(cec->dev, "cec-rx: cec size(%d): %s", size, debug);
++}
+diff --git a/drivers/media/platform/s5p-cec/regs-cec.h b/drivers/media/platform/s5p-cec/regs-cec.h
 new file mode 100644
-index 0000000..2edc555
+index 0000000..b2e7e12
 --- /dev/null
-+++ b/Documentation/DocBook/media/v4l/cec-func-open.xml
-@@ -0,0 +1,104 @@
-+<refentry id="cec-func-open">
-+  <refmeta>
-+    <refentrytitle>cec open()</refentrytitle>
-+    &manvol;
-+  </refmeta>
++++ b/drivers/media/platform/s5p-cec/regs-cec.h
+@@ -0,0 +1,96 @@
++/* drivers/media/platform/s5p-cec/regs-cec.h
++ *
++ * Copyright (c) 2010 Samsung Electronics
++ *		http://www.samsung.com/
++ *
++ *  register header file for Samsung TVOUT driver
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+  <refnamediv>
-+    <refname>cec-open</refname>
-+    <refpurpose>Open a cec device</refpurpose>
-+  </refnamediv>
++#ifndef __EXYNOS_REGS__H
++#define __EXYNOS_REGS__H
 +
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcsynopsisinfo>#include &lt;fcntl.h&gt;</funcsynopsisinfo>
-+      <funcprototype>
-+	<funcdef>int <function>open</function></funcdef>
-+	<paramdef>const char *<parameter>device_name</parameter></paramdef>
-+	<paramdef>int <parameter>flags</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
++/*
++ * Register part
++ */
++#define S5P_CEC_STATUS_0			(0x0000)
++#define S5P_CEC_STATUS_1			(0x0004)
++#define S5P_CEC_STATUS_2			(0x0008)
++#define S5P_CEC_STATUS_3			(0x000C)
++#define S5P_CEC_IRQ_MASK			(0x0010)
++#define S5P_CEC_IRQ_CLEAR			(0x0014)
++#define S5P_CEC_LOGIC_ADDR			(0x0020)
++#define S5P_CEC_DIVISOR_0			(0x0030)
++#define S5P_CEC_DIVISOR_1			(0x0034)
++#define S5P_CEC_DIVISOR_2			(0x0038)
++#define S5P_CEC_DIVISOR_3			(0x003C)
 +
-+  <refsect1>
-+    <title>Arguments</title>
++#define S5P_CEC_TX_CTRL				(0x0040)
++#define S5P_CEC_TX_BYTES			(0x0044)
++#define S5P_CEC_TX_STAT0			(0x0060)
++#define S5P_CEC_TX_STAT1			(0x0064)
++#define S5P_CEC_TX_BUFF0			(0x0080)
++#define S5P_CEC_TX_BUFF1			(0x0084)
++#define S5P_CEC_TX_BUFF2			(0x0088)
++#define S5P_CEC_TX_BUFF3			(0x008C)
++#define S5P_CEC_TX_BUFF4			(0x0090)
++#define S5P_CEC_TX_BUFF5			(0x0094)
++#define S5P_CEC_TX_BUFF6			(0x0098)
++#define S5P_CEC_TX_BUFF7			(0x009C)
++#define S5P_CEC_TX_BUFF8			(0x00A0)
++#define S5P_CEC_TX_BUFF9			(0x00A4)
++#define S5P_CEC_TX_BUFF10			(0x00A8)
++#define S5P_CEC_TX_BUFF11			(0x00AC)
++#define S5P_CEC_TX_BUFF12			(0x00B0)
++#define S5P_CEC_TX_BUFF13			(0x00B4)
++#define S5P_CEC_TX_BUFF14			(0x00B8)
++#define S5P_CEC_TX_BUFF15			(0x00BC)
 +
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>device_name</parameter></term>
-+	<listitem>
-+	  <para>Device to be opened.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>flags</parameter></term>
-+	<listitem>
-+	  <para>Open flags. Access mode must be <constant>O_RDWR</constant>.
-+	  </para>
-+	  <para>When the <constant>O_NONBLOCK</constant> flag is
-+given, the &CEC-RECEIVE; ioctl will return &EAGAIN; when no message is
-+available, and the &CEC-TRANSMIT;, &CEC-ADAP-S-PHYS-ADDR; and
-+&CEC-ADAP-S-LOG-ADDRS; ioctls all act in non-blocking mode.</para>
-+	  <para>Other flags have no effect.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+  <refsect1>
-+    <title>Description</title>
-+    <para>
-+      Note: this documents the proposed CEC API. This API is not yet finalized and
-+      is currently only available as a staging kernel module.
-+    </para>
++#define S5P_CEC_RX_CTRL				(0x00C0)
++#define S5P_CEC_RX_STAT0			(0x00E0)
++#define S5P_CEC_RX_STAT1			(0x00E4)
++#define S5P_CEC_RX_BUFF0			(0x0100)
++#define S5P_CEC_RX_BUFF1			(0x0104)
++#define S5P_CEC_RX_BUFF2			(0x0108)
++#define S5P_CEC_RX_BUFF3			(0x010C)
++#define S5P_CEC_RX_BUFF4			(0x0110)
++#define S5P_CEC_RX_BUFF5			(0x0114)
++#define S5P_CEC_RX_BUFF6			(0x0118)
++#define S5P_CEC_RX_BUFF7			(0x011C)
++#define S5P_CEC_RX_BUFF8			(0x0120)
++#define S5P_CEC_RX_BUFF9			(0x0124)
++#define S5P_CEC_RX_BUFF10			(0x0128)
++#define S5P_CEC_RX_BUFF11			(0x012C)
++#define S5P_CEC_RX_BUFF12			(0x0130)
++#define S5P_CEC_RX_BUFF13			(0x0134)
++#define S5P_CEC_RX_BUFF14			(0x0138)
++#define S5P_CEC_RX_BUFF15			(0x013C)
 +
-+    <para>To open a cec device applications call <function>open()</function>
-+    with the desired device name. The function has no side effects; the device
-+    configuration remain unchanged.</para>
-+    <para>When the device is opened in read-only mode, attempts to modify its
-+    configuration will result in an error, and <varname>errno</varname> will be
-+    set to <errorcode>EBADF</errorcode>.</para>
-+  </refsect1>
-+  <refsect1>
-+    <title>Return Value</title>
++#define S5P_CEC_RX_FILTER_CTRL			(0x0180)
++#define S5P_CEC_RX_FILTER_TH			(0x0184)
 +
-+    <para><function>open</function> returns the new file descriptor on success.
-+    On error, -1 is returned, and <varname>errno</varname> is set appropriately.
-+    Possible error codes include:</para>
++/*
++ * Bit definition part
++ */
++#define S5P_CEC_IRQ_TX_DONE			(1<<0)
++#define S5P_CEC_IRQ_TX_ERROR			(1<<1)
++#define S5P_CEC_IRQ_RX_DONE			(1<<4)
++#define S5P_CEC_IRQ_RX_ERROR			(1<<5)
 +
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EACCES</errorcode></term>
-+	<listitem>
-+	  <para>The requested access to the file is not allowed.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>EMFILE</errorcode></term>
-+	<listitem>
-+	  <para>The  process  already  has  the  maximum number of files open.
-+	  </para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>ENFILE</errorcode></term>
-+	<listitem>
-+	  <para>The system limit on the total number of open files has been
-+	  reached.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>ENOMEM</errorcode></term>
-+	<listitem>
-+	  <para>Insufficient kernel memory was available.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>ENXIO</errorcode></term>
-+	<listitem>
-+	  <para>No device corresponding to this device special file exists.
-+	  </para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/cec-func-poll.xml b/Documentation/DocBook/media/v4l/cec-func-poll.xml
++#define S5P_CEC_TX_CTRL_START			(1<<0)
++#define S5P_CEC_TX_CTRL_BCAST			(1<<1)
++#define S5P_CEC_TX_CTRL_RETRY			(0x04<<4)
++#define S5P_CEC_TX_CTRL_RESET			(1<<7)
++
++#define S5P_CEC_RX_CTRL_ENABLE			(1<<0)
++#define S5P_CEC_RX_CTRL_RESET			(1<<7)
++
++#define S5P_CEC_LOGIC_ADDR_MASK			(0xF)
++
++/* PMU Registers for PHY */
++#define EXYNOS_HDMI_PHY_CONTROL			0x700
++
++#endif	/* __EXYNOS_REGS__H	*/
+diff --git a/drivers/media/platform/s5p-cec/s5p_cec.c b/drivers/media/platform/s5p-cec/s5p_cec.c
 new file mode 100644
-index 0000000..1bddbde
+index 0000000..3844f39
 --- /dev/null
-+++ b/Documentation/DocBook/media/v4l/cec-func-poll.xml
-@@ -0,0 +1,94 @@
-+<refentry id="cec-func-poll">
-+  <refmeta>
-+    <refentrytitle>cec poll()</refentrytitle>
-+    &manvol;
-+  </refmeta>
++++ b/drivers/media/platform/s5p-cec/s5p_cec.c
+@@ -0,0 +1,295 @@
++/* drivers/media/platform/s5p-cec/s5p_cec.c
++ *
++ * Samsung S5P CEC driver
++ *
++ * Copyright (c) 2014 Samsung Electronics Co., Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This driver is based on the "cec interface driver for exynos soc" by
++ * SangPil Moon.
++ */
 +
-+  <refnamediv>
-+    <refname>cec-poll</refname>
-+    <refpurpose>Wait for some event on a file descriptor</refpurpose>
-+  </refnamediv>
++#include <linux/clk.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/mfd/syscon.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
++#include <linux/timer.h>
++#include <linux/version.h>
++#include <linux/workqueue.h>
++#include <media/cec.h>
 +
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcsynopsisinfo>#include &lt;sys/poll.h&gt;</funcsynopsisinfo>
-+      <funcprototype>
-+	<funcdef>int <function>poll</function></funcdef>
-+	<paramdef>struct pollfd *<parameter>ufds</parameter></paramdef>
-+	<paramdef>unsigned int <parameter>nfds</parameter></paramdef>
-+	<paramdef>int <parameter>timeout</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
++#include "exynos_hdmi_cec.h"
++#include "regs-cec.h"
++#include "s5p_cec.h"
 +
-+  <refsect1>
-+    <title>Description</title>
++#define CEC_NAME	"s5p-cec"
 +
-+    <para>
-+      Note: this documents the proposed CEC API. This API is not yet finalized and
-+      is currently only available as a staging kernel module.
-+    </para>
++static int debug;
++module_param(debug, int, 0644);
++MODULE_PARM_DESC(debug, "debug level (0-2)");
 +
-+    <para>With the <function>poll()</function> function applications
-+can wait for CEC events.</para>
++static int s5p_cec_adap_enable(struct cec_adapter *adap, bool enable)
++{
++	struct s5p_cec_dev *cec = adap->priv;
++	int ret;
 +
-+    <para>On success <function>poll()</function> returns the number of
-+file descriptors that have been selected (that is, file descriptors
-+for which the <structfield>revents</structfield> field of the
-+respective <structname>pollfd</structname> structure is non-zero).
-+CEC devices set the <constant>POLLIN</constant> and
-+<constant>POLLRDNORM</constant> flags in the
-+<structfield>revents</structfield> field if there are messages in the
-+receive queue. If the transmit queue has room for new messages, the
-+<constant>POLLOUT</constant> and <constant>POLLWRNORM</constant>
-+flags are set. If there are events in the event queue, then the
-+<constant>POLLPRI</constant> flag is set.
-+When the function timed out it returns a value of zero, on
-+failure it returns <returnvalue>-1</returnvalue> and the
-+<varname>errno</varname> variable is set appropriately.
-+</para>
++	if (enable) {
++		ret = pm_runtime_get_sync(cec->dev);
 +
-+    <para>For more details see the
-+<function>poll()</function> manual page.</para>
-+  </refsect1>
++		s5p_cec_reset(cec);
 +
-+  <refsect1>
-+    <title>Return Value</title>
++		s5p_cec_set_divider(cec);
++		s5p_cec_threshold(cec);
 +
-+    <para>On success, <function>poll()</function> returns the number
-+structures which have non-zero <structfield>revents</structfield>
-+fields, or zero if the call timed out. On error
-+<returnvalue>-1</returnvalue> is returned, and the
-+<varname>errno</varname> variable is set appropriately:</para>
++		s5p_cec_unmask_tx_interrupts(cec);
++		s5p_cec_unmask_rx_interrupts(cec);
++		s5p_cec_enable_rx(cec);
++	} else {
++		s5p_cec_mask_tx_interrupts(cec);
++		s5p_cec_mask_rx_interrupts(cec);
++		pm_runtime_disable(cec->dev);
++	}
 +
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EBADF</errorcode></term>
-+	<listitem>
-+	  <para>One or more of the <parameter>ufds</parameter> members
-+specify an invalid file descriptor.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>EFAULT</errorcode></term>
-+	<listitem>
-+	  <para><parameter>ufds</parameter> references an inaccessible
-+memory area.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>EINTR</errorcode></term>
-+	<listitem>
-+	  <para>The call was interrupted by a signal.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>The <parameter>nfds</parameter> argument is greater
-+than <constant>OPEN_MAX</constant>.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/cec-ioc-adap-g-caps.xml b/Documentation/DocBook/media/v4l/cec-ioc-adap-g-caps.xml
++	return 0;
++}
++
++static int s5p_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
++{
++	struct s5p_cec_dev *cec = adap->priv;
++
++	s5p_cec_set_addr(cec, addr);
++	return 0;
++}
++
++static int s5p_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
++				 u32 signal_free_time, struct cec_msg *msg)
++{
++	struct s5p_cec_dev *cec = adap->priv;
++
++	/*
++	 * Unclear if 0 retries are allowed by the hardware, so have 1 as
++	 * the minimum.
++	 */
++	s5p_cec_copy_packet(cec, msg->msg, msg->len, max(1, attempts - 1));
++	return 0;
++}
++
++static irqreturn_t s5p_cec_irq_handler(int irq, void *priv)
++{
++	struct s5p_cec_dev *cec = priv;
++	u32 status = 0;
++
++	status = s5p_cec_get_status(cec);
++
++	dev_dbg(cec->dev, "irq received\n");
++
++	if (status & CEC_STATUS_TX_DONE) {
++		if (status & CEC_STATUS_TX_ERROR) {
++			dev_dbg(cec->dev, "CEC_STATUS_TX_ERROR set\n");
++			cec->tx = STATE_ERROR;
++		} else {
++			dev_dbg(cec->dev, "CEC_STATUS_TX_DONE\n");
++			cec->tx = STATE_DONE;
++		}
++		s5p_clr_pending_tx(cec);
++	}
++
++	if (status & CEC_STATUS_RX_DONE) {
++		if (status & CEC_STATUS_RX_ERROR) {
++			dev_dbg(cec->dev, "CEC_STATUS_RX_ERROR set\n");
++			s5p_cec_rx_reset(cec);
++			s5p_cec_enable_rx(cec);
++		} else {
++			dev_dbg(cec->dev, "CEC_STATUS_RX_DONE set\n");
++			if (cec->rx != STATE_IDLE)
++				dev_dbg(cec->dev, "Buffer overrun (worker did not process previous message)\n");
++			cec->rx = STATE_BUSY;
++			cec->msg.len = status >> 24;
++			cec->msg.rx_status = CEC_RX_STATUS_OK;
++			s5p_cec_get_rx_buf(cec, cec->msg.len,
++					cec->msg.msg);
++			cec->rx = STATE_DONE;
++			s5p_cec_enable_rx(cec);
++		}
++		/* Clear interrupt pending bit */
++		s5p_clr_pending_rx(cec);
++	}
++	return IRQ_WAKE_THREAD;
++}
++
++static irqreturn_t s5p_cec_irq_handler_thread(int irq, void *priv)
++{
++	struct s5p_cec_dev *cec = priv;
++
++	dev_dbg(cec->dev, "irq processing thread\n");
++	switch (cec->tx) {
++	case STATE_DONE:
++		cec_transmit_done(cec->adap, CEC_TX_STATUS_OK, 0, 0, 0, 0);
++		cec->tx = STATE_IDLE;
++		break;
++	case STATE_ERROR:
++		cec_transmit_done(cec->adap,
++			CEC_TX_STATUS_MAX_RETRIES | CEC_TX_STATUS_ERROR,
++			0, 0, 0, 1);
++		cec->tx = STATE_IDLE;
++		break;
++	case STATE_BUSY:
++		dev_err(cec->dev, "state set to busy, this should not occur here\n");
++		break;
++	default:
++		break;
++	}
++
++	switch (cec->rx) {
++	case STATE_DONE:
++		cec_received_msg(cec->adap, &cec->msg);
++		cec->rx = STATE_IDLE;
++		break;
++	default:
++		break;
++	}
++
++	return IRQ_HANDLED;
++}
++
++static const struct cec_adap_ops s5p_cec_adap_ops = {
++	.adap_enable = s5p_cec_adap_enable,
++	.adap_log_addr = s5p_cec_adap_log_addr,
++	.adap_transmit = s5p_cec_adap_transmit,
++};
++
++static int s5p_cec_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct resource *res;
++	struct s5p_cec_dev *cec;
++	int ret;
++
++	cec = devm_kzalloc(&pdev->dev, sizeof(*cec), GFP_KERNEL);
++	if (!dev)
++		return -ENOMEM;
++
++	cec->dev = dev;
++
++	cec->irq = platform_get_irq(pdev, 0);
++	if (cec->irq < 0)
++		return cec->irq;
++
++	ret = devm_request_threaded_irq(dev, cec->irq, s5p_cec_irq_handler,
++		s5p_cec_irq_handler_thread, 0, pdev->name, cec);
++	if (ret)
++		return ret;
++
++	cec->clk = devm_clk_get(dev, "hdmicec");
++	if (IS_ERR(cec->clk))
++		return PTR_ERR(cec->clk);
++
++	cec->pmu = syscon_regmap_lookup_by_phandle(dev->of_node,
++						 "samsung,syscon-phandle");
++	if (IS_ERR(cec->pmu))
++		return -EPROBE_DEFER;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	cec->reg = devm_ioremap_resource(dev, res);
++	if (IS_ERR(cec->reg))
++		return PTR_ERR(cec->reg);
++
++	cec->adap = cec_allocate_adapter(&s5p_cec_adap_ops, cec,
++		CEC_NAME,
++		CEC_CAP_PHYS_ADDR | CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT |
++		CEC_CAP_PASSTHROUGH | CEC_CAP_RC,
++		1, &pdev->dev);
++	ret = PTR_ERR_OR_ZERO(cec->adap);
++	if (ret)
++		return ret;
++	ret = cec_register_adapter(cec->adap);
++	if (ret) {
++		cec_delete_adapter(cec->adap);
++		return ret;
++	}
++
++	platform_set_drvdata(pdev, cec);
++	pm_runtime_enable(dev);
++
++	dev_dbg(dev, "successfuly probed\n");
++	return 0;
++}
++
++static int s5p_cec_remove(struct platform_device *pdev)
++{
++	struct s5p_cec_dev *cec = platform_get_drvdata(pdev);
++
++	cec_unregister_adapter(cec->adap);
++	pm_runtime_disable(&pdev->dev);
++	return 0;
++}
++
++static int s5p_cec_runtime_suspend(struct device *dev)
++{
++	struct s5p_cec_dev *cec = dev_get_drvdata(dev);
++
++	clk_disable_unprepare(cec->clk);
++	return 0;
++}
++
++static int s5p_cec_runtime_resume(struct device *dev)
++{
++	struct s5p_cec_dev *cec = dev_get_drvdata(dev);
++	int ret;
++
++	ret = clk_prepare_enable(cec->clk);
++	if (ret < 0)
++		return ret;
++	return 0;
++}
++
++static int s5p_cec_suspend(struct device *dev)
++{
++	if (pm_runtime_suspended(dev))
++		return 0;
++	return s5p_cec_runtime_suspend(dev);
++}
++
++static int s5p_cec_resume(struct device *dev)
++{
++	if (pm_runtime_suspended(dev))
++		return 0;
++	return s5p_cec_runtime_resume(dev);
++}
++
++static const struct dev_pm_ops s5p_cec_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(s5p_cec_suspend, s5p_cec_resume)
++	SET_RUNTIME_PM_OPS(s5p_cec_runtime_suspend, s5p_cec_runtime_resume,
++			   NULL)
++};
++
++static const struct of_device_id s5p_cec_match[] = {
++	{
++		.compatible	= "samsung,s5p-cec",
++	},
++	{},
++};
++
++static struct platform_driver s5p_cec_pdrv = {
++	.probe	= s5p_cec_probe,
++	.remove	= s5p_cec_remove,
++	.driver	= {
++		.name		= CEC_NAME,
++		.of_match_table	= s5p_cec_match,
++		.pm		= &s5p_cec_pm_ops,
++	},
++};
++
++module_platform_driver(s5p_cec_pdrv);
++
++MODULE_AUTHOR("Kamil Debski <kamil@wypas.org>");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Samsung S5P CEC driver");
+diff --git a/drivers/media/platform/s5p-cec/s5p_cec.h b/drivers/media/platform/s5p-cec/s5p_cec.h
 new file mode 100644
-index 0000000..3523ef2
+index 0000000..03732c1
 --- /dev/null
-+++ b/Documentation/DocBook/media/v4l/cec-ioc-adap-g-caps.xml
-@@ -0,0 +1,151 @@
-+<refentry id="cec-ioc-adap-g-caps">
-+  <refmeta>
-+    <refentrytitle>ioctl CEC_ADAP_G_CAPS</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>CEC_ADAP_G_CAPS</refname>
-+    <refpurpose>Query device capabilities</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct cec_caps *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>File descriptor returned by
-+	  <link linkend='cec-func-open'><function>open()</function></link>.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>CEC_ADAP_G_CAPS</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>
-+      Note: this documents the proposed CEC API. This API is not yet finalized and
-+      is currently only available as a staging kernel module.
-+    </para>
-+
-+    <para>All cec devices must support the <constant>CEC_ADAP_G_CAPS</constant>
-+    ioctl. To query device information, applications call the ioctl with a
-+    pointer to a &cec-caps;. The driver fills the structure and returns
-+    the information to the application.
-+    The ioctl never fails.</para>
-+
-+    <table pgwide="1" frame="none" id="cec-caps">
-+      <title>struct <structname>cec_caps</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>char</entry>
-+	    <entry><structfield>driver[32]</structfield></entry>
-+	    <entry>The name of the cec adapter driver.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>char</entry>
-+	    <entry><structfield>name[32]</structfield></entry>
-+	    <entry>The name of this CEC adapter. The combination <structfield>driver</structfield>
-+	    and <structfield>name</structfield> must be unique.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>capabilities</structfield></entry>
-+	    <entry>The capabilities of the CEC adapter, see <xref
-+		linkend="cec-capabilities" />.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>version</structfield></entry>
-+	    <entry>CEC Framework API version, formatted with the
-+	    <constant>KERNEL_VERSION()</constant> macro.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="cec-capabilities">
-+      <title>CEC Capabilities Flags</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>CEC_CAP_PHYS_ADDR</constant></entry>
-+	    <entry>0x00000001</entry>
-+	    <entry>Userspace has to configure the physical address by
-+	    calling &CEC-ADAP-S-PHYS-ADDR;. If this capability isn't set,
-+	    then setting the physical address is handled by the kernel
-+	    whenever the EDID is set (for an HDMI receiver) or read (for
-+	    an HDMI transmitter).</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_CAP_LOG_ADDRS</constant></entry>
-+	    <entry>0x00000002</entry>
-+	    <entry>Userspace has to configure the logical addresses by
-+	    calling &CEC-ADAP-S-LOG-ADDRS;. If this capability isn't set,
-+	    then the kernel will have configured this.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_CAP_TRANSMIT</constant></entry>
-+	    <entry>0x00000004</entry>
-+	    <entry>Userspace can transmit CEC messages by calling &CEC-TRANSMIT;. This
-+	    implies that userspace can be a follower as well, since being able to
-+	    transmit messages is a prerequisite of becoming a follower. If this
-+	    capability isn't set, then the kernel will handle all CEC transmits
-+	    and process all CEC messages it receives.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_CAP_PASSTHROUGH</constant></entry>
-+	    <entry>0x00000008</entry>
-+	    <entry>Userspace can use the passthrough mode by
-+	    calling &CEC-S-MODE;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_CAP_RC</constant></entry>
-+	    <entry>0x00000010</entry>
-+	    <entry>This adapter supports the remote control protocol.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_CAP_MONITOR_ALL</constant></entry>
-+	    <entry>0x00000020</entry>
-+	    <entry>The CEC hardware can monitor all messages, not just directed and
-+	    broadcast messages.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/cec-ioc-adap-g-log-addrs.xml b/Documentation/DocBook/media/v4l/cec-ioc-adap-g-log-addrs.xml
-new file mode 100644
-index 0000000..302b829
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/cec-ioc-adap-g-log-addrs.xml
-@@ -0,0 +1,329 @@
-+<refentry id="cec-ioc-adap-g-log-addrs">
-+  <refmeta>
-+    <refentrytitle>ioctl CEC_ADAP_G_LOG_ADDRS, CEC_ADAP_S_LOG_ADDRS</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>CEC_ADAP_G_LOG_ADDRS</refname>
-+    <refname>CEC_ADAP_S_LOG_ADDRS</refname>
-+    <refpurpose>Get or set the logical addresses</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct cec_log_addrs *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>File descriptor returned by
-+	  <link linkend='cec-func-open'><function>open()</function></link>.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>CEC_ADAP_G_LOG_ADDRS, CEC_ADAP_S_LOG_ADDRS</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>
-+      Note: this documents the proposed CEC API. This API is not yet finalized and
-+      is currently only available as a staging kernel module.
-+    </para>
-+
-+    <para>To query the current CEC logical addresses, applications call the
-+<constant>CEC_ADAP_G_LOG_ADDRS</constant> ioctl with a pointer to a
-+<structname>cec_log_addrs</structname> structure where the drivers stores the
-+logical addresses.</para>
-+
-+    <para>To set new logical addresses, applications fill in struct <structname>cec_log_addrs</structname>
-+and call the <constant>CEC_ADAP_S_LOG_ADDRS</constant> ioctl with a pointer to this struct.
-+The <constant>CEC_ADAP_S_LOG_ADDRS</constant> ioctl is only available if
-+<constant>CEC_CAP_LOG_ADDRS</constant> is set (&ENOTTY; is returned otherwise). This ioctl will block until all
-+requested logical addresses have been claimed. <constant>CEC_ADAP_S_LOG_ADDRS</constant>
-+can only be called by a file handle in initiator mode (see &CEC-S-MODE;).</para>
-+
-+    <table pgwide="1" frame="none" id="cec-log-addrs">
-+      <title>struct <structname>cec_log_addrs</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>log_addr</structfield>[CEC_MAX_LOG_ADDRS]</entry>
-+	    <entry>The actual logical addresses that were claimed. This is set by the
-+	    driver. If no logical address could be claimed, then it is set to
-+	    <constant>CEC_LOG_ADDR_INVALID</constant>. If this adapter is Unregistered,
-+	    then <structfield>log_addr[0]</structfield> is set to 0xf and all others to
-+	    <constant>CEC_LOG_ADDR_INVALID</constant>.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u16</entry>
-+	    <entry><structfield>log_addr_mask</structfield></entry>
-+	    <entry>The bitmask of all logical addresses this adapter has claimed.
-+	    If this adapter is Unregistered then <structfield>log_addr_mask</structfield>
-+	    sets bit 15 and clears all other bits. If this adapter is not configured at all, then
-+	    <structfield>log_addr_mask</structfield> is set to 0. Set by the driver.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>cec_version</structfield></entry>
-+	    <entry>The CEC version that this adapter shall use. See
-+	    <xref linkend="cec-versions" />.
-+	    Used to implement the <constant>CEC_MSG_CEC_VERSION</constant> and
-+	    <constant>CEC_MSG_REPORT_FEATURES</constant> messages. Note that
-+	    <constant>CEC_OP_CEC_VERSION_1_3A</constant> is not allowed
-+	    by the CEC framework.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>num_log_addrs</structfield></entry>
-+	    <entry>Number of logical addresses to set up. Must be &le;
-+	    <structfield>available_log_addrs</structfield> as returned by
-+	    &CEC-ADAP-G-CAPS;. All arrays in this structure are only filled up to
-+	    index <structfield>available_log_addrs</structfield>-1. The remaining
-+	    array elements will be ignored. Note that the CEC 2.0 standard allows
-+	    for a maximum of 2 logical addresses, although some hardware has support
-+	    for more. <constant>CEC_MAX_LOG_ADDRS</constant> is 4. The driver will
-+	    return the actual number of logical addresses it could claim, which may
-+	    be less than what was requested. If this field is set to 0, then the
-+	    CEC adapter shall clear all claimed logical addresses and all other
-+	    fields will be ignored.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>vendor_id</structfield></entry>
-+	    <entry>The vendor ID is a 24-bit number that identifies the specific
-+	    vendor or entity. Based on this ID vendor specific commands may be
-+	    defined. If you do not want a vendor ID then set it to
-+	    <constant>CEC_VENDOR_ID_NONE</constant>.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+	    <entry>Flags. No flags are defined yet, so set this to 0.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>char</entry>
-+	    <entry><structfield>osd_name</structfield>[15]</entry>
-+	    <entry>The On-Screen Display name as is returned by the
-+	    <constant>CEC_MSG_SET_OSD_NAME</constant> message.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>primary_device_type</structfield>[CEC_MAX_LOG_ADDRS]</entry>
-+	    <entry>Primary device type for each logical address. See
-+	    <xref linkend="cec-prim-dev-types" /> for possible types.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>log_addr_type</structfield>[CEC_MAX_LOG_ADDRS]</entry>
-+	    <entry>Logical address types. See <xref linkend="cec-log-addr-types" /> for
-+	    possible types. The driver will update this with the actual logical address
-+	    type that it claimed (e.g. it may have to fallback to
-+	    <constant>CEC_LOG_ADDR_TYPE_UNREGISTERED</constant>).</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>all_device_types</structfield>[CEC_MAX_LOG_ADDRS]</entry>
-+	    <entry>CEC 2.0 specific: all device types. See <xref linkend="cec-all-dev-types-flags" />.
-+	    Used to implement the <constant>CEC_MSG_REPORT_FEATURES</constant> message.
-+	    This field is ignored if <structfield>cec_version</structfield> &lt;
-+	    <constant>CEC_OP_CEC_VERSION_2_0</constant>.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>features</structfield>[CEC_MAX_LOG_ADDRS][12]</entry>
-+	    <entry>Features for each logical address. Used to implement the
-+	    <constant>CEC_MSG_REPORT_FEATURES</constant> message. The 12 bytes include
-+	    both the RC Profile and the Device Features.
-+	    This field is ignored if <structfield>cec_version</structfield> &lt;
-+	    <constant>CEC_OP_CEC_VERSION_2_0</constant>.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="cec-versions">
-+      <title>CEC Versions</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>CEC_OP_CEC_VERSION_1_3A</constant></entry>
-+	    <entry>4</entry>
-+	    <entry>CEC version according to the HDMI 1.3a standard.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_OP_CEC_VERSION_1_4B</constant></entry>
-+	    <entry>5</entry>
-+	    <entry>CEC version according to the HDMI 1.4b standard.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_OP_CEC_VERSION_2_0</constant></entry>
-+	    <entry>6</entry>
-+	    <entry>CEC version according to the HDMI 2.0 standard.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="cec-prim-dev-types">
-+      <title>CEC Primary Device Types</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>CEC_OP_PRIM_DEVTYPE_TV</constant></entry>
-+	    <entry>0</entry>
-+	    <entry>Use for a TV.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_OP_PRIM_DEVTYPE_RECORD</constant></entry>
-+	    <entry>1</entry>
-+	    <entry>Use for a recording device.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_OP_PRIM_DEVTYPE_TUNER</constant></entry>
-+	    <entry>3</entry>
-+	    <entry>Use for a device with a tuner.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_OP_PRIM_DEVTYPE_PLAYBACK</constant></entry>
-+	    <entry>4</entry>
-+	    <entry>Use for a playback device.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_OP_PRIM_DEVTYPE_AUDIOSYSTEM</constant></entry>
-+	    <entry>5</entry>
-+	    <entry>Use for an audio system (e.g. an audio/video receiver).</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_OP_PRIM_DEVTYPE_SWITCH</constant></entry>
-+	    <entry>6</entry>
-+	    <entry>Use for a CEC switch.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_OP_PRIM_DEVTYPE_VIDEOPROC</constant></entry>
-+	    <entry>7</entry>
-+	    <entry>Use for a video processor device.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="cec-log-addr-types">
-+      <title>CEC Logical Address Types</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>CEC_LOG_ADDR_TYPE_TV</constant></entry>
-+	    <entry>0</entry>
-+	    <entry>Use for a TV.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_LOG_ADDR_TYPE_RECORD</constant></entry>
-+	    <entry>1</entry>
-+	    <entry>Use for a recording device.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_LOG_ADDR_TYPE_TUNER</constant></entry>
-+	    <entry>2</entry>
-+	    <entry>Use for a tuner device.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_LOG_ADDR_TYPE_PLAYBACK</constant></entry>
-+	    <entry>3</entry>
-+	    <entry>Use for a playback device.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_LOG_ADDR_TYPE_AUDIOSYSTEM</constant></entry>
-+	    <entry>4</entry>
-+	    <entry>Use for an audio system device.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_LOG_ADDR_TYPE_SPECIFIC</constant></entry>
-+	    <entry>5</entry>
-+	    <entry>Use for a second TV or for a video processor device.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_LOG_ADDR_TYPE_UNREGISTERED</constant></entry>
-+	    <entry>6</entry>
-+	    <entry>Use this if you just want to remain unregistered.
-+	    Used for pure CEC switches or CDC-only devices (CDC:
-+	    Capability Discovery and Control).</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="cec-all-dev-types-flags">
-+      <title>CEC All Device Types Flags</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>CEC_OP_ALL_DEVTYPE_TV</constant></entry>
-+	    <entry>0x80</entry>
-+	    <entry>This supports the TV type.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_OP_ALL_DEVTYPE_RECORD</constant></entry>
-+	    <entry>0x40</entry>
-+	    <entry>This supports the Recording type.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_OP_ALL_DEVTYPE_TUNER</constant></entry>
-+	    <entry>0x20</entry>
-+	    <entry>This supports the Tuner type.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_OP_ALL_DEVTYPE_PLAYBACK</constant></entry>
-+	    <entry>0x10</entry>
-+	    <entry>This supports the Playback type.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_OP_ALL_DEVTYPE_AUDIOSYSTEM</constant></entry>
-+	    <entry>0x08</entry>
-+	    <entry>This supports the Audio System type.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_OP_ALL_DEVTYPE_SWITCH</constant></entry>
-+	    <entry>0x04</entry>
-+	    <entry>This supports the CEC Switch or Video Processing type.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/cec-ioc-adap-g-phys-addr.xml b/Documentation/DocBook/media/v4l/cec-ioc-adap-g-phys-addr.xml
-new file mode 100644
-index 0000000..d95f178
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/cec-ioc-adap-g-phys-addr.xml
-@@ -0,0 +1,86 @@
-+<refentry id="cec-ioc-adap-g-phys-addr">
-+  <refmeta>
-+    <refentrytitle>ioctl CEC_ADAP_G_PHYS_ADDR, CEC_ADAP_S_PHYS_ADDR</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>CEC_ADAP_G_PHYS_ADDR</refname>
-+    <refname>CEC_ADAP_S_PHYS_ADDR</refname>
-+    <refpurpose>Get or set the physical address</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>__u16 *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>File descriptor returned by
-+	  <link linkend='cec-func-open'><function>open()</function></link>.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>CEC_ADAP_G_PHYS_ADDR, CEC_ADAP_S_PHYS_ADDR</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>
-+      Note: this documents the proposed CEC API. This API is not yet finalized and
-+      is currently only available as a staging kernel module.
-+    </para>
-+
-+    <para>To query the current physical address applications call the
-+<constant>CEC_ADAP_G_PHYS_ADDR</constant> ioctl with a pointer to an __u16
-+where the driver stores the physical address.</para>
-+
-+    <para>To set a new physical address applications store the physical address in
-+an __u16 and call the <constant>CEC_ADAP_S_PHYS_ADDR</constant> ioctl with a
-+pointer to this integer. <constant>CEC_ADAP_S_PHYS_ADDR</constant> is only
-+available if <constant>CEC_CAP_PHYS_ADDR</constant> is set (&ENOTTY; will be returned
-+otherwise). <constant>CEC_ADAP_S_PHYS_ADDR</constant>
-+can only be called by a file handle in initiator mode (see &CEC-S-MODE;), if not
-+&EBUSY; will be returned.</para>
-+
-+    <para>The physical address is a 16-bit number where each group of 4 bits
-+represent a digit of the physical address a.b.c.d where the most significant
-+4 bits represent 'a'. The CEC root device (usually the TV) has address 0.0.0.0.
-+Every device that is hooked up to an input of the TV has address a.0.0.0 (where
-+'a' is &ge; 1), devices hooked up to those in turn have addresses a.b.0.0, etc.
-+So a topology of up to 5 devices deep is supported. The physical address a
-+device shall use is stored in the EDID of the sink.</para>
-+
-+<para>For example, the EDID for each HDMI input of the TV will have a different
-+physical address of the form a.0.0.0 that the sources will read out and use as
-+their physical address.</para>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/cec-ioc-dqevent.xml b/Documentation/DocBook/media/v4l/cec-ioc-dqevent.xml
-new file mode 100644
-index 0000000..87d4f29
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/cec-ioc-dqevent.xml
-@@ -0,0 +1,195 @@
-+<refentry id="cec-ioc-g-event">
-+  <refmeta>
-+    <refentrytitle>ioctl CEC_DQEVENT</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>CEC_DQEVENT</refname>
-+    <refpurpose>Dequeue a CEC event</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct cec_event *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>File descriptor returned by
-+	  <link linkend='cec-func-open'><function>open()</function></link>.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>CEC_DQEVENT</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>
-+      Note: this documents the proposed CEC API. This API is not yet finalized and
-+      is currently only available as a staging kernel module.
-+    </para>
-+
-+    <para>CEC devices can send asynchronous events. These can be retrieved by calling
-+    the <constant>CEC_DQEVENT</constant> ioctl. If the file descriptor is in non-blocking
-+    mode and no event is pending, then it will return -1 and set errno to the &EAGAIN;.</para>
-+
-+    <para>The internal event queues are per-filehandle and per-event type. If there is
-+    no more room in a queue then the last event is overwritten with the new one. This
-+    means that intermediate results can be thrown away but that the latest event is always
-+    available. This also mean that is it possible to read two successive events that have
-+    the same value (e.g. two CEC_EVENT_STATE_CHANGE events with the same state). In that
-+    case the intermediate state changes were lost but it is guaranteed that the state
-+    did change in between the two events.</para>
-+
-+    <table pgwide="1" frame="none" id="cec-event-state-change">
-+      <title>struct <structname>cec_event_state_change</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u16</entry>
-+	    <entry><structfield>phys_addr</structfield></entry>
-+	    <entry>The current physical address.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u16</entry>
-+	    <entry><structfield>log_addr_mask</structfield></entry>
-+	    <entry>The current set of claimed logical addresses.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="cec-event-lost-msgs">
-+      <title>struct <structname>cec_event_lost_msgs</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>lost_msgs</structfield></entry>
-+	    <entry>Set to the number of lost messages since the filehandle
-+	    was opened or since the last time this event was dequeued for
-+	    this filehandle.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="cec-event">
-+      <title>struct <structname>cec_event</structname></title>
-+      <tgroup cols="4">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u64</entry>
-+	    <entry><structfield>ts</structfield></entry>
-+	    <entry>Timestamp of the event in ns.</entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>event</structfield></entry>
-+	    <entry>The CEC event type, see <xref linkend="cec-events" />.</entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+	    <entry>Event flags, see <xref linkend="cec-event-flags" />.</entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry>union</entry>
-+	    <entry>(anonymous)</entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>struct cec_event_state_change</entry>
-+	    <entry><structfield>state_change</structfield></entry>
-+	    <entry>The new adapter state as sent by the <constant>CEC_EVENT_STATE_CHANGE</constant>
-+	    event.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>struct cec_event_lost_msgs</entry>
-+	    <entry><structfield>lost_msgs</structfield></entry>
-+	    <entry>The number of lost messages as sent by the <constant>CEC_EVENT_LOST_MSGS</constant>
-+	    event.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="cec-events">
-+      <title>CEC Events Types</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>CEC_EVENT_STATE_CHANGE</constant></entry>
-+	    <entry>1</entry>
-+	    <entry>Generated when the CEC Adapter's state changes. When open() is
-+	    called an initial event will be generated for that filehandle with the
-+	    CEC Adapter's state at that time.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_EVENT_LOST_MSGS</constant></entry>
-+	    <entry>2</entry>
-+	    <entry>Generated if one or more CEC messages were lost because the
-+	    application didn't dequeue CEC messages fast enough.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="cec-event-flags">
-+      <title>CEC Event Flags</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>CEC_EVENT_FL_INITIAL_VALUE</constant></entry>
-+	    <entry>1</entry>
-+	    <entry>Set for the initial events that are generated when the device is
-+	    opened. See the table above for which events do this. This allows
-+	    applications to learn the initial state of the CEC adapter at open()
-+	    time.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/cec-ioc-g-mode.xml b/Documentation/DocBook/media/v4l/cec-ioc-g-mode.xml
-new file mode 100644
-index 0000000..26b4282
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/cec-ioc-g-mode.xml
-@@ -0,0 +1,255 @@
-+<refentry id="cec-ioc-g-mode">
-+  <refmeta>
-+    <refentrytitle>ioctl CEC_G_MODE, CEC_S_MODE</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>CEC_G_MODE</refname>
-+    <refname>CEC_S_MODE</refname>
-+    <refpurpose>Get or set exclusive use of the CEC adapter</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>__u32 *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>File descriptor returned by
-+	  <link linkend='cec-func-open'><function>open()</function></link>.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>CEC_G_MODE, CEC_S_MODE</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>
-+      Note: this documents the proposed CEC API. This API is not yet finalized and
-+      is currently only available as a staging kernel module.
-+    </para>
-+
-+    <para>By default any filehandle can use &CEC-TRANSMIT; and &CEC-RECEIVE;, but
-+in order to prevent applications from stepping on each others toes it must be possible
-+to obtain exclusive access to the CEC adapter. This ioctl sets the filehandle
-+to initiator and/or follower mode which can be exclusive depending on the chosen
-+mode. The initiator is the filehandle that is used
-+to initiate messages, i.e. it commands other CEC devices. The follower is the filehandle
-+that receives messages sent to the CEC adapter and processes them. The same filehandle
-+can be both initiator and follower, or this role can be taken by two different
-+filehandles.</para>
-+
-+    <para>When a CEC message is received, then the CEC framework will decide how
-+it will be processed. If the message is a reply to an earlier transmitted message,
-+then the reply is sent back to the filehandle that is waiting for it. In addition
-+the CEC framework will process it.</para>
-+
-+    <para>If the message is not a reply, then the CEC framework will process it
-+first. If there is no follower, then the message is just discarded and a feature
-+abort is sent back to the initiator if the framework couldn't process it. If there
-+is a follower, then the message is passed on to the follower who will use
-+&CEC-RECEIVE; to dequeue the new message. The framework expects the follower to
-+make the right decisions.</para>
-+
-+    <para>The CEC framework will process core messages unless requested otherwise
-+by the follower. The follower can enable the passthrough mode. In that case, the
-+CEC framework will pass on most core messages without processing them and
-+the follower will have to implement those messages. There are some messages
-+that the core will always process, regardless of the passthrough mode. See
-+<xref linkend="cec-core-processing" /> for details.</para>
-+
-+    <para>If there is no initiator, then any CEC filehandle can use &CEC-TRANSMIT;.
-+If there is an exclusive initiator then only that initiator can call &CEC-TRANSMIT;.
-+The follower can of course always call &CEC-TRANSMIT;.</para>
-+
-+    <para>Available initiator modes are:</para>
-+
-+    <table pgwide="1" frame="none" id="cec-mode-initiator">
-+      <title>Initiator Modes</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>CEC_MODE_NO_INITIATOR</constant></entry>
-+	    <entry>0x0</entry>
-+	    <entry>This is not an initiator, i.e. it cannot transmit CEC messages
-+	    or make any other changes to the CEC adapter.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MODE_INITIATOR</constant></entry>
-+	    <entry>0x1</entry>
-+	    <entry>This is an initiator (the default when the device is opened) and it
-+	    can transmit CEC messages and make changes to the CEC adapter, unless there
-+	    is an exclusive initiator.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MODE_EXCL_INITIATOR</constant></entry>
-+	    <entry>0x2</entry>
-+	    <entry>This is an exclusive initiator and this file descriptor is the only one
-+	    that can transmit CEC messages and make changes to the CEC adapter. If someone
-+	    else is already the exclusive initiator then an attempt to become one will return
-+	    the &EBUSY; error.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <para>Available follower modes are:</para>
-+
-+    <table pgwide="1" frame="none" id="cec-mode-follower">
-+      <title>Follower Modes</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>CEC_MODE_NO_FOLLOWER</constant></entry>
-+	    <entry>0x00</entry>
-+	    <entry>This is not a follower (the default when the device is opened).</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MODE_FOLLOWER</constant></entry>
-+	    <entry>0x10</entry>
-+	    <entry>This is a follower and it will receive CEC messages unless there is
-+	    an exclusive follower. You cannot become a follower if <constant>CEC_CAP_TRANSMIT</constant>
-+	    is not set or if <constant>CEC_MODE_NO_INITIATOR</constant> was specified,
-+	    &EINVAL; is returned in that case.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MODE_EXCL_FOLLOWER</constant></entry>
-+	    <entry>0x20</entry>
-+	    <entry>This is an exclusive follower and only this file descriptor will receive
-+	    CEC messages for processing. If someone else is already the exclusive follower
-+	    then an attempt to become one will return the &EBUSY; error. You cannot become
-+	    a follower if <constant>CEC_CAP_TRANSMIT</constant> is not set or if
-+	    <constant>CEC_MODE_NO_INITIATOR</constant> was specified, &EINVAL; is returned
-+	    in that case.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MODE_EXCL_FOLLOWER_PASSTHRU</constant></entry>
-+	    <entry>0x30</entry>
-+	    <entry>This is an exclusive follower and only this file descriptor will receive
-+	    CEC messages for processing. In addition it will put the CEC device into
-+	    passthrough mode, allowing the exclusive follower to handle most core messages
-+	    instead of relying on the CEC framework for that. If someone else is already the
-+	    exclusive follower then an attempt to become one will return the &EBUSY; error.
-+	    You cannot become a follower if <constant>CEC_CAP_TRANSMIT</constant>
-+            is not set or if <constant>CEC_MODE_NO_INITIATOR</constant> was specified,
-+            &EINVAL; is returned in that case.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MODE_MONITOR</constant></entry>
-+	    <entry>0xe0</entry>
-+	    <entry>Put the file descriptor into monitor mode. Can only be used in combination
-+	    with <constant>CEC_MODE_NO_INITIATOR</constant>, otherwise &EINVAL; will be
-+	    returned. In monitor mode all messages this CEC device transmits and all messages
-+	    it receives (both broadcast messages and directed messages for one its logical
-+	    addresses) will be reported. This is very useful for debugging. This is only
-+	    allowed if the process has the <constant>CAP_NET_ADMIN</constant>
-+	    capability. If that is not set, then &EPERM; is returned.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MODE_MONITOR_ALL</constant></entry>
-+	    <entry>0xf0</entry>
-+	    <entry>Put the file descriptor into 'monitor all' mode. Can only be used in combination
-+            with <constant>CEC_MODE_NO_INITIATOR</constant>, otherwise &EINVAL; will be
-+            returned. In 'monitor all' mode all messages this CEC device transmits and all messages
-+            it receives, including directed messages for other CEC devices will be reported. This
-+	    is very useful for debugging, but not all devices support this. This mode requires that
-+	    the <constant>CEC_CAP_MONITOR_ALL</constant> capability is set, otherwise &EINVAL; is
-+	    returned. This is only allowed if the process has the <constant>CAP_NET_ADMIN</constant>
-+	    capability. If that is not set, then &EPERM; is returned.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <para>Core message processing details:</para>
-+
-+    <table pgwide="1" frame="none" id="cec-core-processing">
-+      <title>Core Message Processing</title>
-+      <tgroup cols="2">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>CEC_MSG_GET_CEC_VERSION</constant></entry>
-+	    <entry>When in passthrough mode this message has to be handled by userspace,
-+	    otherwise the core will return the CEC version that was set with &CEC-ADAP-S-LOG-ADDRS;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MSG_GIVE_DEVICE_VENDOR_ID</constant></entry>
-+	    <entry>When in passthrough mode this message has to be handled by userspace,
-+	    otherwise the core will return the vendor ID that was set with &CEC-ADAP-S-LOG-ADDRS;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MSG_ABORT</constant></entry>
-+	    <entry>When in passthrough mode this message has to be handled by userspace,
-+	    otherwise the core will return a feature refused message as per the specification.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MSG_GIVE_PHYSICAL_ADDR</constant></entry>
-+	    <entry>When in passthrough mode this message has to be handled by userspace,
-+	    otherwise the core will report the current physical address.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MSG_GIVE_OSD_NAME</constant></entry>
-+	    <entry>When in passthrough mode this message has to be handled by userspace,
-+	    otherwise the core will report the current OSD name as was set with
-+	    &CEC-ADAP-S-LOG-ADDRS;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MSG_GIVE_FEATURES</constant></entry>
-+	    <entry>When in passthrough mode this message has to be handled by userspace,
-+	    otherwise the core will report the current features as was set with
-+	    &CEC-ADAP-S-LOG-ADDRS; or the message is ignore if the CEC version was
-+	    older than 2.0.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MSG_USER_CONTROL_PRESSED</constant></entry>
-+	    <entry>If <constant>CEC_CAP_RC</constant> is set, then generate a remote control
-+	    key press. This message is always passed on to userspace.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MSG_USER_CONTROL_RELEASED</constant></entry>
-+	    <entry>If <constant>CEC_CAP_RC</constant> is set, then generate a remote control
-+	    key release. This message is always passed on to userspace.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MSG_REPORT_PHYSICAL_ADDR</constant></entry>
-+	    <entry>The CEC framework will make note of the reported physical address
-+	    and then just pass the message on to userspace.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/cec-ioc-receive.xml b/Documentation/DocBook/media/v4l/cec-ioc-receive.xml
-new file mode 100644
-index 0000000..4da7239
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/cec-ioc-receive.xml
-@@ -0,0 +1,265 @@
-+<refentry id="cec-ioc-receive">
-+  <refmeta>
-+    <refentrytitle>ioctl CEC_RECEIVE, CEC_TRANSMIT</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>CEC_RECEIVE</refname>
-+    <refname>CEC_TRANSMIT</refname>
-+    <refpurpose>Receive or transmit a CEC message</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct cec_msg *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>File descriptor returned by
-+	  <link linkend='cec-func-open'><function>open()</function></link>.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>CEC_RECEIVE, CEC_TRANSMIT</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>
-+      Note: this documents the proposed CEC API. This API is not yet finalized and
-+      is currently only available as a staging kernel module.
-+    </para>
-+
-+    <para>To receive a CEC message the application has to fill in the
-+    <structname>cec_msg</structname> structure and pass it to the
-+    <constant>CEC_RECEIVE</constant> ioctl. <constant>CEC_RECEIVE</constant> is
-+    only available if <constant>CEC_CAP_RECEIVE</constant> is set. If the
-+    file descriptor is in non-blocking mode and there are no received
-+    messages pending, then it will return -1 and set errno to the &EAGAIN;.
-+    If the file descriptor is in blocking mode and <structfield>timeout</structfield>
-+    is non-zero and no message arrived within <structfield>timeout</structfield>
-+    milliseconds, then it will return -1 and set errno to the &ETIMEDOUT;.</para>
-+
-+    <para>To send a CEC message the application has to fill in the
-+    <structname>cec_msg</structname> structure and pass it to the
-+    <constant>CEC_TRANSMIT</constant> ioctl. <constant>CEC_TRANSMIT</constant> is
-+    only available if <constant>CEC_CAP_TRANSMIT</constant> is set.
-+    If there is no more room in the transmit queue, then it will return
-+    -1 and set errno to the &EBUSY;.</para>
-+
-+    <table pgwide="1" frame="none" id="cec-msg">
-+      <title>struct <structname>cec_msg</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u64</entry>
-+	    <entry><structfield>ts</structfield></entry>
-+	    <entry>Timestamp of when the message was transmitted in ns in the case
-+	    of <constant>CEC_TRANSMIT</constant> with <structfield>reply</structfield>
-+	    set to 0, or the timestamp of the received message in all other cases.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>len</structfield></entry>
-+	    <entry>The length of the message. For <constant>CEC_TRANSMIT</constant> this
-+	    is filled in by the application. The driver will fill this in for
-+	    <constant>CEC_RECEIVE</constant> and for <constant>CEC_TRANSMIT</constant>
-+	    it will be filled in with the length of the reply message if
-+	    <structfield>reply</structfield> was set.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>timeout</structfield></entry>
-+	    <entry>The timeout in milliseconds. This is the time we wait for a message to
-+	    be received. If it is set to 0, then we wait indefinitely.
-+	    It is ignored by <constant>CEC_TRANSMIT</constant>.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>sequence</structfield></entry>
-+	    <entry>The sequence number is automatically assigned by the CEC
-+	    framework for all transmitted messages. It can be later used by the
-+	    framework to generate an event if a reply for a message was
-+	    requested and the message was transmitted in a non-blocking mode.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+	    <entry>Flags. No flags are defined yet, so set this to 0.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>rx_status</structfield></entry>
-+	    <entry>The status bits of the received message. See <xref linkend="cec-rx-status" />
-+	    for the possible status values. It is 0 if this message was transmitted, not
-+	    received, unless this is the reply to a transmitted message. In that case both
-+	    <structfield>rx_status</structfield> and <structfield>tx_status</structfield>
-+	    are set.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>tx_status</structfield></entry>
-+	    <entry>The status bits of the transmitted message. See <xref linkend="cec-tx-status" />
-+	    for the possible status values. It is 0 if this messages was received, not
-+	    transmitted.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>msg</structfield>[16]</entry>
-+	    <entry>The message payload. For <constant>CEC_TRANSMIT</constant> this
-+	    is filled in by the application. The driver will fill this in for
-+	    <constant>CEC_RECEIVE</constant> and for <constant>CEC_TRANSMIT</constant>
-+	    it will be filled in with the payload of the reply message if
-+	    <structfield>reply</structfield> was set.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>reply</structfield></entry>
-+	    <entry>Wait until this message is replied. If <structfield>reply</structfield>
-+	    is 0, then don't wait for a reply but return after transmitting the
-+	    message. If there was an error as indicated by a non-zero <structfield>status</structfield>
-+	    field, then <structfield>reply</structfield> is set to 0 by the driver.
-+	    Ignored by <constant>CEC_RECEIVE</constant>.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>tx_arb_lost_cnt</structfield></entry>
-+	    <entry>A counter of the number of transmit attempts that resulted in the
-+	    Arbitration Lost error. This is only set if the hardware supports this, otherwise
-+	    it is always 0. This counter is only valid if the <constant>CEC_TX_STATUS_ARB_LOST</constant>
-+	    status bit is set.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>tx_nack_cnt</structfield></entry>
-+	    <entry>A counter of the number of transmit attempts that resulted in the
-+	    Not Acknowledged error. This is only set if the hardware supports this, otherwise
-+	    it is always 0. This counter is only valid if the <constant>CEC_TX_STATUS_NACK</constant>
-+            status bit is set.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>tx_low_drive_cnt</structfield></entry>
-+	    <entry>A counter of the number of transmit attempts that resulted in the
-+	    Arbitration Lost error. This is only set if the hardware supports this, otherwise
-+	    it is always 0. This counter is only valid if the <constant>CEC_TX_STATUS_LOW_DRIVE</constant>
-+            status bit is set.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>tx_error_cnt</structfield></entry>
-+	    <entry>A counter of the number of transmit errors other than Arbitration Lost
-+	    or Not Acknowledged. This is only set if the hardware supports this, otherwise
-+	    it is always 0. This counter is only valid if the <constant>CEC_TX_STATUS_ERROR</constant>
-+	    status bit is set.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="cec-tx-status">
-+      <title>CEC Transmit Status</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>CEC_TX_STATUS_OK</constant></entry>
-+	    <entry>0x01</entry>
-+	    <entry>The message was transmitted successfully. This is mutually exclusive with
-+	    <constant>CEC_TX_STATUS_MAX_RETRIES</constant>. Other bits can still be set if
-+	    earlier attempts met with failure before the transmit was eventually successful.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_TX_STATUS_ARB_LOST</constant></entry>
-+	    <entry>0x02</entry>
-+	    <entry>CEC line arbitration was lost.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_TX_STATUS_NACK</constant></entry>
-+	    <entry>0x04</entry>
-+	    <entry>Message was not acknowledged.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_TX_STATUS_LOW_DRIVE</constant></entry>
-+	    <entry>0x08</entry>
-+	    <entry>Low drive was detected on the CEC bus. This indicates that a follower
-+	    detected an error on the bus and requests a retransmission.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_TX_STATUS_ERROR</constant></entry>
-+	    <entry>0x10</entry>
-+	    <entry>Some error occurred. This is used for any errors that do not
-+	    fit the previous two, either because the hardware could not tell
-+	    which error occurred, or because the hardware tested for other conditions
-+	    besides those two.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_TX_STATUS_MAX_RETRIES</constant></entry>
-+	    <entry>0x20</entry>
-+	    <entry>The transmit failed after one or more retries. This status bit is mutually
-+	    exclusive with <constant>CEC_TX_STATUS_OK</constant>. Other bits can still be set
-+	    to explain which failures were seen.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="cec-rx-status">
-+      <title>CEC Receive Status</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>CEC_RX_STATUS_OK</constant></entry>
-+	    <entry>0x01</entry>
-+	    <entry>The message was received successfully.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_RX_STATUS_TIMEOUT</constant></entry>
-+	    <entry>0x02</entry>
-+	    <entry>The reply to an earlier transmitted message timed out.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_RX_STATUS_FEATURE_ABORT</constant></entry>
-+	    <entry>0x04</entry>
-+	    <entry>The message was received successfully but the reply was
-+	    <constant>CEC_MSG_FEATURE_ABORT</constant>. This status is only
-+	    set if this message was the reply to an earlier transmitted
-+	    message.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media_api.tmpl b/Documentation/DocBook/media_api.tmpl
-index 7b77e0f..a2765d8 100644
---- a/Documentation/DocBook/media_api.tmpl
-+++ b/Documentation/DocBook/media_api.tmpl
-@@ -75,7 +75,7 @@
- 	    </mediaobject>
- 	</figure>
- 	<para>The media infrastructure API was designed to control such
--	    devices. It is divided into four parts.</para>
-+	    devices. It is divided into five parts.</para>
- 	<para>The first part covers radio, video capture and output,
- 		cameras, analog TV devices and codecs.</para>
- 	<para>The second part covers the
-@@ -87,6 +87,7 @@
- 		<xref linkend="fe-delivery-system-t" />.</para>
- 	<para>The third part covers the Remote Controller API.</para>
- 	<para>The fourth part covers the Media Controller API.</para>
-+	<para>The fifth part covers the CEC (Consumer Electronics Control) API.</para>
- 	<para>It should also be noted that a media device may also have audio
- 	      components, like mixers, PCM capture, PCM playback, etc, which
- 	      are controlled via ALSA API.</para>
-@@ -107,6 +108,9 @@
- <part id="media_common">
- &sub-media-controller;
- </part>
-+<part id="cec">
-+&sub-cec-api;
-+</part>
- 
- <chapter id="gen_errors">
- &sub-gen-errors;
++++ b/drivers/media/platform/s5p-cec/s5p_cec.h
+@@ -0,0 +1,76 @@
++/* drivers/media/platform/s5p-cec/s5p_cec.h
++ *
++ * Samsung S5P HDMI CEC driver
++ *
++ * Copyright (c) 2014 Samsung Electronics Co., Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#ifndef _S5P_CEC_H_
++#define _S5P_CEC_H_ __FILE__
++
++#include <linux/clk.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/mfd/syscon.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
++#include <linux/timer.h>
++#include <linux/version.h>
++#include <linux/workqueue.h>
++#include <media/cec.h>
++
++#include "exynos_hdmi_cec.h"
++#include "regs-cec.h"
++#include "s5p_cec.h"
++
++#define CEC_NAME	"s5p-cec"
++
++#define CEC_STATUS_TX_RUNNING		(1 << 0)
++#define CEC_STATUS_TX_TRANSFERRING	(1 << 1)
++#define CEC_STATUS_TX_DONE		(1 << 2)
++#define CEC_STATUS_TX_ERROR		(1 << 3)
++#define CEC_STATUS_TX_BYTES		(0xFF << 8)
++#define CEC_STATUS_RX_RUNNING		(1 << 16)
++#define CEC_STATUS_RX_RECEIVING		(1 << 17)
++#define CEC_STATUS_RX_DONE		(1 << 18)
++#define CEC_STATUS_RX_ERROR		(1 << 19)
++#define CEC_STATUS_RX_BCAST		(1 << 20)
++#define CEC_STATUS_RX_BYTES		(0xFF << 24)
++
++#define CEC_WORKER_TX_DONE		(1 << 0)
++#define CEC_WORKER_RX_MSG		(1 << 1)
++
++/* CEC Rx buffer size */
++#define CEC_RX_BUFF_SIZE		16
++/* CEC Tx buffer size */
++#define CEC_TX_BUFF_SIZE		16
++
++enum cec_state {
++	STATE_IDLE,
++	STATE_BUSY,
++	STATE_DONE,
++	STATE_ERROR
++};
++
++struct s5p_cec_dev {
++	struct cec_adapter	*adap;
++	struct clk		*clk;
++	struct device		*dev;
++	struct mutex		lock;
++	struct regmap           *pmu;
++	int			irq;
++	void __iomem		*reg;
++
++	enum cec_state		rx;
++	enum cec_state		tx;
++	struct cec_msg		msg;
++};
++
++#endif /* _S5P_CEC_H_ */
 -- 
 2.8.1
 
