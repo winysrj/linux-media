@@ -1,687 +1,1424 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40687 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751634AbcFXPcO (ORCPT
+Received: from avasout04.plus.net ([212.159.14.19]:36472 "EHLO
+	avasout04.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750997AbcFYRD5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2016 11:32:14 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Fabien Dessenne <fabien.dessenne@st.com>
-Subject: [PATCH 19/19] bdisp: move the V/H filter spec to bdisp-hw.c
-Date: Fri, 24 Jun 2016 12:32:00 -0300
-Message-Id: <068adc457f2a795b871429464dbec15388c6dc57.1466782238.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1466782238.git.mchehab@s-opensource.com>
-References: <cover.1466782238.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1466782238.git.mchehab@s-opensource.com>
-References: <cover.1466782238.git.mchehab@s-opensource.com>
+	Sat, 25 Jun 2016 13:03:57 -0400
+From: Nick Whitehead <nick@mistoffolees.me.uk>
+Subject: libdvbv5 EIT schedule reading
+To: linux-media@vger.kernel.org
+Message-ID: <576EB7AE.5070502@mistoffolees.me.uk>
+Date: Sat, 25 Jun 2016 17:56:14 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Type: multipart/mixed;
+ boundary="------------070402040202020000070803"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those structs are used only at bdisp-hw, so they shouldn't be
-there in a header file that it is used elsewhere.
+This is a multi-part message in MIME format.
+--------------070402040202020000070803
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-This fixes the following Gcc 6.1 warnings:
+In using libdvbv5 to read off-air EIT (UK freeview), I find that to read 
+the full schedule one needs to rrad tables with TIDs 0x50 to 
+(potentially) 0x5f. However in descriptors.c only table 0x50 is given an 
+initialiser function, and so 0x51 onwards cannot be read as it stands.
 
-In file included from drivers/media/platform/sti/bdisp/bdisp-debug.c:11:0:
-drivers/media/platform/sti/bdisp/bdisp-filter.h:207:65: warning: ‘bdisp_v_spec’ defined but not used [-Wunused-const-variable=]
- static const struct __maybe_unused bdisp_filter_v_spec bdisp_v_spec[] = {
-                                                                 ^~~~~~~~~
-In file included from drivers/media/platform/sti/bdisp/bdisp-debug.c:11:0:
-drivers/media/platform/sti/bdisp/bdisp-filter.h:23:65: warning: ‘bdisp_h_spec’ defined but not used [-Wunused-const-variable=]
- static const struct __maybe_unused bdisp_filter_h_spec bdisp_h_spec[] = {
-                                                                 ^~~~~~~~~
+Therefore I have made a small change to descriptors.c (attached) to to 
+add initialisers for 0x51-0x5f (and actually 0x60-0x6f). I have not used 
+the latter, but the former certainly allows me to read all future 
+events, whereas with 0x50 alone, could only read 3 days.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/platform/sti/bdisp/bdisp-filter.h | 304 -----------------------
- drivers/media/platform/sti/bdisp/bdisp-hw.c     | 305 ++++++++++++++++++++++++
- 2 files changed, 305 insertions(+), 304 deletions(-)
+--------------070402040202020000070803
+Content-Type: text/x-csrc;
+ name="descriptors.c"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="descriptors.c"
 
-diff --git a/drivers/media/platform/sti/bdisp/bdisp-filter.h b/drivers/media/platform/sti/bdisp/bdisp-filter.h
-index fc8c54f725ad..53e52fb4127f 100644
---- a/drivers/media/platform/sti/bdisp/bdisp-filter.h
-+++ b/drivers/media/platform/sti/bdisp/bdisp-filter.h
-@@ -19,178 +19,6 @@ struct bdisp_filter_h_spec {
- 	const u16 max;
- 	const u8 coef[BDISP_HF_NB];
- };
--
--static const struct bdisp_filter_h_spec bdisp_h_spec[] = {
--	{
--		.min = 0,
--		.max = 921,
--		.coef = {
--			0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00,
--			0x00, 0x00, 0xff, 0x07, 0x3d, 0xfc, 0x01, 0x00,
--			0x00, 0x01, 0xfd, 0x11, 0x36, 0xf9, 0x02, 0x00,
--			0x00, 0x01, 0xfb, 0x1b, 0x2e, 0xf9, 0x02, 0x00,
--			0x00, 0x01, 0xf9, 0x26, 0x26, 0xf9, 0x01, 0x00,
--			0x00, 0x02, 0xf9, 0x30, 0x19, 0xfb, 0x01, 0x00,
--			0x00, 0x02, 0xf9, 0x39, 0x0e, 0xfd, 0x01, 0x00,
--			0x00, 0x01, 0xfc, 0x3e, 0x06, 0xff, 0x00, 0x00
--		}
--	},
--	{
--		.min = 921,
--		.max = 1024,
--		.coef = {
--			0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00,
--			0xff, 0x03, 0xfd, 0x08, 0x3e, 0xf9, 0x04, 0xfe,
--			0xfd, 0x06, 0xf8, 0x13, 0x3b, 0xf4, 0x07, 0xfc,
--			0xfb, 0x08, 0xf5, 0x1f, 0x34, 0xf1, 0x09, 0xfb,
--			0xfb, 0x09, 0xf2, 0x2b, 0x2a, 0xf1, 0x09, 0xfb,
--			0xfb, 0x09, 0xf2, 0x35, 0x1e, 0xf4, 0x08, 0xfb,
--			0xfc, 0x07, 0xf5, 0x3c, 0x12, 0xf7, 0x06, 0xfd,
--			0xfe, 0x04, 0xfa, 0x3f, 0x07, 0xfc, 0x03, 0xff
--		}
--	},
--	{
--		.min = 1024,
--		.max = 1126,
--		.coef = {
--			0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00,
--			0xff, 0x03, 0xfd, 0x08, 0x3e, 0xf9, 0x04, 0xfe,
--			0xfd, 0x06, 0xf8, 0x13, 0x3b, 0xf4, 0x07, 0xfc,
--			0xfb, 0x08, 0xf5, 0x1f, 0x34, 0xf1, 0x09, 0xfb,
--			0xfb, 0x09, 0xf2, 0x2b, 0x2a, 0xf1, 0x09, 0xfb,
--			0xfb, 0x09, 0xf2, 0x35, 0x1e, 0xf4, 0x08, 0xfb,
--			0xfc, 0x07, 0xf5, 0x3c, 0x12, 0xf7, 0x06, 0xfd,
--			0xfe, 0x04, 0xfa, 0x3f, 0x07, 0xfc, 0x03, 0xff
--		}
--	},
--	{
--		.min = 1126,
--		.max = 1228,
--		.coef = {
--			0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00,
--			0xff, 0x03, 0xfd, 0x08, 0x3e, 0xf9, 0x04, 0xfe,
--			0xfd, 0x06, 0xf8, 0x13, 0x3b, 0xf4, 0x07, 0xfc,
--			0xfb, 0x08, 0xf5, 0x1f, 0x34, 0xf1, 0x09, 0xfb,
--			0xfb, 0x09, 0xf2, 0x2b, 0x2a, 0xf1, 0x09, 0xfb,
--			0xfb, 0x09, 0xf2, 0x35, 0x1e, 0xf4, 0x08, 0xfb,
--			0xfc, 0x07, 0xf5, 0x3c, 0x12, 0xf7, 0x06, 0xfd,
--			0xfe, 0x04, 0xfa, 0x3f, 0x07, 0xfc, 0x03, 0xff
--		}
--	},
--	{
--		.min = 1228,
--		.max = 1331,
--		.coef = {
--			0xfd, 0x04, 0xfc, 0x05, 0x39, 0x05, 0xfc, 0x04,
--			0xfc, 0x06, 0xf9, 0x0c, 0x39, 0xfe, 0x00, 0x02,
--			0xfb, 0x08, 0xf6, 0x17, 0x35, 0xf9, 0x02, 0x00,
--			0xfc, 0x08, 0xf4, 0x20, 0x30, 0xf4, 0x05, 0xff,
--			0xfd, 0x07, 0xf4, 0x29, 0x28, 0xf3, 0x07, 0xfd,
--			0xff, 0x05, 0xf5, 0x31, 0x1f, 0xf3, 0x08, 0xfc,
--			0x00, 0x02, 0xf9, 0x38, 0x14, 0xf6, 0x08, 0xfb,
--			0x02, 0x00, 0xff, 0x3a, 0x0b, 0xf8, 0x06, 0xfc
--		}
--	},
--	{
--		.min = 1331,
--		.max = 1433,
--		.coef = {
--			0xfc, 0x06, 0xf9, 0x09, 0x34, 0x09, 0xf9, 0x06,
--			0xfd, 0x07, 0xf7, 0x10, 0x32, 0x02, 0xfc, 0x05,
--			0xfe, 0x07, 0xf6, 0x17, 0x2f, 0xfc, 0xff, 0x04,
--			0xff, 0x06, 0xf5, 0x20, 0x2a, 0xf9, 0x01, 0x02,
--			0x00, 0x04, 0xf6, 0x27, 0x25, 0xf6, 0x04, 0x00,
--			0x02, 0x01, 0xf9, 0x2d, 0x1d, 0xf5, 0x06, 0xff,
--			0x04, 0xff, 0xfd, 0x31, 0x15, 0xf5, 0x07, 0xfe,
--			0x05, 0xfc, 0x02, 0x35, 0x0d, 0xf7, 0x07, 0xfd
--		}
--	},
--	{
--		.min = 1433,
--		.max = 1536,
--		.coef = {
--			0xfe, 0x06, 0xf8, 0x0b, 0x30, 0x0b, 0xf8, 0x06,
--			0xff, 0x06, 0xf7, 0x12, 0x2d, 0x05, 0xfa, 0x06,
--			0x00, 0x04, 0xf6, 0x18, 0x2c, 0x00, 0xfc, 0x06,
--			0x01, 0x02, 0xf7, 0x1f, 0x27, 0xfd, 0xff, 0x04,
--			0x03, 0x00, 0xf9, 0x24, 0x24, 0xf9, 0x00, 0x03,
--			0x04, 0xff, 0xfd, 0x29, 0x1d, 0xf7, 0x02, 0x01,
--			0x06, 0xfc, 0x00, 0x2d, 0x17, 0xf6, 0x04, 0x00,
--			0x06, 0xfa, 0x05, 0x30, 0x0f, 0xf7, 0x06, 0xff
--		}
--	},
--	{
--		.min = 1536,
--		.max = 2048,
--		.coef = {
--			0x05, 0xfd, 0xfb, 0x13, 0x25, 0x13, 0xfb, 0xfd,
--			0x05, 0xfc, 0xfd, 0x17, 0x24, 0x0f, 0xf9, 0xff,
--			0x04, 0xfa, 0xff, 0x1b, 0x24, 0x0b, 0xf9, 0x00,
--			0x03, 0xf9, 0x01, 0x1f, 0x23, 0x08, 0xf8, 0x01,
--			0x02, 0xf9, 0x04, 0x22, 0x20, 0x04, 0xf9, 0x02,
--			0x01, 0xf8, 0x08, 0x25, 0x1d, 0x01, 0xf9, 0x03,
--			0x00, 0xf9, 0x0c, 0x25, 0x1a, 0xfe, 0xfa, 0x04,
--			0xff, 0xf9, 0x10, 0x26, 0x15, 0xfc, 0xfc, 0x05
--		}
--	},
--	{
--		.min = 2048,
--		.max = 3072,
--		.coef = {
--			0xfc, 0xfd, 0x06, 0x13, 0x18, 0x13, 0x06, 0xfd,
--			0xfc, 0xfe, 0x08, 0x15, 0x17, 0x12, 0x04, 0xfc,
--			0xfb, 0xfe, 0x0a, 0x16, 0x18, 0x10, 0x03, 0xfc,
--			0xfb, 0x00, 0x0b, 0x18, 0x17, 0x0f, 0x01, 0xfb,
--			0xfb, 0x00, 0x0d, 0x19, 0x17, 0x0d, 0x00, 0xfb,
--			0xfb, 0x01, 0x0f, 0x19, 0x16, 0x0b, 0x00, 0xfb,
--			0xfc, 0x03, 0x11, 0x19, 0x15, 0x09, 0xfe, 0xfb,
--			0xfc, 0x04, 0x12, 0x1a, 0x12, 0x08, 0xfe, 0xfc
--		}
--	},
--	{
--		.min = 3072,
--		.max = 4096,
--		.coef = {
--			0xfe, 0x02, 0x09, 0x0f, 0x0e, 0x0f, 0x09, 0x02,
--			0xff, 0x02, 0x09, 0x0f, 0x10, 0x0e, 0x08, 0x01,
--			0xff, 0x03, 0x0a, 0x10, 0x10, 0x0d, 0x07, 0x00,
--			0x00, 0x04, 0x0b, 0x10, 0x0f, 0x0c, 0x06, 0x00,
--			0x00, 0x05, 0x0c, 0x10, 0x0e, 0x0c, 0x05, 0x00,
--			0x00, 0x06, 0x0c, 0x11, 0x0e, 0x0b, 0x04, 0x00,
--			0x00, 0x07, 0x0d, 0x11, 0x0f, 0x0a, 0x03, 0xff,
--			0x01, 0x08, 0x0e, 0x11, 0x0e, 0x09, 0x02, 0xff
--		}
--	},
--	{
--		.min = 4096,
--		.max = 5120,
--		.coef = {
--			0x00, 0x04, 0x09, 0x0c, 0x0e, 0x0c, 0x09, 0x04,
--			0x01, 0x05, 0x09, 0x0c, 0x0d, 0x0c, 0x08, 0x04,
--			0x01, 0x05, 0x0a, 0x0c, 0x0e, 0x0b, 0x08, 0x03,
--			0x02, 0x06, 0x0a, 0x0d, 0x0c, 0x0b, 0x07, 0x03,
--			0x02, 0x07, 0x0a, 0x0d, 0x0d, 0x0a, 0x07, 0x02,
--			0x03, 0x07, 0x0b, 0x0d, 0x0c, 0x0a, 0x06, 0x02,
--			0x03, 0x08, 0x0b, 0x0d, 0x0d, 0x0a, 0x05, 0x01,
--			0x04, 0x08, 0x0c, 0x0d, 0x0c, 0x09, 0x05, 0x01
--		}
--	},
--	{
--		.min = 5120,
--		.max = 65535,
--		.coef = {
--			0x03, 0x06, 0x09, 0x0b, 0x09, 0x0b, 0x09, 0x06,
--			0x03, 0x06, 0x09, 0x0b, 0x0c, 0x0a, 0x08, 0x05,
--			0x03, 0x06, 0x09, 0x0b, 0x0c, 0x0a, 0x08, 0x05,
--			0x04, 0x07, 0x09, 0x0b, 0x0b, 0x0a, 0x08, 0x04,
--			0x04, 0x07, 0x0a, 0x0b, 0x0b, 0x0a, 0x07, 0x04,
--			0x04, 0x08, 0x0a, 0x0b, 0x0b, 0x09, 0x07, 0x04,
--			0x05, 0x08, 0x0a, 0x0b, 0x0c, 0x09, 0x06, 0x03,
--			0x05, 0x08, 0x0a, 0x0b, 0x0c, 0x09, 0x06, 0x03
--		}
--	}
--};
--
- /**
-  * struct bdisp_filter_v_spec - Vertical filter specification
-  *
-@@ -204,138 +32,6 @@ struct bdisp_filter_v_spec {
- 	const u8 coef[BDISP_VF_NB];
- };
- 
--static const struct bdisp_filter_v_spec bdisp_v_spec[] = {
--	{
--		.min = 0,
--		.max = 1024,
--		.coef = {
--			0x00, 0x00, 0x40, 0x00, 0x00,
--			0x00, 0x06, 0x3d, 0xfd, 0x00,
--			0xfe, 0x0f, 0x38, 0xfb, 0x00,
--			0xfd, 0x19, 0x2f, 0xfb, 0x00,
--			0xfc, 0x24, 0x24, 0xfc, 0x00,
--			0xfb, 0x2f, 0x19, 0xfd, 0x00,
--			0xfb, 0x38, 0x0f, 0xfe, 0x00,
--			0xfd, 0x3d, 0x06, 0x00, 0x00
--		}
--	},
--	{
--		.min = 1024,
--		.max = 1331,
--		.coef = {
--			0xfc, 0x05, 0x3e, 0x05, 0xfc,
--			0xf8, 0x0e, 0x3b, 0xff, 0x00,
--			0xf5, 0x18, 0x38, 0xf9, 0x02,
--			0xf4, 0x21, 0x31, 0xf5, 0x05,
--			0xf4, 0x2a, 0x27, 0xf4, 0x07,
--			0xf6, 0x30, 0x1e, 0xf4, 0x08,
--			0xf9, 0x35, 0x15, 0xf6, 0x07,
--			0xff, 0x37, 0x0b, 0xf9, 0x06
--		}
--	},
--	{
--		.min = 1331,
--		.max = 1433,
--		.coef = {
--			0xf8, 0x0a, 0x3c, 0x0a, 0xf8,
--			0xf6, 0x12, 0x3b, 0x02, 0xfb,
--			0xf4, 0x1b, 0x35, 0xfd, 0xff,
--			0xf4, 0x23, 0x30, 0xf8, 0x01,
--			0xf6, 0x29, 0x27, 0xf6, 0x04,
--			0xf9, 0x2e, 0x1e, 0xf5, 0x06,
--			0xfd, 0x31, 0x16, 0xf6, 0x06,
--			0x02, 0x32, 0x0d, 0xf8, 0x07
--		}
--	},
--	{
--		.min = 1433,
--		.max = 1536,
--		.coef = {
--			0xf6, 0x0e, 0x38, 0x0e, 0xf6,
--			0xf5, 0x15, 0x38, 0x06, 0xf8,
--			0xf5, 0x1d, 0x33, 0x00, 0xfb,
--			0xf6, 0x23, 0x2d, 0xfc, 0xfe,
--			0xf9, 0x28, 0x26, 0xf9, 0x00,
--			0xfc, 0x2c, 0x1e, 0xf7, 0x03,
--			0x00, 0x2e, 0x18, 0xf6, 0x04,
--			0x05, 0x2e, 0x11, 0xf7, 0x05
--		}
--	},
--	{
--		.min = 1536,
--		.max = 2048,
--		.coef = {
--			0xfb, 0x13, 0x24, 0x13, 0xfb,
--			0xfd, 0x17, 0x23, 0x0f, 0xfa,
--			0xff, 0x1a, 0x23, 0x0b, 0xf9,
--			0x01, 0x1d, 0x22, 0x07, 0xf9,
--			0x04, 0x20, 0x1f, 0x04, 0xf9,
--			0x07, 0x22, 0x1c, 0x01, 0xfa,
--			0x0b, 0x24, 0x17, 0xff, 0xfb,
--			0x0f, 0x24, 0x14, 0xfd, 0xfc
--		}
--	},
--	{
--		.min = 2048,
--		.max = 3072,
--		.coef = {
--			0x05, 0x10, 0x16, 0x10, 0x05,
--			0x06, 0x11, 0x16, 0x0f, 0x04,
--			0x08, 0x13, 0x15, 0x0e, 0x02,
--			0x09, 0x14, 0x16, 0x0c, 0x01,
--			0x0b, 0x15, 0x15, 0x0b, 0x00,
--			0x0d, 0x16, 0x13, 0x0a, 0x00,
--			0x0f, 0x17, 0x13, 0x08, 0xff,
--			0x11, 0x18, 0x12, 0x07, 0xfe
--		}
--	},
--	{
--		.min = 3072,
--		.max = 4096,
--		.coef = {
--			0x09, 0x0f, 0x10, 0x0f, 0x09,
--			0x09, 0x0f, 0x12, 0x0e, 0x08,
--			0x0a, 0x10, 0x11, 0x0e, 0x07,
--			0x0b, 0x11, 0x11, 0x0d, 0x06,
--			0x0c, 0x11, 0x12, 0x0c, 0x05,
--			0x0d, 0x12, 0x11, 0x0c, 0x04,
--			0x0e, 0x12, 0x11, 0x0b, 0x04,
--			0x0f, 0x13, 0x11, 0x0a, 0x03
--		}
--	},
--	{
--		.min = 4096,
--		.max = 5120,
--		.coef = {
--			0x0a, 0x0e, 0x10, 0x0e, 0x0a,
--			0x0b, 0x0e, 0x0f, 0x0e, 0x0a,
--			0x0b, 0x0f, 0x10, 0x0d, 0x09,
--			0x0c, 0x0f, 0x10, 0x0d, 0x08,
--			0x0d, 0x0f, 0x0f, 0x0d, 0x08,
--			0x0d, 0x10, 0x10, 0x0c, 0x07,
--			0x0e, 0x10, 0x0f, 0x0c, 0x07,
--			0x0f, 0x10, 0x10, 0x0b, 0x06
--		}
--	},
--	{
--		.min = 5120,
--		.max = 65535,
--		.coef = {
--			0x0b, 0x0e, 0x0e, 0x0e, 0x0b,
--			0x0b, 0x0e, 0x0f, 0x0d, 0x0b,
--			0x0c, 0x0e, 0x0f, 0x0d, 0x0a,
--			0x0c, 0x0e, 0x0f, 0x0d, 0x0a,
--			0x0d, 0x0f, 0x0e, 0x0d, 0x09,
--			0x0d, 0x0f, 0x0f, 0x0c, 0x09,
--			0x0e, 0x0f, 0x0e, 0x0c, 0x09,
--			0x0e, 0x0f, 0x0f, 0x0c, 0x08
--		}
--	}
--};
--
--#define NB_H_FILTER ARRAY_SIZE(bdisp_h_spec)
--#define NB_V_FILTER ARRAY_SIZE(bdisp_v_spec)
--
- /* RGB YUV 601 standard conversion */
- static const u32 bdisp_rgb_to_yuv[] = {
- 		0x0e1e8bee, 0x08420419, 0xfb5ed471, 0x08004080,
-diff --git a/drivers/media/platform/sti/bdisp/bdisp-hw.c b/drivers/media/platform/sti/bdisp/bdisp-hw.c
-index 052c932ac942..3df66d11c795 100644
---- a/drivers/media/platform/sti/bdisp/bdisp-hw.c
-+++ b/drivers/media/platform/sti/bdisp/bdisp-hw.c
-@@ -47,6 +47,311 @@ struct bdisp_filter_addr {
- 	dma_addr_t paddr;    /* Physical address for filter table */
- };
- 
-+static const struct bdisp_filter_h_spec bdisp_h_spec[] = {
-+	{
-+		.min = 0,
-+		.max = 921,
-+		.coef = {
-+			0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00,
-+			0x00, 0x00, 0xff, 0x07, 0x3d, 0xfc, 0x01, 0x00,
-+			0x00, 0x01, 0xfd, 0x11, 0x36, 0xf9, 0x02, 0x00,
-+			0x00, 0x01, 0xfb, 0x1b, 0x2e, 0xf9, 0x02, 0x00,
-+			0x00, 0x01, 0xf9, 0x26, 0x26, 0xf9, 0x01, 0x00,
-+			0x00, 0x02, 0xf9, 0x30, 0x19, 0xfb, 0x01, 0x00,
-+			0x00, 0x02, 0xf9, 0x39, 0x0e, 0xfd, 0x01, 0x00,
-+			0x00, 0x01, 0xfc, 0x3e, 0x06, 0xff, 0x00, 0x00
-+		}
-+	},
-+	{
-+		.min = 921,
-+		.max = 1024,
-+		.coef = {
-+			0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00,
-+			0xff, 0x03, 0xfd, 0x08, 0x3e, 0xf9, 0x04, 0xfe,
-+			0xfd, 0x06, 0xf8, 0x13, 0x3b, 0xf4, 0x07, 0xfc,
-+			0xfb, 0x08, 0xf5, 0x1f, 0x34, 0xf1, 0x09, 0xfb,
-+			0xfb, 0x09, 0xf2, 0x2b, 0x2a, 0xf1, 0x09, 0xfb,
-+			0xfb, 0x09, 0xf2, 0x35, 0x1e, 0xf4, 0x08, 0xfb,
-+			0xfc, 0x07, 0xf5, 0x3c, 0x12, 0xf7, 0x06, 0xfd,
-+			0xfe, 0x04, 0xfa, 0x3f, 0x07, 0xfc, 0x03, 0xff
-+		}
-+	},
-+	{
-+		.min = 1024,
-+		.max = 1126,
-+		.coef = {
-+			0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00,
-+			0xff, 0x03, 0xfd, 0x08, 0x3e, 0xf9, 0x04, 0xfe,
-+			0xfd, 0x06, 0xf8, 0x13, 0x3b, 0xf4, 0x07, 0xfc,
-+			0xfb, 0x08, 0xf5, 0x1f, 0x34, 0xf1, 0x09, 0xfb,
-+			0xfb, 0x09, 0xf2, 0x2b, 0x2a, 0xf1, 0x09, 0xfb,
-+			0xfb, 0x09, 0xf2, 0x35, 0x1e, 0xf4, 0x08, 0xfb,
-+			0xfc, 0x07, 0xf5, 0x3c, 0x12, 0xf7, 0x06, 0xfd,
-+			0xfe, 0x04, 0xfa, 0x3f, 0x07, 0xfc, 0x03, 0xff
-+		}
-+	},
-+	{
-+		.min = 1126,
-+		.max = 1228,
-+		.coef = {
-+			0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00,
-+			0xff, 0x03, 0xfd, 0x08, 0x3e, 0xf9, 0x04, 0xfe,
-+			0xfd, 0x06, 0xf8, 0x13, 0x3b, 0xf4, 0x07, 0xfc,
-+			0xfb, 0x08, 0xf5, 0x1f, 0x34, 0xf1, 0x09, 0xfb,
-+			0xfb, 0x09, 0xf2, 0x2b, 0x2a, 0xf1, 0x09, 0xfb,
-+			0xfb, 0x09, 0xf2, 0x35, 0x1e, 0xf4, 0x08, 0xfb,
-+			0xfc, 0x07, 0xf5, 0x3c, 0x12, 0xf7, 0x06, 0xfd,
-+			0xfe, 0x04, 0xfa, 0x3f, 0x07, 0xfc, 0x03, 0xff
-+		}
-+	},
-+	{
-+		.min = 1228,
-+		.max = 1331,
-+		.coef = {
-+			0xfd, 0x04, 0xfc, 0x05, 0x39, 0x05, 0xfc, 0x04,
-+			0xfc, 0x06, 0xf9, 0x0c, 0x39, 0xfe, 0x00, 0x02,
-+			0xfb, 0x08, 0xf6, 0x17, 0x35, 0xf9, 0x02, 0x00,
-+			0xfc, 0x08, 0xf4, 0x20, 0x30, 0xf4, 0x05, 0xff,
-+			0xfd, 0x07, 0xf4, 0x29, 0x28, 0xf3, 0x07, 0xfd,
-+			0xff, 0x05, 0xf5, 0x31, 0x1f, 0xf3, 0x08, 0xfc,
-+			0x00, 0x02, 0xf9, 0x38, 0x14, 0xf6, 0x08, 0xfb,
-+			0x02, 0x00, 0xff, 0x3a, 0x0b, 0xf8, 0x06, 0xfc
-+		}
-+	},
-+	{
-+		.min = 1331,
-+		.max = 1433,
-+		.coef = {
-+			0xfc, 0x06, 0xf9, 0x09, 0x34, 0x09, 0xf9, 0x06,
-+			0xfd, 0x07, 0xf7, 0x10, 0x32, 0x02, 0xfc, 0x05,
-+			0xfe, 0x07, 0xf6, 0x17, 0x2f, 0xfc, 0xff, 0x04,
-+			0xff, 0x06, 0xf5, 0x20, 0x2a, 0xf9, 0x01, 0x02,
-+			0x00, 0x04, 0xf6, 0x27, 0x25, 0xf6, 0x04, 0x00,
-+			0x02, 0x01, 0xf9, 0x2d, 0x1d, 0xf5, 0x06, 0xff,
-+			0x04, 0xff, 0xfd, 0x31, 0x15, 0xf5, 0x07, 0xfe,
-+			0x05, 0xfc, 0x02, 0x35, 0x0d, 0xf7, 0x07, 0xfd
-+		}
-+	},
-+	{
-+		.min = 1433,
-+		.max = 1536,
-+		.coef = {
-+			0xfe, 0x06, 0xf8, 0x0b, 0x30, 0x0b, 0xf8, 0x06,
-+			0xff, 0x06, 0xf7, 0x12, 0x2d, 0x05, 0xfa, 0x06,
-+			0x00, 0x04, 0xf6, 0x18, 0x2c, 0x00, 0xfc, 0x06,
-+			0x01, 0x02, 0xf7, 0x1f, 0x27, 0xfd, 0xff, 0x04,
-+			0x03, 0x00, 0xf9, 0x24, 0x24, 0xf9, 0x00, 0x03,
-+			0x04, 0xff, 0xfd, 0x29, 0x1d, 0xf7, 0x02, 0x01,
-+			0x06, 0xfc, 0x00, 0x2d, 0x17, 0xf6, 0x04, 0x00,
-+			0x06, 0xfa, 0x05, 0x30, 0x0f, 0xf7, 0x06, 0xff
-+		}
-+	},
-+	{
-+		.min = 1536,
-+		.max = 2048,
-+		.coef = {
-+			0x05, 0xfd, 0xfb, 0x13, 0x25, 0x13, 0xfb, 0xfd,
-+			0x05, 0xfc, 0xfd, 0x17, 0x24, 0x0f, 0xf9, 0xff,
-+			0x04, 0xfa, 0xff, 0x1b, 0x24, 0x0b, 0xf9, 0x00,
-+			0x03, 0xf9, 0x01, 0x1f, 0x23, 0x08, 0xf8, 0x01,
-+			0x02, 0xf9, 0x04, 0x22, 0x20, 0x04, 0xf9, 0x02,
-+			0x01, 0xf8, 0x08, 0x25, 0x1d, 0x01, 0xf9, 0x03,
-+			0x00, 0xf9, 0x0c, 0x25, 0x1a, 0xfe, 0xfa, 0x04,
-+			0xff, 0xf9, 0x10, 0x26, 0x15, 0xfc, 0xfc, 0x05
-+		}
-+	},
-+	{
-+		.min = 2048,
-+		.max = 3072,
-+		.coef = {
-+			0xfc, 0xfd, 0x06, 0x13, 0x18, 0x13, 0x06, 0xfd,
-+			0xfc, 0xfe, 0x08, 0x15, 0x17, 0x12, 0x04, 0xfc,
-+			0xfb, 0xfe, 0x0a, 0x16, 0x18, 0x10, 0x03, 0xfc,
-+			0xfb, 0x00, 0x0b, 0x18, 0x17, 0x0f, 0x01, 0xfb,
-+			0xfb, 0x00, 0x0d, 0x19, 0x17, 0x0d, 0x00, 0xfb,
-+			0xfb, 0x01, 0x0f, 0x19, 0x16, 0x0b, 0x00, 0xfb,
-+			0xfc, 0x03, 0x11, 0x19, 0x15, 0x09, 0xfe, 0xfb,
-+			0xfc, 0x04, 0x12, 0x1a, 0x12, 0x08, 0xfe, 0xfc
-+		}
-+	},
-+	{
-+		.min = 3072,
-+		.max = 4096,
-+		.coef = {
-+			0xfe, 0x02, 0x09, 0x0f, 0x0e, 0x0f, 0x09, 0x02,
-+			0xff, 0x02, 0x09, 0x0f, 0x10, 0x0e, 0x08, 0x01,
-+			0xff, 0x03, 0x0a, 0x10, 0x10, 0x0d, 0x07, 0x00,
-+			0x00, 0x04, 0x0b, 0x10, 0x0f, 0x0c, 0x06, 0x00,
-+			0x00, 0x05, 0x0c, 0x10, 0x0e, 0x0c, 0x05, 0x00,
-+			0x00, 0x06, 0x0c, 0x11, 0x0e, 0x0b, 0x04, 0x00,
-+			0x00, 0x07, 0x0d, 0x11, 0x0f, 0x0a, 0x03, 0xff,
-+			0x01, 0x08, 0x0e, 0x11, 0x0e, 0x09, 0x02, 0xff
-+		}
-+	},
-+	{
-+		.min = 4096,
-+		.max = 5120,
-+		.coef = {
-+			0x00, 0x04, 0x09, 0x0c, 0x0e, 0x0c, 0x09, 0x04,
-+			0x01, 0x05, 0x09, 0x0c, 0x0d, 0x0c, 0x08, 0x04,
-+			0x01, 0x05, 0x0a, 0x0c, 0x0e, 0x0b, 0x08, 0x03,
-+			0x02, 0x06, 0x0a, 0x0d, 0x0c, 0x0b, 0x07, 0x03,
-+			0x02, 0x07, 0x0a, 0x0d, 0x0d, 0x0a, 0x07, 0x02,
-+			0x03, 0x07, 0x0b, 0x0d, 0x0c, 0x0a, 0x06, 0x02,
-+			0x03, 0x08, 0x0b, 0x0d, 0x0d, 0x0a, 0x05, 0x01,
-+			0x04, 0x08, 0x0c, 0x0d, 0x0c, 0x09, 0x05, 0x01
-+		}
-+	},
-+	{
-+		.min = 5120,
-+		.max = 65535,
-+		.coef = {
-+			0x03, 0x06, 0x09, 0x0b, 0x09, 0x0b, 0x09, 0x06,
-+			0x03, 0x06, 0x09, 0x0b, 0x0c, 0x0a, 0x08, 0x05,
-+			0x03, 0x06, 0x09, 0x0b, 0x0c, 0x0a, 0x08, 0x05,
-+			0x04, 0x07, 0x09, 0x0b, 0x0b, 0x0a, 0x08, 0x04,
-+			0x04, 0x07, 0x0a, 0x0b, 0x0b, 0x0a, 0x07, 0x04,
-+			0x04, 0x08, 0x0a, 0x0b, 0x0b, 0x09, 0x07, 0x04,
-+			0x05, 0x08, 0x0a, 0x0b, 0x0c, 0x09, 0x06, 0x03,
-+			0x05, 0x08, 0x0a, 0x0b, 0x0c, 0x09, 0x06, 0x03
-+		}
-+	}
-+};
-+
-+#define NB_H_FILTER ARRAY_SIZE(bdisp_h_spec)
-+
-+
-+static const struct bdisp_filter_v_spec bdisp_v_spec[] = {
-+	{
-+		.min = 0,
-+		.max = 1024,
-+		.coef = {
-+			0x00, 0x00, 0x40, 0x00, 0x00,
-+			0x00, 0x06, 0x3d, 0xfd, 0x00,
-+			0xfe, 0x0f, 0x38, 0xfb, 0x00,
-+			0xfd, 0x19, 0x2f, 0xfb, 0x00,
-+			0xfc, 0x24, 0x24, 0xfc, 0x00,
-+			0xfb, 0x2f, 0x19, 0xfd, 0x00,
-+			0xfb, 0x38, 0x0f, 0xfe, 0x00,
-+			0xfd, 0x3d, 0x06, 0x00, 0x00
-+		}
-+	},
-+	{
-+		.min = 1024,
-+		.max = 1331,
-+		.coef = {
-+			0xfc, 0x05, 0x3e, 0x05, 0xfc,
-+			0xf8, 0x0e, 0x3b, 0xff, 0x00,
-+			0xf5, 0x18, 0x38, 0xf9, 0x02,
-+			0xf4, 0x21, 0x31, 0xf5, 0x05,
-+			0xf4, 0x2a, 0x27, 0xf4, 0x07,
-+			0xf6, 0x30, 0x1e, 0xf4, 0x08,
-+			0xf9, 0x35, 0x15, 0xf6, 0x07,
-+			0xff, 0x37, 0x0b, 0xf9, 0x06
-+		}
-+	},
-+	{
-+		.min = 1331,
-+		.max = 1433,
-+		.coef = {
-+			0xf8, 0x0a, 0x3c, 0x0a, 0xf8,
-+			0xf6, 0x12, 0x3b, 0x02, 0xfb,
-+			0xf4, 0x1b, 0x35, 0xfd, 0xff,
-+			0xf4, 0x23, 0x30, 0xf8, 0x01,
-+			0xf6, 0x29, 0x27, 0xf6, 0x04,
-+			0xf9, 0x2e, 0x1e, 0xf5, 0x06,
-+			0xfd, 0x31, 0x16, 0xf6, 0x06,
-+			0x02, 0x32, 0x0d, 0xf8, 0x07
-+		}
-+	},
-+	{
-+		.min = 1433,
-+		.max = 1536,
-+		.coef = {
-+			0xf6, 0x0e, 0x38, 0x0e, 0xf6,
-+			0xf5, 0x15, 0x38, 0x06, 0xf8,
-+			0xf5, 0x1d, 0x33, 0x00, 0xfb,
-+			0xf6, 0x23, 0x2d, 0xfc, 0xfe,
-+			0xf9, 0x28, 0x26, 0xf9, 0x00,
-+			0xfc, 0x2c, 0x1e, 0xf7, 0x03,
-+			0x00, 0x2e, 0x18, 0xf6, 0x04,
-+			0x05, 0x2e, 0x11, 0xf7, 0x05
-+		}
-+	},
-+	{
-+		.min = 1536,
-+		.max = 2048,
-+		.coef = {
-+			0xfb, 0x13, 0x24, 0x13, 0xfb,
-+			0xfd, 0x17, 0x23, 0x0f, 0xfa,
-+			0xff, 0x1a, 0x23, 0x0b, 0xf9,
-+			0x01, 0x1d, 0x22, 0x07, 0xf9,
-+			0x04, 0x20, 0x1f, 0x04, 0xf9,
-+			0x07, 0x22, 0x1c, 0x01, 0xfa,
-+			0x0b, 0x24, 0x17, 0xff, 0xfb,
-+			0x0f, 0x24, 0x14, 0xfd, 0xfc
-+		}
-+	},
-+	{
-+		.min = 2048,
-+		.max = 3072,
-+		.coef = {
-+			0x05, 0x10, 0x16, 0x10, 0x05,
-+			0x06, 0x11, 0x16, 0x0f, 0x04,
-+			0x08, 0x13, 0x15, 0x0e, 0x02,
-+			0x09, 0x14, 0x16, 0x0c, 0x01,
-+			0x0b, 0x15, 0x15, 0x0b, 0x00,
-+			0x0d, 0x16, 0x13, 0x0a, 0x00,
-+			0x0f, 0x17, 0x13, 0x08, 0xff,
-+			0x11, 0x18, 0x12, 0x07, 0xfe
-+		}
-+	},
-+	{
-+		.min = 3072,
-+		.max = 4096,
-+		.coef = {
-+			0x09, 0x0f, 0x10, 0x0f, 0x09,
-+			0x09, 0x0f, 0x12, 0x0e, 0x08,
-+			0x0a, 0x10, 0x11, 0x0e, 0x07,
-+			0x0b, 0x11, 0x11, 0x0d, 0x06,
-+			0x0c, 0x11, 0x12, 0x0c, 0x05,
-+			0x0d, 0x12, 0x11, 0x0c, 0x04,
-+			0x0e, 0x12, 0x11, 0x0b, 0x04,
-+			0x0f, 0x13, 0x11, 0x0a, 0x03
-+		}
-+	},
-+	{
-+		.min = 4096,
-+		.max = 5120,
-+		.coef = {
-+			0x0a, 0x0e, 0x10, 0x0e, 0x0a,
-+			0x0b, 0x0e, 0x0f, 0x0e, 0x0a,
-+			0x0b, 0x0f, 0x10, 0x0d, 0x09,
-+			0x0c, 0x0f, 0x10, 0x0d, 0x08,
-+			0x0d, 0x0f, 0x0f, 0x0d, 0x08,
-+			0x0d, 0x10, 0x10, 0x0c, 0x07,
-+			0x0e, 0x10, 0x0f, 0x0c, 0x07,
-+			0x0f, 0x10, 0x10, 0x0b, 0x06
-+		}
-+	},
-+	{
-+		.min = 5120,
-+		.max = 65535,
-+		.coef = {
-+			0x0b, 0x0e, 0x0e, 0x0e, 0x0b,
-+			0x0b, 0x0e, 0x0f, 0x0d, 0x0b,
-+			0x0c, 0x0e, 0x0f, 0x0d, 0x0a,
-+			0x0c, 0x0e, 0x0f, 0x0d, 0x0a,
-+			0x0d, 0x0f, 0x0e, 0x0d, 0x09,
-+			0x0d, 0x0f, 0x0f, 0x0c, 0x09,
-+			0x0e, 0x0f, 0x0e, 0x0c, 0x09,
-+			0x0e, 0x0f, 0x0f, 0x0c, 0x08
-+		}
-+	}
-+};
-+
-+#define NB_V_FILTER ARRAY_SIZE(bdisp_v_spec)
-+
- static struct bdisp_filter_addr bdisp_h_filter[NB_H_FILTER];
- static struct bdisp_filter_addr bdisp_v_filter[NB_V_FILTER];
- 
--- 
-2.7.4
+/*
+ * Copyright (c) 2011-2012 - Mauro Carvalho Chehab
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation version 2.1 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ */
 
+#include <inttypes.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
 
+#include <libdvbv5/descriptors.h>
+#include <libdvbv5/dvb-fe.h>
+#include <libdvbv5/dvb-scan.h>
+#include <libdvbv5/dvb-frontend.h>
+#include <libdvbv5/dvb-v5-std.h>
+#include <libdvbv5/dvb-log.h>
+
+#include <libdvbv5/pat.h>
+#include <libdvbv5/cat.h>
+#include <libdvbv5/pmt.h>
+#include <libdvbv5/nit.h>
+#include <libdvbv5/sdt.h>
+#include <libdvbv5/eit.h>
+#include <libdvbv5/vct.h>
+#include <libdvbv5/mgt.h>
+#include <libdvbv5/atsc_eit.h>
+#include <libdvbv5/desc_language.h>
+#include <libdvbv5/desc_network_name.h>
+#include <libdvbv5/desc_cable_delivery.h>
+#include <libdvbv5/desc_sat.h>
+#include <libdvbv5/desc_terrestrial_delivery.h>
+#include <libdvbv5/desc_isdbt_delivery.h>
+#include <libdvbv5/desc_service.h>
+#include <libdvbv5/desc_frequency_list.h>
+#include <libdvbv5/desc_event_short.h>
+#include <libdvbv5/desc_event_extended.h>
+#include <libdvbv5/desc_atsc_service_location.h>
+#include <libdvbv5/desc_hierarchy.h>
+#include <libdvbv5/desc_ts_info.h>
+#include <libdvbv5/desc_logical_channel.h>
+#include <libdvbv5/desc_partial_reception.h>
+#include <libdvbv5/desc_ca.h>
+#include <libdvbv5/desc_ca_identifier.h>
+#include <libdvbv5/desc_extension.h>
+
+static void dvb_desc_init(uint8_t type, uint8_t length, struct dvb_desc *desc)
+{
+	desc->type   = type;
+	desc->length = length;
+	desc->next   = NULL;
+}
+
+static int dvb_desc_default_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
+{
+	memcpy(desc->data, buf, desc->length);
+	return 0;
+}
+
+static void dvb_desc_default_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
+{
+	if (!parms) {
+		parms = dvb_fe_dummy();
+		dvb_hexdump(parms, "|           ", desc->data, desc->length);
+		free(parms);
+		return;
+	}
+	dvb_hexdump(parms, "|           ", desc->data, desc->length);
+}
+
+#define TABLE_INIT(_x) (dvb_table_init_func) _x##_init
+
+const dvb_table_init_func dvb_table_initializers[256] = {
+	[0 ... 255]              				= NULL,
+	[DVB_TABLE_PAT]							= TABLE_INIT(dvb_table_pat),
+	[DVB_TABLE_CAT]							= TABLE_INIT(dvb_table_cat),
+	[DVB_TABLE_PMT]							= TABLE_INIT(dvb_table_pmt),
+	[DVB_TABLE_NIT]							= TABLE_INIT(dvb_table_nit),
+	[DVB_TABLE_SDT]							= TABLE_INIT(dvb_table_sdt),
+	[DVB_TABLE_EIT]							= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE]				= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE + 0x01]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE + 0x02]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE + 0x03]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE + 0x04]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE + 0x05]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE + 0x06]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE + 0x07]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE + 0x08]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE + 0x09]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE + 0x0a]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE + 0x0b]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE + 0x0c]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE + 0x0d]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE + 0x0e]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE + 0x0f]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER]			= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER + 0x01]	= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER + 0x02]	= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER + 0x03]	= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER + 0x04]	= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER + 0x05]	= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER + 0x06]	= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER + 0x07]	= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER + 0x08]	= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER + 0x09]	= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER + 0x0a]	= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER + 0x0b]	= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER + 0x0c]	= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER + 0x0d]	= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER + 0x0e]	= TABLE_INIT(dvb_table_eit),
+	[DVB_TABLE_EIT_SCHEDULE_OTHER + 0x0f]	= TABLE_INIT(dvb_table_eit),
+	[ATSC_TABLE_MGT]						= TABLE_INIT(atsc_table_mgt),
+	[ATSC_TABLE_EIT]						= TABLE_INIT(atsc_table_eit),
+	[ATSC_TABLE_TVCT]						= TABLE_INIT(atsc_table_vct),
+	[ATSC_TABLE_CVCT]						= TABLE_INIT(atsc_table_vct),
+};
+
+int dvb_desc_parse(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+			   uint16_t buflen, struct dvb_desc **head_desc)
+{
+	const uint8_t *ptr = buf, *endbuf = buf + buflen;
+	struct dvb_desc *current = NULL;
+	struct dvb_desc *last = NULL;
+
+	*head_desc = NULL;
+
+	while (ptr + 2 <= endbuf ) {
+		uint8_t desc_type = ptr[0];
+		uint8_t desc_len  = ptr[1];
+		size_t size;
+
+		if (desc_type == 0xff ) {
+			dvb_logwarn("%s: stopping at invalid descriptor 0xff", __func__);
+			return 0;
+		}
+
+		ptr += 2; /* skip type and length */
+
+		if (ptr + desc_len > endbuf) {
+			dvb_logerr("%s: short read of %zd/%d bytes parsing descriptor %#02x",
+				   __func__, endbuf - ptr, desc_len, desc_type);
+			return -1;
+		}
+
+		switch (parms->verbose) {
+		case 0:
+		case 1:
+			break;
+		case 2:
+			if (dvb_descriptors[desc_type].init)
+				break;
+			/* fall through */
+		case 3:
+			dvb_log("%sdescriptor %s type 0x%02x, size %d",
+				dvb_descriptors[desc_type].init ? "" : "Not handled ",
+				dvb_descriptors[desc_type].name, desc_type, desc_len);
+			dvb_hexdump(parms, "content: ", ptr, desc_len);
+		}
+
+		dvb_desc_init_func init = dvb_descriptors[desc_type].init;
+		if (!init) {
+			init = dvb_desc_default_init;
+			size = sizeof(struct dvb_desc) + desc_len;
+		} else {
+			size = dvb_descriptors[desc_type].size;
+		}
+		if (!size) {
+			dvb_logerr("descriptor type 0x%02x has no size defined", desc_type);
+			return -2;
+		}
+
+		current = calloc(1, size);
+		if (!current) {
+			dvb_logerr("%s: out of memory", __func__);
+			return -3;
+		}
+		dvb_desc_init(desc_type, desc_len, current); /* initialize the standard header */
+		if (init(parms, ptr, current) != 0) {
+			free(current);
+			return -4;
+		}
+		if (!*head_desc)
+			*head_desc = current;
+		if (last)
+			last->next = current;
+		last = current;
+		ptr += current->length;     /* standard descriptor header plus descriptor length */
+	}
+	return 0;
+}
+
+void dvb_desc_print(struct dvb_v5_fe_parms *parms, struct dvb_desc *desc)
+{
+	while (desc) {
+		dvb_desc_print_func print = dvb_descriptors[desc->type].print;
+		if (!print)
+			print = dvb_desc_default_print;
+		dvb_loginfo("|        0x%02x: %s", desc->type, dvb_descriptors[desc->type].name);
+		print(parms, desc);
+		desc = desc->next;
+	}
+}
+
+void dvb_desc_free(struct dvb_desc **list)
+{
+	struct dvb_desc *desc = *list;
+	while (desc) {
+		struct dvb_desc *tmp = desc;
+		desc = desc->next;
+		if (dvb_descriptors[tmp->type].free)
+			dvb_descriptors[tmp->type].free(tmp);
+		free(tmp);
+	}
+	*list = NULL;
+}
+
+const struct dvb_descriptor dvb_descriptors[] = {
+	[0 ...255 ] = {
+		.name  = "Unknown descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[video_stream_descriptor] = {
+		.name  = "video_stream_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[audio_stream_descriptor] = {
+		.name  = "audio_stream_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[hierarchy_descriptor] = {
+		.name  = "hierarchy_descriptor",
+		.init  = dvb_desc_hierarchy_init,
+		.print = dvb_desc_hierarchy_print,
+		.free  = NULL,
+		.size  = sizeof(struct dvb_desc_hierarchy),
+	},
+	[registration_descriptor] = {
+		.name  = "registration_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[ds_alignment_descriptor] = {
+		.name  = "ds_alignment_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[target_background_grid_descriptor] = {
+		.name  = "target_background_grid_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[video_window_descriptor] = {
+		.name  = "video_window_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[conditional_access_descriptor] = {
+		.name  = "conditional_access_descriptor",
+		.init  = dvb_desc_ca_init,
+		.print = dvb_desc_ca_print,
+		.free  = dvb_desc_ca_free,
+		.size  = sizeof(struct dvb_desc_ca),
+	},
+	[iso639_language_descriptor] = {
+		.name  = "iso639_language_descriptor",
+		.init  = dvb_desc_language_init,
+		.print = dvb_desc_language_print,
+		.free  = NULL,
+		.size  = sizeof(struct dvb_desc_language),
+	},
+	[system_clock_descriptor] = {
+		.name  = "system_clock_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[multiplex_buffer_utilization_descriptor] = {
+		.name  = "multiplex_buffer_utilization_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[copyright_descriptor] = {
+		.name  = "copyright_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[maximum_bitrate_descriptor] = {
+		.name  = "maximum_bitrate_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[private_data_indicator_descriptor] = {
+		.name  = "private_data_indicator_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[smoothing_buffer_descriptor] = {
+		.name  = "smoothing_buffer_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[std_descriptor] = {
+		.name  = "std_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[ibp_descriptor] = {
+		.name  = "ibp_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[mpeg4_video_descriptor] = {
+		.name  = "mpeg4_video_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[mpeg4_audio_descriptor] = {
+		.name  = "mpeg4_audio_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[iod_descriptor] = {
+		.name  = "iod_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[sl_descriptor] = {
+		.name  = "sl_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[fmc_descriptor] = {
+		.name  = "fmc_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[external_es_id_descriptor] = {
+		.name  = "external_es_id_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[muxcode_descriptor] = {
+		.name  = "muxcode_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[fmxbuffersize_descriptor] = {
+		.name  = "fmxbuffersize_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[multiplexbuffer_descriptor] = {
+		.name  = "multiplexbuffer_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[content_labeling_descriptor] = {
+		.name  = "content_labeling_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[metadata_pointer_descriptor] = {
+		.name  = "metadata_pointer_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[metadata_descriptor] = {
+		.name  = "metadata_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[metadata_std_descriptor] = {
+		.name  = "metadata_std_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[AVC_video_descriptor] = {
+		.name  = "AVC_video_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[ipmp_descriptor] = {
+		.name  = "ipmp_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[AVC_timing_and_HRD_descriptor] = {
+		.name  = "AVC_timing_and_HRD_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[mpeg2_aac_audio_descriptor] = {
+		.name  = "mpeg2_aac_audio_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[flexmux_timing_descriptor] = {
+		.name  = "flexmux_timing_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[network_name_descriptor] = {
+		.name  = "network_name_descriptor",
+		.init  = dvb_desc_network_name_init,
+		.print = dvb_desc_network_name_print,
+		.free  = dvb_desc_network_name_free,
+		.size  = sizeof(struct dvb_desc_network_name),
+	},
+	[stuffing_descriptor] = {
+		.name  = "stuffing_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[satellite_delivery_system_descriptor] = {
+		.name  = "satellite_delivery_system_descriptor",
+		.init  = dvb_desc_sat_init,
+		.print = dvb_desc_sat_print,
+		.free  = NULL,
+		.size  = sizeof(struct dvb_desc_sat),
+	},
+	[cable_delivery_system_descriptor] = {
+		.name  = "cable_delivery_system_descriptor",
+		.init  = dvb_desc_cable_delivery_init,
+		.print = dvb_desc_cable_delivery_print,
+		.free  = NULL,
+		.size  = sizeof(struct dvb_desc_cable_delivery),
+	},
+	[VBI_data_descriptor] = {
+		.name  = "VBI_data_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[VBI_teletext_descriptor] = {
+		.name  = "VBI_teletext_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[bouquet_name_descriptor] = {
+		.name  = "bouquet_name_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[service_descriptor] = {
+		.name  = "service_descriptor",
+		.init  = dvb_desc_service_init,
+		.print = dvb_desc_service_print,
+		.free  = dvb_desc_service_free,
+		.size  = sizeof(struct dvb_desc_service),
+	},
+	[country_availability_descriptor] = {
+		.name  = "country_availability_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[linkage_descriptor] = {
+		.name  = "linkage_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[NVOD_reference_descriptor] = {
+		.name  = "NVOD_reference_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[time_shifted_service_descriptor] = {
+		.name  = "time_shifted_service_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[short_event_descriptor] = {
+		.name  = "short_event_descriptor",
+		.init  = dvb_desc_event_short_init,
+		.print = dvb_desc_event_short_print,
+		.free  = dvb_desc_event_short_free,
+		.size  = sizeof(struct dvb_desc_event_short),
+	},
+	[extended_event_descriptor] = {
+		.name  = "extended_event_descriptor",
+		.init  = dvb_desc_event_extended_init,
+		.print = dvb_desc_event_extended_print,
+		.free  = dvb_desc_event_extended_free,
+		.size  = sizeof(struct dvb_desc_event_extended),
+	},
+	[time_shifted_event_descriptor] = {
+		.name  = "time_shifted_event_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[component_descriptor] = {
+		.name  = "component_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[mosaic_descriptor] = {
+		.name  = "mosaic_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[stream_identifier_descriptor] = {
+		.name  = "stream_identifier_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[CA_identifier_descriptor] = {
+		.name  = "CA_identifier_descriptor",
+		.init  = dvb_desc_ca_identifier_init,
+		.print = dvb_desc_ca_identifier_print,
+		.free  = dvb_desc_ca_identifier_free,
+		.size  = sizeof(struct dvb_desc_ca_identifier),
+	},
+	[content_descriptor] = {
+		.name  = "content_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[parental_rating_descriptor] = {
+		.name  = "parental_rating_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[teletext_descriptor] = {
+		.name  = "teletext_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[telephone_descriptor] = {
+		.name  = "telephone_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[local_time_offset_descriptor] = {
+		.name  = "local_time_offset_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[subtitling_descriptor] = {
+		.name  = "subtitling_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[terrestrial_delivery_system_descriptor] = {
+		.name  = "terrestrial_delivery_system_descriptor",
+		.init  = dvb_desc_terrestrial_delivery_init,
+		.print = dvb_desc_terrestrial_delivery_print,
+		.free  = NULL,
+		.size  = sizeof(struct dvb_desc_terrestrial_delivery),
+	},
+	[multilingual_network_name_descriptor] = {
+		.name  = "multilingual_network_name_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[multilingual_bouquet_name_descriptor] = {
+		.name  = "multilingual_bouquet_name_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[multilingual_service_name_descriptor] = {
+		.name  = "multilingual_service_name_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[multilingual_component_descriptor] = {
+		.name  = "multilingual_component_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[private_data_specifier_descriptor] = {
+		.name  = "private_data_specifier_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[service_move_descriptor] = {
+		.name  = "service_move_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[short_smoothing_buffer_descriptor] = {
+		.name  = "short_smoothing_buffer_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[frequency_list_descriptor] = {
+		.name  = "frequency_list_descriptor",
+		.init  = dvb_desc_frequency_list_init,
+		.print = dvb_desc_frequency_list_print,
+		.free  = NULL,
+		.size  = sizeof(struct dvb_desc_frequency_list),
+	},
+	[partial_transport_stream_descriptor] = {
+		.name  = "partial_transport_stream_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[data_broadcast_descriptor] = {
+		.name  = "data_broadcast_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[scrambling_descriptor] = {
+		.name  = "scrambling_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[data_broadcast_id_descriptor] = {
+		.name  = "data_broadcast_id_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[transport_stream_descriptor] = {
+		.name  = "transport_stream_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[DSNG_descriptor] = {
+		.name  = "DSNG_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[PDC_descriptor] = {
+		.name  = "PDC_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[AC_3_descriptor] = {
+		.name  = "AC_3_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[ancillary_data_descriptor] = {
+		.name  = "ancillary_data_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[cell_list_descriptor] = {
+		.name  = "cell_list_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[cell_frequency_link_descriptor] = {
+		.name  = "cell_frequency_link_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[announcement_support_descriptor] = {
+		.name  = "announcement_support_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[application_signalling_descriptor] = {
+		.name  = "application_signalling_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[adaptation_field_data_descriptor] = {
+		.name  = "adaptation_field_data_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[service_identifier_descriptor] = {
+		.name  = "service_identifier_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[service_availability_descriptor] = {
+		.name  = "service_availability_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[default_authority_descriptor] = {
+		.name  = "default_authority_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[related_content_descriptor] = {
+		.name  = "related_content_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[TVA_id_descriptor] = {
+		.name  = "TVA_id_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[content_identifier_descriptor] = {
+		.name  = "content_identifier_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[time_slice_fec_identifier_descriptor] = {
+		.name  = "time_slice_fec_identifier_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[ECM_repetition_rate_descriptor] = {
+		.name  = "ECM_repetition_rate_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[S2_satellite_delivery_system_descriptor] = {
+		.name  = "S2_satellite_delivery_system_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[enhanced_AC_3_descriptor] = {
+		.name  = "enhanced_AC_3_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[DTS_descriptor] = {
+		.name  = "DTS_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[AAC_descriptor] = {
+		.name  = "AAC_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[XAIT_location_descriptor] = {
+		.name  = "XAIT_location_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[FTA_content_management_descriptor] = {
+		.name  = "FTA_content_management_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[extension_descriptor] = {
+		.name  = "extension_descriptor",
+		.init  = dvb_extension_descriptor_init,
+		.print = dvb_extension_descriptor_print,
+		.free  = dvb_extension_descriptor_free,
+		.size  = sizeof(struct dvb_extension_descriptor),
+	},
+
+	[CUE_identifier_descriptor] = {
+		.name  = "CUE_identifier_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+
+	[component_name_descriptor] = {
+		.name  = "component_name_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[logical_channel_number_descriptor] = {
+		.name  = "logical_channel_number_descriptor",
+		.init  = dvb_desc_logical_channel_init,
+		.print = dvb_desc_logical_channel_print,
+		.free  = dvb_desc_logical_channel_free,
+		.size  = sizeof(struct dvb_desc_logical_channel),
+	},
+
+	[carousel_id_descriptor] = {
+		.name  = "carousel_id_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[association_tag_descriptor] = {
+		.name  = "association_tag_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[deferred_association_tags_descriptor] = {
+		.name  = "deferred_association_tags_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+
+	[hierarchical_transmission_descriptor] = {
+		.name  = "hierarchical_transmission_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[digital_copy_control_descriptor] = {
+		.name  = "digital_copy_control_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[network_identifier_descriptor] = {
+		.name  = "network_identifier_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[partial_transport_stream_time_descriptor] = {
+		.name  = "partial_transport_stream_time_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[audio_component_descriptor] = {
+		.name  = "audio_component_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[hyperlink_descriptor] = {
+		.name  = "hyperlink_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[target_area_descriptor] = {
+		.name  = "target_area_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[data_contents_descriptor] = {
+		.name  = "data_contents_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[video_decode_control_descriptor] = {
+		.name  = "video_decode_control_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[download_content_descriptor] = {
+		.name  = "download_content_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[CA_EMM_TS_descriptor] = {
+		.name  = "CA_EMM_TS_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[CA_contract_information_descriptor] = {
+		.name  = "CA_contract_information_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[CA_service_descriptor] = {
+		.name  = "CA_service_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[TS_Information_descriptior] = {
+		.name  = "TS_Information_descriptior",
+		.init  = dvb_desc_ts_info_init,
+		.print = dvb_desc_ts_info_print,
+		.free  = dvb_desc_ts_info_free,
+		.size  = sizeof(struct dvb_desc_ts_info),
+	},
+	[extended_broadcaster_descriptor] = {
+		.name  = "extended_broadcaster_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[logo_transmission_descriptor] = {
+		.name  = "logo_transmission_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[basic_local_event_descriptor] = {
+		.name  = "basic_local_event_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[reference_descriptor] = {
+		.name  = "reference_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[node_relation_descriptor] = {
+		.name  = "node_relation_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[short_node_information_descriptor] = {
+		.name  = "short_node_information_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[STC_reference_descriptor] = {
+		.name  = "STC_reference_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[series_descriptor] = {
+		.name  = "series_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[event_group_descriptor] = {
+		.name  = "event_group_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[SI_parameter_descriptor] = {
+		.name  = "SI_parameter_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[broadcaster_Name_Descriptor] = {
+		.name  = "broadcaster_Name_Descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[component_group_descriptor] = {
+		.name  = "component_group_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[SI_prime_TS_descriptor] = {
+		.name  = "SI_prime_TS_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[board_information_descriptor] = {
+		.name  = "board_information_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[LDT_linkage_descriptor] = {
+		.name  = "LDT_linkage_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[connected_transmission_descriptor] = {
+		.name  = "connected_transmission_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[content_availability_descriptor] = {
+		.name  = "content_availability_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[service_group_descriptor] = {
+		.name  = "service_group_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[carousel_compatible_composite_descriptor] = {
+		.name  = "carousel_compatible_composite_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[conditional_playback_descriptor] = {
+		.name  = "conditional_playback_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[ISDBT_delivery_system_descriptor] = {
+		.name  = "ISDBT_delivery_system_descriptor",
+		.init  = isdbt_desc_delivery_init,
+		.print = isdbt_desc_delivery_print,
+		.free  = isdbt_desc_delivery_free,
+		.size  = sizeof(struct isdbt_desc_terrestrial_delivery_system),
+	},
+	[partial_reception_descriptor] = {
+		.name  = "partial_reception_descriptor",
+		.init  = isdb_desc_partial_reception_init,
+		.print = isdb_desc_partial_reception_print,
+		.free  = isdb_desc_partial_reception_free,
+		.size  = sizeof(struct isdb_desc_partial_reception),
+	},
+	[emergency_information_descriptor] = {
+		.name  = "emergency_information_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[data_component_descriptor] = {
+		.name  = "data_component_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[system_management_descriptor] = {
+		.name  = "system_management_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[atsc_stuffing_descriptor] = {
+		.name  = "atsc_stuffing_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[atsc_ac3_audio_descriptor] = {
+		.name  = "atsc_ac3_audio_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[atsc_caption_service_descriptor] = {
+		.name  = "atsc_caption_service_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[atsc_content_advisory_descriptor] = {
+		.name  = "atsc_content_advisory_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[atsc_extended_channel_descriptor] = {
+		.name  = "atsc_extended_channel_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[atsc_service_location_descriptor] = {
+		.name  = "atsc_service_location_descriptor",
+		.init  = atsc_desc_service_location_init,
+		.print = atsc_desc_service_location_print,
+		.free  = atsc_desc_service_location_free,
+		.size  = sizeof(struct atsc_desc_service_location),
+	},
+	[atsc_time_shifted_service_descriptor] = {
+		.name  = "atsc_time_shifted_service_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[atsc_component_name_descriptor] = {
+		.name  = "atsc_component_name_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[atsc_DCC_departing_request_descriptor] = {
+		.name  = "atsc_DCC_departing_request_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[atsc_DCC_arriving_request_descriptor] = {
+		.name  = "atsc_DCC_arriving_request_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[atsc_redistribution_control_descriptor] = {
+		.name  = "atsc_redistribution_control_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[atsc_ATSC_private_information_descriptor] = {
+		.name  = "atsc_ATSC_private_information_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+	[atsc_genre_descriptor] = {
+		.name  = "atsc_genre_descriptor",
+		.init  = NULL,
+		.print = NULL,
+		.free  = NULL,
+		.size  = 0,
+	},
+};
+
+uint32_t dvb_bcd(uint32_t bcd)
+{
+	uint32_t ret = 0, mult = 1;
+	while (bcd) {
+		ret += (bcd & 0x0f) * mult;
+		bcd >>=4;
+		mult *= 10;
+	}
+	return ret;
+}
+
+void dvb_hexdump(struct dvb_v5_fe_parms *parms, const char *prefix, const unsigned char *data, int length)
+{
+	char ascii[17];
+	char hex[50];
+	int i, j = 0;
+
+	if (!data)
+		return;
+	hex[0] = '\0';
+	for (i = 0; i < length; i++) {
+		char t[4];
+
+		snprintf (t, sizeof(t), "%02x ", (unsigned int) data[i]);
+		strncat (hex, t, sizeof(hex) - 1);
+		if (data[i] > 31 && data[i] < 128 )
+			ascii[j] = data[i];
+		else
+			ascii[j] = '.';
+		j++;
+		if (j == 8)
+			strncat(hex, " ", sizeof(hex) - 1);
+		if (j == 16) {
+			ascii[j] = '\0';
+			dvb_loginfo("%s%s  %s", prefix, hex, ascii);
+			j = 0;
+			hex[0] = '\0';
+		}
+	}
+	if (j > 0 && j < 16) {
+		char spaces[50];
+		for (i = 0; i < sizeof(spaces) - 1 - strlen(hex); i++)
+			spaces[i] = ' ';
+		spaces[i] = '\0';
+		ascii[j] = '\0';
+		dvb_loginfo("%s%s %s %s", prefix, hex, spaces, ascii);
+	}
+}
+
+--------------070402040202020000070803--
