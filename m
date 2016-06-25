@@ -1,576 +1,1031 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:35141 "EHLO
-	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752746AbcFKWck (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49821 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751400AbcFYNGt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2016 18:32:40 -0400
-From: Henrik Austad <henrik@austad.us>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
-	linux-netdev@vger.kernel.org, henrk@austad.us,
-	Henrik Austad <henrik@austad.us>,
-	Jeff Kirsher <jeffrey.t.kirsher@intel.com>,
-	intel-wired-lan@lists.osuosl.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Henrik Austad <haustad@cisco.com>
-Subject: [very-RFC 3/8] Adding TSN-driver to Intel I210 controller
-Date: Sun, 12 Jun 2016 00:22:16 +0200
-Message-Id: <1465683741-20390-4-git-send-email-henrik@austad.us>
-In-Reply-To: <1465683741-20390-1-git-send-email-henrik@austad.us>
-References: <1465683741-20390-1-git-send-email-henrik@austad.us>
+	Sat, 25 Jun 2016 09:06:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv19 03/14] cec.h: add cec header
+Date: Sat, 25 Jun 2016 15:06:27 +0200
+Message-Id: <1466859998-17640-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1466859998-17640-1-git-send-email-hverkuil@xs4all.nl>
+References: <1466859998-17640-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds support for loading the igb.ko module with tsn
-capabilities. This requires a 2-step approach. First enabling TSN in
-.config, then load the module with use_tsn=1.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Once enabled and loaded, the controller will be placed in "Qav-mode"
-which is when the credit-based shaper is available, 3 of the queues are
-removed from regular traffic, max payload is set to 1522 octets (no
-jumboframes allowed).
+This header contains the CEC public API. Since the CEC framework will
+initially be part of staging this header is kept out of include/uapi for
+the time being until the CEC framework will be moved out of staging.
 
-It dumps the registers of interest before and after, so this clutters
-kern.log a bit. In time this will be reduced / tied to the debug-param
-for the module.
-
-Note: currently this driver is *not* stable, it is still a work in
-progress.
-
-Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Cc: intel-wired-lan@lists.osuosl.org
-Cc: "David S. Miller" <davem@davemloft.net>
-Signed-off-by: Henrik Austad <haustad@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/net/ethernet/intel/Kconfig        |  18 ++
- drivers/net/ethernet/intel/igb/Makefile   |   2 +-
- drivers/net/ethernet/intel/igb/igb.h      |  19 ++
- drivers/net/ethernet/intel/igb/igb_main.c |  10 +-
- drivers/net/ethernet/intel/igb/igb_tsn.c  | 396 ++++++++++++++++++++++++++++++
- 5 files changed, 443 insertions(+), 2 deletions(-)
- create mode 100644 drivers/net/ethernet/intel/igb/igb_tsn.c
+ include/linux/cec.h | 993 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 993 insertions(+)
+ create mode 100644 include/linux/cec.h
 
-diff --git a/drivers/net/ethernet/intel/Kconfig b/drivers/net/ethernet/intel/Kconfig
-index 714bd10..8e620a9 100644
---- a/drivers/net/ethernet/intel/Kconfig
-+++ b/drivers/net/ethernet/intel/Kconfig
-@@ -99,6 +99,24 @@ config IGB
- 	  To compile this driver as a module, choose M here. The module
- 	  will be called igb.
- 
-+config IGB_TSN
-+       tristate "TSN Support for Intel(R) 82575/82576 i210 Network Controller"
-+       depends on IGB && TSN
-+	---help---
-+	  This driver supports TSN (AVB) on Intel I210 network controllers.
-+
-+	  When enabled, it will allow the module to be loaded with
-+	  "use_tsn" which will initialize the controller to A/V-mode
-+	  instead of legacy-mode. This will take 3 of the tx-queues and
-+	  place them in 802.1Q QoS mode and enable the credit-based
-+	  shaper for 2 of the queues.
-+
-+	  If built with this option, but not loaded with use_tsn, the
-+	  only difference is a slightly larger module, no extra
-+	  code paths are called.
-+
-+	  If unsure, say No
-+
- config IGB_HWMON
- 	bool "Intel(R) PCI-Express Gigabit adapters HWMON support"
- 	default y
-diff --git a/drivers/net/ethernet/intel/igb/Makefile b/drivers/net/ethernet/intel/igb/Makefile
-index 5bcb2de..1a9b776 100644
---- a/drivers/net/ethernet/intel/igb/Makefile
-+++ b/drivers/net/ethernet/intel/igb/Makefile
-@@ -33,4 +33,4 @@ obj-$(CONFIG_IGB) += igb.o
- 
- igb-objs := igb_main.o igb_ethtool.o e1000_82575.o \
- 	    e1000_mac.o e1000_nvm.o e1000_phy.o e1000_mbx.o \
--	    e1000_i210.o igb_ptp.o igb_hwmon.o
-+	    e1000_i210.o igb_ptp.o igb_hwmon.o igb_tsn.o
-diff --git a/drivers/net/ethernet/intel/igb/igb.h b/drivers/net/ethernet/intel/igb/igb.h
-index b9609af..708f705 100644
---- a/drivers/net/ethernet/intel/igb/igb.h
-+++ b/drivers/net/ethernet/intel/igb/igb.h
-@@ -356,6 +356,7 @@ struct hwmon_buff {
- #define IGB_RETA_SIZE	128
- 
- /* board specific private data structure */
-+
- struct igb_adapter {
- 	unsigned long active_vlans[BITS_TO_LONGS(VLAN_N_VID)];
- 
-@@ -472,6 +473,13 @@ struct igb_adapter {
- 	int copper_tries;
- 	struct e1000_info ei;
- 	u16 eee_advert;
-+
-+#if IS_ENABLED(CONFIG_IGB_TSN)
-+	/* Reserved BW for class A and B */
-+	u16 sra_idleslope_res;
-+	u16 srb_idleslope_res;
-+	u8 tsn_ready:1;
-+#endif	/* IGB_TSN */
- };
- 
- #define IGB_FLAG_HAS_MSI		BIT(0)
-@@ -552,6 +560,17 @@ void igb_ptp_rx_pktstamp(struct igb_q_vector *q_vector, unsigned char *va,
- 			 struct sk_buff *skb);
- int igb_ptp_set_ts_config(struct net_device *netdev, struct ifreq *ifr);
- int igb_ptp_get_ts_config(struct net_device *netdev, struct ifreq *ifr);
-+/* This should be the only place where we add ifdeffery
-+ * to include tsn-stuff or not. Everything else is located in igb_tsn.c
-+ */
-+#if IS_ENABLED(CONFIG_IGB_TSN)
-+void igb_tsn_init(struct igb_adapter *adapter);
-+int igb_tsn_capable(struct net_device *netdev);
-+int igb_tsn_link_configure(struct net_device *netdev, enum sr_class sr_class,
-+			   u16 framesize, u16 vid);
-+#else
-+static inline void igb_tsn_init(struct igb_adapter *adapter) { }
-+#endif	/* CONFIG_IGB_TSN */
- void igb_set_flag_queue_pairs(struct igb_adapter *, const u32);
- #ifdef CONFIG_IGB_HWMON
- void igb_sysfs_exit(struct igb_adapter *adapter);
-diff --git a/drivers/net/ethernet/intel/igb/igb_main.c b/drivers/net/ethernet/intel/igb/igb_main.c
-index ef3d642..4d8789f 100644
---- a/drivers/net/ethernet/intel/igb/igb_main.c
-+++ b/drivers/net/ethernet/intel/igb/igb_main.c
-@@ -2142,6 +2142,10 @@ static const struct net_device_ops igb_netdev_ops = {
- #ifdef CONFIG_NET_POLL_CONTROLLER
- 	.ndo_poll_controller	= igb_netpoll,
- #endif
-+#if IS_ENABLED(CONFIG_IGB_TSN)
-+	.ndo_tsn_capable	= igb_tsn_capable,
-+	.ndo_tsn_link_configure = igb_tsn_link_configure,
-+#endif	/* CONFIG_IGB_TSN */
- 	.ndo_fix_features	= igb_fix_features,
- 	.ndo_set_features	= igb_set_features,
- 	.ndo_fdb_add		= igb_ndo_fdb_add,
-@@ -2665,6 +2669,8 @@ static int igb_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	/* do hw tstamp init after resetting */
- 	igb_ptp_init(adapter);
- 
-+	igb_tsn_init(adapter);
-+
- 	dev_info(&pdev->dev, "Intel(R) Gigabit Ethernet Network Connection\n");
- 	/* print bus type/speed/width info, not applicable to i354 */
- 	if (hw->mac.type != e1000_i354) {
-@@ -5323,8 +5329,10 @@ static netdev_tx_t igb_xmit_frame(struct sk_buff *skb,
- 	/* The minimum packet size with TCTL.PSP set is 17 so pad the skb
- 	 * in order to meet this minimum size requirement.
- 	 */
--	if (skb_put_padto(skb, 17))
-+	if (skb_put_padto(skb, 17)) {
-+		pr_err("%s: skb_put_padto FAILED. skb->len < 17\n", __func__);
- 		return NETDEV_TX_OK;
-+	}
- 
- 	return igb_xmit_frame_ring(skb, igb_tx_queue_mapping(adapter, skb));
- }
-diff --git a/drivers/net/ethernet/intel/igb/igb_tsn.c b/drivers/net/ethernet/intel/igb/igb_tsn.c
+diff --git a/include/linux/cec.h b/include/linux/cec.h
 new file mode 100644
-index 0000000..641f4f2
+index 0000000..40924e7
 --- /dev/null
-+++ b/drivers/net/ethernet/intel/igb/igb_tsn.c
-@@ -0,0 +1,396 @@
++++ b/include/linux/cec.h
+@@ -0,0 +1,993 @@
 +/*
-+ * Copyright(c) 2015-2016 Henrik Austad <haustad@cisco.com>
-+ *                        Cisco Systems, Inc.
++ * cec - HDMI Consumer Electronics Control public header
 + *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
++ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
 + *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
 + */
 +
-+/* FIXME: This should probably be handled by some Makefile-magic */
-+
-+#if IS_ENABLED(CONFIG_IGB_TSN)
-+#include "igb.h"
-+#include <linux/module.h>
-+
-+/* NOTE: keep the defines not present in e1000_regs.h to avoid
-+ * cluttering too many files. Once we are pretty stable, these will move
-+ * into it's proper home. Until then, make merge a bit easier by
-+ * avoiding it
++/*
++ * Note: this framework is still in staging and it is likely the API
++ * will change before it goes out of staging.
++ *
++ * Once it is moved out of staging this header will move to uapi.
 + */
++#ifndef _CEC_UAPI_H
++#define _CEC_UAPI_H
 +
-+/* Qav regs */
-+#define E1000_IRPBS	 0x02404 /* Rx Packet Buffer Size - RW */
-+#define E1000_ITPBS	 0x03404 /* Tx buffer size assignment */
-+#define E1000_TQAVCTRL   0x03570 /* Tx Qav Control */
-+#define E1000_DTXMXPKTSZ 0x0355C /* DMA TX Maximum Packet Size */
++#include <linux/types.h>
 +
-+/* Qav defines. */
-+#define E1000_TQAVCH_ZERO_CREDIT       0x80000000
-+#define E1000_LINK_RATE		       0x7735
++#define CEC_MAX_MSG_SIZE	16
 +
-+/* queue mode, 0=strict, 1=SR mode */
-+#define E1000_TQAVCC_QUEUEMODE         0x80000000
-+/* Transmit mode, 0=legacy, 1=QAV */
-+#define E1000_TQAVCTRL_TXMODE          0x00000001
-+/* report DMA time of tx packets */
-+#define E1000_TQAVCTRL_1588_STAT_EN    0x00000004
-+/* data fetch arbitration */
-+#define E1000_TQAVCTRL_DATA_FETCH_ARB  0x00000010
-+/* data tx arbitration */
-+#define E1000_TQAVCTRL_DATA_TRAN_ARB   0x00000100
-+/* data launch time valid */
-+#define E1000_TQAVCTRL_DATA_TRAN_TIM   0x00000200
-+/* stall SP to guarantee SR */
-+#define E1000_TQAVCTRL_SP_WAIT_SR      0x00000400
-+
-+/* ... and associated shift value */
-+#define E1000_TQAVCTRL_FETCH_TM_SHIFT  (16)
-+
-+/* QAV Tx mode control registers where _n can be 0 or 1. */
-+#define E1000_TQAVCC(_idx)			(0x03004 + 0x40 * (_idx))
-+
-+/* Tx Qav High Credit - See 7.2.7.6 for calculations
-+ * intel 8.12.18
++/**
++ * struct cec_msg - CEC message structure.
++ * @ts:		Timestamp in nanoseconds using CLOCK_MONOTONIC. Set by the
++ *		driver. It is set when the message transmission has finished
++ *		and it is set when a message was received.
++ * @len:	Length in bytes of the message.
++ * @timeout:	The timeout (in ms) that is used to timeout CEC_RECEIVE.
++ *		Set to 0 if you want to wait forever. This timeout can also be
++ *		used with CEC_TRANSMIT as the timeout for waiting for a reply.
++ *		If 0, then it will use a 1 second timeout instead of waiting
++ *		forever as is done with CEC_RECEIVE.
++ * @sequence:	The framework assigns a sequence number to messages that are
++ *		sent. This can be used to track replies to previously sent
++ *		messages.
++ * @flags:	Set to 0.
++ * @rx_status:	The message receive status bits. Set by the driver.
++ * @tx_status:	The message transmit status bits. Set by the driver.
++ * @msg:	The message payload.
++ * @reply:	This field is ignored with CEC_RECEIVE and is only used by
++ *		CEC_TRANSMIT. If non-zero, then wait for a reply with this
++ *		opcode. Set to CEC_MSG_FEATURE_ABORT if you want to wait for
++ *		a possible ABORT reply. If there was an error when sending the
++ *		msg or FeatureAbort was returned, then reply is set to 0.
++ *		If reply is non-zero upon return, then len/msg are set to
++ *		the received message.
++ *		If reply is zero upon return and status has the
++ *		CEC_TX_STATUS_FEATURE_ABORT bit set, then len/msg are set to
++ *		the received feature abort message.
++ *		If reply is zero upon return and status has the
++ *		CEC_TX_STATUS_MAX_RETRIES bit set, then no reply was seen at
++ *		all. If reply is non-zero for CEC_TRANSMIT and the message is a
++ *		broadcast, then -EINVAL is returned.
++ *		if reply is non-zero, then timeout is set to 1000 (the required
++ *		maximum response time).
++ * @tx_arb_lost_cnt: The number of 'Arbitration Lost' events. Set by the driver.
++ * @tx_nack_cnt: The number of 'Not Acknowledged' events. Set by the driver.
++ * @tx_low_drive_cnt: The number of 'Low Drive Detected' events. Set by the
++ *		driver.
++ * @tx_error_cnt: The number of 'Error' events. Set by the driver.
 + */
-+#define E1000_TQAVHC(_idx)			(0x0300C + 0x40 * (_idx))
++struct cec_msg {
++	__u64 ts;
++	__u32 len;
++	__u32 timeout;
++	__u32 sequence;
++	__u32 flags;
++	__u8 rx_status;
++	__u8 tx_status;
++	__u8 msg[CEC_MAX_MSG_SIZE];
++	__u8 reply;
++	__u8 tx_arb_lost_cnt;
++	__u8 tx_nack_cnt;
++	__u8 tx_low_drive_cnt;
++	__u8 tx_error_cnt;
++};
 +
-+/* Queues priority masks where _n and _p can be 0-3. */
-+
-+#define MAX_FRAME_SIZE 1522
-+#define MIN_FRAME_SIZE   64
-+
-+static int use_tsn = -1;
-+static int debug_tsn = -1;
-+module_param(use_tsn, int, 0);
-+module_param(debug_tsn, int, 0);
-+MODULE_PARM_DESC(use_tsn, "use_tsn (0=off, 1=enabled)");
-+MODULE_PARM_DESC(debug_tsn, "debug_tsn (0=off, 1=enabled)");
-+
-+/* For a full list of the registers dumped here, see sec 8.1.3 in the
-+ * i210 controller datasheet.
++/**
++ * cec_msg_initiator - return the initiator's logical address.
++ * @msg:	the message structure
 + */
-+static inline void _tsn_dump_regs(struct igb_adapter *adapter)
++static inline __u8 cec_msg_initiator(const struct cec_msg *msg)
 +{
-+	u32 val = 0;
-+	struct device *dev;
-+	struct e1000_hw *hw = &adapter->hw;
-+
-+	/* do not dump regs if we're not debugging driver */
-+	if (debug_tsn != 1)
-+		return;
-+
-+	dev = &adapter->pdev->dev;
-+	dev_info(dev, "num_tx_queues=%d, num_rx_queues=%d\n",
-+		 adapter->num_tx_queues, adapter->num_rx_queues);
-+
-+	/* 0x0008 - E1000_STATUS Device status register */
-+	val = rd32(E1000_STATUS);
-+	dev_info(&adapter->pdev->dev, "\n");
-+	dev_info(dev, "Status: FullDuplex=%s, LinkUp=%s, speed=%0x01x\n",
-+		 val & 0x1 ? "FD" : "HD",
-+		 val & 0x2 ? "LU" : "LD",
-+		 val & 0xc0 >> 6);
-+
-+	/* E1000_VET vlan ether type */
-+	val = rd32(E1000_VET);
-+	dev_info(dev, "VLAN ether type: VET.VET=0x%04x, VET.VET_EXT=0x%04x\n",
-+		 val & 0xffff, (val >> 16) & 0xffff);
-+
-+	/* E1000_RXPBS (RXPBSIZE) Rx Packet Buffer Size */
-+	val = rd32(E1000_RXPBS);
-+	dev_info(dev, "Rx Packet buffer: RXPBSIZE=%dkB, Bmc2ospbsize=%dkB, cfg_ts_en=%s\n",
-+		 val & 0x1f,
-+		 (val >> 6) & 0x1f,
-+		 (val & (1 << 31)) ? "cfg_ts_en" : "cfg_ts_dis");
-+
-+	/* Transmit stuff */
-+	/* E1000_TXPBS (TXPBSIZE) Tx Packet Buffer Size - RW */
-+	val = rd32(E1000_TXPBS);
-+	dev_info(dev, "Tx Packet buffer: Txpb0size=%dkB, Txpb1size=%dkB, Txpb2size=%dkB, Txpb3size=%dkB, os2Bmcpbsize=%dkB\n",
-+		 val & 0x3f, (val >> 6) & 0x3f, (val >> 12) & 0x3f,
-+		 (val >> 18) & 0x3f, (val >> 24) & 0x3f);
-+
-+	/* E1000_TCTL (TCTL) Tx control - RW*/
-+	val = rd32(E1000_TCTL);
-+	dev_info(dev, "Tx control reg: TxEnable=%s, CT=0x%X\n",
-+		 val & 2 ? "EN" : "DIS", (val >> 3) & 0x3F);
-+
-+	/* TQAVHC     : Transmit Qav High credits 0x300C + 0x40*n - RW */
-+	val = rd32(E1000_TQAVHC(0));
-+	dev_info(dev, "E1000_TQAVHC0: %0x08x\n", val);
-+	val = rd32(E1000_TQAVHC(1));
-+	dev_info(dev, "E1000_TQAVHC1: %0x08x\n", val);
-+
-+	/* TQAVCC[0-1]: Transmit Qav 0x3004 + 0x40*n  - RW */
-+	val = rd32(E1000_TQAVCC(0));
-+	dev_info(dev, "E1000_TQAVCC0: idleSlope=%02x, QueueMode=%s\n",
-+		 val % 0xff,
-+		 val > 31 ? "Stream reservation" : "Strict priority");
-+	val = rd32(E1000_TQAVCC(1));
-+	dev_info(dev, "E1000_TQAVCC1: idleSlope=%02x, QueueMode=%s\n",
-+		 val % 0xff,
-+		 val > 31 ? "Stream reservation" : "Strict priority");
-+
-+	/* TQAVCTRL   : Transmit Qav control - RW */
-+	val = rd32(E1000_TQAVCTRL);
-+	dev_info(dev, "E1000_TQAVCTRL: TransmitMode=%s,1588_STAT_EN=%s,DataFetchARB=%s,DataTranARB=%s,DataTranTIM=%s,SP_WAIT_SR=%s,FetchTimDelta=%dns (0x%04x)\n",
-+		 (val & 0x0001) ? "Qav" : "Legacy",
-+		 (val & 0x0004) ? "En" : "Dis",
-+		 (val & 0x0010) ? "Most Empty" : "Round Robin",
-+		 (val & 0x0100) ? "Credit Shaper" : "Strict priority",
-+		 (val & 0x0200) ? "Valid" : "N/A",
-+		 (val & 0x0400) ? "Wait" : "nowait",
-+		 (val >> 16) * 32, (val >> 16));
++	return msg->msg[0] >> 4;
 +}
 +
-+/* Place the NIC in Qav-mode.
-+ *
-+ * This will result in a _single_ queue for normal BE traffic, the rest
-+ * will be grabbed by the Qav-machinery and kept for strict priority
-+ * transmission.
-+ *
-+ * I210 Datasheet Sec 7.2.7.7 gives a lot of information.
++/**
++ * cec_msg_destination - return the destination's logical address.
++ * @msg:	the message structure
 + */
-+void igb_tsn_init(struct igb_adapter *adapter)
++static inline __u8 cec_msg_destination(const struct cec_msg *msg)
 +{
-+	struct e1000_hw *hw = &adapter->hw;
-+	u32 val;
-+
-+	if (use_tsn != 1) {
-+		adapter->tsn_ready = 0;
-+		dev_info(&adapter->pdev->dev, "%s got use_tsn > 0 (%d)\n",
-+			 __func__, use_tsn);
-+		return;
-+	}
-+
-+	if (debug_tsn < 0 || debug_tsn > 1)
-+		debug_tsn = 0;
-+
-+	if (!adapter->pdev) {
-+		adapter->tsn_ready = 0;
-+		return;
-+	}
-+
-+	switch (adapter->pdev->device) {
-+	case 0x1533:   /* E1000_DEV_ID_I210_COPPER */
-+	case 0x1536:   /* E1000_DEV_ID_I210_FIBER */
-+	case 0x1537:   /* E1000_DEV_ID_I210_SERDES: */
-+	case 0x1538:   /* E1000_DEV_ID_I210_SGMII: */
-+	case 0x157b:   /* E1000_DEV_ID_I210_COPPER_FLASHLESS: */
-+	case 0x157c:   /* E1000_DEV_ID_I210_SERDES_FLASHLESS: */
-+		break;
-+	default:
-+		/* not a known IGB-TSN capable device */
-+		adapter->tsn_ready = 0;
-+		return;
-+	}
-+	_tsn_dump_regs(adapter);
-+
-+	/* Set Tx packet buffer size assignment, see 7.2.7.7 in i210
-+	 * PB0: 8kB
-+	 * PB1: 8kB
-+	 * PB2: 4kB
-+	 * PB3: 4kB
-+	 * os2bmcsize: 2kB
-+	 * sumTx: 26kB
-+	 *
-+	 * Rxpbsize: 0x20 (32kB)
-+	 * bmc2ossize: 0x02
-+	 * sumRx: 34kB
-+	 *
-+	 * See 8.3.1 && 8.3.2
-+	 */
-+	val = (0x02 << 24 | 0x04 << 18 | 0x04 << 12 | 0x08 << 6 | 0x08);
-+	wr32(E1000_ITPBS, val);
-+	wr32(E1000_IRPBS, (0x02 << 6 | 0x20));
-+
-+	/* DMA Tx maximum packet size, the largest frame DMA should transport
-+	 * do not allow frames larger than 1522 + preample. Reg expects
-+	 * size in 64B increments. 802.1BA 6.3
-+	 * Round up to 1536 to handle 64B increments
-+	 *
-+	 * Initial value: 0x98 (152 => 9728 bytes)
-+	 */
-+	wr32(E1000_DTXMXPKTSZ, 1536 >> 6);
-+
-+	/* Place card in Qav-mode, use tx-queue 0,1 for Qav
-+	 * (Credit-based shaper), 2,3 for standard priority (and
-+	 * best-effort) traffic.
-+	 *
-+	 * i210 8.12.19 and 8.12.21
-+	 *
-+	 * - Fetch: most empty and time based (not round-robin)
-+	 * - Transmit: Credit based shaper for SR queues
-+	 * - Data launch time valid (in Qav mode)
-+	 * - Wait for SR queues to ensure that launch time is always valid.
-+	 * - Set ~10us wait-time-delta, 32ns granularity
-+	 *
-+	 * Do *not* enable Tx for shaper (E1000_TQAVCTRL_DATA_TRAN_ARB)
-+	 * yet as we do not have data to Tx
-+	 */
-+	val = E1000_TQAVCTRL_TXMODE           |
-+		E1000_TQAVCTRL_DATA_FETCH_ARB |
-+		E1000_TQAVCTRL_DATA_TRAN_TIM  |
-+		E1000_TQAVCTRL_SP_WAIT_SR     |
-+		320 << E1000_TQAVCTRL_FETCH_TM_SHIFT;
-+
-+	wr32(E1000_TQAVCTRL, val);
-+
-+	/* For now, only set CreditBased shaper for A and B, not set
-+	 * idleSlope as we have not yet gotten any streams.
-+	 * 8.12.19
-+	 */
-+	wr32(E1000_TQAVCC(0), E1000_TQAVCC_QUEUEMODE);
-+	wr32(E1000_TQAVCC(1), E1000_TQAVCC_QUEUEMODE);
-+
-+	wr32(E1000_TQAVHC(0), E1000_TQAVCH_ZERO_CREDIT);
-+	wr32(E1000_TQAVHC(1), E1000_TQAVCH_ZERO_CREDIT);
-+
-+	/* reset Tx Descriptor tail and head for the queues */
-+	wr32(E1000_TDT(0), 0);
-+	wr32(E1000_TDT(1), 0);
-+	wr32(E1000_TDH(0), 0);
-+	wr32(E1000_TDH(1), 0);
-+
-+	_tsn_dump_regs(adapter);
-+	dev_info(&adapter->pdev->dev, "\n");
-+
-+	adapter->sra_idleslope_res = 0;
-+	adapter->srb_idleslope_res = 0;
-+	adapter->tsn_ready = 1;
-+
-+	dev_info(&adapter->pdev->dev, "%s: setup done\n", __func__);
++	return msg->msg[0] & 0xf;
 +}
 +
-+int igb_tsn_capable(struct net_device *netdev)
-+{
-+	struct igb_adapter *adapter;
-+
-+	if (!netdev)
-+		return -EINVAL;
-+	adapter = netdev_priv(netdev);
-+	if (use_tsn == 1)
-+		return adapter->tsn_ready == 1;
-+	return 0;
-+}
-+
-+/* igb_tsn_link_configure - configure NIC to handle a new stream
-+ *
-+ * @netdev: pointer to NIC device
-+ * @class: the class for the stream used to find the correct queue.
-+ * @framesize: size of each frame, *including* headers (not preamble)
-+ * @vid: VLAN ID
-+ *
-+ * NOTE: the sr_class only instructs the driver which queue to use, not
-+ * what priority the network expects for a given class. This is
-+ * something userspace must find out and then let the tsn-driver set in
-+ * the frame before xmit.
-+ *
-+ * FIXME: remove bw-req from a stream that goes away.
++/**
++ * cec_msg_opcode - return the opcode of the message, -1 for poll
++ * @msg:	the message structure
 + */
-+int igb_tsn_link_configure(struct net_device *netdev, enum sr_class class,
-+			   u16 framesize, u16 vid)
++static inline int cec_msg_opcode(const struct cec_msg *msg)
 +{
-+	/* FIXME: push into adapter-storage */
-+	static int class_a_size;
-+	static int class_b_size;
-+	int err;
-+	u32 idle_slope_a = 0;
-+	u32 idle_slope_b = 0;
-+	u32 new_is = 0;
-+	u32 hicred_a = 0;
-+	u32 hicred_b = 0;
-+	u32 tqavctrl;
-+
-+	struct igb_adapter *adapter;
-+	struct e1000_hw *hw;
-+
-+	if (!netdev)
-+		return -EINVAL;
-+	adapter  = netdev_priv(netdev);
-+	hw = &adapter->hw;
-+
-+	if (!igb_tsn_capable(netdev)) {
-+		pr_err("%s:  NIC not capable\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	if (framesize > MAX_FRAME_SIZE || framesize < MIN_FRAME_SIZE) {
-+		pr_err("%s: framesize (%u) must be [%d,%d]\n", __func__,
-+		       framesize, MIN_FRAME_SIZE, MAX_FRAME_SIZE);
-+		return -EINVAL;
-+	}
-+
-+	/* TODO: is this the correct place/way? Is it required? */
-+	rtnl_lock();
-+	pr_info("%s: adding VLAN %u to HW filter on device %s\n",
-+		__func__, vid, netdev->name);
-+	err = vlan_vid_add(netdev, htons(ETH_P_8021Q), vid);
-+	if (err != 0)
-+		pr_err("%s: error adding vlan %u, res=%d\n",
-+		       __func__, vid, err);
-+	rtnl_unlock();
-+
-+	/* Grab current values of idle_slope */
-+	idle_slope_a = rd32(E1000_TQAVHC(0)) & ~E1000_TQAVCH_ZERO_CREDIT;
-+	idle_slope_b = rd32(E1000_TQAVHC(1)) & ~E1000_TQAVCH_ZERO_CREDIT;
-+
-+	/* Calculate new idle slope and add to appropriate idle_slope
-+	 * idle_slope = BW * linkrate * 2 (0r 0.2 for 100Mbit)
-+	 * BW: % of total bandwidth
-+	 */
-+	new_is = framesize * E1000_LINK_RATE * 16 / 1000000;
-+
-+	switch (class) {
-+	case SR_CLASS_A:
-+		new_is *= 2; /* A is 8kHz, B is 4kHz */
-+		idle_slope_a += new_is;
-+		class_a_size  = framesize;
-+		break;
-+	case SR_CLASS_B:
-+		idle_slope_b += new_is;
-+		class_b_size  = framesize;
-+		break;
-+	default:
-+		pr_err("%s: unhandled SR-class (%d)\n", __func__, class);
-+		return -EINVAL;
-+	}
-+
-+	/* HiCred: cred obtained while waiting for current frame &&
-+	 * higher-class frames to finish xmit.
-+	 *
-+	 * Covered in detail in 7.2.7.6 in i210 datasheet
-+	 * For class A: only worst-case framesize that just started;
-+	 *		i.e. 1522 * idleSlope / linkrate;
-+	 * For class B: (worst-case framesize + burstSize(A))*idleSlope
-+	 *
-+	 * See 802.1Q Annex L, eq L.10 for hicred_a and L.41 for
-+	 * hicred_b
-+	 */
-+	if (class == SR_CLASS_A) {
-+		hicred_a = E1000_TQAVCH_ZERO_CREDIT + idle_slope_a * MAX_FRAME_SIZE / E1000_LINK_RATE;
-+		wr32(E1000_TQAVCC(0), E1000_TQAVCC_QUEUEMODE | idle_slope_a);
-+		wr32(E1000_TQAVHC(0), hicred_a);
-+	} else {
-+		hicred_b = E1000_TQAVCH_ZERO_CREDIT | idle_slope_b * (MAX_FRAME_SIZE + class_a_size) / (E1000_LINK_RATE - idle_slope_a);
-+		wr32(E1000_TQAVCC(1), E1000_TQAVCC_QUEUEMODE | idle_slope_b);
-+		wr32(E1000_TQAVHC(1), hicred_b);
-+	}
-+
-+	/* Enable Tx for shaper now that we have data */
-+	tqavctrl = rd32(E1000_TQAVCTRL);
-+	if (!(tqavctrl & E1000_TQAVCTRL_DATA_TRAN_ARB)) {
-+		tqavctrl |= E1000_TQAVCTRL_DATA_TRAN_ARB;
-+		wr32(E1000_TQAVCTRL, tqavctrl);
-+	}
-+	_tsn_dump_regs(netdev_priv(netdev));
-+	return 0;
++	return msg->len > 1 ? msg->msg[1] : -1;
 +}
 +
-+#endif	/* #if IS_ENABLED(CONFIG_IGB_TSN) */
++/**
++ * cec_msg_is_broadcast - return true if this is a broadcast message.
++ * @msg:	the message structure
++ */
++static inline bool cec_msg_is_broadcast(const struct cec_msg *msg)
++{
++	return (msg->msg[0] & 0xf) == 0xf;
++}
++
++/**
++ * cec_msg_init - initialize the message structure.
++ * @msg:	the message structure
++ * @initiator:	the logical address of the initiator
++ * @destination:the logical address of the destination (0xf for broadcast)
++ *
++ * The whole structure is zeroed, the len field is set to 1 (i.e. a poll
++ * message) and the initiator and destination are filled in.
++ */
++static inline void cec_msg_init(struct cec_msg *msg,
++				__u8 initiator, __u8 destination)
++{
++	memset(msg, 0, sizeof(*msg));
++	msg->msg[0] = (initiator << 4) | destination;
++	msg->len = 1;
++}
++
++/**
++ * cec_msg_set_reply_to - fill in destination/initiator in a reply message.
++ * @msg:	the message structure for the reply
++ * @orig:	the original message structure
++ *
++ * Set the msg destination to the orig initiator and the msg initiator to the
++ * orig destination. Note that msg and orig may be the same pointer, in which
++ * case the change is done in place.
++ */
++static inline void cec_msg_set_reply_to(struct cec_msg *msg,
++					struct cec_msg *orig)
++{
++	/* The destination becomes the initiator and vice versa */
++	msg->msg[0] = (cec_msg_destination(orig) << 4) |
++		      cec_msg_initiator(orig);
++	msg->reply = msg->timeout = 0;
++}
++
++/* cec status field */
++#define CEC_TX_STATUS_OK		(1 << 0)
++#define CEC_TX_STATUS_ARB_LOST		(1 << 1)
++#define CEC_TX_STATUS_NACK		(1 << 2)
++#define CEC_TX_STATUS_LOW_DRIVE		(1 << 3)
++#define CEC_TX_STATUS_ERROR		(1 << 4)
++#define CEC_TX_STATUS_MAX_RETRIES	(1 << 5)
++
++#define CEC_RX_STATUS_OK		(1 << 0)
++#define CEC_RX_STATUS_TIMEOUT		(1 << 1)
++#define CEC_RX_STATUS_FEATURE_ABORT	(1 << 2)
++
++static inline bool cec_msg_status_is_ok(const struct cec_msg *msg)
++{
++	if (msg->tx_status && !(msg->tx_status & CEC_TX_STATUS_OK))
++		return false;
++	if (msg->rx_status && !(msg->rx_status & CEC_RX_STATUS_OK))
++		return false;
++	if (!msg->tx_status && !msg->rx_status)
++		return false;
++	return !(msg->rx_status & CEC_RX_STATUS_FEATURE_ABORT);
++}
++
++#define CEC_LOG_ADDR_INVALID		0xff
++#define CEC_PHYS_ADDR_INVALID		0xffff
++
++/*
++ * The maximum number of logical addresses one device can be assigned to.
++ * The CEC 2.0 spec allows for only 2 logical addresses at the moment. The
++ * Analog Devices CEC hardware supports 3. So let's go wild and go for 4.
++ */
++#define CEC_MAX_LOG_ADDRS 4
++
++/* The logical addresses defined by CEC 2.0 */
++#define CEC_LOG_ADDR_TV			0
++#define CEC_LOG_ADDR_RECORD_1		1
++#define CEC_LOG_ADDR_RECORD_2		2
++#define CEC_LOG_ADDR_TUNER_1		3
++#define CEC_LOG_ADDR_PLAYBACK_1		4
++#define CEC_LOG_ADDR_AUDIOSYSTEM	5
++#define CEC_LOG_ADDR_TUNER_2		6
++#define CEC_LOG_ADDR_TUNER_3		7
++#define CEC_LOG_ADDR_PLAYBACK_2		8
++#define CEC_LOG_ADDR_RECORD_3		9
++#define CEC_LOG_ADDR_TUNER_4		10
++#define CEC_LOG_ADDR_PLAYBACK_3		11
++#define CEC_LOG_ADDR_BACKUP_1		12
++#define CEC_LOG_ADDR_BACKUP_2		13
++#define CEC_LOG_ADDR_SPECIFIC		14
++#define CEC_LOG_ADDR_UNREGISTERED	15 /* as initiator address */
++#define CEC_LOG_ADDR_BROADCAST		15 /* ad destination address */
++
++/* The logical address types that the CEC device wants to claim */
++#define CEC_LOG_ADDR_TYPE_TV		0
++#define CEC_LOG_ADDR_TYPE_RECORD	1
++#define CEC_LOG_ADDR_TYPE_TUNER		2
++#define CEC_LOG_ADDR_TYPE_PLAYBACK	3
++#define CEC_LOG_ADDR_TYPE_AUDIOSYSTEM	4
++#define CEC_LOG_ADDR_TYPE_SPECIFIC	5
++#define CEC_LOG_ADDR_TYPE_UNREGISTERED	6
++/*
++ * Switches should use UNREGISTERED.
++ * Processors should use SPECIFIC.
++ */
++
++#define CEC_LOG_ADDR_MASK_TV		(1 << CEC_LOG_ADDR_TV)
++#define CEC_LOG_ADDR_MASK_RECORD	((1 << CEC_LOG_ADDR_RECORD_1) | \
++					 (1 << CEC_LOG_ADDR_RECORD_2) | \
++					 (1 << CEC_LOG_ADDR_RECORD_3))
++#define CEC_LOG_ADDR_MASK_TUNER		((1 << CEC_LOG_ADDR_TUNER_1) | \
++					 (1 << CEC_LOG_ADDR_TUNER_2) | \
++					 (1 << CEC_LOG_ADDR_TUNER_3) | \
++					 (1 << CEC_LOG_ADDR_TUNER_4))
++#define CEC_LOG_ADDR_MASK_PLAYBACK	((1 << CEC_LOG_ADDR_PLAYBACK_1) | \
++					 (1 << CEC_LOG_ADDR_PLAYBACK_2) | \
++					 (1 << CEC_LOG_ADDR_PLAYBACK_3))
++#define CEC_LOG_ADDR_MASK_AUDIOSYSTEM	(1 << CEC_LOG_ADDR_AUDIOSYSTEM)
++#define CEC_LOG_ADDR_MASK_BACKUP	((1 << CEC_LOG_ADDR_BACKUP_1) | \
++					 (1 << CEC_LOG_ADDR_BACKUP_2))
++#define CEC_LOG_ADDR_MASK_SPECIFIC	(1 << CEC_LOG_ADDR_SPECIFIC)
++#define CEC_LOG_ADDR_MASK_UNREGISTERED	(1 << CEC_LOG_ADDR_UNREGISTERED)
++
++static inline bool cec_has_tv(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_TV;
++}
++
++static inline bool cec_has_record(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_RECORD;
++}
++
++static inline bool cec_has_tuner(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_TUNER;
++}
++
++static inline bool cec_has_playback(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_PLAYBACK;
++}
++
++static inline bool cec_has_audiosystem(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_AUDIOSYSTEM;
++}
++
++static inline bool cec_has_backup(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_BACKUP;
++}
++
++static inline bool cec_has_specific(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_SPECIFIC;
++}
++
++static inline bool cec_is_unregistered(__u16 log_addr_mask)
++{
++	return log_addr_mask & CEC_LOG_ADDR_MASK_UNREGISTERED;
++}
++
++static inline bool cec_is_unconfigured(__u16 log_addr_mask)
++{
++	return log_addr_mask == 0;
++}
++
++/*
++ * Use this if there is no vendor ID (CEC_G_VENDOR_ID) or if the vendor ID
++ * should be disabled (CEC_S_VENDOR_ID)
++ */
++#define CEC_VENDOR_ID_NONE		0xffffffff
++
++/* The message handling modes */
++/* Modes for initiator */
++#define CEC_MODE_NO_INITIATOR		(0x0 << 0)
++#define CEC_MODE_INITIATOR		(0x1 << 0)
++#define CEC_MODE_EXCL_INITIATOR		(0x2 << 0)
++#define CEC_MODE_INITIATOR_MSK		0x0f
++
++/* Modes for follower */
++#define CEC_MODE_NO_FOLLOWER		(0x0 << 4)
++#define CEC_MODE_FOLLOWER		(0x1 << 4)
++#define CEC_MODE_EXCL_FOLLOWER		(0x2 << 4)
++#define CEC_MODE_EXCL_FOLLOWER_PASSTHRU	(0x3 << 4)
++#define CEC_MODE_MONITOR		(0xe << 4)
++#define CEC_MODE_MONITOR_ALL		(0xf << 4)
++#define CEC_MODE_FOLLOWER_MSK		0xf0
++
++/* Userspace has to configure the physical address */
++#define CEC_CAP_PHYS_ADDR	(1 << 0)
++/* Userspace has to configure the logical addresses */
++#define CEC_CAP_LOG_ADDRS	(1 << 1)
++/* Userspace can transmit messages (and thus become follower as well) */
++#define CEC_CAP_TRANSMIT	(1 << 2)
++/*
++ * Passthrough all messages instead of processing them.
++ */
++#define CEC_CAP_PASSTHROUGH	(1 << 3)
++/* Supports remote control */
++#define CEC_CAP_RC		(1 << 4)
++/* Hardware can monitor all messages, not just directed and broadcast. */
++#define CEC_CAP_MONITOR_ALL	(1 << 5)
++
++/**
++ * struct cec_caps - CEC capabilities structure.
++ * @driver: name of the CEC device driver.
++ * @name: name of the CEC device. @driver + @name must be unique.
++ * @available_log_addrs: number of available logical addresses.
++ * @capabilities: capabilities of the CEC adapter.
++ * @version: version of the CEC adapter framework.
++ */
++struct cec_caps {
++	char driver[32];
++	char name[32];
++	__u32 available_log_addrs;
++	__u32 capabilities;
++	__u32 version;
++};
++
++/**
++ * struct cec_log_addrs - CEC logical addresses structure.
++ * @log_addr: the claimed logical addresses. Set by the driver.
++ * @log_addr_mask: current logical address mask. Set by the driver.
++ * @cec_version: the CEC version that the adapter should implement. Set by the
++ *	caller.
++ * @num_log_addrs: how many logical addresses should be claimed. Set by the
++ *	caller.
++ * @vendor_id: the vendor ID of the device. Set by the caller.
++ * @flags: set to 0.
++ * @osd_name: the OSD name of the device. Set by the caller.
++ * @primary_device_type: the primary device type for each logical address.
++ *	Set by the caller.
++ * @log_addr_type: the logical address types. Set by the caller.
++ * @all_device_types: CEC 2.0: all device types represented by the logical
++ *	address. Set by the caller.
++ * @features:	CEC 2.0: The logical address features. Set by the caller.
++ */
++struct cec_log_addrs {
++	__u8 log_addr[CEC_MAX_LOG_ADDRS];
++	__u16 log_addr_mask;
++	__u8 cec_version;
++	__u8 num_log_addrs;
++	__u32 vendor_id;
++	__u32 flags;
++	char osd_name[15];
++	__u8 primary_device_type[CEC_MAX_LOG_ADDRS];
++	__u8 log_addr_type[CEC_MAX_LOG_ADDRS];
++
++	/* CEC 2.0 */
++	__u8 all_device_types[CEC_MAX_LOG_ADDRS];
++	__u8 features[CEC_MAX_LOG_ADDRS][12];
++};
++
++/* Events */
++
++/* Event that occurs when the adapter state changes */
++#define CEC_EVENT_STATE_CHANGE		1
++/*
++ * This event is sent when messages are lost because the application
++ * didn't empty the message queue in time
++ */
++#define CEC_EVENT_LOST_MSGS		2
++
++#define CEC_EVENT_FL_INITIAL_STATE	(1 << 0)
++
++/**
++ * struct cec_event_state_change - used when the CEC adapter changes state.
++ * @phys_addr: the current physical address
++ * @log_addr_mask: the current logical address mask
++ */
++struct cec_event_state_change {
++	__u16 phys_addr;
++	__u16 log_addr_mask;
++};
++
++/**
++ * struct cec_event_lost_msgs - tells you how many messages were lost due.
++ * @lost_msgs: how many messages were lost.
++ */
++struct cec_event_lost_msgs {
++	__u32 lost_msgs;
++};
++
++/**
++ * struct cec_event - CEC event structure
++ * @ts: the timestamp of when the event was sent.
++ * @event: the event.
++ * array.
++ * @state_change: the event payload for CEC_EVENT_STATE_CHANGE.
++ * @lost_msgs: the event payload for CEC_EVENT_LOST_MSGS.
++ * @raw: array to pad the union.
++ */
++struct cec_event {
++	__u64 ts;
++	__u32 event;
++	__u32 flags;
++	union {
++		struct cec_event_state_change state_change;
++		struct cec_event_lost_msgs lost_msgs;
++		__u32 raw[16];
++	};
++};
++
++/* ioctls */
++
++/* Adapter capabilities */
++#define CEC_ADAP_G_CAPS		_IOWR('a',  0, struct cec_caps)
++
++/*
++ * phys_addr is either 0 (if this is the CEC root device)
++ * or a valid physical address obtained from the sink's EDID
++ * as read by this CEC device (if this is a source device)
++ * or a physical address obtained and modified from a sink
++ * EDID and used for a sink CEC device.
++ * If nothing is connected, then phys_addr is 0xffff.
++ * See HDMI 1.4b, section 8.7 (Physical Address).
++ *
++ * The CEC_ADAP_S_PHYS_ADDR ioctl may not be available if that is handled
++ * internally.
++ */
++#define CEC_ADAP_G_PHYS_ADDR	_IOR('a',  1, __u16)
++#define CEC_ADAP_S_PHYS_ADDR	_IOW('a',  2, __u16)
++
++/*
++ * Configure the CEC adapter. It sets the device type and which
++ * logical types it will try to claim. It will return which
++ * logical addresses it could actually claim.
++ * An error is returned if the adapter is disabled or if there
++ * is no physical address assigned.
++ */
++
++#define CEC_ADAP_G_LOG_ADDRS	_IOR('a',  3, struct cec_log_addrs)
++#define CEC_ADAP_S_LOG_ADDRS	_IOWR('a',  4, struct cec_log_addrs)
++
++/* Transmit/receive a CEC command */
++#define CEC_TRANSMIT		_IOWR('a',  5, struct cec_msg)
++#define CEC_RECEIVE		_IOWR('a',  6, struct cec_msg)
++
++/* Dequeue CEC events */
++#define CEC_DQEVENT		_IOWR('a',  7, struct cec_event)
++
++/*
++ * Get and set the message handling mode for this filehandle.
++ */
++#define CEC_G_MODE		_IOR('a',  8, __u32)
++#define CEC_S_MODE		_IOW('a',  9, __u32)
++
++/*
++ * The remainder of this header defines all CEC messages and operands.
++ * The format matters since it the cec-ctl utility parses it to generate
++ * code for implementing all these messages.
++ *
++ * Comments ending with 'Feature' group messages for each feature.
++ * If messages are part of multiple features, then the "Has also"
++ * comment is used to list the previously defined messages that are
++ * supported by the feature.
++ *
++ * Before operands are defined a comment is added that gives the
++ * name of the operand and in brackets the variable name of the
++ * corresponding argument in the cec-funcs.h function.
++ */
++
++/* Messages */
++
++/* One Touch Play Feature */
++#define CEC_MSG_ACTIVE_SOURCE				0x82
++#define CEC_MSG_IMAGE_VIEW_ON				0x04
++#define CEC_MSG_TEXT_VIEW_ON				0x0d
++
++
++/* Routing Control Feature */
++
++/*
++ * Has also:
++ *	CEC_MSG_ACTIVE_SOURCE
++ */
++
++#define CEC_MSG_INACTIVE_SOURCE				0x9d
++#define CEC_MSG_REQUEST_ACTIVE_SOURCE			0x85
++#define CEC_MSG_ROUTING_CHANGE				0x80
++#define CEC_MSG_ROUTING_INFORMATION			0x81
++#define CEC_MSG_SET_STREAM_PATH				0x86
++
++
++/* Standby Feature */
++#define CEC_MSG_STANDBY					0x36
++
++
++/* One Touch Record Feature */
++#define CEC_MSG_RECORD_OFF				0x0b
++#define CEC_MSG_RECORD_ON				0x09
++/* Record Source Type Operand (rec_src_type) */
++#define CEC_OP_RECORD_SRC_OWN				1
++#define CEC_OP_RECORD_SRC_DIGITAL			2
++#define CEC_OP_RECORD_SRC_ANALOG			3
++#define CEC_OP_RECORD_SRC_EXT_PLUG			4
++#define CEC_OP_RECORD_SRC_EXT_PHYS_ADDR			5
++/* Service Identification Method Operand (service_id_method) */
++#define CEC_OP_SERVICE_ID_METHOD_BY_DIG_ID		0
++#define CEC_OP_SERVICE_ID_METHOD_BY_CHANNEL		1
++/* Digital Service Broadcast System Operand (dig_bcast_system) */
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ARIB_GEN	0x00
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ATSC_GEN	0x01
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_DVB_GEN		0x02
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ARIB_BS		0x08
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ARIB_CS		0x09
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ARIB_T		0x0a
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ATSC_CABLE	0x10
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ATSC_SAT	0x11
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_ATSC_T		0x12
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_DVB_C		0x18
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_DVB_S		0x19
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_DVB_S2		0x1a
++#define CEC_OP_DIG_SERVICE_BCAST_SYSTEM_DVB_T		0x1b
++/* Analogue Broadcast Type Operand (ana_bcast_type) */
++#define CEC_OP_ANA_BCAST_TYPE_CABLE			0
++#define CEC_OP_ANA_BCAST_TYPE_SATELLITE			1
++#define CEC_OP_ANA_BCAST_TYPE_TERRESTRIAL		2
++/* Broadcast System Operand (bcast_system) */
++#define CEC_OP_BCAST_SYSTEM_PAL_BG			0x00
++#define CEC_OP_BCAST_SYSTEM_SECAM_LQ			0x01 /* SECAM L' */
++#define CEC_OP_BCAST_SYSTEM_PAL_M			0x02
++#define CEC_OP_BCAST_SYSTEM_NTSC_M			0x03
++#define CEC_OP_BCAST_SYSTEM_PAL_I			0x04
++#define CEC_OP_BCAST_SYSTEM_SECAM_DK			0x05
++#define CEC_OP_BCAST_SYSTEM_SECAM_BG			0x06
++#define CEC_OP_BCAST_SYSTEM_SECAM_L			0x07
++#define CEC_OP_BCAST_SYSTEM_PAL_DK			0x08
++#define CEC_OP_BCAST_SYSTEM_OTHER			0x1f
++/* Channel Number Format Operand (channel_number_fmt) */
++#define CEC_OP_CHANNEL_NUMBER_FMT_1_PART		0x01
++#define CEC_OP_CHANNEL_NUMBER_FMT_2_PART		0x02
++
++#define CEC_MSG_RECORD_STATUS				0x0a
++/* Record Status Operand (rec_status) */
++#define CEC_OP_RECORD_STATUS_CUR_SRC			0x01
++#define CEC_OP_RECORD_STATUS_DIG_SERVICE		0x02
++#define CEC_OP_RECORD_STATUS_ANA_SERVICE		0x03
++#define CEC_OP_RECORD_STATUS_EXT_INPUT			0x04
++#define CEC_OP_RECORD_STATUS_NO_DIG_SERVICE		0x05
++#define CEC_OP_RECORD_STATUS_NO_ANA_SERVICE		0x06
++#define CEC_OP_RECORD_STATUS_NO_SERVICE			0x07
++#define CEC_OP_RECORD_STATUS_INVALID_EXT_PLUG		0x09
++#define CEC_OP_RECORD_STATUS_INVALID_EXT_PHYS_ADDR	0x0a
++#define CEC_OP_RECORD_STATUS_UNSUP_CA			0x0b
++#define CEC_OP_RECORD_STATUS_NO_CA_ENTITLEMENTS		0x0c
++#define CEC_OP_RECORD_STATUS_CANT_COPY_SRC		0x0d
++#define CEC_OP_RECORD_STATUS_NO_MORE_COPIES		0x0e
++#define CEC_OP_RECORD_STATUS_NO_MEDIA			0x10
++#define CEC_OP_RECORD_STATUS_PLAYING			0x11
++#define CEC_OP_RECORD_STATUS_ALREADY_RECORDING		0x12
++#define CEC_OP_RECORD_STATUS_MEDIA_PROT			0x13
++#define CEC_OP_RECORD_STATUS_NO_SIGNAL			0x14
++#define CEC_OP_RECORD_STATUS_MEDIA_PROBLEM		0x15
++#define CEC_OP_RECORD_STATUS_NO_SPACE			0x16
++#define CEC_OP_RECORD_STATUS_PARENTAL_LOCK		0x17
++#define CEC_OP_RECORD_STATUS_TERMINATED_OK		0x1a
++#define CEC_OP_RECORD_STATUS_ALREADY_TERM		0x1b
++#define CEC_OP_RECORD_STATUS_OTHER			0x1f
++
++#define CEC_MSG_RECORD_TV_SCREEN			0x0f
++
++
++/* Timer Programming Feature */
++#define CEC_MSG_CLEAR_ANALOGUE_TIMER			0x33
++/* Recording Sequence Operand (recording_seq) */
++#define CEC_OP_REC_SEQ_SUNDAY				0x01
++#define CEC_OP_REC_SEQ_MONDAY				0x02
++#define CEC_OP_REC_SEQ_TUESDAY				0x04
++#define CEC_OP_REC_SEQ_WEDNESDAY			0x08
++#define CEC_OP_REC_SEQ_THURSDAY				0x10
++#define CEC_OP_REC_SEQ_FRIDAY				0x20
++#define CEC_OP_REC_SEQ_SATERDAY				0x40
++#define CEC_OP_REC_SEQ_ONCE_ONLY			0x00
++
++#define CEC_MSG_CLEAR_DIGITAL_TIMER			0x99
++
++#define CEC_MSG_CLEAR_EXT_TIMER				0xa1
++/* External Source Specifier Operand (ext_src_spec) */
++#define CEC_OP_EXT_SRC_PLUG				0x04
++#define CEC_OP_EXT_SRC_PHYS_ADDR			0x05
++
++#define CEC_MSG_SET_ANALOGUE_TIMER			0x34
++#define CEC_MSG_SET_DIGITAL_TIMER			0x97
++#define CEC_MSG_SET_EXT_TIMER				0xa2
++
++#define CEC_MSG_SET_TIMER_PROGRAM_TITLE			0x67
++#define CEC_MSG_TIMER_CLEARED_STATUS			0x43
++/* Timer Cleared Status Data Operand (timer_cleared_status) */
++#define CEC_OP_TIMER_CLR_STAT_RECORDING			0x00
++#define CEC_OP_TIMER_CLR_STAT_NO_MATCHING		0x01
++#define CEC_OP_TIMER_CLR_STAT_NO_INFO			0x02
++#define CEC_OP_TIMER_CLR_STAT_CLEARED			0x80
++
++#define CEC_MSG_TIMER_STATUS				0x35
++/* Timer Overlap Warning Operand (timer_overlap_warning) */
++#define CEC_OP_TIMER_OVERLAP_WARNING_NO_OVERLAP		0
++#define CEC_OP_TIMER_OVERLAP_WARNING_OVERLAP		1
++/* Media Info Operand (media_info) */
++#define CEC_OP_MEDIA_INFO_UNPROT_MEDIA			0
++#define CEC_OP_MEDIA_INFO_PROT_MEDIA			1
++#define CEC_OP_MEDIA_INFO_NO_MEDIA			2
++/* Programmed Indicator Operand (prog_indicator) */
++#define CEC_OP_PROG_IND_NOT_PROGRAMMED			0
++#define CEC_OP_PROG_IND_PROGRAMMED			1
++/* Programmed Info Operand (prog_info) */
++#define CEC_OP_PROG_INFO_ENOUGH_SPACE			0x08
++#define CEC_OP_PROG_INFO_NOT_ENOUGH_SPACE		0x09
++#define CEC_OP_PROG_INFO_MIGHT_NOT_BE_ENOUGH_SPACE	0x0b
++#define CEC_OP_PROG_INFO_NONE_AVAILABLE			0x0a
++/* Not Programmed Error Info Operand (prog_error) */
++#define CEC_OP_PROG_ERROR_NO_FREE_TIMER			0x01
++#define CEC_OP_PROG_ERROR_DATE_OUT_OF_RANGE		0x02
++#define CEC_OP_PROG_ERROR_REC_SEQ_ERROR			0x03
++#define CEC_OP_PROG_ERROR_INV_EXT_PLUG			0x04
++#define CEC_OP_PROG_ERROR_INV_EXT_PHYS_ADDR		0x05
++#define CEC_OP_PROG_ERROR_CA_UNSUPP			0x06
++#define CEC_OP_PROG_ERROR_INSUF_CA_ENTITLEMENTS		0x07
++#define CEC_OP_PROG_ERROR_RESOLUTION_UNSUPP		0x08
++#define CEC_OP_PROG_ERROR_PARENTAL_LOCK			0x09
++#define CEC_OP_PROG_ERROR_CLOCK_FAILURE			0x0a
++#define CEC_OP_PROG_ERROR_DUPLICATE			0x0e
++
++
++/* System Information Feature */
++#define CEC_MSG_CEC_VERSION				0x9e
++/* CEC Version Operand (cec_version) */
++#define CEC_OP_CEC_VERSION_1_3A				4
++#define CEC_OP_CEC_VERSION_1_4				5
++#define CEC_OP_CEC_VERSION_2_0				6
++
++#define CEC_MSG_GET_CEC_VERSION				0x9f
++#define CEC_MSG_GIVE_PHYSICAL_ADDR			0x83
++#define CEC_MSG_GET_MENU_LANGUAGE			0x91
++#define CEC_MSG_REPORT_PHYSICAL_ADDR			0x84
++/* Primary Device Type Operand (prim_devtype) */
++#define CEC_OP_PRIM_DEVTYPE_TV				0
++#define CEC_OP_PRIM_DEVTYPE_RECORD			1
++#define CEC_OP_PRIM_DEVTYPE_TUNER			3
++#define CEC_OP_PRIM_DEVTYPE_PLAYBACK			4
++#define CEC_OP_PRIM_DEVTYPE_AUDIOSYSTEM			5
++#define CEC_OP_PRIM_DEVTYPE_SWITCH			6
++#define CEC_OP_PRIM_DEVTYPE_PROCESSOR			7
++
++#define CEC_MSG_SET_MENU_LANGUAGE			0x32
++#define CEC_MSG_REPORT_FEATURES				0xa6	/* HDMI 2.0 */
++/* All Device Types Operand (all_device_types) */
++#define CEC_OP_ALL_DEVTYPE_TV				0x80
++#define CEC_OP_ALL_DEVTYPE_RECORD			0x40
++#define CEC_OP_ALL_DEVTYPE_TUNER			0x20
++#define CEC_OP_ALL_DEVTYPE_PLAYBACK			0x10
++#define CEC_OP_ALL_DEVTYPE_AUDIOSYSTEM			0x08
++#define CEC_OP_ALL_DEVTYPE_SWITCH			0x04
++/*
++ * And if you wondering what happened to PROCESSOR devices: those should
++ * be mapped to a SWITCH.
++ */
++
++/* Valid for RC Profile and Device Feature operands */
++#define CEC_OP_FEAT_EXT					0x80	/* Extension bit */
++/* RC Profile Operand (rc_profile) */
++#define CEC_OP_FEAT_RC_TV_PROFILE_NONE			0x00
++#define CEC_OP_FEAT_RC_TV_PROFILE_1			0x02
++#define CEC_OP_FEAT_RC_TV_PROFILE_2			0x06
++#define CEC_OP_FEAT_RC_TV_PROFILE_3			0x0a
++#define CEC_OP_FEAT_RC_TV_PROFILE_4			0x0e
++#define CEC_OP_FEAT_RC_SRC_HAS_DEV_ROOT_MENU		0x50
++#define CEC_OP_FEAT_RC_SRC_HAS_DEV_SETUP_MENU		0x48
++#define CEC_OP_FEAT_RC_SRC_HAS_CONTENTS_MENU		0x44
++#define CEC_OP_FEAT_RC_SRC_HAS_MEDIA_TOP_MENU		0x42
++#define CEC_OP_FEAT_RC_SRC_HAS_MEDIA_CONTEXT_MENU	0x41
++/* Device Feature Operand (dev_features) */
++#define CEC_OP_FEAT_DEV_HAS_RECORD_TV_SCREEN		0x40
++#define CEC_OP_FEAT_DEV_HAS_SET_OSD_STRING		0x20
++#define CEC_OP_FEAT_DEV_HAS_DECK_CONTROL		0x10
++#define CEC_OP_FEAT_DEV_HAS_SET_AUDIO_RATE		0x08
++#define CEC_OP_FEAT_DEV_SINK_HAS_ARC_TX			0x04
++#define CEC_OP_FEAT_DEV_SOURCE_HAS_ARC_RX		0x02
++
++#define CEC_MSG_GIVE_FEATURES				0xa5	/* HDMI 2.0 */
++
++
++/* Deck Control Feature */
++#define CEC_MSG_DECK_CONTROL				0x42
++/* Deck Control Mode Operand (deck_control_mode) */
++#define CEC_OP_DECK_CTL_MODE_SKIP_FWD			1
++#define CEC_OP_DECK_CTL_MODE_SKIP_REV			2
++#define CEC_OP_DECK_CTL_MODE_STOP			3
++#define CEC_OP_DECK_CTL_MODE_EJECT			4
++
++#define CEC_MSG_DECK_STATUS				0x1b
++/* Deck Info Operand (deck_info) */
++#define CEC_OP_DECK_INFO_PLAY				0x11
++#define CEC_OP_DECK_INFO_RECORD				0x12
++#define CEC_OP_DECK_INFO_PLAY_REV			0x13
++#define CEC_OP_DECK_INFO_STILL				0x14
++#define CEC_OP_DECK_INFO_SLOW				0x15
++#define CEC_OP_DECK_INFO_SLOW_REV			0x16
++#define CEC_OP_DECK_INFO_FAST_FWD			0x17
++#define CEC_OP_DECK_INFO_FAST_REV			0x18
++#define CEC_OP_DECK_INFO_NO_MEDIA			0x19
++#define CEC_OP_DECK_INFO_STOP				0x1a
++#define CEC_OP_DECK_INFO_SKIP_FWD			0x1b
++#define CEC_OP_DECK_INFO_SKIP_REV			0x1c
++#define CEC_OP_DECK_INFO_INDEX_SEARCH_FWD		0x1d
++#define CEC_OP_DECK_INFO_INDEX_SEARCH_REV		0x1e
++#define CEC_OP_DECK_INFO_OTHER				0x1f
++
++#define CEC_MSG_GIVE_DECK_STATUS			0x1a
++/* Status Request Operand (status_req) */
++#define CEC_OP_STATUS_REQ_ON				1
++#define CEC_OP_STATUS_REQ_OFF				2
++#define CEC_OP_STATUS_REQ_ONCE				3
++
++#define CEC_MSG_PLAY					0x41
++/* Play Mode Operand (play_mode) */
++#define CEC_OP_PLAY_MODE_PLAY_FWD			0x24
++#define CEC_OP_PLAY_MODE_PLAY_REV			0x20
++#define CEC_OP_PLAY_MODE_PLAY_STILL			0x25
++#define CEC_OP_PLAY_MODE_PLAY_FAST_FWD_MIN		0x05
++#define CEC_OP_PLAY_MODE_PLAY_FAST_FWD_MED		0x06
++#define CEC_OP_PLAY_MODE_PLAY_FAST_FWD_MAX		0x07
++#define CEC_OP_PLAY_MODE_PLAY_FAST_REV_MIN		0x09
++#define CEC_OP_PLAY_MODE_PLAY_FAST_REV_MED		0x0a
++#define CEC_OP_PLAY_MODE_PLAY_FAST_REV_MAX		0x0b
++#define CEC_OP_PLAY_MODE_PLAY_SLOW_FWD_MIN		0x15
++#define CEC_OP_PLAY_MODE_PLAY_SLOW_FWD_MED		0x16
++#define CEC_OP_PLAY_MODE_PLAY_SLOW_FWD_MAX		0x17
++#define CEC_OP_PLAY_MODE_PLAY_SLOW_REV_MIN		0x19
++#define CEC_OP_PLAY_MODE_PLAY_SLOW_REV_MED		0x1a
++#define CEC_OP_PLAY_MODE_PLAY_SLOW_REV_MAX		0x1b
++
++
++/* Tuner Control Feature */
++#define CEC_MSG_GIVE_TUNER_DEVICE_STATUS		0x08
++#define CEC_MSG_SELECT_ANALOGUE_SERVICE			0x92
++#define CEC_MSG_SELECT_DIGITAL_SERVICE			0x93
++#define CEC_MSG_TUNER_DEVICE_STATUS			0x07
++/* Recording Flag Operand (rec_flag) */
++#define CEC_OP_REC_FLAG_USED				0
++#define CEC_OP_REC_FLAG_NOT_USED			1
++/* Tuner Display Info Operand (tuner_display_info) */
++#define CEC_OP_TUNER_DISPLAY_INFO_DIGITAL		0
++#define CEC_OP_TUNER_DISPLAY_INFO_NONE			1
++#define CEC_OP_TUNER_DISPLAY_INFO_ANALOGUE		2
++
++#define CEC_MSG_TUNER_STEP_DECREMENT			0x06
++#define CEC_MSG_TUNER_STEP_INCREMENT			0x05
++
++
++/* Vendor Specific Commands Feature */
++
++/*
++ * Has also:
++ *	CEC_MSG_CEC_VERSION
++ *	CEC_MSG_GET_CEC_VERSION
++ */
++#define CEC_MSG_DEVICE_VENDOR_ID			0x87
++#define CEC_MSG_GIVE_DEVICE_VENDOR_ID			0x8c
++#define CEC_MSG_VENDOR_COMMAND				0x89
++#define CEC_MSG_VENDOR_COMMAND_WITH_ID			0xa0
++#define CEC_MSG_VENDOR_REMOTE_BUTTON_DOWN		0x8a
++#define CEC_MSG_VENDOR_REMOTE_BUTTON_UP			0x8b
++
++
++/* OSD Display Feature */
++#define CEC_MSG_SET_OSD_STRING				0x64
++/* Display Control Operand (disp_ctl) */
++#define CEC_OP_DISP_CTL_DEFAULT				0x00
++#define CEC_OP_DISP_CTL_UNTIL_CLEARED			0x40
++#define CEC_OP_DISP_CTL_CLEAR				0x80
++
++
++/* Device OSD Transfer Feature */
++#define CEC_MSG_GIVE_OSD_NAME				0x46
++#define CEC_MSG_SET_OSD_NAME				0x47
++
++
++/* Device Menu Control Feature */
++#define CEC_MSG_MENU_REQUEST				0x8d
++/* Menu Request Type Operand (menu_req) */
++#define CEC_OP_MENU_REQUEST_ACTIVATE			0x00
++#define CEC_OP_MENU_REQUEST_DEACTIVATE			0x01
++#define CEC_OP_MENU_REQUEST_QUERY			0x02
++
++#define CEC_MSG_MENU_STATUS				0x8e
++/* Menu State Operand (menu_state) */
++#define CEC_OP_MENU_STATE_ACTIVATED			0x00
++#define CEC_OP_MENU_STATE_DEACTIVATED			0x01
++
++#define CEC_MSG_USER_CONTROL_PRESSED			0x44
++/* UI Broadcast Type Operand (ui_bcast_type) */
++#define CEC_OP_UI_BCAST_TYPE_TOGGLE_ALL			0x00
++#define CEC_OP_UI_BCAST_TYPE_TOGGLE_DIG_ANA		0x01
++#define CEC_OP_UI_BCAST_TYPE_ANALOGUE			0x10
++#define CEC_OP_UI_BCAST_TYPE_ANALOGUE_T			0x20
++#define CEC_OP_UI_BCAST_TYPE_ANALOGUE_CABLE		0x30
++#define CEC_OP_UI_BCAST_TYPE_ANALOGUE_SAT		0x40
++#define CEC_OP_UI_BCAST_TYPE_DIGITAL			0x50
++#define CEC_OP_UI_BCAST_TYPE_DIGITAL_T			0x60
++#define CEC_OP_UI_BCAST_TYPE_DIGITAL_CABLE		0x70
++#define CEC_OP_UI_BCAST_TYPE_DIGITAL_SAT		0x80
++#define CEC_OP_UI_BCAST_TYPE_DIGITAL_COM_SAT		0x90
++#define CEC_OP_UI_BCAST_TYPE_DIGITAL_COM_SAT2		0x91
++#define CEC_OP_UI_BCAST_TYPE_IP				0xa0
++/* UI Sound Presentation Control Operand (ui_snd_pres_ctl) */
++#define CEC_OP_UI_SND_PRES_CTL_DUAL_MONO		0x10
++#define CEC_OP_UI_SND_PRES_CTL_KARAOKE			0x20
++#define CEC_OP_UI_SND_PRES_CTL_DOWNMIX			0x80
++#define CEC_OP_UI_SND_PRES_CTL_REVERB			0x90
++#define CEC_OP_UI_SND_PRES_CTL_EQUALIZER		0xa0
++#define CEC_OP_UI_SND_PRES_CTL_BASS_UP			0xb1
++#define CEC_OP_UI_SND_PRES_CTL_BASS_NEUTRAL		0xb2
++#define CEC_OP_UI_SND_PRES_CTL_BASS_DOWN		0xb3
++#define CEC_OP_UI_SND_PRES_CTL_TREBLE_UP		0xc1
++#define CEC_OP_UI_SND_PRES_CTL_TREBLE_NEUTRAL		0xc2
++#define CEC_OP_UI_SND_PRES_CTL_TREBLE_DOWN		0xc3
++
++#define CEC_MSG_USER_CONTROL_RELEASED			0x45
++
++
++/* Remote Control Passthrough Feature */
++
++/*
++ * Has also:
++ *	CEC_MSG_USER_CONTROL_PRESSED
++ *	CEC_MSG_USER_CONTROL_RELEASED
++ */
++
++
++/* Power Status Feature */
++#define CEC_MSG_GIVE_DEVICE_POWER_STATUS		0x8f
++#define CEC_MSG_REPORT_POWER_STATUS			0x90
++/* Power Status Operand (pwr_state) */
++#define CEC_OP_POWER_STATUS_ON				0
++#define CEC_OP_POWER_STATUS_STANDBY			1
++#define CEC_OP_POWER_STATUS_TO_ON			2
++#define CEC_OP_POWER_STATUS_TO_STANDBY			3
++
++
++/* General Protocol Messages */
++#define CEC_MSG_FEATURE_ABORT				0x00
++/* Abort Reason Operand (reason) */
++#define CEC_OP_ABORT_UNRECOGNIZED_OP			0
++#define CEC_OP_ABORT_INCORRECT_MODE			1
++#define CEC_OP_ABORT_NO_SOURCE				2
++#define CEC_OP_ABORT_INVALID_OP				3
++#define CEC_OP_ABORT_REFUSED				4
++#define CEC_OP_ABORT_UNDETERMINED			5
++
++#define CEC_MSG_ABORT					0xff
++
++
++/* System Audio Control Feature */
++
++/*
++ * Has also:
++ *	CEC_MSG_USER_CONTROL_PRESSED
++ *	CEC_MSG_USER_CONTROL_RELEASED
++ */
++#define CEC_MSG_GIVE_AUDIO_STATUS			0x71
++#define CEC_MSG_GIVE_SYSTEM_AUDIO_MODE_STATUS		0x7d
++#define CEC_MSG_REPORT_AUDIO_STATUS			0x7a
++/* Audio Mute Status Operand (aud_mute_status) */
++#define CEC_OP_AUD_MUTE_STATUS_OFF			0
++#define CEC_OP_AUD_MUTE_STATUS_ON			1
++
++#define CEC_MSG_REPORT_SHORT_AUDIO_DESCRIPTOR		0xa3
++#define CEC_MSG_REQUEST_SHORT_AUDIO_DESCRIPTOR		0xa4
++#define CEC_MSG_SET_SYSTEM_AUDIO_MODE			0x72
++/* System Audio Status Operand (sys_aud_status) */
++#define CEC_OP_SYS_AUD_STATUS_OFF			0
++#define CEC_OP_SYS_AUD_STATUS_ON			1
++
++#define CEC_MSG_SYSTEM_AUDIO_MODE_REQUEST		0x70
++#define CEC_MSG_SYSTEM_AUDIO_MODE_STATUS		0x7e
++/* Audio Format ID Operand (audio_format_id) */
++#define CEC_OP_AUD_FMT_ID_CEA861			0
++#define CEC_OP_AUD_FMT_ID_CEA861_CXT			1
++
++
++/* Audio Rate Control Feature */
++#define CEC_MSG_SET_AUDIO_RATE				0x9a
++/* Audio Rate Operand (audio_rate) */
++#define CEC_OP_AUD_RATE_OFF				0
++#define CEC_OP_AUD_RATE_WIDE_STD			1
++#define CEC_OP_AUD_RATE_WIDE_FAST			2
++#define CEC_OP_AUD_RATE_WIDE_SLOW			3
++#define CEC_OP_AUD_RATE_NARROW_STD			4
++#define CEC_OP_AUD_RATE_NARROW_FAST			5
++#define CEC_OP_AUD_RATE_NARROW_SLOW			6
++
++
++/* Audio Return Channel Control Feature */
++#define CEC_MSG_INITIATE_ARC				0xc0
++#define CEC_MSG_REPORT_ARC_INITIATED			0xc1
++#define CEC_MSG_REPORT_ARC_TERMINATED			0xc2
++#define CEC_MSG_REQUEST_ARC_INITIATION			0xc3
++#define CEC_MSG_REQUEST_ARC_TERMINATION			0xc4
++#define CEC_MSG_TERMINATE_ARC				0xc5
++
++
++/* Dynamic Audio Lipsync Feature */
++/* Only for CEC 2.0 and up */
++#define CEC_MSG_REQUEST_CURRENT_LATENCY			0xa7
++#define CEC_MSG_REPORT_CURRENT_LATENCY			0xa8
++/* Low Latency Mode Operand (low_latency_mode) */
++#define CEC_OP_LOW_LATENCY_MODE_OFF			0
++#define CEC_OP_LOW_LATENCY_MODE_ON			1
++/* Audio Output Compensated Operand (audio_out_compensated) */
++#define CEC_OP_AUD_OUT_COMPENSATED_NA			0
++#define CEC_OP_AUD_OUT_COMPENSATED_DELAY		1
++#define CEC_OP_AUD_OUT_COMPENSATED_NO_DELAY		2
++#define CEC_OP_AUD_OUT_COMPENSATED_PARTIAL_DELAY	3
++
++
++/* Capability Discovery and Control Feature */
++#define CEC_MSG_CDC_MESSAGE				0xf8
++/* Ethernet-over-HDMI: nobody ever does this... */
++#define CEC_MSG_CDC_HEC_INQUIRE_STATE			0x00
++#define CEC_MSG_CDC_HEC_REPORT_STATE			0x01
++/* HEC Functionality State Operand (hec_func_state) */
++#define CEC_OP_HEC_FUNC_STATE_NOT_SUPPORTED		0
++#define CEC_OP_HEC_FUNC_STATE_INACTIVE			1
++#define CEC_OP_HEC_FUNC_STATE_ACTIVE			2
++#define CEC_OP_HEC_FUNC_STATE_ACTIVATION_FIELD		3
++/* Host Functionality State Operand (host_func_state) */
++#define CEC_OP_HOST_FUNC_STATE_NOT_SUPPORTED		0
++#define CEC_OP_HOST_FUNC_STATE_INACTIVE			1
++#define CEC_OP_HOST_FUNC_STATE_ACTIVE			2
++/* ENC Functionality State Operand (enc_func_state) */
++#define CEC_OP_ENC_FUNC_STATE_EXT_CON_NOT_SUPPORTED	0
++#define CEC_OP_ENC_FUNC_STATE_EXT_CON_INACTIVE		1
++#define CEC_OP_ENC_FUNC_STATE_EXT_CON_ACTIVE		2
++/* CDC Error Code Operand (cdc_errcode) */
++#define CEC_OP_CDC_ERROR_CODE_NONE			0
++#define CEC_OP_CDC_ERROR_CODE_CAP_UNSUPPORTED		1
++#define CEC_OP_CDC_ERROR_CODE_WRONG_STATE		2
++#define CEC_OP_CDC_ERROR_CODE_OTHER			3
++/* HEC Support Operand (hec_support) */
++#define CEC_OP_HEC_SUPPORT_NO				0
++#define CEC_OP_HEC_SUPPORT_YES				1
++/* HEC Activation Operand (hec_activation) */
++#define CEC_OP_HEC_ACTIVATION_ON			0
++#define CEC_OP_HEC_ACTIVATION_OFF			1
++
++#define CEC_MSG_CDC_HEC_SET_STATE_ADJACENT		0x02
++#define CEC_MSG_CDC_HEC_SET_STATE			0x03
++/* HEC Set State Operand (hec_set_state) */
++#define CEC_OP_HEC_SET_STATE_DEACTIVATE			0
++#define CEC_OP_HEC_SET_STATE_ACTIVATE			1
++
++#define CEC_MSG_CDC_HEC_REQUEST_DEACTIVATION		0x04
++#define CEC_MSG_CDC_HEC_NOTIFY_ALIVE			0x05
++#define CEC_MSG_CDC_HEC_DISCOVER			0x06
++/* Hotplug Detect messages */
++#define CEC_MSG_CDC_HPD_SET_STATE			0x10
++/* HPD State Operand (hpd_state) */
++#define CEC_OP_HPD_STATE_CP_EDID_DISABLE		0
++#define CEC_OP_HPD_STATE_CP_EDID_ENABLE			1
++#define CEC_OP_HPD_STATE_CP_EDID_DISABLE_ENABLE		2
++#define CEC_OP_HPD_STATE_EDID_DISABLE			3
++#define CEC_OP_HPD_STATE_EDID_ENABLE			4
++#define CEC_OP_HPD_STATE_EDID_DISABLE_ENABLE		5
++#define CEC_MSG_CDC_HPD_REPORT_STATE			0x11
++/* HPD Error Code Operand (hpd_error) */
++#define CEC_OP_HPD_ERROR_NONE				0
++#define CEC_OP_HPD_ERROR_INITIATOR_NOT_CAPABLE		1
++#define CEC_OP_HPD_ERROR_INITIATOR_WRONG_STATE		2
++#define CEC_OP_HPD_ERROR_OTHER				3
++#define CEC_OP_HPD_ERROR_NONE_NO_VIDEO			4
++
++#endif
 -- 
-2.7.4
+2.8.1
 
