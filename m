@@ -1,84 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39848 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752721AbcFIPlO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jun 2016 11:41:14 -0400
-Subject: Re: dvb-core: how should i2c subdev drivers be attached?
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Akihiro TSUKADA <tskd08@gmail.com>
-References: <52775753-47c4-bfdf-b8f5-48bdf8ceb6e5@gmail.com>
- <20160609122449.5cfc16cc@recife.lan>
-Cc: linux-media@vger.kernel.org
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <07669546-908f-f81c-26e5-af7b720229b3@iki.fi>
-Date: Thu, 9 Jun 2016 18:41:10 +0300
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45645 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750894AbcF0I6d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jun 2016 04:58:33 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+	=?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.8] tw686x enhancements
+Message-ID: <c5db5fbb-46f2-3d93-3267-5d1d02a8213e@xs4all.nl>
+Date: Mon, 27 Jun 2016 10:58:28 +0200
 MIME-Version: 1.0
-In-Reply-To: <20160609122449.5cfc16cc@recife.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/09/2016 06:24 PM, Mauro Carvalho Chehab wrote:
-> Hi Akihiro,
->
-> Em Thu, 09 Jun 2016 21:49:33 +0900
-> Akihiro TSUKADA <tskd08@gmail.com> escreveu:
->
->> Hi,
->> excuse me for taking up a very old post again,
->> but I'd like to know the status of the patch:
->>   https://patchwork.linuxtv.org/patch/27922/
->> , which provides helper code for defining/loading i2c DVB subdev drivers.
->>
->> Was it rejected and
->
-> It was not rejected. It is just that I didn't have time yet to think
-> about that, and Antti has a different view.
->
-> The thing is that, whatever we do, it should work fine on drivers that
-> also exposes the tuner via V4L2. One of the reasons is that devices
-> that also allow the usage for SDR use the V4L2 core for the SDR part.
->
->> each i2c demod/tuner drivers should provide its own version of "attach" code?
->
-> Antti took this path, but I don't like it. Lots of duplicated and complex
-> stuff. Also, some static analyzers refuse to check it (like smatch),
-> due to its complexity.
->
->> Or is it acceptable (with some modifications) ?
->
-> I guess we should discuss a way of doing it that will be acceptable
-> on existing drivers. Perhaps you should try to do such change for
-> an hybrid driver like em28xx or cx231xx. There are a few ISDB-T
-> devices using them. Not sure how easy would be to find one of those
-> in Japan, though.
->
->>
->> Although not many drivers currently use i2c binding model (and use dvb_attach()),
->> but I expect that coming DVB subdev drivers will have a similar attach code,
->> including module request/ref-counting, device creation,
->> (re-)using i2c_board_info.platformdata to pass around both config parameters
->> and the resulting i2c_client* & dvb_frontend*.
->>
->> Since I have a plan to split out demod/tuner drivers from pci/pt1 dvb-usb/friio
->> integrated drivers (because those share the tc90522 demod driver with pt3, and
->> friio also shares the bridge chip with gl861),
->> it would be nice if I can use the helper code,
->> instead of re-iterating similar "attach" code.
+This improves the tw686x driver, adding support for features that were formerly
+only available in the staging tw686x driver.
 
-IMHO only thing which makes it looking complex is that module reference 
-counting - otherwise it is just standard I2C binding. Ideally I2C 
-modules should be possible to unbind and unload at runtime and also load 
-and bind. There is "suppress_bind_attrs = true" set to prevent runtime 
-unbinding and try_module_get() is to prevent module unloading. For me 
-eyes all that is still some workaround - and now you want put this 
-workaround to some generic code. Please find correct solutions for those 
-two problems and then there we can get rid of things totally - no need 
-to make generic functions at all.
+Krzysztof, please let us know if there are features that you need that are not
+available in this driver. Otherwise I plan to remove the staging driver for
+kernel 4.9.
 
-regards
-Antti
+Ezequiel, as a future follow-up patch it might be nice to automatically choose
+between contig/memcpy and sg based on the requested field format.
 
--- 
-http://palosaari.fi/
+Right now this is determined by dma_mode, but that can be improved.
+
+It would also simplify the dma_mode since that would then be a bool saying
+whether or not it should memcpy for stability.
+
+I'm not postponing merging this series for that since this is already a
+substantial improvement.
+
+Regards,
+
+	Hans
+
+The following changes since commit 0db5c79989de2c68d5abb7ba891bfdb3cd3b7e05:
+
+  [media] media-devnode.h: Fix documentation (2016-06-16 08:14:56 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.8b
+
+for you to fetch changes up to f600ab6de581ab45751bbc157e507b0ec1c6cc1a:
+
+  tw686x: be explicit about the possible dma_mode options (2016-06-27 10:28:59 +0200)
+
+----------------------------------------------------------------
+Ezequiel Garcia (6):
+      tw686x: Introduce an interface to support multiple DMA modes
+      tw686x: Add support for DMA contiguous interlaced frame mode
+      tw686x: Add support for DMA scatter-gather mode
+      tw686x: audio: Implement non-memcpy capture
+      tw686x: audio: Allow to configure the period size
+      tw686x: audio: Prevent hw param changes while busy
+
+Hans Verkuil (1):
+      tw686x: be explicit about the possible dma_mode options
+
+ drivers/media/pci/tw686x/Kconfig        |   2 +
+ drivers/media/pci/tw686x/tw686x-audio.c |  92 +++++++++---
+ drivers/media/pci/tw686x/tw686x-core.c  |  56 ++++++-
+ drivers/media/pci/tw686x/tw686x-regs.h  |   9 ++
+ drivers/media/pci/tw686x/tw686x-video.c | 492 +++++++++++++++++++++++++++++++++++++++++++++++-------------
+ drivers/media/pci/tw686x/tw686x.h       |  41 ++++-
+ 6 files changed, 544 insertions(+), 148 deletions(-)
