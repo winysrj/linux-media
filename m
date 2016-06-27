@@ -1,130 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f50.google.com ([209.85.215.50]:35502 "EHLO
-	mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754347AbcFQIAC (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52069 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751644AbcF0LG5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 04:00:02 -0400
-Received: by mail-lf0-f50.google.com with SMTP id l188so52862714lfe.2
-        for <linux-media@vger.kernel.org>; Fri, 17 Jun 2016 01:00:01 -0700 (PDT)
-Date: Fri, 17 Jun 2016 10:59:50 +0300
-From: Pekka Paalanen <ppaalanen@gmail.com>
-To: Rob Clark <robdclark@gmail.com>
-Cc: Tom Cooksey <tom.cooksey@arm.com>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"mesa-dev@lists.freedesktop.org" <mesa-dev@lists.freedesktop.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Daniel Stone <daniel@fooishbar.org>,
-	Emil Velikov <emil.velikov@collabora.co.uk>,
-	Louis-Francis =?UTF-8?B?UmF0dMOp?= =?UTF-8?B?LUJvdWxpYW5uZQ==?=
-	<louis-francis.ratte-boulianne@collabora.co.uk>
-Subject: Re: [Mesa-dev] [RFC] New dma_buf -> EGLImage EGL extension - Final
- spec published!
-Message-ID: <20160617105950.1a909309@eldfell>
-In-Reply-To: <CAF6AEGtG5h3z6b=+T1pSBpxSDS6r9Jz7UnaoGN4tVgU7RUZg6Q@mail.gmail.com>
-References: <512b52ab.02de420a.7040.7417SMTPIN_ADDED_BROKEN@mx.google.com>
-	<CAF6AEGtG5h3z6b=+T1pSBpxSDS6r9Jz7UnaoGN4tVgU7RUZg6Q@mail.gmail.com>
+	Mon, 27 Jun 2016 07:06:57 -0400
+Subject: Re: [PATCH v5 9/9] Input: sur40 - use new V4L2 touch input type
+To: Nick Dyer <nick.dyer@itdev.co.uk>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>
+References: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
+ <1466633313-15339-10-git-send-email-nick.dyer@itdev.co.uk>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <6bd45515-6c8f-fcd6-32c0-d6110fff49c5@xs4all.nl>
+Date: Mon, 27 Jun 2016 13:06:50 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/lg0z1_94g+Ch.wjxO8LtS__"; protocol="application/pgp-signature"
+In-Reply-To: <1466633313-15339-10-git-send-email-nick.dyer@itdev.co.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/lg0z1_94g+Ch.wjxO8LtS__
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On 06/23/2016 12:08 AM, Nick Dyer wrote:
+> Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
+> ---
+>  drivers/input/touchscreen/sur40.c | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+> index 880c40b..841e045 100644
+> --- a/drivers/input/touchscreen/sur40.c
+> +++ b/drivers/input/touchscreen/sur40.c
+> @@ -599,7 +599,7 @@ static int sur40_probe(struct usb_interface *interface,
+>  	sur40->vdev.queue = &sur40->queue;
+>  	video_set_drvdata(&sur40->vdev, sur40);
+>  
+> -	error = video_register_device(&sur40->vdev, VFL_TYPE_GRABBER, -1);
+> +	error = video_register_device(&sur40->vdev, VFL_TYPE_TOUCH, -1);
+>  	if (error) {
+>  		dev_err(&interface->dev,
+>  			"Unable to register video subdevice.");
+> @@ -763,7 +763,7 @@ static int sur40_vidioc_enum_input(struct file *file, void *priv,
+>  {
+>  	if (i->index != 0)
+>  		return -EINVAL;
+> -	i->type = V4L2_INPUT_TYPE_CAMERA;
+> +	i->type = V4L2_INPUT_TYPE_TOUCH;
+>  	i->std = V4L2_STD_UNKNOWN;
+>  	strlcpy(i->name, "In-Cell Sensor", sizeof(i->name));
+>  	i->capabilities = 0;
+> @@ -794,7 +794,7 @@ static int sur40_vidioc_enum_fmt(struct file *file, void *priv,
+>  	if (f->index != 0)
+>  		return -EINVAL;
+>  	strlcpy(f->description, "8-bit greyscale", sizeof(f->description));
+> -	f->pixelformat = V4L2_PIX_FMT_GREY;
+> +	f->pixelformat = V4L2_TCH_FMT_TU08;
 
-On Thu, 16 Jun 2016 10:40:51 -0400
-Rob Clark <robdclark@gmail.com> wrote:
+I suggest supporting both formats, with a note that support for GREY is needed for
+backwards compatibility reasons.
 
-> So, if we wanted to extend this to support the fourcc-modifiers that
-> we have on the kernel side for compressed/tiled/etc formats, what
-> would be the right approach?
->=20
-> A new version of the existing extension or a new
-> EGL_EXT_image_dma_buf_import2 extension, or ??
+Regards,
 
-Hi Rob,
+	Hans
 
-there are actually several things it might be nice to add:
-
-- a fourth plane, to match what DRM AddFB2 supports
-
-- the 64-bit fb modifiers
-
-- queries for which pixel formats are supported by EGL, so a display
-  server can tell the applications that before the application goes and
-  tries with a random bunch of them, shooting in the dark
-
-- queries for which modifiers are supported for each pixel format, ditto
-
-I discussed these with Emil in the past, and it seems an appropriate
-approach might be the following.
-
-Adding the 4th plane can be done as revising the existing
-EGL_EXT_image_dma_buf_import extension. The plane count is tied to
-pixel formats (and modifiers?), so the user does not need to know
-specifically whether the EGL implementation could handle a 4th plane or
-not. It is implied by the pixel format.
-
-Adding the fb modifiers needs to be a new extension, so that users can
-tell if they are supported or not. This is to avoid the following false
-failure: if user assumes modifiers are always supported, it will (may?)
-provide zero modifiers explicitly. If EGL implementation does not
-handle modifiers this would be rejected as unrecognized attributes,
-while if the zero modifiers were not given explicitly, everything would
-just work.
-
-The queries obviously(?) need a new extension. It might make sense
-to bundle both modifier support and the queries in the same new
-extension.
-
-We have some rough old WIP code at
-https://git.collabora.com/cgit/user/lfrb/mesa.git/log/?h=3DT1410-modifiers
-https://git.collabora.com/cgit/user/lfrb/egl-specs.git/log/?h=3DT1410
-
-
-> On Mon, Feb 25, 2013 at 6:54 AM, Tom Cooksey <tom.cooksey@arm.com> wrote:
-> > Hi All,
-> >
-> > The final spec has had enum values assigned and been published on Khron=
-os:
-> >
-> > http://www.khronos.org/registry/egl/extensions/EXT/EGL_EXT_image_dma_bu=
-f_import.txt
-> >
-> > Thanks to all who've provided input.
-
-May I also pull your attention to a detail with the existing spec and
-Mesa behaviour I am asking about in
-https://lists.freedesktop.org/archives/mesa-dev/2016-June/120249.html
-"What is EGL_EXT_image_dma_buf_import image orientation as a GL texture?"
-Doing a dmabuf import seems to imply an y-flip AFAICT.
-
-
-Thanks,
-pq
-
---Sig_/lg0z1_94g+Ch.wjxO8LtS__
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIVAwUBV2Ot/SNf5bQRqqqnAQjM3g//c7NZh/CwNZiJMeC5SxCHqw+ubv114O05
-Wqi83ESgDyIO+s0+eXdjkGw9UvfQiQOBRryrPOJtVI6psfkYHUMaLqh20jFxX5Di
-ThufCHZMaq6IFIBAuIVR0++5AMLHS+BM9a5l5rebx4ZkKKKOOORqL4wLGdRQT3Vl
-t36eJ2kyLJXjJ8yIIV482M65Gf/DYpNz3kADCYCL/IwwqGjXzV/R6ejkqF0K31Q+
-oh1XMAJIs8zWumfXqv2qfgKq2JmnHYA+FkqV4akJ1cP23oPmx+81Gghr7vbHSnpE
-Y4Wuh4KeRge7QSGPLLP4MEPiInzKUf//ZQZxRsaflUahgmMgsh7mTNLNQR/nSCSQ
-2RMQd0DQAvtWWmNejub8DcXSoHHryBEpepqjWzeIuUTk+WbQdVrJBr2XuyfNZKxg
-RdXMUH08xkU/FtOPvqxCAYcqUmS1B9kJUw+4lhuzCbDBA7+45i+FfxHW5Wt6/ye4
-T3ms9g89hTxh0YIFsTI1Bzgni9HXys2QFruWrD/O9Xm0qKR5Rr4HgeXrbS0xKJ/V
-RMoRSNEkdd8blk7HMs9GqoTQQ1gTDpiENconiE8aTGAqnkRxucy410erUAYSOV6q
-wMFRWCe5p04hrdP58NlBTUUKnO4zcNkNZl8wHRMXTg8gbv+b2c/yEsQ5jL6IWkI3
-BMnMDsUs7NY=
-=VPBE
------END PGP SIGNATURE-----
-
---Sig_/lg0z1_94g+Ch.wjxO8LtS__--
+>  	f->flags = 0;
+>  	return 0;
+>  }
+> @@ -802,7 +802,7 @@ static int sur40_vidioc_enum_fmt(struct file *file, void *priv,
+>  static int sur40_vidioc_enum_framesizes(struct file *file, void *priv,
+>  					struct v4l2_frmsizeenum *f)
+>  {
+> -	if ((f->index != 0) || (f->pixel_format != V4L2_PIX_FMT_GREY))
+> +	if ((f->index != 0) || (f->pixel_format != V4L2_TCH_FMT_TU08))
+>  		return -EINVAL;
+>  
+>  	f->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+> @@ -814,7 +814,7 @@ static int sur40_vidioc_enum_framesizes(struct file *file, void *priv,
+>  static int sur40_vidioc_enum_frameintervals(struct file *file, void *priv,
+>  					    struct v4l2_frmivalenum *f)
+>  {
+> -	if ((f->index > 1) || (f->pixel_format != V4L2_PIX_FMT_GREY)
+> +	if ((f->index > 1) || (f->pixel_format != V4L2_TCH_FMT_TU08)
+>  		|| (f->width  != sur40_video_format.width)
+>  		|| (f->height != sur40_video_format.height))
+>  			return -EINVAL;
+> @@ -903,7 +903,7 @@ static const struct video_device sur40_video_device = {
+>  };
+>  
+>  static const struct v4l2_pix_format sur40_video_format = {
+> -	.pixelformat = V4L2_PIX_FMT_GREY,
+> +	.pixelformat = V4L2_TCH_FMT_TU08,
+>  	.width  = SENSOR_RES_X / 2,
+>  	.height = SENSOR_RES_Y / 2,
+>  	.field = V4L2_FIELD_NONE,
+> 
