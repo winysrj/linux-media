@@ -1,160 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:42558 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753516AbcFTQZM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 12:25:12 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH v2 6/7] v4l: Add 14-bit raw bayer pixel format definitions
-Date: Mon, 20 Jun 2016 19:20:07 +0300
-Message-Id: <1466439608-22890-7-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1466439608-22890-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1466439608-22890-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:36954 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751511AbcF0Jav (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jun 2016 05:30:51 -0400
+Subject: Re: [PATCH v4 6/8] media: rcar-vin: initialize EDID data
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	niklas.soderlund@ragnatech.se
+References: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <1462975376-491-7-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <573591F4.4050901@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <fb91b675-d87f-4b7a-ae3b-ab7a61759393@xs4all.nl>
+Date: Mon, 27 Jun 2016 11:30:45 +0200
+MIME-Version: 1.0
+In-Reply-To: <573591F4.4050901@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The formats added by this patch are:
+Hi Ulrich,
 
-	V4L2_PIX_FMT_SBGGR14
-	V4L2_PIX_FMT_SGBRG14
-	V4L2_PIX_FMT_SGRBG14
-	V4L2_PIX_FMT_SRGGB14
+On 05/13/2016 10:36 AM, Hans Verkuil wrote:
+> On 05/11/2016 04:02 PM, Ulrich Hecht wrote:
+>> Initializes the decoder subdevice with a fixed EDID blob.
+>>
+>> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> 
+> Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Instead implement the g/s_edid ioctls.
+> 
+> You truly cannot default to an EDID. When an EDID is set the HPD will go high.
+> But you don't know the EDID here, the contents of the EDID is something that
+> only userspace will know depending on the type of device you're building.
+> 
+> In practice userspace will overwrite the EDID with the real one and so the HPD
+> will go down and up again. And while transmitters are supposed to handle that
+> cleanly, in reality this is a different story.
+> 
+> Just add the g/s_edid ioctls and you can use 'v4l2-ctl --set-edid=edid=hdmi' to
+> fill in a default EDID.
+> 
+> I won't accept this patch since I know from my own experience that this doesn't
+> work.
 
-Signed-off-by: Jouni Ukkonen <jouni.ukkonen@intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/pixfmt-srggb14.xml | 91 ++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
- include/uapi/linux/videodev2.h                     |  4 +
- 3 files changed, 96 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
+I haven't seen a follow-up on this. Can you do a v5? It's likely that will be the
+last version and I can commit this.
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
-new file mode 100644
-index 0000000..3b9d2cc
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb14.xml
-@@ -0,0 +1,91 @@
-+    <refentry>
-+      <refmeta>
-+	<refentrytitle>V4L2_PIX_FMT_SRGGB14 ('RG14'),
-+	 V4L2_PIX_FMT_SGRBG14 ('BA14'),
-+	 V4L2_PIX_FMT_SGBRG14 ('GB14'),
-+	 V4L2_PIX_FMT_SBGGR14 ('BG14')
-+	 </refentrytitle>
-+	&manvol;
-+      </refmeta>
-+      <refnamediv>
-+	<refname id="V4L2-PIX-FMT-SRGGB14"><constant>V4L2_PIX_FMT_SRGGB14</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SGRBG14"><constant>V4L2_PIX_FMT_SGRBG14</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SGBRG14"><constant>V4L2_PIX_FMT_SGBRG14</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SBGGR14"><constant>V4L2_PIX_FMT_SBGGR14</constant></refname>
-+	<refpurpose>14-bit Bayer formats expanded to 16 bits</refpurpose>
-+      </refnamediv>
-+      <refsect1>
-+	<title>Description</title>
-+
-+	<para>These four pixel formats are raw sRGB / Bayer formats with
-+14 bits per colour. Each colour component is stored in a 16-bit word, with 2
-+unused high bits filled with zeros. Each n-pixel row contains n/2 green samples
-+and n/2 blue or red samples, with alternating red and blue rows. Bytes are
-+stored in memory in little endian order. They are conventionally described
-+as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example of one of these
-+formats:</para>
-+
-+    <example>
-+      <title><constant>V4L2_PIX_FMT_SBGGR14</constant> 4 &times; 4
-+pixel image</title>
-+
-+      <formalpara>
-+	<title>Byte Order.</title>
-+	<para>Each cell is one byte, the 2 most significant bits in the high
-+	  bytes are 0.
-+	  <informaltable frame="none">
-+	    <tgroup cols="5" align="center">
-+	      <colspec align="left" colwidth="2*" />
-+	      <tbody valign="top">
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;0:</entry>
-+		  <entry>B<subscript>00low</subscript></entry>
-+		  <entry>B<subscript>00high</subscript></entry>
-+		  <entry>G<subscript>01low</subscript></entry>
-+		  <entry>G<subscript>01high</subscript></entry>
-+		  <entry>B<subscript>02low</subscript></entry>
-+		  <entry>B<subscript>02high</subscript></entry>
-+		  <entry>G<subscript>03low</subscript></entry>
-+		  <entry>G<subscript>03high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;8:</entry>
-+		  <entry>G<subscript>10low</subscript></entry>
-+		  <entry>G<subscript>10high</subscript></entry>
-+		  <entry>R<subscript>11low</subscript></entry>
-+		  <entry>R<subscript>11high</subscript></entry>
-+		  <entry>G<subscript>12low</subscript></entry>
-+		  <entry>G<subscript>12high</subscript></entry>
-+		  <entry>R<subscript>13low</subscript></entry>
-+		  <entry>R<subscript>13high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;16:</entry>
-+		  <entry>B<subscript>20low</subscript></entry>
-+		  <entry>B<subscript>20high</subscript></entry>
-+		  <entry>G<subscript>21low</subscript></entry>
-+		  <entry>G<subscript>21high</subscript></entry>
-+		  <entry>B<subscript>22low</subscript></entry>
-+		  <entry>B<subscript>22high</subscript></entry>
-+		  <entry>G<subscript>23low</subscript></entry>
-+		  <entry>G<subscript>23high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;24:</entry>
-+		  <entry>G<subscript>30low</subscript></entry>
-+		  <entry>G<subscript>30high</subscript></entry>
-+		  <entry>R<subscript>31low</subscript></entry>
-+		  <entry>R<subscript>31high</subscript></entry>
-+		  <entry>G<subscript>32low</subscript></entry>
-+		  <entry>G<subscript>32high</subscript></entry>
-+		  <entry>R<subscript>33low</subscript></entry>
-+		  <entry>R<subscript>33high</subscript></entry>
-+		</row>
-+	      </tbody>
-+	    </tgroup>
-+	  </informaltable>
-+	</para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 457337e..29e9d7c 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -1594,6 +1594,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
-     &sub-srggb10dpcm8;
-     &sub-srggb12;
-     &sub-srggb12p;
-+    &sub-srggb14;
-   </section>
- 
-   <section id="yuv-formats">
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 7ace868..2c4b076 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -581,6 +581,10 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
- #define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
- #define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
-+#define V4L2_PIX_FMT_SBGGR14 v4l2_fourcc('B', 'G', '1', '4') /* 14  BGBG.. GRGR.. */
-+#define V4L2_PIX_FMT_SGBRG14 v4l2_fourcc('G', 'B', '1', '4') /* 14  GBGB.. RGRG.. */
-+#define V4L2_PIX_FMT_SGRBG14 v4l2_fourcc('B', 'A', '1', '4') /* 14  GRGR.. BGBG.. */
-+#define V4L2_PIX_FMT_SRGGB14 v4l2_fourcc('R', 'G', '1', '4') /* 14  RGRG.. GBGB.. */
- #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
- 
- /* compressed formats */
--- 
-1.9.1
+Thanks!
 
+	Hans
