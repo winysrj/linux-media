@@ -1,57 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:48160 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932558AbcFGNLm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jun 2016 09:11:42 -0400
-Date: Tue, 7 Jun 2016 10:11:33 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
-	<chehabrafael@gmail.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: Re: [PATCH 2/2] [media] media-device: dynamically allocate struct
- media_devnode
-Message-ID: <20160607101133.5f13426c@recife.lan>
-In-Reply-To: <57560388.7030903@osg.samsung.com>
-References: <cover.1462633500.git.mchehab@osg.samsung.com>
-	<83247b8a21c292a08949b3fe619cc56dc4709896.1462633500.git.mchehab@osg.samsung.com>
-	<20160606084500.GW26360@valkosipuli.retiisi.org.uk>
-	<57560388.7030903@osg.samsung.com>
+Received: from zencphosting06.zen.co.uk ([82.71.204.9]:38051 "EHLO
+	zencphosting06.zen.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751634AbcF0MwA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jun 2016 08:52:00 -0400
+Subject: Re: [PATCH v5 0/9] Output raw touch data via V4L2
+To: Hans Verkuil <hverkuil@xs4all.nl>
+References: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
+ <30c68dab-b970-03d5-797b-3376d9d0dc10@xs4all.nl>
+ <8be600b6-a424-ddda-8672-1aed4e925fe8@itdev.co.uk>
+ <693d1756-dab4-b05c-0607-f391f63f1d62@xs4all.nl>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+Message-ID: <39b18d15-848b-bf28-4ff2-a5216846fb6b@itdev.co.uk>
+Date: Mon, 27 Jun 2016 13:51:54 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <693d1756-dab4-b05c-0607-f391f63f1d62@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 6 Jun 2016 17:13:12 -0600
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+On 27/06/2016 13:22, Hans Verkuil wrote:
+> On 06/27/2016 01:57 PM, Nick Dyer wrote:
+> 2) Alternatively, if we want to keep using BUF_TYPE_VIDEO_CAPTURE, then:
+> 
+> - we keep V4L2_CAP_TOUCH which is combined with CAP_VIDEO_CAPTURE (and perhaps
+>   VIDEO_OUTPUT in the future). The CAP_TOUCH just says that this is a touch
+>   device, not a video device, but otherwise it acts the same.
+> 
+> I'd go with 2, since I see no reason to add a new BUF_TYPE for this.
+> It acts exactly like video after all, with only a few restrictions (i.e. no
+> colorspace info or interlaced). And adding a new BUF_TYPE will likely break
+> the existing sur40 app.
 
-> > A few general comments on the patch --- I agree we've had the problem from
-> > the day one, but it's really started showing up recently. I agree with the
-> > taken approach of separating the lifetimes of both media device and the
-> > devnode. However, I don't think the patch as such is enough.
-
-Do you or Laurent has an alternative patchset to fix those issues? From 
-where I sit, we have a serious bug that it is already known for a while,
-but nobody really tried to fix so far, except for Shuah and myself.
-
-So, if you don't have any alternative patch ready to be merged, I'll
-apply what we have later today, together with the patch that fixes cdev
-livetime management:
-	https://patchwork.linuxtv.org/patch/34201/
-
-This will allow it to be tested to a broader audience and check if
-the known issues will be fixed. I'll add a C/C stable, but my plan is
-to not send it as a fix for 4.7. Instead, to keep the fixes on our tree
-up to the next merge window, giving us ~5 weeks for testing.
-
-As this is a Kernel only issue, it can be changed later if someone pops
-up with a better approach.
-
-Regards,
-Mauro
+OK, I will rework with this approach.
