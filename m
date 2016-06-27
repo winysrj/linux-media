@@ -1,74 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:48247 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753992AbcFPVlM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2016 17:41:12 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH 1/6] [media] s5p-mfc: set capablity bus_info as required by VIDIOC_QUERYCAP
-Date: Thu, 16 Jun 2016 17:40:30 -0400
-Message-Id: <1466113235-25909-2-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1466113235-25909-1-git-send-email-javier@osg.samsung.com>
-References: <1466113235-25909-1-git-send-email-javier@osg.samsung.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37576 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751808AbcF0NcR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jun 2016 09:32:17 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv5 03/13] v4l2-pci-skeleton: set q->dev instead of allocating a context
+Date: Mon, 27 Jun 2016 15:31:54 +0200
+Message-Id: <1467034324-37626-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver doesn't set the struct v4l2_capability bus_info field so the
-v4l2-compliance tool reports the following errors for VIDIOC_QUERYCAP:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Required ioctls:
-                VIDIOC_QUERYCAP returned 0 (Success)
-                fail: v4l2-compliance.cpp(304): string empty
-                fail: v4l2-compliance.cpp(528): check_ustring(vcap.bus_info, sizeof(vcap.bus_info))
-        test VIDIOC_QUERYCAP: FAIL
+Stop using alloc_ctx as that is now no longer needed.
 
-This patch fixes by setting the field in VIDIOC_QUERYCAP ioctl handler:
-
-Required ioctls:
-                VIDIOC_QUERYCAP returned 0 (Success)
-        test VIDIOC_QUERYCAP: OK
-
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
+ samples/v4l/v4l2-pci-skeleton.c | 15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 3 ++-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index f2d6376ce618..4a40df22fd63 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -267,7 +267,8 @@ static int vidioc_querycap(struct file *file, void *priv,
+diff --git a/samples/v4l/v4l2-pci-skeleton.c b/samples/v4l/v4l2-pci-skeleton.c
+index a55cf94..5f91d76 100644
+--- a/samples/v4l/v4l2-pci-skeleton.c
++++ b/samples/v4l/v4l2-pci-skeleton.c
+@@ -56,7 +56,6 @@ MODULE_LICENSE("GPL v2");
+  * @format: current pix format
+  * @input: current video input (0 = SDTV, 1 = HDTV)
+  * @queue: vb2 video capture queue
+- * @alloc_ctx: vb2 contiguous DMA context
+  * @qlock: spinlock controlling access to buf_list and sequence
+  * @buf_list: list of buffers queued for DMA
+  * @sequence: frame sequence counter
+@@ -73,7 +72,6 @@ struct skeleton {
+ 	unsigned input;
  
- 	strncpy(cap->driver, dev->plat_dev->name, sizeof(cap->driver) - 1);
- 	strncpy(cap->card, dev->plat_dev->name, sizeof(cap->card) - 1);
--	cap->bus_info[0] = 0;
-+	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-+		 dev_name(&dev->plat_dev->dev));
- 	/*
- 	 * This is only a mem-to-mem video device. The capture and output
- 	 * device capability flags are left only for backward compatibility
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 034b5c1d35a1..dd466ea6429e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -945,7 +945,8 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	struct vb2_queue queue;
+-	struct vb2_alloc_ctx *alloc_ctx;
  
- 	strncpy(cap->driver, dev->plat_dev->name, sizeof(cap->driver) - 1);
- 	strncpy(cap->card, dev->plat_dev->name, sizeof(cap->card) - 1);
--	cap->bus_info[0] = 0;
-+	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-+		 dev_name(&dev->plat_dev->dev));
- 	/*
- 	 * This is only a mem-to-mem video device. The capture and output
- 	 * device capability flags are left only for backward compatibility
+ 	spinlock_t qlock;
+ 	struct list_head buf_list;
+@@ -182,7 +180,6 @@ static int queue_setup(struct vb2_queue *vq,
+ 
+ 	if (vq->num_buffers + *nbuffers < 3)
+ 		*nbuffers = 3 - vq->num_buffers;
+-	alloc_ctxs[0] = skel->alloc_ctx;
+ 
+ 	if (*nplanes)
+ 		return sizes[0] < skel->format.sizeimage ? -EINVAL : 0;
+@@ -820,6 +817,7 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	q = &skel->queue;
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	q->io_modes = VB2_MMAP | VB2_DMABUF | VB2_READ;
++	q->dev = &pdev->dev;
+ 	q->drv_priv = skel;
+ 	q->buf_struct_size = sizeof(struct skel_buffer);
+ 	q->ops = &skel_qops;
+@@ -850,12 +848,6 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	if (ret)
+ 		goto free_hdl;
+ 
+-	skel->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(skel->alloc_ctx)) {
+-		dev_err(&pdev->dev, "Can't allocate buffer context");
+-		ret = PTR_ERR(skel->alloc_ctx);
+-		goto free_hdl;
+-	}
+ 	INIT_LIST_HEAD(&skel->buf_list);
+ 	spin_lock_init(&skel->qlock);
+ 
+@@ -885,13 +877,11 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 
+ 	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
+ 	if (ret)
+-		goto free_ctx;
++		goto free_hdl;
+ 
+ 	dev_info(&pdev->dev, "V4L2 PCI Skeleton Driver loaded\n");
+ 	return 0;
+ 
+-free_ctx:
+-	vb2_dma_contig_cleanup_ctx(skel->alloc_ctx);
+ free_hdl:
+ 	v4l2_ctrl_handler_free(&skel->ctrl_handler);
+ 	v4l2_device_unregister(&skel->v4l2_dev);
+@@ -907,7 +897,6 @@ static void skeleton_remove(struct pci_dev *pdev)
+ 
+ 	video_unregister_device(&skel->vdev);
+ 	v4l2_ctrl_handler_free(&skel->ctrl_handler);
+-	vb2_dma_contig_cleanup_ctx(skel->alloc_ctx);
+ 	v4l2_device_unregister(&skel->v4l2_dev);
+ 	pci_disable_device(skel->pdev);
+ }
 -- 
-2.5.5
+2.8.1
 
