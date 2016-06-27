@@ -1,159 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:36660 "EHLO
-	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753199AbcFKWxI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2016 18:53:08 -0400
-Received: by mail-lf0-f65.google.com with SMTP id h68so8551414lfh.3
-        for <linux-media@vger.kernel.org>; Sat, 11 Jun 2016 15:53:07 -0700 (PDT)
-Date: Sun, 12 Jun 2016 00:53:03 +0200
-From: Henrik Austad <henrik@austad.us>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
-	netdev@vger.kernel.org, henrk@austad.us,
-	"David S. Miller" <davem@davemloft.net>
-Subject: Re: [very-RFC 2/8] TSN: Add the standard formerly known as AVB to
- the kernel
-Message-ID: <20160611225303.GE10685@sisyphus.home.austad.us>
-References: <1465683741-20390-1-git-send-email-henrik@austad.us>
- <1465683741-20390-3-git-send-email-henrik@austad.us>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1465683741-20390-3-git-send-email-henrik@austad.us>
+Received: from mga04.intel.com ([192.55.52.120]:49833 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751721AbcF0PCY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jun 2016 11:02:24 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl
+Subject: [PATCH v2.1 9/9] v4l: Add 16-bit raw bayer pixel format definitions
+Date: Mon, 27 Jun 2016 17:57:51 +0300
+Message-Id: <1467039471-19416-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1467039471-19416-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1466439608-22890-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1467039471-19416-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-clearing up netdev-typo
+The formats added by this patch are:
 
-On Sun, Jun 12, 2016 at 12:22:15AM +0200, Henrik Austad wrote:
-> TSN provides a mechanism to create reliable, jitter-free, low latency
-> guaranteed bandwidth links over a local network. It does this by
-> reserving a path through the network. Support for TSN must be found in
-> both the NIC as well as in the network itself.
-> 
-> This adds required hooks into netdev_ops so that the core TSN driver can
-> use this when configuring a new NIC or setting up a new link.
-> 
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Signed-off-by: Henrik Austad <henrik@austad.us>
-> ---
->  include/linux/netdevice.h | 32 ++++++++++++++++++++++++++++++++
->  net/Kconfig               |  1 +
->  net/tsn/Kconfig           | 32 ++++++++++++++++++++++++++++++++
->  3 files changed, 65 insertions(+)
->  create mode 100644 net/tsn/Kconfig
-> 
-> diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-> index f45929c..de025eb 100644
-> --- a/include/linux/netdevice.h
-> +++ b/include/linux/netdevice.h
-> @@ -109,6 +109,13 @@ enum netdev_tx {
->  };
->  typedef enum netdev_tx netdev_tx_t;
->  
-> +#if IS_ENABLED(CONFIG_TSN)
-> +enum sr_class {
-> +	SR_CLASS_A = 1,
-> +	SR_CLASS_B = 2,
-> +};
-> +#endif
-> +
->  /*
->   * Current order: NETDEV_TX_MASK > NET_XMIT_MASK >= 0 is significant;
->   * hard_start_xmit() return < NET_XMIT_MASK means skb was consumed.
-> @@ -902,6 +909,22 @@ struct tc_to_netdev {
->   *
->   * void (*ndo_poll_controller)(struct net_device *dev);
->   *
-> + *	TSN functions (if CONFIG_TSN)
-> + *
-> + * int (*ndo_tsn_capable)(struct net_device *dev);
-> + *	If a particular device is capable of sustaining TSN traffic
-> + *	provided current configuration
-> + * int (*ndo_tsn_link_configure)(struct net_device *dev,
-> + *				 enum sr_class class,
-> + *				 u16 framesize,
-> + *				 u16 vid);
-> + *     - When a new TSN link is either added or removed, this is called to
-> + *       update the bandwidth for the particular stream-class
-> + *     - The framesize is the size of the _entire_ frame, not just the
-> + *       payload since the full size is required to allocate bandwidth through
-> + *       the credit based shaper in the NIC
-> + *     - the vlan_id is the configured vlan for TSN in this session.
-> + *
->   *	SR-IOV management functions.
->   * int (*ndo_set_vf_mac)(struct net_device *dev, int vf, u8* mac);
->   * int (*ndo_set_vf_vlan)(struct net_device *dev, int vf, u16 vlan, u8 qos);
-> @@ -1148,6 +1171,15 @@ struct net_device_ops {
->  #ifdef CONFIG_NET_RX_BUSY_POLL
->  	int			(*ndo_busy_poll)(struct napi_struct *dev);
->  #endif
-> +
-> +#if IS_ENABLED(CONFIG_TSN)
-> +	int			(*ndo_tsn_capable)(struct net_device *dev);
-> +	int			(*ndo_tsn_link_configure)(struct net_device *dev,
-> +							  enum sr_class class,
-> +							  u16 framesize,
-> +							  u16 vid);
-> +#endif	/* CONFIG_TSN */
-> +
->  	int			(*ndo_set_vf_mac)(struct net_device *dev,
->  						  int queue, u8 *mac);
->  	int			(*ndo_set_vf_vlan)(struct net_device *dev,
-> diff --git a/net/Kconfig b/net/Kconfig
-> index ff40562..fa9f691 100644
-> --- a/net/Kconfig
-> +++ b/net/Kconfig
-> @@ -215,6 +215,7 @@ source "net/802/Kconfig"
->  source "net/bridge/Kconfig"
->  source "net/dsa/Kconfig"
->  source "net/8021q/Kconfig"
-> +source "net/tsn/Kconfig"
->  source "net/decnet/Kconfig"
->  source "net/llc/Kconfig"
->  source "net/ipx/Kconfig"
-> diff --git a/net/tsn/Kconfig b/net/tsn/Kconfig
-> new file mode 100644
-> index 0000000..1fc3c1d
-> --- /dev/null
-> +++ b/net/tsn/Kconfig
-> @@ -0,0 +1,32 @@
-> +#
-> +# Configuration for 802.1 Time Sensitive Networking (TSN)
-> +#
-> +
-> +config TSN
-> +	tristate "802.1 TSN Support"
-> +	depends on VLAN_8021Q && PTP_1588_CLOCK && CONFIGFS_FS
-> +	---help---
-> +	  Select this if you want to enable TSN on capable interfaces.
-> +
-> +	  TSN allows you to set up deterministic links on your LAN (only
-> +	  L2 is currently supported). Once loaded, the driver will probe
-> +	  all available interfaces if they are capable of supporting TSN
-> +	  links.
-> +
-> +	  Once loaded, a directory in configfs called tsn/ will expose
-> +	  the capable NICs and allow userspace to create
-> +	  links. Userspace must provide us with a StreamID as well as
-> +	  reserving bandwidth through the network and once this is done,
-> +	  a new link can be created by issuing a mkdir() in configfs and
-> +	  updating the attributes for the new link.
-> +
-> +	  TSN itself does not produce nor consume data, it is dependent
-> +	  upon 'shims' doing this, which can be virtually anything. ALSA
-> +	  is a good candidate.
-> +
-> +	  For more information, refer to the TSN-documentation in the
-> +	  kernel documentation repository.
-> +
-> +	  The resulting module will be called 'tsn'
-> +
-> +	  If unsure, say N.
-> -- 
-> 2.7.4
-> 
+	V4L2_PIX_FMT_SBGGR16
+	V4L2_PIX_FMT_SGBRG16
+	V4L2_PIX_FMT_SGRBG16
 
+V4L2_PIX_FMT_SRGGB16 already existed before the patch. Rework the
+documentation to match that of the other sample depths.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ .../v4l/{pixfmt-sbggr16.xml => pixfmt-srggb16.xml} | 49 ++++++++++++++--------
+ Documentation/DocBook/media/v4l/pixfmt.xml         |  2 +-
+ include/uapi/linux/videodev2.h                     |  3 ++
+ 3 files changed, 35 insertions(+), 19 deletions(-)
+ rename Documentation/DocBook/media/v4l/{pixfmt-sbggr16.xml => pixfmt-srggb16.xml} (62%)
+
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-sbggr16.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb16.xml
+similarity index 62%
+rename from Documentation/DocBook/media/v4l/pixfmt-sbggr16.xml
+rename to Documentation/DocBook/media/v4l/pixfmt-srggb16.xml
+index 6494b05..517dd4d 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-sbggr16.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb16.xml
+@@ -1,22 +1,29 @@
+-<refentry id="V4L2-PIX-FMT-SBGGR16">
+-  <refmeta>
+-    <refentrytitle>V4L2_PIX_FMT_SBGGR16 ('BYR2')</refentrytitle>
+-    &manvol;
+-  </refmeta>
+-  <refnamediv>
+-    <refname><constant>V4L2_PIX_FMT_SBGGR16</constant></refname>
+-    <refpurpose>Bayer RGB format</refpurpose>
+-  </refnamediv>
+-  <refsect1>
+-    <title>Description</title>
++    <refentry>
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_SRGGB16 ('RG16'),
++	 V4L2_PIX_FMT_SGRBG16 ('GR16'),
++	 V4L2_PIX_FMT_SGBRG16 ('GB16'),
++	 V4L2_PIX_FMT_SBGGR16 ('BYR2')
++	 </refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname id="V4L2-PIX-FMT-SRGGB16"><constant>V4L2_PIX_FMT_SRGGB16</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGRBG16"><constant>V4L2_PIX_FMT_SGRBG16</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGBRG16"><constant>V4L2_PIX_FMT_SGBRG16</constant></refname>
++	<refname id="V4L2-PIX-FMT-SBGGR16"><constant>V4L2_PIX_FMT_SBGGR16</constant></refname>
++	<refpurpose>16-bit Bayer formats</refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
+ 
+-    <para>This format is similar to <link
+-linkend="V4L2-PIX-FMT-SBGGR8">
+-<constant>V4L2_PIX_FMT_SBGGR8</constant></link>, except each pixel has
+-a depth of 16 bits. The least significant byte is stored at lower
+-memory addresses (little-endian). Note the actual sampling precision
+-may be lower than 16 bits, for example 10 bits per pixel with values
+-in range 0 to 1023.</para>
++	<para>These four pixel formats are raw sRGB / Bayer formats with
++16 bits per colour. Each colour component is stored in a 16-bit word.
++Each n-pixel row contains n/2 green samples and n/2 blue or red
++samples, with alternating red and blue rows. Bytes are stored in
++memory in little endian order. They are conventionally described
++as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example of one of these
++formats:</para>
+ 
+     <example>
+       <title><constant>V4L2_PIX_FMT_SBGGR16</constant> 4 &times; 4
+@@ -79,5 +86,11 @@ pixel image</title>
+ 	</para>
+       </formalpara>
+     </example>
++
++    <para>Note the actual sampling precision for format
++    <constant>V4L2_PIX_FMT_SBGGR16</constant> may be lower than 16
++    bits, for example 10 bits per pixel with values in range 0 to
++    1023.</para>
++
+   </refsect1>
+ </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 296a50a..2c22098 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -1587,7 +1587,6 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+     &sub-sgbrg8;
+     &sub-sgrbg8;
+     &sub-srggb8;
+-    &sub-sbggr16;
+     &sub-srggb10;
+     &sub-srggb10p;
+     &sub-srggb10alaw8;
+@@ -1596,6 +1595,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+     &sub-srggb12p;
+     &sub-srggb14;
+     &sub-srggb14p;
++    &sub-srggb16;
+   </section>
+ 
+   <section id="yuv-formats">
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index c34d467..d201857 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -591,6 +591,9 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGRBG14P v4l2_fourcc('p', 'g', 'E', 'E')
+ #define V4L2_PIX_FMT_SRGGB14P v4l2_fourcc('p', 'R', 'E', 'E')
+ #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
++#define V4L2_PIX_FMT_SGBRG16 v4l2_fourcc('G', 'B', '1', '6') /* 16  GBGB.. RGRG.. */
++#define V4L2_PIX_FMT_SGRBG16 v4l2_fourcc('G', 'R', '1', '6') /* 16  GRGR.. BGBG.. */
++#define V4L2_PIX_FMT_SRGGB16 v4l2_fourcc('R', 'G', '1', '6') /* 16  RGRG.. GBGB.. */
+ 
+ /* compressed formats */
+ #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M', 'J', 'P', 'G') /* Motion-JPEG   */
 -- 
-Henrik Austad
+2.7.4
+
