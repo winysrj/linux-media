@@ -1,53 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.220.in.ua ([89.184.67.205]:55120 "EHLO smtp.220.in.ua"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751230AbcF2Gnn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2016 02:43:43 -0400
-Subject: Re: si2157 driver
-To: Olli Salonen <olli.salonen@iki.fi>
-References: <5772DC68.9050600@kaa.org.ua>
- <CAAZRmGwCeKQnLU7xFH2TDwhWorzcxRQDT1-pSi97h7VxZFG_KQ@mail.gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-From: Oleh Kravchenko <oleg@kaa.org.ua>
-Message-ID: <57736E1B.2090308@kaa.org.ua>
-Date: Wed, 29 Jun 2016 09:43:39 +0300
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36501 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751655AbcF0IoB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jun 2016 04:44:01 -0400
+Date: Mon, 27 Jun 2016 10:43:26 +0200
+From: Carlo Caione <carlo@caione.org>
+To: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Cc: b.galvani@gmail.com, linux-media@vger.kernel.org,
+	linux-amlogic@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org, khilman@baylibre.com,
+	mchehab@kernel.org, tobetter@gmail.com, devicetree@vger.kernel.org,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com
+Subject: Re: [PATCH v2 2/2] ARM: dts: meson: fixed size of the meson-ir
+ registers
+Message-ID: <20160627084326.GA1737@localhost>
+References: <20160626210622.5257-1-martin.blumenstingl@googlemail.com>
+ <20160626210622.5257-3-martin.blumenstingl@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAAZRmGwCeKQnLU7xFH2TDwhWorzcxRQDT1-pSi97h7VxZFG_KQ@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+In-Reply-To: <20160626210622.5257-3-martin.blumenstingl@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Olli,
-thanks for fast reply.
+On 26/06/16 23:06, Martin Blumenstingl wrote:
+> According to the reference driver (and the datasheet of the newer
+> Meson8b/S805 and GXBB/S905 SoCs) there are 14 registers, each 32 bit
+> wide.
 
-It's possible to improve driver to support analog mode?
+Then why are you modifying the DTS for the Meson6? As Neil already
+suggested, it seems that the hardware has been slightly modified for the
+latest SoCs, so this approach is clearly wrong.
+Add a new compatible and use of_device_get_match_data() to get the SoC
+specific data.
 
-I try to find datasheet for this chip,
-but looks like only short version is a public.
+> Adjust the register size to reflect that, as register offset 0x20 is
+> now also needed by the meson-ir driver.
 
+According to the AML8726-MX (meson6) datasheet the value of 0x20 is
+correct, at least for that hardware.
 
-On 29.06.16 07:42, Olli Salonen wrote:
-> Hi Oleg,
-> 
-> Correct, only digital TV is supported currently by the driver.
-> 
-> Cheers,
-> -olli
-> 
-> On 28 June 2016 at 23:22, Oleh Kravchenko <oleg@kaa.org.ua> wrote:
->> Hello linux media developers!
->>
->> I try add support for usb hybrid tuner, it based on:
->> CX23102-112, Si2158, Si2168
->>
->> I updated cx231xx-cards.c with valid ids, but I don't have idea how to
->> use Si2158.
->> It is not listed in tuner-types.c
->>
->> Why si2157.c is absent in tuner-types.c?
->> Or at the current state si2157.c don't have analog support?
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers,
+
+-- 
+Carlo Caione
