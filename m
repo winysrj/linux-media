@@ -1,63 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:17847 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161376AbcFBQb3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2016 12:31:29 -0400
-Subject: Re: [PATCH v4 5/7] ARM: Exynos: remove code for MFC custom reserved
- memory handling
-To: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
- <1464096690-23605-6-git-send-email-m.szyprowski@samsung.com>
- <574BEBB8.8040606@samsung.com>
- <5a12a8be-0402-dc0c-d242-5d9f3145e001@osg.samsung.com>
-Cc: devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Uli Middelberg <uli@middelberg.de>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Message-id: <57505F5B.90101@samsung.com>
-Date: Thu, 02 Jun 2016 18:31:23 +0200
-MIME-version: 1.0
-In-reply-to: <5a12a8be-0402-dc0c-d242-5d9f3145e001@osg.samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37576 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751784AbcF0NcT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jun 2016 09:32:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Florian Echtler <floe@butterbrot.org>
+Subject: [PATCHv5 04/13] sur40: set q->dev instead of allocating a context
+Date: Mon, 27 Jun 2016 15:31:55 +0200
+Message-Id: <1467034324-37626-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/02/2016 05:20 PM, Javier Martinez Canillas wrote:
-> Hello Krzysztof,
-> 
-> On 05/30/2016 03:28 AM, Krzysztof Kozlowski wrote:
->> On 05/24/2016 03:31 PM, Marek Szyprowski wrote:
->>> Once MFC driver has been converted to generic reserved memory bindings,
->>> there is no need for custom memory reservation code.
->>>
->>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->>> ---
->>>  arch/arm/mach-exynos/Makefile      |  2 -
->>>  arch/arm/mach-exynos/exynos.c      | 19 --------
->>>  arch/arm/mach-exynos/mfc.h         | 16 -------
->>>  arch/arm/mach-exynos/s5p-dev-mfc.c | 93 --------------------------------------
->>>  4 files changed, 130 deletions(-)
->>>  delete mode 100644 arch/arm/mach-exynos/mfc.h
->>>  delete mode 100644 arch/arm/mach-exynos/s5p-dev-mfc.c
->>
->> Thanks, applied.
->>
-> 
-> This patch can't be applied before patches 2/5 and 3/5, or the custom
-> memory regions reservation will break with the current s5p-mfc driver.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Yes, I know. As I understood from talk with Marek, the driver is broken
-now so continuous work was not chosen. If it is not correct and full
-bisectability is required, then entire patchset requires special
-handling - I need a stable tag from media tree. Without this everything
-will be broken anyway.
+Stop using alloc_ctx and just fill in the device pointer.
 
-Best regards,
-Krzysztof
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Florian Echtler <floe@butterbrot.org>
+---
+ drivers/input/touchscreen/sur40.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
+
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index 880c40b..cc4bd3e 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -151,7 +151,6 @@ struct sur40_state {
+ 	struct mutex lock;
+ 
+ 	struct vb2_queue queue;
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	struct list_head buf_list;
+ 	spinlock_t qlock;
+ 	int sequence;
+@@ -580,19 +579,13 @@ static int sur40_probe(struct usb_interface *interface,
+ 	sur40->queue = sur40_queue;
+ 	sur40->queue.drv_priv = sur40;
+ 	sur40->queue.lock = &sur40->lock;
++	sur40->queue.dev = sur40->dev;
+ 
+ 	/* initialize the queue */
+ 	error = vb2_queue_init(&sur40->queue);
+ 	if (error)
+ 		goto err_unreg_v4l2;
+ 
+-	sur40->alloc_ctx = vb2_dma_sg_init_ctx(sur40->dev);
+-	if (IS_ERR(sur40->alloc_ctx)) {
+-		dev_err(sur40->dev, "Can't allocate buffer context");
+-		error = PTR_ERR(sur40->alloc_ctx);
+-		goto err_unreg_v4l2;
+-	}
+-
+ 	sur40->vdev = sur40_video_device;
+ 	sur40->vdev.v4l2_dev = &sur40->v4l2;
+ 	sur40->vdev.lock = &sur40->lock;
+@@ -633,7 +626,6 @@ static void sur40_disconnect(struct usb_interface *interface)
+ 
+ 	video_unregister_device(&sur40->vdev);
+ 	v4l2_device_unregister(&sur40->v4l2);
+-	vb2_dma_sg_cleanup_ctx(sur40->alloc_ctx);
+ 
+ 	input_unregister_polled_device(sur40->input);
+ 	input_free_polled_device(sur40->input);
+@@ -655,11 +647,8 @@ static int sur40_queue_setup(struct vb2_queue *q,
+ 		       unsigned int *nbuffers, unsigned int *nplanes,
+ 		       unsigned int sizes[], void *alloc_ctxs[])
+ {
+-	struct sur40_state *sur40 = vb2_get_drv_priv(q);
+-
+ 	if (q->num_buffers + *nbuffers < 3)
+ 		*nbuffers = 3 - q->num_buffers;
+-	alloc_ctxs[0] = sur40->alloc_ctx;
+ 
+ 	if (*nplanes)
+ 		return sizes[0] < sur40_video_format.sizeimage ? -EINVAL : 0;
+-- 
+2.8.1
 
