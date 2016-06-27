@@ -1,363 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40641 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751552AbcFXPcM (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:53808 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751215AbcF0J0o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2016 11:32:12 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Erik Andren <erik.andren@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 10/19] m5602_ov7660: move skeletons to the .c file
-Date: Fri, 24 Jun 2016 12:31:51 -0300
-Message-Id: <123818ee8c401d62af272e139c7ca04ee886f720.1466782238.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1466782238.git.mchehab@s-opensource.com>
-References: <cover.1466782238.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1466782238.git.mchehab@s-opensource.com>
-References: <cover.1466782238.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mon, 27 Jun 2016 05:26:44 -0400
+Subject: Re: [PATCH v4 2/8] media: adv7604: automatic "default-input"
+ selection
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
+References: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <1462975376-491-3-git-send-email-ulrich.hecht+renesas@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9ddc9fce-5b1f-53d7-4bc9-d23f92737155@xs4all.nl>
+Date: Mon, 27 Jun 2016 11:26:38 +0200
+MIME-Version: 1.0
+In-Reply-To: <1462975376-491-3-git-send-email-ulrich.hecht+renesas@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The header file has some private static structures that
-are used only by the C file. Move those structures to the C file,
-in order to shut up gcc 6.1 warnings.
+On 05/11/2016 04:02 PM, Ulrich Hecht wrote:
+> From: William Towle <william.towle@codethink.co.uk>
+> 
+> Add logic such that the "default-input" property becomes unnecessary
+> for chips that only have one suitable input (ADV7611 by design, and
+> ADV7612 due to commit 7111cddd518f ("[media] media: adv7604: reduce
+> support to first (digital) input").
+> 
+> Additionally, Ian's documentation in commit bf9c82278c34 ("[media]
+> media: adv7604: ability to read default input port from DT") states
+> that the "default-input" property should reside directly in the node
+> for adv7612. Hence, also adjust the parsing to make the implementation
+> consistent with this.
+> 
+> Signed-off-by: William Towle <william.towle@codethink.co.uk>
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> ---
+>  drivers/media/i2c/adv7604.c | 18 +++++++++++++++++-
+>  1 file changed, 17 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 41a1bfc..d722c16 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -2788,7 +2788,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+>  	struct device_node *np;
+>  	unsigned int flags;
+>  	int ret;
+> -	u32 v;
+> +	u32 v = -1;
+>  
+>  	np = state->i2c_clients[ADV76XX_PAGE_IO]->dev.of_node;
+>  
+> @@ -2810,6 +2810,22 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+>  
+>  	of_node_put(endpoint);
+>  
+> +	if (of_property_read_u32(np, "default-input", &v)) {
+> +		/* not specified ... can we choose automatically? */
+> +		switch (state->info->type) {
+> +		case ADV7611:
+> +			v = 0;
+> +			break;
+> +		case ADV7612:
+> +			if (state->info->max_port == ADV76XX_PAD_HDMI_PORT_A)
+> +				v = 0;
+> +			/* else is unhobbled, leave unspecified */
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/gspca/m5602/m5602_ov7660.c | 153 +++++++++++++++++++++++++++
- drivers/media/usb/gspca/m5602/m5602_ov7660.h | 153 ---------------------------
- 2 files changed, 153 insertions(+), 153 deletions(-)
+Please add a break here, don't fall through.
 
-diff --git a/drivers/media/usb/gspca/m5602/m5602_ov7660.c b/drivers/media/usb/gspca/m5602/m5602_ov7660.c
-index 64b3b03a9141..672b7a520695 100644
---- a/drivers/media/usb/gspca/m5602/m5602_ov7660.c
-+++ b/drivers/media/usb/gspca/m5602/m5602_ov7660.c
-@@ -23,6 +23,159 @@
- static int ov7660_s_ctrl(struct v4l2_ctrl *ctrl);
- static void ov7660_dump_registers(struct sd *sd);
- 
-+static const unsigned char preinit_ov7660[][4] = {
-+	{BRIDGE, M5602_XB_MCU_CLK_DIV, 0x02},
-+	{BRIDGE, M5602_XB_MCU_CLK_CTRL, 0xb0},
-+	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
-+	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
-+	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
-+	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0d},
-+	{BRIDGE, M5602_XB_SENSOR_CTRL, 0x00},
-+	{BRIDGE, M5602_XB_GPIO_DIR, 0x03},
-+	{BRIDGE, M5602_XB_GPIO_DIR, 0x03},
-+	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
-+	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0c},
-+
-+	{SENSOR, OV7660_OFON, 0x0c},
-+	{SENSOR, OV7660_COM2, 0x11},
-+	{SENSOR, OV7660_COM7, 0x05},
-+
-+	{BRIDGE, M5602_XB_GPIO_DIR, 0x01},
-+	{BRIDGE, M5602_XB_GPIO_DAT, 0x04},
-+	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
-+	{BRIDGE, M5602_XB_GPIO_DIR_H, 0x06},
-+	{BRIDGE, M5602_XB_GPIO_DAT_H, 0x00},
-+	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x08},
-+	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
-+	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
-+	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
-+	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
-+	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0c},
-+	{BRIDGE, M5602_XB_GPIO_DIR, 0x05},
-+	{BRIDGE, M5602_XB_GPIO_DAT, 0x00},
-+	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
-+	{BRIDGE, M5602_XB_GPIO_EN_L, 0x00}
-+};
-+
-+static const unsigned char init_ov7660[][4] = {
-+	{BRIDGE, M5602_XB_MCU_CLK_DIV, 0x02},
-+	{BRIDGE, M5602_XB_MCU_CLK_CTRL, 0xb0},
-+	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
-+	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
-+	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
-+	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0d},
-+	{BRIDGE, M5602_XB_SENSOR_CTRL, 0x00},
-+	{BRIDGE, M5602_XB_GPIO_DIR, 0x01},
-+	{BRIDGE, M5602_XB_GPIO_DIR, 0x01},
-+	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
-+	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
-+	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
-+	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0c},
-+	{BRIDGE, M5602_XB_GPIO_DIR, 0x05},
-+	{BRIDGE, M5602_XB_GPIO_DAT, 0x00},
-+	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
-+	{BRIDGE, M5602_XB_GPIO_EN_L, 0x00},
-+	{SENSOR, OV7660_COM7, 0x80},
-+	{SENSOR, OV7660_CLKRC, 0x80},
-+	{SENSOR, OV7660_COM9, 0x4c},
-+	{SENSOR, OV7660_OFON, 0x43},
-+	{SENSOR, OV7660_COM12, 0x28},
-+	{SENSOR, OV7660_COM8, 0x00},
-+	{SENSOR, OV7660_COM10, 0x40},
-+	{SENSOR, OV7660_HSTART, 0x0c},
-+	{SENSOR, OV7660_HSTOP, 0x61},
-+	{SENSOR, OV7660_HREF, 0xa4},
-+	{SENSOR, OV7660_PSHFT, 0x0b},
-+	{SENSOR, OV7660_VSTART, 0x01},
-+	{SENSOR, OV7660_VSTOP, 0x7a},
-+	{SENSOR, OV7660_VSTOP, 0x00},
-+	{SENSOR, OV7660_COM7, 0x05},
-+	{SENSOR, OV7660_COM6, 0x42},
-+	{SENSOR, OV7660_BBIAS, 0x94},
-+	{SENSOR, OV7660_GbBIAS, 0x94},
-+	{SENSOR, OV7660_RSVD29, 0x94},
-+	{SENSOR, OV7660_RBIAS, 0x94},
-+	{SENSOR, OV7660_COM1, 0x00},
-+	{SENSOR, OV7660_AECH, 0x00},
-+	{SENSOR, OV7660_AECHH, 0x00},
-+	{SENSOR, OV7660_ADC, 0x05},
-+	{SENSOR, OV7660_COM13, 0x00},
-+	{SENSOR, OV7660_RSVDA1, 0x23},
-+	{SENSOR, OV7660_TSLB, 0x0d},
-+	{SENSOR, OV7660_HV, 0x80},
-+	{SENSOR, OV7660_LCC1, 0x00},
-+	{SENSOR, OV7660_LCC2, 0x00},
-+	{SENSOR, OV7660_LCC3, 0x10},
-+	{SENSOR, OV7660_LCC4, 0x40},
-+	{SENSOR, OV7660_LCC5, 0x01},
-+
-+	{SENSOR, OV7660_AECH, 0x20},
-+	{SENSOR, OV7660_COM1, 0x00},
-+	{SENSOR, OV7660_OFON, 0x0c},
-+	{SENSOR, OV7660_COM2, 0x11},
-+	{SENSOR, OV7660_COM7, 0x05},
-+	{BRIDGE, M5602_XB_GPIO_DIR, 0x01},
-+	{BRIDGE, M5602_XB_GPIO_DAT, 0x04},
-+	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
-+	{BRIDGE, M5602_XB_GPIO_DIR_H, 0x06},
-+	{BRIDGE, M5602_XB_GPIO_DAT_H, 0x00},
-+	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x08},
-+	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
-+	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
-+	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
-+	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
-+	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0c},
-+	{BRIDGE, M5602_XB_GPIO_DIR, 0x05},
-+	{BRIDGE, M5602_XB_GPIO_DAT, 0x00},
-+	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
-+	{BRIDGE, M5602_XB_GPIO_EN_L, 0x00},
-+	{SENSOR, OV7660_AECH, 0x5f},
-+	{SENSOR, OV7660_COM1, 0x03},
-+	{SENSOR, OV7660_OFON, 0x0c},
-+	{SENSOR, OV7660_COM2, 0x11},
-+	{SENSOR, OV7660_COM7, 0x05},
-+	{BRIDGE, M5602_XB_GPIO_DIR, 0x01},
-+	{BRIDGE, M5602_XB_GPIO_DAT, 0x04},
-+	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
-+	{BRIDGE, M5602_XB_GPIO_DIR_H, 0x06},
-+	{BRIDGE, M5602_XB_GPIO_DAT_H, 0x00},
-+	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x08},
-+	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
-+	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
-+	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
-+	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
-+	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0c},
-+	{BRIDGE, M5602_XB_GPIO_DIR, 0x05},
-+	{BRIDGE, M5602_XB_GPIO_DAT, 0x00},
-+	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
-+	{BRIDGE, M5602_XB_GPIO_EN_L, 0x00},
-+
-+	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x06},
-+	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
-+	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
-+	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0c},
-+	{BRIDGE, M5602_XB_LINE_OF_FRAME_H, 0x81},
-+	{BRIDGE, M5602_XB_PIX_OF_LINE_H, 0x82},
-+	{BRIDGE, M5602_XB_SIG_INI, 0x01},
-+	{BRIDGE, M5602_XB_VSYNC_PARA, 0x00},
-+	{BRIDGE, M5602_XB_VSYNC_PARA, 0x08},
-+	{BRIDGE, M5602_XB_VSYNC_PARA, 0x00},
-+	{BRIDGE, M5602_XB_VSYNC_PARA, 0x00},
-+	{BRIDGE, M5602_XB_VSYNC_PARA, 0x01},
-+	{BRIDGE, M5602_XB_VSYNC_PARA, 0xec},
-+	{BRIDGE, M5602_XB_VSYNC_PARA, 0x00},
-+	{BRIDGE, M5602_XB_VSYNC_PARA, 0x00},
-+	{BRIDGE, M5602_XB_SIG_INI, 0x00},
-+	{BRIDGE, M5602_XB_SIG_INI, 0x02},
-+	{BRIDGE, M5602_XB_HSYNC_PARA, 0x00},
-+	{BRIDGE, M5602_XB_HSYNC_PARA, 0x27},
-+	{BRIDGE, M5602_XB_HSYNC_PARA, 0x02},
-+	{BRIDGE, M5602_XB_HSYNC_PARA, 0xa7},
-+	{BRIDGE, M5602_XB_SIG_INI, 0x00},
-+	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
-+	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
-+};
-+
- static struct v4l2_pix_format ov7660_modes[] = {
- 	{
- 		640,
-diff --git a/drivers/media/usb/gspca/m5602/m5602_ov7660.h b/drivers/media/usb/gspca/m5602/m5602_ov7660.h
-index 6fece1ce1232..72445d5df195 100644
---- a/drivers/media/usb/gspca/m5602/m5602_ov7660.h
-+++ b/drivers/media/usb/gspca/m5602/m5602_ov7660.h
-@@ -107,157 +107,4 @@ static const struct m5602_sensor ov7660 = {
- 	.stop = ov7660_stop,
- 	.disconnect = ov7660_disconnect,
- };
--
--static const unsigned char preinit_ov7660[][4] = {
--	{BRIDGE, M5602_XB_MCU_CLK_DIV, 0x02},
--	{BRIDGE, M5602_XB_MCU_CLK_CTRL, 0xb0},
--	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
--	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
--	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
--	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0d},
--	{BRIDGE, M5602_XB_SENSOR_CTRL, 0x00},
--	{BRIDGE, M5602_XB_GPIO_DIR, 0x03},
--	{BRIDGE, M5602_XB_GPIO_DIR, 0x03},
--	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
--	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0c},
--
--	{SENSOR, OV7660_OFON, 0x0c},
--	{SENSOR, OV7660_COM2, 0x11},
--	{SENSOR, OV7660_COM7, 0x05},
--
--	{BRIDGE, M5602_XB_GPIO_DIR, 0x01},
--	{BRIDGE, M5602_XB_GPIO_DAT, 0x04},
--	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
--	{BRIDGE, M5602_XB_GPIO_DIR_H, 0x06},
--	{BRIDGE, M5602_XB_GPIO_DAT_H, 0x00},
--	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x08},
--	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
--	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
--	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
--	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
--	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0c},
--	{BRIDGE, M5602_XB_GPIO_DIR, 0x05},
--	{BRIDGE, M5602_XB_GPIO_DAT, 0x00},
--	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
--	{BRIDGE, M5602_XB_GPIO_EN_L, 0x00}
--};
--
--static const unsigned char init_ov7660[][4] = {
--	{BRIDGE, M5602_XB_MCU_CLK_DIV, 0x02},
--	{BRIDGE, M5602_XB_MCU_CLK_CTRL, 0xb0},
--	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
--	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
--	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
--	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0d},
--	{BRIDGE, M5602_XB_SENSOR_CTRL, 0x00},
--	{BRIDGE, M5602_XB_GPIO_DIR, 0x01},
--	{BRIDGE, M5602_XB_GPIO_DIR, 0x01},
--	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
--	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
--	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
--	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0c},
--	{BRIDGE, M5602_XB_GPIO_DIR, 0x05},
--	{BRIDGE, M5602_XB_GPIO_DAT, 0x00},
--	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
--	{BRIDGE, M5602_XB_GPIO_EN_L, 0x00},
--	{SENSOR, OV7660_COM7, 0x80},
--	{SENSOR, OV7660_CLKRC, 0x80},
--	{SENSOR, OV7660_COM9, 0x4c},
--	{SENSOR, OV7660_OFON, 0x43},
--	{SENSOR, OV7660_COM12, 0x28},
--	{SENSOR, OV7660_COM8, 0x00},
--	{SENSOR, OV7660_COM10, 0x40},
--	{SENSOR, OV7660_HSTART, 0x0c},
--	{SENSOR, OV7660_HSTOP, 0x61},
--	{SENSOR, OV7660_HREF, 0xa4},
--	{SENSOR, OV7660_PSHFT, 0x0b},
--	{SENSOR, OV7660_VSTART, 0x01},
--	{SENSOR, OV7660_VSTOP, 0x7a},
--	{SENSOR, OV7660_VSTOP, 0x00},
--	{SENSOR, OV7660_COM7, 0x05},
--	{SENSOR, OV7660_COM6, 0x42},
--	{SENSOR, OV7660_BBIAS, 0x94},
--	{SENSOR, OV7660_GbBIAS, 0x94},
--	{SENSOR, OV7660_RSVD29, 0x94},
--	{SENSOR, OV7660_RBIAS, 0x94},
--	{SENSOR, OV7660_COM1, 0x00},
--	{SENSOR, OV7660_AECH, 0x00},
--	{SENSOR, OV7660_AECHH, 0x00},
--	{SENSOR, OV7660_ADC, 0x05},
--	{SENSOR, OV7660_COM13, 0x00},
--	{SENSOR, OV7660_RSVDA1, 0x23},
--	{SENSOR, OV7660_TSLB, 0x0d},
--	{SENSOR, OV7660_HV, 0x80},
--	{SENSOR, OV7660_LCC1, 0x00},
--	{SENSOR, OV7660_LCC2, 0x00},
--	{SENSOR, OV7660_LCC3, 0x10},
--	{SENSOR, OV7660_LCC4, 0x40},
--	{SENSOR, OV7660_LCC5, 0x01},
--
--	{SENSOR, OV7660_AECH, 0x20},
--	{SENSOR, OV7660_COM1, 0x00},
--	{SENSOR, OV7660_OFON, 0x0c},
--	{SENSOR, OV7660_COM2, 0x11},
--	{SENSOR, OV7660_COM7, 0x05},
--	{BRIDGE, M5602_XB_GPIO_DIR, 0x01},
--	{BRIDGE, M5602_XB_GPIO_DAT, 0x04},
--	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
--	{BRIDGE, M5602_XB_GPIO_DIR_H, 0x06},
--	{BRIDGE, M5602_XB_GPIO_DAT_H, 0x00},
--	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x08},
--	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
--	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
--	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
--	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
--	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0c},
--	{BRIDGE, M5602_XB_GPIO_DIR, 0x05},
--	{BRIDGE, M5602_XB_GPIO_DAT, 0x00},
--	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
--	{BRIDGE, M5602_XB_GPIO_EN_L, 0x00},
--	{SENSOR, OV7660_AECH, 0x5f},
--	{SENSOR, OV7660_COM1, 0x03},
--	{SENSOR, OV7660_OFON, 0x0c},
--	{SENSOR, OV7660_COM2, 0x11},
--	{SENSOR, OV7660_COM7, 0x05},
--	{BRIDGE, M5602_XB_GPIO_DIR, 0x01},
--	{BRIDGE, M5602_XB_GPIO_DAT, 0x04},
--	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
--	{BRIDGE, M5602_XB_GPIO_DIR_H, 0x06},
--	{BRIDGE, M5602_XB_GPIO_DAT_H, 0x00},
--	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x08},
--	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
--	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
--	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
--	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
--	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0c},
--	{BRIDGE, M5602_XB_GPIO_DIR, 0x05},
--	{BRIDGE, M5602_XB_GPIO_DAT, 0x00},
--	{BRIDGE, M5602_XB_GPIO_EN_H, 0x06},
--	{BRIDGE, M5602_XB_GPIO_EN_L, 0x00},
--
--	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x06},
--	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
--	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0},
--	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x0c},
--	{BRIDGE, M5602_XB_LINE_OF_FRAME_H, 0x81},
--	{BRIDGE, M5602_XB_PIX_OF_LINE_H, 0x82},
--	{BRIDGE, M5602_XB_SIG_INI, 0x01},
--	{BRIDGE, M5602_XB_VSYNC_PARA, 0x00},
--	{BRIDGE, M5602_XB_VSYNC_PARA, 0x08},
--	{BRIDGE, M5602_XB_VSYNC_PARA, 0x00},
--	{BRIDGE, M5602_XB_VSYNC_PARA, 0x00},
--	{BRIDGE, M5602_XB_VSYNC_PARA, 0x01},
--	{BRIDGE, M5602_XB_VSYNC_PARA, 0xec},
--	{BRIDGE, M5602_XB_VSYNC_PARA, 0x00},
--	{BRIDGE, M5602_XB_VSYNC_PARA, 0x00},
--	{BRIDGE, M5602_XB_SIG_INI, 0x00},
--	{BRIDGE, M5602_XB_SIG_INI, 0x02},
--	{BRIDGE, M5602_XB_HSYNC_PARA, 0x00},
--	{BRIDGE, M5602_XB_HSYNC_PARA, 0x27},
--	{BRIDGE, M5602_XB_HSYNC_PARA, 0x02},
--	{BRIDGE, M5602_XB_HSYNC_PARA, 0xa7},
--	{BRIDGE, M5602_XB_SIG_INI, 0x00},
--	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
--	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
--};
- #endif
--- 
-2.7.4
+What happens when the default_input is unspecified? I don't really like this,
+I think that if nothing is specified, then it should just fall back to
+input 0.
 
+Note that neither include/media/i2c/adv7604.h nor Documentation/devicetree/bindings/media/i2c/adv7604.txt
+say anything about this either.
 
+Regards,
+
+	Hans
+
+> +		default:
+> +			break;
+> +		}
+> +	}
+> +	state->pdata.default_input = v;
+> +
+>  	flags = bus_cfg.bus.parallel.flags;
+>  
+>  	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+> 
