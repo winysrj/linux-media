@@ -1,47 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:56644 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752585AbcF1L60 (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:59537 "EHLO
+	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751874AbcF0RrZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2016 07:58:26 -0400
-Subject: Re: [PATCH v2 1/2] solo6x10: Set FRAME_BUF_SIZE to 200KB
-To: Andrey Utkin <andrey_utkin@fastmail.com>
-References: <1462378881-16625-1-git-send-email-ismael@iodev.co.uk>
- <33cd3138-6adc-d9c4-a9b0-bfb5f0445088@xs4all.nl>
- <20160628114809.GF31802@acer>
-Cc: Ismael Luceno <ismael@iodev.co.uk>, linux-media@vger.kernel.org,
-	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <57726657.3040802@xs4all.nl>
-Date: Tue, 28 Jun 2016 13:58:15 +0200
+	Mon, 27 Jun 2016 13:47:25 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com
+Cc: ulrich.hecht+renesas@gmail.com, hans.verkuil@cisco.com,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH] [media] rcar-csi2: add Renesas R-Car MIPI CSI-2 driver
+Date: Mon, 27 Jun 2016 19:45:32 +0200
+Message-Id: <20160627174533.16029-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20160628114809.GF31802@acer>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/28/16 13:48, Andrey Utkin wrote:
-> On Mon, Jun 27, 2016 at 11:12:42AM +0200, Hans Verkuil wrote:
->> Andrey,
->>
->> Since you are the original author, can you give me your Signed-off-by line?
-> 
-> No, as increasing buffer size by few kilobytes doesn't change anything. I've
-> increased it from 200 to 204, then found new occurances of the issue,
-> then increased it again and again by few kilobytes. Then I got that this
-> is not a (nice) solution, and have never came back to this. Maybe
-> doubling current buffer size would make users forget about this, but I'm
-> not sure maintainers would be glad with such patch.
+Hi all,
 
-I don't care. Right now it doesn't work. The cause is that the buffers are
-too small to handle the worst-case situation. So if doubling the size makes
-it work, then that's perfectly OK. Memory is cheap these days. If it will
-fail, then that's much worse than consuming a few meg more.
+This patch adds support for the R-Car MIPI CSI-2 driver.
 
-Ideally you can calculate what the worst-case size is, but I expect that to
-be quite difficult if not impossible.
+It is based on top of the media_tree and depends on the series '[PATCH 
+0/2] move s_stream from v4l2_subdev_video_ops to move s_stream from 
+v4l2_subdev_pad_ops'. It's tested on a Renesas Salvator-X board.
 
-Regards,
+The patch itself do not need a pad argument for s_stream but it is 
+tested on a Renesas Salvator-X which have a ADV7482 device in the video 
+input pipeline (RFC for that driver previously posted) which needs the 
+pad argument.
 
-	Hans
+If anyone is interested to test on Salvator-X the following branch 
+contains all the patches to grab video (rcar-vin for Gen3, rcar-cis2 and 
+adv7482).
+
+https://git.ragnatech.se/linux rcar-vin-gen3
+
+
+Niklas Söderlund (1):
+  [media] rcar-csi2: add Renesas R-Car MIPI CSI-2 driver
+
+ .../devicetree/bindings/media/rcar-csi2.txt        |  79 +++
+ drivers/media/platform/rcar-vin/Kconfig            |  11 +
+ drivers/media/platform/rcar-vin/Makefile           |   2 +
+ drivers/media/platform/rcar-vin/rcar-csi2.c        | 545 +++++++++++++++++++++
+ 4 files changed, 637 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
+ create mode 100644 drivers/media/platform/rcar-vin/rcar-csi2.c
+
+-- 
+2.8.3
+
