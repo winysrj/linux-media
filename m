@@ -1,51 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33776 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756114AbcFTRJQ (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:42656 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751706AbcF0MbI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 13:09:16 -0400
-Date: Mon, 20 Jun 2016 19:00:36 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, sakari.ailus@iki.fi,
-	pali.rohar@gmail.com, linux-media@vger.kernel.org
-Subject: Re: Nokia N900 cameras -- pipeline setup in python (was Re: [RFC
- PATCH 00/24] Make Nokia N900 cameras working)
-Message-ID: <20160620170036.GA17228@amd>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160427030850.GA17034@earth>
- <20160617164226.GA27876@amd>
- <20160617171214.GA5830@amd>
+	Mon, 27 Jun 2016 08:31:08 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 4449F180836
+	for <linux-media@vger.kernel.org>; Mon, 27 Jun 2016 14:31:02 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.8] Various fixes
+Message-ID: <74472839-8078-c8e4-5d92-43557fdb3f6e@xs4all.nl>
+Date: Mon, 27 Jun 2016 14:31:02 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160617171214.GA5830@amd>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 2016-06-17 19:12:14, Pavel Machek wrote:
-> Hi!
-> 
-> > First, I re-did pipeline setup in python, it seems slightly less hacky
-> > then in shell.
-> > 
-> > I tried to modify fcam-dev to work with the new interface, but was not
-> > successful so far. I can post patches if someone is interested
-> > (mplayer works for me, but that's not too suitable for taking photos).
-> > 
-> > I tried to get gstreamer to work, with something like:
-> 
-> While trying to debug gstreamer, I ran v4l2-compliance, and it seems
-> to suggest that QUERYCAP is required... but it is not present on
-> /dev/video2 or video6.
-> 
-> Any ideas? (Kernel is based on Ivaylo 's github tree, IIRC).
+Note for Ulrich's patches: these are prerequisites for two other patch
+series (one from Ulrich for HDMI support and one from Niklas for Gen3
+support). It doesn't hurt to add these now, and it will simplify future
+development.
 
-I got fcam-dev to grab jpeg-s from the camera. Unfortunately, 800x600,
-no autogain, no autofocus. But lot of fun with memory management :-).
+Regards,
 
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+	Hans
+
+The following changes since commit 0db5c79989de2c68d5abb7ba891bfdb3cd3b7e05:
+
+  [media] media-devnode.h: Fix documentation (2016-06-16 08:14:56 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.8c
+
+for you to fetch changes up to ad124b474f36aa0581ca46a5f609e7d8c7e0a5a6:
+
+  media: rcar-vin: add DV timings support (2016-06-27 11:34:52 +0200)
+
+----------------------------------------------------------------
+Alexey Khoroshilov (1):
+      radio-maxiradio: fix memory leak when device is removed
+
+Hans Verkuil (1):
+      v4l2-ctrl.h: fix comments
+
+Helen Fornazier (1):
+      stk1160: Check *nplanes in queue_setup
+
+Ismael Luceno (1):
+      solo6x10: Simplify solo_enum_ext_input
+
+Ulrich Hecht (3):
+      media: rcar_vin: Use correct pad number in try_fmt
+      media: rcar-vin: pad-aware driver initialisation
+      media: rcar-vin: add DV timings support
+
+ drivers/media/pci/solo6x10/solo6x10-v4l2.c  |  34 ++++++++---------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 112 ++++++++++++++++++++++++++++++++++++++++++++++++++++++--
+ drivers/media/platform/rcar-vin/rcar-vin.h  |   2 +
+ drivers/media/radio/radio-maxiradio.c       |   1 +
+ drivers/media/usb/stk1160/stk1160-v4l.c     |   3 ++
+ include/media/v4l2-ctrls.h                  |  24 ++++++------
+ 6 files changed, 143 insertions(+), 33 deletions(-)
