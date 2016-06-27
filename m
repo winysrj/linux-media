@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
 Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:60727 "EHLO
 	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751865AbcF0NcZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751784AbcF0NcX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 09:32:25 -0400
+	Mon, 27 Jun 2016 09:32:23 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>
-Subject: [PATCHv5 08/13] media/platform: convert drivers to use the new vb2_queue dev field
-Date: Mon, 27 Jun 2016 15:31:59 +0200
-Message-Id: <1467034324-37626-9-git-send-email-hverkuil@xs4all.nl>
+	Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: [PATCHv5 07/13] media/platform: convert drivers to use the new vb2_queue dev field
+Date: Mon, 27 Jun 2016 15:31:58 +0200
+Message-Id: <1467034324-37626-8-git-send-email-hverkuil@xs4all.nl>
 In-Reply-To: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
 References: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -21,389 +21,466 @@ From: Hans Verkuil <hans.verkuil@cisco.com>
 Stop using alloc_ctx and just fill in the device pointer.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Fabien Dessenne <fabien.dessenne@st.com>
-Acked-by: Benoit Parrot <bparrot@ti.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Scott Jiang <scott.jiang.linux@gmail.com>
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/sti/bdisp/bdisp-v4l2.c | 18 ++++--------------
- drivers/media/platform/sti/bdisp/bdisp.h      |  2 --
- drivers/media/platform/ti-vpe/cal.c           | 15 +--------------
- drivers/media/platform/ti-vpe/vpe.c           | 20 ++++----------------
- drivers/media/platform/vsp1/vsp1_video.c      | 14 ++------------
- drivers/media/platform/vsp1/vsp1_video.h      |  1 -
- drivers/media/platform/xilinx/xilinx-dma.c    | 11 +----------
- drivers/media/platform/xilinx/xilinx-dma.h    |  2 --
- 8 files changed, 12 insertions(+), 71 deletions(-)
+ drivers/media/platform/am437x/am437x-vpfe.c    | 10 +---------
+ drivers/media/platform/am437x/am437x-vpfe.h    |  2 --
+ drivers/media/platform/blackfin/bfin_capture.c | 15 ++-------------
+ drivers/media/platform/coda/coda-common.c      | 16 ++--------------
+ drivers/media/platform/coda/coda.h             |  1 -
+ drivers/media/platform/davinci/vpbe_display.c  | 12 +-----------
+ drivers/media/platform/davinci/vpif_capture.c  | 11 +----------
+ drivers/media/platform/davinci/vpif_capture.h  |  2 --
+ drivers/media/platform/davinci/vpif_display.c  | 11 +----------
+ drivers/media/platform/davinci/vpif_display.h  |  2 --
+ drivers/media/platform/rcar-vin/rcar-dma.c     | 11 +----------
+ drivers/media/platform/rcar-vin/rcar-vin.h     |  2 --
+ include/media/davinci/vpbe_display.h           |  2 --
+ 13 files changed, 9 insertions(+), 88 deletions(-)
 
-diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-index d12a419..b3e8b5a 100644
---- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-+++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-@@ -439,7 +439,7 @@ static void bdisp_ctrls_delete(struct bdisp_ctx *ctx)
- 
- static int bdisp_queue_setup(struct vb2_queue *vq,
- 			     unsigned int *nb_buf, unsigned int *nb_planes,
--			     unsigned int sizes[], void *allocators[])
-+			     unsigned int sizes[], void *alloc_ctxs[])
- {
- 	struct bdisp_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct bdisp_frame *frame = ctx_get_frame(ctx, vq->type);
-@@ -453,7 +453,6 @@ static int bdisp_queue_setup(struct vb2_queue *vq,
- 		dev_err(ctx->bdisp_dev->dev, "Invalid format\n");
- 		return -EINVAL;
- 	}
--	allocators[0] = ctx->bdisp_dev->alloc_ctx;
- 
- 	if (*nb_planes)
- 		return sizes[0] < frame->sizeimage ? -EINVAL : 0;
-@@ -553,6 +552,7 @@ static int queue_init(void *priv,
- 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	src_vq->lock = &ctx->bdisp_dev->lock;
-+	src_vq->dev = ctx->bdisp_dev->v4l2_dev.dev;
- 
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
-@@ -567,6 +567,7 @@ static int queue_init(void *priv,
- 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	dst_vq->lock = &ctx->bdisp_dev->lock;
-+	dst_vq->dev = ctx->bdisp_dev->v4l2_dev.dev;
- 
- 	return vb2_queue_init(dst_vq);
- }
-@@ -1269,8 +1270,6 @@ static int bdisp_remove(struct platform_device *pdev)
- 
- 	bdisp_hw_free_filters(bdisp->dev);
- 
--	vb2_dma_contig_cleanup_ctx(bdisp->alloc_ctx);
--
- 	pm_runtime_disable(&pdev->dev);
- 
- 	bdisp_debugfs_remove(bdisp);
-@@ -1371,18 +1370,11 @@ static int bdisp_probe(struct platform_device *pdev)
- 		goto err_dbg;
- 	}
- 
--	/* Continuous memory allocator */
--	bdisp->alloc_ctx = vb2_dma_contig_init_ctx(dev);
--	if (IS_ERR(bdisp->alloc_ctx)) {
--		ret = PTR_ERR(bdisp->alloc_ctx);
--		goto err_pm;
--	}
--
- 	/* Filters */
- 	if (bdisp_hw_alloc_filters(bdisp->dev)) {
- 		dev_err(bdisp->dev, "no memory for filters\n");
- 		ret = -ENOMEM;
--		goto err_vb2_dma;
-+		goto err_pm;
- 	}
- 
- 	/* Register */
-@@ -1401,8 +1393,6 @@ static int bdisp_probe(struct platform_device *pdev)
- 
- err_filter:
- 	bdisp_hw_free_filters(bdisp->dev);
--err_vb2_dma:
--	vb2_dma_contig_cleanup_ctx(bdisp->alloc_ctx);
- err_pm:
- 	pm_runtime_put(dev);
- err_dbg:
-diff --git a/drivers/media/platform/sti/bdisp/bdisp.h b/drivers/media/platform/sti/bdisp/bdisp.h
-index 0cf9857..b3fbf99 100644
---- a/drivers/media/platform/sti/bdisp/bdisp.h
-+++ b/drivers/media/platform/sti/bdisp/bdisp.h
-@@ -175,7 +175,6 @@ struct bdisp_dbg {
-  * @id:         device index
-  * @m2m:        memory-to-memory V4L2 device information
-  * @state:      flags used to synchronize m2m and capture mode operation
-- * @alloc_ctx:  videobuf2 memory allocator context
-  * @clock:      IP clock
-  * @regs:       registers
-  * @irq_queue:  interrupt handler waitqueue
-@@ -193,7 +192,6 @@ struct bdisp_dev {
- 	u16                     id;
- 	struct bdisp_m2m_device m2m;
- 	unsigned long           state;
--	struct vb2_alloc_ctx    *alloc_ctx;
- 	struct clk              *clock;
- 	void __iomem            *regs;
- 	wait_queue_head_t       irq_queue;
-diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
-index 82001e6..51ebf32 100644
---- a/drivers/media/platform/ti-vpe/cal.c
-+++ b/drivers/media/platform/ti-vpe/cal.c
-@@ -287,7 +287,6 @@ struct cal_ctx {
- 	/* Several counters */
- 	unsigned long		jiffies;
- 
--	struct vb2_alloc_ctx	*alloc_ctx;
- 	struct cal_dmaqueue	vidq;
- 
- 	/* Input Number */
-@@ -1233,7 +1232,6 @@ static int cal_queue_setup(struct vb2_queue *vq,
+diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
+index e749eb7..d22b09d 100644
+--- a/drivers/media/platform/am437x/am437x-vpfe.c
++++ b/drivers/media/platform/am437x/am437x-vpfe.c
+@@ -1915,7 +1915,6 @@ static int vpfe_queue_setup(struct vb2_queue *vq,
  
  	if (vq->num_buffers + *nbuffers < 3)
  		*nbuffers = 3 - vq->num_buffers;
--	alloc_ctxs[0] = ctx->alloc_ctx;
+-	alloc_ctxs[0] = vpfe->alloc_ctx;
  
  	if (*nplanes) {
  		if (sizes[0] < size)
-@@ -1551,6 +1549,7 @@ static int cal_complete_ctx(struct cal_ctx *ctx)
+@@ -2364,13 +2363,6 @@ static int vpfe_probe_complete(struct vpfe_device *vpfe)
+ 		goto probe_out;
+ 
+ 	/* Initialize videobuf2 queue as per the buffer type */
+-	vpfe->alloc_ctx = vb2_dma_contig_init_ctx(vpfe->pdev);
+-	if (IS_ERR(vpfe->alloc_ctx)) {
+-		vpfe_err(vpfe, "Failed to get the context\n");
+-		err = PTR_ERR(vpfe->alloc_ctx);
+-		goto probe_out;
+-	}
+-
+ 	q = &vpfe->buffer_queue;
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	q->io_modes = VB2_MMAP | VB2_DMABUF | VB2_READ;
+@@ -2381,11 +2373,11 @@ static int vpfe_probe_complete(struct vpfe_device *vpfe)
  	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->lock = &ctx->mutex;
- 	q->min_buffers_needed = 3;
-+	q->dev = ctx->v4l2_dev.dev;
+ 	q->lock = &vpfe->lock;
+ 	q->min_buffers_needed = 1;
++	q->dev = vpfe->pdev;
+ 
+ 	err = vb2_queue_init(q);
+ 	if (err) {
+ 		vpfe_err(vpfe, "vb2_queue_init() failed\n");
+-		vb2_dma_contig_cleanup_ctx(vpfe->alloc_ctx);
+ 		goto probe_out;
+ 	}
+ 
+diff --git a/drivers/media/platform/am437x/am437x-vpfe.h b/drivers/media/platform/am437x/am437x-vpfe.h
+index 777bf97..17d7aa4 100644
+--- a/drivers/media/platform/am437x/am437x-vpfe.h
++++ b/drivers/media/platform/am437x/am437x-vpfe.h
+@@ -264,8 +264,6 @@ struct vpfe_device {
+ 	struct v4l2_rect crop;
+ 	/* Buffer queue used in video-buf */
+ 	struct vb2_queue buffer_queue;
+-	/* Allocator-specific contexts for each plane */
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	/* Queue of filled frames */
+ 	struct list_head dma_queue;
+ 	/* IRQ lock for DMA queue */
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index d0092da..1e244287 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -91,8 +91,6 @@ struct bcap_device {
+ 	struct bcap_buffer *cur_frm;
+ 	/* buffer queue used in videobuf2 */
+ 	struct vb2_queue buffer_queue;
+-	/* allocator-specific contexts for each plane */
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	/* queue of filled frames */
+ 	struct list_head dma_queue;
+ 	/* used in videobuf2 callback */
+@@ -209,7 +207,6 @@ static int bcap_queue_setup(struct vb2_queue *vq,
+ 
+ 	if (vq->num_buffers + *nbuffers < 2)
+ 		*nbuffers = 2;
+-	alloc_ctxs[0] = bcap_dev->alloc_ctx;
+ 
+ 	if (*nplanes)
+ 		return sizes[0] < bcap_dev->fmt.sizeimage ? -EINVAL : 0;
+@@ -820,12 +817,6 @@ static int bcap_probe(struct platform_device *pdev)
+ 	}
+ 	bcap_dev->ppi->priv = bcap_dev;
+ 
+-	bcap_dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(bcap_dev->alloc_ctx)) {
+-		ret = PTR_ERR(bcap_dev->alloc_ctx);
+-		goto err_free_ppi;
+-	}
+-
+ 	vfd = &bcap_dev->video_dev;
+ 	/* initialize field of video device */
+ 	vfd->release            = video_device_release_empty;
+@@ -839,7 +830,7 @@ static int bcap_probe(struct platform_device *pdev)
+ 	if (ret) {
+ 		v4l2_err(pdev->dev.driver,
+ 				"Unable to register v4l2 device\n");
+-		goto err_cleanup_ctx;
++		goto err_free_ppi;
+ 	}
+ 	v4l2_info(&bcap_dev->v4l2_dev, "v4l2 device registered\n");
+ 
+@@ -863,6 +854,7 @@ static int bcap_probe(struct platform_device *pdev)
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	q->lock = &bcap_dev->mutex;
+ 	q->min_buffers_needed = 1;
++	q->dev = &pdev->dev;
  
  	ret = vb2_queue_init(q);
  	if (ret)
-@@ -1578,18 +1577,7 @@ static int cal_complete_ctx(struct cal_ctx *ctx)
- 	v4l2_info(&ctx->v4l2_dev, "V4L2 device registered as %s\n",
- 		  video_device_node_name(vfd));
- 
--	ctx->alloc_ctx = vb2_dma_contig_init_ctx(vfd->v4l2_dev->dev);
--	if (IS_ERR(ctx->alloc_ctx)) {
--		ctx_err(ctx, "Failed to alloc vb2 context\n");
--		ret = PTR_ERR(ctx->alloc_ctx);
--		goto vdev_unreg;
--	}
--
+@@ -967,8 +959,6 @@ err_free_handler:
+ 	v4l2_ctrl_handler_free(&bcap_dev->ctrl_handler);
+ err_unreg_v4l2:
+ 	v4l2_device_unregister(&bcap_dev->v4l2_dev);
+-err_cleanup_ctx:
+-	vb2_dma_contig_cleanup_ctx(bcap_dev->alloc_ctx);
+ err_free_ppi:
+ 	ppi_delete_instance(bcap_dev->ppi);
+ err_free_dev:
+@@ -986,7 +976,6 @@ static int bcap_remove(struct platform_device *pdev)
+ 	video_unregister_device(&bcap_dev->video_dev);
+ 	v4l2_ctrl_handler_free(&bcap_dev->ctrl_handler);
+ 	v4l2_device_unregister(v4l2_dev);
+-	vb2_dma_contig_cleanup_ctx(bcap_dev->alloc_ctx);
+ 	ppi_delete_instance(bcap_dev->ppi);
+ 	kfree(bcap_dev);
  	return 0;
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 133ab9f..3d57c35 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1151,9 +1151,6 @@ static int coda_queue_setup(struct vb2_queue *vq,
+ 	*nplanes = 1;
+ 	sizes[0] = size;
+ 
+-	/* Set to vb2-dma-contig allocator context, ignored by vb2-vmalloc */
+-	alloc_ctxs[0] = ctx->dev->alloc_ctx;
 -
--vdev_unreg:
--	video_unregister_device(vfd);
--	return ret;
+ 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+ 		 "get %d buffer(s) of size %d each.\n", *nbuffers, size);
+ 
+@@ -1599,6 +1596,7 @@ static int coda_queue_init(struct coda_ctx *ctx, struct vb2_queue *vq)
+ 	 * that videobuf2 will keep the value of bytesused intact.
+ 	 */
+ 	vq->allow_zero_bytesused = 1;
++	vq->dev = &ctx->dev->plat_dev->dev;
+ 
+ 	return vb2_queue_init(vq);
  }
- 
- static struct device_node *
-@@ -1914,7 +1902,6 @@ static int cal_remove(struct platform_device *pdev)
- 				video_device_node_name(&ctx->vdev));
- 			camerarx_phy_disable(ctx);
- 			v4l2_async_notifier_unregister(&ctx->notifier);
--			vb2_dma_contig_cleanup_ctx(ctx->alloc_ctx);
- 			v4l2_ctrl_handler_free(&ctx->ctrl_handler);
- 			v4l2_device_unregister(&ctx->v4l2_dev);
- 			video_unregister_device(&ctx->vdev);
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 1fa00c2..3fefd8a 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -362,7 +362,6 @@ struct vpe_dev {
- 	void __iomem		*base;
- 	struct resource		*res;
- 
--	struct vb2_alloc_ctx	*alloc_ctx;
- 	struct vpdma_data	*vpdma;		/* vpdma data handle */
- 	struct sc_data		*sc;		/* scaler data handle */
- 	struct csc_data		*csc;		/* csc data handle */
-@@ -1807,10 +1806,8 @@ static int vpe_queue_setup(struct vb2_queue *vq,
- 
- 	*nplanes = q_data->fmt->coplanar ? 2 : 1;
- 
--	for (i = 0; i < *nplanes; i++) {
-+	for (i = 0; i < *nplanes; i++)
- 		sizes[i] = q_data->sizeimage[i];
--		alloc_ctxs[i] = ctx->dev->alloc_ctx;
--	}
- 
- 	vpe_dbg(ctx->dev, "get %d buffer(s) of size %d", *nbuffers,
- 		sizes[VPE_LUMA]);
-@@ -1907,6 +1904,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->mem_ops = &vb2_dma_contig_memops;
- 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	src_vq->lock = &dev->dev_mutex;
-+	src_vq->dev = dev->v4l2_dev.dev;
- 
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
-@@ -1921,6 +1919,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->mem_ops = &vb2_dma_contig_memops;
- 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	dst_vq->lock = &dev->dev_mutex;
-+	dst_vq->dev = dev->v4l2_dev.dev;
- 
- 	return vb2_queue_init(dst_vq);
- }
-@@ -2161,7 +2160,6 @@ static void vpe_fw_cb(struct platform_device *pdev)
- 		vpe_runtime_put(pdev);
- 		pm_runtime_disable(&pdev->dev);
- 		v4l2_m2m_release(dev->m2m_dev);
--		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
- 		v4l2_device_unregister(&dev->v4l2_dev);
- 
- 		return;
-@@ -2213,18 +2211,11 @@ static int vpe_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, dev);
+@@ -2040,16 +2038,10 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
+ 	if (ret < 0)
+ 		goto put_pm;
  
 -	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
 -	if (IS_ERR(dev->alloc_ctx)) {
--		vpe_err(dev, "Failed to alloc vb2 context\n");
--		ret = PTR_ERR(dev->alloc_ctx);
--		goto v4l2_dev_unreg;
+-		v4l2_err(&dev->v4l2_dev, "Failed to alloc vb2 context\n");
+-		goto put_pm;
 -	}
 -
- 	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
+ 	dev->m2m_dev = v4l2_m2m_init(&coda_m2m_ops);
  	if (IS_ERR(dev->m2m_dev)) {
- 		vpe_err(dev, "Failed to init mem2mem device\n");
- 		ret = PTR_ERR(dev->m2m_dev);
+ 		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
 -		goto rel_ctx;
-+		goto v4l2_dev_unreg;
++		goto put_pm;
  	}
  
- 	pm_runtime_enable(&pdev->dev);
-@@ -2269,8 +2260,6 @@ runtime_put:
- rel_m2m:
- 	pm_runtime_disable(&pdev->dev);
+ 	for (i = 0; i < dev->devtype->num_vdevs; i++) {
+@@ -2072,8 +2064,6 @@ rel_vfd:
+ 	while (--i >= 0)
+ 		video_unregister_device(&dev->vfd[i]);
  	v4l2_m2m_release(dev->m2m_dev);
 -rel_ctx:
 -	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
- v4l2_dev_unreg:
+ put_pm:
+ 	pm_runtime_put_sync(&pdev->dev);
+ }
+@@ -2324,8 +2314,6 @@ static int coda_remove(struct platform_device *pdev)
+ 	if (dev->m2m_dev)
+ 		v4l2_m2m_release(dev->m2m_dev);
+ 	pm_runtime_disable(&pdev->dev);
+-	if (dev->alloc_ctx)
+-		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
  	v4l2_device_unregister(&dev->v4l2_dev);
+ 	destroy_workqueue(dev->workqueue);
+ 	if (dev->iram.vaddr)
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index 8f2c71e..53f9666 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -92,7 +92,6 @@ struct coda_dev {
+ 	struct mutex		coda_mutex;
+ 	struct workqueue_struct	*workqueue;
+ 	struct v4l2_m2m_dev	*m2m_dev;
+-	struct vb2_alloc_ctx	*alloc_ctx;
+ 	struct list_head	instances;
+ 	unsigned long		instance_mask;
+ 	struct dentry		*debugfs_root;
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 0abcdfe..2a4c291 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -242,7 +242,6 @@ vpbe_buffer_queue_setup(struct vb2_queue *vq,
+ 	/* Store number of buffers allocated in numbuffer member */
+ 	if (vq->num_buffers + *nbuffers < VPBE_DEFAULT_NUM_BUFS)
+ 		*nbuffers = VPBE_DEFAULT_NUM_BUFS - vq->num_buffers;
+-	alloc_ctxs[0] = layer->alloc_ctx;
  
-@@ -2286,7 +2275,6 @@ static int vpe_remove(struct platform_device *pdev)
- 	v4l2_m2m_release(dev->m2m_dev);
- 	video_unregister_device(&dev->vfd);
- 	v4l2_device_unregister(&dev->v4l2_dev);
--	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
- 
- 	vpe_set_clock_enable(dev, 0);
- 	vpe_runtime_put(pdev);
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index a9aec5c..0e94e3b 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -533,17 +533,14 @@ vsp1_video_queue_setup(struct vb2_queue *vq,
- 		for (i = 0; i < *nplanes; i++) {
- 			if (sizes[i] < format->plane_fmt[i].sizeimage)
- 				return -EINVAL;
--			alloc_ctxs[i] = video->alloc_ctx;
+ 	if (*nplanes)
+ 		return sizes[0] < layer->pix_fmt.sizeimage ? -EINVAL : 0;
+@@ -1451,20 +1450,13 @@ static int vpbe_display_probe(struct platform_device *pdev)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 1;
+ 		q->lock = &disp_dev->dev[i]->opslock;
++		q->dev = disp_dev->vpbe_dev->pdev;
+ 		err = vb2_queue_init(q);
+ 		if (err) {
+ 			v4l2_err(v4l2_dev, "vb2_queue_init() failed\n");
+ 			goto probe_out;
  		}
- 		return 0;
- 	}
  
- 	*nplanes = format->num_planes;
- 
--	for (i = 0; i < format->num_planes; ++i) {
-+	for (i = 0; i < format->num_planes; ++i)
- 		sizes[i] = format->plane_fmt[i].sizeimage;
--		alloc_ctxs[i] = video->alloc_ctx;
--	}
- 
- 	return 0;
- }
-@@ -983,12 +980,6 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 	video_set_drvdata(&video->video, video);
- 
- 	/* ... and the buffers queue... */
--	video->alloc_ctx = vb2_dma_contig_init_ctx(video->vsp1->dev);
--	if (IS_ERR(video->alloc_ctx)) {
--		ret = PTR_ERR(video->alloc_ctx);
--		goto error;
--	}
+-		disp_dev->dev[i]->alloc_ctx =
+-			vb2_dma_contig_init_ctx(disp_dev->vpbe_dev->pdev);
+-		if (IS_ERR(disp_dev->dev[i]->alloc_ctx)) {
+-			v4l2_err(v4l2_dev, "Failed to get the context\n");
+-			err = PTR_ERR(disp_dev->dev[i]->alloc_ctx);
+-			goto probe_out;
+-		}
 -
- 	video->queue.type = video->type;
- 	video->queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
- 	video->queue.lock = &video->lock;
-@@ -997,6 +988,7 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 	video->queue.ops = &vsp1_video_queue_qops;
- 	video->queue.mem_ops = &vb2_dma_contig_memops;
- 	video->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	video->queue.dev = video->vsp1->dev;
- 	ret = vb2_queue_init(&video->queue);
- 	if (ret < 0) {
- 		dev_err(video->vsp1->dev, "failed to initialize vb2 queue\n");
-@@ -1014,7 +1006,6 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 	return video;
+ 		INIT_LIST_HEAD(&disp_dev->dev[i]->dma_queue);
  
- error:
--	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
- 	vsp1_video_cleanup(video);
- 	return ERR_PTR(ret);
- }
-@@ -1024,6 +1015,5 @@ void vsp1_video_cleanup(struct vsp1_video *video)
- 	if (video_is_registered(&video->video))
- 		video_unregister_device(&video->video);
+ 		if (register_device(disp_dev->dev[i], disp_dev, pdev)) {
+@@ -1482,7 +1474,6 @@ probe_out:
+ 	for (k = 0; k < VPBE_DISPLAY_MAX_DEVICES; k++) {
+ 		/* Unregister video device */
+ 		if (disp_dev->dev[k] != NULL) {
+-			vb2_dma_contig_cleanup_ctx(disp_dev->dev[k]->alloc_ctx);
+ 			video_unregister_device(&disp_dev->dev[k]->video_dev);
+ 			kfree(disp_dev->dev[k]);
+ 		}
+@@ -1510,7 +1501,6 @@ static int vpbe_display_remove(struct platform_device *pdev)
+ 	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
+ 		/* Get the pointer to the layer object */
+ 		vpbe_display_layer = disp_dev->dev[i];
+-		vb2_dma_contig_cleanup_ctx(vpbe_display_layer->alloc_ctx);
+ 		/* Unregister video device */
+ 		video_unregister_device(&vpbe_display_layer->video_dev);
  
--	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
- 	media_entity_cleanup(&video->video.entity);
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index 867b008..4487dc8 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -46,7 +46,6 @@ struct vsp1_video {
- 	unsigned int pipe_index;
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 08f7028..d5afab0 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -133,7 +133,6 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
  
- 	struct vb2_queue queue;
--	void *alloc_ctx;
- 	spinlock_t irqlock;
- 	struct list_head irqqueue;
- 	unsigned int sequence;
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index 7f6898b..3838e11 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -322,7 +322,6 @@ xvip_dma_queue_setup(struct vb2_queue *vq,
+ 	*nplanes = 1;
+ 	sizes[0] = size;
+-	alloc_ctxs[0] = common->alloc_ctx;
+ 
+ 	/* Calculate the offset for Y and C data in the buffer */
+ 	vpif_calculate_offsets(ch);
+@@ -1371,6 +1370,7 @@ static int vpif_probe_complete(void)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 1;
+ 		q->lock = &common->lock;
++		q->dev = vpif_dev;
+ 
+ 		err = vb2_queue_init(q);
+ 		if (err) {
+@@ -1378,13 +1378,6 @@ static int vpif_probe_complete(void)
+ 			goto probe_out;
+ 		}
+ 
+-		common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
+-		if (IS_ERR(common->alloc_ctx)) {
+-			vpif_err("Failed to get the context\n");
+-			err = PTR_ERR(common->alloc_ctx);
+-			goto probe_out;
+-		}
+-
+ 		INIT_LIST_HEAD(&common->dma_queue);
+ 
+ 		/* Initialize the video_device structure */
+@@ -1412,7 +1405,6 @@ probe_out:
+ 		/* Get the pointer to the channel object */
+ 		ch = vpif_obj.dev[k];
+ 		common = &ch->common[k];
+-		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+ 		/* Unregister video device */
+ 		video_unregister_device(&ch->video_dev);
+ 	}
+@@ -1546,7 +1538,6 @@ static int vpif_remove(struct platform_device *device)
+ 		/* Get the pointer to the channel object */
+ 		ch = vpif_obj.dev[i];
+ 		common = &ch->common[VPIF_VIDEO_INDEX];
+-		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+ 		/* Unregister video device */
+ 		video_unregister_device(&ch->video_dev);
+ 		kfree(vpif_obj.dev[i]);
+diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
+index 4a76009..9e35b67 100644
+--- a/drivers/media/platform/davinci/vpif_capture.h
++++ b/drivers/media/platform/davinci/vpif_capture.h
+@@ -65,8 +65,6 @@ struct common_obj {
+ 	struct v4l2_format fmt;
+ 	/* Buffer queue used in video-buf */
+ 	struct vb2_queue buffer_queue;
+-	/* allocator-specific contexts for each plane */
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	/* Queue of filled frames */
+ 	struct list_head dma_queue;
+ 	/* Used in video-buf */
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index f40755c..5d77884 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -126,7 +126,6 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
+ 
+ 	*nplanes = 1;
+ 	sizes[0] = size;
+-	alloc_ctxs[0] = common->alloc_ctx;
+ 
+ 	/* Calculate the offset for Y and C data  in the buffer */
+ 	vpif_calculate_offsets(ch);
+@@ -1191,19 +1190,13 @@ static int vpif_probe_complete(void)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 1;
+ 		q->lock = &common->lock;
++		q->dev = vpif_dev;
+ 		err = vb2_queue_init(q);
+ 		if (err) {
+ 			vpif_err("vpif_display: vb2_queue_init() failed\n");
+ 			goto probe_out;
+ 		}
+ 
+-		common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
+-		if (IS_ERR(common->alloc_ctx)) {
+-			vpif_err("Failed to get the context\n");
+-			err = PTR_ERR(common->alloc_ctx);
+-			goto probe_out;
+-		}
+-
+ 		INIT_LIST_HEAD(&common->dma_queue);
+ 
+ 		/* register video device */
+@@ -1233,7 +1226,6 @@ probe_out:
+ 	for (k = 0; k < j; k++) {
+ 		ch = vpif_obj.dev[k];
+ 		common = &ch->common[k];
+-		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+ 		video_unregister_device(&ch->video_dev);
+ 	}
+ 	return err;
+@@ -1355,7 +1347,6 @@ static int vpif_remove(struct platform_device *device)
+ 		/* Get the pointer to the channel object */
+ 		ch = vpif_obj.dev[i];
+ 		common = &ch->common[VPIF_VIDEO_INDEX];
+-		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+ 		/* Unregister video device */
+ 		video_unregister_device(&ch->video_dev);
+ 		kfree(vpif_obj.dev[i]);
+diff --git a/drivers/media/platform/davinci/vpif_display.h b/drivers/media/platform/davinci/vpif_display.h
+index e7a1723..af2765f 100644
+--- a/drivers/media/platform/davinci/vpif_display.h
++++ b/drivers/media/platform/davinci/vpif_display.h
+@@ -74,8 +74,6 @@ struct common_obj {
+ 	struct v4l2_format fmt;			/* Used to store the format */
+ 	struct vb2_queue buffer_queue;		/* Buffer queue used in
+ 						 * video-buf */
+-	/* allocator-specific contexts for each plane */
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 
+ 	struct list_head dma_queue;		/* Queue of filled frames */
+ 	spinlock_t irqlock;			/* Used in video-buf */
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index dad3b03..4c5c529 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -979,7 +979,6 @@ static int rvin_queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
  {
- 	struct xvip_dma *dma = vb2_get_drv_priv(vq);
+ 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
  
--	alloc_ctxs[0] = dma->alloc_ctx;
+-	alloc_ctxs[0] = vin->alloc_ctx;
  	/* Make sure the image size is large enough. */
  	if (*nplanes)
- 		return sizes[0] < dma->format.sizeimage ? -EINVAL : 0;
-@@ -706,12 +705,6 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
- 	video_set_drvdata(&dma->video, dma);
+ 		return sizes[0] < vin->format.sizeimage ? -EINVAL : 0;
+@@ -1129,9 +1128,6 @@ static struct vb2_ops rvin_qops = {
  
- 	/* ... and the buffers queue... */
--	dma->alloc_ctx = vb2_dma_contig_init_ctx(dma->xdev->dev);
--	if (IS_ERR(dma->alloc_ctx)) {
--		ret = PTR_ERR(dma->alloc_ctx);
+ void rvin_dma_remove(struct rvin_dev *vin)
+ {
+-	if (!IS_ERR_OR_NULL(vin->alloc_ctx))
+-		vb2_dma_contig_cleanup_ctx(vin->alloc_ctx);
+-
+ 	mutex_destroy(&vin->lock);
+ 
+ 	v4l2_device_unregister(&vin->v4l2_dev);
+@@ -1158,12 +1154,6 @@ int rvin_dma_probe(struct rvin_dev *vin, int irq)
+ 		vin->queue_buf[i] = NULL;
+ 
+ 	/* buffer queue */
+-	vin->alloc_ctx = vb2_dma_contig_init_ctx(vin->dev);
+-	if (IS_ERR(vin->alloc_ctx)) {
+-		ret = PTR_ERR(vin->alloc_ctx);
 -		goto error;
 -	}
 -
- 	/* Don't enable VB2_READ and VB2_WRITE, as using the read() and write()
- 	 * V4L2 APIs would be inefficient. Testing on the command line with a
- 	 * 'cat /dev/video?' thus won't be possible, but given that the driver
-@@ -728,6 +721,7 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
- 	dma->queue.mem_ops = &vb2_dma_contig_memops;
- 	dma->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
- 				   | V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
-+	dma->queue.dev = dma->xdev->dev;
- 	ret = vb2_queue_init(&dma->queue);
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	q->io_modes = VB2_MMAP | VB2_READ | VB2_DMABUF;
+ 	q->lock = &vin->lock;
+@@ -1173,6 +1163,7 @@ int rvin_dma_probe(struct rvin_dev *vin, int irq)
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	q->min_buffers_needed = 2;
++	q->dev = vin->dev;
+ 
+ 	ret = vb2_queue_init(q);
  	if (ret < 0) {
- 		dev_err(dma->xdev->dev, "failed to initialize VB2 queue\n");
-@@ -766,9 +760,6 @@ void xvip_dma_cleanup(struct xvip_dma *dma)
- 	if (dma->dma)
- 		dma_release_channel(dma->dma);
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 544a3b3..7af046d 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -93,7 +93,6 @@ struct rvin_graph_entity {
+  *
+  * @lock:		protects @queue
+  * @queue:		vb2 buffers queue
+- * @alloc_ctx:		allocation context for the vb2 @queue
+  *
+  * @qlock:		protects @queue_buf, @buf_list, @continuous, @sequence
+  *			@state
+@@ -123,7 +122,6 @@ struct rvin_dev {
  
--	if (!IS_ERR_OR_NULL(dma->alloc_ctx))
--		vb2_dma_contig_cleanup_ctx(dma->alloc_ctx);
--
- 	media_entity_cleanup(&dma->video.entity);
- 
- 	mutex_destroy(&dma->lock);
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.h b/drivers/media/platform/xilinx/xilinx-dma.h
-index 7a1621a..e95d136 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.h
-+++ b/drivers/media/platform/xilinx/xilinx-dma.h
-@@ -65,7 +65,6 @@ static inline struct xvip_pipeline *to_xvip_pipeline(struct media_entity *e)
-  * @format: active V4L2 pixel format
-  * @fmtinfo: format information corresponding to the active @format
-  * @queue: vb2 buffers queue
-- * @alloc_ctx: allocation context for the vb2 @queue
-  * @sequence: V4L2 buffers sequence number
-  * @queued_bufs: list of queued buffers
-  * @queued_lock: protects the buf_queued list
-@@ -88,7 +87,6 @@ struct xvip_dma {
- 	const struct xvip_video_format *fmtinfo;
- 
+ 	struct mutex lock;
  	struct vb2_queue queue;
--	void *alloc_ctx;
- 	unsigned int sequence;
+-	struct vb2_alloc_ctx *alloc_ctx;
  
- 	struct list_head queued_bufs;
+ 	spinlock_t qlock;
+ 	struct vb2_v4l2_buffer *queue_buf[HW_BUFFER_NUM];
+diff --git a/include/media/davinci/vpbe_display.h b/include/media/davinci/vpbe_display.h
+index e14a937..12783fd 100644
+--- a/include/media/davinci/vpbe_display.h
++++ b/include/media/davinci/vpbe_display.h
+@@ -81,8 +81,6 @@ struct vpbe_layer {
+ 	 * Buffer queue used in video-buf
+ 	 */
+ 	struct vb2_queue buffer_queue;
+-	/* allocator-specific contexts for each plane */
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	/* Queue of filled frames */
+ 	struct list_head dma_queue;
+ 	/* Used in video-buf */
 -- 
 2.8.1
 
