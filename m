@@ -1,60 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:37647 "EHLO
-	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751239AbcFSJqe (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:34007 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751655AbcF0IbK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jun 2016 05:46:34 -0400
-Date: Sun, 19 Jun 2016 11:46:29 +0200
-From: Richard Cochran <richardcochran@gmail.com>
-To: Henrik Austad <henrik@austad.us>
-Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-	alsa-devel@alsa-project.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@linaro.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [very-RFC 0/8] TSN driver for the kernel
-Message-ID: <20160619094629.GC5853@netboy>
-References: <1465686096-22156-1-git-send-email-henrik@austad.us>
- <20160613114713.GA9544@localhost.localdomain>
- <20160613195136.GC2441@netboy>
- <20160614121844.54a125a5@lxorguk.ukuu.org.uk>
- <5760C84C.40408@sakamocchi.jp>
- <20160615080602.GA13555@localhost.localdomain>
- <5764DA85.3050801@sakamocchi.jp>
- <20160618224549.GF32724@icarus.home.austad.us>
+	Mon, 27 Jun 2016 04:31:10 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] tw686x: be explicit about the possible dma_mode options
+Message-ID: <d4ce2282-1ad9-369c-fc37-92fe402a0e13@xs4all.nl>
+Date: Mon, 27 Jun 2016 10:31:04 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160618224549.GF32724@icarus.home.austad.us>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 19, 2016 at 12:45:50AM +0200, Henrik Austad wrote:
-> edit: this turned out to be a somewhat lengthy answer. I have tried to 
-> shorten it down somewhere. it is getting late and I'm getting increasingly 
-> incoherent (Richard probably knows what I'm talking about ;) so I'll stop 
-> for now.
+Users won't know what to put in this module option if it isn't
+described.
 
-Thanks for your responses, Henrik.  I think your explanations are on spot.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+Ezequiel, this sits on top of your tw686x patch series and will be part of the pull
+request.
+---
+ drivers/media/pci/tw686x/tw686x-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> note that an adjustable sample-clock is not a *requirement* but in general 
-> you'd want to avoid resampling in software.
+diff --git a/drivers/media/pci/tw686x/tw686x-core.c b/drivers/media/pci/tw686x/tw686x-core.c
+index 586bc67..71a0453 100644
+--- a/drivers/media/pci/tw686x/tw686x-core.c
++++ b/drivers/media/pci/tw686x/tw686x-core.c
+@@ -91,7 +91,7 @@ static int tw686x_dma_mode_set(const char *val, struct kernel_param *kp)
+ }
+ module_param_call(dma_mode, tw686x_dma_mode_set, tw686x_dma_mode_get,
+ 		  &dma_mode, S_IRUGO|S_IWUSR);
+-MODULE_PARM_DESC(dma_mode, "DMA operation mode");
++MODULE_PARM_DESC(dma_mode, "DMA operation mode (memcpy/contig/sg, default=memcpy)");
 
-Yes, but..
+ void tw686x_disable_channel(struct tw686x_dev *dev, unsigned int channel)
+ {
+-- 
+2.8.1
 
-Adjusting the local clock rate to match the AVB network rate is
-essential.  You must be able to *continuously* adjust the rate in
-order to compensate drift.  Again, there are exactly two ways to do
-it, namely in hardware (think VCO) or in software (dynamic
-resampling).
-
-What you cannot do is simply buffer the AV data and play it out
-blindly at the local clock rate.
-
-Regarding the media clock, if I understand correctly, there the talker
-has two possibilities.  Either the talker samples the stream at the
-gPTP rate, or the talker must tell the listeners the relationship
-(phase offset and frequency ratio) between the media clock and the
-gPTP time.  Please correct me if I got the wrong impression...
-
-Thanks,
-Richard
