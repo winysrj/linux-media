@@ -1,66 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:25679 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932597AbcFTLYt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 07:24:49 -0400
-Subject: Re: [alsa-devel] [very-RFC 0/8] TSN driver for the kernel
-To: Henrik Austad <henrik@austad.us>,
-	Takashi Sakamoto <o-takashi@sakamocchi.jp>
-References: <1465686096-22156-1-git-send-email-henrik@austad.us>
- <20160613114713.GA9544@localhost.localdomain> <20160613195136.GC2441@netboy>
- <20160614121844.54a125a5@lxorguk.ukuu.org.uk> <5760C84C.40408@sakamocchi.jp>
- <20160615080602.GA13555@localhost.localdomain>
- <5764DA85.3050801@sakamocchi.jp>
- <20160618224549.GF32724@icarus.home.austad.us>
-Cc: alsa-devel@alsa-project.org, netdev@vger.kernel.org,
-	Richard Cochran <richardcochran@gmail.com>,
-	linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@linaro.org>,
-	linux-media@vger.kernel.org
-From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Message-ID: <9a5abd48-4da3-945d-53c9-b6d37010ab0d@linux.intel.com>
-Date: Mon, 20 Jun 2016 13:08:27 +0200
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:32861 "EHLO
+	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751748AbcF0R5t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jun 2016 13:57:49 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com
+Cc: ulrich.hecht+renesas@gmail.com, hans.verkuil@cisco.com,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [RFC 0/2] [media] i2c: adv7482: add adv7482 driver
+Date: Mon, 27 Jun 2016 19:56:55 +0200
+Message-Id: <20160627175657.25391-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20160618224549.GF32724@icarus.home.austad.us>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi all,
 
-> Presentation time is either set by
-> a) Local sound card performing capture (in which case it will be 'capture
->    time')
-> b) Local media application sending a stream accross the network
->    (time when the sample should be played out remotely)
-> c) Remote media application streaming data *to* host, in which case it will
->    be local presentation time on local  soundcard
->
->> This value is dominant to the number of events included in an IEC 61883-1
->> packet. If this TSN subsystem decides it, most of these items don't need
->> to be in ALSA.
->
-> Not sure if I understand this correctly.
->
-> TSN should have a reference to the timing-domain of each *local*
-> sound-device (for local capture or playback) as well as the shared
-> time-reference provided by gPTP.
->
-> Unless an End-station acts as GrandMaster for the gPTP-domain, time set
-> forth by gPTP is inmutable and cannot be adjusted. It follows that the
-> sample-frequency of the local audio-devices must be adjusted, or the
-> audio-streams to/from said devices must be resampled.
+This is a RFC for the Analog Devices ADV7482 driver.
 
-The ALSA API provides support for 'audio' timestamps (playback/capture 
-rate defined by audio subsystem) and 'system' timestamps (typically 
-linked to TSC/ART) with one option to take synchronized timestamps 
-should the hardware support them.
-The intent was that the 'audio' timestamps are translated to a shared 
-time reference managed in userspace by gPTP, which in turn would define 
-if (adaptive) audio sample rate conversion is needed. There is no 
-support at the moment for a 'play_at' function in ALSA, only means to 
-control a feedback loop.
+It is based on top of the media_tree and depends on the series '[PATCH 
+0/2] move s_stream from v4l2_subdev_video_ops to move s_stream from 
+v4l2_subdev_pad_ops'. It's tested on a Renesas Salvator-X board.
 
+The driver is not ready for upstream and contains a few hard-coded 
+restrictions and hacks. The restrictions are in large part deepening on 
+from what I see as limitations to the v4l2 framework. The ADV7482 
+supports two video pipelines which can run (almost) independent of each 
+other, each pipeline terminates in a CSI-2 output TXA and TXB.
 
+TXA is a 4-lane CSI-2 output which can be connected to ether a HDMI, 
+CVBS or TTL input. TXB is a 1-lane CSI-2 output which can be connected 
+to the CVBS input. To make things even more complex the datasheet states
+that the TTL input can also be an output to which HDMI and CVBS inputs 
+can be routed.
 
+This RFC hard codes TXA to the HDMI input and TXB to the CVBS input 
+since that is the only configuration I can test. It also do not consider 
+the TTL port at all other then reserving a sink pad id for it.
 
+I have modelled the driver with two source pads, one for TXA and one for 
+TXB since I can't see any other way. And in this design I find 
+limitations to the v4l2 framework, there are operations in struct 
+v4l2_subdev_video_ops which now needs to know which source pad it should 
+be acting on. I have tried to solve my immediate problem of the need for 
+a pad aware s_stream in a separate series mention above but there are 
+more operations that needs pad information.
+
+I'm looking forward to trying to find solutions in v4l2 to thees 
+problems but in this RFC there is a compile time define which decides 
+which pad is the one used in such operations. Also some operations in 
+struct v4l2_subdev_video_ops are context aware, for example g_std is 
+only valid for TXB since it is connected to the CVBS input. But ofc one 
+can call g_std from a driver hooked up to TXA (which is the HDMI) and 
+would then get the standard for the CVBS. This results in lots of errors 
+in v4l-compliance test. Things that I see needs to be figured out how to 
+be pad aware are or extended in some other way are.
+
+- g_std
+- s_std
+- querystd
+- g_tvnorms
+- g_input_status
+- cropcap (needed for pixelaspect ratio)
+- s_dv_timings
+- g_dv_timings
+- query_dv_timings
+- Controlls, TXA and TXB both have a separate set of controls
+
+Further more there are some hard-coded logic regarding which sink is 
+connected to which source, this should be moved to s_routing. And 
+default-input DT parameters should be added and acted upon. I did not 
+want to spend time on this until I figured out how to best deal with the 
+more pad aware operations.
+
+Other limitations of the RFC that should be solved are:
+
+- ADV7482 allows for most of its I2C slave addresses to be user 
+  selectable. RFC uses hard coded values, thees should be moved to DT.
+
+- EDID, get_edid and set_edid operations need to be added.
+
+- Input format change interrupts like adv7180 have. Now one must
+  call querystd or query_dv_timings for the driver to notice that the 
+  format have changed.
+
+Given all of the above issues the RFC do work and can deliver both HDMI 
+and CVBS video simultaneously. It properly detects what source is 
+connected to it and the two pipes can be independently started and 
+stopped.
+
+If anyone is interested to test on Salvator-X the following branch 
+contains all the patches to grab video (rcar-vin for Gen3, rcar-cis2 and 
+adv7482).
+
+https://git.ragnatech.se/linux rcar-vin-gen3
+
+Laurent Pinchart (1):
+  media: entity: Add has_route entity operation
+
+Niklas Söderlund (1):
+  [media] i2c: adv7482: add adv7482 driver
+
+ .../devicetree/bindings/media/i2c/adv7482.txt      |   62 +
+ drivers/media/i2c/Kconfig                          |   10 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/adv7482.c                        | 1388 ++++++++++++++++++++
+ include/media/media-entity.h                       |    5 +
+ 5 files changed, 1466 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7482.txt
+ create mode 100644 drivers/media/i2c/adv7482.c
+
+-- 
+2.8.3
 
