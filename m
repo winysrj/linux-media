@@ -1,54 +1,511 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f53.google.com ([74.125.82.53]:38257 "EHLO
-	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161195AbcFML2K (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36629 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751865AbcF0Nca (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2016 07:28:10 -0400
-Subject: Re: [PATCH 1/3] dt-bindings: Update Renesas R-Car FCP DT binding
-To: Rob Herring <robh@kernel.org>
-References: <1465479695-18644-1-git-send-email-kieran@bingham.xyz>
- <1465479695-18644-2-git-send-email-kieran@bingham.xyz>
- <20160610173724.GA19923@rob-hp-laptop>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	"open list:MEDIA DRIVERS FOR RENESAS - FCP"
-	<linux-media@vger.kernel.org>,
-	"open list:MEDIA DRIVERS FOR RENESAS - FCP"
-	<linux-renesas-soc@vger.kernel.org>,
-	"open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-	<devicetree@vger.kernel.org>,
-	open list <linux-kernel@vger.kernel.org>
-From: Kieran Bingham <kieran@ksquared.org.uk>
-Message-ID: <575E98C6.8030904@bingham.xyz>
-Date: Mon, 13 Jun 2016 12:28:06 +0100
-MIME-Version: 1.0
-In-Reply-To: <20160610173724.GA19923@rob-hp-laptop>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Mon, 27 Jun 2016 09:32:30 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCHv5 12/13] media/platform: convert drivers to use the new vb2_queue dev field
+Date: Mon, 27 Jun 2016 15:32:03 +0200
+Message-Id: <1467034324-37626-13-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/06/16 18:37, Rob Herring wrote:
-> On Thu, Jun 09, 2016 at 02:41:32PM +0100, Kieran Bingham wrote:
->> The FCP driver, can also support the FCPF variant for FDP1 compatible
-> 
-> Drop the comma.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Ok
+Stop using alloc_ctx and just fill in the device pointer.
 
->> processing.
->>
->> Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
->> ---
->>  Documentation/devicetree/bindings/media/renesas,fcp.txt | 4 +++-
->>  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> With that,
-> 
-> Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-capture.c   |  7 ++-----
+ drivers/media/platform/exynos4-is/fimc-core.c      | 10 ----------
+ drivers/media/platform/exynos4-is/fimc-core.h      |  3 ---
+ drivers/media/platform/exynos4-is/fimc-is.c        | 13 +------------
+ drivers/media/platform/exynos4-is/fimc-is.h        |  2 --
+ drivers/media/platform/exynos4-is/fimc-isp-video.c |  9 +++------
+ drivers/media/platform/exynos4-is/fimc-isp.h       |  2 --
+ drivers/media/platform/exynos4-is/fimc-lite.c      | 18 +++---------------
+ drivers/media/platform/exynos4-is/fimc-lite.h      |  2 --
+ drivers/media/platform/exynos4-is/fimc-m2m.c       |  6 +++---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           | 18 +-----------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  2 --
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       | 10 ++++------
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 14 +++++---------
+ 14 files changed, 22 insertions(+), 94 deletions(-)
 
-Thanks
+diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+index bf47d3b..512b254 100644
+--- a/drivers/media/platform/exynos4-is/fimc-capture.c
++++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+@@ -354,11 +354,9 @@ static int queue_setup(struct vb2_queue *vq,
+ 	if (*num_planes) {
+ 		if (*num_planes != fmt->memplanes)
+ 			return -EINVAL;
+-		for (i = 0; i < *num_planes; i++) {
++		for (i = 0; i < *num_planes; i++)
+ 			if (sizes[i] < (wh * fmt->depth[i]) / 8)
+ 				return -EINVAL;
+-			allocators[i] = ctx->fimc_dev->alloc_ctx;
+-		}
+ 		return 0;
+ 	}
+ 
+@@ -371,8 +369,6 @@ static int queue_setup(struct vb2_queue *vq,
+ 			sizes[i] = frame->payload[i];
+ 		else
+ 			sizes[i] = max_t(u32, size, frame->payload[i]);
+-
+-		allocators[i] = ctx->fimc_dev->alloc_ctx;
+ 	}
+ 
+ 	return 0;
+@@ -1779,6 +1775,7 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
+ 	q->buf_struct_size = sizeof(struct fimc_vid_buffer);
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	q->lock = &fimc->lock;
++	q->dev = &fimc->pdev->dev;
+ 
+ 	ret = vb2_queue_init(q);
+ 	if (ret)
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
+index 368f44f..8f89ca2 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.c
++++ b/drivers/media/platform/exynos4-is/fimc-core.c
+@@ -1018,20 +1018,11 @@ static int fimc_probe(struct platform_device *pdev)
+ 			goto err_sd;
+ 	}
+ 
+-	/* Initialize contiguous memory allocator */
+ 	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+-	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+-	if (IS_ERR(fimc->alloc_ctx)) {
+-		ret = PTR_ERR(fimc->alloc_ctx);
+-		goto err_gclk;
+-	}
+ 
+ 	dev_dbg(dev, "FIMC.%d registered successfully\n", fimc->id);
+ 	return 0;
+ 
+-err_gclk:
+-	if (!pm_runtime_enabled(dev))
+-		clk_disable(fimc->clock[CLK_GATE]);
+ err_sd:
+ 	fimc_unregister_capture_subdev(fimc);
+ err_sclk:
+@@ -1124,7 +1115,6 @@ static int fimc_remove(struct platform_device *pdev)
+ 	pm_runtime_set_suspended(&pdev->dev);
+ 
+ 	fimc_unregister_capture_subdev(fimc);
+-	vb2_dma_contig_cleanup_ctx(fimc->alloc_ctx);
+ 	vb2_dma_contig_clear_max_seg_size(&pdev->dev);
+ 
+ 	clk_disable(fimc->clock[CLK_BUS]);
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.h b/drivers/media/platform/exynos4-is/fimc-core.h
+index 6b74354..5615fef 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.h
++++ b/drivers/media/platform/exynos4-is/fimc-core.h
+@@ -307,7 +307,6 @@ struct fimc_m2m_device {
+  */
+ struct fimc_vid_cap {
+ 	struct fimc_ctx			*ctx;
+-	struct vb2_alloc_ctx		*alloc_ctx;
+ 	struct v4l2_subdev		subdev;
+ 	struct exynos_video_entity	ve;
+ 	struct media_pad		vd_pad;
+@@ -417,7 +416,6 @@ struct fimc_ctx;
+  * @m2m:	memory-to-memory V4L2 device information
+  * @vid_cap:	camera capture device information
+  * @state:	flags used to synchronize m2m and capture mode operation
+- * @alloc_ctx:	videobuf2 memory allocator context
+  * @pipeline:	fimc video capture pipeline data structure
+  */
+ struct fimc_dev {
+@@ -436,7 +434,6 @@ struct fimc_dev {
+ 	struct fimc_m2m_device		m2m;
+ 	struct fimc_vid_cap		vid_cap;
+ 	unsigned long			state;
+-	struct vb2_alloc_ctx		*alloc_ctx;
+ };
+ 
+ /**
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index bd98b56..32ca55f 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -204,9 +204,6 @@ static int fimc_is_register_subdevs(struct fimc_is *is)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	/* Initialize memory allocator context for the ISP DMA. */
+-	is->isp.alloc_ctx = is->alloc_ctx;
+-
+ 	for_each_compatible_node(i2c_bus, NULL, FIMC_IS_I2C_COMPATIBLE) {
+ 		for_each_available_child_of_node(i2c_bus, child) {
+ 			ret = fimc_is_parse_sensor_config(is, index, child);
+@@ -848,18 +845,13 @@ static int fimc_is_probe(struct platform_device *pdev)
+ 		goto err_pm;
+ 
+ 	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+-	is->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+-	if (IS_ERR(is->alloc_ctx)) {
+-		ret = PTR_ERR(is->alloc_ctx);
+-		goto err_pm;
+-	}
+ 	/*
+ 	 * Register FIMC-IS V4L2 subdevs to this driver. The video nodes
+ 	 * will be created within the subdev's registered() callback.
+ 	 */
+ 	ret = fimc_is_register_subdevs(is);
+ 	if (ret < 0)
+-		goto err_vb;
++		goto err_pm;
+ 
+ 	ret = fimc_is_debugfs_create(is);
+ 	if (ret < 0)
+@@ -878,8 +870,6 @@ err_dfs:
+ 	fimc_is_debugfs_remove(is);
+ err_sd:
+ 	fimc_is_unregister_subdevs(is);
+-err_vb:
+-	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
+ err_pm:
+ 	if (!pm_runtime_enabled(dev))
+ 		fimc_is_runtime_suspend(dev);
+@@ -940,7 +930,6 @@ static int fimc_is_remove(struct platform_device *pdev)
+ 		fimc_is_runtime_suspend(dev);
+ 	free_irq(is->irq, is);
+ 	fimc_is_unregister_subdevs(is);
+-	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
+ 	vb2_dma_contig_clear_max_seg_size(dev);
+ 	fimc_is_put_clocks(is);
+ 	fimc_is_debugfs_remove(is);
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.h b/drivers/media/platform/exynos4-is/fimc-is.h
+index 386eb49..3a82c6a 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.h
++++ b/drivers/media/platform/exynos4-is/fimc-is.h
+@@ -233,7 +233,6 @@ struct chain_config {
+  * @pdev: pointer to FIMC-IS platform device
+  * @pctrl: pointer to pinctrl structure for this device
+  * @v4l2_dev: pointer to top the level v4l2_device
+- * @alloc_ctx: videobuf2 memory allocator context
+  * @lock: mutex serializing video device and the subdev operations
+  * @slock: spinlock protecting this data structure and the hw registers
+  * @clocks: FIMC-LITE gate clock
+@@ -256,7 +255,6 @@ struct fimc_is {
+ 	struct fimc_is_sensor		sensor[FIMC_IS_SENSORS_NUM];
+ 	struct fimc_is_setfile		setfile;
+ 
+-	struct vb2_alloc_ctx		*alloc_ctx;
+ 	struct v4l2_ctrl_handler	ctrl_handler;
+ 
+ 	struct mutex			lock;
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+index c081672..abc3389 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
++++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+@@ -57,20 +57,16 @@ static int isp_video_capture_queue_setup(struct vb2_queue *vq,
+ 	if (*num_planes) {
+ 		if (*num_planes != fmt->memplanes)
+ 			return -EINVAL;
+-		for (i = 0; i < *num_planes; i++) {
++		for (i = 0; i < *num_planes; i++)
+ 			if (sizes[i] < (wh * fmt->depth[i]) / 8)
+ 				return -EINVAL;
+-			allocators[i] = isp->alloc_ctx;
+-		}
+ 		return 0;
+ 	}
+ 
+ 	*num_planes = fmt->memplanes;
+ 
+-	for (i = 0; i < fmt->memplanes; i++) {
++	for (i = 0; i < fmt->memplanes; i++)
+ 		sizes[i] = (wh * fmt->depth[i]) / 8;
+-		allocators[i] = isp->alloc_ctx;
+-	}
+ 
+ 	return 0;
+ }
+@@ -597,6 +593,7 @@ int fimc_isp_video_device_register(struct fimc_isp *isp,
+ 	q->drv_priv = isp;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	q->lock = &isp->video_lock;
++	q->dev = &isp->pdev->dev;
+ 
+ 	ret = vb2_queue_init(q);
+ 	if (ret < 0)
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp.h b/drivers/media/platform/exynos4-is/fimc-isp.h
+index e0686b5..3cdd524 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp.h
++++ b/drivers/media/platform/exynos4-is/fimc-isp.h
+@@ -148,7 +148,6 @@ struct fimc_is_video {
+ /**
+  * struct fimc_isp - FIMC-IS ISP data structure
+  * @pdev: pointer to FIMC-IS platform device
+- * @alloc_ctx: videobuf2 memory allocator context
+  * @subdev: ISP v4l2_subdev
+  * @subdev_pads: the ISP subdev media pads
+  * @test_pattern: test pattern controls
+@@ -161,7 +160,6 @@ struct fimc_is_video {
+  */
+ struct fimc_isp {
+ 	struct platform_device		*pdev;
+-	struct vb2_alloc_ctx		*alloc_ctx;
+ 	struct v4l2_subdev		subdev;
+ 	struct media_pad		subdev_pads[FIMC_ISP_SD_PADS_NUM];
+ 	struct v4l2_mbus_framefmt	src_fmt;
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index 27cb620..f5a27a9 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -371,20 +371,16 @@ static int queue_setup(struct vb2_queue *vq,
+ 	if (*num_planes) {
+ 		if (*num_planes != fmt->memplanes)
+ 			return -EINVAL;
+-		for (i = 0; i < *num_planes; i++) {
++		for (i = 0; i < *num_planes; i++)
+ 			if (sizes[i] < (wh * fmt->depth[i]) / 8)
+ 				return -EINVAL;
+-			allocators[i] = fimc->alloc_ctx;
+-		}
+ 		return 0;
+ 	}
+ 
+ 	*num_planes = fmt->memplanes;
+ 
+-	for (i = 0; i < fmt->memplanes; i++) {
++	for (i = 0; i < fmt->memplanes; i++)
+ 		sizes[i] = (wh * fmt->depth[i]) / 8;
+-		allocators[i] = fimc->alloc_ctx;
+-	}
+ 
+ 	return 0;
+ }
+@@ -1300,6 +1296,7 @@ static int fimc_lite_subdev_registered(struct v4l2_subdev *sd)
+ 	q->drv_priv = fimc;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	q->lock = &fimc->lock;
++	q->dev = &fimc->pdev->dev;
+ 
+ 	ret = vb2_queue_init(q);
+ 	if (ret < 0)
+@@ -1552,11 +1549,6 @@ static int fimc_lite_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+-	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+-	if (IS_ERR(fimc->alloc_ctx)) {
+-		ret = PTR_ERR(fimc->alloc_ctx);
+-		goto err_clk_dis;
+-	}
+ 
+ 	fimc_lite_set_default_config(fimc);
+ 
+@@ -1564,9 +1556,6 @@ static int fimc_lite_probe(struct platform_device *pdev)
+ 		fimc->index);
+ 	return 0;
+ 
+-err_clk_dis:
+-	if (!pm_runtime_enabled(dev))
+-		clk_disable(fimc->clock);
+ err_sd:
+ 	fimc_lite_unregister_capture_subdev(fimc);
+ err_clk_put:
+@@ -1652,7 +1641,6 @@ static int fimc_lite_remove(struct platform_device *pdev)
+ 	pm_runtime_disable(dev);
+ 	pm_runtime_set_suspended(dev);
+ 	fimc_lite_unregister_capture_subdev(fimc);
+-	vb2_dma_contig_cleanup_ctx(fimc->alloc_ctx);
+ 	vb2_dma_contig_clear_max_seg_size(dev);
+ 	fimc_lite_clk_put(fimc);
+ 
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.h b/drivers/media/platform/exynos4-is/fimc-lite.h
+index 11690d5..9ae1e96 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.h
++++ b/drivers/media/platform/exynos4-is/fimc-lite.h
+@@ -113,7 +113,6 @@ struct flite_buffer {
+  * @ve: exynos video device entity structure
+  * @v4l2_dev: pointer to top the level v4l2_device
+  * @fh: v4l2 file handle
+- * @alloc_ctx: videobuf2 memory allocator context
+  * @subdev: FIMC-LITE subdev
+  * @vd_pad: media (sink) pad for the capture video node
+  * @subdev_pads: the subdev media pads
+@@ -148,7 +147,6 @@ struct fimc_lite {
+ 	struct exynos_video_entity ve;
+ 	struct v4l2_device	*v4l2_dev;
+ 	struct v4l2_fh		fh;
+-	struct vb2_alloc_ctx	*alloc_ctx;
+ 	struct v4l2_subdev	subdev;
+ 	struct media_pad	vd_pad;
+ 	struct media_pad	subdev_pads[FLITE_SD_PADS_NUM];
+diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c b/drivers/media/platform/exynos4-is/fimc-m2m.c
+index 55ec4c9..365f06e 100644
+--- a/drivers/media/platform/exynos4-is/fimc-m2m.c
++++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
+@@ -195,10 +195,8 @@ static int fimc_queue_setup(struct vb2_queue *vq,
+ 		return -EINVAL;
+ 
+ 	*num_planes = f->fmt->memplanes;
+-	for (i = 0; i < f->fmt->memplanes; i++) {
++	for (i = 0; i < f->fmt->memplanes; i++)
+ 		sizes[i] = f->payload[i];
+-		allocators[i] = ctx->fimc_dev->alloc_ctx;
+-	}
+ 	return 0;
+ }
+ 
+@@ -562,6 +560,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->lock = &ctx->fimc_dev->lock;
++	src_vq->dev = &ctx->fimc_dev->pdev->dev;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -575,6 +574,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->lock = &ctx->fimc_dev->lock;
++	dst_vq->dev = &ctx->fimc_dev->pdev->dev;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 6ee620e..8ca99af 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1191,23 +1191,13 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	vb2_dma_contig_set_max_seg_size(dev->mem_dev_l, DMA_BIT_MASK(32));
+-	dev->alloc_ctx[0] = vb2_dma_contig_init_ctx(dev->mem_dev_l);
+-	if (IS_ERR(dev->alloc_ctx[0])) {
+-		ret = PTR_ERR(dev->alloc_ctx[0]);
+-		goto err_res;
+-	}
+ 	vb2_dma_contig_set_max_seg_size(dev->mem_dev_r, DMA_BIT_MASK(32));
+-	dev->alloc_ctx[1] = vb2_dma_contig_init_ctx(dev->mem_dev_r);
+-	if (IS_ERR(dev->alloc_ctx[1])) {
+-		ret = PTR_ERR(dev->alloc_ctx[1]);
+-		goto err_mem_init_ctx_1;
+-	}
+ 
+ 	mutex_init(&dev->mfc_mutex);
+ 
+ 	ret = s5p_mfc_alloc_firmware(dev);
+ 	if (ret)
+-		goto err_alloc_fw;
++		goto err_res;
+ 
+ 	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+ 	if (ret)
+@@ -1295,10 +1285,6 @@ err_dec_alloc:
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ err_v4l2_dev_reg:
+ 	s5p_mfc_release_firmware(dev);
+-err_alloc_fw:
+-	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[1]);
+-err_mem_init_ctx_1:
+-	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[0]);
+ err_res:
+ 	s5p_mfc_final_pm(dev);
+ 
+@@ -1322,8 +1308,6 @@ static int s5p_mfc_remove(struct platform_device *pdev)
+ 	video_unregister_device(dev->vfd_dec);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ 	s5p_mfc_release_firmware(dev);
+-	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[0]);
+-	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[1]);
+ 	s5p_mfc_unconfigure_dma_memory(dev);
+ 	vb2_dma_contig_clear_max_seg_size(dev->mem_dev_l);
+ 	vb2_dma_contig_clear_max_seg_size(dev->mem_dev_r);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 9eb2481..1ce379a 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -285,7 +285,6 @@ struct s5p_mfc_priv_buf {
+  * @watchdog_cnt:	counter for the watchdog
+  * @watchdog_workqueue:	workqueue for the watchdog
+  * @watchdog_work:	worker for the watchdog
+- * @alloc_ctx:		videobuf2 allocator contexts for two memory banks
+  * @enter_suspend:	flag set when entering suspend
+  * @ctx_buf:		common context memory (MFCv6)
+  * @warn_start:		hardware error code from which warnings start
+@@ -328,7 +327,6 @@ struct s5p_mfc_dev {
+ 	struct timer_list watchdog_timer;
+ 	struct workqueue_struct *watchdog_workqueue;
+ 	struct work_struct watchdog_work;
+-	void *alloc_ctx[2];
+ 	unsigned long enter_suspend;
+ 
+ 	struct s5p_mfc_priv_buf ctx_buf;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index a01a373..eab6ec4 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -930,16 +930,14 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+ 		psize[1] = ctx->chroma_size;
+ 
+ 		if (IS_MFCV6_PLUS(dev))
+-			allocators[0] =
+-				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
++			allocators[0] = &ctx->dev->mem_dev_l;
+ 		else
+-			allocators[0] =
+-				ctx->dev->alloc_ctx[MFC_BANK2_ALLOC_CTX];
+-		allocators[1] = ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
++			allocators[0] = &ctx->dev->mem_dev_r;
++		allocators[1] = &ctx->dev->mem_dev_l;
+ 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE &&
+ 		   ctx->state == MFCINST_INIT) {
+ 		psize[0] = ctx->dec_src_buf_size;
+-		allocators[0] = ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
++		allocators[0] = &ctx->dev->mem_dev_l;
+ 	} else {
+ 		mfc_err("This video node is dedicated to decoding. Decoding not initialized\n");
+ 		return -EINVAL;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 2f76aba..7ee9ad7 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -1831,7 +1831,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+ 		if (*buf_count > MFC_MAX_BUFFERS)
+ 			*buf_count = MFC_MAX_BUFFERS;
+ 		psize[0] = ctx->enc_dst_buf_size;
+-		allocators[0] = ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
++		allocators[0] = &ctx->dev->mem_dev_l;
+ 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+ 		if (ctx->src_fmt)
+ 			*plane_count = ctx->src_fmt->num_planes;
+@@ -1847,15 +1847,11 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+ 		psize[1] = ctx->chroma_size;
+ 
+ 		if (IS_MFCV6_PLUS(dev)) {
+-			allocators[0] =
+-				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
+-			allocators[1] =
+-				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
++			allocators[0] = &ctx->dev->mem_dev_l;
++			allocators[1] = &ctx->dev->mem_dev_l;
+ 		} else {
+-			allocators[0] =
+-				ctx->dev->alloc_ctx[MFC_BANK2_ALLOC_CTX];
+-			allocators[1] =
+-				ctx->dev->alloc_ctx[MFC_BANK2_ALLOC_CTX];
++			allocators[0] = &ctx->dev->mem_dev_r;
++			allocators[1] = &ctx->dev->mem_dev_r;
+ 		}
+ 	} else {
+ 		mfc_err("invalid queue type: %d\n", vq->type);
+-- 
+2.8.1
 
