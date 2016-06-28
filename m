@@ -1,118 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:53116 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932370AbcFOOy7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2016 10:54:59 -0400
-Received: from [172.26.21.242] ([194.95.94.56]) by mail.gmx.com (mrgmx001)
- with ESMTPSA (Nemesis) id 0MDQp3-1bBn9z24kP-00Gsz2 for
- <linux-media@vger.kernel.org>; Wed, 15 Jun 2016 16:54:50 +0200
-To: linux-media@vger.kernel.org
-From: Ferda Mravenec <ferda.mravenec@gmx.de>
-Subject: Astrometa DVB-T2 not working correctly with Kernel 4.6
-Message-ID: <de3746f2-9a98-b919-5211-873fc02a30cd@gmx.de>
-Date: Wed, 15 Jun 2016 16:54:49 +0200
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:25754 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752071AbcF1Ph3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2016 11:37:29 -0400
+Received: from [10.47.79.81] ([10.47.79.81])
+	(authenticated bits=0)
+	by aer-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id u5SFOxsj026872
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2016 15:25:00 GMT
+To: linux-media <linux-media@vger.kernel.org>
+From: Hans Verkuil <hansverk@cisco.com>
+Subject: [GIT PULL FOR v4.8] Two more CEC patches
+Message-ID: <577296CA.8090101@cisco.com>
+Date: Tue, 28 Jun 2016 17:24:58 +0200
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------5524875C311807F69FBBEF0B"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------5524875C311807F69FBBEF0B
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+This adds the missing rc-cec keymap module and a bug fix patch.
 
-Hello everybody,
+I originally thought the rc-cec module was already merged in the cec topic branch,
+but I later discovered that it wasn't.
 
-I own this TV stick:
+Regards,
 
-https://www.linuxtv.org/wiki/index.php/Astrometa_DVB-T2
+	Hans
 
-It uses different chips to decode DVB-T and DVB-T2 streams, the required 
-modules are rtl2832 and mn88473.
-Up until linux 4.5 it worked correctly, in 4.6 only DVB-T works.
-In 4.6 the mn88473 module isn’t loaded automatically and can’t be loaded 
-manually, since it doesn’t exist in the system.
+The following changes since commit c7169ad5616229b87cabf886bc5f9cbd1fc35a5f:
 
-In 4.6 the module has been moved from staging to dvb-frontends.
-I tried to build it with
+  [media] DocBook/media: add CEC documentation (2016-06-28 11:45:24 -0300)
 
-make M=drivers/media/dvb-frontends
+are available in the git repository at:
 
-which gave me *.ko files for the other frontends, but not for mn88473.
+  git://linuxtv.org/hverkuil/media_tree.git cec-topic2
 
-I attached the relevant output of dmesg.
+for you to fetch changes up to 4049cdd6d38815017c553a76c958181d11861133:
 
-Regards
-Ferda
+  cec-adap: on reply, restore the tx_status value from the transmit (2016-06-28 17:05:24 +0200)
 
---------------5524875C311807F69FBBEF0B
-Content-Type: text/plain; charset=UTF-8;
- name="dmesg_4.5"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="dmesg_4.5"
+----------------------------------------------------------------
+Hans Verkuil (1):
+      cec-adap: on reply, restore the tx_status value from the transmit
 
-dXNiIDItNDogbmV3IGhpZ2gtc3BlZWQgVVNCIGRldmljZSBudW1iZXIgNiB1c2luZyB4aGNp
-X2hjZAp1c2IgMi00OiBkdmJfdXNiX3YyOiBmb3VuZCBhICdBc3Ryb21ldGEgRFZCLVQyJyBp
-biB3YXJtIHN0YXRlCnVzYiAyLTQ6IGR2Yl91c2JfdjI6IHdpbGwgcGFzcyB0aGUgY29tcGxl
-dGUgTVBFRzIgdHJhbnNwb3J0IHN0cmVhbSB0byB0aGUgc29mdHdhcmUgZGVtdXhlcgpEVkI6
-IHJlZ2lzdGVyaW5nIG5ldyBhZGFwdGVyIChBc3Ryb21ldGEgRFZCLVQyKQppMmMgaTJjLTg6
-IEFkZGVkIG11bHRpcGxleGVkIGkyYyBidXMgOQpydGwyODMyIDgtMDAxMDogUmVhbHRlayBS
-VEwyODMyIHN1Y2Nlc3NmdWxseSBhdHRhY2hlZAptbjg4NDczOiBtb2R1bGUgaXMgZnJvbSB0
-aGUgc3RhZ2luZyBkaXJlY3RvcnksIHRoZSBxdWFsaXR5IGlzIHVua25vd24sIHlvdSBoYXZl
-IGJlZW4gd2FybmVkLgptbjg4NDczIDgtMDAxODogUGFuYXNvbmljIE1OODg0NzMgc3VjY2Vz
-c2Z1bGx5IGF0dGFjaGVkCnVzYiAyLTQ6IERWQjogcmVnaXN0ZXJpbmcgYWRhcHRlciAwIGZy
-b250ZW5kIDAgKFJlYWx0ZWsgUlRMMjgzMiAoRFZCLVQpKS4uLgp1c2IgMi00OiBEVkI6IHJl
-Z2lzdGVyaW5nIGFkYXB0ZXIgMCBmcm9udGVuZCAxIChQYW5hc29uaWMgTU44ODQ3MykuLi4K
-cjgyMHQgOS0wMDNhOiBjcmVhdGluZyBuZXcgaW5zdGFuY2UKcjgyMHQgOS0wMDNhOiBSYWZh
-ZWwgTWljcm8gcjgyMHQgc3VjY2Vzc2Z1bGx5IGlkZW50aWZpZWQKcjgyMHQgOS0wMDNhOiBh
-dHRhY2hpbmcgZXhpc3RpbmcgaW5zdGFuY2UKcjgyMHQgOS0wMDNhOiBSYWZhZWwgTWljcm8g
-cjgyMHQgc3VjY2Vzc2Z1bGx5IGlkZW50aWZpZWQKcnRsMjgzMl9zZHIgcnRsMjgzMl9zZHIu
-MS5hdXRvOiBSZWdpc3RlcmVkIGFzIHN3cmFkaW8wCnJ0bDI4MzJfc2RyIHJ0bDI4MzJfc2Ry
-LjEuYXV0bzogUmVhbHRlayBSVEwyODMyIFNEUiBhdHRhY2hlZApydGwyODMyX3NkciBydGwy
-ODMyX3Nkci4xLmF1dG86IFNEUiBBUEkgaXMgc3RpbGwgc2xpZ2h0bHkgZXhwZXJpbWVudGFs
-IGFuZCBmdW5jdGlvbmFsaXR5IGNoYW5nZXMgbWF5IGZvbGxvdwpSZWdpc3RlcmVkIElSIGtl
-eW1hcCByYy1lbXB0eQppbnB1dDogQXN0cm9tZXRhIERWQi1UMiBhcyAvZGV2aWNlcy9wY2kw
-MDAwOjAwLzAwMDA6MDA6MTQuMC91c2IyLzItNC9yYy9yYzAvaW5wdXQxNwpyYyByYzA6IEFz
-dHJvbWV0YSBEVkItVDIgYXMgL2RldmljZXMvcGNpMDAwMDowMC8wMDAwOjAwOjE0LjAvdXNi
-Mi8yLTQvcmMvcmMwCnVzYiAyLTQ6IGR2Yl91c2JfdjI6IHNjaGVkdWxlIHJlbW90ZSBxdWVy
-eSBpbnRlcnZhbCB0byAyMDAgbXNlY3MKdXNiIDItNDogZHZiX3VzYl92MjogJ0FzdHJvbWV0
-YSBEVkItVDInIHN1Y2Nlc3NmdWxseSBpbml0aWFsaXplZCBhbmQgY29ubmVjdGVkCnVzYmNv
-cmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgZHZiX3VzYl9ydGwyOHh4dQps
-aXJjX2RldjogSVIgUmVtb3RlIENvbnRyb2wgZHJpdmVyIHJlZ2lzdGVyZWQsIG1ham9yIDI0
-NCAKcmMgcmMwOiBsaXJjX2RldjogZHJpdmVyIGlyLWxpcmMtY29kZWMgKGR2Yl91c2JfcnRs
-Mjh4eHUpIHJlZ2lzdGVyZWQgYXQgbWlub3IgPSAwCklSIExJUkMgYnJpZGdlIGhhbmRsZXIg
-aW5pdGlhbGl6ZWQK
---------------5524875C311807F69FBBEF0B
-Content-Type: text/plain; charset=UTF-8;
- name="dmesg_4.6"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="dmesg_4.6"
+Kamil Debski (1):
+      rc-cec: Add HDMI CEC keymap module
 
-dXNiIDItNDogbmV3IGhpZ2gtc3BlZWQgVVNCIGRldmljZSBudW1iZXIgNiB1c2luZyB4aGNp
-X2hjZAp1c2IgMi00OiBkdmJfdXNiX3YyOiBmb3VuZCBhICdBc3Ryb21ldGEgRFZCLVQyJyBp
-biB3YXJtIHN0YXRlCnVzYiAyLTQ6IGR2Yl91c2JfdjI6IHdpbGwgcGFzcyB0aGUgY29tcGxl
-dGUgTVBFRzIgdHJhbnNwb3J0IHN0cmVhbSB0byB0aGUgc29mdHdhcmUgZGVtdXhlcgpEVkI6
-IHJlZ2lzdGVyaW5nIG5ldyBhZGFwdGVyIChBc3Ryb21ldGEgRFZCLVQyKQppMmMgaTJjLTg6
-IEFkZGVkIG11bHRpcGxleGVkIGkyYyBidXMgOQpydGwyODMyIDgtMDAxMDogUmVhbHRlayBS
-VEwyODMyIHN1Y2Nlc3NmdWxseSBhdHRhY2hlZAp1c2IgMi00OiBEVkI6IHJlZ2lzdGVyaW5n
-IGFkYXB0ZXIgMCBmcm9udGVuZCAwIChSZWFsdGVrIFJUTDI4MzIgKERWQi1UKSkuLi4Kcjgy
-MHQgOS0wMDNhOiBjcmVhdGluZyBuZXcgaW5zdGFuY2UKcjgyMHQgOS0wMDNhOiBSYWZhZWwg
-TWljcm8gcjgyMHQgc3VjY2Vzc2Z1bGx5IGlkZW50aWZpZWQKcnRsMjgzMl9zZHIgcnRsMjgz
-Ml9zZHIuMS5hdXRvOiBSZWdpc3RlcmVkIGFzIHN3cmFkaW8wCnJ0bDI4MzJfc2RyIHJ0bDI4
-MzJfc2RyLjEuYXV0bzogUmVhbHRlayBSVEwyODMyIFNEUiBhdHRhY2hlZApTRFIgQVBJIGlz
-IHN0aWxsIHNsaWdodGx5IGV4cGVyaW1lbnRhbCBhbmQgZnVuY3Rpb25hbGl0eSBjaGFuZ2Vz
-IG1heSBmb2xsb3cKUmVnaXN0ZXJlZCBJUiBrZXltYXAgcmMtZW1wdHkKaW5wdXQ6IEFzdHJv
-bWV0YSBEVkItVDIgYXMgL2RldmljZXMvcGNpMDAwMDowMC8wMDAwOjAwOjE0LjAvdXNiMi8y
-LTQvcmMvcmMwL2lucHV0MTcKQXN0cm9tZXRhIERWQi1UMiBhcyAvZGV2aWNlcy9wY2kwMDAw
-OjAwLzAwMDA6MDA6MTQuMC91c2IyLzItNC9yYy9yYzAKdXNiIDItNDogZHZiX3VzYl92Mjog
-c2NoZWR1bGUgcmVtb3RlIHF1ZXJ5IGludGVydmFsIHRvIDIwMCBtc2Vjcwp1c2IgMi00OiBk
-dmJfdXNiX3YyOiAnQXN0cm9tZXRhIERWQi1UMicgc3VjY2Vzc2Z1bGx5IGluaXRpYWxpemVk
-IGFuZCBjb25uZWN0ZWQKdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZl
-ciBkdmJfdXNiX3J0bDI4eHh1CmxpcmNfZGV2OiBJUiBSZW1vdGUgQ29udHJvbCBkcml2ZXIg
-cmVnaXN0ZXJlZCwgbWFqb3IgMjQyIApyYyByYzA6IGxpcmNfZGV2OiBkcml2ZXIgaXItbGly
-Yy1jb2RlYyAoZHZiX3VzYl9ydGwyOHh4dSkgcmVnaXN0ZXJlZCBhdCBtaW5vciA9IDAKSVIg
-TElSQyBicmlkZ2UgaGFuZGxlciBpbml0aWFsaXplZAo=
---------------5524875C311807F69FBBEF0B--
+ drivers/media/rc/keymaps/Makefile    |   1 +
+ drivers/media/rc/keymaps/rc-cec.c    | 182 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/staging/media/cec/cec-adap.c |   1 +
+ 3 files changed, 184 insertions(+)
+ create mode 100644 drivers/media/rc/keymaps/rc-cec.c
