@@ -1,120 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:38154 "EHLO butterbrot.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751018AbcFWGlx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jun 2016 02:41:53 -0400
-Subject: Re: [PATCH v5 9/9] Input: sur40 - use new V4L2 touch input type
-To: Nick Dyer <nick.dyer@itdev.co.uk>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
- <1466633313-15339-10-git-send-email-nick.dyer@itdev.co.uk>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	mchehab@osg.samsung.com, Martin Kaltenbrunner <modin@yuri.at>
-From: Florian Echtler <floe@butterbrot.org>
-Message-ID: <576B84AD.8060703@butterbrot.org>
-Date: Thu, 23 Jun 2016 08:41:49 +0200
+Received: from mail-io0-f194.google.com ([209.85.223.194]:34135 "EHLO
+	mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193AbcF1L7Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2016 07:59:24 -0400
 MIME-Version: 1.0
-In-Reply-To: <1466633313-15339-10-git-send-email-nick.dyer@itdev.co.uk>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="ra8U1jx7T1flqPV87ueFKRjtwnviND4bs"
+In-Reply-To: <20160628083238.5fe7e32b@recife.lan>
+References: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <1462975376-491-4-git-send-email-ulrich.hecht+renesas@gmail.com> <20160628083238.5fe7e32b@recife.lan>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 28 Jun 2016 13:59:22 +0200
+Message-ID: <CAMuHMdUWjTe53bR-u39vn_TKjdWiB5UwO+jJmmk3_u-fe94Jgw@mail.gmail.com>
+Subject: Re: [PATCH v4 3/8] media: rcar_vin: Use correct pad number in try_fmt
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	=?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Ian Molton <ian.molton@codethink.co.uk>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	William Towle <william.towle@codethink.co.uk>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---ra8U1jx7T1flqPV87ueFKRjtwnviND4bs
-Content-Type: multipart/mixed; boundary="lMa6GKUG3p1xGILtCmLe1hP7VhoPd7vcI"
-From: Florian Echtler <floe@butterbrot.org>
-To: Nick Dyer <nick.dyer@itdev.co.uk>,
- Dmitry Torokhov <dmitry.torokhov@gmail.com>,
- Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-media@vger.kernel.org,
- Benjamin Tissoires <benjamin.tissoires@redhat.com>,
- Benson Leung <bleung@chromium.org>, Alan Bowens <Alan.Bowens@atmel.com>,
- Javier Martinez Canillas <javier@osg.samsung.com>,
- Chris Healy <cphealy@gmail.com>, Henrik Rydberg <rydberg@bitmath.org>,
- Andrew Duggan <aduggan@synaptics.com>, James Chen <james.chen@emc.com.tw>,
- Dudley Du <dudl@cypress.com>, Andrew de los Reyes <adlr@chromium.org>,
- sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
- mchehab@osg.samsung.com, Martin Kaltenbrunner <modin@yuri.at>
-Message-ID: <576B84AD.8060703@butterbrot.org>
-Subject: Re: [PATCH v5 9/9] Input: sur40 - use new V4L2 touch input type
-References: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
- <1466633313-15339-10-git-send-email-nick.dyer@itdev.co.uk>
-In-Reply-To: <1466633313-15339-10-git-send-email-nick.dyer@itdev.co.uk>
+Hi Mauro,
 
---lMa6GKUG3p1xGILtCmLe1hP7VhoPd7vcI
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On Tue, Jun 28, 2016 at 1:32 PM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+> Em Wed, 11 May 2016 16:02:51 +0200
+> Ulrich Hecht <ulrich.hecht+renesas@gmail.com> escreveu:
+>
+>> Fix rcar_vin_try_fmt's use of an inappropriate pad number when calling
+>> the subdev set_fmt function - for the ADV7612, IDs should be non-zero.
+>>
+>> Signed-off-by: William Towle <william.towle@codethink.co.uk>
+>> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> [uli: adapted to rcar-vin rewrite]
+>
+> Please use [email@domain: some revierwer note], as stated at Documentation/SubmittingPatches.
 
-On 23.06.2016 00:08, Nick Dyer wrote:
-> diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscr=
-een/sur40.c
-> index 880c40b..841e045 100644
-> --- a/drivers/input/touchscreen/sur40.c
-> +++ b/drivers/input/touchscreen/sur40.c
-> @@ -599,7 +599,7 @@ static int sur40_probe(struct usb_interface *interf=
-ace,
->  	sur40->vdev.queue =3D &sur40->queue;
->  	video_set_drvdata(&sur40->vdev, sur40);
-> =20
-> -	error =3D video_register_device(&sur40->vdev, VFL_TYPE_GRABBER, -1);
-> +	error =3D video_register_device(&sur40->vdev, VFL_TYPE_TOUCH, -1);
->  	if (error) {
->  		dev_err(&interface->dev,
->  			"Unable to register video subdevice.");
+"While there is nothing mandatory about this, it
+ seems like prepending the description with your mail and/or name, all
+ enclosed in square brackets, is noticeable enough to make it obvious that
+ you are responsible for last-minute changes."
 
-As far as I could tell from looking at patch 1/9, the only visible
-change for userspace will be the device name, so I'd be fine with this.
+Hence a name should be sufficient.
 
-> @@ -794,7 +794,7 @@ static int sur40_vidioc_enum_fmt(struct file *file,=
- void *priv,
->  	if (f->index !=3D 0)
->  		return -EINVAL;
->  	strlcpy(f->description, "8-bit greyscale", sizeof(f->description));
-> -	f->pixelformat =3D V4L2_PIX_FMT_GREY;
-> +	f->pixelformat =3D V4L2_TCH_FMT_TU08;
+Gr{oetje,eeting}s,
 
-I would suggest to leave the pixel format as it is. Rationale: the data
-really is greyscale image intensity data (as also evidenced by [1]), not
-just a synthetic image, and changing the pixel format would break all
-userspace tools.
+                        Geert
 
-[1] https://github.com/mkalten/reacTIVision/issues/3#issuecomment-9993180=
-7
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-Best, Florian
---=20
-SENT FROM MY DEC VT50 TERMINAL
-
-
---lMa6GKUG3p1xGILtCmLe1hP7VhoPd7vcI--
-
---ra8U1jx7T1flqPV87ueFKRjtwnviND4bs
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iEUEARECAAYFAldrhK0ACgkQ7CzyshGvathKsQCXRIGLjUmap2dnJEx577wNUjms
-3ACg9PH5NfcuHDRGyuq299HtgKF/0q0=
-=12TN
------END PGP SIGNATURE-----
-
---ra8U1jx7T1flqPV87ueFKRjtwnviND4bs--
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
