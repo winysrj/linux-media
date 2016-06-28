@@ -1,128 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-proxy001.phy.lolipop.jp ([157.7.104.42]:38820 "EHLO
-	smtp-proxy001.phy.lolipop.jp" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751381AbcFLJPB (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45352
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751068AbcF1OsF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2016 05:15:01 -0400
-Subject: Re: [very-RFC 0/8] TSN driver for the kernel
-To: Henrik Austad <henrik@austad.us>
-References: <1465686096-22156-1-git-send-email-henrik@austad.us>
- <575CD93C.50006@sakamocchi.jp> <20160612082852.GA32724@icarus.home.austad.us>
-Cc: alsa-devel@alsa-project.org, netdev@vger.kernel.org,
-	henrk@austad.us, alsa-devel@vger.kernel.org,
-	linux-media@vger.kernel.org
-From: Takashi Sakamoto <o-takashi@sakamocchi.jp>
-Message-ID: <575D2809.9020903@sakamocchi.jp>
-Date: Sun, 12 Jun 2016 18:14:49 +0900
+	Tue, 28 Jun 2016 10:48:05 -0400
+Date: Tue, 28 Jun 2016 11:48:00 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v4.8 v6] Add HDMI CEC framework
+Message-ID: <20160628114800.6c60f764@recife.lan>
+In-Reply-To: <3b58f2d3-221d-4323-b063-f36c1a89be29@xs4all.nl>
+References: <3b58f2d3-221d-4323-b063-f36c1a89be29@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20160612082852.GA32724@icarus.home.austad.us>
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="vH47jvMUfF2lIBf46CLLdkRFuNv9P0Gu6"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---vH47jvMUfF2lIBf46CLLdkRFuNv9P0Gu6
-Content-Type: multipart/mixed; boundary="6lag9WIGPbQbhbEDSbiR6XOMgx44sk23J"
-From: Takashi Sakamoto <o-takashi@sakamocchi.jp>
-To: Henrik Austad <henrik@austad.us>
-Cc: alsa-devel@alsa-project.org, netdev@vger.kernel.org, henrk@austad.us,
- alsa-devel@vger.kernel.org, linux-media@vger.kernel.org
-Message-ID: <575D2809.9020903@sakamocchi.jp>
-Subject: Re: [very-RFC 0/8] TSN driver for the kernel
-References: <1465686096-22156-1-git-send-email-henrik@austad.us>
- <575CD93C.50006@sakamocchi.jp> <20160612082852.GA32724@icarus.home.austad.us>
-In-Reply-To: <20160612082852.GA32724@icarus.home.austad.us>
+Em Sat, 25 Jun 2016 15:47:41 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
---6lag9WIGPbQbhbEDSbiR6XOMgx44sk23J
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+> Hi Mauro,
+> 
+> Here is the pull request for the HDMI CEC framework. The code of this pull
+> request is identical to the v19 patch series and is against the media_tree cec
+> topic branch.
+> 
 
-On Jun 12 2016 17:28, Henrik Austad wrote:
-> On Sun, Jun 12, 2016 at 12:38:36PM +0900, Takashi Sakamoto wrote:
->> I'm one of maintainers for ALSA firewire stack, which handles IEC
->> 61883-1/6 and vendor-unique packets on IEEE 1394 bus for consumer
->> recording equipments.
->> (I'm not in MAINTAINERS because I'm a shy boy.)
->>
->> IEC 61883-6 describes that one packet can multiplex several types of
->> data in its data channels; i.e. Multi Bit Linear Audio data (PCM
->> samples), One Bit Audio Data (DSD), MIDI messages and so on.
->=20
-> Hmm, that I did not know, not sure how that applies to AVB, but definat=
-ely=20
-> something I have to look into.
+...
 
-For your information, I describe more about it.
+>  create mode 100644 drivers/media/platform/s5p-cec/Makefile
+>  create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
+>  create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
+>  create mode 100644 drivers/media/platform/s5p-cec/regs-cec.h
+>  create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.c
+>  create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.h
 
-You can see pre-standardized specification for IEC 61883-6 in website of
-1394 Trade Association. Let's look for 'Audio and Music Data
-Transmission Protocol 2.3 (October 13, 2010, 1394TA)'
-http://1394ta.org/specifications/
+It doesn't seem right to keep those CEC drivers outside staging, while
+the core is at staging. I'll move them to staging. It would be nice
+to get the ack from DT maintainers before moving the s5p_cec back
+to platform.
 
-In 'clause 12. AM824 SEQUENCE ADAPTATION LAYERS', you can see that one
-data block includes several types of data.
+So, I'm adding a patch to the series doing that. Please don't
+forget to move it back to platform by the time you submit the
+patches moving cec core out of staging.
+
+>  create mode 100644 drivers/media/platform/vivid/vivid-cec.c
+>  create mode 100644 drivers/media/platform/vivid/vivid-cec.h
+
+If vivid were a real driver, I would require the same, but as
+it is just a software testing driver, I won't care.
 
 
-But I can imagine that joint group for AVB loosely refers to IEC
-61883-6. In this case, AVB specification might describe one data block
-transfers one type of data, to drop unreasonable complexities.
-
->> If you handles packet payload in 'struct snd_pcm_ops.copy', a process
->> context of an ALSA PCM applications performs the work. Thus, no chance=
-s
->> to multiplex data with the other types.
->=20
-> The driver is not adhering fully to any standards right now, the amount=
- of=20
-> detail is quite high - but I'm slowly improving as I go through the=20
-> standards. Getting on top of all the standards and all the different=20
-> subsystems are definately a work in progress (it's a lot to digest!)
-
-In my taste, the driver is not necessarily compliant to any standards.
-It's enough just to work its task, without bad side-effects to Linux
-system. Based on this concept, current ALSA firewire stack just support
-PCM frames and MIDI messages.
-
-Here, I tell you that actual devices tend not to be compliant to any
-standards and lost inter-operability.
-
-(Especially, most of audio and music units on IEEE 1394 bus ignores some
-of items in standards. In short, they already lost inter-operability.)
-
-So here, we just consider about what actual devices do, instead of
-following any standards.
-
-
-Regards
-
-Takashi Sakamoto
-
-
---6lag9WIGPbQbhbEDSbiR6XOMgx44sk23J--
-
---vH47jvMUfF2lIBf46CLLdkRFuNv9P0Gu6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXXSgPAAoJELWlhsfWb9NBot4P/RqHqRt+ZHC9pmoVKfbDM+Gg
-Uu5my0lQuMnWg2FPuVL6l450S/jsITLV5ERMEVU4vYhTKfit18dxhd+Ur7R7VEaA
-Z+4NjDn0pxJvOCENss1pvRRWFTxbR70g+k0Zzxh2e/bfAvi1tsUvTKPCGfoU6Mvb
-msM04PfZN/+ZFLn8FO8WQpmNIbWaMfbvLwg0TMcUSb93t68BS0dBm1pYX3doBt7T
-5KUqufhgOfZB+o2aFikzXR9J47yZZeMs+2P9DRO6l4Czi3LQur4VxriYsMQpF7oL
-LfG1oZM/jvquGstGUsND0eQHPqDAzlV8wbLya76ieFOW937rMHoMnL1AUFU/8dlP
-zBhEnCbOw/eQtiPLhPKgsky/SfK+/dStx5uSs3cRkeh5VmZkkZJV5gxjlxRooAwK
-ziWvMNdQCz+uHujQB40wCPh1IIwXBzQ61wLtn8X1iMfeOYrvVcyUayBxlJA1Gjm+
-36XpjFhM7ZiO1E2iifid9y6qMmNQ5HR5iQVQeQ3NvWgNW32/eYUMvuVI32OIJr2X
-6SEWvk+g90wGYlsRNyeJgcuYovEsgysSF0WANGN/vewZr5Wq1/7O+1s9uEBGrlXB
-j7I+0CaGo+PyAJGhpBmY/jGVrCQqPIbHXkqfYL7xKKqBu+2u1RiO5dZN89MlSFLx
-u7jhCb2BhyacGkoDVvlU
-=MRQF
------END PGP SIGNATURE-----
-
---vH47jvMUfF2lIBf46CLLdkRFuNv9P0Gu6--
+Thanks,
+Mauro
