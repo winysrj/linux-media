@@ -1,56 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:35070 "EHLO
-	mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161148AbcFOWbH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2016 18:31:07 -0400
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Lee Jones <lee.jones@linaro.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [PATCH 3/3] media: i2c/soc_camera: fix ov6650 sensor getting wrong clock
-Date: Thu, 16 Jun 2016 00:29:50 +0200
-Message-Id: <1466029790-31094-4-git-send-email-jmkrzyszt@gmail.com>
-In-Reply-To: <1466029790-31094-1-git-send-email-jmkrzyszt@gmail.com>
-References: <1466029790-31094-1-git-send-email-jmkrzyszt@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:46028 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751944AbcF1Pzc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2016 11:55:32 -0400
+Subject: Re: [PATCH] media: s5p-mfc fix memory leak in s5p_mfc_remove()
+To: Kamil Debski <k.debski@samsung.com>, kyungmin.park@samsung.com,
+	jtp.park@samsung.com, mchehab@osg.samsung.com
+References: <1465847114-7427-1-git-send-email-shuahkh@osg.samsung.com>
+ <025e01d1d123$7c14e620$743eb260$@samsung.com>
+ <57727E2C.9040102@osg.samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <57729DF1.20404@osg.samsung.com>
+Date: Tue, 28 Jun 2016 09:55:29 -0600
+MIME-Version: 1.0
+In-Reply-To: <57727E2C.9040102@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After changes to v4l2_clk API introduced in v4.1 by commits a37462b919
-'[media] V4L: remove clock name from v4l2_clk API' and 4f528afcfb
-'[media] V4L: add CCF support to the v4l2_clk API', ov6650 sensor
-stopped responding because v4l2_clk_get(), still called with
-depreciated V4L2 clock name "mclk", started to return respective CCF
-clock instead of the V4l2 one registered by soc_camera. Fix it by
-calling v4l2_clk_get() with NULL clock name.
+On 06/28/2016 07:39 AM, Shuah Khan wrote:
+> On 06/28/2016 03:57 AM, Kamil Debski wrote:
+>> HI Shuah,
+>>
+>> Which branch do you base your patches on?
+>>
+>> I have trouble applying this path
+>> (https://patchwork.linuxtv.org/patch/34577/) and 
+>> "s5p-mfc fix null pointer deference in clk_core_enable()"
+>> (https://patchwork.linuxtv.org/patch/34751/) 
+>> onto current linuxtv/master.
+>>
+>> The top commit of linuxtv/master is :
+>> "commit 0db5c79989de2c68d5abb7ba891bfdb3cd3b7e05
+>> Author: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>> Date:   Thu Jun 16 08:04:40 2016 -0300
+>>
+>>     [media] media-devnode.h: Fix documentation"
+>>
+>> Could you please rebase the two patches mentioned above to the
+>> linuxtv/master?
+>>
+>> Best wishes,
+>>
+> 
+> I based them on linux_next. I will rebase both patches on linuxtv/master
+> and resend.
+> 
 
-Created and tested on Amstrad Delta against Linux-4.7-rc3 with
-omap1_camera fixes.
+Hi Kamil,
 
-Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
----
- drivers/media/i2c/soc_camera/ov6650.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Do you need me to rebase this one:
 
-diff --git a/drivers/media/i2c/soc_camera/ov6650.c b/drivers/media/i2c/soc_camera/ov6650.c
-index 1f8af1e..1e4783b 100644
---- a/drivers/media/i2c/soc_camera/ov6650.c
-+++ b/drivers/media/i2c/soc_camera/ov6650.c
-@@ -1033,7 +1033,7 @@ static int ov6650_probe(struct i2c_client *client,
- 	priv->code	  = MEDIA_BUS_FMT_YUYV8_2X8;
- 	priv->colorspace  = V4L2_COLORSPACE_JPEG;
- 
--	priv->clk = v4l2_clk_get(&client->dev, "mclk");
-+	priv->clk = v4l2_clk_get(&client->dev, NULL);
- 	if (IS_ERR(priv->clk)) {
- 		ret = PTR_ERR(priv->clk);
- 		goto eclkget;
--- 
-2.7.3
+https://patchwork.kernel.org/patch/9166119/
+
+I will do that anyway and send three patches. I don't see the above
+in linuxtv/master
+
+thanks,
+-- Shuah
 
