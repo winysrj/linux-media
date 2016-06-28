@@ -1,98 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35105 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751712AbcFRQLT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jun 2016 12:11:19 -0400
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-To: Pavel Machek <pavel@ucw.cz>, sakari.ailus@iki.fi
-Subject: Re: [PATCH v3 1/2] media: Driver for Toshiba et8ek8 5MP sensor
-Date: Sat, 18 Jun 2016 18:11:10 +0200
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, sre@kernel.org,
-	linux-media@vger.kernel.org, robh+dt@kernel.org,
-	pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	mchehab@osg.samsung.com, devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-References: <1465659593-16858-1-git-send-email-ivo.g.dimitrov.75@gmail.com> <201606181737.33116@pali> <20160618160423.GB16792@amd>
-In-Reply-To: <20160618160423.GB16792@amd>
+Received: from lists.s-osg.org ([54.187.51.154]:47945 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751673AbcF1T5x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2016 15:57:53 -0400
+Subject: Re: [PATCH v2 0/2] Media Device Allocator API
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	inki.dae@samsung.com, g.liakhovetski@gmx.de
+References: <cover.1464132578.git.shuahkh@osg.samsung.com>
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	chehabrafael@gmail.com, javier@osg.samsung.com,
+	jh1009.sung@samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <5772D686.30902@osg.samsung.com>
+Date: Tue, 28 Jun 2016 13:56:54 -0600
 MIME-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart6194889.uIyB03IYbj";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+In-Reply-To: <cover.1464132578.git.shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Message-Id: <201606181811.10233@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---nextPart6194889.uIyB03IYbj
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On 05/24/2016 05:39 PM, Shuah Khan wrote:
+> Media Device Allocator API to allows multiple drivers share a media device.
+> Using this API, drivers can allocate a media device with the shared struct
+> device as the key. Once the media device is allocated by a driver, other
+> drivers can get a reference to it. The media device is released when all
+> the references are released.
+> 
+> This patch series has been tested with au0828 and snd-usb-audio drivers.
+> snd-us-audio patch isn't included in this series. Once this patch series
+> is reviews and gets a stable state, I will send out the snd-usb-audio
+> patch.
+> 
+> Changes since Patch v1 series: (based on Hans Virkuil's review)
+> - Removed media_device_get() and media_device_allocate(). These are
+>   unnecessary.
+> - media_device_usb_allocate() holds media_device_lock to do allocate
+>   and initialize the media device.
+> - Changed media_device_put() to media_device_delete() for symmetry with
+>   media_device_*_allocate().
+> - Dropped media_device_unregister_put(). au0828 calls media_device_delete()
+>   instead.
+> 
+> Shuah Khan (2):
+>   media: Media Device Allocator API
+>   media: change au0828 to use Media Device Allocator API
+> 
+>  drivers/media/Makefile                 |   3 +-
+>  drivers/media/media-dev-allocator.c    | 120 +++++++++++++++++++++++++++++++++
+>  drivers/media/usb/au0828/au0828-core.c |  12 ++--
+>  drivers/media/usb/au0828/au0828.h      |   1 +
+>  include/media/media-dev-allocator.h    |  85 +++++++++++++++++++++++
+>  5 files changed, 212 insertions(+), 9 deletions(-)
+>  create mode 100644 drivers/media/media-dev-allocator.c
+>  create mode 100644 include/media/media-dev-allocator.h
+> 
 
-On Saturday 18 June 2016 18:04:23 Pavel Machek wrote:
-> Hi!
->=20
-> > > > +	.reglist =3D {
-> > > > +		{ .ptr =3D &mode1_poweron_mode2_16vga_2592x1968_12_07fps },
-> > > > +		{ .ptr =3D &mode1_16vga_2592x1968_13_12fps_dpcm10_8 },
-> > > > +		{ .ptr =3D &mode3_4vga_1296x984_29_99fps_dpcm10_8 },
-> > > > +		{ .ptr =3D &mode4_svga_864x656_29_88fps },
-> > > > +		{ .ptr =3D &mode5_vga_648x492_29_93fps },
-> > > > +		{ .ptr =3D &mode2_16vga_2592x1968_3_99fps },
-> > > > +		{ .ptr =3D &mode_648x492_5fps },
-> > > > +		{ .ptr =3D &mode3_4vga_1296x984_5fps },
-> > > > +		{ .ptr =3D &mode_4vga_1296x984_25fps_dpcm10_8 },
-> > > > +		{ .ptr =3D 0 }
-> > > > +	}
-> > > > +};
-> > >=20
-> > > I'd say .ptr =3D NULL.
-> >=20
-> > Anyway, this code was generated from configuration ini files and
-> > perl script available from:
-> > https://gitorious.org/omap3camera/camera-firmware
-> >=20
-> > Originally in Maemo above C structure is compiled into binary file
-> > and via request_firmware() loaded from userspace to kernel driver.
-> >=20
-> > For me this sounds like a big overkill, so I included above reglist
-> > code direcly into et8ek8 kernel driver to avoid request_firmware()
-> > and separate userspace storage...
->=20
-> Yep, that makes sense, thanks for explanation. I guess that means
-> that we should put a comment on top of the file explaining what is
-> going on.
->=20
-> Best regards,
-> 									Pavel
 
-Here is that original stingraytsb_v14_simple.ini file:
+Hi Mauro,
 
-https://gitorious.org/omap3camera/camera-firmware?p=3Domap3camera:camera-fi=
-rmware.git;a=3Dtree;f=3Dini
+Are you planning to get this inot 4,8-rc1? 
 
-Looks like are are some "non simple" stingraytsb_v14 files too, but I
-have no idea which modes defines...
+The first patch is now at [PATCH v3] media: Media Device Allocator API
+that has been reviewed by Hans.
 
-Sakari, any idea?
-Which we should include into kernel et8ek8 kernel driver?
+https://lkml.org/lkml/2016/5/27/530
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart6194889.uIyB03IYbj
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAldlcp4ACgkQi/DJPQPkQ1L5HwCgr7HP4/6vTTmSMKOANyjuk0bE
-NG4An0r9jCqrBo4xzuUh8BX44aELhATK
-=LlkO
------END PGP SIGNATURE-----
-
---nextPart6194889.uIyB03IYbj--
+thanks,
+-- Shuah
