@@ -1,44 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45848 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754172AbcFTPAH (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45348
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752347AbcF1LfE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 11:00:07 -0400
-Date: Mon, 20 Jun 2016 17:59:07 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hans.verkuil@cisco.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH v3 2/4] vb2: Merge vb2_internal_dqbuf and vb2_dqbuf
-Message-ID: <20160620145906.GJ24980@valkosipuli.retiisi.org.uk>
-References: <1466426845-25673-1-git-send-email-ricardo.ribalda@gmail.com>
- <1466426845-25673-2-git-send-email-ricardo.ribalda@gmail.com>
+	Tue, 28 Jun 2016 07:35:04 -0400
+Date: Tue, 28 Jun 2016 08:34:58 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v4.8] Various fixes
+Message-ID: <20160628083458.5a3b7975@recife.lan>
+In-Reply-To: <74472839-8078-c8e4-5d92-43557fdb3f6e@xs4all.nl>
+References: <74472839-8078-c8e4-5d92-43557fdb3f6e@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1466426845-25673-2-git-send-email-ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 20, 2016 at 02:47:23PM +0200, Ricardo Ribalda Delgado wrote:
-> After all the code refactoring, vb2_internal_dqbuf is only called by
-> vb2_dqbuf.
+Em Mon, 27 Jun 2016 14:31:02 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+
+> Note for Ulrich's patches: these are prerequisites for two other patch
+> series (one from Ulrich for HDMI support and one from Niklas for Gen3
+> support). It doesn't hurt to add these now, and it will simplify future
+> development.
 > 
-> Since the function it is very simple, there is no need to have two
-> functions.
+> Regards,
 > 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> 	Hans
+> 
+> The following changes since commit 0db5c79989de2c68d5abb7ba891bfdb3cd3b7e05:
+> 
+>   [media] media-devnode.h: Fix documentation (2016-06-16 08:14:56 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git for-v4.8c
+> 
+> for you to fetch changes up to ad124b474f36aa0581ca46a5f609e7d8c7e0a5a6:
+> 
+>   media: rcar-vin: add DV timings support (2016-06-27 11:34:52 +0200)
+> 
+> ----------------------------------------------------------------
+> Alexey Khoroshilov (1):
+>       radio-maxiradio: fix memory leak when device is removed
+> 
+> Hans Verkuil (1):
+>       v4l2-ctrl.h: fix comments
+> 
+> Helen Fornazier (1):
+>       stk1160: Check *nplanes in queue_setup
+> 
+> Ismael Luceno (1):
+>       solo6x10: Simplify solo_enum_ext_input
+> 
 
-Hi, Ricardo!
 
-Patches 2--4: 
+> Ulrich Hecht (3):
+>       media: rcar_vin: Use correct pad number in try_fmt
+>       media: rcar-vin: pad-aware driver initialisation
+>       media: rcar-vin: add DV timings support
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+I'm not applying those three patches. The first one broke compilation.
+Clearly, they weren't tested.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Please re-submit those three patches after fixing and testing them.
+
+Regard
+
+Thanks,
+Mauro
