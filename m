@@ -1,56 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40629 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751583AbcFXPcM (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:54121 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752058AbcF1OQA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2016 11:32:12 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 12/19] drxj: comment out the unused nicam_presc_table_val table
-Date: Fri, 24 Jun 2016 12:31:53 -0300
-Message-Id: <01d7d436c600904edc8c521c74f1b22a8284e25b.1466782238.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1466782238.git.mchehab@s-opensource.com>
-References: <cover.1466782238.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1466782238.git.mchehab@s-opensource.com>
-References: <cover.1466782238.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Tue, 28 Jun 2016 10:16:00 -0400
+Received: from [64.103.36.133] (proxy-ams-1.cisco.com [64.103.36.133])
+	by tschai.lan (Postfix) with ESMTPSA id 11E77181A05
+	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2016 16:14:20 +0200 (CEST)
+To: linux-media <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] v4l2-tpg: ignore V4L2_DV_RGB_RANGE setting for YUV formats
+Message-ID: <5772863B.9010609@xs4all.nl>
+Date: Tue, 28 Jun 2016 16:14:19 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Avoid this warning:
+The V4L2_DV_RGB_RANGE_* settings are, as the name says, for RGB formats only.
+So they should be ignored for non-RGB formats.
 
-drivers/media/dvb-frontends/drx39xyj/drxj.c:1243:18: warning: 'nicam_presc_table_val' defined but not used [-Wunused-const-variable=]
- static const u16 nicam_presc_table_val[43] = {
-                  ^~~~~~~~~~~~~~~~~~~~~
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/drx39xyj/drxj.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index e48b741d439e..bd6d2ee0f7c9 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -1240,12 +1240,15 @@ static u32 frac_times1e6(u32 N, u32 D)
- *        and rounded. For calc used formula: 16*10^(prescaleGain[dB]/20).
- *
- */
-+#if 0
-+/* Currently, unused as we lack support for analog TV */
- static const u16 nicam_presc_table_val[43] = {
- 	1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4,
- 	5, 5, 6, 6, 7, 8, 9, 10, 11, 13, 14, 16,
- 	18, 20, 23, 25, 28, 32, 36, 40, 45,
- 	51, 57, 64, 71, 80, 90, 101, 113, 127
- };
-+#endif
- 
- /*============================================================================*/
- /*==                        END HELPER FUNCTIONS                            ==*/
--- 
-2.7.4
-
-
+diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+index cf1dadd..3ec3ceb 100644
+--- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
++++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+@@ -777,7 +777,7 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 	 * Remember that r, g and b are still in the 0 - 0xff0 range.
+ 	 */
+ 	if (tpg->real_rgb_range == V4L2_DV_RGB_RANGE_LIMITED &&
+-	    tpg->rgb_range == V4L2_DV_RGB_RANGE_FULL) {
++	    tpg->rgb_range == V4L2_DV_RGB_RANGE_FULL && !tpg->is_yuv) {
+ 		/*
+ 		 * Convert from full range (which is what r, g and b are)
+ 		 * to limited range (which is the 'real' RGB range), which
+@@ -787,7 +787,7 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 		g = (g * 219) / 255 + (16 << 4);
+ 		b = (b * 219) / 255 + (16 << 4);
+ 	} else if (tpg->real_rgb_range != V4L2_DV_RGB_RANGE_LIMITED &&
+-		   tpg->rgb_range == V4L2_DV_RGB_RANGE_LIMITED) {
++		   tpg->rgb_range == V4L2_DV_RGB_RANGE_LIMITED && !tpg->is_yuv) {
+ 		/*
+ 		 * Clamp r, g and b to the limited range and convert to full
+ 		 * range since that's what we deliver.
