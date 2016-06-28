@@ -1,100 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45342
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751956AbcF1Lcq (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:50023 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752570AbcF1L75 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2016 07:32:46 -0400
-Date: Tue, 28 Jun 2016 08:32:38 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Cc: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk
-Subject: Re: [PATCH v4 3/8] media: rcar_vin: Use correct pad number in
- try_fmt
-Message-ID: <20160628083238.5fe7e32b@recife.lan>
-In-Reply-To: <1462975376-491-4-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-	<1462975376-491-4-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Tue, 28 Jun 2016 07:59:57 -0400
+Subject: Re: [GIT PULL FOR v4.8] rcar-vin patches
+To: linux-media <linux-media@vger.kernel.org>
+References: <577264F9.5040506@xs4all.nl>
+Cc: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <577266B6.2030509@xs4all.nl>
+Date: Tue, 28 Jun 2016 13:59:50 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <577264F9.5040506@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 11 May 2016 16:02:51 +0200
-Ulrich Hecht <ulrich.hecht+renesas@gmail.com> escreveu:
+Try again, this time Cc-ed to Ulrich's correct email address.
 
-> Fix rcar_vin_try_fmt's use of an inappropriate pad number when calling
-> the subdev set_fmt function - for the ADV7612, IDs should be non-zero.
+Sorry Ulrich,
+
+	Hans
+
+On 06/28/16 13:52, Hans Verkuil wrote:
+> Updated these patches.
 > 
-> Signed-off-by: William Towle <william.towle@codethink.co.uk>
-> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> [uli: adapted to rcar-vin rewrite]
-
-Please use [email@domain: some revierwer note], as stated at Documentation/SubmittingPatches.
-
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-
-This patch breaks compilation:
-
-drivers/media/platform/rcar-vin/rcar-v4l2.c: In function '__rvin_try_format_source':
-drivers/media/platform/rcar-vin/rcar-v4l2.c:115:18: error: 'struct rvin_dev' has no member named 'src_pad_idx'
-  format.pad = vin->src_pad_idx;
-                  ^~
-
-
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 14 +++++++++++---
->  1 file changed, 11 insertions(+), 3 deletions(-)
+> Ulrich, sorry, the compile error was my fault: I added these patches in the
+> wrong order.
 > 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index 0bc4487..42dbd35 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -98,7 +98,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
->  					struct rvin_source_fmt *source)
->  {
->  	struct v4l2_subdev *sd;
-> -	struct v4l2_subdev_pad_config pad_cfg;
-> +	struct v4l2_subdev_pad_config *pad_cfg;
->  	struct v4l2_subdev_format format = {
->  		.which = which,
->  	};
-> @@ -108,10 +108,16 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
->  
->  	v4l2_fill_mbus_format(&format.format, pix, vin->source.code);
->  
-> +	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
-> +	if (pad_cfg == NULL)
-> +		return -ENOMEM;
-> +
-> +	format.pad = vin->src_pad_idx;
-> +
->  	ret = v4l2_device_call_until_err(sd->v4l2_dev, 0, pad, set_fmt,
-> -					 &pad_cfg, &format);
-> +					 pad_cfg, &format);
->  	if (ret < 0)
-> -		return ret;
-> +		goto cleanup;
->  
->  	v4l2_fill_pix_format(pix, &format.format);
->  
-> @@ -121,6 +127,8 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
->  	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
->  		source->height);
->  
-> +cleanup:
-> +	v4l2_subdev_free_pad_config(pad_cfg);
->  	return 0;
->  }
->  
-
-
-
-Thanks,
-Mauro
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit 904aef0f9f6deff94223c0ce93eb598c47dd3aad:
+> 
+>   [media] v4l2-ctrl.h: fix comments (2016-06-28 08:07:04 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git for-v4.8c
+> 
+> for you to fetch changes up to e86f5324263ff8a3f1a49dbada27f076c4327005:
+> 
+>   media: rcar-vin: add DV timings support (2016-06-28 13:50:35 +0200)
+> 
+> ----------------------------------------------------------------
+> Ulrich Hecht (3):
+>       media: rcar-vin: pad-aware driver initialisation
+>       media: rcar_vin: Use correct pad number in try_fmt
+>       media: rcar-vin: add DV timings support
+> 
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 112 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---
+>  drivers/media/platform/rcar-vin/rcar-vin.h  |   2 ++
+>  2 files changed, 111 insertions(+), 3 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
