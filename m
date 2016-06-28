@@ -1,71 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:57719 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752659AbcF2NVH (ORCPT
+Received: from smtprelay.synopsys.com ([198.182.47.9]:43542 "EHLO
+	smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752719AbcF1MAj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2016 09:21:07 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [PATCH 12/15] lirc_dev: fix error return value
-Date: Wed, 29 Jun 2016 22:20:41 +0900
-Message-id: <1467206444-9935-13-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
-References: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
+	Tue, 28 Jun 2016 08:00:39 -0400
+Received: from dc8secmta2.synopsys.com (dc8secmta2.synopsys.com [10.13.218.202])
+	by smtprelay.synopsys.com (Postfix) with ESMTP id 0A8DB24E08F6
+	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2016 05:00:39 -0700 (PDT)
+Received: from dc8secmta2.internal.synopsys.com (dc8secmta2.internal.synopsys.com [127.0.0.1])
+	by dc8secmta2.internal.synopsys.com (Service) with ESMTP id F0BC6A4112
+	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2016 05:00:38 -0700 (PDT)
+Received: from mailhost.synopsys.com (mailhost1.synopsys.com [10.12.238.239])
+	by dc8secmta2.internal.synopsys.com (Service) with ESMTP id D659BA4102
+	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2016 05:00:38 -0700 (PDT)
+Received: from mailhost.synopsys.com (localhost [127.0.0.1])
+	by mailhost.synopsys.com (Postfix) with ESMTP id C3E38B9F
+	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2016 05:00:38 -0700 (PDT)
+Received: from US01WEHTC2.internal.synopsys.com (us01wehtc2-vip.internal.synopsys.com [10.12.239.238])
+	by mailhost.synopsys.com (Postfix) with ESMTP id BECD5B9E
+	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2016 05:00:38 -0700 (PDT)
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+To: <linux-media@vger.kernel.org>
+Subject: Submit media entity without media device
+Message-ID: <0b6c1a36-8770-b9f0-4d31-6b2aa31bed5c@synopsys.com>
+Date: Tue, 28 Jun 2016 13:00:31 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If ioctl is called, it cannot be a case of invalid system call
-number (ENOSYS), that is an operation not permitted (EPERM).
-Replace ENOSYS with EPERM.
+Hi all,
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
----
- drivers/media/rc/lirc_dev.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+We at Synopsys have a media device driver and in that media device we have a
+media entity for our CSI-2 Host.
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 7e5cb85..6f3402c 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -587,7 +587,7 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 		break;
- 	case LIRC_GET_REC_MODE:
- 		if (!(ir->d.features & LIRC_CAN_REC_MASK)) {
--			result = -ENOSYS;
-+			result = -EPERM;
- 			break;
- 		}
- 
-@@ -597,7 +597,7 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 		break;
- 	case LIRC_SET_REC_MODE:
- 		if (!(ir->d.features & LIRC_CAN_REC_MASK)) {
--			result = -ENOSYS;
-+			result = -EPERM;
- 			break;
- 		}
- 
-@@ -615,7 +615,7 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 	case LIRC_GET_MIN_TIMEOUT:
- 		if (!(ir->d.features & LIRC_CAN_SET_REC_TIMEOUT) ||
- 		    ir->d.min_timeout == 0) {
--			result = -ENOSYS;
-+			result = -EPERM;
- 			break;
- 		}
- 
-@@ -624,7 +624,7 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 	case LIRC_GET_MAX_TIMEOUT:
- 		if (!(ir->d.features & LIRC_CAN_SET_REC_TIMEOUT) ||
- 		    ir->d.max_timeout == 0) {
--			result = -ENOSYS;
-+			result = -EPERM;
- 			break;
- 		}
- 
--- 
-2.8.1
+At the moment we aren't ready to submit the entire media device, so I was
+wondering if it was possible to submit a media entity driver separately, without
+the rest of the architecture, and if so where should we place it.
+
+Best Regards,
+
+Ramiro Oliveira
+
 
