@@ -1,64 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:36512 "EHLO
-	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752342AbcFKWvL (ORCPT
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:29905 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751879AbcF1P3f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2016 18:51:11 -0400
-Received: by mail-lf0-f66.google.com with SMTP id h68so8550133lfh.3
-        for <linux-media@vger.kernel.org>; Sat, 11 Jun 2016 15:51:11 -0700 (PDT)
-Date: Sun, 12 Jun 2016 00:51:07 +0200
-From: Henrik Austad <henrik@austad.us>
-To: David Miller <davem@davemloft.net>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@vger.kernel.org, netdev@vger.kernel.org,
-	henrk@austad.us, haustad@cisco.com
-Subject: Re: [very-RFC 1/8] TSN: add documentation
-Message-ID: <20160611225107.GD10685@sisyphus.home.austad.us>
-References: <1465683741-20390-2-git-send-email-henrik@austad.us>
- <20160611.153510.1132155249275383253.davem@davemloft.net>
- <20160611224728.GA10685@sisyphus.home.austad.us>
- <20160611.154942.1952550958882932442.davem@davemloft.net>
+	Tue, 28 Jun 2016 11:29:35 -0400
+Received: from [10.47.79.81] ([10.47.79.81])
+	(authenticated bits=0)
+	by aer-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id u5SFT7uJ020782
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2016 15:29:07 GMT
+From: Hans Verkuil <hansverk@cisco.com>
+Subject: [GIT PULL FOR v4.8] Two more CEC patches
+To: linux-media <linux-media@vger.kernel.org>
+Message-ID: <577297C3.2060403@cisco.com>
+Date: Tue, 28 Jun 2016 17:29:07 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="neYutvxvOLaeuPCA"
-Content-Disposition: inline
-In-Reply-To: <20160611.154942.1952550958882932442.davem@davemloft.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+(apologies if this is a duplicate, the first attempt to mail this seemed to fail).
 
---neYutvxvOLaeuPCA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This adds the missing rc-cec keymap module and a bug fix patch.
 
-On Sat, Jun 11, 2016 at 03:49:42PM -0700, David Miller wrote:
-> From: Henrik Austad <henrik@austad.us>
-> Date: Sun, 12 Jun 2016 00:47:28 +0200
->=20
-> > What would be the best approach? Resend series to netdev@vger? I don't =
-want=20
-> > to spam too many lists either.
->=20
-> Resend to all the lists.
+I originally thought the rc-cec module was already merged in the cec topic branch,
+but I later discovered that it wasn't.
 
-ok, I'll do that then.
+Regards,
 
-Thanks
+	Hans
 
---=20
-Henrik Austad
+The following changes since commit c7169ad5616229b87cabf886bc5f9cbd1fc35a5f:
 
---neYutvxvOLaeuPCA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+  [media] DocBook/media: add CEC documentation (2016-06-28 11:45:24 -0300)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+are available in the git repository at:
 
-iEYEARECAAYFAldcldsACgkQ6k5VT6v45lkKvwCg0kQNMh4eWx8yCskvVYaA8rOq
-0jAAn06e1PvLgBRbq9d7YC5pQXh9g8Mg
-=hqrh
------END PGP SIGNATURE-----
+  git://linuxtv.org/hverkuil/media_tree.git cec-topic2
 
---neYutvxvOLaeuPCA--
+for you to fetch changes up to 4049cdd6d38815017c553a76c958181d11861133:
+
+  cec-adap: on reply, restore the tx_status value from the transmit (2016-06-28 17:05:24 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      cec-adap: on reply, restore the tx_status value from the transmit
+
+Kamil Debski (1):
+      rc-cec: Add HDMI CEC keymap module
+
+ drivers/media/rc/keymaps/Makefile    |   1 +
+ drivers/media/rc/keymaps/rc-cec.c    | 182 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/staging/media/cec/cec-adap.c |   1 +
+ 3 files changed, 184 insertions(+)
+ create mode 100644 drivers/media/rc/keymaps/rc-cec.c
