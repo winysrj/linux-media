@@ -1,49 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-proxy002.phy.lolipop.jp ([157.7.104.43]:42405 "EHLO
-	smtp-proxy002.phy.lolipop.jp" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752983AbcFOD1j (ORCPT
+Received: from smtprelay.synopsys.com ([198.182.47.9]:43528 "EHLO
+	smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752416AbcF1MAK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 23:27:39 -0400
-Subject: Re: [very-RFC 0/8] TSN driver for the kernel
-References: <1465686096-22156-1-git-send-email-henrik@austad.us>
- <20160613114713.GA9544@localhost.localdomain> <20160613195136.GC2441@netboy>
- <20160614121844.54a125a5@lxorguk.ukuu.org.uk>
-Cc: alsa-devel@alsa-project.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@linaro.org>,
-	linux-media@vger.kernel.org
-To: Henrik Austad <henrik@austad.us>
-From: Takashi Sakamoto <o-takashi@sakamocchi.jp>
-Message-ID: <5760CB2A.6090106@sakamocchi.jp>
-Date: Wed, 15 Jun 2016 12:27:38 +0900
-MIME-Version: 1.0
-In-Reply-To: <20160614121844.54a125a5@lxorguk.ukuu.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 28 Jun 2016 08:00:10 -0400
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Ramiro.Oliveira@synopsys.com, CARLOS.PALMINHA@synopsys.com
+Subject: [PATCH v2 1/2] Add OV5647 device tree documentation
+Date: Tue, 28 Jun 2016 12:59:58 +0100
+Message-Id: <dc3a66f09f705b8bb5b88bc3140b743bb101bcf1.1467107991.git.roliveir@synopsys.com>
+In-Reply-To: <cover.1467107991.git.roliveir@synopsys.com>
+References: <cover.1467107991.git.roliveir@synopsys.com>
+In-Reply-To: <cover.1467107991.git.roliveir@synopsys.com>
+References: <cover.1467107991.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Richard,
+Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+---
+ .../devicetree/bindings/media/i2c/ov5647.txt          | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
 
-On Tue, 14 Jun 2016 19:04:44 +0200, Richard Cochran write:
- >> Well, I guess I should have said, I am not too familiar with the
- >> breadth of current audio hardware, high end or low end.  Of course I
- >> would like to see even consumer devices work with AVB, but it is up to
- >> the ALSA people to make that happen.  So far, nothing has been done,
- >> afaict.
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+new file mode 100644
+index 0000000..4c91b3b
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+@@ -0,0 +1,19 @@
++Omnivision OV5647 raw image sensor
++---------------------------------
++
++OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
++and CCI (I2C compatible) control bus.
++
++Required properties:
++
++- compatible	: "ovti,ov5647";
++- reg		: I2C slave address of the sensor;
++
++The common video interfaces bindings (see video-interfaces.txt) should be
++used to specify link to the image data receiver. The OV5647 device
++node should contain one 'port' child node with an 'endpoint' subnode.
++
++Following properties are valid for the endpoint node:
++
++- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
++  video-interfaces.txt.  The sensor supports only two data lanes.
+-- 
+2.8.1
 
-In OSS world, there's few developers for this kind of devices, even if 
-it's alsa-project. Furthermore, manufacturerer for recording equipments 
-have no interests in OSS.
 
-In short, what we can do for these devices is just to 
-reverse-engineering. For models of Ethernet-AVB, it might be just to 
-transfer or receive packets, and read them. The devices are still 
-black-boxes and we have no ways to reveal their details.
-
-So when you require the details to implement something in your side, few 
-developers can tell you, I think.
-
-
-Regards
-
-Takashi Sakamoto
