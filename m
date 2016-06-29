@@ -1,71 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52228 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932378AbcFBTab (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2016 15:30:31 -0400
-Date: Thu, 2 Jun 2016 21:30:27 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org
-Subject: [PATCH] device tree description for AD5820 camera auto-focus coil
-Message-ID: <20160602193027.GB7984@amd>
-References: <574049EF.2090208@gmail.com>
- <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
- <20160531213437.GA28397@amd>
- <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
- <20160601220840.GA21946@amd>
- <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
+Received: from etezian.org ([198.101.225.253]:54895 "EHLO mail.etezian.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751376AbcF2X60 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jun 2016 19:58:26 -0400
+Date: Thu, 30 Jun 2016 08:35:13 +0900
+From: Andi Shyti <andi@etezian.org>
+To: Sean Young <sean@mess.org>
+Cc: Andi Shyti <andi.shyti@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi@etezian.org>
+Subject: Re: [PATCH 15/15] include: lirc: add set length and frequency ioctl
+ options
+Message-ID: <20160629233513.GA1257@jack.zhora.eu>
+References: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
+ <1467206444-9935-16-git-send-email-andi.shyti@samsung.com>
+ <20160629224646.GA30214@gofer.mess.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20160629224646.GA30214@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sean,
 
-Add documentation for ad5820 device tree binding.
+> > For that we need to have more control on the device frequency to
+> > set (which is a new concept fro LIRC) and we also need to provide
+> > to userspace, as feedback, the values of the used frequency and
+> > length.
+> 
+> Please can you elaborate on what exactly you mean by frequency and
+> length.
+> 
+> The carrier frequency can already be set with LIRC_SET_SEND_CARRIER.
 
-Signed-off-by: Pavel Machek <pavel@denx.de>
+yes, I mean carrier's frequency. I didn't understand that
+LIRC_SET_SEND_CARRIER was related to the frequency.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-new file mode 100644
-index 0000000..fb70ca5
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-@@ -0,0 +1,19 @@
-+* Analog Devices AD5820 autofocus coil
-+
-+Required Properties:
-+
-+  - compatible: Must contain "adi,ad5820"
-+
-+  - reg: I2C slave address
-+
-+  - VANA-supply: supply of voltage for VANA pin
-+
-+Example:
-+
-+       ad5820: coil@0c {
-+               compatible = "adi,ad5820";
-+               reg = <0x0c>;
-+
-+               VANA-supply = <&vaux4>;
-+       };
-+
+> > Add the LIRC_SET_LENGTH, LIRC_GET_FREQUENCY and
+> > LIRC_SET_FREQUENCY ioctl commands in order to allow the above
+> > mentioned operations.
+> 
+> You're also adding ioctls without any drivers implementing them
+> unless I missed something.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+You're right; the first idea was to submit also the device
+driver, but then I decided to keep it separate from this
+patchset.
+Anyway, we can drop this one (it's the last of the series) and,
+in case it will be needed after the above comment, I will re-send
+it with the driver.
+
+Thanks,
+Andi
