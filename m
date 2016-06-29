@@ -1,66 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58042 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750870AbcF0JHR (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:55710 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752007AbcF2NU6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 05:07:17 -0400
-Subject: Re: [PATCH] v4l2-compliance: Improve test readability when fail
-To: Helen Koike <helen.koike@collabora.co.uk>,
-	linux-media@vger.kernel.org
-References: <3986d5a5773ab05e01d63c54687ad6425df0f952.1462807597.git.helen.koike@collabora.co.uk>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <02fd02ff-01e1-4990-5c65-a570e64fd94f@xs4all.nl>
-Date: Mon, 27 Jun 2016 11:07:12 +0200
-MIME-Version: 1.0
-In-Reply-To: <3986d5a5773ab05e01d63c54687ad6425df0f952.1462807597.git.helen.koike@collabora.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 29 Jun 2016 09:20:58 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [PATCH 01/15] lirc_dev: place buffer allocation on separate function
+Date: Wed, 29 Jun 2016 22:20:30 +0900
+Message-id: <1467206444-9935-2-git-send-email-andi.shyti@samsung.com>
+In-reply-to: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
+References: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/09/2016 05:44 PM, Helen Koike wrote:
-> In case of failure, print "q.create_bufs(node, 1, &fmt) != EINVAL" instead
-> of "ret != EINVAL"
-> 
-> Signed-off-by: Helen Koike <helen.koike@collabora.co.uk>
-> ---
-> 
-> Hello,
-> 
-> I was wondering, why the q.create_bufs is expected to should return EINVAL in this test? The height and size are set to half of the original values, and the type and memory doesn't seems to change.
+During the driver registration, move the buffer allocation on a
+separate function.
 
-For all drivers currently in the kernel the buffer size that create_bufs wants should be >= the size
-of the current format.
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+---
+ drivers/media/rc/lirc_dev.c | 57 +++++++++++++++++++++++++++------------------
+ 1 file changed, 34 insertions(+), 23 deletions(-)
 
-This checks if the drivers perform that test correctly.
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 92ae190..5716978 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -203,13 +203,41 @@ err_out:
+ 	return retval;
+ }
+ 
+-int lirc_register_driver(struct lirc_driver *d)
++static int lirc_allocate_buffer(struct irctl *ir)
+ {
+-	struct irctl *ir;
+-	int minor;
++	int err;
+ 	int bytes_in_key;
+ 	unsigned int chunk_size;
+ 	unsigned int buffer_size;
++	struct lirc_driver *d = &ir->d;
++
++	bytes_in_key = BITS_TO_LONGS(d->code_length) +
++						(d->code_length % 8 ? 1 : 0);
++	buffer_size = d->buffer_size ? d->buffer_size : BUFLEN / bytes_in_key;
++	chunk_size  = d->chunk_size  ? d->chunk_size  : bytes_in_key;
++
++	if (d->rbuf) {
++		ir->buf = d->rbuf;
++	} else {
++		ir->buf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
++		if (!ir->buf)
++			return -ENOMEM;
++
++		err = lirc_buffer_init(ir->buf, chunk_size, buffer_size);
++		if (err) {
++			kfree(ir->buf);
++			return err;
++		}
++	}
++	ir->chunk_size = ir->buf->chunk_size;
++
++	return 0;
++}
++
++int lirc_register_driver(struct lirc_driver *d)
++{
++	struct irctl *ir;
++	int minor;
+ 	int err;
+ 
+ 	if (!d) {
+@@ -314,26 +342,9 @@ int lirc_register_driver(struct lirc_driver *d)
+ 	/* some safety check 8-) */
+ 	d->name[sizeof(d->name)-1] = '\0';
+ 
+-	bytes_in_key = BITS_TO_LONGS(d->code_length) +
+-			(d->code_length % 8 ? 1 : 0);
+-	buffer_size = d->buffer_size ? d->buffer_size : BUFLEN / bytes_in_key;
+-	chunk_size  = d->chunk_size  ? d->chunk_size  : bytes_in_key;
+-
+-	if (d->rbuf) {
+-		ir->buf = d->rbuf;
+-	} else {
+-		ir->buf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
+-		if (!ir->buf) {
+-			err = -ENOMEM;
+-			goto out_lock;
+-		}
+-		err = lirc_buffer_init(ir->buf, chunk_size, buffer_size);
+-		if (err) {
+-			kfree(ir->buf);
+-			goto out_lock;
+-		}
+-	}
+-	ir->chunk_size = ir->buf->chunk_size;
++	err = lirc_allocate_buffer(ir);
++	if (err)
++		goto out_lock;
+ 
+ 	if (d->features == 0)
+ 		d->features = LIRC_CAN_REC_LIRCCODE;
+-- 
+2.8.1
 
-In theory it should be possible to allocate smaller buffers as well and drivers that
-allow on-the-fly format changes, but such drivers do not exist today.
-
-If such drivers arrive, then this test should probably be modified.
-
-Regards,
-
-	Hans
-
-> 
-> Thank you
-> 
->  utils/v4l2-compliance/v4l2-test-buffers.cpp | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/utils/v4l2-compliance/v4l2-test-buffers.cpp b/utils/v4l2-compliance/v4l2-test-buffers.cpp
-> index 6c5ed55..fb14170 100644
-> --- a/utils/v4l2-compliance/v4l2-test-buffers.cpp
-> +++ b/utils/v4l2-compliance/v4l2-test-buffers.cpp
-> @@ -955,8 +955,7 @@ int testMmap(struct node *node, unsigned frame_count)
->  				fmt.s_height(fmt.g_height() / 2);
->  				for (unsigned p = 0; p < fmt.g_num_planes(); p++)
->  					fmt.s_sizeimage(fmt.g_sizeimage(p) / 2, p);
-> -				ret = q.create_bufs(node, 1, &fmt);
-> -				fail_on_test(ret != EINVAL);
-> +				fail_on_test(q.create_bufs(node, 1, &fmt) != EINVAL);
->  				fail_on_test(testQueryBuf(node, cur_fmt.type, q.g_buffers()));
->  				fmt = cur_fmt;
->  				for (unsigned p = 0; p < fmt.g_num_planes(); p++)
-> 
