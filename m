@@ -1,249 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:46992 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752078AbcFJKMP (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:43492 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751917AbcF2Wng (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2016 06:12:15 -0400
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: hch@infradead.org, Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org,
-	xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org,
-	linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org,
-	linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-	linux-metag@vger.kernel.org, linux-mips@linux-mips.org,
-	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-pci@vger.kernel.org,
-	linux-xtensa@linux-xtensa.org, dri-devel@lists.freedesktop.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-	freedreno@lists.freedesktop.org, nouveau@lists.freedesktop.org,
-	linux-rockchip@lists.infradead.org, linux-rdma@vger.kernel.org,
-	iommu@lists.linux-foundation.org, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	Matthias Brugger <matthias.bgg@gmail.com>
-Subject: [PATCH v4 00/44] dma-mapping: Use unsigned long for dma_attrs
-Date: Fri, 10 Jun 2016 12:11:17 +0200
-Message-id: <1465553521-27303-1-git-send-email-k.kozlowski@samsung.com>
+	Wed, 29 Jun 2016 18:43:36 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Michael Ira Krufky <mkrufky@linuxtv.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>
+Subject: [PATCH 03/10] au8522: add support for dvbv5 statistics API
+Date: Wed, 29 Jun 2016 19:43:19 -0300
+Message-Id: <b3917218660c6db1d8435decf19a00038a09c6eb.1467240152.git.mchehab@s-opensource.com>
+In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
+References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
+In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
+References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+It is possible to provide both SNR and signal strength in
+dB. Let's convert it to use the DVBv5 API and start showing
+the SNR in dB.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-frontends/au8522_dig.c  | 142 ++++++++++++++++++++++--------
+ drivers/media/dvb-frontends/au8522_priv.h |   5 ++
+ 2 files changed, 108 insertions(+), 39 deletions(-)
 
-This is fourth approach for replacing struct dma_attrs with unsigned
-long.
-
-The main patch (1/44) doing the change is split into many subpatches
-for easier review (2-42).  They should be squashed together when
-applying.
-
-
-*Important:* Patchset is tested on my ARM platforms and *only* build
-tested on allyesconfigs: ARM, ARM64, i386, x86_64 and powerpc.
-Please kindly provide reviewes and tests for other platforms.
-
-Rebased on next-20160607.
-
-For easier testing the patchset is available here:
-repo:   https://github.com/krzk/linux
-branch: for-next/dma-attrs-const-v4
-
-
-Changes since v3
-================
-1. Collect some acks.
-2. Drop wrong patch 1/45 ("powerpc: dma-mapping: Don't hard-code
-   the value of DMA_ATTR_WEAK_ORDERING").
-3. Minor fix pointed out by Michael Ellerman.
-
-
-Changes since v2
-================
-1. Follow Christoph Hellwig's comments (don't use BIT add
-   documentation, remove dma_get_attr).
-
-
-Rationale
-=========
-The dma-mapping core and the implementations do not change the
-DMA attributes passed by pointer.  Thus the pointer can point to const
-data.  However the attributes do not have to be a bitfield. Instead
-unsigned long will do fine:
-
-1. This is just simpler.  Both in terms of reading the code and setting
-   attributes.  Instead of initializing local attributes on the stack
-   and passing pointer to it to dma_set_attr(), just set the bits.
-
-2. It brings safeness and checking for const correctness because the
-   attributes are passed by value.
-
-
-Best regards,
-Krzysztof
-
-
-Krzysztof Kozlowski (44):
-  dma-mapping: Use unsigned long for dma_attrs
-  alpha: dma-mapping: Use unsigned long for dma_attrs
-  arc: dma-mapping: Use unsigned long for dma_attrs
-  ARM: dma-mapping: Use unsigned long for dma_attrs
-  arm64: dma-mapping: Use unsigned long for dma_attrs
-  avr32: dma-mapping: Use unsigned long for dma_attrs
-  blackfin: dma-mapping: Use unsigned long for dma_attrs
-  c6x: dma-mapping: Use unsigned long for dma_attrs
-  cris: dma-mapping: Use unsigned long for dma_attrs
-  frv: dma-mapping: Use unsigned long for dma_attrs
-  drm/exynos: dma-mapping: Use unsigned long for dma_attrs
-  drm/mediatek: dma-mapping: Use unsigned long for dma_attrs
-  drm/msm: dma-mapping: Use unsigned long for dma_attrs
-  drm/nouveau: dma-mapping: Use unsigned long for dma_attrs
-  drm/rockship: dma-mapping: Use unsigned long for dma_attrs
-  infiniband: dma-mapping: Use unsigned long for dma_attrs
-  iommu: dma-mapping: Use unsigned long for dma_attrs
-  [media] dma-mapping: Use unsigned long for dma_attrs
-  xen: dma-mapping: Use unsigned long for dma_attrs
-  swiotlb: dma-mapping: Use unsigned long for dma_attrs
-  powerpc: dma-mapping: Use unsigned long for dma_attrs
-  video: dma-mapping: Use unsigned long for dma_attrs
-  x86: dma-mapping: Use unsigned long for dma_attrs
-  iommu: intel: dma-mapping: Use unsigned long for dma_attrs
-  h8300: dma-mapping: Use unsigned long for dma_attrs
-  hexagon: dma-mapping: Use unsigned long for dma_attrs
-  ia64: dma-mapping: Use unsigned long for dma_attrs
-  m68k: dma-mapping: Use unsigned long for dma_attrs
-  metag: dma-mapping: Use unsigned long for dma_attrs
-  microblaze: dma-mapping: Use unsigned long for dma_attrs
-  mips: dma-mapping: Use unsigned long for dma_attrs
-  mn10300: dma-mapping: Use unsigned long for dma_attrs
-  nios2: dma-mapping: Use unsigned long for dma_attrs
-  openrisc: dma-mapping: Use unsigned long for dma_attrs
-  parisc: dma-mapping: Use unsigned long for dma_attrs
-  misc: mic: dma-mapping: Use unsigned long for dma_attrs
-  s390: dma-mapping: Use unsigned long for dma_attrs
-  sh: dma-mapping: Use unsigned long for dma_attrs
-  sparc: dma-mapping: Use unsigned long for dma_attrs
-  tile: dma-mapping: Use unsigned long for dma_attrs
-  unicore32: dma-mapping: Use unsigned long for dma_attrs
-  xtensa: dma-mapping: Use unsigned long for dma_attrs
-  dma-mapping: Remove dma_get_attr
-  dma-mapping: Document the DMA attributes next to the declaration
-
- Documentation/DMA-API.txt                          |  33 +++---
- Documentation/DMA-attributes.txt                   |   2 +-
- arch/alpha/include/asm/dma-mapping.h               |   2 -
- arch/alpha/kernel/pci-noop.c                       |   2 +-
- arch/alpha/kernel/pci_iommu.c                      |  12 +-
- arch/arc/mm/dma.c                                  |  12 +-
- arch/arm/common/dmabounce.c                        |   4 +-
- arch/arm/include/asm/dma-mapping.h                 |  13 +--
- arch/arm/include/asm/xen/page-coherent.h           |  16 +--
- arch/arm/mm/dma-mapping.c                          | 121 ++++++++++---------
- arch/arm/xen/mm.c                                  |   8 +-
- arch/arm64/mm/dma-mapping.c                        |  67 +++++------
- arch/avr32/mm/dma-coherent.c                       |  12 +-
- arch/blackfin/kernel/dma-mapping.c                 |   8 +-
- arch/c6x/include/asm/dma-mapping.h                 |   4 +-
- arch/c6x/kernel/dma.c                              |   9 +-
- arch/c6x/mm/dma-coherent.c                         |   4 +-
- arch/cris/arch-v32/drivers/pci/dma.c               |   9 +-
- arch/frv/mb93090-mb00/pci-dma-nommu.c              |   8 +-
- arch/frv/mb93090-mb00/pci-dma.c                    |   9 +-
- arch/h8300/kernel/dma.c                            |   8 +-
- arch/hexagon/include/asm/dma-mapping.h             |   1 -
- arch/hexagon/kernel/dma.c                          |   8 +-
- arch/ia64/hp/common/sba_iommu.c                    |  22 ++--
- arch/ia64/include/asm/machvec.h                    |   1 -
- arch/ia64/kernel/pci-swiotlb.c                     |   4 +-
- arch/ia64/sn/pci/pci_dma.c                         |  22 ++--
- arch/m68k/kernel/dma.c                             |  12 +-
- arch/metag/kernel/dma.c                            |  16 +--
- arch/microblaze/include/asm/dma-mapping.h          |   1 -
- arch/microblaze/kernel/dma.c                       |  12 +-
- arch/mips/cavium-octeon/dma-octeon.c               |   8 +-
- arch/mips/loongson64/common/dma-swiotlb.c          |  10 +-
- arch/mips/mm/dma-default.c                         |  20 ++--
- arch/mips/netlogic/common/nlm-dma.c                |   4 +-
- arch/mn10300/mm/dma-alloc.c                        |   8 +-
- arch/nios2/mm/dma-mapping.c                        |  12 +-
- arch/openrisc/kernel/dma.c                         |  21 ++--
- arch/parisc/kernel/pci-dma.c                       |  18 +--
- arch/powerpc/include/asm/dma-mapping.h             |   7 +-
- arch/powerpc/include/asm/iommu.h                   |  10 +-
- arch/powerpc/kernel/dma-iommu.c                    |  12 +-
- arch/powerpc/kernel/dma.c                          |  18 +--
- arch/powerpc/kernel/ibmebus.c                      |  12 +-
- arch/powerpc/kernel/iommu.c                        |  12 +-
- arch/powerpc/kernel/vio.c                          |  12 +-
- arch/powerpc/platforms/cell/iommu.c                |  28 ++---
- arch/powerpc/platforms/pasemi/iommu.c              |   2 +-
- arch/powerpc/platforms/powernv/npu-dma.c           |   8 +-
- arch/powerpc/platforms/powernv/pci-ioda.c          |   4 +-
- arch/powerpc/platforms/powernv/pci.c               |   2 +-
- arch/powerpc/platforms/powernv/pci.h               |   2 +-
- arch/powerpc/platforms/ps3/system-bus.c            |  18 +--
- arch/powerpc/platforms/pseries/iommu.c             |   6 +-
- arch/powerpc/sysdev/dart_iommu.c                   |   2 +-
- arch/s390/include/asm/dma-mapping.h                |   1 -
- arch/s390/pci/pci_dma.c                            |  23 ++--
- arch/sh/include/asm/dma-mapping.h                  |   4 +-
- arch/sh/kernel/dma-nommu.c                         |   4 +-
- arch/sh/mm/consistent.c                            |   4 +-
- arch/sparc/kernel/iommu.c                          |  12 +-
- arch/sparc/kernel/ioport.c                         |  24 ++--
- arch/sparc/kernel/pci_sun4v.c                      |  12 +-
- arch/tile/kernel/pci-dma.c                         |  28 ++---
- arch/unicore32/mm/dma-swiotlb.c                    |   4 +-
- arch/x86/include/asm/dma-mapping.h                 |   5 +-
- arch/x86/include/asm/swiotlb.h                     |   4 +-
- arch/x86/include/asm/xen/page-coherent.h           |   9 +-
- arch/x86/kernel/amd_gart_64.c                      |  20 ++--
- arch/x86/kernel/pci-calgary_64.c                   |  14 +--
- arch/x86/kernel/pci-dma.c                          |   4 +-
- arch/x86/kernel/pci-nommu.c                        |   4 +-
- arch/x86/kernel/pci-swiotlb.c                      |   4 +-
- arch/x86/pci/sta2x11-fixup.c                       |   2 +-
- arch/x86/pci/vmd.c                                 |  16 +--
- arch/xtensa/kernel/pci-dma.c                       |  12 +-
- drivers/gpu/drm/exynos/exynos_drm_fbdev.c          |   2 +-
- drivers/gpu/drm/exynos/exynos_drm_g2d.c            |  12 +-
- drivers/gpu/drm/exynos/exynos_drm_gem.c            |  20 ++--
- drivers/gpu/drm/exynos/exynos_drm_gem.h            |   2 +-
- drivers/gpu/drm/mediatek/mtk_drm_gem.c             |  13 +--
- drivers/gpu/drm/mediatek/mtk_drm_gem.h             |   2 +-
- drivers/gpu/drm/msm/msm_drv.c                      |  13 +--
- .../gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c    |  13 +--
- drivers/gpu/drm/rockchip/rockchip_drm_gem.c        |  17 ++-
- drivers/gpu/drm/rockchip/rockchip_drm_gem.h        |   2 +-
- drivers/infiniband/core/umem.c                     |   7 +-
- drivers/iommu/amd_iommu.c                          |  12 +-
- drivers/iommu/dma-iommu.c                          |   8 +-
- drivers/iommu/intel-iommu.c                        |  12 +-
- drivers/media/platform/sti/bdisp/bdisp-hw.c        |  26 ++---
- drivers/media/v4l2-core/videobuf2-dma-contig.c     |  30 ++---
- drivers/media/v4l2-core/videobuf2-dma-sg.c         |  19 +--
- drivers/misc/mic/host/mic_boot.c                   |  20 ++--
- drivers/parisc/ccio-dma.c                          |  16 +--
- drivers/parisc/sba_iommu.c                         |  16 +--
- drivers/video/fbdev/omap2/omapfb/omapfb-main.c     |  12 +-
- drivers/video/fbdev/omap2/omapfb/omapfb.h          |   3 +-
- drivers/xen/swiotlb-xen.c                          |  14 +--
- include/linux/dma-attrs.h                          |  72 ------------
- include/linux/dma-iommu.h                          |   6 +-
- include/linux/dma-mapping.h                        | 128 ++++++++++++++-------
- include/linux/swiotlb.h                            |  10 +-
- include/media/videobuf2-dma-contig.h               |   7 +-
- include/rdma/ib_verbs.h                            |   8 +-
- include/xen/swiotlb-xen.h                          |  12 +-
- lib/dma-noop.c                                     |   9 +-
- lib/swiotlb.c                                      |  13 ++-
- 108 files changed, 691 insertions(+), 793 deletions(-)
- delete mode 100644 include/linux/dma-attrs.h
-
+diff --git a/drivers/media/dvb-frontends/au8522_dig.c b/drivers/media/dvb-frontends/au8522_dig.c
+index ee14fd48c414..8a0764f605b0 100644
+--- a/drivers/media/dvb-frontends/au8522_dig.c
++++ b/drivers/media/dvb-frontends/au8522_dig.c
+@@ -641,9 +641,17 @@ static int au8522_set_frontend(struct dvb_frontend *fe)
+ 
+ 	state->current_frequency = c->frequency;
+ 
++	/* Reset DVBv5 stats */
++	c->strength.stat[0].scale = FE_SCALE_RELATIVE;
++	c->strength.stat[0].uvalue = 0;
++	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++
+ 	return 0;
+ }
+ 
++static void au8522_get_stats(struct dvb_frontend *fe, enum fe_status status);
++
+ static int au8522_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ {
+ 	struct au8522_state *state = fe->demodulator_priv;
+@@ -699,6 +707,8 @@ static int au8522_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ 
+ 	dprintk("%s() status 0x%08x\n", __func__, *status);
+ 
++	au8522_get_stats(fe, *status);
++
+ 	return 0;
+ }
+ 
+@@ -764,70 +774,108 @@ static int au8522_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 	return ret;
+ }
+ 
+-static int au8522_read_signal_strength(struct dvb_frontend *fe,
+-				       u16 *signal_strength)
++static void au8522_get_stats(struct dvb_frontend *fe, enum fe_status status)
+ {
+-	u16 snr;
+-	u32 tmp;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	struct au8522_state *state = fe->demodulator_priv;
+ 	int ret;
+ 
+-	/* If the tuner has RF strength, use it */
++	/* Get S/N ratio */
++	if (status & FE_HAS_LOCK) {
++		ret = au8522_read_snr(fe, &state->snr);
++		if (ret < 0) {
++			state->snr = 0;
++			c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		} else {
++			c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
++			c->cnr.stat[0].svalue = state->snr * 100;
++		}
++	} else {
++		state->snr = 0;
++		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	}
++
++	/* Get (or estimate) RF strength */
+ 	if (fe->ops.tuner_ops.get_rf_strength) {
++		/* If the tuner has RF strength, use it */
++
+ 		if (fe->ops.i2c_gate_ctrl)
+ 			fe->ops.i2c_gate_ctrl(fe, 1);
+-		ret = fe->ops.tuner_ops.get_rf_strength(fe, signal_strength);
++		ret = fe->ops.tuner_ops.get_rf_strength(fe, &state->strength);
+ 		if (fe->ops.i2c_gate_ctrl)
+ 			fe->ops.i2c_gate_ctrl(fe, 0);
+-		return ret;
+-	}
+-
+-	/*
+-	 * If it doen't, estimate from SNR
+-	 * (borrowed from lgdt330x.c)
+-	 *
+-	 * Calculate strength from SNR up to 35dB
+-	 * Even though the SNR can go higher than 35dB,
+-	 * there is some comfort factor in having a range of
+-	 * strong signals that can show at 100%
+-	 */
+-	ret = au8522_read_snr(fe, &snr);
+-
+-	*signal_strength = 0;
+-
+-	if (0 == ret) {
+-		/* The following calculation method was chosen
++		if (ret < 0)
++			state->strength = 0;
++	} else {
++		u32 tmp;
++		/*
++		 * If it doen't, estimate from SNR
++		 * (borrowed from lgdt330x.c)
++		 *
++		 * Calculate strength from SNR up to 35dB
++		 * Even though the SNR can go higher than 35dB,
++		 * there is some comfort factor in having a range of
++		 * strong signals that can show at 100%
++		 *
++		 * The following calculation method was chosen
+ 		 * purely for the sake of code re-use from the
+-		 * other demod drivers that use this method */
++		 * other demod drivers that use this method
++		 */
+ 
+ 		/* Convert from SNR in dB * 10 to 8.24 fixed-point */
+-		tmp = (snr * ((1 << 24) / 10));
++		tmp = (state->snr * ((1 << 24) / 10));
+ 
+ 		/* Convert from 8.24 fixed-point to
+-		 * scale the range 0 - 35*2^24 into 0 - 65535*/
++		* scale the range 0 - 35*2^24 into 0 - 65535*/
+ 		if (tmp >= 8960 * 0x10000)
+-			*signal_strength = 0xffff;
++			state->strength = 0xffff;
+ 		else
+-			*signal_strength = tmp / 8960;
++			state->strength = tmp / 8960;
+ 	}
++	c->strength.stat[0].scale = FE_SCALE_RELATIVE;
++	c->strength.stat[0].uvalue = state->strength;
+ 
+-	return ret;
+-}
+-
+-static int au8522_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+-{
+-	struct au8522_state *state = fe->demodulator_priv;
++	/* Read UCB blocks */
++	if (!(status & FE_HAS_LOCK)) {
++		c->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		return;
++	}
+ 
+ 	if (state->current_modulation == VSB_8)
+-		*ucblocks = au8522_readreg(state, 0x4087);
++		state->ucblocks = au8522_readreg(state, 0x4087);
+ 	else
+-		*ucblocks = au8522_readreg(state, 0x4543);
++		state->ucblocks = au8522_readreg(state, 0x4543);
++
++	c->block_error.stat[0].scale = FE_SCALE_COUNTER;
++	c->block_error.stat[0].uvalue = state->ucblocks;
++}
++static int au8522_read_signal_strength(struct dvb_frontend *fe,
++				       u16 *signal_strength)
++{
++	struct au8522_state *state = fe->demodulator_priv;
++
++	*signal_strength = state->strength;
++
++	return 0;
++}
++
++static int au8522_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
++{
++	struct au8522_state *state = fe->demodulator_priv;
++
++	*ucblocks = state->ucblocks;
+ 
+ 	return 0;
+ }
+ 
+ static int au8522_read_ber(struct dvb_frontend *fe, u32 *ber)
+ {
+-	return au8522_read_ucblocks(fe, ber);
++	struct au8522_state *state = fe->demodulator_priv;
++
++	/* FIXME: This is so wrong! */
++	*ber = state->ucblocks;
++
++	return 0;
+ }
+ 
+ static int au8522_get_frontend(struct dvb_frontend *fe,
+@@ -908,6 +956,22 @@ error:
+ }
+ EXPORT_SYMBOL(au8522_attach);
+ 
++static int au8522_dvb_init(struct dvb_frontend *fe)
++{
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++
++	/* Initialize DVBv5 statistics */
++	c->strength.stat[0].scale = FE_SCALE_RELATIVE;
++	c->strength.stat[0].uvalue = 0;
++	c->strength.len = 1;
++	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->cnr.len = 1;
++	c->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->block_error.len = 1;
++
++	return au8522_init(fe);
++}
++
+ static struct dvb_frontend_ops au8522_ops = {
+ 	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
+ 	.info = {
+@@ -918,7 +982,7 @@ static struct dvb_frontend_ops au8522_ops = {
+ 		.caps = FE_CAN_QAM_64 | FE_CAN_QAM_256 | FE_CAN_8VSB
+ 	},
+ 
+-	.init                 = au8522_init,
++	.init                 = au8522_dvb_init,
+ 	.sleep                = au8522_sleep,
+ 	.i2c_gate_ctrl        = au8522_i2c_gate_ctrl,
+ 	.set_frontend         = au8522_set_frontend,
+diff --git a/drivers/media/dvb-frontends/au8522_priv.h b/drivers/media/dvb-frontends/au8522_priv.h
+index f5a9438f6ce5..7b4f74997128 100644
+--- a/drivers/media/dvb-frontends/au8522_priv.h
++++ b/drivers/media/dvb-frontends/au8522_priv.h
+@@ -70,6 +70,11 @@ struct au8522_state {
+ 	u32 rev;
+ 	struct v4l2_ctrl_handler hdl;
+ 
++	/* Statistics */
++	u16 strength;
++	u16 snr;
++	u32 ucblocks;
++
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_pad pads[DEMOD_NUM_PADS];
+ #endif
 -- 
-1.9.1
+2.7.4
 
