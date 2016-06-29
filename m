@@ -1,89 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:57450 "EHLO extserv.mm-sol.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751901AbcFIL7i (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jun 2016 07:59:38 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, geert@linux-m68k.org, matrandg@cisco.com,
-	linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v4 1/2] media: i2c/ov5645: add the device tree binding document
-Date: Thu,  9 Jun 2016 14:59:17 +0300
-Message-Id: <1465473558-3492-2-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1465473558-3492-1-git-send-email-todor.tomov@linaro.org>
-References: <1465473558-3492-1-git-send-email-todor.tomov@linaro.org>
+Received: from mailout1.samsung.com ([203.254.224.24]:57719 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752138AbcF2NU7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jun 2016 09:20:59 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [PATCH 02/15] lirc_dev: allow bufferless driver registration
+Date: Wed, 29 Jun 2016 22:20:31 +0900
+Message-id: <1467206444-9935-3-git-send-email-andi.shyti@samsung.com>
+In-reply-to: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
+References: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the document for ov5645 device tree binding.
+Some drivers don't necessarily need to have a FIFO managed buffer
+for their transfers. Drivers now should call
+lirc_register_bufferless_driver in order to handle the buffer
+themselves.
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-Acked-by: Rob Herring <robh@kernel.org>
+The function works exaclty like lirc_register_driver except of
+the buffer allocation.
+
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
 ---
- .../devicetree/bindings/media/i2c/ov5645.txt       | 50 ++++++++++++++++++++++
- 1 file changed, 50 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
+ drivers/media/rc/lirc_dev.c | 44 ++++++++++++++++++++++++++++++++++----------
+ include/media/lirc_dev.h    | 12 ++++++++++++
+ 2 files changed, 46 insertions(+), 10 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov5645.txt b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
-new file mode 100644
-index 0000000..468cf83
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
-@@ -0,0 +1,50 @@
-+* Omnivision 1/4-Inch 5Mp CMOS Digital Image Sensor
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 5716978..fa562a3 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -205,12 +205,14 @@ err_out:
+ 
+ static int lirc_allocate_buffer(struct irctl *ir)
+ {
+-	int err;
++	int err = 0;
+ 	int bytes_in_key;
+ 	unsigned int chunk_size;
+ 	unsigned int buffer_size;
+ 	struct lirc_driver *d = &ir->d;
+ 
++	mutex_lock(&lirc_dev_lock);
 +
-+The Omnivision OV5645 is a 1/4-Inch CMOS active pixel digital image sensor with
-+an active array size of 2592H x 1944V. It is programmable through a serial I2C
-+interface.
+ 	bytes_in_key = BITS_TO_LONGS(d->code_length) +
+ 						(d->code_length % 8 ? 1 : 0);
+ 	buffer_size = d->buffer_size ? d->buffer_size : BUFLEN / bytes_in_key;
+@@ -220,21 +222,26 @@ static int lirc_allocate_buffer(struct irctl *ir)
+ 		ir->buf = d->rbuf;
+ 	} else {
+ 		ir->buf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
+-		if (!ir->buf)
+-			return -ENOMEM;
++		if (!ir->buf) {
++			err = -ENOMEM;
++			goto out;
++		}
+ 
+ 		err = lirc_buffer_init(ir->buf, chunk_size, buffer_size);
+ 		if (err) {
+ 			kfree(ir->buf);
+-			return err;
++			goto out;
+ 		}
+ 	}
+ 	ir->chunk_size = ir->buf->chunk_size;
+ 
+-	return 0;
++out:
++	mutex_unlock(&lirc_dev_lock);
 +
-+Required Properties:
-+- compatible: Value should be "ovti,ov5645".
-+- clocks: Reference to the xclk clock.
-+- clock-names: Should be "xclk".
-+- enable-gpios: Chip enable GPIO. Polarity is GPIO_ACTIVE_HIGH.
-+- reset-gpios: Chip reset GPIO. Polarity is GPIO_ACTIVE_LOW.
-+- vdddo-supply: Chip digital IO regulator.
-+- vdda-supply: Chip analog regulator.
-+- vddd-supply: Chip digital core regulator.
++	return err;
+ }
+ 
+-int lirc_register_driver(struct lirc_driver *d)
++static int lirc_allocate_driver(struct lirc_driver *d)
+ {
+ 	struct irctl *ir;
+ 	int minor;
+@@ -342,10 +349,6 @@ int lirc_register_driver(struct lirc_driver *d)
+ 	/* some safety check 8-) */
+ 	d->name[sizeof(d->name)-1] = '\0';
+ 
+-	err = lirc_allocate_buffer(ir);
+-	if (err)
+-		goto out_lock;
+-
+ 	if (d->features == 0)
+ 		d->features = LIRC_CAN_REC_LIRCCODE;
+ 
+@@ -385,8 +388,29 @@ out_lock:
+ out:
+ 	return err;
+ }
 +
-+The device node must contain one 'port' child node for its digital output
-+video port, in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
++int lirc_register_driver(struct lirc_driver *d)
++{
++	int err, minor;
 +
-+Example:
++	minor = lirc_allocate_driver(d);
++	if (minor < 0)
++		return minor;
 +
-+	&i2c1 {
-+		...
++	err = lirc_allocate_buffer(irctls[minor]);
++	if (err)
++		lirc_unregister_driver(minor);
 +
-+		ov5645: ov5645@78 {
-+			compatible = "ovti,ov5645";
-+			reg = <0x78>;
++	return err ? err : minor;
++}
+ EXPORT_SYMBOL(lirc_register_driver);
+ 
++int lirc_register_bufferless_driver(struct lirc_driver *d)
++{
++	return lirc_allocate_driver(d);
++}
++EXPORT_SYMBOL(lirc_register_bufferless_driver);
 +
-+			enable-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
-+			reset-gpios = <&gpio5 20 GPIO_ACTIVE_LOW>;
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&camera_rear_default>;
+ int lirc_unregister_driver(int minor)
+ {
+ 	struct irctl *ir;
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index 0ab59a5..8bed57a 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -214,6 +214,18 @@ struct lirc_driver {
+  */
+ extern int lirc_register_driver(struct lirc_driver *d);
+ 
++/* int lirc_register_bufferless_driver - allocates a lirc bufferless driver
++ * @d: reference to the lirc_driver to initialize
++ *
++ * The difference between lirc_register_driver and
++ * lirc_register_bufferless_driver is that the latter doesn't allocate any
++ * buffer, which means that the driver using the lirc_driver should take care of
++ * it by itself.
++ *
++ * returns 0 on success or a the negative errno number in case of failure.
++ */
++extern int lirc_register_bufferless_driver(struct lirc_driver *d);
 +
-+			clocks = <&clks 200>;
-+			clock-names = "xclk";
-+
-+			vdddo-supply = <&camera_dovdd_1v8>;
-+			vdda-supply = <&camera_avdd_2v8>;
-+			vddd-supply = <&camera_dvdd_1v2>;
-+
-+			port {
-+				ov5645_ep: endpoint {
-+					clock-lanes = <1>;
-+					data-lanes = <0 2>;
-+					remote-endpoint = <&csi0_ep>;
-+				};
-+			};
-+		};
-+	};
+ /* returns negative value on error or 0 if success
+ */
+ extern int lirc_unregister_driver(int minor);
 -- 
-1.9.1
+2.8.1
 
