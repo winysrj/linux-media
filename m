@@ -1,61 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:39593 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754505AbcFPRCG (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:48043 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752334AbcF2NVA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2016 13:02:06 -0400
-Subject: Re: [PATCH 00/38] i.MX5/6 Video Capture
-To: Jack Mitchell <ml@embed.me.uk>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	<linux-media@vger.kernel.org>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
- <64c29bbc-2273-2a9d-3059-ab8f62dc531b@embed.me.uk>
- <576202D0.6010608@mentor.com>
- <597d73df-0fa0-fa8d-e0e5-0ad8b2c49bcf@embed.me.uk>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <5762DB8A.8090906@mentor.com>
-Date: Thu, 16 Jun 2016 10:02:02 -0700
-MIME-Version: 1.0
-In-Reply-To: <597d73df-0fa0-fa8d-e0e5-0ad8b2c49bcf@embed.me.uk>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+	Wed, 29 Jun 2016 09:21:00 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [PATCH 03/15] lirc_dev: remove unnecessary debug prints
+Date: Wed, 29 Jun 2016 22:20:32 +0900
+Message-id: <1467206444-9935-4-git-send-email-andi.shyti@samsung.com>
+In-reply-to: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
+References: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/2016 02:49 AM, Jack Mitchell wrote:
->
-> On 16/06/16 02:37, Steve Longerbeam wrote:
->> Hi Jack,
->>
->> On 06/15/2016 03:43 AM, Jack Mitchell wrote:
->>> <snip>
->>> Trying to use a user pointer rather than mmap also fails and causes a kernel splat.
->>>
->>
->> Hmm, I've tested userptr with the mem2mem driver, but maybe never
->> with video capture. I tried "v4l2-ctl -d/dev/video0 --stream-user=8" but
->> that returns "VIDIOC_QBUF: failed: Invalid argument", haven't tracked
->> down why (could be a bug in v4l2-ctl). Can you share the splat?
->>
->
-> On re-checking the splat was the same v4l_cropcap that was mentioned before so I don't think it's related. The error I get back is:
->
-> VIDIOC_QBUF error 22, Invalid argument
->
-> I'm using the example program the the v4l2 docs [1].
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+---
+ drivers/media/rc/lirc_dev.c | 25 -------------------------
+ 1 file changed, 25 deletions(-)
 
-I found the cause at least in my case. After enabling dynamic debug in
-videobuf2-dma-contig.c, "v4l2-ctl -d/dev/video0 --stream-user=8" gives
-me
-
-[  468.826046] user data must be aligned to 64 bytes
-
-
-
-But even getting past that alignment issue, I've only tested userptr (in mem2mem
-driver) by giving the driver a user address of a mmap'ed kernel contiguous
-buffer. A true discontiguous user buffer may not work, the IPU DMA does not
-support scatter-gather.
-
-Steve
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index fa562a3..ee997ab 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -80,8 +80,6 @@ static void lirc_irctl_init(struct irctl *ir)
+ 
+ static void lirc_irctl_cleanup(struct irctl *ir)
+ {
+-	dev_dbg(ir->d.dev, LOGHEAD "cleaning up\n", ir->d.name, ir->d.minor);
+-
+ 	device_destroy(lirc_class, MKDEV(MAJOR(lirc_base_dev), ir->d.minor));
+ 
+ 	if (ir->buf != ir->d.rbuf) {
+@@ -127,9 +125,6 @@ static int lirc_thread(void *irctl)
+ {
+ 	struct irctl *ir = irctl;
+ 
+-	dev_dbg(ir->d.dev, LOGHEAD "poll thread started\n",
+-		ir->d.name, ir->d.minor);
+-
+ 	do {
+ 		if (ir->open) {
+ 			if (ir->jiffies_to_wait) {
+@@ -146,9 +141,6 @@ static int lirc_thread(void *irctl)
+ 		}
+ 	} while (!kthread_should_stop());
+ 
+-	dev_dbg(ir->d.dev, LOGHEAD "poll thread ended\n",
+-		ir->d.name, ir->d.minor);
+-
+ 	return 0;
+ }
+ 
+@@ -277,8 +269,6 @@ static int lirc_allocate_driver(struct lirc_driver *d)
+ 		goto out;
+ 	}
+ 
+-	dev_dbg(d->dev, "lirc_dev: lirc_register_driver: sample_rate: %d\n",
+-		d->sample_rate);
+ 	if (d->sample_rate) {
+ 		if (2 > d->sample_rate || HZ < d->sample_rate) {
+ 			dev_err(d->dev, "lirc_dev: lirc_register_driver: "
+@@ -525,10 +515,6 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
+ 	}
+ 
+ error:
+-	if (ir)
+-		dev_dbg(ir->d.dev, LOGHEAD "open result = %d\n",
+-			ir->d.name, ir->d.minor, retval);
+-
+ 	mutex_unlock(&lirc_dev_lock);
+ 
+ 	nonseekable_open(inode, file);
+@@ -550,8 +536,6 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
+ 
+ 	cdev = ir->cdev;
+ 
+-	dev_dbg(ir->d.dev, LOGHEAD "close called\n", ir->d.name, ir->d.minor);
+-
+ 	ret = mutex_lock_killable(&lirc_dev_lock);
+ 	WARN_ON(ret);
+ 
+@@ -586,8 +570,6 @@ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait)
+ 		return POLLERR;
+ 	}
+ 
+-	dev_dbg(ir->d.dev, LOGHEAD "poll called\n", ir->d.name, ir->d.minor);
+-
+ 	if (!ir->attached)
+ 		return POLLERR;
+ 
+@@ -683,9 +665,6 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 		result = -EINVAL;
+ 	}
+ 
+-	dev_dbg(ir->d.dev, LOGHEAD "ioctl result = %d\n",
+-		ir->d.name, ir->d.minor, result);
+-
+ 	mutex_unlock(&ir->irctl_lock);
+ 
+ 	return result;
+@@ -790,8 +769,6 @@ out_locked:
+ 
+ out_unlocked:
+ 	kfree(buf);
+-	dev_dbg(ir->d.dev, LOGHEAD "read result = %s (%d)\n",
+-		ir->d.name, ir->d.minor, ret ? "<fail>" : "<ok>", ret);
+ 
+ 	return ret ? ret : written;
+ }
+@@ -814,8 +791,6 @@ ssize_t lirc_dev_fop_write(struct file *file, const char __user *buffer,
+ 		return -ENODEV;
+ 	}
+ 
+-	dev_dbg(ir->d.dev, LOGHEAD "write called\n", ir->d.name, ir->d.minor);
+-
+ 	if (!ir->attached)
+ 		return -ENODEV;
+ 
+-- 
+2.8.1
 
