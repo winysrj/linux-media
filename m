@@ -1,68 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43489 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751932AbcF2Wng (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2016 18:43:36 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Ira Krufky <mkrufky@linuxtv.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Jiri Kosina <jkosina@suse.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 06/10] au8522: show signal strength in dBm, for devices with xc5000
-Date: Wed, 29 Jun 2016 19:43:22 -0300
-Message-Id: <6ec9fface21b8b5ddab4bce9ef237b69a84316e2.1467240152.git.mchehab@s-opensource.com>
-In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
-References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
-In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
-References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
+Received: from gofer.mess.org ([80.229.237.210]:40266 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751541AbcF2W4q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jun 2016 18:56:46 -0400
+Date: Wed, 29 Jun 2016 23:46:46 +0100
+From: Sean Young <sean@mess.org>
+To: Andi Shyti <andi.shyti@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi@etezian.org>
+Subject: Re: [PATCH 15/15] include: lirc: add set length and frequency ioctl
+ options
+Message-ID: <20160629224646.GA30214@gofer.mess.org>
+References: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
+ <1467206444-9935-16-git-send-email-andi.shyti@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1467206444-9935-16-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devices with xc5000 provide the signal strength value in dBm.
-So, provide it with the proper scale to userspace.
+On Wed, Jun 29, 2016 at 10:20:44PM +0900, Andi Shyti wrote:
+> The Lirc framework works mainly with receivers, but there is
+> nothing that prevents us from using it for transmitters as well.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-frontends/au8522_dig.c | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+The lirc interface already provides for transmitting IR.
 
-diff --git a/drivers/media/dvb-frontends/au8522_dig.c b/drivers/media/dvb-frontends/au8522_dig.c
-index 22d837494cc7..518040228064 100644
---- a/drivers/media/dvb-frontends/au8522_dig.c
-+++ b/drivers/media/dvb-frontends/au8522_dig.c
-@@ -744,6 +744,15 @@ static void au8522_get_stats(struct dvb_frontend *fe, enum fe_status status)
- 			fe->ops.i2c_gate_ctrl(fe, 0);
- 		if (ret < 0)
- 			state->strength = 0;
-+
-+		/*
-+		 * FIXME: As this frontend is used only with au0828, and,
-+		 * currently, the tuner is eiter xc5000 or tda18271, and
-+		 * only the first implements get_rf_strength(), we'll assume
-+		 * that the strength will be returned in dB.
-+		 */
-+		c->strength.stat[0].svalue = 35000 - 1000 * (65535 - state->strength) / 256;
-+		c->strength.stat[0].scale = FE_SCALE_DECIBEL;
- 	} else {
- 		u32 tmp;
- 		/*
-@@ -769,9 +778,9 @@ static void au8522_get_stats(struct dvb_frontend *fe, enum fe_status status)
- 			state->strength = 0xffff;
- 		else
- 			state->strength = tmp / 8960;
-+		c->strength.stat[0].uvalue = state->strength;
-+		c->strength.stat[0].scale = FE_SCALE_RELATIVE;
- 	}
--	c->strength.stat[0].scale = FE_SCALE_RELATIVE;
--	c->strength.stat[0].uvalue = state->strength;
- 
- 	/* Read UCB blocks */
- 	if (!(status & FE_HAS_LOCK)) {
--- 
-2.7.4
+> For that we need to have more control on the device frequency to
+> set (which is a new concept fro LIRC) and we also need to provide
+> to userspace, as feedback, the values of the used frequency and
+> length.
 
+Please can you elaborate on what exactly you mean by frequency and
+length.
+
+The carrier frequency can already be set with LIRC_SET_SEND_CARRIER.
+
+> Add the LIRC_SET_LENGTH, LIRC_GET_FREQUENCY and
+> LIRC_SET_FREQUENCY ioctl commands in order to allow the above
+> mentioned operations.
+
+You're also adding ioctls without any drivers implementing them
+unless I missed something.
+
+> 
+> Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+> ---
+>  include/uapi/linux/lirc.h | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
+> index 4b3ab29..94a0d8c 100644
+> --- a/include/uapi/linux/lirc.h
+> +++ b/include/uapi/linux/lirc.h
+> @@ -106,6 +106,7 @@
+>  
+>  /* code length in bits, currently only for LIRC_MODE_LIRCCODE */
+>  #define LIRC_GET_LENGTH                _IOR('i', 0x0000000f, __u32)
+> +#define LIRC_SET_LENGTH                _IOW('i', 0x00000010, __u32)
+
+The LIRC_GET_LENGTH is specific to LIRCCODE encoding. Why are you
+adding it here?
+
+>  
+>  #define LIRC_SET_SEND_MODE             _IOW('i', 0x00000011, __u32)
+>  #define LIRC_SET_REC_MODE              _IOW('i', 0x00000012, __u32)
+> @@ -165,4 +166,7 @@
+>  
+>  #define LIRC_SET_WIDEBAND_RECEIVER     _IOW('i', 0x00000023, __u32)
+>  
+> +#define LIRC_GET_FREQUENCY             _IOR('i', 0x00000024, __u32)
+> +#define LIRC_SET_FREQUENCY             _IOW('i', 0x00000025, __u32)
+> +
+>  #endif
+> -- 
+> 2.8.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
