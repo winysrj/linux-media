@@ -1,51 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f53.google.com ([74.125.82.53]:35806 "EHLO
-	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751931AbcFPIcj (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:43486 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751911AbcF2Wng (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2016 04:32:39 -0400
-Received: by mail-wm0-f53.google.com with SMTP id v199so182072194wmv.0
-        for <linux-media@vger.kernel.org>; Thu, 16 Jun 2016 01:32:38 -0700 (PDT)
-Date: Thu, 16 Jun 2016 10:32:31 +0200
-From: Gary Bisson <gary.bisson@boundarydevices.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [19/38] ARM: dts: imx6-sabrelite: add video capture ports and
- connections
-Message-ID: <20160616083231.GA6548@t450s.lan>
-References: <1465944574-15745-20-git-send-email-steve_longerbeam@mentor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1465944574-15745-20-git-send-email-steve_longerbeam@mentor.com>
+	Wed, 29 Jun 2016 18:43:36 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Michael Ira Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH 08/10] dvb_frontend: create a new ops to help returning signals in dB
+Date: Wed, 29 Jun 2016 19:43:24 -0300
+Message-Id: <790b5e1664c84e806a13143eff1c79b95fb4bf63.1467240152.git.mchehab@s-opensource.com>
+In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
+References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
+In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
+References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Steve, All,
+add a new ops that will allow tuners to better report the
+dB level of its AGC logic to the demod drivers. As the maximum
+gain may vary from tuner to tuner, we'll be reversing the
+logic here: instead of reporting the gain, let's report the
+attenuation. This way, converting from it to the legacy DVBv3
+way is trivial. It is also easy to adjust the level of
+the received signal to dBm, as it is just a matter of adding
+an offset at the demod and/or at the bridge driver.
 
-On Tue, Jun 14, 2016 at 03:49:15PM -0700, Steve Longerbeam wrote:
-> Defines the host video capture device node and an OV5642 camera sensor
-> node on i2c2. The host capture device connects to the OV5642 via the
-> parallel-bus mux input on the ipu1_csi0_mux.
-> 
-> Note there is a pin conflict with GPIO6. This pin functions as a power
-> input pin to the OV5642, but ENET requires it to wake-up the ARM cores
-> on normal RX and TX packet done events (see 6261c4c8). So by default,
-> capture is disabled, enable by uncommenting __OV5642_CAPTURE__ macro.
-> Ethernet will still work just not quite as well.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/dvb_frontend.h | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-Actually the following patch fixes this issue and has already been
-applied on Shawn's tree:
-https://patchwork.kernel.org/patch/9153523/
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 9592573a0b41..e8a4d341f420 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -227,8 +227,17 @@ enum dvbfe_search {
+  * 			should return 0.
+  * @get_status:		returns the frontend lock status
+  * @get_rf_strength:	returns the RF signal strengh. Used mostly to support
+- *			analog TV and radio. Digital TV should report, instead,
+- *			via DVBv5 API (@dvb_frontend.dtv_property_cache;).
++ *			analog TV and radio. This is deprecated, in favor of
++ *			@get_rf_attenuation.
++ * @get_rf_attenuation:	returns the RF signal attenuation, relative to the
++ *			maximum supported gain, in 1/1000 dB steps. Please
++ *			notice that 0 means that the tuner is using its maximum
++ *			gain. So, a value of 10000, for example, means a 10dB
++ *			attenuation. This is ops is meant to be used by
++ *			demodulator drivers to estimate the maximum signal
++ *			strength. For that, it will add an offset, in order to
++ *			expose the signal strength to userspace via dvbv5
++ *			stats, in dBm.
+  * @get_afc:		Used only by analog TV core. Reports the frequency
+  *			drift due to AFC.
+  * @calc_regs:		callback function used to pass register data settings
+@@ -264,6 +273,7 @@ struct dvb_tuner_ops {
+ #define TUNER_STATUS_STEREO 2
+ 	int (*get_status)(struct dvb_frontend *fe, u32 *status);
+ 	int (*get_rf_strength)(struct dvb_frontend *fe, u16 *strength);
++	s32 (*get_rf_attenuation)(struct dvb_frontend *fe);
+ 	int (*get_afc)(struct dvb_frontend *fe, s32 *afc);
+ 
+ 	/*
+-- 
+2.7.4
 
-Also, this follow-up patch declared the HW workaround for SabreLite:
-https://patchwork.kernel.org/patch/9153525/
-
-So ideally, once those two patches land on your base tree, you could get
-rid of the #define and remove the HW workaround declaration.
-
-Finally, I'll test the series on Sabre-Lite this week.
-
-Regards,
-Gary
