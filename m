@@ -1,32 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47484 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751254AbcFROHZ (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:55710 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752179AbcF2NVA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jun 2016 10:07:25 -0400
-Date: Sat, 18 Jun 2016 17:07:21 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] V4L: fix the Z16 format definition
-Message-ID: <20160618140721.GI24980@valkosipuli.retiisi.org.uk>
-References: <Pine.LNX.4.64.1606171937060.12351@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1606171937060.12351@axis700.grange>
+	Wed, 29 Jun 2016 09:21:00 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [PATCH 11/15] lirc_dev: fix variable constant comparisons
+Date: Wed, 29 Jun 2016 22:20:40 +0900
+Message-id: <1467206444-9935-12-git-send-email-andi.shyti@samsung.com>
+In-reply-to: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
+References: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 17, 2016 at 07:38:01PM +0200, Guennadi Liakhovetski wrote:
-> A copy paste error created that format with the same one-line
-> description as Y8I and Y12I, whereas Z16 is quite different from them
-> both.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+When comparing a variable with a constant, the comparison should
+start from the variable and not from the constant. It's also
+written in the human DNA.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Swap the terms of comparisons whenever the constant comes first
+and fix the following checkpatch warning:
 
+  WARNING: Comparisons should place the constant on the right side of the test
+
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+---
+ drivers/media/rc/lirc_dev.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index c11cfc0..7e5cb85 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -245,13 +245,13 @@ static int lirc_allocate_driver(struct lirc_driver *d)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (MAX_IRCTL_DEVICES <= d->minor) {
++	if (d->minor >= MAX_IRCTL_DEVICES) {
+ 		dev_err(d->dev, "minor must be between 0 and %d!\n",
+ 						MAX_IRCTL_DEVICES - 1);
+ 		return -EBADRQC;
+ 	}
+ 
+-	if (1 > d->code_length || (BUFLEN * 8) < d->code_length) {
++	if (d->code_length < 1 || d->code_length > (BUFLEN * 8)) {
+ 		dev_err(d->dev, "code length must be less than %d bits\n",
+ 								BUFLEN * 8);
+ 		return -EBADRQC;
+@@ -282,7 +282,7 @@ static int lirc_allocate_driver(struct lirc_driver *d)
+ 		for (minor = 0; minor < MAX_IRCTL_DEVICES; minor++)
+ 			if (!irctls[minor])
+ 				break;
+-		if (MAX_IRCTL_DEVICES == minor) {
++		if (minor == MAX_IRCTL_DEVICES) {
+ 			dev_err(d->dev, "no free slots for drivers!\n");
+ 			err = -ENOMEM;
+ 			goto out_lock;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.8.1
+
