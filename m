@@ -1,80 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:32982 "EHLO
-	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751687AbcFTMcr (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.135]:50017 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752254AbcF2OZf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 08:32:47 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hans.verkuil@cisco.com, hverkuil@xs4all.nl
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v2 2/4] vb2: Merge vb2_internal_qbuf and vb2_qbuf
-Date: Mon, 20 Jun 2016 14:30:07 +0200
-Message-Id: <1466425809-23469-2-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1466425809-23469-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1466425809-23469-1-git-send-email-ricardo.ribalda@gmail.com>
+	Wed, 29 Jun 2016 10:25:35 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Kamil Debski <kamil@wypas.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 1/3] [media] s5p_cec: mark suspend/resume as __maybe_unused
+Date: Wed, 29 Jun 2016 16:26:34 +0200
+Message-Id: <20160629142749.4125434-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After all the code refactoring, vb2_internal_dqbuf is only called by
-vb2_dqbuf.
+The suspend/resume functions in the s5p-cec driver are only
+referenced when CONFIG_PM is enabled, so we get a warning
+about unused functions otherwise:
 
-Since the function it is very simple, there is no need to have
-two functions.
+drivers/staging/media/s5p-cec/s5p_cec.c:260:12: error: 's5p_cec_resume' defined but not used [-Werror=unused-function]
+ static int s5p_cec_resume(struct device *dev)
+            ^~~~~~~~~~~~~~
+drivers/staging/media/s5p-cec/s5p_cec.c:253:12: error: 's5p_cec_suspend' defined but not used [-Werror=unused-function]
+ static int s5p_cec_suspend(struct device *dev)
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+This marks them as __maybe_unused to avoid the warning without
+having to introduce an extra #ifdef.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/v4l2-core/videobuf2-v4l2.c | 14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ drivers/staging/media/s5p-cec/s5p_cec.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 07d8b409ce05..ba3467468e55 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -427,7 +427,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
- 	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
- 		/*
- 		 * For output buffers mask out the timecode flag:
--		 * this will be handled later in vb2_internal_qbuf().
-+		 * this will be handled later in vb2_qbuf().
- 		 * The 'field' is valid metadata for this output buffer
- 		 * and so that needs to be copied here.
- 		 */
-@@ -586,13 +586,6 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
+diff --git a/drivers/staging/media/s5p-cec/s5p_cec.c b/drivers/staging/media/s5p-cec/s5p_cec.c
+index f90b7c4e48fe..78333273c4e5 100644
+--- a/drivers/staging/media/s5p-cec/s5p_cec.c
++++ b/drivers/staging/media/s5p-cec/s5p_cec.c
+@@ -250,14 +250,14 @@ static int s5p_cec_runtime_resume(struct device *dev)
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(vb2_create_bufs);
  
--static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
--{
--	int ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
--
--	return ret ? ret : vb2_core_qbuf(q, b->index, b);
--}
--
- /**
-  * vb2_qbuf() - Queue a buffer from userspace
-  * @q:		videobuf2 queue
-@@ -612,12 +605,15 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
-  */
- int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+-static int s5p_cec_suspend(struct device *dev)
++static int __maybe_unused s5p_cec_suspend(struct device *dev)
  {
-+	int ret;
-+
- 	if (vb2_fileio_is_active(q)) {
- 		dprintk(1, "file io in progress\n");
- 		return -EBUSY;
- 	}
- 
--	return vb2_internal_qbuf(q, b);
-+	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
-+	return ret ? ret : vb2_core_qbuf(q, b->index, b);
+ 	if (pm_runtime_suspended(dev))
+ 		return 0;
+ 	return s5p_cec_runtime_suspend(dev);
  }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
  
+-static int s5p_cec_resume(struct device *dev)
++static int __maybe_unused s5p_cec_resume(struct device *dev)
+ {
+ 	if (pm_runtime_suspended(dev))
+ 		return 0;
 -- 
-2.8.1
+2.9.0
 
