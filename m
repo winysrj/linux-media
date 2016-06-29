@@ -1,77 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f174.google.com ([209.85.220.174]:35081 "EHLO
-	mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750829AbcFDXrc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jun 2016 19:47:32 -0400
-Received: by mail-qk0-f174.google.com with SMTP id p22so10178200qka.2
-        for <linux-media@vger.kernel.org>; Sat, 04 Jun 2016 16:47:31 -0700 (PDT)
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-To: <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [RESEND/PATCH 0/6] media: tw686x: Improvements
-Date: Sat,  4 Jun 2016 20:47:14 -0300
-Message-Id: <1465084040-6112-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+Received: from mailout4.samsung.com ([203.254.224.34]:56899 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752537AbcF2NVD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jun 2016 09:21:03 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [PATCH 05/15] lirc_dev: simplify goto paths
+Date: Wed, 29 Jun 2016 22:20:34 +0900
+Message-id: <1467206444-9935-6-git-send-email-andi.shyti@samsung.com>
+In-reply-to: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
+References: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4.7-rc1 is out, and so here's a resend of this patchset.
-The first submission didn't get any reviews, but it
-was tested by Tim Harvey (thanks!).
+The code can be rearranged so that some goto paths can be removed
 
-This patchset contains two groups of improvements:
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+---
+ drivers/media/rc/lirc_dev.c | 34 ++++++++++++----------------------
+ 1 file changed, 12 insertions(+), 22 deletions(-)
 
- * Add support for frame (zero-copy) DMA mode,
-   and also scatter-gather DMA mode.
-
- * Audio improvements: prevent hw param changes,
-   and allow period size configuration.
-
-The DMA modes are selected at module insertion time,
-through a module parameter called dma_mode.
-
-While it should be theoretically possible to switch this at
-runtime, I believe the complexity involved does not worth the
-benefit: users will be interested in some specific use case,
-and thus will set the DMA mode right from the start.
-
-Note that in scatter-gather mode, only V4L2_FIELD_SEQ_TB
-is possible. As far as I can see, in this DMA mode, the
-device delivers a sequential top-bottom field frame,
-and cannot deliver separate top/bottom frames.
-
-The only sane thing we can do is limit the DMA length
-and get a top (or bottom field), but I doubt that's
-useful for anyone.
-
-Then again, any additional support can be done as follow
-up patches. For instance, the current series does not add
-support for the "FIELD" mode provided by the device.
-
-The reason for this is that it looked quite complex, and
-required a lot of changes. I'd really like to avoid adding
-any complexity until we have some users demanding it.
-
-Any feedback is welcome!
-
-Patchset based on v4.7-rc1.
-
-Ezequiel Garcia (6):
-  tw686x: Introduce an interface to support multiple DMA modes
-  tw686x: Add support for DMA contiguous interlaced frame mode
-  tw686x: Add support for DMA scatter-gather mode
-  tw686x: audio: Implement non-memcpy capture
-  tw686x: audio: Allow to configure the period size
-  tw686x: audio: Prevent hw param changes while busy
-
- drivers/media/pci/tw686x/Kconfig        |   2 +
- drivers/media/pci/tw686x/tw686x-audio.c |  92 ++++--
- drivers/media/pci/tw686x/tw686x-core.c  |  56 +++-
- drivers/media/pci/tw686x/tw686x-regs.h  |   9 +
- drivers/media/pci/tw686x/tw686x-video.c | 492 +++++++++++++++++++++++++-------
- drivers/media/pci/tw686x/tw686x.h       |  41 ++-
- 6 files changed, 544 insertions(+), 148 deletions(-)
-
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index b11ab5c..400ab80 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -241,52 +241,44 @@ static int lirc_allocate_driver(struct lirc_driver *d)
+ 
+ 	if (!d) {
+ 		pr_err("lirc_dev: driver pointer must be not NULL!\n");
+-		err = -EBADRQC;
+-		goto out;
++		return -EBADRQC;
+ 	}
+ 
+ 	if (!d->dev) {
+ 		pr_err("%s: dev pointer not filled in!\n", __func__);
+-		err = -EINVAL;
+-		goto out;
++		return -EINVAL;
+ 	}
+ 
+ 	if (MAX_IRCTL_DEVICES <= d->minor) {
+ 		dev_err(d->dev, "minor must be between 0 and %d!\n",
+ 						MAX_IRCTL_DEVICES - 1);
+-		err = -EBADRQC;
+-		goto out;
++		return -EBADRQC;
+ 	}
+ 
+ 	if (1 > d->code_length || (BUFLEN * 8) < d->code_length) {
+ 		dev_err(d->dev, "code length must be less than %d bits\n",
+ 								BUFLEN * 8);
+-		err = -EBADRQC;
+-		goto out;
++		return -EBADRQC;
+ 	}
+ 
+ 	if (d->sample_rate) {
+ 		if (2 > d->sample_rate || HZ < d->sample_rate) {
+ 			dev_err(d->dev, "invalid %d sample rate\n",
+ 							d->sample_rate);
+-			err = -EBADRQC;
+-			goto out;
++			return -EBADRQC;
+ 		}
+ 		if (!d->add_to_buf) {
+ 			dev_err(d->dev, "add_to_buf not set\n");
+-			err = -EBADRQC;
+-			goto out;
++			return -EBADRQC;
+ 		}
+ 	} else if (!(d->fops && d->fops->read) && !d->rbuf) {
+ 		dev_err(d->dev, "fops->read and rbuf are NULL!\n");
+-		err = -EBADRQC;
+-		goto out;
++		return -EBADRQC;
+ 	} else if (!d->rbuf) {
+ 		if (!(d->fops && d->fops->read && d->fops->poll &&
+ 		      d->fops->unlocked_ioctl)) {
+ 			dev_err(d->dev, "undefined read, poll, ioctl\n");
+-			err = -EBADRQC;
+-			goto out;
++			return -EBADRQC;
+ 		}
+ 	}
+ 
+@@ -364,7 +356,7 @@ out_sysfs:
+ 	device_destroy(lirc_class, MKDEV(MAJOR(lirc_base_dev), ir->d.minor));
+ out_lock:
+ 	mutex_unlock(&lirc_dev_lock);
+-out:
++
+ 	return err;
+ }
+ 
+@@ -793,9 +785,8 @@ static int __init lirc_dev_init(void)
+ 
+ 	lirc_class = class_create(THIS_MODULE, "lirc");
+ 	if (IS_ERR(lirc_class)) {
+-		retval = PTR_ERR(lirc_class);
+ 		pr_err("lirc_dev: class_create failed\n");
+-		goto error;
++		return PTR_ERR(lirc_class);
+ 	}
+ 
+ 	retval = alloc_chrdev_region(&lirc_base_dev, 0, MAX_IRCTL_DEVICES,
+@@ -803,15 +794,14 @@ static int __init lirc_dev_init(void)
+ 	if (retval) {
+ 		class_destroy(lirc_class);
+ 		pr_err("lirc_dev: alloc_chrdev_region failed\n");
+-		goto error;
++		return retval;
+ 	}
+ 
+ 
+ 	pr_info("lirc_dev: IR Remote Control driver registered, major %d\n",
+ 							MAJOR(lirc_base_dev));
+ 
+-error:
+-	return retval;
++	return 0;
+ }
+ 
+ 
 -- 
-2.7.0
+2.8.1
 
