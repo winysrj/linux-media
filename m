@@ -1,59 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:34403 "EHLO
-	mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751006AbcFJRjQ (ORCPT
+Received: from mail-qt0-f172.google.com ([209.85.216.172]:33045 "EHLO
+	mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750892AbcF2Etc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2016 13:39:16 -0400
-Date: Fri, 10 Jun 2016 12:39:14 -0500
-From: Rob Herring <robh@kernel.org>
-To: Kieran Bingham <kieran@ksquared.org.uk>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	"open list:MEDIA DRIVERS FOR RENESAS - FCP"
-	<linux-media@vger.kernel.org>,
-	"open list:MEDIA DRIVERS FOR RENESAS - FCP"
-	<linux-renesas-soc@vger.kernel.org>,
-	"open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-	<devicetree@vger.kernel.org>,
-	open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 2/3] dt-bindings: Document Renesas R-Car FCP
- power-domains usage
-Message-ID: <20160610173914.GA20505@rob-hp-laptop>
-References: <1465479695-18644-1-git-send-email-kieran@bingham.xyz>
- <1465479695-18644-3-git-send-email-kieran@bingham.xyz>
+	Wed, 29 Jun 2016 00:49:32 -0400
+Received: by mail-qt0-f172.google.com with SMTP id c34so19208438qte.0
+        for <linux-media@vger.kernel.org>; Tue, 28 Jun 2016 21:49:32 -0700 (PDT)
+Received: from mail-qt0-f174.google.com (mail-qt0-f174.google.com. [209.85.216.174])
+        by smtp.gmail.com with ESMTPSA id g15sm997928qtc.17.2016.06.28.21.42.47
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 28 Jun 2016 21:42:47 -0700 (PDT)
+Received: by mail-qt0-f174.google.com with SMTP id c34so19154477qte.0
+        for <linux-media@vger.kernel.org>; Tue, 28 Jun 2016 21:42:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1465479695-18644-3-git-send-email-kieran@bingham.xyz>
+In-Reply-To: <5772DC68.9050600@kaa.org.ua>
+References: <5772DC68.9050600@kaa.org.ua>
+From: Olli Salonen <olli.salonen@iki.fi>
+Date: Wed, 29 Jun 2016 07:42:46 +0300
+Message-ID: <CAAZRmGwCeKQnLU7xFH2TDwhWorzcxRQDT1-pSi97h7VxZFG_KQ@mail.gmail.com>
+Subject: Re: si2157 driver
+To: Oleh Kravchenko <oleg@kaa.org.ua>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 09, 2016 at 02:41:33PM +0100, Kieran Bingham wrote:
-> The power domain must be specified to bring the device out of module
-> standby. Document this in the example provided, so that new additions
-> are not missed.
-> 
-> Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
-> ---
->  Documentation/devicetree/bindings/media/renesas,fcp.txt | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/renesas,fcp.txt b/Documentation/devicetree/bindings/media/renesas,fcp.txt
-> index 271dcfdb5a76..6a55f5215221 100644
-> --- a/Documentation/devicetree/bindings/media/renesas,fcp.txt
-> +++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
-> @@ -31,4 +31,5 @@ Device node example
->  		compatible = "renesas,r8a7795-fcpv", "renesas,fcpv";
->  		reg = <0 0xfea2f000 0 0x200>;
->  		clocks = <&cpg CPG_MOD 602>;
-> +		power-domains = <&sysc R8A7795_PD_A3VP>;
+Hi Oleg,
 
-This needs to be documented above too, not just the example.
+Correct, only digital TV is supported currently by the driver.
 
->  	};
-> -- 
-> 2.7.4
-> 
+Cheers,
+-olli
+
+On 28 June 2016 at 23:22, Oleh Kravchenko <oleg@kaa.org.ua> wrote:
+> Hello linux media developers!
+>
+> I try add support for usb hybrid tuner, it based on:
+> CX23102-112, Si2158, Si2168
+>
+> I updated cx231xx-cards.c with valid ids, but I don't have idea how to
+> use Si2158.
+> It is not listed in tuner-types.c
+>
+> Why si2157.c is absent in tuner-types.c?
+> Or at the current state si2157.c don't have analog support?
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
