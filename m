@@ -1,71 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:45314 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750740AbcFBHS7 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:43484 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751914AbcF2Wng (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Jun 2016 03:18:59 -0400
-Received: from durdane.fritz.box (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id 119FA180B7D
-	for <linux-media@vger.kernel.org>; Thu,  2 Jun 2016 09:18:53 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/4] Remove deprecated drivers
-Date: Thu,  2 Jun 2016 09:18:48 +0200
-Message-Id: <1464851932-17915-1-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Wed, 29 Jun 2016 18:43:36 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Ira Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH 10/10] lgdt3306a: better handle RF fake strength
+Date: Wed, 29 Jun 2016 19:43:26 -0300
+Message-Id: <1b52edc257e266b814302fb3f5035b66104ebffb.1467240152.git.mchehab@s-opensource.com>
+In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
+References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
+In-Reply-To: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
+References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+There's a logic at lgdt3306a with emulates the signal strength
+via SNR measures. Such logic should be used for dvbv5 stats
+as well, so change the code to provide a more coherent
+data to userspace.
 
-Remove deprecated drivers from staging/media.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-frontends/lgdt3306a.c | 121 ++++++++++++++++++--------------
+ 1 file changed, 67 insertions(+), 54 deletions(-)
 
-Regards,
-
-	Hans
-
-Hans Verkuil (4):
-  staging/media: remove deprecated mx2 driver
-  staging/media: remove deprecated mx3 driver
-  staging/media: remove deprecated omap1 driver
-  staging/media: remove deprecated timb driver
-
- drivers/staging/media/Kconfig              |    8 -
- drivers/staging/media/Makefile             |    4 -
- drivers/staging/media/mx2/Kconfig          |   15 -
- drivers/staging/media/mx2/Makefile         |    3 -
- drivers/staging/media/mx2/TODO             |   10 -
- drivers/staging/media/mx2/mx2_camera.c     | 1636 --------------------------
- drivers/staging/media/mx3/Kconfig          |   15 -
- drivers/staging/media/mx3/Makefile         |    3 -
- drivers/staging/media/mx3/TODO             |   10 -
- drivers/staging/media/mx3/mx3_camera.c     | 1264 ---------------------
- drivers/staging/media/omap1/Kconfig        |   13 -
- drivers/staging/media/omap1/Makefile       |    3 -
- drivers/staging/media/omap1/TODO           |    8 -
- drivers/staging/media/omap1/omap1_camera.c | 1702 ----------------------------
- drivers/staging/media/timb/Kconfig         |   11 -
- drivers/staging/media/timb/Makefile        |    1 -
- drivers/staging/media/timb/timblogiw.c     |  870 --------------
- 17 files changed, 5576 deletions(-)
- delete mode 100644 drivers/staging/media/mx2/Kconfig
- delete mode 100644 drivers/staging/media/mx2/Makefile
- delete mode 100644 drivers/staging/media/mx2/TODO
- delete mode 100644 drivers/staging/media/mx2/mx2_camera.c
- delete mode 100644 drivers/staging/media/mx3/Kconfig
- delete mode 100644 drivers/staging/media/mx3/Makefile
- delete mode 100644 drivers/staging/media/mx3/TODO
- delete mode 100644 drivers/staging/media/mx3/mx3_camera.c
- delete mode 100644 drivers/staging/media/omap1/Kconfig
- delete mode 100644 drivers/staging/media/omap1/Makefile
- delete mode 100644 drivers/staging/media/omap1/TODO
- delete mode 100644 drivers/staging/media/omap1/omap1_camera.c
- delete mode 100644 drivers/staging/media/timb/Kconfig
- delete mode 100644 drivers/staging/media/timb/Makefile
- delete mode 100644 drivers/staging/media/timb/timblogiw.c
-
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index 6b686c3a44ce..446dc264701a 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -65,6 +65,7 @@ struct lgdt3306a_state {
+ 	enum fe_modulation current_modulation;
+ 	u32 current_frequency;
+ 	u32 snr;
++	u16 strength;
+ };
+ 
+ /*
+@@ -1573,10 +1574,74 @@ lgdt3306a_qam_lock_poll(struct lgdt3306a_state *state)
+ 	return LG3306_UNLOCK;
+ }
+ 
++
++static u16 lgdt3306a_fake_strength(struct dvb_frontend *fe)
++{
++	struct lgdt3306a_state *state = fe->demodulator_priv;
++	u16 snr; /* snr_x10 */
++	int ret;
++	u32 ref_snr; /* snr*100 */
++	u32 str;
++
++	/*
++	 * Calculate some sort of "strength" from SNR
++	 */
++
++	switch (state->current_modulation) {
++	case VSB_8:
++		 ref_snr = 1600; /* 16dB */
++		 break;
++	case QAM_64:
++		 ref_snr = 2200; /* 22dB */
++		 break;
++	case QAM_256:
++		 ref_snr = 2800; /* 28dB */
++		 break;
++	default:
++		return 0;
++	}
++
++	ret = fe->ops.read_snr(fe, &snr);
++	if (lg_chkerr(ret))
++		return 0;
++
++	if (state->snr <= (ref_snr - 100))
++		str = 0;
++	else if (state->snr <= ref_snr)
++		str = (0xffff * 65) / 100; /* 65% */
++	else {
++		str = state->snr - ref_snr;
++		str /= 50;
++		str += 78; /* 78%-100% */
++		if (str > 100)
++			str = 100;
++		str = (0xffff * str) / 100;
++	}
++
++	return (u16)str;
++}
++
+ static void lgdt3306a_get_stats(struct dvb_frontend *fe, enum fe_status status)
+ {
+ 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct lgdt3306a_state *state = fe->demodulator_priv;
++	int ret;
++
++	if (fe->ops.tuner_ops.get_rf_strength) {
++		state->strength = 0;
++
++		ret = fe->ops.tuner_ops.get_rf_strength(fe, &state->strength);
++		if (ret == 0)
++			dbg_info("strength=%d\n", state->strength);
++		else
++			dbg_info("fe->ops.tuner_ops.get_rf_strength() failed\n");
++
++	} else {
++		state->strength = lgdt3306a_fake_strength(fe);
++		p->cnr.stat[0].scale = FE_SCALE_RELATIVE;
++
++		dbg_info("strength=%d\n", state->strength);
++	}
+ 
+ 	if (!(status & FE_HAS_LOCK))
+ 		return;
+@@ -1589,17 +1654,8 @@ static int lgdt3306a_read_status(struct dvb_frontend *fe,
+ 				 enum fe_status *status)
+ {
+ 	struct lgdt3306a_state *state = fe->demodulator_priv;
+-	u16 strength = 0;
+ 	int ret = 0;
+ 
+-	if (fe->ops.tuner_ops.get_rf_strength) {
+-		ret = fe->ops.tuner_ops.get_rf_strength(fe, &strength);
+-		if (ret == 0)
+-			dbg_info("strength=%d\n", strength);
+-		else
+-			dbg_info("fe->ops.tuner_ops.get_rf_strength() failed\n");
+-	}
+-
+ 	*status = 0;
+ 	if (lgdt3306a_neverlock_poll(state) == LG3306_NL_LOCK) {
+ 		*status |= FE_HAS_SIGNAL;
+@@ -1633,13 +1689,11 @@ static int lgdt3306a_read_status(struct dvb_frontend *fe,
+ 		state->snr = 0;
+ 	}
+ 
+-
+ 	lgdt3306a_get_stats(fe, *status);
+ 
+ 	return ret;
+ }
+ 
+-
+ static int lgdt3306a_read_snr(struct dvb_frontend *fe, u16 *snr)
+ {
+ 	struct lgdt3306a_state *state = fe->demodulator_priv;
+@@ -1652,52 +1706,11 @@ static int lgdt3306a_read_snr(struct dvb_frontend *fe, u16 *snr)
+ static int lgdt3306a_read_signal_strength(struct dvb_frontend *fe,
+ 					 u16 *strength)
+ {
+-	/*
+-	 * Calculate some sort of "strength" from SNR
+-	 */
+ 	struct lgdt3306a_state *state = fe->demodulator_priv;
+-	u16 snr; /* snr_x10 */
+-	int ret;
+-	u32 ref_snr; /* snr*100 */
+-	u32 str;
+ 
+-	*strength = 0;
++	*strength = state->strength;
+ 
+-	switch (state->current_modulation) {
+-	case VSB_8:
+-		 ref_snr = 1600; /* 16dB */
+-		 break;
+-	case QAM_64:
+-		 ref_snr = 2200; /* 22dB */
+-		 break;
+-	case QAM_256:
+-		 ref_snr = 2800; /* 28dB */
+-		 break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	ret = fe->ops.read_snr(fe, &snr);
+-	if (lg_chkerr(ret))
+-		goto fail;
+-
+-	if (state->snr <= (ref_snr - 100))
+-		str = 0;
+-	else if (state->snr <= ref_snr)
+-		str = (0xffff * 65) / 100; /* 65% */
+-	else {
+-		str = state->snr - ref_snr;
+-		str /= 50;
+-		str += 78; /* 78%-100% */
+-		if (str > 100)
+-			str = 100;
+-		str = (0xffff * str) / 100;
+-	}
+-	*strength = (u16)str;
+-	dbg_info("strength=%u\n", *strength);
+-
+-fail:
+-	return ret;
++	return 0;
+ }
+ 
+ /* ------------------------------------------------------------------------ */
 -- 
-2.8.1
+2.7.4
 
