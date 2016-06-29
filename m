@@ -1,108 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dliviu.plus.com ([80.229.23.120]:46804 "EHLO smtp.dudau.co.uk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161912AbcFHOfr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jun 2016 10:35:47 -0400
-Date: Wed, 8 Jun 2016 15:35:44 +0100
-From: Liviu Dudau <liviu@dudau.co.uk>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] media: s5p-mfc: fix error path in driver probe
-Message-ID: <20160608143544.GF21784@bart.dudau.co.uk>
-References: <20160608103629.GD21784@bart.dudau.co.uk>
- <1465385620-4396-1-git-send-email-m.szyprowski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1465385620-4396-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:48043 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752043AbcF2NU7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jun 2016 09:20:59 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [PATCH 00/15] lirc_dev fixes and beautification
+Date: Wed, 29 Jun 2016 22:20:29 +0900
+Message-id: <1467206444-9935-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 08, 2016 at 01:33:40PM +0200, Marek Szyprowski wrote:
-> This patch fixes the error path in the driver probe, so in case of
-> any failure, the resources are not leaked.
-> 
-> Reported-by: Liviu Dudau <liviu.dudau@arm.com>
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Hi,
 
-Looks good to me now! If it is useful:
+because I wanted to add three ioctl commands in lirc, I ended up
+with the patchset below.
 
-Acked-by: Liviu Dudau <Liviu.Dudau@arm.com>
+This is a collection of fixes, added functionality, coding rework
+and trivial coding style fixes.
 
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc.c | 14 +++++++++-----
->  1 file changed, 9 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> index 6ee620ee8cd5..1f3a7ee753db 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> @@ -1159,7 +1159,10 @@ static int s5p_mfc_probe(struct platform_device *pdev)
->  	dev->variant = mfc_get_drv_data(pdev);
->  
->  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -
-> +	if (res == NULL) {
-> +		dev_err(&pdev->dev, "failed to get io resource\n");
-> +		return -ENOENT;
-> +	}
->  	dev->regs_base = devm_ioremap_resource(&pdev->dev, res);
->  	if (IS_ERR(dev->regs_base))
->  		return PTR_ERR(dev->regs_base);
-> @@ -1167,15 +1170,14 @@ static int s5p_mfc_probe(struct platform_device *pdev)
->  	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
->  	if (res == NULL) {
->  		dev_err(&pdev->dev, "failed to get irq resource\n");
-> -		ret = -ENOENT;
-> -		goto err_res;
-> +		return -ENOENT;
->  	}
->  	dev->irq = res->start;
->  	ret = devm_request_irq(&pdev->dev, dev->irq, s5p_mfc_irq,
->  					0, pdev->name, dev);
->  	if (ret) {
->  		dev_err(&pdev->dev, "Failed to install irq (%d)\n", ret);
-> -		goto err_res;
-> +		return ret;
->  	}
->  
->  	ret = s5p_mfc_configure_dma_memory(dev);
-> @@ -1187,7 +1189,7 @@ static int s5p_mfc_probe(struct platform_device *pdev)
->  	ret = s5p_mfc_init_pm(dev);
->  	if (ret < 0) {
->  		dev_err(&pdev->dev, "failed to get mfc clock source\n");
-> -		return ret;
-> +		goto err_dma;
->  	}
->  
->  	vb2_dma_contig_set_max_seg_size(dev->mem_dev_l, DMA_BIT_MASK(32));
-> @@ -1301,6 +1303,8 @@ err_mem_init_ctx_1:
->  	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[0]);
->  err_res:
->  	s5p_mfc_final_pm(dev);
-> +err_dma:
-> +	s5p_mfc_unconfigure_dma_memory(dev);
->  
->  	pr_debug("%s-- with error\n", __func__);
->  	return ret;
-> -- 
-> 1.9.2
-> 
+The first patch is preparatory to the second, which allows the
+user to create a lirc driver without receiver buffer, which is
+obvious for transmitters. Besides, even though that buffer could
+have been used also by transmitters, drivers might have the need
+to handle it separately.
+
+The rest of the patches is a series of coding style and code
+rework, as I said, some of them are very trivial, but I sent them
+anyway because I was on fire.
+
+Patch 14 is a segfault fix, while the last patch adds the
+possibility to send to ioctl the set frequency, get frequency and
+set length command.
+
+Thanks,
+Andi
+
+Andi Shyti (15):
+  lirc_dev: place buffer allocation on separate function
+  lirc_dev: allow bufferless driver registration
+  lirc_dev: remove unnecessary debug prints
+  lirc_dev: replace printk with pr_* or dev_*
+  lirc_dev: simplify goto paths
+  lirc_dev: do not use goto to create loops
+  lirc_dev: simplify if statement in lirc_add_to_buf
+  lirc_dev: remove double if ... else statement
+  lirc_dev: merge three if statements in only one
+  lirc_dev: remove CONFIG_COMPAT precompiler check
+  lirc_dev: fix variable constant comparisons
+  lirc_dev: fix error return value
+  lirc_dev: extremely trivial comment style fix
+  lirc_dev: fix potential segfault
+  include: lirc: add set length and frequency ioctl options
+
+ drivers/media/rc/lirc_dev.c | 297 +++++++++++++++++++++-----------------------
+ include/media/lirc_dev.h    |  12 ++
+ include/uapi/linux/lirc.h   |   4 +
+ 3 files changed, 156 insertions(+), 157 deletions(-)
 
 -- 
--------------------
-   .oooO
-   (   )
-    \ (  Oooo.
-     \_) (   )
-          ) /
-         (_/
+2.8.1
 
- One small step
-   for me ...
