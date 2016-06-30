@@ -1,248 +1,481 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54543 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750880AbcFVQb5 (ORCPT
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:33566 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752589AbcF3Rqt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2016 12:31:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH/RFC v2 1/4] v4l: Add metadata buffer type and format
-Date: Wed, 22 Jun 2016 19:32:16 +0300
-Message-ID: <1728823.iiGB2m7upr@avalon>
-In-Reply-To: <5742D6CC.8040909@xs4all.nl>
-References: <1463012283-3078-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1463012283-3078-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <5742D6CC.8040909@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 30 Jun 2016 13:46:49 -0400
+From: Nick Dyer <nick@shmanahar.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	jon.older@itdev.co.uk, nick.dyer@itdev.co.uk,
+	Nick Dyer <nick@shmanahar.org>
+Subject: [PATCH v6 03/11] [media] DocBook: add support for touch devices
+Date: Thu, 30 Jun 2016 18:38:46 +0100
+Message-Id: <1467308334-12580-4-git-send-email-nick@shmanahar.org>
+In-Reply-To: <1467308334-12580-1-git-send-email-nick@shmanahar.org>
+References: <1467308334-12580-1-git-send-email-nick@shmanahar.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Signed-off-by: Nick Dyer <nick@shmanahar.org>
+---
+ Documentation/DocBook/media/v4l/dev-touch.xml      | 51 ++++++++++++++
+ Documentation/DocBook/media/v4l/media-types.xml    |  5 ++
+ .../DocBook/media/v4l/pixfmt-tch-td08.xml          | 66 +++++++++++++++++
+ .../DocBook/media/v4l/pixfmt-tch-td16.xml          | 82 ++++++++++++++++++++++
+ .../DocBook/media/v4l/pixfmt-tch-tu08.xml          | 66 +++++++++++++++++
+ .../DocBook/media/v4l/pixfmt-tch-tu16.xml          | 81 +++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         | 13 ++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |  1 +
+ 8 files changed, 365 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/dev-touch.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-tch-td08.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-tch-td16.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-tch-tu08.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-tch-tu16.xml
 
-Thank you for the review.
-
-On Monday 23 May 2016 12:09:16 Hans Verkuil wrote:
-> On 05/12/2016 02:18 AM, Laurent Pinchart wrote:
-> > The metadata buffer type is used to transfer metadata between userspace
-> > and kernelspace through a V4L2 buffers queue. It comes with a new
-> > metadata capture capability and format description.
-> 
-> Thanks for the patch! I have some comments/suggestions below:
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> > 
-> >  Documentation/DocBook/media/v4l/dev-meta.xml  | 93 ++++++++++++++++++++++
-> >  Documentation/DocBook/media/v4l/v4l2.xml      |  1 +
-> >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 19 ++++++
-> >  drivers/media/v4l2-core/v4l2-dev.c            | 16 +++--
-> >  drivers/media/v4l2-core/v4l2-ioctl.c          | 34 ++++++++++
-> >  drivers/media/v4l2-core/videobuf2-v4l2.c      |  3 +
-> >  include/media/v4l2-ioctl.h                    |  8 +++
-> >  include/uapi/linux/videodev2.h                | 14 ++++
-> >  8 files changed, 182 insertions(+), 6 deletions(-)
-> >  create mode 100644 Documentation/DocBook/media/v4l/dev-meta.xml
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/dev-meta.xml
-> > b/Documentation/DocBook/media/v4l/dev-meta.xml new file mode 100644
-> > index 000000000000..9b5b1fba2007
-> > --- /dev/null
-> > +++ b/Documentation/DocBook/media/v4l/dev-meta.xml
-> > @@ -0,0 +1,93 @@
-> > +  <title>Metadata Interface</title>
-> > +
-> > +  <note>
-> > +    <title>Experimental</title>
-> > +    <para>This is an <link linkend="experimental"> experimental </link>
-> 
-> No space before/after 'experimental'. It will look ugly in the docbook (I
-> tried it :-) ).
-
-Will be fixed in the next version.
-
-> > +    interface and may change in the future.</para>
-> > +  </note>
-> > +
-> > +  <para>
-> > +Metadata refers to any non-image data that supplements video frames with
-> > +additional information. This may include statistics computed over the
-> > +image or frame capture parameters supplied by the image source. This
-> > +interface is intended for transfer of metadata to userspace and control
-> > +of that operation.
->
-> I think it can also be in the other direction. I'm thinking of metadata
-> needed by codecs. I'm not sure if it should be mentioned that this is not
-> supported at the moment and that the ML should be contacted for more info
-> if someone wants this.
-
-Metadata for codecs make sense, but given that the topic hasn't been 
-researched yet, I've kept metadata support focused on the capture side only 
-for now. I propose revisiting the topic if (or rather when) someone needs 
-metadata support on output video nodes.
-
-> > +  </para>
-> > +
-> > +  <para>
-> > +The metadata interface is implemented on video capture devices. The
-> > device can
->
-> s/on/for/?
-
-I meant "on video capture device nodes", I'll fix that.
+diff --git a/Documentation/DocBook/media/v4l/dev-touch.xml b/Documentation/DocBook/media/v4l/dev-touch.xml
+new file mode 100644
+index 0000000..85d492a
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/dev-touch.xml
+@@ -0,0 +1,51 @@
++<title>Touch Devices</title>
++
++<para>Touch devices are accessed through character device special files
++  named <filename>/dev/v4l-touch0</filename> to
++  <filename>/dev/v4l-touch255</filename> with major number 81 and
++  dynamically allocated minor numbers 0 to 255.</para>
++
++<section>
++  <title>Overview</title>
++
++  <para>Sensors may be Optical, or Projected Capacitive touch (PCT).</para>
++
++  <para>Processing is required to analyse the raw data and produce input
++    events. In some systems, this may be performed on the ASIC and the raw data
++    is purely a side-channel for diagnostics or tuning. In other systems, the
++    ASIC is a simple analogue front end device which delivers touch data at
++    high rate, and any touch processing must be done on the host.</para>
++
++  <para>For capacitive touch sensing, the touchscreen is composed of an array
++    of horizontal and vertical conductors (alternatively called rows/columns,
++    X/Y lines, or tx/rx). Mutual Capacitance measured is at the nodes where the
++    conductors cross. Alternatively, Self Capacitance measures the signal from
++    each column and row independently.</para>
++
++  <para>A touch input may be determined by comparing the raw capacitance
++    measurement to a no-touch reference (or "baseline") measurement:</para>
++
++  <para>Delta = Raw - Reference</para>
++
++  <para>The reference measurement takes account of variations in the
++    capacitance across the touch sensor matrix, for example
++    manufacturing irregularities, environmental or edge effects.</para>
++</section>
++
++<section>
++  <title>Querying Capabilities</title>
++
++  <para>Devices supporting the touch interface set the
++    <constant>V4L2_CAP_VIDEO_CAPTURE</constant> flag in the
++    <structfield>capabilities</structfield> field of &v4l2-capability;
++    returned by the &VIDIOC-QUERYCAP; ioctl.</para>
++
++  <para>At least one of the read/write or streaming I/O methods must be
++    supported.</para>
++</section>
++
++<section>
++  <title>Data Format Negotiation</title>
++
++  <para>A touch device may support any I/O method.</para>
++</section>
+diff --git a/Documentation/DocBook/media/v4l/media-types.xml b/Documentation/DocBook/media/v4l/media-types.xml
+index 5e3f20f..fb957c7 100644
+--- a/Documentation/DocBook/media/v4l/media-types.xml
++++ b/Documentation/DocBook/media/v4l/media-types.xml
+@@ -202,6 +202,11 @@
+ 	    <entry>typically, /dev/swradio?</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>MEDIA_INTF_T_V4L_TOUCH</constant></entry>
++	    <entry>Device node interface for Touch device (V4L)</entry>
++	    <entry>typically, /dev/v4l-touch?</entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>MEDIA_INTF_T_ALSA_PCM_CAPTURE</constant></entry>
+ 	    <entry>Device node interface for ALSA PCM Capture</entry>
+ 	    <entry>typically, /dev/snd/pcmC?D?c</entry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-tch-td08.xml b/Documentation/DocBook/media/v4l/pixfmt-tch-td08.xml
+new file mode 100644
+index 0000000..2483eb0
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-tch-td08.xml
+@@ -0,0 +1,66 @@
++<refentry id="V4L2-TCH-FMT-DELTA-TD08">
++  <refmeta>
++    <refentrytitle>V4L2_TCH_FMT_DELTA_TD08 ('TD08')</refentrytitle>
++    &manvol;
++  </refmeta>
++  <refnamediv>
++    <refname><constant>V4L2_TCH_FMT_DELTA_TD08</constant></refname>
++    <refpurpose>8-bit signed Touch Delta</refpurpose>
++  </refnamediv>
++  <refsect1>
++    <title>Description</title>
++
++    <para>This format represents delta data from a touch controller</para>
++
++    <para>Delta values may range from -128 to 127. Typically the values
++      will vary through a small range depending on whether the sensor is
++      touched or not. The full value may be seen if one of the
++      touchscreen nodes has a fault or the line is not connected.</para>
++
++    <example>
++      <title><constant>V4L2_TCH_FMT_DELTA_TD08</constant> 4 &times; 4
++        node matrix</title>
++
++      <formalpara>
++        <title>Byte Order.</title>
++        <para>Each cell is one byte.
++          <informaltable frame="none">
++            <tgroup cols="5" align="center">
++              <colspec align="left" colwidth="2*" />
++              <tbody valign="top">
++                <row>
++                  <entry>start&nbsp;+&nbsp;0:</entry>
++                  <entry>D'<subscript>00</subscript></entry>
++                  <entry>D'<subscript>01</subscript></entry>
++                  <entry>D'<subscript>02</subscript></entry>
++                  <entry>D'<subscript>03</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;4:</entry>
++                  <entry>D'<subscript>10</subscript></entry>
++                  <entry>D'<subscript>11</subscript></entry>
++                  <entry>D'<subscript>12</subscript></entry>
++                  <entry>D'<subscript>13</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;8:</entry>
++                  <entry>D'<subscript>20</subscript></entry>
++                  <entry>D'<subscript>21</subscript></entry>
++                  <entry>D'<subscript>22</subscript></entry>
++                  <entry>D'<subscript>23</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;12:</entry>
++                  <entry>D'<subscript>30</subscript></entry>
++                  <entry>D'<subscript>31</subscript></entry>
++                  <entry>D'<subscript>32</subscript></entry>
++                  <entry>D'<subscript>33</subscript></entry>
++                </row>
++              </tbody>
++            </tgroup>
++          </informaltable>
++        </para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-tch-td16.xml b/Documentation/DocBook/media/v4l/pixfmt-tch-td16.xml
+new file mode 100644
+index 0000000..72f6245
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-tch-td16.xml
+@@ -0,0 +1,82 @@
++<refentry id="V4L2-TCH-FMT-DELTA-TD16">
++  <refmeta>
++    <refentrytitle>V4L2_TCH_FMT_DELTA_TD16 ('TD16')</refentrytitle>
++    &manvol;
++  </refmeta>
++  <refnamediv>
++    <refname><constant>V4L2_TCH_FMT_DELTA_TD16</constant></refname>
++    <refpurpose>16-bit signed Touch Delta</refpurpose>
++  </refnamediv>
++  <refsect1>
++    <title>Description</title>
++
++    <para>This format represents delta data from a touch controller</para>
++
++    <para>Delta values may range from -32768 to 32767. Typically the values
++      will vary through a small range depending on whether the sensor is
++      touched or not. The full value may be seen if one of the
++      touchscreen nodes has a fault or the line is not connected.</para>
++
++    <example>
++      <title><constant>V4L2_TCH_FMT_DELTA_TD16</constant> 4 &times; 4
++        node matrix</title>
++
++      <formalpara>
++        <title>Byte Order.</title>
++        <para>Each cell is one byte.
++          <informaltable frame="none">
++            <tgroup cols="9" align="center">
++              <colspec align="left" colwidth="2*" />
++              <tbody valign="top">
++                <row>
++                  <entry>start&nbsp;+&nbsp;0:</entry>
++                  <entry>D'<subscript>00low</subscript></entry>
++                  <entry>D'<subscript>00high</subscript></entry>
++                  <entry>D'<subscript>01low</subscript></entry>
++                  <entry>D'<subscript>01high</subscript></entry>
++                  <entry>D'<subscript>02low</subscript></entry>
++                  <entry>D'<subscript>02high</subscript></entry>
++                  <entry>D'<subscript>03low</subscript></entry>
++                  <entry>D'<subscript>03high</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;8:</entry>
++                  <entry>D'<subscript>10low</subscript></entry>
++                  <entry>D'<subscript>10high</subscript></entry>
++                  <entry>D'<subscript>11low</subscript></entry>
++                  <entry>D'<subscript>11high</subscript></entry>
++                  <entry>D'<subscript>12low</subscript></entry>
++                  <entry>D'<subscript>12high</subscript></entry>
++                  <entry>D'<subscript>13low</subscript></entry>
++                  <entry>D'<subscript>13high</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;16:</entry>
++                  <entry>D'<subscript>20low</subscript></entry>
++                  <entry>D'<subscript>20high</subscript></entry>
++                  <entry>D'<subscript>21low</subscript></entry>
++                  <entry>D'<subscript>21high</subscript></entry>
++                  <entry>D'<subscript>22low</subscript></entry>
++                  <entry>D'<subscript>22high</subscript></entry>
++                  <entry>D'<subscript>23low</subscript></entry>
++                  <entry>D'<subscript>23high</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;24:</entry>
++                  <entry>D'<subscript>30low</subscript></entry>
++                  <entry>D'<subscript>30high</subscript></entry>
++                  <entry>D'<subscript>31low</subscript></entry>
++                  <entry>D'<subscript>31high</subscript></entry>
++                  <entry>D'<subscript>32low</subscript></entry>
++                  <entry>D'<subscript>32high</subscript></entry>
++                  <entry>D'<subscript>33low</subscript></entry>
++                  <entry>D'<subscript>33high</subscript></entry>
++                </row>
++              </tbody>
++            </tgroup>
++          </informaltable>
++        </para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-tch-tu08.xml b/Documentation/DocBook/media/v4l/pixfmt-tch-tu08.xml
+new file mode 100644
+index 0000000..24f76ab
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-tch-tu08.xml
+@@ -0,0 +1,66 @@
++<refentry id="V4L2-TCH-FMT-TU08">
++  <refmeta>
++    <refentrytitle>V4L2_TCH_FMT_TU08 ('TU08')</refentrytitle>
++    &manvol;
++  </refmeta>
++  <refnamediv>
++    <refname><constant>V4L2_TCH_FMT_TU08</constant></refname>
++    <refpurpose>8-bit unsigned raw touch data</refpurpose>
++  </refnamediv>
++  <refsect1>
++    <title>Description</title>
++
++    <para>This format represents unsigned 8-bit data from a touch
++      controller.</para>
++
++    <para>This may be used for output for raw and reference data. Values may
++      range from 0 to 255.</para>
++
++    <example>
++      <title><constant>V4L2_TCH_FMT_TU08</constant> 4 &times; 4
++        node matrix</title>
++
++      <formalpara>
++        <title>Byte Order.</title>
++        <para>Each cell is one byte.
++          <informaltable frame="none">
++            <tgroup cols="5" align="center">
++              <colspec align="left" colwidth="2*" />
++              <tbody valign="top">
++                <row>
++                  <entry>start&nbsp;+&nbsp;0:</entry>
++                  <entry>R'<subscript>00</subscript></entry>
++                  <entry>R'<subscript>01</subscript></entry>
++                  <entry>R'<subscript>02</subscript></entry>
++                  <entry>R'<subscript>03</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;4:</entry>
++                  <entry>R'<subscript>10</subscript></entry>
++                  <entry>R'<subscript>11</subscript></entry>
++                  <entry>R'<subscript>12</subscript></entry>
++                  <entry>R'<subscript>13</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;8:</entry>
++                  <entry>R'<subscript>20</subscript></entry>
++                  <entry>R'<subscript>21</subscript></entry>
++                  <entry>R'<subscript>22</subscript></entry>
++                  <entry>R'<subscript>23</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;12:</entry>
++                  <entry>R'<subscript>30</subscript></entry>
++                  <entry>R'<subscript>31</subscript></entry>
++                  <entry>R'<subscript>32</subscript></entry>
++                  <entry>R'<subscript>33</subscript></entry>
++                </row>
++              </tbody>
++            </tgroup>
++          </informaltable>
++        </para>
++      </formalpara>
++
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-tch-tu16.xml b/Documentation/DocBook/media/v4l/pixfmt-tch-tu16.xml
+new file mode 100644
+index 0000000..2db69af
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-tch-tu16.xml
+@@ -0,0 +1,81 @@
++<refentry id="V4L2-TCH-FMT-TU16">
++  <refmeta>
++    <refentrytitle>V4L2_TCH_FMT_TU16 ('TU16')</refentrytitle>
++    &manvol;
++  </refmeta>
++  <refnamediv>
++    <refname><constant>V4L2_TCH_FMT_TU16</constant></refname>
++    <refpurpose>16-bit unsigned raw touch data</refpurpose>
++  </refnamediv>
++  <refsect1>
++    <title>Description</title>
++
++    <para>This format represents unsigned 16-bit data from a touch
++      controller.</para>
++
++    <para>This may be used for output for raw and reference data. Values may
++      range from 0 to 65535.</para>
++
++    <example>
++      <title><constant>V4L2_TCH_FMT_TU16</constant> 4 &times; 4
++        node matrix</title>
++
++      <formalpara>
++        <title>Byte Order.</title>
++        <para>Each cell is one byte.
++          <informaltable frame="none">
++            <tgroup cols="9" align="center">
++              <colspec align="left" colwidth="2*" />
++              <tbody valign="top">
++                <row>
++                  <entry>start&nbsp;+&nbsp;0:</entry>
++                  <entry>R'<subscript>00low</subscript></entry>
++                  <entry>R'<subscript>00high</subscript></entry>
++                  <entry>R'<subscript>01low</subscript></entry>
++                  <entry>R'<subscript>01high</subscript></entry>
++                  <entry>R'<subscript>02low</subscript></entry>
++                  <entry>R'<subscript>02high</subscript></entry>
++                  <entry>R'<subscript>03low</subscript></entry>
++                  <entry>R'<subscript>03high</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;8:</entry>
++                  <entry>R'<subscript>10low</subscript></entry>
++                  <entry>R'<subscript>10high</subscript></entry>
++                  <entry>R'<subscript>11low</subscript></entry>
++                  <entry>R'<subscript>11high</subscript></entry>
++                  <entry>R'<subscript>12low</subscript></entry>
++                  <entry>R'<subscript>12high</subscript></entry>
++                  <entry>R'<subscript>13low</subscript></entry>
++                  <entry>R'<subscript>13high</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;16:</entry>
++                  <entry>R'<subscript>20low</subscript></entry>
++                  <entry>R'<subscript>20high</subscript></entry>
++                  <entry>R'<subscript>21low</subscript></entry>
++                  <entry>R'<subscript>21high</subscript></entry>
++                  <entry>R'<subscript>22low</subscript></entry>
++                  <entry>R'<subscript>22high</subscript></entry>
++                  <entry>R'<subscript>23low</subscript></entry>
++                  <entry>R'<subscript>23high</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;24:</entry>
++                  <entry>R'<subscript>30low</subscript></entry>
++                  <entry>R'<subscript>30high</subscript></entry>
++                  <entry>R'<subscript>31low</subscript></entry>
++                  <entry>R'<subscript>31high</subscript></entry>
++                  <entry>R'<subscript>32low</subscript></entry>
++                  <entry>R'<subscript>32high</subscript></entry>
++                  <entry>R'<subscript>33low</subscript></entry>
++                  <entry>R'<subscript>33high</subscript></entry>
++                </row>
++              </tbody>
++            </tgroup>
++          </informaltable>
++        </para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 5a08aee..509248a 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -1754,6 +1754,19 @@ interface only.</para>
  
-> > +be dedicated to metadata or can implement both video and metadata capture
-> > +as specified in its reported capabilities.
-> > +  </para>
-> > +
-> > +  <section>
-> > +    <title>Querying Capabilities</title>
-> > +
-> > +    <para>
-> > +Devices supporting the metadata interface set the
-> > +<constant>V4L2_CAP_META_CAPTURE</constant> flag in the
-> > +<structfield>capabilities</structfield> field of &v4l2-capability;
-> > +returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device can
-> > +capture metadata to memory.
-> > +    </para>
-> 
-> I know this is a copy and paste from the other interface descriptions, but
-> it is rather outdated. I would write this instead:
-> 
->  <para>
-> Device nodes supporting the metadata interface set the
-> <constant>V4L2_CAP_META_CAPTURE</constant> flag in the
-> <structfield>device_caps</structfield> field of &v4l2-capability;
-> returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device node can
-> capture metadata to memory.
->  </para>
-
-Will be fixed in the next version.
+   </section>
  
-> Any driver using this will be recent and always have a valid device_caps
-> field (which, as you know, didn't exist in old kernels).
-> 
-> I find the capabilities field fairly useless in most cases due to the fact
-> that it contains the capabilities of all device nodes created by the device
-> driver.
-
-I agree.
-
-> > +    <para>
-> > +At least one of the read/write or streaming I/O methods must be
-> > supported.
-> > +    </para>
-> > +  </section>
-> > +
-> > +  <section>
-> > +    <title>Data Format Negotiation</title>
-> > +
-> > +    <para>
-> > +The metadata device uses the <link linkend="format">format</link> ioctls
-> > to +select the capture format. The metadata buffer content format is
-> > bound to that +selectable format. In addition to the basic
-> > +<link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
-> > +must be supported as well.
-> > +    </para>
-> > +
-> > +    <para>
-> > +To use the <link linkend="format">format</link> ioctls applications set
-> > the +<structfield>type</structfield> field of a &v4l2-format; to
-> > +<constant>V4L2_BUF_TYPE_META_CAPTURE</constant> and use the
-> > &v4l2-meta-format; +<structfield>meta</structfield> member of the
-> > <structfield>fmt</structfield> +union as needed per the desired
-> > operation.
-> > +Currently there are two fields, <structfield>dataformat</structfield> and
-> > +<structfield>buffersize</structfield>, of struct &v4l2-meta-format; that
-> > are +used. Content of the <structfield>dataformat</structfield> is the
-> > V4L2 FourCC +code of the data format. The
-> > <structfield>buffersize</structfield> field is the +maximum buffer size
-> > in bytes required for data transfer, set by the driver in +order to
-> > inform applications.
-> 
-> Should it be mentioned here that changing the video format might change the
-> buffersize? In case the buffersize is always a multiple of the width?
-
-I'll reply to Sakari's mail further down in this thread about this.
-
-> > +    </para>
-> > +
-> > +    <table pgwide="1" frame="none" id="v4l2-meta-format">
-> > +      <title>struct <structname>v4l2_meta_format</structname></title>
-> > +      <tgroup cols="3">
-> > +        &cs-str;
-> > +        <tbody valign="top">
-> > +          <row>
-> > +            <entry>__u32</entry>
-> > +            <entry><structfield>dataformat</structfield></entry>
-> > +            <entry>
-> > +The data format, set by the application. This is a little endian
-> > +<link linkend="v4l2-fourcc">four character code</link>.
-> > +V4L2 defines metadata formats in <xref linkend="meta-formats" />.
-> > +           </entry>
-> > +          </row>
-> > +          <row>
-> > +            <entry>__u32</entry>
-> > +            <entry><structfield>buffersize</structfield></entry>
-> > +            <entry>
-> > +Maximum size in bytes required for data. Value is set by the driver.
-> > +           </entry>
-> > +          </row>
-> > +          <row>
-> > +            <entry>__u8</entry>
-> > +            <entry><structfield>reserved[24]</structfield></entry>
-> > +            <entry>This array is reserved for future extensions.
-> > +Drivers and applications must set it to zero.</entry>
-> > +          </row>
-> > +        </tbody>
-> > +      </tgroup>
-> > +    </table>
-> > +
-> > +  </section>
-
-[snip]
-
-> > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
-> > b/drivers/media/v4l2-core/v4l2-ioctl.c index 28e5be2c2eef..5d003152ff68
-> > 100644
-> > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-
-[snip]
-
-> > @@ -1534,6 +1558,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops
-> > *ops,
-> >  			break;
-> >  		CLEAR_AFTER_FIELD(p, fmt.sdr);
-> >  		return ops->vidioc_s_fmt_sdr_out(file, fh, arg);
-> > +	case V4L2_BUF_TYPE_META_CAPTURE:
-> > +		if (unlikely(!is_rx || !is_vid ||
-> > !ops->vidioc_s_fmt_meta_cap))
-> > +			break;
-> > +		CLEAR_AFTER_FIELD(p, fmt.meta);
-> 
-> I would suggest using "CLEAR_FROM_FIELD(p, fmt.meta.reserved)" here. Of
-> course, you'd need to add a new CLEAR_FROM_FIELD macro for this.
-> 
-> I think this also should be used for the SDR_CAPTURE/OUTPUT types and
-> possibly for other types as well (can be done later of course).
-> 
-> This would also zero the reserved field, so drivers don't need to care about
-> it.
-
-Will be fixed in the next version (in v4l_g_fmt() too).
-
-> > +		return ops->vidioc_s_fmt_meta_cap(file, fh, arg);
-> >  	}
-> >  	return -EINVAL;
-> >  }
-
++  <section id="tch-formats">
++    <title>Touch Formats</title>
++
++    <para>These formats are used for <link linkend="touch">Touch Sensor</link>
++interface only.</para>
++
++    &sub-tch-td16;
++    &sub-tch-td08;
++    &sub-tch-tu16;
++    &sub-tch-tu08;
++
++  </section>
++
+   <section id="pixfmt-reserved">
+     <title>Reserved Format Identifiers</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 42e626d..b577de2 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -605,6 +605,7 @@ and discussions on the V4L mailing list.</revremark>
+     <section id="radio"> &sub-dev-radio; </section>
+     <section id="rds"> &sub-dev-rds; </section>
+     <section id="sdr"> &sub-dev-sdr; </section>
++    <section id="touch"> &sub-dev-touch; </section>
+     <section id="event"> &sub-dev-event; </section>
+     <section id="subdev"> &sub-dev-subdev; </section>
+   </chapter>
 -- 
-Regards,
-
-Laurent Pinchart
+2.5.0
 
