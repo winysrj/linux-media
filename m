@@ -1,70 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:48954 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754214AbcFGP4N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jun 2016 11:56:13 -0400
-Date: Tue, 7 Jun 2016 12:56:01 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Abylay Ospan <aospan@netup.ru>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL] NetUP Universal DVB (revision 1.4)
-Message-ID: <20160607125601.1b1d814b@recife.lan>
-In-Reply-To: <CAK3bHNW3sAMPknsM9_VORN=Rh0scuNMoJ3qhZKwcoK-hC_Sj4Q@mail.gmail.com>
-References: <CAK3bHNUPOORumndTHSQyLa0OAnE1Ob4SLR=CoLZMbi5C-P4e4w@mail.gmail.com>
-	<20160607122140.25a5c1c0@recife.lan>
-	<CAK3bHNW3sAMPknsM9_VORN=Rh0scuNMoJ3qhZKwcoK-hC_Sj4Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from resqmta-po-09v.sys.comcast.net ([96.114.154.168]:57501 "EHLO
+	resqmta-po-09v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751487AbcF3VfG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jun 2016 17:35:06 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: kyungmin.park@samsung.com, k.debski@samsung.com,
+	jtp.park@samsung.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+	javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [RFC PATCH] media: s5p-mfc - remove vidioc_g_crop
+Date: Thu, 30 Jun 2016 15:35:02 -0600
+Message-Id: <1467322502-11180-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 07 Jun 2016 11:37:27 -0400
-Abylay Ospan <aospan@netup.ru> escreveu:
+Remove vidioc_g_crop() from s5p-mfc decoder. Without its s_crop counterpart
+g_crop is not useful. Delete it.
 
-> Hi Mauro,
-> 
-> Please find MAINTAINERs update on the same repository:
-> https://github.com/aospan/linux-netup-1.4/commit/4d8465b74fc6614d9093f595e69a0517a2a5c3f8
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 42 ----------------------------
+ 1 file changed, 42 deletions(-)
 
-Added. Next time, please send it as a patch to the ML.
-
-Thanks,
-Mauro
-
-> 
-> thanks !
-> 
-> 
-> 2016-06-07 11:21 GMT-04:00 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
-> 
-> > Em Mon, 16 May 2016 11:58:15 -0400
-> > Abylay Ospan <aospan@netup.ru> escreveu:
-> >  
-> > > Hi Mauro,
-> > >
-> > > Please pull code from my repository (details below). Repository is
-> > > based on linux-next. If it's better to send patch-by-patch basis
-> > > please let me know - i will prepare emails.
-> > >
-> > > This patches adding support for our NetUP Universal DVB card revision
-> > > 1.4 (ISDB-T added to this revision). This achieved by using new Sony
-> > > tuner HELENE (CXD2858ER) and new Sony demodulator ARTEMIS (CXD2854ER).
-> > > And other fixes for our cards in this repository too.  
-> >
-> > Patches applied.
-> >
-> > Please send a patch adding an entry for the new HELENE tuner driver at
-> > MAINTAINERS.
-> >
-> > Regards,
-> > Mauro
-> >  
-> 
-> 
-> 
-
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index a01a373..ee7b189 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -766,47 +766,6 @@ static const struct v4l2_ctrl_ops s5p_mfc_dec_ctrl_ops = {
+ 	.g_volatile_ctrl = s5p_mfc_dec_g_v_ctrl,
+ };
+ 
+-/* Get cropping information */
+-static int vidioc_g_crop(struct file *file, void *priv,
+-		struct v4l2_crop *cr)
+-{
+-	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
+-	struct s5p_mfc_dev *dev = ctx->dev;
+-	u32 left, right, top, bottom;
+-
+-	if (ctx->state != MFCINST_HEAD_PARSED &&
+-	ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
+-					&& ctx->state != MFCINST_FINISHED) {
+-			mfc_err("Cannont set crop\n");
+-			return -EINVAL;
+-		}
+-	if (ctx->src_fmt->fourcc == V4L2_PIX_FMT_H264) {
+-		left = s5p_mfc_hw_call(dev->mfc_ops, get_crop_info_h, ctx);
+-		right = left >> S5P_FIMV_SHARED_CROP_RIGHT_SHIFT;
+-		left = left & S5P_FIMV_SHARED_CROP_LEFT_MASK;
+-		top = s5p_mfc_hw_call(dev->mfc_ops, get_crop_info_v, ctx);
+-		bottom = top >> S5P_FIMV_SHARED_CROP_BOTTOM_SHIFT;
+-		top = top & S5P_FIMV_SHARED_CROP_TOP_MASK;
+-		cr->c.left = left;
+-		cr->c.top = top;
+-		cr->c.width = ctx->img_width - left - right;
+-		cr->c.height = ctx->img_height - top - bottom;
+-		mfc_debug(2, "Cropping info [h264]: l=%d t=%d "
+-			"w=%d h=%d (r=%d b=%d fw=%d fh=%d\n", left, top,
+-			cr->c.width, cr->c.height, right, bottom,
+-			ctx->buf_width, ctx->buf_height);
+-	} else {
+-		cr->c.left = 0;
+-		cr->c.top = 0;
+-		cr->c.width = ctx->img_width;
+-		cr->c.height = ctx->img_height;
+-		mfc_debug(2, "Cropping info: w=%d h=%d fw=%d "
+-			"fh=%d\n", cr->c.width,	cr->c.height, ctx->buf_width,
+-							ctx->buf_height);
+-	}
+-	return 0;
+-}
+-
+ static int vidioc_decoder_cmd(struct file *file, void *priv,
+ 			      struct v4l2_decoder_cmd *cmd)
+ {
+@@ -880,7 +839,6 @@ static const struct v4l2_ioctl_ops s5p_mfc_dec_ioctl_ops = {
+ 	.vidioc_expbuf = vidioc_expbuf,
+ 	.vidioc_streamon = vidioc_streamon,
+ 	.vidioc_streamoff = vidioc_streamoff,
+-	.vidioc_g_crop = vidioc_g_crop,
+ 	.vidioc_decoder_cmd = vidioc_decoder_cmd,
+ 	.vidioc_subscribe_event = vidioc_subscribe_event,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
 -- 
-Thanks,
-Mauro
+2.7.4
+
