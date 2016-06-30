@@ -1,108 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52069 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751644AbcF0LG5 (ORCPT
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:8438 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751916AbcF3Kg2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 07:06:57 -0400
-Subject: Re: [PATCH v5 9/9] Input: sur40 - use new V4L2 touch input type
-To: Nick Dyer <nick.dyer@itdev.co.uk>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>
-References: <1466633313-15339-1-git-send-email-nick.dyer@itdev.co.uk>
- <1466633313-15339-10-git-send-email-nick.dyer@itdev.co.uk>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6bd45515-6c8f-fcd6-32c0-d6110fff49c5@xs4all.nl>
-Date: Mon, 27 Jun 2016 13:06:50 +0200
-MIME-Version: 1.0
-In-Reply-To: <1466633313-15339-10-git-send-email-nick.dyer@itdev.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Thu, 30 Jun 2016 06:36:28 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/2] cec-adap: prevent write to out-of-bounds array index
+Date: Thu, 30 Jun 2016 12:19:33 +0200
+Message-Id: <1467281973-6889-3-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <1467281973-6889-1-git-send-email-hans.verkuil@cisco.com>
+References: <1467281973-6889-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/23/2016 12:08 AM, Nick Dyer wrote:
-> Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
-> ---
->  drivers/input/touchscreen/sur40.c | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-> index 880c40b..841e045 100644
-> --- a/drivers/input/touchscreen/sur40.c
-> +++ b/drivers/input/touchscreen/sur40.c
-> @@ -599,7 +599,7 @@ static int sur40_probe(struct usb_interface *interface,
->  	sur40->vdev.queue = &sur40->queue;
->  	video_set_drvdata(&sur40->vdev, sur40);
->  
-> -	error = video_register_device(&sur40->vdev, VFL_TYPE_GRABBER, -1);
-> +	error = video_register_device(&sur40->vdev, VFL_TYPE_TOUCH, -1);
->  	if (error) {
->  		dev_err(&interface->dev,
->  			"Unable to register video subdevice.");
-> @@ -763,7 +763,7 @@ static int sur40_vidioc_enum_input(struct file *file, void *priv,
->  {
->  	if (i->index != 0)
->  		return -EINVAL;
-> -	i->type = V4L2_INPUT_TYPE_CAMERA;
-> +	i->type = V4L2_INPUT_TYPE_TOUCH;
->  	i->std = V4L2_STD_UNKNOWN;
->  	strlcpy(i->name, "In-Cell Sensor", sizeof(i->name));
->  	i->capabilities = 0;
-> @@ -794,7 +794,7 @@ static int sur40_vidioc_enum_fmt(struct file *file, void *priv,
->  	if (f->index != 0)
->  		return -EINVAL;
->  	strlcpy(f->description, "8-bit greyscale", sizeof(f->description));
-> -	f->pixelformat = V4L2_PIX_FMT_GREY;
-> +	f->pixelformat = V4L2_TCH_FMT_TU08;
+CEC_MSG_REPORT_PHYSICAL_ADDR can theoretically be received from
+an unregistered device, but in that case the code should not attempt
+to write the received physical address to the phys_addrs array.
 
-I suggest supporting both formats, with a note that support for GREY is needed for
-backwards compatibility reasons.
+That would be pointless since there can be multiple unregistered
+devices that report a physical address. We just ignore those.
 
-Regards,
+While at it, improve the dprintk since it would attempt to read
+from that array as well with the same out-of-bounds problem.
 
-	Hans
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+ drivers/staging/media/cec/cec-adap.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
->  	f->flags = 0;
->  	return 0;
->  }
-> @@ -802,7 +802,7 @@ static int sur40_vidioc_enum_fmt(struct file *file, void *priv,
->  static int sur40_vidioc_enum_framesizes(struct file *file, void *priv,
->  					struct v4l2_frmsizeenum *f)
->  {
-> -	if ((f->index != 0) || (f->pixel_format != V4L2_PIX_FMT_GREY))
-> +	if ((f->index != 0) || (f->pixel_format != V4L2_TCH_FMT_TU08))
->  		return -EINVAL;
->  
->  	f->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-> @@ -814,7 +814,7 @@ static int sur40_vidioc_enum_framesizes(struct file *file, void *priv,
->  static int sur40_vidioc_enum_frameintervals(struct file *file, void *priv,
->  					    struct v4l2_frmivalenum *f)
->  {
-> -	if ((f->index > 1) || (f->pixel_format != V4L2_PIX_FMT_GREY)
-> +	if ((f->index > 1) || (f->pixel_format != V4L2_TCH_FMT_TU08)
->  		|| (f->width  != sur40_video_format.width)
->  		|| (f->height != sur40_video_format.height))
->  			return -EINVAL;
-> @@ -903,7 +903,7 @@ static const struct video_device sur40_video_device = {
->  };
->  
->  static const struct v4l2_pix_format sur40_video_format = {
-> -	.pixelformat = V4L2_PIX_FMT_GREY,
-> +	.pixelformat = V4L2_TCH_FMT_TU08,
->  	.width  = SENSOR_RES_X / 2,
->  	.height = SENSOR_RES_Y / 2,
->  	.field = V4L2_FIELD_NONE,
-> 
+diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
+index 98bdcf9..307af43 100644
+--- a/drivers/staging/media/cec/cec-adap.c
++++ b/drivers/staging/media/cec/cec-adap.c
+@@ -1442,12 +1442,15 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
+ 
+ 	switch (msg->msg[1]) {
+ 	/* The following messages are processed but still passed through */
+-	case CEC_MSG_REPORT_PHYSICAL_ADDR:
+-		adap->phys_addrs[init_laddr] =
+-			(msg->msg[2] << 8) | msg->msg[3];
+-		dprintk(1, "Reported physical address %04x for logical address %d\n",
+-			adap->phys_addrs[init_laddr], init_laddr);
++	case CEC_MSG_REPORT_PHYSICAL_ADDR: {
++		u16 pa = (msg->msg[2] << 8) | msg->msg[3];
++
++		if (!from_unregistered)
++			adap->phys_addrs[init_laddr] = pa;
++		dprintk(1, "Reported physical address %x.%x.%x.%x for logical address %d\n",
++			cec_phys_addr_exp(pa), init_laddr);
+ 		break;
++	}
+ 
+ 	case CEC_MSG_USER_CONTROL_PRESSED:
+ 		if (!(adap->capabilities & CEC_CAP_RC))
+-- 
+2.7.0
+
