@@ -1,91 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36558 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750809AbcFWRvR (ORCPT
+Received: from mail-vk0-f52.google.com ([209.85.213.52]:35834 "EHLO
+	mail-vk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751432AbcF3N4S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jun 2016 13:51:17 -0400
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: [RESEND PATCH v2 0/5] ir-rx51 driver fixes
-Date: Thu, 23 Jun 2016 19:51:12 +0200
-Cc: robh+dt@kernel.org, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org, pavel@ucw.cz
-References: <1466623341-30130-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-In-Reply-To: <1466623341-30130-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+	Thu, 30 Jun 2016 09:56:18 -0400
+Received: by mail-vk0-f52.google.com with SMTP id u68so67834946vkf.2
+        for <linux-media@vger.kernel.org>; Thu, 30 Jun 2016 06:55:26 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1798920.5QaCsbmn86";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Message-Id: <201606231951.12788@pali>
+In-Reply-To: <790b5e1664c84e806a13143eff1c79b95fb4bf63.1467240152.git.mchehab@s-opensource.com>
+References: <0003e025f7664aae1500f084bbd6f7aa5d92d47f.1467240152.git.mchehab@s-opensource.com>
+ <790b5e1664c84e806a13143eff1c79b95fb4bf63.1467240152.git.mchehab@s-opensource.com>
+From: Steven Toth <stoth@kernellabs.com>
+Date: Thu, 30 Jun 2016 09:48:30 -0400
+Message-ID: <CALzAhNUdS_aQ+gTHAJ02whAuUcOOpTpJUo33NK7FWYx_EmgSjQ@mail.gmail.com>
+Subject: Re: [PATCH 08/10] dvb_frontend: create a new ops to help returning
+ signals in dB
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Michael Ira Krufky <mkrufky@linuxtv.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---nextPart1798920.5QaCsbmn86
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+> add a new ops that will allow tuners to better report the
+> dB level of its AGC logic to the demod drivers. As the maximum
+> gain may vary from tuner to tuner, we'll be reversing the
+> logic here: instead of reporting the gain, let's report the
+> attenuation. This way, converting from it to the legacy DVBv3
+> way is trivial. It is also easy to adjust the level of
+> the received signal to dBm, as it is just a matter of adding
+> an offset at the demod and/or at the bridge driver.
 
-On Wednesday 22 June 2016 21:22:16 Ivaylo Dimitrov wrote:
-> ir-rx51 is a driver for Nokia N900 IR transmitter. The current series
-> fixes the remaining problems in the driver:
->=20
->  - replace GP timer 9 with PWM framework usage
->  - replace pulse width timer dmtimer usage with hrtimer
->  - add DT support to the driver
->  - add driver to the board DTS
->=20
-> Patch 2 is needed so the driver to function correctly, without it PWM
-> refuses to set the needed carrier frequency.
->=20
-> Changes compared to v1:
->  - removed [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime
->    functions when not needed.
->  - DT compatible string changed to "nokia,n900-ir"
->=20
-> Ivaylo Dimitrov (5):
->   ir-rx51: Fix build after multiarch changes broke it
->   pwm: omap-dmtimer: Allow for setting dmtimer clock source
->   ir-rx51: use PWM framework instead of OMAP dmtimer
->   ir-rx51: add DT support to driver
->   ir-rx51: use hrtimer instead of dmtimer
->=20
->  .../devicetree/bindings/media/nokia,n900-ir        |  20 ++
->  .../devicetree/bindings/pwm/pwm-omap-dmtimer.txt   |   4 +
->  arch/arm/mach-omap2/board-rx51-peripherals.c       |   5 -
->  arch/arm/mach-omap2/pdata-quirks.c                 |  10 +-
->  drivers/media/rc/Kconfig                           |   2 +-
->  drivers/media/rc/ir-rx51.c                         | 229
-> +++++++-------------- drivers/pwm/pwm-omap-dmtimer.c               =20
->     |  12 +- include/linux/platform_data/media/ir-rx51.h        | =20
-> 3 -
->  8 files changed, 111 insertions(+), 174 deletions(-)
->  create mode 100644
-> Documentation/devicetree/bindings/media/nokia,n900-ir
+Mauro,
 
-Looks good, you can add my Acked-by.
+Have you verified this work with a detailed spectrum analysis study?
+If so then please share. For example, by measuring the I/F out of
+various tuners in a mix of use cases, with and without the AGC being
+driven by any downstream demodulator? Also, taking into consideration
+any external LNA variance.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+I'm concerned that a tuner AGC Gain is a meaningless measurement and
+in practice demodulators don't actually care, and tuners don't
+implement their gain reporting capabilities correctly at all.
 
---nextPart1798920.5QaCsbmn86
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+This feels like a solution to a problem that doesn't exist.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAldsIZAACgkQi/DJPQPkQ1IRJQCgvnRoCjjA9wOZApFWqdoo27s6
-yM8AoMkGr22EdEV3fCzAxD4ixkuzX8fx
-=tL8L
------END PGP SIGNATURE-----
-
---nextPart1798920.5QaCsbmn86--
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
++1.646.355.8490
