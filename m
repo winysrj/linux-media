@@ -1,140 +1,253 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eumx.net ([91.82.101.43]:39546 "EHLO owm.eumx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754484AbcFTKOz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2016 06:14:55 -0400
-Subject: Re: [19/38] ARM: dts: imx6-sabrelite: add video capture ports and
- connections
-To: Gary Bisson <gary.bisson@boundarydevices.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>
-References: <1465944574-15745-20-git-send-email-steve_longerbeam@mentor.com>
- <20160616083231.GA6548@t450s.lan> <20160617151814.GA16378@t450s.lan>
- <57644915.3010006@gmail.com> <20160620093351.GA24310@t450s.lan>
-Cc: linux-media@vger.kernel.org
-From: Jack Mitchell <ml@embed.me.uk>
-Message-ID: <d9bd2b49-e36b-6082-e31a-99d6c8c70b2c@embed.me.uk>
-Date: Mon, 20 Jun 2016 10:44:44 +0100
-MIME-Version: 1.0
-In-Reply-To: <20160620093351.GA24310@t450s.lan>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:24274 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751669AbcF3IX7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jun 2016 04:23:59 -0400
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, hch@infradead.org,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	linux-doc@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-snps-arc@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org,
+	xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org,
+	linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org,
+	linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+	linux-metag@vger.kernel.org, linux-mips@linux-mips.org,
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-pci@vger.kernel.org,
+	linux-xtensa@linux-xtensa.org, dri-devel@lists.freedesktop.org,
+	linux-samsung-soc@vger.kernel.org,
+	linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
+	freedreno@lists.freedesktop.org, nouveau@lists.freedesktop.org,
+	linux-rockchip@lists.infradead.org, linux-rdma@vger.kernel.org,
+	iommu@lists.linux-foundation.org, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Subject: [PATCH v5 00/44] dma-mapping: Use unsigned long for dma_attrs
+Date: Thu, 30 Jun 2016 10:23:39 +0200
+Message-id: <1467275019-30789-1-git-send-email-k.kozlowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
 
-On 20/06/16 10:33, Gary Bisson wrote:
-> Steve, Jack, All,
->
-> On Fri, Jun 17, 2016 at 12:01:41PM -0700, Steve Longerbeam wrote:
->>
->> On 06/17/2016 08:18 AM, Gary Bisson wrote:
->>> Steve, All,
->>>
->>> On Thu, Jun 16, 2016 at 10:32:31AM +0200, Gary Bisson wrote:
->>>> Steve, All,
->>>>
->>>> On Tue, Jun 14, 2016 at 03:49:15PM -0700, Steve Longerbeam wrote:
->>>>> Defines the host video capture device node and an OV5642 camera sensor
->>>>> node on i2c2. The host capture device connects to the OV5642 via the
->>>>> parallel-bus mux input on the ipu1_csi0_mux.
->>>>>
->>>>> Note there is a pin conflict with GPIO6. This pin functions as a power
->>>>> input pin to the OV5642, but ENET requires it to wake-up the ARM cores
->>>>> on normal RX and TX packet done events (see 6261c4c8). So by default,
->>>>> capture is disabled, enable by uncommenting __OV5642_CAPTURE__ macro.
->>>>> Ethernet will still work just not quite as well.
->>>> Actually the following patch fixes this issue and has already been
->>>> applied on Shawn's tree:
->>>> https://patchwork.kernel.org/patch/9153523/
->>>>
->>>> Also, this follow-up patch declared the HW workaround for SabreLite:
->>>> https://patchwork.kernel.org/patch/9153525/
->>>>
->>>> So ideally, once those two patches land on your base tree, you could get
->>>> rid of the #define and remove the HW workaround declaration.
->>>>
->>>> Finally, I'll test the series on Sabre-Lite this week.
->>> I've applied this series on top of Shawn tree (for-next branch) in order
->>> not to worry about the GPIO6 workaround.
->>>
->>> Although the camera seems to get enumerated properly, I can't seem to
->>> get anything from it. See log:
->>> http://pastebin.com/xnw1ujUq
->>
->> Hi Gary, the driver does not implement vidioc_cropcap, it has
->> switched to the new selection APIs and v4l2src should be using
->> vidioc_g_selection instead of vidioc_cropcap.
->
-> I confirm this was the issue, your patch fixes it.
->
->>> In your cover letter, you said that you have not run through
->>> v4l2-compliance. How have you tested the capture?
->>
->> I use v4l2-ctl, and have used v4l2src in the past, but that was before
->> switching to the selection APIs. Try the attached hack that adds
->> vidioc_cropcap back in, and see how far you get on SabreLite with
->> v4l2src. I tried  the following on SabreAuto:
->>
->> gst-launch-1.0 v4l2src io_mode=4 !
->> "video/x-raw,format=RGB16,width=640,height=480" ! fbdevsink
->
-> I confirm that works with OV5642 on SabreLite:
-> Tested-by: Gary Bisson <gary.bisson@boundarydevices.com>
->
->>> Also, why isn't the OV5640 MIPI camera declared on the SabreLite device
->>> tree?
->>
->> See Jack Mitchell's patch at http://ix.io/TTg. Thanks Jack! I will work on
->> incorporating it.
+This is fifth approach for replacing struct dma_attrs with unsigned
+long.
 
-Hi Gary,
+The main patch (1/44) doing the change is split into many subpatches
+for easier review (2-42).  They should be squashed together when
+applying.
 
->
-> I've tried that patch have a some comments:
-> - When applied, no capture shows up any more, instead I have two m2m
->   v4l2 devices [1].
-> - OV5640 Mipi is assigned the same address as OV5642, therefore both
 
-Yes, I only have one device attached in my scenario.
+Rebased on v4.7-rc5.
 
->   can't work at the same time right now. There's a register in the
->   camera that allows to modify its I2C address, see this patch [2].
-> - How is the mclk working in this patch? It should be using the PWM3
+For easier testing the patchset is available here:
+repo:   https://github.com/krzk/linux
+branch: for-next/dma-attrs-const-v5
 
-As mentioned I have an eCon sensor board [1] which generates it's own 
-clock on the board and as such I don't need the PWM signal, just the two 
-GPIOs.
 
->   output to generate a ~22MHz clock. I would expect the use of a
->   pwm-clock node [3].
->
-> Also another remark on both OV5642 and OV5640 patches, is it recommended
-> to use 0x80000000 pin muxing value? This leaves it to the bootloader to
+Changes since v4
+================
+1. Collect some acks. Still need more.
+2. Minor fixes pointed by Robin Murphy.
+3. Applied changes from Bart Van Assche's comment.
+4. More tests and builds (using https://www.kernel.org/pub/tools/crosstool/).
 
-I also wondered about this, but didn't know if the pinmux driver did 
-this based on the define name? I tried it both ways and it worked so I 
-just left it as it was.
 
-Cheers,
-Jack.
+Changes since v3
+================
+1. Collect some acks.
+2. Drop wrong patch 1/45 ("powerpc: dma-mapping: Don't hard-code
+   the value of DMA_ATTR_WEAK_ORDERING").
+3. Minor fix pointed out by Michael Ellerman.
 
-[1] https://www.e-consystems.com/iMX6-MIPI-Camera-Board.asp
 
-> properly setup the I/O. It sounds safer to properly set them up in the
-> device tree in my opinion in order not to be dependent on the bootloader.
->
-> All the above remarks said, thanks for this work on i.MX camera support,
-> that feature will be highly appreciated.
->
-> Regards,
-> Gary
->
-> [1] http://pastebin.com/i5MrhB1h
-> [2] https://github.com/boundarydevices/linux-imx6/commit/f915806d
-> [3] http://lxr.free-electrons.com/source/Documentation/devicetree/bindings/clock/pwm-clock.txt
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Changes since v2
+================
+1. Follow Christoph Hellwig's comments (don't use BIT add
+   documentation, remove dma_get_attr).
+
+
+Rationale
+=========
+The dma-mapping core and the implementations do not change the
+DMA attributes passed by pointer.  Thus the pointer can point to const
+data.  However the attributes do not have to be a bitfield. Instead
+unsigned long will do fine:
+
+1. This is just simpler.  Both in terms of reading the code and setting
+   attributes.  Instead of initializing local attributes on the stack
+   and passing pointer to it to dma_set_attr(), just set the bits.
+
+2. It brings safeness and checking for const correctness because the
+   attributes are passed by value.
+
+
+Best regards,
+Krzysztof
+
+
+Krzysztof Kozlowski (44):
+  dma-mapping: Use unsigned long for dma_attrs
+  alpha: dma-mapping: Use unsigned long for dma_attrs
+  arc: dma-mapping: Use unsigned long for dma_attrs
+  ARM: dma-mapping: Use unsigned long for dma_attrs
+  arm64: dma-mapping: Use unsigned long for dma_attrs
+  avr32: dma-mapping: Use unsigned long for dma_attrs
+  blackfin: dma-mapping: Use unsigned long for dma_attrs
+  c6x: dma-mapping: Use unsigned long for dma_attrs
+  cris: dma-mapping: Use unsigned long for dma_attrs
+  frv: dma-mapping: Use unsigned long for dma_attrs
+  drm/exynos: dma-mapping: Use unsigned long for dma_attrs
+  drm/mediatek: dma-mapping: Use unsigned long for dma_attrs
+  drm/msm: dma-mapping: Use unsigned long for dma_attrs
+  drm/nouveau: dma-mapping: Use unsigned long for dma_attrs
+  drm/rockship: dma-mapping: Use unsigned long for dma_attrs
+  infiniband: dma-mapping: Use unsigned long for dma_attrs
+  iommu: dma-mapping: Use unsigned long for dma_attrs
+  [media] dma-mapping: Use unsigned long for dma_attrs
+  xen: dma-mapping: Use unsigned long for dma_attrs
+  swiotlb: dma-mapping: Use unsigned long for dma_attrs
+  powerpc: dma-mapping: Use unsigned long for dma_attrs
+  video: dma-mapping: Use unsigned long for dma_attrs
+  x86: dma-mapping: Use unsigned long for dma_attrs
+  iommu: intel: dma-mapping: Use unsigned long for dma_attrs
+  h8300: dma-mapping: Use unsigned long for dma_attrs
+  hexagon: dma-mapping: Use unsigned long for dma_attrs
+  ia64: dma-mapping: Use unsigned long for dma_attrs
+  m68k: dma-mapping: Use unsigned long for dma_attrs
+  metag: dma-mapping: Use unsigned long for dma_attrs
+  microblaze: dma-mapping: Use unsigned long for dma_attrs
+  mips: dma-mapping: Use unsigned long for dma_attrs
+  mn10300: dma-mapping: Use unsigned long for dma_attrs
+  nios2: dma-mapping: Use unsigned long for dma_attrs
+  openrisc: dma-mapping: Use unsigned long for dma_attrs
+  parisc: dma-mapping: Use unsigned long for dma_attrs
+  misc: mic: dma-mapping: Use unsigned long for dma_attrs
+  s390: dma-mapping: Use unsigned long for dma_attrs
+  sh: dma-mapping: Use unsigned long for dma_attrs
+  sparc: dma-mapping: Use unsigned long for dma_attrs
+  tile: dma-mapping: Use unsigned long for dma_attrs
+  unicore32: dma-mapping: Use unsigned long for dma_attrs
+  xtensa: dma-mapping: Use unsigned long for dma_attrs
+  dma-mapping: Remove dma_get_attr
+  dma-mapping: Document the DMA attributes next to the declaration
+
+ Documentation/DMA-API.txt                          |  33 +++---
+ Documentation/DMA-attributes.txt                   |   2 +-
+ arch/alpha/include/asm/dma-mapping.h               |   2 -
+ arch/alpha/kernel/pci-noop.c                       |   2 +-
+ arch/alpha/kernel/pci_iommu.c                      |  12 +-
+ arch/arc/mm/dma.c                                  |  12 +-
+ arch/arm/common/dmabounce.c                        |   4 +-
+ arch/arm/include/asm/dma-mapping.h                 |  13 +--
+ arch/arm/include/asm/xen/page-coherent.h           |  16 +--
+ arch/arm/mm/dma-mapping.c                          | 117 +++++++++----------
+ arch/arm/xen/mm.c                                  |   8 +-
+ arch/arm64/mm/dma-mapping.c                        |  66 +++++------
+ arch/avr32/mm/dma-coherent.c                       |  12 +-
+ arch/blackfin/kernel/dma-mapping.c                 |   8 +-
+ arch/c6x/include/asm/dma-mapping.h                 |   4 +-
+ arch/c6x/kernel/dma.c                              |   9 +-
+ arch/c6x/mm/dma-coherent.c                         |   4 +-
+ arch/cris/arch-v32/drivers/pci/dma.c               |   9 +-
+ arch/frv/mb93090-mb00/pci-dma-nommu.c              |   8 +-
+ arch/frv/mb93090-mb00/pci-dma.c                    |   9 +-
+ arch/h8300/kernel/dma.c                            |   8 +-
+ arch/hexagon/include/asm/dma-mapping.h             |   1 -
+ arch/hexagon/kernel/dma.c                          |   8 +-
+ arch/ia64/hp/common/sba_iommu.c                    |  22 ++--
+ arch/ia64/include/asm/machvec.h                    |   1 -
+ arch/ia64/kernel/pci-swiotlb.c                     |   4 +-
+ arch/ia64/sn/pci/pci_dma.c                         |  22 ++--
+ arch/m68k/kernel/dma.c                             |  12 +-
+ arch/metag/kernel/dma.c                            |  16 +--
+ arch/microblaze/include/asm/dma-mapping.h          |   1 -
+ arch/microblaze/kernel/dma.c                       |  12 +-
+ arch/mips/cavium-octeon/dma-octeon.c               |   8 +-
+ arch/mips/loongson64/common/dma-swiotlb.c          |  10 +-
+ arch/mips/mm/dma-default.c                         |  20 ++--
+ arch/mips/netlogic/common/nlm-dma.c                |   4 +-
+ arch/mn10300/mm/dma-alloc.c                        |   8 +-
+ arch/nios2/mm/dma-mapping.c                        |  12 +-
+ arch/openrisc/kernel/dma.c                         |  21 ++--
+ arch/parisc/kernel/pci-dma.c                       |  18 +--
+ arch/powerpc/include/asm/dma-mapping.h             |   7 +-
+ arch/powerpc/include/asm/iommu.h                   |  10 +-
+ arch/powerpc/kernel/dma-iommu.c                    |  12 +-
+ arch/powerpc/kernel/dma.c                          |  18 +--
+ arch/powerpc/kernel/ibmebus.c                      |  12 +-
+ arch/powerpc/kernel/iommu.c                        |  12 +-
+ arch/powerpc/kernel/vio.c                          |  12 +-
+ arch/powerpc/platforms/cell/iommu.c                |  28 ++---
+ arch/powerpc/platforms/pasemi/iommu.c              |   2 +-
+ arch/powerpc/platforms/powernv/npu-dma.c           |   8 +-
+ arch/powerpc/platforms/powernv/pci-ioda.c          |   4 +-
+ arch/powerpc/platforms/powernv/pci.c               |   2 +-
+ arch/powerpc/platforms/powernv/pci.h               |   2 +-
+ arch/powerpc/platforms/ps3/system-bus.c            |  18 +--
+ arch/powerpc/platforms/pseries/iommu.c             |   6 +-
+ arch/powerpc/sysdev/dart_iommu.c                   |   2 +-
+ arch/s390/include/asm/dma-mapping.h                |   1 -
+ arch/s390/pci/pci_dma.c                            |  23 ++--
+ arch/sh/include/asm/dma-mapping.h                  |   4 +-
+ arch/sh/kernel/dma-nommu.c                         |   4 +-
+ arch/sh/mm/consistent.c                            |   4 +-
+ arch/sparc/kernel/iommu.c                          |  12 +-
+ arch/sparc/kernel/ioport.c                         |  24 ++--
+ arch/sparc/kernel/pci_sun4v.c                      |  12 +-
+ arch/tile/kernel/pci-dma.c                         |  28 ++---
+ arch/unicore32/mm/dma-swiotlb.c                    |   4 +-
+ arch/x86/include/asm/dma-mapping.h                 |   5 +-
+ arch/x86/include/asm/swiotlb.h                     |   4 +-
+ arch/x86/include/asm/xen/page-coherent.h           |   9 +-
+ arch/x86/kernel/amd_gart_64.c                      |  20 ++--
+ arch/x86/kernel/pci-calgary_64.c                   |  14 +--
+ arch/x86/kernel/pci-dma.c                          |   4 +-
+ arch/x86/kernel/pci-nommu.c                        |   4 +-
+ arch/x86/kernel/pci-swiotlb.c                      |   4 +-
+ arch/x86/pci/sta2x11-fixup.c                       |   2 +-
+ arch/x86/pci/vmd.c                                 |  16 +--
+ arch/xtensa/kernel/pci-dma.c                       |  12 +-
+ drivers/gpu/drm/exynos/exynos_drm_fbdev.c          |   2 +-
+ drivers/gpu/drm/exynos/exynos_drm_g2d.c            |  12 +-
+ drivers/gpu/drm/exynos/exynos_drm_gem.c            |  20 ++--
+ drivers/gpu/drm/exynos/exynos_drm_gem.h            |   2 +-
+ drivers/gpu/drm/mediatek/mtk_drm_gem.c             |  13 +--
+ drivers/gpu/drm/mediatek/mtk_drm_gem.h             |   2 +-
+ drivers/gpu/drm/msm/msm_drv.c                      |  13 +--
+ .../gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c    |  13 +--
+ drivers/gpu/drm/rockchip/rockchip_drm_gem.c        |  17 ++-
+ drivers/gpu/drm/rockchip/rockchip_drm_gem.h        |   2 +-
+ drivers/infiniband/core/umem.c                     |   7 +-
+ drivers/iommu/amd_iommu.c                          |  12 +-
+ drivers/iommu/dma-iommu.c                          |   8 +-
+ drivers/iommu/intel-iommu.c                        |  12 +-
+ drivers/media/platform/sti/bdisp/bdisp-hw.c        |  26 ++---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c     |  30 ++---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c         |  19 +--
+ drivers/misc/mic/host/mic_boot.c                   |  20 ++--
+ drivers/parisc/ccio-dma.c                          |  16 +--
+ drivers/parisc/sba_iommu.c                         |  16 +--
+ drivers/video/fbdev/omap2/omapfb/omapfb-main.c     |  12 +-
+ drivers/video/fbdev/omap2/omapfb/omapfb.h          |   3 +-
+ drivers/xen/swiotlb-xen.c                          |  14 +--
+ include/linux/dma-attrs.h                          |  71 ------------
+ include/linux/dma-iommu.h                          |   6 +-
+ include/linux/dma-mapping.h                        | 128 ++++++++++++++-------
+ include/linux/swiotlb.h                            |  10 +-
+ include/media/videobuf2-dma-contig.h               |   7 +-
+ include/rdma/ib_verbs.h                            |   8 +-
+ include/xen/swiotlb-xen.h                          |  12 +-
+ lib/dma-noop.c                                     |   9 +-
+ lib/swiotlb.c                                      |  13 ++-
+ 108 files changed, 689 insertions(+), 789 deletions(-)
+ delete mode 100644 include/linux/dma-attrs.h
+
+-- 
+1.9.1
+
