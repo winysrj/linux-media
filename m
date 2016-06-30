@@ -1,69 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:55880 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932570AbcFJKWb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2016 06:22:31 -0400
-Date: Fri, 10 Jun 2016 03:22:26 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org, pali.rohar@gmail.com
-Subject: Re: [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime functions
- when not needed.
-Message-ID: <20160610102225.GS22406@atomide.com>
-References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160509193624.GH5995@atomide.com>
- <5730F840.3050807@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5730F840.3050807@gmail.com>
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:40367 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752614AbcF3Rqw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jun 2016 13:46:52 -0400
+From: Nick Dyer <nick@shmanahar.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	jon.older@itdev.co.uk, nick.dyer@itdev.co.uk,
+	Nick Dyer <nick@shmanahar.org>
+Subject: [PATCH v6 07/11] Input: atmel_mxt_ts - handle diagnostic data orientation
+Date: Thu, 30 Jun 2016 18:38:50 +0100
+Message-Id: <1467308334-12580-8-git-send-email-nick@shmanahar.org>
+In-Reply-To: <1467308334-12580-1-git-send-email-nick@shmanahar.org>
+References: <1467308334-12580-1-git-send-email-nick@shmanahar.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160509 13:52]:
-> Hi,
-> 
-> On  9.05.2016 22:36, Tony Lindgren wrote:
-> > * Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160507 08:24]:
-> > > once omap_dm_timer_start() is called, which calls omap_dm_timer_enable()
-> > > and thus pm_runtime_get_sync(), it doesn't make sense to call PM runtime
-> > > functions again before omap_dm_timer_stop is called(). Otherwise PM runtime
-> > > functions called in omap_dm_timer_enable/disable lead to long and unneeded
-> > > delays.
-> > > 
-> > > Fix that by implementing an "enabled" counter, so the PM runtime functions
-> > > get called only when really needed.
-> > > 
-> > > Without that patch Nokia N900 IR TX driver (ir-rx51) does not function.
-> > 
-> 
-> Well, I just tested again, with the $subject patch reverted and
-> contradictory to my own words, it worked just fine. I believe the reason is
-> that I did hrtimer "migration" after I did the $subject patch. I was
-> thinking the reason for the slow transmission was PWM dmtimer, but now it
-> turns out it has been the "pulse" dmtimer. So, I think the $subject patch
-> should be dropped.
-> 
-> > We should use pm_runtime for the refcounting though and call PM runtime
-> > unconditionally. Can you try to follow the standard PM runtime usage
-> > like this:
-> > 
-> 
-> It works without that, but on the other hand, I finally have some reference
-> on how PM runtime API should be called :).
+Invert the diagnostic data to match the orientation of the input device.
 
-OK. And I just applied the related dts changes. Please repost the driver
-changes and DT binding doc with Rob's ack to the driver maintainers to
-apply.
+Signed-off-by: Nick Dyer <nick@shmanahar.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
-Regards,
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index d09ecc3..c35fca0 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -125,6 +125,8 @@ struct t9_range {
+ 
+ /* MXT_TOUCH_MULTI_T9 orient */
+ #define MXT_T9_ORIENT_SWITCH	(1 << 0)
++#define MXT_T9_ORIENT_INVERTX	(1 << 1)
++#define MXT_T9_ORIENT_INVERTY	(1 << 2)
+ 
+ /* MXT_SPT_COMMSCONFIG_T18 */
+ #define MXT_COMMS_CTRL		0
+@@ -158,6 +160,8 @@ struct t37_debug {
+ #define MXT_T100_YRANGE		24
+ 
+ #define MXT_T100_CFG_SWITCHXY	BIT(5)
++#define MXT_T100_CFG_INVERTY	BIT(6)
++#define MXT_T100_CFG_INVERTX	BIT(7)
+ 
+ #define MXT_T100_TCHAUX_VECT	BIT(0)
+ #define MXT_T100_TCHAUX_AMPL	BIT(1)
+@@ -262,6 +266,8 @@ struct mxt_data {
+ 	unsigned int irq;
+ 	unsigned int max_x;
+ 	unsigned int max_y;
++	bool invertx;
++	bool inverty;
+ 	bool xy_switch;
+ 	u8 xsize;
+ 	u8 ysize;
+@@ -1747,6 +1753,8 @@ static int mxt_read_t9_resolution(struct mxt_data *data)
+ 		return error;
+ 
+ 	data->xy_switch = orient & MXT_T9_ORIENT_SWITCH;
++	data->invertx = orient & MXT_T9_ORIENT_INVERTX;
++	data->inverty = orient & MXT_T9_ORIENT_INVERTY;
+ 
+ 	return 0;
+ }
+@@ -1801,6 +1809,8 @@ static int mxt_read_t100_config(struct mxt_data *data)
+ 		return error;
+ 
+ 	data->xy_switch = cfg & MXT_T100_CFG_SWITCHXY;
++	data->invertx = cfg & MXT_T100_CFG_INVERTX;
++	data->inverty = cfg & MXT_T100_CFG_INVERTY;
+ 
+ 	/* allocate aux bytes */
+ 	error =  __mxt_read_reg(client,
+@@ -2145,13 +2155,19 @@ static int mxt_convert_debug_pages(struct mxt_data *data, u16 *outbuf)
+ 	struct mxt_dbg *dbg = &data->dbg;
+ 	unsigned int x = 0;
+ 	unsigned int y = 0;
+-	unsigned int i;
++	unsigned int i, rx, ry;
+ 
+ 	for (i = 0; i < dbg->t37_nodes; i++) {
+-		outbuf[i] = mxt_get_debug_value(data, x, y);
++		/* Handle orientation */
++		rx = data->xy_switch ? y : x;
++		ry = data->xy_switch ? x : y;
++		rx = data->invertx ? (data->xsize - 1 - rx) : rx;
++		ry = data->inverty ? (data->ysize - 1 - ry) : ry;
++
++		outbuf[i] = mxt_get_debug_value(data, rx, ry);
+ 
+ 		/* Next value */
+-		if (++x >= data->xsize) {
++		if (++x >= (data->xy_switch ? data->ysize : data->xsize)) {
+ 			x = 0;
+ 			y++;
+ 		}
+@@ -2306,8 +2322,8 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
+ 	if (i > 0)
+ 		return -EINVAL;
+ 
+-	f->width = data->xsize;
+-	f->height = data->ysize;
++	f->width = data->xy_switch ? data->ysize : data->xsize;
++	f->height = data->xy_switch ? data->xsize : data->ysize;
+ 	f->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
+ 	f->field = V4L2_FIELD_NONE;
+ 	f->colorspace = V4L2_COLORSPACE_RAW;
+-- 
+2.5.0
 
-Tony
