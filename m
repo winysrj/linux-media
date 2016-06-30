@@ -1,125 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53078 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751784AbcF0NcR (ORCPT
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:11520 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751424AbcF3Rvt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2016 09:32:17 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Florian Echtler <floe@butterbrot.org>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Ludovic Desroches <ludovic.desroches@atmel.com>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCHv5 02/13] vb2: add a dev field to use for the default allocation context
-Date: Mon, 27 Jun 2016 15:31:53 +0200
-Message-Id: <1467034324-37626-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
-References: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 30 Jun 2016 13:51:49 -0400
+From: Nick Dyer <nick@shmanahar.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	jon.older@itdev.co.uk, nick.dyer@itdev.co.uk,
+	Nick Dyer <nick@shmanahar.org>
+Subject: [PATCH v6 01/11] Input: atmel_mxt_ts - update MAINTAINERS email address
+Date: Thu, 30 Jun 2016 18:38:44 +0100
+Message-Id: <1467308334-12580-2-git-send-email-nick@shmanahar.org>
+In-Reply-To: <1467308334-12580-1-git-send-email-nick@shmanahar.org>
+References: <1467308334-12580-1-git-send-email-nick@shmanahar.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+I'm leaving ITDev, so change to my personal email. My understanding is
+that someone at Atmel will take this on once their takeover by Microchip
+has settled down.
 
-The allocation context is nothing more than a per-plane device pointer
-to use when allocating buffers. So just provide a dev pointer in vb2_queue
-for that purpose and drivers can skip allocating/releasing/filling in
-the allocation context unless they require different per-plane device
-pointers as used by some Samsung SoCs.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Florian Echtler <floe@butterbrot.org>
-Cc: Federico Vaga <federico.vaga@gmail.com>
-Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Fabien Dessenne <fabien.dessenne@st.com>
-Acked-by: Benoit Parrot <bparrot@ti.com>
-Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Nick Dyer <nick@shmanahar.org>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 14 ++++++++------
- include/media/videobuf2-core.h           |  3 +++
- 2 files changed, 11 insertions(+), 6 deletions(-)
+ MAINTAINERS | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 36f4392..aabb03e 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -206,7 +206,8 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- 	for (plane = 0; plane < vb->num_planes; ++plane) {
- 		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0f148d3..6affed5 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2181,9 +2181,9 @@ S:	Maintained
+ F:	drivers/net/wireless/atmel/atmel*
  
--		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
-+		mem_priv = call_ptr_memop(vb, alloc,
-+				q->alloc_ctx[plane] ? : &q->dev,
- 				q->dma_attrs, size, dma_dir, q->gfp_flags);
- 		if (IS_ERR_OR_NULL(mem_priv))
- 			goto free;
-@@ -1131,9 +1132,10 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
- 		vb->planes[plane].data_offset = 0;
- 
- 		/* Acquire each plane's memory */
--		mem_priv = call_ptr_memop(vb, get_userptr, q->alloc_ctx[plane],
--				      planes[plane].m.userptr,
--				      planes[plane].length, dma_dir);
-+		mem_priv = call_ptr_memop(vb, get_userptr,
-+				q->alloc_ctx[plane] ? : &q->dev,
-+				planes[plane].m.userptr,
-+				planes[plane].length, dma_dir);
- 		if (IS_ERR_OR_NULL(mem_priv)) {
- 			dprintk(1, "failed acquiring userspace "
- 						"memory for plane %d\n", plane);
-@@ -1256,8 +1258,8 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
- 
- 		/* Acquire each plane's memory */
- 		mem_priv = call_ptr_memop(vb, attach_dmabuf,
--			q->alloc_ctx[plane], dbuf, planes[plane].length,
--			dma_dir);
-+				q->alloc_ctx[plane] ? : &q->dev,
-+				dbuf, planes[plane].length, dma_dir);
- 		if (IS_ERR(mem_priv)) {
- 			dprintk(1, "failed to attach dmabuf\n");
- 			ret = PTR_ERR(mem_priv);
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 444ef3b..d38668c 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -400,6 +400,8 @@ struct vb2_buf_ops {
-  *		caller. For example, for V4L2, it should match
-  *		the V4L2_BUF_TYPE_* in include/uapi/linux/videodev2.h
-  * @io_modes:	supported io methods (see vb2_io_modes enum)
-+ * @dev:	device to use for the default allocation context if the driver
-+ *		doesn't fill in the @alloc_ctx array.
-  * @dma_attrs:	DMA attributes to use for the DMA. May be NULL.
-  * @fileio_read_once:		report EOF after reading the first buffer
-  * @fileio_write_immediately:	queue buffer after each write() call
-@@ -467,6 +469,7 @@ struct vb2_buf_ops {
- struct vb2_queue {
- 	unsigned int			type;
- 	unsigned int			io_modes;
-+	struct device			*dev;
- 	const struct dma_attrs		*dma_attrs;
- 	unsigned			fileio_read_once:1;
- 	unsigned			fileio_write_immediately:1;
+ ATMEL MAXTOUCH DRIVER
+-M:	Nick Dyer <nick.dyer@itdev.co.uk>
+-T:	git git://github.com/atmel-maxtouch/linux.git
+-S:	Supported
++M:	Nick Dyer <nick@shmanahar.org>
++T:	git git://github.com/ndyer/linux.git
++S:	Maintained
+ F:	Documentation/devicetree/bindings/input/atmel,maxtouch.txt
+ F:	drivers/input/touchscreen/atmel_mxt_ts.c
+ F:	include/linux/platform_data/atmel_mxt_ts.h
 -- 
-2.8.1
+2.5.0
 
