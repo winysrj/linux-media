@@ -1,79 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:60755 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753222AbcFQUdT (ORCPT
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:44131 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752617AbcF3Rqw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2016 16:33:19 -0400
-Subject: Re: [PATCH 34/38] media: imx: Add support for ADV7180 Video Decoder
-To: Lars-Peter Clausen <lars@metafoo.de>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	<linux-media@vger.kernel.org>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
- <1465944574-15745-35-git-send-email-steve_longerbeam@mentor.com>
- <57628E8F.2090205@metafoo.de>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <57645E8B.8080206@mentor.com>
-Date: Fri, 17 Jun 2016 13:33:15 -0700
-MIME-Version: 1.0
-In-Reply-To: <57628E8F.2090205@metafoo.de>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 30 Jun 2016 13:46:52 -0400
+From: Nick Dyer <nick@shmanahar.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	jon.older@itdev.co.uk, nick.dyer@itdev.co.uk,
+	Nick Dyer <nick@shmanahar.org>
+Subject: [PATCH v6 08/11] Input: atmel_mxt_ts - add diagnostic data support for mXT1386
+Date: Thu, 30 Jun 2016 18:38:51 +0100
+Message-Id: <1467308334-12580-9-git-send-email-nick@shmanahar.org>
+In-Reply-To: <1467308334-12580-1-git-send-email-nick@shmanahar.org>
+References: <1467308334-12580-1-git-send-email-nick@shmanahar.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The mXT1386 family of chips have a different architecture which splits
+the diagnostic data into 3 columns.
 
+Signed-off-by: Nick Dyer <nick@shmanahar.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 31 ++++++++++++++++++++++++++++---
+ 1 file changed, 28 insertions(+), 3 deletions(-)
 
-On 06/16/2016 04:33 AM, Lars-Peter Clausen wrote:
-> On 06/15/2016 12:49 AM, Steve Longerbeam wrote:
->> This driver is based on adv7180.c from Freescale imx_3.10.17_1.0.0_beta
->> branch, modified heavily for code cleanup and converted from int-device
->> to subdev.
-> We already have a driver for the adv7180 upstream, also using the subdev
-> API. Is there anything that can be done with this new driver that can't be
-> done with the other one. And if it is are there any blockers that would
-> prevent us from adding the missing features to the upstream adv7180?
->
-> I know that the driver in the Freescale tree used to have bits that made it
-> specially tailored to the iMX6. But these bits seem to be mostly gone in
-> this version of the driver.
->
-> I'm slightly concerned about the conflicting nature of these drivers. Both
-> attach to the same device ID/DT compatible string and register slightly
-> different userspace ABIs. I'd like to avoid ending up in a situation where
-> we have dependencies on both ABIs and can no longer converge.
-
-Hi Lars,
-
-Yes, it's been my plan all along to bring the upstream adv7180 subdev
-up to speed, and then remove the one included in this patch set.
-The issues I see so far with the upstream driver:
-
-- It is not auto-detecting changes to the analog input signal, such as
-   loss/regain of signal lock and video standard changes. This probably
-   is because interrupts are not working. I haven't debugged that further.
-
-- The media bus format code is not right, it should be UYVY, not YUYV. But
-   I'm reluctant to make that mbus code change because there are other
-   users of this driver and that will likely corrupt images on the other
-   targets. But I believe UYVY is the correct order according to bt.656
-   standard, someone correct me if I am wrong.
-
-- The field type should be either V4L2_FIELD_SEQ_BT or V4L2_FIELD_SEQ_TB,
-   since the adv7180 transmits one complete field followed by the other.
-
-There could be other issues. There are also the ov564x subdevs that 
-really need
-to be cleaned-up and moved to drivers/media/i2c (they are also based on 
-old FSL
-intdev drivers but with more stuff in there that probably doesn't make 
-sense, such
-as those really big register tables that are likely filled with reset 
-default values and
-were generated by doing an i2c dump at reset).
-
-This work will take some time, so the question is, should we delay that 
-work to
-after an initial merge.
-
-Steve
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index c35fca0..7c4d937 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -137,6 +137,10 @@ struct t9_range {
+ #define MXT_DIAGNOSTIC_DELTAS	0x10
+ #define MXT_DIAGNOSTIC_SIZE	128
+ 
++#define MXT_FAMILY_1386			160
++#define MXT1386_COLUMNS			3
++#define MXT1386_PAGES_PER_COLUMN	8
++
+ struct t37_debug {
+ #ifdef CONFIG_TOUCHSCREEN_ATMEL_MXT_T37
+ 	u8 mode;
+@@ -2140,13 +2144,27 @@ recheck:
+ static u16 mxt_get_debug_value(struct mxt_data *data, unsigned int x,
+ 			       unsigned int y)
+ {
++	struct mxt_info *info = &data->info;
+ 	struct mxt_dbg *dbg = &data->dbg;
+ 	unsigned int ofs, page;
++	unsigned int col = 0;
++	unsigned int col_width;
++
++	if (info->family_id == MXT_FAMILY_1386) {
++		col_width = info->matrix_ysize / MXT1386_COLUMNS;
++		col = y / col_width;
++		y = y % col_width;
++	} else {
++		col_width = info->matrix_ysize;
++	}
+ 
+-	ofs = (y + (x * data->info.matrix_ysize)) * sizeof(u16);
++	ofs = (y + (x * col_width)) * sizeof(u16);
+ 	page = ofs / MXT_DIAGNOSTIC_SIZE;
+ 	ofs %= MXT_DIAGNOSTIC_SIZE;
+ 
++	if (info->family_id == MXT_FAMILY_1386)
++		page += col * MXT1386_PAGES_PER_COLUMN;
++
+ 	return get_unaligned_le16(&dbg->t37_buf[page].data[ofs]);
+ }
+ 
+@@ -2416,6 +2434,7 @@ static const struct video_device mxt_video_device = {
+ 
+ static void mxt_debug_init(struct mxt_data *data)
+ {
++	struct mxt_info *info = &data->info;
+ 	struct mxt_dbg *dbg = &data->dbg;
+ 	struct mxt_object *object;
+ 	int error;
+@@ -2439,8 +2458,14 @@ static void mxt_debug_init(struct mxt_data *data)
+ 
+ 	/* Calculate size of data and allocate buffer */
+ 	dbg->t37_nodes = data->xsize * data->ysize;
+-	dbg->t37_pages = DIV_ROUND_UP(data->xsize * data->info.matrix_ysize *
+-				      sizeof(u16), sizeof(dbg->t37_buf->data));
++
++	if (info->family_id == MXT_FAMILY_1386)
++		dbg->t37_pages = MXT1386_COLUMNS * MXT1386_PAGES_PER_COLUMN;
++	else
++		dbg->t37_pages = DIV_ROUND_UP(data->xsize *
++					      data->info.matrix_ysize *
++					      sizeof(u16),
++					      sizeof(dbg->t37_buf->data));
+ 
+ 	dbg->t37_buf = devm_kmalloc_array(&data->client->dev, dbg->t37_pages,
+ 					  sizeof(struct t37_debug), GFP_KERNEL);
+-- 
+2.5.0
 
