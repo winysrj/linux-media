@@ -1,78 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:47296 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750938AbcFBHVO (ORCPT
+Received: from mail-wm0-f53.google.com ([74.125.82.53]:38700 "EHLO
+	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752064AbcF3Quf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Jun 2016 03:21:14 -0400
-Received: from [192.168.1.137] (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id 75EF7180B7D
-	for <linux-media@vger.kernel.org>; Thu,  2 Jun 2016 09:21:09 +0200 (CEST)
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.8] Remove deprecated drivers
-Message-ID: <574FDE65.5080206@xs4all.nl>
-Date: Thu, 2 Jun 2016 09:21:09 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Thu, 30 Jun 2016 12:50:35 -0400
+Received: by mail-wm0-f53.google.com with SMTP id r201so127391547wme.1
+        for <linux-media@vger.kernel.org>; Thu, 30 Jun 2016 09:50:34 -0700 (PDT)
+From: Kieran Bingham <kieran@ksquared.org.uk>
+To: laurent.pinchart@ideasonboard.com, robh+dt@kernel.org,
+	mark.rutland@arm.com
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kieran@ksquared.org.uk
+Subject: [PATCH v2 0/3] dt-bindings: RCar FCP and FDP1 bindings
+Date: Thu, 30 Jun 2016 17:50:27 +0100
+Message-Id: <1467305430-25660-1-git-send-email-kieran@bingham.xyz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Speaks for itself.
+This updated series, has collected the Acked and Reviewed tags for the
+FCPF binding addition, and adds documention of the optional power-domain
+property for the FCP.
 
-Regards,
+Finally the FDP1 bindings have been updated following review from Laurent.
 
-	Hans
+Specifically, this removes the version specific compatibles as we have a
+HW version register available to us in the hardware so we can detect at
+run-time what device version we are running on.
 
-The following changes since commit 6a2cf60b3e6341a3163d3cac3f4bede126c2e894:
+Kieran Bingham (3):
+  dt-bindings: Update Renesas R-Car FCP DT binding
+  dt-bindings: Document Renesas R-Car FCP power-domains usage
+  dt-bindings: Add Renesas R-Car FDP1 bindings
 
-  Merge tag 'v4.7-rc1' into patchwork (2016-05-30 18:16:14 -0300)
+ .../devicetree/bindings/media/renesas,fcp.txt      |  9 +++++-
+ .../devicetree/bindings/media/renesas,fdp1.txt     | 33 ++++++++++++++++++++++
+ 2 files changed, 41 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,fdp1.txt
 
-are available in the git repository at:
+-- 
+2.7.4
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.8a
-
-for you to fetch changes up to f57b08d9fd0dee6f087e6333f55520e4fe2281f7:
-
-  staging/media: remove deprecated timb driver (2016-06-02 09:10:58 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (4):
-      staging/media: remove deprecated mx2 driver
-      staging/media: remove deprecated mx3 driver
-      staging/media: remove deprecated omap1 driver
-      staging/media: remove deprecated timb driver
-
- drivers/staging/media/Kconfig              |    8 -
- drivers/staging/media/Makefile             |    4 -
- drivers/staging/media/mx2/Kconfig          |   15 -
- drivers/staging/media/mx2/Makefile         |    3 -
- drivers/staging/media/mx2/TODO             |   10 -
- drivers/staging/media/mx2/mx2_camera.c     | 1636 ---------------------------------------------------------------------------
- drivers/staging/media/mx3/Kconfig          |   15 -
- drivers/staging/media/mx3/Makefile         |    3 -
- drivers/staging/media/mx3/TODO             |   10 -
- drivers/staging/media/mx3/mx3_camera.c     | 1264 ----------------------------------------------------------
- drivers/staging/media/omap1/Kconfig        |   13 -
- drivers/staging/media/omap1/Makefile       |    3 -
- drivers/staging/media/omap1/TODO           |    8 -
- drivers/staging/media/omap1/omap1_camera.c | 1702 ------------------------------------------------------------------------------
- drivers/staging/media/timb/Kconfig         |   11 -
- drivers/staging/media/timb/Makefile        |    1 -
- drivers/staging/media/timb/timblogiw.c     |  870 ----------------------------------------
- 17 files changed, 5576 deletions(-)
- delete mode 100644 drivers/staging/media/mx2/Kconfig
- delete mode 100644 drivers/staging/media/mx2/Makefile
- delete mode 100644 drivers/staging/media/mx2/TODO
- delete mode 100644 drivers/staging/media/mx2/mx2_camera.c
- delete mode 100644 drivers/staging/media/mx3/Kconfig
- delete mode 100644 drivers/staging/media/mx3/Makefile
- delete mode 100644 drivers/staging/media/mx3/TODO
- delete mode 100644 drivers/staging/media/mx3/mx3_camera.c
- delete mode 100644 drivers/staging/media/omap1/Kconfig
- delete mode 100644 drivers/staging/media/omap1/Makefile
- delete mode 100644 drivers/staging/media/omap1/TODO
- delete mode 100644 drivers/staging/media/omap1/omap1_camera.c
- delete mode 100644 drivers/staging/media/timb/Kconfig
- delete mode 100644 drivers/staging/media/timb/Makefile
- delete mode 100644 drivers/staging/media/timb/timblogiw.c
