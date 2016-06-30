@@ -1,74 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:53474 "EHLO
-	smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751796AbcFHNS2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2016 09:18:28 -0400
-Subject: Re: [PATCH 1/2] Add OV5647 device tree documentation
-References: <cover.1464966020.git.roliveir@synopsys.com>
- <4221809485a46dbf12b883a8207784553fd776a3.1464966020.git.roliveir@synopsys.com>
- <20160606143837.GA22997@rob-hp-laptop>
-CC: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
-	<mchehab@osg.samsung.com>, <CARLOS.PALMINHA@synopsys.com>
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-To: Rob Herring <robh@kernel.org>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>
-Message-ID: <2b6eec93-78d6-2d53-054f-13ffd9dbc636@synopsys.com>
-Date: Wed, 8 Jun 2016 14:18:10 +0100
-MIME-Version: 1.0
-In-Reply-To: <20160606143837.GA22997@rob-hp-laptop>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:32931 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752220AbcF3Quh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jun 2016 12:50:37 -0400
+Received: by mail-wm0-f68.google.com with SMTP id r201so24354050wme.0
+        for <linux-media@vger.kernel.org>; Thu, 30 Jun 2016 09:50:36 -0700 (PDT)
+From: Kieran Bingham <kieran@ksquared.org.uk>
+To: laurent.pinchart@ideasonboard.com, robh+dt@kernel.org,
+	mark.rutland@arm.com
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kieran@ksquared.org.uk
+Subject: [PATCH v2 2/3] dt-bindings: Document Renesas R-Car FCP power-domains usage
+Date: Thu, 30 Jun 2016 17:50:29 +0100
+Message-Id: <1467305430-25660-3-git-send-email-kieran@bingham.xyz>
+In-Reply-To: <1467305430-25660-1-git-send-email-kieran@bingham.xyz>
+References: <1467305430-25660-1-git-send-email-kieran@bingham.xyz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The power domain must be specified to bring the device out of module
+standby. Document this in the bindings provided, so that new additions
+are not missed.
 
+Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+---
+ Documentation/devicetree/bindings/media/renesas,fcp.txt | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-On 06-06-2016 15:38, Rob Herring wrote:
-> On Fri, Jun 03, 2016 at 06:36:40PM +0100, Ramiro Oliveira wrote:
->> From: roliveir <roliveir@synopsys.com>
->>
->> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
->> ---
->>  .../devicetree/bindings/media/i2c/ov5647.txt          | 19 +++++++++++++++++++
->>  1 file changed, 19 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
->> new file mode 100644
->> index 0000000..5e4aa49
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
->> @@ -0,0 +1,19 @@
->> +Omnivision OV5657 raw image sensor
-> Still 5657?
-Sorry, I thought I had changed it.
->> +---------------------------------
->> +
->> +OV5657 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
->> +and CCI (I2C compatible) control bus.
->> +
->> +Required properties:
->> +
->> +- compatible	: "ov5647";
-> Needs vendor prefix?
-I'll add the ovti prefix
->> +- reg		: I2C slave address of the sensor;
-> What happened to the clocks property. I'm pretty sure the driver always 
-> needs to know the input clock freq.
-I've seen some drivers that don't make any reference to clock freq, but I can
-add it, if you think it's necessary.
->> +
->> +The common video interfaces bindings (see video-interfaces.txt) should be
->> +used to specify link to the image data receiver. The OV5647 device
->> +node should contain one 'port' child node with an 'endpoint' subnode.
->> +
->> +Following properties are valid for the endpoint node:
->> +
->> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
->> +  video-interfaces.txt.  The sensor supports only two data lanes.
->> -- 
->> 2.8.1
->>
->>
-Regards,
-Ramiro
+diff --git a/Documentation/devicetree/bindings/media/renesas,fcp.txt b/Documentation/devicetree/bindings/media/renesas,fcp.txt
+index 271dcfdb5a76..5be21b6411ba 100644
+--- a/Documentation/devicetree/bindings/media/renesas,fcp.txt
++++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
+@@ -23,6 +23,10 @@ are paired with. These DT bindings currently support the FCPV and FCPF.
+  - reg: the register base and size for the device registers
+  - clocks: Reference to the functional clock
+ 
++Optional properties:
++ - power-domains : power-domain property defined with a power domain specifier
++                            to respective power domain.
++
+ 
+ Device node example
+ -------------------
+@@ -31,4 +35,5 @@ Device node example
+ 		compatible = "renesas,r8a7795-fcpv", "renesas,fcpv";
+ 		reg = <0 0xfea2f000 0 0x200>;
+ 		clocks = <&cpg CPG_MOD 602>;
++		power-domains = <&sysc R8A7795_PD_A3VP>;
+ 	};
+-- 
+2.7.4
+
