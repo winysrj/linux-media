@@ -1,91 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:35613 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752793AbcFNWvQ (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:37830 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751565AbcF3D6f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2016 18:51:16 -0400
-Received: by mail-pf0-f195.google.com with SMTP id t190so301899pfb.2
-        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2016 15:51:16 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 15/38] gpu: ipu-ic: allow multiple handles to ic
-Date: Tue, 14 Jun 2016 15:49:11 -0700
-Message-Id: <1465944574-15745-16-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+	Wed, 29 Jun 2016 23:58:35 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sergey Kozlov <serjk@netup.ru>, Abylay Ospan <aospan@netup.ru>
+Subject: [PATCH] cxd2841er: Do some changes at the dvbv5 stats logic
+Date: Thu, 30 Jun 2016 00:34:59 -0300
+Message-Id: <601a6f40c550ae683100c1e5446712945740a7ab.1467257693.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The image converter kernel API supports conversion contexts and
-job queues, so we should allow more than one handle to the IC, so
-that multiple users can add jobs to the queue.
+It is a good idea to measure the signal strength while
+tuning, as this helps to identify if the antenna is ok.
+Also, such measure helps to identify the quality of the
+signal.
 
-Note however that users that control the IC manually (that do not
-use the image converter APIs but setup the IC task by hand via calls
-to ipu_ic_task_enable(), ipu_ic_enable(), etc.) must still be careful not
-to share the IC handle with other threads. At this point, the only user
-that still controls the IC manually is the i.mx capture driver. In that
-case the capture driver only allows one open context to get a handle
-to the IC at a time, so we should be ok there.
+Do some changes to enable it before signal lock. While
+here, optimize the code to only initialize the stats
+length once, and make sure that, just after set_frontend,
+any reading for the stats that depends on lock to return
+FE_SCALE_NOT_AVAILABLE.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/gpu/ipu-v3/ipu-ic.c | 25 +------------------------
- 1 file changed, 1 insertion(+), 24 deletions(-)
+ drivers/media/dvb-frontends/cxd2841er.c | 45 ++++++++++++++++++++++++---------
+ 1 file changed, 33 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/gpu/ipu-v3/ipu-ic.c b/drivers/gpu/ipu-v3/ipu-ic.c
-index f6a1125..51e34a1 100644
---- a/drivers/gpu/ipu-v3/ipu-ic.c
-+++ b/drivers/gpu/ipu-v3/ipu-ic.c
-@@ -342,7 +342,6 @@ struct ipu_ic {
- 	enum ipu_color_space out_cs;
- 	bool graphics;
- 	bool rotation;
--	bool in_use;
+diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+index d369a7567d18..3d39ae954fe2 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.c
++++ b/drivers/media/dvb-frontends/cxd2841er.c
+@@ -2936,31 +2936,25 @@ static int cxd2841er_get_frontend(struct dvb_frontend *fe,
+ 	else if (priv->state == STATE_ACTIVE_TC)
+ 		cxd2841er_read_status_tc(fe, &status);
  
- 	struct image_converter cvt;
- 
-@@ -2380,38 +2379,16 @@ EXPORT_SYMBOL_GPL(ipu_ic_disable);
- struct ipu_ic *ipu_ic_get(struct ipu_soc *ipu, enum ipu_ic_task task)
- {
- 	struct ipu_ic_priv *priv = ipu->ic_priv;
--	unsigned long flags;
--	struct ipu_ic *ic, *ret;
- 
- 	if (task >= IC_NUM_TASKS)
- 		return ERR_PTR(-EINVAL);
- 
--	ic = &priv->task[task];
--
--	spin_lock_irqsave(&priv->lock, flags);
--
--	if (ic->in_use) {
--		ret = ERR_PTR(-EBUSY);
--		goto unlock;
--	}
--
--	ic->in_use = true;
--	ret = ic;
--
--unlock:
--	spin_unlock_irqrestore(&priv->lock, flags);
--	return ret;
-+	return &priv->task[task];
++	cxd2841er_read_signal_strength(fe, &strength);
++	p->strength.stat[0].scale = FE_SCALE_RELATIVE;
++	p->strength.stat[0].uvalue = strength;
++
+ 	if (status & FE_HAS_LOCK) {
+-		cxd2841er_read_signal_strength(fe, &strength);
+-		p->strength.len = 1;
+-		p->strength.stat[0].scale = FE_SCALE_RELATIVE;
+-		p->strength.stat[0].uvalue = strength;
+ 		cxd2841er_read_snr(fe, &snr);
+-		p->cnr.len = 1;
+ 		p->cnr.stat[0].scale = FE_SCALE_DECIBEL;
+ 		p->cnr.stat[0].svalue = snr;
++
+ 		cxd2841er_read_ucblocks(fe, &errors);
+-		p->block_error.len = 1;
+ 		p->block_error.stat[0].scale = FE_SCALE_COUNTER;
+ 		p->block_error.stat[0].uvalue = errors;
++
+ 		cxd2841er_read_ber(fe, &ber);
+-		p->post_bit_error.len = 1;
+ 		p->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
+ 		p->post_bit_error.stat[0].uvalue = ber;
+ 	} else {
+-		p->strength.len = 1;
+-		p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+-		p->cnr.len = 1;
+ 		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+-		p->block_error.len = 1;
+ 		p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+-		p->post_bit_error.len = 1;
+ 		p->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 	}
+ 	return 0;
+@@ -3021,6 +3015,12 @@ static int cxd2841er_set_frontend_s(struct dvb_frontend *fe)
+ 			__func__, carr_offset);
+ 	}
+ done:
++	/* Reset stats */
++	p->strength.stat[0].scale = FE_SCALE_RELATIVE;
++	p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(ipu_ic_get);
  
- void ipu_ic_put(struct ipu_ic *ic)
- {
--	struct ipu_ic_priv *priv = ic->priv;
--	unsigned long flags;
--
--	spin_lock_irqsave(&priv->lock, flags);
--	ic->in_use = false;
--	spin_unlock_irqrestore(&priv->lock, flags);
+@@ -3382,6 +3382,21 @@ static enum dvbfe_algo cxd2841er_get_algo(struct dvb_frontend *fe)
+ 	return DVBFE_ALGO_HW;
  }
- EXPORT_SYMBOL_GPL(ipu_ic_put);
+ 
++static int cxd2841er_init_stats(struct dvb_frontend *fe)
++{
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
++
++	p->strength.len = 1;
++	p->strength.stat[0].scale = FE_SCALE_RELATIVE;
++	p->cnr.len = 1;
++	p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->block_error.len = 1;
++	p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->post_bit_error.len = 1;
++	p->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++}
++
++
+ static int cxd2841er_init_s(struct dvb_frontend *fe)
+ {
+ 	struct cxd2841er_priv *priv = fe->demodulator_priv;
+@@ -3403,6 +3418,9 @@ static int cxd2841er_init_s(struct dvb_frontend *fe)
+ 	/* SONY_DEMOD_CONFIG_SAT_IFAGCNEG set to 1 */
+ 	cxd2841er_write_reg(priv, I2C_SLVT, 0x00, 0xa0);
+ 	cxd2841er_set_reg_bits(priv, I2C_SLVT, 0xb9, 0x01, 0x01);
++
++	cxd2841er_init_stats(fe);
++
+ 	return 0;
+ }
+ 
+@@ -3422,6 +3440,9 @@ static int cxd2841er_init_tc(struct dvb_frontend *fe)
+ 	/* SONY_DEMOD_CONFIG_PARALLEL_SEL = 1 */
+ 	cxd2841er_write_reg(priv, I2C_SLVT, 0x00, 0x00);
+ 	cxd2841er_set_reg_bits(priv, I2C_SLVT, 0xc4, 0x00, 0x80);
++
++	cxd2841er_init_stats(fe);
++
+ 	return 0;
+ }
  
 -- 
-1.9.1
+2.7.4
 
