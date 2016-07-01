@@ -1,82 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:56107 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751879AbcGAL4I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jul 2016 07:56:08 -0400
-Subject: Re: [PATCH] [media] v4l2-async: Always unregister the subdev on
- failure
-To: Alban Bedel <alban.bedel@avionic-design.de>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-References: <1462981201-14768-1-git-send-email-alban.bedel@avionic-design.de>
- <429cc087-85e3-7bfa-b0b6-ab9434e5d47c@osg.samsung.com>
- <20160511183252.6270d740@avionic-0020>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Bryan Wu <cooloney@gmail.com>, linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <38e4b736-b053-05e0-112b-550411ecb56c@xs4all.nl>
-Date: Fri, 1 Jul 2016 13:55:44 +0200
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44034 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751280AbcGAIvD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 04:51:03 -0400
+Date: Fri, 1 Jul 2016 10:50:25 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+	laurent.pinchart@ideasonboard.com
+Cc: Sebastian Reichel <sre@kernel.org>,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	pali.rohar@gmail.com, linux-media@vger.kernel.org
+Subject: Re: square-only image on Nokia N900 camera -- pipeline setup in
+ python (was Re: [RFC PATCH 00/24] Make Nokia N900 cameras working)
+Message-ID: <20160701085025.GA30653@amd>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160427030850.GA17034@earth>
+ <20160617164226.GA27876@amd>
+ <20160617171214.GA5830@amd>
+ <20160620205904.GL24980@valkosipuli.retiisi.org.uk>
+ <20160701073146.GA21405@amd>
 MIME-Version: 1.0
-In-Reply-To: <20160511183252.6270d740@avionic-0020>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160701073146.GA21405@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/11/2016 06:32 PM, Alban Bedel wrote:
-> On Wed, 11 May 2016 12:22:44 -0400
-> Javier Martinez Canillas <javier@osg.samsung.com> wrote:
+Hi!
+
+> On gitlab is the latest version of pipeline setup if python. I also
+> got fcam to work (slowly) on the camera, with autofocus and
+> autogain. Capturing from preview modes works fine, but image quality
+> is not good, as expected. Capturing raw GRBG10 images works, but
+> images are square, with values being outside square being 0.
 > 
->> Hello Alban,
->>
->> On 05/11/2016 11:40 AM, Alban Bedel wrote:
->>> In v4l2_async_test_notify() if the registered_async callback or the
->>> complete notifier returns an error the subdev is not unregistered.
->>> This leave paths where v4l2_async_register_subdev() can fail but
->>> leave the subdev still registered.
->>>
->>> Add the required calls to v4l2_device_unregister_subdev() to plug
->>> these holes.
->>>
->>> Signed-off-by: Alban Bedel <alban.bedel@avionic-design.de>
->>> ---
->>>  drivers/media/v4l2-core/v4l2-async.c | 10 ++++++++--
->>>  1 file changed, 8 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
->>> index ceb28d4..43393f8 100644
->>> --- a/drivers/media/v4l2-core/v4l2-async.c
->>> +++ b/drivers/media/v4l2-core/v4l2-async.c
->>> @@ -121,13 +121,19 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
->>>  
->>>  	ret = v4l2_subdev_call(sd, core, registered_async);
->>>  	if (ret < 0 && ret != -ENOIOCTLCMD) {
->>> +		v4l2_device_unregister_subdev(sd);
->>>  		if (notifier->unbind)
->>>  			notifier->unbind(notifier, sd, asd);
->>>  		return ret;
->>>  	}
->>>  
->>> -	if (list_empty(&notifier->waiting) && notifier->complete)
->>> -		return notifier->complete(notifier);
->>> +	if (list_empty(&notifier->waiting) && notifier->complete) {
->>> +		ret = notifier->complete(notifier);
->>> +		if (ret < 0) {
->>> +			v4l2_device_unregister_subdev(sd);
->>
->> Isn't a call to notifier->unbind() missing here as well?
->>
->> Also, I think the error path is becoming too duplicated and complex, so
->> maybe we can have a single error path and use goto labels as is common
->> in Linux? For example something like the following (not tested) can be
->> squashed on top of your change:
+> Same problem is there with yavta and fcam-dev capture, so I suspect
+> there's something in kernel. If you have an idea what could be wrong /
+> what to try, let me know. If omap3isp works for you in v4.6, and
+> produces expected rectangular images, that would be useful to know,
+> too.
 > 
-> Yes, that look better. I'll test it and report tomorrow.
+> Python capture script is at
+> 
+> https://gitlab.com/tui/tui/commit/266b6eb302dcf1481e3e90a05bf98180e5759168
 
-I haven't heard anything back about this. Did you manage to test it?
+I switched to the front camera (vs6555 pixel array 2-0010 + vs6555
+binner 2-0010) and got same effect: preview image works fine, raw
+image is square. Still kernel v4.6.
 
-Regards,
-
-	Hans
+Ideas welcome,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
