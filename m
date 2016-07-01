@@ -1,208 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:60036 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755003AbcGHL2E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 07:28:04 -0400
-From: Nick Dyer <nick@shmanahar.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	jon.older@itdev.co.uk, nick.dyer@itdev.co.uk,
-	Nick Dyer <nick@shmanahar.org>
-Subject: [PATCH] v4l2-compliance: Changes to support touch sensors
-Date: Fri,  8 Jul 2016 12:27:55 +0100
-Message-Id: <1467977275-17821-1-git-send-email-nick@shmanahar.org>
-In-Reply-To: <1467977164-17551-1-git-send-email-nick@shmanahar.org>
-References: <1467977164-17551-1-git-send-email-nick@shmanahar.org>
+Received: from mailout4.samsung.com ([203.254.224.34]:38891 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752017AbcGAINN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 04:13:13 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [PATCH v2 04/15] [media] lirc_dev: replace printk with pr_* or dev_*
+Date: Fri, 01 Jul 2016 17:01:27 +0900
+Message-id: <1467360098-12539-5-git-send-email-andi.shyti@samsung.com>
+In-reply-to: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
+References: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Nick Dyer <nick@shmanahar.org>
----
- utils/v4l2-compliance/v4l2-compliance.cpp        |   51 +++++++++++++++++++++-
- utils/v4l2-compliance/v4l2-compliance.h          |    1 +
- utils/v4l2-compliance/v4l2-test-input-output.cpp |    4 +-
- 3 files changed, 53 insertions(+), 3 deletions(-)
+This patch mutes also all the checkpatch warnings related to
+printk.
 
-diff --git a/utils/v4l2-compliance/v4l2-compliance.cpp b/utils/v4l2-compliance/v4l2-compliance.cpp
-index 48dc8b4..ca2eec7 100644
---- a/utils/v4l2-compliance/v4l2-compliance.cpp
-+++ b/utils/v4l2-compliance/v4l2-compliance.cpp
-@@ -55,6 +55,7 @@ enum Option {
- 	OptSetRadioDevice = 'r',
- 	OptStreaming = 's',
- 	OptSetSWRadioDevice = 'S',
-+	OptSetTouchDevice = 't',
- 	OptTrace = 'T',
- 	OptVerbose = 'v',
- 	OptSetVbiDevice = 'V',
-@@ -105,6 +106,7 @@ static struct option long_options[] = {
- 	{"vbi-device", required_argument, 0, OptSetVbiDevice},
- 	{"sdr-device", required_argument, 0, OptSetSWRadioDevice},
- 	{"expbuf-device", required_argument, 0, OptSetExpBufDevice},
-+	{"touch-device", required_argument, 0, OptSetTouchDevice},
- 	{"help", no_argument, 0, OptHelp},
- 	{"verbose", no_argument, 0, OptVerbose},
- 	{"no-warnings", no_argument, 0, OptNoWarnings},
-@@ -134,6 +136,9 @@ static void usage(void)
- 	printf("  -S, --sdr-device=<dev>\n");
- 	printf("                     Use device <dev> as the SDR device.\n");
- 	printf("                     If <dev> starts with a digit, then /dev/swradio<dev> is used.\n");
-+	printf("  -t, --touch-device=<dev>\n");
-+	printf("                     Use device <dev> as the touch device.\n");
-+	printf("                     If <dev> starts with a digit, then /dev/v4l-touch<dev> is used.\n");
- 	printf("  -e, --expbuf-device=<dev>\n");
- 	printf("                     Use device <dev> to obtain DMABUF handles.\n");
- 	printf("                     If <dev> starts with a digit, then /dev/video<dev> is used.\n");
-@@ -206,6 +211,8 @@ std::string cap2s(unsigned cap)
- 		s += "\t\tSDR Capture\n";
- 	if (cap & V4L2_CAP_SDR_OUTPUT)
- 		s += "\t\tSDR Output\n";
-+	if (cap & V4L2_CAP_TOUCH)
-+		s += "\t\tTouch Capture\n";
- 	if (cap & V4L2_CAP_TUNER)
- 		s += "\t\tTuner\n";
- 	if (cap & V4L2_CAP_HW_FREQ_SEEK)
-@@ -533,7 +540,8 @@ static int testCap(struct node *node)
- 	    memcmp(vcap.bus_info, "ISA:", 4) &&
- 	    memcmp(vcap.bus_info, "I2C:", 4) &&
- 	    memcmp(vcap.bus_info, "parport", 7) &&
--	    memcmp(vcap.bus_info, "platform:", 9))
-+	    memcmp(vcap.bus_info, "platform:", 9) &&
-+	    memcmp(vcap.bus_info, "rmi4:", 5))
- 		return fail("missing bus_info prefix ('%s')\n", vcap.bus_info);
- 	fail_on_test((vcap.version >> 16) < 3);
- 	fail_on_test(check_0(vcap.reserved, sizeof(vcap.reserved)));
-@@ -673,6 +681,8 @@ int main(int argc, char **argv)
- 	struct node radio_node2;
- 	struct node sdr_node;
- 	struct node sdr_node2;
-+	struct node touch_node;
-+	struct node touch_node2;
- 	struct node expbuf_node;
+Reword all the printouts so that the string doesn't need to be
+split, which fixes the following checkpatch warning:
+
+  WARNING: quoted string split across lines
+
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+---
+ drivers/media/rc/lirc_dev.c | 79 +++++++++++++++++++--------------------------
+ 1 file changed, 34 insertions(+), 45 deletions(-)
+
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index ee997ab..212ea77 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -19,6 +19,8 @@
+  *
+  */
  
- 	/* command args */
-@@ -682,6 +692,7 @@ int main(int argc, char **argv)
- 	const char *vbi_device = NULL;		/* -V device */
- 	const char *radio_device = NULL;	/* -r device */
- 	const char *sdr_device = NULL;		/* -S device */
-+	const char *touch_device = NULL;	/* -t device */
- 	const char *expbuf_device = NULL;	/* --expbuf-device device */
- 	struct v4l2_capability vcap;		/* list_cap */
- 	unsigned frame_count = 60;
-@@ -750,6 +761,15 @@ int main(int argc, char **argv)
- 				sdr_device = newdev;
- 			}
- 			break;
-+		case OptSetTouchDevice:
-+			touch_device = optarg;
-+			if (touch_device[0] >= '0' && touch_device[0] <= '9' && strlen(touch_device) <= 3) {
-+				static char newdev[20];
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
-+				sprintf(newdev, "/dev/v4l-touch%s", touch_device);
-+				touch_device = newdev;
-+			}
-+			break;
- 		case OptSetExpBufDevice:
- 			expbuf_device = optarg;
- 			if (expbuf_device[0] >= '0' && expbuf_device[0] <= '9' && strlen(expbuf_device) <= 3) {
-@@ -839,7 +859,8 @@ int main(int argc, char **argv)
- 	if (v1 == 2 && v2 == 6)
- 		kernel_version = v3;
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/sched.h>
+@@ -240,59 +242,51 @@ static int lirc_allocate_driver(struct lirc_driver *d)
+ 	int err;
  
--	if (!video_device && !vbi_device && !radio_device && !sdr_device)
-+	if (!video_device && !vbi_device && !radio_device &&
-+	    !sdr_device && !touch_device)
- 		video_device = "/dev/video0";
+ 	if (!d) {
+-		printk(KERN_ERR "lirc_dev: lirc_register_driver: "
+-		       "driver pointer must be not NULL!\n");
++		pr_err("driver pointer must be not NULL!\n");
+ 		err = -EBADRQC;
+ 		goto out;
+ 	}
  
- 	if (video_device) {
-@@ -886,6 +907,17 @@ int main(int argc, char **argv)
+ 	if (!d->dev) {
+-		printk(KERN_ERR "%s: dev pointer not filled in!\n", __func__);
++		pr_err("dev pointer not filled in!\n");
+ 		err = -EINVAL;
+ 		goto out;
+ 	}
+ 
+ 	if (MAX_IRCTL_DEVICES <= d->minor) {
+-		dev_err(d->dev, "lirc_dev: lirc_register_driver: "
+-			"\"minor\" must be between 0 and %d (%d)!\n",
+-			MAX_IRCTL_DEVICES - 1, d->minor);
++		dev_err(d->dev, "minor must be between 0 and %d!\n",
++						MAX_IRCTL_DEVICES - 1);
+ 		err = -EBADRQC;
+ 		goto out;
+ 	}
+ 
+ 	if (1 > d->code_length || (BUFLEN * 8) < d->code_length) {
+-		dev_err(d->dev, "lirc_dev: lirc_register_driver: "
+-			"code length in bits for minor (%d) "
+-			"must be less than %d!\n",
+-			d->minor, BUFLEN * 8);
++		dev_err(d->dev, "code length must be less than %d bits\n",
++								BUFLEN * 8);
+ 		err = -EBADRQC;
+ 		goto out;
+ 	}
+ 
+ 	if (d->sample_rate) {
+ 		if (2 > d->sample_rate || HZ < d->sample_rate) {
+-			dev_err(d->dev, "lirc_dev: lirc_register_driver: "
+-				"sample_rate must be between 2 and %d!\n", HZ);
++			dev_err(d->dev, "invalid %d sample rate\n",
++							d->sample_rate);
+ 			err = -EBADRQC;
+ 			goto out;
  		}
- 	}
- 
-+	if (touch_device) {
-+		touch_node.s_trace(options[OptTrace]);
-+		touch_node.s_direct(direct);
-+		fd = touch_node.open(touch_device, false);
-+		if (fd < 0) {
-+			fprintf(stderr, "Failed to open %s: %s\n", touch_device,
-+				strerror(errno));
-+			exit(1);
-+		}
-+	}
-+
- 	if (expbuf_device) {
- 		expbuf_node.s_trace(options[OptTrace]);
- 		expbuf_node.s_direct(true);
-@@ -913,6 +945,10 @@ int main(int argc, char **argv)
- 		node = sdr_node;
- 		device = sdr_device;
- 		node.is_sdr = true;
-+	} else if (touch_node.g_fd() >= 0) {
-+		node = touch_node;
-+		device = touch_device;
-+		node.is_touch = true;
- 	}
- 	node.device = device;
- 
-@@ -1013,6 +1049,17 @@ int main(int argc, char **argv)
- 			node.node2 = &sdr_node2;
+ 		if (!d->add_to_buf) {
+-			dev_err(d->dev, "lirc_dev: lirc_register_driver: "
+-				"add_to_buf cannot be NULL when "
+-				"sample_rate is set\n");
++			dev_err(d->dev, "add_to_buf not set\n");
+ 			err = -EBADRQC;
+ 			goto out;
  		}
+ 	} else if (!(d->fops && d->fops->read) && !d->rbuf) {
+-		dev_err(d->dev, "lirc_dev: lirc_register_driver: "
+-			"fops->read and rbuf cannot all be NULL!\n");
++		dev_err(d->dev, "fops->read and rbuf are NULL!\n");
+ 		err = -EBADRQC;
+ 		goto out;
+ 	} else if (!d->rbuf) {
+ 		if (!(d->fops && d->fops->read && d->fops->poll &&
+ 		      d->fops->unlocked_ioctl)) {
+-			dev_err(d->dev, "lirc_dev: lirc_register_driver: "
+-				"neither read, poll nor unlocked_ioctl can be NULL!\n");
++			dev_err(d->dev, "undefined read, poll, ioctl\n");
+ 			err = -EBADRQC;
+ 			goto out;
+ 		}
+@@ -308,14 +302,12 @@ static int lirc_allocate_driver(struct lirc_driver *d)
+ 			if (!irctls[minor])
+ 				break;
+ 		if (MAX_IRCTL_DEVICES == minor) {
+-			dev_err(d->dev, "lirc_dev: lirc_register_driver: "
+-				"no free slots for drivers!\n");
++			dev_err(d->dev, "no free slots for drivers!\n");
+ 			err = -ENOMEM;
+ 			goto out_lock;
+ 		}
+ 	} else if (irctls[minor]) {
+-		dev_err(d->dev, "lirc_dev: lirc_register_driver: "
+-			"minor (%d) just registered!\n", minor);
++		dev_err(d->dev, "minor (%d) just registered!\n", minor);
+ 		err = -EBUSY;
+ 		goto out_lock;
  	}
-+	if (touch_device) {
-+		touch_node2 = node;
-+		printf("\ttest second touch open: %s\n",
-+				ok(touch_node2.open(touch_device, false) >= 0 ? 0 : errno));
-+		if (touch_node2.g_fd() >= 0) {
-+			printf("\ttest VIDIOC_QUERYCAP: %s\n", ok(testCap(&touch_node2)));
-+			printf("\ttest VIDIOC_G/S_PRIORITY: %s\n",
-+					ok(testPrio(&node, &touch_node2)));
-+			node.node2 = &touch_node2;
-+		}
-+	}
- 	printf("\n");
+@@ -352,9 +344,8 @@ static int lirc_allocate_driver(struct lirc_driver *d)
+ 		/* try to fire up polling thread */
+ 		ir->task = kthread_run(lirc_thread, (void *)ir, "lirc_dev");
+ 		if (IS_ERR(ir->task)) {
+-			dev_err(d->dev, "lirc_dev: lirc_register_driver: "
+-				"cannot run poll thread for minor = %d\n",
+-				d->minor);
++			dev_err(d->dev, "cannot run thread for minor = %d\n",
++								d->minor);
+ 			err = -ECHILD;
+ 			goto out_sysfs;
+ 		}
+@@ -407,15 +398,14 @@ int lirc_unregister_driver(int minor)
+ 	struct cdev *cdev;
  
- 	storeState(&node);
-diff --git a/utils/v4l2-compliance/v4l2-compliance.h b/utils/v4l2-compliance/v4l2-compliance.h
-index 67ecbf5..60432b1 100644
---- a/utils/v4l2-compliance/v4l2-compliance.h
-+++ b/utils/v4l2-compliance/v4l2-compliance.h
-@@ -68,6 +68,7 @@ struct base_node {
- 	bool is_radio;
- 	bool is_vbi;
- 	bool is_sdr;
-+	bool is_touch;
- 	bool is_m2m;
- 	bool is_planar;
- 	bool can_capture;
-diff --git a/utils/v4l2-compliance/v4l2-test-input-output.cpp b/utils/v4l2-compliance/v4l2-test-input-output.cpp
-index 05daf85..3b56968 100644
---- a/utils/v4l2-compliance/v4l2-test-input-output.cpp
-+++ b/utils/v4l2-compliance/v4l2-test-input-output.cpp
-@@ -371,7 +371,9 @@ static int checkInput(struct node *node, const struct v4l2_input &descr, unsigne
- 		return fail("invalid index\n");
- 	if (check_ustring(descr.name, sizeof(descr.name)))
- 		return fail("invalid name\n");
--	if (descr.type != V4L2_INPUT_TYPE_TUNER && descr.type != V4L2_INPUT_TYPE_CAMERA)
-+	if (descr.type != V4L2_INPUT_TYPE_TUNER &&
-+      descr.type != V4L2_INPUT_TYPE_CAMERA &&
-+      descr.type != V4L2_INPUT_TYPE_TOUCH)
- 		return fail("invalid type\n");
- 	if (descr.type == V4L2_INPUT_TYPE_CAMERA && descr.tuner)
- 		return fail("invalid tuner\n");
+ 	if (minor < 0 || minor >= MAX_IRCTL_DEVICES) {
+-		printk(KERN_ERR "lirc_dev: %s: minor (%d) must be between "
+-		       "0 and %d!\n", __func__, minor, MAX_IRCTL_DEVICES - 1);
++		pr_err("minor (%d) must be between 0 and %d!\n",
++					minor, MAX_IRCTL_DEVICES - 1);
+ 		return -EBADRQC;
+ 	}
+ 
+ 	ir = irctls[minor];
+ 	if (!ir) {
+-		printk(KERN_ERR "lirc_dev: %s: failed to get irctl struct "
+-		       "for minor %d!\n", __func__, minor);
++		pr_err("failed to get irctl\n");
+ 		return -ENOENT;
+ 	}
+ 
+@@ -424,8 +414,8 @@ int lirc_unregister_driver(int minor)
+ 	mutex_lock(&lirc_dev_lock);
+ 
+ 	if (ir->d.minor != minor) {
+-		printk(KERN_ERR "lirc_dev: %s: minor (%d) device not "
+-		       "registered!\n", __func__, minor);
++		dev_err(ir->d.dev, "lirc_dev: minor %d device not registered\n",
++									minor);
+ 		mutex_unlock(&lirc_dev_lock);
+ 		return -ENOENT;
+ 	}
+@@ -467,8 +457,7 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
+ 	int retval = 0;
+ 
+ 	if (iminor(inode) >= MAX_IRCTL_DEVICES) {
+-		printk(KERN_WARNING "lirc_dev [%d]: open result = -ENODEV\n",
+-		       iminor(inode));
++		pr_err("open result for %d is -ENODEV\n", iminor(inode));
+ 		return -ENODEV;
+ 	}
+ 
+@@ -530,7 +519,7 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
+ 	int ret;
+ 
+ 	if (!ir) {
+-		printk(KERN_ERR "%s: called with invalid irctl\n", __func__);
++		pr_err("called with invalid irctl\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -566,7 +555,7 @@ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait)
+ 	unsigned int ret;
+ 
+ 	if (!ir) {
+-		printk(KERN_ERR "%s: called with invalid irctl\n", __func__);
++		pr_err("called with invalid irctl\n");
+ 		return POLLERR;
+ 	}
+ 
+@@ -597,7 +586,7 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 	struct irctl *ir = irctls[iminor(file_inode(file))];
+ 
+ 	if (!ir) {
+-		printk(KERN_ERR "lirc_dev: %s: no irctl found!\n", __func__);
++		pr_err("no irctl found!\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -605,7 +594,7 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 		ir->d.name, ir->d.minor, cmd);
+ 
+ 	if (ir->d.minor == NOPLUG || !ir->attached) {
+-		dev_dbg(ir->d.dev, LOGHEAD "ioctl result = -ENODEV\n",
++		dev_err(ir->d.dev, LOGHEAD "ioctl result = -ENODEV\n",
+ 			ir->d.name, ir->d.minor);
+ 		return -ENODEV;
+ 	}
+@@ -682,7 +671,7 @@ ssize_t lirc_dev_fop_read(struct file *file,
+ 	DECLARE_WAITQUEUE(wait, current);
+ 
+ 	if (!ir) {
+-		printk(KERN_ERR "%s: called with invalid irctl\n", __func__);
++		pr_err("called with invalid irctl\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -787,7 +776,7 @@ ssize_t lirc_dev_fop_write(struct file *file, const char __user *buffer,
+ 	struct irctl *ir = irctls[iminor(file_inode(file))];
+ 
+ 	if (!ir) {
+-		printk(KERN_ERR "%s: called with invalid irctl\n", __func__);
++		pr_err("called with invalid irctl\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -806,7 +795,7 @@ static int __init lirc_dev_init(void)
+ 	lirc_class = class_create(THIS_MODULE, "lirc");
+ 	if (IS_ERR(lirc_class)) {
+ 		retval = PTR_ERR(lirc_class);
+-		printk(KERN_ERR "lirc_dev: class_create failed\n");
++		pr_err("class_create failed\n");
+ 		goto error;
+ 	}
+ 
+@@ -814,13 +803,13 @@ static int __init lirc_dev_init(void)
+ 				     IRCTL_DEV_NAME);
+ 	if (retval) {
+ 		class_destroy(lirc_class);
+-		printk(KERN_ERR "lirc_dev: alloc_chrdev_region failed\n");
++		pr_err("alloc_chrdev_region failed\n");
+ 		goto error;
+ 	}
+ 
+ 
+-	printk(KERN_INFO "lirc_dev: IR Remote Control driver registered, "
+-	       "major %d \n", MAJOR(lirc_base_dev));
++	pr_info("IR Remote Control driver registered, major %d\n",
++						MAJOR(lirc_base_dev));
+ 
+ error:
+ 	return retval;
+@@ -832,7 +821,7 @@ static void __exit lirc_dev_exit(void)
+ {
+ 	class_destroy(lirc_class);
+ 	unregister_chrdev_region(lirc_base_dev, MAX_IRCTL_DEVICES);
+-	printk(KERN_INFO "lirc_dev: module unloaded\n");
++	pr_info("module unloaded\n");
+ }
+ 
+ module_init(lirc_dev_init);
 -- 
-1.7.9.5
+2.8.1
 
