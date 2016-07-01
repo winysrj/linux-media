@@ -1,104 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:47149 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932182AbcGDBam (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2016 21:30:42 -0400
-Message-ID: <1467595835.2577.2.camel@ndufresne.ca>
-Subject: Re: [RFC PATCH] media: s5p-mfc - remove vidioc_g_crop
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>, mchehab@kernel.org,
-	linux-kernel@vger.kernel.org, k.debski@samsung.com,
-	javier@osg.samsung.com, linux-arm-kernel@lists.infradead.org,
-	jtp.park@samsung.com
-Date: Sun, 03 Jul 2016 21:30:35 -0400
-In-Reply-To: <772ecbb8-b1d2-b4cf-2be2-110f731b9a2b@xs4all.nl>
-References: <1467322502-11180-1-git-send-email-shuahkh@osg.samsung.com>
- <CAH_td2wtizPpD59h2shZoyuTvSNr=7YjR4mSmTO9FsWaJp8dfA@mail.gmail.com>
-	 <772ecbb8-b1d2-b4cf-2be2-110f731b9a2b@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mout.kundenserver.de ([212.227.17.24]:50995 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751960AbcGAL03 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 07:26:29 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] cec: add missing inline stubs
+Date: Fri,  1 Jul 2016 13:19:56 +0200
+Message-Id: <20160701112027.102024-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le dimanche 03 juillet 2016 à 11:43 +0200, Hans Verkuil a écrit :
-> Hi Nicolas,
-> 
-> On 07/02/2016 10:29 PM, Nicolas Dufresne wrote:
-> > 
-> > Le 30 juin 2016 5:35 PM, "Shuah Khan" <shuahkh@osg.samsung.com
-> > <mailto:shuahkh@osg.samsung.com>> a écrit :
-> > > 
-> > > Remove vidioc_g_crop() from s5p-mfc decoder. Without its s_crop
-> > > counterpart
-> > > g_crop is not useful. Delete it.
-> > 
-> > G_CROP tell the userspace which portion of the output is to be
-> > displayed. Example,  1920x1080 inside a buffer of 1920x1088. It can
-> > be
-> > implemented using G_SELECTION too, which emulate G_CROP. removing
-> > this without implementing G_SEKECTION will break certain software
-> > like
-> > GStreamer v4l2 based decoder.
-> 
-> Sorry, but this is not correct.
-> 
-> G_CROP for VIDEO_OUTPUT returns the output *compose* rectangle, not
-> the output
-> crop rectangle.
-> 
-> Don't blame me, this is how it was defined in V4L2. The problem is
-> that for video
-> output (esp. m2m devices) you usually want to set the crop rectangle,
-> and that's
-> why the selection API was added so you can unambiguously set the crop
-> and compose
-> rectangles for both capture and output.
-> 
-> Unfortunately, the exynos drivers were written before the
-> G/S_SELECTION API was
-> created, and the crop ioctls in the video output drivers actually set
-> the output
-> crop rectangle instead of the compose rectangle :-(
-> 
-> This is a known inconsistency.
-> 
-> You are right though that we can't remove g_crop here, I had
-> forgotten about the
-> buffer padding.
-> 
-> What should happen here is that g_selection support is added to s5p-
-> mfc, and
-> have that return the proper rectangles. The g_crop can be kept, and a
-> comment
-> should be added that it returns the wrong thing, but that that is
-> needed for
-> backwards compat.
-> 
-> The gstreamer code should use g/s_selection if available. It should
-> check how it
-> is using g/s_crop for video output devices today and remember that
-> for output
-> devices g/s_crop is really g/s_compose, except for the exynos
-> drivers.
+The linux/cec.h header file contains empty inline definitions for
+a subset of the API for the case in which CEC is not enabled,
+however we have driver that call other functions as well:
 
-This is already the case. There is other non-mainline driver that do
-like exynos (I have been told).
+drivers/media/i2c/adv7604.c: In function 'adv76xx_cec_tx_raw_status':
+drivers/media/i2c/adv7604.c:1956:3: error: implicit declaration of function 'cec_transmit_done' [-Werror=implicit-function-declaration]
+drivers/media/i2c/adv7604.c: In function 'adv76xx_cec_isr':
+drivers/media/i2c/adv7604.c:2012:4: error: implicit declaration of function 'cec_received_msg' [-Werror=implicit-function-declaration]
+drivers/media/i2c/adv7604.c: In function 'adv76xx_probe':
+drivers/media/i2c/adv7604.c:3482:20: error: implicit declaration of function 'cec_allocate_adapter' [-Werror=implicit-function-declaration]
 
-https://cgit.freedesktop.org/gstreamer/gst-plugins-good/commit/sys?id=7
-4f020fd2f1dc645efe35a7ba1f951f9c5ee7c4c
+This adds stubs for the remaining interfaces as well.
 
-> 
-> It's why I recommend the selection API since it doesn't have these
-> problems.
-> 
-> I think I should do another push towards implementing the selection
-> API in all
-> drivers. There aren't many left.
-> 
-> Regards,
-> 
-> 	Hans
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ include/media/cec.h | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+diff --git a/include/media/cec.h b/include/media/cec.h
+index 9a791c08a789..c462f9b44074 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -208,6 +208,12 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+ void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
+ 
+ #else
++static inline struct cec_adapter *cec_allocate_adapter(
++		const struct cec_adap_ops *ops, void *priv, const char *name,
++		u32 caps, u8 available_las, struct device *parent)
++{
++	return NULL;
++}
+ 
+ static inline int cec_register_adapter(struct cec_adapter *adap)
+ {
+@@ -227,6 +233,25 @@ static inline void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr,
+ {
+ }
+ 
++static inline int cec_transmit_msg(struct cec_adapter *adap,
++				   struct cec_msg *msg, bool block)
++{
++	return 0;
++}
++
++/* Called by the adapter */
++static inline void cec_transmit_done(struct cec_adapter *adap, u8 status,
++				     u8 arb_lost_cnt, u8 nack_cnt,
++				     u8 low_drive_cnt, u8 error_cnt)
++{
++}
++
++static inline void cec_received_msg(struct cec_adapter *adap,
++				    struct cec_msg *msg)
++{
++}
++
++
+ #endif
+ 
+ #endif /* _MEDIA_CEC_H */
+-- 
+2.9.0
+
