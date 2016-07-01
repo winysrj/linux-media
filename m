@@ -1,57 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:35017 "EHLO
-	mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754414AbcGUWDc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 18:03:32 -0400
-Date: Thu, 21 Jul 2016 17:03:30 -0500
-From: Rob Herring <robh@kernel.org>
-To: Songjun Wu <songjun.wu@microchip.com>
-Cc: nicolas.ferre@atmel.com, laurent.pinchart@ideasonboard.com,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v6 2/2] [media] atmel-isc: DT binding for Image Sensor
- Controller driver
-Message-ID: <20160721220330.GA17291@rob-hp-laptop>
-References: <1469088900-23935-1-git-send-email-songjun.wu@microchip.com>
- <1469088900-23935-3-git-send-email-songjun.wu@microchip.com>
+Received: from mail.ispras.ru ([83.149.199.45]:57336 "EHLO mail.ispras.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750715AbcGAQHi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Jul 2016 12:07:38 -0400
+Message-ID: <577685EE.1050704@ispras.ru>
+Date: Fri, 01 Jul 2016 19:02:06 +0400
+From: Pavel Andrianov <andrianov@ispras.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1469088900-23935-3-git-send-email-songjun.wu@microchip.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Vladis Dronov <vdronov@redhat.com>,
+	Insu Yun <wuninsu@gmail.com>, Oliver Neukum <oneukum@suse.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Vaishali Thakkar <vaishali.thakkar@oracle.com>,
+	ldv-project@linuxtesting.org
+Subject: Re: A potential race
+References: <57727001.7040606@ispras.ru> <577680B3.5010901@ispras.ru> <8c161772-d2d9-0897-7f76-40caea5f0a93@xs4all.nl>
+In-Reply-To: <8c161772-d2d9-0897-7f76-40caea5f0a93@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 21, 2016 at 04:14:58PM +0800, Songjun Wu wrote:
-> DT binding documentation for ISC driver.
-> 
-> Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
-> ---
-> 
-> Changes in v6:
-> - Add "iscck" and "gck" to clock-names.
-> 
-> Changes in v5:
-> - Add clock-output-names.
-> 
-> Changes in v4:
-> - Remove the isc clock nodes.
-> 
-> Changes in v3:
-> - Remove the 'atmel,sensor-preferred'.
-> - Modify the isc clock node according to the Rob's remarks.
-> 
-> Changes in v2:
-> - Remove the unit address of the endpoint.
-> - Add the unit address to the clock node.
-> - Avoid using underscores in node names.
-> - Drop the "0x" in the unit address of the i2c node.
-> - Modify the description of 'atmel,sensor-preferred'.
-> - Add the description for the ISC internal clock.
-> 
->  .../devicetree/bindings/media/atmel-isc.txt        | 65 ++++++++++++++++++++++
->  1 file changed, 65 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
+01.07.2016 19:53, Hans Verkuil пишет:
+> On 07/01/2016 04:39 PM, Pavel Andrianov wrote:
+>>   Hi!
+>>
+>> There is a potential race condition between usbvision_v4l2_close and usbvision_disconnect. The possible scenario may be the following. usbvision_disconnect starts execution, assigns usbvision->remove_pending = 1, and is interrupted
+>> (rescheduled) after mutex_unlock. After that usbvision_v4l2_close is executed, decrease usbvision->user-- , checks usbvision->remove_pending, executes usbvision_release and finishes. Then usbvision_disconnect continues its execution. It checks
+>> usbversion->user (it is already 0) and also execute usbvision_release. Thus, release is executed twice. The same situation may
+>> occur if usbvision_v4l2_close is interrupted by usbvision_disconnect. Moreover, the same problem is in usbvision_radio_close. In all these cases the check before call usbvision_release under mutex_lock protection does not solve the problem, because  there may occur an open() after the check and the race takes place again. The question is: why the usbvision_release
+>> is called from close() (usbvision_v4l2_close and usbvision_radio_close)? Usually release functions are called from
+>> disconnect.
+> Please don't use html mail, mailinglists will silently reject this.
+>
+> The usbvision driver is old and unloved and known to be very bad code. It needs a huge amount of work to make all this work correctly.
+>
+> I don't see anyone picking this up...
+>
+> Regards,
+>
+> 	Hans
+If you know the driver, could you, please, explain me, why 
+usbvision_release is called from close functions (usbvision_v4l2_close 
+and usbvision_radio_close) and not only from disconnect? Thanks!
 
-Acked-by: Rob Herring <robh@kernel.org>
+-- 
+Pavel Andrianov
+Linux Verification Center, ISPRAS
+web: http://linuxtesting.org
+e-mail: andrianov@ispras.ru
+
