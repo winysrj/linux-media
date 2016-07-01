@@ -1,68 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:45822 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754428AbcGHKXR (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34657 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752023AbcGAI03 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Jul 2016 06:23:17 -0400
-Subject: Re: [PATCH v3 3/9] DocBook/v4l: Add compressed video formats used on
- MT8173 codec driver
-To: Tiffany Lin <tiffany.lin@mediatek.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-2-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-3-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-4-git-send-email-tiffany.lin@mediatek.com>
-Cc: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
+	Fri, 1 Jul 2016 04:26:29 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5a793171-24a7-4e9e-8bfd-f668c789f8e0@xs4all.nl>
-Date: Fri, 8 Jul 2016 12:23:11 +0200
+Subject: [PATCH] cec: use same build config mode as MEDIA_SUPPORT
+Message-ID: <ba5f1692-fe9b-93d0-3666-5bf5df4c251d@xs4all.nl>
+Date: Fri, 1 Jul 2016 10:26:18 +0200
 MIME-Version: 1.0
-In-Reply-To: <1464611363-14936-4-git-send-email-tiffany.lin@mediatek.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/30/2016 02:29 PM, Tiffany Lin wrote:
-> Add V4L2_PIX_FMT_MT21 documentation
-> 
-> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-> ---
->  Documentation/DocBook/media/v4l/pixfmt.xml |    6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-> index 5a08aee..d40e0ce 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-> @@ -1980,6 +1980,12 @@ array. Anything what's in between the UYVY lines is JPEG data and should be
->  concatenated to form the JPEG stream. </para>
->  </entry>
->  	  </row>
-> +	  <row id="V4L2_PIX_FMT_MT21">
-> +	    <entry><constant>V4L2_PIX_FMT_MT21</constant></entry>
-> +	    <entry>'MT21'</entry>
-> +	    <entry>Compressed two-planar YVU420 format used by Mediatek MT8173
-> +	    codec driver.</entry>
+The cec framework should not be build as a module if MEDIA_SUPPORT is set to
+built-in. Otherwise drivers that are built-in would not be able to reference
+the exported cec functions.
 
-Can you give a few more details? The encoder driver doesn't seem to produce this
-format, so who is creating this? Where is this format documented?
+So do the same as is done for the media controller in drivers/media/Makefile:
+make MEDIA_CEC a bool and use the same build mode as CONFIG_MEDIA_SUPPORT.
 
-Regards,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+---
+diff --git a/drivers/staging/media/cec/Kconfig b/drivers/staging/media/cec/Kconfig
+index b83b4d8..c623bd3 100644
+--- a/drivers/staging/media/cec/Kconfig
++++ b/drivers/staging/media/cec/Kconfig
+@@ -1,5 +1,5 @@
+ config MEDIA_CEC
+-	tristate "CEC API (EXPERIMENTAL)"
++	bool "CEC API (EXPERIMENTAL)"
+ 	depends on MEDIA_SUPPORT
+ 	depends on RC_CORE || !RC_CORE
+ 	select MEDIA_CEC_EDID
+diff --git a/drivers/staging/media/cec/Makefile b/drivers/staging/media/cec/Makefile
+index 426ef73..bd7f3c5 100644
+--- a/drivers/staging/media/cec/Makefile
++++ b/drivers/staging/media/cec/Makefile
+@@ -1,3 +1,5 @@
+ cec-objs := cec-core.o cec-adap.o cec-api.o
 
-	Hans
-
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> 
+-obj-$(CONFIG_MEDIA_CEC) += cec.o
++ifeq ($(CONFIG_MEDIA_CEC),y)
++  obj-$(CONFIG_MEDIA_SUPPORT) += cec.o
++endif
