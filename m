@@ -1,157 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:39553 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751588AbcGULPf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 07:15:35 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com
-Subject: [PATCH v3 2/5] media: Unify IOCTL handler calling
-Date: Thu, 21 Jul 2016 14:14:41 +0300
-Message-Id: <1469099686-10938-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1469099686-10938-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1469099686-10938-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:54936 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752004AbcGASlr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 14:41:47 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sergey Kozlov <serjk@netup.ru>, Abylay Ospan <aospan@netup.ru>
+Subject: [PATCH] cxd2841er: fix signal strength scale for ISDB-T
+Date: Fri,  1 Jul 2016 15:41:38 -0300
+Message-Id: <fe00b81dd11d60a0c8b5b5e34f7d68e97d6f0cf6.1467398496.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each IOCTL handler can be listed in an array instead of using a large and
-cumbersome switch. Do that.
+The scale for ISDB-T was wrong too: it was inverted, and
+on a relative scale.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Use a linear interpolation to make it look better.
+The formula was empirically determined, using 3 frequencies
+(175 MHz, 410 MHz and 800 MHz), measuring from -50dBm to
+-12dBm in steps of 0.5dB.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/media-device.c | 81 +++++++++++++-------------------------------
- 1 file changed, 23 insertions(+), 58 deletions(-)
+ drivers/media/dvb-frontends/cxd2841er.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 3ac526d..6fd9b77 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -419,12 +419,16 @@ static long media_device_get_topology(struct media_device *mdev,
- 	return 0;
- }
- 
--#define MEDIA_IOC(__cmd) \
--	[_IOC_NR(MEDIA_IOC_##__cmd)] = { .cmd = MEDIA_IOC_##__cmd }
-+#define MEDIA_IOC(__cmd, func)						\
-+	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
-+		.cmd = MEDIA_IOC_##__cmd,				\
-+		.fn = (long (*)(struct media_device *, void __user *))func,    \
-+	}
- 
- /* the table is indexed by _IOC_NR(cmd) */
- struct media_ioctl_info {
- 	unsigned int cmd;
-+	long (*fn)(struct media_device *dev, void __user *arg);
- };
- 
- static inline long is_valid_ioctl(const struct media_ioctl_info *info,
-@@ -440,53 +444,28 @@ static long __media_device_ioctl(
+diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+index 6c660761563d..b706118903fa 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.c
++++ b/drivers/media/dvb-frontends/cxd2841er.c
+@@ -1731,7 +1731,7 @@ static void cxd2841er_read_signal_strength(struct dvb_frontend *fe)
  {
- 	struct media_devnode *devnode = media_devnode_data(filp);
- 	struct media_device *dev = devnode->media_dev;
-+	const struct media_ioctl_info *info;
- 	long ret;
+ 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct cxd2841er_priv *priv = fe->demodulator_priv;
+-	u32 strength;
++	s32 strength;
  
- 	ret = is_valid_ioctl(info_array, info_array_len, cmd);
- 	if (ret)
- 		return ret;
- 
-+	info = &info_array[_IOC_NR(cmd)];
-+
- 	mutex_lock(&dev->graph_mutex);
--	switch (cmd) {
--	case MEDIA_IOC_DEVICE_INFO:
--		ret = media_device_get_info(dev,
--				(struct media_device_info __user *)arg);
--		break;
--
--	case MEDIA_IOC_ENUM_ENTITIES:
--		ret = media_device_enum_entities(dev,
--				(struct media_entity_desc __user *)arg);
--		break;
--
--	case MEDIA_IOC_ENUM_LINKS:
--		ret = media_device_enum_links(dev,
--				(struct media_links_enum __user *)arg);
--		break;
--
--	case MEDIA_IOC_SETUP_LINK:
--		ret = media_device_setup_link(dev,
--				(struct media_link_desc __user *)arg);
--		break;
--
--	case MEDIA_IOC_G_TOPOLOGY:
--		ret = media_device_get_topology(dev,
--				(struct media_v2_topology __user *)arg);
--		break;
--
--	default:
--		ret = -ENOIOCTLCMD;
--	}
-+	ret = info->fn(dev, arg);
- 	mutex_unlock(&dev->graph_mutex);
- 
- 	return ret;
- }
- 
- static const struct media_ioctl_info ioctl_info[] = {
--	MEDIA_IOC(DEVICE_INFO),
--	MEDIA_IOC(ENUM_ENTITIES),
--	MEDIA_IOC(ENUM_LINKS),
--	MEDIA_IOC(SETUP_LINK),
--	MEDIA_IOC(G_TOPOLOGY),
-+	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
-+	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
-+	MEDIA_IOC(ENUM_LINKS, media_device_enum_links),
-+	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
-+	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
- };
- 
- static long media_device_ioctl(struct file *filp, unsigned int cmd,
-@@ -528,33 +507,19 @@ static long media_device_enum_links32(struct media_device *mdev,
- #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, struct media_links_enum32)
- 
- static const struct media_ioctl_info compat_ioctl_info[] = {
--	MEDIA_IOC(DEVICE_INFO),
--	MEDIA_IOC(ENUM_ENTITIES),
--	MEDIA_IOC(ENUM_LINKS32),
--	MEDIA_IOC(SETUP_LINK),
--	MEDIA_IOC(G_TOPOLOGY),
-+	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
-+	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
-+	MEDIA_IOC(ENUM_LINKS32, media_device_enum_links32),
-+	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
-+	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
- };
- 
- static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
- 				      unsigned long arg)
- {
--	struct media_devnode *devnode = media_devnode_data(filp);
--	struct media_device *dev = devnode->media_dev;
--	long ret;
--
--	switch (cmd) {
--	case MEDIA_IOC_ENUM_LINKS32:
--		mutex_lock(&dev->graph_mutex);
--		ret = media_device_enum_links32(dev,
--				(struct media_links_enum32 __user *)arg);
--		mutex_unlock(&dev->graph_mutex);
--		break;
--
--	default:
--		return media_device_ioctl(filp, cmd, arg);
--	}
--
--	return ret;
-+	return __media_device_ioctl(
-+		filp, cmd, (void __user *)arg,
-+		compat_ioctl_info, ARRAY_SIZE(compat_ioctl_info));
- }
- #endif /* CONFIG_COMPAT */
- 
+ 	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
+ 	switch (p->delivery_system) {
+@@ -1741,7 +1741,7 @@ static void cxd2841er_read_signal_strength(struct dvb_frontend *fe)
+ 							p->delivery_system);
+ 		p->strength.stat[0].scale = FE_SCALE_DECIBEL;
+ 		/* Formula was empirically determinated @ 410 MHz */
+-		p->strength.stat[0].uvalue = ((s32)strength) * 366 / 100 - 89520;
++		p->strength.stat[0].uvalue = strength * 366 / 100 - 89520;
+ 		break;	/* Code moved out of the function */
+ 	case SYS_DVBC_ANNEX_A:
+ 		strength = cxd2841er_read_agc_gain_t_t2(priv,
+@@ -1752,13 +1752,16 @@ static void cxd2841er_read_signal_strength(struct dvb_frontend *fe)
+ 		 * using frequencies: 175 MHz, 410 MHz and 800 MHz, and a
+ 		 * stream modulated with QAM64
+ 		 */
+-		p->strength.stat[0].uvalue = ((s32)strength) * 4045 / 1000 - 85224;
++		p->strength.stat[0].uvalue = strength * 4045 / 1000 - 85224;
+ 		break;
+ 	case SYS_ISDBT:
+-		strength = 65535 - cxd2841er_read_agc_gain_i(
+-				priv, p->delivery_system);
+-		p->strength.stat[0].scale = FE_SCALE_RELATIVE;
+-		p->strength.stat[0].uvalue = strength;
++		strength = cxd2841er_read_agc_gain_i(priv, p->delivery_system);
++		p->strength.stat[0].scale = FE_SCALE_DECIBEL;
++		/*
++		 * Formula was empirically determinated via linear regression,
++		 * using frequencies: 175 MHz, 410 MHz and 800 MHz.
++		 */
++		p->strength.stat[0].uvalue = strength * 3775 / 1000 - 90185;
+ 		break;
+ 	case SYS_DVBS:
+ 	case SYS_DVBS2:
 -- 
 2.7.4
 
