@@ -1,61 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:35754 "EHLO
-	mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932331AbcGLPkw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 11:40:52 -0400
-MIME-Version: 1.0
-In-Reply-To: <20160710122735.240b07fc@recife.lan>
-References: <1463907991-7916-1-git-send-email-geert@linux-m68k.org>
- <1463907991-7916-29-git-send-email-geert@linux-m68k.org> <20160710122735.240b07fc@recife.lan>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 12 Jul 2016 17:40:45 +0200
-Message-ID: <CAMuHMdVXp2kwMdHWrHtmf0MvejV7p=teGyE=t9BCEYzixc7_zQ@mail.gmail.com>
-Subject: Re: [PATCH 28/54] MAINTAINERS: Add file patterns for media device
- tree bindings
+Received: from mailout3.samsung.com ([203.254.224.33]:32943 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751280AbcGAIE1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 04:04:27 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [PATCH v2 00/15] lirc_dev fixes and beautification
+Date: Fri, 01 Jul 2016 17:01:23 +0900
+Message-id: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-On Sun, Jul 10, 2016 at 5:27 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Em Sun, 22 May 2016 11:06:05 +0200
-> Geert Uytterhoeven <geert@linux-m68k.org> escreveu:
->
->> Submitters of device tree binding documentation may forget to CC
->> the subsystem maintainer if this is missing.
->
-> I'm assuming that this patch will go via DT git tree, so:
+After applying Joe's suggestion, the next patches had some
+conflicts, therefore I have to send all the 15 patches again.
 
-No, please see below...
+This is a collection of fixes, added functionality, coding rework
+and trivial coding style fixes.
 
->> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
->> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-> Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+The first patch is preparatory to the second, which allows the
+user to create a lirc driver without receiver buffer, which is
+obvious for transmitters. Besides, even though that buffer could
+have been used also by transmitters, drivers might have the need
+to handle it separately.
 
-Thanks.
+The rest of the patches is a series of coding style and code
+rework, as I said, some of them are very trivial, but I sent them
+anyway because I was on fire.
 
->> Cc: linux-media@vger.kernel.org
->> ---
->> Please apply this patch directly if you want to be involved in device
->> tree binding documentation for your subsystem.
+Patch 14 is a segfault fix, while the last patch adds the
+possibility to send to ioctl the set frequency, get frequency and
+set length command.
 
-... and apply it. Thanks again!
+Changelog: V1->V2
 
-Gr{oetje,eeting}s,
+ - As Joe recommended, in patch 4 I added the pr_fmt definition
+   and removed all the hardcoded prefixes from the pr_*
+   functions.
 
-                        Geert
+ - In Patch 15, after Sean's review, I removed the definitions of
+   the GET/SET_FREQUENCY, I will use GET/SET_SEND_CARRIER
+   instead, even though I find the name a bit confusing.
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+ - In patch 6 I did a better refactoring
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Thanks,
+Andi
+
+Andi Shyti (15):
+  [media] lirc_dev: place buffer allocation on separate function
+  [media] lirc_dev: allow bufferless driver registration
+  [media] lirc_dev: remove unnecessary debug prints
+  [media] lirc_dev: replace printk with pr_* or dev_*
+  [media] lirc_dev: simplify goto paths
+  [media] lirc_dev: do not use goto to create loops
+  [media] lirc_dev: simplify if statement in lirc_add_to_buf
+  [media] lirc_dev: remove double if ... else statement
+  [media] lirc_dev: merge three if statements in only one
+  [media] lirc_dev: remove CONFIG_COMPAT precompiler check
+  [media] lirc_dev: fix variable constant comparisons
+  [media] lirc_dev: fix error return value
+  [media] lirc_dev: extremely trivial comment style fix
+  [media] lirc_dev: fix potential segfault
+  [media] include: lirc: add LIRC_GET_LENGTH command
+
+ drivers/media/rc/lirc_dev.c | 301 +++++++++++++++++++++-----------------------
+ include/media/lirc_dev.h    |  12 ++
+ include/uapi/linux/lirc.h   |   1 +
+ 3 files changed, 155 insertions(+), 159 deletions(-)
+
+-- 
+2.8.1
+
