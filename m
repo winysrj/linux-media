@@ -1,71 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41186 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757170AbcGJPSc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2016 11:18:32 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 1/3] [media] doc-rst: improve documentation for DTV_FREQUENCY
-Date: Sun, 10 Jul 2016 12:18:15 -0300
-Message-Id: <5632442d6cc87024c69467df5621db33a55a2091.1468163257.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from gofer.mess.org ([80.229.237.210]:58427 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752113AbcGAJpF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Jul 2016 05:45:05 -0400
+Date: Fri, 1 Jul 2016 10:44:58 +0100
+From: Sean Young <sean@mess.org>
+To: Andi Shyti <andi.shyti@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Andi Shyti <andi@etezian.org>
+Subject: Re: [PATCH] [media] rc: ir-spi: add support for IR LEDs connected
+ with SPI
+Message-ID: <20160701094458.GA8933@gofer.mess.org>
+References: <1467362022-12704-1-git-send-email-andi.shyti@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1467362022-12704-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make the note better formatted and documented.
+On Fri, Jul 01, 2016 at 05:33:42PM +0900, Andi Shyti wrote:
+> The ir-spi is a simple device driver which supports the
+> connection between an IR LED and the MOSI line of an SPI device.
+> 
+> The driver, indeed, uses the SPI framework to stream the raw data
+> provided by userspace through a character device. The chardev is
+> handled by the LIRC framework and its functionality basically
+> provides:
+> 
+>  - raw write: data to be sent to the SPI and then streamed to the
+>    MOSI line;
+>  - set frequency: sets the frequency whith which the data should
+>    be sent;
+>  - set length: sets the data length. This information is
+>    optional, if the length is set, then userspace should send raw
+>    data only with that length; while if the length is set to '0',
+>    then the driver will figure out himself the length of the data
+>    based on the length of the data written on the character
+>    device.
+>    The latter is not recommended, though, as the driver, at
+>    any write, allocates and deallocates a buffer where the data
+>    from userspace are stored.
+> 
+> The driver provides three feedback commands:
+> 
+>  - get length: reads the length set and (as mentioned), if the
+>    length is '0' it will be calculated at any write
+>  - get frequency: the driver reports the frequency. If userpace
+>    doesn't set the frequency, the driver will use a default value
+>    of 38000Hz.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- .../media/uapi/dvb/fe_property_parameters.rst      | 26 +++++++++++++---------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+This interface is not compatible with other lirc devices; there is no
+way of determining whether this is a regular lirc device or this new
+flavour you've invented.
 
-diff --git a/Documentation/media/uapi/dvb/fe_property_parameters.rst b/Documentation/media/uapi/dvb/fe_property_parameters.rst
-index 47eb29350717..1b0b1171602d 100644
---- a/Documentation/media/uapi/dvb/fe_property_parameters.rst
-+++ b/Documentation/media/uapi/dvb/fe_property_parameters.rst
-@@ -39,20 +39,26 @@ effect hardware.
- DTV_FREQUENCY
- =============
- 
--Central frequency of the channel.
-+Frequency of the digital TV transponder/channel.
- 
--Notes:
-+.. note::
- 
--1)For satellite delivery systems, it is measured in kHz. For the other
--ones, it is measured in Hz.
-+  #. For satellite delivery systems, the frequency is in kHz.
- 
--2)For ISDB-T, the channels are usually transmitted with an offset of
--143kHz. E.g. a valid frequency could be 474143 kHz. The stepping is
--bound to the bandwidth of the channel which is 6MHz.
-+  #. For cable and terrestrial delivery systems, the frequency is in
-+     Hz.
- 
--3)As in ISDB-Tsb the channel consists of only one or three segments the
--frequency step is 429kHz, 3*429 respectively. As for ISDB-T the central
--frequency of the channel is expected.
-+  #. On most delivery systems, the frequency is the center frequency
-+     of the transponder/channel. The exception is for ISDB-T, where
-+     the main carrier has a 1/7 offset from the center.
-+
-+  #. For ISDB-T, the channels are usually transmitted with an offset of
-+     about 143kHz. E.g. a valid frequency could be 474,143 kHz. The
-+     stepping is  bound to the bandwidth of the channel which is
-+     typically 6MHz.
-+
-+  #. In ISDB-Tsb, the channel consists of only one or three segments the
-+     frequency step is 429kHz, 3*429 respectively.
- 
- 
- .. _DTV-MODULATION:
--- 
-2.7.4
+Also I don't see what justifies this new interface. This can be 
+implemented in rc-core in less lines of code and it will be entirely 
+compatible with existing user-space.
 
+
+Sean
