@@ -1,48 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37834 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750713AbcGDSr0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 14:47:26 -0400
-Subject: Re: si2157: new revision?
-To: Oleh Kravchenko <oleg@kaa.org.ua>, linux-media@vger.kernel.org
-References: <1467243499-26093-1-git-send-email-crope@iki.fi>
- <1467243499-26093-3-git-send-email-crope@iki.fi>
- <577AAD3C.2060204@kaa.org.ua>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <46faadd5-80dc-bb71-be24-8b05fb035423@iki.fi>
-Date: Mon, 4 Jul 2016 21:47:19 +0300
-MIME-Version: 1.0
-In-Reply-To: <577AAD3C.2060204@kaa.org.ua>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:49931 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751912AbcGAIE2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 04:04:28 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [PATCH v2 15/15] [media] include: lirc: add LIRC_GET_LENGTH command
+Date: Fri, 01 Jul 2016 17:01:38 +0900
+Message-id: <1467360098-12539-16-git-send-email-andi.shyti@samsung.com>
+In-reply-to: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
+References: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
-On 07/04/2016 09:38 PM, Oleh Kravchenko wrote:
-> Hello Antti!
->
-> I started reverse-engineering of my new TV tuner "Evromedia USB Full
-> Hybrid Full HD" and discovered that start sequence is different from
-> si2157.c:
-> i2c_read_C1
->  1 \xFE
-> i2c_write_C0
->  15 \xC0\x00\x00\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01
->
-> Do you familiar with this revision?
-> Should I merge my changes to si2158.c?
-> Or define another driver?
+Added the get length command to allow userspace users to check on
+the data length.
 
-According to chip markings those are tuner Si2158-A20 and demod 
-Si2168-A30. Both are supported already by si2157 and si2168 drivers.
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+---
+ include/uapi/linux/lirc.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-Difference is just some settings. You need to identify which setting is 
-wrong and add that to configuration options. It should be pretty easy to 
-find it from the I2C dumps and just testing.
-
-regards
-Antti
-
+diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
+index 4b3ab29..801e5f8 100644
+--- a/include/uapi/linux/lirc.h
++++ b/include/uapi/linux/lirc.h
+@@ -106,6 +106,7 @@
+ 
+ /* code length in bits, currently only for LIRC_MODE_LIRCCODE */
+ #define LIRC_GET_LENGTH                _IOR('i', 0x0000000f, __u32)
++#define LIRC_SET_LENGTH                _IOW('i', 0x00000010, __u32)
+ 
+ #define LIRC_SET_SEND_MODE             _IOW('i', 0x00000011, __u32)
+ #define LIRC_SET_REC_MODE              _IOW('i', 0x00000012, __u32)
 -- 
-http://palosaari.fi/
+2.8.1
+
