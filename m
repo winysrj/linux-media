@@ -1,61 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:38850 "EHLO
-	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750732AbcGRNVo (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:47032 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752470AbcGAOfP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 09:21:44 -0400
+	Fri, 1 Jul 2016 10:35:15 -0400
+Subject: Re: [PATCH] [media] cec: add missing inline stubs
+To: Arnd Bergmann <arnd@arndb.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <20160701112027.102024-1-arnd@arndb.de>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <51b68698-eced-a659-016f-cf9566851fd2@xs4all.nl>
+Date: Fri, 1 Jul 2016 16:35:09 +0200
 MIME-Version: 1.0
-In-Reply-To: <1468847611.2994.22.camel@pengutronix.de>
-References: <1468845736-19651-1-git-send-email-ricardo.ribalda@gmail.com>
- <1468845736-19651-10-git-send-email-ricardo.ribalda@gmail.com> <1468847611.2994.22.camel@pengutronix.de>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Mon, 18 Jul 2016 15:21:10 +0200
-Message-ID: <CAPybu_3MLxefeLDoU_HhSrS7ugc1idE7Qa7=h5a2F0x+4TizFg@mail.gmail.com>
-Subject: Re: [PATCH v4 09/12] [media] vivid: Local optimization
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Markus Heiser <markus.heiser@darmarit.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Antti Palosaari <crope@iki.fi>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-doc@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20160701112027.102024-1-arnd@arndb.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp
+On 07/01/2016 01:19 PM, Arnd Bergmann wrote:
+> The linux/cec.h header file contains empty inline definitions for
+> a subset of the API for the case in which CEC is not enabled,
+> however we have driver that call other functions as well:
+> 
+> drivers/media/i2c/adv7604.c: In function 'adv76xx_cec_tx_raw_status':
+> drivers/media/i2c/adv7604.c:1956:3: error: implicit declaration of function 'cec_transmit_done' [-Werror=implicit-function-declaration]
+> drivers/media/i2c/adv7604.c: In function 'adv76xx_cec_isr':
+> drivers/media/i2c/adv7604.c:2012:4: error: implicit declaration of function 'cec_received_msg' [-Werror=implicit-function-declaration]
+> drivers/media/i2c/adv7604.c: In function 'adv76xx_probe':
+> drivers/media/i2c/adv7604.c:3482:20: error: implicit declaration of function 'cec_allocate_adapter' [-Werror=implicit-function-declaration]
 
-On Mon, Jul 18, 2016 at 3:13 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Since the constant expressions are evaluated at compile time, you are
-> not actually removing shifts. The code generated for precalculate_color
-> by gcc 5.4 even grows by one asr instruction with this patch.
->
+I don't understand this. These calls are under #if IS_ENABLED(CONFIG_VIDEO_ADV7842_CEC),
+and that should be 0 if MEDIA_CEC is not selected.
 
-I dont think that I follow you completely here. The original code was
+Am I missing some weird config combination?
 
-if (a)
-   y= clamp(y, 16<<4, 235<<4)
+Regards,
 
-y = clamp(y>>4, 1, 254)
-
-
-And now is
-
-if (a)
-   y= clamp(y >>4, 16, 235)
-else
-    y = clamp(y, 1, 254)
+	Hans
 
 
-On the previous case, when a was true there was 2 clamp operations.
-Now it is only one.
-
-
-Best regards!
-
--- 
-Ricardo Ribalda
+> 
+> This adds stubs for the remaining interfaces as well.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  include/media/cec.h | 25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
+> 
+> diff --git a/include/media/cec.h b/include/media/cec.h
+> index 9a791c08a789..c462f9b44074 100644
+> --- a/include/media/cec.h
+> +++ b/include/media/cec.h
+> @@ -208,6 +208,12 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+>  void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
+>  
+>  #else
+> +static inline struct cec_adapter *cec_allocate_adapter(
+> +		const struct cec_adap_ops *ops, void *priv, const char *name,
+> +		u32 caps, u8 available_las, struct device *parent)
+> +{
+> +	return NULL;
+> +}
+>  
+>  static inline int cec_register_adapter(struct cec_adapter *adap)
+>  {
+> @@ -227,6 +233,25 @@ static inline void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr,
+>  {
+>  }
+>  
+> +static inline int cec_transmit_msg(struct cec_adapter *adap,
+> +				   struct cec_msg *msg, bool block)
+> +{
+> +	return 0;
+> +}
+> +
+> +/* Called by the adapter */
+> +static inline void cec_transmit_done(struct cec_adapter *adap, u8 status,
+> +				     u8 arb_lost_cnt, u8 nack_cnt,
+> +				     u8 low_drive_cnt, u8 error_cnt)
+> +{
+> +}
+> +
+> +static inline void cec_received_msg(struct cec_adapter *adap,
+> +				    struct cec_msg *msg)
+> +{
+> +}
+> +
+> +
+>  #endif
+>  
+>  #endif /* _MEDIA_CEC_H */
+> 
