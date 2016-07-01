@@ -1,71 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:48455 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752736AbcGUOnQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 10:43:16 -0400
-Date: Thu, 21 Jul 2016 15:43:13 +0100
-From: Sean Young <sean@mess.org>
-To: Andi Shyti <andi.shyti@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi@etezian.org>
-Subject: Re: [RFC 5/7] [media] ir-lirc-codec: do not handle any buffer for
- raw transmitters
-Message-ID: <20160721144313.GA2820@gofer.mess.org>
-References: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
- <1468943818-26025-6-git-send-email-andi.shyti@samsung.com>
- <CGME20160719221617epcas1p45a886e86e2040ce40565acd32d778555@epcas1p4.samsung.com>
- <20160719221610.GC24697@gofer.mess.org>
- <20160721004812.GF23521@samsunx.samsung>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60098 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751953AbcGAH0g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Jul 2016 03:26:36 -0400
+Subject: Re: [PATCH 28/38] v4l: Add signal lock status to source change events
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+	linux-media@vger.kernel.org
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+ <1465944574-15745-29-git-send-email-steve_longerbeam@mentor.com>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <dfa4ca42-f527-f48e-e811-e514c167dc8d@xs4all.nl>
+Date: Fri, 1 Jul 2016 09:24:17 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160721004812.GF23521@samsunx.samsung>
+In-Reply-To: <1465944574-15745-29-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andi,
-
-On Thu, Jul 21, 2016 at 09:48:12AM +0900, Andi Shyti wrote:
-> > > Raw transmitters receive the data which need to be sent to
-> > > receivers from userspace as stream of bits, they don't require
-> > > any handling from the lirc framework.
-> > 
-> > No drivers of type RC_DRIVER_IR_RAW_TX should handle tx just like any
-> > other device, so data should be provided as an array of u32 alternating
-> > pulse-space. If your device does not handle input like that then convert
-> > it into that format in the driver. Every other driver has to do some
-> > sort of conversion of that kind.
+On 06/15/2016 12:49 AM, Steve Longerbeam wrote:
+> Add a signal lock status change to the source changes bitmask.
+> This indicates there was a signal lock or unlock event detected
+> at the input of a video decoder.
 > 
-> I don't see anything wrong here, that's how it works for example
-> in Tizen or in Android for the boards I'm on: userspace sends a
-> stream of bits that are then submitted to the IR as they are.
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  Documentation/DocBook/media/v4l/vidioc-dqevent.xml | 12 ++++++++++--
+>  include/uapi/linux/videodev2.h                     |  1 +
+>  2 files changed, 11 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+> index c9c3c77..7758ad7 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+> @@ -233,8 +233,9 @@
+>  	    <entry>
+>  	      <para>This event is triggered when a source parameter change is
+>  	       detected during runtime by the video device. It can be a
+> -	       runtime resolution change triggered by a video decoder or the
+> -	       format change happening on an input connector.
+> +	       runtime resolution change or signal lock status change
+> +	       triggered by a video decoder, or the format change happening
+> +	       on an input connector.
+>  	       This event requires that the <structfield>id</structfield>
+>  	       matches the input index (when used with a video device node)
+>  	       or the pad index (when used with a subdevice node) from which
+> @@ -461,6 +462,13 @@
+>  	    from a video decoder.
+>  	    </entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_EVENT_SRC_CH_LOCK_STATUS</constant></entry>
+> +	    <entry>0x0002</entry>
+> +	    <entry>This event gets triggered when there is a signal lock or
+> +	    unlock detected at the input of a video decoder.
+> +	    </entry>
+> +	  </row>
 
-This introduces a new, incompatible api with no way of detecting it.
+I'm not entirely sure I like this. Typically losing lock means that this event
+is triggered with the V4L2_EVENT_SRC_CH_RESOLUTION flag set, and userspace has
+to check the new timings etc., which will fail if there is no lock anymore.
 
-It's not a good format. For example the leading pulse (9ms) for nec ir
-with a carrier of 38000 will be 342 bits. With the pulse-space format
-it will be 32 bits.
+This information is also available through ENUMINPUT.
 
-Doing the conversion in kernel space will be cheap.
+I would need to know more about why you think this is needed, because I don't
+see what this adds.
 
-> If I change it to only pulse-space domain, then I wouldn't
-> provide support for those platforms. Eventually I can add a new
-> protocol.
+Regards,
 
-But this is forcing an new, incompatible api onto the rest of us. 
+	Hans
 
-This is the code in tizen:
-
-https://build.tizen.org/package/rdiff?linkrev=base&package=device-manager-plugin-exynos5433&project=Tizen%3AIVI&rev=2
-
-If this patch was merged as-is tizen would have to be changed anyway
-to use different ioctls. If that is true, can it switch to use 
-pulse-space format in the same change? If LIRC_GET_FREQUENCY fails then
-it would be a main-line kernel, else the existent driver.
-
-I could not find the code in android. It might be useful to see so we
-can find a solution that works for everyone.
-
-
-Sean
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 8f95191..2eba5da 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -2076,6 +2076,7 @@ struct v4l2_event_frame_sync {
+>  };
+>  
+>  #define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
+> +#define V4L2_EVENT_SRC_CH_LOCK_STATUS		(1 << 1)
+>  
+>  struct v4l2_event_src_change {
+>  	__u32 changes;
+> 
