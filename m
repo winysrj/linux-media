@@ -1,175 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:60451 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932379AbcGDNUv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 09:20:51 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Leandro Costantino <lcostantino@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH alternative] [media] gspca: avoid unused variable warnings
-Date: Mon,  4 Jul 2016 15:23:12 +0200
-Message-Id: <20160704132341.1188066-1-arnd@arndb.de>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:39607 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752116AbcGAJ5E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Jul 2016 05:57:04 -0400
+Subject: [PATCHv5 05/13] media/pci: convert drivers to use the new vb2_queue
+ dev field
+To: linux-media@vger.kernel.org
+References: <1467034324-37626-1-git-send-email-hverkuil@xs4all.nl>
+ <1467034324-37626-6-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Federico Vaga <federico.vaga@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <eb8277fd-c462-3eff-8ada-5319f3b5057b@xs4all.nl>
+Date: Fri, 1 Jul 2016 11:55:00 +0200
+MIME-Version: 1.0
+In-Reply-To: <1467034324-37626-6-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When CONFIG_INPUT is disabled, multiple gspca backend drivers
-print compile-time warnings about unused variables:
+>From 62ddd1aabe5672541055bc6de3c80ca1e3635729 Mon Sep 17 00:00:00 2001
+From: Hans Verkuil <hans.verkuil@cisco.com>
+Date: Mon, 15 Feb 2016 15:37:15 +0100
+Subject: [PATCH 05/13] media/pci: convert drivers to use the new vb2_queue dev
+ field
 
-media/usb/gspca/cpia1.c: In function 'sd_stopN':
-media/usb/gspca/cpia1.c:1627:13: error: unused variable 'sd' [-Werror=unused-variable]
-media/usb/gspca/konica.c: In function 'sd_stopN':
-media/usb/gspca/konica.c:246:13: error: unused variable 'sd' [-Werror=unused-variable]
+Stop using alloc_ctx and just fill in the device pointer.
 
-This converts the #if check into an if(), to let the compiler
-see where the variables are used, at the expense of slightly
-enlarging the gspca_dev structure.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: ee186fd96a5f ("[media] gscpa_t613: Add support for the camera button")
-Fixes: c2f644aeeba3 ("[media] gspca_cpia1: Add support for button")
-Fixes: b517af722860 ("V4L/DVB: gspca_konica: New gspca subdriver for konica chipset using cams")
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Federico Vaga <federico.vaga@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
-This is one of two approaches to avoid the warning, please pick either
-this or the other one.
+After rebasing the vb2: replace allocation context by device pointer patch series I discovered
+that newly committed changes to tw686x required that driver to be updated as well.
+This is the patch for that.
 ---
- drivers/media/usb/gspca/cpia1.c  | 13 ++++++-------
- drivers/media/usb/gspca/gspca.h  |  2 +-
- drivers/media/usb/gspca/konica.c |  8 ++------
- drivers/media/usb/gspca/t613.c   |  8 ++------
- 4 files changed, 11 insertions(+), 20 deletions(-)
+diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+index 0e839f6..d380a8d 100644
+--- a/drivers/media/pci/tw686x/tw686x-video.c
++++ b/drivers/media/pci/tw686x/tw686x-video.c
+@@ -177,24 +177,7 @@ static void tw686x_contig_buf_refill(struct tw686x_video_channel *vc,
+ 	vc->curr_bufs[pb] = NULL;
+ }
 
-diff --git a/drivers/media/usb/gspca/cpia1.c b/drivers/media/usb/gspca/cpia1.c
-index f23df4a9d8c5..29ce3faecada 100644
---- a/drivers/media/usb/gspca/cpia1.c
-+++ b/drivers/media/usb/gspca/cpia1.c
-@@ -540,10 +540,11 @@ static int do_command(struct gspca_dev *gspca_dev, u16 command,
- 		/* test button press */
- 		a = ((gspca_dev->usb_buf[1] & 0x02) == 0);
- 		if (a != sd->params.qx3.button) {
--#if IS_ENABLED(CONFIG_INPUT)
--			input_report_key(gspca_dev->input_dev, KEY_CAMERA, a);
--			input_sync(gspca_dev->input_dev);
--#endif
-+			if (IS_ENABLED(CONFIG_INPUT)) {
-+				input_report_key(gspca_dev->input_dev,
-+						 KEY_CAMERA, a);
-+				input_sync(gspca_dev->input_dev);
-+			}
- 	        	sd->params.qx3.button = a;
- 		}
- 		if (sd->params.qx3.button) {
-@@ -1637,16 +1638,14 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
- 	/* Update the camera status */
- 	do_command(gspca_dev, CPIA_COMMAND_GetCameraStatus, 0, 0, 0, 0);
- 
--#if IS_ENABLED(CONFIG_INPUT)
- 	/* If the last button state is pressed, release it now! */
--	if (sd->params.qx3.button) {
-+	if (IS_ENABLED(CONFIG_INPUT) && sd->params.qx3.button) {
- 		/* The camera latch will hold the pressed state until we reset
- 		   the latch, so we do not reset sd->params.qx3.button now, to
- 		   avoid a false keypress being reported the next sd_start */
- 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
- 		input_sync(gspca_dev->input_dev);
- 	}
--#endif
+-static void tw686x_contig_cleanup(struct tw686x_dev *dev)
+-{
+-	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+-}
+-
+-static int tw686x_contig_setup(struct tw686x_dev *dev)
+-{
+-	dev->alloc_ctx = vb2_dma_contig_init_ctx(&dev->pci_dev->dev);
+-	if (IS_ERR(dev->alloc_ctx)) {
+-		dev_err(&dev->pci_dev->dev, "unable to init DMA context\n");
+-		return PTR_ERR(dev->alloc_ctx);
+-	}
+-	return 0;
+-}
+-
+ const struct tw686x_dma_ops contig_dma_ops = {
+-	.setup		= tw686x_contig_setup,
+-	.cleanup	= tw686x_contig_cleanup,
+ 	.buf_refill	= tw686x_contig_buf_refill,
+ 	.mem_ops	= &vb2_dma_contig_memops,
+ 	.hw_dma_mode	= TW686X_FRAME_MODE,
+@@ -316,21 +299,10 @@ static int tw686x_sg_dma_alloc(struct tw686x_video_channel *vc,
+ 	return 0;
  }
- 
- /* this function is called at probe and resume time */
-diff --git a/drivers/media/usb/gspca/gspca.h b/drivers/media/usb/gspca/gspca.h
-index d39adf90303b..0d0f8ba1d673 100644
---- a/drivers/media/usb/gspca/gspca.h
-+++ b/drivers/media/usb/gspca/gspca.h
-@@ -149,8 +149,8 @@ struct gspca_dev {
- 	struct usb_device *dev;
- 	struct file *capt_file;		/* file doing video capture */
- 					/* protected by queue_lock */
--#if IS_ENABLED(CONFIG_INPUT)
- 	struct input_dev *input_dev;
-+#if IS_ENABLED(CONFIG_INPUT)
- 	char phys[64];			/* physical device path */
- #endif
- 
-diff --git a/drivers/media/usb/gspca/konica.c b/drivers/media/usb/gspca/konica.c
-index 39c96bb4c985..2abbde7ee532 100644
---- a/drivers/media/usb/gspca/konica.c
-+++ b/drivers/media/usb/gspca/konica.c
-@@ -246,15 +246,13 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
- 	konica_stream_off(gspca_dev);
--#if IS_ENABLED(CONFIG_INPUT)
- 	/* Don't keep the button in the pressed state "forever" if it was
- 	   pressed when streaming is stopped */
--	if (sd->snapshot_pressed) {
-+	if (IS_ENABLED(CONFIG_INPUT) && sd->snapshot_pressed) {
- 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
- 		input_sync(gspca_dev->input_dev);
- 		sd->snapshot_pressed = 0;
- 	}
--#endif
- }
- 
- /* reception of an URB */
-@@ -341,8 +339,7 @@ static void sd_isoc_irq(struct urb *urb)
- 		if (st & 0x80) {
- 			gspca_frame_add(gspca_dev, LAST_PACKET, NULL, 0);
- 			gspca_frame_add(gspca_dev, FIRST_PACKET, NULL, 0);
--		} else {
--#if IS_ENABLED(CONFIG_INPUT)
-+		} else if (IS_ENABLED(CONFIG_INPUT)) {
- 			u8 button_state = st & 0x40 ? 1 : 0;
- 			if (sd->snapshot_pressed != button_state) {
- 				input_report_key(gspca_dev->input_dev,
-@@ -351,7 +348,6 @@ static void sd_isoc_irq(struct urb *urb)
- 				input_sync(gspca_dev->input_dev);
- 				sd->snapshot_pressed = button_state;
- 			}
--#endif
- 			if (st & 0x01)
- 				continue;
- 		}
-diff --git a/drivers/media/usb/gspca/t613.c b/drivers/media/usb/gspca/t613.c
-index e2cc4e5a0ccb..fd2500725f25 100644
---- a/drivers/media/usb/gspca/t613.c
-+++ b/drivers/media/usb/gspca/t613.c
-@@ -823,14 +823,12 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
- 		msleep(20);
- 		reg_w(gspca_dev, 0x0309);
- 	}
--#if IS_ENABLED(CONFIG_INPUT)
- 	/* If the last button state is pressed, release it now! */
--	if (sd->button_pressed) {
-+	if (IS_ENABLED(CONFIG_INPUT) && sd->button_pressed) {
- 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
- 		input_sync(gspca_dev->input_dev);
- 		sd->button_pressed = 0;
- 	}
--#endif
- }
- 
- static void sd_pkt_scan(struct gspca_dev *gspca_dev,
-@@ -841,8 +839,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
- 	int pkt_type;
- 
- 	if (data[0] == 0x5a) {
--#if IS_ENABLED(CONFIG_INPUT)
--		if (len > 20) {
-+		if (IS_ENABLED(CONFIG_INPUT) && len > 20) {
- 			u8 state = (data[20] & 0x80) ? 1 : 0;
- 			if (sd->button_pressed != state) {
- 				input_report_key(gspca_dev->input_dev,
-@@ -851,7 +848,6 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
- 				sd->button_pressed = state;
- 			}
- 		}
--#endif
- 		/* Control Packet, after this came the header again,
- 		 * but extra bytes came in the packet before this,
- 		 * sometimes an EOF arrives, sometimes not... */
--- 
-2.9.0
 
+-static void tw686x_sg_cleanup(struct tw686x_dev *dev)
+-{
+-	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
+-}
+-
+ static int tw686x_sg_setup(struct tw686x_dev *dev)
+ {
+ 	unsigned int sg_table_size, pb, ch, channels;
+
+-	dev->alloc_ctx = vb2_dma_sg_init_ctx(&dev->pci_dev->dev);
+-	if (IS_ERR(dev->alloc_ctx)) {
+-		dev_err(&dev->pci_dev->dev, "unable to init DMA context\n");
+-		return PTR_ERR(dev->alloc_ctx);
+-	}
+-
+ 	if (is_second_gen(dev)) {
+ 		/*
+ 		 * TW6865/TW6869: each channel needs a pair of
+@@ -360,7 +332,6 @@ static int tw686x_sg_setup(struct tw686x_dev *dev)
+
+ const struct tw686x_dma_ops sg_dma_ops = {
+ 	.setup		= tw686x_sg_setup,
+-	.cleanup	= tw686x_sg_cleanup,
+ 	.alloc		= tw686x_sg_dma_alloc,
+ 	.free		= tw686x_sg_dma_free,
+ 	.buf_refill	= tw686x_sg_buf_refill,
+@@ -449,7 +420,6 @@ static int tw686x_queue_setup(struct vb2_queue *vq,
+ 		return 0;
+ 	}
+
+-	alloc_ctxs[0] = vc->dev->alloc_ctx;
+ 	sizes[0] = szimage;
+ 	*nplanes = 1;
+ 	return 0;
+@@ -1063,9 +1033,6 @@ void tw686x_video_free(struct tw686x_dev *dev)
+ 			for (pb = 0; pb < 2; pb++)
+ 				dev->dma_ops->free(vc, pb);
+ 	}
+-
+-	if (dev->dma_ops->cleanup)
+-		dev->dma_ops->cleanup(dev);
+ }
+
+ int tw686x_video_init(struct tw686x_dev *dev)
+@@ -1135,6 +1102,7 @@ int tw686x_video_init(struct tw686x_dev *dev)
+ 		vc->vidq.min_buffers_needed = 2;
+ 		vc->vidq.lock = &vc->vb_mutex;
+ 		vc->vidq.gfp_flags = GFP_DMA32;
++		vc->vidq.dev = &dev->pci_dev->dev;
+
+ 		err = vb2_queue_init(&vc->vidq);
+ 		if (err) {
+diff --git a/drivers/media/pci/tw686x/tw686x.h b/drivers/media/pci/tw686x/tw686x.h
+index 35d7bc9..f24a2a9 100644
+--- a/drivers/media/pci/tw686x/tw686x.h
++++ b/drivers/media/pci/tw686x/tw686x.h
+@@ -106,7 +106,6 @@ struct tw686x_video_channel {
+
+ struct tw686x_dma_ops {
+ 	int (*setup)(struct tw686x_dev *dev);
+-	void (*cleanup)(struct tw686x_dev *dev);
+ 	int (*alloc)(struct tw686x_video_channel *vc, unsigned int pb);
+ 	void (*free)(struct tw686x_video_channel *vc, unsigned int pb);
+ 	void (*buf_refill)(struct tw686x_video_channel *vc, unsigned int pb);
+@@ -132,8 +131,6 @@ struct tw686x_dev {
+ 	struct pci_dev *pci_dev;
+ 	__u32 __iomem *mmio;
+
+-	void *alloc_ctx;
+-
+ 	const struct tw686x_dma_ops *dma_ops;
+ 	struct tw686x_video_channel *video_channels;
+ 	struct tw686x_audio_channel *audio_channels;
