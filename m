@@ -1,78 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40648 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754062AbcG0M5F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jul 2016 08:57:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kazunori Kobayashi <kkobayas@igel.co.jp>
-Cc: linux-media@vger.kernel.org,
-	Damian Hobson-Garcia <dhobsong@igel.co.jp>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: Memory freeing when dmabuf fds are exported with VIDIOC_EXPBUF
-Date: Wed, 27 Jul 2016 15:57:12 +0300
-Message-ID: <2220172.K033cFnpL3@avalon>
-In-Reply-To: <36bf3ef2-e43a-3910-16e2-b51439be5622@igel.co.jp>
-References: <36bf3ef2-e43a-3910-16e2-b51439be5622@igel.co.jp>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:32162 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193AbcGAMwK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 08:52:10 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0O9M00H1KZ8F3M20@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 01 Jul 2016 13:41:03 +0100 (BST)
+Received: from AMDN2410 ([106.120.46.21])
+ by eusync2.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTPA id <0O9M00FPMZ8EBP40@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 01 Jul 2016 13:41:03 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL] mem2mem changes
+Date: Fri, 01 Jul 2016 14:41:02 +0200
+Message-id: <00a801d1d395$d3fb1390$7bf13ab0$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Kobayashi-san,
+The following changes since commit 0db5c79989de2c68d5abb7ba891bfdb3cd3b7e05:
 
-(CC'ing Hans Verkuil and Marek Szyprowski)
+  [media] media-devnode.h: Fix documentation (2016-06-16 08:14:56 -0300)
 
-On Wednesday 27 Jul 2016 16:51:47 Kazunori Kobayashi wrote:
-> Hi,
-> 
-> I have a question about memory freeing by calling REQBUF(0) before all the
-> dmabuf fds exported with VIDIOC_EXPBUF are closed.
-> 
-> In calling REQBUF(0), videobuf2-core returns -EBUSY when the reference count
-> of a vb2 buffer is more than 1. When dmabuf fds are not exported (usual
-> V4L2_MEMORY_MMAP case), the check is no problem, but when dmabuf fds are
-> exported and some of them are not closed (in other words the references to
-> that memory are left), we cannot succeed in calling REQBUF(0) despite being
-> able to free the memory after all the references are dropped.
-> 
-> Actually REQBUF(0) does not force a vb2 buffer to be freed but decreases
-> the refcount of it. Also all the vb2 memory allocators that support dmabuf
-> exporting (dma-contig, dma-sg, vmalloc) implements memory freeing by
-> release() of dma_buf_ops, so I think there is no need to return -EBUSY when
-> exporting dmabuf fds.
-> 
-> Could you please tell me what you think?
+are available in the git repository at:
 
-I think you're right. vb2 allocates the vb2_buffer and the memops-specific 
-structure separately. videobuf2-core.c will free the vb2_buffer instance, but 
-won't touch the memops-specific structure or the buffer memory. Both of these 
-are reference-counted in the memops allocators. We could thus allow REQBUFS(0) 
-to proceed even when buffers have been exported (or at least after fixing the 
-small issues we'll run into, I have a feeling that this is too easy to be 
-true).
+  git://linuxtv.org/kdebski/media_tree_2.git master-20160627
 
-Hans, Marek, any opinion on this ?
+for you to fetch changes up to 54fd06bfa3aed1c14731a372be92c15d3cdd6998:
 
-> The code that I am talking about is in
-> drivers/media/v4l2-core/videobuf2-core.c:
-> 
->    if (*count == 0 || q->num_buffers != 0 || q->memory != memory) {
->           /*
->            * We already have buffers allocated, so first check if they
->            * are not in use and can be freed.
->            */
->           mutex_lock(&q->mmap_lock);
->           if (q->memory == VB2_MEMORY_MMAP && __buffers_in_use(q)) {
->                   mutex_unlock(&q->mmap_lock);
->                   dprintk(1, "memory in use, cannot free\n");
->                   return -EBUSY;
->           }
+  exynos4-is: Fix buffer release issue on fimc m2m video nodes (2016-06-30
+16:03:02 +0200)
 
--- 
-Regards,
+----------------------------------------------------------------
+Javier Martinez Canillas (5):
+      s5p-mfc: fix typo in s5p_mfc_dec function comment
+      s5p-mfc: don't print errors on VIDIOC_REQBUFS unsupported mem type
+      s5p-mfc: use vb2_is_streaming() to check vb2 queue status
+      s5p-mfc: set capablity bus_info as required by VIDIOC_QUERYCAP
+      s5p-mfc: improve v4l2_capability driver and card fields
 
-Laurent Pinchart
+Marek Szyprowski (1):
+      media: s5p-mfc: fix error path in driver probe
+
+Shuah Khan (3):
+      media: s5p-mfc fix video device release double release in probe error
+path
+      media: s5p-mfc fix memory leak in s5p_mfc_remove()
+      media: s5p-mfc fix null pointer deference in clk_core_enable()
+
+Sylwester Nawrocki (1):
+      exynos4-is: Fix buffer release issue on fimc m2m video nodes
+
+ drivers/media/platform/exynos4-is/fimc-m2m.c    | 24
+++++++++++--------------
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        | 19 +++++++++++--------
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  2 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    | 15 ++++++++-------
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |  7 ++++---
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c     | 12 +++++++++---
+ 6 files changed, 44 insertions(+), 35 deletions(-)
 
