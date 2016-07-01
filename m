@@ -1,135 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46439
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751139AbcGMKhr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 06:37:47 -0400
-Date: Wed, 13 Jul 2016 07:37:37 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 2/2] doc-rst: improve CEC documentation
-Message-ID: <20160713073737.7fef8c7e@recife.lan>
-In-Reply-To: <5786138F.5050103@cisco.com>
-References: <1468346865-36465-1-git-send-email-hverkuil@xs4all.nl>
-	<1468346865-36465-3-git-send-email-hverkuil@xs4all.nl>
-	<20160713070627.1c2368d6@recife.lan>
-	<5786138F.5050103@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:58268 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752018AbcGAIQs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 04:16:48 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [PATCH v2 02/15] [media] lirc_dev: allow bufferless driver registration
+Date: Fri, 01 Jul 2016 17:01:25 +0900
+Message-id: <1467360098-12539-3-git-send-email-andi.shyti@samsung.com>
+In-reply-to: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
+References: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 13 Jul 2016 12:10:23 +0200
-Hans Verkuil <hansverk@cisco.com> escreveu:
+Some drivers don't necessarily need to have a FIFO managed buffer
+for their transfers. Drivers now should call
+lirc_register_bufferless_driver in order to handle the buffer
+themselves.
 
-> On 07/13/16 12:06, Mauro Carvalho Chehab wrote:
-> > Hi Hans,
-> > 
-> > Em Tue, 12 Jul 2016 20:07:45 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >   
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >> Lots of fixups relating to references.
-> >>
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >>  Documentation/media/uapi/cec/cec-func-ioctl.rst    |  2 +-
-> >>  Documentation/media/uapi/cec/cec-func-open.rst     | 10 +++----
-> >>  .../media/uapi/cec/cec-ioc-adap-g-caps.rst         | 18 ++++++------
-> >>  .../media/uapi/cec/cec-ioc-adap-g-log-addrs.rst    | 14 ++++-----
-> >>  .../media/uapi/cec/cec-ioc-adap-g-phys-addr.rst    | 14 ++++-----
-> >>  Documentation/media/uapi/cec/cec-ioc-dqevent.rst   |  2 +-
-> >>  Documentation/media/uapi/cec/cec-ioc-g-mode.rst    | 34 +++++++++-------------
-> >>  Documentation/media/uapi/cec/cec-ioc-receive.rst   | 28 +++++++++---------
-> >>  8 files changed, 58 insertions(+), 64 deletions(-)
-> >>
-> >> diff --git a/Documentation/media/uapi/cec/cec-func-ioctl.rst b/Documentation/media/uapi/cec/cec-func-ioctl.rst
-> >> index a07cc7c..d0279e6d 100644
-> >> --- a/Documentation/media/uapi/cec/cec-func-ioctl.rst
-> >> +++ b/Documentation/media/uapi/cec/cec-func-ioctl.rst
-> >> @@ -29,7 +29,7 @@ Arguments
-> >>  
-> >>  ``request``
-> >>      CEC ioctl request code as defined in the cec.h header file, for
-> >> -    example CEC_ADAP_G_CAPS.
-> >> +    example :ref:`CEC_ADAP_G_CAPS`.
-> >>  
-> >>  ``argp``
-> >>      Pointer to a request-specific structure.
-> >> diff --git a/Documentation/media/uapi/cec/cec-func-open.rst b/Documentation/media/uapi/cec/cec-func-open.rst
-> >> index 245d679..cbf1176 100644
-> >> --- a/Documentation/media/uapi/cec/cec-func-open.rst
-> >> +++ b/Documentation/media/uapi/cec/cec-func-open.rst
-> >> @@ -32,11 +32,11 @@ Arguments
-> >>      Open flags. Access mode must be ``O_RDWR``.
-> >>  
-> >>      When the ``O_NONBLOCK`` flag is given, the
-> >> -    :ref:`CEC_RECEIVE` ioctl will return EAGAIN
-> >> -    error code when no message is available, and the
-> >> -    :ref:`CEC_TRANSMIT`,
-> >> -    :ref:`CEC_ADAP_S_PHYS_ADDR` and
-> >> -    :ref:`CEC_ADAP_S_LOG_ADDRS` ioctls
-> >> +    :ref:`CEC_RECEIVE <CEC_RECEIVE>` ioctl will return the EAGAIN
-> >> +    error code when no message is available, and ioctls
-> >> +    :ref:`CEC_TRANSMIT <CEC_TRANSMIT>`,
-> >> +    :ref:`CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>` and
-> >> +    :ref:`CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
-> >>      all act in non-blocking mode.
-> >>  
-> >>      Other flags have no effect.
-> >> diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-> >> index 2ca9199..63b808e 100644
-> >> --- a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-> >> +++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-> >> @@ -34,7 +34,7 @@ Description
-> >>  .. note:: This documents the proposed CEC API. This API is not yet finalized
-> >>     and is currently only available as a staging kernel module.
-> >>  
-> >> -All cec devices must support the :ref:`CEC_ADAP_G_CAPS` ioctl. To query
-> >> +All cec devices must support ``CEC_ADAP_G_CAPS``. To query  
-> > 
-> > Why are you removing the ref here and on other similar places? If you
-> > remove it, the font and font color for it will be different and
-> > inconsistent. It will also be inconsistent with the other places
-> > within the document, were it is using a reference everywhere.  
-> 
-> What's the point of having a link to the same page that you are watching?
-> I also found it very cumbersome and ugly having to write e.g.
-> 
-> :ref:`CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>
-> 
-> all the time. That is fine if it actually points to another page (it serves a
-> real purpose then), but on the page itself I think it is ugly. We never did
-> that with the DocBook documentation either.
+The function works exaclty like lirc_register_driver except of
+the buffer allocation.
 
-With DocBook, all ioctls, including the references, were <constant>.
-So, they all display the same way, no matter if they're a reference or
-not. However, with ReST, it is *either* a constant or a reference. So,
-if you use ``foo`` or :ref:`foo`, the fonts used will be different, with
-causes, IMHO, an ugly output, as it violates the font convention used
-within the document.
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+---
+ drivers/media/rc/lirc_dev.c | 44 ++++++++++++++++++++++++++++++++++----------
+ include/media/lirc_dev.h    | 12 ++++++++++++
+ 2 files changed, 46 insertions(+), 10 deletions(-)
 
-With regards to DocBook, this was really messy. I've seen the same ioctl
-represented there in three ways, sometimes, even at the same file.
-Just to get a random example:
-	
-Documentation/DocBook/media/v4l/io.xml:<link linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link>, <link
-Documentation/DocBook/media/v4l/io.xml:<constant>VIDIOC_QUERYBUF</constant>
-Documentation/DocBook/media/v4l/vidioc-querybuf.xml:      <para>VIDIOC_QUERYBUF</para>
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 5716978..fa562a3 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -205,12 +205,14 @@ err_out:
+ 
+ static int lirc_allocate_buffer(struct irctl *ir)
+ {
+-	int err;
++	int err = 0;
+ 	int bytes_in_key;
+ 	unsigned int chunk_size;
+ 	unsigned int buffer_size;
+ 	struct lirc_driver *d = &ir->d;
+ 
++	mutex_lock(&lirc_dev_lock);
++
+ 	bytes_in_key = BITS_TO_LONGS(d->code_length) +
+ 						(d->code_length % 8 ? 1 : 0);
+ 	buffer_size = d->buffer_size ? d->buffer_size : BUFLEN / bytes_in_key;
+@@ -220,21 +222,26 @@ static int lirc_allocate_buffer(struct irctl *ir)
+ 		ir->buf = d->rbuf;
+ 	} else {
+ 		ir->buf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
+-		if (!ir->buf)
+-			return -ENOMEM;
++		if (!ir->buf) {
++			err = -ENOMEM;
++			goto out;
++		}
+ 
+ 		err = lirc_buffer_init(ir->buf, chunk_size, buffer_size);
+ 		if (err) {
+ 			kfree(ir->buf);
+-			return err;
++			goto out;
+ 		}
+ 	}
+ 	ir->chunk_size = ir->buf->chunk_size;
+ 
+-	return 0;
++out:
++	mutex_unlock(&lirc_dev_lock);
++
++	return err;
+ }
+ 
+-int lirc_register_driver(struct lirc_driver *d)
++static int lirc_allocate_driver(struct lirc_driver *d)
+ {
+ 	struct irctl *ir;
+ 	int minor;
+@@ -342,10 +349,6 @@ int lirc_register_driver(struct lirc_driver *d)
+ 	/* some safety check 8-) */
+ 	d->name[sizeof(d->name)-1] = '\0';
+ 
+-	err = lirc_allocate_buffer(ir);
+-	if (err)
+-		goto out_lock;
+-
+ 	if (d->features == 0)
+ 		d->features = LIRC_CAN_REC_LIRCCODE;
+ 
+@@ -385,8 +388,29 @@ out_lock:
+ out:
+ 	return err;
+ }
++
++int lirc_register_driver(struct lirc_driver *d)
++{
++	int err, minor;
++
++	minor = lirc_allocate_driver(d);
++	if (minor < 0)
++		return minor;
++
++	err = lirc_allocate_buffer(irctls[minor]);
++	if (err)
++		lirc_unregister_driver(minor);
++
++	return err ? err : minor;
++}
+ EXPORT_SYMBOL(lirc_register_driver);
+ 
++int lirc_register_bufferless_driver(struct lirc_driver *d)
++{
++	return lirc_allocate_driver(d);
++}
++EXPORT_SYMBOL(lirc_register_bufferless_driver);
++
+ int lirc_unregister_driver(int minor)
+ {
+ 	struct irctl *ir;
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index 0ab59a5..8bed57a 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -214,6 +214,18 @@ struct lirc_driver {
+  */
+ extern int lirc_register_driver(struct lirc_driver *d);
+ 
++/* int lirc_register_bufferless_driver - allocates a lirc bufferless driver
++ * @d: reference to the lirc_driver to initialize
++ *
++ * The difference between lirc_register_driver and
++ * lirc_register_bufferless_driver is that the latter doesn't allocate any
++ * buffer, which means that the driver using the lirc_driver should take care of
++ * it by itself.
++ *
++ * returns 0 on success or a the negative errno number in case of failure.
++ */
++extern int lirc_register_bufferless_driver(struct lirc_driver *d);
++
+ /* returns negative value on error or 0 if success
+ */
+ extern int lirc_unregister_driver(int minor);
+-- 
+2.8.1
 
-(You'll see lot of other cases were not even <constant> were used...
-Documentation/DocBook/media/v4l/v4l2.xml is lot of such cases)
-
-We should stick with just *one* typographic convention, and not randomly
-change it along the document.
-
-It looks really ugly when we change the typographic convention for ioctls
-like what this patch does.
-
-Regards
-
-Thanks,
-Mauro
