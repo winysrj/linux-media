@@ -1,78 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.15]:48947 "EHLO imap.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752305AbcGNUZ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2016 16:25:27 -0400
-Received: from mail-io0-f172.google.com (mail-io0-f172.google.com [209.85.223.172])
-	by imap.netup.ru (Postfix) with ESMTPA id 64B1F7C0515
-	for <linux-media@vger.kernel.org>; Thu, 14 Jul 2016 23:25:23 +0300 (MSK)
-Received: by mail-io0-f172.google.com with SMTP id m101so86175467ioi.2
-        for <linux-media@vger.kernel.org>; Thu, 14 Jul 2016 13:25:22 -0700 (PDT)
+Received: from mout.kundenserver.de ([217.72.192.74]:51152 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751900AbcGAPep (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 11:34:45 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] cec: add missing inline stubs
+Date: Fri, 01 Jul 2016 17:37:17 +0200
+Message-ID: <6460555.uRUCQj0uFx@wuerfel>
+In-Reply-To: <975908ec-c95c-170d-e7b7-31a810ad82ba@xs4all.nl>
+References: <20160701112027.102024-1-arnd@arndb.de> <6419506.V8JtZUoqT3@wuerfel> <975908ec-c95c-170d-e7b7-31a810ad82ba@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <2a0edab5ab7b0e0743b04a64c935d798d3930856.1467381792.git.mchehab@s-opensource.com>
-References: <75889448cdfcea311a0c0f5e1c8cc022915dd4fe.1467381792.git.mchehab@s-opensource.com>
- <2a0edab5ab7b0e0743b04a64c935d798d3930856.1467381792.git.mchehab@s-opensource.com>
-From: Abylay Ospan <aospan@netup.ru>
-Date: Thu, 14 Jul 2016 16:25:02 -0400
-Message-ID: <CAK3bHNUWPuYZ6rn_Ktqgn8f4C+Axk1i_gsTGcB9zZCWcpd0KrA@mail.gmail.com>
-Subject: Re: [PATCH 4/4] cxd2841er: adjust the dB scale for DVB-C
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sergey Kozlov <serjk@netup.ru>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+On Friday, July 1, 2016 5:22:32 PM CEST Hans Verkuil wrote:
+> > diff --git a/drivers/media/platform/vivid/Kconfig b/drivers/media/platform/vivid/Kconfig
+> > index 8e6918c5c87c..8e31146d079a 100644
+> > --- a/drivers/media/platform/vivid/Kconfig
+> > +++ b/drivers/media/platform/vivid/Kconfig
+> > @@ -26,6 +26,7 @@ config VIDEO_VIVID
+> >  config VIDEO_VIVID_CEC
+> >       bool "Enable CEC emulation support"
+> >       depends on VIDEO_VIVID && MEDIA_CEC
+> > +     depends on VIDEO_VIVID=m || MEDIA_CEC=y
+> >       ---help---
+> >         When selected the vivid module will emulate the optional
+> >         HDMI CEC feature.
+> > 
+> > which is still not overly nice, but it manages to avoid the
+> > IS_REACHABLE() check and it lets MEDIA_CEC be a module.
+> 
+> The only IS_REACHABLE is for the RC_CORE check, and that should remain.
 
-Acked-by: Abylay Ospan <aospan@netup.ru>
+I believe that is already taken care of by my earlier "[media] cec: add
+RC_CORE dependency" patch, https://patchwork.linuxtv.org/patch/34892/
+which seems to handle the dependency more gracefully (preventing nonsense
+configurations rather than just not using RC_CORE).
 
-I have checked values with reference signal from my modulator for
-DVB-C. Formula is working fine. Thanks !
+> With my patch MEDIA_CEC can remain a module provided MEDIA_SUPPORT is also
+> a module. All drivers depending on MEDIA_CEC also depend on MEDIA_SUPPORT,
+> so that works.
 
+To clarify, the problem with the option above is that VIDEO_VIVID_CEC
+is a 'bool' option, and Kconfig lets that be turned on if both
+VIDEO_VIVID and MEDIA_CEC are enabled, including the case where MEDIA_CEC
+is a module and VIDEO_VIVID is not.
 
-2016-07-01 10:03 GMT-04:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-> Instead of using a relative frequency range, calibrate it to
-> show the results in dB. The callibration was done getting
-> samples with a signal generated from -50dBm to -12dBm,
-> incremented in steps of 0.5 dB, using 3 frequencies:
-> 175 MHz, 410 MHz and 800 MHz. The modulated signal was
-> using QAM64, and it was used a linear interpolation of all
-> the results.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/dvb-frontends/cxd2841er.c | 9 +++++++--
->  1 file changed, 7 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-> index e2f3ea55897b..6c660761563d 100644
-> --- a/drivers/media/dvb-frontends/cxd2841er.c
-> +++ b/drivers/media/dvb-frontends/cxd2841er.c
-> @@ -1746,8 +1746,13 @@ static void cxd2841er_read_signal_strength(struct dvb_frontend *fe)
->         case SYS_DVBC_ANNEX_A:
->                 strength = cxd2841er_read_agc_gain_t_t2(priv,
->                                                         p->delivery_system);
-> -               p->strength.stat[0].scale = FE_SCALE_RELATIVE;
-> -               p->strength.stat[0].uvalue = strength;
-> +               p->strength.stat[0].scale = FE_SCALE_DECIBEL;
-> +               /*
-> +                * Formula was empirically determinated via linear regression,
-> +                * using frequencies: 175 MHz, 410 MHz and 800 MHz, and a
-> +                * stream modulated with QAM64
-> +                */
-> +               p->strength.stat[0].uvalue = ((s32)strength) * 4045 / 1000 - 85224;
->                 break;
->         case SYS_ISDBT:
->                 strength = 65535 - cxd2841er_read_agc_gain_i(
-> --
-> 2.7.4
->
+Your patch avoids that problem by making MEDIA_CEC a 'bool', my patch
+above is an alternative by ensuring that VIDEO_VIVID_CEC cannot be
+enabled if MEDIA_CEC is a module and VIDEO_VIVID is not.
 
-
-
--- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+	Arnd
