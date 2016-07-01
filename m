@@ -1,69 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40902 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751244AbcGVO15 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 10:27:57 -0400
-Subject: Re: [PATCH] [media] Documentation: Fix V4L2_CTRL_FLAG_VOLATILE
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org
-References: <1469196454-1396-1-git-send-email-ricardo.ribalda@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ecb2e5b2-3255-e564-b456-8acdf297813b@xs4all.nl>
-Date: Fri, 22 Jul 2016 16:27:51 +0200
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:43271 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752224AbcGATkO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 15:40:14 -0400
+Date: Fri, 1 Jul 2016 21:40:10 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+	laurent.pinchart@ideasonboard.com
+Cc: Sebastian Reichel <sre@kernel.org>,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	pali.rohar@gmail.com, linux-media@vger.kernel.org
+Subject: Re: square-only image on Nokia N900 camera -- pipeline setup in
+ python (was Re: [RFC PATCH 00/24] Make Nokia N900 cameras working)
+Message-ID: <20160701194010.GA30452@amd>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160427030850.GA17034@earth>
+ <20160617164226.GA27876@amd>
+ <20160617171214.GA5830@amd>
+ <20160620205904.GL24980@valkosipuli.retiisi.org.uk>
+ <20160701073146.GA21405@amd>
+ <20160701085025.GA30653@amd>
+ <20160701110154.GA26056@amd>
 MIME-Version: 1.0
-In-Reply-To: <1469196454-1396-1-git-send-email-ricardo.ribalda@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160701110154.GA26056@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 07/22/2016 04:07 PM, Ricardo Ribalda Delgado wrote:
-> V4L2_CTRL_FLAG_VOLATILE behaviour when V4L2_CTRL_FLAG_EXECUTE_ON_WRITE
-> is set was not properly explained.
+On Fri 2016-07-01 13:01:54, Pavel Machek wrote:
+> On Fri 2016-07-01 10:50:25, Pavel Machek wrote:
+> > Hi!
+> > 
+> > > On gitlab is the latest version of pipeline setup if python. I also
+> > > got fcam to work (slowly) on the camera, with autofocus and
+> > > autogain. Capturing from preview modes works fine, but image quality
+> > > is not good, as expected. Capturing raw GRBG10 images works, but
+> > > images are square, with values being outside square being 0.
+> > > 
+> > > Same problem is there with yavta and fcam-dev capture, so I suspect
+> > > there's something in kernel. If you have an idea what could be wrong /
+> > > what to try, let me know. If omap3isp works for you in v4.6, and
+> > > produces expected rectangular images, that would be useful to know,
+> > > too.
+> > > 
+> > > Python capture script is at
+> > > 
+> > > https://gitlab.com/tui/tui/commit/266b6eb302dcf1481e3e90a05bf98180e5759168
+> > 
+> > I switched to the front camera (vs6555 pixel array 2-0010 + vs6555
+> > binner 2-0010) and got same effect: preview image works fine, raw
+> > image is square. Still kernel v4.6.
 > 
-> Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
-> Credit-to: Hans Verkuil <hansverk@cisco.com>
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> ---
->  Documentation/media/uapi/v4l/vidioc-queryctrl.rst | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-> index 8d6e61a7284d..3a30d6cf70b4 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-> @@ -728,10 +728,10 @@ See also the examples in :ref:`control`.
->  	  case the hardware calculates the gain value based on the lighting
->  	  conditions which can change over time.
->  
-> -	  .. note:: Setting a new value for a volatile control will have no
-> -	     effect and no ``V4L2_EVENT_CTRL_CH_VALUE`` will be sent, unless
-> -	     the ``V4L2_CTRL_FLAG_EXECUTE_ON_WRITE`` flag (see below) is
-> -	     also set. Otherwise the new value will just be ignored.
-> +	  .. note:: Setting a new value for a volatile control will be ignored
-> +             unless `V4L2_CTRL_FLAG_EXECUTE_ON_WRITE`` flag (see below) is also set.
+> Same issue with kernel v4.7-rc5.
 
-That should start with `` not ` (i.e. a double ` instead of a single `).
+And this seems to fix it. Now image fills whole frame.
 
-> +             Setting a new value for a volatile contol will never trigger a
+But I still can't get 5MP format to work, it fails with:
 
-s/contol/control/
+[  497.929016] check_format checking px 808534338 808534338, h 1968
+1968, w 2592 2592, bpline 5184 5184, size 10202112 10202112 field 1 1
+[  497.929107] configuring for 2592(5184)x1968
+[  497.936248] stream on success
+[  498.020233] omap3isp 480bc000.isp: CCDC won't become idle!
+[  525.563476] omap3isp 480bc000.isp: Unable to stop OMAP3 ISP CCDC
 
-Also emphasize 'never':
 
-s/never/*never*/
+commit 5268a954cd6af4853ad8e05f32ff4741c245e65e
+Author: Pavel <pavel@ucw.cz>
+Date:   Fri Jul 1 21:34:35 2016 +0200
 
-> +             ``V4L2_EVENT_CTRL_CH_VALUE`` event.
->  
->      -  .. row 9
->  
-> 
+    This seems to fix stuff for me -- now square limitation of images is gone.
 
-Regards,
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index 5c52ae8..0e052e6 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -1185,7 +1185,8 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
+ 	/* Use the raw, unprocessed data when writing to memory. The H3A and
+ 	 * histogram modules are still fed with lens shading corrected data.
+ 	 */
+-	syn_mode &= ~ISPCCDC_SYN_MODE_VP2SDR;
++//	syn_mode &= ~ISPCCDC_SYN_MODE_VP2SDR;
++	syn_mode |= ISPCCDC_SYN_MODE_VP2SDR;
+ 
+ 	if (ccdc->output & CCDC_OUTPUT_MEMORY)
+ 		syn_mode |= ISPCCDC_SYN_MODE_WEN;
 
-	Hans
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
