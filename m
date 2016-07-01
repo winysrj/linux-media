@@ -1,198 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.220.in.ua ([89.184.67.205]:44333 "EHLO smtp.220.in.ua"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751013AbcGRTzK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 15:55:10 -0400
-Subject: Re: si2157: new revision?
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-References: <1467243499-26093-1-git-send-email-crope@iki.fi>
- <1467243499-26093-3-git-send-email-crope@iki.fi>
- <577AAD3C.2060204@kaa.org.ua> <46faadd5-80dc-bb71-be24-8b05fb035423@iki.fi>
- <57816A16.1090800@kaa.org.ua> <fc85f957-a297-7664-59c4-7a3e124017c0@iki.fi>
- <5785FA33.8010403@kaa.org.ua>
-From: Oleh Kravchenko <oleg@kaa.org.ua>
-Message-ID: <962775bc-c1e9-f889-5dcd-8da9509655d5@kaa.org.ua>
-Date: Mon, 18 Jul 2016 22:55:05 +0300
-MIME-Version: 1.0
-In-Reply-To: <5785FA33.8010403@kaa.org.ua>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:35616 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752659AbcGAODX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 10:03:23 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sergey Kozlov <serjk@netup.ru>, Abylay Ospan <aospan@netup.ru>
+Subject: [PATCH 4/4] cxd2841er: adjust the dB scale for DVB-C
+Date: Fri,  1 Jul 2016 11:03:16 -0300
+Message-Id: <2a0edab5ab7b0e0743b04a64c935d798d3930856.1467381792.git.mchehab@s-opensource.com>
+In-Reply-To: <75889448cdfcea311a0c0f5e1c8cc022915dd4fe.1467381792.git.mchehab@s-opensource.com>
+References: <75889448cdfcea311a0c0f5e1c8cc022915dd4fe.1467381792.git.mchehab@s-opensource.com>
+In-Reply-To: <75889448cdfcea311a0c0f5e1c8cc022915dd4fe.1467381792.git.mchehab@s-opensource.com>
+References: <75889448cdfcea311a0c0f5e1c8cc022915dd4fe.1467381792.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Antii!
+Instead of using a relative frequency range, calibrate it to
+show the results in dB. The callibration was done getting
+samples with a signal generated from -50dBm to -12dBm,
+incremented in steps of 0.5 dB, using 3 frequencies:
+175 MHz, 410 MHz and 800 MHz. The modulated signal was
+using QAM64, and it was used a linear interpolation of all
+the results.
 
-I succeed with my tuner Evromedia USB Full Hybrid Full HD!!
-$ w_scan -ft -c UA -M
-...
-tune to: QAM_AUTO f = 474000 kHz I999B8C999D999T999G999Y999 (0:1:43)
-(time: 02:59.095)
-        service = 5 KANAL (Scopus Network Technologies)
-        service = NEWS ONE (News One)
-        service = EU MUSIC (EU MUSIC)
-        service = OTV (SPACECOM)
-        service = ICTV (ICTV)
-        service = SONCE (SOLAR MEDIA)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-frontends/cxd2841er.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-(time: 03:12.851) dumping lists (6 services)
+diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+index e2f3ea55897b..6c660761563d 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.c
++++ b/drivers/media/dvb-frontends/cxd2841er.c
+@@ -1746,8 +1746,13 @@ static void cxd2841er_read_signal_strength(struct dvb_frontend *fe)
+ 	case SYS_DVBC_ANNEX_A:
+ 		strength = cxd2841er_read_agc_gain_t_t2(priv,
+ 							p->delivery_system);
+-		p->strength.stat[0].scale = FE_SCALE_RELATIVE;
+-		p->strength.stat[0].uvalue = strength;
++		p->strength.stat[0].scale = FE_SCALE_DECIBEL;
++		/*
++		 * Formula was empirically determinated via linear regression,
++		 * using frequencies: 175 MHz, 410 MHz and 800 MHz, and a
++		 * stream modulated with QAM64
++		 */
++		p->strength.stat[0].uvalue = ((s32)strength) * 4045 / 1000 - 85224;
+ 		break;
+ 	case SYS_ISDBT:
+ 		strength = 65535 - cxd2841er_read_agc_gain_i(
+-- 
+2.7.4
 
-MPlayer and VLC play video and sound, but it's very broken (ugly):
-$ mplayer dvb://ICTV
-...
-[mpeg2video @ 0x7fbec7ae2900]00 motion_type at 43 1
-[mpeg2video @ 0x7fbec7ae2900]00 motion_type at 1 4
-[mpeg2video @ 0x7fbec7ae2900]00 motion_type at 33 8
-[mpeg2video @ 0x7fbec7ae2900]00 motion_type at 27 9
-[mpeg2video @ 0x7fbec7ae2900]00 motion_type at 21 13
-[mpeg2video @ 0x7fbec7ae2900]00 motion_type at 14 17
-[mpeg2video @ 0x7fbec7ae2900]00 motion_type at 23 25
-[mpeg2video @ 0x7fbec7ae2900]00 motion_type at 16 27
-[mpeg2video @ 0x7fbec7ae2900]ac-tex damaged at 11 31
-[mpeg2video @ 0x7fbec7ae2900]slice mismatch
-[mpeg2video @ 0x7fbec7ae2900]Warning MVs not available
-[mpeg2video @ 0x7fbec7ae2900]concealing 599 DC, 599 AC, 599 MV errors in
-B frame
-
-Why happens?
-
-On 13.07.16 11:22, Oleh Kravchenko wrote:
-> Hello Antti!
-> 
-> Thank you for your advice. I succeed with demod chip!
-> ...
-> [ 3454.060649] cx231xx #0: (pipe 0x80000b80): IN:  c0 0d 0f 00 74 00 04
-> 00 <<< 6f 03 00 00
-> [ 3454.060784] cx231xx #0 at cx231xx_i2c_xfer: read stop addr=0x64 len=10:
-> [ 3454.060793] cx231xx #0: (pipe 0x80000b80): IN:  c0 05 23 c8 00 00 04 00
-> [ 3454.061392] <<< 80 44 33 30
-> [ 3454.061403] cx231xx #0: (pipe 0x80000b80): IN:  c0 05 63 c8 00 00 04
-> 00 <<< 0b 73 33 30
-> [ 3454.061899] cx231xx #0: (pipe 0x80000b80): IN:  c0 05 61 c8 00 00 02
-> 00 <<< 13 01
-> [ 3454.062278]  80 44 33 30 0b 73 33 30 13 01
-> [ 3454.062294] si2168 17-0064: firmware version: 3.0.19
-> 
-> But with tuner chip I have only error -32 :(
-> ...
-> [ 2795.770276] cx231xx #0 at cx231xx_i2c_xfer: read stop addr=0x60 len=1:
-> [ 2795.770281] cx231xx #0: (pipe 0x80000680): IN:  c0 06 21 c0 00 00 01 00
-> [ 2795.771045] <<< fe
-> [ 2795.771048]  fe
-> [ 2795.771205] cx231xx #0 at cx231xx_i2c_xfer: write stop addr=0x60
-> len=15: c0 00 00 00 00 01 01 01 01 01 01 02 00 00 01
-> [ 2795.771234] cx231xx #0: (pipe 0x80000600): OUT:  40 02 21 c0 00 00 0f 00
-> [ 2795.771235] >>>
-> [ 2795.771236]  c0
-> [ 2795.771237]  00 00 00 00 01 01 01 01 01 01 02 00 00 01FAILED!
-> [ 2795.771886] cx231xx 1-2:1.1: cx231xx_send_usb_command: failed with
-> status --32
-> [ 2795.771888] cx231xx #0 at cx231xx_i2c_xfer:  ERROR: -32
-> 
-> But I discovered one thing, error will come - if write payload is bigger
-> than 4 bytes..
-> Any ideas, why this happening?
-> ...
-> [ 3454.143285] cx231xx #0 at cx231xx_i2c_xfer: write stop addr=0x60
-> len=4: c0 00 00 00
-> [ 3454.143288] cx231xx #0: (pipe 0x80000b00): OUT:  40 02 21 c0 00 00 04 00
-> [ 3454.143289] >>> c0 00 00 00
-> [ 3454.143884] cx231xx #0 at cx231xx_i2c_xfer: read stop addr=0x60 len=1:
-> [ 3454.143893] cx231xx #0: (pipe 0x80000b80): IN:  c0 06 21 c0 00 00 01 00
-> [ 3454.144242] <<< fe
-> [ 3454.144244]  fe
-> [ 3454.144391] cx231xx #0 at cx231xx_i2c_xfer: write stop addr=0x60
-> len=1: 02
-> [ 3454.144406] cx231xx #0: (pipe 0x80000b00): OUT:  40 02 21 c0 00 00 01 00
-> [ 3454.144406] >>>
-> [ 3454.144407]  02
-> [ 3454.144767] cx231xx #0 at cx231xx_i2c_xfer: read stop addr=0x60 len=13:
-> [ 3454.144767] cx231xx #0: (pipe 0x80000b80): IN:  c0 06 23 c0 00 00 04
-> 00 <<< fe fe fe fe
-> [ 3454.145397] cx231xx #0: (pipe 0x80000b80): IN:  c0 06 63 c0 00 00 04
-> 00 <<< fe fe fe fe
-> [ 3454.145893] cx231xx #0: (pipe 0x80000b80): IN:  c0 06 63 c0 00 00 04 00
-> [ 3454.146377] <<< fe fe fe fe
-> [ 3454.146394] cx231xx #0: (pipe 0x80000b80): IN:  c0 06 61 c0 00 00 01 00
-> [ 3454.146639] <<< fe
-> [ 3454.146640]  fe fe fe fe fe fe fe fe fe fe fe fe fe
-> [ 3454.146676] si2157 15-0060: unknown chip version
-> Si21254-\xfffffffe\xfffffffe\xfffffffe
-> 
-> 
-> On 10.07.16 01:34, Antti Palosaari wrote:
->> Hey, that's your problem :] Driver development is all the time
->> resolving this kind of issues and you really need to resolve those
->> yourself.
->>
->> You will need to get I2C communication working with all the chips.
->> First si2168 demod and after it answers to I2C you will need to get
->> connection to Si2157 tuner. After both of those are answering you
->> could try to get tuning tests to see if demod locks. After demod locks
->> you know tuner is working and also demod is somehow working. If demod
->> lock but there is no picture you know problem is TS interface. Try
->> different TS settings for both USB-bridge and demod - those should
->> match. If it does not starts working then you have to look sniffs and
->> start replacing driver code with data from sniffs to until it starts
->> working => problematic setting is found.
->>
->> regards
->> Antti
->>
->>
->>
->> On 07/10/2016 12:18 AM, Oleh Kravchenko wrote:
->>> Hello!
->>>
->>> I'm started playing i2c, but stuck with unknown error for me - 32
->>> (EPIPE?):
->>>     [ 5651.958763] cx231xx #0 at cx231xx_i2c_xfer: write stop addr=0x60
->>> len=15: c0 00 00 00 00 01 01 01 01 01 01 02 00 00 01
->>>     [ 5651.958774] cx231xx #0: (pipe 0x80001000): OUT:  40 02 21 c0
->>> 00 00
->>> 0f 00
->>>     [ 5651.958775] >>> c0 00 00 00 00 01 01 01 01 01 01 02 00 00
->>> 01FAILED!
->>>     [ 5651.959110] cx231xx 1-2:1.1: cx231xx_send_usb_command: failed
->>> with
->>> status --32
->>>     [ 5651.959111] cx231xx #0 at cx231xx_i2c_xfer:  ERROR: -32
->>>
->>> How this error can be fixed? :)
->>>
->>> On 04.07.16 21:47, Antti Palosaari wrote:
->>>> Hello
->>>> On 07/04/2016 09:38 PM, Oleh Kravchenko wrote:
->>>>> Hello Antti!
->>>>>
->>>>> I started reverse-engineering of my new TV tuner "Evromedia USB Full
->>>>> Hybrid Full HD" and discovered that start sequence is different from
->>>>> si2157.c:
->>>>> i2c_read_C1
->>>>>  1 \xFE
->>>>> i2c_write_C0
->>>>>  15 \xC0\x00\x00\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01
->>>>>
->>>>> Do you familiar with this revision?
->>>>> Should I merge my changes to si2158.c?
->>>>> Or define another driver?
->>>>
->>>> According to chip markings those are tuner Si2158-A20 and demod
->>>> Si2168-A30. Both are supported already by si2157 and si2168 drivers.
->>>>
->>>> Difference is just some settings. You need to identify which setting is
->>>> wrong and add that to configuration options. It should be pretty
->>>> easy to
->>>> find it from the I2C dumps and just testing.
->>>>
->>>> regards
->>>> Antti
->>>>
->>>
->>
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
