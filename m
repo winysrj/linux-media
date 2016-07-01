@@ -1,56 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:55110 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751824AbcGZHJj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jul 2016 03:09:39 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, crope@iki.fi,
-	Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 3/7] cx231xx: Prepare for attaching new style i2c_client DVB demod drivers
-Date: Tue, 26 Jul 2016 09:09:04 +0200
-Message-Id: <20160726070908.10135-3-zzam@gentoo.org>
-In-Reply-To: <20160726070908.10135-1-zzam@gentoo.org>
-References: <20160726070908.10135-1-zzam@gentoo.org>
+Received: from mail-vk0-f44.google.com ([209.85.213.44]:35827 "EHLO
+	mail-vk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752030AbcGAKti (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 06:49:38 -0400
+Received: by mail-vk0-f44.google.com with SMTP id u68so105297118vkf.2
+        for <linux-media@vger.kernel.org>; Fri, 01 Jul 2016 03:48:01 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <8a46c1e7-1f27-1e67-8c05-b133598b6a66@xs4all.nl>
+References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
+ <20160607112235.475c2e4c@recife.lan> <575746EE.3030706@cisco.com>
+ <1465902488.27938.7.camel@mtksdaap41> <20160616075428.0fde4aaa@recife.lan> <8a46c1e7-1f27-1e67-8c05-b133598b6a66@xs4all.nl>
+From: =?UTF-8?B?V3UtQ2hlbmcgTGkgKOadjuWLmeiqoCk=?=
+	<wuchengli@chromium.org>
+Date: Fri, 1 Jul 2016 18:47:40 +0800
+Message-ID: <CAOMLVLgsB8mGdTZdn7dNQATFodqFPqmPH_yCn2+PKMYD2B+kYw@mail.gmail.com>
+Subject: Re: [PATCH v3 0/9] Add MT8173 Video Decoder Driver
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Andrew-CT Chen <Andrew-CT.Chen@mediatek.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	tiffany lin <tiffany.lin@mediatek.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Daniel Thompson <daniel.thompson@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org,
+	Lin PoChun <PoChun.Lin@mediatek.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-cx231xx does not yet support attaching new-style i2c_client DVB demod
-drivers. Add necessary code base on tuner support for i2c_client.
++Andrew. Last I heard the license was ready and Andrew was preparing
+the VPU firmware. Andrew. Is the firmware ready to submit?
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/usb/cx231xx/cx231xx-dvb.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index ab2fb9f..f030345 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -65,6 +65,7 @@ struct cx231xx_dvb {
- 	struct dmx_frontend fe_hw;
- 	struct dmx_frontend fe_mem;
- 	struct dvb_net net;
-+	struct i2c_client *i2c_client_demod;
- 	struct i2c_client *i2c_client_tuner;
- };
- 
-@@ -586,8 +587,14 @@ static void unregister_dvb(struct cx231xx_dvb *dvb)
- 	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_hw);
- 	dvb_dmxdev_release(&dvb->dmxdev);
- 	dvb_dmx_release(&dvb->demux);
--	client = dvb->i2c_client_tuner;
- 	/* remove I2C tuner */
-+	client = dvb->i2c_client_tuner;
-+	if (client) {
-+		module_put(client->dev.driver->owner);
-+		i2c_unregister_device(client);
-+	}
-+	/* remove I2C demod */
-+	client = dvb->i2c_client_demod;
- 	if (client) {
- 		module_put(client->dev.driver->owner);
- 		i2c_unregister_device(client);
--- 
-2.9.2
-
+On Fri, Jul 1, 2016 at 6:11 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 06/16/2016 12:54 PM, Mauro Carvalho Chehab wrote:
+>> Em Tue, 14 Jun 2016 19:08:08 +0800
+>> tiffany lin <tiffany.lin@mediatek.com> escreveu:
+>>
+>>> Hi Mauro,
+>>>
+>>>
+>>> On Wed, 2016-06-08 at 07:13 +0900, Hans Verkuil wrote:
+>>>>
+>>>> On 06/07/2016 11:22 PM, Mauro Carvalho Chehab wrote:
+>>>>> Em Mon, 30 May 2016 20:29:14 +0800
+>>>>> Tiffany Lin <tiffany.lin@mediatek.com> escreveu:
+>>>>>
+>>>>>> ==============
+>>>>>>   Introduction
+>>>>>> ==============
+>>>>>>
+>>>>>> The purpose of this series is to add the driver for video codec hw embedded in the Mediatek's MT8173 SoCs.
+>>>>>> Mediatek Video Codec is able to handle video decoding of in a range of formats.
+>>>>>>
+>>>>>> This patch series add Mediatek block format V4L2_PIX_FMT_MT21, the decoder driver will decoded bitstream to
+>>>>>> V4L2_PIX_FMT_MT21 format.
+>>>>>>
+>>>>>> This patch series rely on MTK VPU driver in patch series "Add MT8173 Video Encoder Driver and VPU Driver"[1]
+>>>>>> and patch "CHROMIUM: v4l: Add V4L2_PIX_FMT_VP9 definition"[2] for VP9 support.
+>>>>>> Mediatek Video Decoder driver rely on VPU driver to load, communicate with VPU.
+>>>>>>
+>>>>>> Internally the driver uses videobuf2 framework and MTK IOMMU and MTK SMI both have been merged in v4.6-rc1.
+>>>>>>
+>>>>>> [1]https://patchwork.linuxtv.org/patch/33734/
+>>>>>> [2]https://chromium-review.googlesource.com/#/c/245241/
+>>>>>
+>>>>> Hmm... I'm not seeing the firmware for this driver at the
+>>>>> linux-firmware tree:
+>>>>>    https://git.kernel.org/cgit/linux/kernel/git/firmware/linux-firmware.git/log/
+>>>>>
+>>>>> Nor I'm seeing any pull request for them. Did you send it?
+>>>>> I'll only merge the driver upstream after seeing such pull request.
+>>>>
+>>> Sorry, I am not familiar with how to upstream firmware.
+>>> Do you mean we need to upstream vpu firmware first before merge encoder
+>>> driver upstream?
+>>
+>> Please look at this page:
+>>       https://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches#Firmware_submission
+>>
+>> The information here can also be useful:
+>>       https://www.kernel.org/doc/readme/firmware-README.AddingFirmware
+>>
+>> In summary, you need to provide redistribution rights for the
+>> firmware blob. You can either submit it to me or directly to
+>> linux-firmware. In the latter, please c/c me on such patch.
+>
+> Tiffany, what is the status of the firmware submission?
+>
+> Regards,
+>
+>         Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
