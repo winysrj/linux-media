@@ -1,64 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:35863 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750760AbcGLRLr (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:41401 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751869AbcGAL4I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 13:11:47 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0867A180239
-	for <linux-media@vger.kernel.org>; Tue, 12 Jul 2016 19:11:41 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+	Fri, 1 Jul 2016 07:56:08 -0400
+Subject: Re: [patch V4 14/31] media: use parity functions in saa7115
+To: zengzhaoxiu@163.com, linux-kernel@vger.kernel.org
+References: <1462955158-28394-1-git-send-email-zengzhaoxiu@163.com>
+ <1462958344-25186-1-git-send-email-zengzhaoxiu@163.com>
+Cc: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.8] Various fixes
-Message-ID: <84a7f883-352c-cb54-391f-00abc65175b7@xs4all.nl>
-Date: Tue, 12 Jul 2016 19:11:40 +0200
+Message-ID: <9a626ceb-4ee2-56a2-9046-9bc9bce4e1e8@xs4all.nl>
+Date: Fri, 1 Jul 2016 13:53:21 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1462958344-25186-1-git-send-email-zengzhaoxiu@163.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A bunch of vcodec code improvements and two cec changes: one adds a
-sanity check, the other improves timestamping. A patch updating the
-doc-rst will be posted separately.
+On 05/11/2016 11:19 AM, zengzhaoxiu@163.com wrote:
+> From: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+> 
+> Signed-off-by: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
 
-Regards,
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Thanks,
 
 	Hans
 
-The following changes since commit 9d01315d132469fd0a92f5a13c0a605d6ce96b21:
-
-  [media] pulse8-cec: declare function as static (2016-07-12 13:46:20 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.8j
-
-for you to fetch changes up to 948ae91767dab720d978a3cb835f5b9f23f6f13b:
-
-  mtk-vcodec: fix type mismatches (2016-07-12 19:07:27 +0200)
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      mtk-vcodec: fix type mismatches
-
-Hans Verkuil (2):
-      cec: add sanity check for msg->len
-      cec: split the timestamp into an rx and tx timestamp
-
-Wei Yongjun (4):
-      VPU: mediatek: fix return value check in mtk_vpu_probe()
-      VPU: mediatek: remove redundant dev_err call in mtk_vpu_probe()
-      vcodec: mediatek: Fix return value check in mtk_vcodec_init_enc_pm()
-      mtk-vcodec: remove redundant dev_err call in mtk_vcodec_probe()
-
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c     |  8 ++++----
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c |  2 --
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c  | 16 ++++++++--------
- drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c  |  4 ++--
- drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c   |  4 ++--
- drivers/media/platform/mtk-vcodec/venc_vpu_if.c        |  4 ++--
- drivers/media/platform/mtk-vpu/mtk_vpu.c               | 12 ++++--------
- drivers/staging/media/cec/cec-adap.c                   | 27 +++++++++++++++------------
- include/linux/cec.h                                    | 18 ++++++++++--------
- 9 files changed, 47 insertions(+), 48 deletions(-)
+> ---
+>  drivers/media/i2c/saa7115.c | 17 ++---------------
+>  1 file changed, 2 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+> index d2a1ce2..4c22df8 100644
+> --- a/drivers/media/i2c/saa7115.c
+> +++ b/drivers/media/i2c/saa7115.c
+> @@ -672,15 +672,6 @@ static const unsigned char saa7115_init_misc[] = {
+>  	0x00, 0x00
+>  };
+>  
+> -static int saa711x_odd_parity(u8 c)
+> -{
+> -	c ^= (c >> 4);
+> -	c ^= (c >> 2);
+> -	c ^= (c >> 1);
+> -
+> -	return c & 1;
+> -}
+> -
+>  static int saa711x_decode_vps(u8 *dst, u8 *p)
+>  {
+>  	static const u8 biphase_tbl[] = {
+> @@ -733,7 +724,6 @@ static int saa711x_decode_wss(u8 *p)
+>  	static const int wss_bits[8] = {
+>  		0, 0, 0, 1, 0, 1, 1, 1
+>  	};
+> -	unsigned char parity;
+>  	int wss = 0;
+>  	int i;
+>  
+> @@ -745,11 +735,8 @@ static int saa711x_decode_wss(u8 *p)
+>  			return -1;
+>  		wss |= b2 << i;
+>  	}
+> -	parity = wss & 15;
+> -	parity ^= parity >> 2;
+> -	parity ^= parity >> 1;
+>  
+> -	if (!(parity & 1))
+> +	if (!parity4(wss))
+>  		return -1;
+>  
+>  	return wss;
+> @@ -1235,7 +1222,7 @@ static int saa711x_decode_vbi_line(struct v4l2_subdev *sd, struct v4l2_decode_vb
+>  		vbi->type = V4L2_SLICED_TELETEXT_B;
+>  		break;
+>  	case 4:
+> -		if (!saa711x_odd_parity(p[0]) || !saa711x_odd_parity(p[1]))
+> +		if (!parity8(p[0]) || !parity8(p[1]))
+>  			return 0;
+>  		vbi->type = V4L2_SLICED_CAPTION_525;
+>  		break;
+> 
