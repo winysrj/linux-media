@@ -1,184 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:33295 "EHLO
-	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751671AbcGTGKE (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52476 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752335AbcGAKhL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 02:10:04 -0400
+	Fri, 1 Jul 2016 06:37:11 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] cec: fix Kconfig dependency problems
+Message-ID: <619887af-e879-d4ec-5697-50ee101eaf51@xs4all.nl>
+Date: Fri, 1 Jul 2016 12:37:06 +0200
 MIME-Version: 1.0
-In-Reply-To: <20160719213426.GB14569@uda0271908>
-References: <1468959677-1768-1-git-send-email-matwey@sai.msu.ru>
- <20160719205600.GA14569@uda0271908> <CAJs94EY_cXLA6eggC391eKiPBS-RVPmfPd7Wh4mhjZTQiCSUrA@mail.gmail.com>
- <20160719213426.GB14569@uda0271908>
-From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Date: Wed, 20 Jul 2016 09:09:42 +0300
-Message-ID: <CAJs94EbS7C+m_+P61QReAwn=93Yp0B7x4dZ32A8mMAZAM5+osQ@mail.gmail.com>
-Subject: Re: pwc over musb: 100% frame drop (lost) on high resolution stream
-To: Bin Liu <b-liu@ti.com>, "Matwey V. Kornilov" <matwey@sai.msu.ru>,
-	hdegoede@redhat.com, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-07-20 0:34 GMT+03:00 Bin Liu <b-liu@ti.com>:
-> Hi,
->
-> On Wed, Jul 20, 2016 at 12:25:44AM +0300, Matwey V. Kornilov wrote:
->> 2016-07-19 23:56 GMT+03:00 Bin Liu <b-liu@ti.com>:
->> > Hi,
->> >
->> > On Tue, Jul 19, 2016 at 11:21:17PM +0300, matwey@sai.msu.ru wrote:
->> >> Hello,
->> >>
->> >> I have Philips SPC 900 camera (0471:0329) connected to my AM335x based BeagleBoneBlack SBC.
->> >> I am sure that both of them are fine and work properly.
->> >> I am running Linux 4.6.4 (my kernel config is available at https://clck.ru/A2kQs ) and I've just discovered, that there is an issue with frame transfer when high resolution formats are used.
->> >>
->> >> The issue is the following. I use simple v4l2 example tool (taken from API docs), which source code is available at http://pastebin.com/grcNXxfe
->> >>
->> >> When I use (see line 488) 640x480 frames
->> >>
->> >>                 fmt.fmt.pix.width       = 640;
->> >>                 fmt.fmt.pix.height      = 480;
->> >>
->> >> then I get "select timeout" and don't get any frames.
->> >>
->> >> When I use 320x240 frames
->> >>
->> >>                 fmt.fmt.pix.width       = 320;
->> >>                 fmt.fmt.pix.height      = 240;
->> >>
->> >> then about 60% frames are missed. An example outpout of ./a.out -f is available at https://yadi.sk/d/aRka8xWPtSc4y
->> >> It looks like there are pauses between bulks of frames (frame counter and timestamp as returned from v4l2 API):
->> >>
->> >> 3 3705.142553
->> >> 8 3705.342533
->> >> 13 3705.542517
->> >> 110 3708.776208
->> >> 115 3708.976190
->> >> 120 3709.176169
->> >> 125 3709.376152
->> >> 130 3709.576144
->> >> 226 3712.807848
->> >>
->> >> When I use tiny 160x120 frames
->> >>
->> >>                 fmt.fmt.pix.width       = 160;
->> >>                 fmt.fmt.pix.height      = 120;
->> >>
->> >> then more frames are received. See output example at https://yadi.sk/d/DedBmH6ftSc9t
->> >> That is why I thought that everything was fine in May when used tiny xawtv window to check kernel OOPS presence (see http://www.spinics.net/lists/linux-usb/msg141188.html for reference)
->> >>
->> >> Even more. When I introduce USB hub between the host and the webcam, I can not receive even any 320x240 frames.
->> >>
->> >> I've managed to use ftrace to see what is going on when no frames are received.
->> >> I've found that pwc_isoc_handler is called frequently as the following:
->> >>
->> >>  0)               |  pwc_isoc_handler [pwc]() {
->> >>  0)               |    usb_submit_urb [usbcore]() {
->> >>  0)               |      usb_submit_urb.part.3 [usbcore]() {
->> >>  0)               |        usb_hcd_submit_urb [usbcore]() {
->> >>  0)   0.834 us    |          usb_get_urb [usbcore]();
->> >>  0)               |          musb_map_urb_for_dma [musb_hdrc]() {
->> >>  0)   0.792 us    |            usb_hcd_map_urb_for_dma [usbcore]();
->> >>  0)   5.750 us    |          }
->> >>  0)               |          musb_urb_enqueue [musb_hdrc]() {
->> >>  0)   0.750 us    |            _raw_spin_lock_irqsave();
->> >>  0)               |            usb_hcd_link_urb_to_ep [usbcore]() {
->> >>  0)   0.792 us    |              _raw_spin_lock();
->> >>  0)   0.791 us    |              _raw_spin_unlock();
->> >>  0) + 10.500 us   |            }
->> >>  0)   0.791 us    |            _raw_spin_unlock_irqrestore();
->> >>  0) + 25.375 us   |          }
->> >>  0) + 45.208 us   |        }
->> >>  0) + 51.042 us   |      }
->> >>  0) + 56.084 us   |    }
->> >>  0) + 61.292 us   |  }
->> >>
->> >> However, pwc_isoc_handler never calls vb2_buffer_done() that is why I get "select timeout" in userspace.
->> >> Unfortunately, my kernel is not compiled with CONFIG_USB_PWC_DEBUG=y but I can recompile it, if you think that it could provide more information. I am also ready to perform additional tests (use usbmon maybe?).
->> >>
->> >> How could this issue be resolved?
->> >>
->> >> Thank you.
->> >
->> > Do you have CPPI DMA enabled? If so I think you might hit on a known
->> > issue in CPPI Isoch transfer, in which the MUSB controller only sends IN
->> > tokens in every other SOF, so only half of the bus bandwidth is
->> > utilized, which causes video frame drops in higher resolution.
->> >
->>
->> Yes, I do use DMA:
->>
->> CONFIG_USB_TI_CPPI41_DMA=y
->
-> Okay.
->
->>
->> > To confirm this, use a bus analyzer to capture a bus trace, you would
->> > see no IN tokens in every other SOF while transfering Isoch packets.
->> >
->>
->> I am sorry, I am new to USB debugging. Do you mean I need to use
->> usbmon or some external hardware device?
->
-> I barely use usbmon, and not sure if it gives the information I am
-> looking for. But I meant the external test equipment - USB bus protocol
-> analyzer - a bus packet sniffer.
->
+- Use IS_REACHABLE(RC_CORE) instead of IS_ENABLED: if cec is built-in and
+  RC_CORE is a module, then CEC can't reach the RC symbols.
+- Both cec and cec-edid should be bool and use the same build 'mode' as
+  MEDIA_SUPPORT (just as is done for the media controller code).
+- Add a note to staging that this should be changed once the cec framework
+  is moved out of staging.
 
-Now I see. I've googled it, they start from $1000, I don't know
-when/whether/where I can get one to try.
-Until that, could I check something else? For instance, disable
-CONFIG_USB_TI_CPPI41_DMA.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/Kconfig                |  2 +-
+ drivers/media/Makefile               |  4 +++-
+ drivers/staging/media/cec/Kconfig    |  2 +-
+ drivers/staging/media/cec/Makefile   |  4 +++-
+ drivers/staging/media/cec/TODO       |  5 +++++
+ drivers/staging/media/cec/cec-adap.c |  4 ++--
+ drivers/staging/media/cec/cec-core.c | 10 +++++-----
+ 7 files changed, 20 insertions(+), 11 deletions(-)
 
-I've found that after hours of transmit, the camera stops iso at all
-(until reset). Maybe its brain becomes damaged by the transfer issues
-at the some moment.
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 052dcf7..962f2a9 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -81,7 +81,7 @@ config MEDIA_RC_SUPPORT
+ 	  Say Y when you have a TV or an IR device.
 
-I've just also made some usbmon records and see that even when there
-are no frames in userspace there is iso transfer occuring.
+ config MEDIA_CEC_EDID
+-	tristate
++	bool
 
-160x140: https://yadi.sk/d/BmUCPP_EtT8SN
-640x480 (no frames in user space): https://yadi.sk/d/KXLU-g9-tT8T7
+ #
+ # Media controller
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index b56f013..081a786 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -2,7 +2,9 @@
+ # Makefile for the kernel multimedia device drivers.
+ #
 
-Maybe pwc people could give some useful insight looking into the records.
+-obj-$(CONFIG_MEDIA_CEC_EDID) += cec-edid.o
++ifeq ($(CONFIG_MEDIA_CEC_EDID),y)
++  obj-$(CONFIG_MEDIA_SUPPORT) += cec-edid.o
++endif
 
-AFAIU pwc camera support transfer compression and  pwc driver
-negotiates automaticly the best possible compression level (older
-kernal provided module option to do it manually).
-However, in pwc_isoc_init(), I see the following
+ media-objs	:= media-device.o media-devnode.o media-entity.o
 
-        /* We first try with low compression and then retry with a higher
-           compression setting if there is not enough bandwidth. */
-        ret = pwc_set_video_mode(pdev, pdev->width, pdev->height, pdev->pixfmt,
-                                 pdev->vframes, &compression, 1);
+diff --git a/drivers/staging/media/cec/Kconfig b/drivers/staging/media/cec/Kconfig
+index cd52359..21457a1 100644
+--- a/drivers/staging/media/cec/Kconfig
++++ b/drivers/staging/media/cec/Kconfig
+@@ -1,5 +1,5 @@
+ config MEDIA_CEC
+-	tristate "CEC API (EXPERIMENTAL)"
++	bool "CEC API (EXPERIMENTAL)"
+ 	depends on MEDIA_SUPPORT
+ 	select MEDIA_CEC_EDID
+ 	---help---
+diff --git a/drivers/staging/media/cec/Makefile b/drivers/staging/media/cec/Makefile
+index 426ef73..bd7f3c5 100644
+--- a/drivers/staging/media/cec/Makefile
++++ b/drivers/staging/media/cec/Makefile
+@@ -1,3 +1,5 @@
+ cec-objs := cec-core.o cec-adap.o cec-api.o
 
-and ret is never checked and is being overwritten a few lines further.
+-obj-$(CONFIG_MEDIA_CEC) += cec.o
++ifeq ($(CONFIG_MEDIA_CEC),y)
++  obj-$(CONFIG_MEDIA_SUPPORT) += cec.o
++endif
+diff --git a/drivers/staging/media/cec/TODO b/drivers/staging/media/cec/TODO
+index a8f4b7d..8221d44 100644
+--- a/drivers/staging/media/cec/TODO
++++ b/drivers/staging/media/cec/TODO
+@@ -23,5 +23,10 @@ Other TODOs:
+   And also TYPE_SWITCH and TYPE_CDC_ONLY in addition to the TYPE_UNREGISTERED?
+   This should give the framework more information about the device type
+   since SPECIFIC and UNREGISTERED give no useful information.
++- Once this is out of staging this should no longer be a separate
++  config option, instead it should be selected by drivers that want it.
++- Revisit the IS_REACHABLE(RC_CORE): perhaps the RC_CORE support should
++  be enabled through a separate config option in drivers/media/Kconfig
++  or rc/Kconfig?
 
+ Hans Verkuil <hans.verkuil@cisco.com>
+diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
+index 307af43..7df6187 100644
+--- a/drivers/staging/media/cec/cec-adap.c
++++ b/drivers/staging/media/cec/cec-adap.c
+@@ -1456,7 +1456,7 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
+ 		if (!(adap->capabilities & CEC_CAP_RC))
+ 			break;
 
+-#if IS_ENABLED(CONFIG_RC_CORE)
++#if IS_REACHABLE(CONFIG_RC_CORE)
+ 		switch (msg->msg[2]) {
+ 		/*
+ 		 * Play function, this message can have variable length
+@@ -1492,7 +1492,7 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
+ 	case CEC_MSG_USER_CONTROL_RELEASED:
+ 		if (!(adap->capabilities & CEC_CAP_RC))
+ 			break;
+-#if IS_ENABLED(CONFIG_RC_CORE)
++#if IS_REACHABLE(CONFIG_RC_CORE)
+ 		rc_keyup(adap->rc);
+ #endif
+ 		break;
+diff --git a/drivers/staging/media/cec/cec-core.c b/drivers/staging/media/cec/cec-core.c
+index 61a1e69..112a5fa 100644
+--- a/drivers/staging/media/cec/cec-core.c
++++ b/drivers/staging/media/cec/cec-core.c
+@@ -239,7 +239,7 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 	if (!(caps & CEC_CAP_RC))
+ 		return adap;
 
-> Regards,
-> -Bin,
->
->>
->> > Regards,
->> > -Bin.
->> >
->>
->>
->>
->> --
->> With best regards,
->> Matwey V. Kornilov.
->> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
->> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
->
+-#if IS_ENABLED(CONFIG_RC_CORE)
++#if IS_REACHABLE(CONFIG_RC_CORE)
+ 	/* Prepare the RC input device */
+ 	adap->rc = rc_allocate_device();
+ 	if (!adap->rc) {
+@@ -282,7 +282,7 @@ int cec_register_adapter(struct cec_adapter *adap)
+ 	if (IS_ERR_OR_NULL(adap))
+ 		return 0;
 
+-#if IS_ENABLED(CONFIG_RC_CORE)
++#if IS_REACHABLE(CONFIG_RC_CORE)
+ 	if (adap->capabilities & CEC_CAP_RC) {
+ 		res = rc_register_device(adap->rc);
 
+@@ -298,7 +298,7 @@ int cec_register_adapter(struct cec_adapter *adap)
 
+ 	res = cec_devnode_register(&adap->devnode, adap->owner);
+ 	if (res) {
+-#if IS_ENABLED(CONFIG_RC_CORE)
++#if IS_REACHABLE(CONFIG_RC_CORE)
+ 		/* Note: rc_unregister also calls rc_free */
+ 		rc_unregister_device(adap->rc);
+ 		adap->rc = NULL;
+@@ -333,7 +333,7 @@ void cec_unregister_adapter(struct cec_adapter *adap)
+ 	if (IS_ERR_OR_NULL(adap))
+ 		return;
+
+-#if IS_ENABLED(CONFIG_RC_CORE)
++#if IS_REACHABLE(CONFIG_RC_CORE)
+ 	/* Note: rc_unregister also calls rc_free */
+ 	rc_unregister_device(adap->rc);
+ 	adap->rc = NULL;
+@@ -353,7 +353,7 @@ void cec_delete_adapter(struct cec_adapter *adap)
+ 	kthread_stop(adap->kthread);
+ 	if (adap->kthread_config)
+ 		kthread_stop(adap->kthread_config);
+-#if IS_ENABLED(CONFIG_RC_CORE)
++#if IS_REACHABLE(CONFIG_RC_CORE)
+ 	if (adap->rc)
+ 		rc_free_device(adap->rc);
+ #endif
 -- 
-With best regards,
-Matwey V. Kornilov.
-Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
-119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+2.8.1
+
