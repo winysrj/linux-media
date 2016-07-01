@@ -1,72 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45738 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752395AbcGSIad (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 04:30:33 -0400
-Subject: Re: [PATCH 2/2] [media] cec: add RC_CORE dependency
-To: Arnd Bergmann <arnd@arndb.de>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <20160719081040.2685845-1-arnd@arndb.de>
- <20160719081040.2685845-2-arnd@arndb.de>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Kamil Debski <kamil@wypas.org>, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <578DE51E.8080604@xs4all.nl>
-Date: Tue, 19 Jul 2016 10:30:22 +0200
+Received: from bm.shmanahar.org ([80.68.91.236]:46642 "EHLO bm.shmanahar.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751100AbcGAIvE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Jul 2016 04:51:04 -0400
+Date: Fri, 1 Jul 2016 09:41:24 +0100
+From: Nick Dyer <nick@shmanahar.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	jon.older@itdev.co.uk, nick.dyer@itdev.co.uk
+Subject: Re: [PATCH v6 10/11] Input: synaptics-rmi4 - add support for F54
+ diagnostics
+Message-ID: <20160701084124.GA6384@bm.shmanahar.org>
+References: <1467308334-12580-1-git-send-email-nick@shmanahar.org>
+ <1467308334-12580-11-git-send-email-nick@shmanahar.org>
 MIME-Version: 1.0
-In-Reply-To: <20160719081040.2685845-2-arnd@arndb.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1467308334-12580-11-git-send-email-nick@shmanahar.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/19/16 10:10, Arnd Bergmann wrote:
-> We cannot build the cec driver when the RC core is a module
-> and cec is built-in:
+On Thu, Jun 30, 2016 at 06:38:53PM +0100, Nick Dyer wrote:
+> Function 54 implements access to various RMI4 diagnostic features.
 > 
-> drivers/staging/built-in.o: In function `cec_allocate_adapter':
-> :(.text+0x134): undefined reference to `rc_allocate_device'
-> drivers/staging/built-in.o: In function `cec_register_adapter':
-> :(.text+0x304): undefined reference to `rc_register_device'
+> This patch adds support for retrieving this data. It registers a V4L2
+> device to output the data to user space.
 > 
-> This adds an explicit dependency to avoid this case. We still
-> allow building when CONFIG_RC_CORE is disabled completely,
-> as the driver has checks for this case itself.
-
-This makes no sense: the rc_allocate_device and rc_register_device
-are under:
-
-#if IS_REACHABLE(CONFIG_RC_CORE)
-
-So it shouldn't be enabled at all, should it?
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Signed-off-by: Nick Dyer <nick@shmanahar.org>
 > ---
-> I originally submitted this on June 29, but it may have gotten
-> lost as out of the three patch series, one patch got replaced
-> and another patch got applied, but nothing happened on this one.
-> ---
->  drivers/staging/media/cec/Kconfig | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/staging/media/cec/Kconfig b/drivers/staging/media/cec/Kconfig
-> index 21457a1f6c9f..c623bd32a5b8 100644
-> --- a/drivers/staging/media/cec/Kconfig
-> +++ b/drivers/staging/media/cec/Kconfig
-> @@ -1,6 +1,7 @@
->  config MEDIA_CEC
->  	bool "CEC API (EXPERIMENTAL)"
->  	depends on MEDIA_SUPPORT
-> +	depends on RC_CORE || !RC_CORE
->  	select MEDIA_CEC_EDID
->  	---help---
->  	  Enable the CEC API.
-> 
+>  drivers/input/rmi4/Kconfig      |  11 +
+>  drivers/input/rmi4/Makefile     |   1 +
+>  drivers/input/rmi4/rmi_bus.c    |   3 +
+>  drivers/input/rmi4/rmi_driver.h |   1 +
+>  drivers/input/rmi4/rmi_f54.c    | 754 ++++++++++++++++++++++++++++++++++++++++
+>  5 files changed, 770 insertions(+)
+>  create mode 100644 drivers/input/rmi4/rmi_f54.c
+[...]
+> index 0000000..2361157
+> --- /dev/null
+> +++ b/drivers/input/rmi4/rmi_f54.c
+[...]
+> +static int rmi_f54_vidioc_querycap(struct file *file, void *priv,
+> +				   struct v4l2_capability *cap)
+> +{
+> +	struct f54_data *f54 = video_drvdata(file);
+> +
+> +	strlcpy(cap->driver, F54_NAME, sizeof(cap->driver));
+> +	strlcpy(cap->card, SYNAPTICS_INPUT_DEVICE_NAME, sizeof(cap->card));
+> +	strlcpy(cap->bus_info, dev_name(&f54->fn->dev), sizeof(cap->bus_info));
+
+I need to correct this to prefix the bus. RMI4 registers its own bus, so
+devices appear under eg /sys/bus/rmi4/devices/rmi4-00.fn54
+
+So I will change to:
+snprintf(cap->bus_info, sizeof(cap->bus_info), "rmi4:%s", dev_name(&f54->fn->dev));
+
+And I will need to add rmi4 to the valid prefixes in v4l2-complaince as well.
+
+> +
+> +	return 0;
+> +}
