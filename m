@@ -1,307 +1,487 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48272 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750959AbcGQOaL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 10:30:11 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 7/7] [media] doc-rst: Fix conversion for dvb-core.rst
-Date: Sun, 17 Jul 2016 11:30:04 -0300
-Message-Id: <3ff2fb91f8c6af307d12f83f2f805c4851e245fd.1468765739.git.mchehab@s-opensource.com>
-In-Reply-To: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
-References: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
-In-Reply-To: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
-References: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
+Received: from mailout1.samsung.com ([203.254.224.24]:45303 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752160AbcGAIhf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 04:37:35 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>
+Cc: devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [PATCH] [media] rc: ir-spi: add support for IR LEDs connected with SPI
+Date: Fri, 01 Jul 2016 17:33:42 +0900
+Message-id: <1467362022-12704-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The conversion from DocBook required some fixes:
+The ir-spi is a simple device driver which supports the
+connection between an IR LED and the MOSI line of an SPI device.
 
-- Now, the C files with the exported symbols also need to be
-  added. So, all headers need to be included twice: one to
-  get the structs/enums/.. and another one for the functions;
+The driver, indeed, uses the SPI framework to stream the raw data
+provided by userspace through a character device. The chardev is
+handled by the LIRC framework and its functionality basically
+provides:
 
-- Notes should use the ReST tag, as kernel-doc doesn't
-  recognizes it anymore;
+ - raw write: data to be sent to the SPI and then streamed to the
+   MOSI line;
+ - set frequency: sets the frequency whith which the data should
+   be sent;
+ - set length: sets the data length. This information is
+   optional, if the length is set, then userspace should send raw
+   data only with that length; while if the length is set to '0',
+   then the driver will figure out himself the length of the data
+   based on the length of the data written on the character
+   device.
+   The latter is not recommended, though, as the driver, at
+   any write, allocates and deallocates a buffer where the data
+   from userspace are stored.
 
-- Identation needs to be fixed, as ReST uses it to identify
-  when a format "tag" ends.
+The driver provides three feedback commands:
 
-- Fix the cross-references at the media controller description.
+ - get length: reads the length set and (as mentioned), if the
+   length is '0' it will be calculated at any write
+ - get frequency: the driver reports the frequency. If userpace
+   doesn't set the frequency, the driver will use a default value
+   of 38000Hz.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+The character device is created under /dev/lircX name, where X is
+and ID assigned by the LIRC framework.
+
+Example of usage:
+
+        int fd, ret;
+        ssize_t n;
+        uint32_t val = 0;
+
+        fd = open("/dev/lirc0", O_RDWR);
+        if (fd < 0) {
+                fprintf(stderr, "unable to open the device\n");
+                return -1;
+        }
+
+        /* ioctl set frequency and length parameters */
+        val = 6430;
+        ret = ioctl(fd, LIRC_SET_LENGTH, &val);
+        if (ret < 0)
+                fprintf(stderr, "LIRC_SET_LENGTH failed\n");
+        val = 608000;
+        ret = ioctl(fd, LIRC_SET_FREQUENCY, &val);
+        if (ret < 0)
+                fprintf(stderr, "LIRC_SET_FREQUENCY failed\n");
+
+        /* read back length and frequency parameters */
+        ret = ioctl(fd, LIRC_GET_LENGTH, &val);
+        if (ret < 0)
+                fprintf(stderr, "LIRC_GET_LENGTH failed\n");
+        else
+                fprintf(stdout, "legnth = %u\n", val);
+
+        ret = ioctl(fd, LIRC_GET_FREQUENCY, &val);
+        if (ret < 0)
+                fprintf(stderr, "LIRC_GET_FREQUENCY failed\n");
+        else
+                fprintf(stdout, "frequency = %u\n", val);
+
+        /* write data to device */
+        n = write(fd, b, 6430);
+        if (n < 0) {
+                fprintf(stderr, "unable to write to the device\n");
+                ret = -1;
+        } else if (n != 6430) {
+                fprintf(stderr, "failed to write everything, wrote %ld instead\n", n);
+                ret = -1;
+        } else {
+                fprintf(stdout, "written all the %ld data\n", n);
+        }
+
+        close(fd);
+
+The driver supports multi task access, but all the processes
+which hold the driver should use the same length and frequency
+parameters.
+
+Change-Id: I323d7dd4a56d6dcf48f2c695293822eb04bdb85f
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
 ---
- Documentation/media/kapi/dtv-core.rst | 40 +++++++++++-----
- drivers/media/dvb-core/demux.h        | 90 +++++++++++++++++------------------
- 2 files changed, 72 insertions(+), 58 deletions(-)
+ Documentation/devicetree/bindings/media/spi-ir.txt |  24 ++
+ drivers/media/rc/Kconfig                           |   9 +
+ drivers/media/rc/Makefile                          |   1 +
+ drivers/media/rc/ir-spi.c                          | 301 +++++++++++++++++++++
+ 4 files changed, 335 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/spi-ir.txt
+ create mode 100644 drivers/media/rc/ir-spi.c
 
-diff --git a/Documentation/media/kapi/dtv-core.rst b/Documentation/media/kapi/dtv-core.rst
-index fa462d5d0247..3291190c1865 100644
---- a/Documentation/media/kapi/dtv-core.rst
-+++ b/Documentation/media/kapi/dtv-core.rst
-@@ -11,6 +11,15 @@ Digital TV Common functions
- .. kernel-doc:: drivers/media/dvb-core/dvbdev.h
- 
- 
+diff --git a/Documentation/devicetree/bindings/media/spi-ir.txt b/Documentation/devicetree/bindings/media/spi-ir.txt
+new file mode 100644
+index 0000000..2232d92
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/spi-ir.txt
+@@ -0,0 +1,24 @@
++Device tree bindings for IR LED connected through SPI bus which is used as
++remote controller.
 +
-+.. kernel-doc:: drivers/media/dvb-core/dvb_math.h
-+   :export: drivers/media/dvb-core/dvb_math.c
++The IR LED switch is connected to the MOSI line of the SPI device and the data
++are delivered thourgh that.
 +
-+.. kernel-doc:: drivers/media/dvb-core/dvbdev.h
-+   :export: drivers/media/dvb-core/dvbdev.c
++Required properties:
++	- compatible: should be "ir-spi"
 +
++Optional properties:
++	- irled,switch: specifies the gpio switch which enables the irled
 +
++Example:
 +
- Digital TV Frontend kABI
- ------------------------
- 
-@@ -24,17 +33,20 @@ The header file for this API is named dvb_frontend.h and located in
- drivers/media/dvb-core.
- 
- Before using the Digital TV frontend core, the bridge driver should attach
--the frontend demod, tuner and SEC devices and call dvb_register_frontend(),
-+the frontend demod, tuner and SEC devices and call
-+:cpp:func:`dvb_register_frontend()`,
- in order to register the new frontend at the subsystem. At device
--detach/removal, the bridge driver should call dvb_unregister_frontend() to
--remove the frontend from the core and then dvb_frontend_detach() to free the
--memory allocated by the frontend drivers.
-+detach/removal, the bridge driver should call
-+:cpp:func:`dvb_unregister_frontend()` to
-+remove the frontend from the core and then :cpp:func:`dvb_frontend_detach()`
-+to free the memory allocated by the frontend drivers.
- 
--The drivers should also call dvb_frontend_suspend() as part of their
--handler for the &device_driver.suspend(), and dvb_frontend_resume() as
--part of their handler for &device_driver.resume().
-+The drivers should also call :cpp:func:`dvb_frontend_suspend()` as part of
-+their handler for the :c:type:`device_driver`.\ ``suspend()``, and
-+:cpp:func:`dvb_frontend_resume()` as
-+part of their handler for :c:type:`device_driver`.\ ``resume()``.
- 
--few other optional functions are provided to handle some special cases.
-+A few other optional functions are provided to handle some special cases.
- 
- .. kernel-doc:: drivers/media/dvb-core/dvb_frontend.h
- 
-@@ -70,7 +82,7 @@ static or module private and registered to the Demux core for external
- access. It is not necessary to implement every function in the struct
- &dmx_demux. For example, a demux interface might support Section filtering,
- but not PES filtering. The kABI client is expected to check the value of any
--function pointer before calling the function: the value of NULL means
-+function pointer before calling the function: the value of ``NULL`` means
- that the function is not available.
- 
- Whenever the functions of the demux API modify shared data, the
-@@ -78,7 +90,7 @@ possibilities of lost update and race condition problems should be
- addressed, e.g. by protecting parts of code with mutexes.
- 
- Note that functions called from a bottom half context must not sleep.
--Even a simple memory allocation without using %GFP_ATOMIC can result in a
-+Even a simple memory allocation without using ``GFP_ATOMIC`` can result in a
- kernel thread being put to sleep if swapping is needed. For example, the
- Linux Kernel calls the functions of a network device interface from a
- bottom half context. Thus, if a demux kABI function is called from network
-@@ -109,14 +121,16 @@ triggered by a hardware interrupt, it is recommended to use the Linux
- bottom half mechanism or start a tasklet instead of making the callback
- function call directly from a hardware interrupt.
- 
--This mechanism is implemented by dmx_ts_cb() and dmx_section_cb()
-+This mechanism is implemented by :cpp:func:`dmx_ts_cb()` and :cpp:func:`dmx_section_cb()`
- callbacks.
- 
--
- .. kernel-doc:: drivers/media/dvb-core/demux.h
- 
--
- Digital TV Conditional Access kABI
- ----------------------------------
- 
- .. kernel-doc:: drivers/media/dvb-core/dvb_ca_en50221.h
++        irled@0 {
++                compatible = "ir-spi";
++                reg = <0x0>;
++                spi-max-frequency = <5000000>;
++                irled,switch = <&gpr3 3 0>;
 +
-+
-+.. kernel-doc:: drivers/media/dvb-core/dvb_ca_en50221.h
-+   :export: drivers/media/dvb-core/dvb_ca_en50221.c
-diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
-index e8f04f8872f8..ad42252b1c66 100644
---- a/drivers/media/dvb-core/demux.h
-+++ b/drivers/media/dvb-core/demux.h
-@@ -379,10 +379,10 @@ enum dmx_demux_caps {
-  *	@open is called and decrement it when @close is called.
-  *	The @demux function parameter contains a pointer to the demux API and
-  *	instance data.
-- *	It returns
-- *		0 on success;
-- *		-EUSERS, if maximum usage count was reached;
-- *		-EINVAL, on bad parameter.
-+ *	It returns:
-+ *	0 on success;
-+ *	-EUSERS, if maximum usage count was reached;
-+ *	-EINVAL, on bad parameter.
-  *
-  * @close: This function reserves the demux for use by the caller and, if
-  *	necessary, initializes the demux. When the demux is no longer needed,
-@@ -392,10 +392,10 @@ enum dmx_demux_caps {
-  *	@open is called and decrement it when @close is called.
-  *	The @demux function parameter contains a pointer to the demux API and
-  *	instance data.
-- *	It returns
-- *		0 on success;
-- *		-ENODEV, if demux was not in use (e. g. no users);
-- *		-EINVAL, on bad parameter.
-+ *	It returns:
-+ *	0 on success;
-+ *	-ENODEV, if demux was not in use (e. g. no users);
-+ *	-EINVAL, on bad parameter.
-  *
-  * @write: This function provides the demux driver with a memory buffer
-  *	containing TS packets. Instead of receiving TS packets from the DVB
-@@ -410,12 +410,12 @@ enum dmx_demux_caps {
-  *	The @buf function parameter contains a pointer to the TS data in
-  *	kernel-space memory.
-  *	The @count function parameter contains the length of the TS data.
-- *	It returns
-- *		0 on success;
-- *		-ERESTARTSYS, if mutex lock was interrupted;
-- *		-EINTR, if a signal handling is pending;
-- *		-ENODEV, if demux was removed;
-- *		-EINVAL, on bad parameter.
-+ *	It returns:
-+ *	0 on success;
-+ *	-ERESTARTSYS, if mutex lock was interrupted;
-+ *	-EINTR, if a signal handling is pending;
-+ *	-ENODEV, if demux was removed;
-+ *	-EINVAL, on bad parameter.
-  *
-  * @allocate_ts_feed: Allocates a new TS feed, which is used to filter the TS
-  *	packets carrying a certain PID. The TS feed normally corresponds to a
-@@ -426,11 +426,11 @@ enum dmx_demux_caps {
-  *	instance data.
-  *	The @callback function parameter contains a pointer to the callback
-  *	function for passing received TS packet.
-- *	It returns
-- *		0 on success;
-- *		-ERESTARTSYS, if mutex lock was interrupted;
-- *		-EBUSY, if no more TS feeds is available;
-- *		-EINVAL, on bad parameter.
-+ *	It returns:
-+ *	0 on success;
-+ *	-ERESTARTSYS, if mutex lock was interrupted;
-+ *	-EBUSY, if no more TS feeds is available;
-+ *	-EINVAL, on bad parameter.
-  *
-  * @release_ts_feed: Releases the resources allocated with @allocate_ts_feed.
-  *	Any filtering in progress on the TS feed should be stopped before
-@@ -439,9 +439,9 @@ enum dmx_demux_caps {
-  *	instance data.
-  *	The @feed function parameter contains a pointer to the TS feed API and
-  *	instance data.
-- *	It returns
-- *		0 on success;
-- *		-EINVAL on bad parameter.
-+ *	It returns:
-+ *	0 on success;
-+ *	-EINVAL on bad parameter.
-  *
-  * @allocate_section_feed: Allocates a new section feed, i.e. a demux resource
-  *	for filtering and receiving sections. On platforms with hardware
-@@ -457,10 +457,10 @@ enum dmx_demux_caps {
-  *	instance data.
-  *	The @callback function parameter contains a pointer to the callback
-  *	function for passing received TS packet.
-- *	It returns
-- *		0 on success;
-- *		-EBUSY, if no more TS feeds is available;
-- *		-EINVAL, on bad parameter.
-+ *	It returns:
-+ *	0 on success;
-+ *	-EBUSY, if no more TS feeds is available;
-+ *	-EINVAL, on bad parameter.
-  *
-  * @release_section_feed: Releases the resources allocated with
-  *	@allocate_section_feed, including allocated filters. Any filtering in
-@@ -470,9 +470,9 @@ enum dmx_demux_caps {
-  *	instance data.
-  *	The @feed function parameter contains a pointer to the TS feed API and
-  *	instance data.
-- *	It returns
-- *		0 on success;
-- *		-EINVAL, on bad parameter.
-+ *	It returns:
-+ *	0 on success;
-+ *	-EINVAL, on bad parameter.
-  *
-  * @add_frontend: Registers a connectivity between a demux and a front-end,
-  *	i.e., indicates that the demux can be connected via a call to
-@@ -486,9 +486,9 @@ enum dmx_demux_caps {
-  *	instance data.
-  *	The @frontend function parameter contains a pointer to the front-end
-  *	instance data.
-- *	It returns
-- *		0 on success;
-- *		-EINVAL, on bad parameter.
-+ *	It returns:
-+ *	0 on success;
-+ *	-EINVAL, on bad parameter.
-  *
-  * @remove_frontend: Indicates that the given front-end, registered by a call
-  *	to @add_frontend, can no longer be connected as a TS source by this
-@@ -502,10 +502,10 @@ enum dmx_demux_caps {
-  *	instance data.
-  *	The @frontend function parameter contains a pointer to the front-end
-  *	instance data.
-- *	It returns
-- *		0 on success;
-- *		-ENODEV, if the front-end was not found,
-- *		-EINVAL, on bad parameter.
-+ *	It returns:
-+ *	0 on success;
-+ *	-ENODEV, if the front-end was not found,
-+ *	-EINVAL, on bad parameter.
-  *
-  * @get_frontends: Provides the APIs of the front-ends that have been
-  *	registered for this demux. Any of the front-ends obtained with this
-@@ -529,17 +529,17 @@ enum dmx_demux_caps {
-  *	instance data.
-  *	The @frontend function parameter contains a pointer to the front-end
-  *	instance data.
-- *	It returns
-- *		0 on success;
-- *		-EINVAL, on bad parameter.
-+ *	It returns:
-+ *	0 on success;
-+ *	-EINVAL, on bad parameter.
-  *
-  * @disconnect_frontend: Disconnects the demux and a front-end previously
-  *	connected by a @connect_frontend call.
-  *	The @demux function parameter contains a pointer to the demux API and
-  *	instance data.
-- *	It returns
-- *		0 on success;
-- *		-EINVAL on bad parameter.
-+ *	It returns:
-+ *	0 on success;
-+ *	-EINVAL on bad parameter.
-  *
-  * @get_pes_pids: Get the PIDs for DMX_PES_AUDIO0, DMX_PES_VIDEO0,
-  *	DMX_PES_TELETEXT0, DMX_PES_SUBTITLE0 and DMX_PES_PCR0.
-@@ -547,9 +547,9 @@ enum dmx_demux_caps {
-  *	instance data.
-  *	The @pids function parameter contains an array with five u16 elements
-  *	where the PIDs will be stored.
-- *	It returns
-- *		0 on success;
-- *		-EINVAL on bad parameter.
-+ *	It returns:
-+ *	0 on success;
-+ *	-EINVAL on bad parameter.
-  */
++                controller-data {
++                        samsung,spi-feedback-delay = <0>;
++                };
++        };
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index bd4d685..dacaa29 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -261,6 +261,15 @@ config IR_REDRAT3
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called redrat3.
  
- struct dmx_demux {
++config IR_SPI
++	tristate "SPI connected IR LED"
++	depends on SPI && LIRC
++	---help---
++	  Say Y if you want to use an IR LED connected through SPI bus.
++
++	  To compile this driver as a module, choose M here: the module will be
++	  called ir-spi.
++
+ config IR_STREAMZAP
+ 	tristate "Streamzap PC Remote IR Receiver"
+ 	depends on USB_ARCH_HAS_HCD
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 379a5c0..1417c8d 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -27,6 +27,7 @@ obj-$(CONFIG_IR_NUVOTON) += nuvoton-cir.o
+ obj-$(CONFIG_IR_ENE) += ene_ir.o
+ obj-$(CONFIG_IR_REDRAT3) += redrat3.o
+ obj-$(CONFIG_IR_RX51) += ir-rx51.o
++obj-$(CONFIG_IR_SPI) += ir-spi.o
+ obj-$(CONFIG_IR_STREAMZAP) += streamzap.o
+ obj-$(CONFIG_IR_WINBOND_CIR) += winbond-cir.o
+ obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
+diff --git a/drivers/media/rc/ir-spi.c b/drivers/media/rc/ir-spi.c
+new file mode 100644
+index 0000000..6eb14e9
+--- /dev/null
++++ b/drivers/media/rc/ir-spi.c
+@@ -0,0 +1,301 @@
++/*
++ * Copyright (c) 2016 Samsung Electronics Co., Ltd.
++ * Author: Andi Shyti <andi.shyti@samsung.it>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * SPI driven IR LED device driver
++ */
++
++#include <linux/fs.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/of_gpio.h>
++#include <linux/regulator/consumer.h>
++#include <linux/spi/spi.h>
++#include <media/lirc_dev.h>
++
++#define IR_SPI_DRIVER_NAME		"ir-spi"
++
++#define IR_SPI_DEFAULT_FREQUENCY	38000
++#define IR_SPI_BIT_PER_WORD		    8
++
++struct ir_spi_data {
++	u16 nusers;
++	int power_gpio;
++
++	u8 *buffer;
++
++	struct lirc_driver lirc_driver;
++	struct spi_device *spi;
++	struct spi_transfer xfer;
++	struct mutex mutex;
++	struct regulator *regulator;
++};
++
++static ssize_t ir_spi_chardev_write(struct file *file,
++					const char __user *buffer,
++					size_t length, loff_t *offset)
++{
++	struct ir_spi_data *idata = file->private_data;
++	bool please_free = false;
++	int ret = 0;
++
++	if (idata->xfer.len && (idata->xfer.len != length))
++		return -EINVAL;
++
++	mutex_lock(&idata->mutex);
++
++	if (!idata->xfer.len) {
++		idata->buffer = kmalloc(length, GFP_KERNEL);
++
++		if (!idata->buffer) {
++			ret = -ENOMEM;
++			goto out_unlock;
++		}
++
++		idata->xfer.len = length;
++		please_free = true;
++	}
++
++	if (copy_from_user(idata->buffer, buffer, length)) {
++		ret = -EFAULT;
++		goto out_free;
++	}
++
++	ret = regulator_enable(idata->regulator);
++	if (ret) {
++		dev_err(&idata->spi->dev, "failed to power on the LED\n");
++		goto out_free;
++	}
++
++	idata->xfer.tx_buf = idata->buffer;
++
++	ret = spi_sync_transfer(idata->spi, &idata->xfer, 1);
++	if (ret)
++		dev_err(&idata->spi->dev, "unable to deliver the signal\n");
++
++	regulator_disable(idata->regulator);
++
++out_free:
++	if (please_free) {
++		kfree(idata->buffer);
++		idata->xfer.len = 0;
++		idata->buffer = NULL;
++	}
++
++out_unlock:
++	mutex_unlock(&idata->mutex);
++
++	return ret ? ret : length;
++}
++
++static int ir_spi_chardev_open(struct inode *inode, struct file *file)
++{
++	struct ir_spi_data *idata = lirc_get_pdata(file);
++
++	if (unlikely(idata->nusers >= SHRT_MAX)) {
++		dev_err(&idata->spi->dev, "device busy\n");
++		return -EBUSY;
++	}
++
++	file->private_data = idata;
++
++	mutex_lock(&idata->mutex);
++	idata->nusers++;
++	mutex_unlock(&idata->mutex);
++
++	return 0;
++}
++
++static int ir_spi_chardev_close(struct inode *inode, struct file *file)
++{
++	struct ir_spi_data *idata = lirc_get_pdata(file);
++
++	mutex_lock(&idata->mutex);
++	idata->nusers--;
++
++	/*
++	 * check if someone else is using the driver,
++	 * if not, then:
++	 *
++	 *  - reset length and frequency values to default
++	 *  - shut down the LED
++	 *  - free the buffer (NULL or ZERO_SIZE_PTR are noop)
++	 */
++	if (!idata->nusers) {
++		idata->xfer.len = 0;
++		idata->xfer.speed_hz = IR_SPI_DEFAULT_FREQUENCY;
++
++		kfree(idata->buffer);
++		idata->buffer = NULL;
++	}
++
++	mutex_unlock(&idata->mutex);
++
++	return 0;
++}
++
++static long ir_spi_chardev_ioctl(struct file *file, unsigned int cmd,
++						unsigned long arg)
++{
++	__u32 p;
++	s32 ret;
++	struct ir_spi_data *idata = file->private_data;
++
++	switch (cmd) {
++	case LIRC_GET_FEATURES:
++		return put_user(idata->lirc_driver.features,
++					(__u32 __user *) arg);
++
++	case LIRC_GET_LENGTH:
++		return put_user(idata->xfer.len, (__u32 __user *) arg);
++
++	case LIRC_SET_LENGTH: {
++		void *new;
++
++		ret = get_user(p, (__u32 __user *) arg);
++		if (ret)
++			return ret;
++
++		/*
++		 * the user is trying to set the same
++		 * length of the current value
++		 */
++		if (idata->xfer.len == p)
++			return 0;
++
++		/*
++		 * multiple users should use the driver with the
++		 * length, otherwise return EPERM same data
++		 */
++		if (idata->nusers > 1)
++			return -EPERM;
++
++		/*
++		 * if the buffer is already allocated, reallocate it with the
++		 * desired value. If the desired value is 0, then the buffer is
++		 * freed from krealloc()
++		 */
++		if (idata->xfer.len)
++			new = krealloc(idata->buffer, p, GFP_KERNEL);
++		else
++			new = kmalloc(p, GFP_KERNEL);
++
++		if (!new)
++			return -ENOMEM;
++
++		mutex_lock(&idata->mutex);
++		idata->buffer = new;
++		idata->xfer.len = p;
++		mutex_unlock(&idata->mutex);
++
++		return 0;
++	}
++
++	case LIRC_GET_SEND_CARRIER:
++		return put_user(idata->xfer.speed_hz, (__u32 __user *) arg);
++
++	case LIRC_SET_SEND_CARRIER:
++		ret = get_user(p, (__u32 __user *) arg);
++		if (ret)
++			return ret;
++
++		/*
++		 * The frequency cannot be obviously set to '0',
++		 * while, as in the case of the data length,
++		 * multiple users should use the driver with the same
++		 * frequency value, otherwise return EPERM
++		 */
++		if (!p || ((idata->nusers > 1) && p != idata->xfer.speed_hz))
++			return -EPERM;
++
++		mutex_lock(&idata->mutex);
++		idata->xfer.speed_hz = p;
++		mutex_unlock(&idata->mutex);
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
++static const struct file_operations ir_spi_fops = {
++	.owner   = THIS_MODULE,
++	.read    = lirc_dev_fop_read,
++	.write   = ir_spi_chardev_write,
++	.poll    = lirc_dev_fop_poll,
++	.open    = ir_spi_chardev_open,
++	.release = ir_spi_chardev_close,
++	.llseek  = noop_llseek,
++	.unlocked_ioctl = ir_spi_chardev_ioctl,
++	.compat_ioctl   = ir_spi_chardev_ioctl,
++};
++
++static int ir_spi_probe(struct spi_device *spi)
++{
++	struct ir_spi_data *idata;
++
++	idata = devm_kzalloc(&spi->dev, sizeof(*idata), GFP_KERNEL);
++	if (!idata)
++		return -ENOMEM;
++
++	idata->regulator = devm_regulator_get(&spi->dev, "irda_regulator");
++	if (IS_ERR(idata->regulator))
++		return PTR_ERR(idata->regulator);
++
++	snprintf(idata->lirc_driver.name, sizeof(idata->lirc_driver.name),
++							IR_SPI_DRIVER_NAME);
++	idata->lirc_driver.features    = LIRC_CAN_SEND_RAW;
++	idata->lirc_driver.code_length = 1;
++	idata->lirc_driver.fops        = &ir_spi_fops;
++	idata->lirc_driver.dev         = &spi->dev;
++	idata->lirc_driver.data        = idata;
++	idata->lirc_driver.owner       = THIS_MODULE;
++	idata->lirc_driver.minor       = -1;
++
++	idata->lirc_driver.minor = lirc_register_driver(&idata->lirc_driver);
++	if (idata->lirc_driver.minor < 0) {
++		dev_err(&spi->dev, "unable to generate character device\n");
++		return idata->lirc_driver.minor;
++	}
++
++	mutex_init(&idata->mutex);
++
++	idata->spi = spi;
++
++	idata->xfer.bits_per_word = IR_SPI_BIT_PER_WORD;
++	idata->xfer.speed_hz = IR_SPI_DEFAULT_FREQUENCY;
++
++	return 0;
++}
++
++static int ir_spi_remove(struct spi_device *spi)
++{
++	struct ir_spi_data *idata = spi_get_drvdata(spi);
++
++	lirc_unregister_driver(idata->lirc_driver.minor);
++
++	return 0;
++}
++
++static const struct of_device_id ir_spi_of_match[] = {
++	{ .compatible = "ir-spi" },
++	{},
++};
++
++static struct spi_driver ir_spi_driver = {
++	.probe = ir_spi_probe,
++	.remove = ir_spi_remove,
++	.driver = {
++		.name = IR_SPI_DRIVER_NAME,
++		.of_match_table = ir_spi_of_match,
++	},
++};
++
++module_spi_driver(ir_spi_driver);
++
++MODULE_AUTHOR("Andi Shyti <andi.shyti@samsung.com>");
++MODULE_DESCRIPTION("SPI IR LED");
++MODULE_LICENSE("GPL v2");
 -- 
-2.7.4
+2.8.1
 
