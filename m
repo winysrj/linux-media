@@ -1,84 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:33649 "EHLO
-	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751576AbcGRMmg (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:51925 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752146AbcGAPxQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 08:42:36 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>,
+	Fri, 1 Jul 2016 11:53:16 -0400
+Subject: Re: A potential race
+To: Pavel Andrianov <andrianov@ispras.ru>,
 	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Antti Palosaari <crope@iki.fi>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v4 10/12] [media] videodev2.h Add HSV encoding
-Date: Mon, 18 Jul 2016 14:42:14 +0200
-Message-Id: <1468845736-19651-11-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1468845736-19651-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1468845736-19651-1-git-send-email-ricardo.ribalda@gmail.com>
+	Vladis Dronov <vdronov@redhat.com>,
+	Insu Yun <wuninsu@gmail.com>, Oliver Neukum <oneukum@suse.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Vaishali Thakkar <vaishali.thakkar@oracle.com>,
+	ldv-project@linuxtesting.org
+References: <57727001.7040606@ispras.ru> <577680B3.5010901@ispras.ru>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8c161772-d2d9-0897-7f76-40caea5f0a93@xs4all.nl>
+Date: Fri, 1 Jul 2016 17:53:09 +0200
+MIME-Version: 1.0
+In-Reply-To: <577680B3.5010901@ispras.ru>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some hardware maps the Hue between 0 and 255 instead of 0-179. Support
-this format with a new field hsv_enc.
+On 07/01/2016 04:39 PM, Pavel Andrianov wrote:
+>  Hi!
+> 
+> There is a potential race condition between usbvision_v4l2_close
+> <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L403> and usbvision_disconnect
+> <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1569>. The possible scenario may be the following.
+> usbvision_disconnect <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1569> starts execution, assigns
+> usbvision->remove_pending = 1 <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1587>, and is interrupted
+> (rescheduled) after mutex_unlock <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1592>. After that
+> usbvision_v4l2_close <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L403> is executed, decrease
+> usbvision->user-- <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L419>, checks
+> usbvision->remove_pending <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L422>, executes
+> usbvision_release <http://lxr.free-electrons.com/ident?i=usbvision_release> and finishes. Then usbvision_disconnect
+> <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1569> continues its execution. It checks
+> usbversion->user <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1594> (it is already 0) and also
+> execute usbvision_release <http://lxr.free-electrons.com/ident?i=usbvision_release>. Thus, release is executed twice. The same situation may
+> occur if usbvision_v4l2_close <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L403> is interrupted by
+> usbvision_disconnect <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1569>. Moreover, the same problem
+> is in usbvision_radio_close <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1135>. In all these cases
+> the check before call usbvision_release <http://lxr.free-electrons.com/ident?i=usbvision_release> under mutex_lock protection does not solve
+> the problem, because  there may occur an open() after the check and the race takes place again. The question is: why the usbvision_release
+> <http://lxr.free-electrons.com/ident?i=usbvision_release> is called from close() (usbvision_v4l2_close
+> <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L403> and usbvision_radio_close
+> <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1135>)? Usually release functions are called from
+> disconnect.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- include/uapi/linux/videodev2.h | 21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
+Please don't use html mail, mailinglists will silently reject this.
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index c7fb760386cf..49edc462ca8e 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -330,6 +330,15 @@ enum v4l2_ycbcr_encoding {
- 	V4L2_YCBCR_ENC_SMPTE240M      = 8,
- };
- 
-+enum v4l2_hsv_encoding {
-+
-+	/* Hue mapped to 0 - 179 */
-+	V4L2_HSV_ENC_180		= 16,
-+
-+	/* Hue mapped to 0-255 */
-+	V4L2_HSV_ENC_256		= 17,
-+};
-+
- /*
-  * Determine how YCBCR_ENC_DEFAULT should map to a proper Y'CbCr encoding.
-  * This depends on the colorspace.
-@@ -455,7 +464,12 @@ struct v4l2_pix_format {
- 	__u32			colorspace;	/* enum v4l2_colorspace */
- 	__u32			priv;		/* private data, depends on pixelformat */
- 	__u32			flags;		/* format flags (V4L2_PIX_FMT_FLAG_*) */
--	__u32			ycbcr_enc;	/* enum v4l2_ycbcr_encoding */
-+	union {
-+		/* enum v4l2_ycbcr_encoding */
-+		__u32			ycbcr_enc;
-+		/* enum v4l2_hsv_encoding */
-+		__u32			hsv_enc;
-+	};
- 	__u32			quantization;	/* enum v4l2_quantization */
- 	__u32			xfer_func;	/* enum v4l2_xfer_func */
- };
-@@ -1988,7 +2002,10 @@ struct v4l2_pix_format_mplane {
- 	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
- 	__u8				num_planes;
- 	__u8				flags;
--	__u8				ycbcr_enc;
-+	 union {
-+		__u8				ycbcr_enc;
-+		__u8				hsv_enc;
-+	};
- 	__u8				quantization;
- 	__u8				xfer_func;
- 	__u8				reserved[7];
--- 
-2.8.1
+The usbvision driver is old and unloved and known to be very bad code. It needs a huge amount of work to make all this work correctly.
 
+I don't see anyone picking this up...
+
+Regards,
+
+	Hans
