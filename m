@@ -1,67 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:55383 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751523AbcGAIE1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 04:04:27 -0400
+Received: from mailout3.samsung.com ([203.254.224.33]:59055 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750702AbcGAMai (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 08:30:38 -0400
+Date: Fri, 01 Jul 2016 21:30:35 +0900
 From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [PATCH v2 08/15] [media] lirc_dev: remove double if ... else statement
-Date: Fri, 01 Jul 2016 17:01:31 +0900
-Message-id: <1467360098-12539-9-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
-References: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
+To: Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Andi Shyti <andi@etezian.org>
+Subject: Re: [PATCH] [media] rc: ir-spi: add support for IR LEDs connected with
+ SPI
+Message-id: <20160701123035.GA12029@samsunx.samsung>
+References: <1467362022-12704-1-git-send-email-andi.shyti@samsung.com>
+ <CGME20160701094505epcas1p469fb8084bd5195cdab5555a9f3368682@epcas1p4.samsung.com>
+ <20160701094458.GA8933@gofer.mess.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-disposition: inline
+In-reply-to: <20160701094458.GA8933@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are two if ... else which check the same thing in different
-part of the code, they can be merged in a single check.
+Hi Sean,
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
----
- drivers/media/rc/lirc_dev.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+> > The ir-spi is a simple device driver which supports the
+> > connection between an IR LED and the MOSI line of an SPI device.
+> > 
+> > The driver, indeed, uses the SPI framework to stream the raw data
+> > provided by userspace through a character device. The chardev is
+> > handled by the LIRC framework and its functionality basically
+> > provides:
+> > 
+> >  - raw write: data to be sent to the SPI and then streamed to the
+> >    MOSI line;
+> >  - set frequency: sets the frequency whith which the data should
+> >    be sent;
+> >  - set length: sets the data length. This information is
+> >    optional, if the length is set, then userspace should send raw
+> >    data only with that length; while if the length is set to '0',
+> >    then the driver will figure out himself the length of the data
+> >    based on the length of the data written on the character
+> >    device.
+> >    The latter is not recommended, though, as the driver, at
+> >    any write, allocates and deallocates a buffer where the data
+> >    from userspace are stored.
+> > 
+> > The driver provides three feedback commands:
+> > 
+> >  - get length: reads the length set and (as mentioned), if the
+> >    length is '0' it will be calculated at any write
+> >  - get frequency: the driver reports the frequency. If userpace
+> >    doesn't set the frequency, the driver will use a default value
+> >    of 38000Hz.
+> 
+> This interface is not compatible with other lirc devices; there is no
+> way of determining whether this is a regular lirc device or this new
+> flavour you've invented.
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 2468849..2643336 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -310,13 +310,6 @@ static int lirc_allocate_driver(struct lirc_driver *d)
- 	irctls[minor] = ir;
- 	d->minor = minor;
- 
--	if (d->sample_rate) {
--		ir->jiffies_to_wait = HZ / d->sample_rate;
--	} else {
--		/* it means - wait for external event in task queue */
--		ir->jiffies_to_wait = 0;
--	}
--
- 	/* some safety check 8-) */
- 	d->name[sizeof(d->name)-1] = '\0';
- 
-@@ -330,6 +323,8 @@ static int lirc_allocate_driver(struct lirc_driver *d)
- 		      "lirc%u", ir->d.minor);
- 
- 	if (d->sample_rate) {
-+		ir->jiffies_to_wait = HZ / d->sample_rate;
-+
- 		/* try to fire up polling thread */
- 		ir->task = kthread_run(lirc_thread, (void *)ir, "lirc_dev");
- 		if (IS_ERR(ir->task)) {
-@@ -338,6 +333,9 @@ static int lirc_allocate_driver(struct lirc_driver *d)
- 			err = -ECHILD;
- 			goto out_sysfs;
- 		}
-+	} else {
-+		/* it means - wait for external event in task queue */
-+		ir->jiffies_to_wait = 0;
- 	}
- 
- 	err = lirc_cdev_add(ir);
--- 
-2.8.1
+except of the set length and get length which I'm using a bit
+freely because I am dealing with devices that exchange always the
+same amount of data, so that I don't need (in my case) to
+pre-allocate or overallocate or runtime allocate. I don't
+understand what else I invented :)
 
+This is a simple driver which is driving an LED connected through
+SPI and userspace writes raw data in it (LIRC_CAN_SEND_RAW).
+
+> Also I don't see what justifies this new interface. This can be 
+> implemented in rc-core in less lines of code and it will be entirely 
+> compatible with existing user-space.
+
+Also here I'm getting a bit confused. When I started writing
+this, I didn't even know of the existence of a remote controlling
+framework, but then I run across this:
+
+"LIRC is a package that allows you to decode and send infra-red
+signals of many (but not all) commonly used remote controls. "
+
+taken from lirc.org: my case is exactly falling into this
+description.
+
+Am I missing anything?
+
+Thanks,
+Andi
