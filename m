@@ -1,51 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59112 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750912AbcGMToh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 15:44:37 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	stephen hemminger <stephen@networkplumber.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Roopa Prabhu <roopa@cumulusnetworks.com>,
-	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-	Alexandre Bounine <alexandre.bounine@idt.com>,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Mike Frysinger <vapier@gentoo.org>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Sabrina Dubroca <sd@queasysnail.net>,
-	Pablo Neira <pablo@netfilter.org>
-Subject: [PATCH] uapi: export lirc.h header
-Date: Wed, 13 Jul 2016 16:43:52 -0300
-Message-Id: <320c765d32bfc82c582e336d52ffe1026c73c644.1468439021.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mout.kundenserver.de ([212.227.126.133]:63886 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752312AbcGAKxK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 06:53:10 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] cec: fix Kconfig dependency problems
+Date: Fri, 01 Jul 2016 12:55:55 +0200
+Message-ID: <8175255.KZ9CmBnTPL@wuerfel>
+In-Reply-To: <619887af-e879-d4ec-5697-50ee101eaf51@xs4all.nl>
+References: <619887af-e879-d4ec-5697-50ee101eaf51@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This header contains the userspace API for lirc.
+On Friday, July 1, 2016 12:37:06 PM CEST Hans Verkuil wrote:
+> - Use IS_REACHABLE(RC_CORE) instead of IS_ENABLED: if cec is built-in and
+>   RC_CORE is a module, then CEC can't reach the RC symbols.
+> - Both cec and cec-edid should be bool and use the same build 'mode' as
+>   MEDIA_SUPPORT (just as is done for the media controller code).
+> - Add a note to staging that this should be changed once the cec framework
+>   is moved out of staging.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Reported-by: Arnd Bergmann <arnd@arndb.de>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- include/uapi/linux/Kbuild | 1 +
- 1 file changed, 1 insertion(+)
+This looks ok, but I'll give it some more randconfig build testing and will
+try to report back later today. If you don't hear from me, it's probably
+ok.
 
-diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
-index 8bdae34d1f9a..ec10cfef166a 100644
---- a/include/uapi/linux/Kbuild
-+++ b/include/uapi/linux/Kbuild
-@@ -245,6 +245,7 @@ endif
- header-y += hw_breakpoint.h
- header-y += l2tp.h
- header-y += libc-compat.h
-+header-y += lirc.h
- header-y += limits.h
- header-y += llc.h
- header-y += loop.h
--- 
-2.7.4
+There is still another issue with the header, I'll send a patch for it
+since I've already done one.
 
+	Arnd
