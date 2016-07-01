@@ -1,87 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46608
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750897AbcGNNgr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2016 09:36:47 -0400
-Subject: Re: [PATCH] media: s5p-mfc remove unnecessary error messages
-To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
-	k.debski@samsung.com, jtp.park@samsung.com, mchehab@kernel.org
-References: <1468370038-5364-1-git-send-email-shuahkh@osg.samsung.com>
- <c38dc1b5-e2f7-4486-a0fc-a8f690d28fe6@osg.samsung.com>
- <5787951B.2050401@osg.samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <f37d0d12-6ba8-58db-1ec9-31008d4f7ace@osg.samsung.com>
-Date: Thu, 14 Jul 2016 09:36:36 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42155 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751953AbcGAHbv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 03:31:51 -0400
+Date: Fri, 1 Jul 2016 09:31:46 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+	laurent.pinchart@ideasonboard.com
+Cc: Sebastian Reichel <sre@kernel.org>,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	pali.rohar@gmail.com, linux-media@vger.kernel.org
+Subject: square-only image on Nokia N900 camera -- pipeline setup in python
+ (was Re: [RFC PATCH 00/24] Make Nokia N900 cameras working)
+Message-ID: <20160701073146.GA21405@amd>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160427030850.GA17034@earth>
+ <20160617164226.GA27876@amd>
+ <20160617171214.GA5830@amd>
+ <20160620205904.GL24980@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <5787951B.2050401@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160620205904.GL24980@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Shuah,
+Hi!
 
-On 07/14/2016 09:35 AM, Shuah Khan wrote:
-> On 07/14/2016 06:46 AM, Javier Martinez Canillas wrote:
->> Hello Shuah,
->>
->> On 07/12/2016 08:33 PM, Shuah Khan wrote:
->>> Removing unnecessary error messages as appropriate error code is returned.
->>>
->>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->>> ---
->>>  drivers/media/platform/s5p-mfc/s5p_mfc.c | 2 --
->>>  1 file changed, 2 deletions(-)
->>>
->>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->>> index b6fde20..906f80c 100644
->>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
->>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->>> @@ -759,7 +759,6 @@ static int s5p_mfc_open(struct file *file)
->>>  	/* Allocate memory for context */
->>>  	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
->>>  	if (!ctx) {
->>> -		mfc_err("Not enough memory\n");
->>
->> I agree to remove this since in case of a OOM, the core already does a
->> stack dump and prints an error message so there's no need to it here.
->>
->>>  		ret = -ENOMEM;
->>>  		goto err_alloc;
->>>  	}
->>> @@ -776,7 +775,6 @@ static int s5p_mfc_open(struct file *file)
->>>  	while (dev->ctx[ctx->num]) {
->>>  		ctx->num++;
->>>  		if (ctx->num >= MFC_NUM_CONTEXTS) {
->>> -			mfc_err("Too many open contexts\n");
->>
->> But I think this error message shouldn't be removed since explains why
->> the open failed, even when an error code is returned.
-> 
-> This message isn't very informative and not sure if it is giving
-> any more information than EBUSY. It is a good debug message perhaps,
-> but not an error message. Would it be okay if I made it debug instead.
->
+On gitlab is the latest version of pipeline setup if python. I also
+got fcam to work (slowly) on the camera, with autofocus and
+autogain. Capturing from preview modes works fine, but image quality
+is not good, as expected. Capturing raw GRBG10 images works, but
+images are square, with values being outside square being 0.
 
-Making it a debug message sounds good to me.
- 
-> thanks,
-> -- Shuah
->>
->>>  			ret = -EBUSY;
->>>  			goto err_no_ctx;
->>>  		}
->>>
->>
->> Best regards,
->>
-> 
+Same problem is there with yavta and fcam-dev capture, so I suspect
+there's something in kernel. If you have an idea what could be wrong /
+what to try, let me know. If omap3isp works for you in v4.6, and
+produces expected rectangular images, that would be useful to know,
+too.
+
+Python capture script is at
+
+https://gitlab.com/tui/tui/commit/266b6eb302dcf1481e3e90a05bf98180e5759168
 
 Best regards,
+									Pavel
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
