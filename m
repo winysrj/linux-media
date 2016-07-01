@@ -1,143 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:36770 "EHLO
-	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1424417AbcFMP5K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2016 11:57:10 -0400
-Subject: Re: [very-RFC 0/8] TSN driver for the kernel
-To: Richard Cochran <richardcochran@gmail.com>,
-	Henrik Austad <henrik@austad.us>
-References: <1465686096-22156-1-git-send-email-henrik@austad.us>
- <20160613114713.GA9544@localhost.localdomain>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@vger.kernel.org, netdev@vger.kernel.org,
-	henrk@austad.us, Arnd Bergmann <arnd@linaro.org>
-From: John Fastabend <john.fastabend@gmail.com>
-Message-ID: <575ED7BC.4000803@gmail.com>
-Date: Mon, 13 Jun 2016 08:56:44 -0700
+Received: from imap.netup.ru ([77.72.80.15]:40116 "EHLO imap.netup.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751793AbcGABqq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jun 2016 21:46:46 -0400
+Received: from mail-vk0-f51.google.com (mail-vk0-f51.google.com [209.85.213.51])
+	by imap.netup.ru (Postfix) with ESMTPA id 2F73D7D268F
+	for <linux-media@vger.kernel.org>; Fri,  1 Jul 2016 04:46:43 +0300 (MSK)
+Received: by mail-vk0-f51.google.com with SMTP id c2so135103935vkg.1
+        for <linux-media@vger.kernel.org>; Thu, 30 Jun 2016 18:46:43 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20160613114713.GA9544@localhost.localdomain>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <601a6f40c550ae683100c1e5446712945740a7ab.1467257693.git.mchehab@s-opensource.com>
+References: <601a6f40c550ae683100c1e5446712945740a7ab.1467257693.git.mchehab@s-opensource.com>
+From: Abylay Ospan <aospan@netup.ru>
+Date: Thu, 30 Jun 2016 21:46:23 -0400
+Message-ID: <CAK3bHNW6fD=67M5n087qUoL38xRQ5bZ07vRsAoLV8XO0FSBNWg@mail.gmail.com>
+Subject: Re: [PATCH] cxd2841er: Do some changes at the dvbv5 stats logic
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sergey Kozlov <serjk@netup.ru>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16-06-13 04:47 AM, Richard Cochran wrote:
-> Henrik,
-> 
-> On Sun, Jun 12, 2016 at 01:01:28AM +0200, Henrik Austad wrote:
->> There are at least one AVB-driver (the AV-part of TSN) in the kernel
->> already,
-> 
-> Which driver is that?
-> 
->> however this driver aims to solve a wider scope as TSN can do
->> much more than just audio. A very basic ALSA-driver is added to the end
->> that allows you to play music between 2 machines using aplay in one end
->> and arecord | aplay on the other (some fiddling required) We have plans
->> for doing the same for v4l2 eventually (but there are other fishes to
->> fry first). The same goes for a TSN_SOCK type approach as well.
-> 
-> Please, no new socket type for this.
->  
->> What remains
->> - tie to (g)PTP properly, currently using ktime_get() for presentation
->>   time
->> - get time from shim into TSN and vice versa
-> 
-> ... and a whole lot more, see below.
-> 
->> - let shim create/manage buffer
-> 
-> (BTW, shim is a terrible name for that.)
-> 
-> [sigh]
-> 
-> People have been asking me about TSN and Linux, and we've made some
-> thoughts about it.  The interest is there, and so I am glad to see
-> discussion on this topic.
-> 
-> Having said that, your series does not even begin to address the real
-> issues.  I did not review the patches too carefully (because the
-> important stuff is missing), but surely configfs is the wrong
-> interface for this.  In the end, we will be able to support TSN using
-> the existing networking and audio interfaces, adding appropriate
-> extensions.
-> 
-> Your patch features a buffer shared by networking and audio.  This
-> isn't strictly necessary for TSN, and it may be harmful.  The
-> Listeners are supposed to calculate the delay from frame reception to
-> the DA conversion.  They can easily include the time needed for a user
-> space program to parse the frames, copy (and combine/convert) the
-> data, and re-start the audio transfer.  A flexible TSN implementation
-> will leave all of the format and encoding task to the userland.  After
-> all, TSN will some include more that just AV data, as you know.
-> 
-> Lets take a look at the big picture.  One aspect of TSN is already
-> fully supported, namely the gPTP.  Using the linuxptp user stack and a
-> modern kernel, you have a complete 802.1AS-2011 solution.
-> 
-> Here is what is missing to support audio TSN:
-> 
-> * User Space
-> 
-> 1. A proper userland stack for AVDECC, MAAP, FQTSS, and so on.  The
->    OpenAVB project does not offer much beyond simple examples.
-> 
-> 2. A user space audio application that puts it all together, making
->    use of the services in #1, the linuxptp gPTP service, the ALSA
->    services, and the network connections.  This program will have all
->    the knowledge about packet formats, AV encodings, and the local HW
->    capabilities.  This program cannot yet be written, as we still need
->    some kernel work in the audio and networking subsystems.
-> 
-> * Kernel Space
-> 
-> 1. Providing frames with a future transmit time.  For normal sockets,
->    this can be in the CMESG data.  For mmap'ed buffers, we will need a
->    new format.  (I think Arnd is working on a new layout.)
-> 
-> 2. Time based qdisc for transmitted frames.  For MACs that support
->    this (like the i210), we only have to place the frame into the
->    correct queue.  For normal HW, we want to be able to reserve a time
->    window in which non-TSN frames are blocked.  This is some work, but
->    in the end it should be a generic solution that not only works
->    "perfectly" with TSN HW but also provides best effort service using
->    any NIC.
-> 
+Acked-by: Abylay Ospan <aospan@netup.ru>
 
-When I looked at this awhile ago I convinced myself that it could fit
-fairly well into the DCB stack (DCB is also part of 802.1Q). A lot of
-the traffic class to queue mappings and priories could be handled here.
-It might be worth taking a look at ./net/sched/mqprio.c and ./net/dcb/.
+2016-06-29 23:34 GMT-04:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> It is a good idea to measure the signal strength while
+> tuning, as this helps to identify if the antenna is ok.
+> Also, such measure helps to identify the quality of the
+> signal.
+>
+> Do some changes to enable it before signal lock. While
+> here, optimize the code to only initialize the stats
+> length once, and make sure that, just after set_frontend,
+> any reading for the stats that depends on lock to return
+> FE_SCALE_NOT_AVAILABLE.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/dvb-frontends/cxd2841er.c | 45 ++++++++++++++++++++++++---------
+>  1 file changed, 33 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+> index d369a7567d18..3d39ae954fe2 100644
+> --- a/drivers/media/dvb-frontends/cxd2841er.c
+> +++ b/drivers/media/dvb-frontends/cxd2841er.c
+> @@ -2936,31 +2936,25 @@ static int cxd2841er_get_frontend(struct dvb_frontend *fe,
+>         else if (priv->state == STATE_ACTIVE_TC)
+>                 cxd2841er_read_status_tc(fe, &status);
+>
+> +       cxd2841er_read_signal_strength(fe, &strength);
+> +       p->strength.stat[0].scale = FE_SCALE_RELATIVE;
+> +       p->strength.stat[0].uvalue = strength;
+> +
+>         if (status & FE_HAS_LOCK) {
+> -               cxd2841er_read_signal_strength(fe, &strength);
+> -               p->strength.len = 1;
+> -               p->strength.stat[0].scale = FE_SCALE_RELATIVE;
+> -               p->strength.stat[0].uvalue = strength;
+>                 cxd2841er_read_snr(fe, &snr);
+> -               p->cnr.len = 1;
+>                 p->cnr.stat[0].scale = FE_SCALE_DECIBEL;
+>                 p->cnr.stat[0].svalue = snr;
+> +
+>                 cxd2841er_read_ucblocks(fe, &errors);
+> -               p->block_error.len = 1;
+>                 p->block_error.stat[0].scale = FE_SCALE_COUNTER;
+>                 p->block_error.stat[0].uvalue = errors;
+> +
+>                 cxd2841er_read_ber(fe, &ber);
+> -               p->post_bit_error.len = 1;
+>                 p->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
+>                 p->post_bit_error.stat[0].uvalue = ber;
+>         } else {
+> -               p->strength.len = 1;
+> -               p->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> -               p->cnr.len = 1;
+>                 p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> -               p->block_error.len = 1;
+>                 p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> -               p->post_bit_error.len = 1;
+>                 p->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+>         }
+>         return 0;
+> @@ -3021,6 +3015,12 @@ static int cxd2841er_set_frontend_s(struct dvb_frontend *fe)
+>                         __func__, carr_offset);
+>         }
+>  done:
+> +       /* Reset stats */
+> +       p->strength.stat[0].scale = FE_SCALE_RELATIVE;
+> +       p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> +       p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> +       p->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> +
+>         return ret;
+>  }
+>
+> @@ -3382,6 +3382,21 @@ static enum dvbfe_algo cxd2841er_get_algo(struct dvb_frontend *fe)
+>         return DVBFE_ALGO_HW;
+>  }
+>
+> +static int cxd2841er_init_stats(struct dvb_frontend *fe)
+> +{
+> +       struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+> +
+> +       p->strength.len = 1;
+> +       p->strength.stat[0].scale = FE_SCALE_RELATIVE;
+> +       p->cnr.len = 1;
+> +       p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> +       p->block_error.len = 1;
+> +       p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> +       p->post_bit_error.len = 1;
+> +       p->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> +}
+> +
+> +
+>  static int cxd2841er_init_s(struct dvb_frontend *fe)
+>  {
+>         struct cxd2841er_priv *priv = fe->demodulator_priv;
+> @@ -3403,6 +3418,9 @@ static int cxd2841er_init_s(struct dvb_frontend *fe)
+>         /* SONY_DEMOD_CONFIG_SAT_IFAGCNEG set to 1 */
+>         cxd2841er_write_reg(priv, I2C_SLVT, 0x00, 0xa0);
+>         cxd2841er_set_reg_bits(priv, I2C_SLVT, 0xb9, 0x01, 0x01);
+> +
+> +       cxd2841er_init_stats(fe);
+> +
+>         return 0;
+>  }
+>
+> @@ -3422,6 +3440,9 @@ static int cxd2841er_init_tc(struct dvb_frontend *fe)
+>         /* SONY_DEMOD_CONFIG_PARALLEL_SEL = 1 */
+>         cxd2841er_write_reg(priv, I2C_SLVT, 0x00, 0x00);
+>         cxd2841er_set_reg_bits(priv, I2C_SLVT, 0xc4, 0x00, 0x80);
+> +
+> +       cxd2841er_init_stats(fe);
+> +
+>         return 0;
+>  }
+>
+> --
+> 2.7.4
+>
 
-Unfortunately I didn't get too far along but we probably don't want
-another mechanism to map hw queues/tcs/etc if the existing interfaces
-work or can be extended to support this.
 
-> 3. ALSA support for tunable AD/DA clocks.  The rate of the Listener's
->    DA clock must match that of the Talker and the other Listeners.
->    Either you adjust it in HW using a VCO or similar, or you do
->    adaptive sample rate conversion in the application. (And that is
->    another reason for *not* having a shared kernel buffer.)  For the
->    Talker, either you adjust the AD clock to match the PTP time, or
->    you measure the frequency offset.
-> 
-> 4. ALSA support for time triggered playback.  The patch series
->    completely ignore the critical issue of media clock recovery.  The
->    Listener must buffer the stream in order to play it exactly at a
->    specified time.  It cannot simply send the stream ASAP to the audio
->    HW, because some other Listener might need longer.  AFAICT, there
->    is nothing in ALSA that allows you to say, sample X should be
->    played at time Y.
-> 
-> These are some ideas about implementing TSN.  Maybe some of it is
-> wrong (especially about ALSA), but we definitely need a proper design
-> to get the kernel parts right.  There is plenty of work to do, but we
-> really don't need some hacky, in-kernel buffer with hard coded audio
-> formats.
-> 
-> Thanks,
-> Richard
-> 
 
+-- 
+Abylay Ospan,
+NetUP Inc.
+http://www.netup.tv
