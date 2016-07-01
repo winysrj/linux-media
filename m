@@ -1,169 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35099 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753305AbcGDIce (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 04:32:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/9] bttv: convert g/s_crop to g/s_selection.
-Date: Mon,  4 Jul 2016 10:32:15 +0200
-Message-Id: <1467621142-8064-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl>
-References: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl>
+Received: from gofer.mess.org ([80.229.237.210]:48633 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752371AbcGANWX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Jul 2016 09:22:23 -0400
+Date: Fri, 1 Jul 2016 14:22:19 +0100
+From: Sean Young <sean@mess.org>
+To: Andi Shyti <andi.shyti@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Andi Shyti <andi@etezian.org>
+Subject: Re: [PATCH] [media] rc: ir-spi: add support for IR LEDs connected
+ with SPI
+Message-ID: <20160701132219.GA3752@gofer.mess.org>
+References: <1467362022-12704-1-git-send-email-andi.shyti@samsung.com>
+ <CGME20160701094505epcas1p469fb8084bd5195cdab5555a9f3368682@epcas1p4.samsung.com>
+ <20160701094458.GA8933@gofer.mess.org>
+ <20160701123035.GA12029@samsunx.samsung>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160701123035.GA12029@samsunx.samsung>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Fri, Jul 01, 2016 at 09:30:35PM +0900, Andi Shyti wrote:
+> Hi Sean,
+> 
+> > > The ir-spi is a simple device driver which supports the
+> > > connection between an IR LED and the MOSI line of an SPI device.
+> > > 
+> > > The driver, indeed, uses the SPI framework to stream the raw data
+> > > provided by userspace through a character device. The chardev is
+> > > handled by the LIRC framework and its functionality basically
+> > > provides:
+> > > 
+> > >  - raw write: data to be sent to the SPI and then streamed to the
+> > >    MOSI line;
+> > >  - set frequency: sets the frequency whith which the data should
+> > >    be sent;
+> > >  - set length: sets the data length. This information is
+> > >    optional, if the length is set, then userspace should send raw
+> > >    data only with that length; while if the length is set to '0',
+> > >    then the driver will figure out himself the length of the data
+> > >    based on the length of the data written on the character
+> > >    device.
+> > >    The latter is not recommended, though, as the driver, at
+> > >    any write, allocates and deallocates a buffer where the data
+> > >    from userspace are stored.
+> > > 
+> > > The driver provides three feedback commands:
+> > > 
+> > >  - get length: reads the length set and (as mentioned), if the
+> > >    length is '0' it will be calculated at any write
+> > >  - get frequency: the driver reports the frequency. If userpace
+> > >    doesn't set the frequency, the driver will use a default value
+> > >    of 38000Hz.
+> > 
+> > This interface is not compatible with other lirc devices; there is no
+> > way of determining whether this is a regular lirc device or this new
+> > flavour you've invented.
+> 
+> except of the set length and get length which I'm using a bit
+> freely because I am dealing with devices that exchange always the
+> same amount of data, so that I don't need (in my case) to
+> pre-allocate or overallocate or runtime allocate. I don't
+> understand what else I invented :)
 
-This is part of a final push to convert all drivers to g/s_selection.
+Other than the LIRC_{GET,SET}_LENGTH it might very well be compatible;
+you're reusing LIRC_GET_LENGTH for a different purpose.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/bt8xx/bttv-driver.c | 59 +++++++++++++++++++++++------------
- drivers/media/pci/bt8xx/bttvp.h       |  2 +-
- 2 files changed, 40 insertions(+), 21 deletions(-)
+Is the kmalloc() really that costly that it needs to be avoided for
+each transmit?
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index df54e17..97b91a9 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -2804,30 +2804,44 @@ static int bttv_cropcap(struct file *file, void *priv,
- 	    cap->type != V4L2_BUF_TYPE_VIDEO_OVERLAY)
- 		return -EINVAL;
- 
--	*cap = bttv_tvnorms[btv->tvnorm].cropcap;
-+	/* defrect and bounds are set via g_selection */
-+	cap->pixelaspect = bttv_tvnorms[btv->tvnorm].cropcap.pixelaspect;
- 
- 	return 0;
- }
- 
--static int bttv_g_crop(struct file *file, void *f, struct v4l2_crop *crop)
-+static int bttv_g_selection(struct file *file, void *f, struct v4l2_selection *sel)
- {
- 	struct bttv_fh *fh = f;
- 	struct bttv *btv = fh->btv;
- 
--	if (crop->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
--	    crop->type != V4L2_BUF_TYPE_VIDEO_OVERLAY)
-+	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-+	    sel->type != V4L2_BUF_TYPE_VIDEO_OVERLAY)
- 		return -EINVAL;
- 
--	/* No fh->do_crop = 1; because btv->crop[1] may be
--	   inconsistent with fh->width or fh->height and apps
--	   do not expect a change here. */
--
--	crop->c = btv->crop[!!fh->do_crop].rect;
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_CROP:
-+		/*
-+		 * No fh->do_crop = 1; because btv->crop[1] may be
-+		 * inconsistent with fh->width or fh->height and apps
-+		 * do not expect a change here.
-+		 */
-+		sel->r = btv->crop[!!fh->do_crop].rect;
-+		break;
-+	case V4L2_SEL_TGT_CROP_DEFAULT:
-+		sel->r = bttv_tvnorms[btv->tvnorm].cropcap.defrect;
-+		break;
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+		sel->r = bttv_tvnorms[btv->tvnorm].cropcap.bounds;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
- 
- 	return 0;
- }
- 
--static int bttv_s_crop(struct file *file, void *f, const struct v4l2_crop *crop)
-+static int bttv_s_selection(struct file *file, void *f, struct v4l2_selection *sel)
- {
- 	struct bttv_fh *fh = f;
- 	struct bttv *btv = fh->btv;
-@@ -2839,8 +2853,11 @@ static int bttv_s_crop(struct file *file, void *f, const struct v4l2_crop *crop)
- 	__s32 b_right;
- 	__s32 b_bottom;
- 
--	if (crop->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
--	    crop->type != V4L2_BUF_TYPE_VIDEO_OVERLAY)
-+	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-+	    sel->type != V4L2_BUF_TYPE_VIDEO_OVERLAY)
-+		return -EINVAL;
-+
-+	if (sel->target != V4L2_SEL_TGT_CROP)
- 		return -EINVAL;
- 
- 	/* Make sure tvnorm, vbi_end and the current cropping
-@@ -2864,22 +2881,24 @@ static int bttv_s_crop(struct file *file, void *f, const struct v4l2_crop *crop)
- 	}
- 
- 	/* Min. scaled size 48 x 32. */
--	c.rect.left = clamp_t(s32, crop->c.left, b_left, b_right - 48);
-+	c.rect.left = clamp_t(s32, sel->r.left, b_left, b_right - 48);
- 	c.rect.left = min(c.rect.left, (__s32) MAX_HDELAY);
- 
--	c.rect.width = clamp_t(s32, crop->c.width,
-+	c.rect.width = clamp_t(s32, sel->r.width,
- 			     48, b_right - c.rect.left);
- 
--	c.rect.top = clamp_t(s32, crop->c.top, b_top, b_bottom - 32);
-+	c.rect.top = clamp_t(s32, sel->r.top, b_top, b_bottom - 32);
- 	/* Top and height must be a multiple of two. */
- 	c.rect.top = (c.rect.top + 1) & ~1;
- 
--	c.rect.height = clamp_t(s32, crop->c.height,
-+	c.rect.height = clamp_t(s32, sel->r.height,
- 			      32, b_bottom - c.rect.top);
- 	c.rect.height = (c.rect.height + 1) & ~1;
- 
- 	bttv_crop_calc_limits(&c);
- 
-+	sel->r = c.rect;
-+
- 	btv->crop[1] = c;
- 
- 	fh->do_crop = 1;
-@@ -3047,10 +3066,10 @@ static int bttv_open(struct file *file)
- 	   which only change on request. These are stored in btv->crop[1].
- 	   However for compatibility with V4L apps and cropping unaware
- 	   V4L2 apps we now reset the cropping parameters as seen through
--	   this fh, which is to say VIDIOC_G_CROP and scaling limit checks
-+	   this fh, which is to say VIDIOC_G_SELECTION and scaling limit checks
- 	   will use btv->crop[0], the default cropping parameters for the
- 	   current video standard, and VIDIOC_S_FMT will not implicitely
--	   change the cropping parameters until VIDIOC_S_CROP has been
-+	   change the cropping parameters until VIDIOC_S_SELECTION has been
- 	   called. */
- 	fh->do_crop = !reset_crop; /* module parameter */
- 
-@@ -3159,8 +3178,8 @@ static const struct v4l2_ioctl_ops bttv_ioctl_ops = {
- 	.vidioc_streamoff               = bttv_streamoff,
- 	.vidioc_g_tuner                 = bttv_g_tuner,
- 	.vidioc_s_tuner                 = bttv_s_tuner,
--	.vidioc_g_crop                  = bttv_g_crop,
--	.vidioc_s_crop                  = bttv_s_crop,
-+	.vidioc_g_selection             = bttv_g_selection,
-+	.vidioc_s_selection             = bttv_s_selection,
- 	.vidioc_g_fbuf                  = bttv_g_fbuf,
- 	.vidioc_s_fbuf                  = bttv_s_fbuf,
- 	.vidioc_overlay                 = bttv_overlay,
-diff --git a/drivers/media/pci/bt8xx/bttvp.h b/drivers/media/pci/bt8xx/bttvp.h
-index b1e0023..9efc455 100644
---- a/drivers/media/pci/bt8xx/bttvp.h
-+++ b/drivers/media/pci/bt8xx/bttvp.h
-@@ -232,7 +232,7 @@ struct bttv_fh {
- 	const struct bttv_format *ovfmt;
- 	struct bttv_overlay      ov;
- 
--	/* Application called VIDIOC_S_CROP. */
-+	/* Application called VIDIOC_S_SELECTION. */
- 	int                      do_crop;
- 
- 	/* vbi capture */
--- 
-2.8.1
+> This is a simple driver which is driving an LED connected through
+> SPI and userspace writes raw data in it (LIRC_CAN_SEND_RAW).
 
+And some odd ioctl.
+
+> > Also I don't see what justifies this new interface. This can be 
+> > implemented in rc-core in less lines of code and it will be entirely 
+> > compatible with existing user-space.
+> 
+> Also here I'm getting a bit confused. When I started writing
+> this, I didn't even know of the existence of a remote controlling
+> framework, but then I run across this:
+> 
+> "LIRC is a package that allows you to decode and send infra-red
+> signals of many (but not all) commonly used remote controls. "
+> 
+> taken from lirc.org: my case is exactly falling into this
+> description.
+> 
+> Am I missing anything?
+
+See drivers/staging/media/lirc/TODO: "All drivers should either be 
+ported to ir-core, or dropped entirely".  ir-core has since been renamed 
+to rc-core; it is uses for non-IR purposes like cec.
+
+lirc exists as the user-space ABI but not it is not the preferred 
+framework for kernel space.
+
+There is one problem here. rc-core does not provide very well for
+transmit-only hardware, so rc-core needs some modifications. This is
+what I suggest to make it work:
+
+1. in include/media/rc-core.h add a new entry to the enum rc_driver_type
+   called "RC_DRIVER_IR_RAW_TX_ONLY" (or something like that).
+2. rc_allocate_device() needs an argument "enum rc_driver_type"; in the
+   case it would not allocate an input device. All drivers needs to
+   pass in this argument.
+3. rc_register_device() and rc_unregister_device() should not execute
+   anything with to do with input devices or key maps for tx only
+   devices.
+4. ir_lirc_register() should not set the LIRC_CAN_REC_MODE2 feature
+   or allocate an input buffer in the case of TX only device.
+
+With these changes all you need to do in ir-spi is:
+
+	struct rc_dev *rc = rc_allocate_device(RC_DRIVER_IR_RAW_TX_ONLY);
+	strcpy(rc->name, "IR SPI");
+        rc->s_tx_carrier = ir_spi_set_tx_carrier; // write function
+        rc->tx_ir = ir_spi_tx; // write function
+        rc->driver_name = "ir-spi";
+
+	rc_register_driver(rc);
+
+
+I'm happy to help. 
+
+
+Sean
