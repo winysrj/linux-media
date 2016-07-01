@@ -1,74 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:12103 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752600AbcGMIFk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 04:05:40 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH] [media] mtk-vcodec: fix default OUTPUT buffer size
-Date: Wed, 13 Jul 2016 16:05:23 +0800
-Message-ID: <1468397123-9808-1-git-send-email-tiffany.lin@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout3.samsung.com ([203.254.224.33]:53665 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751722AbcGAIE2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 04:04:28 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [PATCH v2 05/15] [media] lirc_dev: simplify goto paths
+Date: Fri, 01 Jul 2016 17:01:28 +0900
+Message-id: <1467360098-12539-6-git-send-email-andi.shyti@samsung.com>
+In-reply-to: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
+References: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When calculate OUTPUT buffer size in vidioc_try_fmt, it will
-add more size hw need in each plane.
-But in mtk_vcodec_enc_set_default_params, it do not add
-same size in each plane.
-This makes v4l2-compliance test fail.
-This patch fix the issue.
+The code can be rearranged so that some goto paths can be removed
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
 ---
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ drivers/media/rc/lirc_dev.c | 34 ++++++++++++----------------------
+ 1 file changed, 12 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-index 907a6d1..3ed3f2d 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-@@ -328,10 +328,11 @@ static int vidioc_try_fmt(struct v4l2_format *f, struct mtk_video_fmt *fmt)
- 			pix_fmt_mp->height += 32;
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 212ea77..0d988c9 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -243,52 +243,44 @@ static int lirc_allocate_driver(struct lirc_driver *d)
  
- 		mtk_v4l2_debug(0,
--			"before resize width=%d, height=%d, after resize width=%d, height=%d, sizeimage=%d",
-+			"before resize width=%d, height=%d, after resize width=%d, height=%d, sizeimage=%d %d",
- 			tmp_w, tmp_h, pix_fmt_mp->width,
- 			pix_fmt_mp->height,
--			pix_fmt_mp->width * pix_fmt_mp->height);
-+			pix_fmt_mp->plane_fmt[0].sizeimage,
-+			pix_fmt_mp->plane_fmt[1].sizeimage);
+ 	if (!d) {
+ 		pr_err("driver pointer must be not NULL!\n");
+-		err = -EBADRQC;
+-		goto out;
++		return -EBADRQC;
+ 	}
  
- 		pix_fmt_mp->num_planes = fmt->num_planes;
- 		pix_fmt_mp->plane_fmt[0].sizeimage =
-@@ -1166,9 +1167,13 @@ void mtk_vcodec_enc_set_default_params(struct mtk_vcodec_ctx *ctx)
- 		(q_data->coded_height + 32) <= MTK_VENC_MAX_H)
- 		q_data->coded_height += 32;
+ 	if (!d->dev) {
+ 		pr_err("dev pointer not filled in!\n");
+-		err = -EINVAL;
+-		goto out;
++		return -EINVAL;
+ 	}
  
--	q_data->sizeimage[0] = q_data->coded_width * q_data->coded_height;
-+	q_data->sizeimage[0] =
-+		q_data->coded_width * q_data->coded_height+
-+		((ALIGN(q_data->coded_width, 16) * 2) * 16);
- 	q_data->bytesperline[0] = q_data->coded_width;
--	q_data->sizeimage[1] = q_data->sizeimage[0] / 2;
-+	q_data->sizeimage[1] =
-+		(q_data->coded_width * q_data->coded_height) / 2 +
-+		(ALIGN(q_data->coded_width, 16) * 16);
- 	q_data->bytesperline[1] = q_data->coded_width;
+ 	if (MAX_IRCTL_DEVICES <= d->minor) {
+ 		dev_err(d->dev, "minor must be between 0 and %d!\n",
+ 						MAX_IRCTL_DEVICES - 1);
+-		err = -EBADRQC;
+-		goto out;
++		return -EBADRQC;
+ 	}
  
- 	q_data = &ctx->q_data[MTK_Q_DATA_DST];
+ 	if (1 > d->code_length || (BUFLEN * 8) < d->code_length) {
+ 		dev_err(d->dev, "code length must be less than %d bits\n",
+ 								BUFLEN * 8);
+-		err = -EBADRQC;
+-		goto out;
++		return -EBADRQC;
+ 	}
+ 
+ 	if (d->sample_rate) {
+ 		if (2 > d->sample_rate || HZ < d->sample_rate) {
+ 			dev_err(d->dev, "invalid %d sample rate\n",
+ 							d->sample_rate);
+-			err = -EBADRQC;
+-			goto out;
++			return -EBADRQC;
+ 		}
+ 		if (!d->add_to_buf) {
+ 			dev_err(d->dev, "add_to_buf not set\n");
+-			err = -EBADRQC;
+-			goto out;
++			return -EBADRQC;
+ 		}
+ 	} else if (!(d->fops && d->fops->read) && !d->rbuf) {
+ 		dev_err(d->dev, "fops->read and rbuf are NULL!\n");
+-		err = -EBADRQC;
+-		goto out;
++		return -EBADRQC;
+ 	} else if (!d->rbuf) {
+ 		if (!(d->fops && d->fops->read && d->fops->poll &&
+ 		      d->fops->unlocked_ioctl)) {
+ 			dev_err(d->dev, "undefined read, poll, ioctl\n");
+-			err = -EBADRQC;
+-			goto out;
++			return -EBADRQC;
+ 		}
+ 	}
+ 
+@@ -366,7 +358,7 @@ out_sysfs:
+ 	device_destroy(lirc_class, MKDEV(MAJOR(lirc_base_dev), ir->d.minor));
+ out_lock:
+ 	mutex_unlock(&lirc_dev_lock);
+-out:
++
+ 	return err;
+ }
+ 
+@@ -794,9 +786,8 @@ static int __init lirc_dev_init(void)
+ 
+ 	lirc_class = class_create(THIS_MODULE, "lirc");
+ 	if (IS_ERR(lirc_class)) {
+-		retval = PTR_ERR(lirc_class);
+ 		pr_err("class_create failed\n");
+-		goto error;
++		return PTR_ERR(lirc_class);
+ 	}
+ 
+ 	retval = alloc_chrdev_region(&lirc_base_dev, 0, MAX_IRCTL_DEVICES,
+@@ -804,15 +795,14 @@ static int __init lirc_dev_init(void)
+ 	if (retval) {
+ 		class_destroy(lirc_class);
+ 		pr_err("alloc_chrdev_region failed\n");
+-		goto error;
++		return retval;
+ 	}
+ 
+ 
+ 	pr_info("IR Remote Control driver registered, major %d\n",
+ 						MAJOR(lirc_base_dev));
+ 
+-error:
+-	return retval;
++	return 0;
+ }
+ 
+ 
 -- 
-1.7.9.5
+2.8.1
 
