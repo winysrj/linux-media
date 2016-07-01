@@ -1,38 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh06.mail.saunalahti.fi ([62.142.5.116]:42944 "EHLO
-	emh06.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932191AbcGCXkd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2016 19:40:33 -0400
-Date: Mon, 4 Jul 2016 02:32:53 +0300
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [RFC] [PATCH 0/3] media: an attempt to refresh omap1_camera
- driver
-Message-ID: <20160703233253.GA14630@raspberrypi.musicnaut.iki.fi>
-References: <1466097694-8660-1-git-send-email-jmkrzyszt@gmail.com>
- <5763A114.2080309@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5763A114.2080309@xs4all.nl>
+Received: from mailout1.samsung.com ([203.254.224.24]:50310 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751036AbcGAIE1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 04:04:27 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [PATCH v2 01/15] [media] lirc_dev: place buffer allocation on separate
+ function
+Date: Fri, 01 Jul 2016 17:01:24 +0900
+Message-id: <1467360098-12539-2-git-send-email-andi.shyti@samsung.com>
+In-reply-to: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
+References: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+During the driver registration, move the buffer allocation on a
+separate function.
 
-On Fri, Jun 17, 2016 at 09:04:52AM +0200, Hans Verkuil wrote:
-> Out of curiosity: is supporting the Amstrad Delta something you do as a hobby
-> or are there other reasons?
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+---
+ drivers/media/rc/lirc_dev.c | 57 +++++++++++++++++++++++++++------------------
+ 1 file changed, 34 insertions(+), 23 deletions(-)
 
-Out of curiousity, why should this matter?
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 92ae190..5716978 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -203,13 +203,41 @@ err_out:
+ 	return retval;
+ }
+ 
+-int lirc_register_driver(struct lirc_driver *d)
++static int lirc_allocate_buffer(struct irctl *ir)
+ {
+-	struct irctl *ir;
+-	int minor;
++	int err;
+ 	int bytes_in_key;
+ 	unsigned int chunk_size;
+ 	unsigned int buffer_size;
++	struct lirc_driver *d = &ir->d;
++
++	bytes_in_key = BITS_TO_LONGS(d->code_length) +
++						(d->code_length % 8 ? 1 : 0);
++	buffer_size = d->buffer_size ? d->buffer_size : BUFLEN / bytes_in_key;
++	chunk_size  = d->chunk_size  ? d->chunk_size  : bytes_in_key;
++
++	if (d->rbuf) {
++		ir->buf = d->rbuf;
++	} else {
++		ir->buf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
++		if (!ir->buf)
++			return -ENOMEM;
++
++		err = lirc_buffer_init(ir->buf, chunk_size, buffer_size);
++		if (err) {
++			kfree(ir->buf);
++			return err;
++		}
++	}
++	ir->chunk_size = ir->buf->chunk_size;
++
++	return 0;
++}
++
++int lirc_register_driver(struct lirc_driver *d)
++{
++	struct irctl *ir;
++	int minor;
+ 	int err;
+ 
+ 	if (!d) {
+@@ -314,26 +342,9 @@ int lirc_register_driver(struct lirc_driver *d)
+ 	/* some safety check 8-) */
+ 	d->name[sizeof(d->name)-1] = '\0';
+ 
+-	bytes_in_key = BITS_TO_LONGS(d->code_length) +
+-			(d->code_length % 8 ? 1 : 0);
+-	buffer_size = d->buffer_size ? d->buffer_size : BUFLEN / bytes_in_key;
+-	chunk_size  = d->chunk_size  ? d->chunk_size  : bytes_in_key;
+-
+-	if (d->rbuf) {
+-		ir->buf = d->rbuf;
+-	} else {
+-		ir->buf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
+-		if (!ir->buf) {
+-			err = -ENOMEM;
+-			goto out_lock;
+-		}
+-		err = lirc_buffer_init(ir->buf, chunk_size, buffer_size);
+-		if (err) {
+-			kfree(ir->buf);
+-			goto out_lock;
+-		}
+-	}
+-	ir->chunk_size = ir->buf->chunk_size;
++	err = lirc_allocate_buffer(ir);
++	if (err)
++		goto out_lock;
+ 
+ 	if (d->features == 0)
+ 		d->features = LIRC_CAN_REC_LIRCCODE;
+-- 
+2.8.1
 
-A.
