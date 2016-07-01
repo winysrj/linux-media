@@ -1,144 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47186
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754819AbcGTVBP (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:59706 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751922AbcGAHTL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 17:01:15 -0400
-Date: Wed, 20 Jul 2016 18:01:10 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: Documentation issues with some MBUS flags
-Message-ID: <20160720180110.22cd14ab@recife.lan>
-In-Reply-To: <578FE2F9.10907@linux.intel.com>
-References: <20160720160242.00e0365e@recife.lan>
-	<578FE2F9.10907@linux.intel.com>
+	Fri, 1 Jul 2016 03:19:11 -0400
+Subject: Re: [PATCH 00/38] i.MX5/6 Video Capture
+To: Tim Harvey <tharvey@gateworks.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+ <CAJ+vNU2ec4i8CUV8Qdguz-Mm8gCXsQBm7rUmCp+9F-Tu+mh9kg@mail.gmail.com>
+ <69694ba5-287d-bb5d-5f44-e0cf9bf1f021@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <6e32f120-1c08-b82a-f55c-837879c96756@xs4all.nl>
+Date: Fri, 1 Jul 2016 09:19:04 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <69694ba5-287d-bb5d-5f44-e0cf9bf1f021@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 20 Jul 2016 23:45:45 +0300
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-
-> Hi Mauro,
+On 06/28/2016 10:10 PM, Hans Verkuil wrote:
+> On 06/28/2016 08:54 PM, Tim Harvey wrote:
+>> On Tue, Jun 14, 2016 at 3:48 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
+>>> Tested on imx6q SabreAuto with ADV7180, and imx6q SabreSD with
+>>> mipi-csi2 OV5640. There is device-tree support also for imx6qdl
+>>> SabreLite, but that is not tested. Also, this driver should
+>>> theoretically work on i.MX5 targets, but that is also untested.
+>>>
+>>> Not run through v4l2-compliance yet, but that is in my queue.
+>>>
+>>>
+>>
+>> Steve,
+>>
+>> I've tested this series successfully with a Gateworks Ventana GW5300
+>> which has an IMX6Q and an adv7180 attached to IPU2_CSI1.
+>>
+>> First of all, a big 'thank you' for taking the time to rebase and
+>> re-submit this series!
+>>
+>> However based on the lack of feedback of the individual patches as
 > 
-> Mauro Carvalho Chehab wrote:
-> > Hi Sylwester/Sakari,
-> >
-> > While checking the docs for the V4L2 framework, I noticed something weird
-> > Related to those two flags:
-> >
-> > #define V4L2_MBUS_FRAME_DESC_FL_LEN_MAX                (1U << 0)
-> > #define V4L2_MBUS_FRAME_DESC_FL_BLOB           (1U << 1)
-> >
-> > They were originally introduced by this changeset:
-> >
-> > commit 291031192426bfc6ad4ab2eb9fa986025a926598
-> > Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > Date:   Thu May 17 14:33:30 2012 -0300
-> >
-> >      [media] V4L: Add [get/set]_frame_desc subdev callbacks
-> >
-> >      Add subdev callbacks for setting up parameters of the frame on media bus
-> >      that are not exposed to user space directly. This is just an initial,
-> >      mostly stub implementation. struct v4l2_mbus_frame_desc is intended
-> >      to be extended with sub-structures specific to a particular hardware media
-> >      bus. For now these new callbacks are used only to query or specify maximum
-> >      size of a compressed or hybrid (container) media bus frame in octets.
-> >
-> >      Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> >      Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >      Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> >
-> > And the comments were modified by this one:
-> >
-> > commit 174d6a39b07f51212c23a8e30a0440598d18392c
-> > Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Date:   Wed Dec 18 08:40:28 2013 -0300
-> >
-> >      [media] v4l: V4L2_MBUS_FRAME_DESC_FL_BLOB is about 1D DMA
-> >
-> >      V4L2_MBUS_FRAME_DESC_FL_BLOB intends to say the receiver must use 1D DMA to
-> >      receive the image, as the format does not have line offsets. This typically
-> >      includes all compressed formats.
-> >
-> >      Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >      Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> >      Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> >
-> > The problem is that the description of V4L2_MBUS_FRAME_DESC_FL_LEN_MAX
-> > says that:
-> > 	Indicates the @length field specifies maximum data length.
-> >
-> > But the description of the @length field says otherwise:
-> > 	* @length: number of octets per frame, valid if V4L2_MBUS_FRAME_DESC_FL_BLOB
-> >
-> > So, I decided to take a look on what the heck is that:
-> >
-> > 	$ git grep V4L2_MBUS_FRAME_DESC_FL_BLOB
-> > 	include/media/v4l2-subdev.h:#define V4L2_MBUS_FRAME_DESC_FL_BLOB                (1U << 1)
-> > 	include/media/v4l2-subdev.h: *                    %V4L2_MBUS_FRAME_DESC_FL_BLOB.
-> > 	include/media/v4l2-subdev.h: * @length: number of octets per frame, valid if V4L2_MBUS_FRAME_DESC_FL_BLOB
-> >
-> > (nobody is using it)
-> >
-> > And:
-> >
-> > 	$ git grep V4L2_MBUS_FRAME_DESC_FL_LEN_MAX
-> > 	drivers/media/i2c/m5mols/m5mols_core.c: fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
-> > 	drivers/media/i2c/m5mols/m5mols_core.c: fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
-> > 	include/media/v4l2-subdev.h:#define V4L2_MBUS_FRAME_DESC_FL_LEN_MAX             (1U << 0)
-> >
-> > Only one driver is using it.
-> >
-> > So, I'm thinking if are there any reason why to keep the
-> > V4L2_MBUS_FRAME_DESC_FL_BLOB, and what's the expected behavior
-> > when V4L2_MBUS_FRAME_DESC_FL_LEN_MAX is found.
-> >
-> > Could you shed some light?  
+> It's on my TODO list, but the series was a lot larger than I expected (and
+> touched on a lot of subsystems as well), so I postponed looking at this
+> until I have a bit more time.
+
+I scanned through it and the only thing I won't accept in staging is the
+adv7180 driver. I also have a question about patch 28, but I'll ask that
+separately. The ov5642 is also a duplicate, but the mainline version is tied
+to soc_camera, so I have no problem with adding a non-soc-camera driver.
+
+>> well as the fact they touch varied subsystems I think we are going to
+>> have better luck getting this functionality accepted if you broke it
+>> into separate series.
+>>
+>> Here are my thoughts:
+>>
+>>>   gpu: ipu-v3: Add Video Deinterlacer unit
+>>>   gpu: ipu-cpmem: Add ipu_cpmem_set_uv_offset()
+>>>   gpu: ipu-cpmem: Add ipu_cpmem_get_burstsize()
+>>>   gpu: ipu-v3: Add ipu_get_num()
+>>>   gpu: ipu-v3: Add IDMA channel linking support
+>>>   gpu: ipu-v3: Add ipu_set_vdi_src_mux()
+>>>   gpu: ipu-v3: Add VDI input IDMAC channels
+>>>   gpu: ipu-v3: Add ipu_csi_set_src()
+>>>   gpu: ipu-v3: Add ipu_ic_set_src()
+>>>   gpu: ipu-v3: set correct full sensor frame for PAL/NTSC
+>>>   gpu: ipu-v3: Fix CSI data format for 16-bit media bus formats
+>>>   gpu: ipu-v3: Fix IRT usage
+>>>   gpu: ipu-v3: Fix CSI0 blur in NTSC format
+>>>   gpu: ipu-ic: Add complete image conversion support with tiling
+>>>   gpu: ipu-ic: allow multiple handles to ic
+>>>   gpu: ipu-v3: rename CSI client device
+>>
+>> These are all enhancements to the ipu-v3 driver shared by DRM and
+>> maintained by Philipp Zabel and there is no way to 'stage' them.
+>> Philipp, these have bee submitted previously with little to no changes
+>> or feedback - can we get sign-off or comment on these from you?
 > 
-> There isn't really a problem that I could see here, except that the 
-> m5mols driver should perhaps set the BLOB flag to indicate it's using 
-> 1-dimensional DMA.
+> I'd like to know the status of this as well. If this can't go in, then
+> accepting the v4l2 driver in staging will likely be very difficult if not
+> impossible.
 
-Hmm... why both flags should be on? I mean, if they both have the
-same meaning, we can get rid of one of them.
-
-> 
-> What comes to the flags, the LEN_MAX flag indicates that the length 
-> specified in the frame descriptor is the maximum length whereas the real 
-> amount of data could be less than that.
-
-Not sure if I understood. Are you saying that, instead of:
-
- * @length: number of octets per frame, valid if V4L2_MBUS_FRAME_DESC_FL_BLOB
- *	    is set
-
-
-It should be:
-
- * @length: number of octets per frame, valid if V4L2_MBUS_FRAME_DESC_FL_LEN_MAX
- *	    is set
-
-as the description of V4L2_MBUS_FRAME_DESC_FL_LEN_MAX suggests?
-
-> The BLOB flag indicates 
-> 1-dimensional DMA, but no driver (yet) uses two-dimensional DMA with 
-> frame descriptors. The patch adding two-dimensional support is here:
-> 
-> <URL:http://git.retiisi.org.uk/?p=~sailus/linux.git;a=commitdiff;h=b701bd4160410739b165e19327bb64ce25fc509d>
-> 
-> AFAIR I posted it to linux-media long time ago but the set currently is 
-> still unfinished. It will be needed to add support for sensor embedded 
-> data, for instance. Certain newer sensors also provide more distinct 
-> types of data than the usual (embedded data and image data).
-
-Well, if the feature using it was not merged, then we can just wipe it
-out, re-adding when needed (or eventually changing to something else
-if the current definition is not ok).
+This is the first thing that needs to happen. Philipp, please take a look at this!
 
 Thanks,
-Mauro
+
+	Hans
