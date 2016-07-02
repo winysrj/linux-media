@@ -1,69 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:37780 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566AbcGEGFZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2016 02:05:25 -0400
-Received: by mail-wm0-f47.google.com with SMTP id a66so137655405wme.0
-        for <linux-media@vger.kernel.org>; Mon, 04 Jul 2016 23:05:24 -0700 (PDT)
-Subject: Re: [PATCH] media: rc: nuvoton: decrease size of raw event fifo
-To: Sean Young <sean@mess.org>
-References: <aa9c30cd-5364-f460-2967-8a028b1093db@gmail.com>
- <20160704201338.GA28620@gofer.mess.org>
- <fa0d5ad8-961d-60f2-f2e4-eeb7407e0210@gmail.com>
- <20160704210650.GA29388@gofer.mess.org>
+Received: from gofer.mess.org ([80.229.237.210]:42625 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752246AbcGBRTW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Jul 2016 13:19:22 -0400
+Date: Sat, 2 Jul 2016 18:10:47 +0100
+From: Sean Young <sean@mess.org>
+To: Andi Shyti <andi.shyti@samsung.com>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Message-ID: <6d3a95cb-c082-d3f2-6e91-dfadafedf631@gmail.com>
-Date: Tue, 5 Jul 2016 08:05:16 +0200
+	Joe Perches <joe@perches.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Andi Shyti <andi@etezian.org>
+Subject: Re: [PATCH v2 02/15] [media] lirc_dev: allow bufferless driver
+ registration
+Message-ID: <20160702171047.GA13539@gofer.mess.org>
+References: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
+ <1467360098-12539-3-git-send-email-andi.shyti@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <20160704210650.GA29388@gofer.mess.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1467360098-12539-3-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 04.07.2016 um 23:06 schrieb Sean Young:
-> On Mon, Jul 04, 2016 at 10:51:50PM +0200, Heiner Kallweit wrote:
->> Am 04.07.2016 um 22:13 schrieb Sean Young:
->>> On Wed, May 18, 2016 at 10:29:41PM +0200, Heiner Kallweit wrote:
->>>> This chip has a 32 byte HW FIFO only. Therefore the default fifo size
->>>> of 512 raw events is not needed and can be significantly decreased.
->>>>
->>>> Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
->>>
->>> The 32 byte hardware queue is read from an interrupt handler and added
->>> to the kfifo. The kfifo is read by the decoders in a seperate kthread
->>> (in ir_raw_event_thread). If we have a long IR (e.g. nec which has 
->>> 66 edges) and the kthread is not scheduled in time (e.g. high load), will
->>> we not end up with an overflow in the kfifo and unable to decode it?
->>>
->> The interrupt handler is triggered latest when 24 bytes have been read.
->> (at least that's how the chip gets configured at the moment)
->> This gives the decoder thread at least 8 bytes time to process the
->> kfifo. This should be sufficient even under high load.
+On Fri, Jul 01, 2016 at 05:01:25PM +0900, Andi Shyti wrote:
+> Some drivers don't necessarily need to have a FIFO managed buffer
+> for their transfers. Drivers now should call
+> lirc_register_bufferless_driver in order to handle the buffer
+> themselves.
 > 
-> No, it gives the interrupt handler at least 8 bytes time to read the
-> hardware fifo (and add it to the kfifo). There are no guarantees about
-> when the decoder kthread runs (which reads the kfifo).
-> 
-> To put it another way, in the nuvoton interrupt handler, you call 
-> ir_raw_event_handle() which does a wake_up_process(). That puts the
-> decoder process (it has a pid) in a runnable state and it will run at
-> some future time.
-> 
-You're right, that's the more precise description.
-These 8 bytes time give the decoder process few msec's to start.
-(Not sure wheter there's any protocol resulting in much shorter time.)
-At least during my tests this was always sufficient.
+> The function works exaclty like lirc_register_driver except of
+> the buffer allocation.
 
-However if you think 32 bytes might be too small as kfifo size I'd
-also be fine with increasing it. The result should still be better
-than the default size of 512.
+Indeed transmit-only devices don't need an input buffer, which is
+just a waste of memory. However can't lirc_register_driver() figure
+out from the features if the driver is capable of receiving, i.e.
 
-Heiner
+int lirc_register_driver(struct lirc_driver *d)
+{
+	int err, minor;
+
+	minor = lirc_allocate_driver(d);
+	if (minor < 0)
+		return minor;
+
+	if (d->features & LIRC_CAN_REC_MODE2) {
+		err = lirc_allocate_buffer(irctls[minor]);
+		if (err)
+			lirc_unregister_driver(minor);
+	}
+
+	return err ? err : minor;
+}
+
+
+Sean
 
 > 
-> Sean
+> Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+> ---
+>  drivers/media/rc/lirc_dev.c | 44 ++++++++++++++++++++++++++++++++++----------
+>  include/media/lirc_dev.h    | 12 ++++++++++++
+>  2 files changed, 46 insertions(+), 10 deletions(-)
 > 
-
+> diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+> index 5716978..fa562a3 100644
+> --- a/drivers/media/rc/lirc_dev.c
+> +++ b/drivers/media/rc/lirc_dev.c
+> @@ -205,12 +205,14 @@ err_out:
+>  
+>  static int lirc_allocate_buffer(struct irctl *ir)
+>  {
+> -	int err;
+> +	int err = 0;
+>  	int bytes_in_key;
+>  	unsigned int chunk_size;
+>  	unsigned int buffer_size;
+>  	struct lirc_driver *d = &ir->d;
+>  
+> +	mutex_lock(&lirc_dev_lock);
+> +
+>  	bytes_in_key = BITS_TO_LONGS(d->code_length) +
+>  						(d->code_length % 8 ? 1 : 0);
+>  	buffer_size = d->buffer_size ? d->buffer_size : BUFLEN / bytes_in_key;
+> @@ -220,21 +222,26 @@ static int lirc_allocate_buffer(struct irctl *ir)
+>  		ir->buf = d->rbuf;
+>  	} else {
+>  		ir->buf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
+> -		if (!ir->buf)
+> -			return -ENOMEM;
+> +		if (!ir->buf) {
+> +			err = -ENOMEM;
+> +			goto out;
+> +		}
+>  
+>  		err = lirc_buffer_init(ir->buf, chunk_size, buffer_size);
+>  		if (err) {
+>  			kfree(ir->buf);
+> -			return err;
+> +			goto out;
+>  		}
+>  	}
+>  	ir->chunk_size = ir->buf->chunk_size;
+>  
+> -	return 0;
+> +out:
+> +	mutex_unlock(&lirc_dev_lock);
+> +
+> +	return err;
+>  }
+>  
+> -int lirc_register_driver(struct lirc_driver *d)
+> +static int lirc_allocate_driver(struct lirc_driver *d)
+>  {
+>  	struct irctl *ir;
+>  	int minor;
+> @@ -342,10 +349,6 @@ int lirc_register_driver(struct lirc_driver *d)
+>  	/* some safety check 8-) */
+>  	d->name[sizeof(d->name)-1] = '\0';
+>  
+> -	err = lirc_allocate_buffer(ir);
+> -	if (err)
+> -		goto out_lock;
+> -
+>  	if (d->features == 0)
+>  		d->features = LIRC_CAN_REC_LIRCCODE;
+>  
+> @@ -385,8 +388,29 @@ out_lock:
+>  out:
+>  	return err;
+>  }
+> +
+> +int lirc_register_driver(struct lirc_driver *d)
+> +{
+> +	int err, minor;
+> +
+> +	minor = lirc_allocate_driver(d);
+> +	if (minor < 0)
+> +		return minor;
+> +
+> +	err = lirc_allocate_buffer(irctls[minor]);
+> +	if (err)
+> +		lirc_unregister_driver(minor);
+> +
+> +	return err ? err : minor;
+> +}
+>  EXPORT_SYMBOL(lirc_register_driver);
+>  
+> +int lirc_register_bufferless_driver(struct lirc_driver *d)
+> +{
+> +	return lirc_allocate_driver(d);
+> +}
+> +EXPORT_SYMBOL(lirc_register_bufferless_driver);
+> +
+>  int lirc_unregister_driver(int minor)
+>  {
+>  	struct irctl *ir;
+> diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+> index 0ab59a5..8bed57a 100644
+> --- a/include/media/lirc_dev.h
+> +++ b/include/media/lirc_dev.h
+> @@ -214,6 +214,18 @@ struct lirc_driver {
+>   */
+>  extern int lirc_register_driver(struct lirc_driver *d);
+>  
+> +/* int lirc_register_bufferless_driver - allocates a lirc bufferless driver
+> + * @d: reference to the lirc_driver to initialize
+> + *
+> + * The difference between lirc_register_driver and
+> + * lirc_register_bufferless_driver is that the latter doesn't allocate any
+> + * buffer, which means that the driver using the lirc_driver should take care of
+> + * it by itself.
+> + *
+> + * returns 0 on success or a the negative errno number in case of failure.
+> + */
+> +extern int lirc_register_bufferless_driver(struct lirc_driver *d);
+> +
+>  /* returns negative value on error or 0 if success
+>  */
+>  extern int lirc_unregister_driver(int minor);
+> -- 
+> 2.8.1
