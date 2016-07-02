@@ -1,76 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:64666 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750967AbcGNMSh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2016 08:18:37 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+Received: from mail-it0-f65.google.com ([209.85.214.65]:33843 "EHLO
+	mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751417AbcGBN6w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jul 2016 09:58:52 -0400
+Date: Sat, 2 Jul 2016 09:41:10 -0400
+From: Tejun Heo <tj@kernel.org>
+To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: <srv_heupstream@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>,
-	Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH 1/4] VPU: mediatek: Add mdp support
-Date: Thu, 14 Jul 2016 20:17:58 +0800
-Message-ID: <1468498681-19955-2-git-send-email-minghsiu.tsai@mediatek.com>
-In-Reply-To: <1468498681-19955-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1468498681-19955-1-git-send-email-minghsiu.tsai@mediatek.com>
+	Arnd Bergmann <arnd@arndb.de>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] hdpvr: Remove deprecated
+ create_singlethread_workqueue
+Message-ID: <20160702134110.GW17431@htj.duckdns.org>
+References: <20160702104731.GA2358@Karyakshetra>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160702104731.GA2358@Karyakshetra>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VPU driver add mdp support
+On Sat, Jul 02, 2016 at 04:17:31PM +0530, Bhaktipriya Shridhar wrote:
+> The workqueue "workqueue" is involved in tranmitting hdpvr buffers.
+> It has a single work item(&dev->worker) and hence doesn't require
+> ordering. Also, it is not being used on a memory reclaim path. Hence,
+> the singlethreaded workqueue has been replaced with the use of system_wq.
+> 
+> System workqueues have been able to handle high level of concurrency
+> for a long time now and hence it's not required to have a singlethreaded
+> workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
+> created with create_singlethread_workqueue(), system_wq allows multiple
+> work items to overlap executions even on the same CPU; however, a
+> per-cpu workqueue doesn't have any CPU locality or global ordering
+> guarantee unless the target CPU is explicitly specified and thus the
+> increase of local concurrency shouldn't make any difference.
+> 
+> Work item has been flushed in hdpvr_device_release() to ensure
+> that there are no pending tasks while disconnecting the driver.
+> 
+> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
 
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
----
- drivers/media/platform/mtk-vpu/mtk_vpu.h |    5 +++++
- 1 file changed, 5 insertions(+)
+Acked-by: Tejun Heo <tj@kernel.org>
 
-diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.h b/drivers/media/platform/mtk-vpu/mtk_vpu.h
-index f457479..291ae46 100644
---- a/drivers/media/platform/mtk-vpu/mtk_vpu.h
-+++ b/drivers/media/platform/mtk-vpu/mtk_vpu.h
-@@ -53,6 +53,8 @@ typedef void (*ipi_handler_t) (void *data,
- 			 handle H264 video encoder job, and vice versa.
-  * @IPI_VENC_VP8:	 The interrupt fro vpu is to notify kernel to
- 			 handle VP8 video encoder job,, and vice versa.
-+ * @IPI_MDP:		 The interrupt from vpu is to notify kernel to
-+			 handle MDP (Media Data Path) job, and vice versa.
-  * @IPI_MAX:		 The maximum IPI number
-  */
- 
-@@ -63,6 +65,7 @@ enum ipi_id {
- 	IPI_VDEC_VP9,
- 	IPI_VENC_H264,
- 	IPI_VENC_VP8,
-+	IPI_MDP,
- 	IPI_MAX,
- };
- 
-@@ -71,11 +74,13 @@ enum ipi_id {
-  *
-  * @VPU_RST_ENC: encoder reset id
-  * @VPU_RST_DEC: decoder reset id
-+ * @VPU_RST_MDP: MDP (Media Data Path) reset id
-  * @VPU_RST_MAX: maximum reset id
-  */
- enum rst_id {
- 	VPU_RST_ENC,
- 	VPU_RST_DEC,
-+	VPU_RST_MDP,
- 	VPU_RST_MAX,
- };
- 
+Thanks.
+
 -- 
-1.7.9.5
-
+tejun
