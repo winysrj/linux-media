@@ -1,87 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41285 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754863AbcGHND7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:03:59 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 07/54] doc-rst: customize RTD theme, table & full width
-Date: Fri,  8 Jul 2016 10:02:59 -0300
-Message-Id: <9abaf979abb2845b2292d96401986b4845c51b9d.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
+Received: from mail-it0-f68.google.com ([209.85.214.68]:36285 "EHLO
+	mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752315AbcGBNnc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jul 2016 09:43:32 -0400
+Date: Sat, 2 Jul 2016 08:30:40 -0500
+From: Tejun Heo <tj@kernel.org>
+To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+Cc: Mats Randgaard <matrandg@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] tc358743: Remove deprecated
+ create_singlethread_workqueue
+Message-ID: <20160702133040.GU17431@htj.duckdns.org>
+References: <20160702104153.GA1875@Karyakshetra>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160702104153.GA1875@Karyakshetra>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Heiser <markus.heiser@darmarIT.de>
+On Sat, Jul 02, 2016 at 04:11:53PM +0530, Bhaktipriya Shridhar wrote:
+> The workqueue "work_queues" enables hotplugging.
+> It has a single work item(&state->delayed_work_enable_hotplug) and hence
+> doesn't require ordering. Also, it is not being used on a memory
+> reclaim path. Hence, the singlethreaded workqueue has been replaced with
+> the use of system_wq.
+> 
+> System workqueues have been able to handle high level of concurrency
+> for a long time now and hence it's not required to have a singlethreaded
+> workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
+> created with create_singlethread_workqueue(), system_wq allows multiple
+> work items to overlap executions even on the same CPU; however, a
+> per-cpu workqueue doesn't have any CPU locality or global ordering
+> guarantee unless the target CPU is explicitly specified and thus the
+> increase of local concurrency shouldn't make any difference.
+> 
+> Work item has been sync cancelled in tc358743_remove() to ensure
+> that there are no pending tasks while disconnecting the driver.
+> 
+> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
 
-The default table layout of the RTD theme does not fit for vast tables,
-like the ones we have in the linux_tv project. This has been discussed
-on the ML [1].
+Acked-by: Tejun Heo <tj@kernel.org>
 
-The RTD theme is a two column layout, with a navigation column on the
-left and a content column on the right:
+Thanks.
 
-content column
-
- RTD theme's default is 800px as max width for the content, but we have
- tables with tons of columns, which need the full width of the
- view-port (BTW: *full width* is what DocBook's HTML is).
-
-table
-
-   - sequences of whitespace should collapse into a single whitespace.
-   - make the overflow auto (scrollbar if needed)
-   - align caption "left" ("center" is unsuitable on vast tables)
-
-[1] http://article.gmane.org/gmane.linux.kernel/2216509
-
-Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/sphinx-static/theme_overrides.css | 21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/sphinx-static/theme_overrides.css b/Documentation/sphinx-static/theme_overrides.css
-index 4d670dbf7ffa..ea06799214fd 100644
---- a/Documentation/sphinx-static/theme_overrides.css
-+++ b/Documentation/sphinx-static/theme_overrides.css
-@@ -1,9 +1,28 @@
- /* -*- coding: utf-8; mode: css -*-
-  *
-- * Sphinx HTML theme customization
-+ * Sphinx HTML theme customization: read the doc
-  *
-  */
- 
- @media screen {
- 
-+    /* content column
-+     *
-+     * RTD theme's default is 800px as max width for the content, but we have
-+     * tables with tons of columns, which need the full width of the view-port.
-+     */
-+
-+    .wy-nav-content{max-width: none; }
-+
-+    /* table:
-+     *
-+     *   - Sequences of whitespace should collapse into a single whitespace.
-+     *   - make the overflow auto (scrollbar if needed)
-+     *   - align caption "left" ("center" is unsuitable on vast tables)
-+     */
-+
-+    .wy-table-responsive table td { white-space: normal; }
-+    .wy-table-responsive { overflow: auto; }
-+    .rst-content table.docutils caption { text-align: left; font-size: 100%; }
-+
- }
 -- 
-2.7.4
-
+tejun
