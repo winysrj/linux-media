@@ -1,41 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f178.google.com ([209.85.223.178]:33154 "EHLO
-	mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755163AbcGHT2V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 15:28:21 -0400
-Received: by mail-io0-f178.google.com with SMTP id t74so52081983ioi.0
-        for <linux-media@vger.kernel.org>; Fri, 08 Jul 2016 12:28:21 -0700 (PDT)
+Received: from emh06.mail.saunalahti.fi ([62.142.5.116]:42944 "EHLO
+	emh06.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932191AbcGCXkd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2016 19:40:33 -0400
+Date: Mon, 4 Jul 2016 02:32:53 +0300
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [RFC] [PATCH 0/3] media: an attempt to refresh omap1_camera
+ driver
+Message-ID: <20160703233253.GA14630@raspberrypi.musicnaut.iki.fi>
+References: <1466097694-8660-1-git-send-email-jmkrzyszt@gmail.com>
+ <5763A114.2080309@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <53ce523986cef185865a1c417269fcc5c48a1697.1468003247.git.mchehab@s-opensource.com>
-References: <53ce523986cef185865a1c417269fcc5c48a1697.1468003247.git.mchehab@s-opensource.com>
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Date: Fri, 8 Jul 2016 15:28:20 -0400
-Message-ID: <CABxcv==WAaNbh6qCYZY3hODTFt9VxeHdUtSYsPQeHV+zsY0Twg@mail.gmail.com>
-Subject: Re: [PATCH] [media] doc-rst: add dmabuf as streaming I/O in
- VIDIOC_REQBUFS description
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarit.de>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5763A114.2080309@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+Hi,
 
-On Fri, Jul 8, 2016 at 2:41 PM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> Commit 707e65831d3b("[media] DocBook: add dmabuf as streaming I/O
-> in VIDIOC_REQBUFS description") added DMABUF to reqbufs description,
-> but, as we're migrating to ReST markup, we need to keep it in sync
-> with the change.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
+On Fri, Jun 17, 2016 at 09:04:52AM +0200, Hans Verkuil wrote:
+> Out of curiosity: is supporting the Amstrad Delta something you do as a hobby
+> or are there other reasons?
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Out of curiousity, why should this matter?
 
-Best regards,
-Javier
+A.
