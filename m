@@ -1,220 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:56318 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932275AbcGDJXU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 05:23:20 -0400
-Subject: Re: [PATCH RFC v2 1/2] media: platform: transfer format translations
- to soc_mediabus
-To: Robert Jarzmik <robert.jarzmik@free.fr>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+Received: from mx1.redhat.com ([209.132.183.28]:56271 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932156AbcGCVW7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Jul 2016 17:22:59 -0400
+Subject: Re: [3/7,media] gspca: avoid unused variable warnings
+To: Arnd Bergmann <arnd@arndb.de>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1459607213-15774-1-git-send-email-robert.jarzmik@free.fr>
- <1459607213-15774-2-git-send-email-robert.jarzmik@free.fr>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <703509de-bc2a-0d4b-7ae7-a0c0efd98e41@xs4all.nl>
-Date: Mon, 4 Jul 2016 11:23:15 +0200
+References: <1453817424-3080054-3-git-send-email-arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Leandro Costantino <lcostantino@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans de Goede <hdegoede@redhat.com>
+Message-ID: <aa137f3d-3f15-b2b3-78ce-eea3887394d4@redhat.com>
+Date: Sun, 3 Jul 2016 23:22:40 +0200
 MIME-Version: 1.0
-In-Reply-To: <1459607213-15774-2-git-send-email-robert.jarzmik@free.fr>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <1453817424-3080054-3-git-send-email-arnd@arndb.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/02/2016 04:26 PM, Robert Jarzmik wrote:
-> Transfer the formats translations to soc_mediabus. Even is soc_camera
-> was to be deprecated, soc_mediabus will survive, and should describe all
-> that happens on the bus connecting the image processing unit of the SoC
-> and the sensor.
-> 
-> The translation engine provides an easy way to compute the formats
-> available in the v4l2 device, given any sensors format capabilities
-> bound with known image processing transformations.
+Hi Arnd,
 
-I prefer that you just make a copy of this for use in the pxa driver.
+On 26-01-16 15:09, Arnd Bergmann wrote:
+> When CONFIG_INPUT is disabled, multiple gspca backend drivers
+> print compile-time warnings about unused variables:
+>
+> media/usb/gspca/cpia1.c: In function 'sd_stopN':
+> media/usb/gspca/cpia1.c:1627:13: error: unused variable 'sd' [-Werror=unused-variable]
+> media/usb/gspca/konica.c: In function 'sd_stopN':
+> media/usb/gspca/konica.c:246:13: error: unused variable 'sd' [-Werror=unused-variable]
+>
+> This encloses the declarations in #ifdef CONFIG_INPUT, just like
+> the code using them is.
+>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Fixes: ee186fd96a5f ("[media] gscpa_t613: Add support for the camera button")
+> Fixes: c2f644aeeba3 ("[media] gspca_cpia1: Add support for button")
+> Fixes: b517af722860 ("V4L/DVB: gspca_konica: New gspca subdriver for konica chipset using cams")
 
-We might make this (or a variant) available for all drivers in the future,
-but for now just split off the pxa driver without introducing new media
-includes.
+Sorry for being super slow to respond to this patch, can you
+please do a new version using __maybe_unused instead of adding
+#ifdef-s ?
 
-Regards,
+Thanks,
 
-	Hans
+Hans
 
-> 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+
 > ---
->  drivers/media/platform/soc_camera/soc_camera.c   |  7 +--
->  drivers/media/platform/soc_camera/soc_mediabus.c | 65 ++++++++++++++++++++++++
->  include/media/drv-intf/soc_mediabus.h            | 22 ++++++++
->  include/media/soc_camera.h                       | 15 ------
->  4 files changed, 88 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-> index 46c7186f7867..039524a20056 100644
-> --- a/drivers/media/platform/soc_camera/soc_camera.c
-> +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> @@ -204,12 +204,7 @@ static void soc_camera_clock_stop(struct soc_camera_host *ici)
->  const struct soc_camera_format_xlate *soc_camera_xlate_by_fourcc(
->  	struct soc_camera_device *icd, unsigned int fourcc)
+>  drivers/media/usb/gspca/cpia1.c  | 2 ++
+>  drivers/media/usb/gspca/konica.c | 2 ++
+>  drivers/media/usb/gspca/t613.c   | 3 ++-
+>  3 files changed, 6 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/gspca/cpia1.c b/drivers/media/usb/gspca/cpia1.c
+> index f23df4a9d8c5..e2264dc5d64d 100644
+> --- a/drivers/media/usb/gspca/cpia1.c
+> +++ b/drivers/media/usb/gspca/cpia1.c
+> @@ -1624,7 +1624,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
+>
+>  static void sd_stopN(struct gspca_dev *gspca_dev)
 >  {
-> -	unsigned int i;
-> -
-> -	for (i = 0; i < icd->num_user_formats; i++)
-> -		if (icd->user_formats[i].host_fmt->fourcc == fourcc)
-> -			return icd->user_formats + i;
-> -	return NULL;
-> +	return soc_mbus_xlate_by_fourcc(icd->user_formats, fourcc);
->  }
->  EXPORT_SYMBOL(soc_camera_xlate_by_fourcc);
->  
-> diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/drivers/media/platform/soc_camera/soc_mediabus.c
-> index e3e665e1c503..95c13055f50f 100644
-> --- a/drivers/media/platform/soc_camera/soc_mediabus.c
-> +++ b/drivers/media/platform/soc_camera/soc_mediabus.c
-> @@ -10,6 +10,7 @@
->  
->  #include <linux/kernel.h>
->  #include <linux/module.h>
-> +#include <linux/slab.h>
->  
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-mediabus.h>
-> @@ -512,6 +513,70 @@ unsigned int soc_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
->  }
->  EXPORT_SYMBOL(soc_mbus_config_compatible);
->  
-> +struct soc_camera_format_xlate *soc_mbus_build_fmts_xlate(
-> +	struct v4l2_device *v4l2_dev, struct v4l2_subdev *subdev,
-> +	int (*get_formats)(struct v4l2_device *, unsigned int,
-> +			   struct soc_camera_format_xlate *xlate))
-> +{
-> +	unsigned int i, fmts = 0, raw_fmts = 0;
-> +	int ret;
-> +	struct v4l2_subdev_mbus_code_enum code = {
-> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-> +	};
-> +	struct soc_camera_format_xlate *user_formats;
-> +
-> +	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
-> +		raw_fmts++;
-> +		code.index++;
-> +	}
-> +
-> +	/*
-> +	 * First pass - only count formats this host-sensor
-> +	 * configuration can provide
-> +	 */
-> +	for (i = 0; i < raw_fmts; i++) {
-> +		ret = get_formats(v4l2_dev, i, NULL);
-> +		if (ret < 0)
-> +			return ERR_PTR(ret);
-> +		fmts += ret;
-> +	}
-> +
-> +	if (!fmts)
-> +		return ERR_PTR(-ENXIO);
-> +
-> +	user_formats = kcalloc(fmts + 1, sizeof(*user_formats), GFP_KERNEL);
-> +	if (!user_formats)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	/* Second pass - actually fill data formats */
-> +	fmts = 0;
-> +	for (i = 0; i < raw_fmts; i++) {
-> +		ret = get_formats(v4l2_dev, i, user_formats + fmts);
-> +		if (ret < 0)
-> +			goto egfmt;
-> +		fmts += ret;
-> +	}
-> +	user_formats[fmts].code = 0;
-> +
-> +	return user_formats;
-> +egfmt:
-> +	kfree(user_formats);
-> +	return ERR_PTR(ret);
-> +}
-> +EXPORT_SYMBOL(soc_mbus_build_fmts_xlate);
-> +
-> +const struct soc_camera_format_xlate *soc_mbus_xlate_by_fourcc(
-> +	struct soc_camera_format_xlate *user_formats, unsigned int fourcc)
-> +{
-> +	unsigned int i;
-> +
-> +	for (i = 0; user_formats[i].code; i++)
-> +		if (user_formats[i].host_fmt->fourcc == fourcc)
-> +			return user_formats + i;
-> +	return NULL;
-> +}
-> +EXPORT_SYMBOL(soc_mbus_xlate_by_fourcc);
-> +
->  static int __init soc_mbus_init(void)
+> +#if IS_ENABLED(CONFIG_INPUT)
+>  	struct sd *sd = (struct sd *) gspca_dev;
+> +#endif
+>
+>  	command_pause(gspca_dev);
+>
+> diff --git a/drivers/media/usb/gspca/konica.c b/drivers/media/usb/gspca/konica.c
+> index 39c96bb4c985..21c52655ef28 100644
+> --- a/drivers/media/usb/gspca/konica.c
+> +++ b/drivers/media/usb/gspca/konica.c
+> @@ -243,7 +243,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
+>
+>  static void sd_stopN(struct gspca_dev *gspca_dev)
 >  {
->  	return 0;
-> diff --git a/include/media/drv-intf/soc_mediabus.h b/include/media/drv-intf/soc_mediabus.h
-> index 2ff773785fb6..08af52f6338c 100644
-> --- a/include/media/drv-intf/soc_mediabus.h
-> +++ b/include/media/drv-intf/soc_mediabus.h
-> @@ -95,6 +95,21 @@ struct soc_mbus_lookup {
->  	struct soc_mbus_pixelfmt	fmt;
->  };
->  
-> +/**
-> + * struct soc_camera_format_xlate - match between host and sensor formats
-> + * @code: code of a sensor provided format
-> + * @host_fmt: host format after host translation from code
-> + *
-> + * Host and sensor translation structure. Used in table of host and sensor
-> + * formats matchings in soc_camera_device. A host can override the generic list
-> + * generation by implementing get_formats(), and use it for format checks and
-> + * format setup.
-> + */
-> +struct soc_camera_format_xlate {
-> +	u32 code;
-> +	const struct soc_mbus_pixelfmt *host_fmt;
-> +};
+> +#if IS_ENABLED(CONFIG_INPUT)
+>  	struct sd *sd = (struct sd *) gspca_dev;
+> +#endif
+>
+>  	konica_stream_off(gspca_dev);
+>  #if IS_ENABLED(CONFIG_INPUT)
+> diff --git a/drivers/media/usb/gspca/t613.c b/drivers/media/usb/gspca/t613.c
+> index e2cc4e5a0ccb..d918c2d31502 100644
+> --- a/drivers/media/usb/gspca/t613.c
+> +++ b/drivers/media/usb/gspca/t613.c
+> @@ -837,11 +837,12 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
+>  			u8 *data,			/* isoc packet */
+>  			int len)			/* iso packet length */
+>  {
+> -	struct sd *sd = (struct sd *) gspca_dev;
+>  	int pkt_type;
+>
+>  	if (data[0] == 0x5a) {
+>  #if IS_ENABLED(CONFIG_INPUT)
+> +		struct sd *sd = (struct sd *) gspca_dev;
 > +
->  const struct soc_mbus_pixelfmt *soc_mbus_find_fmtdesc(
->  	u32 code,
->  	const struct soc_mbus_lookup *lookup,
-> @@ -108,5 +123,12 @@ int soc_mbus_samples_per_pixel(const struct soc_mbus_pixelfmt *mf,
->  			unsigned int *numerator, unsigned int *denominator);
->  unsigned int soc_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
->  					unsigned int flags);
-> +struct soc_camera_format_xlate *soc_mbus_build_fmts_xlate(
-> +	struct v4l2_device *v4l2_dev, struct v4l2_subdev *subdev,
-> +	int (*get_formats)(struct v4l2_device *, unsigned int,
-> +			   struct soc_camera_format_xlate *xlate));
-> +const struct soc_camera_format_xlate *soc_mbus_xlate_by_fourcc(
-> +	struct soc_camera_format_xlate *user_formats, unsigned int fourcc);
-> +
->  
->  #endif
-> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> index 97aa13314bfd..db6ea91d5cb0 100644
-> --- a/include/media/soc_camera.h
-> +++ b/include/media/soc_camera.h
-> @@ -285,21 +285,6 @@ void soc_camera_host_unregister(struct soc_camera_host *ici);
->  const struct soc_camera_format_xlate *soc_camera_xlate_by_fourcc(
->  	struct soc_camera_device *icd, unsigned int fourcc);
->  
-> -/**
-> - * struct soc_camera_format_xlate - match between host and sensor formats
-> - * @code: code of a sensor provided format
-> - * @host_fmt: host format after host translation from code
-> - *
-> - * Host and sensor translation structure. Used in table of host and sensor
-> - * formats matchings in soc_camera_device. A host can override the generic list
-> - * generation by implementing get_formats(), and use it for format checks and
-> - * format setup.
-> - */
-> -struct soc_camera_format_xlate {
-> -	u32 code;
-> -	const struct soc_mbus_pixelfmt *host_fmt;
-> -};
-> -
->  #define SOCAM_SENSE_PCLK_CHANGED	(1 << 0)
->  
->  /**
-> 
+>  		if (len > 20) {
+>  			u8 state = (data[20] & 0x80) ? 1 : 0;
+>  			if (sd->button_pressed != state) {
+>
