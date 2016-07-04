@@ -1,48 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41366 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755275AbcGHNED (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:03 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 43/54] doc-rst: parse-headers: add an option to ignore enum symbols
-Date: Fri,  8 Jul 2016 10:03:35 -0300
-Message-Id: <526b88483183efa68ad692c473c1a434f4d2314d.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37954 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752834AbcGDGub (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jul 2016 02:50:31 -0400
+Subject: Re: [RFC] [PATCH 0/3] media: an attempt to refresh omap1_camera
+ driver
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+References: <1466097694-8660-1-git-send-email-jmkrzyszt@gmail.com>
+ <5763A114.2080309@xs4all.nl>
+ <20160703233253.GA14630@raspberrypi.musicnaut.iki.fi>
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-omap@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <da99de8c-8a5a-9f5c-f39f-1eb63244a920@xs4all.nl>
+Date: Mon, 4 Jul 2016 08:50:23 +0200
+MIME-Version: 1.0
+In-Reply-To: <20160703233253.GA14630@raspberrypi.musicnaut.iki.fi>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-At videodev2.h, we have hundreds of symbols that don't
-currently have a reference yet. Let's ignore for how, while
-we don't improve those cross-refs.
+On 07/04/2016 01:32 AM, Aaro Koskinen wrote:
+> Hi,
+> 
+> On Fri, Jun 17, 2016 at 09:04:52AM +0200, Hans Verkuil wrote:
+>> Out of curiosity: is supporting the Amstrad Delta something you do as a hobby
+>> or are there other reasons?
+> 
+> Out of curiousity, why should this matter?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/sphinx/parse-headers.pl | 4 ++++
- 1 file changed, 4 insertions(+)
+It doesn't. As I said, I was just curious!
 
-diff --git a/Documentation/sphinx/parse-headers.pl b/Documentation/sphinx/parse-headers.pl
-index fc18eac1552c..16ea28b0d2e1 100755
---- a/Documentation/sphinx/parse-headers.pl
-+++ b/Documentation/sphinx/parse-headers.pl
-@@ -163,6 +163,10 @@ if ($file_exceptions) {
- 			delete $structs{$1} if (exists($structs{$1}));
- 			next;
- 		}
-+		if (m/^ignore\s+symbol\s+(\S+)/) {
-+			delete $enum_symbols{$1} if (exists($enum_symbols{$1}));
-+			next;
-+		}
- 
- 		# Parsers to replace a symbol
- 
--- 
-2.7.4
+Regards,
 
+	Hans
