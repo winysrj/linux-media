@@ -1,100 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:40248 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752139AbcGTHh0 (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:60831 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932500AbcGDNfG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 03:37:26 -0400
-Subject: Re: [PATCH v2 01/10] v4l: of: add "newavmode" property for Analog
- Devices codecs
-To: Steve Longerbeam <slongerbeam@gmail.com>, lars@metafoo.de
-References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
- <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
- <1468973017-17647-2-git-send-email-steve_longerbeam@mentor.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
+	Mon, 4 Jul 2016 09:35:06 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1d7e9b86-a4c9-8223-d8bd-8f4b9effcce8@xs4all.nl>
-Date: Wed, 20 Jul 2016 09:37:20 +0200
-MIME-Version: 1.0
-In-Reply-To: <1468973017-17647-2-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: [PATCH 4/7] ezkit/cobalt: drop unused op_656_range setting
+Date: Mon,  4 Jul 2016 15:34:49 +0200
+Message-Id: <1467639292-1066-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467639292-1066-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467639292-1066-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/20/2016 02:03 AM, Steve Longerbeam wrote:
-> This patch adds a "newavmode" boolean property as part of the v4l2 endpoint
-> properties. This indicates an Analog Devices decoder is generating EAV/SAV
-> codes to suit Analog Devices encoders.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
->  drivers/media/v4l2-core/v4l2-of.c                            | 4 ++++
->  include/media/v4l2-mediabus.h                                | 5 +++++
->  3 files changed, 11 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> index 9cd2a36..6f2df51 100644
-> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> @@ -88,6 +88,8 @@ Optional endpoint properties
->  - field-even-active: field signal level during the even field data transmission.
->  - pclk-sample: sample data on rising (1) or falling (0) edge of the pixel clock
->    signal.
-> +- newavmode: a boolean property to indicate an Analog Devices decoder is
-> +  operating in NEWAVMODE. Valid for BT.656 busses only.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This property is adv7180 specific and does not belong here.
+The adv7604/adv7842 drivers now handle that register setting themselves
+and need no input from platform data anymore.
 
-Add this to Documentation/devicetree/bindings/media/i2c/adv7180.txt instead.
+This was a left-over from the time that the pixelport output format was
+decided by the platform data.
 
-Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Scott Jiang <scott.jiang.linux@gmail.com>
+---
+ arch/blackfin/mach-bf609/boards/ezkit.c  | 2 --
+ drivers/media/pci/cobalt/cobalt-driver.c | 2 --
+ 2 files changed, 4 deletions(-)
 
-Regards,
+diff --git a/arch/blackfin/mach-bf609/boards/ezkit.c b/arch/blackfin/mach-bf609/boards/ezkit.c
+index aad5d74..9231e5a 100644
+--- a/arch/blackfin/mach-bf609/boards/ezkit.c
++++ b/arch/blackfin/mach-bf609/boards/ezkit.c
+@@ -1002,14 +1002,12 @@ static struct adv7842_output_format adv7842_opf[] = {
+ 	{
+ 		.op_ch_sel = ADV7842_OP_CH_SEL_BRG,
+ 		.op_format_sel = ADV7842_OP_FORMAT_SEL_SDR_ITU656_8,
+-		.op_656_range = 1,
+ 		.blank_data = 1,
+ 		.insert_av_codes = 1,
+ 	},
+ 	{
+ 		.op_ch_sel = ADV7842_OP_CH_SEL_RGB,
+ 		.op_format_sel = ADV7842_OP_FORMAT_SEL_SDR_ITU656_16,
+-		.op_656_range = 1,
+ 		.blank_data = 1,
+ 	},
+ };
+diff --git a/drivers/media/pci/cobalt/cobalt-driver.c b/drivers/media/pci/cobalt/cobalt-driver.c
+index 8d6f04f..99ccc50 100644
+--- a/drivers/media/pci/cobalt/cobalt-driver.c
++++ b/drivers/media/pci/cobalt/cobalt-driver.c
+@@ -492,7 +492,6 @@ static int cobalt_subdevs_init(struct cobalt *cobalt)
+ 		.ain_sel = ADV7604_AIN7_8_9_NC_SYNC_3_1,
+ 		.bus_order = ADV7604_BUS_ORDER_BRG,
+ 		.blank_data = 1,
+-		.op_656_range = 1,
+ 		.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0,
+ 		.int1_config = ADV76XX_INT1_CONFIG_ACTIVE_HIGH,
+ 		.dr_str_data = ADV76XX_DR_STR_HIGH,
+@@ -571,7 +570,6 @@ static int cobalt_subdevs_hsma_init(struct cobalt *cobalt)
+ 		.bus_order = ADV7842_BUS_ORDER_RBG,
+ 		.op_format_mode_sel = ADV7842_OP_FORMAT_MODE0,
+ 		.blank_data = 1,
+-		.op_656_range = 1,
+ 		.dr_str_data = 3,
+ 		.dr_str_clk = 3,
+ 		.dr_str_sync = 3,
+-- 
+2.8.1
 
-	Hans
-
->  - sync-on-green-active: active state of Sync-on-green (SoG) signal, 0/1 for
->    LOW/HIGH respectively.
->  - data-lanes: an array of physical data lane indexes. Position of an entry
-> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-> index 93b3368..719a7d1 100644
-> --- a/drivers/media/v4l2-core/v4l2-of.c
-> +++ b/drivers/media/v4l2-core/v4l2-of.c
-> @@ -109,6 +109,10 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
->  		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
->  			V4L2_MBUS_DATA_ACTIVE_LOW;
->  
-> +	if (endpoint->bus_type == V4L2_MBUS_BT656 &&
-> +	    of_get_property(node, "newavmode", &v))
-> +		flags |= V4L2_MBUS_NEWAVMODE;
-> +
->  	if (of_get_property(node, "slave-mode", &v))
->  		flags |= V4L2_MBUS_SLAVE;
->  	else
-> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> index 34cc99e..0bd5f0e 100644
-> --- a/include/media/v4l2-mediabus.h
-> +++ b/include/media/v4l2-mediabus.h
-> @@ -43,6 +43,11 @@
->  /* Active state of Sync-on-green (SoG) signal, 0/1 for LOW/HIGH respectively. */
->  #define V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH	(1 << 12)
->  #define V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW		(1 << 13)
-> +/*
-> + * BT.656 specific flags
-> + */
-> +/* Analog Device's NEWAVMODE */
-> +#define V4L2_MBUS_NEWAVMODE			(1 << 14)
->  
->  /* Serial flags */
->  /* How many lanes the client can use */
-> 
