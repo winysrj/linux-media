@@ -1,55 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:44598 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751743AbcGKKCI (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:51445 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932500AbcGDNfK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2016 06:02:08 -0400
-Subject: Re: [PATCHv2 3/5] pulse8-cec: new driver for the Pulse-Eight USB-CEC
- Adapter
-To: Lars Op den Kamp <lars@opdenkamp.eu>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <fd21234a-3ac4-44f5-1054-3430546596bb@xs4all.nl>
- <578369C5.5000402@opdenkamp.eu>
+	Mon, 4 Jul 2016 09:35:10 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8e011716-5d38-3475-ff87-1737b331e26c@xs4all.nl>
-Date: Mon, 11 Jul 2016 12:02:02 +0200
-MIME-Version: 1.0
-In-Reply-To: <578369C5.5000402@opdenkamp.eu>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 6/7] DocBook media: document the v4l2_bt_timings reserved field
+Date: Mon,  4 Jul 2016 15:34:51 +0200
+Message-Id: <1467639292-1066-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467639292-1066-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467639292-1066-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Lars,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 07/11/2016 11:41 AM, Lars Op den Kamp wrote:
-> Hi Hans,
-> 
-> just did a quick scan of this patch.
-> 
-> The code should work on any firmware >= v2 revision 8, though older 
-> versions may return 0 when the build date is requested. I believe I 
-> added that in v3. Might want to add a !=0 check before writing to the log.
-> 
-> The CEC adapter has an "autonomous mode", used when it's not being 
-> controlled by our userspace application or this kernel driver. It'll 
-> respond to some basic CEC commands that allow the PC to be woken up by TV.
-> If the adapter doesn't receive a MSGCODE_PING for 30 seconds when it's 
-> in "controlled mode", then it'll revert to autonomous mode and it'll 
-> reset all states internally.
+This field was never documented, and neither was it mentioned that
+it should be zeroed by the application.
 
-Ah, that was rather obscure. Good to know.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-What I do now (and that seems to work) is that in the pulse8_setup I turn
-off the autonomous mode and then write that new setting to the EEPROM. After
-that it looks like the autonomous mode stays off. Is that correct?
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
+index 06952d7..8bb20d3 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
+@@ -186,6 +186,13 @@ bit 0 (V4L2_DV_VSYNC_POS_POL) is for vertical sync polarity and bit 1 (V4L2_DV_H
+ 	    See <xref linkend="dv-bt-flags"/> for a description of the flags.
+ 	    </entry>
+ 	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[14]</entry>
++	    <entry>Reserved for future extensions. Drivers and applications must set
++	    the array to zero.
++	    </entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+-- 
+2.8.1
 
-The autonomous mode really doesn't work well with the framework as it is
-today.
-
-CEC framework support for 'wakeup on CEC command' is something that is planned
-for the future.
-
-Regards,
-
-	Hans
