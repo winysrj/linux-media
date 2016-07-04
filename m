@@ -1,77 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:35827 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751481AbcGOS5x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 14:57:53 -0400
-Received: by mail-wm0-f46.google.com with SMTP id f65so36309439wmi.0
-        for <linux-media@vger.kernel.org>; Fri, 15 Jul 2016 11:57:53 -0700 (PDT)
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:36188 "EHLO
+	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932510AbcGDVIj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 17:08:39 -0400
+Subject: Re: IR remote stopped working in kernels 4.5 and 4.6
+To: James Bottomley <James.Bottomley@HansenPartnership.com>,
+	linux-media@vger.kernel.org,
+	linux-kernel <linux-kernel@vger.kernel.org>
+References: <1467664616.2288.12.camel@HansenPartnership.com>
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Message-ID: <43cc65d3-7d9f-2ead-8a21-fcc6ee0d147e@gmail.com>
+Date: Mon, 4 Jul 2016 23:08:32 +0200
 MIME-Version: 1.0
-In-Reply-To: <CAGXu5jLzMp32dbQdzG_EV0Gh-ZFs8dQ-vEHdwvjoM2uvQvpUCw@mail.gmail.com>
-References: <20160715154004.GA840@ThinkPad-X200> <CAGXu5jLzMp32dbQdzG_EV0Gh-ZFs8dQ-vEHdwvjoM2uvQvpUCw@mail.gmail.com>
-From: Kees Cook <keescook@google.com>
-Date: Fri, 15 Jul 2016 11:57:51 -0700
-Message-ID: <CAGXu5j+s-Ez-V8dx07sqZ+xy_aXbBsR1sOJhZHML9E7dTHfGCA@mail.gmail.com>
-Subject: Re: [PATCH 1/1] subsystem:linux-media CVE-2016-5400
-To: James Patrick-Evans <james@jmp-e.com>
-Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	"security@kernel.org" <security@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1467664616.2288.12.camel@HansenPartnership.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[fixing Mauro's email...]
+Am 04.07.2016 um 22:36 schrieb James Bottomley:
+> This looks to be a problem with the rc subsystem.  The IR controller in
+> question is part of a cx8800 atsc card. In the 4.4 kernel, where it
+> works, this is what ir-keytable says:
+> 
+> Found /sys/class/rc/rc0/ (/dev/input/event12) with:
+> 	Driver cx88xx, table rc-hauppauge
+> 	Supported protocols: other lirc rc-5 jvc sony nec sanyo mce-kbd rc-6 sharp xmp 
+> 	Enabled protocols: lirc nec 
+> 	Name: cx88 IR (pcHDTV HD3000 HDTV)
+> 	bus: 1, vendor/product: 7063:3000, version: 0x0001
+> 	Repeat delay = 500 ms, repeat period = 125 ms
+> 
+> And in 4.6, where it doesn't work:
+> 
+> Found /sys/class/rc/rc0/ (/dev/input/event12) with:
+> 	Driver cx88xx, table rc-hauppauge
+> 	Supported protocols: lirc 
+> 	Enabled protocols: lirc 
+> 	Name: cx88 IR (pcHDTV HD3000 HDTV)
+> 	bus: 1, vendor/product: 7063:3000, version: 0x0001
+> 	Repeat delay = 500 ms, repeat period = 125 ms
+> 
+> The particular remote in question seems to require the nec protocol to
+> work and the failure in 4.5 and 4.6 is having any supported protocols
+> at all.  I can get the remote to start working again by adding the nec
+> protocol:
+> 
+> echo nec > /sys/class/rc/rc0/protocols
+> 
+> But it would be nice to have this happen by default rather than having
+> to add yet another work around init script.
+> 
+Meanwhile decoder modules are loaded on demand only. This can be done
+automatically w/o the need for additional init scripts.
 
-On Fri, Jul 15, 2016 at 11:52 AM, Kees Cook <keescook@google.com> wrote:
-> On Fri, Jul 15, 2016 at 8:40 AM, James Patrick-Evans <james@jmp-e.com> wrote:
->> This patch addresses CVE-2016-5400, a local DOS vulnerability caused by a
->> memory leak in the airspy usb device driver. The vulnerability is triggered
->> when more than 64 usb devices register with v4l2 of type VFL_TYPE_SDR or
->> VFL_TYPE_SUBDEV.A badusb device can emulate 64 of these devices then through
->> continual emulated connect/disconnect of the 65th device, cause the kernel
->> to run out of RAM and crash the kernel. The vulnerability exists in kernel
->> versions from 3.17 to current 4.7.
->> The memory leak is caused by the probe function of the airspy driver
->> mishandeling errors and not freeing the corresponding control structures
->> when an error occours registering the device to v4l2 core.
->
-> Thanks for getting this fixed!
->
->> Signed-off-by: James Patrick-Evans <james@jmp-e.com>
->
-> Reviewed-by: Kees Cook <keescook@chromium.org>
->
->> ---
->>  drivers/media/usb/airspy/airspy.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/usb/airspy/airspy.c
->> b/drivers/media/usb/airspy/airspy.c
->> index 87c1293..6c3ac8b 100644
->> --- a/drivers/media/usb/airspy/airspy.c
->> +++ b/drivers/media/usb/airspy/airspy.c
->> @@ -1072,7 +1072,7 @@ static int airspy_probe(struct usb_interface *intf,
->>         if (ret) {
->>                 dev_err(s->dev, "Failed to register as video device (%d)\n",
->>                                 ret);
->> -               goto err_unregister_v4l2_dev;
->> +               goto err_free_controls;
->>         }
->>         dev_info(s->dev, "Registered as %s\n",
->>                         video_device_node_name(&s->vdev));
->> --
->> 1.9.1
->>
->
-> -Kees
->
+If /etc/rc_maps.cfg includes a keymap with type NEC then the nec decoder
+module is loaded automatically.
+
+My rc_maps.cfg looks like this (and causes the SONY decoder module to be
+loaded automatically):
+
+#driver table                    file
+*       *        sony-rm-sx800
+
+And the keymap:
+
+# table sony-rm-sx800, type SONY
+0x110030        KEY_PREVIOUS
+0x110031        KEY_NEXT
+0x110033        KEY_BACK
+..
+..
+
+Heiner
+
+> James
+> 
 > --
-> Kees Cook
-> Brillo & Chrome OS Security
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-
-
--- 
-Kees Cook
-Brillo & Chrome OS Security
