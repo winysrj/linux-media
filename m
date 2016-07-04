@@ -1,209 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45791 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751370AbcGRB41 (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44400 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753305AbcGDIck (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 21:56:27 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 20/36] [media] doc-rst: add meye documentation
-Date: Sun, 17 Jul 2016 22:56:03 -0300
-Message-Id: <c90495fe1e786c2a9b139917b784a1dbc55a770c.1468806744.git.mchehab@s-opensource.com>
-In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=true
-Content-Transfer-Encoding: 8bit
+	Mon, 4 Jul 2016 04:32:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: [PATCH 7/9] vpbe_display: convert g/s_crop to g/s_selection.
+Date: Mon,  4 Jul 2016 10:32:20 +0200
+Message-Id: <1467621142-8064-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert the meye documentation to rst and add it to the
-media/v4l-drivers book.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+This is part of a final push to convert all drivers to g/s_selection.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
 ---
- Documentation/media/v4l-drivers/index.rst |   1 +
- Documentation/media/v4l-drivers/meye.rst  | 103 ++++++++++++++++--------------
- 2 files changed, 57 insertions(+), 47 deletions(-)
+ drivers/media/platform/davinci/vpbe_display.c | 65 +++++++++++++++------------
+ 1 file changed, 37 insertions(+), 28 deletions(-)
 
-diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
-index 99409c6e2518..8c6f4745aa07 100644
---- a/Documentation/media/v4l-drivers/index.rst
-+++ b/Documentation/media/v4l-drivers/index.rst
-@@ -27,4 +27,5 @@ License".
- 	davinci-vpbe
- 	fimc
- 	ivtv
-+	meye
- 	zr364xx
-diff --git a/Documentation/media/v4l-drivers/meye.rst b/Documentation/media/v4l-drivers/meye.rst
-index a051152ea99c..cfaba6021850 100644
---- a/Documentation/media/v4l-drivers/meye.rst
-+++ b/Documentation/media/v4l-drivers/meye.rst
-@@ -1,8 +1,13 @@
--Vaio Picturebook Motion Eye Camera Driver Readme
--------------------------------------------------
--	Copyright (C) 2001-2004 Stelian Pop <stelian@popies.net>
--	Copyright (C) 2001-2002 Alcôve <www.alcove.com>
--	Copyright (C) 2000 Andrew Tridgell <tridge@samba.org>
-+.. include:: <isonum.txt>
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 0abcdfe..b4a8cd2 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -441,7 +441,7 @@ vpbe_disp_calculate_scale_factor(struct vpbe_display *disp_dev,
+ 	/*
+ 	 * Application initially set the image format. Current display
+ 	 * size is obtained from the vpbe display controller. expected_xsize
+-	 * and expected_ysize are set through S_CROP ioctl. Based on this,
++	 * and expected_ysize are set through S_SELECTION ioctl. Based on this,
+ 	 * driver will calculate the scale factors for vertical and
+ 	 * horizontal direction so that the image is displayed scaled
+ 	 * and expanded. Application uses expansion to display the image
+@@ -650,24 +650,23 @@ static int vpbe_display_querycap(struct file *file, void  *priv,
+ 	return 0;
+ }
+ 
+-static int vpbe_display_s_crop(struct file *file, void *priv,
+-			     const struct v4l2_crop *crop)
++static int vpbe_display_s_selection(struct file *file, void *priv,
++			     struct v4l2_selection *sel)
+ {
+ 	struct vpbe_layer *layer = video_drvdata(file);
+ 	struct vpbe_display *disp_dev = layer->disp_dev;
+ 	struct vpbe_device *vpbe_dev = disp_dev->vpbe_dev;
+ 	struct osd_layer_config *cfg = &layer->layer_info.config;
+ 	struct osd_state *osd_device = disp_dev->osd_device;
+-	struct v4l2_rect rect = crop->c;
++	struct v4l2_rect rect = sel->r;
+ 	int ret;
+ 
+ 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+-		"VIDIOC_S_CROP, layer id = %d\n", layer->device_id);
++		"VIDIOC_S_SELECTION, layer id = %d\n", layer->device_id);
+ 
+-	if (crop->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-		v4l2_err(&vpbe_dev->v4l2_dev, "Invalid buf type\n");
++	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
++	    sel->target != V4L2_SEL_TGT_CROP)
+ 		return -EINVAL;
+-	}
+ 
+ 	if (rect.top < 0)
+ 		rect.top = 0;
+@@ -715,32 +714,45 @@ static int vpbe_display_s_crop(struct file *file, void *priv,
+ 	else
+ 		osd_device->ops.set_interpolation_filter(osd_device, 0);
+ 
++	sel->r = rect;
+ 	return 0;
+ }
+ 
+-static int vpbe_display_g_crop(struct file *file, void *priv,
+-			     struct v4l2_crop *crop)
++static int vpbe_display_g_selection(struct file *file, void *priv,
++				    struct v4l2_selection *sel)
+ {
+ 	struct vpbe_layer *layer = video_drvdata(file);
+ 	struct osd_layer_config *cfg = &layer->layer_info.config;
+ 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
+ 	struct osd_state *osd_device = layer->disp_dev->osd_device;
+-	struct v4l2_rect *rect = &crop->c;
++	struct v4l2_rect *rect = &sel->r;
+ 
+ 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+-			"VIDIOC_G_CROP, layer id = %d\n",
++			"VIDIOC_G_SELECTION, layer id = %d\n",
+ 			layer->device_id);
+ 
+-	if (crop->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-		v4l2_err(&vpbe_dev->v4l2_dev, "Invalid buf type\n");
++	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return -EINVAL;
 +
-+Vaio Picturebook Motion Eye Camera Driver
-+=========================================
++	switch (sel->target) {
++	case V4L2_SEL_TGT_CROP:
++		osd_device->ops.get_layer_config(osd_device,
++						 layer->layer_info.id, cfg);
++		rect->top = cfg->ypos;
++		rect->left = cfg->xpos;
++		rect->width = cfg->xsize;
++		rect->height = cfg->ysize;
++		break;
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++		rect->left = 0;
++		rect->top = 0;
++		rect->width = vpbe_dev->current_timings.xres;
++		rect->height = vpbe_dev->current_timings.yres;
++		break;
++	default:
+ 		return -EINVAL;
+ 	}
+-	osd_device->ops.get_layer_config(osd_device,
+-				layer->layer_info.id, cfg);
+-	rect->top = cfg->ypos;
+-	rect->left = cfg->xpos;
+-	rect->width = cfg->xsize;
+-	rect->height = cfg->ysize;
+ 
+ 	return 0;
+ }
+@@ -753,13 +765,10 @@ static int vpbe_display_cropcap(struct file *file, void *priv,
+ 
+ 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_CROPCAP ioctl\n");
+ 
+-	cropcap->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+-	cropcap->bounds.left = 0;
+-	cropcap->bounds.top = 0;
+-	cropcap->bounds.width = vpbe_dev->current_timings.xres;
+-	cropcap->bounds.height = vpbe_dev->current_timings.yres;
++	if (cropcap->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return -EINVAL;
 +
-+Copyright |copy| 2001-2004 Stelian Pop <stelian@popies.net>
-+
-+Copyright |copy| 2001-2002 Alcôve <www.alcove.com>
-+
-+Copyright |copy| 2000 Andrew Tridgell <tridge@samba.org>
+ 	cropcap->pixelaspect = vpbe_dev->current_timings.aspect;
+-	cropcap->defrect = cropcap->bounds;
+ 	return 0;
+ }
  
- This driver enable the use of video4linux compatible applications with the
- Motion Eye camera. This driver requires the "Sony Laptop Extras" driver (which
-@@ -15,8 +20,8 @@ Grabbing is supported in packed YUV colorspace only.
+@@ -1252,8 +1261,8 @@ static const struct v4l2_ioctl_ops vpbe_ioctl_ops = {
+ 	.vidioc_expbuf		 = vb2_ioctl_expbuf,
  
- MJPEG hardware grabbing is supported via a private API (see below).
+ 	.vidioc_cropcap		 = vpbe_display_cropcap,
+-	.vidioc_g_crop		 = vpbe_display_g_crop,
+-	.vidioc_s_crop		 = vpbe_display_s_crop,
++	.vidioc_g_selection	 = vpbe_display_g_selection,
++	.vidioc_s_selection	 = vpbe_display_s_selection,
  
--Hardware supported:
---------------------
-+Hardware supported
-+------------------
- 
- This driver supports the 'second' version of the MotionEye camera :)
- 
-@@ -37,26 +42,30 @@ This camera is not supported at all by the current driver, in fact
- little information if any is available for this camera
- (USB vendor/device is 0x054c/0x0107).
- 
--Driver options:
-----------------
-+Driver options
-+--------------
- 
- Several options can be passed to the meye driver using the standard
- module argument syntax (<param>=<value> when passing the option to the
- module or meye.<param>=<value> on the kernel boot line when meye is
- statically linked into the kernel). Those options are:
- 
-+.. code-block:: none
-+
- 	gbuffers:	number of capture buffers, default is 2 (32 max)
- 
- 	gbufsize:	size of each capture buffer, default is 614400
- 
- 	video_nr:	video device to register (0 = /dev/video0, etc)
- 
--Module use:
-------------
-+Module use
-+----------
- 
- In order to automatically load the meye module on use, you can put those lines
- in your /etc/modprobe.d/meye.conf file:
- 
-+.. code-block:: none
-+
- 	alias char-major-81 videodev
- 	alias char-major-81-0 meye
- 	options meye gbuffers=32
-@@ -64,6 +73,8 @@ in your /etc/modprobe.d/meye.conf file:
- Usage:
- ------
- 
-+.. code-block:: none
-+
- 	xawtv >= 3.49 (<http://bytesex.org/xawtv/>)
- 		for display and uncompressed video capture:
- 
-@@ -74,50 +85,48 @@ Usage:
- 	motioneye (<http://popies.net/meye/>)
- 		for getting ppm or jpg snapshots, mjpeg video
- 
--Private API:
--------------
-+Private API
-+-----------
- 
--	The driver supports frame grabbing with the video4linux API,
--	so all video4linux tools (like xawtv) should work with this driver.
-+The driver supports frame grabbing with the video4linux API,
-+so all video4linux tools (like xawtv) should work with this driver.
- 
--	Besides the video4linux interface, the driver has a private interface
--	for accessing the Motion Eye extended parameters (camera sharpness,
--	agc, video framerate), the shapshot and the MJPEG capture facilities.
-+Besides the video4linux interface, the driver has a private interface
-+for accessing the Motion Eye extended parameters (camera sharpness,
-+agc, video framerate), the shapshot and the MJPEG capture facilities.
- 
--	This interface consists of several ioctls (prototypes and structures
--	can be found in include/linux/meye.h):
-+This interface consists of several ioctls (prototypes and structures
-+can be found in include/linux/meye.h):
- 
--	MEYEIOC_G_PARAMS
--	MEYEIOC_S_PARAMS
--		Get and set the extended parameters of the motion eye camera.
--		The user should always query the current parameters with
--		MEYEIOC_G_PARAMS, change what he likes and then issue the
--		MEYEIOC_S_PARAMS call (checking for -EINVAL). The extended
--		parameters are described by the meye_params structure.
-+MEYEIOC_G_PARAMS and MEYEIOC_S_PARAMS
-+	Get and set the extended parameters of the motion eye camera.
-+	The user should always query the current parameters with
-+	MEYEIOC_G_PARAMS, change what he likes and then issue the
-+	MEYEIOC_S_PARAMS call (checking for -EINVAL). The extended
-+	parameters are described by the meye_params structure.
- 
- 
--	MEYEIOC_QBUF_CAPT
--		Queue a buffer for capture (the buffers must have been
--		obtained with a VIDIOCGMBUF call and mmap'ed by the
--		application). The argument to MEYEIOC_QBUF_CAPT is the
--		buffer number to queue (or -1 to end capture). The first
--		call to MEYEIOC_QBUF_CAPT starts the streaming capture.
-+MEYEIOC_QBUF_CAPT
-+	Queue a buffer for capture (the buffers must have been
-+	obtained with a VIDIOCGMBUF call and mmap'ed by the
-+	application). The argument to MEYEIOC_QBUF_CAPT is the
-+	buffer number to queue (or -1 to end capture). The first
-+	call to MEYEIOC_QBUF_CAPT starts the streaming capture.
- 
--	MEYEIOC_SYNC
--		Takes as an argument the buffer number you want to sync.
--		This ioctl blocks until the buffer is filled and ready
--		for the application to use. It returns the buffer size.
-+MEYEIOC_SYNC
-+	Takes as an argument the buffer number you want to sync.
-+	This ioctl blocks until the buffer is filled and ready
-+	for the application to use. It returns the buffer size.
- 
--	MEYEIOC_STILLCAPT
--	MEYEIOC_STILLJCAPT
--		Takes a snapshot in an uncompressed or compressed jpeg format.
--		This ioctl blocks until the snapshot is done and returns (for
--		jpeg snapshot) the size of the image. The image data is
--		available from the first mmap'ed buffer.
-+MEYEIOC_STILLCAPT and MEYEIOC_STILLJCAPT
-+	Takes a snapshot in an uncompressed or compressed jpeg format.
-+	This ioctl blocks until the snapshot is done and returns (for
-+	jpeg snapshot) the size of the image. The image data is
-+	available from the first mmap'ed buffer.
- 
--	Look at the 'motioneye' application code for an actual example.
-+Look at the 'motioneye' application code for an actual example.
- 
--Bugs / Todo:
--------------
-+Bugs / Todo
-+-----------
- 
--	- 'motioneye' still uses the meye private v4l1 API extensions.
-+- 'motioneye' still uses the meye private v4l1 API extensions.
+ 	.vidioc_s_std		 = vpbe_display_s_std,
+ 	.vidioc_g_std		 = vpbe_display_g_std,
 -- 
-2.7.4
+2.8.1
 
