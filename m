@@ -1,230 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:42379 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750969AbcGRIeU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 04:34:20 -0400
-Subject: Re: [PATCH] [media] vb2: map dmabuf for planes on driver queue
- instead of vidioc_qbuf
-To: Javier Martinez Canillas <javier@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-References: <1468599966-31988-1-git-send-email-javier@osg.samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Luis de Bethencourt <luisbg@osg.samsung.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ee857812-cf05-b714-eb6e-b696767a0067@xs4all.nl>
-Date: Mon, 18 Jul 2016 10:34:12 +0200
+Received: from swift.blarg.de ([78.47.110.205]:33199 "EHLO swift.blarg.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753198AbcGDMIs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jul 2016 08:08:48 -0400
+Subject: [PATCH 1/2] drivers/media/dvb-core/en50221: use kref to manage
+ struct dvb_ca_private
+From: Max Kellermann <max@duempel.org>
+To: linux-media@vger.kernel.org, shuahkh@osg.samsung.com,
+	mchehab@osg.samsung.com
+Cc: linux-kernel@vger.kernel.org
+Date: Mon, 04 Jul 2016 14:08:45 +0200
+Message-ID: <146763412568.10008.7316707423893692579.stgit@woodpecker.blarg.de>
 MIME-Version: 1.0
-In-Reply-To: <1468599966-31988-1-git-send-email-javier@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/15/2016 06:26 PM, Javier Martinez Canillas wrote:
-> The buffer planes' dma-buf are currently mapped when buffers are queued
-> from userspace but it's more appropriate to do the mapping when buffers
-> are queued in the driver since that's when the actual DMA operation are
-> going to happen.
+Don't free the object until the file handle has been closed.  Fixes
+use-after-free bug which occurs when I disconnect my DVB-S received
+while VDR is running.
 
-Does this solve anything? Once the DMA has started the behavior is the same
-as before (QBUF maps the dmabuf), only while the DMA engine hasn't started
-yet are the QBUF calls just accepted and the mapping takes place when the
-DMA is kickstarted. This makes QBUF behave inconsistently.
+This is a crash dump of such a use-after-free:
 
-You don't describe here WHY this change is needed.
+    general protection fault: 0000 [#1] SMP
+    CPU: 0 PID: 2541 Comm: CI adapter on d Not tainted 4.7.0-rc1-hosting+ #49
+    Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+    task: ffff880027d7ce00 ti: ffff88003d8f8000 task.ti: ffff88003d8f8000
+    RIP: 0010:[<ffffffff812f3d1f>]  [<ffffffff812f3d1f>] dvb_ca_en50221_io_read_condition.isra.7+0x6f/0x150
+    RSP: 0018:ffff88003d8fba98  EFLAGS: 00010206
+    RAX: 0000000059534255 RBX: 000000753d470f90 RCX: ffff88003c74d181
+    RDX: 00000001bea04ba9 RSI: ffff88003d8fbaf4 RDI: 3a3030a56d763fc0
+    RBP: ffff88003d8fbae0 R08: ffff88003c74d180 R09: 0000000000000000
+    R10: 0000000000000001 R11: 0000000000000000 R12: ffff88003c480e00
+    R13: 00000000ffffffff R14: 0000000059534255 R15: 0000000000000000
+    FS:  00007fb4209b4700(0000) GS:ffff88003fc00000(0000) knlGS:0000000000000000
+    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+    CR2: 00007f06445f4078 CR3: 000000003c55b000 CR4: 00000000000006b0
+    Stack:
+     ffff88003d8fbaf4 000000003c2170c0 0000000000004000 0000000000000000
+     ffff88003c480e00 ffff88003d8fbc80 ffff88003c74d180 ffff88003d8fbb8c
+     0000000000000000 ffff88003d8fbb10 ffffffff812f3e37 ffff88003d8fbb00
+    Call Trace:
+     [<ffffffff812f3e37>] dvb_ca_en50221_io_poll+0x37/0xa0
+     [<ffffffff8113109b>] do_sys_poll+0x2db/0x520
 
-I'm not sure I agree with the TODO, and even if I did, I'm not sure I agree
-with this solution. Since queuing the buffer to the driver is not the same
-as 'just before the DMA', since there may be many buffers queued up in the
-driver and you don't know in vb2 when the buffer is at the 'just before the DMA'
-stage.
+This is a backtrace of the kernel attempting to lock a freed mutex:
 
-Regards,
+    #0  0xffffffff81083d40 in rep_nop () at ./arch/x86/include/asm/processor.h:569
+    #1  cpu_relax () at ./arch/x86/include/asm/processor.h:574
+    #2  virt_spin_lock (lock=<optimized out>) at ./arch/x86/include/asm/qspinlock.h:57
+    #3  native_queued_spin_lock_slowpath (lock=0xffff88003c480e90, val=761492029) at kernel/locking/qspinlock.c:304
+    #4  0xffffffff810d1a06 in pv_queued_spin_lock_slowpath (val=<optimized out>, lock=<optimized out>) at ./arch/x86/include/asm/paravirt.h:669
+    #5  queued_spin_lock_slowpath (val=<optimized out>, lock=<optimized out>) at ./arch/x86/include/asm/qspinlock.h:28
+    #6  queued_spin_lock (lock=<optimized out>) at include/asm-generic/qspinlock.h:107
+    #7  __mutex_lock_common (use_ww_ctx=<optimized out>, ww_ctx=<optimized out>, ip=<optimized out>, nest_lock=<optimized out>, subclass=<optimized out>,
+        state=<optimized out>, lock=<optimized out>) at kernel/locking/mutex.c:526
+    #8  mutex_lock_interruptible_nested (lock=0xffff88003c480e88, subclass=<optimized out>) at kernel/locking/mutex.c:647
+    #9  0xffffffff812f49fe in dvb_ca_en50221_io_do_ioctl (file=<optimized out>, cmd=761492029, parg=0x1 <irq_stack_union+1>)
+        at drivers/media/dvb-core/dvb_ca_en50221.c:1210
+    #10 0xffffffff812ee660 in dvb_usercopy (file=<optimized out>, cmd=761492029, arg=<optimized out>, func=<optimized out>) at drivers/media/dvb-core/dvbdev.c:883
+    #11 0xffffffff812f3410 in dvb_ca_en50221_io_ioctl (file=<optimized out>, cmd=<optimized out>, arg=<optimized out>) at drivers/media/dvb-core/dvb_ca_en50221.c:1284
+    #12 0xffffffff8112eddd in vfs_ioctl (arg=<optimized out>, cmd=<optimized out>, filp=<optimized out>) at fs/ioctl.c:43
+    #13 do_vfs_ioctl (filp=0xffff88003c480e90, fd=<optimized out>, cmd=<optimized out>, arg=<optimized out>) at fs/ioctl.c:674
+    #14 0xffffffff8112f30c in SYSC_ioctl (arg=<optimized out>, cmd=<optimized out>, fd=<optimized out>) at fs/ioctl.c:689
+    #15 SyS_ioctl (fd=6, cmd=2148298626, arg=140734533693696) at fs/ioctl.c:680
+    #16 0xffffffff8103feb2 in entry_SYSCALL_64 () at arch/x86/entry/entry_64.S:207
 
-	Hans
+Signed-off-by: Max Kellermann <max@duempel.org>
+---
+ drivers/media/dvb-core/dvb_ca_en50221.c |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
-> 
-> Suggested-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> 
-> ---
-> 
-> Hello,
-> 
-> A side effect of this change is that if the dmabuf map fails for some
-> reasons (i.e: a driver using the DMA contig memory allocator but CMA
-> not being enabled), the fail will no longer happen on VIDIOC_QBUF but
-> later (i.e: in VIDIOC_STREAMON).
-> 
-> I don't know if that's an issue though but I think is worth mentioning.
-> 
-> Best regards,
-> Javier
-> 
->  drivers/media/v4l2-core/videobuf2-core.c | 88 ++++++++++++++++++++------------
->  1 file changed, 54 insertions(+), 34 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index ca8ffeb56d72..3fdf882bf279 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -186,7 +186,7 @@ module_param(debug, int, 0644);
->  })
->  
->  static void __vb2_queue_cancel(struct vb2_queue *q);
-> -static void __enqueue_in_driver(struct vb2_buffer *vb);
-> +static int __enqueue_in_driver(struct vb2_buffer *vb);
->  
->  /**
->   * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
-> @@ -1271,20 +1271,6 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
->  		vb->planes[plane].mem_priv = mem_priv;
->  	}
->  
-> -	/* TODO: This pins the buffer(s) with  dma_buf_map_attachment()).. but
-> -	 * really we want to do this just before the DMA, not while queueing
-> -	 * the buffer(s)..
-> -	 */
-> -	for (plane = 0; plane < vb->num_planes; ++plane) {
-> -		ret = call_memop(vb, map_dmabuf, vb->planes[plane].mem_priv);
-> -		if (ret) {
-> -			dprintk(1, "failed to map dmabuf for plane %d\n",
-> -				plane);
-> -			goto err;
-> -		}
-> -		vb->planes[plane].dbuf_mapped = 1;
-> -	}
-> -
->  	/*
->  	 * Now that everything is in order, copy relevant information
->  	 * provided by userspace.
-> @@ -1296,51 +1282,79 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
->  		vb->planes[plane].data_offset = planes[plane].data_offset;
->  	}
->  
-> -	if (reacquired) {
-> -		/*
-> -		 * Call driver-specific initialization on the newly acquired buffer,
-> -		 * if provided.
-> -		 */
-> -		ret = call_vb_qop(vb, buf_init, vb);
-> +	return 0;
-> +err:
-> +	/* In case of errors, release planes that were already acquired */
-> +	__vb2_buf_dmabuf_put(vb);
-> +
-> +	return ret;
-> +}
-> +
-> +/**
-> + * __buf_map_dmabuf() - map dmabuf for buffer planes
-> + */
-> +static int __buf_map_dmabuf(struct vb2_buffer *vb)
-> +{
-> +	int ret;
-> +	unsigned int plane;
-> +
-> +	for (plane = 0; plane < vb->num_planes; ++plane) {
-> +		ret = call_memop(vb, map_dmabuf, vb->planes[plane].mem_priv);
->  		if (ret) {
-> -			dprintk(1, "buffer initialization failed\n");
-> -			goto err;
-> +			dprintk(1, "failed to map dmabuf for plane %d\n",
-> +				plane);
-> +			return ret;
->  		}
-> +		vb->planes[plane].dbuf_mapped = 1;
-> +	}
-> +
-> +	/*
-> +	 * Call driver-specific initialization on the newly
-> +	 * acquired buffer, if provided.
-> +	 */
-> +	ret = call_vb_qop(vb, buf_init, vb);
-> +	if (ret) {
-> +		dprintk(1, "buffer initialization failed\n");
-> +		return ret;
->  	}
->  
->  	ret = call_vb_qop(vb, buf_prepare, vb);
->  	if (ret) {
->  		dprintk(1, "buffer preparation failed\n");
->  		call_void_vb_qop(vb, buf_cleanup, vb);
-> -		goto err;
-> +		return ret;
->  	}
->  
->  	return 0;
-> -err:
-> -	/* In case of errors, release planes that were already acquired */
-> -	__vb2_buf_dmabuf_put(vb);
-> -
-> -	return ret;
->  }
->  
->  /**
->   * __enqueue_in_driver() - enqueue a vb2_buffer in driver for processing
->   */
-> -static void __enqueue_in_driver(struct vb2_buffer *vb)
-> +static int __enqueue_in_driver(struct vb2_buffer *vb)
->  {
->  	struct vb2_queue *q = vb->vb2_queue;
->  	unsigned int plane;
-> +	int ret;
->  
->  	vb->state = VB2_BUF_STATE_ACTIVE;
->  	atomic_inc(&q->owned_by_drv_count);
->  
->  	trace_vb2_buf_queue(q, vb);
->  
-> +	if (q->memory == VB2_MEMORY_DMABUF) {
-> +		ret = __buf_map_dmabuf(vb);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
->  	/* sync buffers */
->  	for (plane = 0; plane < vb->num_planes; ++plane)
->  		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
->  
->  	call_void_vb_qop(vb, buf_queue, vb);
-> +
-> +	return 0;
->  }
->  
->  static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
-> @@ -1438,8 +1452,11 @@ static int vb2_start_streaming(struct vb2_queue *q)
->  	 * If any buffers were queued before streamon,
->  	 * we can now pass them to driver for processing.
->  	 */
-> -	list_for_each_entry(vb, &q->queued_list, queued_entry)
-> -		__enqueue_in_driver(vb);
-> +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-> +		ret = __enqueue_in_driver(vb);
-> +		if (ret < 0)
-> +			return ret;
-> +	}
->  
->  	/* Tell the driver to start streaming */
->  	q->start_streaming_called = 1;
-> @@ -1540,8 +1557,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
->  	 * If already streaming, give the buffer to driver for processing.
->  	 * If not, the buffer will be given to driver on next streamon.
->  	 */
-> -	if (q->start_streaming_called)
-> -		__enqueue_in_driver(vb);
-> +	if (q->start_streaming_called) {
-> +		ret = __enqueue_in_driver(vb);
-> +		if (ret)
-> +			return ret;
-> +	}
->  
->  	/* Fill buffer information for the userspace */
->  	if (pb)
-> 
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index b1e3a26..b5b5b19 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -123,6 +123,7 @@ struct dvb_ca_slot {
+ 
+ /* Private CA-interface information */
+ struct dvb_ca_private {
++	struct kref refcount;
+ 
+ 	/* pointer back to the public data structure */
+ 	struct dvb_ca_en50221 *pub;
+@@ -173,6 +174,22 @@ static void dvb_ca_private_free(struct dvb_ca_private *ca)
+ 	kfree(ca);
+ }
+ 
++static void dvb_ca_private_release(struct kref *ref)
++{
++	struct dvb_ca_private *ca = container_of(ref, struct dvb_ca_private, refcount);
++	dvb_ca_private_free(ca);
++}
++
++static void dvb_ca_private_get(struct dvb_ca_private *ca)
++{
++	kref_get(&ca->refcount);
++}
++
++static void dvb_ca_private_put(struct dvb_ca_private *ca)
++{
++	kref_put(&ca->refcount, dvb_ca_private_release);
++}
++
+ static void dvb_ca_en50221_thread_wakeup(struct dvb_ca_private *ca);
+ static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot, u8 * ebuf, int ecount);
+ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot, u8 * ebuf, int ecount);
+@@ -1570,6 +1587,8 @@ static int dvb_ca_en50221_io_open(struct inode *inode, struct file *file)
+ 	dvb_ca_en50221_thread_update_delay(ca);
+ 	dvb_ca_en50221_thread_wakeup(ca);
+ 
++	dvb_ca_private_get(ca);
++
+ 	return 0;
+ }
+ 
+@@ -1598,6 +1617,8 @@ static int dvb_ca_en50221_io_release(struct inode *inode, struct file *file)
+ 
+ 	module_put(ca->pub->owner);
+ 
++	dvb_ca_private_put(ca);
++
+ 	return err;
+ }
+ 
+@@ -1693,6 +1714,7 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
+ 		ret = -ENOMEM;
+ 		goto exit;
+ 	}
++	kref_init(&ca->refcount);
+ 	ca->pub = pubca;
+ 	ca->flags = flags;
+ 	ca->slot_count = slot_count;
+@@ -1772,6 +1794,6 @@ void dvb_ca_en50221_release(struct dvb_ca_en50221 *pubca)
+ 	for (i = 0; i < ca->slot_count; i++) {
+ 		dvb_ca_en50221_slot_shutdown(ca, i);
+ 	}
+-	dvb_ca_private_free(ca);
++	dvb_ca_private_put(ca);
+ 	pubca->private = NULL;
+ }
+
