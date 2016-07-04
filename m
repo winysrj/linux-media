@@ -1,60 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:34185 "EHLO
-	mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750868AbcG2Vo4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2016 17:44:56 -0400
-Date: Fri, 29 Jul 2016 16:44:54 -0500
-From: Rob Herring <robh@kernel.org>
-To: Songjun Wu <songjun.wu@microchip.com>
-Cc: nicolas.ferre@atmel.com, laurent.pinchart@ideasonboard.com,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v7 2/2] [media] atmel-isc: DT binding for Image Sensor
- Controller driver
-Message-ID: <20160729214454.GA21408@rob-hp-laptop>
-References: <1469778856-24253-1-git-send-email-songjun.wu@microchip.com>
- <1469778856-24253-3-git-send-email-songjun.wu@microchip.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1469778856-24253-3-git-send-email-songjun.wu@microchip.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:44694 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753025AbcGDLrU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 09/51] Documentation: video.rst: Restore the captions for the examples
+Date: Mon,  4 Jul 2016 08:46:30 -0300
+Message-Id: <69f9771c659958ecc7c8ba26e85c2f61f821b022.1467629488.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 29, 2016 at 03:54:08PM +0800, Songjun Wu wrote:
-> DT binding documentation for ISC driver.
-> 
-> Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
-> ---
-> 
-> Changes in v7: None
-> Changes in v6:
-> - Add "iscck" and "gck" to clock-names.
-> 
-> Changes in v5:
-> - Add clock-output-names.
-> 
-> Changes in v4:
-> - Remove the isc clock nodes.
-> 
-> Changes in v3:
-> - Remove the 'atmel,sensor-preferred'.
-> - Modify the isc clock node according to the Rob's remarks.
-> 
-> Changes in v2:
-> - Remove the unit address of the endpoint.
-> - Add the unit address to the clock node.
-> - Avoid using underscores in node names.
-> - Drop the "0x" in the unit address of the i2c node.
-> - Modify the description of 'atmel,sensor-preferred'.
-> - Add the description for the ISC internal clock.
-> 
->  .../devicetree/bindings/media/atmel-isc.txt        | 65 ++++++++++++++++++++++
->  1 file changed, 65 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
+There are two examples in the code, but the captions of them
+were lost during the ReST conversion. Manually add them again.
 
-Please add acks when posting new versions.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/linux_tv/media/v4l/video.rst | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Rob
+diff --git a/Documentation/linux_tv/media/v4l/video.rst b/Documentation/linux_tv/media/v4l/video.rst
+index f214bd835622..fc220be52c2b 100644
+--- a/Documentation/linux_tv/media/v4l/video.rst
++++ b/Documentation/linux_tv/media/v4l/video.rst
+@@ -28,8 +28,8 @@ applications call the :ref:`VIDIOC_S_INPUT <vidioc-g-input>` and
+ implement all the input ioctls when the device has one or more inputs,
+ all the output ioctls when the device has one or more outputs.
+ 
+-
+ .. code-block:: c
++    :caption: Example 1: Information about the current video input
+ 
+     struct v4l2_input input;
+     int index;
+@@ -51,6 +51,7 @@ all the output ioctls when the device has one or more outputs.
+ 
+ 
+ .. code-block:: c
++    :caption: Example 2: Switching to the first video input
+ 
+     int index;
+ 
+-- 
+2.7.4
+
+
