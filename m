@@ -1,168 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:60319 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750959AbcGQPCs (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44400 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753332AbcGDIcg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 11:02:48 -0400
+	Mon, 4 Jul 2016 04:32:36 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 5/7] cec: limit the size of the transmit queue
-Date: Sun, 17 Jul 2016 17:02:32 +0200
-Message-Id: <1468767754-48542-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1468767754-48542-1-git-send-email-hverkuil@xs4all.nl>
-References: <1468767754-48542-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 3/9] omap_vout: convert g/s_crop to g/s_selection.
+Date: Mon,  4 Jul 2016 10:32:16 +0200
+Message-Id: <1467621142-8064-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The size of the transmit queue was unlimited, which meant that
-in non-blocking mode you could flood the CEC adapter with messages
-to be transmitted.
-
-Limit this to 18 messages.
-
-Also print the number of pending transmits and the timeout value
-in the status debugfs file.
+This is part of a final push to convert all drivers to g/s_selection.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/staging/media/cec/cec-adap.c | 33 +++++++++++++++++++++++----------
- include/media/cec.h                  | 19 ++++++++++++++-----
- 2 files changed, 37 insertions(+), 15 deletions(-)
+ drivers/media/platform/omap/omap_vout.c | 54 +++++++++++++++++----------------
+ 1 file changed, 28 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
-index cd39a9a..159a893 100644
---- a/drivers/staging/media/cec/cec-adap.c
-+++ b/drivers/staging/media/cec/cec-adap.c
-@@ -156,10 +156,10 @@ static void cec_queue_msg_fh(struct cec_fh *fh, const struct cec_msg *msg)
- 	list_add_tail(&entry->list, &fh->msgs);
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index 70c28d1..2702b17 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -1247,36 +1247,34 @@ static int vidioc_g_fmt_vid_overlay(struct file *file, void *fh,
+ 	return 0;
+ }
  
- 	/*
--	 * if the queue now has more than CEC_MAX_MSG_QUEUE_SZ
-+	 * if the queue now has more than CEC_MAX_MSG_RX_QUEUE_SZ
- 	 * messages, drop the oldest one and send a lost message event.
- 	 */
--	if (fh->queued_msgs == CEC_MAX_MSG_QUEUE_SZ) {
-+	if (fh->queued_msgs == CEC_MAX_MSG_RX_QUEUE_SZ) {
- 		list_del(&entry->list);
- 		goto lost_msgs;
- 	}
-@@ -278,10 +278,13 @@ static void cec_data_cancel(struct cec_data *data)
- 	 * It's either the current transmit, or it is a pending
- 	 * transmit. Take the appropriate action to clear it.
- 	 */
--	if (data->adap->transmitting == data)
-+	if (data->adap->transmitting == data) {
- 		data->adap->transmitting = NULL;
--	else
-+	} else {
- 		list_del_init(&data->list);
-+		if (!(data->msg.tx_status & CEC_TX_STATUS_OK))
-+			data->adap->transmit_queue_sz--;
+-static int vidioc_cropcap(struct file *file, void *fh,
+-		struct v4l2_cropcap *cropcap)
++static int vidioc_g_selection(struct file *file, void *fh, struct v4l2_selection *sel)
+ {
+ 	struct omap_vout_device *vout = fh;
+ 	struct v4l2_pix_format *pix = &vout->pix;
+ 
+-	if (cropcap->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+ 		return -EINVAL;
+ 
+-	/* Width and height are always even */
+-	cropcap->bounds.width = pix->width & ~1;
+-	cropcap->bounds.height = pix->height & ~1;
+-
+-	omap_vout_default_crop(&vout->pix, &vout->fbuf, &cropcap->defrect);
+-	cropcap->pixelaspect.numerator = 1;
+-	cropcap->pixelaspect.denominator = 1;
+-	return 0;
+-}
+-
+-static int vidioc_g_crop(struct file *file, void *fh, struct v4l2_crop *crop)
+-{
+-	struct omap_vout_device *vout = fh;
+-
+-	if (crop->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++	switch (sel->target) {
++	case V4L2_SEL_TGT_CROP:
++		sel->r = vout->crop;
++		break;
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++		/* Width and height are always even */
++		sel->r.width = pix->width & ~1;
++		sel->r.height = pix->height & ~1;
++
++		if (sel->target == V4L2_SEL_TGT_CROP_DEFAULT)
++			omap_vout_default_crop(&vout->pix, &vout->fbuf, &sel->r);
++		break;
++	default:
+ 		return -EINVAL;
+-	crop->c = vout->crop;
 +	}
+ 	return 0;
+ }
  
- 	/* Mark it as an error */
- 	data->msg.tx_ts = ktime_get_ns();
-@@ -405,6 +408,7 @@ int cec_thread_func(void *_adap)
- 		data = list_first_entry(&adap->transmit_queue,
- 					struct cec_data, list);
- 		list_del_init(&data->list);
-+		adap->transmit_queue_sz--;
- 		/* Make this the current transmitting message */
- 		adap->transmitting = data;
+-static int vidioc_s_crop(struct file *file, void *fh, const struct v4l2_crop *crop)
++static int vidioc_s_selection(struct file *file, void *fh, struct v4l2_selection *sel)
+ {
+ 	int ret = -EINVAL;
+ 	struct omap_vout_device *vout = fh;
+@@ -1285,6 +1283,12 @@ static int vidioc_s_crop(struct file *file, void *fh, const struct v4l2_crop *cr
+ 	struct omap_video_timings *timing;
+ 	struct omap_dss_device *dssdev;
  
-@@ -498,6 +502,7 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
- 		data->attempts--;
- 		/* Add the message in front of the transmit queue */
- 		list_add(&data->list, &adap->transmit_queue);
-+		adap->transmit_queue_sz++;
- 		goto wake_thread;
- 	}
- 
-@@ -638,6 +643,9 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
- 	if (!adap->is_configured && !adap->is_configuring)
- 		return -ENONET;
- 
-+	if (adap->transmit_queue_sz >= CEC_MAX_MSG_TX_QUEUE_SZ)
-+		return -EBUSY;
++	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return -EINVAL;
 +
- 	data = kzalloc(sizeof(*data), GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
-@@ -682,6 +690,7 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
- 	if (fh)
- 		list_add_tail(&data->xfer_list, &fh->xfer_list);
- 	list_add_tail(&data->list, &adap->transmit_queue);
-+	adap->transmit_queue_sz++;
- 	if (!adap->transmitting)
- 		wake_up_interruptible(&adap->kthread_waitq);
- 
-@@ -1621,15 +1630,19 @@ int cec_adap_status(struct seq_file *file, void *priv)
- 			   adap->monitor_all_cnt);
- 	data = adap->transmitting;
- 	if (data)
--		seq_printf(file, "transmitting message: %*ph (reply: %02x)\n",
--			   data->msg.len, data->msg.msg, data->msg.reply);
-+		seq_printf(file, "transmitting message: %*ph (reply: %02x, timeout: %ums)\n",
-+			   data->msg.len, data->msg.msg, data->msg.reply,
-+			   data->msg.timeout);
-+	seq_printf(file, "pending transmits: %u\n", adap->transmit_queue_sz);
- 	list_for_each_entry(data, &adap->transmit_queue, list) {
--		seq_printf(file, "queued tx message: %*ph (reply: %02x)\n",
--			   data->msg.len, data->msg.msg, data->msg.reply);
-+		seq_printf(file, "queued tx message: %*ph (reply: %02x, timeout: %ums)\n",
-+			   data->msg.len, data->msg.msg, data->msg.reply,
-+			   data->msg.timeout);
- 	}
- 	list_for_each_entry(data, &adap->wait_queue, list) {
--		seq_printf(file, "message waiting for reply: %*ph (reply: %02x)\n",
--			   data->msg.len, data->msg.msg, data->msg.reply);
-+		seq_printf(file, "message waiting for reply: %*ph (reply: %02x, timeout: %ums)\n",
-+			   data->msg.len, data->msg.msg, data->msg.reply,
-+			   data->msg.timeout);
- 	}
- 
- 	call_void_op(adap, adap_status, file);
-diff --git a/include/media/cec.h b/include/media/cec.h
-index 9a791c0..dc7854b 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -126,12 +126,20 @@ struct cec_adap_ops {
-  * With a transfer rate of at most 36 bytes per second this makes 18 messages
-  * per second worst case.
-  *
-- * We queue at most 3 seconds worth of messages. The CEC specification requires
-- * that messages are replied to within a second, so 3 seconds should give more
-- * than enough margin. Since most messages are actually more than 2 bytes, this
-- * is in practice a lot more than 3 seconds.
-+ * We queue at most 3 seconds worth of received messages. The CEC specification
-+ * requires that messages are replied to within a second, so 3 seconds should
-+ * give more than enough margin. Since most messages are actually more than 2
-+ * bytes, this is in practice a lot more than 3 seconds.
-  */
--#define CEC_MAX_MSG_QUEUE_SZ		(18 * 3)
-+#define CEC_MAX_MSG_RX_QUEUE_SZ		(18 * 3)
++	if (sel->target != V4L2_SEL_TGT_CROP)
++		return -EINVAL;
 +
-+/*
-+ * The transmit queue is limited to 1 second worth of messages (worst case).
-+ * Messages can be transmitted by userspace and kernel space. But for both it
-+ * makes no sense to have a lot of messages queued up. One second seems
-+ * reasonable.
-+ */
-+#define CEC_MAX_MSG_TX_QUEUE_SZ		(18 * 1)
+ 	if (vout->streaming)
+ 		return -EBUSY;
  
- struct cec_adapter {
- 	struct module *owner;
-@@ -141,6 +149,7 @@ struct cec_adapter {
- 	struct rc_dev *rc;
+@@ -1309,9 +1313,8 @@ static int vidioc_s_crop(struct file *file, void *fh, const struct v4l2_crop *cr
+ 		vout->fbuf.fmt.width = timing->x_res;
+ 	}
  
- 	struct list_head transmit_queue;
-+	unsigned int transmit_queue_sz;
- 	struct list_head wait_queue;
- 	struct cec_data *transmitting;
+-	if (crop->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+-		ret = omap_vout_new_crop(&vout->pix, &vout->crop, &vout->win,
+-				&vout->fbuf, &crop->c);
++	ret = omap_vout_new_crop(&vout->pix, &vout->crop, &vout->win,
++				 &vout->fbuf, &sel->r);
  
+ s_crop_err:
+ 	mutex_unlock(&vout->lock);
+@@ -1839,9 +1842,8 @@ static const struct v4l2_ioctl_ops vout_ioctl_ops = {
+ 	.vidioc_try_fmt_vid_out_overlay		= vidioc_try_fmt_vid_overlay,
+ 	.vidioc_s_fmt_vid_out_overlay		= vidioc_s_fmt_vid_overlay,
+ 	.vidioc_g_fmt_vid_out_overlay		= vidioc_g_fmt_vid_overlay,
+-	.vidioc_cropcap				= vidioc_cropcap,
+-	.vidioc_g_crop				= vidioc_g_crop,
+-	.vidioc_s_crop				= vidioc_s_crop,
++	.vidioc_g_selection			= vidioc_g_selection,
++	.vidioc_s_selection			= vidioc_s_selection,
+ 	.vidioc_reqbufs				= vidioc_reqbufs,
+ 	.vidioc_querybuf			= vidioc_querybuf,
+ 	.vidioc_qbuf				= vidioc_qbuf,
 -- 
 2.8.1
 
