@@ -1,61 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:56576 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753417AbcGDIff (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 04:35:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: [PATCH 12/14] ivtv: use v4l2_g/s_ctrl instead of the g/s_ctrl ops.
-Date: Mon,  4 Jul 2016 10:35:08 +0200
-Message-Id: <1467621310-8203-13-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
-References: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.9]:44990 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753615AbcGDLr1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:27 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 16/51] Documentation: standard.rst: read the example captions
+Date: Mon,  4 Jul 2016 08:46:37 -0300
+Message-Id: <76d2d63ca7fcb336dadf6848de66838dd5bace54.1467629489.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Those got lost during format conversion.
 
-These ops are deprecated and should not be used anymore.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/pci/ivtv/ivtv-alsa-mixer.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/linux_tv/media/v4l/standard.rst | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/pci/ivtv/ivtv-alsa-mixer.c b/drivers/media/pci/ivtv/ivtv-alsa-mixer.c
-index 33ec05b..79b24bd 100644
---- a/drivers/media/pci/ivtv/ivtv-alsa-mixer.c
-+++ b/drivers/media/pci/ivtv/ivtv-alsa-mixer.c
-@@ -93,7 +93,7 @@ static int snd_ivtv_mixer_tv_vol_get(struct snd_kcontrol *kctl,
- 	vctrl.value = dB_to_cx25840_vol(uctl->value.integer.value[0]);
+diff --git a/Documentation/linux_tv/media/v4l/standard.rst b/Documentation/linux_tv/media/v4l/standard.rst
+index 20c0d044a129..11d1a7183c73 100644
+--- a/Documentation/linux_tv/media/v4l/standard.rst
++++ b/Documentation/linux_tv/media/v4l/standard.rst
+@@ -66,6 +66,7 @@ standard ioctls can be used with the given input or output.
  
- 	snd_ivtv_lock(itvsc);
--	ret = v4l2_subdev_call(itv->sd_audio, core, g_ctrl, &vctrl);
-+	ret = v4l2_g_ctrl(itv->sd_audio->ctrl_handler, &vctrl);
- 	snd_ivtv_unlock(itvsc);
  
- 	if (!ret)
-@@ -115,14 +115,14 @@ static int snd_ivtv_mixer_tv_vol_put(struct snd_kcontrol *kctl,
- 	snd_ivtv_lock(itvsc);
+ .. code-block:: c
++    :caption: Example 5: Information about the current video standard
  
- 	/* Fetch current state */
--	ret = v4l2_subdev_call(itv->sd_audio, core, g_ctrl, &vctrl);
-+	ret = v4l2_g_ctrl(itv->sd_audio->ctrl_handler, &vctrl);
+     v4l2_std_id std_id;
+     struct v4l2_standard standard;
+@@ -101,6 +102,7 @@ standard ioctls can be used with the given input or output.
  
- 	if (ret ||
- 	    (cx25840_vol_to_dB(vctrl.value) != uctl->value.integer.value[0])) {
  
- 		/* Set, if needed */
- 		vctrl.value = dB_to_cx25840_vol(uctl->value.integer.value[0]);
--		ret = v4l2_subdev_call(itv->sd_audio, core, s_ctrl, &vctrl);
-+		ret = v4l2_s_ctrl(itv->sd_audio->ctrl_handler, &vctrl);
- 		if (!ret)
- 			ret = 1; /* Indicate control was changed w/o error */
- 	}
+ .. code-block:: c
++    :caption: Example 6: Listing the video standards supported by the current input
+ 
+     struct v4l2_input input;
+     struct v4l2_standard standard;
+@@ -139,6 +141,7 @@ standard ioctls can be used with the given input or output.
+ 
+ 
+ .. code-block:: c
++    :caption: Example 7: Selecting a new video standard
+ 
+     struct v4l2_input input;
+     v4l2_std_id std_id;
 -- 
-2.8.1
+2.7.4
+
 
