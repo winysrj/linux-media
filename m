@@ -1,58 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:52640 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753481AbcGUQ7G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 12:59:06 -0400
-Date: Thu, 21 Jul 2016 10:59:04 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-doc@vger.kernel.org, Jani Nikula <jani.nikula@intel.com>
-Subject: Re: [PATCH 00/18] Complete moving media documentation to ReST
- format
-Message-ID: <20160721105904.55733f6e@lwn.net>
-In-Reply-To: <A1987523-8798-4744-81B3-8DA678651634@darmarit.de>
-References: <cover.1468865380.git.mchehab@s-opensource.com>
-	<578DF08F.8080701@xs4all.nl>
-	<20160719081259.482a8c04@recife.lan>
-	<6702C6D4-929F-420D-9CF9-911CA753B0A7@darmarit.de>
-	<20160719115319.316349a7@recife.lan>
-	<20160719164916.3ebb1c74@lwn.net>
-	<20160719210023.2f8280ac@recife.lan>
-	<E8A50DCE-D40B-4C4C-B899-E48F3C0C9CDA@darmarit.de>
-	<20160720172858.6659275d@lwn.net>
-	<A1987523-8798-4744-81B3-8DA678651634@darmarit.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40715 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932386AbcGDNfE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jul 2016 09:35:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/7] adv7511: fix quantization range handling
+Date: Mon,  4 Jul 2016 15:34:47 +0200
+Message-Id: <1467639292-1066-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467639292-1066-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467639292-1066-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 21 Jul 2016 16:41:53 +0200
-Markus Heiser <markus.heiser@darmarit.de> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Am 21.07.2016 um 01:28 schrieb Jonathan Corbet <corbet@lwn.net>:
->
-> > I would hope that most people wouldn't have to worry about it, and would
-> > be able to just use what their distribution provides - that's the reason
-> > for the 1.2 compatibility requirement in the first place.  
-> 
-> Yes, but this is not what I mean ;) ... if someone use a distro 
-> with a version > 1.2 and he use features not in 1.2, you -- the
-> maintainer -- will get into trouble. 
+Commit 1fb69bfd29e4b2e5e93922105326dd6cbd5ef6eb (adv7511: improve
+colorspace handling) introduced a number of bugs, specifically with
+regards to YCbCr output and quantization range handling:
 
-Well, that's what we keep maintainers around.  The same holds for any
-maintainer if somebody adds a dependency on a too-new version of some other
-tool.  Such things happen, we simply fix them when they do.
+- if the output is not RGB, then disable the full-to-limited range
+  CSC matrix since that is meant for RGB formats. YCbCr formats are
+  always limited range, so there is nothing to convert. (OK, full
+  range YCbCr is possible, but we don't support that right now).
 
-> IMHO contributors need a reference documentation (e.g. at kernel.org)
-> and a reference build environment (like you, see below).
+- the mediabus code that was passed to adv7511_set_fmt was always cleared
+  by the memset in adv7511_fill_format. This made it effectively impossible
+  to select YCbCr output.
 
-Reference documentation, yes.  But I don't think every developer needs a
-Sphinx 1.2 installation, just like they don't need to have gcc 3.2 around.
-It's enough that somebody has it and will catch problems.
+- adv7511_set_fmt never updated the rgb quantization range.
 
-jon
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7511.c | 30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
+index 1695da0..161cbdb 100644
+--- a/drivers/media/i2c/adv7511.c
++++ b/drivers/media/i2c/adv7511.c
+@@ -343,16 +343,20 @@ static void adv7511_csc_rgb_full2limit(struct v4l2_subdev *sd, bool enable)
+ 	}
+ }
+ 
+-static int adv7511_set_rgb_quantization_mode(struct v4l2_subdev *sd, struct v4l2_ctrl *ctrl)
++static void adv7511_set_rgb_quantization_mode(struct v4l2_subdev *sd, struct v4l2_ctrl *ctrl)
+ {
++	struct adv7511_state *state = get_adv7511_state(sd);
++
++	/* Only makes sense for RGB formats */
++	if (state->fmt_code != MEDIA_BUS_FMT_RGB888_1X24) {
++		/* so just keep quantization */
++		adv7511_csc_rgb_full2limit(sd, false);
++		return;
++	}
++
+ 	switch (ctrl->val) {
+-	default:
+-		return -EINVAL;
+-		break;
+-	case V4L2_DV_RGB_RANGE_AUTO: {
++	case V4L2_DV_RGB_RANGE_AUTO:
+ 		/* automatic */
+-		struct adv7511_state *state = get_adv7511_state(sd);
+-
+ 		if (state->dv_timings.bt.flags & V4L2_DV_FL_IS_CE_VIDEO) {
+ 			/* CE format, RGB limited range (16-235) */
+ 			adv7511_csc_rgb_full2limit(sd, true);
+@@ -360,7 +364,6 @@ static int adv7511_set_rgb_quantization_mode(struct v4l2_subdev *sd, struct v4l2
+ 			/* not CE format, RGB full range (0-255) */
+ 			adv7511_csc_rgb_full2limit(sd, false);
+ 		}
+-	}
+ 		break;
+ 	case V4L2_DV_RGB_RANGE_LIMITED:
+ 		/* RGB limited range (16-235) */
+@@ -371,7 +374,6 @@ static int adv7511_set_rgb_quantization_mode(struct v4l2_subdev *sd, struct v4l2
+ 		adv7511_csc_rgb_full2limit(sd, false);
+ 		break;
+ 	}
+-	return 0;
+ }
+ 
+ /* ------------------------------ CTRL OPS ------------------------------ */
+@@ -388,8 +390,10 @@ static int adv7511_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		adv7511_wr_and_or(sd, 0xaf, 0xfd, ctrl->val == V4L2_DV_TX_MODE_HDMI ? 0x02 : 0x00);
+ 		return 0;
+ 	}
+-	if (state->rgb_quantization_range_ctrl == ctrl)
+-		return adv7511_set_rgb_quantization_mode(sd, ctrl);
++	if (state->rgb_quantization_range_ctrl == ctrl) {
++		adv7511_set_rgb_quantization_mode(sd, ctrl);
++		return 0;
++	}
+ 	if (state->content_type_ctrl == ctrl) {
+ 		u8 itc, cn;
+ 
+@@ -941,8 +945,6 @@ static int adv7511_enum_mbus_code(struct v4l2_subdev *sd,
+ static void adv7511_fill_format(struct adv7511_state *state,
+ 				struct v4l2_mbus_framefmt *format)
+ {
+-	memset(format, 0, sizeof(*format));
+-
+ 	format->width = state->dv_timings.bt.width;
+ 	format->height = state->dv_timings.bt.height;
+ 	format->field = V4L2_FIELD_NONE;
+@@ -957,6 +959,7 @@ static int adv7511_get_fmt(struct v4l2_subdev *sd,
+ 	if (format->pad != 0)
+ 		return -EINVAL;
+ 
++	memset(&format->format, 0, sizeof(format->format));
+ 	adv7511_fill_format(state, &format->format);
+ 
+ 	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+@@ -1117,6 +1120,7 @@ static int adv7511_set_fmt(struct v4l2_subdev *sd,
+ 	adv7511_wr_and_or(sd, 0x57, 0x83, (ec << 4) | (q << 2) | (itc << 7));
+ 	adv7511_wr_and_or(sd, 0x59, 0x0f, (yq << 6) | (cn << 4));
+ 	adv7511_wr_and_or(sd, 0x4a, 0xff, 1);
++	adv7511_set_rgb_quantization_mode(sd, state->rgb_quantization_range_ctrl);
+ 
+ 	return 0;
+ }
+-- 
+2.8.1
+
