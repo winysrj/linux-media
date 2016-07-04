@@ -1,101 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33165 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754974AbcGFPkv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 11:40:51 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com
-Cc: niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
-	laurent.pinchart@ideasonboard.com, william.towle@codethink.co.uk,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v5 3/4] ARM: dts: koelsch: add HDMI input
-Date: Wed,  6 Jul 2016 17:39:35 +0200
-Message-Id: <1467819576-17743-4-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1467819576-17743-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1467819576-17743-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37051 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753332AbcGDIcj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jul 2016 04:32:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: [PATCH 6/9] vpfe_capture: convert g/s_crop to g/s_selection.
+Date: Mon,  4 Jul 2016 10:32:19 +0200
+Message-Id: <1467621142-8064-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hverkuil@xs4all.nl>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add support in the dts for the HDMI input. Based on the Lager dts
-patch from Ultich Hecht.
+This is part of a final push to convert all drivers to g/s_selection.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-[uli: removed "renesas," prefixes from pfc nodes]
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
 ---
- arch/arm/boot/dts/r8a7791-koelsch.dts | 41 +++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+ drivers/media/platform/davinci/vpfe_capture.c | 52 +++++++++++++++++----------
+ 1 file changed, 34 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/boot/dts/r8a7791-koelsch.dts b/arch/arm/boot/dts/r8a7791-koelsch.dts
-index f8a7d09..097322a 100644
---- a/arch/arm/boot/dts/r8a7791-koelsch.dts
-+++ b/arch/arm/boot/dts/r8a7791-koelsch.dts
-@@ -393,6 +393,11 @@
- 		function = "usb1";
- 	};
+diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+index 7767e07..6efb2f1 100644
+--- a/drivers/media/platform/davinci/vpfe_capture.c
++++ b/drivers/media/platform/davinci/vpfe_capture.c
+@@ -1610,38 +1610,53 @@ static int vpfe_cropcap(struct file *file, void *priv,
  
-+	vin0_pins: vin0 {
-+		groups = "vin0_data24", "vin0_sync", "vin0_clkenb", "vin0_clk";
-+		function = "vin0";
-+	};
-+
- 	vin1_pins: vin1 {
- 		groups = "vin1_data8", "vin1_clk";
- 		function = "vin1";
-@@ -551,6 +556,21 @@
- 		reg = <0x12>;
- 	};
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_cropcap\n");
  
-+	hdmi-in@4c {
-+		compatible = "adi,adv7612";
-+		reg = <0x4c>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
-+		remote = <&vin0>;
-+		default-input = <0>;
+-	if (vpfe_dev->std_index >= ARRAY_SIZE(vpfe_standards))
++	if (crop->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
++	/* If std_index is invalid, then just return (== 1:1 aspect) */
++	if (vpfe_dev->std_index >= ARRAY_SIZE(vpfe_standards))
++		return 0;
+ 
+-	memset(crop, 0, sizeof(struct v4l2_cropcap));
+-	crop->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	crop->bounds.width = crop->defrect.width =
+-		vpfe_standards[vpfe_dev->std_index].width;
+-	crop->bounds.height = crop->defrect.height =
+-		vpfe_standards[vpfe_dev->std_index].height;
+ 	crop->pixelaspect = vpfe_standards[vpfe_dev->std_index].pixelaspect;
+ 	return 0;
+ }
+ 
+-static int vpfe_g_crop(struct file *file, void *priv,
+-			     struct v4l2_crop *crop)
++static int vpfe_g_selection(struct file *file, void *priv,
++			    struct v4l2_selection *sel)
+ {
+ 	struct vpfe_device *vpfe_dev = video_drvdata(file);
+ 
+-	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_g_crop\n");
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_g_selection\n");
+ 
+-	crop->c = vpfe_dev->crop;
++	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
 +
-+		port {
-+			adv7612: endpoint {
-+				remote-endpoint = <&vin0ep>;
-+			};
-+		};
-+	};
++	switch (sel->target) {
++	case V4L2_SEL_TGT_CROP:
++		sel->r = vpfe_dev->crop;
++		break;
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++		sel->r.width = vpfe_standards[vpfe_dev->std_index].width;
++		sel->r.height = vpfe_standards[vpfe_dev->std_index].height;
++		break;
++	default:
++		return -EINVAL;
++	}
+ 	return 0;
+ }
+ 
+-static int vpfe_s_crop(struct file *file, void *priv,
+-			     const struct v4l2_crop *crop)
++static int vpfe_s_selection(struct file *file, void *priv,
++			    struct v4l2_selection *sel)
+ {
+ 	struct vpfe_device *vpfe_dev = video_drvdata(file);
+-	struct v4l2_rect rect = crop->c;
++	struct v4l2_rect rect = sel->r;
+ 	int ret = 0;
+ 
+-	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_crop\n");
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_selection\n");
 +
- 	composite-in@20 {
- 		compatible = "adi,adv7180";
- 		reg = <0x20>;
-@@ -672,6 +692,27 @@
- 	cpu0-supply = <&vdd_dvfs>;
++	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
++	    sel->target != V4L2_SEL_TGT_CROP)
++		return -EINVAL;
+ 
+ 	if (vpfe_dev->started) {
+ 		/* make sure streaming is not started */
+@@ -1669,7 +1684,7 @@ static int vpfe_s_crop(struct file *file, void *priv,
+ 		vpfe_dev->std_info.active_pixels) ||
+ 	    (rect.top + rect.height >
+ 		vpfe_dev->std_info.active_lines)) {
+-		v4l2_err(&vpfe_dev->v4l2_dev, "Error in S_CROP params\n");
++		v4l2_err(&vpfe_dev->v4l2_dev, "Error in S_SELECTION params\n");
+ 		ret = -EINVAL;
+ 		goto unlock_out;
+ 	}
+@@ -1682,6 +1697,7 @@ static int vpfe_s_crop(struct file *file, void *priv,
+ 		vpfe_dev->fmt.fmt.pix.bytesperline *
+ 		vpfe_dev->fmt.fmt.pix.height;
+ 	vpfe_dev->crop = rect;
++	sel->r = rect;
+ unlock_out:
+ 	mutex_unlock(&vpfe_dev->lock);
+ 	return ret;
+@@ -1760,8 +1776,8 @@ static const struct v4l2_ioctl_ops vpfe_ioctl_ops = {
+ 	.vidioc_streamon	 = vpfe_streamon,
+ 	.vidioc_streamoff	 = vpfe_streamoff,
+ 	.vidioc_cropcap		 = vpfe_cropcap,
+-	.vidioc_g_crop		 = vpfe_g_crop,
+-	.vidioc_s_crop		 = vpfe_s_crop,
++	.vidioc_g_selection	 = vpfe_g_selection,
++	.vidioc_s_selection	 = vpfe_s_selection,
+ 	.vidioc_default		 = vpfe_param_handler,
  };
  
-+/* HDMI video input */
-+&vin0 {
-+	status = "okay";
-+	pinctrl-0 = <&vin0_pins>;
-+	pinctrl-names = "default";
-+
-+	port {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		vin0ep: endpoint {
-+			remote-endpoint = <&adv7612>;
-+			bus-width = <24>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+			data-active = <1>;
-+		};
-+	};
-+};
-+
- /* composite video input */
- &vin1 {
- 	status = "okay";
 -- 
-2.7.4
+2.8.1
 
