@@ -1,62 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35244 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191AbcGMLDH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 07:03:07 -0400
-Received: by mail-wm0-f68.google.com with SMTP id i5so5469371wmg.2
-        for <linux-media@vger.kernel.org>; Wed, 13 Jul 2016 04:03:01 -0700 (PDT)
-Date: Wed, 13 Jul 2016 13:02:41 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Chris Wilson <chris@chris-wilson.co.uk>,
-	Peter Zijlstra <peterz@infradead.org>,
-	linux-kernel@vger.kernel.org,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Tejun Heo <tj@kernel.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Ingo Molnar <mingo@kernel.org>,
-	Kees Cook <keescook@chromium.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Andrey Ryabinin <aryabinin@virtuozzo.com>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Dmitry Vyukov <dvyukov@google.com>,
-	Alexander Potapenko <glider@google.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org
-Subject: Re: [PATCH 2/9] async: Introduce kfence, a N:M completion mechanism
-Message-ID: <20160713110241.GE23520@phenom.ffwll.local>
-References: <1466759333-4703-1-git-send-email-chris@chris-wilson.co.uk>
- <1466759333-4703-3-git-send-email-chris@chris-wilson.co.uk>
- <20160713093852.GZ30921@twins.programming.kicks-ass.net>
- <20160713102014.GC6157@nuc-i3427.alporthouse.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:41047 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753595AbcGDTg2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jul 2016 15:36:28 -0400
+Subject: Re: si2157: new revision?
+To: Oleh Kravchenko <oleg@kaa.org.ua>, linux-media@vger.kernel.org
+References: <1467243499-26093-1-git-send-email-crope@iki.fi>
+ <1467243499-26093-3-git-send-email-crope@iki.fi>
+ <577AAD3C.2060204@kaa.org.ua> <46faadd5-80dc-bb71-be24-8b05fb035423@iki.fi>
+ <577AB16A.3050902@kaa.org.ua>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <dd130cf4-9997-2a24-dee4-b9d81145d2f6@iki.fi>
+Date: Mon, 4 Jul 2016 22:36:26 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160713102014.GC6157@nuc-i3427.alporthouse.com>
+In-Reply-To: <577AB16A.3050902@kaa.org.ua>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 13, 2016 at 11:20:14AM +0100, Chris Wilson wrote:
-> On Wed, Jul 13, 2016 at 11:38:52AM +0200, Peter Zijlstra wrote:
-> > Also, I'm not a particular fan of the k* naming, but I see 'fence' is
-> > already taken.
-> 
-> Agreed, I really want to rename the dma-buf fence to struct dma_fence -
-> we would need to do that whilst it dma-buf fencing is still in its infancy.
+I am not interested at all about analog support. Analog transmissions 
+are ran down many, many years ago here.
 
-+1 on dma_fence, seems to make more sense than plain struct fence.
-Probably best to do after the recent pile of work from Gustavo to de-stage
-sync_file has landed.
--Daniel
+regards
+Antti
+
+
+On 07/04/2016 09:56 PM, Oleh Kravchenko wrote:
+> Thank you for your reply!
+>
+> What about Analog TV support? Do you plan to implement it?
+>
+> On 04.07.16 21:47, Antti Palosaari wrote:
+>> Hello
+>> On 07/04/2016 09:38 PM, Oleh Kravchenko wrote:
+>>> Hello Antti!
+>>>
+>>> I started reverse-engineering of my new TV tuner "Evromedia USB Full
+>>> Hybrid Full HD" and discovered that start sequence is different from
+>>> si2157.c:
+>>> i2c_read_C1
+>>>  1 \xFE
+>>> i2c_write_C0
+>>>  15 \xC0\x00\x00\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01
+>>>
+>>> Do you familiar with this revision?
+>>> Should I merge my changes to si2158.c?
+>>> Or define another driver?
+>>
+>> According to chip markings those are tuner Si2158-A20 and demod
+>> Si2168-A30. Both are supported already by si2157 and si2168 drivers.
+>>
+>> Difference is just some settings. You need to identify which setting is
+>> wrong and add that to configuration options. It should be pretty easy to
+>> find it from the I2C dumps and just testing.
+>>
+>> regards
+>> Antti
+>>
+
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+http://palosaari.fi/
