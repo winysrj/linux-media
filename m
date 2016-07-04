@@ -1,186 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44810 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753585AbcGDLrX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:23 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 26/51] Documentation: linux_tv: use Example x.y. instead of a single number
-Date: Mon,  4 Jul 2016 08:46:47 -0300
-Message-Id: <a7366d84e8a699b297bece688004d6ed20bf84db.1467629489.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34445 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753515AbcGDUv5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 16:51:57 -0400
+Received: by mail-wm0-f65.google.com with SMTP id 187so24184011wmz.1
+        for <linux-media@vger.kernel.org>; Mon, 04 Jul 2016 13:51:56 -0700 (PDT)
+Subject: Re: [PATCH] media: rc: nuvoton: decrease size of raw event fifo
+To: Sean Young <sean@mess.org>
+References: <aa9c30cd-5364-f460-2967-8a028b1093db@gmail.com>
+ <20160704201338.GA28620@gofer.mess.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Message-ID: <fa0d5ad8-961d-60f2-f2e4-eeb7407e0210@gmail.com>
+Date: Mon, 4 Jul 2016 22:51:50 +0200
+MIME-Version: 1.0
+In-Reply-To: <20160704201338.GA28620@gofer.mess.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On the example captions, use always <chapter>.<number>., because:
-1) it matches the DocBook;
-2) it would mean less changes if we need to add a new example,
-as only one chapter will be affected.
+Am 04.07.2016 um 22:13 schrieb Sean Young:
+> On Wed, May 18, 2016 at 10:29:41PM +0200, Heiner Kallweit wrote:
+>> This chip has a 32 byte HW FIFO only. Therefore the default fifo size
+>> of 512 raw events is not needed and can be significantly decreased.
+>>
+>> Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+> 
+> The 32 byte hardware queue is read from an interrupt handler and added
+> to the kfifo. The kfifo is read by the decoders in a seperate kthread
+> (in ir_raw_event_thread). If we have a long IR (e.g. nec which has 
+> 66 edges) and the kthread is not scheduled in time (e.g. high load), will
+> we not end up with an overflow in the kfifo and unable to decode it?
+> 
+The interrupt handler is triggered latest when 24 bytes have been read.
+(at least that's how the chip gets configured at the moment)
+This gives the decoder thread at least 8 bytes time to process the
+kfifo. This should be sufficient even under high load.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/linux_tv/media/v4l/audio.rst    | 4 ++--
- Documentation/linux_tv/media/v4l/control.rst  | 6 +++---
- Documentation/linux_tv/media/v4l/crop.rst     | 8 ++++----
- Documentation/linux_tv/media/v4l/standard.rst | 6 +++---
- Documentation/linux_tv/media/v4l/video.rst    | 4 ++--
- 5 files changed, 14 insertions(+), 14 deletions(-)
+If somebody configures the driver the generate an interrupt after 32 bytes
+only then there are possible issues under high load or with longer code
+pieces with interrupts disabled anyway:
+Then the next byte might arrive (and make the chip fifo overrun) before
+the interrupt handler can read the chip fifo.
 
-diff --git a/Documentation/linux_tv/media/v4l/audio.rst b/Documentation/linux_tv/media/v4l/audio.rst
-index e9d99f6a259a..bc2db0d8f389 100644
---- a/Documentation/linux_tv/media/v4l/audio.rst
-+++ b/Documentation/linux_tv/media/v4l/audio.rst
-@@ -55,7 +55,7 @@ the :ref:`VIDIOC_QUERYCAP` ioctl.
- 
- 
- .. code-block:: c
--    :caption: Example 3: Information about the current audio input
-+    :caption: Example 1.3. Information about the current audio input
- 
-     struct v4l2_audio audio;
- 
-@@ -70,7 +70,7 @@ the :ref:`VIDIOC_QUERYCAP` ioctl.
- 
- 
- .. code-block:: c
--    :caption: Example 4: Switching to the first audio input
-+    :caption: Example 1.4. Switching to the first audio input
- 
-     struct v4l2_audio audio;
- 
-diff --git a/Documentation/linux_tv/media/v4l/control.rst b/Documentation/linux_tv/media/v4l/control.rst
-index 736d79080229..4f64f1db6ec8 100644
---- a/Documentation/linux_tv/media/v4l/control.rst
-+++ b/Documentation/linux_tv/media/v4l/control.rst
-@@ -374,7 +374,7 @@ more menu type controls.
- .. _enum_all_controls:
- 
- .. code-block:: c
--    :caption: Example 8: Enumerating all user controls
-+    :caption: Example 1.8. Enumerating all user controls
- 
- 
-     struct v4l2_queryctrl queryctrl;
-@@ -439,7 +439,7 @@ more menu type controls.
- 
- 
- .. code-block:: c
--    :caption: Example 9: Enumerating all user controls (alternative)
-+    :caption: Example 1.9. Enumerating all user controls (alternative)
- 
-     memset(&queryctrl, 0, sizeof(queryctrl));
- 
-@@ -464,7 +464,7 @@ more menu type controls.
- 
- 
- .. code-block:: c
--    :caption: Example 10: Changing controls
-+    :caption: Example 1.10. Changing controls
- 
-     struct v4l2_queryctrl queryctrl;
-     struct v4l2_control control;
-diff --git a/Documentation/linux_tv/media/v4l/crop.rst b/Documentation/linux_tv/media/v4l/crop.rst
-index e1214d85b9c7..16d0983ff9fb 100644
---- a/Documentation/linux_tv/media/v4l/crop.rst
-+++ b/Documentation/linux_tv/media/v4l/crop.rst
-@@ -148,7 +148,7 @@ ensure the parameters are suitable before starting I/O.
- change ``V4L2_BUF_TYPE_VIDEO_CAPTURE`` for other types of device.
- 
- .. code-block:: c
--    :caption: Example 11: Resetting the cropping parameters
-+    :caption: Example 1.11. Resetting the cropping parameters
- 
-     struct v4l2_cropcap cropcap;
-     struct v4l2_crop crop;
-@@ -174,7 +174,7 @@ change ``V4L2_BUF_TYPE_VIDEO_CAPTURE`` for other types of device.
-     }
- 
- .. code-block:: c
--    :caption: Example 12: Simple downscaling
-+    :caption: Example 1.12. Simple downscaling
- 
-     struct v4l2_cropcap cropcap;
-     struct v4l2_format format;
-@@ -202,7 +202,7 @@ change ``V4L2_BUF_TYPE_VIDEO_CAPTURE`` for other types of device.
- **NOTE:** This example assumes an output device.
- 
- .. code-block:: c
--    :caption: Example 13. Selecting an output area
-+    :caption: Example 1.13. Selecting an output area
- 
-     struct v4l2_cropcap cropcap;
-     struct v4l2_crop crop;
-@@ -239,7 +239,7 @@ change ``V4L2_BUF_TYPE_VIDEO_CAPTURE`` for other types of device.
- **NOTE:** This example assumes a video capture device.
- 
- .. code-block:: c
--    :caption: Example 14: Current scaling factor and pixel aspect
-+    :caption: Example 1.14. Current scaling factor and pixel aspect
- 
-     struct v4l2_cropcap cropcap;
-     struct v4l2_crop crop;
-diff --git a/Documentation/linux_tv/media/v4l/standard.rst b/Documentation/linux_tv/media/v4l/standard.rst
-index 11d1a7183c73..4131ca880268 100644
---- a/Documentation/linux_tv/media/v4l/standard.rst
-+++ b/Documentation/linux_tv/media/v4l/standard.rst
-@@ -66,7 +66,7 @@ standard ioctls can be used with the given input or output.
- 
- 
- .. code-block:: c
--    :caption: Example 5: Information about the current video standard
-+    :caption: Example 1.5. Information about the current video standard
- 
-     v4l2_std_id std_id;
-     struct v4l2_standard standard;
-@@ -102,7 +102,7 @@ standard ioctls can be used with the given input or output.
- 
- 
- .. code-block:: c
--    :caption: Example 6: Listing the video standards supported by the current input
-+    :caption: Example 1.6. Listing the video standards supported by the current input
- 
-     struct v4l2_input input;
-     struct v4l2_standard standard;
-@@ -141,7 +141,7 @@ standard ioctls can be used with the given input or output.
- 
- 
- .. code-block:: c
--    :caption: Example 7: Selecting a new video standard
-+    :caption: Example 1.7. Selecting a new video standard
- 
-     struct v4l2_input input;
-     v4l2_std_id std_id;
-diff --git a/Documentation/linux_tv/media/v4l/video.rst b/Documentation/linux_tv/media/v4l/video.rst
-index 8e10ecc27123..b8ecc774719c 100644
---- a/Documentation/linux_tv/media/v4l/video.rst
-+++ b/Documentation/linux_tv/media/v4l/video.rst
-@@ -29,7 +29,7 @@ implement all the input ioctls when the device has one or more inputs,
- all the output ioctls when the device has one or more outputs.
- 
- .. code-block:: c
--    :caption: Example 1: Information about the current video input
-+    :caption: Example 1.1. Information about the current video input
- 
-     struct v4l2_input input;
-     int index;
-@@ -51,7 +51,7 @@ all the output ioctls when the device has one or more outputs.
- 
- 
- .. code-block:: c
--    :caption: Example 2: Switching to the first video input
-+    :caption: Example 1.2. Switching to the first video input
- 
-     int index;
- 
--- 
-2.7.4
+Heiner
 
+> 
+> Sean
+> 
+>> ---
+>>  drivers/media/rc/nuvoton-cir.c | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+>> index 99b303b..e98c955 100644
+>> --- a/drivers/media/rc/nuvoton-cir.c
+>> +++ b/drivers/media/rc/nuvoton-cir.c
+>> @@ -1186,6 +1186,7 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+>>  	rdev->priv = nvt;
+>>  	rdev->driver_type = RC_DRIVER_IR_RAW;
+>>  	rdev->allowed_protocols = RC_BIT_ALL;
+>> +	rdev->raw_fifo_size = RX_BUF_LEN;
+>>  	rdev->open = nvt_open;
+>>  	rdev->close = nvt_close;
+>>  	rdev->tx_ir = nvt_tx_ir;
+>> -- 
+>> 2.8.2
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
