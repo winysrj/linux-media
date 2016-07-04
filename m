@@ -1,103 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:15047 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750907AbcGMCA1 (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44400 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753337AbcGDIci (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 22:00:27 -0400
-Message-ID: <1468375209.2462.20.camel@mtksdaap41>
-Subject: Re: [PATCH v3 3/9] DocBook/v4l: Add compressed video formats used
- on MT8173 codec driver
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: <nicolas@ndufresne.ca>
-CC: Wu-Cheng Li =?UTF-8?Q?=28=E6=9D=8E=E5=8B=99=E8=AA=A0=29?=
-	<wuchengli@chromium.org>, Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Daniel Thompson <daniel.thompson@linaro.org>,
-	"Rob Herring" <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>,
-	Lin PoChun <PoChun.Lin@mediatek.com>
-Date: Wed, 13 Jul 2016 10:00:09 +0800
-In-Reply-To: <1468350842.8843.18.camel@gmail.com>
-References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
-	   <1464611363-14936-2-git-send-email-tiffany.lin@mediatek.com>
-	   <1464611363-14936-3-git-send-email-tiffany.lin@mediatek.com>
-	   <1464611363-14936-4-git-send-email-tiffany.lin@mediatek.com>
-	   <5a793171-24a7-4e9e-8bfd-f668c789f8e0@xs4all.nl>
-	  <1468205771.3725.8.camel@mtksdaap41>
-	  <CAOMLVLiZU3D587dSyp2b2v4DV+MS9vh85bA4BoG7ddK6556rbA@mail.gmail.com>
-	 <1468350511.8843.16.camel@gmail.com> <1468350842.8843.18.camel@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-MIME-Version: 1.0
+	Mon, 4 Jul 2016 04:32:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 5/9] zoran: convert g/s_crop to g/s_selection.
+Date: Mon,  4 Jul 2016 10:32:18 +0200
+Message-Id: <1467621142-8064-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Tue, 2016-07-12 at 15:14 -0400, Nicolas Dufresne wrote:
-> Le mardi 12 juillet 2016 à 15:08 -0400, Nicolas Dufresne a écrit :
-> > Le mardi 12 juillet 2016 à 16:16 +0800, Wu-Cheng Li (李務誠) a écrit :
-> > > Decoder hardware produces MT21 (compressed). Image processor can
-> > > convert it to a format that can be input of display driver.
-> > > Tiffany.
-> > > When do you plan to upstream image processor (mtk-mdp)?
-> > > > 
-> > > > It can be as input format for encoder, MDP and display drivers in
-> > > our
-> > > > platform.
-> > > I remember display driver can only accept uncompressed MT21. Right?
-> > > Basically V4L2_PIX_FMT_MT21 is compressed and is like an opaque
-> > > format. It's not usable until it's decompressed and converted by
-> > > image
-> > > processor.
-> > 
-> > Previously it was described as MediaTek block mode, and now as a
-> > MediaTek compressed format. It makes me think you have no idea what
-> > this pixel format really is. Is that right ?
-> > 
-> > The main reason why I keep asking, is that we often find similarities
-> > between what vendor like to call their proprietary formats. Doing the
-> > proper research helps not creating a mess like in Android where you
-> > have a lot of formats that all point to the same format. I believe
-> > there was the same concern when Samsung wanted to introduce their Z-
-> > flip-Z NV12 tile format. In the end they simply provided sufficient
-> > documentation so we could document it and implement software
-> > converters
-> > for test and validation purpose.
-> 
-> Here's the kind of information we want in the documentation.
-> 
-> https://chromium.googlesource.com/chromium/src/media/+/master/base/vide
-> o_types.h#40
-> 
->   // MediaTek proprietary format. MT21 is similar to NV21 except the memory
->   // layout and pixel layout (swizzles). 12bpp with Y plane followed by a 2x2
->   // interleaved VU plane. Each image contains two buffers -- Y plane and VU
->   // plane. Two planes can be non-contiguous in memory. The starting addresses
->   // of Y plane and VU plane are 4KB alignment.
->   // Suppose image dimension is (width, height). For both Y plane and VU plane:
->   // Row pitch = ((width+15)/16) * 16.
->   // Plane size = Row pitch * (((height+31)/32)*32)
-> 
-> Now obviously this is incomplete, as the swizzling need to be documented of course.
-> 
-Because it's finally a compressed format from our codec hw, we cannot
-describe its swizzling.
+This is part of a final push to convert all drivers to g/s_selection.
 
-best regards,
-Tiffany
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/zoran/zoran_driver.c | 113 ++++++++++++++-------------------
+ 1 file changed, 49 insertions(+), 64 deletions(-)
 
-> > 
-> > regards,
-> > Nicolas
-
+diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
+index 80caa70..d6b631a 100644
+--- a/drivers/media/pci/zoran/zoran_driver.c
++++ b/drivers/media/pci/zoran/zoran_driver.c
+@@ -2365,94 +2365,80 @@ static int zoran_s_output(struct file *file, void *__fh, unsigned int output)
+ }
+ 
+ /* cropping (sub-frame capture) */
+-static int zoran_cropcap(struct file *file, void *__fh,
+-					struct v4l2_cropcap *cropcap)
++static int zoran_g_selection(struct file *file, void *__fh, struct v4l2_selection *sel)
+ {
+ 	struct zoran_fh *fh = __fh;
+ 	struct zoran *zr = fh->zr;
+-	int type = cropcap->type, res = 0;
+ 
+-	memset(cropcap, 0, sizeof(*cropcap));
+-	cropcap->type = type;
++	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT &&
++	    sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
+ 
+-	if (cropcap->type != V4L2_BUF_TYPE_VIDEO_OUTPUT &&
+-	    (cropcap->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
+-	     fh->map_mode == ZORAN_MAP_MODE_RAW)) {
++	if (fh->map_mode == ZORAN_MAP_MODE_RAW) {
+ 		dprintk(1, KERN_ERR
+-			"%s: VIDIOC_CROPCAP - subcapture only supported for compressed capture\n",
++			"%s: VIDIOC_G_SELECTION - subcapture only supported for compressed capture\n",
+ 			ZR_DEVNAME(zr));
+-		res = -EINVAL;
+-		return res;
++		return -EINVAL;
+ 	}
+ 
+-	cropcap->bounds.top = cropcap->bounds.left = 0;
+-	cropcap->bounds.width = BUZ_MAX_WIDTH;
+-	cropcap->bounds.height = BUZ_MAX_HEIGHT;
+-	cropcap->defrect.top = cropcap->defrect.left = 0;
+-	cropcap->defrect.width = BUZ_MIN_WIDTH;
+-	cropcap->defrect.height = BUZ_MIN_HEIGHT;
+-	return res;
+-}
+-
+-static int zoran_g_crop(struct file *file, void *__fh, struct v4l2_crop *crop)
+-{
+-	struct zoran_fh *fh = __fh;
+-	struct zoran *zr = fh->zr;
+-	int type = crop->type, res = 0;
+-
+-	memset(crop, 0, sizeof(*crop));
+-	crop->type = type;
+-
+-	if (crop->type != V4L2_BUF_TYPE_VIDEO_OUTPUT &&
+-	    (crop->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
+-	     fh->map_mode == ZORAN_MAP_MODE_RAW)) {
+-		dprintk(1,
+-			KERN_ERR
+-			"%s: VIDIOC_G_CROP - subcapture only supported for compressed capture\n",
+-			ZR_DEVNAME(zr));
+-		res = -EINVAL;
+-		return res;
++	switch (sel->target) {
++	case V4L2_SEL_TGT_CROP:
++		sel->r.top = fh->jpg_settings.img_y;
++		sel->r.left = fh->jpg_settings.img_x;
++		sel->r.width = fh->jpg_settings.img_width;
++		sel->r.height = fh->jpg_settings.img_height;
++		break;
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++		sel->r.top = sel->r.left = 0;
++		sel->r.width = BUZ_MIN_WIDTH;
++		sel->r.height = BUZ_MIN_HEIGHT;
++		break;
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++		sel->r.top = sel->r.left = 0;
++		sel->r.width = BUZ_MAX_WIDTH;
++		sel->r.height = BUZ_MAX_HEIGHT;
++		break;
++	default:
++		return -EINVAL;
+ 	}
+-
+-	crop->c.top = fh->jpg_settings.img_y;
+-	crop->c.left = fh->jpg_settings.img_x;
+-	crop->c.width = fh->jpg_settings.img_width;
+-	crop->c.height = fh->jpg_settings.img_height;
+-	return res;
++	return 0;
+ }
+ 
+-static int zoran_s_crop(struct file *file, void *__fh, const struct v4l2_crop *crop)
++static int zoran_s_selection(struct file *file, void *__fh, struct v4l2_selection *sel)
+ {
+ 	struct zoran_fh *fh = __fh;
+ 	struct zoran *zr = fh->zr;
+-	int res = 0;
+ 	struct zoran_jpg_settings settings;
++	int res;
+ 
+-	settings = fh->jpg_settings;
++	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT &&
++	    sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
+ 
+-	if (fh->buffers.allocated) {
++	if (sel->target != V4L2_SEL_TGT_CROP)
++		return -EINVAL;
++
++	if (fh->map_mode == ZORAN_MAP_MODE_RAW) {
+ 		dprintk(1, KERN_ERR
+-			"%s: VIDIOC_S_CROP - cannot change settings while active\n",
++			"%s: VIDIOC_S_SELECTION - subcapture only supported for compressed capture\n",
+ 			ZR_DEVNAME(zr));
+-		res = -EBUSY;
+-		return res;
++		return -EINVAL;
+ 	}
+ 
+-	if (crop->type != V4L2_BUF_TYPE_VIDEO_OUTPUT &&
+-	    (crop->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
+-	     fh->map_mode == ZORAN_MAP_MODE_RAW)) {
++	settings = fh->jpg_settings;
++
++	if (fh->buffers.allocated) {
+ 		dprintk(1, KERN_ERR
+-			"%s: VIDIOC_G_CROP - subcapture only supported for compressed capture\n",
++			"%s: VIDIOC_S_SELECTION - cannot change settings while active\n",
+ 			ZR_DEVNAME(zr));
+-		res = -EINVAL;
+-		return res;
++		return -EBUSY;
+ 	}
+ 
+ 	/* move into a form that we understand */
+-	settings.img_x = crop->c.left;
+-	settings.img_y = crop->c.top;
+-	settings.img_width = crop->c.width;
+-	settings.img_height = crop->c.height;
++	settings.img_x = sel->r.left;
++	settings.img_y = sel->r.top;
++	settings.img_width = sel->r.width;
++	settings.img_height = sel->r.height;
+ 
+ 	/* check validity */
+ 	res = zoran_check_jpg_settings(zr, &settings, 0);
+@@ -2808,9 +2794,8 @@ zoran_mmap (struct file           *file,
+ 
+ static const struct v4l2_ioctl_ops zoran_ioctl_ops = {
+ 	.vidioc_querycap    		    = zoran_querycap,
+-	.vidioc_cropcap       		    = zoran_cropcap,
+-	.vidioc_s_crop       		    = zoran_s_crop,
+-	.vidioc_g_crop       		    = zoran_g_crop,
++	.vidioc_s_selection		    = zoran_s_selection,
++	.vidioc_g_selection		    = zoran_g_selection,
+ 	.vidioc_enum_input     		    = zoran_enum_input,
+ 	.vidioc_g_input      		    = zoran_g_input,
+ 	.vidioc_s_input      		    = zoran_s_input,
+-- 
+2.8.1
 
