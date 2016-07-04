@@ -1,65 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41345 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:44883 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755244AbcGHNEC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:02 -0400
+	with ESMTP id S1753598AbcGDLrZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:25 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 17/54] doc-rst: media-controller: fix conversion issues
-Date: Fri,  8 Jul 2016 10:03:09 -0300
-Message-Id: <83f9a55a22c7faaa84d6bc794dbfa96db3aa2b31.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 19/51] Documentation: control.rst: Fix missing reference for example 8
+Date: Mon,  4 Jul 2016 08:46:40 -0300
+Message-Id: <ecbd2674298dba5774a42d31da35251e75314569.1467629489.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make it look just like v4l and DVB parts.
+The conversion broke references and captions for examples.
+
+Fix the missing reference for control enumeration.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/linux_tv/media/mediactl/media-controller.rst | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ Documentation/linux_tv/media/v4l/control.rst | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/linux_tv/media/mediactl/media-controller.rst b/Documentation/linux_tv/media/mediactl/media-controller.rst
-index 49fb76cafcab..8b8af483c5e9 100644
---- a/Documentation/linux_tv/media/mediactl/media-controller.rst
-+++ b/Documentation/linux_tv/media/mediactl/media-controller.rst
-@@ -15,6 +15,7 @@ Media Controller
+diff --git a/Documentation/linux_tv/media/v4l/control.rst b/Documentation/linux_tv/media/v4l/control.rst
+index 5defd1995e13..736d79080229 100644
+--- a/Documentation/linux_tv/media/v4l/control.rst
++++ b/Documentation/linux_tv/media/v4l/control.rst
+@@ -371,6 +371,8 @@ device has one or more controls, ``VIDIOC_QUERYMENU`` when it has one or
+ more menu type controls.
  
- .. toctree::
-     :maxdepth: 1
-+    :numbered:
  
-     media-controller-intro
-     media-controller-model
-@@ -45,13 +46,18 @@ Function Reference
- Revision and Copyright
- **********************
- 
-+Authors:
- 
--:author:    Pinchart Laurent
--:address:   laurent.pinchart@ideasonboard.com
--:contrib:   Initial version.
-+- Pinchart, Laurent <laurent.pinchart@ideasonboard.com>
++.. _enum_all_controls:
 +
-+ - Initial version.
+ .. code-block:: c
+     :caption: Example 8: Enumerating all user controls
  
- **Copyright** 2010 : Laurent Pinchart
- 
-+****************
-+Revision History
-+****************
-+
- :revision: 1.0.0 / 2010-11-10 (*lp*)
- 
- Initial revision
 -- 
 2.7.4
+
 
