@@ -1,61 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:36263 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753471AbcGUBJ3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 21:09:29 -0400
-Date: Thu, 21 Jul 2016 10:09:26 +0900
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi@etezian.org>
-Subject: Re: [RFC 7/7] [media] rc: add support for IR LEDs driven through SPI
-Message-id: <20160721010926.GG23521@samsunx.samsung>
-References: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
- <1468943818-26025-8-git-send-email-andi.shyti@samsung.com>
- <CGME20160719231129epcas1p1ac5071e745ba5b938be1ed1de5220fbe@epcas1p1.samsung.com>
- <20160719231122.GA25146@gofer.mess.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-disposition: inline
-In-reply-to: <20160719231122.GA25146@gofer.mess.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:44697 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753395AbcGDLrU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 02/51] Documentation: some fixups at linux_tv/index.rst
+Date: Mon,  4 Jul 2016 08:46:23 -0300
+Message-Id: <5d478ca0ac79daa7380d883b3cbabc984aa541d3.1467629488.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+Fix some issues from the conversion and improve the documentation
+a little bit, by adding two relevent keywords (SDR and DTMB).
 
-> > +	int ret;
-> > +	struct ir_spi_data *idata = (struct ir_spi_data *) dev->priv;
-> 
-> No cast needed.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/linux_tv/index.rst | 21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-yes, thanks.
+diff --git a/Documentation/linux_tv/index.rst b/Documentation/linux_tv/index.rst
+index e6df371243d8..b0389cbfb1aa 100644
+--- a/Documentation/linux_tv/index.rst
++++ b/Documentation/linux_tv/index.rst
+@@ -12,7 +12,7 @@ Permission is granted to copy, distribute and/or modify this document
+ under the terms of the GNU Free Documentation License, Version 1.1 or
+ any later version published by the Free Software Foundation. A copy of
+ the license is included in the chapter entitled "GNU Free Documentation
+-License"
++License".
+ 
+ 
+ ============
+@@ -21,8 +21,8 @@ Introduction
+ 
+ This document covers the Linux Kernel to Userspace API's used by video
+ and radio streaming devices, including video cameras, analog and digital
+-TV receiver cards, AM/FM receiver cards, streaming capture and output
+-devices, codec devices and remote controllers.
++TV receiver cards, AM/FM receiver cards, Software Defined Radio (SDR),
++streaming capture and output devices, codec devices and remote controllers.
+ 
+ A typical media device hardware is shown at
+ :ref:`typical_media_device`.
+@@ -36,21 +36,17 @@ A typical media device hardware is shown at
+ 
+     Typical Media Device
+ 
+-    Typical Media Device Block Diagram
+-
+-
+-
+ The media infrastructure API was designed to control such devices. It is
+ divided into four parts.
+ 
+-The first part covers radio, video capture and output, cameras, analog
+-TV devices and codecs.
++The first part covers radio, video capture and output,
++cameras, analog TV devices and codecs.
+ 
+ The second part covers the API used for digital TV and Internet
+ reception via one of the several digital tv standards. While it is
+ called as DVB API, in fact it covers several different video standards
+-including DVB-T/T2, DVB-S/S2, DVB-C, ATSC, ISDB-T, ISDB-S,etc. The
+-complete list of supported standards can be found at
++including DVB-T/T2, DVB-S/S2, DVB-C, ATSC, ISDB-T, ISDB-S, DTMB, etc.
++The complete list of supported standards can be found at
+ :ref:`fe-delivery-system-t`.
+ 
+ The third part covers the Remote Controller API.
+@@ -97,6 +93,3 @@ etc, please mail to:
+   =========
+ 
+   * :ref:`genindex`
+-
+-.. todolist::
+-
+-- 
+2.7.4
 
-> > +	ret = regulator_enable(idata->regulator);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	mutex_lock(&idata->mutex);
-> > +	idata->xfer.len = n;
-> > +	idata->xfer.tx_buf = buffer;
-> > +	mutex_unlock(&idata->mutex);
-> 
-> I'm not convinced the locking works here. You want to guard against 
-> someone modifying xfer while you are sending (so in spi_sync_transfer), 
-> which this locking is not doing. You could declare a 
-> local "struct spi_transfer xfer" and avoid the mutex altogether.
 
-I cannot declare xfer locally because the spi framework needs
-a statically allocated xfer, so that either I dynamically
-allocate it in the function or I declare it global in idata.
-
-With the mutex I would like to prevent different tasks to change
-the value at the same time, it's an easy case, it shouldn't make
-much difference.
-
-There are checkpatch issues, in the next patchset I will fix
-them.
-
-Thanks a lot for your review,
-Andi
