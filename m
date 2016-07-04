@@ -1,124 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:42825 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753298AbcGVK1w (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:48206 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932319AbcGDCm6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 06:27:52 -0400
-Subject: Re: [PATCH v3 1/5] media: Determine early whether an IOCTL is
- supported
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-References: <1469099686-10938-1-git-send-email-sakari.ailus@linux.intel.com>
- <1469099686-10938-2-git-send-email-sakari.ailus@linux.intel.com>
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <02d434b2-c8b6-8697-169e-ec0badd84da9@xs4all.nl>
-Date: Fri, 22 Jul 2016 12:27:44 +0200
-MIME-Version: 1.0
-In-Reply-To: <1469099686-10938-2-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sun, 3 Jul 2016 22:42:58 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id CF4A01800DC
+	for <linux-media@vger.kernel.org>; Mon,  4 Jul 2016 04:42:52 +0200 (CEST)
+Date: Mon, 04 Jul 2016 04:42:52 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160704024252.CF4A01800DC@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 07/21/2016 01:14 PM, Sakari Ailus wrote:
-> Preparation for refactoring media IOCTL handling to unify common parts.
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/media-device.c | 48 ++++++++++++++++++++++++++++++++++++++++++--
->  1 file changed, 46 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 1795abe..3ac526d 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -419,13 +419,33 @@ static long media_device_get_topology(struct media_device *mdev,
->  	return 0;
->  }
->  
-> -static long media_device_ioctl(struct file *filp, unsigned int cmd,
-> -			       unsigned long arg)
-> +#define MEDIA_IOC(__cmd) \
-> +	[_IOC_NR(MEDIA_IOC_##__cmd)] = { .cmd = MEDIA_IOC_##__cmd }
-> +
-> +/* the table is indexed by _IOC_NR(cmd) */
-> +struct media_ioctl_info {
-> +	unsigned int cmd;
-> +};
-> +
-> +static inline long is_valid_ioctl(const struct media_ioctl_info *info,
-> +				  unsigned int len, unsigned int cmd)
-> +{
-> +	return (_IOC_NR(cmd) >= len
-> +		|| info[_IOC_NR(cmd)].cmd != cmd) ? -ENOIOCTLCMD : 0;
-> +}
-> +
-> +static long __media_device_ioctl(
-> +	struct file *filp, unsigned int cmd, void __user *arg,
-> +	const struct media_ioctl_info *info_array, unsigned int info_array_len)
->  {
->  	struct media_devnode *devnode = media_devnode_data(filp);
->  	struct media_device *dev = devnode->media_dev;
->  	long ret;
->  
-> +	ret = is_valid_ioctl(info_array, info_array_len, cmd);
-> +	if (ret)
-> +		return ret;
-> +
->  	mutex_lock(&dev->graph_mutex);
->  	switch (cmd) {
->  	case MEDIA_IOC_DEVICE_INFO:
-> @@ -461,6 +481,22 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
->  	return ret;
->  }
->  
-> +static const struct media_ioctl_info ioctl_info[] = {
-> +	MEDIA_IOC(DEVICE_INFO),
-> +	MEDIA_IOC(ENUM_ENTITIES),
-> +	MEDIA_IOC(ENUM_LINKS),
-> +	MEDIA_IOC(SETUP_LINK),
-> +	MEDIA_IOC(G_TOPOLOGY),
-> +};
+Results of the daily build of media_tree:
 
-Why not move this up and use ARRAY_SIZE instead of having to pass the length around?
+date:		Mon Jul  4 04:00:30 CEST 2016
+git branch:	test
+git hash:	d81295d1bed850335f9f4ccb6b1aa4f6a123d4f0
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-> +
-> +static long media_device_ioctl(struct file *filp, unsigned int cmd,
-> +			       unsigned long arg)
-> +{
-> +	return __media_device_ioctl(
-> +		filp, cmd, (void __user *)arg,
-> +		ioctl_info, ARRAY_SIZE(ioctl_info));
-> +}
-> +
->  #ifdef CONFIG_COMPAT
->  
->  struct media_links_enum32 {
-> @@ -491,6 +527,14 @@ static long media_device_enum_links32(struct media_device *mdev,
->  
->  #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, struct media_links_enum32)
->  
-> +static const struct media_ioctl_info compat_ioctl_info[] = {
-> +	MEDIA_IOC(DEVICE_INFO),
-> +	MEDIA_IOC(ENUM_ENTITIES),
-> +	MEDIA_IOC(ENUM_LINKS32),
-> +	MEDIA_IOC(SETUP_LINK),
-> +	MEDIA_IOC(G_TOPOLOGY),
-> +};
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mtk: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-I assume the size of the compat array will always be the same as that of the 'regular' array.
-In fact, you should probably test for that (the compiler should be able to catch that).
+Detailed results are available here:
 
-> +
->  static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
->  				      unsigned long arg)
->  {
-> 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Regards,
+Full logs are available here:
 
-	Hans
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
