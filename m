@@ -1,38 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:35162 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751882AbcGOONz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 10:13:55 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id D4F21180A30
-	for <linux-media@vger.kernel.org>; Fri, 15 Jul 2016 16:13:49 +0200 (CEST)
+Received: from bombadil.infradead.org ([198.137.202.9]:44747 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753546AbcGDLrV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:21 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: cec: set timestamp for selfie transmits
-Message-ID: <814b8ac4-670b-8289-2236-242564068282@xs4all.nl>
-Date: Fri, 15 Jul 2016 16:13:49 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 46/51] Documentation: pixfmt-yuv422m.rst: remove an empty column
+Date: Mon,  4 Jul 2016 08:47:07 -0300
+Message-Id: <bcdc7432de46b1c093b1f47b8d7aeca3914571ae.1467629489.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Attempts to send CEC messages to yourself are detected in the framework and
-returned with a NACK error. However, the tx_ts was never filled in that case.
-So just set it.
+The conversion added an empty column (probably, it was used on
+DocBook just to increase spacing.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Remove it.
 
-diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
-index ca34339..bf25875 100644
---- a/drivers/staging/media/cec/cec-adap.c
-+++ b/drivers/staging/media/cec/cec-adap.c
-@@ -612,6 +612,7 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
- 			 * easy to handle it here so the behavior will be
- 			 * consistent.
- 			 */
-+			msg->tx_ts = ktime_get_ns();
- 			msg->tx_status = CEC_TX_STATUS_NACK |
- 					 CEC_TX_STATUS_MAX_RETRIES;
- 			msg->tx_nack_cnt = 1;
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/linux_tv/media/v4l/pixfmt-yuv422m.rst | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/Documentation/linux_tv/media/v4l/pixfmt-yuv422m.rst b/Documentation/linux_tv/media/v4l/pixfmt-yuv422m.rst
+index d8e438857e14..0057bc85fd24 100644
+--- a/Documentation/linux_tv/media/v4l/pixfmt-yuv422m.rst
++++ b/Documentation/linux_tv/media/v4l/pixfmt-yuv422m.rst
+@@ -188,7 +188,6 @@ Each cell is one byte.
+        -  
+        -  1
+ 
+-       -  
+        -  2
+ 
+        -  
+@@ -204,7 +203,6 @@ Each cell is one byte.
+ 
+        -  Y
+ 
+-       -  
+        -  Y
+ 
+        -  C
+@@ -221,7 +219,6 @@ Each cell is one byte.
+ 
+        -  Y
+ 
+-       -  
+        -  Y
+ 
+        -  C
+@@ -238,7 +235,6 @@ Each cell is one byte.
+ 
+        -  Y
+ 
+-       -  
+        -  Y
+ 
+        -  C
+@@ -255,7 +251,6 @@ Each cell is one byte.
+ 
+        -  Y
+ 
+-       -  
+        -  Y
+ 
+        -  C
+-- 
+2.7.4
+
+
