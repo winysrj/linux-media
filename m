@@ -1,94 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-08v.sys.comcast.net ([96.114.154.167]:43070 "EHLO
-	resqmta-po-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751772AbcGNUB7 (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:46724 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750898AbcGDHgp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2016 16:01:59 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: andrzej.p@samsung.com, j.anaszewski@samsung.com, mchehab@kernel.org
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, javier@osg.samsung.com,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: s5p-jpeg add missing blank lines after declarations
-Date: Thu, 14 Jul 2016 14:01:56 -0600
-Message-Id: <1468526516-8892-1-git-send-email-shuahkh@osg.samsung.com>
+	Mon, 4 Jul 2016 03:36:45 -0400
+Subject: Re: Stepping down as gspca and pwc maintainer
+To: Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <0b81648e-90ab-e9b2-4192-a7a387e86fc0@redhat.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <069af446-e341-71a4-fb96-62c4d8f96b0a@xs4all.nl>
+Date: Mon, 4 Jul 2016 09:36:40 +0200
+MIME-Version: 1.0
+In-Reply-To: <0b81648e-90ab-e9b2-4192-a7a387e86fc0@redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Missing blank lines after declarations are making it hard to read the
-code. Fix them and also fix other checkpatch warnings at the same time.
+Hi Hans,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+On 07/03/2016 11:31 PM, Hans de Goede wrote:
+> Hi All,
+> 
+> Admittedly I've not been all that active as gspca and pwc
+> maintainer lately, but officially I'm still the maintainer
+> for both.
+> 
+> Between my $dayjob, other foss projects and last but not
+> least spending time with my wife and children I'm way too busy
+> lately.
+> 
+> So I'm hereby officially stepping down as gspca and pwc maintainer,
+> I know this means MAINTAINERS needs updating, but I'm hoping to
+> find a volunteer to take them over who can then directly replace my
+> name in MAINTAINERS.
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 17bc94092..fe5554f 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -537,6 +537,7 @@ static const u32 fourcc_to_dwngrd_schema_id[] = {
- static int s5p_jpeg_get_dwngrd_sch_id_by_fourcc(u32 fourcc)
- {
- 	int i;
-+
- 	for (i = 0; i < ARRAY_SIZE(fourcc_to_dwngrd_schema_id); ++i) {
- 		if (fourcc_to_dwngrd_schema_id[i] == fourcc)
- 			return i;
-@@ -1273,7 +1274,8 @@ static int enum_fmt(struct s5p_jpeg_fmt *sjpeg_formats, int n,
- 			if (num == f->index)
- 				break;
- 			/* Correct type but haven't reached our index yet,
--			 * just increment per-type index */
-+			 * just increment per-type index
-+			*/
- 			++num;
- 		}
- 	}
-@@ -1349,6 +1351,7 @@ static int s5p_jpeg_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	pix->bytesperline = 0;
- 	if (q_data->fmt->fourcc != V4L2_PIX_FMT_JPEG) {
- 		u32 bpl = q_data->w;
-+
- 		if (q_data->fmt->colplanes == 1)
- 			bpl = (bpl * q_data->fmt->depth) >> 3;
- 		pix->bytesperline = bpl;
-@@ -1374,6 +1377,7 @@ static struct s5p_jpeg_fmt *s5p_jpeg_find_format(struct s5p_jpeg_ctx *ctx,
- 
- 	for (k = 0; k < ARRAY_SIZE(sjpeg_formats); k++) {
- 		struct s5p_jpeg_fmt *fmt = &sjpeg_formats[k];
-+
- 		if (fmt->fourcc == pixelformat &&
- 		    fmt->flags & fmt_flag &&
- 		    fmt->flags & ctx->jpeg->variant->fmt_ver_flag) {
-@@ -1431,7 +1435,8 @@ static int vidioc_try_fmt(struct v4l2_format *f, struct s5p_jpeg_fmt *fmt,
- 		return -EINVAL;
- 
- 	/* V4L2 specification suggests the driver corrects the format struct
--	 * if any of the dimensions is unsupported */
-+	 * if any of the dimensions is unsupported
-+	*/
- 	if (q_type == FMT_TYPE_OUTPUT)
- 		jpeg_bound_align_image(ctx, &pix->width, S5P_JPEG_MIN_WIDTH,
- 				       S5P_JPEG_MAX_WIDTH, 0,
-@@ -2490,6 +2495,7 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
- 	if (ctx->mode == S5P_JPEG_DECODE &&
- 	    vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
- 		struct s5p_jpeg_q_data tmp, *q_data;
-+
- 		ctx->hdr_parsed = s5p_jpeg_parse_hdr(&tmp,
- 		     (unsigned long)vb2_plane_vaddr(vb, 0),
- 		     min((unsigned long)ctx->out_q.size,
-@@ -3025,7 +3031,8 @@ static int s5p_jpeg_resume(struct device *dev)
- 
- static const struct dev_pm_ops s5p_jpeg_pm_ops = {
- 	SET_SYSTEM_SLEEP_PM_OPS(s5p_jpeg_suspend, s5p_jpeg_resume)
--	SET_RUNTIME_PM_OPS(s5p_jpeg_runtime_suspend, s5p_jpeg_runtime_resume, NULL)
-+	SET_RUNTIME_PM_OPS(s5p_jpeg_runtime_suspend, s5p_jpeg_runtime_resume,
-+			   NULL)
- };
- 
- static struct s5p_jpeg_variant s5p_jpeg_drvdata = {
--- 
-2.7.4
+I can take over as "Odd Fixes" maintainer. I have a pwc webcam and several
+gspca webcams, so I can at least test some webcams if needed.
 
+> Both are currently in descent shape, one thing which needs
+> doing (for a long time now) is converting gspca to videobuf2.
+> 
+> Other then that the following patches are pending in
+> patchwork (and are all ready to be merged I just never
+> got around to it):
+> 
+> 1 actual bug-fix which should really be merged asap
+
+Merged for 4.7-rcX or 4.8?
+
+> (Mauro can you pick this one up directly ?):
+> 
+> https://patchwork.linuxtv.org/patch/34155/
+> 
+> 1 compiler warning:
+> https://patchwork.linuxtv.org/patch/32726/
+> 
+> A couple of v4l-compliance fixes:
+> https://patchwork.linuxtv.org/patch/33408/
+> https://patchwork.linuxtv.org/patch/33412/
+> https://patchwork.linuxtv.org/patch/33411/
+> https://patchwork.linuxtv.org/patch/33410/
+> https://patchwork.linuxtv.org/patch/33409/
+
+I'll make a pull request for these today.
+
+> 
+> And last there is this patch which need someone to review it:
+> https://patchwork.linuxtv.org/patch/34986/
+
+I can take care of that.
+
+Regards,
+
+	Hans
