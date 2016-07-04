@@ -1,47 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46674 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752489AbcGOGTm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 02:19:42 -0400
-To: LMML <linux-media@vger.kernel.org>
-Cc: =?UTF-8?Q?Stefan_P=c3=b6schel?= <basic.master@gmx.de>
-From: Antti Palosaari <crope@iki.fi>
-Subject: [GIT PULL 4.7] af9035 bug fix
-Message-ID: <14e55b25-9341-99d4-a79a-3ca1368e738b@iki.fi>
-Date: Fri, 15 Jul 2016 09:19:37 +0300
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57337 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750895AbcGDIfY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jul 2016 04:35:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 04/14] pvrusb2: use v4l2_s_ctrl instead of the s_ctrl op.
+Date: Mon,  4 Jul 2016 10:35:00 +0200
+Message-Id: <1467621310-8203-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That is regression fix since 4.6. This patch applies only for 4.7 - new 
-patch which applies to 4.6 stable is also needed.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+This op is deprecated and should not be used anymore.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-The following changes since commit 5cac1f67ea0363d463a58ec2d9118268fe2ba5d6:
-
-   [media] rc: nuvoton: fix hang if chip is configured for alternative 
-EFM IO address (2016-07-13 15:49:01 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git af9035
-
-for you to fetch changes up to 15d24682241103014a4ba0b47cc602a89a58b97d:
-
-   af9035: fix dual tuner detection with PCTV 79e (2016-07-15 08:57:59 
-+0300)
-
-----------------------------------------------------------------
-Stefan Pöschel (1):
-       af9035: fix dual tuner detection with PCTV 79e
-
-  drivers/media/usb/dvb-usb-v2/af9035.c | 50 
-+++++++++++++++++++++++++++++++++-----------------
-  drivers/media/usb/dvb-usb-v2/af9035.h |  2 +-
-  2 files changed, 34 insertions(+), 18 deletions(-)
-
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+index 83e9a3e..fe20fe4 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+@@ -2856,11 +2856,15 @@ static void pvr2_subdev_set_control(struct pvr2_hdw *hdw, int id,
+ 				    const char *name, int val)
+ {
+ 	struct v4l2_control ctrl;
++	struct v4l2_subdev *sd;
++
+ 	pvr2_trace(PVR2_TRACE_CHIPS, "subdev v4l2 %s=%d", name, val);
+ 	memset(&ctrl, 0, sizeof(ctrl));
+ 	ctrl.id = id;
+ 	ctrl.value = val;
+-	v4l2_device_call_all(&hdw->v4l2_dev, 0, core, s_ctrl, &ctrl);
++
++	v4l2_device_for_each_subdev(sd, &hdw->v4l2_dev)
++		v4l2_s_ctrl(NULL, sd->ctrl_handler, &ctrl);
+ }
+ 
+ #define PVR2_SUBDEV_SET_CONTROL(hdw, id, lab) \
 -- 
-http://palosaari.fi/
+2.8.1
+
