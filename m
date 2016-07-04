@@ -1,51 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:33479 "EHLO
-	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565AbcGOQNa (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53806 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753415AbcGDIfb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 12:13:30 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v2 3/6] [media] Documentation: Add Ricardo Ribalda
-Date: Fri, 15 Jul 2016 18:13:16 +0200
-Message-Id: <1468599199-5902-4-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
+	Mon, 4 Jul 2016 04:35:31 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 09/14] cx88: use wm8775_s_ctrl instead of the s_ctrl op.
+Date: Mon,  4 Jul 2016 10:35:05 +0200
+Message-Id: <1467621310-8203-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-My initials were on the Changelog, but there was no link to my name.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+This op is deprecated and should not be used anymore.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/media/uapi/v4l/v4l2.rst | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/pci/cx88/cx88-alsa.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
-index 6d23bc987f51..330674a0f553 100644
---- a/Documentation/media/uapi/v4l/v4l2.rst
-+++ b/Documentation/media/uapi/v4l/v4l2.rst
-@@ -64,6 +64,10 @@ Authors, in alphabetical order:
+diff --git a/drivers/media/pci/cx88/cx88-alsa.c b/drivers/media/pci/cx88/cx88-alsa.c
+index e158a1d..f3f13eb 100644
+--- a/drivers/media/pci/cx88/cx88-alsa.c
++++ b/drivers/media/pci/cx88/cx88-alsa.c
+@@ -799,13 +799,9 @@ static int snd_cx88_alc_put(struct snd_kcontrol *kcontrol,
+ {
+ 	snd_cx88_card_t *chip = snd_kcontrol_chip(kcontrol);
+ 	struct cx88_core *core = chip->core;
+-	struct v4l2_control client_ctl;
+-
+-	memset(&client_ctl, 0, sizeof(client_ctl));
+-	client_ctl.value = 0 != value->value.integer.value[0];
+-	client_ctl.id = V4L2_CID_AUDIO_LOUDNESS;
+-	call_hw(core, WM8775_GID, core, s_ctrl, &client_ctl);
  
-   - SDR API.
++	wm8775_s_ctrl(core, V4L2_CID_AUDIO_LOUDNESS,
++		      value->value.integer.value[0] != 0);
+ 	return 0;
+ }
  
-+- Ribalda, Ricardo
-+
-+  - Introduce HSV formats and other minor changes.
-+
- - Rubli, Martin
- 
-   - Designed and documented the VIDIOC_ENUM_FRAMESIZES and VIDIOC_ENUM_FRAMEINTERVALS ioctls.
 -- 
 2.8.1
 
