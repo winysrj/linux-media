@@ -1,121 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52984 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751286AbcGaC4u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jul 2016 22:56:50 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id B48A218045D
-	for <linux-media@vger.kernel.org>; Sun, 31 Jul 2016 04:55:34 +0200 (CEST)
-Date: Sun, 31 Jul 2016 04:55:34 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160731025534.B48A218045D@tschai.lan>
+Received: from smtp.220.in.ua ([89.184.67.205]:41422 "EHLO smtp.220.in.ua"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751382AbcGDS4o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jul 2016 14:56:44 -0400
+Subject: Re: si2157: new revision?
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+References: <1467243499-26093-1-git-send-email-crope@iki.fi>
+ <1467243499-26093-3-git-send-email-crope@iki.fi>
+ <577AAD3C.2060204@kaa.org.ua> <46faadd5-80dc-bb71-be24-8b05fb035423@iki.fi>
+From: Oleh Kravchenko <oleg@kaa.org.ua>
+Message-ID: <577AB16A.3050902@kaa.org.ua>
+Date: Mon, 4 Jul 2016 21:56:42 +0300
+MIME-Version: 1.0
+In-Reply-To: <46faadd5-80dc-bb71-be24-8b05fb035423@iki.fi>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Thank you for your reply!
 
-Results of the daily build of media_tree:
+What about Analog TV support? Do you plan to implement it?
 
-date:		Sun Jul 31 04:00:19 CEST 2016
-git branch:	test
-git hash:	292eaf50c7df4ae2ae8aaa9e1ce3f1240a353ee8
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+On 04.07.16 21:47, Antti Palosaari wrote:
+> Hello
+> On 07/04/2016 09:38 PM, Oleh Kravchenko wrote:
+>> Hello Antti!
+>>
+>> I started reverse-engineering of my new TV tuner "Evromedia USB Full
+>> Hybrid Full HD" and discovered that start sequence is different from
+>> si2157.c:
+>> i2c_read_C1
+>>  1 \xFE
+>> i2c_write_C0
+>>  15 \xC0\x00\x00\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01
+>>
+>> Do you familiar with this revision?
+>> Should I merge my changes to si2158.c?
+>> Or define another driver?
+> 
+> According to chip markings those are tuner Si2158-A20 and demod
+> Si2168-A30. Both are supported already by si2157 and si2168 drivers.
+> 
+> Difference is just some settings. You need to identify which setting is
+> wrong and add that to configuration options. It should be pretty easy to
+> find it from the I2C dumps and just testing.
+> 
+> regards
+> Antti
+> 
