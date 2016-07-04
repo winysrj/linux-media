@@ -1,59 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44789 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753581AbcGDLrX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:23 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 10/51] Documentation: audio.rst: Fix some cross references
-Date: Mon,  4 Jul 2016 08:46:31 -0300
-Message-Id: <4b5f8836b66635a2f2a951f6200d103a7e04930e.1467629488.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:56576 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753417AbcGDIff (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jul 2016 04:35:35 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Andy Walls <awalls@md.metrocast.net>
+Subject: [PATCH 12/14] ivtv: use v4l2_g/s_ctrl instead of the g/s_ctrl ops.
+Date: Mon,  4 Jul 2016 10:35:08 +0200
+Message-Id: <1467621310-8203-13-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several constants there that should be, instead,
-cross-references. Fix them.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+These ops are deprecated and should not be used anymore.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Andy Walls <awalls@md.metrocast.net>
 ---
- Documentation/linux_tv/media/v4l/audio.rst | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/pci/ivtv/ivtv-alsa-mixer.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/linux_tv/media/v4l/audio.rst b/Documentation/linux_tv/media/v4l/audio.rst
-index 5e37adfbb49c..95622902e86e 100644
---- a/Documentation/linux_tv/media/v4l/audio.rst
-+++ b/Documentation/linux_tv/media/v4l/audio.rst
-@@ -30,16 +30,16 @@ outputs applications can enumerate them with the
- :ref:`VIDIOC_ENUMAUDIO <vidioc-enumaudio>` and
- :ref:`VIDIOC_ENUMAUDOUT <vidioc-enumaudioout>` ioctl, respectively.
- The struct :ref:`v4l2_audio <v4l2-audio>` returned by the
--``VIDIOC_ENUMAUDIO`` ioctl also contains signal status information
--applicable when the current audio input is queried.
-+:ref:`VIDIOC_ENUMAUDIO <vidioc-enumaudio>` ioctl also contains signal
-+:status information applicable when the current audio input is queried.
+diff --git a/drivers/media/pci/ivtv/ivtv-alsa-mixer.c b/drivers/media/pci/ivtv/ivtv-alsa-mixer.c
+index 33ec05b..79b24bd 100644
+--- a/drivers/media/pci/ivtv/ivtv-alsa-mixer.c
++++ b/drivers/media/pci/ivtv/ivtv-alsa-mixer.c
+@@ -93,7 +93,7 @@ static int snd_ivtv_mixer_tv_vol_get(struct snd_kcontrol *kctl,
+ 	vctrl.value = dB_to_cx25840_vol(uctl->value.integer.value[0]);
  
- The :ref:`VIDIOC_G_AUDIO <vidioc-g-audio>` and
- :ref:`VIDIOC_G_AUDOUT <vidioc-g-audioout>` ioctls report the current
- audio input and output, respectively. Note that, unlike
- :ref:`VIDIOC_G_INPUT <vidioc-g-input>` and
- :ref:`VIDIOC_G_OUTPUT <vidioc-g-output>` these ioctls return a
--structure as ``VIDIOC_ENUMAUDIO`` and ``VIDIOC_ENUMAUDOUT`` do, not just
--an index.
-+structure as :ref:`VIDIOC_ENUMAUDIO <vidioc-enumaudio>` and
-+:ref:`VIDIOC_ENUMAUDOUT <vidioc-enumaudioout>` do, not just an index.
+ 	snd_ivtv_lock(itvsc);
+-	ret = v4l2_subdev_call(itv->sd_audio, core, g_ctrl, &vctrl);
++	ret = v4l2_g_ctrl(itv->sd_audio->ctrl_handler, &vctrl);
+ 	snd_ivtv_unlock(itvsc);
  
- To select an audio input and change its properties applications call the
- :ref:`VIDIOC_S_AUDIO <vidioc-g-audio>` ioctl. To select an audio
+ 	if (!ret)
+@@ -115,14 +115,14 @@ static int snd_ivtv_mixer_tv_vol_put(struct snd_kcontrol *kctl,
+ 	snd_ivtv_lock(itvsc);
+ 
+ 	/* Fetch current state */
+-	ret = v4l2_subdev_call(itv->sd_audio, core, g_ctrl, &vctrl);
++	ret = v4l2_g_ctrl(itv->sd_audio->ctrl_handler, &vctrl);
+ 
+ 	if (ret ||
+ 	    (cx25840_vol_to_dB(vctrl.value) != uctl->value.integer.value[0])) {
+ 
+ 		/* Set, if needed */
+ 		vctrl.value = dB_to_cx25840_vol(uctl->value.integer.value[0]);
+-		ret = v4l2_subdev_call(itv->sd_audio, core, s_ctrl, &vctrl);
++		ret = v4l2_s_ctrl(itv->sd_audio->ctrl_handler, &vctrl);
+ 		if (!ret)
+ 			ret = 1; /* Indicate control was changed w/o error */
+ 	}
 -- 
-2.7.4
-
+2.8.1
 
