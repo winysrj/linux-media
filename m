@@ -1,54 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:55244 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753125AbcGFJoD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 05:44:03 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [PATCH v3 09/15] [media] lirc_dev: merge three if statements in only
- one
-Date: Wed, 06 Jul 2016 18:01:21 +0900
-Message-id: <1467795687-10737-10-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1467795687-10737-1-git-send-email-andi.shyti@samsung.com>
-References: <1467795687-10737-1-git-send-email-andi.shyti@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:44743 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753540AbcGDLrV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:21 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 51/51] Documentation: pixfmt-nv12m.rst: fix conversion issues
+Date: Mon,  4 Jul 2016 08:47:12 -0300
+Message-Id: <f1b27df962ed52a250a18d11ffd1dcbcf1b3004c.1467629489.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The three if statements check the same thing, merge them in only
-one statement.
+The conversion added an empty column (probably, it was used on
+DocBook just to increase spacing.
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+It also added an extra line on one of the texts, breaking
+the original paragraph into two ones.
+
+Remove them.
+
+Finally, a space is required before :sub:, as otherwise it
+won't display it right. Add it.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/rc/lirc_dev.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst | 13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index a8a5116..71ff820 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -270,15 +270,10 @@ static int lirc_allocate_driver(struct lirc_driver *d)
- 			dev_err(d->dev, "add_to_buf not set\n");
- 			return -EBADRQC;
- 		}
--	} else if (!(d->fops && d->fops->read) && !d->rbuf) {
--		dev_err(d->dev, "fops->read and rbuf are NULL!\n");
-+	} else if (!d->rbuf && !(d->fops && d->fops->read &&
-+				d->fops->poll && d->fops->unlocked_ioctl)) {
-+		dev_err(d->dev, "undefined read, poll, ioctl\n");
- 		return -EBADRQC;
--	} else if (!d->rbuf) {
--		if (!(d->fops && d->fops->read && d->fops->poll &&
--		      d->fops->unlocked_ioctl)) {
--			dev_err(d->dev, "undefined read, poll, ioctl\n");
--			return -EBADRQC;
--		}
- 	}
+diff --git a/Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst b/Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst
+index c7db4038609a..a769808aab9b 100644
+--- a/Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst
++++ b/Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst
+@@ -26,8 +26,8 @@ occupies the first plane. The Y plane has one byte per pixel. In the
+ second plane there is a chrominance data with alternating chroma
+ samples. The CbCr plane is the same width, in bytes, as the Y plane (and
+ of the image), but is half as tall in pixels. Each CbCr pair belongs to
+-four pixels. For example, Cb\ :sub:`0`/Cr:sub:`0` belongs to
+-Y'\ :sub:`00`, Y'\ :sub:`01`, Y'\ :sub:`10`, Y'\ :sub:`11`.
++four pixels. For example, Cb :sub:`0`/Cr :sub:`0` belongs to
++Y' :sub:`00`, Y' :sub:`01`, Y' :sub:`10`, Y' :sub:`11`.
+ ``V4L2_PIX_FMT_NV12MT_16X16`` is the tiled version of
+ ``V4L2_PIX_FMT_NV12M`` with 16x16 macroblock tiles. Here pixels are
+ arranged in 16x16 2D tiles and tiles are arranged in linear order in
+@@ -43,11 +43,8 @@ If the Y plane has pad bytes after each row, then the CbCr plane has as
+ many pad bytes after its rows.
  
- 	mutex_lock(&lirc_dev_lock);
+ **Byte Order..**
+-
+ Each cell is one byte.
+ 
+-
+-
+ .. flat-table::
+     :header-rows:  0
+     :stub-columns: 0
+@@ -148,7 +145,6 @@ Each cell is one byte.
+        -  
+        -  1
+ 
+-       -  
+        -  2
+ 
+        -  
+@@ -163,7 +159,6 @@ Each cell is one byte.
+        -  
+        -  Y
+ 
+-       -  
+        -  Y
+ 
+        -  
+@@ -177,7 +172,6 @@ Each cell is one byte.
+ 
+        -  
+        -  
+-       -  
+        -  C
+ 
+        -  
+@@ -191,7 +185,6 @@ Each cell is one byte.
+        -  
+        -  Y
+ 
+-       -  
+        -  Y
+ 
+        -  
+@@ -210,7 +203,6 @@ Each cell is one byte.
+        -  
+        -  Y
+ 
+-       -  
+        -  Y
+ 
+        -  
+@@ -238,7 +230,6 @@ Each cell is one byte.
+        -  
+        -  Y
+ 
+-       -  
+        -  Y
+ 
+        -  
 -- 
-2.8.1
+2.7.4
+
 
