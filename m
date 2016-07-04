@@ -1,82 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41736 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754348AbcGEHGG (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:43815 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932472AbcGDNfG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Jul 2016 03:06:06 -0400
-Subject: Re: [PATCH v2 1/3] sur40: properly report a single frame rate of 60
- FPS
-To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
-References: <1464725733-22119-1-git-send-email-floe@butterbrot.org>
- <f5d84d25-eae4-df9b-819b-256565783c35@xs4all.nl>
- <577B5A2B.5060406@butterbrot.org>
-Cc: linux-input@vger.kernel.org, Martin Kaltenbrunner <modin@yuri.at>
+	Mon, 4 Jul 2016 09:35:06 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cfd020d2-5834-11ac-1b1c-cb98aa872354@xs4all.nl>
-Date: Tue, 5 Jul 2016 09:06:01 +0200
-MIME-Version: 1.0
-In-Reply-To: <577B5A2B.5060406@butterbrot.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/7] adv7604/adv7842: fix quantization range handling
+Date: Mon,  4 Jul 2016 15:34:48 +0200
+Message-Id: <1467639292-1066-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467639292-1066-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467639292-1066-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/05/2016 08:56 AM, Florian Echtler wrote:
-> Hello Hans,
-> 
-> On 05.07.2016 08:41, Hans Verkuil wrote:
->> On 05/31/2016 10:15 PM, Florian Echtler wrote:
->>> The device hardware is always running at 60 FPS, so report this both via
->>> PARM_IOCTL and ENUM_FRAMEINTERVALS.
->>>
->>> Signed-off-by: Martin Kaltenbrunner <modin@yuri.at>
->>> Signed-off-by: Florian Echtler <floe@butterbrot.org>
->>> ---
->>>  drivers/input/touchscreen/sur40.c | 20 ++++++++++++++++++--
->>>  1 file changed, 18 insertions(+), 2 deletions(-)
->>>
->>> @@ -880,6 +893,9 @@ static const struct v4l2_ioctl_ops sur40_video_ioctl_ops = {
->>>  	.vidioc_enum_framesizes = sur40_vidioc_enum_framesizes,
->>>  	.vidioc_enum_frameintervals = sur40_vidioc_enum_frameintervals,
->>>  
->>> +	.vidioc_g_parm = sur40_ioctl_parm,
->>> +	.vidioc_s_parm = sur40_ioctl_parm,
->>
->> Why is s_parm added when you can't change the framerate?
-> 
-> Oh, I thought it's mandatory to always have s_parm if you have g_parm
-> (even if it always returns the same values).
-> 
->> Same questions for the
->> enum_frameintervals function: it doesn't hurt to have it, but if there is only
->> one unchangeable framerate, then it doesn't make much sense.
-> 
-> If you don't have enum_frameintervals, how would you find out about the
-> framerate otherwise? Is g_parm itself enough already for all userspace
-> tools?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-It should be. The enum_frameintervals function is much newer than g_parm.
+Fix a number of bugs that appeared when support for mediabus formats was
+added:
 
-Frankly, I have the same problem with enum_framesizes: it reports only one
-size. These two enum ioctls are normally only implemented if there are at
-least two choices. If there is no choice, then G_FMT will return the size
-and G_PARM the framerate and there is no need to enumerate anything.
+- Support for V4L2_DV_RGB_RANGE_FULL/LIMITED should only be enabled
+  for HDMI RGB formats, not for YCbCr formats. Since, as the name
+  says, this setting is for RGB only. So read the InfoFrame to check
+  the format.
 
-The problem is that the spec is ambiguous as to the requirements if there
-is only one choice for size and interval. Are the enum ioctls allowed in
-that case? Personally I think there is nothing against that. But should
-S_PARM also be allowed even though it can't actually change the frameperiod?
+- the quantization range for the pixelport depends on whether the
+  mediabus code is RGB or not: if it is RGB, then produce full range
+  RGB values, otherwise produce limited range YCbCr values.
 
-Don't bother making changes yet, let me think about this for a bit.
+  This means that the op_656_range and alt_data_sat fields of the
+  platform data are no longer used and these will be removed in a
+  following patch.
 
-Regards,
+- when setting up a new format the RGB quantization range settings
+  were never updated. Do so, since this depends on the format.
 
-	Hans
+- fix the log_status output which was confusing and incorrect.
 
-> 
->> Sorry, missed this when I reviewed this the first time around.
-> 
-> No problem.
-> 
-> Best, Florian
-> 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 27 ++++++++++++++++-----------
+ drivers/media/i2c/adv7842.c | 26 +++++++++++++++++---------
+ 2 files changed, 33 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 3f1ab49..943706d 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1086,6 +1086,10 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
+ 	struct adv76xx_state *state = to_state(sd);
+ 	bool rgb_output = io_read(sd, 0x02) & 0x02;
+ 	bool hdmi_signal = hdmi_read(sd, 0x05) & 0x80;
++	u8 y = HDMI_COLORSPACE_RGB;
++
++	if (hdmi_signal && (io_read(sd, 0x60) & 1))
++		y = infoframe_read(sd, 0x01) >> 5;
+ 
+ 	v4l2_dbg(2, debug, sd, "%s: RGB quantization range: %d, RGB out: %d, HDMI: %d\n",
+ 			__func__, state->rgb_quantization_range,
+@@ -1093,6 +1097,7 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
+ 
+ 	adv76xx_set_gain(sd, true, 0x0, 0x0, 0x0);
+ 	adv76xx_set_offset(sd, true, 0x0, 0x0, 0x0);
++	io_write_clr_set(sd, 0x02, 0x04, rgb_output ? 0 : 4);
+ 
+ 	switch (state->rgb_quantization_range) {
+ 	case V4L2_DV_RGB_RANGE_AUTO:
+@@ -1142,6 +1147,9 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
+ 			break;
+ 		}
+ 
++		if (y != HDMI_COLORSPACE_RGB)
++			break;
++
+ 		/* RGB limited range (16-235) */
+ 		io_write_clr_set(sd, 0x02, 0xf0, 0x00);
+ 
+@@ -1153,6 +1161,9 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
+ 			break;
+ 		}
+ 
++		if (y != HDMI_COLORSPACE_RGB)
++			break;
++
+ 		/* RGB full range (0-255) */
+ 		io_write_clr_set(sd, 0x02, 0xf0, 0x10);
+ 
+@@ -1849,6 +1860,7 @@ static void adv76xx_setup_format(struct adv76xx_state *state)
+ 	io_write_clr_set(sd, 0x04, 0xe0, adv76xx_op_ch_sel(state));
+ 	io_write_clr_set(sd, 0x05, 0x01,
+ 			state->format->swap_cb_cr ? ADV76XX_OP_SWAP_CB_CR : 0);
++	set_rgb_quantization_range(sd);
+ }
+ 
+ static int adv76xx_get_format(struct v4l2_subdev *sd,
+@@ -2323,11 +2335,10 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
+ 			rgb_quantization_range_txt[state->rgb_quantization_range]);
+ 	v4l2_info(sd, "Input color space: %s\n",
+ 			input_color_space_txt[reg_io_0x02 >> 4]);
+-	v4l2_info(sd, "Output color space: %s %s, saturator %s, alt-gamma %s\n",
++	v4l2_info(sd, "Output color space: %s %s, alt-gamma %s\n",
+ 			(reg_io_0x02 & 0x02) ? "RGB" : "YCbCr",
+-			(reg_io_0x02 & 0x04) ? "(16-235)" : "(0-255)",
+ 			(((reg_io_0x02 >> 2) & 0x01) ^ (reg_io_0x02 & 0x01)) ?
+-				"enabled" : "disabled",
++				"(16-235)" : "(0-255)",
+ 			(reg_io_0x02 & 0x08) ? "enabled" : "disabled");
+ 	v4l2_info(sd, "Color space conversion: %s\n",
+ 			csc_coeff_sel_rb[cp_read(sd, info->cp_csc) >> 4]);
+@@ -2492,10 +2503,7 @@ static int adv76xx_core_init(struct v4l2_subdev *sd)
+ 	cp_write(sd, 0xcf, 0x01);   /* Power down macrovision */
+ 
+ 	/* video format */
+-	io_write_clr_set(sd, 0x02, 0x0f,
+-			pdata->alt_gamma << 3 |
+-			pdata->op_656_range << 2 |
+-			pdata->alt_data_sat << 0);
++	io_write_clr_set(sd, 0x02, 0x0f, pdata->alt_gamma << 3);
+ 	io_write_clr_set(sd, 0x05, 0x0e, pdata->blank_data << 3 |
+ 			pdata->insert_av_codes << 2 |
+ 			pdata->replicate_av_codes << 1);
+@@ -2845,10 +2853,8 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+ 		state->pdata.inv_llc_pol = 1;
+ 
+-	if (bus_cfg.bus_type == V4L2_MBUS_BT656) {
++	if (bus_cfg.bus_type == V4L2_MBUS_BT656)
+ 		state->pdata.insert_av_codes = 1;
+-		state->pdata.op_656_range = 1;
+-	}
+ 
+ 	/* Disable the interrupt for now as no DT-based board uses it. */
+ 	state->pdata.int1_config = ADV76XX_INT1_CONFIG_DISABLED;
+@@ -2871,7 +2877,6 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 	state->pdata.disable_pwrdnb = 0;
+ 	state->pdata.disable_cable_det_rst = 0;
+ 	state->pdata.blank_data = 1;
+-	state->pdata.alt_data_sat = 1;
+ 	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
+ 	state->pdata.bus_order = ADV7604_BUS_ORDER_RGB;
+ 
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 8081ef7..5b3ab35 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -1198,6 +1198,10 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
+ 	struct adv7842_state *state = to_state(sd);
+ 	bool rgb_output = io_read(sd, 0x02) & 0x02;
+ 	bool hdmi_signal = hdmi_read(sd, 0x05) & 0x80;
++	u8 y = HDMI_COLORSPACE_RGB;
++
++	if (hdmi_signal && (io_read(sd, 0x60) & 1))
++		y = infoframe_read(sd, 0x01) >> 5;
+ 
+ 	v4l2_dbg(2, debug, sd, "%s: RGB quantization range: %d, RGB out: %d, HDMI: %d\n",
+ 			__func__, state->rgb_quantization_range,
+@@ -1205,6 +1209,7 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
+ 
+ 	adv7842_set_gain(sd, true, 0x0, 0x0, 0x0);
+ 	adv7842_set_offset(sd, true, 0x0, 0x0, 0x0);
++	io_write_clr_set(sd, 0x02, 0x04, rgb_output ? 0 : 4);
+ 
+ 	switch (state->rgb_quantization_range) {
+ 	case V4L2_DV_RGB_RANGE_AUTO:
+@@ -1254,6 +1259,9 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
+ 			break;
+ 		}
+ 
++		if (y != HDMI_COLORSPACE_RGB)
++			break;
++
+ 		/* RGB limited range (16-235) */
+ 		io_write_and_or(sd, 0x02, 0x0f, 0x00);
+ 
+@@ -1265,6 +1273,9 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
+ 			break;
+ 		}
+ 
++		if (y != HDMI_COLORSPACE_RGB)
++			break;
++
+ 		/* RGB full range (0-255) */
+ 		io_write_and_or(sd, 0x02, 0x0f, 0x10);
+ 
+@@ -2072,6 +2083,7 @@ static void adv7842_setup_format(struct adv7842_state *state)
+ 	io_write_clr_set(sd, 0x04, 0xe0, adv7842_op_ch_sel(state));
+ 	io_write_clr_set(sd, 0x05, 0x01,
+ 			state->format->swap_cb_cr ? ADV7842_OP_SWAP_CB_CR : 0);
++	set_rgb_quantization_range(sd);
+ }
+ 
+ static int adv7842_get_format(struct v4l2_subdev *sd,
+@@ -2572,11 +2584,11 @@ static int adv7842_cp_log_status(struct v4l2_subdev *sd)
+ 		  rgb_quantization_range_txt[state->rgb_quantization_range]);
+ 	v4l2_info(sd, "Input color space: %s\n",
+ 		  input_color_space_txt[reg_io_0x02 >> 4]);
+-	v4l2_info(sd, "Output color space: %s %s, saturator %s\n",
++	v4l2_info(sd, "Output color space: %s %s, alt-gamma %s\n",
+ 		  (reg_io_0x02 & 0x02) ? "RGB" : "YCbCr",
+-		  (reg_io_0x02 & 0x04) ? "(16-235)" : "(0-255)",
+-		  ((reg_io_0x02 & 0x04) ^ (reg_io_0x02 & 0x01)) ?
+-					"enabled" : "disabled");
++		  (((reg_io_0x02 >> 2) & 0x01) ^ (reg_io_0x02 & 0x01)) ?
++			"(16-235)" : "(0-255)",
++		  (reg_io_0x02 & 0x08) ? "enabled" : "disabled");
+ 	v4l2_info(sd, "Color space conversion: %s\n",
+ 		  csc_coeff_sel_rb[cp_read(sd, 0xf4) >> 4]);
+ 
+@@ -2780,11 +2792,7 @@ static int adv7842_core_init(struct v4l2_subdev *sd)
+ 	io_write(sd, 0x15, 0x80);   /* Power up pads */
+ 
+ 	/* video format */
+-	io_write(sd, 0x02,
+-		 0xf0 |
+-		 pdata->alt_gamma << 3 |
+-		 pdata->op_656_range << 2 |
+-		 pdata->alt_data_sat << 0);
++	io_write(sd, 0x02, 0xf0 | pdata->alt_gamma << 3);
+ 	io_write_and_or(sd, 0x05, 0xf0, pdata->blank_data << 3 |
+ 			pdata->insert_av_codes << 2 |
+ 			pdata->replicate_av_codes << 1);
+-- 
+2.8.1
+
