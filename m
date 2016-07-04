@@ -1,84 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f65.google.com ([209.85.220.65]:34329 "EHLO
-	mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750728AbcGBLBy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jul 2016 07:01:54 -0400
-Date: Sat, 2 Jul 2016 16:19:28 +0530
-From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Tejun Heo <tj@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] zc3xx: Remove deprecated
- create_singlethread_workqueue
-Message-ID: <20160702104928.GA2672@Karyakshetra>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from bombadil.infradead.org ([198.137.202.9]:44888 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753597AbcGDLrZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:25 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 33/51] Documentation: linux_tv: fix some warnings due to '*'
+Date: Mon,  4 Jul 2016 08:46:54 -0300
+Message-Id: <46fd87e437d897110a30baf03f7db51f965d3b66.1467629489.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The workqueue "work_thread" is involved in updating parameters for
-transfers. It has a single work item(&sd->work) and hence
-doesn't require ordering. Also, it is not being used on a memory
-reclaim path. Hence, the singlethreaded workqueue has been replaced with
-the use of system_wq.
+Unescaped * causes warnings on Sphinx.
 
-System workqueues have been able to handle high level of concurrency
-for a long time now and hence it's not required to have a singlethreaded
-workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
-created with create_singlethread_workqueue(), system_wq allows multiple
-work items to overlap executions even on the same CPU; however, a
-per-cpu workqueue doesn't have any CPU locality or global ordering
-guarantee unless the target CPU is explicitly specified and thus the
-increase of local concurrency shouldn't make any difference.
+Add an escape at hist-v4l2.rst occurrences.
 
-Work item has been flushed in sd_stop0() to ensure that there are no
-pending tasks while disconnecting the driver.
+At libv4l-introduction, the best is do declare the function
+prototypes as C code.
 
-Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/gspca/zc3xx.c | 13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ Documentation/linux_tv/media/v4l/hist-v4l2.rst     |  5 ++---
+ .../linux_tv/media/v4l/libv4l-introduction.rst     | 22 +++++++++++-----------
+ 2 files changed, 13 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/usb/gspca/zc3xx.c b/drivers/media/usb/gspca/zc3xx.c
-index c5d8ee6..ebdfed4d6 100644
---- a/drivers/media/usb/gspca/zc3xx.c
-+++ b/drivers/media/usb/gspca/zc3xx.c
-@@ -53,7 +53,6 @@ struct sd {
- 	struct v4l2_ctrl *jpegqual;
+diff --git a/Documentation/linux_tv/media/v4l/hist-v4l2.rst b/Documentation/linux_tv/media/v4l/hist-v4l2.rst
+index 664fbe4780af..6e9706f791de 100644
+--- a/Documentation/linux_tv/media/v4l/hist-v4l2.rst
++++ b/Documentation/linux_tv/media/v4l/hist-v4l2.rst
+@@ -187,7 +187,7 @@ common Linux driver API conventions.
+    until the time in the timestamp field has arrived. I would like to
+    follow SGI's lead, and adopt a multimedia timestamping system like
+    their UST (Unadjusted System Time). See
+-   http://web.archive.org/web/*/http://reality.sgi.com
++   http://web.archive.org/web/\*/http://reality.sgi.com
+    /cpirazzi_engr/lg/time/intro.html. UST uses timestamps that are
+    64-bit signed integers (not struct timeval's) and given in nanosecond
+    units. The UST clock starts at zero when the system is booted and
+@@ -1408,13 +1408,12 @@ XFree86 and XOrg, just programming any overlay capable Video4Linux
+ device it finds. To enable it ``/etc/X11/XF86Config`` must contain these
+ lines:
+ 
+-
+-
+ ::
+ 
+     Section "Module"
+         Load "v4l"
+     EndSection
++
+ As of XFree86 4.2 this driver still supports only V4L ioctls, however it
+ should work just fine with all V4L2 devices through the V4L2
+ backward-compatibility layer. Since V4L2 permits multiple opens it is
+diff --git a/Documentation/linux_tv/media/v4l/libv4l-introduction.rst b/Documentation/linux_tv/media/v4l/libv4l-introduction.rst
+index b8d247dc236d..d189316dc1da 100644
+--- a/Documentation/linux_tv/media/v4l/libv4l-introduction.rst
++++ b/Documentation/linux_tv/media/v4l/libv4l-introduction.rst
+@@ -116,42 +116,42 @@ The common file operation methods are provided by libv4l.
+ Those functions operate just like glibc
+ open/close/dup/ioctl/read/mmap/munmap:
+ 
+--  int v4l2_open(const char *file, int oflag, ...) - operates like the
++-  :c:type:`int v4l2_open(const char *file, int oflag, ...)` - operates like the
+    standard :ref:`open() <func-open>` function.
+ 
+--  int v4l2_close(int fd) - operates like the standard
++-  :c:type:`int v4l2_close(int fd)` - operates like the standard
+    :ref:`close() <func-close>` function.
+ 
+--  int v4l2_dup(int fd) - operates like the standard dup() function,
++-  :c:type:`int v4l2_dup(int fd)` - operates like the standard dup() function,
+    duplicating a file handler.
+ 
+--  int v4l2_ioctl (int fd, unsigned long int request, ...) - operates
++-  :c:type:`int v4l2_ioctl (int fd, unsigned long int request, ...)` - operates
+    like the standard :ref:`ioctl() <func-ioctl>` function.
+ 
+--  int v4l2_read (int fd, void* buffer, size_t n) - operates like the
++-  :c:type:`int v4l2_read (int fd, void* buffer, size_t n)` - operates like the
+    standard :ref:`read() <func-read>` function.
+ 
+--  void v4l2_mmap(void *start, size_t length, int prot, int flags, int
+-   fd, int64_t offset); - operates like the standard
++-  :c:type:`void v4l2_mmap(void *start, size_t length, int prot, int flags, int
++   fd, int64_t offset);` - operates like the standard
+    :ref:`mmap() <func-mmap>` function.
+ 
+--  int v4l2_munmap(void *_start, size_t length); - operates like the
++-  :c:type:`int v4l2_munmap(void *_start, size_t length);` - operates like the
+    standard :ref:`munmap() <func-munmap>` function.
+ 
+ Those functions provide additional control:
+ 
+--  int v4l2_fd_open(int fd, int v4l2_flags) - opens an already opened
++-  :c:type:`int v4l2_fd_open(int fd, int v4l2_flags)` - opens an already opened
+    fd for further use through v4l2lib and possibly modify libv4l2's
+    default behavior through the v4l2_flags argument. Currently,
+    v4l2_flags can be ``V4L2_DISABLE_CONVERSION``, to disable format
+    conversion.
+ 
+--  int v4l2_set_control(int fd, int cid, int value) - This function
++-  :c:type:`int v4l2_set_control(int fd, int cid, int value)` - This function
+    takes a value of 0 - 65535, and then scales that range to the actual
+    range of the given v4l control id, and then if the cid exists and is
+    not locked sets the cid to the scaled value.
+ 
+--  int v4l2_get_control(int fd, int cid) - This function returns a
++-  :c:type:`int v4l2_get_control(int fd, int cid)` - This function returns a
+    value of 0 - 65535, scaled to from the actual range of the given v4l
+    control id. when the cid does not exist, could not be accessed for
+    some reason, or some error occurred 0 is returned.
+-- 
+2.7.4
 
- 	struct work_struct work;
--	struct workqueue_struct *work_thread;
-
- 	u8 reg08;		/* webcam compression quality */
-
-@@ -6826,8 +6825,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 		return gspca_dev->usb_err;
-
- 	/* Start the transfer parameters update thread */
--	sd->work_thread = create_singlethread_workqueue(KBUILD_MODNAME);
--	queue_work(sd->work_thread, &sd->work);
-+	schedule_work(&sd->work);
-
- 	return 0;
- }
-@@ -6838,12 +6836,9 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
-
--	if (sd->work_thread != NULL) {
--		mutex_unlock(&gspca_dev->usb_lock);
--		destroy_workqueue(sd->work_thread);
--		mutex_lock(&gspca_dev->usb_lock);
--		sd->work_thread = NULL;
--	}
-+	mutex_unlock(&gspca_dev->usb_lock);
-+	schedule_work(&sd->work);
-+	mutex_lock(&gspca_dev->usb_lock);
- 	if (!gspca_dev->present)
- 		return;
- 	send_unknown(gspca_dev, sd->sensor);
---
-2.1.4
 
