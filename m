@@ -1,66 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:46469 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753671AbcGDUUB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 16:20:01 -0400
-Date: Mon, 4 Jul 2016 21:19:59 +0100
-From: Sean Young <sean@mess.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v4.8] Various dvb/rc fixes/improvements
-Message-ID: <20160704201959.GB28620@gofer.mess.org>
-References: <118e026f-ebc0-a540-195c-44434f40ae46@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <118e026f-ebc0-a540-195c-44434f40ae46@xs4all.nl>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37255 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753413AbcGDIfe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jul 2016 04:35:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Andy Walls <awalls@md.metrocast.net>
+Subject: [PATCH 11/14] cx18: use v4l2_g/s_ctrl instead of the g/s_ctrl ops.
+Date: Mon,  4 Jul 2016 10:35:07 +0200
+Message-Id: <1467621310-8203-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 04, 2016 at 01:54:56PM +0200, Hans Verkuil wrote:
-> Mauro,
-> 
-> As requested, I'm helping out with reducing the backlog.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit ab46f6d24bf57ddac0f5abe2f546a78af57b476c:
-> 
->   [media] videodev2.h: Fix V4L2_PIX_FMT_YUV411P description (2016-06-28 11:54:52 -0300)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git for-v4.8f
-> 
-> for you to fetch changes up to 920be8ec8843d42ef3181f9a9fb988c49481b165:
-> 
->   media: rc: nuvoton: remove two unused elements in struct nvt_dev (2016-07-04 13:26:37 +0200)
-> 
-> ----------------------------------------------------------------
-> Antti Palosaari (14):
->       si2168: add support for newer firmwares
->       si2168: do not allow driver unbind
->       si2157: do not allow driver unbind
->       m88ds3103: remove useless most significant bit clear
->       m88ds3103: calculate DiSEqC message sending time
->       m88ds3103: improve ts clock setting
->       m88ds3103: use Hz instead of kHz on calculations
->       m88ds3103: refactor firmware download
->       af9033: move statistics to read_status()
->       af9033: do not allow driver unbind
->       it913x: do not allow driver unbind
->       rtl2830: do not allow driver unbind
->       rtl2830: move statistics to read_status()
->       rtl2832: do not allow driver unbind
-> 
-> Heiner Kallweit (12):
->       media: rc: make fifo size for raw events configurable via rc_dev
->       media: rc: nuvoton: decrease size of raw event fifo
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I might be wrong but I think these last two changes are broken, see my last
-message to the list on this.
+These ops are deprecated and should not be used anymore.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Andy Walls <awalls@md.metrocast.net>
+---
+ drivers/media/pci/cx18/cx18-alsa-mixer.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Sean
+diff --git a/drivers/media/pci/cx18/cx18-alsa-mixer.c b/drivers/media/pci/cx18/cx18-alsa-mixer.c
+index 341bddc..2842752 100644
+--- a/drivers/media/pci/cx18/cx18-alsa-mixer.c
++++ b/drivers/media/pci/cx18/cx18-alsa-mixer.c
+@@ -93,7 +93,7 @@ static int snd_cx18_mixer_tv_vol_get(struct snd_kcontrol *kctl,
+ 	vctrl.value = dB_to_cx18_av_vol(uctl->value.integer.value[0]);
+ 
+ 	snd_cx18_lock(cxsc);
+-	ret = v4l2_subdev_call(cx->sd_av, core, g_ctrl, &vctrl);
++	ret = v4l2_g_ctrl(cx->sd_av->ctrl_handler, &vctrl);
+ 	snd_cx18_unlock(cxsc);
+ 
+ 	if (!ret)
+@@ -115,14 +115,14 @@ static int snd_cx18_mixer_tv_vol_put(struct snd_kcontrol *kctl,
+ 	snd_cx18_lock(cxsc);
+ 
+ 	/* Fetch current state */
+-	ret = v4l2_subdev_call(cx->sd_av, core, g_ctrl, &vctrl);
++	ret = v4l2_g_ctrl(cx->sd_av->ctrl_handler, &vctrl);
+ 
+ 	if (ret ||
+ 	    (cx18_av_vol_to_dB(vctrl.value) != uctl->value.integer.value[0])) {
+ 
+ 		/* Set, if needed */
+ 		vctrl.value = dB_to_cx18_av_vol(uctl->value.integer.value[0]);
+-		ret = v4l2_subdev_call(cx->sd_av, core, s_ctrl, &vctrl);
++		ret = v4l2_s_ctrl(cx->sd_av->ctrl_handler, &vctrl);
+ 		if (!ret)
+ 			ret = 1; /* Indicate control was changed w/o error */
+ 	}
+-- 
+2.8.1
+
