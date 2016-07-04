@@ -1,41 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43344 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751252AbcGWLcY (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:56576 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750895AbcGDIfW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jul 2016 07:32:24 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 4/4] [media] cx23885-cardlist.rst: add a new card
-Date: Sat, 23 Jul 2016 08:31:54 -0300
-Message-Id: <d271d3d9b333c94cd54a12fa506e17772a04617c.1469273428.git.mchehab@s-opensource.com>
-In-Reply-To: <a3f57ad0e401cc19887da462b16a20d97e7bccfb.1469273428.git.mchehab@s-opensource.com>
-References: <a3f57ad0e401cc19887da462b16a20d97e7bccfb.1469273428.git.mchehab@s-opensource.com>
-In-Reply-To: <a3f57ad0e401cc19887da462b16a20d97e7bccfb.1469273428.git.mchehab@s-opensource.com>
-References: <a3f57ad0e401cc19887da462b16a20d97e7bccfb.1469273428.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mon, 4 Jul 2016 04:35:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 02/14] saa7164: drop unused saa7164_ctrl struct.
+Date: Mon,  4 Jul 2016 10:34:58 +0200
+Message-Id: <1467621310-8203-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
+References: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-add card Hauppauge WinTV-QuadHD-DVB to the list.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+No longer used, can be removed.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/media/v4l-drivers/cx23885-cardlist.rst | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/pci/saa7164/saa7164.h | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/Documentation/media/v4l-drivers/cx23885-cardlist.rst b/Documentation/media/v4l-drivers/cx23885-cardlist.rst
-index fe1583ee8541..ded3b9139317 100644
---- a/Documentation/media/v4l-drivers/cx23885-cardlist.rst
-+++ b/Documentation/media/v4l-drivers/cx23885-cardlist.rst
-@@ -59,3 +59,4 @@ cx23885 cards list
- 	 53 -> Hauppauge WinTV Starburst                           [0070:c12a]
- 	 54 -> ViewCast 260e                                       [1576:0260]
- 	 55 -> ViewCast 460e                                       [1576:0460]
-+	 56 -> Hauppauge WinTV-QuadHD-DVB                          [0070:6a28,0070:6b28]
+diff --git a/drivers/media/pci/saa7164/saa7164.h b/drivers/media/pci/saa7164/saa7164.h
+index 8337524..97411b0 100644
+--- a/drivers/media/pci/saa7164/saa7164.h
++++ b/drivers/media/pci/saa7164/saa7164.h
+@@ -263,10 +263,6 @@ struct saa7164_i2c {
+ 	u32				i2c_rc;
+ };
+ 
+-struct saa7164_ctrl {
+-	struct v4l2_queryctrl v;
+-};
+-
+ struct saa7164_tvnorm {
+ 	char		*name;
+ 	v4l2_std_id	id;
 -- 
-2.7.4
+2.8.1
 
