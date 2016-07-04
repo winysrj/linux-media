@@ -1,121 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:59184 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752060AbcGSCZF (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:39057 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752163AbcGDIc1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 22:25:05 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 92CEF180098
-	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2016 04:24:58 +0200 (CEST)
-Date: Tue, 19 Jul 2016 04:24:58 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Mon, 4 Jul 2016 04:32:27 -0400
+Received: from tschai.fritz.box (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E17301800BF
+	for <linux-media@vger.kernel.org>; Mon,  4 Jul 2016 10:32:22 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160719022458.92CEF180098@tschai.lan>
+Subject: [PATCH 0/9] Convert g/s_crop to g/s_selection
+Date: Mon,  4 Jul 2016 10:32:13 +0200
+Message-Id: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+This patch series converts g/s_crop to g/s_selection in subdev and bridge
+drivers.
 
-date:		Tue Jul 19 04:00:08 CEST 2016
-git branch:	test
-git hash:	e05b1872f29a85532c2b34e3a4974a27158f1463
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+The first patch is an old one that I have posted before. It's unchanged,
+except for dropping patches for drivers that have been removed (omap1,
+mx2/3).
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: ERRORS
-linux-4.5-i686: ERRORS
-linux-4.6-i686: ERRORS
-linux-4.7-rc1-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: ERRORS
-linux-4.5-x86_64: ERRORS
-linux-4.6-x86_64: ERRORS
-linux-4.7-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+The others are new.
 
-Detailed results are available here:
+After this series only the samsung drivers still use g/s_crop.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Regards,
 
-Full logs are available here:
+	Hans
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+Hans Verkuil (9):
+  v4l2: remove g/s_crop from video ops
+  bttv: convert g/s_crop to g/s_selection.
+  omap_vout: convert g/s_crop to g/s_selection.
+  saa7134: convert g/s_crop to g/s_selection.
+  zoran: convert g/s_crop to g/s_selection.
+  vpfe_capture: convert g/s_crop to g/s_selection.
+  vpbe_display: convert g/s_crop to g/s_selection.
+  pvrusb2: convert g/s_crop to g/s_selection.
+  v4l2-subdev: rename cropcap to g_pixelaspect
 
-The Media Infrastructure API from this daily build is here:
+ drivers/media/i2c/adv7180.c                        |  12 +-
+ drivers/media/i2c/ak881x.c                         |  28 +++--
+ drivers/media/i2c/soc_camera/imx074.c              |  42 +++----
+ drivers/media/i2c/soc_camera/mt9m001.c             |  70 ++++++-----
+ drivers/media/i2c/soc_camera/mt9m111.c             |  57 ++++-----
+ drivers/media/i2c/soc_camera/mt9t031.c             |  54 +++++----
+ drivers/media/i2c/soc_camera/mt9t112.c             |  60 +++++-----
+ drivers/media/i2c/soc_camera/mt9v022.c             |  68 ++++++-----
+ drivers/media/i2c/soc_camera/ov2640.c              |  41 +++----
+ drivers/media/i2c/soc_camera/ov5642.c              |  53 +++++----
+ drivers/media/i2c/soc_camera/ov6650.c              |  74 ++++++------
+ drivers/media/i2c/soc_camera/ov772x.c              |  44 ++++---
+ drivers/media/i2c/soc_camera/ov9640.c              |  41 +++----
+ drivers/media/i2c/soc_camera/ov9740.c              |  41 +++----
+ drivers/media/i2c/soc_camera/rj54n1cb0c.c          |  52 +++++----
+ drivers/media/i2c/soc_camera/tw9910.c              |  47 +++-----
+ drivers/media/i2c/tvp5150.c                        |  81 +++++++------
+ drivers/media/pci/bt8xx/bttv-driver.c              |  59 ++++++----
+ drivers/media/pci/bt8xx/bttvp.h                    |   2 +-
+ drivers/media/pci/saa7134/saa7134-video.c          |  39 +++++--
+ drivers/media/pci/zoran/zoran_driver.c             | 113 ++++++++----------
+ drivers/media/platform/davinci/vpbe_display.c      |  65 ++++++-----
+ drivers/media/platform/davinci/vpfe_capture.c      |  52 ++++++---
+ drivers/media/platform/omap/omap_vout.c            |  54 ++++-----
+ drivers/media/platform/omap3isp/ispvideo.c         |  88 +++++++++-----
+ drivers/media/platform/rcar-vin/rcar-v4l2.c        |   2 +-
+ drivers/media/platform/sh_vou.c                    |  15 ++-
+ drivers/media/platform/soc_camera/pxa_camera.c     |  17 ++-
+ drivers/media/platform/soc_camera/rcar_vin.c       |  30 +++--
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |  38 +++---
+ drivers/media/platform/soc_camera/soc_camera.c     | 130 ++++++---------------
+ .../platform/soc_camera/soc_camera_platform.c      |  45 +++----
+ drivers/media/platform/soc_camera/soc_scale_crop.c |  97 ++++++++-------
+ drivers/media/platform/soc_camera/soc_scale_crop.h |   6 +-
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c           |  81 ++++++++-----
+ drivers/staging/media/omap4iss/iss_video.c         |  99 ++++++++++++++++
+ include/media/soc_camera.h                         |   7 +-
+ include/media/v4l2-subdev.h                        |  10 +-
+ 38 files changed, 1026 insertions(+), 888 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+2.8.1
+
