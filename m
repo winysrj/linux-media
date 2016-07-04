@@ -1,76 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46064 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751909AbcGTTwd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 15:52:33 -0400
-Date: Wed, 20 Jul 2016 22:52:29 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] [media] vb2: include lengths in dmabuf qbuf debug
- message
-Message-ID: <20160720195228.GD7976@valkosipuli.retiisi.org.uk>
-References: <1469030875-2246-1-git-send-email-javier@osg.samsung.com>
+Received: from nasmtp01.atmel.com ([192.199.1.245]:45379 "EHLO
+	ussmtp01.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932249AbcGDDEj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2016 23:04:39 -0400
+Subject: Re: [PATCH v5 0/2] [media] atmel-isc: add driver for Atmel ISC
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	<laurent.pinchart@ideasonboard.com>, <nicolas.ferre@atmel.com>,
+	<boris.brezillon@free-electrons.com>,
+	<alexandre.belloni@free-electrons.com>, <robh@kernel.org>
+References: <1466153854-30272-1-git-send-email-songjun.wu@atmel.com>
+ <e96fe150-2e5c-5ffa-3c1b-99e55fa4bff0@xs4all.nl>
+CC: <linux-arm-kernel@lists.infradead.org>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	=?UTF-8?Q?Niklas_S=c3=83=c2=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	=?UTF-8?Q?Richard_R=c3=b6jfors?= <richard@puffinpack.se>,
+	Benoit Parrot <bparrot@ti.com>,
+	Kumar Gala <galak@codeaurora.org>,
+	<linux-kernel@vger.kernel.org>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	<devicetree@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	<linux-media@vger.kernel.org>,
+	Simon Horman <horms+renesas@verge.net.au>
+From: "Wu, Songjun" <songjun.wu@atmel.com>
+Message-ID: <8aaf895f-d600-7df6-fcb4-3c3e366c0b90@atmel.com>
+Date: Mon, 4 Jul 2016 11:04:16 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1469030875-2246-1-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <e96fe150-2e5c-5ffa-3c1b-99e55fa4bff0@xs4all.nl>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 20, 2016 at 12:07:55PM -0400, Javier Martinez Canillas wrote:
-> If the VIDIOC_QBUF ioctl fails due a wrong dmabuf length, it's
-> useful to get the invalid and minimum lengths as a debug info.
-> 
-> Before this patch:
-> 
-> vb2-core: __qbuf_dmabuf: invalid dmabuf length for plane 1
-> 
-> After this patch:
-> 
-> vb2-core: __qbuf_dmabuf: invalid dmabuf length 221248 for plane 1, minimum length 410880
-> 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> 
-> ---
-> 
-> Changes in v2:
-> - Use %u instead of %d (Sakari Ailus)
-> - Include min_length (Sakari Ailus)
-> 
->  drivers/media/v4l2-core/videobuf2-core.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index b6fbc04f9699..bbba50d6e1ad 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1227,8 +1227,10 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
->  			planes[plane].length = dbuf->size;
->  
->  		if (planes[plane].length < vb->planes[plane].min_length) {
-> -			dprintk(1, "invalid dmabuf length for plane %d\n",
-> -				plane);
-> +			dprintk(1, "invalid dmabuf length %u for plane %d, "
-> +				"minimum length %u\n",
 
-You shouldn't split strings. It breaks grep.
 
-With that changed,
+On 7/1/2016 20:20, Hans Verkuil wrote:
+> Hi Songjun,
+>
+> First of all, please CC patch 2/2 to linux-media as well the next time you post this.
+> I only see 1/2 on the mailinglist, and we need both.
+>
+> Secondly, before I can accept it you need to run the v4l2-compliance test first and
+> I need to see the output of that test.
+>
+> The compliance test is here: https://git.linuxtv.org/v4l-utils.git. Always compile it from
+> the repository so you know you are using the latest most up to date version.
+>
+> Since this driver supports multiple pixelformats you need to test with the -f option,
+> which tests streaming for all pixelformats.
+>
+> Obviously, there shouldn't be any FAILs :-)
+>
+> I greatly simplifies the code review if I know it passes the compliance test.
+>
+Hi Hans,
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+You suggestion is very helpful to me.
+I will give the output of the compliance test in next version.
 
-> +				planes[plane].length, plane,
-> +				vb->planes[plane].min_length);
->  			dma_buf_put(dbuf);
->  			ret = -EINVAL;
->  			goto err;
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> Regards,
+>
+> 	Hans
+>
