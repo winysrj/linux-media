@@ -1,81 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0183.hostedemail.com ([216.40.44.183]:47478 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751611AbcGLQPo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 12:15:44 -0400
-Message-ID: <1468340137.8745.20.camel@perches.com>
-Subject: Re: [PATCH] media: s5p-mfc Fix misspelled error message and
- checkpatch errors
-From: Joe Perches <joe@perches.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
-	k.debski@samsung.com, jtp.park@samsung.com, mchehab@kernel.org,
-	javier@osg.samsung.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Date: Tue, 12 Jul 2016 09:15:37 -0700
-In-Reply-To: <57851607.9050005@osg.samsung.com>
-References: <1468276740-1591-1-git-send-email-shuahkh@osg.samsung.com>
-	 <1468332418.8745.11.camel@perches.com> <578501E9.6090008@osg.samsung.com>
-	 <1468338700.8745.14.camel@perches.com> <57851607.9050005@osg.samsung.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([198.137.202.9]:44706 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753141AbcGDLrU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 01/51] Documentation: linuxt_tv: update the documentation year
+Date: Mon,  4 Jul 2016 08:46:22 -0300
+Message-Id: <1791aa4c33a39667902d7890b095c7651ffa7ab5.1467629488.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
+References: <cover.1467629488.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2016-07-12 at 10:08 -0600, Shuah Khan wrote:
-> On 07/12/2016 09:51 AM, Joe Perches wrote:
-> > On Tue, 2016-07-12 at 08:42 -0600, Shuah Khan wrote:
-> > > On 07/12/2016 08:06 AM, Joe Perches wrote:
-> > > > On Mon, 2016-07-11 at 16:39 -0600, Shuah Khan wrote:
-> > > > > 
-> > > > > Fix misspelled error message and existing checkpatch errors in the
-> > > > > error message conditional.
-> > > > []
-> > > > > 
-> > > > > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> > > > []
-> > > > > 
-> > > > > @@ -775,11 +775,11 @@ static int vidioc_g_crop(struct file *file, void *priv,
-> > > > >  	u32 left, right, top, bottom;
-> > > > >  
-> > > > >  	if (ctx->state != MFCINST_HEAD_PARSED &&
-> > > > > -	ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
-> > > > > -					&& ctx->state != MFCINST_FINISHED) {
-> > > > > -			mfc_err("Cannont set crop\n");
-> > > > > -			return -EINVAL;
-> > > > > -		}
-> > > > > +	    ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
-> > > > > +	    && ctx->state != MFCINST_FINISHED) {
-> > > > > +		mfc_err("Can not get crop information\n");
-> > > > > +		return -EINVAL;
-> > > > > +	}
-> > > > is it a set or a get?
-> > > vidioc_g_crop is a get routine.
-> > > > 
-> > > > 
-> > > > It'd be nicer for humans to read if the alignment was consistent
-> > > Are you okay with this alignment change or would you like it
-> > > changed?
-> > Well, if you're resubmitting, I'd prefer it changed.
-> > Thanks.
-> > 
-> chekcpatch stopped complaining. Are you looking for the entire file
-> alignments changed? I am not clear on what needs to be changed?
+The RST version was produced in 2016. So, update it where
+it was still pointing to the wrong year.
 
-I think doing just this spelling and get/set correction and
-fixing the alignment in this single case in a single patch
-would be fine here.
+While here, added the missing (copyright) symbols.
 
-Foxing the alignment for the entire file would be a more
-significant change and isn't necessary in this patch.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/linux_tv/conf.py              | 2 +-
+ Documentation/linux_tv/index.rst            | 4 +++-
+ Documentation/linux_tv/media/dvb/dvbapi.rst | 6 ++++--
+ 3 files changed, 8 insertions(+), 4 deletions(-)
 
-Another thing possible for the file would be to change the
-mfc_debug and mfc_err/mfc_info macros to use pr_<level>
-without the generally unnecessary __func__ and __LINE__
-uses.
+diff --git a/Documentation/linux_tv/conf.py b/Documentation/linux_tv/conf.py
+index 8013c921256b..ea5f6ef25d6b 100644
+--- a/Documentation/linux_tv/conf.py
++++ b/Documentation/linux_tv/conf.py
+@@ -25,7 +25,7 @@ kernel_doc_mode = "kernel-doc"
+ # ------------------------------------------------------------------------------
+ 
+ project   = u'LINUX MEDIA INFRASTRUCTURE API'
+-copyright = u'2009-2015 : LinuxTV Developers'
++copyright = u'2009-2016 : LinuxTV Developers'
+ author    = u'The LinuxTV Developers'
+ 
+ # The version info for the project you're documenting, acts as replacement for
+diff --git a/Documentation/linux_tv/index.rst b/Documentation/linux_tv/index.rst
+index 42b3d4520942..e6df371243d8 100644
+--- a/Documentation/linux_tv/index.rst
++++ b/Documentation/linux_tv/index.rst
+@@ -1,10 +1,12 @@
+ .. -*- coding: utf-8; mode: rst -*-
+ 
++.. include:: <isonum.txt>
++
+ ##############################
+ LINUX MEDIA INFRASTRUCTURE API
+ ##############################
+ 
+-**Copyright** 2009-2015 : LinuxTV Developers
++**Copyright** |copy| 2009-2016 : LinuxTV Developers
+ 
+ Permission is granted to copy, distribute and/or modify this document
+ under the terms of the GNU Free Documentation License, Version 1.1 or
+diff --git a/Documentation/linux_tv/media/dvb/dvbapi.rst b/Documentation/linux_tv/media/dvb/dvbapi.rst
+index 5e513ac86052..daeeb4d64917 100644
+--- a/Documentation/linux_tv/media/dvb/dvbapi.rst
++++ b/Documentation/linux_tv/media/dvb/dvbapi.rst
+@@ -1,5 +1,7 @@
+ .. -*- coding: utf-8; mode: rst -*-
+ 
++.. include:: <isonum.txt>
++
+ .. _dvbapi:
+ 
+ #############
+@@ -41,9 +43,9 @@ Revision and Copyright
+ :address:   m.chehab@samsung.com
+ :contrib:   Ported document to Docbook XML.
+ 
+-**Copyright** 2002, 2003 : Convergence GmbH
++**Copyright** |copy| 2002, 2003 : Convergence GmbH
+ 
+-**Copyright** 2009-2015 : Mauro Carvalho Chehab
++**Copyright** |copy| 2009-2016 : Mauro Carvalho Chehab
+ 
+ :revision: 2.1.0 / 2015-05-29 (*mcc*)
+ 
+-- 
+2.7.4
 
-This could both enable dynamic_debug uses for the KERN_DEBUG
-cases and reduce overall object size.
 
