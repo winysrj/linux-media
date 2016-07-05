@@ -1,138 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:33514 "EHLO
-	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932217AbcGOHdj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 03:33:39 -0400
-Received: by mail-wm0-f54.google.com with SMTP id r190so8211564wmr.0
-        for <linux-media@vger.kernel.org>; Fri, 15 Jul 2016 00:33:38 -0700 (PDT)
-Date: Fri, 15 Jul 2016 09:33:34 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Brian Starkey <brian.starkey@arm.com>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	liviu.dudau@arm.com
-Subject: Re: DRM device memory writeback (Mali-DP)
-Message-ID: <20160715073334.GO17101@phenom.ffwll.local>
-References: <20160714170340.GA32755@e106950-lin.cambridge.arm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160714170340.GA32755@e106950-lin.cambridge.arm.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:41912 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193AbcGESkY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2016 14:40:24 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 06/12] doc-rst: remove Documentation/linux_tv/conf.py file
+Date: Tue,  5 Jul 2016 14:59:22 -0300
+Message-Id: <5d55cd2ee7a869bbe2d2f9d9bd496b630cd1c847.1467743704.git.mchehab@s-opensource.com>
+In-Reply-To: <47d23e363fb034f32551f5fe85add77ceba98d3b.1467740686.git.mchehab@s-opensource.com>
+References: <47d23e363fb034f32551f5fe85add77ceba98d3b.1467740686.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467743704.git.mchehab@s-opensource.com>
+References: <cover.1467743704.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 14, 2016 at 06:03:40PM +0100, Brian Starkey wrote:
-> Hi,
-> 
-> The Mali-DP display processors have a memory-writeback engine which
-> can write the result of the composition (CRTC output) to a memory
-> buffer in a variety of formats.
-> 
-> We're looking for feedback/suggestions on how to expose this in the
-> mali-dp DRM kernel driver - possibly via V4L2.
-> 
-> We've got a few use cases where writeback is useful:
->    - testing, to check the displayed image
+This file is actually not used to build the media uAPI docbook.
+So, remove it.
 
-This might or might not need a separate interface. There are efforts to
-make the intel kms validation tests in i-g-t generic (well under way
-already), and part of that is creating a generic infrastructure to capture
-display CRCs for functional tests (still in progress).
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/linux_tv/conf.py | 221 -----------------------------------------
+ 1 file changed, 221 deletions(-)
+ delete mode 100644 Documentation/linux_tv/conf.py
 
-But it might be better if userspace abstracts between full readback and
-display CRC, assuming we can make full writeback cross-vendor enough for
-that use-case.
-
->    - screen recording
->    - wireless display (e.g. Miracast)
->    - dual-display clone mode
->    - memory-to-memory composition
-> Note that the HW is capable of writing one of the input planes instead
-> of the CRTC output, but we've no good use-case for wanting to expose
-> that.
-> 
-> In our Android ADF driver[1] we exposed the memory write engine as
-> part of the ADF device using ADF's "MEMORY" interface type. DRM/KMS
-> doesn't have any similar support for memory output from CRTCs, but we
-> want to expose the functionality in the mainline Mali-DP DRM driver.
-> 
-> A previous discussion on the topic went towards exposing the
-> memory-write engine via V4L2[2].
-> 
-> I'm thinking to userspace this would look like two distinct devices:
->    - A DRM KMS display controller.
->    - A V4L2 video source.
-> They'd both exist in the same kernel driver.
-> A V4L2 client can queue up (CAPTURE) buffers in the normal way, and
-> the DRM driver would see if there's a buffer to dequeue every time a
-> new modeset is received via the DRM API - if so, it can configure the
-> HW to dump into it (one-shot operation).
-> 
-> An implication of this is that if the screen is actively displaying a
-> static scene and the V4L2 client queues up a buffer, it won't get
-> filled until the DRM scene changes. This seems best, otherwise the
-> V4L2 driver has to change the HW configuration out-of-band from the
-> DRM device which sounds horribly racy.
-> 
-> One further complication is scaling. Our HW has a scaler which can
-> tasked with either scaling an input plane or the buffer being written
-> to memory, but not both at the same time. This means we need to
-> arbitrate the scaler between the DRM device (scaling input planes) and
-> the V4L2 device (scaling output buffers).
-> 
-> I think the simplest approach here is to allow V4L2 to "claim" the
-> scaler by setting the image size (VIDIOC_S_FMT) to something other
-> than the CRTC's current resolution. After that, any attempt to use the
-> scaler on an input plane via DRM should fail atomic_check().
-
-That's perfectly fine atomic_check behaviour. Only trouble is that the v4l
-locking must integrate into the drm locking, but that should be doable.
-Worst case you must shadow all v4l locks with a wait/wound
-drm_modeset_lock to avoid deadlocks (since you could try to grab locks
-from either end).
-
-> If the V4L2 client goes away or sets the image size to the CRTC's
-> native resolution, then the DRM device is allowed to use the scaler.
-> I don't know if/how the DRM device should communicate to userspace
-> that the scaler is or isn't available for use.
-> 
-> Any thoughts on this approach?
-> Is it acceptable to both V4L2 and DRM folks?
-
-For streaming a V4L2 capture device seems like the right interface. But if
-you want to use writeback in your compositor you must know which atomic
-kms update results in which frame, since if you don't you can't use that
-composited buffer for the next frame reliable.
-
-For that case I think a drm-only solution would be better, to make sure
-you can do an atomic update and writeback in one step. v4l seems to grow
-an atomic api of its own, but I don't think we'll have one spanning
-subsystems anytime soon.
-
-For the kms-only interface the idea was to add a property on the crtc
-where you can attach a writeback drm_framebuffer. Extending that idea to
-the drm->v4l case we could create special drm_framebuffer objects
-representing a v4l sink, and attach them to the same property. That would
-also solve the problem of getting some agreement on buffer metadata
-between v4l and drm side.
-
-Laurent had some poc patches a while ago for this, he's definitely the one
-to ping.
--Daniel
-
-> 
-> Thanks for your time,
-> 
-> -Brian
-> 
-> [1] http://malideveloper.arm.com/resources/drivers/open-source-mali-dp-adf-kernel-device-drivers/
-> [2] https://people.freedesktop.org/~cbrill/dri-log/?channel=dri-devel&date=2016-05-04
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
-
+diff --git a/Documentation/linux_tv/conf.py b/Documentation/linux_tv/conf.py
+deleted file mode 100644
+index ea5f6ef25d6b..000000000000
+--- a/Documentation/linux_tv/conf.py
++++ /dev/null
+@@ -1,221 +0,0 @@
+-# -*- coding: utf-8; mode: python -*-
+-#
+-# This is the project specific sphinx-build configuration, which is loaded from
+-# the base configuration file (``../conf.py``). About config values consult:
+-#
+-# * http://www.sphinx-doc.org/en/stable/config.html
+-#
+-# While setting values here, please take care to not overwrite common needed
+-# configurations. This means, do not *overwrite* composite values (e.g. the
+-# list- or dictionary-value of "latex_elements" resp. "extensions") by
+-# thoughtless assignments. Manipulate composite values always by *update*
+-# (dict-values) or extend (list-values). Nevertheless, if you know what you are
+-# doing, you are free to *overwrite* values to your needs.
+-#
+-# useful preset names:
+-#
+-# * BASE_FOLDER: the folder where the top conf.py is located
+-# * main_name:   the basename of this project-folder
+-
+-# Set parser's default kernel-doc mode ``reST|kernel-doc``.
+-kernel_doc_mode = "kernel-doc"
+-
+-# ------------------------------------------------------------------------------
+-# General configuration
+-# ------------------------------------------------------------------------------
+-
+-project   = u'LINUX MEDIA INFRASTRUCTURE API'
+-copyright = u'2009-2016 : LinuxTV Developers'
+-author    = u'The LinuxTV Developers'
+-
+-# The version info for the project you're documenting, acts as replacement for
+-# |version| and |release|, also used in various other places throughout the
+-# built documents.
+-#
+-# The short X.Y version.
+-#version   = 'v4.7'
+-# The full version, including alpha/beta/rc tags.
+-#release   = 'v4.7-rc2'
+-
+-# extlinks["man"] = ('http://manpages.ubuntu.com/cgi-bin/search.py?q=%s', ' ')
+-
+-# intersphinx_mapping['kernel-doc'] = ('http://return42.github.io/sphkerneldoc/books/kernel-doc-HOWTO/', None)
+-
+-extensions.extend([
+-    # 'sphinx.ext.pngmath'
+-    #, 'sphinx.ext.mathjax'
+-])
+-
+-# ------------------------------------------------------------------------------
+-# Options for HTML output
+-# ------------------------------------------------------------------------------
+-
+-# The name for this set of Sphinx documents.  If None, it defaults to
+-# "<project> v<release> documentation".
+-#html_title = None
+-
+-# A shorter title for the navigation bar.  Default is the same as html_title.
+-#html_short_title = None
+-
+-# The name of an image file (relative to this directory) to place at the top
+-# of the sidebar.
+-#html_logo = pathjoin(BASE_FOLDER, "_tex", "logo.png")
+-
+-# The name of an image file (within the static path) to use as favicon of the
+-# docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
+-# pixels large.
+-#html_favicon = None
+-
+-# Add any paths that contain custom static files (such as style sheets) here,
+-# relative to this directory. They are copied after the builtin static files,
+-# so a file named "default.css" will overwrite the builtin "default.css".
+-html_static_path.extend([])
+-
+-# Output file base name for HTML help builder.
+-htmlhelp_basename = main_name
+-
+-# ------------------------------------------------------------------------------
+-# Options for rst2pdf output
+-# ------------------------------------------------------------------------------
+-
+-# Grouping the document tree into PDF files. List of tuples
+-# (source start file, target name, title, author, options).
+-#
+-# The options element is a dictionary that lets you override
+-# this config per-document.
+-# For example,
+-# ('index', u'MyProject', u'My Project', u'Author Name',
+-#  dict(pdf_compressed = True))
+-# would mean that specific document would be compressed
+-# regardless of the global pdf_compressed setting.
+-#
+-# further:  http://rst2pdf.ralsina.me/handbook.html#sphinx
+-
+-# FIXME: at this time, the rst2pdf fails with a bug
+-#pdf_documents = [
+-#    (master_doc, main_name, project, author)
+-#    , ]
+-
+-# If false, no index is generated.
+-pdf_use_index = False
+-
+-# How many levels deep should the table of contents be?
+-pdf_toc_depth = 3
+-
+-# Add section number to section references
+-pdf_use_numbered_links = False
+-
+-# Background images fitting mode
+-pdf_fit_background_mode = 'scale'
+-
+-
+-# ------------------------------------------------------------------------------
+-# Options for manual page output
+-# ------------------------------------------------------------------------------
+-
+-# One entry per manual page. List of tuples
+-# (source start file, name, description, authors, manual section).
+-# man_pages = [
+-#     (master_doc, 'kernel-doc', u'Kernel-Doc',
+-#      [author], 1)
+-# ]
+-
+-# If true, show URL addresses after external links.
+-#man_show_urls = False
+-
+-# ------------------------------------------------------------------------------
+-# Options for Texinfo output
+-# ------------------------------------------------------------------------------
+-
+-# Grouping the document tree into Texinfo files. List of tuples
+-# (source start file, target name, title, author,
+-#  dir menu entry, description, category)
+-# texinfo_documents = [
+-#     (master_doc, 'Kernel-Doc', u'Kernel-Doc Documentation',
+-#      author, 'Kernel-Doc', 'One line description of project.',
+-#      'Miscellaneous'),
+-# ]
+-
+-# Documents to append as an appendix to all manuals.
+-#texinfo_appendices = []
+-
+-# If false, no module index is generated.
+-#texinfo_domain_indices = True
+-
+-# How to display URL addresses: 'footnote', 'no', or 'inline'.
+-#texinfo_show_urls = 'footnote'
+-
+-# If true, do not generate a @detailmenu in the "Top" node's menu.
+-#texinfo_no_detailmenu = False
+-
+-# ------------------------------------------------------------------------------
+-# Options for Epub output
+-# ------------------------------------------------------------------------------
+-
+-# Bibliographic Dublin Core info.
+-# epub_title = project
+-# epub_author = author
+-# epub_publisher = author
+-# epub_copyright = copyright
+-
+-# The basename for the epub file. It defaults to the project name.
+-#epub_basename = project
+-
+-# The HTML theme for the epub output. Since the default themes are not
+-# optimized for small screen space, using the same theme for HTML and epub
+-# output is usually not wise. This defaults to 'epub', a theme designed to save
+-# visual space.
+-#epub_theme = 'epub'
+-
+-# The language of the text. It defaults to the language option
+-# or 'en' if the language is not set.
+-#epub_language = ''
+-
+-# The scheme of the identifier. Typical schemes are ISBN or URL.
+-#epub_scheme = ''
+-
+-# The unique identifier of the text. This can be a ISBN number
+-# or the project homepage.
+-#epub_identifier = ''
+-
+-# A unique identification for the text.
+-#epub_uid = ''
+-
+-# A tuple containing the cover image and cover page html template filenames.
+-#epub_cover = ()
+-
+-# A sequence of (type, uri, title) tuples for the guide element of content.opf.
+-#epub_guide = ()
+-
+-# HTML files that should be inserted before the pages created by sphinx.
+-# The format is a list of tuples containing the path and title.
+-#epub_pre_files.extend([])
+-
+-# HTML files that should be inserted after the pages created by sphinx.
+-# The format is a list of tuples containing the path and title.
+-#epub_post_files.extend([])
+-
+-# A list of files that should not be packed into the epub file.
+-epub_exclude_files.extend([])
+-
+-# The depth of the table of contents in toc.ncx.
+-#epub_tocdepth = 3
+-
+-# Allow duplicate toc entries.
+-#epub_tocdup = True
+-
+-# Choose between 'default' and 'includehidden'.
+-#epub_tocscope = 'default'
+-
+-# Fix unsupported image types using the Pillow.
+-#epub_fix_images = False
+-
+-# Scale large images.
+-#epub_max_image_width = 0
+-
+-# How to display URL addresses: 'footnote', 'no', or 'inline'.
+-#epub_show_urls = 'inline'
+-
+-# If false, no index is generated.
+-#epub_use_index = True
+-
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.7.4
+
