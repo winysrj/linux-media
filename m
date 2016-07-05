@@ -1,147 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:56138 "EHLO
-	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751411AbcGGLN6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2016 07:13:58 -0400
-Subject: Re: [PATCH v3 0/9] Add MT8173 Video Decoder Driver
-To: tiffany lin <tiffany.lin@mediatek.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
- <577D0576.2050706@xs4all.nl> <1467886612.21382.18.camel@mtksdaap41>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, daniel.thompson@linaro.org,
-	Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <577E3971.1080305@cisco.com>
-Date: Thu, 7 Jul 2016 13:13:53 +0200
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:39739 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754512AbcGELQ0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Jul 2016 07:16:26 -0400
+Received: from [64.103.36.133] (proxy-ams-1.cisco.com [64.103.36.133])
+	by tschai.lan (Postfix) with ESMTPSA id DA1BD180C6D
+	for <linux-media@vger.kernel.org>; Tue,  5 Jul 2016 13:16:20 +0200 (CEST)
+To: linux-media <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.8] Various dvb/rc fixes/improvements
+Message-ID: <577B9704.9040300@xs4all.nl>
+Date: Tue, 5 Jul 2016 13:16:20 +0200
 MIME-Version: 1.0
-In-Reply-To: <1467886612.21382.18.camel@mtksdaap41>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tiffany,
+Mauro,
 
-On 07/07/16 12:16, tiffany lin wrote:
-> Hi Hans,
-> 
-> 
-> On Wed, 2016-07-06 at 15:19 +0200, Hans Verkuil wrote:
->> Hi Tiffany,
->>
->> I plan to review this patch series on Friday, but one obvious question is
->> what the reason for these failures is:
->>
->>> Input/Output configuration ioctls:
->>>         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
->>>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
->>>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
->>>         test VIDIOC_G/S_EDID: OK (Not Supported)
->>>
->>>         Control ioctls:
->>>                 test VIDIOC_QUERYCTRL/MENU: OK
->>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(357): g_ctrl returned an error (11)
->>>                 test VIDIOC_G/S_CTRL: FAIL
->>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(579): g_ext_ctrls returned an error (11)
->>>                 test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
-> These fails are because VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS return
-> V4L2_CID_MIN_BUFFERS_FOR_CAPTURE only when dirver in MTK_STATE_HEADER
-> state, or it will return EAGAIN.
-> This could help user space get correct value, not default value that may
-> changed base on media content.
+As requested, I'm helping out with reducing the backlog.
 
-So this should be improved in v4l2-compliance.
+This is the third version of this pull request. The only difference with the
+older pull requests is that these two patches are dropped:
 
-> 
->>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(721): subscribe event for control 'User Controls' failed
->>>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
-> Driver do not support subscribe event for control 'User Controls' for
-> now.
-> Do we need to support this?
+https://patchwork.linuxtv.org/patch/34338/
+https://patchwork.linuxtv.org/patch/34339/
 
-Let me check: this might be a knock-on effect from the previous error.
-
-Which controls does your driver have? (v4l2-ctl -l)
-
-> 
->>>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
->>>                 Standard Controls: 2 Private Controls: 0
->>>
->>>         Format ioctls:
->>>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
->>>                 test VIDIOC_G/S_PARM: OK (Not Supported)
->>>                 test VIDIOC_G_FBUF: OK (Not Supported)
->>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-formats.cpp(405): expected EINVAL, but got 11 when getting format for buftype 9
->>>                 test VIDIOC_G_FMT: FAIL
-> This is because vidioc_vdec_g_fmt only succeed when context is in
-> MTK_STATE_HEADER state, or user space cannot get correct format data
-> using this function.
-
-I'll take a look at this as well.
-
-> 
->>>                 test VIDIOC_TRY_FMT: OK (Not Supported)
->>>                 test VIDIOC_S_FMT: OK (Not Supported)
->>>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
->>>
->>>         Codec ioctls:
->>>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->>>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->>>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
->>>
->>>         Buffer ioctls:
->>>                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-buffers.cpp(500): q.has_expbuf(node)
-
-Don't use v4l-utils-1.6: just use the latest master branch. That way you can
-be certain that the latest fixes are in. Besides, 1.6.0 is really old (almost
-two years!). If you used the same old version for the encoder driver as well,
-then please retest that encoder driver!
-
-> Our OUTPUT and CAPTURE queue support both VB2_DMABUF and VB2_MMAP, user
-> space can select which to use in runtime.
-> So our driver default support v4l2_m2m_ioctl_expbuf functionality.
-> In v4l2-compliance test, it will check v4l2_m2m_ioctl_expbuf only valid
-> when node->valid_memorytype is V4L2_MEMORY_MMAP.
-> So when go through node->valid_memorytype is V4L2_MEMORY_DMABUF, it
-> fail.
-
-That sounds like a bug. I'll take a look. For all I know, this is fixed in the
-master branch.
+I think you should take a look at those.
 
 Regards,
 
 	Hans
 
-> 
-> 
-> best regards,
-> Tiffany
-> 
-> 
-> 
->>>                 test VIDIOC_EXPBUF: FAIL
->>>
->>>
->>> Total: 38, Succeeded: 33, Failed: 5, Warnings: 0
->>
->> If it is due to a bug in v4l2-compliance, then let me know and I'll fix it. If not,
->> then it should be fixed in the driver.
->>
->> Frankly, it was the presence of these failures that made me think this patch series
->> wasn't final. Before a v4l2 driver can be accepted in the kernel, v4l2-compliance must pass.
->>
->> Regards,
->>
->> 	Hans
-> 
-> 
+The following changes since commit ab46f6d24bf57ddac0f5abe2f546a78af57b476c:
+
+  [media] videodev2.h: Fix V4L2_PIX_FMT_YUV411P description (2016-06-28 11:54:52 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.8f
+
+for you to fetch changes up to 32f2d0799571b9c2b9c07f9047111fd47329c911:
+
+  media: rc: nuvoton: remove two unused elements in struct nvt_dev (2016-07-05 12:13:36 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (14):
+      si2168: add support for newer firmwares
+      si2168: do not allow driver unbind
+      si2157: do not allow driver unbind
+      m88ds3103: remove useless most significant bit clear
+      m88ds3103: calculate DiSEqC message sending time
+      m88ds3103: improve ts clock setting
+      m88ds3103: use Hz instead of kHz on calculations
+      m88ds3103: refactor firmware download
+      af9033: move statistics to read_status()
+      af9033: do not allow driver unbind
+      it913x: do not allow driver unbind
+      rtl2830: do not allow driver unbind
+      rtl2830: move statistics to read_status()
+      rtl2832: do not allow driver unbind
+
+Heiner Kallweit (10):
+      media: rc: nuvoton: fix rx fifo overrun handling
+      media: rc: nuvoton: remove interrupt handling for wakeup
+      media: rc: nuvoton: clean up initialization of wakeup registers
+      media: rc: nuvoton: remove wake states
+      media: rc: nuvoton: simplify a few functions
+      media: rc: nuvoton: remove unneeded code in nvt_process_rx_ir_data
+      media: rc: nuvoton: remove study states
+      media: rc: nuvoton: simplify interrupt handling code
+      media: rc: nuvoton: remove unneeded check in nvt_get_rx_ir_data
+      media: rc: nuvoton: remove two unused elements in struct nvt_dev
+
+ drivers/media/dvb-frontends/af9033.c         | 327 ++++++++++++++++++++++++++++++++++++++++++----------------------------------------------
+ drivers/media/dvb-frontends/m88ds3103.c      | 144 ++++++++++++++++++---------------------
+ drivers/media/dvb-frontends/m88ds3103_priv.h |   3 +-
+ drivers/media/dvb-frontends/rtl2830.c        | 203 ++++++++++++++++++++++++-------------------------------
+ drivers/media/dvb-frontends/rtl2830_priv.h   |   2 +-
+ drivers/media/dvb-frontends/rtl2832.c        |   1 +
+ drivers/media/dvb-frontends/si2168.c         | 127 ++++++++++++++++++++--------------
+ drivers/media/dvb-frontends/si2168_priv.h    |   8 ++-
+ drivers/media/rc/nuvoton-cir.c               | 137 ++++---------------------------------
+ drivers/media/rc/nuvoton-cir.h               |  25 -------
+ drivers/media/tuners/it913x.c                |   1 +
+ drivers/media/tuners/si2157.c                |   3 +-
+ 12 files changed, 411 insertions(+), 570 deletions(-)
