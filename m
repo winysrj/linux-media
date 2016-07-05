@@ -1,149 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:48419 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754438AbcGHL0O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 07:26:14 -0400
-From: Nick Dyer <nick@shmanahar.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	jon.older@itdev.co.uk, nick.dyer@itdev.co.uk,
-	Nick Dyer <nick@shmanahar.org>
-Subject: [PATCH v7 06/11] Input: atmel_mxt_ts - read touchscreen size
-Date: Fri,  8 Jul 2016 12:25:59 +0100
-Message-Id: <1467977164-17551-7-git-send-email-nick@shmanahar.org>
-In-Reply-To: <1467977164-17551-1-git-send-email-nick@shmanahar.org>
-References: <1467977164-17551-1-git-send-email-nick@shmanahar.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:38717 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754237AbcGEBb2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:28 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 21/41] Documentation: pixfmt-nv16m.rst: remove an empty column
+Date: Mon,  4 Jul 2016 22:30:56 -0300
+Message-Id: <0e828e1c23fde5c6e656802dc3ae91166003d249.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The touchscreen may have a margin where not all the matrix is used. Read
-the parameters from T9 and T100 and take account of the difference.
+The conversion added an empty column (probably, it was used on
+DocBook just to increase spacing.
 
-Note: this does not read the XORIGIN/YORIGIN fields so it assumes that
-the touchscreen starts at (0,0)
+It also added an extra line on one of the texts, breaking
+the original paragraph into two ones.
 
-Signed-off-by: Nick Dyer <nick@shmanahar.org>
+Remove them.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/input/touchscreen/atmel_mxt_ts.c |   42 +++++++++++++++++++++++++-----
- 1 file changed, 36 insertions(+), 6 deletions(-)
+ Documentation/linux_tv/media/v4l/pixfmt-nv16m.rst | 10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index bea95a1..d09ecc3 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -103,6 +103,8 @@ struct t7_config {
+diff --git a/Documentation/linux_tv/media/v4l/pixfmt-nv16m.rst b/Documentation/linux_tv/media/v4l/pixfmt-nv16m.rst
+index 9caa243550a1..2157663fa6c2 100644
+--- a/Documentation/linux_tv/media/v4l/pixfmt-nv16m.rst
++++ b/Documentation/linux_tv/media/v4l/pixfmt-nv16m.rst
+@@ -34,7 +34,6 @@ used only in drivers and applications that support the multi-planar API,
+ described in :ref:`planar-apis`.
  
- /* MXT_TOUCH_MULTI_T9 field */
- #define MXT_T9_CTRL		0
-+#define MXT_T9_XSIZE		3
-+#define MXT_T9_YSIZE		4
- #define MXT_T9_ORIENT		9
- #define MXT_T9_RANGE		18
+ **Byte Order..**
+-
+ Each cell is one byte.
  
-@@ -150,7 +152,9 @@ struct t37_debug {
- #define MXT_T100_CTRL		0
- #define MXT_T100_CFG1		1
- #define MXT_T100_TCHAUX		3
-+#define MXT_T100_XSIZE		9
- #define MXT_T100_XRANGE		13
-+#define MXT_T100_YSIZE		20
- #define MXT_T100_YRANGE		24
  
- #define MXT_T100_CFG_SWITCHXY	BIT(5)
-@@ -259,6 +263,8 @@ struct mxt_data {
- 	unsigned int max_x;
- 	unsigned int max_y;
- 	bool xy_switch;
-+	u8 xsize;
-+	u8 ysize;
- 	bool in_bootloader;
- 	u16 mem_size;
- 	u8 t100_aux_ampl;
-@@ -1714,6 +1720,18 @@ static int mxt_read_t9_resolution(struct mxt_data *data)
- 		return -EINVAL;
+@@ -163,7 +162,6 @@ Each cell is one byte.
+        -  
+        -  1
  
- 	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T9_XSIZE,
-+			       sizeof(data->xsize), &data->xsize);
-+	if (error)
-+		return error;
-+
-+	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T9_YSIZE,
-+			       sizeof(data->ysize), &data->ysize);
-+	if (error)
-+		return error;
-+
-+	error = __mxt_read_reg(client,
- 			       object->start_address + MXT_T9_RANGE,
- 			       sizeof(range), &range);
- 	if (error)
-@@ -1763,6 +1781,18 @@ static int mxt_read_t100_config(struct mxt_data *data)
+-       -  
+        -  2
  
- 	data->max_y = get_unaligned_le16(&range_y);
+        -  
+@@ -178,7 +176,6 @@ Each cell is one byte.
+        -  
+        -  Y
  
-+	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T100_XSIZE,
-+			       sizeof(data->xsize), &data->xsize);
-+	if (error)
-+		return error;
-+
-+	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T100_YSIZE,
-+			       sizeof(data->ysize), &data->ysize);
-+	if (error)
-+		return error;
-+
- 	/* read orientation config */
- 	error =  __mxt_read_reg(client,
- 				object->start_address + MXT_T100_CFG1,
-@@ -2121,7 +2151,7 @@ static int mxt_convert_debug_pages(struct mxt_data *data, u16 *outbuf)
- 		outbuf[i] = mxt_get_debug_value(data, x, y);
+-       -  
+        -  Y
  
- 		/* Next value */
--		if (++x >= data->info.matrix_xsize) {
-+		if (++x >= data->xsize) {
- 			x = 0;
- 			y++;
- 		}
-@@ -2276,8 +2306,8 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
- 	if (i > 0)
- 		return -EINVAL;
+        -  
+@@ -192,7 +189,6 @@ Each cell is one byte.
  
--	f->width = data->info.matrix_xsize;
--	f->height = data->info.matrix_ysize;
-+	f->width = data->xsize;
-+	f->height = data->ysize;
- 	f->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
- 	f->field = V4L2_FIELD_NONE;
- 	f->colorspace = V4L2_COLORSPACE_RAW;
-@@ -2392,9 +2422,9 @@ static void mxt_debug_init(struct mxt_data *data)
- 	dbg->t37_address = object->start_address;
+        -  
+        -  
+-       -  
+        -  C
  
- 	/* Calculate size of data and allocate buffer */
--	dbg->t37_nodes = data->info.matrix_xsize * data->info.matrix_ysize;
--	dbg->t37_pages = DIV_ROUND_UP(dbg->t37_nodes * sizeof(u16),
--				      sizeof(dbg->t37_buf->data));
-+	dbg->t37_nodes = data->xsize * data->ysize;
-+	dbg->t37_pages = DIV_ROUND_UP(data->xsize * data->info.matrix_ysize *
-+				      sizeof(u16), sizeof(dbg->t37_buf->data));
+        -  
+@@ -206,7 +202,6 @@ Each cell is one byte.
+        -  
+        -  Y
  
- 	dbg->t37_buf = devm_kmalloc_array(&data->client->dev, dbg->t37_pages,
- 					  sizeof(struct t37_debug), GFP_KERNEL);
+-       -  
+        -  Y
+ 
+        -  
+@@ -220,7 +215,6 @@ Each cell is one byte.
+ 
+        -  
+        -  
+-       -  
+        -  C
+ 
+        -  
+@@ -238,7 +232,6 @@ Each cell is one byte.
+        -  
+        -  Y
+ 
+-       -  
+        -  Y
+ 
+        -  
+@@ -252,7 +245,6 @@ Each cell is one byte.
+ 
+        -  
+        -  
+-       -  
+        -  C
+ 
+        -  
+@@ -266,7 +258,6 @@ Each cell is one byte.
+        -  
+        -  Y
+ 
+-       -  
+        -  Y
+ 
+        -  
+@@ -280,7 +271,6 @@ Each cell is one byte.
+ 
+        -  
+        -  
+-       -  
+        -  C
+ 
+        -  
 -- 
-1.7.9.5
+2.7.4
 
