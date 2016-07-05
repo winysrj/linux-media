@@ -1,71 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41275 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754855AbcGHND7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:03:59 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 05/54] doc-rst: boilerplate HTML theme customization
-Date: Fri,  8 Jul 2016 10:02:57 -0300
-Message-Id: <bc21467114b03ce47317cce9a49f0a46cdde50ca.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41736 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754348AbcGEHGG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Jul 2016 03:06:06 -0400
+Subject: Re: [PATCH v2 1/3] sur40: properly report a single frame rate of 60
+ FPS
+To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
+References: <1464725733-22119-1-git-send-email-floe@butterbrot.org>
+ <f5d84d25-eae4-df9b-819b-256565783c35@xs4all.nl>
+ <577B5A2B.5060406@butterbrot.org>
+Cc: linux-input@vger.kernel.org, Martin Kaltenbrunner <modin@yuri.at>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <cfd020d2-5834-11ac-1b1c-cb98aa872354@xs4all.nl>
+Date: Tue, 5 Jul 2016 09:06:01 +0200
+MIME-Version: 1.0
+In-Reply-To: <577B5A2B.5060406@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Heiser <markus.heiser@darmarIT.de>
+On 07/05/2016 08:56 AM, Florian Echtler wrote:
+> Hello Hans,
+> 
+> On 05.07.2016 08:41, Hans Verkuil wrote:
+>> On 05/31/2016 10:15 PM, Florian Echtler wrote:
+>>> The device hardware is always running at 60 FPS, so report this both via
+>>> PARM_IOCTL and ENUM_FRAMEINTERVALS.
+>>>
+>>> Signed-off-by: Martin Kaltenbrunner <modin@yuri.at>
+>>> Signed-off-by: Florian Echtler <floe@butterbrot.org>
+>>> ---
+>>>  drivers/input/touchscreen/sur40.c | 20 ++++++++++++++++++--
+>>>  1 file changed, 18 insertions(+), 2 deletions(-)
+>>>
+>>> @@ -880,6 +893,9 @@ static const struct v4l2_ioctl_ops sur40_video_ioctl_ops = {
+>>>  	.vidioc_enum_framesizes = sur40_vidioc_enum_framesizes,
+>>>  	.vidioc_enum_frameintervals = sur40_vidioc_enum_frameintervals,
+>>>  
+>>> +	.vidioc_g_parm = sur40_ioctl_parm,
+>>> +	.vidioc_s_parm = sur40_ioctl_parm,
+>>
+>> Why is s_parm added when you can't change the framerate?
+> 
+> Oh, I thought it's mandatory to always have s_parm if you have g_parm
+> (even if it always returns the same values).
+> 
+>> Same questions for the
+>> enum_frameintervals function: it doesn't hurt to have it, but if there is only
+>> one unchangeable framerate, then it doesn't make much sense.
+> 
+> If you don't have enum_frameintervals, how would you find out about the
+> framerate otherwise? Is g_parm itself enough already for all userspace
+> tools?
 
-Implements the minimal boilerplate for Sphinx HTML theme customization.
+It should be. The enum_frameintervals function is much newer than g_parm.
 
-Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/conf.py                           | 9 ++++++++-
- Documentation/sphinx-static/theme_overrides.css | 9 +++++++++
- 2 files changed, 17 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/sphinx-static/theme_overrides.css
+Frankly, I have the same problem with enum_framesizes: it reports only one
+size. These two enum ioctls are normally only implemented if there are at
+least two choices. If there is no choice, then G_FMT will return the size
+and G_PARM the framerate and there is no need to enumerate anything.
 
-diff --git a/Documentation/conf.py b/Documentation/conf.py
-index 792b6338ef19..f35748b4bc26 100644
---- a/Documentation/conf.py
-+++ b/Documentation/conf.py
-@@ -176,7 +176,14 @@ except ImportError:
- # Add any paths that contain custom static files (such as style sheets) here,
- # relative to this directory. They are copied after the builtin static files,
- # so a file named "default.css" will overwrite the builtin "default.css".
--#html_static_path = ['_static']
-+
-+html_static_path = ['sphinx-static']
-+
-+html_context = {
-+    'css_files': [
-+        '_static/theme_overrides.css',
-+    ],
-+}
- 
- # Add any extra paths that contain custom files (such as robots.txt or
- # .htaccess) here, relative to this directory. These files are copied
-diff --git a/Documentation/sphinx-static/theme_overrides.css b/Documentation/sphinx-static/theme_overrides.css
-new file mode 100644
-index 000000000000..4d670dbf7ffa
---- /dev/null
-+++ b/Documentation/sphinx-static/theme_overrides.css
-@@ -0,0 +1,9 @@
-+/* -*- coding: utf-8; mode: css -*-
-+ *
-+ * Sphinx HTML theme customization
-+ *
-+ */
-+
-+@media screen {
-+
-+}
--- 
-2.7.4
+The problem is that the spec is ambiguous as to the requirements if there
+is only one choice for size and interval. Are the enum ioctls allowed in
+that case? Personally I think there is nothing against that. But should
+S_PARM also be allowed even though it can't actually change the frameperiod?
 
+Don't bother making changes yet, let me think about this for a bit.
+
+Regards,
+
+	Hans
+
+> 
+>> Sorry, missed this when I reviewed this the first time around.
+> 
+> No problem.
+> 
+> Best, Florian
+> 
