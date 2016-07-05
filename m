@@ -1,207 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avasout06.plus.net ([212.159.14.18]:50137 "EHLO
-	avasout06.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752422AbcGRVUS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 17:20:18 -0400
-From: Nick Dyer <nick@shmanahar.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	Nick Dyer <nick@shmanahar.org>
-Subject: [PATCH] v4l2-compliance: Changes to support touch sensors
-Date: Mon, 18 Jul 2016 22:12:15 +0100
-Message-Id: <1468876335-24730-1-git-send-email-nick@shmanahar.org>
-In-Reply-To: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
-References: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:38666 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753101AbcGEBb1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:27 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 17/41] Documentation: linux_tv: move RC stuff to a separate dir
+Date: Mon,  4 Jul 2016 22:30:52 -0300
+Message-Id: <c1223ebdd3ff38d371b562736fc1c08906743370.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Nick Dyer <nick@shmanahar.org>
----
- utils/v4l2-compliance/v4l2-compliance.cpp        |   51 +++++++++++++++++++++-
- utils/v4l2-compliance/v4l2-compliance.h          |    1 +
- utils/v4l2-compliance/v4l2-test-input-output.cpp |    4 +-
- 3 files changed, 53 insertions(+), 3 deletions(-)
+When we wrote the remote controller's section, we re-used the
+V4L, just because we were lazy to create a brand new DocBook.
 
-diff --git a/utils/v4l2-compliance/v4l2-compliance.cpp b/utils/v4l2-compliance/v4l2-compliance.cpp
-index 48dc8b4..ca2eec7 100644
---- a/utils/v4l2-compliance/v4l2-compliance.cpp
-+++ b/utils/v4l2-compliance/v4l2-compliance.cpp
-@@ -55,6 +55,7 @@ enum Option {
- 	OptSetRadioDevice = 'r',
- 	OptStreaming = 's',
- 	OptSetSWRadioDevice = 'S',
-+	OptSetTouchDevice = 't',
- 	OptTrace = 'T',
- 	OptVerbose = 'v',
- 	OptSetVbiDevice = 'V',
-@@ -105,6 +106,7 @@ static struct option long_options[] = {
- 	{"vbi-device", required_argument, 0, OptSetVbiDevice},
- 	{"sdr-device", required_argument, 0, OptSetSWRadioDevice},
- 	{"expbuf-device", required_argument, 0, OptSetExpBufDevice},
-+	{"touch-device", required_argument, 0, OptSetTouchDevice},
- 	{"help", no_argument, 0, OptHelp},
- 	{"verbose", no_argument, 0, OptVerbose},
- 	{"no-warnings", no_argument, 0, OptNoWarnings},
-@@ -134,6 +136,9 @@ static void usage(void)
- 	printf("  -S, --sdr-device=<dev>\n");
- 	printf("                     Use device <dev> as the SDR device.\n");
- 	printf("                     If <dev> starts with a digit, then /dev/swradio<dev> is used.\n");
-+	printf("  -t, --touch-device=<dev>\n");
-+	printf("                     Use device <dev> as the touch device.\n");
-+	printf("                     If <dev> starts with a digit, then /dev/v4l-touch<dev> is used.\n");
- 	printf("  -e, --expbuf-device=<dev>\n");
- 	printf("                     Use device <dev> to obtain DMABUF handles.\n");
- 	printf("                     If <dev> starts with a digit, then /dev/video<dev> is used.\n");
-@@ -206,6 +211,8 @@ std::string cap2s(unsigned cap)
- 		s += "\t\tSDR Capture\n";
- 	if (cap & V4L2_CAP_SDR_OUTPUT)
- 		s += "\t\tSDR Output\n";
-+	if (cap & V4L2_CAP_TOUCH)
-+		s += "\t\tTouch Capture\n";
- 	if (cap & V4L2_CAP_TUNER)
- 		s += "\t\tTuner\n";
- 	if (cap & V4L2_CAP_HW_FREQ_SEEK)
-@@ -533,7 +540,8 @@ static int testCap(struct node *node)
- 	    memcmp(vcap.bus_info, "ISA:", 4) &&
- 	    memcmp(vcap.bus_info, "I2C:", 4) &&
- 	    memcmp(vcap.bus_info, "parport", 7) &&
--	    memcmp(vcap.bus_info, "platform:", 9))
-+	    memcmp(vcap.bus_info, "platform:", 9) &&
-+	    memcmp(vcap.bus_info, "rmi4:", 5))
- 		return fail("missing bus_info prefix ('%s')\n", vcap.bus_info);
- 	fail_on_test((vcap.version >> 16) < 3);
- 	fail_on_test(check_0(vcap.reserved, sizeof(vcap.reserved)));
-@@ -673,6 +681,8 @@ int main(int argc, char **argv)
- 	struct node radio_node2;
- 	struct node sdr_node;
- 	struct node sdr_node2;
-+	struct node touch_node;
-+	struct node touch_node2;
- 	struct node expbuf_node;
+Yet, it is a little ackward to have it mixed with V4L. So,
+move it to its own directory, in order to have it better
+organized.
+
+No functional changes.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/linux_tv/index.rst                                        | 2 +-
+ Documentation/linux_tv/media/{v4l => rc}/Remote_controllers_Intro.rst   | 0
+ .../linux_tv/media/{v4l => rc}/Remote_controllers_table_change.rst      | 0
+ Documentation/linux_tv/media/{v4l => rc}/Remote_controllers_tables.rst  | 0
+ Documentation/linux_tv/media/{v4l => rc}/keytable.c.rst                 | 0
+ Documentation/linux_tv/media/{v4l => rc}/lirc_dev_intro.rst             | 0
+ Documentation/linux_tv/media/{v4l => rc}/lirc_device_interface.rst      | 0
+ Documentation/linux_tv/media/{v4l => rc}/lirc_ioctl.rst                 | 0
+ Documentation/linux_tv/media/{v4l => rc}/lirc_read.rst                  | 0
+ Documentation/linux_tv/media/{v4l => rc}/lirc_write.rst                 | 0
+ Documentation/linux_tv/media/{v4l => rc}/remote_controllers.rst         | 0
+ .../linux_tv/media/{v4l => rc}/remote_controllers_sysfs_nodes.rst       | 0
+ 12 files changed, 1 insertion(+), 1 deletion(-)
+ rename Documentation/linux_tv/media/{v4l => rc}/Remote_controllers_Intro.rst (100%)
+ rename Documentation/linux_tv/media/{v4l => rc}/Remote_controllers_table_change.rst (100%)
+ rename Documentation/linux_tv/media/{v4l => rc}/Remote_controllers_tables.rst (100%)
+ rename Documentation/linux_tv/media/{v4l => rc}/keytable.c.rst (100%)
+ rename Documentation/linux_tv/media/{v4l => rc}/lirc_dev_intro.rst (100%)
+ rename Documentation/linux_tv/media/{v4l => rc}/lirc_device_interface.rst (100%)
+ rename Documentation/linux_tv/media/{v4l => rc}/lirc_ioctl.rst (100%)
+ rename Documentation/linux_tv/media/{v4l => rc}/lirc_read.rst (100%)
+ rename Documentation/linux_tv/media/{v4l => rc}/lirc_write.rst (100%)
+ rename Documentation/linux_tv/media/{v4l => rc}/remote_controllers.rst (100%)
+ rename Documentation/linux_tv/media/{v4l => rc}/remote_controllers_sysfs_nodes.rst (100%)
+
+diff --git a/Documentation/linux_tv/index.rst b/Documentation/linux_tv/index.rst
+index 821be82dcb23..d3a243c86ba7 100644
+--- a/Documentation/linux_tv/index.rst
++++ b/Documentation/linux_tv/index.rst
+@@ -70,7 +70,7 @@ etc, please mail to:
  
- 	/* command args */
-@@ -682,6 +692,7 @@ int main(int argc, char **argv)
- 	const char *vbi_device = NULL;		/* -V device */
- 	const char *radio_device = NULL;	/* -r device */
- 	const char *sdr_device = NULL;		/* -S device */
-+	const char *touch_device = NULL;	/* -t device */
- 	const char *expbuf_device = NULL;	/* --expbuf-device device */
- 	struct v4l2_capability vcap;		/* list_cap */
- 	unsigned frame_count = 60;
-@@ -750,6 +761,15 @@ int main(int argc, char **argv)
- 				sdr_device = newdev;
- 			}
- 			break;
-+		case OptSetTouchDevice:
-+			touch_device = optarg;
-+			if (touch_device[0] >= '0' && touch_device[0] <= '9' && strlen(touch_device) <= 3) {
-+				static char newdev[20];
-+
-+				sprintf(newdev, "/dev/v4l-touch%s", touch_device);
-+				touch_device = newdev;
-+			}
-+			break;
- 		case OptSetExpBufDevice:
- 			expbuf_device = optarg;
- 			if (expbuf_device[0] >= '0' && expbuf_device[0] <= '9' && strlen(expbuf_device) <= 3) {
-@@ -839,7 +859,8 @@ int main(int argc, char **argv)
- 	if (v1 == 2 && v2 == 6)
- 		kernel_version = v3;
- 
--	if (!video_device && !vbi_device && !radio_device && !sdr_device)
-+	if (!video_device && !vbi_device && !radio_device &&
-+	    !sdr_device && !touch_device)
- 		video_device = "/dev/video0";
- 
- 	if (video_device) {
-@@ -886,6 +907,17 @@ int main(int argc, char **argv)
- 		}
- 	}
- 
-+	if (touch_device) {
-+		touch_node.s_trace(options[OptTrace]);
-+		touch_node.s_direct(direct);
-+		fd = touch_node.open(touch_device, false);
-+		if (fd < 0) {
-+			fprintf(stderr, "Failed to open %s: %s\n", touch_device,
-+				strerror(errno));
-+			exit(1);
-+		}
-+	}
-+
- 	if (expbuf_device) {
- 		expbuf_node.s_trace(options[OptTrace]);
- 		expbuf_node.s_direct(true);
-@@ -913,6 +945,10 @@ int main(int argc, char **argv)
- 		node = sdr_node;
- 		device = sdr_device;
- 		node.is_sdr = true;
-+	} else if (touch_node.g_fd() >= 0) {
-+		node = touch_node;
-+		device = touch_device;
-+		node.is_touch = true;
- 	}
- 	node.device = device;
- 
-@@ -1013,6 +1049,17 @@ int main(int argc, char **argv)
- 			node.node2 = &sdr_node2;
- 		}
- 	}
-+	if (touch_device) {
-+		touch_node2 = node;
-+		printf("\ttest second touch open: %s\n",
-+				ok(touch_node2.open(touch_device, false) >= 0 ? 0 : errno));
-+		if (touch_node2.g_fd() >= 0) {
-+			printf("\ttest VIDIOC_QUERYCAP: %s\n", ok(testCap(&touch_node2)));
-+			printf("\ttest VIDIOC_G/S_PRIORITY: %s\n",
-+					ok(testPrio(&node, &touch_node2)));
-+			node.node2 = &touch_node2;
-+		}
-+	}
- 	printf("\n");
- 
- 	storeState(&node);
-diff --git a/utils/v4l2-compliance/v4l2-compliance.h b/utils/v4l2-compliance/v4l2-compliance.h
-index 67ecbf5..60432b1 100644
---- a/utils/v4l2-compliance/v4l2-compliance.h
-+++ b/utils/v4l2-compliance/v4l2-compliance.h
-@@ -68,6 +68,7 @@ struct base_node {
- 	bool is_radio;
- 	bool is_vbi;
- 	bool is_sdr;
-+	bool is_touch;
- 	bool is_m2m;
- 	bool is_planar;
- 	bool can_capture;
-diff --git a/utils/v4l2-compliance/v4l2-test-input-output.cpp b/utils/v4l2-compliance/v4l2-test-input-output.cpp
-index 05daf85..3b56968 100644
---- a/utils/v4l2-compliance/v4l2-test-input-output.cpp
-+++ b/utils/v4l2-compliance/v4l2-test-input-output.cpp
-@@ -371,7 +371,9 @@ static int checkInput(struct node *node, const struct v4l2_input &descr, unsigne
- 		return fail("invalid index\n");
- 	if (check_ustring(descr.name, sizeof(descr.name)))
- 		return fail("invalid name\n");
--	if (descr.type != V4L2_INPUT_TYPE_TUNER && descr.type != V4L2_INPUT_TYPE_CAMERA)
-+	if (descr.type != V4L2_INPUT_TYPE_TUNER &&
-+      descr.type != V4L2_INPUT_TYPE_CAMERA &&
-+      descr.type != V4L2_INPUT_TYPE_TOUCH)
- 		return fail("invalid type\n");
- 	if (descr.type == V4L2_INPUT_TYPE_CAMERA && descr.tuner)
- 		return fail("invalid tuner\n");
+     media/v4l/v4l2
+     media/dvb/dvbapi
+-    media/v4l/remote_controllers
++    media/rc/remote_controllers
+     media/v4l/media-controller
+     media/v4l/gen-errors
+     media/v4l/fdl-appendix
+diff --git a/Documentation/linux_tv/media/v4l/Remote_controllers_Intro.rst b/Documentation/linux_tv/media/rc/Remote_controllers_Intro.rst
+similarity index 100%
+rename from Documentation/linux_tv/media/v4l/Remote_controllers_Intro.rst
+rename to Documentation/linux_tv/media/rc/Remote_controllers_Intro.rst
+diff --git a/Documentation/linux_tv/media/v4l/Remote_controllers_table_change.rst b/Documentation/linux_tv/media/rc/Remote_controllers_table_change.rst
+similarity index 100%
+rename from Documentation/linux_tv/media/v4l/Remote_controllers_table_change.rst
+rename to Documentation/linux_tv/media/rc/Remote_controllers_table_change.rst
+diff --git a/Documentation/linux_tv/media/v4l/Remote_controllers_tables.rst b/Documentation/linux_tv/media/rc/Remote_controllers_tables.rst
+similarity index 100%
+rename from Documentation/linux_tv/media/v4l/Remote_controllers_tables.rst
+rename to Documentation/linux_tv/media/rc/Remote_controllers_tables.rst
+diff --git a/Documentation/linux_tv/media/v4l/keytable.c.rst b/Documentation/linux_tv/media/rc/keytable.c.rst
+similarity index 100%
+rename from Documentation/linux_tv/media/v4l/keytable.c.rst
+rename to Documentation/linux_tv/media/rc/keytable.c.rst
+diff --git a/Documentation/linux_tv/media/v4l/lirc_dev_intro.rst b/Documentation/linux_tv/media/rc/lirc_dev_intro.rst
+similarity index 100%
+rename from Documentation/linux_tv/media/v4l/lirc_dev_intro.rst
+rename to Documentation/linux_tv/media/rc/lirc_dev_intro.rst
+diff --git a/Documentation/linux_tv/media/v4l/lirc_device_interface.rst b/Documentation/linux_tv/media/rc/lirc_device_interface.rst
+similarity index 100%
+rename from Documentation/linux_tv/media/v4l/lirc_device_interface.rst
+rename to Documentation/linux_tv/media/rc/lirc_device_interface.rst
+diff --git a/Documentation/linux_tv/media/v4l/lirc_ioctl.rst b/Documentation/linux_tv/media/rc/lirc_ioctl.rst
+similarity index 100%
+rename from Documentation/linux_tv/media/v4l/lirc_ioctl.rst
+rename to Documentation/linux_tv/media/rc/lirc_ioctl.rst
+diff --git a/Documentation/linux_tv/media/v4l/lirc_read.rst b/Documentation/linux_tv/media/rc/lirc_read.rst
+similarity index 100%
+rename from Documentation/linux_tv/media/v4l/lirc_read.rst
+rename to Documentation/linux_tv/media/rc/lirc_read.rst
+diff --git a/Documentation/linux_tv/media/v4l/lirc_write.rst b/Documentation/linux_tv/media/rc/lirc_write.rst
+similarity index 100%
+rename from Documentation/linux_tv/media/v4l/lirc_write.rst
+rename to Documentation/linux_tv/media/rc/lirc_write.rst
+diff --git a/Documentation/linux_tv/media/v4l/remote_controllers.rst b/Documentation/linux_tv/media/rc/remote_controllers.rst
+similarity index 100%
+rename from Documentation/linux_tv/media/v4l/remote_controllers.rst
+rename to Documentation/linux_tv/media/rc/remote_controllers.rst
+diff --git a/Documentation/linux_tv/media/v4l/remote_controllers_sysfs_nodes.rst b/Documentation/linux_tv/media/rc/remote_controllers_sysfs_nodes.rst
+similarity index 100%
+rename from Documentation/linux_tv/media/v4l/remote_controllers_sysfs_nodes.rst
+rename to Documentation/linux_tv/media/rc/remote_controllers_sysfs_nodes.rst
 -- 
-1.7.9.5
+2.7.4
 
