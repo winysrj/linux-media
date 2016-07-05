@@ -1,204 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34616 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751380AbcGQM7M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 08:59:12 -0400
-From: Chris Wilson <chris@chris-wilson.co.uk>
-To: linux-kernel@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-	Chris Wilson <chris@chris-wilson.co.uk>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Tejun Heo <tj@kernel.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Ingo Molnar <mingo@kernel.org>,
-	Kees Cook <keescook@chromium.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Andrey Ryabinin <aryabinin@virtuozzo.com>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	"Peter Zijlstra (Intel)" <peterz@infradead.org>,
-	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Dmitry Vyukov <dvyukov@google.com>,
-	Alexander Potapenko <glider@google.com>,
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
-Subject: [PATCH v2 6/7] async: Add execution barriers
-Date: Sun, 17 Jul 2016 13:58:06 +0100
-Message-Id: <1468760287-731-7-git-send-email-chris@chris-wilson.co.uk>
-In-Reply-To: <1468760287-731-1-git-send-email-chris@chris-wilson.co.uk>
-References: <1466759333-4703-1-git-send-email-chris@chris-wilson.co.uk>
- <1468760287-731-1-git-send-email-chris@chris-wilson.co.uk>
+Received: from bombadil.infradead.org ([198.137.202.9]:38593 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753043AbcGEBbZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:25 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 01/41] Documentation: linux_tv: Fix some occurences of :sub:
+Date: Mon,  4 Jul 2016 22:30:36 -0300
+Message-Id: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=true
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A frequent mode of operation is fanning out N tasks to execute in
-parallel, collating results, fanning out M tasks, rinse and repeat. This
-is also common to the notion of the async/sync kernel domain split.
-A barrier provides a mechanism by which all work queued after the
-barrier must wait (i.e. not be scheduled) until all work queued before the
-barrier is completed.
+The right way to use it seems to do suscript is to use
+this pattern: "\ :sub:"
 
-Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: linaro-mm-sig@lists.linaro.org
+Make sure all places of the media document will fit, by
+using this script:
+
+$n=0;
+while (<>) {
+	$n++;
+	$t = $_;
+	@matches = $t =~ m/(..\:sub\:)/g;
+	foreach my $m (@matches) {
+		$m =~ m/(.)(.)(\:sub\:)/;
+		$s1=$1;
+		$s2=$2;
+		$s3=$3;
+		next if (($s1 eq "\\") && ($s2 eq " "));
+		if ($s2 eq " ") {
+			$t =~ s/$s1$s2$s3/$s1\\$s2$s3/;
+			next;
+		}
+		$t =~ s/$s1$s2$s3/$s1$s2\\ $s3/;
+	}
+	print $t;
+}
+
+And running it with:
+
+for i in $(git grep -l sub Documentation/linux_tv/); do ./sub.pl $i >a && mv a $i; done
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- include/linux/async.h |  4 +++
- kernel/async.c        | 72 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 76 insertions(+)
+ Documentation/linux_tv/media/v4l/dev-sliced-vbi.rst | 2 +-
+ Documentation/linux_tv/media/v4l/pixfmt-m420.rst    | 2 +-
+ Documentation/linux_tv/media/v4l/pixfmt-nv12.rst    | 2 +-
+ Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst   | 4 ++--
+ Documentation/linux_tv/media/v4l/pixfmt-nv16.rst    | 2 +-
+ Documentation/linux_tv/media/v4l/pixfmt-nv16m.rst   | 2 +-
+ Documentation/linux_tv/media/v4l/vidioc-enumstd.rst | 4 ++--
+ 7 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/include/linux/async.h b/include/linux/async.h
-index e7d7289a9889..de44306f8cb7 100644
---- a/include/linux/async.h
-+++ b/include/linux/async.h
-@@ -26,6 +26,7 @@ struct async_work {
+diff --git a/Documentation/linux_tv/media/v4l/dev-sliced-vbi.rst b/Documentation/linux_tv/media/v4l/dev-sliced-vbi.rst
+index 4c14f39bbc80..726edf554eb1 100644
+--- a/Documentation/linux_tv/media/v4l/dev-sliced-vbi.rst
++++ b/Documentation/linux_tv/media/v4l/dev-sliced-vbi.rst
+@@ -676,7 +676,7 @@ number).
+           sliced VBI data. The sliced VBI data lines present correspond to
+           the bits set in the ``linemask`` array, starting from b\ :sub:`0`
+           of ``linemask``\ [0] up through b\ :sub:`31` of ``linemask``\ [0],
+-          and from b\ :sub:`0` of ``linemask``\ [1] up through b :sub:`3` of
++          and from b\ :sub:`0` of ``linemask``\ [1] up through b\ :sub:`3` of
+           ``linemask``\ [1]. ``line``\ [0] corresponds to the first bit
+           found set in the ``linemask`` array, ``line``\ [1] corresponds to
+           the second bit found set in the ``linemask`` array, etc. If no
+diff --git a/Documentation/linux_tv/media/v4l/pixfmt-m420.rst b/Documentation/linux_tv/media/v4l/pixfmt-m420.rst
+index 4434ee1b1be9..2ef35cfc14fa 100644
+--- a/Documentation/linux_tv/media/v4l/pixfmt-m420.rst
++++ b/Documentation/linux_tv/media/v4l/pixfmt-m420.rst
+@@ -22,7 +22,7 @@ Two lines of luma data are followed by one line of chroma data.
+ The luma plane has one byte per pixel. The chroma plane contains
+ interleaved CbCr pixels subsampled by ½ in the horizontal and vertical
+ directions. Each CbCr pair belongs to four pixels. For example,
+-Cb\ :sub:`0`/Cr:sub:`0` belongs to Y'\ :sub:`00`, Y'\ :sub:`01`,
++Cb\ :sub:`0`/Cr\ :sub:`0` belongs to Y'\ :sub:`00`, Y'\ :sub:`01`,
+ Y'\ :sub:`10`, Y'\ :sub:`11`.
  
- struct async_domain {
- 	struct list_head pending;
-+	struct kfence *barrier;
- 	unsigned registered:1;
- };
+ All line lengths are identical: if the Y lines include pad bytes so do
+diff --git a/Documentation/linux_tv/media/v4l/pixfmt-nv12.rst b/Documentation/linux_tv/media/v4l/pixfmt-nv12.rst
+index 363e9484aef4..c15437c0cb23 100644
+--- a/Documentation/linux_tv/media/v4l/pixfmt-nv12.rst
++++ b/Documentation/linux_tv/media/v4l/pixfmt-nv12.rst
+@@ -23,7 +23,7 @@ first. The Y plane has one byte per pixel. For ``V4L2_PIX_FMT_NV12``, a
+ combined CbCr plane immediately follows the Y plane in memory. The CbCr
+ plane is the same width, in bytes, as the Y plane (and of the image),
+ but is half as tall in pixels. Each CbCr pair belongs to four pixels.
+-For example, Cb\ :sub:`0`/Cr:sub:`0` belongs to Y'\ :sub:`00`,
++For example, Cb\ :sub:`0`/Cr\ :sub:`0` belongs to Y'\ :sub:`00`,
+ Y'\ :sub:`01`, Y'\ :sub:`10`, Y'\ :sub:`11`. ``V4L2_PIX_FMT_NV21`` is
+ the same except the Cb and Cr bytes are swapped, the CrCb plane starts
+ with a Cr byte.
+diff --git a/Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst b/Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst
+index a769808aab9b..ed0fe226a733 100644
+--- a/Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst
++++ b/Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst
+@@ -26,8 +26,8 @@ occupies the first plane. The Y plane has one byte per pixel. In the
+ second plane there is a chrominance data with alternating chroma
+ samples. The CbCr plane is the same width, in bytes, as the Y plane (and
+ of the image), but is half as tall in pixels. Each CbCr pair belongs to
+-four pixels. For example, Cb :sub:`0`/Cr :sub:`0` belongs to
+-Y' :sub:`00`, Y' :sub:`01`, Y' :sub:`10`, Y' :sub:`11`.
++four pixels. For example, Cb\ :sub:`0`/Cr\ :sub:`0` belongs to
++Y'\ :sub:`00`, Y'\ :sub:`01`, Y'\ :sub:`10`, Y'\ :sub:`11`.
+ ``V4L2_PIX_FMT_NV12MT_16X16`` is the tiled version of
+ ``V4L2_PIX_FMT_NV12M`` with 16x16 macroblock tiles. Here pixels are
+ arranged in 16x16 2D tiles and tiles are arranged in linear order in
+diff --git a/Documentation/linux_tv/media/v4l/pixfmt-nv16.rst b/Documentation/linux_tv/media/v4l/pixfmt-nv16.rst
+index a82f46c77d2d..74be442eba23 100644
+--- a/Documentation/linux_tv/media/v4l/pixfmt-nv16.rst
++++ b/Documentation/linux_tv/media/v4l/pixfmt-nv16.rst
+@@ -23,7 +23,7 @@ first. The Y plane has one byte per pixel. For ``V4L2_PIX_FMT_NV16``, a
+ combined CbCr plane immediately follows the Y plane in memory. The CbCr
+ plane is the same width and height, in bytes, as the Y plane (and of the
+ image). Each CbCr pair belongs to two pixels. For example,
+-Cb\ :sub:`0`/Cr:sub:`0` belongs to Y'\ :sub:`00`, Y'\ :sub:`01`.
++Cb\ :sub:`0`/Cr\ :sub:`0` belongs to Y'\ :sub:`00`, Y'\ :sub:`01`.
+ ``V4L2_PIX_FMT_NV61`` is the same except the Cb and Cr bytes are
+ swapped, the CrCb plane starts with a Cr byte.
  
-@@ -59,6 +60,9 @@ extern void async_synchronize_cookie(async_cookie_t cookie);
- extern void async_synchronize_cookie_domain(async_cookie_t cookie,
- 					    struct async_domain *domain);
+diff --git a/Documentation/linux_tv/media/v4l/pixfmt-nv16m.rst b/Documentation/linux_tv/media/v4l/pixfmt-nv16m.rst
+index f6a82defe492..9caa243550a1 100644
+--- a/Documentation/linux_tv/media/v4l/pixfmt-nv16m.rst
++++ b/Documentation/linux_tv/media/v4l/pixfmt-nv16m.rst
+@@ -25,7 +25,7 @@ occupies the first plane. The Y plane has one byte per pixel. In the
+ second plane there is chrominance data with alternating chroma samples.
+ The CbCr plane is the same width and height, in bytes, as the Y plane.
+ Each CbCr pair belongs to two pixels. For example,
+-Cb\ :sub:`0`/Cr:sub:`0` belongs to Y'\ :sub:`00`, Y'\ :sub:`01`.
++Cb\ :sub:`0`/Cr\ :sub:`0` belongs to Y'\ :sub:`00`, Y'\ :sub:`01`.
+ ``V4L2_PIX_FMT_NV61M`` is the same as ``V4L2_PIX_FMT_NV16M`` except the
+ Cb and Cr bytes are swapped, the CrCb plane starts with a Cr byte.
  
-+extern void async_barrier(void);
-+extern void async_barrier_domain(struct async_domain *domain);
-+
- extern bool current_is_async(void);
+diff --git a/Documentation/linux_tv/media/v4l/vidioc-enumstd.rst b/Documentation/linux_tv/media/v4l/vidioc-enumstd.rst
+index 098251b8be30..0576d2f9cc79 100644
+--- a/Documentation/linux_tv/media/v4l/vidioc-enumstd.rst
++++ b/Documentation/linux_tv/media/v4l/vidioc-enumstd.rst
+@@ -328,7 +328,7 @@ support digital TV. See also the Linux DVB API at
  
- extern struct async_work *
-diff --git a/kernel/async.c b/kernel/async.c
-index 0d695919a60d..5cfa398a19b2 100644
---- a/kernel/async.c
-+++ b/kernel/async.c
-@@ -154,6 +154,15 @@ struct async_work *async_work_create(async_func_t func, void *data, gfp_t gfp)
- }
- EXPORT_SYMBOL_GPL(async_work_create);
+        -  4433618.75 ± 1
  
-+static void async_barrier_delete(struct async_domain *domain)
-+{
-+	if (!domain->barrier)
-+		return;
-+
-+	kfence_put(domain->barrier);
-+	domain->barrier = NULL;
-+}
-+
- async_cookie_t queue_async_work(struct async_domain *domain,
- 				struct async_work *work,
- 				gfp_t gfp)
-@@ -174,6 +183,10 @@ async_cookie_t queue_async_work(struct async_domain *domain,
- 	async_pending_count++;
- 	spin_unlock_irqrestore(&async_lock, flags);
+-       -  :cspan:`3` f :sub:`OR` = 4406250 ± 2000, f :sub:`OB` = 4250000
++       -  :cspan:`3` f\ :sub:`OR` = 4406250 ± 2000, f\ :sub:`OB` = 4250000
+           ± 2000
  
-+	if (domain->barrier &&
-+	    !kfence_await_kfence(&entry->base.fence, domain->barrier, gfp))
-+		async_barrier_delete(domain);
-+
- 	/* mark that this task has queued an async job, used by module init */
- 	current->flags |= PF_USED_ASYNC;
+     -  .. row 5
+@@ -408,7 +408,7 @@ ENODATA
  
-@@ -241,6 +254,63 @@ async_cookie_t async_schedule_domain(async_func_t func, void *data,
- }
- EXPORT_SYMBOL_GPL(async_schedule_domain);
+ .. [3]
+    The values in brackets apply to the combination N/PAL a.k.a.
+-   N :sub:`C` used in Argentina (V4L2_STD_PAL_Nc).
++   N\ :sub:`C` used in Argentina (V4L2_STD_PAL_Nc).
  
-+static struct kfence *__async_barrier_create(struct async_domain *domain)
-+{
-+	struct kfence *fence;
-+	struct async_entry *entry;
-+	unsigned long flags;
-+	int ret;
-+
-+	fence = kmalloc(sizeof(*fence), GFP_KERNEL);
-+	if (!fence)
-+		goto out_sync;
-+
-+	kfence_init(fence, NULL);
-+
-+	ret = 0;
-+	spin_lock_irqsave(&async_lock, flags);
-+	list_for_each_entry(entry, &domain->pending, pending_link[0]) {
-+		ret |= kfence_await_kfence(fence,
-+					   &entry->base.fence,
-+					   GFP_ATOMIC);
-+		if (ret < 0)
-+			break;
-+	}
-+	spin_unlock_irqrestore(&async_lock, flags);
-+	if (ret <= 0)
-+		goto out_put;
-+
-+	if (domain->barrier)
-+		kfence_await_kfence(fence, domain->barrier, GFP_KERNEL);
-+
-+	kfence_complete(fence);
-+	return fence;
-+
-+out_put:
-+	kfence_complete(fence);
-+	kfence_put(fence);
-+out_sync:
-+	async_synchronize_full_domain(domain);
-+	return NULL;
-+}
-+
-+void async_barrier(void)
-+{
-+	async_barrier_domain(&async_dfl_domain);
-+}
-+EXPORT_SYMBOL_GPL(async_barrier);
-+
-+void async_barrier_domain(struct async_domain *domain)
-+{
-+	struct kfence *barrier = __async_barrier_create(domain);
-+
-+	if (domain->barrier)
-+		kfence_put(domain->barrier);
-+
-+	domain->barrier = barrier;
-+}
-+EXPORT_SYMBOL_GPL(async_barrier_domain);
-+
- /**
-  * async_synchronize_full - synchronize all asynchronous function calls
-  *
-@@ -264,6 +334,8 @@ EXPORT_SYMBOL_GPL(async_synchronize_full);
- void async_unregister_domain(struct async_domain *domain)
- {
- 	WARN_ON(!list_empty(&domain->pending));
-+
-+	async_barrier_delete(domain);
- 	domain->registered = 0;
- }
- EXPORT_SYMBOL_GPL(async_unregister_domain);
+ .. [4]
+    In the Federal Republic of Germany, Austria, Italy, the Netherlands,
 -- 
-2.8.1
+2.7.4
 
