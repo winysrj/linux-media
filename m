@@ -1,44 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56276 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932328AbcGKIwk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2016 04:52:40 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id D586718013E
-	for <linux-media@vger.kernel.org>; Mon, 11 Jul 2016 10:52:34 +0200 (CEST)
+Received: from bombadil.infradead.org ([198.137.202.9]:38617 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753708AbcGEBb0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:26 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cec: CEC_RECEIVE is allowed in monitor mode
-Message-ID: <10844873-225e-046b-4332-28c94b7b36cb@xs4all.nl>
-Date: Mon, 11 Jul 2016 10:52:34 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 41/41] Documentation: libv4l-introduction.rst: improve format
+Date: Mon,  4 Jul 2016 22:31:16 -0300
+Message-Id: <9eee76afc74f8d47e344adec0e0fca64605833c9.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the device is in monitor mode, then you should always be able to
-call CEC_RECEIVE, even if the device is unconfigured.
+Fix some cross-references and improve the layout of this
+page.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/staging/media/cec/cec-api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/linux_tv/media/v4l/libv4l-introduction.rst | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/staging/media/cec/cec-api.c
-index d7cba7a..9151b1f 100644
---- a/drivers/staging/media/cec/cec-api.c
-+++ b/drivers/staging/media/cec/cec-api.c
-@@ -263,7 +263,7 @@ static long cec_receive(struct cec_adapter *adap, struct cec_fh *fh,
- 	if (copy_from_user(&msg, parg, sizeof(msg)))
- 		return -EFAULT;
- 	mutex_lock(&adap->lock);
--	if (!adap->is_configured)
-+	if (!adap->is_configured && fh->mode_follower < CEC_MODE_MONITOR)
- 		err = -ENONET;
- 	mutex_unlock(&adap->lock);
- 	if (err)
+diff --git a/Documentation/linux_tv/media/v4l/libv4l-introduction.rst b/Documentation/linux_tv/media/v4l/libv4l-introduction.rst
+index 4b261d95c672..61d085f9f105 100644
+--- a/Documentation/linux_tv/media/v4l/libv4l-introduction.rst
++++ b/Documentation/linux_tv/media/v4l/libv4l-introduction.rst
+@@ -45,7 +45,7 @@ It currently accepts the following V4L2 driver formats:
+ :ref:`V4L2_PIX_FMT_SPCA508 <V4L2-PIX-FMT-SPCA508>`,
+ :ref:`V4L2_PIX_FMT_SPCA561 <V4L2-PIX-FMT-SPCA561>`,
+ :ref:`V4L2_PIX_FMT_SQ905C <V4L2-PIX-FMT-SQ905C>`,
+-``V4L2_PIX_FMT_SRGGB8``,
++:ref:`V4L2_PIX_FMT_SRGGB8 <V4L2-PIX-FMT-SRGGB8>`,
+ :ref:`V4L2_PIX_FMT_UYVY <V4L2-PIX-FMT-UYVY>`,
+ :ref:`V4L2_PIX_FMT_YUV420 <V4L2-PIX-FMT-YUV420>`,
+ :ref:`V4L2_PIX_FMT_YUYV <V4L2-PIX-FMT-YUYV>`,
+@@ -92,16 +92,16 @@ and to enhance the image quality.
+ In most cases, libv4l2 just passes the calls directly through to the
+ v4l2 driver, intercepting the calls to
+ :ref:`VIDIOC_TRY_FMT <VIDIOC_G_FMT>`,
+-:ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>`
+-:ref:`VIDIOC_S_FMT <VIDIOC_G_FMT>`
+-:ref:`VIDIOC_ENUM_FRAMESIZES` and
+-:ref:`VIDIOC_ENUM_FRAMEINTERVALS` in
++:ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>`,
++:ref:`VIDIOC_S_FMT <VIDIOC_G_FMT>`,
++:ref:`VIDIOC_ENUM_FRAMESIZES <VIDIOC_ENUM_FRAMESIZES>` and
++:ref:`VIDIOC_ENUM_FRAMEINTERVALS <VIDIOC_ENUM_FRAMEINTERVALS>` in
+ order to emulate the formats
+ :ref:`V4L2_PIX_FMT_BGR24 <V4L2-PIX-FMT-BGR24>`,
+ :ref:`V4L2_PIX_FMT_RGB24 <V4L2-PIX-FMT-RGB24>`,
+ :ref:`V4L2_PIX_FMT_YUV420 <V4L2-PIX-FMT-YUV420>`, and
+ :ref:`V4L2_PIX_FMT_YVU420 <V4L2-PIX-FMT-YVU420>`, if they aren't
+-available in the driver. :ref:`VIDIOC_ENUM_FMT`
++available in the driver. :ref:`VIDIOC_ENUM_FMT <VIDIOC_ENUM_FMT>`
+ keeps enumerating the hardware supported formats, plus the emulated
+ formats offered by libv4l at the end.
+ 
 -- 
-2.8.1
+2.7.4
 
