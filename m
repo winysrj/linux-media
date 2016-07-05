@@ -1,141 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:46666 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751044AbcGNMSg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2016 08:18:36 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: <srv_heupstream@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>,
-	Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH 2/4] dt-bindings: Add a binding for Mediatek MDP
-Date: Thu, 14 Jul 2016 20:17:59 +0800
-Message-ID: <1468498681-19955-3-git-send-email-minghsiu.tsai@mediatek.com>
-In-Reply-To: <1468498681-19955-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1468498681-19955-1-git-send-email-minghsiu.tsai@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:38656 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754222AbcGEBb1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:27 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 11/41] Documentation: FE_READ_BER.rst: improve man-like format
+Date: Mon,  4 Jul 2016 22:30:46 -0300
+Message-Id: <f93a168dcac3174ac489d028bca8525e747b7be2.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a DT binding documentation of MDP for the MT8173 SoC
-from Mediatek
+Parsing this file were causing lots of warnings with sphinx,
+due to the c function prototypes.
 
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Fix that by prepending them with .. c:function::
+
+While here, use the same way we document man-like pages,
+at the V4L side of the book and add escapes to asterisks.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- .../devicetree/bindings/media/mediatek-mdp.txt     |   92 ++++++++++++++++++++
- 1 file changed, 92 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-mdp.txt
+ Documentation/linux_tv/media/dvb/FE_READ_BER.rst | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/mediatek-mdp.txt b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
-new file mode 100644
-index 0000000..ef570c3
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
-@@ -0,0 +1,92 @@
-+* Mediatek Media Data Path
-+
-+Media Data Path is used for scaling and color space conversion.
-+
-+Required properties:
-+  - compatible : should contain them as below:
-+        "mediatek,mt8173-mdp"
-+        "mediatek,mt8173-mdp-rdma"
-+        "mediatek,mt8173-mdp-rsz"
-+        "mediatek,mt8173-mdp-wdma"
-+        "mediatek,mt8173-mdp-wrot"
-+  - clocks : device clocks
-+  - power-domains : a phandle to the power domain.
-+  - mediatek,larb : should contain the larbes of current platform
-+  - iommus : Mediatek IOMMU H/W has designed the fixed associations with
-+        the multimedia H/W. and there is only one multimedia iommu domain.
-+        "iommus = <&iommu portid>" the "portid" is from
-+        dt-bindings\iommu\mt8173-iommu-port.h, it means that this portid will
-+        enable iommu. The portid default is disable iommu if "<&iommu portid>"
-+        don't be added.
-+  - mediatek,vpu : the node of video processor unit
-+
-+Example:
-+	mdp_rdma0: rdma@14001000 {
-+		compatible = "mediatek,mt8173-mdp-rdma",
-+			     "mediatek,mt8173-mdp";
-+		reg = <0 0x14001000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_RDMA0>,
-+			 <&mmsys CLK_MM_MUTEX_32K>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+		iommus = <&iommu M4U_PORT_MDP_RDMA0>;
-+		mediatek,larb = <&larb0>;
-+		mediatek,vpu = <&vpu>;
-+	};
-+
-+	mdp_rdma1: rdma@14002000 {
-+		compatible = "mediatek,mt8173-mdp-rdma";
-+		reg = <0 0x14002000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_RDMA1>,
-+			 <&mmsys CLK_MM_MUTEX_32K>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+		iommus = <&iommu M4U_PORT_MDP_RDMA1>;
-+		mediatek,larb = <&larb4>;
-+	};
-+
-+	mdp_rsz0: rsz@14003000 {
-+		compatible = "mediatek,mt8173-mdp-rsz";
-+		reg = <0 0x14003000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_RSZ0>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+	};
-+
-+	mdp_rsz1: rsz@14004000 {
-+		compatible = "mediatek,mt8173-mdp-rsz";
-+		reg = <0 0x14004000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_RSZ1>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+	};
-+
-+	mdp_rsz2: rsz@14005000 {
-+		compatible = "mediatek,mt8173-mdp-rsz";
-+		reg = <0 0x14005000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_RSZ2>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+	};
-+
-+	mdp_wdma0: wdma@14006000 {
-+		compatible = "mediatek,mt8173-mdp-wdma";
-+		reg = <0 0x14006000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_WDMA>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+		iommus = <&iommu M4U_PORT_MDP_WDMA>;
-+		mediatek,larb = <&larb0>;
-+	};
-+
-+	mdp_wrot0: wrot@14007000 {
-+		compatible = "mediatek,mt8173-mdp-wrot";
-+		reg = <0 0x14007000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_WROT0>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+		iommus = <&iommu M4U_PORT_MDP_WROT0>;
-+		mediatek,larb = <&larb0>;
-+	};
-+
-+	mdp_wrot1: wrot@14008000 {
-+		compatible = "mediatek,mt8173-mdp-wrot";
-+		reg = <0 0x14008000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_WROT1>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+		iommus = <&iommu M4U_PORT_MDP_WROT1>;
-+		mediatek,larb = <&larb4>;
-+	};
+diff --git a/Documentation/linux_tv/media/dvb/FE_READ_BER.rst b/Documentation/linux_tv/media/dvb/FE_READ_BER.rst
+index 218e2298615b..f0b364baba96 100644
+--- a/Documentation/linux_tv/media/dvb/FE_READ_BER.rst
++++ b/Documentation/linux_tv/media/dvb/FE_READ_BER.rst
+@@ -6,7 +6,8 @@
+ FE_READ_BER
+ ***********
+ 
+-DESCRIPTION
++Description
++-----------
+ 
+ This ioctl call returns the bit error rate for the signal currently
+ received/demodulated by the front-end. For this command, read-only
+@@ -14,10 +15,10 @@ access to the device is sufficient.
+ 
+ SYNOPSIS
+ 
+-int ioctl(int fd, int request = :ref:`FE_READ_BER`,
+-uint32_t *ber);
++.. c:function:: int  ioctl(int fd, int request = FE_READ_BER, uint32_t *ber)
+ 
+-PARAMETERS
++Arguments
++----------
+ 
+ 
+ 
+@@ -40,12 +41,13 @@ PARAMETERS
+ 
+     -  .. row 3
+ 
+-       -  uint32_t *ber
++       -  uint32_t \*ber
+ 
+-       -  The bit error rate is stored into *ber.
++       -  The bit error rate is stored into \*ber.
+ 
+ 
+-RETURN VALUE
++Return Value
++------------
+ 
+ On success 0 is returned, on error -1 and the ``errno`` variable is set
+ appropriately. The generic error codes are described at the
 -- 
-1.7.9.5
+2.7.4
 
