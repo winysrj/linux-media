@@ -1,55 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41347 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755231AbcGHNEC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:02 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 16/54] doc-rst: intro: remove obsolete headers
-Date: Fri,  8 Jul 2016 10:03:08 -0300
-Message-Id: <ea02106611311364cb6bf84693eb2475ad0c2ce5.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
+Received: from merlin.infradead.org ([205.233.59.134]:33050 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932788AbcGENna (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2016 09:43:30 -0400
+Date: Tue, 5 Jul 2016 09:43:23 -0400
+From: Kyle McMartin <kyle@infradead.org>
+To: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-mediatek@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	tiffany.lin@mediatek.com, eddie.huang@mediatek.com,
+	linux-firmware@kernel.org
+Subject: Re: pull request: lunux-firmware: Add Mediatek MT8173 VPU firmware
+Message-ID: <20160705134323.GC8680@merlin.infradead.org>
+References: <1467629314-31902-1-git-send-email-andrew-ct.chen@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1467629314-31902-1-git-send-email-andrew-ct.chen@mediatek.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video, audio and OSD APIs are obsolete. V4L2 should be
-used instead. So, remove them from this intro item.
+On Mon, Jul 04, 2016 at 06:48:34PM +0800, Andrew-CT Chen wrote:
+> Hi linux-firmware maintainers,
+> 
+> The following changes since commit 3ef7857d511ce6a91c5ce609da76c4702651cfa5:
+> 
+>   amdgpu: update polaris ucode (2016-06-28 14:31:11 -0400)
+> 
+> are available in the git repository at:
+> 
+>   https://github.com/andrewct-chen/vpu-linux-firmware.git vpu_encode
+> 
+> for you to fetch changes up to 40876d7b3c911161ab71bc84a6e90f257a13cdc4:
+> 
+>   mediatek: Add mt8173 VPU firmware (2016-07-04 16:26:54 +0800)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/linux_tv/media/dvb/intro.rst | 5 -----
- 1 file changed, 5 deletions(-)
+Pulled, thanks.
 
-diff --git a/Documentation/linux_tv/media/dvb/intro.rst b/Documentation/linux_tv/media/dvb/intro.rst
-index 72992940a057..b61081d00a9f 100644
---- a/Documentation/linux_tv/media/dvb/intro.rst
-+++ b/Documentation/linux_tv/media/dvb/intro.rst
-@@ -158,8 +158,6 @@ partial path like:
- 
- .. code-block:: c
- 
--	#include <linux/dvb/audio.h>
--
- 	#include <linux/dvb/ca.h>
- 
- 	#include <linux/dvb/dmx.h>
-@@ -168,9 +166,6 @@ partial path like:
- 
- 	#include <linux/dvb/net.h>
- 
--	#include <linux/dvb/osd.h>
--
--	#include <linux/dvb/video.h>
- 
- To enable applications to support different API version, an additional
- include file ``linux/dvb/version.h`` exists, which defines the constant
--- 
-2.7.4
+regards, --Kyle
 
+> 
+> ----------------------------------------------------------------
+> Andrew-CT Chen (1):
+>       mediatek: Add mt8173 VPU firmware
+> 
+>  WHENCE    |   19 +++++++++++++++++++
+>  vpu_d.bin |  Bin 0 -> 4084848 bytes
+>  vpu_p.bin |  Bin 0 -> 131036 bytes
+>  3 files changed, 19 insertions(+)
+>  create mode 100644 vpu_d.bin
+>  create mode 100644 vpu_p.bin
+> 
