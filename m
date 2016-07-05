@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44884 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:38712 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753599AbcGDLrZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:25 -0400
+	with ESMTP id S1754236AbcGEBb2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:28 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
@@ -10,47 +10,52 @@ Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
 	Jonathan Corbet <corbet@lwn.net>,
 	Markus Heiser <markus.heiser@darmarIT.de>,
 	linux-doc@vger.kernel.org
-Subject: [PATCH 21/51] Documentation: vidioc-queryctl.rst: change the title of this chapter
-Date: Mon,  4 Jul 2016 08:46:42 -0300
-Message-Id: <0627906e7141050290a0936b3920cbe8e8a1ca99.1467629489.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
+Subject: [PATCH 34/41] Documentation: dev-osd.rst: Fix some issues due to conversion
+Date: Mon,  4 Jul 2016 22:31:09 -0300
+Message-Id: <1818691f50582b89ebbc2a75c6d2dd993f560c2b.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This chapter is referenced on several parts of the extended
-controls. Change the title to make it nicer where it is
-referenced.
+The conversion to ReST broke a minor things. Fix them.
 
-Ok, we might, instead, just change the name for the references
-to only mention the oldest ioctl, but IMHO, it is better to
-keep the name of all ioctls where it is referenced.
+While here, also make EBUSY constant, just like on other places.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/linux_tv/media/v4l/vidioc-queryctrl.rst | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/linux_tv/media/v4l/dev-osd.rst | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/linux_tv/media/v4l/vidioc-queryctrl.rst b/Documentation/linux_tv/media/v4l/vidioc-queryctrl.rst
-index 7d38a51c4f73..2e93caeafe9e 100644
---- a/Documentation/linux_tv/media/v4l/vidioc-queryctrl.rst
-+++ b/Documentation/linux_tv/media/v4l/vidioc-queryctrl.rst
-@@ -2,9 +2,9 @@
+diff --git a/Documentation/linux_tv/media/v4l/dev-osd.rst b/Documentation/linux_tv/media/v4l/dev-osd.rst
+index 6a6ead6df54d..b9b53fd7eb5d 100644
+--- a/Documentation/linux_tv/media/v4l/dev-osd.rst
++++ b/Documentation/linux_tv/media/v4l/dev-osd.rst
+@@ -6,8 +6,8 @@
+ Video Output Overlay Interface
+ ******************************
  
- .. _VIDIOC_QUERYCTRL:
+-
+ **Also known as On-Screen Display (OSD)**
++
+ Some video output devices can overlay a framebuffer image onto the
+ outgoing video signal. Applications can set up such an overlay using
+ this interface, which borrows structures and ioctls of the
+@@ -48,10 +48,11 @@ the ``linux/fb.h`` header file.
+ The width and height of the framebuffer depends on the current video
+ standard. A V4L2 driver may reject attempts to change the video standard
+ (or any other ioctl which would imply a framebuffer size change) with an
+-EBUSY error code until all applications closed the framebuffer device.
++``EBUSY`` error code until all applications closed the framebuffer device.
  
--***************************************************************
--ioctl VIDIOC_QUERYCTRL, VIDIOC_QUERY_EXT_CTRL, VIDIOC_QUERYMENU
--***************************************************************
-+*******************************************************************
-+ioctls VIDIOC_QUERYCTRL, VIDIOC_QUERY_EXT_CTRL and VIDIOC_QUERYMENU
-+*******************************************************************
  
- *man VIDIOC_QUERYCTRL(2)*
+ .. code-block:: c
++    :caption: Example 4.1. Finding a framebuffer device for OSD
+ 
+     #include <linux/fb.h>
  
 -- 
 2.7.4
-
 
