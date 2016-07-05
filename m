@@ -1,159 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avasout05.plus.net ([84.93.230.250]:53240 "EHLO
-	avasout05.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737AbcGRVS1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 17:18:27 -0400
-From: Nick Dyer <nick@shmanahar.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	Nick Dyer <nick@shmanahar.org>
-Subject: [PATCH v8 08/10] Input: atmel_mxt_ts - add support for reference data
-Date: Mon, 18 Jul 2016 22:10:36 +0100
-Message-Id: <1468876238-24599-9-git-send-email-nick@shmanahar.org>
-In-Reply-To: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
-References: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:38598 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753101AbcGEBbZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:25 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 07/41] Documentation: FE_SET_FRONTEND.rst: improve man-like format
+Date: Mon,  4 Jul 2016 22:30:42 -0300
+Message-Id: <c5a7df93e65868945c0f19aa11621a1fe96e2ba6.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are different datatypes available from a maXTouch chip. Add
-support to retrieve reference data as well.
+Parsing this file were causing lots of warnings with sphinx,
+due to the c function prototypes.
 
-Signed-off-by: Nick Dyer <nick@shmanahar.org>
+Fix that by prepending them with .. c:function::
+
+While here, use the same way we document man-like pages,
+at the V4L side of the book and add escapes to asterisks.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/input/touchscreen/atmel_mxt_ts.c |   57 ++++++++++++++++++++++++++----
- 1 file changed, 51 insertions(+), 6 deletions(-)
+ Documentation/linux_tv/media/dvb/FE_SET_FRONTEND.rst | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index 584198e..beede8f 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -135,6 +135,7 @@ struct t9_range {
- /* MXT_DEBUG_DIAGNOSTIC_T37 */
- #define MXT_DIAGNOSTIC_PAGEUP	0x01
- #define MXT_DIAGNOSTIC_DELTAS	0x10
-+#define MXT_DIAGNOSTIC_REFS	0x11
- #define MXT_DIAGNOSTIC_SIZE	128
+diff --git a/Documentation/linux_tv/media/dvb/FE_SET_FRONTEND.rst b/Documentation/linux_tv/media/dvb/FE_SET_FRONTEND.rst
+index 794089897845..38e3971825ea 100644
+--- a/Documentation/linux_tv/media/dvb/FE_SET_FRONTEND.rst
++++ b/Documentation/linux_tv/media/dvb/FE_SET_FRONTEND.rst
+@@ -6,7 +6,8 @@
+ FE_SET_FRONTEND
+ ***************
  
- #define MXT_FAMILY_1386			160
-@@ -249,6 +250,12 @@ struct mxt_dbg {
- 	int input;
- };
+-DESCRIPTION
++Description
++-----------
  
-+enum v4l_dbg_inputs {
-+	MXT_V4L_INPUT_DELTAS,
-+	MXT_V4L_INPUT_REFS,
-+	MXT_V4L_INPUT_MAX,
-+};
-+
- static const struct v4l2_file_operations mxt_video_fops = {
- 	.owner = THIS_MODULE,
- 	.open = v4l2_fh_open,
-@@ -2273,6 +2280,7 @@ static void mxt_buffer_queue(struct vb2_buffer *vb)
- 	struct mxt_data *data = vb2_get_drv_priv(vb->vb2_queue);
- 	u16 *ptr;
- 	int ret;
-+	u8 mode;
+ This ioctl call starts a tuning operation using specified parameters.
+ The result of this call will be successful if the parameters were valid
+@@ -18,13 +19,13 @@ operation is initiated before the previous one was completed, the
+ previous operation will be aborted in favor of the new one. This command
+ requires read/write access to the device.
  
- 	ptr = vb2_plane_vaddr(vb, 0);
- 	if (!ptr) {
-@@ -2280,7 +2288,18 @@ static void mxt_buffer_queue(struct vb2_buffer *vb)
- 		goto fault;
- 	}
+-SYNOPSIS
++Synopsis
++--------
  
--	ret = mxt_read_diagnostic_debug(data, MXT_DIAGNOSTIC_DELTAS, ptr);
-+	switch (data->dbg.input) {
-+	case MXT_V4L_INPUT_DELTAS:
-+	default:
-+		mode = MXT_DIAGNOSTIC_DELTAS;
-+		break;
-+
-+	case MXT_V4L_INPUT_REFS:
-+		mode = MXT_DIAGNOSTIC_REFS;
-+		break;
-+	}
-+
-+	ret = mxt_read_diagnostic_debug(data, mode, ptr);
- 	if (ret)
- 		goto fault;
+-int ioctl(int fd, int request =
+-:ref:`FE_SET_FRONTEND`, struct
+-dvb_frontend_parameters *p);
++.. c:function:: int ioctl(int fd, int request = FE_SET_FRONTEND, struct dvb_frontend_parameters *p)
  
-@@ -2325,11 +2344,21 @@ static int mxt_vidioc_querycap(struct file *file, void *priv,
- static int mxt_vidioc_enum_input(struct file *file, void *priv,
- 				   struct v4l2_input *i)
- {
--	if (i->index > 0)
-+	if (i->index >= MXT_V4L_INPUT_MAX)
- 		return -EINVAL;
+-PARAMETERS
++Arguments
++----------
  
- 	i->type = V4L2_INPUT_TYPE_TOUCH;
--	strlcpy(i->name, "Mutual Capacitance Deltas", sizeof(i->name));
-+
-+	switch (i->index) {
-+	case MXT_V4L_INPUT_REFS:
-+		strlcpy(i->name, "Mutual Capacitance References",
-+			sizeof(i->name));
-+		break;
-+	case MXT_V4L_INPUT_DELTAS:
-+		strlcpy(i->name, "Mutual Capacitance Deltas", sizeof(i->name));
-+		break;
-+	}
-+
- 	return 0;
- }
  
-@@ -2337,12 +2366,16 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
- {
- 	struct v4l2_pix_format *f = &data->dbg.format;
  
--	if (i > 0)
-+	if (i >= MXT_V4L_INPUT_MAX)
- 		return -EINVAL;
+@@ -48,12 +49,13 @@ PARAMETERS
  
-+	if (i == MXT_V4L_INPUT_DELTAS)
-+		f->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
-+	else
-+		f->pixelformat = V4L2_TCH_FMT_TU16;
-+
- 	f->width = data->xy_switch ? data->ysize : data->xsize;
- 	f->height = data->xy_switch ? data->xsize : data->ysize;
--	f->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
- 	f->field = V4L2_FIELD_NONE;
- 	f->colorspace = V4L2_COLORSPACE_RAW;
- 	f->bytesperline = f->width * sizeof(u16);
-@@ -2383,7 +2416,19 @@ static int mxt_vidioc_enum_fmt(struct file *file, void *priv,
- 	if (fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
+     -  .. row 3
  
--	fmt->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
-+	switch (fmt->index) {
-+	case 0:
-+		fmt->pixelformat = V4L2_TCH_FMT_TU16;
-+		break;
-+
-+	case 1:
-+		fmt->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
- 	return 0;
- }
+-       -  struct dvb_frontend_parameters *p
++       -  struct dvb_frontend_parameters \*p
  
+        -  Points to parameters for tuning operation.
+ 
+ 
+-RETURN VALUE
++Return Value
++------------
+ 
+ On success 0 is returned, on error -1 and the ``errno`` variable is set
+ appropriately. The generic error codes are described at the
 -- 
-1.7.9.5
+2.7.4
 
