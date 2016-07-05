@@ -1,47 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46440
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750843AbcGMLoB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 07:44:01 -0400
-Date: Wed, 13 Jul 2016 08:43:16 -0300
+Received: from bombadil.infradead.org ([198.137.202.9]:38689 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754115AbcGEBb1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:27 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: Re: [PATCH 2/2] [media] docs-rst: escape [] characters
-Message-ID: <20160713084316.355f5be2@recife.lan>
-In-Reply-To: <ffbab694ede33c294e5864a5e0bf4d1474446a71.1468408280.git.mchehab@s-opensource.com>
-References: <4855307b81f02af4853e02cba2ce16eb29376548.1468408280.git.mchehab@s-opensource.com>
-	<ffbab694ede33c294e5864a5e0bf4d1474446a71.1468408280.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 26/41] Documentation: userp.rst: re-add the missing captions
+Date: Mon,  4 Jul 2016 22:31:01 -0300
+Message-Id: <1727148fb56cd3a175a7b1599fe508ddd1991172.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 13 Jul 2016 08:15:48 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+The conversion from DocBook removed them. Re-add.
 
-> Those characters are used for citations. Better to escape, to
-> avoid them to be misinterpreted.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/linux_tv/media/v4l/userp.rst | 1 +
+ 1 file changed, 1 insertion(+)
 
-> diff --git a/Documentation/media/uapi/v4l/dev-raw-vbi_files/vbi_625.pdf b/Documentation/media/uapi/v4l/dev-raw-vbi_files/vbi_625.pdf
-> index 765235e33a4de256a0b3fbf64ffe52946190cac4..f672b52ef683b3b6da4a43167f67ecbecfd6dc36 100644
-> GIT binary patch
-> delta 18
-> ZcmaDX^HgR-AtP%{w54Ut<`TyDJOD)g2G9Ti
-> 
-> delta 16
-> XcmaDV^H^p>AtQ6NrRC-_#`in`I2#5S  
-> 
+diff --git a/Documentation/linux_tv/media/v4l/userp.rst b/Documentation/linux_tv/media/v4l/userp.rst
+index f372d39512a8..6db760d3d725 100644
+--- a/Documentation/linux_tv/media/v4l/userp.rst
++++ b/Documentation/linux_tv/media/v4l/userp.rst
+@@ -28,6 +28,7 @@ indexed and cannot be queried like mapped buffers with the
+ 
+ 
+ .. code-block:: c
++    :caption: Example 3.3. Initiating streaming I/O with user pointers
+ 
+     struct v4l2_requestbuffers reqbuf;
+ 
+-- 
+2.7.4
 
-This is clearly wrong. I'm nacking my own patch ;)
-
-
-Thanks,
-Mauro
