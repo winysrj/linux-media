@@ -1,41 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:43717 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751455AbcGVIgg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 04:36:36 -0400
-Received: from [192.168.1.137] (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id 82E2F180241
-	for <linux-media@vger.kernel.org>; Fri, 22 Jul 2016 10:36:30 +0200 (CEST)
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH for v4.8] cec: fix off-by-one memset
-Message-ID: <25978667-969b-be9e-2600-8a8b50554856@xs4all.nl>
-Date: Fri, 22 Jul 2016 10:36:29 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:38590 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753127AbcGEBbZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:25 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 08/41] Documentation: FE_READ_UNCORRECTED_BLOCKS: improve man-like format
+Date: Mon,  4 Jul 2016 22:30:43 -0300
+Message-Id: <526e1e900e65c60f0178ef9867b6eeb55393b395.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The unused bytes of the features array should be zeroed, but the start index was one
-byte too early. This caused the device features byte to be overwritten by 0.
+Parsing this file were causing lots of warnings with sphinx,
+due to the c function prototypes.
 
-The compliance test for the CEC_S_LOG_ADDRS ioctl didn't catch this because it tested
-byte continuation with the second device features byte being 0 :-(
+Fix that by prepending them with .. c:function::
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+While here, use the same way we document man-like pages,
+at the V4L side of the book and add escapes to asterisks.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
-diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
-index 9fffddb..b2393bb 100644
---- a/drivers/staging/media/cec/cec-adap.c
-+++ b/drivers/staging/media/cec/cec-adap.c
-@@ -1252,7 +1252,7 @@ int __cec_s_log_addrs(struct cec_adapter *adap,
- 			return -EINVAL;
- 		}
- 		/* Zero unused part of the feature array */
--		memset(features + i, 0, feature_sz - i);
-+		memset(features + i + 1, 0, feature_sz - i - 1);
- 	}
+ .../linux_tv/media/dvb/FE_READ_UNCORRECTED_BLOCKS.rst  | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
- 	if (log_addrs->cec_version >= CEC_OP_CEC_VERSION_2_0) {
+diff --git a/Documentation/linux_tv/media/dvb/FE_READ_UNCORRECTED_BLOCKS.rst b/Documentation/linux_tv/media/dvb/FE_READ_UNCORRECTED_BLOCKS.rst
+index fa770d25b3de..0ec53ab669ee 100644
+--- a/Documentation/linux_tv/media/dvb/FE_READ_UNCORRECTED_BLOCKS.rst
++++ b/Documentation/linux_tv/media/dvb/FE_READ_UNCORRECTED_BLOCKS.rst
+@@ -6,7 +6,8 @@
+ FE_READ_UNCORRECTED_BLOCKS
+ **************************
+ 
+-DESCRIPTION
++Description
++-----------
+ 
+ This ioctl call returns the number of uncorrected blocks detected by the
+ device driver during its lifetime. For meaningful measurements, the
+@@ -14,13 +15,13 @@ increment in block count during a specific time interval should be
+ calculated. For this command, read-only access to the device is
+ sufficient.
+ 
+-SYNOPSIS
++Synopsis
++--------
+ 
+-int ioctl( int fd, int request =
+-:ref:`FE_READ_UNCORRECTED_BLOCKS`,
+-uint32_t *ublocks);
++.. c:function:: int ioctl( int fd, int request =FE_READ_UNCORRECTED_BLOCKS, uint32_t *ublocks)
+ 
+-PARAMETERS
++Arguments
++----------
+ 
+ 
+ 
+@@ -45,12 +46,13 @@ PARAMETERS
+ 
+     -  .. row 3
+ 
+-       -  uint32_t *ublocks
++       -  uint32_t \*ublocks
+ 
+        -  The total number of uncorrected blocks seen by the driver so far.
+ 
+ 
+-RETURN VALUE
++Return Value
++------------
+ 
+ On success 0 is returned, on error -1 and the ``errno`` variable is set
+ appropriately. The generic error codes are described at the
+-- 
+2.7.4
+
