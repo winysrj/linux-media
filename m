@@ -1,143 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52607 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:38724 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750883AbcGMJjO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 05:39:14 -0400
-Date: Wed, 13 Jul 2016 11:38:52 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-To: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: linux-kernel@vger.kernel.org,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Tejun Heo <tj@kernel.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Ingo Molnar <mingo@kernel.org>,
-	Kees Cook <keescook@chromium.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Andrey Ryabinin <aryabinin@virtuozzo.com>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Dmitry Vyukov <dvyukov@google.com>,
-	Alexander Potapenko <glider@google.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org
-Subject: Re: [PATCH 2/9] async: Introduce kfence, a N:M completion mechanism
-Message-ID: <20160713093852.GZ30921@twins.programming.kicks-ass.net>
-References: <1466759333-4703-1-git-send-email-chris@chris-wilson.co.uk>
- <1466759333-4703-3-git-send-email-chris@chris-wilson.co.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1466759333-4703-3-git-send-email-chris@chris-wilson.co.uk>
+	with ESMTP id S932392AbcGEBbe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:34 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 33/41] Documentation: dev-overlay.rst: Fix conversion issues
+Date: Mon,  4 Jul 2016 22:31:08 -0300
+Message-Id: <1af3728151afe3fcffe52a0ffb03fc91b9cdc8ec.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 24, 2016 at 10:08:46AM +0100, Chris Wilson wrote:
-> diff --git a/kernel/async.c b/kernel/async.c
-> index d2edd6efec56..d0bcb7cc4884 100644
-> --- a/kernel/async.c
-> +++ b/kernel/async.c
-> @@ -50,6 +50,7 @@ asynchronous and synchronous parts of the kernel.
->  
->  #include <linux/async.h>
->  #include <linux/atomic.h>
-> +#include <linux/kfence.h>
->  #include <linux/ktime.h>
->  #include <linux/export.h>
->  #include <linux/wait.h>
+There were several conversion issues on this file, causing it
+to be badly formatted. Fix them, in order to match the
+design used on DocBook.
 
-So why does this live in async.c? It got its own header, why not also
-give it its own .c file?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/linux_tv/media/v4l/dev-overlay.rst | 45 +++++++++++-------------
+ 1 file changed, 21 insertions(+), 24 deletions(-)
 
-Also, I'm not a particular fan of the k* naming, but I see 'fence' is
-already taken.
+diff --git a/Documentation/linux_tv/media/v4l/dev-overlay.rst b/Documentation/linux_tv/media/v4l/dev-overlay.rst
+index 97b41ecb9e78..e481d677aa3f 100644
+--- a/Documentation/linux_tv/media/v4l/dev-overlay.rst
++++ b/Documentation/linux_tv/media/v4l/dev-overlay.rst
+@@ -6,8 +6,8 @@
+ Video Overlay Interface
+ ***********************
+ 
++**Also known as Framebuffer Overlay or Previewing.**
+ 
+-**Also known as Framebuffer Overlay or Previewing**
+ Video overlay devices have the ability to genlock (TV-)video into the
+ (VGA-)video signal of a graphics card, or to store captured images
+ directly in video memory of a graphics card, typically with clipping.
+@@ -183,17 +183,15 @@ struct v4l2_window
+     applications can set this field to point to an array of clipping
+     rectangles.
+ 
+-Like the window coordinates
+-w
+-, clipping rectangles are defined relative to the top, left corner of
+-the frame buffer. However clipping rectangles must not extend the frame
+-buffer width and height, and they must not overlap. If possible
+-applications should merge adjacent rectangles. Whether this must create
+-x-y or y-x bands, or the order of rectangles, is not defined. When clip
+-lists are not supported the driver ignores this field. Its contents
+-after calling
+-!ri!:ref:`VIDIOC_S_FMT <VIDIOC_G_FMT>`
+-are undefined.
++    Like the window coordinates w, clipping rectangles are defined
++    relative to the top, left corner of the frame buffer. However
++    clipping rectangles must not extend the frame buffer width and
++    height, and they must not overlap. If possible applications
++    should merge adjacent rectangles. Whether this must create
++    x-y or y-x bands, or the order of rectangles, is not defined. When
++    clip lists are not supported the driver ignores this field. Its
++    contents after calling :ref:`VIDIOC_S_FMT <VIDIOC_G_FMT>`
++    are undefined.
+ 
+ ``__u32 clipcount``
+     When the application set the ``clips`` field, this field must
+@@ -237,30 +235,24 @@ exceeded are undefined. [3]_
+     :ref:`VIDIOC_S_FBUF <VIDIOC_G_FBUF>`,
+     :ref:`framebuffer-flags`).
+ 
+-Note this field was added in Linux 2.6.23, extending the structure.
+-However the
+-!ri!:ref:`VIDIOC_G/S/TRY_FMT <VIDIOC_G_FMT>`
+-ioctls, which take a pointer to a
+-!ri!:ref:`v4l2_format <v4l2-format>`
+-parent structure with padding bytes at the end, are not affected.
++    **Note**: this field was added in Linux 2.6.23, extending the structure.
++    However the :ref:`VIDIOC_[G|S|TRY]_FMT <VIDIOC_G_FMT>`
++    ioctls, which take a pointer to a :ref:`v4l2_format <v4l2-format>`
++    parent structure with padding bytes at the end, are not affected.
+ 
+ 
+ .. _v4l2-clip:
+ 
+-struct v4l2_clip
++struct v4l2_clip [4]_
+ ----------------
+ 
+-The X Window system defines "regions" which are vectors of struct BoxRec
+-{ short x1, y1, x2, y2; } with width = x2 - x1 and height = y2 - y1, so
+-one cannot pass X11 clip lists directly.
+-
+ ``struct v4l2_rect c``
+     Coordinates of the clipping rectangle, relative to the top, left
+     corner of the frame buffer. Only window pixels *outside* all
+     clipping rectangles are displayed.
+ 
+ ``struct v4l2_clip * next``
+-    Pointer to the next clipping rectangle, NULL when this is the last
++    Pointer to the next clipping rectangle, ``NULL`` when this is the last
+     rectangle. Drivers ignore this field, it cannot be used to pass a
+     linked list of clipping rectangles.
+ 
+@@ -317,3 +309,8 @@ To start or stop the frame buffer overlay applications call the
+    because the application and graphics system are not aware these
+    regions need to be refreshed. The driver should clip out more pixels
+    or not write the image at all.
++
++.. [4]
++   The X Window system defines "regions" which are vectors of ``struct
++   BoxRec { short x1, y1, x2, y2; }`` with ``width = x2 - x1`` and
++   ``height = y2 - y1``, so one cannot pass X11 clip lists directly.
+-- 
+2.7.4
 
-> +/**
-> + * DOC: kfence overview
-> + *
-> + * kfences provide synchronisation barriers between multiple processes.
-> + * They are very similar to completions, or a pthread_barrier. Where
-> + * kfence differs from completions is their ability to track multiple
-> + * event sources rather than being a singular "completion event". Similar
-> + * to completions, multiple processes or other kfences can listen or wait
-> + * upon a kfence to signal its completion.
-> + *
-> + * The kfence is a one-shot flag, signaling that work has progressed passed
-> + * a certain point (as measured by completion of all events the kfence is
-> + * listening for) and the waiters upon kfence may proceed.
-> + *
-> + * kfences provide both signaling and waiting routines:
-> + *
-> + *	kfence_pending()
-> + *
-> + * indicates that the kfence should itself wait for another signal. A
-> + * kfence created by kfence_create() starts in the pending state.
-
-I would much prefer:
-
- *  - kfence_pending(): indicates that the kfence should itself wait for
- *    another signal. A kfence created by kfence_create() starts in the
- *    pending state.
-
-Which is much clearer in what text belongs where.
-
-Also, what !? I don't get what this function does.
-
-> + *
-> + *	kfence_signal()
-> + *
-> + * undoes the earlier pending notification and allows the fence to complete
-> + * if all pending events have then been signaled.
-
-So I know _signal() is the posix thing, but seeing how we already
-completions, how about being consistent with those and use _complete()
-for this?
-
-> + *
-> + *	kfence_wait()
-> + *
-> + * allows the caller to sleep (uninterruptibly) until the fence is complete.
-
-whitespace to separate the description of kfence_wait() from whatever
-else follows.
-
-> + * Meanwhile,
-> + *
-> + * 	kfence_complete()
-> + *
-> + * reports whether or not the kfence has been passed.
-
-kfence_done(), again to match completions.
-
-> + *
-> + * This interface is very similar to completions, with the exception of
-> + * allowing multiple pending / signals to be sent before the kfence is
-> + * complete.
-> + *
-> + *	kfence_add() / kfence_add_completion()
-> + *
-> + * sets the kfence to wait upon another fence, or completion respectively.
-> + *
-> + * Unlike completions, kfences are expected to live inside more complex graphs
-> + * and form the basis for parallel execution of interdependent and so are
-> + * reference counted. A kfence may be created using,
-> + *
-> + * 	kfence_create()
-> + *
-> + * The fence starts off pending a single signal. Once you have finished
-> + * setting up the fence, use kfence_signal() to allow it to wait upon
-> + * its event sources.
-> + *
-> + * Use
-> + *
-> + *	kfence_get() / kfence_put
-> + *
-> + * to acquire or release a reference on kfence respectively.
-> + */
