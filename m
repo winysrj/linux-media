@@ -1,156 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:49857 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750829AbcGKEcS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2016 00:32:18 -0400
-Subject: Re: [PATCH] vcodec: mediatek: Add g/s_selection support for V4L2
- Encoder
-To: Tiffany Lin <tiffany.lin@mediatek.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-References: <1464594768-1993-1-git-send-email-tiffany.lin@mediatek.com>
-Cc: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4ca82842-968d-a5e2-587d-752c71713607@xs4all.nl>
-Date: Mon, 11 Jul 2016 06:32:10 +0200
-MIME-Version: 1.0
-In-Reply-To: <1464594768-1993-1-git-send-email-tiffany.lin@mediatek.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:38626 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754170AbcGEBbZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:25 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 29/41] Documentation: dmabuf.rst: re-add the missing captions
+Date: Mon,  4 Jul 2016 22:31:04 -0300
+Message-Id: <323f8893a2813c1ade9fa506cfb0abf3633c5e39.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tiffany,
+The conversion from DocBook removed them. Re-add.
 
-My apologies for the delay, but here is my review at last:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/linux_tv/media/v4l/dmabuf.rst | 3 +++
+ 1 file changed, 3 insertions(+)
 
-On 05/30/2016 09:52 AM, Tiffany Lin wrote:
-> This patch add g/s_selection support for MT8173
-> 
-> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-> ---
->  drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |   74 ++++++++++++++++++++
->  1 file changed, 74 insertions(+)
-> 
-> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-> index 6e72d73..23ef9a1 100644
-> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-> @@ -630,6 +630,77 @@ static int vidioc_try_fmt_vid_out_mplane(struct file *file, void *priv,
->  	return vidioc_try_fmt(f, fmt);
->  }
->  
-> +static int vidioc_venc_g_selection(struct file *file, void *priv,
-> +				     struct v4l2_selection *s)
-> +{
-> +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-> +	struct mtk_q_data *q_data;
-> +
-> +	/* crop means compose for output devices */
-> +	switch (s->target) {
-> +	case V4L2_SEL_TGT_CROP_DEFAULT:
-> +	case V4L2_SEL_TGT_CROP_BOUNDS:
-> +	case V4L2_SEL_TGT_CROP:
-> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-> +	case V4L2_SEL_TGT_COMPOSE:
-> +		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> +			mtk_v4l2_err("Invalid s->type = %d", s->type);
-> +			return -EINVAL;
-> +		}
-> +		break;
-> +	default:
-> +		mtk_v4l2_err("Invalid s->target = %d", s->target);
-> +		return -EINVAL;
-> +	}
-> +
-> +	q_data = mtk_venc_get_q_data(ctx, s->type);
-> +	if (!q_data)
-> +		return -EINVAL;
-> +
-> +	s->r.top = 0;
-> +	s->r.left = 0;
-> +	s->r.width = q_data->visible_width;
-> +	s->r.height = q_data->visible_height;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_venc_s_selection(struct file *file, void *priv,
-> +				     struct v4l2_selection *s)
-> +{
-> +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-> +	struct mtk_q_data *q_data;
-> +
-> +	switch (s->target) {
-> +	case V4L2_SEL_TGT_CROP_DEFAULT:
-> +	case V4L2_SEL_TGT_CROP_BOUNDS:
-> +	case V4L2_SEL_TGT_CROP:
-> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-> +	case V4L2_SEL_TGT_COMPOSE:
-> +		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> +			mtk_v4l2_err("Invalid s->type = %d", s->type);
-> +			return -EINVAL;
-> +		}
-> +		break;
-> +	default:
-> +		mtk_v4l2_err("Invalid s->target = %d", s->target);
-> +		return -EINVAL;
-> +	}
-> +
-> +	q_data = mtk_venc_get_q_data(ctx, s->type);
-> +	if (!q_data)
-> +		return -EINVAL;
-> +
-> +	s->r.top = 0;
-> +	s->r.left = 0;
-> +	q_data->visible_width = s->r.width;
-> +	q_data->visible_height = s->r.height;
+diff --git a/Documentation/linux_tv/media/v4l/dmabuf.rst b/Documentation/linux_tv/media/v4l/dmabuf.rst
+index 148e05e4c731..86cdc255e447 100644
+--- a/Documentation/linux_tv/media/v4l/dmabuf.rst
++++ b/Documentation/linux_tv/media/v4l/dmabuf.rst
+@@ -38,6 +38,7 @@ driver must be switched into DMABUF I/O mode by calling the
+ 
+ 
+ .. code-block:: c
++    :caption: Example 3.4. Initiating streaming I/O with DMABUF file descriptors
+ 
+     struct v4l2_requestbuffers reqbuf;
+ 
+@@ -63,6 +64,7 @@ a different DMABUF descriptor at each ``VIDIOC_QBUF`` call.
+ 
+ 
+ .. code-block:: c
++    :caption: Example 3.5. Queueing DMABUF using single plane API
+ 
+     int buffer_queue(int v4lfd, int index, int dmafd)
+     {
+@@ -84,6 +86,7 @@ a different DMABUF descriptor at each ``VIDIOC_QBUF`` call.
+ 
+ 
+ .. code-block:: c
++    :caption: Example 3.6. Queueing DMABUF using multi plane API
+ 
+     int buffer_queue_mp(int v4lfd, int index, int dmafd[], int n_planes)
+     {
+-- 
+2.7.4
 
-This makes no sense.
-
-See this page:
-
-https://hverkuil.home.xs4all.nl/spec/media.html#selection-api
-
-For the video output direction (memory -> HW encoder) the data source is
-the memory, the data sink is the HW encoder. For the video capture direction
-(HW encoder -> memory) the data source is the HW encoder and the data sink
-is the memory.
-
-Usually for m2m devices the video output direction may support cropping and
-the video capture direction may support composing.
-
-It's not clear what you intend here, especially since you set left and right
-to 0. That's not what the selection operation is supposed to do.
-
-Regards,
-
-	Hans
-
-> +
-> +	return 0;
-> +}
-> +
->  static int vidioc_venc_qbuf(struct file *file, void *priv,
->  			    struct v4l2_buffer *buf)
->  {
-> @@ -688,6 +759,9 @@ const struct v4l2_ioctl_ops mtk_venc_ioctl_ops = {
->  
->  	.vidioc_create_bufs		= v4l2_m2m_ioctl_create_bufs,
->  	.vidioc_prepare_buf		= v4l2_m2m_ioctl_prepare_buf,
-> +
-> +	.vidioc_g_selection		= vidioc_venc_g_selection,
-> +	.vidioc_s_selection		= vidioc_venc_s_selection,
->  };
->  
->  static int vb2ops_venc_queue_setup(struct vb2_queue *vq,
-> 
