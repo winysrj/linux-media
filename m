@@ -1,293 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avasout05.plus.net ([84.93.230.250]:53231 "EHLO
-	avasout05.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751603AbcGRVS0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 17:18:26 -0400
-From: Nick Dyer <nick@shmanahar.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	Nick Dyer <nick@shmanahar.org>
-Subject: [PATCH v8 10/10] Input: sur40 - use new V4L2 touch input type
-Date: Mon, 18 Jul 2016 22:10:38 +0100
-Message-Id: <1468876238-24599-11-git-send-email-nick@shmanahar.org>
-In-Reply-To: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
-References: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35898 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932071AbcGFK4s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 06:56:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 3/9] omap_vout: convert g/s_crop to g/s_selection.
+Date: Wed, 06 Jul 2016 13:56:44 +0300
+Message-ID: <1954235.TnArPKMBKU@avalon>
+In-Reply-To: <1467621142-8064-4-git-send-email-hverkuil@xs4all.nl>
+References: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl> <1467621142-8064-4-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Support both V4L2_TCH_FMT_TU08 and V4L2_PIX_FMT_GREY for backwards
-compatibility.
+Hi Hans,
 
-Note: I have not tested these changes (I have no access to the hardware)
-so not signing off.
----
- drivers/input/touchscreen/sur40.c |  122 +++++++++++++++++++++++++++----------
- 1 file changed, 89 insertions(+), 33 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-index 4ea4757..fc275cb 100644
---- a/drivers/input/touchscreen/sur40.c
-+++ b/drivers/input/touchscreen/sur40.c
-@@ -139,6 +139,27 @@ struct sur40_image_header {
- #define SUR40_GET_STATE   0xc5 /*  4 bytes state (?) */
- #define SUR40_GET_SENSORS 0xb1 /*  8 bytes sensors   */
- 
-+static const struct v4l2_pix_format sur40_pix_format[] = {
-+	{
-+		.pixelformat = V4L2_TCH_FMT_TU08,
-+		.width  = SENSOR_RES_X / 2,
-+		.height = SENSOR_RES_Y / 2,
-+		.field = V4L2_FIELD_NONE,
-+		.colorspace = V4L2_COLORSPACE_SRGB,
-+		.bytesperline = SENSOR_RES_X / 2,
-+		.sizeimage = (SENSOR_RES_X/2) * (SENSOR_RES_Y/2),
-+	},
-+	{
-+		.pixelformat = V4L2_PIX_FMT_GREY,
-+		.width  = SENSOR_RES_X / 2,
-+		.height = SENSOR_RES_Y / 2,
-+		.field = V4L2_FIELD_NONE,
-+		.colorspace = V4L2_COLORSPACE_SRGB,
-+		.bytesperline = SENSOR_RES_X / 2,
-+		.sizeimage = (SENSOR_RES_X/2) * (SENSOR_RES_Y/2),
-+	}
-+};
-+
- /* master device state */
- struct sur40_state {
- 
-@@ -149,6 +170,7 @@ struct sur40_state {
- 	struct v4l2_device v4l2;
- 	struct video_device vdev;
- 	struct mutex lock;
-+	struct v4l2_pix_format pix_fmt;
- 
- 	struct vb2_queue queue;
- 	struct list_head buf_list;
-@@ -169,7 +191,6 @@ struct sur40_buffer {
- 
- /* forward declarations */
- static const struct video_device sur40_video_device;
--static const struct v4l2_pix_format sur40_video_format;
- static const struct vb2_queue sur40_queue;
- static void sur40_process_video(struct sur40_state *sur40);
- 
-@@ -420,7 +441,7 @@ static void sur40_process_video(struct sur40_state *sur40)
- 		goto err_poll;
- 	}
- 
--	if (le32_to_cpu(img->size) != sur40_video_format.sizeimage) {
-+	if (le32_to_cpu(img->size) != sur40->pix_fmt.sizeimage) {
- 		dev_err(sur40->dev, "image size mismatch\n");
- 		goto err_poll;
- 	}
-@@ -431,7 +452,7 @@ static void sur40_process_video(struct sur40_state *sur40)
- 
- 	result = usb_sg_init(&sgr, sur40->usbdev,
- 		usb_rcvbulkpipe(sur40->usbdev, VIDEO_ENDPOINT), 0,
--		sgt->sgl, sgt->nents, sur40_video_format.sizeimage, 0);
-+		sgt->sgl, sgt->nents, sur40->pix_fmt.sizeimage, 0);
- 	if (result < 0) {
- 		dev_err(sur40->dev, "error %d in usb_sg_init\n", result);
- 		goto err_poll;
-@@ -586,13 +607,14 @@ static int sur40_probe(struct usb_interface *interface,
- 	if (error)
- 		goto err_unreg_v4l2;
- 
-+	sur40->pix_fmt = sur40_pix_format[0];
- 	sur40->vdev = sur40_video_device;
- 	sur40->vdev.v4l2_dev = &sur40->v4l2;
- 	sur40->vdev.lock = &sur40->lock;
- 	sur40->vdev.queue = &sur40->queue;
- 	video_set_drvdata(&sur40->vdev, sur40);
- 
--	error = video_register_device(&sur40->vdev, VFL_TYPE_GRABBER, -1);
-+	error = video_register_device(&sur40->vdev, VFL_TYPE_TOUCH, -1);
- 	if (error) {
- 		dev_err(&interface->dev,
- 			"Unable to register video subdevice.");
-@@ -651,10 +673,10 @@ static int sur40_queue_setup(struct vb2_queue *q,
- 		*nbuffers = 3 - q->num_buffers;
- 
- 	if (*nplanes)
--		return sizes[0] < sur40_video_format.sizeimage ? -EINVAL : 0;
-+		return sizes[0] < sur40->pix_fmt.sizeimage ? -EINVAL : 0;
- 
- 	*nplanes = 1;
--	sizes[0] = sur40_video_format.sizeimage;
-+	sizes[0] = sur40->pix_fmt.sizeimage;
- 
- 	return 0;
- }
-@@ -666,7 +688,7 @@ static int sur40_queue_setup(struct vb2_queue *q,
- static int sur40_buffer_prepare(struct vb2_buffer *vb)
- {
- 	struct sur40_state *sur40 = vb2_get_drv_priv(vb->vb2_queue);
--	unsigned long size = sur40_video_format.sizeimage;
-+	unsigned long size = sur40->pix_fmt.sizeimage;
- 
- 	if (vb2_plane_size(vb, 0) < size) {
- 		dev_err(&sur40->usbdev->dev, "buffer too small (%lu < %lu)\n",
-@@ -741,7 +763,7 @@ static int sur40_vidioc_querycap(struct file *file, void *priv,
- 	strlcpy(cap->driver, DRIVER_SHORT, sizeof(cap->driver));
- 	strlcpy(cap->card, DRIVER_LONG, sizeof(cap->card));
- 	usb_make_path(sur40->usbdev, cap->bus_info, sizeof(cap->bus_info));
--	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE |
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TOUCH |
- 		V4L2_CAP_READWRITE |
- 		V4L2_CAP_STREAMING;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-@@ -753,7 +775,7 @@ static int sur40_vidioc_enum_input(struct file *file, void *priv,
- {
- 	if (i->index != 0)
- 		return -EINVAL;
--	i->type = V4L2_INPUT_TYPE_CAMERA;
-+	i->type = V4L2_INPUT_TYPE_TOUCH;
- 	i->std = V4L2_STD_UNKNOWN;
- 	strlcpy(i->name, "In-Cell Sensor", sizeof(i->name));
- 	i->capabilities = 0;
-@@ -771,19 +793,57 @@ static int sur40_vidioc_g_input(struct file *file, void *priv, unsigned int *i)
- 	return 0;
- }
- 
--static int sur40_vidioc_fmt(struct file *file, void *priv,
-+static int sur40_vidioc_try_fmt(struct file *file, void *priv,
-+			    struct v4l2_format *f)
-+{
-+	switch (f->fmt.pix.pixelformat) {
-+	case V4L2_PIX_FMT_GREY:
-+		f->fmt.pix = sur40_pix_format[1];
-+		break;
-+
-+	default:
-+		f->fmt.pix = sur40_pix_format[0];
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static int sur40_vidioc_s_fmt(struct file *file, void *priv,
-+			    struct v4l2_format *f)
-+{
-+	struct sur40_state *sur40 = video_drvdata(file);
-+
-+	switch (f->fmt.pix.pixelformat) {
-+	case V4L2_PIX_FMT_GREY:
-+		sur40->pix_fmt = sur40_pix_format[1];
-+		break;
-+
-+	default:
-+		sur40->pix_fmt = sur40_pix_format[0];
-+		break;
-+	}
-+
-+	f->fmt.pix = sur40->pix_fmt;
-+	return 0;
-+}
-+
-+static int sur40_vidioc_g_fmt(struct file *file, void *priv,
- 			    struct v4l2_format *f)
- {
--	f->fmt.pix = sur40_video_format;
-+	struct sur40_state *sur40 = video_drvdata(file);
-+
-+	f->fmt.pix = sur40->pix_fmt;
- 	return 0;
- }
- 
- static int sur40_vidioc_enum_fmt(struct file *file, void *priv,
- 				 struct v4l2_fmtdesc *f)
- {
--	if (f->index != 0)
-+	if (f->index >= ARRAY_SIZE(sur40_pix_format))
- 		return -EINVAL;
--	f->pixelformat = V4L2_PIX_FMT_GREY;
-+
-+	f->pixelformat = sur40_pix_format[f->index].pixelformat;
- 	f->flags = 0;
- 	return 0;
- }
-@@ -791,22 +851,28 @@ static int sur40_vidioc_enum_fmt(struct file *file, void *priv,
- static int sur40_vidioc_enum_framesizes(struct file *file, void *priv,
- 					struct v4l2_frmsizeenum *f)
- {
--	if ((f->index != 0) || (f->pixel_format != V4L2_PIX_FMT_GREY))
-+	struct sur40_state *sur40 = video_drvdata(file);
-+
-+	if ((f->index != 0) || ((f->pixel_format != V4L2_TCH_FMT_TU08)
-+		&& (f->pixel_format != V4L2_PIX_FMT_GREY)))
- 		return -EINVAL;
- 
- 	f->type = V4L2_FRMSIZE_TYPE_DISCRETE;
--	f->discrete.width  = sur40_video_format.width;
--	f->discrete.height = sur40_video_format.height;
-+	f->discrete.width  = sur40->pix_fmt.width;
-+	f->discrete.height = sur40->pix_fmt.height;
- 	return 0;
- }
- 
- static int sur40_vidioc_enum_frameintervals(struct file *file, void *priv,
- 					    struct v4l2_frmivalenum *f)
- {
--	if ((f->index > 1) || (f->pixel_format != V4L2_PIX_FMT_GREY)
--		|| (f->width  != sur40_video_format.width)
--		|| (f->height != sur40_video_format.height))
--			return -EINVAL;
-+	struct sur40_state *sur40 = video_drvdata(file);
-+
-+	if ((f->index > 1) || ((f->pixel_format != V4L2_TCH_FMT_TU08)
-+		&& (f->pixel_format != V4L2_PIX_FMT_GREY))
-+		|| (f->width  != sur40->pix_fmt.width)
-+		|| (f->height != sur40->pix_fmt.height))
-+		return -EINVAL;
- 
- 	f->type = V4L2_FRMIVAL_TYPE_DISCRETE;
- 	f->discrete.denominator  = 60/(f->index+1);
-@@ -862,9 +928,9 @@ static const struct v4l2_ioctl_ops sur40_video_ioctl_ops = {
- 	.vidioc_querycap	= sur40_vidioc_querycap,
- 
- 	.vidioc_enum_fmt_vid_cap = sur40_vidioc_enum_fmt,
--	.vidioc_try_fmt_vid_cap	= sur40_vidioc_fmt,
--	.vidioc_s_fmt_vid_cap	= sur40_vidioc_fmt,
--	.vidioc_g_fmt_vid_cap	= sur40_vidioc_fmt,
-+	.vidioc_try_fmt_vid_cap	= sur40_vidioc_try_fmt,
-+	.vidioc_s_fmt_vid_cap	= sur40_vidioc_s_fmt,
-+	.vidioc_g_fmt_vid_cap	= sur40_vidioc_g_fmt,
- 
- 	.vidioc_enum_framesizes = sur40_vidioc_enum_framesizes,
- 	.vidioc_enum_frameintervals = sur40_vidioc_enum_frameintervals,
-@@ -891,16 +957,6 @@ static const struct video_device sur40_video_device = {
- 	.release = video_device_release_empty,
- };
- 
--static const struct v4l2_pix_format sur40_video_format = {
--	.pixelformat = V4L2_PIX_FMT_GREY,
--	.width  = SENSOR_RES_X / 2,
--	.height = SENSOR_RES_Y / 2,
--	.field = V4L2_FIELD_NONE,
--	.colorspace = V4L2_COLORSPACE_SRGB,
--	.bytesperline = SENSOR_RES_X / 2,
--	.sizeimage = (SENSOR_RES_X/2) * (SENSOR_RES_Y/2),
--};
--
- /* USB-specific object needed to register this driver with the USB subsystem. */
- static struct usb_driver sur40_driver = {
- 	.name = DRIVER_SHORT,
+On Monday 04 Jul 2016 10:32:16 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This is part of a final push to convert all drivers to g/s_selection.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/platform/omap/omap_vout.c | 54 +++++++++++++++---------------
+>  1 file changed, 28 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap/omap_vout.c
+> b/drivers/media/platform/omap/omap_vout.c index 70c28d1..2702b17 100644
+> --- a/drivers/media/platform/omap/omap_vout.c
+> +++ b/drivers/media/platform/omap/omap_vout.c
+> @@ -1247,36 +1247,34 @@ static int vidioc_g_fmt_vid_overlay(struct file
+> *file, void *fh, return 0;
+>  }
+> 
+> -static int vidioc_cropcap(struct file *file, void *fh,
+> -		struct v4l2_cropcap *cropcap)
+> +static int vidioc_g_selection(struct file *file, void *fh, struct
+> v4l2_selection *sel) {
+>  	struct omap_vout_device *vout = fh;
+>  	struct v4l2_pix_format *pix = &vout->pix;
+> 
+> -	if (cropcap->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+>  		return -EINVAL;
+> 
+> -	/* Width and height are always even */
+> -	cropcap->bounds.width = pix->width & ~1;
+> -	cropcap->bounds.height = pix->height & ~1;
+> -
+> -	omap_vout_default_crop(&vout->pix, &vout->fbuf, &cropcap->defrect);
+> -	cropcap->pixelaspect.numerator = 1;
+> -	cropcap->pixelaspect.denominator = 1;
+> -	return 0;
+> -}
+> -
+> -static int vidioc_g_crop(struct file *file, void *fh, struct v4l2_crop
+> *crop)
+> -{
+> -	struct omap_vout_device *vout = fh;
+> -
+> -	if (crop->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +	switch (sel->target) {
+> +	case V4L2_SEL_TGT_CROP:
+> +		sel->r = vout->crop;
+> +		break;
+> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> +		/* Width and height are always even */
+> +		sel->r.width = pix->width & ~1;
+> +		sel->r.height = pix->height & ~1;
+> +
+> +		if (sel->target == V4L2_SEL_TGT_CROP_DEFAULT)
+> +			omap_vout_default_crop(&vout->pix, &vout->fbuf, &sel-
+>r);
+
+The omap_vout_default_crop() overwrites sel->r.width and sel->r.height, how 
+about the gollowing code instead ?
+
+	case V4L2_SEL_TGT_CROP_DEFAULT:
+		omap_vout_default_crop(&vout->pix, &vout->fbuf, &sel-r);
+		break;
+
+	case V4L2_SEL_TGT_CROP_BOUNDS:
+		/* Width and height are always even */
+		sel->r.width = pix->width & ~1;
+		sel->r.height = pix->height & ~1;
+		break;
+
+Apart from that the patch looks good to me.
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> +		break;
+> +	default:
+>  		return -EINVAL;
+> -	crop->c = vout->crop;
+> +	}
+>  	return 0;
+>  }
+> 
+> -static int vidioc_s_crop(struct file *file, void *fh, const struct
+> v4l2_crop *crop) +static int vidioc_s_selection(struct file *file, void
+> *fh, struct v4l2_selection *sel) {
+>  	int ret = -EINVAL;
+>  	struct omap_vout_device *vout = fh;
+> @@ -1285,6 +1283,12 @@ static int vidioc_s_crop(struct file *file, void *fh,
+> const struct v4l2_crop *cr struct omap_video_timings *timing;
+>  	struct omap_dss_device *dssdev;
+> 
+> +	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +		return -EINVAL;
+> +
+> +	if (sel->target != V4L2_SEL_TGT_CROP)
+> +		return -EINVAL;
+> +
+>  	if (vout->streaming)
+>  		return -EBUSY;
+> 
+> @@ -1309,9 +1313,8 @@ static int vidioc_s_crop(struct file *file, void *fh,
+> const struct v4l2_crop *cr vout->fbuf.fmt.width = timing->x_res;
+>  	}
+> 
+> -	if (crop->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> -		ret = omap_vout_new_crop(&vout->pix, &vout->crop, &vout->win,
+> -				&vout->fbuf, &crop->c);
+> +	ret = omap_vout_new_crop(&vout->pix, &vout->crop, &vout->win,
+> +				 &vout->fbuf, &sel->r);
+> 
+>  s_crop_err:
+>  	mutex_unlock(&vout->lock);
+> @@ -1839,9 +1842,8 @@ static const struct v4l2_ioctl_ops vout_ioctl_ops = {
+>  	.vidioc_try_fmt_vid_out_overlay		= vidioc_try_fmt_vid_overlay,
+>  	.vidioc_s_fmt_vid_out_overlay		= vidioc_s_fmt_vid_overlay,
+>  	.vidioc_g_fmt_vid_out_overlay		= vidioc_g_fmt_vid_overlay,
+> -	.vidioc_cropcap				= vidioc_cropcap,
+> -	.vidioc_g_crop				= vidioc_g_crop,
+> -	.vidioc_s_crop				= vidioc_s_crop,
+> +	.vidioc_g_selection			= vidioc_g_selection,
+> +	.vidioc_s_selection			= vidioc_s_selection,
+>  	.vidioc_reqbufs				= vidioc_reqbufs,
+>  	.vidioc_querybuf			= vidioc_querybuf,
+>  	.vidioc_qbuf				= vidioc_qbuf,
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
