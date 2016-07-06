@@ -1,77 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54936 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752004AbcGASlr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 14:41:47 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sergey Kozlov <serjk@netup.ru>, Abylay Ospan <aospan@netup.ru>
-Subject: [PATCH] cxd2841er: fix signal strength scale for ISDB-T
-Date: Fri,  1 Jul 2016 15:41:38 -0300
-Message-Id: <fe00b81dd11d60a0c8b5b5e34f7d68e97d6f0cf6.1467398496.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33137 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754648AbcGFPkv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 11:40:51 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: hans.verkuil@cisco.com
+Cc: niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
+	linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
+	laurent.pinchart@ideasonboard.com, william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v5 1/4] media: adv7604: automatic "default-input" selection
+Date: Wed,  6 Jul 2016 17:39:33 +0200
+Message-Id: <1467819576-17743-2-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1467819576-17743-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1467819576-17743-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The scale for ISDB-T was wrong too: it was inverted, and
-on a relative scale.
+Fall back to input 0 if "default-input" property is not present.
 
-Use a linear interpolation to make it look better.
-The formula was empirically determined, using 3 frequencies
-(175 MHz, 410 MHz and 800 MHz), measuring from -50dBm to
--12dBm in steps of 0.5dB.
+Additionally, documentation in commit bf9c82278c34 ("[media]
+media: adv7604: ability to read default input port from DT") states
+that the "default-input" property should reside directly in the node
+for adv7612. Hence, also adjust the parsing to make the implementation
+consistent with this.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Based on patch by William Towle <william.towle@codethink.co.uk>.
+
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 ---
- drivers/media/dvb-frontends/cxd2841er.c | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ drivers/media/i2c/adv7604.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-index 6c660761563d..b706118903fa 100644
---- a/drivers/media/dvb-frontends/cxd2841er.c
-+++ b/drivers/media/dvb-frontends/cxd2841er.c
-@@ -1731,7 +1731,7 @@ static void cxd2841er_read_signal_strength(struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct cxd2841er_priv *priv = fe->demodulator_priv;
--	u32 strength;
-+	s32 strength;
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 3f1ab49..2e8f036 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2830,10 +2830,13 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 	if (!of_property_read_u32(endpoint, "default-input", &v))
+ 		state->pdata.default_input = v;
+ 	else
+-		state->pdata.default_input = -1;
++		state->pdata.default_input = 0;
  
- 	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
- 	switch (p->delivery_system) {
-@@ -1741,7 +1741,7 @@ static void cxd2841er_read_signal_strength(struct dvb_frontend *fe)
- 							p->delivery_system);
- 		p->strength.stat[0].scale = FE_SCALE_DECIBEL;
- 		/* Formula was empirically determinated @ 410 MHz */
--		p->strength.stat[0].uvalue = ((s32)strength) * 366 / 100 - 89520;
-+		p->strength.stat[0].uvalue = strength * 366 / 100 - 89520;
- 		break;	/* Code moved out of the function */
- 	case SYS_DVBC_ANNEX_A:
- 		strength = cxd2841er_read_agc_gain_t_t2(priv,
-@@ -1752,13 +1752,16 @@ static void cxd2841er_read_signal_strength(struct dvb_frontend *fe)
- 		 * using frequencies: 175 MHz, 410 MHz and 800 MHz, and a
- 		 * stream modulated with QAM64
- 		 */
--		p->strength.stat[0].uvalue = ((s32)strength) * 4045 / 1000 - 85224;
-+		p->strength.stat[0].uvalue = strength * 4045 / 1000 - 85224;
- 		break;
- 	case SYS_ISDBT:
--		strength = 65535 - cxd2841er_read_agc_gain_i(
--				priv, p->delivery_system);
--		p->strength.stat[0].scale = FE_SCALE_RELATIVE;
--		p->strength.stat[0].uvalue = strength;
-+		strength = cxd2841er_read_agc_gain_i(priv, p->delivery_system);
-+		p->strength.stat[0].scale = FE_SCALE_DECIBEL;
-+		/*
-+		 * Formula was empirically determinated via linear regression,
-+		 * using frequencies: 175 MHz, 410 MHz and 800 MHz.
-+		 */
-+		p->strength.stat[0].uvalue = strength * 3775 / 1000 - 90185;
- 		break;
- 	case SYS_DVBS:
- 	case SYS_DVBS2:
+ 	of_node_put(endpoint);
+ 
++	if (!of_property_read_u32(np, "default-input", &v))
++		state->pdata.default_input = v;
++
+ 	flags = bus_cfg.bus.parallel.flags;
+ 
+ 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
 -- 
 2.7.4
 
