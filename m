@@ -1,41 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:55244 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753022AbcGFJoF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 05:44:05 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [PATCH v3 13/15] [media] lirc_dev: extremely trivial comment style fix
-Date: Wed, 06 Jul 2016 18:01:25 +0900
-Message-id: <1467795687-10737-14-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1467795687-10737-1-git-send-email-andi.shyti@samsung.com>
-References: <1467795687-10737-1-git-send-email-andi.shyti@samsung.com>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:35355 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932587AbcGFXHj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:07:39 -0400
+Received: by mail-pf0-f196.google.com with SMTP id t190so96714pfb.2
+        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:07:39 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 16/28] gpu: ipu-v3: rename CSI client device
+Date: Wed,  6 Jul 2016 16:06:46 -0700
+Message-Id: <1467846418-12913-17-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+ <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
----
- drivers/media/rc/lirc_dev.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Rename the CSI client device in the client_reg[] table to
+"imx-ipuv3-csi".
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index ac00433..c78fe2b 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -687,7 +687,8 @@ ssize_t lirc_dev_fop_read(struct file *file,
- 			/* According to the read(2) man page, 'written' can be
- 			 * returned as less than 'length', instead of blocking
- 			 * again, returning -EWOULDBLOCK, or returning
--			 * -ERESTARTSYS */
-+			 * -ERESTARTSYS
-+			 */
- 			if (written)
- 				break;
- 			if (file->f_flags & O_NONBLOCK) {
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/gpu/ipu-v3/ipu-common.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
+index 374100e..bd6771b 100644
+--- a/drivers/gpu/ipu-v3/ipu-common.c
++++ b/drivers/gpu/ipu-v3/ipu-common.c
+@@ -1153,14 +1153,14 @@ static struct ipu_platform_reg client_reg[] = {
+ 			.dma[0] = IPUV3_CHANNEL_CSI0,
+ 			.dma[1] = -EINVAL,
+ 		},
+-		.name = "imx-ipuv3-camera",
++		.name = "imx-ipuv3-csi",
+ 	}, {
+ 		.pdata = {
+ 			.csi = 1,
+ 			.dma[0] = IPUV3_CHANNEL_CSI1,
+ 			.dma[1] = -EINVAL,
+ 		},
+-		.name = "imx-ipuv3-camera",
++		.name = "imx-ipuv3-csi",
+ 	}, {
+ 		.pdata = {
+ 			.di = 0,
 -- 
-2.8.1
+1.9.1
 
