@@ -1,92 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53019 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753892AbcGUUUA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 16:20:00 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/5] [media] v4l2-common.h: Add documentation for other functions
-Date: Thu, 21 Jul 2016 17:19:50 -0300
-Message-Id: <803a5c1a8b6cd3f593833cc883788fb120343cd6.1469132350.git.mchehab@s-opensource.com>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:33047 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755878AbcGFXTU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:19:20 -0400
+Received: by mail-pf0-f193.google.com with SMTP id c74so124335pfb.0
+        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:19:20 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 06/11] media: adv7180: add bt.656-4 OF property
+Date: Wed,  6 Jul 2016 15:59:59 -0700
+Message-Id: <1467846004-12731-7-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Not all functions at v4l2-common.h are documented. Add
-documentation for some other ones.
+Add a device tree boolean property "bt656-4" to allow setting
+the ITU-R BT.656-4 compatible bit.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- include/media/v4l2-common.h | 43 ++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 38 insertions(+), 5 deletions(-)
+ drivers/media/i2c/adv7180.c | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 9b1dfcd9e229..350cbf9fb10e 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -78,9 +78,26 @@
- 			v4l2_printk(KERN_DEBUG, dev, fmt , ## arg); 	\
- 	} while (0)
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 92e2f37..fff887c 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -58,7 +58,7 @@
  
--/* ------------------------------------------------------------------------- */
-+/**
-+ * v4l2_ctrl_query_fill- Fill in a struct v4l2_queryctrl
-+ *
-+ * @qctrl: pointer to the &struct v4l2_queryctrl to be filled
-+ * @min: minimum value for the control
-+ * @max: maximum value for the control
-+ * @step: control step
-+ * @def: default value for the control
-+ *
-+ * Fills the &struct v4l2_queryctrl fields for the query control.
-+ *
-+ * .. note::
-+ *
-+ *    This function assumes that the @qctrl->id field is filled.
-+ *
-+ * Returns -EINVAL if the control is not known by the V4L2 core, 0 on success.
-+ */
+ #define ADV7180_REG_OUTPUT_CONTROL			0x0003
+ #define ADV7180_REG_EXTENDED_OUTPUT_CONTROL		0x0004
+-#define ADV7180_EXTENDED_OUTPUT_CONTROL_NTSCDIS		0xC5
++#define ADV7180_EXTENDED_OUTPUT_CONTROL_BT656_4		0x80
  
--int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 step, s32 def);
-+int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl,
-+			 s32 min, s32 max, s32 step, s32 def);
+ #define ADV7180_REG_AUTODETECT_ENABLE			0x0007
+ #define ADV7180_AUTODETECT_DEFAULT			0x7f
+@@ -216,6 +216,7 @@ struct adv7180_state {
+ 	struct gpio_desc	*pwdn_gpio;
+ 	v4l2_std_id		curr_norm;
+ 	bool			autodetect;
++	bool			bt656_4; /* use bt.656-4 standard for NTSC */
+ 	bool			powered;
+ 	u8			input;
  
- /* ------------------------------------------------------------------------- */
+@@ -1281,6 +1282,17 @@ static int init_device(struct adv7180_state *state)
+ 	if (ret)
+ 		goto out_unlock;
  
-@@ -172,12 +189,28 @@ const unsigned short *v4l2_i2c_tuner_addrs(enum v4l2_i2c_tuner_type type);
++	if (state->bt656_4) {
++		ret = adv7180_read(state, ADV7180_REG_EXTENDED_OUTPUT_CONTROL);
++		if (ret < 0)
++			goto out_unlock;
++		ret |= ADV7180_EXTENDED_OUTPUT_CONTROL_BT656_4;
++		ret = adv7180_write(state, ADV7180_REG_EXTENDED_OUTPUT_CONTROL,
++				    ret);
++		if (ret < 0)
++			goto out_unlock;
++	}
++
+ 	ret = adv7180_program_std(state);
+ 	if (ret)
+ 		goto out_unlock;
+@@ -1332,6 +1344,10 @@ static int adv7180_of_parse(struct adv7180_state *state)
+ 		return PTR_ERR(state->pwdn_gpio);
+ 	}
  
- struct spi_device;
++	/* select ITU-R BT.656-4 compatible? */
++	if (of_property_read_bool(client->dev.of_node, "bt656-4"))
++		state->bt656_4 = true;
++
+ 	return 0;
+ }
  
--/* Load an spi module and return an initialized v4l2_subdev struct.
--   The client_type argument is the name of the chip that's on the adapter. */
-+/**
-+ *  v4l2_spi_new_subdev - Load an spi module and return an initialized
-+ *	&struct v4l2_subdev.
-+ *
-+ *
-+ * @v4l2_dev: pointer to &struct v4l2_device.
-+ * @master: pointer to struct spi_master.
-+ * @info: pointer to struct spi_board_info.
-+ *
-+ * returns a &struct v4l2_subdev pointer.
-+ */
- struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
- 		struct spi_master *master, struct spi_board_info *info);
- 
--/* Initialize a v4l2_subdev with data from an spi_device struct */
-+/**
-+ * v4l2_spi_subdev_init - Initialize a v4l2_subdev with data from an
-+ *	spi_device struct.
-+ *
-+ * @sd: pointer to &struct v4l2_subdev
-+ * @spi: pointer to struct spi_device.
-+ * @ops: pointer to &struct v4l2_subdev_ops
-+ */
- void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
- 		const struct v4l2_subdev_ops *ops);
- #endif
 -- 
-2.7.4
+1.9.1
 
