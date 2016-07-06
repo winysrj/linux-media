@@ -1,91 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:40224 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752201AbcGAKQX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jul 2016 06:16:23 -0400
-Subject: Re: [PATCH v3 0/9] Add MT8173 Video Decoder Driver
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	tiffany lin <tiffany.lin@mediatek.com>
-References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
- <20160607112235.475c2e4c@recife.lan> <575746EE.3030706@cisco.com>
- <1465902488.27938.7.camel@mtksdaap41> <20160616075428.0fde4aaa@recife.lan>
-Cc: Hans Verkuil <hansverk@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8a46c1e7-1f27-1e67-8c05-b133598b6a66@xs4all.nl>
-Date: Fri, 1 Jul 2016 12:11:51 +0200
-MIME-Version: 1.0
-In-Reply-To: <20160616075428.0fde4aaa@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:33829 "EHLO
+	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755883AbcGFXSa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:18:30 -0400
+Received: by mail-pf0-f194.google.com with SMTP id 66so119070pfy.1
+        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:18:02 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 09/11] v4l: Add signal lock status to source change events
+Date: Wed,  6 Jul 2016 16:00:02 -0700
+Message-Id: <1467846004-12731-10-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/2016 12:54 PM, Mauro Carvalho Chehab wrote:
-> Em Tue, 14 Jun 2016 19:08:08 +0800
-> tiffany lin <tiffany.lin@mediatek.com> escreveu:
-> 
->> Hi Mauro,
->>
->>
->> On Wed, 2016-06-08 at 07:13 +0900, Hans Verkuil wrote:
->>>
->>> On 06/07/2016 11:22 PM, Mauro Carvalho Chehab wrote:  
->>>> Em Mon, 30 May 2016 20:29:14 +0800
->>>> Tiffany Lin <tiffany.lin@mediatek.com> escreveu:
->>>>  
->>>>> ==============
->>>>>   Introduction
->>>>> ==============
->>>>>
->>>>> The purpose of this series is to add the driver for video codec hw embedded in the Mediatek's MT8173 SoCs.
->>>>> Mediatek Video Codec is able to handle video decoding of in a range of formats.
->>>>>
->>>>> This patch series add Mediatek block format V4L2_PIX_FMT_MT21, the decoder driver will decoded bitstream to
->>>>> V4L2_PIX_FMT_MT21 format.
->>>>>
->>>>> This patch series rely on MTK VPU driver in patch series "Add MT8173 Video Encoder Driver and VPU Driver"[1]
->>>>> and patch "CHROMIUM: v4l: Add V4L2_PIX_FMT_VP9 definition"[2] for VP9 support.
->>>>> Mediatek Video Decoder driver rely on VPU driver to load, communicate with VPU.
->>>>>
->>>>> Internally the driver uses videobuf2 framework and MTK IOMMU and MTK SMI both have been merged in v4.6-rc1.
->>>>>
->>>>> [1]https://patchwork.linuxtv.org/patch/33734/
->>>>> [2]https://chromium-review.googlesource.com/#/c/245241/  
->>>>
->>>> Hmm... I'm not seeing the firmware for this driver at the
->>>> linux-firmware tree:
->>>> 	https://git.kernel.org/cgit/linux/kernel/git/firmware/linux-firmware.git/log/
->>>>
->>>> Nor I'm seeing any pull request for them. Did you send it?
->>>> I'll only merge the driver upstream after seeing such pull request.  
->>>   
->> Sorry, I am not familiar with how to upstream firmware.
->> Do you mean we need to upstream vpu firmware first before merge encoder
->> driver upstream?
-> 
-> Please look at this page:
-> 	https://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches#Firmware_submission
-> 
-> The information here can also be useful:
-> 	https://www.kernel.org/doc/readme/firmware-README.AddingFirmware
-> 
-> In summary, you need to provide redistribution rights for the
-> firmware blob. You can either submit it to me or directly to
-> linux-firmware. In the latter, please c/c me on such patch.
+Add a signal lock status change to the source changes bitmask.
+This indicates there was a signal lock or unlock event detected
+at the input of a video decoder.
 
-Tiffany, what is the status of the firmware submission?
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml | 12 ++++++++++--
+ include/uapi/linux/videodev2.h                     |  1 +
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
-Regards,
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+index c9c3c77..7758ad7 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+@@ -233,8 +233,9 @@
+ 	    <entry>
+ 	      <para>This event is triggered when a source parameter change is
+ 	       detected during runtime by the video device. It can be a
+-	       runtime resolution change triggered by a video decoder or the
+-	       format change happening on an input connector.
++	       runtime resolution change or signal lock status change
++	       triggered by a video decoder, or the format change happening
++	       on an input connector.
+ 	       This event requires that the <structfield>id</structfield>
+ 	       matches the input index (when used with a video device node)
+ 	       or the pad index (when used with a subdevice node) from which
+@@ -461,6 +462,13 @@
+ 	    from a video decoder.
+ 	    </entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_EVENT_SRC_CH_LOCK_STATUS</constant></entry>
++	    <entry>0x0002</entry>
++	    <entry>This event gets triggered when there is a signal lock or
++	    unlock detected at the input of a video decoder.
++	    </entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 724f43e..08a153f 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -2078,6 +2078,7 @@ struct v4l2_event_frame_sync {
+ };
+ 
+ #define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
++#define V4L2_EVENT_SRC_CH_LOCK_STATUS		(1 << 1)
+ 
+ struct v4l2_event_src_change {
+ 	__u32 changes;
+-- 
+1.9.1
 
-	Hans
