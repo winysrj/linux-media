@@ -1,48 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f41.google.com ([209.85.215.41]:34710 "EHLO
-	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750839AbcG2TKx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2016 15:10:53 -0400
-Received: by mail-lf0-f41.google.com with SMTP id l69so77574978lfg.1
-        for <linux-media@vger.kernel.org>; Fri, 29 Jul 2016 12:10:52 -0700 (PDT)
-Subject: Re: [PATCH 6/6] media: adv7180: fix field type
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	slongerbeam@gmail.com
-References: <20160729174012.14331-1-niklas.soderlund+renesas@ragnatech.se>
- <20160729174012.14331-7-niklas.soderlund+renesas@ragnatech.se>
-Cc: lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <cc084571-3063-a883-b731-0ffe01c4fefa@cogentembedded.com>
-Date: Fri, 29 Jul 2016 22:10:48 +0300
-MIME-Version: 1.0
-In-Reply-To: <20160729174012.14331-7-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35520 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751201AbcGFPw5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 11:52:57 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: hans.verkuil@cisco.com
+Cc: niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
+	linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
+	laurent.pinchart@ideasonboard.com, william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v5 0/4] Lager/Koelsch board HDMI input support
+Date: Wed,  6 Jul 2016 17:39:32 +0200
+Message-Id: <1467819576-17743-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/29/2016 08:40 PM, Niklas Söderlund wrote:
+Hi!
 
-> From: Steve Longerbeam <slongerbeam@gmail.com>
->
-> The ADV7180 and ADV7182 transmit whole fields, bottom field followed
-> by top (or vice-versa, depending on detected video standard). So
-> for chips that do not have support for explicitly setting the field
-> mode, set the field mode to V4L2_FIELD_ALTERNATE.
->
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> [Niklas: changed filed type from V4L2_FIELD_SEQ_{TB,BT} to
-> V4L2_FIELD_ALTERNATE]
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Sorry for the delay.  This revision drops all patches that have since been
+picked up.  It amends the default input selection to fall back to input 0 if
+nothing else is specified, and it replaces the hard-coded EDID blob with an
+implementation of G_EDID and S_EDID in rcar-vin.
 
-Tested-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+CU
+Uli
 
-    IIUC, it's a 4th version of this patch; you should have kept the original 
-change log (below --- tearline) and indicated that in the subject.
 
-MBR, Sergei
+Changes since v4:
+- drop merged patches
+- adv7604: always fall back to input 0 if nothing else is specified
+- rcar-vin: implement G_EDID, S_EDID in place of hard-coded EDID blob
+
+Changes since v3:
+- rvin_enum_dv_timings(): use vin->src_pad_idx
+- rvin_dv_timings_cap(): likewise
+- rvin_s_dv_timings(): update vin->format
+- add Koelsch support
+
+Changes since v2:
+- rebased on top of rcar-vin driver v4
+- removed "adv7604: fix SPA register location for ADV7612" (picked up)
+- changed prefix of dts patch to "ARM: dts: lager: "
+
+
+Hans Verkuil (1):
+  ARM: dts: koelsch: add HDMI input
+
+Ulrich Hecht (2):
+  media: adv7604: automatic "default-input" selection
+  rcar-vin: implement EDID control ioctls
+
+William Towle (1):
+  ARM: dts: lager: Add entries for VIN HDMI input support
+
+ arch/arm/boot/dts/r8a7790-lager.dts         | 41 ++++++++++++++++++++++++++++-
+ arch/arm/boot/dts/r8a7791-koelsch.dts       | 41 +++++++++++++++++++++++++++++
+ drivers/media/i2c/adv7604.c                 |  5 +++-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 17 ++++++++++++
+ 4 files changed, 102 insertions(+), 2 deletions(-)
+
+-- 
+2.7.4
 
