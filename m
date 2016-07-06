@@ -1,175 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53291 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751596AbcGIOXo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2016 10:23:44 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH] [media] doc-rst: make CEC look more like other parts of the book
-Date: Sat,  9 Jul 2016 11:23:32 -0300
-Message-Id: <da98a79ba71fe62ae9f7581901df35ce0dc1be68.1468074160.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pa0-f68.google.com ([209.85.220.68]:34870 "EHLO
+	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932496AbcGFXHf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:07:35 -0400
+Received: by mail-pa0-f68.google.com with SMTP id dx3so93670pab.2
+        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:07:35 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Suresh Dhandapani <Suresh.Dhandapani@in.bosch.com>
+Subject: [PATCH 12/28] gpu: ipu-v3: Fix CSI0 blur in NTSC format
+Date: Wed,  6 Jul 2016 16:06:42 -0700
+Message-Id: <1467846418-12913-13-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+ <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Better organize the contents of the CEC part, moving the
-introduction to chapter 1, placing all ioctls at chapter 2
-and numerating all chapters and items.
+From: Suresh Dhandapani <Suresh.Dhandapani@in.bosch.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+This patch will change the register IPU_CSI0_CCIR_CODE_2 value from
+0x40596 to 0x405A6. The change is related to the Start of field 1
+first blanking line command bit[5-3] for NTSC format only. This
+change is dependent with ADV chip where the NEWAVMODE is set to 0
+in register 0x31. Setting NEWAVMODE to "0" in ADV means "EAV/SAV
+codes generated to suit analog devices encoders".
+
+Signed-off-by: Suresh Dhandapani <Suresh.Dhandapani@in.bosch.com>
 ---
- Documentation/media/uapi/cec/cec-api.rst   | 60 +++---------------------------
- Documentation/media/uapi/cec/cec-funcs.rst | 21 +++++++++++
- Documentation/media/uapi/cec/cec-intro.rst | 31 +++++++++++++++
- 3 files changed, 57 insertions(+), 55 deletions(-)
- create mode 100644 Documentation/media/uapi/cec/cec-funcs.rst
- create mode 100644 Documentation/media/uapi/cec/cec-intro.rst
+ drivers/gpu/ipu-v3/ipu-csi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/media/uapi/cec/cec-api.rst b/Documentation/media/uapi/cec/cec-api.rst
-index f40103fefddc..e7dc8253f1e2 100644
---- a/Documentation/media/uapi/cec/cec-api.rst
-+++ b/Documentation/media/uapi/cec/cec-api.rst
-@@ -10,65 +10,15 @@ CEC API
+diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
+index 0eac28c..ec81958 100644
+--- a/drivers/gpu/ipu-v3/ipu-csi.c
++++ b/drivers/gpu/ipu-v3/ipu-csi.c
+@@ -422,7 +422,7 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
  
- .. _cec-api:
- 
--*********************************
--CEC: Consumer Electronics Control
--*********************************
--
--
--.. _cec-intro:
--
--Introduction
--============
--
--Note: this documents the proposed CEC API. This API is not yet finalized
--and is currently only available as a staging kernel module.
--
--HDMI connectors provide a single pin for use by the Consumer Electronics
--Control protocol. This protocol allows different devices connected by an
--HDMI cable to communicate. The protocol for CEC version 1.4 is defined
--in supplements 1 (CEC) and 2 (HEAC or HDMI Ethernet and Audio Return
--Channel) of the HDMI 1.4a (:ref:`hdmi`) specification and the
--extensions added to CEC version 2.0 are defined in chapter 11 of the
--HDMI 2.0 (:ref:`hdmi2`) specification.
--
--The bitrate is very slow (effectively no more than 36 bytes per second)
--and is based on the ancient AV.link protocol used in old SCART
--connectors. The protocol closely resembles a crazy Rube Goldberg
--contraption and is an unholy mix of low and high level messages. Some
--messages, especially those part of the HEAC protocol layered on top of
--CEC, need to be handled by the kernel, others can be handled either by
--the kernel or by userspace.
--
--In addition, CEC can be implemented in HDMI receivers, transmitters and
--in USB devices that have an HDMI input and an HDMI output and that
--control just the CEC pin.
--
--Drivers that support CEC will create a CEC device node (/dev/cecX) to
--give userspace access to the CEC adapter. The
--:ref:`CEC_ADAP_G_CAPS` ioctl will tell
--userspace what it is allowed to do.
--
--
--.. _cec-user-func:
--
--******************
--Function Reference
--******************
--
-+This part describes the CEC: Consumer Electronics Control
- 
- .. toctree::
-     :maxdepth: 1
-+    :numbered:
-+    :caption: Table of Contents
- 
--    cec-func-open
--    cec-func-close
--    cec-func-ioctl
--    cec-func-poll
--    cec-ioc-adap-g-caps
--    cec-ioc-adap-g-log-addrs
--    cec-ioc-adap-g-phys-addr
--    cec-ioc-dqevent
--    cec-ioc-g-mode
--    cec-ioc-receive
-+    cec-intro
-+    cec-funcs
-     cec-header
- 
- 
-diff --git a/Documentation/media/uapi/cec/cec-funcs.rst b/Documentation/media/uapi/cec/cec-funcs.rst
-new file mode 100644
-index 000000000000..5b7630f2e076
---- /dev/null
-+++ b/Documentation/media/uapi/cec/cec-funcs.rst
-@@ -0,0 +1,21 @@
-+.. _cec-user-func:
-+
-+******************
-+Function Reference
-+******************
-+
-+
-+.. toctree::
-+    :maxdepth: 1
-+    :numbered:
-+
-+    cec-func-open
-+    cec-func-close
-+    cec-func-ioctl
-+    cec-func-poll
-+    cec-ioc-adap-g-caps
-+    cec-ioc-adap-g-log-addrs
-+    cec-ioc-adap-g-phys-addr
-+    cec-ioc-dqevent
-+    cec-ioc-g-mode
-+    cec-ioc-receive
-diff --git a/Documentation/media/uapi/cec/cec-intro.rst b/Documentation/media/uapi/cec/cec-intro.rst
-new file mode 100644
-index 000000000000..d6a878866b3f
---- /dev/null
-+++ b/Documentation/media/uapi/cec/cec-intro.rst
-@@ -0,0 +1,31 @@
-+.. _cec-intro:
-+
-+Introduction
-+============
-+
-+Note: this documents the proposed CEC API. This API is not yet finalized
-+and is currently only available as a staging kernel module.
-+
-+HDMI connectors provide a single pin for use by the Consumer Electronics
-+Control protocol. This protocol allows different devices connected by an
-+HDMI cable to communicate. The protocol for CEC version 1.4 is defined
-+in supplements 1 (CEC) and 2 (HEAC or HDMI Ethernet and Audio Return
-+Channel) of the HDMI 1.4a (:ref:`hdmi`) specification and the
-+extensions added to CEC version 2.0 are defined in chapter 11 of the
-+HDMI 2.0 (:ref:`hdmi2`) specification.
-+
-+The bitrate is very slow (effectively no more than 36 bytes per second)
-+and is based on the ancient AV.link protocol used in old SCART
-+connectors. The protocol closely resembles a crazy Rube Goldberg
-+contraption and is an unholy mix of low and high level messages. Some
-+messages, especially those part of the HEAC protocol layered on top of
-+CEC, need to be handled by the kernel, others can be handled either by
-+the kernel or by userspace.
-+
-+In addition, CEC can be implemented in HDMI receivers, transmitters and
-+in USB devices that have an HDMI input and an HDMI output and that
-+control just the CEC pin.
-+
-+Drivers that support CEC will create a CEC device node (/dev/cecX) to
-+give userspace access to the CEC adapter. The
-+:ref:`CEC_ADAP_G_CAPS` ioctl will tell userspace what it is allowed to do.
+ 			ipu_csi_write(csi, 0xD07DF | CSI_CCIR_ERR_DET_EN,
+ 					  CSI_CCIR_CODE_1);
+-			ipu_csi_write(csi, 0x40596, CSI_CCIR_CODE_2);
++			ipu_csi_write(csi, 0x405A6, CSI_CCIR_CODE_2);
+ 			ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+ 		} else {
+ 			dev_err(csi->ipu->dev,
 -- 
-2.7.4
+1.9.1
 
