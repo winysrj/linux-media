@@ -1,154 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:36175 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750748AbcGaL4X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2016 07:56:23 -0400
-Received: by mail-wm0-f65.google.com with SMTP id x83so22171318wma.3
-        for <linux-media@vger.kernel.org>; Sun, 31 Jul 2016 04:56:22 -0700 (PDT)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH] media: rc: fix deadlock when module ir_lirc_codec is removed
-Message-ID: <376e679b-1506-e437-8945-9161dc309150@gmail.com>
-Date: Sun, 31 Jul 2016 13:56:15 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f66.google.com ([209.85.220.66]:34203 "EHLO
+	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752634AbcGFXHX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:07:23 -0400
+Received: by mail-pa0-f66.google.com with SMTP id us13so97450pab.1
+        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:07:22 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 00/28] i.MX5/6 Video Capture, v2
+Date: Wed,  6 Jul 2016 16:06:30 -0700
+Message-Id: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When removing module ir_lirc_codec I got this deadlock warning.
-Fix this by introducing a separate mutex to protect access
-to available_protocols instead of using ir_raw_handler_lock
-for this purpose.
+Philipp Zabel (2):
+  media: imx: Add video switch
+  ARM: dts: imx6qdl: Add mipi_ipu1/2 video muxes, mipi_csi, and their
+    connections
 
-======================================================
-[ INFO: possible circular locking dependency detected ]
-4.7.0-next-20160729 #1 Not tainted
--------------------------------------------------------
-rmmod/2542 is trying to acquire lock:
- (&dev->lock){+.+.+.}, at: [<ffffffffa03b1267>]
-			ir_raw_handler_unregister+0x77/0xd0 [rc_core]
+Steve Longerbeam (25):
+  gpu: ipu-v3: Add Video Deinterlacer unit
+  gpu: ipu-cpmem: Add ipu_cpmem_set_uv_offset()
+  gpu: ipu-cpmem: Add ipu_cpmem_get_burstsize()
+  gpu: ipu-v3: Add ipu_get_num()
+  gpu: ipu-v3: Add IDMA channel linking support
+  gpu: ipu-v3: Add ipu_set_vdi_src_mux()
+  gpu: ipu-v3: Add VDI input IDMAC channels
+  gpu: ipu-v3: Add ipu_csi_set_src()
+  gpu: ipu-v3: Add ipu_ic_set_src()
+  gpu: ipu-v3: set correct full sensor frame for PAL/NTSC
+  gpu: ipu-v3: Fix CSI data format for 16-bit media bus formats
+  gpu: ipu-v3: Fix IRT usage
+  gpu: ipu-ic: Add complete image conversion support with tiling
+  gpu: ipu-ic: allow multiple handles to ic
+  gpu: ipu-v3: rename CSI client device
+  gpio: pca953x: Add optional reset gpio control
+  clocksource/drivers/imx: add input capture support
+  media: Add i.MX5/6 camera interface driver
+  media: imx: Add MIPI CSI-2 Receiver driver
+  media: imx: Add support for MIPI CSI-2 OV5640
+  media: imx: Add support for Parallel OV5642
+  media: Add i.MX5/6 mem2mem driver
+  ARM: dts: imx6qdl: Flesh out MIPI CSI2 receiver node
+  ARM: dts: imx6qdl: add mem2mem devices
+  ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
 
-but task is already holding lock:
- (ir_raw_handler_lock){+.+.+.}, at: [<ffffffffa03b1212>]
-			ir_raw_handler_unregister+0x22/0xd0 [rc_core]
+Suresh Dhandapani (1):
+  gpu: ipu-v3: Fix CSI0 blur in NTSC format
 
-which lock already depends on the new lock.
+ Documentation/devicetree/bindings/media/imx.txt    |  449 ++
+ Documentation/video4linux/imx_camera.txt           |  243 ++
+ arch/arm/boot/dts/imx6dl.dtsi                      |  183 +
+ arch/arm/boot/dts/imx6q.dtsi                       |  127 +
+ arch/arm/boot/dts/imx6qdl.dtsi                     |   19 +
+ arch/arm/configs/imx_v6_v7_defconfig               |    2 +
+ drivers/clocksource/timer-imx-gpt.c                |  463 ++-
+ drivers/gpio/gpio-pca953x.c                        |   18 +
+ drivers/gpu/ipu-v3/Makefile                        |    2 +-
+ drivers/gpu/ipu-v3/ipu-common.c                    |  155 +-
+ drivers/gpu/ipu-v3/ipu-cpmem.c                     |   13 +
+ drivers/gpu/ipu-v3/ipu-csi.c                       |   36 +-
+ drivers/gpu/ipu-v3/ipu-ic.c                        | 1769 +++++++-
+ drivers/gpu/ipu-v3/ipu-prv.h                       |    7 +
+ drivers/gpu/ipu-v3/ipu-vdi.c                       |  266 ++
+ drivers/staging/media/Kconfig                      |    2 +
+ drivers/staging/media/Makefile                     |    1 +
+ drivers/staging/media/imx/Kconfig                  |   35 +
+ drivers/staging/media/imx/Makefile                 |    2 +
+ drivers/staging/media/imx/capture/Kconfig          |   35 +
+ drivers/staging/media/imx/capture/Makefile         |    9 +
+ drivers/staging/media/imx/capture/imx-camif.c      | 2326 +++++++++++
+ drivers/staging/media/imx/capture/imx-camif.h      |  270 ++
+ drivers/staging/media/imx/capture/imx-csi.c        |  195 +
+ drivers/staging/media/imx/capture/imx-ic-prpenc.c  |  661 +++
+ drivers/staging/media/imx/capture/imx-of.c         |  354 ++
+ drivers/staging/media/imx/capture/imx-of.h         |   18 +
+ drivers/staging/media/imx/capture/imx-smfc.c       |  506 +++
+ drivers/staging/media/imx/capture/imx-vdic.c       |  995 +++++
+ .../staging/media/imx/capture/imx-video-switch.c   |  347 ++
+ drivers/staging/media/imx/capture/mipi-csi2.c      |  373 ++
+ drivers/staging/media/imx/capture/ov5640-mipi.c    | 2303 +++++++++++
+ drivers/staging/media/imx/capture/ov5642.c         | 4309 ++++++++++++++++++++
+ drivers/staging/media/imx/m2m/Makefile             |    1 +
+ drivers/staging/media/imx/m2m/imx-m2m.c            | 1049 +++++
+ include/linux/mxc_icap.h                           |   20 +
+ include/media/imx.h                                |   15 +
+ include/uapi/Kbuild                                |    1 +
+ include/uapi/linux/v4l2-controls.h                 |    4 +
+ include/uapi/media/Kbuild                          |    2 +
+ include/uapi/media/imx.h                           |   22 +
+ include/video/imx-ipu-v3.h                         |   96 +-
+ 42 files changed, 17596 insertions(+), 107 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/imx.txt
+ create mode 100644 Documentation/video4linux/imx_camera.txt
+ create mode 100644 drivers/gpu/ipu-v3/ipu-vdi.c
+ create mode 100644 drivers/staging/media/imx/Kconfig
+ create mode 100644 drivers/staging/media/imx/Makefile
+ create mode 100644 drivers/staging/media/imx/capture/Kconfig
+ create mode 100644 drivers/staging/media/imx/capture/Makefile
+ create mode 100644 drivers/staging/media/imx/capture/imx-camif.c
+ create mode 100644 drivers/staging/media/imx/capture/imx-camif.h
+ create mode 100644 drivers/staging/media/imx/capture/imx-csi.c
+ create mode 100644 drivers/staging/media/imx/capture/imx-ic-prpenc.c
+ create mode 100644 drivers/staging/media/imx/capture/imx-of.c
+ create mode 100644 drivers/staging/media/imx/capture/imx-of.h
+ create mode 100644 drivers/staging/media/imx/capture/imx-smfc.c
+ create mode 100644 drivers/staging/media/imx/capture/imx-vdic.c
+ create mode 100644 drivers/staging/media/imx/capture/imx-video-switch.c
+ create mode 100644 drivers/staging/media/imx/capture/mipi-csi2.c
+ create mode 100644 drivers/staging/media/imx/capture/ov5640-mipi.c
+ create mode 100644 drivers/staging/media/imx/capture/ov5642.c
+ create mode 100644 drivers/staging/media/imx/m2m/Makefile
+ create mode 100644 drivers/staging/media/imx/m2m/imx-m2m.c
+ create mode 100644 include/linux/mxc_icap.h
+ create mode 100644 include/media/imx.h
+ create mode 100644 include/uapi/media/Kbuild
+ create mode 100644 include/uapi/media/imx.h
 
-
-the existing dependency chain (in reverse order) is:
-
--> #1 (ir_raw_handler_lock){+.+.+.}:
-       [<ffffffff810ab1f2>] lock_acquire+0xb2/0x1e0
-       [<ffffffff815c087f>] mutex_lock_nested+0x5f/0x360
-       [<ffffffffa03b1403>] ir_raw_get_allowed_protocols+0x13/0x30 [rc_core]
-       [<ffffffffa03af8ea>] store_protocols+0x2fa/0x480 [rc_core]
-       [<ffffffff8143e143>] dev_attr_store+0x13/0x20
-       [<ffffffff81213c50>] sysfs_kf_write+0x40/0x50
-       [<ffffffff81212f60>] kernfs_fop_write+0x150/0x1e0
-       [<ffffffff81197613>] __vfs_write+0x23/0x120
-       [<ffffffff81198740>] vfs_write+0xb0/0x190
-       [<ffffffff81199a34>] SyS_write+0x44/0xa0
-       [<ffffffff815c55a5>] entry_SYSCALL_64_fastpath+0x18/0xa8
-
--> #0 (&dev->lock){+.+.+.}:
-       [<ffffffff810aac8c>] __lock_acquire+0x10fc/0x1270
-       [<ffffffff810ab1f2>] lock_acquire+0xb2/0x1e0
-       [<ffffffff815c087f>] mutex_lock_nested+0x5f/0x360
-       [<ffffffffa03b1267>] ir_raw_handler_unregister+0x77/0xd0 [rc_core]
-       [<ffffffffa03c8c05>] ir_lirc_codec_exit+0x10/0x12 [ir_lirc_codec]
-       [<ffffffff810e1b88>] SyS_delete_module+0x168/0x220
-       [<ffffffff815c55a5>] entry_SYSCALL_64_fastpath+0x18/0xa8
-
-other info that might help us debug this:
-
- Possible unsafe locking scenario:
-
-       CPU0                    CPU1
-       ----                    ----
-  lock(ir_raw_handler_lock);
-                               lock(&dev->lock);
-                               lock(ir_raw_handler_lock);
-  lock(&dev->lock);
-
- *** DEADLOCK ***
-
-1 lock held by rmmod/2542:
- #0:  (ir_raw_handler_lock){+.+.+.}, at: [<ffffffffa03b1212>]
-			ir_raw_handler_unregister+0x22/0xd0 [rc_core]
-
-stack backtrace:
-CPU: 0 PID: 2542 Comm: rmmod Not tainted 4.7.0-next-20160729 #1
-Hardware name: ZOTAC ZBOX-CI321NANO/ZBOX-CI321NANO, BIOS B246P105 06/01/2015
- 0000000000000000 ffff88006e607cc0 ffffffff812715f5 ffffffff8232b230
- ffffffff8232b230 ffff88006e607d00 ffffffff810a846e 00000000790107f0
- ffff880079010818 ffff8800790107f0 1efeb9f4f0dd2e6f ffff880079010000
-Call Trace:
- [<ffffffff812715f5>] dump_stack+0x68/0x93
- [<ffffffff810a846e>] print_circular_bug+0x1be/0x210
- [<ffffffff810aac8c>] __lock_acquire+0x10fc/0x1270
- [<ffffffff810bcead>] ? debug_lockdep_rcu_enabled+0x1d/0x20
- [<ffffffff810ab1f2>] lock_acquire+0xb2/0x1e0
- [<ffffffffa03b1267>] ? ir_raw_handler_unregister+0x77/0xd0 [rc_core]
- [<ffffffff815c087f>] mutex_lock_nested+0x5f/0x360
- [<ffffffffa03b1267>] ? ir_raw_handler_unregister+0x77/0xd0 [rc_core]
- [<ffffffff810a980e>] ? trace_hardirqs_on_caller+0xee/0x1b0
- [<ffffffffa03b1267>] ir_raw_handler_unregister+0x77/0xd0 [rc_core]
- [<ffffffffa03c8c05>] ir_lirc_codec_exit+0x10/0x12 [ir_lirc_codec]
- [<ffffffff810e1b88>] SyS_delete_module+0x168/0x220
- [<ffffffff815c55a5>] entry_SYSCALL_64_fastpath+0x18/0xa8
-
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/rc-ir-raw.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 144304c..205ecc6 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -26,6 +26,7 @@ static LIST_HEAD(ir_raw_client_list);
- /* Used to handle IR raw handler extensions */
- static DEFINE_MUTEX(ir_raw_handler_lock);
- static LIST_HEAD(ir_raw_handler_list);
-+static DEFINE_MUTEX(available_protocols_lock);
- static u64 available_protocols;
- 
- static int ir_raw_event_thread(void *data)
-@@ -234,9 +235,9 @@ u64
- ir_raw_get_allowed_protocols(void)
- {
- 	u64 protocols;
--	mutex_lock(&ir_raw_handler_lock);
-+	mutex_lock(&available_protocols_lock);
- 	protocols = available_protocols;
--	mutex_unlock(&ir_raw_handler_lock);
-+	mutex_unlock(&available_protocols_lock);
- 	return protocols;
- }
- 
-@@ -330,7 +331,9 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler)
- 	if (ir_raw_handler->raw_register)
- 		list_for_each_entry(raw, &ir_raw_client_list, list)
- 			ir_raw_handler->raw_register(raw->dev);
-+	mutex_lock(&available_protocols_lock);
- 	available_protocols |= ir_raw_handler->protocols;
-+	mutex_unlock(&available_protocols_lock);
- 	mutex_unlock(&ir_raw_handler_lock);
- 
- 	return 0;
-@@ -349,7 +352,9 @@ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler)
- 		if (ir_raw_handler->raw_unregister)
- 			ir_raw_handler->raw_unregister(raw->dev);
- 	}
-+	mutex_lock(&available_protocols_lock);
- 	available_protocols &= ~protocols;
-+	mutex_unlock(&available_protocols_lock);
- 	mutex_unlock(&ir_raw_handler_lock);
- }
- EXPORT_SYMBOL(ir_raw_handler_unregister);
 -- 
-2.9.0
+1.9.1
 
