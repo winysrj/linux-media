@@ -1,51 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:34225 "EHLO
-	mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592AbcGROq0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 10:46:26 -0400
-From: William Breathitt Gray <vilhelm.gray@gmail.com>
-To: mchehab@osg.samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	William Breathitt Gray <vilhelm.gray@gmail.com>
-Subject: [PATCH 3/6] radio: trust: Utilize the module_isa_driver macro
-Date: Mon, 18 Jul 2016 10:46:19 -0400
-Message-Id: <b3b5728928df22f7e35903a438b745c93a6425fb.1468852798.git.vilhelm.gray@gmail.com>
-In-Reply-To: <cover.1468852798.git.vilhelm.gray@gmail.com>
-References: <cover.1468852798.git.vilhelm.gray@gmail.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:46763 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753067AbcGFJoA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 05:44:00 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [PATCH v3 08/15] [media] lirc_dev: remove double if ... else statement
+Date: Wed, 06 Jul 2016 18:01:20 +0900
+Message-id: <1467795687-10737-9-git-send-email-andi.shyti@samsung.com>
+In-reply-to: <1467795687-10737-1-git-send-email-andi.shyti@samsung.com>
+References: <1467795687-10737-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver does not do anything special in module init/exit. This patch
-eliminates the module init/exit boilerplate code by utilizing the
-module_isa_driver macro.
+There are two if ... else which check the same thing in different
+part of the code, they can be merged in a single check.
 
-Signed-off-by: William Breathitt Gray <vilhelm.gray@gmail.com>
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
 ---
- drivers/media/radio/radio-trust.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/media/rc/lirc_dev.c | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/radio/radio-trust.c b/drivers/media/radio/radio-trust.c
-index 26a8c60..e4bec5e 100644
---- a/drivers/media/radio/radio-trust.c
-+++ b/drivers/media/radio/radio-trust.c
-@@ -229,15 +229,4 @@ static struct radio_isa_driver trust_driver = {
- 	.max_volume = 31,
- };
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index c2826a7..a8a5116 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -310,13 +310,6 @@ static int lirc_allocate_driver(struct lirc_driver *d)
+ 	irctls[minor] = ir;
+ 	d->minor = minor;
  
--static int __init trust_init(void)
--{
--	return isa_register_driver(&trust_driver.driver, TRUST_MAX);
--}
+-	if (d->sample_rate) {
+-		ir->jiffies_to_wait = HZ / d->sample_rate;
+-	} else {
+-		/* it means - wait for external event in task queue */
+-		ir->jiffies_to_wait = 0;
+-	}
 -
--static void __exit trust_exit(void)
--{
--	isa_unregister_driver(&trust_driver.driver);
--}
--
--module_init(trust_init);
--module_exit(trust_exit);
-+module_isa_driver(trust_driver.driver, TRUST_MAX);
+ 	/* some safety check 8-) */
+ 	d->name[sizeof(d->name)-1] = '\0';
+ 
+@@ -330,6 +323,8 @@ static int lirc_allocate_driver(struct lirc_driver *d)
+ 		      "lirc%u", ir->d.minor);
+ 
+ 	if (d->sample_rate) {
++		ir->jiffies_to_wait = HZ / d->sample_rate;
++
+ 		/* try to fire up polling thread */
+ 		ir->task = kthread_run(lirc_thread, (void *)ir, "lirc_dev");
+ 		if (IS_ERR(ir->task)) {
+@@ -338,6 +333,9 @@ static int lirc_allocate_driver(struct lirc_driver *d)
+ 			err = -ECHILD;
+ 			goto out_sysfs;
+ 		}
++	} else {
++		/* it means - wait for external event in task queue */
++		ir->jiffies_to_wait = 0;
+ 	}
+ 
+ 	err = lirc_cdev_add(ir);
 -- 
-2.7.3
+2.8.1
 
