@@ -1,73 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41425 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755357AbcGHNEE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:04 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 25/54] doc-rst: remote_controllers: fix conversion issues
-Date: Fri,  8 Jul 2016 10:03:17 -0300
-Message-Id: <1c719e648d7f1162906747bc90fbc1b9051c95d1.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:5006 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752112AbcGFIta (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 04:49:30 -0400
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+From: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH] cec-funcs.h: add length checks
+Message-ID: <577CC616.7060002@cisco.com>
+Date: Wed, 6 Jul 2016 10:49:26 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make it look like V4L, DVB and MC docbooks initial page.
+Add msg->len sanity checks to fix static checker warning:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/linux_tv/media/rc/remote_controllers.rst | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+	include/linux/cec-funcs.h:1154 cec_ops_set_osd_string()
+	warn: setting length 'msg->len - 3' to negative one
 
-diff --git a/Documentation/linux_tv/media/rc/remote_controllers.rst b/Documentation/linux_tv/media/rc/remote_controllers.rst
-index 4b36e992f59a..bccceb1e28c3 100644
---- a/Documentation/linux_tv/media/rc/remote_controllers.rst
-+++ b/Documentation/linux_tv/media/rc/remote_controllers.rst
-@@ -1,5 +1,7 @@
- .. -*- coding: utf-8; mode: rst -*-
- 
-+.. include:: <isonum.txt>
-+
- .. _remotes:
- 
- #####################
-@@ -15,6 +17,7 @@ Remote Controllers
- 
- .. toctree::
-     :maxdepth: 1
-+    :numbered:
- 
-     Remote_controllers_Intro
-     remote_controllers_sysfs_nodes
-@@ -27,12 +30,17 @@ Remote Controllers
- Revision and Copyright
- **********************
- 
-+Authors:
- 
--:author:    Chehab Mauro (*Carvalho*)
--:address:   m.chehab@samsung.com
--:contrib:   Initial version.
-+- Carvalho Chehab, Mauro <mchehab@kernel.org>
- 
--**Copyright** 2009-2014 : Mauro Carvalho Chehab
-+ - Initial version.
-+
-+**Copyright** |copy| 2009-2016 : Mauro Carvalho Chehab
-+
-+****************
-+Revision History
-+****************
- 
- :revision: 3.15 / 2014-02-06 (*mcc*)
- 
--- 
-2.7.4
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 
+diff --git a/include/linux/cec-funcs.h b/include/linux/cec-funcs.h
+index 19486009..8d217ce 100644
+--- a/include/linux/cec-funcs.h
++++ b/include/linux/cec-funcs.h
+@@ -788,7 +788,7 @@ static inline void cec_msg_set_timer_program_title(struct cec_msg *msg,
+ static inline void cec_ops_set_timer_program_title(const struct cec_msg *msg,
+ 						   char *prog_title)
+ {
+-	unsigned int len = msg->len - 2;
++	unsigned int len = msg->len > 2 ? msg->len - 2 : 0;
+
+ 	if (len > 14)
+ 		len = 14;
+@@ -1167,7 +1167,7 @@ static inline void cec_ops_set_osd_string(const struct cec_msg *msg,
+ 					  __u8 *disp_ctl,
+ 					  char *osd)
+ {
+-	unsigned int len = msg->len - 3;
++	unsigned int len = msg->len > 3 ? msg->len - 3 : 0;
+
+ 	*disp_ctl = msg->msg[2];
+ 	if (len > 13)
+@@ -1192,7 +1192,7 @@ static inline void cec_msg_set_osd_name(struct cec_msg *msg, const char *name)
+ static inline void cec_ops_set_osd_name(const struct cec_msg *msg,
+ 					char *name)
+ {
+-	unsigned int len = msg->len - 2;
++	unsigned int len = msg->len > 2 ? msg->len - 2 : 0;
+
+ 	if (len > 14)
+ 		len = 14;
