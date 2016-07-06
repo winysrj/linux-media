@@ -1,157 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:33063 "EHLO
-	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751653AbcGPKmQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2016 06:42:16 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v3 7/9] [media] vivid: Introduce TPG_COLOR_ENC_LUMA
-Date: Sat, 16 Jul 2016 12:41:54 +0200
-Message-Id: <1468665716-10178-8-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1468665716-10178-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1468665716-10178-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:34215 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752634AbcGFXHZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:07:25 -0400
+Received: by mail-pf0-f193.google.com with SMTP id 66so101491pfy.1
+        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:07:25 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 03/28] gpu: ipu-cpmem: Add ipu_cpmem_get_burstsize()
+Date: Wed,  6 Jul 2016 16:06:33 -0700
+Message-Id: <1467846418-12913-4-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+ <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simplifies handling of Gray formats.
+Adds ipu_cpmem_get_burstsize().
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/common/v4l2-tpg/v4l2-tpg-core.c   | 26 +++++++++++++++++++------
- drivers/media/platform/vivid/vivid-vid-common.c |  6 +++---
- include/media/v4l2-tpg.h                        |  1 +
- 3 files changed, 24 insertions(+), 9 deletions(-)
+ drivers/gpu/ipu-v3/ipu-cpmem.c | 6 ++++++
+ include/video/imx-ipu-v3.h     | 1 +
+ 2 files changed, 7 insertions(+)
 
-diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-index ba3fe65ceb98..e91bf3cbaab9 100644
---- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-+++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-@@ -234,10 +234,12 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
- 	case V4L2_PIX_FMT_XBGR32:
- 	case V4L2_PIX_FMT_ARGB32:
- 	case V4L2_PIX_FMT_ABGR32:
-+		tpg->color_enc = TGP_COLOR_ENC_RGB;
-+		break;
- 	case V4L2_PIX_FMT_GREY:
- 	case V4L2_PIX_FMT_Y16:
- 	case V4L2_PIX_FMT_Y16_BE:
--		tpg->color_enc = TGP_COLOR_ENC_RGB;
-+		tpg->color_enc = TGP_COLOR_ENC_LUMA;
- 		break;
- 	case V4L2_PIX_FMT_YUV444:
- 	case V4L2_PIX_FMT_YUV555:
-@@ -825,9 +827,9 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 		g <<= 4;
- 		b <<= 4;
- 	}
--	if (tpg->qual == TPG_QUAL_GRAY || tpg->fourcc == V4L2_PIX_FMT_GREY ||
--	    tpg->fourcc == V4L2_PIX_FMT_Y16 ||
--	    tpg->fourcc == V4L2_PIX_FMT_Y16_BE) {
+diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
+index a36c35e..fcb7dc8 100644
+--- a/drivers/gpu/ipu-v3/ipu-cpmem.c
++++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
+@@ -275,6 +275,12 @@ void ipu_cpmem_set_axi_id(struct ipuv3_channel *ch, u32 id)
+ }
+ EXPORT_SYMBOL_GPL(ipu_cpmem_set_axi_id);
+ 
++int ipu_cpmem_get_burstsize(struct ipuv3_channel *ch)
++{
++	return ipu_ch_param_read_field(ch, IPU_FIELD_NPB) + 1;
++}
++EXPORT_SYMBOL_GPL(ipu_cpmem_get_burstsize);
 +
-+	if (tpg->qual == TPG_QUAL_GRAY ||
-+	    tpg->color_enc ==  TGP_COLOR_ENC_LUMA) {
- 		/* Rec. 709 Luma function */
- 		/* (0.2126, 0.7152, 0.0722) * (255 * 256) */
- 		r = g = b = (13879 * r + 46688 * g + 4713 * b) >> 16;
-@@ -867,8 +869,9 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 		b = (b - (16 << 4)) * 255 / 219;
- 	}
- 
--	if (tpg->brightness != 128 || tpg->contrast != 128 ||
--	    tpg->saturation != 128 || tpg->hue) {
-+	if ((tpg->brightness != 128 || tpg->contrast != 128 ||
-+	     tpg->saturation != 128 || tpg->hue) &&
-+	    tpg->color_enc != TGP_COLOR_ENC_LUMA) {
- 		/* Implement these operations */
- 		int y, cb, cr;
- 		int tmp_cb, tmp_cr;
-@@ -894,6 +897,10 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 			return;
- 		}
- 		ycbcr_to_color(tpg, y, cb, cr, &r, &g, &b);
-+	} else if ((tpg->brightness != 128 || tpg->contrast != 128) &&
-+		   tpg->color_enc == TGP_COLOR_ENC_LUMA) {
-+		r = (16 << 4) + ((r - (16 << 4)) * tpg->contrast) / 128;
-+		r += (tpg->brightness << 4) - (128 << 4);
- 	}
- 
- 	switch (tpg->color_enc) {
-@@ -944,6 +951,11 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 		tpg->colors[k][2] = cr;
- 		break;
- 	}
-+	case TGP_COLOR_ENC_LUMA:
-+	{
-+		tpg->colors[k][0] = r >> 4;
-+		break;
-+	}
- 	case TGP_COLOR_ENC_RGB:
- 	{
- 		if (tpg->real_quantization == V4L2_QUANTIZATION_LIM_RANGE) {
-@@ -1985,6 +1997,8 @@ static const char *tpg_color_enc_str(enum tgp_color_enc
- 		return "HSV";
- 	case TGP_COLOR_ENC_YUV:
- 		return "YCbCr";
-+	case TGP_COLOR_ENC_LUMA:
-+		return "Luma";
- 	case TGP_COLOR_ENC_RGB:
- 	default:
- 		return "RGB";
-diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
-index 869e26ea7cf5..b78bca4c2f16 100644
---- a/drivers/media/platform/vivid/vivid-vid-common.c
-+++ b/drivers/media/platform/vivid/vivid-vid-common.c
-@@ -184,7 +184,7 @@ struct vivid_fmt vivid_formats[] = {
- 		.fourcc   = V4L2_PIX_FMT_GREY,
- 		.vdownsampling = { 1 },
- 		.bit_depth = { 8 },
--		.color_enc = TGP_COLOR_ENC_YUV,
-+		.color_enc = TGP_COLOR_ENC_LUMA,
- 		.planes   = 1,
- 		.buffers = 1,
- 	},
-@@ -192,7 +192,7 @@ struct vivid_fmt vivid_formats[] = {
- 		.fourcc   = V4L2_PIX_FMT_Y16,
- 		.vdownsampling = { 1 },
- 		.bit_depth = { 16 },
--		.color_enc = TGP_COLOR_ENC_YUV,
-+		.color_enc = TGP_COLOR_ENC_LUMA,
- 		.planes   = 1,
- 		.buffers = 1,
- 	},
-@@ -200,7 +200,7 @@ struct vivid_fmt vivid_formats[] = {
- 		.fourcc   = V4L2_PIX_FMT_Y16_BE,
- 		.vdownsampling = { 1 },
- 		.bit_depth = { 16 },
--		.color_enc = TGP_COLOR_ENC_YUV,
-+		.color_enc = TGP_COLOR_ENC_LUMA,
- 		.planes   = 1,
- 		.buffers = 1,
- 	},
-diff --git a/include/media/v4l2-tpg.h b/include/media/v4l2-tpg.h
-index 0f632ec619aa..d2487c12657d 100644
---- a/include/media/v4l2-tpg.h
-+++ b/include/media/v4l2-tpg.h
-@@ -91,6 +91,7 @@ enum tgp_color_enc {
- 	TGP_COLOR_ENC_RGB,
- 	TGP_COLOR_ENC_YUV,
- 	TGP_COLOR_ENC_HSV,
-+	TGP_COLOR_ENC_LUMA,
- };
- 
- extern const char * const tpg_aspect_strings[];
+ void ipu_cpmem_set_burstsize(struct ipuv3_channel *ch, int burstsize)
+ {
+ 	ipu_ch_param_write_field(ch, IPU_FIELD_NPB, burstsize - 1);
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 904fd12..60540ead 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -197,6 +197,7 @@ void ipu_cpmem_set_buffer(struct ipuv3_channel *ch, int bufnum, dma_addr_t buf);
+ void ipu_cpmem_set_uv_offset(struct ipuv3_channel *ch, u32 u_off, u32 v_off);
+ void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride);
+ void ipu_cpmem_set_axi_id(struct ipuv3_channel *ch, u32 id);
++int ipu_cpmem_get_burstsize(struct ipuv3_channel *ch);
+ void ipu_cpmem_set_burstsize(struct ipuv3_channel *ch, int burstsize);
+ void ipu_cpmem_set_block_mode(struct ipuv3_channel *ch);
+ void ipu_cpmem_set_rotation(struct ipuv3_channel *ch,
 -- 
-2.8.1
+1.9.1
 
