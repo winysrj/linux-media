@@ -1,122 +1,419 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:26970 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752829AbcGDLJT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:09:19 -0400
-Message-ID: <1467630555.18007.8.camel@mtksdaap41>
-Subject: Re: [PATCH v3 0/9] Add MT8173 Video Decoder Driver
-From: andrew-ct chen <andrew-ct.chen@mediatek.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	tiffany lin <tiffany.lin@mediatek.com>,
-	<devicetree@vger.kernel.org>, <daniel.thompson@linaro.org>,
-	<linux-mediatek@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>, Hans Verkuil <hansverk@cisco.com>,
-	<PoChun.Lin@mediatek.com>, Rob Herring <robh+dt@kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	<linux-arm-kernel@lists.infradead.org>,
-	"Matthias Brugger" <matthias.bgg@gmail.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Pawel Osciak <posciak@chromium.org>,
-	<linux-media@vger.kernel.org>
-Date: Mon, 4 Jul 2016 19:09:15 +0800
-In-Reply-To: <7ee128a2-f026-5404-bbac-6b5c1bee51e7@xs4all.nl>
-References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
-	 <20160607112235.475c2e4c@recife.lan> <575746EE.3030706@cisco.com>
-	 <1465902488.27938.7.camel@mtksdaap41> <20160616075428.0fde4aaa@recife.lan>
-	 <8a46c1e7-1f27-1e67-8c05-b133598b6a66@xs4all.nl>
-	 <1467373995.17297.2.camel@mtksdaap41>
-	 <7ee128a2-f026-5404-bbac-6b5c1bee51e7@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+Received: from mail-pa0-f68.google.com ([209.85.220.68]:34299 "EHLO
+	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932580AbcGFXHp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:07:45 -0400
+Received: by mail-pa0-f68.google.com with SMTP id us13so98056pab.1
+        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:07:45 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 21/28] media: imx: Add video switch
+Date: Wed,  6 Jul 2016 16:06:51 -0700
+Message-Id: <1467846418-12913-22-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+ <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2016-07-01 at 14:00 +0200, Hans Verkuil wrote:
-> On 07/01/2016 01:53 PM, andrew-ct chen wrote:
-> > On Fri, 2016-07-01 at 12:11 +0200, Hans Verkuil wrote:
-> >> On 06/16/2016 12:54 PM, Mauro Carvalho Chehab wrote:
-> >>> Em Tue, 14 Jun 2016 19:08:08 +0800
-> >>> tiffany lin <tiffany.lin@mediatek.com> escreveu:
-> >>>
-> >>>> Hi Mauro,
-> >>>>
-> >>>>
-> >>>> On Wed, 2016-06-08 at 07:13 +0900, Hans Verkuil wrote:
-> >>>>>
-> >>>>> On 06/07/2016 11:22 PM, Mauro Carvalho Chehab wrote:  
-> >>>>>> Em Mon, 30 May 2016 20:29:14 +0800
-> >>>>>> Tiffany Lin <tiffany.lin@mediatek.com> escreveu:
-> >>>>>>  
-> >>>>>>> ==============
-> >>>>>>>   Introduction
-> >>>>>>> ==============
-> >>>>>>>
-> >>>>>>> The purpose of this series is to add the driver for video codec hw embedded in the Mediatek's MT8173 SoCs.
-> >>>>>>> Mediatek Video Codec is able to handle video decoding of in a range of formats.
-> >>>>>>>
-> >>>>>>> This patch series add Mediatek block format V4L2_PIX_FMT_MT21, the decoder driver will decoded bitstream to
-> >>>>>>> V4L2_PIX_FMT_MT21 format.
-> >>>>>>>
-> >>>>>>> This patch series rely on MTK VPU driver in patch series "Add MT8173 Video Encoder Driver and VPU Driver"[1]
-> >>>>>>> and patch "CHROMIUM: v4l: Add V4L2_PIX_FMT_VP9 definition"[2] for VP9 support.
-> >>>>>>> Mediatek Video Decoder driver rely on VPU driver to load, communicate with VPU.
-> >>>>>>>
-> >>>>>>> Internally the driver uses videobuf2 framework and MTK IOMMU and MTK SMI both have been merged in v4.6-rc1.
-> >>>>>>>
-> >>>>>>> [1]https://patchwork.linuxtv.org/patch/33734/
-> >>>>>>> [2]https://chromium-review.googlesource.com/#/c/245241/  
-> >>>>>>
-> >>>>>> Hmm... I'm not seeing the firmware for this driver at the
-> >>>>>> linux-firmware tree:
-> >>>>>> 	https://git.kernel.org/cgit/linux/kernel/git/firmware/linux-firmware.git/log/
-> >>>>>>
-> >>>>>> Nor I'm seeing any pull request for them. Did you send it?
-> >>>>>> I'll only merge the driver upstream after seeing such pull request.  
-> >>>>>   
-> >>>> Sorry, I am not familiar with how to upstream firmware.
-> >>>> Do you mean we need to upstream vpu firmware first before merge encoder
-> >>>> driver upstream?
-> >>>
-> >>> Please look at this page:
-> >>> 	https://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches#Firmware_submission
-> >>>
-> >>> The information here can also be useful:
-> >>> 	https://www.kernel.org/doc/readme/firmware-README.AddingFirmware
-> >>>
-> >>> In summary, you need to provide redistribution rights for the
-> >>> firmware blob. You can either submit it to me or directly to
-> >>> linux-firmware. In the latter, please c/c me on such patch.
-> >>
-> >> Tiffany, what is the status of the firmware submission?
-> >>
-> >> Regards,
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
+This driver can handle SoC internal and extern video bus multiplexers,
+controlled either by register bit fields or by GPIO.
 
-> >>
-> >> 	Hans
-> > 
-> > Hi Hans,
-> > We are working on firmware test to make sure that both decoder and
-> > encoder work well. Hopes it can be ready (firmware submission) on July 4
-> > or July 5.
-> 
-> OK, great! Just wanted to make sure that this work was progressing and not stalled.
-> 
-> Thanks!
-> 
-> 	Hans
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/capture/Kconfig          |   9 +
+ drivers/staging/media/imx/capture/Makefile         |   1 +
+ .../staging/media/imx/capture/imx-video-switch.c   | 347 +++++++++++++++++++++
+ 3 files changed, 357 insertions(+)
+ create mode 100644 drivers/staging/media/imx/capture/imx-video-switch.c
 
-Hi Hans,
-
-We have submitted VPU firmware for encoder as the following link.
-http://lists.infradead.org/pipermail/linux-mediatek/2016-July/006082.html
-If the series of decoder patches apply, we will update the VPU firmware
-for decoder support.
-
-Thanks!.
-	
-	Andrew
+diff --git a/drivers/staging/media/imx/capture/Kconfig b/drivers/staging/media/imx/capture/Kconfig
+index ac6fce0..1a64011 100644
+--- a/drivers/staging/media/imx/capture/Kconfig
++++ b/drivers/staging/media/imx/capture/Kconfig
+@@ -8,4 +8,13 @@ config IMX_MIPI_CSI2
+          MIPI CSI-2 Receiver driver support. This driver is required
+ 	 for sensor drivers with a MIPI CSI2 interface.
+ 
++config IMX_VIDEO_SWITCH
++	tristate "i.MX5/6 Video Bus Multiplexer"
++	depends on GPIOLIB && VIDEO_IMX_CAMERA
++	default y
++	---help---
++	  This driver provides support for the i.MX5/6 internal video bus
++	  multiplexer controlled by register bitfields as well as
++	  external multiplexers controller by a GPIO.
++
+ endmenu
+diff --git a/drivers/staging/media/imx/capture/Makefile b/drivers/staging/media/imx/capture/Makefile
+index 8961a4f..f17b199 100644
+--- a/drivers/staging/media/imx/capture/Makefile
++++ b/drivers/staging/media/imx/capture/Makefile
+@@ -4,3 +4,4 @@ imx-camera-objs := imx-camif.o imx-ic-prpenc.o imx-of.o \
+ obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-camera.o
+ obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-csi.o
+ obj-$(CONFIG_IMX_MIPI_CSI2) += mipi-csi2.o
++obj-$(CONFIG_IMX_VIDEO_SWITCH) += imx-video-switch.o
+diff --git a/drivers/staging/media/imx/capture/imx-video-switch.c b/drivers/staging/media/imx/capture/imx-video-switch.c
+new file mode 100644
+index 0000000..365616c
+--- /dev/null
++++ b/drivers/staging/media/imx/capture/imx-video-switch.c
+@@ -0,0 +1,347 @@
++/*
++ * devicetree probed mediacontrol video multiplexer.
++ *
++ * Copyright (C) 2013 Sascha Hauer, Pengutronix
++ * Copyright (c) 2014-2016 Mentor Graphics Inc.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/err.h>
++#include <linux/mfd/syscon.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/gpio/consumer.h>
++#include <linux/platform_device.h>
++#include <linux/regmap.h>
++#include <linux/of_graph.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-of.h>
++
++struct vidsw {
++	struct device *dev;
++	struct v4l2_subdev subdev;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_pad *pads;
++#endif
++	struct v4l2_mbus_framefmt *format_mbus;
++	struct v4l2_of_endpoint *endpoint;
++	struct regmap_field *field;
++	struct gpio_desc *gpio;
++	int output_pad;
++	int numpads;
++	int active;
++};
++
++#define to_vidsw(sd) container_of(sd, struct vidsw, subdev)
++
++static int vidsw_set_mux(struct vidsw *vidsw, int input_index)
++{
++	if (vidsw->active >= 0) {
++		if (vidsw->active == input_index)
++			return 0;
++		else
++			return -EBUSY;
++	}
++
++	vidsw->active = input_index;
++
++	dev_dbg(vidsw->dev, "setting %d active\n", vidsw->active);
++
++	if (vidsw->field)
++		regmap_field_write(vidsw->field, vidsw->active);
++	else if (vidsw->gpio)
++		gpiod_set_value(vidsw->gpio, vidsw->active);
++
++	return 0;
++}
++
++#ifdef CONFIG_MEDIA_CONTROLLER
++static int vidsw_link_setup(struct media_entity *entity,
++		const struct media_pad *local,
++		const struct media_pad *remote, u32 flags)
++{
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++	struct vidsw *vidsw = to_vidsw(sd);
++
++	dev_dbg(vidsw->dev, "link setup %s -> %s", remote->entity->name,
++		local->entity->name);
++
++	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
++		if (local->index == vidsw->active) {
++			dev_dbg(vidsw->dev, "going inactive\n");
++			vidsw->active = -1;
++		}
++		return 0;
++	}
++
++	return vidsw_set_mux(vidsw, local->index);
++}
++
++static struct media_entity_operations vidsw_ops = {
++	.link_setup = vidsw_link_setup,
++};
++#endif
++
++static int vidsw_s_routing(struct v4l2_subdev *sd, u32 input,
++			   u32 output, u32 config)
++{
++	struct vidsw *vidsw = container_of(sd, struct vidsw, subdev);
++
++	return vidsw_set_mux(vidsw, input);
++}
++
++static int vidsw_async_init(struct vidsw *vidsw, struct device_node *node)
++{
++	struct v4l2_of_endpoint endpoint;
++	struct device_node *epnode;
++	int pad, numpads;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	int ret;
++#endif
++
++	numpads = of_get_child_count(node);
++	if (numpads < 2) {
++		dev_err(vidsw->dev, "Not enough ports %d\n", numpads);
++		return -EINVAL;
++	}
++
++	vidsw->numpads = numpads;
++
++	/*
++	 * the last endpoint must define the mux output pad,
++	 * the rest are the mux input pads.
++	 */
++	vidsw->output_pad = numpads - 1;
++
++#ifdef CONFIG_MEDIA_CONTROLLER
++	vidsw->pads = devm_kzalloc(vidsw->dev,
++				   numpads * sizeof(*vidsw->pads),
++				   GFP_KERNEL);
++	if (!vidsw->pads)
++		return -ENOMEM;
++#endif
++
++	vidsw->endpoint = devm_kzalloc(vidsw->dev,
++				       numpads * sizeof(*vidsw->endpoint),
++				       GFP_KERNEL);
++	if (!vidsw->endpoint)
++		return -ENOMEM;
++
++	vidsw->format_mbus = devm_kzalloc(vidsw->dev,
++					  numpads * sizeof(*vidsw->format_mbus),
++					  GFP_KERNEL);
++	if (!vidsw->format_mbus)
++		return -ENOMEM;
++
++#ifdef CONFIG_MEDIA_CONTROLLER
++	vidsw->subdev.entity.ops = &vidsw_ops;
++
++	/* init the pad directions */
++	for (pad = 0; pad < vidsw->output_pad; pad++)
++		vidsw->pads[pad].flags = MEDIA_PAD_FL_SINK;
++	vidsw->pads[vidsw->output_pad].flags = MEDIA_PAD_FL_SOURCE;
++
++	ret = media_entity_pads_init(&vidsw->subdev.entity,
++				     vidsw->numpads, vidsw->pads);
++	if (ret < 0)
++		return ret;
++#endif
++
++	epnode = NULL;
++	for (pad = 0; pad < vidsw->numpads; pad++) {
++		epnode = of_graph_get_next_endpoint(node, epnode);
++		if (!epnode)
++			return -EINVAL;
++
++		v4l2_of_parse_endpoint(epnode, &endpoint);
++		vidsw->endpoint[pad] = endpoint;
++		of_node_put(epnode);
++	}
++
++	return 0;
++}
++
++static int vidsw_registered(struct v4l2_subdev *sd)
++{
++	return 0;
++}
++
++int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg)
++{
++	struct vidsw *vidsw = container_of(sd, struct vidsw, subdev);
++
++	dev_dbg(vidsw->dev, "reporting configration %d\n", vidsw->active);
++
++	/* Mirror the input side on the output side */
++	cfg->type = vidsw->endpoint[vidsw->active].bus_type;
++	if (cfg->type == V4L2_MBUS_PARALLEL || cfg->type == V4L2_MBUS_BT656)
++		cfg->flags = vidsw->endpoint[vidsw->active].bus.parallel.flags;
++
++	return 0;
++}
++
++static const struct v4l2_subdev_video_ops vidsw_subdev_video_ops = {
++	.g_mbus_config = vidsw_g_mbus_config,
++	.s_routing = vidsw_s_routing,
++};
++
++static int vidsw_get_format(struct v4l2_subdev *sd,
++			    struct v4l2_subdev_pad_config *cfg,
++			    struct v4l2_subdev_format *sdformat)
++{
++	struct vidsw *vidsw = container_of(sd, struct vidsw, subdev);
++
++	sdformat->format = vidsw->format_mbus[sdformat->pad];
++
++	return 0;
++}
++
++static int vidsw_set_format(struct v4l2_subdev *sd,
++			    struct v4l2_subdev_pad_config *cfg,
++			    struct v4l2_subdev_format *sdformat)
++{
++	struct vidsw *vidsw = container_of(sd, struct vidsw, subdev);
++
++	if (sdformat->pad >= vidsw->numpads)
++		return -EINVAL;
++
++	/* Output pad mirrors active input pad, no limitations on input pads */
++	if (sdformat->pad == vidsw->output_pad && vidsw->active >= 0)
++		sdformat->format = vidsw->format_mbus[vidsw->active];
++
++	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY)
++		cfg->try_fmt = sdformat->format;
++	else
++		vidsw->format_mbus[sdformat->pad] = sdformat->format;
++
++	return 0;
++}
++
++static struct v4l2_subdev_pad_ops vidsw_pad_ops = {
++	.get_fmt = vidsw_get_format,
++	.set_fmt = vidsw_set_format,
++};
++
++static struct v4l2_subdev_ops vidsw_subdev_ops = {
++	.pad = &vidsw_pad_ops,
++	.video = &vidsw_subdev_video_ops,
++};
++
++static struct v4l2_subdev_internal_ops vidsw_internal_ops = {
++	.registered = vidsw_registered,
++};
++
++static int of_get_reg_field(struct device_node *node, struct reg_field *field)
++{
++	u32 reg_bit_mask[2];
++	int ret;
++
++	ret = of_property_read_u32_array(node, "reg", reg_bit_mask, 2);
++	if (ret < 0)
++		return ret;
++
++	field->reg = reg_bit_mask[0];
++	field->lsb = __ffs(reg_bit_mask[1]);
++	field->msb = __fls(reg_bit_mask[1]);
++
++	return 0;
++}
++
++static int vidsw_probe(struct platform_device *pdev)
++{
++	struct device_node *np = pdev->dev.of_node;
++	struct reg_field field;
++	struct vidsw *vidsw;
++	struct regmap *map;
++	int ret;
++
++	vidsw = devm_kzalloc(&pdev->dev, sizeof(*vidsw), GFP_KERNEL);
++	if (!vidsw)
++		return -ENOMEM;
++
++	platform_set_drvdata(pdev, vidsw);
++
++	v4l2_subdev_init(&vidsw->subdev, &vidsw_subdev_ops);
++	v4l2_set_subdevdata(&vidsw->subdev, &pdev->dev);
++	vidsw->subdev.internal_ops = &vidsw_internal_ops;
++	snprintf(vidsw->subdev.name, sizeof(vidsw->subdev.name), "%s",
++			np->name);
++	vidsw->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	vidsw->subdev.dev = &pdev->dev;
++	vidsw->dev = &pdev->dev;
++	vidsw->active = -1;
++
++	ret = of_get_reg_field(np, &field);
++	if (ret == 0) {
++		map = syscon_regmap_lookup_by_phandle(np, "gpr");
++		if (!map) {
++			dev_err(&pdev->dev,
++				"Failed to get syscon register map\n");
++			return PTR_ERR(map);
++		}
++
++		vidsw->field = devm_regmap_field_alloc(&pdev->dev, map, field);
++		if (IS_ERR(vidsw->field)) {
++			dev_err(&pdev->dev,
++				"Failed to allocate regmap field\n");
++			return PTR_ERR(vidsw->field);
++		}
++	} else {
++		vidsw->gpio = devm_gpiod_get_optional(&pdev->dev, "mux",
++						      GPIOD_OUT_LOW);
++		if (IS_ERR(vidsw->gpio)) {
++			dev_err(&pdev->dev, "request for gpio failed\n");
++			return PTR_ERR(vidsw->gpio);
++		}
++
++		if (!vidsw->gpio)
++			dev_warn(&pdev->dev, "no control gpio defined\n");
++	}
++
++	ret = vidsw_async_init(vidsw, np);
++	if (ret)
++		return ret;
++
++	ret = v4l2_async_register_subdev(&vidsw->subdev);
++	if (ret)
++		return ret;
++
++	return 0;
++}
++
++static int vidsw_remove(struct platform_device *pdev)
++{
++	/* FIXME */
++
++	return -EBUSY;
++}
++
++static const struct of_device_id vidsw_dt_ids[] = {
++	{ .compatible = "imx-video-mux", },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, vidsw_dt_ids);
++
++static struct platform_driver vidsw_driver = {
++	.probe		= vidsw_probe,
++	.remove		= vidsw_remove,
++	.driver		= {
++		.of_match_table = vidsw_dt_ids,
++		.name	= "imx-video-mux",
++		.owner	= THIS_MODULE,
++	},
++};
++
++module_platform_driver(vidsw_driver);
++
++MODULE_DESCRIPTION("i.MX video stream multiplexer");
++MODULE_AUTHOR("Sascha Hauer, Pengutronix");
++MODULE_LICENSE("GPL");
+-- 
+1.9.1
 
