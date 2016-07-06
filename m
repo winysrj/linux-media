@@ -1,80 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:33562 "EHLO
-	mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751459AbcGWRBF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jul 2016 13:01:05 -0400
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:34234 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932496AbcGFXHa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:07:30 -0400
+Received: by mail-pf0-f196.google.com with SMTP id 66so101624pfy.1
+        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:07:30 -0700 (PDT)
 From: Steve Longerbeam <slongerbeam@gmail.com>
-To: lars@metafoo.de
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH v3 7/9] v4l: Add signal lock status to source change events
-Date: Sat, 23 Jul 2016 10:00:47 -0700
-Message-Id: <1469293249-6774-8-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 08/28] gpu: ipu-v3: Add ipu_csi_set_src()
+Date: Wed,  6 Jul 2016 16:06:38 -0700
+Message-Id: <1467846418-12913-9-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+ <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a signal lock status change to the source changes bitmask.
-This indicates there was a signal lock or unlock event detected
-at the input of a video decoder.
+Adds ipu_csi_set_src() which is just a wrapper around
+ipu_set_csi_src_mux().
 
 Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
 ---
-v3: no changes
-v2: no changes
----
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml | 12 ++++++++++--
- include/uapi/linux/videodev2.h                     |  1 +
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ drivers/gpu/ipu-v3/ipu-csi.c | 8 ++++++++
+ include/video/imx-ipu-v3.h   | 1 +
+ 2 files changed, 9 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-index c9c3c77..7758ad7 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-@@ -233,8 +233,9 @@
- 	    <entry>
- 	      <para>This event is triggered when a source parameter change is
- 	       detected during runtime by the video device. It can be a
--	       runtime resolution change triggered by a video decoder or the
--	       format change happening on an input connector.
-+	       runtime resolution change or signal lock status change
-+	       triggered by a video decoder, or the format change happening
-+	       on an input connector.
- 	       This event requires that the <structfield>id</structfield>
- 	       matches the input index (when used with a video device node)
- 	       or the pad index (when used with a subdevice node) from which
-@@ -461,6 +462,13 @@
- 	    from a video decoder.
- 	    </entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_EVENT_SRC_CH_LOCK_STATUS</constant></entry>
-+	    <entry>0x0002</entry>
-+	    <entry>This event gets triggered when there is a signal lock or
-+	    unlock detected at the input of a video decoder.
-+	    </entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 724f43e..08a153f 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -2078,6 +2078,7 @@ struct v4l2_event_frame_sync {
- };
+diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
+index 06631ac..336dc06 100644
+--- a/drivers/gpu/ipu-v3/ipu-csi.c
++++ b/drivers/gpu/ipu-v3/ipu-csi.c
+@@ -609,6 +609,14 @@ int ipu_csi_set_skip_smfc(struct ipu_csi *csi, u32 skip,
+ }
+ EXPORT_SYMBOL_GPL(ipu_csi_set_skip_smfc);
  
- #define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
-+#define V4L2_EVENT_SRC_CH_LOCK_STATUS		(1 << 1)
- 
- struct v4l2_event_src_change {
- 	__u32 changes;
++int ipu_csi_set_src(struct ipu_csi *csi, u32 vc, bool select_mipi_csi2)
++{
++	ipu_set_csi_src_mux(csi->ipu, csi->id, select_mipi_csi2);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(ipu_csi_set_src);
++
+ int ipu_csi_set_dest(struct ipu_csi *csi, enum ipu_csi_dest csi_dest)
+ {
+ 	unsigned long flags;
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 2302fc5..57b487d 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -301,6 +301,7 @@ int ipu_csi_set_mipi_datatype(struct ipu_csi *csi, u32 vc,
+ 			      struct v4l2_mbus_framefmt *mbus_fmt);
+ int ipu_csi_set_skip_smfc(struct ipu_csi *csi, u32 skip,
+ 			  u32 max_ratio, u32 id);
++int ipu_csi_set_src(struct ipu_csi *csi, u32 vc, bool select_mipi_csi2);
+ int ipu_csi_set_dest(struct ipu_csi *csi, enum ipu_csi_dest csi_dest);
+ int ipu_csi_enable(struct ipu_csi *csi);
+ int ipu_csi_disable(struct ipu_csi *csi);
 -- 
 1.9.1
 
