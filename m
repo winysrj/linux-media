@@ -1,100 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:43609 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752446AbcGSWQM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 18:16:12 -0400
-Date: Tue, 19 Jul 2016 23:16:10 +0100
-From: Sean Young <sean@mess.org>
-To: Andi Shyti <andi.shyti@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi@etezian.org>
-Subject: Re: [RFC 5/7] [media] ir-lirc-codec: do not handle any buffer for
- raw transmitters
-Message-ID: <20160719221610.GC24697@gofer.mess.org>
-References: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
- <1468943818-26025-6-git-send-email-andi.shyti@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1468943818-26025-6-git-send-email-andi.shyti@samsung.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41676 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751739AbcGFCuv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Jul 2016 22:50:51 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 3346B18045B
+	for <linux-media@vger.kernel.org>; Wed,  6 Jul 2016 04:50:45 +0200 (CEST)
+Date: Wed, 06 Jul 2016 04:50:45 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160706025045.3346B18045B@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 20, 2016 at 12:56:56AM +0900, Andi Shyti wrote:
-> Raw transmitters receive the data which need to be sent to
-> receivers from userspace as stream of bits, they don't require
-> any handling from the lirc framework.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-No drivers of type RC_DRIVER_IR_RAW_TX should handle tx just like any
-other device, so data should be provided as an array of u32 alternating
-pulse-space. If your device does not handle input like that then convert
-it into that format in the driver. Every other driver has to do some
-sort of conversion of that kind.
+Results of the daily build of media_tree:
 
-Thanks
+date:		Wed Jul  6 04:00:17 CEST 2016
+git branch:	test
+git hash:	d81295d1bed850335f9f4ccb6b1aa4f6a123d4f0
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-Sean
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mtk: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
+Detailed results are available here:
 
-> 
-> Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
-> ---
->  drivers/media/rc/ir-lirc-codec.c | 30 +++++++++++++++++++-----------
->  1 file changed, 19 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-> index 5effc65..80e94b6 100644
-> --- a/drivers/media/rc/ir-lirc-codec.c
-> +++ b/drivers/media/rc/ir-lirc-codec.c
-> @@ -121,17 +121,6 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
->  	if (!lirc)
->  		return -EFAULT;
->  
-> -	if (n < sizeof(unsigned) || n % sizeof(unsigned))
-> -		return -EINVAL;
-> -
-> -	count = n / sizeof(unsigned);
-> -	if (count > LIRCBUF_SIZE || count % 2 == 0)
-> -		return -EINVAL;
-> -
-> -	txbuf = memdup_user(buf, n);
-> -	if (IS_ERR(txbuf))
-> -		return PTR_ERR(txbuf);
-> -
->  	dev = lirc->dev;
->  	if (!dev) {
->  		ret = -EFAULT;
-> @@ -143,6 +132,25 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
->  		goto out;
->  	}
->  
-> +	if (dev->driver_type == RC_DRIVER_IR_RAW_TX) {
-> +		txbuf = memdup_user(buf, n);
-> +		if (IS_ERR(txbuf))
-> +			return PTR_ERR(txbuf);
-> +
-> +		return dev->tx_ir(dev, txbuf, n);
-> +	}
-> +
-> +	if (n < sizeof(unsigned) || n % sizeof(unsigned))
-> +		return -EINVAL;
-> +
-> +	count = n / sizeof(unsigned);
-> +	if (count > LIRCBUF_SIZE || count % 2 == 0)
-> +		return -EINVAL;
-> +
-> +	txbuf = memdup_user(buf, n);
-> +	if (IS_ERR(txbuf))
-> +		return PTR_ERR(txbuf);
-> +
->  	for (i = 0; i < count; i++) {
->  		if (txbuf[i] > IR_MAX_DURATION / 1000 - duration || !txbuf[i]) {
->  			ret = -EINVAL;
-> -- 
-> 2.8.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
