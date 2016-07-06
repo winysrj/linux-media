@@ -1,121 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51668 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933291AbcGLMmb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 08:42:31 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 06/20] [media] doc-rst: document ioctl LIRC_GET_SEND_MODE
-Date: Tue, 12 Jul 2016 09:42:00 -0300
-Message-Id: <3f3427c46664cdf130b981aa833cf2ee3189b8d4.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:34219 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932432AbcGFXH0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:07:26 -0400
+Received: by mail-pf0-f193.google.com with SMTP id 66so101518pfy.1
+        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:07:26 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 04/28] gpu: ipu-v3: Add ipu_get_num()
+Date: Wed,  6 Jul 2016 16:06:34 -0700
+Message-Id: <1467846418-12913-5-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+ <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the documentation of this ioctl from lirc_ioctl to its
-own file, and add a short description about the pulse mode
-used by IR TX.
+Adds of-alias id to ipu_soc and retrieve with ipu_get_num().
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- Documentation/media/uapi/rc/lirc-get-send-mode.rst | 48 ++++++++++++++++++++++
- .../media/uapi/rc/lirc_device_interface.rst        |  1 +
- Documentation/media/uapi/rc/lirc_ioctl.rst         |  9 ----
- 3 files changed, 49 insertions(+), 9 deletions(-)
- create mode 100644 Documentation/media/uapi/rc/lirc-get-send-mode.rst
+ drivers/gpu/ipu-v3/ipu-common.c | 8 ++++++++
+ drivers/gpu/ipu-v3/ipu-prv.h    | 1 +
+ include/video/imx-ipu-v3.h      | 1 +
+ 3 files changed, 10 insertions(+)
 
-diff --git a/Documentation/media/uapi/rc/lirc-get-send-mode.rst b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-new file mode 100644
-index 000000000000..f58f0953851c
---- /dev/null
-+++ b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-@@ -0,0 +1,48 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _lirc_get_send_mode:
-+
-+************************
-+ioctl LIRC_GET_SEND_MODE
-+************************
-+
-+Name
-+====
-+
-+LIRC_GET_SEND_MODE - Get supported transmit mode.
-+
-+Synopsis
-+========
-+
-+.. cpp:function:: int ioctl( int fd, int request, __u32 *tx_modes )
-+
-+Arguments
-+=========
-+
-+``fd``
-+    File descriptor returned by open().
-+
-+``request``
-+    LIRC_GET_SEND_MODE
-+
-+``tx_modes``
-+    Bitmask with the supported transmit modes.
-+
-+
-+Description
-+===========
-+
-+Get supported transmit mode.
-+
-+.. _lirc-mode-pulse:
-+
-+Currently, only ``LIRC_MODE_PULSE`` is supported by lircd on TX. On
-+puse mode, a sequence of pulse/space integer values are written to the
-+lirc device using ``write()``.
-+
-+Return Value
-+============
-+
-+On success 0 is returned, on error -1 and the ``errno`` variable is set
-+appropriately. The generic error codes are described at the
-+:ref:`Generic Error Codes <gen-errors>` chapter.
-diff --git a/Documentation/media/uapi/rc/lirc_device_interface.rst b/Documentation/media/uapi/rc/lirc_device_interface.rst
-index fe13f7d65d30..f6ebf09cca60 100644
---- a/Documentation/media/uapi/rc/lirc_device_interface.rst
-+++ b/Documentation/media/uapi/rc/lirc_device_interface.rst
-@@ -13,4 +13,5 @@ LIRC Device Interface
-     lirc_read
-     lirc_write
-     lirc-get-features
-+    lirc-get-send-mode
-     lirc_ioctl
-diff --git a/Documentation/media/uapi/rc/lirc_ioctl.rst b/Documentation/media/uapi/rc/lirc_ioctl.rst
-index 345e927e9d5d..8e9809a03b8f 100644
---- a/Documentation/media/uapi/rc/lirc_ioctl.rst
-+++ b/Documentation/media/uapi/rc/lirc_ioctl.rst
-@@ -49,15 +49,6 @@ device can rely on working with the default settings initially.
- I/O control requests
- ====================
+diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
+index 30dc115..49af121 100644
+--- a/drivers/gpu/ipu-v3/ipu-common.c
++++ b/drivers/gpu/ipu-v3/ipu-common.c
+@@ -45,6 +45,12 @@ static inline void ipu_cm_write(struct ipu_soc *ipu, u32 value, unsigned offset)
+ 	writel(value, ipu->cm_reg + offset);
+ }
  
--
--.. _LIRC_GET_SEND_MODE:
--.. _lirc-mode-pulse:
--
--``LIRC_GET_SEND_MODE``
--
--    Get supported transmit mode. Only ``LIRC_MODE_PULSE`` is supported by
--    lircd.
--
- .. _LIRC_GET_REC_MODE:
- .. _lirc-mode-mode2:
- .. _lirc-mode-lirccode:
++int ipu_get_num(struct ipu_soc *ipu)
++{
++	return ipu->id;
++}
++EXPORT_SYMBOL_GPL(ipu_get_num);
++
+ void ipu_srm_dp_sync_update(struct ipu_soc *ipu)
+ {
+ 	u32 val;
+@@ -1220,6 +1226,7 @@ static int ipu_probe(struct platform_device *pdev)
+ {
+ 	const struct of_device_id *of_id =
+ 			of_match_device(imx_ipu_dt_ids, &pdev->dev);
++	struct device_node *np = pdev->dev.of_node;
+ 	struct ipu_soc *ipu;
+ 	struct resource *res;
+ 	unsigned long ipu_base;
+@@ -1248,6 +1255,7 @@ static int ipu_probe(struct platform_device *pdev)
+ 		ipu->channel[i].ipu = ipu;
+ 	ipu->devtype = devtype;
+ 	ipu->ipu_type = devtype->type;
++	ipu->id = of_alias_get_id(np, "ipu");
+ 
+ 	spin_lock_init(&ipu->lock);
+ 	mutex_init(&ipu->channel_lock);
+diff --git a/drivers/gpu/ipu-v3/ipu-prv.h b/drivers/gpu/ipu-v3/ipu-prv.h
+index 845f64c..02057d8 100644
+--- a/drivers/gpu/ipu-v3/ipu-prv.h
++++ b/drivers/gpu/ipu-v3/ipu-prv.h
+@@ -153,6 +153,7 @@ struct ipu_soc {
+ 	void __iomem		*cm_reg;
+ 	void __iomem		*idmac_reg;
+ 
++	int			id;
+ 	int			usecount;
+ 
+ 	struct clk		*clk;
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 60540ead..b174f8a 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -148,6 +148,7 @@ int ipu_idmac_channel_irq(struct ipu_soc *ipu, struct ipuv3_channel *channel,
+ /*
+  * IPU Common functions
+  */
++int ipu_get_num(struct ipu_soc *ipu);
+ void ipu_set_csi_src_mux(struct ipu_soc *ipu, int csi_id, bool mipi_csi2);
+ void ipu_set_ic_src_mux(struct ipu_soc *ipu, int csi_id, bool vdi);
+ void ipu_dump(struct ipu_soc *ipu);
 -- 
-2.7.4
-
+1.9.1
 
