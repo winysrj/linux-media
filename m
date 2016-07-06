@@ -1,60 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 108-197-250-228.lightspeed.miamfl.sbcglobal.net ([108.197.250.228]:38382
-	"EHLO usa.attlocal.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752961AbcGYSjD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jul 2016 14:39:03 -0400
-From: Abylay Ospan <aospan@netup.ru>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: Abylay Ospan <aospan@netup.ru>
-Subject: [PATCH] [media] lgdt3306a: remove 20*50 msec unnecessary timeout
-Date: Mon, 25 Jul 2016 14:38:59 -0400
-Message-Id: <1469471939-25393-1-git-send-email-aospan@netup.ru>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:35919 "EHLO
+	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932486AbcGFXH2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:07:28 -0400
+Received: by mail-pf0-f195.google.com with SMTP id i123so95188pfg.3
+        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:07:28 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 06/28] gpu: ipu-v3: Add ipu_set_vdi_src_mux()
+Date: Wed,  6 Jul 2016 16:06:36 -0700
+Message-Id: <1467846418-12913-7-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+ <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-inside lgdt3306a_search we reading demod status 20 times with 50 msec sleep after each read.
-This gives us more than 1 sec of delay. Removing this delay should not affect demod functionality.
+Adds ipu_set_vdi_src_mux() that selects the VDIC input
+(from CSI or memory).
 
-Signed-off-by: Abylay Ospan <aospan@netup.ru>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/dvb-frontends/lgdt3306a.c | 16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ drivers/gpu/ipu-v3/ipu-common.c | 20 ++++++++++++++++++++
+ include/video/imx-ipu-v3.h      |  1 +
+ 2 files changed, 21 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-index 179c26e..dad7ad3 100644
---- a/drivers/media/dvb-frontends/lgdt3306a.c
-+++ b/drivers/media/dvb-frontends/lgdt3306a.c
-@@ -1737,24 +1737,16 @@ static int lgdt3306a_get_tune_settings(struct dvb_frontend *fe,
- static int lgdt3306a_search(struct dvb_frontend *fe)
- {
- 	enum fe_status status = 0;
--	int i, ret;
-+	int ret;
+diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
+index 6d1676e..374100e 100644
+--- a/drivers/gpu/ipu-v3/ipu-common.c
++++ b/drivers/gpu/ipu-v3/ipu-common.c
+@@ -730,6 +730,26 @@ void ipu_set_ic_src_mux(struct ipu_soc *ipu, int csi_id, bool vdi)
+ }
+ EXPORT_SYMBOL_GPL(ipu_set_ic_src_mux);
  
- 	/* set frontend */
- 	ret = lgdt3306a_set_parameters(fe);
- 	if (ret)
- 		goto error;
++/*
++ * Set the source for the VDIC. Selects either from CSI[01] or memory.
++ */
++void ipu_set_vdi_src_mux(struct ipu_soc *ipu, bool csi)
++{
++	unsigned long flags;
++	u32 val;
++
++	spin_lock_irqsave(&ipu->lock, flags);
++
++	val = ipu_cm_read(ipu, IPU_FS_PROC_FLOW1);
++	val &= ~(0x3 << 28);
++	if (csi)
++		val |= (0x01 << 28);
++	ipu_cm_write(ipu, val, IPU_FS_PROC_FLOW1);
++
++	spin_unlock_irqrestore(&ipu->lock, flags);
++}
++EXPORT_SYMBOL_GPL(ipu_set_vdi_src_mux);
++
  
--	/* wait frontend lock */
--	for (i = 20; i > 0; i--) {
--		dbg_info(": loop=%d\n", i);
--		msleep(50);
--		ret = lgdt3306a_read_status(fe, &status);
--		if (ret)
--			goto error;
--
--		if (status & FE_HAS_LOCK)
--			break;
--	}
-+	ret = lgdt3306a_read_status(fe, &status);
-+	if (ret)
-+		goto error;
+ /* IDMAC Channel Linking */
  
- 	/* check if we have a valid signal */
- 	if (status & FE_HAS_LOCK)
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 0a39c64..586979e 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -152,6 +152,7 @@ int ipu_idmac_channel_irq(struct ipu_soc *ipu, struct ipuv3_channel *channel,
+ int ipu_get_num(struct ipu_soc *ipu);
+ void ipu_set_csi_src_mux(struct ipu_soc *ipu, int csi_id, bool mipi_csi2);
+ void ipu_set_ic_src_mux(struct ipu_soc *ipu, int csi_id, bool vdi);
++void ipu_set_vdi_src_mux(struct ipu_soc *ipu, bool csi);
+ void ipu_dump(struct ipu_soc *ipu);
+ 
+ /*
 -- 
-2.7.4
+1.9.1
 
