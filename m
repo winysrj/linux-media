@@ -1,65 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:60831 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753615AbcGDNfC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 09:35:02 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-pa0-f65.google.com ([209.85.220.65]:34250 "EHLO
+	mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932555AbcGFXHd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:07:33 -0400
+Received: by mail-pa0-f65.google.com with SMTP id us13so97766pab.1
+        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:07:33 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/7] adv7511: drop adv7511_set_IT_content_AVI_InfoFrame
-Date: Mon,  4 Jul 2016 15:34:46 +0200
-Message-Id: <1467639292-1066-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1467639292-1066-1-git-send-email-hverkuil@xs4all.nl>
-References: <1467639292-1066-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 11/28] gpu: ipu-v3: Fix CSI data format for 16-bit media bus formats
+Date: Wed,  6 Jul 2016 16:06:41 -0700
+Message-Id: <1467846418-12913-12-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
+ <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The CSI data format was being programmed incorrectly for the
+1x16 media bus formats. The CSI data format for 16-bit must
+be bayer/generic (CSI_SENS_CONF_DATA_FMT_BAYER).
 
-The IT Content bit has nothing to do with CE vs IT timings.
-Delete this code. This will also fix a bug where this could
-override the 'content type' control, which is actually the
-correct place to set/clear the ITC bit.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Suggested-by: Carsten Resch <Carsten.Resch@de.bosch.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/i2c/adv7511.c | 15 ---------------
- 1 file changed, 15 deletions(-)
+ drivers/gpu/ipu-v3/ipu-csi.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index 39271c3..1695da0 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -343,18 +343,6 @@ static void adv7511_csc_rgb_full2limit(struct v4l2_subdev *sd, bool enable)
- 	}
- }
- 
--static void adv7511_set_IT_content_AVI_InfoFrame(struct v4l2_subdev *sd)
--{
--	struct adv7511_state *state = get_adv7511_state(sd);
--	if (state->dv_timings.bt.flags & V4L2_DV_FL_IS_CE_VIDEO) {
--		/* CE format, not IT  */
--		adv7511_wr_and_or(sd, 0x57, 0x7f, 0x00);
--	} else {
--		/* IT format */
--		adv7511_wr_and_or(sd, 0x57, 0x7f, 0x80);
--	}
--}
--
- static int adv7511_set_rgb_quantization_mode(struct v4l2_subdev *sd, struct v4l2_ctrl *ctrl)
- {
- 	switch (ctrl->val) {
-@@ -774,9 +762,6 @@ static int adv7511_s_dv_timings(struct v4l2_subdev *sd,
- 	/* update quantization range based on new dv_timings */
- 	adv7511_set_rgb_quantization_mode(sd, state->rgb_quantization_range_ctrl);
- 
--	/* update AVI infoframe */
--	adv7511_set_IT_content_AVI_InfoFrame(sd);
--
- 	return 0;
- }
- 
+diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
+index 07c7091..0eac28c 100644
+--- a/drivers/gpu/ipu-v3/ipu-csi.c
++++ b/drivers/gpu/ipu-v3/ipu-csi.c
+@@ -258,12 +258,8 @@ static int mbus_code_to_bus_cfg(struct ipu_csi_bus_config *cfg, u32 mbus_code)
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY8_1X16:
+-		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_UYVY;
+-		cfg->mipi_dt = MIPI_DT_YUV422;
+-		cfg->data_width = IPU_CSI_DATA_WIDTH_16;
+-		break;
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+-		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_YUYV;
++		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
+ 		cfg->mipi_dt = MIPI_DT_YUV422;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_16;
+ 		break;
 -- 
-2.8.1
+1.9.1
 
