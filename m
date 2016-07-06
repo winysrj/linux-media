@@ -1,225 +1,309 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:43218 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751441AbcGRK1y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 06:27:54 -0400
-Subject: Re: [PATCH] [media] vb2: map dmabuf for planes on driver queue instead
- of vidioc_qbuf
-To: Javier Martinez Canillas <javier@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-References: <1468599966-31988-1-git-send-email-javier@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Luis de Bethencourt <luisbg@osg.samsung.com>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <1f87017c-5d5f-bcdc-3df3-e04962cbc978@samsung.com>
-Date: Mon, 18 Jul 2016 12:27:48 +0200
-MIME-version: 1.0
-In-reply-to: <1468599966-31988-1-git-send-email-javier@osg.samsung.com>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mail-pa0-f67.google.com ([209.85.220.67]:36397 "EHLO
+	mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752634AbcGFXP4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:15:56 -0400
+Received: by mail-pa0-f67.google.com with SMTP id ib6so104074pad.3
+        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:15:56 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 05/11] media: adv7180: init chip with AD recommended register settings
+Date: Wed,  6 Jul 2016 15:59:58 -0700
+Message-Id: <1467846004-12731-6-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Define and load register tables that conform to Analog Device's
+recommended register settings. It loads the default single-ended
+CVBS on Ain1 configuration for both ADV7180 and ADV7182 chips.
 
+New register addresses have been defined for the tables. Those new
+defines are also used in existing locations where hard-coded addresses
+were used.
 
-On 2016-07-15 18:26, Javier Martinez Canillas wrote:
-> The buffer planes' dma-buf are currently mapped when buffers are queued
-> from userspace but it's more appropriate to do the mapping when buffers
-> are queued in the driver since that's when the actual DMA operation are
-> going to happen.
->
-> Suggested-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Note this patch also enables NEWAVMODE, which is also recommended by
+Analog Devices. This will likely break any current backends using this
+subdev that are expecting different or manually configured AV codes.
 
-Sorry, but I don't get why such change is really needed. If possible it is
-better to report errors to userspace as early as possible, not postpone them
-to the moment, when they cannot be easily debugged.
+Note also that bt.656-4 support has been removed in this patch, but it
+will be brought back in a subsequent patch.
 
->
-> ---
->
-> Hello,
->
-> A side effect of this change is that if the dmabuf map fails for some
-> reasons (i.e: a driver using the DMA contig memory allocator but CMA
-> not being enabled), the fail will no longer happen on VIDIOC_QBUF but
-> later (i.e: in VIDIOC_STREAMON).
->
-> I don't know if that's an issue though but I think is worth mentioning.
->
-> Best regards,
-> Javier
->
->   drivers/media/v4l2-core/videobuf2-core.c | 88 ++++++++++++++++++++------------
->   1 file changed, 54 insertions(+), 34 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index ca8ffeb56d72..3fdf882bf279 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -186,7 +186,7 @@ module_param(debug, int, 0644);
->   })
->   
->   static void __vb2_queue_cancel(struct vb2_queue *q);
-> -static void __enqueue_in_driver(struct vb2_buffer *vb);
-> +static int __enqueue_in_driver(struct vb2_buffer *vb);
->   
->   /**
->    * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
-> @@ -1271,20 +1271,6 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
->   		vb->planes[plane].mem_priv = mem_priv;
->   	}
->   
-> -	/* TODO: This pins the buffer(s) with  dma_buf_map_attachment()).. but
-> -	 * really we want to do this just before the DMA, not while queueing
-> -	 * the buffer(s)..
-> -	 */
-> -	for (plane = 0; plane < vb->num_planes; ++plane) {
-> -		ret = call_memop(vb, map_dmabuf, vb->planes[plane].mem_priv);
-> -		if (ret) {
-> -			dprintk(1, "failed to map dmabuf for plane %d\n",
-> -				plane);
-> -			goto err;
-> -		}
-> -		vb->planes[plane].dbuf_mapped = 1;
-> -	}
-> -
->   	/*
->   	 * Now that everything is in order, copy relevant information
->   	 * provided by userspace.
-> @@ -1296,51 +1282,79 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
->   		vb->planes[plane].data_offset = planes[plane].data_offset;
->   	}
->   
-> -	if (reacquired) {
-> -		/*
-> -		 * Call driver-specific initialization on the newly acquired buffer,
-> -		 * if provided.
-> -		 */
-> -		ret = call_vb_qop(vb, buf_init, vb);
-> +	return 0;
-> +err:
-> +	/* In case of errors, release planes that were already acquired */
-> +	__vb2_buf_dmabuf_put(vb);
-> +
-> +	return ret;
-> +}
-> +
-> +/**
-> + * __buf_map_dmabuf() - map dmabuf for buffer planes
-> + */
-> +static int __buf_map_dmabuf(struct vb2_buffer *vb)
-> +{
-> +	int ret;
-> +	unsigned int plane;
-> +
-> +	for (plane = 0; plane < vb->num_planes; ++plane) {
-> +		ret = call_memop(vb, map_dmabuf, vb->planes[plane].mem_priv);
->   		if (ret) {
-> -			dprintk(1, "buffer initialization failed\n");
-> -			goto err;
-> +			dprintk(1, "failed to map dmabuf for plane %d\n",
-> +				plane);
-> +			return ret;
->   		}
-> +		vb->planes[plane].dbuf_mapped = 1;
-> +	}
-> +
-> +	/*
-> +	 * Call driver-specific initialization on the newly
-> +	 * acquired buffer, if provided.
-> +	 */
-> +	ret = call_vb_qop(vb, buf_init, vb);
-> +	if (ret) {
-> +		dprintk(1, "buffer initialization failed\n");
-> +		return ret;
->   	}
->   
->   	ret = call_vb_qop(vb, buf_prepare, vb);
->   	if (ret) {
->   		dprintk(1, "buffer preparation failed\n");
->   		call_void_vb_qop(vb, buf_cleanup, vb);
-> -		goto err;
-> +		return ret;
->   	}
->   
->   	return 0;
-> -err:
-> -	/* In case of errors, release planes that were already acquired */
-> -	__vb2_buf_dmabuf_put(vb);
-> -
-> -	return ret;
->   }
->   
->   /**
->    * __enqueue_in_driver() - enqueue a vb2_buffer in driver for processing
->    */
-> -static void __enqueue_in_driver(struct vb2_buffer *vb)
-> +static int __enqueue_in_driver(struct vb2_buffer *vb)
->   {
->   	struct vb2_queue *q = vb->vb2_queue;
->   	unsigned int plane;
-> +	int ret;
->   
->   	vb->state = VB2_BUF_STATE_ACTIVE;
->   	atomic_inc(&q->owned_by_drv_count);
->   
->   	trace_vb2_buf_queue(q, vb);
->   
-> +	if (q->memory == VB2_MEMORY_DMABUF) {
-> +		ret = __buf_map_dmabuf(vb);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
->   	/* sync buffers */
->   	for (plane = 0; plane < vb->num_planes; ++plane)
->   		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
->   
->   	call_void_vb_qop(vb, buf_queue, vb);
-> +
-> +	return 0;
->   }
->   
->   static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
-> @@ -1438,8 +1452,11 @@ static int vb2_start_streaming(struct vb2_queue *q)
->   	 * If any buffers were queued before streamon,
->   	 * we can now pass them to driver for processing.
->   	 */
-> -	list_for_each_entry(vb, &q->queued_list, queued_entry)
-> -		__enqueue_in_driver(vb);
-> +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-> +		ret = __enqueue_in_driver(vb);
-> +		if (ret < 0)
-> +			return ret;
-> +	}
->   
->   	/* Tell the driver to start streaming */
->   	q->start_streaming_called = 1;
-> @@ -1540,8 +1557,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
->   	 * If already streaming, give the buffer to driver for processing.
->   	 * If not, the buffer will be given to driver on next streamon.
->   	 */
-> -	if (q->start_streaming_called)
-> -		__enqueue_in_driver(vb);
-> +	if (q->start_streaming_called) {
-> +		ret = __enqueue_in_driver(vb);
-> +		if (ret)
-> +			return ret;
-> +	}
->   
->   	/* Fill buffer information for the userspace */
->   	if (pb)
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/media/i2c/adv7180.c | 168 ++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 130 insertions(+), 38 deletions(-)
 
-Best regards
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 42816d4..92e2f37 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -56,10 +56,11 @@
+ 
+ #define ADV7182_REG_INPUT_VIDSEL			0x0002
+ 
++#define ADV7180_REG_OUTPUT_CONTROL			0x0003
+ #define ADV7180_REG_EXTENDED_OUTPUT_CONTROL		0x0004
+ #define ADV7180_EXTENDED_OUTPUT_CONTROL_NTSCDIS		0xC5
+ 
+-#define ADV7180_REG_AUTODETECT_ENABLE			0x07
++#define ADV7180_REG_AUTODETECT_ENABLE			0x0007
+ #define ADV7180_AUTODETECT_DEFAULT			0x7f
+ /* Contrast */
+ #define ADV7180_REG_CON		0x0008	/*Unsigned */
+@@ -100,6 +101,20 @@
+ #define ADV7180_REG_IDENT 0x0011
+ #define ADV7180_ID_7180 0x18
+ 
++#define ADV7180_REG_STATUS3		0x0013
++#define ADV7180_REG_ANALOG_CLAMP_CTL	0x0014
++#define ADV7180_REG_SHAP_FILTER_CTL_1	0x0017
++#define ADV7180_REG_CTRL_2		0x001d
++#define ADV7180_REG_VSYNC_FIELD_CTL_1	0x0031
++#define ADV7180_REG_MANUAL_WIN_CTL_1	0x003d
++#define ADV7180_REG_MANUAL_WIN_CTL_2	0x003e
++#define ADV7180_REG_MANUAL_WIN_CTL_3	0x003f
++#define ADV7180_REG_LOCK_CNT		0x0051
++#define ADV7180_REG_CVBS_TRIM		0x0052
++#define ADV7180_REG_CLAMP_ADJ		0x005a
++#define ADV7180_REG_RES_CIR		0x005f
++#define ADV7180_REG_DIFF_MODE		0x0060
++
+ #define ADV7180_REG_ICONF1		0x2040
+ #define ADV7180_ICONF1_ACTIVE_LOW	0x01
+ #define ADV7180_ICONF1_PSYNC_ONLY	0x10
+@@ -129,9 +144,15 @@
+ #define ADV7180_REG_VPP_SLAVE_ADDR	0xFD
+ #define ADV7180_REG_CSI_SLAVE_ADDR	0xFE
+ 
+-#define ADV7180_REG_FLCONTROL 0x40e0
++#define ADV7180_REG_ACE_CTRL1		0x4080
++#define ADV7180_REG_ACE_CTRL5		0x4084
++#define ADV7180_REG_FLCONTROL		0x40e0
+ #define ADV7180_FLCONTROL_FL_ENABLE 0x1
+ 
++#define ADV7180_REG_RST_CLAMP	0x809c
++#define ADV7180_REG_AGC_ADJ1	0x80b6
++#define ADV7180_REG_AGC_ADJ2	0x80c0
++
+ #define ADV7180_CSI_REG_PWRDN	0x00
+ #define ADV7180_CSI_PWRDN	0x80
+ 
+@@ -209,6 +230,11 @@ struct adv7180_state {
+ 					    struct adv7180_state,	\
+ 					    ctrl_hdl)->sd)
+ 
++struct adv7180_reg_tbl_t {
++	unsigned int reg;
++	unsigned int val;
++};
++
+ static int adv7180_select_page(struct adv7180_state *state, unsigned int page)
+ {
+ 	if (state->register_page != page) {
+@@ -235,6 +261,20 @@ static int adv7180_read(struct adv7180_state *state, unsigned int reg)
+ 	return i2c_smbus_read_byte_data(state->client, reg & 0xff);
+ }
+ 
++static int adv7180_load_reg_tbl(struct adv7180_state *state,
++				const struct adv7180_reg_tbl_t *tbl, int n)
++{
++	int ret, i;
++
++	for (i = 0; i < n; i++) {
++		ret = adv7180_write(state, tbl[i].reg, tbl[i].val);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++
+ static int adv7180_csi_write(struct adv7180_state *state, unsigned int reg,
+ 	unsigned int value)
+ {
+@@ -828,19 +868,36 @@ static irqreturn_t adv7180_irq(int irq, void *devid)
+ 	return IRQ_HANDLED;
+ }
+ 
++/*
++ * This register table conforms to Analog Device's Register Settings
++ * Recommendation for the ADV7180. It configures single-ended CVBS
++ * input on Ain1, and enables NEWAVMODE.
++ */
++static const struct adv7180_reg_tbl_t adv7180_single_ended_cvbs[] = {
++	/* Set analog mux for CVBS on Ain1 */
++	{ ADV7180_REG_INPUT_CONTROL, 0x00 },
++	/* ADI Required Write: Reset Clamp Circuitry */
++	{ ADV7180_REG_ANALOG_CLAMP_CTL, 0x30 },
++	/* Enable SFL Output */
++	{ ADV7180_REG_EXTENDED_OUTPUT_CONTROL, 0x57 },
++	/* Select SH1 Chroma Shaping Filter */
++	{ ADV7180_REG_SHAP_FILTER_CTL_1, 0x41 },
++	/* Enable NEWAVMODE */
++	{ ADV7180_REG_VSYNC_FIELD_CTL_1, 0x02 },
++	/* ADI Required Write: optimize windowing function Step 1,2,3 */
++	{ ADV7180_REG_MANUAL_WIN_CTL_1, 0xA2 },
++	{ ADV7180_REG_MANUAL_WIN_CTL_2, 0x6A },
++	{ ADV7180_REG_MANUAL_WIN_CTL_3, 0xA0 },
++	/* ADI Required Write: Enable ADC step 1,2,3 */
++	{ 0x8055, 0x81 }, /* undocumented register 0x55 */
++	/* Recommended AFE I BIAS Setting for CVBS mode */
++	{ ADV7180_REG_CVBS_TRIM, 0x0D },
++};
++
+ static int adv7180_init(struct adv7180_state *state)
+ {
+-	int ret;
+-
+-	/* ITU-R BT.656-4 compatible */
+-	ret = adv7180_write(state, ADV7180_REG_EXTENDED_OUTPUT_CONTROL,
+-			ADV7180_EXTENDED_OUTPUT_CONTROL_NTSCDIS);
+-	if (ret < 0)
+-		return ret;
+-
+-	/* Manually set V bit end position in NTSC mode */
+-	return adv7180_write(state, ADV7180_REG_NTSC_V_BIT_END,
+-					ADV7180_NTSC_V_BIT_END_MANUAL_NVEND);
++	return adv7180_load_reg_tbl(state, adv7180_single_ended_cvbs,
++				    ARRAY_SIZE(adv7180_single_ended_cvbs));
+ }
+ 
+ static int adv7180_set_std(struct adv7180_state *state, unsigned int std)
+@@ -862,8 +919,48 @@ static int adv7180_select_input(struct adv7180_state *state, unsigned int input)
+ 	return adv7180_write(state, ADV7180_REG_INPUT_CONTROL, ret);
+ }
+ 
++/*
++ * This register table conforms to Analog Device's Register Settings
++ * Recommendation revision C for the ADV7182. It configures single-ended
++ * CVBS inputs on Ain1, and enables NEWAVMODE.
++ */
++static const struct adv7180_reg_tbl_t adv7182_single_ended_cvbs[] = {
++	/* Exit Power Down Mode */
++	{ ADV7180_REG_PWR_MAN, 0x00 },
++	/* Enable ADV7182 for 28.63636 MHz Crystal Clock Input */
++	{ ADV7180_REG_STATUS3, 0x00 },
++	/* Set optimized IBIAS for single-ended CVBS input */
++	{ ADV7180_REG_CVBS_TRIM, 0xCD },
++	/* Switch to single-ended CVBS on AIN1 */
++	{ ADV7180_REG_INPUT_CONTROL, 0x00 },
++	/* ADI Required Write: Reset Current Clamp Circuitry steps 1,2,3,4 */
++	{ ADV7180_REG_RST_CLAMP, 0x00 },
++	{ ADV7180_REG_RST_CLAMP, 0xFF },
++	/* Select SH1 Chroma Shaping Filter */
++	{ ADV7180_REG_SHAP_FILTER_CTL_1, 0x41 },
++	/* Enable Pixel & Sync output drivers */
++	{ ADV7180_REG_OUTPUT_CONTROL, 0x0C },
++	/* Power-up INTRQ, HS and VS/FIELD/SFL pad */
++	{ ADV7180_REG_EXTENDED_OUTPUT_CONTROL, 0x07 },
++	/* Enable LLC Output Driver */
++	{ ADV7180_REG_CTRL_2, 0x40 },
++	/* Optimize ACE Performance */
++	{ ADV7180_REG_ACE_CTRL5, 0x00 },
++	/* Enable ACE Feature */
++	{ ADV7180_REG_ACE_CTRL1, 0x80 },
++	/* Enable NEWAVMODE */
++	{ ADV7180_REG_VSYNC_FIELD_CTL_1, 0x02 },
++};
++
+ static int adv7182_init(struct adv7180_state *state)
+ {
++	int ret;
++
++	ret = adv7180_load_reg_tbl(state, adv7182_single_ended_cvbs,
++				   ARRAY_SIZE(adv7182_single_ended_cvbs));
++	if (ret)
++		return ret;
++
+ 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2)
+ 		adv7180_write(state, ADV7180_REG_CSI_SLAVE_ADDR,
+ 			ADV7180_DEFAULT_CSI_I2C_ADDR << 1);
+@@ -881,20 +978,15 @@ static int adv7182_init(struct adv7180_state *state)
+ 
+ 	/* ADI required writes */
+ 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
+-		adv7180_write(state, 0x0003, 0x4e);
+-		adv7180_write(state, 0x0004, 0x57);
+-		adv7180_write(state, 0x001d, 0xc0);
++		adv7180_write(state, ADV7180_REG_OUTPUT_CONTROL, 0x4e);
++		adv7180_write(state, ADV7180_REG_EXTENDED_OUTPUT_CONTROL, 0x57);
++		adv7180_write(state, ADV7180_REG_CTRL_2, 0xc0);
+ 	} else {
+ 		if (state->chip_info->flags & ADV7180_FLAG_V2)
+-			adv7180_write(state, 0x0004, 0x17);
+-		else
+-			adv7180_write(state, 0x0004, 0x07);
+-		adv7180_write(state, 0x0003, 0x0c);
+-		adv7180_write(state, 0x001d, 0x40);
++			adv7180_write(state, ADV7180_REG_EXTENDED_OUTPUT_CONTROL,
++				      0x17);
+ 	}
+ 
+-	adv7180_write(state, 0x0013, 0x00);
+-
+ 	return 0;
+ }
+ 
+@@ -967,8 +1059,8 @@ static int adv7182_select_input(struct adv7180_state *state, unsigned int input)
+ 		return ret;
+ 
+ 	/* Reset clamp circuitry - ADI recommended writes */
+-	adv7180_write(state, 0x809c, 0x00);
+-	adv7180_write(state, 0x809c, 0xff);
++	adv7180_write(state, ADV7180_REG_RST_CLAMP, 0x00);
++	adv7180_write(state, ADV7180_REG_RST_CLAMP, 0xff);
+ 
+ 	input_type = adv7182_get_input_type(input);
+ 
+@@ -976,10 +1068,10 @@ static int adv7182_select_input(struct adv7180_state *state, unsigned int input)
+ 	case ADV7182_INPUT_TYPE_CVBS:
+ 	case ADV7182_INPUT_TYPE_DIFF_CVBS:
+ 		/* ADI recommends to use the SH1 filter */
+-		adv7180_write(state, 0x0017, 0x41);
++		adv7180_write(state, ADV7180_REG_SHAP_FILTER_CTL_1, 0x41);
+ 		break;
+ 	default:
+-		adv7180_write(state, 0x0017, 0x01);
++		adv7180_write(state, ADV7180_REG_SHAP_FILTER_CTL_1, 0x01);
+ 		break;
+ 	}
+ 
+@@ -989,21 +1081,21 @@ static int adv7182_select_input(struct adv7180_state *state, unsigned int input)
+ 		lbias = adv7182_lbias_settings[input_type];
+ 
+ 	for (i = 0; i < ARRAY_SIZE(adv7182_lbias_settings[0]); i++)
+-		adv7180_write(state, 0x0052 + i, lbias[i]);
++		adv7180_write(state, ADV7180_REG_CVBS_TRIM + i, lbias[i]);
+ 
+ 	if (input_type == ADV7182_INPUT_TYPE_DIFF_CVBS) {
+ 		/* ADI required writes to make differential CVBS work */
+-		adv7180_write(state, 0x005f, 0xa8);
+-		adv7180_write(state, 0x005a, 0x90);
+-		adv7180_write(state, 0x0060, 0xb0);
+-		adv7180_write(state, 0x80b6, 0x08);
+-		adv7180_write(state, 0x80c0, 0xa0);
++		adv7180_write(state, ADV7180_REG_RES_CIR, 0xa8);
++		adv7180_write(state, ADV7180_REG_CLAMP_ADJ, 0x90);
++		adv7180_write(state, ADV7180_REG_DIFF_MODE, 0xb0);
++		adv7180_write(state, ADV7180_REG_AGC_ADJ1, 0x08);
++		adv7180_write(state, ADV7180_REG_AGC_ADJ2, 0xa0);
+ 	} else {
+-		adv7180_write(state, 0x005f, 0xf0);
+-		adv7180_write(state, 0x005a, 0xd0);
+-		adv7180_write(state, 0x0060, 0x10);
+-		adv7180_write(state, 0x80b6, 0x9c);
+-		adv7180_write(state, 0x80c0, 0x00);
++		adv7180_write(state, ADV7180_REG_RES_CIR, 0xf0);
++		adv7180_write(state, ADV7180_REG_CLAMP_ADJ, 0xd0);
++		adv7180_write(state, ADV7180_REG_DIFF_MODE, 0x10);
++		adv7180_write(state, ADV7180_REG_AGC_ADJ1, 0x9c);
++		adv7180_write(state, ADV7180_REG_AGC_ADJ2, 0x00);
+ 	}
+ 
+ 	return 0;
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+1.9.1
 
