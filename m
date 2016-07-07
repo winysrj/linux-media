@@ -1,63 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:41681 "EHLO
-	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752681AbcG2Rkg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2016 13:40:36 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com
-Cc: lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com,
-	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 0/6] Fix adv7180 and rcar-vin field handling
-Date: Fri, 29 Jul 2016 19:40:06 +0200
-Message-Id: <20160729174012.14331-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-it0-f47.google.com ([209.85.214.47]:35688 "EHLO
+	mail-it0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750975AbcGGNY2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2016 09:24:28 -0400
+Received: by mail-it0-f47.google.com with SMTP id j185so99777896ith.0
+        for <linux-media@vger.kernel.org>; Thu, 07 Jul 2016 06:24:22 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <1467848203-14007-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1467848203-14007-1-git-send-email-steve_longerbeam@mentor.com>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Thu, 7 Jul 2016 06:24:20 -0700
+Message-ID: <CAJ+vNU1RL4qUix5knhhRjr+tdj_1E5LM9_thjBcJG1gU7kXkPQ@mail.gmail.com>
+Subject: Re: [PATCH 0/6] ARM: dts: imx6-sabre*: add video capture nodes
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, Jul 6, 2016 at 4:36 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
+> Steve Longerbeam (6):
+>   ARM: dts: imx6-sabrelite: add video capture devices and connections
+>   ARM: dts: imx6-sabresd: add video capture devices and connections
+>   ARM: dts: imx6-sabreauto: create i2cmux for i2c3
+>   ARM: dts: imx6-sabreauto: add reset-gpios property for max7310_b
+>   ARM: dts: imx6-sabreauto: add pinctrl for gpt input capture
+>   ARM: dts: imx6-sabreauto: add video capture devices and connections
+>
+>  arch/arm/boot/dts/imx6dl-sabresd.dts     |  42 +++++++++
+>  arch/arm/boot/dts/imx6q-sabresd.dts      |  14 +++
+>  arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 154 ++++++++++++++++++++++++++-----
+>  arch/arm/boot/dts/imx6qdl-sabrelite.dtsi |  95 +++++++++++++++++++
+>  arch/arm/boot/dts/imx6qdl-sabresd.dtsi   | 130 +++++++++++++++++++++++++-
+>  5 files changed, 413 insertions(+), 22 deletions(-)
+>
 
-This series add V4L2_FIELD_ALTERNATE support to the rcar-vin driver and 
-changes the field mode reported by adv7180 from V4L2_FIELD_INTERLACED to 
-V4L2_FIELD_ALTERNATE.
+Steve,
 
-The change field mode reported by adv7180 was first done by Steve 
-Longerbeam (https://lkml.org/lkml/2016/7/23/107), I have keept and 
-reworked Steves patch to report V4L2_FIELD_ALTERNATE instead of 
-V4L2_FIELD_SEQ_{TB,BT}, after discussions on #v4l this seems more
-correct.
+These should wait until your drivers make it to staging (or at least
+reference that series to be clear they are somewhat dependent on
+them).
 
-The rcar-vin changes contains some bug fixes needed to enable 
-V4L2_FIELD_ALTERNATE.
+Regards,
 
-All work is based on top of media-next and is tested on Koelsch.
-
-This series touch two drivers which is not a good thing. But I could not 
-figure out a good way to post them separately since if the adv7180 parts 
-where too be merged before the rcar-vin changes the driver would stop to 
-work on the Koelsch. If some one wants this series split in two let me 
-know.
-
-Niklas Söderlund (5):
-  media: rcar-vin: allow field to be changed
-  media: rcar-vin: fix bug in scaling
-  media: rcar-vin: fix height for TOP and BOTTOM fields
-  media: rcar-vin: add support for V4L2_FIELD_ALTERNATE
-  media: adv7180: fill in mbus format in set_fmt
-
-Steve Longerbeam (1):
-  media: adv7180: fix field type
-
- drivers/media/i2c/adv7180.c                 |  21 ++--
- drivers/media/platform/rcar-vin/rcar-dma.c  |  26 +++--
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 151 ++++++++++++++++------------
- 3 files changed, 123 insertions(+), 75 deletions(-)
-
--- 
-2.9.0
-
+Tim
