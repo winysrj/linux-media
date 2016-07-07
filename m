@@ -1,2001 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59545 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751656AbcGRSar (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 14:30:47 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 06/18] [media] cx2341x.rst: Add the contents of fw-encoder-api.txt
-Date: Mon, 18 Jul 2016 15:30:28 -0300
-Message-Id: <91e71c2ba84a2cb28ddaf6c6229693aadcd9625f.1468865380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
-References: <cover.1468865380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
-References: <cover.1468865380.git.mchehab@s-opensource.com>
+Received: from mail-io0-f171.google.com ([209.85.223.171]:36628 "EHLO
+	mail-io0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750976AbcGGOsE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2016 10:48:04 -0400
+Received: by mail-io0-f171.google.com with SMTP id l202so21654181ioe.3
+        for <linux-media@vger.kernel.org>; Thu, 07 Jul 2016 07:48:03 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1467846004-12731-3-git-send-email-steve_longerbeam@mentor.com>
+References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com> <1467846004-12731-3-git-send-email-steve_longerbeam@mentor.com>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Thu, 7 Jul 2016 07:48:02 -0700
+Message-ID: <CAJ+vNU2J_BG+M0edtbBjRz1jrem0H+MH0t=GQvAcXr4xy99yZw@mail.gmail.com>
+Subject: Re: [PATCH 02/11] Revert "[media] adv7180: fix broken standards handling"
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Federico Vaga <federico.vaga@gmail.com>,
+	=?UTF-8?Q?Niklas_S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert its contents to ReST and add to cx2341x.rst.
+On Wed, Jul 6, 2016 at 3:59 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
+> Autodetect was likely broken only because access to the
+> interrupt registers were broken, so there were no standard
+> change interrupts. After fixing that, and reverting this,
+> autodetect seems to work just fine on an i.mx6q SabreAuto.
+>
+> This reverts commit 937feeed3f0ae8a0389d5732f6db63dd912acd99.
+> ---
+>  drivers/media/i2c/adv7180.c | 118 ++++++++++++++------------------------------
+>  1 file changed, 38 insertions(+), 80 deletions(-)
+>
+> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+> index 95cbc85..967303a 100644
+> --- a/drivers/media/i2c/adv7180.c
+> +++ b/drivers/media/i2c/adv7180.c
+> @@ -26,9 +26,8 @@
+>  #include <linux/i2c.h>
+>  #include <linux/slab.h>
+>  #include <linux/of.h>
+> -#include <linux/videodev2.h>
+>  #include <media/v4l2-ioctl.h>
+> -#include <media/v4l2-event.h>
+> +#include <linux/videodev2.h>
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-ctrls.h>
+>  #include <linux/mutex.h>
+> @@ -193,8 +192,8 @@ struct adv7180_state {
+>         struct mutex            mutex; /* mutual excl. when accessing chip */
+>         int                     irq;
+>         v4l2_std_id             curr_norm;
+> +       bool                    autodetect;
+>         bool                    powered;
+> -       bool                    streaming;
+>         u8                      input;
+>
+>         struct i2c_client       *client;
+> @@ -339,26 +338,12 @@ static int adv7180_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+>         if (err)
+>                 return err;
+>
+> -       if (state->streaming) {
+> -               err = -EBUSY;
+> -               goto unlock;
+> -       }
+> -
+> -       err = adv7180_set_video_standard(state,
+> -                       ADV7180_STD_AD_PAL_BG_NTSC_J_SECAM);
+> -       if (err)
+> -               goto unlock;
+> -
+> -       msleep(100);
+> -       __adv7180_status(state, NULL, std);
+> -
+> -       err = v4l2_std_to_adv7180(state->curr_norm);
+> -       if (err < 0)
+> -               goto unlock;
+> -
+> -       err = adv7180_set_video_standard(state, err);
+> +       /* when we are interrupt driven we know the state */
+> +       if (!state->autodetect || state->irq > 0)
+> +               *std = state->curr_norm;
+> +       else
+> +               err = __adv7180_status(state, NULL, std);
+>
+> -unlock:
+>         mutex_unlock(&state->mutex);
+>         return err;
+>  }
+> @@ -402,13 +387,23 @@ static int adv7180_program_std(struct adv7180_state *state)
+>  {
+>         int ret;
+>
+> -       ret = v4l2_std_to_adv7180(state->curr_norm);
+> -       if (ret < 0)
+> -               return ret;
+> +       if (state->autodetect) {
+> +               ret = adv7180_set_video_standard(state,
+> +                       ADV7180_STD_AD_PAL_BG_NTSC_J_SECAM);
+> +               if (ret < 0)
+> +                       return ret;
+> +
+> +               __adv7180_status(state, NULL, &state->curr_norm);
+> +       } else {
+> +               ret = v4l2_std_to_adv7180(state->curr_norm);
+> +               if (ret < 0)
+> +                       return ret;
+> +
+> +               ret = adv7180_set_video_standard(state, ret);
+> +               if (ret < 0)
+> +                       return ret;
+> +       }
+>
+> -       ret = adv7180_set_video_standard(state, ret);
+> -       if (ret < 0)
+> -               return ret;
+>         return 0;
+>  }
+>
+> @@ -420,12 +415,18 @@ static int adv7180_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+>         if (ret)
+>                 return ret;
+>
+> -       /* Make sure we can support this std */
+> -       ret = v4l2_std_to_adv7180(std);
+> -       if (ret < 0)
+> -               goto out;
+> +       /* all standards -> autodetect */
+> +       if (std == V4L2_STD_ALL) {
+> +               state->autodetect = true;
+> +       } else {
+> +               /* Make sure we can support this std */
+> +               ret = v4l2_std_to_adv7180(std);
+> +               if (ret < 0)
+> +                       goto out;
+>
+> -       state->curr_norm = std;
+> +               state->curr_norm = std;
+> +               state->autodetect = false;
+> +       }
+>
+>         ret = adv7180_program_std(state);
+>  out:
+> @@ -746,40 +747,6 @@ static int adv7180_g_tvnorms(struct v4l2_subdev *sd, v4l2_std_id *norm)
+>         return 0;
+>  }
+>
+> -static int adv7180_s_stream(struct v4l2_subdev *sd, int enable)
+> -{
+> -       struct adv7180_state *state = to_state(sd);
+> -       int ret;
+> -
+> -       /* It's always safe to stop streaming, no need to take the lock */
+> -       if (!enable) {
+> -               state->streaming = enable;
+> -               return 0;
+> -       }
+> -
+> -       /* Must wait until querystd released the lock */
+> -       ret = mutex_lock_interruptible(&state->mutex);
+> -       if (ret)
+> -               return ret;
+> -       state->streaming = enable;
+> -       mutex_unlock(&state->mutex);
+> -       return 0;
+> -}
+> -
+> -static int adv7180_subscribe_event(struct v4l2_subdev *sd,
+> -                                  struct v4l2_fh *fh,
+> -                                  struct v4l2_event_subscription *sub)
+> -{
+> -       switch (sub->type) {
+> -       case V4L2_EVENT_SOURCE_CHANGE:
+> -               return v4l2_src_change_event_subdev_subscribe(sd, fh, sub);
+> -       case V4L2_EVENT_CTRL:
+> -               return v4l2_ctrl_subdev_subscribe_event(sd, fh, sub);
+> -       default:
+> -               return -EINVAL;
+> -       }
+> -}
+> -
+>  static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+>         .s_std = adv7180_s_std,
+>         .g_std = adv7180_g_std,
+> @@ -789,13 +756,10 @@ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+>         .g_mbus_config = adv7180_g_mbus_config,
+>         .cropcap = adv7180_cropcap,
+>         .g_tvnorms = adv7180_g_tvnorms,
+> -       .s_stream = adv7180_s_stream,
+>  };
+>
+>  static const struct v4l2_subdev_core_ops adv7180_core_ops = {
+>         .s_power = adv7180_s_power,
+> -       .subscribe_event = adv7180_subscribe_event,
+> -       .unsubscribe_event = v4l2_event_subdev_unsubscribe,
+>  };
+>
+>  static const struct v4l2_subdev_pad_ops adv7180_pad_ops = {
+> @@ -820,14 +784,8 @@ static irqreturn_t adv7180_irq(int irq, void *devid)
+>         /* clear */
+>         adv7180_write(state, ADV7180_REG_ICR3, isr3);
+>
+> -       if (isr3 & ADV7180_IRQ3_AD_CHANGE) {
+> -               static const struct v4l2_event src_ch = {
+> -                       .type = V4L2_EVENT_SOURCE_CHANGE,
+> -                       .u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
+> -               };
+> -
+> -               v4l2_subdev_notify_event(&state->sd, &src_ch);
+> -       }
+> +       if (isr3 & ADV7180_IRQ3_AD_CHANGE && state->autodetect)
+> +               __adv7180_status(state, NULL, &state->curr_norm);
+>         mutex_unlock(&state->mutex);
+>
+>         return IRQ_HANDLED;
+> @@ -1272,7 +1230,7 @@ static int adv7180_probe(struct i2c_client *client,
+>
+>         state->irq = client->irq;
+>         mutex_init(&state->mutex);
+> -       state->curr_norm = V4L2_STD_NTSC;
+> +       state->autodetect = true;
+>         if (state->chip_info->flags & ADV7180_FLAG_RESET_POWERED)
+>                 state->powered = true;
+>         else
+> @@ -1280,7 +1238,7 @@ static int adv7180_probe(struct i2c_client *client,
+>         state->input = 0;
+>         sd = &state->sd;
+>         v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
+> -       sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
+> +       sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
+>
+>         ret = adv7180_init_controls(state);
+>         if (ret)
+> --
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/v4l-drivers/cx2341x.rst        | 1241 ++++++++++++++++++++
- .../video4linux/cx2341x/fw-encoder-api.txt         |  709 -----------
- 2 files changed, 1241 insertions(+), 709 deletions(-)
- delete mode 100644 Documentation/video4linux/cx2341x/fw-encoder-api.txt
+Tested on an IMX6 Gateworks Ventana with IMX6 capture drivers from
+Steve [1]. Verified that interrupts work via signal lock/unlock.
 
-diff --git a/Documentation/media/v4l-drivers/cx2341x.rst b/Documentation/media/v4l-drivers/cx2341x.rst
-index f1c2d8d5978d..2677ac6fd649 100644
---- a/Documentation/media/v4l-drivers/cx2341x.rst
-+++ b/Documentation/media/v4l-drivers/cx2341x.rst
-@@ -1,6 +1,1247 @@
- The cx2341x driver
- ==================
- 
-+Encoder firmware API description
-+--------------------------------
-+
-+CX2341X_ENC_PING_FW
-+~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 128/0x80
-+
-+Description
-+^^^^^^^^^^^
-+
-+Does nothing. Can be used to check if the firmware is responding.
-+
-+
-+
-+CX2341X_ENC_START_CAPTURE
-+~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 129/0x81
-+
-+Description
-+^^^^^^^^^^^
-+
-+Commences the capture of video, audio and/or VBI data. All encoding
-+parameters must be initialized prior to this API call. Captures frames
-+continuously or until a predefined number of frames have been captured.
-+
-+Param[0]
-+^^^^^^^^
-+
-+Capture stream type:
-+
-+	- 0=MPEG
-+	- 1=Raw
-+	- 2=Raw passthrough
-+	- 3=VBI
-+
-+
-+Param[1]
-+^^^^^^^^
-+
-+Bitmask:
-+
-+	- Bit 0 when set, captures YUV
-+	- Bit 1 when set, captures PCM audio
-+	- Bit 2 when set, captures VBI (same as param[0]=3)
-+	- Bit 3 when set, the capture destination is the decoder
-+	  (same as param[0]=2)
-+	- Bit 4 when set, the capture destination is the host
-+
-+.. note:: this parameter is only meaningful for RAW capture type.
-+
-+
-+
-+CX2341X_ENC_STOP_CAPTURE
-+~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 130/0x82
-+
-+Description
-+^^^^^^^^^^^
-+
-+Ends a capture in progress
-+
-+Param[0]
-+^^^^^^^^
-+
-+- 0=stop at end of GOP (generates IRQ)
-+- 1=stop immediate (no IRQ)
-+
-+Param[1]
-+^^^^^^^^
-+
-+Stream type to stop, see param[0] of API 0x81
-+
-+Param[2]
-+^^^^^^^^
-+
-+Subtype, see param[1] of API 0x81
-+
-+
-+
-+CX2341X_ENC_SET_AUDIO_ID
-+~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 137/0x89
-+
-+Description
-+^^^^^^^^^^^
-+
-+Assigns the transport stream ID of the encoded audio stream
-+
-+Param[0]
-+^^^^^^^^
-+
-+Audio Stream ID
-+
-+
-+
-+CX2341X_ENC_SET_VIDEO_ID
-+~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 139/0x8B
-+
-+Description
-+^^^^^^^^^^^
-+
-+Set video transport stream ID
-+
-+Param[0]
-+^^^^^^^^
-+
-+Video stream ID
-+
-+
-+
-+CX2341X_ENC_SET_PCR_ID
-+~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 141/0x8D
-+
-+Description
-+^^^^^^^^^^^
-+
-+Assigns the transport stream ID for PCR packets
-+
-+Param[0]
-+^^^^^^^^
-+
-+PCR Stream ID
-+
-+
-+
-+CX2341X_ENC_SET_FRAME_RATE
-+~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 143/0x8F
-+
-+Description
-+^^^^^^^^^^^
-+
-+Set video frames per second. Change occurs at start of new GOP.
-+
-+Param[0]
-+^^^^^^^^
-+
-+- 0=30fps
-+- 1=25fps
-+
-+
-+
-+CX2341X_ENC_SET_FRAME_SIZE
-+~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 145/0x91
-+
-+Description
-+^^^^^^^^^^^
-+
-+Select video stream encoding resolution.
-+
-+Param[0]
-+^^^^^^^^
-+
-+Height in lines. Default 480
-+
-+Param[1]
-+^^^^^^^^
-+
-+Width in pixels. Default 720
-+
-+
-+
-+CX2341X_ENC_SET_BIT_RATE
-+~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 149/0x95
-+
-+Description
-+^^^^^^^^^^^
-+
-+Assign average video stream bitrate.
-+
-+Param[0]
-+^^^^^^^^
-+
-+0=variable bitrate, 1=constant bitrate
-+
-+Param[1]
-+^^^^^^^^
-+
-+bitrate in bits per second
-+
-+Param[2]
-+^^^^^^^^
-+
-+peak bitrate in bits per second, divided by 400
-+
-+Param[3]
-+^^^^^^^^
-+
-+Mux bitrate in bits per second, divided by 400. May be 0 (default).
-+
-+Param[4]
-+^^^^^^^^
-+
-+Rate Control VBR Padding
-+
-+Param[5]
-+^^^^^^^^
-+
-+VBV Buffer used by encoder
-+
-+.. note::
-+
-+	#) Param\[3\] and Param\[4\] seem to be always 0
-+	#) Param\[5\] doesn't seem to be used.
-+
-+
-+
-+CX2341X_ENC_SET_GOP_PROPERTIES
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 151/0x97
-+
-+Description
-+^^^^^^^^^^^
-+
-+Setup the GOP structure
-+
-+Param[0]
-+^^^^^^^^
-+
-+GOP size (maximum is 34)
-+
-+Param[1]
-+^^^^^^^^
-+
-+Number of B frames between the I and P frame, plus 1.
-+For example: IBBPBBPBBPBB --> GOP size: 12, number of B frames: 2+1 = 3
-+
-+.. note::
-+
-+	GOP size must be a multiple of (B-frames + 1).
-+
-+
-+
-+CX2341X_ENC_SET_ASPECT_RATIO
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 153/0x99
-+
-+Description
-+^^^^^^^^^^^
-+
-+Sets the encoding aspect ratio. Changes in the aspect ratio take effect
-+at the start of the next GOP.
-+
-+Param[0]
-+^^^^^^^^
-+
-+- '0000' forbidden
-+- '0001' 1:1 square
-+- '0010' 4:3
-+- '0011' 16:9
-+- '0100' 2.21:1
-+- '0101' to '1111' reserved
-+
-+
-+
-+CX2341X_ENC_SET_DNR_FILTER_MODE
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 155/0x9B
-+
-+Description
-+^^^^^^^^^^^
-+
-+Assign Dynamic Noise Reduction operating mode
-+
-+Param[0]
-+^^^^^^^^
-+
-+Bit0: Spatial filter, set=auto, clear=manual
-+Bit1: Temporal filter, set=auto, clear=manual
-+
-+Param[1]
-+^^^^^^^^
-+
-+Median filter:
-+
-+- 0=Disabled
-+- 1=Horizontal
-+- 2=Vertical
-+- 3=Horiz/Vert
-+- 4=Diagonal
-+
-+
-+
-+CX2341X_ENC_SET_DNR_FILTER_PROPS
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 157/0x9D
-+
-+Description
-+^^^^^^^^^^^
-+
-+These Dynamic Noise Reduction filter values are only meaningful when
-+the respective filter is set to "manual" (See API 0x9B)
-+
-+Param[0]
-+^^^^^^^^
-+
-+Spatial filter: default 0, range 0:15
-+
-+Param[1]
-+^^^^^^^^
-+
-+Temporal filter: default 0, range 0:31
-+
-+
-+
-+CX2341X_ENC_SET_CORING_LEVELS
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 159/0x9F
-+
-+Description
-+^^^^^^^^^^^
-+
-+Assign Dynamic Noise Reduction median filter properties.
-+
-+Param[0]
-+^^^^^^^^
-+
-+Threshold above which the luminance median filter is enabled.
-+Default: 0, range 0:255
-+
-+Param[1]
-+^^^^^^^^
-+
-+Threshold below which the luminance median filter is enabled.
-+Default: 255, range 0:255
-+
-+Param[2]
-+^^^^^^^^
-+
-+Threshold above which the chrominance median filter is enabled.
-+Default: 0, range 0:255
-+
-+Param[3]
-+^^^^^^^^
-+
-+Threshold below which the chrominance median filter is enabled.
-+Default: 255, range 0:255
-+
-+
-+
-+CX2341X_ENC_SET_SPATIAL_FILTER_TYPE
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 161/0xA1
-+
-+Description
-+^^^^^^^^^^^
-+
-+Assign spatial prefilter parameters
-+
-+Param[0]
-+^^^^^^^^
-+
-+Luminance filter
-+
-+- 0=Off
-+- 1=1D Horizontal
-+- 2=1D Vertical
-+- 3=2D H/V Separable (default)
-+- 4=2D Symmetric non-separable
-+
-+Param[1]
-+^^^^^^^^
-+
-+Chrominance filter
-+
-+- 0=Off
-+- 1=1D Horizontal (default)
-+
-+
-+
-+CX2341X_ENC_SET_VBI_LINE
-+~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 183/0xB7
-+
-+Description
-+^^^^^^^^^^^
-+
-+Selects VBI line number.
-+
-+Param[0]
-+^^^^^^^^
-+
-+- Bits 0:4 	line number
-+- Bit  31		0=top_field, 1=bottom_field
-+- Bits 0:31 	all set specifies "all lines"
-+
-+Param[1]
-+^^^^^^^^
-+
-+VBI line information features: 0=disabled, 1=enabled
-+
-+Param[2]
-+^^^^^^^^
-+
-+Slicing: 0=None, 1=Closed Caption
-+Almost certainly not implemented. Set to 0.
-+
-+Param[3]
-+^^^^^^^^
-+
-+Luminance samples in this line.
-+Almost certainly not implemented. Set to 0.
-+
-+Param[4]
-+^^^^^^^^
-+
-+Chrominance samples in this line
-+Almost certainly not implemented. Set to 0.
-+
-+
-+
-+CX2341X_ENC_SET_STREAM_TYPE
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 185/0xB9
-+
-+Description
-+^^^^^^^^^^^
-+
-+Assign stream type
-+
-+.. note::
-+
-+	Transport stream is not working in recent firmwares.
-+	And in older firmwares the timestamps in the TS seem to be
-+	unreliable.
-+
-+Param[0]
-+^^^^^^^^
-+
-+- 0=Program stream
-+- 1=Transport stream
-+- 2=MPEG1 stream
-+- 3=PES A/V stream
-+- 5=PES Video stream
-+- 7=PES Audio stream
-+- 10=DVD stream
-+- 11=VCD stream
-+- 12=SVCD stream
-+- 13=DVD_S1 stream
-+- 14=DVD_S2 stream
-+
-+
-+
-+CX2341X_ENC_SET_OUTPUT_PORT
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 187/0xBB
-+
-+Description
-+^^^^^^^^^^^
-+
-+Assign stream output port. Normally 0 when the data is copied through
-+the PCI bus (DMA), and 1 when the data is streamed to another chip
-+(pvrusb and cx88-blackbird).
-+
-+Param[0]
-+^^^^^^^^
-+
-+- 0=Memory (default)
-+- 1=Streaming
-+- 2=Serial
-+
-+Param[1]
-+^^^^^^^^
-+
-+Unknown, but leaving this to 0 seems to work best. Indications are that
-+this might have to do with USB support, although passing anything but 0
-+only breaks things.
-+
-+
-+
-+CX2341X_ENC_SET_AUDIO_PROPERTIES
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 189/0xBD
-+
-+Description
-+^^^^^^^^^^^
-+
-+Set audio stream properties, may be called while encoding is in progress.
-+
-+.. note::
-+
-+	All bitfields are consistent with ISO11172 documentation except
-+	bits 2:3 which ISO docs define as:
-+
-+	- '11' Layer I
-+	- '10' Layer II
-+	- '01' Layer III
-+	- '00' Undefined
-+
-+	This discrepancy may indicate a possible error in the documentation.
-+	Testing indicated that only Layer II is actually working, and that
-+	the minimum bitrate should be 192 kbps.
-+
-+Param[0]
-+^^^^^^^^
-+
-+Bitmask:
-+
-+.. code-block:: none
-+
-+	   0:1  '00' 44.1Khz
-+		'01' 48Khz
-+		'10' 32Khz
-+		'11' reserved
-+
-+	   2:3  '01'=Layer I
-+		'10'=Layer II
-+
-+	   4:7  Bitrate:
-+		     Index | Layer I     | Layer II
-+		     ------+-------------+------------
-+		    '0000' | free format | free format
-+		    '0001' |  32 kbit/s  |  32 kbit/s
-+		    '0010' |  64 kbit/s  |  48 kbit/s
-+		    '0011' |  96 kbit/s  |  56 kbit/s
-+		    '0100' | 128 kbit/s  |  64 kbit/s
-+		    '0101' | 160 kbit/s  |  80 kbit/s
-+		    '0110' | 192 kbit/s  |  96 kbit/s
-+		    '0111' | 224 kbit/s  | 112 kbit/s
-+		    '1000' | 256 kbit/s  | 128 kbit/s
-+		    '1001' | 288 kbit/s  | 160 kbit/s
-+		    '1010' | 320 kbit/s  | 192 kbit/s
-+		    '1011' | 352 kbit/s  | 224 kbit/s
-+		    '1100' | 384 kbit/s  | 256 kbit/s
-+		    '1101' | 416 kbit/s  | 320 kbit/s
-+		    '1110' | 448 kbit/s  | 384 kbit/s
-+
-+		.. note::
-+
-+			For Layer II, not all combinations of total bitrate
-+			and mode are allowed. See ISO11172-3 3-Annex B,
-+			Table 3-B.2
-+
-+	   8:9  '00'=Stereo
-+		'01'=JointStereo
-+		'10'=Dual
-+		'11'=Mono
-+
-+		.. note::
-+
-+			The cx23415 cannot decode Joint Stereo properly.
-+
-+	  10:11 Mode Extension used in joint_stereo mode.
-+		In Layer I and II they indicate which subbands are in
-+		intensity_stereo. All other subbands are coded in stereo.
-+		    '00' subbands 4-31 in intensity_stereo, bound==4
-+		    '01' subbands 8-31 in intensity_stereo, bound==8
-+		    '10' subbands 12-31 in intensity_stereo, bound==12
-+		    '11' subbands 16-31 in intensity_stereo, bound==16
-+
-+	  12:13 Emphasis:
-+		    '00' None
-+		    '01' 50/15uS
-+		    '10' reserved
-+		    '11' CCITT J.17
-+
-+	  14 	CRC:
-+		    '0' off
-+		    '1' on
-+
-+	  15    Copyright:
-+		    '0' off
-+		    '1' on
-+
-+	  16    Generation:
-+		    '0' copy
-+		    '1' original
-+
-+
-+
-+CX2341X_ENC_HALT_FW
-+~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 195/0xC3
-+
-+Description
-+^^^^^^^^^^^
-+
-+The firmware is halted and no further API calls are serviced until the
-+firmware is uploaded again.
-+
-+
-+
-+CX2341X_ENC_GET_VERSION
-+~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 196/0xC4
-+
-+Description
-+^^^^^^^^^^^
-+
-+Returns the version of the encoder firmware.
-+
-+Result[0]
-+^^^^^^^^^
-+
-+Version bitmask:
-+- Bits  0:15 build
-+- Bits 16:23 minor
-+- Bits 24:31 major
-+
-+
-+
-+CX2341X_ENC_SET_GOP_CLOSURE
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 197/0xC5
-+
-+Description
-+^^^^^^^^^^^
-+
-+Assigns the GOP open/close property.
-+
-+Param[0]
-+^^^^^^^^
-+
-+- 0=Open
-+- 1=Closed
-+
-+
-+
-+CX2341X_ENC_GET_SEQ_END
-+~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 198/0xC6
-+
-+Description
-+^^^^^^^^^^^
-+
-+Obtains the sequence end code of the encoder's buffer. When a capture
-+is started a number of interrupts are still generated, the last of
-+which will have Result[0] set to 1 and Result[1] will contain the size
-+of the buffer.
-+
-+Result[0]
-+^^^^^^^^^
-+
-+State of the transfer (1 if last buffer)
-+
-+Result[1]
-+^^^^^^^^^
-+
-+If Result[0] is 1, this contains the size of the last buffer, undefined
-+otherwise.
-+
-+
-+
-+CX2341X_ENC_SET_PGM_INDEX_INFO
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 199/0xC7
-+
-+Description
-+^^^^^^^^^^^
-+
-+Sets the Program Index Information.
-+The information is stored as follows:
-+
-+.. code-block:: c
-+
-+	struct info {
-+		u32 length;		// Length of this frame
-+		u32 offset_low;		// Offset in the file of the
-+		u32 offset_high;	// start of this frame
-+		u32 mask1;		// Bits 0-2 are the type mask:
-+					// 1=I, 2=P, 4=B
-+					// 0=End of Program Index, other fields
-+					//   are invalid.
-+		u32 pts;		// The PTS of the frame
-+		u32 mask2;		// Bit 0 is bit 32 of the pts.
-+	};
-+	u32 table_ptr;
-+	struct info index[400];
-+
-+The table_ptr is the encoder memory address in the table were
-+*new* entries will be written.
-+
-+.. note:: This is a ringbuffer, so the table_ptr will wraparound.
-+
-+Param[0]
-+^^^^^^^^
-+
-+Picture Mask:
-+- 0=No index capture
-+- 1=I frames
-+- 3=I,P frames
-+- 7=I,P,B frames
-+
-+(Seems to be ignored, it always indexes I, P and B frames)
-+
-+Param[1]
-+^^^^^^^^
-+
-+Elements requested (up to 400)
-+
-+Result[0]
-+^^^^^^^^^
-+
-+Offset in the encoder memory of the start of the table.
-+
-+Result[1]
-+^^^^^^^^^
-+
-+Number of allocated elements up to a maximum of Param[1]
-+
-+
-+
-+CX2341X_ENC_SET_VBI_CONFIG
-+~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 200/0xC8
-+
-+Description
-+^^^^^^^^^^^
-+
-+Configure VBI settings
-+
-+Param[0]
-+^^^^^^^^
-+
-+Bitmap:
-+
-+.. code-block:: none
-+
-+	    0    Mode '0' Sliced, '1' Raw
-+	    1:3  Insertion:
-+		     '000' insert in extension & user data
-+		     '001' insert in private packets
-+		     '010' separate stream and user data
-+		     '111' separate stream and private data
-+	    8:15 Stream ID (normally 0xBD)
-+
-+Param[1]
-+^^^^^^^^
-+
-+Frames per interrupt (max 8). Only valid in raw mode.
-+
-+Param[2]
-+^^^^^^^^
-+
-+Total raw VBI frames. Only valid in raw mode.
-+
-+Param[3]
-+^^^^^^^^
-+
-+Start codes
-+
-+Param[4]
-+^^^^^^^^
-+
-+Stop codes
-+
-+Param[5]
-+^^^^^^^^
-+
-+Lines per frame
-+
-+Param[6]
-+^^^^^^^^
-+
-+Byte per line
-+
-+Result[0]
-+^^^^^^^^^
-+
-+Observed frames per interrupt in raw mode only. Rage 1 to Param[1]
-+
-+Result[1]
-+^^^^^^^^^
-+
-+Observed number of frames in raw mode. Range 1 to Param[2]
-+
-+Result[2]
-+^^^^^^^^^
-+
-+Memory offset to start or raw VBI data
-+
-+
-+
-+CX2341X_ENC_SET_DMA_BLOCK_SIZE
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 201/0xC9
-+
-+Description
-+^^^^^^^^^^^
-+
-+Set DMA transfer block size
-+
-+Param[0]
-+^^^^^^^^
-+
-+DMA transfer block size in bytes or frames. When unit is bytes,
-+supported block sizes are 2^7, 2^8 and 2^9 bytes.
-+
-+Param[1]
-+^^^^^^^^
-+
-+Unit: 0=bytes, 1=frames
-+
-+
-+
-+CX2341X_ENC_GET_PREV_DMA_INFO_MB_10
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 202/0xCA
-+
-+Description
-+^^^^^^^^^^^
-+
-+Returns information on the previous DMA transfer in conjunction with
-+bit 27 of the interrupt mask. Uses mailbox 10.
-+
-+Result[0]
-+^^^^^^^^^
-+
-+Type of stream
-+
-+Result[1]
-+^^^^^^^^^
-+
-+Address Offset
-+
-+Result[2]
-+^^^^^^^^^
-+
-+Maximum size of transfer
-+
-+
-+
-+CX2341X_ENC_GET_PREV_DMA_INFO_MB_9
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 203/0xCB
-+
-+Description
-+^^^^^^^^^^^
-+
-+Returns information on the previous DMA transfer in conjunction with
-+bit 27 or 18 of the interrupt mask. Uses mailbox 9.
-+
-+Result[0]
-+^^^^^^^^^
-+
-+Status bits:
-+- 0   read completed
-+- 1   write completed
-+- 2   DMA read error
-+- 3   DMA write error
-+- 4   Scatter-Gather array error
-+
-+Result[1]
-+^^^^^^^^^
-+
-+DMA type
-+
-+Result[2]
-+^^^^^^^^^
-+
-+Presentation Time Stamp bits 0..31
-+
-+Result[3]
-+^^^^^^^^^
-+
-+Presentation Time Stamp bit 32
-+
-+
-+
-+CX2341X_ENC_SCHED_DMA_TO_HOST
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 204/0xCC
-+
-+Description
-+^^^^^^^^^^^
-+
-+Setup DMA to host operation
-+
-+Param[0]
-+^^^^^^^^
-+
-+Memory address of link list
-+
-+Param[1]
-+^^^^^^^^
-+
-+Length of link list (wtf: what units ???)
-+
-+Param[2]
-+^^^^^^^^
-+
-+DMA type (0=MPEG)
-+
-+
-+
-+CX2341X_ENC_INITIALIZE_INPUT
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 205/0xCD
-+
-+Description
-+^^^^^^^^^^^
-+
-+Initializes the video input
-+
-+
-+
-+CX2341X_ENC_SET_FRAME_DROP_RATE
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 208/0xD0
-+
-+Description
-+^^^^^^^^^^^
-+
-+For each frame captured, skip specified number of frames.
-+
-+Param[0]
-+^^^^^^^^
-+
-+Number of frames to skip
-+
-+
-+
-+CX2341X_ENC_PAUSE_ENCODER
-+~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 210/0xD2
-+
-+Description
-+^^^^^^^^^^^
-+
-+During a pause condition, all frames are dropped instead of being encoded.
-+
-+Param[0]
-+^^^^^^^^
-+
-+- 0=Pause encoding
-+- 1=Continue encoding
-+
-+
-+
-+CX2341X_ENC_REFRESH_INPUT
-+~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 211/0xD3
-+
-+Description
-+^^^^^^^^^^^
-+
-+Refreshes the video input
-+
-+
-+
-+CX2341X_ENC_SET_COPYRIGHT
-+~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 212/0xD4
-+
-+Description
-+^^^^^^^^^^^
-+
-+Sets stream copyright property
-+
-+Param[0]
-+^^^^^^^^
-+
-+
-+- 0=Stream is not copyrighted
-+- 1=Stream is copyrighted
-+
-+
-+
-+CX2341X_ENC_SET_EVENT_NOTIFICATION
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 213/0xD5
-+
-+Description
-+^^^^^^^^^^^
-+
-+Setup firmware to notify the host about a particular event. Host must
-+unmask the interrupt bit.
-+
-+Param[0]
-+^^^^^^^^
-+
-+Event (0=refresh encoder input)
-+
-+Param[1]
-+^^^^^^^^
-+
-+Notification 0=disabled 1=enabled
-+
-+Param[2]
-+^^^^^^^^
-+
-+Interrupt bit
-+
-+Param[3]
-+^^^^^^^^
-+
-+Mailbox slot, -1 if no mailbox required.
-+
-+
-+
-+CX2341X_ENC_SET_NUM_VSYNC_LINES
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 214/0xD6
-+
-+Description
-+^^^^^^^^^^^
-+
-+Depending on the analog video decoder used, this assigns the number
-+of lines for field 1 and 2.
-+
-+Param[0]
-+^^^^^^^^
-+
-+Field 1 number of lines:
-+- 0x00EF for SAA7114
-+- 0x00F0 for SAA7115
-+- 0x0105 for Micronas
-+
-+Param[1]
-+^^^^^^^^
-+
-+Field 2 number of lines:
-+- 0x00EF for SAA7114
-+- 0x00F0 for SAA7115
-+- 0x0106 for Micronas
-+
-+
-+
-+CX2341X_ENC_SET_PLACEHOLDER
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 215/0xD7
-+
-+Description
-+^^^^^^^^^^^
-+
-+Provides a mechanism of inserting custom user data in the MPEG stream.
-+
-+Param[0]
-+^^^^^^^^
-+
-+- 0=extension & user data
-+- 1=private packet with stream ID 0xBD
-+
-+Param[1]
-+^^^^^^^^
-+
-+Rate at which to insert data, in units of frames (for private packet)
-+or GOPs (for ext. & user data)
-+
-+Param[2]
-+^^^^^^^^
-+
-+Number of data DWORDs (below) to insert
-+
-+Param[3]
-+^^^^^^^^
-+
-+Custom data 0
-+
-+Param[4]
-+^^^^^^^^
-+
-+Custom data 1
-+
-+Param[5]
-+^^^^^^^^
-+
-+Custom data 2
-+
-+Param[6]
-+^^^^^^^^
-+
-+Custom data 3
-+
-+Param[7]
-+^^^^^^^^
-+
-+Custom data 4
-+
-+Param[8]
-+^^^^^^^^
-+
-+Custom data 5
-+
-+Param[9]
-+^^^^^^^^
-+
-+Custom data 6
-+
-+Param[10]
-+^^^^^^^^^
-+
-+Custom data 7
-+
-+Param[11]
-+^^^^^^^^^
-+
-+Custom data 8
-+
-+
-+
-+CX2341X_ENC_MUTE_VIDEO
-+~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 217/0xD9
-+
-+Description
-+^^^^^^^^^^^
-+
-+Video muting
-+
-+Param[0]
-+^^^^^^^^
-+
-+Bit usage:
-+
-+.. code-block:: none
-+
-+	 0    	'0'=video not muted
-+		'1'=video muted, creates frames with the YUV color defined below
-+	 1:7  	Unused
-+	 8:15 	V chrominance information
-+	16:23 	U chrominance information
-+	24:31 	Y luminance information
-+
-+
-+
-+CX2341X_ENC_MUTE_AUDIO
-+~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 218/0xDA
-+
-+Description
-+^^^^^^^^^^^
-+
-+Audio muting
-+
-+Param[0]
-+^^^^^^^^
-+
-+- 0=audio not muted
-+- 1=audio muted (produces silent mpeg audio stream)
-+
-+
-+
-+CX2341X_ENC_SET_VERT_CROP_LINE
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Enum: 219/0xDB
-+
-+Description
-+^^^^^^^^^^^
-+
-+Something to do with 'Vertical Crop Line'
-+
-+Param[0]
-+^^^^^^^^
-+
-+If saa7114 and raw VBI capture and 60 Hz, then set to 10001.
-+Else 0.
-+
-+
-+
-+CX2341X_ENC_MISC
-+~~~~~~~~~~~~~~~~
-+
-+Enum: 220/0xDC
-+
-+Description
-+^^^^^^^^^^^
-+
-+Miscellaneous actions. Not known for 100% what it does. It's really a
-+sort of ioctl call. The first parameter is a command number, the second
-+the value.
-+
-+Param[0]
-+^^^^^^^^
-+
-+Command number:
-+
-+.. code-block:: none
-+
-+	 1=set initial SCR value when starting encoding (works).
-+	 2=set quality mode (apparently some test setting).
-+	 3=setup advanced VIM protection handling.
-+	   Always 1 for the cx23416 and 0 for cx23415.
-+	 4=generate DVD compatible PTS timestamps
-+	 5=USB flush mode
-+	 6=something to do with the quantization matrix
-+	 7=set navigation pack insertion for DVD: adds 0xbf (private stream 2)
-+	   packets to the MPEG. The size of these packets is 2048 bytes (including
-+	   the header of 6 bytes: 0x000001bf + length). The payload is zeroed and
-+	   it is up to the application to fill them in. These packets are apparently
-+	   inserted every four frames.
-+	 8=enable scene change detection (seems to be a failure)
-+	 9=set history parameters of the video input module
-+	10=set input field order of VIM
-+	11=set quantization matrix
-+	12=reset audio interface after channel change or input switch (has no argument).
-+	   Needed for the cx2584x, not needed for the mspx4xx, but it doesn't seem to
-+	   do any harm calling it regardless.
-+	13=set audio volume delay
-+	14=set audio delay
-+
-+
-+Param[1]
-+^^^^^^^^
-+
-+Command value.
-+
- Decoder firmware API description
- --------------------------------
- 
-diff --git a/Documentation/video4linux/cx2341x/fw-encoder-api.txt b/Documentation/video4linux/cx2341x/fw-encoder-api.txt
-deleted file mode 100644
-index 5a27af2ee1c6..000000000000
---- a/Documentation/video4linux/cx2341x/fw-encoder-api.txt
-+++ /dev/null
-@@ -1,709 +0,0 @@
--Encoder firmware API description
--================================
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_PING_FW
--Enum 	128/0x80
--Description
--	Does nothing. Can be used to check if the firmware is responding.
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_START_CAPTURE
--Enum 	129/0x81
--Description
--	Commences the capture of video, audio and/or VBI data. All encoding
--	parameters must be initialized prior to this API call. Captures frames
--	continuously or until a predefined number of frames have been captured.
--Param[0]
--	Capture stream type:
--	    0=MPEG
--	    1=Raw
--	    2=Raw passthrough
--	    3=VBI
--
--Param[1]
--	Bitmask:
--	    Bit 0 when set, captures YUV
--	    Bit 1 when set, captures PCM audio
--	    Bit 2 when set, captures VBI (same as param[0]=3)
--	    Bit 3 when set, the capture destination is the decoder
--		(same as param[0]=2)
--	    Bit 4 when set, the capture destination is the host
--	Note: this parameter is only meaningful for RAW capture type.
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_STOP_CAPTURE
--Enum 	130/0x82
--Description
--	Ends a capture in progress
--Param[0]
--	0=stop at end of GOP (generates IRQ)
--	1=stop immediate (no IRQ)
--Param[1]
--	Stream type to stop, see param[0] of API 0x81
--Param[2]
--	Subtype, see param[1] of API 0x81
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_AUDIO_ID
--Enum 	137/0x89
--Description
--	Assigns the transport stream ID of the encoded audio stream
--Param[0]
--	Audio Stream ID
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_VIDEO_ID
--Enum 	139/0x8B
--Description
--	Set video transport stream ID
--Param[0]
--	Video stream ID
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_PCR_ID
--Enum 	141/0x8D
--Description
--	Assigns the transport stream ID for PCR packets
--Param[0]
--	PCR Stream ID
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_FRAME_RATE
--Enum 	143/0x8F
--Description
--	Set video frames per second. Change occurs at start of new GOP.
--Param[0]
--	0=30fps
--	1=25fps
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_FRAME_SIZE
--Enum 	145/0x91
--Description
--	Select video stream encoding resolution.
--Param[0]
--	Height in lines. Default 480
--Param[1]
--	Width in pixels. Default 720
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_BIT_RATE
--Enum 	149/0x95
--Description
--	Assign average video stream bitrate. Note on the last three params:
--	Param[3] and [4] seem to be always 0, param [5] doesn't seem to be used.
--Param[0]
--	0=variable bitrate, 1=constant bitrate
--Param[1]
--	bitrate in bits per second
--Param[2]
--	peak bitrate in bits per second, divided by 400
--Param[3]
--	Mux bitrate in bits per second, divided by 400. May be 0 (default).
--Param[4]
--	Rate Control VBR Padding
--Param[5]
--	VBV Buffer used by encoder
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_GOP_PROPERTIES
--Enum 	151/0x97
--Description
--	Setup the GOP structure
--Param[0]
--	GOP size (maximum is 34)
--Param[1]
--	Number of B frames between the I and P frame, plus 1.
--	For example: IBBPBBPBBPBB --> GOP size: 12, number of B frames: 2+1 = 3
--	Note that GOP size must be a multiple of (B-frames + 1).
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_ASPECT_RATIO
--Enum 	153/0x99
--Description
--	Sets the encoding aspect ratio. Changes in the aspect ratio take effect
--	at the start of the next GOP.
--Param[0]
--	'0000' forbidden
--	'0001' 1:1 square
--	'0010' 4:3
--	'0011' 16:9
--	'0100' 2.21:1
--	'0101' reserved
--	 ....
--	'1111' reserved
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_DNR_FILTER_MODE
--Enum 	155/0x9B
--Description
--	Assign Dynamic Noise Reduction operating mode
--Param[0]
--	Bit0: Spatial filter, set=auto, clear=manual
--	Bit1: Temporal filter, set=auto, clear=manual
--Param[1]
--	Median filter:
--	    0=Disabled
--	    1=Horizontal
--	    2=Vertical
--	    3=Horiz/Vert
--	    4=Diagonal
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_DNR_FILTER_PROPS
--Enum 	157/0x9D
--Description
--	These Dynamic Noise Reduction filter values are only meaningful when
--	the respective filter is set to "manual" (See API 0x9B)
--Param[0]
--	Spatial filter: default 0, range 0:15
--Param[1]
--	Temporal filter: default 0, range 0:31
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_CORING_LEVELS
--Enum 	159/0x9F
--Description
--	Assign Dynamic Noise Reduction median filter properties.
--Param[0]
--	Threshold above which the luminance median filter is enabled.
--	Default: 0, range 0:255
--Param[1]
--	Threshold below which the luminance median filter is enabled.
--	Default: 255, range 0:255
--Param[2]
--	Threshold above which the chrominance median filter is enabled.
--	Default: 0, range 0:255
--Param[3]
--	Threshold below which the chrominance median filter is enabled.
--	Default: 255, range 0:255
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_SPATIAL_FILTER_TYPE
--Enum 	161/0xA1
--Description
--	Assign spatial prefilter parameters
--Param[0]
--	Luminance filter
--	    0=Off
--	    1=1D Horizontal
--	    2=1D Vertical
--	    3=2D H/V Separable (default)
--	    4=2D Symmetric non-separable
--Param[1]
--	Chrominance filter
--	    0=Off
--	    1=1D Horizontal (default)
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_VBI_LINE
--Enum 	183/0xB7
--Description
--	Selects VBI line number.
--Param[0]
--	Bits 0:4 	line number
--	Bit  31		0=top_field, 1=bottom_field
--	Bits 0:31 	all set specifies "all lines"
--Param[1]
--	VBI line information features: 0=disabled, 1=enabled
--Param[2]
--	Slicing: 0=None, 1=Closed Caption
--	Almost certainly not implemented. Set to 0.
--Param[3]
--	Luminance samples in this line.
--	Almost certainly not implemented. Set to 0.
--Param[4]
--	Chrominance samples in this line
--	Almost certainly not implemented. Set to 0.
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_STREAM_TYPE
--Enum 	185/0xB9
--Description
--	Assign stream type
--	Note: Transport stream is not working in recent firmwares.
--	And in older firmwares the timestamps in the TS seem to be
--	unreliable.
--Param[0]
--	 0=Program stream
--	 1=Transport stream
--	 2=MPEG1 stream
--	 3=PES A/V stream
--	 5=PES Video stream
--	 7=PES Audio stream
--	10=DVD stream
--	11=VCD stream
--	12=SVCD stream
--	13=DVD_S1 stream
--	14=DVD_S2 stream
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_OUTPUT_PORT
--Enum 	187/0xBB
--Description
--	Assign stream output port. Normally 0 when the data is copied through
--	the PCI bus (DMA), and 1 when the data is streamed to another chip
--	(pvrusb and cx88-blackbird).
--Param[0]
--	0=Memory (default)
--	1=Streaming
--	2=Serial
--Param[1]
--	Unknown, but leaving this to 0 seems to work best. Indications are that
--	this might have to do with USB support, although passing anything but 0
--	only breaks things.
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_AUDIO_PROPERTIES
--Enum 	189/0xBD
--Description
--	Set audio stream properties, may be called while encoding is in progress.
--	Note: all bitfields are consistent with ISO11172 documentation except
--	bits 2:3 which ISO docs define as:
--		'11' Layer I
--		'10' Layer II
--		'01' Layer III
--		'00' Undefined
--	This discrepancy may indicate a possible error in the documentation.
--	Testing indicated that only Layer II is actually working, and that
--	the minimum bitrate should be 192 kbps.
--Param[0]
--	Bitmask:
--	   0:1  '00' 44.1Khz
--		'01' 48Khz
--		'10' 32Khz
--		'11' reserved
--
--	   2:3  '01'=Layer I
--		'10'=Layer II
--
--	   4:7  Bitrate:
--		     Index | Layer I     | Layer II
--		     ------+-------------+------------
--		    '0000' | free format | free format
--		    '0001' |  32 kbit/s  |  32 kbit/s
--		    '0010' |  64 kbit/s  |  48 kbit/s
--		    '0011' |  96 kbit/s  |  56 kbit/s
--		    '0100' | 128 kbit/s  |  64 kbit/s
--		    '0101' | 160 kbit/s  |  80 kbit/s
--		    '0110' | 192 kbit/s  |  96 kbit/s
--		    '0111' | 224 kbit/s  | 112 kbit/s
--		    '1000' | 256 kbit/s  | 128 kbit/s
--		    '1001' | 288 kbit/s  | 160 kbit/s
--		    '1010' | 320 kbit/s  | 192 kbit/s
--		    '1011' | 352 kbit/s  | 224 kbit/s
--		    '1100' | 384 kbit/s  | 256 kbit/s
--		    '1101' | 416 kbit/s  | 320 kbit/s
--		    '1110' | 448 kbit/s  | 384 kbit/s
--		Note: For Layer II, not all combinations of total bitrate
--		and mode are allowed. See ISO11172-3 3-Annex B, Table 3-B.2
--
--	   8:9  '00'=Stereo
--		'01'=JointStereo
--		'10'=Dual
--		'11'=Mono
--		Note: the cx23415 cannot decode Joint Stereo properly.
--
--	  10:11 Mode Extension used in joint_stereo mode.
--		In Layer I and II they indicate which subbands are in
--		intensity_stereo. All other subbands are coded in stereo.
--		    '00' subbands 4-31 in intensity_stereo, bound==4
--		    '01' subbands 8-31 in intensity_stereo, bound==8
--		    '10' subbands 12-31 in intensity_stereo, bound==12
--		    '11' subbands 16-31 in intensity_stereo, bound==16
--
--	  12:13 Emphasis:
--		    '00' None
--		    '01' 50/15uS
--		    '10' reserved
--		    '11' CCITT J.17
--
--	  14 	CRC:
--		    '0' off
--		    '1' on
--
--	  15    Copyright:
--		    '0' off
--		    '1' on
--
--	  16    Generation:
--		    '0' copy
--		    '1' original
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_HALT_FW
--Enum 	195/0xC3
--Description
--	The firmware is halted and no further API calls are serviced until the
--	firmware is uploaded again.
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_GET_VERSION
--Enum 	196/0xC4
--Description
--	Returns the version of the encoder firmware.
--Result[0]
--	Version bitmask:
--	    Bits  0:15 build
--	    Bits 16:23 minor
--	    Bits 24:31 major
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_GOP_CLOSURE
--Enum 	197/0xC5
--Description
--	Assigns the GOP open/close property.
--Param[0]
--	0=Open
--	1=Closed
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_GET_SEQ_END
--Enum 	198/0xC6
--Description
--	Obtains the sequence end code of the encoder's buffer. When a capture
--	is started a number of interrupts are still generated, the last of
--	which will have Result[0] set to 1 and Result[1] will contain the size
--	of the buffer.
--Result[0]
--	State of the transfer (1 if last buffer)
--Result[1]
--	If Result[0] is 1, this contains the size of the last buffer, undefined
--	otherwise.
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_PGM_INDEX_INFO
--Enum 	199/0xC7
--Description
--	Sets the Program Index Information.
--	The information is stored as follows:
--
--	struct info {
--		u32 length;		// Length of this frame
--		u32 offset_low;		// Offset in the file of the
--		u32 offset_high;	// start of this frame
--		u32 mask1;		// Bits 0-2 are the type mask:
--					// 1=I, 2=P, 4=B
--					// 0=End of Program Index, other fields
--					//   are invalid.
--		u32 pts;		// The PTS of the frame
--		u32 mask2;		// Bit 0 is bit 32 of the pts.
--	};
--	u32 table_ptr;
--	struct info index[400];
--
--	The table_ptr is the encoder memory address in the table were
--	*new* entries will be written. Note that this is a ringbuffer,
--	so the table_ptr will wraparound.
--Param[0]
--	Picture Mask:
--	    0=No index capture
--	    1=I frames
--	    3=I,P frames
--	    7=I,P,B frames
--	(Seems to be ignored, it always indexes I, P and B frames)
--Param[1]
--	Elements requested (up to 400)
--Result[0]
--	Offset in the encoder memory of the start of the table.
--Result[1]
--	Number of allocated elements up to a maximum of Param[1]
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_VBI_CONFIG
--Enum 	200/0xC8
--Description
--	Configure VBI settings
--Param[0]
--	Bitmap:
--	    0    Mode '0' Sliced, '1' Raw
--	    1:3  Insertion:
--		     '000' insert in extension & user data
--		     '001' insert in private packets
--		     '010' separate stream and user data
--		     '111' separate stream and private data
--	    8:15 Stream ID (normally 0xBD)
--Param[1]
--	Frames per interrupt (max 8). Only valid in raw mode.
--Param[2]
--	Total raw VBI frames. Only valid in raw mode.
--Param[3]
--	Start codes
--Param[4]
--	Stop codes
--Param[5]
--	Lines per frame
--Param[6]
--	Byte per line
--Result[0]
--	Observed frames per interrupt in raw mode only. Rage 1 to Param[1]
--Result[1]
--	Observed number of frames in raw mode. Range 1 to Param[2]
--Result[2]
--	Memory offset to start or raw VBI data
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_DMA_BLOCK_SIZE
--Enum 	201/0xC9
--Description
--	Set DMA transfer block size
--Param[0]
--	DMA transfer block size in bytes or frames. When unit is bytes,
--	supported block sizes are 2^7, 2^8 and 2^9 bytes.
--Param[1]
--	Unit: 0=bytes, 1=frames
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_GET_PREV_DMA_INFO_MB_10
--Enum 	202/0xCA
--Description
--	Returns information on the previous DMA transfer in conjunction with
--	bit 27 of the interrupt mask. Uses mailbox 10.
--Result[0]
--	Type of stream
--Result[1]
--	Address Offset
--Result[2]
--	Maximum size of transfer
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_GET_PREV_DMA_INFO_MB_9
--Enum 	203/0xCB
--Description
--	Returns information on the previous DMA transfer in conjunction with
--	bit 27 or 18 of the interrupt mask. Uses mailbox 9.
--Result[0]
--	Status bits:
--		0   read completed
--		1   write completed
--		2   DMA read error
--		3   DMA write error
--		4   Scatter-Gather array error
--Result[1]
--	DMA type
--Result[2]
--	Presentation Time Stamp bits 0..31
--Result[3]
--	Presentation Time Stamp bit 32
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SCHED_DMA_TO_HOST
--Enum 	204/0xCC
--Description
--	Setup DMA to host operation
--Param[0]
--	Memory address of link list
--Param[1]
--	Length of link list (wtf: what units ???)
--Param[2]
--	DMA type (0=MPEG)
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_INITIALIZE_INPUT
--Enum 	205/0xCD
--Description
--	Initializes the video input
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_FRAME_DROP_RATE
--Enum 	208/0xD0
--Description
--	For each frame captured, skip specified number of frames.
--Param[0]
--	Number of frames to skip
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_PAUSE_ENCODER
--Enum 	210/0xD2
--Description
--	During a pause condition, all frames are dropped instead of being encoded.
--Param[0]
--	0=Pause encoding
--	1=Continue encoding
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_REFRESH_INPUT
--Enum 	211/0xD3
--Description
--	Refreshes the video input
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_COPYRIGHT
--Enum 	212/0xD4
--Description
--	Sets stream copyright property
--Param[0]
--	0=Stream is not copyrighted
--	1=Stream is copyrighted
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_EVENT_NOTIFICATION
--Enum 	213/0xD5
--Description
--	Setup firmware to notify the host about a particular event. Host must
--	unmask the interrupt bit.
--Param[0]
--	Event (0=refresh encoder input)
--Param[1]
--	Notification 0=disabled 1=enabled
--Param[2]
--	Interrupt bit
--Param[3]
--	Mailbox slot, -1 if no mailbox required.
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_NUM_VSYNC_LINES
--Enum 	214/0xD6
--Description
--	Depending on the analog video decoder used, this assigns the number
--	of lines for field 1 and 2.
--Param[0]
--	Field 1 number of lines:
--	    0x00EF for SAA7114
--	    0x00F0 for SAA7115
--	    0x0105 for Micronas
--Param[1]
--	Field 2 number of lines:
--	    0x00EF for SAA7114
--	    0x00F0 for SAA7115
--	    0x0106 for Micronas
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_PLACEHOLDER
--Enum 	215/0xD7
--Description
--	Provides a mechanism of inserting custom user data in the MPEG stream.
--Param[0]
--	0=extension & user data
--	1=private packet with stream ID 0xBD
--Param[1]
--	Rate at which to insert data, in units of frames (for private packet)
--	or GOPs (for ext. & user data)
--Param[2]
--	Number of data DWORDs (below) to insert
--Param[3]
--	Custom data 0
--Param[4]
--	Custom data 1
--Param[5]
--	Custom data 2
--Param[6]
--	Custom data 3
--Param[7]
--	Custom data 4
--Param[8]
--	Custom data 5
--Param[9]
--	Custom data 6
--Param[10]
--	Custom data 7
--Param[11]
--	Custom data 8
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_MUTE_VIDEO
--Enum 	217/0xD9
--Description
--	Video muting
--Param[0]
--	Bit usage:
--	 0    	'0'=video not muted
--		'1'=video muted, creates frames with the YUV color defined below
--	 1:7  	Unused
--	 8:15 	V chrominance information
--	16:23 	U chrominance information
--	24:31 	Y luminance information
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_MUTE_AUDIO
--Enum 	218/0xDA
--Description
--	Audio muting
--Param[0]
--	0=audio not muted
--	1=audio muted (produces silent mpeg audio stream)
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_SET_VERT_CROP_LINE
--Enum 	219/0xDB
--Description
--	Something to do with 'Vertical Crop Line'
--Param[0]
--	If saa7114 and raw VBI capture and 60 Hz, then set to 10001.
--	Else 0.
--
---------------------------------------------------------------------------------
--
--Name 	CX2341X_ENC_MISC
--Enum 	220/0xDC
--Description
--	Miscellaneous actions. Not known for 100% what it does. It's really a
--	sort of ioctl call. The first parameter is a command number, the second
--	the value.
--Param[0]
--	Command number:
--	 1=set initial SCR value when starting encoding (works).
--	 2=set quality mode (apparently some test setting).
--	 3=setup advanced VIM protection handling.
--	   Always 1 for the cx23416 and 0 for cx23415.
--	 4=generate DVD compatible PTS timestamps
--	 5=USB flush mode
--	 6=something to do with the quantization matrix
--	 7=set navigation pack insertion for DVD: adds 0xbf (private stream 2)
--	   packets to the MPEG. The size of these packets is 2048 bytes (including
--	   the header of 6 bytes: 0x000001bf + length). The payload is zeroed and
--	   it is up to the application to fill them in. These packets are apparently
--	   inserted every four frames.
--	 8=enable scene change detection (seems to be a failure)
--	 9=set history parameters of the video input module
--	10=set input field order of VIM
--	11=set quantization matrix
--	12=reset audio interface after channel change or input switch (has no argument).
--	   Needed for the cx2584x, not needed for the mspx4xx, but it doesn't seem to
--	   do any harm calling it regardless.
--	13=set audio volume delay
--	14=set audio delay
--
--Param[1]
--	Command value.
--- 
-2.7.4
+Tested-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Tim Harvey <tharvey@gateworks.com>
 
+Added to Cc list those who signed-off and acked
+937feeed3f0ae8a0389d5732f6db63dd912acd99:
 
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Federico Vaga <federico.vaga@gmail.com>
+Cc: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+Regards,
+
+Tim
+
+[1] - http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/102914
