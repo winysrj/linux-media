@@ -1,128 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52919 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753952AbcGUUS2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 16:18:28 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 12/12] [media] v4l2-common.h: document the subdev functions
-Date: Thu, 21 Jul 2016 17:18:17 -0300
-Message-Id: <5d4cd6a8c87ffd6f2a3700f735873f42464d871f.1469132139.git.mchehab@s-opensource.com>
-In-Reply-To: <8bf2bc4813f5dc2b797576bd9e61b4f5ee86bf22.1469132139.git.mchehab@s-opensource.com>
-References: <8bf2bc4813f5dc2b797576bd9e61b4f5ee86bf22.1469132139.git.mchehab@s-opensource.com>
-In-Reply-To: <8bf2bc4813f5dc2b797576bd9e61b4f5ee86bf22.1469132139.git.mchehab@s-opensource.com>
-References: <8bf2bc4813f5dc2b797576bd9e61b4f5ee86bf22.1469132139.git.mchehab@s-opensource.com>
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:56138 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751411AbcGGLN6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2016 07:13:58 -0400
+Subject: Re: [PATCH v3 0/9] Add MT8173 Video Decoder Driver
+To: tiffany lin <tiffany.lin@mediatek.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
+ <577D0576.2050706@xs4all.nl> <1467886612.21382.18.camel@mtksdaap41>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, daniel.thompson@linaro.org,
+	Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <577E3971.1080305@cisco.com>
+Date: Thu, 7 Jul 2016 13:13:53 +0200
+MIME-Version: 1.0
+In-Reply-To: <1467886612.21382.18.camel@mtksdaap41>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are some subdev-specific functions at v4l2-common.h
-that are mentioned at v4l2-subdev.rst.
+Hi Tiffany,
 
-Document them.
+On 07/07/16 12:16, tiffany lin wrote:
+> Hi Hans,
+> 
+> 
+> On Wed, 2016-07-06 at 15:19 +0200, Hans Verkuil wrote:
+>> Hi Tiffany,
+>>
+>> I plan to review this patch series on Friday, but one obvious question is
+>> what the reason for these failures is:
+>>
+>>> Input/Output configuration ioctls:
+>>>         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+>>>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>>>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>>>         test VIDIOC_G/S_EDID: OK (Not Supported)
+>>>
+>>>         Control ioctls:
+>>>                 test VIDIOC_QUERYCTRL/MENU: OK
+>>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(357): g_ctrl returned an error (11)
+>>>                 test VIDIOC_G/S_CTRL: FAIL
+>>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(579): g_ext_ctrls returned an error (11)
+>>>                 test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
+> These fails are because VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS return
+> V4L2_CID_MIN_BUFFERS_FOR_CAPTURE only when dirver in MTK_STATE_HEADER
+> state, or it will return EAGAIN.
+> This could help user space get correct value, not default value that may
+> changed base on media content.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/kapi/v4l2-subdev.rst |  6 ++++
- include/media/v4l2-common.h              | 49 +++++++++++++++++++++++++++-----
- 2 files changed, 48 insertions(+), 7 deletions(-)
+So this should be improved in v4l2-compliance.
 
-diff --git a/Documentation/media/kapi/v4l2-subdev.rst b/Documentation/media/kapi/v4l2-subdev.rst
-index 80982a9d002f..456fdec69042 100644
---- a/Documentation/media/kapi/v4l2-subdev.rst
-+++ b/Documentation/media/kapi/v4l2-subdev.rst
-@@ -449,3 +449,9 @@ V4L2 sub-device asynchronous kAPI
- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- 
- .. kernel-doc:: include/media/v4l2-async.h
-+
-+
-+V4L2 common kAPI
-+^^^^^^^^^^^^^^^^
-+
-+.. kernel-doc:: include/media/v4l2-common.h
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 1cc0c5ba16b3..9b1dfcd9e229 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -80,8 +80,6 @@
- 
- /* ------------------------------------------------------------------------- */
- 
--/* Control helper function */
--
- int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 step, s32 def);
- 
- /* ------------------------------------------------------------------------- */
-@@ -96,23 +94,60 @@ struct v4l2_device;
- struct v4l2_subdev;
- struct v4l2_subdev_ops;
- 
--
--/* Load an i2c module and return an initialized v4l2_subdev struct.
--   The client_type argument is the name of the chip that's on the adapter. */
-+/**
-+ * v4l2_i2c_new_subdev - Load an i2c module and return an initialized
-+ *	&struct v4l2_subdev.
-+ *
-+ * @v4l2_dev: pointer to &struct v4l2_device
-+ * @adapter: pointer to struct i2c_adapter
-+ * @client_type:  name of the chip that's on the adapter.
-+ * @addr: I2C address. If zero, it will use @probe_addrs
-+ * @probe_addrs: array with a list of address. The last entry at such
-+ * 	array should be %I2C_CLIENT_END.
-+ *
-+ * returns a &struct v4l2_subdev pointer.
-+ */
- struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
- 		struct i2c_adapter *adapter, const char *client_type,
- 		u8 addr, const unsigned short *probe_addrs);
- 
- struct i2c_board_info;
- 
-+/**
-+ * v4l2_i2c_new_subdev_board - Load an i2c module and return an initialized
-+ *	&struct v4l2_subdev.
-+ *
-+ * @v4l2_dev: pointer to &struct v4l2_device
-+ * @adapter: pointer to struct i2c_adapter
-+ * @info: pointer to struct i2c_board_info used to replace the irq,
-+ *	 platform_data and addr arguments.
-+ * @probe_addrs: array with a list of address. The last entry at such
-+ * 	array should be %I2C_CLIENT_END.
-+ *
-+ * returns a &struct v4l2_subdev pointer.
-+ */
- struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
- 		struct i2c_adapter *adapter, struct i2c_board_info *info,
- 		const unsigned short *probe_addrs);
- 
--/* Initialize a v4l2_subdev with data from an i2c_client struct */
-+/**
-+ * v4l2_i2c_subdev_init - Initializes a &struct v4l2_subdev with data from
-+ *	an i2c_client struct.
-+ *
-+ * @sd: pointer to &struct v4l2_subdev
-+ * @client: pointer to struct i2c_client
-+ * @ops: pointer to &struct v4l2_subdev_ops
-+ */
- void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
- 		const struct v4l2_subdev_ops *ops);
--/* Return i2c client address of v4l2_subdev. */
-+
-+/**
-+ * v4l2_i2c_subdev_addr - returns i2c client address of &struct v4l2_subdev.
-+ *
-+ * @sd: pointer to &struct v4l2_subdev
-+ *
-+ * Returns the address of an I2C sub-device
-+ */
- unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd);
- 
- enum v4l2_i2c_tuner_type {
--- 
-2.7.4
+> 
+>>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(721): subscribe event for control 'User Controls' failed
+>>>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+> Driver do not support subscribe event for control 'User Controls' for
+> now.
+> Do we need to support this?
 
+Let me check: this might be a knock-on effect from the previous error.
+
+Which controls does your driver have? (v4l2-ctl -l)
+
+> 
+>>>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>>>                 Standard Controls: 2 Private Controls: 0
+>>>
+>>>         Format ioctls:
+>>>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>>>                 test VIDIOC_G/S_PARM: OK (Not Supported)
+>>>                 test VIDIOC_G_FBUF: OK (Not Supported)
+>>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-formats.cpp(405): expected EINVAL, but got 11 when getting format for buftype 9
+>>>                 test VIDIOC_G_FMT: FAIL
+> This is because vidioc_vdec_g_fmt only succeed when context is in
+> MTK_STATE_HEADER state, or user space cannot get correct format data
+> using this function.
+
+I'll take a look at this as well.
+
+> 
+>>>                 test VIDIOC_TRY_FMT: OK (Not Supported)
+>>>                 test VIDIOC_S_FMT: OK (Not Supported)
+>>>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>>>
+>>>         Codec ioctls:
+>>>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>>>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>>>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+>>>
+>>>         Buffer ioctls:
+>>>                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-buffers.cpp(500): q.has_expbuf(node)
+
+Don't use v4l-utils-1.6: just use the latest master branch. That way you can
+be certain that the latest fixes are in. Besides, 1.6.0 is really old (almost
+two years!). If you used the same old version for the encoder driver as well,
+then please retest that encoder driver!
+
+> Our OUTPUT and CAPTURE queue support both VB2_DMABUF and VB2_MMAP, user
+> space can select which to use in runtime.
+> So our driver default support v4l2_m2m_ioctl_expbuf functionality.
+> In v4l2-compliance test, it will check v4l2_m2m_ioctl_expbuf only valid
+> when node->valid_memorytype is V4L2_MEMORY_MMAP.
+> So when go through node->valid_memorytype is V4L2_MEMORY_DMABUF, it
+> fail.
+
+That sounds like a bug. I'll take a look. For all I know, this is fixed in the
+master branch.
+
+Regards,
+
+	Hans
+
+> 
+> 
+> best regards,
+> Tiffany
+> 
+> 
+> 
+>>>                 test VIDIOC_EXPBUF: FAIL
+>>>
+>>>
+>>> Total: 38, Succeeded: 33, Failed: 5, Warnings: 0
+>>
+>> If it is due to a bug in v4l2-compliance, then let me know and I'll fix it. If not,
+>> then it should be fixed in the driver.
+>>
+>> Frankly, it was the presence of these failures that made me think this patch series
+>> wasn't final. Before a v4l2 driver can be accepted in the kernel, v4l2-compliance must pass.
+>>
+>> Regards,
+>>
+>> 	Hans
+> 
+> 
