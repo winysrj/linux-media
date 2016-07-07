@@ -1,75 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:36270 "EHLO
-	mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751432AbcGWRBE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jul 2016 13:01:04 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: lars@metafoo.de
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v3 5/9] media: adv7180: implement g_parm
-Date: Sat, 23 Jul 2016 10:00:45 -0700
-Message-Id: <1469293249-6774-6-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34711 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753076AbcGGSje (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2016 14:39:34 -0400
+Received: by mail-wm0-f65.google.com with SMTP id w75so76447wmd.1
+        for <linux-media@vger.kernel.org>; Thu, 07 Jul 2016 11:39:33 -0700 (PDT)
+MIME-Version: 1.0
+From: Dawood Alnajjar <dawood.alnajjar@idea-ip.com>
+Date: Thu, 7 Jul 2016 15:39:12 -0300
+Message-ID: <CAF_HBRPZHki5r3NixR=VJeR4NViZZpDLuGiOaAyzdvM3_QxgHw@mail.gmail.com>
+Subject: Developing DVB driver for digital TV demodulator
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement g_parm to return the current standard's frame period.
+Hi all,
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Tested-by: Tim Harvey <tharvey@gateworks.com>
-Acked-by: Tim Harvey <tharvey@gateworks.com>
+We just started developing a linux dvb driver for our Digital TV
+demodulator. In the driver module, we have the need to parse the
+incoming video feed due to some issue in our hardware. We are reading
+through the code to understand things and trying to find workarounds,
+and we became to realize that we have several options, but we are not
+aware of the complexity of each or whether they are feasible. Is there
+anyone in this group that would be kind enough to accept a conference
+call/email to answer some of our questions?
 
----
-v3: no changes
-v2: no changes
----
- drivers/media/i2c/adv7180.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+Thank you and hope to hear from any of you.
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 58f4eca..b8a6d94 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -764,6 +764,27 @@ static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static int adv7180_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
-+{
-+	struct adv7180_state *state = to_state(sd);
-+	struct v4l2_captureparm *cparm = &a->parm.capture;
-+
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	memset(a, 0, sizeof(*a));
-+	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	if (state->curr_norm & V4L2_STD_525_60) {
-+		cparm->timeperframe.numerator = 1001;
-+		cparm->timeperframe.denominator = 30000;
-+	} else {
-+		cparm->timeperframe.numerator = 1;
-+		cparm->timeperframe.denominator = 25;
-+	}
-+
-+	return 0;
-+}
-+
- static int adv7180_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *cropcap)
- {
- 	struct adv7180_state *state = to_state(sd);
-@@ -822,6 +843,7 @@ static int adv7180_subscribe_event(struct v4l2_subdev *sd,
- static const struct v4l2_subdev_video_ops adv7180_video_ops = {
- 	.s_std = adv7180_s_std,
- 	.g_std = adv7180_g_std,
-+	.g_parm = adv7180_g_parm,
- 	.querystd = adv7180_querystd,
- 	.g_input_status = adv7180_g_input_status,
- 	.s_routing = adv7180_s_routing,
--- 
-1.9.1
-
+Dawood
+Idea! Electronic Systems
