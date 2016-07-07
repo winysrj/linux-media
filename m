@@ -1,100 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:36087 "EHLO
-	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750728AbcGBKmd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jul 2016 06:42:33 -0400
-Date: Sat, 2 Jul 2016 16:11:53 +0530
-From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-To: Mats Randgaard <matrandg@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Tejun Heo <tj@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] tc358743: Remove deprecated
- create_singlethread_workqueue
-Message-ID: <20160702104153.GA1875@Karyakshetra>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:42018 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750812AbcGGGfy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Jul 2016 02:35:54 -0400
+Subject: Re: [PATCH v2 1/3] sur40: properly report a single frame rate of 60
+ FPS
+To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
+References: <1464725733-22119-1-git-send-email-floe@butterbrot.org>
+ <f5d84d25-eae4-df9b-819b-256565783c35@xs4all.nl>
+ <577B5A2B.5060406@butterbrot.org>
+ <cfd020d2-5834-11ac-1b1c-cb98aa872354@xs4all.nl> <577CC3FE.5080200@xs4all.nl>
+ <577D6F6B.1050207@butterbrot.org>
+Cc: linux-input@vger.kernel.org, Martin Kaltenbrunner <modin@yuri.at>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2e80f101-fdce-f03e-fa0f-fd92673766b3@xs4all.nl>
+Date: Thu, 7 Jul 2016 08:35:46 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <577D6F6B.1050207@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The workqueue "work_queues" enables hotplugging.
-It has a single work item(&state->delayed_work_enable_hotplug) and hence
-doesn't require ordering. Also, it is not being used on a memory
-reclaim path. Hence, the singlethreaded workqueue has been replaced with
-the use of system_wq.
+On 07/06/2016 10:51 PM, Florian Echtler wrote:
+> On 06.07.2016 10:40, Hans Verkuil wrote:
+>> On 07/05/16 09:06, Hans Verkuil wrote:
+>>> On 07/05/2016 08:56 AM, Florian Echtler wrote:
+>>>> On 05.07.2016 08:41, Hans Verkuil wrote:
+>>>>>
+>>>>> Why is s_parm added when you can't change the framerate?
+>>>>
+>>>> Oh, I thought it's mandatory to always have s_parm if you have g_parm
+>>>> (even if it always returns the same values).
+>>>>
+>>>>> Same questions for the
+>>>>> enum_frameintervals function: it doesn't hurt to have it, but if there is only
+>>>>> one unchangeable framerate, then it doesn't make much sense.
+>>>>
+>>>> If you don't have enum_frameintervals, how would you find out about the
+>>>> framerate otherwise? Is g_parm itself enough already for all userspace
+>>>> tools?
+>>>
+>>> It should be. The enum_frameintervals function is much newer than g_parm.
+>>>
+>>> Frankly, I have the same problem with enum_framesizes: it reports only one
+>>> size. These two enum ioctls are normally only implemented if there are at
+>>> least two choices. If there is no choice, then G_FMT will return the size
+>>> and G_PARM the framerate and there is no need to enumerate anything.
+>>>
+>>> The problem is that the spec is ambiguous as to the requirements if there
+>>> is only one choice for size and interval. Are the enum ioctls allowed in
+>>> that case? Personally I think there is nothing against that. But should
+>>> S_PARM also be allowed even though it can't actually change the frameperiod?
+>>>
+>>> Don't bother making changes yet, let me think about this for a bit.
+>>
+>> OK, I came to the conclusion that if enum_frameintervals returns one or
+>> more intervals, then s_parm should be present, even if there is only one
+>> possible interval.
+>>
+>> I have updated the compliance utility to check for this.
+> 
+> AFAICT, the original patch does meet the requirements, then? Or do you
+> have any change requests?
 
-System workqueues have been able to handle high level of concurrency
-for a long time now and hence it's not required to have a singlethreaded
-workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
-created with create_singlethread_workqueue(), system_wq allows multiple
-work items to overlap executions even on the same CPU; however, a
-per-cpu workqueue doesn't have any CPU locality or global ordering
-guarantee unless the target CPU is explicitly specified and thus the
-increase of local concurrency shouldn't make any difference.
+Can you run the latest v4l2-compliance test? If that passes, then I'll take
+this patch as-is.
 
-Work item has been sync cancelled in tc358743_remove() to ensure
-that there are no pending tasks while disconnecting the driver.
+Regards,
 
-Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
----
- drivers/media/i2c/tc358743.c | 15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
-
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index 6cf6d06..1e3a0dd 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -89,8 +89,6 @@ struct tc358743_state {
- 	struct v4l2_ctrl *audio_sampling_rate_ctrl;
- 	struct v4l2_ctrl *audio_present_ctrl;
-
--	/* work queues */
--	struct workqueue_struct *work_queues;
- 	struct delayed_work delayed_work_enable_hotplug;
-
- 	/* edid  */
-@@ -425,8 +423,7 @@ static void tc358743_enable_edid(struct v4l2_subdev *sd)
-
- 	/* Enable hotplug after 100 ms. DDC access to EDID is also enabled when
- 	 * hotplug is enabled. See register DDC_CTL */
--	queue_delayed_work(state->work_queues,
--			   &state->delayed_work_enable_hotplug, HZ / 10);
-+	schedule_delayed_work(&state->delayed_work_enable_hotplug, HZ / 10);
-
- 	tc358743_enable_interrupts(sd, true);
- 	tc358743_s_ctrl_detect_tx_5v(sd);
-@@ -1884,14 +1881,6 @@ static int tc358743_probe(struct i2c_client *client,
- 		goto err_hdl;
- 	}
-
--	/* work queues */
--	state->work_queues = create_singlethread_workqueue(client->name);
--	if (!state->work_queues) {
--		v4l2_err(sd, "Could not create work queue\n");
--		err = -ENOMEM;
--		goto err_hdl;
--	}
--
- 	state->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	err = media_entity_pads_init(&sd->entity, 1, &state->pad);
- 	if (err < 0)
-@@ -1940,7 +1929,6 @@ static int tc358743_probe(struct i2c_client *client,
-
- err_work_queues:
- 	cancel_delayed_work(&state->delayed_work_enable_hotplug);
--	destroy_workqueue(state->work_queues);
- 	mutex_destroy(&state->confctl_mutex);
- err_hdl:
- 	media_entity_cleanup(&sd->entity);
-@@ -1954,7 +1942,6 @@ static int tc358743_remove(struct i2c_client *client)
- 	struct tc358743_state *state = to_state(sd);
-
- 	cancel_delayed_work(&state->delayed_work_enable_hotplug);
--	destroy_workqueue(state->work_queues);
- 	v4l2_async_unregister_subdev(sd);
- 	v4l2_device_unregister_subdev(sd);
- 	mutex_destroy(&state->confctl_mutex);
---
-2.1.4
-
+	Hans
