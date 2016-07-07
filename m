@@ -1,170 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:57030 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753333AbcGVK2V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 06:28:21 -0400
-Subject: Re: [PATCH v3 2/5] media: Unify IOCTL handler calling
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-References: <1469099686-10938-1-git-send-email-sakari.ailus@linux.intel.com>
- <1469099686-10938-3-git-send-email-sakari.ailus@linux.intel.com>
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6a69db28-5217-3d60-9d10-1387353c60fd@xs4all.nl>
-Date: Fri, 22 Jul 2016 12:28:15 +0200
+Received: from mail-it0-f51.google.com ([209.85.214.51]:37784 "EHLO
+	mail-it0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751275AbcGGPEy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2016 11:04:54 -0400
+Received: by mail-it0-f51.google.com with SMTP id f6so22058816ith.0
+        for <linux-media@vger.kernel.org>; Thu, 07 Jul 2016 08:04:49 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1469099686-10938-3-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1467846004-12731-5-git-send-email-steve_longerbeam@mentor.com>
+References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com> <1467846004-12731-5-git-send-email-steve_longerbeam@mentor.com>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Thu, 7 Jul 2016 08:04:47 -0700
+Message-ID: <CAJ+vNU116Jw0XA8U6iUyhpSSKXsoTSD3qCJxBemkrL60+EvoWg@mail.gmail.com>
+Subject: Re: [PATCH 04/11] media: adv7180: implement g_parm
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 07/21/2016 01:14 PM, Sakari Ailus wrote:
-> Each IOCTL handler can be listed in an array instead of using a large and
-> cumbersome switch. Do that.
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Thanks!
-
-	Hans
-
+On Wed, Jul 6, 2016 at 3:59 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
+> Implement g_parm to return the current standard's frame period.
+>
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 > ---
->  drivers/media/media-device.c | 81 +++++++++++++-------------------------------
->  1 file changed, 23 insertions(+), 58 deletions(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 3ac526d..6fd9b77 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -419,12 +419,16 @@ static long media_device_get_topology(struct media_device *mdev,
->  	return 0;
+>  drivers/media/i2c/adv7180.c | 22 ++++++++++++++++++++++
+>  1 file changed, 22 insertions(+)
+>
+> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+> index 38e5161..42816d4 100644
+> --- a/drivers/media/i2c/adv7180.c
+> +++ b/drivers/media/i2c/adv7180.c
+> @@ -741,6 +741,27 @@ static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
+>         return 0;
 >  }
->  
-> -#define MEDIA_IOC(__cmd) \
-> -	[_IOC_NR(MEDIA_IOC_##__cmd)] = { .cmd = MEDIA_IOC_##__cmd }
-> +#define MEDIA_IOC(__cmd, func)						\
-> +	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
-> +		.cmd = MEDIA_IOC_##__cmd,				\
-> +		.fn = (long (*)(struct media_device *, void __user *))func,    \
-> +	}
->  
->  /* the table is indexed by _IOC_NR(cmd) */
->  struct media_ioctl_info {
->  	unsigned int cmd;
-> +	long (*fn)(struct media_device *dev, void __user *arg);
->  };
->  
->  static inline long is_valid_ioctl(const struct media_ioctl_info *info,
-> @@ -440,53 +444,28 @@ static long __media_device_ioctl(
->  {
->  	struct media_devnode *devnode = media_devnode_data(filp);
->  	struct media_device *dev = devnode->media_dev;
-> +	const struct media_ioctl_info *info;
->  	long ret;
->  
->  	ret = is_valid_ioctl(info_array, info_array_len, cmd);
->  	if (ret)
->  		return ret;
->  
-> +	info = &info_array[_IOC_NR(cmd)];
+>
+> +static int adv7180_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
+> +{
+> +       struct adv7180_state *state = to_state(sd);
+> +       struct v4l2_captureparm *cparm = &a->parm.capture;
 > +
->  	mutex_lock(&dev->graph_mutex);
-> -	switch (cmd) {
-> -	case MEDIA_IOC_DEVICE_INFO:
-> -		ret = media_device_get_info(dev,
-> -				(struct media_device_info __user *)arg);
-> -		break;
-> -
-> -	case MEDIA_IOC_ENUM_ENTITIES:
-> -		ret = media_device_enum_entities(dev,
-> -				(struct media_entity_desc __user *)arg);
-> -		break;
-> -
-> -	case MEDIA_IOC_ENUM_LINKS:
-> -		ret = media_device_enum_links(dev,
-> -				(struct media_links_enum __user *)arg);
-> -		break;
-> -
-> -	case MEDIA_IOC_SETUP_LINK:
-> -		ret = media_device_setup_link(dev,
-> -				(struct media_link_desc __user *)arg);
-> -		break;
-> -
-> -	case MEDIA_IOC_G_TOPOLOGY:
-> -		ret = media_device_get_topology(dev,
-> -				(struct media_v2_topology __user *)arg);
-> -		break;
-> -
-> -	default:
-> -		ret = -ENOIOCTLCMD;
-> -	}
-> +	ret = info->fn(dev, arg);
->  	mutex_unlock(&dev->graph_mutex);
->  
->  	return ret;
->  }
->  
->  static const struct media_ioctl_info ioctl_info[] = {
-> -	MEDIA_IOC(DEVICE_INFO),
-> -	MEDIA_IOC(ENUM_ENTITIES),
-> -	MEDIA_IOC(ENUM_LINKS),
-> -	MEDIA_IOC(SETUP_LINK),
-> -	MEDIA_IOC(G_TOPOLOGY),
-> +	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
-> +	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
-> +	MEDIA_IOC(ENUM_LINKS, media_device_enum_links),
-> +	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
-> +	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
->  };
->  
->  static long media_device_ioctl(struct file *filp, unsigned int cmd,
-> @@ -528,33 +507,19 @@ static long media_device_enum_links32(struct media_device *mdev,
->  #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, struct media_links_enum32)
->  
->  static const struct media_ioctl_info compat_ioctl_info[] = {
-> -	MEDIA_IOC(DEVICE_INFO),
-> -	MEDIA_IOC(ENUM_ENTITIES),
-> -	MEDIA_IOC(ENUM_LINKS32),
-> -	MEDIA_IOC(SETUP_LINK),
-> -	MEDIA_IOC(G_TOPOLOGY),
-> +	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
-> +	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
-> +	MEDIA_IOC(ENUM_LINKS32, media_device_enum_links32),
-> +	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
-> +	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
->  };
->  
->  static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
->  				      unsigned long arg)
+> +       if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> +               return -EINVAL;
+> +
+> +       memset(a, 0, sizeof(*a));
+> +       a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +       if (state->curr_norm & V4L2_STD_525_60) {
+> +               cparm->timeperframe.numerator = 1001;
+> +               cparm->timeperframe.denominator = 30000;
+> +       } else {
+> +               cparm->timeperframe.numerator = 1;
+> +               cparm->timeperframe.denominator = 25;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+>  static int adv7180_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *cropcap)
 >  {
-> -	struct media_devnode *devnode = media_devnode_data(filp);
-> -	struct media_device *dev = devnode->media_dev;
-> -	long ret;
-> -
-> -	switch (cmd) {
-> -	case MEDIA_IOC_ENUM_LINKS32:
-> -		mutex_lock(&dev->graph_mutex);
-> -		ret = media_device_enum_links32(dev,
-> -				(struct media_links_enum32 __user *)arg);
-> -		mutex_unlock(&dev->graph_mutex);
-> -		break;
-> -
-> -	default:
-> -		return media_device_ioctl(filp, cmd, arg);
-> -	}
-> -
-> -	return ret;
-> +	return __media_device_ioctl(
-> +		filp, cmd, (void __user *)arg,
-> +		compat_ioctl_info, ARRAY_SIZE(compat_ioctl_info));
->  }
->  #endif /* CONFIG_COMPAT */
->  
-> 
+>         struct adv7180_state *state = to_state(sd);
+> @@ -765,6 +786,7 @@ static int adv7180_g_tvnorms(struct v4l2_subdev *sd, v4l2_std_id *norm)
+>  static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+>         .s_std = adv7180_s_std,
+>         .g_std = adv7180_g_std,
+> +       .g_parm = adv7180_g_parm,
+>         .querystd = adv7180_querystd,
+>         .g_input_status = adv7180_g_input_status,
+>         .s_routing = adv7180_s_routing,
+> --
+
+Steve,
+
+Tested on an IMX6 Gateworks Ventana with IMX6 capture drivers [1].
+
+Tested-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Tim Harvey <tharvey@gateworks.com>
+
+Added to Cc:
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+
+Regards,
+
+Tim
+
+[1] - http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/102914
