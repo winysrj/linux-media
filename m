@@ -1,410 +1,340 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:44495 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750777AbcGLSIB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 14:08:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/2] doc-rst: improve CEC documentation
-Date: Tue, 12 Jul 2016 20:07:45 +0200
-Message-Id: <1468346865-36465-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1468346865-36465-1-git-send-email-hverkuil@xs4all.nl>
-References: <1468346865-36465-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-io0-f176.google.com ([209.85.223.176]:34146 "EHLO
+	mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751074AbcGGPXR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2016 11:23:17 -0400
+Received: by mail-io0-f176.google.com with SMTP id i186so23348149iof.1
+        for <linux-media@vger.kernel.org>; Thu, 07 Jul 2016 08:23:17 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1467846004-12731-6-git-send-email-steve_longerbeam@mentor.com>
+References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com> <1467846004-12731-6-git-send-email-steve_longerbeam@mentor.com>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Thu, 7 Jul 2016 08:23:16 -0700
+Message-ID: <CAJ+vNU2orZ_C8Hyx6_vqQvDg0P-TzivB22tm_D84mq6YDLxNqA@mail.gmail.com>
+Subject: Re: [PATCH 05/11] media: adv7180: init chip with AD recommended
+ register settings
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Simon Horman <horms+renesas@verge.net.au>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Jul 6, 2016 at 3:59 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
+> Define and load register tables that conform to Analog Device's
+> recommended register settings. It loads the default single-ended
+> CVBS on Ain1 configuration for both ADV7180 and ADV7182 chips.
+>
+> New register addresses have been defined for the tables. Those new
+> defines are also used in existing locations where hard-coded addresses
+> were used.
+>
+> Note this patch also enables NEWAVMODE, which is also recommended by
+> Analog Devices. This will likely break any current backends using this
+> subdev that are expecting different or manually configured AV codes.
+>
+> Note also that bt.656-4 support has been removed in this patch, but it
+> will be brought back in a subsequent patch.
+>
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  drivers/media/i2c/adv7180.c | 168 ++++++++++++++++++++++++++++++++++----------
+>  1 file changed, 130 insertions(+), 38 deletions(-)
+>
+> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+> index 42816d4..92e2f37 100644
+> --- a/drivers/media/i2c/adv7180.c
+> +++ b/drivers/media/i2c/adv7180.c
+> @@ -56,10 +56,11 @@
+>
+>  #define ADV7182_REG_INPUT_VIDSEL                       0x0002
+>
+> +#define ADV7180_REG_OUTPUT_CONTROL                     0x0003
+>  #define ADV7180_REG_EXTENDED_OUTPUT_CONTROL            0x0004
+>  #define ADV7180_EXTENDED_OUTPUT_CONTROL_NTSCDIS                0xC5
+>
+> -#define ADV7180_REG_AUTODETECT_ENABLE                  0x07
+> +#define ADV7180_REG_AUTODETECT_ENABLE                  0x0007
+>  #define ADV7180_AUTODETECT_DEFAULT                     0x7f
+>  /* Contrast */
+>  #define ADV7180_REG_CON                0x0008  /*Unsigned */
+> @@ -100,6 +101,20 @@
+>  #define ADV7180_REG_IDENT 0x0011
+>  #define ADV7180_ID_7180 0x18
+>
+> +#define ADV7180_REG_STATUS3            0x0013
+> +#define ADV7180_REG_ANALOG_CLAMP_CTL   0x0014
+> +#define ADV7180_REG_SHAP_FILTER_CTL_1  0x0017
+> +#define ADV7180_REG_CTRL_2             0x001d
+> +#define ADV7180_REG_VSYNC_FIELD_CTL_1  0x0031
+> +#define ADV7180_REG_MANUAL_WIN_CTL_1   0x003d
+> +#define ADV7180_REG_MANUAL_WIN_CTL_2   0x003e
+> +#define ADV7180_REG_MANUAL_WIN_CTL_3   0x003f
+> +#define ADV7180_REG_LOCK_CNT           0x0051
+> +#define ADV7180_REG_CVBS_TRIM          0x0052
+> +#define ADV7180_REG_CLAMP_ADJ          0x005a
+> +#define ADV7180_REG_RES_CIR            0x005f
+> +#define ADV7180_REG_DIFF_MODE          0x0060
+> +
+>  #define ADV7180_REG_ICONF1             0x2040
+>  #define ADV7180_ICONF1_ACTIVE_LOW      0x01
+>  #define ADV7180_ICONF1_PSYNC_ONLY      0x10
+> @@ -129,9 +144,15 @@
+>  #define ADV7180_REG_VPP_SLAVE_ADDR     0xFD
+>  #define ADV7180_REG_CSI_SLAVE_ADDR     0xFE
+>
+> -#define ADV7180_REG_FLCONTROL 0x40e0
+> +#define ADV7180_REG_ACE_CTRL1          0x4080
+> +#define ADV7180_REG_ACE_CTRL5          0x4084
+> +#define ADV7180_REG_FLCONTROL          0x40e0
+>  #define ADV7180_FLCONTROL_FL_ENABLE 0x1
+>
+> +#define ADV7180_REG_RST_CLAMP  0x809c
+> +#define ADV7180_REG_AGC_ADJ1   0x80b6
+> +#define ADV7180_REG_AGC_ADJ2   0x80c0
+> +
+>  #define ADV7180_CSI_REG_PWRDN  0x00
+>  #define ADV7180_CSI_PWRDN      0x80
+>
+> @@ -209,6 +230,11 @@ struct adv7180_state {
+>                                             struct adv7180_state,       \
+>                                             ctrl_hdl)->sd)
+>
+> +struct adv7180_reg_tbl_t {
+> +       unsigned int reg;
+> +       unsigned int val;
+> +};
+> +
+>  static int adv7180_select_page(struct adv7180_state *state, unsigned int page)
+>  {
+>         if (state->register_page != page) {
+> @@ -235,6 +261,20 @@ static int adv7180_read(struct adv7180_state *state, unsigned int reg)
+>         return i2c_smbus_read_byte_data(state->client, reg & 0xff);
+>  }
+>
+> +static int adv7180_load_reg_tbl(struct adv7180_state *state,
+> +                               const struct adv7180_reg_tbl_t *tbl, int n)
+> +{
+> +       int ret, i;
+> +
+> +       for (i = 0; i < n; i++) {
+> +               ret = adv7180_write(state, tbl[i].reg, tbl[i].val);
+> +               if (ret)
+> +                       return ret;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+>  static int adv7180_csi_write(struct adv7180_state *state, unsigned int reg,
+>         unsigned int value)
+>  {
+> @@ -828,19 +868,36 @@ static irqreturn_t adv7180_irq(int irq, void *devid)
+>         return IRQ_HANDLED;
+>  }
+>
+> +/*
+> + * This register table conforms to Analog Device's Register Settings
+> + * Recommendation for the ADV7180. It configures single-ended CVBS
+> + * input on Ain1, and enables NEWAVMODE.
+> + */
+> +static const struct adv7180_reg_tbl_t adv7180_single_ended_cvbs[] = {
+> +       /* Set analog mux for CVBS on Ain1 */
+> +       { ADV7180_REG_INPUT_CONTROL, 0x00 },
+> +       /* ADI Required Write: Reset Clamp Circuitry */
+> +       { ADV7180_REG_ANALOG_CLAMP_CTL, 0x30 },
+> +       /* Enable SFL Output */
+> +       { ADV7180_REG_EXTENDED_OUTPUT_CONTROL, 0x57 },
+> +       /* Select SH1 Chroma Shaping Filter */
+> +       { ADV7180_REG_SHAP_FILTER_CTL_1, 0x41 },
+> +       /* Enable NEWAVMODE */
+> +       { ADV7180_REG_VSYNC_FIELD_CTL_1, 0x02 },
+> +       /* ADI Required Write: optimize windowing function Step 1,2,3 */
+> +       { ADV7180_REG_MANUAL_WIN_CTL_1, 0xA2 },
+> +       { ADV7180_REG_MANUAL_WIN_CTL_2, 0x6A },
+> +       { ADV7180_REG_MANUAL_WIN_CTL_3, 0xA0 },
+> +       /* ADI Required Write: Enable ADC step 1,2,3 */
+> +       { 0x8055, 0x81 }, /* undocumented register 0x55 */
+> +       /* Recommended AFE I BIAS Setting for CVBS mode */
+> +       { ADV7180_REG_CVBS_TRIM, 0x0D },
+> +};
+> +
+>  static int adv7180_init(struct adv7180_state *state)
+>  {
+> -       int ret;
+> -
+> -       /* ITU-R BT.656-4 compatible */
+> -       ret = adv7180_write(state, ADV7180_REG_EXTENDED_OUTPUT_CONTROL,
+> -                       ADV7180_EXTENDED_OUTPUT_CONTROL_NTSCDIS);
+> -       if (ret < 0)
+> -               return ret;
+> -
+> -       /* Manually set V bit end position in NTSC mode */
+> -       return adv7180_write(state, ADV7180_REG_NTSC_V_BIT_END,
+> -                                       ADV7180_NTSC_V_BIT_END_MANUAL_NVEND);
+> +       return adv7180_load_reg_tbl(state, adv7180_single_ended_cvbs,
+> +                                   ARRAY_SIZE(adv7180_single_ended_cvbs));
+>  }
+>
+>  static int adv7180_set_std(struct adv7180_state *state, unsigned int std)
+> @@ -862,8 +919,48 @@ static int adv7180_select_input(struct adv7180_state *state, unsigned int input)
+>         return adv7180_write(state, ADV7180_REG_INPUT_CONTROL, ret);
+>  }
+>
+> +/*
+> + * This register table conforms to Analog Device's Register Settings
+> + * Recommendation revision C for the ADV7182. It configures single-ended
+> + * CVBS inputs on Ain1, and enables NEWAVMODE.
+> + */
+> +static const struct adv7180_reg_tbl_t adv7182_single_ended_cvbs[] = {
+> +       /* Exit Power Down Mode */
+> +       { ADV7180_REG_PWR_MAN, 0x00 },
+> +       /* Enable ADV7182 for 28.63636 MHz Crystal Clock Input */
+> +       { ADV7180_REG_STATUS3, 0x00 },
+> +       /* Set optimized IBIAS for single-ended CVBS input */
+> +       { ADV7180_REG_CVBS_TRIM, 0xCD },
+> +       /* Switch to single-ended CVBS on AIN1 */
+> +       { ADV7180_REG_INPUT_CONTROL, 0x00 },
+> +       /* ADI Required Write: Reset Current Clamp Circuitry steps 1,2,3,4 */
+> +       { ADV7180_REG_RST_CLAMP, 0x00 },
+> +       { ADV7180_REG_RST_CLAMP, 0xFF },
+> +       /* Select SH1 Chroma Shaping Filter */
+> +       { ADV7180_REG_SHAP_FILTER_CTL_1, 0x41 },
+> +       /* Enable Pixel & Sync output drivers */
+> +       { ADV7180_REG_OUTPUT_CONTROL, 0x0C },
+> +       /* Power-up INTRQ, HS and VS/FIELD/SFL pad */
+> +       { ADV7180_REG_EXTENDED_OUTPUT_CONTROL, 0x07 },
+> +       /* Enable LLC Output Driver */
+> +       { ADV7180_REG_CTRL_2, 0x40 },
+> +       /* Optimize ACE Performance */
+> +       { ADV7180_REG_ACE_CTRL5, 0x00 },
+> +       /* Enable ACE Feature */
+> +       { ADV7180_REG_ACE_CTRL1, 0x80 },
+> +       /* Enable NEWAVMODE */
+> +       { ADV7180_REG_VSYNC_FIELD_CTL_1, 0x02 },
+> +};
+> +
+>  static int adv7182_init(struct adv7180_state *state)
+>  {
+> +       int ret;
+> +
+> +       ret = adv7180_load_reg_tbl(state, adv7182_single_ended_cvbs,
+> +                                  ARRAY_SIZE(adv7182_single_ended_cvbs));
+> +       if (ret)
+> +               return ret;
+> +
+>         if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2)
+>                 adv7180_write(state, ADV7180_REG_CSI_SLAVE_ADDR,
+>                         ADV7180_DEFAULT_CSI_I2C_ADDR << 1);
+> @@ -881,20 +978,15 @@ static int adv7182_init(struct adv7180_state *state)
+>
+>         /* ADI required writes */
+>         if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
+> -               adv7180_write(state, 0x0003, 0x4e);
+> -               adv7180_write(state, 0x0004, 0x57);
+> -               adv7180_write(state, 0x001d, 0xc0);
+> +               adv7180_write(state, ADV7180_REG_OUTPUT_CONTROL, 0x4e);
+> +               adv7180_write(state, ADV7180_REG_EXTENDED_OUTPUT_CONTROL, 0x57);
+> +               adv7180_write(state, ADV7180_REG_CTRL_2, 0xc0);
+>         } else {
+>                 if (state->chip_info->flags & ADV7180_FLAG_V2)
+> -                       adv7180_write(state, 0x0004, 0x17);
+> -               else
+> -                       adv7180_write(state, 0x0004, 0x07);
+> -               adv7180_write(state, 0x0003, 0x0c);
+> -               adv7180_write(state, 0x001d, 0x40);
+> +                       adv7180_write(state, ADV7180_REG_EXTENDED_OUTPUT_CONTROL,
+> +                                     0x17);
+>         }
+>
+> -       adv7180_write(state, 0x0013, 0x00);
+> -
+>         return 0;
+>  }
+>
+> @@ -967,8 +1059,8 @@ static int adv7182_select_input(struct adv7180_state *state, unsigned int input)
+>                 return ret;
+>
+>         /* Reset clamp circuitry - ADI recommended writes */
+> -       adv7180_write(state, 0x809c, 0x00);
+> -       adv7180_write(state, 0x809c, 0xff);
+> +       adv7180_write(state, ADV7180_REG_RST_CLAMP, 0x00);
+> +       adv7180_write(state, ADV7180_REG_RST_CLAMP, 0xff);
+>
+>         input_type = adv7182_get_input_type(input);
+>
+> @@ -976,10 +1068,10 @@ static int adv7182_select_input(struct adv7180_state *state, unsigned int input)
+>         case ADV7182_INPUT_TYPE_CVBS:
+>         case ADV7182_INPUT_TYPE_DIFF_CVBS:
+>                 /* ADI recommends to use the SH1 filter */
+> -               adv7180_write(state, 0x0017, 0x41);
+> +               adv7180_write(state, ADV7180_REG_SHAP_FILTER_CTL_1, 0x41);
+>                 break;
+>         default:
+> -               adv7180_write(state, 0x0017, 0x01);
+> +               adv7180_write(state, ADV7180_REG_SHAP_FILTER_CTL_1, 0x01);
+>                 break;
+>         }
+>
+> @@ -989,21 +1081,21 @@ static int adv7182_select_input(struct adv7180_state *state, unsigned int input)
+>                 lbias = adv7182_lbias_settings[input_type];
+>
+>         for (i = 0; i < ARRAY_SIZE(adv7182_lbias_settings[0]); i++)
+> -               adv7180_write(state, 0x0052 + i, lbias[i]);
+> +               adv7180_write(state, ADV7180_REG_CVBS_TRIM + i, lbias[i]);
+>
+>         if (input_type == ADV7182_INPUT_TYPE_DIFF_CVBS) {
+>                 /* ADI required writes to make differential CVBS work */
+> -               adv7180_write(state, 0x005f, 0xa8);
+> -               adv7180_write(state, 0x005a, 0x90);
+> -               adv7180_write(state, 0x0060, 0xb0);
+> -               adv7180_write(state, 0x80b6, 0x08);
+> -               adv7180_write(state, 0x80c0, 0xa0);
+> +               adv7180_write(state, ADV7180_REG_RES_CIR, 0xa8);
+> +               adv7180_write(state, ADV7180_REG_CLAMP_ADJ, 0x90);
+> +               adv7180_write(state, ADV7180_REG_DIFF_MODE, 0xb0);
+> +               adv7180_write(state, ADV7180_REG_AGC_ADJ1, 0x08);
+> +               adv7180_write(state, ADV7180_REG_AGC_ADJ2, 0xa0);
+>         } else {
+> -               adv7180_write(state, 0x005f, 0xf0);
+> -               adv7180_write(state, 0x005a, 0xd0);
+> -               adv7180_write(state, 0x0060, 0x10);
+> -               adv7180_write(state, 0x80b6, 0x9c);
+> -               adv7180_write(state, 0x80c0, 0x00);
+> +               adv7180_write(state, ADV7180_REG_RES_CIR, 0xf0);
+> +               adv7180_write(state, ADV7180_REG_CLAMP_ADJ, 0xd0);
+> +               adv7180_write(state, ADV7180_REG_DIFF_MODE, 0x10);
+> +               adv7180_write(state, ADV7180_REG_AGC_ADJ1, 0x9c);
+> +               adv7180_write(state, ADV7180_REG_AGC_ADJ2, 0x00);
+>         }
+>
+>         return 0;
+> --
 
-Lots of fixups relating to references.
+Steve,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/cec/cec-func-ioctl.rst    |  2 +-
- Documentation/media/uapi/cec/cec-func-open.rst     | 10 +++----
- .../media/uapi/cec/cec-ioc-adap-g-caps.rst         | 18 ++++++------
- .../media/uapi/cec/cec-ioc-adap-g-log-addrs.rst    | 14 ++++-----
- .../media/uapi/cec/cec-ioc-adap-g-phys-addr.rst    | 14 ++++-----
- Documentation/media/uapi/cec/cec-ioc-dqevent.rst   |  2 +-
- Documentation/media/uapi/cec/cec-ioc-g-mode.rst    | 34 +++++++++-------------
- Documentation/media/uapi/cec/cec-ioc-receive.rst   | 28 +++++++++---------
- 8 files changed, 58 insertions(+), 64 deletions(-)
+Tested on an IMX6 Gateworks Ventana with IMX6 capture drivers [1].
 
-diff --git a/Documentation/media/uapi/cec/cec-func-ioctl.rst b/Documentation/media/uapi/cec/cec-func-ioctl.rst
-index a07cc7c..d0279e6d 100644
---- a/Documentation/media/uapi/cec/cec-func-ioctl.rst
-+++ b/Documentation/media/uapi/cec/cec-func-ioctl.rst
-@@ -29,7 +29,7 @@ Arguments
- 
- ``request``
-     CEC ioctl request code as defined in the cec.h header file, for
--    example CEC_ADAP_G_CAPS.
-+    example :ref:`CEC_ADAP_G_CAPS`.
- 
- ``argp``
-     Pointer to a request-specific structure.
-diff --git a/Documentation/media/uapi/cec/cec-func-open.rst b/Documentation/media/uapi/cec/cec-func-open.rst
-index 245d679..cbf1176 100644
---- a/Documentation/media/uapi/cec/cec-func-open.rst
-+++ b/Documentation/media/uapi/cec/cec-func-open.rst
-@@ -32,11 +32,11 @@ Arguments
-     Open flags. Access mode must be ``O_RDWR``.
- 
-     When the ``O_NONBLOCK`` flag is given, the
--    :ref:`CEC_RECEIVE` ioctl will return EAGAIN
--    error code when no message is available, and the
--    :ref:`CEC_TRANSMIT`,
--    :ref:`CEC_ADAP_S_PHYS_ADDR` and
--    :ref:`CEC_ADAP_S_LOG_ADDRS` ioctls
-+    :ref:`CEC_RECEIVE <CEC_RECEIVE>` ioctl will return the EAGAIN
-+    error code when no message is available, and ioctls
-+    :ref:`CEC_TRANSMIT <CEC_TRANSMIT>`,
-+    :ref:`CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>` and
-+    :ref:`CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
-     all act in non-blocking mode.
- 
-     Other flags have no effect.
-diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-index 2ca9199..63b808e 100644
---- a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
-@@ -34,7 +34,7 @@ Description
- .. note:: This documents the proposed CEC API. This API is not yet finalized
-    and is currently only available as a staging kernel module.
- 
--All cec devices must support the :ref:`CEC_ADAP_G_CAPS` ioctl. To query
-+All cec devices must support ``CEC_ADAP_G_CAPS``. To query
- device information, applications call the ioctl with a pointer to a
- struct :ref:`cec_caps <cec-caps>`. The driver fills the structure and
- returns the information to the application. The ioctl never fails.
-@@ -99,8 +99,8 @@ returns the information to the application. The ioctl never fails.
- 
-        -  0x00000001
- 
--       -  Userspace has to configure the physical address by calling
--	  :ref:`CEC_ADAP_S_PHYS_ADDR`. If
-+       -  Userspace has to configure the physical address by calling ioctl
-+	  :ref:`CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>`. If
- 	  this capability isn't set, then setting the physical address is
- 	  handled by the kernel whenever the EDID is set (for an HDMI
- 	  receiver) or read (for an HDMI transmitter).
-@@ -111,8 +111,8 @@ returns the information to the application. The ioctl never fails.
- 
-        -  0x00000002
- 
--       -  Userspace has to configure the logical addresses by calling
--	  :ref:`CEC_ADAP_S_LOG_ADDRS`. If
-+       -  Userspace has to configure the logical addresses by calling ioctl
-+	  :ref:`CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`. If
- 	  this capability isn't set, then the kernel will have configured
- 	  this.
- 
-@@ -122,8 +122,8 @@ returns the information to the application. The ioctl never fails.
- 
-        -  0x00000004
- 
--       -  Userspace can transmit CEC messages by calling
--	  :ref:`CEC_TRANSMIT`. This implies that
-+       -  Userspace can transmit CEC messages by calling ioctl
-+	  :ref:`CEC_TRANSMIT <CEC_TRANSMIT>`. This implies that
- 	  userspace can be a follower as well, since being able to transmit
- 	  messages is a prerequisite of becoming a follower. If this
- 	  capability isn't set, then the kernel will handle all CEC
-@@ -135,8 +135,8 @@ returns the information to the application. The ioctl never fails.
- 
-        -  0x00000008
- 
--       -  Userspace can use the passthrough mode by calling
--	  :ref:`CEC_S_MODE`.
-+       -  Userspace can use the passthrough mode by calling ioctl
-+	  :ref:`CEC_S_MODE <CEC_S_MODE>`.
- 
-     -  .. _`CEC-CAP-RC`:
- 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
-index 7d7a3b4..d082830 100644
---- a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
-@@ -4,9 +4,9 @@
- .. _CEC_ADAP_G_LOG_ADDRS:
- .. _CEC_ADAP_S_LOG_ADDRS:
- 
--************************************************
--ioctl CEC_ADAP_G_LOG_ADDRS, CEC_ADAP_S_LOG_ADDRS
--************************************************
-+****************************************************
-+ioctls CEC_ADAP_G_LOG_ADDRS and CEC_ADAP_S_LOG_ADDRS
-+****************************************************
- 
- Name
- ====
-@@ -39,16 +39,16 @@ Description
-    and is currently only available as a staging kernel module.
- 
- To query the current CEC logical addresses, applications call the
--:ref:`CEC_ADAP_G_LOG_ADDRS` ioctl with a pointer to a
-+``CEC_ADAP_G_LOG_ADDRS`` ioctl with a pointer to a
- :c:type:`struct cec_log_addrs` structure where the drivers stores
- the logical addresses.
- 
- To set new logical addresses, applications fill in struct
--:c:type:`struct cec_log_addrs` and call the :ref:`CEC_ADAP_S_LOG_ADDRS`
--ioctl with a pointer to this struct. The :ref:`CEC_ADAP_S_LOG_ADDRS` ioctl
-+:c:type:`struct cec_log_addrs` and call the ``CEC_ADAP_S_LOG_ADDRS`` ioctl
-+with a pointer to this struct. The ``CEC_ADAP_S_LOG_ADDRS`` ioctl
- is only available if ``CEC_CAP_LOG_ADDRS`` is set (ENOTTY error code is
- returned otherwise). This ioctl will block until all requested logical
--addresses have been claimed. :ref:`CEC_ADAP_S_LOG_ADDRS` can only be called
-+addresses have been claimed. The ``CEC_ADAP_S_LOG_ADDRS`` ioctl can only be called
- by a file handle in initiator mode (see
- :ref:`CEC_S_MODE`).
- 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst
-index 58aaba6..3a4d25a 100644
---- a/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst
-@@ -4,9 +4,9 @@
- .. _CEC_ADAP_G_PHYS_ADDR:
- .. _CEC_ADAP_S_PHYS_ADDR:
- 
--************************************************
--ioctl CEC_ADAP_G_PHYS_ADDR, CEC_ADAP_S_PHYS_ADDR
--************************************************
-+****************************************************
-+ioctls CEC_ADAP_G_PHYS_ADDR and CEC_ADAP_S_PHYS_ADDR
-+****************************************************
- 
- Name
- ====
-@@ -38,14 +38,14 @@ Description
-    and is currently only available as a staging kernel module.
- 
- To query the current physical address applications call the
--:ref:`CEC_ADAP_G_PHYS_ADDR` ioctl with a pointer to an __u16 where the
-+``CEC_ADAP_G_PHYS_ADDR`` ioctl with a pointer to an __u16 where the
- driver stores the physical address.
- 
- To set a new physical address applications store the physical address in
--an __u16 and call the :ref:`CEC_ADAP_S_PHYS_ADDR` ioctl with a pointer to
--this integer. :ref:`CEC_ADAP_S_PHYS_ADDR` is only available if
-+an __u16 and call the ``CEC_ADAP_S_PHYS_ADDR`` ioctl with a pointer to
-+this integer. The ``CEC_ADAP_S_PHYS_ADDR`` ioctl is only available if
- ``CEC_CAP_PHYS_ADDR`` is set (ENOTTY error code will be returned
--otherwise). :ref:`CEC_ADAP_S_PHYS_ADDR` can only be called by a file handle
-+otherwise). The ``CEC_ADAP_S_PHYS_ADDR`` ioctl can only be called by a file handle
- in initiator mode (see :ref:`CEC_S_MODE`), if not
- EBUSY error code will be returned.
- 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-index 681201f..136baa6 100644
---- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-@@ -36,7 +36,7 @@ Description
-    and is currently only available as a staging kernel module.
- 
- CEC devices can send asynchronous events. These can be retrieved by
--calling the :ref:`CEC_DQEVENT` ioctl. If the file descriptor is in
-+calling the ``CEC_DQEVENT`` ioctl. If the file descriptor is in
- non-blocking mode and no event is pending, then it will return -1 and
- set errno to the EAGAIN error code.
- 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
-index c5a0fc4..7b1a364 100644
---- a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
-@@ -4,9 +4,9 @@
- .. _CEC_G_MODE:
- .. _CEC_S_MODE:
- 
--****************************
--ioctl CEC_G_MODE, CEC_S_MODE
--****************************
-+********************************
-+ioctls CEC_G_MODE and CEC_S_MODE
-+********************************
- 
- CEC_G_MODE, CEC_S_MODE - Get or set exclusive use of the CEC adapter
- 
-@@ -33,9 +33,7 @@ Description
- .. note:: This documents the proposed CEC API. This API is not yet finalized
-    and is currently only available as a staging kernel module.
- 
--By default any filehandle can use
--:ref:`CEC_TRANSMIT` and
--:ref:`CEC_RECEIVE`, but in order to prevent
-+By default any filehandle can use :ref:`CEC_TRANSMIT`, but in order to prevent
- applications from stepping on each others toes it must be possible to
- obtain exclusive access to the CEC adapter. This ioctl sets the
- filehandle to initiator and/or follower mode which can be exclusive
-@@ -54,7 +52,7 @@ If the message is not a reply, then the CEC framework will process it
- first. If there is no follower, then the message is just discarded and a
- feature abort is sent back to the initiator if the framework couldn't
- process it. If there is a follower, then the message is passed on to the
--follower who will use :ref:`CEC_RECEIVE` to dequeue
-+follower who will use ioctl :ref:`CEC_RECEIVE <CEC_RECEIVE>` to dequeue
- the new message. The framework expects the follower to make the right
- decisions.
- 
-@@ -66,10 +64,10 @@ There are some messages that the core will always process, regardless of
- the passthrough mode. See :ref:`cec-core-processing` for details.
- 
- If there is no initiator, then any CEC filehandle can use
--:ref:`CEC_TRANSMIT`. If there is an exclusive
-+:ref:`CEC_TRANSMIT <CEC_TRANSMIT>`. If there is an exclusive
- initiator then only that initiator can call
- :ref:`CEC_TRANSMIT`. The follower can of course
--always call :ref:`CEC_TRANSMIT`.
-+always call :ref:`CEC_TRANSMIT <CEC_TRANSMIT>`.
- 
- Available initiator modes are:
- 
-@@ -141,7 +139,7 @@ Available follower modes are:
- 
-        -  This is a follower and it will receive CEC messages unless there
- 	  is an exclusive follower. You cannot become a follower if
--	  :ref:`CEC_CAP_TRANSMIT <CEC-CAP-TRANSMIT>` is not set or if :ref:`CEC-MODE-NO-INITIATOR <CEC-MODE-NO-INITIATOR>`
-+	  :ref:`CEC_CAP_TRANSMIT <CEC-CAP-TRANSMIT>` is not set or if :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`
- 	  was specified, EINVAL error code is returned in that case.
- 
-     -  .. _`CEC-MODE-EXCL-FOLLOWER`:
-@@ -154,7 +152,7 @@ Available follower modes are:
- 	  receive CEC messages for processing. If someone else is already
- 	  the exclusive follower then an attempt to become one will return
- 	  the EBUSY error code error. You cannot become a follower if
--	  :ref:`CEC_CAP_TRANSMIT <CEC-CAP-TRANSMIT>` is not set or if :ref:`CEC-MODE-NO-INITIATOR <CEC-MODE-NO-INITIATOR>`
-+	  :ref:`CEC_CAP_TRANSMIT <CEC-CAP-TRANSMIT>` is not set or if :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`
- 	  was specified, EINVAL error code is returned in that case.
- 
-     -  .. _`CEC-MODE-EXCL-FOLLOWER-PASSTHRU`:
-@@ -223,8 +221,7 @@ Core message processing details:
- 
-        -  When in passthrough mode this message has to be handled by
- 	  userspace, otherwise the core will return the CEC version that was
--	  set with
--	  :ref:`CEC_ADAP_S_LOG_ADDRS`.
-+	  set with ioctl :ref:`CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`.
- 
-     -  .. _`CEC-MSG-GIVE-DEVICE-VENDOR-ID`:
- 
-@@ -232,8 +229,7 @@ Core message processing details:
- 
-        -  When in passthrough mode this message has to be handled by
- 	  userspace, otherwise the core will return the vendor ID that was
--	  set with
--	  :ref:`CEC_ADAP_S_LOG_ADDRS`.
-+	  set with ioctl :ref:`CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`.
- 
-     -  .. _`CEC-MSG-ABORT`:
- 
-@@ -257,8 +253,7 @@ Core message processing details:
- 
-        -  When in passthrough mode this message has to be handled by
- 	  userspace, otherwise the core will report the current OSD name as
--	  was set with
--	  :ref:`CEC_ADAP_S_LOG_ADDRS`.
-+	  was set with ioctl :ref:`CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`.
- 
-     -  .. _`CEC-MSG-GIVE-FEATURES`:
- 
-@@ -266,9 +261,8 @@ Core message processing details:
- 
-        -  When in passthrough mode this message has to be handled by
- 	  userspace, otherwise the core will report the current features as
--	  was set with
--	  :ref:`CEC_ADAP_S_LOG_ADDRS` or
--	  the message is ignore if the CEC version was older than 2.0.
-+	  was set with ioctl :ref:`CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
-+	  or the message is ignored if the CEC version was older than 2.0.
- 
-     -  .. _`CEC-MSG-USER-CONTROL-PRESSED`:
- 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-receive.rst b/Documentation/media/uapi/cec/cec-ioc-receive.rst
-index 34382af..d24eca8 100644
---- a/Documentation/media/uapi/cec/cec-ioc-receive.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-receive.rst
-@@ -3,9 +3,9 @@
- .. _CEC_TRANSMIT:
- .. _CEC_RECEIVE:
- 
--*******************************
--ioctl CEC_RECEIVE, CEC_TRANSMIT
--*******************************
-+***********************************
-+ioctls CEC_RECEIVE and CEC_TRANSMIT
-+***********************************
- 
- Name
- ====
-@@ -37,8 +37,8 @@ Description
-    and is currently only available as a staging kernel module.
- 
- To receive a CEC message the application has to fill in the
--:c:type:`struct cec_msg` structure and pass it to the :ref:`CEC_RECEIVE`
--ioctl. :ref:`CEC_RECEIVE` is only available if ``CEC_CAP_RECEIVE`` is set.
-+:c:type:`struct cec_msg` structure and pass it to the ``CEC_RECEIVE``
-+ioctl. ``CEC_RECEIVE`` is only available if ``CEC_CAP_RECEIVE`` is set.
- If the file descriptor is in non-blocking mode and there are no received
- messages pending, then it will return -1 and set errno to the EAGAIN
- error code. If the file descriptor is in blocking mode and ``timeout``
-@@ -47,7 +47,7 @@ it will return -1 and set errno to the ETIMEDOUT error code.
- 
- To send a CEC message the application has to fill in the
- :c:type:`struct cec_msg` structure and pass it to the
--:ref:`CEC_TRANSMIT` ioctl. :ref:`CEC_TRANSMIT` is only available if
-+``CEC_TRANSMIT`` ioctl. ``CEC_TRANSMIT`` is only available if
- ``CEC_CAP_TRANSMIT`` is set. If there is no more room in the transmit
- queue, then it will return -1 and set errno to the EBUSY error code.
- 
-@@ -82,9 +82,9 @@ queue, then it will return -1 and set errno to the EBUSY error code.
- 
-        -  ``len``
- 
--       -  The length of the message. For :ref:`CEC_TRANSMIT` this is filled in
-+       -  The length of the message. For ``CEC_TRANSMIT`` this is filled in
- 	  by the application. The driver will fill this in for
--	  :ref:`CEC_RECEIVE` and for :ref:`CEC_TRANSMIT` it will be filled in with
-+	  ``CEC_RECEIVE`` and for ``CEC_TRANSMIT`` it will be filled in with
- 	  the length of the reply message if ``reply`` was set.
- 
-     -  .. row 4
-@@ -96,7 +96,7 @@ queue, then it will return -1 and set errno to the EBUSY error code.
-        -  The timeout in milliseconds. This is the time the device will wait
- 	  for a message to be received before timing out. If it is set to 0,
- 	  then it will wait indefinitely when it is called by
--	  :ref:`CEC_RECEIVE`. If it is 0 and it is called by :ref:`CEC_TRANSMIT`,
-+	  ``CEC_RECEIVE``. If it is 0 and it is called by ``CEC_TRANSMIT``,
- 	  then it will be replaced by 1000 if the ``reply`` is non-zero or
- 	  ignored if ``reply`` is 0.
- 
-@@ -125,9 +125,9 @@ queue, then it will return -1 and set errno to the EBUSY error code.
- 
-        -  ``msg``\ [16]
- 
--       -  The message payload. For :ref:`CEC_TRANSMIT` this is filled in by the
--	  application. The driver will fill this in for :ref:`CEC_RECEIVE` and
--	  for :ref:`CEC_TRANSMIT` it will be filled in with the payload of the
-+       -  The message payload. For ``CEC_TRANSMIT`` this is filled in by the
-+	  application. The driver will fill this in for ``CEC_RECEIVE`` and
-+	  for ``CEC_TRANSMIT`` it will be filled in with the payload of the
- 	  reply message if ``reply`` was set.
- 
-     -  .. row 8
-@@ -140,12 +140,12 @@ queue, then it will return -1 and set errno to the EBUSY error code.
- 	  ``timeout`` is 0, then don't wait for a reply but return after
- 	  transmitting the message. If there was an error as indicated by the
- 	  ``tx_status`` field, then ``reply`` and ``timeout`` are
--	  both set to 0 by the driver. Ignored by :ref:`CEC_RECEIVE`. The case
-+	  both set to 0 by the driver. Ignored by ``CEC_RECEIVE``. The case
- 	  where ``reply`` is 0 (this is the opcode for the Feature Abort
- 	  message) and ``timeout`` is non-zero is specifically allowed to
- 	  send a message and wait up to ``timeout`` milliseconds for a
- 	  Feature Abort reply. In this case ``rx_status`` will either be set
--	  to :ref:`CEC_RX_STATUS_TIMEOUT <CEC-RX-STATUS-TIMEOUT>` or :ref:`CEC_RX_STATUS-FEATURE-ABORT <CEC-RX-STATUS-FEATURE-ABORT>`.
-+	  to :ref:`CEC_RX_STATUS_TIMEOUT <CEC-RX-STATUS-TIMEOUT>` or :ref:`CEC_RX_STATUS_FEATURE_ABORT <CEC-RX-STATUS-FEATURE-ABORT>`.
- 
-     -  .. row 9
- 
--- 
-2.8.1
+Tested-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Tim Harvey <tharvey@gateworks.com>
 
+Added to Cc:
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+
+Also adding Cc's to the people who are using the adv7180 on other
+boards (renesas r8a779* boards) so we can get some feedback and/or
+Tested-by from them:
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Simon Horman <horms+renesas@verge.net.au>
+
+I'm wondering if those boards need the bt656-4 which was previously
+being enabled per your comment and is now moved to a dt-prop per a
+subsequent patch.
+
+Regards,
+
+Tim
+
+[1] - http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/102914
