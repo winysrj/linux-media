@@ -1,121 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:35512 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752153AbcGUCzT (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:53749 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755002AbcGHNKI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 22:55:19 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 27394180097
-	for <linux-media@vger.kernel.org>; Thu, 21 Jul 2016 04:55:14 +0200 (CEST)
-Date: Thu, 21 Jul 2016 04:55:14 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160721025514.27394180097@tschai.lan>
+	Fri, 8 Jul 2016 09:10:08 -0400
+Subject: Re: [PATCH 00/54] Second series of ReST convert patches for media
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
+Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2f32dab6-6b09-0181-0be5-a6f20462006f@xs4all.nl>
+Date: Fri, 8 Jul 2016 15:10:02 +0200
+MIME-Version: 1.0
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 07/08/2016 03:02 PM, Mauro Carvalho Chehab wrote:
+> That's the second series of patches related to DocBook to ReST
+> conversion. With this patch series, we're ready to merge it
+> upstream.
+> 
+> There are still one thing to do: there are some new updates at
+> the DocBook pages on two topic branches (cec and vsp1). Those
+> changes should also be converted, in order to be able to remove
+> the DocBook pages.
+> 
+> Visually, I'm more happy with the new pages, as the produced
+> layout is more fancy, IMHO, using a modern visual.
+> 
+> Also, editing ReST pages is a way simpler than editing the
+> DocBooks. Also, reviewing documentation patches should be
+> simpler, with is a good thing.
+> 
+> On the bad side, Sphinx doesn't support auto-numberating
+> examples, figures or tables. We'll need some extension for
+> that. For now, the only impact is on the examples, that were
+> manually numerated. So, patches adding new examples will need
+> to check and manually renumerate other examples.
+> 
+> I hope we'll have soon some Sphinx extension to support
+> auto-numbering.
+> 
+> I'll soon change linux.org documentation page to show the
+> Sphinx-generated documenation. I intend to keep the old
+> one for a while, for people to be able to compare both.
+> I'll post an email once I do this at both linux-media and
+> linux-doc mailing lists.
+> 
+> I did a review on all pages, but, as I'm not a Vulcan,
+> I'm pretty sure I missed some things. So, feel free to
+> review the final document and send me patches with any
+> needed fixes or improvements.
+> 
+> Finally, you'll see some warnings produced by generating
+> the documentation.
+> 
+> There are actually two types of warnings there:
+> 
+> 1) At least here where I sit, I'm getting those warnings:
+> 
+> Documentation/linux_tv/media/dvb/fe-diseqc-send-burst.rst:18: WARNING: Error when parsing function declaration:
 
-Results of the daily build of media_tree:
+Can we please put this in Documentation/media instead of linux_tv? That's a really
+bad name, and not logical at all since the drivers are all in drivers/media.
 
-date:		Thu Jul 21 04:00:16 CEST 2016
-git branch:	test
-git hash:	009a620848218d521f008141c62f56bf19294dd9
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+Someone looking for the drivers/media documentation won't be able to find it.
+I know I had to look in the actual patches to discover that it ended up in linux_tv!
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1.1-i686: WARNINGS
-linux-4.2-i686: WARNINGS
-linux-4.3-i686: WARNINGS
-linux-4.4-i686: WARNINGS
-linux-4.5-i686: WARNINGS
-linux-4.6-i686: WARNINGS
-linux-4.7-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0-x86_64: WARNINGS
-linux-4.1.1-x86_64: WARNINGS
-linux-4.2-x86_64: WARNINGS
-linux-4.3-x86_64: WARNINGS
-linux-4.4-x86_64: WARNINGS
-linux-4.5-x86_64: WARNINGS
-linux-4.6-x86_64: WARNINGS
-linux-4.7-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+Regards,
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+	Hans
