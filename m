@@ -1,157 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48270 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751001AbcGQOaL (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:34319 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751016AbcGHIgc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 10:30:11 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+	Fri, 8 Jul 2016 04:36:32 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E1FF4180C71
+	for <linux-media@vger.kernel.org>; Fri,  8 Jul 2016 10:36:26 +0200 (CEST)
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 2/7] [media] doc-rst: media_drivers.rst: Fix paragraph headers for MC
-Date: Sun, 17 Jul 2016 11:29:59 -0300
-Message-Id: <45330118e82a5816798e2200655e7f940d03dce0.1468765739.git.mchehab@s-opensource.com>
-In-Reply-To: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
-References: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
-In-Reply-To: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
-References: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] cec-funcs.h: add missing const modifier
+Message-ID: <1572381f-f82d-1867-2317-637478d79ab8@xs4all.nl>
+Date: Fri, 8 Jul 2016 10:36:26 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the paragraph identation for the media controller
-headers.
+The cec_ops_* functions never touch cec_msg, so mark it as const.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/media_drivers.rst | 41 ++++++++++++++++++++---------------
- 1 file changed, 24 insertions(+), 17 deletions(-)
+This was done for some of the cec_ops_ functions, but not all.
 
-diff --git a/Documentation/media/media_drivers.rst b/Documentation/media/media_drivers.rst
-index 722170cb7f40..507a40f69d05 100644
---- a/Documentation/media/media_drivers.rst
-+++ b/Documentation/media/media_drivers.rst
-@@ -183,7 +183,8 @@ The media controller userspace API is documented in DocBook format in
- Documentation/DocBook/media/v4l/media-controller.xml. This document focus
- on the kernel-side implementation of the media framework.
- 
--* Abstract media device model:
-+Abstract media device model
-+^^^^^^^^^^^^^^^^^^^^^^^^^^^
- 
- Discovering a device internal topology, and configuring it at runtime, is one
- of the goals of the media framework. To achieve this, hardware devices are
-@@ -205,8 +206,8 @@ A link is a point-to-point oriented connection between two pads, either
- on the same entity or on different entities. Data flows from a source
- pad to a sink pad.
- 
--
--* Media device:
-+Media device
-+^^^^^^^^^^^^
- 
- A media device is represented by a struct &media_device instance, defined in
- include/media/media-device.h. Allocation of the structure is handled by the
-@@ -218,9 +219,8 @@ __media_device_register() via the macro media_device_register()
- and unregistered by calling
- media_device_unregister().
- 
--* Entities, pads and links:
--
--- Entities
-+Entities
-+^^^^^^^^
- 
- Entities are represented by a struct &media_entity instance, defined in
- include/media/media-entity.h. The structure is usually embedded into a
-@@ -235,7 +235,8 @@ media_device_register_entity()
- and unregistred by calling
- media_device_unregister_entity().
- 
--- Interfaces
-+Interfaces
-+^^^^^^^^^^
- 
- Interfaces are represented by a struct &media_interface instance, defined in
- include/media/media-entity.h. Currently, only one type of interface is
-@@ -247,8 +248,8 @@ media_devnode_create()
- and remove them by calling:
- media_devnode_remove().
- 
--- Pads
--
-+Pads
-+^^^^
- Pads are represented by a struct &media_pad instance, defined in
- include/media/media-entity.h. Each entity stores its pads in a pads array
- managed by the entity driver. Drivers usually embed the array in a
-@@ -267,7 +268,8 @@ Pads have flags that describe the pad capabilities and state.
- NOTE: One and only one of %MEDIA_PAD_FL_SINK and %MEDIA_PAD_FL_SOURCE must
- be set for each pad.
- 
--- Links
-+Links
-+^^^^^
- 
- Links are represented by a struct &media_link instance, defined in
- include/media/media-entity.h. There are two types of links:
-@@ -289,15 +291,16 @@ Associate one interface to a Link.
- Drivers create interface to entity links by calling:
- media_create_intf_link() and remove with media_remove_intf_links().
- 
--NOTE:
-+.. note::
- 
--Links can only be created after having both ends already created.
-+   Links can only be created after having both ends already created.
- 
- Links have flags that describe the link capabilities and state. The
- valid values are described at media_create_pad_link() and
- media_create_intf_link().
- 
--Graph traversal:
-+Graph traversal
-+^^^^^^^^^^^^^^^
- 
- The media framework provides APIs to iterate over entities in a graph.
- 
-@@ -339,7 +342,8 @@ Helper functions can be used to find a link between two given pads, or a pad
- connected to another pad through an enabled link
- media_entity_find_link() and media_entity_remote_pad()
- 
--Use count and power handling:
-+Use count and power handling
-+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- 
- Due to the wide differences between drivers regarding power management
- needs, the media controller does not implement power management. However,
-@@ -351,12 +355,14 @@ The &media_entity.@use_count field is owned by media drivers and must not be
- touched by entity drivers. Access to the field must be protected by the
- &media_device.@graph_mutex lock.
- 
--Links setup:
-+Links setup
-+^^^^^^^^^^^
- 
- Link properties can be modified at runtime by calling
- media_entity_setup_link()
- 
--Pipelines and media streams:
-+Pipelines and media streams
-+^^^^^^^^^^^^^^^^^^^^^^^^^^^
- 
- When starting streaming, drivers must notify all entities in the pipeline to
- prevent link states from being modified during streaming by calling
-@@ -392,7 +398,8 @@ changing entities configuration parameters) drivers can explicitly check the
- media_entity stream_count field to find out if an entity is streaming. This
- operation must be done with the media_device graph_mutex held.
- 
--Link validation:
-+Link validation
-+^^^^^^^^^^^^^^^
- 
- Link validation is performed by media_entity_pipeline_start() for any
- entity which has sink pads in the pipeline. The
--- 
-2.7.4
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
+diff --git a/include/linux/cec-funcs.h b/include/linux/cec-funcs.h
+index 1948600..dfb945a 100644
+--- a/include/linux/cec-funcs.h
++++ b/include/linux/cec-funcs.h
+@@ -420,7 +420,7 @@ static inline void cec_msg_timer_status(struct cec_msg *msg,
+ 	}
+ }
+
+-static inline void cec_ops_timer_status(struct cec_msg *msg,
++static inline void cec_ops_timer_status(const struct cec_msg *msg,
+ 					__u8 *timer_overlap_warning,
+ 					__u8 *media_info,
+ 					__u8 *prog_info,
+@@ -455,7 +455,7 @@ static inline void cec_msg_timer_cleared_status(struct cec_msg *msg,
+ 	msg->msg[2] = timer_cleared_status;
+ }
+
+-static inline void cec_ops_timer_cleared_status(struct cec_msg *msg,
++static inline void cec_ops_timer_cleared_status(const struct cec_msg *msg,
+ 						__u8 *timer_cleared_status)
+ {
+ 	*timer_cleared_status = msg->msg[2];
+@@ -491,7 +491,7 @@ static inline void cec_msg_clear_analogue_timer(struct cec_msg *msg,
+ 	msg->reply = reply ? CEC_MSG_TIMER_CLEARED_STATUS : 0;
+ }
+
+-static inline void cec_ops_clear_analogue_timer(struct cec_msg *msg,
++static inline void cec_ops_clear_analogue_timer(const struct cec_msg *msg,
+ 						__u8 *day,
+ 						__u8 *month,
+ 						__u8 *start_hr,
+@@ -541,7 +541,7 @@ static inline void cec_msg_clear_digital_timer(struct cec_msg *msg,
+ 	cec_set_digital_service_id(msg->msg + 9, digital);
+ }
+
+-static inline void cec_ops_clear_digital_timer(struct cec_msg *msg,
++static inline void cec_ops_clear_digital_timer(const struct cec_msg *msg,
+ 				__u8 *day,
+ 				__u8 *month,
+ 				__u8 *start_hr,
+@@ -592,7 +592,7 @@ static inline void cec_msg_clear_ext_timer(struct cec_msg *msg,
+ 	msg->reply = reply ? CEC_MSG_TIMER_CLEARED_STATUS : 0;
+ }
+
+-static inline void cec_ops_clear_ext_timer(struct cec_msg *msg,
++static inline void cec_ops_clear_ext_timer(const struct cec_msg *msg,
+ 					   __u8 *day,
+ 					   __u8 *month,
+ 					   __u8 *start_hr,
+@@ -647,7 +647,7 @@ static inline void cec_msg_set_analogue_timer(struct cec_msg *msg,
+ 	msg->reply = reply ? CEC_MSG_TIMER_STATUS : 0;
+ }
+
+-static inline void cec_ops_set_analogue_timer(struct cec_msg *msg,
++static inline void cec_ops_set_analogue_timer(const struct cec_msg *msg,
+ 					      __u8 *day,
+ 					      __u8 *month,
+ 					      __u8 *start_hr,
+@@ -697,7 +697,7 @@ static inline void cec_msg_set_digital_timer(struct cec_msg *msg,
+ 	cec_set_digital_service_id(msg->msg + 9, digital);
+ }
+
+-static inline void cec_ops_set_digital_timer(struct cec_msg *msg,
++static inline void cec_ops_set_digital_timer(const struct cec_msg *msg,
+ 			__u8 *day,
+ 			__u8 *month,
+ 			__u8 *start_hr,
+@@ -748,7 +748,7 @@ static inline void cec_msg_set_ext_timer(struct cec_msg *msg,
+ 	msg->reply = reply ? CEC_MSG_TIMER_STATUS : 0;
+ }
+
+-static inline void cec_ops_set_ext_timer(struct cec_msg *msg,
++static inline void cec_ops_set_ext_timer(const struct cec_msg *msg,
+ 					 __u8 *day,
+ 					 __u8 *month,
+ 					 __u8 *start_hr,
+@@ -853,7 +853,7 @@ static inline void cec_msg_set_menu_language(struct cec_msg *msg,
+ 	memcpy(msg->msg + 2, language, 3);
+ }
+
+-static inline void cec_ops_set_menu_language(struct cec_msg *msg,
++static inline void cec_ops_set_menu_language(const struct cec_msg *msg,
+ 					     char *language)
+ {
+ 	memcpy(language, msg->msg + 2, 3);
+@@ -926,7 +926,7 @@ static inline void cec_msg_deck_control(struct cec_msg *msg,
+ 	msg->msg[2] = deck_control_mode;
+ }
+
+-static inline void cec_ops_deck_control(struct cec_msg *msg,
++static inline void cec_ops_deck_control(const struct cec_msg *msg,
+ 					__u8 *deck_control_mode)
+ {
+ 	*deck_control_mode = msg->msg[2];
+@@ -940,7 +940,7 @@ static inline void cec_msg_deck_status(struct cec_msg *msg,
+ 	msg->msg[2] = deck_info;
+ }
+
+-static inline void cec_ops_deck_status(struct cec_msg *msg,
++static inline void cec_ops_deck_status(const struct cec_msg *msg,
+ 				       __u8 *deck_info)
+ {
+ 	*deck_info = msg->msg[2];
+@@ -956,7 +956,7 @@ static inline void cec_msg_give_deck_status(struct cec_msg *msg,
+ 	msg->reply = reply ? CEC_MSG_DECK_STATUS : 0;
+ }
+
+-static inline void cec_ops_give_deck_status(struct cec_msg *msg,
++static inline void cec_ops_give_deck_status(const struct cec_msg *msg,
+ 					    __u8 *status_req)
+ {
+ 	*status_req = msg->msg[2];
+@@ -970,7 +970,7 @@ static inline void cec_msg_play(struct cec_msg *msg,
+ 	msg->msg[2] = play_mode;
+ }
+
+-static inline void cec_ops_play(struct cec_msg *msg,
++static inline void cec_ops_play(const struct cec_msg *msg,
+ 				__u8 *play_mode)
+ {
+ 	*play_mode = msg->msg[2];
+@@ -1035,7 +1035,7 @@ static inline void cec_msg_tuner_device_status(struct cec_msg *msg,
+ 			&tuner_dev_info->digital);
+ }
+
+-static inline void cec_ops_tuner_device_status(struct cec_msg *msg,
++static inline void cec_ops_tuner_device_status(const struct cec_msg *msg,
+ 				struct cec_op_tuner_device_info *tuner_dev_info)
+ {
+ 	tuner_dev_info->is_analog = msg->len < 10;
+@@ -1060,7 +1060,7 @@ static inline void cec_msg_give_tuner_device_status(struct cec_msg *msg,
+ 	msg->reply = reply ? CEC_MSG_TUNER_DEVICE_STATUS : 0;
+ }
+
+-static inline void cec_ops_give_tuner_device_status(struct cec_msg *msg,
++static inline void cec_ops_give_tuner_device_status(const struct cec_msg *msg,
+ 						    __u8 *status_req)
+ {
+ 	*status_req = msg->msg[2];
+@@ -1079,7 +1079,7 @@ static inline void cec_msg_select_analogue_service(struct cec_msg *msg,
+ 	msg->msg[5] = bcast_system;
+ }
+
+-static inline void cec_ops_select_analogue_service(struct cec_msg *msg,
++static inline void cec_ops_select_analogue_service(const struct cec_msg *msg,
+ 						   __u8 *ana_bcast_type,
+ 						   __u16 *ana_freq,
+ 						   __u8 *bcast_system)
+@@ -1097,7 +1097,7 @@ static inline void cec_msg_select_digital_service(struct cec_msg *msg,
+ 	cec_set_digital_service_id(msg->msg + 2, digital);
+ }
+
+-static inline void cec_ops_select_digital_service(struct cec_msg *msg,
++static inline void cec_ops_select_digital_service(const struct cec_msg *msg,
+ 				struct cec_op_digital_service_id *digital)
+ {
+ 	cec_get_digital_service_id(msg->msg + 2, digital);
+@@ -1218,7 +1218,7 @@ static inline void cec_msg_menu_status(struct cec_msg *msg,
+ 	msg->msg[2] = menu_state;
+ }
+
+-static inline void cec_ops_menu_status(struct cec_msg *msg,
++static inline void cec_ops_menu_status(const struct cec_msg *msg,
+ 				       __u8 *menu_state)
+ {
+ 	*menu_state = msg->msg[2];
+@@ -1234,7 +1234,7 @@ static inline void cec_msg_menu_request(struct cec_msg *msg,
+ 	msg->reply = reply ? CEC_MSG_MENU_STATUS : 0;
+ }
+
+-static inline void cec_ops_menu_request(struct cec_msg *msg,
++static inline void cec_ops_menu_request(const struct cec_msg *msg,
+ 					__u8 *menu_req)
+ {
+ 	*menu_req = msg->msg[2];
+@@ -1284,7 +1284,7 @@ static inline void cec_msg_user_control_pressed(struct cec_msg *msg,
+ 	}
+ }
+
+-static inline void cec_ops_user_control_pressed(struct cec_msg *msg,
++static inline void cec_ops_user_control_pressed(const struct cec_msg *msg,
+ 						struct cec_op_ui_command *ui_cmd)
+ {
+ 	ui_cmd->ui_cmd = msg->msg[2];
