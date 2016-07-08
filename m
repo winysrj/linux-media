@@ -1,131 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:63162 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932720AbcGKRcE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2016 13:32:04 -0400
-Received: from [192.168.6.10] ([217.250.32.138]) by mail.gmx.com (mrgmx002)
- with ESMTPSA (Nemesis) id 0MI5JG-1bPPQ613rq-003vRB for
- <linux-media@vger.kernel.org>; Mon, 11 Jul 2016 19:32:00 +0200
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: =?UTF-8?Q?Stefan_P=c3=b6schel?= <basic.master@gmx.de>
-Subject: [PATCH] af9035: fix dual tuner detection with PCTV 79e
-Message-ID: <5783D80F.2040808@gmx.de>
-Date: Mon, 11 Jul 2016 19:31:59 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:55714 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752537AbcGHTLa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Jul 2016 15:11:30 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: tiffany.lin@mediatek.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/2] mtk-vcodec: convert driver to use the new vb2_queue dev field
+Date: Fri,  8 Jul 2016 21:11:18 +0200
+Message-Id: <1468005079-28636-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1468005079-28636-1-git-send-email-hverkuil@xs4all.nl>
+References: <1468005079-28636-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The value 5 of the EEPROM_TS_MODE register (meaning dual tuner presence) is
-only valid for AF9035 devices. For IT9135 devices it is invalid and led to a
-false positive dual tuner mode detection with PCTV 79e.
-Therefore on non-AF9035 devices and with value 5 the driver now defaults to
-single tuner mode and outputs a regarding info message to log.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This fixes Bugzilla bug #118561.
+The patch dropping the vb2_dma_contig_init_ctx() and _cleanup_ctx()
+functions was already applied before this driver was added. So convert
+this driver as well.
 
-Reported-by: Marc Duponcheel <marc@offline.be>
-Signed-off-by: Stefan Pöschel <basic.master@gmx.de>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/dvb-usb-v2/af9035.c | 50 +++++++++++++++++++++++------------
- drivers/media/usb/dvb-usb-v2/af9035.h |  2 +-
- 2 files changed, 34 insertions(+), 18 deletions(-)
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h     |  3 ---
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c     | 13 ++++++-------
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c | 12 ------------
+ 3 files changed, 6 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index eabede4..ca018cd 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -496,7 +496,8 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
+index 78eee50..94f0a42 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
+@@ -265,8 +265,6 @@ struct mtk_vcodec_ctx {
+  * @m2m_dev_enc: m2m device for encoder.
+  * @plat_dev: platform device
+  * @vpu_plat_dev: mtk vpu platform device
+- * @alloc_ctx: VB2 allocator context
+- *	       (for allocations without kernel mapping).
+  * @ctx_list: list of struct mtk_vcodec_ctx
+  * @irqlock: protect data access by irq handler and work thread
+  * @curr_ctx: The context that is waiting for codec hardware
+@@ -299,7 +297,6 @@ struct mtk_vcodec_dev {
+ 	struct v4l2_m2m_dev *m2m_dev_enc;
+ 	struct platform_device *plat_dev;
+ 	struct platform_device *vpu_plat_dev;
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	struct list_head ctx_list;
+ 	spinlock_t irqlock;
+ 	struct mtk_vcodec_ctx *curr_ctx;
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+index 6e72d73..6dcae0a 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+@@ -693,7 +693,8 @@ const struct v4l2_ioctl_ops mtk_venc_ioctl_ops = {
+ static int vb2ops_venc_queue_setup(struct vb2_queue *vq,
+ 				   unsigned int *nbuffers,
+ 				   unsigned int *nplanes,
+-				   unsigned int sizes[], void *alloc_ctxs[])
++				   unsigned int sizes[],
++				   struct device *alloc_devs[])
  {
- 	struct state *state = d_to_priv(d);
- 	struct usb_interface *intf = d->intf;
--	int ret;
-+	int ret, ts_mode_invalid;
-+	u8 tmp;
- 	u8 wbuf[1] = { 1 };
- 	u8 rbuf[4];
- 	struct usb_req req = { CMD_FW_QUERYINFO, 0, sizeof(wbuf), wbuf,
-@@ -530,6 +531,36 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
- 		state->eeprom_addr = EEPROM_BASE_AF9035;
+ 	struct mtk_vcodec_ctx *ctx = vb2_get_drv_priv(vq);
+ 	struct mtk_q_data *q_data;
+@@ -705,17 +706,13 @@ static int vb2ops_venc_queue_setup(struct vb2_queue *vq,
+ 		return -EINVAL;
+ 
+ 	if (*nplanes) {
+-		for (i = 0; i < *nplanes; i++) {
++		for (i = 0; i < *nplanes; i++)
+ 			if (sizes[i] < q_data->sizeimage[i])
+ 				return -EINVAL;
+-			alloc_ctxs[i] = ctx->dev->alloc_ctx;
+-		}
+ 	} else {
+ 		*nplanes = q_data->fmt->num_planes;
+-		for (i = 0; i < *nplanes; i++) {
++		for (i = 0; i < *nplanes; i++)
+ 			sizes[i] = q_data->sizeimage[i];
+-			alloc_ctxs[i] = ctx->dev->alloc_ctx;
+-		}
  	}
-
-+
-+	/* check for dual tuner mode */
-+	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
-+	if (ret < 0)
-+		goto err;
-+
-+	ts_mode_invalid = 0;
-+	switch (tmp) {
-+	case 0:
-+		break;
-+	case 1:
-+	case 3:
-+		state->dual_mode = true;
-+		break;
-+	case 5:
-+		if (state->chip_type != 0x9135 && state->chip_type != 0x9306)
-+			state->dual_mode = true;	/* AF9035 */
-+		else
-+			ts_mode_invalid = 1;
-+		break;
-+	default:
-+		ts_mode_invalid = 1;
-+	}
-+
-+	dev_dbg(&intf->dev, "ts mode=%d dual mode=%d\n", tmp, state->dual_mode);
-+
-+	if (ts_mode_invalid)
-+		dev_info(&intf->dev, "ts mode=%d not supported, defaulting to single tuner mode!", tmp);
-+
-+
- 	ret = af9035_ctrl_msg(d, &req);
- 	if (ret < 0)
- 		goto err;
-@@ -698,11 +729,7 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
- 	 * which is done by master demod.
- 	 * Master feeds also clock and controls power via GPIO.
- 	 */
--	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
--	if (ret < 0)
--		goto err;
+ 
+ 	return 0;
+@@ -1249,6 +1246,7 @@ int mtk_vcodec_enc_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->mem_ops		= &vb2_dma_contig_memops;
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->lock		= &ctx->dev->dev_mutex;
++	src_vq->dev		= &ctx->dev->plat_dev->dev;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -1262,6 +1260,7 @@ int mtk_vcodec_enc_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->mem_ops		= &vb2_dma_contig_memops;
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->lock		= &ctx->dev->dev_mutex;
++	dst_vq->dev		= &ctx->dev->plat_dev->dev;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
+index 06105e9..9c10cc2 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
+@@ -357,14 +357,6 @@ static int mtk_vcodec_probe(struct platform_device *pdev)
+ 	dev->vfd_enc = vfd_enc;
+ 	platform_set_drvdata(pdev, dev);
+ 
+-	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR((__force void *)dev->alloc_ctx)) {
+-		mtk_v4l2_err("Failed to alloc vb2 dma context 0");
+-		ret = PTR_ERR((__force void *)dev->alloc_ctx);
+-		dev->alloc_ctx = NULL;
+-		goto err_vb2_ctx_init;
+-	}
 -
--	if (tmp == 1 || tmp == 3 || tmp == 5) {
-+	if (state->dual_mode) {
- 		/* configure gpioh1, reset & power slave demod */
- 		ret = af9035_wr_reg_mask(d, 0x00d8b0, 0x01, 0x01);
- 		if (ret < 0)
-@@ -835,17 +862,6 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 	}
-
-
--
--	/* check if there is dual tuners */
--	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
--	if (ret < 0)
--		goto err;
--
--	if (tmp == 1 || tmp == 3 || tmp == 5)
--		state->dual_mode = true;
--
--	dev_dbg(&intf->dev, "ts mode=%d dual mode=%d\n", tmp, state->dual_mode);
--
- 	if (state->dual_mode) {
- 		/* read 2nd demodulator I2C address */
- 		ret = af9035_rd_reg(d,
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
-index c91d1a3..1f83c92 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.h
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.h
-@@ -113,7 +113,7 @@ static const u32 clock_lut_it9135[] = {
-  * 0  TS
-  * 1  DCA + PIP
-  * 3  PIP
-- * 5  DCA + PIP
-+ * 5  DCA + PIP (AF9035 only)
-  * n  DCA
-  *
-  * Values 0, 3 and 5 are seen to this day. 0 for single TS and 3/5 for dual TS.
+ 	dev->m2m_dev_enc = v4l2_m2m_init(&mtk_venc_m2m_ops);
+ 	if (IS_ERR((__force void *)dev->m2m_dev_enc)) {
+ 		mtk_v4l2_err("Failed to init mem2mem enc device");
+@@ -401,8 +393,6 @@ err_enc_reg:
+ err_event_workq:
+ 	v4l2_m2m_release(dev->m2m_dev_enc);
+ err_enc_mem_init:
+-	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+-err_vb2_ctx_init:
+ 	video_unregister_device(vfd_enc);
+ err_enc_alloc:
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+@@ -426,8 +416,6 @@ static int mtk_vcodec_enc_remove(struct platform_device *pdev)
+ 	destroy_workqueue(dev->encode_workqueue);
+ 	if (dev->m2m_dev_enc)
+ 		v4l2_m2m_release(dev->m2m_dev_enc);
+-	if (dev->alloc_ctx)
+-		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+ 
+ 	if (dev->vfd_enc)
+ 		video_unregister_device(dev->vfd_enc);
 -- 
-2.9.0
+2.8.1
+
