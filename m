@@ -1,116 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:57552 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751679AbcGRIkH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 04:40:07 -0400
-Subject: Re: [PATCH v3 4/9] [media] vivid: code refactor for color encoding
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <1468665716-10178-1-git-send-email-ricardo.ribalda@gmail.com>
- <1468665716-10178-5-git-send-email-ricardo.ribalda@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e121c9da-fea2-9610-9e52-a02b28a3a7db@xs4all.nl>
-Date: Mon, 18 Jul 2016 10:40:01 +0200
-MIME-Version: 1.0
-In-Reply-To: <1468665716-10178-5-git-send-email-ricardo.ribalda@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:41489 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755390AbcGHNEG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:06 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 34/54] doc-rst: parse-headers: be more formal about the valid symbols
+Date: Fri,  8 Jul 2016 10:03:26 -0300
+Message-Id: <9c80c74563bceede4057bb93dbb21c84f56f5858.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/16/2016 12:41 PM, Ricardo Ribalda Delgado wrote:
-> Replace is_yuv with color_enc Which can be used by other
-> color encodings such us HSV.
-> 
-> This change should ease the review of the following patches.
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> ---
->  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c   | 49 +++++++++++++++--------
->  drivers/media/platform/vivid/vivid-core.h       |  2 +-
->  drivers/media/platform/vivid/vivid-vid-common.c | 52 ++++++++++++-------------
->  include/media/v4l2-tpg.h                        |  7 +++-
->  4 files changed, 66 insertions(+), 44 deletions(-)
-> 
-> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> index 3ec3cebe62b9..e8d2bf388597 100644
-> --- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> +++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> @@ -1889,11 +1893,24 @@ static int tpg_pattern_avg(const struct tpg_data *tpg,
->  	return -1;
->  }
->  
-> +static const char *tpg_color_enc_str(enum tgp_color_enc
-> +						 color_enc)
-> +{
-> +	switch (color_enc) {
-> +	case TGP_COLOR_ENC_YUV:
-> +		return "YCbCr";
+Be more formal about the valid symbols that are expected by
+the parser, to match what c language expects.
 
-Use "Y'CbCr"
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/sphinx/parse-headers.pl | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-> +	case TGP_COLOR_ENC_RGB:
-> +	default:
-> +		return "RGB";
+diff --git a/Documentation/sphinx/parse-headers.pl b/Documentation/sphinx/parse-headers.pl
+index bf6f0df895f4..5e366756084f 100755
+--- a/Documentation/sphinx/parse-headers.pl
++++ b/Documentation/sphinx/parse-headers.pl
+@@ -34,7 +34,7 @@ while (<IN>) {
+ 
+ 	$data .= $_;
+ 
+-	if ($is_enum && $ln =~ m/^\s*([_A-Z][^\s\}\,\=]+)\s*[\,=]?/) {
++	if ($is_enum && $ln =~ m/^\s*([_\w][\w\d_]+)\s*[\,=]?/) {
+ 		my $s = $1;
+ 		my $n = $1;
+ 		$n =~ tr/A-Z/a-z/;
+@@ -47,7 +47,7 @@ while (<IN>) {
+ 	}
+ 	$is_enum = 0 if ($is_enum && m/\}/);
+ 
+-	if ($ln =~ m/^\s*#\s*define\s+([_A-Z]\S+)\s+_IO/) {
++	if ($ln =~ m/^\s*#\s*define\s+([_\w][\w\d_]+)\s+_IO/) {
+ 		my $s = $1;
+ 		my $n = $1;
+ 		$n =~ tr/A-Z/a-z/;
+@@ -56,7 +56,7 @@ while (<IN>) {
+ 		next;
+ 	}
+ 
+-	if ($ln =~ m/^\s*#\s*define\s+([_A-Z]\S+)\s+/) {
++	if ($ln =~ m/^\s*#\s*define\s+([_\w][\w\d_]+)\s+/) {
+ 		my $s = $1;
+ 		my $n = $1;
+ 		$n =~ tr/A-Z/a-z/;
+@@ -66,7 +66,7 @@ while (<IN>) {
+ 		next;
+ 	}
+ 
+-	if ($ln =~ m/^\s*typedef\s+.*\s+([_\w]\S+);/) {
++	if ($ln =~ m/^\s*typedef\s+.*\s+([_\w][\w\d_]+);/) {
+ 		my $s = $1;
+ 		my $n = $1;
+ 		$n =~ tr/A-Z/a-z/;
+@@ -75,8 +75,8 @@ while (<IN>) {
+ 		$typedefs{$s} = $n;
+ 		next;
+ 	}
+-	if ($ln =~ m/^\s*enum\s+(\S+)\s+\{/
+-	    || $ln =~ m/^\s*enum\s+(\S+)$/) {
++	if ($ln =~ m/^\s*enum\s+([_\w][\w\d_]+)\s+\{/
++	    || $ln =~ m/^\s*enum\s+([_\w][\w\d_]+)$/) {
+ 		my $s = $1;
+ 		my $n = $1;
+ 		$n =~ tr/A-Z/a-z/;
+@@ -87,8 +87,8 @@ while (<IN>) {
+ 		$is_enum = $1;
+ 		next;
+ 	}
+-	if ($ln =~ m/^\s*struct\s+([_A-Za-z_]\S+)\s+\{/
+-	    || $ln =~ m/^\s*struct\s+([A-Za-z_]\S+)$/) {
++	if ($ln =~ m/^\s*struct\s+([_\w][\w\d_]+)\s+\{/
++	    || $ln =~ m/^\s*struct\s+([[_\w][\w\d_]+)$/) {
+ 		my $s = $1;
+ 		my $n = $1;
+ 		$n =~ tr/A-Z/a-z/;
+-- 
+2.7.4
 
-and "R'G'B'".
-
-That's more precise.
-
-> +
-> +	}
-> +}
-> +
->  void tpg_log_status(struct tpg_data *tpg)
->  {
->  	pr_info("tpg source WxH: %ux%u (%s)\n",
-> -			tpg->src_width, tpg->src_height,
-> -			tpg->is_yuv ? "YCbCr" : "RGB");
-> +		tpg->src_width, tpg->src_height,
-> +		tpg_color_enc_str(tpg->color_enc));
->  	pr_info("tpg field: %u\n", tpg->field);
->  	pr_info("tpg crop: %ux%u@%dx%d\n", tpg->crop.width, tpg->crop.height,
->  			tpg->crop.left, tpg->crop.top);
-> diff --git a/include/media/v4l2-tpg.h b/include/media/v4l2-tpg.h
-> index 329bebfa930c..e4da507d40e2 100644
-> --- a/include/media/v4l2-tpg.h
-> +++ b/include/media/v4l2-tpg.h
-> @@ -87,6 +87,11 @@ enum tpg_move_mode {
->  	TPG_MOVE_POS_FAST,
->  };
->  
-> +enum tgp_color_enc {
-> +	TGP_COLOR_ENC_RGB,
-> +	TGP_COLOR_ENC_YUV,
-
-Rename this to YCBCR. It's the technically correct name.
-
-Regards,
-
-	Hans
-
-> +};
-> +
->  extern const char * const tpg_aspect_strings[];
->  
->  #define TPG_MAX_PLANES 3
-> @@ -119,7 +124,7 @@ struct tpg_data {
->  	u8				saturation;
->  	s16				hue;
->  	u32				fourcc;
-> -	bool				is_yuv;
-> +	enum tgp_color_enc		color_enc;
->  	u32				colorspace;
->  	u32				xfer_func;
->  	u32				ycbcr_enc;
-> 
