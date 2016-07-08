@@ -1,91 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47406
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752610AbcGYT2r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jul 2016 15:28:47 -0400
-Date: Mon, 25 Jul 2016 16:28:41 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Michael Ira Krufky <mkrufky@linuxtv.org>
-Cc: Abylay Ospan <aospan@netup.ru>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [media] lgdt3306a: remove 20*50 msec unnecessary
- timeout
-Message-ID: <20160725162841.6e11fd2b@recife.lan>
-In-Reply-To: <CAOcJUby+9gTrFUF14pvo1iMa2azD5TfGM8WgeZY1+Bh8CTYVzA@mail.gmail.com>
-References: <1469471939-25393-1-git-send-email-aospan@netup.ru>
-	<CAOcJUby+9gTrFUF14pvo1iMa2azD5TfGM8WgeZY1+Bh8CTYVzA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:41421 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755345AbcGHNEE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:04 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 26/54] doc-rst: Rename the title of the Digital TV section
+Date: Fri,  8 Jul 2016 10:03:18 -0300
+Message-Id: <86191cd762218156ce70fd6de24b412f7c26e420.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
+The Digital TV section is ackward for two reasons:
 
-Em Mon, 25 Jul 2016 14:55:51 -0400
-Michael Ira Krufky <mkrufky@linuxtv.org> escreveu:
+  1) it is the only one with everything in upper case;
+  2) its name is associated with the European digital TV standard.
 
-> On Mon, Jul 25, 2016 at 2:38 PM, Abylay Ospan <aospan@netup.ru> wrote:
-> > inside lgdt3306a_search we reading demod status 20 times with 50 msec sleep after each read.
-> > This gives us more than 1 sec of delay. Removing this delay should not affect demod functionality.
-> >
-> > Signed-off-by: Abylay Ospan <aospan@netup.ru>
-> > ---
-> >  drivers/media/dvb-frontends/lgdt3306a.c | 16 ++++------------
-> >  1 file changed, 4 insertions(+), 12 deletions(-)
-> >
-> > diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-> > index 179c26e..dad7ad3 100644
-> > --- a/drivers/media/dvb-frontends/lgdt3306a.c
-> > +++ b/drivers/media/dvb-frontends/lgdt3306a.c
-> > @@ -1737,24 +1737,16 @@ static int lgdt3306a_get_tune_settings(struct dvb_frontend *fe,
-> >  static int lgdt3306a_search(struct dvb_frontend *fe)
-> >  {
-> >         enum fe_status status = 0;
-> > -       int i, ret;
-> > +       int ret;
-> >
-> >         /* set frontend */
-> >         ret = lgdt3306a_set_parameters(fe);
-> >         if (ret)
-> >                 goto error;
-> >
-> > -       /* wait frontend lock */
-> > -       for (i = 20; i > 0; i--) {
-> > -               dbg_info(": loop=%d\n", i);
-> > -               msleep(50);
-> > -               ret = lgdt3306a_read_status(fe, &status);
-> > -               if (ret)
-> > -                       goto error;
-> > -
-> > -               if (status & FE_HAS_LOCK)
-> > -                       break;
-> > -       }
+Rename the part name, and add a notice that it refers to what's
+known as "DVB API".
 
-Could you please explain why lgdt3306a needs the above ugly hack?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/linux_tv/media/dvb/dvbapi.rst | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-
-> > +       ret = lgdt3306a_read_status(fe, &status);
-> > +       if (ret)
-> > +               goto error;
-
-
-> >
-> >         /* check if we have a valid signal */
-> >         if (status & FE_HAS_LOCK)  
-> 
-> Your patch removes a loop that was purposefully written here to handle
-> conditions that are not ideal.  Are you sure this change is best for
-> all users?
-> 
-> I would disagree with merging this patch.
-> 
-> Best regards,
-> 
-> Michael Ira Krufky
-
-
+diff --git a/Documentation/linux_tv/media/dvb/dvbapi.rst b/Documentation/linux_tv/media/dvb/dvbapi.rst
+index 3a7d39e98fa3..60fb3d46b1d6 100644
+--- a/Documentation/linux_tv/media/dvb/dvbapi.rst
++++ b/Documentation/linux_tv/media/dvb/dvbapi.rst
+@@ -4,9 +4,12 @@
+ 
+ .. _dvbapi:
+ 
+-#############
+-LINUX DVB API
+-#############
++##############
++Digital TV API
++##############
++
++**NOTE:** This API is also known as **DVB API**, although it is generic
++enough to support all digital TV standards.
+ 
+ **Version 5.10**
+ 
 -- 
-Thanks,
-Mauro
+2.7.4
+
