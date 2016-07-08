@@ -1,128 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:33645 "EHLO
-	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750806AbcGBKrf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jul 2016 06:47:35 -0400
-Date: Sat, 2 Jul 2016 16:17:31 +0530
-From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:45822 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754428AbcGHKXR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Jul 2016 06:23:17 -0400
+Subject: Re: [PATCH v3 3/9] DocBook/v4l: Add compressed video formats used on
+ MT8173 codec driver
+To: Tiffany Lin <tiffany.lin@mediatek.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Markus Elfring <elfring@users.sourceforge.net>
-Cc: Tejun Heo <tj@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] hdpvr: Remove deprecated
- create_singlethread_workqueue
-Message-ID: <20160702104731.GA2358@Karyakshetra>
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
+ <1464611363-14936-2-git-send-email-tiffany.lin@mediatek.com>
+ <1464611363-14936-3-git-send-email-tiffany.lin@mediatek.com>
+ <1464611363-14936-4-git-send-email-tiffany.lin@mediatek.com>
+Cc: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5a793171-24a7-4e9e-8bfd-f668c789f8e0@xs4all.nl>
+Date: Fri, 8 Jul 2016 12:23:11 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <1464611363-14936-4-git-send-email-tiffany.lin@mediatek.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The workqueue "workqueue" is involved in tranmitting hdpvr buffers.
-It has a single work item(&dev->worker) and hence doesn't require
-ordering. Also, it is not being used on a memory reclaim path. Hence,
-the singlethreaded workqueue has been replaced with the use of system_wq.
+On 05/30/2016 02:29 PM, Tiffany Lin wrote:
+> Add V4L2_PIX_FMT_MT21 documentation
+> 
+> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> ---
+>  Documentation/DocBook/media/v4l/pixfmt.xml |    6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+> index 5a08aee..d40e0ce 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+> @@ -1980,6 +1980,12 @@ array. Anything what's in between the UYVY lines is JPEG data and should be
+>  concatenated to form the JPEG stream. </para>
+>  </entry>
+>  	  </row>
+> +	  <row id="V4L2_PIX_FMT_MT21">
+> +	    <entry><constant>V4L2_PIX_FMT_MT21</constant></entry>
+> +	    <entry>'MT21'</entry>
+> +	    <entry>Compressed two-planar YVU420 format used by Mediatek MT8173
+> +	    codec driver.</entry>
 
-System workqueues have been able to handle high level of concurrency
-for a long time now and hence it's not required to have a singlethreaded
-workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
-created with create_singlethread_workqueue(), system_wq allows multiple
-work items to overlap executions even on the same CPU; however, a
-per-cpu workqueue doesn't have any CPU locality or global ordering
-guarantee unless the target CPU is explicitly specified and thus the
-increase of local concurrency shouldn't make any difference.
+Can you give a few more details? The encoder driver doesn't seem to produce this
+format, so who is creating this? Where is this format documented?
 
-Work item has been flushed in hdpvr_device_release() to ensure
-that there are no pending tasks while disconnecting the driver.
+Regards,
 
-Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
----
- drivers/media/usb/hdpvr/hdpvr-core.c  | 10 ++--------
- drivers/media/usb/hdpvr/hdpvr-video.c |  6 +++---
- drivers/media/usb/hdpvr/hdpvr.h       |  2 --
- 3 files changed, 5 insertions(+), 13 deletions(-)
+	Hans
 
-diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
-index 08f0ca7..a61d8fd 100644
---- a/drivers/media/usb/hdpvr/hdpvr-core.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-core.c
-@@ -310,10 +310,6 @@ static int hdpvr_probe(struct usb_interface *interface,
- 	init_waitqueue_head(&dev->wait_buffer);
- 	init_waitqueue_head(&dev->wait_data);
-
--	dev->workqueue = create_singlethread_workqueue("hdpvr_buffer");
--	if (!dev->workqueue)
--		goto error;
--
- 	dev->options = hdpvr_default_options;
-
- 	if (default_video_input < HDPVR_VIDEO_INPUTS)
-@@ -404,9 +400,7 @@ reg_fail:
- #endif
- error:
- 	if (dev) {
--		/* Destroy single thread */
--		if (dev->workqueue)
--			destroy_workqueue(dev->workqueue);
-+		flush_work(&dev->worker);
- 		/* this frees allocated memory */
- 		hdpvr_delete(dev);
- 	}
-@@ -427,7 +421,7 @@ static void hdpvr_disconnect(struct usb_interface *interface)
- 	mutex_unlock(&dev->io_mutex);
- 	v4l2_device_disconnect(&dev->v4l2_dev);
- 	msleep(100);
--	flush_workqueue(dev->workqueue);
-+	flush_work(&dev->worker);
- 	mutex_lock(&dev->io_mutex);
- 	hdpvr_cancel_queue(dev);
- 	mutex_unlock(&dev->io_mutex);
-diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
-index ba7f022..2a3a8b4 100644
---- a/drivers/media/usb/hdpvr/hdpvr-video.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-@@ -316,7 +316,7 @@ static int hdpvr_start_streaming(struct hdpvr_device *dev)
- 	dev->status = STATUS_STREAMING;
-
- 	INIT_WORK(&dev->worker, hdpvr_transmit_buffers);
--	queue_work(dev->workqueue, &dev->worker);
-+	schedule_work(&dev->worker);
-
- 	v4l2_dbg(MSG_BUFFER, hdpvr_debug, &dev->v4l2_dev,
- 			"streaming started\n");
-@@ -350,7 +350,7 @@ static int hdpvr_stop_streaming(struct hdpvr_device *dev)
- 	wake_up_interruptible(&dev->wait_buffer);
- 	msleep(50);
-
--	flush_workqueue(dev->workqueue);
-+	flush_work(&dev->worker);
-
- 	mutex_lock(&dev->io_mutex);
- 	/* kill the still outstanding urbs */
-@@ -1123,7 +1123,7 @@ static void hdpvr_device_release(struct video_device *vdev)
-
- 	hdpvr_delete(dev);
- 	mutex_lock(&dev->io_mutex);
--	destroy_workqueue(dev->workqueue);
-+	flush_work(&dev->worker);
- 	mutex_unlock(&dev->io_mutex);
-
- 	v4l2_device_unregister(&dev->v4l2_dev);
-diff --git a/drivers/media/usb/hdpvr/hdpvr.h b/drivers/media/usb/hdpvr/hdpvr.h
-index 78e8154..a12e0af 100644
---- a/drivers/media/usb/hdpvr/hdpvr.h
-+++ b/drivers/media/usb/hdpvr/hdpvr.h
-@@ -107,8 +107,6 @@ struct hdpvr_device {
- 	/* waitqueue for data */
- 	wait_queue_head_t	wait_data;
- 	/**/
--	struct workqueue_struct	*workqueue;
--	/**/
- 	struct work_struct	worker;
- 	/* current stream owner */
- 	struct v4l2_fh		*owner;
---
-2.1.4
-
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> 
