@@ -1,43 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:37020 "EHLO
-	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751401AbcGRJDx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 05:03:53 -0400
-MIME-Version: 1.0
-In-Reply-To: <6224fd35-50f3-e1cd-a9b5-f377087fade6@xs4all.nl>
-References: <1468665716-10178-1-git-send-email-ricardo.ribalda@gmail.com>
- <1468665716-10178-9-git-send-email-ricardo.ribalda@gmail.com> <6224fd35-50f3-e1cd-a9b5-f377087fade6@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Mon, 18 Jul 2016 11:03:32 +0200
-Message-ID: <CAPybu_0bZS-yo_PcJnC4tG34jXWSY5hnCjHmrH6d0NXJ6h3=_Q@mail.gmail.com>
-Subject: Re: [PATCH v3 8/9] [media] vivid: Fix YUV555 and YUV565 handling
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Markus Heiser <markus.heiser@darmarit.de>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-doc@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from bombadil.infradead.org ([198.137.202.9]:41350 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755237AbcGHNEC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:02 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 18/54] doc-rst: media-controller: missing credits
+Date: Fri,  8 Jul 2016 10:03:10 -0300
+Message-Id: <965a718a8b041e9e016034fa939ae93baf5c4e20.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans
+When I wrote the MC next gen patches, I also improved the media
+controller documentation and added documentation for
+MEDIA_IOC_G_TOPOLOGY, but I forgot to add the credits on that
+time.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/linux_tv/media/mediactl/media-controller.rst | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-On Mon, Jul 18, 2016 at 10:51 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> +     int y, cb, cr;
->> +     bool ycbbr_valid = false;
->
-> I guess you mean ycbcr_valid?
+diff --git a/Documentation/linux_tv/media/mediactl/media-controller.rst b/Documentation/linux_tv/media/mediactl/media-controller.rst
+index 8b8af483c5e9..1877d68044b8 100644
+--- a/Documentation/linux_tv/media/mediactl/media-controller.rst
++++ b/Documentation/linux_tv/media/mediactl/media-controller.rst
+@@ -52,12 +52,19 @@ Authors:
+ 
+  - Initial version.
+ 
++- Carvalho Chehab, Mauro <mchehab@kernel.org>
++
++ - MEDIA_IOC_G_TOPOLOGY documentation and documentation improvements.
++
+ **Copyright** 2010 : Laurent Pinchart
++**Copyright** 2015-2016 : Mauro Carvalho Chehab
+ 
+ ****************
+ Revision History
+ ****************
+ 
++:revision: 1.1.0 / 2015-12-12 (*mcc*)
++
+ :revision: 1.0.0 / 2010-11-10 (*lp*)
+ 
+ Initial revision
+-- 
+2.7.4
 
-Yes, I think the medical term is Saturday dyslexia :)
-
-It is fixed on the next version.
-
-Thanks!
