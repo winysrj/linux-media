@@ -1,53 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:33860 "EHLO vena.lwn.net"
+Received: from ns.mm-sol.com ([37.157.136.199]:49012 "EHLO extserv.mm-sol.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751364AbcGRChW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 22:37:22 -0400
-Date: Sun, 17 Jul 2016 20:37:19 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-doc@vger.kernel.org, Jani Nikula <jani.nikula@intel.com>
-Subject: Re: Troubles with kernel-doc and RST files
-Message-ID: <20160717203719.6471fe03@lwn.net>
-In-Reply-To: <20160717100154.64823d99@recife.lan>
-References: <20160717100154.64823d99@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+	id S1754863AbcGHO5n (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Jul 2016 10:57:43 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, geert@linux-m68k.org, matrandg@cisco.com,
+	linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+	Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v5 1/2] media: i2c/ov5645: add the device tree binding document
+Date: Fri,  8 Jul 2016 17:54:38 +0300
+Message-Id: <1467989679-29774-2-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1467989679-29774-1-git-send-email-todor.tomov@linaro.org>
+References: <1467989679-29774-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[Back home and trying to get going on stuff for real.  I'll look at the
-issues listed in this message one at a time.]
+Add the document for ov5645 device tree binding.
 
-On Sun, 17 Jul 2016 10:01:54 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+Acked-by: Rob Herring <robh@kernel.org>
+---
+ .../devicetree/bindings/media/i2c/ov5645.txt       | 50 ++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
 
-> 1) We now need to include each header file with documentation twice,
-> one to get the enums, structs, typedefs, ... and another one for the
-> functions:
-> 
-> 	.. kernel-doc:: include/media/media-device.h
-> 
-> 	.. kernel-doc:: include/media/media-entity.h
-> 	   :export: drivers/media/media-entity.c
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5645.txt b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+new file mode 100644
+index 0000000..468cf83
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+@@ -0,0 +1,50 @@
++* Omnivision 1/4-Inch 5Mp CMOS Digital Image Sensor
++
++The Omnivision OV5645 is a 1/4-Inch CMOS active pixel digital image sensor with
++an active array size of 2592H x 1944V. It is programmable through a serial I2C
++interface.
++
++Required Properties:
++- compatible: Value should be "ovti,ov5645".
++- clocks: Reference to the xclk clock.
++- clock-names: Should be "xclk".
++- enable-gpios: Chip enable GPIO. Polarity is GPIO_ACTIVE_HIGH.
++- reset-gpios: Chip reset GPIO. Polarity is GPIO_ACTIVE_LOW.
++- vdddo-supply: Chip digital IO regulator.
++- vdda-supply: Chip analog regulator.
++- vddd-supply: Chip digital core regulator.
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	&i2c1 {
++		...
++
++		ov5645: ov5645@78 {
++			compatible = "ovti,ov5645";
++			reg = <0x78>;
++
++			enable-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
++			reset-gpios = <&gpio5 20 GPIO_ACTIVE_LOW>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&camera_rear_default>;
++
++			clocks = <&clks 200>;
++			clock-names = "xclk";
++
++			vdddo-supply = <&camera_dovdd_1v8>;
++			vdda-supply = <&camera_avdd_2v8>;
++			vddd-supply = <&camera_dvdd_1v2>;
++
++			port {
++				ov5645_ep: endpoint {
++					clock-lanes = <1>;
++					data-lanes = <0 2>;
++					remote-endpoint = <&csi0_ep>;
++				};
++			};
++		};
++	};
+-- 
+1.9.1
 
-So I'm a little confused here; you're including from two different header
-files here.  Did you want media-entity.h in both directives?
-
-If I do a simple test with a single line:
-
-	.. kernel-doc:: include/media/media-entity.h
-
-I get everything - structs, functions, etc. - as I would expect.  Are you
-seeing something different?
-
-It probably would be nice to have an option for "data structures, doc
-sections, and exported functions only" at some point.
-
-Thanks,
-
-jon
