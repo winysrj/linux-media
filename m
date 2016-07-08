@@ -1,92 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f194.google.com ([209.85.217.194]:34849 "EHLO
-	mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752003AbcG3ROt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jul 2016 13:14:49 -0400
-Received: by mail-ua0-f194.google.com with SMTP id 100so4995893uaq.2
-        for <linux-media@vger.kernel.org>; Sat, 30 Jul 2016 10:14:49 -0700 (PDT)
-MIME-Version: 1.0
-From: Chris Mayo <aklhfex@gmail.com>
-Date: Sat, 30 Jul 2016 18:14:47 +0100
-Message-ID: <CAHTui8JpvDW5_qUM=5duQ-4uu8kJTfG+=ksQ_J6aY5NMdQg1wA@mail.gmail.com>
-Subject: [v4l-utils PATCH] libdvbv5: Improve vdr format output for DVB-T(2)
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from bombadil.infradead.org ([198.137.202.9]:41401 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755305AbcGHNEE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:04 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 40/54] doc-rst: auto-generate net.h.rst
+Date: Fri,  8 Jul 2016 10:03:32 -0300
+Message-Id: <0c02966b1338478d6a216824376c2eee0aae78d0.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Before (1.10.1):
-BBC TWO:498000:S0B8C23D12I999M64T8G32Y0:T:27500:201:202,206:0:0:4287:0:0:0:
-BBC TWO HD:474167:S1B8C23D999I999M256T32G128Y0:T:27500:101:102,106:0:0:17472:0:0:0:
-After:
-BBC TWO:498000:B8C23D12G32I999M64S0T8Y0:T:0:201:202,206:0:0:4287:0:0:0
-BBC TWO HD:474167:B8C23D999G128I999M256S1T32Y0:T:27500:101:102,106:0:0:17472:0:0:0
+This file comes from the uAPI definition header, and
+should be auto-generated, to be in sync with Kernel changes.
 
-channels.conf (vdr 2.2.0):
-BBC TWO:498000000:B8C23D12G32M64S0T8Y0:T:0:201=2:202=eng@3,206=eng@3:0;205=eng:0:4287:9018:4163:0
-BBC TWO HD:474166670:C23G128M256P0Q16436S1T32X1Y0:T:27500:101=27:102=eng@17,106=eng@17:0;105=eng:0:17472:9018:16515:0
-
-Signed-off-by: Chris Mayo <aklhfex@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- lib/libdvbv5/dvb-vdr-format.c | 15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ Documentation/linux_tv/Makefile             | 10 +++--
+ Documentation/linux_tv/net.h.rst            | 59 -----------------------------
+ Documentation/linux_tv/net.h.rst.exceptions | 11 ++++++
+ 3 files changed, 18 insertions(+), 62 deletions(-)
+ delete mode 100644 Documentation/linux_tv/net.h.rst
+ create mode 100644 Documentation/linux_tv/net.h.rst.exceptions
 
-diff --git a/lib/libdvbv5/dvb-vdr-format.c b/lib/libdvbv5/dvb-vdr-format.c
-index a4bd26b..4377c81 100644
---- a/lib/libdvbv5/dvb-vdr-format.c
-+++ b/lib/libdvbv5/dvb-vdr-format.c
-@@ -198,26 +198,26 @@ static const struct dvb_parse_table sys_dvbs2_table[] = {
- };
-
- static const struct dvb_parse_table sys_dvbt_table[] = {
-- { DTV_DELIVERY_SYSTEM, PTABLE(vdr_parse_delivery_system) },
-  { DTV_BANDWIDTH_HZ, PTABLE(vdr_parse_bandwidth) },
-  { DTV_CODE_RATE_HP, PTABLE(vdr_parse_code_rate_hp) },
-  { DTV_CODE_RATE_LP, PTABLE(vdr_parse_code_rate_lp) },
-+ { DTV_GUARD_INTERVAL, PTABLE(vdr_parse_guard_interval) },
-  { DTV_INVERSION, PTABLE(vdr_parse_inversion) },
-  { DTV_MODULATION, PTABLE(vdr_parse_modulation) },
-+ { DTV_DELIVERY_SYSTEM, PTABLE(vdr_parse_delivery_system) },
-  { DTV_TRANSMISSION_MODE, PTABLE(vdr_parse_trans_mode) },
-- { DTV_GUARD_INTERVAL, PTABLE(vdr_parse_guard_interval) },
-  { DTV_HIERARCHY, PTABLE(vdr_parse_hierarchy) },
- };
-
- static const struct dvb_parse_table sys_dvbt2_table[] = {
-- { DTV_DELIVERY_SYSTEM, PTABLE(vdr_parse_delivery_system) },
-  { DTV_BANDWIDTH_HZ, PTABLE(vdr_parse_bandwidth) },
-  { DTV_CODE_RATE_HP, PTABLE(vdr_parse_code_rate_hp) },
-  { DTV_CODE_RATE_LP, PTABLE(vdr_parse_code_rate_lp) },
-+ { DTV_GUARD_INTERVAL, PTABLE(vdr_parse_guard_interval) },
-  { DTV_INVERSION, PTABLE(vdr_parse_inversion) },
-  { DTV_MODULATION, PTABLE(vdr_parse_modulation) },
-+ { DTV_DELIVERY_SYSTEM, PTABLE(vdr_parse_delivery_system) },
-  { DTV_TRANSMISSION_MODE, PTABLE(vdr_parse_trans_mode) },
-- { DTV_GUARD_INTERVAL, PTABLE(vdr_parse_guard_interval) },
-  { DTV_HIERARCHY, PTABLE(vdr_parse_hierarchy) },
-  /* DVB-T2 specifics */
-  { DTV_STREAM_ID, NULL, },
-@@ -367,6 +367,9 @@ int dvb_write_format_vdr(const char *fname,
-  /* Output symbol rate */
-  srate = 27500000;
-  switch(delsys) {
-+ case SYS_DVBT:
-+ srate = 0;
-+ break;
-  case SYS_DVBS:
-  case SYS_DVBS2:
-  case SYS_DVBC_ANNEX_A:
-@@ -407,8 +410,8 @@ int dvb_write_format_vdr(const char *fname,
-  /* Output Service ID */
-  fprintf(fp, "%d:", entry->service_id);
-
-- /* Output SID, NID, TID and RID */
-- fprintf(fp, "0:0:0:");
-+ /* Output NID, TID and RID */
-+ fprintf(fp, "0:0:0");
-
-  fprintf(fp, "\n");
-  line++;
+diff --git a/Documentation/linux_tv/Makefile b/Documentation/linux_tv/Makefile
+index 7ee14195802f..4ec743449776 100644
+--- a/Documentation/linux_tv/Makefile
++++ b/Documentation/linux_tv/Makefile
+@@ -2,8 +2,9 @@
+ 
+ PARSER = ../sphinx/parse-headers.pl
+ UAPI = ../../include/uapi/linux
++TARGETS = audio.h.rst ca.h.rst dmx.h.rst frontend.h.rst net.h.rst
+ 
+-htmldocs: audio.h.rst ca.h.rst dmx.h.rst frontend.h.rst
++htmldocs: ${TARGETS}
+ 
+ audio.h.rst: ${PARSER} ${UAPI}/dvb/audio.h  audio.h.rst.exceptions
+ 	${PARSER} ${UAPI}/dvb/audio.h $@ audio.h.rst.exceptions
+@@ -17,5 +18,8 @@ dmx.h.rst: ${PARSER} ${UAPI}/dvb/dmx.h  dmx.h.rst.exceptions
+ frontend.h.rst: ${PARSER} ${UAPI}/dvb/frontend.h  frontend.h.rst.exceptions
+ 	${PARSER} ${UAPI}/dvb/frontend.h $@ frontend.h.rst.exceptions
+ 
+-clean:
+-	-rm frontend.h.rst
++net.h.rst: ${PARSER} ${UAPI}/dvb/net.h  net.h.rst.exceptions
++	${PARSER} ${UAPI}/dvb/net.h $@ net.h.rst.exceptions
++
++cleandocs:
++	-rm ${TARGETS}
+diff --git a/Documentation/linux_tv/net.h.rst b/Documentation/linux_tv/net.h.rst
+deleted file mode 100644
+index 9b0f705c634b..000000000000
+--- a/Documentation/linux_tv/net.h.rst
++++ /dev/null
+@@ -1,59 +0,0 @@
+-.. -*- coding: utf-8; mode: rst -*-
+-
+-file: net.h
+-===========
+-
+-.. code-block:: c
+-
+-    /*
+-     * net.h
+-     *
+-     * Copyright (C) 2000 Marcus Metzler <marcus@convergence.de>
+-     *                  & Ralph  Metzler <ralph@convergence.de>
+-     *                    for convergence integrated media GmbH
+-     *
+-     * This program is free software; you can redistribute it and/or
+-     * modify it under the terms of the GNU Lesser General Public License
+-     * as published by the Free Software Foundation; either version 2.1
+-     * of the License, or (at your option) any later version.
+-     *
+-     * This program is distributed in the hope that it will be useful,
+-     * but WITHOUT ANY WARRANTY; without even the implied warranty of
+-     * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-     * GNU General Public License for more details.
+-     *
+-     * You should have received a copy of the GNU Lesser General Public License
+-     * along with this program; if not, write to the Free Software
+-     * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-     *
+-     */
+-
+-    #ifndef _DVBNET_H_
+-    #define _DVBNET_H_
+-
+-    #include <linux/types.h>
+-
+-    struct dvb_net_if {
+-	    __u16 pid;
+-	    __u16 if_num;
+-	    __u8  feedtype;
+-    #define DVB_NET_FEEDTYPE_MPE 0  /* multi protocol encapsulation */
+-    #define DVB_NET_FEEDTYPE_ULE 1  /* ultra lightweight encapsulation */
+-    };
+-
+-
+-    #define NET_ADD_IF    _IOWR('o', 52, struct dvb_net_if)
+-    #define NET_REMOVE_IF _IO('o', 53)
+-    #define NET_GET_IF    _IOWR('o', 54, struct dvb_net_if)
+-
+-
+-    /* binary compatibility cruft: */
+-    struct __dvb_net_if_old {
+-	    __u16 pid;
+-	    __u16 if_num;
+-    };
+-    #define __NET_ADD_IF_OLD _IOWR('o', 52, struct __dvb_net_if_old)
+-    #define __NET_GET_IF_OLD _IOWR('o', 54, struct __dvb_net_if_old)
+-
+-
+-    #endif /*_DVBNET_H_*/
+diff --git a/Documentation/linux_tv/net.h.rst.exceptions b/Documentation/linux_tv/net.h.rst.exceptions
+new file mode 100644
+index 000000000000..30a267483aa9
+--- /dev/null
++++ b/Documentation/linux_tv/net.h.rst.exceptions
+@@ -0,0 +1,11 @@
++# Ignore header name
++ignore define _DVBNET_H_
++
++# Ignore old ioctls/structs
++ignore ioctl __NET_ADD_IF_OLD
++ignore ioctl __NET_GET_IF_OLD
++ignore struct __dvb_net_if_old
++
++# Macros used at struct dvb_net_if
++replace define DVB_NET_FEEDTYPE_MPE dvb-net-if
++replace define DVB_NET_FEEDTYPE_ULE dvb-net-if
 -- 
-2.7.3
+2.7.4
+
