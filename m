@@ -1,88 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:33443 "EHLO
-	mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439AbcGBNmg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jul 2016 09:42:36 -0400
-Date: Sat, 2 Jul 2016 09:42:10 -0400
-From: Tejun Heo <tj@kernel.org>
-To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] zc3xx: Remove deprecated
- create_singlethread_workqueue
-Message-ID: <20160702134210.GX17431@htj.duckdns.org>
-References: <20160702104928.GA2672@Karyakshetra>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160702104928.GA2672@Karyakshetra>
+Received: from mx0.mattleach.net ([176.58.118.143]:49296 "EHLO
+	mx0.mattleach.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754155AbcGHMLH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 08:11:07 -0400
+From: Matthew Leach <matthew@mattleach.net>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Peter Sutton <foxxy@foxdogstudios.com>,
+	Matthew Leach <matthew@mattleach.net>, stable@vger.kernel.org
+Subject: [PATCH] media: usbtv: prevent access to free'd resources
+Date: Fri,  8 Jul 2016 13:04:27 +0100
+Message-Id: <20160708120427.29581-1-matthew@mattleach.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 02, 2016 at 04:19:28PM +0530, Bhaktipriya Shridhar wrote:
-> The workqueue "work_thread" is involved in updating parameters for
-> transfers. It has a single work item(&sd->work) and hence
-> doesn't require ordering. Also, it is not being used on a memory
-> reclaim path. Hence, the singlethreaded workqueue has been replaced with
-> the use of system_wq.
-> 
-> System workqueues have been able to handle high level of concurrency
-> for a long time now and hence it's not required to have a singlethreaded
-> workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
-> created with create_singlethread_workqueue(), system_wq allows multiple
-> work items to overlap executions even on the same CPU; however, a
-> per-cpu workqueue doesn't have any CPU locality or global ordering
-> guarantee unless the target CPU is explicitly specified and thus the
-> increase of local concurrency shouldn't make any difference.
-> 
-> Work item has been flushed in sd_stop0() to ensure that there are no
-> pending tasks while disconnecting the driver.
-> 
-> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-> ---
->  drivers/media/usb/gspca/zc3xx.c | 13 ++++---------
->  1 file changed, 4 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/usb/gspca/zc3xx.c b/drivers/media/usb/gspca/zc3xx.c
-> index c5d8ee6..ebdfed4d6 100644
-> --- a/drivers/media/usb/gspca/zc3xx.c
-> +++ b/drivers/media/usb/gspca/zc3xx.c
-> @@ -53,7 +53,6 @@ struct sd {
->  	struct v4l2_ctrl *jpegqual;
-> 
->  	struct work_struct work;
-> -	struct workqueue_struct *work_thread;
-> 
->  	u8 reg08;		/* webcam compression quality */
-> 
-> @@ -6826,8 +6825,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
->  		return gspca_dev->usb_err;
-> 
->  	/* Start the transfer parameters update thread */
-> -	sd->work_thread = create_singlethread_workqueue(KBUILD_MODNAME);
-> -	queue_work(sd->work_thread, &sd->work);
-> +	schedule_work(&sd->work);
-> 
->  	return 0;
->  }
-> @@ -6838,12 +6836,9 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
->  {
->  	struct sd *sd = (struct sd *) gspca_dev;
-> 
-> -	if (sd->work_thread != NULL) {
-> -		mutex_unlock(&gspca_dev->usb_lock);
-> -		destroy_workqueue(sd->work_thread);
-> -		mutex_lock(&gspca_dev->usb_lock);
-> -		sd->work_thread = NULL;
-> -	}
-> +	mutex_unlock(&gspca_dev->usb_lock);
-> +	schedule_work(&sd->work);
-> +	mutex_lock(&gspca_dev->usb_lock);
+When disconnecting the usbtv device, the sound card is unregistered
+from ALSA and the snd member of the usbtv struct is set to NULL.  If
+the usbtv snd_trigger work is running, this can cause a race condition
+where the kernel will attempt to access free'd resources, shown in
+[1].
 
-Shouldn't this be flush?
+This patch fixes the disconnection code by cancelling any snd_trigger
+work before unregistering the sound card from ALSA and checking that
+the snd member still exists in the work function.
 
-Thanks.
+[1]:
+ usb 3-1.2: USB disconnect, device number 6
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+ IP: [<ffffffff81093850>] process_one_work+0x30/0x480
+ PGD 405bbf067 PUD 405bbe067 PMD 0
+ Call Trace:
+  [<ffffffff81093ce8>] worker_thread+0x48/0x4e0
+  [<ffffffff81093ca0>] ? process_one_work+0x480/0x480
+  [<ffffffff81093ca0>] ? process_one_work+0x480/0x480
+  [<ffffffff81099998>] kthread+0xd8/0xf0
+  [<ffffffff815c73c2>] ret_from_fork+0x22/0x40
+  [<ffffffff810998c0>] ? kthread_worker_fn+0x170/0x170
+ ---[ end trace 0f3dac5c1a38e610 ]---
 
+Signed-off-by: Matthew Leach <matthew@mattleach.net>
+Tested-by: Peter Sutton <foxxy@foxdogstudios.com>
+Cc: stable@vger.kernel.org
+---
+ drivers/media/usb/usbtv/usbtv-audio.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/media/usb/usbtv/usbtv-audio.c b/drivers/media/usb/usbtv/usbtv-audio.c
+index 78c12d2..5dab024 100644
+--- a/drivers/media/usb/usbtv/usbtv-audio.c
++++ b/drivers/media/usb/usbtv/usbtv-audio.c
+@@ -278,6 +278,9 @@ static void snd_usbtv_trigger(struct work_struct *work)
+ {
+ 	struct usbtv *chip = container_of(work, struct usbtv, snd_trigger);
+ 
++	if (!chip->snd)
++		return;
++
+ 	if (atomic_read(&chip->snd_stream))
+ 		usbtv_audio_start(chip);
+ 	else
+@@ -378,6 +381,8 @@ err:
+ 
+ void usbtv_audio_free(struct usbtv *usbtv)
+ {
++	cancel_work_sync(&usbtv->snd_trigger);
++
+ 	if (usbtv->snd && usbtv->udev) {
+ 		snd_card_free(usbtv->snd);
+ 		usbtv->snd = NULL;
 -- 
-tejun
+2.9.0
+
