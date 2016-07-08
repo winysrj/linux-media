@@ -1,145 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38638 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754203AbcGEBb0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:26 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:58913 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754065AbcGHIwj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Jul 2016 04:52:39 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id CC8F5180C71
+	for <linux-media@vger.kernel.org>; Fri,  8 Jul 2016 10:52:34 +0200 (CEST)
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 38/41] Documentation: dev-sliced-vbi.rst: convert table captions into headers
-Date: Mon,  4 Jul 2016 22:31:13 -0300
-Message-Id: <c30b6538dcdf973f49c8e08758ef4de5eee99b04.1467670142.git.mchehab@s-opensource.com>
-In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCHv2] cec-funcs.h: add missing 'reply' for short audio descriptor
+Message-ID: <6979f617-fc6a-b679-2085-f11c94095fa2@xs4all.nl>
+Date: Fri, 8 Jul 2016 10:52:34 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sphinx doesn't format nice table captions, nor auto-numberate
-them. So, convert tables into chapters.
+The cec_msg_request_short_audio_descriptor function was missing the reply
+argument. That's needed if you want the framework to wait for the reply
+message.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../linux_tv/media/v4l/dev-sliced-vbi.rst          | 45 +++++++++++++++++-----
- 1 file changed, 36 insertions(+), 9 deletions(-)
+The bool reply should come after the msg argument, not the num_descriptors argument as was
+the case in v1 of this patch.
+---
+diff --git a/include/linux/cec-funcs.h b/include/linux/cec-funcs.h
+index 1948600..506bca9 100644
+--- a/include/linux/cec-funcs.h
++++ b/include/linux/cec-funcs.h
+@@ -1494,6 +1494,7 @@ static inline void cec_ops_report_short_audio_descriptor(const struct cec_msg *m
+ }
 
-diff --git a/Documentation/linux_tv/media/v4l/dev-sliced-vbi.rst b/Documentation/linux_tv/media/v4l/dev-sliced-vbi.rst
-index 8821e7c3c26c..fbd04fee0484 100644
---- a/Documentation/linux_tv/media/v4l/dev-sliced-vbi.rst
-+++ b/Documentation/linux_tv/media/v4l/dev-sliced-vbi.rst
-@@ -102,7 +102,10 @@ which may return ``EBUSY`` can be the
- 
- .. _v4l2-sliced-vbi-format:
- 
--.. flat-table:: struct v4l2_sliced_vbi_format
-+struct v4l2_sliced_vbi_format
-+-----------------------------
-+
-+.. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-     :widths:       3 3 2 2 2
-@@ -244,7 +247,10 @@ which may return ``EBUSY`` can be the
- 
- .. _vbi-services2:
- 
--.. flat-table:: Sliced VBI services
-+Sliced VBI services
-+-------------------
-+
-+.. flat-table::
-     :header-rows:  1
-     :stub-columns: 0
-     :widths:       2 1 1 2 2
-@@ -362,7 +368,10 @@ of one video frame. The ``id`` of unused
- 
- .. _v4l2-sliced-vbi-data:
- 
--.. flat-table:: struct v4l2_sliced_vbi_data
-+struct v4l2_sliced_vbi_data
-+---------------------------
-+
-+.. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-     :widths:       3 1 4
-@@ -544,7 +553,10 @@ number).
- 
- .. _v4l2-mpeg-vbi-fmt-ivtv:
- 
--.. flat-table:: struct v4l2_mpeg_vbi_fmt_ivtv
-+struct v4l2_mpeg_vbi_fmt_ivtv
-+-----------------------------
-+
-+.. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-     :widths:       1 1 1 2
-@@ -596,7 +608,10 @@ number).
- 
- .. _v4l2-mpeg-vbi-fmt-ivtv-magic:
- 
--.. flat-table:: Magic Constants for struct v4l2_mpeg_vbi_fmt_ivtv magic field
-+Magic Constants for struct v4l2_mpeg_vbi_fmt_ivtv magic field
-+-------------------------------------------------------------
-+
-+.. flat-table::
-     :header-rows:  1
-     :stub-columns: 0
-     :widths:       3 1 4
-@@ -634,7 +649,10 @@ number).
- 
- .. _v4l2-mpeg-vbi-itv0:
- 
--.. flat-table:: struct v4l2_mpeg_vbi_itv0
-+struct v4l2_mpeg_vbi_itv0
-+-------------------------
-+
-+.. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-     :widths:       1 1 2
-@@ -688,7 +706,10 @@ number).
- 
- .. _v4l2-mpeg-vbi-itv0-1:
- 
--.. flat-table:: struct v4l2_mpeg_vbi_ITV0
-+struct v4l2_mpeg_vbi_ITV0
-+-------------------------
-+
-+.. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-     :widths:       1 1 2
-@@ -710,7 +731,10 @@ number).
- 
- .. _v4l2-mpeg-vbi-itv0-line:
- 
--.. flat-table:: struct v4l2_mpeg_vbi_itv0_line
-+struct v4l2_mpeg_vbi_itv0_line
-+------------------------------
-+
-+.. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-     :widths:       1 1 2
-@@ -738,7 +762,10 @@ number).
- 
- .. _ITV0-Line-Identifier-Constants:
- 
--.. flat-table:: Line Identifiers for struct v4l2_mpeg_vbi_itv0_line id field
-+Line Identifiers for struct v4l2_mpeg_vbi_itv0_line id field
-+------------------------------------------------------------
-+
-+.. flat-table::
-     :header-rows:  1
-     :stub-columns: 0
-     :widths:       3 1 4
--- 
-2.7.4
-
+ static inline void cec_msg_request_short_audio_descriptor(struct cec_msg *msg,
++					bool reply,
+ 					__u8 num_descriptors,
+ 					const __u8 *audio_format_id,
+ 					const __u8 *audio_format_code)
+@@ -1504,6 +1505,7 @@ static inline void cec_msg_request_short_audio_descriptor(struct cec_msg *msg,
+ 		num_descriptors = 4;
+ 	msg->len = 2 + num_descriptors;
+ 	msg->msg[1] = CEC_MSG_REQUEST_SHORT_AUDIO_DESCRIPTOR;
++	msg->reply = reply ? CEC_MSG_REPORT_SHORT_AUDIO_DESCRIPTOR : 0;
+ 	for (i = 0; i < num_descriptors; i++)
+ 		msg->msg[2 + i] = (audio_format_id[i] << 6) |
+ 				  (audio_format_code[i] & 0x3f);
