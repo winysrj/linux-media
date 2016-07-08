@@ -1,49 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:35252 "EHLO
-	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751130AbcGVOHj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 10:07:39 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH] [media] Documentation: Fix V4L2_CTRL_FLAG_VOLATILE
-Date: Fri, 22 Jul 2016 16:07:34 +0200
-Message-Id: <1469196454-1396-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:41340 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755209AbcGHNEC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:02 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 13/54] doc-rst: dvbapi: Fix conversion issues
+Date: Fri,  8 Jul 2016 10:03:05 -0300
+Message-Id: <32b37440dd3dc40bf8d9e1cf7742247367d86479.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2_CTRL_FLAG_VOLATILE behaviour when V4L2_CTRL_FLAG_EXECUTE_ON_WRITE
-is set was not properly explained.
+The conversion of this file didn't happen too well. We want
+the items numbered, and format it just like what we did with
+part 1 of the document.
 
-Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
-Credit-to: Hans Verkuil <hansverk@cisco.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/media/uapi/v4l/vidioc-queryctrl.rst | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/linux_tv/media/dvb/dvbapi.rst | 25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-index 8d6e61a7284d..3a30d6cf70b4 100644
---- a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-@@ -728,10 +728,10 @@ See also the examples in :ref:`control`.
- 	  case the hardware calculates the gain value based on the lighting
- 	  conditions which can change over time.
+diff --git a/Documentation/linux_tv/media/dvb/dvbapi.rst b/Documentation/linux_tv/media/dvb/dvbapi.rst
+index ad800404ae9f..3a7d39e98fa3 100644
+--- a/Documentation/linux_tv/media/dvb/dvbapi.rst
++++ b/Documentation/linux_tv/media/dvb/dvbapi.rst
+@@ -12,6 +12,7 @@ LINUX DVB API
  
--	  .. note:: Setting a new value for a volatile control will have no
--	     effect and no ``V4L2_EVENT_CTRL_CH_VALUE`` will be sent, unless
--	     the ``V4L2_CTRL_FLAG_EXECUTE_ON_WRITE`` flag (see below) is
--	     also set. Otherwise the new value will just be ignored.
-+	  .. note:: Setting a new value for a volatile control will be ignored
-+             unless `V4L2_CTRL_FLAG_EXECUTE_ON_WRITE`` flag (see below) is also set.
-+             Setting a new value for a volatile contol will never trigger a
-+             ``V4L2_EVENT_CTRL_CH_VALUE`` event.
+ .. toctree::
+     :maxdepth: 1
++    :numbered:
  
-     -  .. row 9
+     intro
+     frontend
+@@ -32,28 +33,34 @@ LINUX DVB API
+ Revision and Copyright
+ **********************
  
++Authors:
+ 
+-:author:    Metzler Ralph (*J. K.*)
+-:address:   rjkm@metzlerbros.de
++- J. K. Metzler, Ralph <rjkm@metzlerbros.de>
+ 
+-:author:    Metzler Marcus (*O. C.*)
+-:address:   rjkm@metzlerbros.de
++ - Original author of the DVB API documentation.
+ 
+-:author:    Chehab Mauro (*Carvalho*)
+-:address:   m.chehab@samsung.com
+-:contrib:   Ported document to Docbook XML.
++- O. C. Metzler, Marcus <rjkm@metzlerbros.de>
+ 
+-**Copyright** |copy| 2002, 2003 : Convergence GmbH
++ - Original author of the DVB API documentation.
++
++- Carvalho Chehab, Mauro <m.chehab@kernel.org>
++
++ - Ported document to Docbook XML, addition of DVBv5 API, documentation gaps fix.
++
++**Copyright** |copy| 2002-2003 : Convergence GmbH
+ 
+ **Copyright** |copy| 2009-2016 : Mauro Carvalho Chehab
+ 
++****************
++Revision History
++****************
++
+ :revision: 2.1.0 / 2015-05-29 (*mcc*)
+ 
+ DocBook improvements and cleanups, in order to document the system calls
+ on a more standard way and provide more description about the current
+ DVB API.
+ 
+-
+ :revision: 2.0.4 / 2011-05-06 (*mcc*)
+ 
+ Add more information about DVB APIv5, better describing the frontend
 -- 
-2.8.1
+2.7.4
 
