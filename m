@@ -1,75 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:60831 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932500AbcGDNfG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 09:35:06 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>
-Subject: [PATCH 4/7] ezkit/cobalt: drop unused op_656_range setting
-Date: Mon,  4 Jul 2016 15:34:49 +0200
-Message-Id: <1467639292-1066-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1467639292-1066-1-git-send-email-hverkuil@xs4all.nl>
-References: <1467639292-1066-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.9]:41285 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754863AbcGHND7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:03:59 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 07/54] doc-rst: customize RTD theme, table & full width
+Date: Fri,  8 Jul 2016 10:02:59 -0300
+Message-Id: <9abaf979abb2845b2292d96401986b4845c51b9d.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-The adv7604/adv7842 drivers now handle that register setting themselves
-and need no input from platform data anymore.
+The default table layout of the RTD theme does not fit for vast tables,
+like the ones we have in the linux_tv project. This has been discussed
+on the ML [1].
 
-This was a left-over from the time that the pixelport output format was
-decided by the platform data.
+The RTD theme is a two column layout, with a navigation column on the
+left and a content column on the right:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>
+content column
+
+ RTD theme's default is 800px as max width for the content, but we have
+ tables with tons of columns, which need the full width of the
+ view-port (BTW: *full width* is what DocBook's HTML is).
+
+table
+
+   - sequences of whitespace should collapse into a single whitespace.
+   - make the overflow auto (scrollbar if needed)
+   - align caption "left" ("center" is unsuitable on vast tables)
+
+[1] http://article.gmane.org/gmane.linux.kernel/2216509
+
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- arch/blackfin/mach-bf609/boards/ezkit.c  | 2 --
- drivers/media/pci/cobalt/cobalt-driver.c | 2 --
- 2 files changed, 4 deletions(-)
+ Documentation/sphinx-static/theme_overrides.css | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff --git a/arch/blackfin/mach-bf609/boards/ezkit.c b/arch/blackfin/mach-bf609/boards/ezkit.c
-index aad5d74..9231e5a 100644
---- a/arch/blackfin/mach-bf609/boards/ezkit.c
-+++ b/arch/blackfin/mach-bf609/boards/ezkit.c
-@@ -1002,14 +1002,12 @@ static struct adv7842_output_format adv7842_opf[] = {
- 	{
- 		.op_ch_sel = ADV7842_OP_CH_SEL_BRG,
- 		.op_format_sel = ADV7842_OP_FORMAT_SEL_SDR_ITU656_8,
--		.op_656_range = 1,
- 		.blank_data = 1,
- 		.insert_av_codes = 1,
- 	},
- 	{
- 		.op_ch_sel = ADV7842_OP_CH_SEL_RGB,
- 		.op_format_sel = ADV7842_OP_FORMAT_SEL_SDR_ITU656_16,
--		.op_656_range = 1,
- 		.blank_data = 1,
- 	},
- };
-diff --git a/drivers/media/pci/cobalt/cobalt-driver.c b/drivers/media/pci/cobalt/cobalt-driver.c
-index 8d6f04f..99ccc50 100644
---- a/drivers/media/pci/cobalt/cobalt-driver.c
-+++ b/drivers/media/pci/cobalt/cobalt-driver.c
-@@ -492,7 +492,6 @@ static int cobalt_subdevs_init(struct cobalt *cobalt)
- 		.ain_sel = ADV7604_AIN7_8_9_NC_SYNC_3_1,
- 		.bus_order = ADV7604_BUS_ORDER_BRG,
- 		.blank_data = 1,
--		.op_656_range = 1,
- 		.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0,
- 		.int1_config = ADV76XX_INT1_CONFIG_ACTIVE_HIGH,
- 		.dr_str_data = ADV76XX_DR_STR_HIGH,
-@@ -571,7 +570,6 @@ static int cobalt_subdevs_hsma_init(struct cobalt *cobalt)
- 		.bus_order = ADV7842_BUS_ORDER_RBG,
- 		.op_format_mode_sel = ADV7842_OP_FORMAT_MODE0,
- 		.blank_data = 1,
--		.op_656_range = 1,
- 		.dr_str_data = 3,
- 		.dr_str_clk = 3,
- 		.dr_str_sync = 3,
+diff --git a/Documentation/sphinx-static/theme_overrides.css b/Documentation/sphinx-static/theme_overrides.css
+index 4d670dbf7ffa..ea06799214fd 100644
+--- a/Documentation/sphinx-static/theme_overrides.css
++++ b/Documentation/sphinx-static/theme_overrides.css
+@@ -1,9 +1,28 @@
+ /* -*- coding: utf-8; mode: css -*-
+  *
+- * Sphinx HTML theme customization
++ * Sphinx HTML theme customization: read the doc
+  *
+  */
+ 
+ @media screen {
+ 
++    /* content column
++     *
++     * RTD theme's default is 800px as max width for the content, but we have
++     * tables with tons of columns, which need the full width of the view-port.
++     */
++
++    .wy-nav-content{max-width: none; }
++
++    /* table:
++     *
++     *   - Sequences of whitespace should collapse into a single whitespace.
++     *   - make the overflow auto (scrollbar if needed)
++     *   - align caption "left" ("center" is unsuitable on vast tables)
++     */
++
++    .wy-table-responsive table td { white-space: normal; }
++    .wy-table-responsive { overflow: auto; }
++    .rst-content table.docutils caption { text-align: left; font-size: 100%; }
++
+ }
 -- 
-2.8.1
+2.7.4
 
