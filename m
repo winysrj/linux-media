@@ -1,80 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f68.google.com ([209.85.220.68]:35262 "EHLO
-	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751405AbcGPIwW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2016 04:52:22 -0400
-Date: Sat, 16 Jul 2016 14:22:19 +0530
-From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Tejun Heo <tj@kernel.org>
-Subject: [PATCH] [media] gspca: vicam: Remove deprecated
- create_singlethread_workqueue
-Message-ID: <20160716085219.GA7792@Karyakshetra>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from bombadil.infradead.org ([198.137.202.9]:41338 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755179AbcGHNEC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:02 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 14/54] doc-rst: fix intro_files/dvbstb.png image
+Date: Fri,  8 Jul 2016 10:03:06 -0300
+Message-Id: <e9b72b2744ebff6492fc024c24879706d6413d7c.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The workqueue "work_thread" is involved in streaming the camera data.
-It has a single work item(&sd->work_struct) and hence doesn't require
-ordering. Also, it is not being used on a memory reclaim path.
-Hence, the singlethreaded workqueue has been replaced with the use of
-system_wq.
+The png image was not base64 decoded correctly.
+Fix it.
 
-System workqueues have been able to handle high level of concurrency
-for a long time now and hence it's not required to have a singlethreaded
-workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
-created with create_singlethread_workqueue(), system_wq allows multiple
-work items to overlap executions even on the same CPU; however, a
-per-cpu workqueue doesn't have any CPU locality or global ordering
-guarantee unless the target CPU is explicitly specified and thus the
-increase of local concurrency shouldn't make any difference.
-
-Work item has been flushed in sd_stop0() to ensure that there are no
-pending tasks while disconnecting the driver.
-
-Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/gspca/vicam.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ .../linux_tv/media/dvb/intro_files/dvbstb.png       | Bin 22703 -> 22655 bytes
+ 1 file changed, 0 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/usb/gspca/vicam.c b/drivers/media/usb/gspca/vicam.c
-index 103f6c4..8860510 100644
---- a/drivers/media/usb/gspca/vicam.c
-+++ b/drivers/media/usb/gspca/vicam.c
-@@ -47,7 +47,6 @@ MODULE_FIRMWARE(VICAM_FIRMWARE);
- struct sd {
- 	struct gspca_dev gspca_dev;	/* !! must be the first item */
- 	struct work_struct work_struct;
--	struct workqueue_struct *work_thread;
- };
+diff --git a/Documentation/linux_tv/media/dvb/intro_files/dvbstb.png b/Documentation/linux_tv/media/dvb/intro_files/dvbstb.png
+index 5836ea94eba4ec4fd13a83e89ef86b312cc04c02..9b8f372e7afd9d016854973ba705dcdfbd1bbf13 100644
+GIT binary patch
+delta 116
+zcmZ3#k@5cq#tjYZ%&xwHo7>q}ax=MxZ8j4=%*x{G=H|AUQBs<j#nr{dWwVM*HzS0#
+zUAB&&87RBiM)w#KlWX{94uf}0tRO`poBtbq0SX0e{%N{}naMSD@@C6POs;;Ly{#&M
+NT3lT>pYnXl2LO%FCVBt>
 
- /* The vicam sensor has a resolution of 512 x 244, with I believe square
-@@ -278,9 +277,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 	if (ret < 0)
- 		return ret;
+delta 164
+zcmeyrfpPst#tjYZ><J03zJUn|o158Ja<c(BVL-N?@L^UCAluE&4aoZ{A<YcpxwyCh
+zc_K31j0oOh**boZ5nzQXy2qG6MuY>Ez0rTi#0k+90_5H|`T~{;0<y1~Zea!~3r$Fv
+a+-*4t#PkCS%Ue}|jdFDba%Oox<pTgz-8pao
 
--	/* Start the workqueue function to do the streaming */
--	sd->work_thread = create_singlethread_workqueue(MODULE_NAME);
--	queue_work(sd->work_thread, &sd->work_struct);
-+	schedule_work(&sd->work_struct);
-
- 	return 0;
- }
-@@ -294,8 +291,7 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
- 	/* wait for the work queue to terminate */
- 	mutex_unlock(&gspca_dev->usb_lock);
- 	/* This waits for vicam_dostream to finish */
--	destroy_workqueue(dev->work_thread);
--	dev->work_thread = NULL;
-+	flush_work(&dev->work_struct);
- 	mutex_lock(&gspca_dev->usb_lock);
-
- 	if (gspca_dev->present)
---
-2.1.4
+-- 
+2.7.4
 
