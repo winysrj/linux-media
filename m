@@ -1,57 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46175
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755226AbcGHRLa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 13:11:30 -0400
-Subject: Re: [PATCH] media: Doc s5p-mfc add missing fields to s5p_mfc_dev
- structure definition
-To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
-	k.debski@samsung.com, jtp.park@samsung.com, mchehab@kernel.org
-References: <1467987120-5167-1-git-send-email-shuahkh@osg.samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <dc642c89-736c-67c0-b5aa-8062ca5c83d2@osg.samsung.com>
-Date: Fri, 8 Jul 2016 13:11:18 -0400
-MIME-Version: 1.0
-In-Reply-To: <1467987120-5167-1-git-send-email-shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:41299 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755078AbcGHNEA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:00 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 52/54] doc-rst: auto-generate: fixed include "output/*.h.rst" content
+Date: Fri,  8 Jul 2016 10:03:44 -0300
+Message-Id: <580e96c78bd62b94c9178ef60f85380685264269.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Shuah,
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-On 07/08/2016 10:12 AM, Shuah Khan wrote:
-> Add missing documentation for s5p_mfc_dev structure definition.
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> index 9eb2481..1d06d6a 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> @@ -291,7 +291,9 @@ struct s5p_mfc_priv_buf {
->   * @warn_start:		hardware error code from which warnings start
->   * @mfc_ops:		ops structure holding HW operation function pointers
->   * @mfc_cmds:		cmd structure holding HW commands function pointers
-> + * @mfc_regs:		structure holding MFC registers
->   * @fw_ver:		loaded firmware sub-version
-> + * risc_on:		flag indicates RISC is on or off
->   *
->   */
->  struct s5p_mfc_dev {
-> 
+Include auto-generate reST header files. BTW fixed linux_tv/Makefile.
 
-Patch looks good to me.
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/linux_tv/Makefile                 | 7 +++++--
+ Documentation/linux_tv/media/dvb/audio_h.rst    | 6 +-----
+ Documentation/linux_tv/media/dvb/ca_h.rst       | 6 +-----
+ Documentation/linux_tv/media/dvb/dmx_h.rst      | 6 +-----
+ Documentation/linux_tv/media/dvb/frontend_h.rst | 6 +-----
+ Documentation/linux_tv/media/dvb/net_h.rst      | 6 +-----
+ Documentation/linux_tv/media/dvb/video_h.rst    | 6 +-----
+ Documentation/linux_tv/media/v4l/videodev.rst   | 6 +-----
+ 8 files changed, 12 insertions(+), 37 deletions(-)
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
-Best regards,
+diff --git a/Documentation/linux_tv/Makefile b/Documentation/linux_tv/Makefile
+index 639b994a50f6..688e37d7b232 100644
+--- a/Documentation/linux_tv/Makefile
++++ b/Documentation/linux_tv/Makefile
+@@ -9,7 +9,10 @@ FILES = audio.h.rst ca.h.rst dmx.h.rst frontend.h.rst net.h.rst video.h.rst \
+ 
+ TARGETS := $(addprefix $(BUILDDIR)/, $(FILES))
+ 
+-htmldocs: ${TARGETS}
++htmldocs: $(BUILDDIR) ${TARGETS}
++
++$(BUILDDIR):
++	$(Q)mkdir -p $@
+ 
+ # Rule to convert a .h file to inline RST documentation
+ 
+@@ -40,7 +43,7 @@ $(BUILDDIR)/net.h.rst: ${UAPI}/dvb/net.h ${PARSER} $(SRC_DIR)/net.h.rst.exceptio
+ $(BUILDDIR)/video.h.rst: ${UAPI}/dvb/video.h ${PARSER} $(SRC_DIR)/video.h.rst.exceptions
+ 	@$($(quiet)gen_rst)
+ 
+-videodev2.h.rst: ${UAPI}/videodev2.h ${PARSER} $(SRC_DIR)/videodev2.h.rst.exceptions
++$(BUILDDIR)/videodev2.h.rst: ${UAPI}/videodev2.h ${PARSER} $(SRC_DIR)/videodev2.h.rst.exceptions
+ 	@$($(quiet)gen_rst)
+ 
+ cleandocs:
+diff --git a/Documentation/linux_tv/media/dvb/audio_h.rst b/Documentation/linux_tv/media/dvb/audio_h.rst
+index bdd9a709a125..d87be5e2b022 100644
+--- a/Documentation/linux_tv/media/dvb/audio_h.rst
++++ b/Documentation/linux_tv/media/dvb/audio_h.rst
+@@ -6,8 +6,4 @@
+ DVB Audio Header File
+ *********************
+ 
+-
+-.. toctree::
+-    :maxdepth: 1
+-
+-    ../../audio.h
++.. include:: ../../../output/audio.h.rst
+diff --git a/Documentation/linux_tv/media/dvb/ca_h.rst b/Documentation/linux_tv/media/dvb/ca_h.rst
+index a7d22154022b..407f840ae2ee 100644
+--- a/Documentation/linux_tv/media/dvb/ca_h.rst
++++ b/Documentation/linux_tv/media/dvb/ca_h.rst
+@@ -6,8 +6,4 @@
+ DVB Conditional Access Header File
+ **********************************
+ 
+-
+-.. toctree::
+-    :maxdepth: 1
+-
+-    ../../ca.h
++.. include:: ../../../output/ca.h.rst
+diff --git a/Documentation/linux_tv/media/dvb/dmx_h.rst b/Documentation/linux_tv/media/dvb/dmx_h.rst
+index baf129dd078b..65ee8f095972 100644
+--- a/Documentation/linux_tv/media/dvb/dmx_h.rst
++++ b/Documentation/linux_tv/media/dvb/dmx_h.rst
+@@ -6,8 +6,4 @@
+ DVB Demux Header File
+ *********************
+ 
+-
+-.. toctree::
+-    :maxdepth: 1
+-
+-    ../../dmx.h
++.. include:: ../../../output/dmx.h.rst
+diff --git a/Documentation/linux_tv/media/dvb/frontend_h.rst b/Documentation/linux_tv/media/dvb/frontend_h.rst
+index 7101d6ddd916..97735b241f3c 100644
+--- a/Documentation/linux_tv/media/dvb/frontend_h.rst
++++ b/Documentation/linux_tv/media/dvb/frontend_h.rst
+@@ -6,8 +6,4 @@
+ DVB Frontend Header File
+ ************************
+ 
+-
+-.. toctree::
+-    :maxdepth: 1
+-
+-    ../../frontend.h
++.. include:: ../../../output/frontend.h.rst
+diff --git a/Documentation/linux_tv/media/dvb/net_h.rst b/Documentation/linux_tv/media/dvb/net_h.rst
+index 09560db4e1c0..5a5a797882f2 100644
+--- a/Documentation/linux_tv/media/dvb/net_h.rst
++++ b/Documentation/linux_tv/media/dvb/net_h.rst
+@@ -6,8 +6,4 @@
+ DVB Network Header File
+ ***********************
+ 
+-
+-.. toctree::
+-    :maxdepth: 1
+-
+-    ../../net.h
++.. include:: ../../../output/net.h.rst
+diff --git a/Documentation/linux_tv/media/dvb/video_h.rst b/Documentation/linux_tv/media/dvb/video_h.rst
+index 45c12d295523..9d649a7e0f8b 100644
+--- a/Documentation/linux_tv/media/dvb/video_h.rst
++++ b/Documentation/linux_tv/media/dvb/video_h.rst
+@@ -6,8 +6,4 @@
+ DVB Video Header File
+ *********************
+ 
+-
+-.. toctree::
+-    :maxdepth: 1
+-
+-    ../../video.h
++.. include:: ../../../output/video.h.rst
+diff --git a/Documentation/linux_tv/media/v4l/videodev.rst b/Documentation/linux_tv/media/v4l/videodev.rst
+index 4826416b2ab4..82bac4a0b760 100644
+--- a/Documentation/linux_tv/media/v4l/videodev.rst
++++ b/Documentation/linux_tv/media/v4l/videodev.rst
+@@ -6,8 +6,4 @@
+ Video For Linux Two Header File
+ *******************************
+ 
+-
+-.. toctree::
+-    :maxdepth: 1
+-
+-    ../../videodev2.h
++.. include:: ../../../output/videodev2.h.rst
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.7.4
+
