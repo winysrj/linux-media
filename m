@@ -1,128 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:32845 "EHLO
-	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754441AbcGHKpr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 06:45:47 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Cc: slongerbeam@gmail.com, lars@metafoo.de, hans.verkuil@cisco.com,
-	mchehab@kernel.org,
-	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH] [media] rcar-vin: add legacy mode for wrong media bus formats
-Date: Fri,  8 Jul 2016 12:43:27 +0200
-Message-Id: <20160708104327.6329-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:41908 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754262AbcGHL0M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 07:26:12 -0400
+From: Nick Dyer <nick@shmanahar.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	jon.older@itdev.co.uk, nick.dyer@itdev.co.uk
+Subject: [PATCH v7 0/11] Output raw touch data via V4L2
+Date: Fri,  8 Jul 2016 12:25:53 +0100
+Message-Id: <1467977164-17551-1-git-send-email-nick@shmanahar.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A recent bugfix to adv7180 brought to light that the rcar-vin driver are
-looking for the wrong media bus format. It was looking for a YUVU format
-but then expecting UYVY data. The bugfix for adv7180 will break the
-usage of rcar-vin together with a adv7180 as found on Renesas R-Car2
-Koelsch boards for example.
+This is a series of patches to add output of raw touch diagnostic data via V4L2
+to the Atmel maXTouch and Synaptics RMI4 drivers.
 
-This patch fix the rcar-vin driver to look for the correct UYVU formats
-and adds a legacy mode. The legacy mode is needed since I don't know if
-other devices provide a incorrect media bus format and I don't want to
-break any working configurations. Hopefully the legacy mode can be
-removed sometime in the future.
+It's a rewrite of the previous implementation which output via debugfs: it now
+uses a V4L2 device in a similar way to the sur40 driver.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 39 +++++++++++++++++++++++++++--
- drivers/media/platform/rcar-vin/rcar-dma.c  |  4 +--
- 2 files changed, 39 insertions(+), 4 deletions(-)
+We have a utility which can read the data and display it in a useful format:
+    https://github.com/ndyer/heatmap/commits/heatmap-v4l
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 4b2007b..481d82a 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -37,6 +37,7 @@ static int rvin_mbus_supported(struct rvin_dev *vin)
- 	struct v4l2_subdev_mbus_code_enum code = {
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
- 	};
-+	bool found;
- 
- 	sd = vin_to_source(vin);
- 
-@@ -45,8 +46,8 @@ static int rvin_mbus_supported(struct rvin_dev *vin)
- 		code.index++;
- 		switch (code.code) {
- 		case MEDIA_BUS_FMT_YUYV8_1X16:
--		case MEDIA_BUS_FMT_YUYV8_2X8:
--		case MEDIA_BUS_FMT_YUYV10_2X10:
-+		case MEDIA_BUS_FMT_UYVY8_2X8:
-+		case MEDIA_BUS_FMT_UYVY10_2X10:
- 		case MEDIA_BUS_FMT_RGB888_1X24:
- 			vin->source.code = code.code;
- 			vin_dbg(vin, "Found supported media bus format: %d\n",
-@@ -57,6 +58,40 @@ static int rvin_mbus_supported(struct rvin_dev *vin)
- 		}
- 	}
- 
-+	/*
-+	 * Older versions where looking for the wrong media bus format.
-+	 * It where looking for a YUVY format but then treated it as a
-+	 * UYVY format. This was not noticed since atlest one subdevice
-+	 * used for testing (adv7180) reported a YUVY media bus format
-+	 * but provided UYVY data. There might be other unknown subdevices
-+	 * which also do this, to not break compatibility try to use them
-+	 * in legacy mode.
-+	 */
-+	found = false;
-+	code.index = 0;
-+	while (!v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code)) {
-+		code.index++;
-+		switch (code.code) {
-+		case MEDIA_BUS_FMT_YUYV8_2X8:
-+			vin->source.code = MEDIA_BUS_FMT_UYVY8_2X8;
-+			found = true;
-+			break;
-+		case MEDIA_BUS_FMT_YUYV10_2X10:
-+			vin->source.code = MEDIA_BUS_FMT_UYVY10_2X10;
-+			found = true;
-+			break;
-+		default:
-+			break;
-+		}
-+
-+		if (found) {
-+			vin_err(vin,
-+				"media bus %d not supported, trying legacy mode %d\n",
-+				code.code, vin->source.code);
-+			return true;
-+		}
-+	}
-+
- 	return false;
- }
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index dad3b03..0836b15 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -169,7 +169,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 		vnmc |= VNMC_INF_YUV16;
- 		input_is_yuv = true;
- 		break;
--	case MEDIA_BUS_FMT_YUYV8_2X8:
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
- 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
- 		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
-@@ -178,7 +178,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 	case MEDIA_BUS_FMT_RGB888_1X24:
- 		vnmc |= VNMC_INF_RGB888;
- 		break;
--	case MEDIA_BUS_FMT_YUYV10_2X10:
-+	case MEDIA_BUS_FMT_UYVY10_2X10:
- 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
- 		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
--- 
-2.9.0
+These patches are also available from
+    https://github.com/ndyer/linux/commits/v4l-touch-v7-2016-07-08
+
+I will also send a patch to update v4l2-compliance.
+
+Changes in v7:
+- Tested by Andrew Duggan and Chris Healy.
+- Update bus_info to add "rmi4:" bus.
+- Fix code style issues in sur40 changes.
+
+Changes in v6:
+- Remove BUF_TYPE_TOUCH_CAPTURE, as discussed with Hans V touch devices will
+  use BUF_TYPE_VIDEO_CAPTURE.
+- Touch devices should now register CAP_VIDEO_CAPTURE: CAP_TOUCH just says that
+  this is a touch device, not a video device, but otherwise it acts the same.
+- Add some code to v4l_s_fmt() to set sensible default values for fields not
+  used by touch.
+- Improve naming/doc of RMI4 F54 report types.
+- Various minor DocBook fixes, and split to separate patch.
+- Update my email address.
+- Rework sur40 changes so that PIX_FMT_GREY is supported for backward
+  compatibility. Florian is it possible for you to test?
+
+Changes in v5 (Hans Verkuil review):
+- Update v4l2-core:
+  - Add VFL_TYPE_TOUCH, V4L2_BUF_TYPE_TOUCH_CAPTURE and V4L2_CAP_TOUCH
+  - Change V4L2_INPUT_TYPE_TOUCH_SENSOR to V4L2_INPUT_TYPE_TOUCH
+  - Improve DocBook documentation
+  - Add FMT definitions for touch data
+  - Note this will need the latest version of the heatmap util
+- Synaptics RMI4 driver:
+  - Remove some less important non full frame report types
+  - Switch report type names to const char * array
+  - Move a static array to inside context struct
+- Split sur40 changes to a separate commit
+
+Changes in v4:
+- Address nits from the input side in atmel_mxt_ts patches (Dmitry Torokhov)
+- Add Synaptics RMI4 F54 support patch
+
+Changes in v3:
+- Address V4L2 review comments from Hans Verkuil
+- Run v4l-compliance and fix all issues - needs minor patch here:
+  https://github.com/ndyer/v4l-utils/commit/cf50469773f
+
+Changes in v2:
+- Split pixfmt changes into separate commit and add DocBook
+- Introduce VFL_TYPE_TOUCH_SENSOR and /dev/v4l-touch
+- Remove "single node" support for now, it may be better to treat it as
+  metadata later
+- Explicitly set VFL_DIR_RX
+- Fix Kconfig
 
