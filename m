@@ -1,59 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f67.google.com ([209.85.220.67]:33965 "EHLO
-	mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755878AbcGFXh1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:37:27 -0400
-Received: by mail-pa0-f67.google.com with SMTP id us13so152217pab.1
-        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:37:03 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 4/6] ARM: dts: imx6-sabreauto: add reset-gpios property for max7310_b
-Date: Wed,  6 Jul 2016 16:36:41 -0700
-Message-Id: <1467848203-14007-5-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1467848203-14007-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1467848203-14007-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:32845 "EHLO
+	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754441AbcGHKpr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 06:45:47 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: slongerbeam@gmail.com, lars@metafoo.de, hans.verkuil@cisco.com,
+	mchehab@kernel.org,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH] [media] rcar-vin: add legacy mode for wrong media bus formats
+Date: Fri,  8 Jul 2016 12:43:27 +0200
+Message-Id: <20160708104327.6329-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The reset pin to the port expander chip (MAX7310) is controlled by a gpio,
-so define a reset-gpios property to control it. There are three MAX7310's
-on the SabreAuto CPU card (max7310_[abc]), but all use the same pin for
-their reset. Since all can't acquire the same pin, assign it to max7310_b,
-that chip is needed by more functions (usb and adv7180).
+A recent bugfix to adv7180 brought to light that the rcar-vin driver are
+looking for the wrong media bus format. It was looking for a YUVU format
+but then expecting UYVY data. The bugfix for adv7180 will break the
+usage of rcar-vin together with a adv7180 as found on Renesas R-Car2
+Koelsch boards for example.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+This patch fix the rcar-vin driver to look for the correct UYVU formats
+and adds a legacy mode. The legacy mode is needed since I don't know if
+other devices provide a incorrect media bus format and I don't want to
+break any working configurations. Hopefully the legacy mode can be
+removed sometime in the future.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/media/platform/rcar-vin/rcar-core.c | 39 +++++++++++++++++++++++++++--
+ drivers/media/platform/rcar-vin/rcar-dma.c  |  4 +--
+ 2 files changed, 39 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-index 13f50e8..3f12d74 100644
---- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-@@ -136,6 +136,9 @@
- 				reg = <0x32>;
- 				gpio-controller;
- 				#gpio-cells = <2>;
-+				pinctrl-names = "default";	
-+				pinctrl-0 = <&pinctrl_max7310>;
-+				reset-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
- 			};
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 4b2007b..481d82a 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -37,6 +37,7 @@ static int rvin_mbus_supported(struct rvin_dev *vin)
+ 	struct v4l2_subdev_mbus_code_enum code = {
+ 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+ 	};
++	bool found;
  
- 			max7310_c: gpio@34 {
-@@ -441,6 +444,12 @@
- 			>;
- 		};
+ 	sd = vin_to_source(vin);
  
-+		pinctrl_max7310: max7310grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_SD2_DAT0__GPIO1_IO15 0x80000000
-+			>;
-+		};
+@@ -45,8 +46,8 @@ static int rvin_mbus_supported(struct rvin_dev *vin)
+ 		code.index++;
+ 		switch (code.code) {
+ 		case MEDIA_BUS_FMT_YUYV8_1X16:
+-		case MEDIA_BUS_FMT_YUYV8_2X8:
+-		case MEDIA_BUS_FMT_YUYV10_2X10:
++		case MEDIA_BUS_FMT_UYVY8_2X8:
++		case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		case MEDIA_BUS_FMT_RGB888_1X24:
+ 			vin->source.code = code.code;
+ 			vin_dbg(vin, "Found supported media bus format: %d\n",
+@@ -57,6 +58,40 @@ static int rvin_mbus_supported(struct rvin_dev *vin)
+ 		}
+ 	}
+ 
++	/*
++	 * Older versions where looking for the wrong media bus format.
++	 * It where looking for a YUVY format but then treated it as a
++	 * UYVY format. This was not noticed since atlest one subdevice
++	 * used for testing (adv7180) reported a YUVY media bus format
++	 * but provided UYVY data. There might be other unknown subdevices
++	 * which also do this, to not break compatibility try to use them
++	 * in legacy mode.
++	 */
++	found = false;
++	code.index = 0;
++	while (!v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code)) {
++		code.index++;
++		switch (code.code) {
++		case MEDIA_BUS_FMT_YUYV8_2X8:
++			vin->source.code = MEDIA_BUS_FMT_UYVY8_2X8;
++			found = true;
++			break;
++		case MEDIA_BUS_FMT_YUYV10_2X10:
++			vin->source.code = MEDIA_BUS_FMT_UYVY10_2X10;
++			found = true;
++			break;
++		default:
++			break;
++		}
 +
- 		pinctrl_pwm3: pwm1grp {
- 			fsl,pins = <
- 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
++		if (found) {
++			vin_err(vin,
++				"media bus %d not supported, trying legacy mode %d\n",
++				code.code, vin->source.code);
++			return true;
++		}
++	}
++
+ 	return false;
+ }
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index dad3b03..0836b15 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -169,7 +169,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		vnmc |= VNMC_INF_YUV16;
+ 		input_is_yuv = true;
+ 		break;
+-	case MEDIA_BUS_FMT_YUYV8_2X8:
++	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+ 		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+@@ -178,7 +178,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	case MEDIA_BUS_FMT_RGB888_1X24:
+ 		vnmc |= VNMC_INF_RGB888;
+ 		break;
+-	case MEDIA_BUS_FMT_YUYV10_2X10:
++	case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+ 		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
 -- 
-1.9.1
+2.9.0
 
