@@ -1,43 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:55525 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932681AbcGEGrE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Jul 2016 02:47:04 -0400
-Subject: Re: [GIT PULL FOR v4.8] Various fixes/improvements
-To: Florian Echtler <floe@butterbrot.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <319a2666-50e5-29ff-b5bf-b47d26723d7a@xs4all.nl>
- <577B45B4.2050705@butterbrot.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7c4f3903-dd92-c027-dbc2-1a4b42a3b641@xs4all.nl>
-Date: Tue, 5 Jul 2016 08:46:51 +0200
-MIME-Version: 1.0
-In-Reply-To: <577B45B4.2050705@butterbrot.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:41462 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755370AbcGHNEF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:05 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 21/54] doc-rst: mediactl: fix some wrong cross references
+Date: Fri,  8 Jul 2016 10:03:13 -0300
+Message-Id: <8c1cc62a52e9d7b1289d4c6b0bbf2bcea7dd65e7.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/05/2016 07:29 AM, Florian Echtler wrote:
-> Hello Hans,
-> 
-> On 01.07.2016 16:45, Hans Verkuil wrote:
->> Florian Echtler (3):
->>       sur40: properly report a single frame rate of 60 FPS
->>       sur40: lower poll interval to fix occasional FPS drops to ~56 FPS
->>       sur40: fix occasional oopses on device close
-> 
-> Thanks for merging this, AFAICS these fixes will now be part of 4.8. We
-> were hoping they might also be picked for the 4.4 LTS kernel, will this
-> be decided by Greg KH or will it happen automatically?
+Those cross references should point to media control syscalls,
+and not to V4L ones.
 
-I've added a Cc to the stable list for patches 2 and 3: those patches will
-go to kernels 4.2 and up. Please mention such things next time.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/linux_tv/media/mediactl/media-func-close.rst | 2 +-
+ Documentation/linux_tv/media/mediactl/media-func-ioctl.rst | 4 ++--
+ Documentation/linux_tv/media/mediactl/media-func-open.rst  | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-I took another look at patch 1 and found that I had a question about it.
-Patch 1 is also not something for older kernels since it isn't a bug fix.
+diff --git a/Documentation/linux_tv/media/mediactl/media-func-close.rst b/Documentation/linux_tv/media/mediactl/media-func-close.rst
+index 3f3d9bb1f32a..39ef70ac8656 100644
+--- a/Documentation/linux_tv/media/mediactl/media-func-close.rst
++++ b/Documentation/linux_tv/media/mediactl/media-func-close.rst
+@@ -40,7 +40,7 @@ are freed. The device configuration remain unchanged.
+ Return Value
+ ============
+ 
+-:ref:`close() <func-close>` returns 0 on success. On error, -1 is returned, and
++:ref:`close() <media-func-close>` returns 0 on success. On error, -1 is returned, and
+ ``errno`` is set appropriately. Possible error codes are:
+ 
+ EBADF
+diff --git a/Documentation/linux_tv/media/mediactl/media-func-ioctl.rst b/Documentation/linux_tv/media/mediactl/media-func-ioctl.rst
+index 1b28e2d20de4..9d1b23133edf 100644
+--- a/Documentation/linux_tv/media/mediactl/media-func-ioctl.rst
++++ b/Documentation/linux_tv/media/mediactl/media-func-ioctl.rst
+@@ -40,8 +40,8 @@ Arguments
+ Description
+ ===========
+ 
+-The :ref:`ioctl() <func-ioctl>` function manipulates media device parameters.
+-The argument ``fd`` must be an open file descriptor.
++The :ref:`ioctl() <media-func-ioctl>` function manipulates media device
++parameters. The argument ``fd`` must be an open file descriptor.
+ 
+ The ioctl ``request`` code specifies the media function to be called. It
+ has encoded in it whether the argument is an input, output or read/write
+diff --git a/Documentation/linux_tv/media/mediactl/media-func-open.rst b/Documentation/linux_tv/media/mediactl/media-func-open.rst
+index 43b9ddc5c38f..2b2ecd85b995 100644
+--- a/Documentation/linux_tv/media/mediactl/media-func-open.rst
++++ b/Documentation/linux_tv/media/mediactl/media-func-open.rst
+@@ -37,7 +37,7 @@ Arguments
+ Description
+ ===========
+ 
+-To open a media device applications call :ref:`open() <func-open>` with the
++To open a media device applications call :ref:`open() <media-func-open>` with the
+ desired device name. The function has no side effects; the device
+ configuration remain unchanged.
+ 
+-- 
+2.7.4
 
-Regards,
-
-	Hans
