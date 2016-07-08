@@ -1,58 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:52067 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932188AbcGLL0D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 07:26:03 -0400
-Message-ID: <1468322758.2462.9.camel@mtksdaap41>
-Subject: Re: [PATCH -next] [media] mtk-vcodec: remove redundant dev_err call
- in mtk_vcodec_probe()
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: <weiyj_lk@163.com>
-CC: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Wei Yongjun" <yongjun_wei@trendmicro.com.cn>,
-	<linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-mediatek@lists.infradead.org>
-Date: Tue, 12 Jul 2016 19:25:58 +0800
-In-Reply-To: <1468321379-16133-1-git-send-email-weiyj_lk@163.com>
-References: <1468321379-16133-1-git-send-email-weiyj_lk@163.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:15813 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754441AbcGHL0O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 07:26:14 -0400
+From: Nick Dyer <nick@shmanahar.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	jon.older@itdev.co.uk, nick.dyer@itdev.co.uk,
+	Nick Dyer <nick@shmanahar.org>
+Subject: [PATCH v7 08/11] Input: atmel_mxt_ts - add diagnostic data support for mXT1386
+Date: Fri,  8 Jul 2016 12:26:01 +0100
+Message-Id: <1467977164-17551-9-git-send-email-nick@shmanahar.org>
+In-Reply-To: <1467977164-17551-1-git-send-email-nick@shmanahar.org>
+References: <1467977164-17551-1-git-send-email-nick@shmanahar.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Tiffany Lin <tiffany.lin@mediatek.com>
+The mXT1386 family of chips have a different architecture which splits
+the diagnostic data into 3 columns.
 
-On Tue, 2016-07-12 at 11:02 +0000, weiyj_lk@163.com wrote:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> 
-> There is a error message within devm_ioremap_resource
-> already, so remove the dev_err call to avoid redundant
-> error message.
-> 
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> ---
->  drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
-> index 9c10cc2..b33a931 100644
-> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
-> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
-> @@ -279,8 +279,6 @@ static int mtk_vcodec_probe(struct platform_device *pdev)
->  		}
->  		dev->reg_base[i] = devm_ioremap_resource(&pdev->dev, res);
->  		if (IS_ERR((__force void *)dev->reg_base[i])) {
-> -			dev_err(&pdev->dev,
-> -				"devm_ioremap_resource %d failed.", i);
->  			ret = PTR_ERR((__force void *)dev->reg_base[i]);
->  			goto err_res;
->  		}
-> 
-> 
+Signed-off-by: Nick Dyer <nick@shmanahar.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c |   31 +++++++++++++++++++++++++++---
+ 1 file changed, 28 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index c35fca0..7c4d937 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -137,6 +137,10 @@ struct t9_range {
+ #define MXT_DIAGNOSTIC_DELTAS	0x10
+ #define MXT_DIAGNOSTIC_SIZE	128
+ 
++#define MXT_FAMILY_1386			160
++#define MXT1386_COLUMNS			3
++#define MXT1386_PAGES_PER_COLUMN	8
++
+ struct t37_debug {
+ #ifdef CONFIG_TOUCHSCREEN_ATMEL_MXT_T37
+ 	u8 mode;
+@@ -2140,13 +2144,27 @@ recheck:
+ static u16 mxt_get_debug_value(struct mxt_data *data, unsigned int x,
+ 			       unsigned int y)
+ {
++	struct mxt_info *info = &data->info;
+ 	struct mxt_dbg *dbg = &data->dbg;
+ 	unsigned int ofs, page;
++	unsigned int col = 0;
++	unsigned int col_width;
++
++	if (info->family_id == MXT_FAMILY_1386) {
++		col_width = info->matrix_ysize / MXT1386_COLUMNS;
++		col = y / col_width;
++		y = y % col_width;
++	} else {
++		col_width = info->matrix_ysize;
++	}
+ 
+-	ofs = (y + (x * data->info.matrix_ysize)) * sizeof(u16);
++	ofs = (y + (x * col_width)) * sizeof(u16);
+ 	page = ofs / MXT_DIAGNOSTIC_SIZE;
+ 	ofs %= MXT_DIAGNOSTIC_SIZE;
+ 
++	if (info->family_id == MXT_FAMILY_1386)
++		page += col * MXT1386_PAGES_PER_COLUMN;
++
+ 	return get_unaligned_le16(&dbg->t37_buf[page].data[ofs]);
+ }
+ 
+@@ -2416,6 +2434,7 @@ static const struct video_device mxt_video_device = {
+ 
+ static void mxt_debug_init(struct mxt_data *data)
+ {
++	struct mxt_info *info = &data->info;
+ 	struct mxt_dbg *dbg = &data->dbg;
+ 	struct mxt_object *object;
+ 	int error;
+@@ -2439,8 +2458,14 @@ static void mxt_debug_init(struct mxt_data *data)
+ 
+ 	/* Calculate size of data and allocate buffer */
+ 	dbg->t37_nodes = data->xsize * data->ysize;
+-	dbg->t37_pages = DIV_ROUND_UP(data->xsize * data->info.matrix_ysize *
+-				      sizeof(u16), sizeof(dbg->t37_buf->data));
++
++	if (info->family_id == MXT_FAMILY_1386)
++		dbg->t37_pages = MXT1386_COLUMNS * MXT1386_PAGES_PER_COLUMN;
++	else
++		dbg->t37_pages = DIV_ROUND_UP(data->xsize *
++					      data->info.matrix_ysize *
++					      sizeof(u16),
++					      sizeof(dbg->t37_buf->data));
+ 
+ 	dbg->t37_buf = devm_kmalloc_array(&data->client->dev, dbg->t37_pages,
+ 					  sizeof(struct t37_debug), GFP_KERNEL);
+-- 
+1.7.9.5
 
