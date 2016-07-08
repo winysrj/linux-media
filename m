@@ -1,69 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:33926 "EHLO
-	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751181AbcGOPRC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 11:17:02 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: auro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 1/6] [media] videodev2.h Add HSV formats
-Date: Fri, 15 Jul 2016 17:16:51 +0200
-Message-Id: <1468595816-31272-2-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1468595816-31272-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1468595816-31272-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:41313 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755153AbcGHNEB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:01 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 48/54] doc-rst: videodev2.h: don't ignore V4L2_STD macros
+Date: Fri,  8 Jul 2016 10:03:40 -0300
+Message-Id: <5ed759819f43fd850e883059e1dd6aa2d2591137.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
+References: <cover.1467981855.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These formats store the color information of the image
-in a geometrical representation. The colors are mapped into a
-cylinder, where the angle is the HUE, the height is the VALUE
-and the distance to the center is the SATURATION. This is a very
-useful format for image segmentation algorithms.
+The content of those macros are all declared at the v4l2-std-id
+table. So, point to it.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 2 ++
- include/uapi/linux/videodev2.h       | 4 ++++
- 2 files changed, 6 insertions(+)
+ Documentation/linux_tv/videodev2.h.rst.exceptions | 94 ++++++++++++-----------
+ 1 file changed, 48 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index f899bf1c5fc0..54670cd59212 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1238,6 +1238,8 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_PIX_FMT_TM6000:	descr = "A/V + VBI Mux Packet"; break;
- 	case V4L2_PIX_FMT_CIT_YYVYUY:	descr = "GSPCA CIT YYVYUY"; break;
- 	case V4L2_PIX_FMT_KONICA420:	descr = "GSPCA KONICA420"; break;
-+	case V4L2_PIX_FMT_HSV24:	descr = "24-bit HSV 8-8-8"; break;
-+	case V4L2_PIX_FMT_HSV32:	descr = "32-bit XHSV 8-8-8-8"; break;
- 	case V4L2_SDR_FMT_CU8:		descr = "Complex U8"; break;
- 	case V4L2_SDR_FMT_CU16LE:	descr = "Complex U16LE"; break;
- 	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 724f43e69d03..c7fb760386cf 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -580,6 +580,10 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
- #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
+diff --git a/Documentation/linux_tv/videodev2.h.rst.exceptions b/Documentation/linux_tv/videodev2.h.rst.exceptions
+index 2c49287b6d59..8cad3ba6ba99 100644
+--- a/Documentation/linux_tv/videodev2.h.rst.exceptions
++++ b/Documentation/linux_tv/videodev2.h.rst.exceptions
+@@ -196,52 +196,6 @@ ignore define V4L2_FBUF_FLAG_LOCAL_INV_ALPHA
+ ignore define V4L2_FBUF_FLAG_SRC_CHROMAKEY
+ ignore define V4L2_MODE_HIGHQUALITY
+ ignore define V4L2_CAP_TIMEPERFRAME
+-ignore define V4L2_STD_PAL_B
+-ignore define V4L2_STD_PAL_B1
+-ignore define V4L2_STD_PAL_G
+-ignore define V4L2_STD_PAL_H
+-ignore define V4L2_STD_PAL_I
+-ignore define V4L2_STD_PAL_D
+-ignore define V4L2_STD_PAL_D1
+-ignore define V4L2_STD_PAL_K
+-ignore define V4L2_STD_PAL_M
+-ignore define V4L2_STD_PAL_N
+-ignore define V4L2_STD_PAL_Nc
+-ignore define V4L2_STD_PAL_60
+-ignore define V4L2_STD_NTSC_M
+-ignore define V4L2_STD_NTSC_M_JP
+-ignore define V4L2_STD_NTSC_443
+-ignore define V4L2_STD_NTSC_M_KR
+-ignore define V4L2_STD_SECAM_B
+-ignore define V4L2_STD_SECAM_D
+-ignore define V4L2_STD_SECAM_G
+-ignore define V4L2_STD_SECAM_H
+-ignore define V4L2_STD_SECAM_K
+-ignore define V4L2_STD_SECAM_K1
+-ignore define V4L2_STD_SECAM_L
+-ignore define V4L2_STD_SECAM_LC
+-ignore define V4L2_STD_ATSC_8_VSB
+-ignore define V4L2_STD_ATSC_16_VSB
+-ignore define V4L2_STD_NTSC
+-ignore define V4L2_STD_SECAM_DK
+-ignore define V4L2_STD_SECAM
+-ignore define V4L2_STD_PAL_BG
+-ignore define V4L2_STD_PAL_DK
+-ignore define V4L2_STD_PAL
+-ignore define V4L2_STD_B
+-ignore define V4L2_STD_G
+-ignore define V4L2_STD_H
+-ignore define V4L2_STD_L
+-ignore define V4L2_STD_GH
+-ignore define V4L2_STD_DK
+-ignore define V4L2_STD_BG
+-ignore define V4L2_STD_MN
+-ignore define V4L2_STD_MTS
+-ignore define V4L2_STD_525_60
+-ignore define V4L2_STD_625_50
+-ignore define V4L2_STD_ATSC
+-ignore define V4L2_STD_UNKNOWN
+-ignore define V4L2_STD_ALL
+ ignore define V4L2_DV_PROGRESSIVE
+ ignore define V4L2_DV_INTERLACED
+ ignore define V4L2_DV_VSYNC_POS_POL
+@@ -414,6 +368,54 @@ ignore define V4L2_CHIP_FL_READABLE
+ ignore define V4L2_CHIP_FL_WRITABLE
+ ignore define BASE_VIDIOC_PRIVATE
  
-+/* HSV formats */
-+#define V4L2_PIX_FMT_HSV24 v4l2_fourcc('H', 'S', 'V', '3')
-+#define V4L2_PIX_FMT_HSV32 v4l2_fourcc('H', 'S', 'V', '4')
++# The V4L2_STD_foo are all defined at v4l2_std_id table
++replace define V4L2_STD_PAL_B v4l2-std-id
++replace define V4L2_STD_PAL_B1 v4l2-std-id
++replace define V4L2_STD_PAL_G v4l2-std-id
++replace define V4L2_STD_PAL_H v4l2-std-id
++replace define V4L2_STD_PAL_I v4l2-std-id
++replace define V4L2_STD_PAL_D v4l2-std-id
++replace define V4L2_STD_PAL_D1 v4l2-std-id
++replace define V4L2_STD_PAL_K v4l2-std-id
++replace define V4L2_STD_PAL_M v4l2-std-id
++replace define V4L2_STD_PAL_N v4l2-std-id
++replace define V4L2_STD_PAL_Nc v4l2-std-id
++replace define V4L2_STD_PAL_60 v4l2-std-id
++replace define V4L2_STD_NTSC_M v4l2-std-id
++replace define V4L2_STD_NTSC_M_JP v4l2-std-id
++replace define V4L2_STD_NTSC_443 v4l2-std-id
++replace define V4L2_STD_NTSC_M_KR v4l2-std-id
++replace define V4L2_STD_SECAM_B v4l2-std-id
++replace define V4L2_STD_SECAM_D v4l2-std-id
++replace define V4L2_STD_SECAM_G v4l2-std-id
++replace define V4L2_STD_SECAM_H v4l2-std-id
++replace define V4L2_STD_SECAM_K v4l2-std-id
++replace define V4L2_STD_SECAM_K1 v4l2-std-id
++replace define V4L2_STD_SECAM_L v4l2-std-id
++replace define V4L2_STD_SECAM_LC v4l2-std-id
++replace define V4L2_STD_ATSC_8_VSB v4l2-std-id
++replace define V4L2_STD_ATSC_16_VSB v4l2-std-id
++replace define V4L2_STD_NTSC v4l2-std-id
++replace define V4L2_STD_SECAM_DK v4l2-std-id
++replace define V4L2_STD_SECAM v4l2-std-id
++replace define V4L2_STD_PAL_BG v4l2-std-id
++replace define V4L2_STD_PAL_DK v4l2-std-id
++replace define V4L2_STD_PAL v4l2-std-id
++replace define V4L2_STD_B v4l2-std-id
++replace define V4L2_STD_G v4l2-std-id
++replace define V4L2_STD_H v4l2-std-id
++replace define V4L2_STD_L v4l2-std-id
++replace define V4L2_STD_GH v4l2-std-id
++replace define V4L2_STD_DK v4l2-std-id
++replace define V4L2_STD_BG v4l2-std-id
++replace define V4L2_STD_MN v4l2-std-id
++replace define V4L2_STD_MTS v4l2-std-id
++replace define V4L2_STD_525_60 v4l2-std-id
++replace define V4L2_STD_625_50 v4l2-std-id
++replace define V4L2_STD_ATSC v4l2-std-id
++replace define V4L2_STD_UNKNOWN v4l2-std-id
++replace define V4L2_STD_ALL v4l2-std-id
 +
- /* compressed formats */
- #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M', 'J', 'P', 'G') /* Motion-JPEG   */
- #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF JPEG     */
+ # Ignore reserved ioctl
+ ignore ioctl VIDIOC_RESERVED
+ 
 -- 
-2.8.1
+2.7.4
 
