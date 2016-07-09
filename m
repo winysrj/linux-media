@@ -1,68 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37201 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932317AbcGCVbn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Jul 2016 17:31:43 -0400
-Received: from int-mx14.intmail.prod.int.phx2.redhat.com (int-mx14.intmail.prod.int.phx2.redhat.com [10.5.11.27])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mx1.redhat.com (Postfix) with ESMTPS id 9C9AA60C6
-	for <linux-media@vger.kernel.org>; Sun,  3 Jul 2016 21:31:42 +0000 (UTC)
-Received: from shalem.localdomain (vpn1-5-247.ams2.redhat.com [10.36.5.247])
-	by int-mx14.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id u63LVe7p028363
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 3 Jul 2016 17:31:42 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Stepping down as gspca and pwc maintainer
-Message-ID: <0b81648e-90ab-e9b2-4192-a7a387e86fc0@redhat.com>
-Date: Sun, 3 Jul 2016 23:31:39 +0200
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:33149 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751167AbcGIHwe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2016 03:52:34 -0400
+Date: Sat, 9 Jul 2016 13:22:29 +0530
+From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Tejun Heo <tj@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2] zc3xx: Remove deprecated create_singlethread_workqueue
+Message-ID: <20160709075229.GA8020@Karyakshetra>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+The workqueue "work_thread" is involved in updating parameters for
+transfers. It has a single work item(&sd->work) and hence
+doesn't require ordering. Also, it is not being used on a memory
+reclaim path. Hence, the singlethreaded workqueue has been replaced with
+the use of system_wq.
 
-Admittedly I've not been all that active as gspca and pwc
-maintainer lately, but officially I'm still the maintainer
-for both.
+System workqueues have been able to handle high level of concurrency
+for a long time now and hence it's not required to have a singlethreaded
+workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
+created with create_singlethread_workqueue(), system_wq allows multiple
+work items to overlap executions even on the same CPU; however, a
+per-cpu workqueue doesn't have any CPU locality or global ordering
+guarantee unless the target CPU is explicitly specified and thus the
+increase of local concurrency shouldn't make any difference.
 
-Between my $dayjob, other foss projects and last but not
-least spending time with my wife and children I'm way too busy
-lately.
+Work item has been flushed in sd_stop0() to ensure that there are no
+pending tasks while disconnecting the driver.
 
-So I'm hereby officially stepping down as gspca and pwc maintainer,
-I know this means MAINTAINERS needs updating, but I'm hoping to
-find a volunteer to take them over who can then directly replace my
-name in MAINTAINERS.
+Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+---
+ Changes in v2:
+	-Added call to flush_work
 
-Both are currently in descent shape, one thing which needs
-doing (for a long time now) is converting gspca to videobuf2.
+ drivers/media/usb/gspca/zc3xx.c | 13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-Other then that the following patches are pending in
-patchwork (and are all ready to be merged I just never
-got around to it):
+diff --git a/drivers/media/usb/gspca/zc3xx.c b/drivers/media/usb/gspca/zc3xx.c
+index c5d8ee6..5f7254d 100644
+--- a/drivers/media/usb/gspca/zc3xx.c
++++ b/drivers/media/usb/gspca/zc3xx.c
+@@ -53,7 +53,6 @@ struct sd {
+ 	struct v4l2_ctrl *jpegqual;
 
-1 actual bug-fix which should really be merged asap
-(Mauro can you pick this one up directly ?):
+ 	struct work_struct work;
+-	struct workqueue_struct *work_thread;
 
-https://patchwork.linuxtv.org/patch/34155/
+ 	u8 reg08;		/* webcam compression quality */
 
-1 compiler warning:
-https://patchwork.linuxtv.org/patch/32726/
+@@ -6826,8 +6825,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 		return gspca_dev->usb_err;
 
-A couple of v4l-compliance fixes:
-https://patchwork.linuxtv.org/patch/33408/
-https://patchwork.linuxtv.org/patch/33412/
-https://patchwork.linuxtv.org/patch/33411/
-https://patchwork.linuxtv.org/patch/33410/
-https://patchwork.linuxtv.org/patch/33409/
+ 	/* Start the transfer parameters update thread */
+-	sd->work_thread = create_singlethread_workqueue(KBUILD_MODNAME);
+-	queue_work(sd->work_thread, &sd->work);
++	schedule_work(&sd->work);
 
-And last there is this patch which need someone to review it:
-https://patchwork.linuxtv.org/patch/34986/
+ 	return 0;
+ }
+@@ -6838,12 +6836,9 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
 
-Regards,
+-	if (sd->work_thread != NULL) {
+-		mutex_unlock(&gspca_dev->usb_lock);
+-		destroy_workqueue(sd->work_thread);
+-		mutex_lock(&gspca_dev->usb_lock);
+-		sd->work_thread = NULL;
+-	}
++	mutex_unlock(&gspca_dev->usb_lock);
++	flush_work(&sd->work);
++	mutex_lock(&gspca_dev->usb_lock);
+ 	if (!gspca_dev->present)
+ 		return;
+ 	send_unknown(gspca_dev, sd->sensor);
+--
+2.1.4
 
-Hans
