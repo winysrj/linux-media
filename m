@@ -1,134 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39135 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754481AbcGTOlk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 10:41:40 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 1/5] [media] doc-rst: backward compatibility with older Sphinx versions
-Date: Wed, 20 Jul 2016 11:41:31 -0300
-Message-Id: <ef88f10eb877c427a61c3aacc7ed08ffed0712ab.1469025360.git.mchehab@s-opensource.com>
+Received: from smtp1.goneo.de ([85.220.129.30]:41558 "EHLO smtp1.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751897AbcGIPGv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Jul 2016 11:06:51 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Markus Heiser <markus.heiser@darmarIT.de>
+Subject: [PATCH RFC] doc-rst: media: reordered top sectioning
+Date: Sat,  9 Jul 2016 17:06:26 +0200
+Message-Id: <1468076786-8594-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sphinx is really evil when an older version finds an extra
-attribute for the :toctree: tag: it simply ignores everything
-and produce documents without any chapter inside!
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-As we're now using tags available only on Sphinx 1.4.x, we
-need to use some creative ways to add a title before the
-table of contents. Do that by using a css class.
+Within the old section hierarchy, all doc parts has been placed under
+the introduction, e.g:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+* Linux Media Infrastructure API
+    + Introduction
+        - Video for Linux API
+        - Digital TV API
+        - ...
+
+With separating the introduction sibling to the other parts
+we get a more common section hierarchy:
+
+* Linux Media Infrastructure API
+    + Introduction
+    + Video for Linux API
+    + Digital TV API
+    + ...
+
+BTW: compacting the intro text.
+
+This patch is on top of media_tree/docs-next
+
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
 ---
- Documentation/media/dvb-drivers/index.rst       | 5 +++--
- Documentation/media/media_kapi.rst              | 6 ++++--
- Documentation/media/media_uapi.rst              | 5 +++--
- Documentation/media/v4l-drivers/index.rst       | 5 +++--
- Documentation/sphinx-static/theme_overrides.css | 5 +++++
- 5 files changed, 18 insertions(+), 8 deletions(-)
+ Documentation/media/intro.rst      | 46 +++++++++++++++++++++++++++++++++
+ Documentation/media/media_uapi.rst | 53 +-------------------------------------
+ 2 files changed, 47 insertions(+), 52 deletions(-)
+ create mode 100644 Documentation/media/intro.rst
 
-diff --git a/Documentation/media/dvb-drivers/index.rst b/Documentation/media/dvb-drivers/index.rst
-index e1d4d87f2a47..e4c2e74db9dc 100644
---- a/Documentation/media/dvb-drivers/index.rst
-+++ b/Documentation/media/dvb-drivers/index.rst
-@@ -14,12 +14,13 @@ any later version published by the Free Software Foundation. A copy of
- the license is included in the chapter entitled "GNU Free Documentation
- License".
- 
-+.. class:: toc-title
+diff --git a/Documentation/media/intro.rst b/Documentation/media/intro.rst
+new file mode 100644
+index 0000000..be90bda
+--- /dev/null
++++ b/Documentation/media/intro.rst
+@@ -0,0 +1,46 @@
++.. -*- coding: utf-8; mode: rst -*-
 +
-+	Table of Contents
- 
- .. toctree::
- 	:maxdepth: 5
- 	:numbered:
--	:caption: Table of Contents
--	:name: dvb_mastertoc
- 
- 	intro
- 	avermedia
-diff --git a/Documentation/media/media_kapi.rst b/Documentation/media/media_kapi.rst
-index 0af80e90b7b5..5414d2a7dfb8 100644
---- a/Documentation/media/media_kapi.rst
-+++ b/Documentation/media/media_kapi.rst
-@@ -14,11 +14,13 @@ any later version published by the Free Software Foundation. A copy of
- the license is included in the chapter entitled "GNU Free Documentation
- License".
- 
-+.. class:: toc-title
++============
++Introduction
++============
 +
-+        Table of Contents
++This document covers the Linux Kernel to Userspace API's used by video
++and radio streaming devices, including video cameras, analog and digital
++TV receiver cards, AM/FM receiver cards, Software Defined Radio (SDR),
++streaming capture and output devices, codec devices and remote controllers.
 +
- .. toctree::
-     :maxdepth: 5
-     :numbered:
--    :caption: Table of Contents
--    :name: kapi_mastertoc
- 
-     kapi/v4l2-framework
-     kapi/v4l2-controls
++A typical media device hardware is shown at :ref:`typical_media_device`.
++
++.. _typical_media_device:
++
++.. figure::  media_api_files/typical_media_device.*
++    :alt:    typical_media_device.svg
++    :align:  center
++
++    Typical Media Device
++
++The media infrastructure API was designed to control such devices. It is
++divided into five parts.
++
++1. The :ref:`first part <v4l2spec>` covers radio, video capture and output,
++   cameras, analog TV devices and codecs.
++
++2. The :ref:`second part <dvbapi>` covers the API used for digital TV and
++   Internet reception via one of the several digital tv standards. While it is
++   called as DVB API, in fact it covers several different video standards
++   including DVB-T/T2, DVB-S/S2, DVB-C, ATSC, ISDB-T, ISDB-S, DTMB, etc. The
++   complete list of supported standards can be found at
++   :ref:`fe-delivery-system-t`.
++
++3. The :ref:`third part <remote_controllers>` covers the Remote Controller API.
++
++4. The :ref:`fourth part <media_controller>` covers the Media Controller API.
++
++5. The :ref:`fifth part <cec>` covers the CEC (Consumer Electronics Control) API.
++
++It should also be noted that a media device may also have audio components, like
++mixers, PCM capture, PCM playback, etc, which are controlled via ALSA API.  For
++additional information and for the latest development code, see:
++`https://linuxtv.org <https://linuxtv.org>`__.  For discussing improvements,
++reporting troubles, sending new drivers, etc, please mail to: `Linux Media
++Mailing List (LMML) <http://vger.kernel.org/vger-lists.html#linux-media>`__.
 diff --git a/Documentation/media/media_uapi.rst b/Documentation/media/media_uapi.rst
-index debe4531040b..aaa9a0e387c4 100644
+index 49f5cb5..527c6de 100644
 --- a/Documentation/media/media_uapi.rst
 +++ b/Documentation/media/media_uapi.rst
-@@ -14,11 +14,12 @@ any later version published by the Free Software Foundation. A copy of
- the license is included in the chapter entitled "GNU Free Documentation
+@@ -15,61 +15,10 @@ the license is included in the chapter entitled "GNU Free Documentation
  License".
  
-+.. class:: toc-title
-+
-+        Table of Contents
  
+-============
+-Introduction
+-============
+-
+-This document covers the Linux Kernel to Userspace API's used by video
+-and radio streaming devices, including video cameras, analog and digital
+-TV receiver cards, AM/FM receiver cards, Software Defined Radio (SDR),
+-streaming capture and output devices, codec devices and remote controllers.
+-
+-A typical media device hardware is shown at
+-:ref:`typical_media_device`.
+-
+-
+-.. _typical_media_device:
+-
+-.. figure::  media_api_files/typical_media_device.*
+-    :alt:    typical_media_device.svg
+-    :align:  center
+-
+-    Typical Media Device
+-
+-The media infrastructure API was designed to control such devices. It is
+-divided into five parts.
+-
+-The :ref:`first part <v4l2spec>` covers radio, video capture and output,
+-cameras, analog TV devices and codecs.
+-
+-The :ref:`second part <dvbapi>` covers the API used for digital TV and
+-Internet reception via one of the several digital tv standards. While it
+-is called as DVB API, in fact it covers several different video
+-standards including DVB-T/T2, DVB-S/S2, DVB-C, ATSC, ISDB-T, ISDB-S,
+-DTMB, etc. The complete list of supported standards can be found at
+-:ref:`fe-delivery-system-t`.
+-
+-The :ref:`third part <remote_controllers>` covers the Remote Controller API.
+-
+-The :ref:`fourth part <media_controller>` covers the Media Controller API.
+-
+-The :ref:`fifth part <cec>` covers the CEC (Consumer Electronics Control) API.
+-
+-It should also be noted that a media device may also have audio
+-components, like mixers, PCM capture, PCM playback, etc, which are
+-controlled via ALSA API.
+-
+-For additional information and for the latest development code, see:
+-`https://linuxtv.org <https://linuxtv.org>`__.
+-
+-For discussing improvements, reporting troubles, sending new drivers,
+-etc, please mail to:
+-`Linux Media Mailing List (LMML). <http://vger.kernel.org/vger-lists.html#linux-media>`__.
+-
+-
  .. toctree::
-     :maxdepth: 5
--    :caption: Table of Contents
--    :name: uapi_mastertoc
+     :maxdepth: 1
  
-     intro
++    intro
      uapi/v4l/v4l2
-diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
-index 8d1710234e5a..2aab653905ce 100644
---- a/Documentation/media/v4l-drivers/index.rst
-+++ b/Documentation/media/v4l-drivers/index.rst
-@@ -14,12 +14,13 @@ any later version published by the Free Software Foundation. A copy of
- the license is included in the chapter entitled "GNU Free Documentation
- License".
- 
-+.. class:: toc-title
-+
-+        Table of Contents
- 
- .. toctree::
- 	:maxdepth: 5
- 	:numbered:
--	:caption: Table of Contents
--	:name: v4l_mastertoc
- 
- 	fourcc
- 	v4l-with-ir
-diff --git a/Documentation/sphinx-static/theme_overrides.css b/Documentation/sphinx-static/theme_overrides.css
-index c97d8428302d..3a2ac4bcfd78 100644
---- a/Documentation/sphinx-static/theme_overrides.css
-+++ b/Documentation/sphinx-static/theme_overrides.css
-@@ -31,6 +31,11 @@
-      *   - hide the permalink symbol as long as link is not hovered
-      */
- 
-+    .toc-title {
-+        font-size: 150%;
-+	font-weight: bold;
-+    }
-+
-     caption, .wy-table caption, .rst-content table.field-list caption {
-         font-size: 100%;
-     }
+     uapi/dvb/dvbapi
+     uapi/rc/remote_controllers
 -- 
 2.7.4
 
