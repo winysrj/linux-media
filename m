@@ -1,60 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:51925 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752146AbcGAPxQ (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:43584 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751088AbcGIHdE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jul 2016 11:53:16 -0400
-Subject: Re: A potential race
-To: Pavel Andrianov <andrianov@ispras.ru>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Vladis Dronov <vdronov@redhat.com>,
-	Insu Yun <wuninsu@gmail.com>, Oliver Neukum <oneukum@suse.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Vaishali Thakkar <vaishali.thakkar@oracle.com>,
-	ldv-project@linuxtesting.org
-References: <57727001.7040606@ispras.ru> <577680B3.5010901@ispras.ru>
+	Sat, 9 Jul 2016 03:33:04 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8c161772-d2d9-0897-7f76-40caea5f0a93@xs4all.nl>
-Date: Fri, 1 Jul 2016 17:53:09 +0200
-MIME-Version: 1.0
-In-Reply-To: <577680B3.5010901@ispras.ru>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: tiffany.lin@mediatek.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/2] mtk-vcodec: fix two compiler warnings
+Date: Sat,  9 Jul 2016 09:32:57 +0200
+Message-Id: <1468049578-10039-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/01/2016 04:39 PM, Pavel Andrianov wrote:
->  Hi!
-> 
-> There is a potential race condition between usbvision_v4l2_close
-> <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L403> and usbvision_disconnect
-> <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1569>. The possible scenario may be the following.
-> usbvision_disconnect <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1569> starts execution, assigns
-> usbvision->remove_pending = 1 <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1587>, and is interrupted
-> (rescheduled) after mutex_unlock <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1592>. After that
-> usbvision_v4l2_close <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L403> is executed, decrease
-> usbvision->user-- <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L419>, checks
-> usbvision->remove_pending <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L422>, executes
-> usbvision_release <http://lxr.free-electrons.com/ident?i=usbvision_release> and finishes. Then usbvision_disconnect
-> <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1569> continues its execution. It checks
-> usbversion->user <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1594> (it is already 0) and also
-> execute usbvision_release <http://lxr.free-electrons.com/ident?i=usbvision_release>. Thus, release is executed twice. The same situation may
-> occur if usbvision_v4l2_close <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L403> is interrupted by
-> usbvision_disconnect <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1569>. Moreover, the same problem
-> is in usbvision_radio_close <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1135>. In all these cases
-> the check before call usbvision_release <http://lxr.free-electrons.com/ident?i=usbvision_release> under mutex_lock protection does not solve
-> the problem, because  there may occur an open() after the check and the race takes place again. The question is: why the usbvision_release
-> <http://lxr.free-electrons.com/ident?i=usbvision_release> is called from close() (usbvision_v4l2_close
-> <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L403> and usbvision_radio_close
-> <http://lxr.free-electrons.com/source/drivers/media/usb/usbvision/usbvision-video.c#L1135>)? Usually release functions are called from
-> disconnect.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Please don't use html mail, mailinglists will silently reject this.
+mtk-vcodec/mtk_vcodec_enc.c: In function 'mtk_venc_worker':
+mtk-vcodec/mtk_vcodec_enc.c:1030:43: warning: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type 'size_t {aka unsigned int}' [-Wformat=]
+mtk-vcodec/mtk_vcodec_enc.c:1030:43: warning: format '%lx' expects argument of type 'long unsigned int', but argument 10 has type 'size_t {aka unsigned int}' [-Wformat=]
 
-The usbvision driver is old and unloved and known to be very bad code. It needs a huge amount of work to make all this work correctly.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I don't see anyone picking this up...
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+index 6dcae0a..907a6d1 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+@@ -1028,7 +1028,7 @@ static void mtk_venc_worker(struct work_struct *work)
+ 	bs_buf.size = (size_t)dst_buf->planes[0].length;
+ 
+ 	mtk_v4l2_debug(2,
+-			"Framebuf VA=%p PA=%llx Size=0x%lx;VA=%p PA=0x%llx Size=0x%lx;VA=%p PA=0x%llx Size=%zu",
++			"Framebuf VA=%p PA=%llx Size=0x%zx;VA=%p PA=0x%llx Size=0x%zx;VA=%p PA=0x%llx Size=%zu",
+ 			frm_buf.fb_addr[0].va,
+ 			(u64)frm_buf.fb_addr[0].dma_addr,
+ 			frm_buf.fb_addr[0].size,
+-- 
+2.8.1
 
-Regards,
-
-	Hans
