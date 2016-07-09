@@ -1,107 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([198.47.19.11]:51417 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750915AbcGSU4W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 16:56:22 -0400
-Date: Tue, 19 Jul 2016 15:56:00 -0500
-From: Bin Liu <b-liu@ti.com>
-To: <matwey@sai.msu.ru>
-CC: <hdegoede@redhat.com>, <linux-media@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>
-Subject: Re: pwc over musb: 100% frame drop (lost) on high resolution stream
-Message-ID: <20160719205600.GA14569@uda0271908>
-References: <1468959677-1768-1-git-send-email-matwey@sai.msu.ru>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38677 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751897AbcGIRKa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2016 13:10:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Linux Doc <linux-doc@vger.kernel.org>
+Subject: Re: [ANN] Media documentation converted to ReST markup language
+Date: Sat, 09 Jul 2016 20:10:21 +0300
+Message-ID: <1602772.oBh27pyGSf@avalon>
+In-Reply-To: <20160708103420.27453f0d@recife.lan>
+References: <20160708103420.27453f0d@recife.lan>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <1468959677-1768-1-git-send-email-matwey@sai.msu.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Mauro,
 
-On Tue, Jul 19, 2016 at 11:21:17PM +0300, matwey@sai.msu.ru wrote:
-> Hello,
+On Friday 08 Jul 2016 10:34:20 Mauro Carvalho Chehab wrote:
+> As commented on the patch series I just submitted, we finished the
+> conversion of the Media uAPI book from DocBook to ReST.
 > 
-> I have Philips SPC 900 camera (0471:0329) connected to my AM335x based BeagleBoneBlack SBC.
-> I am sure that both of them are fine and work properly.
-> I am running Linux 4.6.4 (my kernel config is available at https://clck.ru/A2kQs ) and I've just discovered, that there is an issue with frame transfer when high resolution formats are used.
+> For now, I'm placing the new documentation, after parsed by Sphinx, at this
+> place:
+> 	https://mchehab.fedorapeople.org/media_API_book/
 > 
-> The issue is the following. I use simple v4l2 example tool (taken from API docs), which source code is available at http://pastebin.com/grcNXxfe
+> There are some instructions there about how to use Sphinx too, with can be
+> useful for the ones writing patches. Those are part of the docs-next that
+> will be sent to Kernel 4.8, thanks to Jani Nikula an Jonathan Corbet.
 > 
-> When I use (see line 488) 640x480 frames
+> The media docbook itself is located at:
+> 	https://mchehab.fedorapeople.org/media_API_book/linux_tv/index.html
 > 
->                 fmt.fmt.pix.width       = 640;
->                 fmt.fmt.pix.height      = 480;
+> And the patches are already at the media tree, under the "docs-next"
+> branch:
+> 	https://git.linuxtv.org/media_tree.git/log/?h=docs-next
 > 
-> then I get "select timeout" and don't get any frames.
+> If you find anything inconsistent, wrong or incomplete, feel free to
+> submit patches to it. My plan is to merge this branch on Kernel 4.8-rc1
+> and then remove the Documentation/DocBook/media stuff from the Kernel.
 > 
-> When I use 320x240 frames
->                 
->                 fmt.fmt.pix.width       = 320;
->                 fmt.fmt.pix.height      = 240;
+> PS.: I'll soon be adding one extra patch there renaming the media
+> directory. "linux_tv" is not the best name for the media contents,
+> but, on the other hand, having a "media/media" directory also doesn't
+> make sense. So, I need to think for a better name before doing the
+> change. Pehaps I'll go for:
+> 	Documentation/media - for all media documentation, were we
+> 		should also store things that are now under
+> 		/video4linux and under /dvb;
 > 
-> then about 60% frames are missed. An example outpout of ./a.out -f is available at https://yadi.sk/d/aRka8xWPtSc4y
-> It looks like there are pauses between bulks of frames (frame counter and timestamp as returned from v4l2 API):
-> 
-> 3 3705.142553
-> 8 3705.342533
-> 13 3705.542517
-> 110 3708.776208
-> 115 3708.976190
-> 120 3709.176169
-> 125 3709.376152
-> 130 3709.576144
-> 226 3712.807848
-> 
-> When I use tiny 160x120 frames
->                 
->                 fmt.fmt.pix.width       = 160;
->                 fmt.fmt.pix.height      = 120;
-> 
-> then more frames are received. See output example at https://yadi.sk/d/DedBmH6ftSc9t
-> That is why I thought that everything was fine in May when used tiny xawtv window to check kernel OOPS presence (see http://www.spinics.net/lists/linux-usb/msg141188.html for reference)
-> 
-> Even more. When I introduce USB hub between the host and the webcam, I can not receive even any 320x240 frames.
-> 
-> I've managed to use ftrace to see what is going on when no frames are received.
-> I've found that pwc_isoc_handler is called frequently as the following:
-> 
->  0)               |  pwc_isoc_handler [pwc]() {
->  0)               |    usb_submit_urb [usbcore]() {
->  0)               |      usb_submit_urb.part.3 [usbcore]() {
->  0)               |        usb_hcd_submit_urb [usbcore]() {
->  0)   0.834 us    |          usb_get_urb [usbcore]();
->  0)               |          musb_map_urb_for_dma [musb_hdrc]() {
->  0)   0.792 us    |            usb_hcd_map_urb_for_dma [usbcore]();
->  0)   5.750 us    |          }
->  0)               |          musb_urb_enqueue [musb_hdrc]() {
->  0)   0.750 us    |            _raw_spin_lock_irqsave();
->  0)               |            usb_hcd_link_urb_to_ep [usbcore]() {
->  0)   0.792 us    |              _raw_spin_lock();
->  0)   0.791 us    |              _raw_spin_unlock();
->  0) + 10.500 us   |            }
->  0)   0.791 us    |            _raw_spin_unlock_irqrestore();
->  0) + 25.375 us   |          }
->  0) + 45.208 us   |        }
->  0) + 51.042 us   |      }
->  0) + 56.084 us   |    }
->  0) + 61.292 us   |  }
-> 
-> However, pwc_isoc_handler never calls vb2_buffer_done() that is why I get "select timeout" in userspace.
-> Unfortunately, my kernel is not compiled with CONFIG_USB_PWC_DEBUG=y but I can recompile it, if you think that it could provide more information. I am also ready to perform additional tests (use usbmon maybe?).
-> 
-> How could this issue be resolved?
-> 
-> Thank you.
+> and:
+> 	Documentation/media/uapi - for the above book that were just
+> 		converted from DocBook.
 
-Do you have CPPI DMA enabled? If so I think you might hit on a known
-issue in CPPI Isoch transfer, in which the MUSB controller only sends IN
-tokens in every other SOF, so only half of the bus bandwidth is
-utilized, which causes video frame drops in higher resolution.
+The layout looks fresh and new, that's nice. I've noticed two pain points 
+though. One of them is that the left-hand side navigation table requires 
+Javascript. I wonder if there would be away to expand it fully, or even remove 
+it, when Javascript is disabled.
 
-To confirm this, use a bus analyzer to capture a bus trace, you would
-see no IN tokens in every other SOF while transfering Isoch packets.
+The other one is related, the table of contents in the main page of each 
+section 
+(https://mchehab.fedorapeople.org/media_API_book/linux_tv/media/v4l/v4l2.html 
+for instance) only shows the first level entries. We have a full table of 
+contents now, and that's very practical to quickly search for the information 
+we need without requiring many clicks (or actually any click at all). How can 
+we keep that feature ?
 
+By the way, the "Video for Linux API" section (and the other sibling sections) 
+are child nodes of the "Introduction" section. That feels quite odd.
+
+-- 
 Regards,
--Bin.
+
+Laurent Pinchart
+
