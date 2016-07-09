@@ -1,60 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:60319 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751089AbcGQPCq (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38646 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756658AbcGIXXu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 11:02:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/7] cec: don't set fh to NULL in CEC_TRANSMIT
-Date: Sun, 17 Jul 2016 17:02:30 +0200
-Message-Id: <1468767754-48542-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1468767754-48542-1-git-send-email-hverkuil@xs4all.nl>
-References: <1468767754-48542-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 9 Jul 2016 19:23:50 -0400
+Date: Sun, 10 Jul 2016 02:23:16 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH v2.1 3/5] media: Refactor copying IOCTL arguments from
+ and to user space
+Message-ID: <20160709232316.GZ24980@valkosipuli.retiisi.org.uk>
+References: <1462360855-23354-4-git-send-email-sakari.ailus@linux.intel.com>
+ <3214203.0Eb5nWCm1s@avalon>
+ <20160709220309.GX24980@valkosipuli.retiisi.org.uk>
+ <1611496.C5bpE1Z3WL@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1611496.C5bpE1Z3WL@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Sun, Jul 10, 2016 at 02:12:24AM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Sunday 10 Jul 2016 01:03:09 Sakari Ailus wrote:
+> > On Sat, Jul 09, 2016 at 10:29:03PM +0300, Laurent Pinchart wrote:
+> > > On Monday 09 May 2016 16:16:26 Sakari Ailus wrote:
+> > >> Laurent Pinchart wrote:
+> > >>> On Wednesday 04 May 2016 16:09:51 Sakari Ailus wrote:
+> > >>>> Refactor copying the IOCTL argument structs from the user space and
+> > >>>> back, in order to reduce code copied around and make the
+> > >>>> implementation more robust.
+> > >>>> 
+> > >>>> As a result, the copying is done while not holding the graph mutex.
+> > >>>> 
+> > >>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > >>>> ---
+> > >>>> since v2:
+> > >>>> 
+> > >>>> - Remove function to calculate maximum argument size, replace by a
+> > >>>>   char array of 256 or kmalloc() if that's too small.
+> > >>>>  
+> > >>>>  drivers/media/media-device.c | 194 ++++++++++++++-------------------
+> > >>>>  1 file changed, 94 insertions(+), 100 deletions(-)
+> > >>>> 
+> > >>>> diff --git a/drivers/media/media-device.c
+> > >>>> b/drivers/media/media-device.c
+> > >>>> index 9b5a88d..0797e4b 100644
+> > >>>> --- a/drivers/media/media-device.c
+> > >>>> +++ b/drivers/media/media-device.c
+> > > 
+> > > [snip]
+> > > 
+> > >>>> @@ -453,10 +432,24 @@ static long __media_device_ioctl(
+> > >>>> 
+> > >>>>  	info = &info_array[_IOC_NR(cmd)];
+> > >>>> 
+> > >>>> +	if (_IOC_SIZE(info->cmd) > sizeof(__karg)) {
+> > >>>> +		karg = kmalloc(_IOC_SIZE(info->cmd), GFP_KERNEL);
+> > >>>> +		if (!karg)
+> > >>>> +			return -ENOMEM;
+> > >>>> +	}
+> > >>>> +
+> > >>>> +	info->arg_from_user(karg, arg, cmd);
+> > >>>> +
+> > >>>>  	mutex_lock(&dev->graph_mutex);
+> > >>>> -	ret = info->fn(dev, arg);
+> > >>>> +	ret = info->fn(dev, karg);
+> > >>>>  	mutex_unlock(&dev->graph_mutex);
+> > >>>> 
+> > >>>> +	if (!ret)
+> > >>> 
+> > >>> How about if (!ret && info->arg_to_user) instead, and getting rid of
+> > >>> copy_arg_to_user_nop() ?
+> > >> 
+> > >> I thought of that, but I decided to optimise the common case ---  which
+> > >> is that the argument is copied back and forth. Not copying the argument
+> > >> back is a very special case, we use it for a single compat IOCTL.
+> > >> 
+> > >> That said, we could use it for the proper ENUM_LINKS as well. Still that
+> > >> does not change what's normal.
+> > > 
+> > > We're talking about one comparison and one branching instruction (that
+> > > will not be taken in the common case). Is that micro-optimization really
+> > > worth it in an ioctl path that is not that performance-critical ? If you
+> > > think it is, could you analyse what the impact of the
+> > > copy_arg_to_user_nop() function on cache locality is for the common case ?
+> > > ;-)
+> > 
+> > I sense a certain amount of insistence in your arguments. Fine, I'll change
+> > it.
+> 
+> Thanks. I'll change that in the next version of the request API patches I will 
+> send out.
 
-The filehandle was set to NULL when in non-blocking mode or when
-no reply is needed.
+I think we rather should try to decrease the size of the set and get the
+preparation patches in first.
 
-This is wrong: the filehandle is needed in non-blocking mode to ensure
-that the result of the transmit can be obtained through CEC_RECEIVE.
+I'm ready to send a pull request on these (after testing the rebased
+patches), but it's been pending on the minimum arg size vs. list of
+supported sizes discussion.
 
-And the 'reply' check was also incorrect since it should have checked the
-timeout field (the reply can be 0). In any case, when in blocking mode
-there is no need to set the fh to NULL either.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/cec/cec-api.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/staging/media/cec/cec-api.c
-index 879f7d9..559f650 100644
---- a/drivers/staging/media/cec/cec-api.c
-+++ b/drivers/staging/media/cec/cec-api.c
-@@ -189,15 +189,12 @@ static long cec_transmit(struct cec_adapter *adap, struct cec_fh *fh,
- 	if (copy_from_user(&msg, parg, sizeof(msg)))
- 		return -EFAULT;
- 	mutex_lock(&adap->lock);
--	if (!adap->is_configured) {
-+	if (!adap->is_configured)
- 		err = -ENONET;
--	} else if (cec_is_busy(adap, fh)) {
-+	else if (cec_is_busy(adap, fh))
- 		err = -EBUSY;
--	} else {
--		if (!block || !msg.reply)
--			fh = NULL;
-+	else
- 		err = cec_transmit_msg_fh(adap, &msg, fh, block);
--	}
- 	mutex_unlock(&adap->lock);
- 	if (err)
- 		return err;
 -- 
-2.8.1
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
