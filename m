@@ -1,42 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:49220 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754174AbcGHJYw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Jul 2016 05:24:52 -0400
-Subject: Re: [PATCH v2.1 6/9] v4l: Add 14-bit raw bayer pixel format
- definitions
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-References: <1466439608-22890-7-git-send-email-sakari.ailus@linux.intel.com>
- <1467038724-27562-1-git-send-email-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <abcc2b6c-48ba-5c5d-01bc-01c2796141b5@xs4all.nl>
-Date: Fri, 8 Jul 2016 11:24:32 +0200
+Received: from gabe.freedesktop.org ([131.252.210.177]:54384 "EHLO
+	gabe.freedesktop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752843AbcGIUQl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2016 16:16:41 -0400
+From: Vinson Lee <vlee@freedesktop.org>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Kamil Debski <kamil@wypas.org>, k.debski@samsung.com
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] [media] cec: Fix anonymous union initialization with older toolchains.
+Date: Sat,  9 Jul 2016 20:11:08 +0000
+Message-Id: <1468095068-7049-1-git-send-email-vlee@freedesktop.org>
 MIME-Version: 1.0
-In-Reply-To: <1467038724-27562-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/27/2016 04:45 PM, Sakari Ailus wrote:
-> The formats added by this patch are:
-> 
-> 	V4L2_PIX_FMT_SBGGR14
-> 	V4L2_PIX_FMT_SGBRG14
-> 	V4L2_PIX_FMT_SGRBG14
-> 	V4L2_PIX_FMT_SRGGB14
-> 
-> Signed-off-by: Jouni Ukkonen <jouni.ukkonen@intel.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+This patch fixes this build error on CentOS 6.8 with GCC 4.4.7.
 
-You also need to update v4l2-ioctl.c, v4l_fill_fmtdesc() with the new pixel formats.
+  CC [M]  drivers/staging/media/cec/cec-adap.o
+drivers/staging/media/cec/cec-adap.c: In function ‘cec_queue_msg_fh’:
+drivers/staging/media/cec/cec-adap.c:141: error: unknown field ‘lost_msgs’ specified in initializer
 
-I'm OK if that's done in a follow-up patch for all the new pixelformat you
-have defined in these patches.
+Fixes: 9881fe0ca187 ("[media] cec: add HDMI CEC framework (adapter)")
+Signed-off-by: Vinson Lee <vlee@freedesktop.org>
+---
+ drivers/staging/media/cec/cec-adap.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-Regards,
+diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
+index 5ffa839..a21c13d 100644
+--- a/drivers/staging/media/cec/cec-adap.c
++++ b/drivers/staging/media/cec/cec-adap.c
+@@ -137,8 +137,10 @@ static void cec_queue_event(struct cec_adapter *adap,
+ static void cec_queue_msg_fh(struct cec_fh *fh, const struct cec_msg *msg)
+ {
+ 	static const struct cec_event ev_lost_msg = {
++		.ts = 0,
+ 		.event = CEC_EVENT_LOST_MSGS,
+-		.lost_msgs.lost_msgs = 1,
++		.flags = 0,
++		{ .lost_msgs = { .lost_msgs = 1 } },
+ 	};
+ 	struct cec_msg_entry *entry;
+ 
+-- 
+1.7.1
 
-	Hans
