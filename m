@@ -1,121 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47841 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751194AbcGWDAT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 23:00:19 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 682A8180241
-	for <linux-media@vger.kernel.org>; Sat, 23 Jul 2016 05:00:13 +0200 (CEST)
-Date: Sat, 23 Jul 2016 05:00:13 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160723030013.682A8180241@tschai.lan>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38778 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756620AbcGIT3D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2016 15:29:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH v2.1 3/5] media: Refactor copying IOCTL arguments from and to user space
+Date: Sat, 09 Jul 2016 22:29:03 +0300
+Message-ID: <3214203.0Eb5nWCm1s@avalon>
+In-Reply-To: <57308DAA.1000404@linux.intel.com>
+References: <1462360855-23354-4-git-send-email-sakari.ailus@linux.intel.com> <2507022.47E6MxOJNv@avalon> <57308DAA.1000404@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Sakari,
 
-Results of the daily build of media_tree:
+On Monday 09 May 2016 16:16:26 Sakari Ailus wrote:
+> Laurent Pinchart wrote:
+> > On Wednesday 04 May 2016 16:09:51 Sakari Ailus wrote:
+> >> Refactor copying the IOCTL argument structs from the user space and back,
+> >> in order to reduce code copied around and make the implementation more
+> >> robust.
+> >> 
+> >> As a result, the copying is done while not holding the graph mutex.
+> >> 
+> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> ---
+> >> since v2:
+> >> 
+> >> - Remove function to calculate maximum argument size, replace by a char
+> >>   array of 256 or kmalloc() if that's too small.
+> >>  
+> >>  drivers/media/media-device.c | 194 ++++++++++++++++---------------------
+> >>  1 file changed, 94 insertions(+), 100 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> >> index 9b5a88d..0797e4b 100644
+> >> --- a/drivers/media/media-device.c
+> >> +++ b/drivers/media/media-device.c
 
-date:		Sat Jul 23 04:00:17 CEST 2016
-git branch:	test
-git hash:	009a620848218d521f008141c62f56bf19294dd9
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+[snip]
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1.1-i686: WARNINGS
-linux-4.2-i686: WARNINGS
-linux-4.3-i686: WARNINGS
-linux-4.4-i686: WARNINGS
-linux-4.5-i686: WARNINGS
-linux-4.6-i686: WARNINGS
-linux-4.7-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0-x86_64: WARNINGS
-linux-4.1.1-x86_64: WARNINGS
-linux-4.2-x86_64: WARNINGS
-linux-4.3-x86_64: WARNINGS
-linux-4.4-x86_64: WARNINGS
-linux-4.5-x86_64: WARNINGS
-linux-4.6-x86_64: WARNINGS
-linux-4.7-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+> >> @@ -453,10 +432,24 @@ static long __media_device_ioctl(
+> >> 
+> >>  	info = &info_array[_IOC_NR(cmd)];
+> >> 
+> >> +	if (_IOC_SIZE(info->cmd) > sizeof(__karg)) {
+> >> +		karg = kmalloc(_IOC_SIZE(info->cmd), GFP_KERNEL);
+> >> +		if (!karg)
+> >> +			return -ENOMEM;
+> >> +	}
+> >> +
+> >> +	info->arg_from_user(karg, arg, cmd);
+> >> +
+> >>  	mutex_lock(&dev->graph_mutex);
+> >> -	ret = info->fn(dev, arg);
+> >> +	ret = info->fn(dev, karg);
+> >>  	mutex_unlock(&dev->graph_mutex);
+> >> 
+> >> +	if (!ret)
+> > 
+> > How about if (!ret && info->arg_to_user) instead, and getting rid of
+> > copy_arg_to_user_nop() ?
+> 
+> I thought of that, but I decided to optimise the common case ---  which
+> is that the argument is copied back and forth. Not copying the argument
+> back is a very special case, we use it for a single compat IOCTL.
+> 
+> That said, we could use it for the proper ENUM_LINKS as well. Still that
+> does not change what's normal.
 
-Detailed results are available here:
+We're talking about one comparison and one branching instruction (that will 
+not be taken in the common case). Is that micro-optimization really worth it 
+in an ioctl path that is not that performance-critical ? If you think it is, 
+could you analyse what the impact of the copy_arg_to_user_nop() function on 
+cache locality is for the common case ? ;-)
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+-- 
+Regards,
 
-Full logs are available here:
+Laurent Pinchart
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
