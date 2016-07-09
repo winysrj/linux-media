@@ -1,60 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.goneo.de ([85.220.129.33]:34750 "EHLO smtp2.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750768AbcGIIkh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2016 04:40:37 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: doc-rst: too much space around ``foo`` text
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <cc77239c-7e8f-7c03-bcdd-e19d87998aee@xs4all.nl>
-Date: Sat, 9 Jul 2016 10:40:23 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <DD872694-1DF7-4444-9013-EBCD16801689@darmarit.de>
-References: <cc77239c-7e8f-7c03-bcdd-e19d87998aee@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-it0-f68.google.com ([209.85.214.68]:33185 "EHLO
+	mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751897AbcGIRqG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2016 13:46:06 -0400
+MIME-Version: 1.0
+In-Reply-To: <1467819576-17743-4-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1467819576-17743-1-git-send-email-ulrich.hecht+renesas@gmail.com> <1467819576-17743-4-git-send-email-ulrich.hecht+renesas@gmail.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Sat, 9 Jul 2016 19:46:03 +0200
+Message-ID: <CAMuHMdWRkSyv6wNZeW0cY7C6L=W6bdbK3yqLpfyggaDzq3N9mw@mail.gmail.com>
+Subject: Re: [PATCH v5 3/4] ARM: dts: koelsch: add HDMI input
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	=?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	William Towle <william.towle@codethink.co.uk>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Wed, Jul 6, 2016 at 5:39 PM, Ulrich Hecht
+<ulrich.hecht+renesas@gmail.com> wrote:
+> From: Hans Verkuil <hverkuil@xs4all.nl>
+>
+> Add support in the dts for the HDMI input. Based on the Lager dts
+> patch from Ultich Hecht.
 
-Am 08.07.2016 um 22:52 schrieb Hans Verkuil <hverkuil@xs4all.nl>:
+I assume he's the third son in the Hecht family? ;-)
 
-> Hi Markus,
-> 
-> First of all a big 'Thank you!' for working on this, very much appreciated.
-> And I also am very grateful that you could convert the CEC docs so quickly for me.
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> [uli: removed "renesas," prefixes from pfc nodes]
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 
-You are welcome :)
+Gr{oetje,eeting}s,
 
-> That said, can you take a look at this:
-> 
-> https://mchehab.fedorapeople.org/media_API_book/linux_tv/media/v4l/vidioc-enum-fmt.html
-> 
-> As you can see, every text written as ``foo`` in the rst file has a bit too much space
-> around it. It's especially clear in the description of the 'type' field: the commas
-> after each V4L2_BUF_TYPE_ constant should be right after the last character, and now
-> it looks as if there is a space in front.
-> 
-> It's jarring when you read it, but it is probably easy to fix for someone who knows
-> this stuff.
+                        Geert
 
-Yes, this is a good point, the layout of inline constant markup bothers me also.
-The Read-The-Doc (RTD) theme we use is IMHO the best on the web, since it is well
-maintained and supports a good layout on various viewports:
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-  http://read-the-docs.readthedocs.io/en/latest/theme.html
-
-Nevertheless I think in some details it is a bit to excessive.
-
-I will place it on my TODO list .. hopefully I find the time to solve
-it in the next days.
-
--- Markus --
-
-> 
-> Thanks!
-> 
-> 	Hans
-
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
