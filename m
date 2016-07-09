@@ -1,68 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:46811 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751586AbcGOS2s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 14:28:48 -0400
-Subject: Re: [PATCH v2 4/6] [media] vivid: code refactor for color
- representation
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
- <1468599199-5902-5-git-send-email-ricardo.ribalda@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4370a9db-73aa-9454-fdda-135ebe16ad08@xs4all.nl>
-Date: Fri, 15 Jul 2016 20:28:43 +0200
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38791 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756699AbcGITr0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2016 15:47:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH v2 4/5] media: Add flags to tell whether to take graph mutex for an IOCTL
+Date: Sat, 09 Jul 2016 22:47:27 +0300
+Message-ID: <489373310.0knWWKXo7K@avalon>
+In-Reply-To: <1462360855-23354-5-git-send-email-sakari.ailus@linux.intel.com>
+References: <1462360855-23354-1-git-send-email-sakari.ailus@linux.intel.com> <1462360855-23354-5-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <1468599199-5902-5-git-send-email-ricardo.ribalda@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/15/2016 06:13 PM, Ricardo Ribalda Delgado wrote:
-> Replace is_yuv with color_representation. Which can be used by HSV
-> formats.
+Hi Sakari,
+
+Thank you for the patch.
+
+On Wednesday 04 May 2016 14:20:54 Sakari Ailus wrote:
+> New IOCTLs (especially for the request API) do not necessarily need the
+> graph mutex acquired. Leave this up to the drivers.
 > 
-> This change should ease the review of the following patches.
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
->  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c   | 44 ++++++++++++++-------
->  drivers/media/platform/vivid/vivid-core.h       |  2 +-
->  drivers/media/platform/vivid/vivid-vid-common.c | 52 ++++++++++++-------------
->  include/media/v4l2-tpg.h                        |  7 +++-
->  4 files changed, 63 insertions(+), 42 deletions(-)
+>  drivers/media/media-device.c | 47 +++++++++++++++++++++++-----------------
+>  1 file changed, 28 insertions(+), 19 deletions(-)
 > 
-> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> index cf1dadd0be9e..acf0e6854832 100644
-> --- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> +++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> @@ -1842,7 +1842,9 @@ static void tpg_recalc(struct tpg_data *tpg)
->  
->  		if (tpg->quantization == V4L2_QUANTIZATION_DEFAULT)
->  			tpg->real_quantization =
-> -				V4L2_MAP_QUANTIZATION_DEFAULT(!tpg->is_yuv,
-> +				V4L2_MAP_QUANTIZATION_DEFAULT(
-> +					tpg->color_representation ==
-> +						TGP_COLOR_REPRESENTATION_RGB,
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 39fe07f..8aef5b8 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -390,21 +390,26 @@ static long copy_arg_to_user_nop(void __user *uarg,
+> void *karg, }
+>  #endif
+> 
+> -#define MEDIA_IOC_ARG(__cmd, func, from_user, to_user)	\
+> -	[_IOC_NR(MEDIA_IOC_##__cmd)] = {		\
+> -		.cmd = MEDIA_IOC_##__cmd,		\
+> +/* Do acquire the graph mutex */
+> +#define MEDIA_IOC_FL_GRAPH_MUTEX	BIT(0)
+> +
+> +#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
+> +	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
+> +		.cmd = MEDIA_IOC_##__cmd,				\
+>  		.fn = (long (*)(struct media_device *, void *))func,	\
+> -		.arg_from_user = from_user,		\
+> -		.arg_to_user = to_user,			\
+> +		.flags = fl,						\
+> +		.arg_from_user = from_user,				\
+> +		.arg_to_user = to_user,					\
+>  	}
+> 
+> -#define MEDIA_IOC(__cmd, func)						
+\
+> -	MEDIA_IOC_ARG(__cmd, func, copy_arg_from_user, copy_arg_to_user)
+> +#define MEDIA_IOC(__cmd, func, fl)					\
+> +	MEDIA_IOC_ARG(__cmd, func, fl, copy_arg_from_user, copy_arg_to_user)
+> 
+>  /* the table is indexed by _IOC_NR(cmd) */
+>  struct media_ioctl_info {
+>  	unsigned int cmd;
+>  	long (*fn)(struct media_device *dev, void *arg);
+> +	unsigned short flags;
+>  	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int 
+cmd);
+>  	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
+>  };
+> @@ -449,9 +454,13 @@ static long __media_device_ioctl(
+> 
+>  	info->arg_from_user(karg, arg, cmd);
+> 
+> -	mutex_lock(&dev->graph_mutex);
+> +	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
+> +		mutex_lock(&dev->graph_mutex);
+> +
+>  	ret = info->fn(dev, karg);
+> -	mutex_unlock(&dev->graph_mutex);
+> +
+> +	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
+> +		mutex_unlock(&dev->graph_mutex);
+> 
+>  	if (ret)
+>  		return ret;
+> @@ -460,11 +469,11 @@ static long __media_device_ioctl(
+>  }
+> 
+>  static const struct media_ioctl_info ioctl_info[] = {
+> -	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
+> -	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
+> -	MEDIA_IOC(ENUM_LINKS, media_device_enum_links),
+> -	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
+> -	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
+> +	MEDIA_IOC(DEVICE_INFO, media_device_get_info,
+> MEDIA_IOC_FL_GRAPH_MUTEX),
 
-This should be != TGP_COLOR_REPRESENTATION_YUV.
+do we really need to acquire the graph mutex for this ioctl ?
 
-Otherwise HSV would map to limited range by default, which is probably wrong.
+> +	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities,
+> MEDIA_IOC_FL_GRAPH_MUTEX), +	MEDIA_IOC(ENUM_LINKS, media_device_enum_links,
+> MEDIA_IOC_FL_GRAPH_MUTEX), +	MEDIA_IOC(SETUP_LINK, media_device_setup_link,
+> MEDIA_IOC_FL_GRAPH_MUTEX), +	MEDIA_IOC(G_TOPOLOGY,
+> media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX), };
+> 
+>  static long media_device_ioctl(struct file *filp, unsigned int cmd,
+> @@ -510,11 +519,11 @@ static long from_user_enum_links32(void *karg, void
+> __user *uarg, #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, 
+struct
+> media_links_enum32)
+> 
+>  static const struct media_ioctl_info compat_ioctl_info[] = {
+> -	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
+> -	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
+> -	MEDIA_IOC_ARG(ENUM_LINKS32, media_device_enum_links,
+> from_user_enum_links32, copy_arg_to_user_nop), -	MEDIA_IOC(SETUP_LINK,
+> media_device_setup_link),
+> -	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
+> +	MEDIA_IOC(DEVICE_INFO, media_device_get_info, 
+MEDIA_IOC_FL_GRAPH_MUTEX),
+> +	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities,
+> MEDIA_IOC_FL_GRAPH_MUTEX), +	MEDIA_IOC_ARG(ENUM_LINKS32,
+> media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX, from_user_enum_links32,
+> copy_arg_to_user_nop), +	MEDIA_IOC(SETUP_LINK, media_device_setup_link,
+> MEDIA_IOC_FL_GRAPH_MUTEX), +	MEDIA_IOC(G_TOPOLOGY,
+> media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX), };
+> 
+>  static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
 
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
->  					tpg->colorspace, tpg->real_ycbcr_enc);
->  
->  		tpg_precalculate_colors(tpg);
