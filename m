@@ -1,111 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:42226 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750838AbcGMCDb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 22:03:31 -0400
-Message-ID: <1468375388.2462.22.camel@mtksdaap41>
-Subject: Re: [PATCH v3 3/9] DocBook/v4l: Add compressed video formats used
- on MT8173 codec driver
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: Wu-Cheng Li =?UTF-8?Q?=28=E6=9D=8E=E5=8B=99=E8=AA=A0=29?=
-	<wuchengli@chromium.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Daniel Thompson <daniel.thompson@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>,
-	"Lin PoChun" <PoChun.Lin@mediatek.com>
-Date: Wed, 13 Jul 2016 10:03:08 +0800
-In-Reply-To: <CAOMLVLiZU3D587dSyp2b2v4DV+MS9vh85bA4BoG7ddK6556rbA@mail.gmail.com>
-References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
-	 <1464611363-14936-2-git-send-email-tiffany.lin@mediatek.com>
-	 <1464611363-14936-3-git-send-email-tiffany.lin@mediatek.com>
-	 <1464611363-14936-4-git-send-email-tiffany.lin@mediatek.com>
-	 <5a793171-24a7-4e9e-8bfd-f668c789f8e0@xs4all.nl>
-	 <1468205771.3725.8.camel@mtksdaap41>
-	 <CAOMLVLiZU3D587dSyp2b2v4DV+MS9vh85bA4BoG7ddK6556rbA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Received: from mail-pa0-f66.google.com ([209.85.220.66]:35338 "EHLO
+	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756588AbcGIS4W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2016 14:56:22 -0400
+Received: by mail-pa0-f66.google.com with SMTP id dx3so10106560pab.2
+        for <linux-media@vger.kernel.org>; Sat, 09 Jul 2016 11:56:21 -0700 (PDT)
+Subject: Re: [PATCH 02/11] Revert "[media] adv7180: fix broken standards
+ handling"
+To: Lars-Peter Clausen <lars@metafoo.de>, linux-media@vger.kernel.org
+References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
+ <1467846004-12731-3-git-send-email-steve_longerbeam@mentor.com>
+ <577E7924.9070301@metafoo.de>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <578148D3.3080504@gmail.com>
+Date: Sat, 9 Jul 2016 11:56:19 -0700
 MIME-Version: 1.0
+In-Reply-To: <577E7924.9070301@metafoo.de>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2016-07-12 at 16:16 +0800, Wu-Cheng Li (李務誠) wrote:
-> On Mon, Jul 11, 2016 at 10:56 AM, tiffany lin <tiffany.lin@mediatek.com> wrote:
-> > Hi Hans,
-> >
-> > On Fri, 2016-07-08 at 12:23 +0200, Hans Verkuil wrote:
-> >> On 05/30/2016 02:29 PM, Tiffany Lin wrote:
-> >> > Add V4L2_PIX_FMT_MT21 documentation
-> >> >
-> >> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-> >> > ---
-> >> >  Documentation/DocBook/media/v4l/pixfmt.xml |    6 ++++++
-> >> >  1 file changed, 6 insertions(+)
-> >> >
-> >> > diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-> >> > index 5a08aee..d40e0ce 100644
-> >> > --- a/Documentation/DocBook/media/v4l/pixfmt.xml
-> >> > +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-> >> > @@ -1980,6 +1980,12 @@ array. Anything what's in between the UYVY lines is JPEG data and should be
-> >> >  concatenated to form the JPEG stream. </para>
-> >> >  </entry>
-> >> >       </row>
-> >> > +     <row id="V4L2_PIX_FMT_MT21">
-> >> > +       <entry><constant>V4L2_PIX_FMT_MT21</constant></entry>
-> >> > +       <entry>'MT21'</entry>
-> >> > +       <entry>Compressed two-planar YVU420 format used by Mediatek MT8173
-> >> > +       codec driver.</entry>
-> >>
-> >> Can you give a few more details? The encoder driver doesn't seem to produce this
-> >> format, so who is creating this? Where is this format documented?
-> Decoder hardware produces MT21 (compressed). Image processor can
-> convert it to a format that can be input of display driver. Tiffany.
-> When do you plan to upstream image processor (mtk-mdp)?
-> >
-We are working on this. Will upstream soon.
 
-> > It can be as input format for encoder, MDP and display drivers in our
-> > platform.
-> I remember display driver can only accept uncompressed MT21. Right?
-> Basically V4L2_PIX_FMT_MT21 is compressed and is like an opaque
-> format. It's not usable until it's decompressed and converted by image
-> processor.
-That's right in MT8173 platform.
 
-best regards,
-Tiffany
-> > This private format is only available in our platform.
-> > So I put it in "Reserved Format Identifiers" sections.
-> >
-> >
-> > best regards,
-> > Tiffany
-> >
-> >> Regards,
-> >>
-> >>       Hans
-> >>
-> >> > +     </row>
-> >> >     </tbody>
-> >> >        </tgroup>
-> >> >      </table>
-> >> >
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 07/07/2016 08:45 AM, Lars-Peter Clausen wrote:
+> On 07/07/2016 12:59 AM, Steve Longerbeam wrote:
+>> Autodetect was likely broken only because access to the
+>> interrupt registers were broken, so there were no standard
+>> change interrupts. After fixing that, and reverting this,
+>> autodetect seems to work just fine on an i.mx6q SabreAuto.
+>>
+>> This reverts commit 937feeed3f0ae8a0389d5732f6db63dd912acd99.
+> The brokenness the commit refers to is conceptual not functional. The driver
+> simply implemented the API incorrect. A subdev driver is not allowed to
+> automatically switch the output format/resolution randomly. In the best case
+> this will confuse the receiver which is not prepared to receive the changed
+> resolution, in the worst case it will cause buffer overruns with hardware
+> that has no boundary checks. This is why this was removed from the driver.
+>
+> The correct sequence is for the driver to generate a change notification and
+> then have userspace react to that notification by stopping the current
+> stream, query the new format/resolution, reconfigure the video pipeline for
+> the new format/resolution and re-start the stream.
 
+Hi Lars, ok thanks for the clarification. Yes I agree that makes sense.
+I will undo the revert in the next version and retest.
+
+Steve
 
