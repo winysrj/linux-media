@@ -1,82 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47126
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753683AbcGTNjb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 09:39:31 -0400
-Subject: Re: [PATCH] [media] vb2: include length in dmabuf qbuf debug message
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <1468508975-6146-1-git-send-email-javier@osg.samsung.com>
- <20160720130356.GB7976@valkosipuli.retiisi.org.uk>
-Cc: linux-kernel@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <dd3762b4-2e64-dc0c-81a2-b4be0e6d6ee4@osg.samsung.com>
-Date: Wed, 20 Jul 2016 09:39:20 -0400
+Received: from tex.lwn.net ([70.33.254.29]:59386 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750727AbcGJFQP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jul 2016 01:16:15 -0400
+Date: Sat, 9 Jul 2016 23:15:52 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ben Hutchings <ben@decadent.org.uk>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Jani Nikula <jani.nikula@intel.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>,
+	linux-doc@vger.kernel.org
+Subject: Re: [PATCH v2] doc-rst: add an option to ignore DocBooks when
+ generating docs
+Message-ID: <20160709231552.58d8535a@lwn.net>
+In-Reply-To: <872c1d8d911f1d4ee48b2185554a63aa9026dc1a.1468080758.git.mchehab@s-opensource.com>
+References: <872c1d8d911f1d4ee48b2185554a63aa9026dc1a.1468080758.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-In-Reply-To: <20160720130356.GB7976@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari,
+On Sat,  9 Jul 2016 13:12:45 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
 
-On 07/20/2016 09:03 AM, Sakari Ailus wrote:
-> Hi Javier,
+> Sometimes, we want to do a partial build, instead of building
+> everything. However, right now, if one wants to build just
+> Sphinx books, it will build also the DocBooks.
 > 
-> Thanks for the patch!
->
+> Add an option to allow to ignore all DocBooks when building
+> documentation.
 
-Thanks for your feedback.
- 
-> On Thu, Jul 14, 2016 at 11:09:34AM -0400, Javier Martinez Canillas wrote:
->> If the the VIDIOC_QBUF ioctl fails due a wrong dmabuf length,
->> it's useful to get the invalid length as a debug information.
->>
->> Before this patch:
->>
->> vb2-core: __qbuf_dmabuf: invalid dmabuf length for plane 1
->>
->> After this patch:
->>
->> vb2-core: __qbuf_dmabuf: invalid dmabuf length 221248 for plane 1
->>
->> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->>
->> ---
->>
->>  drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->> index ca8ffeb56d72..97d1483e0f7a 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -1228,8 +1228,8 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
->>  			planes[plane].length = dbuf->size;
->>  
->>  		if (planes[plane].length < vb->planes[plane].min_length) {
->> -			dprintk(1, "invalid dmabuf length for plane %d\n",
->> -				plane);
->> +			dprintk(1, "invalid dmabuf length %d for plane %d\n",
-> 
-> %u, please. You might want to print the minimum length as well.
->
+Seems good, applied to the docs tree, thanks.
 
-Right, it should be %u indeed. Ok, I'll add the min_length as well in v2.
- 
->> +				planes[plane].length, plane);
->>  			dma_buf_put(dbuf);
->>  			ret = -EINVAL;
->>  			goto err;
-> 
-
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+jon
