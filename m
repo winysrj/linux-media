@@ -1,62 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.goneo.de ([85.220.129.30]:38552 "EHLO smtp1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753788AbcGVKzp convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:60619 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754346AbcGJKsC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 06:55:45 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH 00/18] Complete moving media documentation to ReST format
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <20160722064604.5e4cbe64@recife.lan>
-Date: Fri, 22 Jul 2016 12:55:30 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sun, 10 Jul 2016 06:48:02 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-	Jani Nikula <jani.nikula@intel.com>,
-	Daniel Vetter <daniel.vetter@intel.com>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <4A93290F-A7CF-4B22-90DF-009D0DC294E2@darmarit.de>
-References: <cover.1468865380.git.mchehab@s-opensource.com> <578DF08F.8080701@xs4all.nl> <20160719081259.482a8c04@recife.lan> <6702C6D4-929F-420D-9CF9-911CA753B0A7@darmarit.de> <20160719115319.316349a7@recife.lan> <99F50AA7-01F0-4659-82F9-558E19B3855A@darmarit.de> <20160719141843.17bf5a9b@recife.lan> <F30ED754-B987-44B1-B839-9305D7FC1533@darmarit.de> <20160722064604.5e4cbe64@recife.lan>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 6/6] [media] doc-rst: do cross-references between header and the doc
+Date: Sun, 10 Jul 2016 07:47:45 -0300
+Message-Id: <9c1fabd664625d79899b96c2652a9fbcd23af4dc.1468147615.git.mchehab@s-opensource.com>
+In-Reply-To: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
+References: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
+In-Reply-To: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
+References: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Now that the LIRC header was added, we can cross-reference it
+and identify the documentation gaps.
 
-Am 22.07.2016 um 11:46 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+There are lots of stuff missing there, but at least now we
+can avoid the gap to increase.
 
-> Em Thu, 21 Jul 2016 17:17:26 +0200
-> Markus Heiser <markus.heiser@darmarit.de> escreveu:
-> 
->> Am 19.07.2016 um 19:18 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
->> 
->>>> A bit OT, but I see that you often use tabs / I recommend to use 
->>>> spaces for indentation:
->>>> 
->>>> http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#whitespace  
->>> 
->>> The Kernel policies are to use tabs instead of spaces,  
->> 
->> Yes, but not in text files .. I think.
-> 
-> See chapter 1 of Documentation/CodingStyle:
-> 
-> 			Chapter 1: Indentation
-> 
-> 	Tabs are 8 characters, and thus indentations are also 8 characters.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/lirc.h.rst.exceptions  | 72 ++++++++++++++++++++++++++++++
+ Documentation/media/uapi/rc/lirc_ioctl.rst |  9 +++-
+ 2 files changed, 79 insertions(+), 2 deletions(-)
 
-Hi Mauro,
+diff --git a/Documentation/media/lirc.h.rst.exceptions b/Documentation/media/lirc.h.rst.exceptions
+index efdcb59f3002..58439ef3b9d7 100644
+--- a/Documentation/media/lirc.h.rst.exceptions
++++ b/Documentation/media/lirc.h.rst.exceptions
+@@ -1,2 +1,74 @@
+ # Ignore header name
+ ignore define _LINUX_LIRC_H
++
++# Ignore helper macros
++
++ignore define lirc_t
++
++ignore define LIRC_SPACE
++ignore define LIRC_PULSE
++ignore define LIRC_FREQUENCY
++ignore define LIRC_TIMEOUT
++ignore define LIRC_VALUE
++ignore define LIRC_MODE2
++ignore define LIRC_IS_SPACE
++ignore define LIRC_IS_PULSE
++ignore define LIRC_IS_FREQUENCY
++ignore define LIRC_IS_TIMEOUT
++
++ignore define LIRC_MODE2SEND
++ignore define LIRC_SEND2MODE
++ignore define LIRC_MODE2REC
++ignore define LIRC_REC2MODE
++
++ignore define LIRC_CAN_SEND
++ignore define LIRC_CAN_REC
++
++# Undocumented macros
++
++ignore define PULSE_BIT
++ignore define PULSE_MASK
++
++ignore define LIRC_MODE2_SPACE
++ignore define LIRC_MODE2_PULSE
++ignore define LIRC_MODE2_TIMEOUT
++
++ignore define LIRC_VALUE_MASK
++ignore define LIRC_MODE2_MASK
++
++ignore define LIRC_MODE_RAW
++
++ignore define LIRC_CAN_SEND_RAW
++ignore define LIRC_CAN_SEND_PULSE
++ignore define LIRC_CAN_SEND_MODE2
++ignore define LIRC_CAN_SEND_LIRCCODE
++
++ignore define LIRC_CAN_SEND_MASK
++
++ignore define LIRC_CAN_SET_SEND_CARRIER
++ignore define LIRC_CAN_SET_SEND_DUTY_CYCLE
++ignore define LIRC_CAN_SET_TRANSMITTER_MASK
++
++ignore define LIRC_CAN_REC_RAW
++ignore define LIRC_CAN_REC_PULSE
++ignore define LIRC_CAN_REC_MODE2
++ignore define LIRC_CAN_REC_LIRCCODE
++
++ignore define LIRC_CAN_REC_MASK
++
++ignore define LIRC_CAN_SET_REC_CARRIER
++ignore define LIRC_CAN_SET_REC_DUTY_CYCLE
++
++ignore define LIRC_CAN_SET_REC_DUTY_CYCLE_RANGE
++ignore define LIRC_CAN_SET_REC_CARRIER_RANGE
++ignore define LIRC_CAN_GET_REC_RESOLUTION
++ignore define LIRC_CAN_SET_REC_TIMEOUT
++ignore define LIRC_CAN_SET_REC_FILTER
++
++ignore define LIRC_CAN_MEASURE_CARRIER
++ignore define LIRC_CAN_USE_WIDEBAND_RECEIVER
++
++ignore define LIRC_CAN_SEND(x)
++ignore define LIRC_CAN_REC(x)
++
++ignore define LIRC_CAN_NOTIFY_DECODE
+diff --git a/Documentation/media/uapi/rc/lirc_ioctl.rst b/Documentation/media/uapi/rc/lirc_ioctl.rst
+index c4c34db61a96..c1c7163ba2f7 100644
+--- a/Documentation/media/uapi/rc/lirc_ioctl.rst
++++ b/Documentation/media/uapi/rc/lirc_ioctl.rst
+@@ -59,6 +59,7 @@ I/O control requests
+     corresponding ioctls is undefined.
+ 
+ .. _LIRC_GET_SEND_MODE:
++.. _lirc-mode-pulse:
+ 
+ ``LIRC_GET_SEND_MODE``
+ 
+@@ -66,6 +67,8 @@ I/O control requests
+     lircd.
+ 
+ .. _LIRC_GET_REC_MODE:
++.. _lirc-mode-mode2:
++.. _lirc-mode-lirccode:
+ 
+ ``LIRC_GET_REC_MODE``
+ 
+@@ -120,8 +123,8 @@ I/O control requests
+     cannot be changed.
+ 
+ .. _LIRC_GET_MIN_FILTER_PULSE:
+-.. _LIRC_GET_MIN_FILTER_PULSE:
+-.. _LIRC_GET_MAX_FILTER_SPACE:
++.. _LIRC_GET_MAX_FILTER_PULSE:
++.. _LIRC_GET_MIN_FILTER_SPACE:
+ .. _LIRC_GET_MAX_FILTER_SPACE:
+ 
+ ``LIRC_GET_M{IN,AX}_FILTER_{PULSE,SPACE}``
+@@ -186,6 +189,7 @@ I/O control requests
+ 
+ .. _LIRC_SET_REC_FILTER_PULSE:
+ .. _LIRC_SET_REC_FILTER_SPACE:
++.. _LIRC_SET_REC_FILTER:
+ 
+ ``LIRC_SET_REC_FILTER_{PULSE,SPACE}``
+ 
+@@ -195,6 +199,7 @@ I/O control requests
+     shall be used instead.
+ 
+ .. _LIRC_SET_MEASURE_CARRIER_MODE:
++.. _lirc-mode2-frequency:
+ 
+ ``LIRC_SET_MEASURE_CARRIER_MODE``
+ 
+-- 
+2.7.4
 
-sorry if I'am pedantic, IMHO this is "Coding" style. 
-
-See end of chapter 1:
-
-  Outside of comments, documentation and except in Kconfig, spaces are never
-  used for indentation ...
-
-As far as I can see, nearly all of the ASCII markups in the *.txt files use
-space for indentation (some mix tabs and spaces). I don't know if 
-tab indentation in kernel-doc comments is a good choice.
-
---Markus
