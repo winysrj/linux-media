@@ -1,58 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47045
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752387AbcGTAA3 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:60617 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750822AbcGJKsC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 20:00:29 -0400
-Date: Tue, 19 Jul 2016 21:00:23 -0300
+	Sun, 10 Jul 2016 06:48:02 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-doc@vger.kernel.org, Jani Nikula <jani.nikula@intel.com>
-Subject: Re: [PATCH 00/18] Complete moving media documentation to ReST
- format
-Message-ID: <20160719210023.2f8280ac@recife.lan>
-In-Reply-To: <20160719164916.3ebb1c74@lwn.net>
-References: <cover.1468865380.git.mchehab@s-opensource.com>
-	<578DF08F.8080701@xs4all.nl>
-	<20160719081259.482a8c04@recife.lan>
-	<6702C6D4-929F-420D-9CF9-911CA753B0A7@darmarit.de>
-	<20160719115319.316349a7@recife.lan>
-	<20160719164916.3ebb1c74@lwn.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 3/6] [media] doc-rst: rename some RC files
+Date: Sun, 10 Jul 2016 07:47:42 -0300
+Message-Id: <85fafe4f329ad05b8df5945a911b8fc727b931ca.1468147615.git.mchehab@s-opensource.com>
+In-Reply-To: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
+References: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
+In-Reply-To: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
+References: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 19 Jul 2016 16:49:16 -0600
-Jonathan Corbet <corbet@lwn.net> escreveu:
+Some files start with an upper letter. Also, they have big
+names. rename them.
 
-> On Tue, 19 Jul 2016 11:53:19 -0300
-> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
-> 
-> > So, I guess we should set the minimal requirement to 1.2.x.  
-> 
-> *sigh*.
-> 
-> I hate to do that; things are happening quickly enough with Sphinx that
-> it would be nice to be able to count on a newer version.  That said, one
-> of my goals in this whole thing was to make it *easier* for developers to
-> generate the docs; the DocBook toolchain has always been notoriously
-> difficult in that regard.  Forcing people to install a newer sphinx by
-> hand is not the way to get there.
-> 
-> So I guess we need to make sure things work with 1.2 for now.  I'd hope
-> we could push that to at least 1.3 before too long, though, once the
-> community distributions are there.  I think we can be a *bit* more
-> aggressive with the docs than with the kernel as a whole.
+No functional changes.
 
-Yeah, that seems to be the right strategy, IMHO. With the patch I sent,
-the media books will again build fine with 1.2.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ .../media/uapi/rc/{Remote_controllers_Intro.rst => rc-intro.rst}  | 0
+ .../rc/{remote_controllers_sysfs_nodes.rst => rc-sysfs-nodes.rst} | 0
+ .../{Remote_controllers_table_change.rst => rc-table-change.rst}  | 0
+ .../uapi/rc/{Remote_controllers_tables.rst => rc-tables.rst}      | 0
+ Documentation/media/uapi/rc/remote_controllers.rst                | 8 ++++----
+ 5 files changed, 4 insertions(+), 4 deletions(-)
+ rename Documentation/media/uapi/rc/{Remote_controllers_Intro.rst => rc-intro.rst} (100%)
+ rename Documentation/media/uapi/rc/{remote_controllers_sysfs_nodes.rst => rc-sysfs-nodes.rst} (100%)
+ rename Documentation/media/uapi/rc/{Remote_controllers_table_change.rst => rc-table-change.rst} (100%)
+ rename Documentation/media/uapi/rc/{Remote_controllers_tables.rst => rc-tables.rst} (100%)
 
+diff --git a/Documentation/media/uapi/rc/Remote_controllers_Intro.rst b/Documentation/media/uapi/rc/rc-intro.rst
+similarity index 100%
+rename from Documentation/media/uapi/rc/Remote_controllers_Intro.rst
+rename to Documentation/media/uapi/rc/rc-intro.rst
+diff --git a/Documentation/media/uapi/rc/remote_controllers_sysfs_nodes.rst b/Documentation/media/uapi/rc/rc-sysfs-nodes.rst
+similarity index 100%
+rename from Documentation/media/uapi/rc/remote_controllers_sysfs_nodes.rst
+rename to Documentation/media/uapi/rc/rc-sysfs-nodes.rst
+diff --git a/Documentation/media/uapi/rc/Remote_controllers_table_change.rst b/Documentation/media/uapi/rc/rc-table-change.rst
+similarity index 100%
+rename from Documentation/media/uapi/rc/Remote_controllers_table_change.rst
+rename to Documentation/media/uapi/rc/rc-table-change.rst
+diff --git a/Documentation/media/uapi/rc/Remote_controllers_tables.rst b/Documentation/media/uapi/rc/rc-tables.rst
+similarity index 100%
+rename from Documentation/media/uapi/rc/Remote_controllers_tables.rst
+rename to Documentation/media/uapi/rc/rc-tables.rst
+diff --git a/Documentation/media/uapi/rc/remote_controllers.rst b/Documentation/media/uapi/rc/remote_controllers.rst
+index bccceb1e28c3..82e64e7acbe3 100644
+--- a/Documentation/media/uapi/rc/remote_controllers.rst
++++ b/Documentation/media/uapi/rc/remote_controllers.rst
+@@ -19,10 +19,10 @@ Remote Controllers
+     :maxdepth: 1
+     :numbered:
+ 
+-    Remote_controllers_Intro
+-    remote_controllers_sysfs_nodes
+-    Remote_controllers_tables
+-    Remote_controllers_table_change
++    rc-intro
++    rc-sysfs-nodes
++    rc-tables
++    rc-table-change
+     lirc_device_interface
+ 
+ 
+-- 
+2.7.4
 
-Thanks,
-Mauro
