@@ -1,151 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47437
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753895AbcGZBg7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jul 2016 21:36:59 -0400
-Date: Mon, 25 Jul 2016 22:36:53 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Michael Ira Krufky <mkrufky@linuxtv.org>
-Cc: Abylay Ospan <aospan@netup.ru>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [media] lgdt3306a: remove 20*50 msec unnecessary
- timeout
-Message-ID: <20160725223653.62493982@recife.lan>
-In-Reply-To: <CAOcJUbwOHCx1y50zt3Mcd39aUZpqd=mOjkQUgJaPxZzzrzzeLQ@mail.gmail.com>
-References: <1469471939-25393-1-git-send-email-aospan@netup.ru>
-	<CAOcJUby+9gTrFUF14pvo1iMa2azD5TfGM8WgeZY1+Bh8CTYVzA@mail.gmail.com>
-	<20160725162841.6e11fd2b@recife.lan>
-	<CAOcJUbwOHCx1y50zt3Mcd39aUZpqd=mOjkQUgJaPxZzzrzzeLQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from gofer.mess.org ([80.229.237.210]:35657 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933292AbcGJQeg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jul 2016 12:34:36 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 1/5] [media] rc: make s_tx_mask consistent
+Date: Sun, 10 Jul 2016 17:34:32 +0100
+Message-Id: <1468168473-27499-2-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 25 Jul 2016 15:37:14 -0400
-Michael Ira Krufky <mkrufky@linuxtv.org> escreveu:
+When s_tx_mask is given an invalid bitmask, the number of transmitters
+should be returned. See the LIRC_SET_TRANSMITTER_MASK lirc ioctl
+documentation.
 
-> On Mon, Jul 25, 2016 at 3:28 PM, Mauro Carvalho Chehab
-> <mchehab@osg.samsung.com> wrote:
-> > Hi Michael,
-> >
-> > Em Mon, 25 Jul 2016 14:55:51 -0400
-> > Michael Ira Krufky <mkrufky@linuxtv.org> escreveu:
-> >  
-> >> On Mon, Jul 25, 2016 at 2:38 PM, Abylay Ospan <aospan@netup.ru> wrote:  
-> >> > inside lgdt3306a_search we reading demod status 20 times with 50 msec sleep after each read.
-> >> > This gives us more than 1 sec of delay. Removing this delay should not affect demod functionality.
-> >> >
-> >> > Signed-off-by: Abylay Ospan <aospan@netup.ru>
-> >> > ---
-> >> >  drivers/media/dvb-frontends/lgdt3306a.c | 16 ++++------------
-> >> >  1 file changed, 4 insertions(+), 12 deletions(-)
-> >> >
-> >> > diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-> >> > index 179c26e..dad7ad3 100644
-> >> > --- a/drivers/media/dvb-frontends/lgdt3306a.c
-> >> > +++ b/drivers/media/dvb-frontends/lgdt3306a.c
-> >> > @@ -1737,24 +1737,16 @@ static int lgdt3306a_get_tune_settings(struct dvb_frontend *fe,
-> >> >  static int lgdt3306a_search(struct dvb_frontend *fe)
-> >> >  {
-> >> >         enum fe_status status = 0;
-> >> > -       int i, ret;
-> >> > +       int ret;
-> >> >
-> >> >         /* set frontend */
-> >> >         ret = lgdt3306a_set_parameters(fe);
-> >> >         if (ret)
-> >> >                 goto error;
-> >> >
-> >> > -       /* wait frontend lock */
-> >> > -       for (i = 20; i > 0; i--) {
-> >> > -               dbg_info(": loop=%d\n", i);
-> >> > -               msleep(50);
-> >> > -               ret = lgdt3306a_read_status(fe, &status);
-> >> > -               if (ret)
-> >> > -                       goto error;
-> >> > -
-> >> > -               if (status & FE_HAS_LOCK)
-> >> > -                       break;
-> >> > -       }  
-> >
-> > Could you please explain why lgdt3306a needs the above ugly hack?
-> >
-> >  
-> >> > +       ret = lgdt3306a_read_status(fe, &status);
-> >> > +       if (ret)
-> >> > +               goto error;  
-> >
-> >  
-> >> >
-> >> >         /* check if we have a valid signal */
-> >> >         if (status & FE_HAS_LOCK)  
-> >>
-> >> Your patch removes a loop that was purposefully written here to handle
-> >> conditions that are not ideal.  Are you sure this change is best for
-> >> all users?
-> >>
-> >> I would disagree with merging this patch.
-> >>
-> >> Best regards,
-> >>
-> >> Michael Ira Krufky  
-> 
-> Mauro,
-> 
-> I cannot speak for the LG DT3306a part itself, but based on my past
-> experience I can say the following:
-> 
-> To my understanding, the hardware might not report a lock on the first
-> read_status request, so the driver author chose to include a loop to
-> retry a few times before giving up.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/mceusb.c      | 6 ++++++
+ drivers/media/rc/winbond-cir.c | 4 ++++
+ 2 files changed, 10 insertions(+)
 
-A one second wait, trying 50 times is not a "few times". It is a lot!
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 35155ae..0d1da2c 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -881,6 +881,12 @@ static int mceusb_set_tx_mask(struct rc_dev *dev, u32 mask)
+ {
+ 	struct mceusb_dev *ir = dev->priv;
+ 
++	/* return number of transmitters */
++	int emitters = ir->num_txports ? ir->num_txports : 2;
++
++	if (mask >= (1 << emitters))
++		return emitters;
++
+ 	if (ir->flags.tx_mask_normal)
+ 		ir->tx_mask = mask;
+ 	else
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index d839f73..95ae60e 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -615,6 +615,10 @@ wbcir_txmask(struct rc_dev *dev, u32 mask)
+ 	unsigned long flags;
+ 	u8 val;
+ 
++	/* return the number of transmitters */
++	if (mask > 15)
++		return 4;
++
+ 	/* Four outputs, only one output can be enabled at a time */
+ 	switch (mask) {
+ 	case 0x1:
+-- 
+2.7.4
 
-> In real life scenarios, there are marginal signals that may take a
-> longer time to lock onto, but once locked, the demod will deliver a
-> reliable stream.
-> 
-> Most applications will only issue a single tune request when trying to
-> tune to a given program. The application does not retry the tune
-> request if the driver reports no lock.
-
-I don't know a single application that would give up after a
-single status request with FE_READ_STATUS. Not even simple
-applications like the legacy dvb-tools do that. If such application
-exits, it is already broken, as it would fail with most drivers,
-as almost no drivers wait for frontend locks.
-
-Also, the frontend thread assumes that the lock will take some
-polls to happen, and it keep polling the status for some time,
-using the status return to do frequency zig-zag, on tuners that
-don't have hardware zig-zag, and to try bandwidth inversion.
-
-Please notice that some legacy DVBv3 applications might want to
-be bothered only after lock. In such case, they would be calling
-FE_GET_EVENT with the device opened in blocking mode:
-	https://linuxtv.org/downloads/v4l-dvb-apis-new/media/uapi/dvb/fe-get-event.html
-
-In such case, the frontend's kthread will keep the ioctl blocked
-until the device is locked, or will keep returning -EWOULDBLOCK
-in non-blocking mode.
-
-> Applying this patch will have the potential to cause userspace to
-> appear broken.  Some users will not be able to receive some weaker
-> channels anymore, and they will have no way to diagnose the problem
-> from within their application.
-
-This is not how it is supposed to work. An ioctl should not block
-for that long time for no reason, specially since the file
-descriptor could be opened in no blocking mode.
-
-The only possible reason to block would be on really broken hardware
-that would stop working if the status is called before a certain
-number of milliseconds. Even so, the proper implementation would be
-add some logic at the driver level to ensure that the hardware won't
-be receiving the status command when it is not ready to answer to
-it. Some drivers do that.
-
-Regards,
-Mauro
