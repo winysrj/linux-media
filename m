@@ -1,119 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51688 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933207AbcGLMmd (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:49857 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750829AbcGKEcS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 08:42:33 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 17/20] [media] doc-rst: add documentation for LIRC_SET_MEASURE_CARRIER_MODE
-Date: Tue, 12 Jul 2016 09:42:11 -0300
-Message-Id: <f7262dd2d0f8fe3700d80d72af151cc3b0864bd6.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mon, 11 Jul 2016 00:32:18 -0400
+Subject: Re: [PATCH] vcodec: mediatek: Add g/s_selection support for V4L2
+ Encoder
+To: Tiffany Lin <tiffany.lin@mediatek.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+References: <1464594768-1993-1-git-send-email-tiffany.lin@mediatek.com>
+Cc: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4ca82842-968d-a5e2-587d-752c71713607@xs4all.nl>
+Date: Mon, 11 Jul 2016 06:32:10 +0200
+MIME-Version: 1.0
+In-Reply-To: <1464594768-1993-1-git-send-email-tiffany.lin@mediatek.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Place documentation for this ioctl on its own page.
+Hi Tiffany,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- .../uapi/rc/lirc-set-measure-carrier-mode.rst      | 48 ++++++++++++++++++++++
- .../media/uapi/rc/lirc_device_interface.rst        |  1 +
- Documentation/media/uapi/rc/lirc_ioctl.rst         |  9 ----
- 3 files changed, 49 insertions(+), 9 deletions(-)
- create mode 100644 Documentation/media/uapi/rc/lirc-set-measure-carrier-mode.rst
+My apologies for the delay, but here is my review at last:
 
-diff --git a/Documentation/media/uapi/rc/lirc-set-measure-carrier-mode.rst b/Documentation/media/uapi/rc/lirc-set-measure-carrier-mode.rst
-new file mode 100644
-index 000000000000..e145d9d1902d
---- /dev/null
-+++ b/Documentation/media/uapi/rc/lirc-set-measure-carrier-mode.rst
-@@ -0,0 +1,48 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _lirc_set_measure_carrier_mode:
-+
-+***********************************
-+ioctl LIRC_SET_MEASURE_CARRIER_MODE
-+***********************************
-+
-+Name
-+====
-+
-+LIRC_SET_MEASURE_CARRIER_MODE - enable or disable measure mode
-+
-+Synopsis
-+========
-+
-+.. cpp:function:: int ioctl( int fd, int request, __u32 *enable )
-+
-+Arguments
-+=========
-+
-+``fd``
-+    File descriptor returned by open().
-+
-+``request``
-+    LIRC_SET_MEASURE_CARRIER_MODE
-+
-+``enable``
-+    enable = 1 means enable measure mode, enable = 0 means disable measure
-+    mode.
-+
-+
-+Description
-+===========
-+
-+.. _lirc-mode2-frequency:
-+
-+Enable or disable measure mode. If enabled, from the next key
-+press on, the driver will send ``LIRC_MODE2_FREQUENCY`` packets. By
-+default this should be turned off.
-+
-+
-+Return Value
-+============
-+
-+On success 0 is returned, on error -1 and the ``errno`` variable is set
-+appropriately. The generic error codes are described at the
-+:ref:`Generic Error Codes <gen-errors>` chapter.
-diff --git a/Documentation/media/uapi/rc/lirc_device_interface.rst b/Documentation/media/uapi/rc/lirc_device_interface.rst
-index 9e57779ca2a6..2810253ba852 100644
---- a/Documentation/media/uapi/rc/lirc_device_interface.rst
-+++ b/Documentation/media/uapi/rc/lirc_device_interface.rst
-@@ -25,4 +25,5 @@ LIRC Device Interface
-     lirc-set-send-carrier
-     lirc-set-transmitter-mask
-     lirc-set-rec-timeout-reports
-+    lirc-set-measure-carrier-mode
-     lirc_ioctl
-diff --git a/Documentation/media/uapi/rc/lirc_ioctl.rst b/Documentation/media/uapi/rc/lirc_ioctl.rst
-index d99fa0eeef4c..d220fc233e6d 100644
---- a/Documentation/media/uapi/rc/lirc_ioctl.rst
-+++ b/Documentation/media/uapi/rc/lirc_ioctl.rst
-@@ -54,15 +54,6 @@ device can rely on working with the default settings initially.
-     Set send/receive mode. Largely obsolete for send, as only
-     ``LIRC_MODE_PULSE`` is supported.
- 
--.. _LIRC_SET_MEASURE_CARRIER_MODE:
--.. _lirc-mode2-frequency:
--
--``LIRC_SET_MEASURE_CARRIER_MODE``
--
--    Enable (1)/disable (0) measure mode. If enabled, from the next key
--    press on, the driver will send ``LIRC_MODE2_FREQUENCY`` packets. By
--    default this should be turned off.
--
- .. _LIRC_SET_WIDEBAND_RECEIVER:
- 
- ``LIRC_SET_WIDEBAND_RECEIVER``
--- 
-2.7.4
+On 05/30/2016 09:52 AM, Tiffany Lin wrote:
+> This patch add g/s_selection support for MT8173
+> 
+> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> ---
+>  drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |   74 ++++++++++++++++++++
+>  1 file changed, 74 insertions(+)
+> 
+> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> index 6e72d73..23ef9a1 100644
+> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> @@ -630,6 +630,77 @@ static int vidioc_try_fmt_vid_out_mplane(struct file *file, void *priv,
+>  	return vidioc_try_fmt(f, fmt);
+>  }
+>  
+> +static int vidioc_venc_g_selection(struct file *file, void *priv,
+> +				     struct v4l2_selection *s)
+> +{
+> +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
+> +	struct mtk_q_data *q_data;
+> +
+> +	/* crop means compose for output devices */
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> +	case V4L2_SEL_TGT_CROP:
+> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+> +	case V4L2_SEL_TGT_COMPOSE:
+> +		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> +			mtk_v4l2_err("Invalid s->type = %d", s->type);
+> +			return -EINVAL;
+> +		}
+> +		break;
+> +	default:
+> +		mtk_v4l2_err("Invalid s->target = %d", s->target);
+> +		return -EINVAL;
+> +	}
+> +
+> +	q_data = mtk_venc_get_q_data(ctx, s->type);
+> +	if (!q_data)
+> +		return -EINVAL;
+> +
+> +	s->r.top = 0;
+> +	s->r.left = 0;
+> +	s->r.width = q_data->visible_width;
+> +	s->r.height = q_data->visible_height;
+> +
+> +	return 0;
+> +}
+> +
+> +static int vidioc_venc_s_selection(struct file *file, void *priv,
+> +				     struct v4l2_selection *s)
+> +{
+> +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
+> +	struct mtk_q_data *q_data;
+> +
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> +	case V4L2_SEL_TGT_CROP:
+> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+> +	case V4L2_SEL_TGT_COMPOSE:
+> +		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> +			mtk_v4l2_err("Invalid s->type = %d", s->type);
+> +			return -EINVAL;
+> +		}
+> +		break;
+> +	default:
+> +		mtk_v4l2_err("Invalid s->target = %d", s->target);
+> +		return -EINVAL;
+> +	}
+> +
+> +	q_data = mtk_venc_get_q_data(ctx, s->type);
+> +	if (!q_data)
+> +		return -EINVAL;
+> +
+> +	s->r.top = 0;
+> +	s->r.left = 0;
+> +	q_data->visible_width = s->r.width;
+> +	q_data->visible_height = s->r.height;
 
+This makes no sense.
 
+See this page:
+
+https://hverkuil.home.xs4all.nl/spec/media.html#selection-api
+
+For the video output direction (memory -> HW encoder) the data source is
+the memory, the data sink is the HW encoder. For the video capture direction
+(HW encoder -> memory) the data source is the HW encoder and the data sink
+is the memory.
+
+Usually for m2m devices the video output direction may support cropping and
+the video capture direction may support composing.
+
+It's not clear what you intend here, especially since you set left and right
+to 0. That's not what the selection operation is supposed to do.
+
+Regards,
+
+	Hans
+
+> +
+> +	return 0;
+> +}
+> +
+>  static int vidioc_venc_qbuf(struct file *file, void *priv,
+>  			    struct v4l2_buffer *buf)
+>  {
+> @@ -688,6 +759,9 @@ const struct v4l2_ioctl_ops mtk_venc_ioctl_ops = {
+>  
+>  	.vidioc_create_bufs		= v4l2_m2m_ioctl_create_bufs,
+>  	.vidioc_prepare_buf		= v4l2_m2m_ioctl_prepare_buf,
+> +
+> +	.vidioc_g_selection		= vidioc_venc_g_selection,
+> +	.vidioc_s_selection		= vidioc_venc_s_selection,
+>  };
+>  
+>  static int vb2ops_venc_queue_setup(struct vb2_queue *vq,
+> 
