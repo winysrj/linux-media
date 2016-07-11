@@ -1,75 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:35653 "EHLO
-	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374AbcGPIaa (ORCPT
+Received: from out5-smtp.messagingengine.com ([66.111.4.29]:58878 "EHLO
+	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932166AbcGKLsH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2016 04:30:30 -0400
-Date: Sat, 16 Jul 2016 14:00:25 +0530
-From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-To: Kyungmin Park <kyungmin.park@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>
-Subject: [PATCH] [media] s5p-mfc: Remove deprecated
- create_singlethread_workqueue
-Message-ID: <20160716083025.GA7294@Karyakshetra>
+	Mon, 11 Jul 2016 07:48:07 -0400
+Date: Mon, 11 Jul 2016 14:48:00 +0300
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Kozlov Sergey <serjk@netup.ru>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Krzysztof =?utf-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-pci@vger.kernel.org,
+	kernel-mentors@selenic.com,
+	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Subject: Re: [PATCH v3] Add tw5864 driver
+Message-ID: <20160711114800.GW5934@zver>
+References: <20160709194618.15609-1-andrey_utkin@fastmail.com>
+ <cac4c81a-9065-2337-7d34-eea8b8482519@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <cac4c81a-9065-2337-7d34-eea8b8482519@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-alloc_workqueue replaces deprecated create_singlethread_workqueue().
+Thanks for review Hans!
 
-The MFC device driver is a v4l2 driver which can encode/decode video
-raw/elementary streams and has support for all popular video codecs.
+On Mon, Jul 11, 2016 at 07:58:38AM +0200, Hans Verkuil wrote:
+> > +" v4l2-ctl --device $dev --set-ctrl=video_gop_size=1; done\n"
+> 
+> Replace $dev by /dev/videoX
+> 
+> Wouldn't it make more sense to default to this? And show the warning only if
+> P-frames are enabled?
 
-The driver's watchdog_workqueue has been replaced with system_wq since
-it queues a single work item, &dev->watchdog_work, which calls for no
-ordering requirement. The work item is involved in running the watchdog
-timer and is not being used on a memory reclaim path.
+I believe it's better to leave P-frames on by default. All-I-frames
+stream has huge bitrate. And the pixels artifacts is not very strong,
+it's 0 - 10 bad pixels on picture at same time in our dev environment,
+and probably up to 50 bad pixels max in other environments I know of.
 
-Work item has been flushed in s5p_mfc_remove() to ensure
-that there are no pending tasks while disconnecting the driver.
+> > +	dma_sync_single_for_cpu(&dev->pci->dev, cur_frame->vlc.dma_addr,
+> > +				H264_VLC_BUF_SIZE, DMA_FROM_DEVICE);
+> > +	dma_sync_single_for_cpu(&dev->pci->dev, cur_frame->mv.dma_addr,
+> > +				H264_MV_BUF_SIZE, DMA_FROM_DEVICE);
+> 
+> This is almost certainly the wrong place. This should probably happen in the
+> tasklet. The tasklet runs after the isr, so by the time the tasklet runs
+> you've already called dma_sync_single_for_device.
 
-Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+Thanks, moved to tasklet subroutine tw5864_handle_frame().
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index b16466f..1bc27ec 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -152,7 +152,7 @@ static void s5p_mfc_watchdog(unsigned long arg)
- 		 * error. Now it is time to kill all instances and
- 		 * reset the MFC. */
- 		mfc_err("Time out during waiting for HW\n");
--		queue_work(dev->watchdog_workqueue, &dev->watchdog_work);
-+		schedule_work(&dev->watchdog_work);
- 	}
- 	dev->watchdog_timer.expires = jiffies +
- 					msecs_to_jiffies(MFC_WATCHDOG_INTERVAL);
-@@ -1238,7 +1238,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, dev);
+I didn't seem to me like dma_sync_single_for_* can take long time or be
+otherwise bad to be done from interrupt context.
 
- 	dev->hw_lock = 0;
--	dev->watchdog_workqueue = create_singlethread_workqueue(S5P_MFC_NAME);
- 	INIT_WORK(&dev->watchdog_work, s5p_mfc_watchdog_worker);
- 	atomic_set(&dev->watchdog_cnt, 0);
- 	init_timer(&dev->watchdog_timer);
-@@ -1284,8 +1283,7 @@ static int s5p_mfc_remove(struct platform_device *pdev)
- 	v4l2_info(&dev->v4l2_dev, "Removing %s\n", pdev->name);
+> > +static int tw5864_querycap(struct file *file, void *priv,
+> > +			   struct v4l2_capability *cap)
+> > +{
+> > +	struct tw5864_input *input = video_drvdata(file);
+> > +
+> > +	strcpy(cap->driver, "tw5864");
+> > +	snprintf(cap->card, sizeof(cap->card), "TW5864 Encoder %d",
+> > +		 input->nr);
+> > +	sprintf(cap->bus_info, "PCI:%s", pci_name(input->root->pci));
+> > +	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
+> > +		V4L2_CAP_STREAMING;
+> > +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+> 
+> This line can be dropped, the core will fill in the capabilities field for you.
 
- 	del_timer_sync(&dev->watchdog_timer);
--	flush_workqueue(dev->watchdog_workqueue);
--	destroy_workqueue(dev->watchdog_workqueue);
-+	flush_work(&dev->watchdog_work);
+No, removing this line causes v4l2-compliance failures and also ffmpeg fails to
+play the device.
 
- 	video_unregister_device(dev->vfd_enc);
- 	video_unregister_device(dev->vfd_dec);
---
-2.1.4
+Required ioctls:
+                fail: v4l2-compliance.cpp(550): dcaps & ~caps
+        test VIDIOC_QUERYCAP: FAIL
 
+Allow for multiple opens:
+        test second video open: OK
+                fail: v4l2-compliance.cpp(550): dcaps & ~caps
+        test VIDIOC_QUERYCAP: FAIL
