@@ -1,160 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:20578 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754574AbcGHL0P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 07:26:15 -0400
-From: Nick Dyer <nick@shmanahar.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	jon.older@itdev.co.uk, nick.dyer@itdev.co.uk,
-	Nick Dyer <nick@shmanahar.org>
-Subject: [PATCH v7 09/11] Input: atmel_mxt_ts - add support for reference data
-Date: Fri,  8 Jul 2016 12:26:02 +0100
-Message-Id: <1467977164-17551-10-git-send-email-nick@shmanahar.org>
-In-Reply-To: <1467977164-17551-1-git-send-email-nick@shmanahar.org>
-References: <1467977164-17551-1-git-send-email-nick@shmanahar.org>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:32505 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755498AbcGKCEu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jul 2016 22:04:50 -0400
+Message-ID: <1468202682.3725.0.camel@mtksdaap41>
+Subject: Re: [PATCH v2 2/9] [media] : v4l: add Mediatek compressed video
+ block format
+From: tiffany lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
+Date: Mon, 11 Jul 2016 10:04:42 +0800
+In-Reply-To: <78c9f4a1-e2b8-69ef-acc5-d24984497b33@xs4all.nl>
+References: <1463052250-38262-1-git-send-email-tiffany.lin@mediatek.com>
+	 <1463052250-38262-2-git-send-email-tiffany.lin@mediatek.com>
+	 <1463052250-38262-3-git-send-email-tiffany.lin@mediatek.com>
+	 <78c9f4a1-e2b8-69ef-acc5-d24984497b33@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are different datatypes available from a maXTouch chip. Add
-support to retrieve reference data as well.
+Hi Hans,
 
-Signed-off-by: Nick Dyer <nick@shmanahar.org>
----
- drivers/input/touchscreen/atmel_mxt_ts.c |   57 ++++++++++++++++++++++++++----
- 1 file changed, 51 insertions(+), 6 deletions(-)
+On Fri, 2016-07-08 at 12:18 +0200, Hans Verkuil wrote:
+> On 05/12/2016 01:24 PM, Tiffany Lin wrote:
+> > Add V4L2_PIX_FMT_MT21 format used on MT8173 driver.
+> > It is compressed format and need MT8173 MDP driver to transfer to other 
+> > standard format.
+> > 
+> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> > ---
+> >  include/uapi/linux/videodev2.h |    1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> > index 8f95191..52feea6 100644
+> > --- a/include/uapi/linux/videodev2.h
+> > +++ b/include/uapi/linux/videodev2.h
+> > @@ -625,6 +625,7 @@ struct v4l2_pix_format {
+> >  #define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
+> >  #define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
+> >  #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
+> > +#define V4L2_PIX_FMT_MT21     v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
+> 
+> v4l2-ioctl.c should be modified as well so the correct description string is filled in.
+> 
+Got it. I will fix this.
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index 7c4d937..f75f2ce 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -135,6 +135,7 @@ struct t9_range {
- /* MXT_DEBUG_DIAGNOSTIC_T37 */
- #define MXT_DIAGNOSTIC_PAGEUP	0x01
- #define MXT_DIAGNOSTIC_DELTAS	0x10
-+#define MXT_DIAGNOSTIC_REFS	0x11
- #define MXT_DIAGNOSTIC_SIZE	128
- 
- #define MXT_FAMILY_1386			160
-@@ -249,6 +250,12 @@ struct mxt_dbg {
- 	int input;
- };
- 
-+enum v4l_dbg_inputs {
-+	MXT_V4L_INPUT_DELTAS,
-+	MXT_V4L_INPUT_REFS,
-+	MXT_V4L_INPUT_MAX,
-+};
-+
- static const struct v4l2_file_operations mxt_video_fops = {
- 	.owner = THIS_MODULE,
- 	.open = v4l2_fh_open,
-@@ -2273,6 +2280,7 @@ static void mxt_buffer_queue(struct vb2_buffer *vb)
- 	struct mxt_data *data = vb2_get_drv_priv(vb->vb2_queue);
- 	u16 *ptr;
- 	int ret;
-+	u8 mode;
- 
- 	ptr = vb2_plane_vaddr(vb, 0);
- 	if (!ptr) {
-@@ -2280,7 +2288,18 @@ static void mxt_buffer_queue(struct vb2_buffer *vb)
- 		goto fault;
- 	}
- 
--	ret = mxt_read_diagnostic_debug(data, MXT_DIAGNOSTIC_DELTAS, ptr);
-+	switch (data->dbg.input) {
-+	case MXT_V4L_INPUT_DELTAS:
-+	default:
-+		mode = MXT_DIAGNOSTIC_DELTAS;
-+		break;
-+
-+	case MXT_V4L_INPUT_REFS:
-+		mode = MXT_DIAGNOSTIC_REFS;
-+		break;
-+	}
-+
-+	ret = mxt_read_diagnostic_debug(data, mode, ptr);
- 	if (ret)
- 		goto fault;
- 
-@@ -2325,11 +2344,21 @@ static int mxt_vidioc_querycap(struct file *file, void *priv,
- static int mxt_vidioc_enum_input(struct file *file, void *priv,
- 				   struct v4l2_input *i)
- {
--	if (i->index > 0)
-+	if (i->index >= MXT_V4L_INPUT_MAX)
- 		return -EINVAL;
- 
- 	i->type = V4L2_INPUT_TYPE_TOUCH;
--	strlcpy(i->name, "Mutual Capacitance Deltas", sizeof(i->name));
-+
-+	switch (i->index) {
-+	case MXT_V4L_INPUT_REFS:
-+		strlcpy(i->name, "Mutual Capacitance References",
-+			sizeof(i->name));
-+		break;
-+	case MXT_V4L_INPUT_DELTAS:
-+		strlcpy(i->name, "Mutual Capacitance Deltas", sizeof(i->name));
-+		break;
-+	}
-+
- 	return 0;
- }
- 
-@@ -2337,12 +2366,16 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
- {
- 	struct v4l2_pix_format *f = &data->dbg.format;
- 
--	if (i > 0)
-+	if (i >= MXT_V4L_INPUT_MAX)
- 		return -EINVAL;
- 
-+	if (i == MXT_V4L_INPUT_DELTAS)
-+		f->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
-+	else
-+		f->pixelformat = V4L2_TCH_FMT_TU16;
-+
- 	f->width = data->xy_switch ? data->ysize : data->xsize;
- 	f->height = data->xy_switch ? data->xsize : data->ysize;
--	f->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
- 	f->field = V4L2_FIELD_NONE;
- 	f->colorspace = V4L2_COLORSPACE_RAW;
- 	f->bytesperline = f->width * sizeof(u16);
-@@ -2383,7 +2416,19 @@ static int mxt_vidioc_enum_fmt(struct file *file, void *priv,
- 	if (fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
- 
--	fmt->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
-+	switch (fmt->index) {
-+	case 0:
-+		fmt->pixelformat = V4L2_TCH_FMT_TU16;
-+		break;
-+
-+	case 1:
-+		fmt->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
- 	return 0;
- }
- 
--- 
-1.7.9.5
+best regards,
+Tiffany
+
+> Regards,
+> 
+> 	Hans
+> 
+> >  
+> >  /* SDR formats - used only for Software Defined Radio devices */
+> >  #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+> > 
+
 
