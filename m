@@ -1,63 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:48397 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752722AbcGAOj4 (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:33077 "EHLO
+	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751201AbcGKRAR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jul 2016 10:39:56 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] tw686x: make const structs static
-Message-ID: <37b742cd-d308-efe9-e48c-d65bc9d24ccb@xs4all.nl>
-Date: Fri, 1 Jul 2016 16:39:12 +0200
+	Mon, 11 Jul 2016 13:00:17 -0400
+Received: by mail-pf0-f194.google.com with SMTP id c74so13785905pfb.0
+        for <linux-media@vger.kernel.org>; Mon, 11 Jul 2016 10:00:16 -0700 (PDT)
+Date: Mon, 11 Jul 2016 10:00:13 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, lars@opdenkamp.eu,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 2/5] serio.h: add new define for the Pulse-Eight USB-CEC
+ Adapter
+Message-ID: <20160711170013.GA26822@dtor-ws>
+References: <1468156281-25731-1-git-send-email-hverkuil@xs4all.nl>
+ <1468156281-25731-3-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1468156281-25731-3-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix sparse warnings:
+On Sun, Jul 10, 2016 at 03:11:18PM +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This is for the new pulse8-cec staging driver.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-tw686x-video.c:148:29: warning: symbol 'memcpy_dma_ops' was not declared. Should it be static?
-tw686x-video.c:195:29: warning: symbol 'contig_dma_ops' was not declared. Should it be static?
-tw686x-video.c:361:29: warning: symbol 'sg_dma_ops' was not declared. Should it be static?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/tw686x/tw686x-video.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-index 0e839f6..bae33d9 100644
---- a/drivers/media/pci/tw686x/tw686x-video.c
-+++ b/drivers/media/pci/tw686x/tw686x-video.c
-@@ -145,7 +145,7 @@ static void tw686x_memcpy_buf_refill(struct tw686x_video_channel *vc,
- 	vc->curr_bufs[pb] = NULL;
- }
+Please feel free to merge through media tree. If you could change the
+subject to read:
 
--const struct tw686x_dma_ops memcpy_dma_ops = {
-+static const struct tw686x_dma_ops memcpy_dma_ops = {
- 	.alloc		= tw686x_memcpy_dma_alloc,
- 	.free		= tw686x_memcpy_dma_free,
- 	.buf_refill	= tw686x_memcpy_buf_refill,
-@@ -192,7 +192,7 @@ static int tw686x_contig_setup(struct tw686x_dev *dev)
- 	return 0;
- }
+Input: serio - add new protocol for the Pulse-Eight USB-CEC Adapter
 
--const struct tw686x_dma_ops contig_dma_ops = {
-+static const struct tw686x_dma_ops contig_dma_ops = {
- 	.setup		= tw686x_contig_setup,
- 	.cleanup	= tw686x_contig_cleanup,
- 	.buf_refill	= tw686x_contig_buf_refill,
-@@ -358,7 +358,7 @@ static int tw686x_sg_setup(struct tw686x_dev *dev)
- 	return 0;
- }
+That would be great.
 
--const struct tw686x_dma_ops sg_dma_ops = {
-+static const struct tw686x_dma_ops sg_dma_ops = {
- 	.setup		= tw686x_sg_setup,
- 	.cleanup	= tw686x_sg_cleanup,
- 	.alloc		= tw686x_sg_dma_alloc,
+Thanks!
+
+> ---
+>  include/uapi/linux/serio.h | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/include/uapi/linux/serio.h b/include/uapi/linux/serio.h
+> index c2ea169..f2447a8 100644
+> --- a/include/uapi/linux/serio.h
+> +++ b/include/uapi/linux/serio.h
+> @@ -78,5 +78,6 @@
+>  #define SERIO_TSC40	0x3d
+>  #define SERIO_WACOM_IV	0x3e
+>  #define SERIO_EGALAX	0x3f
+> +#define SERIO_PULSE8_CEC	0x40
+>  
+>  #endif /* _UAPI_SERIO_H */
+> -- 
+> 2.8.1
+> 
+
 -- 
-2.8.1
-
+Dmitry
