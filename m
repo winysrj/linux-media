@@ -1,93 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:40688 "EHLO
-	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751487AbcGROQU (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:50875 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757551AbcGKGKD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 10:16:20 -0400
-Message-ID: <1468851368.2994.54.camel@pengutronix.de>
-Subject: Re: [PATCH v4 09/12] [media] vivid: Local optimization
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Markus Heiser <markus.heiser@darmarit.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Antti Palosaari <crope@iki.fi>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-doc@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-media <linux-media@vger.kernel.org>
-Date: Mon, 18 Jul 2016 16:16:08 +0200
-In-Reply-To: <CAPybu_3MLxefeLDoU_HhSrS7ugc1idE7Qa7=h5a2F0x+4TizFg@mail.gmail.com>
-References: <1468845736-19651-1-git-send-email-ricardo.ribalda@gmail.com>
-	 <1468845736-19651-10-git-send-email-ricardo.ribalda@gmail.com>
-	 <1468847611.2994.22.camel@pengutronix.de>
-	 <CAPybu_3MLxefeLDoU_HhSrS7ugc1idE7Qa7=h5a2F0x+4TizFg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+	Mon, 11 Jul 2016 02:10:03 -0400
+Subject: Re: [PATCH v7 0/11] Output raw touch data via V4L2
+To: Nick Dyer <nick@shmanahar.org>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>
+References: <1467977164-17551-1-git-send-email-nick@shmanahar.org>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	jon.older@itdev.co.uk, nick.dyer@itdev.co.uk
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c6825cf2-46c8-f08b-e6aa-130855d2639b@xs4all.nl>
+Date: Mon, 11 Jul 2016 08:09:56 +0200
+MIME-Version: 1.0
+In-Reply-To: <1467977164-17551-1-git-send-email-nick@shmanahar.org>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo,
-
-Am Montag, den 18.07.2016, 15:21 +0200 schrieb Ricardo Ribalda Delgado:
-> Hi Philipp
+On 07/08/2016 01:25 PM, Nick Dyer wrote:
+> This is a series of patches to add output of raw touch diagnostic data via V4L2
+> to the Atmel maXTouch and Synaptics RMI4 drivers.
 > 
-> On Mon, Jul 18, 2016 at 3:13 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> > Since the constant expressions are evaluated at compile time, you are
-> > not actually removing shifts. The code generated for precalculate_color
-> > by gcc 5.4 even grows by one asr instruction with this patch.
-> >
+> It's a rewrite of the previous implementation which output via debugfs: it now
+> uses a V4L2 device in a similar way to the sur40 driver.
 > 
-> I dont think that I follow you completely here. The original code was
-
-Sorry, I forgot to mention I compiled both versions for ARMv7-A, saw
-that object size increased, had a look the diff between objdump -d
-outputs and noticed an additional shift instruction. I have not checked
-this for x86_64.
-
-> if (a)
->    y= clamp(y, 16<<4, 235<<4)
+> We have a utility which can read the data and display it in a useful format:
+>     https://github.com/ndyer/heatmap/commits/heatmap-v4l
 > 
-> y = clamp(y>>4, 1, 254)
->
-> And now is
+> These patches are also available from
+>     https://github.com/ndyer/linux/commits/v4l-touch-v7-2016-07-08
 > 
-> if (a)
->    y= clamp(y >>4, 16, 235)
-> else
->     y = clamp(y, 1, 254)
-     y = clamp(y >>4, 1, 254)
+> I will also send a patch to update v4l2-compliance.
 
-> On the previous case, when a was true there was 2 clamp operations.
-> Now it is only one.
+The series looks good, but it needs to be rebased due to this change:
 
-Yes. And now there's two shift operations (overall, still just one in
-each conditional path).
+http://www.spinics.net/lists/linux-media/msg101733.html
 
-It seems in my case the compiler was not clever enough to move all the
-right shifts out of the conditional paths, so I ended up with one more
-than before. You are right that in the limited range path the second
-clamps are now avoided though. Basically, feel free to disregard my
-comment.
+Regarding patch 3/11: as you may know we're moving from DocBook to sphinx for
+the documentation in 4.8. The git branch with that code is here:
 
-I had the best looking result with this variant, btw:
+https://git.linuxtv.org/media_tree.git/log/?h=docs-next
 
-	y >>= 4;
-	cb >>= 4;
-	cr >>= 4;
-	if (tpg->real_quantization == V4L2_QUANTIZATION_LIM_RANGE) {
-		y = clamp(y, 16, 235);
-		cb = clamp(cb, 16, 240);
-		cr = clamp(cr, 16, 240);
-	} else {
-		y = clamp(y, 1, 254);
-		cb = clamp(cb, 1, 254);
-		cr = clamp(cr, 1, 254);
-	}
+If you can redo this patch 3/11 on top of that branch, then that would be
+great.
 
-regards
-Philipp
+Regards,
 
+	Hans
+
+> 
+> Changes in v7:
+> - Tested by Andrew Duggan and Chris Healy.
+> - Update bus_info to add "rmi4:" bus.
+> - Fix code style issues in sur40 changes.
+> 
+> Changes in v6:
+> - Remove BUF_TYPE_TOUCH_CAPTURE, as discussed with Hans V touch devices will
+>   use BUF_TYPE_VIDEO_CAPTURE.
+> - Touch devices should now register CAP_VIDEO_CAPTURE: CAP_TOUCH just says that
+>   this is a touch device, not a video device, but otherwise it acts the same.
+> - Add some code to v4l_s_fmt() to set sensible default values for fields not
+>   used by touch.
+> - Improve naming/doc of RMI4 F54 report types.
+> - Various minor DocBook fixes, and split to separate patch.
+> - Update my email address.
+> - Rework sur40 changes so that PIX_FMT_GREY is supported for backward
+>   compatibility. Florian is it possible for you to test?
+> 
+> Changes in v5 (Hans Verkuil review):
+> - Update v4l2-core:
+>   - Add VFL_TYPE_TOUCH, V4L2_BUF_TYPE_TOUCH_CAPTURE and V4L2_CAP_TOUCH
+>   - Change V4L2_INPUT_TYPE_TOUCH_SENSOR to V4L2_INPUT_TYPE_TOUCH
+>   - Improve DocBook documentation
+>   - Add FMT definitions for touch data
+>   - Note this will need the latest version of the heatmap util
+> - Synaptics RMI4 driver:
+>   - Remove some less important non full frame report types
+>   - Switch report type names to const char * array
+>   - Move a static array to inside context struct
+> - Split sur40 changes to a separate commit
+> 
+> Changes in v4:
+> - Address nits from the input side in atmel_mxt_ts patches (Dmitry Torokhov)
+> - Add Synaptics RMI4 F54 support patch
+> 
+> Changes in v3:
+> - Address V4L2 review comments from Hans Verkuil
+> - Run v4l-compliance and fix all issues - needs minor patch here:
+>   https://github.com/ndyer/v4l-utils/commit/cf50469773f
+> 
+> Changes in v2:
+> - Split pixfmt changes into separate commit and add DocBook
+> - Introduce VFL_TYPE_TOUCH_SENSOR and /dev/v4l-touch
+> - Remove "single node" support for now, it may be better to treat it as
+>   metadata later
+> - Explicitly set VFL_DIR_RX
+> - Fix Kconfig
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
