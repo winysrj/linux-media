@@ -1,93 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44706 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753141AbcGDLrU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:20 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 01/51] Documentation: linuxt_tv: update the documentation year
-Date: Mon,  4 Jul 2016 08:46:22 -0300
-Message-Id: <1791aa4c33a39667902d7890b095c7651ffa7ab5.1467629488.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:55303 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757302AbcGKDRc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jul 2016 23:17:32 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 5C9E418010A
+	for <linux-media@vger.kernel.org>; Mon, 11 Jul 2016 05:17:26 +0200 (CEST)
+Date: Mon, 11 Jul 2016 05:17:26 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160711031726.5C9E418010A@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The RST version was produced in 2016. So, update it where
-it was still pointing to the wrong year.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-While here, added the missing (copyright) symbols.
+Results of the daily build of media_tree:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/linux_tv/conf.py              | 2 +-
- Documentation/linux_tv/index.rst            | 4 +++-
- Documentation/linux_tv/media/dvb/dvbapi.rst | 6 ++++--
- 3 files changed, 8 insertions(+), 4 deletions(-)
+date:		Mon Jul 11 04:00:30 CEST 2016
+git branch:	test
+git hash:	a4d020e97d8e65d57061677c15c89e99609d0b37
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-diff --git a/Documentation/linux_tv/conf.py b/Documentation/linux_tv/conf.py
-index 8013c921256b..ea5f6ef25d6b 100644
---- a/Documentation/linux_tv/conf.py
-+++ b/Documentation/linux_tv/conf.py
-@@ -25,7 +25,7 @@ kernel_doc_mode = "kernel-doc"
- # ------------------------------------------------------------------------------
- 
- project   = u'LINUX MEDIA INFRASTRUCTURE API'
--copyright = u'2009-2015 : LinuxTV Developers'
-+copyright = u'2009-2016 : LinuxTV Developers'
- author    = u'The LinuxTV Developers'
- 
- # The version info for the project you're documenting, acts as replacement for
-diff --git a/Documentation/linux_tv/index.rst b/Documentation/linux_tv/index.rst
-index 42b3d4520942..e6df371243d8 100644
---- a/Documentation/linux_tv/index.rst
-+++ b/Documentation/linux_tv/index.rst
-@@ -1,10 +1,12 @@
- .. -*- coding: utf-8; mode: rst -*-
- 
-+.. include:: <isonum.txt>
-+
- ##############################
- LINUX MEDIA INFRASTRUCTURE API
- ##############################
- 
--**Copyright** 2009-2015 : LinuxTV Developers
-+**Copyright** |copy| 2009-2016 : LinuxTV Developers
- 
- Permission is granted to copy, distribute and/or modify this document
- under the terms of the GNU Free Documentation License, Version 1.1 or
-diff --git a/Documentation/linux_tv/media/dvb/dvbapi.rst b/Documentation/linux_tv/media/dvb/dvbapi.rst
-index 5e513ac86052..daeeb4d64917 100644
---- a/Documentation/linux_tv/media/dvb/dvbapi.rst
-+++ b/Documentation/linux_tv/media/dvb/dvbapi.rst
-@@ -1,5 +1,7 @@
- .. -*- coding: utf-8; mode: rst -*-
- 
-+.. include:: <isonum.txt>
-+
- .. _dvbapi:
- 
- #############
-@@ -41,9 +43,9 @@ Revision and Copyright
- :address:   m.chehab@samsung.com
- :contrib:   Ported document to Docbook XML.
- 
--**Copyright** 2002, 2003 : Convergence GmbH
-+**Copyright** |copy| 2002, 2003 : Convergence GmbH
- 
--**Copyright** 2009-2015 : Mauro Carvalho Chehab
-+**Copyright** |copy| 2009-2016 : Mauro Carvalho Chehab
- 
- :revision: 2.1.0 / 2015-05-29 (*mcc*)
- 
--- 
-2.7.4
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mtk: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
