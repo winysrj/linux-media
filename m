@@ -1,339 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41460 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755375AbcGHNEF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:05 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 22/54] doc-rst: media-ioc-g-topology: Fix tables
-Date: Fri,  8 Jul 2016 10:03:14 -0300
-Message-Id: <8926814ec741d1dd3d2ec37fd780a2718b152a2e.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40970 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753635AbcGKLxI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jul 2016 07:53:08 -0400
+Subject: Re: [PATCH v3] Add tw5864 driver
+To: Andrey Utkin <andrey_utkin@fastmail.com>
+References: <20160709194618.15609-1-andrey_utkin@fastmail.com>
+ <cac4c81a-9065-2337-7d34-eea8b8482519@xs4all.nl> <20160711114800.GW5934@zver>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Kozlov Sergey <serjk@netup.ru>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	=?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-pci@vger.kernel.org,
+	kernel-mentors@selenic.com,
+	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <670e4e8b-ea65-e6ed-b313-d1aad80e79fa@xs4all.nl>
+Date: Mon, 11 Jul 2016 13:52:55 +0200
+MIME-Version: 1.0
+In-Reply-To: <20160711114800.GW5934@zver>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The tables were not properly converted. It looked a little
-ackward already at DocBook, but the conversion made it worse.
+On 07/11/2016 01:48 PM, Andrey Utkin wrote:
+> Thanks for review Hans!
+> 
+> On Mon, Jul 11, 2016 at 07:58:38AM +0200, Hans Verkuil wrote:
+>>> +" v4l2-ctl --device $dev --set-ctrl=video_gop_size=1; done\n"
+>>
+>> Replace $dev by /dev/videoX
+>>
+>> Wouldn't it make more sense to default to this? And show the warning only if
+>> P-frames are enabled?
+> 
+> I believe it's better to leave P-frames on by default. All-I-frames
+> stream has huge bitrate. And the pixels artifacts is not very strong,
+> it's 0 - 10 bad pixels on picture at same time in our dev environment,
+> and probably up to 50 bad pixels max in other environments I know of.
+> 
+>>> +	dma_sync_single_for_cpu(&dev->pci->dev, cur_frame->vlc.dma_addr,
+>>> +				H264_VLC_BUF_SIZE, DMA_FROM_DEVICE);
+>>> +	dma_sync_single_for_cpu(&dev->pci->dev, cur_frame->mv.dma_addr,
+>>> +				H264_MV_BUF_SIZE, DMA_FROM_DEVICE);
+>>
+>> This is almost certainly the wrong place. This should probably happen in the
+>> tasklet. The tasklet runs after the isr, so by the time the tasklet runs
+>> you've already called dma_sync_single_for_device.
+> 
+> Thanks, moved to tasklet subroutine tw5864_handle_frame().
+> 
+> I didn't seem to me like dma_sync_single_for_* can take long time or be
+> otherwise bad to be done from interrupt context.
+> 
+>>> +static int tw5864_querycap(struct file *file, void *priv,
+>>> +			   struct v4l2_capability *cap)
+>>> +{
+>>> +	struct tw5864_input *input = video_drvdata(file);
+>>> +
+>>> +	strcpy(cap->driver, "tw5864");
+>>> +	snprintf(cap->card, sizeof(cap->card), "TW5864 Encoder %d",
+>>> +		 input->nr);
+>>> +	sprintf(cap->bus_info, "PCI:%s", pci_name(input->root->pci));
+>>> +	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
+>>> +		V4L2_CAP_STREAMING;
+>>> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+>>
+>> This line can be dropped, the core will fill in the capabilities field for you.
+> 
+> No, removing this line causes v4l2-compliance failures and also ffmpeg fails to
+> play the device.
 
-Fix them.
+My fault. I mixed things up. The struct video_device has a new device_caps field. That
+should be filled in with the caps and then in the function above you can drop both
+the device_caps and capabitlities assignments.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- .../media/mediactl/media-ioc-g-topology.rst        | 63 +++-------------------
- 1 file changed, 6 insertions(+), 57 deletions(-)
+Sorry about that.
 
-diff --git a/Documentation/linux_tv/media/mediactl/media-ioc-g-topology.rst b/Documentation/linux_tv/media/mediactl/media-ioc-g-topology.rst
-index badcdf6133e2..1f2d530aa284 100644
---- a/Documentation/linux_tv/media/mediactl/media-ioc-g-topology.rst
-+++ b/Documentation/linux_tv/media/mediactl/media-ioc-g-topology.rst
-@@ -54,6 +54,7 @@ desired arrays with the media graph elements.
- .. flat-table:: struct media_v2_topology
-     :header-rows:  0
-     :stub-columns: 0
-+    :widths: 1 2 8
- 
- 
-     -  .. row 1
-@@ -62,8 +63,6 @@ desired arrays with the media graph elements.
- 
-        -  ``topology_version``
- 
--       -
--       -
-        -  Version of the media graph topology. When the graph is created,
- 	  this field starts with zero. Every time a graph element is added
- 	  or removed, this field is incremented.
-@@ -74,8 +73,6 @@ desired arrays with the media graph elements.
- 
-        -  ``num_entities``
- 
--       -
--       -
-        -  Number of entities in the graph
- 
-     -  .. row 3
-@@ -84,8 +81,6 @@ desired arrays with the media graph elements.
- 
-        -  ``ptr_entities``
- 
--       -
--       -
-        -  A pointer to a memory area where the entities array will be
- 	  stored, converted to a 64-bits integer. It can be zero. if zero,
- 	  the ioctl won't store the entities. It will just update
-@@ -97,8 +92,6 @@ desired arrays with the media graph elements.
- 
-        -  ``num_interfaces``
- 
--       -
--       -
-        -  Number of interfaces in the graph
- 
-     -  .. row 5
-@@ -107,8 +100,6 @@ desired arrays with the media graph elements.
- 
-        -  ``ptr_interfaces``
- 
--       -
--       -
-        -  A pointer to a memory area where the interfaces array will be
- 	  stored, converted to a 64-bits integer. It can be zero. if zero,
- 	  the ioctl won't store the interfaces. It will just update
-@@ -120,8 +111,6 @@ desired arrays with the media graph elements.
- 
-        -  ``num_pads``
- 
--       -
--       -
-        -  Total number of pads in the graph
- 
-     -  .. row 7
-@@ -130,8 +119,6 @@ desired arrays with the media graph elements.
- 
-        -  ``ptr_pads``
- 
--       -
--       -
-        -  A pointer to a memory area where the pads array will be stored,
- 	  converted to a 64-bits integer. It can be zero. if zero, the ioctl
- 	  won't store the pads. It will just update ``num_pads``
-@@ -142,8 +129,6 @@ desired arrays with the media graph elements.
- 
-        -  ``num_links``
- 
--       -
--       -
-        -  Total number of data and interface links in the graph
- 
-     -  .. row 9
-@@ -152,8 +137,6 @@ desired arrays with the media graph elements.
- 
-        -  ``ptr_links``
- 
--       -
--       -
-        -  A pointer to a memory area where the links array will be stored,
- 	  converted to a 64-bits integer. It can be zero. if zero, the ioctl
- 	  won't store the links. It will just update ``num_links``
-@@ -165,6 +148,7 @@ desired arrays with the media graph elements.
- .. flat-table:: struct media_v2_entity
-     :header-rows:  0
-     :stub-columns: 0
-+    :widths: 1 2 8
- 
- 
-     -  .. row 1
-@@ -173,8 +157,6 @@ desired arrays with the media graph elements.
- 
-        -  ``id``
- 
--       -
--       -
-        -  Unique ID for the entity.
- 
-     -  .. row 2
-@@ -183,8 +165,6 @@ desired arrays with the media graph elements.
- 
-        -  ``name``\ [64]
- 
--       -
--       -
-        -  Entity name as an UTF-8 NULL-terminated string.
- 
-     -  .. row 3
-@@ -193,8 +173,6 @@ desired arrays with the media graph elements.
- 
-        -  ``function``
- 
--       -
--       -
-        -  Entity main function, see :ref:`media-entity-type` for details.
- 
-     -  .. row 4
-@@ -213,7 +191,7 @@ desired arrays with the media graph elements.
- .. flat-table:: struct media_v2_interface
-     :header-rows:  0
-     :stub-columns: 0
--
-+    :widths: 1 2 8
- 
-     -  .. row 1
- 
-@@ -221,8 +199,6 @@ desired arrays with the media graph elements.
- 
-        -  ``id``
- 
--       -
--       -
-        -  Unique ID for the interface.
- 
-     -  .. row 2
-@@ -231,8 +207,6 @@ desired arrays with the media graph elements.
- 
-        -  ``intf_type``
- 
--       -
--       -
-        -  Interface type, see :ref:`media-intf-type` for details.
- 
-     -  .. row 3
-@@ -241,8 +215,6 @@ desired arrays with the media graph elements.
- 
-        -  ``flags``
- 
--       -
--       -
-        -  Interface flags. Currently unused.
- 
-     -  .. row 4
-@@ -251,8 +223,6 @@ desired arrays with the media graph elements.
- 
-        -  ``reserved``\ [9]
- 
--       -
--       -
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
- 
-@@ -262,8 +232,6 @@ desired arrays with the media graph elements.
- 
-        -  ``devnode``
- 
--       -
--       -
-        -  Used only for device node interfaces. See
- 	  :ref:`media-v2-intf-devnode` for details..
- 
-@@ -274,6 +242,7 @@ desired arrays with the media graph elements.
- .. flat-table:: struct media_v2_interface
-     :header-rows:  0
-     :stub-columns: 0
-+    :widths: 1 2 8
- 
- 
-     -  .. row 1
-@@ -282,8 +251,6 @@ desired arrays with the media graph elements.
- 
-        -  ``major``
- 
--       -
--       -
-        -  Device node major number.
- 
-     -  .. row 2
-@@ -292,8 +259,6 @@ desired arrays with the media graph elements.
- 
-        -  ``minor``
- 
--       -
--       -
-        -  Device node minor number.
- 
- 
-@@ -303,6 +268,7 @@ desired arrays with the media graph elements.
- .. flat-table:: struct media_v2_pad
-     :header-rows:  0
-     :stub-columns: 0
-+    :widths: 1 2 8
- 
- 
-     -  .. row 1
-@@ -311,8 +277,6 @@ desired arrays with the media graph elements.
- 
-        -  ``id``
- 
--       -
--       -
-        -  Unique ID for the pad.
- 
-     -  .. row 2
-@@ -321,8 +285,6 @@ desired arrays with the media graph elements.
- 
-        -  ``entity_id``
- 
--       -
--       -
-        -  Unique ID for the entity where this pad belongs.
- 
-     -  .. row 3
-@@ -331,8 +293,6 @@ desired arrays with the media graph elements.
- 
-        -  ``flags``
- 
--       -
--       -
-        -  Pad flags, see :ref:`media-pad-flag` for more details.
- 
-     -  .. row 4
-@@ -341,8 +301,6 @@ desired arrays with the media graph elements.
- 
-        -  ``reserved``\ [9]
- 
--       -
--       -
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
- 
-@@ -353,6 +311,7 @@ desired arrays with the media graph elements.
- .. flat-table:: struct media_v2_pad
-     :header-rows:  0
-     :stub-columns: 0
-+    :widths: 1 2 8
- 
- 
-     -  .. row 1
-@@ -361,8 +320,6 @@ desired arrays with the media graph elements.
- 
-        -  ``id``
- 
--       -
--       -
-        -  Unique ID for the pad.
- 
-     -  .. row 2
-@@ -371,8 +328,6 @@ desired arrays with the media graph elements.
- 
-        -  ``source_id``
- 
--       -
--       -
-        -  On pad to pad links: unique ID for the source pad.
- 
- 	  On interface to entity links: unique ID for the interface.
-@@ -383,8 +338,6 @@ desired arrays with the media graph elements.
- 
-        -  ``sink_id``
- 
--       -
--       -
-        -  On pad to pad links: unique ID for the sink pad.
- 
- 	  On interface to entity links: unique ID for the entity.
-@@ -395,8 +348,6 @@ desired arrays with the media graph elements.
- 
-        -  ``flags``
- 
--       -
--       -
-        -  Link flags, see :ref:`media-link-flag` for more details.
- 
-     -  .. row 5
-@@ -405,8 +356,6 @@ desired arrays with the media graph elements.
- 
-        -  ``reserved``\ [5]
- 
--       -
--       -
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
- 
--- 
-2.7.4
+Regards,
 
+	Hans
+
+> 
+> Required ioctls:
+>                 fail: v4l2-compliance.cpp(550): dcaps & ~caps
+>         test VIDIOC_QUERYCAP: FAIL
+> 
+> Allow for multiple opens:
+>         test second video open: OK
+>                 fail: v4l2-compliance.cpp(550): dcaps & ~caps
+>         test VIDIOC_QUERYCAP: FAIL
+> 
