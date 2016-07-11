@@ -1,73 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:6247 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751058AbcGMLBA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 07:01:00 -0400
-Date: Wed, 13 Jul 2016 13:00:45 +0200
-From: Samuel Ortiz <sameo@linux.intel.com>
-To: Marcel Holtmann <marcel@holtmann.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	"Gustavo F. Padovan" <gustavo@padovan.org>,
-	Johan Hedberg <johan.hedberg@gmail.com>,
-	Lauro Ramos Venancio <lauro.venancio@openbossa.org>,
-	Aloisio Almeida Jr <aloisio.almeida@openbossa.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Pavan Savoy <pavan_savoy@ti.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	"open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>,
-	linux-media@vger.kernel.org,
-	linux-wireless <linux-wireless@vger.kernel.org>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] drivers: misc: ti-st: Use int instead of fuzzy char for
- callback status
-Message-ID: <20160713110045.GA10530@zurbaran.home>
-References: <1465203723-16928-1-git-send-email-geert@linux-m68k.org>
- <20160713074114.76c35d04@recife.lan>
- <32897348-2AC5-4AB7-BF58-B1E36FC19CF2@holtmann.org>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:19419 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757440AbcGKD64 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jul 2016 23:58:56 -0400
+Message-ID: <1468209529.3725.25.camel@mtksdaap41>
+Subject: Re: [PATCH v3 0/9] Add MT8173 Video Decoder Driver
+From: tiffany lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	"Marek Szyprowski" <m.szyprowski@samsung.com>
+Date: Mon, 11 Jul 2016 11:58:49 +0800
+In-Reply-To: <e2952cc2-3abd-894e-9481-b91a45cf7891@xs4all.nl>
+References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
+	 <577D0576.2050706@xs4all.nl> <1467886612.21382.18.camel@mtksdaap41>
+	 <e2952cc2-3abd-894e-9481-b91a45cf7891@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <32897348-2AC5-4AB7-BF58-B1E36FC19CF2@holtmann.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marcel,
+Hi Hans,
 
-On Wed, Jul 13, 2016 at 11:56:02AM +0100, Marcel Holtmann wrote:
-> Hi Mauro,
-> 
-> >> On mips and parisc:
-> >> 
-> >>    drivers/bluetooth/btwilink.c: In function 'ti_st_open':
-> >>    drivers/bluetooth/btwilink.c:174:21: warning: overflow in implicit constant conversion [-Woverflow]
-> >>       hst->reg_status = -EINPROGRESS;
-> >> 
-> >>    drivers/nfc/nfcwilink.c: In function 'nfcwilink_open':
-> >>    drivers/nfc/nfcwilink.c:396:31: warning: overflow in implicit constant conversion [-Woverflow]
-> >>      drv->st_register_cb_status = -EINPROGRESS;
-> >> 
-> >> There are actually two issues:
-> >>  1. Whether "char" is signed or unsigned depends on the architecture.
-> >>     As the completion callback data is used to pass a (negative) error
-> >>     code, it should always be signed.
-> >>  2. EINPROGRESS is 150 on mips, 245 on parisc.
-> >>     Hence -EINPROGRESS doesn't fit in a signed 8-bit number.
-> >> 
-> >> Change the callback status from "char" to "int" to fix these.
-> >> 
-> >> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+On Fri, 2016-07-08 at 13:44 +0200, Hans Verkuil wrote:
+> On 07/07/2016 12:16 PM, tiffany lin wrote:
+> > Hi Hans,
 > > 
-> > Patch looks sane to me, but who will apply it?
 > > 
-> > Anyway:
-> > 
-> > Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > On Wed, 2016-07-06 at 15:19 +0200, Hans Verkuil wrote:
+> >> Hi Tiffany,
+> >>
+> >> I plan to review this patch series on Friday, but one obvious question is
+> >> what the reason for these failures is:
+> >>
+> >>> Input/Output configuration ioctls:
+> >>>         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+> >>>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+> >>>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+> >>>         test VIDIOC_G/S_EDID: OK (Not Supported)
+> >>>
+> >>>         Control ioctls:
+> >>>                 test VIDIOC_QUERYCTRL/MENU: OK
+> >>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(357): g_ctrl returned an error (11)
+> >>>                 test VIDIOC_G/S_CTRL: FAIL
+> >>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(579): g_ext_ctrls returned an error (11)
+> >>>                 test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
+> > These fails are because VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS return
+> > V4L2_CID_MIN_BUFFERS_FOR_CAPTURE only when dirver in MTK_STATE_HEADER
+> > state, or it will return EAGAIN.
+> > This could help user space get correct value, not default value that may
+> > changed base on media content.
 > 
-> I can take it through bluetooth-next if there is no objection.
+> OK, I really don't like this. I also looked what the s5p-mfc-dec driver does (the only other
+> driver currently implementing this), and that returns -EINVAL.
 > 
-> Samuel, are you fine with that?
-Yes, please go ahead.
+> My proposal would be to change this. If this information isn't known yet, why not
+> just return 0 as the value? The doc would have to be updated and (preferably) also
+> the s5p-mfc-dec driver. I've added Samsung devs to the Cc list, let me know what you
+> think.
+> 
+Got it. We will return 0 as the value instead EAGAIN.
 
-Cheers,
-Samuel.
+> > 
+> >>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(721): subscribe event for control 'User Controls' failed
+> >>>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+> > Driver do not support subscribe event for control 'User Controls' for
+> > now.
+> > Do we need to support this?
+> 
+> I don't see why this would fail. It's OK to subscribe to such controls, although
+> you'll never get an event.
+> 
+Got it. I will rerun using latest v4l2-compliance test check this.
+
+> >>>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+> >>>                 Standard Controls: 2 Private Controls: 0
+> >>>
+> >>>         Format ioctls:
+> >>>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+> >>>                 test VIDIOC_G/S_PARM: OK (Not Supported)
+> >>>                 test VIDIOC_G_FBUF: OK (Not Supported)
+> >>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-formats.cpp(405): expected EINVAL, but got 11 when getting format for buftype 9
+> >>>                 test VIDIOC_G_FMT: FAIL
+> > This is because vidioc_vdec_g_fmt only succeed when context is in
+> > MTK_STATE_HEADER state, or user space cannot get correct format data
+> > using this function.
+> 
+> Comparing this to s5p-mfc-dec I see that -EINVAL is returned in that case.
+> 
+> I am not opposed to using EAGAIN in s5p-mfc-dec as well. Marek, Kamil, what is
+> your opinion?
+> 
+> > 
+> >>>                 test VIDIOC_TRY_FMT: OK (Not Supported)
+> >>>                 test VIDIOC_S_FMT: OK (Not Supported)
+> >>>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+> >>>
+> >>>         Codec ioctls:
+> >>>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+> >>>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+> >>>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> >>>
+> >>>         Buffer ioctls:
+> >>>                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+> >>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-buffers.cpp(500): q.has_expbuf(node)
+> > Our OUTPUT and CAPTURE queue support both VB2_DMABUF and VB2_MMAP, user
+> > space can select which to use in runtime.
+> > So our driver default support v4l2_m2m_ioctl_expbuf functionality.
+> > In v4l2-compliance test, it will check v4l2_m2m_ioctl_expbuf only valid
+> > when node->valid_memorytype is V4L2_MEMORY_MMAP.
+> > So when go through node->valid_memorytype is V4L2_MEMORY_DMABUF, it
+> > fail.
+> 
+> valid_memorytype should have both MMAP and DMABUF flags.
+> 
+> But v4l-utils-1.6.0 is way too old to be certain it isn't some v4l2-compliance bug
+> that has since been fixed.
+> 
+Got it. I will rerun using master branch to check this.
+
+best regards,
+Tiffany
+
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > 
+> > best regards,
+> > Tiffany
+> > 
+> > 
+> > 
+> >>>                 test VIDIOC_EXPBUF: FAIL
+> >>>
+> >>>
+> >>> Total: 38, Succeeded: 33, Failed: 5, Warnings: 0
+> >>
+> >> If it is due to a bug in v4l2-compliance, then let me know and I'll fix it. If not,
+> >> then it should be fixed in the driver.
+> >>
+> >> Frankly, it was the presence of these failures that made me think this patch series
+> >> wasn't final. Before a v4l2 driver can be accepted in the kernel, v4l2-compliance must pass.
+> >>
+> >> Regards,
+> >>
+> >> 	Hans
+> > 
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+
+
