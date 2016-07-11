@@ -1,44 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:37356 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834AbcGFJn5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 05:43:57 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [PATCH v3 10/15] [media] lirc_dev: remove compat_ioctl assignment
-Date: Wed, 06 Jul 2016 18:01:22 +0900
-Message-id: <1467795687-10737-11-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1467795687-10737-1-git-send-email-andi.shyti@samsung.com>
-References: <1467795687-10737-1-git-send-email-andi.shyti@samsung.com>
+Received: from resqmta-po-11v.sys.comcast.net ([96.114.154.170]:41260 "EHLO
+	resqmta-ch2-11v.sys.comcast.net" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751780AbcGKWjG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jul 2016 18:39:06 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: kyungmin.park@samsung.com, k.debski@samsung.com,
+	jtp.park@samsung.com, mchehab@kernel.org, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: s5p-mfc Fix misspelled error message and checkpatch errors
+Date: Mon, 11 Jul 2016 16:39:00 -0600
+Message-Id: <1468276740-1591-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no need to check for CONFIG_COMPAT and consequently
-assign the compat_ioctl.
+Fix misspelled error message and existing checkpatch errors in the
+error message conditional.
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+WARNING: suspect code indent for conditional statements (8, 24)
+ 	if (ctx->state != MFCINST_HEAD_PARSED &&
+[...]
++               mfc_err("Can not get crop information\n");
+
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/rc/lirc_dev.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 71ff820..09bdd69 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -150,9 +150,6 @@ static const struct file_operations lirc_dev_fops = {
- 	.write		= lirc_dev_fop_write,
- 	.poll		= lirc_dev_fop_poll,
- 	.unlocked_ioctl	= lirc_dev_fop_ioctl,
--#ifdef CONFIG_COMPAT
--	.compat_ioctl	= lirc_dev_fop_ioctl,
--#endif
- 	.open		= lirc_dev_fop_open,
- 	.release	= lirc_dev_fop_close,
- 	.llseek		= noop_llseek,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index a01a373..06061c4 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -775,11 +775,11 @@ static int vidioc_g_crop(struct file *file, void *priv,
+ 	u32 left, right, top, bottom;
+ 
+ 	if (ctx->state != MFCINST_HEAD_PARSED &&
+-	ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
+-					&& ctx->state != MFCINST_FINISHED) {
+-			mfc_err("Cannont set crop\n");
+-			return -EINVAL;
+-		}
++	    ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
++	    && ctx->state != MFCINST_FINISHED) {
++		mfc_err("Can not get crop information\n");
++		return -EINVAL;
++	}
+ 	if (ctx->src_fmt->fourcc == V4L2_PIX_FMT_H264) {
+ 		left = s5p_mfc_hw_call(dev->mfc_ops, get_crop_info_h, ctx);
+ 		right = left >> S5P_FIMV_SHARED_CROP_RIGHT_SHIFT;
 -- 
-2.8.1
+2.7.4
 
