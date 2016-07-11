@@ -1,130 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44745 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753520AbcGDLrV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:21 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 49/51] Documentation: pixfmt-yuv411p.rst: remove an empty column
-Date: Mon,  4 Jul 2016 08:47:10 -0300
-Message-Id: <0811b261f4ed2dfe4a566fce5270a4b265952f96.1467629489.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:60959 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933408AbcGKDHy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jul 2016 23:07:54 -0400
+Message-ID: <1468206468.3725.17.camel@mtksdaap41>
+Subject: Re: [PATCH 1/2] mtk-vcodec: fix two compiler warnings
+From: tiffany lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Date: Mon, 11 Jul 2016 11:07:48 +0800
+In-Reply-To: <1468049578-10039-1-git-send-email-hverkuil@xs4all.nl>
+References: <1468049578-10039-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=true
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The conversion added an empty column (probably, it was used on
-DocBook just to increase spacing.
+On Sat, 2016-07-09 at 09:32 +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> mtk-vcodec/mtk_vcodec_enc.c: In function 'mtk_venc_worker':
+> mtk-vcodec/mtk_vcodec_enc.c:1030:43: warning: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type 'size_t {aka unsigned int}' [-Wformat=]
+> mtk-vcodec/mtk_vcodec_enc.c:1030:43: warning: format '%lx' expects argument of type 'long unsigned int', but argument 10 has type 'size_t {aka unsigned int}' [-Wformat=]
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> index 6dcae0a..907a6d1 100644
+> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> @@ -1028,7 +1028,7 @@ static void mtk_venc_worker(struct work_struct *work)
+>  	bs_buf.size = (size_t)dst_buf->planes[0].length;
+>  
+>  	mtk_v4l2_debug(2,
+> -			"Framebuf VA=%p PA=%llx Size=0x%lx;VA=%p PA=0x%llx Size=0x%lx;VA=%p PA=0x%llx Size=%zu",
+> +			"Framebuf VA=%p PA=%llx Size=0x%zx;VA=%p PA=0x%llx Size=0x%zx;VA=%p PA=0x%llx Size=%zu",
+>  			frm_buf.fb_addr[0].va,
+>  			(u64)frm_buf.fb_addr[0].dma_addr,
+>  			frm_buf.fb_addr[0].size,
 
-It also added an extra line on one of the texts, breaking
-the original paragraph into two ones.
-
-Remove them.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/linux_tv/media/v4l/pixfmt-yuv411p.rst | 12 ------------
- 1 file changed, 12 deletions(-)
-
-diff --git a/Documentation/linux_tv/media/v4l/pixfmt-yuv411p.rst b/Documentation/linux_tv/media/v4l/pixfmt-yuv411p.rst
-index 0fe1cacf7b7a..9521c4431c78 100644
---- a/Documentation/linux_tv/media/v4l/pixfmt-yuv411p.rst
-+++ b/Documentation/linux_tv/media/v4l/pixfmt-yuv411p.rst
-@@ -30,11 +30,9 @@ have ¼ as many pad bytes after their rows. In other words, four C x rows
- (including padding) is exactly as long as one Y row (including padding).
- 
- **Byte Order..**
--
- Each cell is one byte.
- 
- 
--
- .. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-@@ -152,13 +150,11 @@ Each cell is one byte.
-        -  
-        -  0
- 
--       -  
-        -  1
- 
-        -  
-        -  2
- 
--       -  
-        -  3
- 
-     -  .. row 2
-@@ -167,14 +163,12 @@ Each cell is one byte.
- 
-        -  Y
- 
--       -  
-        -  Y
- 
-        -  C
- 
-        -  Y
- 
--       -  
-        -  Y
- 
-     -  .. row 3
-@@ -183,14 +177,12 @@ Each cell is one byte.
- 
-        -  Y
- 
--       -  
-        -  Y
- 
-        -  C
- 
-        -  Y
- 
--       -  
-        -  Y
- 
-     -  .. row 4
-@@ -199,14 +191,12 @@ Each cell is one byte.
- 
-        -  Y
- 
--       -  
-        -  Y
- 
-        -  C
- 
-        -  Y
- 
--       -  
-        -  Y
- 
-     -  .. row 5
-@@ -215,12 +205,10 @@ Each cell is one byte.
- 
-        -  Y
- 
--       -  
-        -  Y
- 
-        -  C
- 
-        -  Y
- 
--       -  
-        -  Y
--- 
-2.7.4
-
+reviewed-by: Tiffany Lin <tiffany.lin@mediatek.com>
 
