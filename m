@@ -1,82 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46365
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751335AbcGLOF3 (ORCPT
+Received: from mail-wm0-f48.google.com ([74.125.82.48]:37999 "EHLO
+	mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750787AbcGLIQg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 10:05:29 -0400
-Date: Tue, 12 Jul 2016 11:05:24 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sean Young <sean@mess.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 03/20] [media] lirc.h: remove several unused ioctls
-Message-ID: <20160712110524.57e2b674@recife.lan>
-In-Reply-To: <20160712135438.GA11183@gofer.mess.org>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-	<d55f09abe24b4dfadab246b6f217da547361cdb6.1468327191.git.mchehab@s-opensource.com>
-	<20160712131406.GB10242@gofer.mess.org>
-	<20160712102300.3bb0e6c4@recife.lan>
-	<20160712133555.GA10904@gofer.mess.org>
-	<20160712135438.GA11183@gofer.mess.org>
+	Tue, 12 Jul 2016 04:16:36 -0400
+Received: by mail-wm0-f48.google.com with SMTP id o80so14670595wme.1
+        for <linux-media@vger.kernel.org>; Tue, 12 Jul 2016 01:16:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1468205771.3725.8.camel@mtksdaap41>
+References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
+ <1464611363-14936-2-git-send-email-tiffany.lin@mediatek.com>
+ <1464611363-14936-3-git-send-email-tiffany.lin@mediatek.com>
+ <1464611363-14936-4-git-send-email-tiffany.lin@mediatek.com>
+ <5a793171-24a7-4e9e-8bfd-f668c789f8e0@xs4all.nl> <1468205771.3725.8.camel@mtksdaap41>
+From: =?UTF-8?B?V3UtQ2hlbmcgTGkgKOadjuWLmeiqoCk=?=
+	<wuchengli@chromium.org>
+Date: Tue, 12 Jul 2016 16:16:14 +0800
+Message-ID: <CAOMLVLiZU3D587dSyp2b2v4DV+MS9vh85bA4BoG7ddK6556rbA@mail.gmail.com>
+Subject: Re: [PATCH v3 3/9] DocBook/v4l: Add compressed video formats used on
+ MT8173 codec driver
+To: tiffany lin <tiffany.lin@mediatek.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Daniel Thompson <daniel.thompson@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org,
+	Lin PoChun <PoChun.Lin@mediatek.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 12 Jul 2016 14:54:38 +0100
-Sean Young <sean@mess.org> escreveu:
-
-> On Tue, Jul 12, 2016 at 02:35:56PM +0100, Sean Young wrote:
-> > On Tue, Jul 12, 2016 at 10:23:00AM -0300, Mauro Carvalho Chehab wrote:  
-> > > Em Tue, 12 Jul 2016 14:14:06 +0100
-> > > Sean Young <sean@mess.org> escreveu:  
-> > > > On Tue, Jul 12, 2016 at 09:41:57AM -0300, Mauro Carvalho Chehab wrote:  
-> > -snip-  
-> > > > > -#define LIRC_SET_REC_DUTY_CYCLE        _IOW('i', 0x00000016, __u32)    
-> > > > 
-> > > > Also remove LIRC_CAN_SET_REC_DUTY_CYCLE and 
-> > > > LIRC_CAN_SET_REC_DUTY_CYCLE_RANGE.  
-> > > 
-> > > Removing the "LIRC_CAN" macros can break userspace, as some app could
-> > > be using it to print the LIRC features. That's why I opted to keep
-> > > them, but to document that those features are unused - this is at
-> > > the next patch (04/20).  
-> > 
-> > How is that different from removing the ioctls? Might as well go the whole
-> > hog.  
-
-If someone implemented LIRC_GET_FEATURES and handled all flags, such
-program would break, as the API change.
-
-> 
-> Ah you meant that if someone later adds a new feature then we might reuse
-> an existing bit. Oops, sorry.
-
-Yes, this is another possibility. In such case, the ABI will also 
-break, with is more severe than a pure API change.
-
-Removing the ioctl declarations will still work for compiled programs,
-as they'll still receive an error code when the ioctl is issued.
-
-> 
-> > Also note that LIRC_CAN_SET_REC_DUTY_CYCLE has the same value as
-> > LIRC_CAN_MEASURE_CARRIER, so if some userspace program uses this it might
-> > end up in the mistaken belief its supports LIRC_CAN_SET_REC_DUTY_CYCLE.  
-> 
-> So there is an argument for removing LIRC_CAN_SET_REC_DUTY_CYCLE, but
-> that should be a separate patch.
-
-Yes. Yet, IMHO, the best would be to put those unused LIRC_CAN into a:
-
-#ifndef __KERNEL
-
-macro block, to:
-
-1) avoid the risk of breaking userspace;
-2) be clear that those are deprecated stuff and should not be used on
-   newer programs;
-3) Reserve the bits for not be used, to avoid possible conflicts.
-
-Regards,
-Mauro
+On Mon, Jul 11, 2016 at 10:56 AM, tiffany lin <tiffany.lin@mediatek.com> wrote:
+> Hi Hans,
+>
+> On Fri, 2016-07-08 at 12:23 +0200, Hans Verkuil wrote:
+>> On 05/30/2016 02:29 PM, Tiffany Lin wrote:
+>> > Add V4L2_PIX_FMT_MT21 documentation
+>> >
+>> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+>> > ---
+>> >  Documentation/DocBook/media/v4l/pixfmt.xml |    6 ++++++
+>> >  1 file changed, 6 insertions(+)
+>> >
+>> > diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+>> > index 5a08aee..d40e0ce 100644
+>> > --- a/Documentation/DocBook/media/v4l/pixfmt.xml
+>> > +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+>> > @@ -1980,6 +1980,12 @@ array. Anything what's in between the UYVY lines is JPEG data and should be
+>> >  concatenated to form the JPEG stream. </para>
+>> >  </entry>
+>> >       </row>
+>> > +     <row id="V4L2_PIX_FMT_MT21">
+>> > +       <entry><constant>V4L2_PIX_FMT_MT21</constant></entry>
+>> > +       <entry>'MT21'</entry>
+>> > +       <entry>Compressed two-planar YVU420 format used by Mediatek MT8173
+>> > +       codec driver.</entry>
+>>
+>> Can you give a few more details? The encoder driver doesn't seem to produce this
+>> format, so who is creating this? Where is this format documented?
+Decoder hardware produces MT21 (compressed). Image processor can
+convert it to a format that can be input of display driver. Tiffany.
+When do you plan to upstream image processor (mtk-mdp)?
+>
+> It can be as input format for encoder, MDP and display drivers in our
+> platform.
+I remember display driver can only accept uncompressed MT21. Right?
+Basically V4L2_PIX_FMT_MT21 is compressed and is like an opaque
+format. It's not usable until it's decompressed and converted by image
+processor.
+> This private format is only available in our platform.
+> So I put it in "Reserved Format Identifiers" sections.
+>
+>
+> best regards,
+> Tiffany
+>
+>> Regards,
+>>
+>>       Hans
+>>
+>> > +     </row>
+>> >     </tbody>
+>> >        </tgroup>
+>> >      </table>
+>> >
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
