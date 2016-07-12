@@ -1,76 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bm.shmanahar.org ([80.68.91.236]:46642 "EHLO bm.shmanahar.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751100AbcGAIvE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jul 2016 04:51:04 -0400
-Date: Fri, 1 Jul 2016 09:41:24 +0100
-From: Nick Dyer <nick@shmanahar.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	jon.older@itdev.co.uk, nick.dyer@itdev.co.uk
-Subject: Re: [PATCH v6 10/11] Input: synaptics-rmi4 - add support for F54
- diagnostics
-Message-ID: <20160701084124.GA6384@bm.shmanahar.org>
-References: <1467308334-12580-1-git-send-email-nick@shmanahar.org>
- <1467308334-12580-11-git-send-email-nick@shmanahar.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1467308334-12580-11-git-send-email-nick@shmanahar.org>
+Received: from mail-qt0-f178.google.com ([209.85.216.178]:35227 "EHLO
+	mail-qt0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750829AbcGLTOG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2016 15:14:06 -0400
+Message-ID: <1468350842.8843.18.camel@gmail.com>
+Subject: Re: [PATCH v3 3/9] DocBook/v4l: Add compressed video formats used
+ on MT8173 codec driver
+From: Nicolas Dufresne <nicolas.dufresne@gmail.com>
+Reply-To: nicolas@ndufresne.ca
+To: Wu-Cheng Li =?UTF-8?Q?=28=E6=9D=8E=E5=8B=99=E8=AA=A0=29?=
+	<wuchengli@chromium.org>, tiffany lin <tiffany.lin@mediatek.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Daniel Thompson <daniel.thompson@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org,
+	Lin PoChun <PoChun.Lin@mediatek.com>
+Date: Tue, 12 Jul 2016 15:14:02 -0400
+In-Reply-To: <1468350511.8843.16.camel@gmail.com>
+References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
+ <1464611363-14936-2-git-send-email-tiffany.lin@mediatek.com>
+ <1464611363-14936-3-git-send-email-tiffany.lin@mediatek.com>
+ <1464611363-14936-4-git-send-email-tiffany.lin@mediatek.com>
+ <5a793171-24a7-4e9e-8bfd-f668c789f8e0@xs4all.nl>
+	 <1468205771.3725.8.camel@mtksdaap41>
+	 <CAOMLVLiZU3D587dSyp2b2v4DV+MS9vh85bA4BoG7ddK6556rbA@mail.gmail.com>
+	 <1468350511.8843.16.camel@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 30, 2016 at 06:38:53PM +0100, Nick Dyer wrote:
-> Function 54 implements access to various RMI4 diagnostic features.
+Le mardi 12 juillet 2016 à 15:08 -0400, Nicolas Dufresne a écrit :
+> Le mardi 12 juillet 2016 à 16:16 +0800, Wu-Cheng Li (李務誠) a écrit :
+> > Decoder hardware produces MT21 (compressed). Image processor can
+> > convert it to a format that can be input of display driver.
+> > Tiffany.
+> > When do you plan to upstream image processor (mtk-mdp)?
+> > > 
+> > > It can be as input format for encoder, MDP and display drivers in
+> > our
+> > > platform.
+> > I remember display driver can only accept uncompressed MT21. Right?
+> > Basically V4L2_PIX_FMT_MT21 is compressed and is like an opaque
+> > format. It's not usable until it's decompressed and converted by
+> > image
+> > processor.
 > 
-> This patch adds support for retrieving this data. It registers a V4L2
-> device to output the data to user space.
+> Previously it was described as MediaTek block mode, and now as a
+> MediaTek compressed format. It makes me think you have no idea what
+> this pixel format really is. Is that right ?
 > 
-> Signed-off-by: Nick Dyer <nick@shmanahar.org>
-> ---
->  drivers/input/rmi4/Kconfig      |  11 +
->  drivers/input/rmi4/Makefile     |   1 +
->  drivers/input/rmi4/rmi_bus.c    |   3 +
->  drivers/input/rmi4/rmi_driver.h |   1 +
->  drivers/input/rmi4/rmi_f54.c    | 754 ++++++++++++++++++++++++++++++++++++++++
->  5 files changed, 770 insertions(+)
->  create mode 100644 drivers/input/rmi4/rmi_f54.c
-[...]
-> index 0000000..2361157
-> --- /dev/null
-> +++ b/drivers/input/rmi4/rmi_f54.c
-[...]
-> +static int rmi_f54_vidioc_querycap(struct file *file, void *priv,
-> +				   struct v4l2_capability *cap)
-> +{
-> +	struct f54_data *f54 = video_drvdata(file);
-> +
-> +	strlcpy(cap->driver, F54_NAME, sizeof(cap->driver));
-> +	strlcpy(cap->card, SYNAPTICS_INPUT_DEVICE_NAME, sizeof(cap->card));
-> +	strlcpy(cap->bus_info, dev_name(&f54->fn->dev), sizeof(cap->bus_info));
+> The main reason why I keep asking, is that we often find similarities
+> between what vendor like to call their proprietary formats. Doing the
+> proper research helps not creating a mess like in Android where you
+> have a lot of formats that all point to the same format. I believe
+> there was the same concern when Samsung wanted to introduce their Z-
+> flip-Z NV12 tile format. In the end they simply provided sufficient
+> documentation so we could document it and implement software
+> converters
+> for test and validation purpose.
 
-I need to correct this to prefix the bus. RMI4 registers its own bus, so
-devices appear under eg /sys/bus/rmi4/devices/rmi4-00.fn54
+Here's the kind of information we want in the documentation.
 
-So I will change to:
-snprintf(cap->bus_info, sizeof(cap->bus_info), "rmi4:%s", dev_name(&f54->fn->dev));
+https://chromium.googlesource.com/chromium/src/media/+/master/base/vide
+o_types.h#40
 
-And I will need to add rmi4 to the valid prefixes in v4l2-complaince as well.
+  // MediaTek proprietary format. MT21 is similar to NV21 except the memory
+  // layout and pixel layout (swizzles). 12bpp with Y plane followed by a 2x2
+  // interleaved VU plane. Each image contains two buffers -- Y plane and VU
+  // plane. Two planes can be non-contiguous in memory. The starting addresses
+  // of Y plane and VU plane are 4KB alignment.
+  // Suppose image dimension is (width, height). For both Y plane and VU plane:
+  // Row pitch = ((width+15)/16) * 16.
+  // Plane size = Row pitch * (((height+31)/32)*32)
 
-> +
-> +	return 0;
-> +}
+Now obviously this is incomplete, as the swizzling need to be documented of course.
+
+> 
+> regards,
+> Nicolas
