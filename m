@@ -1,49 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f68.google.com ([209.85.220.68]:34870 "EHLO
-	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932496AbcGFXHf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:07:35 -0400
-Received: by mail-pa0-f68.google.com with SMTP id dx3so93670pab.2
-        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:07:35 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Suresh Dhandapani <Suresh.Dhandapani@in.bosch.com>
-Subject: [PATCH 12/28] gpu: ipu-v3: Fix CSI0 blur in NTSC format
-Date: Wed,  6 Jul 2016 16:06:42 -0700
-Message-Id: <1467846418-12913-13-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
- <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46385
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933249AbcGLPIq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2016 11:08:46 -0400
+Subject: Re: [PATCH] media: s5p-mfc Fix misspelled error message and
+ checkpatch errors
+To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
+	k.debski@samsung.com, jtp.park@samsung.com, mchehab@kernel.org
+References: <1468276740-1591-1-git-send-email-shuahkh@osg.samsung.com>
+ <8dd68d9b-9455-d593-dc0f-c269c778b961@osg.samsung.com>
+ <578507B2.9020501@osg.samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <e6254aaa-68d5-72d9-a226-863db8632662@osg.samsung.com>
+Date: Tue, 12 Jul 2016 11:08:37 -0400
+MIME-Version: 1.0
+In-Reply-To: <578507B2.9020501@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Suresh Dhandapani <Suresh.Dhandapani@in.bosch.com>
+Hello Shuah,
 
-This patch will change the register IPU_CSI0_CCIR_CODE_2 value from
-0x40596 to 0x405A6. The change is related to the Start of field 1
-first blanking line command bit[5-3] for NTSC format only. This
-change is dependent with ADV chip where the NEWAVMODE is set to 0
-in register 0x31. Setting NEWAVMODE to "0" in ADV means "EAV/SAV
-codes generated to suit analog devices encoders".
+On 07/12/2016 11:07 AM, Shuah Khan wrote:
+> On 07/12/2016 09:03 AM, Javier Martinez Canillas wrote:
+>> Hello Shuah,
+>>
+>> On 07/11/2016 06:39 PM, Shuah Khan wrote:
+>>> Fix misspelled error message and existing checkpatch errors in the
+>>> error message conditional.
+>>>
+>>> WARNING: suspect code indent for conditional statements (8, 24)
+>>>  	if (ctx->state != MFCINST_HEAD_PARSED &&
+>>> [...]
+>>> +               mfc_err("Can not get crop information\n");
+>>>
+>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>>> ---
+>>
+>> Patch looks good to me. Maybe is better to split the message and checkpatch
+>> changes in two different patches. But I don't have a strong opinion on this:
+>>
+>> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>>
+> 
+> Thanks for the review. I considered splitting them, however the patch
+> that fixes the message will be flagged by checkpatch. It does make
+> sense to split the changes into two patches. What I could do is, make
+> the checkpatch fixes the first patch and fix the error message in the
+> second one.
+> 
+> How does that sound?
+>
 
-Signed-off-by: Suresh Dhandapani <Suresh.Dhandapani@in.bosch.com>
----
- drivers/gpu/ipu-v3/ipu-csi.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
-index 0eac28c..ec81958 100644
---- a/drivers/gpu/ipu-v3/ipu-csi.c
-+++ b/drivers/gpu/ipu-v3/ipu-csi.c
-@@ -422,7 +422,7 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
+Sounds good to me.
  
- 			ipu_csi_write(csi, 0xD07DF | CSI_CCIR_ERR_DET_EN,
- 					  CSI_CCIR_CODE_1);
--			ipu_csi_write(csi, 0x40596, CSI_CCIR_CODE_2);
-+			ipu_csi_write(csi, 0x405A6, CSI_CCIR_CODE_2);
- 			ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
- 		} else {
- 			dev_err(csi->ipu->dev,
--- 
-1.9.1
+> -- Shuah
+> 
+> 
 
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
