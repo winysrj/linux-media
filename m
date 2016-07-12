@@ -1,100 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:37999 "EHLO
-	mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750787AbcGLIQg (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:51706 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933308AbcGLMmd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 04:16:36 -0400
-Received: by mail-wm0-f48.google.com with SMTP id o80so14670595wme.1
-        for <linux-media@vger.kernel.org>; Tue, 12 Jul 2016 01:16:35 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1468205771.3725.8.camel@mtksdaap41>
-References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-2-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-3-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-4-git-send-email-tiffany.lin@mediatek.com>
- <5a793171-24a7-4e9e-8bfd-f668c789f8e0@xs4all.nl> <1468205771.3725.8.camel@mtksdaap41>
-From: =?UTF-8?B?V3UtQ2hlbmcgTGkgKOadjuWLmeiqoCk=?=
-	<wuchengli@chromium.org>
-Date: Tue, 12 Jul 2016 16:16:14 +0800
-Message-ID: <CAOMLVLiZU3D587dSyp2b2v4DV+MS9vh85bA4BoG7ddK6556rbA@mail.gmail.com>
-Subject: Re: [PATCH v3 3/9] DocBook/v4l: Add compressed video formats used on
- MT8173 codec driver
-To: tiffany lin <tiffany.lin@mediatek.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Daniel Thompson <daniel.thompson@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org,
-	Lin PoChun <PoChun.Lin@mediatek.com>
-Content-Type: text/plain; charset=UTF-8
+	Tue, 12 Jul 2016 08:42:33 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 11/20] [media] doc-rst: document LIRC_GET_*_TIMEOUT ioctls
+Date: Tue, 12 Jul 2016 09:42:05 -0300
+Message-Id: <76e23479f9b772f1419df691c30e2f5e4ac92cb0.1468327191.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 11, 2016 at 10:56 AM, tiffany lin <tiffany.lin@mediatek.com> wrote:
-> Hi Hans,
->
-> On Fri, 2016-07-08 at 12:23 +0200, Hans Verkuil wrote:
->> On 05/30/2016 02:29 PM, Tiffany Lin wrote:
->> > Add V4L2_PIX_FMT_MT21 documentation
->> >
->> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
->> > ---
->> >  Documentation/DocBook/media/v4l/pixfmt.xml |    6 ++++++
->> >  1 file changed, 6 insertions(+)
->> >
->> > diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
->> > index 5a08aee..d40e0ce 100644
->> > --- a/Documentation/DocBook/media/v4l/pixfmt.xml
->> > +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
->> > @@ -1980,6 +1980,12 @@ array. Anything what's in between the UYVY lines is JPEG data and should be
->> >  concatenated to form the JPEG stream. </para>
->> >  </entry>
->> >       </row>
->> > +     <row id="V4L2_PIX_FMT_MT21">
->> > +       <entry><constant>V4L2_PIX_FMT_MT21</constant></entry>
->> > +       <entry>'MT21'</entry>
->> > +       <entry>Compressed two-planar YVU420 format used by Mediatek MT8173
->> > +       codec driver.</entry>
->>
->> Can you give a few more details? The encoder driver doesn't seem to produce this
->> format, so who is creating this? Where is this format documented?
-Decoder hardware produces MT21 (compressed). Image processor can
-convert it to a format that can be input of display driver. Tiffany.
-When do you plan to upstream image processor (mtk-mdp)?
->
-> It can be as input format for encoder, MDP and display drivers in our
-> platform.
-I remember display driver can only accept uncompressed MT21. Right?
-Basically V4L2_PIX_FMT_MT21 is compressed and is like an opaque
-format. It's not usable until it's decompressed and converted by image
-processor.
-> This private format is only available in our platform.
-> So I put it in "Reserved Format Identifiers" sections.
->
->
-> best regards,
-> Tiffany
->
->> Regards,
->>
->>       Hans
->>
->> > +     </row>
->> >     </tbody>
->> >        </tgroup>
->> >      </table>
->> >
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Improve the documentation for those ioctls, adding them to
+a separate file, in order to look like the rest of the
+book, and to later allow to generate a man page for those
+ioctls.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/rc/lirc-get-timeout.rst   | 55 ++++++++++++++++++++++
+ .../media/uapi/rc/lirc_device_interface.rst        |  1 +
+ Documentation/media/uapi/rc/lirc_ioctl.rst         | 13 -----
+ 3 files changed, 56 insertions(+), 13 deletions(-)
+ create mode 100644 Documentation/media/uapi/rc/lirc-get-timeout.rst
+
+diff --git a/Documentation/media/uapi/rc/lirc-get-timeout.rst b/Documentation/media/uapi/rc/lirc-get-timeout.rst
+new file mode 100644
+index 000000000000..6b8238f1f30e
+--- /dev/null
++++ b/Documentation/media/uapi/rc/lirc-get-timeout.rst
+@@ -0,0 +1,55 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _lirc_get_min_timeout:
++.. _lirc_get_max_timeout:
++
++****************************************************
++ioctls LIRC_GET_MIN_TIMEOUT and LIRC_GET_MAX_TIMEOUT
++****************************************************
++
++Name
++====
++
++LIRC_GET_MIN_TIMEOUT / LIRC_GET_MAX_TIMEOUT - Obtain the possible timeout
++range for IR receive.
++
++Synopsis
++========
++
++.. cpp:function:: int ioctl( int fd, int request, __u32 *timeout)
++
++Arguments
++=========
++
++``fd``
++    File descriptor returned by open().
++
++``request``
++    LIRC_GET_MIN_TIMEOUT or LIRC_GET_MAX_TIMEOUT
++
++``timeout``
++    Timeout, in microseconds.
++
++
++Description
++===========
++
++Some devices have internal timers that can be used to detect when
++there's no IR activity for a long time. This can help lircd in
++detecting that a IR signal is finished and can speed up the decoding
++process. Returns an integer value with the minimum/maximum timeout
++that can be set.
++
++.. note::
++
++   Some devices have a fixed timeout, in that case
++   both ioctls will return the same value even though the timeout
++   cannot be changed via :ref:`LIRC_SET_REC_TIMEOUT`.
++
++
++Return Value
++============
++
++On success 0 is returned, on error -1 and the ``errno`` variable is set
++appropriately. The generic error codes are described at the
++:ref:`Generic Error Codes <gen-errors>` chapter.
+diff --git a/Documentation/media/uapi/rc/lirc_device_interface.rst b/Documentation/media/uapi/rc/lirc_device_interface.rst
+index 56f2d6122238..197173f9ece5 100644
+--- a/Documentation/media/uapi/rc/lirc_device_interface.rst
++++ b/Documentation/media/uapi/rc/lirc_device_interface.rst
+@@ -17,4 +17,5 @@ LIRC Device Interface
+     lirc-get-rec-mode
+     lirc-get-rec-resolution
+     lirc-set-send-duty-cycle
++    lirc-get-timeout
+     lirc_ioctl
+diff --git a/Documentation/media/uapi/rc/lirc_ioctl.rst b/Documentation/media/uapi/rc/lirc_ioctl.rst
+index c486703b95b8..0a16659e9dad 100644
+--- a/Documentation/media/uapi/rc/lirc_ioctl.rst
++++ b/Documentation/media/uapi/rc/lirc_ioctl.rst
+@@ -49,19 +49,6 @@ device can rely on working with the default settings initially.
+ I/O control requests
+ ====================
+ 
+-.. _LIRC_GET_MIN_TIMEOUT:
+-.. _LIRC_GET_MAX_TIMEOUT:
+-
+-``LIRC_GET_M{IN,AX}_TIMEOUT``
+-
+-    Some devices have internal timers that can be used to detect when
+-    there's no IR activity for a long time. This can help lircd in
+-    detecting that a IR signal is finished and can speed up the decoding
+-    process. Returns an integer value with the minimum/maximum timeout
+-    that can be set. Some devices have a fixed timeout, in that case
+-    both ioctls will return the same value even though the timeout
+-    cannot be changed.
+-
+ .. _LIRC_GET_LENGTH:
+ 
+ ``LIRC_GET_LENGTH``
+-- 
+2.7.4
+
+
