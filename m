@@ -1,73 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:37356 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753022AbcGFJn7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 05:43:59 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [PATCH v3 14/15] [media] lirc_dev: fix potential segfault
-Date: Wed, 06 Jul 2016 18:01:26 +0900
-Message-id: <1467795687-10737-15-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1467795687-10737-1-git-send-email-andi.shyti@samsung.com>
-References: <1467795687-10737-1-git-send-email-andi.shyti@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:51668 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933291AbcGLMmb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2016 08:42:31 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 06/20] [media] doc-rst: document ioctl LIRC_GET_SEND_MODE
+Date: Tue, 12 Jul 2016 09:42:00 -0300
+Message-Id: <3f3427c46664cdf130b981aa833cf2ee3189b8d4.1468327191.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When opening or closing a lirc character device, the framework
-provides to the user the possibility to keep track of opening or
-closing of the device by calling two functions:
+Move the documentation of this ioctl from lirc_ioctl to its
+own file, and add a short description about the pulse mode
+used by IR TX.
 
- - set_use_inc() when opening the device
- - set_use_dec() when closing the device
-
-if those are not set by the lirc user, the system segfaults.
-Check the pointer value before calling the above functions.
-
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/rc/lirc_dev.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ Documentation/media/uapi/rc/lirc-get-send-mode.rst | 48 ++++++++++++++++++++++
+ .../media/uapi/rc/lirc_device_interface.rst        |  1 +
+ Documentation/media/uapi/rc/lirc_ioctl.rst         |  9 ----
+ 3 files changed, 49 insertions(+), 9 deletions(-)
+ create mode 100644 Documentation/media/uapi/rc/lirc-get-send-mode.rst
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index c78fe2b..8cf5e6b 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -408,7 +408,10 @@ int lirc_unregister_driver(int minor)
- 			ir->d.name, ir->d.minor);
- 		wake_up_interruptible(&ir->buf->wait_poll);
- 		mutex_lock(&ir->irctl_lock);
--		ir->d.set_use_dec(ir->d.data);
+diff --git a/Documentation/media/uapi/rc/lirc-get-send-mode.rst b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
+new file mode 100644
+index 000000000000..f58f0953851c
+--- /dev/null
++++ b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
+@@ -0,0 +1,48 @@
++.. -*- coding: utf-8; mode: rst -*-
 +
-+		if (ir->d.set_use_dec)
-+			ir->d.set_use_dec(ir->d.data);
++.. _lirc_get_send_mode:
 +
- 		module_put(cdev->owner);
- 		mutex_unlock(&ir->irctl_lock);
- 	} else {
-@@ -466,7 +469,8 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
- 	cdev = ir->cdev;
- 	if (try_module_get(cdev->owner)) {
- 		ir->open++;
--		retval = ir->d.set_use_inc(ir->d.data);
-+		if (ir->d.set_use_inc)
-+			retval = ir->d.set_use_inc(ir->d.data);
++************************
++ioctl LIRC_GET_SEND_MODE
++************************
++
++Name
++====
++
++LIRC_GET_SEND_MODE - Get supported transmit mode.
++
++Synopsis
++========
++
++.. cpp:function:: int ioctl( int fd, int request, __u32 *tx_modes )
++
++Arguments
++=========
++
++``fd``
++    File descriptor returned by open().
++
++``request``
++    LIRC_GET_SEND_MODE
++
++``tx_modes``
++    Bitmask with the supported transmit modes.
++
++
++Description
++===========
++
++Get supported transmit mode.
++
++.. _lirc-mode-pulse:
++
++Currently, only ``LIRC_MODE_PULSE`` is supported by lircd on TX. On
++puse mode, a sequence of pulse/space integer values are written to the
++lirc device using ``write()``.
++
++Return Value
++============
++
++On success 0 is returned, on error -1 and the ``errno`` variable is set
++appropriately. The generic error codes are described at the
++:ref:`Generic Error Codes <gen-errors>` chapter.
+diff --git a/Documentation/media/uapi/rc/lirc_device_interface.rst b/Documentation/media/uapi/rc/lirc_device_interface.rst
+index fe13f7d65d30..f6ebf09cca60 100644
+--- a/Documentation/media/uapi/rc/lirc_device_interface.rst
++++ b/Documentation/media/uapi/rc/lirc_device_interface.rst
+@@ -13,4 +13,5 @@ LIRC Device Interface
+     lirc_read
+     lirc_write
+     lirc-get-features
++    lirc-get-send-mode
+     lirc_ioctl
+diff --git a/Documentation/media/uapi/rc/lirc_ioctl.rst b/Documentation/media/uapi/rc/lirc_ioctl.rst
+index 345e927e9d5d..8e9809a03b8f 100644
+--- a/Documentation/media/uapi/rc/lirc_ioctl.rst
++++ b/Documentation/media/uapi/rc/lirc_ioctl.rst
+@@ -49,15 +49,6 @@ device can rely on working with the default settings initially.
+ I/O control requests
+ ====================
  
- 		if (retval) {
- 			module_put(cdev->owner);
-@@ -507,7 +511,8 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
- 
- 	ir->open--;
- 	if (ir->attached) {
--		ir->d.set_use_dec(ir->d.data);
-+		if (ir->d.set_use_dec)
-+			ir->d.set_use_dec(ir->d.data);
- 		module_put(cdev->owner);
- 	} else {
- 		lirc_irctl_cleanup(ir);
+-
+-.. _LIRC_GET_SEND_MODE:
+-.. _lirc-mode-pulse:
+-
+-``LIRC_GET_SEND_MODE``
+-
+-    Get supported transmit mode. Only ``LIRC_MODE_PULSE`` is supported by
+-    lircd.
+-
+ .. _LIRC_GET_REC_MODE:
+ .. _lirc-mode-mode2:
+ .. _lirc-mode-lirccode:
 -- 
-2.8.1
+2.7.4
+
 
