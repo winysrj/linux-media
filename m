@@ -1,397 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60857 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750822AbcGJL1D (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46356
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751141AbcGLNXL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2016 07:27:03 -0400
+	Tue, 12 Jul 2016 09:23:11 -0400
+Date: Tue, 12 Jul 2016 10:23:00 -0300
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH] [media] doc-rst: Don't use captions for examples
-Date: Sun, 10 Jul 2016 08:26:50 -0300
-Message-Id: <6e70f993a41aaa2399affc61f3c0de4b9397c8b7.1468149968.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Sean Young <sean@mess.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 03/20] [media] lirc.h: remove several unused ioctls
+Message-ID: <20160712102300.3bb0e6c4@recife.lan>
+In-Reply-To: <20160712131406.GB10242@gofer.mess.org>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+	<d55f09abe24b4dfadab246b6f217da547361cdb6.1468327191.git.mchehab@s-opensource.com>
+	<20160712131406.GB10242@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Unfortunately, captions are new on Sphinx for c blocks: it was
-added only on version 1.3. Also, it were already bad enough
-not being able to auto-numerate them.
+Em Tue, 12 Jul 2016 14:14:06 +0100
+Sean Young <sean@mess.org> escreveu:
 
-So, let's give up and use, instead, titles before the examples.
-Not much is lost, and, as a side track, we don't need to
-numerate them anymore.
+> On Tue, Jul 12, 2016 at 09:41:57AM -0300, Mauro Carvalho Chehab wrote:
+> > While reviewing the documentation gaps on LIRC, it was
+> > noticed that several ioctls aren't used by any LIRC drivers
+> > (nor at staging or mainstream).
+> > 
+> > It doesn't make sense to document them, as they're not used
+> > anywhere. So, let's remove those from the lirc header.  
+> 
+> Good to see these go.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > ---
+> >  include/uapi/linux/lirc.h | 39 ++-------------------------------------
+> >  1 file changed, 2 insertions(+), 37 deletions(-)
+> > 
+> > diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
+> > index 4b3ab2966b5a..991ab4570b8e 100644
+> > --- a/include/uapi/linux/lirc.h
+> > +++ b/include/uapi/linux/lirc.h
+> > @@ -90,20 +90,11 @@
+> >  
+> >  #define LIRC_GET_SEND_MODE             _IOR('i', 0x00000001, __u32)
+> >  #define LIRC_GET_REC_MODE              _IOR('i', 0x00000002, __u32)
+> > -#define LIRC_GET_SEND_CARRIER          _IOR('i', 0x00000003, __u32)
+> > -#define LIRC_GET_REC_CARRIER           _IOR('i', 0x00000004, __u32)
+> > -#define LIRC_GET_SEND_DUTY_CYCLE       _IOR('i', 0x00000005, __u32)
+> > -#define LIRC_GET_REC_DUTY_CYCLE        _IOR('i', 0x00000006, __u32)
+> >  #define LIRC_GET_REC_RESOLUTION        _IOR('i', 0x00000007, __u32)
+> >  
+> >  #define LIRC_GET_MIN_TIMEOUT           _IOR('i', 0x00000008, __u32)
+> >  #define LIRC_GET_MAX_TIMEOUT           _IOR('i', 0x00000009, __u32)
+> >  
+> > -#define LIRC_GET_MIN_FILTER_PULSE      _IOR('i', 0x0000000a, __u32)
+> > -#define LIRC_GET_MAX_FILTER_PULSE      _IOR('i', 0x0000000b, __u32)
+> > -#define LIRC_GET_MIN_FILTER_SPACE      _IOR('i', 0x0000000c, __u32)
+> > -#define LIRC_GET_MAX_FILTER_SPACE      _IOR('i', 0x0000000d, __u32)
+> > -
+> >  /* code length in bits, currently only for LIRC_MODE_LIRCCODE */
+> >  #define LIRC_GET_LENGTH                _IOR('i', 0x0000000f, __u32)
+> >  
+> > @@ -113,7 +104,6 @@
+> >  #define LIRC_SET_SEND_CARRIER          _IOW('i', 0x00000013, __u32)
+> >  #define LIRC_SET_REC_CARRIER           _IOW('i', 0x00000014, __u32)
+> >  #define LIRC_SET_SEND_DUTY_CYCLE       _IOW('i', 0x00000015, __u32)
+> > -#define LIRC_SET_REC_DUTY_CYCLE        _IOW('i', 0x00000016, __u32)  
+> 
+> Also remove LIRC_CAN_SET_REC_DUTY_CYCLE and 
+> LIRC_CAN_SET_REC_DUTY_CYCLE_RANGE.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/dvb/dvbproperty.rst       |  7 ++++++-
- Documentation/media/uapi/dvb/examples.rst          |  8 ++++----
- Documentation/media/uapi/v4l/audio.rst             |  8 ++++++--
- Documentation/media/uapi/v4l/control.rst           | 11 ++++++++---
- Documentation/media/uapi/v4l/crop.rst              |  9 +++++++--
- Documentation/media/uapi/v4l/dev-osd.rst           |  3 ++-
- Documentation/media/uapi/v4l/dmabuf.rst            | 10 +++++++---
- Documentation/media/uapi/v4l/mmap.rst              |  7 +++++--
- Documentation/media/uapi/v4l/selection-api-006.rst |  9 ++++++---
- Documentation/media/uapi/v4l/standard.rst          |  9 ++++++---
- Documentation/media/uapi/v4l/userp.rst             |  3 ++-
- Documentation/media/uapi/v4l/video.rst             |  8 ++++++--
- 12 files changed, 65 insertions(+), 27 deletions(-)
+Removing the "LIRC_CAN" macros can break userspace, as some app could
+be using it to print the LIRC features. That's why I opted to keep
+them, but to document that those features are unused - this is at
+the next patch (04/20).
 
-diff --git a/Documentation/media/uapi/dvb/dvbproperty.rst b/Documentation/media/uapi/dvb/dvbproperty.rst
-index 9b3782c5bb44..3c348e585729 100644
---- a/Documentation/media/uapi/dvb/dvbproperty.rst
-+++ b/Documentation/media/uapi/dvb/dvbproperty.rst
-@@ -48,8 +48,13 @@ symbol rate of 5.217 Mbauds, those properties should be sent to
- 
- -  :ref:`DTV_TUNE <DTV-TUNE>`
- 
--The code that would do the above is:
-+The code that would that would do the above is show in
-+:ref:`dtv-prop-example`.
- 
-+.. _dtv-prop-example:
-+
-+Example: Setting digital TV frontend properties
-+===============================================
- 
- .. code-block:: c
- 
-diff --git a/Documentation/media/uapi/dvb/examples.rst b/Documentation/media/uapi/dvb/examples.rst
-index 64e029ecd047..ead3ddf764c0 100644
---- a/Documentation/media/uapi/dvb/examples.rst
-+++ b/Documentation/media/uapi/dvb/examples.rst
-@@ -17,8 +17,8 @@ updated/recommended examples.
- 
- .. _tuning:
- 
--Tuning
--======
-+Example: Tuning
-+===============
- 
- We will start with a generic tuning subroutine that uses the frontend
- and SEC, as well as the demux devices. The example is given for QPSK
-@@ -238,8 +238,8 @@ switch, and weather conditions this may be necessary.
- 
- .. _the_dvr_device:
- 
--The DVR device
--==============
-+Example: The DVR device
-+========================
- 
- The following program code shows how to use the DVR device for
- recording.
-diff --git a/Documentation/media/uapi/v4l/audio.rst b/Documentation/media/uapi/v4l/audio.rst
-index 71502f0bf8bd..47f8334f071e 100644
---- a/Documentation/media/uapi/v4l/audio.rst
-+++ b/Documentation/media/uapi/v4l/audio.rst
-@@ -54,8 +54,10 @@ in the struct :ref:`v4l2_capability <v4l2-capability>` returned by
- the :ref:`VIDIOC_QUERYCAP` ioctl.
- 
- 
-+Example: Information about the current audio input
-+==================================================
-+
- .. code-block:: c
--    :caption: Example 1.3. Information about the current audio input
- 
-     struct v4l2_audio audio;
- 
-@@ -69,8 +71,10 @@ the :ref:`VIDIOC_QUERYCAP` ioctl.
-     printf("Current input: %s\\n", audio.name);
- 
- 
-+Example: Switching to the first audio input
-+===========================================
-+
- .. code-block:: c
--    :caption: Example 1.4. Switching to the first audio input
- 
-     struct v4l2_audio audio;
- 
-diff --git a/Documentation/media/uapi/v4l/control.rst b/Documentation/media/uapi/v4l/control.rst
-index 6cf218ab36fb..feb55ac14377 100644
---- a/Documentation/media/uapi/v4l/control.rst
-+++ b/Documentation/media/uapi/v4l/control.rst
-@@ -373,8 +373,10 @@ more menu type controls.
- 
- .. _enum_all_controls:
- 
-+Example: Enumerating all user controls
-+======================================
-+
- .. code-block:: c
--    :caption: Example 1.8. Enumerating all user controls
- 
- 
-     struct v4l2_queryctrl queryctrl;
-@@ -438,8 +440,10 @@ more menu type controls.
-     }
- 
- 
-+Example: Enumerating all user controls (alternative)
-+====================================================
-+
- .. code-block:: c
--    :caption: Example 1.9. Enumerating all user controls (alternative)
- 
-     memset(&queryctrl, 0, sizeof(queryctrl));
- 
-@@ -462,9 +466,10 @@ more menu type controls.
- 	exit(EXIT_FAILURE);
-     }
- 
-+Example: Changing controls
-+==========================
- 
- .. code-block:: c
--    :caption: Example 1.10. Changing controls
- 
-     struct v4l2_queryctrl queryctrl;
-     struct v4l2_control control;
-diff --git a/Documentation/media/uapi/v4l/crop.rst b/Documentation/media/uapi/v4l/crop.rst
-index ed43b36c51d8..bf1f487250fe 100644
---- a/Documentation/media/uapi/v4l/crop.rst
-+++ b/Documentation/media/uapi/v4l/crop.rst
-@@ -147,8 +147,10 @@ ensure the parameters are suitable before starting I/O.
- **NOTE:** on the next two examples, a video capture device is assumed;
- change ``V4L2_BUF_TYPE_VIDEO_CAPTURE`` for other types of device.
- 
-+Example: Resetting the cropping parameters
-+==========================================
-+
- .. code-block:: c
--    :caption: Example 1.11. Resetting the cropping parameters
- 
-     struct v4l2_cropcap cropcap;
-     struct v4l2_crop crop;
-@@ -173,8 +175,11 @@ change ``V4L2_BUF_TYPE_VIDEO_CAPTURE`` for other types of device.
- 	exit (EXIT_FAILURE);
-     }
- 
-+
-+Example: Simple downscaling
-+===========================
-+
- .. code-block:: c
--    :caption: Example 1.12. Simple downscaling
- 
-     struct v4l2_cropcap cropcap;
-     struct v4l2_format format;
-diff --git a/Documentation/media/uapi/v4l/dev-osd.rst b/Documentation/media/uapi/v4l/dev-osd.rst
-index b9b53fd7eb5d..98570cea63a5 100644
---- a/Documentation/media/uapi/v4l/dev-osd.rst
-+++ b/Documentation/media/uapi/v4l/dev-osd.rst
-@@ -50,9 +50,10 @@ standard. A V4L2 driver may reject attempts to change the video standard
- (or any other ioctl which would imply a framebuffer size change) with an
- ``EBUSY`` error code until all applications closed the framebuffer device.
- 
-+Example: Finding a framebuffer device for OSD
-+---------------------------------------------
- 
- .. code-block:: c
--    :caption: Example 4.1. Finding a framebuffer device for OSD
- 
-     #include <linux/fb.h>
- 
-diff --git a/Documentation/media/uapi/v4l/dmabuf.rst b/Documentation/media/uapi/v4l/dmabuf.rst
-index 474d8c021507..57917fb98c7a 100644
---- a/Documentation/media/uapi/v4l/dmabuf.rst
-+++ b/Documentation/media/uapi/v4l/dmabuf.rst
-@@ -37,8 +37,10 @@ driver must be switched into DMABUF I/O mode by calling the
- :ref:`VIDIOC_REQBUFS <VIDIOC_REQBUFS>` with the desired buffer type.
- 
- 
-+Example: Initiating streaming I/O with DMABUF file descriptors
-+==============================================================
-+
- .. code-block:: c
--    :caption: Example 3.4. Initiating streaming I/O with DMABUF file descriptors
- 
-     struct v4l2_requestbuffers reqbuf;
- 
-@@ -62,9 +64,10 @@ buffers, every plane can be associated with a different DMABUF
- descriptor. Although buffers are commonly cycled, applications can pass
- a different DMABUF descriptor at each :ref:`VIDIOC_QBUF <VIDIOC_QBUF>` call.
- 
-+Example: Queueing DMABUF using single plane API
-+===============================================
- 
- .. code-block:: c
--    :caption: Example 3.5. Queueing DMABUF using single plane API
- 
-     int buffer_queue(int v4lfd, int index, int dmafd)
-     {
-@@ -84,9 +87,10 @@ a different DMABUF descriptor at each :ref:`VIDIOC_QBUF <VIDIOC_QBUF>` call.
- 	return 0;
-     }
- 
-+Example 3.6. Queueing DMABUF using multi plane API
-+==================================================
- 
- .. code-block:: c
--    :caption: Example 3.6. Queueing DMABUF using multi plane API
- 
-     int buffer_queue_mp(int v4lfd, int index, int dmafd[], int n_planes)
-     {
-diff --git a/Documentation/media/uapi/v4l/mmap.rst b/Documentation/media/uapi/v4l/mmap.rst
-index f7fe26e7ca43..b01f4486499a 100644
---- a/Documentation/media/uapi/v4l/mmap.rst
-+++ b/Documentation/media/uapi/v4l/mmap.rst
-@@ -52,9 +52,10 @@ allocated in physical memory, as opposed to virtual memory, which can be
- swapped out to disk. Applications should free the buffers as soon as
- possible with the :ref:`munmap() <func-munmap>` function.
- 
-+Example: Mapping buffers in the single-planar API
-+=================================================
- 
- .. code-block:: c
--    :caption: Example 3.1. Mapping buffers in the single-planar API
- 
-     struct v4l2_requestbuffers reqbuf;
-     struct {
-@@ -122,8 +123,10 @@ possible with the :ref:`munmap() <func-munmap>` function.
- 	munmap(buffers[i].start, buffers[i].length);
- 
- 
-+Example: Mapping buffers in the multi-planar API
-+================================================
-+
- .. code-block:: c
--    :caption: Example 3.2. Mapping buffers in the multi-planar API
- 
-     struct v4l2_requestbuffers reqbuf;
-     /* Our current format uses 3 planes per buffer */
-diff --git a/Documentation/media/uapi/v4l/selection-api-006.rst b/Documentation/media/uapi/v4l/selection-api-006.rst
-index b2ac12f2e3d4..67e0e9aed9e8 100644
---- a/Documentation/media/uapi/v4l/selection-api-006.rst
-+++ b/Documentation/media/uapi/v4l/selection-api-006.rst
-@@ -8,9 +8,10 @@ Examples
- ``V4L2_BUF_TYPE_VIDEO_CAPTURE`` for other devices; change target to
- ``V4L2_SEL_TGT_COMPOSE_*`` family to configure composing area)
- 
-+Example: Resetting the cropping parameters
-+==========================================
- 
- .. code-block:: c
--	:caption: Example 1.15. Resetting the cropping parameters
- 
- 	struct v4l2_selection sel = {
- 	    .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-@@ -27,9 +28,10 @@ Examples
- Setting a composing area on output of size of *at most* half of limit
- placed at a center of a display.
- 
-+Example: Simple downscaling
-+===========================
- 
- .. code-block:: c
--   :caption: Example 1.16. Simple downscaling
- 
- 	struct v4l2_selection sel = {
- 	    .type = V4L2_BUF_TYPE_VIDEO_OUTPUT,
-@@ -55,9 +57,10 @@ placed at a center of a display.
- A video output device is assumed; change ``V4L2_BUF_TYPE_VIDEO_OUTPUT``
- for other devices
- 
-+Example: Querying for scaling factors
-+=====================================
- 
- .. code-block:: c
--   :caption: Example 1.17. Querying for scaling factors
- 
- 	struct v4l2_selection compose = {
- 	    .type = V4L2_BUF_TYPE_VIDEO_OUTPUT,
-diff --git a/Documentation/media/uapi/v4l/standard.rst b/Documentation/media/uapi/v4l/standard.rst
-index 538588eef317..529891cf3af2 100644
---- a/Documentation/media/uapi/v4l/standard.rst
-+++ b/Documentation/media/uapi/v4l/standard.rst
-@@ -64,9 +64,10 @@ Applications can make use of the :ref:`input-capabilities` and
- :ref:`output-capabilities` flags to determine whether the video
- standard ioctls can be used with the given input or output.
- 
-+Example: Information about the current video standard
-+=====================================================
- 
- .. code-block:: c
--    :caption: Example 1.5. Information about the current video standard
- 
-     v4l2_std_id std_id;
-     struct v4l2_standard standard;
-@@ -100,9 +101,10 @@ standard ioctls can be used with the given input or output.
- 	exit(EXIT_FAILURE);
-     }
- 
-+Example: Listing the video standards supported by the current input
-+===================================================================
- 
- .. code-block:: c
--    :caption: Example 1.6. Listing the video standards supported by the current input
- 
-     struct v4l2_input input;
-     struct v4l2_standard standard;
-@@ -139,9 +141,10 @@ standard ioctls can be used with the given input or output.
- 	exit(EXIT_FAILURE);
-     }
- 
-+Example: Selecting a new video standard
-+=======================================
- 
- .. code-block:: c
--    :caption: Example 1.7. Selecting a new video standard
- 
-     struct v4l2_input input;
-     v4l2_std_id std_id;
-diff --git a/Documentation/media/uapi/v4l/userp.rst b/Documentation/media/uapi/v4l/userp.rst
-index 2f0002bfbc3f..0871c204dc6c 100644
---- a/Documentation/media/uapi/v4l/userp.rst
-+++ b/Documentation/media/uapi/v4l/userp.rst
-@@ -26,9 +26,10 @@ No buffers (planes) are allocated beforehand, consequently they are not
- indexed and cannot be queried like mapped buffers with the
- :ref:`VIDIOC_QUERYBUF <VIDIOC_QUERYBUF>` ioctl.
- 
-+Example: Initiating streaming I/O with user pointers
-+====================================================
- 
- .. code-block:: c
--    :caption: Example 3.3. Initiating streaming I/O with user pointers
- 
-     struct v4l2_requestbuffers reqbuf;
- 
-diff --git a/Documentation/media/uapi/v4l/video.rst b/Documentation/media/uapi/v4l/video.rst
-index e38ebe192614..d3f00715fbc1 100644
---- a/Documentation/media/uapi/v4l/video.rst
-+++ b/Documentation/media/uapi/v4l/video.rst
-@@ -28,8 +28,10 @@ applications call the :ref:`VIDIOC_S_INPUT <VIDIOC_G_INPUT>` and
- implement all the input ioctls when the device has one or more inputs,
- all the output ioctls when the device has one or more outputs.
- 
-+Example: Information about the current video input
-+==================================================
-+
- .. code-block:: c
--    :caption: Example 1.1. Information about the current video input
- 
-     struct v4l2_input input;
-     int index;
-@@ -50,8 +52,10 @@ all the output ioctls when the device has one or more outputs.
-     printf("Current input: %s\\n", input.name);
- 
- 
-+Example: Switching to the first video input
-+===========================================
-+
- .. code-block:: c
--    :caption: Example 1.2. Switching to the first video input
- 
-     int index;
- 
--- 
-2.7.4
-
+Thanks,
+Mauro
