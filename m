@@ -1,60 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:56471 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751032AbcGOPSg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 11:18:36 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C80B0180A30
-	for <linux-media@vger.kernel.org>; Fri, 15 Jul 2016 17:18:31 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.8] CEC and mediatek vcodec fixes
-Message-ID: <76a96417-fb57-d88f-3109-8a762f9cbc6a@xs4all.nl>
-Date: Fri, 15 Jul 2016 17:18:31 +0200
+Received: from m12-16.163.com ([220.181.12.16]:47819 "EHLO m12-16.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751539AbcGLLDN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2016 07:03:13 -0400
+From: weiyj_lk@163.com
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>
+Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mediatek@lists.infradead.org
+Subject: [PATCH -next] [media] vcodec: mediatek: Fix return value check in mtk_vcodec_init_enc_pm()
+Date: Tue, 12 Jul 2016 11:02:28 +0000
+Message-Id: <1468321348-16045-1-git-send-email-weiyj_lk@163.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Several mediatek vcodec and CEC fixes.
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Regards,
+In case of error, the function devm_clk_get() returns ERR_PTR()
+and not returns NULL. The NULL test in the return value check
+should be replaced with IS_ERR().
 
-	Hans
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-The following changes since commit 5cac1f67ea0363d463a58ec2d9118268fe2ba5d6:
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
+index 2379e97..3e73e9d 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
+@@ -67,27 +67,27 @@ int mtk_vcodec_init_enc_pm(struct mtk_vcodec_dev *mtkdev)
+ 	pm->dev = &pdev->dev;
+ 
+ 	pm->vencpll_d2 = devm_clk_get(&pdev->dev, "venc_sel_src");
+-	if (pm->vencpll_d2 == NULL) {
++	if (IS_ERR(pm->vencpll_d2)) {
+ 		mtk_v4l2_err("devm_clk_get vencpll_d2 fail");
+-		ret = -1;
++		ret = PTR_ERR(pm->vencpll_d2);
+ 	}
+ 
+ 	pm->venc_sel = devm_clk_get(&pdev->dev, "venc_sel");
+-	if (pm->venc_sel == NULL) {
++	if (IS_ERR(pm->venc_sel)) {
+ 		mtk_v4l2_err("devm_clk_get venc_sel fail");
+-		ret = -1;
++		ret = PTR_ERR(pm->venc_sel);
+ 	}
+ 
+ 	pm->univpll1_d2 = devm_clk_get(&pdev->dev, "venc_lt_sel_src");
+-	if (pm->univpll1_d2 == NULL) {
++	if (IS_ERR(pm->univpll1_d2)) {
+ 		mtk_v4l2_err("devm_clk_get univpll1_d2 fail");
+-		ret = -1;
++		ret = PTR_ERR(pm->univpll1_d2);
+ 	}
+ 
+ 	pm->venc_lt_sel = devm_clk_get(&pdev->dev, "venc_lt_sel");
+-	if (pm->venc_lt_sel == NULL) {
++	if (IS_ERR(pm->venc_lt_sel)) {
+ 		mtk_v4l2_err("devm_clk_get venc_lt_sel fail");
+-		ret = -1;
++		ret = PTR_ERR(pm->venc_lt_sel);
+ 	}
+ 
+ 	return ret;
 
-  [media] rc: nuvoton: fix hang if chip is configured for alternative EFM IO address (2016-07-13 15:49:01 -0300)
 
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.8k
-
-for you to fetch changes up to e308f81bbba764789d1ba2b9bf1556d133e5939f:
-
-  s5p-cec/TODO: add TODO item (2016-07-15 17:13:01 +0200)
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      mtk-vcodec: fix more type mismatches
-
-Hans Verkuil (5):
-      cec: don't zero reply and timeout on error
-      vivid: fix typo causing incorrect CEC physical addresses
-      cec: set timestamp for selfie transmits
-      cec/TODO: drop comment about sphinx documentation
-      s5p-cec/TODO: add TODO item
-
-Tiffany Lin (1):
-      mtk-vcodec: fix default OUTPUT buffer size
-
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c    | 13 +++++++++----
- drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c |  4 ++--
- drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c  |  4 ++--
- drivers/media/platform/vivid/vivid-core.c             |  2 +-
- drivers/staging/media/cec/TODO                        |  1 -
- drivers/staging/media/cec/cec-adap.c                  | 20 ++++++--------------
- drivers/staging/media/s5p-cec/TODO                    | 10 +++++++---
- 7 files changed, 27 insertions(+), 27 deletions(-)
