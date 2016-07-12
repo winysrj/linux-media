@@ -1,85 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:63935 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932448AbcGLLVx (ORCPT
+Received: from smtp04.smtpout.orange.fr ([80.12.242.126]:24486 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753906AbcGLRPA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 07:21:53 -0400
-Message-ID: <1468322502.2462.8.camel@mtksdaap41>
-Subject: Re: [PATCH -next] [media] vcodec: mediatek: Fix return value check
- in mtk_vcodec_init_enc_pm()
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: <weiyj_lk@163.com>
-CC: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Wei Yongjun" <yongjun_wei@trendmicro.com.cn>,
-	<linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-mediatek@lists.infradead.org>
-Date: Tue, 12 Jul 2016 19:21:42 +0800
-In-Reply-To: <1468321348-16045-1-git-send-email-weiyj_lk@163.com>
-References: <1468321348-16045-1-git-send-email-weiyj_lk@163.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+	Tue, 12 Jul 2016 13:15:00 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH RFC v2 1/2] media: platform: transfer format translations to soc_mediabus
+References: <1459607213-15774-1-git-send-email-robert.jarzmik@free.fr>
+	<1459607213-15774-2-git-send-email-robert.jarzmik@free.fr>
+	<703509de-bc2a-0d4b-7ae7-a0c0efd98e41@xs4all.nl>
+Date: Tue, 12 Jul 2016 19:14:51 +0200
+In-Reply-To: <703509de-bc2a-0d4b-7ae7-a0c0efd98e41@xs4all.nl> (Hans Verkuil's
+	message of "Mon, 4 Jul 2016 11:23:15 +0200")
+Message-ID: <87r3ay3his.fsf@belgarion.home>
 MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by:Tiffany Lin <tiffany.lin@mediatek.com>
+Hans Verkuil <hverkuil@xs4all.nl> writes:
 
-On Tue, 2016-07-12 at 11:02 +0000, weiyj_lk@163.com wrote:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> 
-> In case of error, the function devm_clk_get() returns ERR_PTR()
-> and not returns NULL. The NULL test in the return value check
-> should be replaced with IS_ERR().
-> 
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> ---
->  drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c | 16 ++++++++--------
->  1 file changed, 8 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
-> index 2379e97..3e73e9d 100644
-> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
-> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
-> @@ -67,27 +67,27 @@ int mtk_vcodec_init_enc_pm(struct mtk_vcodec_dev *mtkdev)
->  	pm->dev = &pdev->dev;
->  
->  	pm->vencpll_d2 = devm_clk_get(&pdev->dev, "venc_sel_src");
-> -	if (pm->vencpll_d2 == NULL) {
-> +	if (IS_ERR(pm->vencpll_d2)) {
->  		mtk_v4l2_err("devm_clk_get vencpll_d2 fail");
-> -		ret = -1;
-> +		ret = PTR_ERR(pm->vencpll_d2);
->  	}
->  
->  	pm->venc_sel = devm_clk_get(&pdev->dev, "venc_sel");
-> -	if (pm->venc_sel == NULL) {
-> +	if (IS_ERR(pm->venc_sel)) {
->  		mtk_v4l2_err("devm_clk_get venc_sel fail");
-> -		ret = -1;
-> +		ret = PTR_ERR(pm->venc_sel);
->  	}
->  
->  	pm->univpll1_d2 = devm_clk_get(&pdev->dev, "venc_lt_sel_src");
-> -	if (pm->univpll1_d2 == NULL) {
-> +	if (IS_ERR(pm->univpll1_d2)) {
->  		mtk_v4l2_err("devm_clk_get univpll1_d2 fail");
-> -		ret = -1;
-> +		ret = PTR_ERR(pm->univpll1_d2);
->  	}
->  
->  	pm->venc_lt_sel = devm_clk_get(&pdev->dev, "venc_lt_sel");
-> -	if (pm->venc_lt_sel == NULL) {
-> +	if (IS_ERR(pm->venc_lt_sel)) {
->  		mtk_v4l2_err("devm_clk_get venc_lt_sel fail");
-> -		ret = -1;
-> +		ret = PTR_ERR(pm->venc_lt_sel);
->  	}
->  
->  	return ret;
-> 
-> 
+> On 04/02/2016 04:26 PM, Robert Jarzmik wrote:
+>> Transfer the formats translations to soc_mediabus. Even is soc_camera
+>> was to be deprecated, soc_mediabus will survive, and should describe all
+>> that happens on the bus connecting the image processing unit of the SoC
+>> and the sensor.
+>> 
+>> The translation engine provides an easy way to compute the formats
+>> available in the v4l2 device, given any sensors format capabilities
+>> bound with known image processing transformations.
+>
+> I prefer that you just make a copy of this for use in the pxa driver.
+>
+> We might make this (or a variant) available for all drivers in the future,
+> but for now just split off the pxa driver without introducing new media
+> includes.
+Okay, as you wish.
 
+Cheers.
 
+--
+Robert
