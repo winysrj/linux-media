@@ -1,159 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42412 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753337AbcGDIcm (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:35935 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752646AbcGLCz4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 04:32:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 11 Jul 2016 22:55:56 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 7DD90180239
+	for <linux-media@vger.kernel.org>; Tue, 12 Jul 2016 04:55:50 +0200 (CEST)
+Date: Tue, 12 Jul 2016 04:55:50 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, Mike Isely <isely@pobox.com>
-Subject: [PATCH 8/9] pvrusb2: convert g/s_crop to g/s_selection.
-Date: Mon,  4 Jul 2016 10:32:21 +0200
-Message-Id: <1467621142-8064-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl>
-References: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160712025550.7DD90180239@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This is part of a final push to convert all drivers to g/s_selection.
+Results of the daily build of media_tree:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mike Isely <isely@pobox.com>
----
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 81 ++++++++++++++++++++------------
- 1 file changed, 51 insertions(+), 30 deletions(-)
+date:		Tue Jul 12 04:00:14 CEST 2016
+git branch:	test
+git hash:	a4d020e97d8e65d57061677c15c89e99609d0b37
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-index 81f788b..2cc4d2b 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-@@ -719,64 +719,85 @@ static int pvr2_cropcap(struct file *file, void *priv, struct v4l2_cropcap *cap)
- 	return ret;
- }
- 
--static int pvr2_g_crop(struct file *file, void *priv, struct v4l2_crop *crop)
-+static int pvr2_g_selection(struct file *file, void *priv,
-+			    struct v4l2_selection *sel)
- {
- 	struct pvr2_v4l2_fh *fh = file->private_data;
- 	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
-+	struct v4l2_cropcap cap;
- 	int val = 0;
- 	int ret;
- 
--	if (crop->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
--	ret = pvr2_ctrl_get_value(
--			pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPL), &val);
--	if (ret != 0)
--		return -EINVAL;
--	crop->c.left = val;
--	ret = pvr2_ctrl_get_value(
--			pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPT), &val);
--	if (ret != 0)
--		return -EINVAL;
--	crop->c.top = val;
--	ret = pvr2_ctrl_get_value(
--			pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPW), &val);
--	if (ret != 0)
--		return -EINVAL;
--	crop->c.width = val;
--	ret = pvr2_ctrl_get_value(
--			pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPH), &val);
--	if (ret != 0)
-+
-+	cap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_CROP:
-+		ret = pvr2_ctrl_get_value(
-+			  pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPL), &val);
-+		if (ret != 0)
-+			return -EINVAL;
-+		sel->r.left = val;
-+		ret = pvr2_ctrl_get_value(
-+			  pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPT), &val);
-+		if (ret != 0)
-+			return -EINVAL;
-+		sel->r.top = val;
-+		ret = pvr2_ctrl_get_value(
-+			  pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPW), &val);
-+		if (ret != 0)
-+			return -EINVAL;
-+		sel->r.width = val;
-+		ret = pvr2_ctrl_get_value(
-+			  pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPH), &val);
-+		if (ret != 0)
-+			return -EINVAL;
-+		sel->r.height = val;
-+		break;
-+	case V4L2_SEL_TGT_CROP_DEFAULT:
-+		ret = pvr2_hdw_get_cropcap(hdw, &cap);
-+		sel->r = cap.defrect;
-+		break;
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+		ret = pvr2_hdw_get_cropcap(hdw, &cap);
-+		sel->r = cap.bounds;
-+		break;
-+	default:
- 		return -EINVAL;
--	crop->c.height = val;
--	return 0;
-+	}
-+	return ret;
- }
- 
--static int pvr2_s_crop(struct file *file, void *priv, const struct v4l2_crop *crop)
-+static int pvr2_s_selection(struct file *file, void *priv,
-+			    struct v4l2_selection *sel)
- {
- 	struct pvr2_v4l2_fh *fh = file->private_data;
- 	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
- 	int ret;
- 
--	if (crop->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
-+	    sel->target != V4L2_SEL_TGT_CROP)
- 		return -EINVAL;
- 	ret = pvr2_ctrl_set_value(
- 			pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPL),
--			crop->c.left);
-+			sel->r.left);
- 	if (ret != 0)
- 		return -EINVAL;
- 	ret = pvr2_ctrl_set_value(
- 			pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPT),
--			crop->c.top);
-+			sel->r.top);
- 	if (ret != 0)
- 		return -EINVAL;
- 	ret = pvr2_ctrl_set_value(
- 			pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPW),
--			crop->c.width);
-+			sel->r.width);
- 	if (ret != 0)
- 		return -EINVAL;
- 	ret = pvr2_ctrl_set_value(
- 			pvr2_hdw_get_ctrl_by_id(hdw, PVR2_CID_CROPH),
--			crop->c.height);
-+			sel->r.height);
- 	if (ret != 0)
- 		return -EINVAL;
- 	return 0;
-@@ -798,8 +819,8 @@ static const struct v4l2_ioctl_ops pvr2_ioctl_ops = {
- 	.vidioc_enumaudio		    = pvr2_enumaudio,
- 	.vidioc_enum_input		    = pvr2_enum_input,
- 	.vidioc_cropcap			    = pvr2_cropcap,
--	.vidioc_s_crop			    = pvr2_s_crop,
--	.vidioc_g_crop			    = pvr2_g_crop,
-+	.vidioc_s_selection		    = pvr2_s_selection,
-+	.vidioc_g_selection		    = pvr2_g_selection,
- 	.vidioc_g_input			    = pvr2_g_input,
- 	.vidioc_s_input			    = pvr2_s_input,
- 	.vidioc_g_frequency		    = pvr2_g_frequency,
--- 
-2.8.1
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-rc1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
