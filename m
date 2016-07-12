@@ -1,57 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47862 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750814AbcGQJDV (ORCPT
+Received: from smtprelay0183.hostedemail.com ([216.40.44.183]:47478 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751611AbcGLQPo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 05:03:21 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0F6AF180C37
-	for <linux-media@vger.kernel.org>; Sun, 17 Jul 2016 11:03:16 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cobalt: support reduced fps
-Message-ID: <0f78b670-9a2b-fc00-f1ac-2ac11b81dae4@xs4all.nl>
-Date: Sun, 17 Jul 2016 11:03:15 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Tue, 12 Jul 2016 12:15:44 -0400
+Message-ID: <1468340137.8745.20.camel@perches.com>
+Subject: Re: [PATCH] media: s5p-mfc Fix misspelled error message and
+ checkpatch errors
+From: Joe Perches <joe@perches.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
+	k.debski@samsung.com, jtp.park@samsung.com, mchehab@kernel.org,
+	javier@osg.samsung.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Date: Tue, 12 Jul 2016 09:15:37 -0700
+In-Reply-To: <57851607.9050005@osg.samsung.com>
+References: <1468276740-1591-1-git-send-email-shuahkh@osg.samsung.com>
+	 <1468332418.8745.11.camel@perches.com> <578501E9.6090008@osg.samsung.com>
+	 <1468338700.8745.14.camel@perches.com> <57851607.9050005@osg.samsung.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for reduced fps (i.e. 59.94 Hz instead of 60 Hz) for the
-HDMI output.
+On Tue, 2016-07-12 at 10:08 -0600, Shuah Khan wrote:
+> On 07/12/2016 09:51 AM, Joe Perches wrote:
+> > On Tue, 2016-07-12 at 08:42 -0600, Shuah Khan wrote:
+> > > On 07/12/2016 08:06 AM, Joe Perches wrote:
+> > > > On Mon, 2016-07-11 at 16:39 -0600, Shuah Khan wrote:
+> > > > > 
+> > > > > Fix misspelled error message and existing checkpatch errors in the
+> > > > > error message conditional.
+> > > > []
+> > > > > 
+> > > > > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> > > > []
+> > > > > 
+> > > > > @@ -775,11 +775,11 @@ static int vidioc_g_crop(struct file *file, void *priv,
+> > > > >  	u32 left, right, top, bottom;
+> > > > >  
+> > > > >  	if (ctx->state != MFCINST_HEAD_PARSED &&
+> > > > > -	ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
+> > > > > -					&& ctx->state != MFCINST_FINISHED) {
+> > > > > -			mfc_err("Cannont set crop\n");
+> > > > > -			return -EINVAL;
+> > > > > -		}
+> > > > > +	    ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
+> > > > > +	    && ctx->state != MFCINST_FINISHED) {
+> > > > > +		mfc_err("Can not get crop information\n");
+> > > > > +		return -EINVAL;
+> > > > > +	}
+> > > > is it a set or a get?
+> > > vidioc_g_crop is a get routine.
+> > > > 
+> > > > 
+> > > > It'd be nicer for humans to read if the alignment was consistent
+> > > Are you okay with this alignment change or would you like it
+> > > changed?
+> > Well, if you're resubmitting, I'd prefer it changed.
+> > Thanks.
+> > 
+> chekcpatch stopped complaining. Are you looking for the entire file
+> alignments changed? I am not clear on what needs to be changed?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cobalt/cobalt-v4l2.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+I think doing just this spelling and get/set correction and
+fixing the alignment in this single case in a single patch
+would be fine here.
 
-diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.c b/drivers/media/pci/cobalt/cobalt-v4l2.c
-index 5790095..3fea246 100644
---- a/drivers/media/pci/cobalt/cobalt-v4l2.c
-+++ b/drivers/media/pci/cobalt/cobalt-v4l2.c
-@@ -161,8 +161,11 @@ static void cobalt_enable_output(struct cobalt_stream *s)
- 	struct v4l2_subdev_format sd_fmt = {
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
- 	};
-+	u64 clk = bt->pixelclock;
+Foxing the alignment for the entire file would be a more
+significant change and isn't necessary in this patch.
 
--	if (!cobalt_cpld_set_freq(cobalt, bt->pixelclock)) {
-+	if (bt->flags & V4L2_DV_FL_REDUCED_FPS)
-+		clk = div_u64(clk * 1000ULL, 1001);
-+	if (!cobalt_cpld_set_freq(cobalt, clk)) {
- 		cobalt_err("pixelclock out of range\n");
- 		return;
- 	}
-@@ -644,7 +647,7 @@ static int cobalt_s_dv_timings(struct file *file, void *priv_fh,
- 		return 0;
- 	}
+Another thing possible for the file would be to change the
+mfc_debug and mfc_err/mfc_info macros to use pr_<level>
+without the generally unnecessary __func__ and __LINE__
+uses.
 
--	if (v4l2_match_dv_timings(timings, &s->timings, 0, false))
-+	if (v4l2_match_dv_timings(timings, &s->timings, 0, true))
- 		return 0;
-
- 	if (vb2_is_busy(&s->q))
--- 
-2.8.1
+This could both enable dynamic_debug uses for the KERN_DEBUG
+cases and reduce overall object size.
 
