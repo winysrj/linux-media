@@ -1,103 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f50.google.com ([209.85.213.50]:36847 "EHLO
-	mail-vk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751220AbcGMCWr convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:51674 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933296AbcGLMmb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 22:22:47 -0400
-Received: by mail-vk0-f50.google.com with SMTP id f7so46727374vkb.3
-        for <linux-media@vger.kernel.org>; Tue, 12 Jul 2016 19:22:42 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1468350842.8843.18.camel@gmail.com>
-References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-2-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-3-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-4-git-send-email-tiffany.lin@mediatek.com>
- <5a793171-24a7-4e9e-8bfd-f668c789f8e0@xs4all.nl> <1468205771.3725.8.camel@mtksdaap41>
- <CAOMLVLiZU3D587dSyp2b2v4DV+MS9vh85bA4BoG7ddK6556rbA@mail.gmail.com>
- <1468350511.8843.16.camel@gmail.com> <1468350842.8843.18.camel@gmail.com>
-From: =?UTF-8?B?V3UtQ2hlbmcgTGkgKOadjuWLmeiqoCk=?=
-	<wuchengli@chromium.org>
-Date: Wed, 13 Jul 2016 10:22:20 +0800
-Message-ID: <CAOMLVLhQFCbn6RFcT3Gv0SnY5Y_=ANek2hOzC69UAiK9Zk8VRg@mail.gmail.com>
-Subject: Re: [PATCH v3 3/9] DocBook/v4l: Add compressed video formats used on
- MT8173 codec driver
-To: nicolas@ndufresne.ca
-Cc: =?UTF-8?B?V3UtQ2hlbmcgTGkgKOadjuWLmeiqoCk=?=
-	<wuchengli@chromium.org>, tiffany lin <tiffany.lin@mediatek.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Daniel Thompson <daniel.thompson@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org,
-	Lin PoChun <PoChun.Lin@mediatek.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Tue, 12 Jul 2016 08:42:31 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 08/20] [media] doc-rst: document ioctl LIRC_GET_REC_MODE
+Date: Tue, 12 Jul 2016 09:42:02 -0300
+Message-Id: <dbe678dd213ea1793ab72885e9ce1b1c8978ebf8.1468327191.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 13, 2016 at 3:14 AM, Nicolas Dufresne
-<nicolas.dufresne@gmail.com> wrote:
-> Le mardi 12 juillet 2016 à 15:08 -0400, Nicolas Dufresne a écrit :
->> Le mardi 12 juillet 2016 à 16:16 +0800, Wu-Cheng Li (李務誠) a écrit :
->> > Decoder hardware produces MT21 (compressed). Image processor can
->> > convert it to a format that can be input of display driver.
->> > Tiffany.
->> > When do you plan to upstream image processor (mtk-mdp)?
->> > >
->> > > It can be as input format for encoder, MDP and display drivers in
->> > our
->> > > platform.
->> > I remember display driver can only accept uncompressed MT21. Right?
->> > Basically V4L2_PIX_FMT_MT21 is compressed and is like an opaque
->> > format. It's not usable until it's decompressed and converted by
->> > image
->> > processor.
->>
->> Previously it was described as MediaTek block mode, and now as a
->> MediaTek compressed format. It makes me think you have no idea what
->> this pixel format really is. Is that right ?
->>
->> The main reason why I keep asking, is that we often find similarities
->> between what vendor like to call their proprietary formats. Doing the
->> proper research helps not creating a mess like in Android where you
->> have a lot of formats that all point to the same format. I believe
->> there was the same concern when Samsung wanted to introduce their Z-
->> flip-Z NV12 tile format. In the end they simply provided sufficient
->> documentation so we could document it and implement software
->> converters
->> for test and validation purpose.
->
-> Here's the kind of information we want in the documentation.
->
-> https://chromium.googlesource.com/chromium/src/media/+/master/base/vide
-> o_types.h#40
-That is the documentation of decompressed MT21. Originally MT21 was meant
-to be a YUV format and we can map it in CPU to use it. The name was changed
-to mean a compressed format. The current design is only MTK image processor
-can convert it. Software cannot decompress it. I'm not sure if we
-should document
-the format inside if we cannot decompress in software. For chromium, I'll update
-the code to explain MT21 is an opaque compressed format.
->
->   // MediaTek proprietary format. MT21 is similar to NV21 except the memory
->   // layout and pixel layout (swizzles). 12bpp with Y plane followed by a 2x2
->   // interleaved VU plane. Each image contains two buffers -- Y plane and VU
->   // plane. Two planes can be non-contiguous in memory. The starting addresses
->   // of Y plane and VU plane are 4KB alignment.
->   // Suppose image dimension is (width, height). For both Y plane and VU plane:
->   // Row pitch = ((width+15)/16) * 16.
->   // Plane size = Row pitch * (((height+31)/32)*32)
->
-> Now obviously this is incomplete, as the swizzling need to be documented of course.
->
->>
->> regards,
->> Nicolas
+Move the documentation of this ioctl from lirc_ioctl to its
+own file, and add a short description about the pulse mode
+used by IR RX.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/rc/lirc-get-rec-mode.rst  | 59 ++++++++++++++++++++++
+ .../media/uapi/rc/lirc_device_interface.rst        |  1 +
+ Documentation/media/uapi/rc/lirc_ioctl.rst         |  9 ----
+ 3 files changed, 60 insertions(+), 9 deletions(-)
+ create mode 100644 Documentation/media/uapi/rc/lirc-get-rec-mode.rst
+
+diff --git a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
+new file mode 100644
+index 000000000000..d46a488594c9
+--- /dev/null
++++ b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
+@@ -0,0 +1,59 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _lirc_get_rec_mode:
++
++***********************
++ioctl LIRC_GET_REC_MODE
++***********************
++
++Name
++====
++
++LIRC_GET_REC_MODE - Get supported receive modes.
++
++Synopsis
++========
++
++.. cpp:function:: int ioctl( int fd, int request, __u32 rx_modes)
++
++Arguments
++=========
++
++``fd``
++    File descriptor returned by open().
++
++``request``
++    LIRC_GET_REC_MODE
++
++``rx_modes``
++    Bitmask with the supported transmit modes.
++
++Description
++===========
++
++Get supported receive modes.
++
++Supported receive modes
++=======================
++
++.. _lirc-mode-mode2:
++
++``LIRC_MODE_MODE2``
++
++    The driver returns a sequence of pulse and space codes to userspace.
++
++.. _lirc-mode-lirccode:
++
++``LIRC_MODE_LIRCCODE``
++
++    The IR signal is decoded internally by the receiver. The LIRC interface
++    returns the scancode as an integer value. This is the usual mode used
++    by several TV media cards.
++
++
++Return Value
++============
++
++On success 0 is returned, on error -1 and the ``errno`` variable is set
++appropriately. The generic error codes are described at the
++:ref:`Generic Error Codes <gen-errors>` chapter.
+diff --git a/Documentation/media/uapi/rc/lirc_device_interface.rst b/Documentation/media/uapi/rc/lirc_device_interface.rst
+index f6ebf09cca60..34044b0c8f9c 100644
+--- a/Documentation/media/uapi/rc/lirc_device_interface.rst
++++ b/Documentation/media/uapi/rc/lirc_device_interface.rst
+@@ -14,4 +14,5 @@ LIRC Device Interface
+     lirc_write
+     lirc-get-features
+     lirc-get-send-mode
++    lirc-get-rec-mode
+     lirc_ioctl
+diff --git a/Documentation/media/uapi/rc/lirc_ioctl.rst b/Documentation/media/uapi/rc/lirc_ioctl.rst
+index 8e9809a03b8f..4656e30a5b5a 100644
+--- a/Documentation/media/uapi/rc/lirc_ioctl.rst
++++ b/Documentation/media/uapi/rc/lirc_ioctl.rst
+@@ -49,15 +49,6 @@ device can rely on working with the default settings initially.
+ I/O control requests
+ ====================
+ 
+-.. _LIRC_GET_REC_MODE:
+-.. _lirc-mode-mode2:
+-.. _lirc-mode-lirccode:
+-
+-``LIRC_GET_REC_MODE``
+-
+-    Get supported receive modes. Only ``LIRC_MODE_MODE2`` and
+-    ``LIRC_MODE_LIRCCODE`` are supported by lircd.
+-
+ .. _LIRC_SET_SEND_DUTY_CYCLE:
+ 
+ ``LIRC_SET_SEND_DUTY_CYCLE``
+-- 
+2.7.4
+
+
