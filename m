@@ -1,81 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:35303 "EHLO
-	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751430AbcGPIz7 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46395
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751663AbcGLQIm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2016 04:55:59 -0400
-Date: Sat, 16 Jul 2016 14:25:56 +0530
-From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-To: Frank Zago <frank@zago.net>, Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Tejun Heo <tj@kernel.org>
-Subject: [PATCH] [media] gspca: finepix: Remove deprecated
- create_singlethread_workqueue
-Message-ID: <20160716085556.GA7841@Karyakshetra>
+	Tue, 12 Jul 2016 12:08:42 -0400
+Subject: Re: [PATCH] media: s5p-mfc Fix misspelled error message and
+ checkpatch errors
+To: Joe Perches <joe@perches.com>, kyungmin.park@samsung.com,
+	k.debski@samsung.com, jtp.park@samsung.com, mchehab@kernel.org,
+	javier@osg.samsung.com
+References: <1468276740-1591-1-git-send-email-shuahkh@osg.samsung.com>
+ <1468332418.8745.11.camel@perches.com> <578501E9.6090008@osg.samsung.com>
+ <1468338700.8745.14.camel@perches.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <57851607.9050005@osg.samsung.com>
+Date: Tue, 12 Jul 2016 10:08:39 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <1468338700.8745.14.camel@perches.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The workqueue "work_thread" is involved in streaming the camera data.
-It has a single work item(&dev->work_struct) and hence doesn't require
-ordering. Also, it is not being used on a memory reclaim path.
-Hence, the singlethreaded workqueue has been replaced with the use of
-system_wq.
+On 07/12/2016 09:51 AM, Joe Perches wrote:
+> On Tue, 2016-07-12 at 08:42 -0600, Shuah Khan wrote:
+>> On 07/12/2016 08:06 AM, Joe Perches wrote:
+>>> On Mon, 2016-07-11 at 16:39 -0600, Shuah Khan wrote:
+>>>> Fix misspelled error message and existing checkpatch errors in the
+>>>> error message conditional.
+>>> []
+>>>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+>>> []
+>>>> @@ -775,11 +775,11 @@ static int vidioc_g_crop(struct file *file, void *priv,
+>>>>  	u32 left, right, top, bottom;
+>>>>  
+>>>>  	if (ctx->state != MFCINST_HEAD_PARSED &&
+>>>> -	ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
+>>>> -					&& ctx->state != MFCINST_FINISHED) {
+>>>> -			mfc_err("Cannont set crop\n");
+>>>> -			return -EINVAL;
+>>>> -		}
+>>>> +	    ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
+>>>> +	    && ctx->state != MFCINST_FINISHED) {
+>>>> +		mfc_err("Can not get crop information\n");
+>>>> +		return -EINVAL;
+>>>> +	}
+>>> is it a set or a get?
+>> vidioc_g_crop is a get routine.
+>>>
+>>> It'd be nicer for humans to read if the alignment was consistent
+>> Are you okay with this alignment change or would you like it
+>> changed?
+> 
+> Well, if you're resubmitting, I'd prefer it changed.
+> Thanks.
+> 
 
-System workqueues have been able to handle high level of concurrency
-for a long time now and hence it's not required to have a singlethreaded
-workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
-created with create_singlethread_workqueue(), system_wq allows multiple
-work items to overlap executions even on the same CPU; however, a
-per-cpu workqueue doesn't have any CPU locality or global ordering
-guarantee unless the target CPU is explicitly specified and thus the
-increase of local concurrency shouldn't make any difference.
+chekcpatch stopped complaining. Are you looking for the entire file
+alignments changed? I am not clear on what needs to be changed?
 
-Work item has been flushed in sd_stop0() to ensure that there are no
-pending tasks while disconnecting the driver.
-
-Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
----
- drivers/media/usb/gspca/finepix.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/usb/gspca/finepix.c b/drivers/media/usb/gspca/finepix.c
-index 52bdb56..ae9a55d 100644
---- a/drivers/media/usb/gspca/finepix.c
-+++ b/drivers/media/usb/gspca/finepix.c
-@@ -41,7 +41,6 @@ struct usb_fpix {
- 	struct gspca_dev gspca_dev;	/* !! must be the first item */
-
- 	struct work_struct work_struct;
--	struct workqueue_struct *work_thread;
- };
-
- /* Delay after which claim the next frame. If the delay is too small,
-@@ -226,9 +225,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 	/* Again, reset bulk in endpoint */
- 	usb_clear_halt(gspca_dev->dev, gspca_dev->urb[0]->pipe);
-
--	/* Start the workqueue function to do the streaming */
--	dev->work_thread = create_singlethread_workqueue(MODULE_NAME);
--	queue_work(dev->work_thread, &dev->work_struct);
-+	schedule_work(&dev->work_struct);
-
- 	return 0;
- }
-@@ -241,9 +238,8 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
-
- 	/* wait for the work queue to terminate */
- 	mutex_unlock(&gspca_dev->usb_lock);
--	destroy_workqueue(dev->work_thread);
-+	flush_work(&dev->work_struct);
- 	mutex_lock(&gspca_dev->usb_lock);
--	dev->work_thread = NULL;
- }
-
- /* Table of supported USB devices */
---
-2.1.4
+thanks,
+-- Shuah
 
