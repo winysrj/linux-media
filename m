@@ -1,126 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:46763 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752908AbcGFJn5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 05:43:57 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [PATCH v3 03/15] [media] lirc_dev: remove unnecessary debug prints
-Date: Wed, 06 Jul 2016 18:01:15 +0900
-Message-id: <1467795687-10737-4-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1467795687-10737-1-git-send-email-andi.shyti@samsung.com>
-References: <1467795687-10737-1-git-send-email-andi.shyti@samsung.com>
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:22077 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754084AbcGLOKp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2016 10:10:45 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/2] cec: split the timestamp into an rx and tx timestamp
+Date: Tue, 12 Jul 2016 16:10:42 +0200
+Message-Id: <1468332642-24915-3-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <1468332642-24915-1-git-send-email-hans.verkuil@cisco.com>
+References: <1468332642-24915-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
----
- drivers/media/rc/lirc_dev.c | 25 -------------------------
- 1 file changed, 25 deletions(-)
+When transmitting a message and waiting for a reply it would be good
+to know the time between when the message was transmitted and when
+the reply arrived. With only one timestamp field it was set to when
+the reply arrived and the original transmit time was overwritten.
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 154e553..9f20f94 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -80,8 +80,6 @@ static void lirc_irctl_init(struct irctl *ir)
+Just taking the timestamp in userspace right before CEC_TRANSMIT is
+called is not reliable, since the actual transmit can be delayed if the CEC bus
+is busy. Only the driver can fill this in accurately.
+
+So split up the ts field into an rx_ts and a tx_ts. Also move the
+status fields to after the 'reply' field: they were placed in a
+strange position and make much more sense when grouped with the
+other status-related fields.
+
+This patch also makes sure that the timestamp is taken as soon as
+possible.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/staging/media/cec/cec-adap.c | 24 ++++++++++++------------
+ include/linux/cec.h                  | 18 ++++++++++--------
+ 2 files changed, 22 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
+index 936df93..154aadb 100644
+--- a/drivers/staging/media/cec/cec-adap.c
++++ b/drivers/staging/media/cec/cec-adap.c
+@@ -280,7 +280,7 @@ static void cec_data_cancel(struct cec_data *data)
+ 		list_del_init(&data->list);
  
- static void lirc_irctl_cleanup(struct irctl *ir)
+ 	/* Mark it as an error */
+-	data->msg.ts = ktime_get_ns();
++	data->msg.tx_ts = ktime_get_ns();
+ 	data->msg.tx_status = CEC_TX_STATUS_ERROR |
+ 			      CEC_TX_STATUS_MAX_RETRIES;
+ 	data->attempts = 0;
+@@ -455,6 +455,7 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
  {
--	dev_dbg(ir->d.dev, LOGHEAD "cleaning up\n", ir->d.name, ir->d.minor);
--
- 	device_destroy(lirc_class, MKDEV(MAJOR(lirc_base_dev), ir->d.minor));
+ 	struct cec_data *data;
+ 	struct cec_msg *msg;
++	u64 ts = ktime_get_ns();
  
- 	if (ir->buf != ir->d.rbuf) {
-@@ -127,9 +125,6 @@ static int lirc_thread(void *irctl)
- {
- 	struct irctl *ir = irctl;
+ 	dprintk(2, "cec_transmit_done %02x\n", status);
+ 	mutex_lock(&adap->lock);
+@@ -473,7 +474,7 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
  
--	dev_dbg(ir->d.dev, LOGHEAD "poll thread started\n",
--		ir->d.name, ir->d.minor);
--
- 	do {
- 		if (ir->open) {
- 			if (ir->jiffies_to_wait) {
-@@ -146,9 +141,6 @@ static int lirc_thread(void *irctl)
- 		}
- 	} while (!kthread_should_stop());
+ 	/* Drivers must fill in the status! */
+ 	WARN_ON(status == 0);
+-	msg->ts = ktime_get_ns();
++	msg->tx_ts = ts;
+ 	msg->tx_status |= status;
+ 	msg->tx_arb_lost_cnt += arb_lost_cnt;
+ 	msg->tx_nack_cnt += nack_cnt;
+@@ -557,7 +558,7 @@ static void cec_wait_timeout(struct work_struct *work)
  
--	dev_dbg(ir->d.dev, LOGHEAD "poll thread ended\n",
--		ir->d.name, ir->d.minor);
--
- 	return 0;
- }
+ 	/* Mark the message as timed out */
+ 	list_del_init(&data->list);
+-	data->msg.ts = ktime_get_ns();
++	data->msg.rx_ts = ktime_get_ns();
+ 	data->msg.rx_status = CEC_RX_STATUS_TIMEOUT;
+ 	cec_data_completed(data);
+ unlock:
+@@ -762,13 +763,14 @@ void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg)
+ 	if (WARN_ON(!msg->len || msg->len > CEC_MAX_MSG_SIZE))
+ 		return;
  
-@@ -277,8 +269,6 @@ static int lirc_allocate_driver(struct lirc_driver *d)
- 		goto out;
- 	}
+-	mutex_lock(&adap->lock);
+-	msg->ts = ktime_get_ns();
++	msg->rx_ts = ktime_get_ns();
+ 	msg->rx_status = CEC_RX_STATUS_OK;
+-	msg->tx_status = 0;
+ 	msg->sequence = msg->reply = msg->timeout = 0;
++	msg->tx_status = 0;
++	msg->tx_ts = 0;
+ 	msg->flags = 0;
  
--	dev_dbg(d->dev, "lirc_dev: lirc_register_driver: sample_rate: %d\n",
--		d->sample_rate);
- 	if (d->sample_rate) {
- 		if (2 > d->sample_rate || HZ < d->sample_rate) {
- 			dev_err(d->dev, "lirc_dev: lirc_register_driver: "
-@@ -521,10 +511,6 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
- 	}
++	mutex_lock(&adap->lock);
+ 	dprintk(2, "cec_received_msg: %*ph\n", msg->len, msg->msg);
  
- error:
--	if (ir)
--		dev_dbg(ir->d.dev, LOGHEAD "open result = %d\n",
--			ir->d.name, ir->d.minor, retval);
--
- 	mutex_unlock(&lirc_dev_lock);
+ 	/* Check if this message was for us (directed or broadcast). */
+@@ -790,7 +792,6 @@ void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg)
+ 		 */
+ 		list_for_each_entry(data, &adap->wait_queue, list) {
+ 			struct cec_msg *dst = &data->msg;
+-			u8 dst_reply;
  
- 	nonseekable_open(inode, file);
-@@ -546,8 +532,6 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
+ 			/* Does the command match? */
+ 			if ((abort && cmd != dst->msg[1]) ||
+@@ -803,11 +804,10 @@ void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg)
+ 				continue;
  
- 	cdev = ir->cdev;
+ 			/* We got a reply */
+-			msg->sequence = dst->sequence;
+-			msg->tx_status = dst->tx_status;
+-			dst_reply = dst->reply;
+-			*dst = *msg;
+-			dst->reply = dst_reply;
++			memcpy(dst->msg, msg->msg, msg->len);
++			dst->len = msg->len;
++			dst->rx_ts = msg->rx_ts;
++			dst->rx_status = msg->rx_status;
+ 			if (abort) {
+ 				dst->reply = 0;
+ 				dst->rx_status |= CEC_RX_STATUS_FEATURE_ABORT;
+diff --git a/include/linux/cec.h b/include/linux/cec.h
+index 6678afe..b3e2289 100644
+--- a/include/linux/cec.h
++++ b/include/linux/cec.h
+@@ -48,9 +48,10 @@
  
--	dev_dbg(ir->d.dev, LOGHEAD "close called\n", ir->d.name, ir->d.minor);
--
- 	ret = mutex_lock_killable(&lirc_dev_lock);
- 	WARN_ON(ret);
- 
-@@ -582,8 +566,6 @@ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait)
- 		return POLLERR;
- 	}
- 
--	dev_dbg(ir->d.dev, LOGHEAD "poll called\n", ir->d.name, ir->d.minor);
--
- 	if (!ir->attached)
- 		return POLLERR;
- 
-@@ -679,9 +661,6 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 		result = -EINVAL;
- 	}
- 
--	dev_dbg(ir->d.dev, LOGHEAD "ioctl result = %d\n",
--		ir->d.name, ir->d.minor, result);
--
- 	mutex_unlock(&ir->irctl_lock);
- 
- 	return result;
-@@ -786,8 +765,6 @@ out_locked:
- 
- out_unlocked:
- 	kfree(buf);
--	dev_dbg(ir->d.dev, LOGHEAD "read result = %s (%d)\n",
--		ir->d.name, ir->d.minor, ret ? "<fail>" : "<ok>", ret);
- 
- 	return ret ? ret : written;
- }
-@@ -810,8 +787,6 @@ ssize_t lirc_dev_fop_write(struct file *file, const char __user *buffer,
- 		return -ENODEV;
- 	}
- 
--	dev_dbg(ir->d.dev, LOGHEAD "write called\n", ir->d.name, ir->d.minor);
--
- 	if (!ir->attached)
- 		return -ENODEV;
- 
+ /**
+  * struct cec_msg - CEC message structure.
+- * @ts:		Timestamp in nanoseconds using CLOCK_MONOTONIC. Set by the
+- *		driver. It is set when the message transmission has finished
+- *		and it is set when a message was received.
++ * @tx_ts:	Timestamp in nanoseconds using CLOCK_MONOTONIC. Set by the
++ *		driver when the message transmission has finished.
++ * @rx_ts:	Timestamp in nanoseconds using CLOCK_MONOTONIC. Set by the
++ *		driver when the message was received.
+  * @len:	Length in bytes of the message.
+  * @timeout:	The timeout (in ms) that is used to timeout CEC_RECEIVE.
+  *		Set to 0 if you want to wait forever. This timeout can also be
+@@ -61,8 +62,6 @@
+  *		sent. This can be used to track replies to previously sent
+  *		messages.
+  * @flags:	Set to 0.
+- * @rx_status:	The message receive status bits. Set by the driver.
+- * @tx_status:	The message transmit status bits. Set by the driver.
+  * @msg:	The message payload.
+  * @reply:	This field is ignored with CEC_RECEIVE and is only used by
+  *		CEC_TRANSMIT. If non-zero, then wait for a reply with this
+@@ -80,6 +79,8 @@
+  *		broadcast, then -EINVAL is returned.
+  *		if reply is non-zero, then timeout is set to 1000 (the required
+  *		maximum response time).
++ * @rx_status:	The message receive status bits. Set by the driver.
++ * @tx_status:	The message transmit status bits. Set by the driver.
+  * @tx_arb_lost_cnt: The number of 'Arbitration Lost' events. Set by the driver.
+  * @tx_nack_cnt: The number of 'Not Acknowledged' events. Set by the driver.
+  * @tx_low_drive_cnt: The number of 'Low Drive Detected' events. Set by the
+@@ -87,15 +88,16 @@
+  * @tx_error_cnt: The number of 'Error' events. Set by the driver.
+  */
+ struct cec_msg {
+-	__u64 ts;
++	__u64 tx_ts;
++	__u64 rx_ts;
+ 	__u32 len;
+ 	__u32 timeout;
+ 	__u32 sequence;
+ 	__u32 flags;
+-	__u8 rx_status;
+-	__u8 tx_status;
+ 	__u8 msg[CEC_MAX_MSG_SIZE];
+ 	__u8 reply;
++	__u8 rx_status;
++	__u8 tx_status;
+ 	__u8 tx_arb_lost_cnt;
+ 	__u8 tx_nack_cnt;
+ 	__u8 tx_low_drive_cnt;
 -- 
-2.8.1
+2.7.0
 
