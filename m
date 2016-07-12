@@ -1,74 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:35919 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932486AbcGFXH2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:07:28 -0400
-Received: by mail-pf0-f195.google.com with SMTP id i123so95188pfg.3
-        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:07:28 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 06/28] gpu: ipu-v3: Add ipu_set_vdi_src_mux()
-Date: Wed,  6 Jul 2016 16:06:36 -0700
-Message-Id: <1467846418-12913-7-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
- <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46365
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751335AbcGLOF3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2016 10:05:29 -0400
+Date: Tue, 12 Jul 2016 11:05:24 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sean Young <sean@mess.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 03/20] [media] lirc.h: remove several unused ioctls
+Message-ID: <20160712110524.57e2b674@recife.lan>
+In-Reply-To: <20160712135438.GA11183@gofer.mess.org>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+	<d55f09abe24b4dfadab246b6f217da547361cdb6.1468327191.git.mchehab@s-opensource.com>
+	<20160712131406.GB10242@gofer.mess.org>
+	<20160712102300.3bb0e6c4@recife.lan>
+	<20160712133555.GA10904@gofer.mess.org>
+	<20160712135438.GA11183@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds ipu_set_vdi_src_mux() that selects the VDIC input
-(from CSI or memory).
+Em Tue, 12 Jul 2016 14:54:38 +0100
+Sean Young <sean@mess.org> escreveu:
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/gpu/ipu-v3/ipu-common.c | 20 ++++++++++++++++++++
- include/video/imx-ipu-v3.h      |  1 +
- 2 files changed, 21 insertions(+)
+> On Tue, Jul 12, 2016 at 02:35:56PM +0100, Sean Young wrote:
+> > On Tue, Jul 12, 2016 at 10:23:00AM -0300, Mauro Carvalho Chehab wrote:  
+> > > Em Tue, 12 Jul 2016 14:14:06 +0100
+> > > Sean Young <sean@mess.org> escreveu:  
+> > > > On Tue, Jul 12, 2016 at 09:41:57AM -0300, Mauro Carvalho Chehab wrote:  
+> > -snip-  
+> > > > > -#define LIRC_SET_REC_DUTY_CYCLE        _IOW('i', 0x00000016, __u32)    
+> > > > 
+> > > > Also remove LIRC_CAN_SET_REC_DUTY_CYCLE and 
+> > > > LIRC_CAN_SET_REC_DUTY_CYCLE_RANGE.  
+> > > 
+> > > Removing the "LIRC_CAN" macros can break userspace, as some app could
+> > > be using it to print the LIRC features. That's why I opted to keep
+> > > them, but to document that those features are unused - this is at
+> > > the next patch (04/20).  
+> > 
+> > How is that different from removing the ioctls? Might as well go the whole
+> > hog.  
 
-diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
-index 6d1676e..374100e 100644
---- a/drivers/gpu/ipu-v3/ipu-common.c
-+++ b/drivers/gpu/ipu-v3/ipu-common.c
-@@ -730,6 +730,26 @@ void ipu_set_ic_src_mux(struct ipu_soc *ipu, int csi_id, bool vdi)
- }
- EXPORT_SYMBOL_GPL(ipu_set_ic_src_mux);
- 
-+/*
-+ * Set the source for the VDIC. Selects either from CSI[01] or memory.
-+ */
-+void ipu_set_vdi_src_mux(struct ipu_soc *ipu, bool csi)
-+{
-+	unsigned long flags;
-+	u32 val;
-+
-+	spin_lock_irqsave(&ipu->lock, flags);
-+
-+	val = ipu_cm_read(ipu, IPU_FS_PROC_FLOW1);
-+	val &= ~(0x3 << 28);
-+	if (csi)
-+		val |= (0x01 << 28);
-+	ipu_cm_write(ipu, val, IPU_FS_PROC_FLOW1);
-+
-+	spin_unlock_irqrestore(&ipu->lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(ipu_set_vdi_src_mux);
-+
- 
- /* IDMAC Channel Linking */
- 
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 0a39c64..586979e 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -152,6 +152,7 @@ int ipu_idmac_channel_irq(struct ipu_soc *ipu, struct ipuv3_channel *channel,
- int ipu_get_num(struct ipu_soc *ipu);
- void ipu_set_csi_src_mux(struct ipu_soc *ipu, int csi_id, bool mipi_csi2);
- void ipu_set_ic_src_mux(struct ipu_soc *ipu, int csi_id, bool vdi);
-+void ipu_set_vdi_src_mux(struct ipu_soc *ipu, bool csi);
- void ipu_dump(struct ipu_soc *ipu);
- 
- /*
--- 
-1.9.1
+If someone implemented LIRC_GET_FEATURES and handled all flags, such
+program would break, as the API change.
 
+> 
+> Ah you meant that if someone later adds a new feature then we might reuse
+> an existing bit. Oops, sorry.
+
+Yes, this is another possibility. In such case, the ABI will also 
+break, with is more severe than a pure API change.
+
+Removing the ioctl declarations will still work for compiled programs,
+as they'll still receive an error code when the ioctl is issued.
+
+> 
+> > Also note that LIRC_CAN_SET_REC_DUTY_CYCLE has the same value as
+> > LIRC_CAN_MEASURE_CARRIER, so if some userspace program uses this it might
+> > end up in the mistaken belief its supports LIRC_CAN_SET_REC_DUTY_CYCLE.  
+> 
+> So there is an argument for removing LIRC_CAN_SET_REC_DUTY_CYCLE, but
+> that should be a separate patch.
+
+Yes. Yet, IMHO, the best would be to put those unused LIRC_CAN into a:
+
+#ifndef __KERNEL
+
+macro block, to:
+
+1) avoid the risk of breaking userspace;
+2) be clear that those are deprecated stuff and should not be used on
+   newer programs;
+3) Reserve the bits for not be used, to avoid possible conflicts.
+
+Regards,
+Mauro
