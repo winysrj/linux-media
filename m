@@ -1,216 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60568 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:51664 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751205AbcGQRHU (ORCPT
+	with ESMTP id S933289AbcGLMmb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 13:07:20 -0400
+	Tue, 12 Jul 2016 08:42:31 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 04/15] [media] doc-rst: convert bt8xx doc to rst
-Date: Sun, 17 Jul 2016 14:06:59 -0300
-Message-Id: <d61da478b31bdc2e181aaac104bd5b69e26c40f3.1468775054.git.mchehab@s-opensource.com>
-In-Reply-To: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
-References: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
-In-Reply-To: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
-References: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 09/20] [media] doc-rst: document LIRC_GET_REC_RESOLUTION
+Date: Tue, 12 Jul 2016 09:42:03 -0300
+Message-Id: <6d9f4d799ba7f2618e3117fc09fb72aeeccb08fc.1468327191.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This document almost follows a markup language, but it is
-not ReST. Fix it to be handled by Sphinx.
+Improve the documentation for this ioctl, adding it to
+a separate file, in order to look like the rest of the
+book, and to later allow to generate a man page for this
+ioctl.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/media/dvb-drivers/bt8xx.rst | 120 ++++++++++++++++++------------
- Documentation/media/dvb-drivers/index.rst |   1 +
- 2 files changed, 73 insertions(+), 48 deletions(-)
+ .../media/uapi/rc/lirc-get-rec-resolution.rst      | 49 ++++++++++++++++++++++
+ .../media/uapi/rc/lirc_device_interface.rst        |  1 +
+ Documentation/media/uapi/rc/lirc_ioctl.rst         | 10 -----
+ 3 files changed, 50 insertions(+), 10 deletions(-)
+ create mode 100644 Documentation/media/uapi/rc/lirc-get-rec-resolution.rst
 
-diff --git a/Documentation/media/dvb-drivers/bt8xx.rst b/Documentation/media/dvb-drivers/bt8xx.rst
-index b7b1d1b1da46..b43958b7340c 100644
---- a/Documentation/media/dvb-drivers/bt8xx.rst
-+++ b/Documentation/media/dvb-drivers/bt8xx.rst
-@@ -1,33 +1,46 @@
- How to get the bt8xx cards working
- ==================================
- 
--1) General information
--======================
-+Authors: Richard Walker,
-+	 Jamie Honan,
-+	 Michael Hunold,
-+	 Manu Abraham,
-+	 Uwe Bugla,
-+	 Michael Krufky
+diff --git a/Documentation/media/uapi/rc/lirc-get-rec-resolution.rst b/Documentation/media/uapi/rc/lirc-get-rec-resolution.rst
+new file mode 100644
+index 000000000000..6ef1723878b4
+--- /dev/null
++++ b/Documentation/media/uapi/rc/lirc-get-rec-resolution.rst
+@@ -0,0 +1,49 @@
++.. -*- coding: utf-8; mode: rst -*-
 +
-+.. note::
++.. _lirc_get_rec_resolution:
 +
-+   This documentation is outdated. Please check at the DVB wiki
-+   at https://linuxtv.org/wiki for more updated info.
++*****************************
++ioctl LIRC_GET_REC_RESOLUTION
++*****************************
 +
-+General information
-+-------------------
- 
- This class of cards has a bt878a as the PCI interface, and require the bttv driver
- for accessing the i2c bus and the gpio pins of the bt8xx chipset.
- Please see Documentation/dvb/cards.txt => o Cards based on the Conexant Bt8xx PCI bridge:
- 
- Compiling kernel please enable:
--a.)"Device drivers" => "Multimedia devices" => "Video For Linux" => "Enable Video for Linux API 1 (DEPRECATED)"
--b.)"Device drivers" => "Multimedia devices" => "Video For Linux" => "Video Capture Adapters" => "BT848 Video For Linux"
--c.)"Device drivers" => "Multimedia devices" => "Digital Video Broadcasting Devices" => "DVB for Linux" "DVB Core Support" "Bt8xx based PCI Cards"
- 
--Please use the following options with care as deselection of drivers which are in fact necessary
--may result in DVB devices that cannot be tuned due to lack of driver support:
--You can save RAM by deselecting every frontend module that your DVB card does not need.
-+#) ``Device drivers`` => ``Multimedia devices`` => ``Video For Linux`` => ``Enable Video for Linux API 1 (DEPRECATED)``
-+#) ``Device drivers`` => ``Multimedia devices`` => ``Video For Linux`` => ``Video Capture Adapters`` => ``BT848 Video For Linux``
-+#) ``Device drivers`` => ``Multimedia devices`` => ``Digital Video Broadcasting Devices`` => ``DVB for Linux`` ``DVB Core Support`` ``Bt8xx based PCI Cards``
- 
--First please remove the static dependency of DVB card drivers on all frontend modules for all possible card variants by enabling:
--d.) "Device drivers" => "Multimedia devices" => "Digital Video Broadcasting Devices"
-- => "DVB for Linux" "DVB Core Support" "Load and attach frontend modules as needed"
-+  Please use the following options with care as deselection of drivers which are in fact necessary may result in DVB devices that cannot be tuned due to lack of driver support:
-+  You can save RAM by deselecting every frontend module that your DVB card does not need.
++Name
++====
 +
-+  First please remove the static dependency of DVB card drivers on all frontend modules for all possible card variants by enabling:
++LIRC_GET_REC_RESOLUTION - Obtain the value of receive resolution, in microseconds.
 +
-+#) ``Device drivers`` => ``Multimedia devices`` => ``Digital Video Broadcasting Devices`` => ``DVB for Linux`` ``DVB Core Support`` ``Load and attach frontend modules as needed``
++Synopsis
++========
 +
-+  If you know the frontend driver that your card needs please enable:
++.. cpp:function:: int ioctl( int fd, int request, __u32 *microseconds)
 +
-+#) ``Device drivers`` => ``Multimedia devices`` => ``Digital Video Broadcasting Devices`` => ``DVB for Linux`` ``DVB Core Support`` ``Customise DVB Frontends`` => ``Customise the frontend modules to build``
- 
--If you know the frontend driver that your card needs please enable:
--e.)"Device drivers" => "Multimedia devices" => "Digital Video Broadcasting Devices"
-- => "DVB for Linux" "DVB Core Support" "Customise DVB Frontends" => "Customise the frontend modules to build"
-  Then please select your card-specific frontend module.
- 
--2) Loading Modules
--==================
-+Loading Modules
-+---------------
- 
- Regular case: If the bttv driver detects a bt8xx-based DVB card, all frontend and backend modules will be loaded automatically.
- Exceptions are:
-@@ -36,63 +49,74 @@ People running udev please see Documentation/dvb/udev.txt.
- 
- In the following cases overriding the PCI type detection for dvb-bt8xx might be necessary:
- 
--2a) Running TwinHan and Clones
--------------------------------
-+Running TwinHan and Clones
-+~~~~~~~~~~~~~~~~~~~~~~~~~~
++Arguments
++=========
 +
-+.. code-block:: none
- 
- 	$ modprobe bttv card=113
- 	$ modprobe dst
- 
- Useful parameters for verbosity level and debugging the dst module:
- 
--verbose=0:		messages are disabled
--	1:		only error messages are displayed
--	2:		notifications are displayed
--	3:		other useful messages are displayed
--	4:		debug setting
--dst_addons=0:		card is a free to air (FTA) card only
--	   0x20:	card has a conditional access slot for scrambled channels
-+.. code-block:: none
++``fd``
++    File descriptor returned by open().
 +
-+	verbose=0:		messages are disabled
-+		1:		only error messages are displayed
-+		2:		notifications are displayed
-+		3:		other useful messages are displayed
-+		4:		debug setting
-+	dst_addons=0:		card is a free to air (FTA) card only
-+		0x20:	card has a conditional access slot for scrambled channels
++``request``
++    LIRC_GET_REC_RESOLUTION
++
++``microseconds``
++    Resolution, in microseconds.
++
++
++Description
++===========
++
++Some receivers have maximum resolution which is defined by internal
++sample rate or data format limitations. E.g. it's common that
++signals can only be reported in 50 microsecond steps.
++
++This ioctl returns the integer value with such resolution, with can be
++used by userspace applications like lircd to automatically adjust the
++tolerance value.
++
++
++Return Value
++============
++
++On success 0 is returned, on error -1 and the ``errno`` variable is set
++appropriately. The generic error codes are described at the
++:ref:`Generic Error Codes <gen-errors>` chapter.
+diff --git a/Documentation/media/uapi/rc/lirc_device_interface.rst b/Documentation/media/uapi/rc/lirc_device_interface.rst
+index 34044b0c8f9c..532f4e92d1e9 100644
+--- a/Documentation/media/uapi/rc/lirc_device_interface.rst
++++ b/Documentation/media/uapi/rc/lirc_device_interface.rst
+@@ -15,4 +15,5 @@ LIRC Device Interface
+     lirc-get-features
+     lirc-get-send-mode
+     lirc-get-rec-mode
++    lirc-get-rec-resolution
+     lirc_ioctl
+diff --git a/Documentation/media/uapi/rc/lirc_ioctl.rst b/Documentation/media/uapi/rc/lirc_ioctl.rst
+index 4656e30a5b5a..347b86d368b4 100644
+--- a/Documentation/media/uapi/rc/lirc_ioctl.rst
++++ b/Documentation/media/uapi/rc/lirc_ioctl.rst
+@@ -58,16 +58,6 @@ I/O control requests
+     could be used to switch off carrier generation in the future, so
+     these values should be reserved.
  
- The autodetected values are determined by the cards' "response string".
- In your logs see f. ex.: dst_get_device_id: Recognize [DSTMCI].
- For bug reports please send in a complete log with verbose=4 activated.
- Please also see Documentation/dvb/ci.txt.
- 
--2b) Running multiple cards
----------------------------
-+Running multiple cards
-+~~~~~~~~~~~~~~~~~~~~~~
- 
- Examples of card ID's:
- 
--Pinnacle PCTV Sat:		 94
--Nebula Electronics Digi TV:	104
--pcHDTV HD-2000 TV:		112
--Twinhan DST and clones:		113
--Avermedia AverTV DVB-T 771:	123
--Avermedia AverTV DVB-T 761:	124
--DViCO FusionHDTV DVB-T Lite:	128
--DViCO FusionHDTV 5 Lite:	135
+-.. _LIRC_GET_REC_RESOLUTION:
 -
--Notice: The order of the card ID should be uprising:
--Example:
-+.. code-block:: none
-+
-+	Pinnacle PCTV Sat:		 94
-+	Nebula Electronics Digi TV:	104
-+	pcHDTV HD-2000 TV:		112
-+	Twinhan DST and clones:		113
-+	Avermedia AverTV DVB-T 771:	123
-+	Avermedia AverTV DVB-T 761:	124
-+	DViCO FusionHDTV DVB-T Lite:	128
-+	DViCO FusionHDTV 5 Lite:	135
-+
-+.. note::
-+
-+   The order of the card ID should be uprising:
-+
-+   Example:
-+
-+   .. code-block:: none
-+
- 	$ modprobe bttv card=113 card=135
+-``LIRC_GET_REC_RESOLUTION``
+-
+-    Some receiver have maximum resolution which is defined by internal
+-    sample rate or data format limitations. E.g. it's common that
+-    signals can only be reported in 50 microsecond steps. This integer
+-    value is used by lircd to automatically adjust the aeps tolerance
+-    value in the lircd config file.
+-
+ .. _LIRC_GET_MIN_TIMEOUT:
+ .. _LIRC_GET_MAX_TIMEOUT:
  
- For a full list of card ID's please see Documentation/video4linux/CARDLIST.bttv.
- In case of further problems please subscribe and send questions to the mailing list: linux-dvb@linuxtv.org.
- 
--2c) Probing the cards with broken PCI subsystem ID
----------------------------------------------------
-+Probing the cards with broken PCI subsystem ID
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
- There are some TwinHan cards that the EEPROM has become corrupted for some
- reason. The cards do not have correct PCI subsystem ID. But we can force
- probing the cards with broken PCI subsystem ID
- 
-+.. code-block:: none
-+
- 	$ echo 109e 0878 $subvendor $subdevice > \
- 		/sys/bus/pci/drivers/bt878/new_id
- 
--109e: PCI_VENDOR_ID_BROOKTREE
--0878: PCI_DEVICE_ID_BROOKTREE_878
-+.. code-block:: none
-+
-+	109e: PCI_VENDOR_ID_BROOKTREE
-+	0878: PCI_DEVICE_ID_BROOKTREE_878
- 
--Authors: Richard Walker,
--	 Jamie Honan,
--	 Michael Hunold,
--	 Manu Abraham,
--	 Uwe Bugla,
--	 Michael Krufky
-diff --git a/Documentation/media/dvb-drivers/index.rst b/Documentation/media/dvb-drivers/index.rst
-index 2a09e9d22664..bcc29c70a7cc 100644
---- a/Documentation/media/dvb-drivers/index.rst
-+++ b/Documentation/media/dvb-drivers/index.rst
-@@ -20,3 +20,4 @@ License".
- 
- 	intro
- 	avermedia
-+	bt8xx
 -- 
 2.7.4
+
 
