@@ -1,40 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:59386 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750727AbcGJFQP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2016 01:16:15 -0400
-Date: Sat, 9 Jul 2016 23:15:52 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ben Hutchings <ben@decadent.org.uk>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Jani Nikula <jani.nikula@intel.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>,
-	linux-doc@vger.kernel.org
-Subject: Re: [PATCH v2] doc-rst: add an option to ignore DocBooks when
- generating docs
-Message-ID: <20160709231552.58d8535a@lwn.net>
-In-Reply-To: <872c1d8d911f1d4ee48b2185554a63aa9026dc1a.1468080758.git.mchehab@s-opensource.com>
-References: <872c1d8d911f1d4ee48b2185554a63aa9026dc1a.1468080758.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtprelay0133.hostedemail.com ([216.40.44.133]:43037 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751366AbcGLOHD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2016 10:07:03 -0400
+Message-ID: <1468332418.8745.11.camel@perches.com>
+Subject: Re: [PATCH] media: s5p-mfc Fix misspelled error message and
+ checkpatch errors
+From: Joe Perches <joe@perches.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
+	k.debski@samsung.com, jtp.park@samsung.com, mchehab@kernel.org,
+	javier@osg.samsung.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Date: Tue, 12 Jul 2016 07:06:58 -0700
+In-Reply-To: <1468276740-1591-1-git-send-email-shuahkh@osg.samsung.com>
+References: <1468276740-1591-1-git-send-email-shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat,  9 Jul 2016 13:12:45 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+On Mon, 2016-07-11 at 16:39 -0600, Shuah Khan wrote:
+> Fix misspelled error message and existing checkpatch errors in the
+> error message conditional.
+[]
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+[]
+> @@ -775,11 +775,11 @@ static int vidioc_g_crop(struct file *file, void *priv,
+>  	u32 left, right, top, bottom;
+>  
+>  	if (ctx->state != MFCINST_HEAD_PARSED &&
+> -	ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
+> -					&& ctx->state != MFCINST_FINISHED) {
+> -			mfc_err("Cannont set crop\n");
+> -			return -EINVAL;
+> -		}
+> +	    ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
+> +	    && ctx->state != MFCINST_FINISHED) {
+> +		mfc_err("Can not get crop information\n");
+> +		return -EINVAL;
+> +	}
 
-> Sometimes, we want to do a partial build, instead of building
-> everything. However, right now, if one wants to build just
-> Sphinx books, it will build also the DocBooks.
-> 
-> Add an option to allow to ignore all DocBooks when building
-> documentation.
+is it a set or a get?
 
-Seems good, applied to the docs tree, thanks.
+It'd be nicer for humans to read if the alignment was consistent
 
-jon
+	if (ctx->state != MFCINST_HEAD_PARSED &&
+	    ctx->state != MFCINST_RUNNING &&
+	    ctx->state != MFCINST_FINISHING &&
+	    ctx->state != MFCINST_FINISHED) {
+		mfc_err("Can not get crop information\n");
+		return -EINVAL;
+	}
+
+
