@@ -1,232 +1,285 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:55122 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753988AbcGZHJm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jul 2016 03:09:42 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, crope@iki.fi,
-	Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 5/7] si2165: Remove legacy attach
-Date: Tue, 26 Jul 2016 09:09:06 +0200
-Message-Id: <20160726070908.10135-5-zzam@gentoo.org>
-In-Reply-To: <20160726070908.10135-1-zzam@gentoo.org>
-References: <20160726070908.10135-1-zzam@gentoo.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:51666 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933284AbcGLMmb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2016 08:42:31 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 01/20] [media] doc-rst: Document ioctl LIRC_GET_FEATURES
+Date: Tue, 12 Jul 2016 09:41:55 -0300
+Message-Id: <2779afef9e93941f485152e6f3db983e80e2216b.1468327191.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that all users of legacy attach are converted it can be removed.
+The documentation for this ioctl was really crappy.
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Add a better documentation, using the lirc.4 man pages as a
+reference, plus what was written originally at the lirc-ioctl.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/dvb-frontends/si2165.c      | 117 ------------------------------
- drivers/media/dvb-frontends/si2165.h      |  31 --------
- drivers/media/dvb-frontends/si2165_priv.h |  17 +++++
- 3 files changed, 17 insertions(+), 148 deletions(-)
+ Documentation/media/lirc.h.rst.exceptions          |  35 -----
+ Documentation/media/uapi/rc/lirc-get-features.rst  | 168 +++++++++++++++++++++
+ .../media/uapi/rc/lirc_device_interface.rst        |   1 +
+ Documentation/media/uapi/rc/lirc_ioctl.rst         |   8 -
+ 4 files changed, 169 insertions(+), 43 deletions(-)
+ create mode 100644 Documentation/media/uapi/rc/lirc-get-features.rst
 
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index 2d9bbdd..e979fc0 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -1005,14 +1005,6 @@ static int si2165_set_frontend(struct dvb_frontend *fe)
- 	return 0;
- }
+diff --git a/Documentation/media/lirc.h.rst.exceptions b/Documentation/media/lirc.h.rst.exceptions
+index 58439ef3b9d7..17f6e7e9550d 100644
+--- a/Documentation/media/lirc.h.rst.exceptions
++++ b/Documentation/media/lirc.h.rst.exceptions
+@@ -37,38 +37,3 @@ ignore define LIRC_VALUE_MASK
+ ignore define LIRC_MODE2_MASK
  
--static void si2165_release(struct dvb_frontend *fe)
--{
--	struct si2165_state *state = fe->demodulator_priv;
+ ignore define LIRC_MODE_RAW
 -
--	dprintk("%s: called\n", __func__);
--	kfree(state);
--}
+-ignore define LIRC_CAN_SEND_RAW
+-ignore define LIRC_CAN_SEND_PULSE
+-ignore define LIRC_CAN_SEND_MODE2
+-ignore define LIRC_CAN_SEND_LIRCCODE
 -
- static struct dvb_frontend_ops si2165_ops = {
- 	.info = {
- 		.name = "Silicon Labs ",
-@@ -1048,117 +1040,8 @@ static struct dvb_frontend_ops si2165_ops = {
- 
- 	.set_frontend      = si2165_set_frontend,
- 	.read_status       = si2165_read_status,
+-ignore define LIRC_CAN_SEND_MASK
 -
--	.release = si2165_release,
- };
- 
--struct dvb_frontend *si2165_attach(const struct si2165_config *config,
--				   struct i2c_adapter *i2c)
--{
--	struct si2165_state *state = NULL;
--	int n;
--	int io_ret;
--	u8 val;
--	char rev_char;
--	const char *chip_name;
+-ignore define LIRC_CAN_SET_SEND_CARRIER
+-ignore define LIRC_CAN_SET_SEND_DUTY_CYCLE
+-ignore define LIRC_CAN_SET_TRANSMITTER_MASK
 -
--	if (config == NULL || i2c == NULL)
--		goto error;
+-ignore define LIRC_CAN_REC_RAW
+-ignore define LIRC_CAN_REC_PULSE
+-ignore define LIRC_CAN_REC_MODE2
+-ignore define LIRC_CAN_REC_LIRCCODE
 -
--	/* allocate memory for the internal state */
--	state = kzalloc(sizeof(struct si2165_state), GFP_KERNEL);
--	if (state == NULL)
--		goto error;
+-ignore define LIRC_CAN_REC_MASK
 -
--	/* setup the state */
--	state->i2c = i2c;
--	state->config = *config;
+-ignore define LIRC_CAN_SET_REC_CARRIER
+-ignore define LIRC_CAN_SET_REC_DUTY_CYCLE
 -
--	if (state->config.ref_freq_Hz < 4000000
--	    || state->config.ref_freq_Hz > 27000000) {
--		dev_err(&state->i2c->dev, "%s: ref_freq of %d Hz not supported by this driver\n",
--			 KBUILD_MODNAME, state->config.ref_freq_Hz);
--		goto error;
--	}
+-ignore define LIRC_CAN_SET_REC_DUTY_CYCLE_RANGE
+-ignore define LIRC_CAN_SET_REC_CARRIER_RANGE
+-ignore define LIRC_CAN_GET_REC_RESOLUTION
+-ignore define LIRC_CAN_SET_REC_TIMEOUT
+-ignore define LIRC_CAN_SET_REC_FILTER
 -
--	/* create dvb_frontend */
--	memcpy(&state->fe.ops, &si2165_ops,
--		sizeof(struct dvb_frontend_ops));
--	state->fe.demodulator_priv = state;
+-ignore define LIRC_CAN_MEASURE_CARRIER
+-ignore define LIRC_CAN_USE_WIDEBAND_RECEIVER
 -
--	/* powerup */
--	io_ret = si2165_writereg8(state, 0x0000, state->config.chip_mode);
--	if (io_ret < 0)
--		goto error;
+-ignore define LIRC_CAN_SEND(x)
+-ignore define LIRC_CAN_REC(x)
 -
--	io_ret = si2165_readreg8(state, 0x0000, &val);
--	if (io_ret < 0)
--		goto error;
--	if (val != state->config.chip_mode)
--		goto error;
--
--	io_ret = si2165_readreg8(state, 0x0023, &state->chip_revcode);
--	if (io_ret < 0)
--		goto error;
--
--	io_ret = si2165_readreg8(state, 0x0118, &state->chip_type);
--	if (io_ret < 0)
--		goto error;
--
--	/* powerdown */
--	io_ret = si2165_writereg8(state, 0x0000, SI2165_MODE_OFF);
--	if (io_ret < 0)
--		goto error;
--
--	if (state->chip_revcode < 26)
--		rev_char = 'A' + state->chip_revcode;
--	else
--		rev_char = '?';
--
--	switch (state->chip_type) {
--	case 0x06:
--		chip_name = "Si2161";
--		state->has_dvbt = true;
--		break;
--	case 0x07:
--		chip_name = "Si2165";
--		state->has_dvbt = true;
--		state->has_dvbc = true;
--		break;
--	default:
--		dev_err(&state->i2c->dev, "%s: Unsupported Silicon Labs chip (type %d, rev %d)\n",
--			KBUILD_MODNAME, state->chip_type, state->chip_revcode);
--		goto error;
--	}
--
--	dev_info(&state->i2c->dev,
--		"%s: Detected Silicon Labs %s-%c (type %d, rev %d)\n",
--		KBUILD_MODNAME, chip_name, rev_char, state->chip_type,
--		state->chip_revcode);
--
--	strlcat(state->fe.ops.info.name, chip_name,
--			sizeof(state->fe.ops.info.name));
--
--	n = 0;
--	if (state->has_dvbt) {
--		state->fe.ops.delsys[n++] = SYS_DVBT;
--		strlcat(state->fe.ops.info.name, " DVB-T",
--			sizeof(state->fe.ops.info.name));
--	}
--	if (state->has_dvbc) {
--		state->fe.ops.delsys[n++] = SYS_DVBC_ANNEX_A;
--		strlcat(state->fe.ops.info.name, " DVB-C",
--			sizeof(state->fe.ops.info.name));
--	}
--
--	return &state->fe;
--
--error:
--	kfree(state);
--	return NULL;
--}
--EXPORT_SYMBOL(si2165_attach);
--
- static int si2165_probe(struct i2c_client *client,
- 		const struct i2c_device_id *id)
- {
-diff --git a/drivers/media/dvb-frontends/si2165.h b/drivers/media/dvb-frontends/si2165.h
-index abbebc9..76c2ca7 100644
---- a/drivers/media/dvb-frontends/si2165.h
-+++ b/drivers/media/dvb-frontends/si2165.h
-@@ -50,35 +50,4 @@ struct si2165_platform_data {
- 	bool inversion;
- };
- 
--struct si2165_config {
--	/* i2c addr
--	 * possible values: 0x64,0x65,0x66,0x67 */
--	u8 i2c_addr;
--
--	/* external clock or XTAL */
--	u8 chip_mode;
--
--	/* frequency of external clock or xtal in Hz
--	 * possible values: 4000000, 16000000, 20000000, 240000000, 27000000
--	 */
--	u32 ref_freq_Hz;
--
--	/* invert the spectrum */
--	bool inversion;
--};
--
--#if IS_REACHABLE(CONFIG_DVB_SI2165)
--struct dvb_frontend *si2165_attach(
--	const struct si2165_config *config,
--	struct i2c_adapter *i2c);
--#else
--static inline struct dvb_frontend *si2165_attach(
--	const struct si2165_config *config,
--	struct i2c_adapter *i2c)
--{
--	pr_warn("%s: driver disabled by Kconfig\n", __func__);
--	return NULL;
--}
--#endif /* CONFIG_DVB_SI2165 */
--
- #endif /* _DVB_SI2165_H */
-diff --git a/drivers/media/dvb-frontends/si2165_priv.h b/drivers/media/dvb-frontends/si2165_priv.h
-index 2b70cf1..e593211 100644
---- a/drivers/media/dvb-frontends/si2165_priv.h
-+++ b/drivers/media/dvb-frontends/si2165_priv.h
-@@ -20,4 +20,21 @@
- 
- #define SI2165_FIRMWARE_REV_D "dvb-demod-si2165.fw"
- 
-+struct si2165_config {
-+	/* i2c addr
-+	 * possible values: 0x64,0x65,0x66,0x67 */
-+	u8 i2c_addr;
+-ignore define LIRC_CAN_NOTIFY_DECODE
+diff --git a/Documentation/media/uapi/rc/lirc-get-features.rst b/Documentation/media/uapi/rc/lirc-get-features.rst
+new file mode 100644
+index 000000000000..6850f804a96c
+--- /dev/null
++++ b/Documentation/media/uapi/rc/lirc-get-features.rst
+@@ -0,0 +1,168 @@
++.. -*- coding: utf-8; mode: rst -*-
 +
-+	/* external clock or XTAL */
-+	u8 chip_mode;
++.. _lirc_get_features:
 +
-+	/* frequency of external clock or xtal in Hz
-+	 * possible values: 4000000, 16000000, 20000000, 240000000, 27000000
-+	 */
-+	u32 ref_freq_Hz;
++***********************
++ioctl LIRC_GET_FEATURES
++***********************
 +
-+	/* invert the spectrum */
-+	bool inversion;
-+};
++Name
++====
 +
- #endif /* _DVB_SI2165_PRIV */
++LIRC_GET_FEATURES - Get the underlying hardware device's features
++
++Synopsis
++========
++
++.. cpp:function:: int ioctl( int fd, int request, __u32 *features)
++
++Arguments
++=========
++
++``fd``
++    File descriptor returned by open().
++
++``request``
++    LIRC_GET_FEATURES
++
++``features``
++    Bitmask with the LIRC features.
++
++
++Description
++===========
++
++
++Get the underlying hardware device's features. If a driver does not
++announce support of certain features, calling of the corresponding ioctls
++is undefined.
++
++LIRC features
++=============
++
++.. _LIRC_CAN_REC_RAW:
++
++``LIRC_CAN_REC_RAW``
++    The driver is capable of receiving using
++    :ref:`LIRC_MODE_RAW.`
++
++.. _LIRC_CAN_REC_PULSE:
++
++``LIRC_CAN_REC_PULSE``
++    The driver is capable of receiving using
++    :ref:`LIRC_MODE_PULSE.`
++
++.. _LIRC_CAN_REC_MODE2:
++
++``LIRC_CAN_REC_MODE2``
++    The driver is capable of receiving using
++    :ref:`LIRC_MODE_MODE2.`
++
++.. _LIRC_CAN_REC_LIRCCODE:
++
++``LIRC_CAN_REC_LIRCCODE``
++    The driver is capable of receiving using
++    :ref:`LIRC_MODE_LIRCCODE.`
++
++.. _LIRC_CAN_SET_SEND_CARRIER:
++
++``LIRC_CAN_SET_SEND_CARRIER``
++    The driver supports changing the modulation frequency via
++    :ref:`LIRC_SET_SEND_CARRIER.`
++
++.. _LIRC_CAN_SET_SEND_DUTY_CYCLE:
++
++``LIRC_CAN_SET_SEND_DUTY_CYCLE``
++    The driver supports changing the duty cycle using
++    :ref:`LIRC_SET_SEND_DUTY_CYCLE`.
++
++.. _LIRC_CAN_SET_TRANSMITTER_MASK:
++
++``LIRC_CAN_SET_TRANSMITTER_MASK``
++    The driver supports changing the active transmitter(s) using
++    :ref:`LIRC_SET_TRANSMITTER_MASK.`
++
++.. _LIRC_CAN_SET_REC_CARRIER:
++
++``LIRC_CAN_SET_REC_CARRIER``
++    The driver supports setting the receive carrier frequency using
++    :ref:`LIRC_SET_REC_CARRIER.`
++
++.. _LIRC_CAN_SET_REC_DUTY_CYCLE_RANGE:
++
++``LIRC_CAN_SET_REC_DUTY_CYCLE_RANGE``
++    The driver supports
++    :ref:`LIRC_SET_REC_DUTY_CYCLE_RANGE.`
++
++.. _LIRC_CAN_SET_REC_CARRIER_RANGE:
++
++``LIRC_CAN_SET_REC_CARRIER_RANGE``
++    The driver supports
++    :ref:`LIRC_SET_REC_CARRIER_RANGE.`
++
++.. _LIRC_CAN_GET_REC_RESOLUTION:
++
++``LIRC_CAN_GET_REC_RESOLUTION``
++    The driver supports
++    :ref:`LIRC_GET_REC_RESOLUTION.`
++
++.. _LIRC_CAN_SET_REC_TIMEOUT:
++
++``LIRC_CAN_SET_REC_TIMEOUT``
++    The driver supports
++    :ref:`LIRC_SET_REC_TIMEOUT.`
++
++.. _LIRC_CAN_SET_REC_FILTER:
++
++``LIRC_CAN_SET_REC_FILTER``
++    The driver supports
++    :ref:`LIRC_SET_REC_FILTER.`
++
++.. _LIRC_CAN_MEASURE_CARRIER:
++
++``LIRC_CAN_MEASURE_CARRIER``
++    The driver supports measuring of the modulation frequency using
++    :ref:`LIRC_SET_MEASURE_CARRIER_MODE`.
++
++.. _LIRC_CAN_USE_WIDEBAND_RECEIVER:
++
++``LIRC_CAN_USE_WIDEBAND_RECEIVER``
++    The driver supports learning mode using
++    :ref:`LIRC_SET_WIDEBAND_RECEIVER.`
++
++.. _LIRC_CAN_NOTIFY_DECODE:
++
++``LIRC_CAN_NOTIFY_DECODE``
++    The driver supports
++    :ref:`LIRC_NOTIFY_DECODE.`
++
++.. _LIRC_CAN_SEND_RAW:
++
++``LIRC_CAN_SEND_RAW``
++    The driver supports sending using
++    :ref:`LIRC_MODE_RAW.`
++
++.. _LIRC_CAN_SEND_PULSE:
++
++``LIRC_CAN_SEND_PULSE``
++    The driver supports sending using
++    :ref:`LIRC_MODE_PULSE.`
++
++.. _LIRC_CAN_SEND_MODE2:
++
++``LIRC_CAN_SEND_MODE2``
++    The driver supports sending using
++    :ref:`LIRC_MODE_MODE2.`
++
++.. _LIRC_CAN_SEND_LIRCCODE:
++
++``LIRC_CAN_SEND_LIRCCODE``
++    The driver supports sending codes (also called as IR blasting or IR TX).
++
++
++Return Value
++============
++
++On success 0 is returned, on error -1 and the ``errno`` variable is set
++appropriately. The generic error codes are described at the
++:ref:`Generic Error Codes <gen-errors>` chapter.
+diff --git a/Documentation/media/uapi/rc/lirc_device_interface.rst b/Documentation/media/uapi/rc/lirc_device_interface.rst
+index a0c27ed5ad73..fe13f7d65d30 100644
+--- a/Documentation/media/uapi/rc/lirc_device_interface.rst
++++ b/Documentation/media/uapi/rc/lirc_device_interface.rst
+@@ -12,4 +12,5 @@ LIRC Device Interface
+     lirc_dev_intro
+     lirc_read
+     lirc_write
++    lirc-get-features
+     lirc_ioctl
+diff --git a/Documentation/media/uapi/rc/lirc_ioctl.rst b/Documentation/media/uapi/rc/lirc_ioctl.rst
+index 77f39d11e226..b35c1953dc60 100644
+--- a/Documentation/media/uapi/rc/lirc_ioctl.rst
++++ b/Documentation/media/uapi/rc/lirc_ioctl.rst
+@@ -50,14 +50,6 @@ I/O control requests
+ ====================
+ 
+ 
+-.. _LIRC_GET_FEATURES:
+-
+-``LIRC_GET_FEATURES``
+-
+-    Obviously, get the underlying hardware device's features. If a
+-    driver does not announce support of certain features, calling of the
+-    corresponding ioctls is undefined.
+-
+ .. _LIRC_GET_SEND_MODE:
+ .. _lirc-mode-pulse:
+ 
 -- 
-2.9.2
+2.7.4
+
 
