@@ -1,47 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:41593 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751701AbcGSXQh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 19:16:37 -0400
-Date: Tue, 19 Jul 2016 17:16:35 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-doc@vger.kernel.org, Jani Nikula <jani.nikula@intel.com>
-Subject: Re: Troubles with kernel-doc and RST files
-Message-ID: <20160719171635.56d16034@lwn.net>
-In-Reply-To: <20160717100154.64823d99@recife.lan>
-References: <20160717100154.64823d99@recife.lan>
+Received: from mail-lf0-f49.google.com ([209.85.215.49]:34708 "EHLO
+	mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750945AbcGLM1e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2016 08:27:34 -0400
+Received: by mail-lf0-f49.google.com with SMTP id h129so11877440lfh.1
+        for <linux-media@vger.kernel.org>; Tue, 12 Jul 2016 05:27:33 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1468322506-32702-1-git-send-email-weiyj_lk@163.com>
+References: <1468322506-32702-1-git-send-email-weiyj_lk@163.com>
+From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+Date: Tue, 12 Jul 2016 15:27:31 +0300
+Message-ID: <CALi4nhoFR0VyW+bCm7f9RDt8bk2zptG__svt_7YWq46cVQMB=g@mail.gmail.com>
+Subject: Re: [PATCH -next] [media] rcar_jpu: Add missing clk_disable_unprepare()
+ on error in jpu_open()
+To: weiyj_lk@163.com
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 17 Jul 2016 10:01:54 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+On Tue, Jul 12, 2016 at 2:21 PM,  <weiyj_lk@163.com> wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>
+> Add the missing clk_disable_unprepare() before return from
+> jpu_open() in the software reset error handling case.
+>
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-> 3) When there's an asterisk inside the source code, for example, to
-> document a pointer, or when something else fails when parsing a
-> header file, kernel-doc handler just outputs:
-> 	/devel/v4l/patchwork/Documentation/media/kapi/mc-core.rst:137: WARNING: Inline emphasis start-string without end-string.
-> 	/devel/v4l/patchwork/Documentation/media/kapi/mc-core.rst:470: WARNING: Explicit markup ends without a blank line; unexpected unindent.
-> 
-> pointing to a fake line at the rst file, instead of pointing to the
-> line inside the parsed header where the issue was detected, making
-> really hard to identify what's the error.
-> 
-> In this specific case, mc-core.rst has only 260 lines at the time I got
-> such error.
+Hello, Wei Yongjun.
+Thanks for the patch!
 
-This sounds like the same warning issue that Daniel was dealing with.
-Hopefully his config change will at least make these easier to deal with.
+Acked-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
 
-I wonder, though, if we could make kernel-doc a little smarter about
-these things so that the Right Thing happens for this sort of inadvertent
-markup?  If we could just recognize and escape a singleton *, that would
-make a lot of things work.
 
-jon
+-- 
+W.B.R, Mikhail.
