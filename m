@@ -1,117 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44743 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753540AbcGDLrV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:21 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 51/51] Documentation: pixfmt-nv12m.rst: fix conversion issues
-Date: Mon,  4 Jul 2016 08:47:12 -0300
-Message-Id: <f1b27df962ed52a250a18d11ffd1dcbcf1b3004c.1467629489.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
+Received: from gofer.mess.org ([80.229.237.210]:55321 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751279AbcGLNOJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2016 09:14:09 -0400
+Date: Tue, 12 Jul 2016 14:14:06 +0100
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 03/20] [media] lirc.h: remove several unused ioctls
+Message-ID: <20160712131406.GB10242@gofer.mess.org>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+ <d55f09abe24b4dfadab246b6f217da547361cdb6.1468327191.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <d55f09abe24b4dfadab246b6f217da547361cdb6.1468327191.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The conversion added an empty column (probably, it was used on
-DocBook just to increase spacing.
+On Tue, Jul 12, 2016 at 09:41:57AM -0300, Mauro Carvalho Chehab wrote:
+> While reviewing the documentation gaps on LIRC, it was
+> noticed that several ioctls aren't used by any LIRC drivers
+> (nor at staging or mainstream).
+> 
+> It doesn't make sense to document them, as they're not used
+> anywhere. So, let's remove those from the lirc header.
 
-It also added an extra line on one of the texts, breaking
-the original paragraph into two ones.
+Good to see these go.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  include/uapi/linux/lirc.h | 39 ++-------------------------------------
+>  1 file changed, 2 insertions(+), 37 deletions(-)
+> 
+> diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
+> index 4b3ab2966b5a..991ab4570b8e 100644
+> --- a/include/uapi/linux/lirc.h
+> +++ b/include/uapi/linux/lirc.h
+> @@ -90,20 +90,11 @@
+>  
+>  #define LIRC_GET_SEND_MODE             _IOR('i', 0x00000001, __u32)
+>  #define LIRC_GET_REC_MODE              _IOR('i', 0x00000002, __u32)
+> -#define LIRC_GET_SEND_CARRIER          _IOR('i', 0x00000003, __u32)
+> -#define LIRC_GET_REC_CARRIER           _IOR('i', 0x00000004, __u32)
+> -#define LIRC_GET_SEND_DUTY_CYCLE       _IOR('i', 0x00000005, __u32)
+> -#define LIRC_GET_REC_DUTY_CYCLE        _IOR('i', 0x00000006, __u32)
+>  #define LIRC_GET_REC_RESOLUTION        _IOR('i', 0x00000007, __u32)
+>  
+>  #define LIRC_GET_MIN_TIMEOUT           _IOR('i', 0x00000008, __u32)
+>  #define LIRC_GET_MAX_TIMEOUT           _IOR('i', 0x00000009, __u32)
+>  
+> -#define LIRC_GET_MIN_FILTER_PULSE      _IOR('i', 0x0000000a, __u32)
+> -#define LIRC_GET_MAX_FILTER_PULSE      _IOR('i', 0x0000000b, __u32)
+> -#define LIRC_GET_MIN_FILTER_SPACE      _IOR('i', 0x0000000c, __u32)
+> -#define LIRC_GET_MAX_FILTER_SPACE      _IOR('i', 0x0000000d, __u32)
+> -
+>  /* code length in bits, currently only for LIRC_MODE_LIRCCODE */
+>  #define LIRC_GET_LENGTH                _IOR('i', 0x0000000f, __u32)
+>  
+> @@ -113,7 +104,6 @@
+>  #define LIRC_SET_SEND_CARRIER          _IOW('i', 0x00000013, __u32)
+>  #define LIRC_SET_REC_CARRIER           _IOW('i', 0x00000014, __u32)
+>  #define LIRC_SET_SEND_DUTY_CYCLE       _IOW('i', 0x00000015, __u32)
+> -#define LIRC_SET_REC_DUTY_CYCLE        _IOW('i', 0x00000016, __u32)
 
-Remove them.
+Also remove LIRC_CAN_SET_REC_DUTY_CYCLE and 
+LIRC_CAN_SET_REC_DUTY_CYCLE_RANGE.
 
-Finally, a space is required before :sub:, as otherwise it
-won't display it right. Add it.
+>  #define LIRC_SET_TRANSMITTER_MASK      _IOW('i', 0x00000017, __u32)
+>  
+>  /*
+> @@ -127,42 +117,17 @@
+>  #define LIRC_SET_REC_TIMEOUT_REPORTS   _IOW('i', 0x00000019, __u32)
+>  
+>  /*
+> - * pulses shorter than this are filtered out by hardware (software
+> - * emulation in lirc_dev?)
+> - */
+> -#define LIRC_SET_REC_FILTER_PULSE      _IOW('i', 0x0000001a, __u32)
+> -/*
+> - * spaces shorter than this are filtered out by hardware (software
+> - * emulation in lirc_dev?)
+> - */
+> -#define LIRC_SET_REC_FILTER_SPACE      _IOW('i', 0x0000001b, __u32)
+> -/*
+> - * if filter cannot be set independently for pulse/space, this should
+> - * be used
+> - */
+> -#define LIRC_SET_REC_FILTER            _IOW('i', 0x0000001c, __u32)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst | 13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+Also remove LIRC_CAN_SET_REC_FILTER.
+> -
+> -/*
+>   * if enabled from the next key press on the driver will send
+>   * LIRC_MODE2_FREQUENCY packets
+>   */
+>  #define LIRC_SET_MEASURE_CARRIER_MODE	_IOW('i', 0x0000001d, __u32)
+>  
+>  /*
+> - * to set a range use
+> - * LIRC_SET_REC_DUTY_CYCLE_RANGE/LIRC_SET_REC_CARRIER_RANGE with the
+> - * lower bound first and later
+> - * LIRC_SET_REC_DUTY_CYCLE/LIRC_SET_REC_CARRIER with the upper bound
+> + * to set a range use LIRC_SET_REC_CARRIER_RANGE with the
+> + * lower bound first and later LIRC_SET_REC_CARRIER with the upper bound
+>   */
+> -
+> -#define LIRC_SET_REC_DUTY_CYCLE_RANGE  _IOW('i', 0x0000001e, __u32)
+>  #define LIRC_SET_REC_CARRIER_RANGE     _IOW('i', 0x0000001f, __u32)
+>  
+> -#define LIRC_NOTIFY_DECODE             _IO('i', 0x00000020)
 
-diff --git a/Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst b/Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst
-index c7db4038609a..a769808aab9b 100644
---- a/Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst
-+++ b/Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst
-@@ -26,8 +26,8 @@ occupies the first plane. The Y plane has one byte per pixel. In the
- second plane there is a chrominance data with alternating chroma
- samples. The CbCr plane is the same width, in bytes, as the Y plane (and
- of the image), but is half as tall in pixels. Each CbCr pair belongs to
--four pixels. For example, Cb\ :sub:`0`/Cr:sub:`0` belongs to
--Y'\ :sub:`00`, Y'\ :sub:`01`, Y'\ :sub:`10`, Y'\ :sub:`11`.
-+four pixels. For example, Cb :sub:`0`/Cr :sub:`0` belongs to
-+Y' :sub:`00`, Y' :sub:`01`, Y' :sub:`10`, Y' :sub:`11`.
- ``V4L2_PIX_FMT_NV12MT_16X16`` is the tiled version of
- ``V4L2_PIX_FMT_NV12M`` with 16x16 macroblock tiles. Here pixels are
- arranged in 16x16 2D tiles and tiles are arranged in linear order in
-@@ -43,11 +43,8 @@ If the Y plane has pad bytes after each row, then the CbCr plane has as
- many pad bytes after its rows.
- 
- **Byte Order..**
--
- Each cell is one byte.
- 
--
--
- .. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-@@ -148,7 +145,6 @@ Each cell is one byte.
-        -  
-        -  1
- 
--       -  
-        -  2
- 
-        -  
-@@ -163,7 +159,6 @@ Each cell is one byte.
-        -  
-        -  Y
- 
--       -  
-        -  Y
- 
-        -  
-@@ -177,7 +172,6 @@ Each cell is one byte.
- 
-        -  
-        -  
--       -  
-        -  C
- 
-        -  
-@@ -191,7 +185,6 @@ Each cell is one byte.
-        -  
-        -  Y
- 
--       -  
-        -  Y
- 
-        -  
-@@ -210,7 +203,6 @@ Each cell is one byte.
-        -  
-        -  Y
- 
--       -  
-        -  Y
- 
-        -  
-@@ -238,7 +230,6 @@ Each cell is one byte.
-        -  
-        -  Y
- 
--       -  
-        -  Y
- 
-        -  
--- 
-2.7.4
+Also remove LIRC_CAN_NOTIFY_DECODE.
 
+> -
+> -#define LIRC_SETUP_START               _IO('i', 0x00000021)
+> -#define LIRC_SETUP_END                 _IO('i', 0x00000022)
+> -
+>  #define LIRC_SET_WIDEBAND_RECEIVER     _IOW('i', 0x00000023, __u32)
+>  
+>  #endif
 
+Sean
