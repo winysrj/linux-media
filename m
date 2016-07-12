@@ -1,58 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from auth.a.painless.aa.net.uk ([90.155.4.51]:50608 "EHLO
-	auth.a.painless.aa.net.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750884AbcGUSUF (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:51672 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933285AbcGLMmb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 14:20:05 -0400
-Received: from 6.15.169.217.in-addr.arpa ([217.169.15.6] helo=[192.168.2.244])
-	by a.painless.aa.net.uk with esmtpsa (TLSv1:AES128-SHA:128)
-	(Exim 4.77)
-	(envelope-from <linux-media@destevenson.freeserve.co.uk>)
-	id 1bQIZn-0003sP-A7
-	for linux-media@vger.kernel.org; Thu, 21 Jul 2016 19:20:03 +0100
-To: linux-media@vger.kernel.org
-From: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>
-Subject: Sony imx219 driver?
-Message-ID: <57911245.1010500@destevenson.freeserve.co.uk>
-Date: Thu, 21 Jul 2016 19:19:49 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 12 Jul 2016 08:42:31 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 07/20] [media] doc-rst: fix some lirc cross-references
+Date: Tue, 12 Jul 2016 09:42:01 -0300
+Message-Id: <4ed030af4f1f163c1a61742ba0f8e749884de639.1468327191.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All.
+Some references were broken. It was also mentioning LIRC_MODE_RAW,
+with it is not implemented on current LIRC drivers.
 
-Just a quick query to avoid duplicating effort. Has anyone worked on a 
-Sony IMX219 (or other Sony sensor) subdevice driver as yet?
+So, fix the references.
 
-With the new Raspberry Pi camera being IMX219, and as Broadcom have 
-released an soc_camera based driver for the sensor already 
-(https://android.googlesource.com/kernel/bcm/+/android-bcm-tetra-3.10-lollipop-wear-release/drivers/media/video/imx219.c) 
-I was going to investigate converting that to a subdevice. I just wanted 
-to check this wasn't already in someone else's work queue.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/rc/lirc-get-features.rst  | 5 ++---
+ Documentation/media/uapi/rc/lirc-get-send-mode.rst | 2 +-
+ Documentation/media/uapi/rc/lirc_read.rst          | 2 +-
+ Documentation/media/uapi/rc/lirc_write.rst         | 4 ++--
+ 4 files changed, 6 insertions(+), 7 deletions(-)
 
-A further Google shows that there's also an soc_camera IMX219 driver in 
-ChromiumOS, copyright Andrew Chew @ Nvidia, but author Guennadi 
-Liakhovetski who I know posts on here. 
-https://chromium.googlesource.com/chromiumos/third_party/kernel/+/factory-ryu-6486.14.B-chromeos-3.14/drivers/media/i2c/soc_camera/imx219.c. 
-The Broadcom one supports 8MPix and 1080P, the Chromium one only 8MP. 
-Perhaps a hybrid of the feature set?
-Throw in 
-https://github.com/ZenfoneArea/android_kernel_asus_zenfone5/blob/master/linux/modules/camera/drivers/media/i2c/imx219/imx219.h 
-as well, and we have register sets for numerous readout modes, plus 
-there are the ones in the Pi firmware which can be extracted if necessary.
+diff --git a/Documentation/media/uapi/rc/lirc-get-features.rst b/Documentation/media/uapi/rc/lirc-get-features.rst
+index d89712190d43..e763ebfb2cb1 100644
+--- a/Documentation/media/uapi/rc/lirc-get-features.rst
++++ b/Documentation/media/uapi/rc/lirc-get-features.rst
+@@ -44,8 +44,7 @@ LIRC features
+ 
+ ``LIRC_CAN_REC_RAW``
+ 
+-    The driver is capable of receiving using
+-    :ref:`LIRC_MODE_RAW <lirc-mode-raw>`.
++    Unused. Kept just to avoid breaking uAPI.
+ 
+ .. _LIRC-CAN-REC-PULSE:
+ 
+@@ -153,7 +152,7 @@ LIRC features
+ 
+ ``LIRC_CAN_SEND_RAW``
+ 
+-    The driver supports sending using :ref:`LIRC_MODE_RAW <lirc-mode-raw>`.
++    Unused. Kept just to avoid breaking uAPI.
+ 
+ .. _LIRC-CAN-SEND-PULSE:
+ 
+diff --git a/Documentation/media/uapi/rc/lirc-get-send-mode.rst b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
+index f58f0953851c..f3fd310a8d7c 100644
+--- a/Documentation/media/uapi/rc/lirc-get-send-mode.rst
++++ b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
+@@ -38,7 +38,7 @@ Get supported transmit mode.
+ 
+ Currently, only ``LIRC_MODE_PULSE`` is supported by lircd on TX. On
+ puse mode, a sequence of pulse/space integer values are written to the
+-lirc device using ``write()``.
++lirc device using :Ref:`lirc-write`.
+ 
+ Return Value
+ ============
+diff --git a/Documentation/media/uapi/rc/lirc_read.rst b/Documentation/media/uapi/rc/lirc_read.rst
+index 37f164f7526a..a8f1b446c294 100644
+--- a/Documentation/media/uapi/rc/lirc_read.rst
++++ b/Documentation/media/uapi/rc/lirc_read.rst
+@@ -1,6 +1,6 @@
+ .. -*- coding: utf-8; mode: rst -*-
+ 
+-.. _lirc_read:
++.. _lirc-read:
+ 
+ ***********
+ LIRC read()
+diff --git a/Documentation/media/uapi/rc/lirc_write.rst b/Documentation/media/uapi/rc/lirc_write.rst
+index e27bda30afcc..dcba3b1bee6e 100644
+--- a/Documentation/media/uapi/rc/lirc_write.rst
++++ b/Documentation/media/uapi/rc/lirc_write.rst
+@@ -1,6 +1,6 @@
+ .. -*- coding: utf-8; mode: rst -*-
+ 
+-.. _lirc_write:
++.. _lirc-write:
+ 
+ ************
+ LIRC write()
+@@ -36,7 +36,7 @@ Arguments
+ Description
+ ===========
+ 
+-:ref:`write() <func-write>` writes up to ``count`` bytes to the device
++:ref:`write() <lirc-write>` writes up to ``count`` bytes to the device
+ referenced by the file descriptor ``fd`` from the buffer starting at
+ ``buf``.
+ 
+-- 
+2.7.4
 
 
-On a related note, if putting together a system with IMX219 or similar 
-producing Bayer raw 10, the data on the CSI2 bus is one of the 
-V4L2_PIX_FMT_SRGGB10P formats. What's the correct way to reflect that 
-from the sensor subdevice in an MEDIA_BUS_FMT_ enum?
-The closest is MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE (or LE), but the data 
-isn't padded (the Pi CSI2 receiver can do the unpacking and padding, but 
-that just takes up more memory).|||| Or is it MEDIA_BUS_FMT_SBGGR10_1X10 
-to describe the data on the bus correctly as 10bpp Bayer, and the odd 
-packing is ignored. Or do we need new enums?
-
-Thanks.
-   Dave
