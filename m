@@ -1,1310 +1,1302 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:35365 "EHLO
-	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752484AbcGYOoj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jul 2016 10:44:39 -0400
-From: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Yannick Fertre <yannick.fertre@st.com>,
-	Hugues Fruchet <hugues.fruchet@st.com>,
-	Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v4 3/3] st-hva: add H.264 video encoding support
-Date: Mon, 25 Jul 2016 16:44:10 +0200
-Message-ID: <1469457850-17973-4-git-send-email-jean-christophe.trotin@st.com>
-In-Reply-To: <1469457850-17973-1-git-send-email-jean-christophe.trotin@st.com>
-References: <1469457850-17973-1-git-send-email-jean-christophe.trotin@st.com>
+Received: from lists.s-osg.org ([54.187.51.154]:37153 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751374AbcGLXCV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2016 19:02:21 -0400
+Date: Tue, 12 Jul 2016 20:02:02 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Inki Dae <inki.dae@samsung.com>,
+	Joonyoung Shim <jy0922.shim@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	David Airlie <airlied@linux.ie>, Kukjin Kim <kgene@kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>
+Subject: Re: [PATCH 2/2] [media] s5p-g2d: Replace old driver with DRM
+ version
+Message-ID: <20160712200202.7496445e@recife.lan>
+In-Reply-To: <1464096493-13378-2-git-send-email-k.kozlowski@samsung.com>
+References: <1464096493-13378-1-git-send-email-k.kozlowski@samsung.com>
+	<1464096493-13378-2-git-send-email-k.kozlowski@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the H.264 video encoding capability in the V4L2 HVA
-video encoder driver for STMicroelectronics SoC (hva-h264.c).
+I suspect that you'll be applying this one via DRM tree, so:
 
-The main supported features are:
-- profile: baseline, main, high, stereo high
-- level: up to 4.2
-- bitrate mode: CBR, VBR
-- entropy mode: CABAC, CAVLC
-- video aspect: 1x1 only
+Em Tue, 24 May 2016 15:28:13 +0200
+Krzysztof Kozlowski <k.kozlowski@samsung.com> escreveu:
 
-Signed-off-by: Yannick Fertre <yannick.fertre@st.com>
-Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
----
- drivers/media/platform/sti/hva/Makefile   |    2 +-
- drivers/media/platform/sti/hva/hva-h264.c | 1053 +++++++++++++++++++++++++++++
- drivers/media/platform/sti/hva/hva-v4l2.c |  109 ++-
- drivers/media/platform/sti/hva/hva.h      |   35 +-
- 4 files changed, 1192 insertions(+), 7 deletions(-)
- create mode 100644 drivers/media/platform/sti/hva/hva-h264.c
+> Remove the old non-DRM driver because it is now entirely supported by
+> exynos_drm_g2d driver.
+> 
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Kamil Debski <k.debski@samsung.com>
+> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 
-diff --git a/drivers/media/platform/sti/hva/Makefile b/drivers/media/platform/sti/hva/Makefile
-index 633ee40..ffb69ce 100644
---- a/drivers/media/platform/sti/hva/Makefile
-+++ b/drivers/media/platform/sti/hva/Makefile
-@@ -1,2 +1,2 @@
- obj-$(CONFIG_VIDEO_STI_HVA) := st-hva.o
--st-hva-y := hva-v4l2.o hva-hw.o hva-mem.o
-+st-hva-y := hva-v4l2.o hva-hw.o hva-mem.o hva-h264.o
-diff --git a/drivers/media/platform/sti/hva/hva-h264.c b/drivers/media/platform/sti/hva/hva-h264.c
-new file mode 100644
-index 0000000..f7cdaa1
---- /dev/null
-+++ b/drivers/media/platform/sti/hva/hva-h264.c
-@@ -0,0 +1,1053 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2015
-+ * Authors: Yannick Fertre <yannick.fertre@st.com>
-+ *          Hugues Fruchet <hugues.fruchet@st.com>
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#include "hva.h"
-+#include "hva-hw.h"
-+
-+#define MAX_SPS_PPS_SIZE 128
-+
-+#define BITSTREAM_OFFSET_MASK 0x7F
-+
-+/* video max size*/
-+#define H264_MAX_SIZE_W 1920
-+#define H264_MAX_SIZE_H 1920
-+
-+/* macroBlocs number (width & height) */
-+#define MB_W(w) ((w + 0xF)  / 0x10)
-+#define MB_H(h) ((h + 0xF)  / 0x10)
-+
-+/* formula to get temporal or spatial data size */
-+#define DATA_SIZE(w, h) (MB_W(w) * MB_H(h) * 16)
-+
-+#define SEARCH_WINDOW_BUFFER_MAX_SIZE(w) ((4 * MB_W(w) + 42) * 256 * 3 / 2)
-+#define CABAC_CONTEXT_BUFFER_MAX_SIZE(w) (MB_W(w) * 16)
-+#define CTX_MB_BUFFER_MAX_SIZE(w) (MB_W(w) * 16 * 8)
-+#define SLICE_HEADER_SIZE (4 * 16)
-+#define BRC_DATA_SIZE (5 * 16)
-+
-+/* source buffer copy in YUV 420 MB-tiled format with size=16*256*3/2 */
-+#define CURRENT_WINDOW_BUFFER_MAX_SIZE (16 * 256 * 3 / 2)
-+
-+/*
-+ * 4 lines of pixels (in Luma, Chroma blue and Chroma red) of top MB
-+ * for deblocking with size=4*16*MBx*2
-+ */
-+#define LOCAL_RECONSTRUCTED_BUFFER_MAX_SIZE(w) (4 * 16 * MB_W(w) * 2)
-+
-+/* factor for bitrate and cpb buffer size max values if profile >= high */
-+#define H264_FACTOR_HIGH 1200
-+
-+/* factor for bitrate and cpb buffer size max values if profile < high */
-+#define H264_FACTOR_BASELINE 1000
-+
-+/* number of bytes for NALU_TYPE_FILLER_DATA header and footer */
-+#define H264_FILLER_DATA_SIZE 6
-+
-+struct h264_profile {
-+	enum v4l2_mpeg_video_h264_level level;
-+	u32 max_mb_per_seconds;
-+	u32 max_frame_size;
-+	u32 max_bitrate;
-+	u32 max_cpb_size;
-+	u32 min_comp_ratio;
-+};
-+
-+static const struct h264_profile h264_infos_list[] = {
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_1_0, 1485, 99, 64, 175, 2},
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_1B, 1485, 99, 128, 350, 2},
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_1_1, 3000, 396, 192, 500, 2},
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_1_2, 6000, 396, 384, 1000, 2},
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_1_3, 11880, 396, 768, 2000, 2},
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_2_0, 11880, 396, 2000, 2000, 2},
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_2_1, 19800, 792, 4000, 4000, 2},
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_2_2, 20250, 1620, 4000, 4000, 2},
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_3_0, 40500, 1620, 10000, 10000, 2},
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_3_1, 108000, 3600, 14000, 14000, 4},
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_3_2, 216000, 5120, 20000, 20000, 4},
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_4_0, 245760, 8192, 20000, 25000, 4},
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_4_1, 245760, 8192, 50000, 62500, 2},
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_4_2, 522240, 8704, 50000, 62500, 2},
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_5_0, 589824, 22080, 135000, 135000, 2},
-+	{V4L2_MPEG_VIDEO_H264_LEVEL_5_1, 983040, 36864, 240000, 240000, 2}
-+};
-+
-+enum hva_brc_type {
-+	BRC_TYPE_NONE = 0,
-+	BRC_TYPE_CBR = 1,
-+	BRC_TYPE_VBR = 2,
-+	BRC_TYPE_VBR_LOW_DELAY = 3
-+};
-+
-+enum hva_entropy_coding_mode {
-+	CAVLC = 0,
-+	CABAC = 1
-+};
-+
-+enum hva_picture_coding_type {
-+	PICTURE_CODING_TYPE_I = 0,
-+	PICTURE_CODING_TYPE_P = 1,
-+	PICTURE_CODING_TYPE_B = 2
-+};
-+
-+enum hva_h264_sampling_mode {
-+	SAMPLING_MODE_NV12 = 0,
-+	SAMPLING_MODE_UYVY = 1,
-+	SAMPLING_MODE_RGB3 = 3,
-+	SAMPLING_MODE_XRGB4 = 4,
-+	SAMPLING_MODE_NV21 = 8,
-+	SAMPLING_MODE_VYUY = 9,
-+	SAMPLING_MODE_BGR3 = 11,
-+	SAMPLING_MODE_XBGR4 = 12,
-+	SAMPLING_MODE_RGBX4 = 20,
-+	SAMPLING_MODE_BGRX4 = 28
-+};
-+
-+enum hva_h264_nalu_type {
-+	NALU_TYPE_UNKNOWN = 0,
-+	NALU_TYPE_SLICE = 1,
-+	NALU_TYPE_SLICE_DPA = 2,
-+	NALU_TYPE_SLICE_DPB = 3,
-+	NALU_TYPE_SLICE_DPC = 4,
-+	NALU_TYPE_SLICE_IDR = 5,
-+	NALU_TYPE_SEI = 6,
-+	NALU_TYPE_SPS = 7,
-+	NALU_TYPE_PPS = 8,
-+	NALU_TYPE_AU_DELIMITER = 9,
-+	NALU_TYPE_SEQ_END = 10,
-+	NALU_TYPE_STREAM_END = 11,
-+	NALU_TYPE_FILLER_DATA = 12,
-+	NALU_TYPE_SPS_EXT = 13,
-+	NALU_TYPE_PREFIX_UNIT = 14,
-+	NALU_TYPE_SUBSET_SPS = 15,
-+	NALU_TYPE_SLICE_AUX = 19,
-+	NALU_TYPE_SLICE_EXT = 20
-+};
-+
-+enum hva_h264_sei_payload_type {
-+	SEI_BUFFERING_PERIOD = 0,
-+	SEI_PICTURE_TIMING = 1,
-+	SEI_STEREO_VIDEO_INFO = 21,
-+	SEI_FRAME_PACKING_ARRANGEMENT = 45
-+};
-+
-+/**
-+ * stereo Video Info struct
-+ */
-+struct hva_h264_stereo_video_sei {
-+	u8 field_views_flag;
-+	u8 top_field_is_left_view_flag;
-+	u8 current_frame_is_left_view_flag;
-+	u8 next_frame_is_second_view_flag;
-+	u8 left_view_self_contained_flag;
-+	u8 right_view_self_contained_flag;
-+};
-+
-+/**
-+ * @frame_width: width in pixels of the buffer containing the input frame
-+ * @frame_height: height in pixels of the buffer containing the input frame
-+ * @frame_num: the parameter to be written in the slice header
-+ * @picture_coding_type: type I, P or B
-+ * @pic_order_cnt_type: POC mode, as defined in H264 std : can be 0,1,2
-+ * @first_picture_in_sequence: flag telling to encoder that this is the
-+ *			       first picture in a video sequence.
-+ *			       Used for VBR
-+ * @slice_size_type: 0 = no constraint to close the slice
-+ *		     1= a slice is closed as soon as the slice_mb_size limit
-+ *			is reached
-+ *		     2= a slice is closed as soon as the slice_byte_size limit
-+ *			is reached
-+ *		     3= a slice is closed as soon as either the slice_byte_size
-+ *			limit or the slice_mb_size limit is reached
-+ * @slice_mb_size: defines the slice size in number of macroblocks
-+ *		   (used when slice_size_type=1 or slice_size_type=3)
-+ * @ir_param_option: defines the number of macroblocks per frame to be
-+ *		     refreshed by AIR algorithm OR the refresh period
-+ *		     by CIR algorithm
-+ * @intra_refresh_type: enables the adaptive intra refresh algorithm.
-+ *			Disable=0 / Adaptative=1 and Cycle=2 as intra refresh
-+ * @use_constrained_intra_flag: constrained_intra_pred_flag from PPS
-+ * @transform_mode: controls the use of 4x4/8x8 transform mode
-+ * @disable_deblocking_filter_idc:
-+ *		     0: specifies that all luma and chroma block edges of
-+ *			the slice are filtered.
-+ *		     1: specifies that deblocking is disabled for all block
-+ *			edges of the slice.
-+ *		     2: specifies that all luma and chroma block edges of
-+ *			the slice are filtered with exception of the block edges
-+ *			that coincide with slice boundaries
-+ * @slice_alpha_c0_offset_div2: to be written in slice header,
-+ *				controls deblocking
-+ * @slice_beta_offset_div2: to be written in slice header,
-+ *			    controls deblocking
-+ * @encoder_complexity: encoder complexity control (IME).
-+ *		     0 = I_16x16, P_16x16, Full ME Complexity
-+ *		     1 = I_16x16, I_NxN, P_16x16, Full ME Complexity
-+ *		     2 = I_16x16, I_NXN, P_16x16, P_WxH, Full ME Complexity
-+ *		     4 = I_16x16, P_16x16, Reduced ME Complexity
-+ *		     5 = I_16x16, I_NxN, P_16x16, Reduced ME Complexity
-+ *		     6 = I_16x16, I_NXN, P_16x16, P_WxH, Reduced ME Complexity
-+ *  @chroma_qp_index_offset: coming from picture parameter set
-+ *			     (PPS see [H.264 STD] 7.4.2.2)
-+ *  @entropy_coding_mode: entropy coding mode.
-+ *			  0 = CAVLC
-+ *			  1 = CABAC
-+ * @brc_type: selects the bit-rate control algorithm
-+ *		     0 = constant Qp, (no BRC)
-+ *		     1 = CBR
-+ *		     2 = VBR
-+ * @quant: Quantization param used in case of fix QP encoding (no BRC)
-+ * @non_VCL_NALU_Size: size of non-VCL NALUs (SPS, PPS, filler),
-+ *		       used by BRC
-+ * @cpb_buffer_size: size of Coded Picture Buffer, used by BRC
-+ * @bit_rate: target bitrate, for BRC
-+ * @qp_min: min QP threshold
-+ * @qp_max: max QP threshold
-+ * @framerate_num: target framerate numerator , used by BRC
-+ * @framerate_den: target framerate denomurator , used by BRC
-+ * @delay: End-to-End Initial Delay
-+ * @strict_HRD_compliancy: flag for HDR compliancy (1)
-+ *			   May impact quality encoding
-+ * @addr_source_buffer: address of input frame buffer for current frame
-+ * @addr_fwd_Ref_Buffer: address of reference frame buffer
-+ * @addr_rec_buffer: address of reconstructed frame buffer
-+ * @addr_output_bitstream_start: output bitstream start address
-+ * @addr_output_bitstream_end: output bitstream end address
-+ * @addr_external_sw : address of external search window
-+ * @addr_lctx : address of context picture buffer
-+ * @addr_local_rec_buffer: address of local reconstructed buffer
-+ * @addr_spatial_context: address of spatial context buffer
-+ * @bitstream_offset: offset in bits between aligned bitstream start
-+ *		      address and first bit to be written by HVA.
-+ *		      Range value is [0..63]
-+ * @sampling_mode: Input picture format .
-+ *		     0: YUV420 semi_planar Interleaved
-+ *		     1: YUV422 raster Interleaved
-+ * @addr_param_out: address of output parameters structure
-+ * @addr_scaling_matrix: address to the coefficient of
-+ *			 the inverse scaling matrix
-+ * @addr_scaling_matrix_dir: address to the coefficient of
-+ *			     the direct scaling matrix
-+ * @addr_cabac_context_buffer: address of cabac context buffer
-+ * @GmvX: Input information about the horizontal global displacement of
-+ *	  the encoded frame versus the previous one
-+ * @GmvY: Input information about the vertical global displacement of
-+ *	  the encoded frame versus the previous one
-+ * @window_width: width in pixels of the window to be encoded inside
-+ *		  the input frame
-+ * @window_height: width in pixels of the window to be encoded inside
-+ *		   the input frame
-+ * @window_horizontal_offset: horizontal offset in pels for input window
-+ *			      within input frame
-+ * @window_vertical_offset: vertical offset in pels for input window
-+ *			    within input frame
-+ * @addr_roi: Map of QP offset for the Region of Interest algorithm and
-+ *	      also used for Error map.
-+ *	      Bit 0-6 used for qp offset (value -64 to 63).
-+ *	      Bit 7 used to force intra
-+ * @addr_slice_header: address to slice header
-+ * @slice_header_size_in_bits: size in bits of the Slice header
-+ * @slice_header_offset0: Slice header offset where to insert
-+ *			  first_Mb_in_slice
-+ * @slice_header_offset1: Slice header offset where to insert
-+ *			  slice_qp_delta
-+ * @slice_header_offset2: Slice header offset where to insert
-+ *			  num_MBs_in_slice
-+ * @slice_synchro_enable: enable "slice ready" interrupt after each slice
-+ * @max_slice_number: Maximum number of slice in a frame
-+ *		      (0 is strictly forbidden)
-+ * @rgb2_yuv_y_coeff: Four coefficients (C0C1C2C3) to convert from RGB to
-+ *		      YUV for the Y component.
-+ *		      Y = C0*R + C1*G + C2*B + C3 (C0 is on byte 0)
-+ * @rgb2_yuv_u_coeff: four coefficients (C0C1C2C3) to convert from RGB to
-+ *		      YUV for the Y component.
-+ *		      Y = C0*R + C1*G + C2*B + C3 (C0 is on byte 0)
-+ * @rgb2_yuv_v_coeff: Four coefficients (C0C1C2C3) to convert from RGB to
-+ *		      YUV for the U (Cb) component.
-+ *		      U = C0*R + C1*G + C2*B + C3 (C0 is on byte 0)
-+ * @slice_byte_size: maximum slice size in bytes
-+ *		     (used when slice_size_type=2 or slice_size_type=3)
-+ * @max_air_intra_mb_nb: Maximum number of intra macroblock in a frame
-+ *			 for the AIR algorithm
-+ * @brc_no_skip: Disable skipping in the Bitrate Controller
-+ * @addr_brc_in_out_parameter: address of static buffer for BRC parameters
-+ */
-+struct hva_h264_td {
-+	u16 frame_width;
-+	u16 frame_height;
-+	u32 frame_num;
-+	u16 picture_coding_type;
-+	u16 reserved1;
-+	u16 pic_order_cnt_type;
-+	u16 first_picture_in_sequence;
-+	u16 slice_size_type;
-+	u16 reserved2;
-+	u32 slice_mb_size;
-+	u16 ir_param_option;
-+	u16 intra_refresh_type;
-+	u16 use_constrained_intra_flag;
-+	u16 transform_mode;
-+	u16 disable_deblocking_filter_idc;
-+	s16 slice_alpha_c0_offset_div2;
-+	s16 slice_beta_offset_div2;
-+	u16 encoder_complexity;
-+	s16 chroma_qp_index_offset;
-+	u16 entropy_coding_mode;
-+	u16 brc_type;
-+	u16 quant;
-+	u32 non_vcl_nalu_size;
-+	u32 cpb_buffer_size;
-+	u32 bit_rate;
-+	u16 qp_min;
-+	u16 qp_max;
-+	u16 framerate_num;
-+	u16 framerate_den;
-+	u16 delay;
-+	u16 strict_hrd_compliancy;
-+	u32 addr_source_buffer;
-+	u32 addr_fwd_ref_buffer;
-+	u32 addr_rec_buffer;
-+	u32 addr_output_bitstream_start;
-+	u32 addr_output_bitstream_end;
-+	u32 addr_external_sw;
-+	u32 addr_lctx;
-+	u32 addr_local_rec_buffer;
-+	u32 addr_spatial_context;
-+	u16 bitstream_offset;
-+	u16 sampling_mode;
-+	u32 addr_param_out;
-+	u32 addr_scaling_matrix;
-+	u32 addr_scaling_matrix_dir;
-+	u32 addr_cabac_context_buffer;
-+	u32 reserved3;
-+	u32 reserved4;
-+	s16 gmv_x;
-+	s16 gmv_y;
-+	u16 window_width;
-+	u16 window_height;
-+	u16 window_horizontal_offset;
-+	u16 window_vertical_offset;
-+	u32 addr_roi;
-+	u32 addr_slice_header;
-+	u16 slice_header_size_in_bits;
-+	u16 slice_header_offset0;
-+	u16 slice_header_offset1;
-+	u16 slice_header_offset2;
-+	u32 reserved5;
-+	u32 reserved6;
-+	u16 reserved7;
-+	u16 reserved8;
-+	u16 slice_synchro_enable;
-+	u16 max_slice_number;
-+	u32 rgb2_yuv_y_coeff;
-+	u32 rgb2_yuv_u_coeff;
-+	u32 rgb2_yuv_v_coeff;
-+	u32 slice_byte_size;
-+	u16 max_air_intra_mb_nb;
-+	u16 brc_no_skip;
-+	u32 addr_temporal_context;
-+	u32 addr_brc_in_out_parameter;
-+};
-+
-+/**
-+ * @ slice_size: slice size
-+ * @ slice_start_time: start time
-+ * @ slice_stop_time: stop time
-+ * @ slice_num: slice number
-+ */
-+struct hva_h264_slice_po {
-+	u32 slice_size;
-+	u32 slice_start_time;
-+	u32 slice_end_time;
-+	u32 slice_num;
-+};
-+
-+/**
-+ * @ bitstream_size: bitstream size
-+ * @ dct_bitstream_size: dtc bitstream size
-+ * @ stuffing_bits: number of stuffing bits inserted by the encoder
-+ * @ removal_time: removal time of current frame (nb of ticks 1/framerate)
-+ * @ hvc_start_time: hvc start time
-+ * @ hvc_stop_time: hvc stop time
-+ * @ slice_count: slice count
-+ */
-+struct hva_h264_po {
-+	u32 bitstream_size;
-+	u32 dct_bitstream_size;
-+	u32 stuffing_bits;
-+	u32 removal_time;
-+	u32 hvc_start_time;
-+	u32 hvc_stop_time;
-+	u32 slice_count;
-+	u32 reserved0;
-+	struct hva_h264_slice_po slice_params[16];
-+};
-+
-+struct hva_h264_task {
-+	struct hva_h264_td td;
-+	struct hva_h264_po po;
-+};
-+
-+/**
-+ * @seq_info:  sequence information buffer
-+ * @ref_frame: reference frame buffer
-+ * @rec_frame: reconstructed frame buffer
-+ * @task:      task descriptor
-+ */
-+struct hva_h264_ctx {
-+	struct hva_buffer *seq_info;
-+	struct hva_buffer *ref_frame;
-+	struct hva_buffer *rec_frame;
-+	struct hva_buffer *task;
-+};
-+
-+static int hva_h264_fill_slice_header(struct hva_ctx *pctx,
-+				      u8 *slice_header_addr,
-+				      struct hva_controls *ctrls,
-+				      int frame_num,
-+				      u16 *header_size,
-+				      u16 *header_offset0,
-+				      u16 *header_offset1,
-+				      u16 *header_offset2)
-+{
-+	/*
-+	 * with this HVA hardware version, part of the slice header is computed
-+	 * on host and part by hardware.
-+	 * The part of host is precomputed and available through this array.
-+	 */
-+	struct device *dev = ctx_to_dev(pctx);
-+	int  cabac = V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CABAC;
-+	const unsigned char slice_header[] = { 0x00, 0x00, 0x00, 0x01,
-+					       0x41, 0x34, 0x07, 0x00};
-+	int idr_pic_id = frame_num % 2;
-+	enum hva_picture_coding_type type;
-+	u32 frame_order = frame_num % ctrls->gop_size;
-+
-+	if (!(frame_num % ctrls->gop_size))
-+		type = PICTURE_CODING_TYPE_I;
-+	else
-+		type = PICTURE_CODING_TYPE_P;
-+
-+	memcpy(slice_header_addr, slice_header, sizeof(slice_header));
-+
-+	*header_size = 56;
-+	*header_offset0 = 40;
-+	*header_offset1 = 13;
-+	*header_offset2 = 0;
-+
-+	if (type == PICTURE_CODING_TYPE_I) {
-+		slice_header_addr[4] = 0x65;
-+		slice_header_addr[5] = 0x11;
-+
-+		/* toggle the I frame */
-+		if ((frame_num / ctrls->gop_size) % 2) {
-+			*header_size += 4;
-+			*header_offset1 += 4;
-+			slice_header_addr[6] = 0x04;
-+			slice_header_addr[7] = 0x70;
-+
-+		} else {
-+			*header_size += 2;
-+			*header_offset1 += 2;
-+			slice_header_addr[6] = 0x09;
-+			slice_header_addr[7] = 0xC0;
-+		}
-+	} else {
-+		if (ctrls->entropy_mode == cabac) {
-+			*header_size += 1;
-+			*header_offset1 += 1;
-+			slice_header_addr[7] = 0x80;
-+		}
-+		/*
-+		 * update slice header with P frame order
-+		 * frame order is limited to 16 (coded on 4bits only)
-+		 */
-+		slice_header_addr[5] += ((frame_order & 0x0C) >> 2);
-+		slice_header_addr[6] += ((frame_order & 0x03) << 6);
-+	}
-+
-+	dev_dbg(dev,
-+		"%s   %s slice header order %d idrPicId %d header size %d\n",
-+		pctx->name, __func__, frame_order, idr_pic_id, *header_size);
-+	return 0;
-+}
-+
-+static int hva_h264_fill_data_nal(struct hva_ctx *pctx,
-+				  unsigned int stuffing_bytes, u8 *addr,
-+				  unsigned int stream_size, unsigned int *size)
-+{
-+	struct device *dev = ctx_to_dev(pctx);
-+	const u8 start[] = { 0x00, 0x00, 0x00, 0x01 };
-+
-+	dev_dbg(dev, "%s   %s stuffing bytes %d\n", pctx->name, __func__,
-+		stuffing_bytes);
-+
-+	if ((*size + stuffing_bytes + H264_FILLER_DATA_SIZE) > stream_size) {
-+		dev_dbg(dev, "%s   %s too many stuffing bytes %d\n",
-+			pctx->name, __func__, stuffing_bytes);
-+		return 0;
-+	}
-+
-+	/* start code */
-+	memcpy(addr + *size, start, sizeof(start));
-+	*size += sizeof(start);
-+
-+	/* nal_unit_type */
-+	addr[*size] = NALU_TYPE_FILLER_DATA;
-+	*size += 1;
-+
-+	memset(addr + *size, 0xff, stuffing_bytes);
-+	*size += stuffing_bytes;
-+
-+	addr[*size] = 0x80;
-+	*size += 1;
-+
-+	return 0;
-+}
-+
-+static int hva_h264_fill_sei_nal(struct hva_ctx *pctx,
-+				 enum hva_h264_sei_payload_type type,
-+				 u8 *addr, u32 *size)
-+{
-+	struct device *dev = ctx_to_dev(pctx);
-+	const u8 start[] = { 0x00, 0x00, 0x00, 0x01 };
-+	struct hva_h264_stereo_video_sei info;
-+	u8 offset = 7;
-+	u8 msg = 0;
-+
-+	/* start code */
-+	memcpy(addr + *size, start, sizeof(start));
-+	*size += sizeof(start);
-+
-+	/* nal_unit_type */
-+	addr[*size] = NALU_TYPE_SEI;
-+	*size += 1;
-+
-+	/* payload type */
-+	addr[*size] = type;
-+	*size += 1;
-+
-+	switch (type) {
-+	case SEI_STEREO_VIDEO_INFO:
-+		memset(&info, 0, sizeof(info));
-+
-+		/* set to top/bottom frame packing arrangement */
-+		info.field_views_flag = 1;
-+		info.top_field_is_left_view_flag = 1;
-+
-+		/* payload size */
-+		addr[*size] = 1;
-+		*size += 1;
-+
-+		/* payload */
-+		msg = info.field_views_flag << offset--;
-+
-+		if (info.field_views_flag) {
-+			msg |= info.top_field_is_left_view_flag <<
-+			       offset--;
-+		} else {
-+			msg |= info.current_frame_is_left_view_flag <<
-+			       offset--;
-+			msg |= info.next_frame_is_second_view_flag <<
-+			       offset--;
-+		}
-+		msg |= info.left_view_self_contained_flag << offset--;
-+		msg |= info.right_view_self_contained_flag << offset--;
-+
-+		addr[*size] = msg;
-+		*size += 1;
-+
-+		addr[*size] = 0x80;
-+		*size += 1;
-+
-+		return 0;
-+	case SEI_BUFFERING_PERIOD:
-+	case SEI_PICTURE_TIMING:
-+	case SEI_FRAME_PACKING_ARRANGEMENT:
-+	default:
-+		dev_err(dev, "%s   sei nal type not supported %d\n",
-+			pctx->name, type);
-+		return -EINVAL;
-+	}
-+}
-+
-+static int hva_h264_prepare_task(struct hva_ctx *pctx,
-+				 struct hva_h264_task *task,
-+				 struct hva_frame *frame,
-+				 struct hva_stream *stream)
-+{
-+	struct hva_dev *hva = ctx_to_hdev(pctx);
-+	struct device *dev = ctx_to_dev(pctx);
-+	struct hva_h264_ctx *ctx = (struct hva_h264_ctx *)pctx->priv;
-+	struct hva_buffer *seq_info = ctx->seq_info;
-+	struct hva_buffer *fwd_ref_frame = ctx->ref_frame;
-+	struct hva_buffer *loc_rec_frame = ctx->rec_frame;
-+	struct hva_h264_td *td = &task->td;
-+	struct hva_controls *ctrls = &pctx->ctrls;
-+	struct v4l2_fract *time_per_frame = &pctx->ctrls.time_per_frame;
-+	int cavlc =  V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CAVLC;
-+	u32 frame_num = pctx->stream_num;
-+	u32 addr_esram = hva->esram_addr;
-+	enum v4l2_mpeg_video_h264_level level;
-+	dma_addr_t paddr = 0;
-+	u8 *slice_header_vaddr;
-+	u32 frame_width = frame->info.aligned_width;
-+	u32 frame_height = frame->info.aligned_height;
-+	u32 max_cpb_buffer_size;
-+	unsigned int payload = stream->bytesused;
-+	u32 max_bitrate;
-+
-+	/* check width and height parameters */
-+	if ((frame_width > max(H264_MAX_SIZE_W, H264_MAX_SIZE_H)) ||
-+	    (frame_height > max(H264_MAX_SIZE_W, H264_MAX_SIZE_H))) {
-+		dev_err(dev,
-+			"%s   width(%d) or height(%d) exceeds limits (%dx%d)\n",
-+			pctx->name, frame_width, frame_height,
-+			H264_MAX_SIZE_W, H264_MAX_SIZE_H);
-+		return -EINVAL;
-+	}
-+
-+	level = ctrls->level;
-+
-+	memset(td, 0, sizeof(struct hva_h264_td));
-+
-+	td->frame_width = frame_width;
-+	td->frame_height = frame_height;
-+
-+	/* set frame alignement */
-+	td->window_width =  frame_width;
-+	td->window_height = frame_height;
-+	td->window_horizontal_offset = 0;
-+	td->window_vertical_offset = 0;
-+
-+	td->first_picture_in_sequence = (!frame_num) ? 1 : 0;
-+
-+	/* pic_order_cnt_type hard coded to '2' as only I & P frames */
-+	td->pic_order_cnt_type = 2;
-+
-+	/* useConstrainedIntraFlag set to false for better coding efficiency */
-+	td->use_constrained_intra_flag = false;
-+	td->brc_type = (ctrls->bitrate_mode == V4L2_MPEG_VIDEO_BITRATE_MODE_CBR)
-+			? BRC_TYPE_CBR : BRC_TYPE_VBR;
-+
-+	td->entropy_coding_mode = (ctrls->entropy_mode == cavlc) ? CAVLC :
-+				  CABAC;
-+
-+	/* convert bitrate in bits per seconds */
-+	td->bit_rate = ctrls->bitrate * 1000;
-+
-+	/* set framerate, framerate = 1 n/ time per frame */
-+	if (time_per_frame->numerator >= 536) {
-+		/*
-+		 * due to a hardware bug, framerate denominator can't exceed
-+		 * 536 (BRC overflow). Compute nearest framerate
-+		 */
-+		td->framerate_den = 1;
-+		td->framerate_num = (time_per_frame->denominator +
-+				    (time_per_frame->numerator >> 1) - 1) /
-+				    time_per_frame->numerator;
-+
-+		/*
-+		 * update bitrate to introduce a correction due to
-+		 * the new framerate
-+		 * new bitrate = (old bitrate * new framerate) / old framerate
-+		 */
-+		td->bit_rate /= time_per_frame->numerator;
-+		td->bit_rate *= time_per_frame->denominator;
-+		td->bit_rate /= td->framerate_num;
-+	} else {
-+		td->framerate_den = time_per_frame->numerator;
-+		td->framerate_num = time_per_frame->denominator;
-+	}
-+
-+	/* compute maximum bitrate depending on profile */
-+	if (ctrls->profile >= V4L2_MPEG_VIDEO_H264_PROFILE_HIGH)
-+		max_bitrate = h264_infos_list[level].max_bitrate *
-+			      H264_FACTOR_HIGH;
-+	else
-+		max_bitrate = h264_infos_list[level].max_bitrate *
-+			      H264_FACTOR_BASELINE;
-+
-+	/* check if bitrate doesn't exceed max size */
-+	if (td->bit_rate > max_bitrate) {
-+		dev_dbg(dev,
-+			"%s   bitrate (%d) larger than level and profile allow, clip to %d\n",
-+			pctx->name, td->bit_rate, max_bitrate);
-+		td->bit_rate = max_bitrate;
-+	}
-+
-+	/* convert cpb_buffer_size in bits */
-+	td->cpb_buffer_size = ctrls->cpb_size * 1000;
-+
-+	/* compute maximum cpb buffer size depending on profile */
-+	if (ctrls->profile >= V4L2_MPEG_VIDEO_H264_PROFILE_HIGH)
-+		max_cpb_buffer_size =
-+		    h264_infos_list[level].max_cpb_size * H264_FACTOR_HIGH;
-+	else
-+		max_cpb_buffer_size =
-+		    h264_infos_list[level].max_cpb_size * H264_FACTOR_BASELINE;
-+
-+	/* check if cpb buffer size doesn't exceed max size */
-+	if (td->cpb_buffer_size > max_cpb_buffer_size) {
-+		dev_dbg(dev,
-+			"%s   cpb size larger than level %d allows, clip to %d\n",
-+			pctx->name, td->cpb_buffer_size, max_cpb_buffer_size);
-+		td->cpb_buffer_size = max_cpb_buffer_size;
-+	}
-+
-+	/* enable skipping in the Bitrate Controller */
-+	td->brc_no_skip = 0;
-+
-+	/* initial delay */
-+	if ((ctrls->bitrate_mode == V4L2_MPEG_VIDEO_BITRATE_MODE_CBR) &&
-+	    td->bit_rate)
-+		td->delay = 1000 * (td->cpb_buffer_size / td->bit_rate);
-+	else
-+		td->delay = 0;
-+
-+	switch (frame->info.pixelformat) {
-+	case V4L2_PIX_FMT_NV12:
-+		td->sampling_mode = SAMPLING_MODE_NV12;
-+		break;
-+	case V4L2_PIX_FMT_NV21:
-+		td->sampling_mode = SAMPLING_MODE_NV21;
-+		break;
-+	default:
-+		dev_err(dev, "%s   invalid source pixel format\n",
-+			pctx->name);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * fill matrix color converter (RGB to YUV)
-+	 * Y = 0,299 R + 0,587 G + 0,114 B
-+	 * Cb = -0,1687 R -0,3313 G + 0,5 B + 128
-+	 * Cr = 0,5 R - 0,4187 G - 0,0813 B + 128
-+	 */
-+	td->rgb2_yuv_y_coeff = 0x12031008;
-+	td->rgb2_yuv_u_coeff = 0x800EF7FB;
-+	td->rgb2_yuv_v_coeff = 0x80FEF40E;
-+
-+	/* enable/disable transform mode */
-+	td->transform_mode = ctrls->dct8x8;
-+
-+	/* encoder complexity fix to 2, ENCODE_I_16x16_I_NxN_P_16x16_P_WxH */
-+	td->encoder_complexity = 2;
-+
-+	/* quant fix to 28, default VBR value */
-+	td->quant = 28;
-+
-+	if (td->framerate_den == 0) {
-+		dev_err(dev, "%s   invalid framerate\n", pctx->name);
-+		return -EINVAL;
-+	}
-+
-+	/* if automatic framerate, deactivate bitrate controller */
-+	if (td->framerate_num == 0)
-+		td->brc_type = 0;
-+
-+	/* compliancy fix to true */
-+	td->strict_hrd_compliancy = 1;
-+
-+	/* set minimum & maximum quantizers */
-+	td->qp_min = clamp_val(ctrls->qpmin, 0, 51);
-+	td->qp_max = clamp_val(ctrls->qpmax, 0, 51);
-+
-+	td->addr_source_buffer = frame->paddr;
-+	td->addr_fwd_ref_buffer = fwd_ref_frame->paddr;
-+	td->addr_rec_buffer = loc_rec_frame->paddr;
-+
-+	td->addr_output_bitstream_end = (u32)stream->paddr + stream->size;
-+
-+	td->addr_output_bitstream_start = (u32)stream->paddr;
-+	td->bitstream_offset = (((u32)stream->paddr & 0xF) << 3) &
-+			       BITSTREAM_OFFSET_MASK;
-+
-+	td->addr_param_out = (u32)ctx->task->paddr +
-+			     offsetof(struct hva_h264_task, po);
-+
-+	/* swap spatial and temporal context */
-+	if (frame_num % 2) {
-+		paddr = seq_info->paddr;
-+		td->addr_spatial_context =  ALIGN(paddr, 0x100);
-+		paddr = seq_info->paddr + DATA_SIZE(frame_width,
-+							frame_height);
-+		td->addr_temporal_context = ALIGN(paddr, 0x100);
-+	} else {
-+		paddr = seq_info->paddr;
-+		td->addr_temporal_context = ALIGN(paddr, 0x100);
-+		paddr = seq_info->paddr + DATA_SIZE(frame_width,
-+							frame_height);
-+		td->addr_spatial_context =  ALIGN(paddr, 0x100);
-+	}
-+
-+	paddr = seq_info->paddr + 2 * DATA_SIZE(frame_width, frame_height);
-+
-+	td->addr_brc_in_out_parameter =  ALIGN(paddr, 0x100);
-+
-+	paddr = td->addr_brc_in_out_parameter + BRC_DATA_SIZE;
-+	td->addr_slice_header =  ALIGN(paddr, 0x100);
-+	td->addr_external_sw =  ALIGN(addr_esram, 0x100);
-+
-+	addr_esram += SEARCH_WINDOW_BUFFER_MAX_SIZE(frame_width);
-+	td->addr_local_rec_buffer = ALIGN(addr_esram, 0x100);
-+
-+	addr_esram += LOCAL_RECONSTRUCTED_BUFFER_MAX_SIZE(frame_width);
-+	td->addr_lctx = ALIGN(addr_esram, 0x100);
-+
-+	addr_esram += CTX_MB_BUFFER_MAX_SIZE(max(frame_width, frame_height));
-+	td->addr_cabac_context_buffer = ALIGN(addr_esram, 0x100);
-+
-+	if (!(frame_num % ctrls->gop_size)) {
-+		td->picture_coding_type = PICTURE_CODING_TYPE_I;
-+		stream->vbuf.flags |= V4L2_BUF_FLAG_KEYFRAME;
-+	} else {
-+		td->picture_coding_type = PICTURE_CODING_TYPE_P;
-+		stream->vbuf.flags &= ~V4L2_BUF_FLAG_KEYFRAME;
-+	}
-+
-+	/* fill the slice header part */
-+	slice_header_vaddr = seq_info->vaddr + (td->addr_slice_header -
-+			     seq_info->paddr);
-+
-+	hva_h264_fill_slice_header(pctx, slice_header_vaddr, ctrls, frame_num,
-+				   &td->slice_header_size_in_bits,
-+				   &td->slice_header_offset0,
-+				   &td->slice_header_offset1,
-+				   &td->slice_header_offset2);
-+
-+	td->chroma_qp_index_offset = 2;
-+	td->slice_synchro_enable = 0;
-+	td->max_slice_number = 1;
-+
-+	/*
-+	 * check the sps/pps header size for key frame only
-+	 * sps/pps header was previously fill by libv4l
-+	 * during qbuf of stream buffer
-+	 */
-+	if ((stream->vbuf.flags == V4L2_BUF_FLAG_KEYFRAME) &&
-+	    (payload > MAX_SPS_PPS_SIZE)) {
-+		dev_err(dev, "%s   invalid sps/pps size %d\n", pctx->name,
-+			payload);
-+		return -EINVAL;
-+	}
-+
-+	if (stream->vbuf.flags != V4L2_BUF_FLAG_KEYFRAME)
-+		payload = 0;
-+
-+	/* add SEI nal (video stereo info) */
-+	if (ctrls->sei_fp && hva_h264_fill_sei_nal(pctx, SEI_STEREO_VIDEO_INFO,
-+						   (u8 *)stream->vaddr,
-+						   &payload)) {
-+		dev_err(dev, "%s   fail to get SEI nal\n", pctx->name);
-+		return -EINVAL;
-+	}
-+
-+	/* fill size of non-VCL NAL units (SPS, PPS, filler and SEI) */
-+	td->non_vcl_nalu_size = payload * 8;
-+
-+	/* compute bitstream offset & new start address of bitstream */
-+	td->addr_output_bitstream_start += ((payload >> 4) << 4);
-+	td->bitstream_offset += (payload - ((payload >> 4) << 4)) * 8;
-+
-+	stream->bytesused = payload;
-+
-+	return 0;
-+}
-+
-+static unsigned int hva_h264_get_stream_size(struct hva_h264_task *task)
-+{
-+	struct hva_h264_po *po = &task->po;
-+
-+	return po->bitstream_size;
-+}
-+
-+static u32 hva_h264_get_stuffing_bytes(struct hva_h264_task *task)
-+{
-+	struct hva_h264_po *po = &task->po;
-+
-+	return po->stuffing_bits >> 3;
-+}
-+
-+static int hva_h264_open(struct hva_ctx *pctx)
-+{
-+	struct device *dev = ctx_to_dev(pctx);
-+	struct hva_h264_ctx *ctx;
-+	struct hva_dev *hva = ctx_to_hdev(pctx);
-+	u32 frame_width = pctx->frameinfo.aligned_width;
-+	u32 frame_height = pctx->frameinfo.aligned_height;
-+	u32 size;
-+	int ret;
-+
-+	/* check esram size necessary to encode a frame */
-+	size = SEARCH_WINDOW_BUFFER_MAX_SIZE(frame_width) +
-+	       LOCAL_RECONSTRUCTED_BUFFER_MAX_SIZE(frame_width) +
-+	       CTX_MB_BUFFER_MAX_SIZE(max(frame_width, frame_height)) +
-+	       CABAC_CONTEXT_BUFFER_MAX_SIZE(frame_width);
-+
-+	if (hva->esram_size < size) {
-+		dev_err(dev, "%s   not enough esram (max:%d request:%d)\n",
-+			pctx->name, hva->esram_size, size);
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	/* allocate context for codec */
-+	ctx = devm_kzalloc(dev, sizeof(*ctx), GFP_KERNEL);
-+	if (!ctx) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	/* allocate sequence info buffer */
-+	ret = hva_mem_alloc(pctx,
-+			    2 * DATA_SIZE(frame_width, frame_height) +
-+			    SLICE_HEADER_SIZE +
-+			    BRC_DATA_SIZE,
-+			    "hva sequence info",
-+			    &ctx->seq_info);
-+	if (ret) {
-+		dev_err(dev,
-+			"%s   failed to allocate sequence info buffer\n",
-+			pctx->name);
-+		goto err_ctx;
-+	}
-+
-+	/* allocate reference frame buffer */
-+	ret = hva_mem_alloc(pctx,
-+			    frame_width * frame_height * 3 / 2,
-+			    "hva reference frame",
-+			    &ctx->ref_frame);
-+	if (ret) {
-+		dev_err(dev, "%s   failed to allocate reference frame buffer\n",
-+			pctx->name);
-+		goto err_seq_info;
-+	}
-+
-+	/* allocate reconstructed frame buffer */
-+	ret = hva_mem_alloc(pctx,
-+			    frame_width * frame_height * 3 / 2,
-+			    "hva reconstructed frame",
-+			    &ctx->rec_frame);
-+	if (ret) {
-+		dev_err(dev,
-+			"%s   failed to allocate reconstructed frame buffer\n",
-+			pctx->name);
-+		goto err_ref_frame;
-+	}
-+
-+	/* allocate task descriptor */
-+	ret = hva_mem_alloc(pctx,
-+			    sizeof(struct hva_h264_task),
-+			    "hva task descriptor",
-+			    &ctx->task);
-+	if (ret) {
-+		dev_err(dev,
-+			"%s   failed to allocate task descriptor\n",
-+			pctx->name);
-+		goto err_rec_frame;
-+	}
-+
-+	pctx->priv = (void *)ctx;
-+
-+	return 0;
-+
-+err_rec_frame:
-+	hva_mem_free(pctx, ctx->rec_frame);
-+err_ref_frame:
-+	hva_mem_free(pctx, ctx->ref_frame);
-+err_seq_info:
-+	hva_mem_free(pctx, ctx->seq_info);
-+err_ctx:
-+	devm_kfree(dev, ctx);
-+err:
-+	return ret;
-+}
-+
-+static int hva_h264_close(struct hva_ctx *pctx)
-+{
-+	struct hva_h264_ctx *ctx = (struct hva_h264_ctx *)pctx->priv;
-+	struct device *dev = ctx_to_dev(pctx);
-+
-+	if (ctx->seq_info)
-+		hva_mem_free(pctx, ctx->seq_info);
-+
-+	if (ctx->ref_frame)
-+		hva_mem_free(pctx, ctx->ref_frame);
-+
-+	if (ctx->rec_frame)
-+		hva_mem_free(pctx, ctx->rec_frame);
-+
-+	if (ctx->task)
-+		hva_mem_free(pctx, ctx->task);
-+
-+	devm_kfree(dev, ctx);
-+
-+	return 0;
-+}
-+
-+static int hva_h264_encode(struct hva_ctx *pctx, struct hva_frame *frame,
-+			   struct hva_stream *stream)
-+{
-+	struct hva_h264_ctx *ctx = (struct hva_h264_ctx *)pctx->priv;
-+	struct hva_h264_task *task = (struct hva_h264_task *)ctx->task->vaddr;
-+	struct hva_buffer *tmp_frame;
-+	u32 stuffing_bytes = 0;
-+	int ret = 0;
-+
-+	ret = hva_h264_prepare_task(pctx, task, frame, stream);
-+	if (ret)
-+		goto err;
-+
-+	ret = hva_hw_execute_task(pctx, H264_ENC, ctx->task);
-+	if (ret)
-+		goto err;
-+
-+	pctx->stream_num++;
-+	stream->bytesused += hva_h264_get_stream_size(task);
-+
-+	stuffing_bytes = hva_h264_get_stuffing_bytes(task);
-+
-+	if (stuffing_bytes)
-+		hva_h264_fill_data_nal(pctx, stuffing_bytes,
-+				       (u8 *)stream->vaddr,
-+				       stream->size,
-+				       &stream->bytesused);
-+
-+	vb2_set_plane_payload(&stream->vbuf.vb2_buf, 0, stream->bytesused);
-+
-+	/* switch reference & reconstructed frame */
-+	tmp_frame = ctx->ref_frame;
-+	ctx->ref_frame = ctx->rec_frame;
-+	ctx->rec_frame = tmp_frame;
-+
-+	return 0;
-+err:
-+	vb2_set_plane_payload(&stream->vbuf.vb2_buf, 0, 0);
-+	return ret;
-+}
-+
-+const struct hva_enc nv12h264enc = {
-+	.name = "H264(NV12)",
-+	.pixelformat = V4L2_PIX_FMT_NV12,
-+	.streamformat = V4L2_PIX_FMT_H264,
-+	.max_width = H264_MAX_SIZE_W,
-+	.max_height = H264_MAX_SIZE_H,
-+	.open = hva_h264_open,
-+	.close = hva_h264_close,
-+	.encode = hva_h264_encode,
-+};
-+
-+const struct hva_enc nv21h264enc = {
-+	.name = "H264(NV21)",
-+	.pixelformat = V4L2_PIX_FMT_NV21,
-+	.streamformat = V4L2_PIX_FMT_H264,
-+	.max_width = H264_MAX_SIZE_W,
-+	.max_height = H264_MAX_SIZE_H,
-+	.open = hva_h264_open,
-+	.close = hva_h264_close,
-+	.encode = hva_h264_encode,
-+};
-diff --git a/drivers/media/platform/sti/hva/hva-v4l2.c b/drivers/media/platform/sti/hva/hva-v4l2.c
-index 9bb455a..00261ea 100644
---- a/drivers/media/platform/sti/hva/hva-v4l2.c
-+++ b/drivers/media/platform/sti/hva/hva-v4l2.c
-@@ -41,6 +41,8 @@
- 
- /* registry of available encoders */
- const struct hva_enc *hva_encoders[] = {
-+	&nv12h264enc,
-+	&nv21h264enc,
- };
- 
- static inline int frame_size(u32 w, u32 h, u32 fmt)
-@@ -603,6 +605,49 @@ static int hva_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_MPEG_VIDEO_ASPECT:
- 		ctx->ctrls.aspect = ctrl->val;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
-+		ctx->ctrls.profile = ctrl->val;
-+		if (ctx->flags & HVA_FLAG_STREAMINFO)
-+			snprintf(ctx->streaminfo.profile,
-+				 sizeof(ctx->streaminfo.profile),
-+				 "%s profile",
-+				 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
-+		ctx->ctrls.level = ctrl->val;
-+		if (ctx->flags & HVA_FLAG_STREAMINFO)
-+			snprintf(ctx->streaminfo.level,
-+				 sizeof(ctx->streaminfo.level),
-+				 "level %s",
-+				 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE:
-+		ctx->ctrls.entropy_mode = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE:
-+		ctx->ctrls.cpb_size = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM:
-+		ctx->ctrls.dct8x8 = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:
-+		ctx->ctrls.qpmin = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP:
-+		ctx->ctrls.qpmax = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:
-+		ctx->ctrls.vui_sar = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:
-+		ctx->ctrls.vui_sar_idc = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_SEI_FRAME_PACKING:
-+		ctx->ctrls.sei_fp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE:
-+		ctx->ctrls.sei_fp_type = ctrl->val;
-+		break;
- 	default:
- 		dev_dbg(dev, "%s S_CTRL: invalid control (id = %d)\n",
- 			ctx->name, ctrl->id);
-@@ -621,8 +666,10 @@ static int hva_ctrls_setup(struct hva_ctx *ctx)
- {
- 	struct device *dev = ctx_to_dev(ctx);
- 	u64 mask;
-+	enum v4l2_mpeg_video_h264_sei_fp_arrangement_type sei_fp_type =
-+		V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_TOP_BOTTOM;
- 
--	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 4);
-+	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 15);
- 
- 	v4l2_ctrl_new_std_menu(&ctx->ctrl_handler, &hva_ctrl_ops,
- 			       V4L2_CID_MPEG_VIDEO_BITRATE_MODE,
-@@ -645,6 +692,66 @@ static int hva_ctrls_setup(struct hva_ctx *ctx)
- 			       mask,
- 			       V4L2_MPEG_VIDEO_ASPECT_1x1);
- 
-+	mask = ~((1 << V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE) |
-+		 (1 << V4L2_MPEG_VIDEO_H264_PROFILE_MAIN) |
-+		 (1 << V4L2_MPEG_VIDEO_H264_PROFILE_HIGH) |
-+		 (1 << V4L2_MPEG_VIDEO_H264_PROFILE_STEREO_HIGH));
-+	v4l2_ctrl_new_std_menu(&ctx->ctrl_handler, &hva_ctrl_ops,
-+			       V4L2_CID_MPEG_VIDEO_H264_PROFILE,
-+			       V4L2_MPEG_VIDEO_H264_PROFILE_STEREO_HIGH,
-+			       mask,
-+			       V4L2_MPEG_VIDEO_H264_PROFILE_HIGH);
-+
-+	v4l2_ctrl_new_std_menu(&ctx->ctrl_handler, &hva_ctrl_ops,
-+			       V4L2_CID_MPEG_VIDEO_H264_LEVEL,
-+			       V4L2_MPEG_VIDEO_H264_LEVEL_4_2,
-+			       0,
-+			       V4L2_MPEG_VIDEO_H264_LEVEL_4_0);
-+
-+	v4l2_ctrl_new_std_menu(&ctx->ctrl_handler, &hva_ctrl_ops,
-+			       V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE,
-+			       V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CABAC,
-+			       0,
-+			       V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CAVLC);
-+
-+	v4l2_ctrl_new_std(&ctx->ctrl_handler, &hva_ctrl_ops,
-+			  V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE,
-+			  1, 62500, 1, 25000);
-+
-+	v4l2_ctrl_new_std(&ctx->ctrl_handler, &hva_ctrl_ops,
-+			  V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM,
-+			  0, 1, 1, 0);
-+
-+	v4l2_ctrl_new_std(&ctx->ctrl_handler, &hva_ctrl_ops,
-+			  V4L2_CID_MPEG_VIDEO_H264_MIN_QP,
-+			  0, 51, 1, 5);
-+
-+	v4l2_ctrl_new_std(&ctx->ctrl_handler, &hva_ctrl_ops,
-+			  V4L2_CID_MPEG_VIDEO_H264_MAX_QP,
-+			  0, 51, 1, 51);
-+
-+	v4l2_ctrl_new_std(&ctx->ctrl_handler, &hva_ctrl_ops,
-+			  V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE,
-+			  0, 1, 1, 1);
-+
-+	mask = ~(1 << V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_1x1);
-+	v4l2_ctrl_new_std_menu(&ctx->ctrl_handler, &hva_ctrl_ops,
-+			       V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC,
-+			       V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_1x1,
-+			       mask,
-+			       V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_1x1);
-+
-+	v4l2_ctrl_new_std(&ctx->ctrl_handler, &hva_ctrl_ops,
-+			  V4L2_CID_MPEG_VIDEO_H264_SEI_FRAME_PACKING,
-+			  0, 1, 1, 0);
-+
-+	mask = ~(1 << sei_fp_type);
-+	v4l2_ctrl_new_std_menu(&ctx->ctrl_handler, &hva_ctrl_ops,
-+			       V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE,
-+			       sei_fp_type,
-+			       mask,
-+			       sei_fp_type);
-+
- 	if (ctx->ctrl_handler.error) {
- 		int err = ctx->ctrl_handler.error;
- 
-diff --git a/drivers/media/platform/sti/hva/hva.h b/drivers/media/platform/sti/hva/hva.h
-index 9e9da9e..31d8e61 100644
---- a/drivers/media/platform/sti/hva/hva.h
-+++ b/drivers/media/platform/sti/hva/hva.h
-@@ -23,6 +23,9 @@
- 
- #define HVA_PREFIX "[---:----]"
- 
-+extern const struct hva_enc nv12h264enc;
-+extern const struct hva_enc nv21h264enc;
-+
- /**
-  * struct hva_frameinfo - information about hva frame
-  *
-@@ -67,13 +70,35 @@ struct hva_streaminfo {
-  * @gop_size:       groupe of picture size
-  * @bitrate:        bitrate (in kbps)
-  * @aspect:         video aspect
-+ * @profile:        H.264 profile
-+ * @level:          H.264 level
-+ * @entropy_mode:   H.264 entropy mode (CABAC or CVLC)
-+ * @cpb_size:       coded picture buffer size (in kbps)
-+ * @dct8x8:         transform mode 8x8 enable
-+ * @qpmin:          minimum quantizer
-+ * @qpmax:          maximum quantizer
-+ * @vui_sar:        pixel aspect ratio enable
-+ * @vui_sar_idc:    pixel aspect ratio identifier
-+ * @sei_fp:         sei frame packing arrangement enable
-+ * @sei_fp_type:    sei frame packing arrangement type
-  */
- struct hva_controls {
--	struct v4l2_fract			time_per_frame;
--	enum v4l2_mpeg_video_bitrate_mode	bitrate_mode;
--	u32					gop_size;
--	u32					bitrate;
--	enum v4l2_mpeg_video_aspect		aspect;
-+	struct v4l2_fract					time_per_frame;
-+	enum v4l2_mpeg_video_bitrate_mode			bitrate_mode;
-+	u32							gop_size;
-+	u32							bitrate;
-+	enum v4l2_mpeg_video_aspect				aspect;
-+	enum v4l2_mpeg_video_h264_profile			profile;
-+	enum v4l2_mpeg_video_h264_level				level;
-+	enum v4l2_mpeg_video_h264_entropy_mode			entropy_mode;
-+	u32							cpb_size;
-+	bool							dct8x8;
-+	u32							qpmin;
-+	u32							qpmax;
-+	bool							vui_sar;
-+	enum v4l2_mpeg_video_h264_vui_sar_idc			vui_sar_idc;
-+	bool							sei_fp;
-+	enum v4l2_mpeg_video_h264_sei_fp_arrangement_type	sei_fp_type;
- };
- 
- /**
+Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+PS.: If you prefer to apply this one via my tree, I'm ok too. Just
+let me know when the first patch gets merged upstream.
+
+Regards,
+Mauro
+
+> ---
+>  MAINTAINERS                               |   8 -
+>  drivers/gpu/drm/exynos/Kconfig            |   1 -
+>  drivers/media/platform/Kconfig            |  12 -
+>  drivers/media/platform/Makefile           |   1 -
+>  drivers/media/platform/s5p-g2d/Makefile   |   3 -
+>  drivers/media/platform/s5p-g2d/g2d-hw.c   | 117 -----
+>  drivers/media/platform/s5p-g2d/g2d-regs.h | 122 -----
+>  drivers/media/platform/s5p-g2d/g2d.c      | 800 ------------------------------
+>  drivers/media/platform/s5p-g2d/g2d.h      |  91 ----
+>  9 files changed, 1155 deletions(-)
+>  delete mode 100644 drivers/media/platform/s5p-g2d/Makefile
+>  delete mode 100644 drivers/media/platform/s5p-g2d/g2d-hw.c
+>  delete mode 100644 drivers/media/platform/s5p-g2d/g2d-regs.h
+>  delete mode 100644 drivers/media/platform/s5p-g2d/g2d.c
+>  delete mode 100644 drivers/media/platform/s5p-g2d/g2d.h
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 243c0811a4d8..01763419c6a1 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -1616,14 +1616,6 @@ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+>  S:	Maintained
+>  F:	arch/arm/mach-s5pv210/
+>  
+> -ARM/SAMSUNG S5P SERIES 2D GRAPHICS ACCELERATION (G2D) SUPPORT
+> -M:	Kyungmin Park <kyungmin.park@samsung.com>
+> -M:	Kamil Debski <k.debski@samsung.com>
+> -L:	linux-arm-kernel@lists.infradead.org
+> -L:	linux-media@vger.kernel.org
+> -S:	Maintained
+> -F:	drivers/media/platform/s5p-g2d/
+> -
+>  ARM/SAMSUNG S5P SERIES Multi Format Codec (MFC) SUPPORT
+>  M:	Kyungmin Park <kyungmin.park@samsung.com>
+>  M:	Kamil Debski <k.debski@samsung.com>
+> diff --git a/drivers/gpu/drm/exynos/Kconfig b/drivers/gpu/drm/exynos/Kconfig
+> index d814b3048ee5..b0eb20ba1b28 100644
+> --- a/drivers/gpu/drm/exynos/Kconfig
+> +++ b/drivers/gpu/drm/exynos/Kconfig
+> @@ -95,7 +95,6 @@ comment "Sub-drivers"
+>  
+>  config DRM_EXYNOS_G2D
+>  	bool "G2D"
+> -	depends on VIDEO_SAMSUNG_S5P_G2D=n
+>  	select FRAME_VECTOR
+>  	help
+>  	  Choose this option if you want to use Exynos G2D for DRM.
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index 84e041c0a70e..171005c53d62 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -161,18 +161,6 @@ config VIDEO_MEM2MEM_DEINTERLACE
+>  	help
+>  	    Generic deinterlacing V4L2 driver.
+>  
+> -config VIDEO_SAMSUNG_S5P_G2D
+> -	tristate "Samsung S5P and EXYNOS4 G2D 2d graphics accelerator driver"
+> -	depends on VIDEO_DEV && VIDEO_V4L2
+> -	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
+> -	depends on HAS_DMA
+> -	select VIDEOBUF2_DMA_CONTIG
+> -	select V4L2_MEM2MEM_DEV
+> -	default n
+> -	---help---
+> -	  This is a v4l2 driver for Samsung S5P and EXYNOS4 G2D
+> -	  2d graphics accelerator.
+> -
+>  config VIDEO_SAMSUNG_S5P_JPEG
+>  	tristate "Samsung S5P/Exynos3250/Exynos4 JPEG codec driver"
+>  	depends on VIDEO_DEV && VIDEO_V4L2
+> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+> index bbb7bd1eb268..ad5e26a0bd17 100644
+> --- a/drivers/media/platform/Makefile
+> +++ b/drivers/media/platform/Makefile
+> @@ -32,7 +32,6 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
+>  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC)	+= s5p-mfc/
+>  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
+>  
+> -obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
+>  obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
+>  
+>  obj-$(CONFIG_VIDEO_STI_BDISP)		+= sti/bdisp/
+> diff --git a/drivers/media/platform/s5p-g2d/Makefile b/drivers/media/platform/s5p-g2d/Makefile
+> deleted file mode 100644
+> index 2c48c416a804..000000000000
+> --- a/drivers/media/platform/s5p-g2d/Makefile
+> +++ /dev/null
+> @@ -1,3 +0,0 @@
+> -s5p-g2d-objs := g2d.o g2d-hw.o
+> -
+> -obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d.o
+> diff --git a/drivers/media/platform/s5p-g2d/g2d-hw.c b/drivers/media/platform/s5p-g2d/g2d-hw.c
+> deleted file mode 100644
+> index e87bd93811d4..000000000000
+> --- a/drivers/media/platform/s5p-g2d/g2d-hw.c
+> +++ /dev/null
+> @@ -1,117 +0,0 @@
+> -/*
+> - * Samsung S5P G2D - 2D Graphics Accelerator Driver
+> - *
+> - * Copyright (c) 2011 Samsung Electronics Co., Ltd.
+> - * Kamil Debski, <k.debski@samsung.com>
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License as published by the
+> - * Free Software Foundation; either version 2 of the
+> - * License, or (at your option) any later version
+> - */
+> -
+> -#include <linux/io.h>
+> -
+> -#include "g2d.h"
+> -#include "g2d-regs.h"
+> -
+> -#define w(x, a)	writel((x), d->regs + (a))
+> -#define r(a)	readl(d->regs + (a))
+> -
+> -/* g2d_reset clears all g2d registers */
+> -void g2d_reset(struct g2d_dev *d)
+> -{
+> -	w(1, SOFT_RESET_REG);
+> -}
+> -
+> -void g2d_set_src_size(struct g2d_dev *d, struct g2d_frame *f)
+> -{
+> -	u32 n;
+> -
+> -	w(0, SRC_SELECT_REG);
+> -	w(f->stride & 0xFFFF, SRC_STRIDE_REG);
+> -
+> -	n = f->o_height & 0xFFF;
+> -	n <<= 16;
+> -	n |= f->o_width & 0xFFF;
+> -	w(n, SRC_LEFT_TOP_REG);
+> -
+> -	n = f->bottom & 0xFFF;
+> -	n <<= 16;
+> -	n |= f->right & 0xFFF;
+> -	w(n, SRC_RIGHT_BOTTOM_REG);
+> -
+> -	w(f->fmt->hw, SRC_COLOR_MODE_REG);
+> -}
+> -
+> -void g2d_set_src_addr(struct g2d_dev *d, dma_addr_t a)
+> -{
+> -	w(a, SRC_BASE_ADDR_REG);
+> -}
+> -
+> -void g2d_set_dst_size(struct g2d_dev *d, struct g2d_frame *f)
+> -{
+> -	u32 n;
+> -
+> -	w(0, DST_SELECT_REG);
+> -	w(f->stride & 0xFFFF, DST_STRIDE_REG);
+> -
+> -	n = f->o_height & 0xFFF;
+> -	n <<= 16;
+> -	n |= f->o_width & 0xFFF;
+> -	w(n, DST_LEFT_TOP_REG);
+> -
+> -	n = f->bottom & 0xFFF;
+> -	n <<= 16;
+> -	n |= f->right & 0xFFF;
+> -	w(n, DST_RIGHT_BOTTOM_REG);
+> -
+> -	w(f->fmt->hw, DST_COLOR_MODE_REG);
+> -}
+> -
+> -void g2d_set_dst_addr(struct g2d_dev *d, dma_addr_t a)
+> -{
+> -	w(a, DST_BASE_ADDR_REG);
+> -}
+> -
+> -void g2d_set_rop4(struct g2d_dev *d, u32 r)
+> -{
+> -	w(r, ROP4_REG);
+> -}
+> -
+> -void g2d_set_flip(struct g2d_dev *d, u32 r)
+> -{
+> -	w(r, SRC_MSK_DIRECT_REG);
+> -}
+> -
+> -void g2d_set_v41_stretch(struct g2d_dev *d, struct g2d_frame *src,
+> -					struct g2d_frame *dst)
+> -{
+> -	w(DEFAULT_SCALE_MODE, SRC_SCALE_CTRL_REG);
+> -
+> -	/* inversed scaling factor: src is numerator */
+> -	w((src->c_width << 16) / dst->c_width, SRC_XSCALE_REG);
+> -	w((src->c_height << 16) / dst->c_height, SRC_YSCALE_REG);
+> -}
+> -
+> -void g2d_set_cmd(struct g2d_dev *d, u32 c)
+> -{
+> -	w(c, BITBLT_COMMAND_REG);
+> -}
+> -
+> -void g2d_start(struct g2d_dev *d)
+> -{
+> -	/* Clear cache */
+> -	if (d->variant->hw_rev == TYPE_G2D_3X)
+> -		w(0x7, CACHECTL_REG);
+> -
+> -	/* Enable interrupt */
+> -	w(1, INTEN_REG);
+> -	/* Start G2D engine */
+> -	w(1, BITBLT_START_REG);
+> -}
+> -
+> -void g2d_clear_int(struct g2d_dev *d)
+> -{
+> -	w(1, INTC_PEND_REG);
+> -}
+> diff --git a/drivers/media/platform/s5p-g2d/g2d-regs.h b/drivers/media/platform/s5p-g2d/g2d-regs.h
+> deleted file mode 100644
+> index 9bf31ad35d47..000000000000
+> --- a/drivers/media/platform/s5p-g2d/g2d-regs.h
+> +++ /dev/null
+> @@ -1,122 +0,0 @@
+> -/*
+> - * Samsung S5P G2D - 2D Graphics Accelerator Driver
+> - *
+> - * Copyright (c) 2011 Samsung Electronics Co., Ltd.
+> - * Kamil Debski, <k.debski@samsung.com>
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License as published by the
+> - * Free Software Foundation; either version 2 of the
+> - * License, or (at your option) any later version
+> - */
+> -
+> -/* General Registers */
+> -#define SOFT_RESET_REG		0x0000	/* Software reset reg */
+> -#define INTEN_REG		0x0004	/* Interrupt Enable reg */
+> -#define INTC_PEND_REG		0x000C	/* Interrupt Control Pending reg */
+> -#define FIFO_STAT_REG		0x0010	/* Command FIFO Status reg */
+> -#define AXI_ID_MODE_REG		0x0014	/* AXI Read ID Mode reg */
+> -#define CACHECTL_REG		0x0018	/* Cache & Buffer clear reg */
+> -#define AXI_MODE_REG		0x001C	/* AXI Mode reg */
+> -
+> -/* Command Registers */
+> -#define BITBLT_START_REG	0x0100	/* BitBLT Start reg */
+> -#define BITBLT_COMMAND_REG	0x0104	/* Command reg for BitBLT */
+> -
+> -/* Parameter Setting Registers (Rotate & Direction) */
+> -#define ROTATE_REG		0x0200	/* Rotation reg */
+> -#define SRC_MSK_DIRECT_REG	0x0204	/* Src and Mask Direction reg */
+> -#define DST_PAT_DIRECT_REG	0x0208	/* Dest and Pattern Direction reg */
+> -
+> -/* Parameter Setting Registers (Src) */
+> -#define SRC_SELECT_REG		0x0300	/* Src Image Selection reg */
+> -#define SRC_BASE_ADDR_REG	0x0304	/* Src Image Base Address reg */
+> -#define SRC_STRIDE_REG		0x0308	/* Src Stride reg */
+> -#define SRC_COLOR_MODE_REG	0x030C	/* Src Image Color Mode reg */
+> -#define SRC_LEFT_TOP_REG	0x0310	/* Src Left Top Coordinate reg */
+> -#define SRC_RIGHT_BOTTOM_REG	0x0314	/* Src Right Bottom Coordinate reg */
+> -#define SRC_SCALE_CTRL_REG	0x0328	/* Src Scaling type select */
+> -#define SRC_XSCALE_REG		0x032c	/* Src X Scaling ratio */
+> -#define SRC_YSCALE_REG		0x0330	/* Src Y Scaling ratio */
+> -
+> -/* Parameter Setting Registers (Dest) */
+> -#define DST_SELECT_REG		0x0400	/* Dest Image Selection reg */
+> -#define DST_BASE_ADDR_REG	0x0404	/* Dest Image Base Address reg */
+> -#define DST_STRIDE_REG		0x0408	/* Dest Stride reg */
+> -#define DST_COLOR_MODE_REG	0x040C	/* Dest Image Color Mode reg */
+> -#define DST_LEFT_TOP_REG	0x0410	/* Dest Left Top Coordinate reg */
+> -#define DST_RIGHT_BOTTOM_REG	0x0414	/* Dest Right Bottom Coordinate reg */
+> -
+> -/* Parameter Setting Registers (Pattern) */
+> -#define PAT_BASE_ADDR_REG	0x0500	/* Pattern Image Base Address reg */
+> -#define PAT_SIZE_REG		0x0504	/* Pattern Image Size reg */
+> -#define PAT_COLOR_MODE_REG	0x0508	/* Pattern Image Color Mode reg */
+> -#define PAT_OFFSET_REG		0x050C	/* Pattern Left Top Coordinate reg */
+> -#define PAT_STRIDE_REG		0x0510	/* Pattern Stride reg */
+> -
+> -/* Parameter Setting Registers (Mask) */
+> -#define MASK_BASE_ADDR_REG	0x0520	/* Mask Base Address reg */
+> -#define MASK_STRIDE_REG		0x0524	/* Mask Stride reg */
+> -
+> -/* Parameter Setting Registers (Clipping Window) */
+> -#define CW_LT_REG		0x0600	/* LeftTop coordinates of Clip Window */
+> -#define CW_RB_REG		0x0604	/* RightBottom coordinates of Clip
+> -								Window */
+> -
+> -/* Parameter Setting Registers (ROP & Alpha Setting) */
+> -#define THIRD_OPERAND_REG	0x0610	/* Third Operand Selection reg */
+> -#define ROP4_REG		0x0614	/* Raster Operation reg */
+> -#define ALPHA_REG		0x0618	/* Alpha value, Fading offset value */
+> -
+> -/* Parameter Setting Registers (Color) */
+> -#define FG_COLOR_REG		0x0700	/* Foreground Color reg */
+> -#define BG_COLOR_REG		0x0704	/* Background Color reg */
+> -#define BS_COLOR_REG		0x0708	/* Blue Screen Color reg */
+> -
+> -/* Parameter Setting Registers (Color Key) */
+> -#define SRC_COLORKEY_CTRL_REG	0x0710	/* Src Colorkey control reg */
+> -#define SRC_COLORKEY_DR_MIN_REG	0x0714	/* Src Colorkey Decision Reference
+> -								Min reg */
+> -#define SRC_COLORKEY_DR_MAX_REG	0x0718	/* Src Colorkey Decision Reference
+> -								Max reg */
+> -#define DST_COLORKEY_CTRL_REG	0x071C	/* Dest Colorkey control reg */
+> -#define DST_COLORKEY_DR_MIN_REG	0x0720	/* Dest Colorkey Decision Reference
+> -								Min reg */
+> -#define DST_COLORKEY_DR_MAX_REG	0x0724	/* Dest Colorkey Decision Reference
+> -								Max reg */
+> -
+> -/* Color mode values */
+> -
+> -#define ORDER_XRGB		0
+> -#define ORDER_RGBX		1
+> -#define ORDER_XBGR		2
+> -#define ORDER_BGRX		3
+> -
+> -#define MODE_XRGB_8888		0
+> -#define MODE_ARGB_8888		1
+> -#define MODE_RGB_565		2
+> -#define MODE_XRGB_1555		3
+> -#define MODE_ARGB_1555		4
+> -#define MODE_XRGB_4444		5
+> -#define MODE_ARGB_4444		6
+> -#define MODE_PACKED_RGB_888	7
+> -
+> -#define COLOR_MODE(o, m)	(((o) << 4) | (m))
+> -
+> -/* ROP4 operation values */
+> -#define ROP4_COPY		0xCCCC
+> -#define ROP4_INVERT		0x3333
+> -
+> -/* Hardware limits */
+> -#define MAX_WIDTH		8000
+> -#define MAX_HEIGHT		8000
+> -
+> -#define G2D_TIMEOUT		500
+> -
+> -#define DEFAULT_WIDTH		100
+> -#define DEFAULT_HEIGHT		100
+> -
+> -#define DEFAULT_SCALE_MODE	(2 << 0)
+> -
+> -/* Command mode register values */
+> -#define CMD_V3_ENABLE_STRETCH	(1 << 4)
+> diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+> deleted file mode 100644
+> index 612d1ea514f1..000000000000
+> --- a/drivers/media/platform/s5p-g2d/g2d.c
+> +++ /dev/null
+> @@ -1,800 +0,0 @@
+> -/*
+> - * Samsung S5P G2D - 2D Graphics Accelerator Driver
+> - *
+> - * Copyright (c) 2011 Samsung Electronics Co., Ltd.
+> - * Kamil Debski, <k.debski@samsung.com>
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License as published by the
+> - * Free Software Foundation; either version 2 of the
+> - * License, or (at your option) any later version
+> - */
+> -
+> -#include <linux/module.h>
+> -#include <linux/fs.h>
+> -#include <linux/timer.h>
+> -#include <linux/sched.h>
+> -#include <linux/slab.h>
+> -#include <linux/clk.h>
+> -#include <linux/interrupt.h>
+> -#include <linux/of.h>
+> -
+> -#include <linux/platform_device.h>
+> -#include <media/v4l2-mem2mem.h>
+> -#include <media/v4l2-device.h>
+> -#include <media/v4l2-ioctl.h>
+> -#include <media/videobuf2-v4l2.h>
+> -#include <media/videobuf2-dma-contig.h>
+> -
+> -#include "g2d.h"
+> -#include "g2d-regs.h"
+> -
+> -#define fh2ctx(__fh) container_of(__fh, struct g2d_ctx, fh)
+> -
+> -static struct g2d_fmt formats[] = {
+> -	{
+> -		.name	= "XRGB_8888",
+> -		.fourcc	= V4L2_PIX_FMT_RGB32,
+> -		.depth	= 32,
+> -		.hw	= COLOR_MODE(ORDER_XRGB, MODE_XRGB_8888),
+> -	},
+> -	{
+> -		.name	= "RGB_565",
+> -		.fourcc	= V4L2_PIX_FMT_RGB565X,
+> -		.depth	= 16,
+> -		.hw	= COLOR_MODE(ORDER_XRGB, MODE_RGB_565),
+> -	},
+> -	{
+> -		.name	= "XRGB_1555",
+> -		.fourcc	= V4L2_PIX_FMT_RGB555X,
+> -		.depth	= 16,
+> -		.hw	= COLOR_MODE(ORDER_XRGB, MODE_XRGB_1555),
+> -	},
+> -	{
+> -		.name	= "XRGB_4444",
+> -		.fourcc	= V4L2_PIX_FMT_RGB444,
+> -		.depth	= 16,
+> -		.hw	= COLOR_MODE(ORDER_XRGB, MODE_XRGB_4444),
+> -	},
+> -	{
+> -		.name	= "PACKED_RGB_888",
+> -		.fourcc	= V4L2_PIX_FMT_RGB24,
+> -		.depth	= 24,
+> -		.hw	= COLOR_MODE(ORDER_XRGB, MODE_PACKED_RGB_888),
+> -	},
+> -};
+> -#define NUM_FORMATS ARRAY_SIZE(formats)
+> -
+> -static struct g2d_frame def_frame = {
+> -	.width		= DEFAULT_WIDTH,
+> -	.height		= DEFAULT_HEIGHT,
+> -	.c_width	= DEFAULT_WIDTH,
+> -	.c_height	= DEFAULT_HEIGHT,
+> -	.o_width	= 0,
+> -	.o_height	= 0,
+> -	.fmt		= &formats[0],
+> -	.right		= DEFAULT_WIDTH,
+> -	.bottom		= DEFAULT_HEIGHT,
+> -};
+> -
+> -static struct g2d_fmt *find_fmt(struct v4l2_format *f)
+> -{
+> -	unsigned int i;
+> -	for (i = 0; i < NUM_FORMATS; i++) {
+> -		if (formats[i].fourcc == f->fmt.pix.pixelformat)
+> -			return &formats[i];
+> -	}
+> -	return NULL;
+> -}
+> -
+> -
+> -static struct g2d_frame *get_frame(struct g2d_ctx *ctx,
+> -							enum v4l2_buf_type type)
+> -{
+> -	switch (type) {
+> -	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+> -		return &ctx->in;
+> -	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+> -		return &ctx->out;
+> -	default:
+> -		return ERR_PTR(-EINVAL);
+> -	}
+> -}
+> -
+> -static int g2d_queue_setup(struct vb2_queue *vq,
+> -			   unsigned int *nbuffers, unsigned int *nplanes,
+> -			   unsigned int sizes[], void *alloc_ctxs[])
+> -{
+> -	struct g2d_ctx *ctx = vb2_get_drv_priv(vq);
+> -	struct g2d_frame *f = get_frame(ctx, vq->type);
+> -
+> -	if (IS_ERR(f))
+> -		return PTR_ERR(f);
+> -
+> -	sizes[0] = f->size;
+> -	*nplanes = 1;
+> -	alloc_ctxs[0] = ctx->dev->alloc_ctx;
+> -
+> -	if (*nbuffers == 0)
+> -		*nbuffers = 1;
+> -
+> -	return 0;
+> -}
+> -
+> -static int g2d_buf_prepare(struct vb2_buffer *vb)
+> -{
+> -	struct g2d_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+> -	struct g2d_frame *f = get_frame(ctx, vb->vb2_queue->type);
+> -
+> -	if (IS_ERR(f))
+> -		return PTR_ERR(f);
+> -	vb2_set_plane_payload(vb, 0, f->size);
+> -	return 0;
+> -}
+> -
+> -static void g2d_buf_queue(struct vb2_buffer *vb)
+> -{
+> -	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> -	struct g2d_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+> -	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+> -}
+> -
+> -static struct vb2_ops g2d_qops = {
+> -	.queue_setup	= g2d_queue_setup,
+> -	.buf_prepare	= g2d_buf_prepare,
+> -	.buf_queue	= g2d_buf_queue,
+> -};
+> -
+> -static int queue_init(void *priv, struct vb2_queue *src_vq,
+> -						struct vb2_queue *dst_vq)
+> -{
+> -	struct g2d_ctx *ctx = priv;
+> -	int ret;
+> -
+> -	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+> -	src_vq->io_modes = VB2_MMAP | VB2_USERPTR;
+> -	src_vq->drv_priv = ctx;
+> -	src_vq->ops = &g2d_qops;
+> -	src_vq->mem_ops = &vb2_dma_contig_memops;
+> -	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+> -	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> -	src_vq->lock = &ctx->dev->mutex;
+> -
+> -	ret = vb2_queue_init(src_vq);
+> -	if (ret)
+> -		return ret;
+> -
+> -	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> -	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
+> -	dst_vq->drv_priv = ctx;
+> -	dst_vq->ops = &g2d_qops;
+> -	dst_vq->mem_ops = &vb2_dma_contig_memops;
+> -	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+> -	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> -	dst_vq->lock = &ctx->dev->mutex;
+> -
+> -	return vb2_queue_init(dst_vq);
+> -}
+> -
+> -static int g2d_s_ctrl(struct v4l2_ctrl *ctrl)
+> -{
+> -	struct g2d_ctx *ctx = container_of(ctrl->handler, struct g2d_ctx,
+> -								ctrl_handler);
+> -	unsigned long flags;
+> -
+> -	spin_lock_irqsave(&ctx->dev->ctrl_lock, flags);
+> -	switch (ctrl->id) {
+> -	case V4L2_CID_COLORFX:
+> -		if (ctrl->val == V4L2_COLORFX_NEGATIVE)
+> -			ctx->rop = ROP4_INVERT;
+> -		else
+> -			ctx->rop = ROP4_COPY;
+> -		break;
+> -
+> -	case V4L2_CID_HFLIP:
+> -		ctx->flip = ctx->ctrl_hflip->val | (ctx->ctrl_vflip->val << 1);
+> -		break;
+> -
+> -	}
+> -	spin_unlock_irqrestore(&ctx->dev->ctrl_lock, flags);
+> -	return 0;
+> -}
+> -
+> -static const struct v4l2_ctrl_ops g2d_ctrl_ops = {
+> -	.s_ctrl		= g2d_s_ctrl,
+> -};
+> -
+> -static int g2d_setup_ctrls(struct g2d_ctx *ctx)
+> -{
+> -	struct g2d_dev *dev = ctx->dev;
+> -
+> -	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 3);
+> -
+> -	ctx->ctrl_hflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
+> -						V4L2_CID_HFLIP, 0, 1, 1, 0);
+> -
+> -	ctx->ctrl_vflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
+> -						V4L2_CID_VFLIP, 0, 1, 1, 0);
+> -
+> -	v4l2_ctrl_new_std_menu(
+> -		&ctx->ctrl_handler,
+> -		&g2d_ctrl_ops,
+> -		V4L2_CID_COLORFX,
+> -		V4L2_COLORFX_NEGATIVE,
+> -		~((1 << V4L2_COLORFX_NONE) | (1 << V4L2_COLORFX_NEGATIVE)),
+> -		V4L2_COLORFX_NONE);
+> -
+> -	if (ctx->ctrl_handler.error) {
+> -		int err = ctx->ctrl_handler.error;
+> -		v4l2_err(&dev->v4l2_dev, "g2d_setup_ctrls failed\n");
+> -		v4l2_ctrl_handler_free(&ctx->ctrl_handler);
+> -		return err;
+> -	}
+> -
+> -	v4l2_ctrl_cluster(2, &ctx->ctrl_hflip);
+> -
+> -	return 0;
+> -}
+> -
+> -static int g2d_open(struct file *file)
+> -{
+> -	struct g2d_dev *dev = video_drvdata(file);
+> -	struct g2d_ctx *ctx = NULL;
+> -	int ret = 0;
+> -
+> -	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+> -	if (!ctx)
+> -		return -ENOMEM;
+> -	ctx->dev = dev;
+> -	/* Set default formats */
+> -	ctx->in		= def_frame;
+> -	ctx->out	= def_frame;
+> -
+> -	if (mutex_lock_interruptible(&dev->mutex)) {
+> -		kfree(ctx);
+> -		return -ERESTARTSYS;
+> -	}
+> -	ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
+> -	if (IS_ERR(ctx->fh.m2m_ctx)) {
+> -		ret = PTR_ERR(ctx->fh.m2m_ctx);
+> -		mutex_unlock(&dev->mutex);
+> -		kfree(ctx);
+> -		return ret;
+> -	}
+> -	v4l2_fh_init(&ctx->fh, video_devdata(file));
+> -	file->private_data = &ctx->fh;
+> -	v4l2_fh_add(&ctx->fh);
+> -
+> -	g2d_setup_ctrls(ctx);
+> -
+> -	/* Write the default values to the ctx struct */
+> -	v4l2_ctrl_handler_setup(&ctx->ctrl_handler);
+> -
+> -	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
+> -	mutex_unlock(&dev->mutex);
+> -
+> -	v4l2_info(&dev->v4l2_dev, "instance opened\n");
+> -	return 0;
+> -}
+> -
+> -static int g2d_release(struct file *file)
+> -{
+> -	struct g2d_dev *dev = video_drvdata(file);
+> -	struct g2d_ctx *ctx = fh2ctx(file->private_data);
+> -
+> -	v4l2_ctrl_handler_free(&ctx->ctrl_handler);
+> -	v4l2_fh_del(&ctx->fh);
+> -	v4l2_fh_exit(&ctx->fh);
+> -	kfree(ctx);
+> -	v4l2_info(&dev->v4l2_dev, "instance closed\n");
+> -	return 0;
+> -}
+> -
+> -
+> -static int vidioc_querycap(struct file *file, void *priv,
+> -				struct v4l2_capability *cap)
+> -{
+> -	strncpy(cap->driver, G2D_NAME, sizeof(cap->driver) - 1);
+> -	strncpy(cap->card, G2D_NAME, sizeof(cap->card) - 1);
+> -	cap->bus_info[0] = 0;
+> -	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
+> -	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+> -	return 0;
+> -}
+> -
+> -static int vidioc_enum_fmt(struct file *file, void *prv, struct v4l2_fmtdesc *f)
+> -{
+> -	struct g2d_fmt *fmt;
+> -	if (f->index >= NUM_FORMATS)
+> -		return -EINVAL;
+> -	fmt = &formats[f->index];
+> -	f->pixelformat = fmt->fourcc;
+> -	strncpy(f->description, fmt->name, sizeof(f->description) - 1);
+> -	return 0;
+> -}
+> -
+> -static int vidioc_g_fmt(struct file *file, void *prv, struct v4l2_format *f)
+> -{
+> -	struct g2d_ctx *ctx = prv;
+> -	struct vb2_queue *vq;
+> -	struct g2d_frame *frm;
+> -
+> -	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
+> -	if (!vq)
+> -		return -EINVAL;
+> -	frm = get_frame(ctx, f->type);
+> -	if (IS_ERR(frm))
+> -		return PTR_ERR(frm);
+> -
+> -	f->fmt.pix.width		= frm->width;
+> -	f->fmt.pix.height		= frm->height;
+> -	f->fmt.pix.field		= V4L2_FIELD_NONE;
+> -	f->fmt.pix.pixelformat		= frm->fmt->fourcc;
+> -	f->fmt.pix.bytesperline		= (frm->width * frm->fmt->depth) >> 3;
+> -	f->fmt.pix.sizeimage		= frm->size;
+> -	return 0;
+> -}
+> -
+> -static int vidioc_try_fmt(struct file *file, void *prv, struct v4l2_format *f)
+> -{
+> -	struct g2d_fmt *fmt;
+> -	enum v4l2_field *field;
+> -
+> -	fmt = find_fmt(f);
+> -	if (!fmt)
+> -		return -EINVAL;
+> -
+> -	field = &f->fmt.pix.field;
+> -	if (*field == V4L2_FIELD_ANY)
+> -		*field = V4L2_FIELD_NONE;
+> -	else if (*field != V4L2_FIELD_NONE)
+> -		return -EINVAL;
+> -
+> -	if (f->fmt.pix.width > MAX_WIDTH)
+> -		f->fmt.pix.width = MAX_WIDTH;
+> -	if (f->fmt.pix.height > MAX_HEIGHT)
+> -		f->fmt.pix.height = MAX_HEIGHT;
+> -
+> -	if (f->fmt.pix.width < 1)
+> -		f->fmt.pix.width = 1;
+> -	if (f->fmt.pix.height < 1)
+> -		f->fmt.pix.height = 1;
+> -
+> -	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
+> -	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
+> -	return 0;
+> -}
+> -
+> -static int vidioc_s_fmt(struct file *file, void *prv, struct v4l2_format *f)
+> -{
+> -	struct g2d_ctx *ctx = prv;
+> -	struct g2d_dev *dev = ctx->dev;
+> -	struct vb2_queue *vq;
+> -	struct g2d_frame *frm;
+> -	struct g2d_fmt *fmt;
+> -	int ret = 0;
+> -
+> -	/* Adjust all values accordingly to the hardware capabilities
+> -	 * and chosen format. */
+> -	ret = vidioc_try_fmt(file, prv, f);
+> -	if (ret)
+> -		return ret;
+> -	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
+> -	if (vb2_is_busy(vq)) {
+> -		v4l2_err(&dev->v4l2_dev, "queue (%d) bust\n", f->type);
+> -		return -EBUSY;
+> -	}
+> -	frm = get_frame(ctx, f->type);
+> -	if (IS_ERR(frm))
+> -		return PTR_ERR(frm);
+> -	fmt = find_fmt(f);
+> -	if (!fmt)
+> -		return -EINVAL;
+> -	frm->width	= f->fmt.pix.width;
+> -	frm->height	= f->fmt.pix.height;
+> -	frm->size	= f->fmt.pix.sizeimage;
+> -	/* Reset crop settings */
+> -	frm->o_width	= 0;
+> -	frm->o_height	= 0;
+> -	frm->c_width	= frm->width;
+> -	frm->c_height	= frm->height;
+> -	frm->right	= frm->width;
+> -	frm->bottom	= frm->height;
+> -	frm->fmt	= fmt;
+> -	frm->stride	= f->fmt.pix.bytesperline;
+> -	return 0;
+> -}
+> -
+> -static int vidioc_cropcap(struct file *file, void *priv,
+> -					struct v4l2_cropcap *cr)
+> -{
+> -	struct g2d_ctx *ctx = priv;
+> -	struct g2d_frame *f;
+> -
+> -	f = get_frame(ctx, cr->type);
+> -	if (IS_ERR(f))
+> -		return PTR_ERR(f);
+> -
+> -	cr->bounds.left		= 0;
+> -	cr->bounds.top		= 0;
+> -	cr->bounds.width	= f->width;
+> -	cr->bounds.height	= f->height;
+> -	cr->defrect		= cr->bounds;
+> -	return 0;
+> -}
+> -
+> -static int vidioc_g_crop(struct file *file, void *prv, struct v4l2_crop *cr)
+> -{
+> -	struct g2d_ctx *ctx = prv;
+> -	struct g2d_frame *f;
+> -
+> -	f = get_frame(ctx, cr->type);
+> -	if (IS_ERR(f))
+> -		return PTR_ERR(f);
+> -
+> -	cr->c.left	= f->o_height;
+> -	cr->c.top	= f->o_width;
+> -	cr->c.width	= f->c_width;
+> -	cr->c.height	= f->c_height;
+> -	return 0;
+> -}
+> -
+> -static int vidioc_try_crop(struct file *file, void *prv, const struct v4l2_crop *cr)
+> -{
+> -	struct g2d_ctx *ctx = prv;
+> -	struct g2d_dev *dev = ctx->dev;
+> -	struct g2d_frame *f;
+> -
+> -	f = get_frame(ctx, cr->type);
+> -	if (IS_ERR(f))
+> -		return PTR_ERR(f);
+> -
+> -	if (cr->c.top < 0 || cr->c.left < 0) {
+> -		v4l2_err(&dev->v4l2_dev,
+> -			"doesn't support negative values for top & left\n");
+> -		return -EINVAL;
+> -	}
+> -
+> -	return 0;
+> -}
+> -
+> -static int vidioc_s_crop(struct file *file, void *prv, const struct v4l2_crop *cr)
+> -{
+> -	struct g2d_ctx *ctx = prv;
+> -	struct g2d_frame *f;
+> -	int ret;
+> -
+> -	ret = vidioc_try_crop(file, prv, cr);
+> -	if (ret)
+> -		return ret;
+> -	f = get_frame(ctx, cr->type);
+> -	if (IS_ERR(f))
+> -		return PTR_ERR(f);
+> -
+> -	f->c_width	= cr->c.width;
+> -	f->c_height	= cr->c.height;
+> -	f->o_width	= cr->c.left;
+> -	f->o_height	= cr->c.top;
+> -	f->bottom	= f->o_height + f->c_height;
+> -	f->right	= f->o_width + f->c_width;
+> -	return 0;
+> -}
+> -
+> -static void job_abort(void *prv)
+> -{
+> -	struct g2d_ctx *ctx = prv;
+> -	struct g2d_dev *dev = ctx->dev;
+> -
+> -	if (dev->curr == NULL) /* No job currently running */
+> -		return;
+> -
+> -	wait_event_timeout(dev->irq_queue,
+> -			   dev->curr == NULL,
+> -			   msecs_to_jiffies(G2D_TIMEOUT));
+> -}
+> -
+> -static void device_run(void *prv)
+> -{
+> -	struct g2d_ctx *ctx = prv;
+> -	struct g2d_dev *dev = ctx->dev;
+> -	struct vb2_buffer *src, *dst;
+> -	unsigned long flags;
+> -	u32 cmd = 0;
+> -
+> -	dev->curr = ctx;
+> -
+> -	src = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+> -	dst = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+> -
+> -	clk_enable(dev->gate);
+> -	g2d_reset(dev);
+> -
+> -	spin_lock_irqsave(&dev->ctrl_lock, flags);
+> -
+> -	g2d_set_src_size(dev, &ctx->in);
+> -	g2d_set_src_addr(dev, vb2_dma_contig_plane_dma_addr(src, 0));
+> -
+> -	g2d_set_dst_size(dev, &ctx->out);
+> -	g2d_set_dst_addr(dev, vb2_dma_contig_plane_dma_addr(dst, 0));
+> -
+> -	g2d_set_rop4(dev, ctx->rop);
+> -	g2d_set_flip(dev, ctx->flip);
+> -
+> -	if (ctx->in.c_width != ctx->out.c_width ||
+> -		ctx->in.c_height != ctx->out.c_height) {
+> -		if (dev->variant->hw_rev == TYPE_G2D_3X)
+> -			cmd |= CMD_V3_ENABLE_STRETCH;
+> -		else
+> -			g2d_set_v41_stretch(dev, &ctx->in, &ctx->out);
+> -	}
+> -
+> -	g2d_set_cmd(dev, cmd);
+> -	g2d_start(dev);
+> -
+> -	spin_unlock_irqrestore(&dev->ctrl_lock, flags);
+> -}
+> -
+> -static irqreturn_t g2d_isr(int irq, void *prv)
+> -{
+> -	struct g2d_dev *dev = prv;
+> -	struct g2d_ctx *ctx = dev->curr;
+> -	struct vb2_v4l2_buffer *src, *dst;
+> -
+> -	g2d_clear_int(dev);
+> -	clk_disable(dev->gate);
+> -
+> -	BUG_ON(ctx == NULL);
+> -
+> -	src = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+> -	dst = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+> -
+> -	BUG_ON(src == NULL);
+> -	BUG_ON(dst == NULL);
+> -
+> -	dst->timecode = src->timecode;
+> -	dst->vb2_buf.timestamp = src->vb2_buf.timestamp;
+> -	dst->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> -	dst->flags |=
+> -		src->flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> -
+> -	v4l2_m2m_buf_done(src, VB2_BUF_STATE_DONE);
+> -	v4l2_m2m_buf_done(dst, VB2_BUF_STATE_DONE);
+> -	v4l2_m2m_job_finish(dev->m2m_dev, ctx->fh.m2m_ctx);
+> -
+> -	dev->curr = NULL;
+> -	wake_up(&dev->irq_queue);
+> -	return IRQ_HANDLED;
+> -}
+> -
+> -static const struct v4l2_file_operations g2d_fops = {
+> -	.owner		= THIS_MODULE,
+> -	.open		= g2d_open,
+> -	.release	= g2d_release,
+> -	.poll		= v4l2_m2m_fop_poll,
+> -	.unlocked_ioctl	= video_ioctl2,
+> -	.mmap		= v4l2_m2m_fop_mmap,
+> -};
+> -
+> -static const struct v4l2_ioctl_ops g2d_ioctl_ops = {
+> -	.vidioc_querycap	= vidioc_querycap,
+> -
+> -	.vidioc_enum_fmt_vid_cap	= vidioc_enum_fmt,
+> -	.vidioc_g_fmt_vid_cap		= vidioc_g_fmt,
+> -	.vidioc_try_fmt_vid_cap		= vidioc_try_fmt,
+> -	.vidioc_s_fmt_vid_cap		= vidioc_s_fmt,
+> -
+> -	.vidioc_enum_fmt_vid_out	= vidioc_enum_fmt,
+> -	.vidioc_g_fmt_vid_out		= vidioc_g_fmt,
+> -	.vidioc_try_fmt_vid_out		= vidioc_try_fmt,
+> -	.vidioc_s_fmt_vid_out		= vidioc_s_fmt,
+> -
+> -	.vidioc_reqbufs			= v4l2_m2m_ioctl_reqbufs,
+> -	.vidioc_querybuf		= v4l2_m2m_ioctl_querybuf,
+> -	.vidioc_qbuf			= v4l2_m2m_ioctl_qbuf,
+> -	.vidioc_dqbuf			= v4l2_m2m_ioctl_dqbuf,
+> -
+> -	.vidioc_streamon		= v4l2_m2m_ioctl_streamon,
+> -	.vidioc_streamoff		= v4l2_m2m_ioctl_streamoff,
+> -
+> -	.vidioc_g_crop			= vidioc_g_crop,
+> -	.vidioc_s_crop			= vidioc_s_crop,
+> -	.vidioc_cropcap			= vidioc_cropcap,
+> -};
+> -
+> -static struct video_device g2d_videodev = {
+> -	.name		= G2D_NAME,
+> -	.fops		= &g2d_fops,
+> -	.ioctl_ops	= &g2d_ioctl_ops,
+> -	.minor		= -1,
+> -	.release	= video_device_release,
+> -	.vfl_dir	= VFL_DIR_M2M,
+> -};
+> -
+> -static struct v4l2_m2m_ops g2d_m2m_ops = {
+> -	.device_run	= device_run,
+> -	.job_abort	= job_abort,
+> -};
+> -
+> -static const struct of_device_id exynos_g2d_match[];
+> -
+> -static int g2d_probe(struct platform_device *pdev)
+> -{
+> -	struct g2d_dev *dev;
+> -	struct video_device *vfd;
+> -	struct resource *res;
+> -	const struct of_device_id *of_id;
+> -	int ret = 0;
+> -
+> -	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
+> -	if (!dev)
+> -		return -ENOMEM;
+> -
+> -	spin_lock_init(&dev->ctrl_lock);
+> -	mutex_init(&dev->mutex);
+> -	atomic_set(&dev->num_inst, 0);
+> -	init_waitqueue_head(&dev->irq_queue);
+> -
+> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -
+> -	dev->regs = devm_ioremap_resource(&pdev->dev, res);
+> -	if (IS_ERR(dev->regs))
+> -		return PTR_ERR(dev->regs);
+> -
+> -	dev->clk = clk_get(&pdev->dev, "sclk_fimg2d");
+> -	if (IS_ERR(dev->clk)) {
+> -		dev_err(&pdev->dev, "failed to get g2d clock\n");
+> -		return -ENXIO;
+> -	}
+> -
+> -	ret = clk_prepare(dev->clk);
+> -	if (ret) {
+> -		dev_err(&pdev->dev, "failed to prepare g2d clock\n");
+> -		goto put_clk;
+> -	}
+> -
+> -	dev->gate = clk_get(&pdev->dev, "fimg2d");
+> -	if (IS_ERR(dev->gate)) {
+> -		dev_err(&pdev->dev, "failed to get g2d clock gate\n");
+> -		ret = -ENXIO;
+> -		goto unprep_clk;
+> -	}
+> -
+> -	ret = clk_prepare(dev->gate);
+> -	if (ret) {
+> -		dev_err(&pdev->dev, "failed to prepare g2d clock gate\n");
+> -		goto put_clk_gate;
+> -	}
+> -
+> -	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+> -	if (!res) {
+> -		dev_err(&pdev->dev, "failed to find IRQ\n");
+> -		ret = -ENXIO;
+> -		goto unprep_clk_gate;
+> -	}
+> -
+> -	dev->irq = res->start;
+> -
+> -	ret = devm_request_irq(&pdev->dev, dev->irq, g2d_isr,
+> -						0, pdev->name, dev);
+> -	if (ret) {
+> -		dev_err(&pdev->dev, "failed to install IRQ\n");
+> -		goto put_clk_gate;
+> -	}
+> -
+> -	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+> -	if (IS_ERR(dev->alloc_ctx)) {
+> -		ret = PTR_ERR(dev->alloc_ctx);
+> -		goto unprep_clk_gate;
+> -	}
+> -
+> -	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+> -	if (ret)
+> -		goto alloc_ctx_cleanup;
+> -	vfd = video_device_alloc();
+> -	if (!vfd) {
+> -		v4l2_err(&dev->v4l2_dev, "Failed to allocate video device\n");
+> -		ret = -ENOMEM;
+> -		goto unreg_v4l2_dev;
+> -	}
+> -	*vfd = g2d_videodev;
+> -	vfd->lock = &dev->mutex;
+> -	vfd->v4l2_dev = &dev->v4l2_dev;
+> -	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+> -	if (ret) {
+> -		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
+> -		goto rel_vdev;
+> -	}
+> -	video_set_drvdata(vfd, dev);
+> -	snprintf(vfd->name, sizeof(vfd->name), "%s", g2d_videodev.name);
+> -	dev->vfd = vfd;
+> -	v4l2_info(&dev->v4l2_dev, "device registered as /dev/video%d\n",
+> -								vfd->num);
+> -	platform_set_drvdata(pdev, dev);
+> -	dev->m2m_dev = v4l2_m2m_init(&g2d_m2m_ops);
+> -	if (IS_ERR(dev->m2m_dev)) {
+> -		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
+> -		ret = PTR_ERR(dev->m2m_dev);
+> -		goto unreg_video_dev;
+> -	}
+> -
+> -	def_frame.stride = (def_frame.width * def_frame.fmt->depth) >> 3;
+> -
+> -	of_id = of_match_node(exynos_g2d_match, pdev->dev.of_node);
+> -	if (!of_id) {
+> -		ret = -ENODEV;
+> -		goto unreg_video_dev;
+> -	}
+> -	dev->variant = (struct g2d_variant *)of_id->data;
+> -
+> -	return 0;
+> -
+> -unreg_video_dev:
+> -	video_unregister_device(dev->vfd);
+> -rel_vdev:
+> -	video_device_release(vfd);
+> -unreg_v4l2_dev:
+> -	v4l2_device_unregister(&dev->v4l2_dev);
+> -alloc_ctx_cleanup:
+> -	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+> -unprep_clk_gate:
+> -	clk_unprepare(dev->gate);
+> -put_clk_gate:
+> -	clk_put(dev->gate);
+> -unprep_clk:
+> -	clk_unprepare(dev->clk);
+> -put_clk:
+> -	clk_put(dev->clk);
+> -
+> -	return ret;
+> -}
+> -
+> -static int g2d_remove(struct platform_device *pdev)
+> -{
+> -	struct g2d_dev *dev = platform_get_drvdata(pdev);
+> -
+> -	v4l2_info(&dev->v4l2_dev, "Removing " G2D_NAME);
+> -	v4l2_m2m_release(dev->m2m_dev);
+> -	video_unregister_device(dev->vfd);
+> -	v4l2_device_unregister(&dev->v4l2_dev);
+> -	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+> -	clk_unprepare(dev->gate);
+> -	clk_put(dev->gate);
+> -	clk_unprepare(dev->clk);
+> -	clk_put(dev->clk);
+> -	return 0;
+> -}
+> -
+> -static struct g2d_variant g2d_drvdata_v3x = {
+> -	.hw_rev = TYPE_G2D_3X, /* Revision 3.0 for S5PV210 and Exynos4210 */
+> -};
+> -
+> -static struct g2d_variant g2d_drvdata_v4x = {
+> -	.hw_rev = TYPE_G2D_4X, /* Revision 4.1 for Exynos4X12 and Exynos5 */
+> -};
+> -
+> -static const struct of_device_id exynos_g2d_match[] = {
+> -	{
+> -		.compatible = "samsung,s5pv210-g2d",
+> -		.data = &g2d_drvdata_v3x,
+> -	}, {
+> -		.compatible = "samsung,exynos4212-g2d",
+> -		.data = &g2d_drvdata_v4x,
+> -	},
+> -	{},
+> -};
+> -MODULE_DEVICE_TABLE(of, exynos_g2d_match);
+> -
+> -static struct platform_driver g2d_pdrv = {
+> -	.probe		= g2d_probe,
+> -	.remove		= g2d_remove,
+> -	.driver		= {
+> -		.name = G2D_NAME,
+> -		.of_match_table = exynos_g2d_match,
+> -	},
+> -};
+> -
+> -module_platform_driver(g2d_pdrv);
+> -
+> -MODULE_AUTHOR("Kamil Debski <k.debski@samsung.com>");
+> -MODULE_DESCRIPTION("S5P G2D 2d graphics accelerator driver");
+> -MODULE_LICENSE("GPL");
+> diff --git a/drivers/media/platform/s5p-g2d/g2d.h b/drivers/media/platform/s5p-g2d/g2d.h
+> deleted file mode 100644
+> index e31df541aa62..000000000000
+> --- a/drivers/media/platform/s5p-g2d/g2d.h
+> +++ /dev/null
+> @@ -1,91 +0,0 @@
+> -/*
+> - * Samsung S5P G2D - 2D Graphics Accelerator Driver
+> - *
+> - * Copyright (c) 2011 Samsung Electronics Co., Ltd.
+> - * Kamil Debski, <k.debski@samsung.com>
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License as published by the
+> - * Free Software Foundation; either version 2 of the
+> - * License, or (at your option) any later version
+> - */
+> -
+> -#include <linux/platform_device.h>
+> -#include <media/v4l2-device.h>
+> -#include <media/v4l2-ctrls.h>
+> -
+> -#define G2D_NAME "s5p-g2d"
+> -#define TYPE_G2D_3X 3
+> -#define TYPE_G2D_4X 4
+> -
+> -struct g2d_dev {
+> -	struct v4l2_device	v4l2_dev;
+> -	struct v4l2_m2m_dev	*m2m_dev;
+> -	struct video_device	*vfd;
+> -	struct mutex		mutex;
+> -	spinlock_t		ctrl_lock;
+> -	atomic_t		num_inst;
+> -	struct vb2_alloc_ctx	*alloc_ctx;
+> -	void __iomem		*regs;
+> -	struct clk		*clk;
+> -	struct clk		*gate;
+> -	struct g2d_ctx		*curr;
+> -	struct g2d_variant	*variant;
+> -	int irq;
+> -	wait_queue_head_t	irq_queue;
+> -};
+> -
+> -struct g2d_frame {
+> -	/* Original dimensions */
+> -	u32	width;
+> -	u32	height;
+> -	/* Crop size */
+> -	u32	c_width;
+> -	u32	c_height;
+> -	/* Offset */
+> -	u32	o_width;
+> -	u32	o_height;
+> -	/* Image format */
+> -	struct g2d_fmt *fmt;
+> -	/* Variables that can calculated once and reused */
+> -	u32	stride;
+> -	u32	bottom;
+> -	u32	right;
+> -	u32	size;
+> -};
+> -
+> -struct g2d_ctx {
+> -	struct v4l2_fh fh;
+> -	struct g2d_dev		*dev;
+> -	struct g2d_frame	in;
+> -	struct g2d_frame	out;
+> -	struct v4l2_ctrl	*ctrl_hflip;
+> -	struct v4l2_ctrl	*ctrl_vflip;
+> -	struct v4l2_ctrl_handler ctrl_handler;
+> -	u32 rop;
+> -	u32 flip;
+> -};
+> -
+> -struct g2d_fmt {
+> -	char	*name;
+> -	u32	fourcc;
+> -	int	depth;
+> -	u32	hw;
+> -};
+> -
+> -struct g2d_variant {
+> -	unsigned short hw_rev;
+> -};
+> -
+> -void g2d_reset(struct g2d_dev *d);
+> -void g2d_set_src_size(struct g2d_dev *d, struct g2d_frame *f);
+> -void g2d_set_src_addr(struct g2d_dev *d, dma_addr_t a);
+> -void g2d_set_dst_size(struct g2d_dev *d, struct g2d_frame *f);
+> -void g2d_set_dst_addr(struct g2d_dev *d, dma_addr_t a);
+> -void g2d_start(struct g2d_dev *d);
+> -void g2d_clear_int(struct g2d_dev *d);
+> -void g2d_set_rop4(struct g2d_dev *d, u32 r);
+> -void g2d_set_flip(struct g2d_dev *d, u32 r);
+> -void g2d_set_v41_stretch(struct g2d_dev *d,
+> -			struct g2d_frame *src, struct g2d_frame *dst);
+> -void g2d_set_cmd(struct g2d_dev *d, u32 c);
+
+
 -- 
-1.9.1
-
+Thanks,
+Mauro
