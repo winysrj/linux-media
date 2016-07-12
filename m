@@ -1,54 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54728 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751568AbcGUKGC (ORCPT
+Received: from smtprelay0055.hostedemail.com ([216.40.44.55]:57013 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753598AbcGLPvp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 06:06:02 -0400
-Date: Thu, 21 Jul 2016 13:05:28 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] vb2: check for NULL device pointer
-Message-ID: <20160721100527.GI7976@valkosipuli.retiisi.org.uk>
-References: <8a2effdb-355f-de34-b4c7-7c9eaa3c7873@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8a2effdb-355f-de34-b4c7-7c9eaa3c7873@xs4all.nl>
+	Tue, 12 Jul 2016 11:51:45 -0400
+Message-ID: <1468338700.8745.14.camel@perches.com>
+Subject: Re: [PATCH] media: s5p-mfc Fix misspelled error message and
+ checkpatch errors
+From: Joe Perches <joe@perches.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
+	k.debski@samsung.com, jtp.park@samsung.com, mchehab@kernel.org,
+	javier@osg.samsung.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Date: Tue, 12 Jul 2016 08:51:40 -0700
+In-Reply-To: <578501E9.6090008@osg.samsung.com>
+References: <1468276740-1591-1-git-send-email-shuahkh@osg.samsung.com>
+	 <1468332418.8745.11.camel@perches.com> <578501E9.6090008@osg.samsung.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Tue, 2016-07-12 at 08:42 -0600, Shuah Khan wrote:
+> On 07/12/2016 08:06 AM, Joe Perches wrote:
+> > On Mon, 2016-07-11 at 16:39 -0600, Shuah Khan wrote:
+> > > Fix misspelled error message and existing checkpatch errors in the
+> > > error message conditional.
+> > []
+> > > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> > []
+> > > @@ -775,11 +775,11 @@ static int vidioc_g_crop(struct file *file, void *priv,
+> > >  	u32 left, right, top, bottom;
+> > >  
+> > >  	if (ctx->state != MFCINST_HEAD_PARSED &&
+> > > -	ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
+> > > -					&& ctx->state != MFCINST_FINISHED) {
+> > > -			mfc_err("Cannont set crop\n");
+> > > -			return -EINVAL;
+> > > -		}
+> > > +	    ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
+> > > +	    && ctx->state != MFCINST_FINISHED) {
+> > > +		mfc_err("Can not get crop information\n");
+> > > +		return -EINVAL;
+> > > +	}
+> > is it a set or a get?
+> vidioc_g_crop is a get routine.
+> > 
+> > It'd be nicer for humans to read if the alignment was consistent
+> Are you okay with this alignment change or would you like it
+> changed?
 
-On Thu, Jul 21, 2016 at 11:19:11AM +0200, Hans Verkuil wrote:
-> Check whether the struct device pointer is NULL and return -EINVAL in that
-> case.
-> 
-> This also required a small change to vb2-core where it didn't call PTR_ERR to
-> get the real error code.
-> 
-> I have seen several new driver submissions that forgot to set the vb2_queue
-> dev field, so add these checks to prevent this from happening again.
-> 
-> The dev field is passed on to the dma-contig/sg drivers in the alloc, get_userptr
-> and attach_dmabuf callbacks, so this check has to be done in those three places.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Considering this is here just to notify driver developers they're doing
-something wrong, I'd just have a WARN_ON() so they can see what's wrong and
-fix their code. The debug print contains no additional information.
-Readability should be the preference instead --- and extra debug prints
-don't really help with that.
-
-It'd be nice if the functions always returned either NULL or an error code.
-That's not really an issue with this patch, but it extends the use of both
-of the options in favour of either one.
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Well, if you're resubmitting, I'd prefer it changed.
+Thanks.
