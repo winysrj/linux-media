@@ -1,111 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avasout05.plus.net ([84.93.230.250]:53226 "EHLO
-	avasout05.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751708AbcGRVS0 (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41623 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751254AbcGLJeY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 17:18:26 -0400
-From: Nick Dyer <nick@shmanahar.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	Nick Dyer <nick@shmanahar.org>
-Subject: [PATCH v8 07/10] Input: atmel_mxt_ts - add diagnostic data support for mXT1386
-Date: Mon, 18 Jul 2016 22:10:35 +0100
-Message-Id: <1468876238-24599-8-git-send-email-nick@shmanahar.org>
-In-Reply-To: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
-References: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
+	Tue, 12 Jul 2016 05:34:24 -0400
+Subject: Re: [PATCHv2 3/5] pulse8-cec: new driver for the Pulse-Eight USB-CEC
+ Adapter
+To: Lars Op den Kamp <lars@opdenkamp.eu>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <fd21234a-3ac4-44f5-1054-3430546596bb@xs4all.nl>
+ <578369C5.5000402@opdenkamp.eu>
+ <8e011716-5d38-3475-ff87-1737b331e26c@xs4all.nl>
+ <5783722B.1080107@opdenkamp.eu>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5784B997.2070100@xs4all.nl>
+Date: Tue, 12 Jul 2016 11:34:15 +0200
+MIME-Version: 1.0
+In-Reply-To: <5783722B.1080107@opdenkamp.eu>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mXT1386 family of chips have a different architecture which splits
-the diagnostic data into 3 columns.
+On 07/11/16 12:17, Lars Op den Kamp wrote:
+> Hi Hans,
+> 
+> On 11-07-16 12:02, Hans Verkuil wrote:
+>> Hi Lars,
+>>
+>> On 07/11/2016 11:41 AM, Lars Op den Kamp wrote:
+>>> Hi Hans,
+>>>
+>>> just did a quick scan of this patch.
+>>>
+>>> The code should work on any firmware >= v2 revision 8, though older
+>>> versions may return 0 when the build date is requested. I believe I
+>>> added that in v3. Might want to add a !=0 check before writing to the log.
+>>>
+>>> The CEC adapter has an "autonomous mode", used when it's not being
+>>> controlled by our userspace application or this kernel driver. It'll
+>>> respond to some basic CEC commands that allow the PC to be woken up by TV.
+>>> If the adapter doesn't receive a MSGCODE_PING for 30 seconds when it's
+>>> in "controlled mode", then it'll revert to autonomous mode and it'll
+>>> reset all states internally.
+>> Ah, that was rather obscure. Good to know.
+>>
+>> What I do now (and that seems to work) is that in the pulse8_setup I turn
+>> off the autonomous mode and then write that new setting to the EEPROM. After
+>> that it looks like the autonomous mode stays off. Is that correct?
+> Correct, that'll work too, but I suggest you don't do that and update the eeprom values like we do in userspace. That'll allow the adapter to wake up the PC when the kernel module isn't running. Disabling autonomous mode will prevent that from working. You can only write to the eeprom once every 10 seconds by the way.
+> 
+>>
+>> The autonomous mode really doesn't work well with the framework as it is
+>> today.
+>>
+>> CEC framework support for 'wakeup on CEC command' is something that is planned
+>> for the future.
+> The autonomous mode is only really meant for waking up the PC, from S3 with the USB version and all modes with the internal version for Intel boards. It should be disabled as long as the userspace application or kernel module is running, by sending MSGCODE_SET_CONTROLLED 1 and then send a poll before the 30 second timeout times out. Then, when the kernel module stops using the module, when the system powers off or goes to standby, you send a MSGCODE_SET_CONTROLLED 0 and then close the connection. The adapter will then take over, allowing the TV to wake up the PC again.
 
-Signed-off-by: Nick Dyer <nick@shmanahar.org>
----
- drivers/input/touchscreen/atmel_mxt_ts.c |   31 +++++++++++++++++++++++++++---
- 1 file changed, 28 insertions(+), 3 deletions(-)
+Thank you for the information, very useful.
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index 7376c42..584198e 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -137,6 +137,10 @@ struct t9_range {
- #define MXT_DIAGNOSTIC_DELTAS	0x10
- #define MXT_DIAGNOSTIC_SIZE	128
- 
-+#define MXT_FAMILY_1386			160
-+#define MXT1386_COLUMNS			3
-+#define MXT1386_PAGES_PER_COLUMN	8
-+
- struct t37_debug {
- #ifdef CONFIG_TOUCHSCREEN_ATMEL_MXT_T37
- 	u8 mode;
-@@ -2140,13 +2144,27 @@ recheck:
- static u16 mxt_get_debug_value(struct mxt_data *data, unsigned int x,
- 			       unsigned int y)
- {
-+	struct mxt_info *info = &data->info;
- 	struct mxt_dbg *dbg = &data->dbg;
- 	unsigned int ofs, page;
-+	unsigned int col = 0;
-+	unsigned int col_width;
-+
-+	if (info->family_id == MXT_FAMILY_1386) {
-+		col_width = info->matrix_ysize / MXT1386_COLUMNS;
-+		col = y / col_width;
-+		y = y % col_width;
-+	} else {
-+		col_width = info->matrix_ysize;
-+	}
- 
--	ofs = (y + (x * data->info.matrix_ysize)) * sizeof(u16);
-+	ofs = (y + (x * col_width)) * sizeof(u16);
- 	page = ofs / MXT_DIAGNOSTIC_SIZE;
- 	ofs %= MXT_DIAGNOSTIC_SIZE;
- 
-+	if (info->family_id == MXT_FAMILY_1386)
-+		page += col * MXT1386_PAGES_PER_COLUMN;
-+
- 	return get_unaligned_le16(&dbg->t37_buf[page].data[ofs]);
- }
- 
-@@ -2416,6 +2434,7 @@ static const struct video_device mxt_video_device = {
- 
- static void mxt_debug_init(struct mxt_data *data)
- {
-+	struct mxt_info *info = &data->info;
- 	struct mxt_dbg *dbg = &data->dbg;
- 	struct mxt_object *object;
- 	int error;
-@@ -2439,8 +2458,14 @@ static void mxt_debug_init(struct mxt_data *data)
- 
- 	/* Calculate size of data and allocate buffer */
- 	dbg->t37_nodes = data->xsize * data->ysize;
--	dbg->t37_pages = DIV_ROUND_UP(data->xsize * data->info.matrix_ysize *
--				      sizeof(u16), sizeof(dbg->t37_buf->data));
-+
-+	if (info->family_id == MXT_FAMILY_1386)
-+		dbg->t37_pages = MXT1386_COLUMNS * MXT1386_PAGES_PER_COLUMN;
-+	else
-+		dbg->t37_pages = DIV_ROUND_UP(data->xsize *
-+					      data->info.matrix_ysize *
-+					      sizeof(u16),
-+					      sizeof(dbg->t37_buf->data));
- 
- 	dbg->t37_buf = devm_kmalloc_array(&data->client->dev, dbg->t37_pages,
- 					  sizeof(struct t37_debug), GFP_KERNEL);
--- 
-1.7.9.5
+I've added this to the TODO file of the driver. I have made a pull request for
+the driver in the current state. It will be in drivers/staging anyway, so it
+doesn't have to be perfect initially. But it is very useful to 'show off' the
+new API for kernel 4.8.
 
+I'll work more on this driver so by the time it can be moved out of staging
+it should have all this functionality built-in.
+
+Regards,
+
+	Hans
