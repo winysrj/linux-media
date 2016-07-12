@@ -1,64 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35520 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751201AbcGFPw5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 11:52:57 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com
-Cc: niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
-	laurent.pinchart@ideasonboard.com, william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v5 0/4] Lager/Koelsch board HDMI input support
-Date: Wed,  6 Jul 2016 17:39:32 +0200
-Message-Id: <1467819576-17743-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:51704 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933285AbcGLMmd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2016 08:42:33 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 10/20] [media] doc-rst: document LIRC_SET_SEND_DUTY_CYCLE
+Date: Tue, 12 Jul 2016 09:42:04 -0300
+Message-Id: <978084b1939f5561a2e43cb49247485503ef4706.1468327191.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
+References: <cover.1468327191.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Add a separate page for this ioctl.
 
-Sorry for the delay.  This revision drops all patches that have since been
-picked up.  It amends the default input selection to fall back to input 0 if
-nothing else is specified, and it replaces the hard-coded EDID blob with an
-implementation of G_EDID and S_EDID in rcar-vin.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ .../media/uapi/rc/lirc-set-send-duty-cycle.rst     | 49 ++++++++++++++++++++++
+ .../media/uapi/rc/lirc_device_interface.rst        |  1 +
+ Documentation/media/uapi/rc/lirc_ioctl.rst         |  9 ----
+ 3 files changed, 50 insertions(+), 9 deletions(-)
+ create mode 100644 Documentation/media/uapi/rc/lirc-set-send-duty-cycle.rst
 
-CU
-Uli
-
-
-Changes since v4:
-- drop merged patches
-- adv7604: always fall back to input 0 if nothing else is specified
-- rcar-vin: implement G_EDID, S_EDID in place of hard-coded EDID blob
-
-Changes since v3:
-- rvin_enum_dv_timings(): use vin->src_pad_idx
-- rvin_dv_timings_cap(): likewise
-- rvin_s_dv_timings(): update vin->format
-- add Koelsch support
-
-Changes since v2:
-- rebased on top of rcar-vin driver v4
-- removed "adv7604: fix SPA register location for ADV7612" (picked up)
-- changed prefix of dts patch to "ARM: dts: lager: "
-
-
-Hans Verkuil (1):
-  ARM: dts: koelsch: add HDMI input
-
-Ulrich Hecht (2):
-  media: adv7604: automatic "default-input" selection
-  rcar-vin: implement EDID control ioctls
-
-William Towle (1):
-  ARM: dts: lager: Add entries for VIN HDMI input support
-
- arch/arm/boot/dts/r8a7790-lager.dts         | 41 ++++++++++++++++++++++++++++-
- arch/arm/boot/dts/r8a7791-koelsch.dts       | 41 +++++++++++++++++++++++++++++
- drivers/media/i2c/adv7604.c                 |  5 +++-
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 17 ++++++++++++
- 4 files changed, 102 insertions(+), 2 deletions(-)
-
+diff --git a/Documentation/media/uapi/rc/lirc-set-send-duty-cycle.rst b/Documentation/media/uapi/rc/lirc-set-send-duty-cycle.rst
+new file mode 100644
+index 000000000000..48e7bb15fb69
+--- /dev/null
++++ b/Documentation/media/uapi/rc/lirc-set-send-duty-cycle.rst
+@@ -0,0 +1,49 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _lirc_set_send_duty_cycle:
++
++******************************
++ioctl LIRC_SET_SEND_DUTY_CYCLE
++******************************
++
++Name
++====
++
++LIRC_SET_SEND_DUTY_CYCLE - Set the duty cycle of the carrier signal for
++IR transmit.
++
++Synopsis
++========
++
++.. cpp:function:: int ioctl( int fd, int request, __u32 *duty_cycle)
++
++Arguments
++=========
++
++``fd``
++    File descriptor returned by open().
++
++``request``
++    LIRC_SET_SEND_DUTY_CYCLE
++
++``duty_cycle``
++    Duty cicle, describing the pulse width in percent (from 1 to 99) of
++    the total cycle. Values 0 and 100 are reserved.
++
++
++Description
++===========
++
++Get/set the duty cycle of the carrier signal for IR transmit.
++
++Currently, no special meaning is defined for 0 or 100, but this
++could be used to switch off carrier generation in the future, so
++these values should be reserved.
++
++
++Return Value
++============
++
++On success 0 is returned, on error -1 and the ``errno`` variable is set
++appropriately. The generic error codes are described at the
++:ref:`Generic Error Codes <gen-errors>` chapter.
+diff --git a/Documentation/media/uapi/rc/lirc_device_interface.rst b/Documentation/media/uapi/rc/lirc_device_interface.rst
+index 532f4e92d1e9..56f2d6122238 100644
+--- a/Documentation/media/uapi/rc/lirc_device_interface.rst
++++ b/Documentation/media/uapi/rc/lirc_device_interface.rst
+@@ -16,4 +16,5 @@ LIRC Device Interface
+     lirc-get-send-mode
+     lirc-get-rec-mode
+     lirc-get-rec-resolution
++    lirc-set-send-duty-cycle
+     lirc_ioctl
+diff --git a/Documentation/media/uapi/rc/lirc_ioctl.rst b/Documentation/media/uapi/rc/lirc_ioctl.rst
+index 347b86d368b4..c486703b95b8 100644
+--- a/Documentation/media/uapi/rc/lirc_ioctl.rst
++++ b/Documentation/media/uapi/rc/lirc_ioctl.rst
+@@ -49,15 +49,6 @@ device can rely on working with the default settings initially.
+ I/O control requests
+ ====================
+ 
+-.. _LIRC_SET_SEND_DUTY_CYCLE:
+-
+-``LIRC_SET_SEND_DUTY_CYCLE``
+-
+-    Set the duty cycle (from 0 to 100) of the carrier signal.
+-    Currently, no special meaning is defined for 0 or 100, but this
+-    could be used to switch off carrier generation in the future, so
+-    these values should be reserved.
+-
+ .. _LIRC_GET_MIN_TIMEOUT:
+ .. _LIRC_GET_MAX_TIMEOUT:
+ 
 -- 
 2.7.4
+
 
