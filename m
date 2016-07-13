@@ -1,50 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:35389 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751956AbcGRXxb (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.130]:58184 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753096AbcGMQMf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 19:53:31 -0400
-Date: Mon, 18 Jul 2016 19:53:29 -0400
-From: Tejun Heo <tj@kernel.org>
-To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] gspca: jl2005bcd: Remove deprecated
- create_singlethread_workqueue
-Message-ID: <20160718235329.GV3078@mtj.duckdns.org>
-References: <20160716085348.GA7817@Karyakshetra>
+	Wed, 13 Jul 2016 12:12:35 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Jason Baron <jbaron@akamai.com>,
+	kernel-build-reports@lists.linaro.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 4/4] dynamic_debug: add jump label support
+Date: Wed, 13 Jul 2016 18:03:24 +0200
+Message-ID: <4481273.afaatbzpKs@wuerfel>
+In-Reply-To: <5786613E.6010509@akamai.com>
+References: <cover.1463778029.git.jbaron@akamai.com> <10022037.rzjeY1zYxh@wuerfel> <5786613E.6010509@akamai.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160716085348.GA7817@Karyakshetra>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 16, 2016 at 02:23:48PM +0530, Bhaktipriya Shridhar wrote:
-> The workqueue "work_thread" is involved in streaming the camera data.
-> It has a single work item(&sd->work_struct) and hence doesn't require
-> ordering. Also, it is not being used on a memory reclaim path.
-> Hence, the singlethreaded workqueue has been replaced with the use of
-> system_wq.
+On Wednesday, July 13, 2016 11:41:50 AM CEST Jason Baron wrote:
 > 
-> System workqueues have been able to handle high level of concurrency
-> for a long time now and hence it's not required to have a singlethreaded
-> workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
-> created with create_singlethread_workqueue(), system_wq allows multiple
-> work items to overlap executions even on the same CPU; however, a
-> per-cpu workqueue doesn't have any CPU locality or global ordering
-> guarantee unless the target CPU is explicitly specified and thus the
-> increase of local concurrency shouldn't make any difference.
+> Hi Arnd,
 > 
-> Work item has been flushed in sd_stop0() to ensure that there are no
-> pending tasks while disconnecting the driver.
+> Ok, this is back in linux-next now (with hopefully a fix for arm). I
+> was never able to quite reproduce the arm failure you saw. So if
+> you get the chance to test this it would be great.
 > 
-> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
 
-Acked-by: Tejun Heo <tj@kernel.org>
+I've had a day's worth of randconfig tests without running into the problem
+so far.
 
-Thanks.
+However, I did get one new compiler warning that I have just bisected
+down to 21413cd0e4ed ("dynamic_debug: add jump label support"):
 
--- 
-tejun
+/git/arm-soc/drivers/media/dvb-frontends/cxd2841er.c: In function 'cxd2841er_tune_tc':
+/git/arm-soc/drivers/media/dvb-frontends/cxd2841er.c:3253:40: error: 'carrier_offset' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+    if (ret)
+                                        ^
+     return ret;
+     ~~~~~~~~~                           
+/git/arm-soc/drivers/media/dvb-frontends/cxd2841er.c:3209:11: note: 'carrier_offset' was declared here
+  int ret, carrier_offset;
+           ^~~~~~~~~~~~~~
+
+
+It's clearly a false positive warning, the code is correct, but if this is
+the only one that the dynamic_debug jump labels introduce, we may as well
+just work around it in the driver.
+
+I think this is caused by the "unlikely" annotation in dynamic_dev_dbg(),
+which confuses the compiler trying to figure out whether the variable
+is initialized or not.
+
+	Arnd
