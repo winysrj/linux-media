@@ -1,154 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59560 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:40917 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751806AbcGRSat (ORCPT
+	with ESMTP id S1751582AbcGMOtw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 14:30:49 -0400
+	Wed, 13 Jul 2016 10:49:52 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 16/18] [media] get rid of Documentation/video4linux/lifeview.txt
-Date: Mon, 18 Jul 2016 15:30:38 -0300
-Message-Id: <43efd1edc63534d3a7486a0548c8aedf8b1128d1.1468865380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
-References: <cover.1468865380.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
-References: <cover.1468865380.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=true
-Content-Transfer-Encoding: 8bit
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] [media] docs-rst: Fix some typos
+Date: Wed, 13 Jul 2016 11:49:18 -0300
+Message-Id: <e6e9c9b238e49e4973391078952b34d3bde3df99.1468421353.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the contents of this file to bttv.rst and saa7134.rst.
+Those fixes came from patchs from Andrea for the old DocBook
+documentation.
 
-With that, we can finally remove Documentation/video4linux.
+As we're removing it on Kernel 4.8, it doesn't make sense to
+apply the original patches, but, as the typos were ported
+to ReST, let's fix the issues there.
 
+Suggested-by: Andrea Gelmini <andrea.gelmini@gelma.net>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/media/v4l-drivers/bttv.rst    |  8 ++++++
- Documentation/media/v4l-drivers/saa7134.rst | 36 +++++++++++++++++++++++++
- Documentation/video4linux/lifeview.txt      | 42 -----------------------------
- 3 files changed, 44 insertions(+), 42 deletions(-)
- delete mode 100644 Documentation/video4linux/lifeview.txt
+ Documentation/DocBook/media/v4l/fdl-appendix.xml          | 2 +-
+ Documentation/DocBook/media/v4l/lirc_device_interface.xml | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/media/v4l-drivers/bttv.rst b/Documentation/media/v4l-drivers/bttv.rst
-index 611e8d529f16..f78c135b40e7 100644
---- a/Documentation/media/v4l-drivers/bttv.rst
-+++ b/Documentation/media/v4l-drivers/bttv.rst
-@@ -782,6 +782,14 @@ FlyVideo A2 (Elta 8680)= LR90 Rev.F (w/Remote, w/o FM, stereo TV by tda9821) {Ge
+diff --git a/Documentation/DocBook/media/v4l/fdl-appendix.xml b/Documentation/DocBook/media/v4l/fdl-appendix.xml
+index ae22394ba997..71299a3897c4 100644
+--- a/Documentation/DocBook/media/v4l/fdl-appendix.xml
++++ b/Documentation/DocBook/media/v4l/fdl-appendix.xml
+@@ -526,7 +526,7 @@
  
- Lifeview 3000 (Elta 8681) as sold by Plus(April 2002), Germany = LR138 w/ saa7134
- 
-+lifeview config coding on gpio pins 0-9
-+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-+
-+- LR50 rev. Q ("PARTS: 7031505116), Tuner wurde als Nr. 5 erkannt, Eingänge
-+  SVideo, TV, Composite, Audio, Remote:
-+
-+ - CP9..1=100001001 (1: 0-Ohm-Widerstand gegen GND unbestückt; 0: bestückt)
-+
- 
- Typhoon TV card series:
- ~~~~~~~~~~~~~~~~~~~~~~~
-diff --git a/Documentation/media/v4l-drivers/saa7134.rst b/Documentation/media/v4l-drivers/saa7134.rst
-index 584caf8a3594..36b2ee9e0fdc 100644
---- a/Documentation/media/v4l-drivers/saa7134.rst
-+++ b/Documentation/media/v4l-drivers/saa7134.rst
-@@ -70,6 +70,42 @@ Some details about 30/34/35:
- - saa7133/35 - saa7135 is probably a marketing decision, since all those
-   chips identifies itself as 33 on pci.
- 
-+LifeView GPIOs
-+--------------
-+
-+This section was authored by: Peter Missel <peter.missel@onlinehome.de>
-+
-+- LifeView FlyTV Platinum FM (LR214WF)
-+
-+    - GP27    MDT2005 PB4 pin 10
-+    - GP26    MDT2005 PB3 pin 9
-+    - GP25    MDT2005 PB2 pin 8
-+    - GP23    MDT2005 PB1 pin 7
-+    - GP22    MDT2005 PB0 pin 6
-+    - GP21    MDT2005 PB5 pin 11
-+    - GP20    MDT2005 PB6 pin 12
-+    - GP19    MDT2005 PB7 pin 13
-+    - nc      MDT2005 PA3 pin 2
-+    - Remote  MDT2005 PA2 pin 1
-+    - GP18    MDT2005 PA1 pin 18
-+    - nc      MDT2005 PA0 pin 17 strap low
-+    - GP17    Strap "GP7"=High
-+    - GP16    Strap "GP6"=High
-+
-+	- 0=Radio 1=TV
-+	- Drives SA630D ENCH1 and HEF4052 A1 pinsto do FM radio through
-+	  SIF input
-+
-+    - GP15    nc
-+    - GP14    nc
-+    - GP13    nc
-+    - GP12    Strap "GP5" = High
-+    - GP11    Strap "GP4" = High
-+    - GP10    Strap "GP3" = High
-+    - GP09    Strap "GP2" = Low
-+    - GP08    Strap "GP1" = Low
-+    - GP07.00 nc
-+
- Credits
- -------
- 
-diff --git a/Documentation/video4linux/lifeview.txt b/Documentation/video4linux/lifeview.txt
-deleted file mode 100644
-index 05f9eb57aac9..000000000000
---- a/Documentation/video4linux/lifeview.txt
-+++ /dev/null
-@@ -1,42 +0,0 @@
--collecting data about the lifeview models and the config coding on
--gpio pins 0-9 ...
--==================================================================
--
--bt878:
-- LR50 rev. Q ("PARTS: 7031505116), Tuner wurde als Nr. 5 erkannt, Eingänge
-- SVideo, TV, Composite, Audio, Remote. CP9..1=100001001 (1: 0-Ohm-Widerstand
-- gegen GND unbestückt; 0: bestückt)
--
--------------------------------------------------------------------------------
--
--saa7134:
--		/* LifeView FlyTV Platinum FM (LR214WF) */
--		/* "Peter Missel <peter.missel@onlinehome.de> */
--		.name           = "LifeView FlyTV Platinum FM",
--		/*      GP27    MDT2005 PB4 pin 10 */
--		/*      GP26    MDT2005 PB3 pin 9 */
--		/*      GP25    MDT2005 PB2 pin 8 */
--		/*      GP23    MDT2005 PB1 pin 7 */
--		/*      GP22    MDT2005 PB0 pin 6 */
--		/*      GP21    MDT2005 PB5 pin 11 */
--		/*      GP20    MDT2005 PB6 pin 12 */
--		/*      GP19    MDT2005 PB7 pin 13 */
--		/*      nc      MDT2005 PA3 pin 2 */
--		/*      Remote  MDT2005 PA2 pin 1 */
--		/*      GP18    MDT2005 PA1 pin 18 */
--		/*      nc      MDT2005 PA0 pin 17 strap low */
--
--		/*      GP17    Strap "GP7"=High */
--		/*      GP16    Strap "GP6"=High
--				0=Radio 1=TV
--				Drives SA630D ENCH1 and HEF4052 A1 pins
--				to do FM radio through SIF input */
--		/*      GP15    nc */
--		/*      GP14    nc */
--		/*      GP13    nc */
--		/*      GP12    Strap "GP5" = High */
--		/*      GP11    Strap "GP4" = High */
--		/*      GP10    Strap "GP3" = High */
--		/*      GP09    Strap "GP2" = Low */
--		/*      GP08    Strap "GP1" = Low */
--		/*      GP07.00 nc */
+     <para>
+       You may extract a single document from such a collection, and
+-      dispbibute it individually under this License, provided you
++      distribute it individually under this License, provided you
+       insert a copy of this License into the extracted document, and
+       follow this License in all other respects regarding verbatim
+       copying of that document.
+diff --git a/Documentation/DocBook/media/v4l/lirc_device_interface.xml b/Documentation/DocBook/media/v4l/lirc_device_interface.xml
+index 34cada2ca710..725b221e1f6c 100644
+--- a/Documentation/DocBook/media/v4l/lirc_device_interface.xml
++++ b/Documentation/DocBook/media/v4l/lirc_device_interface.xml
+@@ -114,7 +114,7 @@ on working with the default settings initially.</para>
+       <para>Some receiver have maximum resolution which is defined by internal
+       sample rate or data format limitations. E.g. it's common that signals can
+       only be reported in 50 microsecond steps. This integer value is used by
+-      lircd to automatically adjust the aeps tolerance value in the lircd
++      lircd to automatically adjust the steps tolerance value in the lircd
+       config file.</para>
+     </listitem>
+   </varlistentry>
 -- 
 2.7.4
-
 
