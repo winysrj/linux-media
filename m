@@ -1,91 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47191
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755296AbcGTW5D (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.10]:56784 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932118AbcGMIuv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 18:57:03 -0400
-Subject: Re: [PATCH v2] [media] vb2: include lengths in dmabuf qbuf debug
- message
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <1469030875-2246-1-git-send-email-javier@osg.samsung.com>
- <20160720195228.GD7976@valkosipuli.retiisi.org.uk>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org
-Message-ID: <75cf608c-d5a5-420e-2a37-dfef9891dbdc@osg.samsung.com>
-Date: Wed, 20 Jul 2016 18:56:52 -0400
-MIME-Version: 1.0
-In-Reply-To: <20160720195228.GD7976@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 13 Jul 2016 04:50:51 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	PoChun Lin <pochun.lin@mediatek.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2] [media] mtk-vcodec: fix more type mismatches
+Date: Wed, 13 Jul 2016 10:47:40 +0200
+Message-Id: <20160713084916.2765651-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari,
+The newly added mtk-vcodec driver produces a number of warnings in an ARM
+allmodconfig build, mainly since it assumes that dma_addr_t is 32-bit wide:
 
-On 07/20/2016 03:52 PM, Sakari Ailus wrote:
-> On Wed, Jul 20, 2016 at 12:07:55PM -0400, Javier Martinez Canillas wrote:
->> If the VIDIOC_QBUF ioctl fails due a wrong dmabuf length, it's
->> useful to get the invalid and minimum lengths as a debug info.
->>
->> Before this patch:
->>
->> vb2-core: __qbuf_dmabuf: invalid dmabuf length for plane 1
->>
->> After this patch:
->>
->> vb2-core: __qbuf_dmabuf: invalid dmabuf length 221248 for plane 1, minimum length 410880
->>
->> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->>
->> ---
->>
->> Changes in v2:
->> - Use %u instead of %d (Sakari Ailus)
->> - Include min_length (Sakari Ailus)
->>
->>  drivers/media/v4l2-core/videobuf2-core.c | 6 ++++--
->>  1 file changed, 4 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->> index b6fbc04f9699..bbba50d6e1ad 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -1227,8 +1227,10 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
->>  			planes[plane].length = dbuf->size;
->>  
->>  		if (planes[plane].length < vb->planes[plane].min_length) {
->> -			dprintk(1, "invalid dmabuf length for plane %d\n",
->> -				plane);
->> +			dprintk(1, "invalid dmabuf length %u for plane %d, "
->> +				"minimum length %u\n",
-> 
-> You shouldn't split strings. It breaks grep.
-> 
+mtk-vcodec/venc/venc_vp8_if.c: In function 'vp8_enc_alloc_work_buf':
+mtk-vcodec/venc/venc_vp8_if.c:212:191: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+mtk-vcodec/venc/venc_h264_if.c: In function 'h264_enc_alloc_work_buf':
+mtk-vcodec/venc/venc_h264_if.c:297:190: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
 
-Yes I know but if I didn't split the line, it would had been longer than
-the max 80 character per line convention. On those situations I follow
-what's already done in the file for consistency and most strings in the
-videobuf2-core file, whose lines are over 80 characters, are being split.
+This rearranges the format strings and type casts to what they should have been
+in order to avoid the warnings. e0f80d8d62f5 ("[media] mtk-vcodec: fix two compiler
+warnings") fixed some of the problems that were introduced at the same time, but
+missed two others.
 
-But if having a longer line is preferred, I'll happily re-spin the patch.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c | 4 ++--
+ drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c  | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-> With that changed,
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
->> +				planes[plane].length, plane,
->> +				vb->planes[plane].min_length);
->>  			dma_buf_put(dbuf);
->>  			ret = -EINVAL;
->>  			goto err;
-> 
-
-Best regards,
+diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+index f4e18bb44cb9..9a600525b3c1 100644
+--- a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
++++ b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+@@ -295,9 +295,9 @@ static int h264_enc_alloc_work_buf(struct venc_h264_inst *inst)
+ 		wb[i].iova = inst->work_bufs[i].dma_addr;
+ 
+ 		mtk_vcodec_debug(inst,
+-				 "work_buf[%d] va=0x%p iova=0x%p size=%zu",
++				 "work_buf[%d] va=0x%p iova=%pad size=%zu",
+ 				 i, inst->work_bufs[i].va,
+-				 (void *)inst->work_bufs[i].dma_addr,
++				 &inst->work_bufs[i].dma_addr,
+ 				 inst->work_bufs[i].size);
+ 	}
+ 
+diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+index 5b4ef0f1740c..60bbcd2a0510 100644
+--- a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
++++ b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+@@ -210,9 +210,9 @@ static int vp8_enc_alloc_work_buf(struct venc_vp8_inst *inst)
+ 		wb[i].iova = inst->work_bufs[i].dma_addr;
+ 
+ 		mtk_vcodec_debug(inst,
+-				 "work_bufs[%d] va=0x%p,iova=0x%p,size=%zu",
++				 "work_bufs[%d] va=0x%p,iova=%pad,size=%zu",
+ 				 i, inst->work_bufs[i].va,
+-				 (void *)inst->work_bufs[i].dma_addr,
++				 &inst->work_bufs[i].dma_addr,
+ 				 inst->work_bufs[i].size);
+ 	}
+ 
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.9.0
+
