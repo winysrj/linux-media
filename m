@@ -1,86 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:33621 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752689AbcGTAEH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 20:04:07 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: lars@metafoo.de
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 09/10] media: adv7180: enable lock/unlock interrupts
-Date: Tue, 19 Jul 2016 17:03:36 -0700
-Message-Id: <1468973017-17647-10-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
- <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from lists.s-osg.org ([54.187.51.154]:42084 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750901AbcGMPYS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2016 11:24:18 -0400
+Date: Wed, 13 Jul 2016 12:23:31 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Philippe De Muyter <phdm@macqel.be>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [PATCH 1/2] [media] v4l2-subdev.h: allow
+ V4L2_FRMIVAL_TYPE_CONTINUOUS & _STEPWISE
+Message-ID: <20160713122331.62f03637@recife.lan>
+In-Reply-To: <1465683659-12221-1-git-send-email-phdm@macqel.be>
+References: <56E7FC02.50006@xs4all.nl>
+	<1465683659-12221-1-git-send-email-phdm@macqel.be>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable the SD lock/unlock interrupts and send V4L2_EVENT_SRC_CH_LOCK_STATUS
-in the interrupt handler on a detected lock/unlock.
+Em Sun, 12 Jun 2016 00:20:59 +0200
+Philippe De Muyter <phdm@macqel.be> escreveu:
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> add max_interval and step_interval to struct
+> v4l2_subdev_frame_interval_enum.
+> 
+> When filled correctly by the sensor driver, those fields must be
+> used as follows by the intermediate level :
+> 
+> 	struct v4l2_frmivalenum *fival;
+> 	struct v4l2_subdev_frame_interval_enum fie;
+> 
+> 	if (fie.max_interval.numerator == 0) {
+> 		fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+> 		fival->discrete = fie.interval;
+> 	} else if (fie.step_interval.numerator == 0) {
+> 		fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
+> 		fival->stepwise.min = fie.interval;
+> 		fival->stepwise.max = fie.max_interval;
+> 	} else {
+> 		fival->type = V4L2_FRMIVAL_TYPE_STEPWISE;
+> 		fival->stepwise.min = fie.interval;
+> 		fival->stepwise.max = fie.max_interval;
+> 		fival->stepwise.step = fie.step_interval;
+> 	}
+> 
+> Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+> ---
+>  include/uapi/linux/v4l2-subdev.h | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
+> index dbce2b554..846dd36 100644
+> --- a/include/uapi/linux/v4l2-subdev.h
+> +++ b/include/uapi/linux/v4l2-subdev.h
+> @@ -127,7 +127,9 @@ struct v4l2_subdev_frame_interval_enum {
+>  	__u32 height;
+>  	struct v4l2_fract interval;
+>  	__u32 which;
+> -	__u32 reserved[8];
+> +	struct v4l2_fract max_interval;
+> +	struct v4l2_fract step_interval;
+> +	__u32 reserved[4];
 
----
+As this changes the userspace API, you need to also patch the
+Documentation/media to reflect such change and explain the meaning
+for the new fields.
 
-v2:
-- last version of this patch was based on the old reverted autodetect
-  code. This version now only enables the interrupt and sends the
-  event in the interrupt handler.
----
- drivers/media/i2c/adv7180.c | 22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+Please notice that the rst documentation is under the "docs-next"
+branch at the media_tree.git. You should either patch against that
+or wait for the end for 4.8-rc1, where the documentation will be
+merged back on the master branch.
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 0f0568c..61f2140 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -876,19 +876,29 @@ static const struct v4l2_subdev_ops adv7180_ops = {
- static irqreturn_t adv7180_irq(int irq, void *devid)
- {
- 	struct adv7180_state *state = devid;
--	u8 isr3;
-+	u8 isr1, isr3;
- 
- 	mutex_lock(&state->mutex);
-+	isr1 = adv7180_read(state, ADV7180_REG_ISR1);
- 	isr3 = adv7180_read(state, ADV7180_REG_ISR3);
- 	/* clear */
-+	adv7180_write(state, ADV7180_REG_ICR1, isr1);
- 	adv7180_write(state, ADV7180_REG_ICR3, isr3);
- 
--	if (isr3 & ADV7180_IRQ3_AD_CHANGE) {
--		static const struct v4l2_event src_ch = {
-+	if ((isr3 & ADV7180_IRQ3_AD_CHANGE) ||
-+	    (isr1 & (ADV7180_IRQ1_LOCK | ADV7180_IRQ1_UNLOCK))) {
-+		static struct v4l2_event src_ch = {
- 			.type = V4L2_EVENT_SOURCE_CHANGE,
--			.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
- 		};
- 
-+		if (isr3 & ADV7180_IRQ3_AD_CHANGE)
-+			src_ch.u.src_change.changes |=
-+				V4L2_EVENT_SRC_CH_RESOLUTION;
-+
-+		if (isr1 & (ADV7180_IRQ1_LOCK | ADV7180_IRQ1_UNLOCK))
-+			src_ch.u.src_change.changes |=
-+				V4L2_EVENT_SRC_CH_LOCK_STATUS;
-+
- 		v4l2_subdev_notify_event(&state->sd, &src_ch);
- 	}
- 	mutex_unlock(&state->mutex);
-@@ -1289,7 +1299,9 @@ static int init_device(struct adv7180_state *state)
- 		if (ret < 0)
- 			goto out_unlock;
- 
--		ret = adv7180_write(state, ADV7180_REG_IMR1, 0);
-+		/* enable lock/unlock interrupts */
-+		ret = adv7180_write(state, ADV7180_REG_IMR1,
-+				    ADV7180_IRQ1_LOCK | ADV7180_IRQ1_UNLOCK);
- 		if (ret < 0)
- 			goto out_unlock;
- 
+>  };
+>  
+>  /**
+
+
 -- 
-1.9.1
-
+Thanks,
+Mauro
