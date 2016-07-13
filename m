@@ -1,90 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40481 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752179AbcGNWfZ (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33502 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751001AbcGMDAT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2016 18:35:25 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+	Tue, 12 Jul 2016 23:00:19 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id C98B8180239
+	for <linux-media@vger.kernel.org>; Wed, 13 Jul 2016 04:59:39 +0200 (CEST)
+Date: Wed, 13 Jul 2016 04:59:39 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [RFC 10/16] media: Document media device allocation API
-Date: Fri, 15 Jul 2016 01:35:05 +0300
-Message-Id: <1468535711-13836-11-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160713025939.C98B8180239@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the addition of the media_device_alloc() function to allocate a
-media device. Also, document how reference counting and releasing a media
-device works.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Deprecate API elements which are no longer needed with dynamically
-allocated media devices.
+Results of the daily build of media_tree:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- include/media/media-device.h | 26 ++++++++++++++++++++++----
- 1 file changed, 22 insertions(+), 4 deletions(-)
+date:		Wed Jul 13 04:00:22 CEST 2016
+git branch:	test
+git hash:	25f1ec2462f4afe544c9374ef4dbb4f5f0a3b701
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 34671e1..5243737 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -61,16 +61,28 @@
-  *
-  * * Media device:
-  *
-- * A media device is represented by a struct &media_device instance, defined in
-- * include/media/media-device.h. Allocation of the structure is handled by the
-- * media device driver, usually by embedding the &media_device instance in a
-- * larger driver-specific structure.
-+ * A media device is represented by a struct &media_device instance,
-+ * defined in include/media/media-device.h. The memory for a media
-+ * device is allocated using media_device_alloc() function.
-+ * media_device_alloc() may also be used to allocate extra memory for
-+ * driver's purpose. media_device_priv() may be used to obtain a
-+ * driver's private pointer related to a media device. The two are
-+ * intended as alternatives, whichever serves the purpose better.
-  *
-  * Drivers register media device instances by calling
-  *	__media_device_register() via the macro media_device_register()
-  * and unregistered by calling
-  *	media_device_unregister().
-  *
-+ * The media device structure itself is not reference counted, but it
-+ * relies on the kref which is part of struct media_devnode which it
-+ * embeds. Acquiring a reference to a media device requires calling
-+ * media_device_get() on the media device, likewise releasing a
-+ * reference is done using media_device_put(). Once the last reference
-+ * is gone, the media device is released iff it was allocated using
-+ * media_device_alloc(). The media device's release() callback is
-+ * called once the last reference has been released.
-+ *
-  * * Entities, pads and links:
-  *
-  * - Entities
-@@ -419,6 +431,9 @@ static inline __must_check int media_entity_enum_init(
-  *
-  * @mdev:	pointer to struct &media_device
-  *
-+ * DEPRECATED --- use media_device_alloc() and rely on reference
-+ * counts and the release callback instead.
-+ *
-  * This function initializes the media device prior to its registration.
-  * The media device initialization and registration is split in two functions
-  * to avoid race conditions and make the media device available to user-space
-@@ -489,6 +504,9 @@ static inline void *media_device_priv(struct media_device *mdev)
-  *
-  * @mdev:	pointer to struct &media_device
-  *
-+ * DEPRECATED --- use media_device_alloc() and rely on reference
-+ * counts and the release callback instead.
-+ *
-  * This function that will destroy the graph_mutex that is
-  * initialized in media_device_init().
-  */
--- 
-2.1.4
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-i686: ERRORS
+linux-4.7-rc1-i686: ERRORS
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-x86_64: ERRORS
+linux-4.7-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
