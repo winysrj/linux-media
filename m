@@ -1,68 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38617 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753708AbcGEBb0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:26 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 41/41] Documentation: libv4l-introduction.rst: improve format
-Date: Mon,  4 Jul 2016 22:31:16 -0300
-Message-Id: <9eee76afc74f8d47e344adec0e0fca64605833c9.1467670142.git.mchehab@s-opensource.com>
-In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:12537 "EHLO
+	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751931AbcGMNu0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2016 09:50:26 -0400
+From: Jean Christophe TROTIN <jean-christophe.trotin@st.com>
+To: Javier Martinez Canillas <javier@dowhile0.org>
+CC: "nicolas@ndufresne.ca" <nicolas@ndufresne.ca>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"kernel@stlinux.com" <kernel@stlinux.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Yannick FERTRE <yannick.fertre@st.com>,
+	Hugues FRUCHET <hugues.fruchet@st.com>
+Date: Wed, 13 Jul 2016 15:49:54 +0200
+Subject: Re: [PATCH v2 0/3] support of v4l2 encoder for STMicroelectronics
+ SOC
+Message-ID: <57864702.5090006@st.com>
+References: <1468250057-16395-1-git-send-email-jean-christophe.trotin@st.com>
+ <1468259332.14217.8.camel@gmail.com>
+ <CABxcv=k-1RVsDWw++2+1Y4tq-T1XR7TSDrmSet8Thiuw+ChYUw@mail.gmail.com>
+In-Reply-To: <CABxcv=k-1RVsDWw++2+1Y4tq-T1XR7TSDrmSet8Thiuw+ChYUw@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix some cross-references and improve the layout of this
-page.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/linux_tv/media/v4l/libv4l-introduction.rst | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/Documentation/linux_tv/media/v4l/libv4l-introduction.rst b/Documentation/linux_tv/media/v4l/libv4l-introduction.rst
-index 4b261d95c672..61d085f9f105 100644
---- a/Documentation/linux_tv/media/v4l/libv4l-introduction.rst
-+++ b/Documentation/linux_tv/media/v4l/libv4l-introduction.rst
-@@ -45,7 +45,7 @@ It currently accepts the following V4L2 driver formats:
- :ref:`V4L2_PIX_FMT_SPCA508 <V4L2-PIX-FMT-SPCA508>`,
- :ref:`V4L2_PIX_FMT_SPCA561 <V4L2-PIX-FMT-SPCA561>`,
- :ref:`V4L2_PIX_FMT_SQ905C <V4L2-PIX-FMT-SQ905C>`,
--``V4L2_PIX_FMT_SRGGB8``,
-+:ref:`V4L2_PIX_FMT_SRGGB8 <V4L2-PIX-FMT-SRGGB8>`,
- :ref:`V4L2_PIX_FMT_UYVY <V4L2-PIX-FMT-UYVY>`,
- :ref:`V4L2_PIX_FMT_YUV420 <V4L2-PIX-FMT-YUV420>`,
- :ref:`V4L2_PIX_FMT_YUYV <V4L2-PIX-FMT-YUYV>`,
-@@ -92,16 +92,16 @@ and to enhance the image quality.
- In most cases, libv4l2 just passes the calls directly through to the
- v4l2 driver, intercepting the calls to
- :ref:`VIDIOC_TRY_FMT <VIDIOC_G_FMT>`,
--:ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>`
--:ref:`VIDIOC_S_FMT <VIDIOC_G_FMT>`
--:ref:`VIDIOC_ENUM_FRAMESIZES` and
--:ref:`VIDIOC_ENUM_FRAMEINTERVALS` in
-+:ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>`,
-+:ref:`VIDIOC_S_FMT <VIDIOC_G_FMT>`,
-+:ref:`VIDIOC_ENUM_FRAMESIZES <VIDIOC_ENUM_FRAMESIZES>` and
-+:ref:`VIDIOC_ENUM_FRAMEINTERVALS <VIDIOC_ENUM_FRAMEINTERVALS>` in
- order to emulate the formats
- :ref:`V4L2_PIX_FMT_BGR24 <V4L2-PIX-FMT-BGR24>`,
- :ref:`V4L2_PIX_FMT_RGB24 <V4L2-PIX-FMT-RGB24>`,
- :ref:`V4L2_PIX_FMT_YUV420 <V4L2-PIX-FMT-YUV420>`, and
- :ref:`V4L2_PIX_FMT_YVU420 <V4L2-PIX-FMT-YVU420>`, if they aren't
--available in the driver. :ref:`VIDIOC_ENUM_FMT`
-+available in the driver. :ref:`VIDIOC_ENUM_FMT <VIDIOC_ENUM_FMT>`
- keeps enumerating the hardware supported formats, plus the emulated
- formats offered by libv4l at the end.
- 
--- 
-2.7.4
-
+DQoNCk9uIDA3LzExLzIwMTYgMDg6NTcgUE0sIEphdmllciBNYXJ0aW5leiBDYW5pbGxhcyB3cm90
+ZToNCj4gT24gTW9uLCBKdWwgMTEsIDIwMTYgYXQgMTo0OCBQTSwgTmljb2xhcyBEdWZyZXNuZQ0K
+PiA8bmljb2xhcy5kdWZyZXNuZUBnbWFpbC5jb20+IHdyb3RlOg0KPj4gTGUgbHVuZGkgMTEganVp
+bGxldCAyMDE2IMOgIDE3OjE0ICswMjAwLCBKZWFuLUNocmlzdG9waGUgVHJvdGluIGENCj4+IMOp
+Y3JpdCA6DQo+DQo+IFtzbmlwXQ0KPg0KPj4+DQo+Pj4gQmVsb3cgaXMgdGhlIHY0bDItY29tcGxp
+YW5jZSByZXBvcnQgZm9yIHRoZSB2ZXJzaW9uIDIgb2YgdGhlIHN0aSBodmENCj4+PiBkcml2ZXI6
+DQo+Pj4NCj4+Pg0KPj4+IHJvb3RAc3RpLW5leHQ6L2hvbWUvdmlkZW9fdGVzdCMgdjRsMi1jb21w
+bGlhbmNlIC1kIC9kZXYvdmlkZW8wDQo+Pj4gRHJpdmVyIEluZm86DQo+Pj4gICAgICAgIERyaXZl
+ciBuYW1lICAgOiA4Yzg1MDAwLmh2YQ0KPj4NCj4+IEkgdGhpbmsgaXQgd291bGQgYmUgbmljZSB0
+byBzZXQgYSBkcml2ZXIgbmFtZSB0aGF0IG1lYW5zIHNvbWV0aGluZy4NCj4+DQo+Pj4gICAgICAg
+IENhcmQgdHlwZSAgICAgOiA4Yzg1MDAwLmh2YQ0KPg0KPiBBZ3JlZWQsIHNhbWUgZm9yIENhcmQg
+dHlwZS4gVGhlIFZJRElPQ19RVUVSWUNBUCBpb2N0bCBkb2N1bWVudGF0aW9uDQo+IGV4cGxhaW5z
+IHdoYXQgaW5mb3JtYXRpb24gdGhlc2UgZmllbGRzIHNob3VsZCBjb250YWluOg0KPg0KPiBodHRw
+czovL2xpbnV4dHYub3JnL2Rvd25sb2Fkcy92NGwtZHZiLWFwaXMvdmlkaW9jLXF1ZXJ5Y2FwLmh0
+bWwNCj4NCj4gRm9yIGV4YW1wbGUgaHR0cHM6Ly9naXQubGludXh0di5vcmcvbWVkaWFfdHJlZS5n
+aXQvY29tbWl0Lz9pZD1lMGQ4MGM4YWNjYTBmMjIxYjlkZWRiMmVhYjdhNTE4NDg0OGI5OWI3DQo+
+DQo+IEJlc3QgcmVnYXJkcywNCj4gSmF2aWVyDQo+DQoNCk5pY29sYXMgYW5kIEphdmllciwNCg0K
+VGhhbmsgeW91IGZvciB0aGUgcmVtYXJrcy4NCkkgd2lsbCBtb2RpZnkgdGhlIGNvZGUgaW4gdmVy
+c2lvbiAzIHNvIHRoYXQgImRyaXZlciIgY29udGFpbnMgdGhlIG5hbWUgb2YgdGhlIA0KZW5jb2Rl
+ciAoImh2YSIpLCAiY2FyZCIgaWRlbnRpZmllcyB0aGUgaGFyZHdhcmUgdmVyc2lvbiAoImh2YTxo
+d19pcF92ZXJzaW9uPiIgDQp3aXRoIDxod19pcF92ZXJzaW9uPiBlcXVhbCB0byA0MDAgaGVyZSwg
+d2hpY2ggbGVhZHMgdG8gImh2YTQwMCIpLCBhbmQgImJ1c19pbmZvIiANCmluZGljYXRlcyB0aGUg
+bG9jYXRpb24gb2YgdGhlIGRldmljZSAoInBsYXRmb3JtOjhjODUwMDAuaHZhIikuDQoNCkJlZm9y
+ZSB0aGUgbW9kaWZpY2F0aW9uOg0KRHJpdmVyIEluZm86DQogICAgICAgIERyaXZlciBuYW1lICAg
+OiA4Yzg1MDAwLmh2YQ0KICAgICAgICBDYXJkIHR5cGUgICAgIDogOGM4NTAwMC5odmENCiAgICAg
+ICAgQnVzIGluZm8gICAgICA6IHBsYXRmb3JtOmh2YQ0KICAgICAgICBEcml2ZXIgdmVyc2lvbjog
+NC43LjANCg0KQWZ0ZXIgdGhlIG1vZGlmaWNhdGlvbjoNCkRyaXZlciBJbmZvOg0KCURyaXZlciBu
+YW1lICAgOiBodmENCglDYXJkIHR5cGUgICAgIDogaHZhNDAwDQoJQnVzIGluZm8gICAgICA6IHBs
+YXRmb3JtOjhjODUwMDAuaHZhDQoJRHJpdmVyIHZlcnNpb246IDQuNy4wDQoNCkJlc3QgcmVnYXJk
+cywNCkplYW4tQ2hyaXN0b3BoZS4=
