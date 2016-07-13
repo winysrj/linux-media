@@ -1,69 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46385
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46439
 	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933249AbcGLPIq (ORCPT
+	with ESMTP id S1751139AbcGMKhr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 11:08:46 -0400
-Subject: Re: [PATCH] media: s5p-mfc Fix misspelled error message and
- checkpatch errors
-To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
-	k.debski@samsung.com, jtp.park@samsung.com, mchehab@kernel.org
-References: <1468276740-1591-1-git-send-email-shuahkh@osg.samsung.com>
- <8dd68d9b-9455-d593-dc0f-c269c778b961@osg.samsung.com>
- <578507B2.9020501@osg.samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <e6254aaa-68d5-72d9-a226-863db8632662@osg.samsung.com>
-Date: Tue, 12 Jul 2016 11:08:37 -0400
+	Wed, 13 Jul 2016 06:37:47 -0400
+Date: Wed, 13 Jul 2016 07:37:37 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 2/2] doc-rst: improve CEC documentation
+Message-ID: <20160713073737.7fef8c7e@recife.lan>
+In-Reply-To: <5786138F.5050103@cisco.com>
+References: <1468346865-36465-1-git-send-email-hverkuil@xs4all.nl>
+	<1468346865-36465-3-git-send-email-hverkuil@xs4all.nl>
+	<20160713070627.1c2368d6@recife.lan>
+	<5786138F.5050103@cisco.com>
 MIME-Version: 1.0
-In-Reply-To: <578507B2.9020501@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Shuah,
+Em Wed, 13 Jul 2016 12:10:23 +0200
+Hans Verkuil <hansverk@cisco.com> escreveu:
 
-On 07/12/2016 11:07 AM, Shuah Khan wrote:
-> On 07/12/2016 09:03 AM, Javier Martinez Canillas wrote:
->> Hello Shuah,
->>
->> On 07/11/2016 06:39 PM, Shuah Khan wrote:
->>> Fix misspelled error message and existing checkpatch errors in the
->>> error message conditional.
->>>
->>> WARNING: suspect code indent for conditional statements (8, 24)
->>>  	if (ctx->state != MFCINST_HEAD_PARSED &&
->>> [...]
->>> +               mfc_err("Can not get crop information\n");
->>>
->>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->>> ---
->>
->> Patch looks good to me. Maybe is better to split the message and checkpatch
->> changes in two different patches. But I don't have a strong opinion on this:
->>
->> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
->>
+> On 07/13/16 12:06, Mauro Carvalho Chehab wrote:
+> > Hi Hans,
+> > 
+> > Em Tue, 12 Jul 2016 20:07:45 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> Lots of fixups relating to references.
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >>  Documentation/media/uapi/cec/cec-func-ioctl.rst    |  2 +-
+> >>  Documentation/media/uapi/cec/cec-func-open.rst     | 10 +++----
+> >>  .../media/uapi/cec/cec-ioc-adap-g-caps.rst         | 18 ++++++------
+> >>  .../media/uapi/cec/cec-ioc-adap-g-log-addrs.rst    | 14 ++++-----
+> >>  .../media/uapi/cec/cec-ioc-adap-g-phys-addr.rst    | 14 ++++-----
+> >>  Documentation/media/uapi/cec/cec-ioc-dqevent.rst   |  2 +-
+> >>  Documentation/media/uapi/cec/cec-ioc-g-mode.rst    | 34 +++++++++-------------
+> >>  Documentation/media/uapi/cec/cec-ioc-receive.rst   | 28 +++++++++---------
+> >>  8 files changed, 58 insertions(+), 64 deletions(-)
+> >>
+> >> diff --git a/Documentation/media/uapi/cec/cec-func-ioctl.rst b/Documentation/media/uapi/cec/cec-func-ioctl.rst
+> >> index a07cc7c..d0279e6d 100644
+> >> --- a/Documentation/media/uapi/cec/cec-func-ioctl.rst
+> >> +++ b/Documentation/media/uapi/cec/cec-func-ioctl.rst
+> >> @@ -29,7 +29,7 @@ Arguments
+> >>  
+> >>  ``request``
+> >>      CEC ioctl request code as defined in the cec.h header file, for
+> >> -    example CEC_ADAP_G_CAPS.
+> >> +    example :ref:`CEC_ADAP_G_CAPS`.
+> >>  
+> >>  ``argp``
+> >>      Pointer to a request-specific structure.
+> >> diff --git a/Documentation/media/uapi/cec/cec-func-open.rst b/Documentation/media/uapi/cec/cec-func-open.rst
+> >> index 245d679..cbf1176 100644
+> >> --- a/Documentation/media/uapi/cec/cec-func-open.rst
+> >> +++ b/Documentation/media/uapi/cec/cec-func-open.rst
+> >> @@ -32,11 +32,11 @@ Arguments
+> >>      Open flags. Access mode must be ``O_RDWR``.
+> >>  
+> >>      When the ``O_NONBLOCK`` flag is given, the
+> >> -    :ref:`CEC_RECEIVE` ioctl will return EAGAIN
+> >> -    error code when no message is available, and the
+> >> -    :ref:`CEC_TRANSMIT`,
+> >> -    :ref:`CEC_ADAP_S_PHYS_ADDR` and
+> >> -    :ref:`CEC_ADAP_S_LOG_ADDRS` ioctls
+> >> +    :ref:`CEC_RECEIVE <CEC_RECEIVE>` ioctl will return the EAGAIN
+> >> +    error code when no message is available, and ioctls
+> >> +    :ref:`CEC_TRANSMIT <CEC_TRANSMIT>`,
+> >> +    :ref:`CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>` and
+> >> +    :ref:`CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
+> >>      all act in non-blocking mode.
+> >>  
+> >>      Other flags have no effect.
+> >> diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
+> >> index 2ca9199..63b808e 100644
+> >> --- a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
+> >> +++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
+> >> @@ -34,7 +34,7 @@ Description
+> >>  .. note:: This documents the proposed CEC API. This API is not yet finalized
+> >>     and is currently only available as a staging kernel module.
+> >>  
+> >> -All cec devices must support the :ref:`CEC_ADAP_G_CAPS` ioctl. To query
+> >> +All cec devices must support ``CEC_ADAP_G_CAPS``. To query  
+> > 
+> > Why are you removing the ref here and on other similar places? If you
+> > remove it, the font and font color for it will be different and
+> > inconsistent. It will also be inconsistent with the other places
+> > within the document, were it is using a reference everywhere.  
 > 
-> Thanks for the review. I considered splitting them, however the patch
-> that fixes the message will be flagged by checkpatch. It does make
-> sense to split the changes into two patches. What I could do is, make
-> the checkpatch fixes the first patch and fix the error message in the
-> second one.
+> What's the point of having a link to the same page that you are watching?
+> I also found it very cumbersome and ugly having to write e.g.
 > 
-> How does that sound?
->
+> :ref:`CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>
+> 
+> all the time. That is fine if it actually points to another page (it serves a
+> real purpose then), but on the page itself I think it is ugly. We never did
+> that with the DocBook documentation either.
 
-Sounds good to me.
- 
-> -- Shuah
-> 
-> 
+With DocBook, all ioctls, including the references, were <constant>.
+So, they all display the same way, no matter if they're a reference or
+not. However, with ReST, it is *either* a constant or a reference. So,
+if you use ``foo`` or :ref:`foo`, the fonts used will be different, with
+causes, IMHO, an ugly output, as it violates the font convention used
+within the document.
 
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+With regards to DocBook, this was really messy. I've seen the same ioctl
+represented there in three ways, sometimes, even at the same file.
+Just to get a random example:
+	
+Documentation/DocBook/media/v4l/io.xml:<link linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link>, <link
+Documentation/DocBook/media/v4l/io.xml:<constant>VIDIOC_QUERYBUF</constant>
+Documentation/DocBook/media/v4l/vidioc-querybuf.xml:      <para>VIDIOC_QUERYBUF</para>
+
+(You'll see lot of other cases were not even <constant> were used...
+Documentation/DocBook/media/v4l/v4l2.xml is lot of such cases)
+
+We should stick with just *one* typographic convention, and not randomly
+change it along the document.
+
+It looks really ugly when we change the typographic convention for ioctls
+like what this patch does.
+
+Regards
+
+Thanks,
+Mauro
