@@ -1,72 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38662 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754225AbcGEBb1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:27 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 15/41] Documentation: linux_tv: fix remaining lack of escapes
-Date: Mon,  4 Jul 2016 22:30:50 -0300
-Message-Id: <51b85fd8afbbea884b55f6ed7a02974323feb619.1467670142.git.mchehab@s-opensource.com>
-In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:6231 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752628AbcGMJ4r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2016 05:56:47 -0400
+Message-ID: <1468403786.32454.16.camel@mtksdaap41>
+Subject: Re: [PATCH] [media] mtk-vcodec: fix type mismatches
+From: tiffany lin <tiffany.lin@mediatek.com>
+To: Arnd Bergmann <arnd@arndb.de>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	PoChun Lin <pochun.lin@mediatek.com>,
+	<linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-mediatek@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>
+Date: Wed, 13 Jul 2016 17:56:26 +0800
+In-Reply-To: <20160711213959.2481081-1-arnd@arndb.de>
+References: <20160711213959.2481081-1-arnd@arndb.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add escape before asterisk to fix those warnings:
+Hi Arnd,
 
-Documentation/linux_tv/media/dvb/FE_GET_EVENT.rst:47: WARNING: Inline emphasis start-string without end-string.
-Documentation/linux_tv/media/v4l/media-ioc-enum-links.rst:78: WARNING: Inline emphasis start-string without end-string.
-Documentation/linux_tv/media/v4l/media-ioc-enum-links.rst:87: WARNING: Inline emphasis start-string without end-string.
+On Mon, 2016-07-11 at 23:37 +0200, Arnd Bergmann wrote:
+> The newly added mtk-vcodec driver produces a number of warnings in an ARM
+> allmodconfig build, mainly since it assumes that dma_addr_t is 32-bit wide:
+> 
+> mtk-vcodec/venc/venc_vp8_if.c: In function 'vp8_enc_alloc_work_buf':
+> mtk-vcodec/venc/venc_vp8_if.c:212:191: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+> mtk-vcodec/venc/venc_h264_if.c: In function 'h264_enc_alloc_work_buf':
+> mtk-vcodec/venc/venc_h264_if.c:297:190: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+> mtk-vcodec/mtk_vcodec_enc.c: In function 'mtk_venc_worker':
+> mtk-vcodec/mtk_vcodec_enc.c:1030:46: error: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type 'size_t {aka unsigned int}' [-Werror=format=]
+>   mtk_v4l2_debug(2,
+> mtk-vcodec/mtk_vcodec_enc.c:1030:46: error: format '%lx' expects argument of type 'long unsigned int', but argument 10 has type 'size_t {aka unsigned int}' [-Werror=format=]
+> mtk-vcodec/venc_vpu_if.c: In function 'vpu_enc_ipi_handler':
+> mtk-vcodec/venc_vpu_if.c:40:30: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+>   struct venc_vpu_inst *vpu = (struct venc_vpu_inst *)msg->venc_inst;
+> 
+> This rearranges the format strings and type casts to what they should have been
+> in order to avoid the warnings.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c    | 8 ++++----
+>  drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c | 4 ++--
+>  drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c  | 4 ++--
+>  drivers/media/platform/mtk-vcodec/venc_vpu_if.c       | 4 ++--
+>  4 files changed, 10 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> index 6dcae0a0a1f2..0b25a8700877 100644
+> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> @@ -1028,15 +1028,15 @@ static void mtk_venc_worker(struct work_struct *work)
+>  	bs_buf.size = (size_t)dst_buf->planes[0].length;
+>  
+>  	mtk_v4l2_debug(2,
+> -			"Framebuf VA=%p PA=%llx Size=0x%lx;VA=%p PA=0x%llx Size=0x%lx;VA=%p PA=0x%llx Size=%zu",
+> +			"Framebuf VA=%p PA=%pad Size=0x%zx;VA=%p PA=%pad Size=0x%zx;VA=%p PA=%pad Size=0x%zx",
+>  			frm_buf.fb_addr[0].va,
+> -			(u64)frm_buf.fb_addr[0].dma_addr,
+> +			&frm_buf.fb_addr[0].dma_addr,
+>  			frm_buf.fb_addr[0].size,
+>  			frm_buf.fb_addr[1].va,
+> -			(u64)frm_buf.fb_addr[1].dma_addr,
+> +			&frm_buf.fb_addr[1].dma_addr,
+>  			frm_buf.fb_addr[1].size,
+>  			frm_buf.fb_addr[2].va,
+> -			(u64)frm_buf.fb_addr[2].dma_addr,
+> +			&frm_buf.fb_addr[2].dma_addr,
+>  			frm_buf.fb_addr[2].size);
+This change will make debug message dump address of dma_addr field but
+not the value of the dma_addr we want.
+How about change it from
+PA=%llx -> PA=%u
+(u64)frm_buf.fb_addr[0].dma_addr -> (u32)frm_buf.fb_addr[0].dma_addr,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/linux_tv/media/dvb/FE_GET_EVENT.rst         | 2 +-
- Documentation/linux_tv/media/v4l/media-ioc-enum-links.rst | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+>  
+>  	ret = venc_if_encode(ctx, VENC_START_OPT_ENCODE_FRAME,
+> diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+> index f4e18bb44cb9..9a600525b3c1 100644
+> --- a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+> +++ b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+> @@ -295,9 +295,9 @@ static int h264_enc_alloc_work_buf(struct venc_h264_inst *inst)
+>  		wb[i].iova = inst->work_bufs[i].dma_addr;
+>  
+>  		mtk_vcodec_debug(inst,
+> -				 "work_buf[%d] va=0x%p iova=0x%p size=%zu",
+> +				 "work_buf[%d] va=0x%p iova=%pad size=%zu",
+>  				 i, inst->work_bufs[i].va,
+> -				 (void *)inst->work_bufs[i].dma_addr,
+> +				 &inst->work_bufs[i].dma_addr,
+>  				 inst->work_bufs[i].size);
+>  	}
+>  
+Same as above.
 
-diff --git a/Documentation/linux_tv/media/dvb/FE_GET_EVENT.rst b/Documentation/linux_tv/media/dvb/FE_GET_EVENT.rst
-index e0c66b877ada..a30dc97d6e15 100644
---- a/Documentation/linux_tv/media/dvb/FE_GET_EVENT.rst
-+++ b/Documentation/linux_tv/media/dvb/FE_GET_EVENT.rst
-@@ -44,7 +44,7 @@ Arguments
- 
-     -  .. row 3
- 
--       -  struct dvb_frontend_event *ev
-+       -  struct dvb_frontend_event \*ev
- 
-        -  Points to the location where the event,
- 
-diff --git a/Documentation/linux_tv/media/v4l/media-ioc-enum-links.rst b/Documentation/linux_tv/media/v4l/media-ioc-enum-links.rst
-index b0d4a946e151..6989f4ae4748 100644
---- a/Documentation/linux_tv/media/v4l/media-ioc-enum-links.rst
-+++ b/Documentation/linux_tv/media/v4l/media-ioc-enum-links.rst
-@@ -75,7 +75,7 @@ returned during the enumeration process.
- 
-        -  struct :ref:`media_pad_desc <media-pad-desc>`
- 
--       -  *\ ``pads``
-+       -  \*\ ``pads``
- 
-        -  Pointer to a pads array allocated by the application. Ignored if
-           NULL.
-@@ -84,7 +84,7 @@ returned during the enumeration process.
- 
-        -  struct :ref:`media_link_desc <media-link-desc>`
- 
--       -  *\ ``links``
-+       -  \*\ ``links``
- 
-        -  Pointer to a links array allocated by the application. Ignored if
-           NULL.
--- 
-2.7.4
+best regards,
+Tiffany
+
+> diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+> index 431ae706a427..5b35aa1900d7 100644
+> --- a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+> +++ b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+> @@ -210,9 +210,9 @@ static int vp8_enc_alloc_work_buf(struct venc_vp8_inst *inst)
+>  		wb[i].iova = inst->work_bufs[i].dma_addr;
+>  
+>  		mtk_vcodec_debug(inst,
+> -				 "work_bufs[%d] va=0x%p,iova=0x%p,size=%zu",
+> +				 "work_bufs[%d] va=0x%p,iova=%pad,size=%zu",
+>  				 i, inst->work_bufs[i].va,
+> -				 (void *)inst->work_bufs[i].dma_addr,
+> +				 &inst->work_bufs[i].dma_addr,
+>  				 inst->work_bufs[i].size);
+>  	}
+>  
+> diff --git a/drivers/media/platform/mtk-vcodec/venc_vpu_if.c b/drivers/media/platform/mtk-vcodec/venc_vpu_if.c
+> index b92c6d2a892d..8907b02729fa 100644
+> --- a/drivers/media/platform/mtk-vcodec/venc_vpu_if.c
+> +++ b/drivers/media/platform/mtk-vcodec/venc_vpu_if.c
+> @@ -37,7 +37,7 @@ static void handle_enc_encode_msg(struct venc_vpu_inst *vpu, void *data)
+>  static void vpu_enc_ipi_handler(void *data, unsigned int len, void *priv)
+>  {
+>  	struct venc_vpu_ipi_msg_common *msg = data;
+> -	struct venc_vpu_inst *vpu = (struct venc_vpu_inst *)msg->venc_inst;
+> +	struct venc_vpu_inst *vpu = (struct venc_vpu_inst *)(uintptr_t)msg->venc_inst;
+>  
+>  	mtk_vcodec_debug(vpu, "msg_id %x inst %p status %d",
+>  			 msg->msg_id, vpu, msg->status);
+> @@ -112,7 +112,7 @@ int vpu_enc_init(struct venc_vpu_inst *vpu)
+>  
+>  	memset(&out, 0, sizeof(out));
+>  	out.msg_id = AP_IPIMSG_ENC_INIT;
+> -	out.venc_inst = (unsigned long)vpu;
+> +	out.venc_inst = (uintptr_t)vpu;
+>  	if (vpu_enc_send_msg(vpu, &out, sizeof(out))) {
+>  		mtk_vcodec_err(vpu, "AP_IPIMSG_ENC_INIT fail");
+>  		return -EINVAL;
+
 
