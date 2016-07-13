@@ -1,103 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33937 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752850AbcGVJJk (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:43601 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753098AbcGMKdU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 05:09:40 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	william.towle@codethink.co.uk, geert@linux-m68k.org,
-	Rob Taylor <rob.taylor@codethink.co.uk>,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v6 2/4] ARM: dts: lager: Add entries for VIN HDMI input support
-Date: Fri, 22 Jul 2016 11:09:12 +0200
-Message-Id: <1469178554-20719-3-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Wed, 13 Jul 2016 06:33:20 -0400
+Date: Wed, 13 Jul 2016 12:32:51 +0200
+From: Peter Zijlstra <peterz@infradead.org>
+To: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: linux-kernel@vger.kernel.org,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Tejun Heo <tj@kernel.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ingo Molnar <mingo@kernel.org>,
+	Kees Cook <keescook@chromium.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Andrey Ryabinin <aryabinin@virtuozzo.com>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Dmitry Vyukov <dvyukov@google.com>,
+	Alexander Potapenko <glider@google.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org
+Subject: Re: [PATCH 5/9] async: Wrap hrtimer to provide a time source for a
+ kfence
+Message-ID: <20160713103251.GC30921@twins.programming.kicks-ass.net>
+References: <1466759333-4703-1-git-send-email-chris@chris-wilson.co.uk>
+ <1466759333-4703-6-git-send-email-chris@chris-wilson.co.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1466759333-4703-6-git-send-email-chris@chris-wilson.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: William Towle <william.towle@codethink.co.uk>
+On Fri, Jun 24, 2016 at 10:08:49AM +0100, Chris Wilson wrote:
+> kfence_add_delay() is a convenience wrapper around
+> hrtimer_start_range_ns() to provide a time source for a kfence graph.
 
-Add DT entries for vin0, vin0_pins, and adv7612.
-
-Sets the 'default-input' property for ADV7612, enabling image and video
-capture without the need to have userspace specifying routing.
-
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-[uli: added interrupt, renamed endpoint, merged default-input]
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- arch/arm/boot/dts/r8a7790-lager.dts | 39 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
-
-diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
-index ffc2f4e..16e86d0 100644
---- a/arch/arm/boot/dts/r8a7790-lager.dts
-+++ b/arch/arm/boot/dts/r8a7790-lager.dts
-@@ -374,6 +374,21 @@
- 				};
- 			};
- 		};
-+
-+		hdmi-in@4c {
-+			compatible = "adi,adv7612";
-+			reg = <0x4c>;
-+			interrupt-parent = <&gpio1>;
-+			interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
-+			remote = <&vin0>;
-+			default-input = <0>;
-+
-+			port {
-+				adv7612: endpoint {
-+					remote-endpoint = <&vin0ep0>;
-+				};
-+			};
-+		};
- 	};
- 
- 	/*
-@@ -587,6 +602,11 @@
- 		function = "usb2";
- 	};
- 
-+	vin0_pins: vin0 {
-+		groups = "vin0_data24", "vin0_sync", "vin0_clkenb", "vin0_clk";
-+		function = "vin0";
-+	};
-+
- 	vin1_pins: vin1 {
- 		groups = "vin1_data8", "vin1_clk";
- 		function = "vin1";
-@@ -818,6 +838,25 @@
- 	status = "okay";
- };
- 
-+/* HDMI video input */
-+&vin0 {
-+	pinctrl-0 = <&vin0_pins>;
-+	pinctrl-names = "default";
-+
-+	status = "ok";
-+
-+	port {
-+		vin0ep0: endpoint {
-+			remote-endpoint = <&adv7612>;
-+			bus-width = <24>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+			data-active = <1>;
-+		};
-+	};
-+};
-+
- /* composite video input */
- &vin1 {
- 	pinctrl-0 = <&vin1_pins>;
--- 
-2.7.4
-
+Changelog could be greatly improved by telling us why we'd want this.
