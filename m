@@ -1,68 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:60945 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752914AbcGSSCd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 14:02:33 -0400
-Subject: [PATCH] [media] v4l2-common: Delete an unnecessary check before the
- function call "spi_unregister_device"
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <5307CAA2.8060406@users.sourceforge.net>
- <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
- <530A086E.8010901@users.sourceforge.net>
- <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
- <530A72AA.3000601@users.sourceforge.net>
- <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
- <530B5FB6.6010207@users.sourceforge.net>
- <alpine.DEB.2.10.1402241710370.2074@hadrien>
- <530C5E18.1020800@users.sourceforge.net>
- <alpine.DEB.2.10.1402251014170.2080@hadrien>
- <530CD2C4.4050903@users.sourceforge.net>
- <alpine.DEB.2.10.1402251840450.7035@hadrien>
- <530CF8FF.8080600@users.sourceforge.net>
- <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
- <530DD06F.4090703@users.sourceforge.net>
- <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
- <5317A59D.4@users.sourceforge.net>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Message-ID: <cf814738-8480-035a-553d-afa53f414e4e@users.sourceforge.net>
-Date: Tue, 19 Jul 2016 20:02:10 +0200
+Received: from out5-smtp.messagingengine.com ([66.111.4.29]:33097 "EHLO
+	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750879AbcGMCFg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2016 22:05:36 -0400
+Date: Wed, 13 Jul 2016 05:05:04 +0300
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Kozlov Sergey <serjk@netup.ru>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Krzysztof =?utf-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-pci@vger.kernel.org,
+	kernel-mentors@selenic.com
+Subject: Re: [PATCH v4] [media] pci: Add tw5864 driver - fixed few style
+ nits, going to resubmit soon
+Message-ID: <20160713020504.GH5934@zver>
+References: <20160711151714.5452-1-andrey.utkin@corp.bluecherry.net>
 MIME-Version: 1.0
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160711151714.5452-1-andrey.utkin@corp.bluecherry.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 19 Jul 2016 19:54:16 +0200
+Found and fixed few very minor coding style nits, will resubmit in few days,
+now still waiting for comments to v4.
 
-The spi_unregister_device() function tests whether its argument is NULL
-and then returns immediately. Thus the test around the call is not needed.
+https://github.com/bluecherrydvr/linux/commits/tw5864
 
-This issue was detected by using the Coccinelle software.
+commit 31f7c98a144cb3fb8a94662f002d9b6142d1f390
+Author: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Date:   Wed Jul 13 05:00:28 2016 +0300
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/v4l2-core/v4l2-common.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+    Fix checkpatch --strict issue
+    
+     CHECK: Alignment should match open parenthesis
+     #3599: FILE: drivers/media/pci/tw5864/tw5864-video.c:539:
+     +static int tw5864_fmt_vid_cap(struct file *file, void *priv,
+     +                               struct v4l2_format *f)
 
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index 5b80850..57cfe26a 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -291,7 +291,7 @@ struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
- error:
- 	/* If we have a client but no subdev, then something went wrong and
- 	   we must unregister the client. */
--	if (spi && sd == NULL)
-+	if (!sd)
- 		spi_unregister_device(spi);
- 
- 	return sd;
--- 
-2.9.2
+commit 11a09a1048af597ecf374507b08c809eed91b86d
+Author: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Date:   Wed Jul 13 04:59:34 2016 +0300
 
+    Fix checkpatch --strict issue
+    
+     CHECK: Please don't use multiple blank lines
+     #3244: FILE: drivers/media/pci/tw5864/tw5864-video.c:184:
+
+commit 861b2ba8593db7abe89291a4ba85976519783f4a
+Author: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Date:   Wed Jul 13 04:58:37 2016 +0300
+
+    Fix checkpatch --strict issue
+    
+     CHECK: No space is necessary after a cast
+     #3053: FILE: drivers/media/pci/tw5864/tw5864-util.c:36:
+     +       return (u8) tw_readl(TW5864_IND_DATA);
