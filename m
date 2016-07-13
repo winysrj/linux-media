@@ -1,124 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40452 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751742AbcGVPDS (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:35667 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751495AbcGMHFx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 11:03:18 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
+	Wed, 13 Jul 2016 03:05:53 -0400
+Subject: Re: [PATCH v4] [media] pci: Add tw5864 driver - fixed few style nits,
+ going to resubmit soon
+To: Andrey Utkin <andrey_utkin@fastmail.com>,
+	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+References: <20160711151714.5452-1-andrey.utkin@corp.bluecherry.net>
+ <20160713020504.GH5934@zver>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Kozlov Sergey <serjk@netup.ru>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 08/11] [media] move V4L2 clocks to a separate .rst file
-Date: Fri, 22 Jul 2016 12:03:04 -0300
-Message-Id: <90d60bf5fdb9e327c89ae7ddcce27d3a0bc23d57.1469199711.git.mchehab@s-opensource.com>
-In-Reply-To: <c2765df5223e1b389c73271397865fbf8bae100e.1469199711.git.mchehab@s-opensource.com>
-References: <c2765df5223e1b389c73271397865fbf8bae100e.1469199711.git.mchehab@s-opensource.com>
-In-Reply-To: <c2765df5223e1b389c73271397865fbf8bae100e.1469199711.git.mchehab@s-opensource.com>
-References: <c2765df5223e1b389c73271397865fbf8bae100e.1469199711.git.mchehab@s-opensource.com>
+	=?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-pci@vger.kernel.org,
+	kernel-mentors@selenic.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5d3d8684-fe20-0bc8-7465-53c5f7b55447@xs4all.nl>
+Date: Wed, 13 Jul 2016 09:05:27 +0200
+MIME-Version: 1.0
+In-Reply-To: <20160713020504.GH5934@zver>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the v4l2 clocks stuff from v4l2-framework to a separate
-file and adds an attention that came from the v4l2-clk.h.
+On 07/13/2016 04:05 AM, Andrey Utkin wrote:
+> Found and fixed few very minor coding style nits, will resubmit in few days,
+> now still waiting for comments to v4.
 
-Note: as this is meant to be a temporary kAPI, and it is
-used only by two drivers (soc_camera and em28xx), where
-the first one is in deprecation process, it probably not
-a worth effort to document its header.
+Can you resubmit now? I plan to review it on Friday or Monday, and I'd rather
+review the latest version.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/kapi/v4l2-clocks.rst    | 29 +++++++++++++++++++++++++++++
- Documentation/media/kapi/v4l2-core.rst      |  1 +
- Documentation/media/kapi/v4l2-framework.rst | 25 -------------------------
- 3 files changed, 30 insertions(+), 25 deletions(-)
- create mode 100644 Documentation/media/kapi/v4l2-clocks.rst
+Regards,
 
-diff --git a/Documentation/media/kapi/v4l2-clocks.rst b/Documentation/media/kapi/v4l2-clocks.rst
-new file mode 100644
-index 000000000000..b8a895860a8a
---- /dev/null
-+++ b/Documentation/media/kapi/v4l2-clocks.rst
-@@ -0,0 +1,29 @@
-+V4L2 clocks
-+-----------
-+
-+.. attention::
-+
-+	This is a temporary API and it shall be replaced by the generic
-+	clock API, when the latter becomes widely available.
-+
-+Many subdevices, like camera sensors, TV decoders and encoders, need a clock
-+signal to be supplied by the system. Often this clock is supplied by the
-+respective bridge device. The Linux kernel provides a Common Clock Framework for
-+this purpose. However, it is not (yet) available on all architectures. Besides,
-+the nature of the multi-functional (clock, data + synchronisation, I2C control)
-+connection of subdevices to the system might impose special requirements on the
-+clock API usage. E.g. V4L2 has to support clock provider driver unregistration
-+while a subdevice driver is holding a reference to the clock. For these reasons
-+a V4L2 clock helper API has been developed and is provided to bridge and
-+subdevice drivers.
-+
-+The API consists of two parts: two functions to register and unregister a V4L2
-+clock source: v4l2_clk_register() and v4l2_clk_unregister() and calls to control
-+a clock object, similar to the respective generic clock API calls:
-+v4l2_clk_get(), v4l2_clk_put(), v4l2_clk_enable(), v4l2_clk_disable(),
-+v4l2_clk_get_rate(), and v4l2_clk_set_rate(). Clock suppliers have to provide
-+clock operations that will be called when clock users invoke respective API
-+methods.
-+
-+It is expected that once the CCF becomes available on all relevant
-+architectures this API will be removed.
-diff --git a/Documentation/media/kapi/v4l2-core.rst b/Documentation/media/kapi/v4l2-core.rst
-index 67eaf0c0b6b6..c69d167bce7a 100644
---- a/Documentation/media/kapi/v4l2-core.rst
-+++ b/Documentation/media/kapi/v4l2-core.rst
-@@ -9,6 +9,7 @@ Video2Linux devices
-     v4l2-controls
-     v4l2-device
-     v4l2-fh
-+    v4l2-clocks
-     v4l2-dv-timings
-     v4l2-event
-     v4l2-flash-led-class
-diff --git a/Documentation/media/kapi/v4l2-framework.rst b/Documentation/media/kapi/v4l2-framework.rst
-index 8b4f684e1a7a..7f4f26e666a2 100644
---- a/Documentation/media/kapi/v4l2-framework.rst
-+++ b/Documentation/media/kapi/v4l2-framework.rst
-@@ -79,28 +79,3 @@ and the v4l2_fh struct keeps track of filehandle instances.
- The V4L2 framework also optionally integrates with the media framework. If a
- driver sets the struct v4l2_device mdev field, sub-devices and video nodes
- will automatically appear in the media framework as entities.
--
--V4L2 clocks
-------------
--
--Many subdevices, like camera sensors, TV decoders and encoders, need a clock
--signal to be supplied by the system. Often this clock is supplied by the
--respective bridge device. The Linux kernel provides a Common Clock Framework for
--this purpose. However, it is not (yet) available on all architectures. Besides,
--the nature of the multi-functional (clock, data + synchronisation, I2C control)
--connection of subdevices to the system might impose special requirements on the
--clock API usage. E.g. V4L2 has to support clock provider driver unregistration
--while a subdevice driver is holding a reference to the clock. For these reasons
--a V4L2 clock helper API has been developed and is provided to bridge and
--subdevice drivers.
--
--The API consists of two parts: two functions to register and unregister a V4L2
--clock source: v4l2_clk_register() and v4l2_clk_unregister() and calls to control
--a clock object, similar to the respective generic clock API calls:
--v4l2_clk_get(), v4l2_clk_put(), v4l2_clk_enable(), v4l2_clk_disable(),
--v4l2_clk_get_rate(), and v4l2_clk_set_rate(). Clock suppliers have to provide
--clock operations that will be called when clock users invoke respective API
--methods.
--
--It is expected that once the CCF becomes available on all relevant
--architectures this API will be removed.
--- 
-2.7.4
+	Hans
 
+> 
+> https://github.com/bluecherrydvr/linux/commits/tw5864
+> 
+> commit 31f7c98a144cb3fb8a94662f002d9b6142d1f390
+> Author: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+> Date:   Wed Jul 13 05:00:28 2016 +0300
+> 
+>     Fix checkpatch --strict issue
+>     
+>      CHECK: Alignment should match open parenthesis
+>      #3599: FILE: drivers/media/pci/tw5864/tw5864-video.c:539:
+>      +static int tw5864_fmt_vid_cap(struct file *file, void *priv,
+>      +                               struct v4l2_format *f)
+> 
+> commit 11a09a1048af597ecf374507b08c809eed91b86d
+> Author: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+> Date:   Wed Jul 13 04:59:34 2016 +0300
+> 
+>     Fix checkpatch --strict issue
+>     
+>      CHECK: Please don't use multiple blank lines
+>      #3244: FILE: drivers/media/pci/tw5864/tw5864-video.c:184:
+> 
+> commit 861b2ba8593db7abe89291a4ba85976519783f4a
+> Author: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+> Date:   Wed Jul 13 04:58:37 2016 +0300
+> 
+>     Fix checkpatch --strict issue
+>     
+>      CHECK: No space is necessary after a cast
+>      #3053: FILE: drivers/media/pci/tw5864/tw5864-util.c:36:
+>      +       return (u8) tw_readl(TW5864_IND_DATA);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
