@@ -1,60 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:12537 "EHLO
-	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751931AbcGMNu0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 09:50:26 -0400
-From: Jean Christophe TROTIN <jean-christophe.trotin@st.com>
-To: Javier Martinez Canillas <javier@dowhile0.org>
-CC: "nicolas@ndufresne.ca" <nicolas@ndufresne.ca>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"kernel@stlinux.com" <kernel@stlinux.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Yannick FERTRE <yannick.fertre@st.com>,
-	Hugues FRUCHET <hugues.fruchet@st.com>
-Date: Wed, 13 Jul 2016 15:49:54 +0200
-Subject: Re: [PATCH v2 0/3] support of v4l2 encoder for STMicroelectronics
- SOC
-Message-ID: <57864702.5090006@st.com>
-References: <1468250057-16395-1-git-send-email-jean-christophe.trotin@st.com>
- <1468259332.14217.8.camel@gmail.com>
- <CABxcv=k-1RVsDWw++2+1Y4tq-T1XR7TSDrmSet8Thiuw+ChYUw@mail.gmail.com>
-In-Reply-To: <CABxcv=k-1RVsDWw++2+1Y4tq-T1XR7TSDrmSet8Thiuw+ChYUw@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from m12-16.163.com ([220.181.12.16]:51303 "EHLO m12-16.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752012AbcGMMqU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2016 08:46:20 -0400
+From: weiyj_lk@163.com
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: [PATCH -next] [media] pulse8-cec: fix non static symbol warning
+Date: Wed, 13 Jul 2016 12:45:00 +0000
+Message-Id: <1468413900-2677-1-git-send-email-weiyj_lk@163.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQoNCk9uIDA3LzExLzIwMTYgMDg6NTcgUE0sIEphdmllciBNYXJ0aW5leiBDYW5pbGxhcyB3cm90
-ZToNCj4gT24gTW9uLCBKdWwgMTEsIDIwMTYgYXQgMTo0OCBQTSwgTmljb2xhcyBEdWZyZXNuZQ0K
-PiA8bmljb2xhcy5kdWZyZXNuZUBnbWFpbC5jb20+IHdyb3RlOg0KPj4gTGUgbHVuZGkgMTEganVp
-bGxldCAyMDE2IMOgIDE3OjE0ICswMjAwLCBKZWFuLUNocmlzdG9waGUgVHJvdGluIGENCj4+IMOp
-Y3JpdCA6DQo+DQo+IFtzbmlwXQ0KPg0KPj4+DQo+Pj4gQmVsb3cgaXMgdGhlIHY0bDItY29tcGxp
-YW5jZSByZXBvcnQgZm9yIHRoZSB2ZXJzaW9uIDIgb2YgdGhlIHN0aSBodmENCj4+PiBkcml2ZXI6
-DQo+Pj4NCj4+Pg0KPj4+IHJvb3RAc3RpLW5leHQ6L2hvbWUvdmlkZW9fdGVzdCMgdjRsMi1jb21w
-bGlhbmNlIC1kIC9kZXYvdmlkZW8wDQo+Pj4gRHJpdmVyIEluZm86DQo+Pj4gICAgICAgIERyaXZl
-ciBuYW1lICAgOiA4Yzg1MDAwLmh2YQ0KPj4NCj4+IEkgdGhpbmsgaXQgd291bGQgYmUgbmljZSB0
-byBzZXQgYSBkcml2ZXIgbmFtZSB0aGF0IG1lYW5zIHNvbWV0aGluZy4NCj4+DQo+Pj4gICAgICAg
-IENhcmQgdHlwZSAgICAgOiA4Yzg1MDAwLmh2YQ0KPg0KPiBBZ3JlZWQsIHNhbWUgZm9yIENhcmQg
-dHlwZS4gVGhlIFZJRElPQ19RVUVSWUNBUCBpb2N0bCBkb2N1bWVudGF0aW9uDQo+IGV4cGxhaW5z
-IHdoYXQgaW5mb3JtYXRpb24gdGhlc2UgZmllbGRzIHNob3VsZCBjb250YWluOg0KPg0KPiBodHRw
-czovL2xpbnV4dHYub3JnL2Rvd25sb2Fkcy92NGwtZHZiLWFwaXMvdmlkaW9jLXF1ZXJ5Y2FwLmh0
-bWwNCj4NCj4gRm9yIGV4YW1wbGUgaHR0cHM6Ly9naXQubGludXh0di5vcmcvbWVkaWFfdHJlZS5n
-aXQvY29tbWl0Lz9pZD1lMGQ4MGM4YWNjYTBmMjIxYjlkZWRiMmVhYjdhNTE4NDg0OGI5OWI3DQo+
-DQo+IEJlc3QgcmVnYXJkcywNCj4gSmF2aWVyDQo+DQoNCk5pY29sYXMgYW5kIEphdmllciwNCg0K
-VGhhbmsgeW91IGZvciB0aGUgcmVtYXJrcy4NCkkgd2lsbCBtb2RpZnkgdGhlIGNvZGUgaW4gdmVy
-c2lvbiAzIHNvIHRoYXQgImRyaXZlciIgY29udGFpbnMgdGhlIG5hbWUgb2YgdGhlIA0KZW5jb2Rl
-ciAoImh2YSIpLCAiY2FyZCIgaWRlbnRpZmllcyB0aGUgaGFyZHdhcmUgdmVyc2lvbiAoImh2YTxo
-d19pcF92ZXJzaW9uPiIgDQp3aXRoIDxod19pcF92ZXJzaW9uPiBlcXVhbCB0byA0MDAgaGVyZSwg
-d2hpY2ggbGVhZHMgdG8gImh2YTQwMCIpLCBhbmQgImJ1c19pbmZvIiANCmluZGljYXRlcyB0aGUg
-bG9jYXRpb24gb2YgdGhlIGRldmljZSAoInBsYXRmb3JtOjhjODUwMDAuaHZhIikuDQoNCkJlZm9y
-ZSB0aGUgbW9kaWZpY2F0aW9uOg0KRHJpdmVyIEluZm86DQogICAgICAgIERyaXZlciBuYW1lICAg
-OiA4Yzg1MDAwLmh2YQ0KICAgICAgICBDYXJkIHR5cGUgICAgIDogOGM4NTAwMC5odmENCiAgICAg
-ICAgQnVzIGluZm8gICAgICA6IHBsYXRmb3JtOmh2YQ0KICAgICAgICBEcml2ZXIgdmVyc2lvbjog
-NC43LjANCg0KQWZ0ZXIgdGhlIG1vZGlmaWNhdGlvbjoNCkRyaXZlciBJbmZvOg0KCURyaXZlciBu
-YW1lICAgOiBodmENCglDYXJkIHR5cGUgICAgIDogaHZhNDAwDQoJQnVzIGluZm8gICAgICA6IHBs
-YXRmb3JtOjhjODUwMDAuaHZhDQoJRHJpdmVyIHZlcnNpb246IDQuNy4wDQoNCkJlc3QgcmVnYXJk
-cywNCkplYW4tQ2hyaXN0b3BoZS4=
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+
+Fixes the following sparse warning:
+
+drivers/staging/media/pulse8-cec/pulse8-cec.c:427:27: warning:
+ symbol 'pulse8_cec_adap_ops' was not declared. Should it be static?
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/staging/media/pulse8-cec/pulse8-cec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/pulse8-cec/pulse8-cec.c b/drivers/staging/media/pulse8-cec/pulse8-cec.c
+index 7d6d5ee..94f8590 100644
+--- a/drivers/staging/media/pulse8-cec/pulse8-cec.c
++++ b/drivers/staging/media/pulse8-cec/pulse8-cec.c
+@@ -424,7 +424,7 @@ static int pulse8_received(struct cec_adapter *adap, struct cec_msg *msg)
+ 	return -ENOMSG;
+ }
+ 
+-const struct cec_adap_ops pulse8_cec_adap_ops = {
++static const struct cec_adap_ops pulse8_cec_adap_ops = {
+ 	.adap_enable = pulse8_cec_adap_enable,
+ 	.adap_log_addr = pulse8_cec_adap_log_addr,
+ 	.adap_transmit = pulse8_cec_adap_transmit,
+
+
