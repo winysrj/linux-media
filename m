@@ -1,60 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40457 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752004AbcGVPDS (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:11276 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750916AbcGMH7b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 11:03:18 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 01/11] [media] v4l2-framework.rst: remove videobuf quick chapter
-Date: Fri, 22 Jul 2016 12:02:57 -0300
-Message-Id: <c2765df5223e1b389c73271397865fbf8bae100e.1469199711.git.mchehab@s-opensource.com>
+	Wed, 13 Jul 2016 03:59:31 -0400
+Subject: Re: [PATCH 2/2] [media] s5p-g2d: Replace old driver with DRM version
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1464096493-13378-1-git-send-email-k.kozlowski@samsung.com>
+ <1464096493-13378-2-git-send-email-k.kozlowski@samsung.com>
+ <20160712200202.7496445e@recife.lan>
+Cc: Inki Dae <inki.dae@samsung.com>,
+	Joonyoung Shim <jy0922.shim@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	David Airlie <airlied@linux.ie>, Kukjin Kim <kgene@kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Message-id: <5785F4CA.8070908@samsung.com>
+Date: Wed, 13 Jul 2016 09:59:06 +0200
+MIME-version: 1.0
+In-reply-to: <20160712200202.7496445e@recife.lan>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we merged the videobuf chapter at the kABI section, and it
-is a way more complete, just remove the small videobuf chapter
-that came from framework.txt.
+On 07/13/2016 01:02 AM, Mauro Carvalho Chehab wrote:
+> I suspect that you'll be applying this one via DRM tree, so:
+> 
+> Em Tue, 24 May 2016 15:28:13 +0200
+> Krzysztof Kozlowski <k.kozlowski@samsung.com> escreveu:
+> 
+>> Remove the old non-DRM driver because it is now entirely supported by
+>> exynos_drm_g2d driver.
+>>
+>> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Kamil Debski <k.debski@samsung.com>
+>> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> 
+> Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> 
+> PS.: If you prefer to apply this one via my tree, I'm ok too. Just
+> let me know when the first patch gets merged upstream.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/kapi/v4l2-framework.rst | 16 ----------------
- 1 file changed, 16 deletions(-)
+This patchset was insufficient and I didn't came up with follow up.
+Please ignore it for now.
 
-diff --git a/Documentation/media/kapi/v4l2-framework.rst b/Documentation/media/kapi/v4l2-framework.rst
-index c97ffd0d783b..9204d9329124 100644
---- a/Documentation/media/kapi/v4l2-framework.rst
-+++ b/Documentation/media/kapi/v4l2-framework.rst
-@@ -80,22 +80,6 @@ The V4L2 framework also optionally integrates with the media framework. If a
- driver sets the struct v4l2_device mdev field, sub-devices and video nodes
- will automatically appear in the media framework as entities.
- 
--
--
--video buffer helper functions
-------------------------------
--
--The v4l2 core API provides a set of standard methods (called "videobuf")
--for dealing with video buffers. Those methods allow a driver to implement
--read(), mmap() and overlay() in a consistent way.  There are currently
--methods for using video buffers on devices that supports DMA with
--scatter/gather method (videobuf-dma-sg), DMA with linear access
--(videobuf-dma-contig), and vmalloced buffers, mostly used on USB drivers
--(videobuf-vmalloc).
--
--Please see Documentation/video4linux/videobuf for more information on how
--to use the videobuf layer.
--
- struct v4l2_fh
- --------------
- 
--- 
-2.7.4
-
+Best regards,
+Krzysztof
