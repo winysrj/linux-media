@@ -1,108 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39767 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751527AbcGTMcY (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35244 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751191AbcGMLDH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 08:32:24 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Randy Dunlap <rdunlap@infradead.org>,
+	Wed, 13 Jul 2016 07:03:07 -0400
+Received: by mail-wm0-f68.google.com with SMTP id i5so5469371wmg.2
+        for <linux-media@vger.kernel.org>; Wed, 13 Jul 2016 04:03:01 -0700 (PDT)
+Date: Wed, 13 Jul 2016 13:02:41 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Chris Wilson <chris@chris-wilson.co.uk>,
+	Peter Zijlstra <peterz@infradead.org>,
+	linux-kernel@vger.kernel.org,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Tejun Heo <tj@kernel.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ingo Molnar <mingo@kernel.org>,
+	Kees Cook <keescook@chromium.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
 	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Kees Cook <keescook@chromium.org>, linux-doc@vger.kernel.org
-Subject: [PATCH] [media] doc-rst: Fix some Sphinx warnings
-Date: Wed, 20 Jul 2016 09:32:15 -0300
-Message-Id: <d612024e7d2acd7ec82c75b5fed271fd61673386.1469017917.git.mchehab@s-opensource.com>
+	Dan Williams <dan.j.williams@intel.com>,
+	Andrey Ryabinin <aryabinin@virtuozzo.com>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Dmitry Vyukov <dvyukov@google.com>,
+	Alexander Potapenko <glider@google.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org
+Subject: Re: [PATCH 2/9] async: Introduce kfence, a N:M completion mechanism
+Message-ID: <20160713110241.GE23520@phenom.ffwll.local>
+References: <1466759333-4703-1-git-send-email-chris@chris-wilson.co.uk>
+ <1466759333-4703-3-git-send-email-chris@chris-wilson.co.uk>
+ <20160713093852.GZ30921@twins.programming.kicks-ass.net>
+ <20160713102014.GC6157@nuc-i3427.alporthouse.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160713102014.GC6157@nuc-i3427.alporthouse.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix all remaining media warnings with ReST that are fixable
-without changing at the Sphinx code.
+On Wed, Jul 13, 2016 at 11:20:14AM +0100, Chris Wilson wrote:
+> On Wed, Jul 13, 2016 at 11:38:52AM +0200, Peter Zijlstra wrote:
+> > Also, I'm not a particular fan of the k* naming, but I see 'fence' is
+> > already taken.
+> 
+> Agreed, I really want to rename the dma-buf fence to struct dma_fence -
+> we would need to do that whilst it dma-buf fencing is still in its infancy.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/v4l-drivers/cx88.rst            | 1 +
- Documentation/media/v4l-drivers/tm6000-cardlist.rst | 2 +-
- drivers/media/dvb-core/dvb_math.h                   | 7 +++++++
- include/media/media-entity.h                        | 6 ++++--
- 4 files changed, 13 insertions(+), 3 deletions(-)
-
-diff --git a/Documentation/media/v4l-drivers/cx88.rst b/Documentation/media/v4l-drivers/cx88.rst
-index 97865007f51f..d8f3a014726a 100644
---- a/Documentation/media/v4l-drivers/cx88.rst
-+++ b/Documentation/media/v4l-drivers/cx88.rst
-@@ -119,6 +119,7 @@ GPIO 16(I believe) is tied to the IR port (if present).
- From the data sheet:
- 
- - Register 24'h20004  PCI Interrupt Status
-+
-  - bit [18]  IR_SMP_INT Set when 32 input samples have been collected over
-  - gpio[16] pin into GP_SAMPLE register.
- 
-diff --git a/Documentation/media/v4l-drivers/tm6000-cardlist.rst b/Documentation/media/v4l-drivers/tm6000-cardlist.rst
-index ca08d4214b38..2fbd3886b5f0 100644
---- a/Documentation/media/v4l-drivers/tm6000-cardlist.rst
-+++ b/Documentation/media/v4l-drivers/tm6000-cardlist.rst
-@@ -1,5 +1,5 @@
- TM6000 cards list
--===============
-+=================
- 
- .. code-block:: none
- 
-diff --git a/drivers/media/dvb-core/dvb_math.h b/drivers/media/dvb-core/dvb_math.h
-index 34dc1df03cab..2f0326674ca6 100644
---- a/drivers/media/dvb-core/dvb_math.h
-+++ b/drivers/media/dvb-core/dvb_math.h
-@@ -30,11 +30,15 @@
-  * @value: The value (must be != 0)
-  *
-  * to use rational values you can use the following method:
-+ *
-  *   intlog2(value) = intlog2(value * 2^x) - x * 2^24
-  *
-  * Some usecase examples:
-+ *
-  *	intlog2(8) will give 3 << 24 = 3 * 2^24
-+ *
-  *	intlog2(9) will give 3 << 24 + ... = 3.16... * 2^24
-+ *
-  *	intlog2(1.5) = intlog2(3) - 2^24 = 0.584... * 2^24
-  *
-  *
-@@ -48,10 +52,13 @@ extern unsigned int intlog2(u32 value);
-  * @value: The value (must be != 0)
-  *
-  * to use rational values you can use the following method:
-+ *
-  *   intlog10(value) = intlog10(value * 10^x) - x * 2^24
-  *
-  * An usecase example:
-+ *
-  *	intlog10(1000) will give 3 << 24 = 3 * 2^24
-+ *
-  *   due to the implementation intlog10(1000) might be not exactly 3 * 2^24
-  *
-  * look at intlog2 for similar examples
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 83877719bef4..3d885d97d149 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -180,8 +180,10 @@ struct media_pad {
-  *			view. The media_entity_pipeline_start() function
-  *			validates all links by calling this operation. Optional.
-  *
-- * .. note:: Those these callbacks are called with struct media_device.@graph_mutex
-- * mutex held.
-+ * .. note::
-+ *
-+ *    Those these callbacks are called with struct media_device.@graph_mutex
-+ *    mutex held.
-  */
- struct media_entity_operations {
- 	int (*link_setup)(struct media_entity *entity,
++1 on dma_fence, seems to make more sense than plain struct fence.
+Probably best to do after the recent pile of work from Gustavo to de-stage
+sync_file has landed.
+-Daniel
 -- 
-2.7.4
-
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
