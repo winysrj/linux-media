@@ -1,92 +1,288 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f178.google.com ([209.85.216.178]:35227 "EHLO
-	mail-qt0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750829AbcGLTOG (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:53850 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752583AbcGMK0y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 15:14:06 -0400
-Message-ID: <1468350842.8843.18.camel@gmail.com>
-Subject: Re: [PATCH v3 3/9] DocBook/v4l: Add compressed video formats used
- on MT8173 codec driver
-From: Nicolas Dufresne <nicolas.dufresne@gmail.com>
-Reply-To: nicolas@ndufresne.ca
-To: Wu-Cheng Li =?UTF-8?Q?=28=E6=9D=8E=E5=8B=99=E8=AA=A0=29?=
-	<wuchengli@chromium.org>, tiffany lin <tiffany.lin@mediatek.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Daniel Thompson <daniel.thompson@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org,
-	Lin PoChun <PoChun.Lin@mediatek.com>
-Date: Tue, 12 Jul 2016 15:14:02 -0400
-In-Reply-To: <1468350511.8843.16.camel@gmail.com>
-References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-2-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-3-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-4-git-send-email-tiffany.lin@mediatek.com>
- <5a793171-24a7-4e9e-8bfd-f668c789f8e0@xs4all.nl>
-	 <1468205771.3725.8.camel@mtksdaap41>
-	 <CAOMLVLiZU3D587dSyp2b2v4DV+MS9vh85bA4BoG7ddK6556rbA@mail.gmail.com>
-	 <1468350511.8843.16.camel@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Wed, 13 Jul 2016 06:26:54 -0400
+Date: Wed, 13 Jul 2016 12:26:25 +0200
+From: Peter Zijlstra <peterz@infradead.org>
+To: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: linux-kernel@vger.kernel.org,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Tejun Heo <tj@kernel.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ingo Molnar <mingo@kernel.org>,
+	Kees Cook <keescook@chromium.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Andrey Ryabinin <aryabinin@virtuozzo.com>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Dmitry Vyukov <dvyukov@google.com>,
+	Alexander Potapenko <glider@google.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org
+Subject: Re: [PATCH 2/9] async: Introduce kfence, a N:M completion mechanism
+Message-ID: <20160713102625.GA30921@twins.programming.kicks-ass.net>
+References: <1466759333-4703-1-git-send-email-chris@chris-wilson.co.uk>
+ <1466759333-4703-3-git-send-email-chris@chris-wilson.co.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1466759333-4703-3-git-send-email-chris@chris-wilson.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le mardi 12 juillet 2016 à 15:08 -0400, Nicolas Dufresne a écrit :
-> Le mardi 12 juillet 2016 à 16:16 +0800, Wu-Cheng Li (李務誠) a écrit :
-> > Decoder hardware produces MT21 (compressed). Image processor can
-> > convert it to a format that can be input of display driver.
-> > Tiffany.
-> > When do you plan to upstream image processor (mtk-mdp)?
-> > > 
-> > > It can be as input format for encoder, MDP and display drivers in
-> > our
-> > > platform.
-> > I remember display driver can only accept uncompressed MT21. Right?
-> > Basically V4L2_PIX_FMT_MT21 is compressed and is like an opaque
-> > format. It's not usable until it's decompressed and converted by
-> > image
-> > processor.
-> 
-> Previously it was described as MediaTek block mode, and now as a
-> MediaTek compressed format. It makes me think you have no idea what
-> this pixel format really is. Is that right ?
-> 
-> The main reason why I keep asking, is that we often find similarities
-> between what vendor like to call their proprietary formats. Doing the
-> proper research helps not creating a mess like in Android where you
-> have a lot of formats that all point to the same format. I believe
-> there was the same concern when Samsung wanted to introduce their Z-
-> flip-Z NV12 tile format. In the end they simply provided sufficient
-> documentation so we could document it and implement software
-> converters
-> for test and validation purpose.
+On Fri, Jun 24, 2016 at 10:08:46AM +0100, Chris Wilson wrote:
+> +struct kfence {
+> +	wait_queue_head_t wait;
+> +	unsigned long flags;
+> +	struct kref kref;
+> +	atomic_t pending;
+> +};
 
-Here's the kind of information we want in the documentation.
+> +#define KFENCE_CHECKED_BIT	0
+> +
+> +static void kfence_free(struct kref *kref)
+> +{
+> +	struct kfence *fence = container_of(kref, typeof(*fence), kref);
+> +
+> +	WARN_ON(atomic_read(&fence->pending) > 0);
+> +
+> +	kfree(fence);
+> +}
+> +
+> +/**
+> + * kfence_put - release a reference to a kfence
+> + * @fence: the kfence being disposed of
+> + */
+> +void kfence_put(struct kfence *fence)
+> +{
+> +	if (fence)
+> +		kref_put(&fence->kref, kfence_free);
 
-https://chromium.googlesource.com/chromium/src/media/+/master/base/vide
-o_types.h#40
+It seems very poor semantics to allow to put NULL, that would indicate a
+severe logic fail.
 
-  // MediaTek proprietary format. MT21 is similar to NV21 except the memory
-  // layout and pixel layout (swizzles). 12bpp with Y plane followed by a 2x2
-  // interleaved VU plane. Each image contains two buffers -- Y plane and VU
-  // plane. Two planes can be non-contiguous in memory. The starting addresses
-  // of Y plane and VU plane are 4KB alignment.
-  // Suppose image dimension is (width, height). For both Y plane and VU plane:
-  // Row pitch = ((width+15)/16) * 16.
-  // Plane size = Row pitch * (((height+31)/32)*32)
+> +}
+> +EXPORT_SYMBOL_GPL(kfence_put);
 
-Now obviously this is incomplete, as the swizzling need to be documented of course.
+> +/**
+> + * kfence_get - acquire a reference to a kfence
+> + * @fence: the kfence being used
+> + *
+> + * Returns the pointer to the kfence, with its reference count incremented.
+> + */
+> +struct kfence *kfence_get(struct kfence *fence)
+> +{
+> +	if (fence)
+> +		kref_get(&fence->kref);
 
-> 
-> regards,
-> Nicolas
+Similar, getting NULL is just horrible taste.
+
+> +	return fence;
+> +}
+> +EXPORT_SYMBOL_GPL(kfence_get);
+
+
+> +static void __kfence_wake_up_all(struct kfence *fence,
+> +				 struct list_head *continuation)
+> +{
+> +	wait_queue_head_t *x = &fence->wait;
+> +	unsigned long flags;
+> +
+> +	/* To prevent unbounded recursion as we traverse the graph
+
+Broken comment style.
+
+> +	 * of kfences, we move the task_list from this ready fence
+> +	 * to the tail of the current fence we are signaling.
+> +	 */
+> +	spin_lock_irqsave_nested(&x->lock, flags, 1 + !!continuation);
+> +	if (continuation)
+> +		list_splice_tail_init(&x->task_list, continuation);
+> +	else while (!list_empty(&x->task_list))
+> +		__wake_up_locked_key(x, TASK_NORMAL, &x->task_list);
+> +	spin_unlock_irqrestore(&x->lock, flags);
+> +}
+> +
+> +static void __kfence_signal(struct kfence *fence,
+> +			    struct list_head *continuation)
+> +{
+> +	if (!atomic_dec_and_test(&fence->pending))
+> +		return;
+> +
+> +	atomic_dec(&fence->pending);
+
+You decrement twice?
+
+> +	__kfence_wake_up_all(fence, continuation);
+> +}
+> +
+> +/**
+> + * kfence_pending - mark the fence as pending a signal
+
+I would say: increment the pending count, requiring one more completion
+before the fence is done.
+
+'Mark' completely misses the point. You need to balance these increments
+with decrements, its not a boolean state.
+
+> + * @fence: the kfence to be signaled
+> + *
+> + */
+> +void kfence_pending(struct kfence *fence)
+> +{
+> +	WARN_ON(atomic_inc_return(&fence->pending) <= 1);
+> +}
+> +EXPORT_SYMBOL_GPL(kfence_pending);
+
+
+> +/**
+> + * kfence_create - create a fence
+> + * @gfp: the allowed allocation type
+> + *
+> + * A fence is created with a reference count of one, and pending a signal.
+> + * After you have completed setting up the fence for use, call kfence_signal()
+> + * to signal completion.
+> + *
+> + * Returns the newly allocated fence, or NULL on error.
+> + */
+> +struct kfence *kfence_create(gfp_t gfp)
+> +{
+> +	struct kfence *fence;
+> +
+> +	fence = kmalloc(sizeof(*fence), gfp);
+> +	if (!fence)
+> +		return NULL;
+> +
+> +	kfence_init(fence);
+> +	return fence;
+> +}
+> +EXPORT_SYMBOL_GPL(kfence_create);
+
+Why? What is the purpose of this here thing? We never provide allocation
+wrappers.
+
+> +
+> +/**
+> + * kfence_add - set one fence to wait upon another
+
+Since you're going to do a whole lot other kfence_add_$foo() thingies,
+why isn't this called kfence_add_kfence() ?
+
+> + * @fence: this kfence
+> + * @signaler: target kfence to wait upon
+> + * @gfp: the allowed allocation type
+> + *
+> + * kfence_add() causes the @fence to wait upon completion of @signaler.
+> + * Internally the @fence is marked as pending a signal from @signaler.
+> + *
+> + * Returns 1 if the @fence was added to the waiqueue of @signaler, 0
+> + * if @signaler was already complete, or a negative error code.
+> + */
+> +int kfence_add(struct kfence *fence, struct kfence *signaler, gfp_t gfp)
+> +{
+> +	wait_queue_t *wq;
+> +	unsigned long flags;
+> +	int pending;
+> +
+> +	if (!signaler || kfence_complete(signaler))
+
+Again, wth would you allow adding NULL? That's just horrible.
+
+> +		return 0;
+> +
+> +	/* The dependency graph must be acyclic */
+> +	if (unlikely(kfence_check_if_after(fence, signaler)))
+> +		return -EINVAL;
+> +
+> +	wq = kmalloc(sizeof(*wq), gfp);
+> +	if (unlikely(!wq)) {
+> +		if (!gfpflags_allow_blocking(gfp))
+> +			return -ENOMEM;
+> +
+> +		kfence_wait(signaler);
+> +		return 0;
+> +	}
+> +
+> +	wq->flags = 0;
+> +	wq->func = kfence_wake;
+> +	wq->private = kfence_get(fence);
+> +
+> +	kfence_pending(fence);
+> +
+> +	spin_lock_irqsave(&signaler->wait.lock, flags);
+> +	if (likely(!kfence_complete(signaler))) {
+> +		__add_wait_queue_tail(&signaler->wait, wq);
+> +		pending = 1;
+> +	} else {
+> +		INIT_LIST_HEAD(&wq->task_list);
+> +		kfence_wake(wq, 0, 0, NULL);
+> +		pending = 0;
+> +	}
+> +	spin_unlock_irqrestore(&signaler->wait.lock, flags);
+> +
+> +	return pending;
+> +}
+> +EXPORT_SYMBOL_GPL(kfence_add);
+> +
+> +/**
+> + * kfence_add_completion - set the fence to wait upon a completion
+> + * @fence: this kfence
+> + * @x: target completion to wait upon
+> + * @gfp: the allowed allocation type
+> + *
+> + * kfence_add_completiond() causes the @fence to wait upon a completion.
+> + * Internally the @fence is marked as pending a signal from @x.
+> + *
+> + * Returns 1 if the @fence was added to the waiqueue of @x, 0
+> + * if @x was already complete, or a negative error code.
+> + */
+> +int kfence_add_completion(struct kfence *fence, struct completion *x, gfp_t gfp)
+> +{
+> +	wait_queue_t *wq;
+> +	unsigned long flags;
+> +	int pending;
+> +
+> +	if (!x || completion_done(x))
+> +		return 0;
+> +
+> +	wq = kmalloc(sizeof(*wq), gfp);
+> +	if (unlikely(!wq)) {
+> +		if (!gfpflags_allow_blocking(gfp))
+> +			return -ENOMEM;
+> +
+> +		wait_for_completion(x);
+> +		return 0;
+> +	}
+> +
+> +	wq->flags = 0;
+> +	wq->func = kfence_wake;
+> +	wq->private = kfence_get(fence);
+> +
+> +	kfence_pending(fence);
+> +
+> +	spin_lock_irqsave(&x->wait.lock, flags);
+> +	if (likely(!READ_ONCE(x->done))) {
+> +		__add_wait_queue_tail(&x->wait, wq);
+> +		pending = 1;
+> +	} else {
+> +		INIT_LIST_HEAD(&wq->task_list);
+> +		kfence_wake(wq, 0, 0, NULL);
+> +		pending = 0;
+> +	}
+> +	spin_unlock_irqrestore(&x->wait.lock, flags);
+> +
+> +	return pending;
+> +}
+> +EXPORT_SYMBOL_GPL(kfence_add_completion);
+
+It appears to me these two function share a _lot_ of code, surely that
+can be reduced a bit?
