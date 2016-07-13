@@ -1,121 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:35935 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752646AbcGLCz4 (ORCPT
+Received: from mail-io0-f194.google.com ([209.85.223.194]:32957 "EHLO
+	mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752030AbcGMOBC convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2016 22:55:56 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 7DD90180239
-	for <linux-media@vger.kernel.org>; Tue, 12 Jul 2016 04:55:50 +0200 (CEST)
-Date: Tue, 12 Jul 2016 04:55:50 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160712025550.7DD90180239@tschai.lan>
+	Wed, 13 Jul 2016 10:01:02 -0400
+Received: by mail-io0-f194.google.com with SMTP id y195so2999434iod.0
+        for <linux-media@vger.kernel.org>; Wed, 13 Jul 2016 07:01:01 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <57864702.5090006@st.com>
+References: <1468250057-16395-1-git-send-email-jean-christophe.trotin@st.com>
+ <1468259332.14217.8.camel@gmail.com> <CABxcv=k-1RVsDWw++2+1Y4tq-T1XR7TSDrmSet8Thiuw+ChYUw@mail.gmail.com>
+ <57864702.5090006@st.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Date: Wed, 13 Jul 2016 10:00:35 -0400
+Message-ID: <CABxcv=kr3gn4JnRPBSExxxTxfrMP5wp49pyfhMW5sd+d77Z9EQ@mail.gmail.com>
+Subject: Re: [PATCH v2 0/3] support of v4l2 encoder for STMicroelectronics SOC
+To: Jean Christophe TROTIN <jean-christophe.trotin@st.com>
+Cc: "nicolas@ndufresne.ca" <nicolas@ndufresne.ca>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"kernel@stlinux.com" <kernel@stlinux.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Yannick FERTRE <yannick.fertre@st.com>,
+	Hugues FRUCHET <hugues.fruchet@st.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello Jean Christophe,
 
-Results of the daily build of media_tree:
+On Wed, Jul 13, 2016 at 9:49 AM, Jean Christophe TROTIN
+<jean-christophe.trotin@st.com> wrote:
+>
+>
+> On 07/11/2016 08:57 PM, Javier Martinez Canillas wrote:
+>> On Mon, Jul 11, 2016 at 1:48 PM, Nicolas Dufresne
+>> <nicolas.dufresne@gmail.com> wrote:
+>>> Le lundi 11 juillet 2016 à 17:14 +0200, Jean-Christophe Trotin a
+>>> écrit :
+>>
+>> [snip]
+>>
+>>>>
+>>>> Below is the v4l2-compliance report for the version 2 of the sti hva
+>>>> driver:
+>>>>
+>>>>
+>>>> root@sti-next:/home/video_test# v4l2-compliance -d /dev/video0
+>>>> Driver Info:
+>>>>        Driver name   : 8c85000.hva
+>>>
+>>> I think it would be nice to set a driver name that means something.
+>>>
+>>>>        Card type     : 8c85000.hva
+>>
+>> Agreed, same for Card type. The VIDIOC_QUERYCAP ioctl documentation
+>> explains what information these fields should contain:
+>>
+>> https://linuxtv.org/downloads/v4l-dvb-apis/vidioc-querycap.html
+>>
+>> For example https://git.linuxtv.org/media_tree.git/commit/?id=e0d80c8acca0f221b9dedb2eab7a5184848b99b7
+>>
+>> Best regards,
+>> Javier
+>>
+>
+> Nicolas and Javier,
+>
+> Thank you for the remarks.
+> I will modify the code in version 3 so that "driver" contains the name of the
+> encoder ("hva"), "card" identifies the hardware version ("hva<hw_ip_version>"
+> with <hw_ip_version> equal to 400 here, which leads to "hva400"), and "bus_info"
+> indicates the location of the device ("platform:8c85000.hva").
+>
+> Before the modification:
+> Driver Info:
+>         Driver name   : 8c85000.hva
+>         Card type     : 8c85000.hva
+>         Bus info      : platform:hva
+>         Driver version: 4.7.0
+>
+> After the modification:
+> Driver Info:
+>         Driver name   : hva
+>         Card type     : hva400
+>         Bus info      : platform:8c85000.hva
+>         Driver version: 4.7.0
+>
 
-date:		Tue Jul 12 04:00:14 CEST 2016
-git branch:	test
-git hash:	a4d020e97d8e65d57061677c15c89e99609d0b37
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+Thanks a lot for doing this, it looks correct to me now.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-rc1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+> Best regards,
+> Jean-Christophe.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Best regards,
+Javier
