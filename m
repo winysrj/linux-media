@@ -1,121 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:53159 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750754AbcG2DPA (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34444 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752223AbcGMNwN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jul 2016 23:15:00 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id BB7501800D9
-	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2016 05:14:53 +0200 (CEST)
-Date: Fri, 29 Jul 2016 05:14:53 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160729031453.BB7501800D9@tschai.lan>
+	Wed, 13 Jul 2016 09:52:13 -0400
+Received: by mail-wm0-f66.google.com with SMTP id q128so1534493wma.1
+        for <linux-media@vger.kernel.org>; Wed, 13 Jul 2016 06:52:08 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1467621142-8064-8-git-send-email-hverkuil@xs4all.nl>
+References: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl> <1467621142-8064-8-git-send-email-hverkuil@xs4all.nl>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Wed, 13 Jul 2016 14:51:08 +0100
+Message-ID: <CA+V-a8uNEyshoDA+qRESXs+EROpborBWe9m4CLF-hf+JYQnryA@mail.gmail.com>
+Subject: Re: [PATCH 7/9] vpbe_display: convert g/s_crop to g/s_selection.
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Mon, Jul 4, 2016 at 9:32 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> This is part of a final push to convert all drivers to g/s_selection.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
 
-Results of the daily build of media_tree:
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-date:		Fri Jul 29 04:00:25 CEST 2016
-git branch:	test
-git hash:	292eaf50c7df4ae2ae8aaa9e1ce3f1240a353ee8
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+Cheers,
+--Prabhakar Lad
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-multi: ERRORS
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1.1-i686: WARNINGS
-linux-4.2-i686: WARNINGS
-linux-4.3-i686: WARNINGS
-linux-4.4-i686: WARNINGS
-linux-4.5-i686: WARNINGS
-linux-4.6-i686: WARNINGS
-linux-4.7-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0-x86_64: WARNINGS
-linux-4.1.1-x86_64: WARNINGS
-linux-4.2-x86_64: WARNINGS
-linux-4.3-x86_64: WARNINGS
-linux-4.4-x86_64: WARNINGS
-linux-4.5-x86_64: WARNINGS
-linux-4.6-x86_64: WARNINGS
-linux-4.7-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: ERRORS
-sparse: WARNINGS
-smatch: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> ---
+>  drivers/media/platform/davinci/vpbe_display.c | 65 +++++++++++++++------------
+>  1 file changed, 37 insertions(+), 28 deletions(-)
+>
+> diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+> index 0abcdfe..b4a8cd2 100644
+> --- a/drivers/media/platform/davinci/vpbe_display.c
+> +++ b/drivers/media/platform/davinci/vpbe_display.c
+> @@ -441,7 +441,7 @@ vpbe_disp_calculate_scale_factor(struct vpbe_display *disp_dev,
+>         /*
+>          * Application initially set the image format. Current display
+>          * size is obtained from the vpbe display controller. expected_xsize
+> -        * and expected_ysize are set through S_CROP ioctl. Based on this,
+> +        * and expected_ysize are set through S_SELECTION ioctl. Based on this,
+>          * driver will calculate the scale factors for vertical and
+>          * horizontal direction so that the image is displayed scaled
+>          * and expanded. Application uses expansion to display the image
+> @@ -650,24 +650,23 @@ static int vpbe_display_querycap(struct file *file, void  *priv,
+>         return 0;
+>  }
+>
+> -static int vpbe_display_s_crop(struct file *file, void *priv,
+> -                            const struct v4l2_crop *crop)
+> +static int vpbe_display_s_selection(struct file *file, void *priv,
+> +                            struct v4l2_selection *sel)
+>  {
+>         struct vpbe_layer *layer = video_drvdata(file);
+>         struct vpbe_display *disp_dev = layer->disp_dev;
+>         struct vpbe_device *vpbe_dev = disp_dev->vpbe_dev;
+>         struct osd_layer_config *cfg = &layer->layer_info.config;
+>         struct osd_state *osd_device = disp_dev->osd_device;
+> -       struct v4l2_rect rect = crop->c;
+> +       struct v4l2_rect rect = sel->r;
+>         int ret;
+>
+>         v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+> -               "VIDIOC_S_CROP, layer id = %d\n", layer->device_id);
+> +               "VIDIOC_S_SELECTION, layer id = %d\n", layer->device_id);
+>
+> -       if (crop->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> -               v4l2_err(&vpbe_dev->v4l2_dev, "Invalid buf type\n");
+> +       if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
+> +           sel->target != V4L2_SEL_TGT_CROP)
+>                 return -EINVAL;
+> -       }
+>
+>         if (rect.top < 0)
+>                 rect.top = 0;
+> @@ -715,32 +714,45 @@ static int vpbe_display_s_crop(struct file *file, void *priv,
+>         else
+>                 osd_device->ops.set_interpolation_filter(osd_device, 0);
+>
+> +       sel->r = rect;
+>         return 0;
+>  }
+>
+> -static int vpbe_display_g_crop(struct file *file, void *priv,
+> -                            struct v4l2_crop *crop)
+> +static int vpbe_display_g_selection(struct file *file, void *priv,
+> +                                   struct v4l2_selection *sel)
+>  {
+>         struct vpbe_layer *layer = video_drvdata(file);
+>         struct osd_layer_config *cfg = &layer->layer_info.config;
+>         struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
+>         struct osd_state *osd_device = layer->disp_dev->osd_device;
+> -       struct v4l2_rect *rect = &crop->c;
+> +       struct v4l2_rect *rect = &sel->r;
+>
+>         v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+> -                       "VIDIOC_G_CROP, layer id = %d\n",
+> +                       "VIDIOC_G_SELECTION, layer id = %d\n",
+>                         layer->device_id);
+>
+> -       if (crop->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> -               v4l2_err(&vpbe_dev->v4l2_dev, "Invalid buf type\n");
+> +       if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +               return -EINVAL;
+> +
+> +       switch (sel->target) {
+> +       case V4L2_SEL_TGT_CROP:
+> +               osd_device->ops.get_layer_config(osd_device,
+> +                                                layer->layer_info.id, cfg);
+> +               rect->top = cfg->ypos;
+> +               rect->left = cfg->xpos;
+> +               rect->width = cfg->xsize;
+> +               rect->height = cfg->ysize;
+> +               break;
+> +       case V4L2_SEL_TGT_CROP_DEFAULT:
+> +       case V4L2_SEL_TGT_CROP_BOUNDS:
+> +               rect->left = 0;
+> +               rect->top = 0;
+> +               rect->width = vpbe_dev->current_timings.xres;
+> +               rect->height = vpbe_dev->current_timings.yres;
+> +               break;
+> +       default:
+>                 return -EINVAL;
+>         }
+> -       osd_device->ops.get_layer_config(osd_device,
+> -                               layer->layer_info.id, cfg);
+> -       rect->top = cfg->ypos;
+> -       rect->left = cfg->xpos;
+> -       rect->width = cfg->xsize;
+> -       rect->height = cfg->ysize;
+>
+>         return 0;
+>  }
+> @@ -753,13 +765,10 @@ static int vpbe_display_cropcap(struct file *file, void *priv,
+>
+>         v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_CROPCAP ioctl\n");
+>
+> -       cropcap->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+> -       cropcap->bounds.left = 0;
+> -       cropcap->bounds.top = 0;
+> -       cropcap->bounds.width = vpbe_dev->current_timings.xres;
+> -       cropcap->bounds.height = vpbe_dev->current_timings.yres;
+> +       if (cropcap->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +               return -EINVAL;
+> +
+>         cropcap->pixelaspect = vpbe_dev->current_timings.aspect;
+> -       cropcap->defrect = cropcap->bounds;
+>         return 0;
+>  }
+>
+> @@ -1252,8 +1261,8 @@ static const struct v4l2_ioctl_ops vpbe_ioctl_ops = {
+>         .vidioc_expbuf           = vb2_ioctl_expbuf,
+>
+>         .vidioc_cropcap          = vpbe_display_cropcap,
+> -       .vidioc_g_crop           = vpbe_display_g_crop,
+> -       .vidioc_s_crop           = vpbe_display_s_crop,
+> +       .vidioc_g_selection      = vpbe_display_g_selection,
+> +       .vidioc_s_selection      = vpbe_display_s_selection,
+>
+>         .vidioc_s_std            = vpbe_display_s_std,
+>         .vidioc_g_std            = vpbe_display_g_std,
+> --
+> 2.8.1
+>
