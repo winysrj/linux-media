@@ -1,91 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 17.mo3.mail-out.ovh.net ([87.98.178.58]:39370 "EHLO
-	17.mo3.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751215AbcGOP3D (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:64390 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751016AbcGMBvq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 11:29:03 -0400
-Received: from player734.ha.ovh.net (b7.ovh.net [213.186.33.57])
-	by mo3.mail-out.ovh.net (Postfix) with ESMTP id 11C77102C907
-	for <linux-media@vger.kernel.org>; Fri, 15 Jul 2016 16:12:06 +0200 (CEST)
-Received: from [192.168.1.29] (LFbn-1-1866-70.w90-73.abo.wanadoo.fr [90.73.165.70])
-	(Authenticated sender: charles-antoine.couret@nexvision.fr)
-	by player734.ha.ovh.net (Postfix) with ESMTPSA id 024D528006C
-	for <linux-media@vger.kernel.org>; Fri, 15 Jul 2016 16:12:05 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
-Subject: [PATCH 1/2] SDI: add flag for SDI formats and SMPTE 125M definition
-Message-ID: <5c5bad2b-3d88-8553-ff7f-a1e67f97ef4d@nexvision.fr>
-Date: Fri, 15 Jul 2016 16:12:05 +0200
+	Tue, 12 Jul 2016 21:51:46 -0400
+Message-ID: <1468374654.2462.17.camel@mtksdaap41>
+Subject: Re: [PATCH v3 3/9] DocBook/v4l: Add compressed video formats used
+ on MT8173 codec driver
+From: tiffany lin <tiffany.lin@mediatek.com>
+To: <nicolas@ndufresne.ca>
+CC: Wu-Cheng Li =?UTF-8?Q?=28=E6=9D=8E=E5=8B=99=E8=AA=A0=29?=
+	<wuchengli@chromium.org>, Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Daniel Thompson <daniel.thompson@linaro.org>,
+	"Rob Herring" <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>,
+	Lin PoChun <PoChun.Lin@mediatek.com>
+Date: Wed, 13 Jul 2016 09:50:54 +0800
+In-Reply-To: <1468350511.8843.16.camel@gmail.com>
+References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
+	  <1464611363-14936-2-git-send-email-tiffany.lin@mediatek.com>
+	  <1464611363-14936-3-git-send-email-tiffany.lin@mediatek.com>
+	  <1464611363-14936-4-git-send-email-tiffany.lin@mediatek.com>
+	  <5a793171-24a7-4e9e-8bfd-f668c789f8e0@xs4all.nl>
+	 <1468205771.3725.8.camel@mtksdaap41>
+	 <CAOMLVLiZU3D587dSyp2b2v4DV+MS9vh85bA4BoG7ddK6556rbA@mail.gmail.com>
+	 <1468350511.8843.16.camel@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From c6b157259081bd40d881a5c642dd1a4a07195ca5 Mon Sep 17 00:00:00 2001
-From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
-Date: Fri, 15 Jul 2016 15:04:57 +0200
-Subject: [PATCH 1/2] SDI: add flag for SDI formats and SMPTE 125M definition
+Hi Nicolas,
 
-Adding others generic flags, which could be used by many
-components like GS1662.
+On Tue, 2016-07-12 at 15:08 -0400, Nicolas Dufresne wrote:
+> Le mardi 12 juillet 2016 à 16:16 +0800, Wu-Cheng Li (李務誠) a écrit :
+> > Decoder hardware produces MT21 (compressed). Image processor can
+> > convert it to a format that can be input of display driver. Tiffany.
+> > When do you plan to upstream image processor (mtk-mdp)?
+> > >
+> > > It can be as input format for encoder, MDP and display drivers in
+> > our
+> > > platform.
+> > I remember display driver can only accept uncompressed MT21. Right?
+> > Basically V4L2_PIX_FMT_MT21 is compressed and is like an opaque
+> > format. It's not usable until it's decompressed and converted by
+> > image
+> > processor.
+> 
+> Previously it was described as MediaTek block mode, and now as a
+> MediaTek compressed format. It makes me think you have no idea what
+> this pixel format really is. Is that right ?
+> 
+That's not right.
+Its a compressed format as I document in "[PATCH v3 3/9] DocBook/v4l:
+Add compressed video formats used on MT8173 codec driver."
+In MT8173 platform, when using this format, we need Image Processor to
+cover it to standard format as wucheng mentioned.
+To prevent this ambiguous, I will change it to V4L2_PIX_FMT_M21C, it
+means its compressed data. Is it ok?
 
-Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
----
- include/uapi/linux/v4l2-dv-timings.h | 12 ++++++++++++
- include/uapi/linux/videodev2.h       |  5 +++++
- 2 files changed, 17 insertions(+)
+best regards,
+Tiffany
 
-diff --git a/include/uapi/linux/v4l2-dv-timings.h b/include/uapi/linux/v4l2-dv-timings.h
-index 086168e..eb7dd02 100644
---- a/include/uapi/linux/v4l2-dv-timings.h
-+++ b/include/uapi/linux/v4l2-dv-timings.h
-@@ -934,4 +934,16 @@
- 		V4L2_DV_FL_REDUCED_BLANKING) \
- }
- 
-+/* SDI timings definitions */
-+
-+/* SMPTE-125M */
-+#define V4L2_DV_BT_SDI_720X487I60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(720, 487, 1, \
-+		V4L2_DV_HSYNC_POS_POL, \
-+		13500000, 0, 137, 0, 0, 19, 2, 0, 17, 0, \
-+		V4L2_DV_BT_STD_SDI, \
-+		V4L2_DV_FIRST_FIELD_EXTRA_LINE) \
-+}
-+
- #endif
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 8f95191..4641f13 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1259,6 +1259,7 @@ struct v4l2_bt_timings {
- #define V4L2_DV_BT_STD_DMT	(1 << 1)  /* VESA Discrete Monitor Timings */
- #define V4L2_DV_BT_STD_CVT	(1 << 2)  /* VESA Coordinated Video Timings */
- #define V4L2_DV_BT_STD_GTF	(1 << 3)  /* VESA Generalized Timings Formula */
-+#define V4L2_DV_BT_STD_SDI	(1 << 4)  /* SDI Timings */
- 
- /* Flags */
- 
-@@ -1363,6 +1364,8 @@ struct v4l2_bt_timings_cap {
- #define V4L2_DV_BT_CAP_REDUCED_BLANKING	(1 << 2)
- /* Supports custom formats */
- #define V4L2_DV_BT_CAP_CUSTOM		(1 << 3)
-+/* In case of odd format, to know the field which has the extra line */
-+#define V4L2_DV_FIRST_FIELD_EXTRA_LINE	(1 << 4)
- 
- /** struct v4l2_dv_timings_cap - DV timings capabilities
-  * @type:	the type of the timings (same as in struct v4l2_dv_timings)
-@@ -1413,6 +1416,8 @@ struct v4l2_input {
- /* field 'status' - analog */
- #define V4L2_IN_ST_NO_H_LOCK   0x00000100  /* No horizontal sync lock */
- #define V4L2_IN_ST_COLOR_KILL  0x00000200  /* Color killer is active */
-+#define V4L2_IN_ST_NO_V_LOCK   0x00000400  /* No vertical sync lock */
-+#define V4L2_IN_ST_NO_STD_LOCK 0x00000800  /* No standard format lock */
- 
- /* field 'status' - digital */
- #define V4L2_IN_ST_NO_SYNC     0x00010000  /* No synchronization lock */
--- 
-2.7.4
+> The main reason why I keep asking, is that we often find similarities
+> between what vendor like to call their proprietary formats. Doing the
+> proper research helps not creating a mess like in Android where you
+> have a lot of formats that all point to the same format. I believe
+> there was the same concern when Samsung wanted to introduce their Z-
+> flip-Z NV12 tile format. In the end they simply provided sufficient
+> documentation so we could document it and implement software converters
+> for test and validation purpose.
+> 
+> regards,
+> Nicolas
+
+
