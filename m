@@ -1,198 +1,272 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:47685 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932179AbcGOJJW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 05:09:22 -0400
-Date: Fri, 15 Jul 2016 10:09:19 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	liviu.dudau@arm.com, laurent.pinchart@ideasonboard.com
-Subject: Re: DRM device memory writeback (Mali-DP)
-Message-ID: <20160715090918.GB32755@e106950-lin.cambridge.arm.com>
-References: <20160714170340.GA32755@e106950-lin.cambridge.arm.com>
- <20160715073334.GO17101@phenom.ffwll.local>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33238 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751053AbcGMOEc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2016 10:04:32 -0400
+Received: by mail-wm0-f68.google.com with SMTP id o80so6005688wme.0
+        for <linux-media@vger.kernel.org>; Wed, 13 Jul 2016 07:04:17 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <20160715073334.GO17101@phenom.ffwll.local>
+In-Reply-To: <1467874102-28365-2-git-send-email-sakari.ailus@linux.intel.com>
+References: <1467039471-19416-2-git-send-email-sakari.ailus@linux.intel.com>
+ <1467874102-28365-1-git-send-email-sakari.ailus@linux.intel.com> <1467874102-28365-2-git-send-email-sakari.ailus@linux.intel.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Wed, 13 Jul 2016 14:48:57 +0100
+Message-ID: <CA+V-a8ugy7eXw_rdQka3BCeU=Nc+S0uqQdOWx70VDbD4d_bPSw@mail.gmail.com>
+Subject: Re: [PATCH v2.2 10/10] v4l: Add 16-bit raw bayer pixel format definitions
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Benoit Parrot <bparrot@ti.com>, Sekhar Nori <nsekhar@ti.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
-
-Thanks for taking a look.
-
-(+Cc Laurent)
-
-On Fri, Jul 15, 2016 at 09:33:34AM +0200, Daniel Vetter wrote:
->On Thu, Jul 14, 2016 at 06:03:40PM +0100, Brian Starkey wrote:
->> Hi,
->>
->> The Mali-DP display processors have a memory-writeback engine which
->> can write the result of the composition (CRTC output) to a memory
->> buffer in a variety of formats.
->>
->> We're looking for feedback/suggestions on how to expose this in the
->> mali-dp DRM kernel driver - possibly via V4L2.
->>
->> We've got a few use cases where writeback is useful:
->>    - testing, to check the displayed image
+On Thu, Jul 7, 2016 at 7:48 AM, Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+> The formats added by this patch are:
 >
->This might or might not need a separate interface. There are efforts to
->make the intel kms validation tests in i-g-t generic (well under way
->already), and part of that is creating a generic infrastructure to capture
->display CRCs for functional tests (still in progress).
+>         V4L2_PIX_FMT_SBGGR16
+>         V4L2_PIX_FMT_SGBRG16
+>         V4L2_PIX_FMT_SGRBG16
 >
->But it might be better if userspace abstracts between full readback and
->display CRC, assuming we can make full writeback cross-vendor enough for
->that use-case.
+> V4L2_PIX_FMT_SRGGB16 already existed before the patch. Rework the
+> documentation to match that of the other sample depths.
 >
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
 
-I'd lean towards the userspace abstraction.
-Encumbering a simple CRC interface with all the complexity of
-full-writeback (size, scaling, pixel format, multi-planar etc.) sounds
-a bit unnecessary.
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Of course, if v4l2 isn't going to be the cross-vendor full-writeback
-implementation, then we need to be aiming to use whatever _is_ in
-the mali-dp driver.
+Cheers,
+--Prabhakar Lad
 
->>    - screen recording
->>    - wireless display (e.g. Miracast)
->>    - dual-display clone mode
->>    - memory-to-memory composition
->> Note that the HW is capable of writing one of the input planes instead
->> of the CRTC output, but we've no good use-case for wanting to expose
->> that.
->>
->> In our Android ADF driver[1] we exposed the memory write engine as
->> part of the ADF device using ADF's "MEMORY" interface type. DRM/KMS
->> doesn't have any similar support for memory output from CRTCs, but we
->> want to expose the functionality in the mainline Mali-DP DRM driver.
->>
->> A previous discussion on the topic went towards exposing the
->> memory-write engine via V4L2[2].
->>
->> I'm thinking to userspace this would look like two distinct devices:
->>    - A DRM KMS display controller.
->>    - A V4L2 video source.
->> They'd both exist in the same kernel driver.
->> A V4L2 client can queue up (CAPTURE) buffers in the normal way, and
->> the DRM driver would see if there's a buffer to dequeue every time a
->> new modeset is received via the DRM API - if so, it can configure the
->> HW to dump into it (one-shot operation).
->>
->> An implication of this is that if the screen is actively displaying a
->> static scene and the V4L2 client queues up a buffer, it won't get
->> filled until the DRM scene changes. This seems best, otherwise the
->> V4L2 driver has to change the HW configuration out-of-band from the
->> DRM device which sounds horribly racy.
->>
->> One further complication is scaling. Our HW has a scaler which can
->> tasked with either scaling an input plane or the buffer being written
->> to memory, but not both at the same time. This means we need to
->> arbitrate the scaler between the DRM device (scaling input planes) and
->> the V4L2 device (scaling output buffers).
->>
->> I think the simplest approach here is to allow V4L2 to "claim" the
->> scaler by setting the image size (VIDIOC_S_FMT) to something other
->> than the CRTC's current resolution. After that, any attempt to use the
->> scaler on an input plane via DRM should fail atomic_check().
+>  Documentation/DocBook/media/v4l/pixfmt-sbggr16.xml | 81 -------------------
+>  Documentation/DocBook/media/v4l/pixfmt-srggb16.xml | 91 ++++++++++++++++++++++
+>  Documentation/DocBook/media/v4l/pixfmt.xml         |  2 +-
+>  include/uapi/linux/videodev2.h                     |  3 +
+>  4 files changed, 95 insertions(+), 82 deletions(-)
+>  delete mode 100644 Documentation/DocBook/media/v4l/pixfmt-sbggr16.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb16.xml
 >
->That's perfectly fine atomic_check behaviour. Only trouble is that the v4l
->locking must integrate into the drm locking, but that should be doable.
->Worst case you must shadow all v4l locks with a wait/wound
->drm_modeset_lock to avoid deadlocks (since you could try to grab locks
->from either end).
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt-sbggr16.xml b/Documentation/DocBook/media/v4l/pixfmt-sbggr16.xml
+> deleted file mode 100644
+> index 789160565..0000000
+> --- a/Documentation/DocBook/media/v4l/pixfmt-sbggr16.xml
+> +++ /dev/null
+> @@ -1,81 +0,0 @@
+> -<refentry id="V4L2-PIX-FMT-SBGGR16">
+> -  <refmeta>
+> -    <refentrytitle>V4L2_PIX_FMT_SBGGR16 ('BYR2')</refentrytitle>
+> -    &manvol;
+> -  </refmeta>
+> -  <refnamediv>
+> -    <refname><constant>V4L2_PIX_FMT_SBGGR16</constant></refname>
+> -    <refpurpose>Bayer RGB format</refpurpose>
+> -  </refnamediv>
+> -  <refsect1>
+> -    <title>Description</title>
+> -
+> -    <para>This format is similar to <link
+> -linkend="V4L2-PIX-FMT-SBGGR8">
+> -<constant>V4L2_PIX_FMT_SBGGR8</constant></link>, except each pixel has
+> -a depth of 16 bits. The least significant byte is stored at lower
+> -memory addresses (little-endian).</para>
+> -
+> -    <example>
+> -      <title><constant>V4L2_PIX_FMT_SBGGR16</constant> 4 &times; 4
+> -pixel image</title>
+> -
+> -      <formalpara>
+> -       <title>Byte Order.</title>
+> -       <para>Each cell is one byte.
+> -         <informaltable frame="none">
+> -           <tgroup cols="5" align="center">
+> -             <colspec align="left" colwidth="2*" />
+> -             <tbody valign="top">
+> -               <row>
+> -                 <entry>start&nbsp;+&nbsp;0:</entry>
+> -                 <entry>B<subscript>00low</subscript></entry>
+> -                 <entry>B<subscript>00high</subscript></entry>
+> -                 <entry>G<subscript>01low</subscript></entry>
+> -                 <entry>G<subscript>01high</subscript></entry>
+> -                 <entry>B<subscript>02low</subscript></entry>
+> -                 <entry>B<subscript>02high</subscript></entry>
+> -                 <entry>G<subscript>03low</subscript></entry>
+> -                 <entry>G<subscript>03high</subscript></entry>
+> -               </row>
+> -               <row>
+> -                 <entry>start&nbsp;+&nbsp;8:</entry>
+> -                 <entry>G<subscript>10low</subscript></entry>
+> -                 <entry>G<subscript>10high</subscript></entry>
+> -                 <entry>R<subscript>11low</subscript></entry>
+> -                 <entry>R<subscript>11high</subscript></entry>
+> -                 <entry>G<subscript>12low</subscript></entry>
+> -                 <entry>G<subscript>12high</subscript></entry>
+> -                 <entry>R<subscript>13low</subscript></entry>
+> -                 <entry>R<subscript>13high</subscript></entry>
+> -               </row>
+> -               <row>
+> -                 <entry>start&nbsp;+&nbsp;16:</entry>
+> -                 <entry>B<subscript>20low</subscript></entry>
+> -                 <entry>B<subscript>20high</subscript></entry>
+> -                 <entry>G<subscript>21low</subscript></entry>
+> -                 <entry>G<subscript>21high</subscript></entry>
+> -                 <entry>B<subscript>22low</subscript></entry>
+> -                 <entry>B<subscript>22high</subscript></entry>
+> -                 <entry>G<subscript>23low</subscript></entry>
+> -                 <entry>G<subscript>23high</subscript></entry>
+> -               </row>
+> -               <row>
+> -                 <entry>start&nbsp;+&nbsp;24:</entry>
+> -                 <entry>G<subscript>30low</subscript></entry>
+> -                 <entry>G<subscript>30high</subscript></entry>
+> -                 <entry>R<subscript>31low</subscript></entry>
+> -                 <entry>R<subscript>31high</subscript></entry>
+> -                 <entry>G<subscript>32low</subscript></entry>
+> -                 <entry>G<subscript>32high</subscript></entry>
+> -                 <entry>R<subscript>33low</subscript></entry>
+> -                 <entry>R<subscript>33high</subscript></entry>
+> -               </row>
+> -             </tbody>
+> -           </tgroup>
+> -         </informaltable>
+> -       </para>
+> -      </formalpara>
+> -    </example>
+> -  </refsect1>
+> -</refentry>
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb16.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb16.xml
+> new file mode 100644
+> index 0000000..590266f
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/pixfmt-srggb16.xml
+> @@ -0,0 +1,91 @@
+> +    <refentry>
+> +      <refmeta>
+> +       <refentrytitle>V4L2_PIX_FMT_SRGGB16 ('RG16'),
+> +        V4L2_PIX_FMT_SGRBG16 ('GR16'),
+> +        V4L2_PIX_FMT_SGBRG16 ('GB16'),
+> +        V4L2_PIX_FMT_SBGGR16 ('BYR2')
+> +        </refentrytitle>
+> +       &manvol;
+> +      </refmeta>
+> +      <refnamediv>
+> +       <refname id="V4L2-PIX-FMT-SRGGB16"><constant>V4L2_PIX_FMT_SRGGB16</constant></refname>
+> +       <refname id="V4L2-PIX-FMT-SGRBG16"><constant>V4L2_PIX_FMT_SGRBG16</constant></refname>
+> +       <refname id="V4L2-PIX-FMT-SGBRG16"><constant>V4L2_PIX_FMT_SGBRG16</constant></refname>
+> +       <refname id="V4L2-PIX-FMT-SBGGR16"><constant>V4L2_PIX_FMT_SBGGR16</constant></refname>
+> +       <refpurpose>16-bit Bayer formats</refpurpose>
+> +      </refnamediv>
+> +      <refsect1>
+> +       <title>Description</title>
+> +
+> +       <para>These four pixel formats are raw sRGB / Bayer formats with
+> +16 bits per colour. Each colour component is stored in a 16-bit word.
+> +Each n-pixel row contains n/2 green samples and n/2 blue or red
+> +samples, with alternating red and blue rows. Bytes are stored in
+> +memory in little endian order. They are conventionally described
+> +as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example of one of these
+> +formats:</para>
+> +
+> +    <example>
+> +      <title><constant>V4L2_PIX_FMT_SBGGR16</constant> 4 &times; 4
+> +pixel image</title>
+> +
+> +      <formalpara>
+> +       <title>Byte Order.</title>
+> +       <para>Each cell is one byte.
+> +         <informaltable frame="none">
+> +           <tgroup cols="5" align="center">
+> +             <colspec align="left" colwidth="2*" />
+> +             <tbody valign="top">
+> +               <row>
+> +                 <entry>start&nbsp;+&nbsp;0:</entry>
+> +                 <entry>B<subscript>00low</subscript></entry>
+> +                 <entry>B<subscript>00high</subscript></entry>
+> +                 <entry>G<subscript>01low</subscript></entry>
+> +                 <entry>G<subscript>01high</subscript></entry>
+> +                 <entry>B<subscript>02low</subscript></entry>
+> +                 <entry>B<subscript>02high</subscript></entry>
+> +                 <entry>G<subscript>03low</subscript></entry>
+> +                 <entry>G<subscript>03high</subscript></entry>
+> +               </row>
+> +               <row>
+> +                 <entry>start&nbsp;+&nbsp;8:</entry>
+> +                 <entry>G<subscript>10low</subscript></entry>
+> +                 <entry>G<subscript>10high</subscript></entry>
+> +                 <entry>R<subscript>11low</subscript></entry>
+> +                 <entry>R<subscript>11high</subscript></entry>
+> +                 <entry>G<subscript>12low</subscript></entry>
+> +                 <entry>G<subscript>12high</subscript></entry>
+> +                 <entry>R<subscript>13low</subscript></entry>
+> +                 <entry>R<subscript>13high</subscript></entry>
+> +               </row>
+> +               <row>
+> +                 <entry>start&nbsp;+&nbsp;16:</entry>
+> +                 <entry>B<subscript>20low</subscript></entry>
+> +                 <entry>B<subscript>20high</subscript></entry>
+> +                 <entry>G<subscript>21low</subscript></entry>
+> +                 <entry>G<subscript>21high</subscript></entry>
+> +                 <entry>B<subscript>22low</subscript></entry>
+> +                 <entry>B<subscript>22high</subscript></entry>
+> +                 <entry>G<subscript>23low</subscript></entry>
+> +                 <entry>G<subscript>23high</subscript></entry>
+> +               </row>
+> +               <row>
+> +                 <entry>start&nbsp;+&nbsp;24:</entry>
+> +                 <entry>G<subscript>30low</subscript></entry>
+> +                 <entry>G<subscript>30high</subscript></entry>
+> +                 <entry>R<subscript>31low</subscript></entry>
+> +                 <entry>R<subscript>31high</subscript></entry>
+> +                 <entry>G<subscript>32low</subscript></entry>
+> +                 <entry>G<subscript>32high</subscript></entry>
+> +                 <entry>R<subscript>33low</subscript></entry>
+> +                 <entry>R<subscript>33high</subscript></entry>
+> +               </row>
+> +             </tbody>
+> +           </tgroup>
+> +         </informaltable>
+> +       </para>
+> +      </formalpara>
+> +    </example>
+> +
+> +  </refsect1>
+> +</refentry>
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+> index 296a50a..2c22098 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+> @@ -1587,7 +1587,6 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+>      &sub-sgbrg8;
+>      &sub-sgrbg8;
+>      &sub-srggb8;
+> -    &sub-sbggr16;
+>      &sub-srggb10;
+>      &sub-srggb10p;
+>      &sub-srggb10alaw8;
+> @@ -1596,6 +1595,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+>      &sub-srggb12p;
+>      &sub-srggb14;
+>      &sub-srggb14p;
+> +    &sub-srggb16;
+>    </section>
 >
-
-Yes, I haven't looked at the details of the locking but I'm hoping
-it's manageable.
-
->> If the V4L2 client goes away or sets the image size to the CRTC's
->> native resolution, then the DRM device is allowed to use the scaler.
->> I don't know if/how the DRM device should communicate to userspace
->> that the scaler is or isn't available for use.
->>
->> Any thoughts on this approach?
->> Is it acceptable to both V4L2 and DRM folks?
+>    <section id="yuv-formats">
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 32e9e74..c62c85b 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -593,6 +593,9 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_SGRBG14P v4l2_fourcc('p', 'g', 'E', 'E')
+>  #define V4L2_PIX_FMT_SRGGB14P v4l2_fourcc('p', 'R', 'E', 'E')
+>  #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
+> +#define V4L2_PIX_FMT_SGBRG16 v4l2_fourcc('G', 'B', '1', '6') /* 16  GBGB.. RGRG.. */
+> +#define V4L2_PIX_FMT_SGRBG16 v4l2_fourcc('G', 'R', '1', '6') /* 16  GRGR.. BGBG.. */
+> +#define V4L2_PIX_FMT_SRGGB16 v4l2_fourcc('R', 'G', '1', '6') /* 16  RGRG.. GBGB.. */
 >
->For streaming a V4L2 capture device seems like the right interface. But if
->you want to use writeback in your compositor you must know which atomic
->kms update results in which frame, since if you don't you can't use that
->composited buffer for the next frame reliable.
->
->For that case I think a drm-only solution would be better, to make sure
->you can do an atomic update and writeback in one step. v4l seems to grow
->an atomic api of its own, but I don't think we'll have one spanning
->subsystems anytime soon.
->
-
-I've been thinking about this from the point of view of a HWComposer
-implementation and I think the hybrid DRM-V4L2 device would work OK.
-However it depends on the behaviour I mentioned above:
-
->> if the screen is actively displaying a
->> static scene and the V4L2 client queues up a buffer, it won't get
->> filled until the DRM scene changes.
-
-V4L2 buffer queues are FIFO, so as long as the compositor queues only
-one V4L2 buffer per atomic update, there's no ambiguity.
-In the most simplistic case the compositor would alternate between:
-  - Queue V4L2 buffer
-  - DRM atomic update
-... and dequeue either in the same thread or a different one. As long
-as the compositor keeps track of how many buffers it has queued and
-how many atomic updates it's made, it doesn't really matter.
-
-We'd probably be looking to add in V4L2 asynchronous dequeue using
-fences for synchronisation, but that's a separate issue.
-
->For the kms-only interface the idea was to add a property on the crtc
->where you can attach a writeback drm_framebuffer. Extending that idea to
->the drm->v4l case we could create special drm_framebuffer objects
->representing a v4l sink, and attach them to the same property. That would
->also solve the problem of getting some agreement on buffer metadata
->between v4l and drm side.
->
-
-I think a drm_framebuffer on its own wouldn't be enough to handle our
-scaling case - at that point it starts to look more like a plane.
-However, if "special" CRTC sinks became a thing it could allow us to
-chain our writeback output to another CRTC's input (via memory)
-without a trip through userspace, which would be nice.
-
->Laurent had some poc patches a while ago for this, he's definitely the one
->to ping.
-
-I've had a little look at: https://patchwork.kernel.org/patch/6026611/
-It looks pretty similar to what I was hoping to do.
-
-We have the advantage of being able to update the display scene and
-writeback buffer together atomically in hardware, and to write-back in
-a one-shot mode. This lets us make the DRM update queue and V4L2
-buffer queues advance in lock-step.
-
->-Daniel
-
-Thanks,
--Brian
->
->>
->> Thanks for your time,
->>
->> -Brian
->>
->> [1] http://malideveloper.arm.com/resources/drivers/open-source-mali-dp-adf-kernel-device-drivers/
->> [2] https://people.freedesktop.org/~cbrill/dri-log/?channel=dri-devel&date=2016-05-04
->> _______________________________________________
->> dri-devel mailing list
->> dri-devel@lists.freedesktop.org
->> https://lists.freedesktop.org/mailman/listinfo/dri-devel
->
->-- 
->Daniel Vetter
->Software Engineer, Intel Corporation
->http://blog.ffwll.ch
+>  /* compressed formats */
+>  #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M', 'J', 'P', 'G') /* Motion-JPEG   */
+> --
+> 2.7.4
 >
