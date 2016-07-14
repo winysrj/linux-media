@@ -1,61 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44990 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753615AbcGDLr1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:27 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 16/51] Documentation: standard.rst: read the example captions
-Date: Mon,  4 Jul 2016 08:46:37 -0300
-Message-Id: <76d2d63ca7fcb336dadf6848de66838dd5bace54.1467629489.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:30196 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750739AbcGNJbv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2016 05:31:51 -0400
+Received: from [10.47.79.81] ([10.47.79.81])
+	(authenticated bits=0)
+	by aer-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id u6E9VX0P007921
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 14 Jul 2016 09:31:35 GMT
+To: linux-media <linux-media@vger.kernel.org>
+From: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH] vivid: fix typo causing incorrect CEC physical addresses
+Message-ID: <57875BF4.4070202@cisco.com>
+Date: Thu, 14 Jul 2016 11:31:32 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those got lost during format conversion.
+Fix typo in vivid that caused all HDMI outputs to have the same
+physical address.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/linux_tv/media/v4l/standard.rst | 3 +++
- 1 file changed, 3 insertions(+)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/Documentation/linux_tv/media/v4l/standard.rst b/Documentation/linux_tv/media/v4l/standard.rst
-index 20c0d044a129..11d1a7183c73 100644
---- a/Documentation/linux_tv/media/v4l/standard.rst
-+++ b/Documentation/linux_tv/media/v4l/standard.rst
-@@ -66,6 +66,7 @@ standard ioctls can be used with the given input or output.
- 
- 
- .. code-block:: c
-+    :caption: Example 5: Information about the current video standard
- 
-     v4l2_std_id std_id;
-     struct v4l2_standard standard;
-@@ -101,6 +102,7 @@ standard ioctls can be used with the given input or output.
- 
- 
- .. code-block:: c
-+    :caption: Example 6: Listing the video standards supported by the current input
- 
-     struct v4l2_input input;
-     struct v4l2_standard standard;
-@@ -139,6 +141,7 @@ standard ioctls can be used with the given input or output.
- 
- 
- .. code-block:: c
-+    :caption: Example 7: Selecting a new video standard
- 
-     struct v4l2_input input;
-     v4l2_std_id std_id;
--- 
-2.7.4
-
-
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 9966828..7f93713 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -1232,7 +1232,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 				goto unreg_dev;
+ 			}
+ 			bus_cnt++;
+-			if (bus_cnt <= in_type_counter[HDMI])
++			if (bus_cnt <= out_type_counter[HDMI])
+ 				cec_s_phys_addr(adap, bus_cnt << 12, false);
+ 			else
+ 				cec_s_phys_addr(adap, 0x1000, false);
