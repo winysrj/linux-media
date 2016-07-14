@@ -1,65 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:59967 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751460AbcGAIhf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 04:37:35 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [PATCH v2 11/15] [media] lirc_dev: fix variable constant comparisons
-Date: Fri, 01 Jul 2016 17:01:34 +0900
-Message-id: <1467360098-12539-12-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
-References: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40440 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751747AbcGNWfX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2016 18:35:23 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [RFC 02/16] Revert "[media] media: fix use-after-free in cdev_put() when app exits after driver unbind"
+Date: Fri, 15 Jul 2016 01:34:57 +0300
+Message-Id: <1468535711-13836-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When comparing a variable with a constant, the comparison should
-start from the variable and not from the constant. It's also
-written in the human DNA.
+This reverts commit 5b28dde51d0c ("[media] media: fix use-after-free in
+cdev_put() when app exits after driver unbind"). The commit was part of an
+original patchset to avoid crashes when an unregistering device is in use.
 
-Swap the terms of comparisons whenever the constant comes first
-and fix the following checkpatch warning:
-
-  WARNING: Comparisons should place the constant on the right side of the test
-
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/rc/lirc_dev.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/media-device.c  |  6 ++----
+ drivers/media/media-devnode.c | 48 +++++++++++++++++--------------------------
+ 2 files changed, 21 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 16cca46..689e369 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -246,13 +246,13 @@ static int lirc_allocate_driver(struct lirc_driver *d)
- 		return -EINVAL;
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 33a9952..e61fa66 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -723,16 +723,16 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 
+ 	ret = media_devnode_register(mdev, devnode, owner);
+ 	if (ret < 0) {
+-		/* devnode free is handled in media_devnode_*() */
+ 		mdev->devnode = NULL;
++		kfree(devnode);
+ 		return ret;
  	}
  
--	if (MAX_IRCTL_DEVICES <= d->minor) {
-+	if (d->minor >= MAX_IRCTL_DEVICES) {
- 		dev_err(d->dev, "minor must be between 0 and %d!\n",
- 						MAX_IRCTL_DEVICES - 1);
- 		return -EBADRQC;
+ 	ret = device_create_file(&devnode->dev, &dev_attr_model);
+ 	if (ret < 0) {
+-		/* devnode free is handled in media_devnode_*() */
+ 		mdev->devnode = NULL;
+ 		media_devnode_unregister(devnode);
++		kfree(devnode);
+ 		return ret;
  	}
  
--	if (1 > d->code_length || (BUFLEN * 8) < d->code_length) {
-+	if (d->code_length < 1 || d->code_length > (BUFLEN * 8)) {
- 		dev_err(d->dev, "code length must be less than %d bits\n",
- 								BUFLEN * 8);
- 		return -EBADRQC;
-@@ -283,7 +283,7 @@ static int lirc_allocate_driver(struct lirc_driver *d)
- 		for (minor = 0; minor < MAX_IRCTL_DEVICES; minor++)
- 			if (!irctls[minor])
- 				break;
--		if (MAX_IRCTL_DEVICES == minor) {
-+		if (minor == MAX_IRCTL_DEVICES) {
- 			dev_err(d->dev, "no free slots for drivers!\n");
- 			err = -ENOMEM;
- 			goto out_lock;
+@@ -812,8 +812,6 @@ void media_device_unregister(struct media_device *mdev)
+ 	if (media_devnode_is_registered(mdev->devnode)) {
+ 		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
+ 		media_devnode_unregister(mdev->devnode);
+-		/* devnode free is handled in media_devnode_*() */
+-		mdev->devnode = NULL;
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister);
+diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+index 5b605ff..ecdc02d 100644
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -63,8 +63,13 @@ static void media_devnode_release(struct device *cd)
+ 	struct media_devnode *devnode = to_media_devnode(cd);
+ 
+ 	mutex_lock(&media_devnode_lock);
++
++	/* Delete the cdev on this minor as well */
++	cdev_del(&devnode->cdev);
++
+ 	/* Mark device node number as free */
+ 	clear_bit(devnode->minor, media_devnode_nums);
++
+ 	mutex_unlock(&media_devnode_lock);
+ 
+ 	/* Release media_devnode and perform other cleanups as needed. */
+@@ -72,7 +77,6 @@ static void media_devnode_release(struct device *cd)
+ 		devnode->release(devnode);
+ 
+ 	kfree(devnode);
+-	pr_debug("%s: Media Devnode Deallocated\n", __func__);
+ }
+ 
+ static struct bus_type media_bus_type = {
+@@ -201,8 +205,6 @@ static int media_release(struct inode *inode, struct file *filp)
+ 	/* decrease the refcount unconditionally since the release()
+ 	   return value is ignored. */
+ 	put_device(&devnode->dev);
+-
+-	pr_debug("%s: Media Release\n", __func__);
+ 	return 0;
+ }
+ 
+@@ -233,7 +235,6 @@ int __must_check media_devnode_register(struct media_device *mdev,
+ 	if (minor == MEDIA_NUM_DEVICES) {
+ 		mutex_unlock(&media_devnode_lock);
+ 		pr_err("could not get a free minor\n");
+-		kfree(devnode);
+ 		return -ENFILE;
+ 	}
+ 
+@@ -243,31 +244,27 @@ int __must_check media_devnode_register(struct media_device *mdev,
+ 	devnode->minor = minor;
+ 	devnode->media_dev = mdev;
+ 
+-	/* Part 1: Initialize dev now to use dev.kobj for cdev.kobj.parent */
+-	devnode->dev.bus = &media_bus_type;
+-	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
+-	devnode->dev.release = media_devnode_release;
+-	if (devnode->parent)
+-		devnode->dev.parent = devnode->parent;
+-	dev_set_name(&devnode->dev, "media%d", devnode->minor);
+-	device_initialize(&devnode->dev);
+-
+ 	/* Part 2: Initialize and register the character device */
+ 	cdev_init(&devnode->cdev, &media_devnode_fops);
+ 	devnode->cdev.owner = owner;
+-	devnode->cdev.kobj.parent = &devnode->dev.kobj;
+ 
+ 	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
+ 	if (ret < 0) {
+ 		pr_err("%s: cdev_add failed\n", __func__);
+-		goto cdev_add_error;
++		goto error;
+ 	}
+ 
+-	/* Part 3: Add the media device */
+-	ret = device_add(&devnode->dev);
++	/* Part 3: Register the media device */
++	devnode->dev.bus = &media_bus_type;
++	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
++	devnode->dev.release = media_devnode_release;
++	if (devnode->parent)
++		devnode->dev.parent = devnode->parent;
++	dev_set_name(&devnode->dev, "media%d", devnode->minor);
++	ret = device_register(&devnode->dev);
+ 	if (ret < 0) {
+-		pr_err("%s: device_add failed\n", __func__);
+-		goto device_add_error;
++		pr_err("%s: device_register failed\n", __func__);
++		goto error;
+ 	}
+ 
+ 	/* Part 4: Activate this minor. The char device can now be used. */
+@@ -275,15 +272,12 @@ int __must_check media_devnode_register(struct media_device *mdev,
+ 
+ 	return 0;
+ 
+-device_add_error:
+-	cdev_del(&devnode->cdev);
+-cdev_add_error:
++error:
+ 	mutex_lock(&media_devnode_lock);
++	cdev_del(&devnode->cdev);
+ 	clear_bit(devnode->minor, media_devnode_nums);
+-	devnode->media_dev = NULL;
+ 	mutex_unlock(&media_devnode_lock);
+ 
+-	put_device(&devnode->dev);
+ 	return ret;
+ }
+ 
+@@ -295,12 +289,8 @@ void media_devnode_unregister(struct media_devnode *devnode)
+ 
+ 	mutex_lock(&media_devnode_lock);
+ 	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
+-	/* Delete the cdev on this minor as well */
+-	cdev_del(&devnode->cdev);
+ 	mutex_unlock(&media_devnode_lock);
+-	device_del(&devnode->dev);
+-	devnode->media_dev = NULL;
+-	put_device(&devnode->dev);
++	device_unregister(&devnode->dev);
+ }
+ 
+ /*
 -- 
-2.8.1
+2.1.4
 
