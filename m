@@ -1,34 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f169.google.com ([209.85.216.169]:34183 "EHLO
-	mail-qt0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751658AbcGHW4Y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 18:56:24 -0400
-Received: by mail-qt0-f169.google.com with SMTP id u25so4233925qtb.1
-        for <linux-media@vger.kernel.org>; Fri, 08 Jul 2016 15:56:24 -0700 (PDT)
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46612
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751115AbcGNPHB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2016 11:07:01 -0400
+Subject: Re: [PATCH v2] media: s5p-mfc remove unnecessary error messages
+To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
+	k.debski@samsung.com, jtp.park@samsung.com, mchehab@kernel.org
+References: <1468507222-5314-1-git-send-email-shuahkh@osg.samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <f1de3591-7816-963c-62c7-ab9fb29e3f22@osg.samsung.com>
+Date: Thu, 14 Jul 2016 11:06:51 -0400
 MIME-Version: 1.0
-From: Vinson Lee <vlee@freedesktop.org>
-Date: Fri, 8 Jul 2016 15:55:44 -0700
-Message-ID: <CACKvgLEOdetneSdhwmdayYzu+eadYy4hoAT1nBo3U37pSJWCPg@mail.gmail.com>
-Subject: =?UTF-8?Q?linux=2Dnext_build_error_=22cec=2Dadap=2Ec=3A141=3A_error=3A_unkno?=
-	=?UTF-8?Q?wn_field_=E2=80=98lost=5Fmsgs=E2=80=99_specified_in_initializer=22?=
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Kamil Debski <kamil@wypas.org>, k.debski@samsung.com
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <1468507222-5314-1-git-send-email-shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi.
+Hello Shuah,
 
-Commit 9881fe0ca187 "[media] cec: add HDMI CEC framework (adapter)"
-introduced this build error with GCC 4.4.
+On 07/14/2016 10:40 AM, Shuah Khan wrote:
+> Removed unnecessary error message as appropriate error code is returned.
+> Changed error message into a debug.
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
 
-  CC [M]  drivers/staging/media/cec/cec-adap.o
-drivers/staging/media/cec/cec-adap.c: In function ‘cec_queue_msg_fh’:
-drivers/staging/media/cec/cec-adap.c:141: error: unknown field
-‘lost_msgs’ specified in initializer
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Cheers,
-Vinson
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
