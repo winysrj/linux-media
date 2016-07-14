@@ -1,53 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f47.google.com ([209.85.215.47]:34210 "EHLO
-	mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753258AbcG1HyG (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:35403 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750897AbcGNMSg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jul 2016 03:54:06 -0400
-Received: by mail-lf0-f47.google.com with SMTP id l69so43634133lfg.1
-        for <linux-media@vger.kernel.org>; Thu, 28 Jul 2016 00:54:05 -0700 (PDT)
+	Thu, 14 Jul 2016 08:18:36 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: <srv_heupstream@mediatek.com>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>,
+	Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: [PATCH 4/4] arm64: dts: mediatek: Add MDP for MT8173
+Date: Thu, 14 Jul 2016 20:18:01 +0800
+Message-ID: <1468498681-19955-5-git-send-email-minghsiu.tsai@mediatek.com>
+In-Reply-To: <1468498681-19955-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1468498681-19955-1-git-send-email-minghsiu.tsai@mediatek.com>
 MIME-Version: 1.0
-From: Eduard Gavin <egavin@iseebcn.com>
-Date: Thu, 28 Jul 2016 09:54:03 +0200
-Message-ID: <CAPjucKa0+pzdKosnkaO9=DPSvULfwXWA+gr6PYRBonxhoh3JPQ@mail.gmail.com>
-Subject: omap3-isp bt656 10bit
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Add MDP node for MT8173
 
-I'm trying to read 10 bit BT656 using an omap3 DM3730 (omap3-isp).
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+---
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi |   80 ++++++++++++++++++++++++++++++
+ 1 file changed, 80 insertions(+)
 
-The bt565 data comes from ADV7842 configured manually from i2c, I have
-checked the ADV configuration using an evaluation board
-(EVAL-ADV7842-7511P) in BT656 10 bits mode. Then I assume that the
-10bit BT656 arrives to the omap isp.
+diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+index 77b8c4e..8e1b85d 100644
+--- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
++++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+@@ -26,6 +26,16 @@
+ 	#address-cells = <2>;
+ 	#size-cells = <2>;
+ 
++	aliases {
++		mdp_rdma0 = &mdp_rdma0;
++		mdp_rdma1 = &mdp_rdma1;
++		mdp_rsz0 = &mdp_rsz0;
++		mdp_rsz1 = &mdp_rsz1;
++		mdp_rsz2 = &mdp_rsz2;
++		mdp_wdma0 = &mdp_wdma0;
++		mdp_wrot0 = &mdp_wrot0;
++		mdp_wrot1 = &mdp_wrot1;
++	};
+ 	cpus {
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+@@ -678,6 +688,76 @@
+ 			#clock-cells = <1>;
+ 		};
+ 
++		mdp_rdma0: rdma@14001000 {
++			compatible = "mediatek,mt8173-mdp-rdma",
++				     "mediatek,mt8173-mdp";
++			reg = <0 0x14001000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_RDMA0>,
++				 <&mmsys CLK_MM_MUTEX_32K>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++			iommus = <&iommu M4U_PORT_MDP_RDMA0>;
++			mediatek,larb = <&larb0>;
++			mediatek,vpu = <&vpu>;
++		};
++
++		mdp_rdma1: rdma@14002000 {
++			compatible = "mediatek,mt8173-mdp-rdma";
++			reg = <0 0x14002000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_RDMA1>,
++				 <&mmsys CLK_MM_MUTEX_32K>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++			iommus = <&iommu M4U_PORT_MDP_RDMA1>;
++			mediatek,larb = <&larb4>;
++		};
++
++		mdp_rsz0: rsz@14003000 {
++			compatible = "mediatek,mt8173-mdp-rsz";
++			reg = <0 0x14003000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_RSZ0>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++		};
++
++		mdp_rsz1: rsz@14004000 {
++			compatible = "mediatek,mt8173-mdp-rsz";
++			reg = <0 0x14004000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_RSZ1>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++		};
++
++		mdp_rsz2: rsz@14005000 {
++			compatible = "mediatek,mt8173-mdp-rsz";
++			reg = <0 0x14005000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_RSZ2>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++		};
++
++		mdp_wdma0: wdma@14006000 {
++			compatible = "mediatek,mt8173-mdp-wdma";
++			reg = <0 0x14006000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_WDMA>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++			iommus = <&iommu M4U_PORT_MDP_WDMA>;
++			mediatek,larb = <&larb0>;
++		};
++
++		mdp_wrot0: wrot@14007000 {
++			compatible = "mediatek,mt8173-mdp-wrot";
++			reg = <0 0x14007000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_WROT0>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++			iommus = <&iommu M4U_PORT_MDP_WROT0>;
++			mediatek,larb = <&larb0>;
++		};
++
++		mdp_wrot1: wrot@14008000 {
++			compatible = "mediatek,mt8173-mdp-wrot";
++			reg = <0 0x14008000 0 0x1000>;
++			clocks = <&mmsys CLK_MM_MDP_WROT1>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++			iommus = <&iommu M4U_PORT_MDP_WROT1>;
++			mediatek,larb = <&larb4>;
++		};
++
+ 		pwm0: pwm@1401e000 {
+ 			compatible = "mediatek,mt8173-disp-pwm",
+ 				     "mediatek,mt6595-disp-pwm";
+-- 
+1.7.9.5
 
-In the kernel side, I use a tvp5150 driver like a dummy driver in
-order to configure the MC and V4L2, this dummy driver only have
-patched the i2c read/write and is well registered.
-
-My question is about 10bit instead of 8 bits of tvp5150, in the
-omap3-isp driver the 10 bits for BT656 is not configured (the
-ISPCCDC_CFG_BW656 is not set in ispccdc.c file)
-
-I just added
-
-    isp_reg_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG, ISPCCDC_CFG_BW656);
-
-inside of ccdc_set_stream function, and I have checked that the bit 5
-in 0x480B_C654 CCDC_CFG omap register and comes to "1"
-
-But with yavta I can't capture the image sent from ADV7842, after
-convert with raw2rgbpnm appear the "image", attached link.
-http://picpaste.com/test-0HlXySLu.png
-
-Any clue about how to use BT656 10 bits in omap3 (DM3730)?
-
-I have tested with kernel v4.5 mainline and v4.3 that was used for
-validate the tvp5150(bt656 8bit) video captures to omap3-isp.
-
-Best Regards
-Eduard Gavin
