@@ -1,121 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:39802 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751375AbcGVDCn (ORCPT
+Received: from v-smtpgw1.han.skanova.net ([81.236.60.204]:44406 "EHLO
+	v-smtpgw1.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750897AbcGNPKI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 23:02:43 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 32199180B14
-	for <linux-media@vger.kernel.org>; Fri, 22 Jul 2016 05:02:37 +0200 (CEST)
-Date: Fri, 22 Jul 2016 05:02:37 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160722030237.32199180B14@tschai.lan>
+	Thu, 14 Jul 2016 11:10:08 -0400
+Subject: Re: uvcvideo
+To: Charles Stegall <stegall@bayou.uni-linz.ac.at>,
+	linux-media@vger.kernel.org
+References: <20160714141624.GA5718@bayou.uni-linz.ac.at>
+From: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
+Message-ID: <39843503-ce01-3377-e990-39ca9a4fe850@mbox200.swipnet.se>
+Date: Thu, 14 Jul 2016 17:10:04 +0200
+MIME-Version: 1.0
+In-Reply-To: <20160714141624.GA5718@bayou.uni-linz.ac.at>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 2016-07-14 16:16, Charles Stegall wrote:
+>
+> this happens ...
+>
+> modprobe uvcvideo
+> modprobe: ERROR: could not insert 'uvcvideo': Exec format error
+>
+did you get any interesting output in dmesg ?
+like problem loading modules or symbol errors?
 
-Results of the daily build of media_tree:
+this sounds a bit like a problem i had where dmesg showed some symbol 
+conflicts when i built drivers via media_build.
+but i'm no expert on this.
 
-date:		Fri Jul 22 04:00:17 CEST 2016
-git branch:	test
-git hash:	009a620848218d521f008141c62f56bf19294dd9
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1.1-i686: WARNINGS
-linux-4.2-i686: WARNINGS
-linux-4.3-i686: WARNINGS
-linux-4.4-i686: WARNINGS
-linux-4.5-i686: WARNINGS
-linux-4.6-i686: WARNINGS
-linux-4.7-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0-x86_64: WARNINGS
-linux-4.1.1-x86_64: WARNINGS
-linux-4.2-x86_64: WARNINGS
-linux-4.3-x86_64: WARNINGS
-linux-4.4-x86_64: WARNINGS
-linux-4.5-x86_64: WARNINGS
-linux-4.6-x86_64: WARNINGS
-linux-4.7-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
