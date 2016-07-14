@@ -1,102 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33959 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752850AbcGVJJo (ORCPT
+Received: from v-smtpgw1.han.skanova.net ([81.236.60.204]:48599 "EHLO
+	v-smtpgw1.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751347AbcGNTAT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 05:09:44 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	william.towle@codethink.co.uk, geert@linux-m68k.org,
+	Thu, 14 Jul 2016 15:00:19 -0400
+Subject: Re: uvcvideo
+To: Charles Stegall <stegall@bayou.uni-linz.ac.at>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v6 3/4] ARM: dts: koelsch: add HDMI input
-Date: Fri, 22 Jul 2016 11:09:13 +0200
-Message-Id: <1469178554-20719-4-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <20160714141624.GA5718@bayou.uni-linz.ac.at>
+ <39843503-ce01-3377-e990-39ca9a4fe850@mbox200.swipnet.se>
+ <20160714163010.GA6891@bayou.uni-linz.ac.at>
+From: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
+Message-ID: <364e5b3d-50be-c534-86f4-724c680f41a5@mbox200.swipnet.se>
+Date: Thu, 14 Jul 2016 21:00:14 +0200
+MIME-Version: 1.0
+In-Reply-To: <20160714163010.GA6891@bayou.uni-linz.ac.at>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hverkuil@xs4all.nl>
+On 2016-07-14 18:30, Charles Stegall wrote:
+ > On Thu, Jul 14, 2016 at 05:10:04PM +0200, Torbjorn Jansson wrote:
+ >> On 2016-07-14 16:16, Charles Stegall wrote:
+ >>>
+ >>> this happens ...
+ >>>
+ >>> modprobe uvcvideo
+ >>> modprobe: ERROR: could not insert 'uvcvideo': Exec format error
+ >>>
+ >> did you get any interesting output in dmesg ?
+ >> like problem loading modules or symbol errors?
+ >>
+ >> this sounds a bit like a problem i had where dmesg showed some symbol
+ >> conflicts when i built drivers via media_build.
+ >> but i'm no expert on this.
+ >
+>
+> Thank you for the prompt response.
+>
+> pieces of log files, perhaps relevant
+>
+> Jul 14 13:15:26 fiji kernel: usb 2-6: new high-speed USB device number 6 using ehci-pci
+> Jul 14 13:15:26 fiji kernel: usb 2-6: New USB device found, idVendor=041e, idProduct=4095
+> Jul 14 13:15:26 fiji kernel: usb 2-6: New USB device strings: Mfr=3, Product=1, SerialNumber=2
+> Jul 14 13:15:26 fiji kernel: usb 2-6: Product: Live! Cam Sync HD VF0770
+> Jul 14 13:15:26 fiji kernel: usb 2-6: Manufacturer: Creative Technology Ltd.
+> Jul 14 13:15:26 fiji kernel: usb 2-6: SerialNumber: 2014032113535
+> Jul 14 13:15:26 fiji kernel: frame_vector: exports duplicate symbol frame_vector_create (owned by kernel)
+> Jul 14 13:15:55 fiji kernel: frame_vector: exports duplicate symbol frame_vector_create (owned by kernel)
+> Jul 14 15:44:16 fiji kernel: uvcvideo: Unknown symbol vb2_vmalloc_memops (err 0)
+> Jul 14 16:04:04 fiji kernel: frame_vector: exports duplicate symbol frame_vector_create (owned by kernel)
+> Jul 14 18:16:10 fiji kernel: frame_vector: exports duplicate symbol frame_vector_create (owned by kernel)
+>
 
-Add support in the dts for the HDMI input. Based on the Lager dts
-patch from Ulrich Hecht.
+exactly the problem i had, Hans Verkuil pointed me in the right 
+direction on solving this.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-[uli: removed "renesas," prefixes from pfc nodes]
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- arch/arm/boot/dts/r8a7791-koelsch.dts | 41 +++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+what has happened is that you most likely used media_build and it 
+installed a module called frame_vector.ko but this module is already 
+built into your kernel so when a module that depends on it tries to load 
+things go wrong and module dont load properly.
 
-diff --git a/arch/arm/boot/dts/r8a7791-koelsch.dts b/arch/arm/boot/dts/r8a7791-koelsch.dts
-index 980f41b..28ec3a8 100644
---- a/arch/arm/boot/dts/r8a7791-koelsch.dts
-+++ b/arch/arm/boot/dts/r8a7791-koelsch.dts
-@@ -400,6 +400,21 @@
- 			};
- 		};
- 
-+		hdmi-in@4c {
-+			compatible = "adi,adv7612";
-+			reg = <0x4c>;
-+			interrupt-parent = <&gpio1>;
-+			interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
-+			remote = <&vin0>;
-+			default-input = <0>;
-+
-+			port {
-+				adv7612: endpoint {
-+					remote-endpoint = <&vin0ep>;
-+				};
-+			};
-+		};
-+
- 		eeprom@50 {
- 			compatible = "renesas,24c02";
- 			reg = <0x50>;
-@@ -534,6 +549,11 @@
- 		function = "usb1";
- 	};
- 
-+	vin0_pins: vin0 {
-+		groups = "vin0_data24", "vin0_sync", "vin0_clkenb", "vin0_clk";
-+		function = "vin0";
-+	};
-+
- 	vin1_pins: vin1 {
- 		groups = "vin1_data8", "vin1_clk";
- 		function = "vin1";
-@@ -765,6 +785,27 @@
- 	cpu0-supply = <&vdd_dvfs>;
- };
- 
-+/* HDMI video input */
-+&vin0 {
-+	status = "okay";
-+	pinctrl-0 = <&vin0_pins>;
-+	pinctrl-names = "default";
-+
-+	port {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		vin0ep: endpoint {
-+			remote-endpoint = <&adv7612>;
-+			bus-width = <24>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+			data-active = <1>;
-+		};
-+	};
-+};
-+
- /* composite video input */
- &vin1 {
- 	status = "okay";
--- 
-2.7.4
+what i did to work around this was to find the module under 
+/lib/modules/`uname -r` that got installed by media_build and removed it.
+then i reran 'depmod -a' to update module dependencies and problem was 
+solved.
+
+for reference see mail on linux-media list from 2016-06-26 from Hans 
+with subject "Re: media_build & cx23885"
 
