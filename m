@@ -1,79 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:32943 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751280AbcGAIE1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 04:04:27 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [PATCH v2 00/15] lirc_dev fixes and beautification
-Date: Fri, 01 Jul 2016 17:01:23 +0900
-Message-id: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:12790 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750950AbcGNHeT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2016 03:34:19 -0400
+Message-ID: <1468481654.27199.19.camel@mtksdaap41>
+Subject: Re: [PATCH] [media] mtk-vcodec: fix type mismatches
+From: tiffany lin <tiffany.lin@mediatek.com>
+To: Arnd Bergmann <arnd@arndb.de>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	PoChun Lin <pochun.lin@mediatek.com>,
+	<linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-mediatek@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>
+Date: Thu, 14 Jul 2016 15:34:14 +0800
+In-Reply-To: <20160711213959.2481081-1-arnd@arndb.de>
+References: <20160711213959.2481081-1-arnd@arndb.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, 2016-07-11 at 23:37 +0200, Arnd Bergmann wrote:
+> The newly added mtk-vcodec driver produces a number of warnings in an ARM
+> allmodconfig build, mainly since it assumes that dma_addr_t is 32-bit wide:
+> 
+> mtk-vcodec/venc/venc_vp8_if.c: In function 'vp8_enc_alloc_work_buf':
+> mtk-vcodec/venc/venc_vp8_if.c:212:191: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+> mtk-vcodec/venc/venc_h264_if.c: In function 'h264_enc_alloc_work_buf':
+> mtk-vcodec/venc/venc_h264_if.c:297:190: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+> mtk-vcodec/mtk_vcodec_enc.c: In function 'mtk_venc_worker':
+> mtk-vcodec/mtk_vcodec_enc.c:1030:46: error: format '%lx' expects argument of type 'long unsigned int', but argument 7 has type 'size_t {aka unsigned int}' [-Werror=format=]
+>   mtk_v4l2_debug(2,
+> mtk-vcodec/mtk_vcodec_enc.c:1030:46: error: format '%lx' expects argument of type 'long unsigned int', but argument 10 has type 'size_t {aka unsigned int}' [-Werror=format=]
+> mtk-vcodec/venc_vpu_if.c: In function 'vpu_enc_ipi_handler':
+> mtk-vcodec/venc_vpu_if.c:40:30: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+>   struct venc_vpu_inst *vpu = (struct venc_vpu_inst *)msg->venc_inst;
+> 
+> This rearranges the format strings and type casts to what they should have been
+> in order to avoid the warnings.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c    | 8 ++++----
+>  drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c | 4 ++--
+>  drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c  | 4 ++--
+>  drivers/media/platform/mtk-vcodec/venc_vpu_if.c       | 4 ++--
+>  4 files changed, 10 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> index 6dcae0a0a1f2..0b25a8700877 100644
+> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> @@ -1028,15 +1028,15 @@ static void mtk_venc_worker(struct work_struct *work)
+>  	bs_buf.size = (size_t)dst_buf->planes[0].length;
+>  
+>  	mtk_v4l2_debug(2,
+> -			"Framebuf VA=%p PA=%llx Size=0x%lx;VA=%p PA=0x%llx Size=0x%lx;VA=%p PA=0x%llx Size=%zu",
+> +			"Framebuf VA=%p PA=%pad Size=0x%zx;VA=%p PA=%pad Size=0x%zx;VA=%p PA=%pad Size=0x%zx",
+>  			frm_buf.fb_addr[0].va,
+> -			(u64)frm_buf.fb_addr[0].dma_addr,
+> +			&frm_buf.fb_addr[0].dma_addr,
+>  			frm_buf.fb_addr[0].size,
+>  			frm_buf.fb_addr[1].va,
+> -			(u64)frm_buf.fb_addr[1].dma_addr,
+> +			&frm_buf.fb_addr[1].dma_addr,
+>  			frm_buf.fb_addr[1].size,
+>  			frm_buf.fb_addr[2].va,
+> -			(u64)frm_buf.fb_addr[2].dma_addr,
+> +			&frm_buf.fb_addr[2].dma_addr,
+>  			frm_buf.fb_addr[2].size);
 
-After applying Joe's suggestion, the next patches had some
-conflicts, therefore I have to send all the 15 patches again.
+Acked-by:Tiffany Lin <tiffany.lin@mediatek.com>
 
-This is a collection of fixes, added functionality, coding rework
-and trivial coding style fixes.
 
-The first patch is preparatory to the second, which allows the
-user to create a lirc driver without receiver buffer, which is
-obvious for transmitters. Besides, even though that buffer could
-have been used also by transmitters, drivers might have the need
-to handle it separately.
+>  
+>  	ret = venc_if_encode(ctx, VENC_START_OPT_ENCODE_FRAME,
+> diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+> index f4e18bb44cb9..9a600525b3c1 100644
+> --- a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+> +++ b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+> @@ -295,9 +295,9 @@ static int h264_enc_alloc_work_buf(struct venc_h264_inst *inst)
+>  		wb[i].iova = inst->work_bufs[i].dma_addr;
+>  
+>  		mtk_vcodec_debug(inst,
+> -				 "work_buf[%d] va=0x%p iova=0x%p size=%zu",
+> +				 "work_buf[%d] va=0x%p iova=%pad size=%zu",
+>  				 i, inst->work_bufs[i].va,
+> -				 (void *)inst->work_bufs[i].dma_addr,
+> +				 &inst->work_bufs[i].dma_addr,
+>  				 inst->work_bufs[i].size);
+>  	}
+>  
+> diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+> index 431ae706a427..5b35aa1900d7 100644
+> --- a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+> +++ b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+> @@ -210,9 +210,9 @@ static int vp8_enc_alloc_work_buf(struct venc_vp8_inst *inst)
+>  		wb[i].iova = inst->work_bufs[i].dma_addr;
+>  
+>  		mtk_vcodec_debug(inst,
+> -				 "work_bufs[%d] va=0x%p,iova=0x%p,size=%zu",
+> +				 "work_bufs[%d] va=0x%p,iova=%pad,size=%zu",
+>  				 i, inst->work_bufs[i].va,
+> -				 (void *)inst->work_bufs[i].dma_addr,
+> +				 &inst->work_bufs[i].dma_addr,
+>  				 inst->work_bufs[i].size);
+>  	}
+>  
+> diff --git a/drivers/media/platform/mtk-vcodec/venc_vpu_if.c b/drivers/media/platform/mtk-vcodec/venc_vpu_if.c
+> index b92c6d2a892d..8907b02729fa 100644
+> --- a/drivers/media/platform/mtk-vcodec/venc_vpu_if.c
+> +++ b/drivers/media/platform/mtk-vcodec/venc_vpu_if.c
+> @@ -37,7 +37,7 @@ static void handle_enc_encode_msg(struct venc_vpu_inst *vpu, void *data)
+>  static void vpu_enc_ipi_handler(void *data, unsigned int len, void *priv)
+>  {
+>  	struct venc_vpu_ipi_msg_common *msg = data;
+> -	struct venc_vpu_inst *vpu = (struct venc_vpu_inst *)msg->venc_inst;
+> +	struct venc_vpu_inst *vpu = (struct venc_vpu_inst *)(uintptr_t)msg->venc_inst;
+>  
+>  	mtk_vcodec_debug(vpu, "msg_id %x inst %p status %d",
+>  			 msg->msg_id, vpu, msg->status);
+> @@ -112,7 +112,7 @@ int vpu_enc_init(struct venc_vpu_inst *vpu)
+>  
+>  	memset(&out, 0, sizeof(out));
+>  	out.msg_id = AP_IPIMSG_ENC_INIT;
+> -	out.venc_inst = (unsigned long)vpu;
+> +	out.venc_inst = (uintptr_t)vpu;
+>  	if (vpu_enc_send_msg(vpu, &out, sizeof(out))) {
+>  		mtk_vcodec_err(vpu, "AP_IPIMSG_ENC_INIT fail");
+>  		return -EINVAL;
 
-The rest of the patches is a series of coding style and code
-rework, as I said, some of them are very trivial, but I sent them
-anyway because I was on fire.
-
-Patch 14 is a segfault fix, while the last patch adds the
-possibility to send to ioctl the set frequency, get frequency and
-set length command.
-
-Changelog: V1->V2
-
- - As Joe recommended, in patch 4 I added the pr_fmt definition
-   and removed all the hardcoded prefixes from the pr_*
-   functions.
-
- - In Patch 15, after Sean's review, I removed the definitions of
-   the GET/SET_FREQUENCY, I will use GET/SET_SEND_CARRIER
-   instead, even though I find the name a bit confusing.
-
- - In patch 6 I did a better refactoring
-
-Thanks,
-Andi
-
-Andi Shyti (15):
-  [media] lirc_dev: place buffer allocation on separate function
-  [media] lirc_dev: allow bufferless driver registration
-  [media] lirc_dev: remove unnecessary debug prints
-  [media] lirc_dev: replace printk with pr_* or dev_*
-  [media] lirc_dev: simplify goto paths
-  [media] lirc_dev: do not use goto to create loops
-  [media] lirc_dev: simplify if statement in lirc_add_to_buf
-  [media] lirc_dev: remove double if ... else statement
-  [media] lirc_dev: merge three if statements in only one
-  [media] lirc_dev: remove CONFIG_COMPAT precompiler check
-  [media] lirc_dev: fix variable constant comparisons
-  [media] lirc_dev: fix error return value
-  [media] lirc_dev: extremely trivial comment style fix
-  [media] lirc_dev: fix potential segfault
-  [media] include: lirc: add LIRC_GET_LENGTH command
-
- drivers/media/rc/lirc_dev.c | 301 +++++++++++++++++++++-----------------------
- include/media/lirc_dev.h    |  12 ++
- include/uapi/linux/lirc.h   |   1 +
- 3 files changed, 155 insertions(+), 159 deletions(-)
-
--- 
-2.8.1
 
