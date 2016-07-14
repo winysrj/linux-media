@@ -1,121 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:51815 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750799AbcG3C4s (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40488 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752226AbcGNWf0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2016 22:56:48 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2958818096B
-	for <linux-media@vger.kernel.org>; Sat, 30 Jul 2016 04:56:42 +0200 (CEST)
-Date: Sat, 30 Jul 2016 04:56:42 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Thu, 14 Jul 2016 18:35:26 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160730025642.2958818096B@tschai.lan>
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [RFC 11/16] v4l: Acquire a reference to the media device for every video device
+Date: Fri, 15 Jul 2016 01:35:06 +0300
+Message-Id: <1468535711-13836-12-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The video device depends on the existence of its media device --- if there
+is one. Acquire a reference to it.
 
-Results of the daily build of media_tree:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-date:		Sat Jul 30 04:00:21 CEST 2016
-git branch:	test
-git hash:	292eaf50c7df4ae2ae8aaa9e1ce3f1240a353ee8
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 70b559d..80cc675 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -171,6 +171,7 @@ static void v4l2_device_release(struct device *cd)
+ {
+ 	struct video_device *vdev = to_video_device(cd);
+ 	struct v4l2_device *v4l2_dev = vdev->v4l2_dev;
++	struct media_device *mdev = v4l2_dev->mdev;
+ 
+ 	mutex_lock(&videodev_lock);
+ 	if (WARN_ON(video_device[vdev->minor] != vdev)) {
+@@ -194,7 +195,7 @@ static void v4l2_device_release(struct device *cd)
+ 	mutex_unlock(&videodev_lock);
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	if (v4l2_dev->mdev) {
++	if (mdev) {
+ 		/* Remove interfaces and interface links */
+ 		media_devnode_remove(vdev->intf_devnode);
+ 		if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
+@@ -220,6 +221,11 @@ static void v4l2_device_release(struct device *cd)
+ 	/* Decrease v4l2_device refcount */
+ 	if (v4l2_dev)
+ 		v4l2_device_put(v4l2_dev);
++
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (mdev)
++		media_device_put(mdev);
++#endif
+ }
+ 
+ static struct class video_class = {
+@@ -808,6 +814,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
+ 
+ 	/* FIXME: how to create the other interface links? */
+ 
++	media_device_get(vdev->v4l2_dev->mdev);
+ #endif
+ 	return 0;
+ }
+-- 
+2.1.4
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
