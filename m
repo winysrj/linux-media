@@ -1,86 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:58738 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750805AbcHAB5n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2016 21:57:43 -0400
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46598
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751054AbcGNMqr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2016 08:46:47 -0400
+Subject: Re: [PATCH] media: s5p-mfc remove unnecessary error messages
+To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
+	k.debski@samsung.com, jtp.park@samsung.com, mchehab@kernel.org
+References: <1468370038-5364-1-git-send-email-shuahkh@osg.samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <c38dc1b5-e2f7-4486-a0fc-a8f690d28fe6@osg.samsung.com>
+Date: Thu, 14 Jul 2016 08:46:34 -0400
 MIME-Version: 1.0
-In-Reply-To: <5a2cea98-dd8a-159b-7adb-a2533cfde1b0@microchip.com>
-References: <1469778856-24253-1-git-send-email-songjun.wu@microchip.com>
- <1469778856-24253-3-git-send-email-songjun.wu@microchip.com>
- <20160729214454.GA21408@rob-hp-laptop> <5a2cea98-dd8a-159b-7adb-a2533cfde1b0@microchip.com>
-From: Rob Herring <robh@kernel.org>
-Date: Sun, 31 Jul 2016 20:57:20 -0500
-Message-ID: <CAL_JsqLH9wHMuLJ5Q-rCecM3i2OUgWJ8A3U-z8UZORN-PQOvBA@mail.gmail.com>
-Subject: Re: [PATCH v7 2/2] [media] atmel-isc: DT binding for Image Sensor
- Controller driver
-To: "Wu, Songjun" <Songjun.Wu@microchip.com>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1468370038-5364-1-git-send-email-shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 31, 2016 at 8:23 PM, Wu, Songjun <Songjun.Wu@microchip.com> wrote:
->
->
-> On 7/30/2016 05:44, Rob Herring wrote:
->>
->> On Fri, Jul 29, 2016 at 03:54:08PM +0800, Songjun Wu wrote:
->>>
->>> DT binding documentation for ISC driver.
->>>
->>> Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
->>> ---
->>>
->>> Changes in v7: None
->>> Changes in v6:
->>> - Add "iscck" and "gck" to clock-names.
->>>
->>> Changes in v5:
->>> - Add clock-output-names.
->>>
->>> Changes in v4:
->>> - Remove the isc clock nodes.
->>>
->>> Changes in v3:
->>> - Remove the 'atmel,sensor-preferred'.
->>> - Modify the isc clock node according to the Rob's remarks.
->>>
->>> Changes in v2:
->>> - Remove the unit address of the endpoint.
->>> - Add the unit address to the clock node.
->>> - Avoid using underscores in node names.
->>> - Drop the "0x" in the unit address of the i2c node.
->>> - Modify the description of 'atmel,sensor-preferred'.
->>> - Add the description for the ISC internal clock.
->>>
->>>  .../devicetree/bindings/media/atmel-isc.txt        | 65
->>> ++++++++++++++++++++++
->>>  1 file changed, 65 insertions(+)
->>>  create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
->>
->>
->> Please add acks when posting new versions.
->>
->> Rob
->>
-> Hi Rob,
->
-> Thank you for your reminder.
->
-> Should I Add 'Acked-by: Rob Herring <robh@kernel.org>' behind
-> 'Signed-off-by: Songjun Wu <songjun.wu@microchip.com>'?
+Hello Shuah,
 
-Before or after is fine.
+On 07/12/2016 08:33 PM, Shuah Khan wrote:
+> Removing unnecessary error messages as appropriate error code is returned.
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c | 2 --
+>  1 file changed, 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index b6fde20..906f80c 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -759,7 +759,6 @@ static int s5p_mfc_open(struct file *file)
+>  	/* Allocate memory for context */
+>  	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+>  	if (!ctx) {
+> -		mfc_err("Not enough memory\n");
 
-> Should I resend this patch?
+I agree to remove this since in case of a OOM, the core already does a
+stack dump and prints an error message so there's no need to it here.
 
-Not just to add acks, but if you send v8, add the acks.
+>  		ret = -ENOMEM;
+>  		goto err_alloc;
+>  	}
+> @@ -776,7 +775,6 @@ static int s5p_mfc_open(struct file *file)
+>  	while (dev->ctx[ctx->num]) {
+>  		ctx->num++;
+>  		if (ctx->num >= MFC_NUM_CONTEXTS) {
+> -			mfc_err("Too many open contexts\n");
 
-Rob
+But I think this error message shouldn't be removed since explains why
+the open failed, even when an error code is returned.
+
+>  			ret = -EBUSY;
+>  			goto err_no_ctx;
+>  		}
+> 
+
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
