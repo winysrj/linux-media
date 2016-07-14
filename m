@@ -1,62 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:47115 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755163AbcGHTF7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 15:05:59 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH] [media] doc-rst: mention the memory type to be set for all streaming I/O
-Date: Fri,  8 Jul 2016 16:05:52 -0300
-Message-Id: <071dedfead28ff4cd2d2faf56054ed1c46584ae1.1468004189.git.mchehab@s-opensource.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41700 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750963AbcGNCAr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2016 22:00:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Linux Doc <linux-doc@vger.kernel.org>
+Subject: Re: [ANN] Media documentation converted to ReST markup language
+Date: Thu, 14 Jul 2016 05:00:47 +0300
+Message-ID: <11676357.MV7iMPWTsY@avalon>
+In-Reply-To: <20160713111143.20312bb9@recife.lan>
+References: <20160708103420.27453f0d@recife.lan> <1602772.oBh27pyGSf@avalon> <20160713111143.20312bb9@recife.lan>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changeset 8c9f46095176 ("[media] DocBook: mention the memory type to
-be set for all streaming I/O") updated the media DocBook to mention
-the need of filling the memory types. We need to keep the ReST
-doc updated to such change.
+Hi Mauro,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/mmap.rst  | 4 ++--
- Documentation/media/uapi/v4l/userp.rst | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+On Wednesday 13 Jul 2016 11:11:43 Mauro Carvalho Chehab wrote:
+> Em Sat, 09 Jul 2016 20:10:21 +0300 Laurent Pinchart escreveu:
+> > The other one is related, the table of contents in the main page of each
+> > section
+> > (https://mchehab.fedorapeople.org/media_API_book/linux_tv/media/v4l/v4l2.h
+> > tml for instance) only shows the first level entries. We have a full table
+> > of contents now, and that's very practical to quickly search for the
+> > information we need without requiring many clicks (or actually any click
+> > at all). How can we keep that feature ?
+> 
+> It is not hard to change the level of entries, although I really hated the
+> DocBook template that creates multi-depth TOCs everywhere, as it is very
+> messy to see those big indexes in the middle of the book.
+> 
+> What I did was to add *one* full contents index (actually, up to level 5)
+> at the first page of the book:
+> 	https://linuxtv.org/downloads/v4l-dvb-apis-new/media/media_uapi.html
+> 
+> and kept the other ones with depth 1.
 
-diff --git a/Documentation/media/uapi/v4l/mmap.rst b/Documentation/media/uapi/v4l/mmap.rst
-index 2171b18c1aab..f7fe26e7ca43 100644
---- a/Documentation/media/uapi/v4l/mmap.rst
-+++ b/Documentation/media/uapi/v4l/mmap.rst
-@@ -11,8 +11,8 @@ Input and output devices support this I/O method when the
- :ref:`v4l2_capability <v4l2-capability>` returned by the
- :ref:`VIDIOC_QUERYCAP` ioctl is set. There are two
- streaming methods, to determine if the memory mapping flavor is
--supported applications must call the
--:ref:`VIDIOC_REQBUFS` ioctl.
-+supported applications must call the :ref:`VIDIOC_REQBUFS` ioctl
-+with the memory type set to ``V4L2_MEMORY_MMAP``.
- 
- Streaming is an I/O method where only pointers to buffers are exchanged
- between application and driver, the data itself is not copied. Memory
-diff --git a/Documentation/media/uapi/v4l/userp.rst b/Documentation/media/uapi/v4l/userp.rst
-index 0ecf7a13a7af..2f0002bfbc3f 100644
---- a/Documentation/media/uapi/v4l/userp.rst
-+++ b/Documentation/media/uapi/v4l/userp.rst
-@@ -11,8 +11,8 @@ Input and output devices support this I/O method when the
- :ref:`v4l2_capability <v4l2-capability>` returned by the
- :ref:`VIDIOC_QUERYCAP` ioctl is set. If the
- particular user pointer method (not only memory mapping) is supported
--must be determined by calling the
--:ref:`VIDIOC_REQBUFS` ioctl.
-+must be determined by calling the :ref:`VIDIOC_REQBUFS` ioctl
-+with the memory type set to ``V4L2_MEMORY_USERPTR``.
- 
- This I/O method combines advantages of the read/write and memory mapping
- methods. Buffers (planes) are allocated by the application itself, and
+Thank you, that's exactly what I had in mind.
+
+> > By the way, the "Video for Linux API" section (and the other sibling
+> > sections) are child nodes of the "Introduction" section. That feels quite
+> > odd.
+>
+> This was fixed already.
+
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
 
