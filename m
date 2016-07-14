@@ -1,56 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33137 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754648AbcGFPkv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 11:40:51 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com
-Cc: niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
-	laurent.pinchart@ideasonboard.com, william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v5 1/4] media: adv7604: automatic "default-input" selection
-Date: Wed,  6 Jul 2016 17:39:33 +0200
-Message-Id: <1467819576-17743-2-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1467819576-17743-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1467819576-17743-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:57640 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750996AbcGNC0r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2016 22:26:47 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 4864A1803C0
+	for <linux-media@vger.kernel.org>; Thu, 14 Jul 2016 04:26:42 +0200 (CEST)
+Date: Thu, 14 Jul 2016 04:26:42 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160714022642.4864A1803C0@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fall back to input 0 if "default-input" property is not present.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Additionally, documentation in commit bf9c82278c34 ("[media]
-media: adv7604: ability to read default input port from DT") states
-that the "default-input" property should reside directly in the node
-for adv7612. Hence, also adjust the parsing to make the implementation
-consistent with this.
+Results of the daily build of media_tree:
 
-Based on patch by William Towle <william.towle@codethink.co.uk>.
+date:		Thu Jul 14 04:00:19 CEST 2016
+git branch:	test
+git hash:	5cac1f67ea0363d463a58ec2d9118268fe2ba5d6
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- drivers/media/i2c/adv7604.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: ERRORS
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-i686: ERRORS
+linux-4.7-rc1-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-x86_64: ERRORS
+linux-4.7-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 3f1ab49..2e8f036 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2830,10 +2830,13 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	if (!of_property_read_u32(endpoint, "default-input", &v))
- 		state->pdata.default_input = v;
- 	else
--		state->pdata.default_input = -1;
-+		state->pdata.default_input = 0;
- 
- 	of_node_put(endpoint);
- 
-+	if (!of_property_read_u32(np, "default-input", &v))
-+		state->pdata.default_input = v;
-+
- 	flags = bus_cfg.bus.parallel.flags;
- 
- 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
--- 
-2.7.4
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
