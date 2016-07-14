@@ -1,88 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:34219 "EHLO
-	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932432AbcGFXH0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:07:26 -0400
-Received: by mail-pf0-f193.google.com with SMTP id 66so101518pfy.1
-        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:07:26 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40480 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751459AbcGNWf0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2016 18:35:26 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 04/28] gpu: ipu-v3: Add ipu_get_num()
-Date: Wed,  6 Jul 2016 16:06:34 -0700
-Message-Id: <1467846418-12913-5-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
- <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [RFC 15/16] omap3isp: Release the isp device struct by media device callback
+Date: Fri, 15 Jul 2016 01:35:10 +0300
+Message-Id: <1468535711-13836-16-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds of-alias id to ipu_soc and retrieve with ipu_get_num().
+Use the media device release callback to release the isp device's data
+structure. This approach has the benefit of not releasing memory which may
+still be accessed through open file handles whilst the isp driver is being
+unbound.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/gpu/ipu-v3/ipu-common.c | 8 ++++++++
- drivers/gpu/ipu-v3/ipu-prv.h    | 1 +
- include/video/imx-ipu-v3.h      | 1 +
- 3 files changed, 10 insertions(+)
+ drivers/media/platform/omap3isp/isp.c | 25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
-index 30dc115..49af121 100644
---- a/drivers/gpu/ipu-v3/ipu-common.c
-+++ b/drivers/gpu/ipu-v3/ipu-common.c
-@@ -45,6 +45,12 @@ static inline void ipu_cm_write(struct ipu_soc *ipu, u32 value, unsigned offset)
- 	writel(value, ipu->cm_reg + offset);
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index b09d2508..a0dff24 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -1671,6 +1671,8 @@ static int isp_link_entity(
+ 	return media_create_pad_link(entity, i, input, pad, flags);
  }
  
-+int ipu_get_num(struct ipu_soc *ipu)
-+{
-+	return ipu->id;
-+}
-+EXPORT_SYMBOL_GPL(ipu_get_num);
++static void isp_release(struct media_device *mdev);
 +
- void ipu_srm_dp_sync_update(struct ipu_soc *ipu)
+ static int isp_register_entities(struct isp_device *isp)
  {
- 	u32 val;
-@@ -1220,6 +1226,7 @@ static int ipu_probe(struct platform_device *pdev)
+ 	int ret;
+@@ -1683,6 +1685,7 @@ static int isp_register_entities(struct isp_device *isp)
+ 		sizeof(isp->media_dev->model));
+ 	isp->media_dev->hw_revision = isp->revision;
+ 	isp->media_dev->link_notify = v4l2_pipeline_link_notify;
++	isp->media_dev->release = isp_release;
+ 
+ 	isp->v4l2_dev.mdev = isp->media_dev;
+ 	ret = v4l2_device_register(isp->dev, &isp->v4l2_dev);
+@@ -1943,6 +1946,20 @@ static void isp_detach_iommu(struct isp_device *isp)
+ 	iommu_group_remove_device(isp->dev);
+ }
+ 
++static void isp_release(struct media_device *mdev)
++{
++	struct isp_device *isp = media_device_priv(mdev);
++
++	isp_cleanup_modules(isp);
++	isp_xclk_cleanup(isp);
++
++	__omap3isp_get(isp, false);
++	isp_detach_iommu(isp);
++	__omap3isp_put(isp, false);
++
++	media_entity_enum_cleanup(&isp->crashed);
++}
++
+ static int isp_attach_iommu(struct isp_device *isp)
  {
- 	const struct of_device_id *of_id =
- 			of_match_device(imx_ipu_dt_ids, &pdev->dev);
-+	struct device_node *np = pdev->dev.of_node;
- 	struct ipu_soc *ipu;
- 	struct resource *res;
- 	unsigned long ipu_base;
-@@ -1248,6 +1255,7 @@ static int ipu_probe(struct platform_device *pdev)
- 		ipu->channel[i].ipu = ipu;
- 	ipu->devtype = devtype;
- 	ipu->ipu_type = devtype->type;
-+	ipu->id = of_alias_get_id(np, "ipu");
+ 	struct dma_iommu_mapping *mapping;
+@@ -2003,14 +2020,6 @@ static int isp_remove(struct platform_device *pdev)
  
- 	spin_lock_init(&ipu->lock);
- 	mutex_init(&ipu->channel_lock);
-diff --git a/drivers/gpu/ipu-v3/ipu-prv.h b/drivers/gpu/ipu-v3/ipu-prv.h
-index 845f64c..02057d8 100644
---- a/drivers/gpu/ipu-v3/ipu-prv.h
-+++ b/drivers/gpu/ipu-v3/ipu-prv.h
-@@ -153,6 +153,7 @@ struct ipu_soc {
- 	void __iomem		*cm_reg;
- 	void __iomem		*idmac_reg;
+ 	v4l2_async_notifier_unregister(&isp->notifier);
+ 	isp_unregister_entities(isp);
+-	isp_cleanup_modules(isp);
+-	isp_xclk_cleanup(isp);
+-
+-	__omap3isp_get(isp, false);
+-	isp_detach_iommu(isp);
+-	__omap3isp_put(isp, false);
+-
+-	media_entity_enum_cleanup(&isp->crashed);
  
-+	int			id;
- 	int			usecount;
- 
- 	struct clk		*clk;
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 60540ead..b174f8a 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -148,6 +148,7 @@ int ipu_idmac_channel_irq(struct ipu_soc *ipu, struct ipuv3_channel *channel,
- /*
-  * IPU Common functions
-  */
-+int ipu_get_num(struct ipu_soc *ipu);
- void ipu_set_csi_src_mux(struct ipu_soc *ipu, int csi_id, bool mipi_csi2);
- void ipu_set_ic_src_mux(struct ipu_soc *ipu, int csi_id, bool vdi);
- void ipu_dump(struct ipu_soc *ipu);
+ 	return 0;
+ }
 -- 
-1.9.1
+2.1.4
 
