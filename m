@@ -1,57 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46382
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754678AbcGLPHc (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:64666 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750967AbcGNMSh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 11:07:32 -0400
-Subject: Re: [PATCH] media: s5p-mfc Fix misspelled error message and
- checkpatch errors
-To: Javier Martinez Canillas <javier@osg.samsung.com>,
-	kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, mchehab@kernel.org
-References: <1468276740-1591-1-git-send-email-shuahkh@osg.samsung.com>
- <8dd68d9b-9455-d593-dc0f-c269c778b961@osg.samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <578507B2.9020501@osg.samsung.com>
-Date: Tue, 12 Jul 2016 09:07:30 -0600
+	Thu, 14 Jul 2016 08:18:37 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: <srv_heupstream@mediatek.com>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>,
+	Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: [PATCH 1/4] VPU: mediatek: Add mdp support
+Date: Thu, 14 Jul 2016 20:17:58 +0800
+Message-ID: <1468498681-19955-2-git-send-email-minghsiu.tsai@mediatek.com>
+In-Reply-To: <1468498681-19955-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1468498681-19955-1-git-send-email-minghsiu.tsai@mediatek.com>
 MIME-Version: 1.0
-In-Reply-To: <8dd68d9b-9455-d593-dc0f-c269c778b961@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/12/2016 09:03 AM, Javier Martinez Canillas wrote:
-> Hello Shuah,
-> 
-> On 07/11/2016 06:39 PM, Shuah Khan wrote:
->> Fix misspelled error message and existing checkpatch errors in the
->> error message conditional.
->>
->> WARNING: suspect code indent for conditional statements (8, 24)
->>  	if (ctx->state != MFCINST_HEAD_PARSED &&
->> [...]
->> +               mfc_err("Can not get crop information\n");
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->> ---
-> 
-> Patch looks good to me. Maybe is better to split the message and checkpatch
-> changes in two different patches. But I don't have a strong opinion on this:
-> 
-> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> 
+VPU driver add mdp support
 
-Thanks for the review. I considered splitting them, however the patch
-that fixes the message will be flagged by checkpatch. It does make
-sense to split the changes into two patches. What I could do is, make
-the checkpatch fixes the first patch and fix the error message in the
-second one.
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+---
+ drivers/media/platform/mtk-vpu/mtk_vpu.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-How does that sound?
-
--- Shuah
-
+diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.h b/drivers/media/platform/mtk-vpu/mtk_vpu.h
+index f457479..291ae46 100644
+--- a/drivers/media/platform/mtk-vpu/mtk_vpu.h
++++ b/drivers/media/platform/mtk-vpu/mtk_vpu.h
+@@ -53,6 +53,8 @@ typedef void (*ipi_handler_t) (void *data,
+ 			 handle H264 video encoder job, and vice versa.
+  * @IPI_VENC_VP8:	 The interrupt fro vpu is to notify kernel to
+ 			 handle VP8 video encoder job,, and vice versa.
++ * @IPI_MDP:		 The interrupt from vpu is to notify kernel to
++			 handle MDP (Media Data Path) job, and vice versa.
+  * @IPI_MAX:		 The maximum IPI number
+  */
+ 
+@@ -63,6 +65,7 @@ enum ipi_id {
+ 	IPI_VDEC_VP9,
+ 	IPI_VENC_H264,
+ 	IPI_VENC_VP8,
++	IPI_MDP,
+ 	IPI_MAX,
+ };
+ 
+@@ -71,11 +74,13 @@ enum ipi_id {
+  *
+  * @VPU_RST_ENC: encoder reset id
+  * @VPU_RST_DEC: decoder reset id
++ * @VPU_RST_MDP: MDP (Media Data Path) reset id
+  * @VPU_RST_MAX: maximum reset id
+  */
+ enum rst_id {
+ 	VPU_RST_ENC,
+ 	VPU_RST_DEC,
++	VPU_RST_MDP,
+ 	VPU_RST_MAX,
+ };
+ 
+-- 
+1.7.9.5
 
