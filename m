@@ -1,104 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35437 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754922AbcGFPkv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 11:40:51 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com
-Cc: niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
-	laurent.pinchart@ideasonboard.com, william.towle@codethink.co.uk,
-	Rob Taylor <rob.taylor@codethink.co.uk>,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v5 2/4] ARM: dts: lager: Add entries for VIN HDMI input support
-Date: Wed,  6 Jul 2016 17:39:34 +0200
-Message-Id: <1467819576-17743-3-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1467819576-17743-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1467819576-17743-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46616
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750897AbcGNPKT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2016 11:10:19 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH] [media] vb2: include length in dmabuf qbuf debug message
+Date: Thu, 14 Jul 2016 11:09:34 -0400
+Message-Id: <1468508975-6146-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: William Towle <william.towle@codethink.co.uk>
+If the the VIDIOC_QBUF ioctl fails due a wrong dmabuf length,
+it's useful to get the invalid length as a debug information.
 
-Add DT entries for vin0, vin0_pins, and adv7612.
+Before this patch:
 
-Sets the 'default-input' property for ADV7612, enabling image and video
-capture without the need to have userspace specifying routing.
+vb2-core: __qbuf_dmabuf: invalid dmabuf length for plane 1
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-[uli: added interrupt, renamed endpoint, merged default-input]
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+After this patch:
+
+vb2-core: __qbuf_dmabuf: invalid dmabuf length 221248 for plane 1
+
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
 ---
- arch/arm/boot/dts/r8a7790-lager.dts | 41 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 40 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
-index 5e43763..263c7b9 100644
---- a/arch/arm/boot/dts/r8a7790-lager.dts
-+++ b/arch/arm/boot/dts/r8a7790-lager.dts
-@@ -427,7 +427,12 @@
- 		function = "usb2";
- 	};
+ drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index ca8ffeb56d72..97d1483e0f7a 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1228,8 +1228,8 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
+ 			planes[plane].length = dbuf->size;
  
--	vin1_pins: vin1 {
-+	vin0_pins: vin0 {
-+		groups = "vin0_data24", "vin0_sync", "vin0_clkenb", "vin0_clk";
-+		function = "vin0";
-+	};
-+
-+	vin1_pins: vin {
- 		groups = "vin1_data8", "vin1_clk";
- 		function = "vin1";
- 	};
-@@ -608,6 +613,21 @@
- 		reg = <0x12>;
- 	};
- 
-+	hdmi-in@4c {
-+		compatible = "adi,adv7612";
-+		reg = <0x4c>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
-+		remote = <&vin0>;
-+		default-input = <0>;
-+
-+		port {
-+			adv7612: endpoint {
-+				remote-endpoint = <&vin0ep0>;
-+			};
-+		};
-+	};
-+
- 	composite-in@20 {
- 		compatible = "adi,adv7180";
- 		reg = <0x20>;
-@@ -723,6 +743,25 @@
- 	status = "okay";
- };
- 
-+/* HDMI video input */
-+&vin0 {
-+	pinctrl-0 = <&vin0_pins>;
-+	pinctrl-names = "default";
-+
-+	status = "ok";
-+
-+	port {
-+		vin0ep0: endpoint {
-+			remote-endpoint = <&adv7612>;
-+			bus-width = <24>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+			data-active = <1>;
-+		};
-+	};
-+};
-+
- /* composite video input */
- &vin1 {
- 	pinctrl-0 = <&vin1_pins>;
+ 		if (planes[plane].length < vb->planes[plane].min_length) {
+-			dprintk(1, "invalid dmabuf length for plane %d\n",
+-				plane);
++			dprintk(1, "invalid dmabuf length %d for plane %d\n",
++				planes[plane].length, plane);
+ 			dma_buf_put(dbuf);
+ 			ret = -EINVAL;
+ 			goto err;
 -- 
-2.7.4
+2.5.5
 
