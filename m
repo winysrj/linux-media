@@ -1,131 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exsmtp03.microchip.com ([198.175.253.49]:40248 "EHLO
-	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751790AbcGUIcC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 04:32:02 -0400
-From: Songjun Wu <songjun.wu@microchip.com>
-To: <nicolas.ferre@atmel.com>, <robh@kernel.org>
-CC: <laurent.pinchart@ideasonboard.com>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	Songjun Wu <songjun.wu@microchip.com>,
-	<devicetree@vger.kernel.org>,
-	"Mark Rutland" <mark.rutland@arm.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	<linux-kernel@vger.kernel.org>
-Subject: [PATCH v6 2/2] [media] atmel-isc: DT binding for Image Sensor Controller driver
-Date: Thu, 21 Jul 2016 16:14:58 +0800
-Message-ID: <1469088900-23935-3-git-send-email-songjun.wu@microchip.com>
-In-Reply-To: <1469088900-23935-1-git-send-email-songjun.wu@microchip.com>
-References: <1469088900-23935-1-git-send-email-songjun.wu@microchip.com>
+Received: from imap.netup.ru ([77.72.80.15]:48947 "EHLO imap.netup.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752305AbcGNUZ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2016 16:25:27 -0400
+Received: from mail-io0-f172.google.com (mail-io0-f172.google.com [209.85.223.172])
+	by imap.netup.ru (Postfix) with ESMTPA id 64B1F7C0515
+	for <linux-media@vger.kernel.org>; Thu, 14 Jul 2016 23:25:23 +0300 (MSK)
+Received: by mail-io0-f172.google.com with SMTP id m101so86175467ioi.2
+        for <linux-media@vger.kernel.org>; Thu, 14 Jul 2016 13:25:22 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <2a0edab5ab7b0e0743b04a64c935d798d3930856.1467381792.git.mchehab@s-opensource.com>
+References: <75889448cdfcea311a0c0f5e1c8cc022915dd4fe.1467381792.git.mchehab@s-opensource.com>
+ <2a0edab5ab7b0e0743b04a64c935d798d3930856.1467381792.git.mchehab@s-opensource.com>
+From: Abylay Ospan <aospan@netup.ru>
+Date: Thu, 14 Jul 2016 16:25:02 -0400
+Message-ID: <CAK3bHNUWPuYZ6rn_Ktqgn8f4C+Axk1i_gsTGcB9zZCWcpd0KrA@mail.gmail.com>
+Subject: Re: [PATCH 4/4] cxd2841er: adjust the dB scale for DVB-C
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sergey Kozlov <serjk@netup.ru>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DT binding documentation for ISC driver.
+Hello Mauro,
 
-Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
----
+Acked-by: Abylay Ospan <aospan@netup.ru>
 
-Changes in v6:
-- Add "iscck" and "gck" to clock-names.
+I have checked values with reference signal from my modulator for
+DVB-C. Formula is working fine. Thanks !
 
-Changes in v5:
-- Add clock-output-names.
 
-Changes in v4:
-- Remove the isc clock nodes.
+2016-07-01 10:03 GMT-04:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> Instead of using a relative frequency range, calibrate it to
+> show the results in dB. The callibration was done getting
+> samples with a signal generated from -50dBm to -12dBm,
+> incremented in steps of 0.5 dB, using 3 frequencies:
+> 175 MHz, 410 MHz and 800 MHz. The modulated signal was
+> using QAM64, and it was used a linear interpolation of all
+> the results.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/dvb-frontends/cxd2841er.c | 9 +++++++--
+>  1 file changed, 7 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+> index e2f3ea55897b..6c660761563d 100644
+> --- a/drivers/media/dvb-frontends/cxd2841er.c
+> +++ b/drivers/media/dvb-frontends/cxd2841er.c
+> @@ -1746,8 +1746,13 @@ static void cxd2841er_read_signal_strength(struct dvb_frontend *fe)
+>         case SYS_DVBC_ANNEX_A:
+>                 strength = cxd2841er_read_agc_gain_t_t2(priv,
+>                                                         p->delivery_system);
+> -               p->strength.stat[0].scale = FE_SCALE_RELATIVE;
+> -               p->strength.stat[0].uvalue = strength;
+> +               p->strength.stat[0].scale = FE_SCALE_DECIBEL;
+> +               /*
+> +                * Formula was empirically determinated via linear regression,
+> +                * using frequencies: 175 MHz, 410 MHz and 800 MHz, and a
+> +                * stream modulated with QAM64
+> +                */
+> +               p->strength.stat[0].uvalue = ((s32)strength) * 4045 / 1000 - 85224;
+>                 break;
+>         case SYS_ISDBT:
+>                 strength = 65535 - cxd2841er_read_agc_gain_i(
+> --
+> 2.7.4
+>
 
-Changes in v3:
-- Remove the 'atmel,sensor-preferred'.
-- Modify the isc clock node according to the Rob's remarks.
 
-Changes in v2:
-- Remove the unit address of the endpoint.
-- Add the unit address to the clock node.
-- Avoid using underscores in node names.
-- Drop the "0x" in the unit address of the i2c node.
-- Modify the description of 'atmel,sensor-preferred'.
-- Add the description for the ISC internal clock.
 
- .../devicetree/bindings/media/atmel-isc.txt        | 65 ++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
-
-diff --git a/Documentation/devicetree/bindings/media/atmel-isc.txt b/Documentation/devicetree/bindings/media/atmel-isc.txt
-new file mode 100644
-index 0000000..50ab60b
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/atmel-isc.txt
-@@ -0,0 +1,65 @@
-+Atmel Image Sensor Controller (ISC)
-+----------------------------------------------
-+
-+Required properties for ISC:
-+- compatible
-+	Must be "atmel,sama5d2-isc".
-+- reg
-+	Physical base address and length of the registers set for the device.
-+- interrupts
-+	Should contain IRQ line for the ISC.
-+- clocks
-+	List of clock specifiers, corresponding to entries in
-+	the clock-names property;
-+	Please refer to clock-bindings.txt.
-+- clock-names
-+	Required elements: "hclock", "iscck", "gck".
-+- #clock-cells
-+	Should be 0.
-+- clock-output-names
-+	Should be "isc-mck".
-+- pinctrl-names, pinctrl-0
-+	Please refer to pinctrl-bindings.txt.
-+
-+ISC supports a single port node with parallel bus. It should contain one
-+'port' child node with child 'endpoint' node. Please refer to the bindings
-+defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+isc: isc@f0008000 {
-+	compatible = "atmel,sama5d2-isc";
-+	reg = <0xf0008000 0x4000>;
-+	interrupts = <46 IRQ_TYPE_LEVEL_HIGH 5>;
-+	clocks = <&isc_clk>, <&iscck>, <&isc_gclk>;
-+	clock-names = "hclock", "iscck", "gck";
-+	#clock-cells = <0>;
-+	clock-output-names = "isc-mck";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_isc_base &pinctrl_isc_data_8bit &pinctrl_isc_data_9_10 &pinctrl_isc_data_11_12>;
-+
-+	port {
-+		isc_0: endpoint {
-+			remote-endpoint = <&ov7740_0>;
-+			hsync-active = <1>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+		};
-+	};
-+};
-+
-+i2c1: i2c@fc028000 {
-+	ov7740: camera@21 {
-+		compatible = "ovti,ov7740";
-+		reg = <0x21>;
-+		clocks = <&isc>;
-+		clock-names = "xvclk";
-+		assigned-clocks = <&isc>;
-+		assigned-clock-rates = <24000000>;
-+
-+		port {
-+			ov7740_0: endpoint {
-+				remote-endpoint = <&isc_0>;
-+			};
-+		};
-+	};
-+};
-\ No newline at end of file
 -- 
-2.7.4
-
+Abylay Ospan,
+NetUP Inc.
+http://www.netup.tv
