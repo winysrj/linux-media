@@ -1,82 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44879 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753595AbcGDLrZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:25 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 23/51] Documentation: planar-apis.rst: fix some conversion troubles
-Date: Mon,  4 Jul 2016 08:46:44 -0300
-Message-Id: <2ca68527e82542d258ed18518e2f744a6440b442.1467629489.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467629488.git.mchehab@s-opensource.com>
-References: <cover.1467629488.git.mchehab@s-opensource.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40476 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752155AbcGNWfZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2016 18:35:25 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [RFC 07/16] media-device: struct media_device requires struct device
+Date: Fri, 15 Jul 2016 01:35:02 +0300
+Message-Id: <1468535711-13836-8-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is a missing escape caracter, causing troubles at the
-format of one of the paragraphs. Also, the ioctl description
-was producing some warnings about wrong identation.
+The media device always has a device around. Require one as an argument
+for media_device_alloc().
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/linux_tv/media/v4l/planar-apis.rst | 14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ drivers/media/media-device.c | 13 +++++++++++--
+ include/media/media-device.h |  4 +++-
+ 2 files changed, 14 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/linux_tv/media/v4l/planar-apis.rst b/Documentation/linux_tv/media/v4l/planar-apis.rst
-index cf078650a0a8..db1e63bd691e 100644
---- a/Documentation/linux_tv/media/v4l/planar-apis.rst
-+++ b/Documentation/linux_tv/media/v4l/planar-apis.rst
-@@ -20,7 +20,7 @@ Some of the V4L2 API calls and structures are interpreted differently,
- depending on whether single- or multi-planar API is being used. An
- application can choose whether to use one or the other by passing a
- corresponding buffer type to its ioctl calls. Multi-planar versions of
--buffer types are suffixed with an `_MPLANE' string. For a list of
-+buffer types are suffixed with an ``_MPLANE`` string. For a list of
- available multi-planar buffer types see enum
- :ref:`v4l2_buf_type <v4l2-buf-type>`.
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 1bab2c6..1eadf02 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -701,15 +701,23 @@ void media_device_init(struct media_device *mdev)
+ }
+ EXPORT_SYMBOL_GPL(media_device_init);
  
-@@ -39,29 +39,25 @@ handle multi-planar formats.
- Calls that distinguish between single and multi-planar APIs
- ===========================================================
+-struct media_device *media_device_alloc(void)
++struct media_device *media_device_alloc(struct device *dev)
+ {
+ 	struct media_device *mdev;
  
--:ref:`VIDIOC_QUERYCAP`
-+:ref:`VIDIOC_QUERYCAP <VIDIOC_QUERYCAP>`
-     Two additional multi-planar capabilities are added. They can be set
-     together with non-multi-planar ones for devices that handle both
-     single- and multi-planar formats.
++	dev = get_device(dev);
++	if (!dev)
++		return NULL;
++
+ 	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
+-	if (!mdev)
++	if (!mdev) {
++		put_device(dev);
+ 		return NULL;
++	}
  
--:ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>`,
--:ref:`VIDIOC_S_FMT <VIDIOC_G_FMT>`,
--:ref:`VIDIOC_TRY_FMT <VIDIOC_G_FMT>`
-+:ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>`, :ref:`VIDIOC_S_FMT <VIDIOC_G_FMT>`, :ref:`VIDIOC_TRY_FMT <VIDIOC_G_FMT>`
-     New structures for describing multi-planar formats are added: struct
-     :ref:`v4l2_pix_format_mplane <v4l2-pix-format-mplane>` and
-     struct :ref:`v4l2_plane_pix_format <v4l2-plane-pix-format>`.
-     Drivers may define new multi-planar formats, which have distinct
-     FourCC codes from the existing single-planar ones.
+ 	media_devnode_init(&mdev->devnode);
++
++	mdev->dev = dev;
+ 	media_device_init(mdev);
  
--:ref:`VIDIOC_QBUF`,
--:ref:`VIDIOC_DQBUF <VIDIOC_QBUF>`,
--:ref:`VIDIOC_QUERYBUF`
-+:ref:`VIDIOC_QBUF <VIDIOC_QBUF>`, :ref:`VIDIOC_DQBUF <VIDIOC_QBUF>`, :ref:`VIDIOC_QUERYBUF <VIDIOC_QUERYBUF>`
-     A new struct :ref:`v4l2_plane <v4l2-plane>` structure for
-     describing planes is added. Arrays of this structure are passed in
-     the new ``m.planes`` field of struct
-     :ref:`v4l2_buffer <v4l2-buffer>`.
+ 	return mdev;
+@@ -722,6 +730,7 @@ void media_device_cleanup(struct media_device *mdev)
+ 	mdev->entity_internal_idx_max = 0;
+ 	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
+ 	mutex_destroy(&mdev->graph_mutex);
++	put_device(mdev->dev);
+ }
+ EXPORT_SYMBOL_GPL(media_device_cleanup);
  
--:ref:`VIDIOC_REQBUFS`
-+:ref:`VIDIOC_REQBUFS <VIDIOC_REQBUFS>`
-     Will allocate multi-planar buffers as requested.
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index cb5722b..5bf97e5 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -430,6 +430,8 @@ void media_device_init(struct media_device *mdev);
+ /**
+  * media_device_alloc() - Allocate and initialise a media device
+  *
++ * @dev:	The associated struct device pointer
++ *
+  * Allocate and initialise a media device. Returns a media device.
+  * The media device is refcounted, and this function returns a media
+  * device the refcount of which is one (1).
+@@ -437,7 +439,7 @@ void media_device_init(struct media_device *mdev);
+  * References are taken and given using media_device_get() and
+  * media_device_put().
+  */
+-struct media_device *media_device_alloc(void);
++struct media_device *media_device_alloc(struct device *dev);
  
- 
+ /**
+  * media_device_get() - Get a reference to a media device
 -- 
-2.7.4
-
+2.1.4
 
