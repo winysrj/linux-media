@@ -1,151 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from xavier.telenet-ops.be ([195.130.132.52]:59167 "EHLO
-	xavier.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753009AbcGSLvY (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46603
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750983AbcGNNfg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 07:51:24 -0400
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-To: Kieran Bingham <kieran@ksquared.org.uk>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH] [media] fdp1: vb2_queue dev conversion
-Date: Tue, 19 Jul 2016 13:51:19 +0200
-Message-Id: <1468929079-19054-1-git-send-email-geert+renesas@glider.be>
+	Thu, 14 Jul 2016 09:35:36 -0400
+Subject: Re: [PATCH] media: s5p-mfc remove unnecessary error messages
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	jtp.park@samsung.com, mchehab@kernel.org
+References: <1468370038-5364-1-git-send-email-shuahkh@osg.samsung.com>
+ <c38dc1b5-e2f7-4486-a0fc-a8f690d28fe6@osg.samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <5787951B.2050401@osg.samsung.com>
+Date: Thu, 14 Jul 2016 07:35:23 -0600
+MIME-Version: 1.0
+In-Reply-To: <c38dc1b5-e2f7-4486-a0fc-a8f690d28fe6@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-    drivers/media/platform/rcar_fdp1.c:1972:2: warning: initialization from incompatible pointer type
-      .queue_setup  = fdp1_queue_setup,
-      ^
-    drivers/media/platform/rcar_fdp1.c:1972:2: warning: (near initialization for 'fdp1_qops.queue_setup')
-    drivers/media/platform/rcar_fdp1.c: In function 'fdp1_probe':
-    drivers/media/platform/rcar_fdp1.c:2264:2: error: implicit declaration of function 'vb2_dma_contig_init_ctx' [-Werror=implicit-function-declaration]
-      fdp1->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
-      ^
-    drivers/media/platform/rcar_fdp1.c:2264:18: warning: assignment makes pointer from integer without a cast
-      fdp1->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
-		      ^
-    drivers/media/platform/rcar_fdp1.c:2331:2: error: implicit declaration of function 'vb2_dma_contig_cleanup_ctx' [-Werror=implicit-function-declaration]
-      vb2_dma_contig_cleanup_ctx(fdp1->alloc_ctx);
-      ^
+On 07/14/2016 06:46 AM, Javier Martinez Canillas wrote:
+> Hello Shuah,
+> 
+> On 07/12/2016 08:33 PM, Shuah Khan wrote:
+>> Removing unnecessary error messages as appropriate error code is returned.
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/platform/s5p-mfc/s5p_mfc.c | 2 --
+>>  1 file changed, 2 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+>> index b6fde20..906f80c 100644
+>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+>> @@ -759,7 +759,6 @@ static int s5p_mfc_open(struct file *file)
+>>  	/* Allocate memory for context */
+>>  	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+>>  	if (!ctx) {
+>> -		mfc_err("Not enough memory\n");
+> 
+> I agree to remove this since in case of a OOM, the core already does a
+> stack dump and prints an error message so there's no need to it here.
+> 
+>>  		ret = -ENOMEM;
+>>  		goto err_alloc;
+>>  	}
+>> @@ -776,7 +775,6 @@ static int s5p_mfc_open(struct file *file)
+>>  	while (dev->ctx[ctx->num]) {
+>>  		ctx->num++;
+>>  		if (ctx->num >= MFC_NUM_CONTEXTS) {
+>> -			mfc_err("Too many open contexts\n");
+> 
+> But I think this error message shouldn't be removed since explains why
+> the open failed, even when an error code is returned.
 
-Commit 36c0f8b32c4bd4f6 ("[media] vb2: replace void *alloc_ctxs by
-struct device *alloc_devs") removed the vb2_dma_contig_init_ctx() and
-vb2_dma_contig_cleanup_ctx() functions, and changed the prototype of
-vb2_ops.queue_setup().
+This message isn't very informative and not sure if it is giving
+any more information than EBUSY. It is a good debug message perhaps,
+but not an error message. Would it be okay if I made it debug instead.
 
-To fix this:
-  - Update the signature of fdp1_queue_setup(),
-  - Convert the FDP1 driver to use the new vb2_queue dev field, cfr.
-    commit 53ddcc683faef8c7 ("[media] media/platform: convert drivers to
-    use the new vb2_queue dev field").
-
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
----
-To be folded into "[PATCH v2] v4l: platform: Add Renesas R-Car FDP1
-Driver".
----
- drivers/media/platform/rcar_fdp1.c | 26 ++++++--------------------
- 1 file changed, 6 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
-index c7280183262a3046..a2587745ca68dedb 100644
---- a/drivers/media/platform/rcar_fdp1.c
-+++ b/drivers/media/platform/rcar_fdp1.c
-@@ -570,7 +570,6 @@ struct fdp1_dev {
- 	void __iomem		*regs;
- 	unsigned int		irq;
- 	struct device		*dev;
--	void			*alloc_ctx;
- 
- 	/* Job Queues */
- 	struct fdp1_job		jobs[FDP1_NUMBER_JOBS];
-@@ -1788,7 +1787,8 @@ static const struct v4l2_ioctl_ops fdp1_ioctl_ops = {
- 
- static int fdp1_queue_setup(struct vb2_queue *vq,
- 				unsigned int *nbuffers, unsigned int *nplanes,
--				unsigned int sizes[], void *alloc_ctxs[])
-+				unsigned int sizes[],
-+				struct device *alloc_ctxs[])
- {
- 	struct fdp1_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct fdp1_q_data *q_data;
-@@ -1800,18 +1800,13 @@ static int fdp1_queue_setup(struct vb2_queue *vq,
- 		if (*nplanes > FDP1_MAX_PLANES)
- 			return -EINVAL;
- 
--		for (i = 0; i < *nplanes; i++)
--			alloc_ctxs[i] = ctx->fdp1->alloc_ctx;
--
- 		return 0;
- 	}
- 
- 	*nplanes = q_data->format.num_planes;
- 
--	for (i = 0; i < *nplanes; i++) {
-+	for (i = 0; i < *nplanes; i++)
- 		sizes[i] = q_data->format.plane_fmt[i].sizeimage;
--		alloc_ctxs[i] = ctx->fdp1->alloc_ctx;
--	}
- 
- 	return 0;
- }
-@@ -1992,6 +1987,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->mem_ops = &vb2_dma_contig_memops;
- 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	src_vq->lock = &ctx->fdp1->dev_mutex;
-+	src_vq->dev = ctx->fdp1->dev;
- 
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
-@@ -2005,6 +2001,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->mem_ops = &vb2_dma_contig_memops;
- 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	dst_vq->lock = &ctx->fdp1->dev_mutex;
-+	dst_vq->dev = ctx->fdp1->dev;
- 
- 	return vb2_queue_init(dst_vq);
- }
-@@ -2260,18 +2257,11 @@ static int fdp1_probe(struct platform_device *pdev)
- 	fdp1->clk_rate = clk_get_rate(clk);
- 	clk_put(clk);
- 
--	/* Memory allocation contexts */
--	fdp1->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(fdp1->alloc_ctx)) {
--		v4l2_err(&fdp1->v4l2_dev, "Failed to init memory allocator\n");
--		return PTR_ERR(fdp1->alloc_ctx);
--	}
--
- 	/* V4L2 device registration */
- 	ret = v4l2_device_register(&pdev->dev, &fdp1->v4l2_dev);
- 	if (ret) {
- 		v4l2_err(&fdp1->v4l2_dev, "Failed to register video device\n");
--		goto vb2_allocator_rollback;
-+		return ret;
- 	}
- 
- 	/* M2M registration */
-@@ -2327,9 +2317,6 @@ release_m2m:
- unreg_dev:
- 	v4l2_device_unregister(&fdp1->v4l2_dev);
- 
--vb2_allocator_rollback:
--	vb2_dma_contig_cleanup_ctx(fdp1->alloc_ctx);
--
- 	return ret;
- }
- 
-@@ -2340,7 +2327,6 @@ static int fdp1_remove(struct platform_device *pdev)
- 	v4l2_m2m_release(fdp1->m2m_dev);
- 	video_unregister_device(&fdp1->vfd);
- 	v4l2_device_unregister(&fdp1->v4l2_dev);
--	vb2_dma_contig_cleanup_ctx(fdp1->alloc_ctx);
- 	pm_runtime_disable(&pdev->dev);
- 
- 	return 0;
--- 
-1.9.1
+thanks,
+-- Shuah
+> 
+>>  			ret = -EBUSY;
+>>  			goto err_no_ctx;
+>>  		}
+>>
+> 
+> Best regards,
+> 
 
