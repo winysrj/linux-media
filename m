@@ -1,247 +1,283 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51709 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933309AbcGLMme (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:33414 "EHLO
+	mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751388AbcGOPRE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 08:42:34 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 13/20] [media] doc-rst: document LIRC set carrier ioctls
-Date: Tue, 12 Jul 2016 09:42:07 -0300
-Message-Id: <2b517b049637357352df94ba455618047006e6c3.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Fri, 15 Jul 2016 11:17:04 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: auro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 2/6] [media] Documentation: Add HSV format
+Date: Fri, 15 Jul 2016 17:16:52 +0200
+Message-Id: <1468595816-31272-3-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1468595816-31272-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1468595816-31272-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Put each ioctl on its own page and improve documentation, adding
-cross-references for LIRC_SET_REC_CARRIER_RANGE and LIRC_SET_REC_CARRIER,
-with can be used together to set a carrier frequency range.
+Describe the HSV formats.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- .../media/uapi/rc/lirc-set-rec-carrier-range.rst   | 49 ++++++++++++++++++++++
- .../media/uapi/rc/lirc-set-rec-carrier.rst         | 48 +++++++++++++++++++++
- .../media/uapi/rc/lirc-set-send-carrier.rst        | 43 +++++++++++++++++++
- .../media/uapi/rc/lirc_device_interface.rst        |  3 ++
- Documentation/media/uapi/rc/lirc_ioctl.rst         | 18 --------
- 5 files changed, 143 insertions(+), 18 deletions(-)
- create mode 100644 Documentation/media/uapi/rc/lirc-set-rec-carrier-range.rst
- create mode 100644 Documentation/media/uapi/rc/lirc-set-rec-carrier.rst
- create mode 100644 Documentation/media/uapi/rc/lirc-set-send-carrier.rst
+ .../DocBook/media/v4l/pixfmt-packed-hsv.xml        | 195 +++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |  13 ++
+ Documentation/DocBook/media/v4l/v4l2.xml           |   8 +
+ 3 files changed, 216 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-packed-hsv.xml
 
-diff --git a/Documentation/media/uapi/rc/lirc-set-rec-carrier-range.rst b/Documentation/media/uapi/rc/lirc-set-rec-carrier-range.rst
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-hsv.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-hsv.xml
 new file mode 100644
-index 000000000000..7cce9c8ba361
+index 000000000000..3b41d567e32b
 --- /dev/null
-+++ b/Documentation/media/uapi/rc/lirc-set-rec-carrier-range.rst
-@@ -0,0 +1,49 @@
-+.. -*- coding: utf-8; mode: rst -*-
++++ b/Documentation/DocBook/media/v4l/pixfmt-packed-hsv.xml
+@@ -0,0 +1,195 @@
++<refentry id="packed-hsv">
++  <refmeta>
++    <refentrytitle>Packed HSV formats</refentrytitle>
++    &manvol;
++  </refmeta>
++  <refnamediv>
++    <refname>Packed HSV formats</refname>
++    <refpurpose>Packed HSV formats</refpurpose>
++  </refnamediv>
++  <refsect1>
++    <title>Description</title>
 +
-+.. _lirc_set_rec_carrier_range:
++    <para>The HUE (h) is meassured in degrees, one LSB represents two
++degrees. The SATURATION (s) and the VALUE (v) are meassured in percentage
++of the cylinder: 0 being the smallest value and 255 the maximum.</para>
++    <para>The values are packed in 24 or 32 bit formats. </para>
 +
-+********************************
-+ioctl LIRC_SET_REC_CARRIER_RANGE
-+********************************
++    <table pgwide="1" frame="none">
++      <title>Packed YUV Image Formats</title>
++      <tgroup cols="37" align="center">
++	<colspec colname="id" align="left" />
++	<colspec colname="fourcc" />
++	<colspec colname="bit" />
 +
-+Name
-+====
++	<colspec colnum="4" colname="b07" align="center" />
++	<colspec colnum="5" colname="b06" align="center" />
++	<colspec colnum="6" colname="b05" align="center" />
++	<colspec colnum="7" colname="b04" align="center" />
++	<colspec colnum="8" colname="b03" align="center" />
++	<colspec colnum="9" colname="b02" align="center" />
++	<colspec colnum="10" colname="b01" align="center" />
++	<colspec colnum="11" colname="b00" align="center" />
 +
-+LIRC_SET_REC_CARRIER_RANGE - Set lower bond of the carrier used to modulate
-+IR receive.
++	<colspec colnum="13" colname="b17" align="center" />
++	<colspec colnum="14" colname="b16" align="center" />
++	<colspec colnum="15" colname="b15" align="center" />
++	<colspec colnum="16" colname="b14" align="center" />
++	<colspec colnum="17" colname="b13" align="center" />
++	<colspec colnum="18" colname="b12" align="center" />
++	<colspec colnum="19" colname="b11" align="center" />
++	<colspec colnum="20" colname="b10" align="center" />
 +
-+Synopsis
-+========
++	<colspec colnum="22" colname="b27" align="center" />
++	<colspec colnum="23" colname="b26" align="center" />
++	<colspec colnum="24" colname="b25" align="center" />
++	<colspec colnum="25" colname="b24" align="center" />
++	<colspec colnum="26" colname="b23" align="center" />
++	<colspec colnum="27" colname="b22" align="center" />
++	<colspec colnum="28" colname="b21" align="center" />
++	<colspec colnum="29" colname="b20" align="center" />
 +
-+.. cpp:function:: int ioctl( int fd, int request, __u32 *frequency )
++	<colspec colnum="31" colname="b37" align="center" />
++	<colspec colnum="32" colname="b36" align="center" />
++	<colspec colnum="33" colname="b35" align="center" />
++	<colspec colnum="34" colname="b34" align="center" />
++	<colspec colnum="35" colname="b33" align="center" />
++	<colspec colnum="36" colname="b32" align="center" />
++	<colspec colnum="37" colname="b31" align="center" />
++	<colspec colnum="38" colname="b30" align="center" />
 +
-+Arguments
-+=========
++	<spanspec namest="b07" nameend="b00" spanname="b0" />
++	<spanspec namest="b17" nameend="b10" spanname="b1" />
++	<spanspec namest="b27" nameend="b20" spanname="b2" />
++	<spanspec namest="b37" nameend="b30" spanname="b3" />
++	<thead>
++	  <row>
++	    <entry>Identifier</entry>
++	    <entry>Code</entry>
++	    <entry>&nbsp;</entry>
++	    <entry spanname="b0">Byte&nbsp;0 in memory</entry>
++	    <entry spanname="b1">Byte&nbsp;1</entry>
++	    <entry spanname="b2">Byte&nbsp;2</entry>
++	    <entry spanname="b3">Byte&nbsp;3</entry>
++	  </row>
++	  <row>
++	    <entry>&nbsp;</entry>
++	    <entry>&nbsp;</entry>
++	    <entry>Bit</entry>
++	    <entry>7</entry>
++	    <entry>6</entry>
++	    <entry>5</entry>
++	    <entry>4</entry>
++	    <entry>3</entry>
++	    <entry>2</entry>
++	    <entry>1</entry>
++	    <entry>0</entry>
++	    <entry>&nbsp;</entry>
++	    <entry>7</entry>
++	    <entry>6</entry>
++	    <entry>5</entry>
++	    <entry>4</entry>
++	    <entry>3</entry>
++	    <entry>2</entry>
++	    <entry>1</entry>
++	    <entry>0</entry>
++	    <entry>&nbsp;</entry>
++	    <entry>7</entry>
++	    <entry>6</entry>
++	    <entry>5</entry>
++	    <entry>4</entry>
++	    <entry>3</entry>
++	    <entry>2</entry>
++	    <entry>1</entry>
++	    <entry>0</entry>
++	    <entry>&nbsp;</entry>
++	    <entry>7</entry>
++	    <entry>6</entry>
++	    <entry>5</entry>
++	    <entry>4</entry>
++	    <entry>3</entry>
++	    <entry>2</entry>
++	    <entry>1</entry>
++	    <entry>0</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row id="V4L2-PIX-FMT-HSV32">
++	    <entry><constant>V4L2_PIX_FMT_HSV32</constant></entry>
++	    <entry>'HSV4'</entry>
++	    <entry></entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry></entry>
++	    <entry>h<subscript>7</subscript></entry>
++	    <entry>h<subscript>6</subscript></entry>
++	    <entry>h<subscript>5</subscript></entry>
++	    <entry>h<subscript>4</subscript></entry>
++	    <entry>h<subscript>3</subscript></entry>
++	    <entry>h<subscript>2</subscript></entry>
++	    <entry>h<subscript>1</subscript></entry>
++	    <entry>h<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>s<subscript>7</subscript></entry>
++	    <entry>s<subscript>6</subscript></entry>
++	    <entry>s<subscript>5</subscript></entry>
++	    <entry>s<subscript>4</subscript></entry>
++	    <entry>s<subscript>3</subscript></entry>
++	    <entry>s<subscript>2</subscript></entry>
++	    <entry>s<subscript>1</subscript></entry>
++	    <entry>s<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>v<subscript>7</subscript></entry>
++	    <entry>v<subscript>6</subscript></entry>
++	    <entry>v<subscript>5</subscript></entry>
++	    <entry>v<subscript>4</subscript></entry>
++	    <entry>v<subscript>3</subscript></entry>
++	    <entry>v<subscript>2</subscript></entry>
++	    <entry>v<subscript>1</subscript></entry>
++	    <entry>v<subscript>0</subscript></entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-HSV24">
++	    <entry><constant>V4L2_PIX_FMT_HSV24</constant></entry>
++	    <entry>'HSV3'</entry>
++	    <entry></entry>
++	    <entry>h<subscript>7</subscript></entry>
++	    <entry>h<subscript>6</subscript></entry>
++	    <entry>h<subscript>5</subscript></entry>
++	    <entry>h<subscript>4</subscript></entry>
++	    <entry>h<subscript>3</subscript></entry>
++	    <entry>h<subscript>2</subscript></entry>
++	    <entry>h<subscript>1</subscript></entry>
++	    <entry>h<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>s<subscript>7</subscript></entry>
++	    <entry>s<subscript>6</subscript></entry>
++	    <entry>s<subscript>5</subscript></entry>
++	    <entry>s<subscript>4</subscript></entry>
++	    <entry>s<subscript>3</subscript></entry>
++	    <entry>s<subscript>2</subscript></entry>
++	    <entry>s<subscript>1</subscript></entry>
++	    <entry>s<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>v<subscript>7</subscript></entry>
++	    <entry>v<subscript>6</subscript></entry>
++	    <entry>v<subscript>5</subscript></entry>
++	    <entry>v<subscript>4</subscript></entry>
++	    <entry>v<subscript>3</subscript></entry>
++	    <entry>v<subscript>2</subscript></entry>
++	    <entry>v<subscript>1</subscript></entry>
++	    <entry>v<subscript>0</subscript></entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
 +
-+``fd``
-+    File descriptor returned by open().
++    <para>Bit 7 is the most significant bit.</para>
 +
-+``request``
-+    LIRC_SET_REC_CARRIER_RANGE
-+
-+``frequency``
-+    Frequency of the carrier that modulates PWM data, in Hz.
-+
-+Description
-+===========
-+
-+This ioctl sets the upper range of carrier frequency that will be recognized
-+by the IR receiver.
-+
-+.. note::
-+
-+   To set a range use :ref:`LIRC_SET_REC_CARRIER_RANGE
-+   <LIRC_SET_REC_CARRIER_RANGE>` with the lower bound first and later call
-+   :ref:`LIRC_SET_REC_CARRIER <LIRC_SET_REC_CARRIER>` with the upper bound.
-+
-+Return Value
-+============
-+
-+On success 0 is returned, on error -1 and the ``errno`` variable is set
-+appropriately. The generic error codes are described at the
-+:ref:`Generic Error Codes <gen-errors>` chapter.
-diff --git a/Documentation/media/uapi/rc/lirc-set-rec-carrier.rst b/Documentation/media/uapi/rc/lirc-set-rec-carrier.rst
-new file mode 100644
-index 000000000000..17ddb4723caa
---- /dev/null
-+++ b/Documentation/media/uapi/rc/lirc-set-rec-carrier.rst
-@@ -0,0 +1,48 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _lirc_set_rec_carrier:
-+
-+**************************
-+ioctl LIRC_SET_REC_CARRIER
-+**************************
-+
-+Name
-+====
-+
-+LIRC_SET_REC_CARRIER - Set carrier used to modulate IR receive.
-+
-+
-+Synopsis
-+========
-+
-+.. cpp:function:: int ioctl( int fd, int request, __u32 *frequency )
-+
-+Arguments
-+=========
-+
-+``fd``
-+    File descriptor returned by open().
-+
-+``request``
-+    LIRC_SET_REC_CARRIER
-+
-+``frequency``
-+    Frequency of the carrier that modulates PWM data, in Hz.
-+
-+Description
-+===========
-+
-+Set receive carrier used to modulate IR PWM pulses and spaces.
-+
-+.. note::
-+
-+   If called together with :ref:`LIRC_SET_REC_CARRIER_RANGE`, this ioctl
-+   sets the upper bound frequency that will be recognized by the device.
-+
-+
-+Return Value
-+============
-+
-+On success 0 is returned, on error -1 and the ``errno`` variable is set
-+appropriately. The generic error codes are described at the
-+:ref:`Generic Error Codes <gen-errors>` chapter.
-diff --git a/Documentation/media/uapi/rc/lirc-set-send-carrier.rst b/Documentation/media/uapi/rc/lirc-set-send-carrier.rst
-new file mode 100644
-index 000000000000..4314d4c86ced
---- /dev/null
-+++ b/Documentation/media/uapi/rc/lirc-set-send-carrier.rst
-@@ -0,0 +1,43 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _lirc_set_send_carrier:
-+
-+***************************
-+ioctl LIRC_SET_SEND_CARRIER
-+***************************
-+
-+Name
-+====
-+
-+LIRC_SET_SEND_CARRIER - Set send carrier used to modulate IR TX.
-+
-+
-+Synopsis
-+========
-+
-+.. cpp:function:: int ioctl( int fd, int request, __u32 *frequency )
-+
-+Arguments
-+=========
-+
-+``fd``
-+    File descriptor returned by open().
-+
-+``request``
-+    LIRC_SET_SEND_CARRIER
-+
-+``frequency``
-+    Frequency of the carrier to be modulated, in Hz.
-+
-+Description
-+===========
-+
-+Set send carrier used to modulate IR PWM pulses and spaces.
-+
-+
-+Return Value
-+============
-+
-+On success 0 is returned, on error -1 and the ``errno`` variable is set
-+appropriately. The generic error codes are described at the
-+:ref:`Generic Error Codes <gen-errors>` chapter.
-diff --git a/Documentation/media/uapi/rc/lirc_device_interface.rst b/Documentation/media/uapi/rc/lirc_device_interface.rst
-index f8a619e233c0..06257caa82db 100644
---- a/Documentation/media/uapi/rc/lirc_device_interface.rst
-+++ b/Documentation/media/uapi/rc/lirc_device_interface.rst
-@@ -19,4 +19,7 @@ LIRC Device Interface
-     lirc-set-send-duty-cycle
-     lirc-get-timeout
-     lirc-get-length
-+    lirc-set-rec-carrier
-+    lirc-set-rec-carrier-range
-+    lirc-set-send-carrier
-     lirc_ioctl
-diff --git a/Documentation/media/uapi/rc/lirc_ioctl.rst b/Documentation/media/uapi/rc/lirc_ioctl.rst
-index 93531c37fd27..b1cca1465997 100644
---- a/Documentation/media/uapi/rc/lirc_ioctl.rst
-+++ b/Documentation/media/uapi/rc/lirc_ioctl.rst
-@@ -54,13 +54,6 @@ device can rely on working with the default settings initially.
-     Set send/receive mode. Largely obsolete for send, as only
-     ``LIRC_MODE_PULSE`` is supported.
++  </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 5a08aeea4360..7b081a6bdc61 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -1740,6 +1740,19 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+     </table>
+   </section>
  
--.. _LIRC_SET_SEND_CARRIER:
--.. _LIRC_SET_REC_CARRIER:
--
--``LIRC_SET_{SEND,REC}_CARRIER``
--
--    Set send/receive carrier (in Hz).
--
- .. _LIRC_SET_TRANSMITTER_MASK:
++  <section id="hsv-formats">
++    <title>HSV Formats</title>
++
++    <para> These formats store the color information of the image
++in a geometrical representation. The colors are mapped into a
++cylinder, where the angle is the HUE, the height is the VALUE
++and the distance to the center is the SATURATION. This is a very
++useful format for image segmentation algorithms. </para>
++
++    &packed-hsv;
++
++  </section>
++
+   <section id="sdr-formats">
+     <title>SDR Formats</title>
  
- ``LIRC_SET_TRANSMITTER_MASK``
-@@ -99,17 +92,6 @@ device can rely on working with the default settings initially.
-     press on, the driver will send ``LIRC_MODE2_FREQUENCY`` packets. By
-     default this should be turned off.
- 
--
--.. _LIRC_SET_REC_CARRIER_RANGE:
--
--``LIRC_SET_REC_CARRIER_RANGE``
--
--    To set a range use
--    ``LIRC_SET_REC_CARRIER_RANGE``
--    with the lower bound first and later
--    ``LIRC_SET_REC_CARRIER`` with the upper
--    bound.
--
- .. _LIRC_SET_WIDEBAND_RECEIVER:
- 
- ``LIRC_SET_WIDEBAND_RECEIVER``
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 42e626d6c936..f38039b7c338 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -152,6 +152,14 @@ structs, ioctls) must be noted in more detail in the history chapter
+ (compat.xml), along with the possible impact on existing drivers and
+ applications. -->
+       <revision>
++	<revnumber>4.8</revnumber>
++	<date>2016-07-15</date>
++	<authorinitials>rr</authorinitials>
++	<revremark> Introduce HSV formats.
++	</revremark>
++      </revision>
++
++      <revision>
+ 	<revnumber>4.5</revnumber>
+ 	<date>2015-10-29</date>
+ 	<authorinitials>rr</authorinitials>
 -- 
-2.7.4
-
+2.8.1
 
