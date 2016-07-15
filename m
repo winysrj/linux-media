@@ -1,73 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:33829 "EHLO
-	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755883AbcGFXSa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:18:30 -0400
-Received: by mail-pf0-f194.google.com with SMTP id 66so119070pfy.1
-        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:18:02 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 09/11] v4l: Add signal lock status to source change events
-Date: Wed,  6 Jul 2016 16:00:02 -0700
-Message-Id: <1467846004-12731-10-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:34711 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750996AbcGOQbY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2016 12:31:24 -0400
+Date: Fri, 15 Jul 2016 09:31:19 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-input <linux-input@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Pavel Machek <pavel@ucw.cz>, Vojtech Pavlik <vojtech@suse.com>
+Subject: Re: [RFC PATCH] serio: add hangup support
+Message-ID: <20160715163119.GA27847@dtor-ws>
+References: <287a7f88-5d45-bb45-c98e-22a2313ab780@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <287a7f88-5d45-bb45-c98e-22a2313ab780@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a signal lock status change to the source changes bitmask.
-This indicates there was a signal lock or unlock event detected
-at the input of a video decoder.
+Hi Hans,
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml | 12 ++++++++++--
- include/uapi/linux/videodev2.h                     |  1 +
- 2 files changed, 11 insertions(+), 2 deletions(-)
+On Fri, Jul 15, 2016 at 01:27:21PM +0200, Hans Verkuil wrote:
+> For the upcoming 4.8 kernel I made a driver for the Pulse-Eight USB CEC adapter.
+> This is a usb device that shows up as a ttyACM0 device. It requires that you run
+> inputattach in order to communicate with it via serio.
+> 
+> This all works well, but it would be nice to have a udev rule to automatically
+> start inputattach. That too works OK, but the problem comes when the USB device
+> is unplugged: the tty hangup is never handled by the serio framework so the
+> inputattach utility never exits and you have to kill it manually.
+> 
+> By adding this hangup callback the inputattach utility now exists as soon as I
+> unplug the USB device.
+> 
+> Is this the correct approach?
+> 
+> BTW, the new driver is found here:
+> 
+> https://git.linuxtv.org/media_tree.git/tree/drivers/staging/media/pulse8-cec
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> ---
+> diff --git a/drivers/input/serio/serport.c b/drivers/input/serio/serport.c
+> index 9c927d3..a615846 100644
+> --- a/drivers/input/serio/serport.c
+> +++ b/drivers/input/serio/serport.c
+> @@ -248,6 +248,14 @@ static long serport_ldisc_compat_ioctl(struct tty_struct *tty,
+>  }
+>  #endif
+> 
+> +static int serport_ldisc_hangup(struct tty_struct * tty)
+> +{
+> +	struct serport *serport = (struct serport *) tty->disc_data;
+> +
+> +	serport_serio_close(serport->serio);
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-index c9c3c77..7758ad7 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-@@ -233,8 +233,9 @@
- 	    <entry>
- 	      <para>This event is triggered when a source parameter change is
- 	       detected during runtime by the video device. It can be a
--	       runtime resolution change triggered by a video decoder or the
--	       format change happening on an input connector.
-+	       runtime resolution change or signal lock status change
-+	       triggered by a video decoder, or the format change happening
-+	       on an input connector.
- 	       This event requires that the <structfield>id</structfield>
- 	       matches the input index (when used with a video device node)
- 	       or the pad index (when used with a subdevice node) from which
-@@ -461,6 +462,13 @@
- 	    from a video decoder.
- 	    </entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_EVENT_SRC_CH_LOCK_STATUS</constant></entry>
-+	    <entry>0x0002</entry>
-+	    <entry>This event gets triggered when there is a signal lock or
-+	    unlock detected at the input of a video decoder.
-+	    </entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 724f43e..08a153f 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -2078,6 +2078,7 @@ struct v4l2_event_frame_sync {
- };
- 
- #define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
-+#define V4L2_EVENT_SRC_CH_LOCK_STATUS		(1 << 1)
- 
- struct v4l2_event_src_change {
- 	__u32 changes;
+I see what you mean, but this is not quite correct. I think we should
+make serport_serio_close() only reset the SERPORT_ACTIVE flag and have
+serport_ldisc_hangup() actually do:
+
+	spin_lock_irqsave(&serport->lock, flags);
+	set_bit(SERPORT_DEAD, &serport->flags);
+	spin_unlock_irqrestore(&serport->lock, flags);
+
+	wake_up_interruptible(&serport->wait);
+
+i.e. if user (via device-driver - input core - evdev - userspace chain)
+stops using serio port we should not kill inputattach instance right
+then and there, but wait for the serial port device disconnect or
+something else killing inputattach.
+
+Vojtech, do you recall any of this code?
+
+Thanks.
+
 -- 
-1.9.1
-
+Dmitry
