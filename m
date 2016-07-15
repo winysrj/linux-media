@@ -1,137 +1,302 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f65.google.com ([209.85.220.65]:35518 "EHLO
-	mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752689AbcGTAEQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 20:04:16 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: lars@metafoo.de
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 04/10] media: adv7180: add support for NEWAVMODE
-Date: Tue, 19 Jul 2016 17:03:31 -0700
-Message-Id: <1468973017-17647-5-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
- <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from lists.s-osg.org ([54.187.51.154]:36352 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751215AbcGOP2w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2016 11:28:52 -0400
+Date: Fri, 15 Jul 2016 12:28:45 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/6] [media] Documentation: Add HSV format
+Message-ID: <20160715122845.7f357277@recife.lan>
+In-Reply-To: <1468595816-31272-3-git-send-email-ricardo.ribalda@gmail.com>
+References: <1468595816-31272-1-git-send-email-ricardo.ribalda@gmail.com>
+	<1468595816-31272-3-git-send-email-ricardo.ribalda@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse the optional v4l2 endpoint DT node. If the V4L2_MBUS_NEWAVMODE
-parallel bus flag is set, configure the BT.656 bus in NEWAVMODE.
+Hi Ricardo,
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/media/i2c/adv7180.c | 47 ++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 44 insertions(+), 3 deletions(-)
+I'm not seeing patch 1.
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index cb83ebb..667931e9 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -31,6 +31,7 @@
- #include <media/v4l2-event.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-of.h>
- #include <linux/mutex.h>
- #include <linux/delay.h>
- 
-@@ -106,6 +107,7 @@
- #define ADV7180_REG_SHAP_FILTER_CTL_1	0x0017
- #define ADV7180_REG_CTRL_2		0x001d
- #define ADV7180_REG_VSYNC_FIELD_CTL_1	0x0031
-+#define ADV7180_VSYNC_FIELD_CTL_1_NEWAVMODE 0x02
- #define ADV7180_REG_MANUAL_WIN_CTL_1	0x003d
- #define ADV7180_REG_MANUAL_WIN_CTL_2	0x003e
- #define ADV7180_REG_MANUAL_WIN_CTL_3	0x003f
-@@ -214,6 +216,7 @@ struct adv7180_state {
- 	struct mutex		mutex; /* mutual excl. when accessing chip */
- 	int			irq;
- 	v4l2_std_id		curr_norm;
-+	bool			newavmode;
- 	bool			powered;
- 	bool			streaming;
- 	u8			input;
-@@ -740,6 +743,8 @@ static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
- 		 */
- 		cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING |
- 				 V4L2_MBUS_DATA_ACTIVE_HIGH;
-+		if (state->newavmode)
-+			cfg->flags |= V4L2_MBUS_NEWAVMODE;
- 		cfg->type = V4L2_MBUS_BT656;
- 	}
- 
-@@ -864,9 +869,15 @@ static int adv7180_init(struct adv7180_state *state)
- 	if (ret < 0)
- 		return ret;
- 
--	/* Manually set V bit end position in NTSC mode */
--	return adv7180_write(state, ADV7180_REG_NTSC_V_BIT_END,
--					ADV7180_NTSC_V_BIT_END_MANUAL_NVEND);
-+	if (!state->newavmode) {
-+		/* Manually set V bit end position in NTSC mode */
-+		ret = adv7180_write(state, ADV7180_REG_NTSC_V_BIT_END,
-+				    ADV7180_NTSC_V_BIT_END_MANUAL_NVEND);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return 0;
- }
- 
- static int adv7180_set_std(struct adv7180_state *state, unsigned int std)
-@@ -1217,6 +1228,13 @@ static int init_device(struct adv7180_state *state)
- 	if (ret)
- 		goto out_unlock;
- 
-+	if (state->newavmode) {
-+		ret = adv7180_write(state, ADV7180_REG_VSYNC_FIELD_CTL_1,
-+				    ADV7180_VSYNC_FIELD_CTL_1_NEWAVMODE);
-+		if (ret < 0)
-+			goto out_unlock;
-+	}
-+
- 	ret = adv7180_program_std(state);
- 	if (ret)
- 		goto out_unlock;
-@@ -1257,6 +1275,27 @@ out_unlock:
- 	return ret;
- }
- 
-+static void adv7180_of_parse(struct adv7180_state *state)
-+{
-+	struct i2c_client *client = state->client;
-+	struct device_node *np = client->dev.of_node;
-+	struct device_node *endpoint;
-+	struct v4l2_of_endpoint	ep;
-+
-+	endpoint = of_graph_get_next_endpoint(np, NULL);
-+	if (!endpoint) {
-+		v4l_warn(client, "endpoint node not found\n");
-+		return;
-+	}
-+
-+	v4l2_of_parse_endpoint(endpoint, &ep);
-+	of_node_put(endpoint);
-+
-+	if (ep.bus_type == V4L2_MBUS_BT656 &&
-+	    ep.bus.parallel.flags & V4L2_MBUS_NEWAVMODE)
-+		state->newavmode = true;
-+}
-+
- static int adv7180_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *id)
- {
-@@ -1279,6 +1318,8 @@ static int adv7180_probe(struct i2c_client *client,
- 	state->field = V4L2_FIELD_INTERLACED;
- 	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
- 
-+	adv7180_of_parse(state);
-+
- 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
- 		state->csi_client = i2c_new_dummy(client->adapter,
- 				ADV7180_DEFAULT_CSI_I2C_ADDR);
+Anyway, please send documentation patches against the rst files. They're
+at the "docs-next" branch and will be merged upstream on this merge window.
+
+After its merge, we'll drop the DocBook.
+
+Thanks,
+Mauro
+
+Em Fri, 15 Jul 2016 17:16:52 +0200
+Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com> escreveu:
+
+> Describe the HSV formats.
+> 
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+>  .../DocBook/media/v4l/pixfmt-packed-hsv.xml        | 195 +++++++++++++++++++++
+>  Documentation/DocBook/media/v4l/pixfmt.xml         |  13 ++
+>  Documentation/DocBook/media/v4l/v4l2.xml           |   8 +
+>  3 files changed, 216 insertions(+)
+>  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-packed-hsv.xml
+> 
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-hsv.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-hsv.xml
+> new file mode 100644
+> index 000000000000..3b41d567e32b
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/pixfmt-packed-hsv.xml
+> @@ -0,0 +1,195 @@
+> +<refentry id="packed-hsv">
+> +  <refmeta>
+> +    <refentrytitle>Packed HSV formats</refentrytitle>
+> +    &manvol;
+> +  </refmeta>
+> +  <refnamediv>
+> +    <refname>Packed HSV formats</refname>
+> +    <refpurpose>Packed HSV formats</refpurpose>
+> +  </refnamediv>
+> +  <refsect1>
+> +    <title>Description</title>
+> +
+> +    <para>The HUE (h) is meassured in degrees, one LSB represents two
+> +degrees. The SATURATION (s) and the VALUE (v) are meassured in percentage
+> +of the cylinder: 0 being the smallest value and 255 the maximum.</para>
+> +    <para>The values are packed in 24 or 32 bit formats. </para>
+> +
+> +    <table pgwide="1" frame="none">
+> +      <title>Packed YUV Image Formats</title>
+> +      <tgroup cols="37" align="center">
+> +	<colspec colname="id" align="left" />
+> +	<colspec colname="fourcc" />
+> +	<colspec colname="bit" />
+> +
+> +	<colspec colnum="4" colname="b07" align="center" />
+> +	<colspec colnum="5" colname="b06" align="center" />
+> +	<colspec colnum="6" colname="b05" align="center" />
+> +	<colspec colnum="7" colname="b04" align="center" />
+> +	<colspec colnum="8" colname="b03" align="center" />
+> +	<colspec colnum="9" colname="b02" align="center" />
+> +	<colspec colnum="10" colname="b01" align="center" />
+> +	<colspec colnum="11" colname="b00" align="center" />
+> +
+> +	<colspec colnum="13" colname="b17" align="center" />
+> +	<colspec colnum="14" colname="b16" align="center" />
+> +	<colspec colnum="15" colname="b15" align="center" />
+> +	<colspec colnum="16" colname="b14" align="center" />
+> +	<colspec colnum="17" colname="b13" align="center" />
+> +	<colspec colnum="18" colname="b12" align="center" />
+> +	<colspec colnum="19" colname="b11" align="center" />
+> +	<colspec colnum="20" colname="b10" align="center" />
+> +
+> +	<colspec colnum="22" colname="b27" align="center" />
+> +	<colspec colnum="23" colname="b26" align="center" />
+> +	<colspec colnum="24" colname="b25" align="center" />
+> +	<colspec colnum="25" colname="b24" align="center" />
+> +	<colspec colnum="26" colname="b23" align="center" />
+> +	<colspec colnum="27" colname="b22" align="center" />
+> +	<colspec colnum="28" colname="b21" align="center" />
+> +	<colspec colnum="29" colname="b20" align="center" />
+> +
+> +	<colspec colnum="31" colname="b37" align="center" />
+> +	<colspec colnum="32" colname="b36" align="center" />
+> +	<colspec colnum="33" colname="b35" align="center" />
+> +	<colspec colnum="34" colname="b34" align="center" />
+> +	<colspec colnum="35" colname="b33" align="center" />
+> +	<colspec colnum="36" colname="b32" align="center" />
+> +	<colspec colnum="37" colname="b31" align="center" />
+> +	<colspec colnum="38" colname="b30" align="center" />
+> +
+> +	<spanspec namest="b07" nameend="b00" spanname="b0" />
+> +	<spanspec namest="b17" nameend="b10" spanname="b1" />
+> +	<spanspec namest="b27" nameend="b20" spanname="b2" />
+> +	<spanspec namest="b37" nameend="b30" spanname="b3" />
+> +	<thead>
+> +	  <row>
+> +	    <entry>Identifier</entry>
+> +	    <entry>Code</entry>
+> +	    <entry>&nbsp;</entry>
+> +	    <entry spanname="b0">Byte&nbsp;0 in memory</entry>
+> +	    <entry spanname="b1">Byte&nbsp;1</entry>
+> +	    <entry spanname="b2">Byte&nbsp;2</entry>
+> +	    <entry spanname="b3">Byte&nbsp;3</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>&nbsp;</entry>
+> +	    <entry>&nbsp;</entry>
+> +	    <entry>Bit</entry>
+> +	    <entry>7</entry>
+> +	    <entry>6</entry>
+> +	    <entry>5</entry>
+> +	    <entry>4</entry>
+> +	    <entry>3</entry>
+> +	    <entry>2</entry>
+> +	    <entry>1</entry>
+> +	    <entry>0</entry>
+> +	    <entry>&nbsp;</entry>
+> +	    <entry>7</entry>
+> +	    <entry>6</entry>
+> +	    <entry>5</entry>
+> +	    <entry>4</entry>
+> +	    <entry>3</entry>
+> +	    <entry>2</entry>
+> +	    <entry>1</entry>
+> +	    <entry>0</entry>
+> +	    <entry>&nbsp;</entry>
+> +	    <entry>7</entry>
+> +	    <entry>6</entry>
+> +	    <entry>5</entry>
+> +	    <entry>4</entry>
+> +	    <entry>3</entry>
+> +	    <entry>2</entry>
+> +	    <entry>1</entry>
+> +	    <entry>0</entry>
+> +	    <entry>&nbsp;</entry>
+> +	    <entry>7</entry>
+> +	    <entry>6</entry>
+> +	    <entry>5</entry>
+> +	    <entry>4</entry>
+> +	    <entry>3</entry>
+> +	    <entry>2</entry>
+> +	    <entry>1</entry>
+> +	    <entry>0</entry>
+> +	  </row>
+> +	</thead>
+> +	<tbody valign="top">
+> +	  <row id="V4L2-PIX-FMT-HSV32">
+> +	    <entry><constant>V4L2_PIX_FMT_HSV32</constant></entry>
+> +	    <entry>'HSV4'</entry>
+> +	    <entry></entry>
+> +	    <entry>-</entry>
+> +	    <entry>-</entry>
+> +	    <entry>-</entry>
+> +	    <entry>-</entry>
+> +	    <entry>-</entry>
+> +	    <entry>-</entry>
+> +	    <entry>-</entry>
+> +	    <entry>-</entry>
+> +	    <entry></entry>
+> +	    <entry>h<subscript>7</subscript></entry>
+> +	    <entry>h<subscript>6</subscript></entry>
+> +	    <entry>h<subscript>5</subscript></entry>
+> +	    <entry>h<subscript>4</subscript></entry>
+> +	    <entry>h<subscript>3</subscript></entry>
+> +	    <entry>h<subscript>2</subscript></entry>
+> +	    <entry>h<subscript>1</subscript></entry>
+> +	    <entry>h<subscript>0</subscript></entry>
+> +	    <entry></entry>
+> +	    <entry>s<subscript>7</subscript></entry>
+> +	    <entry>s<subscript>6</subscript></entry>
+> +	    <entry>s<subscript>5</subscript></entry>
+> +	    <entry>s<subscript>4</subscript></entry>
+> +	    <entry>s<subscript>3</subscript></entry>
+> +	    <entry>s<subscript>2</subscript></entry>
+> +	    <entry>s<subscript>1</subscript></entry>
+> +	    <entry>s<subscript>0</subscript></entry>
+> +	    <entry></entry>
+> +	    <entry>v<subscript>7</subscript></entry>
+> +	    <entry>v<subscript>6</subscript></entry>
+> +	    <entry>v<subscript>5</subscript></entry>
+> +	    <entry>v<subscript>4</subscript></entry>
+> +	    <entry>v<subscript>3</subscript></entry>
+> +	    <entry>v<subscript>2</subscript></entry>
+> +	    <entry>v<subscript>1</subscript></entry>
+> +	    <entry>v<subscript>0</subscript></entry>
+> +	  </row>
+> +	  <row id="V4L2-PIX-FMT-HSV24">
+> +	    <entry><constant>V4L2_PIX_FMT_HSV24</constant></entry>
+> +	    <entry>'HSV3'</entry>
+> +	    <entry></entry>
+> +	    <entry>h<subscript>7</subscript></entry>
+> +	    <entry>h<subscript>6</subscript></entry>
+> +	    <entry>h<subscript>5</subscript></entry>
+> +	    <entry>h<subscript>4</subscript></entry>
+> +	    <entry>h<subscript>3</subscript></entry>
+> +	    <entry>h<subscript>2</subscript></entry>
+> +	    <entry>h<subscript>1</subscript></entry>
+> +	    <entry>h<subscript>0</subscript></entry>
+> +	    <entry></entry>
+> +	    <entry>s<subscript>7</subscript></entry>
+> +	    <entry>s<subscript>6</subscript></entry>
+> +	    <entry>s<subscript>5</subscript></entry>
+> +	    <entry>s<subscript>4</subscript></entry>
+> +	    <entry>s<subscript>3</subscript></entry>
+> +	    <entry>s<subscript>2</subscript></entry>
+> +	    <entry>s<subscript>1</subscript></entry>
+> +	    <entry>s<subscript>0</subscript></entry>
+> +	    <entry></entry>
+> +	    <entry>v<subscript>7</subscript></entry>
+> +	    <entry>v<subscript>6</subscript></entry>
+> +	    <entry>v<subscript>5</subscript></entry>
+> +	    <entry>v<subscript>4</subscript></entry>
+> +	    <entry>v<subscript>3</subscript></entry>
+> +	    <entry>v<subscript>2</subscript></entry>
+> +	    <entry>v<subscript>1</subscript></entry>
+> +	    <entry>v<subscript>0</subscript></entry>
+> +	  </row>
+> +	</tbody>
+> +      </tgroup>
+> +    </table>
+> +
+> +    <para>Bit 7 is the most significant bit.</para>
+> +
+> +  </refsect1>
+> +    </refentry>
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+> index 5a08aeea4360..7b081a6bdc61 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+> @@ -1740,6 +1740,19 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+>      </table>
+>    </section>
+>  
+> +  <section id="hsv-formats">
+> +    <title>HSV Formats</title>
+> +
+> +    <para> These formats store the color information of the image
+> +in a geometrical representation. The colors are mapped into a
+> +cylinder, where the angle is the HUE, the height is the VALUE
+> +and the distance to the center is the SATURATION. This is a very
+> +useful format for image segmentation algorithms. </para>
+> +
+> +    &packed-hsv;
+> +
+> +  </section>
+> +
+>    <section id="sdr-formats">
+>      <title>SDR Formats</title>
+>  
+> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+> index 42e626d6c936..f38039b7c338 100644
+> --- a/Documentation/DocBook/media/v4l/v4l2.xml
+> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
+> @@ -152,6 +152,14 @@ structs, ioctls) must be noted in more detail in the history chapter
+>  (compat.xml), along with the possible impact on existing drivers and
+>  applications. -->
+>        <revision>
+> +	<revnumber>4.8</revnumber>
+> +	<date>2016-07-15</date>
+> +	<authorinitials>rr</authorinitials>
+> +	<revremark> Introduce HSV formats.
+> +	</revremark>
+> +      </revision>
+> +
+> +      <revision>
+>  	<revnumber>4.5</revnumber>
+>  	<date>2015-10-29</date>
+>  	<authorinitials>rr</authorinitials>
+
+
 -- 
-1.9.1
-
+Thanks,
+Mauro
