@@ -1,145 +1,558 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:51824 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750808AbcGQJI0 (ORCPT
+Received: from 15.mo3.mail-out.ovh.net ([87.98.150.177]:57071 "EHLO
+	15.mo3.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751915AbcGONxo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 05:08:26 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/5] videodev2.h: add VICs and picture aspect ratio
-Date: Sun, 17 Jul 2016 11:08:13 +0200
-Message-Id: <1468746497-46692-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1468746497-46692-1-git-send-email-hverkuil@xs4all.nl>
-References: <1468746497-46692-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 15 Jul 2016 09:53:44 -0400
+Received: from player734.ha.ovh.net (b7.ovh.net [213.186.33.57])
+	by mo3.mail-out.ovh.net (Postfix) with ESMTP id 95B651028FB1
+	for <linux-media@vger.kernel.org>; Fri, 15 Jul 2016 15:14:12 +0200 (CEST)
+Received: from [192.168.1.29] (LFbn-1-1866-70.w90-73.abo.wanadoo.fr [90.73.165.70])
+	(Authenticated sender: charles-antoine.couret@nexvision.fr)
+	by player734.ha.ovh.net (Postfix) with ESMTPSA id 8385328001B
+	for <linux-media@vger.kernel.org>; Fri, 15 Jul 2016 15:14:12 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Subject: [PATCH 2/2 v2] Add GS1662 driver, a video serializer
+Message-ID: <36f4464a-a88a-e428-9a0a-b4d650cf458a@nexvision.fr>
+Date: Fri, 15 Jul 2016 15:14:12 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+>From 111c02ef44dc1588891b40337fb0669fa586ec50 Mon Sep 17 00:00:00 2001
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Date: Fri, 15 Jul 2016 15:06:43 +0200
+Subject: [PATCH 2/2] Add GS1662 driver, a video serializer
 
-Add picture aspect ratio information, the CEA-861 VIC (Video Identification
-Code) and the HDMI VIC to struct v4l2_bt_timings.
+You can read datasheet here:
+http://www.c-dis.net/media/871/GS1662_Datasheet.pdf
 
-The picture aspect was chosen rather than the pixel aspect since 1) the
-CEA-861 standard uses picture aspect, and 2) pixel aspect ratio can become
-tricky when dealing with pixel repeat timings. While we don't support those
-yet at the moment, this might become necessary. And in that case using
-picture aspect ratio makes more sense. And converting picture aspect ratio
-to pixel aspect ratio is easy enough.
+It's a component which supports HD and SD CEA or SDI formats
+to SDI output. It's configured through SPI bus.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+GS1662 driver is implemented as v4l2 subdev.
+
+Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
 ---
- include/uapi/linux/videodev2.h | 75 ++++++++++++++++++++++++++++++------------
- 1 file changed, 54 insertions(+), 21 deletions(-)
+ drivers/media/Kconfig      |   1 +
+ drivers/media/Makefile     |   2 +-
+ drivers/media/spi/Kconfig  |   5 +
+ drivers/media/spi/Makefile |   1 +
+ drivers/media/spi/gs1662.c | 460 +++++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 468 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/spi/Kconfig
+ create mode 100644 drivers/media/spi/Makefile
+ create mode 100644 drivers/media/spi/gs1662.c
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 724f43e..e44b88b6 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1216,6 +1216,9 @@ struct v4l2_standard {
-  *		(aka field 2) of interlaced field formats
-  * @standards:	Standards the timing belongs to
-  * @flags:	Flags
-+ * @picture_aspect: The picture aspect ratio (hor/vert).
-+ * @cea861_vic:	VIC code as per the CEA-861 standard.
-+ * @hdmi_vic:	VIC code as per the HDMI standard.
-  * @reserved:	Reserved fields, must be zeroed.
-  *
-  * A note regarding vertical interlaced timings: height refers to the total
-@@ -1245,7 +1248,10 @@ struct v4l2_bt_timings {
- 	__u32	il_vbackporch;
- 	__u32	standards;
- 	__u32	flags;
--	__u32	reserved[14];
-+	struct v4l2_fract picture_aspect;
-+	__u8	cea861_vic;
-+	__u8	hdmi_vic;
-+	__u8	reserved[46];
- } __attribute__ ((packed));
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index a8518fb..d2fa6e7 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -215,5 +215,6 @@ config MEDIA_ATTACH
+ source "drivers/media/i2c/Kconfig"
+ source "drivers/media/tuners/Kconfig"
+ source "drivers/media/dvb-frontends/Kconfig"
++source "drivers/media/spi/Kconfig"
  
- /* Interlaced or progressive format */
-@@ -1264,34 +1270,61 @@ struct v4l2_bt_timings {
+ endif # MEDIA_SUPPORT
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index e608bbc..75bc82e 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -28,6 +28,6 @@ obj-y += rc/
+ # Finally, merge the drivers that require the core
+ #
  
- /* Flags */
+-obj-y += common/ platform/ pci/ usb/ mmc/ firewire/
++obj-y += common/ platform/ pci/ usb/ mmc/ firewire/ spi/
+ obj-$(CONFIG_VIDEO_DEV) += radio/
  
--/* CVT/GTF specific: timing uses reduced blanking (CVT) or the 'Secondary
--   GTF' curve (GTF). In both cases the horizontal and/or vertical blanking
--   intervals are reduced, allowing a higher resolution over the same
--   bandwidth. This is a read-only flag. */
+diff --git a/drivers/media/spi/Kconfig b/drivers/media/spi/Kconfig
+new file mode 100644
+index 0000000..df626cb
+--- /dev/null
++++ b/drivers/media/spi/Kconfig
+@@ -0,0 +1,5 @@
++config VIDEO_GS1662
++	tristate "Gennum Serializers video"
++	depends on SPI
++	---help---
++	  Enable the GS1662 driver which serializes video streams.
+diff --git a/drivers/media/spi/Makefile b/drivers/media/spi/Makefile
+new file mode 100644
+index 0000000..ea64013
+--- /dev/null
++++ b/drivers/media/spi/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_VIDEO_GS1662) += gs1662.o
+diff --git a/drivers/media/spi/gs1662.c b/drivers/media/spi/gs1662.c
+new file mode 100644
+index 0000000..783ab82
+--- /dev/null
++++ b/drivers/media/spi/gs1662.c
+@@ -0,0 +1,460 @@
 +/*
-+ * CVT/GTF specific: timing uses reduced blanking (CVT) or the 'Secondary
-+ * GTF' curve (GTF). In both cases the horizontal and/or vertical blanking
-+ * intervals are reduced, allowing a higher resolution over the same
-+ * bandwidth. This is a read-only flag.
++ * GS1662 device registration.
++ *
++ * Copyright (C) 2015-2016 Nexvision
++ * Author: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
 + */
- #define V4L2_DV_FL_REDUCED_BLANKING		(1 << 0)
--/* CEA-861 specific: set for CEA-861 formats with a framerate of a multiple
--   of six. These formats can be optionally played at 1 / 1.001 speed.
--   This is a read-only flag. */
-+/*
-+ * CEA-861 specific: set for CEA-861 formats with a framerate of a multiple
-+ * of six. These formats can be optionally played at 1 / 1.001 speed.
-+ * This is a read-only flag.
-+ */
- #define V4L2_DV_FL_CAN_REDUCE_FPS		(1 << 1)
--/* CEA-861 specific: only valid for video transmitters, the flag is cleared
--   by receivers.
--   If the framerate of the format is a multiple of six, then the pixelclock
--   used to set up the transmitter is divided by 1.001 to make it compatible
--   with 60 Hz based standards such as NTSC and PAL-M that use a framerate of
--   29.97 Hz. Otherwise this flag is cleared. If the transmitter can't generate
--   such frequencies, then the flag will also be cleared. */
-+/*
-+ * CEA-861 specific: only valid for video transmitters, the flag is cleared
-+ * by receivers.
-+ * If the framerate of the format is a multiple of six, then the pixelclock
-+ * used to set up the transmitter is divided by 1.001 to make it compatible
-+ * with 60 Hz based standards such as NTSC and PAL-M that use a framerate of
-+ * 29.97 Hz. Otherwise this flag is cleared. If the transmitter can't generate
-+ * such frequencies, then the flag will also be cleared.
-+ */
- #define V4L2_DV_FL_REDUCED_FPS			(1 << 2)
--/* Specific to interlaced formats: if set, then field 1 is really one half-line
--   longer and field 2 is really one half-line shorter, so each field has
--   exactly the same number of half-lines. Whether half-lines can be detected
--   or used depends on the hardware. */
-+/*
-+ * Specific to interlaced formats: if set, then field 1 is really one half-line
-+ * longer and field 2 is really one half-line shorter, so each field has
-+ * exactly the same number of half-lines. Whether half-lines can be detected
-+ * or used depends on the hardware.
-+ */
- #define V4L2_DV_FL_HALF_LINE			(1 << 3)
--/* If set, then this is a Consumer Electronics (CE) video format. Such formats
-+/*
-+ * If set, then this is a Consumer Electronics (CE) video format. Such formats
-  * differ from other formats (commonly called IT formats) in that if RGB
-  * encoding is used then by default the RGB values use limited range (i.e.
-  * use the range 16-235) as opposed to 0-255. All formats defined in CEA-861
-- * except for the 640x480 format are CE formats. */
-+ * except for the 640x480 format are CE formats.
-+ */
- #define V4L2_DV_FL_IS_CE_VIDEO			(1 << 4)
-+/*
-+ * If set, then the picture_aspect field is valid. Otherwise assume that the
-+ * pixels are square, so the picture aspect ratio is the same as the width to
-+ * height ratio.
-+ */
-+#define V4L2_DV_FL_HAS_PICTURE_ASPECT		(1 << 5)
-+/*
-+ * If set, then the cea861_vic field is valid and contains the Video
-+ * Identification Code as per the CEA-861 standard.
-+ */
-+#define V4L2_DV_FL_HAS_CEA861_VIC		(1 << 6)
-+/*
-+ * If set, then the hdmi_vic field is valid and contains the Video
-+ * Identification Code as per the HDMI standard (HDMI Vendor Specific
-+ * InfoFrame).
-+ */
-+#define V4L2_DV_FL_HAS_HDMI_VIC			(1 << 7)
- 
- /* A few useful defines to calculate the total blanking and frame sizes */
- #define V4L2_DV_BT_BLANKING_WIDTH(bt) \
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/spi/spi.h>
++#include <linux/platform_device.h>
++#include <linux/ctype.h>
++#include <linux/err.h>
++#include <linux/device.h>
++#include <linux/module.h>
++
++#include <linux/videodev2.h>
++#include <media/v4l2-common.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-dv-timings.h>
++#include <linux/v4l2-dv-timings.h>
++
++#define REG_STATUS			0x04
++#define REG_FORCE_FMT			0x06
++#define REG_LINES_PER_FRAME		0x12
++#define REG_WORDS_PER_LINE		0x13
++#define REG_WORDS_PER_ACT_LINE		0x14
++#define REG_ACT_LINES_PER_FRAME		0x15
++
++#define MASK_H_LOCK		0x001
++#define MASK_V_LOCK		0x002
++#define MASK_STD_LOCK		0x004
++#define MASK_FORCE_STD		0x020
++#define MASK_STD_STATUS		0x3E0
++
++#define GS_WIDTH_MIN 0
++#define GS_WIDTH_MAX 2048
++#define GS_HEIGHT_MIN 0
++#define GS_HEIGHT_MAX 1080
++#define GS_PIXELCLOCK_MIN 10519200
++#define GS_PIXELCLOCK_MAX 74250000
++
++struct gs {
++	struct spi_device *pdev;
++	struct v4l2_subdev sd;
++	struct v4l2_dv_timings current_timings;
++	int enabled;
++};
++
++struct gs_reg_fmt {
++	u16 reg_value;
++	struct v4l2_dv_timings format;
++};
++
++struct gs_reg_fmt_custom {
++	u16 reg_value;
++	__u32 width;
++	__u32 height;
++	__u64 pixelclock;
++	__u32 interlaced;
++};
++
++static const struct spi_device_id gs_id[] = {
++	{ "gs1662", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(spi, gs_id);
++
++static const struct v4l2_dv_timings fmt_cap[] = {
++	V4L2_DV_BT_SDI_720X487I60,
++	V4L2_DV_BT_CEA_720X576P50,
++	V4L2_DV_BT_CEA_1280X720P24,
++	V4L2_DV_BT_CEA_1280X720P25,
++	V4L2_DV_BT_CEA_1280X720P30,
++	V4L2_DV_BT_CEA_1280X720P50,
++	V4L2_DV_BT_CEA_1280X720P60,
++	V4L2_DV_BT_CEA_1920X1080P24,
++	V4L2_DV_BT_CEA_1920X1080P25,
++	V4L2_DV_BT_CEA_1920X1080P30,
++	V4L2_DV_BT_CEA_1920X1080I50,
++	V4L2_DV_BT_CEA_1920X1080I60,
++};
++
++static const struct gs_reg_fmt reg_fmt[] = {
++	{ 0x00, V4L2_DV_BT_CEA_1280X720P60 },
++	{ 0x01, V4L2_DV_BT_CEA_1280X720P60 },
++	{ 0x02, V4L2_DV_BT_CEA_1280X720P30 },
++	{ 0x03, V4L2_DV_BT_CEA_1280X720P30 },
++	{ 0x04, V4L2_DV_BT_CEA_1280X720P50 },
++	{ 0x05, V4L2_DV_BT_CEA_1280X720P50 },
++	{ 0x06, V4L2_DV_BT_CEA_1280X720P25 },
++	{ 0x07, V4L2_DV_BT_CEA_1280X720P25 },
++	{ 0x08, V4L2_DV_BT_CEA_1280X720P24 },
++	{ 0x09, V4L2_DV_BT_CEA_1280X720P24 },
++	{ 0x0A, V4L2_DV_BT_CEA_1920X1080I60 },
++	{ 0x0B, V4L2_DV_BT_CEA_1920X1080P30 },
++
++	/* Default value: keep this field before 0xC */
++	{ 0x14, V4L2_DV_BT_CEA_1920X1080I50 },
++	{ 0x0C, V4L2_DV_BT_CEA_1920X1080I50 },
++	{ 0x0D, V4L2_DV_BT_CEA_1920X1080P25 },
++	{ 0x0E, V4L2_DV_BT_CEA_1920X1080P25 },
++	{ 0x10, V4L2_DV_BT_CEA_1920X1080P24 },
++	{ 0x12, V4L2_DV_BT_CEA_1920X1080P24 },
++	{ 0x16, V4L2_DV_BT_SDI_720X487I60},
++	{ 0x19, V4L2_DV_BT_SDI_720X487I60},
++	{ 0x18, V4L2_DV_BT_CEA_720X576P50 },
++	{ 0x1A, V4L2_DV_BT_CEA_720X576P50 },
++
++	/* Implement following timings before enable */
++#if 0
++	{ 0x0F, V4L2_DV_BT_XXX_1920X1080I25 }, /* SMPTE 274M */
++	{ 0x11, V4L2_DV_BT_XXX_1920X1080I24 }, /* SMPTE 274M */
++	{ 0x13, V4L2_DV_BT_XXX_1920X1080I25 }, /* SMPTE 274M */
++	{ 0x15, V4L2_DV_BT_XXX_1920X1035I60 }, /* SMPTE 260M */
++	{ 0x17, V4L2_DV_BT_SDI_720X507I60 }, /* SMPTE 125M */
++	{ 0x1B, V4L2_DV_BT_SDI_720X507I60 }, /* SMPTE 125M */
++	{ 0x1C, V4L2_DV_BT_XXX_2048X1080P25 }, /* SMPTE 428.1M */
++#endif
++};
++
++static const struct v4l2_dv_timings_cap gs_timings_cap = {
++	.type = V4L2_DV_BT_656_1120,
++	/* keep this initialization for compatibility with GCC < 4.4.6 */
++	.reserved = { 0 },
++	V4L2_INIT_BT_TIMINGS(GS_WIDTH_MIN, GS_WIDTH_MAX, GS_HEIGHT_MIN,
++			     GS_HEIGHT_MAX, GS_PIXELCLOCK_MIN, GS_PIXELCLOCK_MAX,
++			     V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_SDI,
++			     V4L2_DV_BT_CAP_PROGRESSIVE
++			     | V4L2_DV_BT_CAP_INTERLACED)
++};
++
++static int gs_read_register(struct spi_device *spi, u16 addr, u16 *value)
++{
++	int ret;
++	u16 buf_addr = (0x8000 | (0x0FFF & addr));
++	u16 buf_value = 0;
++	struct spi_message msg;
++	struct spi_transfer tx[] = {
++		{
++			.tx_buf = &buf_addr,
++			.len = 2,
++			.delay_usecs = 1,
++		}, {
++			.rx_buf = &buf_value,
++			.len = 2,
++			.delay_usecs = 1,
++		},
++	};
++
++	spi_message_init(&msg);
++	spi_message_add_tail(&tx[0], &msg);
++	spi_message_add_tail(&tx[1], &msg);
++	ret = spi_sync(spi, &msg);
++
++	*value = buf_value;
++
++	return ret;
++}
++
++static int gs_write_register(struct spi_device *spi, u16 addr, u16 value)
++{
++	int ret;
++	u16 buf_addr = addr;
++	u16 buf_value = value;
++	struct spi_message msg;
++	struct spi_transfer tx[] = {
++		{
++			.tx_buf = &buf_addr,
++			.len = 2,
++			.delay_usecs = 1,
++		}, {
++			.tx_buf = &buf_value,
++			.len = 2,
++			.delay_usecs = 1,
++		},
++	};
++
++	spi_message_init(&msg);
++	spi_message_add_tail(&tx[0], &msg);
++	spi_message_add_tail(&tx[1], &msg);
++	ret = spi_sync(spi, &msg);
++
++	return ret;
++}
++
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++static int gs_g_register(struct v4l2_subdev *sd,
++		  struct v4l2_dbg_register *reg)
++{
++	struct spi_device *spi = v4l2_get_subdevdata(sd);
++	u16 val;
++	int ret;
++
++	ret = gs_read_register(spi, reg->reg & 0xFFFF, &val);
++	reg->val = val;
++	reg->size = 2;
++	return ret;
++}
++
++static int gs_s_register(struct v4l2_subdev *sd,
++		  const struct v4l2_dbg_register *reg)
++{
++	struct spi_device *spi = v4l2_get_subdevdata(sd);
++
++	return gs_write_register(spi, reg->reg & 0xFFFF, reg->val & 0xFFFF);
++}
++#endif
++
++static int gs_status_format(u16 status, struct v4l2_dv_timings *timings)
++{
++	int std = (status & MASK_STD_STATUS) >> 5;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(reg_fmt); i++) {
++		if (reg_fmt[i].reg_value == std) {
++			*timings = reg_fmt[i].format;
++			return 0;
++		}
++	}
++
++	return -ERANGE;
++}
++
++static u16 get_register_timings(struct v4l2_dv_timings *timings)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(reg_fmt); i++) {
++		if (v4l2_match_dv_timings(timings, &reg_fmt[i].format, 0, false))
++			return reg_fmt[i].reg_value | MASK_FORCE_STD;
++	}
++
++	return 0x0;
++}
++
++static inline struct gs *to_gs(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct gs, sd);
++}
++
++static int gs_s_dv_timings(struct v4l2_subdev *sd,
++		    struct v4l2_dv_timings *timings)
++{
++	struct gs *gs = to_gs(sd);
++	int reg_value;
++
++	reg_value = get_register_timings(timings);
++	if (reg_value == 0x0)
++		return -EINVAL;
++
++	gs->current_timings = *timings;
++	return 0;
++}
++
++static int gs_g_dv_timings(struct v4l2_subdev *sd,
++		    struct v4l2_dv_timings *timings)
++{
++	struct gs *gs = to_gs(sd);
++
++	*timings = gs->current_timings;
++	return 0;
++}
++
++static int gs_query_dv_timings(struct v4l2_subdev *sd,
++			struct v4l2_dv_timings *timings)
++{
++	struct gs *gs = to_gs(sd);
++	struct v4l2_dv_timings fmt;
++	u16 reg_value, i;
++	int ret;
++
++	if (gs->enabled)
++		return -EBUSY;
++
++	for (i = 0; i < 4; i++) {
++		gs_read_register(gs->pdev, REG_LINES_PER_FRAME + i, &reg_value);
++		if (reg_value)
++			break;
++	}
++
++	if (i >= 4)
++		return -ENOLINK;
++
++	gs_read_register(gs->pdev, REG_STATUS, &reg_value);
++	if (!(reg_value & MASK_H_LOCK) || !(reg_value & MASK_V_LOCK))
++		return -ENOLCK;
++	if (!(reg_value & MASK_STD_LOCK))
++		return -ERANGE;
++
++	ret = gs_status_format(reg_value, &fmt);
++
++	if (ret < 0)
++		return ret;
++
++	*timings = fmt;
++	return 0;
++}
++
++static int gs_enum_dv_timings(struct v4l2_subdev *sd,
++		       struct v4l2_enum_dv_timings *timings)
++{
++	if (timings->index >= ARRAY_SIZE(fmt_cap))
++		return -EINVAL;
++
++	timings->timings = fmt_cap[timings->index];
++	return 0;
++}
++
++static int gs_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct gs *gs = to_gs(sd);
++	int reg_value;
++
++	if (gs->enabled == enable)
++		return 0;
++
++	gs->enabled = enable;
++
++	if (enable) {
++		/* To force the specific format */
++		reg_value = get_register_timings(&gs->current_timings);
++		return gs_write_register(gs->pdev, REG_FORCE_FMT, reg_value);
++	} else {
++		/* To renable auto-detection mode */
++		return gs_write_register(gs->pdev, REG_FORCE_FMT, 0x0);
++	}
++}
++
++static int gs_g_input_status(struct v4l2_subdev *sd, u32 *status)
++{
++	struct gs *gs = to_gs(sd);
++	u16 reg_value, i;
++	int ret;
++
++	for (i = 0; i < 4; i++) {
++		ret = gs_read_register(gs->pdev,
++				       REG_LINES_PER_FRAME + i, &reg_value);
++		if (reg_value)
++			break;
++		if (ret) {
++			*status = V4L2_IN_ST_NO_POWER;
++			return ret;
++		}
++	}
++
++	if (i >= 4)
++		*status |= V4L2_IN_ST_NO_SIGNAL;
++
++	ret = gs_read_register(gs->pdev, REG_STATUS, &reg_value);
++	if (!(reg_value & MASK_H_LOCK))
++		*status |=  V4L2_IN_ST_NO_H_LOCK;
++	if (!(reg_value & MASK_V_LOCK))
++		*status |=  V4L2_IN_ST_NO_V_LOCK;
++	if (!(reg_value & MASK_STD_LOCK))
++		*status |=  V4L2_IN_ST_NO_STD_LOCK;
++
++	return ret;
++}
++
++static int gs_dv_timings_cap(struct v4l2_subdev *sd,
++			     struct v4l2_dv_timings_cap *cap)
++{
++	if (cap->pad != 0)
++		return -EINVAL;
++
++	*cap = gs_timings_cap;
++	return 0;
++}
++
++/* V4L2 core operation handlers */
++static const struct v4l2_subdev_core_ops gs_core_ops = {
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	.g_register = gs_g_register,
++	.s_register = gs_s_register,
++#endif
++};
++
++static const struct v4l2_subdev_video_ops gs_video_ops = {
++	.s_dv_timings = gs_s_dv_timings,
++	.g_dv_timings = gs_g_dv_timings,
++	.s_stream = gs_s_stream,
++	.g_input_status = gs_g_input_status,
++	.query_dv_timings = gs_query_dv_timings,
++};
++
++static const struct v4l2_subdev_pad_ops gs_pad_ops = {
++	.enum_dv_timings= gs_enum_dv_timings,
++	.dv_timings_cap = gs_dv_timings_cap,
++};
++
++/* V4L2 top level operation handlers */
++static const struct v4l2_subdev_ops gs_ops = {
++	.core = &gs_core_ops,
++	.video = &gs_video_ops,
++	.pad = &gs_pad_ops,
++};
++
++static int gs_probe(struct spi_device *spi)
++{
++	int ret;
++	struct gs *gs;
++	struct v4l2_subdev *sd;
++
++	gs = devm_kzalloc(&spi->dev, sizeof(struct gs), GFP_KERNEL);
++	if (!gs)
++		return -ENOMEM;
++
++	gs->pdev = spi;
++	sd = &gs->sd;
++
++	spi->mode = SPI_MODE_0;
++	spi->irq = -1;
++	spi->max_speed_hz = 10000000;
++	spi->bits_per_word = 16;
++	ret = spi_setup(spi);
++	v4l2_spi_subdev_init(sd, spi, &gs_ops);
++
++	gs->current_timings = reg_fmt[0].format;
++	gs->enabled = 0;
++
++	/* Set H_CONFIG to SMPTE timings */
++	gs_write_register(spi, 0x0, 0x300);
++
++	return ret;
++}
++
++static int gs_remove(struct spi_device *spi)
++{
++	struct v4l2_subdev *sd = spi_get_drvdata(spi);
++	struct gs *gs = to_gs(sd);
++
++	v4l2_device_unregister_subdev(sd);
++	kfree(gs);
++	return 0;
++}
++
++static struct spi_driver gs_driver = {
++	.driver = {
++		.name		= "gs1662",
++		.owner		= THIS_MODULE,
++	},
++
++	.probe		= gs_probe,
++	.remove		= gs_remove,
++	.id_table	= gs_id,
++};
++
++module_spi_driver(gs_driver);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>");
++MODULE_DESCRIPTION("Gennum GS1662 HD/SD-SDI Serializer driver");
 -- 
-2.8.1
-
+2.7.4
