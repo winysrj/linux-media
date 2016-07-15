@@ -1,47 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:47536 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752210AbcGUAsQ (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:43843 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932694AbcGOL11 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 20:48:16 -0400
-Date: Thu, 21 Jul 2016 09:48:12 +0900
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi@etezian.org>
-Subject: Re: [RFC 5/7] [media] ir-lirc-codec: do not handle any buffer for raw
- transmitters
-Message-id: <20160721004812.GF23521@samsunx.samsung>
-References: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
- <1468943818-26025-6-git-send-email-andi.shyti@samsung.com>
- <CGME20160719221617epcas1p45a886e86e2040ce40565acd32d778555@epcas1p4.samsung.com>
- <20160719221610.GC24697@gofer.mess.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-disposition: inline
-In-reply-to: <20160719221610.GC24697@gofer.mess.org>
+	Fri, 15 Jul 2016 07:27:27 -0400
+To: linux-input <linux-input@vger.kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [RFC PATCH] serio: add hangup support
+Message-ID: <287a7f88-5d45-bb45-c98e-22a2313ab780@xs4all.nl>
+Date: Fri, 15 Jul 2016 13:27:21 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+For the upcoming 4.8 kernel I made a driver for the Pulse-Eight USB CEC adapter.
+This is a usb device that shows up as a ttyACM0 device. It requires that you run
+inputattach in order to communicate with it via serio.
 
-> > Raw transmitters receive the data which need to be sent to
-> > receivers from userspace as stream of bits, they don't require
-> > any handling from the lirc framework.
-> 
-> No drivers of type RC_DRIVER_IR_RAW_TX should handle tx just like any
-> other device, so data should be provided as an array of u32 alternating
-> pulse-space. If your device does not handle input like that then convert
-> it into that format in the driver. Every other driver has to do some
-> sort of conversion of that kind.
+This all works well, but it would be nice to have a udev rule to automatically
+start inputattach. That too works OK, but the problem comes when the USB device
+is unplugged: the tty hangup is never handled by the serio framework so the
+inputattach utility never exits and you have to kill it manually.
 
-I don't see anything wrong here, that's how it works for example
-in Tizen or in Android for the boards I'm on: userspace sends a
-stream of bits that are then submitted to the IR as they are.
+By adding this hangup callback the inputattach utility now exists as soon as I
+unplug the USB device.
 
-If I change it to only pulse-space domain, then I wouldn't
-provide support for those platforms. Eventually I can add a new
-protocol.
+Is this the correct approach?
 
-Andi
+BTW, the new driver is found here:
+
+https://git.linuxtv.org/media_tree.git/tree/drivers/staging/media/pulse8-cec
+
+Regards,
+
+	Hans
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+---
+diff --git a/drivers/input/serio/serport.c b/drivers/input/serio/serport.c
+index 9c927d3..a615846 100644
+--- a/drivers/input/serio/serport.c
++++ b/drivers/input/serio/serport.c
+@@ -248,6 +248,14 @@ static long serport_ldisc_compat_ioctl(struct tty_struct *tty,
+ }
+ #endif
+
++static int serport_ldisc_hangup(struct tty_struct * tty)
++{
++	struct serport *serport = (struct serport *) tty->disc_data;
++
++	serport_serio_close(serport->serio);
++	return 0;
++}
++
+ static void serport_ldisc_write_wakeup(struct tty_struct * tty)
+ {
+ 	struct serport *serport = (struct serport *) tty->disc_data;
+@@ -274,6 +282,7 @@ static struct tty_ldisc_ops serport_ldisc = {
+ 	.compat_ioctl =	serport_ldisc_compat_ioctl,
+ #endif
+ 	.receive_buf =	serport_ldisc_receive,
++	.hangup =	serport_ldisc_hangup,
+ 	.write_wakeup =	serport_ldisc_write_wakeup
+ };
+
