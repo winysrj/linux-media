@@ -1,58 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f47.google.com ([209.85.215.47]:34302 "EHLO
-	mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753075AbcGSQsc (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:36748 "EHLO
+	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751172AbcGOPRF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 12:48:32 -0400
-Received: by mail-lf0-f47.google.com with SMTP id l69so19418947lfg.1
-        for <linux-media@vger.kernel.org>; Tue, 19 Jul 2016 09:48:31 -0700 (PDT)
-Subject: Re: [PATCHv2 04/16] [media] rcar-vin: return correct error from
- platform_get_irq
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
-References: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
- <20160719142107.22358-5-niklas.soderlund+renesas@ragnatech.se>
-Cc: linux-renesas-soc@vger.kernel.org
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <d08dada8-1ff2-de7f-aaac-7193a283102e@cogentembedded.com>
-Date: Tue, 19 Jul 2016 19:48:27 +0300
-MIME-Version: 1.0
-In-Reply-To: <20160719142107.22358-5-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	Fri, 15 Jul 2016 11:17:05 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: auro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 3/6] [media] Documentation: Add Ricardo Ribalda as author
+Date: Fri, 15 Jul 2016 17:16:53 +0200
+Message-Id: <1468595816-31272-4-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1468595816-31272-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1468595816-31272-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+My initials were on the Changelog, but there was no link to my mail.
 
-On 07/19/2016 05:20 PM, Niklas Söderlund wrote:
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ Documentation/DocBook/media/v4l/v4l2.xml | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-> Fix a error from the original driver where the wrong error code is
-> returned if the driver fails to get a IRQ number from
-> platform_get_irq().
->
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index 481d82a..ff27d75 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -318,7 +318,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
->
->  	irq = platform_get_irq(pdev, 0);
->  	if (irq <= 0)
-> -		return ret;
-> +		return irq;
-
-    This is still wrong, i.e. it'll return 0 from the probe() method if 'irq' 
-is 0 (and you consider that an error).
-
-[...]
-
-MBR, Sergei
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index f38039b7c338..e09839d56113 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -117,6 +117,17 @@ Remote Controller chapter.</contrib>
+ 	  </address>
+ 	</affiliation>
+       </author>
++
++      <author>
++	<firstname>Ricardo</firstname>
++	<surname>Ribalda</surname>
++	<contrib>HSV formats and minor fixes.</contrib>
++	<affiliation>
++	  <address>
++	    <email>ricardo.ribalda@gmail.com</email>
++	  </address>
++	</affiliation>
++      </author>
+     </authorgroup>
+ 
+     <copyright>
+-- 
+2.8.1
 
