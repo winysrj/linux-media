@@ -1,72 +1,455 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:34235 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753197AbcGSP5J (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:35361 "EHLO
+	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751679AbcGOQNe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 11:57:09 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
+	Fri, 15 Jul 2016 12:13:34 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [RFC 1/7] [media] rc-main: assign driver type during allocation
-Date: Wed, 20 Jul 2016 00:56:52 +0900
-Message-id: <1468943818-26025-2-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
-References: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v2 6/6] [media] vivid: Rename variable
+Date: Fri, 15 Jul 2016 18:13:19 +0200
+Message-Id: <1468599199-5902-7-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver type can be assigned immediately when an RC device
-requests to the framework to allocate the device.
+r_y and g_u now also contain the H and V components on the HSV formats.
+Rename the variables to reflect this.
 
-This is an 'enum rc_driver_type' data type and specifies whether
-the device is a raw receiver or scancode receiver. The type will
-be given as parameter to the rc_allocate_device device.
-
-Suggested-by: Sean Young <sean@mess.org>
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- drivers/media/rc/rc-main.c | 4 +++-
- include/media/rc-core.h    | 2 +-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 209 +++++++++++++-------------
+ 1 file changed, 105 insertions(+), 104 deletions(-)
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 7dfc7c2..6403674 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1346,7 +1346,7 @@ static struct device_type rc_dev_type = {
- 	.uevent		= rc_dev_uevent,
- };
- 
--struct rc_dev *rc_allocate_device(void)
-+struct rc_dev *rc_allocate_device(enum rc_driver_type type)
+diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+index 85b9c1925dd9..dba6656082d8 100644
+--- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
++++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+@@ -1012,7 +1012,7 @@ static void gen_twopix(struct tpg_data *tpg,
  {
- 	struct rc_dev *dev;
+ 	unsigned offset = odd * tpg->twopixelsize[0] / 2;
+ 	u8 alpha = tpg->alpha_component;
+-	u8 r_y, g_u, b_v;
++	u8 r_y_h, g_u_s, b_v;
  
-@@ -1373,6 +1373,8 @@ struct rc_dev *rc_allocate_device(void)
- 	dev->dev.class = &rc_class;
- 	device_initialize(&dev->dev);
+ 	if (tpg->alpha_red_only && color != TPG_COLOR_CSC_RED &&
+ 				   color != TPG_COLOR_100_RED &&
+@@ -1020,161 +1020,161 @@ static void gen_twopix(struct tpg_data *tpg,
+ 		alpha = 0;
+ 	if (color == TPG_COLOR_RANDOM)
+ 		precalculate_color(tpg, color);
+-	r_y = tpg->colors[color][0]; /* R or precalculated Y, H */
+-	g_u = tpg->colors[color][1]; /* G or precalculated U, V */
++	r_y_h = tpg->colors[color][0]; /* R or precalculated Y, H */
++	g_u_s = tpg->colors[color][1]; /* G or precalculated U, V */
+ 	b_v = tpg->colors[color][2]; /* B or precalculated V */
  
-+	dev->driver_type = type;
-+
- 	__module_get(THIS_MODULE);
- 	return dev;
- }
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index b6586a9..c6bf1ef 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -185,7 +185,7 @@ struct rc_dev {
-  * Remote Controller, at sys/class/rc.
-  */
+ 	switch (tpg->fourcc) {
+ 	case V4L2_PIX_FMT_GREY:
+-		buf[0][offset] = r_y;
++		buf[0][offset] = r_y_h;
+ 		break;
+ 	case V4L2_PIX_FMT_Y16:
+ 		/*
+-		 * Ideally both bytes should be set to r_y, but then you won't
++		 * Ideally both bytes should be set to r_y_h, but then you won't
+ 		 * be able to detect endian problems. So keep it 0 except for
+-		 * the corner case where r_y is 0xff so white really will be
++		 * the corner case where r_y_h is 0xff so white really will be
+ 		 * white (0xffff).
+ 		 */
+-		buf[0][offset] = r_y == 0xff ? r_y : 0;
+-		buf[0][offset+1] = r_y;
++		buf[0][offset] = r_y_h == 0xff ? r_y_h : 0;
++		buf[0][offset+1] = r_y_h;
+ 		break;
+ 	case V4L2_PIX_FMT_Y16_BE:
+ 		/* See comment for V4L2_PIX_FMT_Y16 above */
+-		buf[0][offset] = r_y;
+-		buf[0][offset+1] = r_y == 0xff ? r_y : 0;
++		buf[0][offset] = r_y_h;
++		buf[0][offset+1] = r_y_h == 0xff ? r_y_h : 0;
+ 		break;
+ 	case V4L2_PIX_FMT_YUV422M:
+ 	case V4L2_PIX_FMT_YUV422P:
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YUV420M:
+-		buf[0][offset] = r_y;
++		buf[0][offset] = r_y_h;
+ 		if (odd) {
+-			buf[1][0] = (buf[1][0] + g_u) / 2;
++			buf[1][0] = (buf[1][0] + g_u_s) / 2;
+ 			buf[2][0] = (buf[2][0] + b_v) / 2;
+ 			buf[1][1] = buf[1][0];
+ 			buf[2][1] = buf[2][0];
+ 			break;
+ 		}
+-		buf[1][0] = g_u;
++		buf[1][0] = g_u_s;
+ 		buf[2][0] = b_v;
+ 		break;
+ 	case V4L2_PIX_FMT_YVU422M:
+ 	case V4L2_PIX_FMT_YVU420:
+ 	case V4L2_PIX_FMT_YVU420M:
+-		buf[0][offset] = r_y;
++		buf[0][offset] = r_y_h;
+ 		if (odd) {
+ 			buf[1][0] = (buf[1][0] + b_v) / 2;
+-			buf[2][0] = (buf[2][0] + g_u) / 2;
++			buf[2][0] = (buf[2][0] + g_u_s) / 2;
+ 			buf[1][1] = buf[1][0];
+ 			buf[2][1] = buf[2][0];
+ 			break;
+ 		}
+ 		buf[1][0] = b_v;
+-		buf[2][0] = g_u;
++		buf[2][0] = g_u_s;
+ 		break;
  
--struct rc_dev *rc_allocate_device(void);
-+struct rc_dev *rc_allocate_device(enum rc_driver_type);
- void rc_free_device(struct rc_dev *dev);
- int rc_register_device(struct rc_dev *dev);
- void rc_unregister_device(struct rc_dev *dev);
+ 	case V4L2_PIX_FMT_NV12:
+ 	case V4L2_PIX_FMT_NV12M:
+ 	case V4L2_PIX_FMT_NV16:
+ 	case V4L2_PIX_FMT_NV16M:
+-		buf[0][offset] = r_y;
++		buf[0][offset] = r_y_h;
+ 		if (odd) {
+-			buf[1][0] = (buf[1][0] + g_u) / 2;
++			buf[1][0] = (buf[1][0] + g_u_s) / 2;
+ 			buf[1][1] = (buf[1][1] + b_v) / 2;
+ 			break;
+ 		}
+-		buf[1][0] = g_u;
++		buf[1][0] = g_u_s;
+ 		buf[1][1] = b_v;
+ 		break;
+ 	case V4L2_PIX_FMT_NV21:
+ 	case V4L2_PIX_FMT_NV21M:
+ 	case V4L2_PIX_FMT_NV61:
+ 	case V4L2_PIX_FMT_NV61M:
+-		buf[0][offset] = r_y;
++		buf[0][offset] = r_y_h;
+ 		if (odd) {
+ 			buf[1][0] = (buf[1][0] + b_v) / 2;
+-			buf[1][1] = (buf[1][1] + g_u) / 2;
++			buf[1][1] = (buf[1][1] + g_u_s) / 2;
+ 			break;
+ 		}
+ 		buf[1][0] = b_v;
+-		buf[1][1] = g_u;
++		buf[1][1] = g_u_s;
+ 		break;
+ 
+ 	case V4L2_PIX_FMT_YUV444M:
+-		buf[0][offset] = r_y;
+-		buf[1][offset] = g_u;
++		buf[0][offset] = r_y_h;
++		buf[1][offset] = g_u_s;
+ 		buf[2][offset] = b_v;
+ 		break;
+ 
+ 	case V4L2_PIX_FMT_YVU444M:
+-		buf[0][offset] = r_y;
++		buf[0][offset] = r_y_h;
+ 		buf[1][offset] = b_v;
+-		buf[2][offset] = g_u;
++		buf[2][offset] = g_u_s;
+ 		break;
+ 
+ 	case V4L2_PIX_FMT_NV24:
+-		buf[0][offset] = r_y;
+-		buf[1][2 * offset] = g_u;
++		buf[0][offset] = r_y_h;
++		buf[1][2 * offset] = g_u_s;
+ 		buf[1][2 * offset + 1] = b_v;
+ 		break;
+ 
+ 	case V4L2_PIX_FMT_NV42:
+-		buf[0][offset] = r_y;
++		buf[0][offset] = r_y_h;
+ 		buf[1][2 * offset] = b_v;
+-		buf[1][2 * offset + 1] = g_u;
++		buf[1][2 * offset + 1] = g_u_s;
+ 		break;
+ 
+ 	case V4L2_PIX_FMT_YUYV:
+-		buf[0][offset] = r_y;
++		buf[0][offset] = r_y_h;
+ 		if (odd) {
+-			buf[0][1] = (buf[0][1] + g_u) / 2;
++			buf[0][1] = (buf[0][1] + g_u_s) / 2;
+ 			buf[0][3] = (buf[0][3] + b_v) / 2;
+ 			break;
+ 		}
+-		buf[0][1] = g_u;
++		buf[0][1] = g_u_s;
+ 		buf[0][3] = b_v;
+ 		break;
+ 	case V4L2_PIX_FMT_UYVY:
+-		buf[0][offset + 1] = r_y;
++		buf[0][offset + 1] = r_y_h;
+ 		if (odd) {
+-			buf[0][0] = (buf[0][0] + g_u) / 2;
++			buf[0][0] = (buf[0][0] + g_u_s) / 2;
+ 			buf[0][2] = (buf[0][2] + b_v) / 2;
+ 			break;
+ 		}
+-		buf[0][0] = g_u;
++		buf[0][0] = g_u_s;
+ 		buf[0][2] = b_v;
+ 		break;
+ 	case V4L2_PIX_FMT_YVYU:
+-		buf[0][offset] = r_y;
++		buf[0][offset] = r_y_h;
+ 		if (odd) {
+ 			buf[0][1] = (buf[0][1] + b_v) / 2;
+-			buf[0][3] = (buf[0][3] + g_u) / 2;
++			buf[0][3] = (buf[0][3] + g_u_s) / 2;
+ 			break;
+ 		}
+ 		buf[0][1] = b_v;
+-		buf[0][3] = g_u;
++		buf[0][3] = g_u_s;
+ 		break;
+ 	case V4L2_PIX_FMT_VYUY:
+-		buf[0][offset + 1] = r_y;
++		buf[0][offset + 1] = r_y_h;
+ 		if (odd) {
+ 			buf[0][0] = (buf[0][0] + b_v) / 2;
+-			buf[0][2] = (buf[0][2] + g_u) / 2;
++			buf[0][2] = (buf[0][2] + g_u_s) / 2;
+ 			break;
+ 		}
+ 		buf[0][0] = b_v;
+-		buf[0][2] = g_u;
++		buf[0][2] = g_u_s;
+ 		break;
+ 	case V4L2_PIX_FMT_RGB332:
+-		buf[0][offset] = (r_y << 5) | (g_u << 2) | b_v;
++		buf[0][offset] = (r_y_h << 5) | (g_u_s << 2) | b_v;
+ 		break;
+ 	case V4L2_PIX_FMT_YUV565:
+ 	case V4L2_PIX_FMT_RGB565:
+-		buf[0][offset] = (g_u << 5) | b_v;
+-		buf[0][offset + 1] = (r_y << 3) | (g_u >> 3);
++		buf[0][offset] = (g_u_s << 5) | b_v;
++		buf[0][offset + 1] = (r_y_h << 3) | (g_u_s >> 3);
+ 		break;
+ 	case V4L2_PIX_FMT_RGB565X:
+-		buf[0][offset] = (r_y << 3) | (g_u >> 3);
+-		buf[0][offset + 1] = (g_u << 5) | b_v;
++		buf[0][offset] = (r_y_h << 3) | (g_u_s >> 3);
++		buf[0][offset + 1] = (g_u_s << 5) | b_v;
+ 		break;
+ 	case V4L2_PIX_FMT_RGB444:
+ 	case V4L2_PIX_FMT_XRGB444:
+@@ -1182,8 +1182,8 @@ static void gen_twopix(struct tpg_data *tpg,
+ 		/* fall through */
+ 	case V4L2_PIX_FMT_YUV444:
+ 	case V4L2_PIX_FMT_ARGB444:
+-		buf[0][offset] = (g_u << 4) | b_v;
+-		buf[0][offset + 1] = (alpha & 0xf0) | r_y;
++		buf[0][offset] = (g_u_s << 4) | b_v;
++		buf[0][offset + 1] = (alpha & 0xf0) | r_y_h;
+ 		break;
+ 	case V4L2_PIX_FMT_RGB555:
+ 	case V4L2_PIX_FMT_XRGB555:
+@@ -1191,32 +1191,33 @@ static void gen_twopix(struct tpg_data *tpg,
+ 		/* fall through */
+ 	case V4L2_PIX_FMT_YUV555:
+ 	case V4L2_PIX_FMT_ARGB555:
+-		buf[0][offset] = (g_u << 5) | b_v;
+-		buf[0][offset + 1] = (alpha & 0x80) | (r_y << 2) | (g_u >> 3);
++		buf[0][offset] = (g_u_s << 5) | b_v;
++		buf[0][offset + 1] = (alpha & 0x80) | (r_y_h << 2)
++						    | (g_u_s >> 3);
+ 		break;
+ 	case V4L2_PIX_FMT_RGB555X:
+ 	case V4L2_PIX_FMT_XRGB555X:
+ 		alpha = 0;
+ 		/* fall through */
+ 	case V4L2_PIX_FMT_ARGB555X:
+-		buf[0][offset] = (alpha & 0x80) | (r_y << 2) | (g_u >> 3);
+-		buf[0][offset + 1] = (g_u << 5) | b_v;
++		buf[0][offset] = (alpha & 0x80) | (r_y_h << 2) | (g_u_s >> 3);
++		buf[0][offset + 1] = (g_u_s << 5) | b_v;
+ 		break;
+ 	case V4L2_PIX_FMT_RGB24:
+ 	case V4L2_PIX_FMT_HSV24:
+-		buf[0][offset] = r_y;
+-		buf[0][offset + 1] = g_u;
++		buf[0][offset] = r_y_h;
++		buf[0][offset + 1] = g_u_s;
+ 		buf[0][offset + 2] = b_v;
+ 		break;
+ 	case V4L2_PIX_FMT_BGR24:
+ 		buf[0][offset] = b_v;
+-		buf[0][offset + 1] = g_u;
+-		buf[0][offset + 2] = r_y;
++		buf[0][offset + 1] = g_u_s;
++		buf[0][offset + 2] = r_y_h;
+ 		break;
+ 	case V4L2_PIX_FMT_BGR666:
+-		buf[0][offset] = (b_v << 2) | (g_u >> 4);
+-		buf[0][offset + 1] = (g_u << 4) | (r_y >> 2);
+-		buf[0][offset + 2] = r_y << 6;
++		buf[0][offset] = (b_v << 2) | (g_u_s >> 4);
++		buf[0][offset + 1] = (g_u_s << 4) | (r_y_h >> 2);
++		buf[0][offset + 2] = r_y_h << 6;
+ 		buf[0][offset + 3] = 0;
+ 		break;
+ 	case V4L2_PIX_FMT_RGB32:
+@@ -1227,8 +1228,8 @@ static void gen_twopix(struct tpg_data *tpg,
+ 	case V4L2_PIX_FMT_YUV32:
+ 	case V4L2_PIX_FMT_ARGB32:
+ 		buf[0][offset] = alpha;
+-		buf[0][offset + 1] = r_y;
+-		buf[0][offset + 2] = g_u;
++		buf[0][offset + 1] = r_y_h;
++		buf[0][offset + 2] = g_u_s;
+ 		buf[0][offset + 3] = b_v;
+ 		break;
+ 	case V4L2_PIX_FMT_BGR32:
+@@ -1237,87 +1238,87 @@ static void gen_twopix(struct tpg_data *tpg,
+ 		/* fall through */
+ 	case V4L2_PIX_FMT_ABGR32:
+ 		buf[0][offset] = b_v;
+-		buf[0][offset + 1] = g_u;
+-		buf[0][offset + 2] = r_y;
++		buf[0][offset + 1] = g_u_s;
++		buf[0][offset + 2] = r_y_h;
+ 		buf[0][offset + 3] = alpha;
+ 		break;
+ 	case V4L2_PIX_FMT_SBGGR8:
+-		buf[0][offset] = odd ? g_u : b_v;
+-		buf[1][offset] = odd ? r_y : g_u;
++		buf[0][offset] = odd ? g_u_s : b_v;
++		buf[1][offset] = odd ? r_y_h : g_u_s;
+ 		break;
+ 	case V4L2_PIX_FMT_SGBRG8:
+-		buf[0][offset] = odd ? b_v : g_u;
+-		buf[1][offset] = odd ? g_u : r_y;
++		buf[0][offset] = odd ? b_v : g_u_s;
++		buf[1][offset] = odd ? g_u_s : r_y_h;
+ 		break;
+ 	case V4L2_PIX_FMT_SGRBG8:
+-		buf[0][offset] = odd ? r_y : g_u;
+-		buf[1][offset] = odd ? g_u : b_v;
++		buf[0][offset] = odd ? r_y_h : g_u_s;
++		buf[1][offset] = odd ? g_u_s : b_v;
+ 		break;
+ 	case V4L2_PIX_FMT_SRGGB8:
+-		buf[0][offset] = odd ? g_u : r_y;
+-		buf[1][offset] = odd ? b_v : g_u;
++		buf[0][offset] = odd ? g_u_s : r_y_h;
++		buf[1][offset] = odd ? b_v : g_u_s;
+ 		break;
+ 	case V4L2_PIX_FMT_SBGGR10:
+-		buf[0][offset] = odd ? g_u << 2 : b_v << 2;
+-		buf[0][offset + 1] = odd ? g_u >> 6 : b_v >> 6;
+-		buf[1][offset] = odd ? r_y << 2 : g_u << 2;
+-		buf[1][offset + 1] = odd ? r_y >> 6 : g_u >> 6;
++		buf[0][offset] = odd ? g_u_s << 2 : b_v << 2;
++		buf[0][offset + 1] = odd ? g_u_s >> 6 : b_v >> 6;
++		buf[1][offset] = odd ? r_y_h << 2 : g_u_s << 2;
++		buf[1][offset + 1] = odd ? r_y_h >> 6 : g_u_s >> 6;
+ 		buf[0][offset] |= (buf[0][offset] >> 2) & 3;
+ 		buf[1][offset] |= (buf[1][offset] >> 2) & 3;
+ 		break;
+ 	case V4L2_PIX_FMT_SGBRG10:
+-		buf[0][offset] = odd ? b_v << 2 : g_u << 2;
+-		buf[0][offset + 1] = odd ? b_v >> 6 : g_u >> 6;
+-		buf[1][offset] = odd ? g_u << 2 : r_y << 2;
+-		buf[1][offset + 1] = odd ? g_u >> 6 : r_y >> 6;
++		buf[0][offset] = odd ? b_v << 2 : g_u_s << 2;
++		buf[0][offset + 1] = odd ? b_v >> 6 : g_u_s >> 6;
++		buf[1][offset] = odd ? g_u_s << 2 : r_y_h << 2;
++		buf[1][offset + 1] = odd ? g_u_s >> 6 : r_y_h >> 6;
+ 		buf[0][offset] |= (buf[0][offset] >> 2) & 3;
+ 		buf[1][offset] |= (buf[1][offset] >> 2) & 3;
+ 		break;
+ 	case V4L2_PIX_FMT_SGRBG10:
+-		buf[0][offset] = odd ? r_y << 2 : g_u << 2;
+-		buf[0][offset + 1] = odd ? r_y >> 6 : g_u >> 6;
+-		buf[1][offset] = odd ? g_u << 2 : b_v << 2;
+-		buf[1][offset + 1] = odd ? g_u >> 6 : b_v >> 6;
++		buf[0][offset] = odd ? r_y_h << 2 : g_u_s << 2;
++		buf[0][offset + 1] = odd ? r_y_h >> 6 : g_u_s >> 6;
++		buf[1][offset] = odd ? g_u_s << 2 : b_v << 2;
++		buf[1][offset + 1] = odd ? g_u_s >> 6 : b_v >> 6;
+ 		buf[0][offset] |= (buf[0][offset] >> 2) & 3;
+ 		buf[1][offset] |= (buf[1][offset] >> 2) & 3;
+ 		break;
+ 	case V4L2_PIX_FMT_SRGGB10:
+-		buf[0][offset] = odd ? g_u << 2 : r_y << 2;
+-		buf[0][offset + 1] = odd ? g_u >> 6 : r_y >> 6;
+-		buf[1][offset] = odd ? b_v << 2 : g_u << 2;
+-		buf[1][offset + 1] = odd ? b_v >> 6 : g_u >> 6;
++		buf[0][offset] = odd ? g_u_s << 2 : r_y_h << 2;
++		buf[0][offset + 1] = odd ? g_u_s >> 6 : r_y_h >> 6;
++		buf[1][offset] = odd ? b_v << 2 : g_u_s << 2;
++		buf[1][offset + 1] = odd ? b_v >> 6 : g_u_s >> 6;
+ 		buf[0][offset] |= (buf[0][offset] >> 2) & 3;
+ 		buf[1][offset] |= (buf[1][offset] >> 2) & 3;
+ 		break;
+ 	case V4L2_PIX_FMT_SBGGR12:
+-		buf[0][offset] = odd ? g_u << 4 : b_v << 4;
+-		buf[0][offset + 1] = odd ? g_u >> 4 : b_v >> 4;
+-		buf[1][offset] = odd ? r_y << 4 : g_u << 4;
+-		buf[1][offset + 1] = odd ? r_y >> 4 : g_u >> 4;
++		buf[0][offset] = odd ? g_u_s << 4 : b_v << 4;
++		buf[0][offset + 1] = odd ? g_u_s >> 4 : b_v >> 4;
++		buf[1][offset] = odd ? r_y_h << 4 : g_u_s << 4;
++		buf[1][offset + 1] = odd ? r_y_h >> 4 : g_u_s >> 4;
+ 		buf[0][offset] |= (buf[0][offset] >> 4) & 0xf;
+ 		buf[1][offset] |= (buf[1][offset] >> 4) & 0xf;
+ 		break;
+ 	case V4L2_PIX_FMT_SGBRG12:
+-		buf[0][offset] = odd ? b_v << 4 : g_u << 4;
+-		buf[0][offset + 1] = odd ? b_v >> 4 : g_u >> 4;
+-		buf[1][offset] = odd ? g_u << 4 : r_y << 4;
+-		buf[1][offset + 1] = odd ? g_u >> 4 : r_y >> 4;
++		buf[0][offset] = odd ? b_v << 4 : g_u_s << 4;
++		buf[0][offset + 1] = odd ? b_v >> 4 : g_u_s >> 4;
++		buf[1][offset] = odd ? g_u_s << 4 : r_y_h << 4;
++		buf[1][offset + 1] = odd ? g_u_s >> 4 : r_y_h >> 4;
+ 		buf[0][offset] |= (buf[0][offset] >> 4) & 0xf;
+ 		buf[1][offset] |= (buf[1][offset] >> 4) & 0xf;
+ 		break;
+ 	case V4L2_PIX_FMT_SGRBG12:
+-		buf[0][offset] = odd ? r_y << 4 : g_u << 4;
+-		buf[0][offset + 1] = odd ? r_y >> 4 : g_u >> 4;
+-		buf[1][offset] = odd ? g_u << 4 : b_v << 4;
+-		buf[1][offset + 1] = odd ? g_u >> 4 : b_v >> 4;
++		buf[0][offset] = odd ? r_y_h << 4 : g_u_s << 4;
++		buf[0][offset + 1] = odd ? r_y_h >> 4 : g_u_s >> 4;
++		buf[1][offset] = odd ? g_u_s << 4 : b_v << 4;
++		buf[1][offset + 1] = odd ? g_u_s >> 4 : b_v >> 4;
+ 		buf[0][offset] |= (buf[0][offset] >> 4) & 0xf;
+ 		buf[1][offset] |= (buf[1][offset] >> 4) & 0xf;
+ 		break;
+ 	case V4L2_PIX_FMT_SRGGB12:
+-		buf[0][offset] = odd ? g_u << 4 : r_y << 4;
+-		buf[0][offset + 1] = odd ? g_u >> 4 : r_y >> 4;
+-		buf[1][offset] = odd ? b_v << 4 : g_u << 4;
+-		buf[1][offset + 1] = odd ? b_v >> 4 : g_u >> 4;
++		buf[0][offset] = odd ? g_u_s << 4 : r_y_h << 4;
++		buf[0][offset + 1] = odd ? g_u_s >> 4 : r_y_h >> 4;
++		buf[1][offset] = odd ? b_v << 4 : g_u_s << 4;
++		buf[1][offset + 1] = odd ? b_v >> 4 : g_u_s >> 4;
+ 		buf[0][offset] |= (buf[0][offset] >> 4) & 0xf;
+ 		buf[1][offset] |= (buf[1][offset] >> 4) & 0xf;
+ 		break;
 -- 
 2.8.1
 
