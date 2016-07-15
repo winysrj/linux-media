@@ -1,72 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:34043 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752082AbcGTAEB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 20:04:01 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: lars@metafoo.de
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 02/10] media: adv7180: Fix broken interrupt register access
-Date: Tue, 19 Jul 2016 17:03:29 -0700
-Message-Id: <1468973017-17647-3-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
- <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from lists.s-osg.org ([54.187.51.154]:36486 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751445AbcGOPxT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2016 11:53:19 -0400
+Date: Fri, 15 Jul 2016 12:53:12 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 2/6] [media] Documentation: Add HSV format
+Message-ID: <20160715125312.481aa36b@recife.lan>
+In-Reply-To: <CAPybu_077ZkW3_SnPLqkMMgUUrrBDYH+8WzSEnSHAkyTkE525w@mail.gmail.com>
+References: <1468595816-31272-1-git-send-email-ricardo.ribalda@gmail.com>
+	<1468595816-31272-3-git-send-email-ricardo.ribalda@gmail.com>
+	<20160715122845.7f357277@recife.lan>
+	<CAPybu_077ZkW3_SnPLqkMMgUUrrBDYH+8WzSEnSHAkyTkE525w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Access to the interrupt page registers has been broken since at least
-commit 3999e5d01da7 ("[media] adv7180: Do implicit register paging").
-That commit forgot to add the interrupt page number to the register
-defines.
+Em Fri, 15 Jul 2016 17:36:15 +0200
+Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com> escreveu:
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Tested-by: Tim Harvey <tharvey@gateworks.com>
-Acked-by: Tim Harvey <tharvey@gateworks.com>
-Acked-by: Lars-Peter Clausen <lars@metafoo.de>
----
- drivers/media/i2c/adv7180.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+> Hi Mauro
+> 
+> On Fri, Jul 15, 2016 at 5:28 PM, Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+> > Hi Ricardo,
+> >
+> > I'm not seeing patch 1.  
+> 
+> That is because you blacklisted me :P
+> https://lkml.org/lkml/2016/7/15/45
+> 
+> I resend it to you right away.
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index b77b0a4..95cbc85 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -100,7 +100,7 @@
- #define ADV7180_REG_IDENT 0x0011
- #define ADV7180_ID_7180 0x18
- 
--#define ADV7180_REG_ICONF1		0x0040
-+#define ADV7180_REG_ICONF1		0x2040
- #define ADV7180_ICONF1_ACTIVE_LOW	0x01
- #define ADV7180_ICONF1_PSYNC_ONLY	0x10
- #define ADV7180_ICONF1_ACTIVE_TO_CLR	0xC0
-@@ -113,15 +113,15 @@
- 
- #define ADV7180_IRQ1_LOCK	0x01
- #define ADV7180_IRQ1_UNLOCK	0x02
--#define ADV7180_REG_ISR1	0x0042
--#define ADV7180_REG_ICR1	0x0043
--#define ADV7180_REG_IMR1	0x0044
--#define ADV7180_REG_IMR2	0x0048
-+#define ADV7180_REG_ISR1	0x2042
-+#define ADV7180_REG_ICR1	0x2043
-+#define ADV7180_REG_IMR1	0x2044
-+#define ADV7180_REG_IMR2	0x2048
- #define ADV7180_IRQ3_AD_CHANGE	0x08
--#define ADV7180_REG_ISR3	0x004A
--#define ADV7180_REG_ICR3	0x004B
--#define ADV7180_REG_IMR3	0x004C
--#define ADV7180_REG_IMR4	0x50
-+#define ADV7180_REG_ISR3	0x204A
-+#define ADV7180_REG_ICR3	0x204B
-+#define ADV7180_REG_IMR3	0x204C
-+#define ADV7180_REG_IMR4	0x2050
- 
- #define ADV7180_REG_NTSC_V_BIT_END	0x00E6
- #define ADV7180_NTSC_V_BIT_END_MANUAL_NVEND	0x4F
--- 
-1.9.1
+Thanks.
 
+> >
+> > Anyway, please send documentation patches against the rst files. They're
+> > at the "docs-next" branch and will be merged upstream on this merge window.
+> >  
+> 
+> you are absolutely right, I read about it in lwn. Sorry about that.
+> 
+> 
+> How do you prefer it:
+> - 2 patchset : One on top of media/master with the code changes, and
+> one on top of docs-next with the doc changes.
+> or
+> -1 patchset on top of doc-next and we will figure out later if there
+> is a merge conflict with media
+
+IMHO, the best would be to wait for it to be merged. I'm finishing
+handling patches for 4.7 in a few, and applying only on more trivial
+patches and bug fixes.
+
+Yet, I suspect that there won't be conflicts if you base your
+patches against docs-next, as most of the media stuff is merged
+there.
+
+Thanks,
+Mauro
