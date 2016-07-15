@@ -1,161 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44400 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753305AbcGDIck (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:45234 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751241AbcGORFb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 04:32:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: [PATCH 7/9] vpbe_display: convert g/s_crop to g/s_selection.
-Date: Mon,  4 Jul 2016 10:32:20 +0200
-Message-Id: <1467621142-8064-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl>
-References: <1467621142-8064-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 15 Jul 2016 13:05:31 -0400
+Message-ID: <1468602325.3819.6.camel@ndufresne.ca>
+Subject: Re: [RFT PATCH v2] [media] exynos4-is: Fix
+ fimc_is_parse_sensor_config() nodes handling
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+Reply-To: nicolas@ndufresne.ca
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Andreas =?ISO-8859-1?Q?F=E4rber?= <afaerber@suse.de>,
+	linux-media@vger.kernel.org
+Date: Fri, 15 Jul 2016 13:05:25 -0400
+In-Reply-To: <1468601608.3819.4.camel@ndufresne.ca>
+References: <1458780100-8865-1-git-send-email-javier@osg.samsung.com>
+	 <5718D3DC.20004@osg.samsung.com> <1468601608.3819.4.camel@ndufresne.ca>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-ykrAIx091FSnLflAVduC"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This is part of a final push to convert all drivers to g/s_selection.
+--=-ykrAIx091FSnLflAVduC
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpbe_display.c | 65 +++++++++++++++------------
- 1 file changed, 37 insertions(+), 28 deletions(-)
+Le vendredi 15 juillet 2016 =C3=A0 12:53 -0400, Nicolas Dufresne a =C3=A9cr=
+it=C2=A0:
+> Le jeudi 21 avril 2016 =C3=A0 09:21 -0400, Javier Martinez Canillas a
+> =C3=A9crit=C2=A0:
+> > Hello Sylwester,
+> >=20
+> > On 03/23/2016 08:41 PM, Javier Martinez Canillas wrote:
+> > > The same struct device_node * is used for looking up the I2C
+> > > sensor, OF
+> > > graph endpoint and port. So the reference count is incremented
+> > > but
+> > > not
+> > > decremented for the endpoint and port nodes.
+> > >=20
+> > > Fix this by having separate pointers for each node looked up.
+> > >=20
+> > > Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> > >=20
+> >=20
+> > Any comments about this patch?
+>=20
+> Tested-by: Nicolas Dufresne <nicoas.dufresne@collabora.com>
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 0abcdfe..b4a8cd2 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -441,7 +441,7 @@ vpbe_disp_calculate_scale_factor(struct vpbe_display *disp_dev,
- 	/*
- 	 * Application initially set the image format. Current display
- 	 * size is obtained from the vpbe display controller. expected_xsize
--	 * and expected_ysize are set through S_CROP ioctl. Based on this,
-+	 * and expected_ysize are set through S_SELECTION ioctl. Based on this,
- 	 * driver will calculate the scale factors for vertical and
- 	 * horizontal direction so that the image is displayed scaled
- 	 * and expanded. Application uses expansion to display the image
-@@ -650,24 +650,23 @@ static int vpbe_display_querycap(struct file *file, void  *priv,
- 	return 0;
- }
- 
--static int vpbe_display_s_crop(struct file *file, void *priv,
--			     const struct v4l2_crop *crop)
-+static int vpbe_display_s_selection(struct file *file, void *priv,
-+			     struct v4l2_selection *sel)
- {
- 	struct vpbe_layer *layer = video_drvdata(file);
- 	struct vpbe_display *disp_dev = layer->disp_dev;
- 	struct vpbe_device *vpbe_dev = disp_dev->vpbe_dev;
- 	struct osd_layer_config *cfg = &layer->layer_info.config;
- 	struct osd_state *osd_device = disp_dev->osd_device;
--	struct v4l2_rect rect = crop->c;
-+	struct v4l2_rect rect = sel->r;
- 	int ret;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
--		"VIDIOC_S_CROP, layer id = %d\n", layer->device_id);
-+		"VIDIOC_S_SELECTION, layer id = %d\n", layer->device_id);
- 
--	if (crop->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
--		v4l2_err(&vpbe_dev->v4l2_dev, "Invalid buf type\n");
-+	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
-+	    sel->target != V4L2_SEL_TGT_CROP)
- 		return -EINVAL;
--	}
- 
- 	if (rect.top < 0)
- 		rect.top = 0;
-@@ -715,32 +714,45 @@ static int vpbe_display_s_crop(struct file *file, void *priv,
- 	else
- 		osd_device->ops.set_interpolation_filter(osd_device, 0);
- 
-+	sel->r = rect;
- 	return 0;
- }
- 
--static int vpbe_display_g_crop(struct file *file, void *priv,
--			     struct v4l2_crop *crop)
-+static int vpbe_display_g_selection(struct file *file, void *priv,
-+				    struct v4l2_selection *sel)
- {
- 	struct vpbe_layer *layer = video_drvdata(file);
- 	struct osd_layer_config *cfg = &layer->layer_info.config;
- 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 	struct osd_state *osd_device = layer->disp_dev->osd_device;
--	struct v4l2_rect *rect = &crop->c;
-+	struct v4l2_rect *rect = &sel->r;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
--			"VIDIOC_G_CROP, layer id = %d\n",
-+			"VIDIOC_G_SELECTION, layer id = %d\n",
- 			layer->device_id);
- 
--	if (crop->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
--		v4l2_err(&vpbe_dev->v4l2_dev, "Invalid buf type\n");
-+	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+		return -EINVAL;
-+
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_CROP:
-+		osd_device->ops.get_layer_config(osd_device,
-+						 layer->layer_info.id, cfg);
-+		rect->top = cfg->ypos;
-+		rect->left = cfg->xpos;
-+		rect->width = cfg->xsize;
-+		rect->height = cfg->ysize;
-+		break;
-+	case V4L2_SEL_TGT_CROP_DEFAULT:
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+		rect->left = 0;
-+		rect->top = 0;
-+		rect->width = vpbe_dev->current_timings.xres;
-+		rect->height = vpbe_dev->current_timings.yres;
-+		break;
-+	default:
- 		return -EINVAL;
- 	}
--	osd_device->ops.get_layer_config(osd_device,
--				layer->layer_info.id, cfg);
--	rect->top = cfg->ypos;
--	rect->left = cfg->xpos;
--	rect->width = cfg->xsize;
--	rect->height = cfg->ysize;
- 
- 	return 0;
- }
-@@ -753,13 +765,10 @@ static int vpbe_display_cropcap(struct file *file, void *priv,
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_CROPCAP ioctl\n");
- 
--	cropcap->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	cropcap->bounds.left = 0;
--	cropcap->bounds.top = 0;
--	cropcap->bounds.width = vpbe_dev->current_timings.xres;
--	cropcap->bounds.height = vpbe_dev->current_timings.yres;
-+	if (cropcap->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+		return -EINVAL;
-+
- 	cropcap->pixelaspect = vpbe_dev->current_timings.aspect;
--	cropcap->defrect = cropcap->bounds;
- 	return 0;
- }
- 
-@@ -1252,8 +1261,8 @@ static const struct v4l2_ioctl_ops vpbe_ioctl_ops = {
- 	.vidioc_expbuf		 = vb2_ioctl_expbuf,
- 
- 	.vidioc_cropcap		 = vpbe_display_cropcap,
--	.vidioc_g_crop		 = vpbe_display_g_crop,
--	.vidioc_s_crop		 = vpbe_display_s_crop,
-+	.vidioc_g_selection	 = vpbe_display_g_selection,
-+	.vidioc_s_selection	 = vpbe_display_s_selection,
- 
- 	.vidioc_s_std		 = vpbe_display_s_std,
- 	.vidioc_g_std		 = vpbe_display_g_std,
--- 
-2.8.1
+There a typo here.
+
+Tested-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+
+>=20
+> Note: I could not verify that leak is gone, but I could verify that
+> this driver is still working properly after the change.
+>=20
+> >=20
+> > Best regards,
+--=-ykrAIx091FSnLflAVduC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iEYEABECAAYFAleJF9UACgkQcVMCLawGqBy+MgCg22w0W7Fa7MNuPkTaTmEU65r9
+sXEAoMorG212uIxsUwagbNdzQWPB7Bwo
+=DvkU
+-----END PGP SIGNATURE-----
+
+--=-ykrAIx091FSnLflAVduC--
 
