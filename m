@@ -1,95 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52180 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753604AbcGDNAd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 09:00:33 -0400
-Subject: Re: Stepping down as gspca and pwc maintainer
-To: Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46664
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932082AbcGOKYv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2016 06:24:51 -0400
+Date: Fri, 15 Jul 2016 07:24:45 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Stefan =?UTF-8?B?UMO2c2NoZWw=?= <basic.master@gmx.de>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <0b81648e-90ab-e9b2-4192-a7a387e86fc0@redhat.com>
- <069af446-e341-71a4-fb96-62c4d8f96b0a@xs4all.nl>
-From: Hans de Goede <hdegoede@redhat.com>
-Message-ID: <acdcd418-436b-394a-e456-346479d338d6@redhat.com>
-Date: Mon, 4 Jul 2016 15:00:29 +0200
+Subject: Re: [PATCH] af9035: fix dual tuner detection with PCTV 79e
+Message-ID: <20160715072445.6515edca@recife.lan>
+In-Reply-To: <8c71e2a3-ca04-0215-b3cb-c478afa9b1cb@iki.fi>
+References: <5783D80F.2040808@gmx.de>
+	<8c71e2a3-ca04-0215-b3cb-c478afa9b1cb@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <069af446-e341-71a4-fb96-62c4d8f96b0a@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Fri, 15 Jul 2016 09:21:51 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-On 04-07-16 09:36, Hans Verkuil wrote:
-> Hi Hans,
->
-> On 07/03/2016 11:31 PM, Hans de Goede wrote:
->> Hi All,
->>
->> Admittedly I've not been all that active as gspca and pwc
->> maintainer lately, but officially I'm still the maintainer
->> for both.
->>
->> Between my $dayjob, other foss projects and last but not
->> least spending time with my wife and children I'm way too busy
->> lately.
->>
->> So I'm hereby officially stepping down as gspca and pwc maintainer,
->> I know this means MAINTAINERS needs updating, but I'm hoping to
->> find a volunteer to take them over who can then directly replace my
->> name in MAINTAINERS.
->
-> I can take over as "Odd Fixes" maintainer. I have a pwc webcam and several
-> gspca webcams, so I can at least test some webcams if needed.
+> Applied and PULL requested for 4.7.
 
-Cool, thanks!
+It is too late to be applied on 4.7. I can apply it to the next merge
+window.
 
->> Both are currently in descent shape, one thing which needs
->> doing (for a long time now) is converting gspca to videobuf2.
->>
->> Other then that the following patches are pending in
->> patchwork (and are all ready to be merged I just never
->> got around to it):
->>
->> 1 actual bug-fix which should really be merged asap
->
-> Merged for 4.7-rcX or 4.8?
+> 
+> Anyhow, it does not apply for 4.6. You must backport that patch to 4.6 
+> stable also!
+> 
+> regards
+> Antti
+> 
+> On 07/11/2016 08:31 PM, Stefan Pöschel wrote:
+> > The value 5 of the EEPROM_TS_MODE register (meaning dual tuner presence) is
+> > only valid for AF9035 devices. For IT9135 devices it is invalid and led to a
+> > false positive dual tuner mode detection with PCTV 79e.
+> > Therefore on non-AF9035 devices and with value 5 the driver now defaults to
+> > single tuner mode and outputs a regarding info message to log.
+> >
+> > This fixes Bugzilla bug #118561.
+> >
+> > Reported-by: Marc Duponcheel <marc@offline.be>
+> > Signed-off-by: Stefan Pöschel <basic.master@gmx.de>
+> > ---
+> >  drivers/media/usb/dvb-usb-v2/af9035.c | 50 +++++++++++++++++++++++------------
+> >  drivers/media/usb/dvb-usb-v2/af9035.h |  2 +-
+> >  2 files changed, 34 insertions(+), 18 deletions(-)
+> >
+> > diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+> > index eabede4..ca018cd 100644
+> > --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+> > +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+> > @@ -496,7 +496,8 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+> >  {
+> >  	struct state *state = d_to_priv(d);
+> >  	struct usb_interface *intf = d->intf;
+> > -	int ret;
+> > +	int ret, ts_mode_invalid;
+> > +	u8 tmp;
+> >  	u8 wbuf[1] = { 1 };
+> >  	u8 rbuf[4];
+> >  	struct usb_req req = { CMD_FW_QUERYINFO, 0, sizeof(wbuf), wbuf,
+> > @@ -530,6 +531,36 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+> >  		state->eeprom_addr = EEPROM_BASE_AF9035;
+> >  	}
+> >
+> > +
+> > +	/* check for dual tuner mode */
+> > +	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
+> > +	if (ret < 0)
+> > +		goto err;
+> > +
+> > +	ts_mode_invalid = 0;
+> > +	switch (tmp) {
+> > +	case 0:
+> > +		break;
+> > +	case 1:
+> > +	case 3:
+> > +		state->dual_mode = true;
+> > +		break;
+> > +	case 5:
+> > +		if (state->chip_type != 0x9135 && state->chip_type != 0x9306)
+> > +			state->dual_mode = true;	/* AF9035 */
+> > +		else
+> > +			ts_mode_invalid = 1;
+> > +		break;
+> > +	default:
+> > +		ts_mode_invalid = 1;
+> > +	}
+> > +
+> > +	dev_dbg(&intf->dev, "ts mode=%d dual mode=%d\n", tmp, state->dual_mode);
+> > +
+> > +	if (ts_mode_invalid)
+> > +		dev_info(&intf->dev, "ts mode=%d not supported, defaulting to single tuner mode!", tmp);
+> > +
+> > +
+> >  	ret = af9035_ctrl_msg(d, &req);
+> >  	if (ret < 0)
+> >  		goto err;
+> > @@ -698,11 +729,7 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
+> >  	 * which is done by master demod.
+> >  	 * Master feeds also clock and controls power via GPIO.
+> >  	 */
+> > -	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
+> > -	if (ret < 0)
+> > -		goto err;
+> > -
+> > -	if (tmp == 1 || tmp == 3 || tmp == 5) {
+> > +	if (state->dual_mode) {
+> >  		/* configure gpioh1, reset & power slave demod */
+> >  		ret = af9035_wr_reg_mask(d, 0x00d8b0, 0x01, 0x01);
+> >  		if (ret < 0)
+> > @@ -835,17 +862,6 @@ static int af9035_read_config(struct dvb_usb_device *d)
+> >  	}
+> >
+> >
+> > -
+> > -	/* check if there is dual tuners */
+> > -	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
+> > -	if (ret < 0)
+> > -		goto err;
+> > -
+> > -	if (tmp == 1 || tmp == 3 || tmp == 5)
+> > -		state->dual_mode = true;
+> > -
+> > -	dev_dbg(&intf->dev, "ts mode=%d dual mode=%d\n", tmp, state->dual_mode);
+> > -
+> >  	if (state->dual_mode) {
+> >  		/* read 2nd demodulator I2C address */
+> >  		ret = af9035_rd_reg(d,
+> > diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
+> > index c91d1a3..1f83c92 100644
+> > --- a/drivers/media/usb/dvb-usb-v2/af9035.h
+> > +++ b/drivers/media/usb/dvb-usb-v2/af9035.h
+> > @@ -113,7 +113,7 @@ static const u32 clock_lut_it9135[] = {
+> >   * 0  TS
+> >   * 1  DCA + PIP
+> >   * 3  PIP
+> > - * 5  DCA + PIP
+> > + * 5  DCA + PIP (AF9035 only)
+> >   * n  DCA
+> >   *
+> >   * Values 0, 3 and 5 are seen to this day. 0 for single TS and 3/5 for dual TS.
+> >  
+> 
 
-I guess not many people have 10 Gbps usb-3.1 ports
-yet, and even fewer will plug an old webcam into such
-a port, so 4.8 is fine I think.
 
->> (Mauro can you pick this one up directly ?):
->>
->> https://patchwork.linuxtv.org/patch/34155/
->>
->> 1 compiler warning:
->> https://patchwork.linuxtv.org/patch/32726/
->>
->> A couple of v4l-compliance fixes:
->> https://patchwork.linuxtv.org/patch/33408/
->> https://patchwork.linuxtv.org/patch/33412/
->> https://patchwork.linuxtv.org/patch/33411/
->> https://patchwork.linuxtv.org/patch/33410/
->> https://patchwork.linuxtv.org/patch/33409/
->
-> I'll make a pull request for these today.
->
->>
->> And last there is this patch which need someone to review it:
->> https://patchwork.linuxtv.org/patch/34986/
->
-> I can take care of that.
 
-Thanks.
-
-On 04-07-16 09:38, Hans Verkuil wrote:
- >
- > What about the two radio-shark drivers?
-
-Ah yes, if you could take over those 2 too that would be
-great. Can you send a patch to update MAINTAINERS ?
-
-Regards,
-
-Hans
+Thanks,
+Mauro
