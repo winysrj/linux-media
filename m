@@ -1,69 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ipv4.connman.net ([82.165.8.211]:41316 "EHLO mail.holtmann.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751145AbcGMK4Q convert rfc822-to-8bit (ORCPT
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:37838 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751352AbcGOSw6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 06:56:16 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Subject: Re: [PATCH] drivers: misc: ti-st: Use int instead of fuzzy char for callback status
-From: Marcel Holtmann <marcel@holtmann.org>
-In-Reply-To: <20160713074114.76c35d04@recife.lan>
-Date: Wed, 13 Jul 2016 11:56:02 +0100
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-	"Gustavo F. Padovan" <gustavo@padovan.org>,
-	Johan Hedberg <johan.hedberg@gmail.com>,
-	Lauro Ramos Venancio <lauro.venancio@openbossa.org>,
-	Aloisio Almeida Jr <aloisio.almeida@openbossa.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Pavan Savoy <pavan_savoy@ti.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	"open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>,
+	Fri, 15 Jul 2016 14:52:58 -0400
+Received: by mail-wm0-f50.google.com with SMTP id i5so41410501wmg.0
+        for <linux-media@vger.kernel.org>; Fri, 15 Jul 2016 11:52:58 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20160715154004.GA840@ThinkPad-X200>
+References: <20160715154004.GA840@ThinkPad-X200>
+From: Kees Cook <keescook@google.com>
+Date: Fri, 15 Jul 2016 11:52:56 -0700
+Message-ID: <CAGXu5jLzMp32dbQdzG_EV0Gh-ZFs8dQ-vEHdwvjoM2uvQvpUCw@mail.gmail.com>
+Subject: Re: [PATCH 1/1] subsystem:linux-media CVE-2016-5400
+To: James Patrick-Evans <james@jmp-e.com>
+Cc: mchehab@redhat.com, Antti Palosaari <crope@iki.fi>,
 	linux-media@vger.kernel.org,
-	linux-wireless <linux-wireless@vger.kernel.org>,
-	linux-kernel@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <32897348-2AC5-4AB7-BF58-B1E36FC19CF2@holtmann.org>
-References: <1465203723-16928-1-git-send-email-geert@linux-m68k.org> <20160713074114.76c35d04@recife.lan>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+	"security@kernel.org" <security@kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Fri, Jul 15, 2016 at 8:40 AM, James Patrick-Evans <james@jmp-e.com> wrote:
+> This patch addresses CVE-2016-5400, a local DOS vulnerability caused by a
+> memory leak in the airspy usb device driver. The vulnerability is triggered
+> when more than 64 usb devices register with v4l2 of type VFL_TYPE_SDR or
+> VFL_TYPE_SUBDEV.A badusb device can emulate 64 of these devices then through
+> continual emulated connect/disconnect of the 65th device, cause the kernel
+> to run out of RAM and crash the kernel. The vulnerability exists in kernel
+> versions from 3.17 to current 4.7.
+> The memory leak is caused by the probe function of the airspy driver
+> mishandeling errors and not freeing the corresponding control structures
+> when an error occours registering the device to v4l2 core.
 
->> On mips and parisc:
->> 
->>    drivers/bluetooth/btwilink.c: In function 'ti_st_open':
->>    drivers/bluetooth/btwilink.c:174:21: warning: overflow in implicit constant conversion [-Woverflow]
->>       hst->reg_status = -EINPROGRESS;
->> 
->>    drivers/nfc/nfcwilink.c: In function 'nfcwilink_open':
->>    drivers/nfc/nfcwilink.c:396:31: warning: overflow in implicit constant conversion [-Woverflow]
->>      drv->st_register_cb_status = -EINPROGRESS;
->> 
->> There are actually two issues:
->>  1. Whether "char" is signed or unsigned depends on the architecture.
->>     As the completion callback data is used to pass a (negative) error
->>     code, it should always be signed.
->>  2. EINPROGRESS is 150 on mips, 245 on parisc.
->>     Hence -EINPROGRESS doesn't fit in a signed 8-bit number.
->> 
->> Change the callback status from "char" to "int" to fix these.
->> 
->> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> 
-> Patch looks sane to me, but who will apply it?
-> 
-> Anyway:
-> 
-> Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Thanks for getting this fixed!
 
-I can take it through bluetooth-next if there is no objection.
+> Signed-off-by: James Patrick-Evans <james@jmp-e.com>
 
-Samuel, are you fine with that?
+Reviewed-by: Kees Cook <keescook@chromium.org>
 
-Regards
+> ---
+>  drivers/media/usb/airspy/airspy.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/airspy/airspy.c
+> b/drivers/media/usb/airspy/airspy.c
+> index 87c1293..6c3ac8b 100644
+> --- a/drivers/media/usb/airspy/airspy.c
+> +++ b/drivers/media/usb/airspy/airspy.c
+> @@ -1072,7 +1072,7 @@ static int airspy_probe(struct usb_interface *intf,
+>         if (ret) {
+>                 dev_err(s->dev, "Failed to register as video device (%d)\n",
+>                                 ret);
+> -               goto err_unregister_v4l2_dev;
+> +               goto err_free_controls;
+>         }
+>         dev_info(s->dev, "Registered as %s\n",
+>                         video_device_node_name(&s->vdev));
+> --
+> 1.9.1
+>
 
-Marcel
+-Kees
 
+-- 
+Kees Cook
+Brillo & Chrome OS Security
