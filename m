@@ -1,51 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:42090 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750959AbcGQPCo (ORCPT
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:33479 "EHLO
+	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751565AbcGOQNa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 11:02:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/7] cec: CEC_RECEIVE overwrote the timeout field
-Date: Sun, 17 Jul 2016 17:02:28 +0200
-Message-Id: <1468767754-48542-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1468767754-48542-1-git-send-email-hverkuil@xs4all.nl>
-References: <1468767754-48542-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 15 Jul 2016 12:13:30 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v2 3/6] [media] Documentation: Add Ricardo Ribalda
+Date: Fri, 15 Jul 2016 18:13:16 +0200
+Message-Id: <1468599199-5902-4-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+My initials were on the Changelog, but there was no link to my name.
 
-When CEC_RECEIVE returns a message the original timeout field
-was overwritten. Restore the timeout field.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- drivers/staging/media/cec/cec-api.c | 3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/media/uapi/v4l/v4l2.rst | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/staging/media/cec/cec-api.c
-index 9151b1f..879f7d9 100644
---- a/drivers/staging/media/cec/cec-api.c
-+++ b/drivers/staging/media/cec/cec-api.c
-@@ -209,6 +209,7 @@ static long cec_transmit(struct cec_adapter *adap, struct cec_fh *fh,
- /* Called by CEC_RECEIVE: wait for a message to arrive */
- static int cec_receive_msg(struct cec_fh *fh, struct cec_msg *msg, bool block)
- {
-+	u32 timeout = msg->timeout;
- 	int res;
+diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
+index 6d23bc987f51..330674a0f553 100644
+--- a/Documentation/media/uapi/v4l/v4l2.rst
++++ b/Documentation/media/uapi/v4l/v4l2.rst
+@@ -64,6 +64,10 @@ Authors, in alphabetical order:
  
- 	do {
-@@ -225,6 +226,8 @@ static int cec_receive_msg(struct cec_fh *fh, struct cec_msg *msg, bool block)
- 			kfree(entry);
- 			fh->queued_msgs--;
- 			mutex_unlock(&fh->lock);
-+			/* restore original timeout value */
-+			msg->timeout = timeout;
- 			return 0;
- 		}
+   - SDR API.
  
++- Ribalda, Ricardo
++
++  - Introduce HSV formats and other minor changes.
++
+ - Rubli, Martin
+ 
+   - Designed and documented the VIDIOC_ENUM_FRAMESIZES and VIDIOC_ENUM_FRAMEINTERVALS ioctls.
 -- 
 2.8.1
 
