@@ -1,90 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avasout05.plus.net ([84.93.230.250]:53242 "EHLO
-	avasout05.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751717AbcGRVS0 (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:47259 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751676AbcGOS3T (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 17:18:26 -0400
-From: Nick Dyer <nick@shmanahar.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
-Subject: [PATCH v8 0/10] Output raw touch data via V4L2
-Date: Mon, 18 Jul 2016 22:10:28 +0100
-Message-Id: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
+	Fri, 15 Jul 2016 14:29:19 -0400
+Subject: Re: [PATCH v2 5/6] [media] vivid: Add support for HSV formats
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1468599199-5902-6-git-send-email-ricardo.ribalda@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <25a3d29f-b8cb-f7ff-91a7-9b9290d76bfb@xs4all.nl>
+Date: Fri, 15 Jul 2016 20:29:13 +0200
+MIME-Version: 1.0
+In-Reply-To: <1468599199-5902-6-git-send-email-ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a series of patches to add output of raw touch diagnostic data via V4L2
-to the Atmel maXTouch and Synaptics RMI4 drivers.
+On 07/15/2016 06:13 PM, Ricardo Ribalda Delgado wrote:
+> This patch adds support for V4L2_PIX_FMT_HSV24 and V4L2_PIX_FMT_HSV32.
+> 
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+>  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c   | 94 +++++++++++++++++++++++--
+>  drivers/media/platform/vivid/vivid-vid-common.c | 14 ++++
+>  include/media/v4l2-tpg.h                        |  1 +
+>  3 files changed, 105 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+> index acf0e6854832..85b9c1925dd9 100644
+> --- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+> +++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+> @@ -318,6 +318,10 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+>  		tpg->hmask[0] = ~1;
+>  		tpg->color_representation = TGP_COLOR_REPRESENTATION_YUV;
+>  		break;
+> +	case V4L2_PIX_FMT_HSV24:
+> +	case V4L2_PIX_FMT_HSV32:
+> +		tpg->color_representation = TGP_COLOR_REPRESENTATION_HSV;
+> +		break;
+>  	default:
+>  		return false;
+>  	}
+> @@ -351,6 +355,7 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+>  		break;
+>  	case V4L2_PIX_FMT_RGB24:
+>  	case V4L2_PIX_FMT_BGR24:
+> +	case V4L2_PIX_FMT_HSV24:
+>  		tpg->twopixelsize[0] = 2 * 3;
+>  		break;
+>  	case V4L2_PIX_FMT_BGR666:
+> @@ -361,6 +366,7 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+>  	case V4L2_PIX_FMT_ARGB32:
+>  	case V4L2_PIX_FMT_ABGR32:
+>  	case V4L2_PIX_FMT_YUV32:
+> +	case V4L2_PIX_FMT_HSV32:
+>  		tpg->twopixelsize[0] = 2 * 4;
+>  		break;
+>  	case V4L2_PIX_FMT_NV12:
+> @@ -408,6 +414,7 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+>  		tpg->twopixelsize[1] = 4;
+>  		break;
+>  	}
+> +
+>  	return true;
+>  }
+>  EXPORT_SYMBOL_GPL(tpg_s_fourcc);
+> @@ -490,6 +497,64 @@ static inline int linear_to_rec709(int v)
+>  	return tpg_linear_to_rec709[v];
+>  }
+>  
+> +static void color_to_hsv(struct tpg_data *tpg, int r, int g, int b,
+> +			   int *h, int *s, int *v)
+> +{
+> +	int max_rgb, min_rgb, diff_rgb;
+> +	int aux;
+> +	int third;
+> +
+> +	r >>= 4;
+> +	g >>= 4;
+> +	b >>= 4;
+> +
+> +	/*V*/
 
-It's a rewrite of the previous implementation which output via debugfs: it now
-uses a V4L2 device in a similar way to the sur40 driver.
+Please add a space after /* and before */.
+I also think it is better to write Value, Saturation, Hue instead of
+V, S, H.
 
-We have a utility which can read the data and display it in a useful format:
-    https://github.com/ndyer/heatmap/commits/heatmap-v4l
+> +	max_rgb = max3(r, g, b);
+> +	*v = max_rgb;
+> +	if (!max_rgb) {
+> +		*h = 0;
+> +		*s = 0;
+> +		return;
+> +	}
+> +
+> +	/*S*/
+> +	min_rgb = min3(r, g, b);
+> +	diff_rgb = max_rgb - min_rgb;
+> +	aux = 255 * diff_rgb;
+> +	aux += max_rgb / 2;
+> +	aux /= max_rgb;
+> +	*s = aux;
+> +	if (!aux) {
+> +		*h = 0;
+> +		return;
+> +	}
+> +
+> +	/*H*/
+> +	if (max_rgb == r) {
+> +		aux =  g - b;
+> +		third = 0;
+> +	} else if (max_rgb == g) {
+> +		aux =  b - r;
+> +		third = 60;
+> +	} else {
+> +		aux =  r - g;
+> +		third = 120;
+> +	}
+> +
+> +	aux *= 30;
+> +	aux += diff_rgb / 2;
+> +	aux /= diff_rgb;
+> +	aux += third;
+> +
+> +	/*Clamp H*/
+> +	if (aux < 0)
+> +		aux += 180;
+> +	else if (aux > 180)
+> +		aux -= 180;
+> +	*h = aux;
+> +
+> +}
+> +
+>  static void rgb2ycbcr(const int m[3][3], int r, int g, int b,
+>  			int y_offset, int *y, int *cb, int *cr)
+>  {
+> @@ -829,7 +894,19 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+>  		ycbcr_to_color(tpg, y, cb, cr, &r, &g, &b);
+>  	}
+>  
+> -	if (tpg->color_representation == TGP_COLOR_REPRESENTATION_YUV) {
+> +	switch (tpg->color_representation) {
+> +	case TGP_COLOR_REPRESENTATION_HSV:
+> +	{
+> +		int h, s, v;
+> +
+> +		color_to_hsv(tpg, r, g, b, &h, &s, &v);
+> +		tpg->colors[k][0] = h;
+> +		tpg->colors[k][1] = s;
+> +		tpg->colors[k][2] = v;
 
-Changes in v8:
-- Split out docs changes, rework in RST/Sphinx, and rebase against docs-next
-- Update for changes to vb2_queue alloc_ctxs
-- Rebase against git://linuxtv.org/media_tree.git and re-test
+Would quantization (limited/full range) be relevant here? I don't know if limited
+range would make sense (or what those limits would be).
 
-Changes in v7:
-- Tested by Andrew Duggan and Chris Healy.
-- Update bus_info to add "rmi4:" bus.
-- Fix code style issues in sur40 changes.
+Regards,
 
-Changes in v6:
-- Remove BUF_TYPE_TOUCH_CAPTURE, as discussed with Hans V touch devices will
-  use BUF_TYPE_VIDEO_CAPTURE.
-- Touch devices should now register CAP_VIDEO_CAPTURE: CAP_TOUCH just says that
-  this is a touch device, not a video device, but otherwise it acts the same.
-- Add some code to v4l_s_fmt() to set sensible default values for fields not
-  used by touch.
-- Improve naming/doc of RMI4 F54 report types.
-- Various minor DocBook fixes, and split to separate patch.
-- Update my email address.
-- Rework sur40 changes so that PIX_FMT_GREY is supported for backward
-  compatibility. Florian is it possible for you to test?
-
-Changes in v5 (Hans Verkuil review):
-- Update v4l2-core:
-  - Add VFL_TYPE_TOUCH, V4L2_BUF_TYPE_TOUCH_CAPTURE and V4L2_CAP_TOUCH
-  - Change V4L2_INPUT_TYPE_TOUCH_SENSOR to V4L2_INPUT_TYPE_TOUCH
-  - Improve DocBook documentation
-  - Add FMT definitions for touch data
-  - Note this will need the latest version of the heatmap util
-- Synaptics RMI4 driver:
-  - Remove some less important non full frame report types
-  - Switch report type names to const char * array
-  - Move a static array to inside context struct
-- Split sur40 changes to a separate commit
-
-Changes in v4:
-- Address nits from the input side in atmel_mxt_ts patches (Dmitry Torokhov)
-- Add Synaptics RMI4 F54 support patch
-
-Changes in v3:
-- Address V4L2 review comments from Hans Verkuil
-- Run v4l-compliance and fix all issues - needs minor patch here:
-  https://github.com/ndyer/v4l-utils/commit/cf50469773f
-
-Changes in v2:
-- Split pixfmt changes into separate commit and add DocBook
-- Introduce VFL_TYPE_TOUCH_SENSOR and /dev/v4l-touch
-- Remove "single node" support for now, it may be better to treat it as
-  metadata later
-- Explicitly set VFL_DIR_RX
-- Fix Kconfig
-
+	Hans
