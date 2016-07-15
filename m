@@ -1,61 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:44731 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752409AbcGTMjr (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36753 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751586AbcGOPgh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 08:39:47 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E163C180496
-	for <linux-media@vger.kernel.org>; Wed, 20 Jul 2016 14:39:42 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] media: doc-rst: document ENODATA for cropping ioctls
-Message-ID: <cbe431c5-4a01-1af5-6ba3-cf3f5d6a725d@xs4all.nl>
-Date: Wed, 20 Jul 2016 14:39:42 +0200
+	Fri, 15 Jul 2016 11:36:37 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20160715122845.7f357277@recife.lan>
+References: <1468595816-31272-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1468595816-31272-3-git-send-email-ricardo.ribalda@gmail.com> <20160715122845.7f357277@recife.lan>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Fri, 15 Jul 2016 17:36:15 +0200
+Message-ID: <CAPybu_077ZkW3_SnPLqkMMgUUrrBDYH+8WzSEnSHAkyTkE525w@mail.gmail.com>
+Subject: Re: [PATCH 2/6] [media] Documentation: Add HSV format
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document that the cropping ioctls can return ENODATA if the operation isn't supported
-for the current input or output.
+Hi Mauro
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/Documentation/media/uapi/v4l/vidioc-cropcap.rst b/Documentation/media/uapi/v4l/vidioc-cropcap.rst
-index 8dcbe6d..54382cd 100644
---- a/Documentation/media/uapi/v4l/vidioc-cropcap.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-cropcap.rst
-@@ -165,3 +165,6 @@ appropriately. The generic error codes are described at the
- EINVAL
-     The struct :ref:`v4l2_cropcap <v4l2-cropcap>` ``type`` is
-     invalid.
-+
-+ENODATA
-+    Cropping is not supported for this input or output.
-diff --git a/Documentation/media/uapi/v4l/vidioc-g-crop.rst b/Documentation/media/uapi/v4l/vidioc-g-crop.rst
-index 6cf7649..075e87a 100644
---- a/Documentation/media/uapi/v4l/vidioc-g-crop.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-g-crop.rst
-@@ -111,3 +111,6 @@ Return Value
- On success 0 is returned, on error -1 and the ``errno`` variable is set
- appropriately. The generic error codes are described at the
- :ref:`Generic Error Codes <gen-errors>` chapter.
-+
-+ENODATA
-+    Cropping is not supported for this input or output.
-diff --git a/Documentation/media/uapi/v4l/vidioc-g-selection.rst b/Documentation/media/uapi/v4l/vidioc-g-selection.rst
-index 953931f..3f38a83 100644
---- a/Documentation/media/uapi/v4l/vidioc-g-selection.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-g-selection.rst
-@@ -204,6 +204,9 @@ ERANGE
-     ``r`` rectangle to satisfy all constraints given in the ``flags``
-     argument.
+On Fri, Jul 15, 2016 at 5:28 PM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> Hi Ricardo,
+>
+> I'm not seeing patch 1.
 
-+ENODATA
-+    Selection is not supported for this input or output.
-+
- EBUSY
-     It is not possible to apply change of the selection rectangle at the
-     moment. Usually because streaming is in progress.
+That is because you blacklisted me :P
+https://lkml.org/lkml/2016/7/15/455
+
+I resend it to you right away.
+
+
+>
+> Anyway, please send documentation patches against the rst files. They're
+> at the "docs-next" branch and will be merged upstream on this merge window.
+>
+
+you are absolutely right, I read about it in lwn. Sorry about that.
+
+
+How do you prefer it:
+- 2 patchset : One on top of media/master with the code changes, and
+one on top of docs-next with the doc changes.
+or
+-1 patchset on top of doc-next and we will figure out later if there
+is a merge conflict with media
+
+Thanks!
