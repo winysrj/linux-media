@@ -1,101 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38621 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754129AbcGEBbZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:25 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 39/41] Documentation: dev-subdev.rst: fix some format issues
-Date: Mon,  4 Jul 2016 22:31:14 -0300
-Message-Id: <d81622f07c89b59c5ef1a1b1347fa01dbaa2e677.1467670142.git.mchehab@s-opensource.com>
-In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:46811 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751586AbcGOS2s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2016 14:28:48 -0400
+Subject: Re: [PATCH v2 4/6] [media] vivid: code refactor for color
+ representation
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1468599199-5902-5-git-send-email-ricardo.ribalda@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4370a9db-73aa-9454-fdda-135ebe16ad08@xs4all.nl>
+Date: Fri, 15 Jul 2016 20:28:43 +0200
+MIME-Version: 1.0
+In-Reply-To: <1468599199-5902-5-git-send-email-ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The conversion from DocBook made somethings look ugly.
-Improve them.
+On 07/15/2016 06:13 PM, Ricardo Ribalda Delgado wrote:
+> Replace is_yuv with color_representation. Which can be used by HSV
+> formats.
+> 
+> This change should ease the review of the following patches.
+> 
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+>  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c   | 44 ++++++++++++++-------
+>  drivers/media/platform/vivid/vivid-core.h       |  2 +-
+>  drivers/media/platform/vivid/vivid-vid-common.c | 52 ++++++++++++-------------
+>  include/media/v4l2-tpg.h                        |  7 +++-
+>  4 files changed, 63 insertions(+), 42 deletions(-)
+> 
+> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+> index cf1dadd0be9e..acf0e6854832 100644
+> --- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+> +++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+> @@ -1842,7 +1842,9 @@ static void tpg_recalc(struct tpg_data *tpg)
+>  
+>  		if (tpg->quantization == V4L2_QUANTIZATION_DEFAULT)
+>  			tpg->real_quantization =
+> -				V4L2_MAP_QUANTIZATION_DEFAULT(!tpg->is_yuv,
+> +				V4L2_MAP_QUANTIZATION_DEFAULT(
+> +					tpg->color_representation ==
+> +						TGP_COLOR_REPRESENTATION_RGB,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/linux_tv/media/v4l/dev-subdev.rst | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+This should be != TGP_COLOR_REPRESENTATION_YUV.
 
-diff --git a/Documentation/linux_tv/media/v4l/dev-subdev.rst b/Documentation/linux_tv/media/v4l/dev-subdev.rst
-index 832b114f7066..39d3d860dda4 100644
---- a/Documentation/linux_tv/media/v4l/dev-subdev.rst
-+++ b/Documentation/linux_tv/media/v4l/dev-subdev.rst
-@@ -118,14 +118,14 @@ every point in the pipeline explicitly.
- Drivers that implement the :ref:`media API <media-controller-intro>`
- can expose pad-level image format configuration to applications. When
- they do, applications can use the
--:ref:`VIDIOC_SUBDEV_G_FMT` and
-+:ref:`VIDIOC_SUBDEV_G_FMT <VIDIOC_SUBDEV_G_FMT>` and
- :ref:`VIDIOC_SUBDEV_S_FMT <VIDIOC_SUBDEV_G_FMT>` ioctls. to
- negotiate formats on a per-pad basis.
- 
- Applications are responsible for configuring coherent parameters on the
- whole pipeline and making sure that connected pads have compatible
- formats. The pipeline is checked for formats mismatch at
--:ref:`VIDIOC_STREAMON` time, and an ``EPIPE`` error
-+:ref:`VIDIOC_STREAMON <VIDIOC_STREAMON>` time, and an ``EPIPE`` error
- code is then returned if the configuration is invalid.
- 
- Pad-level image format configuration support can be tested by calling
-@@ -145,8 +145,8 @@ formats enumeration only. A format negotiation mechanism is required.
- 
- Central to the format negotiation mechanism are the get/set format
- operations. When called with the ``which`` argument set to
--``V4L2_SUBDEV_FORMAT_TRY``, the
--:ref:`VIDIOC_SUBDEV_G_FMT` and
-+:ref:`V4L2_SUBDEV_FORMAT_TRY <VIDIOC_SUBDEV_G_FMT>`, the
-+:ref:`VIDIOC_SUBDEV_G_FMT <VIDIOC_SUBDEV_G_FMT>` and
- :ref:`VIDIOC_SUBDEV_S_FMT <VIDIOC_SUBDEV_G_FMT>` ioctls operate on
- a set of formats parameters that are not connected to the hardware
- configuration. Modifying those 'try' formats leaves the device state
-@@ -155,7 +155,7 @@ and the hardware state stored in the device itself).
- 
- While not kept as part of the device state, try formats are stored in
- the sub-device file handles. A
--:ref:`VIDIOC_SUBDEV_G_FMT` call will return
-+:ref:`VIDIOC_SUBDEV_G_FMT <VIDIOC_SUBDEV_G_FMT>` call will return
- the last try format set *on the same sub-device file handle*. Several
- applications querying the same sub-device at the same time will thus not
- interact with each other.
-@@ -443,7 +443,7 @@ selection will refer to the sink pad format dimensions instead.
-     :alt:    subdev-image-processing-crop.svg
-     :align:  center
- 
--    Image processing in subdevs: simple crop example
-+    **Figure 4.5. Image processing in subdevs: simple crop example**
- 
- In the above example, the subdev supports cropping on its sink pad. To
- configure it, the user sets the media bus format on the subdev's sink
-@@ -460,7 +460,7 @@ pad.
-     :alt:    subdev-image-processing-scaling-multi-source.svg
-     :align:  center
- 
--    Image processing in subdevs: scaling with multiple sources
-+    **Figure 4.6. Image processing in subdevs: scaling with multiple sources**
- 
- In this example, the subdev is capable of first cropping, then scaling
- and finally cropping for two source pads individually from the resulting
-@@ -476,7 +476,7 @@ an area at location specified by the source crop rectangle from it.
-     :alt:    subdev-image-processing-full.svg
-     :align:  center
- 
--    Image processing in subdevs: scaling and composition with multiple sinks and sources
-+    **Figure 4.7. Image processing in subdevs: scaling and composition with multiple sinks and sources**
- 
- The subdev driver supports two sink pads and two source pads. The images
- from both of the sink pads are individually cropped, then scaled and
--- 
-2.7.4
+Otherwise HSV would map to limited range by default, which is probably wrong.
 
+Regards,
+
+	Hans
+
+>  					tpg->colorspace, tpg->real_ycbcr_enc);
+>  
+>  		tpg_precalculate_colors(tpg);
