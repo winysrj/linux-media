@@ -1,101 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35458 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751486AbcGRIv6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 04:51:58 -0400
-Subject: Re: [PATCH v3 8/9] [media] vivid: Fix YUV555 and YUV565 handling
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <1468665716-10178-1-git-send-email-ricardo.ribalda@gmail.com>
- <1468665716-10178-9-git-send-email-ricardo.ribalda@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6224fd35-50f3-e1cd-a9b5-f377087fade6@xs4all.nl>
-Date: Mon, 18 Jul 2016 10:51:53 +0200
+Received: from mail.kapsi.fi ([217.30.184.167]:58108 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932166AbcGOGVx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2016 02:21:53 -0400
+Subject: Re: [PATCH] af9035: fix dual tuner detection with PCTV 79e
+To: =?UTF-8?Q?Stefan_P=c3=b6schel?= <basic.master@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <5783D80F.2040808@gmx.de>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <8c71e2a3-ca04-0215-b3cb-c478afa9b1cb@iki.fi>
+Date: Fri, 15 Jul 2016 09:21:51 +0300
 MIME-Version: 1.0
-In-Reply-To: <1468665716-10178-9-git-send-email-ricardo.ribalda@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <5783D80F.2040808@gmx.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/16/2016 12:41 PM, Ricardo Ribalda Delgado wrote:
-> precalculate_color() had a optimization that avoided duplicated
-> conversion for YUV formats. This optimization did not take into
-> consideration YUV444, YUV555, YUV565 or limited range quantization.
-> 
-> This patch keeps the optimization, but fixes the wrong handling.
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Applied and PULL requested for 4.7.
+
+Anyhow, it does not apply for 4.6. You must backport that patch to 4.6 
+stable also!
+
+regards
+Antti
+
+On 07/11/2016 08:31 PM, Stefan Pöschel wrote:
+> The value 5 of the EEPROM_TS_MODE register (meaning dual tuner presence) is
+> only valid for AF9035 devices. For IT9135 devices it is invalid and led to a
+> false positive dual tuner mode detection with PCTV 79e.
+> Therefore on non-AF9035 devices and with value 5 the driver now defaults to
+> single tuner mode and outputs a regarding info message to log.
+>
+> This fixes Bugzilla bug #118561.
+>
+> Reported-by: Marc Duponcheel <marc@offline.be>
+> Signed-off-by: Stefan Pöschel <basic.master@gmx.de>
 > ---
->  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 19 ++++++++-----------
->  1 file changed, 8 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> index e91bf3cbaab9..1c862465e335 100644
-> --- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> +++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> @@ -797,6 +797,8 @@ static void precalculate_color(struct tpg_data *tpg, int k)
->  	int r = tpg_colors[col].r;
->  	int g = tpg_colors[col].g;
->  	int b = tpg_colors[col].b;
-> +	int y, cb, cr;
-> +	bool ycbbr_valid = false;
-
-I guess you mean ycbcr_valid?
-
-Regards,
-
-	Hans
-
->  
->  	if (k == TPG_COLOR_TEXTBG) {
->  		col = tpg_get_textbg_color(tpg);
-> @@ -873,7 +875,6 @@ static void precalculate_color(struct tpg_data *tpg, int k)
->  	     tpg->saturation != 128 || tpg->hue) &&
->  	    tpg->color_enc != TGP_COLOR_ENC_LUMA) {
->  		/* Implement these operations */
-> -		int y, cb, cr;
->  		int tmp_cb, tmp_cr;
->  
->  		/* First convert to YCbCr */
-> @@ -890,13 +891,10 @@ static void precalculate_color(struct tpg_data *tpg, int k)
->  
->  		cb = (128 << 4) + (tmp_cb * tpg->contrast * tpg->saturation) / (128 * 128);
->  		cr = (128 << 4) + (tmp_cr * tpg->contrast * tpg->saturation) / (128 * 128);
-> -		if (tpg->color_enc == TGP_COLOR_ENC_YUV) {
-> -			tpg->colors[k][0] = clamp(y >> 4, 1, 254);
-> -			tpg->colors[k][1] = clamp(cb >> 4, 1, 254);
-> -			tpg->colors[k][2] = clamp(cr >> 4, 1, 254);
-> -			return;
-> -		}
-> -		ycbcr_to_color(tpg, y, cb, cr, &r, &g, &b);
-> +		if (tpg->color_enc == TGP_COLOR_ENC_YUV)
-> +			ycbbr_valid = true;
+>  drivers/media/usb/dvb-usb-v2/af9035.c | 50 +++++++++++++++++++++++------------
+>  drivers/media/usb/dvb-usb-v2/af9035.h |  2 +-
+>  2 files changed, 34 insertions(+), 18 deletions(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+> index eabede4..ca018cd 100644
+> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+> @@ -496,7 +496,8 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+>  {
+>  	struct state *state = d_to_priv(d);
+>  	struct usb_interface *intf = d->intf;
+> -	int ret;
+> +	int ret, ts_mode_invalid;
+> +	u8 tmp;
+>  	u8 wbuf[1] = { 1 };
+>  	u8 rbuf[4];
+>  	struct usb_req req = { CMD_FW_QUERYINFO, 0, sizeof(wbuf), wbuf,
+> @@ -530,6 +531,36 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+>  		state->eeprom_addr = EEPROM_BASE_AF9035;
+>  	}
+>
+> +
+> +	/* check for dual tuner mode */
+> +	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
+> +	if (ret < 0)
+> +		goto err;
+> +
+> +	ts_mode_invalid = 0;
+> +	switch (tmp) {
+> +	case 0:
+> +		break;
+> +	case 1:
+> +	case 3:
+> +		state->dual_mode = true;
+> +		break;
+> +	case 5:
+> +		if (state->chip_type != 0x9135 && state->chip_type != 0x9306)
+> +			state->dual_mode = true;	/* AF9035 */
 > +		else
-> +			ycbcr_to_color(tpg, y, cb, cr, &r, &g, &b);
->  	} else if ((tpg->brightness != 128 || tpg->contrast != 128) &&
->  		   tpg->color_enc == TGP_COLOR_ENC_LUMA) {
->  		r = (16 << 4) + ((r - (16 << 4)) * tpg->contrast) / 128;
-> @@ -917,9 +915,8 @@ static void precalculate_color(struct tpg_data *tpg, int k)
->  	case TGP_COLOR_ENC_YUV:
->  	{
->  		/* Convert to YCbCr */
-> -		int y, cb, cr;
+> +			ts_mode_invalid = 1;
+> +		break;
+> +	default:
+> +		ts_mode_invalid = 1;
+> +	}
+> +
+> +	dev_dbg(&intf->dev, "ts mode=%d dual mode=%d\n", tmp, state->dual_mode);
+> +
+> +	if (ts_mode_invalid)
+> +		dev_info(&intf->dev, "ts mode=%d not supported, defaulting to single tuner mode!", tmp);
+> +
+> +
+>  	ret = af9035_ctrl_msg(d, &req);
+>  	if (ret < 0)
+>  		goto err;
+> @@ -698,11 +729,7 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
+>  	 * which is done by master demod.
+>  	 * Master feeds also clock and controls power via GPIO.
+>  	 */
+> -	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
+> -	if (ret < 0)
+> -		goto err;
 > -
-> -		color_to_ycbcr(tpg, r, g, b, &y, &cb, &cr);
-> +		if (!ycbbr_valid)
-> +			color_to_ycbcr(tpg, r, g, b, &y, &cb, &cr);
->  
->  		if (tpg->real_quantization == V4L2_QUANTIZATION_LIM_RANGE) {
->  			y = clamp(y, 16 << 4, 235 << 4);
-> 
+> -	if (tmp == 1 || tmp == 3 || tmp == 5) {
+> +	if (state->dual_mode) {
+>  		/* configure gpioh1, reset & power slave demod */
+>  		ret = af9035_wr_reg_mask(d, 0x00d8b0, 0x01, 0x01);
+>  		if (ret < 0)
+> @@ -835,17 +862,6 @@ static int af9035_read_config(struct dvb_usb_device *d)
+>  	}
+>
+>
+> -
+> -	/* check if there is dual tuners */
+> -	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
+> -	if (ret < 0)
+> -		goto err;
+> -
+> -	if (tmp == 1 || tmp == 3 || tmp == 5)
+> -		state->dual_mode = true;
+> -
+> -	dev_dbg(&intf->dev, "ts mode=%d dual mode=%d\n", tmp, state->dual_mode);
+> -
+>  	if (state->dual_mode) {
+>  		/* read 2nd demodulator I2C address */
+>  		ret = af9035_rd_reg(d,
+> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
+> index c91d1a3..1f83c92 100644
+> --- a/drivers/media/usb/dvb-usb-v2/af9035.h
+> +++ b/drivers/media/usb/dvb-usb-v2/af9035.h
+> @@ -113,7 +113,7 @@ static const u32 clock_lut_it9135[] = {
+>   * 0  TS
+>   * 1  DCA + PIP
+>   * 3  PIP
+> - * 5  DCA + PIP
+> + * 5  DCA + PIP (AF9035 only)
+>   * n  DCA
+>   *
+>   * Values 0, 3 and 5 are seen to this day. 0 for single TS and 3/5 for dual TS.
+>
+
+-- 
+http://palosaari.fi/
