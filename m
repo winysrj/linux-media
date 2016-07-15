@@ -1,70 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41933 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752023AbcGESkr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2016 14:40:47 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Markus Heiser <markus.heiser@darmarIT.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 05/12] doc-rst: boilerplate HTML theme customization
-Date: Tue,  5 Jul 2016 14:59:21 -0300
-Message-Id: <bc21467114b03ce47317cce9a49f0a46cdde50ca.1467743704.git.mchehab@s-opensource.com>
-In-Reply-To: <47d23e363fb034f32551f5fe85add77ceba98d3b.1467740686.git.mchehab@s-opensource.com>
-References: <47d23e363fb034f32551f5fe85add77ceba98d3b.1467740686.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467743704.git.mchehab@s-opensource.com>
-References: <cover.1467743704.git.mchehab@s-opensource.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46735
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751262AbcGOVuh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2016 17:50:37 -0400
+Subject: Re: [PATCH] [media] vb2: map dmabuf for planes on driver queue
+ instead of vidioc_qbuf
+To: Shuah Khan <shuahkh@osg.samsung.com>, linux-kernel@vger.kernel.org
+References: <1468599966-31988-1-git-send-email-javier@osg.samsung.com>
+ <57893C98.6040804@osg.samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Luis de Bethencourt <luisbg@osg.samsung.com>
+Message-ID: <ba8fefc0-e0fd-b527-8852-3104347991b2@osg.samsung.com>
+Date: Fri, 15 Jul 2016 17:50:25 -0400
+MIME-Version: 1.0
+In-Reply-To: <57893C98.6040804@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Heiser <markus.heiser@darmarIT.de>
+Hello Shuah,
 
-Implements the minimal boilerplate for Sphinx HTML theme customization.
+On 07/15/2016 03:42 PM, Shuah Khan wrote:
+> On 07/15/2016 10:26 AM, Javier Martinez Canillas wrote:
+>> The buffer planes' dma-buf are currently mapped when buffers are queued
+>> from userspace but it's more appropriate to do the mapping when buffers
+>> are queued in the driver since that's when the actual DMA operation are
+>> going to happen.
+>>
+>> Suggested-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>>
+>> ---
+>>
+>> Hello,
+>>
+>> A side effect of this change is that if the dmabuf map fails for some
+>> reasons (i.e: a driver using the DMA contig memory allocator but CMA
+>> not being enabled), the fail will no longer happen on VIDIOC_QBUF but
+>> later (i.e: in VIDIOC_STREAMON).
+>>
+>> I don't know if that's an issue though but I think is worth mentioning.
+> 
+> How does this change impact the user applications.? This changes
 
-Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/conf.py                           | 9 ++++++++-
- Documentation/sphinx-static/theme_overrides.css | 9 +++++++++
- 2 files changed, 17 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/sphinx-static/theme_overrides.css
+One thing that Nicolas mentioned is that for example GStreamer uses QBUF
+to detect if a dma-buf is compatible, and fallbacks to a slow path if
+that's not the case. For example if VIDIOC_QBUF fails, gst can attempt
+to do another VIDIOC_REQBUFS with a different streaming I/O method as a
+fallback.
 
-diff --git a/Documentation/conf.py b/Documentation/conf.py
-index 792b6338ef19..f35748b4bc26 100644
---- a/Documentation/conf.py
-+++ b/Documentation/conf.py
-@@ -176,7 +176,14 @@ except ImportError:
- # Add any paths that contain custom static files (such as style sheets) here,
- # relative to this directory. They are copied after the builtin static files,
- # so a file named "default.css" will overwrite the builtin "default.css".
--#html_static_path = ['_static']
-+
-+html_static_path = ['sphinx-static']
-+
-+html_context = {
-+    'css_files': [
-+        '_static/theme_overrides.css',
-+    ],
-+}
- 
- # Add any extra paths that contain custom files (such as robots.txt or
- # .htaccess) here, relative to this directory. These files are copied
-diff --git a/Documentation/sphinx-static/theme_overrides.css b/Documentation/sphinx-static/theme_overrides.css
-new file mode 100644
-index 000000000000..4d670dbf7ffa
---- /dev/null
-+++ b/Documentation/sphinx-static/theme_overrides.css
-@@ -0,0 +1,9 @@
-+/* -*- coding: utf-8; mode: css -*-
-+ *
-+ * Sphinx HTML theme customization
-+ *
-+ */
-+
-+@media screen {
-+
-+}
+If now QBUF doesn't fail, then gst will believe that it's OK and drop the
+buffer so won't be able to recover from an error later and do a fallback.
+
+Now, I don't know if that is the correct thing to expect since the v4l2
+doc for VIDIOC_QBUF doesn't say that the ioctl should be used for this.
+
+The question is if validating that the exported dma-buf can be imported
+is something that could be done without attempting to do the mapping.
+
+> the behavior and user applications now get dmabuf map error at a
+> later stage in the call sequence.
+>
+> The change itself looks consistent with the change described.
+> 
+> -- Shuah
+> 
+
+Best regards,
 -- 
-2.7.4
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
