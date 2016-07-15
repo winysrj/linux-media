@@ -1,151 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fireflyinternet.com ([109.228.58.192]:59002 "EHLO
-	fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751145AbcGMK4G (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46726
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751327AbcGOTmm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 06:56:06 -0400
-Date: Wed, 13 Jul 2016 11:20:14 +0100
-From: Chris Wilson <chris@chris-wilson.co.uk>
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: linux-kernel@vger.kernel.org,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Tejun Heo <tj@kernel.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Ingo Molnar <mingo@kernel.org>,
-	Kees Cook <keescook@chromium.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Andrey Ryabinin <aryabinin@virtuozzo.com>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Dmitry Vyukov <dvyukov@google.com>,
-	Alexander Potapenko <glider@google.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org
-Subject: Re: [PATCH 2/9] async: Introduce kfence, a N:M completion mechanism
-Message-ID: <20160713102014.GC6157@nuc-i3427.alporthouse.com>
-References: <1466759333-4703-1-git-send-email-chris@chris-wilson.co.uk>
- <1466759333-4703-3-git-send-email-chris@chris-wilson.co.uk>
- <20160713093852.GZ30921@twins.programming.kicks-ass.net>
+	Fri, 15 Jul 2016 15:42:42 -0400
+Subject: Re: [PATCH] [media] vb2: map dmabuf for planes on driver queue
+ instead of vidioc_qbuf
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	linux-kernel@vger.kernel.org
+References: <1468599966-31988-1-git-send-email-javier@osg.samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Luis de Bethencourt <luisbg@osg.samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <57893C98.6040804@osg.samsung.com>
+Date: Fri, 15 Jul 2016 13:42:16 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160713093852.GZ30921@twins.programming.kicks-ass.net>
+In-Reply-To: <1468599966-31988-1-git-send-email-javier@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 13, 2016 at 11:38:52AM +0200, Peter Zijlstra wrote:
-> On Fri, Jun 24, 2016 at 10:08:46AM +0100, Chris Wilson wrote:
-> > diff --git a/kernel/async.c b/kernel/async.c
-> > index d2edd6efec56..d0bcb7cc4884 100644
-> > --- a/kernel/async.c
-> > +++ b/kernel/async.c
-> > @@ -50,6 +50,7 @@ asynchronous and synchronous parts of the kernel.
-> >  
-> >  #include <linux/async.h>
-> >  #include <linux/atomic.h>
-> > +#include <linux/kfence.h>
-> >  #include <linux/ktime.h>
-> >  #include <linux/export.h>
-> >  #include <linux/wait.h>
+On 07/15/2016 10:26 AM, Javier Martinez Canillas wrote:
+> The buffer planes' dma-buf are currently mapped when buffers are queued
+> from userspace but it's more appropriate to do the mapping when buffers
+> are queued in the driver since that's when the actual DMA operation are
+> going to happen.
 > 
-> So why does this live in async.c? It got its own header, why not also
-> give it its own .c file?
-
-I started in kernel/async (since my first goal was fine-grained
-async_work serialisation). It is still in kernel/async.c as the embedded
-fence inside the async_work needs a return code to integrate. I should
-have done that before posting...
-
-> Also, I'm not a particular fan of the k* naming, but I see 'fence' is
-> already taken.
-
-Agreed, I really want to rename the dma-buf fence to struct dma_fence -
-we would need to do that whilst it dma-buf fencing is still in its infancy.
- 
-> > +/**
-> > + * DOC: kfence overview
-> > + *
-> > + * kfences provide synchronisation barriers between multiple processes.
-> > + * They are very similar to completions, or a pthread_barrier. Where
-> > + * kfence differs from completions is their ability to track multiple
-> > + * event sources rather than being a singular "completion event". Similar
-> > + * to completions, multiple processes or other kfences can listen or wait
-> > + * upon a kfence to signal its completion.
-> > + *
-> > + * The kfence is a one-shot flag, signaling that work has progressed passed
-> > + * a certain point (as measured by completion of all events the kfence is
-> > + * listening for) and the waiters upon kfence may proceed.
-> > + *
-> > + * kfences provide both signaling and waiting routines:
-> > + *
-> > + *	kfence_pending()
-> > + *
-> > + * indicates that the kfence should itself wait for another signal. A
-> > + * kfence created by kfence_create() starts in the pending state.
+> Suggested-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 > 
-> I would much prefer:
+> ---
 > 
->  *  - kfence_pending(): indicates that the kfence should itself wait for
->  *    another signal. A kfence created by kfence_create() starts in the
->  *    pending state.
+> Hello,
 > 
-> Which is much clearer in what text belongs where.
-
-Ok, I was just copying the style from
-Documentation/scheduler/completion.txt
-
-> Also, what !? I don't get what this function does.
-
-Hmm. Something more like:
-
-"To check the state of a kfence without changing it in any way, call
-kfence_pending(), which returns true if the kfence is still waiting for
-its event sources to be signaled."
-
-s/signaled/completed/ depending on kfence_signal() vs kfence_complete()
-
-> > + *
-> > + *	kfence_signal()
-> > + *
-> > + * undoes the earlier pending notification and allows the fence to complete
-> > + * if all pending events have then been signaled.
+> A side effect of this change is that if the dmabuf map fails for some
+> reasons (i.e: a driver using the DMA contig memory allocator but CMA
+> not being enabled), the fail will no longer happen on VIDIOC_QBUF but
+> later (i.e: in VIDIOC_STREAMON).
 > 
-> So I know _signal() is the posix thing, but seeing how we already
-> completions, how about being consistent with those and use _complete()
-> for this?
+> I don't know if that's an issue though but I think is worth mentioning.
 
-Possibly, but we also have the dma-buf fences to try and be fairly
-consistent with. struct completion is definitely a closer sibling
-though. The biggest conceptual change from completions though is that a
-kfence will be signaled multiple times before it is complete - I think
-that is a strong argument in favour of using _signal().
+How does this change impact the user applications.? This changes
+the behavior and user applications now get dmabuf map error at a
+later stage in the call sequence.
 
-> > + *
-> > + *	kfence_wait()
-> > + *
-> > + * allows the caller to sleep (uninterruptibly) until the fence is complete.
+The change itself looks consistent with the change described.
+
+-- Shuah
+
 > 
-> whitespace to separate the description of kfence_wait() from whatever
-> else follows.
+> Best regards,
+> Javier
 > 
-> > + * Meanwhile,
-> > + *
-> > + * 	kfence_complete()
-> > + *
-> > + * reports whether or not the kfence has been passed.
+>  drivers/media/v4l2-core/videobuf2-core.c | 88 ++++++++++++++++++++------------
+>  1 file changed, 54 insertions(+), 34 deletions(-)
 > 
-> kfence_done(), again to match completions.
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index ca8ffeb56d72..3fdf882bf279 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -186,7 +186,7 @@ module_param(debug, int, 0644);
+>  })
+>  
+>  static void __vb2_queue_cancel(struct vb2_queue *q);
+> -static void __enqueue_in_driver(struct vb2_buffer *vb);
+> +static int __enqueue_in_driver(struct vb2_buffer *vb);
+>  
+>  /**
+>   * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
+> @@ -1271,20 +1271,6 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
+>  		vb->planes[plane].mem_priv = mem_priv;
+>  	}
+>  
+> -	/* TODO: This pins the buffer(s) with  dma_buf_map_attachment()).. but
+> -	 * really we want to do this just before the DMA, not while queueing
+> -	 * the buffer(s)..
+> -	 */
+> -	for (plane = 0; plane < vb->num_planes; ++plane) {
+> -		ret = call_memop(vb, map_dmabuf, vb->planes[plane].mem_priv);
+> -		if (ret) {
+> -			dprintk(1, "failed to map dmabuf for plane %d\n",
+> -				plane);
+> -			goto err;
+> -		}
+> -		vb->planes[plane].dbuf_mapped = 1;
+> -	}
+> -
+>  	/*
+>  	 * Now that everything is in order, copy relevant information
+>  	 * provided by userspace.
+> @@ -1296,51 +1282,79 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
+>  		vb->planes[plane].data_offset = planes[plane].data_offset;
+>  	}
+>  
+> -	if (reacquired) {
+> -		/*
+> -		 * Call driver-specific initialization on the newly acquired buffer,
+> -		 * if provided.
+> -		 */
+> -		ret = call_vb_qop(vb, buf_init, vb);
+> +	return 0;
+> +err:
+> +	/* In case of errors, release planes that were already acquired */
+> +	__vb2_buf_dmabuf_put(vb);
+> +
+> +	return ret;
+> +}
+> +
+> +/**
+> + * __buf_map_dmabuf() - map dmabuf for buffer planes
+> + */
+> +static int __buf_map_dmabuf(struct vb2_buffer *vb)
+> +{
+> +	int ret;
+> +	unsigned int plane;
+> +
+> +	for (plane = 0; plane < vb->num_planes; ++plane) {
+> +		ret = call_memop(vb, map_dmabuf, vb->planes[plane].mem_priv);
+>  		if (ret) {
+> -			dprintk(1, "buffer initialization failed\n");
+> -			goto err;
+> +			dprintk(1, "failed to map dmabuf for plane %d\n",
+> +				plane);
+> +			return ret;
+>  		}
+> +		vb->planes[plane].dbuf_mapped = 1;
+> +	}
+> +
+> +	/*
+> +	 * Call driver-specific initialization on the newly
+> +	 * acquired buffer, if provided.
+> +	 */
+> +	ret = call_vb_qop(vb, buf_init, vb);
+> +	if (ret) {
+> +		dprintk(1, "buffer initialization failed\n");
+> +		return ret;
+>  	}
+>  
+>  	ret = call_vb_qop(vb, buf_prepare, vb);
+>  	if (ret) {
+>  		dprintk(1, "buffer preparation failed\n");
+>  		call_void_vb_qop(vb, buf_cleanup, vb);
+> -		goto err;
+> +		return ret;
+>  	}
+>  
+>  	return 0;
+> -err:
+> -	/* In case of errors, release planes that were already acquired */
+> -	__vb2_buf_dmabuf_put(vb);
+> -
+> -	return ret;
+>  }
+>  
+>  /**
+>   * __enqueue_in_driver() - enqueue a vb2_buffer in driver for processing
+>   */
+> -static void __enqueue_in_driver(struct vb2_buffer *vb)
+> +static int __enqueue_in_driver(struct vb2_buffer *vb)
+>  {
+>  	struct vb2_queue *q = vb->vb2_queue;
+>  	unsigned int plane;
+> +	int ret;
+>  
+>  	vb->state = VB2_BUF_STATE_ACTIVE;
+>  	atomic_inc(&q->owned_by_drv_count);
+>  
+>  	trace_vb2_buf_queue(q, vb);
+>  
+> +	if (q->memory == VB2_MEMORY_DMABUF) {
+> +		ret = __buf_map_dmabuf(vb);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+>  	/* sync buffers */
+>  	for (plane = 0; plane < vb->num_planes; ++plane)
+>  		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
+>  
+>  	call_void_vb_qop(vb, buf_queue, vb);
+> +
+> +	return 0;
+>  }
+>  
+>  static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+> @@ -1438,8 +1452,11 @@ static int vb2_start_streaming(struct vb2_queue *q)
+>  	 * If any buffers were queued before streamon,
+>  	 * we can now pass them to driver for processing.
+>  	 */
+> -	list_for_each_entry(vb, &q->queued_list, queued_entry)
+> -		__enqueue_in_driver(vb);
+> +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
+> +		ret = __enqueue_in_driver(vb);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
+>  
+>  	/* Tell the driver to start streaming */
+>  	q->start_streaming_called = 1;
+> @@ -1540,8 +1557,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+>  	 * If already streaming, give the buffer to driver for processing.
+>  	 * If not, the buffer will be given to driver on next streamon.
+>  	 */
+> -	if (q->start_streaming_called)
+> -		__enqueue_in_driver(vb);
+> +	if (q->start_streaming_called) {
+> +		ret = __enqueue_in_driver(vb);
+> +		if (ret)
+> +			return ret;
+> +	}
+>  
+>  	/* Fill buffer information for the userspace */
+>  	if (pb)
+> 
 
-Ok, will do a spin with completion naming convention and see how that
-fits in (and complete the extraction to a separate .c)
--Chris
-
--- 
-Chris Wilson, Intel Open Source Technology Centre
