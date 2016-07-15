@@ -1,116 +1,470 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:35486 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932423AbcGFXOY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:14:24 -0400
-Received: by mail-pa0-f66.google.com with SMTP id dx3so104264pab.2
-        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:14:24 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 10/11] media: adv7180: enable lock/unlock interrupts
-Date: Wed,  6 Jul 2016 16:00:03 -0700
-Message-Id: <1467846004-12731-11-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:41130 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751314AbcGOR6w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2016 13:58:52 -0400
+Subject: Re: [PATCH v2 4/6] [media] vivid: code refactor for color
+ representation
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1468599199-5902-5-git-send-email-ricardo.ribalda@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <82287bcf-f71c-07fd-e616-fdca1865f677@xs4all.nl>
+Date: Fri, 15 Jul 2016 19:58:45 +0200
+MIME-Version: 1.0
+In-Reply-To: <1468599199-5902-5-git-send-email-ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable the SD lock/unlock interrupts and send V4L2_EVENT_SRC_CH_LOCK_STATUS
-in the interrupt handler on a detected lock/unlock. Keep track of current
-input lock status with state->curr_status.
+On 07/15/2016 06:13 PM, Ricardo Ribalda Delgado wrote:
+> Replace is_yuv with color_representation. Which can be used by HSV
+> formats.
+> 
+> This change should ease the review of the following patches.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/media/i2c/adv7180.c | 35 +++++++++++++++++++++++++++--------
- 1 file changed, 27 insertions(+), 8 deletions(-)
+It's a bit of a mouthful. How about calling this color_enc and TPG_COLOR_ENC_?
+(i.e. color encoding).
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index f76a0e7..4c2623f 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -216,6 +216,7 @@ struct adv7180_state {
- 	int			irq;
- 	struct gpio_desc	*pwdn_gpio;
- 	v4l2_std_id		curr_norm;
-+	u32			curr_status; /* lock status */
- 	bool			autodetect;
- 	bool			bt656_4; /* use bt.656-4 standard for NTSC */
- 	bool			powered;
-@@ -422,7 +423,12 @@ static int adv7180_g_input_status(struct v4l2_subdev *sd, u32 *status)
- 	if (ret)
- 		return ret;
- 
--	ret = __adv7180_status(state, status, NULL);
-+	/* when we are interrupt driven we know the input lock status */
-+	if (!state->autodetect || state->irq > 0)
-+		*status = state->curr_status;
-+	else
-+		ret = __adv7180_status(state, status, NULL);
-+
- 	mutex_unlock(&state->mutex);
- 	return ret;
- }
-@@ -437,7 +443,7 @@ static int adv7180_program_std(struct adv7180_state *state)
- 		if (ret < 0)
- 			return ret;
- 
--		__adv7180_status(state, NULL, &state->curr_norm);
-+		__adv7180_status(state, &state->curr_status, &state->curr_norm);
- 	} else {
- 		ret = v4l2_std_to_adv7180(state->curr_norm);
- 		if (ret < 0)
-@@ -872,23 +878,34 @@ static const struct v4l2_subdev_ops adv7180_ops = {
- static irqreturn_t adv7180_irq(int irq, void *devid)
- {
- 	struct adv7180_state *state = devid;
--	u8 isr3;
-+	u8 isr1, isr3;
- 
- 	mutex_lock(&state->mutex);
-+	isr1 = adv7180_read(state, ADV7180_REG_ISR1);
- 	isr3 = adv7180_read(state, ADV7180_REG_ISR3);
- 	/* clear */
-+	adv7180_write(state, ADV7180_REG_ICR1, isr1);
- 	adv7180_write(state, ADV7180_REG_ICR3, isr3);
- 
--	if (isr3 & ADV7180_IRQ3_AD_CHANGE) {
--		static const struct v4l2_event src_ch = {
-+	if ((isr3 & ADV7180_IRQ3_AD_CHANGE) ||
-+	    (isr1 & (ADV7180_IRQ1_LOCK | ADV7180_IRQ1_UNLOCK))) {
-+		static struct v4l2_event src_ch = {
- 			.type = V4L2_EVENT_SOURCE_CHANGE,
--			.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
- 		};
- 
-+		if (isr3 & ADV7180_IRQ3_AD_CHANGE)
-+			src_ch.u.src_change.changes |=
-+				V4L2_EVENT_SRC_CH_RESOLUTION;
-+
-+		if (isr1 & (ADV7180_IRQ1_LOCK | ADV7180_IRQ1_UNLOCK))
-+			src_ch.u.src_change.changes |=
-+				V4L2_EVENT_SRC_CH_LOCK_STATUS;
-+
- 		v4l2_subdev_notify_event(&state->sd, &src_ch);
- 
- 		if (state->autodetect)
--			__adv7180_status(state, NULL, &state->curr_norm);
-+			__adv7180_status(state, &state->curr_status,
-+					 &state->curr_norm);
- 	}
- 
- 	mutex_unlock(&state->mutex);
-@@ -1335,7 +1352,9 @@ static int init_device(struct adv7180_state *state)
- 		if (ret < 0)
- 			goto out_unlock;
- 
--		ret = adv7180_write(state, ADV7180_REG_IMR1, 0);
-+		/* enable lock/unlock interrupts */
-+		ret = adv7180_write(state, ADV7180_REG_IMR1,
-+				    ADV7180_IRQ1_LOCK | ADV7180_IRQ1_UNLOCK);
- 		if (ret < 0)
- 			goto out_unlock;
- 
--- 
-1.9.1
+I would also like to have a TPG_COLOR_ENC_LUMA for the greyscale formats.
+This patch is a good opportunity to add that.
 
+Regards,
+
+	Hans
+
+> 
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+>  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c   | 44 ++++++++++++++-------
+>  drivers/media/platform/vivid/vivid-core.h       |  2 +-
+>  drivers/media/platform/vivid/vivid-vid-common.c | 52 ++++++++++++-------------
+>  include/media/v4l2-tpg.h                        |  7 +++-
+>  4 files changed, 63 insertions(+), 42 deletions(-)
+> 
+> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+> index cf1dadd0be9e..acf0e6854832 100644
+> --- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+> +++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+> @@ -237,13 +237,13 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+>  	case V4L2_PIX_FMT_GREY:
+>  	case V4L2_PIX_FMT_Y16:
+>  	case V4L2_PIX_FMT_Y16_BE:
+> -		tpg->is_yuv = false;
+> +		tpg->color_representation = TGP_COLOR_REPRESENTATION_RGB;
+>  		break;
+>  	case V4L2_PIX_FMT_YUV444:
+>  	case V4L2_PIX_FMT_YUV555:
+>  	case V4L2_PIX_FMT_YUV565:
+>  	case V4L2_PIX_FMT_YUV32:
+> -		tpg->is_yuv = true;
+> +		tpg->color_representation = TGP_COLOR_REPRESENTATION_YUV;
+>  		break;
+>  	case V4L2_PIX_FMT_YUV420M:
+>  	case V4L2_PIX_FMT_YVU420M:
+> @@ -256,7 +256,7 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+>  		tpg->hdownsampling[1] = 2;
+>  		tpg->hdownsampling[2] = 2;
+>  		tpg->planes = 3;
+> -		tpg->is_yuv = true;
+> +		tpg->color_representation = TGP_COLOR_REPRESENTATION_YUV;
+>  		break;
+>  	case V4L2_PIX_FMT_YUV422M:
+>  	case V4L2_PIX_FMT_YVU422M:
+> @@ -268,7 +268,7 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+>  		tpg->hdownsampling[1] = 2;
+>  		tpg->hdownsampling[2] = 2;
+>  		tpg->planes = 3;
+> -		tpg->is_yuv = true;
+> +		tpg->color_representation = TGP_COLOR_REPRESENTATION_YUV;
+>  		break;
+>  	case V4L2_PIX_FMT_NV16M:
+>  	case V4L2_PIX_FMT_NV61M:
+> @@ -280,7 +280,7 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+>  		tpg->hdownsampling[1] = 1;
+>  		tpg->hmask[1] = ~1;
+>  		tpg->planes = 2;
+> -		tpg->is_yuv = true;
+> +		tpg->color_representation = TGP_COLOR_REPRESENTATION_YUV;
+>  		break;
+>  	case V4L2_PIX_FMT_NV12M:
+>  	case V4L2_PIX_FMT_NV21M:
+> @@ -292,7 +292,7 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+>  		tpg->hdownsampling[1] = 1;
+>  		tpg->hmask[1] = ~1;
+>  		tpg->planes = 2;
+> -		tpg->is_yuv = true;
+> +		tpg->color_representation = TGP_COLOR_REPRESENTATION_YUV;
+>  		break;
+>  	case V4L2_PIX_FMT_YUV444M:
+>  	case V4L2_PIX_FMT_YVU444M:
+> @@ -302,21 +302,21 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+>  		tpg->vdownsampling[2] = 1;
+>  		tpg->hdownsampling[1] = 1;
+>  		tpg->hdownsampling[2] = 1;
+> -		tpg->is_yuv = true;
+> +		tpg->color_representation = TGP_COLOR_REPRESENTATION_YUV;
+>  		break;
+>  	case V4L2_PIX_FMT_NV24:
+>  	case V4L2_PIX_FMT_NV42:
+>  		tpg->vdownsampling[1] = 1;
+>  		tpg->hdownsampling[1] = 1;
+>  		tpg->planes = 2;
+> -		tpg->is_yuv = true;
+> +		tpg->color_representation = TGP_COLOR_REPRESENTATION_YUV;
+>  		break;
+>  	case V4L2_PIX_FMT_YUYV:
+>  	case V4L2_PIX_FMT_UYVY:
+>  	case V4L2_PIX_FMT_YVYU:
+>  	case V4L2_PIX_FMT_VYUY:
+>  		tpg->hmask[0] = ~1;
+> -		tpg->is_yuv = true;
+> +		tpg->color_representation = TGP_COLOR_REPRESENTATION_YUV;
+>  		break;
+>  	default:
+>  		return false;
+> @@ -820,7 +820,7 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+>  
+>  		cb = (128 << 4) + (tmp_cb * tpg->contrast * tpg->saturation) / (128 * 128);
+>  		cr = (128 << 4) + (tmp_cr * tpg->contrast * tpg->saturation) / (128 * 128);
+> -		if (tpg->is_yuv) {
+> +		if (tpg->color_representation == TGP_COLOR_REPRESENTATION_YUV) {
+>  			tpg->colors[k][0] = clamp(y >> 4, 1, 254);
+>  			tpg->colors[k][1] = clamp(cb >> 4, 1, 254);
+>  			tpg->colors[k][2] = clamp(cr >> 4, 1, 254);
+> @@ -829,7 +829,7 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+>  		ycbcr_to_color(tpg, y, cb, cr, &r, &g, &b);
+>  	}
+>  
+> -	if (tpg->is_yuv) {
+> +	if (tpg->color_representation == TGP_COLOR_REPRESENTATION_YUV) {
+>  		/* Convert to YCbCr */
+>  		int y, cb, cr;
+>  
+> @@ -1842,7 +1842,9 @@ static void tpg_recalc(struct tpg_data *tpg)
+>  
+>  		if (tpg->quantization == V4L2_QUANTIZATION_DEFAULT)
+>  			tpg->real_quantization =
+> -				V4L2_MAP_QUANTIZATION_DEFAULT(!tpg->is_yuv,
+> +				V4L2_MAP_QUANTIZATION_DEFAULT(
+> +					tpg->color_representation ==
+> +						TGP_COLOR_REPRESENTATION_RGB,
+>  					tpg->colorspace, tpg->real_ycbcr_enc);
+>  
+>  		tpg_precalculate_colors(tpg);
+> @@ -1889,11 +1891,25 @@ static int tpg_pattern_avg(const struct tpg_data *tpg,
+>  	return -1;
+>  }
+>  
+> +static const char *tpg_color_representation_str(enum tgp_color_representation
+> +						 color_representation)
+> +{
+> +	switch (color_representation) {
+> +
+> +	case TGP_COLOR_REPRESENTATION_YUV:
+> +		return "YCbCr";
+> +	case TGP_COLOR_REPRESENTATION_RGB:
+> +	default:
+> +		return "RGB";
+> +
+> +	}
+> +}
+> +
+>  void tpg_log_status(struct tpg_data *tpg)
+>  {
+>  	pr_info("tpg source WxH: %ux%u (%s)\n",
+> -			tpg->src_width, tpg->src_height,
+> -			tpg->is_yuv ? "YCbCr" : "RGB");
+> +		tpg->src_width, tpg->src_height,
+> +		tpg_color_representation_str(tpg->color_representation));
+>  	pr_info("tpg field: %u\n", tpg->field);
+>  	pr_info("tpg crop: %ux%u@%dx%d\n", tpg->crop.width, tpg->crop.height,
+>  			tpg->crop.left, tpg->crop.top);
+> diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+> index a7daa40d0a49..191ba679ad65 100644
+> --- a/drivers/media/platform/vivid/vivid-core.h
+> +++ b/drivers/media/platform/vivid/vivid-core.h
+> @@ -80,7 +80,7 @@ extern unsigned vivid_debug;
+>  
+>  struct vivid_fmt {
+>  	u32	fourcc;          /* v4l2 format id */
+> -	bool	is_yuv;
+> +	enum tgp_color_representation color_representation;
+>  	bool	can_do_overlay;
+>  	u8	vdownsampling[TPG_MAX_PLANES];
+>  	u32	alpha_mask;
+> diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
+> index fcda3ae4e6b0..314799111cf7 100644
+> --- a/drivers/media/platform/vivid/vivid-vid-common.c
+> +++ b/drivers/media/platform/vivid/vivid-vid-common.c
+> @@ -48,7 +48,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_YUYV,
+>  		.vdownsampling = { 1 },
+>  		.bit_depth = { 16 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 1,
+>  		.buffers = 1,
+>  		.data_offset = { PLANE0_DATA_OFFSET },
+> @@ -57,7 +57,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_UYVY,
+>  		.vdownsampling = { 1 },
+>  		.bit_depth = { 16 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 1,
+>  		.buffers = 1,
+>  	},
+> @@ -65,7 +65,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_YVYU,
+>  		.vdownsampling = { 1 },
+>  		.bit_depth = { 16 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 1,
+>  		.buffers = 1,
+>  	},
+> @@ -73,7 +73,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_VYUY,
+>  		.vdownsampling = { 1 },
+>  		.bit_depth = { 16 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 1,
+>  		.buffers = 1,
+>  	},
+> @@ -81,7 +81,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_YUV422P,
+>  		.vdownsampling = { 1, 1, 1 },
+>  		.bit_depth = { 8, 4, 4 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 3,
+>  		.buffers = 1,
+>  	},
+> @@ -89,7 +89,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_YUV420,
+>  		.vdownsampling = { 1, 2, 2 },
+>  		.bit_depth = { 8, 4, 4 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 3,
+>  		.buffers = 1,
+>  	},
+> @@ -97,7 +97,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_YVU420,
+>  		.vdownsampling = { 1, 2, 2 },
+>  		.bit_depth = { 8, 4, 4 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 3,
+>  		.buffers = 1,
+>  	},
+> @@ -105,7 +105,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_NV12,
+>  		.vdownsampling = { 1, 2 },
+>  		.bit_depth = { 8, 8 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 2,
+>  		.buffers = 1,
+>  	},
+> @@ -113,7 +113,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_NV21,
+>  		.vdownsampling = { 1, 2 },
+>  		.bit_depth = { 8, 8 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 2,
+>  		.buffers = 1,
+>  	},
+> @@ -121,7 +121,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_NV16,
+>  		.vdownsampling = { 1, 1 },
+>  		.bit_depth = { 8, 8 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 2,
+>  		.buffers = 1,
+>  	},
+> @@ -129,7 +129,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_NV61,
+>  		.vdownsampling = { 1, 1 },
+>  		.bit_depth = { 8, 8 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 2,
+>  		.buffers = 1,
+>  	},
+> @@ -137,7 +137,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_NV24,
+>  		.vdownsampling = { 1, 1 },
+>  		.bit_depth = { 8, 16 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 2,
+>  		.buffers = 1,
+>  	},
+> @@ -145,7 +145,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_NV42,
+>  		.vdownsampling = { 1, 1 },
+>  		.bit_depth = { 8, 16 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 2,
+>  		.buffers = 1,
+>  	},
+> @@ -184,7 +184,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_GREY,
+>  		.vdownsampling = { 1 },
+>  		.bit_depth = { 8 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 1,
+>  		.buffers = 1,
+>  	},
+> @@ -192,7 +192,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_Y16,
+>  		.vdownsampling = { 1 },
+>  		.bit_depth = { 16 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 1,
+>  		.buffers = 1,
+>  	},
+> @@ -200,7 +200,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_Y16_BE,
+>  		.vdownsampling = { 1 },
+>  		.bit_depth = { 16 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 1,
+>  		.buffers = 1,
+>  	},
+> @@ -452,7 +452,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_NV16M,
+>  		.vdownsampling = { 1, 1 },
+>  		.bit_depth = { 8, 8 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 2,
+>  		.buffers = 2,
+>  		.data_offset = { PLANE0_DATA_OFFSET, 0 },
+> @@ -461,7 +461,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_NV61M,
+>  		.vdownsampling = { 1, 1 },
+>  		.bit_depth = { 8, 8 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 2,
+>  		.buffers = 2,
+>  		.data_offset = { 0, PLANE0_DATA_OFFSET },
+> @@ -470,7 +470,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_YUV420M,
+>  		.vdownsampling = { 1, 2, 2 },
+>  		.bit_depth = { 8, 4, 4 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 3,
+>  		.buffers = 3,
+>  	},
+> @@ -478,7 +478,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_YVU420M,
+>  		.vdownsampling = { 1, 2, 2 },
+>  		.bit_depth = { 8, 4, 4 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 3,
+>  		.buffers = 3,
+>  	},
+> @@ -486,7 +486,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_NV12M,
+>  		.vdownsampling = { 1, 2 },
+>  		.bit_depth = { 8, 8 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 2,
+>  		.buffers = 2,
+>  	},
+> @@ -494,7 +494,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_NV21M,
+>  		.vdownsampling = { 1, 2 },
+>  		.bit_depth = { 8, 8 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 2,
+>  		.buffers = 2,
+>  	},
+> @@ -502,7 +502,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_YUV422M,
+>  		.vdownsampling = { 1, 1, 1 },
+>  		.bit_depth = { 8, 4, 4 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 3,
+>  		.buffers = 3,
+>  	},
+> @@ -510,7 +510,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_YVU422M,
+>  		.vdownsampling = { 1, 1, 1 },
+>  		.bit_depth = { 8, 4, 4 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 3,
+>  		.buffers = 3,
+>  	},
+> @@ -518,7 +518,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_YUV444M,
+>  		.vdownsampling = { 1, 1, 1 },
+>  		.bit_depth = { 8, 8, 8 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 3,
+>  		.buffers = 3,
+>  	},
+> @@ -526,7 +526,7 @@ struct vivid_fmt vivid_formats[] = {
+>  		.fourcc   = V4L2_PIX_FMT_YVU444M,
+>  		.vdownsampling = { 1, 1, 1 },
+>  		.bit_depth = { 8, 8, 8 },
+> -		.is_yuv   = true,
+> +		.color_representation = TGP_COLOR_REPRESENTATION_YUV,
+>  		.planes   = 3,
+>  		.buffers = 3,
+>  	},
+> diff --git a/include/media/v4l2-tpg.h b/include/media/v4l2-tpg.h
+> index 329bebfa930c..13ea42bb9530 100644
+> --- a/include/media/v4l2-tpg.h
+> +++ b/include/media/v4l2-tpg.h
+> @@ -87,6 +87,11 @@ enum tpg_move_mode {
+>  	TPG_MOVE_POS_FAST,
+>  };
+>  
+> +enum tgp_color_representation {
+> +	TGP_COLOR_REPRESENTATION_RGB,
+> +	TGP_COLOR_REPRESENTATION_YUV,
+> +};
+> +
+>  extern const char * const tpg_aspect_strings[];
+>  
+>  #define TPG_MAX_PLANES 3
+> @@ -119,7 +124,7 @@ struct tpg_data {
+>  	u8				saturation;
+>  	s16				hue;
+>  	u32				fourcc;
+> -	bool				is_yuv;
+> +	enum tgp_color_representation	color_representation;
+>  	u32				colorspace;
+>  	u32				xfer_func;
+>  	u32				ycbcr_enc;
+> 
