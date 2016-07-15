@@ -1,44 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:34194 "EHLO
-	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755883AbcGFXL0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:11:26 -0400
-Received: by mail-pf0-f194.google.com with SMTP id 66so107986pfy.1
-        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:11:25 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 28/28] ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
-Date: Wed,  6 Jul 2016 16:11:17 -0700
-Message-Id: <1467846677-13265-2-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1467846677-13265-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
- <1467846677-13265-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:35162 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751882AbcGOONz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2016 10:13:55 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id D4F21180A30
+	for <linux-media@vger.kernel.org>; Fri, 15 Jul 2016 16:13:49 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: cec: set timestamp for selfie transmits
+Message-ID: <814b8ac4-670b-8289-2236-242564068282@xs4all.nl>
+Date: Fri, 15 Jul 2016 16:13:49 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable imx v4l2 staging drivers. For video capture on
-the SabreAuto, the ADV7180 video decoder also requires the
-i2c-mux-gpio and the max7310 port expander.
+Attempts to send CEC messages to yourself are detected in the framework and
+returned with a NACK error. However, the tx_ts was never filled in that case.
+So just set it.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/configs/imx_v6_v7_defconfig | 2 ++
- 1 file changed, 2 insertions(+)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
-index 21339ce..8b1590a 100644
---- a/arch/arm/configs/imx_v6_v7_defconfig
-+++ b/arch/arm/configs/imx_v6_v7_defconfig
-@@ -327,6 +327,8 @@ CONFIG_FSL_EDMA=y
- CONFIG_IMX_SDMA=y
- CONFIG_MXS_DMA=y
- CONFIG_STAGING=y
-+CONFIG_STAGING_MEDIA=y
-+CONFIG_VIDEO_IMX=y
- # CONFIG_IOMMU_SUPPORT is not set
- CONFIG_IIO=y
- CONFIG_VF610_ADC=y
--- 
-1.9.1
-
+diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
+index ca34339..bf25875 100644
+--- a/drivers/staging/media/cec/cec-adap.c
++++ b/drivers/staging/media/cec/cec-adap.c
+@@ -612,6 +612,7 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
+ 			 * easy to handle it here so the behavior will be
+ 			 * consistent.
+ 			 */
++			msg->tx_ts = ktime_get_ns();
+ 			msg->tx_status = CEC_TX_STATUS_NACK |
+ 					 CEC_TX_STATUS_MAX_RETRIES;
+ 			msg->tx_nack_cnt = 1;
