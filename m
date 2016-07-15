@@ -1,118 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:36776 "EHLO
-	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932163AbcGYWYz (ORCPT
+Received: from 17.mo3.mail-out.ovh.net ([87.98.178.58]:39370 "EHLO
+	17.mo3.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751215AbcGOP3D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jul 2016 18:24:55 -0400
-Subject: Re: [PATCH v3 3/9] media: adv7180: add support for NEWAVMODE
-To: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>, lars@metafoo.de
-References: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
- <1469293249-6774-4-git-send-email-steve_longerbeam@mentor.com>
- <b2f5e6ab-86f0-7caf-40bd-8b3259dce5cd@gmail.com>
- <0fa0100f-3c7a-9dc0-2b29-7de9da7e86b5@mentor.com>
- <67a21914-cf3d-7d80-7b80-6abfd26c1a21@gmail.com>
- <cd28566d-acaa-8d04-bb6c-042c27e4d51d@mentor.com>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-From: Ian Arkver <ian.arkver.dev@gmail.com>
-Message-ID: <153fdfbc-a929-6584-3f06-26413498c1fa@gmail.com>
-Date: Mon, 25 Jul 2016 23:24:51 +0100
+	Fri, 15 Jul 2016 11:29:03 -0400
+Received: from player734.ha.ovh.net (b7.ovh.net [213.186.33.57])
+	by mo3.mail-out.ovh.net (Postfix) with ESMTP id 11C77102C907
+	for <linux-media@vger.kernel.org>; Fri, 15 Jul 2016 16:12:06 +0200 (CEST)
+Received: from [192.168.1.29] (LFbn-1-1866-70.w90-73.abo.wanadoo.fr [90.73.165.70])
+	(Authenticated sender: charles-antoine.couret@nexvision.fr)
+	by player734.ha.ovh.net (Postfix) with ESMTPSA id 024D528006C
+	for <linux-media@vger.kernel.org>; Fri, 15 Jul 2016 16:12:05 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Subject: [PATCH 1/2] SDI: add flag for SDI formats and SMPTE 125M definition
+Message-ID: <5c5bad2b-3d88-8553-ff7f-a1e67f97ef4d@nexvision.fr>
+Date: Fri, 15 Jul 2016 16:12:05 +0200
 MIME-Version: 1.0
-In-Reply-To: <cd28566d-acaa-8d04-bb6c-042c27e4d51d@mentor.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25/07/16 23:04, Steve Longerbeam wrote:
->
->
-> On 07/25/2016 12:36 PM, Ian Arkver wrote:
->> On 25/07/16 18:55, Steve Longerbeam wrote:
->>> On 07/25/2016 05:04 AM, Ian Arkver wrote:
->>>> On 23/07/16 18:00, Steve Longerbeam wrote:
->>>>> <snip>
->>>>> +#define ADV7180_VSYNC_FIELD_CTL_1_NEWAVMODE 0x02
->>>> See below re this value.
->>>>
->>> Hi Ian, I double-checked the ADV7180 datasheet, this value is
->>> correct. Bit 4, when cleared, _enables_ NEWAVMODE.
->>
->> Hah, ok. I'm not familiar enough with the history of this chip and 
->> didn't
->> know what "OLDAVMODE" was. So, to enable NEWAVMODE you clear
->> the NEWAVMODE bit. That makes perfect sense.
->>
->> Anyway, I still don't see what NEWAVMODE gets you.
->
-> Hi Ian,
->
-> With video standard auto-detect disabled in the chip (VID_SEL > 2), 
-> captured NTSC
-> images by the i.mx6q SabreAuto are corrupted, best I can describe it 
-> as "extremely
-> fuzzy". Only when newavmode is enabled do the images look good again, 
-> in manual
-> mode. With auto-detect enabled, images look good with or without 
-> newavmode.
->
-> The strange this is, the auto-detected standard is identical to the 
-> standard set
-> explicitly in manual mode (NTSC-M). I did a complete i2c dump of the 
-> registers
-> for both auto-detect and manual mode, and found no other differences 
-> besides
-> the auto-detect/manual setting.
->
-> Trying to track this down further would probably require a logic 
-> analyzer on the
-> bt.656 bus, which I don't have access to.
->
-> I will not be debugging this further so NEWAVMODE it will have to remain.
->
-> Steve
+>From c6b157259081bd40d881a5c642dd1a4a07195ca5 Mon Sep 17 00:00:00 2001
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Date: Fri, 15 Jul 2016 15:04:57 +0200
+Subject: [PATCH 1/2] SDI: add flag for SDI formats and SMPTE 125M definition
 
-OK, interesting. And weird indeed.
+Adding others generic flags, which could be used by many
+components like GS1662.
 
-I may be interfacing an ADV7280 to the i.MX6 in the August timeframe, 
-depending on
-project needs etc. I'll see if I hit this with that chip. My test app 
-does use autodetect.
+Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+---
+ include/uapi/linux/v4l2-dv-timings.h | 12 ++++++++++++
+ include/uapi/linux/videodev2.h       |  5 +++++
+ 2 files changed, 17 insertions(+)
 
-Incidentally, looking at the BT656-5 spec and comparing to the tvp5150, 
-I see that
-the spec calls for 244 and 243 lines per field for NTSC, and the tvp5150 
-provides
-that number of lines. However this write...
-
-adv7180_write(state, ADV7180_REG_NTSC_V_BIT_END,
-             ADV7180_NTSC_V_BIT_END_MANUAL_NVEND);
-
-where NVEND is 0x4f, configures the adv7180 to send only 242 lines in 
-each field.
-Not sure if this is significant.
-
-Regards,
-IanJ.
-
->
->> As
->> far as I can see it just locks down the timings and removes the 
->> flexibility
->> the chip otherwise offers to move the BT656 SAV and EAV codes around
->> relative to the incoming video.
->>
->> In what circumstances would you need to set the newavmode property
->> and change this default behaviour? We're not coupling the adv7180
->> back-to-back with an ADV video encoder here, which is what
->> NEWAVMODE is for and is presumably why AD recommend it for their
->> eval boards. We're trying to get a BT656 compliant stream, which is
->> what the default mode purports to generate.
->>
->> Regards,
->> IanJ
->>
->
->
-
+diff --git a/include/uapi/linux/v4l2-dv-timings.h b/include/uapi/linux/v4l2-dv-timings.h
+index 086168e..eb7dd02 100644
+--- a/include/uapi/linux/v4l2-dv-timings.h
++++ b/include/uapi/linux/v4l2-dv-timings.h
+@@ -934,4 +934,16 @@
+ 		V4L2_DV_FL_REDUCED_BLANKING) \
+ }
+ 
++/* SDI timings definitions */
++
++/* SMPTE-125M */
++#define V4L2_DV_BT_SDI_720X487I60 { \
++	.type = V4L2_DV_BT_656_1120, \
++	V4L2_INIT_BT_TIMINGS(720, 487, 1, \
++		V4L2_DV_HSYNC_POS_POL, \
++		13500000, 0, 137, 0, 0, 19, 2, 0, 17, 0, \
++		V4L2_DV_BT_STD_SDI, \
++		V4L2_DV_FIRST_FIELD_EXTRA_LINE) \
++}
++
+ #endif
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 8f95191..4641f13 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1259,6 +1259,7 @@ struct v4l2_bt_timings {
+ #define V4L2_DV_BT_STD_DMT	(1 << 1)  /* VESA Discrete Monitor Timings */
+ #define V4L2_DV_BT_STD_CVT	(1 << 2)  /* VESA Coordinated Video Timings */
+ #define V4L2_DV_BT_STD_GTF	(1 << 3)  /* VESA Generalized Timings Formula */
++#define V4L2_DV_BT_STD_SDI	(1 << 4)  /* SDI Timings */
+ 
+ /* Flags */
+ 
+@@ -1363,6 +1364,8 @@ struct v4l2_bt_timings_cap {
+ #define V4L2_DV_BT_CAP_REDUCED_BLANKING	(1 << 2)
+ /* Supports custom formats */
+ #define V4L2_DV_BT_CAP_CUSTOM		(1 << 3)
++/* In case of odd format, to know the field which has the extra line */
++#define V4L2_DV_FIRST_FIELD_EXTRA_LINE	(1 << 4)
+ 
+ /** struct v4l2_dv_timings_cap - DV timings capabilities
+  * @type:	the type of the timings (same as in struct v4l2_dv_timings)
+@@ -1413,6 +1416,8 @@ struct v4l2_input {
+ /* field 'status' - analog */
+ #define V4L2_IN_ST_NO_H_LOCK   0x00000100  /* No horizontal sync lock */
+ #define V4L2_IN_ST_COLOR_KILL  0x00000200  /* Color killer is active */
++#define V4L2_IN_ST_NO_V_LOCK   0x00000400  /* No vertical sync lock */
++#define V4L2_IN_ST_NO_STD_LOCK 0x00000800  /* No standard format lock */
+ 
+ /* field 'status' - digital */
+ #define V4L2_IN_ST_NO_SYNC     0x00010000  /* No synchronization lock */
+-- 
+2.7.4
