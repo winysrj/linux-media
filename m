@@ -1,48 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from slow1-d.mail.gandi.net ([217.70.178.86]:37284 "EHLO
-	slow1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752187AbcGSCn5 (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:38106 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751091AbcGOPOR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 22:43:57 -0400
-Subject: Re: [PATCH] [media] gspca: finepix: Remove deprecated
- create_singlethread_workqueue
-To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <20160716085556.GA7841@Karyakshetra>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Tejun Heo <tj@kernel.org>
-From: Frank Zago <frank@zago.net>
-Message-ID: <578D9227.7040007@zago.net>
-Date: Mon, 18 Jul 2016 21:36:23 -0500
-MIME-Version: 1.0
-In-Reply-To: <20160716085556.GA7841@Karyakshetra>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 15 Jul 2016 11:14:17 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 2/2] s5p-cec/TODO: add TODO item
+Date: Fri, 15 Jul 2016 17:14:08 +0200
+Message-Id: <1468595648-30008-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1468595648-30008-1-git-send-email-hverkuil@xs4all.nl>
+References: <1468595648-30008-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/16/2016 03:55 AM, Bhaktipriya Shridhar wrote:
-> The workqueue "work_thread" is involved in streaming the camera data.
-> It has a single work item(&dev->work_struct) and hence doesn't require
-> ordering. Also, it is not being used on a memory reclaim path.
-> Hence, the singlethreaded workqueue has been replaced with the use of
-> system_wq.
-> 
-> System workqueues have been able to handle high level of concurrency
-> for a long time now and hence it's not required to have a singlethreaded
-> workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
-> created with create_singlethread_workqueue(), system_wq allows multiple
-> work items to overlap executions even on the same CPU; however, a
-> per-cpu workqueue doesn't have any CPU locality or global ordering
-> guarantee unless the target CPU is explicitly specified and thus the
-> increase of local concurrency shouldn't make any difference.
-> 
-> Work item has been flushed in sd_stop0() to ensure that there are no
-> pending tasks while disconnecting the driver.
-> 
-> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Frank Zago <frank@zago.net>
+Mention that the HDMI driver should pass on the physical address
+to this driver, rather than requiring userspace to do this.
 
-Thanks for the patch.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Kamil Debski <k.debski@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/staging/media/s5p-cec/TODO | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/staging/media/s5p-cec/TODO b/drivers/staging/media/s5p-cec/TODO
+index 7162f9a..f51d526 100644
+--- a/drivers/staging/media/s5p-cec/TODO
++++ b/drivers/staging/media/s5p-cec/TODO
+@@ -1,3 +1,7 @@
+-There's nothing wrong on this driver, except that it depends on
+-the media staging core, that it is currently at staging. So,
+-this should be kept here while the core is not promoted.
++This driver depends on the CEC framework, which is currently in
++staging, so therefor this driver is in staging as well.
++
++In addition, this driver requires that userspace sets the physical
++address. However, this should be passed on from the corresponding
++samsung HDMI driver. It is very annoying if userspace has to do this,
++and other than USB CEC adapters this must be handled automatically.
+-- 
+2.8.1
+
