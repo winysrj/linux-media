@@ -1,99 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.goneo.de ([85.220.129.33]:34260 "EHLO smtp2.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753929AbcGTOYL convert rfc822-to-8bit (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:33063 "EHLO
+	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751653AbcGPKmQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 10:24:11 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH] doc-rst: get rid of warnings at kernel-documentation.rst
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <610951ea382e015f178bb55391ea21bd80132d70.1469023848.git.mchehab@s-opensource.com>
-Date: Wed, 20 Jul 2016 16:23:28 +0200
-Cc: Jonathan Corbet <corbet@lwn.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <83940B5E-B900-4D41-9FDA-CE2587ED4665@darmarit.de>
-References: <610951ea382e015f178bb55391ea21bd80132d70.1469023848.git.mchehab@s-opensource.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+	Sat, 16 Jul 2016 06:42:16 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v3 7/9] [media] vivid: Introduce TPG_COLOR_ENC_LUMA
+Date: Sat, 16 Jul 2016 12:41:54 +0200
+Message-Id: <1468665716-10178-8-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1468665716-10178-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1468665716-10178-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Simplifies handling of Gray formats.
 
-Am 20.07.2016 um 16:11 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c   | 26 +++++++++++++++++++------
+ drivers/media/platform/vivid/vivid-vid-common.c |  6 +++---
+ include/media/v4l2-tpg.h                        |  1 +
+ 3 files changed, 24 insertions(+), 9 deletions(-)
 
-> Sphinx 1.4.5 complains about some literal blocks at
-> kernel-documentation.rst:
-> 
-> 	Documentation/kernel-documentation.rst:373: WARNING: Could not lex literal_block as "C". Highlighting skipped.
-> 	Documentation/kernel-documentation.rst:378: WARNING: Could not lex literal_block as "C". Highlighting skipped.
-> 	Documentation/kernel-documentation.rst:576: WARNING: Could not lex literal_block as "C". Highlighting skipped.
-> 
-> Fix it by telling Sphinx to consider them as "none" type.
-
-Hi Mauro,
-
-IMHO we should better fix this by unsetting the lexers default language 
-in the conf.py  [1] ... currently:
-
-highlight_language = 'C'  # set this to 'none'
-	
-As far as I know the default highlight_language is also the default
-for literal blocks starting with "::"
-
-<SNIP>---
-references. For example::
-
- See function :c:func:`foo` and struct/union/enum/typedef :c:type:`bar`.
-<SNAP>---
-
-[1] http://www.sphinx-doc.org/en/stable/config.html#confval-highlight_language
-
--- Markus --
-
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
-> Documentation/kernel-documentation.rst | 6 ++++++
-> 1 file changed, 6 insertions(+)
-> 
-> diff --git a/Documentation/kernel-documentation.rst b/Documentation/kernel-documentation.rst
-> index 391decc66a18..1dd97478743e 100644
-> --- a/Documentation/kernel-documentation.rst
-> +++ b/Documentation/kernel-documentation.rst
-> @@ -370,11 +370,15 @@ To cross-reference the functions and types defined in the kernel-doc comments
-> from reStructuredText documents, please use the `Sphinx C Domain`_
-> references. For example::
-> 
-> +.. code-block:: none
-> +
->  See function :c:func:`foo` and struct/union/enum/typedef :c:type:`bar`.
-> 
-> While the type reference works with just the type name, without the
-> struct/union/enum/typedef part in front, you may want to use::
-> 
-> +.. code-block:: none
-> +
->  See :c:type:`struct foo <foo>`.
->  See :c:type:`union bar <bar>`.
->  See :c:type:`enum baz <baz>`.
-> @@ -573,6 +577,8 @@ converted to Sphinx and reStructuredText. For most DocBook XML documents, a good
-> enough solution is to use the simple ``Documentation/sphinx/tmplcvt`` script,
-> which uses ``pandoc`` under the hood. For example::
-> 
-> +.. code-block:: none
-> +
->  $ cd Documentation/sphinx
->  $ ./tmplcvt ../DocBook/in.tmpl ../out.rst
-> 
-> -- 
-> 2.7.4
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+index ba3fe65ceb98..e91bf3cbaab9 100644
+--- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
++++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+@@ -234,10 +234,12 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+ 	case V4L2_PIX_FMT_XBGR32:
+ 	case V4L2_PIX_FMT_ARGB32:
+ 	case V4L2_PIX_FMT_ABGR32:
++		tpg->color_enc = TGP_COLOR_ENC_RGB;
++		break;
+ 	case V4L2_PIX_FMT_GREY:
+ 	case V4L2_PIX_FMT_Y16:
+ 	case V4L2_PIX_FMT_Y16_BE:
+-		tpg->color_enc = TGP_COLOR_ENC_RGB;
++		tpg->color_enc = TGP_COLOR_ENC_LUMA;
+ 		break;
+ 	case V4L2_PIX_FMT_YUV444:
+ 	case V4L2_PIX_FMT_YUV555:
+@@ -825,9 +827,9 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 		g <<= 4;
+ 		b <<= 4;
+ 	}
+-	if (tpg->qual == TPG_QUAL_GRAY || tpg->fourcc == V4L2_PIX_FMT_GREY ||
+-	    tpg->fourcc == V4L2_PIX_FMT_Y16 ||
+-	    tpg->fourcc == V4L2_PIX_FMT_Y16_BE) {
++
++	if (tpg->qual == TPG_QUAL_GRAY ||
++	    tpg->color_enc ==  TGP_COLOR_ENC_LUMA) {
+ 		/* Rec. 709 Luma function */
+ 		/* (0.2126, 0.7152, 0.0722) * (255 * 256) */
+ 		r = g = b = (13879 * r + 46688 * g + 4713 * b) >> 16;
+@@ -867,8 +869,9 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 		b = (b - (16 << 4)) * 255 / 219;
+ 	}
+ 
+-	if (tpg->brightness != 128 || tpg->contrast != 128 ||
+-	    tpg->saturation != 128 || tpg->hue) {
++	if ((tpg->brightness != 128 || tpg->contrast != 128 ||
++	     tpg->saturation != 128 || tpg->hue) &&
++	    tpg->color_enc != TGP_COLOR_ENC_LUMA) {
+ 		/* Implement these operations */
+ 		int y, cb, cr;
+ 		int tmp_cb, tmp_cr;
+@@ -894,6 +897,10 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 			return;
+ 		}
+ 		ycbcr_to_color(tpg, y, cb, cr, &r, &g, &b);
++	} else if ((tpg->brightness != 128 || tpg->contrast != 128) &&
++		   tpg->color_enc == TGP_COLOR_ENC_LUMA) {
++		r = (16 << 4) + ((r - (16 << 4)) * tpg->contrast) / 128;
++		r += (tpg->brightness << 4) - (128 << 4);
+ 	}
+ 
+ 	switch (tpg->color_enc) {
+@@ -944,6 +951,11 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 		tpg->colors[k][2] = cr;
+ 		break;
+ 	}
++	case TGP_COLOR_ENC_LUMA:
++	{
++		tpg->colors[k][0] = r >> 4;
++		break;
++	}
+ 	case TGP_COLOR_ENC_RGB:
+ 	{
+ 		if (tpg->real_quantization == V4L2_QUANTIZATION_LIM_RANGE) {
+@@ -1985,6 +1997,8 @@ static const char *tpg_color_enc_str(enum tgp_color_enc
+ 		return "HSV";
+ 	case TGP_COLOR_ENC_YUV:
+ 		return "YCbCr";
++	case TGP_COLOR_ENC_LUMA:
++		return "Luma";
+ 	case TGP_COLOR_ENC_RGB:
+ 	default:
+ 		return "RGB";
+diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
+index 869e26ea7cf5..b78bca4c2f16 100644
+--- a/drivers/media/platform/vivid/vivid-vid-common.c
++++ b/drivers/media/platform/vivid/vivid-vid-common.c
+@@ -184,7 +184,7 @@ struct vivid_fmt vivid_formats[] = {
+ 		.fourcc   = V4L2_PIX_FMT_GREY,
+ 		.vdownsampling = { 1 },
+ 		.bit_depth = { 8 },
+-		.color_enc = TGP_COLOR_ENC_YUV,
++		.color_enc = TGP_COLOR_ENC_LUMA,
+ 		.planes   = 1,
+ 		.buffers = 1,
+ 	},
+@@ -192,7 +192,7 @@ struct vivid_fmt vivid_formats[] = {
+ 		.fourcc   = V4L2_PIX_FMT_Y16,
+ 		.vdownsampling = { 1 },
+ 		.bit_depth = { 16 },
+-		.color_enc = TGP_COLOR_ENC_YUV,
++		.color_enc = TGP_COLOR_ENC_LUMA,
+ 		.planes   = 1,
+ 		.buffers = 1,
+ 	},
+@@ -200,7 +200,7 @@ struct vivid_fmt vivid_formats[] = {
+ 		.fourcc   = V4L2_PIX_FMT_Y16_BE,
+ 		.vdownsampling = { 1 },
+ 		.bit_depth = { 16 },
+-		.color_enc = TGP_COLOR_ENC_YUV,
++		.color_enc = TGP_COLOR_ENC_LUMA,
+ 		.planes   = 1,
+ 		.buffers = 1,
+ 	},
+diff --git a/include/media/v4l2-tpg.h b/include/media/v4l2-tpg.h
+index 0f632ec619aa..d2487c12657d 100644
+--- a/include/media/v4l2-tpg.h
++++ b/include/media/v4l2-tpg.h
+@@ -91,6 +91,7 @@ enum tgp_color_enc {
+ 	TGP_COLOR_ENC_RGB,
+ 	TGP_COLOR_ENC_YUV,
+ 	TGP_COLOR_ENC_HSV,
++	TGP_COLOR_ENC_LUMA,
+ };
+ 
+ extern const char * const tpg_aspect_strings[];
+-- 
+2.8.1
 
