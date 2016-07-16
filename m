@@ -1,61 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-06v.sys.comcast.net ([96.114.154.165]:35574 "EHLO
-	resqmta-po-06v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751014AbcGLR2d (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:34010 "EHLO
+	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751431AbcGPKmH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 13:28:33 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, mchehab@kernel.org, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, joe@perches.com,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v2] media: s5p-mfc Fix misspelled error message and checkpatch errors
-Date: Tue, 12 Jul 2016 11:28:30 -0600
-Message-Id: <1468344510-32411-1-git-send-email-shuahkh@osg.samsung.com>
+	Sat, 16 Jul 2016 06:42:07 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v3 2/9] [media] Documentation: Add HSV format
+Date: Sat, 16 Jul 2016 12:41:49 +0200
+Message-Id: <1468665716-10178-3-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1468665716-10178-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1468665716-10178-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix misspelled error message and existing checkpatch errors in the
-error message conditional.
+Describe the HSV formats
 
-WARNING: suspect code indent for conditional statements (8, 24)
-        if (ctx->state != MFCINST_HEAD_PARSED &&
-[...]
-        mfc_err("Can not get crop information\n");
-
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
-Changes since v1:
-- Addressed review comments from Joe Perches
-- Added reviewed by tag from Javier Martinez Canillas
+ Documentation/media/uapi/v4l/hsv-formats.rst       |  19 +++
+ Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst | 158 +++++++++++++++++++++
+ Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
+ Documentation/media/uapi/v4l/v4l2.rst              |   5 +
+ 4 files changed, 183 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/hsv-formats.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
 
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index a01a373..0a9e8d1 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -775,11 +775,12 @@ static int vidioc_g_crop(struct file *file, void *priv,
- 	u32 left, right, top, bottom;
+diff --git a/Documentation/media/uapi/v4l/hsv-formats.rst b/Documentation/media/uapi/v4l/hsv-formats.rst
+new file mode 100644
+index 000000000000..f0f2615eaa95
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/hsv-formats.rst
+@@ -0,0 +1,19 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _hsv-formats:
++
++***********
++HSV Formats
++***********
++
++These formats store the color information of the image
++in a geometrical representation. The colors are mapped into a
++cylinder, where the angle is the HUE, the height is the VALUE
++and the distance to the center is the SATURATION. This is a very
++useful format for image segmentation algorithms.
++
++
++.. toctree::
++    :maxdepth: 1
++
++    pixfmt-packed-hsv
+diff --git a/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+new file mode 100644
+index 000000000000..60ac821e309d
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+@@ -0,0 +1,158 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _packed-hsv:
++
++******************
++Packed HSV formats
++******************
++
++*man Packed HSV formats(2)*
++
++Packed HSV formats
++
++
++Description
++===========
++
++The *hue* (h) is measured in degrees, one LSB represents two degrees.
++The *saturation* (s) and the *value* (v) are measured in percentage of the
++cylinder: 0 being the smallest value and 255 the maximum.
++
++
++The values are packed in 24 or 32 bit formats.
++
++
++.. flat-table:: Packed HSV Image Formats
++    :header-rows:  2
++    :stub-columns: 0
++
++    -  .. row 1
++
++       -  Identifier
++       -  Code
++       -
++       -  :cspan:`7` Byte 0 in memory
++       -
++       -  :cspan:`7` Byte 1
++       -
++       -  :cspan:`7` Byte 2
++       -
++       -  :cspan:`7` Byte 3
++
++    -  .. row 2
++
++       -
++       -
++       -  Bit
++       -  7
++       -  6
++       -  5
++       -  4
++       -  3
++       -  2
++       -  1
++       -  0
++       -
++       -  7
++       -  6
++       -  5
++       -  4
++       -  3
++       -  2
++       -  1
++       -  0
++       -
++       -  7
++       -  6
++       -  5
++       -  4
++       -  3
++       -  2
++       -  1
++       -  0
++       -
++       -  7
++       -  6
++       -  5
++       -  4
++       -  3
++       -  2
++       -  1
++       -  0
++
++    -  .. _V4L2-PIX-FMT-HSV32:
++
++       -  ``V4L2_PIX_FMT_HSV32``
++       -  'HSV4'
++       -
++       -  -
++       -  -
++       -  -
++       -  -
++       -  -
++       -  -
++       -  -
++       -  -
++       -
++       -  h\ :sub:`7`
++       -  h\ :sub:`6`
++       -  h\ :sub:`5`
++       -  h\ :sub:`4`
++       -  h\ :sub:`3`
++       -  h\ :sub:`2`
++       -  h\ :sub:`1`
++       -  h\ :sub:`0`
++       -
++       -  s\ :sub:`7`
++       -  s\ :sub:`6`
++       -  s\ :sub:`5`
++       -  s\ :sub:`4`
++       -  s\ :sub:`3`
++       -  s\ :sub:`2`
++       -  s\ :sub:`1`
++       -  s\ :sub:`0`
++       -
++       -  v\ :sub:`7`
++       -  v\ :sub:`6`
++       -  v\ :sub:`5`
++       -  v\ :sub:`4`
++       -  v\ :sub:`3`
++       -  v\ :sub:`2`
++       -  v\ :sub:`1`
++       -  v\ :sub:`0`
++
++    -  .. _V4L2-PIX-FMT-HSV24:
++
++       -  ``V4L2_PIX_FMT_HSV24``
++       -  'HSV3'
++       -
++       -  h\ :sub:`7`
++       -  h\ :sub:`6`
++       -  h\ :sub:`5`
++       -  h\ :sub:`4`
++       -  h\ :sub:`3`
++       -  h\ :sub:`2`
++       -  h\ :sub:`1`
++       -  h\ :sub:`0`
++       -
++       -  s\ :sub:`7`
++       -  s\ :sub:`6`
++       -  s\ :sub:`5`
++       -  s\ :sub:`4`
++       -  s\ :sub:`3`
++       -  s\ :sub:`2`
++       -  s\ :sub:`1`
++       -  s\ :sub:`0`
++       -
++       -  v\ :sub:`7`
++       -  v\ :sub:`6`
++       -  v\ :sub:`5`
++       -  v\ :sub:`4`
++       -  v\ :sub:`3`
++       -  v\ :sub:`2`
++       -  v\ :sub:`1`
++       -  v\ :sub:`0`
++       -
++       -
++
++Bit 7 is the most significant bit.
+diff --git a/Documentation/media/uapi/v4l/pixfmt.rst b/Documentation/media/uapi/v4l/pixfmt.rst
+index 81222a99f7ce..1d2270422345 100644
+--- a/Documentation/media/uapi/v4l/pixfmt.rst
++++ b/Documentation/media/uapi/v4l/pixfmt.rst
+@@ -29,6 +29,7 @@ see also :ref:`VIDIOC_G_FBUF <VIDIOC_G_FBUF>`.)
+     pixfmt-indexed
+     pixfmt-rgb
+     yuv-formats
++    hsv-formats
+     depth-formats
+     pixfmt-013
+     sdr-formats
+diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
+index c0859ebc88ee..6d23bc987f51 100644
+--- a/Documentation/media/uapi/v4l/v4l2.rst
++++ b/Documentation/media/uapi/v4l/v4l2.rst
+@@ -85,6 +85,11 @@ part can be used and distributed without restrictions.
+ Revision History
+ ****************
  
- 	if (ctx->state != MFCINST_HEAD_PARSED &&
--	ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
--					&& ctx->state != MFCINST_FINISHED) {
--			mfc_err("Cannont set crop\n");
--			return -EINVAL;
--		}
-+	    ctx->state != MFCINST_RUNNING &&
-+	    ctx->state != MFCINST_FINISHING &&
-+	    ctx->state != MFCINST_FINISHED) {
-+		mfc_err("Can not get crop information\n");
-+		return -EINVAL;
-+	}
- 	if (ctx->src_fmt->fourcc == V4L2_PIX_FMT_H264) {
- 		left = s5p_mfc_hw_call(dev->mfc_ops, get_crop_info_h, ctx);
- 		right = left >> S5P_FIMV_SHARED_CROP_RIGHT_SHIFT;
++:revision: 4.8 / 2016-07-15 (*rr*)
++
++Introduce HSV formats.
++
++
+ :revision: 4.5 / 2015-10-29 (*rr*)
+ 
+ Extend VIDIOC_G_EXT_CTRLS;. Replace ctrl_class with a new union with
 -- 
-2.7.4
+2.8.1
 
