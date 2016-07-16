@@ -1,333 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41409 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755318AbcGHNEE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:04 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 29/54] doc-rst: add parse-headers.pl script
-Date: Fri,  8 Jul 2016 10:03:21 -0300
-Message-Id: <dabf8be33bbd8675d44925de7428d3fa86f1d6f3.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:35653 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751374AbcGPIaa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Jul 2016 04:30:30 -0400
+Date: Sat, 16 Jul 2016 14:00:25 +0530
+From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+To: Kyungmin Park <kyungmin.park@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>
+Subject: [PATCH] [media] s5p-mfc: Remove deprecated
+ create_singlethread_workqueue
+Message-ID: <20160716083025.GA7294@Karyakshetra>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This script parses a header file and converts it into a
-parsed-literal block, creating references for ioctls,
-defines, typedefs, enums and structs.
+alloc_workqueue replaces deprecated create_singlethread_workqueue().
 
-It also allow an external file to modify the rules, in
-order to fix the expressions.
+The MFC device driver is a v4l2 driver which can encode/decode video
+raw/elementary streams and has support for all popular video codecs.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+The driver's watchdog_workqueue has been replaced with system_wq since
+it queues a single work item, &dev->watchdog_work, which calls for no
+ordering requirement. The work item is involved in running the watchdog
+timer and is not being used on a memory reclaim path.
+
+Work item has been flushed in s5p_mfc_remove() to ensure
+that there are no pending tasks while disconnecting the driver.
+
+Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
 ---
- Documentation/sphinx/parse-headers.pl | 290 ++++++++++++++++++++++++++++++++++
- 1 file changed, 290 insertions(+)
- create mode 100755 Documentation/sphinx/parse-headers.pl
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/sphinx/parse-headers.pl b/Documentation/sphinx/parse-headers.pl
-new file mode 100755
-index 000000000000..287f6459e13a
---- /dev/null
-+++ b/Documentation/sphinx/parse-headers.pl
-@@ -0,0 +1,290 @@
-+#!/usr/bin/perl
-+use strict;
-+use Text::Tabs;
-+
-+# Uncomment if debug is needed
-+#use Data::Dumper;
-+
-+# change to 1 to generate some debug prints
-+my $debug = 0;
-+
-+if (scalar @ARGV < 2 || scalar @ARGV > 3) {
-+	die "Usage:\n\t$0 <file in> <file out> [<exceptions file>]\n";
-+}
-+
-+my ($file_in, $file_out, $file_exceptions) = @ARGV;
-+
-+my $data;
-+my %ioctls;
-+my %defines;
-+my %typedefs;
-+my %enums;
-+my %enum_symbols;
-+my %structs;
-+
-+#
-+# read the file and get identifiers
-+#
-+
-+my $is_enum = 0;
-+open IN, $file_in or die "Can't open $file_in";
-+while (<IN>) {
-+	$data .= $_;
-+
-+	if ($is_enum && m/^\s*([^\s\}\,\=]+)\s*[\,=]?/) {
-+		my $s = $1;
-+		my $n = $1;
-+		$n =~ tr/A-Z/a-z/;
-+		$n =~ tr/_/-/;
-+
-+		$enum_symbols{$s} = $n;
-+
-+		$is_enum = 0 if ($is_enum && m/\}/);
-+		next;
-+	}
-+	$is_enum = 0 if ($is_enum && m/\}/);
-+
-+	if (m/^\s*#\s*define\s+([_A-Z]\S+)\s+_IO/) {
-+		my $s = $1;
-+		my $n = $1;
-+		$n =~ tr/A-Z/a-z/;
-+
-+		$ioctls{$s} = $n;
-+		next;
-+	}
-+
-+	if (m/^\s*#\s*define\s+([_A-Z]\S+)\s+/) {
-+		my $s = $1;
-+		my $n = $1;
-+		$n =~ tr/A-Z/a-z/;
-+		$n =~ tr/_/-/;
-+
-+		$defines{$s} = $n;
-+		next;
-+	}
-+
-+	if (m/^\s*typedef\s+.*\s+([_\w]\S+);/) {
-+		my $s = $1;
-+		my $n = $1;
-+		$n =~ tr/A-Z/a-z/;
-+		$n =~ tr/_/-/;
-+
-+		$typedefs{$s} = $n;
-+		next;
-+	}
-+	if (m/^\s*enum\s+(\S+)\s+\{/ || m/^\s*enum\s+(\S+)$/) {
-+		my $s = $1;
-+		my $n = $1;
-+		$n =~ tr/A-Z/a-z/;
-+		$n =~ tr/_/-/;
-+
-+		$enums{$s} = $n;
-+
-+		$is_enum = $1;
-+		next;
-+	}
-+	if (m/^\s*struct\s+([_A-Za-z_]\S+)\s+\{/ || m/^\s*struct\s+([A-Za-z_]\S+)$/) {
-+		my $s = $1;
-+		my $n = $1;
-+		$n =~ tr/A-Z/a-z/;
-+		$n =~ tr/_/-/;
-+
-+		$structs{$s} = $n;
-+		next;
-+	}
-+}
-+close IN;
-+
-+#
-+# Handle multi-line typedefs
-+#
-+
-+my @matches = $data =~ m/typedef\s+struct\s+\S+\s*\{[^\}]+\}\s*(\S+)\s*\;/g;
-+foreach my $m (@matches) {
-+		my $s = $1;
-+		my $n = $1;
-+		$n =~ tr/A-Z/a-z/;
-+		$n =~ tr/_/-/;
-+
-+		$typedefs{$s} = $n;
-+	next;
-+}
-+
-+#
-+# Handle exceptions, if any
-+#
-+
-+if ($file_exceptions) {
-+	open IN, $file_exceptions or die "Can't read $file_exceptions";
-+	while (<IN>) {
-+		next if (m/^\s*$/ || m/^\s*#/);
-+
-+		# Parsers to ignore a symbol
-+
-+		if (m/^ignore\s+ioctl\s+(\S+)/) {
-+			delete $ioctls{$1} if (exists($ioctls{$1}));
-+			next;
-+		}
-+		if (m/^ignore\s+define\s+(\S+)/) {
-+			delete $defines{$1} if (exists($defines{$1}));
-+			next;
-+		}
-+		if (m/^ignore\s+typedef\s+(\S+)/) {
-+			delete $typedefs{$1} if (exists($typedefs{$1}));
-+			next;
-+		}
-+		if (m/^ignore\s+enum\s+(\S+)/) {
-+			delete $enums{$1} if (exists($enums{$1}));
-+			next;
-+		}
-+		if (m/^ignore\s+struct\s+(\S+)/) {
-+			delete $structs{$1} if (exists($structs{$1}));
-+			next;
-+		}
-+
-+		# Parsers to replace a symbol
-+
-+		if (m/^replace\s+ioctl\s+(\S+)\s+(\S+)/) {
-+			$ioctls{$1} = $2 if (exists($ioctls{$1}));
-+			next;
-+		}
-+		if (m/^replace\s+define\s+(\S+)\s+(\S+)/) {
-+			$defines{$1} = $2 if (exists($defines{$1}));
-+			next;
-+		}
-+		if (m/^replace\s+typedef\s+(\S+)\s+(\S+)/) {
-+			$typedefs{$1} = $2 if (exists($typedefs{$1}));
-+			next;
-+		}
-+		if (m/^replace\s+enum\s+(\S+)\s+(\S+)/) {
-+			$enums{$1} = $2 if (exists($enums{$1}));
-+			next;
-+		}
-+		if (m/^replace\s+symbol\s+(\S+)\s+(\S+)/) {
-+			$enum_symbols{$1} = $2 if (exists($enum_symbols{$1}));
-+			next;
-+		}
-+		if (m/^replace\s+struct\s+(\S+)\s+(\S+)/) {
-+			$structs{$1} = $2 if (exists($structs{$1}));
-+			next;
-+		}
-+
-+		die "Can't parse $file_exceptions: $_";
-+	}
-+}
-+
-+if ($debug) {
-+	print Data::Dumper->Dump([\%ioctls], [qw(*ioctls)]) if (%ioctls);
-+	print Data::Dumper->Dump([\%typedefs], [qw(*typedefs)]) if (%typedefs);
-+	print Data::Dumper->Dump([\%enums], [qw(*enums)]) if (%enums);
-+	print Data::Dumper->Dump([\%structs], [qw(*structs)]) if (%structs);
-+	print Data::Dumper->Dump([\%defines], [qw(*defines)]) if (%defines);
-+	print Data::Dumper->Dump([\%enum_symbols], [qw(*enum_symbols)]) if (%enum_symbols);
-+}
-+
-+#
-+# Align block
-+#
-+$data = expand($data);
-+$data = "    " . $data;
-+$data =~ s/\n/\n    /g;
-+$data =~ s/\n\s+$/\n/g;
-+$data =~ s/\n\s+\n/\n\n/g;
-+
-+#
-+# Add escape codes for special characters
-+#
-+$data =~ s,([\_\`\*\<\>\&\\\\:\/]),\\$1,g;
-+
-+#
-+# Add references
-+#
-+
-+my $separators = "[\n \t\,\)\=\:\{\}\;]";
-+
-+foreach my $r (keys %ioctls) {
-+	my $n = $ioctls{$r};
-+
-+	my $s = ":ref:`$r <$n>`";
-+
-+	$r =~ s,([\_\`\*\<\>\&\\\\:\/]),\\\\$1,g;
-+
-+	print "$r -> $s\n" if ($debug);
-+
-+	$data =~ s/([\s])($r)($separators)/$1$s$3/g;
-+}
-+
-+foreach my $r (keys %defines) {
-+	my $n = $defines{$r};
-+
-+	my $s = ":ref:`$r <$n>`";
-+
-+	$r =~ s,([\_\`\*\<\>\&\\\\:\/]),\\\\$1,g;
-+
-+	print "$r -> $s\n" if ($debug);
-+
-+	$data =~ s/([\s])($r)($separators)/$1$s$3/g;
-+}
-+
-+foreach my $r (keys %enum_symbols) {
-+	my $n = $enum_symbols{$r};
-+
-+	my $s = ":ref:`$r <$n>`";
-+
-+	$r =~ s,([\_\`\*\<\>\&\\\\:\/]),\\\\$1,g;
-+
-+	print "$r -> $s\n" if ($debug);
-+
-+	$data =~ s/([\s])($r)($separators)/$1$s$3/g;
-+}
-+
-+foreach my $r (keys %enums) {
-+	my $n = $enums{$r};
-+
-+	my $s = ":ref:`enum $r <$n>`";
-+
-+	$r =~ s,([\_\`\*\<\>\&\\\\:\/]),\\\\$1,g;
-+
-+	print "$r -> $s\n" if ($debug);
-+
-+	$data =~ s/enum\s+($r)($separators)/$s$2/g;
-+}
-+
-+foreach my $r (keys %structs) {
-+	my $n = $structs{$r};
-+
-+	my $s = ":ref:`struct $r <$n>`";
-+
-+	$r =~ s,([\_\`\*\<\>\&\\\\:\/]),\\\\$1,g;
-+
-+	print "$r -> $s\n" if ($debug);
-+
-+	$data =~ s/struct\s+($r)($separators)/$s$2/g;
-+}
-+
-+foreach my $r (keys %typedefs) {
-+	my $n = $typedefs{$r};
-+
-+	my $s = ":ref:`$r <$n>`";
-+
-+	$r =~ s,([\_\`\*\<\>\&\\\\:\/]),\\\\$1,g;
-+
-+	print "$r -> $s\n" if ($debug);
-+
-+	$data =~ s/([\s\(\,\=])($r)($separators)/$1$s$3/g;
-+}
-+
-+#
-+# Generate output file
-+#
-+
-+my $title = $file_in;
-+$title =~ s,.*/,,;
-+
-+open OUT, "> $file_out" or die "Can't open $file_out";
-+print OUT ".. -*- coding: utf-8; mode: rst -*-\n\n";
-+print OUT "$title\n";
-+print OUT "=" x length($title);
-+print OUT "\n\n.. parsed-literal::\n\n";
-+print OUT $data;
-+close OUT;
--- 
-2.7.4
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index b16466f..1bc27ec 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -152,7 +152,7 @@ static void s5p_mfc_watchdog(unsigned long arg)
+ 		 * error. Now it is time to kill all instances and
+ 		 * reset the MFC. */
+ 		mfc_err("Time out during waiting for HW\n");
+-		queue_work(dev->watchdog_workqueue, &dev->watchdog_work);
++		schedule_work(&dev->watchdog_work);
+ 	}
+ 	dev->watchdog_timer.expires = jiffies +
+ 					msecs_to_jiffies(MFC_WATCHDOG_INTERVAL);
+@@ -1238,7 +1238,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, dev);
+
+ 	dev->hw_lock = 0;
+-	dev->watchdog_workqueue = create_singlethread_workqueue(S5P_MFC_NAME);
+ 	INIT_WORK(&dev->watchdog_work, s5p_mfc_watchdog_worker);
+ 	atomic_set(&dev->watchdog_cnt, 0);
+ 	init_timer(&dev->watchdog_timer);
+@@ -1284,8 +1283,7 @@ static int s5p_mfc_remove(struct platform_device *pdev)
+ 	v4l2_info(&dev->v4l2_dev, "Removing %s\n", pdev->name);
+
+ 	del_timer_sync(&dev->watchdog_timer);
+-	flush_workqueue(dev->watchdog_workqueue);
+-	destroy_workqueue(dev->watchdog_workqueue);
++	flush_work(&dev->watchdog_work);
+
+ 	video_unregister_device(dev->vfd_enc);
+ 	video_unregister_device(dev->vfd_dec);
+--
+2.1.4
 
