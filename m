@@ -1,81 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:44954 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750940AbcGQJC5 (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36100 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751451AbcGPOc5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 05:02:57 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2EF30180C37
-	for <linux-media@vger.kernel.org>; Sun, 17 Jul 2016 11:02:51 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] adv7511: fix VIC autodetect
-Message-ID: <18fc7b36-df66-7cd7-ccba-571c27426f42@xs4all.nl>
-Date: Sun, 17 Jul 2016 11:02:51 +0200
+	Sat, 16 Jul 2016 10:32:57 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <13000259.LGWzqn8rdl@avalon>
+References: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1704928.3gI88ec2Bn@avalon> <f0f50faf-67f6-6614-4ae3-b0f23aa09953@xs4all.nl> <13000259.LGWzqn8rdl@avalon>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Sat, 16 Jul 2016 16:32:35 +0200
+Message-ID: <CAPybu_2N+gKU4=qRfxHhEurTvUqT0f8Pup55C8KKTT_jEwf2nw@mail.gmail.com>
+Subject: Re: [PATCH v2 2/6] [media] Documentation: Add HSV format
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The adv7511 will automatically fill in the VIC code in the AVI InfoFrame
-based on the timings of the incoming pixelport signals.
+Hi
 
-However, to have this work correctly it needs to specify the fps
-value in a register. After doing this the proper VIC code is filled in.
+On Sat, Jul 16, 2016 at 4:12 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7511.c | 24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
+> I'd still like to know about it for my personal information :-)
 
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index 6d7cad5..53030d6 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -1041,6 +1041,8 @@ static int adv7511_s_dv_timings(struct v4l2_subdev *sd,
- 			       struct v4l2_dv_timings *timings)
- {
- 	struct adv7511_state *state = get_adv7511_state(sd);
-+	struct v4l2_bt_timings *bt = &timings->bt;
-+	u32 fps;
+Maybe it is just a very cheap gamma.
 
- 	v4l2_dbg(1, debug, sd, "%s:\n", __func__);
+>
+>> Anyway, I am inclined to use ycbcr_enc as well.
+>
+> I'm glad we agree.
+>
 
-@@ -1052,15 +1054,29 @@ static int adv7511_s_dv_timings(struct v4l2_subdev *sd,
- 	   if the format is one of the CEA or DMT timings. */
- 	v4l2_find_dv_timings_cap(timings, &adv7511_timings_cap, 0, NULL, NULL);
+Are you thinking about something like this:
 
--	timings->bt.flags &= ~V4L2_DV_FL_REDUCED_FPS;
--
- 	/* save timings */
- 	state->dv_timings = *timings;
 
- 	/* set h/vsync polarities */
- 	adv7511_wr_and_or(sd, 0x17, 0x9f,
--		((timings->bt.polarities & V4L2_DV_VSYNC_POS_POL) ? 0 : 0x40) |
--		((timings->bt.polarities & V4L2_DV_HSYNC_POS_POL) ? 0 : 0x20));
-+		((bt->polarities & V4L2_DV_VSYNC_POS_POL) ? 0 : 0x40) |
-+		((bt->polarities & V4L2_DV_HSYNC_POS_POL) ? 0 : 0x20));
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index c7fb760386cf..3e613fba1b20 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -330,6 +330,16 @@ enum v4l2_ycbcr_encoding {
+        V4L2_YCBCR_ENC_SMPTE240M      = 8,
+ };
+
++enum v4l2_hsv_encoding {
++       V4L2_HSV_ENC_180        = 16,
++       V4L2_HSV_ENC_256        = 17,
++};
 +
-+	fps = (u32)bt->pixelclock / (V4L2_DV_BT_FRAME_WIDTH(bt) * V4L2_DV_BT_FRAME_HEIGHT(bt));
-+	switch (fps) {
-+	case 24:
-+		adv7511_wr_and_or(sd, 0xfb, 0xf9, 1 << 1);
-+		break;
-+	case 25:
-+		adv7511_wr_and_or(sd, 0xfb, 0xf9, 2 << 1);
-+		break;
-+	case 30:
-+		adv7511_wr_and_or(sd, 0xfb, 0xf9, 3 << 1);
-+		break;
-+	default:
-+		adv7511_wr_and_or(sd, 0xfb, 0xf9, 0);
-+		break;
-+	}
++enum v4l2_rgb_encoding {
++       V4L2_RGB_ENC_FULL       = 32,
++       V4L2_HSV_ENC_16_235     = 33,
++};
++
+ /*
+  * Determine how YCBCR_ENC_DEFAULT should map to a proper Y'CbCr encoding.
+  * This depends on the colorspace.
+@@ -455,7 +465,11 @@ struct v4l2_pix_format {
+        __u32                   colorspace;     /* enum v4l2_colorspace */
+        __u32                   priv;           /* private data,
+depends on pixelformat */
+        __u32                   flags;          /* format flags
+(V4L2_PIX_FMT_FLAG_*) */
+-       __u32                   ycbcr_enc;      /* enum v4l2_ycbcr_encoding */
++       union {
++               __u32                   ycbcr_enc;      /* enum
+v4l2_ycbcr_encoding */
++               __u32                   hsv_enc;        /* enum
+v4l2_hsv_encoding */
++               __u32                   rgb_enc;        /* enum
+v4l2_rgb_encoding */
++       };
+        __u32                   quantization;   /* enum v4l2_quantization */
+        __u32                   xfer_func;      /* enum v4l2_xfer_func */
+ };
+@@ -1988,7 +2002,11 @@ struct v4l2_pix_format_mplane {
+        struct v4l2_plane_pix_format    plane_fmt[VIDEO_MAX_PLANES];
+        __u8                            num_planes;
+        __u8                            flags;
+-       __u8                            ycbcr_enc;
++       union {
++               __u8                    ycbcr_enc;      /* enum
+v4l2_ycbcr_encoding */
++               __u8                    hsv_enc;        /* enum
+v4l2_hsv_encoding */
++               __u8                    rgb_enc;        /* enum
+v4l2_rgb_encoding */
++       };
+        __u8                            quantization;
+        __u8                            xfer_func;
+        __u8                            reserved[7];
 
- 	/* update quantization range based on new dv_timings */
- 	adv7511_set_rgb_quantization_mode(sd, state->rgb_quantization_range_ctrl);
+> --
+
+
+Best regards!
+
 -- 
-2.8.1
-
+Ricardo Ribalda
