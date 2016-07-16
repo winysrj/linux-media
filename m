@@ -1,246 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45802 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751380AbcGRB41 (ORCPT
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:35192 "EHLO
+	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751538AbcGPIWm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 21:56:27 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 07/36] [media] doc-rst: Convert videobuf documentation to ReST
-Date: Sun, 17 Jul 2016 22:55:50 -0300
-Message-Id: <1bed13f521fc3d22d1b128999ea2b128aea50728.1468806744.git.mchehab@s-opensource.com>
-In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+	Sat, 16 Jul 2016 04:22:42 -0400
+MIME-Version: 1.0
+In-Reply-To: <7843924.z0DslKFWcx@avalon>
+References: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1468599199-5902-3-git-send-email-ricardo.ribalda@gmail.com> <7843924.z0DslKFWcx@avalon>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Sat, 16 Jul 2016 10:22:20 +0200
+Message-ID: <CAPybu_3cc7M5ztF0iw=Zndtjoup=B8BfyqsNwaJO7ttKS_CDYw@mail.gmail.com>
+Subject: Re: [PATCH v2 2/6] [media] Documentation: Add HSV format
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The videobuf documentation is almost at rst format: we
-just needed to add titles and add some code-blocks there
-and that's it.
+Hi Laurent
 
-Also, add a notice that this framework is deprecated.
+It is actually a very good comment. :) In our case we have implemented
+the format ourselves in the FPGA and we support both 0-255 and 0-179
+Hue ranges.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/kapi/videobuf.rst | 51 +++++++++++++++++++++++++++++++++--
- Documentation/media/media_drivers.rst |  1 +
- 2 files changed, 50 insertions(+), 2 deletions(-)
+After some weeks of use, only the 0-179 range is used in userpace. The
+reasons for this is mainly that it is the format used by OpenCV
+http://docs.opencv.org/3.1.0/de/d25/imgproc_color_conversions.html#color_convert_rgb_hsv&gsc.tab=0
+, but also because it is very efficient to convert from 0-360 to 0-180
+and the lose of color resolution (256/180) does not lead to (human)
+perceptible differences.
 
-diff --git a/Documentation/media/kapi/videobuf.rst b/Documentation/media/kapi/videobuf.rst
-index 3ffe9e960b6f..01156728203c 100644
---- a/Documentation/media/kapi/videobuf.rst
-+++ b/Documentation/media/kapi/videobuf.rst
-@@ -1,7 +1,18 @@
--An introduction to the videobuf layer
--Jonathan Corbet <corbet@lwn.net>
-+Videobuf Framework
-+==================
-+
-+Author: Jonathan Corbet <corbet@lwn.net>
-+
- Current as of 2.6.33
- 
-+.. note::
-+
-+   The videobuf framework was deprecated in favor of videobuf2. Shouldn't
-+   be used on new drivers.
-+
-+Introduction
-+------------
-+
- The videobuf layer functions as a sort of glue layer between a V4L2 driver
- and user space.  It handles the allocation and management of buffers for
- the storage of video frames.  There is a set of functions which can be used
-@@ -14,6 +25,7 @@ author, but the payback comes in the form of reduced code in the driver and
- a consistent implementation of the V4L2 user-space API.
- 
- Buffer types
-+------------
- 
- Not all video devices use the same kind of buffers.  In fact, there are (at
- least) three common variations:
-@@ -48,10 +60,13 @@ the kernel and a description of this technique is currently beyond the
- scope of this document.]
- 
- Data structures, callbacks, and initialization
-+----------------------------------------------
- 
- Depending on which type of buffers are being used, the driver should
- include one of the following files:
- 
-+.. code-block:: none
-+
-     <media/videobuf-dma-sg.h>		/* Physically scattered */
-     <media/videobuf-vmalloc.h>		/* vmalloc() buffers	*/
-     <media/videobuf-dma-contig.h>	/* Physically contiguous */
-@@ -65,6 +80,8 @@ the queue.
- The next step is to write four simple callbacks to help videobuf deal with
- the management of buffers:
- 
-+.. code-block:: none
-+
-     struct videobuf_queue_ops {
- 	int (*buf_setup)(struct videobuf_queue *q,
- 			 unsigned int *count, unsigned int *size);
-@@ -91,6 +108,8 @@ passed to buf_prepare(), which should set the buffer's size, width, height,
- and field fields properly.  If the buffer's state field is
- VIDEOBUF_NEEDS_INIT, the driver should pass it to:
- 
-+.. code-block:: none
-+
-     int videobuf_iolock(struct videobuf_queue* q, struct videobuf_buffer *vb,
- 			struct v4l2_framebuffer *fbuf);
- 
-@@ -110,6 +129,8 @@ Finally, buf_release() is called when a buffer is no longer intended to be
- used.  The driver should ensure that there is no I/O active on the buffer,
- then pass it to the appropriate free routine(s):
- 
-+.. code-block:: none
-+
-     /* Scatter/gather drivers */
-     int videobuf_dma_unmap(struct videobuf_queue *q,
- 			   struct videobuf_dmabuf *dma);
-@@ -124,6 +145,8 @@ then pass it to the appropriate free routine(s):
- 
- One way to ensure that a buffer is no longer under I/O is to pass it to:
- 
-+.. code-block:: none
-+
-     int videobuf_waiton(struct videobuf_buffer *vb, int non_blocking, int intr);
- 
- Here, vb is the buffer, non_blocking indicates whether non-blocking I/O
-@@ -131,12 +154,15 @@ should be used (it should be zero in the buf_release() case), and intr
- controls whether an interruptible wait is used.
- 
- File operations
-+---------------
- 
- At this point, much of the work is done; much of the rest is slipping
- videobuf calls into the implementation of the other driver callbacks.  The
- first step is in the open() function, which must initialize the
- videobuf queue.  The function to use depends on the type of buffer used:
- 
-+.. code-block:: none
-+
-     void videobuf_queue_sg_init(struct videobuf_queue *q,
- 				struct videobuf_queue_ops *ops,
- 				struct device *dev,
-@@ -182,6 +208,8 @@ applications have a chance of working with the device.  Videobuf makes it
- easy to do that with the same code.  To implement read(), the driver need
- only make a call to one of:
- 
-+.. code-block:: none
-+
-     ssize_t videobuf_read_one(struct videobuf_queue *q,
- 			      char __user *data, size_t count,
- 			      loff_t *ppos, int nonblocking);
-@@ -201,6 +229,8 @@ anticipation of another read() call happening in the near future).
- 
- The poll() function can usually be implemented with a direct call to:
- 
-+.. code-block:: none
-+
-     unsigned int videobuf_poll_stream(struct file *file,
- 				      struct videobuf_queue *q,
- 				      poll_table *wait);
-@@ -213,6 +243,8 @@ the mmap() system call to enable user space to access the data.  In many
- V4L2 drivers, the often-complex mmap() implementation simplifies to a
- single call to:
- 
-+.. code-block:: none
-+
-     int videobuf_mmap_mapper(struct videobuf_queue *q,
- 			     struct vm_area_struct *vma);
- 
-@@ -220,6 +252,8 @@ Everything else is handled by the videobuf code.
- 
- The release() function requires two separate videobuf calls:
- 
-+.. code-block:: none
-+
-     void videobuf_stop(struct videobuf_queue *q);
-     int videobuf_mmap_free(struct videobuf_queue *q);
- 
-@@ -233,12 +267,15 @@ buffers are still mapped, but every driver in the 2.6.32 kernel cheerfully
- ignores its return value.
- 
- ioctl() operations
-+------------------
- 
- The V4L2 API includes a very long list of driver callbacks to respond to
- the many ioctl() commands made available to user space.  A number of these
- - those associated with streaming I/O - turn almost directly into videobuf
- calls.  The relevant helper functions are:
- 
-+.. code-block:: none
-+
-     int videobuf_reqbufs(struct videobuf_queue *q,
- 			 struct v4l2_requestbuffers *req);
-     int videobuf_querybuf(struct videobuf_queue *q, struct v4l2_buffer *b);
-@@ -259,6 +296,7 @@ complex, of course, since they will also need to deal with starting and
- stopping the capture engine.
- 
- Buffer allocation
-+-----------------
- 
- Thus far, we have talked about buffers, but have not looked at how they are
- allocated.  The scatter/gather case is the most complex on this front.  For
-@@ -272,11 +310,15 @@ If the driver needs to do its own memory allocation, it should be done in
- the vidioc_reqbufs() function, *after* calling videobuf_reqbufs().  The
- first step is a call to:
- 
-+.. code-block:: none
-+
-     struct videobuf_dmabuf *videobuf_to_dma(struct videobuf_buffer *buf);
- 
- The returned videobuf_dmabuf structure (defined in
- <media/videobuf-dma-sg.h>) includes a couple of relevant fields:
- 
-+.. code-block:: none
-+
-     struct scatterlist  *sglist;
-     int                 sglen;
- 
-@@ -300,6 +342,7 @@ kernel drivers, or those contained within huge pages, will work with these
- drivers.
- 
- Filling the buffers
-+-------------------
- 
- The final part of a videobuf implementation has no direct callback - it's
- the portion of the code which actually puts frame data into the buffers,
-@@ -331,10 +374,14 @@ For scatter/gather drivers, the needed memory pointers will be found in the
- scatterlist structure described above.  Drivers using the vmalloc() method
- can get a memory pointer with:
- 
-+.. code-block:: none
-+
-     void *videobuf_to_vmalloc(struct videobuf_buffer *buf);
- 
- For contiguous DMA drivers, the function to use is:
- 
-+.. code-block:: none
-+
-     dma_addr_t videobuf_to_dma_contig(struct videobuf_buffer *buf);
- 
- The contiguous DMA API goes out of its way to hide the kernel-space address
-diff --git a/Documentation/media/media_drivers.rst b/Documentation/media/media_drivers.rst
-index 5941fea2607e..8e0f455ff6e0 100644
---- a/Documentation/media/media_drivers.rst
-+++ b/Documentation/media/media_drivers.rst
-@@ -19,6 +19,7 @@ License".
- 
-     kapi/v4l2-framework
-     kapi/v4l2-controls
-+    kapi/videobuf
-     kapi/v4l2-core
-     kapi/dtv-core
-     kapi/rc-core
+All that said, I would not mind to implement also the 0-255 range, but
+I do not know which API should be the best way to do it. quantization?
+it looks nice, but it is not really a quantization... a control? a bit
+messy.... fourcc? seems good...
+
+I am open to anything :), but I am not the right guy for making the
+decision. Hans, could you help me?
+
+
+Thanks!
+
+On Fri, Jul 15, 2016 at 8:11 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Ricardo,
+>
+> Thank you for the patch.
+>
+> On Friday 15 Jul 2016 18:13:15 Ricardo Ribalda Delgado wrote:
+>> Describe the HSV formats
+>>
+>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>> ---
+>>  Documentation/media/uapi/v4l/hsv-formats.rst       |  19 ++
+>>  Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst | 253 ++++++++++++++++++
+>>  Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
+>>  Documentation/media/uapi/v4l/v4l2.rst              |   5 +
+>>  4 files changed, 278 insertions(+)
+>>  create mode 100644 Documentation/media/uapi/v4l/hsv-formats.rst
+>>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+>>
+>> diff --git a/Documentation/media/uapi/v4l/hsv-formats.rst
+>> b/Documentation/media/uapi/v4l/hsv-formats.rst new file mode 100644
+>> index 000000000000..f0f2615eaa95
+>> --- /dev/null
+>> +++ b/Documentation/media/uapi/v4l/hsv-formats.rst
+>> @@ -0,0 +1,19 @@
+>> +.. -*- coding: utf-8; mode: rst -*-
+>> +
+>> +.. _hsv-formats:
+>> +
+>> +***********
+>> +HSV Formats
+>> +***********
+>> +
+>> +These formats store the color information of the image
+>> +in a geometrical representation. The colors are mapped into a
+>> +cylinder, where the angle is the HUE, the height is the VALUE
+>> +and the distance to the center is the SATURATION. This is a very
+>> +useful format for image segmentation algorithms.
+>> +
+>> +
+>> +.. toctree::
+>> +    :maxdepth: 1
+>> +
+>> +    pixfmt-packed-hsv
+>> diff --git a/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+>> b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst new file mode 100644
+>> index 000000000000..b297aa4f7ba6
+>> --- /dev/null
+>> +++ b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+>> @@ -0,0 +1,253 @@
+>> +.. -*- coding: utf-8; mode: rst -*-
+>> +
+>> +.. _packed-hsv:
+>> +
+>> +******************
+>> +Packed HSV formats
+>> +******************
+>> +
+>> +*man Packed HSV formats(2)*
+>> +
+>> +Packed HSV formats
+>> +
+>> +
+>> +Description
+>> +===========
+>> +
+>> +The HUE (h) is meassured in degrees, one LSB represents two degrees.
+>
+> Is this common ? I have a device that can handle HSV data, I need to check how
+> it maps the hue values to binary, but I'm pretty sure they cover the full
+> 0-255 range. We would then have to support the two formats. Separate 4CCs are
+> an option, but reporting the range separately (possibly through the colorspace
+> API) might be better. Any thought on that ?
+>
+>> +The SATURATION (s) and the VALUE (v) are measured in percentage of the
+>> +cylinder: 0 being the smallest value and 255 the maximum.
+>> +
+>> +
+>> +The values are packed in 24 or 32 bit formats.
+>> +
+>> +
+>> +.. flat-table:: Packed HSV Image Formats
+>> +    :header-rows:  2
+>> +    :stub-columns: 0
+>> +
+>> +
+>> +    -  .. row 1
+>> +
+>> +       -  Identifier
+>> +
+>> +       -  Code
+>> +
+>> +       -
+>> +       -  :cspan:`7` Byte 0 in memory
+>> +
+>
+> Do we really need all those blank lines ?
+>
+> [snip]
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+
+
+
 -- 
-2.7.4
-
+Ricardo Ribalda
