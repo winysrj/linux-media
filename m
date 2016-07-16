@@ -1,93 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45943 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752965AbcGEGlU (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:43402 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751351AbcGPITh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Jul 2016 02:41:20 -0400
-Subject: Re: [PATCH v2 1/3] sur40: properly report a single frame rate of 60
- FPS
-To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
-References: <1464725733-22119-1-git-send-email-floe@butterbrot.org>
-Cc: linux-input@vger.kernel.org, Martin Kaltenbrunner <modin@yuri.at>
+	Sat, 16 Jul 2016 04:19:37 -0400
+Subject: Re: [PATCH v2 2/6] [media] Documentation: Add HSV format
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+References: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1468599199-5902-3-git-send-email-ricardo.ribalda@gmail.com>
+ <7843924.z0DslKFWcx@avalon>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <f5d84d25-eae4-df9b-819b-256565783c35@xs4all.nl>
-Date: Tue, 5 Jul 2016 08:41:13 +0200
+Message-ID: <50772055-a856-0574-d89b-cc6665454252@xs4all.nl>
+Date: Sat, 16 Jul 2016 10:19:29 +0200
 MIME-Version: 1.0
-In-Reply-To: <1464725733-22119-1-git-send-email-floe@butterbrot.org>
+In-Reply-To: <7843924.z0DslKFWcx@avalon>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/31/2016 10:15 PM, Florian Echtler wrote:
-> The device hardware is always running at 60 FPS, so report this both via
-> PARM_IOCTL and ENUM_FRAMEINTERVALS.
+On 07/15/2016 08:11 PM, Laurent Pinchart wrote:
+> Hi Ricardo,
 > 
-> Signed-off-by: Martin Kaltenbrunner <modin@yuri.at>
-> Signed-off-by: Florian Echtler <floe@butterbrot.org>
-> ---
->  drivers/input/touchscreen/sur40.c | 20 ++++++++++++++++++--
->  1 file changed, 18 insertions(+), 2 deletions(-)
+> Thank you for the patch.
 > 
-> diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-> index 880c40b..4b1f703 100644
-> --- a/drivers/input/touchscreen/sur40.c
-> +++ b/drivers/input/touchscreen/sur40.c
-> @@ -788,6 +788,19 @@ static int sur40_vidioc_fmt(struct file *file, void *priv,
->  	return 0;
->  }
->  
-> +static int sur40_ioctl_parm(struct file *file, void *priv,
-> +			    struct v4l2_streamparm *p)
-> +{
-> +	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;
-> +
-> +	p->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
-> +	p->parm.capture.timeperframe.numerator = 1;
-> +	p->parm.capture.timeperframe.denominator = 60;
-> +	p->parm.capture.readbuffers = 3;
-> +	return 0;
-> +}
-> +
->  static int sur40_vidioc_enum_fmt(struct file *file, void *priv,
->  				 struct v4l2_fmtdesc *f)
->  {
-> @@ -814,13 +827,13 @@ static int sur40_vidioc_enum_framesizes(struct file *file, void *priv,
->  static int sur40_vidioc_enum_frameintervals(struct file *file, void *priv,
->  					    struct v4l2_frmivalenum *f)
->  {
-> -	if ((f->index > 1) || (f->pixel_format != V4L2_PIX_FMT_GREY)
-> +	if ((f->index > 0) || (f->pixel_format != V4L2_PIX_FMT_GREY)
->  		|| (f->width  != sur40_video_format.width)
->  		|| (f->height != sur40_video_format.height))
->  			return -EINVAL;
->  
->  	f->type = V4L2_FRMIVAL_TYPE_DISCRETE;
-> -	f->discrete.denominator  = 60/(f->index+1);
-> +	f->discrete.denominator  = 60;
->  	f->discrete.numerator = 1;
->  	return 0;
->  }
-> @@ -880,6 +893,9 @@ static const struct v4l2_ioctl_ops sur40_video_ioctl_ops = {
->  	.vidioc_enum_framesizes = sur40_vidioc_enum_framesizes,
->  	.vidioc_enum_frameintervals = sur40_vidioc_enum_frameintervals,
->  
-> +	.vidioc_g_parm = sur40_ioctl_parm,
-> +	.vidioc_s_parm = sur40_ioctl_parm,
+> On Friday 15 Jul 2016 18:13:15 Ricardo Ribalda Delgado wrote:
+>> Describe the HSV formats
+>>
+>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>> ---
+>>  Documentation/media/uapi/v4l/hsv-formats.rst       |  19 ++
+>>  Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst | 253 ++++++++++++++++++
+>>  Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
+>>  Documentation/media/uapi/v4l/v4l2.rst              |   5 +
+>>  4 files changed, 278 insertions(+)
+>>  create mode 100644 Documentation/media/uapi/v4l/hsv-formats.rst
+>>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+>>
+>> diff --git a/Documentation/media/uapi/v4l/hsv-formats.rst
+>> b/Documentation/media/uapi/v4l/hsv-formats.rst new file mode 100644
+>> index 000000000000..f0f2615eaa95
+>> --- /dev/null
+>> +++ b/Documentation/media/uapi/v4l/hsv-formats.rst
+>> @@ -0,0 +1,19 @@
+>> +.. -*- coding: utf-8; mode: rst -*-
+>> +
+>> +.. _hsv-formats:
+>> +
+>> +***********
+>> +HSV Formats
+>> +***********
+>> +
+>> +These formats store the color information of the image
+>> +in a geometrical representation. The colors are mapped into a
+>> +cylinder, where the angle is the HUE, the height is the VALUE
+>> +and the distance to the center is the SATURATION. This is a very
+>> +useful format for image segmentation algorithms.
+>> +
+>> +
+>> +.. toctree::
+>> +    :maxdepth: 1
+>> +
+>> +    pixfmt-packed-hsv
+>> diff --git a/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+>> b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst new file mode 100644
+>> index 000000000000..b297aa4f7ba6
+>> --- /dev/null
+>> +++ b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+>> @@ -0,0 +1,253 @@
+>> +.. -*- coding: utf-8; mode: rst -*-
+>> +
+>> +.. _packed-hsv:
+>> +
+>> +******************
+>> +Packed HSV formats
+>> +******************
+>> +
+>> +*man Packed HSV formats(2)*
+>> +
+>> +Packed HSV formats
+>> +
+>> +
+>> +Description
+>> +===========
+>> +
+>> +The HUE (h) is meassured in degrees, one LSB represents two degrees.
+> 
+> Is this common ? I have a device that can handle HSV data, I need to check how 
+> it maps the hue values to binary, but I'm pretty sure they cover the full 
+> 0-255 range. We would then have to support the two formats. Separate 4CCs are 
+> an option, but reporting the range separately (possibly through the colorspace 
+> API) might be better. Any thought on that ?
 
-Why is s_parm added when you can't change the framerate? Same questions for the
-enum_frameintervals function: it doesn't hurt to have it, but if there is only
-one unchangeable framerate, then it doesn't make much sense.
-
-Sorry, missed this when I reviewed this the first time around.
+It's either a separate 4cc or we do something with the ycbcr_enc field (reinterpreted
+as hsv_enc). I'm not sure, I would have to think some more about that.
 
 Regards,
 
 	Hans
-
-> +
->  	.vidioc_enum_input	= sur40_vidioc_enum_input,
->  	.vidioc_g_input		= sur40_vidioc_g_input,
->  	.vidioc_s_input		= sur40_vidioc_s_input,
-> 
