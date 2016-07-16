@@ -1,90 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38729 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754244AbcGEBb3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:29 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:33046 "EHLO
+	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751430AbcGPKmF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Jul 2016 06:42:05 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
 	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 32/41] Documentation: buffer.rst: numerate tables and figures
-Date: Mon,  4 Jul 2016 22:31:07 -0300
-Message-Id: <976fdcc1adb1ec79e5e860eb94421032c0d92a3b.1467670142.git.mchehab@s-opensource.com>
-In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v3 1/9] [media] videodev2.h Add HSV formats
+Date: Sat, 16 Jul 2016 12:41:48 +0200
+Message-Id: <1468665716-10178-2-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1468665716-10178-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1468665716-10178-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sphinx actually doesn't numerate tables nor figures. So,
-let's add a subtitle before each table. That makes them
-"numerated".
+These formats store the color information of the image
+in a geometrical representation. The colors are mapped into a
+cylinder, where the angle is the HUE, the height is the VALUE
+and the distance to the center is the SATURATION. This is a very
+useful format for image segmentation algorithms.
 
-While here, fix the git binary that got corrupted.
-Let's hope this will work, as the reason why we had
-to encode them were to prevent some issues on commiting
-those gif files on git.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- Documentation/linux_tv/media/v4l/field-order.rst    |  14 ++++++++++----
- .../media/v4l/field-order_files/fieldseq_tb.gif     | Bin 25339 -> 25323 bytes
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 2 ++
+ include/uapi/linux/videodev2.h       | 4 ++++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/Documentation/linux_tv/media/v4l/field-order.rst b/Documentation/linux_tv/media/v4l/field-order.rst
-index d4e801cdae1a..979fedbb2bda 100644
---- a/Documentation/linux_tv/media/v4l/field-order.rst
-+++ b/Documentation/linux_tv/media/v4l/field-order.rst
-@@ -54,7 +54,10 @@ should have the value ``V4L2_FIELD_ANY`` (0).
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index f899bf1c5fc0..54670cd59212 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1238,6 +1238,8 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_TM6000:	descr = "A/V + VBI Mux Packet"; break;
+ 	case V4L2_PIX_FMT_CIT_YYVYUY:	descr = "GSPCA CIT YYVYUY"; break;
+ 	case V4L2_PIX_FMT_KONICA420:	descr = "GSPCA KONICA420"; break;
++	case V4L2_PIX_FMT_HSV24:	descr = "24-bit HSV 8-8-8"; break;
++	case V4L2_PIX_FMT_HSV32:	descr = "32-bit XHSV 8-8-8-8"; break;
+ 	case V4L2_SDR_FMT_CU8:		descr = "Complex U8"; break;
+ 	case V4L2_SDR_FMT_CU16LE:	descr = "Complex U16LE"; break;
+ 	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 724f43e69d03..c7fb760386cf 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -580,6 +580,10 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
+ #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
  
- .. _v4l2-field:
- 
--.. flat-table:: enum v4l2_field
-+enum v4l2_field
-+===============
++/* HSV formats */
++#define V4L2_PIX_FMT_HSV24 v4l2_fourcc('H', 'S', 'V', '3')
++#define V4L2_PIX_FMT_HSV32 v4l2_fourcc('H', 'S', 'V', '4')
 +
-+.. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-     :widths:       3 1 4
-@@ -183,17 +186,20 @@ should have the value ``V4L2_FIELD_ANY`` (0).
- 
- .. _fieldseq-tb:
- 
-+Field Order, Top Field First Transmitted
-+========================================
-+
- .. figure::  field-order_files/fieldseq_tb.*
-     :alt:    fieldseq_tb.pdf / fieldseq_tb.gif
-     :align:  center
- 
--    Field Order, Top Field First Transmitted
--
- 
- .. _fieldseq-bt:
- 
-+Field Order, Bottom Field First Transmitted
-+===========================================
-+
- .. figure::  field-order_files/fieldseq_bt.*
-     :alt:    fieldseq_bt.pdf / fieldseq_bt.gif
-     :align:  center
- 
--    Field Order, Bottom Field First Transmitted
-diff --git a/Documentation/linux_tv/media/v4l/field-order_files/fieldseq_tb.gif b/Documentation/linux_tv/media/v4l/field-order_files/fieldseq_tb.gif
-index bf1c3f1b50d5ff04b196659ca5c2629ec9deae03..718492f1cfc703e6553c3b0e2afc4b269258412b 100644
-GIT binary patch
-delta 41
-xcmex;l=1aZ#tlL2Os*lDBiL^XF}VhAwv<ZXVsZ`GJYVI#F_UZ9<|z^BTmVl94*CE9
-
-delta 57
-zcmaETl=1gb#tlL2YzYajAqfeaL)dQ%f!KjSwxLu47l<7IWKULkZwz9G0og4P>0AJI
-C85H6G
-
+ /* compressed formats */
+ #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M', 'J', 'P', 'G') /* Motion-JPEG   */
+ #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF JPEG     */
 -- 
-2.7.4
+2.8.1
 
