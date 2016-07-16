@@ -1,46 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:54145 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753403AbcGDNaA (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:57913 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751685AbcGPQOn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 09:30:00 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
+	Sat, 16 Jul 2016 12:14:43 -0400
+Subject: Re: [PATCH v2 2/6] [media] Documentation: Add HSV format
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+References: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1704928.3gI88ec2Bn@avalon> <f0f50faf-67f6-6614-4ae3-b0f23aa09953@xs4all.nl>
+ <13000259.LGWzqn8rdl@avalon>
+ <CAPybu_2N+gKU4=qRfxHhEurTvUqT0f8Pup55C8KKTT_jEwf2nw@mail.gmail.com>
+ <94f0b9bc-542b-6e19-3ca1-332632c135f7@xs4all.nl>
+ <CAPybu_3=j99ThtMGbecNRUjTTNOM1f=MoReGgYV05JsjbRauAg@mail.gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.8] Update MAINTAINERS and two gspca fixes
-Message-ID: <923e697a-b1f3-0d11-ca11-4b154c4cd1e8@xs4all.nl>
-Date: Mon, 4 Jul 2016 15:29:55 +0200
+Message-ID: <61de90a6-812d-08d5-919c-669ff33cc836@xs4all.nl>
+Date: Sat, 16 Jul 2016 18:14:37 +0200
 MIME-Version: 1.0
+In-Reply-To: <CAPybu_3=j99ThtMGbecNRUjTTNOM1f=MoReGgYV05JsjbRauAg@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 80aa26593e3eb48f16c4222aa27ff40806f57c45:
+On 07/16/2016 05:57 PM, Ricardo Ribalda Delgado wrote:
+> Hi Hans
+> 
+> On Sat, Jul 16, 2016 at 5:28 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> 
+>>
+>>> +
+>>> +enum v4l2_rgb_encoding {
+>>> +       V4L2_RGB_ENC_FULL       = 32,
+>>> +       V4L2_HSV_ENC_16_235     = 33,
+>>> +};
+>>
+>> No.
+> 
+> I was trying to fit also Laurent special 16-235 RGB format. I will
+> remove it on future versions.
+> 
+> 
+> Can I make this change as 2 new patches on my vivid-hsv patchset?
+> 
+> 1) Add hsv_encoding
+> 2) Add support for vivid hsv_encoding
 
-  [media] media: rcar-vin: add DV timings support (2016-06-28 09:06:40 -0300)
+Yes. I prefer them last in the series, since I am not quite 100% certain yet.
 
-are available in the git repository at:
+Regards,
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.8g
-
-for you to fetch changes up to d36187f2af7da74592d614d429bbabd170be3656:
-
-  gspca: avoid unused variable warnings (2016-07-04 15:28:43 +0200)
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      gspca: avoid unused variable warnings
-
-Hans Verkuil (1):
-      MAINTAINERS: change maintainer for gscpa/pwc/radio-shark
-
-Oliver Neukum (1):
-      gspca: correct speed testing
-
- MAINTAINERS                      | 16 ++++++++--------
- drivers/media/usb/gspca/cpia1.c  |  2 +-
- drivers/media/usb/gspca/gspca.c  |  2 +-
- drivers/media/usb/gspca/konica.c |  2 +-
- drivers/media/usb/gspca/t613.c   |  2 +-
- 5 files changed, 12 insertions(+), 12 deletions(-)
+	Hans
