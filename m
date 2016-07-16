@@ -1,65 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51417 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752492AbcGMNxD (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:35303 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751430AbcGPIz7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 09:53:03 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 2/2] [media] doc-rst: increase depth of the main index
-Date: Wed, 13 Jul 2016 10:52:24 -0300
-Message-Id: <4de33984f6584cbb04e0c2bea8aa5a4c8bcbd2b1.1468417933.git.mchehab@s-opensource.com>
-In-Reply-To: <47e23fda1c738e648d2a5470e1dacdc62ce788a5.1468417933.git.mchehab@s-opensource.com>
-References: <47e23fda1c738e648d2a5470e1dacdc62ce788a5.1468417933.git.mchehab@s-opensource.com>
-In-Reply-To: <47e23fda1c738e648d2a5470e1dacdc62ce788a5.1468417933.git.mchehab@s-opensource.com>
-References: <47e23fda1c738e648d2a5470e1dacdc62ce788a5.1468417933.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Sat, 16 Jul 2016 04:55:59 -0400
+Date: Sat, 16 Jul 2016 14:25:56 +0530
+From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+To: Frank Zago <frank@zago.net>, Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Tejun Heo <tj@kernel.org>
+Subject: [PATCH] [media] gspca: finepix: Remove deprecated
+ create_singlethread_workqueue
+Message-ID: <20160716085556.GA7841@Karyakshetra>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is useful to have an index with all the book contents somewhere,
-as it makes easier to seek for something. So, increase maxdepth
-to 5 for the main index at the beginning of the book.
+The workqueue "work_thread" is involved in streaming the camera data.
+It has a single work item(&dev->work_struct) and hence doesn't require
+ordering. Also, it is not being used on a memory reclaim path.
+Hence, the singlethreaded workqueue has been replaced with the use of
+system_wq.
 
-While here, remove the genindex content, as it is bogus.
+System workqueues have been able to handle high level of concurrency
+for a long time now and hence it's not required to have a singlethreaded
+workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
+created with create_singlethread_workqueue(), system_wq allows multiple
+work items to overlap executions even on the same CPU; however, a
+per-cpu workqueue doesn't have any CPU locality or global ordering
+guarantee unless the target CPU is explicitly specified and thus the
+increase of local concurrency shouldn't make any difference.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Work item has been flushed in sd_stop0() to ensure that there are no
+pending tasks while disconnecting the driver.
+
+Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
 ---
- Documentation/media/media_uapi.rst | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/media/usb/gspca/finepix.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/media/media_uapi.rst b/Documentation/media/media_uapi.rst
-index 527c6deb1a19..5e872c8297b0 100644
---- a/Documentation/media/media_uapi.rst
-+++ b/Documentation/media/media_uapi.rst
-@@ -15,8 +15,10 @@ the license is included in the chapter entitled "GNU Free Documentation
- License".
- 
- 
-+.. contents::
-+
- .. toctree::
--    :maxdepth: 1
-+    :maxdepth: 5
- 
-     intro
-     uapi/v4l/v4l2
-@@ -26,10 +28,3 @@ License".
-     uapi/cec/cec-api
-     uapi/gen-errors
-     uapi/fdl-appendix
--
--.. only:: html
--
--  Retrieval
--  =========
--
--  * :ref:`genindex`
--- 
-2.7.4
+diff --git a/drivers/media/usb/gspca/finepix.c b/drivers/media/usb/gspca/finepix.c
+index 52bdb56..ae9a55d 100644
+--- a/drivers/media/usb/gspca/finepix.c
++++ b/drivers/media/usb/gspca/finepix.c
+@@ -41,7 +41,6 @@ struct usb_fpix {
+ 	struct gspca_dev gspca_dev;	/* !! must be the first item */
+
+ 	struct work_struct work_struct;
+-	struct workqueue_struct *work_thread;
+ };
+
+ /* Delay after which claim the next frame. If the delay is too small,
+@@ -226,9 +225,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 	/* Again, reset bulk in endpoint */
+ 	usb_clear_halt(gspca_dev->dev, gspca_dev->urb[0]->pipe);
+
+-	/* Start the workqueue function to do the streaming */
+-	dev->work_thread = create_singlethread_workqueue(MODULE_NAME);
+-	queue_work(dev->work_thread, &dev->work_struct);
++	schedule_work(&dev->work_struct);
+
+ 	return 0;
+ }
+@@ -241,9 +238,8 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
+
+ 	/* wait for the work queue to terminate */
+ 	mutex_unlock(&gspca_dev->usb_lock);
+-	destroy_workqueue(dev->work_thread);
++	flush_work(&dev->work_struct);
+ 	mutex_lock(&gspca_dev->usb_lock);
+-	dev->work_thread = NULL;
+ }
+
+ /* Table of supported USB devices */
+--
+2.1.4
 
