@@ -1,66 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:59626 "EHLO
-	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752141AbcGYOof (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:46786 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751495AbcGPPTY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jul 2016 10:44:35 -0400
-From: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Yannick Fertre <yannick.fertre@st.com>,
-	Hugues Fruchet <hugues.fruchet@st.com>,
-	Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v4 1/3] Documentation: DT: add bindings for ST HVA
-Date: Mon, 25 Jul 2016 16:44:08 +0200
-Message-ID: <1469457850-17973-2-git-send-email-jean-christophe.trotin@st.com>
-In-Reply-To: <1469457850-17973-1-git-send-email-jean-christophe.trotin@st.com>
-References: <1469457850-17973-1-git-send-email-jean-christophe.trotin@st.com>
+	Sat, 16 Jul 2016 11:19:24 -0400
+Subject: Re: [PATCH v2 2/6] [media] Documentation: Add HSV format
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1704928.3gI88ec2Bn@avalon> <f0f50faf-67f6-6614-4ae3-b0f23aa09953@xs4all.nl>
+ <13000259.LGWzqn8rdl@avalon>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <896b01f9-6df3-6ade-4cce-a19189faccfb@xs4all.nl>
+Date: Sat, 16 Jul 2016 17:19:18 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <13000259.LGWzqn8rdl@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds DT binding documentation for STMicroelectronics hva
-driver.
+On 07/16/2016 04:12 PM, Laurent Pinchart wrote:
+>> Limited vs full range quantization is handled by the quantization field.
+>> It's there already.
+> 
+> Right. I wonder how we'll deal with that when someone will come up with more 
+> than one limited range quantizations, have you thought about it ?
 
-Signed-off-by: Yannick Fertre <yannick.fertre@st.com>
-Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
----
- .../devicetree/bindings/media/st,st-hva.txt        | 24 ++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,st-hva.txt
+There is just limited and full range. Limited range is basically a left-over
+from analog TV.
 
-diff --git a/Documentation/devicetree/bindings/media/st,st-hva.txt b/Documentation/devicetree/bindings/media/st,st-hva.txt
-new file mode 100644
-index 0000000..0d76174
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/st,st-hva.txt
-@@ -0,0 +1,24 @@
-+st-hva: multi-format video encoder for STMicroelectronics SoC.
-+
-+Required properties:
-+- compatible: should be "st,st-hva".
-+- reg: HVA physical address location and length, esram address location and
-+  length.
-+- reg-names: names of the registers listed in registers property in the same
-+  order.
-+- interrupts: HVA interrupt number.
-+- clocks: from common clock binding: handle hardware IP needed clocks, the
-+  number of clocks may depend on the SoC type.
-+  See ../clock/clock-bindings.txt for details.
-+- clock-names: names of the clocks listed in clocks property in the same order.
-+
-+Example:
-+	hva@8c85000{
-+		compatible = "st,st-hva";
-+		reg = <0x8c85000 0x400>, <0x6000000 0x40000>;
-+		reg-names = "hva_registers", "hva_esram";
-+		interrupts = <GIC_SPI 58 IRQ_TYPE_NONE>,
-+			     <GIC_SPI 59 IRQ_TYPE_NONE>;
-+		clock-names = "clk_hva";
-+		clocks = <&clk_s_c0_flexgen CLK_HVA>;
-+	};
--- 
-1.9.1
+>> Limited range RGB is needed for HDMI due to a brain-dead spec when dealing
+>> with certain kinds of TVs and configurations. Don't ask, it's horrible.
+> 
+> I'd still like to know about it for my personal information :-)
 
+RGB video over HDMI is limited range for CE timings (i.e. 720p, 1080p, 4k)
+unless signaled otherwise through the AVI InfoFrame. And you can only
+signal that if the sink supports it in the EDID (and doesn't lie about it).
+
+Typically TVs follow CE timings, so hooking up a PC to a TV may very well
+cause problems (and often does).
+
+Regards,
+
+	Hans
