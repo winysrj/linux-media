@@ -1,70 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46258
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750778AbcGIOgl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2016 10:36:41 -0400
-Date: Sat, 9 Jul 2016 11:36:35 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Linux Doc <linux-doc@vger.kernel.org>
-Subject: Re: [ANN] Media documentation converted to ReST markup language
-Message-ID: <20160709113635.3e8b1695@recife.lan>
-In-Reply-To: <92ae3535-a294-8564-5a69-fce04eb93565@xs4all.nl>
-References: <20160708103420.27453f0d@recife.lan>
-	<92ae3535-a294-8564-5a69-fce04eb93565@xs4all.nl>
+Received: from mail-pa0-f68.google.com ([209.85.220.68]:35262 "EHLO
+	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751405AbcGPIwW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Jul 2016 04:52:22 -0400
+Date: Sat, 16 Jul 2016 14:22:19 +0530
+From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Tejun Heo <tj@kernel.org>
+Subject: [PATCH] [media] gspca: vicam: Remove deprecated
+ create_singlethread_workqueue
+Message-ID: <20160716085219.GA7792@Karyakshetra>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 8 Jul 2016 15:45:52 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+The workqueue "work_thread" is involved in streaming the camera data.
+It has a single work item(&sd->work_struct) and hence doesn't require
+ordering. Also, it is not being used on a memory reclaim path.
+Hence, the singlethreaded workqueue has been replaced with the use of
+system_wq.
 
-> On 07/08/2016 03:34 PM, Mauro Carvalho Chehab wrote:
-> > As commented on the patch series I just submitted, we finished the conversion
-> > of the Media uAPI book from DocBook to ReST.
-> > 
-> > For now, I'm placing the new documentation, after parsed by Sphinx, at this
-> > place:
-> > 	https://mchehab.fedorapeople.org/media_API_book/
-> > 
-> > There are some instructions there about how to use Sphinx too, with can be
-> > useful for the ones writing patches. Those are part of the docs-next that
-> > will be sent to Kernel 4.8, thanks to Jani Nikula an Jonathan Corbet.
-> > 
-> > The media docbook itself is located at:
-> > 	https://mchehab.fedorapeople.org/media_API_book/linux_tv/index.html
-> > 
-> > And the patches are already at the media tree, under the "docs-next"
-> > branch:
-> > 	https://git.linuxtv.org/media_tree.git/log/?h=docs-next
-> > 
-> > If you find anything inconsistent, wrong or incomplete, feel free to
-> > submit patches to it. My plan is to merge this branch on Kernel 4.8-rc1
-> > and then remove the Documentation/DocBook/media stuff from the Kernel.
-> > 
-> > PS.: I'll soon be adding one extra patch there renaming the media
-> > directory. "linux_tv" is not the best name for the media contents,
-> > but, on the other hand, having a "media/media" directory also doesn't
-> > make sense. So, I need to think for a better name before doing the
-> > change. Pehaps I'll go for:
-> > 	Documentation/media - for all media documentation, were we
-> > 		should also store things that are now under 
-> > 		/video4linux and under /dvb;
-> > 
-> > and:
-> > 	Documentation/media/uapi - for the above book that were just
-> > 		converted from DocBook.  
-> 
-> Sounds good to me!
+System workqueues have been able to handle high level of concurrency
+for a long time now and hence it's not required to have a singlethreaded
+workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
+created with create_singlethread_workqueue(), system_wq allows multiple
+work items to overlap executions even on the same CPU; however, a
+per-cpu workqueue doesn't have any CPU locality or global ordering
+guarantee unless the target CPU is explicitly specified and thus the
+increase of local concurrency shouldn't make any difference.
 
-I'm placing the ReST version of the document under:
-	https://linuxtv.org/downloads/v4l-dvb-apis-new/media/media_uapi.html
+Work item has been flushed in sd_stop0() to ensure that there are no
+pending tasks while disconnecting the driver.
 
-For now, I'm updating it manually, as, currently, there's no way to
-tell the Kernel build system to build just the media uAPI book.
+Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+---
+ drivers/media/usb/gspca/vicam.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-Thanks,
-Mauro
+diff --git a/drivers/media/usb/gspca/vicam.c b/drivers/media/usb/gspca/vicam.c
+index 103f6c4..8860510 100644
+--- a/drivers/media/usb/gspca/vicam.c
++++ b/drivers/media/usb/gspca/vicam.c
+@@ -47,7 +47,6 @@ MODULE_FIRMWARE(VICAM_FIRMWARE);
+ struct sd {
+ 	struct gspca_dev gspca_dev;	/* !! must be the first item */
+ 	struct work_struct work_struct;
+-	struct workqueue_struct *work_thread;
+ };
+
+ /* The vicam sensor has a resolution of 512 x 244, with I believe square
+@@ -278,9 +277,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 	if (ret < 0)
+ 		return ret;
+
+-	/* Start the workqueue function to do the streaming */
+-	sd->work_thread = create_singlethread_workqueue(MODULE_NAME);
+-	queue_work(sd->work_thread, &sd->work_struct);
++	schedule_work(&sd->work_struct);
+
+ 	return 0;
+ }
+@@ -294,8 +291,7 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
+ 	/* wait for the work queue to terminate */
+ 	mutex_unlock(&gspca_dev->usb_lock);
+ 	/* This waits for vicam_dostream to finish */
+-	destroy_workqueue(dev->work_thread);
+-	dev->work_thread = NULL;
++	flush_work(&dev->work_struct);
+ 	mutex_lock(&gspca_dev->usb_lock);
+
+ 	if (gspca_dev->present)
+--
+2.1.4
+
