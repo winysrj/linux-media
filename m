@@ -1,80 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60610 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753305AbcGJKsC (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:36489 "EHLO
+	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751656AbcGPKmR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2016 06:48:02 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
+	Sat, 16 Jul 2016 06:42:17 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
 	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 5/6] [media] doc-rst: add LIRC header to the book
-Date: Sun, 10 Jul 2016 07:47:44 -0300
-Message-Id: <446c926f89b29c84050f20e44070df8b62ec5c62.1468147615.git.mchehab@s-opensource.com>
-In-Reply-To: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
-References: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
-In-Reply-To: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
-References: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v3 8/9] [media] vivid: Fix YUV555 and YUV565 handling
+Date: Sat, 16 Jul 2016 12:41:55 +0200
+Message-Id: <1468665716-10178-9-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1468665716-10178-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1468665716-10178-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just like the other parts of the document, let's add the LIRC
-header, as it is part of the API.
+precalculate_color() had a optimization that avoided duplicated
+conversion for YUV formats. This optimization did not take into
+consideration YUV444, YUV555, YUV565 or limited range quantization.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+This patch keeps the optimization, but fixes the wrong handling.
+
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- Documentation/media/Makefile                       | 5 ++++-
- Documentation/media/lirc.h.rst.exceptions          | 2 ++
- Documentation/media/uapi/rc/remote_controllers.rst | 1 +
- 3 files changed, 7 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/media/lirc.h.rst.exceptions
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/media/Makefile b/Documentation/media/Makefile
-index bcb9eb5921aa..39e2d766dbe3 100644
---- a/Documentation/media/Makefile
-+++ b/Documentation/media/Makefile
-@@ -6,7 +6,7 @@ KAPI = $(srctree)/include/linux
- SRC_DIR=$(srctree)/Documentation/media
+diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+index e91bf3cbaab9..1c862465e335 100644
+--- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
++++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+@@ -797,6 +797,8 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 	int r = tpg_colors[col].r;
+ 	int g = tpg_colors[col].g;
+ 	int b = tpg_colors[col].b;
++	int y, cb, cr;
++	bool ycbbr_valid = false;
  
- FILES = audio.h.rst ca.h.rst dmx.h.rst frontend.h.rst net.h.rst video.h.rst \
--	  videodev2.h.rst media.h.rst cec.h.rst
-+	  videodev2.h.rst media.h.rst cec.h.rst lirc.h.rst
+ 	if (k == TPG_COLOR_TEXTBG) {
+ 		col = tpg_get_textbg_color(tpg);
+@@ -873,7 +875,6 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 	     tpg->saturation != 128 || tpg->hue) &&
+ 	    tpg->color_enc != TGP_COLOR_ENC_LUMA) {
+ 		/* Implement these operations */
+-		int y, cb, cr;
+ 		int tmp_cb, tmp_cr;
  
- TARGETS := $(addprefix $(BUILDDIR)/, $(FILES))
+ 		/* First convert to YCbCr */
+@@ -890,13 +891,10 @@ static void precalculate_color(struct tpg_data *tpg, int k)
  
-@@ -53,5 +53,8 @@ $(BUILDDIR)/media.h.rst: ${UAPI}/media.h ${PARSER} $(SRC_DIR)/media.h.rst.except
- $(BUILDDIR)/cec.h.rst: ${KAPI}/cec.h ${PARSER} $(SRC_DIR)/cec.h.rst.exceptions
- 	@$($(quiet)gen_rst)
+ 		cb = (128 << 4) + (tmp_cb * tpg->contrast * tpg->saturation) / (128 * 128);
+ 		cr = (128 << 4) + (tmp_cr * tpg->contrast * tpg->saturation) / (128 * 128);
+-		if (tpg->color_enc == TGP_COLOR_ENC_YUV) {
+-			tpg->colors[k][0] = clamp(y >> 4, 1, 254);
+-			tpg->colors[k][1] = clamp(cb >> 4, 1, 254);
+-			tpg->colors[k][2] = clamp(cr >> 4, 1, 254);
+-			return;
+-		}
+-		ycbcr_to_color(tpg, y, cb, cr, &r, &g, &b);
++		if (tpg->color_enc == TGP_COLOR_ENC_YUV)
++			ycbbr_valid = true;
++		else
++			ycbcr_to_color(tpg, y, cb, cr, &r, &g, &b);
+ 	} else if ((tpg->brightness != 128 || tpg->contrast != 128) &&
+ 		   tpg->color_enc == TGP_COLOR_ENC_LUMA) {
+ 		r = (16 << 4) + ((r - (16 << 4)) * tpg->contrast) / 128;
+@@ -917,9 +915,8 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 	case TGP_COLOR_ENC_YUV:
+ 	{
+ 		/* Convert to YCbCr */
+-		int y, cb, cr;
+-
+-		color_to_ycbcr(tpg, r, g, b, &y, &cb, &cr);
++		if (!ycbbr_valid)
++			color_to_ycbcr(tpg, r, g, b, &y, &cb, &cr);
  
-+$(BUILDDIR)/lirc.h.rst: ${UAPI}/lirc.h ${PARSER} $(SRC_DIR)/lirc.h.rst.exceptions
-+	@$($(quiet)gen_rst)
-+
- cleandocs:
- 	-rm ${TARGETS}
-diff --git a/Documentation/media/lirc.h.rst.exceptions b/Documentation/media/lirc.h.rst.exceptions
-new file mode 100644
-index 000000000000..efdcb59f3002
---- /dev/null
-+++ b/Documentation/media/lirc.h.rst.exceptions
-@@ -0,0 +1,2 @@
-+# Ignore header name
-+ignore define _LINUX_LIRC_H
-diff --git a/Documentation/media/uapi/rc/remote_controllers.rst b/Documentation/media/uapi/rc/remote_controllers.rst
-index 82e64e7acbe3..3e9731afedd9 100644
---- a/Documentation/media/uapi/rc/remote_controllers.rst
-+++ b/Documentation/media/uapi/rc/remote_controllers.rst
-@@ -24,6 +24,7 @@ Remote Controllers
-     rc-tables
-     rc-table-change
-     lirc_device_interface
-+    lirc-header
- 
- 
- **********************
+ 		if (tpg->real_quantization == V4L2_QUANTIZATION_LIM_RANGE) {
+ 			y = clamp(y, 16 << 4, 235 << 4);
 -- 
-2.7.4
+2.8.1
 
