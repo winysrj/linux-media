@@ -1,55 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:44961 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751309AbcGLNyl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 09:54:41 -0400
-Date: Tue, 12 Jul 2016 14:54:38 +0100
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 03/20] [media] lirc.h: remove several unused ioctls
-Message-ID: <20160712135438.GA11183@gofer.mess.org>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
- <d55f09abe24b4dfadab246b6f217da547361cdb6.1468327191.git.mchehab@s-opensource.com>
- <20160712131406.GB10242@gofer.mess.org>
- <20160712102300.3bb0e6c4@recife.lan>
- <20160712133555.GA10904@gofer.mess.org>
+Received: from mail-pa0-f66.google.com ([209.85.220.66]:33886 "EHLO
+	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751380AbcGPIub (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Jul 2016 04:50:31 -0400
+Date: Sat, 16 Jul 2016 14:20:28 +0530
+From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Tejun Heo <tj@kernel.org>
+Subject: [PATCH] [media] gspca: sonixj: Remove deprecated
+ create_singlethread_workqueue
+Message-ID: <20160716085028.GA7758@Karyakshetra>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20160712133555.GA10904@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 12, 2016 at 02:35:56PM +0100, Sean Young wrote:
-> On Tue, Jul 12, 2016 at 10:23:00AM -0300, Mauro Carvalho Chehab wrote:
-> > Em Tue, 12 Jul 2016 14:14:06 +0100
-> > Sean Young <sean@mess.org> escreveu:
-> > > On Tue, Jul 12, 2016 at 09:41:57AM -0300, Mauro Carvalho Chehab wrote:
-> -snip-
-> > > > -#define LIRC_SET_REC_DUTY_CYCLE        _IOW('i', 0x00000016, __u32)  
-> > > 
-> > > Also remove LIRC_CAN_SET_REC_DUTY_CYCLE and 
-> > > LIRC_CAN_SET_REC_DUTY_CYCLE_RANGE.
-> > 
-> > Removing the "LIRC_CAN" macros can break userspace, as some app could
-> > be using it to print the LIRC features. That's why I opted to keep
-> > them, but to document that those features are unused - this is at
-> > the next patch (04/20).
-> 
-> How is that different from removing the ioctls? Might as well go the whole
-> hog.
+The workqueue "work_thread" is involved in updating the JPEG quality
+of the gspca_dev. It has a single work item(&sd->work) and hence doesn't
+require ordering. Also, it is not being used on a memory reclaim path.
+Hence, the singlethreaded workqueue has been replaced with the use of
+system_wq.
 
-Ah you meant that if someone later adds a new feature then we might reuse
-an existing bit. Oops, sorry.
+System workqueues have been able to handle high level of concurrency
+for a long time now and hence it's not required to have a singlethreaded
+workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
+created with create_singlethread_workqueue(), system_wq allows multiple
+work items to overlap executions even on the same CPU; however, a
+per-cpu workqueue doesn't have any CPU locality or global ordering
+guarantee unless the target CPU is explicitly specified and thus the
+increase of local concurrency shouldn't make any difference.
 
-> Also note that LIRC_CAN_SET_REC_DUTY_CYCLE has the same value as
-> LIRC_CAN_MEASURE_CARRIER, so if some userspace program uses this it might
-> end up in the mistaken belief its supports LIRC_CAN_SET_REC_DUTY_CYCLE.
+Work item has been flushed in sd_stop0() to ensure that there are no
+pending tasks while disconnecting the driver.
 
-So there is an argument for removing LIRC_CAN_SET_REC_DUTY_CYCLE, but
-that should be a separate patch.
+Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+---
+ drivers/media/usb/gspca/sonixj.c | 13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
+diff --git a/drivers/media/usb/gspca/sonixj.c b/drivers/media/usb/gspca/sonixj.c
+index fd1c870..d49d76e 100644
+--- a/drivers/media/usb/gspca/sonixj.c
++++ b/drivers/media/usb/gspca/sonixj.c
+@@ -54,7 +54,6 @@ struct sd {
+ 	u32 exposure;
 
-Sean
+ 	struct work_struct work;
+-	struct workqueue_struct *work_thread;
+
+ 	u32 pktsz;			/* (used by pkt_scan) */
+ 	u16 npkt;
+@@ -2485,7 +2484,6 @@ static int sd_start(struct gspca_dev *gspca_dev)
+
+ 	sd->pktsz = sd->npkt = 0;
+ 	sd->nchg = sd->short_mark = 0;
+-	sd->work_thread = create_singlethread_workqueue(MODULE_NAME);
+
+ 	return gspca_dev->usb_err;
+ }
+@@ -2569,12 +2567,9 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+
+-	if (sd->work_thread != NULL) {
+-		mutex_unlock(&gspca_dev->usb_lock);
+-		destroy_workqueue(sd->work_thread);
+-		mutex_lock(&gspca_dev->usb_lock);
+-		sd->work_thread = NULL;
+-	}
++	mutex_unlock(&gspca_dev->usb_lock);
++	flush_work(&sd->work);
++	mutex_lock(&gspca_dev->usb_lock);
+ }
+
+ static void do_autogain(struct gspca_dev *gspca_dev)
+@@ -2785,7 +2780,7 @@ marker_found:
+ 				new_qual = QUALITY_MAX;
+ 			if (new_qual != sd->quality) {
+ 				sd->quality = new_qual;
+-				queue_work(sd->work_thread, &sd->work);
++				schedule_work(&sd->work);
+ 			}
+ 		}
+ 	} else {
+--
+2.1.4
+
