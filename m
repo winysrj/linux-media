@@ -1,44 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:56576 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750895AbcGDIfW (ORCPT
+Received: from mail-pa0-f66.google.com ([209.85.220.66]:33640 "EHLO
+	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751384AbcGPJmp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 04:35:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 02/14] saa7164: drop unused saa7164_ctrl struct.
-Date: Mon,  4 Jul 2016 10:34:58 +0200
-Message-Id: <1467621310-8203-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
-References: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 16 Jul 2016 05:42:45 -0400
+Date: Sat, 16 Jul 2016 15:12:42 +0530
+From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Tejun Heo <tj@kernel.org>
+Subject: [PATCH] [media] ad9389b: Remove deprecated
+ create_singlethread_workqueue
+Message-ID: <20160716094241.GA10290@Karyakshetra>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The workqueue work_queue is involved in EDID (Extended Display
+Identification Data) handling.
 
-No longer used, can be removed.
+It has a single work item(&state->edid_handler) and hence
+doesn't require ordering. It is not being used on a memory reclaim path.
+Hence, the singlethreaded workqueue has been replaced with
+the use of system_wq.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+&state->edid_handler is a self requeueing work item and it has been
+been sync cancelled in ad9389b_remove() to ensure that nothing is
+pending when the driver is disconnected.
+
+Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
 ---
- drivers/media/pci/saa7164/saa7164.h | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/media/i2c/ad9389b.c | 20 ++++----------------
+ 1 file changed, 4 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/pci/saa7164/saa7164.h b/drivers/media/pci/saa7164/saa7164.h
-index 8337524..97411b0 100644
---- a/drivers/media/pci/saa7164/saa7164.h
-+++ b/drivers/media/pci/saa7164/saa7164.h
-@@ -263,10 +263,6 @@ struct saa7164_i2c {
- 	u32				i2c_rc;
+diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
+index 0462f46..1ac552d 100644
+--- a/drivers/media/i2c/ad9389b.c
++++ b/drivers/media/i2c/ad9389b.c
+@@ -98,7 +98,6 @@ struct ad9389b_state {
+ 	struct ad9389b_state_edid edid;
+ 	/* Running counter of the number of detected EDIDs (for debugging) */
+ 	unsigned edid_detect_counter;
+-	struct workqueue_struct *work_queue;
+ 	struct delayed_work edid_handler; /* work entry */
  };
- 
--struct saa7164_ctrl {
--	struct v4l2_queryctrl v;
--};
+
+@@ -843,8 +842,7 @@ static void ad9389b_edid_handler(struct work_struct *work)
+ 			v4l2_dbg(1, debug, sd, "%s: edid read failed\n", __func__);
+ 			ad9389b_s_power(sd, false);
+ 			ad9389b_s_power(sd, true);
+-			queue_delayed_work(state->work_queue,
+-					   &state->edid_handler, EDID_DELAY);
++			schedule_delayed_work(&state->edid_handler, EDID_DELAY);
+ 			return;
+ 		}
+ 	}
+@@ -933,8 +931,7 @@ static void ad9389b_update_monitor_present_status(struct v4l2_subdev *sd)
+ 		ad9389b_setup(sd);
+ 		ad9389b_notify_monitor_detect(sd);
+ 		state->edid.read_retries = EDID_MAX_RETRIES;
+-		queue_delayed_work(state->work_queue,
+-				   &state->edid_handler, EDID_DELAY);
++		schedule_delayed_work(&state->edid_handler, EDID_DELAY);
+ 	} else if (!(status & MASK_AD9389B_HPD_DETECT)) {
+ 		v4l2_dbg(1, debug, sd, "%s: hotplug not detected\n", __func__);
+ 		state->have_monitor = false;
+@@ -1065,8 +1062,7 @@ static bool ad9389b_check_edid_status(struct v4l2_subdev *sd)
+ 		ad9389b_wr(sd, 0xc9, 0xf);
+ 		ad9389b_wr(sd, 0xc4, state->edid.segments);
+ 		state->edid.read_retries = EDID_MAX_RETRIES;
+-		queue_delayed_work(state->work_queue,
+-				   &state->edid_handler, EDID_DELAY);
++		schedule_delayed_work(&state->edid_handler, EDID_DELAY);
+ 		return false;
+ 	}
+
+@@ -1170,13 +1166,6 @@ static int ad9389b_probe(struct i2c_client *client, const struct i2c_device_id *
+ 		goto err_entity;
+ 	}
+
+-	state->work_queue = create_singlethread_workqueue(sd->name);
+-	if (state->work_queue == NULL) {
+-		v4l2_err(sd, "could not create workqueue\n");
+-		err = -ENOMEM;
+-		goto err_unreg;
+-	}
 -
- struct saa7164_tvnorm {
- 	char		*name;
- 	v4l2_std_id	id;
--- 
-2.8.1
+ 	INIT_DELAYED_WORK(&state->edid_handler, ad9389b_edid_handler);
+ 	state->dv_timings = dv1080p60;
+
+@@ -1211,9 +1200,8 @@ static int ad9389b_remove(struct i2c_client *client)
+ 	ad9389b_s_stream(sd, false);
+ 	ad9389b_s_audio_stream(sd, false);
+ 	ad9389b_init_setup(sd);
+-	cancel_delayed_work(&state->edid_handler);
++	cancel_delayed_work_sync(&state->edid_handler);
+ 	i2c_unregister_device(state->edid_i2c_client);
+-	destroy_workqueue(state->work_queue);
+ 	v4l2_device_unregister_subdev(sd);
+ 	media_entity_cleanup(&sd->entity);
+ 	v4l2_ctrl_handler_free(sd->ctrl_handler);
+--
+2.1.4
 
