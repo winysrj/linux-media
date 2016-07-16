@@ -1,64 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35463 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755049AbcGFPkv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 11:40:51 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com
-Cc: niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
-	laurent.pinchart@ideasonboard.com, william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v5 4/4] rcar-vin: implement EDID control ioctls
-Date: Wed,  6 Jul 2016 17:39:36 +0200
-Message-Id: <1467819576-17743-5-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1467819576-17743-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1467819576-17743-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:38809 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751445AbcGPN7O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Jul 2016 09:59:14 -0400
+Subject: Re: [PATCH v2 2/6] [media] Documentation: Add HSV format
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
+ <7843924.z0DslKFWcx@avalon> <50772055-a856-0574-d89b-cc6665454252@xs4all.nl>
+ <1704928.3gI88ec2Bn@avalon>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f0f50faf-67f6-6614-4ae3-b0f23aa09953@xs4all.nl>
+Date: Sat, 16 Jul 2016 15:59:08 +0200
+MIME-Version: 1.0
+In-Reply-To: <1704928.3gI88ec2Bn@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds G_EDID and S_EDID.
+On 07/16/2016 02:38 PM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Saturday 16 Jul 2016 10:19:29 Hans Verkuil wrote:
+>> On 07/15/2016 08:11 PM, Laurent Pinchart wrote:
+>>> On Friday 15 Jul 2016 18:13:15 Ricardo Ribalda Delgado wrote:
+>>>> Describe the HSV formats
+>>>>
+>>>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>>>> ---
+>>>>
+>>>>  Documentation/media/uapi/v4l/hsv-formats.rst       |  19 ++
+>>>>  Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst | 253 +++++++++++++++
+>>>>  Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
+>>>>  Documentation/media/uapi/v4l/v4l2.rst              |   5 +
+>>>>  4 files changed, 278 insertions(+)
+>>>>  create mode 100644 Documentation/media/uapi/v4l/hsv-formats.rst
+>>>>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+>>>>
+>>>> diff --git a/Documentation/media/uapi/v4l/hsv-formats.rst
+>>>> b/Documentation/media/uapi/v4l/hsv-formats.rst new file mode 100644
+>>>> index 000000000000..f0f2615eaa95
+>>>> --- /dev/null
+>>>> +++ b/Documentation/media/uapi/v4l/hsv-formats.rst
+>>>> @@ -0,0 +1,19 @@
+>>>> +.. -*- coding: utf-8; mode: rst -*-
+>>>> +
+>>>> +.. _hsv-formats:
+>>>> +
+>>>> +***********
+>>>> +HSV Formats
+>>>> +***********
+>>>> +
+>>>> +These formats store the color information of the image
+>>>> +in a geometrical representation. The colors are mapped into a
+>>>> +cylinder, where the angle is the HUE, the height is the VALUE
+>>>> +and the distance to the center is the SATURATION. This is a very
+>>>> +useful format for image segmentation algorithms.
+>>>> +
+>>>> +
+>>>> +.. toctree::
+>>>> +    :maxdepth: 1
+>>>> +
+>>>> +    pixfmt-packed-hsv
+>>>> diff --git a/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+>>>> b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst new file mode 100644
+>>>> index 000000000000..b297aa4f7ba6
+>>>> --- /dev/null
+>>>> +++ b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+>>>> @@ -0,0 +1,253 @@
+>>>> +.. -*- coding: utf-8; mode: rst -*-
+>>>> +
+>>>> +.. _packed-hsv:
+>>>> +
+>>>> +******************
+>>>> +Packed HSV formats
+>>>> +******************
+>>>> +
+>>>> +*man Packed HSV formats(2)*
+>>>> +
+>>>> +Packed HSV formats
+>>>> +
+>>>> +
+>>>> +Description
+>>>> +===========
+>>>> +
+>>>> +The HUE (h) is meassured in degrees, one LSB represents two degrees.
+>>>
+>>> Is this common ? I have a device that can handle HSV data, I need to check
+>>> how it maps the hue values to binary, but I'm pretty sure they cover the
+>>> full 0-255 range. We would then have to support the two formats. Separate
+>>> 4CCs are an option, but reporting the range separately (possibly through
+>>> the colorspace API) might be better. Any thought on that ?
+>>
+>> It's either a separate 4cc or we do something with the ycbcr_enc field
+>> (reinterpreted as hsv_enc). I'm not sure, I would have to think some more
+>> about that.
+> 
+> I'm inclined to use the ycbcr_enc field, especially given that a similar usage 
+> could be useful for RGB as well (don't ask me what it's supposed to be used 
+> for, but I have hardware that support limiting the RGB values range to 
+> 16-235).
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+Limited vs full range quantization is handled by the quantization field. It's
+there already.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 396eabc..bd8f14c 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -661,6 +661,20 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
- 	return ret;
- }
- 
-+static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+
-+	return rvin_subdev_call(vin, pad, get_edid, edid);
-+}
-+
-+static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+
-+	return rvin_subdev_call(vin, pad, set_edid, edid);
-+}
-+
- static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
- 	.vidioc_querycap		= rvin_querycap,
- 	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
-@@ -683,6 +697,9 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
- 	.vidioc_s_dv_timings		= rvin_s_dv_timings,
- 	.vidioc_query_dv_timings	= rvin_query_dv_timings,
- 
-+	.vidioc_g_edid			= rvin_g_edid,
-+	.vidioc_s_edid			= rvin_s_edid,
-+
- 	.vidioc_querystd		= rvin_querystd,
- 	.vidioc_g_std			= rvin_g_std,
- 	.vidioc_s_std			= rvin_s_std,
--- 
-2.7.4
+Limited range RGB is needed for HDMI due to a brain-dead spec when dealing with
+certain kinds of TVs and configurations. Don't ask, it's horrible.
 
+Anyway, I am inclined to use ycbcr_enc as well.
+
+Regards,
+
+	Hans
