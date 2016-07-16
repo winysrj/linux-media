@@ -1,64 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:62477 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751972AbcGSPRW (ORCPT
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:36698 "EHLO
+	mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751744AbcGPXBP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 11:17:22 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 2/2] [media] dvb-usb: avoid link error with dib3000m{b,c|
-Date: Tue, 19 Jul 2016 17:14:35 +0200
-Message-Id: <20160719151645.2610846-2-arnd@arndb.de>
-In-Reply-To: <20160719151645.2610846-1-arnd@arndb.de>
-References: <20160719151645.2610846-1-arnd@arndb.de>
+	Sat, 16 Jul 2016 19:01:15 -0400
+Date: Sat, 16 Jul 2016 18:01:13 -0500
+From: Rob Herring <robh@kernel.org>
+To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, daniel.thompson@linaro.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	srv_heupstream@mediatek.com,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org
+Subject: Re: [PATCH 2/4] dt-bindings: Add a binding for Mediatek MDP
+Message-ID: <20160716230113.GA31551@rob-hp-laptop>
+References: <1468498681-19955-1-git-send-email-minghsiu.tsai@mediatek.com>
+ <1468498681-19955-3-git-send-email-minghsiu.tsai@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1468498681-19955-3-git-send-email-minghsiu.tsai@mediatek.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tha ARM randconfig builds came up with another rare build failure
-for the dib3000mc driver, when dvb-usb-dibusb-mb is built-in and
-dib3000mc is a loadable module:
+On Thu, Jul 14, 2016 at 08:17:59PM +0800, Minghsiu Tsai wrote:
+> Add a DT binding documentation of MDP for the MT8173 SoC
+> from Mediatek
+> 
+> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+> ---
+>  .../devicetree/bindings/media/mediatek-mdp.txt     |   92 ++++++++++++++++++++
+>  1 file changed, 92 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/mediatek-mdp.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/mediatek-mdp.txt b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
+> new file mode 100644
+> index 0000000..ef570c3
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
+> @@ -0,0 +1,92 @@
+> +* Mediatek Media Data Path
+> +
+> +Media Data Path is used for scaling and color space conversion.
+> +
+> +Required properties:
+> +  - compatible : should contain them as below:
+> +        "mediatek,mt8173-mdp"
+> +        "mediatek,mt8173-mdp-rdma"
+> +        "mediatek,mt8173-mdp-rsz"
+> +        "mediatek,mt8173-mdp-wdma"
+> +        "mediatek,mt8173-mdp-wrot"
+> +  - clocks : device clocks
+> +  - power-domains : a phandle to the power domain.
+> +  - mediatek,larb : should contain the larbes of current platform
+> +  - iommus : Mediatek IOMMU H/W has designed the fixed associations with
+> +        the multimedia H/W. and there is only one multimedia iommu domain.
+> +        "iommus = <&iommu portid>" the "portid" is from
+> +        dt-bindings\iommu\mt8173-iommu-port.h, it means that this portid will
+> +        enable iommu. The portid default is disable iommu if "<&iommu portid>"
+> +        don't be added.
+> +  - mediatek,vpu : the node of video processor unit
 
-ERROR: "dibusb_dib3000mc_frontend_attach" [drivers/media/usb/dvb-usb/dvb-usb-nova-t-usb2.ko] undefined!
-ERROR: "dibusb_dib3000mc_tuner_attach" [drivers/media/usb/dvb-usb/dvb-usb-nova-t-usb2.ko] undefined!
-
-Apparently this used to be a valid configuration (build-time, not
-run-time), but broke as part of a cleanup.
-
-I tried reverting the cleanup, but saw that the code was still wrong
-then. This version adds a dependency for dib3000mb, to ensure that
-dib3000mb does not force the dibusb_dib3000mc_frontend_attach function
-to be built-in when dib3000mc is a loadable module.
-
-I have also checked the two other files that were changed in the original
-cleanup, and found them to be correct in either version, so I do not
-touch that part.
-
-As this is a rather obscure bug, there is no need for backports.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: 028c70ff42783 ("[media] dvb-usb/dvb-usb-v2: use IS_ENABLED")
----
-This is one of two different ways to avoid the link error, please
-pick one of them. Adding a dependency is simpler but slighly
-more limiting.
----
- drivers/media/usb/dvb-usb/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
-index 8c911119faa6..959fa09dfd92 100644
---- a/drivers/media/usb/dvb-usb/Kconfig
-+++ b/drivers/media/usb/dvb-usb/Kconfig
-@@ -44,6 +44,7 @@ config DVB_USB_DIBUSB_MB
- 	depends on DVB_USB
- 	select DVB_PLL if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_DIB3000MB
-+	depends on DVB_DIB3000MC || !DVB_DIB3000MC
- 	select MEDIA_TUNER_MT2060 if MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Support for USB 1.1 and 2.0 DVB-T receivers based on reference designs made by
--- 
-2.9.0
-
+These properties don't apply to all the nodes. I think you need a 
+section for each IP block.
