@@ -1,71 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out5-smtp.messagingengine.com ([66.111.4.29]:33097 "EHLO
-	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750879AbcGMCFg (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41883 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751089AbcGQJIe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 22:05:36 -0400
-Date: Wed, 13 Jul 2016 05:05:04 +0300
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Kozlov Sergey <serjk@netup.ru>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Krzysztof =?utf-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-pci@vger.kernel.org,
-	kernel-mentors@selenic.com
-Subject: Re: [PATCH v4] [media] pci: Add tw5864 driver - fixed few style
- nits, going to resubmit soon
-Message-ID: <20160713020504.GH5934@zver>
-References: <20160711151714.5452-1-andrey.utkin@corp.bluecherry.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160711151714.5452-1-andrey.utkin@corp.bluecherry.net>
+	Sun, 17 Jul 2016 05:08:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 5/5] adv7604: add vic detect
+Date: Sun, 17 Jul 2016 11:08:17 +0200
+Message-Id: <1468746497-46692-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1468746497-46692-1-git-send-email-hverkuil@xs4all.nl>
+References: <1468746497-46692-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Found and fixed few very minor coding style nits, will resubmit in few days,
-now still waiting for comments to v4.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-https://github.com/bluecherrydvr/linux/commits/tw5864
+Obtain the correct timings based on the VIC code from the AVI InfoFrame.
 
-commit 31f7c98a144cb3fb8a94662f002d9b6142d1f390
-Author: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Date:   Wed Jul 13 05:00:28 2016 +0300
+It does a sanity check to see if at least the measured width and height
+are in line with what the VIC code reports. If not, then use the timings
+instead of the VIC code (as per the CEA-861 spec).
 
-    Fix checkpatch --strict issue
-    
-     CHECK: Alignment should match open parenthesis
-     #3599: FILE: drivers/media/pci/tw5864/tw5864-video.c:539:
-     +static int tw5864_fmt_vid_cap(struct file *file, void *priv,
-     +                               struct v4l2_format *f)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-commit 11a09a1048af597ecf374507b08c809eed91b86d
-Author: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Date:   Wed Jul 13 04:59:34 2016 +0300
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 4003831..1ab7572 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1566,10 +1566,24 @@ static int adv76xx_query_dv_timings(struct v4l2_subdev *sd,
+ 		V4L2_DV_INTERLACED : V4L2_DV_PROGRESSIVE;
+ 
+ 	if (is_digital_input(sd)) {
++		bool hdmi_signal = hdmi_read(sd, 0x05) & 0x80;
++		u8 vic = 0;
++		u32 w, h;
++
++		w = hdmi_read16(sd, 0x07, info->linewidth_mask);
++		h = hdmi_read16(sd, 0x09, info->field0_height_mask);
++
++		if (hdmi_signal && (io_read(sd, 0x60) & 1))
++			vic = infoframe_read(sd, 0x04);
++
++		if (vic && v4l2_find_dv_timings_cea861_vic(timings, vic) &&
++		    bt->width == w && bt->height == h)
++			goto found;
++
+ 		timings->type = V4L2_DV_BT_656_1120;
+ 
+-		bt->width = hdmi_read16(sd, 0x07, info->linewidth_mask);
+-		bt->height = hdmi_read16(sd, 0x09, info->field0_height_mask);
++		bt->width = w;
++		bt->height = h;
+ 		bt->pixelclock = info->read_hdmi_pixelclock(sd);
+ 		bt->hfrontporch = hdmi_read16(sd, 0x20, info->hfrontporch_mask);
+ 		bt->hsync = hdmi_read16(sd, 0x22, info->hsync_mask);
+-- 
+2.8.1
 
-    Fix checkpatch --strict issue
-    
-     CHECK: Please don't use multiple blank lines
-     #3244: FILE: drivers/media/pci/tw5864/tw5864-video.c:184:
-
-commit 861b2ba8593db7abe89291a4ba85976519783f4a
-Author: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Date:   Wed Jul 13 04:58:37 2016 +0300
-
-    Fix checkpatch --strict issue
-    
-     CHECK: No space is necessary after a cast
-     #3053: FILE: drivers/media/pci/tw5864/tw5864-util.c:36:
-     +       return (u8) tw_readl(TW5864_IND_DATA);
