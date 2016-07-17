@@ -1,97 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45822 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751437AbcGRB43 (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:43774 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751820AbcGQCZO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 21:56:29 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 35/36] [media] doc-rst: add documentation about IR on V4L boards
-Date: Sun, 17 Jul 2016 22:56:18 -0300
-Message-Id: <31cae7ca8d39af189486458ad8a3c239e2cb2cd2.1468806744.git.mchehab@s-opensource.com>
-In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+	Sat, 16 Jul 2016 22:25:14 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1BC561800C7
+	for <linux-media@vger.kernel.org>; Sun, 17 Jul 2016 04:25:09 +0200 (CEST)
+Date: Sun, 17 Jul 2016 04:25:09 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160717022509.1BC561800C7@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This section is outdated, but let's add it, after converting
-to ReST, and then fix it.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/v4l-drivers/index.rst       |  1 +
- Documentation/media/v4l-drivers/v4l-with-ir.rst | 15 +++++++++------
- 2 files changed, 10 insertions(+), 6 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
-index d660623eeea6..8a026455b09c 100644
---- a/Documentation/media/v4l-drivers/index.rst
-+++ b/Documentation/media/v4l-drivers/index.rst
-@@ -20,6 +20,7 @@ License".
- 	:numbered:
- 
- 	fourcc
-+	v4l-with-ir
- 	cardlist
- 	cafe_ccic
- 	cpia2
-diff --git a/Documentation/media/v4l-drivers/v4l-with-ir.rst b/Documentation/media/v4l-drivers/v4l-with-ir.rst
-index 0da47a847056..334174a52bda 100644
---- a/Documentation/media/v4l-drivers/v4l-with-ir.rst
-+++ b/Documentation/media/v4l-drivers/v4l-with-ir.rst
-@@ -1,9 +1,13 @@
--
- infrared remote control support in video4linux drivers
- ======================================================
- 
-+Author: Gerd Hoffmann
- 
--basics
-+.. note::
-+
-+   This section is outdated.
-+
-+Basics
- ------
- 
- Current versions use the linux input layer to support infrared
-@@ -23,7 +27,7 @@ Feel free to contact me in case of trouble.  Note that the ir-kbd-*
- modules work on 2.6.x kernels only through ...
- 
- 
--how it works
-+How it works
- ------------
- 
- The modules register the remote as keyboard within the linux input
-@@ -42,7 +46,7 @@ events and the like.  You can also use the kbd utility to change the
- keymaps (2.6.x kernels only through).
- 
- 
--using with lircd
-+Using with lircd
- ================
- 
- The cvs version of the lircd daemon supports reading events from the
-@@ -50,7 +54,7 @@ linux input layer (via event device).  The input layer tools tarball
- comes with a lircd config file.
- 
- 
--using without lircd
-+Using without lircd
- ===================
- 
- XFree86 likely can be configured to recognise the remote keys.  Once I
-@@ -69,4 +73,3 @@ Have fun,
-   Gerd
- 
- --
--Gerd Knorr <kraxel@bytesex.org>
--- 
-2.7.4
+date:		Sun Jul 17 04:00:10 CEST 2016
+git branch:	test
+git hash:	e05b1872f29a85532c2b34e3a4974a27158f1463
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: ERRORS
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-i686: ERRORS
+linux-4.7-rc1-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-x86_64: ERRORS
+linux-4.7-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
