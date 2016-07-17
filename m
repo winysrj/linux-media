@@ -1,97 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40480 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752149AbcGNWfZ (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48267 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750967AbcGQOaL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2016 18:35:25 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [RFC 09/16] media: Add release callback for media device
-Date: Fri, 15 Jul 2016 01:35:04 +0300
-Message-Id: <1468535711-13836-10-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
+	Sun, 17 Jul 2016 10:30:11 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 4/7] [media] doc-rst: Fix issues with RC documentation
+Date: Sun, 17 Jul 2016 11:30:01 -0300
+Message-Id: <0f9b6f4a3992a5525ff9128db59ee511ec2c4dd7.1468765739.git.mchehab@s-opensource.com>
+In-Reply-To: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
+References: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
+In-Reply-To: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
+References: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The release callback may be used by the driver to signal the release of
-the media device. This makes it possible to embed a driver private struct
-to the same memory allocation.
+The kernel-doc script is now broken if it doesn't find all
+exported symbols documented.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/media-device.c | 11 ++++++++++-
- include/media/media-device.h |  8 +++++++-
- 2 files changed, 17 insertions(+), 2 deletions(-)
+ Documentation/media/kapi/rc-core.rst |  9 ++++++++
+ include/media/lirc_dev.h             |  2 +-
+ include/media/rc-core.h              | 45 ++++++++++++++++++++++++++++++++++--
+ include/media/rc-map.h               | 17 +++++++++++++-
+ 4 files changed, 69 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index eae57c6..7538572 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -553,6 +553,9 @@ static void media_device_release(struct media_devnode *devnode)
- 	mutex_destroy(&mdev->graph_mutex);
- 	dev_dbg(devnode->parent, "Media device released\n");
+diff --git a/Documentation/media/kapi/rc-core.rst b/Documentation/media/kapi/rc-core.rst
+index 8c8e3bbac0d7..9c244ac9ce92 100644
+--- a/Documentation/media/kapi/rc-core.rst
++++ b/Documentation/media/kapi/rc-core.rst
+@@ -1,6 +1,15 @@
+ Remote Controller devices
+ -------------------------
  
-+	if (mdev->release)
-+		mdev->release(mdev);
++Remote Controller core
++~~~~~~~~~~~~~~~~~~~~~~
 +
- 	if (devnode->use_kref)
- 		kfree(mdev);
- }
-@@ -701,10 +704,16 @@ void media_device_init(struct media_device *mdev)
- }
- EXPORT_SYMBOL_GPL(media_device_init);
+ .. kernel-doc:: include/media/rc-core.h
  
--struct media_device *media_device_alloc(struct device *dev, void *priv)
-+struct media_device *media_device_alloc(struct device *dev, void *priv,
-+					size_t size)
- {
- 	struct media_device *mdev;
- 
-+	if (!size)
-+		size = sizeof(*mdev);
-+	else if (WARN_ON(size < sizeof(*mdev)))
-+		return NULL;
++.. kernel-doc:: include/media/rc-core.h include/media/rc-map.h
++   :export: drivers/media/rc/rc-main.c drivers/media/rc/rc-raw.c
 +
- 	dev = get_device(dev);
- 	if (!dev)
- 		return NULL;
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 8582e23..34671e1 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -383,6 +383,7 @@ struct media_device {
++LIRC
++~~~~
++
+ .. kernel-doc:: include/media/lirc_dev.h
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index 0ab59a571fee..cec7d35602d1 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -140,7 +140,7 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+  *			second.
+  *
+  * @features:		lirc compatible hardware features, like LIRC_MODE_RAW,
+- *			LIRC_CAN_*, as defined at include/media/lirc.h.
++ *			LIRC_CAN\_\*, as defined at include/media/lirc.h.
+  *
+  * @chunk_size:		Size of each FIFO buffer.
+  *
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index b6586a91129c..ff54a71f5cd2 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -29,9 +29,16 @@ do {								\
+ 		printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__);	\
+ } while (0)
  
- 	int (*link_notify)(struct media_link *link, u32 flags,
- 			   unsigned int notification);
-+	void (*release)(struct media_device *mdev);
++/**
++ * enum rc_driver_type - type of the RC output
++ *
++ * @RC_DRIVER_SCANCODE:	Driver or hardware generates a scancode
++ * @RC_DRIVER_IR_RAW:	Driver or hardware generates pulse/space sequences.
++ *			It needs a Infra-Red pulse/space decoder
++ */
+ enum rc_driver_type {
+-	RC_DRIVER_SCANCODE = 0,	/* Driver or hardware generates a scancode */
+-	RC_DRIVER_IR_RAW,	/* Needs a Infra-Red pulse/space decoder */
++	RC_DRIVER_SCANCODE = 0,
++	RC_DRIVER_IR_RAW,
  };
  
- /* We don't need to include pci.h or usb.h here */
-@@ -434,15 +435,20 @@ void media_device_init(struct media_device *mdev);
-  *
-  * @dev:	The associated struct device pointer
-  * @priv:	pointer to a driver private data structure
-+ * @size:	size of a driver structure containing the media device
-  *
-  * Allocate and initialise a media device. Returns a media device.
-  * The media device is refcounted, and this function returns a media
-  * device the refcount of which is one (1).
-  *
-+ * The size parameter can be zero if the media_device is not embedded
-+ * in another struct.
-+ *
-  * References are taken and given using media_device_get() and
-  * media_device_put().
-  */
--struct media_device *media_device_alloc(struct device *dev, void *priv);
-+struct media_device *media_device_alloc(struct device *dev, void *priv,
-+					size_t size);
- 
  /**
-  * media_device_get() - Get a reference to a media device
+@@ -185,12 +192,46 @@ struct rc_dev {
+  * Remote Controller, at sys/class/rc.
+  */
+ 
++/**
++ * rc_allocate_device - Allocates a RC device
++ *
++ * returns a pointer to struct rc_dev.
++ */
+ struct rc_dev *rc_allocate_device(void);
++
++/**
++ * rc_free_device - Frees a RC device
++ *
++ * @dev: pointer to struct rc_dev.
++ */
+ void rc_free_device(struct rc_dev *dev);
++
++/**
++ * rc_register_device - Registers a RC device
++ *
++ * @dev: pointer to struct rc_dev.
++ */
+ int rc_register_device(struct rc_dev *dev);
++
++/**
++ * rc_unregister_device - Unregisters a RC device
++ *
++ * @dev: pointer to struct rc_dev.
++ */
+ void rc_unregister_device(struct rc_dev *dev);
+ 
++/**
++ * rc_open - Opens a RC device
++ *
++ * @rdev: pointer to struct rc_dev.
++ */
+ int rc_open(struct rc_dev *rdev);
++
++/**
++ * rc_open - Closes a RC device
++ *
++ * @rdev: pointer to struct rc_dev.
++ */
+ void rc_close(struct rc_dev *rdev);
+ 
+ void rc_repeat(struct rc_dev *dev);
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 6e6557dbeb9f..726bd9374fd2 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -98,10 +98,25 @@ struct rc_map_list {
+ 
+ /* Routines from rc-map.c */
+ 
++/**
++ * rc_map_register() - Registers a Remote Controler scancode map
++ *
++ * @map:	pointer to struct rc_map_list
++ */
+ int rc_map_register(struct rc_map_list *map);
++
++/**
++ * rc_map_unregister() - Unregisters a Remote Controler scancode map
++ *
++ * @map:	pointer to struct rc_map_list
++ */
+ void rc_map_unregister(struct rc_map_list *map);
++
++/**
++ * rc_map_get - gets an RC map from its name
++ * @name: name of the RC scancode map
++ */
+ struct rc_map *rc_map_get(const char *name);
+-void rc_map_init(void);
+ 
+ /* Names of the several keytables defined in-kernel */
+ 
 -- 
-2.1.4
+2.7.4
 
