@@ -1,47 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f67.google.com ([209.85.220.67]:33451 "EHLO
-	mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751320AbcGRX6b (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47862 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750814AbcGQJDV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 19:58:31 -0400
-Date: Mon, 18 Jul 2016 19:58:29 -0400
-From: Tejun Heo <tj@kernel.org>
-To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] [media] ad9389b: Remove deprecated
- create_singlethread_workqueue
-Message-ID: <20160718235829.GZ3078@mtj.duckdns.org>
-References: <20160716094241.GA10290@Karyakshetra>
- <20160716110441.GA15391@Karyakshetra>
+	Sun, 17 Jul 2016 05:03:21 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0F6AF180C37
+	for <linux-media@vger.kernel.org>; Sun, 17 Jul 2016 11:03:16 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] cobalt: support reduced fps
+Message-ID: <0f78b670-9a2b-fc00-f1ac-2ac11b81dae4@xs4all.nl>
+Date: Sun, 17 Jul 2016 11:03:15 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160716110441.GA15391@Karyakshetra>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 16, 2016 at 04:34:41PM +0530, Bhaktipriya Shridhar wrote:
-> The workqueue work_queue is involved in EDID (Extended Display
-> Identification Data) handling.
-> 
-> It has a single work item(&state->edid_handler) and hence
-> doesn't require ordering. It is not being used on a memory reclaim path.
-> Hence, the singlethreaded workqueue has been replaced with
-> the use of system_wq.
-> 
-> &state->edid_handler is a self requeueing work item and it has been
-> been sync cancelled in ad9389b_remove() to ensure that nothing is
-> pending when the driver is disconnected.
-> 
-> The unused label err_unreg has also been dropped.
-> 
-> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+Add support for reduced fps (i.e. 59.94 Hz instead of 60 Hz) for the
+HDMI output.
 
-Acked-by: Tejun Heo <tj@kernel.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cobalt/cobalt-v4l2.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-Thanks.
+diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.c b/drivers/media/pci/cobalt/cobalt-v4l2.c
+index 5790095..3fea246 100644
+--- a/drivers/media/pci/cobalt/cobalt-v4l2.c
++++ b/drivers/media/pci/cobalt/cobalt-v4l2.c
+@@ -161,8 +161,11 @@ static void cobalt_enable_output(struct cobalt_stream *s)
+ 	struct v4l2_subdev_format sd_fmt = {
+ 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+ 	};
++	u64 clk = bt->pixelclock;
 
+-	if (!cobalt_cpld_set_freq(cobalt, bt->pixelclock)) {
++	if (bt->flags & V4L2_DV_FL_REDUCED_FPS)
++		clk = div_u64(clk * 1000ULL, 1001);
++	if (!cobalt_cpld_set_freq(cobalt, clk)) {
+ 		cobalt_err("pixelclock out of range\n");
+ 		return;
+ 	}
+@@ -644,7 +647,7 @@ static int cobalt_s_dv_timings(struct file *file, void *priv_fh,
+ 		return 0;
+ 	}
+
+-	if (v4l2_match_dv_timings(timings, &s->timings, 0, false))
++	if (v4l2_match_dv_timings(timings, &s->timings, 0, true))
+ 		return 0;
+
+ 	if (vb2_is_busy(&s->q))
 -- 
-tejun
+2.8.1
+
