@@ -1,89 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43926 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750748AbcGaLJX (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35265 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205AbcGQM7B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2016 07:09:23 -0400
-Date: Sun, 31 Jul 2016 14:09:15 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Amitoj Kaur Chawla <amitoj1606@gmail.com>
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, julia.lawall@lip6.fr
-Subject: Re: [PATCH] i2c: Modify error handling
-Message-ID: <20160731110915.GE3243@valkosipuli.retiisi.org.uk>
-References: <20160731035800.GA4576@amitoj-Inspiron-3542>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160731035800.GA4576@amitoj-Inspiron-3542>
+	Sun, 17 Jul 2016 08:59:01 -0400
+From: Chris Wilson <chris@chris-wilson.co.uk>
+To: linux-kernel@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org,
+	Chris Wilson <chris@chris-wilson.co.uk>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Tejun Heo <tj@kernel.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ingo Molnar <mingo@kernel.org>,
+	Kees Cook <keescook@chromium.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Andrey Ryabinin <aryabinin@virtuozzo.com>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	"Peter Zijlstra (Intel)" <peterz@infradead.org>,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Dmitry Vyukov <dvyukov@google.com>,
+	Alexander Potapenko <glider@google.com>,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
+Subject: [PATCH v2 2/7] kfence: Wrap hrtimer to provide a time source for a kfence
+Date: Sun, 17 Jul 2016 13:58:02 +0100
+Message-Id: <1468760287-731-3-git-send-email-chris@chris-wilson.co.uk>
+In-Reply-To: <1468760287-731-1-git-send-email-chris@chris-wilson.co.uk>
+References: <1466759333-4703-1-git-send-email-chris@chris-wilson.co.uk>
+ <1468760287-731-1-git-send-email-chris@chris-wilson.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Amitoj,
+A common requirement when scheduling a task is that it should be not be
+begun until a certain point in time is passed (e.g.
+queue_delayed_work()).  kfence_await_hrtimer() causes the kfence to
+asynchronously wait until after the appropriate time before being woken.
 
-On Sun, Jul 31, 2016 at 09:28:00AM +0530, Amitoj Kaur Chawla wrote:
-> devm_gpiod_get returns an ERR_PTR on error so a null check is
-> incorrect and an IS_ERR check is required.
-> 
-> The Coccinelle semantic patch used to make this change is as follows:
-> @@
-> expression e;
-> statement S;
-> @@
-> 
->   e = devm_gpiod_get(...);
->  if(
-> -   !e
-> +   IS_ERR(e)
->    )
->   {
->    ...
-> -  return ...;
-> +  return PTR_ERR(e);
->   }
-> 
-> Signed-off-by: Amitoj Kaur Chawla <amitoj1606@gmail.com>
-> ---
->  drivers/media/i2c/adp1653.c | 4 ++--
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linaro-mm-sig@lists.linaro.org
+---
+ include/linux/kfence.h |  5 +++++
+ kernel/kfence.c        | 58 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ lib/test-kfence.c      | 44 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 107 insertions(+)
 
-In this exact case, the issue has been fixed by similar patch in media-tree
-master branch. You likely used another branch for preparing this patch.
-
-Nevertheless, thank you for the patch --- this kind of cleanups are always
-much appreciated.
-
-commit 806f8ffa8a0fa9a6f0481c5648c27aa51d10fdc6
-Author: Vladimir Zapolskiy <vz@mleia.com>
-Date:   Mon Mar 7 15:39:32 2016 -0300
-
-    [media] media: i2c/adp1653: fix check of devm_gpiod_get() error code
-    
-    The devm_gpiod_get() function returns either a valid pointer to
-    struct gpio_desc or ERR_PTR() error value, check for NULL is bogus.
-    
-    Signed-off-by: Vladimir Zapolskiy <vz@mleia.com>
-    Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
-index fb7ed73..9e1731c 100644
---- a/drivers/media/i2c/adp1653.c
-+++ b/drivers/media/i2c/adp1653.c
-@@ -466,9 +466,9 @@ static int adp1653_of_init(struct i2c_client *client,
-        of_node_put(child);
+diff --git a/include/linux/kfence.h b/include/linux/kfence.h
+index 6e32385b3b8c..76a2f95dfb70 100644
+--- a/include/linux/kfence.h
++++ b/include/linux/kfence.h
+@@ -16,6 +16,7 @@
+ #include <linux/wait.h>
  
-        pd->enable_gpio = devm_gpiod_get(&client->dev, "enable", GPIOD_OUT_LOW);
--       if (!pd->enable_gpio) {
-+       if (IS_ERR(pd->enable_gpio)) {
-                dev_err(&client->dev, "Error getting GPIO\n");
--               return -EINVAL;
-+               return PTR_ERR(pd->enable_gpio);
-        }
+ struct completion;
++enum hrtimer_mode;
  
-        return 0;
-
+ struct kfence {
+ 	wait_queue_head_t wait;
+@@ -43,6 +44,10 @@ int kfence_await_kfence(struct kfence *fence,
+ int kfence_await_completion(struct kfence *fence,
+ 			    struct completion *x,
+ 			    gfp_t gfp);
++int kfence_await_hrtimer(struct kfence *fence,
++			 clockid_t clock, enum hrtimer_mode mode,
++			 ktime_t delay, u64 slack,
++			 gfp_t gfp);
+ void kfence_complete(struct kfence *fence);
+ void kfence_wake_up_all(struct kfence *fence);
+ void kfence_wait(struct kfence *fence);
+diff --git a/kernel/kfence.c b/kernel/kfence.c
+index 693af9da545a..59c27910a749 100644
+--- a/kernel/kfence.c
++++ b/kernel/kfence.c
+@@ -48,6 +48,9 @@
+  * - kfence_await_completion(): the kfence asynchronously waits upon a
+  *   completion
+  *
++ * - kfence_await_hrtimer(): the kfence asynchronously wait for an expiration
++ *   of a timer
++ *
+  * A kfence is initialised using kfence_init(), and starts off awaiting an
+  * event. Once you have finished setting up the fence, including adding
+  * all of its asynchronous waits, call kfence_complete().
+@@ -429,3 +432,58 @@ int kfence_await_completion(struct kfence *fence,
+ 	return pending;
+ }
+ EXPORT_SYMBOL_GPL(kfence_await_completion);
++
++struct timer_cb {
++	struct hrtimer timer;
++	struct kfence *fence;
++};
++
++static enum hrtimer_restart
++timer_kfence_wake(struct hrtimer *timer)
++{
++	struct timer_cb *cb = container_of(timer, typeof(*cb), timer);
++
++	kfence_complete(cb->fence);
++	kfence_put(cb->fence);
++	kfree(cb);
++
++	return HRTIMER_NORESTART;
++}
++
++/**
++ * kfence_await_hrtimer - set the fence to wait for a period of time
++ * @fence: this kfence
++ * @clock: which clock to program
++ * @mode: delay given as relative or absolute
++ * @delay: how long or until what time to wait
++ * @slack: how much slack that may be applied to the delay
++ *
++ * kfence_await_hrtimer() causes the @fence to wait for a a period of time, or
++ * until a certain point in time. It is a convenience wrapper around
++ * hrtimer_start_range_ns(). For more details on @clock, @mode, @delay and
++ * @slack please consult the hrtimer documentation.
++ *
++ * Returns 1 if the delay was sucessfuly added to the @fence, or a negative
++ * error code on failure.
++ */
++int kfence_await_hrtimer(struct kfence *fence,
++			 clockid_t clock, enum hrtimer_mode mode,
++			 ktime_t delay, u64 slack,
++			 gfp_t gfp)
++{
++	struct timer_cb *cb;
++
++	cb = kmalloc(sizeof(*cb), gfp);
++	if (!cb)
++		return -ENOMEM;
++
++	cb->fence = kfence_get(fence);
++	kfence_await(fence);
++
++	hrtimer_init(&cb->timer, clock, mode);
++	cb->timer.function = timer_kfence_wake;
++
++	hrtimer_start_range_ns(&cb->timer, delay, slack, mode);
++	return 1;
++}
++EXPORT_SYMBOL_GPL(kfence_await_hrtimer);
+diff --git a/lib/test-kfence.c b/lib/test-kfence.c
+index b40719fce967..1b0853fda7c3 100644
+--- a/lib/test-kfence.c
++++ b/lib/test-kfence.c
+@@ -352,6 +352,44 @@ static int __init test_completion(void)
+ 	return 0;
+ }
+ 
++static int __init test_delay(void)
++{
++	struct kfence *fence;
++	ktime_t delay;
++	int ret;
++
++	/* Test use of a hrtimer as an event source for kfences */
++	pr_debug("%s\n", __func__);
++
++	fence = alloc_kfence();
++	if (!fence)
++		return -ENOMEM;
++
++	delay = ktime_get();
++
++	ret = kfence_await_hrtimer(fence, CLOCK_MONOTONIC, HRTIMER_MODE_REL,
++				   ms_to_ktime(1), 1 << 10,
++				   GFP_KERNEL);
++	if (ret < 0)
++		return ret;
++	if (ret == 0)
++		return -EINVAL;
++
++	kfence_complete(fence);
++	kfence_wait(fence);
++
++	delay = ktime_sub(ktime_get(), delay);
++	kfence_put(fence);
++
++	if (!ktime_to_ms(delay)) {
++		pr_err("kfence woke too early, delay was only %lldns\n",
++		       (long long)ktime_to_ns(delay));
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ struct task_ipc {
+ 	struct work_struct work;
+ 	struct completion started;
+@@ -522,6 +560,12 @@ static int __init test_kfence_init(void)
+ 		return ret;
+ 	}
+ 
++	ret = test_delay();
++	if (ret < 0) {
++		pr_err("delay failed\n");
++		return ret;
++	}
++
+ 	return 0;
+ }
+ 
 -- 
-Kind regards,
+2.8.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
