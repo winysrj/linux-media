@@ -1,926 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48279 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994AbcGQOaL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 10:30:11 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Michael Ira Krufky <mkrufky@linuxtv.org>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 1/7] [media] doc-rst: Convert media API to rst
-Date: Sun, 17 Jul 2016 11:29:58 -0300
-Message-Id: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:57060 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750814AbcGQI7M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Jul 2016 04:59:12 -0400
+Subject: Re: [PATCH] af9035: fix dual tuner detection with PCTV 79e
+To: =?UTF-8?Q?Stefan_P=c3=b6schel?= <basic.master@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <5783D80F.2040808@gmx.de>
+ <8c71e2a3-ca04-0215-b3cb-c478afa9b1cb@iki.fi> <578A937E.4060502@gmx.de>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <d3013624-68cd-35da-3e1a-f1b190c67328@iki.fi>
+Date: Sun, 17 Jul 2016 11:59:06 +0300
+MIME-Version: 1.0
+In-Reply-To: <578A937E.4060502@gmx.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the contents of the media section at
-DocBooks/DocBook/device-drivers.tmpl to a new ReST book.
+On 07/16/2016 11:05 PM, Stefan Pöschel wrote:
+> Am 15.07.2016 um 08:21 schrieb Antti Palosaari:
+>> Applied and PULL requested for 4.7.
+>
+> Great, thanks!
+>
+>> Anyhow, it does not apply for 4.6. You must backport that patch to 4.6
+>> stable also!
+>
+> I have never done backporting before, so I need some advice I think:
+> Am I right that I have to create the patch, now just based on tag "v4.6"
+> of the media_tree repo?
 
-For now, the contents is kept as-is. Next patches will fix
-the warnings and add cross-references that were removed due to
-the conversion.
+Just make patch that compiles and works against kernel tag v4.6. No need 
+to backport it to media_tree or media_build. It should go 4.6 kernel 
+stable tree.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/DocBook/device-drivers.tmpl |  58 -----
- Documentation/index.rst                   |   1 +
- Documentation/media/media_drivers.rst     | 414 ++++++++++++++++++++++++++++++
- drivers/media/dvb-core/demux.h            |  71 +----
- drivers/media/dvb-core/dvb_frontend.h     |  27 +-
- include/media/media-device.h              | 231 -----------------
- 6 files changed, 423 insertions(+), 379 deletions(-)
- create mode 100644 Documentation/media/media_drivers.rst
+Antti
 
-diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-index a20a45b45c30..e9f77f2fe27b 100644
---- a/Documentation/DocBook/device-drivers.tmpl
-+++ b/Documentation/DocBook/device-drivers.tmpl
-@@ -219,64 +219,6 @@ X!Isound/sound_firmware.c
- -->
-   </chapter>
- 
--  <chapter id="mediadev">
--     <title>Media Devices</title>
--
--     <sect1><title>Video2Linux devices</title>
--!Iinclude/media/tuner.h
--!Iinclude/media/tuner-types.h
--!Iinclude/media/tveeprom.h
--!Iinclude/media/v4l2-async.h
--!Iinclude/media/v4l2-ctrls.h
--!Iinclude/media/v4l2-dv-timings.h
--!Iinclude/media/v4l2-event.h
--!Iinclude/media/v4l2-flash-led-class.h
--!Iinclude/media/v4l2-mc.h
--!Iinclude/media/v4l2-mediabus.h
--!Iinclude/media/v4l2-mem2mem.h
--!Iinclude/media/v4l2-of.h
--!Iinclude/media/v4l2-rect.h
--!Iinclude/media/v4l2-subdev.h
--!Iinclude/media/videobuf2-core.h
--!Iinclude/media/videobuf2-v4l2.h
--!Iinclude/media/videobuf2-memops.h
--     </sect1>
--     <sect1><title>Digital TV (DVB) devices</title>
--	<sect1><title>Digital TV Common functions</title>
--!Idrivers/media/dvb-core/dvb_math.h
--!Idrivers/media/dvb-core/dvb_ringbuffer.h
--!Idrivers/media/dvb-core/dvbdev.h
--	</sect1>
--	<sect1><title>Digital TV Frontend kABI</title>
--!Pdrivers/media/dvb-core/dvb_frontend.h Digital TV Frontend
--!Idrivers/media/dvb-core/dvb_frontend.h
--	</sect1>
--	<sect1><title>Digital TV Demux kABI</title>
--!Pdrivers/media/dvb-core/demux.h Digital TV Demux
--	<sect1><title>Demux Callback API</title>
--!Pdrivers/media/dvb-core/demux.h Demux Callback
--	</sect1>
--!Idrivers/media/dvb-core/demux.h
--	</sect1>
--	<sect1><title>Digital TV Conditional Access kABI</title>
--!Idrivers/media/dvb-core/dvb_ca_en50221.h
--	</sect1>
--     </sect1>
--    <sect1><title>Remote Controller devices</title>
--!Iinclude/media/rc-core.h
--!Iinclude/media/lirc_dev.h
--    </sect1>
--    <sect1><title>Media Controller devices</title>
--!Pinclude/media/media-device.h Media Controller
--!Iinclude/media/media-device.h
--!Iinclude/media/media-devnode.h
--!Iinclude/media/media-entity.h
--    </sect1>
--    <sect1><title>Consumer Electronics Control devices</title>
--!Iinclude/media/cec-edid.h
--    </sect1>
--
--  </chapter>
- 
-   <chapter id="uart16x50">
-      <title>16x50 UART Driver</title>
-diff --git a/Documentation/index.rst b/Documentation/index.rst
-index ad07716c73f4..985872404147 100644
---- a/Documentation/index.rst
-+++ b/Documentation/index.rst
-@@ -15,6 +15,7 @@ Contents:
- 
-    kernel-documentation
-    media/media_uapi
-+   media/media_drivers.rst
- 
- Indices and tables
- ==================
-diff --git a/Documentation/media/media_drivers.rst b/Documentation/media/media_drivers.rst
-new file mode 100644
-index 000000000000..722170cb7f40
---- /dev/null
-+++ b/Documentation/media/media_drivers.rst
-@@ -0,0 +1,414 @@
-+==========
-+Media core
-+==========
-+
-+Video2Linux devices
-+-------------------
-+
-+.. kernel-doc:: include/media/tuner.h
-+
-+.. kernel-doc:: include/media/tuner-types.h
-+
-+.. kernel-doc:: include/media/tveeprom.h
-+
-+.. kernel-doc:: include/media/v4l2-async.h
-+
-+.. kernel-doc:: include/media/v4l2-ctrls.h
-+
-+.. kernel-doc:: include/media/v4l2-dv-timings.h
-+
-+.. kernel-doc:: include/media/v4l2-event.h
-+
-+.. kernel-doc:: include/media/v4l2-flash-led-class.h
-+
-+.. kernel-doc:: include/media/v4l2-mc.h
-+
-+.. kernel-doc:: include/media/v4l2-mediabus.h
-+
-+.. kernel-doc:: include/media/v4l2-mem2mem.h
-+
-+.. kernel-doc:: include/media/v4l2-of.h
-+
-+.. kernel-doc:: include/media/v4l2-rect.h
-+
-+.. kernel-doc:: include/media/v4l2-subdev.h
-+
-+.. kernel-doc:: include/media/videobuf2-core.h
-+
-+.. kernel-doc:: include/media/videobuf2-v4l2.h
-+
-+.. kernel-doc:: include/media/videobuf2-memops.h
-+
-+
-+Digital TV (DVB) devices
-+------------------------
-+
-+Digital TV Common functions
-+---------------------------
-+
-+.. kernel-doc:: drivers/media/dvb-core/dvb_math.h
-+
-+.. kernel-doc:: drivers/media/dvb-core/dvb_ringbuffer.h
-+
-+.. kernel-doc:: drivers/media/dvb-core/dvbdev.h
-+
-+
-+Digital TV Frontend kABI
-+------------------------
-+
-+Digital TV Frontend
-+~~~~~~~~~~~~~~~~~~~
-+
-+The Digital TV Frontend kABI defines a driver-internal interface for
-+registering low-level, hardware specific driver to a hardware independent
-+frontend layer. It is only of interest for Digital TV device driver writers.
-+The header file for this API is named dvb_frontend.h and located in
-+drivers/media/dvb-core.
-+
-+Before using the Digital TV frontend core, the bridge driver should attach
-+the frontend demod, tuner and SEC devices and call dvb_register_frontend(),
-+in order to register the new frontend at the subsystem. At device
-+detach/removal, the bridge driver should call dvb_unregister_frontend() to
-+remove the frontend from the core and then dvb_frontend_detach() to free the
-+memory allocated by the frontend drivers.
-+
-+The drivers should also call dvb_frontend_suspend() as part of their
-+handler for the &device_driver.suspend(), and dvb_frontend_resume() as
-+part of their handler for &device_driver.resume().
-+
-+few other optional functions are provided to handle some special cases.
-+
-+.. kernel-doc:: drivers/media/dvb-core/dvb_frontend.h
-+
-+
-+Digital TV Demux kABI
-+---------------------
-+
-+Digital TV Demux
-+~~~~~~~~~~~~~~~~
-+
-+The Kernel Digital TV Demux kABI defines a driver-internal interface for
-+registering low-level, hardware specific driver to a hardware independent
-+demux layer. It is only of interest for Digital TV device driver writers.
-+The header file for this kABI is named demux.h and located in
-+drivers/media/dvb-core.
-+
-+The demux kABI should be implemented for each demux in the system. It is
-+used to select the TS source of a demux and to manage the demux resources.
-+When the demux client allocates a resource via the demux kABI, it receives
-+a pointer to the kABI of that resource.
-+
-+Each demux receives its TS input from a DVB front-end or from memory, as
-+set via this demux kABI. In a system with more than one front-end, the kABI
-+can be used to select one of the DVB front-ends as a TS source for a demux,
-+unless this is fixed in the HW platform.
-+
-+The demux kABI only controls front-ends regarding to their connections with
-+demuxes; the kABI used to set the other front-end parameters, such as
-+tuning, are devined via the Digital TV Frontend kABI.
-+
-+The functions that implement the abstract interface demux should be defined
-+static or module private and registered to the Demux core for external
-+access. It is not necessary to implement every function in the struct
-+&dmx_demux. For example, a demux interface might support Section filtering,
-+but not PES filtering. The kABI client is expected to check the value of any
-+function pointer before calling the function: the value of NULL means
-+that the function is not available.
-+
-+Whenever the functions of the demux API modify shared data, the
-+possibilities of lost update and race condition problems should be
-+addressed, e.g. by protecting parts of code with mutexes.
-+
-+Note that functions called from a bottom half context must not sleep.
-+Even a simple memory allocation without using %GFP_ATOMIC can result in a
-+kernel thread being put to sleep if swapping is needed. For example, the
-+Linux Kernel calls the functions of a network device interface from a
-+bottom half context. Thus, if a demux kABI function is called from network
-+device code, the function must not sleep.
-+
-+
-+
-+Demux Callback API
-+------------------
-+
-+Demux Callback
-+~~~~~~~~~~~~~~
-+
-+This kernel-space API comprises the callback functions that deliver filtered
-+data to the demux client. Unlike the other DVB kABIs, these functions are
-+provided by the client and called from the demux code.
-+
-+The function pointers of this abstract interface are not packed into a
-+structure as in the other demux APIs, because the callback functions are
-+registered and used independent of each other. As an example, it is possible
-+for the API client to provide several callback functions for receiving TS
-+packets and no callbacks for PES packets or sections.
-+
-+The functions that implement the callback API need not be re-entrant: when
-+a demux driver calls one of these functions, the driver is not allowed to
-+call the function again before the original call returns. If a callback is
-+triggered by a hardware interrupt, it is recommended to use the Linux
-+bottom half mechanism or start a tasklet instead of making the callback
-+function call directly from a hardware interrupt.
-+
-+This mechanism is implemented by dmx_ts_cb() and dmx_section_cb()
-+callbacks.
-+
-+
-+.. kernel-doc:: drivers/media/dvb-core/demux.h
-+
-+
-+Digital TV Conditional Access kABI
-+----------------------------------
-+
-+.. kernel-doc:: drivers/media/dvb-core/dvb_ca_en50221.h
-+
-+
-+Remote Controller devices
-+-------------------------
-+
-+.. kernel-doc:: include/media/rc-core.h
-+
-+.. kernel-doc:: include/media/lirc_dev.h
-+
-+
-+Media Controller devices
-+------------------------
-+
-+Media Controller
-+~~~~~~~~~~~~~~~~
-+
-+
-+The media controller userspace API is documented in DocBook format in
-+Documentation/DocBook/media/v4l/media-controller.xml. This document focus
-+on the kernel-side implementation of the media framework.
-+
-+* Abstract media device model:
-+
-+Discovering a device internal topology, and configuring it at runtime, is one
-+of the goals of the media framework. To achieve this, hardware devices are
-+modelled as an oriented graph of building blocks called entities connected
-+through pads.
-+
-+An entity is a basic media hardware building block. It can correspond to
-+a large variety of logical blocks such as physical hardware devices
-+(CMOS sensor for instance), logical hardware devices (a building block
-+in a System-on-Chip image processing pipeline), DMA channels or physical
-+connectors.
-+
-+A pad is a connection endpoint through which an entity can interact with
-+other entities. Data (not restricted to video) produced by an entity
-+flows from the entity's output to one or more entity inputs. Pads should
-+not be confused with physical pins at chip boundaries.
-+
-+A link is a point-to-point oriented connection between two pads, either
-+on the same entity or on different entities. Data flows from a source
-+pad to a sink pad.
-+
-+
-+* Media device:
-+
-+A media device is represented by a struct &media_device instance, defined in
-+include/media/media-device.h. Allocation of the structure is handled by the
-+media device driver, usually by embedding the &media_device instance in a
-+larger driver-specific structure.
-+
-+Drivers register media device instances by calling
-+__media_device_register() via the macro media_device_register()
-+and unregistered by calling
-+media_device_unregister().
-+
-+* Entities, pads and links:
-+
-+- Entities
-+
-+Entities are represented by a struct &media_entity instance, defined in
-+include/media/media-entity.h. The structure is usually embedded into a
-+higher-level structure, such as a v4l2_subdev or video_device instance,
-+although drivers can allocate entities directly.
-+
-+Drivers initialize entity pads by calling
-+media_entity_pads_init().
-+
-+Drivers register entities with a media device by calling
-+media_device_register_entity()
-+and unregistred by calling
-+media_device_unregister_entity().
-+
-+- Interfaces
-+
-+Interfaces are represented by a struct &media_interface instance, defined in
-+include/media/media-entity.h. Currently, only one type of interface is
-+defined: a device node. Such interfaces are represented by a struct
-+&media_intf_devnode.
-+
-+Drivers initialize and create device node interfaces by calling
-+media_devnode_create()
-+and remove them by calling:
-+media_devnode_remove().
-+
-+- Pads
-+
-+Pads are represented by a struct &media_pad instance, defined in
-+include/media/media-entity.h. Each entity stores its pads in a pads array
-+managed by the entity driver. Drivers usually embed the array in a
-+driver-specific structure.
-+
-+Pads are identified by their entity and their 0-based index in the pads
-+array.
-+Both information are stored in the &media_pad structure, making the
-+&media_pad pointer the canonical way to store and pass link references.
-+
-+Pads have flags that describe the pad capabilities and state.
-+
-+%MEDIA_PAD_FL_SINK indicates that the pad supports sinking data.
-+%MEDIA_PAD_FL_SOURCE indicates that the pad supports sourcing data.
-+
-+NOTE: One and only one of %MEDIA_PAD_FL_SINK and %MEDIA_PAD_FL_SOURCE must
-+be set for each pad.
-+
-+- Links
-+
-+Links are represented by a struct &media_link instance, defined in
-+include/media/media-entity.h. There are two types of links:
-+
-+1. pad to pad links:
-+
-+Associate two entities via their PADs. Each entity has a list that points
-+to all links originating at or targeting any of its pads.
-+A given link is thus stored twice, once in the source entity and once in
-+the target entity.
-+
-+Drivers create pad to pad links by calling:
-+media_create_pad_link() and remove with media_entity_remove_links().
-+
-+2. interface to entity links:
-+
-+Associate one interface to a Link.
-+
-+Drivers create interface to entity links by calling:
-+media_create_intf_link() and remove with media_remove_intf_links().
-+
-+NOTE:
-+
-+Links can only be created after having both ends already created.
-+
-+Links have flags that describe the link capabilities and state. The
-+valid values are described at media_create_pad_link() and
-+media_create_intf_link().
-+
-+Graph traversal:
-+
-+The media framework provides APIs to iterate over entities in a graph.
-+
-+To iterate over all entities belonging to a media device, drivers can use
-+the media_device_for_each_entity macro, defined in
-+include/media/media-device.h.
-+
-+struct media_entity *entity;
-+
-+media_device_for_each_entity(entity, mdev) {
-+// entity will point to each entity in turn
-+...
-+}
-+
-+Drivers might also need to iterate over all entities in a graph that can be
-+reached only through enabled links starting at a given entity. The media
-+framework provides a depth-first graph traversal API for that purpose.
-+
-+Note that graphs with cycles (whether directed or undirected) are *NOT*
-+supported by the graph traversal API. To prevent infinite loops, the graph
-+traversal code limits the maximum depth to MEDIA_ENTITY_ENUM_MAX_DEPTH,
-+currently defined as 16.
-+
-+Drivers initiate a graph traversal by calling
-+media_entity_graph_walk_start()
-+
-+The graph structure, provided by the caller, is initialized to start graph
-+traversal at the given entity.
-+
-+Drivers can then retrieve the next entity by calling
-+media_entity_graph_walk_next()
-+
-+When the graph traversal is complete the function will return NULL.
-+
-+Graph traversal can be interrupted at any moment. No cleanup function call
-+is required and the graph structure can be freed normally.
-+
-+Helper functions can be used to find a link between two given pads, or a pad
-+connected to another pad through an enabled link
-+media_entity_find_link() and media_entity_remote_pad()
-+
-+Use count and power handling:
-+
-+Due to the wide differences between drivers regarding power management
-+needs, the media controller does not implement power management. However,
-+the &media_entity structure includes a use_count field that media drivers
-+can use to track the number of users of every entity for power management
-+needs.
-+
-+The &media_entity.@use_count field is owned by media drivers and must not be
-+touched by entity drivers. Access to the field must be protected by the
-+&media_device.@graph_mutex lock.
-+
-+Links setup:
-+
-+Link properties can be modified at runtime by calling
-+media_entity_setup_link()
-+
-+Pipelines and media streams:
-+
-+When starting streaming, drivers must notify all entities in the pipeline to
-+prevent link states from being modified during streaming by calling
-+media_entity_pipeline_start().
-+
-+The function will mark all entities connected to the given entity through
-+enabled links, either directly or indirectly, as streaming.
-+
-+The &media_pipeline instance pointed to by the pipe argument will be stored
-+in every entity in the pipeline. Drivers should embed the &media_pipeline
-+structure in higher-level pipeline structures and can then access the
-+pipeline through the &media_entity pipe field.
-+
-+Calls to media_entity_pipeline_start() can be nested. The pipeline pointer
-+must be identical for all nested calls to the function.
-+
-+media_entity_pipeline_start() may return an error. In that case, it will
-+clean up any of the changes it did by itself.
-+
-+When stopping the stream, drivers must notify the entities with
-+media_entity_pipeline_stop().
-+
-+If multiple calls to media_entity_pipeline_start() have been made the same
-+number of media_entity_pipeline_stop() calls are required to stop streaming.
-+The &media_entity pipe field is reset to NULL on the last nested stop call.
-+
-+Link configuration will fail with -%EBUSY by default if either end of the
-+link is a streaming entity. Links that can be modified while streaming must
-+be marked with the %MEDIA_LNK_FL_DYNAMIC flag.
-+
-+If other operations need to be disallowed on streaming entities (such as
-+changing entities configuration parameters) drivers can explicitly check the
-+media_entity stream_count field to find out if an entity is streaming. This
-+operation must be done with the media_device graph_mutex held.
-+
-+Link validation:
-+
-+Link validation is performed by media_entity_pipeline_start() for any
-+entity which has sink pads in the pipeline. The
-+&media_entity.@link_validate() callback is used for that purpose. In
-+@link_validate() callback, entity driver should check that the properties of
-+the source pad of the connected entity and its own sink pad match. It is up
-+to the type of the entity (and in the end, the properties of the hardware)
-+what matching actually means.
-+
-+Subsystems should facilitate link validation by providing subsystem specific
-+helper functions to provide easy access for commonly needed information, and
-+in the end provide a way to use driver-specific callbacks.
-+
-+.. kernel-doc:: include/media/media-device.h
-+
-+.. kernel-doc:: include/media/media-devnode.h
-+
-+.. kernel-doc:: include/media/media-entity.h
-+
-diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
-index 6d3b95b8939d..e8f04f8872f8 100644
---- a/drivers/media/dvb-core/demux.h
-+++ b/drivers/media/dvb-core/demux.h
-@@ -1,6 +1,10 @@
- /*
-  * demux.h
-  *
-+ * The Kernel Digital TV Demux kABI defines a driver-internal interface for
-+ * registering low-level, hardware specific driver to a hardware independent
-+ * demux layer.
-+ *
-  * Copyright (c) 2002 Convergence GmbH
-  *
-  * based on code:
-@@ -32,49 +36,6 @@
- #include <linux/time.h>
- #include <linux/dvb/dmx.h>
- 
--/**
-- * DOC: Digital TV Demux
-- *
-- * The Kernel Digital TV Demux kABI defines a driver-internal interface for
-- * registering low-level, hardware specific driver to a hardware independent
-- * demux layer. It is only of interest for Digital TV device driver writers.
-- * The header file for this kABI is named demux.h and located in
-- * drivers/media/dvb-core.
-- *
-- * The demux kABI should be implemented for each demux in the system. It is
-- * used to select the TS source of a demux and to manage the demux resources.
-- * When the demux client allocates a resource via the demux kABI, it receives
-- * a pointer to the kABI of that resource.
-- *
-- * Each demux receives its TS input from a DVB front-end or from memory, as
-- * set via this demux kABI. In a system with more than one front-end, the kABI
-- * can be used to select one of the DVB front-ends as a TS source for a demux,
-- * unless this is fixed in the HW platform.
-- *
-- * The demux kABI only controls front-ends regarding to their connections with
-- * demuxes; the kABI used to set the other front-end parameters, such as
-- * tuning, are devined via the Digital TV Frontend kABI.
-- *
-- * The functions that implement the abstract interface demux should be defined
-- * static or module private and registered to the Demux core for external
-- * access. It is not necessary to implement every function in the struct
-- * &dmx_demux. For example, a demux interface might support Section filtering,
-- * but not PES filtering. The kABI client is expected to check the value of any
-- * function pointer before calling the function: the value of NULL means
-- * that the function is not available.
-- *
-- * Whenever the functions of the demux API modify shared data, the
-- * possibilities of lost update and race condition problems should be
-- * addressed, e.g. by protecting parts of code with mutexes.
-- *
-- * Note that functions called from a bottom half context must not sleep.
-- * Even a simple memory allocation without using %GFP_ATOMIC can result in a
-- * kernel thread being put to sleep if swapping is needed. For example, the
-- * Linux Kernel calls the functions of a network device interface from a
-- * bottom half context. Thus, if a demux kABI function is called from network
-- * device code, the function must not sleep.
-- */
--
- /*
-  * Common definitions
-  */
-@@ -231,30 +192,6 @@ struct dmx_section_feed {
- };
- 
- /**
-- * DOC: Demux Callback
-- *
-- * This kernel-space API comprises the callback functions that deliver filtered
-- * data to the demux client. Unlike the other DVB kABIs, these functions are
-- * provided by the client and called from the demux code.
-- *
-- * The function pointers of this abstract interface are not packed into a
-- * structure as in the other demux APIs, because the callback functions are
-- * registered and used independent of each other. As an example, it is possible
-- * for the API client to provide several callback functions for receiving TS
-- * packets and no callbacks for PES packets or sections.
-- *
-- * The functions that implement the callback API need not be re-entrant: when
-- * a demux driver calls one of these functions, the driver is not allowed to
-- * call the function again before the original call returns. If a callback is
-- * triggered by a hardware interrupt, it is recommended to use the Linux
-- * bottom half mechanism or start a tasklet instead of making the callback
-- * function call directly from a hardware interrupt.
-- *
-- * This mechanism is implemented by dmx_ts_cb() and dmx_section_cb()
-- * callbacks.
-- */
--
--/**
-  * typedef dmx_ts_cb - DVB demux TS filter callback function prototype
-  *
-  * @buffer1:		Pointer to the start of the filtered TS packets.
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 9592573a0b41..8c551174537a 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -1,6 +1,10 @@
- /*
-  * dvb_frontend.h
-  *
-+ * The Digital TV Frontend kABI defines a driver-internal interface for
-+ * registering low-level, hardware specific driver to a hardware independent
-+ * frontend layer.
-+ *
-  * Copyright (C) 2001 convergence integrated media GmbH
-  * Copyright (C) 2004 convergence GmbH
-  *
-@@ -42,29 +46,6 @@
- 
- #include "dvbdev.h"
- 
--/**
-- * DOC: Digital TV Frontend
-- *
-- * The Digital TV Frontend kABI defines a driver-internal interface for
-- * registering low-level, hardware specific driver to a hardware independent
-- * frontend layer. It is only of interest for Digital TV device driver writers.
-- * The header file for this API is named dvb_frontend.h and located in
-- * drivers/media/dvb-core.
-- *
-- * Before using the Digital TV frontend core, the bridge driver should attach
-- * the frontend demod, tuner and SEC devices and call dvb_register_frontend(),
-- * in order to register the new frontend at the subsystem. At device
-- * detach/removal, the bridge driver should call dvb_unregister_frontend() to
-- * remove the frontend from the core and then dvb_frontend_detach() to free the
-- * memory allocated by the frontend drivers.
-- *
-- * The drivers should also call dvb_frontend_suspend() as part of their
-- * handler for the &device_driver.suspend(), and dvb_frontend_resume() as
-- * part of their handler for &device_driver.resume().
-- *
-- * A few other optional functions are provided to handle some special cases.
-- */
--
- /*
-  * Maximum number of Delivery systems per frontend. It
-  * should be smaller or equal to 32
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index f743ae2210ee..4605fee0c228 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -29,237 +29,6 @@
- #include <media/media-devnode.h>
- #include <media/media-entity.h>
- 
--/**
-- * DOC: Media Controller
-- *
-- * The media controller userspace API is documented in DocBook format in
-- * Documentation/DocBook/media/v4l/media-controller.xml. This document focus
-- * on the kernel-side implementation of the media framework.
-- *
-- * * Abstract media device model:
-- *
-- * Discovering a device internal topology, and configuring it at runtime, is one
-- * of the goals of the media framework. To achieve this, hardware devices are
-- * modelled as an oriented graph of building blocks called entities connected
-- * through pads.
-- *
-- * An entity is a basic media hardware building block. It can correspond to
-- * a large variety of logical blocks such as physical hardware devices
-- * (CMOS sensor for instance), logical hardware devices (a building block
-- * in a System-on-Chip image processing pipeline), DMA channels or physical
-- * connectors.
-- *
-- * A pad is a connection endpoint through which an entity can interact with
-- * other entities. Data (not restricted to video) produced by an entity
-- * flows from the entity's output to one or more entity inputs. Pads should
-- * not be confused with physical pins at chip boundaries.
-- *
-- * A link is a point-to-point oriented connection between two pads, either
-- * on the same entity or on different entities. Data flows from a source
-- * pad to a sink pad.
-- *
-- *
-- * * Media device:
-- *
-- * A media device is represented by a struct &media_device instance, defined in
-- * include/media/media-device.h. Allocation of the structure is handled by the
-- * media device driver, usually by embedding the &media_device instance in a
-- * larger driver-specific structure.
-- *
-- * Drivers register media device instances by calling
-- *	__media_device_register() via the macro media_device_register()
-- * and unregistered by calling
-- *	media_device_unregister().
-- *
-- * * Entities, pads and links:
-- *
-- * - Entities
-- *
-- * Entities are represented by a struct &media_entity instance, defined in
-- * include/media/media-entity.h. The structure is usually embedded into a
-- * higher-level structure, such as a v4l2_subdev or video_device instance,
-- * although drivers can allocate entities directly.
-- *
-- * Drivers initialize entity pads by calling
-- *	media_entity_pads_init().
-- *
-- * Drivers register entities with a media device by calling
-- *	media_device_register_entity()
-- * and unregistred by calling
-- *	media_device_unregister_entity().
-- *
-- * - Interfaces
-- *
-- * Interfaces are represented by a struct &media_interface instance, defined in
-- * include/media/media-entity.h. Currently, only one type of interface is
-- * defined: a device node. Such interfaces are represented by a struct
-- * &media_intf_devnode.
-- *
-- * Drivers initialize and create device node interfaces by calling
-- *	media_devnode_create()
-- * and remove them by calling:
-- *	media_devnode_remove().
-- *
-- * - Pads
-- *
-- * Pads are represented by a struct &media_pad instance, defined in
-- * include/media/media-entity.h. Each entity stores its pads in a pads array
-- * managed by the entity driver. Drivers usually embed the array in a
-- * driver-specific structure.
-- *
-- * Pads are identified by their entity and their 0-based index in the pads
-- * array.
-- * Both information are stored in the &media_pad structure, making the
-- * &media_pad pointer the canonical way to store and pass link references.
-- *
-- * Pads have flags that describe the pad capabilities and state.
-- *
-- *	%MEDIA_PAD_FL_SINK indicates that the pad supports sinking data.
-- *	%MEDIA_PAD_FL_SOURCE indicates that the pad supports sourcing data.
-- *
-- * NOTE: One and only one of %MEDIA_PAD_FL_SINK and %MEDIA_PAD_FL_SOURCE must
-- * be set for each pad.
-- *
-- * - Links
-- *
-- * Links are represented by a struct &media_link instance, defined in
-- * include/media/media-entity.h. There are two types of links:
-- *
-- * 1. pad to pad links:
-- *
-- * Associate two entities via their PADs. Each entity has a list that points
-- * to all links originating at or targeting any of its pads.
-- * A given link is thus stored twice, once in the source entity and once in
-- * the target entity.
-- *
-- * Drivers create pad to pad links by calling:
-- *	media_create_pad_link() and remove with media_entity_remove_links().
-- *
-- * 2. interface to entity links:
-- *
-- * Associate one interface to a Link.
-- *
-- * Drivers create interface to entity links by calling:
-- *	media_create_intf_link() and remove with media_remove_intf_links().
-- *
-- * NOTE:
-- *
-- * Links can only be created after having both ends already created.
-- *
-- * Links have flags that describe the link capabilities and state. The
-- * valid values are described at media_create_pad_link() and
-- * media_create_intf_link().
-- *
-- * Graph traversal:
-- *
-- * The media framework provides APIs to iterate over entities in a graph.
-- *
-- * To iterate over all entities belonging to a media device, drivers can use
-- * the media_device_for_each_entity macro, defined in
-- * include/media/media-device.h.
-- *
-- * 	struct media_entity *entity;
-- *
-- * 	media_device_for_each_entity(entity, mdev) {
-- * 		// entity will point to each entity in turn
-- * 		...
-- * 	}
-- *
-- * Drivers might also need to iterate over all entities in a graph that can be
-- * reached only through enabled links starting at a given entity. The media
-- * framework provides a depth-first graph traversal API for that purpose.
-- *
-- * Note that graphs with cycles (whether directed or undirected) are *NOT*
-- * supported by the graph traversal API. To prevent infinite loops, the graph
-- * traversal code limits the maximum depth to MEDIA_ENTITY_ENUM_MAX_DEPTH,
-- * currently defined as 16.
-- *
-- * Drivers initiate a graph traversal by calling
-- *	media_entity_graph_walk_start()
-- *
-- * The graph structure, provided by the caller, is initialized to start graph
-- * traversal at the given entity.
-- *
-- * Drivers can then retrieve the next entity by calling
-- *	media_entity_graph_walk_next()
-- *
-- * When the graph traversal is complete the function will return NULL.
-- *
-- * Graph traversal can be interrupted at any moment. No cleanup function call
-- * is required and the graph structure can be freed normally.
-- *
-- * Helper functions can be used to find a link between two given pads, or a pad
-- * connected to another pad through an enabled link
-- *	media_entity_find_link() and media_entity_remote_pad()
-- *
-- * Use count and power handling:
-- *
-- * Due to the wide differences between drivers regarding power management
-- * needs, the media controller does not implement power management. However,
-- * the &media_entity structure includes a use_count field that media drivers
-- * can use to track the number of users of every entity for power management
-- * needs.
-- *
-- * The &media_entity.@use_count field is owned by media drivers and must not be
-- * touched by entity drivers. Access to the field must be protected by the
-- * &media_device.@graph_mutex lock.
-- *
-- * Links setup:
-- *
-- * Link properties can be modified at runtime by calling
-- *	media_entity_setup_link()
-- *
-- * Pipelines and media streams:
-- *
-- * When starting streaming, drivers must notify all entities in the pipeline to
-- * prevent link states from being modified during streaming by calling
-- *	media_entity_pipeline_start().
-- *
-- * The function will mark all entities connected to the given entity through
-- * enabled links, either directly or indirectly, as streaming.
-- *
-- * The &media_pipeline instance pointed to by the pipe argument will be stored
-- * in every entity in the pipeline. Drivers should embed the &media_pipeline
-- * structure in higher-level pipeline structures and can then access the
-- * pipeline through the &media_entity pipe field.
-- *
-- * Calls to media_entity_pipeline_start() can be nested. The pipeline pointer
-- * must be identical for all nested calls to the function.
-- *
-- * media_entity_pipeline_start() may return an error. In that case, it will
-- * clean up any of the changes it did by itself.
-- *
-- * When stopping the stream, drivers must notify the entities with
-- *	media_entity_pipeline_stop().
-- *
-- * If multiple calls to media_entity_pipeline_start() have been made the same
-- * number of media_entity_pipeline_stop() calls are required to stop streaming.
-- * The &media_entity pipe field is reset to NULL on the last nested stop call.
-- *
-- * Link configuration will fail with -%EBUSY by default if either end of the
-- * link is a streaming entity. Links that can be modified while streaming must
-- * be marked with the %MEDIA_LNK_FL_DYNAMIC flag.
-- *
-- * If other operations need to be disallowed on streaming entities (such as
-- * changing entities configuration parameters) drivers can explicitly check the
-- * media_entity stream_count field to find out if an entity is streaming. This
-- * operation must be done with the media_device graph_mutex held.
-- *
-- * Link validation:
-- *
-- * Link validation is performed by media_entity_pipeline_start() for any
-- * entity which has sink pads in the pipeline. The
-- * &media_entity.@link_validate() callback is used for that purpose. In
-- * @link_validate() callback, entity driver should check that the properties of
-- * the source pad of the connected entity and its own sink pad match. It is up
-- * to the type of the entity (and in the end, the properties of the hardware)
-- * what matching actually means.
-- *
-- * Subsystems should facilitate link validation by providing subsystem specific
-- * helper functions to provide easy access for commonly needed information, and
-- * in the end provide a way to use driver-specific callbacks.
-- */
--
- struct ida;
- struct device;
- 
+
+> And then move that patch (properly named) to the backports subdir of the
+> media_build repo, with regarding modification of the backports.txt:
+> Using an "add" entry under "[4.6.255]" and an "delete" entry under
+> "[4.5.255]" (so that it just gets applied to 4.6.x) ?
+>
+> BTW I wonder about the status update of
+> https://patchwork.linuxtv.org/patch/35337/ from "New" to "Superseeded"
+> (instead of "Accepted")...why is this?
+>
+> Regards,
+> 	Stefan
+>
+>
+>> On 07/11/2016 08:31 PM, Stefan Pöschel wrote:
+>>> The value 5 of the EEPROM_TS_MODE register (meaning dual tuner
+>>> presence) is
+>>> only valid for AF9035 devices. For IT9135 devices it is invalid and
+>>> led to a
+>>> false positive dual tuner mode detection with PCTV 79e.
+>>> Therefore on non-AF9035 devices and with value 5 the driver now
+>>> defaults to
+>>> single tuner mode and outputs a regarding info message to log.
+>>>
+>>> This fixes Bugzilla bug #118561.
+>>>
+>>> Reported-by: Marc Duponcheel <marc@offline.be>
+>>> Signed-off-by: Stefan Pöschel <basic.master@gmx.de>
+>>> ---
+>>>  drivers/media/usb/dvb-usb-v2/af9035.c | 50
+>>> +++++++++++++++++++++++------------
+>>>  drivers/media/usb/dvb-usb-v2/af9035.h |  2 +-
+>>>  2 files changed, 34 insertions(+), 18 deletions(-)
+>>>
+>>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> b/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> index eabede4..ca018cd 100644
+>>> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> @@ -496,7 +496,8 @@ static int af9035_identify_state(struct
+>>> dvb_usb_device *d, const char **name)
+>>>  {
+>>>      struct state *state = d_to_priv(d);
+>>>      struct usb_interface *intf = d->intf;
+>>> -    int ret;
+>>> +    int ret, ts_mode_invalid;
+>>> +    u8 tmp;
+>>>      u8 wbuf[1] = { 1 };
+>>>      u8 rbuf[4];
+>>>      struct usb_req req = { CMD_FW_QUERYINFO, 0, sizeof(wbuf), wbuf,
+>>> @@ -530,6 +531,36 @@ static int af9035_identify_state(struct
+>>> dvb_usb_device *d, const char **name)
+>>>          state->eeprom_addr = EEPROM_BASE_AF9035;
+>>>      }
+>>>
+>>> +
+>>> +    /* check for dual tuner mode */
+>>> +    ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
+>>> +    if (ret < 0)
+>>> +        goto err;
+>>> +
+>>> +    ts_mode_invalid = 0;
+>>> +    switch (tmp) {
+>>> +    case 0:
+>>> +        break;
+>>> +    case 1:
+>>> +    case 3:
+>>> +        state->dual_mode = true;
+>>> +        break;
+>>> +    case 5:
+>>> +        if (state->chip_type != 0x9135 && state->chip_type != 0x9306)
+>>> +            state->dual_mode = true;    /* AF9035 */
+>>> +        else
+>>> +            ts_mode_invalid = 1;
+>>> +        break;
+>>> +    default:
+>>> +        ts_mode_invalid = 1;
+>>> +    }
+>>> +
+>>> +    dev_dbg(&intf->dev, "ts mode=%d dual mode=%d\n", tmp,
+>>> state->dual_mode);
+>>> +
+>>> +    if (ts_mode_invalid)
+>>> +        dev_info(&intf->dev, "ts mode=%d not supported, defaulting to
+>>> single tuner mode!", tmp);
+>>> +
+>>> +
+>>>      ret = af9035_ctrl_msg(d, &req);
+>>>      if (ret < 0)
+>>>          goto err;
+>>> @@ -698,11 +729,7 @@ static int af9035_download_firmware(struct
+>>> dvb_usb_device *d,
+>>>       * which is done by master demod.
+>>>       * Master feeds also clock and controls power via GPIO.
+>>>       */
+>>> -    ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
+>>> -    if (ret < 0)
+>>> -        goto err;
+>>> -
+>>> -    if (tmp == 1 || tmp == 3 || tmp == 5) {
+>>> +    if (state->dual_mode) {
+>>>          /* configure gpioh1, reset & power slave demod */
+>>>          ret = af9035_wr_reg_mask(d, 0x00d8b0, 0x01, 0x01);
+>>>          if (ret < 0)
+>>> @@ -835,17 +862,6 @@ static int af9035_read_config(struct
+>>> dvb_usb_device *d)
+>>>      }
+>>>
+>>>
+>>> -
+>>> -    /* check if there is dual tuners */
+>>> -    ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
+>>> -    if (ret < 0)
+>>> -        goto err;
+>>> -
+>>> -    if (tmp == 1 || tmp == 3 || tmp == 5)
+>>> -        state->dual_mode = true;
+>>> -
+>>> -    dev_dbg(&intf->dev, "ts mode=%d dual mode=%d\n", tmp,
+>>> state->dual_mode);
+>>> -
+>>>      if (state->dual_mode) {
+>>>          /* read 2nd demodulator I2C address */
+>>>          ret = af9035_rd_reg(d,
+>>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h
+>>> b/drivers/media/usb/dvb-usb-v2/af9035.h
+>>> index c91d1a3..1f83c92 100644
+>>> --- a/drivers/media/usb/dvb-usb-v2/af9035.h
+>>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.h
+>>> @@ -113,7 +113,7 @@ static const u32 clock_lut_it9135[] = {
+>>>   * 0  TS
+>>>   * 1  DCA + PIP
+>>>   * 3  PIP
+>>> - * 5  DCA + PIP
+>>> + * 5  DCA + PIP (AF9035 only)
+>>>   * n  DCA
+>>>   *
+>>>   * Values 0, 3 and 5 are seen to this day. 0 for single TS and 3/5
+>>> for dual TS.
+>>>
+>>
+
 -- 
-2.7.4
-
+http://palosaari.fi/
