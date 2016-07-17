@@ -1,70 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52888 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:48270 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753984AbcGUUS0 (ORCPT
+	with ESMTP id S1751001AbcGQOaL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 16:18:26 -0400
+	Sun, 17 Jul 2016 10:30:11 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 08/12] [media] doc-rst: merge v4l2-async.rst with v4l2-subdev.rst
-Date: Thu, 21 Jul 2016 17:18:13 -0300
-Message-Id: <82422da7040a8158d378098219fa54aa0ff38217.1469132139.git.mchehab@s-opensource.com>
-In-Reply-To: <8bf2bc4813f5dc2b797576bd9e61b4f5ee86bf22.1469132139.git.mchehab@s-opensource.com>
-References: <8bf2bc4813f5dc2b797576bd9e61b4f5ee86bf22.1469132139.git.mchehab@s-opensource.com>
-In-Reply-To: <8bf2bc4813f5dc2b797576bd9e61b4f5ee86bf22.1469132139.git.mchehab@s-opensource.com>
-References: <8bf2bc4813f5dc2b797576bd9e61b4f5ee86bf22.1469132139.git.mchehab@s-opensource.com>
+Subject: [PATCH 2/7] [media] doc-rst: media_drivers.rst: Fix paragraph headers for MC
+Date: Sun, 17 Jul 2016 11:29:59 -0300
+Message-Id: <45330118e82a5816798e2200655e7f940d03dce0.1468765739.git.mchehab@s-opensource.com>
+In-Reply-To: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
+References: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
+In-Reply-To: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
+References: <1ee08125cf954ca3ffd8fad633a54f4f1af28afc.1468765739.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Async API is actually part of the v4l2 subdev.
-Move its declarations to it.
+Fix the paragraph identation for the media controller
+headers.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/media/kapi/v4l2-async.rst  | 4 ----
- Documentation/media/kapi/v4l2-core.rst   | 1 -
- Documentation/media/kapi/v4l2-subdev.rst | 5 +++++
- 3 files changed, 5 insertions(+), 5 deletions(-)
- delete mode 100644 Documentation/media/kapi/v4l2-async.rst
+ Documentation/media/media_drivers.rst | 41 ++++++++++++++++++++---------------
+ 1 file changed, 24 insertions(+), 17 deletions(-)
 
-diff --git a/Documentation/media/kapi/v4l2-async.rst b/Documentation/media/kapi/v4l2-async.rst
-deleted file mode 100644
-index 372aa29fbf29..000000000000
---- a/Documentation/media/kapi/v4l2-async.rst
-+++ /dev/null
-@@ -1,4 +0,0 @@
--V4L2 Async kAPI
--^^^^^^^^^^^^^^^
+diff --git a/Documentation/media/media_drivers.rst b/Documentation/media/media_drivers.rst
+index 722170cb7f40..507a40f69d05 100644
+--- a/Documentation/media/media_drivers.rst
++++ b/Documentation/media/media_drivers.rst
+@@ -183,7 +183,8 @@ The media controller userspace API is documented in DocBook format in
+ Documentation/DocBook/media/v4l/media-controller.xml. This document focus
+ on the kernel-side implementation of the media framework.
+ 
+-* Abstract media device model:
++Abstract media device model
++^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+ Discovering a device internal topology, and configuring it at runtime, is one
+ of the goals of the media framework. To achieve this, hardware devices are
+@@ -205,8 +206,8 @@ A link is a point-to-point oriented connection between two pads, either
+ on the same entity or on different entities. Data flows from a source
+ pad to a sink pad.
+ 
 -
--.. kernel-doc:: include/media/v4l2-async.h
-diff --git a/Documentation/media/kapi/v4l2-core.rst b/Documentation/media/kapi/v4l2-core.rst
-index 8c127ccdb0ae..fc623e9ca871 100644
---- a/Documentation/media/kapi/v4l2-core.rst
-+++ b/Documentation/media/kapi/v4l2-core.rst
-@@ -5,7 +5,6 @@ Video2Linux devices
-     :maxdepth: 1
+-* Media device:
++Media device
++^^^^^^^^^^^^
  
-     v4l2-framework
--    v4l2-async
-     v4l2-controls
-     v4l2-device
-     v4l2-dv-timings
-diff --git a/Documentation/media/kapi/v4l2-subdev.rst b/Documentation/media/kapi/v4l2-subdev.rst
-index 101902c930b9..829016940597 100644
---- a/Documentation/media/kapi/v4l2-subdev.rst
-+++ b/Documentation/media/kapi/v4l2-subdev.rst
-@@ -266,3 +266,8 @@ V4L2 subdev kAPI
- ^^^^^^^^^^^^^^^^
+ A media device is represented by a struct &media_device instance, defined in
+ include/media/media-device.h. Allocation of the structure is handled by the
+@@ -218,9 +219,8 @@ __media_device_register() via the macro media_device_register()
+ and unregistered by calling
+ media_device_unregister().
  
- .. kernel-doc:: include/media/v4l2-subdev.h
-+
-+V4L2 subdev async kAPI
-+^^^^^^^^^^^^^^^^^^^^^^
-+
-+.. kernel-doc:: include/media/v4l2-async.h
+-* Entities, pads and links:
+-
+-- Entities
++Entities
++^^^^^^^^
+ 
+ Entities are represented by a struct &media_entity instance, defined in
+ include/media/media-entity.h. The structure is usually embedded into a
+@@ -235,7 +235,8 @@ media_device_register_entity()
+ and unregistred by calling
+ media_device_unregister_entity().
+ 
+-- Interfaces
++Interfaces
++^^^^^^^^^^
+ 
+ Interfaces are represented by a struct &media_interface instance, defined in
+ include/media/media-entity.h. Currently, only one type of interface is
+@@ -247,8 +248,8 @@ media_devnode_create()
+ and remove them by calling:
+ media_devnode_remove().
+ 
+-- Pads
+-
++Pads
++^^^^
+ Pads are represented by a struct &media_pad instance, defined in
+ include/media/media-entity.h. Each entity stores its pads in a pads array
+ managed by the entity driver. Drivers usually embed the array in a
+@@ -267,7 +268,8 @@ Pads have flags that describe the pad capabilities and state.
+ NOTE: One and only one of %MEDIA_PAD_FL_SINK and %MEDIA_PAD_FL_SOURCE must
+ be set for each pad.
+ 
+-- Links
++Links
++^^^^^
+ 
+ Links are represented by a struct &media_link instance, defined in
+ include/media/media-entity.h. There are two types of links:
+@@ -289,15 +291,16 @@ Associate one interface to a Link.
+ Drivers create interface to entity links by calling:
+ media_create_intf_link() and remove with media_remove_intf_links().
+ 
+-NOTE:
++.. note::
+ 
+-Links can only be created after having both ends already created.
++   Links can only be created after having both ends already created.
+ 
+ Links have flags that describe the link capabilities and state. The
+ valid values are described at media_create_pad_link() and
+ media_create_intf_link().
+ 
+-Graph traversal:
++Graph traversal
++^^^^^^^^^^^^^^^
+ 
+ The media framework provides APIs to iterate over entities in a graph.
+ 
+@@ -339,7 +342,8 @@ Helper functions can be used to find a link between two given pads, or a pad
+ connected to another pad through an enabled link
+ media_entity_find_link() and media_entity_remote_pad()
+ 
+-Use count and power handling:
++Use count and power handling
++^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+ Due to the wide differences between drivers regarding power management
+ needs, the media controller does not implement power management. However,
+@@ -351,12 +355,14 @@ The &media_entity.@use_count field is owned by media drivers and must not be
+ touched by entity drivers. Access to the field must be protected by the
+ &media_device.@graph_mutex lock.
+ 
+-Links setup:
++Links setup
++^^^^^^^^^^^
+ 
+ Link properties can be modified at runtime by calling
+ media_entity_setup_link()
+ 
+-Pipelines and media streams:
++Pipelines and media streams
++^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+ When starting streaming, drivers must notify all entities in the pipeline to
+ prevent link states from being modified during streaming by calling
+@@ -392,7 +398,8 @@ changing entities configuration parameters) drivers can explicitly check the
+ media_entity stream_count field to find out if an entity is streaming. This
+ operation must be done with the media_device graph_mutex held.
+ 
+-Link validation:
++Link validation
++^^^^^^^^^^^^^^^
+ 
+ Link validation is performed by media_entity_pipeline_start() for any
+ entity which has sink pads in the pipeline. The
 -- 
 2.7.4
 
