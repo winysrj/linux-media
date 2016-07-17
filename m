@@ -1,73 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www381.your-server.de ([78.46.137.84]:42639 "EHLO
-	www381.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752152AbcGGPS2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2016 11:18:28 -0400
-Subject: Re: [PATCH 07/11] media: adv7180: change mbus format to UYVY
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-	linux-media@vger.kernel.org
-References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
- <1467846004-12731-8-git-send-email-steve_longerbeam@mentor.com>
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	=?UTF-8?Q?Niklas_S=c3=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-From: Lars-Peter Clausen <lars@metafoo.de>
-Message-ID: <577E72C1.3000902@metafoo.de>
-Date: Thu, 7 Jul 2016 17:18:25 +0200
-MIME-Version: 1.0
-In-Reply-To: <1467846004-12731-8-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([198.137.202.9]:60542 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107AbcGQRHQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Jul 2016 13:07:16 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 13/15] [media] doc-rst: convert ttusb-dev to rst
+Date: Sun, 17 Jul 2016 14:07:08 -0300
+Message-Id: <d91b11bfdb6dd83f4cd0538a9af65276b9b77ace.1468775054.git.mchehab@s-opensource.com>
+In-Reply-To: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
+References: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
+In-Reply-To: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
+References: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/07/2016 01:00 AM, Steve Longerbeam wrote:
-> Change the media bus format from YUYV8_2X8 to UYVY8_2X8. Colors
-> now look correct when capturing with the i.mx6 backend. The other
-> option is to set the SWPC bit in register 0x27 to swap the Cr and Cb
-> output samples.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+There are some things that needed to be done to convert
+it to ReST. Also, there are some obsolete info there
+related to Kernels 2.4 and 2.6. Update them.
 
-The patch is certainly correct from the technical point of view. But we need
-to be careful not to break any existing platforms which rely on this
-setting. So the alternative solution of changing the default output order is
-not an option.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/dvb-drivers/index.rst     |  1 +
+ Documentation/media/dvb-drivers/ttusb-dec.rst | 46 +++++++++++++--------------
+ 2 files changed, 23 insertions(+), 24 deletions(-)
 
-Looking at things it seems like the Renesas vin driver, which is used in
-combination with the adv7180 on some boards, uses the return value from
-enum_mbus_code to setup the video pipeline. Adding Niklas to Cc, maybe he
-can help to test this.
-
-But otherwise
-
-Acked-by: Lars-Peter Clausen <lars@metafoo.de>
-
-> ---
->  drivers/media/i2c/adv7180.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-> index fff887c..427695d 100644
-> --- a/drivers/media/i2c/adv7180.c
-> +++ b/drivers/media/i2c/adv7180.c
-> @@ -654,7 +654,7 @@ static int adv7180_enum_mbus_code(struct v4l2_subdev *sd,
->  	if (code->index != 0)
->  		return -EINVAL;
->  
-> -	code->code = MEDIA_BUS_FMT_YUYV8_2X8;
-> +	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
->  
->  	return 0;
->  }
-> @@ -664,7 +664,7 @@ static int adv7180_mbus_fmt(struct v4l2_subdev *sd,
->  {
->  	struct adv7180_state *state = to_state(sd);
->  
-> -	fmt->code = MEDIA_BUS_FMT_YUYV8_2X8;
-> +	fmt->code = MEDIA_BUS_FMT_UYVY8_2X8;
->  	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
->  	fmt->width = 720;
->  	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-> 
+diff --git a/Documentation/media/dvb-drivers/index.rst b/Documentation/media/dvb-drivers/index.rst
+index 7db298f3c6ce..dbc41950d328 100644
+--- a/Documentation/media/dvb-drivers/index.rst
++++ b/Documentation/media/dvb-drivers/index.rst
+@@ -28,4 +28,5 @@ License".
+ 	lmedm04
+ 	opera-firmware
+ 	technisat
++	ttusb-dec
+ 	contributors
+diff --git a/Documentation/media/dvb-drivers/ttusb-dec.rst b/Documentation/media/dvb-drivers/ttusb-dec.rst
+index b2f271cd784b..84fc2199dc29 100644
+--- a/Documentation/media/dvb-drivers/ttusb-dec.rst
++++ b/Documentation/media/dvb-drivers/ttusb-dec.rst
+@@ -5,41 +5,39 @@ Driver Status
+ -------------
+ 
+ Supported:
+-	DEC2000-t
+-	DEC2450-t
+-	DEC3000-s
+-	Linux Kernels 2.4 and 2.6
+-	Video Streaming
+-	Audio Streaming
+-	Section Filters
+-	Channel Zapping
+-	Hotplug firmware loader under 2.6 kernels
++
++	- DEC2000-t
++	- DEC2450-t
++	- DEC3000-s
++	- Video Streaming
++	- Audio Streaming
++	- Section Filters
++	- Channel Zapping
++	- Hotplug firmware loader
+ 
+ To Do:
+-	Tuner status information
+-	DVB network interface
+-	Streaming video PC->DEC
+-	Conax support for 2450-t
++
++	- Tuner status information
++	- DVB network interface
++	- Streaming video PC->DEC
++	- Conax support for 2450-t
+ 
+ Getting the Firmware
+ --------------------
+ To download the firmware, use the following commands:
+-"get_dvb_firmware dec2000t"
+-"get_dvb_firmware dec2540t"
+-"get_dvb_firmware dec3000s"
+ 
++.. code-block:: none
+ 
+-Compilation Notes for 2.4 kernels
+----------------------------------
+-For 2.4 kernels the firmware for the DECs is compiled into the driver itself.
++	scripts/get_dvb_firmware dec2000t
++	scripts/get_dvb_firmware dec2540t
++	scripts/get_dvb_firmware dec3000s
+ 
+-Copy the three files downloaded above into the build-2.4 directory.
+ 
++Hotplug Firmware Loading
++------------------------
+ 
+-Hotplug Firmware Loading for 2.6 kernels
+-----------------------------------------
+-For 2.6 kernels the firmware is loaded at the point that the driver module is
+-loaded.  See linux/Documentation/dvb/firmware.txt for more information.
++Since 2.6 kernels, the firmware is loaded at the point that the driver module
++is loaded.
+ 
+ Copy the three files downloaded above into the /usr/lib/hotplug/firmware or
+ /lib/firmware directory (depending on configuration of firmware hotplug).
+-- 
+2.7.4
 
