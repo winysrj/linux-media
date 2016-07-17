@@ -1,183 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57060 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750814AbcGQI7M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 04:59:12 -0400
-Subject: Re: [PATCH] af9035: fix dual tuner detection with PCTV 79e
-To: =?UTF-8?Q?Stefan_P=c3=b6schel?= <basic.master@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <5783D80F.2040808@gmx.de>
- <8c71e2a3-ca04-0215-b3cb-c478afa9b1cb@iki.fi> <578A937E.4060502@gmx.de>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <d3013624-68cd-35da-3e1a-f1b190c67328@iki.fi>
-Date: Sun, 17 Jul 2016 11:59:06 +0300
-MIME-Version: 1.0
-In-Reply-To: <578A937E.4060502@gmx.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:60319 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750959AbcGQPCs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Jul 2016 11:02:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 5/7] cec: limit the size of the transmit queue
+Date: Sun, 17 Jul 2016 17:02:32 +0200
+Message-Id: <1468767754-48542-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1468767754-48542-1-git-send-email-hverkuil@xs4all.nl>
+References: <1468767754-48542-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/16/2016 11:05 PM, Stefan Pöschel wrote:
-> Am 15.07.2016 um 08:21 schrieb Antti Palosaari:
->> Applied and PULL requested for 4.7.
->
-> Great, thanks!
->
->> Anyhow, it does not apply for 4.6. You must backport that patch to 4.6
->> stable also!
->
-> I have never done backporting before, so I need some advice I think:
-> Am I right that I have to create the patch, now just based on tag "v4.6"
-> of the media_tree repo?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Just make patch that compiles and works against kernel tag v4.6. No need 
-to backport it to media_tree or media_build. It should go 4.6 kernel 
-stable tree.
+The size of the transmit queue was unlimited, which meant that
+in non-blocking mode you could flood the CEC adapter with messages
+to be transmitted.
 
-Antti
+Limit this to 18 messages.
 
+Also print the number of pending transmits and the timeout value
+in the status debugfs file.
 
-> And then move that patch (properly named) to the backports subdir of the
-> media_build repo, with regarding modification of the backports.txt:
-> Using an "add" entry under "[4.6.255]" and an "delete" entry under
-> "[4.5.255]" (so that it just gets applied to 4.6.x) ?
->
-> BTW I wonder about the status update of
-> https://patchwork.linuxtv.org/patch/35337/ from "New" to "Superseeded"
-> (instead of "Accepted")...why is this?
->
-> Regards,
-> 	Stefan
->
->
->> On 07/11/2016 08:31 PM, Stefan Pöschel wrote:
->>> The value 5 of the EEPROM_TS_MODE register (meaning dual tuner
->>> presence) is
->>> only valid for AF9035 devices. For IT9135 devices it is invalid and
->>> led to a
->>> false positive dual tuner mode detection with PCTV 79e.
->>> Therefore on non-AF9035 devices and with value 5 the driver now
->>> defaults to
->>> single tuner mode and outputs a regarding info message to log.
->>>
->>> This fixes Bugzilla bug #118561.
->>>
->>> Reported-by: Marc Duponcheel <marc@offline.be>
->>> Signed-off-by: Stefan Pöschel <basic.master@gmx.de>
->>> ---
->>>  drivers/media/usb/dvb-usb-v2/af9035.c | 50
->>> +++++++++++++++++++++++------------
->>>  drivers/media/usb/dvb-usb-v2/af9035.h |  2 +-
->>>  2 files changed, 34 insertions(+), 18 deletions(-)
->>>
->>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c
->>> b/drivers/media/usb/dvb-usb-v2/af9035.c
->>> index eabede4..ca018cd 100644
->>> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
->>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
->>> @@ -496,7 +496,8 @@ static int af9035_identify_state(struct
->>> dvb_usb_device *d, const char **name)
->>>  {
->>>      struct state *state = d_to_priv(d);
->>>      struct usb_interface *intf = d->intf;
->>> -    int ret;
->>> +    int ret, ts_mode_invalid;
->>> +    u8 tmp;
->>>      u8 wbuf[1] = { 1 };
->>>      u8 rbuf[4];
->>>      struct usb_req req = { CMD_FW_QUERYINFO, 0, sizeof(wbuf), wbuf,
->>> @@ -530,6 +531,36 @@ static int af9035_identify_state(struct
->>> dvb_usb_device *d, const char **name)
->>>          state->eeprom_addr = EEPROM_BASE_AF9035;
->>>      }
->>>
->>> +
->>> +    /* check for dual tuner mode */
->>> +    ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
->>> +    if (ret < 0)
->>> +        goto err;
->>> +
->>> +    ts_mode_invalid = 0;
->>> +    switch (tmp) {
->>> +    case 0:
->>> +        break;
->>> +    case 1:
->>> +    case 3:
->>> +        state->dual_mode = true;
->>> +        break;
->>> +    case 5:
->>> +        if (state->chip_type != 0x9135 && state->chip_type != 0x9306)
->>> +            state->dual_mode = true;    /* AF9035 */
->>> +        else
->>> +            ts_mode_invalid = 1;
->>> +        break;
->>> +    default:
->>> +        ts_mode_invalid = 1;
->>> +    }
->>> +
->>> +    dev_dbg(&intf->dev, "ts mode=%d dual mode=%d\n", tmp,
->>> state->dual_mode);
->>> +
->>> +    if (ts_mode_invalid)
->>> +        dev_info(&intf->dev, "ts mode=%d not supported, defaulting to
->>> single tuner mode!", tmp);
->>> +
->>> +
->>>      ret = af9035_ctrl_msg(d, &req);
->>>      if (ret < 0)
->>>          goto err;
->>> @@ -698,11 +729,7 @@ static int af9035_download_firmware(struct
->>> dvb_usb_device *d,
->>>       * which is done by master demod.
->>>       * Master feeds also clock and controls power via GPIO.
->>>       */
->>> -    ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
->>> -    if (ret < 0)
->>> -        goto err;
->>> -
->>> -    if (tmp == 1 || tmp == 3 || tmp == 5) {
->>> +    if (state->dual_mode) {
->>>          /* configure gpioh1, reset & power slave demod */
->>>          ret = af9035_wr_reg_mask(d, 0x00d8b0, 0x01, 0x01);
->>>          if (ret < 0)
->>> @@ -835,17 +862,6 @@ static int af9035_read_config(struct
->>> dvb_usb_device *d)
->>>      }
->>>
->>>
->>> -
->>> -    /* check if there is dual tuners */
->>> -    ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
->>> -    if (ret < 0)
->>> -        goto err;
->>> -
->>> -    if (tmp == 1 || tmp == 3 || tmp == 5)
->>> -        state->dual_mode = true;
->>> -
->>> -    dev_dbg(&intf->dev, "ts mode=%d dual mode=%d\n", tmp,
->>> state->dual_mode);
->>> -
->>>      if (state->dual_mode) {
->>>          /* read 2nd demodulator I2C address */
->>>          ret = af9035_rd_reg(d,
->>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h
->>> b/drivers/media/usb/dvb-usb-v2/af9035.h
->>> index c91d1a3..1f83c92 100644
->>> --- a/drivers/media/usb/dvb-usb-v2/af9035.h
->>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.h
->>> @@ -113,7 +113,7 @@ static const u32 clock_lut_it9135[] = {
->>>   * 0  TS
->>>   * 1  DCA + PIP
->>>   * 3  PIP
->>> - * 5  DCA + PIP
->>> + * 5  DCA + PIP (AF9035 only)
->>>   * n  DCA
->>>   *
->>>   * Values 0, 3 and 5 are seen to this day. 0 for single TS and 3/5
->>> for dual TS.
->>>
->>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/staging/media/cec/cec-adap.c | 33 +++++++++++++++++++++++----------
+ include/media/cec.h                  | 19 ++++++++++++++-----
+ 2 files changed, 37 insertions(+), 15 deletions(-)
 
+diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
+index cd39a9a..159a893 100644
+--- a/drivers/staging/media/cec/cec-adap.c
++++ b/drivers/staging/media/cec/cec-adap.c
+@@ -156,10 +156,10 @@ static void cec_queue_msg_fh(struct cec_fh *fh, const struct cec_msg *msg)
+ 	list_add_tail(&entry->list, &fh->msgs);
+ 
+ 	/*
+-	 * if the queue now has more than CEC_MAX_MSG_QUEUE_SZ
++	 * if the queue now has more than CEC_MAX_MSG_RX_QUEUE_SZ
+ 	 * messages, drop the oldest one and send a lost message event.
+ 	 */
+-	if (fh->queued_msgs == CEC_MAX_MSG_QUEUE_SZ) {
++	if (fh->queued_msgs == CEC_MAX_MSG_RX_QUEUE_SZ) {
+ 		list_del(&entry->list);
+ 		goto lost_msgs;
+ 	}
+@@ -278,10 +278,13 @@ static void cec_data_cancel(struct cec_data *data)
+ 	 * It's either the current transmit, or it is a pending
+ 	 * transmit. Take the appropriate action to clear it.
+ 	 */
+-	if (data->adap->transmitting == data)
++	if (data->adap->transmitting == data) {
+ 		data->adap->transmitting = NULL;
+-	else
++	} else {
+ 		list_del_init(&data->list);
++		if (!(data->msg.tx_status & CEC_TX_STATUS_OK))
++			data->adap->transmit_queue_sz--;
++	}
+ 
+ 	/* Mark it as an error */
+ 	data->msg.tx_ts = ktime_get_ns();
+@@ -405,6 +408,7 @@ int cec_thread_func(void *_adap)
+ 		data = list_first_entry(&adap->transmit_queue,
+ 					struct cec_data, list);
+ 		list_del_init(&data->list);
++		adap->transmit_queue_sz--;
+ 		/* Make this the current transmitting message */
+ 		adap->transmitting = data;
+ 
+@@ -498,6 +502,7 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+ 		data->attempts--;
+ 		/* Add the message in front of the transmit queue */
+ 		list_add(&data->list, &adap->transmit_queue);
++		adap->transmit_queue_sz++;
+ 		goto wake_thread;
+ 	}
+ 
+@@ -638,6 +643,9 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
+ 	if (!adap->is_configured && !adap->is_configuring)
+ 		return -ENONET;
+ 
++	if (adap->transmit_queue_sz >= CEC_MAX_MSG_TX_QUEUE_SZ)
++		return -EBUSY;
++
+ 	data = kzalloc(sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+@@ -682,6 +690,7 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
+ 	if (fh)
+ 		list_add_tail(&data->xfer_list, &fh->xfer_list);
+ 	list_add_tail(&data->list, &adap->transmit_queue);
++	adap->transmit_queue_sz++;
+ 	if (!adap->transmitting)
+ 		wake_up_interruptible(&adap->kthread_waitq);
+ 
+@@ -1621,15 +1630,19 @@ int cec_adap_status(struct seq_file *file, void *priv)
+ 			   adap->monitor_all_cnt);
+ 	data = adap->transmitting;
+ 	if (data)
+-		seq_printf(file, "transmitting message: %*ph (reply: %02x)\n",
+-			   data->msg.len, data->msg.msg, data->msg.reply);
++		seq_printf(file, "transmitting message: %*ph (reply: %02x, timeout: %ums)\n",
++			   data->msg.len, data->msg.msg, data->msg.reply,
++			   data->msg.timeout);
++	seq_printf(file, "pending transmits: %u\n", adap->transmit_queue_sz);
+ 	list_for_each_entry(data, &adap->transmit_queue, list) {
+-		seq_printf(file, "queued tx message: %*ph (reply: %02x)\n",
+-			   data->msg.len, data->msg.msg, data->msg.reply);
++		seq_printf(file, "queued tx message: %*ph (reply: %02x, timeout: %ums)\n",
++			   data->msg.len, data->msg.msg, data->msg.reply,
++			   data->msg.timeout);
+ 	}
+ 	list_for_each_entry(data, &adap->wait_queue, list) {
+-		seq_printf(file, "message waiting for reply: %*ph (reply: %02x)\n",
+-			   data->msg.len, data->msg.msg, data->msg.reply);
++		seq_printf(file, "message waiting for reply: %*ph (reply: %02x, timeout: %ums)\n",
++			   data->msg.len, data->msg.msg, data->msg.reply,
++			   data->msg.timeout);
+ 	}
+ 
+ 	call_void_op(adap, adap_status, file);
+diff --git a/include/media/cec.h b/include/media/cec.h
+index 9a791c0..dc7854b 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -126,12 +126,20 @@ struct cec_adap_ops {
+  * With a transfer rate of at most 36 bytes per second this makes 18 messages
+  * per second worst case.
+  *
+- * We queue at most 3 seconds worth of messages. The CEC specification requires
+- * that messages are replied to within a second, so 3 seconds should give more
+- * than enough margin. Since most messages are actually more than 2 bytes, this
+- * is in practice a lot more than 3 seconds.
++ * We queue at most 3 seconds worth of received messages. The CEC specification
++ * requires that messages are replied to within a second, so 3 seconds should
++ * give more than enough margin. Since most messages are actually more than 2
++ * bytes, this is in practice a lot more than 3 seconds.
+  */
+-#define CEC_MAX_MSG_QUEUE_SZ		(18 * 3)
++#define CEC_MAX_MSG_RX_QUEUE_SZ		(18 * 3)
++
++/*
++ * The transmit queue is limited to 1 second worth of messages (worst case).
++ * Messages can be transmitted by userspace and kernel space. But for both it
++ * makes no sense to have a lot of messages queued up. One second seems
++ * reasonable.
++ */
++#define CEC_MAX_MSG_TX_QUEUE_SZ		(18 * 1)
+ 
+ struct cec_adapter {
+ 	struct module *owner;
+@@ -141,6 +149,7 @@ struct cec_adapter {
+ 	struct rc_dev *rc;
+ 
+ 	struct list_head transmit_queue;
++	unsigned int transmit_queue_sz;
+ 	struct list_head wait_queue;
+ 	struct cec_data *transmitting;
+ 
 -- 
-http://palosaari.fi/
+2.8.1
+
