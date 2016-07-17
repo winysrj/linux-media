@@ -1,137 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:46931 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751685AbcGPP2N (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:60541 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751136AbcGQRHR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2016 11:28:13 -0400
-Subject: Re: [PATCH v2 2/6] [media] Documentation: Add HSV format
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
- <1704928.3gI88ec2Bn@avalon> <f0f50faf-67f6-6614-4ae3-b0f23aa09953@xs4all.nl>
- <13000259.LGWzqn8rdl@avalon>
- <CAPybu_2N+gKU4=qRfxHhEurTvUqT0f8Pup55C8KKTT_jEwf2nw@mail.gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <94f0b9bc-542b-6e19-3ca1-332632c135f7@xs4all.nl>
-Date: Sat, 16 Jul 2016 17:28:08 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAPybu_2N+gKU4=qRfxHhEurTvUqT0f8Pup55C8KKTT_jEwf2nw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Sun, 17 Jul 2016 13:07:17 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 02/15] [media] doc-rst: move DVB introduction to a separate file
+Date: Sun, 17 Jul 2016 14:06:57 -0300
+Message-Id: <f8cd359895450f15c235b05ac3d697360d0734ba.1468775054.git.mchehab@s-opensource.com>
+In-Reply-To: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
+References: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
+In-Reply-To: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
+References: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/16/2016 04:32 PM, Ricardo Ribalda Delgado wrote:
-> Hi
-> 
-> On Sat, Jul 16, 2016 at 4:12 PM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
-> 
->> I'd still like to know about it for my personal information :-)
-> 
-> Maybe it is just a very cheap gamma.
-> 
->>
->>> Anyway, I am inclined to use ycbcr_enc as well.
->>
->> I'm glad we agree.
->>
-> 
-> Are you thinking about something like this:
-> 
-> 
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index c7fb760386cf..3e613fba1b20 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -330,6 +330,16 @@ enum v4l2_ycbcr_encoding {
->         V4L2_YCBCR_ENC_SMPTE240M      = 8,
->  };
-> 
-> +enum v4l2_hsv_encoding {
-> +       V4L2_HSV_ENC_180        = 16,
-> +       V4L2_HSV_ENC_256        = 17,
-> +};
+Instead of keeping the introduction together with the
+index, move it to a separate file, and add it via toctree
+at the index.
 
-Yes.
+The information there are outdated, so update it to point
+to the right links.
 
-> +
-> +enum v4l2_rgb_encoding {
-> +       V4L2_RGB_ENC_FULL       = 32,
-> +       V4L2_HSV_ENC_16_235     = 33,
-> +};
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/dvb-drivers/index.rst | 71 +++++++------------------------
+ Documentation/media/dvb-drivers/intro.rst | 21 +++++++++
+ 2 files changed, 36 insertions(+), 56 deletions(-)
+ create mode 100644 Documentation/media/dvb-drivers/intro.rst
 
-No.
+diff --git a/Documentation/media/dvb-drivers/index.rst b/Documentation/media/dvb-drivers/index.rst
+index 89965041a266..6ec5549d2f07 100644
+--- a/Documentation/media/dvb-drivers/index.rst
++++ b/Documentation/media/dvb-drivers/index.rst
+@@ -1,62 +1,21 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. include:: <isonum.txt>
++
++#############################################
+ Linux Digital Video Broadcast (DVB) subsystem
+-=============================================
++#############################################
+ 
+-The main development site and CVS repository for these
+-drivers is https://linuxtv.org.
++**Copyright** |copy| 2001-2016 : LinuxTV Developers
+ 
+-The developer mailing list linux-dvb is also hosted there,
+-see https://linuxtv.org/lists.php. Please check
+-the archive https://linuxtv.org/pipermail/linux-dvb/
+-and the Wiki https://linuxtv.org/wiki/
+-before asking newbie questions on the list.
++Permission is granted to copy, distribute and/or modify this document
++under the terms of the GNU Free Documentation License, Version 1.1 or
++any later version published by the Free Software Foundation. A copy of
++the license is included in the chapter entitled "GNU Free Documentation
++License".
+ 
+-API documentation, utilities and test/example programs
+-are available as part of the old driver package for Linux 2.4
+-(linuxtv-dvb-1.0.x.tar.gz), or from CVS (module DVB).
+-We plan to split this into separate packages, but it's not
+-been done yet.
+ 
+-https://linuxtv.org/downloads/
++.. toctree::
++	:maxdepth: 5
+ 
+-What's inside this directory:
+-
+-"avermedia.txt"
+-contains detailed information about the
+-Avermedia DVB-T cards. See also "bt8xx.txt".
+-
+-"bt8xx.txt"
+-contains detailed information about the
+-various bt8xx based "budget" DVB cards.
+-
+-"cards.txt"
+-contains a list of supported hardware.
+-
+-"ci.txt"
+-contains detailed information about the
+-CI module as part from TwinHan cards and Clones.
+-
+-"contributors.txt"
+-is the who-is-who of DVB development.
+-
+-"faq.txt"
+-contains frequently asked questions and their answers.
+-
+-"get_dvb_firmware"
+-script to download and extract firmware for those devices
+-that require it.
+-
+-"ttusb-dec.txt"
+-contains detailed information about the
+-TT DEC2000/DEC3000 USB DVB hardware.
+-
+-"udev.txt"
+-how to get DVB and udev up and running.
+-
+-"README.dvb-usb"
+-contains detailed information about the DVB USB cards.
+-
+-"README.flexcop"
+-contains detailed information about the
+-Technisat- and Flexcop B2C2 drivers.
+-
+-Good luck and have fun!
++	intro
+diff --git a/Documentation/media/dvb-drivers/intro.rst b/Documentation/media/dvb-drivers/intro.rst
+new file mode 100644
+index 000000000000..7681835ea76d
+--- /dev/null
++++ b/Documentation/media/dvb-drivers/intro.rst
+@@ -0,0 +1,21 @@
++Introdution
++===========
++
++The main development site and GIT repository for these
++drivers is https://linuxtv.org.
++
++The DVB mailing list linux-dvb is hosted at vger. Please see
++http://vger.kernel.org/vger-lists.html#linux-media for details.
++
++There are also some other old lists hosted at https://linuxtv.org/lists.php. Please check the archive https://linuxtv.org/pipermail/linux-dvb/.
++
++The media subsystem Wiki is hosted at https://linuxtv.org/wiki/.
++Please check it before asking newbie questions on the list.
++
++API documentation is documented at the Kernel. You'll also find useful
++documentation at: https://linuxtv.org/docs.php.
++
++You may also find useful material at https://linuxtv.org/downloads/.
++
++In order to get firmware from proprietary drivers, there's a script at
++the kernel tree, at scripts/get_dvb_firmware.
+-- 
+2.7.4
 
-The starting point is RGB, so there is nothing to encode. YCbCr and HSV
-are transformations from RGB (or R'G'B' to be precise).
-
-The basic chain is:
-
-XYZ -> colorspace conversion -> RGB -> transfer function -> R'G'B'
-
-and after this there is an optional step that converts R'G'B' to
-Y'CbCr or HSV (ycbcr_enc or hsv_enc). The final step is the quantization
-step where you end up with the actual color component values.
-
-There doesn't seem to be something like limited range HSV, so I'd say it's
-full range only.
-
-Regards,
-
-	Hans
-
-> +
->  /*
->   * Determine how YCBCR_ENC_DEFAULT should map to a proper Y'CbCr encoding.
->   * This depends on the colorspace.
-> @@ -455,7 +465,11 @@ struct v4l2_pix_format {
->         __u32                   colorspace;     /* enum v4l2_colorspace */
->         __u32                   priv;           /* private data,
-> depends on pixelformat */
->         __u32                   flags;          /* format flags
-> (V4L2_PIX_FMT_FLAG_*) */
-> -       __u32                   ycbcr_enc;      /* enum v4l2_ycbcr_encoding */
-> +       union {
-> +               __u32                   ycbcr_enc;      /* enum
-> v4l2_ycbcr_encoding */
-> +               __u32                   hsv_enc;        /* enum
-> v4l2_hsv_encoding */
-> +               __u32                   rgb_enc;        /* enum
-> v4l2_rgb_encoding */
-> +       };
->         __u32                   quantization;   /* enum v4l2_quantization */
->         __u32                   xfer_func;      /* enum v4l2_xfer_func */
->  };
-> @@ -1988,7 +2002,11 @@ struct v4l2_pix_format_mplane {
->         struct v4l2_plane_pix_format    plane_fmt[VIDEO_MAX_PLANES];
->         __u8                            num_planes;
->         __u8                            flags;
-> -       __u8                            ycbcr_enc;
-> +       union {
-> +               __u8                    ycbcr_enc;      /* enum
-> v4l2_ycbcr_encoding */
-> +               __u8                    hsv_enc;        /* enum
-> v4l2_hsv_encoding */
-> +               __u8                    rgb_enc;        /* enum
-> v4l2_rgb_encoding */
-> +       };
->         __u8                            quantization;
->         __u8                            xfer_func;
->         __u8                            reserved[7];
-> 
->> --
-> 
-> 
-> Best regards!
-> 
