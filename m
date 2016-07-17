@@ -1,172 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:49963 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753595AbcGVNJx (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:60568 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205AbcGQRHU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 09:09:53 -0400
-Subject: Re: [v4l-utils RFC 0/3] mediatext library and test program
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-References: <1469114146-11109-1-git-send-email-sakari.ailus@linux.intel.com>
-Cc: laurent.pinchart@ideasonboard.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <175a83b2-8112-f849-2e7a-7a22a2e864aa@xs4all.nl>
-Date: Fri, 22 Jul 2016 15:09:47 +0200
-MIME-Version: 1.0
-In-Reply-To: <1469114146-11109-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sun, 17 Jul 2016 13:07:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 04/15] [media] doc-rst: convert bt8xx doc to rst
+Date: Sun, 17 Jul 2016 14:06:59 -0300
+Message-Id: <d61da478b31bdc2e181aaac104bd5b69e26c40f3.1468775054.git.mchehab@s-opensource.com>
+In-Reply-To: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
+References: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
+In-Reply-To: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
+References: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This document almost follows a markup language, but it is
+not ReST. Fix it to be handled by Sphinx.
 
-First a practical matter: you should consider using the v4l-helpers.h: it will
-shield you and probably the end-user as well from lots of complexities, esp. the
-single vs multiplanar differences.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/dvb-drivers/bt8xx.rst | 120 ++++++++++++++++++------------
+ Documentation/media/dvb-drivers/index.rst |   1 +
+ 2 files changed, 73 insertions(+), 48 deletions(-)
 
-I really need to spend some time documenting it, but it isn't all that difficult.
+diff --git a/Documentation/media/dvb-drivers/bt8xx.rst b/Documentation/media/dvb-drivers/bt8xx.rst
+index b7b1d1b1da46..b43958b7340c 100644
+--- a/Documentation/media/dvb-drivers/bt8xx.rst
++++ b/Documentation/media/dvb-drivers/bt8xx.rst
+@@ -1,33 +1,46 @@
+ How to get the bt8xx cards working
+ ==================================
+ 
+-1) General information
+-======================
++Authors: Richard Walker,
++	 Jamie Honan,
++	 Michael Hunold,
++	 Manu Abraham,
++	 Uwe Bugla,
++	 Michael Krufky
++
++.. note::
++
++   This documentation is outdated. Please check at the DVB wiki
++   at https://linuxtv.org/wiki for more updated info.
++
++General information
++-------------------
+ 
+ This class of cards has a bt878a as the PCI interface, and require the bttv driver
+ for accessing the i2c bus and the gpio pins of the bt8xx chipset.
+ Please see Documentation/dvb/cards.txt => o Cards based on the Conexant Bt8xx PCI bridge:
+ 
+ Compiling kernel please enable:
+-a.)"Device drivers" => "Multimedia devices" => "Video For Linux" => "Enable Video for Linux API 1 (DEPRECATED)"
+-b.)"Device drivers" => "Multimedia devices" => "Video For Linux" => "Video Capture Adapters" => "BT848 Video For Linux"
+-c.)"Device drivers" => "Multimedia devices" => "Digital Video Broadcasting Devices" => "DVB for Linux" "DVB Core Support" "Bt8xx based PCI Cards"
+ 
+-Please use the following options with care as deselection of drivers which are in fact necessary
+-may result in DVB devices that cannot be tuned due to lack of driver support:
+-You can save RAM by deselecting every frontend module that your DVB card does not need.
++#) ``Device drivers`` => ``Multimedia devices`` => ``Video For Linux`` => ``Enable Video for Linux API 1 (DEPRECATED)``
++#) ``Device drivers`` => ``Multimedia devices`` => ``Video For Linux`` => ``Video Capture Adapters`` => ``BT848 Video For Linux``
++#) ``Device drivers`` => ``Multimedia devices`` => ``Digital Video Broadcasting Devices`` => ``DVB for Linux`` ``DVB Core Support`` ``Bt8xx based PCI Cards``
+ 
+-First please remove the static dependency of DVB card drivers on all frontend modules for all possible card variants by enabling:
+-d.) "Device drivers" => "Multimedia devices" => "Digital Video Broadcasting Devices"
+- => "DVB for Linux" "DVB Core Support" "Load and attach frontend modules as needed"
++  Please use the following options with care as deselection of drivers which are in fact necessary may result in DVB devices that cannot be tuned due to lack of driver support:
++  You can save RAM by deselecting every frontend module that your DVB card does not need.
++
++  First please remove the static dependency of DVB card drivers on all frontend modules for all possible card variants by enabling:
++
++#) ``Device drivers`` => ``Multimedia devices`` => ``Digital Video Broadcasting Devices`` => ``DVB for Linux`` ``DVB Core Support`` ``Load and attach frontend modules as needed``
++
++  If you know the frontend driver that your card needs please enable:
++
++#) ``Device drivers`` => ``Multimedia devices`` => ``Digital Video Broadcasting Devices`` => ``DVB for Linux`` ``DVB Core Support`` ``Customise DVB Frontends`` => ``Customise the frontend modules to build``
+ 
+-If you know the frontend driver that your card needs please enable:
+-e.)"Device drivers" => "Multimedia devices" => "Digital Video Broadcasting Devices"
+- => "DVB for Linux" "DVB Core Support" "Customise DVB Frontends" => "Customise the frontend modules to build"
+  Then please select your card-specific frontend module.
+ 
+-2) Loading Modules
+-==================
++Loading Modules
++---------------
+ 
+ Regular case: If the bttv driver detects a bt8xx-based DVB card, all frontend and backend modules will be loaded automatically.
+ Exceptions are:
+@@ -36,63 +49,74 @@ People running udev please see Documentation/dvb/udev.txt.
+ 
+ In the following cases overriding the PCI type detection for dvb-bt8xx might be necessary:
+ 
+-2a) Running TwinHan and Clones
+-------------------------------
++Running TwinHan and Clones
++~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++.. code-block:: none
+ 
+ 	$ modprobe bttv card=113
+ 	$ modprobe dst
+ 
+ Useful parameters for verbosity level and debugging the dst module:
+ 
+-verbose=0:		messages are disabled
+-	1:		only error messages are displayed
+-	2:		notifications are displayed
+-	3:		other useful messages are displayed
+-	4:		debug setting
+-dst_addons=0:		card is a free to air (FTA) card only
+-	   0x20:	card has a conditional access slot for scrambled channels
++.. code-block:: none
++
++	verbose=0:		messages are disabled
++		1:		only error messages are displayed
++		2:		notifications are displayed
++		3:		other useful messages are displayed
++		4:		debug setting
++	dst_addons=0:		card is a free to air (FTA) card only
++		0x20:	card has a conditional access slot for scrambled channels
+ 
+ The autodetected values are determined by the cards' "response string".
+ In your logs see f. ex.: dst_get_device_id: Recognize [DSTMCI].
+ For bug reports please send in a complete log with verbose=4 activated.
+ Please also see Documentation/dvb/ci.txt.
+ 
+-2b) Running multiple cards
+---------------------------
++Running multiple cards
++~~~~~~~~~~~~~~~~~~~~~~
+ 
+ Examples of card ID's:
+ 
+-Pinnacle PCTV Sat:		 94
+-Nebula Electronics Digi TV:	104
+-pcHDTV HD-2000 TV:		112
+-Twinhan DST and clones:		113
+-Avermedia AverTV DVB-T 771:	123
+-Avermedia AverTV DVB-T 761:	124
+-DViCO FusionHDTV DVB-T Lite:	128
+-DViCO FusionHDTV 5 Lite:	135
+-
+-Notice: The order of the card ID should be uprising:
+-Example:
++.. code-block:: none
++
++	Pinnacle PCTV Sat:		 94
++	Nebula Electronics Digi TV:	104
++	pcHDTV HD-2000 TV:		112
++	Twinhan DST and clones:		113
++	Avermedia AverTV DVB-T 771:	123
++	Avermedia AverTV DVB-T 761:	124
++	DViCO FusionHDTV DVB-T Lite:	128
++	DViCO FusionHDTV 5 Lite:	135
++
++.. note::
++
++   The order of the card ID should be uprising:
++
++   Example:
++
++   .. code-block:: none
++
+ 	$ modprobe bttv card=113 card=135
+ 
+ For a full list of card ID's please see Documentation/video4linux/CARDLIST.bttv.
+ In case of further problems please subscribe and send questions to the mailing list: linux-dvb@linuxtv.org.
+ 
+-2c) Probing the cards with broken PCI subsystem ID
+---------------------------------------------------
++Probing the cards with broken PCI subsystem ID
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
+ There are some TwinHan cards that the EEPROM has become corrupted for some
+ reason. The cards do not have correct PCI subsystem ID. But we can force
+ probing the cards with broken PCI subsystem ID
+ 
++.. code-block:: none
++
+ 	$ echo 109e 0878 $subvendor $subdevice > \
+ 		/sys/bus/pci/drivers/bt878/new_id
+ 
+-109e: PCI_VENDOR_ID_BROOKTREE
+-0878: PCI_DEVICE_ID_BROOKTREE_878
++.. code-block:: none
++
++	109e: PCI_VENDOR_ID_BROOKTREE
++	0878: PCI_DEVICE_ID_BROOKTREE_878
+ 
+-Authors: Richard Walker,
+-	 Jamie Honan,
+-	 Michael Hunold,
+-	 Manu Abraham,
+-	 Uwe Bugla,
+-	 Michael Krufky
+diff --git a/Documentation/media/dvb-drivers/index.rst b/Documentation/media/dvb-drivers/index.rst
+index 2a09e9d22664..bcc29c70a7cc 100644
+--- a/Documentation/media/dvb-drivers/index.rst
++++ b/Documentation/media/dvb-drivers/index.rst
+@@ -20,3 +20,4 @@ License".
+ 
+ 	intro
+ 	avermedia
++	bt8xx
+-- 
+2.7.4
 
-
-On 07/21/2016 05:15 PM, Sakari Ailus wrote:
-> Hi everyone,
-> 
-> We've got a number of V4L2 (and MC) test programs for about as many reasons.
-> The existing programs are concentrated to work on a single device node at a
-> time, and with a single interface, be that Media controller or V4L2.
-> 
-> The test programs are also command line controlled, working their way with
-> the device at hand based on the information passed to the test programs on
-> the command line. This has made perfect sense for the past 15 years, as long
-> as we've had such test programs: they have covered, for large part, needs to
-> perform testing in various cases without leaving significant gaps.
-> 
-> With the upcoming request API, however, this has become insufficient. The
-> very nature of the request API requires that requests can contain resources
-> (e.g. memory buffers) that is associated to a number of video device nodes.
-> The requests may well be different from each other, including the types of
-> resources that are used for each request.
-> 
-> So I decided we need a new test program. The scope for the original
-> mediatext library and test program were slightly different from what is in
-> this (very RFC) patchset. I deemed mediatext as the best starting point for
-> writing a new test program.
-
-Is this utility meant to testing different scenarios, or as a way to test drivers
-(compliance tests)? I think the first, right?
-
-> mediatext acts as an interface between an end user or a script and the
-> kernel interfaces, with an ability to work with multiple devices at a time,
-> including multiple video nodes:
-> 
->                        shell script
->                            |
->                            |
->                            |  <- two-way pipe
->                            |
->                            |
->                        mediatext
->                      /     |     \
->                     /      |      \
->              /dev/video*   |     /dev/v4l-subdev*
->                            |
->                          /dev/mediaX
-> 
-> The shell script (which could be any other program as well but shell scripts
-> are convenient for the purpose) is always in the control of the main loop of
-> the test. Events are delivered to the script by mediatext based on file
-> handle state changes, so the script has a possibility to react to each of
-> them (e.g. buffer becoming dequeueable on one of the video nodes).
-> 
-> A simple example script for a UVC compliant Logitech webcam is below. It
-> opens the device based on the name of the entity, and sets up the device for
-> streaming with a specified format with three MMAP buffers. The first 50
-> frames are written to a file, and capturing is stopped once about 100 frames
-> have been captured. Dequeued buffers are immediately requeued, and this is
-> explicitly done by the shell script.
-> 
-> ---------------------8<---------------------
-> #!/bin/bash
-> 
-> eval_line() {
->     while [ $# -ne 0 ]; do
-> 	local name=${1%=*}
-> 	local value=${1#*=}
-> 	p[$name]="$value"
-> 	shift
->     done
-> }
-> 
-> coproc mediatext -d /dev/media0 2>&1
-> 
-> cat <<EOF >&${COPROC[1]}
-> v4l open entity="UVC Camera (046d:0825)" name=uvc
-> v4l fmt vdev=uvc type=CAPTURE width=320 height=240 \
->         pixelformat=YUYV bytesperline=0
-> v4l reqbufs vdev=uvc type=CAPTURE count=3 memory=MMAP
-> v4l qbuf vdev=uvc
-> v4l qbuf vdev=uvc
-> v4l qbuf vdev=uvc
->                                   
-> v4l streamon vdev=uvc type=CAPTURE
-> EOF
-> 
-> while IFS= read -ru ${COPROC[0]} line; do
-> 	unset p; declare -A p
-> 	eval eval_line $line
-> 	echo $line
-> 	case ${p[event]} in
-> 	dqbuf)
-> 		if ((${p[seq]} < 50)); then
-> 			echo v4l write vdev=uvc \
-> 				sequence=${p[seq]} >&${COPROC[1]}
-> 		fi
-> 		if ((${p[seq]} > 100)); then
-> 			echo quit >&${COPROC[1]}
-> 		fi
-> 		cat <<EOF >&${COPROC[1]}
-> 			v4l qbuf vdev=uvc
-> EOF
-> 	;;
-> 	esac;
-> done
-> ---------------------8<---------------------
-> 
-> Requests are naturally supported as well, right now only for buffer-related
-> IOCTLs but support for other IOCTLs can be added as well. The library has
-> been designed to be modular and easily extensible. There are no drivers
-> implementing them yet, and the kernel patches are still in development.
-> 
-> The kernel patches from which the headers have been generated from are
-> available here:
-> 
-> <URL:http://git.retiisi.org.uk/?p=~sailus/linux.git;a=shortlog;h=refs/heads/request>
-> 
-> As noted, the test program is still in development phase. I thought this
-> still would be useful for others working on the request API so I decided to
-> share it already.
-
-Can you show a test script/shell example of the use of the request API?
-
-> 
-> Current todo list:
-> 
-> - The scope of the current media-ctl functionality command format does not
->   match with the rest of the program. To be fixed.
-> 
-> - Support requests for non-buffer related IOCTLs. This is pending on
->   relevant kernel patches.
-> 
-> - Clean up command parameters and event messages to make them more
->   consistent.
-> 
-
-I'd split off the parser code into its own source as well.
-
-Is there a reason you use C instead of C++? C++ would make life a bit easier: STL
-of course, but the cv4l-helpers.h (the C++ variant of v4l-helpers.h) is quite nice
-as well.
-
-Regards,
-
-	Hans
