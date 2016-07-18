@@ -1,184 +1,260 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51670 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933295AbcGLMmb (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:49710 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751136AbcGRKrr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 08:42:31 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 04/20] [media] doc-rst: remove not used ioctls from documentation
-Date: Tue, 12 Jul 2016 09:41:58 -0300
-Message-Id: <76d816d83555242bd29ac737fc343ea15fc6583e.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mon, 18 Jul 2016 06:47:47 -0400
+Subject: Re: DRM device memory writeback (Mali-DP)
+To: Brian Starkey <brian.starkey@arm.com>,
+	Eric Anholt <eric@anholt.net>
+References: <20160714170340.GA32755@e106950-lin.cambridge.arm.com>
+ <20160715073334.GO17101@phenom.ffwll.local>
+ <20160715090918.GB32755@e106950-lin.cambridge.arm.com>
+ <20160715105715.GG4329@intel.com> <87r3auajdi.fsf@eliezer.anholt.net>
+ <20160718102933.GA603@e106950-lin.cambridge.arm.com>
+Cc: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>,
+	dri-devel@lists.freedesktop.org, liviu.dudau@arm.com,
+	laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+	david.brown@arm.com, daniel.vetter@ffwll.ch
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <7d4b6836-d896-f289-f940-bf641ae8e9fb@xs4all.nl>
+Date: Mon, 18 Jul 2016 12:47:38 +0200
+MIME-Version: 1.0
+In-Reply-To: <20160718102933.GA603@e106950-lin.cambridge.arm.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we removed those ioctls from the header file, do the
-same at the documentation side.
+On 07/18/2016 12:29 PM, Brian Starkey wrote:
+> Hi,
+> 
+> On Fri, Jul 15, 2016 at 10:42:01AM -0700, Eric Anholt wrote:
+>> Ville Syrjälä <ville.syrjala@linux.intel.com> writes:
+>>
+>>> On Fri, Jul 15, 2016 at 10:09:19AM +0100, Brian Starkey wrote:
+>>>> Hi Daniel,
+>>>>
+>>>> Thanks for taking a look.
+>>>>
+>>>> (+Cc Laurent)
+>>>>
+>>>> On Fri, Jul 15, 2016 at 09:33:34AM +0200, Daniel Vetter wrote:
+>>>>> On Thu, Jul 14, 2016 at 06:03:40PM +0100, Brian Starkey wrote:
+>>>>>> Hi,
+>>>>>>
+>>>>>> The Mali-DP display processors have a memory-writeback engine which
+>>>>>> can write the result of the composition (CRTC output) to a memory
+>>>>>> buffer in a variety of formats.
+>>>>>>
+>>>>>> We're looking for feedback/suggestions on how to expose this in the
+>>>>>> mali-dp DRM kernel driver - possibly via V4L2.
+>>>>>>
+>>>>>> We've got a few use cases where writeback is useful:
+>>>>>>    - testing, to check the displayed image
+>>>>>
+>>>>> This might or might not need a separate interface. There are efforts to
+>>>>> make the intel kms validation tests in i-g-t generic (well under way
+>>>>> already), and part of that is creating a generic infrastructure to capture
+>>>>> display CRCs for functional tests (still in progress).
+>>>>>
+>>>>> But it might be better if userspace abstracts between full readback and
+>>>>> display CRC, assuming we can make full writeback cross-vendor enough for
+>>>>> that use-case.
+>>>>>
+>>>>
+>>>> I'd lean towards the userspace abstraction.
+>>>> Encumbering a simple CRC interface with all the complexity of
+>>>> full-writeback (size, scaling, pixel format, multi-planar etc.) sounds
+>>>> a bit unnecessary.
+>>>>
+>>>> Of course, if v4l2 isn't going to be the cross-vendor full-writeback
+>>>> implementation, then we need to be aiming to use whatever _is_ in
+>>>> the mali-dp driver.
+>>>>
+>>>>>>    - screen recording
+>>>>>>    - wireless display (e.g. Miracast)
+>>>>>>    - dual-display clone mode
+>>>>>>    - memory-to-memory composition
+>>>>>> Note that the HW is capable of writing one of the input planes instead
+>>>>>> of the CRTC output, but we've no good use-case for wanting to expose
+>>>>>> that.
+>>>>>>
+>>>>>> In our Android ADF driver[1] we exposed the memory write engine as
+>>>>>> part of the ADF device using ADF's "MEMORY" interface type. DRM/KMS
+>>>>>> doesn't have any similar support for memory output from CRTCs, but we
+>>>>>> want to expose the functionality in the mainline Mali-DP DRM driver.
+>>>>>>
+>>>>>> A previous discussion on the topic went towards exposing the
+>>>>>> memory-write engine via V4L2[2].
+>>>>>>
+>>>>>> I'm thinking to userspace this would look like two distinct devices:
+>>>>>>    - A DRM KMS display controller.
+>>>>>>    - A V4L2 video source.
+>>>>>> They'd both exist in the same kernel driver.
+>>>>>> A V4L2 client can queue up (CAPTURE) buffers in the normal way, and
+>>>>>> the DRM driver would see if there's a buffer to dequeue every time a
+>>>>>> new modeset is received via the DRM API - if so, it can configure the
+>>>>>> HW to dump into it (one-shot operation).
+>>>>>>
+>>>>>> An implication of this is that if the screen is actively displaying a
+>>>>>> static scene and the V4L2 client queues up a buffer, it won't get
+>>>>>> filled until the DRM scene changes. This seems best, otherwise the
+>>>>>> V4L2 driver has to change the HW configuration out-of-band from the
+>>>>>> DRM device which sounds horribly racy.
+>>>>>>
+>>>>>> One further complication is scaling. Our HW has a scaler which can
+>>>>>> tasked with either scaling an input plane or the buffer being written
+>>>>>> to memory, but not both at the same time. This means we need to
+>>>>>> arbitrate the scaler between the DRM device (scaling input planes) and
+>>>>>> the V4L2 device (scaling output buffers).
+>>>>>>
+>>>>>> I think the simplest approach here is to allow V4L2 to "claim" the
+>>>>>> scaler by setting the image size (VIDIOC_S_FMT) to something other
+>>>>>> than the CRTC's current resolution. After that, any attempt to use the
+>>>>>> scaler on an input plane via DRM should fail atomic_check().
+>>>>>
+>>>>> That's perfectly fine atomic_check behaviour. Only trouble is that the v4l
+>>>>> locking must integrate into the drm locking, but that should be doable.
+>>>>> Worst case you must shadow all v4l locks with a wait/wound
+>>>>> drm_modeset_lock to avoid deadlocks (since you could try to grab locks
+>>>> >from either end).
+>>>>>
+>>>>
+>>>> Yes, I haven't looked at the details of the locking but I'm hoping
+>>>> it's manageable.
+>>>>
+>>>>>> If the V4L2 client goes away or sets the image size to the CRTC's
+>>>>>> native resolution, then the DRM device is allowed to use the scaler.
+>>>>>> I don't know if/how the DRM device should communicate to userspace
+>>>>>> that the scaler is or isn't available for use.
+>>>>>>
+>>>>>> Any thoughts on this approach?
+>>>>>> Is it acceptable to both V4L2 and DRM folks?
+>>>>>
+>>>>> For streaming a V4L2 capture device seems like the right interface. But if
+>>>>> you want to use writeback in your compositor you must know which atomic
+>>>>> kms update results in which frame, since if you don't you can't use that
+>>>>> composited buffer for the next frame reliable.
+>>>>>
+>>>>> For that case I think a drm-only solution would be better, to make sure
+>>>>> you can do an atomic update and writeback in one step. v4l seems to grow
+>>>>> an atomic api of its own, but I don't think we'll have one spanning
+>>>>> subsystems anytime soon.
+>>>>>
+>>>>
+>>>> I've been thinking about this from the point of view of a HWComposer
+>>>> implementation and I think the hybrid DRM-V4L2 device would work OK.
+>>>> However it depends on the behaviour I mentioned above:
+>>>>
+>>>>>> if the screen is actively displaying a
+>>>>>> static scene and the V4L2 client queues up a buffer, it won't get
+>>>>>> filled until the DRM scene changes.
+>>>>
+>>>> V4L2 buffer queues are FIFO, so as long as the compositor queues only
+>>>> one V4L2 buffer per atomic update, there's no ambiguity.
+>>>> In the most simplistic case the compositor would alternate between:
+>>>>   - Queue V4L2 buffer
+>>>>   - DRM atomic update
+>>>> ... and dequeue either in the same thread or a different one. As long
+>>>> as the compositor keeps track of how many buffers it has queued and
+>>>> how many atomic updates it's made, it doesn't really matter.
+>>>>
+>>>> We'd probably be looking to add in V4L2 asynchronous dequeue using
+>>>> fences for synchronisation, but that's a separate issue.
+>>>>
+>>>>> For the kms-only interface the idea was to add a property on the crtc
+>>>>> where you can attach a writeback drm_framebuffer. Extending that idea to
+>>>>> the drm->v4l case we could create special drm_framebuffer objects
+>>>>> representing a v4l sink, and attach them to the same property. That would
+>>>>> also solve the problem of getting some agreement on buffer metadata
+>>>>> between v4l and drm side.
+>>>>>
+>>>>
+>>>> I think a drm_framebuffer on its own wouldn't be enough to handle our
+>>>> scaling case - at that point it starts to look more like a plane.
+>>>> However, if "special" CRTC sinks became a thing it could allow us to
+>>>> chain our writeback output to another CRTC's input (via memory)
+>>>> without a trip through userspace, which would be nice.
+>>>
+>>> My thinking has been that we could represent the writeback sink
+>>> as a connector. Combine that with my other idea of exposing a
+>>> fixed mode property for each connector (to make output scaling
+>>> user configurable), and we should end up with a way to control
+>>> the scaling of the writeback path.
+>>>
+>>> Also it would mean there's always a connector attached to the
+>>> crtc, even for the pure writeback only case, which I think should
+>>> result in less problems in general as I'm sure there are a lot of
+>>> assumptions in the code that there must be at least one connector
+>>> for an active crtc.
+>>
+>> This is what I've been thinking for vc4's writeback as well.  I
+>> definitely want my writeback to be using the same drivers/gpu/drm/vc4
+>> code for setting up the hardware.  And, since I expect writeback to be
+>> mostly used by compositors for the case where a frame exceeds bandwidth
+>> constraints, I want userspace to be able to use the same DRM APIs for
+>> setting up the frame to be written back as it was trying to use for
+>> setting up the frame before.
+> 
+> OK, so let's talk about using connectors instead then :-)
+> 
+> We can attach a generic fixed_mode property which can represent panel
+> fitters or Mali-DP's writeback scaling, that sounds good.
+> 
+> The DRM driver can create a new "virtual" encoder/connector pair, I
+> guess with a new connector type specifically for memory-writeback?
+> On this connector we allow the fb_id property to attach a framebuffer
+> for writing into.
+> We'd probably want an additional property to enable writeback, perhaps
+> an enum: "disabled", "streaming", "oneshot".
+> 
+> I think it makes sense to put the output buffer format, size etc.
+> validation in the virtual encoder's atomic_check. It has access to
+> both CRTC and connector state, and the encoder is supposed to
+> represent the format/stream conversion element anyway.
+> 
+> What I'm not so clear on is how to manage the API with userspace.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/rc/lirc-get-features.rst |  9 +--
- Documentation/media/uapi/rc/lirc_ioctl.rst        | 74 ++---------------------
- 2 files changed, 9 insertions(+), 74 deletions(-)
+I am not terribly enthusiastic (to say the least) if a new drm API is
+created for video capture. That's what V4L2 is for and it comes with
+kernel frameworks, documentation and utilities. Creating a new API will
+not make userspace develoeprs happy.
 
-diff --git a/Documentation/media/uapi/rc/lirc-get-features.rst b/Documentation/media/uapi/rc/lirc-get-features.rst
-index 6850f804a96c..04ba9567053a 100644
---- a/Documentation/media/uapi/rc/lirc-get-features.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-features.rst
-@@ -91,8 +91,7 @@ LIRC features
- .. _LIRC_CAN_SET_REC_DUTY_CYCLE_RANGE:
- 
- ``LIRC_CAN_SET_REC_DUTY_CYCLE_RANGE``
--    The driver supports
--    :ref:`LIRC_SET_REC_DUTY_CYCLE_RANGE.`
-+    Unused. Kept just to avoid breaking uAPI.
- 
- .. _LIRC_CAN_SET_REC_CARRIER_RANGE:
- 
-@@ -115,8 +114,7 @@ LIRC features
- .. _LIRC_CAN_SET_REC_FILTER:
- 
- ``LIRC_CAN_SET_REC_FILTER``
--    The driver supports
--    :ref:`LIRC_SET_REC_FILTER.`
-+    Unused. Kept just to avoid breaking uAPI.
- 
- .. _LIRC_CAN_MEASURE_CARRIER:
- 
-@@ -133,8 +131,7 @@ LIRC features
- .. _LIRC_CAN_NOTIFY_DECODE:
- 
- ``LIRC_CAN_NOTIFY_DECODE``
--    The driver supports
--    :ref:`LIRC_NOTIFY_DECODE.`
-+    Unused. Kept just to avoid breaking uAPI.
- 
- .. _LIRC_CAN_SEND_RAW:
- 
-diff --git a/Documentation/media/uapi/rc/lirc_ioctl.rst b/Documentation/media/uapi/rc/lirc_ioctl.rst
-index b35c1953dc60..345e927e9d5d 100644
---- a/Documentation/media/uapi/rc/lirc_ioctl.rst
-+++ b/Documentation/media/uapi/rc/lirc_ioctl.rst
-@@ -67,26 +67,11 @@ I/O control requests
-     Get supported receive modes. Only ``LIRC_MODE_MODE2`` and
-     ``LIRC_MODE_LIRCCODE`` are supported by lircd.
- 
--.. _LIRC_GET_SEND_CARRIER:
--
--``LIRC_GET_SEND_CARRIER``
--
--    Get carrier frequency (in Hz) currently used for transmit.
--
--.. _LIRC_GET_REC_CARRIER:
--
--``LIRC_GET_REC_CARRIER``
--
--    Get carrier frequency (in Hz) currently used for IR reception.
--
--.. _LIRC_GET_SEND_DUTY_CYCLE:
--.. _LIRC_GET_REC_DUTY_CYCLE:
- .. _LIRC_SET_SEND_DUTY_CYCLE:
--.. _LIRC_SET_REC_DUTY_CYCLE:
- 
--``LIRC_{G,S}ET_{SEND,REC}_DUTY_CYCLE``
-+``LIRC_SET_SEND_DUTY_CYCLE``
- 
--    Get/set the duty cycle (from 0 to 100) of the carrier signal.
-+    Set the duty cycle (from 0 to 100) of the carrier signal.
-     Currently, no special meaning is defined for 0 or 100, but this
-     could be used to switch off carrier generation in the future, so
-     these values should be reserved.
-@@ -114,20 +99,6 @@ I/O control requests
-     both ioctls will return the same value even though the timeout
-     cannot be changed.
- 
--.. _LIRC_GET_MIN_FILTER_PULSE:
--.. _LIRC_GET_MAX_FILTER_PULSE:
--.. _LIRC_GET_MIN_FILTER_SPACE:
--.. _LIRC_GET_MAX_FILTER_SPACE:
--
--``LIRC_GET_M{IN,AX}_FILTER_{PULSE,SPACE}``
--
--    Some devices are able to filter out spikes in the incoming signal
--    using given filter rules. These ioctls return the hardware
--    capabilities that describe the bounds of the possible filters.
--    Filter settings depend on the IR protocols that are expected. lircd
--    derives the settings from all protocols definitions found in its
--    config file.
--
- .. _LIRC_GET_LENGTH:
- 
- ``LIRC_GET_LENGTH``
-@@ -179,16 +150,6 @@ I/O control requests
-     Enable (1) or disable (0) timeout reports in ``LIRC_MODE_MODE2.`` By
-     default, timeout reports should be turned off.
- 
--.. _LIRC_SET_REC_FILTER_PULSE:
--.. _LIRC_SET_REC_FILTER_SPACE:
--.. _LIRC_SET_REC_FILTER:
--
--``LIRC_SET_REC_FILTER_{PULSE,SPACE}``
--
--    Pulses/spaces shorter than this are filtered out by hardware. If
--    filters cannot be set independently for pulse/space, the
--    corresponding ioctls must return an error and ``LIRC_SET_REC_FILTER``
--    shall be used instead.
- 
- .. _LIRC_SET_MEASURE_CARRIER_MODE:
- .. _lirc-mode2-frequency:
-@@ -199,40 +160,17 @@ I/O control requests
-     press on, the driver will send ``LIRC_MODE2_FREQUENCY`` packets. By
-     default this should be turned off.
- 
--.. _LIRC_SET_REC_DUTY_CYCLE_RANGE:
-+
- .. _LIRC_SET_REC_CARRIER_RANGE:
- 
--``LIRC_SET_REC_{DUTY_CYCLE,CARRIER}_RANGE``
-+``LIRC_SET_REC_CARRIER_RANGE``
- 
-     To set a range use
--    ``LIRC_SET_REC_DUTY_CYCLE_RANGE/LIRC_SET_REC_CARRIER_RANGE``
-+    ``LIRC_SET_REC_CARRIER_RANGE``
-     with the lower bound first and later
--    ``LIRC_SET_REC_DUTY_CYCLE/LIRC_SET_REC_CARRIER`` with the upper
-+    ``LIRC_SET_REC_CARRIER`` with the upper
-     bound.
- 
--.. _LIRC_NOTIFY_DECODE:
--
--``LIRC_NOTIFY_DECODE``
--
--    This ioctl is called by lircd whenever a successful decoding of an
--    incoming IR signal could be done. This can be used by supporting
--    hardware to give visual feedback to the user e.g. by flashing a LED.
--
--.. _LIRC_SETUP_START:
--.. _LIRC_SETUP_END:
--
--``LIRC_SETUP_{START,END}``
--
--    Setting of several driver parameters can be optimized by
--    encapsulating the according ioctl calls with
--    ``LIRC_SETUP_START/LIRC_SETUP_END.`` When a driver receives a
--    ``LIRC_SETUP_START`` ioctl it can choose to not commit further setting
--    changes to the hardware until a ``LIRC_SETUP_END`` is received. But
--    this is open to the driver implementation and every driver must also
--    handle parameter changes which are not encapsulated by
--    ``LIRC_SETUP_START`` and ``LIRC_SETUP_END.`` Drivers can also choose to
--    ignore these ioctls.
--
- .. _LIRC_SET_WIDEBAND_RECEIVER:
- 
- ``LIRC_SET_WIDEBAND_RECEIVER``
--- 
-2.7.4
+I know it is a pain to work with different subsystems, but reinventing
+the wheel is a much bigger pain. For you and for the poor sods who have
+to use yet another API to do the same thing.
 
+Of course this has to be hooked up to drm at the low level, and anything
+that can be done to help out with that from the V4L2 side of things is
+fine, but creating duplicate public APIs isn't the way IMHO.
 
+Regards,
+
+	Hans
+
+> 
+> Changing connectors is a "full modeset required" operation. I expect
+> this means an application needs to know up-front if it will ever make
+> use of memory-writeback, and if so do its initial modeset on both the
+> writeback and the normal connector, even if it doesn't attach a
+> writeback framebuffer until much later. Otherwise, enabling writeback
+> will force a full disable-modeset-enable cycle.
+> 
+> The writeback connector would have to be hidden from legacy clients
+> which would expect it to work like a normal connector - I suppose
+> that's somewhat similar to universal planes.
+> 
+> For the case that Ville mentioned where only the writeback connector
+> is connected, would userspace be expected to "make up" a
+> drm_mode_modeinfo to set? I can't think of any meaningful list of
+> available modes for the writeback connector to report.
+> 
+> Thanks for all the input so far!
+> 
+> -Brian
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
