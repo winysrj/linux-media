@@ -1,137 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40472 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752092AbcGNWfZ (ORCPT
+Received: from mail-pf0-f178.google.com ([209.85.192.178]:33616 "EHLO
+	mail-pf0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751799AbcGRX4k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2016 18:35:25 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [RFC 06/16] media: Dynamically allocate the media device
-Date: Fri, 15 Jul 2016 01:35:01 +0300
-Message-Id: <1468535711-13836-7-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
+	Mon, 18 Jul 2016 19:56:40 -0400
+Date: Mon, 18 Jul 2016 19:56:38 -0400
+From: Tejun Heo <tj@kernel.org>
+To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Geunyoung Kim <nenggun.kim@samsung.com>,
+	Junghak Sung <jh1009.sung@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Inki Dae <inki.dae@samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/2] [media] cx25821: Remove deprecated
+ create_singlethread_workqueue
+Message-ID: <20160718235638.GY3078@mtj.duckdns.org>
+References: <cover.1468659580.git.bhaktipriya96@gmail.com>
+ <ee0a1b0f01f07c3e0e1cbd2fa86e5da4c43629cb.1468659580.git.bhaktipriya96@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ee0a1b0f01f07c3e0e1cbd2fa86e5da4c43629cb.1468659580.git.bhaktipriya96@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+On Sat, Jul 16, 2016 at 02:43:20PM +0530, Bhaktipriya Shridhar wrote:
+> The workqueue "_irq_audio_queues" runs the audio upstream handler.
+> It has a single work item(&dev->_audio_work_entry) and hence doesn't
+> require ordering. Also, it is not being used on a memory reclaim path.
+> Hence, the singlethreaded workqueue has been replaced with the use of
+> system_wq.
+> 
+> System workqueues have been able to handle high level of concurrency
+> for a long time now and hence it's not required to have a singlethreaded
+> workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
+> created with create_singlethread_workqueue(), system_wq allows multiple
+> work items to overlap executions even on the same CPU; however, a
+> per-cpu workqueue doesn't have any CPU locality or global ordering
+> guarantee unless the target CPU is explicitly specified and thus the
+> increase of local concurrency shouldn't make any difference.
 
-Allow allocating the media device dynamically. As the struct media_device
-embeds struct media_devnode, the lifetime of that object is that same than
-that of the media_device.
+The patch seems to be missing update to wq destruction path.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-device.c | 28 ++++++++++++++++++++++++++--
- include/media/media-device.h | 38 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 64 insertions(+), 2 deletions(-)
+Thanks.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index a11b3be..1bab2c6 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -543,9 +543,18 @@ static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
-  * Registration/unregistration
-  */
- 
--static void media_device_release(struct media_devnode *mdev)
-+static void media_device_release(struct media_devnode *devnode)
- {
--	dev_dbg(mdev->parent, "Media device released\n");
-+	struct media_device *mdev = to_media_device(devnode);
-+
-+	ida_destroy(&mdev->entity_internal_idx);
-+	mdev->entity_internal_idx_max = 0;
-+	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
-+	mutex_destroy(&mdev->graph_mutex);
-+	dev_dbg(devnode->parent, "Media device released\n");
-+
-+	if (devnode->use_kref)
-+		kfree(mdev);
- }
- 
- /**
-@@ -692,6 +701,21 @@ void media_device_init(struct media_device *mdev)
- }
- EXPORT_SYMBOL_GPL(media_device_init);
- 
-+struct media_device *media_device_alloc(void)
-+{
-+	struct media_device *mdev;
-+
-+	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
-+	if (!mdev)
-+		return NULL;
-+
-+	media_devnode_init(&mdev->devnode);
-+	media_device_init(mdev);
-+
-+	return mdev;
-+}
-+EXPORT_SYMBOL_GPL(media_device_alloc);
-+
- void media_device_cleanup(struct media_device *mdev)
- {
- 	ida_destroy(&mdev->entity_internal_idx);
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index a9b33c4..cb5722b 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -428,6 +428,42 @@ static inline __must_check int media_entity_enum_init(
- void media_device_init(struct media_device *mdev);
- 
- /**
-+ * media_device_alloc() - Allocate and initialise a media device
-+ *
-+ * Allocate and initialise a media device. Returns a media device.
-+ * The media device is refcounted, and this function returns a media
-+ * device the refcount of which is one (1).
-+ *
-+ * References are taken and given using media_device_get() and
-+ * media_device_put().
-+ */
-+struct media_device *media_device_alloc(void);
-+
-+/**
-+ * media_device_get() - Get a reference to a media device
-+ *
-+ * mdev: media device
-+ */
-+#define media_device_get(mdev)						\
-+	do {								\
-+		dev_dbg((mdev)->dev, "%s: get media device %s\n",	\
-+			__func__, (mdev)->bus_info);			\
-+		media_devnode_get(&(mdev)->devnode);			\
-+	} while (0)
-+
-+/**
-+ * media_device_put() - Put a reference to a media device
-+ *
-+ * mdev: media device
-+ */
-+#define media_device_put(mdev)						\
-+	do {								\
-+		dev_dbg((mdev)->dev, "%s: put media device %s\n",	\
-+			__func__, (mdev)->bus_info);			\
-+		media_devnode_put(&(mdev)->devnode);			\
-+	} while (0)
-+
-+/**
-  * media_device_cleanup() - Cleanups a media device element
-  *
-  * @mdev:	pointer to struct &media_device
-@@ -654,6 +690,8 @@ void __media_device_usb_init(struct media_device *mdev,
- 			     const char *driver_name);
- 
- #else
-+#define media_device_get(mdev) do { } while (0)
-+#define media_device_put(mdev) do { } while (0)
- static inline int media_device_register(struct media_device *mdev)
- {
- 	return 0;
 -- 
-2.1.4
-
+tejun
