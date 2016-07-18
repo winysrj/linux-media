@@ -1,185 +1,922 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59576 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752995AbcGSLuk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 07:50:40 -0400
-Date: Tue, 19 Jul 2016 08:50:34 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, shuahkh@osg.samsung.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: Re: [RFC 00/16] Make use of kref in media device, grab references
- as needed
-Message-ID: <20160719085034.26f2ab6b@recife.lan>
-In-Reply-To: <578DD673.2010601@linux.intel.com>
-References: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
-	<20160715071913.009908a1@recife.lan>
-	<578DD673.2010601@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:59532 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751728AbcGRSar (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2016 14:30:47 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 04/18] [media] doc-rst: start adding documentation for cx2341x
+Date: Mon, 18 Jul 2016 15:30:26 -0300
+Message-Id: <a785ddb8686e5bf07624e23790acf08e1beddd7a.1468865380.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
+References: <cover.1468865380.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
+References: <cover.1468865380.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 19 Jul 2016 10:27:47 +0300
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+move the contents of fw-decoder-api.txt to cx2341x and
+convert it to ReST file, adding it to media/v4l-drivers
 
-> Hi Mauro,
-> 
-> Thank you for your reply.
-> 
-> Mauro Carvalho Chehab wrote:
-> > Em Fri, 15 Jul 2016 01:34:55 +0300
-> > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> >   
-> >> Hi folks,
-> >>
-> >> I've been working on this for some time now but only got the full patchset
-> >> working some moments ago. The patchset properly, I believe, fixes the
-> >> issue of removing a device whilst streaming.
-> >>
-> >> Media device is refcounted and its memory is only released once the last
-> >> reference is gone: unregistering is simply unregistering, it no longer
-> >> should release memory which could be further accessed.
-> >>
-> >> A video node or a sub-device node also gets a reference to the media
-> >> device, i.e. the release function of the video device node will release
-> >> its reference to the media device. The same goes for file handles to the
-> >> media device.
-> >>
-> >> As a side effect of refcounting the media device, it is allocate together
-> >> with the media devnode. The driver may also rely its own resources to the
-> >> media device. Alternatively there's also a priv field to hold drivers
-> >> private pointer (for container_of() is an option in this case).
-> >>
-> >> I've tested this by manually unbinding the omap3isp platform device while
-> >> streaming. Driver changes are required for this to work; by not using
-> >> dynamic allocation (i.e. media_device_alloc()) the old behaviour is still
-> >> supported. This is still unlikely to be a grave problem as there are not
-> >> that many device drivers that support physically removable devices. We've
-> >> had this problem for other devices for many years without paying much
-> >> notice --- that doesn't mean I don't think at least drivers for removable
-> >> devices shouldn't be changed as part of the set later on, I'd just like to
-> >> get review comments on the approach first.
-> >>
-> >> The three patches that originally partially resolved some of these issues
-> >> are reverted in the beginning of the set. I'm still posting this as an RFC
-> >> mainly since the testing is somewhat limited so far.  
-> > 
-> > 
-> > I didn't look inside this patch series. Won't likely have time to
-> > look at core changes before the end of the merge window. However,
-> > I found several structural problems on this RFC:
-> > 
-> > 1) Please do incremental changes, instead of reverting patches. It is
-> > really hard for reviewers to be sure that nothing breaks when someone
-> > simply reverts a previous approach and add its own.  
-> 
-> I believe people are more familiar with the state of the code with the
-> reverts than without them. 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/v4l-drivers/cx2341x.rst        | 564 +++++++++++++++++++++
+ Documentation/media/v4l-drivers/index.rst          |   1 +
+ .../video4linux/cx2341x/fw-decoder-api.txt         | 297 -----------
+ 3 files changed, 565 insertions(+), 297 deletions(-)
+ create mode 100644 Documentation/media/v4l-drivers/cx2341x.rst
+ delete mode 100644 Documentation/video4linux/cx2341x/fw-decoder-api.txt
 
-What people are more familiar depends on what each person knows and
-when he lastly looked at the code. Kernel's policy is to not build patches
-based on what you think the others know, but, instead, we develop stuff
-incrementally.
-
-So, if you want such patch series to be reviewed and merged, you should
-apply incremental changes, not destroy everything before applying
-your stuff, because your work were based on a past version.
-
-Btw, one of the things I'm missing on this series is what's the problem
-you're still facing with the upstream version, as you didn't add any
-descripton and OOPSes that you're noticing upstream.
-
-Anyone reviewing this series would need to be able to reproduce such
-problem, and add to their existing test case scenarios, to be sure
-that the solution won't cause regressions to their own scenarios
-and will solve for yours.
-
-> The first two reverted patches I don't really
-> have a problem with, but they depend on the third reverted patch which
-> is more problematic and they'll no longer be needed afterwards. To
-> refresh our memory:
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg100355.html>
-> <URL:http://www.spinics.net/lists/linux-media/msg100927.html>
-> <URL:http://www.spinics.net/lists/linux-media/msg100952.html>
-> 
-> > 
-> > 2) Each individual patch should not cause regressions to none of
-> > the existing drivers or to the core. The revert re-introduces bugs.  
-> 
-> We've had the problem for five years without even realising it. What's
-> merged now is a workaround that avoids *some* of the underlying problems.
-
-I don't doubt that there are still underlying problems. Making
-a race-free solution for the drivers bind/unbind scenario is not
-trivial. Yet, as I said before, we need not only the patches but
-the scenarios you're testing, for us to be able to reproduce your
-problem and verify that your solution solves it, without causing
-regressions to other test scenarios.
-
-> With the current media-master, the system still crashes if the device is
-> removed during video streaming. With this set (and appropriate driver
-> changes) it does not. Driver changes alone are not enough to fix this
-> either.
-
-The best way to test such scenario would be, IMHO, to add patches for
-some USB driver, like uvcvideo or au0828, as, there you can actually
-physically remove the hardware while streaming.
-
-One problem with OMAP3 driver is that the OMAP3 CPU is a single
-core one. So, you won't see there any CPU concurrency issues.
-
-> > 
-> > 3) Each patch should not break compilation. Patch 06/16, for example,
-> > changes the structure used by the release method:
-> > 
-> > -static void media_device_release(struct media_devnode *mdev)
-> > +static void media_device_release(struct media_devnode *devnode)
-> > 
-> > Without touching a single driver. That means compilation breakages.
-> > This is not acceptable upstream.
-> > 
-> > It should be touching *all* drivers that use the function altogether.  
-> 
-> This change you're referring to in patch 06/16 changes the name of the
-> argument of a function to devnode. This change was missing from patch
-> "[media] media-devnode: fix namespace mess".
-
-What I'm saying is that, every time you change the arguments of a
-function, *all* drivers using such function should be changed at the
-same time, as otherwise, the Kernel won't build anymore after such
-patch. I used patch 6/16 only as an example.
-
-If this patch is, instead, a fixup for the "fix namespace mess"
-patch, just submit it outside this RFC patch series.
-
-> What comes to media_device_alloc() and media_device_get()/put(), their
-> use is optional. Driver changes are needed at least for drivers that can
-> be removed physically from the system. Once all drivers are converted,
-> we can remove the old API.
-> 
-> > 
-> > 4) From a very quick look at the series, without trying to compile the
-> > series (with would very likely break), it seems that all drivers that
-> > uses the media controller should be migrated to the new way.
-> > 
-> > It means that you'll need to patch all drivers altogether as you're
-> > changing the kAPI at the same patch you change it.  
-> 
-> I want to first get the review comments on the API itself and then move
-> the removable drivers to use it. Individual drivers may still have
-> issues with removing devices while they're in use.
-
-I can only review and test this patch series after:
-
-1) knowing the test scenarios you're using and the OOPS you're
-   getting;
-
-2) having the changes applied to an USB driver, as my multi-core
-   test machines only support USB devices.
-
+diff --git a/Documentation/media/v4l-drivers/cx2341x.rst b/Documentation/media/v4l-drivers/cx2341x.rst
+new file mode 100644
+index 000000000000..6f4ac07f52cd
+--- /dev/null
++++ b/Documentation/media/v4l-drivers/cx2341x.rst
+@@ -0,0 +1,564 @@
++The cx2341x driver
++==================
++
++Decoder firmware API description
++--------------------------------
++
++.. note:: this API is part of the decoder firmware, so it's cx23415 only.
++
++
++
++CX2341X_DEC_PING_FW
++-------------------
++
++Enum: 0/0x00
++
++Description
++~~~~~~~~~~~
++
++This API call does nothing. It may be used to check if the firmware
++is responding.
++
++
++
++CX2341X_DEC_START_PLAYBACK
++--------------------------
++
++Enum: 1/0x01
++
++Description
++~~~~~~~~~~~
++
++Begin or resume playback.
++
++Param[0]
++~~~~~~~~
++
++0 based frame number in GOP to begin playback from.
++
++Param[1]
++~~~~~~~~
++
++Specifies the number of muted audio frames to play before normal
++audio resumes. (This is not implemented in the firmware, leave at 0)
++
++
++
++CX2341X_DEC_STOP_PLAYBACK
++-------------------------
++
++Enum: 2/0x02
++
++Description
++~~~~~~~~~~~
++
++Ends playback and clears all decoder buffers. If PTS is not zero,
++playback stops at specified PTS.
++
++Param[0]
++~~~~~~~~
++
++Display 0=last frame, 1=black
++
++.. note::
++
++	this takes effect immediately, so if you want to wait for a PTS,
++	then use '0', otherwise the screen goes to black at once.
++	You can call this later (even if there is no playback) with a 1 value
++	to set the screen to black.
++
++Param[1]
++~~~~~~~~
++
++PTS low
++
++Param[2]
++~~~~~~~~
++
++PTS high
++
++
++
++CX2341X_DEC_SET_PLAYBACK_SPEED
++------------------------------
++
++Enum: 3/0x03
++
++Description
++~~~~~~~~~~~
++
++Playback stream at speed other than normal. There are two modes of
++operation:
++
++	- Smooth: host transfers entire stream and firmware drops unused
++	  frames.
++	- Coarse: host drops frames based on indexing as required to achieve
++	  desired speed.
++
++Param[0]
++~~~~~~~~
++
++.. code-block:: none
++
++	Bitmap:
++	    0:7  0 normal
++		 1 fast only "1.5 times"
++		 n nX fast, 1/nX slow
++	    30   Framedrop:
++		     '0' during 1.5 times play, every other B frame is dropped
++		     '1' during 1.5 times play, stream is unchanged (bitrate
++			 must not exceed 8mbps)
++	    31   Speed:
++		     '0' slow
++		     '1' fast
++
++.. note::
++
++	n is limited to 2. Anything higher does not result in
++	faster playback. Instead the host should start dropping frames.
++
++Param[1]
++~~~~~~~~
++
++Direction: 0=forward, 1=reverse
++
++.. note::
++
++	to make reverse playback work you have to write full GOPs in
++	reverse order.
++
++Param[2]
++~~~~~~~~
++
++.. code-block:: none
++
++	Picture mask:
++	    1=I frames
++	    3=I, P frames
++	    7=I, P, B frames
++
++Param[3]
++~~~~~~~~
++
++B frames per GOP (for reverse play only)
++
++.. note::
++
++	for reverse playback the Picture Mask should be set to I or I, P.
++	Adding B frames to the mask will result in corrupt video. This field
++	has to be set to the correct value in order to keep the timing correct.
++
++Param[4]
++~~~~~~~~
++
++Mute audio: 0=disable, 1=enable
++
++Param[5]
++~~~~~~~~
++
++Display 0=frame, 1=field
++
++Param[6]
++~~~~~~~~
++
++Specifies the number of muted audio frames to play before normal audio
++resumes. (Not implemented in the firmware, leave at 0)
++
++
++
++CX2341X_DEC_STEP_VIDEO
++----------------------
++
++Enum: 5/0x05
++
++Description
++~~~~~~~~~~~
++
++Each call to this API steps the playback to the next unit defined below
++in the current playback direction.
++
++Param[0]
++~~~~~~~~
++
++0=frame, 1=top field, 2=bottom field
++
++
++
++CX2341X_DEC_SET_DMA_BLOCK_SIZE
++------------------------------
++
++Enum: 8/0x08
++
++Description
++~~~~~~~~~~~
++
++Set DMA transfer block size. Counterpart to API 0xC9
++
++Param[0]
++~~~~~~~~
++
++DMA transfer block size in bytes. A different size may be specified
++when issuing the DMA transfer command.
++
++
++
++CX2341X_DEC_GET_XFER_INFO
++-------------------------
++
++Enum: 9/0x09
++
++Description
++~~~~~~~~~~~
++
++This API call may be used to detect an end of stream condition.
++
++Result[0]
++~~~~~~~~~
++
++Stream type
++
++Result[1]
++~~~~~~~~~
++
++Address offset
++
++Result[2]
++~~~~~~~~~
++
++Maximum bytes to transfer
++
++Result[3]
++~~~~~~~~~
++
++Buffer fullness
++
++
++
++CX2341X_DEC_GET_DMA_STATUS
++--------------------------
++
++Enum: 10/0x0A
++
++Description
++~~~~~~~~~~~
++
++Status of the last DMA transfer
++
++Result[0]
++~~~~~~~~~
++
++Bit 1 set means transfer complete
++Bit 2 set means DMA error
++Bit 3 set means linked list error
++
++Result[1]
++~~~~~~~~~
++
++DMA type: 0=MPEG, 1=OSD, 2=YUV
++
++
++
++CX2341X_DEC_SCHED_DMA_FROM_HOST
++-------------------------------
++
++Enum: 11/0x0B
++
++Description
++~~~~~~~~~~~
++
++Setup DMA from host operation. Counterpart to API 0xCC
++
++Param[0]
++~~~~~~~~
++
++Memory address of link list
++
++Param[1]
++~~~~~~~~
++
++Total # of bytes to transfer
++
++Param[2]
++~~~~~~~~
++
++DMA type (0=MPEG, 1=OSD, 2=YUV)
++
++
++
++CX2341X_DEC_PAUSE_PLAYBACK
++--------------------------
++
++Enum: 13/0x0D
++
++Description
++~~~~~~~~~~~
++
++Freeze playback immediately. In this mode, when internal buffers are
++full, no more data will be accepted and data request IRQs will be
++masked.
++
++Param[0]
++~~~~~~~~
++
++Display: 0=last frame, 1=black
++
++
++
++CX2341X_DEC_HALT_FW
++-------------------
++
++Enum: 14/0x0E
++
++Description
++~~~~~~~~~~~
++
++The firmware is halted and no further API calls are serviced until
++the firmware is uploaded again.
++
++
++
++CX2341X_DEC_SET_STANDARD
++------------------------
++
++Enum: 16/0x10
++
++Description
++~~~~~~~~~~~
++
++Selects display standard
++
++Param[0]
++~~~~~~~~
++
++0=NTSC, 1=PAL
++
++
++
++CX2341X_DEC_GET_VERSION
++-----------------------
++
++Enum: 17/0x11
++
++Description
++~~~~~~~~~~~
++
++Returns decoder firmware version information
++
++Result[0]
++~~~~~~~~~
++
++Version bitmask:
++	- Bits  0:15 build
++	- Bits 16:23 minor
++	- Bits 24:31 major
++
++
++
++CX2341X_DEC_SET_STREAM_INPUT
++----------------------------
++
++Enum: 20/0x14
++
++Description
++~~~~~~~~~~~
++
++Select decoder stream input port
++
++Param[0]
++~~~~~~~~
++
++0=memory (default), 1=streaming
++
++
++
++CX2341X_DEC_GET_TIMING_INFO
++---------------------------
++
++Enum: 21/0x15
++
++Description
++~~~~~~~~~~~
++
++Returns timing information from start of playback
++
++Result[0]
++~~~~~~~~~
++
++Frame count by decode order
++
++Result[1]
++~~~~~~~~~
++
++Video PTS bits 0:31 by display order
++
++Result[2]
++~~~~~~~~~
++
++Video PTS bit 32 by display order
++
++Result[3]
++~~~~~~~~~
++
++SCR bits 0:31 by display order
++
++Result[4]
++~~~~~~~~~
++
++SCR bit 32 by display order
++
++
++
++CX2341X_DEC_SET_AUDIO_MODE
++--------------------------
++
++Enum: 22/0x16
++
++Description
++~~~~~~~~~~~
++
++Select audio mode
++
++Param[0]
++~~~~~~~~
++
++Dual mono mode action
++	0=Stereo, 1=Left, 2=Right, 3=Mono, 4=Swap, -1=Unchanged
++
++Param[1]
++~~~~~~~~
++
++Stereo mode action:
++	0=Stereo, 1=Left, 2=Right, 3=Mono, 4=Swap, -1=Unchanged
++
++
++
++CX2341X_DEC_SET_EVENT_NOTIFICATION
++----------------------------------
++
++Enum: 23/0x17
++
++Description
++~~~~~~~~~~~
++
++Setup firmware to notify the host about a particular event.
++Counterpart to API 0xD5
++
++Param[0]
++~~~~~~~~
++
++Event:
++	- 0=Audio mode change between mono, (joint) stereo and dual channel.
++	- 3=Decoder started
++	- 4=Unknown: goes off 10-15 times per second while decoding.
++	- 5=Some sync event: goes off once per frame.
++
++Param[1]
++~~~~~~~~
++
++Notification 0=disabled, 1=enabled
++
++Param[2]
++~~~~~~~~
++
++Interrupt bit
++
++Param[3]
++~~~~~~~~
++
++Mailbox slot, -1 if no mailbox required.
++
++
++
++CX2341X_DEC_SET_DISPLAY_BUFFERS
++-------------------------------
++
++Enum: 24/0x18
++
++Description
++~~~~~~~~~~~
++
++Number of display buffers. To decode all frames in reverse playback you
++must use nine buffers.
++
++Param[0]
++~~~~~~~~
++
++0=six buffers, 1=nine buffers
++
++
++
++CX2341X_DEC_EXTRACT_VBI
++-----------------------
++
++Enum: 25/0x19
++
++Description
++~~~~~~~~~~~
++
++Extracts VBI data
++
++Param[0]
++~~~~~~~~
++
++0=extract from extension & user data, 1=extract from private packets
++
++Result[0]
++~~~~~~~~~
++
++VBI table location
++
++Result[1]
++~~~~~~~~~
++
++VBI table size
++
++
++
++CX2341X_DEC_SET_DECODER_SOURCE
++------------------------------
++
++Enum: 26/0x1A
++
++Description
++~~~~~~~~~~~
++
++Selects decoder source. Ensure that the parameters passed to this
++API match the encoder settings.
++
++Param[0]
++~~~~~~~~
++
++Mode: 0=MPEG from host, 1=YUV from encoder, 2=YUV from host
++
++Param[1]
++~~~~~~~~
++
++YUV picture width
++
++Param[2]
++~~~~~~~~
++
++YUV picture height
++
++Param[3]
++~~~~~~~~
++
++Bitmap: see Param[0] of API 0xBD
++
++
++
++CX2341X_DEC_SET_PREBUFFERING
++----------------------------
++
++Enum: 30/0x1E
++
++Description
++~~~~~~~~~~~
++
++Decoder prebuffering, when enabled up to 128KB are buffered for
++streams <8mpbs or 640KB for streams >8mbps
++
++Param[0]
++~~~~~~~~
++
++0=off, 1=on
+diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
+index 53bc53c948ab..34990b536d39 100644
+--- a/Documentation/media/v4l-drivers/index.rst
++++ b/Documentation/media/v4l-drivers/index.rst
+@@ -27,6 +27,7 @@ License".
+ 	cafe_ccic
+ 	cpia2
+ 	cx18
++	cx2341x
+ 	cx88
+ 	davinci-vpbe
+ 	fimc
+diff --git a/Documentation/video4linux/cx2341x/fw-decoder-api.txt b/Documentation/video4linux/cx2341x/fw-decoder-api.txt
+deleted file mode 100644
+index 8c317b7a4fc9..000000000000
+--- a/Documentation/video4linux/cx2341x/fw-decoder-api.txt
++++ /dev/null
+@@ -1,297 +0,0 @@
+-Decoder firmware API description
+-================================
+-
+-Note: this API is part of the decoder firmware, so it's cx23415 only.
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_PING_FW
+-Enum 	0/0x00
+-Description
+-	This API call does nothing. It may be used to check if the firmware
+-	is responding.
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_START_PLAYBACK
+-Enum 	1/0x01
+-Description
+-	Begin or resume playback.
+-Param[0]
+-	0 based frame number in GOP to begin playback from.
+-Param[1]
+-	Specifies the number of muted audio frames to play before normal
+-	audio resumes. (This is not implemented in the firmware, leave at 0)
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_STOP_PLAYBACK
+-Enum 	2/0x02
+-Description
+-	Ends playback and clears all decoder buffers. If PTS is not zero,
+-	playback stops at specified PTS.
+-Param[0]
+-	Display 0=last frame, 1=black
+-	Note: this takes effect immediately, so if you want to wait for a PTS,
+-	then use '0', otherwise the screen goes to black at once.
+-	You can call this later (even if there is no playback) with a 1 value
+-	to set the screen to black.
+-Param[1]
+-	PTS low
+-Param[2]
+-	PTS high
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_SET_PLAYBACK_SPEED
+-Enum 	3/0x03
+-Description
+-	Playback stream at speed other than normal. There are two modes of
+-	operation:
+-	    Smooth: host transfers entire stream and firmware drops unused
+-		    frames.
+-	    Coarse: host drops frames based on indexing as required to achieve
+-		    desired speed.
+-Param[0]
+-	Bitmap:
+-	    0:7  0 normal
+-		 1 fast only "1.5 times"
+-		 n nX fast, 1/nX slow
+-	    30   Framedrop:
+-		     '0' during 1.5 times play, every other B frame is dropped
+-		     '1' during 1.5 times play, stream is unchanged (bitrate
+-			 must not exceed 8mbps)
+-	    31   Speed:
+-		     '0' slow
+-		     '1' fast
+-	Note: n is limited to 2. Anything higher does not result in
+-	faster playback. Instead the host should start dropping frames.
+-Param[1]
+-	Direction: 0=forward, 1=reverse
+-	Note: to make reverse playback work you have to write full GOPs in
+-	reverse order.
+-Param[2]
+-	Picture mask:
+-	    1=I frames
+-	    3=I, P frames
+-	    7=I, P, B frames
+-Param[3]
+-	B frames per GOP (for reverse play only)
+-	Note: for reverse playback the Picture Mask should be set to I or I, P.
+-	Adding B frames to the mask will result in corrupt video. This field
+-	has to be set to the correct value in order to keep the timing correct.
+-Param[4]
+-	Mute audio: 0=disable, 1=enable
+-Param[5]
+-	Display 0=frame, 1=field
+-Param[6]
+-	Specifies the number of muted audio frames to play before normal audio
+-	resumes. (Not implemented in the firmware, leave at 0)
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_STEP_VIDEO
+-Enum 	5/0x05
+-Description
+-	Each call to this API steps the playback to the next unit defined below
+-	in the current playback direction.
+-Param[0]
+-	0=frame, 1=top field, 2=bottom field
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_SET_DMA_BLOCK_SIZE
+-Enum 	8/0x08
+-Description
+-	Set DMA transfer block size. Counterpart to API 0xC9
+-Param[0]
+-	DMA transfer block size in bytes. A different size may be specified
+-	when issuing the DMA transfer command.
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_GET_XFER_INFO
+-Enum 	9/0x09
+-Description
+-	This API call may be used to detect an end of stream condition.
+-Result[0]
+-	Stream type
+-Result[1]
+-	Address offset
+-Result[2]
+-	Maximum bytes to transfer
+-Result[3]
+-	Buffer fullness
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_GET_DMA_STATUS
+-Enum 	10/0x0A
+-Description
+-	Status of the last DMA transfer
+-Result[0]
+-	Bit 1 set means transfer complete
+-	Bit 2 set means DMA error
+-	Bit 3 set means linked list error
+-Result[1]
+-	DMA type: 0=MPEG, 1=OSD, 2=YUV
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_SCHED_DMA_FROM_HOST
+-Enum 	11/0x0B
+-Description
+-	Setup DMA from host operation. Counterpart to API 0xCC
+-Param[0]
+-	Memory address of link list
+-Param[1]
+-	Total # of bytes to transfer
+-Param[2]
+-	DMA type (0=MPEG, 1=OSD, 2=YUV)
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_PAUSE_PLAYBACK
+-Enum 	13/0x0D
+-Description
+-	Freeze playback immediately. In this mode, when internal buffers are
+-	full, no more data will be accepted and data request IRQs will be
+-	masked.
+-Param[0]
+-	Display: 0=last frame, 1=black
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_HALT_FW
+-Enum 	14/0x0E
+-Description
+-	The firmware is halted and no further API calls are serviced until
+-	the firmware is uploaded again.
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_SET_STANDARD
+-Enum 	16/0x10
+-Description
+-	Selects display standard
+-Param[0]
+-	0=NTSC, 1=PAL
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_GET_VERSION
+-Enum 	17/0x11
+-Description
+-	Returns decoder firmware version information
+-Result[0]
+-	Version bitmask:
+-	    Bits  0:15 build
+-	    Bits 16:23 minor
+-	    Bits 24:31 major
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_SET_STREAM_INPUT
+-Enum 	20/0x14
+-Description
+-	Select decoder stream input port
+-Param[0]
+-	0=memory (default), 1=streaming
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_GET_TIMING_INFO
+-Enum 	21/0x15
+-Description
+-	Returns timing information from start of playback
+-Result[0]
+-	Frame count by decode order
+-Result[1]
+-	Video PTS bits 0:31 by display order
+-Result[2]
+-	Video PTS bit 32 by display order
+-Result[3]
+-	SCR bits 0:31 by display order
+-Result[4]
+-	SCR bit 32 by display order
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_SET_AUDIO_MODE
+-Enum 	22/0x16
+-Description
+-	Select audio mode
+-Param[0]
+-	Dual mono mode action
+-	    0=Stereo, 1=Left, 2=Right, 3=Mono, 4=Swap, -1=Unchanged
+-Param[1]
+-	Stereo mode action:
+-	    0=Stereo, 1=Left, 2=Right, 3=Mono, 4=Swap, -1=Unchanged
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_SET_EVENT_NOTIFICATION
+-Enum 	23/0x17
+-Description
+-	Setup firmware to notify the host about a particular event.
+-	Counterpart to API 0xD5
+-Param[0]
+-	Event: 0=Audio mode change between mono, (joint) stereo and dual channel.
+-	Event: 3=Decoder started
+-	Event: 4=Unknown: goes off 10-15 times per second while decoding.
+-	Event: 5=Some sync event: goes off once per frame.
+-Param[1]
+-	Notification 0=disabled, 1=enabled
+-Param[2]
+-	Interrupt bit
+-Param[3]
+-	Mailbox slot, -1 if no mailbox required.
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_SET_DISPLAY_BUFFERS
+-Enum 	24/0x18
+-Description
+-	Number of display buffers. To decode all frames in reverse playback you
+-	must use nine buffers.
+-Param[0]
+-	0=six buffers, 1=nine buffers
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_EXTRACT_VBI
+-Enum 	25/0x19
+-Description
+-	Extracts VBI data
+-Param[0]
+-	0=extract from extension & user data, 1=extract from private packets
+-Result[0]
+-	VBI table location
+-Result[1]
+-	VBI table size
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_SET_DECODER_SOURCE
+-Enum 	26/0x1A
+-Description
+-	Selects decoder source. Ensure that the parameters passed to this
+-	API match the encoder settings.
+-Param[0]
+-	Mode: 0=MPEG from host, 1=YUV from encoder, 2=YUV from host
+-Param[1]
+-	YUV picture width
+-Param[2]
+-	YUV picture height
+-Param[3]
+-	Bitmap: see Param[0] of API 0xBD
+-
+--------------------------------------------------------------------------------
+-
+-Name 	CX2341X_DEC_SET_PREBUFFERING
+-Enum 	30/0x1E
+-Description
+-	Decoder prebuffering, when enabled up to 128KB are buffered for
+-	streams <8mpbs or 640KB for streams >8mbps
+-Param[0]
+-	0=off, 1=on
 -- 
-Thanks,
-Mauro
+2.7.4
+
+
