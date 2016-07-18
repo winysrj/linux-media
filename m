@@ -1,57 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:33296 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752843AbcGIVKz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2016 17:10:55 -0400
-Subject: Re: [PATCH 06/11] media: adv7180: add bt.656-4 OF property
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	<linux-media@vger.kernel.org>
-References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
- <1467846004-12731-7-git-send-email-steve_longerbeam@mentor.com>
- <577E6C98.3020608@metafoo.de> <5781497A.2080804@gmail.com>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <5781685C.7040907@mentor.com>
-Date: Sat, 9 Jul 2016 14:10:52 -0700
-MIME-Version: 1.0
-In-Reply-To: <5781497A.2080804@gmail.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:34376 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751679AbcGRCZK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Jul 2016 22:25:10 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E31051807AF
+	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2016 04:25:03 +0200 (CEST)
+Date: Mon, 18 Jul 2016 04:25:03 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160718022503.E31051807AF@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On 07/09/2016 11:59 AM, Steve Longerbeam wrote:
->
->
-> On 07/07/2016 07:52 AM, Lars-Peter Clausen wrote:
->> On 07/07/2016 12:59 AM, Steve Longerbeam wrote:
->>> Add a device tree boolean property "bt656-4" to allow setting
->>> the ITU-R BT.656-4 compatible bit.
->>>
->>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->>
->> +    /* select ITU-R BT.656-4 compatible? */
->> +    if (of_property_read_bool(client->dev.of_node, "bt656-4"))
->> +        state->bt656_4 = true;
->> This property needs to be documented. In my opinion it should also be a
->> property of the endpoint sub-node rather than the toplevel device 
->> node since
->> this is a configuration of the endpoint format.
->
-> Agreed, it's really a config of the backend capture endpoint. I'll 
-> move it
-> there and also document it in 
-> Documentation/devicetree/bindings/media/i2c/adv7180.txt.
+date:		Mon Jul 18 04:00:12 CEST 2016
+git branch:	test
+git hash:	e05b1872f29a85532c2b34e3a4974a27158f1463
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-er, scratch that. ITU-R BT.656 compatibility is really a property of the 
-bt.656 bus. It
-should be added to v4l2 endpoints and parsed by 
-v4l2_of_parse_endpoint(). I've created
-a patch to add a "bt656-mode" property to v4l2 endpoints and will copy 
-all the maintainers.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-i686: ERRORS
+linux-4.7-rc1-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-x86_64: ERRORS
+linux-4.7-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-Steve
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
