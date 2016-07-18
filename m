@@ -1,66 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:61367 "EHLO
-	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752568AbcGKPOl (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:45862 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751567AbcGRB4b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2016 11:14:41 -0400
-From: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Yannick Fertre <yannick.fertre@st.com>,
-	Hugues Fruchet <hugues.fruchet@st.com>,
-	Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v2 1/3] Documentation: DT: add bindings for STI HVA
-Date: Mon, 11 Jul 2016 17:14:15 +0200
-Message-ID: <1468250057-16395-2-git-send-email-jean-christophe.trotin@st.com>
-In-Reply-To: <1468250057-16395-1-git-send-email-jean-christophe.trotin@st.com>
-References: <1468250057-16395-1-git-send-email-jean-christophe.trotin@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Sun, 17 Jul 2016 21:56:31 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 11/36] [media] doc-rst: convert cafe_ccic file to rst format
+Date: Sun, 17 Jul 2016 22:55:54 -0300
+Message-Id: <8f6174a07e3ef69d51776062d23f4627751cb3a5.1468806744.git.mchehab@s-opensource.com>
+In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds DT binding documentation for STMicroelectronics hva
-driver.
+This file is almost ok, but it needs chapter/sections
+and a code-block.
 
-Signed-off-by: Yannick Fertre <yannick.fertre@st.com>
-Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- .../devicetree/bindings/media/st,sti-hva.txt       | 24 ++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,sti-hva.txt
+ Documentation/media/v4l-drivers/cafe_ccic.rst | 24 +++++++++++++++---------
+ Documentation/media/v4l-drivers/index.rst     |  1 +
+ 2 files changed, 16 insertions(+), 9 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/st,sti-hva.txt b/Documentation/devicetree/bindings/media/st,sti-hva.txt
-new file mode 100644
-index 0000000..d1030bb
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/st,sti-hva.txt
-@@ -0,0 +1,24 @@
-+hva: multi-format video encoder for STMicroelectronics SoC.
+diff --git a/Documentation/media/v4l-drivers/cafe_ccic.rst b/Documentation/media/v4l-drivers/cafe_ccic.rst
+index 88821022a5de..b98eb3b7cb4a 100644
+--- a/Documentation/media/v4l-drivers/cafe_ccic.rst
++++ b/Documentation/media/v4l-drivers/cafe_ccic.rst
+@@ -1,3 +1,11 @@
++The cafe_ccic driver
++====================
 +
-+Required properties:
-+- compatible: should be "st,sti-hva".
-+- reg: HVA physical address location and length, esram address location and
-+  length.
-+- reg-names: names of the registers listed in registers property in the same
-+  order.
-+- interrupts: HVA interrupt number.
-+- clocks: from common clock binding: handle hardware IP needed clocks, the
-+  number of clocks may depend on the SoC type.
-+  See ../clock/clock-bindings.txt for details.
-+- clock-names: names of the clocks listed in clocks property in the same order.
++Author: Jonathan Corbet <corbet@lwn.net>
 +
-+Example:
-+	hva@8c85000{
-+		compatible = "st,sti-hva";
-+		reg = <0x8c85000 0x400>, <0x6000000 0x40000>;
-+		reg-names = "hva_registers", "hva_esram";
-+		interrupts = <GIC_SPI 58 IRQ_TYPE_NONE>,
-+			     <GIC_SPI 59 IRQ_TYPE_NONE>;
-+		clock-names = "clk_hva";
-+		clocks = <&clk_s_c0_flexgen CLK_HVA>;
-+	};
++Introdution
++-----------
++
+ "cafe_ccic" is a driver for the Marvell 88ALP01 "cafe" CMOS camera
+ controller.  This is the controller found in first-generation OLPC systems,
+ and this driver was written with support from the OLPC project.
+@@ -10,11 +18,16 @@ sensor is known to work with this controller at this time.
+ 
+ To try it out: either of these commands will work:
+ 
+-     mplayer tv:// -tv driver=v4l2:width=640:height=480 -nosound
+-     mplayer tv:// -tv driver=v4l2:width=640:height=480:outfmt=bgr16 -nosound
++.. code-block:: none
++
++     $ mplayer tv:// -tv driver=v4l2:width=640:height=480 -nosound
++     $ mplayer tv:// -tv driver=v4l2:width=640:height=480:outfmt=bgr16 -nosound
+ 
+ The "xawtv" utility also works; gqcam does not, for unknown reasons.
+ 
++Load time options
++-----------------
++
+ There are a few load-time options, most of which can be changed after
+ loading via sysfs as well:
+ 
+@@ -45,10 +58,3 @@ loading via sysfs as well:
+  - flip: If this boolean parameter is set, the sensor will be instructed to
+    invert the video image.  Whether it makes sense is determined by how
+    your particular camera is mounted.
+-
+-Work is ongoing with this driver, stay tuned.
+-
+-jon
+-
+-Jonathan Corbet
+-corbet@lwn.net
+diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
+index 6391f1622e26..72a96206fcf8 100644
+--- a/Documentation/media/v4l-drivers/index.rst
++++ b/Documentation/media/v4l-drivers/index.rst
+@@ -20,3 +20,4 @@ License".
+ 
+ 	fourcc
+ 	cardlist
++	cafe_ccic
 -- 
-1.9.1
+2.7.4
 
