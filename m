@@ -1,163 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f195.google.com ([209.85.161.195]:35245 "EHLO
-	mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088AbcGEOWO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2016 10:22:14 -0400
-Date: Tue, 5 Jul 2016 09:22:11 -0500
-From: Rob Herring <robh@kernel.org>
-To: Andi Shyti <andi.shyti@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Andi Shyti <andi@etezian.org>
-Subject: Re: [PATCH] [media] rc: ir-spi: add support for IR LEDs connected
- with SPI
-Message-ID: <20160705142211.GA19930@rob-hp-laptop>
-References: <1467362022-12704-1-git-send-email-andi.shyti@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1467362022-12704-1-git-send-email-andi.shyti@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:45848 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751511AbcGRB4a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Jul 2016 21:56:30 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 17/36] [media] doc-rst: add davinci-vpbe documentation
+Date: Sun, 17 Jul 2016 22:56:00 -0300
+Message-Id: <e0f104538c2a1b777e5adfd24ae54a2bb84ba825.1468806744.git.mchehab@s-opensource.com>
+In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 01, 2016 at 05:33:42PM +0900, Andi Shyti wrote:
-> The ir-spi is a simple device driver which supports the
-> connection between an IR LED and the MOSI line of an SPI device.
+Convert it to rst format and add it to the v4l-drivers book.
 
-Please split the binding from the driver.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/v4l-drivers/davinci-vpbe.rst | 32 +++++++++++++-----------
+ Documentation/media/v4l-drivers/index.rst        |  1 +
+ 2 files changed, 18 insertions(+), 15 deletions(-)
 
+diff --git a/Documentation/media/v4l-drivers/davinci-vpbe.rst b/Documentation/media/v4l-drivers/davinci-vpbe.rst
+index dc9a297f49c3..b545fe001919 100644
+--- a/Documentation/media/v4l-drivers/davinci-vpbe.rst
++++ b/Documentation/media/v4l-drivers/davinci-vpbe.rst
+@@ -1,9 +1,9 @@
++The VPBE V4L2 driver design
++===========================
+ 
+-                VPBE V4L2 driver design
+- ======================================================================
++File partitioning
++-----------------
+ 
+- File partitioning
+- -----------------
+  V4L2 display device driver
+          drivers/media/platform/davinci/vpbe_display.c
+          drivers/media/platform/davinci/vpbe_display.h
+@@ -22,11 +22,11 @@
+          drivers/media/platform/davinci/vpbe_osd.h
+          drivers/media/platform/davinci/vpbe_osd_regs.h
+ 
+- Functional partitioning
+- -----------------------
++Functional partitioning
++-----------------------
+ 
+- Consists of the following (in the same order as the list under file
+- partitioning):-
++Consists of the following (in the same order as the list under file
++partitioning):
+ 
+  1. V4L2 display driver
+     Implements creation of video2 and video3 device nodes and
+@@ -74,20 +74,22 @@
+     features. The VPBE module interacts with the OSD for enabling and
+     disabling appropriate features of the OSD.
+ 
+- Current status:-
++Current status
++--------------
+ 
+- A fully functional working version of the V4L2 driver is available. This
+- driver has been tested with NTSC and PAL standards and buffer streaming.
++A fully functional working version of the V4L2 driver is available. This
++driver has been tested with NTSC and PAL standards and buffer streaming.
+ 
+- Following are TBDs.
++To be done
++----------
+ 
+- vpbe display controller
++vpbe display controller
+     - Add support for external encoders.
+     - add support for selecting external encoder as default at probe time.
+ 
+- vpbe venc sub device
++vpbe venc sub device
+     - add timings for supporting ths8200
+     - add support for LogicPD LCD.
+ 
+- FB drivers
++FB drivers
+     - Add support for fbdev drivers.- Ready and part of subsequent patches.
+diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
+index 839374e60280..1ab7a84de0ff 100644
+--- a/Documentation/media/v4l-drivers/index.rst
++++ b/Documentation/media/v4l-drivers/index.rst
+@@ -24,4 +24,5 @@ License".
+ 	cpia2
+ 	cx18
+ 	cx88
++	davinci-vpbe
+ 	zr364xx
+-- 
+2.7.4
 
-> The driver, indeed, uses the SPI framework to stream the raw data
-> provided by userspace through a character device. The chardev is
-> handled by the LIRC framework and its functionality basically
-> provides:
-> 
->  - raw write: data to be sent to the SPI and then streamed to the
->    MOSI line;
->  - set frequency: sets the frequency whith which the data should
->    be sent;
->  - set length: sets the data length. This information is
->    optional, if the length is set, then userspace should send raw
->    data only with that length; while if the length is set to '0',
->    then the driver will figure out himself the length of the data
->    based on the length of the data written on the character
->    device.
->    The latter is not recommended, though, as the driver, at
->    any write, allocates and deallocates a buffer where the data
->    from userspace are stored.
-> 
-> The driver provides three feedback commands:
-> 
->  - get length: reads the length set and (as mentioned), if the
->    length is '0' it will be calculated at any write
->  - get frequency: the driver reports the frequency. If userpace
->    doesn't set the frequency, the driver will use a default value
->    of 38000Hz.
-> 
-> The character device is created under /dev/lircX name, where X is
-> and ID assigned by the LIRC framework.
-> 
-> Example of usage:
-> 
->         int fd, ret;
->         ssize_t n;
->         uint32_t val = 0;
-> 
->         fd = open("/dev/lirc0", O_RDWR);
->         if (fd < 0) {
->                 fprintf(stderr, "unable to open the device\n");
->                 return -1;
->         }
-> 
->         /* ioctl set frequency and length parameters */
->         val = 6430;
->         ret = ioctl(fd, LIRC_SET_LENGTH, &val);
->         if (ret < 0)
->                 fprintf(stderr, "LIRC_SET_LENGTH failed\n");
->         val = 608000;
->         ret = ioctl(fd, LIRC_SET_FREQUENCY, &val);
->         if (ret < 0)
->                 fprintf(stderr, "LIRC_SET_FREQUENCY failed\n");
-> 
->         /* read back length and frequency parameters */
->         ret = ioctl(fd, LIRC_GET_LENGTH, &val);
->         if (ret < 0)
->                 fprintf(stderr, "LIRC_GET_LENGTH failed\n");
->         else
->                 fprintf(stdout, "legnth = %u\n", val);
-> 
->         ret = ioctl(fd, LIRC_GET_FREQUENCY, &val);
->         if (ret < 0)
->                 fprintf(stderr, "LIRC_GET_FREQUENCY failed\n");
->         else
->                 fprintf(stdout, "frequency = %u\n", val);
-> 
->         /* write data to device */
->         n = write(fd, b, 6430);
->         if (n < 0) {
->                 fprintf(stderr, "unable to write to the device\n");
->                 ret = -1;
->         } else if (n != 6430) {
->                 fprintf(stderr, "failed to write everything, wrote %ld instead\n", n);
->                 ret = -1;
->         } else {
->                 fprintf(stdout, "written all the %ld data\n", n);
->         }
-> 
->         close(fd);
-> 
-> The driver supports multi task access, but all the processes
-> which hold the driver should use the same length and frequency
-> parameters.
-> 
-> Change-Id: I323d7dd4a56d6dcf48f2c695293822eb04bdb85f
-> Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
-> ---
->  Documentation/devicetree/bindings/media/spi-ir.txt |  24 ++
->  drivers/media/rc/Kconfig                           |   9 +
->  drivers/media/rc/Makefile                          |   1 +
->  drivers/media/rc/ir-spi.c                          | 301 +++++++++++++++++++++
->  4 files changed, 335 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/spi-ir.txt
->  create mode 100644 drivers/media/rc/ir-spi.c
-> 
-> diff --git a/Documentation/devicetree/bindings/media/spi-ir.txt b/Documentation/devicetree/bindings/media/spi-ir.txt
-> new file mode 100644
-> index 0000000..2232d92
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/spi-ir.txt
-> @@ -0,0 +1,24 @@
-> +Device tree bindings for IR LED connected through SPI bus which is used as
-> +remote controller.
-
-Do said devices have part numbers? Seems kind of generic and I've never 
-seen such device.
-
-> +The IR LED switch is connected to the MOSI line of the SPI device and the data
-> +are delivered thourgh that.
-> +
-> +Required properties:
-> +	- compatible: should be "ir-spi"
-> +
-> +Optional properties:
-> +	- irled,switch: specifies the gpio switch which enables the irled
-
-Just "switch-gpios"
-
-> +
-> +Example:
-> +
-> +        irled@0 {
-> +                compatible = "ir-spi";
-> +                reg = <0x0>;
-> +                spi-max-frequency = <5000000>;
-> +                irled,switch = <&gpr3 3 0>;
-> +
-> +                controller-data {
-
-This is part of the controller binding? Omit that from the example.
-
-> +                        samsung,spi-feedback-delay = <0>;
-> +                };
-> +        };
