@@ -1,169 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45]:39410 "EHLO
-	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751699AbcGSTs5 (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:33962 "EHLO
+	mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751576AbcGRMmn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 15:48:57 -0400
-From: "Uwe D." <dollydl@arcor.de>
-To: <mchehab@s-opensource.com>
-Cc: <linux-media@vger.kernel.org>
-Subject: =?us-ascii?Q?System_freeze_when_going_into_suspend_after_=22modprobe_-r_c?=
-	=?us-ascii?Q?x23885_cx25840=22?=
-Date: Tue, 19 Jul 2016 21:48:50 +0200
-Message-ID: <000001d1e1f6$93030c70$b9092550$@arcor.de>
+	Mon, 18 Jul 2016 08:42:43 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Antti Palosaari <crope@iki.fi>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v4 11/12] [media] Documentation: Add HSV encodings
+Date: Mon, 18 Jul 2016 14:42:15 +0200
+Message-Id: <1468845736-19651-12-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1468845736-19651-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1468845736-19651-1-git-send-email-ricardo.ribalda@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Language: de
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When my system (with last upstream kernel) goes into suspend (hybrid-sleep
-with systemd), I get sometimes (around every third to fifth time) a system
-freeze, when systemd removes the modules cx23885 cx25840 for my DVB-C/T card
-DVBSky T982. The modules are not used at the moment (e.g. by tvheadend).
+Describe the hsv_enc field and its use.
 
-Kernel version from /proc/version:
-Linux version 4.7.0-040700rc7-generic (kernel@gloin) (gcc version 5.4.0
-20160609 (Ubuntu 5.4.0-6ubuntu1) ) #201607110032 SMP Mon Jul 11 04:34:25 UTC
-2016
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ Documentation/media/uapi/v4l/pixfmt-002.rst        | 12 ++++++-
+ Documentation/media/uapi/v4l/pixfmt-003.rst        | 14 ++++++--
+ Documentation/media/uapi/v4l/pixfmt-006.rst        | 38 ++++++++++++++++++++++
+ Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst |  3 +-
+ Documentation/media/videodev2.h.rst.exceptions     |  4 +++
+ 5 files changed, 67 insertions(+), 4 deletions(-)
 
-
-Command to remove DVB modules in a systemd/systemctl script:
-modprobe -r cx23885 cx25840
-
-
-Whole conf for systemd/systemctl in /etc/systemd/system/dvb.service:
-[Unit]
-Description=Restart DVB services
-Before=sleep.target
-StopWhenUnneeded=yes
-
-[Service]
-Type=oneshot
-RemainAfterExit=yes
-ExecStart=/sbin/modprobe -r cx23885 cx25840
-ExecStop=/sbin/modprobe cx25840 ; /sbin/modprobe cx23885
-
-[Install]
-WantedBy=sleep.target
-
-
-Syslog output with error during crash/freeze:
-Jul 13 14:20:22 HomeServer NetworkManager[783]: <info>  [1468412422.2305]
-manager: sleep requested (sleeping: no  enabled: yes)
-Jul 13 14:20:22 HomeServer NetworkManager[783]: <info>  [1468412422.2306]
-manager: sleeping...
-Jul 13 14:20:22 HomeServer NetworkManager[783]: <info>  [1468412422.2307]
-manager: NetworkManager state is now ASLEEP
-Jul 13 14:20:22 HomeServer whoopsie[814]: [14:20:22] offline
-Jul 13 14:20:22 HomeServer com.canonical.indicator.application[1275]:
-(process:1466): indicator-application-service-WARNING **: Application
-already exists, re-requesting properties.
-Jul 13 14:20:22 HomeServer systemd[1]: Starting Restart DVB services...
-Jul 13 14:20:22 HomeServer kernel: [  261.815215] BUG: unable to handle
-kernel NULL pointer dereference at 0000000000000200
-Jul 13 14:20:22 HomeServer kernel: [  261.815291] IP: [<ffffffffc086ecc4>]
-dvb_frontend_stop+0x34/0xd0 [dvb_core]
-Jul 13 14:20:22 HomeServer kernel: [  261.815356] PGD 0 
-Jul 13 14:20:22 HomeServer kernel: [  261.815377] Oops: 0000 [#1] SMP
-Jul 13 14:20:22 HomeServer kernel: [  261.815403] Modules linked in:
-cx23885(-) altera_ci tda18271 altera_stapl m88ds3103 tveeprom cx2341x
-videobuf2_dvb dvb_core rc_core videobuf2_dma_sg videobuf2_memops
-videobuf2_v4l2 videobuf2_core cx25840 v4l2_common videodev fuse si2157
-si2168 nls_utf8 nls_cp437 vfat fat snd_hda_codec_hdmi snd_hda_intel
-snd_hda_codec snd_hda_core i2c_mux snd_hwdep snd_pcm intel_rapl
-x86_pkg_temp_thermal intel_powerclamp snd_seq_midi coretemp
-snd_seq_midi_event snd_rawmidi kvm_intel kvm irqbypass intel_cstate
-intel_rapl_perf snd_seq efi_pstore snd_seq_device snd_timer joydev media
-serio_raw efivars lpc_ich sg snd mfd_core soundcore mei_me mei shpchp
-battery evdev tpm_tis tpm parport_pc ppdev lp parport efivarfs autofs4 ext4
-crc16 jbd2 mbcache xts gf128mul algif_skcipher af_alg dm_crypt dm_mod raid10
-raid1 raid0 multipath linear raid456 async_raid6_recov async_memcpy async_pq
-async_xor async_tx xor raid6_pq libcrc32c crc32c_generic md_mod sd_mod
-hid_logitech_hidpp hid_logitech_dj usbhid hid crct10dif_pclmul crc32_pclmul
-ahci libahci crc32c_intel libata ghash_clmulni_intel cryptd scsi_mod psmouse
-fan thermal xhci_pci ehci_pci xhci_hcd ehci_hcd e1000e fjes ptp i915
-pps_core usbcore video button i2c_algo_bit usb_common drm_kms_helper drm
-[last unloaded: videodev]
-Jul 13 14:20:22 HomeServer kernel: [  261.816495] CPU: 0 PID: 2789 Comm:
-modprobe Not tainted 4.7.0-040700rc7-generic #201607110032
-Jul 13 14:20:22 HomeServer kernel: [  261.816555] Hardware name:
-/DH87RL, BIOS RLH8710H.86A.0330.2015.0720.1750 07/20/2015
-Jul 13 14:20:22 HomeServer kernel: [  261.816620] task: ffff8800d11ef1c0 ti:
-ffff8800d6be0000 task.ti: ffff8800d6be0000
-Jul 13 14:20:22 HomeServer kernel: [  261.816673] RIP:
-0010:[<ffffffffc086ecc4>]  [<ffffffffc086ecc4>] dvb_frontend_stop+0x34/0xd0
-[dvb_core]
-Jul 13 14:20:22 HomeServer kernel: [  261.816749] RSP: 0018:ffff8800d6be3d78
-EFLAGS: 00010293
-Jul 13 14:20:22 HomeServer kernel: [  261.816789] RAX: ffff8800d11ef1c0 RBX:
-0000000000000000 RCX: ffffea00035bd51f
-Jul 13 14:20:22 HomeServer kernel: [  261.816839] RDX: 0000000080000000 RSI:
-ffff8800b725b400 RDI: ffff8800590e1830
-Jul 13 14:20:22 HomeServer kernel: [  261.816889] RBP: ffff8800590e1830 R08:
-ffffea0001459b60 R09: 0000000000000002
-Jul 13 14:20:22 HomeServer kernel: [  261.816940] R10: ffffffff81b09300 R11:
-ffffffff81b092c0 R12: ffff8800d1a3f280
-Jul 13 14:20:22 HomeServer kernel: [  261.820361] R13: ffff880112889768 R14:
-ffff880112889778 R15: 00007ffd78781738
-Jul 13 14:20:22 HomeServer kernel: [  261.823746] FS:
-00007efd7e7d8700(0000) GS:ffff88011fa00000(0000) knlGS:0000000000000000
-Jul 13 14:20:22 HomeServer kernel: [  261.827151] CS:  0010 DS: 0000 ES:
-0000 CR0: 0000000080050033
-Jul 13 14:20:22 HomeServer kernel: [  261.830458] CR2: 0000000000000200 CR3:
-00000000343db000 CR4: 00000000000406f0
-Jul 13 14:20:22 HomeServer kernel: [  261.833570] Stack:
-Jul 13 14:20:22 HomeServer kernel: [  261.836658]  0000000000000000
-ffff8800590e1830 ffffffffc086f236 ffffffffc06e1281
-Jul 13 14:20:22 HomeServer kernel: [  261.839813]  ffff880112889768
-ffff880112889778 00007ffd78781738 0000000000000286
-Jul 13 14:20:22 HomeServer kernel: [  261.842851]  00000000d5d01479
-ffff8800d1a3f000 ffff880112889768 ffffffffc06e128a
-Jul 13 14:20:22 HomeServer kernel: [  261.845741] Call Trace:
-Jul 13 14:20:22 HomeServer kernel: [  261.848609]  [<ffffffffc086f236>] ?
-dvb_unregister_frontend+0x46/0x130 [dvb_core]
-Jul 13 14:20:22 HomeServer kernel: [  261.851522]  [<ffffffffc06e1281>] ?
-vb2_dvb_dealloc_frontends+0x81/0xd0 [videobuf2_dvb]
-Jul 13 14:20:22 HomeServer kernel: [  261.854607]  [<ffffffffc06e128a>] ?
-vb2_dvb_dealloc_frontends+0x8a/0xd0 [videobuf2_dvb]
-Jul 13 14:20:22 HomeServer kernel: [  261.857957]  [<ffffffffc06e12de>] ?
-vb2_dvb_unregister_bus+0xe/0x20 [videobuf2_dvb]
-Jul 13 14:20:22 HomeServer kernel: [  261.861283]  [<ffffffffc095649f>] ?
-cx23885_dvb_unregister+0xbf/0x110 [cx23885]
-Jul 13 14:20:22 HomeServer kernel: [  261.864564]  [<ffffffffc094da3f>] ?
-cx23885_dev_unregister+0xdf/0x140 [cx23885]
-Jul 13 14:20:22 HomeServer kernel: [  261.867835]  [<ffffffffc094dcaf>] ?
-cx23885_finidev+0x4f/0x80 [cx23885]
-Jul 13 14:20:22 HomeServer kernel: [  261.871091]  [<ffffffff813713c6>] ?
-pci_device_remove+0x36/0xb0
-Jul 13 14:20:22 HomeServer kernel: [  261.874315]  [<ffffffff814576ea>] ?
-__device_release_driver+0x9a/0x150
-Jul 13 14:20:22 HomeServer kernel: [  261.877493]  [<ffffffff814582ce>] ?
-driver_detach+0xae/0xb0
-Jul 13 14:20:22 HomeServer kernel: [  261.879501]  [<ffffffff814570c5>] ?
-bus_remove_driver+0x55/0xd0
-Jul 13 14:20:22 HomeServer kernel: [  261.881506]  [<ffffffff8136fb36>] ?
-pci_unregister_driver+0x26/0x70
-Jul 13 14:20:22 HomeServer kernel: [  261.883505]  [<ffffffff810f9e8b>] ?
-SyS_delete_module+0x1ab/0x260
-Jul 13 14:20:22 HomeServer kernel: [  261.885500]  [<ffffffff81003300>] ?
-exit_to_usermode_loop+0xa0/0xc0
-Jul 13 14:20:22 HomeServer kernel: [  261.887468]  [<ffffffff815ebb36>] ?
-entry_SYSCALL_64_fastpath+0x1e/0xa8
-Jul 13 14:20:22 HomeServer kernel: [  261.889446] Code: 00 00 04 55 48 89 fd
-53 48 8b 9f 18 03 00 00 0f 85 82 00 00 00 83 bd 04 05 00 00 02 74 0a c7 85
-04 05 00 00 01 00 00 00 0f ae f0 <48> 8b bb 00 02 00 00 48 85 ff 74 5d e8 bb
-89 82 c0 48 8b 93 00 
-Jul 13 14:20:22 HomeServer kernel: [  261.893638] RIP  [<ffffffffc086ecc4>]
-dvb_frontend_stop+0x34/0xd0 [dvb_core]
-Jul 13 14:20:22 HomeServer kernel: [  261.895720]  RSP <ffff8800d6be3d78>
-Jul 13 14:20:22 HomeServer kernel: [  261.897784] CR2: 0000000000000200
-Jul 13 14:20:22 HomeServer kernel: [  261.914345] ---[ end trace
-8acf386d1711ef5a ]---
-Jul 13 14:20:22 HomeServer kernel: [  262.043794] PM: Hibernation mode set
-to 'suspend'
-
-
+diff --git a/Documentation/media/uapi/v4l/pixfmt-002.rst b/Documentation/media/uapi/v4l/pixfmt-002.rst
+index fae9b2d40a85..9a59e87b590f 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-002.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-002.rst
+@@ -177,6 +177,16 @@ Single-planar format structure
+ 
+     -  .. row 13
+ 
++       -  enum :ref:`v4l2_hsv_encoding <v4l2-hsv-encoding>`
++
++       -  ``hsv_enc``
++
++       -  This information supplements the ``colorspace`` and must be set by
++	  the driver for capture streams and by the application for output
++	  streams, see :ref:`colorspaces`.
++
++    -  .. row 14
++
+        -  enum :ref:`v4l2_quantization <v4l2-quantization>`
+ 
+        -  ``quantization``
+@@ -185,7 +195,7 @@ Single-planar format structure
+ 	  the driver for capture streams and by the application for output
+ 	  streams, see :ref:`colorspaces`.
+ 
+-    -  .. row 14
++    -  .. row 15
+ 
+        -  enum :ref:`v4l2_xfer_func <v4l2-xfer-func>`
+ 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-003.rst b/Documentation/media/uapi/v4l/pixfmt-003.rst
+index 25c54872fbe1..f212d1feaaa0 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-003.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-003.rst
+@@ -138,6 +138,16 @@ describing all planes of that format.
+ 
+     -  .. row 10
+ 
++       -  enum :ref:`v4l2_hsv_encoding <v4l2-hsv-encoding>`
++
++       -  ``hsv_enc``
++
++       -  This information supplements the ``colorspace`` and must be set by
++	  the driver for capture streams and by the application for output
++	  streams, see :ref:`colorspaces`.
++
++    -  .. row 11
++
+        -  enum :ref:`v4l2_quantization <v4l2-quantization>`
+ 
+        -  ``quantization``
+@@ -146,7 +156,7 @@ describing all planes of that format.
+ 	  the driver for capture streams and by the application for output
+ 	  streams, see :ref:`colorspaces`.
+ 
+-    -  .. row 11
++    -  .. row 12
+ 
+        -  enum :ref:`v4l2_xfer_func <v4l2-xfer-func>`
+ 
+@@ -156,7 +166,7 @@ describing all planes of that format.
+ 	  the driver for capture streams and by the application for output
+ 	  streams, see :ref:`colorspaces`.
+ 
+-    -  .. row 12
++    -  .. row 13
+ 
+        -  __u8
+ 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-006.rst b/Documentation/media/uapi/v4l/pixfmt-006.rst
+index 987b9a8a9eb4..ef7518077e8a 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-006.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-006.rst
+@@ -19,6 +19,15 @@ colorspace field of struct :ref:`v4l2_pix_format <v4l2-pix-format>`
+ or struct :ref:`v4l2_pix_format_mplane <v4l2-pix-format-mplane>`
+ needs to be filled in.
+ 
++.. _hsv-colorspace:
++
++On :ref:`HSV formats <hsv-formats>` the *Hue* is defined as the angle on
++the cylindrical color representation. Usually this angle is measured in
++degrees, i.e. 0-360. When we map this angle value into 8 bits, there are
++two basic ways to do it: Divide the angular value by 2 (0-179), or use the
++whole range, 0-255, dividing the angular value by 1.41. The
++`v4l2_hsv_encoding <v4l2-hsv-encoding>` field specify which encoding is used.
++
+ .. note:: The default R'G'B' quantization is full range for all
+    colorspaces except for BT.2020 which uses limited range R'G'B'
+    quantization.
+@@ -286,3 +295,32 @@ needs to be filled in.
+        -  Use the limited range quantization encoding. I.e. the range [0…1]
+ 	  is mapped to [16…235]. Cb and Cr are mapped from [-0.5…0.5] to
+ 	  [16…240].
++
++
++
++.. _v4l2-hsv-encoding:
++
++.. flat-table:: V4L2 HSV Encodings
++    :header-rows:  1
++    :stub-columns: 0
++
++
++    -  .. row 1
++
++       -  Identifier
++
++       -  Details
++
++    -  .. row 2
++
++       -  ``V4L2_HSV_ENC_180``
++
++       -  For the Hue, each LSB is two degrees.
++
++    -  .. row 3
++
++       -  ``V4L2_HSV_ENC_256``
++
++       -  For the Hue, the 360 degrees are mapped into 8 bits, i.e. each
++          LSB is roughtly 1.41 degrees.
++
+diff --git a/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+index 60ac821e309d..c0239fd2c216 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+@@ -14,7 +14,8 @@ Packed HSV formats
+ Description
+ ===========
+ 
+-The *hue* (h) is measured in degrees, one LSB represents two degrees.
++The *hue* (h) is measured in degrees, the equivalence between degrees and LSBs
++depends on the hsv-encoding used, see :ref:`colorspaces`.
+ The *saturation* (s) and the *value* (v) are measured in percentage of the
+ cylinder: 0 being the smallest value and 255 the maximum.
+ 
+diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+index 9bb9a6cc39d8..b47fef566d5f 100644
+--- a/Documentation/media/videodev2.h.rst.exceptions
++++ b/Documentation/media/videodev2.h.rst.exceptions
+@@ -87,6 +87,10 @@ replace symbol V4L2_YCBCR_ENC_XV601 v4l2-ycbcr-encoding
+ replace symbol V4L2_YCBCR_ENC_XV709 v4l2-ycbcr-encoding
+ replace symbol V4L2_YCBCR_ENC_SMPTE240M v4l2-ycbcr-encoding
+ 
++# Documented enum v4l2_hsv_encoding
++replace symbol V4L2_HSV_ENC_180 v4l2-hsv-encoding
++replace symbol V4L2_HSV_ENC_256 v4l2-hsv-encoding
++
+ # Documented enum v4l2_quantization
+ replace symbol V4L2_QUANTIZATION_DEFAULT v4l2-quantization
+ replace symbol V4L2_QUANTIZATION_FULL_RANGE v4l2-quantization
+-- 
+2.8.1
 
