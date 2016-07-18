@@ -1,66 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50359 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932517AbcGOK6O (ORCPT
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:35586 "EHLO
+	mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751441AbcGROrT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 06:58:14 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jani Nikula <jani.nikula@intel.com>, linux-doc@vger.kernel.org
-Subject: [PATCH] doc-rst: Fix compilation of the pdf docbook
-Date: Fri, 15 Jul 2016 07:58:07 -0300
-Message-Id: <520a247760f750307b53db905a10a17df1700f3b.1468580259.git.mchehab@s-opensource.com>
+	Mon, 18 Jul 2016 10:47:19 -0400
+From: William Breathitt Gray <vilhelm.gray@gmail.com>
+To: mchehab@osg.samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	William Breathitt Gray <vilhelm.gray@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 5/6] radio: aztech: Utilize the module_isa_driver macro
+Date: Mon, 18 Jul 2016 10:46:42 -0400
+Message-Id: <1d95eda3b0cc95932ee74bb1d027d5ec21efbadc.1468852798.git.vilhelm.gray@gmail.com>
+In-Reply-To: <cover.1468852798.git.vilhelm.gray@gmail.com>
+References: <cover.1468852798.git.vilhelm.gray@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The rst2pdf tool is a very broken toolchain, with is not capable
-of parsing complex documents. As such, it doesn't build the
-media book, failing with:
+This driver does not do anything special in module init/exit. This patch
+eliminates the module init/exit boilerplate code by utilizing the
+module_isa_driver macro.
 
-	[ERROR] pdfbuilder.py:130 too many values to unpack
-
-(using rst2pdf version 0.93.dev-r0 and Sphinx version 1.4.5)
-
-So, make it build only the books we know that are safe to build.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
---
-
-Btw, with the standard Sphinx version shipped on Fedora 24 (Sphinx
-1.3.1), rst2pdf doesn't build even the simple kernel-documentation,
-failing with this error:
-    writing Kernel... [ERROR] pdfbuilder.py:130 list index out of range
-
-This is a known bug:
-    https://github.com/sphinx-doc/sphinx/issues/1844
-
-So, maybe we should just disable pdf generation from RST for good,
-as I suspect that maintaining it with a broken toolchain will be a
-big headache.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: William Breathitt Gray <vilhelm.gray@gmail.com>
 ---
- Documentation/conf.py | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/radio/radio-aztech.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff --git a/Documentation/conf.py b/Documentation/conf.py
-index 224240b5bc50..96b7aa66c89c 100644
---- a/Documentation/conf.py
-+++ b/Documentation/conf.py
-@@ -411,7 +411,7 @@ epub_exclude_files = ['search.html']
- # multiple PDF files here actually tries to get the cross-referencing right
- # *between* PDF files.
- pdf_documents = [
--    ('index', u'Kernel', u'Kernel', u'J. Random Bozo'),
-+    ('kernel-documentation', u'Kernel', u'Kernel', u'J. Random Bozo'),
- ]
+diff --git a/drivers/media/radio/radio-aztech.c b/drivers/media/radio/radio-aztech.c
+index 705dd6f..7b39655 100644
+--- a/drivers/media/radio/radio-aztech.c
++++ b/drivers/media/radio/radio-aztech.c
+@@ -147,15 +147,4 @@ static struct radio_isa_driver aztech_driver = {
+ 	.max_volume = 3,
+ };
  
- # kernel-doc extension configuration for running Sphinx directly (e.g. by Read
+-static int __init aztech_init(void)
+-{
+-	return isa_register_driver(&aztech_driver.driver, AZTECH_MAX);
+-}
+-
+-static void __exit aztech_exit(void)
+-{
+-	isa_unregister_driver(&aztech_driver.driver);
+-}
+-
+-module_init(aztech_init);
+-module_exit(aztech_exit);
++module_isa_driver(aztech_driver.driver, AZTECH_MAX);
 -- 
-2.7.4
-
+2.7.3
 
