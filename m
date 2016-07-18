@@ -1,192 +1,295 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45797 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:59585 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751391AbcGRB41 (ORCPT
+	with ESMTP id S1751915AbcGRSau (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 21:56:27 -0400
+	Mon, 18 Jul 2016 14:30:50 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 09/36] [media] doc-rst: Move v4l docs to media/v4l-drivers
-Date: Sun, 17 Jul 2016 22:55:52 -0300
-Message-Id: <70c95242c45d7e6af4c0b4aba4119280eb3aa5de.1468806744.git.mchehab@s-opensource.com>
-In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 12/18] [media] cx2341x: add contents of README.hm12
+Date: Mon, 18 Jul 2016 15:30:34 -0300
+Message-Id: <b3b7ea9aa7fc7551ee283df6987ceedc709ad56d.1468865380.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
+References: <cover.1468865380.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
+References: <cover.1468865380.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move V4L documentation files to media/v4l-drivers. Those aren't
-core stuff, so they don't fit at the kAPI document.
+The README.hm12 file describes the proprietary format used
+by this driver for raw format, called HM12. Add its description
+at the document, after converted to ReST.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/{video4linux/cafe_ccic => media/v4l-drivers/cafe_ccic.rst}  | 0
- Documentation/{video4linux/README.cpia2 => media/v4l-drivers/cpia2.rst}   | 0
- .../cpia2_overview.txt => media/v4l-drivers/cpia2_overview.rst}           | 0
- Documentation/{video4linux/cx18.txt => media/v4l-drivers/cx18.rst}        | 0
- Documentation/{video4linux/README.cx88 => media/v4l-drivers/cx88.rst}     | 0
- .../README.davinci-vpbe => media/v4l-drivers/davinci-vpbe.rst}            | 0
- Documentation/{video4linux/fimc.txt => media/v4l-drivers/fimc.rst}        | 0
- Documentation/{video4linux/4CCs.txt => media/v4l-drivers/fourcc.rst}      | 0
- Documentation/{video4linux/gspca.txt => media/v4l-drivers/gspca.rst}      | 0
- Documentation/{video4linux/README.ivtv => media/v4l-drivers/ivtv.rst}     | 0
- Documentation/{video4linux/meye.txt => media/v4l-drivers/meye.rst}        | 0
- .../{video4linux/omap3isp.txt => media/v4l-drivers/omap3isp.rst}          | 0
- .../{video4linux/omap4_camera.txt => media/v4l-drivers/omap4_camera.rst}  | 0
- .../{video4linux/README.pvrusb2 => media/v4l-drivers/pvrusb2.rst}         | 0
- .../{video4linux/pxa_camera.txt => media/v4l-drivers/pxa_camera.rst}      | 0
- .../{video4linux/radiotrack.txt => media/v4l-drivers/radiotrack.rst}      | 0
- .../{video4linux/README.saa7134 => media/v4l-drivers/saa7134.rst}         | 0
- .../v4l-drivers/sh_mobile_ceu_camera.rst}                                 | 0
- Documentation/{video4linux/si470x.txt => media/v4l-drivers/si470x.rst}    | 0
- Documentation/{video4linux/si4713.txt => media/v4l-drivers/si4713.rst}    | 0
- Documentation/{video4linux/si476x.txt => media/v4l-drivers/si476x.rst}    | 0
- .../{video4linux/soc-camera.txt => media/v4l-drivers/soc-camera.rst}      | 0
- .../{video4linux/uvcvideo.txt => media/v4l-drivers/uvcvideo.rst}          | 0
- .../{video4linux/README.ir => media/v4l-drivers/v4l-with-ir.rst}          | 0
- Documentation/{video4linux/vivid.txt => media/v4l-drivers/vivid.rst}      | 0
- Documentation/{video4linux/Zoran => media/v4l-drivers/zoran.rst}          | 0
- Documentation/{video4linux/zr364xx.txt => media/v4l-drivers/zr364xx.rst}  | 0
- 27 files changed, 0 insertions(+), 0 deletions(-)
- rename Documentation/{video4linux/cafe_ccic => media/v4l-drivers/cafe_ccic.rst} (100%)
- rename Documentation/{video4linux/README.cpia2 => media/v4l-drivers/cpia2.rst} (100%)
- rename Documentation/{video4linux/cpia2_overview.txt => media/v4l-drivers/cpia2_overview.rst} (100%)
- rename Documentation/{video4linux/cx18.txt => media/v4l-drivers/cx18.rst} (100%)
- rename Documentation/{video4linux/README.cx88 => media/v4l-drivers/cx88.rst} (100%)
- rename Documentation/{video4linux/README.davinci-vpbe => media/v4l-drivers/davinci-vpbe.rst} (100%)
- rename Documentation/{video4linux/fimc.txt => media/v4l-drivers/fimc.rst} (100%)
- rename Documentation/{video4linux/4CCs.txt => media/v4l-drivers/fourcc.rst} (100%)
- rename Documentation/{video4linux/gspca.txt => media/v4l-drivers/gspca.rst} (100%)
- rename Documentation/{video4linux/README.ivtv => media/v4l-drivers/ivtv.rst} (100%)
- rename Documentation/{video4linux/meye.txt => media/v4l-drivers/meye.rst} (100%)
- rename Documentation/{video4linux/omap3isp.txt => media/v4l-drivers/omap3isp.rst} (100%)
- rename Documentation/{video4linux/omap4_camera.txt => media/v4l-drivers/omap4_camera.rst} (100%)
- rename Documentation/{video4linux/README.pvrusb2 => media/v4l-drivers/pvrusb2.rst} (100%)
- rename Documentation/{video4linux/pxa_camera.txt => media/v4l-drivers/pxa_camera.rst} (100%)
- rename Documentation/{video4linux/radiotrack.txt => media/v4l-drivers/radiotrack.rst} (100%)
- rename Documentation/{video4linux/README.saa7134 => media/v4l-drivers/saa7134.rst} (100%)
- rename Documentation/{video4linux/sh_mobile_ceu_camera.txt => media/v4l-drivers/sh_mobile_ceu_camera.rst} (100%)
- rename Documentation/{video4linux/si470x.txt => media/v4l-drivers/si470x.rst} (100%)
- rename Documentation/{video4linux/si4713.txt => media/v4l-drivers/si4713.rst} (100%)
- rename Documentation/{video4linux/si476x.txt => media/v4l-drivers/si476x.rst} (100%)
- rename Documentation/{video4linux/soc-camera.txt => media/v4l-drivers/soc-camera.rst} (100%)
- rename Documentation/{video4linux/uvcvideo.txt => media/v4l-drivers/uvcvideo.rst} (100%)
- rename Documentation/{video4linux/README.ir => media/v4l-drivers/v4l-with-ir.rst} (100%)
- rename Documentation/{video4linux/vivid.txt => media/v4l-drivers/vivid.rst} (100%)
- rename Documentation/{video4linux/Zoran => media/v4l-drivers/zoran.rst} (100%)
- rename Documentation/{video4linux/zr364xx.txt => media/v4l-drivers/zr364xx.rst} (100%)
+ Documentation/media/v4l-drivers/cx2341x.rst   | 125 ++++++++++++++++++++++++++
+ Documentation/video4linux/cx2341x/README.hm12 | 120 -------------------------
+ 2 files changed, 125 insertions(+), 120 deletions(-)
+ delete mode 100644 Documentation/video4linux/cx2341x/README.hm12
 
-diff --git a/Documentation/video4linux/cafe_ccic b/Documentation/media/v4l-drivers/cafe_ccic.rst
-similarity index 100%
-rename from Documentation/video4linux/cafe_ccic
-rename to Documentation/media/v4l-drivers/cafe_ccic.rst
-diff --git a/Documentation/video4linux/README.cpia2 b/Documentation/media/v4l-drivers/cpia2.rst
-similarity index 100%
-rename from Documentation/video4linux/README.cpia2
-rename to Documentation/media/v4l-drivers/cpia2.rst
-diff --git a/Documentation/video4linux/cpia2_overview.txt b/Documentation/media/v4l-drivers/cpia2_overview.rst
-similarity index 100%
-rename from Documentation/video4linux/cpia2_overview.txt
-rename to Documentation/media/v4l-drivers/cpia2_overview.rst
-diff --git a/Documentation/video4linux/cx18.txt b/Documentation/media/v4l-drivers/cx18.rst
-similarity index 100%
-rename from Documentation/video4linux/cx18.txt
-rename to Documentation/media/v4l-drivers/cx18.rst
-diff --git a/Documentation/video4linux/README.cx88 b/Documentation/media/v4l-drivers/cx88.rst
-similarity index 100%
-rename from Documentation/video4linux/README.cx88
-rename to Documentation/media/v4l-drivers/cx88.rst
-diff --git a/Documentation/video4linux/README.davinci-vpbe b/Documentation/media/v4l-drivers/davinci-vpbe.rst
-similarity index 100%
-rename from Documentation/video4linux/README.davinci-vpbe
-rename to Documentation/media/v4l-drivers/davinci-vpbe.rst
-diff --git a/Documentation/video4linux/fimc.txt b/Documentation/media/v4l-drivers/fimc.rst
-similarity index 100%
-rename from Documentation/video4linux/fimc.txt
-rename to Documentation/media/v4l-drivers/fimc.rst
-diff --git a/Documentation/video4linux/4CCs.txt b/Documentation/media/v4l-drivers/fourcc.rst
-similarity index 100%
-rename from Documentation/video4linux/4CCs.txt
-rename to Documentation/media/v4l-drivers/fourcc.rst
-diff --git a/Documentation/video4linux/gspca.txt b/Documentation/media/v4l-drivers/gspca.rst
-similarity index 100%
-rename from Documentation/video4linux/gspca.txt
-rename to Documentation/media/v4l-drivers/gspca.rst
-diff --git a/Documentation/video4linux/README.ivtv b/Documentation/media/v4l-drivers/ivtv.rst
-similarity index 100%
-rename from Documentation/video4linux/README.ivtv
-rename to Documentation/media/v4l-drivers/ivtv.rst
-diff --git a/Documentation/video4linux/meye.txt b/Documentation/media/v4l-drivers/meye.rst
-similarity index 100%
-rename from Documentation/video4linux/meye.txt
-rename to Documentation/media/v4l-drivers/meye.rst
-diff --git a/Documentation/video4linux/omap3isp.txt b/Documentation/media/v4l-drivers/omap3isp.rst
-similarity index 100%
-rename from Documentation/video4linux/omap3isp.txt
-rename to Documentation/media/v4l-drivers/omap3isp.rst
-diff --git a/Documentation/video4linux/omap4_camera.txt b/Documentation/media/v4l-drivers/omap4_camera.rst
-similarity index 100%
-rename from Documentation/video4linux/omap4_camera.txt
-rename to Documentation/media/v4l-drivers/omap4_camera.rst
-diff --git a/Documentation/video4linux/README.pvrusb2 b/Documentation/media/v4l-drivers/pvrusb2.rst
-similarity index 100%
-rename from Documentation/video4linux/README.pvrusb2
-rename to Documentation/media/v4l-drivers/pvrusb2.rst
-diff --git a/Documentation/video4linux/pxa_camera.txt b/Documentation/media/v4l-drivers/pxa_camera.rst
-similarity index 100%
-rename from Documentation/video4linux/pxa_camera.txt
-rename to Documentation/media/v4l-drivers/pxa_camera.rst
-diff --git a/Documentation/video4linux/radiotrack.txt b/Documentation/media/v4l-drivers/radiotrack.rst
-similarity index 100%
-rename from Documentation/video4linux/radiotrack.txt
-rename to Documentation/media/v4l-drivers/radiotrack.rst
-diff --git a/Documentation/video4linux/README.saa7134 b/Documentation/media/v4l-drivers/saa7134.rst
-similarity index 100%
-rename from Documentation/video4linux/README.saa7134
-rename to Documentation/media/v4l-drivers/saa7134.rst
-diff --git a/Documentation/video4linux/sh_mobile_ceu_camera.txt b/Documentation/media/v4l-drivers/sh_mobile_ceu_camera.rst
-similarity index 100%
-rename from Documentation/video4linux/sh_mobile_ceu_camera.txt
-rename to Documentation/media/v4l-drivers/sh_mobile_ceu_camera.rst
-diff --git a/Documentation/video4linux/si470x.txt b/Documentation/media/v4l-drivers/si470x.rst
-similarity index 100%
-rename from Documentation/video4linux/si470x.txt
-rename to Documentation/media/v4l-drivers/si470x.rst
-diff --git a/Documentation/video4linux/si4713.txt b/Documentation/media/v4l-drivers/si4713.rst
-similarity index 100%
-rename from Documentation/video4linux/si4713.txt
-rename to Documentation/media/v4l-drivers/si4713.rst
-diff --git a/Documentation/video4linux/si476x.txt b/Documentation/media/v4l-drivers/si476x.rst
-similarity index 100%
-rename from Documentation/video4linux/si476x.txt
-rename to Documentation/media/v4l-drivers/si476x.rst
-diff --git a/Documentation/video4linux/soc-camera.txt b/Documentation/media/v4l-drivers/soc-camera.rst
-similarity index 100%
-rename from Documentation/video4linux/soc-camera.txt
-rename to Documentation/media/v4l-drivers/soc-camera.rst
-diff --git a/Documentation/video4linux/uvcvideo.txt b/Documentation/media/v4l-drivers/uvcvideo.rst
-similarity index 100%
-rename from Documentation/video4linux/uvcvideo.txt
-rename to Documentation/media/v4l-drivers/uvcvideo.rst
-diff --git a/Documentation/video4linux/README.ir b/Documentation/media/v4l-drivers/v4l-with-ir.rst
-similarity index 100%
-rename from Documentation/video4linux/README.ir
-rename to Documentation/media/v4l-drivers/v4l-with-ir.rst
-diff --git a/Documentation/video4linux/vivid.txt b/Documentation/media/v4l-drivers/vivid.rst
-similarity index 100%
-rename from Documentation/video4linux/vivid.txt
-rename to Documentation/media/v4l-drivers/vivid.rst
-diff --git a/Documentation/video4linux/Zoran b/Documentation/media/v4l-drivers/zoran.rst
-similarity index 100%
-rename from Documentation/video4linux/Zoran
-rename to Documentation/media/v4l-drivers/zoran.rst
-diff --git a/Documentation/video4linux/zr364xx.txt b/Documentation/media/v4l-drivers/zr364xx.rst
-similarity index 100%
-rename from Documentation/video4linux/zr364xx.txt
-rename to Documentation/media/v4l-drivers/zr364xx.rst
+diff --git a/Documentation/media/v4l-drivers/cx2341x.rst b/Documentation/media/v4l-drivers/cx2341x.rst
+index 57ae45938919..15bfd345df48 100644
+--- a/Documentation/media/v4l-drivers/cx2341x.rst
++++ b/Documentation/media/v4l-drivers/cx2341x.rst
+@@ -3681,3 +3681,128 @@ Register 0x0004 holds the DMA Transfer Status:
+ - bit 2:   DMA read error
+ - bit 3:   DMA write error
+ - bit 4:   Scatter-Gather array error
++
++Non-compressed file format
++--------------------------
++
++The cx23416 can produce (and the cx23415 can also read) raw YUV output. The
++format of a YUV frame is specific to this chip and is called HM12. 'HM' stands
++for 'Hauppauge Macroblock', which is a misnomer as 'Conexant Macroblock' would
++be more accurate.
++
++The format is YUV 4:2:0 which uses 1 Y byte per pixel and 1 U and V byte per
++four pixels.
++
++The data is encoded as two macroblock planes, the first containing the Y
++values, the second containing UV macroblocks.
++
++The Y plane is divided into blocks of 16x16 pixels from left to right
++and from top to bottom. Each block is transmitted in turn, line-by-line.
++
++So the first 16 bytes are the first line of the top-left block, the
++second 16 bytes are the second line of the top-left block, etc. After
++transmitting this block the first line of the block on the right to the
++first block is transmitted, etc.
++
++The UV plane is divided into blocks of 16x8 UV values going from left
++to right, top to bottom. Each block is transmitted in turn, line-by-line.
++
++So the first 16 bytes are the first line of the top-left block and
++contain 8 UV value pairs (16 bytes in total). The second 16 bytes are the
++second line of 8 UV pairs of the top-left block, etc. After transmitting
++this block the first line of the block on the right to the first block is
++transmitted, etc.
++
++The code below is given as an example on how to convert HM12 to separate
++Y, U and V planes. This code assumes frames of 720x576 (PAL) pixels.
++
++The width of a frame is always 720 pixels, regardless of the actual specified
++width.
++
++If the height is not a multiple of 32 lines, then the captured video is
++missing macroblocks at the end and is unusable. So the height must be a
++multiple of 32.
++
++Raw format c example
++~~~~~~~~~~~~~~~~~~~~
++
++.. code-block:: c
++
++	#include <stdio.h>
++	#include <stdlib.h>
++	#include <string.h>
++
++	static unsigned char frame[576*720*3/2];
++	static unsigned char framey[576*720];
++	static unsigned char frameu[576*720 / 4];
++	static unsigned char framev[576*720 / 4];
++
++	static void de_macro_y(unsigned char* dst, unsigned char *src, int dstride, int w, int h)
++	{
++	unsigned int y, x, i;
++
++	// descramble Y plane
++	// dstride = 720 = w
++	// The Y plane is divided into blocks of 16x16 pixels
++	// Each block in transmitted in turn, line-by-line.
++	for (y = 0; y < h; y += 16) {
++		for (x = 0; x < w; x += 16) {
++		for (i = 0; i < 16; i++) {
++			memcpy(dst + x + (y + i) * dstride, src, 16);
++			src += 16;
++		}
++		}
++	}
++	}
++
++	static void de_macro_uv(unsigned char *dstu, unsigned char *dstv, unsigned char *src, int dstride, int w, int h)
++	{
++	unsigned int y, x, i;
++
++	// descramble U/V plane
++	// dstride = 720 / 2 = w
++	// The U/V values are interlaced (UVUV...).
++	// Again, the UV plane is divided into blocks of 16x16 UV values.
++	// Each block in transmitted in turn, line-by-line.
++	for (y = 0; y < h; y += 16) {
++		for (x = 0; x < w; x += 8) {
++		for (i = 0; i < 16; i++) {
++			int idx = x + (y + i) * dstride;
++
++			dstu[idx+0] = src[0];  dstv[idx+0] = src[1];
++			dstu[idx+1] = src[2];  dstv[idx+1] = src[3];
++			dstu[idx+2] = src[4];  dstv[idx+2] = src[5];
++			dstu[idx+3] = src[6];  dstv[idx+3] = src[7];
++			dstu[idx+4] = src[8];  dstv[idx+4] = src[9];
++			dstu[idx+5] = src[10]; dstv[idx+5] = src[11];
++			dstu[idx+6] = src[12]; dstv[idx+6] = src[13];
++			dstu[idx+7] = src[14]; dstv[idx+7] = src[15];
++			src += 16;
++		}
++		}
++	}
++	}
++
++	/*************************************************************************/
++	int main(int argc, char **argv)
++	{
++	FILE *fin;
++	int i;
++
++	if (argc == 1) fin = stdin;
++	else fin = fopen(argv[1], "r");
++
++	if (fin == NULL) {
++		fprintf(stderr, "cannot open input\n");
++		exit(-1);
++	}
++	while (fread(frame, sizeof(frame), 1, fin) == 1) {
++		de_macro_y(framey, frame, 720, 720, 576);
++		de_macro_uv(frameu, framev, frame + 720 * 576, 720 / 2, 720 / 2, 576 / 2);
++		fwrite(framey, sizeof(framey), 1, stdout);
++		fwrite(framev, sizeof(framev), 1, stdout);
++		fwrite(frameu, sizeof(frameu), 1, stdout);
++	}
++	fclose(fin);
++	return 0;
++	}
+diff --git a/Documentation/video4linux/cx2341x/README.hm12 b/Documentation/video4linux/cx2341x/README.hm12
+deleted file mode 100644
+index b36148ea0750..000000000000
+--- a/Documentation/video4linux/cx2341x/README.hm12
++++ /dev/null
+@@ -1,120 +0,0 @@
+-The cx23416 can produce (and the cx23415 can also read) raw YUV output. The
+-format of a YUV frame is specific to this chip and is called HM12. 'HM' stands
+-for 'Hauppauge Macroblock', which is a misnomer as 'Conexant Macroblock' would
+-be more accurate.
+-
+-The format is YUV 4:2:0 which uses 1 Y byte per pixel and 1 U and V byte per
+-four pixels.
+-
+-The data is encoded as two macroblock planes, the first containing the Y
+-values, the second containing UV macroblocks.
+-
+-The Y plane is divided into blocks of 16x16 pixels from left to right
+-and from top to bottom. Each block is transmitted in turn, line-by-line.
+-
+-So the first 16 bytes are the first line of the top-left block, the
+-second 16 bytes are the second line of the top-left block, etc. After
+-transmitting this block the first line of the block on the right to the
+-first block is transmitted, etc.
+-
+-The UV plane is divided into blocks of 16x8 UV values going from left
+-to right, top to bottom. Each block is transmitted in turn, line-by-line.
+-
+-So the first 16 bytes are the first line of the top-left block and
+-contain 8 UV value pairs (16 bytes in total). The second 16 bytes are the
+-second line of 8 UV pairs of the top-left block, etc. After transmitting
+-this block the first line of the block on the right to the first block is
+-transmitted, etc.
+-
+-The code below is given as an example on how to convert HM12 to separate
+-Y, U and V planes. This code assumes frames of 720x576 (PAL) pixels.
+-
+-The width of a frame is always 720 pixels, regardless of the actual specified
+-width.
+-
+-If the height is not a multiple of 32 lines, then the captured video is
+-missing macroblocks at the end and is unusable. So the height must be a
+-multiple of 32.
+-
+---------------------------------------------------------------------------
+-
+-#include <stdio.h>
+-#include <stdlib.h>
+-#include <string.h>
+-
+-static unsigned char frame[576*720*3/2];
+-static unsigned char framey[576*720];
+-static unsigned char frameu[576*720 / 4];
+-static unsigned char framev[576*720 / 4];
+-
+-static void de_macro_y(unsigned char* dst, unsigned char *src, int dstride, int w, int h)
+-{
+-    unsigned int y, x, i;
+-
+-    // descramble Y plane
+-    // dstride = 720 = w
+-    // The Y plane is divided into blocks of 16x16 pixels
+-    // Each block in transmitted in turn, line-by-line.
+-    for (y = 0; y < h; y += 16) {
+-	for (x = 0; x < w; x += 16) {
+-	    for (i = 0; i < 16; i++) {
+-		memcpy(dst + x + (y + i) * dstride, src, 16);
+-		src += 16;
+-	    }
+-	}
+-    }
+-}
+-
+-static void de_macro_uv(unsigned char *dstu, unsigned char *dstv, unsigned char *src, int dstride, int w, int h)
+-{
+-    unsigned int y, x, i;
+-
+-    // descramble U/V plane
+-    // dstride = 720 / 2 = w
+-    // The U/V values are interlaced (UVUV...).
+-    // Again, the UV plane is divided into blocks of 16x16 UV values.
+-    // Each block in transmitted in turn, line-by-line.
+-    for (y = 0; y < h; y += 16) {
+-	for (x = 0; x < w; x += 8) {
+-	    for (i = 0; i < 16; i++) {
+-		int idx = x + (y + i) * dstride;
+-
+-		dstu[idx+0] = src[0];  dstv[idx+0] = src[1];
+-		dstu[idx+1] = src[2];  dstv[idx+1] = src[3];
+-		dstu[idx+2] = src[4];  dstv[idx+2] = src[5];
+-		dstu[idx+3] = src[6];  dstv[idx+3] = src[7];
+-		dstu[idx+4] = src[8];  dstv[idx+4] = src[9];
+-		dstu[idx+5] = src[10]; dstv[idx+5] = src[11];
+-		dstu[idx+6] = src[12]; dstv[idx+6] = src[13];
+-		dstu[idx+7] = src[14]; dstv[idx+7] = src[15];
+-		src += 16;
+-	    }
+-	}
+-    }
+-}
+-
+-/*************************************************************************/
+-int main(int argc, char **argv)
+-{
+-    FILE *fin;
+-    int i;
+-
+-    if (argc == 1) fin = stdin;
+-    else fin = fopen(argv[1], "r");
+-
+-    if (fin == NULL) {
+-	fprintf(stderr, "cannot open input\n");
+-	exit(-1);
+-    }
+-    while (fread(frame, sizeof(frame), 1, fin) == 1) {
+-	de_macro_y(framey, frame, 720, 720, 576);
+-	de_macro_uv(frameu, framev, frame + 720 * 576, 720 / 2, 720 / 2, 576 / 2);
+-	fwrite(framey, sizeof(framey), 1, stdout);
+-	fwrite(framev, sizeof(framev), 1, stdout);
+-	fwrite(frameu, sizeof(frameu), 1, stdout);
+-    }
+-    fclose(fin);
+-    return 0;
+-}
+-
+---------------------------------------------------------------------------
 -- 
 2.7.4
+
 
