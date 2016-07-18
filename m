@@ -1,160 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46988
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753085AbcGSLNH (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:45891 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751370AbcGRB4c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 07:13:07 -0400
-Date: Tue, 19 Jul 2016 08:12:59 -0300
+	Sun, 17 Jul 2016 21:56:32 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-	Jani Nikula <jani.nikula@intel.com>,
-	Markus Heiser <markus.heiser@darmarit.de>
-Subject: Re: [PATCH 00/18] Complete moving media documentation to ReST
- format
-Message-ID: <20160719081259.482a8c04@recife.lan>
-In-Reply-To: <578DF08F.8080701@xs4all.nl>
-References: <cover.1468865380.git.mchehab@s-opensource.com>
-	<578DF08F.8080701@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Jonathan Corbet <corbet@lwn.net>,
+	Lee Jones <lee.jones@linaro.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>, linux-doc@vger.kernel.org
+Subject: [PATCH 22/36] [media] doc-rst: add omap4_camera documentation
+Date: Sun, 17 Jul 2016 22:56:05 -0300
+Message-Id: <93db50d6eca773b977598da1f5a2c2382efd61a6.1468806744.git.mchehab@s-opensource.com>
+In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 19 Jul 2016 11:19:11 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> > All those documents are built automatically, once by day, at linuxtv.org:
-> > 
-> > uAPI:
-> > 	https://linuxtv.org/downloads/v4l-dvb-apis-new/media/media_uapi.html  
-> 
-> Erm, there is nothing there, only the top-level menu.
-
-Gah! The problem is due to the Sphinx version. I added a patch yesterday
-adding a caption to each book's toctree. This doesn't work with the
-Sphinx version at the server (1.2.3). Instead of ignoring the option,
-Sphinx decided to just drop the entire tag, with actually means to
-drop all media pages!
-
-I really hate stupid toolchains that require everybody to upgrade to
-the very latest version of it every time. Maybe someone at linux-doc 
-may have an idea about how to add new markup attributes to the 
-documents without breaking for the ones using older versions of Sphinx.
-
-The problem we're facing is due to a change meant to add a title before
-each media's table of contents (provided via :toctree:  markup).
-
-All it needs is something that will be translated to HTML as:
-<h1>Table of contents</h1>, without the need of creating any cross
-reference, nor being added to the main TOC at Documentation/index.rst.
-
-We can't simply use the normal way to generate <h1> tags:
-
---- a/Documentation/media/dvb-drivers/index.rst
-+++ b/Documentation/media/dvb-drivers/index.rst
-@@ -15,6 +15,10 @@ the license is included in the chapter entitled "GNU Free Documentation
- License".
- 
- 
-+#####################
-+FOO Table of contents
-+#####################
-+
- .. toctree::
- 	:maxdepth: 5
- 	:numbered:
-
-The page itself would look OK, but this would produce a new entry at the
- output/html/index.html:
-
-	* Linux Digital TV driver-specific documentation
-	* FOO Table of contents
-
-	    1. Introdution
-
-With is not what we want.
-
-With Sphinx 1.4.5, the way of doing that is to add a :caption: tag
-to the toctree, but this tag doesn't exist on 1.2.x. Also, as it
-also convert captions on references, and all books are linked
-together at Documentation/index.rst, it also needs a :name: tag,
-in order to avoid warnings about duplicated tags when building the
-main index.rst.
-
-I have no idea about how to do that in a backward-compatible way.
-
-Maybe Markus, Jani or someone else at linux-doc may have some
-glue.
-
-In the mean time, I attached a patch that the server applies before
-building the documentation.
-
-
-Thanks,
-Mauro
-
-doc-rst: Don't use :caption: or :name:  tags for media documents
-
-If Sphinx version is lower than 1.4.x (I tested with 1.4.5), this patch
-is needed for it to build, as otherwise Sphinx will ignore the toctable
-markups and won't build the media documentation, creating just an
-empty page.
+Convert the omap4_camera documentation to ReST and add it to
+the media/v4l-drivers book.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/v4l-drivers/index.rst        |  1 +
+ Documentation/media/v4l-drivers/omap4_camera.rst | 28 ++++++++++++------------
+ 2 files changed, 15 insertions(+), 14 deletions(-)
 
-diff --git a/Documentation/media/dvb-drivers/index.rst b/Documentation/media/dvb-drivers/index.rst
-index e1d4d87f2a47..0e065533beb6 100644
---- a/Documentation/media/dvb-drivers/index.rst
-+++ b/Documentation/media/dvb-drivers/index.rst
-@@ -18,8 +18,6 @@ License".
- .. toctree::
- 	:maxdepth: 5
- 	:numbered:
--	:caption: Table of Contents
--	:name: dvb_mastertoc
- 
- 	intro
- 	avermedia
-diff --git a/Documentation/media/media_kapi.rst b/Documentation/media/media_kapi.rst
-index 0af80e90b7b5..556c0eb55c85 100644
---- a/Documentation/media/media_kapi.rst
-+++ b/Documentation/media/media_kapi.rst
-@@ -17,8 +17,6 @@ License".
- .. toctree::
-     :maxdepth: 5
-     :numbered:
--    :caption: Table of Contents
--    :name: kapi_mastertoc
- 
-     kapi/v4l2-framework
-     kapi/v4l2-controls
-diff --git a/Documentation/media/media_uapi.rst b/Documentation/media/media_uapi.rst
-index debe4531040b..aae8124defcc 100644
---- a/Documentation/media/media_uapi.rst
-+++ b/Documentation/media/media_uapi.rst
-@@ -17,8 +17,6 @@ License".
- 
- .. toctree::
-     :maxdepth: 5
--    :caption: Table of Contents
--    :name: uapi_mastertoc
- 
-     intro
-     uapi/v4l/v4l2
 diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
-index 8d1710234e5a..b9c9c0911db9 100644
+index 272c2dc9ceb1..cb85bca0a077 100644
 --- a/Documentation/media/v4l-drivers/index.rst
 +++ b/Documentation/media/v4l-drivers/index.rst
-@@ -18,8 +18,6 @@ License".
- .. toctree::
- 	:maxdepth: 5
- 	:numbered:
--	:caption: Table of Contents
--	:name: v4l_mastertoc
+@@ -29,4 +29,5 @@ License".
+ 	ivtv
+ 	meye
+ 	omap3isp
++	omap4_camera
+ 	zr364xx
+diff --git a/Documentation/media/v4l-drivers/omap4_camera.rst b/Documentation/media/v4l-drivers/omap4_camera.rst
+index a6734aa77242..54b427b28e5f 100644
+--- a/Documentation/media/v4l-drivers/omap4_camera.rst
++++ b/Documentation/media/v4l-drivers/omap4_camera.rst
+@@ -1,5 +1,9 @@
+-                              OMAP4 ISS Driver
+-                              ================
++OMAP4 ISS Driver
++================
++
++Author: Sergio Aguirre <sergio.a.aguirre@gmail.com>
++
++Copyright (C) 2012, Texas Instruments
  
- 	fourcc
- 	v4l-with-ir
+ Introduction
+ ------------
+@@ -11,15 +15,15 @@ Which contains several components that can be categorized in 3 big groups:
+ - ISP (Image Signal Processor)
+ - SIMCOP (Still Image Coprocessor)
+ 
+-For more information, please look in [1] for latest version of:
+-	"OMAP4430 Multimedia Device Silicon Revision 2.x"
++For more information, please look in [#f1]_ for latest version of:
++"OMAP4430 Multimedia Device Silicon Revision 2.x"
+ 
+ As of Revision AB, the ISS is described in detail in section 8.
+ 
+-This driver is supporting _only_ the CSI2-A/B interfaces for now.
++This driver is supporting **only** the CSI2-A/B interfaces for now.
+ 
+-It makes use of the Media Controller framework [2], and inherited most of the
+-code from OMAP3 ISP driver (found under drivers/media/platform/omap3isp/*),
++It makes use of the Media Controller framework [#f2]_, and inherited most of the
++code from OMAP3 ISP driver (found under drivers/media/platform/omap3isp/\*),
+ except that it doesn't need an IOMMU now for ISS buffers memory mapping.
+ 
+ Supports usage of MMAP buffers only (for now).
+@@ -40,7 +44,7 @@ Tested platforms
+ 
+ - Tested on mainline kernel:
+ 
+-	http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=summary
++	http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=summary
+ 
+   Tag: v3.3 (commit c16fa4f2ad19908a47c63d8fa436a1178438c7e7)
+ 
+@@ -52,9 +56,5 @@ include/linux/platform_data/media/omap4iss.h
+ References
+ ----------
+ 
+-[1] http://focus.ti.com/general/docs/wtbu/wtbudocumentcenter.tsp?navigationId=12037&templateId=6123#62
+-[2] http://lwn.net/Articles/420485/
+-[3] http://www.spinics.net/lists/linux-media/msg44370.html
+---
+-Author: Sergio Aguirre <sergio.a.aguirre@gmail.com>
+-Copyright (C) 2012, Texas Instruments
++.. [#f1] http://focus.ti.com/general/docs/wtbu/wtbudocumentcenter.tsp?navigationId=12037&templateId=6123#62
++.. [#f2] http://lwn.net/Articles/420485/
+-- 
+2.7.4
+
