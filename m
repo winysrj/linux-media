@@ -1,144 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41401 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755305AbcGHNEE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:04 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
-	linux-doc@vger.kernel.org,
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:42379 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750969AbcGRIeU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2016 04:34:20 -0400
+Subject: Re: [PATCH] [media] vb2: map dmabuf for planes on driver queue
+ instead of vidioc_qbuf
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	linux-kernel@vger.kernel.org
+References: <1468599966-31988-1-git-send-email-javier@osg.samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
 	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 40/54] doc-rst: auto-generate net.h.rst
-Date: Fri,  8 Jul 2016 10:03:32 -0300
-Message-Id: <0c02966b1338478d6a216824376c2eee0aae78d0.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Luis de Bethencourt <luisbg@osg.samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ee857812-cf05-b714-eb6e-b696767a0067@xs4all.nl>
+Date: Mon, 18 Jul 2016 10:34:12 +0200
+MIME-Version: 1.0
+In-Reply-To: <1468599966-31988-1-git-send-email-javier@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This file comes from the uAPI definition header, and
-should be auto-generated, to be in sync with Kernel changes.
+On 07/15/2016 06:26 PM, Javier Martinez Canillas wrote:
+> The buffer planes' dma-buf are currently mapped when buffers are queued
+> from userspace but it's more appropriate to do the mapping when buffers
+> are queued in the driver since that's when the actual DMA operation are
+> going to happen.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/linux_tv/Makefile             | 10 +++--
- Documentation/linux_tv/net.h.rst            | 59 -----------------------------
- Documentation/linux_tv/net.h.rst.exceptions | 11 ++++++
- 3 files changed, 18 insertions(+), 62 deletions(-)
- delete mode 100644 Documentation/linux_tv/net.h.rst
- create mode 100644 Documentation/linux_tv/net.h.rst.exceptions
+Does this solve anything? Once the DMA has started the behavior is the same
+as before (QBUF maps the dmabuf), only while the DMA engine hasn't started
+yet are the QBUF calls just accepted and the mapping takes place when the
+DMA is kickstarted. This makes QBUF behave inconsistently.
 
-diff --git a/Documentation/linux_tv/Makefile b/Documentation/linux_tv/Makefile
-index 7ee14195802f..4ec743449776 100644
---- a/Documentation/linux_tv/Makefile
-+++ b/Documentation/linux_tv/Makefile
-@@ -2,8 +2,9 @@
- 
- PARSER = ../sphinx/parse-headers.pl
- UAPI = ../../include/uapi/linux
-+TARGETS = audio.h.rst ca.h.rst dmx.h.rst frontend.h.rst net.h.rst
- 
--htmldocs: audio.h.rst ca.h.rst dmx.h.rst frontend.h.rst
-+htmldocs: ${TARGETS}
- 
- audio.h.rst: ${PARSER} ${UAPI}/dvb/audio.h  audio.h.rst.exceptions
- 	${PARSER} ${UAPI}/dvb/audio.h $@ audio.h.rst.exceptions
-@@ -17,5 +18,8 @@ dmx.h.rst: ${PARSER} ${UAPI}/dvb/dmx.h  dmx.h.rst.exceptions
- frontend.h.rst: ${PARSER} ${UAPI}/dvb/frontend.h  frontend.h.rst.exceptions
- 	${PARSER} ${UAPI}/dvb/frontend.h $@ frontend.h.rst.exceptions
- 
--clean:
--	-rm frontend.h.rst
-+net.h.rst: ${PARSER} ${UAPI}/dvb/net.h  net.h.rst.exceptions
-+	${PARSER} ${UAPI}/dvb/net.h $@ net.h.rst.exceptions
-+
-+cleandocs:
-+	-rm ${TARGETS}
-diff --git a/Documentation/linux_tv/net.h.rst b/Documentation/linux_tv/net.h.rst
-deleted file mode 100644
-index 9b0f705c634b..000000000000
---- a/Documentation/linux_tv/net.h.rst
-+++ /dev/null
-@@ -1,59 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--file: net.h
--===========
--
--.. code-block:: c
--
--    /*
--     * net.h
--     *
--     * Copyright (C) 2000 Marcus Metzler <marcus@convergence.de>
--     *                  & Ralph  Metzler <ralph@convergence.de>
--     *                    for convergence integrated media GmbH
--     *
--     * This program is free software; you can redistribute it and/or
--     * modify it under the terms of the GNU Lesser General Public License
--     * as published by the Free Software Foundation; either version 2.1
--     * of the License, or (at your option) any later version.
--     *
--     * This program is distributed in the hope that it will be useful,
--     * but WITHOUT ANY WARRANTY; without even the implied warranty of
--     * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--     * GNU General Public License for more details.
--     *
--     * You should have received a copy of the GNU Lesser General Public License
--     * along with this program; if not, write to the Free Software
--     * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
--     *
--     */
--
--    #ifndef _DVBNET_H_
--    #define _DVBNET_H_
--
--    #include <linux/types.h>
--
--    struct dvb_net_if {
--	    __u16 pid;
--	    __u16 if_num;
--	    __u8  feedtype;
--    #define DVB_NET_FEEDTYPE_MPE 0  /* multi protocol encapsulation */
--    #define DVB_NET_FEEDTYPE_ULE 1  /* ultra lightweight encapsulation */
--    };
--
--
--    #define NET_ADD_IF    _IOWR('o', 52, struct dvb_net_if)
--    #define NET_REMOVE_IF _IO('o', 53)
--    #define NET_GET_IF    _IOWR('o', 54, struct dvb_net_if)
--
--
--    /* binary compatibility cruft: */
--    struct __dvb_net_if_old {
--	    __u16 pid;
--	    __u16 if_num;
--    };
--    #define __NET_ADD_IF_OLD _IOWR('o', 52, struct __dvb_net_if_old)
--    #define __NET_GET_IF_OLD _IOWR('o', 54, struct __dvb_net_if_old)
--
--
--    #endif /*_DVBNET_H_*/
-diff --git a/Documentation/linux_tv/net.h.rst.exceptions b/Documentation/linux_tv/net.h.rst.exceptions
-new file mode 100644
-index 000000000000..30a267483aa9
---- /dev/null
-+++ b/Documentation/linux_tv/net.h.rst.exceptions
-@@ -0,0 +1,11 @@
-+# Ignore header name
-+ignore define _DVBNET_H_
-+
-+# Ignore old ioctls/structs
-+ignore ioctl __NET_ADD_IF_OLD
-+ignore ioctl __NET_GET_IF_OLD
-+ignore struct __dvb_net_if_old
-+
-+# Macros used at struct dvb_net_if
-+replace define DVB_NET_FEEDTYPE_MPE dvb-net-if
-+replace define DVB_NET_FEEDTYPE_ULE dvb-net-if
--- 
-2.7.4
+You don't describe here WHY this change is needed.
 
+I'm not sure I agree with the TODO, and even if I did, I'm not sure I agree
+with this solution. Since queuing the buffer to the driver is not the same
+as 'just before the DMA', since there may be many buffers queued up in the
+driver and you don't know in vb2 when the buffer is at the 'just before the DMA'
+stage.
+
+Regards,
+
+	Hans
+
+> 
+> Suggested-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> 
+> ---
+> 
+> Hello,
+> 
+> A side effect of this change is that if the dmabuf map fails for some
+> reasons (i.e: a driver using the DMA contig memory allocator but CMA
+> not being enabled), the fail will no longer happen on VIDIOC_QBUF but
+> later (i.e: in VIDIOC_STREAMON).
+> 
+> I don't know if that's an issue though but I think is worth mentioning.
+> 
+> Best regards,
+> Javier
+> 
+>  drivers/media/v4l2-core/videobuf2-core.c | 88 ++++++++++++++++++++------------
+>  1 file changed, 54 insertions(+), 34 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index ca8ffeb56d72..3fdf882bf279 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -186,7 +186,7 @@ module_param(debug, int, 0644);
+>  })
+>  
+>  static void __vb2_queue_cancel(struct vb2_queue *q);
+> -static void __enqueue_in_driver(struct vb2_buffer *vb);
+> +static int __enqueue_in_driver(struct vb2_buffer *vb);
+>  
+>  /**
+>   * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
+> @@ -1271,20 +1271,6 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
+>  		vb->planes[plane].mem_priv = mem_priv;
+>  	}
+>  
+> -	/* TODO: This pins the buffer(s) with  dma_buf_map_attachment()).. but
+> -	 * really we want to do this just before the DMA, not while queueing
+> -	 * the buffer(s)..
+> -	 */
+> -	for (plane = 0; plane < vb->num_planes; ++plane) {
+> -		ret = call_memop(vb, map_dmabuf, vb->planes[plane].mem_priv);
+> -		if (ret) {
+> -			dprintk(1, "failed to map dmabuf for plane %d\n",
+> -				plane);
+> -			goto err;
+> -		}
+> -		vb->planes[plane].dbuf_mapped = 1;
+> -	}
+> -
+>  	/*
+>  	 * Now that everything is in order, copy relevant information
+>  	 * provided by userspace.
+> @@ -1296,51 +1282,79 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
+>  		vb->planes[plane].data_offset = planes[plane].data_offset;
+>  	}
+>  
+> -	if (reacquired) {
+> -		/*
+> -		 * Call driver-specific initialization on the newly acquired buffer,
+> -		 * if provided.
+> -		 */
+> -		ret = call_vb_qop(vb, buf_init, vb);
+> +	return 0;
+> +err:
+> +	/* In case of errors, release planes that were already acquired */
+> +	__vb2_buf_dmabuf_put(vb);
+> +
+> +	return ret;
+> +}
+> +
+> +/**
+> + * __buf_map_dmabuf() - map dmabuf for buffer planes
+> + */
+> +static int __buf_map_dmabuf(struct vb2_buffer *vb)
+> +{
+> +	int ret;
+> +	unsigned int plane;
+> +
+> +	for (plane = 0; plane < vb->num_planes; ++plane) {
+> +		ret = call_memop(vb, map_dmabuf, vb->planes[plane].mem_priv);
+>  		if (ret) {
+> -			dprintk(1, "buffer initialization failed\n");
+> -			goto err;
+> +			dprintk(1, "failed to map dmabuf for plane %d\n",
+> +				plane);
+> +			return ret;
+>  		}
+> +		vb->planes[plane].dbuf_mapped = 1;
+> +	}
+> +
+> +	/*
+> +	 * Call driver-specific initialization on the newly
+> +	 * acquired buffer, if provided.
+> +	 */
+> +	ret = call_vb_qop(vb, buf_init, vb);
+> +	if (ret) {
+> +		dprintk(1, "buffer initialization failed\n");
+> +		return ret;
+>  	}
+>  
+>  	ret = call_vb_qop(vb, buf_prepare, vb);
+>  	if (ret) {
+>  		dprintk(1, "buffer preparation failed\n");
+>  		call_void_vb_qop(vb, buf_cleanup, vb);
+> -		goto err;
+> +		return ret;
+>  	}
+>  
+>  	return 0;
+> -err:
+> -	/* In case of errors, release planes that were already acquired */
+> -	__vb2_buf_dmabuf_put(vb);
+> -
+> -	return ret;
+>  }
+>  
+>  /**
+>   * __enqueue_in_driver() - enqueue a vb2_buffer in driver for processing
+>   */
+> -static void __enqueue_in_driver(struct vb2_buffer *vb)
+> +static int __enqueue_in_driver(struct vb2_buffer *vb)
+>  {
+>  	struct vb2_queue *q = vb->vb2_queue;
+>  	unsigned int plane;
+> +	int ret;
+>  
+>  	vb->state = VB2_BUF_STATE_ACTIVE;
+>  	atomic_inc(&q->owned_by_drv_count);
+>  
+>  	trace_vb2_buf_queue(q, vb);
+>  
+> +	if (q->memory == VB2_MEMORY_DMABUF) {
+> +		ret = __buf_map_dmabuf(vb);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+>  	/* sync buffers */
+>  	for (plane = 0; plane < vb->num_planes; ++plane)
+>  		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
+>  
+>  	call_void_vb_qop(vb, buf_queue, vb);
+> +
+> +	return 0;
+>  }
+>  
+>  static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+> @@ -1438,8 +1452,11 @@ static int vb2_start_streaming(struct vb2_queue *q)
+>  	 * If any buffers were queued before streamon,
+>  	 * we can now pass them to driver for processing.
+>  	 */
+> -	list_for_each_entry(vb, &q->queued_list, queued_entry)
+> -		__enqueue_in_driver(vb);
+> +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
+> +		ret = __enqueue_in_driver(vb);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
+>  
+>  	/* Tell the driver to start streaming */
+>  	q->start_streaming_called = 1;
+> @@ -1540,8 +1557,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+>  	 * If already streaming, give the buffer to driver for processing.
+>  	 * If not, the buffer will be given to driver on next streamon.
+>  	 */
+> -	if (q->start_streaming_called)
+> -		__enqueue_in_driver(vb);
+> +	if (q->start_streaming_called) {
+> +		ret = __enqueue_in_driver(vb);
+> +		if (ret)
+> +			return ret;
+> +	}
+>  
+>  	/* Fill buffer information for the userspace */
+>  	if (pb)
+> 
