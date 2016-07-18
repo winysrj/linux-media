@@ -1,87 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:53317 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752237AbcGSWEv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 18:04:51 -0400
-Date: Tue, 19 Jul 2016 23:04:47 +0100
-From: Sean Young <sean@mess.org>
-To: Andi Shyti <andi.shyti@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi@etezian.org>
-Subject: Re: [RFC 1/7] [media] rc-main: assign driver type during allocation
-Message-ID: <20160719220447.GA24697@gofer.mess.org>
-References: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
- <1468943818-26025-2-git-send-email-andi.shyti@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1468943818-26025-2-git-send-email-andi.shyti@samsung.com>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:40688 "EHLO
+	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751487AbcGROQU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2016 10:16:20 -0400
+Message-ID: <1468851368.2994.54.camel@pengutronix.de>
+Subject: Re: [PATCH v4 09/12] [media] vivid: Local optimization
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Markus Heiser <markus.heiser@darmarit.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Antti Palosaari <crope@iki.fi>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-doc@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Mon, 18 Jul 2016 16:16:08 +0200
+In-Reply-To: <CAPybu_3MLxefeLDoU_HhSrS7ugc1idE7Qa7=h5a2F0x+4TizFg@mail.gmail.com>
+References: <1468845736-19651-1-git-send-email-ricardo.ribalda@gmail.com>
+	 <1468845736-19651-10-git-send-email-ricardo.ribalda@gmail.com>
+	 <1468847611.2994.22.camel@pengutronix.de>
+	 <CAPybu_3MLxefeLDoU_HhSrS7ugc1idE7Qa7=h5a2F0x+4TizFg@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 20, 2016 at 12:56:52AM +0900, Andi Shyti wrote:
-> The driver type can be assigned immediately when an RC device
-> requests to the framework to allocate the device.
-> 
-> This is an 'enum rc_driver_type' data type and specifies whether
-> the device is a raw receiver or scancode receiver. The type will
-> be given as parameter to the rc_allocate_device device.
+Hi Ricardo,
 
-This patch is good, but it does unfortunately break all the other
-rc-core drivers, as now rc_allocate_device() needs argument. All
-drivers will need a simple change in this patch.
+Am Montag, den 18.07.2016, 15:21 +0200 schrieb Ricardo Ribalda Delgado:
+> Hi Philipp
+> 
+> On Mon, Jul 18, 2016 at 3:13 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> > Since the constant expressions are evaluated at compile time, you are
+> > not actually removing shifts. The code generated for precalculate_color
+> > by gcc 5.4 even grows by one asr instruction with this patch.
+> >
+> 
+> I dont think that I follow you completely here. The original code was
 
-Also note that there lots of issues that checkpatch.pl would pick
-in these series.
+Sorry, I forgot to mention I compiled both versions for ARMv7-A, saw
+that object size increased, had a look the diff between objdump -d
+outputs and noticed an additional shift instruction. I have not checked
+this for x86_64.
 
+> if (a)
+>    y= clamp(y, 16<<4, 235<<4)
 > 
-> Suggested-by: Sean Young <sean@mess.org>
-> Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
-> ---
->  drivers/media/rc/rc-main.c | 4 +++-
->  include/media/rc-core.h    | 2 +-
->  2 files changed, 4 insertions(+), 2 deletions(-)
+> y = clamp(y>>4, 1, 254)
+>
+> And now is
 > 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 7dfc7c2..6403674 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -1346,7 +1346,7 @@ static struct device_type rc_dev_type = {
->  	.uevent		= rc_dev_uevent,
->  };
->  
-> -struct rc_dev *rc_allocate_device(void)
-> +struct rc_dev *rc_allocate_device(enum rc_driver_type type)
->  {
->  	struct rc_dev *dev;
->  
-> @@ -1373,6 +1373,8 @@ struct rc_dev *rc_allocate_device(void)
->  	dev->dev.class = &rc_class;
->  	device_initialize(&dev->dev);
->  
-> +	dev->driver_type = type;
-> +
->  	__module_get(THIS_MODULE);
->  	return dev;
->  }
-> diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-> index b6586a9..c6bf1ef 100644
-> --- a/include/media/rc-core.h
-> +++ b/include/media/rc-core.h
-> @@ -185,7 +185,7 @@ struct rc_dev {
->   * Remote Controller, at sys/class/rc.
->   */
->  
-> -struct rc_dev *rc_allocate_device(void);
-> +struct rc_dev *rc_allocate_device(enum rc_driver_type);
->  void rc_free_device(struct rc_dev *dev);
->  int rc_register_device(struct rc_dev *dev);
->  void rc_unregister_device(struct rc_dev *dev);
-> -- 
-> 2.8.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> if (a)
+>    y= clamp(y >>4, 16, 235)
+> else
+>     y = clamp(y, 1, 254)
+     y = clamp(y >>4, 1, 254)
+
+> On the previous case, when a was true there was 2 clamp operations.
+> Now it is only one.
+
+Yes. And now there's two shift operations (overall, still just one in
+each conditional path).
+
+It seems in my case the compiler was not clever enough to move all the
+right shifts out of the conditional paths, so I ended up with one more
+than before. You are right that in the limited range path the second
+clamps are now avoided though. Basically, feel free to disregard my
+comment.
+
+I had the best looking result with this variant, btw:
+
+	y >>= 4;
+	cb >>= 4;
+	cr >>= 4;
+	if (tpg->real_quantization == V4L2_QUANTIZATION_LIM_RANGE) {
+		y = clamp(y, 16, 235);
+		cb = clamp(cb, 16, 240);
+		cr = clamp(cr, 16, 240);
+	} else {
+		y = clamp(y, 1, 254);
+		cb = clamp(cb, 1, 254);
+		cr = clamp(cr, 1, 254);
+	}
+
+regards
+Philipp
+
