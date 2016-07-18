@@ -1,82 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58453 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751579AbcGIQM6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2016 12:12:58 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Ben Hutchings <ben@decadent.org.uk>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Jani Nikula <jani.nikula@intel.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH v2] doc-rst: add an option to ignore DocBooks when generating docs
-Date: Sat,  9 Jul 2016 13:12:45 -0300
-Message-Id: <872c1d8d911f1d4ee48b2185554a63aa9026dc1a.1468080758.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:36852 "EHLO
+	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751451AbcGRMmd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2016 08:42:33 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Antti Palosaari <crope@iki.fi>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v4 08/12] [media] vivid: Fix YUV555 and YUV565 handling
+Date: Mon, 18 Jul 2016 14:42:12 +0200
+Message-Id: <1468845736-19651-9-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1468845736-19651-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1468845736-19651-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sometimes, we want to do a partial build, instead of building
-everything. However, right now, if one wants to build just
-Sphinx books, it will build also the DocBooks.
+precalculate_color() had a optimization that avoided duplicated
+conversion for YUV formats. This optimization did not take into
+consideration YUV444, YUV555, YUV565 or limited range quantization.
 
-Add an option to allow to ignore all DocBooks when building
-documentation.
+This patch keeps the optimization, but fixes the wrong handling.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- Documentation/DocBook/Makefile | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/DocBook/Makefile b/Documentation/DocBook/Makefile
-index 496d4295ec38..01bab5014a4a 100644
---- a/Documentation/DocBook/Makefile
-+++ b/Documentation/DocBook/Makefile
-@@ -6,6 +6,8 @@
- # To add a new book the only step required is to add the book to the
- # list of DOCBOOKS.
+diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+index 41cc402ddeef..a26172575e56 100644
+--- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
++++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+@@ -797,6 +797,8 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 	int r = tpg_colors[col].r;
+ 	int g = tpg_colors[col].g;
+ 	int b = tpg_colors[col].b;
++	int y, cb, cr;
++	bool ycbcr_valid = false;
  
-+ifeq ($(IGNORE_DOCBOOKS),)
-+
- DOCBOOKS := z8530book.xml device-drivers.xml \
- 	    kernel-hacking.xml kernel-locking.xml deviceiobook.xml \
- 	    writing_usb_driver.xml networking.xml \
-@@ -215,6 +217,20 @@ silent_gen_xml = :
- 	       -e "s/>/\\&gt;/g";     \
- 	   echo "</programlisting>")  > $@
+ 	if (k == TPG_COLOR_TEXTBG) {
+ 		col = tpg_get_textbg_color(tpg);
+@@ -873,7 +875,6 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 	     tpg->saturation != 128 || tpg->hue) &&
+ 	    tpg->color_enc != TGP_COLOR_ENC_LUMA) {
+ 		/* Implement these operations */
+-		int y, cb, cr;
+ 		int tmp_cb, tmp_cr;
  
-+else
-+
-+# Needed, due to cleanmediadocs
-+include Documentation/DocBook/media/Makefile
-+
-+htmldocs:
-+pdfdocs:
-+psdocs:
-+xmldocs:
-+installmandocs:
-+
-+endif # IGNORE_DOCBOOKS
-+
-+
- ###
- # Help targets as used by the top-level makefile
- dochelp:
-@@ -229,6 +245,9 @@ dochelp:
- 	@echo
- 	@echo  '  make DOCBOOKS="s1.xml s2.xml" [target] Generate only docs s1.xml s2.xml'
- 	@echo  '  valid values for DOCBOOKS are: $(DOCBOOKS)'
-+	@echo
-+	@echo  "  make IGNORE_DOCBOOKS=1 [target] Don't generate docs from Docbook"
-+	@echo  '     This is useful to generate only the ReST docs (Sphinx)'
+ 		/* First convert to YCbCr */
+@@ -890,13 +891,10 @@ static void precalculate_color(struct tpg_data *tpg, int k)
  
+ 		cb = (128 << 4) + (tmp_cb * tpg->contrast * tpg->saturation) / (128 * 128);
+ 		cr = (128 << 4) + (tmp_cr * tpg->contrast * tpg->saturation) / (128 * 128);
+-		if (tpg->color_enc == TGP_COLOR_ENC_YCBCR) {
+-			tpg->colors[k][0] = clamp(y >> 4, 1, 254);
+-			tpg->colors[k][1] = clamp(cb >> 4, 1, 254);
+-			tpg->colors[k][2] = clamp(cr >> 4, 1, 254);
+-			return;
+-		}
+-		ycbcr_to_color(tpg, y, cb, cr, &r, &g, &b);
++		if (tpg->color_enc == TGP_COLOR_ENC_YCBCR)
++			ycbcr_valid = true;
++		else
++			ycbcr_to_color(tpg, y, cb, cr, &r, &g, &b);
+ 	} else if ((tpg->brightness != 128 || tpg->contrast != 128) &&
+ 		   tpg->color_enc == TGP_COLOR_ENC_LUMA) {
+ 		r = (16 << 4) + ((r - (16 << 4)) * tpg->contrast) / 128;
+@@ -917,9 +915,8 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 	case TGP_COLOR_ENC_YCBCR:
+ 	{
+ 		/* Convert to YCbCr */
+-		int y, cb, cr;
+-
+-		color_to_ycbcr(tpg, r, g, b, &y, &cb, &cr);
++		if (!ycbcr_valid)
++			color_to_ycbcr(tpg, r, g, b, &y, &cb, &cr);
  
- ###
+ 		if (tpg->real_quantization == V4L2_QUANTIZATION_LIM_RANGE) {
+ 			y = clamp(y, 16 << 4, 235 << 4);
 -- 
-2.7.4
+2.8.1
 
