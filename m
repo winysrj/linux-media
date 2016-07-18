@@ -1,115 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51675 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933299AbcGLMmg (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35467 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751441AbcGRLQh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 08:42:36 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 03/20] [media] lirc.h: remove several unused ioctls
-Date: Tue, 12 Jul 2016 09:41:57 -0300
-Message-Id: <d55f09abe24b4dfadab246b6f217da547361cdb6.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mon, 18 Jul 2016 07:16:37 -0400
+Received: by mail-wm0-f66.google.com with SMTP id i5so12174062wmg.2
+        for <linux-media@vger.kernel.org>; Mon, 18 Jul 2016 04:16:36 -0700 (PDT)
+From: Chris Wilson <chris@chris-wilson.co.uk>
+To: dri-devel@lists.freedesktop.org
+Cc: intel-gfx@lists.freedesktop.org,
+	Chris Wilson <chris@chris-wilson.co.uk>,
+	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
+Subject: [PATCH] dma-buf: Release module reference on creation failure
+Date: Mon, 18 Jul 2016 12:16:22 +0100
+Message-Id: <1468840582-21469-1-git-send-email-chris@chris-wilson.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While reviewing the documentation gaps on LIRC, it was
-noticed that several ioctls aren't used by any LIRC drivers
-(nor at staging or mainstream).
+If we fail to create the anon file, we need to remember to release the
+module reference on the owner.
 
-It doesn't make sense to document them, as they're not used
-anywhere. So, let's remove those from the lirc header.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Reviewed-by: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linaro-mm-sig@lists.linaro.org
 ---
- include/uapi/linux/lirc.h | 39 ++-------------------------------------
- 1 file changed, 2 insertions(+), 37 deletions(-)
+ drivers/dma-buf/dma-buf.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
-index 4b3ab2966b5a..991ab4570b8e 100644
---- a/include/uapi/linux/lirc.h
-+++ b/include/uapi/linux/lirc.h
-@@ -90,20 +90,11 @@
+diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+index 20ce0687b111..ddaee60ae52a 100644
+--- a/drivers/dma-buf/dma-buf.c
++++ b/drivers/dma-buf/dma-buf.c
+@@ -334,6 +334,7 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
+ 	struct reservation_object *resv = exp_info->resv;
+ 	struct file *file;
+ 	size_t alloc_size = sizeof(struct dma_buf);
++	int ret;
  
- #define LIRC_GET_SEND_MODE             _IOR('i', 0x00000001, __u32)
- #define LIRC_GET_REC_MODE              _IOR('i', 0x00000002, __u32)
--#define LIRC_GET_SEND_CARRIER          _IOR('i', 0x00000003, __u32)
--#define LIRC_GET_REC_CARRIER           _IOR('i', 0x00000004, __u32)
--#define LIRC_GET_SEND_DUTY_CYCLE       _IOR('i', 0x00000005, __u32)
--#define LIRC_GET_REC_DUTY_CYCLE        _IOR('i', 0x00000006, __u32)
- #define LIRC_GET_REC_RESOLUTION        _IOR('i', 0x00000007, __u32)
+ 	if (!exp_info->resv)
+ 		alloc_size += sizeof(struct reservation_object);
+@@ -357,8 +358,8 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
  
- #define LIRC_GET_MIN_TIMEOUT           _IOR('i', 0x00000008, __u32)
- #define LIRC_GET_MAX_TIMEOUT           _IOR('i', 0x00000009, __u32)
+ 	dmabuf = kzalloc(alloc_size, GFP_KERNEL);
+ 	if (!dmabuf) {
+-		module_put(exp_info->owner);
+-		return ERR_PTR(-ENOMEM);
++		ret = -ENOMEM;
++		goto err_module;
+ 	}
  
--#define LIRC_GET_MIN_FILTER_PULSE      _IOR('i', 0x0000000a, __u32)
--#define LIRC_GET_MAX_FILTER_PULSE      _IOR('i', 0x0000000b, __u32)
--#define LIRC_GET_MIN_FILTER_SPACE      _IOR('i', 0x0000000c, __u32)
--#define LIRC_GET_MAX_FILTER_SPACE      _IOR('i', 0x0000000d, __u32)
--
- /* code length in bits, currently only for LIRC_MODE_LIRCCODE */
- #define LIRC_GET_LENGTH                _IOR('i', 0x0000000f, __u32)
+ 	dmabuf->priv = exp_info->priv;
+@@ -379,8 +380,8 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
+ 	file = anon_inode_getfile("dmabuf", &dma_buf_fops, dmabuf,
+ 					exp_info->flags);
+ 	if (IS_ERR(file)) {
+-		kfree(dmabuf);
+-		return ERR_CAST(file);
++		ret = PTR_ERR(file);
++		goto err_dmabuf;
+ 	}
  
-@@ -113,7 +104,6 @@
- #define LIRC_SET_SEND_CARRIER          _IOW('i', 0x00000013, __u32)
- #define LIRC_SET_REC_CARRIER           _IOW('i', 0x00000014, __u32)
- #define LIRC_SET_SEND_DUTY_CYCLE       _IOW('i', 0x00000015, __u32)
--#define LIRC_SET_REC_DUTY_CYCLE        _IOW('i', 0x00000016, __u32)
- #define LIRC_SET_TRANSMITTER_MASK      _IOW('i', 0x00000017, __u32)
+ 	file->f_mode |= FMODE_LSEEK;
+@@ -394,6 +395,12 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
+ 	mutex_unlock(&db_list.lock);
  
- /*
-@@ -127,42 +117,17 @@
- #define LIRC_SET_REC_TIMEOUT_REPORTS   _IOW('i', 0x00000019, __u32)
+ 	return dmabuf;
++
++err_dmabuf:
++	kfree(dmabuf);
++err_module:
++	module_put(exp_info->owner);
++	return ERR_PTR(ret);
+ }
+ EXPORT_SYMBOL_GPL(dma_buf_export);
  
- /*
-- * pulses shorter than this are filtered out by hardware (software
-- * emulation in lirc_dev?)
-- */
--#define LIRC_SET_REC_FILTER_PULSE      _IOW('i', 0x0000001a, __u32)
--/*
-- * spaces shorter than this are filtered out by hardware (software
-- * emulation in lirc_dev?)
-- */
--#define LIRC_SET_REC_FILTER_SPACE      _IOW('i', 0x0000001b, __u32)
--/*
-- * if filter cannot be set independently for pulse/space, this should
-- * be used
-- */
--#define LIRC_SET_REC_FILTER            _IOW('i', 0x0000001c, __u32)
--
--/*
-  * if enabled from the next key press on the driver will send
-  * LIRC_MODE2_FREQUENCY packets
-  */
- #define LIRC_SET_MEASURE_CARRIER_MODE	_IOW('i', 0x0000001d, __u32)
- 
- /*
-- * to set a range use
-- * LIRC_SET_REC_DUTY_CYCLE_RANGE/LIRC_SET_REC_CARRIER_RANGE with the
-- * lower bound first and later
-- * LIRC_SET_REC_DUTY_CYCLE/LIRC_SET_REC_CARRIER with the upper bound
-+ * to set a range use LIRC_SET_REC_CARRIER_RANGE with the
-+ * lower bound first and later LIRC_SET_REC_CARRIER with the upper bound
-  */
--
--#define LIRC_SET_REC_DUTY_CYCLE_RANGE  _IOW('i', 0x0000001e, __u32)
- #define LIRC_SET_REC_CARRIER_RANGE     _IOW('i', 0x0000001f, __u32)
- 
--#define LIRC_NOTIFY_DECODE             _IO('i', 0x00000020)
--
--#define LIRC_SETUP_START               _IO('i', 0x00000021)
--#define LIRC_SETUP_END                 _IO('i', 0x00000022)
--
- #define LIRC_SET_WIDEBAND_RECEIVER     _IOW('i', 0x00000023, __u32)
- 
- #endif
 -- 
-2.7.4
-
+2.8.1
 
