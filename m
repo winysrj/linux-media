@@ -1,107 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51672 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933285AbcGLMmb (ORCPT
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:36248 "EHLO
+	mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751881AbcGROp4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 08:42:31 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 07/20] [media] doc-rst: fix some lirc cross-references
-Date: Tue, 12 Jul 2016 09:42:01 -0300
-Message-Id: <4ed030af4f1f163c1a61742ba0f8e749884de639.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mon, 18 Jul 2016 10:45:56 -0400
+From: William Breathitt Gray <vilhelm.gray@gmail.com>
+To: mchehab@osg.samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	William Breathitt Gray <vilhelm.gray@gmail.com>
+Subject: [PATCH 1/6] radio: terratec: Utilize the module_isa_driver macro
+Date: Mon, 18 Jul 2016 10:45:35 -0400
+Message-Id: <7cf0d0cbfcaf6cb1e0538755ebec0096ac054f83.1468852798.git.vilhelm.gray@gmail.com>
+In-Reply-To: <cover.1468852798.git.vilhelm.gray@gmail.com>
+References: <cover.1468852798.git.vilhelm.gray@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some references were broken. It was also mentioning LIRC_MODE_RAW,
-with it is not implemented on current LIRC drivers.
+This driver does not do anything special in module init/exit. This patch
+eliminates the module init/exit boilerplate code by utilizing the
+module_isa_driver macro.
 
-So, fix the references.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: William Breathitt Gray <vilhelm.gray@gmail.com>
 ---
- Documentation/media/uapi/rc/lirc-get-features.rst  | 5 ++---
- Documentation/media/uapi/rc/lirc-get-send-mode.rst | 2 +-
- Documentation/media/uapi/rc/lirc_read.rst          | 2 +-
- Documentation/media/uapi/rc/lirc_write.rst         | 4 ++--
- 4 files changed, 6 insertions(+), 7 deletions(-)
+ drivers/media/radio/radio-terratec.c | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff --git a/Documentation/media/uapi/rc/lirc-get-features.rst b/Documentation/media/uapi/rc/lirc-get-features.rst
-index d89712190d43..e763ebfb2cb1 100644
---- a/Documentation/media/uapi/rc/lirc-get-features.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-features.rst
-@@ -44,8 +44,7 @@ LIRC features
+diff --git a/drivers/media/radio/radio-terratec.c b/drivers/media/radio/radio-terratec.c
+index be10a80..621bbb2 100644
+--- a/drivers/media/radio/radio-terratec.c
++++ b/drivers/media/radio/radio-terratec.c
+@@ -155,16 +155,4 @@ static struct radio_isa_driver terratec_driver = {
+ 	.max_volume = 10,
+ };
  
- ``LIRC_CAN_REC_RAW``
- 
--    The driver is capable of receiving using
--    :ref:`LIRC_MODE_RAW <lirc-mode-raw>`.
-+    Unused. Kept just to avoid breaking uAPI.
- 
- .. _LIRC-CAN-REC-PULSE:
- 
-@@ -153,7 +152,7 @@ LIRC features
- 
- ``LIRC_CAN_SEND_RAW``
- 
--    The driver supports sending using :ref:`LIRC_MODE_RAW <lirc-mode-raw>`.
-+    Unused. Kept just to avoid breaking uAPI.
- 
- .. _LIRC-CAN-SEND-PULSE:
- 
-diff --git a/Documentation/media/uapi/rc/lirc-get-send-mode.rst b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-index f58f0953851c..f3fd310a8d7c 100644
---- a/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-@@ -38,7 +38,7 @@ Get supported transmit mode.
- 
- Currently, only ``LIRC_MODE_PULSE`` is supported by lircd on TX. On
- puse mode, a sequence of pulse/space integer values are written to the
--lirc device using ``write()``.
-+lirc device using :Ref:`lirc-write`.
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/rc/lirc_read.rst b/Documentation/media/uapi/rc/lirc_read.rst
-index 37f164f7526a..a8f1b446c294 100644
---- a/Documentation/media/uapi/rc/lirc_read.rst
-+++ b/Documentation/media/uapi/rc/lirc_read.rst
-@@ -1,6 +1,6 @@
- .. -*- coding: utf-8; mode: rst -*-
- 
--.. _lirc_read:
-+.. _lirc-read:
- 
- ***********
- LIRC read()
-diff --git a/Documentation/media/uapi/rc/lirc_write.rst b/Documentation/media/uapi/rc/lirc_write.rst
-index e27bda30afcc..dcba3b1bee6e 100644
---- a/Documentation/media/uapi/rc/lirc_write.rst
-+++ b/Documentation/media/uapi/rc/lirc_write.rst
-@@ -1,6 +1,6 @@
- .. -*- coding: utf-8; mode: rst -*-
- 
--.. _lirc_write:
-+.. _lirc-write:
- 
- ************
- LIRC write()
-@@ -36,7 +36,7 @@ Arguments
- Description
- ===========
- 
--:ref:`write() <func-write>` writes up to ``count`` bytes to the device
-+:ref:`write() <lirc-write>` writes up to ``count`` bytes to the device
- referenced by the file descriptor ``fd`` from the buffer starting at
- ``buf``.
- 
+-static int __init terratec_init(void)
+-{
+-	return isa_register_driver(&terratec_driver.driver, 1);
+-}
+-
+-static void __exit terratec_exit(void)
+-{
+-	isa_unregister_driver(&terratec_driver.driver);
+-}
+-
+-module_init(terratec_init);
+-module_exit(terratec_exit);
+-
++module_isa_driver(terratec_driver.driver, 1);
 -- 
-2.7.4
-
+2.7.3
 
