@@ -1,51 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.220.in.ua ([89.184.67.205]:41422 "EHLO smtp.220.in.ua"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751382AbcGDS4o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 14:56:44 -0400
-Subject: Re: si2157: new revision?
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-References: <1467243499-26093-1-git-send-email-crope@iki.fi>
- <1467243499-26093-3-git-send-email-crope@iki.fi>
- <577AAD3C.2060204@kaa.org.ua> <46faadd5-80dc-bb71-be24-8b05fb035423@iki.fi>
-From: Oleh Kravchenko <oleg@kaa.org.ua>
-Message-ID: <577AB16A.3050902@kaa.org.ua>
-Date: Mon, 4 Jul 2016 21:56:42 +0300
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:37020 "EHLO
+	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751401AbcGRJDx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2016 05:03:53 -0400
 MIME-Version: 1.0
-In-Reply-To: <46faadd5-80dc-bb71-be24-8b05fb035423@iki.fi>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <6224fd35-50f3-e1cd-a9b5-f377087fade6@xs4all.nl>
+References: <1468665716-10178-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1468665716-10178-9-git-send-email-ricardo.ribalda@gmail.com> <6224fd35-50f3-e1cd-a9b5-f377087fade6@xs4all.nl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Mon, 18 Jul 2016 11:03:32 +0200
+Message-ID: <CAPybu_0bZS-yo_PcJnC4tG34jXWSY5hnCjHmrH6d0NXJ6h3=_Q@mail.gmail.com>
+Subject: Re: [PATCH v3 8/9] [media] vivid: Fix YUV555 and YUV565 handling
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Markus Heiser <markus.heiser@darmarit.de>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	linux-doc@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thank you for your reply!
+Hi Hans
 
-What about Analog TV support? Do you plan to implement it?
 
-On 04.07.16 21:47, Antti Palosaari wrote:
-> Hello
-> On 07/04/2016 09:38 PM, Oleh Kravchenko wrote:
->> Hello Antti!
->>
->> I started reverse-engineering of my new TV tuner "Evromedia USB Full
->> Hybrid Full HD" and discovered that start sequence is different from
->> si2157.c:
->> i2c_read_C1
->>  1 \xFE
->> i2c_write_C0
->>  15 \xC0\x00\x00\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01
->>
->> Do you familiar with this revision?
->> Should I merge my changes to si2158.c?
->> Or define another driver?
-> 
-> According to chip markings those are tuner Si2158-A20 and demod
-> Si2168-A30. Both are supported already by si2157 and si2168 drivers.
-> 
-> Difference is just some settings. You need to identify which setting is
-> wrong and add that to configuration options. It should be pretty easy to
-> find it from the I2C dumps and just testing.
-> 
-> regards
-> Antti
-> 
+On Mon, Jul 18, 2016 at 10:51 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> +     int y, cb, cr;
+>> +     bool ycbbr_valid = false;
+>
+> I guess you mean ycbcr_valid?
+
+Yes, I think the medical term is Saturday dyslexia :)
+
+It is fixed on the next version.
+
+Thanks!
