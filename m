@@ -1,47 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46373
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754878AbcGLPDm (ORCPT
+Received: from avasout06.plus.net ([212.159.14.18]:49828 "EHLO
+	avasout06.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751991AbcGRVSp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 11:03:42 -0400
-Subject: Re: [PATCH] media: s5p-mfc Fix misspelled error message and
- checkpatch errors
-To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
-	k.debski@samsung.com, jtp.park@samsung.com, mchehab@kernel.org
-References: <1468276740-1591-1-git-send-email-shuahkh@osg.samsung.com>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Message-ID: <8dd68d9b-9455-d593-dc0f-c269c778b961@osg.samsung.com>
-Date: Tue, 12 Jul 2016 11:03:32 -0400
-MIME-Version: 1.0
-In-Reply-To: <1468276740-1591-1-git-send-email-shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Mon, 18 Jul 2016 17:18:45 -0400
+From: Nick Dyer <nick@shmanahar.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	Nick Dyer <nick@shmanahar.org>
+Subject: [PATCH v8 06/10] Input: atmel_mxt_ts - handle diagnostic data orientation
+Date: Mon, 18 Jul 2016 22:10:34 +0100
+Message-Id: <1468876238-24599-7-git-send-email-nick@shmanahar.org>
+In-Reply-To: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
+References: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Shuah,
+Invert the diagnostic data to match the orientation of the input device.
 
-On 07/11/2016 06:39 PM, Shuah Khan wrote:
-> Fix misspelled error message and existing checkpatch errors in the
-> error message conditional.
-> 
-> WARNING: suspect code indent for conditional statements (8, 24)
->  	if (ctx->state != MFCINST_HEAD_PARSED &&
-> [...]
-> +               mfc_err("Can not get crop information\n");
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
+Signed-off-by: Nick Dyer <nick@shmanahar.org>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
-Patch looks good to me. Maybe is better to split the message and checkpatch
-changes in two different patches. But I don't have a strong opinion on this:
-
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
-Best regards,
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 29be261..7376c42 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -125,6 +125,8 @@ struct t9_range {
+ 
+ /* MXT_TOUCH_MULTI_T9 orient */
+ #define MXT_T9_ORIENT_SWITCH	(1 << 0)
++#define MXT_T9_ORIENT_INVERTX	(1 << 1)
++#define MXT_T9_ORIENT_INVERTY	(1 << 2)
+ 
+ /* MXT_SPT_COMMSCONFIG_T18 */
+ #define MXT_COMMS_CTRL		0
+@@ -158,6 +160,8 @@ struct t37_debug {
+ #define MXT_T100_YRANGE		24
+ 
+ #define MXT_T100_CFG_SWITCHXY	BIT(5)
++#define MXT_T100_CFG_INVERTY	BIT(6)
++#define MXT_T100_CFG_INVERTX	BIT(7)
+ 
+ #define MXT_T100_TCHAUX_VECT	BIT(0)
+ #define MXT_T100_TCHAUX_AMPL	BIT(1)
+@@ -262,6 +266,8 @@ struct mxt_data {
+ 	unsigned int irq;
+ 	unsigned int max_x;
+ 	unsigned int max_y;
++	bool invertx;
++	bool inverty;
+ 	bool xy_switch;
+ 	u8 xsize;
+ 	u8 ysize;
+@@ -1747,6 +1753,8 @@ static int mxt_read_t9_resolution(struct mxt_data *data)
+ 		return error;
+ 
+ 	data->xy_switch = orient & MXT_T9_ORIENT_SWITCH;
++	data->invertx = orient & MXT_T9_ORIENT_INVERTX;
++	data->inverty = orient & MXT_T9_ORIENT_INVERTY;
+ 
+ 	return 0;
+ }
+@@ -1801,6 +1809,8 @@ static int mxt_read_t100_config(struct mxt_data *data)
+ 		return error;
+ 
+ 	data->xy_switch = cfg & MXT_T100_CFG_SWITCHXY;
++	data->invertx = cfg & MXT_T100_CFG_INVERTX;
++	data->inverty = cfg & MXT_T100_CFG_INVERTY;
+ 
+ 	/* allocate aux bytes */
+ 	error =  __mxt_read_reg(client,
+@@ -2145,13 +2155,19 @@ static int mxt_convert_debug_pages(struct mxt_data *data, u16 *outbuf)
+ 	struct mxt_dbg *dbg = &data->dbg;
+ 	unsigned int x = 0;
+ 	unsigned int y = 0;
+-	unsigned int i;
++	unsigned int i, rx, ry;
+ 
+ 	for (i = 0; i < dbg->t37_nodes; i++) {
+-		outbuf[i] = mxt_get_debug_value(data, x, y);
++		/* Handle orientation */
++		rx = data->xy_switch ? y : x;
++		ry = data->xy_switch ? x : y;
++		rx = data->invertx ? (data->xsize - 1 - rx) : rx;
++		ry = data->inverty ? (data->ysize - 1 - ry) : ry;
++
++		outbuf[i] = mxt_get_debug_value(data, rx, ry);
+ 
+ 		/* Next value */
+-		if (++x >= data->xsize) {
++		if (++x >= (data->xy_switch ? data->ysize : data->xsize)) {
+ 			x = 0;
+ 			y++;
+ 		}
+@@ -2306,8 +2322,8 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
+ 	if (i > 0)
+ 		return -EINVAL;
+ 
+-	f->width = data->xsize;
+-	f->height = data->ysize;
++	f->width = data->xy_switch ? data->ysize : data->xsize;
++	f->height = data->xy_switch ? data->xsize : data->ysize;
+ 	f->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
+ 	f->field = V4L2_FIELD_NONE;
+ 	f->colorspace = V4L2_COLORSPACE_RAW;
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+1.7.9.5
+
