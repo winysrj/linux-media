@@ -1,50 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f65.google.com ([209.85.214.65]:33843 "EHLO
-	mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417AbcGBN6w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jul 2016 09:58:52 -0400
-Date: Sat, 2 Jul 2016 09:41:10 -0400
-From: Tejun Heo <tj@kernel.org>
-To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Markus Elfring <elfring@users.sourceforge.net>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] hdpvr: Remove deprecated
- create_singlethread_workqueue
-Message-ID: <20160702134110.GW17431@htj.duckdns.org>
-References: <20160702104731.GA2358@Karyakshetra>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160702104731.GA2358@Karyakshetra>
+Received: from bombadil.infradead.org ([198.137.202.9]:59569 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751881AbcGRSau (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2016 14:30:50 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 18/18] [media] doc-rst: better name the media books
+Date: Mon, 18 Jul 2016 15:30:40 -0300
+Message-Id: <e1813eda8e7fdacd992224b79102925cf134be8b.1468865380.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
+References: <cover.1468865380.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
+References: <cover.1468865380.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 02, 2016 at 04:17:31PM +0530, Bhaktipriya Shridhar wrote:
-> The workqueue "workqueue" is involved in tranmitting hdpvr buffers.
-> It has a single work item(&dev->worker) and hence doesn't require
-> ordering. Also, it is not being used on a memory reclaim path. Hence,
-> the singlethreaded workqueue has been replaced with the use of system_wq.
-> 
-> System workqueues have been able to handle high level of concurrency
-> for a long time now and hence it's not required to have a singlethreaded
-> workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
-> created with create_singlethread_workqueue(), system_wq allows multiple
-> work items to overlap executions even on the same CPU; however, a
-> per-cpu workqueue doesn't have any CPU locality or global ordering
-> guarantee unless the target CPU is explicitly specified and thus the
-> increase of local concurrency shouldn't make any difference.
-> 
-> Work item has been flushed in hdpvr_device_release() to ensure
-> that there are no pending tasks while disconnecting the driver.
-> 
-> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+The titles at the media books were misleading, and some books
+were not numbered.
 
-Acked-by: Tejun Heo <tj@kernel.org>
+Rename the kAPI book to better reflect its contents, be more
+consistent on the initial rst file for each book and better
+name them.
 
-Thanks.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/index.rst                                   |  2 +-
+ Documentation/media/dvb-drivers/index.rst                 |  9 ++++++---
+ Documentation/media/{media_drivers.rst => media_kapi.rst} |  9 ++++++---
+ Documentation/media/media_uapi.rst                        | 10 +++++-----
+ Documentation/media/v4l-drivers/index.rst                 |  8 +++++---
+ 5 files changed, 23 insertions(+), 15 deletions(-)
+ rename Documentation/media/{media_drivers.rst => media_kapi.rst} (76%)
 
+diff --git a/Documentation/index.rst b/Documentation/index.rst
+index 31273cc2e0bc..43c722f15292 100644
+--- a/Documentation/index.rst
++++ b/Documentation/index.rst
+@@ -15,7 +15,7 @@ Contents:
+ 
+    kernel-documentation
+    media/media_uapi
+-   media/media_drivers
++   media/media_kapi
+    media/dvb-drivers/index
+    media/v4l-drivers/index
+ 
+diff --git a/Documentation/media/dvb-drivers/index.rst b/Documentation/media/dvb-drivers/index.rst
+index 14da36fe4d01..e1d4d87f2a47 100644
+--- a/Documentation/media/dvb-drivers/index.rst
++++ b/Documentation/media/dvb-drivers/index.rst
+@@ -2,9 +2,9 @@
+ 
+ .. include:: <isonum.txt>
+ 
+-#############################################
+-Linux Digital Video Broadcast (DVB) subsystem
+-#############################################
++##############################################
++Linux Digital TV driver-specific documentation
++##############################################
+ 
+ **Copyright** |copy| 2001-2016 : LinuxTV Developers
+ 
+@@ -17,6 +17,9 @@ License".
+ 
+ .. toctree::
+ 	:maxdepth: 5
++	:numbered:
++	:caption: Table of Contents
++	:name: dvb_mastertoc
+ 
+ 	intro
+ 	avermedia
+diff --git a/Documentation/media/media_drivers.rst b/Documentation/media/media_kapi.rst
+similarity index 76%
+rename from Documentation/media/media_drivers.rst
+rename to Documentation/media/media_kapi.rst
+index 8e0f455ff6e0..0af80e90b7b5 100644
+--- a/Documentation/media/media_drivers.rst
++++ b/Documentation/media/media_kapi.rst
+@@ -2,9 +2,9 @@
+ 
+ .. include:: <isonum.txt>
+ 
+-=========================
+-Media subsystem core kAPI
+-=========================
++===================================
++Media subsystem kernel internal API
++===================================
+ 
+ **Copyright** |copy| 2009-2016 : LinuxTV Developers
+ 
+@@ -16,6 +16,9 @@ License".
+ 
+ .. toctree::
+     :maxdepth: 5
++    :numbered:
++    :caption: Table of Contents
++    :name: kapi_mastertoc
+ 
+     kapi/v4l2-framework
+     kapi/v4l2-controls
+diff --git a/Documentation/media/media_uapi.rst b/Documentation/media/media_uapi.rst
+index 5e872c8297b0..debe4531040b 100644
+--- a/Documentation/media/media_uapi.rst
++++ b/Documentation/media/media_uapi.rst
+@@ -2,9 +2,9 @@
+ 
+ .. include:: <isonum.txt>
+ 
+-##############################
+-Linux Media Infrastructure API
+-##############################
++########################################
++Linux Media Infrastructure userspace API
++########################################
+ 
+ **Copyright** |copy| 2009-2016 : LinuxTV Developers
+ 
+@@ -15,10 +15,10 @@ the license is included in the chapter entitled "GNU Free Documentation
+ License".
+ 
+ 
+-.. contents::
+-
+ .. toctree::
+     :maxdepth: 5
++    :caption: Table of Contents
++    :name: uapi_mastertoc
+ 
+     intro
+     uapi/v4l/v4l2
+diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
+index 34990b536d39..8d1710234e5a 100644
+--- a/Documentation/media/v4l-drivers/index.rst
++++ b/Documentation/media/v4l-drivers/index.rst
+@@ -2,9 +2,9 @@
+ 
+ .. include:: <isonum.txt>
+ 
+-###########################
+-Video4Linux (V4L) subsystem
+-###########################
++################################################
++Video4Linux (V4L)  driver-specific documentation
++################################################
+ 
+ **Copyright** |copy| 1999-2016 : LinuxTV Developers
+ 
+@@ -18,6 +18,8 @@ License".
+ .. toctree::
+ 	:maxdepth: 5
+ 	:numbered:
++	:caption: Table of Contents
++	:name: v4l_mastertoc
+ 
+ 	fourcc
+ 	v4l-with-ir
 -- 
-tejun
+2.7.4
+
+
