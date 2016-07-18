@@ -1,44 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57337 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753395AbcGDIf2 (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:36204 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752585AbcGRXyH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 04:35:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 07/14] via-camera: use v4l2_s_ctrl instead of the s_ctrl op.
-Date: Mon,  4 Jul 2016 10:35:03 +0200
-Message-Id: <1467621310-8203-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
-References: <1467621310-8203-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 18 Jul 2016 19:54:07 -0400
+Date: Mon, 18 Jul 2016 19:53:52 -0400
+From: Tejun Heo <tj@kernel.org>
+To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+Cc: Frank Zago <frank@zago.net>, Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] gspca: finepix: Remove deprecated
+ create_singlethread_workqueue
+Message-ID: <20160718235352.GW3078@mtj.duckdns.org>
+References: <20160716085556.GA7841@Karyakshetra>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160716085556.GA7841@Karyakshetra>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Sat, Jul 16, 2016 at 02:25:56PM +0530, Bhaktipriya Shridhar wrote:
+> The workqueue "work_thread" is involved in streaming the camera data.
+> It has a single work item(&dev->work_struct) and hence doesn't require
+> ordering. Also, it is not being used on a memory reclaim path.
+> Hence, the singlethreaded workqueue has been replaced with the use of
+> system_wq.
+> 
+> System workqueues have been able to handle high level of concurrency
+> for a long time now and hence it's not required to have a singlethreaded
+> workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
+> created with create_singlethread_workqueue(), system_wq allows multiple
+> work items to overlap executions even on the same CPU; however, a
+> per-cpu workqueue doesn't have any CPU locality or global ordering
+> guarantee unless the target CPU is explicitly specified and thus the
+> increase of local concurrency shouldn't make any difference.
+> 
+> Work item has been flushed in sd_stop0() to ensure that there are no
+> pending tasks while disconnecting the driver.
+> 
+> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
 
-This op is deprecated and should not be used anymore.
+Acked-by: Tejun Heo <tj@kernel.org>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
----
- drivers/media/platform/via-camera.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks.
 
-diff --git a/drivers/media/platform/via-camera.c b/drivers/media/platform/via-camera.c
-index 1254f7e..7ca12de 100644
---- a/drivers/media/platform/via-camera.c
-+++ b/drivers/media/platform/via-camera.c
-@@ -240,7 +240,7 @@ static int viacam_set_flip(struct via_camera *cam)
- 	memset(&ctrl, 0, sizeof(ctrl));
- 	ctrl.id = V4L2_CID_VFLIP;
- 	ctrl.value = flip_image;
--	return sensor_call(cam, core, s_ctrl, &ctrl);
-+	return v4l2_s_ctrl(NULL, cam->sensor->ctrl_handler, &ctrl);
- }
- 
- /*
 -- 
-2.8.1
-
+tejun
