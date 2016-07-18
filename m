@@ -1,94 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:55994 "EHLO
-	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753497AbcGSOXJ (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:45801 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751364AbcGRB41 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 10:23:09 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 02/16] media: entity: Add media_entity_has_route() function
-Date: Tue, 19 Jul 2016 16:20:53 +0200
-Message-Id: <20160719142107.22358-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Sun, 17 Jul 2016 21:56:27 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 08/36] doc-rst: add v4l-drivers to index file
+Date: Sun, 17 Jul 2016 22:55:51 -0300
+Message-Id: <bde8bea759f45f24392d3114f550e05ec9635bd9.1468806744.git.mchehab@s-opensource.com>
+In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Adds documentation for V4L drivers.
 
-This is a wrapper around the media entity has_route operation.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/media-entity.c | 29 +++++++++++++++++++++++++++++
- include/media/media-entity.h |  3 +++
- 2 files changed, 32 insertions(+)
+ Documentation/index.rst | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index d8a2299..8732579 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -240,6 +240,35 @@ EXPORT_SYMBOL_GPL(media_entity_pads_init);
-  * Graph traversal
-  */
+diff --git a/Documentation/index.rst b/Documentation/index.rst
+index b61d8deb84d1..31273cc2e0bc 100644
+--- a/Documentation/index.rst
++++ b/Documentation/index.rst
+@@ -17,6 +17,7 @@ Contents:
+    media/media_uapi
+    media/media_drivers
+    media/dvb-drivers/index
++   media/v4l-drivers/index
  
-+/**
-+ * media_entity_has_route - Check if two entity pads are connected internally
-+ * @entity: The entity
-+ * @pad0: The first pad index
-+ * @pad1: The second pad index
-+ *
-+ * This function can be used to check whether two pads of an entity are
-+ * connected internally in the entity.
-+ *
-+ * The caller must hold entity->source->parent->mutex.
-+ *
-+ * Return: true if the pads are connected internally and false otherwise.
-+ */
-+bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
-+			    unsigned int pad1)
-+{
-+	if (pad0 >= entity->num_pads || pad1 >= entity->num_pads)
-+		return false;
-+
-+	if (pad0 == pad1)
-+		return true;
-+
-+	if (!entity->ops || !entity->ops->has_route)
-+		return true;
-+
-+	return entity->ops->has_route(entity, pad0, pad1);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_has_route);
-+
- static struct media_entity *
- media_entity_other(struct media_entity *entity, struct media_link *link)
- {
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index c4b2dca..68af160 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -796,6 +796,9 @@ void media_entity_graph_walk_cleanup(struct media_entity_graph *graph);
-  */
- void media_entity_put(struct media_entity *entity);
- 
-+bool media_entity_has_route(struct media_entity *entity, unsigned int sink,
-+			    unsigned int source);
-+
- /**
-  * media_entity_graph_walk_start - Start walking the media graph at a given entity
-  * @graph: Media graph structure that will be used to walk the graph
+ Indices and tables
+ ==================
 -- 
-2.9.0
+2.7.4
 
