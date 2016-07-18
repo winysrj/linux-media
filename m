@@ -1,125 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:55303 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757302AbcGKDRc (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:59575 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751910AbcGRSau (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2016 23:17:32 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 5C9E418010A
-	for <linux-media@vger.kernel.org>; Mon, 11 Jul 2016 05:17:26 +0200 (CEST)
-Date: Mon, 11 Jul 2016 05:17:26 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160711031726.5C9E418010A@tschai.lan>
+	Mon, 18 Jul 2016 14:30:50 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Kees Cook <keescook@chromium.org>, linux-doc@vger.kernel.org
+Subject: [PATCH 14/18] [media] cx88.rst: add contents from not-in-cx2388x-datasheet.txt
+Date: Mon, 18 Jul 2016 15:30:36 -0300
+Message-Id: <2b8de4eabc41ef702ba381a4aa14e3a21b75254e.1468865380.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
+References: <cover.1468865380.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
+References: <cover.1468865380.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+There are some information about missing/wrong documentation at
+cx231xx datasheet. Add it to the cx88 chapter.
 
-Results of the daily build of media_tree:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/v4l-drivers/cx88.rst           | 42 ++++++++++++++++++++++
+ .../video4linux/not-in-cx2388x-datasheet.txt       | 41 ---------------------
+ 2 files changed, 42 insertions(+), 41 deletions(-)
+ delete mode 100644 Documentation/video4linux/not-in-cx2388x-datasheet.txt
 
-date:		Mon Jul 11 04:00:30 CEST 2016
-git branch:	test
-git hash:	a4d020e97d8e65d57061677c15c89e99609d0b37
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+diff --git a/Documentation/media/v4l-drivers/cx88.rst b/Documentation/media/v4l-drivers/cx88.rst
+index ac83292776da..c89dbfa5f9d6 100644
+--- a/Documentation/media/v4l-drivers/cx88.rst
++++ b/Documentation/media/v4l-drivers/cx88.rst
+@@ -55,4 +55,46 @@ the driver.  What to do then?
+        know which one the card has you can also have a look at the
+        list in CARDLIST.tuner
+ 
++Documentation missing at the cx88 datasheet
++-------------------------------------------
+ 
++MO_OUTPUT_FORMAT (0x310164)
++
++.. code-block:: none
++
++  Previous default from DScaler: 0x1c1f0008
++  Digit 8: 31-28
++  28: PREVREMOD = 1
++
++  Digit 7: 27-24 (0xc = 12 = b1100 )
++  27: COMBALT = 1
++  26: PAL_INV_PHASE
++    (DScaler apparently set this to 1, resulted in sucky picture)
++
++  Digits 6,5: 23-16
++  25-16: COMB_RANGE = 0x1f [default] (9 bits -> max 512)
++
++  Digit 4: 15-12
++  15: DISIFX = 0
++  14: INVCBF = 0
++  13: DISADAPT = 0
++  12: NARROWADAPT = 0
++
++  Digit 3: 11-8
++  11: FORCE2H
++  10: FORCEREMD
++  9: NCHROMAEN
++  8: NREMODEN
++
++  Digit 2: 7-4
++  7-6: YCORE
++  5-4: CCORE
++
++  Digit 1: 3-0
++  3: RANGE = 1
++  2: HACTEXT
++  1: HSFMT
++
++0x47 is the sync byte for MPEG-2 transport stream packets.
++Datasheet incorrectly states to use 47 decimal. 188 is the length.
++All DVB compliant frontends output packets with this start code.
+diff --git a/Documentation/video4linux/not-in-cx2388x-datasheet.txt b/Documentation/video4linux/not-in-cx2388x-datasheet.txt
+deleted file mode 100644
+index edbfe744d21d..000000000000
+--- a/Documentation/video4linux/not-in-cx2388x-datasheet.txt
++++ /dev/null
+@@ -1,41 +0,0 @@
+-=================================================================================
+-MO_OUTPUT_FORMAT (0x310164)
+-
+-  Previous default from DScaler: 0x1c1f0008
+-  Digit 8: 31-28
+-  28: PREVREMOD = 1
+-
+-  Digit 7: 27-24 (0xc = 12 = b1100 )
+-  27: COMBALT = 1
+-  26: PAL_INV_PHASE
+-    (DScaler apparently set this to 1, resulted in sucky picture)
+-
+-  Digits 6,5: 23-16
+-  25-16: COMB_RANGE = 0x1f [default] (9 bits -> max 512)
+-
+-  Digit 4: 15-12
+-  15: DISIFX = 0
+-  14: INVCBF = 0
+-  13: DISADAPT = 0
+-  12: NARROWADAPT = 0
+-
+-  Digit 3: 11-8
+-  11: FORCE2H
+-  10: FORCEREMD
+-  9: NCHROMAEN
+-  8: NREMODEN
+-
+-  Digit 2: 7-4
+-  7-6: YCORE
+-  5-4: CCORE
+-
+-  Digit 1: 3-0
+-  3: RANGE = 1
+-  2: HACTEXT
+-  1: HSFMT
+-
+-0x47 is the sync byte for MPEG-2 transport stream packets.
+-Datasheet incorrectly states to use 47 decimal. 188 is the length.
+-All DVB compliant frontends output packets with this start code.
+-
+-=================================================================================
+-- 
+2.7.4
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mtk: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-rc1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
