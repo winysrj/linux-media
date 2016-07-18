@@ -1,63 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:55849 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932384AbcGHKSz (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:45822 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751437AbcGRB43 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Jul 2016 06:18:55 -0400
-Subject: Re: [PATCH v2 2/9] [media] : v4l: add Mediatek compressed video block
- format
-To: Tiffany Lin <tiffany.lin@mediatek.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-References: <1463052250-38262-1-git-send-email-tiffany.lin@mediatek.com>
- <1463052250-38262-2-git-send-email-tiffany.lin@mediatek.com>
- <1463052250-38262-3-git-send-email-tiffany.lin@mediatek.com>
-Cc: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <78c9f4a1-e2b8-69ef-acc5-d24984497b33@xs4all.nl>
-Date: Fri, 8 Jul 2016 12:18:38 +0200
-MIME-Version: 1.0
-In-Reply-To: <1463052250-38262-3-git-send-email-tiffany.lin@mediatek.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sun, 17 Jul 2016 21:56:29 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 35/36] [media] doc-rst: add documentation about IR on V4L boards
+Date: Sun, 17 Jul 2016 22:56:18 -0300
+Message-Id: <31cae7ca8d39af189486458ad8a3c239e2cb2cd2.1468806744.git.mchehab@s-opensource.com>
+In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/12/2016 01:24 PM, Tiffany Lin wrote:
-> Add V4L2_PIX_FMT_MT21 format used on MT8173 driver.
-> It is compressed format and need MT8173 MDP driver to transfer to other 
-> standard format.
-> 
-> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-> ---
->  include/uapi/linux/videodev2.h |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 8f95191..52feea6 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -625,6 +625,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
->  #define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
->  #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
-> +#define V4L2_PIX_FMT_MT21     v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
+This section is outdated, but let's add it, after converting
+to ReST, and then fix it.
 
-v4l2-ioctl.c should be modified as well so the correct description string is filled in.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/v4l-drivers/index.rst       |  1 +
+ Documentation/media/v4l-drivers/v4l-with-ir.rst | 15 +++++++++------
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
-Regards,
+diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
+index d660623eeea6..8a026455b09c 100644
+--- a/Documentation/media/v4l-drivers/index.rst
++++ b/Documentation/media/v4l-drivers/index.rst
+@@ -20,6 +20,7 @@ License".
+ 	:numbered:
+ 
+ 	fourcc
++	v4l-with-ir
+ 	cardlist
+ 	cafe_ccic
+ 	cpia2
+diff --git a/Documentation/media/v4l-drivers/v4l-with-ir.rst b/Documentation/media/v4l-drivers/v4l-with-ir.rst
+index 0da47a847056..334174a52bda 100644
+--- a/Documentation/media/v4l-drivers/v4l-with-ir.rst
++++ b/Documentation/media/v4l-drivers/v4l-with-ir.rst
+@@ -1,9 +1,13 @@
+-
+ infrared remote control support in video4linux drivers
+ ======================================================
+ 
++Author: Gerd Hoffmann
+ 
+-basics
++.. note::
++
++   This section is outdated.
++
++Basics
+ ------
+ 
+ Current versions use the linux input layer to support infrared
+@@ -23,7 +27,7 @@ Feel free to contact me in case of trouble.  Note that the ir-kbd-*
+ modules work on 2.6.x kernels only through ...
+ 
+ 
+-how it works
++How it works
+ ------------
+ 
+ The modules register the remote as keyboard within the linux input
+@@ -42,7 +46,7 @@ events and the like.  You can also use the kbd utility to change the
+ keymaps (2.6.x kernels only through).
+ 
+ 
+-using with lircd
++Using with lircd
+ ================
+ 
+ The cvs version of the lircd daemon supports reading events from the
+@@ -50,7 +54,7 @@ linux input layer (via event device).  The input layer tools tarball
+ comes with a lircd config file.
+ 
+ 
+-using without lircd
++Using without lircd
+ ===================
+ 
+ XFree86 likely can be configured to recognise the remote keys.  Once I
+@@ -69,4 +73,3 @@ Have fun,
+   Gerd
+ 
+ --
+-Gerd Knorr <kraxel@bytesex.org>
+-- 
+2.7.4
 
-	Hans
-
->  
->  /* SDR formats - used only for Software Defined Radio devices */
->  #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
-> 
