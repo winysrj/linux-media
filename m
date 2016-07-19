@@ -1,92 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:33886 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751380AbcGPIub (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45738 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752395AbcGSIad (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2016 04:50:31 -0400
-Date: Sat, 16 Jul 2016 14:20:28 +0530
-From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Tejun Heo <tj@kernel.org>
-Subject: [PATCH] [media] gspca: sonixj: Remove deprecated
- create_singlethread_workqueue
-Message-ID: <20160716085028.GA7758@Karyakshetra>
+	Tue, 19 Jul 2016 04:30:33 -0400
+Subject: Re: [PATCH 2/2] [media] cec: add RC_CORE dependency
+To: Arnd Bergmann <arnd@arndb.de>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <20160719081040.2685845-1-arnd@arndb.de>
+ <20160719081040.2685845-2-arnd@arndb.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Kamil Debski <kamil@wypas.org>, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <578DE51E.8080604@xs4all.nl>
+Date: Tue, 19 Jul 2016 10:30:22 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20160719081040.2685845-2-arnd@arndb.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The workqueue "work_thread" is involved in updating the JPEG quality
-of the gspca_dev. It has a single work item(&sd->work) and hence doesn't
-require ordering. Also, it is not being used on a memory reclaim path.
-Hence, the singlethreaded workqueue has been replaced with the use of
-system_wq.
+On 07/19/16 10:10, Arnd Bergmann wrote:
+> We cannot build the cec driver when the RC core is a module
+> and cec is built-in:
+> 
+> drivers/staging/built-in.o: In function `cec_allocate_adapter':
+> :(.text+0x134): undefined reference to `rc_allocate_device'
+> drivers/staging/built-in.o: In function `cec_register_adapter':
+> :(.text+0x304): undefined reference to `rc_register_device'
+> 
+> This adds an explicit dependency to avoid this case. We still
+> allow building when CONFIG_RC_CORE is disabled completely,
+> as the driver has checks for this case itself.
 
-System workqueues have been able to handle high level of concurrency
-for a long time now and hence it's not required to have a singlethreaded
-workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
-created with create_singlethread_workqueue(), system_wq allows multiple
-work items to overlap executions even on the same CPU; however, a
-per-cpu workqueue doesn't have any CPU locality or global ordering
-guarantee unless the target CPU is explicitly specified and thus the
-increase of local concurrency shouldn't make any difference.
+This makes no sense: the rc_allocate_device and rc_register_device
+are under:
 
-Work item has been flushed in sd_stop0() to ensure that there are no
-pending tasks while disconnecting the driver.
+#if IS_REACHABLE(CONFIG_RC_CORE)
 
-Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
----
- drivers/media/usb/gspca/sonixj.c | 13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+So it shouldn't be enabled at all, should it?
 
-diff --git a/drivers/media/usb/gspca/sonixj.c b/drivers/media/usb/gspca/sonixj.c
-index fd1c870..d49d76e 100644
---- a/drivers/media/usb/gspca/sonixj.c
-+++ b/drivers/media/usb/gspca/sonixj.c
-@@ -54,7 +54,6 @@ struct sd {
- 	u32 exposure;
+Regards,
 
- 	struct work_struct work;
--	struct workqueue_struct *work_thread;
+	Hans
 
- 	u32 pktsz;			/* (used by pkt_scan) */
- 	u16 npkt;
-@@ -2485,7 +2484,6 @@ static int sd_start(struct gspca_dev *gspca_dev)
-
- 	sd->pktsz = sd->npkt = 0;
- 	sd->nchg = sd->short_mark = 0;
--	sd->work_thread = create_singlethread_workqueue(MODULE_NAME);
-
- 	return gspca_dev->usb_err;
- }
-@@ -2569,12 +2567,9 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
-
--	if (sd->work_thread != NULL) {
--		mutex_unlock(&gspca_dev->usb_lock);
--		destroy_workqueue(sd->work_thread);
--		mutex_lock(&gspca_dev->usb_lock);
--		sd->work_thread = NULL;
--	}
-+	mutex_unlock(&gspca_dev->usb_lock);
-+	flush_work(&sd->work);
-+	mutex_lock(&gspca_dev->usb_lock);
- }
-
- static void do_autogain(struct gspca_dev *gspca_dev)
-@@ -2785,7 +2780,7 @@ marker_found:
- 				new_qual = QUALITY_MAX;
- 			if (new_qual != sd->quality) {
- 				sd->quality = new_qual;
--				queue_work(sd->work_thread, &sd->work);
-+				schedule_work(&sd->work);
- 			}
- 		}
- 	} else {
---
-2.1.4
-
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+> I originally submitted this on June 29, but it may have gotten
+> lost as out of the three patch series, one patch got replaced
+> and another patch got applied, but nothing happened on this one.
+> ---
+>  drivers/staging/media/cec/Kconfig | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/staging/media/cec/Kconfig b/drivers/staging/media/cec/Kconfig
+> index 21457a1f6c9f..c623bd32a5b8 100644
+> --- a/drivers/staging/media/cec/Kconfig
+> +++ b/drivers/staging/media/cec/Kconfig
+> @@ -1,6 +1,7 @@
+>  config MEDIA_CEC
+>  	bool "CEC API (EXPERIMENTAL)"
+>  	depends on MEDIA_SUPPORT
+> +	depends on RC_CORE || !RC_CORE
+>  	select MEDIA_CEC_EDID
+>  	---help---
+>  	  Enable the CEC API.
+> 
