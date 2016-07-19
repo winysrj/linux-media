@@ -1,390 +1,442 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41395 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754863AbcGHNEE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:04:04 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 41/54] doc-rst: auto-generate video.h.rst
-Date: Fri,  8 Jul 2016 10:03:33 -0300
-Message-Id: <447654d67c0de97524b7352839616ea5f467313d.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:56077 "EHLO
+	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753707AbcGSOX2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 10:23:28 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2 11/16] [media] rcar-vin: add abstraction layer to interact with subdevices
+Date: Tue, 19 Jul 2016 16:21:02 +0200
+Message-Id: <20160719142107.22358-12-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This file comes from the uAPI definition header, and
-should be auto-generated, to be in sync with Kernel changes.
+In order to try and separate which v4l2 subdevice operation the driver
+calls from which subdevice it currently have chosen as its current input
+a abstraction is created. The abstraction is mostly straight forward:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+- The v4l2_subdev_call() calls that only can act on the current active
+  subdevice are replaced with rvin_subdev_call(). The parameters
+  describing the v4l2 operation is kept the same but the first argument
+  is switch from a struct v4l2_subdev* to a struct rvin_dev*. The
+  abstraction then pass on the v4l2 operation to the correct subdevice.
+
+- The v4l2_subdev_call() calls that can be used in enumerate input
+  properties are replaced with rvin_subdev_call_input() (g_input_status,
+  dv_timings_cap, g_tvnorms and enum_dv_timings).  The parameters
+  describing the v4l2 operation is kept the same but the first two
+  arguments are switch from a struct v4l2_subdev* to a struct rvin_dev*
+  and a number for the input source.  The abstraction then pass on the
+  v4l2 operation to the correct subdevice.
+
+- Wrappers are added to get the media bus format and code from the
+  currently active input source.
+
+- Wrapper are added to handle controls from the currently active input
+  source.
+
+This patch just adds and replace the v4l2 calls with there abstraction
+layer counter part, there are still only one possible input source. This
+is done to prepare for Gen3 support where there are more then one
+possible subdevices to chose from at runtime.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- Documentation/linux_tv/Makefile               |   5 +-
- Documentation/linux_tv/video.h.rst            | 280 --------------------------
- Documentation/linux_tv/video.h.rst.exceptions |  40 ++++
- 3 files changed, 44 insertions(+), 281 deletions(-)
- delete mode 100644 Documentation/linux_tv/video.h.rst
- create mode 100644 Documentation/linux_tv/video.h.rst.exceptions
+ drivers/media/platform/rcar-vin/rcar-core.c | 37 +++++++++++++
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 29 ++++++-----
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 81 ++++++++++++++---------------
+ drivers/media/platform/rcar-vin/rcar-vin.h  | 15 ++++++
+ 4 files changed, 107 insertions(+), 55 deletions(-)
 
-diff --git a/Documentation/linux_tv/Makefile b/Documentation/linux_tv/Makefile
-index 4ec743449776..1773132008da 100644
---- a/Documentation/linux_tv/Makefile
-+++ b/Documentation/linux_tv/Makefile
-@@ -2,7 +2,7 @@
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index fa1fa53..6fe9b6c 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -26,6 +26,43 @@
+ #include "rcar-vin.h"
  
- PARSER = ../sphinx/parse-headers.pl
- UAPI = ../../include/uapi/linux
--TARGETS = audio.h.rst ca.h.rst dmx.h.rst frontend.h.rst net.h.rst
-+TARGETS = audio.h.rst ca.h.rst dmx.h.rst frontend.h.rst net.h.rst video.h.rst
- 
- htmldocs: ${TARGETS}
- 
-@@ -21,5 +21,8 @@ frontend.h.rst: ${PARSER} ${UAPI}/dvb/frontend.h  frontend.h.rst.exceptions
- net.h.rst: ${PARSER} ${UAPI}/dvb/net.h  net.h.rst.exceptions
- 	${PARSER} ${UAPI}/dvb/net.h $@ net.h.rst.exceptions
- 
-+video.h.rst: ${PARSER} ${UAPI}/dvb/video.h  video.h.rst.exceptions
-+	${PARSER} ${UAPI}/dvb/video.h $@ video.h.rst.exceptions
+ /* -----------------------------------------------------------------------------
++ * Subdevice group helpers
++ */
 +
- cleandocs:
- 	-rm ${TARGETS}
-diff --git a/Documentation/linux_tv/video.h.rst b/Documentation/linux_tv/video.h.rst
-deleted file mode 100644
-index fbbfb89167da..000000000000
---- a/Documentation/linux_tv/video.h.rst
-+++ /dev/null
-@@ -1,280 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--file: video.h
--=============
--
--.. code-block:: c
--
--    /*
--     * video.h
--     *
--     * Copyright (C) 2000 Marcus Metzler <marcus@convergence.de>
--     *                  & Ralph  Metzler <ralph@convergence.de>
--     *                    for convergence integrated media GmbH
--     *
--     * This program is free software; you can redistribute it and/or
--     * modify it under the terms of the GNU Lesser General Public License
--     * as published by the Free Software Foundation; either version 2.1
--     * of the License, or (at your option) any later version.
--     *
--     * This program is distributed in the hope that it will be useful,
--     * but WITHOUT ANY WARRANTY; without even the implied warranty of
--     * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--     * GNU General Public License for more details.
--     *
--     * You should have received a copy of the GNU Lesser General Public License
--     * along with this program; if not, write to the Free Software
--     * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
--     *
--     */
--
--    #ifndef _UAPI_DVBVIDEO_H_
--    #define _UAPI_DVBVIDEO_H_
--
--    #include <linux/types.h>
--    #ifndef __KERNEL__
--    #include <time.h>
--    #endif
--
--    typedef enum {
--	    VIDEO_FORMAT_4_3,     /* Select 4:3 format */
--	    VIDEO_FORMAT_16_9,    /* Select 16:9 format. */
--	    VIDEO_FORMAT_221_1    /* 2.21:1 */
--    } video_format_t;
--
--
--    typedef enum {
--	     VIDEO_SYSTEM_PAL,
--	     VIDEO_SYSTEM_NTSC,
--	     VIDEO_SYSTEM_PALN,
--	     VIDEO_SYSTEM_PALNc,
--	     VIDEO_SYSTEM_PALM,
--	     VIDEO_SYSTEM_NTSC60,
--	     VIDEO_SYSTEM_PAL60,
--	     VIDEO_SYSTEM_PALM60
--    } video_system_t;
--
--
--    typedef enum {
--	    VIDEO_PAN_SCAN,       /* use pan and scan format */
--	    VIDEO_LETTER_BOX,     /* use letterbox format */
--	    VIDEO_CENTER_CUT_OUT  /* use center cut out format */
--    } video_displayformat_t;
--
--    typedef struct {
--	    int w;
--	    int h;
--	    video_format_t aspect_ratio;
--    } video_size_t;
--
--    typedef enum {
--	    VIDEO_SOURCE_DEMUX, /* Select the demux as the main source */
--	    VIDEO_SOURCE_MEMORY /* If this source is selected, the stream
--				   comes from the user through the write
--				   system call */
--    } video_stream_source_t;
--
--
--    typedef enum {
--	    VIDEO_STOPPED, /* Video is stopped */
--	    VIDEO_PLAYING, /* Video is currently playing */
--	    VIDEO_FREEZED  /* Video is freezed */
--    } video_play_state_t;
--
--
--    /* Decoder commands */
--    #define VIDEO_CMD_PLAY        (0)
--    #define VIDEO_CMD_STOP        (1)
--    #define VIDEO_CMD_FREEZE      (2)
--    #define VIDEO_CMD_CONTINUE    (3)
--
--    /* Flags for VIDEO_CMD_FREEZE */
--    #define VIDEO_CMD_FREEZE_TO_BLACK       (1 << 0)
--
--    /* Flags for VIDEO_CMD_STOP */
--    #define VIDEO_CMD_STOP_TO_BLACK         (1 << 0)
--    #define VIDEO_CMD_STOP_IMMEDIATELY      (1 << 1)
--
--    /* Play input formats: */
--    /* The decoder has no special format requirements */
--    #define VIDEO_PLAY_FMT_NONE         (0)
--    /* The decoder requires full GOPs */
--    #define VIDEO_PLAY_FMT_GOP          (1)
--
--    /* The structure must be zeroed before use by the application
--       This ensures it can be extended safely in the future. */
--    struct video_command {
--	    __u32 cmd;
--	    __u32 flags;
--	    union {
--		    struct {
--			    __u64 pts;
--		    } stop;
--
--		    struct {
--			    /* 0 or 1000 specifies normal speed,
--			       1 specifies forward single stepping,
--			       -1 specifies backward single stepping,
--			       >1: playback at speed/1000 of the normal speed,
--			       <-1: reverse playback at (-speed/1000) of the normal speed. */
--			    __s32 speed;
--			    __u32 format;
--		    } play;
--
--		    struct {
--			    __u32 data[16];
--		    } raw;
--	    };
--    };
--
--    /* FIELD_UNKNOWN can be used if the hardware does not know whether
--       the Vsync is for an odd, even or progressive (i.e.ie; non-interlaced)
--       field. */
--    #define VIDEO_VSYNC_FIELD_UNKNOWN       (0)
--    #define VIDEO_VSYNC_FIELD_ODD           (1)
--    #define VIDEO_VSYNC_FIELD_EVEN          (2)
--    #define VIDEO_VSYNC_FIELD_PROGRESSIVE   (3)
--
--    struct video_event {
--	    __s32 type;
--    #define VIDEO_EVENT_SIZE_CHANGED        1
--    #define VIDEO_EVENT_FRAME_RATE_CHANGED  2
--    #define VIDEO_EVENT_DECODER_STOPPED     3
--    #define VIDEO_EVENT_VSYNC               4
--	    __kernel_time_t timestamp;
--	    union {
--		    video_size_t size;
--		    unsigned int frame_rate;        /* in frames per 1000sec */
--		    unsigned char vsync_field;      /* unknown/odd/even/progressive */
--	    } u;
--    };
--
--
--    struct video_status {
--	    int                   video_blank;   /* blank video on freeze? */
--	    video_play_state_t    play_state;    /* current state of playback */
--	    video_stream_source_t stream_source; /* current source (demux/memory) */
--	    video_format_t        video_format;  /* current aspect ratio of stream*/
--	    video_displayformat_t display_format;/* selected cropping mode */
--    };
--
--
--    struct video_still_picture {
--	    char __user *iFrame;        /* pointer to a single iframe in memory */
--	    __s32 size;
--    };
--
--
--    typedef
--    struct video_highlight {
--	    int     active;      /*    1=show highlight, 0=hide highlight */
--	    __u8    contrast1;   /*    7- 4  Pattern pixel contrast */
--				 /*    3- 0  Background pixel contrast */
--	    __u8    contrast2;   /*    7- 4  Emphasis pixel-2 contrast */
--				 /*    3- 0  Emphasis pixel-1 contrast */
--	    __u8    color1;      /*    7- 4  Pattern pixel color */
--				 /*    3- 0  Background pixel color */
--	    __u8    color2;      /*    7- 4  Emphasis pixel-2 color */
--				 /*    3- 0  Emphasis pixel-1 color */
--	    __u32    ypos;       /*   23-22  auto action mode */
--				 /*   21-12  start y */
--				 /*    9- 0  end y */
--	    __u32    xpos;       /*   23-22  button color number */
--				 /*   21-12  start x */
--				 /*    9- 0  end x */
--    } video_highlight_t;
--
--
--    typedef struct video_spu {
--	    int active;
--	    int stream_id;
--    } video_spu_t;
--
--
--    typedef struct video_spu_palette {      /* SPU Palette information */
--	    int length;
--	    __u8 __user *palette;
--    } video_spu_palette_t;
--
--
--    typedef struct video_navi_pack {
--	    int length;          /* 0 ... 1024 */
--	    __u8 data[1024];
--    } video_navi_pack_t;
--
--
--    typedef __u16 video_attributes_t;
--    /*   bits: descr. */
--    /*   15-14 Video compression mode (0=MPEG-1, 1=MPEG-2) */
--    /*   13-12 TV system (0=525/60, 1=625/50) */
--    /*   11-10 Aspect ratio (0=4:3, 3=16:9) */
--    /*    9- 8 permitted display mode on 4:3 monitor (0=both, 1=only pan-sca */
--    /*    7    line 21-1 data present in GOP (1=yes, 0=no) */
--    /*    6    line 21-2 data present in GOP (1=yes, 0=no) */
--    /*    5- 3 source resolution (0=720x480/576, 1=704x480/576, 2=352x480/57 */
--    /*    2    source letterboxed (1=yes, 0=no) */
--    /*    0    film/camera mode (0=camera, 1=film (625/50 only)) */
--
--
--    /* bit definitions for capabilities: */
--    /* can the hardware decode MPEG1 and/or MPEG2? */
--    #define VIDEO_CAP_MPEG1   1
--    #define VIDEO_CAP_MPEG2   2
--    /* can you send a system and/or program stream to video device?
--       (you still have to open the video and the audio device but only
--	send the stream to the video device) */
--    #define VIDEO_CAP_SYS     4
--    #define VIDEO_CAP_PROG    8
--    /* can the driver also handle SPU, NAVI and CSS encoded data?
--       (CSS API is not present yet) */
--    #define VIDEO_CAP_SPU    16
--    #define VIDEO_CAP_NAVI   32
--    #define VIDEO_CAP_CSS    64
--
--
--    #define VIDEO_STOP                 _IO('o', 21)
--    #define VIDEO_PLAY                 _IO('o', 22)
--    #define VIDEO_FREEZE               _IO('o', 23)
--    #define VIDEO_CONTINUE             _IO('o', 24)
--    #define VIDEO_SELECT_SOURCE        _IO('o', 25)
--    #define VIDEO_SET_BLANK            _IO('o', 26)
--    #define VIDEO_GET_STATUS           _IOR('o', 27, struct video_status)
--    #define VIDEO_GET_EVENT            _IOR('o', 28, struct video_event)
--    #define VIDEO_SET_DISPLAY_FORMAT   _IO('o', 29)
--    #define VIDEO_STILLPICTURE         _IOW('o', 30, struct video_still_picture)
--    #define VIDEO_FAST_FORWARD         _IO('o', 31)
--    #define VIDEO_SLOWMOTION           _IO('o', 32)
--    #define VIDEO_GET_CAPABILITIES     _IOR('o', 33, unsigned int)
--    #define VIDEO_CLEAR_BUFFER         _IO('o',  34)
--    #define VIDEO_SET_ID               _IO('o', 35)
--    #define VIDEO_SET_STREAMTYPE       _IO('o', 36)
--    #define VIDEO_SET_FORMAT           _IO('o', 37)
--    #define VIDEO_SET_SYSTEM           _IO('o', 38)
--    #define VIDEO_SET_HIGHLIGHT        _IOW('o', 39, video_highlight_t)
--    #define VIDEO_SET_SPU              _IOW('o', 50, video_spu_t)
--    #define VIDEO_SET_SPU_PALETTE      _IOW('o', 51, video_spu_palette_t)
--    #define VIDEO_GET_NAVI             _IOR('o', 52, video_navi_pack_t)
--    #define VIDEO_SET_ATTRIBUTES       _IO('o', 53)
--    #define VIDEO_GET_SIZE             _IOR('o', 55, video_size_t)
--    #define VIDEO_GET_FRAME_RATE       _IOR('o', 56, unsigned int)
--
--    /**
--     * VIDEO_GET_PTS
--     *
--     * Read the 33 bit presentation time stamp as defined
--     * in ITU T-REC-H.222.0 / ISO/IEC 13818-1.
--     *
--     * The PTS should belong to the currently played
--     * frame if possible, but may also be a value close to it
--     * like the PTS of the last decoded frame or the last PTS
--     * extracted by the PES parser.
--     */
--    #define VIDEO_GET_PTS              _IOR('o', 57, __u64)
--
--    /* Read the number of displayed frames since the decoder was started */
--    #define VIDEO_GET_FRAME_COUNT      _IOR('o', 58, __u64)
--
--    #define VIDEO_COMMAND              _IOWR('o', 59, struct video_command)
--    #define VIDEO_TRY_COMMAND          _IOWR('o', 60, struct video_command)
--
--    #endif /* _UAPI_DVBVIDEO_H_ */
-diff --git a/Documentation/linux_tv/video.h.rst.exceptions b/Documentation/linux_tv/video.h.rst.exceptions
-new file mode 100644
-index 000000000000..8866145e8269
---- /dev/null
-+++ b/Documentation/linux_tv/video.h.rst.exceptions
-@@ -0,0 +1,40 @@
-+# Ignore header name
-+ignore define _UAPI_DVBVIDEO_H_
++int rvin_subdev_get_code(struct rvin_dev *vin, u32 *code)
++{
++	*code = vin->digital.code;
++	return 0;
++}
 +
-+# This is a deprecated obscure API. Just ignore things we don't know
-+ignore define VIDEO_CMD_PLAY
-+ignore define VIDEO_CMD_STOP
-+ignore define VIDEO_CMD_FREEZE
-+ignore define VIDEO_CMD_CONTINUE
-+ignore define VIDEO_CMD_FREEZE_TO_BLACK
-+ignore define VIDEO_CMD_STOP_TO_BLACK
-+ignore define VIDEO_CMD_STOP_IMMEDIATELY
-+ignore define VIDEO_PLAY_FMT_NONE
-+ignore define VIDEO_PLAY_FMT_GOP
-+ignore define VIDEO_VSYNC_FIELD_UNKNOWN
-+ignore define VIDEO_VSYNC_FIELD_ODD
-+ignore define VIDEO_VSYNC_FIELD_EVEN
-+ignore define VIDEO_VSYNC_FIELD_PROGRESSIVE
-+ignore define VIDEO_EVENT_SIZE_CHANGED
-+ignore define VIDEO_EVENT_FRAME_RATE_CHANGED
-+ignore define VIDEO_EVENT_DECODER_STOPPED
-+ignore define VIDEO_EVENT_VSYNC
-+ignore define VIDEO_CAP_MPEG1
-+ignore define VIDEO_CAP_MPEG2
-+ignore define VIDEO_CAP_SYS
-+ignore define VIDEO_CAP_PROG
-+ignore define VIDEO_CAP_SPU
-+ignore define VIDEO_CAP_NAVI
-+ignore define VIDEO_CAP_CSS
++int rvin_subdev_get_mbus_cfg(struct rvin_dev *vin,
++			     struct v4l2_mbus_config *mbus_cfg)
++{
++	*mbus_cfg = vin->digital.mbus_cfg;
++	return 0;
++}
 +
-+# some typedefs should point to struct/enums
-+replace typedef video_format_t video-format
-+replace typedef video_system_t video-system
-+replace typedef video_displayformat_t video-displayformat
-+replace typedef video_size_t video-size
-+replace typedef video_stream_source_t video-stream-source
-+replace typedef video_play_state_t video-play-state
-+replace typedef video_highlight_t video-highlight
-+replace typedef video_spu_t video-spu
-+replace typedef video_spu_palette_t video-spu-palette
-+replace typedef video_navi_pack_t video-navi-pack
++struct v4l2_subdev_pad_config*
++rvin_subdev_alloc_pad_config(struct rvin_dev *vin)
++{
++	return v4l2_subdev_alloc_pad_config(vin->digital.subdev);
++}
++
++int rvin_subdev_ctrl_add_handler(struct rvin_dev *vin)
++{
++	int ret;
++
++	v4l2_ctrl_handler_free(&vin->ctrl_handler);
++
++	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
++	if (ret < 0)
++		return ret;
++
++	return v4l2_ctrl_add_handler(&vin->ctrl_handler,
++				     vin->digital.subdev->ctrl_handler, NULL);
++}
++
++/* -----------------------------------------------------------------------------
+  * Async notifier
+  */
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 79e7963..252adae 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -130,9 +130,16 @@ static u32 rvin_read(struct rvin_dev *vin, u32 offset)
+ 
+ static int rvin_setup(struct rvin_dev *vin)
+ {
+-	u32 vnmc, dmr, dmr2, interrupts;
++	u32 code, vnmc, dmr, dmr2, interrupts;
++	struct v4l2_mbus_config mbus_cfg;
+ 	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
+ 
++	if (rvin_subdev_get_mbus_cfg(vin, &mbus_cfg))
++		return -EINVAL;
++
++	if (rvin_subdev_get_code(vin, &code))
++		return -EINVAL;
++
+ 	switch (vin->format.field) {
+ 	case V4L2_FIELD_TOP:
+ 		vnmc = VNMC_IM_ODD;
+@@ -163,7 +170,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	/*
+ 	 * Input interface
+ 	 */
+-	switch (vin->digital.code) {
++	switch (code) {
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 		/* BT.601/BT.1358 16bit YCbCr422 */
+ 		vnmc |= VNMC_INF_YUV16;
+@@ -171,7 +178,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+-		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -180,7 +187,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+-		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -192,11 +199,11 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+ 
+ 	/* Hsync Signal Polarity Select */
+-	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
++	if (!(mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_HPS;
+ 
+ 	/* Vsync Signal Polarity Select */
+-	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
++	if (!(mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_VPS;
+ 
+ 	/*
+@@ -1028,12 +1035,10 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
+ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
+-	struct v4l2_subdev *sd;
+ 	unsigned long flags;
+ 	int ret;
+ 
+-	sd = vin_to_source(vin);
+-	v4l2_subdev_call(sd, video, s_stream, 1);
++	rvin_subdev_call(vin, video, s_stream, 1);
+ 
+ 	spin_lock_irqsave(&vin->qlock, flags);
+ 
+@@ -1058,7 +1063,7 @@ out:
+ 	/* Return all buffers if something went wrong */
+ 	if (ret) {
+ 		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
+-		v4l2_subdev_call(sd, video, s_stream, 0);
++		rvin_subdev_call(vin, video, s_stream, 0);
+ 	}
+ 
+ 	spin_unlock_irqrestore(&vin->qlock, flags);
+@@ -1069,7 +1074,6 @@ out:
+ static void rvin_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
+-	struct v4l2_subdev *sd;
+ 	unsigned long flags;
+ 	int retries = 0;
+ 
+@@ -1108,8 +1112,7 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
+ 
+ 	spin_unlock_irqrestore(&vin->qlock, flags);
+ 
+-	sd = vin_to_source(vin);
+-	v4l2_subdev_call(sd, video, s_stream, 0);
++	rvin_subdev_call(vin, video, s_stream, 0);
+ 
+ 	/* disable interrupts */
+ 	rvin_disable_interrupts(vin);
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index d0e9d65..90f2725 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -97,24 +97,26 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 				    struct v4l2_pix_format *pix,
+ 				    struct rvin_source_fmt *source)
+ {
+-	struct v4l2_subdev *sd;
+ 	struct v4l2_subdev_pad_config *pad_cfg;
+ 	struct v4l2_subdev_format format = {
+ 		.which = which,
+ 	};
++	u32 code;
+ 	int ret;
+ 
+-	sd = vin_to_source(vin);
++	ret = rvin_subdev_get_code(vin, &code);
++	if (ret)
++		return -EINVAL;
+ 
+-	v4l2_fill_mbus_format(&format.format, pix, vin->digital.code);
++	v4l2_fill_mbus_format(&format.format, pix, code);
+ 
+-	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
++	pad_cfg = rvin_subdev_alloc_pad_config(vin);
+ 	if (pad_cfg == NULL)
+ 		return -ENOMEM;
+ 
+ 	format.pad = vin->src_pad_idx;
+ 
+-	ret = v4l2_subdev_call(sd, pad, set_fmt, pad_cfg, &format);
++	ret = rvin_subdev_call(vin, pad, set_fmt, pad_cfg, &format);
+ 	if (ret < 0 && ret != -ENOIOCTLCMD)
+ 		goto done;
+ 
+@@ -380,35 +382,46 @@ static int rvin_cropcap(struct file *file, void *priv,
+ 			struct v4l2_cropcap *crop)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+ 
+ 	if (crop->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+ 
+-	return v4l2_subdev_call(sd, video, cropcap, crop);
++	return rvin_subdev_call(vin, video, cropcap, crop);
+ }
+ 
+ static int rvin_enum_input(struct file *file, void *priv,
+ 			   struct v4l2_input *i)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct v4l2_subdev *sd = vin_to_source(vin);
++	struct v4l2_dv_timings_cap cap;
+ 	int ret;
+ 
+ 	if (i->index != 0)
+ 		return -EINVAL;
+ 
+-	ret = v4l2_subdev_call(sd, video, g_input_status, &i->status);
++
++	ret = rvin_subdev_call_input(vin, i->index, video,
++				     g_input_status, &i->status);
++
+ 	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
+ 		return ret;
+ 
+ 	i->type = V4L2_INPUT_TYPE_CAMERA;
+-	i->std = vin->vdev.tvnorms;
++	strlcpy(i->name, "Digital", sizeof(i->name));
+ 
+-	if (v4l2_subdev_has_op(sd, pad, dv_timings_cap))
+-		i->capabilities = V4L2_IN_CAP_DV_TIMINGS;
++	/* Test if pad supports dv_timings_cap */
++	ret = rvin_subdev_call_input(vin, i->index, pad, dv_timings_cap, &cap);
++	if (ret) {
++		i->capabilities = V4L2_IN_CAP_STD;
++		ret = rvin_subdev_call_input(vin, i->index, video, g_tvnorms,
++					     &i->std);
++		if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
++			return ret;
+ 
+-	strlcpy(i->name, "Camera", sizeof(i->name));
++	} else {
++		i->capabilities = V4L2_IN_CAP_DV_TIMINGS;
++		i->std = 0;
++	}
+ 
+ 	return 0;
+ }
+@@ -429,26 +442,25 @@ static int rvin_s_input(struct file *file, void *priv, unsigned int i)
+ static int rvin_querystd(struct file *file, void *priv, v4l2_std_id *a)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+ 
+-	return v4l2_subdev_call(sd, video, querystd, a);
++	return rvin_subdev_call(vin, video, querystd, a);
+ }
+ 
+ static int rvin_s_std(struct file *file, void *priv, v4l2_std_id a)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+ 	struct v4l2_subdev_format fmt = {
+ 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+ 	};
+ 	struct v4l2_mbus_framefmt *mf = &fmt.format;
+-	int ret = v4l2_subdev_call(sd, video, s_std, a);
++	int ret;
+ 
++	ret = rvin_subdev_call(vin, video, s_std, a);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	/* Changing the standard will change the width/height */
+-	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
++	ret = rvin_subdev_call(vin, pad, get_fmt, NULL, &fmt);
+ 	if (ret) {
+ 		vin_err(vin, "Failed to get initial format\n");
+ 		return ret;
+@@ -471,9 +483,8 @@ static int rvin_s_std(struct file *file, void *priv, v4l2_std_id a)
+ static int rvin_g_std(struct file *file, void *priv, v4l2_std_id *a)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+ 
+-	return v4l2_subdev_call(sd, video, g_std, a);
++	return rvin_subdev_call(vin, video, g_std, a);
+ }
+ 
+ static int rvin_subscribe_event(struct v4l2_fh *fh,
+@@ -490,15 +501,10 @@ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
+ 				struct v4l2_enum_dv_timings *timings)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+-	int pad, ret;
+-
+-	pad = timings->pad;
+-	timings->pad = vin->src_pad_idx;
+-
+-	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
++	int ret;
+ 
+-	timings->pad = pad;
++	ret = rvin_subdev_call_input(vin, timings->pad, pad, enum_dv_timings,
++				     timings);
+ 
+ 	return ret;
+ }
+@@ -507,10 +513,9 @@ static int rvin_s_dv_timings(struct file *file, void *priv_fh,
+ 			     struct v4l2_dv_timings *timings)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+ 	int ret;
+ 
+-	ret = v4l2_subdev_call(sd, video, s_dv_timings, timings);
++	ret = rvin_subdev_call(vin, video, s_dv_timings, timings);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -526,33 +531,25 @@ static int rvin_g_dv_timings(struct file *file, void *priv_fh,
+ 			     struct v4l2_dv_timings *timings)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+ 
+-	return v4l2_subdev_call(sd, video, g_dv_timings, timings);
++	return rvin_subdev_call(vin, video, g_dv_timings, timings);
+ }
+ 
+ static int rvin_query_dv_timings(struct file *file, void *priv_fh,
+ 				 struct v4l2_dv_timings *timings)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+ 
+-	return v4l2_subdev_call(sd, video, query_dv_timings, timings);
++	return rvin_subdev_call(vin, video, query_dv_timings, timings);
+ }
+ 
+ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
+ 			       struct v4l2_dv_timings_cap *cap)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+-	int pad, ret;
+-
+-	pad = cap->pad;
+-	cap->pad = vin->src_pad_idx;
+-
+-	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
++	int ret;
+ 
+-	cap->pad = pad;
++	ret = rvin_subdev_call_input(vin, cap->pad, pad, dv_timings_cap, cap);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 972eb30..a8c4d72 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -165,4 +165,19 @@ void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+ 		    u32 width, u32 height);
+ void rvin_crop_scale_comp(struct rvin_dev *vin);
+ 
++/* Subdevice group helpers */
++#define rvin_subdev_call(v, o, f, args...)				\
++	(v->digital.subdev ?						\
++	 v4l2_subdev_call(v->digital.subdev, o, f, ##args) : -ENODEV)
++#define rvin_subdev_call_input(v, i, o, f, args...)			\
++	(v->digital.subdev ?						\
++	 v4l2_subdev_call(v->digital.subdev, o, f, ##args) : -ENODEV)
++
++int rvin_subdev_get_code(struct rvin_dev *vin, u32 *code);
++int rvin_subdev_get_mbus_cfg(struct rvin_dev *vin,
++			     struct v4l2_mbus_config *mbus_cfg);
++
++int rvin_subdev_ctrl_add_handler(struct rvin_dev *vin);
++struct v4l2_subdev_pad_config *rvin_subdev_alloc_pad_config(struct rvin_dev
++							    *vin);
+ #endif
 -- 
-2.7.4
+2.9.0
 
