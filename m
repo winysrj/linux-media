@@ -1,49 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:36285 "EHLO
-	mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752315AbcGBNnc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jul 2016 09:43:32 -0400
-Date: Sat, 2 Jul 2016 08:30:40 -0500
-From: Tejun Heo <tj@kernel.org>
-To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Cc: Mats Randgaard <matrandg@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] tc358743: Remove deprecated
- create_singlethread_workqueue
-Message-ID: <20160702133040.GU17431@htj.duckdns.org>
-References: <20160702104153.GA1875@Karyakshetra>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:58164 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753108AbcGSQpl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 12:45:41 -0400
+Subject: Re: [PATCH v2 2/3] [media] hva: multi-format video encoder V4L2
+ driver
+To: Jean Christophe TROTIN <jean-christophe.trotin@st.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1468250057-16395-1-git-send-email-jean-christophe.trotin@st.com>
+ <1468250057-16395-3-git-send-email-jean-christophe.trotin@st.com>
+ <28f37284-0c57-7d22-a32d-5627079c86d5@xs4all.nl> <578E4D8D.7070708@st.com>
+Cc: "kernel@stlinux.com" <kernel@stlinux.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Yannick FERTRE <yannick.fertre@st.com>,
+	Hugues FRUCHET <hugues.fruchet@st.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <68083983-744d-d3ae-77ef-e3be64f9ce26@xs4all.nl>
+Date: Tue, 19 Jul 2016 18:45:34 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160702104153.GA1875@Karyakshetra>
+In-Reply-To: <578E4D8D.7070708@st.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 02, 2016 at 04:11:53PM +0530, Bhaktipriya Shridhar wrote:
-> The workqueue "work_queues" enables hotplugging.
-> It has a single work item(&state->delayed_work_enable_hotplug) and hence
-> doesn't require ordering. Also, it is not being used on a memory
-> reclaim path. Hence, the singlethreaded workqueue has been replaced with
-> the use of system_wq.
+On 07/19/2016 05:55 PM, Jean Christophe TROTIN wrote:
+> Hi Hans,
 > 
-> System workqueues have been able to handle high level of concurrency
-> for a long time now and hence it's not required to have a singlethreaded
-> workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
-> created with create_singlethread_workqueue(), system_wq allows multiple
-> work items to overlap executions even on the same CPU; however, a
-> per-cpu workqueue doesn't have any CPU locality or global ordering
-> guarantee unless the target CPU is explicitly specified and thus the
-> increase of local concurrency shouldn't make any difference.
+> Thank you for your comments.
+> I've started to take them into account.
+> I've got a question about V4L2_FIELD_ANY in buf_prepare (please see below).
 > 
-> Work item has been sync cancelled in tc358743_remove() to ensure
-> that there are no pending tasks while disconnecting the driver.
+> [snip]
 > 
-> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+>  >> +static int hva_buf_prepare(struct vb2_buffer *vb)
+>  >> +{
+>  >> +     struct hva_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+>  >> +     struct device *dev = ctx_to_dev(ctx);
+>  >> +     struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+>  >> +
+>  >> +     if (vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+>  >> +             struct hva_frame *frame = to_hva_frame(vbuf);
+>  >> +
+>  >> +             if (vbuf->field == V4L2_FIELD_ANY)
+>  >> +                     vbuf->field = V4L2_FIELD_NONE;
+>  >
+>  > Anything other than FIELD_NONE should result in an error since no interlaced 
+> is supported.
+>  > FIELD_ANY is an incorrect value as well.
+>  >
+> 
+> In videodev2.h, V4L2_FIELD_ANY is commented as "driver can choose from none, 
+> top, bottom, interlaced depending on whatever it thinks is approximate ...": I 
+> understand this comment as if vbuf->field is equal to V4L2_FIELD_ANY, then the 
+> driver can choose to force it to V4L2_FIELD_NONE. Furthermore, it's coded in the 
+> same way in vim2m.c (vim2m_buf_prepare).
+> Finally, if I remove these 2 lines, I've got the following error with the 
+> v4l2-compliance:
+> Streaming ioctls:
+> 		VIDIOC_G_INPUT returned -1 (Inappropriate ioctl for device)
+> 		VIDIOC_ENUMINPUT returned -1 (Inappropriate ioctl for device)
+> 	test read/write: OK (Not Supported)
+> 		VIDIOC_QUERYCAP returned 0 (Success)
+> 		[snip]
+> 		VIDIOC_QUERYBUF returned 0 (Success)
+> 		VIDIOC_QBUF returned -1 (Invalid argument)
+> 		fail: 
+> /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-buffers.cpp(773): 
+> buf.qbuf(node)
+> 		fail: 
+> /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-buffers.cpp(971): 
+> setupM2M(node, m2m_q)
+> 	test MMAP: FAIL
+> 
+> Don't you think that I could keep these two lines?
 
-Acked-by: Tejun Heo <tj@kernel.org>
+Keep it for now, I dug into this a bit further and it is really a workaround for
+poorly written applications that can't be bothered to set the field value to a
+proper value. I think the documentation needs to be updated for this.
 
-Thanks.
+I might change my mind, though :-)
 
--- 
-tejun
+Regards,
+
+	Hans
