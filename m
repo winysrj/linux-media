@@ -1,155 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46664
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932082AbcGOKYv convert rfc822-to-8bit (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:55994 "EHLO
+	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753497AbcGSOXJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 06:24:51 -0400
-Date: Fri, 15 Jul 2016 07:24:45 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Stefan =?UTF-8?B?UMO2c2NoZWw=?= <basic.master@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] af9035: fix dual tuner detection with PCTV 79e
-Message-ID: <20160715072445.6515edca@recife.lan>
-In-Reply-To: <8c71e2a3-ca04-0215-b3cb-c478afa9b1cb@iki.fi>
-References: <5783D80F.2040808@gmx.de>
-	<8c71e2a3-ca04-0215-b3cb-c478afa9b1cb@iki.fi>
+	Tue, 19 Jul 2016 10:23:09 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2 02/16] media: entity: Add media_entity_has_route() function
+Date: Tue, 19 Jul 2016 16:20:53 +0200
+Message-Id: <20160719142107.22358-3-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 15 Jul 2016 09:21:51 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> Applied and PULL requested for 4.7.
+This is a wrapper around the media entity has_route operation.
 
-It is too late to be applied on 4.7. I can apply it to the next merge
-window.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/media-entity.c | 29 +++++++++++++++++++++++++++++
+ include/media/media-entity.h |  3 +++
+ 2 files changed, 32 insertions(+)
 
-> 
-> Anyhow, it does not apply for 4.6. You must backport that patch to 4.6 
-> stable also!
-> 
-> regards
-> Antti
-> 
-> On 07/11/2016 08:31 PM, Stefan Pöschel wrote:
-> > The value 5 of the EEPROM_TS_MODE register (meaning dual tuner presence) is
-> > only valid for AF9035 devices. For IT9135 devices it is invalid and led to a
-> > false positive dual tuner mode detection with PCTV 79e.
-> > Therefore on non-AF9035 devices and with value 5 the driver now defaults to
-> > single tuner mode and outputs a regarding info message to log.
-> >
-> > This fixes Bugzilla bug #118561.
-> >
-> > Reported-by: Marc Duponcheel <marc@offline.be>
-> > Signed-off-by: Stefan Pöschel <basic.master@gmx.de>
-> > ---
-> >  drivers/media/usb/dvb-usb-v2/af9035.c | 50 +++++++++++++++++++++++------------
-> >  drivers/media/usb/dvb-usb-v2/af9035.h |  2 +-
-> >  2 files changed, 34 insertions(+), 18 deletions(-)
-> >
-> > diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-> > index eabede4..ca018cd 100644
-> > --- a/drivers/media/usb/dvb-usb-v2/af9035.c
-> > +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-> > @@ -496,7 +496,8 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
-> >  {
-> >  	struct state *state = d_to_priv(d);
-> >  	struct usb_interface *intf = d->intf;
-> > -	int ret;
-> > +	int ret, ts_mode_invalid;
-> > +	u8 tmp;
-> >  	u8 wbuf[1] = { 1 };
-> >  	u8 rbuf[4];
-> >  	struct usb_req req = { CMD_FW_QUERYINFO, 0, sizeof(wbuf), wbuf,
-> > @@ -530,6 +531,36 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
-> >  		state->eeprom_addr = EEPROM_BASE_AF9035;
-> >  	}
-> >
-> > +
-> > +	/* check for dual tuner mode */
-> > +	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
-> > +	if (ret < 0)
-> > +		goto err;
-> > +
-> > +	ts_mode_invalid = 0;
-> > +	switch (tmp) {
-> > +	case 0:
-> > +		break;
-> > +	case 1:
-> > +	case 3:
-> > +		state->dual_mode = true;
-> > +		break;
-> > +	case 5:
-> > +		if (state->chip_type != 0x9135 && state->chip_type != 0x9306)
-> > +			state->dual_mode = true;	/* AF9035 */
-> > +		else
-> > +			ts_mode_invalid = 1;
-> > +		break;
-> > +	default:
-> > +		ts_mode_invalid = 1;
-> > +	}
-> > +
-> > +	dev_dbg(&intf->dev, "ts mode=%d dual mode=%d\n", tmp, state->dual_mode);
-> > +
-> > +	if (ts_mode_invalid)
-> > +		dev_info(&intf->dev, "ts mode=%d not supported, defaulting to single tuner mode!", tmp);
-> > +
-> > +
-> >  	ret = af9035_ctrl_msg(d, &req);
-> >  	if (ret < 0)
-> >  		goto err;
-> > @@ -698,11 +729,7 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
-> >  	 * which is done by master demod.
-> >  	 * Master feeds also clock and controls power via GPIO.
-> >  	 */
-> > -	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
-> > -	if (ret < 0)
-> > -		goto err;
-> > -
-> > -	if (tmp == 1 || tmp == 3 || tmp == 5) {
-> > +	if (state->dual_mode) {
-> >  		/* configure gpioh1, reset & power slave demod */
-> >  		ret = af9035_wr_reg_mask(d, 0x00d8b0, 0x01, 0x01);
-> >  		if (ret < 0)
-> > @@ -835,17 +862,6 @@ static int af9035_read_config(struct dvb_usb_device *d)
-> >  	}
-> >
-> >
-> > -
-> > -	/* check if there is dual tuners */
-> > -	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
-> > -	if (ret < 0)
-> > -		goto err;
-> > -
-> > -	if (tmp == 1 || tmp == 3 || tmp == 5)
-> > -		state->dual_mode = true;
-> > -
-> > -	dev_dbg(&intf->dev, "ts mode=%d dual mode=%d\n", tmp, state->dual_mode);
-> > -
-> >  	if (state->dual_mode) {
-> >  		/* read 2nd demodulator I2C address */
-> >  		ret = af9035_rd_reg(d,
-> > diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
-> > index c91d1a3..1f83c92 100644
-> > --- a/drivers/media/usb/dvb-usb-v2/af9035.h
-> > +++ b/drivers/media/usb/dvb-usb-v2/af9035.h
-> > @@ -113,7 +113,7 @@ static const u32 clock_lut_it9135[] = {
-> >   * 0  TS
-> >   * 1  DCA + PIP
-> >   * 3  PIP
-> > - * 5  DCA + PIP
-> > + * 5  DCA + PIP (AF9035 only)
-> >   * n  DCA
-> >   *
-> >   * Values 0, 3 and 5 are seen to this day. 0 for single TS and 3/5 for dual TS.
-> >  
-> 
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index d8a2299..8732579 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -240,6 +240,35 @@ EXPORT_SYMBOL_GPL(media_entity_pads_init);
+  * Graph traversal
+  */
+ 
++/**
++ * media_entity_has_route - Check if two entity pads are connected internally
++ * @entity: The entity
++ * @pad0: The first pad index
++ * @pad1: The second pad index
++ *
++ * This function can be used to check whether two pads of an entity are
++ * connected internally in the entity.
++ *
++ * The caller must hold entity->source->parent->mutex.
++ *
++ * Return: true if the pads are connected internally and false otherwise.
++ */
++bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
++			    unsigned int pad1)
++{
++	if (pad0 >= entity->num_pads || pad1 >= entity->num_pads)
++		return false;
++
++	if (pad0 == pad1)
++		return true;
++
++	if (!entity->ops || !entity->ops->has_route)
++		return true;
++
++	return entity->ops->has_route(entity, pad0, pad1);
++}
++EXPORT_SYMBOL_GPL(media_entity_has_route);
++
+ static struct media_entity *
+ media_entity_other(struct media_entity *entity, struct media_link *link)
+ {
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index c4b2dca..68af160 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -796,6 +796,9 @@ void media_entity_graph_walk_cleanup(struct media_entity_graph *graph);
+  */
+ void media_entity_put(struct media_entity *entity);
+ 
++bool media_entity_has_route(struct media_entity *entity, unsigned int sink,
++			    unsigned int source);
++
+ /**
+  * media_entity_graph_walk_start - Start walking the media graph at a given entity
+  * @graph: Media graph structure that will be used to walk the graph
+-- 
+2.9.0
 
-
-
-Thanks,
-Mauro
