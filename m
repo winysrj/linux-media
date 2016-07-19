@@ -1,64 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35646 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751742AbcGVOqn (ORCPT
+Received: from 108-197-250-228.lightspeed.miamfl.sbcglobal.net ([108.197.250.228]:48762
+	"EHLO usa.attlocal.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753532AbcGSPWK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 10:46:43 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH] doc-rst: kernel-doc: fix handling of address_space tags
-Date: Fri, 22 Jul 2016 11:46:36 -0300
-Message-Id: <263bbae9c1bf6ea7c14dad8c29f9b3148b2b5de7.1469198779.git.mchehab@s-opensource.com>
+	Tue, 19 Jul 2016 11:22:10 -0400
+From: Abylay Ospan <aospan@netup.ru>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: Abylay Ospan <aospan@netup.ru>
+Subject: [PATCH] [media] cxd2841er: BER and SNR reading for ISDB-T
+Date: Tue, 19 Jul 2016 11:22:03 -0400
+Message-Id: <1468941723-19263-1-git-send-email-aospan@netup.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The RST cpp:function handler is very pedantic: it doesn't allow any
-macros like __user on it:
+Added function to read BER for ISDB-T
+Also SNR values fixed for ISDB-T
 
-	Documentation/media/kapi/dtv-core.rst:28: WARNING: Error when parsing function declaration.
-	If the function has no return type:
-	  Error in declarator or parameters and qualifiers
-	  Invalid definition: Expecting "(" in parameters_and_qualifiers. [error at 8]
-	    ssize_t dvb_ringbuffer_pkt_read_user (struct dvb_ringbuffer * rbuf, size_t idx, int offset, u8 __user * buf, size_t len)
-	    --------^
-	If the function has a return type:
-	  Error in declarator or parameters and qualifiers
-	  If pointer to member declarator:
-	    Invalid definition: Expected '::' in pointer to member (function). [error at 37]
-	      ssize_t dvb_ringbuffer_pkt_read_user (struct dvb_ringbuffer * rbuf, size_t idx, int offset, u8 __user * buf, size_t len)
-	      -------------------------------------^
-	  If declarator-id:
-	    Invalid definition: Expecting "," or ")" in parameters_and_qualifiers, got "*". [error at 102]
-	      ssize_t dvb_ringbuffer_pkt_read_user (struct dvb_ringbuffer * rbuf, size_t idx, int offset, u8 __user * buf, size_t len)
-	      ------------------------------------------------------------------------------------------------------^
-
-So, we have to remove it from the function prototype.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Abylay Ospan <aospan@netup.ru>
 ---
- scripts/kernel-doc | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/dvb-frontends/cxd2841er.c | 48 ++++++++++++++++++++++++++++++---
+ 1 file changed, 45 insertions(+), 3 deletions(-)
 
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index 41eade332307..4394746cc1aa 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -1848,6 +1848,10 @@ sub output_function_rst(%) {
+diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+index d2e28ea..3df0604 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.c
++++ b/drivers/media/dvb-frontends/cxd2841er.c
+@@ -206,6 +206,9 @@ static const struct cxd2841er_cnr_data s2_cn_data[] = {
+ 		(u32)(((iffreq)/48.0)*16777216.0 + 0.5) : \
+ 		(u32)(((iffreq)/41.0)*16777216.0 + 0.5))
+ 
++static int cxd2841er_freeze_regs(struct cxd2841er_priv *priv);
++static int cxd2841er_unfreeze_regs(struct cxd2841er_priv *priv);
++
+ static void cxd2841er_i2c_debug(struct cxd2841er_priv *priv,
+ 				u8 addr, u8 reg, u8 write,
+ 				const u8 *data, u32 len)
+@@ -1401,6 +1404,41 @@ static int cxd2841er_read_ber_c(struct cxd2841er_priv *priv,
+ 	return 0;
+ }
+ 
++static int cxd2841er_read_ber_i(struct cxd2841er_priv *priv,
++		u32 *bit_error, u32 *bit_count)
++{
++	u8 data[3];
++	u8 pktnum[2];
++
++	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
++	if (priv->state != STATE_ACTIVE_TC) {
++		dev_dbg(&priv->i2c->dev, "%s(): invalid state %d\n",
++				__func__, priv->state);
++		return -EINVAL;
++	}
++
++	cxd2841er_freeze_regs(priv);
++	cxd2841er_write_reg(priv, I2C_SLVT, 0x00, 0x60);
++	cxd2841er_read_regs(priv, I2C_SLVT, 0x5B, pktnum, sizeof(pktnum));
++	cxd2841er_read_regs(priv, I2C_SLVT, 0x16, data, sizeof(data));
++
++	if (!pktnum[0] && !pktnum[1]) {
++		dev_dbg(&priv->i2c->dev,
++				"%s(): no valid BER data\n", __func__);
++		cxd2841er_unfreeze_regs(priv);
++		return -EINVAL;
++	}
++
++	*bit_error = ((u32)(data[0] & 0x7F) << 16) |
++		((u32)data[1] << 8) | data[2];
++	*bit_count = ((((u32)pktnum[0] << 8) | pktnum[1]) * 204 * 8);
++	dev_dbg(&priv->i2c->dev, "%s(): bit_error=%u bit_count=%u\n",
++			__func__, *bit_error, *bit_count);
++
++	cxd2841er_unfreeze_regs(priv);
++	return 0;
++}
++
+ static int cxd2841er_mon_read_ber_s(struct cxd2841er_priv *priv,
+ 				    u32 *bit_error, u32 *bit_count)
+ {
+@@ -1798,9 +1836,7 @@ static int cxd2841er_read_snr_i(struct cxd2841er_priv *priv, u32 *snr)
+ 		cxd2841er_unfreeze_regs(priv);
+ 		return 0;
  	}
- 	$count++;
- 	$type = $args{'parametertypes'}{$parameter};
+-	if (reg > 4996)
+-		reg = 4996;
+-	*snr = 100 * intlog10(reg) - 9031;
++	*snr = 10000 * (intlog10(reg) >> 24) - 9031;
+ 	cxd2841er_unfreeze_regs(priv);
+ 	return 0;
+ }
+@@ -1879,6 +1915,9 @@ static void cxd2841er_read_ber(struct dvb_frontend *fe)
+ 	case SYS_DVBC_ANNEX_C:
+ 		ret = cxd2841er_read_ber_c(priv, &bit_error, &bit_count);
+ 		break;
++	case SYS_ISDBT:
++		ret = cxd2841er_read_ber_i(priv, &bit_error, &bit_count);
++		break;
+ 	case SYS_DVBS:
+ 		ret = cxd2841er_mon_read_ber_s(priv, &bit_error, &bit_count);
+ 		break;
+@@ -1992,6 +2031,9 @@ static void cxd2841er_read_snr(struct dvb_frontend *fe)
+ 		return;
+ 	}
+ 
++	dev_dbg(&priv->i2c->dev, "%s(): snr=%d\n",
++			__func__, (int32_t)tmp);
 +
-+	# RST doesn't like address_space tags at function prototypes
-+	$type =~ s/__(user|kernel|iomem|percpu|pmem|rcu)\s*//;
-+
- 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
- 	    # pointer-to-function
- 	    print $1 . $parameter . ") (" . $2;
+ 	if (!ret) {
+ 		p->cnr.stat[0].scale = FE_SCALE_DECIBEL;
+ 		p->cnr.stat[0].svalue = tmp;
 -- 
 2.7.4
-
 
