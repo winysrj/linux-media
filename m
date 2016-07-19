@@ -1,87 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:47259 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752284AbcGTHag (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 03:30:36 -0400
-Subject: Re: [PATCH v6] [media] pci: Add tw5864 driver
-To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Kozlov Sergey <serjk@netup.ru>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	=?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
-References: <20160720014205.15521-1-andrey.utkin@corp.bluecherry.net>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-pci@vger.kernel.org,
-	kernel-mentors@selenic.com,
-	Andrey Utkin <andrey_utkin@fastmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6be09f83-7fd0-2c1b-8e8e-fa19f6d52751@xs4all.nl>
-Date: Wed, 20 Jul 2016 09:30:23 +0200
+Received: from mout.web.de ([217.72.192.78]:60945 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752914AbcGSSCd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 14:02:33 -0400
+Subject: [PATCH] [media] v4l2-common: Delete an unnecessary check before the
+ function call "spi_unregister_device"
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <5307CAA2.8060406@users.sourceforge.net>
+ <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
+ <530A086E.8010901@users.sourceforge.net>
+ <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
+ <530A72AA.3000601@users.sourceforge.net>
+ <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
+ <530B5FB6.6010207@users.sourceforge.net>
+ <alpine.DEB.2.10.1402241710370.2074@hadrien>
+ <530C5E18.1020800@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251014170.2080@hadrien>
+ <530CD2C4.4050903@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251840450.7035@hadrien>
+ <530CF8FF.8080600@users.sourceforge.net>
+ <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
+ <530DD06F.4090703@users.sourceforge.net>
+ <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
+ <5317A59D.4@users.sourceforge.net>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+Message-ID: <cf814738-8480-035a-553d-afa53f414e4e@users.sourceforge.net>
+Date: Tue, 19 Jul 2016 20:02:10 +0200
 MIME-Version: 1.0
-In-Reply-To: <20160720014205.15521-1-andrey.utkin@corp.bluecherry.net>
+In-Reply-To: <5317A59D.4@users.sourceforge.net>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/20/2016 03:42 AM, Andrey Utkin wrote:
-> Changes since v5:
->  - Rework known issues notice as suggested by Hans Verkuil (and previously Joe Perches)
-> 
-> I am leaving for a vacation in a day and won't respond before 3rd of August.
-> I wish to all of you to enjoy your time, too.
-> 
-> Thanks to all the reviewers for their efforts.
-> 
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 19 Jul 2016 19:54:16 +0200
 
-<snip>
+The spi_unregister_device() function tests whether its argument is NULL
+and then returns immediately. Thus the test around the call is not needed.
 
-> +static int tw5864_input_std_get(struct tw5864_input *input,
-> +				enum tw5864_vid_std *std_arg)
-> +{
-> +	struct tw5864_dev *dev = input->root;
-> +	enum tw5864_vid_std std;
-> +	u8 std_reg = tw_indir_readb(TW5864_INDIR_VIN_E(input->nr));
-> +
-> +	std = (std_reg & 0x70) >> 4;
-> +
-> +	if (std_reg & 0x80) {
-> +		dev_err(&dev->pci->dev,
-> +			"Video format detection is in progress, please wait\n");
+This issue was detected by using the Coccinelle software.
 
-Use dev_dbg instead of dev_err.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/v4l2-core/v4l2-common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> +		return -EAGAIN;
-> +	}
-> +
-> +	if (std == STD_INVALID) {
-> +		dev_err(&dev->pci->dev, "No valid video format detected\n");
-> +		return -EPERM;
+diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+index 5b80850..57cfe26a 100644
+--- a/drivers/media/v4l2-core/v4l2-common.c
++++ b/drivers/media/v4l2-core/v4l2-common.c
+@@ -291,7 +291,7 @@ struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
+ error:
+ 	/* If we have a client but no subdev, then something went wrong and
+ 	   we must unregister the client. */
+-	if (spi && sd == NULL)
++	if (!sd)
+ 		spi_unregister_device(spi);
+ 
+ 	return sd;
+-- 
+2.9.2
 
-This is still wrong. From my v5 review:
-
-"In this case set *std_arg to V4L2_STD_UNKNOWN and just return 0. As per the QUERYSTD spec."
-
-Also, don't use dev_err here. There is nothing wrong with not being able to detect
-a valid format. I'd just drop the message.
-
-> +	}
-> +
-> +	*std_arg = std;
-> +	return 0;
-> +}
-
-Regards,
-
-	Hans
