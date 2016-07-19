@@ -1,147 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:36266 "EHLO
-	mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751426AbcGWRBC (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47008
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753423AbcGSOx0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jul 2016 13:01:02 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: lars@metafoo.de
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v3 4/9] media: adv7180: add power pin control
-Date: Sat, 23 Jul 2016 10:00:44 -0700
-Message-Id: <1469293249-6774-5-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
+	Tue, 19 Jul 2016 10:53:26 -0400
+Date: Tue, 19 Jul 2016 11:53:19 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+	Jani Nikula <jani.nikula@intel.com>
+Subject: Re: [PATCH 00/18] Complete moving media documentation to ReST
+ format
+Message-ID: <20160719115319.316349a7@recife.lan>
+In-Reply-To: <6702C6D4-929F-420D-9CF9-911CA753B0A7@darmarit.de>
+References: <cover.1468865380.git.mchehab@s-opensource.com>
+	<578DF08F.8080701@xs4all.nl>
+	<20160719081259.482a8c04@recife.lan>
+	<6702C6D4-929F-420D-9CF9-911CA753B0A7@darmarit.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some targets control the ADV7180 power pin via a gpio, so add
-optional support for "powerdown" pin control.
+Em Tue, 19 Jul 2016 14:31:18 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Tested-by: Tim Harvey <tharvey@gateworks.com>
-Acked-by: Tim Harvey <tharvey@gateworks.com>
-Acked-by: Lars-Peter Clausen <lars@metafoo.de>
 
----
+> > I really hate stupid toolchains that require everybody to upgrade to
+> > the very latest version of it every time.  
+> 
+> Hi Mauro,
+> 
+> It might be annoying how sphinx handles errors, but normally a build
+> process should report errors to monitor.
 
-v3: no changes
+The documents are automatically built at linuxtv.org once a day. While
+Sphinx doesn't build them without warnings, I won't enable any sort
+of feedback from the server, as I don't want to be bothered all
+days about the same warnings.
 
-v2:
-- placed call to gpiod_get inline in adv7180_probe().
-- rename gpio pin to "powerdown".
-- document optional powerdown-gpios property in
-  Documentation/devicetree/bindings/media/i2c/adv7180.txt.
-- include error number in error message on gpiod_get failure.
----
- .../devicetree/bindings/media/i2c/adv7180.txt      |  4 ++++
- drivers/media/i2c/Kconfig                          |  2 +-
- drivers/media/i2c/adv7180.c                        | 27 ++++++++++++++++++++++
- 3 files changed, 32 insertions(+), 1 deletion(-)
+Also, for safety reasons, we only install packages on the server
+that are shipped with the distribution.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7180.txt b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
-index 6c175d2..ab9ef02 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv7180.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
-@@ -15,6 +15,10 @@ Required Properties :
- 		"adi,adv7282"
- 		"adi,adv7282-m"
- 
-+Optional Properties :
-+- powerdown-gpios: reference to the GPIO connected to the powerdown pin,
-+  if any.
-+
- Optional Endpoint Properties :
- - newavmode: a boolean property to indicate the BT.656 bus is operating
-   in Analog Device's NEWAVMODE. Valid for BT.656 busses only.
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index ce9006e..6769898 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -187,7 +187,7 @@ comment "Video decoders"
- 
- config VIDEO_ADV7180
- 	tristate "Analog Devices ADV7180 decoder"
--	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-+	depends on GPIOLIB && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
- 	---help---
- 	  Support for the Analog Devices ADV7180 video decoder.
- 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 3067d5f..58f4eca 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -26,6 +26,7 @@
- #include <linux/i2c.h>
- #include <linux/slab.h>
- #include <linux/of.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/videodev2.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-event.h>
-@@ -215,6 +216,7 @@ struct adv7180_state {
- 	struct media_pad	pad;
- 	struct mutex		mutex; /* mutual excl. when accessing chip */
- 	int			irq;
-+	struct gpio_desc	*pwdn_gpio;
- 	v4l2_std_id		curr_norm;
- 	bool			newavmode;
- 	bool			powered;
-@@ -466,6 +468,19 @@ static int adv7180_g_std(struct v4l2_subdev *sd, v4l2_std_id *norm)
- 	return 0;
- }
- 
-+static void adv7180_set_power_pin(struct adv7180_state *state, bool on)
-+{
-+	if (!state->pwdn_gpio)
-+		return;
-+
-+	if (on) {
-+		gpiod_set_value_cansleep(state->pwdn_gpio, 0);
-+		usleep_range(5000, 10000);
-+	} else {
-+		gpiod_set_value_cansleep(state->pwdn_gpio, 1);
-+	}
-+}
-+
- static int adv7180_set_power(struct adv7180_state *state, bool on)
- {
- 	u8 val;
-@@ -1219,6 +1234,8 @@ static int init_device(struct adv7180_state *state)
- 
- 	mutex_lock(&state->mutex);
- 
-+	adv7180_set_power_pin(state, true);
-+
- 	adv7180_write(state, ADV7180_REG_PWR_MAN, ADV7180_PWR_MAN_RES);
- 	usleep_range(5000, 10000);
- 
-@@ -1319,6 +1336,14 @@ static int adv7180_probe(struct i2c_client *client,
- 
- 	adv7180_of_parse(state);
- 
-+	state->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "powerdown",
-+						   GPIOD_OUT_HIGH);
-+	if (IS_ERR(state->pwdn_gpio)) {
-+		ret = PTR_ERR(state->pwdn_gpio);
-+		v4l_err(client, "request for power pin failed: %d\n", ret);
-+		return ret;
-+	}
-+
- 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
- 		state->csi_client = i2c_new_dummy(client->adapter,
- 				ADV7180_DEFAULT_CSI_I2C_ADDR);
-@@ -1410,6 +1435,8 @@ static int adv7180_remove(struct i2c_client *client)
- 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2)
- 		i2c_unregister_device(state->csi_client);
- 
-+	adv7180_set_power_pin(state, false);
-+
- 	mutex_destroy(&state->mutex);
- 
- 	return 0;
--- 
-1.9.1
+> > Maybe someone at linux-doc 
+> > may have an idea about how to add new markup attributes to the 
+> > documents without breaking for the ones using older versions of Sphinx.  
+> 
+> see below
+> 
+> > The problem we're facing is due to a change meant to add a title before
+> > each media's table of contents (provided via :toctree:  markup).  
+> 
+> I think this is only ONE drawback, others see the changelog  ..
 
+I had to remove captions from tables on a past patch, because of the
+same reason: Sphinx 1.2.x doesn't support it.
+
+> * http://www.sphinx-doc.org/en/stable/changes.html
+
+What we miss is the documentation for Sphinx 1.2 and 1.3 versions. The
+site only has documentation for the very latest version, making harder
+to ensure that we're using only the tags supported by a certain version.
+
+> > All it needs is something that will be translated to HTML as:
+> > <h1>Table of contents</h1>, without the need of creating any cross
+> > reference, nor being added to the main TOC at Documentation/index.rst.
+> > 
+> > We can't simply use the normal way to generate <h1> tags:
+> > 
+> > --- a/Documentation/media/dvb-drivers/index.rst
+> > +++ b/Documentation/media/dvb-drivers/index.rst
+> > @@ -15,6 +15,10 @@ the license is included in the chapter entitled "GNU Free Documentation
+> > License".
+> > 
+> > 
+> > +#####################
+> > +FOO Table of contents
+> > +#####################
+> > +
+> > .. toctree::
+> > 	:maxdepth: 5
+> > 	:numbered:
+> > 
+> > The page itself would look OK, but this would produce a new entry at the
+> > output/html/index.html:
+> > 
+> > 	* Linux Digital TV driver-specific documentation
+> > 	* FOO Table of contents
+> > 
+> > 	    1. Introdution
+> > 
+> > With is not what we want.
+> > 
+> > With Sphinx 1.4.5, the way of doing that is to add a :caption: tag
+> > to the toctree, but this tag doesn't exist on 1.2.x. Also, as it
+> > also convert captions on references, and all books are linked
+> > together at Documentation/index.rst, it also needs a :name: tag,
+> > in order to avoid warnings about duplicated tags when building the
+> > main index.rst.
+> > 
+> > I have no idea about how to do that in a backward-compatible way.
+> > 
+> > Maybe Markus, Jani or someone else at linux-doc may have some
+> > glue.  
+> 
+> IMHO: A backward-compatible way for all linux distros and versions
+> out there is not the way.
+> 
+> If we use options or features of a new version, we have to
+> install the new version (independent which xml we used in the past
+> or python tool we want to use).
+
+With DocBook this is clear: the document itself is bound against
+an specific version of the spec. So, *all* versions of the DocBook
+toolchains support the very same document, or, when it doesn't, the
+toolchain aborts with an error and doesn't produce anything. Very
+easy for a script to identify if the build succeeds or not.
+
+Sphinx is very evil with that regards: it keeps generating the
+files, except that the contents of the tags that contain unrecognized
+fields will be empty (with is very bad for :toctree:) and a few
+additional warnings will be generated. Very hard for a script to detect
+if the doc was OK or got mangled by the toolchain, because of a version
+incompatibility.
+
+> IMHO the main problem is, that we have not yet documented on which
+> Sphinx version we agree and how to get a build environment which
+> fullfills these requirements.
+
+Yes, the Sphinx minimal version should be documented at
+Documentation/Changes.
+
+I'd say that the minimal version should be the Sphinx version
+found on the latest version of the main distributions, e .g.
+at least Fedora, openSuse, Debian, Ubuntu.
+(I guess distros like ArchLinux and Gentoo won't be a problem,
+as they tend to use the newer versions of the sources).
+
+On a quick check:
+
+- Fedora 24 comes with 1.3.x
+- openSuse 13.2 with 1.2.x
+- Debian 8.5 with 1.2.x.
+- Ubuntu 16.04 with 1.3.x
+- Ubuntu 14.04 with 1.2.x
+- Mageia 5 with 1.2.x
+
+So, I guess we should set the minimal requirement to 1.2.x.
+
+Btw, usually, on Kernel, we're very conservative to increment the 
+minimal version of a toolchain. So, for example, while GCC current
+version is 6.1, the minimal requirement is gcc 3.2 (with was released
+in 2003).
+
+> For build environments I recommend to set up a python virtualenv
+> 
+> * https://virtualenv.pypa.io/en/stable/
+
+We can't assume that every Kernel developer would install a
+python virtualenv. Instead, they'll just use whatever Sphinx
+version is provided on their development machines.
+
+> Additional:
+> 
+> At this time, the make file only checks if sphinx is installed.
+> With a small addition to the make file, we could check if all
+> requirements are fulfilled. 
+> 
+> If you are interested in how, I could send a patch.
+
+It is better to have an error than to build the documentation with
+errors. Yet, as I said, this doesn't fix the issue, as anyone
+can insert a tag that won't be recognized by the official
+minimal version. Not sure how to address this.
+
+Yet, this doesn't solve the specific issue for the TOC index
+name. How this could be done in a way that would be backward
+compatible to 1.2.x?
+
+Thanks,
+Mauro
