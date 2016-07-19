@@ -1,56 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0055.hostedemail.com ([216.40.44.55]:57013 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753598AbcGLPvp (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:36786 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754054AbcGSP5U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 11:51:45 -0400
-Message-ID: <1468338700.8745.14.camel@perches.com>
-Subject: Re: [PATCH] media: s5p-mfc Fix misspelled error message and
- checkpatch errors
-From: Joe Perches <joe@perches.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
-	k.debski@samsung.com, jtp.park@samsung.com, mchehab@kernel.org,
-	javier@osg.samsung.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Date: Tue, 12 Jul 2016 08:51:40 -0700
-In-Reply-To: <578501E9.6090008@osg.samsung.com>
-References: <1468276740-1591-1-git-send-email-shuahkh@osg.samsung.com>
-	 <1468332418.8745.11.camel@perches.com> <578501E9.6090008@osg.samsung.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Tue, 19 Jul 2016 11:57:20 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [RFC 6/7] Documentation: bindings: add documentation for ir-spi device
+ driver
+Date: Wed, 20 Jul 2016 00:56:57 +0900
+Message-id: <1468943818-26025-7-git-send-email-andi.shyti@samsung.com>
+In-reply-to: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
+References: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2016-07-12 at 08:42 -0600, Shuah Khan wrote:
-> On 07/12/2016 08:06 AM, Joe Perches wrote:
-> > On Mon, 2016-07-11 at 16:39 -0600, Shuah Khan wrote:
-> > > Fix misspelled error message and existing checkpatch errors in the
-> > > error message conditional.
-> > []
-> > > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> > []
-> > > @@ -775,11 +775,11 @@ static int vidioc_g_crop(struct file *file, void *priv,
-> > >  	u32 left, right, top, bottom;
-> > >  
-> > >  	if (ctx->state != MFCINST_HEAD_PARSED &&
-> > > -	ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
-> > > -					&& ctx->state != MFCINST_FINISHED) {
-> > > -			mfc_err("Cannont set crop\n");
-> > > -			return -EINVAL;
-> > > -		}
-> > > +	    ctx->state != MFCINST_RUNNING && ctx->state != MFCINST_FINISHING
-> > > +	    && ctx->state != MFCINST_FINISHED) {
-> > > +		mfc_err("Can not get crop information\n");
-> > > +		return -EINVAL;
-> > > +	}
-> > is it a set or a get?
-> vidioc_g_crop is a get routine.
-> > 
-> > It'd be nicer for humans to read if the alignment was consistent
-> Are you okay with this alignment change or would you like it
-> changed?
+Document the ir-spi driver's binding which is a IR led driven
+through the SPI line.
 
-Well, if you're resubmitting, I'd prefer it changed.
-Thanks.
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+---
+ Documentation/devicetree/bindings/media/spi-ir.txt | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/spi-ir.txt
+
+diff --git a/Documentation/devicetree/bindings/media/spi-ir.txt b/Documentation/devicetree/bindings/media/spi-ir.txt
+new file mode 100644
+index 0000000..532da68
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/spi-ir.txt
+@@ -0,0 +1,20 @@
++Device tree bindings for IR LED connected through SPI bus which is used as
++remote controller.
++
++The IR LED switch is connected to the MOSI line of the SPI device and the data
++are delivered thourgh that.
++
++Required properties:
++	- compatible: should be "ir-spi"
++
++Optional properties:
++	- irled,switch: specifies the gpio switch which enables the irled
++
++Example:
++
++        irled@0 {
++                compatible = "ir-spi";
++                reg = <0x0>;
++                spi-max-frequency = <5000000>;
++                irled,switch = <&gpr3 3 0>;
++        };
+-- 
+2.8.1
+
