@@ -1,60 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f68.google.com ([209.85.220.68]:33023 "EHLO
-	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932235AbcGFXHY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:07:24 -0400
-Received: by mail-pa0-f68.google.com with SMTP id ts6so100960pac.0
-        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:07:24 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 02/28] gpu: ipu-cpmem: Add ipu_cpmem_set_uv_offset()
-Date: Wed,  6 Jul 2016 16:06:32 -0700
-Message-Id: <1467846418-12913-3-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
- <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mx1.mda.gov.br ([200.198.212.36]:37221 "EHLO mx1.mda.gov.br"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752004AbcGSFUx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 01:20:53 -0400
+Date: Tue, 19 Jul 2016 02:11:50 -0300 (BRT)
+From: QUALITY LOAN SERVICE CORPORATION <alex.silveira@mda.gov.br>
+Reply-To: "qualityloansltd@gmail.com" <qualityloansltd@gmail.com>
+Message-ID: <1712099492.5360430.1468905110311.JavaMail.zimbra@mda.gov.br>
+Subject: lening
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds ipu_cpmem_set_uv_offset(), to set planar U/V offsets.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/gpu/ipu-v3/ipu-cpmem.c | 7 +++++++
- include/video/imx-ipu-v3.h     | 1 +
- 2 files changed, 8 insertions(+)
 
-diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
-index 6494a4d..a36c35e 100644
---- a/drivers/gpu/ipu-v3/ipu-cpmem.c
-+++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
-@@ -253,6 +253,13 @@ void ipu_cpmem_set_buffer(struct ipuv3_channel *ch, int bufnum, dma_addr_t buf)
- }
- EXPORT_SYMBOL_GPL(ipu_cpmem_set_buffer);
- 
-+void ipu_cpmem_set_uv_offset(struct ipuv3_channel *ch, u32 u_off, u32 v_off)
-+{
-+	ipu_ch_param_write_field(ch, IPU_FIELD_UBO, u_off / 8);
-+	ipu_ch_param_write_field(ch, IPU_FIELD_VBO, v_off / 8);
-+}
-+EXPORT_SYMBOL_GPL(ipu_cpmem_set_uv_offset);
-+
- void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride)
- {
- 	ipu_ch_param_write_field(ch, IPU_FIELD_SO, 1);
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 22662a1..904fd12 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -194,6 +194,7 @@ void ipu_cpmem_set_resolution(struct ipuv3_channel *ch, int xres, int yres);
- void ipu_cpmem_set_stride(struct ipuv3_channel *ch, int stride);
- void ipu_cpmem_set_high_priority(struct ipuv3_channel *ch);
- void ipu_cpmem_set_buffer(struct ipuv3_channel *ch, int bufnum, dma_addr_t buf);
-+void ipu_cpmem_set_uv_offset(struct ipuv3_channel *ch, u32 u_off, u32 v_off);
- void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride);
- void ipu_cpmem_set_axi_id(struct ipuv3_channel *ch, u32 id);
- void ipu_cpmem_set_burstsize(struct ipuv3_channel *ch, int burstsize);
--- 
-1.9.1
+Geachte heer mevrouw
 
+Wij bieden alle soorten van leningen.
+Heeft u een lening tegen 1% rente nodig?
+Neem contact op met ons kantoor vandaag,
+Met het bedrag van de lening en de duur.
+
+LET OP: Dit is een legitiem aanbod. Alleen contact met ons op als u ernstig gezind zijn.
+
+Laat deze kans niet aan je voorbij gaan. Hier krijg je een lening om uw financiële problemen op te lossen.
+
+Vul en onmiddellijk terug te sturen de lening aanvraagformulier.
+
+INFORMATIE NODIG
+
+Jullie namen:
+
+Adres: ...........
+Telefoon: ...........
+Benodigd .......
+Duur: ...............
+Bezetting: ...........
+Maandelijks Inkomen Level: ......
+Geslacht: ..............
+Geboortedatum: .......
+Staat: ...............
+Land: .........
+Doel: .........
+
+NEEM CONTACT MET ONS OP.
+qualityloanservice@hotmail.com
+
+Beste wensen
+
+Mrs. Isabelle Morgan
