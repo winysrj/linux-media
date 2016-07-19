@@ -1,39 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f41.google.com ([209.85.215.41]:34813 "EHLO
-	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751697AbcG2VEi (ORCPT
+Received: from mail-lf0-f47.google.com ([209.85.215.47]:34302 "EHLO
+	mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753075AbcGSQsc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2016 17:04:38 -0400
-Received: by mail-lf0-f41.google.com with SMTP id l69so79237521lfg.1
-        for <linux-media@vger.kernel.org>; Fri, 29 Jul 2016 14:04:37 -0700 (PDT)
-Subject: Re: [PATCH 1/6] media: rcar-vin: allow field to be changed
+	Tue, 19 Jul 2016 12:48:32 -0400
+Received: by mail-lf0-f47.google.com with SMTP id l69so19418947lfg.1
+        for <linux-media@vger.kernel.org>; Tue, 19 Jul 2016 09:48:31 -0700 (PDT)
+Subject: Re: [PATCHv2 04/16] [media] rcar-vin: return correct error from
+ platform_get_irq
 To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
 	<niklas.soderlund+renesas@ragnatech.se>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	slongerbeam@gmail.com
-References: <20160729174012.14331-1-niklas.soderlund+renesas@ragnatech.se>
- <20160729174012.14331-2-niklas.soderlund+renesas@ragnatech.se>
-Cc: lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com
+	linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+References: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
+ <20160719142107.22358-5-niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-renesas-soc@vger.kernel.org
 From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <1f735458-9ff3-f3fc-e349-20ac0b57cde1@cogentembedded.com>
-Date: Sat, 30 Jul 2016 00:04:33 +0300
+Message-ID: <d08dada8-1ff2-de7f-aaac-7193a283102e@cogentembedded.com>
+Date: Tue, 19 Jul 2016 19:48:27 +0300
 MIME-Version: 1.0
-In-Reply-To: <20160729174012.14331-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160719142107.22358-5-niklas.soderlund+renesas@ragnatech.se>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/29/2016 08:40 PM, Niklas Söderlund wrote:
+Hello.
 
-> The driver forced whatever field was set by the source subdevice to be
-> used. This patch allows the user to change from the default field.
+On 07/19/2016 05:20 PM, Niklas Söderlund wrote:
+
+> Fix a error from the original driver where the wrong error code is
+> returned if the driver fails to get a IRQ number from
+> platform_get_irq().
 >
 > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index 481d82a..ff27d75 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -318,7 +318,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
+>
+>  	irq = platform_get_irq(pdev, 0);
+>  	if (irq <= 0)
+> -		return ret;
+> +		return irq;
 
-    I didn't apply this patch at first (thinking it was unnecessary), and the 
-capture worked fine. The field order appeared swapped again after I did import 
-this patch as well. :-(
+    This is still wrong, i.e. it'll return 0 from the probe() method if 'irq' 
+is 0 (and you consider that an error).
+
+[...]
 
 MBR, Sergei
 
