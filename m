@@ -1,65 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:56504 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753189AbcGFJoF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 05:44:05 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [PATCH v3 11/15] [media] lirc_dev: fix variable constant comparisons
-Date: Wed, 06 Jul 2016 18:01:23 +0900
-Message-id: <1467795687-10737-12-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1467795687-10737-1-git-send-email-andi.shyti@samsung.com>
-References: <1467795687-10737-1-git-send-email-andi.shyti@samsung.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:56006 "EHLO
+	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753636AbcGSOXK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 10:23:10 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2 04/16] [media] rcar-vin: return correct error from platform_get_irq
+Date: Tue, 19 Jul 2016 16:20:55 +0200
+Message-Id: <20160719142107.22358-5-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When comparing a variable with a constant, the comparison should
-start from the variable and not from the constant. It's also
-written in the human DNA.
+Fix a error from the original driver where the wrong error code is
+returned if the driver fails to get a IRQ number from
+platform_get_irq().
 
-Swap the terms of comparisons whenever the constant comes first
-and fix the following checkpatch warning:
-
-  WARNING: Comparisons should place the constant on the right side of the test
-
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/rc/lirc_dev.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 09bdd69..c2b32e0 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -245,13 +245,13 @@ static int lirc_allocate_driver(struct lirc_driver *d)
- 		return -EINVAL;
- 	}
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 481d82a..ff27d75 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -318,7 +318,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
  
--	if (MAX_IRCTL_DEVICES <= d->minor) {
-+	if (d->minor >= MAX_IRCTL_DEVICES) {
- 		dev_err(d->dev, "minor must be between 0 and %d!\n",
- 						MAX_IRCTL_DEVICES - 1);
- 		return -EBADRQC;
- 	}
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq <= 0)
+-		return ret;
++		return irq;
  
--	if (1 > d->code_length || (BUFLEN * 8) < d->code_length) {
-+	if (d->code_length < 1 || d->code_length > (BUFLEN * 8)) {
- 		dev_err(d->dev, "code length must be less than %d bits\n",
- 								BUFLEN * 8);
- 		return -EBADRQC;
-@@ -282,7 +282,7 @@ static int lirc_allocate_driver(struct lirc_driver *d)
- 		for (minor = 0; minor < MAX_IRCTL_DEVICES; minor++)
- 			if (!irctls[minor])
- 				break;
--		if (MAX_IRCTL_DEVICES == minor) {
-+		if (minor == MAX_IRCTL_DEVICES) {
- 			dev_err(d->dev, "no free slots for drivers!\n");
- 			err = -ENOMEM;
- 			goto out_lock;
+ 	ret = rvin_dma_probe(vin, irq);
+ 	if (ret)
 -- 
-2.8.1
+2.9.0
 
