@@ -1,49 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f173.google.com ([209.85.192.173]:34658 "EHLO
-	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751112AbcGLRyh (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:56036 "EHLO
+	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753863AbcGSOXL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 13:54:37 -0400
-Date: Tue, 12 Jul 2016 13:54:34 -0400
-From: Tejun Heo <tj@kernel.org>
-To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] zc3xx: Remove deprecated create_singlethread_workqueue
-Message-ID: <20160712175434.GP3190@htj.duckdns.org>
-References: <20160709075229.GA8020@Karyakshetra>
+	Tue, 19 Jul 2016 10:23:11 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2 08/16] [media] rcar-vin: move chip check for pixelformat support
+Date: Tue, 19 Jul 2016 16:20:59 +0200
+Message-Id: <20160719142107.22358-9-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160709075229.GA8020@Karyakshetra>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 09, 2016 at 01:22:29PM +0530, Bhaktipriya Shridhar wrote:
-> The workqueue "work_thread" is involved in updating parameters for
-> transfers. It has a single work item(&sd->work) and hence
-> doesn't require ordering. Also, it is not being used on a memory
-> reclaim path. Hence, the singlethreaded workqueue has been replaced with
-> the use of system_wq.
-> 
-> System workqueues have been able to handle high level of concurrency
-> for a long time now and hence it's not required to have a singlethreaded
-> workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
-> created with create_singlethread_workqueue(), system_wq allows multiple
-> work items to overlap executions even on the same CPU; however, a
-> per-cpu workqueue doesn't have any CPU locality or global ordering
-> guarantee unless the target CPU is explicitly specified and thus the
-> increase of local concurrency shouldn't make any difference.
-> 
-> Work item has been flushed in sd_stop0() to ensure that there are no
-> pending tasks while disconnecting the driver.
-> 
-> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+The check for if the specific pixelformat is supported on the current
+chip should happen in VIDIOC_S_FMT and VIDIOC_TRY_FMT and not when we
+try to setup the hardware for streaming.
 
-Acked-by: Tejun Heo <tj@kernel.org>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 8 +++-----
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 5 +++++
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-Thanks.
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 0836b15..7249c4f 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -225,11 +225,9 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		dmr = 0;
+ 		break;
+ 	case V4L2_PIX_FMT_XBGR32:
+-		if (vin->chip == RCAR_GEN2 || vin->chip == RCAR_H1) {
+-			dmr = VNDMR_EXRGB;
+-			break;
+-		}
+-		/* fall through */
++		/* Note: not supported on M1 */
++		dmr = VNDMR_EXRGB;
++		break;
+ 	default:
+ 		vin_err(vin, "Invalid pixelformat (0x%x)\n",
+ 			vin->format.pixelformat);
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 09df396..ef3464d 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -192,6 +192,11 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	pix->sizeimage = max_t(u32, pix->sizeimage,
+ 			       rvin_format_sizeimage(pix));
+ 
++	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
++		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
++		return -EINVAL;
++	}
++
+ 	vin_dbg(vin, "Requested %ux%u Got %ux%u bpl: %d size: %d\n",
+ 		rwidth, rheight, pix->width, pix->height,
+ 		pix->bytesperline, pix->sizeimage);
 -- 
-tejun
+2.9.0
+
