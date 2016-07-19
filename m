@@ -1,125 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41676 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751739AbcGFCuv (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:34235 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753495AbcGSP5L (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Jul 2016 22:50:51 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 3346B18045B
-	for <linux-media@vger.kernel.org>; Wed,  6 Jul 2016 04:50:45 +0200 (CEST)
-Date: Wed, 06 Jul 2016 04:50:45 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160706025045.3346B18045B@tschai.lan>
+	Tue, 19 Jul 2016 11:57:11 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [RFC 7/7] [media] rc: add support for IR LEDs driven through SPI
+Date: Wed, 20 Jul 2016 00:56:58 +0900
+Message-id: <1468943818-26025-8-git-send-email-andi.shyti@samsung.com>
+In-reply-to: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
+References: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The ir-spi is a simple device driver which supports the
+connection between an IR LED and the MOSI line of an SPI device.
 
-Results of the daily build of media_tree:
+The driver, indeed, uses the SPI framework to stream the raw data
+provided by userspace through a character device. The chardev is
+handled by the LIRC framework and its functionality basically
+provides:
 
-date:		Wed Jul  6 04:00:17 CEST 2016
-git branch:	test
-git hash:	d81295d1bed850335f9f4ccb6b1aa4f6a123d4f0
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+ - raw write: data to be sent to the SPI and then streamed to the
+   MOSI line;
+ - set frequency: sets the frequency whith which the data should
+   be sent;
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mtk: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+The character device is created under /dev/lircX name, where X is
+and ID assigned by the LIRC framework.
 
-Detailed results are available here:
+Example of usage:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+        fd = open("/dev/lirc0", O_RDWR);
+        if (fd < 0)
+                return -1;
 
-Full logs are available here:
+        val = 608000;
+        ret = ioctl(fd, LIRC_SET_SEND_CARRIER, &val);
+        if (ret < 0)
+                return -1;
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+        n = write(fd, buffer, BUF_LEN);
+        if (n < 0 || n != BUF_LEN)
+                ret = -1;
 
-The Media Infrastructure API from this daily build is here:
+        close(fd);
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+---
+ drivers/media/rc/Kconfig  |   9 ++++
+ drivers/media/rc/Makefile |   1 +
+ drivers/media/rc/ir-spi.c | 133 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 143 insertions(+)
+ create mode 100644 drivers/media/rc/ir-spi.c
+
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index bd4d685..dacaa29 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -261,6 +261,15 @@ config IR_REDRAT3
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called redrat3.
+ 
++config IR_SPI
++	tristate "SPI connected IR LED"
++	depends on SPI && LIRC
++	---help---
++	  Say Y if you want to use an IR LED connected through SPI bus.
++
++	  To compile this driver as a module, choose M here: the module will be
++	  called ir-spi.
++
+ config IR_STREAMZAP
+ 	tristate "Streamzap PC Remote IR Receiver"
+ 	depends on USB_ARCH_HAS_HCD
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 379a5c0..1417c8d 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -27,6 +27,7 @@ obj-$(CONFIG_IR_NUVOTON) += nuvoton-cir.o
+ obj-$(CONFIG_IR_ENE) += ene_ir.o
+ obj-$(CONFIG_IR_REDRAT3) += redrat3.o
+ obj-$(CONFIG_IR_RX51) += ir-rx51.o
++obj-$(CONFIG_IR_SPI) += ir-spi.o
+ obj-$(CONFIG_IR_STREAMZAP) += streamzap.o
+ obj-$(CONFIG_IR_WINBOND_CIR) += winbond-cir.o
+ obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
+diff --git a/drivers/media/rc/ir-spi.c b/drivers/media/rc/ir-spi.c
+new file mode 100644
+index 0000000..7b6f344
+--- /dev/null
++++ b/drivers/media/rc/ir-spi.c
+@@ -0,0 +1,133 @@
++/*
++ * Copyright (c) 2016 Samsung Electronics Co., Ltd.
++ * Author: Andi Shyti <andi.shyti@samsung.it>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * SPI driven IR LED device driver
++ */
++
++#include <linux/fs.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/of_gpio.h>
++#include <linux/regulator/consumer.h>
++#include <linux/spi/spi.h>
++#include <media/rc-core.h>
++
++#define IR_SPI_DRIVER_NAME		"ir-spi"
++
++#define IR_SPI_DEFAULT_FREQUENCY	38000
++#define IR_SPI_BIT_PER_WORD		    8
++
++struct ir_spi_data {
++	struct rc_dev *rc;
++	struct spi_device *spi;
++	struct spi_transfer xfer;
++	struct mutex mutex;
++	struct regulator *regulator;
++};
++
++static int ir_spi_tx(struct rc_dev *dev, unsigned *buffer, unsigned n)
++{
++	int ret;
++	struct ir_spi_data *idata = (struct ir_spi_data *) dev->priv;
++
++	ret = regulator_enable(idata->regulator);
++	if (ret)
++		return ret;
++
++	mutex_lock(&idata->mutex);
++	idata->xfer.len = n;
++	idata->xfer.tx_buf = buffer;
++	mutex_unlock(&idata->mutex);
++
++	ret = spi_sync_transfer(idata->spi, &idata->xfer, 1);
++	if (ret)
++		dev_err(&idata->spi->dev, "unable to deliver the signal\n");
++
++	regulator_disable(idata->regulator);
++
++	return ret;
++}
++
++static int ir_spi_set_tx_carrier(struct rc_dev *dev, u32 carrier)
++{
++	struct ir_spi_data *idata = (struct ir_spi_data *) dev->priv;
++
++	if (!carrier)
++		return -EINVAL;
++
++	mutex_lock(&idata->mutex);
++	idata->xfer.speed_hz = carrier;
++	mutex_unlock(&idata->mutex);
++
++	return 0;
++}
++
++static int ir_spi_probe(struct spi_device *spi)
++{
++	int ret;
++	struct ir_spi_data *idata;
++
++	idata = devm_kzalloc(&spi->dev, sizeof(*idata), GFP_KERNEL);
++	if (!idata)
++		return -ENOMEM;
++
++	idata->regulator = devm_regulator_get(&spi->dev, "irda_regulator");
++	if (IS_ERR(idata->regulator))
++		return PTR_ERR(idata->regulator);
++
++	idata->rc = rc_allocate_device(RC_DRIVER_IR_RAW_TX);
++	if (!idata->rc)
++		return -ENOMEM;
++
++	idata->rc->s_tx_carrier = ir_spi_set_tx_carrier;
++	idata->rc->tx_ir = ir_spi_tx;
++	idata->rc->driver_name = IR_SPI_DRIVER_NAME;
++	idata->rc->priv = idata;
++
++        ret = rc_register_device(idata->rc);
++	if (ret)
++		return ret;
++
++	mutex_init(&idata->mutex);
++
++	idata->spi = spi;
++
++	idata->xfer.bits_per_word = IR_SPI_BIT_PER_WORD;
++	idata->xfer.speed_hz = IR_SPI_DEFAULT_FREQUENCY;
++
++	return 0;
++}
++
++static int ir_spi_remove(struct spi_device *spi)
++{
++	struct ir_spi_data *idata = spi_get_drvdata(spi);
++
++	rc_unregister_device(idata->rc);
++
++	return 0;
++}
++
++static const struct of_device_id ir_spi_of_match[] = {
++	{ .compatible = "ir-spi" },
++	{},
++};
++
++static struct spi_driver ir_spi_driver = {
++	.probe = ir_spi_probe,
++	.remove = ir_spi_remove,
++	.driver = {
++		.name = IR_SPI_DRIVER_NAME,
++		.of_match_table = ir_spi_of_match,
++	},
++};
++
++module_spi_driver(ir_spi_driver);
++
++MODULE_AUTHOR("Andi Shyti <andi.shyti@samsung.com>");
++MODULE_DESCRIPTION("SPI IR LED");
++MODULE_LICENSE("GPL v2");
+-- 
+2.8.1
+
