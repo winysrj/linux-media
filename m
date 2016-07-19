@@ -1,41 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:47584 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751929AbcGAIE2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 04:04:28 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Joe Perches <joe@perches.com>, Sean Young <sean@mess.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [PATCH v2 13/15] [media] lirc_dev: extremely trivial comment style fix
-Date: Fri, 01 Jul 2016 17:01:36 +0900
-Message-id: <1467360098-12539-14-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
-References: <1467360098-12539-1-git-send-email-andi.shyti@samsung.com>
+Received: from mout.web.de ([217.72.192.78]:61576 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751587AbcGSTfz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 15:35:55 -0400
+Subject: [PATCH] [media] tw686x: Delete an unnecessary check before the
+ function call "video_unregister_device"
+To: linux-media@vger.kernel.org,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <5307CAA2.8060406@users.sourceforge.net>
+ <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
+ <530A086E.8010901@users.sourceforge.net>
+ <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
+ <530A72AA.3000601@users.sourceforge.net>
+ <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
+ <530B5FB6.6010207@users.sourceforge.net>
+ <alpine.DEB.2.10.1402241710370.2074@hadrien>
+ <530C5E18.1020800@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251014170.2080@hadrien>
+ <530CD2C4.4050903@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251840450.7035@hadrien>
+ <530CF8FF.8080600@users.sourceforge.net>
+ <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
+ <530DD06F.4090703@users.sourceforge.net>
+ <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
+ <5317A59D.4@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <5fa61665-b5c6-4085-e054-b96bc8ef1f87@users.sourceforge.net>
+Date: Tue, 19 Jul 2016 21:35:34 +0200
+MIME-Version: 1.0
+In-Reply-To: <5317A59D.4@users.sourceforge.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
----
- drivers/media/rc/lirc_dev.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 19 Jul 2016 21:24:26 +0200
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 99d1f98..4b3efcf 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -692,7 +692,8 @@ ssize_t lirc_dev_fop_read(struct file *file,
- 			/* According to the read(2) man page, 'written' can be
- 			 * returned as less than 'length', instead of blocking
- 			 * again, returning -EWOULDBLOCK, or returning
--			 * -ERESTARTSYS */
-+			 * -ERESTARTSYS
-+			 */
- 			if (written)
- 				break;
- 			if (file->f_flags & O_NONBLOCK) {
+The video_unregister_device() function tests whether its argument is NULL
+and then returns immediately. Thus the test around the call is not needed.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/pci/tw686x/tw686x-video.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+index cdb16de..4475a9d9 100644
+--- a/drivers/media/pci/tw686x/tw686x-video.c
++++ b/drivers/media/pci/tw686x/tw686x-video.c
+@@ -1093,8 +1093,7 @@ void tw686x_video_free(struct tw686x_dev *dev)
+ 	for (ch = 0; ch < max_channels(dev); ch++) {
+ 		struct tw686x_video_channel *vc = &dev->video_channels[ch];
+ 
+-		if (vc->device)
+-			video_unregister_device(vc->device);
++		video_unregister_device(vc->device);
+ 
+ 		if (dev->dma_ops->free)
+ 			for (pb = 0; pb < 2; pb++)
 -- 
-2.8.1
+2.9.2
 
