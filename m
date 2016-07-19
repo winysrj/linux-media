@@ -1,144 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swift.blarg.de ([78.47.110.205]:33199 "EHLO swift.blarg.de"
+Received: from smtp2.goneo.de ([85.220.129.33]:48564 "EHLO smtp2.goneo.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753198AbcGDMIs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 08:08:48 -0400
-Subject: [PATCH 1/2] drivers/media/dvb-core/en50221: use kref to manage
- struct dvb_ca_private
-From: Max Kellermann <max@duempel.org>
-To: linux-media@vger.kernel.org, shuahkh@osg.samsung.com,
-	mchehab@osg.samsung.com
-Cc: linux-kernel@vger.kernel.org
-Date: Mon, 04 Jul 2016 14:08:45 +0200
-Message-ID: <146763412568.10008.7316707423893692579.stgit@woodpecker.blarg.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	id S1752566AbcGSKAm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 06:00:42 -0400
+Content-Type: text/plain; charset=utf-8
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: Troubles with kernel-doc and RST files
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <20160718085420.314119a8@recife.lan>
+Date: Tue, 19 Jul 2016 12:00:24 +0200
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-doc@vger.kernel.org, Jani Nikula <jani.nikula@intel.com>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <F6675307-05E6-4101-92E9-69BC0232A939@darmarit.de>
+References: <20160717100154.64823d99@recife.lan> <20160717203719.6471fe03@lwn.net> <20160718085420.314119a8@recife.lan>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Don't free the object until the file handle has been closed.  Fixes
-use-after-free bug which occurs when I disconnect my DVB-S received
-while VDR is running.
 
-This is a crash dump of such a use-after-free:
+Am 18.07.2016 um 13:54 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
 
-    general protection fault: 0000 [#1] SMP
-    CPU: 0 PID: 2541 Comm: CI adapter on d Not tainted 4.7.0-rc1-hosting+ #49
-    Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
-    task: ffff880027d7ce00 ti: ffff88003d8f8000 task.ti: ffff88003d8f8000
-    RIP: 0010:[<ffffffff812f3d1f>]  [<ffffffff812f3d1f>] dvb_ca_en50221_io_read_condition.isra.7+0x6f/0x150
-    RSP: 0018:ffff88003d8fba98  EFLAGS: 00010206
-    RAX: 0000000059534255 RBX: 000000753d470f90 RCX: ffff88003c74d181
-    RDX: 00000001bea04ba9 RSI: ffff88003d8fbaf4 RDI: 3a3030a56d763fc0
-    RBP: ffff88003d8fbae0 R08: ffff88003c74d180 R09: 0000000000000000
-    R10: 0000000000000001 R11: 0000000000000000 R12: ffff88003c480e00
-    R13: 00000000ffffffff R14: 0000000059534255 R15: 0000000000000000
-    FS:  00007fb4209b4700(0000) GS:ffff88003fc00000(0000) knlGS:0000000000000000
-    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-    CR2: 00007f06445f4078 CR3: 000000003c55b000 CR4: 00000000000006b0
-    Stack:
-     ffff88003d8fbaf4 000000003c2170c0 0000000000004000 0000000000000000
-     ffff88003c480e00 ffff88003d8fbc80 ffff88003c74d180 ffff88003d8fbb8c
-     0000000000000000 ffff88003d8fbb10 ffffffff812f3e37 ffff88003d8fbb00
-    Call Trace:
-     [<ffffffff812f3e37>] dvb_ca_en50221_io_poll+0x37/0xa0
-     [<ffffffff8113109b>] do_sys_poll+0x2db/0x520
+> Em Sun, 17 Jul 2016 20:37:19 -0600
+> Jonathan Corbet <corbet@lwn.net> escreveu:
+> 
+>> [Back home and trying to get going on stuff for real.  I'll look at the
+>> issues listed in this message one at a time.]
+>> 
+>> On Sun, 17 Jul 2016 10:01:54 -0300
+>> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+>> 
+>>> 1) We now need to include each header file with documentation twice,
+>>> one to get the enums, structs, typedefs, ... and another one for the
+>>> functions:
+>>> 
+>>> 	.. kernel-doc:: include/media/media-device.h
+>>> 
+>>> 	.. kernel-doc:: include/media/media-entity.h
+>>> 	   :export: drivers/media/media-entity.c  
+>> 
+>> So I'm a little confused here; you're including from two different header
+>> files here.  Did you want media-entity.h in both directives?
+> 
+> Yeah, on my patch I was including every header twice. The first
+> one to get the structs:
+> 
+> .. kernel-doc:: include/media/media-device.h
+> 
+> .. kernel-doc:: include/media/media-devnode.h
+> 
+> .. kernel-doc:: include/media/media-entity.h
+> 
+> And the next one to get the functions:
+> 
+> .. kernel-doc:: include/media/media-device.h
+>   :export: drivers/media/media-device.c
+> 
+> .. kernel-doc:: include/media/media-entity.h
+>   :export: drivers/media/media-entity.c
+> 
+> 
+>> If I do a simple test with a single line:
+>> 
+>> 	.. kernel-doc:: include/media/media-entity.h
+>> 
+>> I get everything - structs, functions, etc. - as I would expect.  Are you
+>> seeing something different?
+> 
+> Weird, now it worked... I noticed this issue because some of the cross
+> references were broken if I didn't include everything twice, but it
+> seems that including just one time is enough. Not sure what happened
+> when I tested it.
+> 
+>> It probably would be nice to have an option for "data structures, doc
+>> sections, and exported functions only" at some point.
+> 
+> Yeah. Well, actually, I ended by moving the doc sections from the
+> headers, adding them as a separate rst file. This way, I don't have
+> to workaround on some parsing issues that might happen with kernel-doc
+> parsing. Also, IMHO, it makes easier to edit and keep it organized.
 
-This is a backtrace of the kernel attempting to lock a freed mutex:
+To have an option for "data structures etc." would be nice, but first
+we should concentrate on the reST produced by kernel-doc and therefor
+it is recommended to elaborate what we need to build man pages.
+The man pages request will reveal what need e.g:
 
-    #0  0xffffffff81083d40 in rep_nop () at ./arch/x86/include/asm/processor.h:569
-    #1  cpu_relax () at ./arch/x86/include/asm/processor.h:574
-    #2  virt_spin_lock (lock=<optimized out>) at ./arch/x86/include/asm/qspinlock.h:57
-    #3  native_queued_spin_lock_slowpath (lock=0xffff88003c480e90, val=761492029) at kernel/locking/qspinlock.c:304
-    #4  0xffffffff810d1a06 in pv_queued_spin_lock_slowpath (val=<optimized out>, lock=<optimized out>) at ./arch/x86/include/asm/paravirt.h:669
-    #5  queued_spin_lock_slowpath (val=<optimized out>, lock=<optimized out>) at ./arch/x86/include/asm/qspinlock.h:28
-    #6  queued_spin_lock (lock=<optimized out>) at include/asm-generic/qspinlock.h:107
-    #7  __mutex_lock_common (use_ww_ctx=<optimized out>, ww_ctx=<optimized out>, ip=<optimized out>, nest_lock=<optimized out>, subclass=<optimized out>,
-        state=<optimized out>, lock=<optimized out>) at kernel/locking/mutex.c:526
-    #8  mutex_lock_interruptible_nested (lock=0xffff88003c480e88, subclass=<optimized out>) at kernel/locking/mutex.c:647
-    #9  0xffffffff812f49fe in dvb_ca_en50221_io_do_ioctl (file=<optimized out>, cmd=761492029, parg=0x1 <irq_stack_union+1>)
-        at drivers/media/dvb-core/dvb_ca_en50221.c:1210
-    #10 0xffffffff812ee660 in dvb_usercopy (file=<optimized out>, cmd=761492029, arg=<optimized out>, func=<optimized out>) at drivers/media/dvb-core/dvbdev.c:883
-    #11 0xffffffff812f3410 in dvb_ca_en50221_io_ioctl (file=<optimized out>, cmd=<optimized out>, arg=<optimized out>) at drivers/media/dvb-core/dvb_ca_en50221.c:1284
-    #12 0xffffffff8112eddd in vfs_ioctl (arg=<optimized out>, cmd=<optimized out>, filp=<optimized out>) at fs/ioctl.c:43
-    #13 do_vfs_ioctl (filp=0xffff88003c480e90, fd=<optimized out>, cmd=<optimized out>, arg=<optimized out>) at fs/ioctl.c:674
-    #14 0xffffffff8112f30c in SYSC_ioctl (arg=<optimized out>, cmd=<optimized out>, fd=<optimized out>) at fs/ioctl.c:689
-    #15 SyS_ioctl (fd=6, cmd=2148298626, arg=140734533693696) at fs/ioctl.c:680
-    #16 0xffffffff8103feb2 in entry_SYSCALL_64 () at arch/x86/entry/entry_64.S:207
+* using the cpp domain to handle more then one e.g. "ioctl" declaration
+* structured markup with headers
+* quoting pointers
+* ...
 
-Signed-off-by: Max Kellermann <max@duempel.org>
----
- drivers/media/dvb-core/dvb_ca_en50221.c |   24 +++++++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
+IMHO yet, the main drawback of the current kernel-doc parser is, that
+there are no header structures in the reST markup. E.g. the example
+from Mauro (see below) is one big HTML page with no chapters and sections,
+thats why there are no links generated in the left navigation bar.
 
-diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-index b1e3a26..b5b5b19 100644
---- a/drivers/media/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-@@ -123,6 +123,7 @@ struct dvb_ca_slot {
- 
- /* Private CA-interface information */
- struct dvb_ca_private {
-+	struct kref refcount;
- 
- 	/* pointer back to the public data structure */
- 	struct dvb_ca_en50221 *pub;
-@@ -173,6 +174,22 @@ static void dvb_ca_private_free(struct dvb_ca_private *ca)
- 	kfree(ca);
- }
- 
-+static void dvb_ca_private_release(struct kref *ref)
-+{
-+	struct dvb_ca_private *ca = container_of(ref, struct dvb_ca_private, refcount);
-+	dvb_ca_private_free(ca);
-+}
-+
-+static void dvb_ca_private_get(struct dvb_ca_private *ca)
-+{
-+	kref_get(&ca->refcount);
-+}
-+
-+static void dvb_ca_private_put(struct dvb_ca_private *ca)
-+{
-+	kref_put(&ca->refcount, dvb_ca_private_release);
-+}
-+
- static void dvb_ca_en50221_thread_wakeup(struct dvb_ca_private *ca);
- static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot, u8 * ebuf, int ecount);
- static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot, u8 * ebuf, int ecount);
-@@ -1570,6 +1587,8 @@ static int dvb_ca_en50221_io_open(struct inode *inode, struct file *file)
- 	dvb_ca_en50221_thread_update_delay(ca);
- 	dvb_ca_en50221_thread_wakeup(ca);
- 
-+	dvb_ca_private_get(ca);
-+
- 	return 0;
- }
- 
-@@ -1598,6 +1617,8 @@ static int dvb_ca_en50221_io_release(struct inode *inode, struct file *file)
- 
- 	module_put(ca->pub->owner);
- 
-+	dvb_ca_private_put(ca);
-+
- 	return err;
- }
- 
-@@ -1693,6 +1714,7 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
- 		ret = -ENOMEM;
- 		goto exit;
- 	}
-+	kref_init(&ca->refcount);
- 	ca->pub = pubca;
- 	ca->flags = flags;
- 	ca->slot_count = slot_count;
-@@ -1772,6 +1794,6 @@ void dvb_ca_en50221_release(struct dvb_ca_en50221 *pubca)
- 	for (i = 0; i < ca->slot_count; i++) {
- 		dvb_ca_en50221_slot_shutdown(ca, i);
- 	}
--	dvb_ca_private_free(ca);
-+	dvb_ca_private_put(ca);
- 	pubca->private = NULL;
- }
+These -- and the other request we discussed -- could be done with the
+kernel-doc perl script, but we will see that it becomes harder
+and harder to force it through a pipe communication.
+
+I wrote a python version of the parser with an API which could cover all
+theses and future aspects less complicated and more straight forward.
+I tested this parser by building a complete source tree of documentation:
+
+  http://return42.github.io/sphkerneldoc/linux_src_doc/index.html
+
+and all books (aka DocBooks)
+
+  http://return42.github.io/sphkerneldoc/#references-to-books
+
+I recommend to consider to switch to the python version of the parser.
+I know, that there is a natural shyness about a reimplementation in python
+and thats why I offer to support it for a long time period .. it would
+be a joy for me ;-)
+
+If you interested in, I could send a RFC patch for this, if not please
+give the reasons why not.
+
+
+> Yet, still it could be interesting to be able of putting data structs
+> on a separate page than the functions. One of the (minor) issues.
+> What I'm noticing now is that some HTML pages are becoming too big,
+> as Sphinx is associating one output page per one input page.
+
+Yes, that is right. Changing this 1:1 associations could be done 
+by feature the kernel-doc directive. But a can't recommend this, since
+this breaks some basic rules sphinx implementations expect.
+
+I recommend to split the kernel-doc directives into separate rst-files.
+
+Over all: IMHO "Explicit is better than implicit." ... its is better to
+name each function, struct etc. e.g: 
+
+.. kernel-doc:: include/media/tuner.h
+    :functions: tuner_mode
+
+Being explicit gives the parser the chance to log errors if a
+declaration not or no longer exists.
+
+Yes, I know there are use cases which will be covered better
+by being implicit ... the decision is left to the author.
+
+
+> It means that, for something like the V4L2 core:
+> 
+> Video2Linux devices
+> -------------------
+> 
+> .. kernel-doc:: include/media/tuner.h
+> 
+> .. kernel-doc:: include/media/tuner-types.h
+> 
+> .. kernel-doc:: include/media/tveeprom.h
+> 
+> .. kernel-doc:: include/media/v4l2-async.h
+> 
+> .. kernel-doc:: include/media/v4l2-ctrls.h
+> 
+> .. kernel-doc:: include/media/v4l2-dv-timings.h
+> 
+> .. kernel-doc:: include/media/v4l2-event.h
+> 
+> .. kernel-doc:: include/media/v4l2-flash-led-class.h
+> 
+> .. kernel-doc:: include/media/v4l2-mc.h
+> 
+> .. kernel-doc:: include/media/v4l2-mediabus.h
+> 
+> .. kernel-doc:: include/media/v4l2-mem2mem.h
+> 
+> .. kernel-doc:: include/media/v4l2-of.h
+> 
+> .. kernel-doc:: include/media/v4l2-rect.h
+> 
+> .. kernel-doc:: include/media/v4l2-subdev.h
+> 
+> .. kernel-doc:: include/media/videobuf2-core.h
+> 
+> .. kernel-doc:: include/media/videobuf2-v4l2.h
+> 
+> .. kernel-doc:: include/media/videobuf2-memops.h
+> 
+> It produces a 337.4KB document with 3739 lines:
+> 
+>  3739  24703 337487 /devel/v4l/patchwork/Documentation/output/html/media/kapi/v4l2-core.html
+> 
+> 
+> Btw, if you want to see how the media conversion to ReST is going,
+> I have it altogether at:
+> 	https://linuxtv.org/downloads/v4l-dvb-apis-new/index.html
+> 
+> Almost everything is there already, including all documents that
+> were at Documentation/dvb, and almost all that were at
+> Documentation/video4linux/. There are just 30 documents left that I still
+> need to handle, and that requires more care to be ported:
+> 
+> Documentation/video4linux/
+> ├── bttv
+> │   ├── Cards
+> │   ├── CONTRIBUTORS
+> │   ├── ICs
+> │   ├── Insmod-options
+> │   ├── MAKEDEV
+> │   ├── Modprobe.conf
+> │   ├── Modules.conf
+> │   ├── PROBLEMS
+> │   ├── README
+> │   ├── README.freeze
+> │   ├── README.quirks
+> │   ├── README.WINVIEW
+> │   ├── Sound-FAQ
+> │   ├── Specs
+> │   ├── THANKS
+> │   └── Tuners
+> ├── cx2341x
+> │   ├── fw-calling.txt
+> │   ├── fw-decoder-api.txt
+> │   ├── fw-decoder-regs.txt
+> │   ├── fw-dma.txt
+> │   ├── fw-encoder-api.txt
+> │   ├── fw-memory.txt
+> │   ├── fw-osd-api.txt
+> │   ├── fw-upload.txt
+> │   ├── README.hm12
+> │   └── README.vbi
+> ├── cx88
+> │   └── hauppauge-wintv-cx88-ir.txt
+> ├── hauppauge-wintv-cx88-ir.txt
+> ├── lifeview.txt
+> └── not-in-cx2388x-datasheet.txt
+> 
+> 3 directories, 30 files
+> 
+> My plan is to handle those today, likely merging some text files
+> into a few ones.
+> 
+> I still need to do a second round of review on the kAPI book and at the
+> V4L and DVB drivers books, to make them to look more like a single
+> document, and not a "Frankenstein" glue.
+
+:-)
+
+> Some documents are too outdated too. So, their contents need to be
+> adjusted. My plan is to do an extra review on that for 4.9, in
+> order to either update or drop them.
+> 
+> Thanks,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
