@@ -1,125 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:46434 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753628AbcGHCqU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jul 2016 22:46:20 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id D31CC18045B
-	for <linux-media@vger.kernel.org>; Fri,  8 Jul 2016 04:46:14 +0200 (CEST)
-Date: Fri, 08 Jul 2016 04:46:14 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160708024614.D31CC18045B@tschai.lan>
+Received: from arroyo.ext.ti.com ([198.47.19.12]:41982 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751849AbcGSVep (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 17:34:45 -0400
+Date: Tue, 19 Jul 2016 16:34:26 -0500
+From: Bin Liu <b-liu@ti.com>
+To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+CC: <hdegoede@redhat.com>, <linux-media@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>
+Subject: Re: pwc over musb: 100% frame drop (lost) on high resolution stream
+Message-ID: <20160719213426.GB14569@uda0271908>
+References: <1468959677-1768-1-git-send-email-matwey@sai.msu.ru>
+ <20160719205600.GA14569@uda0271908>
+ <CAJs94EY_cXLA6eggC391eKiPBS-RVPmfPd7Wh4mhjZTQiCSUrA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <CAJs94EY_cXLA6eggC391eKiPBS-RVPmfPd7Wh4mhjZTQiCSUrA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+On Wed, Jul 20, 2016 at 12:25:44AM +0300, Matwey V. Kornilov wrote:
+> 2016-07-19 23:56 GMT+03:00 Bin Liu <b-liu@ti.com>:
+> > Hi,
+> >
+> > On Tue, Jul 19, 2016 at 11:21:17PM +0300, matwey@sai.msu.ru wrote:
+> >> Hello,
+> >>
+> >> I have Philips SPC 900 camera (0471:0329) connected to my AM335x based BeagleBoneBlack SBC.
+> >> I am sure that both of them are fine and work properly.
+> >> I am running Linux 4.6.4 (my kernel config is available at https://clck.ru/A2kQs ) and I've just discovered, that there is an issue with frame transfer when high resolution formats are used.
+> >>
+> >> The issue is the following. I use simple v4l2 example tool (taken from API docs), which source code is available at http://pastebin.com/grcNXxfe
+> >>
+> >> When I use (see line 488) 640x480 frames
+> >>
+> >>                 fmt.fmt.pix.width       = 640;
+> >>                 fmt.fmt.pix.height      = 480;
+> >>
+> >> then I get "select timeout" and don't get any frames.
+> >>
+> >> When I use 320x240 frames
+> >>
+> >>                 fmt.fmt.pix.width       = 320;
+> >>                 fmt.fmt.pix.height      = 240;
+> >>
+> >> then about 60% frames are missed. An example outpout of ./a.out -f is available at https://yadi.sk/d/aRka8xWPtSc4y
+> >> It looks like there are pauses between bulks of frames (frame counter and timestamp as returned from v4l2 API):
+> >>
+> >> 3 3705.142553
+> >> 8 3705.342533
+> >> 13 3705.542517
+> >> 110 3708.776208
+> >> 115 3708.976190
+> >> 120 3709.176169
+> >> 125 3709.376152
+> >> 130 3709.576144
+> >> 226 3712.807848
+> >>
+> >> When I use tiny 160x120 frames
+> >>
+> >>                 fmt.fmt.pix.width       = 160;
+> >>                 fmt.fmt.pix.height      = 120;
+> >>
+> >> then more frames are received. See output example at https://yadi.sk/d/DedBmH6ftSc9t
+> >> That is why I thought that everything was fine in May when used tiny xawtv window to check kernel OOPS presence (see http://www.spinics.net/lists/linux-usb/msg141188.html for reference)
+> >>
+> >> Even more. When I introduce USB hub between the host and the webcam, I can not receive even any 320x240 frames.
+> >>
+> >> I've managed to use ftrace to see what is going on when no frames are received.
+> >> I've found that pwc_isoc_handler is called frequently as the following:
+> >>
+> >>  0)               |  pwc_isoc_handler [pwc]() {
+> >>  0)               |    usb_submit_urb [usbcore]() {
+> >>  0)               |      usb_submit_urb.part.3 [usbcore]() {
+> >>  0)               |        usb_hcd_submit_urb [usbcore]() {
+> >>  0)   0.834 us    |          usb_get_urb [usbcore]();
+> >>  0)               |          musb_map_urb_for_dma [musb_hdrc]() {
+> >>  0)   0.792 us    |            usb_hcd_map_urb_for_dma [usbcore]();
+> >>  0)   5.750 us    |          }
+> >>  0)               |          musb_urb_enqueue [musb_hdrc]() {
+> >>  0)   0.750 us    |            _raw_spin_lock_irqsave();
+> >>  0)               |            usb_hcd_link_urb_to_ep [usbcore]() {
+> >>  0)   0.792 us    |              _raw_spin_lock();
+> >>  0)   0.791 us    |              _raw_spin_unlock();
+> >>  0) + 10.500 us   |            }
+> >>  0)   0.791 us    |            _raw_spin_unlock_irqrestore();
+> >>  0) + 25.375 us   |          }
+> >>  0) + 45.208 us   |        }
+> >>  0) + 51.042 us   |      }
+> >>  0) + 56.084 us   |    }
+> >>  0) + 61.292 us   |  }
+> >>
+> >> However, pwc_isoc_handler never calls vb2_buffer_done() that is why I get "select timeout" in userspace.
+> >> Unfortunately, my kernel is not compiled with CONFIG_USB_PWC_DEBUG=y but I can recompile it, if you think that it could provide more information. I am also ready to perform additional tests (use usbmon maybe?).
+> >>
+> >> How could this issue be resolved?
+> >>
+> >> Thank you.
+> >
+> > Do you have CPPI DMA enabled? If so I think you might hit on a known
+> > issue in CPPI Isoch transfer, in which the MUSB controller only sends IN
+> > tokens in every other SOF, so only half of the bus bandwidth is
+> > utilized, which causes video frame drops in higher resolution.
+> >
+> 
+> Yes, I do use DMA:
+> 
+> CONFIG_USB_TI_CPPI41_DMA=y
 
-date:		Fri Jul  8 04:00:16 CEST 2016
-git branch:	test
-git hash:	d81295d1bed850335f9f4ccb6b1aa4f6a123d4f0
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+Okay.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mtk: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+> 
+> > To confirm this, use a bus analyzer to capture a bus trace, you would
+> > see no IN tokens in every other SOF while transfering Isoch packets.
+> >
+> 
+> I am sorry, I am new to USB debugging. Do you mean I need to use
+> usbmon or some external hardware device?
 
-Detailed results are available here:
+I barely use usbmon, and not sure if it gives the information I am
+looking for. But I meant the external test equipment - USB bus protocol
+analyzer - a bus packet sniffer.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Regards,
+-Bin,
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> 
+> > Regards,
+> > -Bin.
+> >
+> 
+> 
+> 
+> -- 
+> With best regards,
+> Matwey V. Kornilov.
+> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
