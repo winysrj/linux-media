@@ -1,292 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:40371 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933453AbcGJQel (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2016 12:34:41 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Chris Dodge <chris@redrat.co.uk>, linux-media@vger.kernel.org
-Subject: [PATCH 5/5] [media] redrat3: add sysfs attributes for hardware specific options
-Date: Sun, 10 Jul 2016 17:34:39 +0100
-Message-Id: <1468168479-27543-3-git-send-email-sean@mess.org>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:34062 "EHLO
+	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751036AbcGSV0H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 17:26:07 -0400
+MIME-Version: 1.0
+In-Reply-To: <20160719205600.GA14569@uda0271908>
+References: <1468959677-1768-1-git-send-email-matwey@sai.msu.ru> <20160719205600.GA14569@uda0271908>
+From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+Date: Wed, 20 Jul 2016 00:25:44 +0300
+Message-ID: <CAJs94EY_cXLA6eggC391eKiPBS-RVPmfPd7Wh4mhjZTQiCSUrA@mail.gmail.com>
+Subject: Re: pwc over musb: 100% frame drop (lost) on high resolution stream
+To: Bin Liu <b-liu@ti.com>, "Matwey V. Kornilov" <matwey@sai.msu.ru>,
+	hdegoede@redhat.com, linux-media@vger.kernel.org,
+	linux-usb@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- Documentation/ABI/testing/sysfs-class-rc-redrat3 |  33 ++++
- drivers/media/rc/redrat3.c                       | 200 +++++++++++++++++++++++
- 2 files changed, 233 insertions(+)
- create mode 100644 Documentation/ABI/testing/sysfs-class-rc-redrat3
+2016-07-19 23:56 GMT+03:00 Bin Liu <b-liu@ti.com>:
+> Hi,
+>
+> On Tue, Jul 19, 2016 at 11:21:17PM +0300, matwey@sai.msu.ru wrote:
+>> Hello,
+>>
+>> I have Philips SPC 900 camera (0471:0329) connected to my AM335x based BeagleBoneBlack SBC.
+>> I am sure that both of them are fine and work properly.
+>> I am running Linux 4.6.4 (my kernel config is available at https://clck.ru/A2kQs ) and I've just discovered, that there is an issue with frame transfer when high resolution formats are used.
+>>
+>> The issue is the following. I use simple v4l2 example tool (taken from API docs), which source code is available at http://pastebin.com/grcNXxfe
+>>
+>> When I use (see line 488) 640x480 frames
+>>
+>>                 fmt.fmt.pix.width       = 640;
+>>                 fmt.fmt.pix.height      = 480;
+>>
+>> then I get "select timeout" and don't get any frames.
+>>
+>> When I use 320x240 frames
+>>
+>>                 fmt.fmt.pix.width       = 320;
+>>                 fmt.fmt.pix.height      = 240;
+>>
+>> then about 60% frames are missed. An example outpout of ./a.out -f is available at https://yadi.sk/d/aRka8xWPtSc4y
+>> It looks like there are pauses between bulks of frames (frame counter and timestamp as returned from v4l2 API):
+>>
+>> 3 3705.142553
+>> 8 3705.342533
+>> 13 3705.542517
+>> 110 3708.776208
+>> 115 3708.976190
+>> 120 3709.176169
+>> 125 3709.376152
+>> 130 3709.576144
+>> 226 3712.807848
+>>
+>> When I use tiny 160x120 frames
+>>
+>>                 fmt.fmt.pix.width       = 160;
+>>                 fmt.fmt.pix.height      = 120;
+>>
+>> then more frames are received. See output example at https://yadi.sk/d/DedBmH6ftSc9t
+>> That is why I thought that everything was fine in May when used tiny xawtv window to check kernel OOPS presence (see http://www.spinics.net/lists/linux-usb/msg141188.html for reference)
+>>
+>> Even more. When I introduce USB hub between the host and the webcam, I can not receive even any 320x240 frames.
+>>
+>> I've managed to use ftrace to see what is going on when no frames are received.
+>> I've found that pwc_isoc_handler is called frequently as the following:
+>>
+>>  0)               |  pwc_isoc_handler [pwc]() {
+>>  0)               |    usb_submit_urb [usbcore]() {
+>>  0)               |      usb_submit_urb.part.3 [usbcore]() {
+>>  0)               |        usb_hcd_submit_urb [usbcore]() {
+>>  0)   0.834 us    |          usb_get_urb [usbcore]();
+>>  0)               |          musb_map_urb_for_dma [musb_hdrc]() {
+>>  0)   0.792 us    |            usb_hcd_map_urb_for_dma [usbcore]();
+>>  0)   5.750 us    |          }
+>>  0)               |          musb_urb_enqueue [musb_hdrc]() {
+>>  0)   0.750 us    |            _raw_spin_lock_irqsave();
+>>  0)               |            usb_hcd_link_urb_to_ep [usbcore]() {
+>>  0)   0.792 us    |              _raw_spin_lock();
+>>  0)   0.791 us    |              _raw_spin_unlock();
+>>  0) + 10.500 us   |            }
+>>  0)   0.791 us    |            _raw_spin_unlock_irqrestore();
+>>  0) + 25.375 us   |          }
+>>  0) + 45.208 us   |        }
+>>  0) + 51.042 us   |      }
+>>  0) + 56.084 us   |    }
+>>  0) + 61.292 us   |  }
+>>
+>> However, pwc_isoc_handler never calls vb2_buffer_done() that is why I get "select timeout" in userspace.
+>> Unfortunately, my kernel is not compiled with CONFIG_USB_PWC_DEBUG=y but I can recompile it, if you think that it could provide more information. I am also ready to perform additional tests (use usbmon maybe?).
+>>
+>> How could this issue be resolved?
+>>
+>> Thank you.
+>
+> Do you have CPPI DMA enabled? If so I think you might hit on a known
+> issue in CPPI Isoch transfer, in which the MUSB controller only sends IN
+> tokens in every other SOF, so only half of the bus bandwidth is
+> utilized, which causes video frame drops in higher resolution.
+>
 
-diff --git a/Documentation/ABI/testing/sysfs-class-rc-redrat3 b/Documentation/ABI/testing/sysfs-class-rc-redrat3
-new file mode 100644
-index 0000000..33a24fa
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-class-rc-redrat3
-@@ -0,0 +1,33 @@
-+What:		/sys/class/rc/rcN/length_fuzz
-+Date:		Jul 2016
-+KernelVersion:	4.8
-+Contact:	Mauro Carvalho Chehab <m.chehab@samsung.com>
-+Description:
-+		The redrat3 encodes an IR signal as set of different lengths
-+		and a set of indices into those lengths. Writing this file
-+		sets how much two lengths must differ before they are
-+		considered distinct, the value is specified in microseconds.
-+		Default 5, value 0 to 127.
-+
-+What:		/sys/class/rc/rcN/min_pause
-+Date:		Jul 2016
-+KernelVersion:	4.8
-+Contact:	Mauro Carvalho Chehab <m.chehab@samsung.com>
-+Description:
-+		When receiving a continuous ir stream (for example when a user
-+		is holding a button down on a remote), this specifies the
-+		minimum size of a space when the redrat3 sends a irdata packet
-+		to the host. Specified in miliseconds. Default value 18ms.
-+		The value can be between 2 and 30 inclusive.
-+
-+What:		/sys/class/rc/rcN/periods_measure_carrier
-+Date:		Jul 2016
-+KernelVersion:	4.8
-+Contact:	Mauro Carvalho Chehab <m.chehab@samsung.com>
-+Description:
-+		The carrier frequency is measured during the first pulse of
-+		the IR signal. The larger the number of periods used To
-+		measure, the more accurate the result is likely to be, however
-+		some signals have short initial pulses, so in some case it
-+		may be necessary for applications to reduce this value.
-+		Default 8, value 1 to 255.
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 399f44d..8365547 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -860,6 +860,195 @@ static void redrat3_led_complete(struct urb *urb)
- 	atomic_dec(&rr3->flash);
- }
- 
-+static ssize_t min_pause_store(struct device *dev,
-+				 struct device_attribute *attr,
-+				 const char *buf, size_t len)
-+{
-+	struct rc_dev *rc_dev = to_rc_dev(dev);
-+	struct redrat3_dev *rr3 = rc_dev->priv;
-+	struct usb_device *udev = rr3->udev;
-+	long value;
-+	u8 *pause;
-+	int rc;
-+
-+	rc = kstrtol(buf, 0, &value);
-+	if (rc)
-+		return rc;
-+
-+	if (value < 2 || value > 30)
-+		return -EINVAL;
-+
-+	pause = kmalloc(sizeof(*pause), GFP_KERNEL);
-+	if (!pause)
-+		return -ENOMEM;
-+
-+	*pause = (65536 - (value * 2000)) / 256;
-+	rc = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), RR3_SET_IR_PARAM,
-+		     USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
-+		     RR3_IR_IO_MIN_PAUSE, 0, pause, sizeof(*pause), HZ * 25);
-+	dev_dbg(dev, "set ir parm min pause %d rc 0x%02x\n", *pause, rc);
-+	if (rc == sizeof(*pause))
-+		rc = len;
-+
-+	kfree(pause);
-+
-+	return rc;
-+}
-+
-+static ssize_t min_pause_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct rc_dev *rc_dev = to_rc_dev(dev);
-+	struct redrat3_dev *rr3 = rc_dev->priv;
-+	struct usb_device *udev = rr3->udev;
-+	int rc;
-+	u8 *pause;
-+
-+	pause = kmalloc(sizeof(*pause), GFP_KERNEL);
-+	if (!pause)
-+		return -ENOMEM;
-+
-+	rc = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0), RR3_GET_IR_PARAM,
-+		     USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
-+		     RR3_IR_IO_MIN_PAUSE, 0, pause, sizeof(*pause), HZ * 25);
-+	dev_dbg(dev, "get ir parm len pause %d rc 0x%02x\n", *pause, rc);
-+	if (rc == sizeof(*pause))
-+		rc = sprintf(buf, "%d\n", (65536 - 256 * *pause) / 2000);
-+
-+	kfree(pause);
-+
-+	return rc;
-+}
-+
-+static ssize_t length_fuzz_store(struct device *dev,
-+				 struct device_attribute *attr,
-+				 const char *buf, size_t len)
-+{
-+	struct rc_dev *rc_dev = to_rc_dev(dev);
-+	struct redrat3_dev *rr3 = rc_dev->priv;
-+	struct usb_device *udev = rr3->udev;
-+	long value;
-+	u8 *fuzz;
-+	int rc;
-+
-+	rc = kstrtol(buf, 0, &value);
-+	if (rc)
-+		return rc;
-+
-+	if (value < 0 || value > 127)
-+		return -EINVAL;
-+
-+	fuzz = kmalloc(sizeof(*fuzz), GFP_KERNEL);
-+	if (!fuzz)
-+		return -ENOMEM;
-+
-+	*fuzz = value * 2;
-+	rc = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), RR3_SET_IR_PARAM,
-+		     USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
-+		     RR3_IR_IO_LENGTH_FUZZ, 0, fuzz, sizeof(*fuzz), HZ * 25);
-+	dev_dbg(dev, "set ir parm len fuzz %d rc 0x%02x\n", *fuzz, rc);
-+	if (rc == sizeof(*fuzz))
-+		rc = len;
-+
-+	kfree(fuzz);
-+
-+	return rc;
-+}
-+
-+static ssize_t length_fuzz_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct rc_dev *rc_dev = to_rc_dev(dev);
-+	struct redrat3_dev *rr3 = rc_dev->priv;
-+	struct usb_device *udev = rr3->udev;
-+	int rc;
-+	u8 *fuzz;
-+
-+	fuzz = kmalloc(sizeof(*fuzz), GFP_KERNEL);
-+	if (!fuzz)
-+		return -ENOMEM;
-+
-+	rc = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0), RR3_GET_IR_PARAM,
-+		     USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
-+		     RR3_IR_IO_LENGTH_FUZZ, 0, fuzz, sizeof(*fuzz), HZ * 25);
-+	dev_dbg(dev, "get ir parm len fuzz %d rc 0x%02x\n", *fuzz, rc);
-+	if (rc == sizeof(*fuzz))
-+		rc = sprintf(buf, "%d\n", *fuzz / 2);
-+
-+	kfree(fuzz);
-+
-+	return rc;
-+}
-+
-+static ssize_t periods_measure_carrier_store(struct device *dev,
-+				 struct device_attribute *attr,
-+				 const char *buf, size_t len)
-+{
-+	struct rc_dev *rc_dev = to_rc_dev(dev);
-+	struct redrat3_dev *rr3 = rc_dev->priv;
-+	struct usb_device *udev = rr3->udev;
-+	long value;
-+	u8 *periods;
-+	int rc;
-+
-+	rc = kstrtol(buf, 0, &value);
-+	if (rc)
-+		return rc;
-+
-+	if (value < 1 || value > 255)
-+		return -EINVAL;
-+
-+	periods = kmalloc(sizeof(*periods), GFP_KERNEL);
-+	if (!periods)
-+		return -ENOMEM;
-+
-+	*periods = value;
-+	rc = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), RR3_SET_IR_PARAM,
-+			     USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
-+			     RR3_IR_IO_LENGTH_FUZZ, 0, periods,
-+			     sizeof(*periods), HZ * 25);
-+	dev_dbg(dev, "set ir parm periods to measure carrier %d rc 0x%02x\n",
-+								*periods, rc);
-+	if (rc == sizeof(*periods))
-+		rc = len;
-+
-+	kfree(periods);
-+
-+	return rc;
-+}
-+
-+static ssize_t periods_measure_carrier_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct rc_dev *rc_dev = to_rc_dev(dev);
-+	struct redrat3_dev *rr3 = rc_dev->priv;
-+	struct usb_device *udev = rr3->udev;
-+	u8 *periods;
-+	int rc;
-+
-+	periods = kmalloc(sizeof(*periods), GFP_KERNEL);
-+	if (!periods)
-+		return -ENOMEM;
-+
-+	rc = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0), RR3_GET_IR_PARAM,
-+			     USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
-+			     RR3_IR_IO_LENGTH_FUZZ, 0, periods,
-+			     sizeof(*periods), HZ * 25);
-+	dev_dbg(dev, "get ir parm periods to measure carrier %d rc 0x%02x\n",
-+								*periods, rc);
-+	if (rc == sizeof(*periods))
-+		rc = sprintf(buf, "%d\n", *periods);
-+
-+	kfree(periods);
-+
-+	return rc;
-+}
-+
-+static struct device_attribute redrat3_attrs[] = {
-+	__ATTR_RW(length_fuzz), __ATTR_RW(min_pause),
-+	__ATTR_RW(periods_measure_carrier)
-+};
-+
- static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
- {
- 	struct device *dev = rr3->dev;
-@@ -1036,6 +1225,13 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 		retval = -ENOMEM;
- 		goto led_free_error;
- 	}
-+	for (i = 0; i < ARRAY_SIZE(redrat3_attrs); i++) {
-+		retval = device_create_file(&rr3->rc->dev, &redrat3_attrs[i]);
-+		if (retval) {
-+			rc_unregister_device(rr3->rc);
-+			goto led_free_error;
-+		}
-+	}
- 
- 	/* we can register the device now, as it is ready */
- 	usb_set_intfdata(intf, rr3);
-@@ -1057,10 +1253,14 @@ static void redrat3_dev_disconnect(struct usb_interface *intf)
- {
- 	struct usb_device *udev = interface_to_usbdev(intf);
- 	struct redrat3_dev *rr3 = usb_get_intfdata(intf);
-+	int i;
- 
- 	if (!rr3)
- 		return;
- 
-+	for (i = 0; i < ARRAY_SIZE(redrat3_attrs); i++)
-+		device_remove_file(&rr3->rc->dev, &redrat3_attrs[i]);
-+
- 	usb_set_intfdata(intf, NULL);
- 	rc_unregister_device(rr3->rc);
- 	led_classdev_unregister(&rr3->led);
+Yes, I do use DMA:
+
+CONFIG_USB_TI_CPPI41_DMA=y
+
+> To confirm this, use a bus analyzer to capture a bus trace, you would
+> see no IN tokens in every other SOF while transfering Isoch packets.
+>
+
+I am sorry, I am new to USB debugging. Do you mean I need to use
+usbmon or some external hardware device?
+
+> Regards,
+> -Bin.
+>
+
+
+
 -- 
-2.7.4
-
+With best regards,
+Matwey V. Kornilov.
+Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
