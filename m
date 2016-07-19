@@ -1,125 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:55321 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751279AbcGLNOJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 09:14:09 -0400
-Date: Tue, 12 Jul 2016 14:14:06 +0100
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 03/20] [media] lirc.h: remove several unused ioctls
-Message-ID: <20160712131406.GB10242@gofer.mess.org>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
- <d55f09abe24b4dfadab246b6f217da547361cdb6.1468327191.git.mchehab@s-opensource.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47027
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752364AbcGSRSv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 13:18:51 -0400
+Date: Tue, 19 Jul 2016 14:18:43 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+	Jani Nikula <jani.nikula@intel.com>,
+	Daniel Vetter <daniel.vetter@intel.com>
+Subject: Re: [PATCH 00/18] Complete moving media documentation to ReST
+ format
+Message-ID: <20160719141843.17bf5a9b@recife.lan>
+In-Reply-To: <99F50AA7-01F0-4659-82F9-558E19B3855A@darmarit.de>
+References: <cover.1468865380.git.mchehab@s-opensource.com>
+	<578DF08F.8080701@xs4all.nl>
+	<20160719081259.482a8c04@recife.lan>
+	<6702C6D4-929F-420D-9CF9-911CA753B0A7@darmarit.de>
+	<20160719115319.316349a7@recife.lan>
+	<99F50AA7-01F0-4659-82F9-558E19B3855A@darmarit.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d55f09abe24b4dfadab246b6f217da547361cdb6.1468327191.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 12, 2016 at 09:41:57AM -0300, Mauro Carvalho Chehab wrote:
-> While reviewing the documentation gaps on LIRC, it was
-> noticed that several ioctls aren't used by any LIRC drivers
-> (nor at staging or mainstream).
+Em Tue, 19 Jul 2016 18:42:50 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
+
+> > What we miss is the documentation for Sphinx 1.2 and 1.3 versions. The
+> > site only has documentation for the very latest version, making harder
+> > to ensure that we're using only the tags supported by a certain version.  
 > 
-> It doesn't make sense to document them, as they're not used
-> anywhere. So, let's remove those from the lirc header.
-
-Good to see these go.
+> We could build the documentation of the (e.g.) 1.2 tag
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  include/uapi/linux/lirc.h | 39 ++-------------------------------------
->  1 file changed, 2 insertions(+), 37 deletions(-)
+>  https://github.com/sphinx-doc/sphinx/tree/1.2
 > 
-> diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
-> index 4b3ab2966b5a..991ab4570b8e 100644
-> --- a/include/uapi/linux/lirc.h
-> +++ b/include/uapi/linux/lirc.h
-> @@ -90,20 +90,11 @@
->  
->  #define LIRC_GET_SEND_MODE             _IOR('i', 0x00000001, __u32)
->  #define LIRC_GET_REC_MODE              _IOR('i', 0x00000002, __u32)
-> -#define LIRC_GET_SEND_CARRIER          _IOR('i', 0x00000003, __u32)
-> -#define LIRC_GET_REC_CARRIER           _IOR('i', 0x00000004, __u32)
-> -#define LIRC_GET_SEND_DUTY_CYCLE       _IOR('i', 0x00000005, __u32)
-> -#define LIRC_GET_REC_DUTY_CYCLE        _IOR('i', 0x00000006, __u32)
->  #define LIRC_GET_REC_RESOLUTION        _IOR('i', 0x00000007, __u32)
->  
->  #define LIRC_GET_MIN_TIMEOUT           _IOR('i', 0x00000008, __u32)
->  #define LIRC_GET_MAX_TIMEOUT           _IOR('i', 0x00000009, __u32)
->  
-> -#define LIRC_GET_MIN_FILTER_PULSE      _IOR('i', 0x0000000a, __u32)
-> -#define LIRC_GET_MAX_FILTER_PULSE      _IOR('i', 0x0000000b, __u32)
-> -#define LIRC_GET_MIN_FILTER_SPACE      _IOR('i', 0x0000000c, __u32)
-> -#define LIRC_GET_MAX_FILTER_SPACE      _IOR('i', 0x0000000d, __u32)
-> -
->  /* code length in bits, currently only for LIRC_MODE_LIRCCODE */
->  #define LIRC_GET_LENGTH                _IOR('i', 0x0000000f, __u32)
->  
-> @@ -113,7 +104,6 @@
->  #define LIRC_SET_SEND_CARRIER          _IOW('i', 0x00000013, __u32)
->  #define LIRC_SET_REC_CARRIER           _IOW('i', 0x00000014, __u32)
->  #define LIRC_SET_SEND_DUTY_CYCLE       _IOW('i', 0x00000015, __u32)
-> -#define LIRC_SET_REC_DUTY_CYCLE        _IOW('i', 0x00000016, __u32)
+> by checkout the tag, cd to "./doc" and run "make html".
+> I haven't tested yet, but it should work this way.
 
-Also remove LIRC_CAN_SET_REC_DUTY_CYCLE and 
-LIRC_CAN_SET_REC_DUTY_CYCLE_RANGE.
+Yep, but this should be placed somewhere and IMHO linked at the
+kernel-documentation book as the reference to be used by Kernel
+documentation developers.
 
->  #define LIRC_SET_TRANSMITTER_MASK      _IOW('i', 0x00000017, __u32)
->  
->  /*
-> @@ -127,42 +117,17 @@
->  #define LIRC_SET_REC_TIMEOUT_REPORTS   _IOW('i', 0x00000019, __u32)
->  
->  /*
-> - * pulses shorter than this are filtered out by hardware (software
-> - * emulation in lirc_dev?)
-> - */
-> -#define LIRC_SET_REC_FILTER_PULSE      _IOW('i', 0x0000001a, __u32)
-> -/*
-> - * spaces shorter than this are filtered out by hardware (software
-> - * emulation in lirc_dev?)
-> - */
-> -#define LIRC_SET_REC_FILTER_SPACE      _IOW('i', 0x0000001b, __u32)
-> -/*
-> - * if filter cannot be set independently for pulse/space, this should
-> - * be used
-> - */
-> -#define LIRC_SET_REC_FILTER            _IOW('i', 0x0000001c, __u32)
+> > Sphinx is very evil with that regards: it keeps generating the
+> > files, except that the contents of the tags that contain unrecognized
+> > fields will be empty (with is very bad for :toctree:) and a few
+> > additional warnings will be generated. Very hard for a script to detect
+> > if the doc was OK or got mangled by the toolchain, because of a version
+> > incompatibility.  
+> 
+> On your build host, you could turn warnings into errors (Daniel posted
+> the -W option)
+> 
+> $ make SPHINXOPTS=-W htmldocs
+> 
+> But this will only be helpfull when the build is free of warnings
+> (and this will be more and more harder as more content is placed
+> into).
 
-Also remove LIRC_CAN_SET_REC_FILTER.
-> -
-> -/*
->   * if enabled from the next key press on the driver will send
->   * LIRC_MODE2_FREQUENCY packets
->   */
->  #define LIRC_SET_MEASURE_CARRIER_MODE	_IOW('i', 0x0000001d, __u32)
->  
->  /*
-> - * to set a range use
-> - * LIRC_SET_REC_DUTY_CYCLE_RANGE/LIRC_SET_REC_CARRIER_RANGE with the
-> - * lower bound first and later
-> - * LIRC_SET_REC_DUTY_CYCLE/LIRC_SET_REC_CARRIER with the upper bound
-> + * to set a range use LIRC_SET_REC_CARRIER_RANGE with the
-> + * lower bound first and later LIRC_SET_REC_CARRIER with the upper bound
->   */
-> -
-> -#define LIRC_SET_REC_DUTY_CYCLE_RANGE  _IOW('i', 0x0000001e, __u32)
->  #define LIRC_SET_REC_CARRIER_RANGE     _IOW('i', 0x0000001f, __u32)
->  
-> -#define LIRC_NOTIFY_DECODE             _IO('i', 0x00000020)
+We're very far away for getting it free of warnings, as I didn't
+find a way yet to get rid of some of them.
 
-Also remove LIRC_CAN_NOTIFY_DECODE.
+Also, as you said, it is harder as more content is placed,
+specially when it comes from other books that we don't maintain.
 
-> -
-> -#define LIRC_SETUP_START               _IO('i', 0x00000021)
-> -#define LIRC_SETUP_END                 _IO('i', 0x00000022)
-> -
->  #define LIRC_SET_WIDEBAND_RECEIVER     _IOW('i', 0x00000023, __u32)
->  
->  #endif
+> 
+> >> IMHO the main problem is, that we have not yet documented on which
+> >> Sphinx version we agree and how to get a build environment which
+> >> fullfills these requirements.  
+> > 
+> > Yes, the Sphinx minimal version should be documented at
+> > Documentation/Changes.
+> > 
+> > I'd say that the minimal version should be the Sphinx version
+> > found on the latest version of the main distributions, e .g.
+> > at least Fedora, openSuse, Debian, Ubuntu.
+> > (I guess distros like ArchLinux and Gentoo won't be a problem,
+> > as they tend to use the newer versions of the sources).
+> > 
+> > On a quick check:
+> > 
+> > - Fedora 24 comes with 1.3.x
+> > - openSuse 13.2 with 1.2.x
+> > - Debian 8.5 with 1.2.x.
+> > - Ubuntu 16.04 with 1.3.x
+> > - Ubuntu 14.04 with 1.2.x
+> > - Mageia 5 with 1.2.x
+> > 
+> > So, I guess we should set the minimal requirement to 1.2.x.
+> > 
+> > Btw, usually, on Kernel, we're very conservative to increment the 
+> > minimal version of a toolchain. So, for example, while GCC current
+> > version is 6.1, the minimal requirement is gcc 3.2 (with was released
+> > in 2003).  
+> 
+> OK, I understand, but I have a differentiated meaning about *pure-kernel*
+> and toolchains to build kernel documentation. I know, that there is a
+> unclear boundary, but IMHO: while the key aspects of *pure-kernel* are stability,
+> backward compatibility etc. they key aspects of building documentation 
+> are more on accessibility in multiple and modern output formats. E.g. there
+> was a discussion if javascript should be needed in HTML, or think about
+> output formats like ePub etc. ... when we want to get in use of all
+> this various, we need to follow up to date developments.
+> 
+> E.g. if we use Sphinx 1.2, we have to test how well it works with the RTD theme
+> we have to cover all the bugs and drawbacks of the old version and we will
+> get problems if we want to use modern builders. We have to write and test
+> our extensions with backward compatibility in mind etc. IMHO building a 
+> toolchain with backward compatibility and fixed errors will take
+> much more time. IMHO we should not try to do what sphinx-doc & Co.
+> wan't do.
+> 
+> Will should also take in mind, that Sphinx-doc is (compared to gcc
+> or DocBook) a upcoming development, it first 1.0 release is from 2010.
+> 
+> Note:
+> 
+>  Previous is my opinion, I'am not a *pure kernel* developer, please
+>  correct if I oversee some of kernel developers needs or problems
+>  raised with kernel development.
 
-Sean
+I guess you missed the point. From my PoV, what I expect by using
+a markup language is that a lot more developers will be able to
+write patches improving the media documentation, as it is easier
+to write a markup text than to write docs for DocBook.
+
+However, this will only happen if the developers would be able
+to test if their documentation changes will be recognized by
+the toolchain.
+
+If we raise the bar and require that every developer working on
+documentation to be a Python expert and install their own virtualenv,
+this will never happen, and even the current contributors won't do it,
+as very few Kernel developers are also Python developers.
+
+> >> For build environments I recommend to set up a python virtualenv
+> >> 
+> >> * https://virtualenv.pypa.io/en/stable/  
+> > 
+> > We can't assume that every Kernel developer would install a
+> > python virtualenv. Instead, they'll just use whatever Sphinx
+> > version is provided on their development machines.
+> >   
+> >> Additional:
+> >> 
+> >> At this time, the make file only checks if sphinx is installed.
+> >> With a small addition to the make file, we could check if all
+> >> requirements are fulfilled. 
+> >> 
+> >> If you are interested in how, I could send a patch.  
+> > 
+> > It is better to have an error than to build the documentation with
+> > errors. Yet, as I said, this doesn't fix the issue, as anyone
+> > can insert a tag that won't be recognized by the official
+> > minimal version. Not sure how to address this.
+> > 
+> > Yet, this doesn't solve the specific issue for the TOC index
+> > name. How this could be done in a way that would be backward
+> > compatible to 1.2.x?  
+> 
+> Ah. OK, sorry ... but in the meantime, you answered yourself ;-)
+> 
+> But take in mind, that your solution:
+> 
+> .. class:: toc-title
+> 
+>    Table of Contents
+> 
+> --- a/Documentation/sphinx-static/theme_overrides.css
+> +++ b/Documentation/sphinx-static/theme_overrides.css
+> @@ -31,6 +31,11 @@
+>     *   - hide the permalink symbol as long as link is not hovered
+>     */
+> 
+> +    .toc-title {
+> +        font-size: 150%;
+> +	font-weight: bold;
+> +    }
+> +
+>    caption, .wy-table caption, .rst-content table.field-list caption {
+>        font-size: 100%;
+>    }
+> 
+> only fits for HTML output.
+
+Hmm... it worked also for epub.
+
+I know that some formats won't do the right thing here, but at least
+it won't break if the book is generated on other formats.
+
+> 
+> As an alternative I recommend to simply add a line "**Table of Contents**"
+> before the toctree, but this might not be perfect, since it does not result
+> in a <h1> tag. If you only want to see the Header in the HTML output, a other
+> alternative is to use the ".. raw::" directive
+> 
+> * http://docutils.sourceforge.net/docs/ref/rst/directives.html#raw-data-pass-through
+> 
+> .. raw:: html
+> 
+>   <h1>Table of Contents</h1>
+> 
+> But over all: IMHO there is no need for a Header "Table of Contents" ;-)
+
+That seems a worse solution. It shouldn't be that hard for a PDF or latex
+converter to do something with a ".. class::" markup, but I guess it would be
+a way harder for them to handle a raw html.
+
+> A bit OT, but I see that you often use tabs / I recommend to use 
+> spaces for indentation:
+> 
+>  http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#whitespace
+
+The Kernel policies are to use tabs instead of spaces, and tabs have
+size of 8. I have some git automation to avoid commit patches with
+bad whitespaces, and some tools to convert spaces into tabs.
+
+
+Thanks,
+Mauro
