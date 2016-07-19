@@ -1,182 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35016 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752296AbcGSJTT (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:56074 "EHLO
+	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753901AbcGSOXP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 05:19:19 -0400
-Subject: Re: [PATCH 00/18] Complete moving media documentation to ReST format
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <cover.1468865380.git.mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <578DF08F.8080701@xs4all.nl>
-Date: Tue, 19 Jul 2016 11:19:11 +0200
+	Tue, 19 Jul 2016 10:23:15 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2 10/16] [media] rcar-vin: move media bus information to struct rvin_graph_entity
+Date: Tue, 19 Jul 2016 16:21:01 +0200
+Message-Id: <20160719142107.22358-11-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/18/16 20:30, Mauro Carvalho Chehab wrote:
-> This patch series finally ends the conversion of the media documents to ReST
-> format.
-> 
-> After this series, *all* media documentation will be inside a ReST book.
-> 
-> They'll be:
-> 
-> - Linux Media Infrastructure userspace API 
->   - With 5 parts:
->     - Video for Linux API
->     - Digital TV API
->     - Remote Controller API
->     - Media Controller API
->     - CEC API
-> -  Media subsystem kernel internal API
-> -  Linux Digital TV driver-specific documentation
-> - Video4Linux (V4L) driver-specific documentation
-> 
-> All those documents are built automatically, once by day, at linuxtv.org:
-> 
-> uAPI:
-> 	https://linuxtv.org/downloads/v4l-dvb-apis-new/media/media_uapi.html
+The primary reason for this change is to prepare for Gen3 support where
+there will be more then one possible video source. Each source will have
+its own media bus format and code, so it needs to be moved from the per
+device structure to a structure used to represent an individual
+connection to a video source.
 
-Erm, there is nothing there, only the top-level menu.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 12 ++++++------
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 10 +++++-----
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  2 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  9 +++++----
+ 4 files changed, 17 insertions(+), 16 deletions(-)
 
-Regards,
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 6934940..fa1fa53 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -31,9 +31,9 @@
+ 
+ #define notifier_to_vin(n) container_of(n, struct rvin_dev, notifier)
+ 
+-static bool rvin_mbus_supported(struct rvin_dev *vin)
++static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
+ {
+-	struct v4l2_subdev *sd = vin->digital.subdev;
++	struct v4l2_subdev *sd = entity->subdev;
+ 	struct v4l2_subdev_mbus_code_enum code = {
+ 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+ 	};
+@@ -47,7 +47,7 @@ static bool rvin_mbus_supported(struct rvin_dev *vin)
+ 		case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		case MEDIA_BUS_FMT_RGB888_1X24:
+-			vin->source.code = code.code;
++			entity->code = code.code;
+ 			return true;
+ 		default:
+ 			break;
+@@ -97,14 +97,14 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+ 	int ret;
+ 
+ 	/* Verify subdevices mbus format */
+-	if (!rvin_mbus_supported(vin)) {
++	if (!rvin_mbus_supported(&vin->digital)) {
+ 		vin_err(vin, "Unsupported media bus format for %s\n",
+ 			vin->digital.subdev->name);
+ 		return -EINVAL;
+ 	}
+ 
+ 	vin_dbg(vin, "Found media bus format for %s: %d\n",
+-		vin->digital.subdev->name, vin->source.code);
++		vin->digital.subdev->name, vin->digital.code);
+ 
+ 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
+ 	if (ret < 0) {
+@@ -205,7 +205,7 @@ static int rvin_digital_graph_parse(struct rvin_dev *vin)
+ 	}
+ 	of_node_put(np);
+ 
+-	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->mbus_cfg);
++	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->digital.mbus_cfg);
+ 	of_node_put(ep);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 7249c4f..79e7963 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -163,7 +163,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	/*
+ 	 * Input interface
+ 	 */
+-	switch (vin->source.code) {
++	switch (vin->digital.code) {
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 		/* BT.601/BT.1358 16bit YCbCr422 */
+ 		vnmc |= VNMC_INF_YUV16;
+@@ -171,7 +171,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+-		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -180,7 +180,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+-		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -192,11 +192,11 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+ 
+ 	/* Hsync Signal Polarity Select */
+-	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
++	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_HPS;
+ 
+ 	/* Vsync Signal Polarity Select */
+-	if (!(vin->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
++	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_VPS;
+ 
+ 	/*
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index ef3464d..d0e9d65 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -106,7 +106,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 
+ 	sd = vin_to_source(vin);
+ 
+-	v4l2_fill_mbus_format(&format.format, pix, vin->source.code);
++	v4l2_fill_mbus_format(&format.format, pix, vin->digital.code);
+ 
+ 	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
+ 	if (pad_cfg == NULL)
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 8f25c4b..972eb30 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -50,12 +50,10 @@ enum rvin_dma_state {
+ 
+ /**
+  * struct rvin_source_fmt - Source information
+- * @code:	Media bus format from source
+  * @width:	Width from source
+  * @height:	Height from source
+  */
+ struct rvin_source_fmt {
+-	u32 code;
+ 	u32 width;
+ 	u32 height;
+ };
+@@ -74,10 +72,15 @@ struct rvin_video_format {
+  * struct rvin_graph_entity - Video endpoint from async framework
+  * @asd:	sub-device descriptor for async framework
+  * @subdev:	subdevice matched using async framework
++ * @code:	Media bus format from source
++ * @mbus_cfg:	Media bus format from DT
+  */
+ struct rvin_graph_entity {
+ 	struct v4l2_async_subdev asd;
+ 	struct v4l2_subdev *subdev;
++
++	u32 code;
++	struct v4l2_mbus_config mbus_cfg;
+ };
+ 
+ /**
+@@ -85,7 +88,6 @@ struct rvin_graph_entity {
+  * @dev:		(OF) device
+  * @base:		device I/O register space remapped to virtual memory
+  * @chip:		type of VIN chip
+- * @mbus_cfg		media bus configuration
+  *
+  * @vdev:		V4L2 video device associated with VIN
+  * @v4l2_dev:		V4L2 device
+@@ -116,7 +118,6 @@ struct rvin_dev {
+ 	struct device *dev;
+ 	void __iomem *base;
+ 	enum chip_id chip;
+-	struct v4l2_mbus_config mbus_cfg;
+ 
+ 	struct video_device vdev;
+ 	struct v4l2_device v4l2_dev;
+-- 
+2.9.0
 
-	Hans
-
-> 
-> kAPI:
-> 	https://linuxtv.org/downloads/v4l-dvb-apis-new/media/media_kapi.html
-> 
-> DVB drivers:
-> 	https://linuxtv.org/downloads/v4l-dvb-apis-new/media/dvb-drivers/index.html
-> 
-> V4L drivers:
-> 	https://linuxtv.org/downloads/v4l-dvb-apis-new/media/v4l-drivers/index.html
-> 
-> That's said, there are lots of old/deprecated information there. Also, as the books
-> are actually an aggregation of stuff written on different times, by different people,
-> they don't look all the same.
-> 
-> I tried to fix some things while doing the documentation patch series, but there are
-> still lots of things to be done, specially at the DVB and V4L drivers documentation.
-> 
-> There are also several V4L2 core functions not documented at the kAPI book, and
-> the V4L framework document there is not properly cross referenced.
-> 
-> Anyway, now that everything can be seen on 4 books via html, maybe it will now
-> be easier to identify and fix the gaps. I intend do do it for Kernel 4.9.
-> 
-> I'm merging all stuff on my main development tree:
-> 	https://git.linuxtv.org//mchehab/experimental.git/log/?h=docs-next
-> 
-> I should be merge soon today what we currently have at media mainstream tree.
-> 
-> Regards,
-> Mauro
-> 
-> Mauro Carvalho Chehab (18):
->   [media] doc-rst: move bttv documentation to bttv.rst file
->   [media] doc-rst: add documentation for bttv driver
->   [media] doc-rst: add documentation for tuners
->   [media] doc-rst: start adding documentation for cx2341x
->   [media] cx2341x.rst: add fw-decoder-registers.txt content
->   [media] cx2341x.rst: Add the contents of fw-encoder-api.txt
->   [media] cx2341x.rst: add the contents of fw-calling.txt
->   [media] cx2341x.rst: add contents of fw-dma.txt
->   [media] cx2341x.rst: add contents of fw-memory.txt
->   [media] cx2341x.rst: add the contents of fw-upload.txt
->   [media] cx2341x.rst: add contents of fw-osd-api.txt
->   [media] cx2341x: add contents of README.hm12
->   [media] cx2341x.rst: add contents of README.vbi
->   [media] cx88.rst: add contents from not-in-cx2388x-datasheet.txt
->   [media] cx88.rst: add contents of hauppauge-wintv-cx88-ir.txt
->   [media] get rid of Documentation/video4linux/lifeview.txt
->   [media] doc-rst: fix media kAPI documentation
->   [media] doc-rst: better name the media books
-> 
->  Documentation/index.rst                            |    2 +-
->  Documentation/media/dvb-drivers/index.rst          |    9 +-
->  Documentation/media/kapi/dtv-core.rst              |    4 -
->  Documentation/media/kapi/mc-core.rst               |    8 -
->  Documentation/media/kapi/rc-core.rst               |    3 +-
->  Documentation/media/kapi/v4l2-core.rst             |   21 -
->  .../media/{media_drivers.rst => media_kapi.rst}    |    9 +-
->  Documentation/media/media_uapi.rst                 |   10 +-
->  Documentation/media/v4l-drivers/bttv.rst           | 1923 ++++++++++
->  Documentation/media/v4l-drivers/cx2341x.rst        | 3858 ++++++++++++++++++++
->  Documentation/media/v4l-drivers/cx88.rst           |  104 +
->  Documentation/media/v4l-drivers/index.rst          |   11 +-
->  Documentation/media/v4l-drivers/saa7134.rst        |   36 +
->  Documentation/media/v4l-drivers/tuners.rst         |  131 +
->  Documentation/video4linux/bttv/CONTRIBUTORS        |   25 -
->  Documentation/video4linux/bttv/Cards               |  960 -----
->  Documentation/video4linux/bttv/ICs                 |   37 -
->  Documentation/video4linux/bttv/Insmod-options      |  172 -
->  Documentation/video4linux/bttv/MAKEDEV             |   27 -
->  Documentation/video4linux/bttv/Modprobe.conf       |   11 -
->  Documentation/video4linux/bttv/Modules.conf        |   14 -
->  Documentation/video4linux/bttv/PROBLEMS            |   62 -
->  Documentation/video4linux/bttv/README              |   90 -
->  Documentation/video4linux/bttv/README.WINVIEW      |   33 -
->  Documentation/video4linux/bttv/README.freeze       |   74 -
->  Documentation/video4linux/bttv/README.quirks       |   83 -
->  Documentation/video4linux/bttv/Sound-FAQ           |  148 -
->  Documentation/video4linux/bttv/Specs               |    3 -
->  Documentation/video4linux/bttv/THANKS              |   24 -
->  Documentation/video4linux/bttv/Tuners              |  115 -
->  Documentation/video4linux/cx2341x/README.hm12      |  120 -
->  Documentation/video4linux/cx2341x/README.vbi       |   45 -
->  Documentation/video4linux/cx2341x/fw-calling.txt   |   69 -
->  .../video4linux/cx2341x/fw-decoder-api.txt         |  297 --
->  .../video4linux/cx2341x/fw-decoder-regs.txt        |  817 -----
->  Documentation/video4linux/cx2341x/fw-dma.txt       |   96 -
->  .../video4linux/cx2341x/fw-encoder-api.txt         |  709 ----
->  Documentation/video4linux/cx2341x/fw-memory.txt    |  139 -
->  Documentation/video4linux/cx2341x/fw-osd-api.txt   |  350 --
->  Documentation/video4linux/cx2341x/fw-upload.txt    |   49 -
->  .../video4linux/cx88/hauppauge-wintv-cx88-ir.txt   |   54 -
->  .../video4linux/hauppauge-wintv-cx88-ir.txt        |   54 -
->  Documentation/video4linux/lifeview.txt             |   42 -
->  .../video4linux/not-in-cx2388x-datasheet.txt       |   41 -
->  44 files changed, 6079 insertions(+), 4810 deletions(-)
->  rename Documentation/media/{media_drivers.rst => media_kapi.rst} (76%)
->  create mode 100644 Documentation/media/v4l-drivers/bttv.rst
->  create mode 100644 Documentation/media/v4l-drivers/cx2341x.rst
->  create mode 100644 Documentation/media/v4l-drivers/tuners.rst
->  delete mode 100644 Documentation/video4linux/bttv/CONTRIBUTORS
->  delete mode 100644 Documentation/video4linux/bttv/Cards
->  delete mode 100644 Documentation/video4linux/bttv/ICs
->  delete mode 100644 Documentation/video4linux/bttv/Insmod-options
->  delete mode 100644 Documentation/video4linux/bttv/MAKEDEV
->  delete mode 100644 Documentation/video4linux/bttv/Modprobe.conf
->  delete mode 100644 Documentation/video4linux/bttv/Modules.conf
->  delete mode 100644 Documentation/video4linux/bttv/PROBLEMS
->  delete mode 100644 Documentation/video4linux/bttv/README
->  delete mode 100644 Documentation/video4linux/bttv/README.WINVIEW
->  delete mode 100644 Documentation/video4linux/bttv/README.freeze
->  delete mode 100644 Documentation/video4linux/bttv/README.quirks
->  delete mode 100644 Documentation/video4linux/bttv/Sound-FAQ
->  delete mode 100644 Documentation/video4linux/bttv/Specs
->  delete mode 100644 Documentation/video4linux/bttv/THANKS
->  delete mode 100644 Documentation/video4linux/bttv/Tuners
->  delete mode 100644 Documentation/video4linux/cx2341x/README.hm12
->  delete mode 100644 Documentation/video4linux/cx2341x/README.vbi
->  delete mode 100644 Documentation/video4linux/cx2341x/fw-calling.txt
->  delete mode 100644 Documentation/video4linux/cx2341x/fw-decoder-api.txt
->  delete mode 100644 Documentation/video4linux/cx2341x/fw-decoder-regs.txt
->  delete mode 100644 Documentation/video4linux/cx2341x/fw-dma.txt
->  delete mode 100644 Documentation/video4linux/cx2341x/fw-encoder-api.txt
->  delete mode 100644 Documentation/video4linux/cx2341x/fw-memory.txt
->  delete mode 100644 Documentation/video4linux/cx2341x/fw-osd-api.txt
->  delete mode 100644 Documentation/video4linux/cx2341x/fw-upload.txt
->  delete mode 100644 Documentation/video4linux/cx88/hauppauge-wintv-cx88-ir.txt
->  delete mode 100644 Documentation/video4linux/hauppauge-wintv-cx88-ir.txt
->  delete mode 100644 Documentation/video4linux/lifeview.txt
->  delete mode 100644 Documentation/video4linux/not-in-cx2388x-datasheet.txt
-> 
