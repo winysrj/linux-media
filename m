@@ -1,75 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from m12-16.163.com ([220.181.12.16]:47819 "EHLO m12-16.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751539AbcGLLDN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 07:03:13 -0400
-From: weiyj_lk@163.com
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org
-Subject: [PATCH -next] [media] vcodec: mediatek: Fix return value check in mtk_vcodec_init_enc_pm()
-Date: Tue, 12 Jul 2016 11:02:28 +0000
-Message-Id: <1468321348-16045-1-git-send-email-weiyj_lk@163.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mout.kundenserver.de ([212.227.17.10]:62477 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751972AbcGSPRW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 11:17:22 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 2/2] [media] dvb-usb: avoid link error with dib3000m{b,c|
+Date: Tue, 19 Jul 2016 17:14:35 +0200
+Message-Id: <20160719151645.2610846-2-arnd@arndb.de>
+In-Reply-To: <20160719151645.2610846-1-arnd@arndb.de>
+References: <20160719151645.2610846-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Tha ARM randconfig builds came up with another rare build failure
+for the dib3000mc driver, when dvb-usb-dibusb-mb is built-in and
+dib3000mc is a loadable module:
 
-In case of error, the function devm_clk_get() returns ERR_PTR()
-and not returns NULL. The NULL test in the return value check
-should be replaced with IS_ERR().
+ERROR: "dibusb_dib3000mc_frontend_attach" [drivers/media/usb/dvb-usb/dvb-usb-nova-t-usb2.ko] undefined!
+ERROR: "dibusb_dib3000mc_tuner_attach" [drivers/media/usb/dvb-usb/dvb-usb-nova-t-usb2.ko] undefined!
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Apparently this used to be a valid configuration (build-time, not
+run-time), but broke as part of a cleanup.
+
+I tried reverting the cleanup, but saw that the code was still wrong
+then. This version adds a dependency for dib3000mb, to ensure that
+dib3000mb does not force the dibusb_dib3000mc_frontend_attach function
+to be built-in when dib3000mc is a loadable module.
+
+I have also checked the two other files that were changed in the original
+cleanup, and found them to be correct in either version, so I do not
+touch that part.
+
+As this is a rather obscure bug, there is no need for backports.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: 028c70ff42783 ("[media] dvb-usb/dvb-usb-v2: use IS_ENABLED")
 ---
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+This is one of two different ways to avoid the link error, please
+pick one of them. Adding a dependency is simpler but slighly
+more limiting.
+---
+ drivers/media/usb/dvb-usb/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
-index 2379e97..3e73e9d 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
-@@ -67,27 +67,27 @@ int mtk_vcodec_init_enc_pm(struct mtk_vcodec_dev *mtkdev)
- 	pm->dev = &pdev->dev;
- 
- 	pm->vencpll_d2 = devm_clk_get(&pdev->dev, "venc_sel_src");
--	if (pm->vencpll_d2 == NULL) {
-+	if (IS_ERR(pm->vencpll_d2)) {
- 		mtk_v4l2_err("devm_clk_get vencpll_d2 fail");
--		ret = -1;
-+		ret = PTR_ERR(pm->vencpll_d2);
- 	}
- 
- 	pm->venc_sel = devm_clk_get(&pdev->dev, "venc_sel");
--	if (pm->venc_sel == NULL) {
-+	if (IS_ERR(pm->venc_sel)) {
- 		mtk_v4l2_err("devm_clk_get venc_sel fail");
--		ret = -1;
-+		ret = PTR_ERR(pm->venc_sel);
- 	}
- 
- 	pm->univpll1_d2 = devm_clk_get(&pdev->dev, "venc_lt_sel_src");
--	if (pm->univpll1_d2 == NULL) {
-+	if (IS_ERR(pm->univpll1_d2)) {
- 		mtk_v4l2_err("devm_clk_get univpll1_d2 fail");
--		ret = -1;
-+		ret = PTR_ERR(pm->univpll1_d2);
- 	}
- 
- 	pm->venc_lt_sel = devm_clk_get(&pdev->dev, "venc_lt_sel");
--	if (pm->venc_lt_sel == NULL) {
-+	if (IS_ERR(pm->venc_lt_sel)) {
- 		mtk_v4l2_err("devm_clk_get venc_lt_sel fail");
--		ret = -1;
-+		ret = PTR_ERR(pm->venc_lt_sel);
- 	}
- 
- 	return ret;
-
+diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
+index 8c911119faa6..959fa09dfd92 100644
+--- a/drivers/media/usb/dvb-usb/Kconfig
++++ b/drivers/media/usb/dvb-usb/Kconfig
+@@ -44,6 +44,7 @@ config DVB_USB_DIBUSB_MB
+ 	depends on DVB_USB
+ 	select DVB_PLL if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_DIB3000MB
++	depends on DVB_DIB3000MC || !DVB_DIB3000MC
+ 	select MEDIA_TUNER_MT2060 if MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Support for USB 1.1 and 2.0 DVB-T receivers based on reference designs made by
+-- 
+2.9.0
 
