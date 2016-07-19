@@ -1,93 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:59706 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751922AbcGAHTL (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46988
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753085AbcGSLNH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jul 2016 03:19:11 -0400
-Subject: Re: [PATCH 00/38] i.MX5/6 Video Capture
-To: Tim Harvey <tharvey@gateworks.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
- <CAJ+vNU2ec4i8CUV8Qdguz-Mm8gCXsQBm7rUmCp+9F-Tu+mh9kg@mail.gmail.com>
- <69694ba5-287d-bb5d-5f44-e0cf9bf1f021@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6e32f120-1c08-b82a-f55c-837879c96756@xs4all.nl>
-Date: Fri, 1 Jul 2016 09:19:04 +0200
+	Tue, 19 Jul 2016 07:13:07 -0400
+Date: Tue, 19 Jul 2016 08:12:59 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+	Jani Nikula <jani.nikula@intel.com>,
+	Markus Heiser <markus.heiser@darmarit.de>
+Subject: Re: [PATCH 00/18] Complete moving media documentation to ReST
+ format
+Message-ID: <20160719081259.482a8c04@recife.lan>
+In-Reply-To: <578DF08F.8080701@xs4all.nl>
+References: <cover.1468865380.git.mchehab@s-opensource.com>
+	<578DF08F.8080701@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <69694ba5-287d-bb5d-5f44-e0cf9bf1f021@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/28/2016 10:10 PM, Hans Verkuil wrote:
-> On 06/28/2016 08:54 PM, Tim Harvey wrote:
->> On Tue, Jun 14, 2016 at 3:48 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
->>> Tested on imx6q SabreAuto with ADV7180, and imx6q SabreSD with
->>> mipi-csi2 OV5640. There is device-tree support also for imx6qdl
->>> SabreLite, but that is not tested. Also, this driver should
->>> theoretically work on i.MX5 targets, but that is also untested.
->>>
->>> Not run through v4l2-compliance yet, but that is in my queue.
->>>
->>>
->>
->> Steve,
->>
->> I've tested this series successfully with a Gateworks Ventana GW5300
->> which has an IMX6Q and an adv7180 attached to IPU2_CSI1.
->>
->> First of all, a big 'thank you' for taking the time to rebase and
->> re-submit this series!
->>
->> However based on the lack of feedback of the individual patches as
+Em Tue, 19 Jul 2016 11:19:11 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+
+> > All those documents are built automatically, once by day, at linuxtv.org:
+> > 
+> > uAPI:
+> > 	https://linuxtv.org/downloads/v4l-dvb-apis-new/media/media_uapi.html  
 > 
-> It's on my TODO list, but the series was a lot larger than I expected (and
-> touched on a lot of subsystems as well), so I postponed looking at this
-> until I have a bit more time.
+> Erm, there is nothing there, only the top-level menu.
 
-I scanned through it and the only thing I won't accept in staging is the
-adv7180 driver. I also have a question about patch 28, but I'll ask that
-separately. The ov5642 is also a duplicate, but the mainline version is tied
-to soc_camera, so I have no problem with adding a non-soc-camera driver.
+Gah! The problem is due to the Sphinx version. I added a patch yesterday
+adding a caption to each book's toctree. This doesn't work with the
+Sphinx version at the server (1.2.3). Instead of ignoring the option,
+Sphinx decided to just drop the entire tag, with actually means to
+drop all media pages!
 
->> well as the fact they touch varied subsystems I think we are going to
->> have better luck getting this functionality accepted if you broke it
->> into separate series.
->>
->> Here are my thoughts:
->>
->>>   gpu: ipu-v3: Add Video Deinterlacer unit
->>>   gpu: ipu-cpmem: Add ipu_cpmem_set_uv_offset()
->>>   gpu: ipu-cpmem: Add ipu_cpmem_get_burstsize()
->>>   gpu: ipu-v3: Add ipu_get_num()
->>>   gpu: ipu-v3: Add IDMA channel linking support
->>>   gpu: ipu-v3: Add ipu_set_vdi_src_mux()
->>>   gpu: ipu-v3: Add VDI input IDMAC channels
->>>   gpu: ipu-v3: Add ipu_csi_set_src()
->>>   gpu: ipu-v3: Add ipu_ic_set_src()
->>>   gpu: ipu-v3: set correct full sensor frame for PAL/NTSC
->>>   gpu: ipu-v3: Fix CSI data format for 16-bit media bus formats
->>>   gpu: ipu-v3: Fix IRT usage
->>>   gpu: ipu-v3: Fix CSI0 blur in NTSC format
->>>   gpu: ipu-ic: Add complete image conversion support with tiling
->>>   gpu: ipu-ic: allow multiple handles to ic
->>>   gpu: ipu-v3: rename CSI client device
->>
->> These are all enhancements to the ipu-v3 driver shared by DRM and
->> maintained by Philipp Zabel and there is no way to 'stage' them.
->> Philipp, these have bee submitted previously with little to no changes
->> or feedback - can we get sign-off or comment on these from you?
-> 
-> I'd like to know the status of this as well. If this can't go in, then
-> accepting the v4l2 driver in staging will likely be very difficult if not
-> impossible.
+I really hate stupid toolchains that require everybody to upgrade to
+the very latest version of it every time. Maybe someone at linux-doc 
+may have an idea about how to add new markup attributes to the 
+documents without breaking for the ones using older versions of Sphinx.
 
-This is the first thing that needs to happen. Philipp, please take a look at this!
+The problem we're facing is due to a change meant to add a title before
+each media's table of contents (provided via :toctree:  markup).
+
+All it needs is something that will be translated to HTML as:
+<h1>Table of contents</h1>, without the need of creating any cross
+reference, nor being added to the main TOC at Documentation/index.rst.
+
+We can't simply use the normal way to generate <h1> tags:
+
+--- a/Documentation/media/dvb-drivers/index.rst
++++ b/Documentation/media/dvb-drivers/index.rst
+@@ -15,6 +15,10 @@ the license is included in the chapter entitled "GNU Free Documentation
+ License".
+ 
+ 
++#####################
++FOO Table of contents
++#####################
++
+ .. toctree::
+ 	:maxdepth: 5
+ 	:numbered:
+
+The page itself would look OK, but this would produce a new entry at the
+ output/html/index.html:
+
+	* Linux Digital TV driver-specific documentation
+	* FOO Table of contents
+
+	    1. Introdution
+
+With is not what we want.
+
+With Sphinx 1.4.5, the way of doing that is to add a :caption: tag
+to the toctree, but this tag doesn't exist on 1.2.x. Also, as it
+also convert captions on references, and all books are linked
+together at Documentation/index.rst, it also needs a :name: tag,
+in order to avoid warnings about duplicated tags when building the
+main index.rst.
+
+I have no idea about how to do that in a backward-compatible way.
+
+Maybe Markus, Jani or someone else at linux-doc may have some
+glue.
+
+In the mean time, I attached a patch that the server applies before
+building the documentation.
+
 
 Thanks,
+Mauro
 
-	Hans
+doc-rst: Don't use :caption: or :name:  tags for media documents
+
+If Sphinx version is lower than 1.4.x (I tested with 1.4.5), this patch
+is needed for it to build, as otherwise Sphinx will ignore the toctable
+markups and won't build the media documentation, creating just an
+empty page.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+diff --git a/Documentation/media/dvb-drivers/index.rst b/Documentation/media/dvb-drivers/index.rst
+index e1d4d87f2a47..0e065533beb6 100644
+--- a/Documentation/media/dvb-drivers/index.rst
++++ b/Documentation/media/dvb-drivers/index.rst
+@@ -18,8 +18,6 @@ License".
+ .. toctree::
+ 	:maxdepth: 5
+ 	:numbered:
+-	:caption: Table of Contents
+-	:name: dvb_mastertoc
+ 
+ 	intro
+ 	avermedia
+diff --git a/Documentation/media/media_kapi.rst b/Documentation/media/media_kapi.rst
+index 0af80e90b7b5..556c0eb55c85 100644
+--- a/Documentation/media/media_kapi.rst
++++ b/Documentation/media/media_kapi.rst
+@@ -17,8 +17,6 @@ License".
+ .. toctree::
+     :maxdepth: 5
+     :numbered:
+-    :caption: Table of Contents
+-    :name: kapi_mastertoc
+ 
+     kapi/v4l2-framework
+     kapi/v4l2-controls
+diff --git a/Documentation/media/media_uapi.rst b/Documentation/media/media_uapi.rst
+index debe4531040b..aae8124defcc 100644
+--- a/Documentation/media/media_uapi.rst
++++ b/Documentation/media/media_uapi.rst
+@@ -17,8 +17,6 @@ License".
+ 
+ .. toctree::
+     :maxdepth: 5
+-    :caption: Table of Contents
+-    :name: uapi_mastertoc
+ 
+     intro
+     uapi/v4l/v4l2
+diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
+index 8d1710234e5a..b9c9c0911db9 100644
+--- a/Documentation/media/v4l-drivers/index.rst
++++ b/Documentation/media/v4l-drivers/index.rst
+@@ -18,8 +18,6 @@ License".
+ .. toctree::
+ 	:maxdepth: 5
+ 	:numbered:
+-	:caption: Table of Contents
+-	:name: v4l_mastertoc
+ 
+ 	fourcc
+ 	v4l-with-ir
