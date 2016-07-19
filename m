@@ -1,75 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:60718 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751222AbcGCJnP (ORCPT
+Received: from slow1-d.mail.gandi.net ([217.70.178.86]:37284 "EHLO
+	slow1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752187AbcGSCn5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Jul 2016 05:43:15 -0400
-Subject: Re: [RFC PATCH] media: s5p-mfc - remove vidioc_g_crop
-To: Nicolas Dufresne <nicolas@ndufresne.ca>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-References: <1467322502-11180-1-git-send-email-shuahkh@osg.samsung.com>
- <CAH_td2wtizPpD59h2shZoyuTvSNr=7YjR4mSmTO9FsWaJp8dfA@mail.gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>, mchehab@kernel.org,
-	linux-kernel@vger.kernel.org, k.debski@samsung.com,
-	javier@osg.samsung.com, linux-arm-kernel@lists.infradead.org,
-	jtp.park@samsung.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <772ecbb8-b1d2-b4cf-2be2-110f731b9a2b@xs4all.nl>
-Date: Sun, 3 Jul 2016 11:43:06 +0200
+	Mon, 18 Jul 2016 22:43:57 -0400
+Subject: Re: [PATCH] [media] gspca: finepix: Remove deprecated
+ create_singlethread_workqueue
+To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <20160716085556.GA7841@Karyakshetra>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Tejun Heo <tj@kernel.org>
+From: Frank Zago <frank@zago.net>
+Message-ID: <578D9227.7040007@zago.net>
+Date: Mon, 18 Jul 2016 21:36:23 -0500
 MIME-Version: 1.0
-In-Reply-To: <CAH_td2wtizPpD59h2shZoyuTvSNr=7YjR4mSmTO9FsWaJp8dfA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20160716085556.GA7841@Karyakshetra>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
-
-On 07/02/2016 10:29 PM, Nicolas Dufresne wrote:
+On 07/16/2016 03:55 AM, Bhaktipriya Shridhar wrote:
+> The workqueue "work_thread" is involved in streaming the camera data.
+> It has a single work item(&dev->work_struct) and hence doesn't require
+> ordering. Also, it is not being used on a memory reclaim path.
+> Hence, the singlethreaded workqueue has been replaced with the use of
+> system_wq.
 > 
-> Le 30 juin 2016 5:35 PM, "Shuah Khan" <shuahkh@osg.samsung.com <mailto:shuahkh@osg.samsung.com>> a écrit :
->>
->> Remove vidioc_g_crop() from s5p-mfc decoder. Without its s_crop counterpart
->> g_crop is not useful. Delete it.
+> System workqueues have been able to handle high level of concurrency
+> for a long time now and hence it's not required to have a singlethreaded
+> workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
+> created with create_singlethread_workqueue(), system_wq allows multiple
+> work items to overlap executions even on the same CPU; however, a
+> per-cpu workqueue doesn't have any CPU locality or global ordering
+> guarantee unless the target CPU is explicitly specified and thus the
+> increase of local concurrency shouldn't make any difference.
 > 
-> G_CROP tell the userspace which portion of the output is to be displayed. Example,  1920x1080 inside a buffer of 1920x1088. It can be
-> implemented using G_SELECTION too, which emulate G_CROP. removing this without implementing G_SEKECTION will break certain software like
-> GStreamer v4l2 based decoder.
+> Work item has been flushed in sd_stop0() to ensure that there are no
+> pending tasks while disconnecting the driver.
+> 
+> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
 
-Sorry, but this is not correct.
+Acked-by: Frank Zago <frank@zago.net>
 
-G_CROP for VIDEO_OUTPUT returns the output *compose* rectangle, not the output
-crop rectangle.
-
-Don't blame me, this is how it was defined in V4L2. The problem is that for video
-output (esp. m2m devices) you usually want to set the crop rectangle, and that's
-why the selection API was added so you can unambiguously set the crop and compose
-rectangles for both capture and output.
-
-Unfortunately, the exynos drivers were written before the G/S_SELECTION API was
-created, and the crop ioctls in the video output drivers actually set the output
-crop rectangle instead of the compose rectangle :-(
-
-This is a known inconsistency.
-
-You are right though that we can't remove g_crop here, I had forgotten about the
-buffer padding.
-
-What should happen here is that g_selection support is added to s5p-mfc, and
-have that return the proper rectangles. The g_crop can be kept, and a comment
-should be added that it returns the wrong thing, but that that is needed for
-backwards compat.
-
-The gstreamer code should use g/s_selection if available. It should check how it
-is using g/s_crop for video output devices today and remember that for output
-devices g/s_crop is really g/s_compose, except for the exynos drivers.
-
-It's why I recommend the selection API since it doesn't have these problems.
-
-I think I should do another push towards implementing the selection API in all
-drivers. There aren't many left.
-
-Regards,
-
-	Hans
+Thanks for the patch.
