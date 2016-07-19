@@ -1,59 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:36753 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751586AbcGOPgh (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:56020 "EHLO
+	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753929AbcGSOXP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 11:36:37 -0400
+	Tue, 19 Jul 2016 10:23:15 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2 16/16] [media] rcar-vin: add Gen2 and Gen3 fallback compatibility strings
+Date: Tue, 19 Jul 2016 16:21:07 +0200
+Message-Id: <20160719142107.22358-17-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20160715122845.7f357277@recife.lan>
-References: <1468595816-31272-1-git-send-email-ricardo.ribalda@gmail.com>
- <1468595816-31272-3-git-send-email-ricardo.ribalda@gmail.com> <20160715122845.7f357277@recife.lan>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Fri, 15 Jul 2016 17:36:15 +0200
-Message-ID: <CAPybu_077ZkW3_SnPLqkMMgUUrrBDYH+8WzSEnSHAkyTkE525w@mail.gmail.com>
-Subject: Re: [PATCH 2/6] [media] Documentation: Add HSV format
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro
+These are present in the soc-camera version of this driver and it's time
+to add them to this driver as well.
 
-On Fri, Jul 15, 2016 at 5:28 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Hi Ricardo,
->
-> I'm not seeing patch 1.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-That is because you blacklisted me :P
-https://lkml.org/lkml/2016/7/15/455
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index eab3009..e02ce48 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -343,6 +343,8 @@ static const struct of_device_id rvin_of_id_table[] = {
+ 	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+ 	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
+ 	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
++	{ .compatible = "renesas,rcar-gen3-vin", .data = (void *)RCAR_GEN3 },
++	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+-- 
+2.9.0
 
-I resend it to you right away.
-
-
->
-> Anyway, please send documentation patches against the rst files. They're
-> at the "docs-next" branch and will be merged upstream on this merge window.
->
-
-you are absolutely right, I read about it in lwn. Sorry about that.
-
-
-How do you prefer it:
-- 2 patchset : One on top of media/master with the code changes, and
-one on top of docs-next with the doc changes.
-or
--1 patchset on top of doc-next and we will figure out later if there
-is a merge conflict with media
-
-Thanks!
