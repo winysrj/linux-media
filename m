@@ -1,125 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44378 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932706AbcGICZQ (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:64323 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751938AbcGSIm0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Jul 2016 22:25:16 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2FA1A1803A0
-	for <linux-media@vger.kernel.org>; Sat,  9 Jul 2016 04:25:10 +0200 (CEST)
-Date: Sat, 09 Jul 2016 04:25:10 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160709022510.2FA1A1803A0@tschai.lan>
+	Tue, 19 Jul 2016 04:42:26 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8; format=flowed
+Subject: Re: [PATCH next] [media] vb2: Fix allocation size of dma_parms
+To: =?UTF-8?Q?Vincent_Stehl=c3=a9?= <vincent.stehle@laposte.net>,
+	linux-media@vger.kernel.org
+References: <1464074167-27330-2-git-send-email-m.szyprowski@samsung.com>
+ <1468864444-19053-1-git-send-email-vincent.stehle@laposte.net>
+Cc: linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <c501ff83-b74c-0be0-7a97-19a406074ea3@samsung.com>
+Date: Tue, 19 Jul 2016 10:42:20 +0200
+In-reply-to: <1468864444-19053-1-git-send-email-vincent.stehle@laposte.net>
+Content-transfer-encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi
 
-Results of the daily build of media_tree:
 
-date:		Sat Jul  9 04:00:15 CEST 2016
-git branch:	test
-git hash:	9ad52b4db79d168867a2ca105eca00fb9cb28fe5
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+On 2016-07-18 19:54, Vincent Stehlé wrote:
+> When allocating memory to hold the device dma parameters in
+> vb2_dma_contig_set_max_seg_size(), the requested size is by mistake only
+> the size of a pointer. Request the correct size instead.
+>
+> Fixes: 3f0339691896 ("media: vb2-dma-contig: add helper for setting dma max seg size")
+> Signed-off-by: Vincent Stehlé <vincent.stehle@laposte.net>
+> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mtk: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: ERRORS
-linux-4.5-i686: ERRORS
-linux-4.6-i686: ERRORS
-linux-4.7-rc1-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: ERRORS
-linux-4.5-x86_64: ERRORS
-linux-4.6-x86_64: ERRORS
-linux-4.7-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+I'm really sorry for such silly mistake. Thanks for spotting this issue.
 
-Detailed results are available here:
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+> ---
+>
+>
+> Hi,
+>
+> I saw that in linux next-20160718.
+>
+> Best regards,
+>
+> Vincent.
+>
+>
+>   drivers/media/v4l2-core/videobuf2-dma-contig.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index b09b2c9..59fa204 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -743,7 +743,7 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+>   int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size)
+>   {
+>   	if (!dev->dma_parms) {
+> -		dev->dma_parms = kzalloc(sizeof(dev->dma_parms), GFP_KERNEL);
+> +		dev->dma_parms = kzalloc(sizeof(*dev->dma_parms), GFP_KERNEL);
+>   		if (!dev->dma_parms)
+>   			return -ENOMEM;
+>   	}
 
-Full logs are available here:
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
