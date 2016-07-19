@@ -1,88 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sn1nam01on0098.outbound.protection.outlook.com ([104.47.32.98]:63841
-	"EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751448AbcG1XpB convert rfc822-to-8bit (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.24]:49983 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752832AbcGSIK6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jul 2016 19:45:01 -0400
-From: "Bird, Timothy" <Tim.Bird@am.sony.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "Shimizu, Kazuhiro" <Kazuhiro.Shimizu@sony.com>,
-	"Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
-	"Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
-	"Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
-	"Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
-	"Berry, Tom" <Tom.Berry@sony.com>,
-	"Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>,
-	"Rowand, Frank" <Frank.Rowand@am.sony.com>,
-	"tbird20d@gmail.com" <tbird20d@gmail.com>
-Subject: Sony tuner chip driver questions
-Date: Thu, 28 Jul 2016 22:12:10 +0000
-Message-ID: <ECADFF3FD767C149AD96A924E7EA6EAF053BB5DA@USCULXMSG02.am.sony.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Tue, 19 Jul 2016 04:10:58 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 1/2] [media] staging: add MEDIA_SUPPORT dependency
+Date: Tue, 19 Jul 2016 10:10:12 +0200
+Message-Id: <20160719081040.2685845-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Linux-media people... :-)
+staging media drivers tend to have a build time dependency on the
+media support. In particular, the newly added pulse8 cec driver can
+only be a loadable module if MEDIA_SUPPORT=m, but its build dependency
+is on a 'bool' symbol (MEDIA_CEC), so a randconfig build can fail
+with pulse8_cec built-in:
 
-A group at Sony would like to develop a proper kernel driver
-for a TV/tuner chip that Sony produces, and we'd like to ask some questions
-before we get started.
+drivers/staging/built-in.o: In function `pulse8_disconnect':
+dgnc_utils.c:(.text+0x114): undefined reference to `cec_unregister_adapter'
+drivers/staging/built-in.o: In function `pulse8_irq_work_handler':
+dgnc_utils.c:(.text+0x1bc): undefined reference to `cec_transmit_done'
+dgnc_utils.c:(.text+0x1d8): undefined reference to `cec_received_msg'
+dgnc_utils.c:(.text+0x1f4): undefined reference to `cec_transmit_done'
+dgnc_utils.c:(.text+0x218): undefined reference to `cec_transmit_done'
+dgnc_utils.c:(.text+0x23c): undefined reference to `cec_transmit_done'
+drivers/staging/built-in.o: In function `pulse8_connect':
+dgnc_utils.c:(.text+0x844): undefined reference to `cec_allocate_adapter'
+dgnc_utils.c:(.text+0x8a4): undefined reference to `cec_delete_adapter'
+dgnc_utils.c:(.text+0xa10): undefined reference to `cec_register_adapter'
 
-FYI - I'm kicking off the conversation thread, but I'm not a TV or media-driver
-person, so please excuse anything that sounds strangely worded or is just
-a really dumb question.  I have experts CC:ed who can clarify anything I
-misstate. :-)
+Originally, MEDIA_CEC itself was a tristate symbol, which would have
+prevented this, but since 5bb2399a4fe4 ("[media] cec: fix Kconfig
+dependency problems"), it doesn't work like that any more.
 
-First some background:
-The chip is in the same family as other chips for which there
-are currently some kernel drivers in mainline, produced by
-3rd parties (not Sony). The drivers already in the tree are
-linux/media/dvb-frontend/cxd2820.c, cxd2841er.c, and ascot2e.c.
+This encloses all of the staging media drivers in a CONFIG_MEDIA_SUPPORT
+dependency in Kconfig, which solves the problem by enforcing that none
+of the drivers can be built-in if the media core is a module.
 
-Currently Sony provides a user-space driver to its customers, but
-we'd like to switch to an in-kernel driver.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/staging/media/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The chip has a tuner and demodulator included.
-
-First, we will be delivering the actual video data over SPI.  Currently,
-we only see examples of doing this over PCI and USB busses.  Are
-there any examples of the appropriate method to transfer video
-data (or other high-volume data) over SPI?  If not, are there any
-recommendations or tips for going about this?
-
-Second, the current drivers for the cxd2820 and cxd2841 seem to
-use a lot of hard-coded register values (and don't appear to use
-device tree).  We're not sure if these drivers are the best examples
-to follow in creating a new dvb driver for Linux.  Is there a 
-recommended driver or example that shows the most recent or
-preferred good structure for such drivers, that we should use
-in starting ours?  
-
-Is DVB is the correct kernel subsystem to use for this driver, or
-is V4L more appropriate?
-
-If we have multiple files in our driver, should we put them all in
-the dvb-frontend directory, or should they be sprinkled around
-in different directories based on function?  Or should we create
-a 'sony' directory somewhere to hold them?
-
-What debugging tools, if any, are available for testing dvb drivers
-in the kernel?
-
-Do any current tuner drivers support dual-tuner configurations?
-
-Thanks for any assistance or information you can provide to help us
-get started.
- -- Tim Bird
-Senior Staff Software Engineer, Sony North America
-
-P.S.  We are ramping up the project now, but will likely get to 
-major development effort in a month or two.
-
-
-
+diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+index cae42e56f270..7292f23954df 100644
+--- a/drivers/staging/media/Kconfig
++++ b/drivers/staging/media/Kconfig
+@@ -16,7 +16,7 @@ menuconfig STAGING_MEDIA
+           If in doubt, say N here.
+ 
+ 
+-if STAGING_MEDIA
++if STAGING_MEDIA && MEDIA_SUPPORT
+ 
+ # Please keep them in alphabetic order
+ source "drivers/staging/media/bcm2048/Kconfig"
+-- 
+2.9.0
 
