@@ -1,388 +1,403 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44691 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753170AbcGDLrU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 07:47:20 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 00/51] First part of documentation fixups
-Date: Mon,  4 Jul 2016 08:46:21 -0300
-Message-Id: <cover.1467629488.git.mchehab@s-opensource.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:56944 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752296AbcGSJ0U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 05:26:20 -0400
+Received: from [64.103.36.133] (proxy-ams-1.cisco.com [64.103.36.133])
+	by tschai.lan (Postfix) with ESMTPSA id 6CD7D18004F
+	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2016 11:26:14 +0200 (CEST)
+To: linux-media <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCHv3] doc-rst: cec: update documentation
+Message-ID: <578DF235.9090809@xs4all.nl>
+Date: Tue, 19 Jul 2016 11:26:13 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series handle several fixups related to the DocBook->Sphinx conversion.
+Update and expand the CEC documentation. Especially w.r.t. non-blocking mode.
 
-They all depend on the patches from:
-	 https://github.com/return42/linux.git linux_tv_migration
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+This depends on https://patchwork.linuxtv.org/patch/35614/.
 
-I'm putting this series, based on media_tree + docs-next at this tree:
-	https://git.linuxtv.org//mchehab/experimental.git/log/?h=docs-next
+Changes since v2: better document the timestamp fields
 
-When I finish comparing DocBook and Sphinx versions, I'll be applying it on a
-separate topic branch at media_tree.
+Changes since v1: update the documentation of the all_device_types and features
+fields due to changes in the CEC API (these were ignored for CEC 1.4, but after
+the pull request above they are no longer ignored).
+---
+diff --git a/Documentation/media/uapi/cec/cec-func-open.rst b/Documentation/media/uapi/cec/cec-func-open.rst
+index cbf1176..38fd7e0 100644
+--- a/Documentation/media/uapi/cec/cec-func-open.rst
++++ b/Documentation/media/uapi/cec/cec-func-open.rst
+@@ -32,12 +32,12 @@ Arguments
+     Open flags. Access mode must be ``O_RDWR``.
 
-The content is mostly fixups, although I"m also fixing a few random things to improve
-documentation, when I notice the need. Just editorial changes.
+     When the ``O_NONBLOCK`` flag is given, the
+-    :ref:`CEC_RECEIVE <CEC_RECEIVE>` ioctl will return the EAGAIN
+-    error code when no message is available, and ioctls
+-    :ref:`CEC_TRANSMIT <CEC_TRANSMIT>`,
++    :ref:`CEC_RECEIVE <CEC_RECEIVE>` and :ref:`CEC_DQEVENT <CEC_DQEVENT>` ioctls
++    will return the ``EAGAIN`` error code when no message or event is available, and
++    ioctls :ref:`CEC_TRANSMIT <CEC_TRANSMIT>`,
+     :ref:`CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>` and
+     :ref:`CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
+-    all act in non-blocking mode.
++    all return 0.
 
-Regards,
-Mauro
+     Other flags have no effect.
 
-Mauro Carvalho Chehab (51):
-  Documentation: linuxt_tv: update the documentation year
-  Documentation: some fixups at linux_tv/index.rst
-  Documentation: v4l2.rst: Fix authors and revisions lists
-  Documentation: querycap.rst: fix troubles on some references
-  Documentation: linux_tv/index.rst: add xrefs for document divisions
-  Documentation: app-pri.rst: Fix a bad reference
-  Documentation: video.rst: use reference for VIDIOC_ENUMINPUT
-  Documentation: v4l2.rst: numerate the V4L2 chapters
-  Documentation: video.rst: Restore the captions for the examples
-  Documentation: audio.rst: Fix some cross references
-  Documentation: linux_tv: Replace reference names to match ioctls
-  Documentation: linux_tv: simplify references
-  Documentation: linux_tv: convert lots of consts to references
-  Documentation: linux_tv: don't simplify VIDIOC_G_foo references
-  Documentation: audio.rst: re-add captions for the examples
-  Documentation: standard.rst: read the example captions
-  Documentation: linux_tv: remove controls.rst
-  Documentation: control.rst: read the example captions
-  Documentation: control.rst: Fix missing reference for example 8
-  Documentation: extended-controls.rst: use reference for VIDIOC_S_CTRL
-  Documentation: vidioc-queryctl.rst: change the title of this chapter
-  Documentation: linux_tv: supress lots of warnings
-  Documentation: planar-apis.rst: fix some conversion troubles
-  Documentation: crop.rst: fix conversion on this file
-  Documentation: selection-api-005.rst: Fix ReST parsing
-  Documentation: linux_tv: use Example x.y. instead of a single number
-  Documentation: selection-api-006.rst: add missing captions
-  Documentation: linux_tv: Error codes should be const
-  Documentation: linux_tv: use references for structures
-  Documentation: linux_tv: Fix remaining undefined references
-  Documentation: pixfmt-007.rst: Fix formula parsing
-  Documentation: fdl-appendix: Fix formatting issues
-  Documentation: linux_tv: fix some warnings due to '*'
-  Documentation: fe_property_parameters.rst: improve descriptions
-  Documentation: vidioc-g-edid.rst remove a duplicate declaration
-  Documentation: open.rst: fix some warnings
-  Documentation: rw.rst fix a warning
-  Documentation: extended-controls.rst: "count" is a constant
-  Documentation: pixfmt-004.rst: Add an extra reference
-  Documentation: linux_tv: remove trailing comments
-  Documentation: pixfmt-y12i.rst: correct format conversion
-  Documentation: pixfmt-uyvy.rst: remove an empty column
-  Documentation: pixfmt-yvyu.rst: remove an empty column
-  Documentation: pixfmt-vyuy.rst: remove an empty column
-  Documentation: pixfmt-41p.rst: remove empty columns
-  Documentation: pixfmt-yuv422m.rst: remove an empty column
-  Documentation: pixfmt-yuv444m.rst: remove empty columns
-  Documentation: pixfmt-yuv422p.rst: remove an empty column
-  Documentation: pixfmt-yuv411p.rst: remove an empty column
-  Documentation: pixfmt-nv12.rst: remove empty columns
-  Documentation: pixfmt-nv12m.rst: fix conversion issues
+diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
+index eab734e..04ee900 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
+@@ -45,10 +45,24 @@ To query the current CEC logical addresses, applications call
+ To set new logical addresses, applications fill in
+ :c:type:`struct cec_log_addrs` and call :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
+ with a pointer to this struct. The :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
+-is only available if ``CEC_CAP_LOG_ADDRS`` is set (ENOTTY error code is
+-returned otherwise). This ioctl will block until all requested logical
+-addresses have been claimed. The :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>` can only be called
+-by a file handle in initiator mode (see :ref:`CEC_S_MODE`).
++is only available if ``CEC_CAP_LOG_ADDRS`` is set (the ``ENOTTY`` error code is
++returned otherwise). The :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
++can only be called by a file descriptor in initiator mode (see :ref:`CEC_S_MODE`), if not
++the ``EBUSY`` error code will be returned.
++
++To clear existing logical addresses set ``num_log_addrs`` to 0. All other fields
++will be ignored in that case. The adapter will go to the unconfigured state.
++
++If the physical address is valid (see :ref:`ioctl CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>`),
++then this ioctl will block until all requested logical
++addresses have been claimed. If the file descriptor is in non-blocking mode then it will
++not wait for the logical addresses to be claimed, instead it just returns 0.
++
++A :ref:`CEC_EVENT_STATE_CHANGE <CEC-EVENT-STATE-CHANGE>` event is sent when the
++logical addresses are claimed or cleared.
++
++Attempting to call :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>` when
++logical address types are already defined will return with error ``EBUSY``.
 
- Documentation/linux_tv/audio.h.rst                 |  11 --
- Documentation/linux_tv/ca.h.rst                    |  11 --
- Documentation/linux_tv/conf.py                     |   2 +-
- Documentation/linux_tv/dmx.h.rst                   |  11 --
- Documentation/linux_tv/frontend.h.rst              |  11 --
- Documentation/linux_tv/index.rst                   |  47 ++-----
- .../media/dvb/FE_DISHNETWORK_SEND_LEGACY_CMD.rst   |  11 +-
- Documentation/linux_tv/media/dvb/FE_GET_EVENT.rst  |  19 +--
- .../linux_tv/media/dvb/FE_GET_FRONTEND.rst         |  17 +--
- Documentation/linux_tv/media/dvb/FE_READ_BER.rst   |  13 +-
- .../linux_tv/media/dvb/FE_READ_SIGNAL_STRENGTH.rst |  13 +-
- Documentation/linux_tv/media/dvb/FE_READ_SNR.rst   |  13 +-
- .../media/dvb/FE_READ_UNCORRECTED_BLOCKS.rst       |  13 +-
- .../linux_tv/media/dvb/FE_SET_FRONTEND.rst         |  21 +--
- Documentation/linux_tv/media/dvb/audio.rst         |  11 --
- .../linux_tv/media/dvb/audio_data_types.rst        |  11 --
- .../linux_tv/media/dvb/audio_function_calls.rst    |  35 ++---
- Documentation/linux_tv/media/dvb/audio_h.rst       |  11 --
- Documentation/linux_tv/media/dvb/ca.rst            |  11 --
- Documentation/linux_tv/media/dvb/ca_data_types.rst |  11 --
- .../linux_tv/media/dvb/ca_function_calls.rst       |  19 +--
- Documentation/linux_tv/media/dvb/ca_h.rst          |  11 --
- Documentation/linux_tv/media/dvb/demux.rst         |  11 --
- Documentation/linux_tv/media/dvb/dmx_fcalls.rst    |  49 +++----
- Documentation/linux_tv/media/dvb/dmx_h.rst         |  11 --
- Documentation/linux_tv/media/dvb/dmx_types.rst     |  11 --
- Documentation/linux_tv/media/dvb/dtv-fe-stats.rst  |  11 --
- .../linux_tv/media/dvb/dtv-properties.rst          |  11 --
- Documentation/linux_tv/media/dvb/dtv-property.rst  |  11 --
- Documentation/linux_tv/media/dvb/dtv-stats.rst     |  11 --
- .../linux_tv/media/dvb/dvb-fe-read-status.rst      |  13 +-
- .../linux_tv/media/dvb/dvb-frontend-event.rst      |  11 --
- .../linux_tv/media/dvb/dvb-frontend-parameters.rst |  11 --
- Documentation/linux_tv/media/dvb/dvbapi.rst        |  15 +-
- .../linux_tv/media/dvb/dvbproperty-006.rst         |   9 --
- Documentation/linux_tv/media/dvb/dvbproperty.rst   |  11 --
- Documentation/linux_tv/media/dvb/examples.rst      |  11 --
- .../linux_tv/media/dvb/fe-bandwidth-t.rst          |  11 --
- .../media/dvb/fe-diseqc-recv-slave-reply.rst       |  13 +-
- .../media/dvb/fe-diseqc-reset-overload.rst         |  11 +-
- .../linux_tv/media/dvb/fe-diseqc-send-burst.rst    |  11 --
- .../media/dvb/fe-diseqc-send-master-cmd.rst        |  13 +-
- .../media/dvb/fe-enable-high-lnb-voltage.rst       |  11 +-
- Documentation/linux_tv/media/dvb/fe-get-info.rst   |  13 +-
- .../linux_tv/media/dvb/fe-get-property.rst         |  11 +-
- .../linux_tv/media/dvb/fe-read-status.rst          |  13 +-
- .../media/dvb/fe-set-frontend-tune-mode.rst        |  11 +-
- Documentation/linux_tv/media/dvb/fe-set-tone.rst   |  11 --
- .../linux_tv/media/dvb/fe-set-voltage.rst          |   9 --
- Documentation/linux_tv/media/dvb/fe-type-t.rst     |   9 --
- .../linux_tv/media/dvb/fe_property_parameters.rst  |  43 +++---
- .../media/dvb/frontend-property-cable-systems.rst  |   9 --
- .../dvb/frontend-property-satellite-systems.rst    |   9 --
- .../dvb/frontend-property-terrestrial-systems.rst  |   9 --
- .../media/dvb/frontend-stat-properties.rst         |  11 +-
- Documentation/linux_tv/media/dvb/frontend.rst      |  11 --
- .../linux_tv/media/dvb/frontend_f_close.rst        |  11 +-
- .../linux_tv/media/dvb/frontend_f_open.rst         |  15 +-
- .../linux_tv/media/dvb/frontend_fcalls.rst         |  11 --
- Documentation/linux_tv/media/dvb/frontend_h.rst    |  11 --
- .../linux_tv/media/dvb/frontend_legacy_api.rst     |  11 --
- .../media/dvb/frontend_legacy_dvbv3_api.rst        |  11 --
- Documentation/linux_tv/media/dvb/intro.rst         |   9 --
- .../linux_tv/media/dvb/intro_files/dvbstb.png      | Bin 22655 -> 22703 bytes
- .../linux_tv/media/dvb/legacy_dvb_apis.rst         |  11 --
- Documentation/linux_tv/media/dvb/net.rst           |  15 +-
- Documentation/linux_tv/media/dvb/net_h.rst         |  11 --
- .../linux_tv/media/dvb/query-dvb-frontend-info.rst |  11 +-
- Documentation/linux_tv/media/dvb/video.rst         |  11 --
- .../linux_tv/media/dvb/video_function_calls.rst    |  69 ++++------
- Documentation/linux_tv/media/dvb/video_h.rst       |  11 --
- Documentation/linux_tv/media/dvb/video_types.rst   |  11 --
- .../media/v4l/Remote_controllers_Intro.rst         |   9 --
- .../media/v4l/Remote_controllers_table_change.rst  |  11 --
- .../media/v4l/Remote_controllers_tables.rst        |  11 --
- Documentation/linux_tv/media/v4l/app-pri.rst       |  21 +--
- Documentation/linux_tv/media/v4l/async.rst         |   9 --
- Documentation/linux_tv/media/v4l/audio.rst         |  37 ++---
- Documentation/linux_tv/media/v4l/biblio.rst        |   9 --
- Documentation/linux_tv/media/v4l/buffer.rst        |  69 ++++------
- .../linux_tv/media/v4l/capture-example.rst         |  11 --
- Documentation/linux_tv/media/v4l/capture.c.rst     |  11 --
- Documentation/linux_tv/media/v4l/colorspaces.rst   |   9 --
- Documentation/linux_tv/media/v4l/common-defs.rst   |  11 --
- Documentation/linux_tv/media/v4l/common.rst        |  14 +-
- Documentation/linux_tv/media/v4l/compat.rst        |  11 --
- Documentation/linux_tv/media/v4l/control.rst       |  29 ++--
- Documentation/linux_tv/media/v4l/controls.rst      |  18 ---
- Documentation/linux_tv/media/v4l/crop.rst          | 130 +++++++++---------
- Documentation/linux_tv/media/v4l/depth-formats.rst |  11 --
- Documentation/linux_tv/media/v4l/dev-capture.rst   |  31 ++---
- Documentation/linux_tv/media/v4l/dev-codec.rst     |  11 +-
- Documentation/linux_tv/media/v4l/dev-effect.rst    |   9 --
- Documentation/linux_tv/media/v4l/dev-event.rst     |  13 +-
- Documentation/linux_tv/media/v4l/dev-osd.rst       |  27 ++--
- Documentation/linux_tv/media/v4l/dev-output.rst    |  29 ++--
- Documentation/linux_tv/media/v4l/dev-overlay.rst   |  63 ++++-----
- Documentation/linux_tv/media/v4l/dev-radio.rst     |  15 +-
- Documentation/linux_tv/media/v4l/dev-raw-vbi.rst   |  37 ++---
- Documentation/linux_tv/media/v4l/dev-rds.rst       |  15 +-
- Documentation/linux_tv/media/v4l/dev-sdr.rst       |  25 ++--
- .../linux_tv/media/v4l/dev-sliced-vbi.rst          |  61 ++++-----
- Documentation/linux_tv/media/v4l/dev-subdev.rst    |  35 ++---
- Documentation/linux_tv/media/v4l/dev-teletext.rst  |  11 +-
- Documentation/linux_tv/media/v4l/devices.rst       |  11 --
- Documentation/linux_tv/media/v4l/diff-v4l.rst      | 113 +++++++--------
- Documentation/linux_tv/media/v4l/dmabuf.rst        |  31 ++---
- Documentation/linux_tv/media/v4l/driver.rst        |   9 --
- Documentation/linux_tv/media/v4l/dv-timings.rst    |  19 +--
- .../linux_tv/media/v4l/extended-controls.rst       |  59 ++++----
- Documentation/linux_tv/media/v4l/fdl-appendix.rst  |  32 ++---
- Documentation/linux_tv/media/v4l/field-order.rst   |  17 +--
- .../media/v4l/field-order_files/fieldseq_tb.gif    | Bin 25323 -> 25339 bytes
- Documentation/linux_tv/media/v4l/format.rst        |  31 ++---
- Documentation/linux_tv/media/v4l/func-close.rst    |  11 +-
- Documentation/linux_tv/media/v4l/func-ioctl.rst    |  11 +-
- Documentation/linux_tv/media/v4l/func-mmap.rst     |  17 +--
- Documentation/linux_tv/media/v4l/func-munmap.rst   |  11 +-
- Documentation/linux_tv/media/v4l/func-open.rst     |  13 +-
- Documentation/linux_tv/media/v4l/func-poll.rst     |  25 ++--
- Documentation/linux_tv/media/v4l/func-read.rst     |  17 +--
- Documentation/linux_tv/media/v4l/func-select.rst   |  21 +--
- Documentation/linux_tv/media/v4l/func-write.rst    |  11 +-
- Documentation/linux_tv/media/v4l/gen-errors.rst    |  29 ++--
- Documentation/linux_tv/media/v4l/hist-v4l2.rst     | 152 ++++++++++-----------
- Documentation/linux_tv/media/v4l/io.rst            |  17 +--
- Documentation/linux_tv/media/v4l/keytable.c.rst    |  11 --
- .../linux_tv/media/v4l/libv4l-introduction.rst     |  43 +++---
- Documentation/linux_tv/media/v4l/libv4l.rst        |  11 --
- .../linux_tv/media/v4l/lirc_dev_intro.rst          |   9 --
- .../linux_tv/media/v4l/lirc_device_interface.rst   |  11 --
- Documentation/linux_tv/media/v4l/lirc_ioctl.rst    |   9 --
- Documentation/linux_tv/media/v4l/lirc_read.rst     |   9 --
- Documentation/linux_tv/media/v4l/lirc_write.rst    |  11 +-
- .../linux_tv/media/v4l/media-controller-intro.rst  |   9 --
- .../linux_tv/media/v4l/media-controller-model.rst  |   9 --
- .../linux_tv/media/v4l/media-controller.rst        |   9 --
- .../linux_tv/media/v4l/media-func-close.rst        |  11 +-
- .../linux_tv/media/v4l/media-func-ioctl.rst        |  11 +-
- .../linux_tv/media/v4l/media-func-open.rst         |  11 +-
- .../linux_tv/media/v4l/media-ioc-device-info.rst   |  11 +-
- .../linux_tv/media/v4l/media-ioc-enum-entities.rst |  13 +-
- .../linux_tv/media/v4l/media-ioc-enum-links.rst    |  11 +-
- .../linux_tv/media/v4l/media-ioc-g-topology.rst    |  11 +-
- .../linux_tv/media/v4l/media-ioc-setup-link.rst    |  17 +--
- Documentation/linux_tv/media/v4l/media-types.rst   |  11 --
- Documentation/linux_tv/media/v4l/mmap.rst          |  31 ++---
- Documentation/linux_tv/media/v4l/open.rst          |  25 +---
- Documentation/linux_tv/media/v4l/pixfmt-002.rst    |  15 +-
- Documentation/linux_tv/media/v4l/pixfmt-003.rst    |  17 +--
- Documentation/linux_tv/media/v4l/pixfmt-004.rst    |  21 +--
- Documentation/linux_tv/media/v4l/pixfmt-006.rst    |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-007.rst    |  90 +++++++-----
- Documentation/linux_tv/media/v4l/pixfmt-008.rst    |   9 --
- Documentation/linux_tv/media/v4l/pixfmt-013.rst    |  15 +-
- Documentation/linux_tv/media/v4l/pixfmt-grey.rst   |  11 --
- .../linux_tv/media/v4l/pixfmt-indexed.rst          |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-m420.rst   |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-nv12.rst   |  24 +---
- Documentation/linux_tv/media/v4l/pixfmt-nv12m.rst  |  24 +---
- Documentation/linux_tv/media/v4l/pixfmt-nv12mt.rst |   9 --
- Documentation/linux_tv/media/v4l/pixfmt-nv16.rst   |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-nv16m.rst  |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-nv24.rst   |  11 --
- .../linux_tv/media/v4l/pixfmt-packed-rgb.rst       |  11 +-
- .../linux_tv/media/v4l/pixfmt-packed-yuv.rst       |   9 --
- .../linux_tv/media/v4l/pixfmt-reserved.rst         |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-rgb.rst    |  11 --
- .../linux_tv/media/v4l/pixfmt-sbggr16.rst          |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-sbggr8.rst |  11 --
- .../linux_tv/media/v4l/pixfmt-sdr-cs08.rst         |  11 --
- .../linux_tv/media/v4l/pixfmt-sdr-cs14le.rst       |  11 --
- .../linux_tv/media/v4l/pixfmt-sdr-cu08.rst         |  11 --
- .../linux_tv/media/v4l/pixfmt-sdr-cu16le.rst       |  11 --
- .../linux_tv/media/v4l/pixfmt-sdr-ru12le.rst       |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-sgbrg8.rst |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-sgrbg8.rst |  11 --
- .../linux_tv/media/v4l/pixfmt-srggb10.rst          |  11 --
- .../linux_tv/media/v4l/pixfmt-srggb10alaw8.rst     |   9 --
- .../linux_tv/media/v4l/pixfmt-srggb10dpcm8.rst     |  11 +-
- .../linux_tv/media/v4l/pixfmt-srggb10p.rst         |  11 --
- .../linux_tv/media/v4l/pixfmt-srggb12.rst          |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-srggb8.rst |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-uv8.rst    |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-uyvy.rst   |  18 ---
- Documentation/linux_tv/media/v4l/pixfmt-vyuy.rst   |  20 ---
- Documentation/linux_tv/media/v4l/pixfmt-y10.rst    |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-y10b.rst   |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-y12.rst    |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-y12i.rst   |  15 --
- Documentation/linux_tv/media/v4l/pixfmt-y16-be.rst |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-y16.rst    |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-y41p.rst   |  38 ------
- Documentation/linux_tv/media/v4l/pixfmt-y8i.rst    |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-yuv410.rst |  11 --
- .../linux_tv/media/v4l/pixfmt-yuv411p.rst          |  23 ----
- Documentation/linux_tv/media/v4l/pixfmt-yuv420.rst |  12 +-
- .../linux_tv/media/v4l/pixfmt-yuv420m.rst          |  11 --
- .../linux_tv/media/v4l/pixfmt-yuv422m.rst          |  16 ---
- .../linux_tv/media/v4l/pixfmt-yuv422p.rst          |  16 ---
- .../linux_tv/media/v4l/pixfmt-yuv444m.rst          |  28 ----
- Documentation/linux_tv/media/v4l/pixfmt-yuyv.rst   |  11 --
- Documentation/linux_tv/media/v4l/pixfmt-yvyu.rst   |  20 ---
- Documentation/linux_tv/media/v4l/pixfmt-z16.rst    |  11 --
- Documentation/linux_tv/media/v4l/pixfmt.rst        |  19 +--
- Documentation/linux_tv/media/v4l/planar-apis.rst   |  23 +---
- Documentation/linux_tv/media/v4l/querycap.rst      |  29 ++--
- .../linux_tv/media/v4l/remote_controllers.rst      |   9 --
- .../media/v4l/remote_controllers_sysfs_nodes.rst   |  13 +-
- Documentation/linux_tv/media/v4l/rw.rst            |  17 +--
- Documentation/linux_tv/media/v4l/sdr-formats.rst   |  11 --
- .../linux_tv/media/v4l/selection-api-002.rst       |   9 --
- .../linux_tv/media/v4l/selection-api-003.rst       |   9 --
- .../linux_tv/media/v4l/selection-api-004.rst       |  15 +-
- .../linux_tv/media/v4l/selection-api-005.rst       |  20 +--
- .../linux_tv/media/v4l/selection-api-006.rst       |  14 +-
- Documentation/linux_tv/media/v4l/selection-api.rst |  11 --
- .../linux_tv/media/v4l/selections-common.rst       |  11 --
- Documentation/linux_tv/media/v4l/standard.rst      |  30 ++--
- Documentation/linux_tv/media/v4l/streaming-par.rst |  17 +--
- .../linux_tv/media/v4l/subdev-formats.rst          |  11 --
- Documentation/linux_tv/media/v4l/tuner.rst         |  37 ++---
- Documentation/linux_tv/media/v4l/user-func.rst     |  11 --
- Documentation/linux_tv/media/v4l/userp.rst         |  29 ++--
- .../linux_tv/media/v4l/v4l2-selection-flags.rst    |  11 --
- .../linux_tv/media/v4l/v4l2-selection-targets.rst  |  11 --
- Documentation/linux_tv/media/v4l/v4l2.rst          |  83 +++++------
- .../linux_tv/media/v4l/v4l2grab-example.rst        |  11 --
- Documentation/linux_tv/media/v4l/v4l2grab.c.rst    |  11 --
- Documentation/linux_tv/media/v4l/video.rst         |  30 ++--
- Documentation/linux_tv/media/v4l/videodev.rst      |  11 --
- .../linux_tv/media/v4l/vidioc-create-bufs.rst      |  27 ++--
- .../linux_tv/media/v4l/vidioc-cropcap.rst          |  15 +-
- .../linux_tv/media/v4l/vidioc-dbg-g-chip-info.rst  |  19 +--
- .../linux_tv/media/v4l/vidioc-dbg-g-register.rst   |  21 +--
- .../linux_tv/media/v4l/vidioc-decoder-cmd.rst      |  25 ++--
- .../linux_tv/media/v4l/vidioc-dqevent.rst          |  19 +--
- .../linux_tv/media/v4l/vidioc-dv-timings-cap.rst   |  15 +-
- .../linux_tv/media/v4l/vidioc-encoder-cmd.rst      |  25 ++--
- .../linux_tv/media/v4l/vidioc-enum-dv-timings.rst  |  21 +--
- .../linux_tv/media/v4l/vidioc-enum-fmt.rst         |  19 +--
- .../media/v4l/vidioc-enum-frameintervals.rst       |  17 +--
- .../linux_tv/media/v4l/vidioc-enum-framesizes.rst  |  15 +-
- .../linux_tv/media/v4l/vidioc-enum-freq-bands.rst  |  15 +-
- .../linux_tv/media/v4l/vidioc-enumaudio.rst        |  21 +--
- .../linux_tv/media/v4l/vidioc-enumaudioout.rst     |  19 +--
- .../linux_tv/media/v4l/vidioc-enuminput.rst        |  19 +--
- .../linux_tv/media/v4l/vidioc-enumoutput.rst       |  17 +--
- .../linux_tv/media/v4l/vidioc-enumstd.rst          |  23 +---
- Documentation/linux_tv/media/v4l/vidioc-expbuf.rst |  25 ++--
- .../linux_tv/media/v4l/vidioc-g-audio.rst          |  23 +---
- .../linux_tv/media/v4l/vidioc-g-audioout.rst       |  21 +--
- Documentation/linux_tv/media/v4l/vidioc-g-crop.rst |  29 ++--
- Documentation/linux_tv/media/v4l/vidioc-g-ctrl.rst |  35 ++---
- .../linux_tv/media/v4l/vidioc-g-dv-timings.rst     |  27 ++--
- Documentation/linux_tv/media/v4l/vidioc-g-edid.rst |  39 ++----
- .../linux_tv/media/v4l/vidioc-g-enc-index.rst      |  19 +--
- .../linux_tv/media/v4l/vidioc-g-ext-ctrls.rst      |  51 +++----
- Documentation/linux_tv/media/v4l/vidioc-g-fbuf.rst |  51 +++----
- Documentation/linux_tv/media/v4l/vidioc-g-fmt.rst  |  41 +++---
- .../linux_tv/media/v4l/vidioc-g-frequency.rst      |  21 +--
- .../linux_tv/media/v4l/vidioc-g-input.rst          |  21 +--
- .../linux_tv/media/v4l/vidioc-g-jpegcomp.rst       |  15 +-
- .../linux_tv/media/v4l/vidioc-g-modulator.rst      |  29 ++--
- .../linux_tv/media/v4l/vidioc-g-output.rst         |  21 +--
- Documentation/linux_tv/media/v4l/vidioc-g-parm.rst |  17 +--
- .../linux_tv/media/v4l/vidioc-g-priority.rst       |  15 +-
- .../linux_tv/media/v4l/vidioc-g-selection.rst      |  15 +-
- .../linux_tv/media/v4l/vidioc-g-sliced-vbi-cap.rst |  19 +--
- Documentation/linux_tv/media/v4l/vidioc-g-std.rst  |  35 ++---
- .../linux_tv/media/v4l/vidioc-g-tuner.rst          |  31 ++---
- .../linux_tv/media/v4l/vidioc-log-status.rst       |  13 +-
- .../linux_tv/media/v4l/vidioc-overlay.rst          |  19 +--
- .../linux_tv/media/v4l/vidioc-prepare-buf.rst      |  19 +--
- Documentation/linux_tv/media/v4l/vidioc-qbuf.rst   |  31 ++---
- .../linux_tv/media/v4l/vidioc-query-dv-timings.rst |  25 ++--
- .../linux_tv/media/v4l/vidioc-querybuf.rst         |  21 +--
- .../linux_tv/media/v4l/vidioc-querycap.rst         |  17 +--
- .../linux_tv/media/v4l/vidioc-queryctrl.rst        |  59 ++++----
- .../linux_tv/media/v4l/vidioc-querystd.rst         |  19 +--
- .../linux_tv/media/v4l/vidioc-reqbufs.rst          |  21 +--
- .../linux_tv/media/v4l/vidioc-s-hw-freq-seek.rst   |  19 +--
- .../linux_tv/media/v4l/vidioc-streamon.rst         |  19 +--
- .../v4l/vidioc-subdev-enum-frame-interval.rst      |  19 +--
- .../media/v4l/vidioc-subdev-enum-frame-size.rst    |  21 +--
- .../media/v4l/vidioc-subdev-enum-mbus-code.rst     |  21 +--
- .../linux_tv/media/v4l/vidioc-subdev-g-crop.rst    |  21 +--
- .../linux_tv/media/v4l/vidioc-subdev-g-fmt.rst     |  13 +-
- .../media/v4l/vidioc-subdev-g-frame-interval.rst   |  13 +-
- .../media/v4l/vidioc-subdev-g-selection.rst        |  15 +-
- .../linux_tv/media/v4l/vidioc-subscribe-event.rst  |  19 +--
- Documentation/linux_tv/media/v4l/yuv-formats.rst   |  11 --
- Documentation/linux_tv/net.h.rst                   |  11 --
- Documentation/linux_tv/video.h.rst                 |  11 --
- Documentation/linux_tv/videodev2.h.rst             |  11 --
- scripts/kernel-doc                                 |   2 +-
- 296 files changed, 1294 insertions(+), 4256 deletions(-)
- delete mode 100644 Documentation/linux_tv/media/v4l/controls.rst
 
--- 
-2.7.4
+ .. _cec-log-addrs:
+@@ -63,7 +77,7 @@ by a file handle in initiator mode (see :ref:`CEC_S_MODE`).
 
+        -  __u8
+
+-       -  ``log_addr`` [CEC_MAX_LOG_ADDRS]
++       -  ``log_addr[CEC_MAX_LOG_ADDRS]``
+
+        -  The actual logical addresses that were claimed. This is set by the
+ 	  driver. If no logical address could be claimed, then it is set to
+@@ -136,7 +150,7 @@ by a file handle in initiator mode (see :ref:`CEC_S_MODE`).
+
+        -  char
+
+-       -  ``osd_name``\ [15]
++       -  ``osd_name[15]``
+
+        -  The On-Screen Display name as is returned by the
+ 	  ``CEC_MSG_SET_OSD_NAME`` message.
+@@ -145,7 +159,7 @@ by a file handle in initiator mode (see :ref:`CEC_S_MODE`).
+
+        -  __u8
+
+-       -  ``primary_device_type`` [CEC_MAX_LOG_ADDRS]
++       -  ``primary_device_type[CEC_MAX_LOG_ADDRS]``
+
+        -  Primary device type for each logical address. See
+ 	  :ref:`cec-prim-dev-types` for possible types.
+@@ -154,7 +168,7 @@ by a file handle in initiator mode (see :ref:`CEC_S_MODE`).
+
+        -  __u8
+
+-       -  ``log_addr_type`` [CEC_MAX_LOG_ADDRS]
++       -  ``log_addr_type[CEC_MAX_LOG_ADDRS]``
+
+        -  Logical address types. See :ref:`cec-log-addr-types` for
+ 	  possible types. The driver will update this with the actual
+@@ -165,25 +179,27 @@ by a file handle in initiator mode (see :ref:`CEC_S_MODE`).
+
+        -  __u8
+
+-       -  ``all_device_types`` [CEC_MAX_LOG_ADDRS]
++       -  ``all_device_types[CEC_MAX_LOG_ADDRS]``
+
+-       -  CEC 2.0 specific: all device types. See
+-	  :ref:`cec-all-dev-types-flags`. Used to implement the
+-	  ``CEC_MSG_REPORT_FEATURES`` message. This field is ignored if
+-	  ``cec_version`` < :ref:`CEC_OP_CEC_VERSION_2_0 <CEC-OP-CEC-VERSION-2-0>`.
++       -  CEC 2.0 specific: the bit mask of all device types. See
++	  :ref:`cec-all-dev-types-flags`. It is used in the CEC 2.0
++	  ``CEC_MSG_REPORT_FEATURES`` message. For CEC 1.4 you can either leave
++	  this field to 0, or fill it in according to the CEC 2.0 guidelines to
++	  give the CEC framework more information about the device type, even
++	  though the framework won't use it directly in the CEC message.
+
+     -  .. row 11
+
+        -  __u8
+
+-       -  ``features`` [CEC_MAX_LOG_ADDRS][12]
++       -  ``features[CEC_MAX_LOG_ADDRS][12]``
+
+-       -  Features for each logical address. Used to implement the
++       -  Features for each logical address. It is used in the CEC 2.0
+ 	  ``CEC_MSG_REPORT_FEATURES`` message. The 12 bytes include both the
+-	  RC Profile and the Device Features. This field is ignored if
+-	  ``cec_version`` < :ref:`CEC_OP_CEC_VERSION_2_0 <CEC-OP-CEC-VERSION-2-0>`.
+-
+-
++	  RC Profile and the Device Features. For CEC 1.4 you can either leave
++          this field to all 0, or fill it in according to the CEC 2.0 guidelines to
++          give the CEC framework more information about the device type, even
++          though the framework won't use it directly in the CEC message.
+
+ .. _cec-versions:
+
+diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst
+index 07a92d4..b955d04 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst
+@@ -44,10 +44,21 @@ driver stores the physical address.
+ To set a new physical address applications store the physical address in
+ a __u16 and call :ref:`ioctl CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>` with a pointer to
+ this integer. The :ref:`ioctl CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>` is only available if
+-``CEC_CAP_PHYS_ADDR`` is set (ENOTTY error code will be returned
+-otherwise). The :ref:`ioctl CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>` can only be called by a file handle
+-in initiator mode (see :ref:`CEC_S_MODE`), if not
+-EBUSY error code will be returned.
++``CEC_CAP_PHYS_ADDR`` is set (the ``ENOTTY`` error code will be returned
++otherwise). The :ref:`ioctl CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>` can only be called
++by a file descriptor in initiator mode (see :ref:`CEC_S_MODE`), if not
++the ``EBUSY`` error code will be returned.
++
++To clear an existing physical address use ``CEC_PHYS_ADDR_INVALID``.
++The adapter will go to the unconfigured state.
++
++If logical address types have been defined (see :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`),
++then this ioctl will block until all
++requested logical addresses have been claimed. If the file descriptor is in non-blocking mode
++then it will not wait for the logical addresses to be claimed, instead it just returns 0.
++
++A :ref:`CEC_EVENT_STATE_CHANGE <CEC-EVENT-STATE-CHANGE>` event is sent when the physical address
++changes.
+
+ The physical address is a 16-bit number where each group of 4 bits
+ represent a digit of the physical address a.b.c.d where the most
+diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+index 2785a4c..7a6d6d0 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+@@ -38,7 +38,7 @@ Description
+ CEC devices can send asynchronous events. These can be retrieved by
+ calling :ref:`ioctl CEC_DQEVENT <CEC_DQEVENT>`. If the file descriptor is in
+ non-blocking mode and no event is pending, then it will return -1 and
+-set errno to the EAGAIN error code.
++set errno to the ``EAGAIN`` error code.
+
+ The internal event queues are per-filehandle and per-event type. If
+ there is no more room in a queue then the last event is overwritten with
+@@ -117,6 +117,8 @@ it is guaranteed that the state did change in between the two events.
+        -  ``ts``
+
+        -  Timestamp of the event in ns.
++	  The timestamp has been taken from the ``CLOCK_MONOTONIC`` clock. To access
++	  the same clock from userspace use :c:func:`clock_gettime(2)`.
+
+        -
+
+diff --git a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
+index d071108..f0084d8 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
+@@ -108,7 +108,7 @@ Available initiator modes are:
+        -  This is an exclusive initiator and this file descriptor is the
+ 	  only one that can transmit CEC messages and make changes to the
+ 	  CEC adapter. If someone else is already the exclusive initiator
+-	  then an attempt to become one will return the EBUSY error code
++	  then an attempt to become one will return the ``EBUSY`` error code
+ 	  error.
+
+
+@@ -140,7 +140,7 @@ Available follower modes are:
+        -  This is a follower and it will receive CEC messages unless there
+ 	  is an exclusive follower. You cannot become a follower if
+ 	  :ref:`CEC_CAP_TRANSMIT <CEC-CAP-TRANSMIT>` is not set or if :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`
+-	  was specified, EINVAL error code is returned in that case.
++	  was specified, the ``EINVAL`` error code is returned in that case.
+
+     -  .. _`CEC-MODE-EXCL-FOLLOWER`:
+
+@@ -151,9 +151,9 @@ Available follower modes are:
+        -  This is an exclusive follower and only this file descriptor will
+ 	  receive CEC messages for processing. If someone else is already
+ 	  the exclusive follower then an attempt to become one will return
+-	  the EBUSY error code error. You cannot become a follower if
++	  the ``EBUSY`` error code. You cannot become a follower if
+ 	  :ref:`CEC_CAP_TRANSMIT <CEC-CAP-TRANSMIT>` is not set or if :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`
+-	  was specified, EINVAL error code is returned in that case.
++	  was specified, the ``EINVAL`` error code is returned in that case.
+
+     -  .. _`CEC-MODE-EXCL-FOLLOWER-PASSTHRU`:
+
+@@ -166,10 +166,10 @@ Available follower modes are:
+ 	  CEC device into passthrough mode, allowing the exclusive follower
+ 	  to handle most core messages instead of relying on the CEC
+ 	  framework for that. If someone else is already the exclusive
+-	  follower then an attempt to become one will return the EBUSY error
+-	  code error. You cannot become a follower if :ref:`CEC_CAP_TRANSMIT <CEC-CAP-TRANSMIT>`
+-	  is not set or if :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>` was specified, EINVAL
+-	  error code is returned in that case.
++	  follower then an attempt to become one will return the ``EBUSY`` error
++	  code. You cannot become a follower if :ref:`CEC_CAP_TRANSMIT <CEC-CAP-TRANSMIT>`
++	  is not set or if :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>` was specified,
++	  the ``EINVAL`` error code is returned in that case.
+
+     -  .. _`CEC-MODE-MONITOR`:
+
+@@ -184,7 +184,7 @@ Available follower modes are:
+ 	  messages and directed messages for one its logical addresses) will
+ 	  be reported. This is very useful for debugging. This is only
+ 	  allowed if the process has the ``CAP_NET_ADMIN`` capability. If
+-	  that is not set, then EPERM error code is returned.
++	  that is not set, then the ``EPERM`` error code is returned.
+
+     -  .. _`CEC-MODE-MONITOR-ALL`:
+
+@@ -193,15 +193,15 @@ Available follower modes are:
+        -  0xf0
+
+        -  Put the file descriptor into 'monitor all' mode. Can only be used
+-	  in combination with :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`, otherwise EINVAL
+-	  error code will be returned. In 'monitor all' mode all messages
++	  in combination with :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`, otherwise
++	  the ``EINVAL`` error code will be returned. In 'monitor all' mode all messages
+ 	  this CEC device transmits and all messages it receives, including
+ 	  directed messages for other CEC devices will be reported. This is
+ 	  very useful for debugging, but not all devices support this. This
+ 	  mode requires that the :ref:`CEC_CAP_MONITOR_ALL <CEC-CAP-MONITOR-ALL>` capability is set,
+-	  otherwise EINVAL error code is returned. This is only allowed if
++	  otherwise the ``EINVAL`` error code is returned. This is only allowed if
+ 	  the process has the ``CAP_NET_ADMIN`` capability. If that is not
+-	  set, then EPERM error code is returned.
++	  set, then the ``EPERM`` error code is returned.
+
+
+ Core message processing details:
+diff --git a/Documentation/media/uapi/cec/cec-ioc-receive.rst b/Documentation/media/uapi/cec/cec-ioc-receive.rst
+index 3faec51..ae5a39a 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-receive.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-receive.rst
+@@ -37,19 +37,38 @@ Description
+    and is currently only available as a staging kernel module.
+
+ To receive a CEC message the application has to fill in the
+-:c:type:`struct cec_msg` and pass it to :ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`.
+-The :ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>` is only available if ``CEC_CAP_RECEIVE`` is set.
++``timeout`` field of :c:type:`struct cec_msg` and pass it to :ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`.
+ If the file descriptor is in non-blocking mode and there are no received
+-messages pending, then it will return -1 and set errno to the EAGAIN
++messages pending, then it will return -1 and set errno to the ``EAGAIN``
+ error code. If the file descriptor is in blocking mode and ``timeout``
+ is non-zero and no message arrived within ``timeout`` milliseconds, then
+-it will return -1 and set errno to the ETIMEDOUT error code.
++it will return -1 and set errno to the ``ETIMEDOUT`` error code.
++
++A received message can be:
++
++1. a message received from another CEC device (the ``sequence`` field will
++   be 0).
++2. the result of an earlier non-blocking transmit (the ``sequence`` field will
++   be non-zero).
+
+ To send a CEC message the application has to fill in the
+ :c:type:`struct cec_msg` and pass it to
+ :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>`. The :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>` is only available if
+ ``CEC_CAP_TRANSMIT`` is set. If there is no more room in the transmit
+-queue, then it will return -1 and set errno to the EBUSY error code.
++queue, then it will return -1 and set errno to the ``EBUSY`` error code.
++The transmit queue has enough room for 18 messages (about 1 second worth
++of 2-byte messages). Note that the CEC kernel framework will also reply
++to core messages (see :ref:cec-core-processing), so it is not a good
++idea to fully fill up the transmit queue.
++
++If the file descriptor is in non-blocking mode then the transmit will
++return 0 and the result of the transmit will be available via
++:ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>` once the transmit has finished
++(including waiting for a reply, if requested).
++
++The ``sequence`` field is filled in for every transmit and this can be
++checked against the received messages to find the corresponding transmit
++result.
+
+
+ .. _cec-msg:
+@@ -67,6 +86,8 @@ queue, then it will return -1 and set errno to the EBUSY error code.
+        -  ``tx_ts``
+
+        -  Timestamp in ns of when the last byte of the message was transmitted.
++	  The timestamp has been taken from the ``CLOCK_MONOTONIC`` clock. To access
++	  the same clock from userspace use :c:func:`clock_gettime(2)`.
+
+     -  .. row 2
+
+@@ -75,6 +96,8 @@ queue, then it will return -1 and set errno to the EBUSY error code.
+        -  ``rx_ts``
+
+        -  Timestamp in ns of when the last byte of the message was received.
++	  The timestamp has been taken from the ``CLOCK_MONOTONIC`` clock. To access
++	  the same clock from userspace use :c:func:`clock_gettime(2)`.
+
+     -  .. row 3
+
+@@ -106,10 +129,11 @@ queue, then it will return -1 and set errno to the EBUSY error code.
+
+        -  ``sequence``
+
+-       -  The sequence number is automatically assigned by the CEC framework
+-	  for all transmitted messages. It can be later used by the
+-	  framework to generate an event if a reply for a message was
+-	  requested and the message was transmitted in a non-blocking mode.
++       -  A non-zero sequence number is automatically assigned by the CEC framework
++	  for all transmitted messages. It is used by the CEC framework when it queues
++	  the transmit result (when transmit was called in non-blocking mode). This
++	  allows the application to associate the received message with the original
++	  transmit.
+
+     -  .. row 6
+
+@@ -133,7 +157,7 @@ queue, then it will return -1 and set errno to the EBUSY error code.
+
+        -  __u8
+
+-       -  ``msg``\ [16]
++       -  ``msg[16]``
+
+        -  The message payload. For :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>` this is filled in by the
+ 	  application. The driver will fill this in for :ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`.
+@@ -148,14 +172,13 @@ queue, then it will return -1 and set errno to the EBUSY error code.
+
+        -  Wait until this message is replied. If ``reply`` is 0 and the
+ 	  ``timeout`` is 0, then don't wait for a reply but return after
+-	  transmitting the message. If there was an error as indicated by the
+-	  ``tx_status`` field, then ``reply`` and ``timeout`` are
+-	  both set to 0 by the driver. Ignored by :ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`. The case
+-	  where ``reply`` is 0 (this is the opcode for the Feature Abort
+-	  message) and ``timeout`` is non-zero is specifically allowed to
+-	  send a message and wait up to ``timeout`` milliseconds for a
++	  transmitting the message. Ignored by :ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`.
++	  The case where ``reply`` is 0 (this is the opcode for the Feature Abort
++	  message) and ``timeout`` is non-zero is specifically allowed to make it
++	  possible to send a message and wait up to ``timeout`` milliseconds for a
+ 	  Feature Abort reply. In this case ``rx_status`` will either be set
+-	  to :ref:`CEC_RX_STATUS_TIMEOUT <CEC-RX-STATUS-TIMEOUT>` or :ref:`CEC_RX_STATUS_FEATURE_ABORT <CEC-RX-STATUS-FEATURE-ABORT>`.
++	  to :ref:`CEC_RX_STATUS_TIMEOUT <CEC-RX-STATUS-TIMEOUT>` or
++	  :ref:`CEC_RX_STATUS_FEATURE_ABORT <CEC-RX-STATUS-FEATURE-ABORT>`.
+
+     -  .. row 9
 
