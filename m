@@ -1,226 +1,374 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:43815 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932472AbcGDNfG (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:35270 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752373AbcGSHqx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 09:35:06 -0400
+	Tue, 19 Jul 2016 03:46:53 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 7426B18021F
+	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2016 09:46:48 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/7] adv7604/adv7842: fix quantization range handling
-Date: Mon,  4 Jul 2016 15:34:48 +0200
-Message-Id: <1467639292-1066-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1467639292-1066-1-git-send-email-hverkuil@xs4all.nl>
-References: <1467639292-1066-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [PATCHv2] doc-rst: cec: update documentation
+Message-ID: <97bbac0f-8724-1de5-4941-92003c9981fc@xs4all.nl>
+Date: Tue, 19 Jul 2016 09:46:48 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-Fix a number of bugs that appeared when support for mediabus formats was
-added:
-
-- Support for V4L2_DV_RGB_RANGE_FULL/LIMITED should only be enabled
-  for HDMI RGB formats, not for YCbCr formats. Since, as the name
-  says, this setting is for RGB only. So read the InfoFrame to check
-  the format.
-
-- the quantization range for the pixelport depends on whether the
-  mediabus code is RGB or not: if it is RGB, then produce full range
-  RGB values, otherwise produce limited range YCbCr values.
-
-  This means that the op_656_range and alt_data_sat fields of the
-  platform data are no longer used and these will be removed in a
-  following patch.
-
-- when setting up a new format the RGB quantization range settings
-  were never updated. Do so, since this depends on the format.
-
-- fix the log_status output which was confusing and incorrect.
+Update and expand the CEC documentation. Especially w.r.t. non-blocking mode.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/adv7604.c | 27 ++++++++++++++++-----------
- drivers/media/i2c/adv7842.c | 26 +++++++++++++++++---------
- 2 files changed, 33 insertions(+), 20 deletions(-)
+This depends on https://patchwork.linuxtv.org/patch/35614/.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 3f1ab49..943706d 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1086,6 +1086,10 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 	struct adv76xx_state *state = to_state(sd);
- 	bool rgb_output = io_read(sd, 0x02) & 0x02;
- 	bool hdmi_signal = hdmi_read(sd, 0x05) & 0x80;
-+	u8 y = HDMI_COLORSPACE_RGB;
+Changes since v2: update the documentation of the all_device_types and features
+fields due to changes in the CEC API (these were ignored for CEC 1.4, but after
+the pull request above they are no longer ignored).
+---
+diff --git a/Documentation/media/uapi/cec/cec-func-open.rst b/Documentation/media/uapi/cec/cec-func-open.rst
+index cbf1176..38fd7e0 100644
+--- a/Documentation/media/uapi/cec/cec-func-open.rst
++++ b/Documentation/media/uapi/cec/cec-func-open.rst
+@@ -32,12 +32,12 @@ Arguments
+     Open flags. Access mode must be ``O_RDWR``.
+
+     When the ``O_NONBLOCK`` flag is given, the
+-    :ref:`CEC_RECEIVE <CEC_RECEIVE>` ioctl will return the EAGAIN
+-    error code when no message is available, and ioctls
+-    :ref:`CEC_TRANSMIT <CEC_TRANSMIT>`,
++    :ref:`CEC_RECEIVE <CEC_RECEIVE>` and :ref:`CEC_DQEVENT <CEC_DQEVENT>` ioctls
++    will return the ``EAGAIN`` error code when no message or event is available, and
++    ioctls :ref:`CEC_TRANSMIT <CEC_TRANSMIT>`,
+     :ref:`CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>` and
+     :ref:`CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
+-    all act in non-blocking mode.
++    all return 0.
+
+     Other flags have no effect.
+
+diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
+index eab734e..04ee900 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
+@@ -45,10 +45,24 @@ To query the current CEC logical addresses, applications call
+ To set new logical addresses, applications fill in
+ :c:type:`struct cec_log_addrs` and call :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
+ with a pointer to this struct. The :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
+-is only available if ``CEC_CAP_LOG_ADDRS`` is set (ENOTTY error code is
+-returned otherwise). This ioctl will block until all requested logical
+-addresses have been claimed. The :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>` can only be called
+-by a file handle in initiator mode (see :ref:`CEC_S_MODE`).
++is only available if ``CEC_CAP_LOG_ADDRS`` is set (the ``ENOTTY`` error code is
++returned otherwise). The :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
++can only be called by a file descriptor in initiator mode (see :ref:`CEC_S_MODE`), if not
++the ``EBUSY`` error code will be returned.
 +
-+	if (hdmi_signal && (io_read(sd, 0x60) & 1))
-+		y = infoframe_read(sd, 0x01) >> 5;
- 
- 	v4l2_dbg(2, debug, sd, "%s: RGB quantization range: %d, RGB out: %d, HDMI: %d\n",
- 			__func__, state->rgb_quantization_range,
-@@ -1093,6 +1097,7 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 
- 	adv76xx_set_gain(sd, true, 0x0, 0x0, 0x0);
- 	adv76xx_set_offset(sd, true, 0x0, 0x0, 0x0);
-+	io_write_clr_set(sd, 0x02, 0x04, rgb_output ? 0 : 4);
- 
- 	switch (state->rgb_quantization_range) {
- 	case V4L2_DV_RGB_RANGE_AUTO:
-@@ -1142,6 +1147,9 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 			break;
- 		}
- 
-+		if (y != HDMI_COLORSPACE_RGB)
-+			break;
++To clear existing logical addresses set ``num_log_addrs`` to 0. All other fields
++will be ignored in that case. The adapter will go to the unconfigured state.
 +
- 		/* RGB limited range (16-235) */
- 		io_write_clr_set(sd, 0x02, 0xf0, 0x00);
- 
-@@ -1153,6 +1161,9 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 			break;
- 		}
- 
-+		if (y != HDMI_COLORSPACE_RGB)
-+			break;
++If the physical address is valid (see :ref:`ioctl CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>`),
++then this ioctl will block until all requested logical
++addresses have been claimed. If the file descriptor is in non-blocking mode then it will
++not wait for the logical addresses to be claimed, instead it just returns 0.
 +
- 		/* RGB full range (0-255) */
- 		io_write_clr_set(sd, 0x02, 0xf0, 0x10);
- 
-@@ -1849,6 +1860,7 @@ static void adv76xx_setup_format(struct adv76xx_state *state)
- 	io_write_clr_set(sd, 0x04, 0xe0, adv76xx_op_ch_sel(state));
- 	io_write_clr_set(sd, 0x05, 0x01,
- 			state->format->swap_cb_cr ? ADV76XX_OP_SWAP_CB_CR : 0);
-+	set_rgb_quantization_range(sd);
- }
- 
- static int adv76xx_get_format(struct v4l2_subdev *sd,
-@@ -2323,11 +2335,10 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
- 			rgb_quantization_range_txt[state->rgb_quantization_range]);
- 	v4l2_info(sd, "Input color space: %s\n",
- 			input_color_space_txt[reg_io_0x02 >> 4]);
--	v4l2_info(sd, "Output color space: %s %s, saturator %s, alt-gamma %s\n",
-+	v4l2_info(sd, "Output color space: %s %s, alt-gamma %s\n",
- 			(reg_io_0x02 & 0x02) ? "RGB" : "YCbCr",
--			(reg_io_0x02 & 0x04) ? "(16-235)" : "(0-255)",
- 			(((reg_io_0x02 >> 2) & 0x01) ^ (reg_io_0x02 & 0x01)) ?
--				"enabled" : "disabled",
-+				"(16-235)" : "(0-255)",
- 			(reg_io_0x02 & 0x08) ? "enabled" : "disabled");
- 	v4l2_info(sd, "Color space conversion: %s\n",
- 			csc_coeff_sel_rb[cp_read(sd, info->cp_csc) >> 4]);
-@@ -2492,10 +2503,7 @@ static int adv76xx_core_init(struct v4l2_subdev *sd)
- 	cp_write(sd, 0xcf, 0x01);   /* Power down macrovision */
- 
- 	/* video format */
--	io_write_clr_set(sd, 0x02, 0x0f,
--			pdata->alt_gamma << 3 |
--			pdata->op_656_range << 2 |
--			pdata->alt_data_sat << 0);
-+	io_write_clr_set(sd, 0x02, 0x0f, pdata->alt_gamma << 3);
- 	io_write_clr_set(sd, 0x05, 0x0e, pdata->blank_data << 3 |
- 			pdata->insert_av_codes << 2 |
- 			pdata->replicate_av_codes << 1);
-@@ -2845,10 +2853,8 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
- 		state->pdata.inv_llc_pol = 1;
- 
--	if (bus_cfg.bus_type == V4L2_MBUS_BT656) {
-+	if (bus_cfg.bus_type == V4L2_MBUS_BT656)
- 		state->pdata.insert_av_codes = 1;
--		state->pdata.op_656_range = 1;
--	}
- 
- 	/* Disable the interrupt for now as no DT-based board uses it. */
- 	state->pdata.int1_config = ADV76XX_INT1_CONFIG_DISABLED;
-@@ -2871,7 +2877,6 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	state->pdata.disable_pwrdnb = 0;
- 	state->pdata.disable_cable_det_rst = 0;
- 	state->pdata.blank_data = 1;
--	state->pdata.alt_data_sat = 1;
- 	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
- 	state->pdata.bus_order = ADV7604_BUS_ORDER_RGB;
- 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 8081ef7..5b3ab35 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -1198,6 +1198,10 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 	struct adv7842_state *state = to_state(sd);
- 	bool rgb_output = io_read(sd, 0x02) & 0x02;
- 	bool hdmi_signal = hdmi_read(sd, 0x05) & 0x80;
-+	u8 y = HDMI_COLORSPACE_RGB;
++A :ref:`CEC_EVENT_STATE_CHANGE <CEC-EVENT-STATE-CHANGE>` event is sent when the
++logical addresses are claimed or cleared.
 +
-+	if (hdmi_signal && (io_read(sd, 0x60) & 1))
-+		y = infoframe_read(sd, 0x01) >> 5;
- 
- 	v4l2_dbg(2, debug, sd, "%s: RGB quantization range: %d, RGB out: %d, HDMI: %d\n",
- 			__func__, state->rgb_quantization_range,
-@@ -1205,6 +1209,7 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 
- 	adv7842_set_gain(sd, true, 0x0, 0x0, 0x0);
- 	adv7842_set_offset(sd, true, 0x0, 0x0, 0x0);
-+	io_write_clr_set(sd, 0x02, 0x04, rgb_output ? 0 : 4);
- 
- 	switch (state->rgb_quantization_range) {
- 	case V4L2_DV_RGB_RANGE_AUTO:
-@@ -1254,6 +1259,9 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 			break;
- 		}
- 
-+		if (y != HDMI_COLORSPACE_RGB)
-+			break;
++Attempting to call :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>` when
++logical address types are already defined will return with error ``EBUSY``.
+
+
+ .. _cec-log-addrs:
+@@ -63,7 +77,7 @@ by a file handle in initiator mode (see :ref:`CEC_S_MODE`).
+
+        -  __u8
+
+-       -  ``log_addr`` [CEC_MAX_LOG_ADDRS]
++       -  ``log_addr[CEC_MAX_LOG_ADDRS]``
+
+        -  The actual logical addresses that were claimed. This is set by the
+ 	  driver. If no logical address could be claimed, then it is set to
+@@ -136,7 +150,7 @@ by a file handle in initiator mode (see :ref:`CEC_S_MODE`).
+
+        -  char
+
+-       -  ``osd_name``\ [15]
++       -  ``osd_name[15]``
+
+        -  The On-Screen Display name as is returned by the
+ 	  ``CEC_MSG_SET_OSD_NAME`` message.
+@@ -145,7 +159,7 @@ by a file handle in initiator mode (see :ref:`CEC_S_MODE`).
+
+        -  __u8
+
+-       -  ``primary_device_type`` [CEC_MAX_LOG_ADDRS]
++       -  ``primary_device_type[CEC_MAX_LOG_ADDRS]``
+
+        -  Primary device type for each logical address. See
+ 	  :ref:`cec-prim-dev-types` for possible types.
+@@ -154,7 +168,7 @@ by a file handle in initiator mode (see :ref:`CEC_S_MODE`).
+
+        -  __u8
+
+-       -  ``log_addr_type`` [CEC_MAX_LOG_ADDRS]
++       -  ``log_addr_type[CEC_MAX_LOG_ADDRS]``
+
+        -  Logical address types. See :ref:`cec-log-addr-types` for
+ 	  possible types. The driver will update this with the actual
+@@ -165,25 +179,27 @@ by a file handle in initiator mode (see :ref:`CEC_S_MODE`).
+
+        -  __u8
+
+-       -  ``all_device_types`` [CEC_MAX_LOG_ADDRS]
++       -  ``all_device_types[CEC_MAX_LOG_ADDRS]``
+
+-       -  CEC 2.0 specific: all device types. See
+-	  :ref:`cec-all-dev-types-flags`. Used to implement the
+-	  ``CEC_MSG_REPORT_FEATURES`` message. This field is ignored if
+-	  ``cec_version`` < :ref:`CEC_OP_CEC_VERSION_2_0 <CEC-OP-CEC-VERSION-2-0>`.
++       -  CEC 2.0 specific: the bit mask of all device types. See
++	  :ref:`cec-all-dev-types-flags`. It is used in the CEC 2.0
++	  ``CEC_MSG_REPORT_FEATURES`` message. For CEC 1.4 you can either leave
++	  this field to 0, or fill it in according to the CEC 2.0 guidelines to
++	  give the CEC framework more information about the device type, even
++	  though the framework won't use it directly in the CEC message.
+
+     -  .. row 11
+
+        -  __u8
+
+-       -  ``features`` [CEC_MAX_LOG_ADDRS][12]
++       -  ``features[CEC_MAX_LOG_ADDRS][12]``
+
+-       -  Features for each logical address. Used to implement the
++       -  Features for each logical address. It is used in the CEC 2.0
+ 	  ``CEC_MSG_REPORT_FEATURES`` message. The 12 bytes include both the
+-	  RC Profile and the Device Features. This field is ignored if
+-	  ``cec_version`` < :ref:`CEC_OP_CEC_VERSION_2_0 <CEC-OP-CEC-VERSION-2-0>`.
+-
+-
++	  RC Profile and the Device Features. For CEC 1.4 you can either leave
++          this field to all 0, or fill it in according to the CEC 2.0 guidelines to
++          give the CEC framework more information about the device type, even
++          though the framework won't use it directly in the CEC message.
+
+ .. _cec-versions:
+
+diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst
+index 07a92d4..b955d04 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst
+@@ -44,10 +44,21 @@ driver stores the physical address.
+ To set a new physical address applications store the physical address in
+ a __u16 and call :ref:`ioctl CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>` with a pointer to
+ this integer. The :ref:`ioctl CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>` is only available if
+-``CEC_CAP_PHYS_ADDR`` is set (ENOTTY error code will be returned
+-otherwise). The :ref:`ioctl CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>` can only be called by a file handle
+-in initiator mode (see :ref:`CEC_S_MODE`), if not
+-EBUSY error code will be returned.
++``CEC_CAP_PHYS_ADDR`` is set (the ``ENOTTY`` error code will be returned
++otherwise). The :ref:`ioctl CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>` can only be called
++by a file descriptor in initiator mode (see :ref:`CEC_S_MODE`), if not
++the ``EBUSY`` error code will be returned.
 +
- 		/* RGB limited range (16-235) */
- 		io_write_and_or(sd, 0x02, 0x0f, 0x00);
- 
-@@ -1265,6 +1273,9 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 			break;
- 		}
- 
-+		if (y != HDMI_COLORSPACE_RGB)
-+			break;
++To clear an existing physical address use ``CEC_PHYS_ADDR_INVALID``.
++The adapter will go to the unconfigured state.
 +
- 		/* RGB full range (0-255) */
- 		io_write_and_or(sd, 0x02, 0x0f, 0x10);
- 
-@@ -2072,6 +2083,7 @@ static void adv7842_setup_format(struct adv7842_state *state)
- 	io_write_clr_set(sd, 0x04, 0xe0, adv7842_op_ch_sel(state));
- 	io_write_clr_set(sd, 0x05, 0x01,
- 			state->format->swap_cb_cr ? ADV7842_OP_SWAP_CB_CR : 0);
-+	set_rgb_quantization_range(sd);
- }
- 
- static int adv7842_get_format(struct v4l2_subdev *sd,
-@@ -2572,11 +2584,11 @@ static int adv7842_cp_log_status(struct v4l2_subdev *sd)
- 		  rgb_quantization_range_txt[state->rgb_quantization_range]);
- 	v4l2_info(sd, "Input color space: %s\n",
- 		  input_color_space_txt[reg_io_0x02 >> 4]);
--	v4l2_info(sd, "Output color space: %s %s, saturator %s\n",
-+	v4l2_info(sd, "Output color space: %s %s, alt-gamma %s\n",
- 		  (reg_io_0x02 & 0x02) ? "RGB" : "YCbCr",
--		  (reg_io_0x02 & 0x04) ? "(16-235)" : "(0-255)",
--		  ((reg_io_0x02 & 0x04) ^ (reg_io_0x02 & 0x01)) ?
--					"enabled" : "disabled");
-+		  (((reg_io_0x02 >> 2) & 0x01) ^ (reg_io_0x02 & 0x01)) ?
-+			"(16-235)" : "(0-255)",
-+		  (reg_io_0x02 & 0x08) ? "enabled" : "disabled");
- 	v4l2_info(sd, "Color space conversion: %s\n",
- 		  csc_coeff_sel_rb[cp_read(sd, 0xf4) >> 4]);
- 
-@@ -2780,11 +2792,7 @@ static int adv7842_core_init(struct v4l2_subdev *sd)
- 	io_write(sd, 0x15, 0x80);   /* Power up pads */
- 
- 	/* video format */
--	io_write(sd, 0x02,
--		 0xf0 |
--		 pdata->alt_gamma << 3 |
--		 pdata->op_656_range << 2 |
--		 pdata->alt_data_sat << 0);
-+	io_write(sd, 0x02, 0xf0 | pdata->alt_gamma << 3);
- 	io_write_and_or(sd, 0x05, 0xf0, pdata->blank_data << 3 |
- 			pdata->insert_av_codes << 2 |
- 			pdata->replicate_av_codes << 1);
--- 
-2.8.1
++If logical address types have been defined (see :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`),
++then this ioctl will block until all
++requested logical addresses have been claimed. If the file descriptor is in non-blocking mode
++then it will not wait for the logical addresses to be claimed, instead it just returns 0.
++
++A :ref:`CEC_EVENT_STATE_CHANGE <CEC-EVENT-STATE-CHANGE>` event is sent when the physical address
++changes.
+
+ The physical address is a 16-bit number where each group of 4 bits
+ represent a digit of the physical address a.b.c.d where the most
+diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+index 2785a4c..8c2b0c1 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+@@ -38,7 +38,7 @@ Description
+ CEC devices can send asynchronous events. These can be retrieved by
+ calling :ref:`ioctl CEC_DQEVENT <CEC_DQEVENT>`. If the file descriptor is in
+ non-blocking mode and no event is pending, then it will return -1 and
+-set errno to the EAGAIN error code.
++set errno to the ``EAGAIN`` error code.
+
+ The internal event queues are per-filehandle and per-event type. If
+ there is no more room in a queue then the last event is overwritten with
+diff --git a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
+index d071108..f0084d8 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
+@@ -108,7 +108,7 @@ Available initiator modes are:
+        -  This is an exclusive initiator and this file descriptor is the
+ 	  only one that can transmit CEC messages and make changes to the
+ 	  CEC adapter. If someone else is already the exclusive initiator
+-	  then an attempt to become one will return the EBUSY error code
++	  then an attempt to become one will return the ``EBUSY`` error code
+ 	  error.
+
+
+@@ -140,7 +140,7 @@ Available follower modes are:
+        -  This is a follower and it will receive CEC messages unless there
+ 	  is an exclusive follower. You cannot become a follower if
+ 	  :ref:`CEC_CAP_TRANSMIT <CEC-CAP-TRANSMIT>` is not set or if :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`
+-	  was specified, EINVAL error code is returned in that case.
++	  was specified, the ``EINVAL`` error code is returned in that case.
+
+     -  .. _`CEC-MODE-EXCL-FOLLOWER`:
+
+@@ -151,9 +151,9 @@ Available follower modes are:
+        -  This is an exclusive follower and only this file descriptor will
+ 	  receive CEC messages for processing. If someone else is already
+ 	  the exclusive follower then an attempt to become one will return
+-	  the EBUSY error code error. You cannot become a follower if
++	  the ``EBUSY`` error code. You cannot become a follower if
+ 	  :ref:`CEC_CAP_TRANSMIT <CEC-CAP-TRANSMIT>` is not set or if :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`
+-	  was specified, EINVAL error code is returned in that case.
++	  was specified, the ``EINVAL`` error code is returned in that case.
+
+     -  .. _`CEC-MODE-EXCL-FOLLOWER-PASSTHRU`:
+
+@@ -166,10 +166,10 @@ Available follower modes are:
+ 	  CEC device into passthrough mode, allowing the exclusive follower
+ 	  to handle most core messages instead of relying on the CEC
+ 	  framework for that. If someone else is already the exclusive
+-	  follower then an attempt to become one will return the EBUSY error
+-	  code error. You cannot become a follower if :ref:`CEC_CAP_TRANSMIT <CEC-CAP-TRANSMIT>`
+-	  is not set or if :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>` was specified, EINVAL
+-	  error code is returned in that case.
++	  follower then an attempt to become one will return the ``EBUSY`` error
++	  code. You cannot become a follower if :ref:`CEC_CAP_TRANSMIT <CEC-CAP-TRANSMIT>`
++	  is not set or if :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>` was specified,
++	  the ``EINVAL`` error code is returned in that case.
+
+     -  .. _`CEC-MODE-MONITOR`:
+
+@@ -184,7 +184,7 @@ Available follower modes are:
+ 	  messages and directed messages for one its logical addresses) will
+ 	  be reported. This is very useful for debugging. This is only
+ 	  allowed if the process has the ``CAP_NET_ADMIN`` capability. If
+-	  that is not set, then EPERM error code is returned.
++	  that is not set, then the ``EPERM`` error code is returned.
+
+     -  .. _`CEC-MODE-MONITOR-ALL`:
+
+@@ -193,15 +193,15 @@ Available follower modes are:
+        -  0xf0
+
+        -  Put the file descriptor into 'monitor all' mode. Can only be used
+-	  in combination with :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`, otherwise EINVAL
+-	  error code will be returned. In 'monitor all' mode all messages
++	  in combination with :ref:`CEC_MODE_NO_INITIATOR <CEC-MODE-NO-INITIATOR>`, otherwise
++	  the ``EINVAL`` error code will be returned. In 'monitor all' mode all messages
+ 	  this CEC device transmits and all messages it receives, including
+ 	  directed messages for other CEC devices will be reported. This is
+ 	  very useful for debugging, but not all devices support this. This
+ 	  mode requires that the :ref:`CEC_CAP_MONITOR_ALL <CEC-CAP-MONITOR-ALL>` capability is set,
+-	  otherwise EINVAL error code is returned. This is only allowed if
++	  otherwise the ``EINVAL`` error code is returned. This is only allowed if
+ 	  the process has the ``CAP_NET_ADMIN`` capability. If that is not
+-	  set, then EPERM error code is returned.
++	  set, then the ``EPERM`` error code is returned.
+
+
+ Core message processing details:
+diff --git a/Documentation/media/uapi/cec/cec-ioc-receive.rst b/Documentation/media/uapi/cec/cec-ioc-receive.rst
+index 3faec51..8cee53b 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-receive.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-receive.rst
+@@ -37,19 +37,38 @@ Description
+    and is currently only available as a staging kernel module.
+
+ To receive a CEC message the application has to fill in the
+-:c:type:`struct cec_msg` and pass it to :ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`.
+-The :ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>` is only available if ``CEC_CAP_RECEIVE`` is set.
++``timeout`` field of :c:type:`struct cec_msg` and pass it to :ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`.
+ If the file descriptor is in non-blocking mode and there are no received
+-messages pending, then it will return -1 and set errno to the EAGAIN
++messages pending, then it will return -1 and set errno to the ``EAGAIN``
+ error code. If the file descriptor is in blocking mode and ``timeout``
+ is non-zero and no message arrived within ``timeout`` milliseconds, then
+-it will return -1 and set errno to the ETIMEDOUT error code.
++it will return -1 and set errno to the ``ETIMEDOUT`` error code.
++
++A received message can be:
++
++1. a message received from another CEC device (the ``sequence`` field will
++   be 0).
++2. the result of an earlier non-blocking transmit (the ``sequence`` field will
++   be non-zero).
+
+ To send a CEC message the application has to fill in the
+ :c:type:`struct cec_msg` and pass it to
+ :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>`. The :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>` is only available if
+ ``CEC_CAP_TRANSMIT`` is set. If there is no more room in the transmit
+-queue, then it will return -1 and set errno to the EBUSY error code.
++queue, then it will return -1 and set errno to the ``EBUSY`` error code.
++The transmit queue has enough room for 18 messages (about 1 second worth
++of 2-byte messages). Note that the CEC kernel framework will also reply
++to core messages (see :ref:cec-core-processing), so it is not a good
++idea to fully fill up the transmit queue.
++
++If the file descriptor is in non-blocking mode then the transmit will
++return 0 and the result of the transmit will be available via
++:ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>` once the transmit has finished
++(including waiting for a reply, if requested).
++
++The ``sequence`` field is filled in for every transmit and this can be
++checked against the received messages to find the corresponding transmit
++result.
+
+
+ .. _cec-msg:
+@@ -106,10 +125,11 @@ queue, then it will return -1 and set errno to the EBUSY error code.
+
+        -  ``sequence``
+
+-       -  The sequence number is automatically assigned by the CEC framework
+-	  for all transmitted messages. It can be later used by the
+-	  framework to generate an event if a reply for a message was
+-	  requested and the message was transmitted in a non-blocking mode.
++       -  A non-zero sequence number is automatically assigned by the CEC framework
++	  for all transmitted messages. It is used by the CEC framework when it queues
++	  the transmit result (when transmit was called in non-blocking mode). This
++	  allows the application to associate the received message with the original
++	  transmit.
+
+     -  .. row 6
+
+@@ -133,7 +153,7 @@ queue, then it will return -1 and set errno to the EBUSY error code.
+
+        -  __u8
+
+-       -  ``msg``\ [16]
++       -  ``msg[16]``
+
+        -  The message payload. For :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>` this is filled in by the
+ 	  application. The driver will fill this in for :ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`.
+@@ -148,14 +168,13 @@ queue, then it will return -1 and set errno to the EBUSY error code.
+
+        -  Wait until this message is replied. If ``reply`` is 0 and the
+ 	  ``timeout`` is 0, then don't wait for a reply but return after
+-	  transmitting the message. If there was an error as indicated by the
+-	  ``tx_status`` field, then ``reply`` and ``timeout`` are
+-	  both set to 0 by the driver. Ignored by :ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`. The case
+-	  where ``reply`` is 0 (this is the opcode for the Feature Abort
+-	  message) and ``timeout`` is non-zero is specifically allowed to
+-	  send a message and wait up to ``timeout`` milliseconds for a
++	  transmitting the message. Ignored by :ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`.
++	  The case where ``reply`` is 0 (this is the opcode for the Feature Abort
++	  message) and ``timeout`` is non-zero is specifically allowed to make it
++	  possible to send a message and wait up to ``timeout`` milliseconds for a
+ 	  Feature Abort reply. In this case ``rx_status`` will either be set
+-	  to :ref:`CEC_RX_STATUS_TIMEOUT <CEC-RX-STATUS-TIMEOUT>` or :ref:`CEC_RX_STATUS_FEATURE_ABORT <CEC-RX-STATUS-FEATURE-ABORT>`.
++	  to :ref:`CEC_RX_STATUS_TIMEOUT <CEC-RX-STATUS-TIMEOUT>` or
++	  :ref:`CEC_RX_STATUS_FEATURE_ABORT <CEC-RX-STATUS-FEATURE-ABORT>`.
+
+     -  .. row 9
 
