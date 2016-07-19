@@ -1,72 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47369
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241AbcGWCZo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 22:25:44 -0400
-Date: Fri, 22 Jul 2016 23:25:38 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from tex.lwn.net ([70.33.254.29]:41593 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751701AbcGSXQh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 19:16:37 -0400
+Date: Tue, 19 Jul 2016 17:16:35 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Markus Heiser <markus.heiser@darmarit.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-doc@vger.kernel.org
-Subject: Re: [PATCH] doc-rst: kernel-doc: fix handling of address_space tags
-Message-ID: <20160722232538.6f6581ff@recife.lan>
-In-Reply-To: <20160722153716.7ac9a4b6@lwn.net>
-References: <263bbae9c1bf6ea7c14dad8c29f9b3148b2b5de7.1469198779.git.mchehab@s-opensource.com>
-	<20160722153716.7ac9a4b6@lwn.net>
+	linux-doc@vger.kernel.org, Jani Nikula <jani.nikula@intel.com>
+Subject: Re: Troubles with kernel-doc and RST files
+Message-ID: <20160719171635.56d16034@lwn.net>
+In-Reply-To: <20160717100154.64823d99@recife.lan>
+References: <20160717100154.64823d99@recife.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 22 Jul 2016 15:37:16 -0600
-Jonathan Corbet <corbet@lwn.net> escreveu:
+On Sun, 17 Jul 2016 10:01:54 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
 
-> On Fri, 22 Jul 2016 11:46:36 -0300
-> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> 3) When there's an asterisk inside the source code, for example, to
+> document a pointer, or when something else fails when parsing a
+> header file, kernel-doc handler just outputs:
+> 	/devel/v4l/patchwork/Documentation/media/kapi/mc-core.rst:137: WARNING: Inline emphasis start-string without end-string.
+> 	/devel/v4l/patchwork/Documentation/media/kapi/mc-core.rst:470: WARNING: Explicit markup ends without a blank line; unexpected unindent.
 > 
-> > The RST cpp:function handler is very pedantic: it doesn't allow any
-> > macros like __user on it:
-> > [...]
-> > So, we have to remove it from the function prototype.  
+> pointing to a fake line at the rst file, instead of pointing to the
+> line inside the parsed header where the issue was detected, making
+> really hard to identify what's the error.
 > 
-> Sigh, this is the kind of thing where somehow there's always more moles
-> to whack. 
+> In this specific case, mc-core.rst has only 260 lines at the time I got
+> such error.
 
-Agreed.
+This sounds like the same warning issue that Daniel was dealing with.
+Hopefully his config change will at least make these easier to deal with.
 
-> I feel like there must be a better fix, 
+I wonder, though, if we could make kernel-doc a little smarter about
+these things so that the Right Thing happens for this sort of inadvertent
+markup?  If we could just recognize and escape a singleton *, that would
+make a lot of things work.
 
-Well, we might create a "kernel-c" domain, I guess. I suspect we'll 
-need something like that anyway, in order to handle things like
-per-subsystem declarations of the syscalls (specially ioctl), but
-I've no idea how difficult would be to do so.
-
-For now, I guess that's the easiest fix.
-
-> but I don't know what
-> it is, so I've applied this, thanks.
-
-Thank you!
-
-> I'm trying to get my act together so that the pull request can go in
-> right away once the merge window opens.  If there's anything else you
-> think really needs to be there, please do let me know.
-
-I suspect that that's it. There are a few trivial conflicts between
-my tree and Daniel's one, as we both are adding new books at
-Documentation/index.rst, but this is something that Stephen already
-handled, and should be easy for Linus to handle as well.
-
-Yet, if you prefer, you could pull from my docs-next branch, but
-there are also lots of subsystem's patch on that, merged from
-my master (stable) branch. So, if you pull from it and send to
-Linus before me, you'll also be sending patches from the media
-subsystem. Not really an issue, as, if Linus pull from my tree
-later, he'll get only the few remains that aren't merged at my
-docs-next branch.
-
-Thanks,
-Mauro
+jon
