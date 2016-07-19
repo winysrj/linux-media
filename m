@@ -1,121 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:43774 "EHLO
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:39513 "EHLO
 	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751820AbcGQCZO (ORCPT
+	by vger.kernel.org with ESMTP id S1752589AbcGSHaL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2016 22:25:14 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 1BC561800C7
-	for <linux-media@vger.kernel.org>; Sun, 17 Jul 2016 04:25:09 +0200 (CEST)
-Date: Sun, 17 Jul 2016 04:25:09 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160717022509.1BC561800C7@tschai.lan>
+	Tue, 19 Jul 2016 03:30:11 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id F14BB18021F
+	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2016 09:30:05 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.8] (v3) CEC fixes, vivid CEC enhancement
+Message-ID: <f4fd6e46-59f4-9dcc-20ca-9a088c0b89ef@xs4all.nl>
+Date: Tue, 19 Jul 2016 09:30:05 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+These patches fix a number of bugs in the CEC framework. These were discovered
+while extending and improving the compliance tests for the CEC API.
 
-Results of the daily build of media_tree:
+The vivid patch adds MONITOR_ALL support.
 
-date:		Sun Jul 17 04:00:10 CEST 2016
-git branch:	test
-git hash:	e05b1872f29a85532c2b34e3a4974a27158f1463
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+The latest compliance tests are here:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: ERRORS
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: ERRORS
-linux-4.5-i686: ERRORS
-linux-4.6-i686: ERRORS
-linux-4.7-rc1-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: ERRORS
-linux-4.5-x86_64: ERRORS
-linux-4.6-x86_64: ERRORS
-linux-4.7-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+https://git.linuxtv.org/hverkuil/v4l-utils.git/log/?h=cec-johan
 
-Detailed results are available here:
+The docrst needs an update as well, I'll make a separate patch for that.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Regards,
 
-Full logs are available here:
+	Hans
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+(v3 adds patch "cec: always check all_device_types and features")
+(v2 adds patch "cec: poll should check if there is room in the tx queue")
 
-The Media Infrastructure API from this daily build is here:
+The following changes since commit e05b1872f29a85532c2b34e3a4974a27158f1463:
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+  [media] cxd2841er: Reading SNR for DVB-C added (2016-07-16 07:01:31 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.8l
+
+for you to fetch changes up to a513478569811ad69f012d294fe2a0f74dbf9fc1:
+
+  cec: always check all_device_types and features (2016-07-19 09:28:08 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (9):
+      cec: CEC_RECEIVE overwrote the timeout field
+      cec: clear all status fields before transmit and always fill in sequence
+      cec: don't set fh to NULL in CEC_TRANSMIT
+      cec: zero unused msg part after msg->len
+      cec: limit the size of the transmit queue
+      cec: fix test for unconfigured adapter in main message loop
+      vivid: support monitor all mode
+      cec: poll should check if there is room in the tx queue
+      cec: always check all_device_types and features
+
+ drivers/media/platform/vivid/vivid-cec.c | 44 +++++++++++-------------------
+ drivers/staging/media/cec/cec-adap.c     | 87 +++++++++++++++++++++++++++++++++++++-----------------------
+ drivers/staging/media/cec/cec-api.c      | 15 ++++++-----
+ include/media/cec.h                      | 19 +++++++++----
+ 4 files changed, 91 insertions(+), 74 deletions(-)
