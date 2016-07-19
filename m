@@ -1,52 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:35338 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756588AbcGIS4W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2016 14:56:22 -0400
-Received: by mail-pa0-f66.google.com with SMTP id dx3so10106560pab.2
-        for <linux-media@vger.kernel.org>; Sat, 09 Jul 2016 11:56:21 -0700 (PDT)
-Subject: Re: [PATCH 02/11] Revert "[media] adv7180: fix broken standards
- handling"
-To: Lars-Peter Clausen <lars@metafoo.de>, linux-media@vger.kernel.org
-References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
- <1467846004-12731-3-git-send-email-steve_longerbeam@mentor.com>
- <577E7924.9070301@metafoo.de>
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <578148D3.3080504@gmail.com>
-Date: Sat, 9 Jul 2016 11:56:19 -0700
-MIME-Version: 1.0
-In-Reply-To: <577E7924.9070301@metafoo.de>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:36786 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753176AbcGSP5J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 11:57:09 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi.shyti@samsung.com>,
+	Andi Shyti <andi@etezian.org>
+Subject: [RFC 0/7] Add support for IR transmitters
+Date: Wed, 20 Jul 2016 00:56:51 +0900
+Message-id: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
+this is an RFCset that follows this patch:
 
-On 07/07/2016 08:45 AM, Lars-Peter Clausen wrote:
-> On 07/07/2016 12:59 AM, Steve Longerbeam wrote:
->> Autodetect was likely broken only because access to the
->> interrupt registers were broken, so there were no standard
->> change interrupts. After fixing that, and reverting this,
->> autodetect seems to work just fine on an i.mx6q SabreAuto.
->>
->> This reverts commit 937feeed3f0ae8a0389d5732f6db63dd912acd99.
-> The brokenness the commit refers to is conceptual not functional. The driver
-> simply implemented the API incorrect. A subdev driver is not allowed to
-> automatically switch the output format/resolution randomly. In the best case
-> this will confuse the receiver which is not prepared to receive the changed
-> resolution, in the worst case it will cause buffer overruns with hardware
-> that has no boundary checks. This is why this was removed from the driver.
->
-> The correct sequence is for the driver to generate a change notification and
-> then have userspace react to that notification by stopping the current
-> stream, query the new format/resolution, reconfigure the video pipeline for
-> the new format/resolution and re-start the stream.
+http://marc.info/?l=linux-kernel&m=146736225606125&w=2
 
-Hi Lars, ok thanks for the clarification. Yes I agree that makes sense.
-I will undo the revert in the next version and retest.
+and after Sean's review and recommendations:
 
-Steve
+http://marc.info/?l=linux-kernel&m=146737935611128&w=2
+
+The main goal is to add support in the rc framework for IR
+transmitters, which currently is only supported by lirc but that
+is not the preferred way.
+
+with this RFCset I'm trying to gather some opinions as I'm not
+really aware of other use cases other than the simple ir
+transmitter in the last patch. As it is, the code to me looks
+quite forced in order to achieve "my" goal by abusing on the
+driver type check.
+
+The last rfc-patch adds support for an IR transmitter driven by
+the MOSI line of an SPI controller, it's the case of the Samsung
+TM2(e) board which support is going to come soon.
+
+Please let me know if there is anything to improve.
+
+Thanks,
+Andi
+
+Andi Shyti (7):
+  [media] rc-main: assign driver type during allocation
+  [media] rc-main: split setup and unregister functions
+  [media] rc-core: add support for IR raw transmitters
+  [media] rc-ir-raw: do not generate any receiving thread for raw
+    transmitters
+  [media] ir-lirc-codec: do not handle any buffer for raw transmitters
+  Documentation: bindings: add documentation for ir-spi device driver
+  [media] rc: add support for IR LEDs driven through SPI
+
+ Documentation/devicetree/bindings/media/spi-ir.txt |  20 +++
+ drivers/media/rc/Kconfig                           |   9 ++
+ drivers/media/rc/Makefile                          |   1 +
+ drivers/media/rc/ir-lirc-codec.c                   |  30 ++--
+ drivers/media/rc/ir-spi.c                          | 133 +++++++++++++++
+ drivers/media/rc/rc-ir-raw.c                       |  17 +-
+ drivers/media/rc/rc-main.c                         | 179 ++++++++++++---------
+ include/media/rc-core.h                            |   3 +-
+ 8 files changed, 299 insertions(+), 93 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/spi-ir.txt
+ create mode 100644 drivers/media/rc/ir-spi.c
+
+-- 
+2.8.1
 
