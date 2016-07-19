@@ -1,60 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:46564 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752844AbcGDLx4 (ORCPT
+Received: from xavier.telenet-ops.be ([195.130.132.52]:59167 "EHLO
+	xavier.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753009AbcGSLvY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 07:53:56 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.8] Various v4l2/gspca/pwc fixes/improvements
-Message-ID: <86de261b-ac90-1216-b8f6-226e0fcd2b1b@xs4all.nl>
-Date: Mon, 4 Jul 2016 13:53:49 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Tue, 19 Jul 2016 07:51:24 -0400
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+To: Kieran Bingham <kieran@ksquared.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: [PATCH] [media] fdp1: vb2_queue dev conversion
+Date: Tue, 19 Jul 2016 13:51:19 +0200
+Message-Id: <1468929079-19054-1-git-send-email-geert+renesas@glider.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit ab46f6d24bf57ddac0f5abe2f546a78af57b476c:
+    drivers/media/platform/rcar_fdp1.c:1972:2: warning: initialization from incompatible pointer type
+      .queue_setup  = fdp1_queue_setup,
+      ^
+    drivers/media/platform/rcar_fdp1.c:1972:2: warning: (near initialization for 'fdp1_qops.queue_setup')
+    drivers/media/platform/rcar_fdp1.c: In function 'fdp1_probe':
+    drivers/media/platform/rcar_fdp1.c:2264:2: error: implicit declaration of function 'vb2_dma_contig_init_ctx' [-Werror=implicit-function-declaration]
+      fdp1->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+      ^
+    drivers/media/platform/rcar_fdp1.c:2264:18: warning: assignment makes pointer from integer without a cast
+      fdp1->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+		      ^
+    drivers/media/platform/rcar_fdp1.c:2331:2: error: implicit declaration of function 'vb2_dma_contig_cleanup_ctx' [-Werror=implicit-function-declaration]
+      vb2_dma_contig_cleanup_ctx(fdp1->alloc_ctx);
+      ^
 
-  [media] videodev2.h: Fix V4L2_PIX_FMT_YUV411P description (2016-06-28 11:54:52 -0300)
+Commit 36c0f8b32c4bd4f6 ("[media] vb2: replace void *alloc_ctxs by
+struct device *alloc_devs") removed the vb2_dma_contig_init_ctx() and
+vb2_dma_contig_cleanup_ctx() functions, and changed the prototype of
+vb2_ops.queue_setup().
 
-are available in the git repository at:
+To fix this:
+  - Update the signature of fdp1_queue_setup(),
+  - Convert the FDP1 driver to use the new vb2_queue dev field, cfr.
+    commit 53ddcc683faef8c7 ("[media] media/platform: convert drivers to
+    use the new vb2_queue dev field").
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.8e
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+---
+To be folded into "[PATCH v2] v4l: platform: Add Renesas R-Car FDP1
+Driver".
+---
+ drivers/media/platform/rcar_fdp1.c | 26 ++++++--------------------
+ 1 file changed, 6 insertions(+), 20 deletions(-)
 
-for you to fetch changes up to ed537d47e271ddefd1a5192d18bb293a4ce36f44:
+diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
+index c7280183262a3046..a2587745ca68dedb 100644
+--- a/drivers/media/platform/rcar_fdp1.c
++++ b/drivers/media/platform/rcar_fdp1.c
+@@ -570,7 +570,6 @@ struct fdp1_dev {
+ 	void __iomem		*regs;
+ 	unsigned int		irq;
+ 	struct device		*dev;
+-	void			*alloc_ctx;
+ 
+ 	/* Job Queues */
+ 	struct fdp1_job		jobs[FDP1_NUMBER_JOBS];
+@@ -1788,7 +1787,8 @@ static const struct v4l2_ioctl_ops fdp1_ioctl_ops = {
+ 
+ static int fdp1_queue_setup(struct vb2_queue *vq,
+ 				unsigned int *nbuffers, unsigned int *nplanes,
+-				unsigned int sizes[], void *alloc_ctxs[])
++				unsigned int sizes[],
++				struct device *alloc_ctxs[])
+ {
+ 	struct fdp1_ctx *ctx = vb2_get_drv_priv(vq);
+ 	struct fdp1_q_data *q_data;
+@@ -1800,18 +1800,13 @@ static int fdp1_queue_setup(struct vb2_queue *vq,
+ 		if (*nplanes > FDP1_MAX_PLANES)
+ 			return -EINVAL;
+ 
+-		for (i = 0; i < *nplanes; i++)
+-			alloc_ctxs[i] = ctx->fdp1->alloc_ctx;
+-
+ 		return 0;
+ 	}
+ 
+ 	*nplanes = q_data->format.num_planes;
+ 
+-	for (i = 0; i < *nplanes; i++) {
++	for (i = 0; i < *nplanes; i++)
+ 		sizes[i] = q_data->format.plane_fmt[i].sizeimage;
+-		alloc_ctxs[i] = ctx->fdp1->alloc_ctx;
+-	}
+ 
+ 	return 0;
+ }
+@@ -1992,6 +1987,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->lock = &ctx->fdp1->dev_mutex;
++	src_vq->dev = ctx->fdp1->dev;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -2005,6 +2001,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->lock = &ctx->fdp1->dev_mutex;
++	dst_vq->dev = ctx->fdp1->dev;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+@@ -2260,18 +2257,11 @@ static int fdp1_probe(struct platform_device *pdev)
+ 	fdp1->clk_rate = clk_get_rate(clk);
+ 	clk_put(clk);
+ 
+-	/* Memory allocation contexts */
+-	fdp1->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(fdp1->alloc_ctx)) {
+-		v4l2_err(&fdp1->v4l2_dev, "Failed to init memory allocator\n");
+-		return PTR_ERR(fdp1->alloc_ctx);
+-	}
+-
+ 	/* V4L2 device registration */
+ 	ret = v4l2_device_register(&pdev->dev, &fdp1->v4l2_dev);
+ 	if (ret) {
+ 		v4l2_err(&fdp1->v4l2_dev, "Failed to register video device\n");
+-		goto vb2_allocator_rollback;
++		return ret;
+ 	}
+ 
+ 	/* M2M registration */
+@@ -2327,9 +2317,6 @@ release_m2m:
+ unreg_dev:
+ 	v4l2_device_unregister(&fdp1->v4l2_dev);
+ 
+-vb2_allocator_rollback:
+-	vb2_dma_contig_cleanup_ctx(fdp1->alloc_ctx);
+-
+ 	return ret;
+ }
+ 
+@@ -2340,7 +2327,6 @@ static int fdp1_remove(struct platform_device *pdev)
+ 	v4l2_m2m_release(fdp1->m2m_dev);
+ 	video_unregister_device(&fdp1->vfd);
+ 	v4l2_device_unregister(&fdp1->v4l2_dev);
+-	vb2_dma_contig_cleanup_ctx(fdp1->alloc_ctx);
+ 	pm_runtime_disable(&pdev->dev);
+ 
+ 	return 0;
+-- 
+1.9.1
 
-  hdpvr: Remove deprecated create_singlethread_workqueue (2016-07-04 10:44:32 +0200)
-
-----------------------------------------------------------------
-Antonio Ospite (5):
-      gspca: ov534/topro: use a define for the default framerate
-      gspca: fix setting frame interval type in vidioc_enum_frameintervals()
-      gspca: rename wxh_to_mode() to wxh_to_nearest_mode()
-      gspca: fix a v4l2-compliance failure about VIDIOC_ENUM_FRAMEINTERVALS
-      gspca: fix a v4l2-compliance failure about buffer timestamp
-
-Arnd Bergmann (1):
-      pwc: hide unused label
-
-Bhaktipriya Shridhar (5):
-      sn9c20x: Remove deprecated create_singlethread_workqueue
-      adv7842: Remove deprecated create_singlethread_workqueue
-      tc358743: Remove deprecated create_singlethread_workqueue
-      adv7604: Remove deprecated create_singlethread_workqueue
-      hdpvr: Remove deprecated create_singlethread_workqueue
-
- drivers/media/i2c/adv7604.c           | 14 +-------------
- drivers/media/i2c/adv7842.c           | 16 ++--------------
- drivers/media/i2c/tc358743.c          | 15 +--------------
- drivers/media/usb/gspca/gspca.c       | 27 ++++++++++++++++++++++-----
- drivers/media/usb/gspca/ov534.c       |  7 +++----
- drivers/media/usb/gspca/sn9c20x.c     | 14 ++++----------
- drivers/media/usb/gspca/topro.c       |  6 ++++--
- drivers/media/usb/hdpvr/hdpvr-core.c  | 10 ++--------
- drivers/media/usb/hdpvr/hdpvr-video.c |  6 +++---
- drivers/media/usb/hdpvr/hdpvr.h       |  2 --
- drivers/media/usb/pwc/pwc-if.c        |  2 ++
- 11 files changed, 44 insertions(+), 75 deletions(-)
