@@ -1,132 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:37774 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753295AbcGaPD2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2016 11:03:28 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RFC v2 2/2] media: platform: pxa_camera: make a standalone v4l2 device
-References: <1459607213-15774-1-git-send-email-robert.jarzmik@free.fr>
-	<1459607213-15774-3-git-send-email-robert.jarzmik@free.fr>
-	<0b6d669c-3b31-e165-da77-85af526b696b@xs4all.nl>
-Date: Sun, 31 Jul 2016 17:03:17 +0200
-In-Reply-To: <0b6d669c-3b31-e165-da77-85af526b696b@xs4all.nl> (Hans Verkuil's
-	message of "Mon, 4 Jul 2016 11:40:43 +0200")
-Message-ID: <87wpk1yhmy.fsf@belgarion.home>
+Received: from mout.gmx.net ([212.227.15.19]:59111 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752583AbcGTROq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jul 2016 13:14:46 -0400
+Subject: Re: [PATCH] af9035: fix dual tuner detection with PCTV 79e
+To: Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <5783D80F.2040808@gmx.de>
+ <8c71e2a3-ca04-0215-b3cb-c478afa9b1cb@iki.fi> <578A937E.4060502@gmx.de>
+ <d3013624-68cd-35da-3e1a-f1b190c67328@iki.fi>
+From: basic.master@gmx.de
+Message-ID: <e0dfface-4c90-1bfd-977c-2f089a2c1576@gmx.de>
+Date: Wed, 20 Jul 2016 19:14:29 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <d3013624-68cd-35da-3e1a-f1b190c67328@iki.fi>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Am 17.07.2016 um 10:59 schrieb Antti Palosaari:
+> On 07/16/2016 11:05 PM, Stefan Pöschel wrote:
+>> Am 15.07.2016 um 08:21 schrieb Antti Palosaari:
+>>> Applied and PULL requested for 4.7.
+>>
+>> Great, thanks!
+>>
+>>> Anyhow, it does not apply for 4.6. You must backport that patch to 4.6
+>>> stable also!
+>>
+>> I have never done backporting before, so I need some advice I think:
+>> Am I right that I have to create the patch, now just based on tag "v4.6"
+>> of the media_tree repo?
+> 
+> Just make patch that compiles and works against kernel tag v4.6. No need to backport it to media_tree or media_build. It should go 4.6 kernel stable tree.
+
+Please find the backport patch below. Is sending to this ML here enough or are there any further steps needed to do by me?
+
+Regards,
+	Stefan
+-------------------------------------
 
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
-> On 04/02/2016 04:26 PM, Robert Jarzmik wrote:
->> diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
->> index b8dd878e98d6..30d266bbab55 100644
->> --- a/drivers/media/platform/soc_camera/pxa_camera.c
->> +++ b/drivers/media/platform/soc_camera/pxa_camera.c
->
-> When you prepare the final patch series, please put the driver in
-> drivers/media/platform/pxa-camera and not in the soc-camera directory.
-Sure.
-Would you accept the final patch to make the move, so that I keep the
-bisectability, ie. that all patches are applied while still in ../soc_camera,
-and then the final one making just the move to .../platform ?
 
->> +	if (format->name)
->> +		strlcpy(f->description, format->name, sizeof(f->description));
->
-> You can drop this since the core fills in the description. That means the
-> 'name' field of struct soc_mbus_pixelfmt is not needed either.
-Ok, let's try this, for v3.
 
->> +static int pxac_vidioc_querycap(struct file *file, void *priv,
->> +				struct v4l2_capability *cap)
->> +{
->> +	strlcpy(cap->bus_info, "platform:pxa-camera", sizeof(cap->bus_info));
->> +	strlcpy(cap->driver, PXA_CAM_DRV_NAME, sizeof(cap->driver));
->> +	strlcpy(cap->card, pxa_cam_driver_description, sizeof(cap->card));
->> +	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
->> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
->
-> Tiny fix: you can drop the capabilities assignment: the v4l2 core does that
-> for you these days.
-Well, above kernel v4.7, if I drop the assignement, v4l2-compliance -s finds 2
-new errors:
-	Required ioctls:
-			fail: v4l2-compliance.cpp(534): dcaps & ~caps
-		test VIDIOC_QUERYCAP: FAIL
-	
-	Allow for multiple opens:
-		test second video open: OK
-			fail: v4l2-compliance.cpp(534): dcaps & ~caps
-		test VIDIOC_QUERYCAP: FAIL
-		test VIDIOC_G/S_PRIORITY: OK
+The value 5 of the EEPROM_TS_MODE register (meaning dual tuner presence) is
+only valid for AF9035 devices. For IT9135 devices it is invalid and led to a
+false positive dual tuner mode detection with PCTV 79e.
+Therefore on non-AF9035 devices and with value 5 the driver now defaults to
+single tuner mode and outputs a regarding info message to log.
 
-So there is something fishy here if the core provides this data ...
+This fixes Bugzilla bug #118561.
 
->> +static int pxac_vidioc_enum_input(struct file *file, void *priv,
->> +				  struct v4l2_input *i)
->> +{
->> +	if (i->index > 0)
->> +		return -EINVAL;
->> +
->> +	memset(i, 0, sizeof(*i));
->
-> The memset can be dropped, it's cleared for you.
-OK, for v3.
+(backport of 4.7)
 
->> +static void pxac_vb2_queue(struct vb2_buffer *vb)
->> +{
->> +	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
->> +	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
->> +
->> +	dev_dbg(pcdev_to_dev(pcdev),
->> +		 "%s(vb=%p) nb_channels=%d size=%lu active=%p\n",
->> +		__func__, vb, pcdev->channels, vb2_get_plane_payload(vb, 0),
->> +		pcdev->active);
->> +
->> +	list_add_tail(&buf->queue, &pcdev->capture);
->> +
->> +	pxa_dma_add_tail_buf(pcdev, buf);
->> +
->> +	if (!pcdev->active)
->> +		pxa_camera_start_capture(pcdev);
->
-> This is normally done from start_streaming. Are you really sure this is the right
-> place? I strongly recommend moving this start_capture call.
-Well, it was at least with the previous framework.
-Previously this was done here to "hot-queue" a buffer :
- - if a previous capture was still running, the buffer was queued by
-   pxa_dma_add_tail_buf(), and no restart of the DMA pump was necessary
- - if the previous capture was finished, a new one was initiated
+Reported-by: Marc Duponcheel <marc@offline.be>
+Signed-off-by: Stefan Pöschel <basic.master@gmx.de>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 53 +++++++++++++++++++++++------------
+ drivers/media/usb/dvb-usb-v2/af9035.h |  2 +-
+ 2 files changed, 36 insertions(+), 19 deletions(-)
 
-Now if the new framework takes care of that, I can move the
-pxa_camera_start_capture() into start_streaming(), no problem, let me try in the
-next patchset. That might take a bit of time because testing both the
-"hot-queue" and the "queue but hot-queuing missed" is a bit tricky.
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 2638e32..14dbfeb 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -475,7 +475,8 @@ static struct i2c_algorithm af9035_i2c_algo = {
+ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+ {
+ 	struct state *state = d_to_priv(d);
+-	int ret;
++	int ret, ts_mode_invalid;
++	u8 tmp;
+ 	u8 wbuf[1] = { 1 };
+ 	u8 rbuf[4];
+ 	struct usb_req req = { CMD_FW_QUERYINFO, 0, sizeof(wbuf), wbuf,
+@@ -511,6 +512,38 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+ 		state->eeprom_addr = EEPROM_BASE_AF9035;
+ 	}
 
-> You may also want to use the struct vb2queue min_buffers_needed field to specify
-> the minimum number of buffers that should be queued up before start_streaming can
-> be called. Whether that's needed depends on your DMA engine.
-I have no minimum required by the pxa dmaengine driver, that's good.
++
++	/* check for dual tuner mode */
++	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
++	if (ret < 0)
++		goto err;
++
++	ts_mode_invalid = 0;
++	switch (tmp) {
++	case 0:
++		break;
++	case 1:
++	case 3:
++		state->dual_mode = true;
++		break;
++	case 5:
++		if (state->chip_type != 0x9135 && state->chip_type != 0x9306)
++			state->dual_mode = true;	/* AF9035 */
++		else
++			ts_mode_invalid = 1;
++		break;
++	default:
++		ts_mode_invalid = 1;
++	}
++
++	dev_dbg(&d->udev->dev, "%s: ts mode=%d dual mode=%d\n",
++			__func__, tmp, state->dual_mode);
++
++	if (ts_mode_invalid)
++		dev_info(&d->udev->dev, "%s: ts mode=%d not supported, defaulting to single tuner mode!",
++				__func__, tmp);
++
++
+ 	ret = af9035_ctrl_msg(d, &req);
+ 	if (ret < 0)
+ 		goto err;
+@@ -680,11 +713,7 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
+ 	 * which is done by master demod.
+ 	 * Master feeds also clock and controls power via GPIO.
+ 	 */
+-	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
+-	if (ret < 0)
+-		goto err;
+-
+-	if (tmp == 1 || tmp == 3 || tmp == 5) {
++	if (state->dual_mode) {
+ 		/* configure gpioh1, reset & power slave demod */
+ 		ret = af9035_wr_reg_mask(d, 0x00d8b0, 0x01, 0x01);
+ 		if (ret < 0)
+@@ -817,18 +846,6 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 	}
 
->> +
->> +	v4l2_disable_ioctl(vdev, VIDIOC_G_STD);
->> +	v4l2_disable_ioctl(vdev, VIDIOC_S_STD);
->> +	v4l2_disable_ioctl(vdev, VIDIOC_ENUMSTD);
->
-> I don't think this is needed since the tvnorms field of struct video_device == 0,
-> signalling that there is no STD support.
-OK, for v3.
 
-Cheers.
-
+-
+-	/* check if there is dual tuners */
+-	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
+-	if (ret < 0)
+-		goto err;
+-
+-	if (tmp == 1 || tmp == 3 || tmp == 5)
+-		state->dual_mode = true;
+-
+-	dev_dbg(&d->udev->dev, "%s: ts mode=%d dual mode=%d\n", __func__,
+-			tmp, state->dual_mode);
+-
+ 	if (state->dual_mode) {
+ 		/* read 2nd demodulator I2C address */
+ 		ret = af9035_rd_reg(d,
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
+index df22001..d50ff15 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.h
++++ b/drivers/media/usb/dvb-usb-v2/af9035.h
+@@ -112,7 +112,7 @@ static const u32 clock_lut_it9135[] = {
+  * 0  TS
+  * 1  DCA + PIP
+  * 3  PIP
+- * 5  DCA + PIP
++ * 5  DCA + PIP (AF9035 only)
+  * n  DCA
+  *
+  * Values 0, 3 and 5 are seen to this day. 0 for single TS and 3/5 for dual TS.
 -- 
-Robert
+2.9.1
