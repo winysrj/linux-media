@@ -1,74 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:33602 "EHLO
-	mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752835AbcGYSzw (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47196
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755815AbcGTXXQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jul 2016 14:55:52 -0400
-Received: by mail-it0-f68.google.com with SMTP id d65so8164303ith.0
-        for <linux-media@vger.kernel.org>; Mon, 25 Jul 2016 11:55:52 -0700 (PDT)
+	Wed, 20 Jul 2016 19:23:16 -0400
+Subject: Re: [PATCH v2] [media] vb2: include lengths in dmabuf qbuf debug
+ message
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <1469030875-2246-1-git-send-email-javier@osg.samsung.com>
+ <20160720195228.GD7976@valkosipuli.retiisi.org.uk>
+ <75cf608c-d5a5-420e-2a37-dfef9891dbdc@osg.samsung.com>
+ <20160720230829.GH7976@valkosipuli.retiisi.org.uk>
+Cc: linux-kernel@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <be59513d-a15c-0bbf-cc80-a3a743249345@osg.samsung.com>
+Date: Wed, 20 Jul 2016 19:23:06 -0400
 MIME-Version: 1.0
-In-Reply-To: <1469471939-25393-1-git-send-email-aospan@netup.ru>
-References: <1469471939-25393-1-git-send-email-aospan@netup.ru>
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-Date: Mon, 25 Jul 2016 14:55:51 -0400
-Message-ID: <CAOcJUby+9gTrFUF14pvo1iMa2azD5TfGM8WgeZY1+Bh8CTYVzA@mail.gmail.com>
-Subject: Re: [PATCH] [media] lgdt3306a: remove 20*50 msec unnecessary timeout
-To: Abylay Ospan <aospan@netup.ru>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20160720230829.GH7976@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 25, 2016 at 2:38 PM, Abylay Ospan <aospan@netup.ru> wrote:
-> inside lgdt3306a_search we reading demod status 20 times with 50 msec sleep after each read.
-> This gives us more than 1 sec of delay. Removing this delay should not affect demod functionality.
->
-> Signed-off-by: Abylay Ospan <aospan@netup.ru>
-> ---
->  drivers/media/dvb-frontends/lgdt3306a.c | 16 ++++------------
->  1 file changed, 4 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-> index 179c26e..dad7ad3 100644
-> --- a/drivers/media/dvb-frontends/lgdt3306a.c
-> +++ b/drivers/media/dvb-frontends/lgdt3306a.c
-> @@ -1737,24 +1737,16 @@ static int lgdt3306a_get_tune_settings(struct dvb_frontend *fe,
->  static int lgdt3306a_search(struct dvb_frontend *fe)
->  {
->         enum fe_status status = 0;
-> -       int i, ret;
-> +       int ret;
->
->         /* set frontend */
->         ret = lgdt3306a_set_parameters(fe);
->         if (ret)
->                 goto error;
->
-> -       /* wait frontend lock */
-> -       for (i = 20; i > 0; i--) {
-> -               dbg_info(": loop=%d\n", i);
-> -               msleep(50);
-> -               ret = lgdt3306a_read_status(fe, &status);
-> -               if (ret)
-> -                       goto error;
-> -
-> -               if (status & FE_HAS_LOCK)
-> -                       break;
-> -       }
-> +       ret = lgdt3306a_read_status(fe, &status);
-> +       if (ret)
-> +               goto error;
->
->         /* check if we have a valid signal */
->         if (status & FE_HAS_LOCK)
+Hello Sakari,
 
-Your patch removes a loop that was purposefully written here to handle
-conditions that are not ideal.  Are you sure this change is best for
-all users?
+On 07/20/2016 07:08 PM, Sakari Ailus wrote:
+> Hi Javier,
+> 
+> On Wed, Jul 20, 2016 at 06:56:52PM -0400, Javier Martinez Canillas wrote:
+>> Hello Sakari,
+>>
+>> On 07/20/2016 03:52 PM, Sakari Ailus wrote:
+>>> On Wed, Jul 20, 2016 at 12:07:55PM -0400, Javier Martinez Canillas wrote:
+>>>> If the VIDIOC_QBUF ioctl fails due a wrong dmabuf length, it's
+>>>> useful to get the invalid and minimum lengths as a debug info.
+>>>>
+>>>> Before this patch:
+>>>>
+>>>> vb2-core: __qbuf_dmabuf: invalid dmabuf length for plane 1
+>>>>
+>>>> After this patch:
+>>>>
+>>>> vb2-core: __qbuf_dmabuf: invalid dmabuf length 221248 for plane 1, minimum length 410880
+>>>>
+>>>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>>>>
+>>>> ---
+>>>>
+>>>> Changes in v2:
+>>>> - Use %u instead of %d (Sakari Ailus)
+>>>> - Include min_length (Sakari Ailus)
+>>>>
+>>>>  drivers/media/v4l2-core/videobuf2-core.c | 6 ++++--
+>>>>  1 file changed, 4 insertions(+), 2 deletions(-)
+>>>>
+>>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>>>> index b6fbc04f9699..bbba50d6e1ad 100644
+>>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>>>> @@ -1227,8 +1227,10 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
+>>>>  			planes[plane].length = dbuf->size;
+>>>>  
+>>>>  		if (planes[plane].length < vb->planes[plane].min_length) {
+>>>> -			dprintk(1, "invalid dmabuf length for plane %d\n",
+>>>> -				plane);
+>>>> +			dprintk(1, "invalid dmabuf length %u for plane %d, "
+>>>> +				"minimum length %u\n",
+>>>
+>>> You shouldn't split strings. It breaks grep.
+>>>
+>>
+>> Yes I know but if I didn't split the line, it would had been longer than
+>> the max 80 character per line convention. On those situations I follow
+>> what's already done in the file for consistency and most strings in the
+>> videobuf2-core file, whose lines are over 80 characters, are being split.
+>>
+>> But if having a longer line is preferred, I'll happily re-spin the patch.
+> 
+> I guess in videobuf2's case it's that the strings contain lots of format
+> specifiers --- it's not that useful to be able to grep those. I think this
+> case is a borderline one.
+>
 
-I would disagree with merging this patch.
+Yes, lots of format specifiers as you said. Which also makes harder to grep
+the messages verbatim and someone would had to grep a sub-string anyways or
+figure the specifier for each variable to be able to grep the complete line.
+
+So I would prefer to kept the line split as is if you don't mind.
+ 
+> Up to you. You've got my ack.
+>
+
+Thanks a lot.
+ 
+>>> With that changed,
+>>>
+>>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>>
+>>>> +				planes[plane].length, plane,
+>>>> +				vb->planes[plane].min_length);
+>>>>  			dma_buf_put(dbuf);
+>>>>  			ret = -EINVAL;
+>>>>  			goto err;
+>>>
+>>
+>> Best regards,
+>> -- 
+>> Javier Martinez Canillas
+>> Open Source Group
+>> Samsung Research America
+> 
 
 Best regards,
-
-Michael Ira Krufky
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
