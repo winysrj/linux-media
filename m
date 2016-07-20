@@ -1,357 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avasout06.plus.net ([212.159.14.18]:49834 "EHLO
-	avasout06.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751995AbcGRVSp (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47133
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753899AbcGTOEU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 17:18:45 -0400
-From: Nick Dyer <nick@shmanahar.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	Nick Dyer <nick@shmanahar.org>
-Subject: [PATCH v8 04/10] Input: atmel_mxt_ts - output diagnostic debug via V4L2 device
-Date: Mon, 18 Jul 2016 22:10:32 +0100
-Message-Id: <1468876238-24599-5-git-send-email-nick@shmanahar.org>
-In-Reply-To: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
-References: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
+	Wed, 20 Jul 2016 10:04:20 -0400
+Date: Wed, 20 Jul 2016 11:04:13 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Kees Cook <keescook@chromium.org>, linux-doc@vger.kernel.org
+Subject: Re: [PATCH] [media] doc-rst: Fix some Sphinx warnings
+Message-ID: <20160720110413.68334513@recife.lan>
+In-Reply-To: <250A8BC9-A965-4162-BF63-6FFFBCD42D89@darmarit.de>
+References: <d612024e7d2acd7ec82c75b5fed271fd61673386.1469017917.git.mchehab@s-opensource.com>
+	<20160720100027.440796a4@recife.lan>
+	<250A8BC9-A965-4162-BF63-6FFFBCD42D89@darmarit.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Register a video device to output T37 diagnostic data.
+Em Wed, 20 Jul 2016 15:14:27 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-Signed-off-by: Nick Dyer <nick@shmanahar.org>
+> Am 20.07.2016 um 15:00 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> 
+> > Em Wed, 20 Jul 2016 09:32:15 -0300
+> > Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+> >   
+> >> Fix all remaining media warnings with ReST that are fixable
+> >> without changing at the Sphinx code.
+> >>   
+> >   
+> >> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> >> index 83877719bef4..3d885d97d149 100644
+> >> --- a/include/media/media-entity.h
+> >> +++ b/include/media/media-entity.h
+> >> @@ -180,8 +180,10 @@ struct media_pad {
+> >> *			view. The media_entity_pipeline_start() function
+> >> *			validates all links by calling this operation. Optional.
+> >> *
+> >> - * .. note:: Those these callbacks are called with struct media_device.@graph_mutex
+> >> - * mutex held.
+> >> + * .. note::
+> >> + *
+> >> + *    Those these callbacks are called with struct media_device.@graph_mutex
+> >> + *    mutex held.
+> >> */  
+> > 
+> > The kernel-doc script did something wrong here... something bad
+> > happened with "@graph_mutex". While it is showing the note box
+> > properly, the message inside is:
+> > 
+> > 	"Note
+> > 
+> > 	 Those these callbacks are called with struct media_device.**graph_mutex** mutex held."
+> > 
+> > 
+> > E. g. it converted @ to "**graph_mutex**" and some code seemed to
+> > change it to: "\*\*graph_mutex\*\*", as this message is not showing
+> > with a bold font, but, instead, with the double asterisks.
+> > 
+> > No idea how to fix it.  
+> 
+> Thanks for reporting ..
+> I guess it is the kernel-doc parser, currently I'am trying to eliminate
+> some base fails of the kernel-doc parser (e.g. you mailed handling of 
+> c functions) .. for this I test with your media_tree/doc-next ..
+> if you commit this to your doc-next I have an example (or where could I get it)
+
+It is on my development tree:
+	https://git.linuxtv.org//mchehab/experimental.git/log/?h=docs-next
+
+I'll push it to the media_tree later today.
+
+Btw, I'm also getting this warning:
+
+/devel/v4l/patchwork/Documentation/media/kapi/mc-core.rst:1252: WARNING: Could not lex literal_block as "C". Highlighting skipped.                                                   
+
+With invalid line numbers. I was unable to discover why, and your
+patch didn't help solving it.
+
 ---
- drivers/input/touchscreen/Kconfig        |    6 +-
- drivers/input/touchscreen/atmel_mxt_ts.c |  245 ++++++++++++++++++++++++++++++
- 2 files changed, 249 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
-index da96ecf..7c1c5ec 100644
---- a/drivers/input/touchscreen/Kconfig
-+++ b/drivers/input/touchscreen/Kconfig
-@@ -117,9 +117,11 @@ config TOUCHSCREEN_ATMEL_MXT
- 
- config TOUCHSCREEN_ATMEL_MXT_T37
- 	bool "Support T37 Diagnostic Data"
--	depends on TOUCHSCREEN_ATMEL_MXT
-+	depends on TOUCHSCREEN_ATMEL_MXT && VIDEO_V4L2
-+	select VIDEOBUF2_VMALLOC
- 	help
--	  Say Y here if you want support for the T37 Diagnostic Data object.
-+	  Say Y here if you want support to output data from the T37
-+	  Diagnostic Data object using a V4L device.
- 
- config TOUCHSCREEN_AUO_PIXCIR
- 	tristate "AUO in-cell touchscreen using Pixcir ICs"
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index 0048233..a9f987b 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -28,6 +28,10 @@
- #include <linux/of.h>
- #include <linux/slab.h>
- #include <asm/unaligned.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/videobuf2-v4l2.h>
-+#include <media/videobuf2-vmalloc.h>
- 
- /* Firmware files */
- #define MXT_FW_NAME		"maxtouch.fw"
-@@ -224,6 +228,23 @@ struct mxt_dbg {
- 	struct t37_debug *t37_buf;
- 	unsigned int t37_pages;
- 	unsigned int t37_nodes;
-+
-+	struct v4l2_device v4l2;
-+	struct v4l2_pix_format format;
-+	struct video_device vdev;
-+	struct vb2_queue queue;
-+	struct mutex lock;
-+	int input;
-+};
-+
-+static const struct v4l2_file_operations mxt_video_fops = {
-+	.owner = THIS_MODULE,
-+	.open = v4l2_fh_open,
-+	.release = vb2_fop_release,
-+	.unlocked_ioctl = video_ioctl2,
-+	.read = vb2_fop_read,
-+	.mmap = vb2_fop_mmap,
-+	.poll = vb2_fop_poll,
- };
- 
- /* Each client has this additional data */
-@@ -279,6 +300,11 @@ struct mxt_data {
- 	struct completion crc_completion;
- };
- 
-+struct mxt_vb2_buffer {
-+	struct vb2_buffer	vb;
-+	struct list_head	list;
-+};
-+
- static size_t mxt_obj_size(const struct mxt_object *obj)
- {
- 	return obj->size_minus_one + 1;
-@@ -1525,6 +1551,11 @@ static void mxt_free_input_device(struct mxt_data *data)
- 
- static void mxt_free_object_table(struct mxt_data *data)
- {
-+#ifdef CONFIG_TOUCHSCREEN_ATMEL_MXT_T37
-+	video_unregister_device(&data->dbg.vdev);
-+	v4l2_device_unregister(&data->dbg.v4l2);
-+#endif
-+
- 	kfree(data->object_table);
- 	data->object_table = NULL;
- 	kfree(data->msg_buf);
-@@ -2157,10 +2188,191 @@ wait_cmd:
- 	return mxt_convert_debug_pages(data, outbuf);
- }
- 
-+static int mxt_queue_setup(struct vb2_queue *q,
-+		       unsigned int *nbuffers, unsigned int *nplanes,
-+		       unsigned int sizes[], struct device *alloc_devs[])
-+{
-+	struct mxt_data *data = q->drv_priv;
-+	size_t size = data->dbg.t37_nodes * sizeof(u16);
-+
-+	if (*nplanes)
-+		return sizes[0] < size ? -EINVAL : 0;
-+
-+	*nplanes = 1;
-+	sizes[0] = size;
-+
-+	return 0;
-+}
-+
-+static void mxt_buffer_queue(struct vb2_buffer *vb)
-+{
-+	struct mxt_data *data = vb2_get_drv_priv(vb->vb2_queue);
-+	u16 *ptr;
-+	int ret;
-+
-+	ptr = vb2_plane_vaddr(vb, 0);
-+	if (!ptr) {
-+		dev_err(&data->client->dev, "Error acquiring frame ptr\n");
-+		goto fault;
-+	}
-+
-+	ret = mxt_read_diagnostic_debug(data, MXT_DIAGNOSTIC_DELTAS, ptr);
-+	if (ret)
-+		goto fault;
-+
-+	vb2_set_plane_payload(vb, 0, data->dbg.t37_nodes * sizeof(u16));
-+	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
-+	return;
-+
-+fault:
-+	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
-+}
-+
-+/* V4L2 structures */
-+static const struct vb2_ops mxt_queue_ops = {
-+	.queue_setup		= mxt_queue_setup,
-+	.buf_queue		= mxt_buffer_queue,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
-+};
-+
-+static const struct vb2_queue mxt_queue = {
-+	.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-+	.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ,
-+	.buf_struct_size = sizeof(struct mxt_vb2_buffer),
-+	.ops = &mxt_queue_ops,
-+	.mem_ops = &vb2_vmalloc_memops,
-+	.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC,
-+	.min_buffers_needed = 1,
-+};
-+
-+static int mxt_vidioc_querycap(struct file *file, void *priv,
-+				 struct v4l2_capability *cap)
-+{
-+	struct mxt_data *data = video_drvdata(file);
-+
-+	strlcpy(cap->driver, "atmel_mxt_ts", sizeof(cap->driver));
-+	strlcpy(cap->card, "atmel_mxt_ts touch", sizeof(cap->card));
-+	snprintf(cap->bus_info, sizeof(cap->bus_info),
-+		 "I2C:%s", dev_name(&data->client->dev));
-+	return 0;
-+}
-+
-+static int mxt_vidioc_enum_input(struct file *file, void *priv,
-+				   struct v4l2_input *i)
-+{
-+	if (i->index > 0)
-+		return -EINVAL;
-+
-+	i->type = V4L2_INPUT_TYPE_TOUCH;
-+	strlcpy(i->name, "Mutual Capacitance Deltas", sizeof(i->name));
-+	return 0;
-+}
-+
-+static int mxt_set_input(struct mxt_data *data, unsigned int i)
-+{
-+	struct v4l2_pix_format *f = &data->dbg.format;
-+
-+	if (i > 0)
-+		return -EINVAL;
-+
-+	f->width = data->info.matrix_xsize;
-+	f->height = data->info.matrix_ysize;
-+	f->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
-+	f->field = V4L2_FIELD_NONE;
-+	f->colorspace = V4L2_COLORSPACE_RAW;
-+	f->bytesperline = f->width * sizeof(u16);
-+	f->sizeimage = f->width * f->height * sizeof(u16);
-+
-+	data->dbg.input = i;
-+
-+	return 0;
-+}
-+
-+static int mxt_vidioc_s_input(struct file *file, void *priv, unsigned int i)
-+{
-+	return mxt_set_input(video_drvdata(file), i);
-+}
-+
-+static int mxt_vidioc_g_input(struct file *file, void *priv, unsigned int *i)
-+{
-+	struct mxt_data *data = video_drvdata(file);
-+
-+	*i = data->dbg.input;
-+
-+	return 0;
-+}
-+
-+static int mxt_vidioc_fmt(struct file *file, void *priv, struct v4l2_format *f)
-+{
-+	struct mxt_data *data = video_drvdata(file);
-+
-+	f->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	f->fmt.pix = data->dbg.format;
-+
-+	return 0;
-+}
-+
-+static int mxt_vidioc_enum_fmt(struct file *file, void *priv,
-+				 struct v4l2_fmtdesc *fmt)
-+{
-+	if (fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	fmt->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
-+	return 0;
-+}
-+
-+static int mxt_vidioc_g_parm(struct file *file, void *fh,
-+			     struct v4l2_streamparm *a)
-+{
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	a->parm.capture.readbuffers = 1;
-+	a->parm.capture.timeperframe.numerator = 1;
-+	a->parm.capture.timeperframe.denominator = 10;
-+	return 0;
-+}
-+
-+static const struct v4l2_ioctl_ops mxt_video_ioctl_ops = {
-+	.vidioc_querycap        = mxt_vidioc_querycap,
-+
-+	.vidioc_enum_fmt_vid_cap = mxt_vidioc_enum_fmt,
-+	.vidioc_s_fmt_vid_cap   = mxt_vidioc_fmt,
-+	.vidioc_g_fmt_vid_cap   = mxt_vidioc_fmt,
-+	.vidioc_try_fmt_vid_cap	= mxt_vidioc_fmt,
-+	.vidioc_g_parm		= mxt_vidioc_g_parm,
-+
-+	.vidioc_enum_input      = mxt_vidioc_enum_input,
-+	.vidioc_g_input         = mxt_vidioc_g_input,
-+	.vidioc_s_input         = mxt_vidioc_s_input,
-+
-+	.vidioc_reqbufs         = vb2_ioctl_reqbufs,
-+	.vidioc_create_bufs     = vb2_ioctl_create_bufs,
-+	.vidioc_querybuf        = vb2_ioctl_querybuf,
-+	.vidioc_qbuf            = vb2_ioctl_qbuf,
-+	.vidioc_dqbuf           = vb2_ioctl_dqbuf,
-+	.vidioc_expbuf          = vb2_ioctl_expbuf,
-+
-+	.vidioc_streamon        = vb2_ioctl_streamon,
-+	.vidioc_streamoff       = vb2_ioctl_streamoff,
-+};
-+
-+static const struct video_device mxt_video_device = {
-+	.name = "Atmel maxTouch",
-+	.fops = &mxt_video_fops,
-+	.ioctl_ops = &mxt_video_ioctl_ops,
-+	.release = video_device_release_empty,
-+	.device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TOUCH |
-+		       V4L2_CAP_READWRITE | V4L2_CAP_STREAMING,
-+};
-+
- static void mxt_debug_init(struct mxt_data *data)
- {
- 	struct mxt_dbg *dbg = &data->dbg;
- 	struct mxt_object *object;
-+	int error;
- 
- 	object = mxt_get_object(data, MXT_GEN_COMMAND_T6);
- 	if (!object)
-@@ -2189,8 +2401,41 @@ static void mxt_debug_init(struct mxt_data *data)
- 	if (!dbg->t37_buf)
- 		goto error;
- 
-+	/* init channel to zero */
-+	mxt_set_input(data, 0);
-+
-+	/* register video device */
-+	snprintf(dbg->v4l2.name, sizeof(dbg->v4l2.name), "%s", "atmel_mxt_ts");
-+	error = v4l2_device_register(&data->client->dev, &dbg->v4l2);
-+	if (error)
-+		goto error;
-+
-+	/* initialize the queue */
-+	mutex_init(&dbg->lock);
-+	dbg->queue = mxt_queue;
-+	dbg->queue.drv_priv = data;
-+	dbg->queue.lock = &dbg->lock;
-+	dbg->queue.dev = &data->client->dev;
-+
-+	error = vb2_queue_init(&dbg->queue);
-+	if (error)
-+		goto error_unreg_v4l2;
-+
-+	dbg->vdev = mxt_video_device;
-+	dbg->vdev.v4l2_dev = &dbg->v4l2;
-+	dbg->vdev.lock = &dbg->lock;
-+	dbg->vdev.vfl_dir = VFL_DIR_RX;
-+	dbg->vdev.queue = &dbg->queue;
-+	video_set_drvdata(&dbg->vdev, data);
-+
-+	error = video_register_device(&dbg->vdev, VFL_TYPE_TOUCH, -1);
-+	if (error)
-+		goto error_unreg_v4l2;
-+
- 	return;
- 
-+error_unreg_v4l2:
-+	v4l2_device_unregister(&dbg->v4l2);
- error:
- 	dev_warn(&data->client->dev, "Error initializing T37\n");
- }
--- 
-1.7.9.5
+A completely unrelated question: it seems that Sphinx is using just
+one CPU to do its builds:
 
+%Cpu0  :  3,0 us,  7,6 sy,  0,0 ni, 89,4 id,  0,0 wa,  0,0 hi,  0,0 si,  0,0 st
+%Cpu1  :100,0 us,  0,0 sy,  0,0 ni,  0,0 id,  0,0 wa,  0,0 hi,  0,0 si,  0,0 st
+%Cpu2  :  1,3 us,  2,7 sy,  0,0 ni, 95,7 id,  0,3 wa,  0,0 hi,  0,0 si,  0,0 st
+%Cpu3  :  1,0 us,  3,3 sy,  0,0 ni, 95,7 id,  0,0 wa,  0,0 hi,  0,0 si,  0,0 st
+KiB Mem : 15861876 total,  5809820 free,  1750528 used,  8301528 buff/cache
+KiB Swap:  8200188 total,  8200188 free,        0 used. 13382964 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND     
+ 5660 mchehab   20   0  325256  89776   8300 R  99,7  0,6   0:22.25 sphinx-bui+ 
+
+Are there any way to speed it up and make it use all available CPUs?
+
+
+> I will take a look about this also .. .. give me some time ;-)
+> 
+> -- Markus --
+> 
+> > 
+> > Thanks,
+> > Mauro
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html  
+> 
+
+
+
+Thanks,
+Mauro
