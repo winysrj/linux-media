@@ -1,218 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:50081 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751906AbcGUMOO (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47154
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754307AbcGTOlQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 08:14:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	laurent.pinchart@ideasonboard.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 1/2] vb2: don't return NULL for alloc and get_userptr ops
-Date: Thu, 21 Jul 2016 14:14:02 +0200
-Message-Id: <1469103243-5296-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1469103243-5296-1-git-send-email-hverkuil@xs4all.nl>
-References: <1469103243-5296-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 20 Jul 2016 10:41:16 -0400
+Date: Wed, 20 Jul 2016 11:41:11 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Markus Heiser <markus.heiser@darmarit.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-doc@vger.kernel.org
+Subject: Re: [PATCH] doc-rst: get rid of warnings at
+ kernel-documentation.rst
+Message-ID: <20160720114111.55d66e07@recife.lan>
+In-Reply-To: <20160720083149.1ea84b43@lwn.net>
+References: <610951ea382e015f178bb55391ea21bd80132d70.1469023848.git.mchehab@s-opensource.com>
+	<83940B5E-B900-4D41-9FDA-CE2587ED4665@darmarit.de>
+	<20160720083149.1ea84b43@lwn.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Wed, 20 Jul 2016 08:31:49 -0600
+Jonathan Corbet <corbet@lwn.net> escreveu:
 
-Always return an ERR_PTR() instead of NULL.
+> On Wed, 20 Jul 2016 16:23:28 +0200
+> Markus Heiser <markus.heiser@darmarit.de> wrote:
+> 
+> > Am 20.07.2016 um 16:11 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> >   
+> > > Sphinx 1.4.5 complains about some literal blocks at
+> > > kernel-documentation.rst:
+> > > 
+> > > 	Documentation/kernel-documentation.rst:373: WARNING: Could not lex literal_block as "C". Highlighting skipped.
+> > > 	Documentation/kernel-documentation.rst:378: WARNING: Could not lex literal_block as "C". Highlighting skipped.
+> > > 	Documentation/kernel-documentation.rst:576: WARNING: Could not lex literal_block as "C". Highlighting skipped.
+> > > 
+> > > Fix it by telling Sphinx to consider them as "none" type.    
+> > 
+> > Hi Mauro,
+> > 
+> > IMHO we should better fix this by unsetting the lexers default language 
+> > in the conf.py  [1] ... currently:
+> > 
+> > highlight_language = 'C'  # set this to 'none'
+> > 	
+> > As far as I know the default highlight_language is also the default
+> > for literal blocks starting with "::"  
+> 
+> The thing with that is that a lot of literal blocks *do* have C code, even
+> in kernel-documentation.rst.  Setting that in conf.py would turn off all C
+> highlighting.  I think that might actually be a desirable outcome, but it
+> would be good to make that decision explicitly.
 
-This makes the behavior of alloc, get_userptr and attach_dmabuf the
-same.
+Agreed. Assuming "C" as default seems a good idea to me.
 
-Update the documentation in videobuf2-core.h as well.
+> 
+> As it happens, I'd already fixed these particular warnings in docs-next:
+> 
+> 	http://permalink.gmane.org/gmane.linux.documentation/39806
+> 
+> I took a different approach; using code-block might actually be better.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c    | 12 ++++++++----
- drivers/media/v4l2-core/videobuf2-dma-sg.c  | 13 +++++++------
- drivers/media/v4l2-core/videobuf2-vmalloc.c | 13 ++++++++-----
- include/media/videobuf2-core.h              |  6 +++---
- 4 files changed, 26 insertions(+), 18 deletions(-)
+Particularly, I prefer to explicitly tell when a block has a different
+highlight than to switch the default along the document with "highlight"
+tag, as this can be trickier to maintain as the document suffers
+review along the time.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index ca8ffeb..4d60bdb 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -198,6 +198,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- 		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 	void *mem_priv;
- 	int plane;
-+	int ret = -ENOMEM;
- 
- 	/*
- 	 * Allocate memory for all planes in this buffer
-@@ -209,8 +210,11 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- 		mem_priv = call_ptr_memop(vb, alloc,
- 				q->alloc_devs[plane] ? : q->dev,
- 				q->dma_attrs, size, dma_dir, q->gfp_flags);
--		if (IS_ERR_OR_NULL(mem_priv))
-+		if (IS_ERR(mem_priv)) {
-+			if (mem_priv)
-+				ret = PTR_ERR(mem_priv);
- 			goto free;
-+		}
- 
- 		/* Associate allocator private data with this plane */
- 		vb->planes[plane].mem_priv = mem_priv;
-@@ -224,7 +228,7 @@ free:
- 		vb->planes[plane - 1].mem_priv = NULL;
- 	}
- 
--	return -ENOMEM;
-+	return ret;
- }
- 
- /**
-@@ -1136,10 +1140,10 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
- 				q->alloc_devs[plane] ? : q->dev,
- 				planes[plane].m.userptr,
- 				planes[plane].length, dma_dir);
--		if (IS_ERR_OR_NULL(mem_priv)) {
-+		if (IS_ERR(mem_priv)) {
- 			dprintk(1, "failed acquiring userspace "
- 						"memory for plane %d\n", plane);
--			ret = mem_priv ? PTR_ERR(mem_priv) : -EINVAL;
-+			ret = PTR_ERR(mem_priv);
- 			goto err;
- 		}
- 		vb->planes[plane].mem_priv = mem_priv;
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index a39db8a..e2afd2c 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -107,11 +107,12 @@ static void *vb2_dma_sg_alloc(struct device *dev, const struct dma_attrs *dma_at
- 
- 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
- 
--	if (WARN_ON(dev == NULL))
--		return NULL;
-+	if (WARN_ON(!dev))
-+		return ERR_PTR(-EINVAL);
-+
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 
- 	buf->vaddr = NULL;
- 	buf->dma_dir = dma_dir;
-@@ -169,7 +170,7 @@ fail_pages_alloc:
- 	kfree(buf->pages);
- fail_pages_array_alloc:
- 	kfree(buf);
--	return NULL;
-+	return ERR_PTR(-ENOMEM);
- }
- 
- static void vb2_dma_sg_put(void *buf_priv)
-@@ -234,7 +235,7 @@ static void *vb2_dma_sg_get_userptr(struct device *dev, unsigned long vaddr,
- 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 
- 	buf->vaddr = NULL;
- 	buf->dev = dev;
-@@ -274,7 +275,7 @@ userptr_fail_sgtable:
- 	vb2_destroy_framevec(vec);
- userptr_fail_pfnvec:
- 	kfree(buf);
--	return NULL;
-+	return ERR_PTR(-ENOMEM);
- }
- 
- /*
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 7e8a07e..4fdfefd 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -41,7 +41,7 @@ static void *vb2_vmalloc_alloc(struct device *dev, const struct dma_attrs *attrs
- 
- 	buf = kzalloc(sizeof(*buf), GFP_KERNEL | gfp_flags);
- 	if (!buf)
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 
- 	buf->size = size;
- 	buf->vaddr = vmalloc_user(buf->size);
-@@ -53,7 +53,7 @@ static void *vb2_vmalloc_alloc(struct device *dev, const struct dma_attrs *attrs
- 	if (!buf->vaddr) {
- 		pr_debug("vmalloc of size %ld failed\n", buf->size);
- 		kfree(buf);
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 	}
- 
- 	atomic_inc(&buf->refcount);
-@@ -77,17 +77,20 @@ static void *vb2_vmalloc_get_userptr(struct device *dev, unsigned long vaddr,
- 	struct vb2_vmalloc_buf *buf;
- 	struct frame_vector *vec;
- 	int n_pages, offset, i;
-+	int ret = -ENOMEM;
- 
- 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
- 	if (!buf)
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 
- 	buf->dma_dir = dma_dir;
- 	offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
- 	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
--	if (IS_ERR(vec))
-+	if (IS_ERR(vec)) {
-+		ret = PTR_ERR(vec);
- 		goto fail_pfnvec_create;
-+	}
- 	buf->vec = vec;
- 	n_pages = frame_vector_count(vec);
- 	if (frame_vector_to_pages(vec) < 0) {
-@@ -117,7 +120,7 @@ fail_map:
- fail_pfnvec_create:
- 	kfree(buf);
- 
--	return NULL;
-+	return ERR_PTR(ret);
- }
- 
- static void vb2_vmalloc_put_userptr(void *buf_priv)
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index bea81c9e..b4e8826 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -33,7 +33,7 @@ struct vb2_threadio_data;
- /**
-  * struct vb2_mem_ops - memory handling/memory allocator operations
-  * @alloc:	allocate video memory and, optionally, allocator private data,
-- *		return NULL on failure or a pointer to allocator private,
-+ *		return ERR_PTR() on failure or a pointer to allocator private,
-  *		per-buffer data on success; the returned private structure
-  *		will then be passed as buf_priv argument to other ops in this
-  *		structure. Additional gfp_flags to use when allocating the
-@@ -50,14 +50,14 @@ struct vb2_threadio_data;
-  *		 USERPTR memory types; vaddr is the address passed to the
-  *		 videobuf layer when queuing a video buffer of USERPTR type;
-  *		 should return an allocator private per-buffer structure
-- *		 associated with the buffer on success, NULL on failure;
-+ *		 associated with the buffer on success, ERR_PTR() on failure;
-  *		 the returned private structure will then be passed as buf_priv
-  *		 argument to other ops in this structure.
-  * @put_userptr: inform the allocator that a USERPTR buffer will no longer
-  *		 be used.
-  * @attach_dmabuf: attach a shared struct dma_buf for a hardware operation;
-  *		   used for DMABUF memory types; dev is the alloc device
-- *		   dbuf is the shared dma_buf; returns NULL on failure;
-+ *		   dbuf is the shared dma_buf; returns ERR_PTR() on failure;
-  *		   allocator private per-buffer structure on success;
-  *		   this needs to be used for further accesses to the buffer.
-  * @detach_dmabuf: inform the exporter of the buffer that the current DMABUF
--- 
-2.8.1
+Anyway, your call ;)
 
+Thanks,
+Mauro
