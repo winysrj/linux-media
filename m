@@ -1,176 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:30459 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751880AbcGUJMN (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:51287 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752353AbcGTJsq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 05:12:13 -0400
-Message-ID: <1469092328.30095.11.camel@mtksdaap41>
-Subject: Re: [PATCH v3 0/9] Add MT8173 Video Decoder Driver
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	"Marek Szyprowski" <m.szyprowski@samsung.com>
-Date: Thu, 21 Jul 2016 17:12:08 +0800
-In-Reply-To: <e2952cc2-3abd-894e-9481-b91a45cf7891@xs4all.nl>
-References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
-	 <577D0576.2050706@xs4all.nl> <1467886612.21382.18.camel@mtksdaap41>
-	 <e2952cc2-3abd-894e-9481-b91a45cf7891@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+	Wed, 20 Jul 2016 05:48:46 -0400
+Subject: Re: [PATCH] [media] rcar-vin: add legacy mode for wrong media bus
+ formats
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20160708104327.6329-1-niklas.soderlund+renesas@ragnatech.se>
+Cc: slongerbeam@gmail.com, lars@metafoo.de, hans.verkuil@cisco.com,
+	mchehab@kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4776c0f7-22da-6e72-f0c8-c02fc07b38dc@xs4all.nl>
+Date: Wed, 20 Jul 2016 11:48:40 +0200
 MIME-Version: 1.0
+In-Reply-To: <20160708104327.6329-1-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 07/08/2016 12:43 PM, Niklas Söderlund wrote:
+> A recent bugfix to adv7180 brought to light that the rcar-vin driver are
+> looking for the wrong media bus format. It was looking for a YUVU format
+> but then expecting UYVY data. The bugfix for adv7180 will break the
+> usage of rcar-vin together with a adv7180 as found on Renesas R-Car2
+> Koelsch boards for example.
+> 
+> This patch fix the rcar-vin driver to look for the correct UYVU formats
+> and adds a legacy mode. The legacy mode is needed since I don't know if
+> other devices provide a incorrect media bus format and I don't want to
+> break any working configurations. Hopefully the legacy mode can be
+> removed sometime in the future.
 
-On Fri, 2016-07-08 at 13:44 +0200, Hans Verkuil wrote:
-> On 07/07/2016 12:16 PM, tiffany lin wrote:
-> > Hi Hans,
-> > 
-> > 
-> > On Wed, 2016-07-06 at 15:19 +0200, Hans Verkuil wrote:
-> >> Hi Tiffany,
-> >>
-> >> I plan to review this patch series on Friday, but one obvious question is
-> >> what the reason for these failures is:
-> >>
-> >>> Input/Output configuration ioctls:
-> >>>         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-> >>>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-> >>>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-> >>>         test VIDIOC_G/S_EDID: OK (Not Supported)
-> >>>
-> >>>         Control ioctls:
-> >>>                 test VIDIOC_QUERYCTRL/MENU: OK
-> >>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(357): g_ctrl returned an error (11)
-> >>>                 test VIDIOC_G/S_CTRL: FAIL
-> >>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(579): g_ext_ctrls returned an error (11)
-> >>>                 test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
-> > These fails are because VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS return
-> > V4L2_CID_MIN_BUFFERS_FOR_CAPTURE only when dirver in MTK_STATE_HEADER
-> > state, or it will return EAGAIN.
-> > This could help user space get correct value, not default value that may
-> > changed base on media content.
-> 
-> OK, I really don't like this. I also looked what the s5p-mfc-dec driver does (the only other
-> driver currently implementing this), and that returns -EINVAL.
-> 
-> My proposal would be to change this. If this information isn't known yet, why not
-> just return 0 as the value? The doc would have to be updated and (preferably) also
-> the s5p-mfc-dec driver. I've added Samsung devs to the Cc list, let me know what you
-> think.
-> 
-We are ok with just return 0 as the value when header not parsed yet
-We will update decoder with this solution.
+I'd rather have a version without the legacy code. You have to assume that
+subdevs return correct values otherwise what's the point of the mediabus
+formats?
 
+So this is simply an adv7180 bug fix + this r-car fix to stay consistent
+with the adv7180.
 
-> > 
-> >>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(721): subscribe event for control 'User Controls' failed
-> >>>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
-> > Driver do not support subscribe event for control 'User Controls' for
-> > now.
-> > Do we need to support this?
-> 
-> I don't see why this would fail. It's OK to subscribe to such controls, although
-> you'll never get an event.
-> 
-After upgrade to latest v4l-utils,this test pass.
+Regards,
 
-> >>>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-> >>>                 Standard Controls: 2 Private Controls: 0
-> >>>
-> >>>         Format ioctls:
-> >>>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-> >>>                 test VIDIOC_G/S_PARM: OK (Not Supported)
-> >>>                 test VIDIOC_G_FBUF: OK (Not Supported)
-> >>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-formats.cpp(405): expected EINVAL, but got 11 when getting format for buftype 9
-> >>>                 test VIDIOC_G_FMT: FAIL
-> > This is because vidioc_vdec_g_fmt only succeed when context is in
-> > MTK_STATE_HEADER state, or user space cannot get correct format data
-> > using this function.
-> 
-> Comparing this to s5p-mfc-dec I see that -EINVAL is returned in that case.
-> 
-> I am not opposed to using EAGAIN in s5p-mfc-dec as well. Marek, Kamil, what is
-> your opinion?
-> 
-> > 
-> >>>                 test VIDIOC_TRY_FMT: OK (Not Supported)
-> >>>                 test VIDIOC_S_FMT: OK (Not Supported)
-> >>>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-> >>>
-> >>>         Codec ioctls:
-> >>>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-> >>>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-> >>>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> >>>
-> >>>         Buffer ioctls:
-> >>>                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-> >>>                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-buffers.cpp(500): q.has_expbuf(node)
-> > Our OUTPUT and CAPTURE queue support both VB2_DMABUF and VB2_MMAP, user
-> > space can select which to use in runtime.
-> > So our driver default support v4l2_m2m_ioctl_expbuf functionality.
-> > In v4l2-compliance test, it will check v4l2_m2m_ioctl_expbuf only valid
-> > when node->valid_memorytype is V4L2_MEMORY_MMAP.
-> > So when go through node->valid_memorytype is V4L2_MEMORY_DMABUF, it
-> > fail.
-> 
-> valid_memorytype should have both MMAP and DMABUF flags.
-> 
-> But v4l-utils-1.6.0 is way too old to be certain it isn't some v4l2-compliance bug
-> that has since been fixed.
-After upgrade to latest v4l-utils, I still see this issue.
-
-test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-fail: v4l2-test-buffers.cpp(571): q.has_expbuf(node)
-
-best regards,
-Tiffany
+	Hans
 
 > 
-> Regards,
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 39 +++++++++++++++++++++++++++--
+>  drivers/media/platform/rcar-vin/rcar-dma.c  |  4 +--
+>  2 files changed, 39 insertions(+), 4 deletions(-)
 > 
-> 	Hans
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index 4b2007b..481d82a 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -37,6 +37,7 @@ static int rvin_mbus_supported(struct rvin_dev *vin)
+>  	struct v4l2_subdev_mbus_code_enum code = {
+>  		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+>  	};
+> +	bool found;
+>  
+>  	sd = vin_to_source(vin);
+>  
+> @@ -45,8 +46,8 @@ static int rvin_mbus_supported(struct rvin_dev *vin)
+>  		code.index++;
+>  		switch (code.code) {
+>  		case MEDIA_BUS_FMT_YUYV8_1X16:
+> -		case MEDIA_BUS_FMT_YUYV8_2X8:
+> -		case MEDIA_BUS_FMT_YUYV10_2X10:
+> +		case MEDIA_BUS_FMT_UYVY8_2X8:
+> +		case MEDIA_BUS_FMT_UYVY10_2X10:
+>  		case MEDIA_BUS_FMT_RGB888_1X24:
+>  			vin->source.code = code.code;
+>  			vin_dbg(vin, "Found supported media bus format: %d\n",
+> @@ -57,6 +58,40 @@ static int rvin_mbus_supported(struct rvin_dev *vin)
+>  		}
+>  	}
+>  
+> +	/*
+> +	 * Older versions where looking for the wrong media bus format.
+> +	 * It where looking for a YUVY format but then treated it as a
+> +	 * UYVY format. This was not noticed since atlest one subdevice
+> +	 * used for testing (adv7180) reported a YUVY media bus format
+> +	 * but provided UYVY data. There might be other unknown subdevices
+> +	 * which also do this, to not break compatibility try to use them
+> +	 * in legacy mode.
+> +	 */
+> +	found = false;
+> +	code.index = 0;
+> +	while (!v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code)) {
+> +		code.index++;
+> +		switch (code.code) {
+> +		case MEDIA_BUS_FMT_YUYV8_2X8:
+> +			vin->source.code = MEDIA_BUS_FMT_UYVY8_2X8;
+> +			found = true;
+> +			break;
+> +		case MEDIA_BUS_FMT_YUYV10_2X10:
+> +			vin->source.code = MEDIA_BUS_FMT_UYVY10_2X10;
+> +			found = true;
+> +			break;
+> +		default:
+> +			break;
+> +		}
+> +
+> +		if (found) {
+> +			vin_err(vin,
+> +				"media bus %d not supported, trying legacy mode %d\n",
+> +				code.code, vin->source.code);
+> +			return true;
+> +		}
+> +	}
+> +
+>  	return false;
+>  }
+>  
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index dad3b03..0836b15 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -169,7 +169,7 @@ static int rvin_setup(struct rvin_dev *vin)
+>  		vnmc |= VNMC_INF_YUV16;
+>  		input_is_yuv = true;
+>  		break;
+> -	case MEDIA_BUS_FMT_YUYV8_2X8:
+> +	case MEDIA_BUS_FMT_UYVY8_2X8:
+>  		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+>  		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
+>  			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+> @@ -178,7 +178,7 @@ static int rvin_setup(struct rvin_dev *vin)
+>  	case MEDIA_BUS_FMT_RGB888_1X24:
+>  		vnmc |= VNMC_INF_RGB888;
+>  		break;
+> -	case MEDIA_BUS_FMT_YUYV10_2X10:
+> +	case MEDIA_BUS_FMT_UYVY10_2X10:
+>  		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+>  		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
+>  			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
 > 
-> > 
-> > 
-> > best regards,
-> > Tiffany
-> > 
-> > 
-> > 
-> >>>                 test VIDIOC_EXPBUF: FAIL
-> >>>
-> >>>
-> >>> Total: 38, Succeeded: 33, Failed: 5, Warnings: 0
-> >>
-> >> If it is due to a bug in v4l2-compliance, then let me know and I'll fix it. If not,
-> >> then it should be fixed in the driver.
-> >>
-> >> Frankly, it was the presence of these failures that made me think this patch series
-> >> wasn't final. Before a v4l2 driver can be accepted in the kernel, v4l2-compliance must pass.
-> >>
-> >> Regards,
-> >>
-> >> 	Hans
-> > 
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-
-
