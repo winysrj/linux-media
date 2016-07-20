@@ -1,98 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:46549 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751957AbcGUMOO (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:34043 "EHLO
+	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752082AbcGTAEB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 08:14:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	laurent.pinchart@ideasonboard.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 2/2] vb2: add WARN_ONs checking if a valid struct device was passed
-Date: Thu, 21 Jul 2016 14:14:03 +0200
-Message-Id: <1469103243-5296-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1469103243-5296-1-git-send-email-hverkuil@xs4all.nl>
-References: <1469103243-5296-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 19 Jul 2016 20:04:01 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: lars@metafoo.de
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 02/10] media: adv7180: Fix broken interrupt register access
+Date: Tue, 19 Jul 2016 17:03:29 -0700
+Message-Id: <1468973017-17647-3-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
+ <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Access to the interrupt page registers has been broken since at least
+commit 3999e5d01da7 ("[media] adv7180: Do implicit register paging").
+That commit forgot to add the interrupt page number to the register
+defines.
 
-The dma-contig and dma-sg memops require a valid struct device for
-the DMA to be handled correctly.
-
-Call WARN_ON and return ERR_PTR(-EINVAL) if it was NULL.
-
-Setting the correct device pointer was forgotten in several new driver
-submissions. This was caught during code review, but it really should be
-caught in the code.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Tested-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Lars-Peter Clausen <lars@metafoo.de>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 9 +++++++++
- drivers/media/v4l2-core/videobuf2-dma-sg.c     | 6 ++++++
- 2 files changed, 15 insertions(+)
+ drivers/media/i2c/adv7180.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 863f658..925b34b 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -141,6 +141,9 @@ static void *vb2_dc_alloc(struct device *dev, const struct dma_attrs *attrs,
- {
- 	struct vb2_dc_buf *buf;
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index b77b0a4..95cbc85 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -100,7 +100,7 @@
+ #define ADV7180_REG_IDENT 0x0011
+ #define ADV7180_ID_7180 0x18
  
-+	if (WARN_ON(!dev))
-+		return ERR_PTR(-EINVAL);
-+
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
- 		return ERR_PTR(-ENOMEM);
-@@ -499,6 +502,9 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
- 		return ERR_PTR(-EINVAL);
- 	}
+-#define ADV7180_REG_ICONF1		0x0040
++#define ADV7180_REG_ICONF1		0x2040
+ #define ADV7180_ICONF1_ACTIVE_LOW	0x01
+ #define ADV7180_ICONF1_PSYNC_ONLY	0x10
+ #define ADV7180_ICONF1_ACTIVE_TO_CLR	0xC0
+@@ -113,15 +113,15 @@
  
-+	if (WARN_ON(!dev))
-+		return ERR_PTR(-EINVAL);
-+
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
- 		return ERR_PTR(-ENOMEM);
-@@ -679,6 +685,9 @@ static void *vb2_dc_attach_dmabuf(struct device *dev, struct dma_buf *dbuf,
- 	if (dbuf->size < size)
- 		return ERR_PTR(-EFAULT);
+ #define ADV7180_IRQ1_LOCK	0x01
+ #define ADV7180_IRQ1_UNLOCK	0x02
+-#define ADV7180_REG_ISR1	0x0042
+-#define ADV7180_REG_ICR1	0x0043
+-#define ADV7180_REG_IMR1	0x0044
+-#define ADV7180_REG_IMR2	0x0048
++#define ADV7180_REG_ISR1	0x2042
++#define ADV7180_REG_ICR1	0x2043
++#define ADV7180_REG_IMR1	0x2044
++#define ADV7180_REG_IMR2	0x2048
+ #define ADV7180_IRQ3_AD_CHANGE	0x08
+-#define ADV7180_REG_ISR3	0x004A
+-#define ADV7180_REG_ICR3	0x004B
+-#define ADV7180_REG_IMR3	0x004C
+-#define ADV7180_REG_IMR4	0x50
++#define ADV7180_REG_ISR3	0x204A
++#define ADV7180_REG_ICR3	0x204B
++#define ADV7180_REG_IMR3	0x204C
++#define ADV7180_REG_IMR4	0x2050
  
-+	if (WARN_ON(!dev))
-+		return ERR_PTR(-EINVAL);
-+
- 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
- 	if (!buf)
- 		return ERR_PTR(-ENOMEM);
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index e2afd2c..64a386d 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -232,6 +232,9 @@ static void *vb2_dma_sg_get_userptr(struct device *dev, unsigned long vaddr,
- 	DEFINE_DMA_ATTRS(attrs);
- 	struct frame_vector *vec;
- 
-+	if (WARN_ON(!dev))
-+		return ERR_PTR(-EINVAL);
-+
- 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
-@@ -618,6 +621,9 @@ static void *vb2_dma_sg_attach_dmabuf(struct device *dev, struct dma_buf *dbuf,
- 	struct vb2_dma_sg_buf *buf;
- 	struct dma_buf_attachment *dba;
- 
-+	if (WARN_ON(!dev))
-+		return ERR_PTR(-EINVAL);
-+
- 	if (dbuf->size < size)
- 		return ERR_PTR(-EFAULT);
- 
+ #define ADV7180_REG_NTSC_V_BIT_END	0x00E6
+ #define ADV7180_NTSC_V_BIT_END_MANUAL_NVEND	0x4F
 -- 
-2.8.1
+1.9.1
 
