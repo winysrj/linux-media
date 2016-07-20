@@ -1,159 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:40654 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751139AbcGMKlr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 06:41:47 -0400
-Date: Wed, 13 Jul 2016 07:41:14 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Marcel Holtmann <marcel@holtmann.org>,
-	Gustavo Padovan <gustavo@padovan.org>,
-	Johan Hedberg <johan.hedberg@gmail.com>,
-	Lauro Ramos Venancio <lauro.venancio@openbossa.org>,
-	Aloisio Almeida Jr <aloisio.almeida@openbossa.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Pavan Savoy <pavan_savoy@ti.com>,
-	Arnd Bergmann <arnd@arndb.de>, linux-bluetooth@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] drivers: misc: ti-st: Use int instead of fuzzy char for
- callback status
-Message-ID: <20160713074114.76c35d04@recife.lan>
-In-Reply-To: <1465203723-16928-1-git-send-email-geert@linux-m68k.org>
-References: <1465203723-16928-1-git-send-email-geert@linux-m68k.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33275 "EHLO
+	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752072AbcGTAED (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 20:04:03 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: lars@metafoo.de
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 05/10] media: adv7180: add power pin control
+Date: Tue, 19 Jul 2016 17:03:32 -0700
+Message-Id: <1468973017-17647-6-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
+ <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon,  6 Jun 2016 11:02:03 +0200
-Geert Uytterhoeven <geert@linux-m68k.org> escreveu:
+Some targets control the ADV7180 power pin via a gpio, so add
+optional support for "powerdown" pin control.
 
-> On mips and parisc:
-> 
->     drivers/bluetooth/btwilink.c: In function 'ti_st_open':
->     drivers/bluetooth/btwilink.c:174:21: warning: overflow in implicit constant conversion [-Woverflow]
->        hst->reg_status = -EINPROGRESS;
-> 
->     drivers/nfc/nfcwilink.c: In function 'nfcwilink_open':
->     drivers/nfc/nfcwilink.c:396:31: warning: overflow in implicit constant conversion [-Woverflow]
->       drv->st_register_cb_status = -EINPROGRESS;
-> 
-> There are actually two issues:
->   1. Whether "char" is signed or unsigned depends on the architecture.
->      As the completion callback data is used to pass a (negative) error
->      code, it should always be signed.
->   2. EINPROGRESS is 150 on mips, 245 on parisc.
->      Hence -EINPROGRESS doesn't fit in a signed 8-bit number.
-> 
-> Change the callback status from "char" to "int" to fix these.
-> 
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Tested-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Tim Harvey <tharvey@gateworks.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
 
-Patch looks sane to me, but who will apply it?
+---
 
-Anyway:
+v2:
+- placed call to gpiod_get inline in adv7180_probe().
+- rename gpio pin to "powerdown".
+- document optional powerdown-gpios property in
+  Documentation/devicetree/bindings/media/i2c/adv7180.txt.
+- include error number in error message on gpiod_get failure.
+---
+ .../devicetree/bindings/media/i2c/adv7180.txt      |  5 ++++
+ drivers/media/i2c/Kconfig                          |  2 +-
+ drivers/media/i2c/adv7180.c                        | 27 ++++++++++++++++++++++
+ 3 files changed, 33 insertions(+), 1 deletion(-)
 
-Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-
-> ---
-> Compile-tested only.
-> ---
->  drivers/bluetooth/btwilink.c              | 4 ++--
->  drivers/media/radio/wl128x/fmdrv_common.c | 2 +-
->  drivers/misc/ti-st/st_core.c              | 2 +-
->  drivers/nfc/nfcwilink.c                   | 4 ++--
->  include/linux/ti_wilink_st.h              | 2 +-
->  5 files changed, 7 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/bluetooth/btwilink.c b/drivers/bluetooth/btwilink.c
-> index 24a652f9252be899..485281b3f1677678 100644
-> --- a/drivers/bluetooth/btwilink.c
-> +++ b/drivers/bluetooth/btwilink.c
-> @@ -51,7 +51,7 @@
->   */
->  struct ti_st {
->  	struct hci_dev *hdev;
-> -	char reg_status;
-> +	int reg_status;
->  	long (*st_write) (struct sk_buff *);
->  	struct completion wait_reg_completion;
->  };
-> @@ -83,7 +83,7 @@ static inline void ti_st_tx_complete(struct ti_st *hst, int pkt_type)
->   * status.ti_st_open() function will wait for signal from this
->   * API when st_register() function returns ST_PENDING.
->   */
-> -static void st_reg_completion_cb(void *priv_data, char data)
-> +static void st_reg_completion_cb(void *priv_data, int data)
->  {
->  	struct ti_st *lhst = priv_data;
->  
-> diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
-> index 3f9e6df7d837ac27..642b89c66bcb99eb 100644
-> --- a/drivers/media/radio/wl128x/fmdrv_common.c
-> +++ b/drivers/media/radio/wl128x/fmdrv_common.c
-> @@ -1472,7 +1472,7 @@ static long fm_st_receive(void *arg, struct sk_buff *skb)
->   * Called by ST layer to indicate protocol registration completion
->   * status.
->   */
-> -static void fm_st_reg_comp_cb(void *arg, char data)
-> +static void fm_st_reg_comp_cb(void *arg, int data)
->  {
->  	struct fmdev *fmdev;
->  
-> diff --git a/drivers/misc/ti-st/st_core.c b/drivers/misc/ti-st/st_core.c
-> index dcdbd58672ccc6d2..00051590e00f9647 100644
-> --- a/drivers/misc/ti-st/st_core.c
-> +++ b/drivers/misc/ti-st/st_core.c
-> @@ -141,7 +141,7 @@ static void st_send_frame(unsigned char chnl_id, struct st_data_s *st_gdata)
->   * This function is being called with spin lock held, protocol drivers are
->   * only expected to complete their waits and do nothing more than that.
->   */
-> -static void st_reg_complete(struct st_data_s *st_gdata, char err)
-> +static void st_reg_complete(struct st_data_s *st_gdata, int err)
->  {
->  	unsigned char i = 0;
->  	pr_info(" %s ", __func__);
-> diff --git a/drivers/nfc/nfcwilink.c b/drivers/nfc/nfcwilink.c
-> index f81e500e765061fd..3fbd18b8e473f696 100644
-> --- a/drivers/nfc/nfcwilink.c
-> +++ b/drivers/nfc/nfcwilink.c
-> @@ -94,7 +94,7 @@ struct nfcwilink {
->  	struct nci_dev			*ndev;
->  	unsigned long			flags;
->  
-> -	char				st_register_cb_status;
-> +	int				st_register_cb_status;
->  	long				(*st_write) (struct sk_buff *);
->  
->  	struct completion		completed;
-> @@ -320,7 +320,7 @@ exit:
->  }
->  
->  /* Called by ST when registration is complete */
-> -static void nfcwilink_register_complete(void *priv_data, char data)
-> +static void nfcwilink_register_complete(void *priv_data, int data)
->  {
->  	struct nfcwilink *drv = priv_data;
->  
-> diff --git a/include/linux/ti_wilink_st.h b/include/linux/ti_wilink_st.h
-> index 0a0d56834c8eb412..f2293028ab9d65e6 100644
-> --- a/include/linux/ti_wilink_st.h
-> +++ b/include/linux/ti_wilink_st.h
-> @@ -71,7 +71,7 @@ struct st_proto_s {
->  	enum proto_type type;
->  	long (*recv) (void *, struct sk_buff *);
->  	unsigned char (*match_packet) (const unsigned char *data);
-> -	void (*reg_complete_cb) (void *, char data);
-> +	void (*reg_complete_cb) (void *, int data);
->  	long (*write) (struct sk_buff *skb);
->  	void *priv_data;
->  
-
-
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7180.txt b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
+index 0d50115..4da486f 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv7180.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
+@@ -15,6 +15,11 @@ Required Properties :
+ 		"adi,adv7282"
+ 		"adi,adv7282-m"
+ 
++Optional Properties :
++- powerdown-gpios: reference to the GPIO connected to the powerdown pin,
++  if any.
++
++
+ Example:
+ 
+ 	i2c0@1c22000 {
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index ce9006e..6769898 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -187,7 +187,7 @@ comment "Video decoders"
+ 
+ config VIDEO_ADV7180
+ 	tristate "Analog Devices ADV7180 decoder"
+-	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
++	depends on GPIOLIB && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+ 	---help---
+ 	  Support for the Analog Devices ADV7180 video decoder.
+ 
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 667931e9..8612d21 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -26,6 +26,7 @@
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+ #include <linux/of.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-event.h>
+@@ -215,6 +216,7 @@ struct adv7180_state {
+ 	struct media_pad	pad;
+ 	struct mutex		mutex; /* mutual excl. when accessing chip */
+ 	int			irq;
++	struct gpio_desc	*pwdn_gpio;
+ 	v4l2_std_id		curr_norm;
+ 	bool			newavmode;
+ 	bool			powered;
+@@ -466,6 +468,19 @@ static int adv7180_g_std(struct v4l2_subdev *sd, v4l2_std_id *norm)
+ 	return 0;
+ }
+ 
++static void adv7180_set_power_pin(struct adv7180_state *state, bool on)
++{
++	if (!state->pwdn_gpio)
++		return;
++
++	if (on) {
++		gpiod_set_value_cansleep(state->pwdn_gpio, 0);
++		usleep_range(5000, 10000);
++	} else {
++		gpiod_set_value_cansleep(state->pwdn_gpio, 1);
++	}
++}
++
+ static int adv7180_set_power(struct adv7180_state *state, bool on)
+ {
+ 	u8 val;
+@@ -1221,6 +1236,8 @@ static int init_device(struct adv7180_state *state)
+ 
+ 	mutex_lock(&state->mutex);
+ 
++	adv7180_set_power_pin(state, true);
++
+ 	adv7180_write(state, ADV7180_REG_PWR_MAN, ADV7180_PWR_MAN_RES);
+ 	usleep_range(5000, 10000);
+ 
+@@ -1320,6 +1337,14 @@ static int adv7180_probe(struct i2c_client *client,
+ 
+ 	adv7180_of_parse(state);
+ 
++	state->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "powerdown",
++						   GPIOD_OUT_HIGH);
++	if (IS_ERR(state->pwdn_gpio)) {
++		ret = PTR_ERR(state->pwdn_gpio);
++		v4l_err(client, "request for power pin failed: %d\n", ret);
++		return ret;
++	}
++
+ 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
+ 		state->csi_client = i2c_new_dummy(client->adapter,
+ 				ADV7180_DEFAULT_CSI_I2C_ADDR);
+@@ -1411,6 +1436,8 @@ static int adv7180_remove(struct i2c_client *client)
+ 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2)
+ 		i2c_unregister_device(state->csi_client);
+ 
++	adv7180_set_power_pin(state, false);
++
+ 	mutex_destroy(&state->mutex);
+ 
+ 	return 0;
 -- 
-Thanks,
-Mauro
+1.9.1
+
