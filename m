@@ -1,59 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:34215 "EHLO
-	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752634AbcGFXHZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:07:25 -0400
-Received: by mail-pf0-f193.google.com with SMTP id 66so101491pfy.1
-        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:07:25 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 03/28] gpu: ipu-cpmem: Add ipu_cpmem_get_burstsize()
-Date: Wed,  6 Jul 2016 16:06:33 -0700
-Message-Id: <1467846418-12913-4-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
- <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47045
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752387AbcGTAA3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2016 20:00:29 -0400
+Date: Tue, 19 Jul 2016 21:00:23 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Markus Heiser <markus.heiser@darmarit.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-doc@vger.kernel.org, Jani Nikula <jani.nikula@intel.com>
+Subject: Re: [PATCH 00/18] Complete moving media documentation to ReST
+ format
+Message-ID: <20160719210023.2f8280ac@recife.lan>
+In-Reply-To: <20160719164916.3ebb1c74@lwn.net>
+References: <cover.1468865380.git.mchehab@s-opensource.com>
+	<578DF08F.8080701@xs4all.nl>
+	<20160719081259.482a8c04@recife.lan>
+	<6702C6D4-929F-420D-9CF9-911CA753B0A7@darmarit.de>
+	<20160719115319.316349a7@recife.lan>
+	<20160719164916.3ebb1c74@lwn.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds ipu_cpmem_get_burstsize().
+Em Tue, 19 Jul 2016 16:49:16 -0600
+Jonathan Corbet <corbet@lwn.net> escreveu:
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/gpu/ipu-v3/ipu-cpmem.c | 6 ++++++
- include/video/imx-ipu-v3.h     | 1 +
- 2 files changed, 7 insertions(+)
+> On Tue, 19 Jul 2016 11:53:19 -0300
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> 
+> > So, I guess we should set the minimal requirement to 1.2.x.  
+> 
+> *sigh*.
+> 
+> I hate to do that; things are happening quickly enough with Sphinx that
+> it would be nice to be able to count on a newer version.  That said, one
+> of my goals in this whole thing was to make it *easier* for developers to
+> generate the docs; the DocBook toolchain has always been notoriously
+> difficult in that regard.  Forcing people to install a newer sphinx by
+> hand is not the way to get there.
+> 
+> So I guess we need to make sure things work with 1.2 for now.  I'd hope
+> we could push that to at least 1.3 before too long, though, once the
+> community distributions are there.  I think we can be a *bit* more
+> aggressive with the docs than with the kernel as a whole.
 
-diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
-index a36c35e..fcb7dc8 100644
---- a/drivers/gpu/ipu-v3/ipu-cpmem.c
-+++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
-@@ -275,6 +275,12 @@ void ipu_cpmem_set_axi_id(struct ipuv3_channel *ch, u32 id)
- }
- EXPORT_SYMBOL_GPL(ipu_cpmem_set_axi_id);
- 
-+int ipu_cpmem_get_burstsize(struct ipuv3_channel *ch)
-+{
-+	return ipu_ch_param_read_field(ch, IPU_FIELD_NPB) + 1;
-+}
-+EXPORT_SYMBOL_GPL(ipu_cpmem_get_burstsize);
-+
- void ipu_cpmem_set_burstsize(struct ipuv3_channel *ch, int burstsize)
- {
- 	ipu_ch_param_write_field(ch, IPU_FIELD_NPB, burstsize - 1);
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 904fd12..60540ead 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -197,6 +197,7 @@ void ipu_cpmem_set_buffer(struct ipuv3_channel *ch, int bufnum, dma_addr_t buf);
- void ipu_cpmem_set_uv_offset(struct ipuv3_channel *ch, u32 u_off, u32 v_off);
- void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride);
- void ipu_cpmem_set_axi_id(struct ipuv3_channel *ch, u32 id);
-+int ipu_cpmem_get_burstsize(struct ipuv3_channel *ch);
- void ipu_cpmem_set_burstsize(struct ipuv3_channel *ch, int burstsize);
- void ipu_cpmem_set_block_mode(struct ipuv3_channel *ch);
- void ipu_cpmem_set_rotation(struct ipuv3_channel *ch,
--- 
-1.9.1
+Yeah, that seems to be the right strategy, IMHO. With the patch I sent,
+the media books will again build fine with 1.2.
 
+
+Thanks,
+Mauro
