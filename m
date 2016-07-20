@@ -1,90 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:39739 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754512AbcGELQ0 (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:60726 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754280AbcGTOMh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Jul 2016 07:16:26 -0400
-Received: from [64.103.36.133] (proxy-ams-1.cisco.com [64.103.36.133])
-	by tschai.lan (Postfix) with ESMTPSA id DA1BD180C6D
-	for <linux-media@vger.kernel.org>; Tue,  5 Jul 2016 13:16:20 +0200 (CEST)
-To: linux-media <linux-media@vger.kernel.org>
+	Wed, 20 Jul 2016 10:12:37 -0400
+Subject: Re: [PATCH] [media] vb2: map dmabuf for planes on driver queue
+ instead of vidioc_qbuf
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+References: <1468599966-31988-1-git-send-email-javier@osg.samsung.com>
+ <20160720132005.GC7976@valkosipuli.retiisi.org.uk>
+ <b0c71d30-4392-e404-c41b-923bcb5bcc2a@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Luis de Bethencourt <luisbg@osg.samsung.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.8] Various dvb/rc fixes/improvements
-Message-ID: <577B9704.9040300@xs4all.nl>
-Date: Tue, 5 Jul 2016 13:16:20 +0200
+Message-ID: <e6444ca3-53c9-15c3-ff49-cb0b3e291fc2@xs4all.nl>
+Date: Wed, 20 Jul 2016 16:12:30 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <b0c71d30-4392-e404-c41b-923bcb5bcc2a@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+On 07/20/2016 04:06 PM, Javier Martinez Canillas wrote:
+> Hello Sakari,
+> 
+> On 07/20/2016 09:20 AM, Sakari Ailus wrote:
+>> Hi Javier,
+>>
+>> On Fri, Jul 15, 2016 at 12:26:06PM -0400, Javier Martinez Canillas wrote:
+>>> The buffer planes' dma-buf are currently mapped when buffers are queued
+>>> from userspace but it's more appropriate to do the mapping when buffers
+>>> are queued in the driver since that's when the actual DMA operation are
+>>> going to happen.
+>>>
+>>> Suggested-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+>>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>>>
+>>> ---
+>>>
+>>> Hello,
+>>>
+>>> A side effect of this change is that if the dmabuf map fails for some
+>>> reasons (i.e: a driver using the DMA contig memory allocator but CMA
+>>> not being enabled), the fail will no longer happen on VIDIOC_QBUF but
+>>> later (i.e: in VIDIOC_STREAMON).
+>>>
+>>> I don't know if that's an issue though but I think is worth mentioning.
+>>
+>> I have the same question has Hans --- why?
+>>
+> 
+> Yes, sorry for missing this information. Nicolas already explained a little
+> bit but the context is that I want to add dma-buf fence support to videobuf2,
+> and currently the dma-buf is unmapped in VIDIOC_DQBUF.
+> 
+> But with dma-buf fence, the idea is to be able to dequeue a buffer even when
+> the driver has not yet finished processing the buffer. So the dma-buf needs to
+> be mapped until vb2_buffer_done() when the driver is done processing the vb2,
+> and is able to signal the pending fence.
+> 
+> Since the unmapping was going to be delayed to vb2_buffer_done(), I thought
+> it would make sense to also move the mapping closer to when is really going
+> to be used and that's why I moved it to __enqueue_in_driver() in this patch.
+> 
+> But I didn't know that user-space was using the dma-buf map as a way to know
+> if the dma-buf will be compatible and fallback to a different streaming I/O
+> method if that's not the case. So $SUBJECT is wrong if it prevents user-space
+> to recover gracefully from a dma-buf mapping failure.
+> 
+> In any case, only delaying the unmapping is needed to support fence and doing
+> the map early in VIDIOC_QBUF is not an issue.
 
-As requested, I'm helping out with reducing the backlog.
-
-This is the third version of this pull request. The only difference with the
-older pull requests is that these two patches are dropped:
-
-https://patchwork.linuxtv.org/patch/34338/
-https://patchwork.linuxtv.org/patch/34339/
-
-I think you should take a look at those.
+OK. I've rejected this patch. I understand the DQBUF part and I happily accept
+a patch for that. But the other side should be left as-is. The TODO comment
+should probably be dropped, now that I think about it.
 
 Regards,
 
 	Hans
 
-The following changes since commit ab46f6d24bf57ddac0f5abe2f546a78af57b476c:
-
-  [media] videodev2.h: Fix V4L2_PIX_FMT_YUV411P description (2016-06-28 11:54:52 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.8f
-
-for you to fetch changes up to 32f2d0799571b9c2b9c07f9047111fd47329c911:
-
-  media: rc: nuvoton: remove two unused elements in struct nvt_dev (2016-07-05 12:13:36 +0200)
-
-----------------------------------------------------------------
-Antti Palosaari (14):
-      si2168: add support for newer firmwares
-      si2168: do not allow driver unbind
-      si2157: do not allow driver unbind
-      m88ds3103: remove useless most significant bit clear
-      m88ds3103: calculate DiSEqC message sending time
-      m88ds3103: improve ts clock setting
-      m88ds3103: use Hz instead of kHz on calculations
-      m88ds3103: refactor firmware download
-      af9033: move statistics to read_status()
-      af9033: do not allow driver unbind
-      it913x: do not allow driver unbind
-      rtl2830: do not allow driver unbind
-      rtl2830: move statistics to read_status()
-      rtl2832: do not allow driver unbind
-
-Heiner Kallweit (10):
-      media: rc: nuvoton: fix rx fifo overrun handling
-      media: rc: nuvoton: remove interrupt handling for wakeup
-      media: rc: nuvoton: clean up initialization of wakeup registers
-      media: rc: nuvoton: remove wake states
-      media: rc: nuvoton: simplify a few functions
-      media: rc: nuvoton: remove unneeded code in nvt_process_rx_ir_data
-      media: rc: nuvoton: remove study states
-      media: rc: nuvoton: simplify interrupt handling code
-      media: rc: nuvoton: remove unneeded check in nvt_get_rx_ir_data
-      media: rc: nuvoton: remove two unused elements in struct nvt_dev
-
- drivers/media/dvb-frontends/af9033.c         | 327 ++++++++++++++++++++++++++++++++++++++++++----------------------------------------------
- drivers/media/dvb-frontends/m88ds3103.c      | 144 ++++++++++++++++++---------------------
- drivers/media/dvb-frontends/m88ds3103_priv.h |   3 +-
- drivers/media/dvb-frontends/rtl2830.c        | 203 ++++++++++++++++++++++++-------------------------------
- drivers/media/dvb-frontends/rtl2830_priv.h   |   2 +-
- drivers/media/dvb-frontends/rtl2832.c        |   1 +
- drivers/media/dvb-frontends/si2168.c         | 127 ++++++++++++++++++++--------------
- drivers/media/dvb-frontends/si2168_priv.h    |   8 ++-
- drivers/media/rc/nuvoton-cir.c               | 137 ++++---------------------------------
- drivers/media/rc/nuvoton-cir.h               |  25 -------
- drivers/media/tuners/it913x.c                |   1 +
- drivers/media/tuners/si2157.c                |   3 +-
- 12 files changed, 411 insertions(+), 570 deletions(-)
+>> I rather think we should keep the buffers mapped all the time. That'd
+>> require a bit of extra from the DMA-BUF framework I suppose, to support
+>> streaming mappings.
+>>
+> 
+> Interesting, I can take a look to this possibility after adding the dma-buf
+> fence support.
+> 
+> Best regards,
+> 
