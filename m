@@ -1,121 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:60497 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751231AbcGPCZe (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:47259 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752284AbcGTHag (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 22:25:34 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C55B61800A9
-	for <linux-media@vger.kernel.org>; Sat, 16 Jul 2016 04:25:28 +0200 (CEST)
-Date: Sat, 16 Jul 2016 04:25:28 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160716022528.C55B61800A9@tschai.lan>
+	Wed, 20 Jul 2016 03:30:36 -0400
+Subject: Re: [PATCH v6] [media] pci: Add tw5864 driver
+To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Kozlov Sergey <serjk@netup.ru>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	=?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
+References: <20160720014205.15521-1-andrey.utkin@corp.bluecherry.net>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-pci@vger.kernel.org,
+	kernel-mentors@selenic.com,
+	Andrey Utkin <andrey_utkin@fastmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <6be09f83-7fd0-2c1b-8e8e-fa19f6d52751@xs4all.nl>
+Date: Wed, 20 Jul 2016 09:30:23 +0200
+MIME-Version: 1.0
+In-Reply-To: <20160720014205.15521-1-andrey.utkin@corp.bluecherry.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 07/20/2016 03:42 AM, Andrey Utkin wrote:
+> Changes since v5:
+>  - Rework known issues notice as suggested by Hans Verkuil (and previously Joe Perches)
+> 
+> I am leaving for a vacation in a day and won't respond before 3rd of August.
+> I wish to all of you to enjoy your time, too.
+> 
+> Thanks to all the reviewers for their efforts.
+> 
 
-Results of the daily build of media_tree:
+<snip>
 
-date:		Sat Jul 16 04:00:13 CEST 2016
-git branch:	test
-git hash:	eca2d34b9d2ce70165a50510659838e28ca22742
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+> +static int tw5864_input_std_get(struct tw5864_input *input,
+> +				enum tw5864_vid_std *std_arg)
+> +{
+> +	struct tw5864_dev *dev = input->root;
+> +	enum tw5864_vid_std std;
+> +	u8 std_reg = tw_indir_readb(TW5864_INDIR_VIN_E(input->nr));
+> +
+> +	std = (std_reg & 0x70) >> 4;
+> +
+> +	if (std_reg & 0x80) {
+> +		dev_err(&dev->pci->dev,
+> +			"Video format detection is in progress, please wait\n");
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: ERRORS
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: ERRORS
-linux-4.5-i686: ERRORS
-linux-4.6-i686: ERRORS
-linux-4.7-rc1-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: ERRORS
-linux-4.5-x86_64: ERRORS
-linux-4.6-x86_64: ERRORS
-linux-4.7-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+Use dev_dbg instead of dev_err.
 
-Detailed results are available here:
+> +		return -EAGAIN;
+> +	}
+> +
+> +	if (std == STD_INVALID) {
+> +		dev_err(&dev->pci->dev, "No valid video format detected\n");
+> +		return -EPERM;
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+This is still wrong. From my v5 review:
 
-Full logs are available here:
+"In this case set *std_arg to V4L2_STD_UNKNOWN and just return 0. As per the QUERYSTD spec."
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+Also, don't use dev_err here. There is nothing wrong with not being able to detect
+a valid format. I'd just drop the message.
 
-The Media Infrastructure API from this daily build is here:
+> +	}
+> +
+> +	*std_arg = std;
+> +	return 0;
+> +}
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Regards,
+
+	Hans
