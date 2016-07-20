@@ -1,122 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38641 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754216AbcGEBb0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:26 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 37/41] Documentation: dev-raw-vbi.rst fix conversion issues
-Date: Mon,  4 Jul 2016 22:31:12 -0300
-Message-Id: <a15201c578bfa7f085bfa2499650f023260f55d6.1467670142.git.mchehab@s-opensource.com>
-In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40264 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753189AbcGTNED (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jul 2016 09:04:03 -0400
+Date: Wed, 20 Jul 2016 16:03:57 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] vb2: include length in dmabuf qbuf debug message
+Message-ID: <20160720130356.GB7976@valkosipuli.retiisi.org.uk>
+References: <1468508975-6146-1-git-send-email-javier@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1468508975-6146-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several things that didn't convert well. Fix them,
-in order to improve the layout of the formatted document.
+Hi Javier,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/linux_tv/media/v4l/dev-raw-vbi.rst | 29 ++++++++----------------
- 1 file changed, 10 insertions(+), 19 deletions(-)
+Thanks for the patch!
 
-diff --git a/Documentation/linux_tv/media/v4l/dev-raw-vbi.rst b/Documentation/linux_tv/media/v4l/dev-raw-vbi.rst
-index 3aa93943fe9f..da85be88d57e 100644
---- a/Documentation/linux_tv/media/v4l/dev-raw-vbi.rst
-+++ b/Documentation/linux_tv/media/v4l/dev-raw-vbi.rst
-@@ -155,7 +155,7 @@ and always returns default parameters as :ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>` does
- 
-        -  __u32
- 
--       -  ``start``\ [2]
-+       -  ``start``\ [2]_
- 
-        -  This is the scanning system line number associated with the first
- 	  line of the VBI image, of the first and the second field
-@@ -173,7 +173,7 @@ and always returns default parameters as :ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>` does
- 
-        -  __u32
- 
--       -  ``count``\ [2]
-+       -  ``count``\ [2]_
- 
-        -  The number of lines in the first and second field image,
- 	  respectively.
-@@ -218,7 +218,7 @@ and always returns default parameters as :ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>` does
- 
-        -  __u32
- 
--       -  ``reserved``\ [2]
-+       -  ``reserved``\ [2]_
- 
-        -  This array is reserved for future extensions. Drivers and
- 	  applications must set it to zero.
-@@ -275,11 +275,7 @@ and always returns default parameters as :ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>` does
-     :alt:    vbi_hsync.pdf / vbi_hsync.gif
-     :align:  center
- 
--    Line synchronization
--
--    Line synchronization diagram
--
--
-+    **Figure 4.1. Line synchronization**
- 
- 
- .. _vbi-525:
-@@ -288,10 +284,7 @@ and always returns default parameters as :ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>` does
-     :alt:    vbi_525.pdf / vbi_525.gif
-     :align:  center
- 
--    ITU-R 525 line numbering (M/NTSC and M/PAL)
--
--    NTSC field synchronization diagram
--
-+    **Figure 4.2. ITU-R 525 line numbering (M/NTSC and M/PAL)**
- 
- 
- 
-@@ -301,9 +294,7 @@ and always returns default parameters as :ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>` does
-     :alt:    vbi_625.pdf / vbi_625.gif
-     :align:  center
- 
--    ITU-R 625 line numbering
--
--    PAL/SECAM field synchronization diagram
-+    **Figure 4.3. ITU-R 625 line numbering**
- 
- 
- 
-@@ -327,8 +318,7 @@ The total size of a frame computes as follows:
- 
- .. code-block:: c
- 
--    (count[0] + count[1]) *
--    samples_per_line * sample size in bytes
-+    (count[0] + count[1]) * samples_per_line * sample size in bytes
- 
- The sample size is most likely always one byte, applications must check
- the ``sample_format`` field though, to function properly with other
-@@ -339,8 +329,9 @@ A VBI device may support :ref:`read/write <rw>` and/or streaming
- The latter bears the possibility of synchronizing video and VBI data by
- using buffer timestamps.
- 
--Remember the :ref:`VIDIOC_STREAMON` ioctl and the
--first read(), write() and select() call can be resource allocation
-+Remember the :ref:`VIDIOC_STREAMON <VIDIOC_STREAMON>` ioctl and the
-+first :ref:`read() <func-read>`, :ref:`write() <func-write>` and
-+:ref:`select() <func-select>` call can be resource allocation
- points returning an ``EBUSY`` error code if the required hardware resources
- are temporarily unavailable, for example the device is already in use by
- another process.
+On Thu, Jul 14, 2016 at 11:09:34AM -0400, Javier Martinez Canillas wrote:
+> If the the VIDIOC_QBUF ioctl fails due a wrong dmabuf length,
+> it's useful to get the invalid length as a debug information.
+> 
+> Before this patch:
+> 
+> vb2-core: __qbuf_dmabuf: invalid dmabuf length for plane 1
+> 
+> After this patch:
+> 
+> vb2-core: __qbuf_dmabuf: invalid dmabuf length 221248 for plane 1
+> 
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> 
+> ---
+> 
+>  drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index ca8ffeb56d72..97d1483e0f7a 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1228,8 +1228,8 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
+>  			planes[plane].length = dbuf->size;
+>  
+>  		if (planes[plane].length < vb->planes[plane].min_length) {
+> -			dprintk(1, "invalid dmabuf length for plane %d\n",
+> -				plane);
+> +			dprintk(1, "invalid dmabuf length %d for plane %d\n",
+
+%u, please. You might want to print the minimum length as well.
+
+> +				planes[plane].length, plane);
+>  			dma_buf_put(dbuf);
+>  			ret = -EINVAL;
+>  			goto err;
+
 -- 
-2.7.4
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
