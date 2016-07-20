@@ -1,71 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns1.opdenkamp.eu ([149.210.151.186]:49833 "EHLO
-	opdenkamp.opdenkamp.eu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752033AbcGKKRU (ORCPT
+Received: from smarthost03d.mail.zen.net.uk ([212.23.1.23]:40234 "EHLO
+	smarthost03d.mail.zen.net.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754673AbcGTRG6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2016 06:17:20 -0400
-Subject: Re: [PATCHv2 3/5] pulse8-cec: new driver for the Pulse-Eight USB-CEC
- Adapter
-References: <fd21234a-3ac4-44f5-1054-3430546596bb@xs4all.nl>
- <578369C5.5000402@opdenkamp.eu>
- <8e011716-5d38-3475-ff87-1737b331e26c@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Lars Op den Kamp <lars@opdenkamp.eu>
-Message-ID: <5783722B.1080107@opdenkamp.eu>
-Date: Mon, 11 Jul 2016 12:17:15 +0200
+	Wed, 20 Jul 2016 13:06:58 -0400
+Received: from [82.68.240.77] (helo=ghost)
+	by smarthost03d.mail.zen.net.uk with esmtps (TLS1.2:RSA_AES_128_CBC_SHA1:128)
+	(Exim 4.80)
+	(envelope-from <martin@luminoussheep.net>)
+	id 1bPuxT-0006zG-Qx
+	for linux-media@vger.kernel.org; Wed, 20 Jul 2016 17:06:55 +0000
+Message-ID: <0dac334d135310327654ee0eba8a052d.squirrel@luminoussheep.net>
+In-Reply-To: <e3148010250e01b8f1fde94c584ab36e.squirrel@luminoussheep.net>
+References: <e3148010250e01b8f1fde94c584ab36e.squirrel@luminoussheep.net>
+Date: Wed, 20 Jul 2016 18:07:06 +0100
+Subject: Re: em288xx and lna - how to enable?
+From: "Martin" <martin@luminoussheep.net>
+To: "Martin" <martin@luminoussheep.net>
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-In-Reply-To: <8e011716-5d38-3475-ff87-1737b331e26c@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+> Hi,
+>
+> I see that my card 292e has LNA support:
+> https://patchwork.linuxtv.org/patch/23763/
+>
+> but searching I can't find how to enable this the force option
+> force_lna_activation=1 that the t500 uses isn't recognised
+>
+> Please could someone tell me if this is configurable an if so how to
+> configure it?
 
-On 11-07-16 12:02, Hans Verkuil wrote:
-> Hi Lars,
->
-> On 07/11/2016 11:41 AM, Lars Op den Kamp wrote:
->> Hi Hans,
->>
->> just did a quick scan of this patch.
->>
->> The code should work on any firmware >= v2 revision 8, though older
->> versions may return 0 when the build date is requested. I believe I
->> added that in v3. Might want to add a !=0 check before writing to the log.
->>
->> The CEC adapter has an "autonomous mode", used when it's not being
->> controlled by our userspace application or this kernel driver. It'll
->> respond to some basic CEC commands that allow the PC to be woken up by TV.
->> If the adapter doesn't receive a MSGCODE_PING for 30 seconds when it's
->> in "controlled mode", then it'll revert to autonomous mode and it'll
->> reset all states internally.
-> Ah, that was rather obscure. Good to know.
->
-> What I do now (and that seems to work) is that in the pulse8_setup I turn
-> off the autonomous mode and then write that new setting to the EEPROM. After
-> that it looks like the autonomous mode stays off. Is that correct?
-Correct, that'll work too, but I suggest you don't do that and update 
-the eeprom values like we do in userspace. That'll allow the adapter to 
-wake up the PC when the kernel module isn't running. Disabling 
-autonomous mode will prevent that from working. You can only write to 
-the eeprom once every 10 seconds by the way.
+Turns out I was looking in the wrong place.
 
->
-> The autonomous mode really doesn't work well with the framework as it is
-> today.
->
-> CEC framework support for 'wakeup on CEC command' is something that is planned
-> for the future.
-The autonomous mode is only really meant for waking up the PC, from S3 
-with the USB version and all modes with the internal version for Intel 
-boards. It should be disabled as long as the userspace application or 
-kernel module is running, by sending MSGCODE_SET_CONTROLLED 1 and then 
-send a poll before the 30 second timeout times out. Then, when the 
-kernel module stops using the module, when the system powers off or goes 
-to standby, you send a MSGCODE_SET_CONTROLLED 0 and then close the 
-connection. The adapter will then take over, allowing the TV to wake up 
-the PC again.
+I found it after more searching - it's part of the API and can be enabled
+with the dvbv5-zap --lna=1
 
-thanks, Lars
+
+Regards,
+M
+
+
