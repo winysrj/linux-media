@@ -1,93 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:58381 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933453AbcGJQeg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2016 12:34:36 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 2/5] [media] rc: make s_tx_carrier consistent
-Date: Sun, 10 Jul 2016 17:34:33 +0100
-Message-Id: <1468168473-27499-3-git-send-email-sean@mess.org>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47191
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755296AbcGTW5D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jul 2016 18:57:03 -0400
+Subject: Re: [PATCH v2] [media] vb2: include lengths in dmabuf qbuf debug
+ message
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <1469030875-2246-1-git-send-email-javier@osg.samsung.com>
+ <20160720195228.GD7976@valkosipuli.retiisi.org.uk>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org
+Message-ID: <75cf608c-d5a5-420e-2a37-dfef9891dbdc@osg.samsung.com>
+Date: Wed, 20 Jul 2016 18:56:52 -0400
+MIME-Version: 1.0
+In-Reply-To: <20160720195228.GD7976@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-LIRC_SET_SEND_CARRIER should return 0 on success or -errno.
+Hello Sakari,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- Documentation/DocBook/media/v4l/lirc_device_interface.xml | 2 +-
- drivers/media/rc/ene_ir.c                                 | 2 +-
- drivers/media/rc/iguanair.c                               | 2 +-
- drivers/media/rc/mceusb.c                                 | 2 +-
- drivers/media/rc/redrat3.c                                | 2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+On 07/20/2016 03:52 PM, Sakari Ailus wrote:
+> On Wed, Jul 20, 2016 at 12:07:55PM -0400, Javier Martinez Canillas wrote:
+>> If the VIDIOC_QBUF ioctl fails due a wrong dmabuf length, it's
+>> useful to get the invalid and minimum lengths as a debug info.
+>>
+>> Before this patch:
+>>
+>> vb2-core: __qbuf_dmabuf: invalid dmabuf length for plane 1
+>>
+>> After this patch:
+>>
+>> vb2-core: __qbuf_dmabuf: invalid dmabuf length 221248 for plane 1, minimum length 410880
+>>
+>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>>
+>> ---
+>>
+>> Changes in v2:
+>> - Use %u instead of %d (Sakari Ailus)
+>> - Include min_length (Sakari Ailus)
+>>
+>>  drivers/media/v4l2-core/videobuf2-core.c | 6 ++++--
+>>  1 file changed, 4 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>> index b6fbc04f9699..bbba50d6e1ad 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -1227,8 +1227,10 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
+>>  			planes[plane].length = dbuf->size;
+>>  
+>>  		if (planes[plane].length < vb->planes[plane].min_length) {
+>> -			dprintk(1, "invalid dmabuf length for plane %d\n",
+>> -				plane);
+>> +			dprintk(1, "invalid dmabuf length %u for plane %d, "
+>> +				"minimum length %u\n",
+> 
+> You shouldn't split strings. It breaks grep.
+> 
 
-diff --git a/Documentation/DocBook/media/v4l/lirc_device_interface.xml b/Documentation/DocBook/media/v4l/lirc_device_interface.xml
-index 34cada2..71f9dbb 100644
---- a/Documentation/DocBook/media/v4l/lirc_device_interface.xml
-+++ b/Documentation/DocBook/media/v4l/lirc_device_interface.xml
-@@ -157,7 +157,7 @@ on working with the default settings initially.</para>
-   <varlistentry>
-     <term>LIRC_SET_{SEND,REC}_CARRIER</term>
-     <listitem>
--      <para>Set send/receive carrier (in Hz).</para>
-+      <para>Set send/receive carrier (in Hz). Return 0 on success.</para>
-     </listitem>
-   </varlistentry>
-   <varlistentry>
-diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
-index 8d77e1c..d1c61cd 100644
---- a/drivers/media/rc/ene_ir.c
-+++ b/drivers/media/rc/ene_ir.c
-@@ -904,7 +904,7 @@ static int ene_set_tx_carrier(struct rc_dev *rdev, u32 carrier)
- 
- 		dbg("TX: out of range %d-%d kHz carrier",
- 			2000 / ENE_CIRMOD_PRD_MIN, 2000 / ENE_CIRMOD_PRD_MAX);
--		return -1;
-+		return -EINVAL;
- 	}
- 
- 	dev->tx_period = period;
-diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
-index ee60e17..5f63454 100644
---- a/drivers/media/rc/iguanair.c
-+++ b/drivers/media/rc/iguanair.c
-@@ -330,7 +330,7 @@ static int iguanair_set_tx_carrier(struct rc_dev *dev, uint32_t carrier)
- 
- 	mutex_unlock(&ir->lock);
- 
--	return carrier;
-+	return 0;
- }
- 
- static int iguanair_set_tx_mask(struct rc_dev *dev, uint32_t mask)
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 0d1da2c..c6d3325 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -936,7 +936,7 @@ static int mceusb_set_tx_carrier(struct rc_dev *dev, u32 carrier)
- 
- 	}
- 
--	return carrier;
-+	return 0;
- }
- 
- /*
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index ec74244..6adea78 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -708,7 +708,7 @@ static int redrat3_set_tx_carrier(struct rc_dev *rcdev, u32 carrier)
- 
- 	rr3->carrier = carrier;
- 
--	return carrier;
-+	return 0;
- }
- 
- static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
+Yes I know but if I didn't split the line, it would had been longer than
+the max 80 character per line convention. On those situations I follow
+what's already done in the file for consistency and most strings in the
+videobuf2-core file, whose lines are over 80 characters, are being split.
+
+But if having a longer line is preferred, I'll happily re-spin the patch.
+
+> With that changed,
+> 
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+>> +				planes[plane].length, plane,
+>> +				vb->planes[plane].min_length);
+>>  			dma_buf_put(dbuf);
+>>  			ret = -EINVAL;
+>>  			goto err;
+> 
+
+Best regards,
 -- 
-2.7.4
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
