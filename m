@@ -1,125 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:44386 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754529AbcGHL0P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 07:26:15 -0400
-From: Nick Dyer <nick@shmanahar.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	jon.older@itdev.co.uk, nick.dyer@itdev.co.uk,
-	Nick Dyer <nick@shmanahar.org>
-Subject: [PATCH v7 07/11] Input: atmel_mxt_ts - handle diagnostic data orientation
-Date: Fri,  8 Jul 2016 12:26:00 +0100
-Message-Id: <1467977164-17551-8-git-send-email-nick@shmanahar.org>
-In-Reply-To: <1467977164-17551-1-git-send-email-nick@shmanahar.org>
-References: <1467977164-17551-1-git-send-email-nick@shmanahar.org>
+Received: from mout.kundenserver.de ([212.227.17.10]:53079 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753802AbcGTK03 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jul 2016 06:26:29 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: kernel-build-reports@lists.linaro.org
+Cc: Olof's autobuilder <build@lixom.net>, olof@lixom.net,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
+	gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@kernel.org>, info@kernelci.org
+Subject: Re: next build: 7 warnings 0 failures (next/next-20160720)
+Date: Wed, 20 Jul 2016 12:25:48 +0200
+Message-ID: <5106658.dbvAtpQNOs@wuerfel>
+In-Reply-To: <578f4bea.0568620a.1e97.8d17@mx.google.com>
+References: <578f4bea.0568620a.1e97.8d17@mx.google.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Invert the diagnostic data to match the orientation of the input device.
+On Wednesday, July 20, 2016 3:01:14 AM CEST Olof's autobuilder wrote:
+>        Passed:                 122
+>        Failed:                 0
+>        Warnings:               7
+>        Section mismatches:     0
 
-Signed-off-by: Nick Dyer <nick@shmanahar.org>
----
- drivers/input/touchscreen/atmel_mxt_ts.c |   26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+Looking pretty good, almost no warnings left. The first one in this
+list is the only one that already exists in v4.7 (and a long time
+before that), all other preexisting warnings are fixed in -next.
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index d09ecc3..c35fca0 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -125,6 +125,8 @@ struct t9_range {
- 
- /* MXT_TOUCH_MULTI_T9 orient */
- #define MXT_T9_ORIENT_SWITCH	(1 << 0)
-+#define MXT_T9_ORIENT_INVERTX	(1 << 1)
-+#define MXT_T9_ORIENT_INVERTY	(1 << 2)
- 
- /* MXT_SPT_COMMSCONFIG_T18 */
- #define MXT_COMMS_CTRL		0
-@@ -158,6 +160,8 @@ struct t37_debug {
- #define MXT_T100_YRANGE		24
- 
- #define MXT_T100_CFG_SWITCHXY	BIT(5)
-+#define MXT_T100_CFG_INVERTY	BIT(6)
-+#define MXT_T100_CFG_INVERTX	BIT(7)
- 
- #define MXT_T100_TCHAUX_VECT	BIT(0)
- #define MXT_T100_TCHAUX_AMPL	BIT(1)
-@@ -262,6 +266,8 @@ struct mxt_data {
- 	unsigned int irq;
- 	unsigned int max_x;
- 	unsigned int max_y;
-+	bool invertx;
-+	bool inverty;
- 	bool xy_switch;
- 	u8 xsize;
- 	u8 ysize;
-@@ -1747,6 +1753,8 @@ static int mxt_read_t9_resolution(struct mxt_data *data)
- 		return error;
- 
- 	data->xy_switch = orient & MXT_T9_ORIENT_SWITCH;
-+	data->invertx = orient & MXT_T9_ORIENT_INVERTX;
-+	data->inverty = orient & MXT_T9_ORIENT_INVERTY;
- 
- 	return 0;
- }
-@@ -1801,6 +1809,8 @@ static int mxt_read_t100_config(struct mxt_data *data)
- 		return error;
- 
- 	data->xy_switch = cfg & MXT_T100_CFG_SWITCHXY;
-+	data->invertx = cfg & MXT_T100_CFG_INVERTX;
-+	data->inverty = cfg & MXT_T100_CFG_INVERTY;
- 
- 	/* allocate aux bytes */
- 	error =  __mxt_read_reg(client,
-@@ -2145,13 +2155,19 @@ static int mxt_convert_debug_pages(struct mxt_data *data, u16 *outbuf)
- 	struct mxt_dbg *dbg = &data->dbg;
- 	unsigned int x = 0;
- 	unsigned int y = 0;
--	unsigned int i;
-+	unsigned int i, rx, ry;
- 
- 	for (i = 0; i < dbg->t37_nodes; i++) {
--		outbuf[i] = mxt_get_debug_value(data, x, y);
-+		/* Handle orientation */
-+		rx = data->xy_switch ? y : x;
-+		ry = data->xy_switch ? x : y;
-+		rx = data->invertx ? (data->xsize - 1 - rx) : rx;
-+		ry = data->inverty ? (data->ysize - 1 - ry) : ry;
-+
-+		outbuf[i] = mxt_get_debug_value(data, rx, ry);
- 
- 		/* Next value */
--		if (++x >= data->xsize) {
-+		if (++x >= (data->xy_switch ? data->ysize : data->xsize)) {
- 			x = 0;
- 			y++;
- 		}
-@@ -2306,8 +2322,8 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
- 	if (i > 0)
- 		return -EINVAL;
- 
--	f->width = data->xsize;
--	f->height = data->ysize;
-+	f->width = data->xy_switch ? data->ysize : data->xsize;
-+	f->height = data->xy_switch ? data->xsize : data->ysize;
- 	f->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
- 	f->field = V4L2_FIELD_NONE;
- 	f->colorspace = V4L2_COLORSPACE_RAW;
--- 
-1.7.9.5
+The kernelci autobuilder finds a couple of other warnings on top
+of these, because they build more unusual configurations and use
+some slightly older compilers that produce false positives.
 
+> Warnings:
+>       1 drivers/infiniband/core/cma.c:1242:12: warning: 'src_addr_storage.sin_addr.s_addr' may be used uninitialized in this function [-Wmaybe-uninitialized]
+
+I sent a patch on July 4 to the infiniband list but got no reply.
+It only shows up on powerpc, presumably with an older compiler, so I
+don't consider this as urgent, the only reason to fix it up would be
+to get to zero warnings for the common architectures.
+
+Doug, any chance you can still pick up "infiniband: shut up a
+maybe-uninitialized warning" for 4.8?
+
+>       1 drivers/tty/serial/8250/8250_fintek.c:34:0: warning: "IRQ_MODE" redefined
+
+I sent a patch on June 26 to Greg, but he hasn't applied any serial
+driver patches since June 25, so I assume it's in his queue and will
+make it into v4.8 without further action on my side.
+
+>       2 drivers/media/dvb-frontends/cxd2841er.c:3408:40: warning: 'carrier_offset' may be used uninitialized in this function [-Wmaybe-uninitialized]
+
+It's in patchwork, so I assume Mauro will get to it in time:
+https://patchwork.linuxtv.org/patch/35398/
+
+The warning was introduced by a patch outside of drivers/media
+in linux-mm ("dynamic_debug: add jump label support").
+
+>       3 drivers/net/wireless/ti/wlcore/spi.c:457:6: warning: unused variable 'ret' [-Wunused-variable]
+
+This came up today, and the author of the patch that broke it already
+sent a fix "wlcore: spi: fix build warning caused by redundant variable".
+
+	Arnd
