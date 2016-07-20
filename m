@@ -1,76 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34696 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751398AbcGRLAZ (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47172
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754941AbcGTSWh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 07:00:25 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 3911E18010E
-	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2016 13:00:20 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] vim2m: copy the other colorspace-related fields as well
-Message-ID: <09e430e5-6cd2-102b-8762-a8d2bfc566f1@xs4all.nl>
-Date: Mon, 18 Jul 2016 13:00:20 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Wed, 20 Jul 2016 14:22:37 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Luis de Bethencourt <luisbg@osg.samsung.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH] [media] vb2: move dma-buf unmap from __vb2_dqbuf() to vb2_buffer_done()
+Date: Wed, 20 Jul 2016 14:22:21 -0400
+Message-Id: <1469038941-5257-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The xfer_func, ycbcr_enc and quantization fields should also be copied from
-output to capture format.
+Currently the dma-buf is unmapped when the buffer is dequeued by userspace
+but it's not used anymore after the driver finished processing the buffer.
 
-Since this driver serves as example code it is important that this is handled
-correctly.
+So instead of doing the dma-buf unmapping in __vb2_dqbuf(), it can be made
+in vb2_buffer_done() after the driver notified that buf processing is done.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Decoupling the buffer dequeue from the dma-buf unmapping has also the side
+effect of making possible to add dma-buf fence support in the future since
+the buffer could be dequeued even before the driver has finished using it.
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 6b17015..cd0ff4a 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -171,6 +171,9 @@ struct vim2m_ctx {
- 	int			mode;
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
- 	enum v4l2_colorspace	colorspace;
-+	enum v4l2_ycbcr_encoding ycbcr_enc;
-+	enum v4l2_xfer_func	xfer_func;
-+	enum v4l2_quantization	quant;
+---
+Hello,
 
- 	/* Source and destination queue data */
- 	struct vim2m_q_data   q_data[2];
-@@ -493,6 +496,9 @@ static int vidioc_g_fmt(struct vim2m_ctx *ctx, struct v4l2_format *f)
- 	f->fmt.pix.bytesperline	= (q_data->width * q_data->fmt->depth) >> 3;
- 	f->fmt.pix.sizeimage	= q_data->sizeimage;
- 	f->fmt.pix.colorspace	= ctx->colorspace;
-+	f->fmt.pix.xfer_func	= ctx->xfer_func;
-+	f->fmt.pix.ycbcr_enc	= ctx->ycbcr_enc;
-+	f->fmt.pix.quantization	= ctx->quant;
+I've tested this patch doing DMA buffer sharing between a
+vivid input and output device with both v4l2-ctl and gst:
 
- 	return 0;
- }
-@@ -549,6 +555,9 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 		return -EINVAL;
- 	}
- 	f->fmt.pix.colorspace = ctx->colorspace;
-+	f->fmt.pix.xfer_func = ctx->xfer_func;
-+	f->fmt.pix.ycbcr_enc = ctx->ycbcr_enc;
-+	f->fmt.pix.quantization = ctx->quant;
+$ v4l2-ctl -d0 -e1 --stream-dmabuf --stream-out-mmap
+$ v4l2-ctl -d0 -e1 --stream-mmap --stream-out-dmabuf
+$ gst-launch-1.0 v4l2src device=/dev/video0 io-mode=dmabuf ! v4l2sink device=/dev/video1 io-mode=dmabuf-import
 
- 	return vidioc_try_fmt(f, fmt);
- }
-@@ -630,8 +639,12 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
- 		return ret;
+And I didn't find any issues but more testing will be appreciated.
 
- 	ret = vidioc_s_fmt(file2ctx(file), f);
--	if (!ret)
-+	if (!ret) {
- 		ctx->colorspace = f->fmt.pix.colorspace;
-+		ctx->xfer_func = f->fmt.pix.xfer_func;
-+		ctx->ycbcr_enc = f->fmt.pix.ycbcr_enc;
-+		ctx->quant = f->fmt.pix.quantization;
+Best regards,
+Javier
+
+ drivers/media/v4l2-core/videobuf2-core.c | 34 +++++++++++++++++++++-----------
+ 1 file changed, 22 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 7128b09810be..973331efaf79 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -958,6 +958,22 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no)
+ EXPORT_SYMBOL_GPL(vb2_plane_cookie);
+ 
+ /**
++ * __vb2_unmap_dmabuf() - unmap dma-buf attached to buffer planes
++ */
++static void __vb2_unmap_dmabuf(struct vb2_buffer *vb)
++{
++	int i;
++
++	for (i = 0; i < vb->num_planes; ++i) {
++		if (!vb->planes[i].dbuf_mapped)
++			continue;
++		call_void_memop(vb, unmap_dmabuf,
++				vb->planes[i].mem_priv);
++		vb->planes[i].dbuf_mapped = 0;
 +	}
- 	return ret;
++}
++
++/**
+  * vb2_buffer_done() - inform videobuf that an operation on a buffer is finished
+  * @vb:		vb2_buffer returned from the driver
+  * @state:	either VB2_BUF_STATE_DONE if the operation finished successfully,
+@@ -1028,6 +1044,9 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 			__enqueue_in_driver(vb);
+ 		return;
+ 	default:
++		if (q->memory == VB2_MEMORY_DMABUF)
++			__vb2_unmap_dmabuf(vb);
++
+ 		/* Inform any processes that may be waiting for buffers */
+ 		wake_up(&q->done_wq);
+ 		break;
+@@ -1708,23 +1727,11 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
+  */
+ static void __vb2_dqbuf(struct vb2_buffer *vb)
+ {
+-	struct vb2_queue *q = vb->vb2_queue;
+-	unsigned int i;
+-
+ 	/* nothing to do if the buffer is already dequeued */
+ 	if (vb->state == VB2_BUF_STATE_DEQUEUED)
+ 		return;
+ 
+ 	vb->state = VB2_BUF_STATE_DEQUEUED;
+-
+-	/* unmap DMABUF buffer */
+-	if (q->memory == VB2_MEMORY_DMABUF)
+-		for (i = 0; i < vb->num_planes; ++i) {
+-			if (!vb->planes[i].dbuf_mapped)
+-				continue;
+-			call_void_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
+-			vb->planes[i].dbuf_mapped = 0;
+-		}
  }
+ 
+ /**
+@@ -1861,6 +1868,9 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 			call_void_vb_qop(vb, buf_finish, vb);
+ 		}
+ 		__vb2_dqbuf(vb);
++
++		if (q->memory == VB2_MEMORY_DMABUF)
++			__vb2_unmap_dmabuf(vb);
+ 	}
+ }
+ 
+-- 
+2.5.5
 
