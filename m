@@ -1,102 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f51.google.com ([209.85.215.51]:36052 "EHLO
-	mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751451AbcGRMmV (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46064 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751909AbcGTTwd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 08:42:21 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Antti Palosaari <crope@iki.fi>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v4 00/12] Add HSV format
-Date: Mon, 18 Jul 2016 14:42:04 +0200
-Message-Id: <1468845736-19651-1-git-send-email-ricardo.ribalda@gmail.com>
+	Wed, 20 Jul 2016 15:52:33 -0400
+Date: Wed, 20 Jul 2016 22:52:29 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] [media] vb2: include lengths in dmabuf qbuf debug
+ message
+Message-ID: <20160720195228.GD7976@valkosipuli.retiisi.org.uk>
+References: <1469030875-2246-1-git-send-email-javier@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1469030875-2246-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HSV formats are extremely useful for image segmentation. This set of
-patches makes v4l2 aware of this kind of formats.
+On Wed, Jul 20, 2016 at 12:07:55PM -0400, Javier Martinez Canillas wrote:
+> If the VIDIOC_QBUF ioctl fails due a wrong dmabuf length, it's
+> useful to get the invalid and minimum lengths as a debug info.
+> 
+> Before this patch:
+> 
+> vb2-core: __qbuf_dmabuf: invalid dmabuf length for plane 1
+> 
+> After this patch:
+> 
+> vb2-core: __qbuf_dmabuf: invalid dmabuf length 221248 for plane 1, minimum length 410880
+> 
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> 
+> ---
+> 
+> Changes in v2:
+> - Use %u instead of %d (Sakari Ailus)
+> - Include min_length (Sakari Ailus)
+> 
+>  drivers/media/v4l2-core/videobuf2-core.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index b6fbc04f9699..bbba50d6e1ad 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1227,8 +1227,10 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
+>  			planes[plane].length = dbuf->size;
+>  
+>  		if (planes[plane].length < vb->planes[plane].min_length) {
+> -			dprintk(1, "invalid dmabuf length for plane %d\n",
+> -				plane);
+> +			dprintk(1, "invalid dmabuf length %u for plane %d, "
+> +				"minimum length %u\n",
 
-Vivid changes have been divided to ease the reviewing process.
+You shouldn't split strings. It breaks grep.
 
-We are working on patches for Gstreamer and OpenCV that will make use
-of these formats.
+With that changed,
 
-We still need to decide if and how we will support HUE range 0-255
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-
-Changelog:
-v4:  
-Suggested by Hans Verkuil <hverkuil@xs4all.nl> and
-- Rename YUV to YCBCR
-- Fix numerical error
-
-Suggested by Hans Verkuil <hverkuil@xs4all.nl> and
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
--Implement hsv_encoding for supporting 0-255 range
-
-
-v3:  
--Fix wrong handling of some YUV formats when brightness != 128
-
-Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
--Remove unneeded empty lines on .rst file
-Thanks!
-
-Suggested by Hans Verkuil <hverkuil@xs4all.nl>
--Rebase over master and docs-next
--Introduce TPG_COLOR_ENC_LUMA for gray formats
--CodeStyle
-Thanks!
-
-v2:
-Suggested by Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
--Rebase on top of docs-next (port documentation to .rst)
-
-Ricardo Ribalda Delgado (12):
-  [media] videodev2.h Add HSV formats
-  [media] Documentation: Add HSV format
-  [media] Documentation: Add Ricardo Ribalda
-  [media] vivid: Code refactor for color encoding
-  [media] vivid: Add support for HSV formats
-  [media] vivid: Rename variable
-  [media] vivid: Introduce TPG_COLOR_ENC_LUMA
-  [media] vivid: Fix YUV555 and YUV565 handling
-  [media] vivid: Local optimization
-  [media] videodev2.h Add HSV encoding
-  [media] Documentation: Add HSV encodings
-  [media] vivid: Add support for HSV encoding
-
- Documentation/media/uapi/v4l/hsv-formats.rst       |  19 +
- Documentation/media/uapi/v4l/pixfmt-002.rst        |  12 +-
- Documentation/media/uapi/v4l/pixfmt-003.rst        |  14 +-
- Documentation/media/uapi/v4l/pixfmt-006.rst        |  38 ++
- Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst | 159 ++++++++
- Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
- Documentation/media/uapi/v4l/v4l2.rst              |   9 +
- Documentation/media/videodev2.h.rst.exceptions     |   4 +
- drivers/media/common/v4l2-tpg/v4l2-tpg-core.c      | 408 ++++++++++++++-------
- drivers/media/platform/vivid/vivid-core.h          |   3 +-
- drivers/media/platform/vivid/vivid-ctrls.c         |  25 ++
- drivers/media/platform/vivid/vivid-vid-cap.c       |  17 +-
- drivers/media/platform/vivid/vivid-vid-common.c    |  68 ++--
- drivers/media/platform/vivid/vivid-vid-out.c       |   1 +
- drivers/media/v4l2-core/v4l2-ioctl.c               |   2 +
- include/media/v4l2-tpg.h                           |  24 +-
- include/uapi/linux/videodev2.h                     |  25 +-
- 17 files changed, 652 insertions(+), 177 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/hsv-formats.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+> +				planes[plane].length, plane,
+> +				vb->planes[plane].min_length);
+>  			dma_buf_put(dbuf);
+>  			ret = -EINVAL;
+>  			goto err;
 
 -- 
-2.8.1
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
