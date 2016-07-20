@@ -1,88 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38778 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756620AbcGIT3D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2016 15:29:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com
-Subject: Re: [PATCH v2.1 3/5] media: Refactor copying IOCTL arguments from and to user space
-Date: Sat, 09 Jul 2016 22:29:03 +0300
-Message-ID: <3214203.0Eb5nWCm1s@avalon>
-In-Reply-To: <57308DAA.1000404@linux.intel.com>
-References: <1462360855-23354-4-git-send-email-sakari.ailus@linux.intel.com> <2507022.47E6MxOJNv@avalon> <57308DAA.1000404@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp3-1.goneo.de ([85.220.129.38]:44425 "EHLO smtp3-1.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750940AbcGTGIK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jul 2016 02:08:10 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH 00/18] Complete moving media documentation to ReST format
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <20160719210023.2f8280ac@recife.lan>
+Date: Wed, 20 Jul 2016 08:07:54 +0200
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-doc@vger.kernel.org, Jani Nikula <jani.nikula@intel.com>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <E8A50DCE-D40B-4C4C-B899-E48F3C0C9CDA@darmarit.de>
+References: <cover.1468865380.git.mchehab@s-opensource.com> <578DF08F.8080701@xs4all.nl> <20160719081259.482a8c04@recife.lan> <6702C6D4-929F-420D-9CF9-911CA753B0A7@darmarit.de> <20160719115319.316349a7@recife.lan> <20160719164916.3ebb1c74@lwn.net> <20160719210023.2f8280ac@recife.lan>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Jonathan Corbet <corbet@lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
 
-On Monday 09 May 2016 16:16:26 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > On Wednesday 04 May 2016 16:09:51 Sakari Ailus wrote:
-> >> Refactor copying the IOCTL argument structs from the user space and back,
-> >> in order to reduce code copied around and make the implementation more
-> >> robust.
-> >> 
-> >> As a result, the copying is done while not holding the graph mutex.
-> >> 
-> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> ---
-> >> since v2:
-> >> 
-> >> - Remove function to calculate maximum argument size, replace by a char
-> >>   array of 256 or kmalloc() if that's too small.
-> >>  
-> >>  drivers/media/media-device.c | 194 ++++++++++++++++---------------------
-> >>  1 file changed, 94 insertions(+), 100 deletions(-)
-> >> 
-> >> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> >> index 9b5a88d..0797e4b 100644
-> >> --- a/drivers/media/media-device.c
-> >> +++ b/drivers/media/media-device.c
+Am 20.07.2016 um 02:00 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
 
-[snip]
-
-> >> @@ -453,10 +432,24 @@ static long __media_device_ioctl(
-> >> 
-> >>  	info = &info_array[_IOC_NR(cmd)];
-> >> 
-> >> +	if (_IOC_SIZE(info->cmd) > sizeof(__karg)) {
-> >> +		karg = kmalloc(_IOC_SIZE(info->cmd), GFP_KERNEL);
-> >> +		if (!karg)
-> >> +			return -ENOMEM;
-> >> +	}
-> >> +
-> >> +	info->arg_from_user(karg, arg, cmd);
-> >> +
-> >>  	mutex_lock(&dev->graph_mutex);
-> >> -	ret = info->fn(dev, arg);
-> >> +	ret = info->fn(dev, karg);
-> >>  	mutex_unlock(&dev->graph_mutex);
-> >> 
-> >> +	if (!ret)
-> > 
-> > How about if (!ret && info->arg_to_user) instead, and getting rid of
-> > copy_arg_to_user_nop() ?
+> Em Tue, 19 Jul 2016 16:49:16 -0600
+> Jonathan Corbet <corbet@lwn.net> escreveu:
 > 
-> I thought of that, but I decided to optimise the common case ---  which
-> is that the argument is copied back and forth. Not copying the argument
-> back is a very special case, we use it for a single compat IOCTL.
+>> On Tue, 19 Jul 2016 11:53:19 -0300
+>> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+>> 
+>>> So, I guess we should set the minimal requirement to 1.2.x.  
+>> 
+>> *sigh*.
+>> 
+>> I hate to do that; things are happening quickly enough with Sphinx that
+>> it would be nice to be able to count on a newer version.  That said, one
+>> of my goals in this whole thing was to make it *easier* for developers to
+>> generate the docs; the DocBook toolchain has always been notoriously
+>> difficult in that regard.  Forcing people to install a newer sphinx by
+>> hand is not the way to get there.
+>> 
+>> So I guess we need to make sure things work with 1.2 for now.  I'd hope
+>> we could push that to at least 1.3 before too long, though, once the
+>> community distributions are there.  I think we can be a *bit* more
+>> aggressive with the docs than with the kernel as a whole.
 > 
-> That said, we could use it for the proper ENUM_LINKS as well. Still that
-> does not change what's normal.
+> Yeah, that seems to be the right strategy, IMHO. With the patch I sent,
+> the media books will again build fine with 1.2.
 
-We're talking about one comparison and one branching instruction (that will 
-not be taken in the common case). Is that micro-optimization really worth it 
-in an ioctl path that is not that performance-critical ? If you think it is, 
-could you analyse what the impact of the copy_arg_to_user_nop() function on 
-cache locality is for the common case ? ;-)
 
--- 
-Regards,
+It is a difficult situation, whatever we do, we will get in trouble. To
+handle this, (IMHO) at first we need a reference documentation.
 
-Laurent Pinchart
+> What we miss is the documentation for Sphinx 1.2 and 1.3 versions. The
+> site only has documentation for the very latest version, making harder
+> to ensure that we're using only the tags supported by a certain version.
+
+We could build the documentation of the (e.g.) 1.2 tag
+
+https://github.com/sphinx-doc/sphinx/tree/1.2
+
+by checkout the tag, cd to "./doc" and run "make html".
+I haven't tested yet, but it should work this way.
+
+Jon, what do you think ... could we serve this 1.2 doc 
+on https://www.kernel.org/doc/ as reference?
+
+And whats about those who have 1.3 (or any version >1.2) as default 
+in the linux distro? Should they install a virtualenv?  ... it is
+a dilemma.
+
+Sorry that I have not identified this earlier ... I'am using python
+a long time and for me it is common to set up build processes
+with a version decoupled from the OS version, mostly the up to date
+version .. thats why I have neglected any version problems :(
+
+-- Markus --
+
+
+
+> 
+> Thanks,
+> Mauro
 
