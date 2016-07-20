@@ -1,65 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:58913 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750839AbcG2Tcf (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:53548 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753212AbcGTOLL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2016 15:32:35 -0400
-Subject: Re: [PATCH 6/6] media: adv7180: fix field type
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	=?UTF-8?Q?Niklas_S=c3=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	<linux-media@vger.kernel.org>, <linux-renesas-soc@vger.kernel.org>,
-	<slongerbeam@gmail.com>
-References: <20160729174012.14331-1-niklas.soderlund+renesas@ragnatech.se>
- <20160729174012.14331-7-niklas.soderlund+renesas@ragnatech.se>
- <cc084571-3063-a883-b731-0ffe01c4fefa@cogentembedded.com>
-CC: <lars@metafoo.de>, <mchehab@kernel.org>, <hans.verkuil@cisco.com>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <df2a330f-30a3-e296-006e-204fa1771bb5@mentor.com>
-Date: Fri, 29 Jul 2016 12:32:30 -0700
-MIME-Version: 1.0
-In-Reply-To: <cc084571-3063-a883-b731-0ffe01c4fefa@cogentembedded.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
+	Wed, 20 Jul 2016 10:11:11 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH] doc-rst: get rid of warnings at kernel-documentation.rst
+Date: Wed, 20 Jul 2016 11:11:05 -0300
+Message-Id: <610951ea382e015f178bb55391ea21bd80132d70.1469023848.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Sphinx 1.4.5 complains about some literal blocks at
+kernel-documentation.rst:
 
-On 07/29/2016 12:10 PM, Sergei Shtylyov wrote:
-> On 07/29/2016 08:40 PM, Niklas Söderlund wrote:
->
->> From: Steve Longerbeam <slongerbeam@gmail.com>
->>
->> The ADV7180 and ADV7182 transmit whole fields, bottom field followed
->> by top (or vice-versa, depending on detected video standard). So
->> for chips that do not have support for explicitly setting the field
->> mode, set the field mode to V4L2_FIELD_ALTERNATE.
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> [Niklas: changed filed type from V4L2_FIELD_SEQ_{TB,BT} to
->> V4L2_FIELD_ALTERNATE]
->> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
->
-> Tested-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
->
->    IIUC, it's a 4th version of this patch; you should have kept the 
-> original change log (below --- tearline) and indicated that in the 
-> subject.
->
-> MBR, Sergei
+	Documentation/kernel-documentation.rst:373: WARNING: Could not lex literal_block as "C". Highlighting skipped.
+	Documentation/kernel-documentation.rst:378: WARNING: Could not lex literal_block as "C". Highlighting skipped.
+	Documentation/kernel-documentation.rst:576: WARNING: Could not lex literal_block as "C". Highlighting skipped.
 
-This version is fine with me. The i.mx6 h/w motion-compensation 
-deinterlacer (VDIC)
-needs to know the field order, and it can't get that info from 
-V4L2_FIELD_ALTERNATE,
-but it can still determine the order via querystd().
+Fix it by telling Sphinx to consider them as "none" type.
 
-But I agree the change log should be preserved, and the 
-V4L2_FIELD_ALTERNATE change
-added to the change log.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/kernel-documentation.rst | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Acked-by: Steve Longerbeam <slongerbeam@gmail.com>
-
-Steve
+diff --git a/Documentation/kernel-documentation.rst b/Documentation/kernel-documentation.rst
+index 391decc66a18..1dd97478743e 100644
+--- a/Documentation/kernel-documentation.rst
++++ b/Documentation/kernel-documentation.rst
+@@ -370,11 +370,15 @@ To cross-reference the functions and types defined in the kernel-doc comments
+ from reStructuredText documents, please use the `Sphinx C Domain`_
+ references. For example::
+ 
++.. code-block:: none
++
+   See function :c:func:`foo` and struct/union/enum/typedef :c:type:`bar`.
+ 
+ While the type reference works with just the type name, without the
+ struct/union/enum/typedef part in front, you may want to use::
+ 
++.. code-block:: none
++
+   See :c:type:`struct foo <foo>`.
+   See :c:type:`union bar <bar>`.
+   See :c:type:`enum baz <baz>`.
+@@ -573,6 +577,8 @@ converted to Sphinx and reStructuredText. For most DocBook XML documents, a good
+ enough solution is to use the simple ``Documentation/sphinx/tmplcvt`` script,
+ which uses ``pandoc`` under the hood. For example::
+ 
++.. code-block:: none
++
+   $ cd Documentation/sphinx
+   $ ./tmplcvt ../DocBook/in.tmpl ../out.rst
+ 
+-- 
+2.7.4
 
 
