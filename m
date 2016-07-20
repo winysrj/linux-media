@@ -1,55 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:44063 "EHLO
-	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751543AbcGMOLg (ORCPT
+Received: from mail-pa0-f66.google.com ([209.85.220.66]:33621 "EHLO
+	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752689AbcGTAEH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 10:11:36 -0400
-From: Jean Christophe TROTIN <jean-christophe.trotin@st.com>
-To: "nicolas@ndufresne.ca" <nicolas@ndufresne.ca>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: "kernel@stlinux.com" <kernel@stlinux.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Yannick FERTRE <yannick.fertre@st.com>,
-	Hugues FRUCHET <hugues.fruchet@st.com>
-Date: Wed, 13 Jul 2016 16:11:05 +0200
-Subject: Re: [PATCH v2 2/3] [media] hva: multi-format video encoder V4L2
- driver
-Message-ID: <57864BF9.80203@st.com>
-References: <1468250057-16395-1-git-send-email-jean-christophe.trotin@st.com>
- <1468250057-16395-3-git-send-email-jean-christophe.trotin@st.com>
- <1468260005.14217.14.camel@ndufresne.ca>
-In-Reply-To: <1468260005.14217.14.camel@ndufresne.ca>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+	Tue, 19 Jul 2016 20:04:07 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: lars@metafoo.de
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 09/10] media: adv7180: enable lock/unlock interrupts
+Date: Tue, 19 Jul 2016 17:03:36 -0700
+Message-Id: <1468973017-17647-10-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
+ <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQoNCk9uIDA3LzExLzIwMTYgMDg6MDAgUE0sIE5pY29sYXMgRHVmcmVzbmUgd3JvdGU6DQo+IExl
-IGx1bmRpIDExIGp1aWxsZXQgMjAxNiDDoCAxNzoxNCArMDIwMCwgSmVhbi1DaHJpc3RvcGhlIFRy
-b3RpbiBhIMOpY3JpdCA6DQoNCltzbmlwXQ0KDQo+PiArc3RhdGljIGludCBodmFfZ19mbXRfc3Ry
-ZWFtKHN0cnVjdCBmaWxlICpmaWxlLCB2b2lkICpmaCwgc3RydWN0IHY0bDJfZm9ybWF0ICpmKQ0K
-Pj4gK3sNCj4+ICsJc3RydWN0IGh2YV9jdHggKmN0eCA9IGZoX3RvX2N0eChmaWxlLT5wcml2YXRl
-X2RhdGEpOw0KPj4gKwlzdHJ1Y3QgZGV2aWNlICpkZXYgPSBjdHhfdG9fZGV2KGN0eCk7DQo+PiAr
-CXN0cnVjdCBodmFfc3RyZWFtaW5mbyAqc3RyZWFtaW5mbyA9ICZjdHgtPnN0cmVhbWluZm87DQo+
-PiArDQo+PiArCWYtPmZtdC5waXgud2lkdGggPSBzdHJlYW1pbmZvLT53aWR0aDsNCj4+ICsJZi0+
-Zm10LnBpeC5oZWlnaHQgPSBzdHJlYW1pbmZvLT5oZWlnaHQ7DQo+PiArCWYtPmZtdC5waXguZmll
-bGQgPSBWNEwyX0ZJRUxEX05PTkU7DQo+PiArCWYtPmZtdC5waXguY29sb3JzcGFjZSA9IFY0TDJf
-Q09MT1JTUEFDRV9TTVBURTE3ME07DQo+DQo+IEhhcmQgY29kaW5nIHRoaXMgaXMgbm90IGdyZWF0
-LklkZWFsbHkgdGhlIGNvbG9yaW1ldHJ5IChpZiBub3QgbW9kaWZpZWQpIHNob3VsZCBiZSBjb3Bp
-ZWQgZnJvbSBPVVRQVVQgdG8gQ0FQVFVSRSwgeW91IG1heSBhbHNvIHNldCB0aGlzIHRvIFY0TDJf
-Q09MT1JTUEFDRV9ERUZBVUxULg0KPg0KDQpOaWNvbGFzLA0KDQpUaGFuayB5b3UgZm9yIHRoZSBy
-ZW1hcmsuDQpDb2xvcnNwYWNlIHdhcyBoYXJkLWNvZGVkIGJlY2F1c2Ugb25seSBWNEwyX0NPTE9S
-U1BBQ0VfU01QVEUxNzBNIGlzIHN1cHBvcnRlZC4gDQpIb3dldmVyLCBJIHVuZGVyc3RhbmQgdGhh
-dCBoYXJkLWNvZGluZyBpcyBub3QgZ3JlYXQ6IEkgd2lsbCBhbGlnbiB0aGUgY29kZSBpbiANCnZl
-cnNpb24gMyBvbiB0aGUgY29sb3JzcGFjZSBtYW5hZ2VtZW50IG1hZGUgaW4gdGhlIGNvZGEgZHJp
-dmVyLg0KDQpCZXN0IHJlZ2FyZHMsDQpKZWFuLUNocmlzdG9waGUuDQoNCj4+ICsJZi0+Zm10LnBp
-eC5waXhlbGZvcm1hdCA9IHN0cmVhbWluZm8tPnN0cmVhbWZvcm1hdDsNCj4+ICsJZi0+Zm10LnBp
-eC5ieXRlc3BlcmxpbmUgPSAwOw0KPj4gKwlmLT5mbXQucGl4LnNpemVpbWFnZSA9IGN0eC0+bWF4
-X3N0cmVhbV9zaXplOw0KPj4gKw0KPj4gKwlkZXZfZGJnKGRldiwgIiVzIFY0TDIgR19GTVQgKENB
-UFRVUkUpOiAlZHglZCBmbXQ6JS40cyBzaXplOiVkXG4iLA0KPj4gKwkJY3R4LT5uYW1lLCBmLT5m
-bXQucGl4LndpZHRoLCBmLT5mbXQucGl4LmhlaWdodCwNCj4+ICsJCSh1OCAqKSZmLT5mbXQucGl4
-LnBpeGVsZm9ybWF0LCBmLT5mbXQucGl4LnNpemVpbWFnZSk7DQo+PiArCXJldHVybiAwOw0KPj4g
-K30NCg0KW3NuaXBd
+Enable the SD lock/unlock interrupts and send V4L2_EVENT_SRC_CH_LOCK_STATUS
+in the interrupt handler on a detected lock/unlock.
+
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+
+---
+
+v2:
+- last version of this patch was based on the old reverted autodetect
+  code. This version now only enables the interrupt and sends the
+  event in the interrupt handler.
+---
+ drivers/media/i2c/adv7180.c | 22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 0f0568c..61f2140 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -876,19 +876,29 @@ static const struct v4l2_subdev_ops adv7180_ops = {
+ static irqreturn_t adv7180_irq(int irq, void *devid)
+ {
+ 	struct adv7180_state *state = devid;
+-	u8 isr3;
++	u8 isr1, isr3;
+ 
+ 	mutex_lock(&state->mutex);
++	isr1 = adv7180_read(state, ADV7180_REG_ISR1);
+ 	isr3 = adv7180_read(state, ADV7180_REG_ISR3);
+ 	/* clear */
++	adv7180_write(state, ADV7180_REG_ICR1, isr1);
+ 	adv7180_write(state, ADV7180_REG_ICR3, isr3);
+ 
+-	if (isr3 & ADV7180_IRQ3_AD_CHANGE) {
+-		static const struct v4l2_event src_ch = {
++	if ((isr3 & ADV7180_IRQ3_AD_CHANGE) ||
++	    (isr1 & (ADV7180_IRQ1_LOCK | ADV7180_IRQ1_UNLOCK))) {
++		static struct v4l2_event src_ch = {
+ 			.type = V4L2_EVENT_SOURCE_CHANGE,
+-			.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
+ 		};
+ 
++		if (isr3 & ADV7180_IRQ3_AD_CHANGE)
++			src_ch.u.src_change.changes |=
++				V4L2_EVENT_SRC_CH_RESOLUTION;
++
++		if (isr1 & (ADV7180_IRQ1_LOCK | ADV7180_IRQ1_UNLOCK))
++			src_ch.u.src_change.changes |=
++				V4L2_EVENT_SRC_CH_LOCK_STATUS;
++
+ 		v4l2_subdev_notify_event(&state->sd, &src_ch);
+ 	}
+ 	mutex_unlock(&state->mutex);
+@@ -1289,7 +1299,9 @@ static int init_device(struct adv7180_state *state)
+ 		if (ret < 0)
+ 			goto out_unlock;
+ 
+-		ret = adv7180_write(state, ADV7180_REG_IMR1, 0);
++		/* enable lock/unlock interrupts */
++		ret = adv7180_write(state, ADV7180_REG_IMR1,
++				    ADV7180_IRQ1_LOCK | ADV7180_IRQ1_UNLOCK);
+ 		if (ret < 0)
+ 			goto out_unlock;
+ 
+-- 
+1.9.1
+
