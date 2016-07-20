@@ -1,80 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60617 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750822AbcGJKsC (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:33283 "EHLO
+	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752659AbcGTAEG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2016 06:48:02 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 3/6] [media] doc-rst: rename some RC files
-Date: Sun, 10 Jul 2016 07:47:42 -0300
-Message-Id: <85fafe4f329ad05b8df5945a911b8fc727b931ca.1468147615.git.mchehab@s-opensource.com>
-In-Reply-To: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
-References: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
-In-Reply-To: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
-References: <ac525448abfe5b4eb7dc3f06397f5feaa9be6d76.1468147615.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Tue, 19 Jul 2016 20:04:06 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: lars@metafoo.de
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH v2 08/10] v4l: Add signal lock status to source change events
+Date: Tue, 19 Jul 2016 17:03:35 -0700
+Message-Id: <1468973017-17647-9-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
+ <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some files start with an upper letter. Also, they have big
-names. rename them.
+Add a signal lock status change to the source changes bitmask.
+This indicates there was a signal lock or unlock event detected
+at the input of a video decoder.
 
-No functional changes.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- .../media/uapi/rc/{Remote_controllers_Intro.rst => rc-intro.rst}  | 0
- .../rc/{remote_controllers_sysfs_nodes.rst => rc-sysfs-nodes.rst} | 0
- .../{Remote_controllers_table_change.rst => rc-table-change.rst}  | 0
- .../uapi/rc/{Remote_controllers_tables.rst => rc-tables.rst}      | 0
- Documentation/media/uapi/rc/remote_controllers.rst                | 8 ++++----
- 5 files changed, 4 insertions(+), 4 deletions(-)
- rename Documentation/media/uapi/rc/{Remote_controllers_Intro.rst => rc-intro.rst} (100%)
- rename Documentation/media/uapi/rc/{remote_controllers_sysfs_nodes.rst => rc-sysfs-nodes.rst} (100%)
- rename Documentation/media/uapi/rc/{Remote_controllers_table_change.rst => rc-table-change.rst} (100%)
- rename Documentation/media/uapi/rc/{Remote_controllers_tables.rst => rc-tables.rst} (100%)
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml | 12 ++++++++++--
+ include/uapi/linux/videodev2.h                     |  1 +
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/media/uapi/rc/Remote_controllers_Intro.rst b/Documentation/media/uapi/rc/rc-intro.rst
-similarity index 100%
-rename from Documentation/media/uapi/rc/Remote_controllers_Intro.rst
-rename to Documentation/media/uapi/rc/rc-intro.rst
-diff --git a/Documentation/media/uapi/rc/remote_controllers_sysfs_nodes.rst b/Documentation/media/uapi/rc/rc-sysfs-nodes.rst
-similarity index 100%
-rename from Documentation/media/uapi/rc/remote_controllers_sysfs_nodes.rst
-rename to Documentation/media/uapi/rc/rc-sysfs-nodes.rst
-diff --git a/Documentation/media/uapi/rc/Remote_controllers_table_change.rst b/Documentation/media/uapi/rc/rc-table-change.rst
-similarity index 100%
-rename from Documentation/media/uapi/rc/Remote_controllers_table_change.rst
-rename to Documentation/media/uapi/rc/rc-table-change.rst
-diff --git a/Documentation/media/uapi/rc/Remote_controllers_tables.rst b/Documentation/media/uapi/rc/rc-tables.rst
-similarity index 100%
-rename from Documentation/media/uapi/rc/Remote_controllers_tables.rst
-rename to Documentation/media/uapi/rc/rc-tables.rst
-diff --git a/Documentation/media/uapi/rc/remote_controllers.rst b/Documentation/media/uapi/rc/remote_controllers.rst
-index bccceb1e28c3..82e64e7acbe3 100644
---- a/Documentation/media/uapi/rc/remote_controllers.rst
-+++ b/Documentation/media/uapi/rc/remote_controllers.rst
-@@ -19,10 +19,10 @@ Remote Controllers
-     :maxdepth: 1
-     :numbered:
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+index c9c3c77..7758ad7 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+@@ -233,8 +233,9 @@
+ 	    <entry>
+ 	      <para>This event is triggered when a source parameter change is
+ 	       detected during runtime by the video device. It can be a
+-	       runtime resolution change triggered by a video decoder or the
+-	       format change happening on an input connector.
++	       runtime resolution change or signal lock status change
++	       triggered by a video decoder, or the format change happening
++	       on an input connector.
+ 	       This event requires that the <structfield>id</structfield>
+ 	       matches the input index (when used with a video device node)
+ 	       or the pad index (when used with a subdevice node) from which
+@@ -461,6 +462,13 @@
+ 	    from a video decoder.
+ 	    </entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_EVENT_SRC_CH_LOCK_STATUS</constant></entry>
++	    <entry>0x0002</entry>
++	    <entry>This event gets triggered when there is a signal lock or
++	    unlock detected at the input of a video decoder.
++	    </entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 724f43e..08a153f 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -2078,6 +2078,7 @@ struct v4l2_event_frame_sync {
+ };
  
--    Remote_controllers_Intro
--    remote_controllers_sysfs_nodes
--    Remote_controllers_tables
--    Remote_controllers_table_change
-+    rc-intro
-+    rc-sysfs-nodes
-+    rc-tables
-+    rc-table-change
-     lirc_device_interface
+ #define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
++#define V4L2_EVENT_SRC_CH_LOCK_STATUS		(1 << 1)
  
- 
+ struct v4l2_event_src_change {
+ 	__u32 changes;
 -- 
-2.7.4
+1.9.1
 
