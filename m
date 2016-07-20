@@ -1,113 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.goneo.de ([85.220.129.30]:55356 "EHLO smtp1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751429AbcGUOmJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 10:42:09 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH 00/18] Complete moving media documentation to ReST format
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <20160720172858.6659275d@lwn.net>
-Date: Thu, 21 Jul 2016 16:41:53 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from bombadil.infradead.org ([198.137.202.9]:39767 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751527AbcGTMcY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jul 2016 08:32:24 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-doc@vger.kernel.org, Jani Nikula <jani.nikula@intel.com>
-Content-Transfer-Encoding: 7bit
-Message-Id: <A1987523-8798-4744-81B3-8DA678651634@darmarit.de>
-References: <cover.1468865380.git.mchehab@s-opensource.com> <578DF08F.8080701@xs4all.nl> <20160719081259.482a8c04@recife.lan> <6702C6D4-929F-420D-9CF9-911CA753B0A7@darmarit.de> <20160719115319.316349a7@recife.lan> <20160719164916.3ebb1c74@lwn.net> <20160719210023.2f8280ac@recife.lan> <E8A50DCE-D40B-4C4C-B899-E48F3C0C9CDA@darmarit.de> <20160720172858.6659275d@lwn.net>
-To: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>
+	Jonathan Corbet <corbet@lwn.net>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Kees Cook <keescook@chromium.org>, linux-doc@vger.kernel.org
+Subject: [PATCH] [media] doc-rst: Fix some Sphinx warnings
+Date: Wed, 20 Jul 2016 09:32:15 -0300
+Message-Id: <d612024e7d2acd7ec82c75b5fed271fd61673386.1469017917.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Fix all remaining media warnings with ReST that are fixable
+without changing at the Sphinx code.
 
-Am 21.07.2016 um 01:28 schrieb Jonathan Corbet <corbet@lwn.net>:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/v4l-drivers/cx88.rst            | 1 +
+ Documentation/media/v4l-drivers/tm6000-cardlist.rst | 2 +-
+ drivers/media/dvb-core/dvb_math.h                   | 7 +++++++
+ include/media/media-entity.h                        | 6 ++++--
+ 4 files changed, 13 insertions(+), 3 deletions(-)
 
-> On Wed, 20 Jul 2016 08:07:54 +0200
-> Markus Heiser <markus.heiser@darmarit.de> wrote:
-> 
->> Jon, what do you think ... could we serve this 1.2 doc 
->> on https://www.kernel.org/doc/ as reference?
-> 
-> Seems like a good idea.  I don't really know who controls that directory,
-> though; I can ping Konstantin and see what can be done there.  Failing
-> that, I'd be more than happy to put it up on lwn, of course.
-> 
->> And whats about those who have 1.3 (or any version >1.2) as default 
->> in the linux distro? Should they install a virtualenv?  ... it is
->> a dilemma.
-> 
-> I would hope that most people wouldn't have to worry about it, and would
-> be able to just use what their distribution provides - that's the reason
-> for the 1.2 compatibility requirement in the first place.
-
-Yes, but this is not what I mean ;) ... if someone use a distro 
-with a version > 1.2 and he use features not in 1.2, you -- the
-maintainer -- will get into trouble. 
-
-IMHO contributors need a reference documentation (e.g. at kernel.org)
-and a reference build environment (like you, see below).
-
-> I'll make a
-> point of having a 1.2 installation around that I can test things with;
-> that should suffice to catch any problems that sneak in.
-
-This is what I called the reference build environment. IMHO a 
-ref build env could only be assert by a virtualenv instance.
-
-Here is what I tried to get one  ....
-
-first: create instance:
-
- $ virtualenv /share/sph12env
-
-second: source the virtualenv
-
- $ source /share/sph12env/bin/activate
- $ which pip
- /share/sph12env/bin/pip
-
-third: install Sphinx 1.2
-
-$ pip install Sphinx==1.2
-$ sphinx-build --version
-Sphinx (sphinx-build) 1.2
-
-seems fine ... now install rtd theme :-o
-
-$ pip install sphinx_rtd_theme==0.1.8
-Collecting sphinx_rtd_theme==0.1.8
- Downloading sphinx_rtd_theme-0.1.8-py2.py3-none-any.whl (418kB)
-Collecting sphinx>=1.3 (from sphinx_rtd_theme==0.1.8)
-...
-
-since sphinx>=1.3 is a requirement [1] of the sphinx_rtd_theme package
-sphinx has been updated:
-
-$ sphinx-build --version
-Sphinx (sphinx-build) 1.4.5
-
-Aaargh ... at the least now, I have strong doubts if it is a clever
-decision to use an old sphinx version as reference.
-
-Lets lean back and remember why we need this ... whatever
-sphinx version a distro ships (with it's next update) you need a
-reference environment ... version 1.2 or the latest version ... equal 
-if you are a maintainer or a contributor ...  
-
-So why not installing a updated version in a virtualenv on the build
-server, may be in a jail. If contributors have installed older versions,
-this is not a problem, the updated one is downward compatible.
-
-[1] https://github.com/snide/sphinx_rtd_theme/blob/0.1.8/requirements.txt
-
--- Markus --
-
-
-
-
-
-
-
+diff --git a/Documentation/media/v4l-drivers/cx88.rst b/Documentation/media/v4l-drivers/cx88.rst
+index 97865007f51f..d8f3a014726a 100644
+--- a/Documentation/media/v4l-drivers/cx88.rst
++++ b/Documentation/media/v4l-drivers/cx88.rst
+@@ -119,6 +119,7 @@ GPIO 16(I believe) is tied to the IR port (if present).
+ From the data sheet:
+ 
+ - Register 24'h20004  PCI Interrupt Status
++
+  - bit [18]  IR_SMP_INT Set when 32 input samples have been collected over
+  - gpio[16] pin into GP_SAMPLE register.
+ 
+diff --git a/Documentation/media/v4l-drivers/tm6000-cardlist.rst b/Documentation/media/v4l-drivers/tm6000-cardlist.rst
+index ca08d4214b38..2fbd3886b5f0 100644
+--- a/Documentation/media/v4l-drivers/tm6000-cardlist.rst
++++ b/Documentation/media/v4l-drivers/tm6000-cardlist.rst
+@@ -1,5 +1,5 @@
+ TM6000 cards list
+-===============
++=================
+ 
+ .. code-block:: none
+ 
+diff --git a/drivers/media/dvb-core/dvb_math.h b/drivers/media/dvb-core/dvb_math.h
+index 34dc1df03cab..2f0326674ca6 100644
+--- a/drivers/media/dvb-core/dvb_math.h
++++ b/drivers/media/dvb-core/dvb_math.h
+@@ -30,11 +30,15 @@
+  * @value: The value (must be != 0)
+  *
+  * to use rational values you can use the following method:
++ *
+  *   intlog2(value) = intlog2(value * 2^x) - x * 2^24
+  *
+  * Some usecase examples:
++ *
+  *	intlog2(8) will give 3 << 24 = 3 * 2^24
++ *
+  *	intlog2(9) will give 3 << 24 + ... = 3.16... * 2^24
++ *
+  *	intlog2(1.5) = intlog2(3) - 2^24 = 0.584... * 2^24
+  *
+  *
+@@ -48,10 +52,13 @@ extern unsigned int intlog2(u32 value);
+  * @value: The value (must be != 0)
+  *
+  * to use rational values you can use the following method:
++ *
+  *   intlog10(value) = intlog10(value * 10^x) - x * 2^24
+  *
+  * An usecase example:
++ *
+  *	intlog10(1000) will give 3 << 24 = 3 * 2^24
++ *
+  *   due to the implementation intlog10(1000) might be not exactly 3 * 2^24
+  *
+  * look at intlog2 for similar examples
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 83877719bef4..3d885d97d149 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -180,8 +180,10 @@ struct media_pad {
+  *			view. The media_entity_pipeline_start() function
+  *			validates all links by calling this operation. Optional.
+  *
+- * .. note:: Those these callbacks are called with struct media_device.@graph_mutex
+- * mutex held.
++ * .. note::
++ *
++ *    Those these callbacks are called with struct media_device.@graph_mutex
++ *    mutex held.
+  */
+ struct media_entity_operations {
+ 	int (*link_setup)(struct media_entity *entity,
+-- 
+2.7.4
 
