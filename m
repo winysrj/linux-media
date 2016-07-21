@@ -1,79 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:47026 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751430AbcGPK1u (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:8266 "EHLO
+	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751718AbcGUHke (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2016 06:27:50 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 9B5DB18372C
-	for <linux-media@vger.kernel.org>; Sat, 16 Jul 2016 12:27:45 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cec: clear fields before transmit and set sequence only if
- timeout !=0
-Message-ID: <b65e2709-df56-e26d-0964-2efa18b8f4d8@xs4all.nl>
-Date: Sat, 16 Jul 2016 12:27:45 +0200
+	Thu, 21 Jul 2016 03:40:34 -0400
+From: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Yannick Fertre <yannick.fertre@st.com>,
+	Hugues Fruchet <hugues.fruchet@st.com>,
+	Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v3 1/3] Documentation: DT: add bindings for STI HVA
+Date: Thu, 21 Jul 2016 09:40:02 +0200
+Message-ID: <1469086804-21652-2-git-send-email-jean-christophe.trotin@st.com>
+In-Reply-To: <1469086804-21652-1-git-send-email-jean-christophe.trotin@st.com>
+References: <1469086804-21652-1-git-send-email-jean-christophe.trotin@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Clear all status-related fields before transmitting the message.
+This patch adds DT binding documentation for STMicroelectronics hva
+driver.
 
-Also set the sequence counter only for messages with a non-zero timeout (== they wait for
-a reply) and make sure the sequence counter is never 0.
+Signed-off-by: Yannick Fertre <yannick.fertre@st.com>
+Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+---
+ .../devicetree/bindings/media/st,sti-hva.txt       | 24 ++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,sti-hva.txt
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
-index 4d86a6c..fc752de 100644
---- a/drivers/staging/media/cec/cec-adap.c
-+++ b/drivers/staging/media/cec/cec-adap.c
-@@ -574,6 +574,17 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
- 	unsigned int timeout;
- 	int res = 0;
-
-+	msg->rx_ts = 0;
-+	msg->tx_ts = 0;
-+	msg->rx_status = 0;
-+	msg->tx_status = 0;
-+	msg->tx_arb_lost_cnt = 0;
-+	msg->tx_nack_cnt = 0;
-+	msg->tx_low_drive_cnt = 0;
-+	msg->tx_error_cnt = 0;
-+	msg->sequence = 0;
-+	msg->flags = 0;
+diff --git a/Documentation/devicetree/bindings/media/st,sti-hva.txt b/Documentation/devicetree/bindings/media/st,sti-hva.txt
+new file mode 100644
+index 0000000..d1030bb
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/st,sti-hva.txt
+@@ -0,0 +1,24 @@
++hva: multi-format video encoder for STMicroelectronics SoC.
 +
- 	if (msg->reply && msg->timeout == 0) {
- 		/* Make sure the timeout isn't 0. */
- 		msg->timeout = 1000;
-@@ -640,14 +651,12 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
- 		dprintk(2, "cec_transmit_msg: %*ph%s\n",
- 			msg->len, msg->msg, !block ? " (nb)" : "");
-
--	msg->rx_ts = 0;
--	msg->tx_ts = 0;
--	msg->rx_status = 0;
--	msg->tx_status = 0;
--	msg->tx_arb_lost_cnt = 0;
--	msg->tx_nack_cnt = 0;
--	msg->tx_low_drive_cnt = 0;
--	msg->tx_error_cnt = 0;
-+	if (msg->timeout) {
-+		msg->sequence = ++adap->sequence;
-+		if (!msg->sequence)
-+			msg->sequence = ++adap->sequence;
-+	}
++Required properties:
++- compatible: should be "st,sti-hva".
++- reg: HVA physical address location and length, esram address location and
++  length.
++- reg-names: names of the registers listed in registers property in the same
++  order.
++- interrupts: HVA interrupt number.
++- clocks: from common clock binding: handle hardware IP needed clocks, the
++  number of clocks may depend on the SoC type.
++  See ../clock/clock-bindings.txt for details.
++- clock-names: names of the clocks listed in clocks property in the same order.
 +
- 	data->msg = *msg;
- 	data->fh = fh;
- 	data->adap = adap;
-@@ -673,7 +682,6 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
- 	init_completion(&data->c);
- 	INIT_DELAYED_WORK(&data->work, cec_wait_timeout);
++Example:
++	hva@8c85000{
++		compatible = "st,sti-hva";
++		reg = <0x8c85000 0x400>, <0x6000000 0x40000>;
++		reg-names = "hva_registers", "hva_esram";
++		interrupts = <GIC_SPI 58 IRQ_TYPE_NONE>,
++			     <GIC_SPI 59 IRQ_TYPE_NONE>;
++		clock-names = "clk_hva";
++		clocks = <&clk_s_c0_flexgen CLK_HVA>;
++	};
+-- 
+1.9.1
 
--	data->msg.sequence = adap->sequence++;
- 	if (fh)
- 		list_add_tail(&data->xfer_list, &fh->xfer_list);
- 	list_add_tail(&data->list, &adap->transmit_queue);
