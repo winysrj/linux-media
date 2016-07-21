@@ -1,195 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59533 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751499AbcGRSar (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:47804 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751028AbcGUJTQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 14:30:47 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 07/18] [media] cx2341x.rst: add the contents of fw-calling.txt
-Date: Mon, 18 Jul 2016 15:30:29 -0300
-Message-Id: <d9b8a3f099d9a8b76393da271278d3bd88c0e9ed.1468865380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
-References: <cover.1468865380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
-References: <cover.1468865380.git.mchehab@s-opensource.com>
+	Thu, 21 Jul 2016 05:19:16 -0400
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] vb2: check for NULL device pointer
+Message-ID: <8a2effdb-355f-de34-b4c7-7c9eaa3c7873@xs4all.nl>
+Date: Thu, 21 Jul 2016 11:19:11 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert it to ReST and add its contents at this file.
+Check whether the struct device pointer is NULL and return -EINVAL in that
+case.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+This also required a small change to vb2-core where it didn't call PTR_ERR to
+get the real error code.
+
+I have seen several new driver submissions that forgot to set the vb2_queue
+dev field, so add these checks to prevent this from happening again.
+
+The dev field is passed on to the dma-contig/sg drivers in the alloc, get_userptr
+and attach_dmabuf callbacks, so this check has to be done in those three places.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/media/v4l-drivers/cx2341x.rst      | 75 ++++++++++++++++++++++++
- Documentation/video4linux/cx2341x/fw-calling.txt | 69 ----------------------
- 2 files changed, 75 insertions(+), 69 deletions(-)
- delete mode 100644 Documentation/video4linux/cx2341x/fw-calling.txt
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index ca8ffeb..6470819 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -198,6 +198,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+ 	void *mem_priv;
+ 	int plane;
++	int ret = -ENOMEM;
 
-diff --git a/Documentation/media/v4l-drivers/cx2341x.rst b/Documentation/media/v4l-drivers/cx2341x.rst
-index 2677ac6fd649..cbfa14eccd76 100644
---- a/Documentation/media/v4l-drivers/cx2341x.rst
-+++ b/Documentation/media/v4l-drivers/cx2341x.rst
-@@ -1,6 +1,81 @@
- The cx2341x driver
- ==================
- 
-+How to call the firmware API
-+----------------------------
-+
-+The preferred calling convention is known as the firmware mailbox. The
-+mailboxes are basically a fixed length array that serves as the call-stack.
-+
-+Firmware mailboxes can be located by searching the encoder and decoder memory
-+for a 16 byte signature. That signature will be located on a 256-byte boundary.
-+
-+Signature:
-+
-+.. code-block:: none
-+
-+	0x78, 0x56, 0x34, 0x12, 0x12, 0x78, 0x56, 0x34,
-+	0x34, 0x12, 0x78, 0x56, 0x56, 0x34, 0x12, 0x78
-+
-+The firmware implements 20 mailboxes of 20 32-bit words. The first 10 are
-+reserved for API calls. The second 10 are used by the firmware for event
-+notification.
-+
-+  ====== =================
-+  Index  Name
-+  ====== =================
-+  0      Flags
-+  1      Command
-+  2      Return value
-+  3      Timeout
-+  4-19   Parameter/Result
-+  ====== =================
-+
-+
-+The flags are defined in the following table. The direction is from the
-+perspective of the firmware.
-+
-+  ==== ========== ============================================
-+  Bit  Direction  Purpose
-+  ==== ========== ============================================
-+  2    O          Firmware has processed the command.
-+  1    I          Driver has finished setting the parameters.
-+  0    I          Driver is using this mailbox.
-+  ==== ========== ============================================
-+
-+The command is a 32-bit enumerator. The API specifics may be found in this
-+chapter.
-+
-+The return value is a 32-bit enumerator. Only two values are currently defined:
-+
-+- 0=success
-+- -1=command undefined.
-+
-+There are 16 parameters/results 32-bit fields. The driver populates these fields
-+with values for all the parameters required by the call. The driver overwrites
-+these fields with result values returned by the call.
-+
-+The timeout value protects the card from a hung driver thread. If the driver
-+doesn't handle the completed call within the timeout specified, the firmware
-+will reset that mailbox.
-+
-+To make an API call, the driver iterates over each mailbox looking for the
-+first one available (bit 0 has been cleared). The driver sets that bit, fills
-+in the command enumerator, the timeout value and any required parameters. The
-+driver then sets the parameter ready bit (bit 1). The firmware scans the
-+mailboxes for pending commands, processes them, sets the result code, populates
-+the result value array with that call's return values and sets the call
-+complete bit (bit 2). Once bit 2 is set, the driver should retrieve the results
-+and clear all the flags. If the driver does not perform this task within the
-+time set in the timeout register, the firmware will reset that mailbox.
-+
-+Event notifications are sent from the firmware to the host. The host tells the
-+firmware which events it is interested in via an API call. That call tells the
-+firmware which notification mailbox to use. The firmware signals the host via
-+an interrupt. Only the 16 Results fields are used, the Flags, Command, Return
-+value and Timeout words are not used.
-+
-+
- Encoder firmware API description
- --------------------------------
- 
-diff --git a/Documentation/video4linux/cx2341x/fw-calling.txt b/Documentation/video4linux/cx2341x/fw-calling.txt
-deleted file mode 100644
-index 8d21181de537..000000000000
---- a/Documentation/video4linux/cx2341x/fw-calling.txt
-+++ /dev/null
-@@ -1,69 +0,0 @@
--This page describes how to make calls to the firmware api.
--
--How to call
--===========
--
--The preferred calling convention is known as the firmware mailbox. The
--mailboxes are basically a fixed length array that serves as the call-stack.
--
--Firmware mailboxes can be located by searching the encoder and decoder memory
--for a 16 byte signature. That signature will be located on a 256-byte boundary.
--
--Signature:
--0x78, 0x56, 0x34, 0x12, 0x12, 0x78, 0x56, 0x34,
--0x34, 0x12, 0x78, 0x56, 0x56, 0x34, 0x12, 0x78
--
--The firmware implements 20 mailboxes of 20 32-bit words. The first 10 are
--reserved for API calls. The second 10 are used by the firmware for event
--notification.
--
--  Index  Name
--  -----  ----
--  0      Flags
--  1      Command
--  2      Return value
--  3      Timeout
--  4-19   Parameter/Result
--
--
--The flags are defined in the following table. The direction is from the
--perspective of the firmware.
--
--  Bit  Direction  Purpose
--  ---  ---------  -------
--  2    O          Firmware has processed the command.
--  1    I          Driver has finished setting the parameters.
--  0    I          Driver is using this mailbox.
--
--
--The command is a 32-bit enumerator. The API specifics may be found in the
--fw-*-api.txt documents.
--
--The return value is a 32-bit enumerator. Only two values are currently defined:
--0=success and -1=command undefined.
--
--There are 16 parameters/results 32-bit fields. The driver populates these fields
--with values for all the parameters required by the call. The driver overwrites
--these fields with result values returned by the call. The API specifics may be
--found in the fw-*-api.txt documents.
--
--The timeout value protects the card from a hung driver thread. If the driver
--doesn't handle the completed call within the timeout specified, the firmware
--will reset that mailbox.
--
--To make an API call, the driver iterates over each mailbox looking for the
--first one available (bit 0 has been cleared). The driver sets that bit, fills
--in the command enumerator, the timeout value and any required parameters. The
--driver then sets the parameter ready bit (bit 1). The firmware scans the
--mailboxes for pending commands, processes them, sets the result code, populates
--the result value array with that call's return values and sets the call
--complete bit (bit 2). Once bit 2 is set, the driver should retrieve the results
--and clear all the flags. If the driver does not perform this task within the
--time set in the timeout register, the firmware will reset that mailbox.
--
--Event notifications are sent from the firmware to the host. The host tells the
--firmware which events it is interested in via an API call. That call tells the
--firmware which notification mailbox to use. The firmware signals the host via
--an interrupt. Only the 16 Results fields are used, the Flags, Command, Return
--value and Timeout words are not used.
--
--- 
-2.7.4
+ 	/*
+ 	 * Allocate memory for all planes in this buffer
+@@ -209,8 +210,11 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 		mem_priv = call_ptr_memop(vb, alloc,
+ 				q->alloc_devs[plane] ? : q->dev,
+ 				q->dma_attrs, size, dma_dir, q->gfp_flags);
+-		if (IS_ERR_OR_NULL(mem_priv))
++		if (IS_ERR_OR_NULL(mem_priv)) {
++			if (mem_priv)
++				ret = PTR_ERR(mem_priv);
+ 			goto free;
++		}
 
+ 		/* Associate allocator private data with this plane */
+ 		vb->planes[plane].mem_priv = mem_priv;
+@@ -224,7 +228,7 @@ free:
+ 		vb->planes[plane - 1].mem_priv = NULL;
+ 	}
+
+-	return -ENOMEM;
++	return ret;
+ }
+
+ /**
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 863f658..22b34cf 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -141,6 +141,11 @@ static void *vb2_dc_alloc(struct device *dev, const struct dma_attrs *attrs,
+ {
+ 	struct vb2_dc_buf *buf;
+
++	if (WARN_ON(!dev)) {
++		pr_debug("dev is NULL\n");
++		return ERR_PTR(-EINVAL);
++	}
++
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+@@ -499,6 +504,11 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+ 		return ERR_PTR(-EINVAL);
+ 	}
+
++	if (WARN_ON(!dev)) {
++		pr_debug("dev is NULL\n");
++		return ERR_PTR(-EINVAL);
++	}
++
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+@@ -679,6 +689,11 @@ static void *vb2_dc_attach_dmabuf(struct device *dev, struct dma_buf *dbuf,
+ 	if (dbuf->size < size)
+ 		return ERR_PTR(-EFAULT);
+
++	if (WARN_ON(!dev)) {
++		pr_debug("dev is NULL\n");
++		return ERR_PTR(-EINVAL);
++	}
++
+ 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index a39db8a..3766942 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -107,11 +107,14 @@ static void *vb2_dma_sg_alloc(struct device *dev, const struct dma_attrs *dma_at
+
+ 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+
+-	if (WARN_ON(dev == NULL))
+-		return NULL;
++	if (WARN_ON(!dev)) {
++		pr_debug("dev is NULL\n");
++		return ERR_PTR(-EINVAL);
++	}
++
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
+
+ 	buf->vaddr = NULL;
+ 	buf->dma_dir = dma_dir;
+@@ -169,7 +172,7 @@ fail_pages_alloc:
+ 	kfree(buf->pages);
+ fail_pages_array_alloc:
+ 	kfree(buf);
+-	return NULL;
++	return ERR_PTR(-ENOMEM);
+ }
+
+ static void vb2_dma_sg_put(void *buf_priv)
+@@ -231,10 +234,15 @@ static void *vb2_dma_sg_get_userptr(struct device *dev, unsigned long vaddr,
+ 	DEFINE_DMA_ATTRS(attrs);
+ 	struct frame_vector *vec;
+
++	if (WARN_ON(!dev)) {
++		pr_debug("dev is NULL\n");
++		return ERR_PTR(-EINVAL);
++	}
++
+ 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
+
+ 	buf->vaddr = NULL;
+ 	buf->dev = dev;
+@@ -274,7 +282,7 @@ userptr_fail_sgtable:
+ 	vb2_destroy_framevec(vec);
+ userptr_fail_pfnvec:
+ 	kfree(buf);
+-	return NULL;
++	return ERR_PTR(-ENOMEM);
+ }
+
+ /*
+@@ -617,6 +625,11 @@ static void *vb2_dma_sg_attach_dmabuf(struct device *dev, struct dma_buf *dbuf,
+ 	struct vb2_dma_sg_buf *buf;
+ 	struct dma_buf_attachment *dba;
+
++	if (WARN_ON(!dev)) {
++		pr_debug("dev is NULL\n");
++		return ERR_PTR(-EINVAL);
++	}
++
+ 	if (dbuf->size < size)
+ 		return ERR_PTR(-EFAULT);
 
