@@ -1,86 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42240 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756855AbcGIWeb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Jul 2016 18:34:31 -0400
-Subject: Re: si2157: new revision?
-To: Oleh Kravchenko <oleg@kaa.org.ua>, linux-media@vger.kernel.org
-References: <1467243499-26093-1-git-send-email-crope@iki.fi>
- <1467243499-26093-3-git-send-email-crope@iki.fi>
- <577AAD3C.2060204@kaa.org.ua> <46faadd5-80dc-bb71-be24-8b05fb035423@iki.fi>
- <57816A16.1090800@kaa.org.ua>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <fc85f957-a297-7664-59c4-7a3e124017c0@iki.fi>
-Date: Sun, 10 Jul 2016 01:34:28 +0300
-MIME-Version: 1.0
-In-Reply-To: <57816A16.1090800@kaa.org.ua>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from 17.mo3.mail-out.ovh.net ([87.98.178.58]:41942 "EHLO
+	17.mo3.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753476AbcGURj1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Jul 2016 13:39:27 -0400
+Received: from player734.ha.ovh.net (b7.ovh.net [213.186.33.57])
+	by mo3.mail-out.ovh.net (Postfix) with ESMTP id 87DDC1010A8F
+	for <linux-media@vger.kernel.org>; Thu, 21 Jul 2016 17:04:42 +0200 (CEST)
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+To: linux-media@vger.kernel.org
+Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Subject: [PATCH] V4L2: Add documentation for SDI timings and related flags
+Date: Thu, 21 Jul 2016 17:04:36 +0200
+Message-Id: <1469113476-1645-1-git-send-email-charles-antoine.couret@nexvision.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey, that's your problem :] Driver development is all the time resolving 
-this kind of issues and you really need to resolve those yourself.
+Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+---
+ Documentation/media/uapi/v4l/vidioc-enuminput.rst  | 31 +++++++++++++++++-----
+ .../media/uapi/v4l/vidioc-g-dv-timings.rst         | 15 +++++++++++
+ 2 files changed, 39 insertions(+), 7 deletions(-)
 
-You will need to get I2C communication working with all the chips. First 
-si2168 demod and after it answers to I2C you will need to get connection 
-to Si2157 tuner. After both of those are answering you could try to get 
-tuning tests to see if demod locks. After demod locks you know tuner is 
-working and also demod is somehow working. If demod lock but there is no 
-picture you know problem is TS interface. Try different TS settings for 
-both USB-bridge and demod - those should match. If it does not starts 
-working then you have to look sniffs and start replacing driver code 
-with data from sniffs to until it starts working => problematic setting 
-is found.
-
-regards
-Antti
-
-
-
-On 07/10/2016 12:18 AM, Oleh Kravchenko wrote:
-> Hello!
->
-> I'm started playing i2c, but stuck with unknown error for me - 32 (EPIPE?):
-> 	[ 5651.958763] cx231xx #0 at cx231xx_i2c_xfer: write stop addr=0x60
-> len=15: c0 00 00 00 00 01 01 01 01 01 01 02 00 00 01
-> 	[ 5651.958774] cx231xx #0: (pipe 0x80001000): OUT:  40 02 21 c0 00 00
-> 0f 00
-> 	[ 5651.958775] >>> c0 00 00 00 00 01 01 01 01 01 01 02 00 00 01FAILED!
-> 	[ 5651.959110] cx231xx 1-2:1.1: cx231xx_send_usb_command: failed with
-> status --32
-> 	[ 5651.959111] cx231xx #0 at cx231xx_i2c_xfer:  ERROR: -32
->
-> How this error can be fixed? :)
->
-> On 04.07.16 21:47, Antti Palosaari wrote:
->> Hello
->> On 07/04/2016 09:38 PM, Oleh Kravchenko wrote:
->>> Hello Antti!
->>>
->>> I started reverse-engineering of my new TV tuner "Evromedia USB Full
->>> Hybrid Full HD" and discovered that start sequence is different from
->>> si2157.c:
->>> i2c_read_C1
->>>  1 \xFE
->>> i2c_write_C0
->>>  15 \xC0\x00\x00\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01
->>>
->>> Do you familiar with this revision?
->>> Should I merge my changes to si2158.c?
->>> Or define another driver?
->>
->> According to chip markings those are tuner Si2158-A20 and demod
->> Si2168-A30. Both are supported already by si2157 and si2168 drivers.
->>
->> Difference is just some settings. You need to identify which setting is
->> wrong and add that to configuration options. It should be pretty easy to
->> find it from the I2C dumps and just testing.
->>
->> regards
->> Antti
->>
->
-
+diff --git a/Documentation/media/uapi/v4l/vidioc-enuminput.rst b/Documentation/media/uapi/v4l/vidioc-enuminput.rst
+index 5060f54..18331b9 100644
+--- a/Documentation/media/uapi/v4l/vidioc-enuminput.rst
++++ b/Documentation/media/uapi/v4l/vidioc-enuminput.rst
+@@ -260,17 +260,34 @@ at index zero, incrementing by one until the driver returns ``EINVAL``.
+ 
+     -  .. row 11
+ 
+-       -  :cspan:`2` Digital Video
++       -  ``V4L2_IN_ST_NO_V_LOCK``
++
++       -  0x00000400
++
++       -  No vertical sync lock.
+ 
+     -  .. row 12
+ 
++       -  ``V4L2_IN_ST_NO_STD_LOCK``
++
++       -  0x00000800
++
++       -  No standard format lock in case of auto-detection format
++	  by the component.
++
++    -  .. row 13
++
++       -  :cspan:`2` Digital Video
++
++    -  .. row 14
++
+        -  ``V4L2_IN_ST_NO_SYNC``
+ 
+        -  0x00010000
+ 
+        -  No synchronization lock.
+ 
+-    -  .. row 13
++    -  .. row 15
+ 
+        -  ``V4L2_IN_ST_NO_EQU``
+ 
+@@ -278,7 +295,7 @@ at index zero, incrementing by one until the driver returns ``EINVAL``.
+ 
+        -  No equalizer lock.
+ 
+-    -  .. row 14
++    -  .. row 16
+ 
+        -  ``V4L2_IN_ST_NO_CARRIER``
+ 
+@@ -286,11 +303,11 @@ at index zero, incrementing by one until the driver returns ``EINVAL``.
+ 
+        -  Carrier recovery failed.
+ 
+-    -  .. row 15
++    -  .. row 17
+ 
+        -  :cspan:`2` VCR and Set-Top Box
+ 
+-    -  .. row 16
++    -  .. row 18
+ 
+        -  ``V4L2_IN_ST_MACROVISION``
+ 
+@@ -300,7 +317,7 @@ at index zero, incrementing by one until the driver returns ``EINVAL``.
+ 	  signal to confuse video recorders. When this flag is set
+ 	  Macrovision has been detected.
+ 
+-    -  .. row 17
++    -  .. row 19
+ 
+        -  ``V4L2_IN_ST_NO_ACCESS``
+ 
+@@ -308,7 +325,7 @@ at index zero, incrementing by one until the driver returns ``EINVAL``.
+ 
+        -  Conditional access denied.
+ 
+-    -  .. row 18
++    -  .. row 20
+ 
+        -  ``V4L2_IN_ST_VTR``
+ 
+diff --git a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
+index f7bf21f..9acfa19 100644
+--- a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
++++ b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
+@@ -339,6 +339,13 @@ EBUSY
+ 
+        -  The timings follow the VESA Generalized Timings Formula standard
+ 
++    -  .. row 7
++
++       -  ``V4L2_DV_BT_STD_SDI``
++
++       -  The timings follow the SDI Timings standard.
++	  There are no horizontal syncs/porches at all in this format.
++	  Total blanking timings must be set in hsync or vsync fields only.
+ 
+ 
+ .. _dv-bt-flags:
+@@ -415,3 +422,11 @@ EBUSY
+ 	  R'G'B' values use limited range (i.e. 16-235) as opposed to full
+ 	  range (i.e. 0-255). All formats defined in CEA-861 except for the
+ 	  640x480p59.94 format are CE formats.
++
++    -  .. row 8
++
++       -  ``V4L2_DV_FL_FIRST_FIELD_EXTRA_LINE``
++
++       -  Some formats like SMPTE-125M have an interlaced signal with a odd
++	  total height. For these formats, if this flag is set, the first
++	  field has the extra line. Else, it is the second field.
 -- 
-http://palosaari.fi/
+2.7.4
+
