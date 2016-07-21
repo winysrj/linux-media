@@ -1,104 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41279 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754918AbcGHND7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:03:59 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 03/54] doc-rst: linux_tv: dvb: use lowercase for filenames
-Date: Fri,  8 Jul 2016 10:02:55 -0300
-Message-Id: <0060665c45c78796c748463ba742e88c123cecb7.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
+Received: from 17.mo3.mail-out.ovh.net ([87.98.178.58]:46267 "EHLO
+	17.mo3.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753242AbcGUP3k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Jul 2016 11:29:40 -0400
+Received: from player734.ha.ovh.net (b7.ovh.net [213.186.33.57])
+	by mo3.mail-out.ovh.net (Postfix) with ESMTP id 21D5F10142B9
+	for <linux-media@vger.kernel.org>; Thu, 21 Jul 2016 16:51:11 +0200 (CEST)
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+To: linux-media@vger.kernel.org
+Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Subject: [PATCH v4 1/2] SDI: add flag for SDI formats and SMPTE 125M definition
+Date: Thu, 21 Jul 2016 16:51:01 +0200
+Message-Id: <1469112662-969-2-git-send-email-charles-antoine.couret@nexvision.fr>
+In-Reply-To: <1469112662-969-1-git-send-email-charles-antoine.couret@nexvision.fr>
+References: <1469112662-969-1-git-send-email-charles-antoine.couret@nexvision.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are some ioctls in upper case. This is not the standard.
-Put them on lowercase, to match what's done with other ioctls.
+Adding others generic flags, which could be used by many
+components like GS1662.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
 ---
- ...LEGACY_CMD.rst => fe-dishnetwork-send-legacy-cmd.rst} |  0
- .../media/dvb/{FE_GET_EVENT.rst => fe-get-event.rst}     |  0
- .../dvb/{FE_GET_FRONTEND.rst => fe-get-frontend.rst}     |  0
- .../media/dvb/{FE_READ_BER.rst => fe-read-ber.rst}       |  0
- ...D_SIGNAL_STRENGTH.rst => fe-read-signal-strength.rst} |  0
- .../media/dvb/{FE_READ_SNR.rst => fe-read-snr.rst}       |  0
- ...RRECTED_BLOCKS.rst => fe-read-uncorrected-blocks.rst} |  0
- .../dvb/{FE_SET_FRONTEND.rst => fe-set-frontend.rst}     |  0
- Documentation/linux_tv/media/dvb/frontend_legacy_api.rst | 16 ++++++++--------
- 9 files changed, 8 insertions(+), 8 deletions(-)
- rename Documentation/linux_tv/media/dvb/{FE_DISHNETWORK_SEND_LEGACY_CMD.rst => fe-dishnetwork-send-legacy-cmd.rst} (100%)
- rename Documentation/linux_tv/media/dvb/{FE_GET_EVENT.rst => fe-get-event.rst} (100%)
- rename Documentation/linux_tv/media/dvb/{FE_GET_FRONTEND.rst => fe-get-frontend.rst} (100%)
- rename Documentation/linux_tv/media/dvb/{FE_READ_BER.rst => fe-read-ber.rst} (100%)
- rename Documentation/linux_tv/media/dvb/{FE_READ_SIGNAL_STRENGTH.rst => fe-read-signal-strength.rst} (100%)
- rename Documentation/linux_tv/media/dvb/{FE_READ_SNR.rst => fe-read-snr.rst} (100%)
- rename Documentation/linux_tv/media/dvb/{FE_READ_UNCORRECTED_BLOCKS.rst => fe-read-uncorrected-blocks.rst} (100%)
- rename Documentation/linux_tv/media/dvb/{FE_SET_FRONTEND.rst => fe-set-frontend.rst} (100%)
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 11 +++++++----
+ include/uapi/linux/v4l2-dv-timings.h      | 12 ++++++++++++
+ include/uapi/linux/videodev2.h            |  8 ++++++++
+ 3 files changed, 27 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/linux_tv/media/dvb/FE_DISHNETWORK_SEND_LEGACY_CMD.rst b/Documentation/linux_tv/media/dvb/fe-dishnetwork-send-legacy-cmd.rst
-similarity index 100%
-rename from Documentation/linux_tv/media/dvb/FE_DISHNETWORK_SEND_LEGACY_CMD.rst
-rename to Documentation/linux_tv/media/dvb/fe-dishnetwork-send-legacy-cmd.rst
-diff --git a/Documentation/linux_tv/media/dvb/FE_GET_EVENT.rst b/Documentation/linux_tv/media/dvb/fe-get-event.rst
-similarity index 100%
-rename from Documentation/linux_tv/media/dvb/FE_GET_EVENT.rst
-rename to Documentation/linux_tv/media/dvb/fe-get-event.rst
-diff --git a/Documentation/linux_tv/media/dvb/FE_GET_FRONTEND.rst b/Documentation/linux_tv/media/dvb/fe-get-frontend.rst
-similarity index 100%
-rename from Documentation/linux_tv/media/dvb/FE_GET_FRONTEND.rst
-rename to Documentation/linux_tv/media/dvb/fe-get-frontend.rst
-diff --git a/Documentation/linux_tv/media/dvb/FE_READ_BER.rst b/Documentation/linux_tv/media/dvb/fe-read-ber.rst
-similarity index 100%
-rename from Documentation/linux_tv/media/dvb/FE_READ_BER.rst
-rename to Documentation/linux_tv/media/dvb/fe-read-ber.rst
-diff --git a/Documentation/linux_tv/media/dvb/FE_READ_SIGNAL_STRENGTH.rst b/Documentation/linux_tv/media/dvb/fe-read-signal-strength.rst
-similarity index 100%
-rename from Documentation/linux_tv/media/dvb/FE_READ_SIGNAL_STRENGTH.rst
-rename to Documentation/linux_tv/media/dvb/fe-read-signal-strength.rst
-diff --git a/Documentation/linux_tv/media/dvb/FE_READ_SNR.rst b/Documentation/linux_tv/media/dvb/fe-read-snr.rst
-similarity index 100%
-rename from Documentation/linux_tv/media/dvb/FE_READ_SNR.rst
-rename to Documentation/linux_tv/media/dvb/fe-read-snr.rst
-diff --git a/Documentation/linux_tv/media/dvb/FE_READ_UNCORRECTED_BLOCKS.rst b/Documentation/linux_tv/media/dvb/fe-read-uncorrected-blocks.rst
-similarity index 100%
-rename from Documentation/linux_tv/media/dvb/FE_READ_UNCORRECTED_BLOCKS.rst
-rename to Documentation/linux_tv/media/dvb/fe-read-uncorrected-blocks.rst
-diff --git a/Documentation/linux_tv/media/dvb/FE_SET_FRONTEND.rst b/Documentation/linux_tv/media/dvb/fe-set-frontend.rst
-similarity index 100%
-rename from Documentation/linux_tv/media/dvb/FE_SET_FRONTEND.rst
-rename to Documentation/linux_tv/media/dvb/fe-set-frontend.rst
-diff --git a/Documentation/linux_tv/media/dvb/frontend_legacy_api.rst b/Documentation/linux_tv/media/dvb/frontend_legacy_api.rst
-index fb17766d887e..759833d3eaa4 100644
---- a/Documentation/linux_tv/media/dvb/frontend_legacy_api.rst
-+++ b/Documentation/linux_tv/media/dvb/frontend_legacy_api.rst
-@@ -28,11 +28,11 @@ recommended
- .. toctree::
-     :maxdepth: 1
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 889de0a..730a7c3 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -306,7 +306,7 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
+ 			(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
+ 			bt->il_vsync, bt->il_vbackporch);
+ 	pr_info("%s: pixelclock: %llu\n", dev_prefix, bt->pixelclock);
+-	pr_info("%s: flags (0x%x):%s%s%s%s%s%s\n", dev_prefix, bt->flags,
++	pr_info("%s: flags (0x%x):%s%s%s%s%s%s%s\n", dev_prefix, bt->flags,
+ 			(bt->flags & V4L2_DV_FL_REDUCED_BLANKING) ?
+ 			" REDUCED_BLANKING" : "",
+ 			((bt->flags & V4L2_DV_FL_REDUCED_BLANKING) &&
+@@ -318,12 +318,15 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
+ 			(bt->flags & V4L2_DV_FL_HALF_LINE) ?
+ 			" HALF_LINE" : "",
+ 			(bt->flags & V4L2_DV_FL_IS_CE_VIDEO) ?
+-			" CE_VIDEO" : "");
+-	pr_info("%s: standards (0x%x):%s%s%s%s\n", dev_prefix, bt->standards,
++			" CE_VIDEO" : "",
++			(bt->flags & V4L2_DV_FL_FIRST_FIELD_EXTRA_LINE) ?
++			" FIRST_FIELD_EXTRA_LINE" : "");
++	pr_info("%s: standards (0x%x):%s%s%s%s%s\n", dev_prefix, bt->standards,
+ 			(bt->standards & V4L2_DV_BT_STD_CEA861) ?  " CEA" : "",
+ 			(bt->standards & V4L2_DV_BT_STD_DMT) ?  " DMT" : "",
+ 			(bt->standards & V4L2_DV_BT_STD_CVT) ?  " CVT" : "",
+-			(bt->standards & V4L2_DV_BT_STD_GTF) ?  " GTF" : "");
++			(bt->standards & V4L2_DV_BT_STD_GTF) ?  " GTF" : "",
++			(bt->standards & V4L2_DV_BT_STD_SDI) ?  " SDI" : "");
+ }
+ EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
  
--    FE_READ_BER
--    FE_READ_SNR
--    FE_READ_SIGNAL_STRENGTH
--    FE_READ_UNCORRECTED_BLOCKS
--    FE_SET_FRONTEND
--    FE_GET_FRONTEND
--    FE_GET_EVENT
--    FE_DISHNETWORK_SEND_LEGACY_CMD
-+    fe-read-ber
-+    fe-read-snr
-+    fe-read-signal-strength
-+    fe-read-uncorrected-blocks
-+    fe-set-frontend
-+    fe-get-frontend
-+    fe-get-event
-+    fe-dishnetwork-send-legacy-cmd
+diff --git a/include/uapi/linux/v4l2-dv-timings.h b/include/uapi/linux/v4l2-dv-timings.h
+index 086168e..0d7ea11 100644
+--- a/include/uapi/linux/v4l2-dv-timings.h
++++ b/include/uapi/linux/v4l2-dv-timings.h
+@@ -934,4 +934,16 @@
+ 		V4L2_DV_FL_REDUCED_BLANKING) \
+ }
+ 
++/* SDI timings definitions */
++
++/* SMPTE-125M */
++#define V4L2_DV_BT_SDI_720X487I60 { \
++	.type = V4L2_DV_BT_656_1120, \
++	V4L2_INIT_BT_TIMINGS(720, 487, 1, \
++		V4L2_DV_HSYNC_POS_POL, \
++		13500000, 0, 137, 0, 0, 19, 0, 0, 19, 0, \
++		V4L2_DV_BT_STD_SDI, \
++		V4L2_DV_FL_FIRST_FIELD_EXTRA_LINE) \
++}
++
+ #endif
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 8f95191..37126a4 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1259,6 +1259,7 @@ struct v4l2_bt_timings {
+ #define V4L2_DV_BT_STD_DMT	(1 << 1)  /* VESA Discrete Monitor Timings */
+ #define V4L2_DV_BT_STD_CVT	(1 << 2)  /* VESA Coordinated Video Timings */
+ #define V4L2_DV_BT_STD_GTF	(1 << 3)  /* VESA Generalized Timings Formula */
++#define V4L2_DV_BT_STD_SDI	(1 << 4)  /* SDI Timings */
+ 
+ /* Flags */
+ 
+@@ -1290,6 +1291,11 @@ struct v4l2_bt_timings {
+  * use the range 16-235) as opposed to 0-255. All formats defined in CEA-861
+  * except for the 640x480 format are CE formats. */
+ #define V4L2_DV_FL_IS_CE_VIDEO			(1 << 4)
++/* Some formats like SMPTE-125M have an interlaced signal with a odd
++ * total height. For these formats, if this flag is set, the first
++ * field has the extra line. If not, it is the second field.
++ */
++#define V4L2_DV_FL_FIRST_FIELD_EXTRA_LINE		(1 << 5)
+ 
+ /* A few useful defines to calculate the total blanking and frame sizes */
+ #define V4L2_DV_BT_BLANKING_WIDTH(bt) \
+@@ -1413,6 +1419,8 @@ struct v4l2_input {
+ /* field 'status' - analog */
+ #define V4L2_IN_ST_NO_H_LOCK   0x00000100  /* No horizontal sync lock */
+ #define V4L2_IN_ST_COLOR_KILL  0x00000200  /* Color killer is active */
++#define V4L2_IN_ST_NO_V_LOCK   0x00000400  /* No vertical sync lock */
++#define V4L2_IN_ST_NO_STD_LOCK 0x00000800  /* No standard format lock */
+ 
+ /* field 'status' - digital */
+ #define V4L2_IN_ST_NO_SYNC     0x00010000  /* No synchronization lock */
 -- 
 2.7.4
 
