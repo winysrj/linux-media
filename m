@@ -1,60 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:14334 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752831AbcGMIly (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:53019 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753892AbcGUUUA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 04:41:54 -0400
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, hch@infradead.org,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org
-Subject: [PATCH v6 01/46] [media] mtk-vcodec: Remove unused dma_attrs
-Date: Wed, 13 Jul 2016 10:40:52 +0200
-Message-id: <1468399300-5399-1-git-send-email-k.kozlowski@samsung.com>
-In-reply-to: <1468399167-28083-1-git-send-email-k.kozlowski@samsung.com>
-References: <1468399167-28083-1-git-send-email-k.kozlowski@samsung.com>
+	Thu, 21 Jul 2016 16:20:00 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/5] [media] v4l2-common.h: Add documentation for other functions
+Date: Thu, 21 Jul 2016 17:19:50 -0300
+Message-Id: <803a5c1a8b6cd3f593833cc883788fb120343cd6.1469132350.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The local variable dma_attrs is set but never read.
+Not all functions at v4l2-common.h are documented. Add
+documentation for some other ones.
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
+ include/media/v4l2-common.h | 43 ++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 38 insertions(+), 5 deletions(-)
 
-Changes since v5:
-New patch.
----
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c | 4 ----
- 1 file changed, 4 deletions(-)
-
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
-index 60b0bde232f4..ae1eb8fde7f8 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
-@@ -246,7 +246,6 @@ static int mtk_vcodec_probe(struct platform_device *pdev)
- 	struct video_device *vfd_enc;
- 	struct resource *res;
- 	int i, j, ret;
--	DEFINE_DMA_ATTRS(attrs);
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 9b1dfcd9e229..350cbf9fb10e 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -78,9 +78,26 @@
+ 			v4l2_printk(KERN_DEBUG, dev, fmt , ## arg); 	\
+ 	} while (0)
  
- 	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
- 	if (!dev)
-@@ -380,9 +379,6 @@ static int mtk_vcodec_probe(struct platform_device *pdev)
- 		goto err_enc_reg;
- 	}
+-/* ------------------------------------------------------------------------- */
++/**
++ * v4l2_ctrl_query_fill- Fill in a struct v4l2_queryctrl
++ *
++ * @qctrl: pointer to the &struct v4l2_queryctrl to be filled
++ * @min: minimum value for the control
++ * @max: maximum value for the control
++ * @step: control step
++ * @def: default value for the control
++ *
++ * Fills the &struct v4l2_queryctrl fields for the query control.
++ *
++ * .. note::
++ *
++ *    This function assumes that the @qctrl->id field is filled.
++ *
++ * Returns -EINVAL if the control is not known by the V4L2 core, 0 on success.
++ */
  
--	/* Avoid the iommu eat big hunks */
--	dma_set_attr(DMA_ATTR_ALLOC_SINGLE_PAGES, &attrs);
--
- 	mtk_v4l2_debug(0, "encoder registered as /dev/video%d",
- 			vfd_enc->num);
+-int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 step, s32 def);
++int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl,
++			 s32 min, s32 max, s32 step, s32 def);
  
+ /* ------------------------------------------------------------------------- */
+ 
+@@ -172,12 +189,28 @@ const unsigned short *v4l2_i2c_tuner_addrs(enum v4l2_i2c_tuner_type type);
+ 
+ struct spi_device;
+ 
+-/* Load an spi module and return an initialized v4l2_subdev struct.
+-   The client_type argument is the name of the chip that's on the adapter. */
++/**
++ *  v4l2_spi_new_subdev - Load an spi module and return an initialized
++ *	&struct v4l2_subdev.
++ *
++ *
++ * @v4l2_dev: pointer to &struct v4l2_device.
++ * @master: pointer to struct spi_master.
++ * @info: pointer to struct spi_board_info.
++ *
++ * returns a &struct v4l2_subdev pointer.
++ */
+ struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
+ 		struct spi_master *master, struct spi_board_info *info);
+ 
+-/* Initialize a v4l2_subdev with data from an spi_device struct */
++/**
++ * v4l2_spi_subdev_init - Initialize a v4l2_subdev with data from an
++ *	spi_device struct.
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ * @spi: pointer to struct spi_device.
++ * @ops: pointer to &struct v4l2_subdev_ops
++ */
+ void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
+ 		const struct v4l2_subdev_ops *ops);
+ #endif
 -- 
-1.9.1
+2.7.4
 
