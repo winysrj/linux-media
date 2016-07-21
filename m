@@ -1,127 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51716 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933316AbcGLMme (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 08:42:34 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 15/20] [media] doc-rst: document LIRC_SET_REC_TIMEOUT
-Date: Tue, 12 Jul 2016 09:42:09 -0300
-Message-Id: <27afbae747423caa4138a8e516c7823aa78be5b3.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from gofer.mess.org ([80.229.237.210]:52749 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751570AbcGUKWM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Jul 2016 06:22:12 -0400
+Date: Thu, 21 Jul 2016 11:22:09 +0100
+From: Sean Young <sean@mess.org>
+To: Andi Shyti <andi.shyti@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi@etezian.org>
+Subject: Re: [RFC 7/7] [media] rc: add support for IR LEDs driven through SPI
+Message-ID: <20160721102208.GA1246@gofer.mess.org>
+References: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
+ <1468943818-26025-8-git-send-email-andi.shyti@samsung.com>
+ <CGME20160719231129epcas1p1ac5071e745ba5b938be1ed1de5220fbe@epcas1p1.samsung.com>
+ <20160719231122.GA25146@gofer.mess.org>
+ <20160721010926.GG23521@samsunx.samsung>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160721010926.GG23521@samsunx.samsung>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a separate page for this ioctl and adds the cross-references.
+Hi Andi,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- .../media/uapi/rc/lirc-set-rec-timeout.rst         | 52 ++++++++++++++++++++++
- .../media/uapi/rc/lirc_device_interface.rst        |  1 +
- Documentation/media/uapi/rc/lirc_ioctl.rst         | 11 -----
- 3 files changed, 53 insertions(+), 11 deletions(-)
- create mode 100644 Documentation/media/uapi/rc/lirc-set-rec-timeout.rst
+On Thu, Jul 21, 2016 at 10:09:26AM +0900, Andi Shyti wrote:
+> > > +	ret = regulator_enable(idata->regulator);
+> > > +	if (ret)
+> > > +		return ret;
+> > > +
+> > > +	mutex_lock(&idata->mutex);
+> > > +	idata->xfer.len = n;
+> > > +	idata->xfer.tx_buf = buffer;
+> > > +	mutex_unlock(&idata->mutex);
+> > 
+> > I'm not convinced the locking works here. You want to guard against 
+> > someone modifying xfer while you are sending (so in spi_sync_transfer), 
+> > which this locking is not doing. You could declare a 
+> > local "struct spi_transfer xfer" and avoid the mutex altogether.
+> 
+> I cannot declare xfer locally because the spi framework needs
+> a statically allocated xfer, so that either I dynamically
+> allocate it in the function or I declare it global in idata.
 
-diff --git a/Documentation/media/uapi/rc/lirc-set-rec-timeout.rst b/Documentation/media/uapi/rc/lirc-set-rec-timeout.rst
-new file mode 100644
-index 000000000000..ffc88f9fcd52
---- /dev/null
-+++ b/Documentation/media/uapi/rc/lirc-set-rec-timeout.rst
-@@ -0,0 +1,52 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _lirc_set_rec_timeout:
-+
-+**************************
-+ioctl LIRC_SET_REC_TIMEOUT
-+**************************
-+
-+Name
-+====
-+
-+LIRC_SET_REC_TIMEOUT - sets the integer value for IR inactivity timeout.
-+
-+Synopsis
-+========
-+
-+.. cpp:function:: int ioctl( int fd, int request, __u32 *timeout )
-+
-+Arguments
-+=========
-+
-+``fd``
-+    File descriptor returned by open().
-+
-+``request``
-+    LIRC_SET_REC_TIMEOUT
-+
-+``timeout``
-+    Timeout, in microseconds.
-+
-+
-+Description
-+===========
-+
-+Sets the integer value for IR inactivity timeout.
-+
-+If supported by the hardware, setting it to 0  disables all hardware timeouts
-+and data should be reported as soon as possible. If the exact value
-+cannot be set, then the next possible value _greater_ than the
-+given value should be set.
-+
-+.. note::
-+
-+   The range of supported timeout is given by :ref:`LIRC_GET_MIN_TIMEOUT`.
-+
-+
-+Return Value
-+============
-+
-+On success 0 is returned, on error -1 and the ``errno`` variable is set
-+appropriately. The generic error codes are described at the
-+:ref:`Generic Error Codes <gen-errors>` chapter.
-diff --git a/Documentation/media/uapi/rc/lirc_device_interface.rst b/Documentation/media/uapi/rc/lirc_device_interface.rst
-index 96765eccaa69..df576d90c73a 100644
---- a/Documentation/media/uapi/rc/lirc_device_interface.rst
-+++ b/Documentation/media/uapi/rc/lirc_device_interface.rst
-@@ -18,6 +18,7 @@ LIRC Device Interface
-     lirc-get-rec-resolution
-     lirc-set-send-duty-cycle
-     lirc-get-timeout
-+    lirc-set-rec-timeout
-     lirc-get-length
-     lirc-set-rec-carrier
-     lirc-set-rec-carrier-range
-diff --git a/Documentation/media/uapi/rc/lirc_ioctl.rst b/Documentation/media/uapi/rc/lirc_ioctl.rst
-index 86bd70dba290..26544a5fc946 100644
---- a/Documentation/media/uapi/rc/lirc_ioctl.rst
-+++ b/Documentation/media/uapi/rc/lirc_ioctl.rst
-@@ -54,17 +54,6 @@ device can rely on working with the default settings initially.
-     Set send/receive mode. Largely obsolete for send, as only
-     ``LIRC_MODE_PULSE`` is supported.
- 
--.. _LIRC_SET_REC_TIMEOUT:
--
--``LIRC_SET_REC_TIMEOUT``
--
--    Sets the integer value for IR inactivity timeout (cf.
--    ``LIRC_GET_MIN_TIMEOUT`` and ``LIRC_GET_MAX_TIMEOUT).`` A value of 0
--    (if supported by the hardware) disables all hardware timeouts and
--    data should be reported as soon as possible. If the exact value
--    cannot be set, then the next possible value _greater_ than the
--    given value should be set.
--
- .. _LIRC_SET_REC_TIMEOUT_REPORTS:
- 
- ``LIRC_SET_REC_TIMEOUT_REPORTS``
--- 
-2.7.4
+It can be stack allocated for sync transfers. You might want to lock
+the spi bus.
+
+> With the mutex I would like to prevent different tasks to change
+> the value at the same time, it's an easy case, it shouldn't make
+> much difference.
+
+That's cargo-cult locking. It does not achieve anything.
 
 
+Sean
