@@ -1,67 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:41738 "EHLO
-	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752283AbcG2Rkh (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35029 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751558AbcGUILU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2016 13:40:37 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com
-Cc: lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com,
-	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 5/6] media: adv7180: fill in mbus format in set_fmt
-Date: Fri, 29 Jul 2016 19:40:11 +0200
-Message-Id: <20160729174012.14331-6-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20160729174012.14331-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20160729174012.14331-1-niklas.soderlund+renesas@ragnatech.se>
+	Thu, 21 Jul 2016 04:11:20 -0400
+Subject: Re: [PATCH v3 0/3] support of v4l2 encoder for STMicroelectronics SOC
+To: Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+	linux-media@vger.kernel.org
+References: <1469086804-21652-1-git-send-email-jean-christophe.trotin@st.com>
+Cc: kernel@stlinux.com,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Yannick Fertre <yannick.fertre@st.com>,
+	Hugues Fruchet <hugues.fruchet@st.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e71d58b2-e21a-1879-d69b-271071f27ff3@xs4all.nl>
+Date: Thu, 21 Jul 2016 10:11:11 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1469086804-21652-1-git-send-email-jean-christophe.trotin@st.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the V4L2_SUBDEV_FORMAT_TRY is used in set_fmt the width, height etc
-would not be filled.
+The module is still called 'hva'. I suggest calling it sti-hva instead.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/i2c/adv7180.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+> 	Format ioctls:
+> 		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+> 		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1187): S_PARM is supported for buftype 1, but not ENUM_FRAMEINTERVALS
+> 		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1187): S_PARM is supported for buftype 2, but not ENUM_FRAMEINTERVALS
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index b77b0a4..a8b434b 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -675,6 +675,7 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
- {
- 	struct adv7180_state *state = to_state(sd);
- 	struct v4l2_mbus_framefmt *framefmt;
-+	int ret;
- 
- 	switch (format->format.field) {
- 	case V4L2_FIELD_NONE:
-@@ -686,8 +687,9 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
- 		break;
- 	}
- 
-+	ret = adv7180_mbus_fmt(sd,  &format->format);
-+
- 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
--		framefmt = &format->format;
- 		if (state->field != format->format.field) {
- 			state->field = format->format.field;
- 			adv7180_set_power(state, false);
-@@ -699,7 +701,7 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
- 		*framefmt = format->format;
- 	}
- 
--	return adv7180_mbus_fmt(sd, framefmt);
-+	return ret;
- }
- 
- static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
--- 
-2.9.0
+So why is S_PARM supported? I asked about that in my review, but I got no answer.
 
+I've never seen that for m2m devices, and it really makes no sense IMHO.
+
+The 'framerate' is typically driven by how often new frames are submitted by the
+user. It's not up to the driver to mess with that.
+
+Regards,
+
+	Hans
