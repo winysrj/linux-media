@@ -1,59 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:36169 "EHLO
-	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752442AbcGTAEF (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:52889 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753994AbcGUUS0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 20:04:05 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: lars@metafoo.de
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 07/10] media: adv7180: change mbus format to UYVY
-Date: Tue, 19 Jul 2016 17:03:34 -0700
-Message-Id: <1468973017-17647-8-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
- <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Thu, 21 Jul 2016 16:18:26 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 09/12] [media] v4l2-async: document the remaining stuff
+Date: Thu, 21 Jul 2016 17:18:14 -0300
+Message-Id: <5ec652fa872560b8bb02d324dd6e6b635bc2d647.1469132139.git.mchehab@s-opensource.com>
+In-Reply-To: <8bf2bc4813f5dc2b797576bd9e61b4f5ee86bf22.1469132139.git.mchehab@s-opensource.com>
+References: <8bf2bc4813f5dc2b797576bd9e61b4f5ee86bf22.1469132139.git.mchehab@s-opensource.com>
+In-Reply-To: <8bf2bc4813f5dc2b797576bd9e61b4f5ee86bf22.1469132139.git.mchehab@s-opensource.com>
+References: <8bf2bc4813f5dc2b797576bd9e61b4f5ee86bf22.1469132139.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change the media bus format from YUYV8_2X8 to UYVY8_2X8. Colors
-now look correct when capturing with the i.mx6 backend.
+There are one enum and 4 functions undocumented there.
+Document them. That will fix the broken links at the
+v4l2-subdev.rst file.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Tested-by: Tim Harvey <tharvey@gateworks.com>
-Acked-by: Tim Harvey <tharvey@gateworks.com>
-Acked-by: Lars-Peter Clausen <lars@metafoo.de>
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/i2c/adv7180.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/media/v4l2-async.h | 39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 8259549..0f0568c 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -636,7 +636,7 @@ static int adv7180_enum_mbus_code(struct v4l2_subdev *sd,
- 	if (code->index != 0)
- 		return -EINVAL;
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 1d6d7da4c45d..8e2a236a4d03 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -23,6 +23,19 @@ struct v4l2_async_notifier;
+ /* A random max subdevice number, used to allocate an array on stack */
+ #define V4L2_MAX_SUBDEVS 128U
  
--	code->code = MEDIA_BUS_FMT_YUYV8_2X8;
-+	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
++/**
++ * enum v4l2_async_match_type - type of asynchronous subdevice logic to be used
++ *	in order to identify a match
++ *
++ * @V4L2_ASYNC_MATCH_CUSTOM: Match will use the logic provided by &struct
++ * 	v4l2_async_subdev.match ops
++ * @V4L2_ASYNC_MATCH_DEVNAME: Match will use the device name
++ * @V4L2_ASYNC_MATCH_I2C: Match will check for I2C adapter ID and address
++ * @V4L2_ASYNC_MATCH_OF: Match will use OF node
++ *
++ * This enum is used by the asyncrhronous sub-device logic to define the
++ * algorithm that will be used to match an asynchronous device.
++ */
+ enum v4l2_async_match_type {
+ 	V4L2_ASYNC_MATCH_CUSTOM,
+ 	V4L2_ASYNC_MATCH_DEVNAME,
+@@ -91,9 +104,35 @@ struct v4l2_async_notifier {
+ 		       struct v4l2_async_subdev *asd);
+ };
  
- 	return 0;
- }
-@@ -646,7 +646,7 @@ static int adv7180_mbus_fmt(struct v4l2_subdev *sd,
- {
- 	struct adv7180_state *state = to_state(sd);
- 
--	fmt->code = MEDIA_BUS_FMT_YUYV8_2X8;
-+	fmt->code = MEDIA_BUS_FMT_UYVY8_2X8;
- 	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 	fmt->width = 720;
- 	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
++/**
++ * v4l2_async_notifier_register - registers a subdevice asynchronous notifier
++ *
++ * @v4l2_dev: pointer to &struct v4l2_device
++ * @notifier: pointer to &struct v4l2_async_notifier
++ */
+ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 				 struct v4l2_async_notifier *notifier);
++
++/**
++ * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
++ *
++ * @notifier: pointer to &struct v4l2_async_notifier
++ */
+ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
++
++/**
++ * v4l2_async_register_subdev - registers a sub-device to the asynchronous
++ * 	subdevice framework
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ */
+ int v4l2_async_register_subdev(struct v4l2_subdev *sd);
++
++/**
++ * v4l2_async_unregister_subdev - unregisters a sub-device to the asynchronous
++ * 	subdevice framework
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ */
+ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
+ #endif
 -- 
-1.9.1
+2.7.4
 
