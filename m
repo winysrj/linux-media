@@ -1,50 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:59499 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:43790 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751278AbcGGGtJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jul 2016 02:49:09 -0400
+	id S1751346AbcGULPe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Jul 2016 07:15:34 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, bparrot@ti.com, nsekhar@ti.com,
-	prabhakar.csengg@gmail.com
-Subject: [PATCH v2.2 09/10] v4l: 16-bit BGGR is always 16 bits
-Date: Thu,  7 Jul 2016 09:48:21 +0300
-Message-Id: <1467874102-28365-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1467039471-19416-2-git-send-email-sakari.ailus@linux.intel.com>
-References: <1467039471-19416-2-git-send-email-sakari.ailus@linux.intel.com>
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: [PATCH v3 0/5] Refactor media IOCTL handling, add variable length arguments
+Date: Thu, 21 Jul 2016 14:14:39 +0300
+Message-Id: <1469099686-10938-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_PIX_FMT_SBGGR16 format is documented to contain samples of fewer
-than 16 bits. However, we do have specific definitions for smaller sample
-sizes. Therefore, this note is redundant from the API point of view.
+Hi,
 
-Currently only two drivers, am437x and davinci, use the V4L2_PIX_FMT_SBGGR16
-pixelformat currently. The sampling precision is understood to be 16 bits in
-all current cases.
+This is the third version of the media IOCTL handling rework set. What's
+changed since v2:
 
-Remove the note on sampling precision.
+patch 3:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+- Remove function to calculate maximum argument size, replace by a char         
+  array of 256 or kmalloc() if that's too small.                                
+
+- info->arg_from_user() may fail. Check the return code.                        
+
+- Instead of providing a no-operation of a copy function, check whether one is  
+  defined. If not, don't call one.                                              
+
+patch 4:
+
+- Arrange the flags field next to cmd, which is an integer. This avoids         
+  creating extra holes in the struct memory layout.                             
+
+patch 5:
+
+- Use a list of supported argument sizes instead of a minimum value.
+
 ---
- Documentation/DocBook/media/v4l/pixfmt-sbggr16.xml | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-sbggr16.xml b/Documentation/DocBook/media/v4l/pixfmt-sbggr16.xml
-index 6494b05..789160565 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-sbggr16.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-sbggr16.xml
-@@ -14,9 +14,7 @@
- linkend="V4L2-PIX-FMT-SBGGR8">
- <constant>V4L2_PIX_FMT_SBGGR8</constant></link>, except each pixel has
- a depth of 16 bits. The least significant byte is stored at lower
--memory addresses (little-endian). Note the actual sampling precision
--may be lower than 16 bits, for example 10 bits per pixel with values
--in range 0 to 1023.</para>
-+memory addresses (little-endian).</para>
- 
-     <example>
-       <title><constant>V4L2_PIX_FMT_SBGGR16</constant> 4 &times; 4
+The patches themselves have been reworked so I don't detail the changes         
+in this set. What's noteworthy however is that the set adds support for         
+variable length IOCTL arguments.                                                
+                                                                                
+(The motivation for these patches is having found myself pondering whether      
+to have nine or thirteen reserved fields for the request IOCTL. I decided       
+to address the problem instead. If this is found workable on the media          
+controller we could follow the same model on V4L2.)                             
+
 -- 
-2.7.4
+Kind regards,
+Sakari
 
