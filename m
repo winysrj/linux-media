@@ -1,82 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f175.google.com ([209.85.161.175]:35048 "EHLO
-	mail-yw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751455AbcGRPQZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 11:16:25 -0400
-Received: by mail-yw0-f175.google.com with SMTP id l125so162316183ywb.2
-        for <linux-media@vger.kernel.org>; Mon, 18 Jul 2016 08:16:10 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20160718150114.GC17101@phenom.ffwll.local>
-References: <20160714170340.GA32755@e106950-lin.cambridge.arm.com>
- <20160715073334.GO17101@phenom.ffwll.local> <20160715090918.GB32755@e106950-lin.cambridge.arm.com>
- <20160715105715.GG4329@intel.com> <87r3auajdi.fsf@eliezer.anholt.net>
- <20160718102933.GA603@e106950-lin.cambridge.arm.com> <7d4b6836-d896-f289-f940-bf641ae8e9fb@xs4all.nl>
- <20160718150114.GC17101@phenom.ffwll.local>
-From: Rob Clark <robdclark@gmail.com>
-Date: Mon, 18 Jul 2016 11:16:09 -0400
-Message-ID: <CAF6AEGt2vTXa49aRhYQrfTjwuC-VW=+zk9eiyAoaWuyRmsk=Fg@mail.gmail.com>
-Subject: Re: DRM device memory writeback (Mali-DP)
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>, liviu.dudau@arm.com,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mga04.intel.com ([192.55.52.120]:63070 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751529AbcGULSR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Jul 2016 07:18:17 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: [PATCH v3 4/5] media: Add flags to tell whether to take graph mutex for an IOCTL
+Date: Thu, 21 Jul 2016 14:17:30 +0300
+Message-Id: <1469099851-11026-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1469099686-10938-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1469099686-10938-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 18, 2016 at 11:01 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> On Mon, Jul 18, 2016 at 12:47:38PM +0200, Hans Verkuil wrote:
->> On 07/18/2016 12:29 PM, Brian Starkey wrote:
->> > OK, so let's talk about using connectors instead then :-)
->> >
->> > We can attach a generic fixed_mode property which can represent panel
->> > fitters or Mali-DP's writeback scaling, that sounds good.
->> >
->> > The DRM driver can create a new "virtual" encoder/connector pair, I
->> > guess with a new connector type specifically for memory-writeback?
->> > On this connector we allow the fb_id property to attach a framebuffer
->> > for writing into.
->> > We'd probably want an additional property to enable writeback, perhaps
->> > an enum: "disabled", "streaming", "oneshot".
->> >
->> > I think it makes sense to put the output buffer format, size etc.
->> > validation in the virtual encoder's atomic_check. It has access to
->> > both CRTC and connector state, and the encoder is supposed to
->> > represent the format/stream conversion element anyway.
->> >
->> > What I'm not so clear on is how to manage the API with userspace.
->>
->> I am not terribly enthusiastic (to say the least) if a new drm API is
->> created for video capture. That's what V4L2 is for and it comes with
->> kernel frameworks, documentation and utilities. Creating a new API will
->> not make userspace develoeprs happy.
->>
->> I know it is a pain to work with different subsystems, but reinventing
->> the wheel is a much bigger pain. For you and for the poor sods who have
->> to use yet another API to do the same thing.
->>
->> Of course this has to be hooked up to drm at the low level, and anything
->> that can be done to help out with that from the V4L2 side of things is
->> fine, but creating duplicate public APIs isn't the way IMHO.
->
-> I agree for the streaming video use-case. But for compositors I do agree
-> with Eric that a simple frame capture interface integrated with the drm
-> atomic ioctl is what we want. At least my understanding of v4l is that
-> it's not that well suited to grabbing specific (single) frames.
+New IOCTLs (especially for the request API) do not necessarily need the
+graph mutex acquired. Leave this up to the drivers.
 
-same here, we defn want to use v4l for the streaming case (so we can
-take advantage of existing userspace support for
-capture/encode/stream, etc)..  but for compositors, I think v4l would
-be awkward.  Ideal case is single set of driver APIs, so driver
-doesn't have to care so much about the use case, and then some drm_v4l
-helpers to expose a v4l device for the streaming case.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/media-device.c | 47 ++++++++++++++++++++++++++------------------
+ 1 file changed, 28 insertions(+), 19 deletions(-)
 
-There are some older patches floating around that implemented v4l
-inside drm/msm.. which looked simple enough, although I don't think we
-should need to do that in each drm driver..
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 87d17a0..6dfcc50 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -381,20 +381,25 @@ static long copy_arg_to_user(void __user *uarg, void *karg, unsigned int cmd)
+ 	return 0;
+ }
+ 
+-#define MEDIA_IOC_ARG(__cmd, func, from_user, to_user)	\
+-	[_IOC_NR(MEDIA_IOC_##__cmd)] = {		\
+-		.cmd = MEDIA_IOC_##__cmd,		\
++/* Do acquire the graph mutex */
++#define MEDIA_IOC_FL_GRAPH_MUTEX	BIT(0)
++
++#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
++	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
++		.cmd = MEDIA_IOC_##__cmd,				\
+ 		.fn = (long (*)(struct media_device *, void *))func,	\
+-		.arg_from_user = from_user,		\
+-		.arg_to_user = to_user,			\
++		.flags = fl,						\
++		.arg_from_user = from_user,				\
++		.arg_to_user = to_user,					\
+ 	}
+ 
+-#define MEDIA_IOC(__cmd, func)						\
+-	MEDIA_IOC_ARG(__cmd, func, copy_arg_from_user, copy_arg_to_user)
++#define MEDIA_IOC(__cmd, func, fl)					\
++	MEDIA_IOC_ARG(__cmd, func, fl, copy_arg_from_user, copy_arg_to_user)
+ 
+ /* the table is indexed by _IOC_NR(cmd) */
+ struct media_ioctl_info {
+ 	unsigned int cmd;
++	unsigned short flags;
+ 	long (*fn)(struct media_device *dev, void *arg);
+ 	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
+ 	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
+@@ -435,9 +440,13 @@ static long __media_device_ioctl(
+ 			goto out_free;
+ 	}
+ 
+-	mutex_lock(&dev->graph_mutex);
++	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
++		mutex_lock(&dev->graph_mutex);
++
+ 	ret = info->fn(dev, karg);
+-	mutex_unlock(&dev->graph_mutex);
++
++	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
++		mutex_unlock(&dev->graph_mutex);
+ 
+ 	if (!ret && info->arg_to_user)
+ 		ret = info->arg_to_user(arg, karg, cmd);
+@@ -450,11 +459,11 @@ out_free:
+ }
+ 
+ static const struct media_ioctl_info ioctl_info[] = {
+-	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
+-	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
+-	MEDIA_IOC(ENUM_LINKS, media_device_enum_links),
+-	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
+-	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
++	MEDIA_IOC(DEVICE_INFO, media_device_get_info, MEDIA_IOC_FL_GRAPH_MUTEX),
++	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities, MEDIA_IOC_FL_GRAPH_MUTEX),
++	MEDIA_IOC(ENUM_LINKS, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX),
++	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
++	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
+ };
+ 
+ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+@@ -497,11 +506,11 @@ static long from_user_enum_links32(void *karg, void __user *uarg,
+ #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, struct media_links_enum32)
+ 
+ static const struct media_ioctl_info compat_ioctl_info[] = {
+-	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
+-	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
+-	MEDIA_IOC_ARG(ENUM_LINKS32, media_device_enum_links, from_user_enum_links32, NULL),
+-	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
+-	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
++	MEDIA_IOC(DEVICE_INFO, media_device_get_info, MEDIA_IOC_FL_GRAPH_MUTEX),
++	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities, MEDIA_IOC_FL_GRAPH_MUTEX),
++	MEDIA_IOC_ARG(ENUM_LINKS32, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX, from_user_enum_links32, NULL),
++	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
++	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
+ };
+ 
+ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+-- 
+2.7.4
 
-BR,
--R
