@@ -1,125 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44891 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752420AbcGEClx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 22:41:53 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 3AA5E1800BF
-	for <linux-media@vger.kernel.org>; Tue,  5 Jul 2016 04:41:47 +0200 (CEST)
-Date: Tue, 05 Jul 2016 04:41:47 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160705024147.3AA5E1800BF@tschai.lan>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:39447 "EHLO
+	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751738AbcGUHbB convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Jul 2016 03:31:01 -0400
+From: Jean Christophe TROTIN <jean-christophe.trotin@st.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "kernel@stlinux.com" <kernel@stlinux.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Yannick FERTRE <yannick.fertre@st.com>,
+	Hugues FRUCHET <hugues.fruchet@st.com>
+Date: Thu, 21 Jul 2016 09:30:56 +0200
+Subject: Re: [PATCH v2 3/3] [media] hva: add H.264 video encoding support
+Message-ID: <57907A30.1050604@st.com>
+References: <1468250057-16395-1-git-send-email-jean-christophe.trotin@st.com>
+ <1468250057-16395-4-git-send-email-jean-christophe.trotin@st.com>
+ <1fe2ef16-5335-cb5c-253e-533cd3dc8b41@xs4all.nl>
+In-Reply-To: <1fe2ef16-5335-cb5c-253e-533cd3dc8b41@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
 
-date:		Tue Jul  5 04:00:25 CEST 2016
-git branch:	test
-git hash:	d81295d1bed850335f9f4ccb6b1aa4f6a123d4f0
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+On 07/18/2016 01:55 PM, Hans Verkuil wrote:
+> On 07/11/2016 05:14 PM, Jean-Christophe Trotin wrote:
+>> This patch adds the H.264 video encoding capability in the V4L2 HVA
+>> video encoder driver for STMicroelectronics SoC (hva-h264.c).
+>>
+>> The main supported features are:
+>> - profile: baseline, main, high, stereo high
+>> - level: up to 4.2
+>> - bitrate mode: CBR, VBR
+>> - entropy mode: CABAC, CAVLC
+>> - video aspect: 1x1 only
+>>
+>> Signed-off-by: Yannick Fertre <yannick.fertre@st.com>
+>> Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+>> ---
+>>   drivers/media/platform/sti/hva/Makefile   |    2 +-
+>>   drivers/media/platform/sti/hva/hva-h264.c | 1053 +++++++++++++++++++++++++++++
+>>   drivers/media/platform/sti/hva/hva-v4l2.c |  107 ++-
+>>   drivers/media/platform/sti/hva/hva.h      |  115 +++-
+>>   4 files changed, 1270 insertions(+), 7 deletions(-)
+>>   create mode 100644 drivers/media/platform/sti/hva/hva-h264.c
+>>
+>
+> <snip>
+>
+>> diff --git a/drivers/media/platform/sti/hva/hva.h b/drivers/media/platform/sti/hva/hva.h
+>> index 9a1b503b..a81f313 100644
+>> --- a/drivers/media/platform/sti/hva/hva.h
+>> +++ b/drivers/media/platform/sti/hva/hva.h
+>> @@ -23,6 +23,9 @@
+>>
+>>   #define HVA_PREFIX "[---:----]"
+>>
+>> +extern const struct hva_enc nv12h264enc;
+>> +extern const struct hva_enc nv21h264enc;
+>> +
+>>   /**
+>>    * struct hva_frameinfo - information about hva frame
+>>    *
+>> @@ -67,13 +70,35 @@ struct hva_streaminfo {
+>>    * @gop_size:       groupe of picture size
+>>    * @bitrate:        bitrate (in kbps)
+>>    * @aspect:         video aspect
+>> + * @profile:        H.264 profile
+>> + * @level:          H.264 level
+>> + * @entropy_mode:   H.264 entropy mode (CABAC or CVLC)
+>> + * @cpb_size:       coded picture buffer size (in kbps)
+>> + * @dct8x8:         transform mode 8x8 enable
+>> + * @qpmin:          minimum quantizer
+>> + * @qpmax:          maximum quantizer
+>> + * @vui_sar:        pixel aspect ratio enable
+>> + * @vui_sar_idc:    pixel aspect ratio identifier
+>> + * @sei_fp:         sei frame packing arrangement enable
+>> + * @sei_fp_type:    sei frame packing arrangement type
+>>    */
+>>   struct hva_controls {
+>> -	struct v4l2_fract			time_per_frame;
+>> -	enum v4l2_mpeg_video_bitrate_mode	bitrate_mode;
+>> -	u32					gop_size;
+>> -	u32					bitrate;
+>> -	enum v4l2_mpeg_video_aspect		aspect;
+>> +	struct v4l2_fract					time_per_frame;
+>> +	enum v4l2_mpeg_video_bitrate_mode			bitrate_mode;
+>> +	u32							gop_size;
+>> +	u32							bitrate;
+>> +	enum v4l2_mpeg_video_aspect				aspect;
+>> +	enum v4l2_mpeg_video_h264_profile			profile;
+>> +	enum v4l2_mpeg_video_h264_level				level;
+>> +	enum v4l2_mpeg_video_h264_entropy_mode			entropy_mode;
+>> +	u32							cpb_size;
+>> +	bool							dct8x8;
+>> +	u32							qpmin;
+>> +	u32							qpmax;
+>> +	bool							vui_sar;
+>> +	enum v4l2_mpeg_video_h264_vui_sar_idc			vui_sar_idc;
+>> +	bool							sei_fp;
+>> +	enum v4l2_mpeg_video_h264_sei_fp_arrangement_type	sei_fp_type;
+>>   };
+>>
+>>   /**
+>> @@ -281,4 +306,84 @@ struct hva_enc {
+>>   				  struct hva_stream *stream);
+>>   };
+>>
+>> +static inline const char *profile_str(unsigned int p)
+>> +{
+>> +	switch (p) {
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE:
+>> +		return "baseline profile";
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_MAIN:
+>> +		return "main profile";
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_EXTENDED:
+>> +		return "extended profile";
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_HIGH:
+>> +		return "high profile";
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10:
+>> +		return "high 10 profile";
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422:
+>> +		return "high 422 profile";
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_PREDICTIVE:
+>> +		return "high 444 predictive profile";
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10_INTRA:
+>> +		return "high 10 intra profile";
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422_INTRA:
+>> +		return "high 422 intra profile";
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_INTRA:
+>> +		return "high 444 intra profile";
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_CAVLC_444_INTRA:
+>> +		return "calvc 444 intra profile";
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_BASELINE:
+>> +		return "scalable baseline profile";
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_HIGH:
+>> +		return "scalable high profile";
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_HIGH_INTRA:
+>> +		return "scalable high intra profile";
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_STEREO_HIGH:
+>> +		return "stereo high profile";
+>> +	case V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH:
+>> +		return "multiview high profile";
+>> +	default:
+>> +		return "unknown profile";
+>> +	}
+>> +}
+>> +
+>> +static inline const char *level_str(enum v4l2_mpeg_video_h264_level l)
+>> +{
+>> +	switch (l) {
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_1_0:
+>> +		return "level 1.0";
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_1B:
+>> +		return "level 1b";
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_1_1:
+>> +		return "level 1.1";
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_1_2:
+>> +		return "level 1.2";
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_1_3:
+>> +		return "level 1.3";
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_2_0:
+>> +		return "level 2.0";
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_2_1:
+>> +		return "level 2.1";
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_2_2:
+>> +		return "level 2.2";
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_3_0:
+>> +		return "level 3.0";
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_3_1:
+>> +		return "level 3.1";
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_3_2:
+>> +		return "level 3.2";
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_4_0:
+>> +		return "level 4.0";
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_4_1:
+>> +		return "level 4.1";
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_4_2:
+>> +		return "level 4.2";
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_5_0:
+>> +		return "level 5.0";
+>> +	case V4L2_MPEG_VIDEO_H264_LEVEL_5_1:
+>> +		return "level 5.1";
+>> +	default:
+>> +		return "unknown level";
+>> +	}
+>> +}
+>
+> These two static inlines should be replaced. You can get the menu strings directly
+> with v4l2_ctrl_get_menu(). No need to duplicate these strings here.
+>
+> Regards,
+>
+> 	Hans
+>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mtk: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+Hi Hans,
 
-Detailed results are available here:
+Thank you for your comments.
+In version 3, v4l2_ctrl_get_menu() will be used instead of the 2 static inlines.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Best regards,
+Jean-Christophe.
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+>> +
+>>   #endif /* HVA_H */
+>>
