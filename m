@@ -1,75 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:56784 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932118AbcGMIuv (ORCPT
+Received: from exsmtp03.microchip.com ([198.175.253.49]:40248 "EHLO
+	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751790AbcGUIcC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 04:50:51 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	PoChun Lin <pochun.lin@mediatek.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2] [media] mtk-vcodec: fix more type mismatches
-Date: Wed, 13 Jul 2016 10:47:40 +0200
-Message-Id: <20160713084916.2765651-1-arnd@arndb.de>
+	Thu, 21 Jul 2016 04:32:02 -0400
+From: Songjun Wu <songjun.wu@microchip.com>
+To: <nicolas.ferre@atmel.com>, <robh@kernel.org>
+CC: <laurent.pinchart@ideasonboard.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	Songjun Wu <songjun.wu@microchip.com>,
+	<devicetree@vger.kernel.org>,
+	"Mark Rutland" <mark.rutland@arm.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH v6 2/2] [media] atmel-isc: DT binding for Image Sensor Controller driver
+Date: Thu, 21 Jul 2016 16:14:58 +0800
+Message-ID: <1469088900-23935-3-git-send-email-songjun.wu@microchip.com>
+In-Reply-To: <1469088900-23935-1-git-send-email-songjun.wu@microchip.com>
+References: <1469088900-23935-1-git-send-email-songjun.wu@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The newly added mtk-vcodec driver produces a number of warnings in an ARM
-allmodconfig build, mainly since it assumes that dma_addr_t is 32-bit wide:
+DT binding documentation for ISC driver.
 
-mtk-vcodec/venc/venc_vp8_if.c: In function 'vp8_enc_alloc_work_buf':
-mtk-vcodec/venc/venc_vp8_if.c:212:191: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
-mtk-vcodec/venc/venc_h264_if.c: In function 'h264_enc_alloc_work_buf':
-mtk-vcodec/venc/venc_h264_if.c:297:190: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
-
-This rearranges the format strings and type casts to what they should have been
-in order to avoid the warnings. e0f80d8d62f5 ("[media] mtk-vcodec: fix two compiler
-warnings") fixed some of the problems that were introduced at the same time, but
-missed two others.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
 ---
- drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c | 4 ++--
- drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c  | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
-index f4e18bb44cb9..9a600525b3c1 100644
---- a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
-+++ b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
-@@ -295,9 +295,9 @@ static int h264_enc_alloc_work_buf(struct venc_h264_inst *inst)
- 		wb[i].iova = inst->work_bufs[i].dma_addr;
- 
- 		mtk_vcodec_debug(inst,
--				 "work_buf[%d] va=0x%p iova=0x%p size=%zu",
-+				 "work_buf[%d] va=0x%p iova=%pad size=%zu",
- 				 i, inst->work_bufs[i].va,
--				 (void *)inst->work_bufs[i].dma_addr,
-+				 &inst->work_bufs[i].dma_addr,
- 				 inst->work_bufs[i].size);
- 	}
- 
-diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
-index 5b4ef0f1740c..60bbcd2a0510 100644
---- a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
-+++ b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
-@@ -210,9 +210,9 @@ static int vp8_enc_alloc_work_buf(struct venc_vp8_inst *inst)
- 		wb[i].iova = inst->work_bufs[i].dma_addr;
- 
- 		mtk_vcodec_debug(inst,
--				 "work_bufs[%d] va=0x%p,iova=0x%p,size=%zu",
-+				 "work_bufs[%d] va=0x%p,iova=%pad,size=%zu",
- 				 i, inst->work_bufs[i].va,
--				 (void *)inst->work_bufs[i].dma_addr,
-+				 &inst->work_bufs[i].dma_addr,
- 				 inst->work_bufs[i].size);
- 	}
- 
+Changes in v6:
+- Add "iscck" and "gck" to clock-names.
+
+Changes in v5:
+- Add clock-output-names.
+
+Changes in v4:
+- Remove the isc clock nodes.
+
+Changes in v3:
+- Remove the 'atmel,sensor-preferred'.
+- Modify the isc clock node according to the Rob's remarks.
+
+Changes in v2:
+- Remove the unit address of the endpoint.
+- Add the unit address to the clock node.
+- Avoid using underscores in node names.
+- Drop the "0x" in the unit address of the i2c node.
+- Modify the description of 'atmel,sensor-preferred'.
+- Add the description for the ISC internal clock.
+
+ .../devicetree/bindings/media/atmel-isc.txt        | 65 ++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
+
+diff --git a/Documentation/devicetree/bindings/media/atmel-isc.txt b/Documentation/devicetree/bindings/media/atmel-isc.txt
+new file mode 100644
+index 0000000..50ab60b
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/atmel-isc.txt
+@@ -0,0 +1,65 @@
++Atmel Image Sensor Controller (ISC)
++----------------------------------------------
++
++Required properties for ISC:
++- compatible
++	Must be "atmel,sama5d2-isc".
++- reg
++	Physical base address and length of the registers set for the device.
++- interrupts
++	Should contain IRQ line for the ISC.
++- clocks
++	List of clock specifiers, corresponding to entries in
++	the clock-names property;
++	Please refer to clock-bindings.txt.
++- clock-names
++	Required elements: "hclock", "iscck", "gck".
++- #clock-cells
++	Should be 0.
++- clock-output-names
++	Should be "isc-mck".
++- pinctrl-names, pinctrl-0
++	Please refer to pinctrl-bindings.txt.
++
++ISC supports a single port node with parallel bus. It should contain one
++'port' child node with child 'endpoint' node. Please refer to the bindings
++defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++isc: isc@f0008000 {
++	compatible = "atmel,sama5d2-isc";
++	reg = <0xf0008000 0x4000>;
++	interrupts = <46 IRQ_TYPE_LEVEL_HIGH 5>;
++	clocks = <&isc_clk>, <&iscck>, <&isc_gclk>;
++	clock-names = "hclock", "iscck", "gck";
++	#clock-cells = <0>;
++	clock-output-names = "isc-mck";
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_isc_base &pinctrl_isc_data_8bit &pinctrl_isc_data_9_10 &pinctrl_isc_data_11_12>;
++
++	port {
++		isc_0: endpoint {
++			remote-endpoint = <&ov7740_0>;
++			hsync-active = <1>;
++			vsync-active = <0>;
++			pclk-sample = <1>;
++		};
++	};
++};
++
++i2c1: i2c@fc028000 {
++	ov7740: camera@21 {
++		compatible = "ovti,ov7740";
++		reg = <0x21>;
++		clocks = <&isc>;
++		clock-names = "xvclk";
++		assigned-clocks = <&isc>;
++		assigned-clock-rates = <24000000>;
++
++		port {
++			ov7740_0: endpoint {
++				remote-endpoint = <&isc_0>;
++			};
++		};
++	};
++};
+\ No newline at end of file
 -- 
-2.9.0
+2.7.4
 
