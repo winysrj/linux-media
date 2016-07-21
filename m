@@ -1,57 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36560 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751441AbcGVJJb (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:47536 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752210AbcGUAsQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 05:09:31 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	william.towle@codethink.co.uk, geert@linux-m68k.org,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v6 1/4] media: adv7604: automatic "default-input" selection
-Date: Fri, 22 Jul 2016 11:09:11 +0200
-Message-Id: <1469178554-20719-2-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Wed, 20 Jul 2016 20:48:16 -0400
+Date: Thu, 21 Jul 2016 09:48:12 +0900
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andi Shyti <andi@etezian.org>
+Subject: Re: [RFC 5/7] [media] ir-lirc-codec: do not handle any buffer for raw
+ transmitters
+Message-id: <20160721004812.GF23521@samsunx.samsung>
+References: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
+ <1468943818-26025-6-git-send-email-andi.shyti@samsung.com>
+ <CGME20160719221617epcas1p45a886e86e2040ce40565acd32d778555@epcas1p4.samsung.com>
+ <20160719221610.GC24697@gofer.mess.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-disposition: inline
+In-reply-to: <20160719221610.GC24697@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fall back to input 0 if "default-input" property is not present.
+Hi Sean,
 
-Additionally, documentation in commit bf9c82278c34 ("[media]
-media: adv7604: ability to read default input port from DT") states
-that the "default-input" property should reside directly in the node
-for adv7612. Hence, also adjust the parsing to make the implementation
-consistent with this.
+> > Raw transmitters receive the data which need to be sent to
+> > receivers from userspace as stream of bits, they don't require
+> > any handling from the lirc framework.
+> 
+> No drivers of type RC_DRIVER_IR_RAW_TX should handle tx just like any
+> other device, so data should be provided as an array of u32 alternating
+> pulse-space. If your device does not handle input like that then convert
+> it into that format in the driver. Every other driver has to do some
+> sort of conversion of that kind.
 
-Based on patch by William Towle <william.towle@codethink.co.uk>.
+I don't see anything wrong here, that's how it works for example
+in Tizen or in Android for the boards I'm on: userspace sends a
+stream of bits that are then submitted to the IR as they are.
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- drivers/media/i2c/adv7604.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+If I change it to only pulse-space domain, then I wouldn't
+provide support for those platforms. Eventually I can add a new
+protocol.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 4003831..055c9df 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -3077,10 +3077,13 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	if (!of_property_read_u32(endpoint, "default-input", &v))
- 		state->pdata.default_input = v;
- 	else
--		state->pdata.default_input = -1;
-+		state->pdata.default_input = 0;
- 
- 	of_node_put(endpoint);
- 
-+	if (!of_property_read_u32(np, "default-input", &v))
-+		state->pdata.default_input = v;
-+
- 	flags = bus_cfg.bus.parallel.flags;
- 
- 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
--- 
-2.7.4
-
+Andi
