@@ -1,76 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:35628 "EHLO
-	mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751311AbcGWRA7 (ORCPT
+Received: from 17.mo3.mail-out.ovh.net ([87.98.178.58]:43965 "EHLO
+	17.mo3.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752369AbcGUMfB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jul 2016 13:00:59 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: lars@metafoo.de
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v3 1/9] media: adv7180: Fix broken interrupt register access
-Date: Sat, 23 Jul 2016 10:00:41 -0700
-Message-Id: <1469293249-6774-2-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
+	Thu, 21 Jul 2016 08:35:01 -0400
+Received: from player734.ha.ovh.net (b7.ovh.net [213.186.33.57])
+	by mo3.mail-out.ovh.net (Postfix) with ESMTP id 01C96FFD243
+	for <linux-media@vger.kernel.org>; Thu, 21 Jul 2016 14:34:58 +0200 (CEST)
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+To: linux-media@vger.kernel.org
+Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Subject: [PATCH v3 0/2] Add GS1662 driver
+Date: Thu, 21 Jul 2016 14:34:40 +0200
+Message-Id: <1469104482-20119-1-git-send-email-charles-antoine.couret@nexvision.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Access to the interrupt page registers has been broken since at least
-commit 3999e5d01da7 ("[media] adv7180: Do implicit register paging").
-That commit forgot to add the interrupt page number to the register
-defines.
+These patches add a driver for GS1662 component, a video serializer which
+supports CEA and SDI timings.
+To perform that, we need to determine SDI definition and some flags.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Tested-by: Tim Harvey <tharvey@gateworks.com>
-Acked-by: Tim Harvey <tharvey@gateworks.com>
-Acked-by: Lars-Peter Clausen <lars@metafoo.de>
+This third patchset add:
+	* flags printing in v4l2_print_dv_timings() function
+	* improvement of some comments
+	* additional comments
+	* timings->pad checking
+	* fix configuration dependencies
 
----
-v3: no changes
-v2: no changes
----
- drivers/media/i2c/adv7180.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+Charles-Antoine Couret (2):
+  SDI: add flag for SDI formats and SMPTE 125M definition
+  Add GS1662 driver, a video serializer
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index b77b0a4..95cbc85 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -100,7 +100,7 @@
- #define ADV7180_REG_IDENT 0x0011
- #define ADV7180_ID_7180 0x18
- 
--#define ADV7180_REG_ICONF1		0x0040
-+#define ADV7180_REG_ICONF1		0x2040
- #define ADV7180_ICONF1_ACTIVE_LOW	0x01
- #define ADV7180_ICONF1_PSYNC_ONLY	0x10
- #define ADV7180_ICONF1_ACTIVE_TO_CLR	0xC0
-@@ -113,15 +113,15 @@
- 
- #define ADV7180_IRQ1_LOCK	0x01
- #define ADV7180_IRQ1_UNLOCK	0x02
--#define ADV7180_REG_ISR1	0x0042
--#define ADV7180_REG_ICR1	0x0043
--#define ADV7180_REG_IMR1	0x0044
--#define ADV7180_REG_IMR2	0x0048
-+#define ADV7180_REG_ISR1	0x2042
-+#define ADV7180_REG_ICR1	0x2043
-+#define ADV7180_REG_IMR1	0x2044
-+#define ADV7180_REG_IMR2	0x2048
- #define ADV7180_IRQ3_AD_CHANGE	0x08
--#define ADV7180_REG_ISR3	0x004A
--#define ADV7180_REG_ICR3	0x004B
--#define ADV7180_REG_IMR3	0x004C
--#define ADV7180_REG_IMR4	0x50
-+#define ADV7180_REG_ISR3	0x204A
-+#define ADV7180_REG_ICR3	0x204B
-+#define ADV7180_REG_IMR3	0x204C
-+#define ADV7180_REG_IMR4	0x2050
- 
- #define ADV7180_REG_NTSC_V_BIT_END	0x00E6
- #define ADV7180_NTSC_V_BIT_END_MANUAL_NVEND	0x4F
+ drivers/media/Kconfig                     |   1 +
+ drivers/media/Makefile                    |   2 +-
+ drivers/media/spi/Kconfig                 |   9 +
+ drivers/media/spi/Makefile                |   1 +
+ drivers/media/spi/gs1662.c                | 472 ++++++++++++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-dv-timings.c |  11 +-
+ include/uapi/linux/v4l2-dv-timings.h      |  12 +
+ include/uapi/linux/videodev2.h            |   5 +
+ 8 files changed, 508 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/media/spi/Kconfig
+ create mode 100644 drivers/media/spi/Makefile
+ create mode 100644 drivers/media/spi/gs1662.c
+
 -- 
-1.9.1
+2.7.4
 
