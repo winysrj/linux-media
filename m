@@ -1,127 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45881 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751590AbcGRB4b (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:50081 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751906AbcGUMOO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 21:56:31 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Kees Cook <keescook@chromium.org>, linux-doc@vger.kernel.org
-Subject: [PATCH 16/36] [media] cx88.rst: Update the documentation
-Date: Sun, 17 Jul 2016 22:55:59 -0300
-Message-Id: <55aa32feb03fadc8779fc14e94f73f0b65c4d2f2.1468806744.git.mchehab@s-opensource.com>
-In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+	Thu, 21 Jul 2016 08:14:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	laurent.pinchart@ideasonboard.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 1/2] vb2: don't return NULL for alloc and get_userptr ops
+Date: Thu, 21 Jul 2016 14:14:02 +0200
+Message-Id: <1469103243-5296-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1469103243-5296-1-git-send-email-hverkuil@xs4all.nl>
+References: <1469103243-5296-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This doc is outdated, and contains information that it is not
-true anymore. Update it to reflect the changes that this
-driver suffered since I started working on it.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-While here, also update Gerd's name.
+Always return an ERR_PTR() instead of NULL.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+This makes the behavior of alloc, get_userptr and attach_dmabuf the
+same.
+
+Update the documentation in videobuf2-core.h as well.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/media/v4l-drivers/cx88.rst | 52 +++++++++++---------------------
- 1 file changed, 17 insertions(+), 35 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c    | 12 ++++++++----
+ drivers/media/v4l2-core/videobuf2-dma-sg.c  | 13 +++++++------
+ drivers/media/v4l2-core/videobuf2-vmalloc.c | 13 ++++++++-----
+ include/media/videobuf2-core.h              |  6 +++---
+ 4 files changed, 26 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/media/v4l-drivers/cx88.rst b/Documentation/media/v4l-drivers/cx88.rst
-index f4e69306f64d..ac83292776da 100644
---- a/Documentation/media/v4l-drivers/cx88.rst
-+++ b/Documentation/media/v4l-drivers/cx88.rst
-@@ -1,42 +1,29 @@
- The cx88 driver
- ===============
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index ca8ffeb..4d60bdb 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -198,6 +198,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+ 	void *mem_priv;
+ 	int plane;
++	int ret = -ENOMEM;
  
--.. note::
--
--   This documentation is outdated.
--
--cx8800 release notes
----------------------
-+Author:  Gerd Hoffmann
+ 	/*
+ 	 * Allocate memory for all planes in this buffer
+@@ -209,8 +210,11 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 		mem_priv = call_ptr_memop(vb, alloc,
+ 				q->alloc_devs[plane] ? : q->dev,
+ 				q->dma_attrs, size, dma_dir, q->gfp_flags);
+-		if (IS_ERR_OR_NULL(mem_priv))
++		if (IS_ERR(mem_priv)) {
++			if (mem_priv)
++				ret = PTR_ERR(mem_priv);
+ 			goto free;
++		}
  
- This is a v4l2 device driver for the cx2388x chip.
+ 		/* Associate allocator private data with this plane */
+ 		vb->planes[plane].mem_priv = mem_priv;
+@@ -224,7 +228,7 @@ free:
+ 		vb->planes[plane - 1].mem_priv = NULL;
+ 	}
  
+-	return -ENOMEM;
++	return ret;
+ }
  
--current status
-+Current status
- --------------
+ /**
+@@ -1136,10 +1140,10 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
+ 				q->alloc_devs[plane] ? : q->dev,
+ 				planes[plane].m.userptr,
+ 				planes[plane].length, dma_dir);
+-		if (IS_ERR_OR_NULL(mem_priv)) {
++		if (IS_ERR(mem_priv)) {
+ 			dprintk(1, "failed acquiring userspace "
+ 						"memory for plane %d\n", plane);
+-			ret = mem_priv ? PTR_ERR(mem_priv) : -EINVAL;
++			ret = PTR_ERR(mem_priv);
+ 			goto err;
+ 		}
+ 		vb->planes[plane].mem_priv = mem_priv;
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index a39db8a..e2afd2c 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -107,11 +107,12 @@ static void *vb2_dma_sg_alloc(struct device *dev, const struct dma_attrs *dma_at
  
- video
--	- Basically works.
--	- For now, only capture and read(). Overlay isn't supported.
-+	- Works.
-+	- Overlay isn't supported.
+ 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
  
- audio
--	- The chip specs for the on-chip TV sound decoder are next
--	  to useless :-/
--	- Neverless the builtin TV sound decoder starts working now,
--	  at least for some standards.
--	  FOR ANY REPORTS ON THIS PLEASE MENTION THE TV NORM YOU ARE
--	  USING.
--	- Most tuner chips do provide mono sound, which may or may not
--	  be useable depending on the board design.  With the Hauppauge
--	  cards it works, so there is mono sound available as fallback.
-+	- Works. The TV standard detection is made by the driver, as the
-+	  hardware has bugs to auto-detect.
- 	- audio data dma (i.e. recording without loopback cable to the
- 	  sound card) is supported via cx88-alsa.
+-	if (WARN_ON(dev == NULL))
+-		return NULL;
++	if (WARN_ON(!dev))
++		return ERR_PTR(-EINVAL);
++
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
  
- vbi
--	- Code present. Works for NTSC closed caption. PAL and other
--	  TV norms may or may not work.
-+	- Works.
+ 	buf->vaddr = NULL;
+ 	buf->dma_dir = dma_dir;
+@@ -169,7 +170,7 @@ fail_pages_alloc:
+ 	kfree(buf->pages);
+ fail_pages_array_alloc:
+ 	kfree(buf);
+-	return NULL;
++	return ERR_PTR(-ENOMEM);
+ }
  
+ static void vb2_dma_sg_put(void *buf_priv)
+@@ -234,7 +235,7 @@ static void *vb2_dma_sg_get_userptr(struct device *dev, unsigned long vaddr,
+ 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
  
--how to add support for new cards
-+How to add support for new cards
- --------------------------------
+ 	buf->vaddr = NULL;
+ 	buf->dev = dev;
+@@ -274,7 +275,7 @@ userptr_fail_sgtable:
+ 	vb2_destroy_framevec(vec);
+ userptr_fail_pfnvec:
+ 	kfree(buf);
+-	return NULL;
++	return ERR_PTR(-ENOMEM);
+ }
  
- The driver needs some config info for the TV cards.  This stuff is in
-@@ -53,24 +40,19 @@ like this one:
- If your card is listed as "board: UNKNOWN/GENERIC" it is unknown to
- the driver.  What to do then?
+ /*
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index 7e8a07e..4fdfefd 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -41,7 +41,7 @@ static void *vb2_vmalloc_alloc(struct device *dev, const struct dma_attrs *attrs
  
-- (1) Try upgrading to the latest snapshot, maybe it has been added
--     meanwhile.
-- (2) You can try to create a new entry yourself, have a look at
--     cx88-cards.c.  If that worked, mail me your changes as unified
--     diff ("diff -u").
-- (3) Or you can mail me the config information.  I need at least the
--     following information to add the card:
-+1) Try upgrading to the latest snapshot, maybe it has been added
-+   meanwhile.
-+2) You can try to create a new entry yourself, have a look at
-+   cx88-cards.c.  If that worked, mail me your changes as unified
-+   diff ("diff -u").
-+3) Or you can mail me the config information.  We need at least the
-+   following information to add the card:
+ 	buf = kzalloc(sizeof(*buf), GFP_KERNEL | gfp_flags);
+ 	if (!buf)
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
  
--     * the PCI Subsystem ID ("0070:3400" from the line above,
-+     - the PCI Subsystem ID ("0070:3400" from the line above,
-        "lspci -v" output is fine too).
--     * the tuner type used by the card.  You can try to find one by
-+     - the tuner type used by the card.  You can try to find one by
-        trial-and-error using the tuner=<n> insmod option.  If you
-        know which one the card has you can also have a look at the
-        list in CARDLIST.tuner
+ 	buf->size = size;
+ 	buf->vaddr = vmalloc_user(buf->size);
+@@ -53,7 +53,7 @@ static void *vb2_vmalloc_alloc(struct device *dev, const struct dma_attrs *attrs
+ 	if (!buf->vaddr) {
+ 		pr_debug("vmalloc of size %ld failed\n", buf->size);
+ 		kfree(buf);
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
+ 	}
  
--Have fun,
+ 	atomic_inc(&buf->refcount);
+@@ -77,17 +77,20 @@ static void *vb2_vmalloc_get_userptr(struct device *dev, unsigned long vaddr,
+ 	struct vb2_vmalloc_buf *buf;
+ 	struct frame_vector *vec;
+ 	int n_pages, offset, i;
++	int ret = -ENOMEM;
  
--  Gerd
--
----
--Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
+ 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+ 	if (!buf)
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	buf->dma_dir = dma_dir;
+ 	offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
+-	if (IS_ERR(vec))
++	if (IS_ERR(vec)) {
++		ret = PTR_ERR(vec);
+ 		goto fail_pfnvec_create;
++	}
+ 	buf->vec = vec;
+ 	n_pages = frame_vector_count(vec);
+ 	if (frame_vector_to_pages(vec) < 0) {
+@@ -117,7 +120,7 @@ fail_map:
+ fail_pfnvec_create:
+ 	kfree(buf);
+ 
+-	return NULL;
++	return ERR_PTR(ret);
+ }
+ 
+ static void vb2_vmalloc_put_userptr(void *buf_priv)
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index bea81c9e..b4e8826 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -33,7 +33,7 @@ struct vb2_threadio_data;
+ /**
+  * struct vb2_mem_ops - memory handling/memory allocator operations
+  * @alloc:	allocate video memory and, optionally, allocator private data,
+- *		return NULL on failure or a pointer to allocator private,
++ *		return ERR_PTR() on failure or a pointer to allocator private,
+  *		per-buffer data on success; the returned private structure
+  *		will then be passed as buf_priv argument to other ops in this
+  *		structure. Additional gfp_flags to use when allocating the
+@@ -50,14 +50,14 @@ struct vb2_threadio_data;
+  *		 USERPTR memory types; vaddr is the address passed to the
+  *		 videobuf layer when queuing a video buffer of USERPTR type;
+  *		 should return an allocator private per-buffer structure
+- *		 associated with the buffer on success, NULL on failure;
++ *		 associated with the buffer on success, ERR_PTR() on failure;
+  *		 the returned private structure will then be passed as buf_priv
+  *		 argument to other ops in this structure.
+  * @put_userptr: inform the allocator that a USERPTR buffer will no longer
+  *		 be used.
+  * @attach_dmabuf: attach a shared struct dma_buf for a hardware operation;
+  *		   used for DMABUF memory types; dev is the alloc device
+- *		   dbuf is the shared dma_buf; returns NULL on failure;
++ *		   dbuf is the shared dma_buf; returns ERR_PTR() on failure;
+  *		   allocator private per-buffer structure on success;
+  *		   this needs to be used for further accesses to the buffer.
+  * @detach_dmabuf: inform the exporter of the buffer that the current DMABUF
 -- 
-2.7.4
+2.8.1
 
