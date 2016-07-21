@@ -1,67 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46598
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751054AbcGNMqr (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:25527 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752478AbcGUNNi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2016 08:46:47 -0400
-Subject: Re: [PATCH] media: s5p-mfc remove unnecessary error messages
-To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
-	k.debski@samsung.com, jtp.park@samsung.com, mchehab@kernel.org
-References: <1468370038-5364-1-git-send-email-shuahkh@osg.samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <c38dc1b5-e2f7-4486-a0fc-a8f690d28fe6@osg.samsung.com>
-Date: Thu, 14 Jul 2016 08:46:34 -0400
-MIME-Version: 1.0
-In-Reply-To: <1468370038-5364-1-git-send-email-shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Thu, 21 Jul 2016 09:13:38 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OAO0090922N2WB0@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 21 Jul 2016 14:13:35 +0100 (BST)
+Subject: Re: [PATCHv2 0/2] vb2: check for valid device pointer
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1469103243-5296-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	laurent.pinchart@ideasonboard.com
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <2f4812ba-6bc4-4159-93b2-294cf12d1a80@samsung.com>
+Date: Thu, 21 Jul 2016 15:13:33 +0200
+MIME-version: 1.0
+In-reply-to: <1469103243-5296-1-git-send-email-hverkuil@xs4all.nl>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Shuah,
+Hi
 
-On 07/12/2016 08:33 PM, Shuah Khan wrote:
-> Removing unnecessary error messages as appropriate error code is returned.
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc.c | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> index b6fde20..906f80c 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> @@ -759,7 +759,6 @@ static int s5p_mfc_open(struct file *file)
->  	/* Allocate memory for context */
->  	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
->  	if (!ctx) {
-> -		mfc_err("Not enough memory\n");
 
-I agree to remove this since in case of a OOM, the core already does a
-stack dump and prints an error message so there's no need to it here.
+On 2016-07-21 14:14, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Make error handling of alloc, get_userptr and attach_dmabuf systematic.
+>
+> Add tests to check for a valid non-NULL device pointer.
 
->  		ret = -ENOMEM;
->  		goto err_alloc;
->  	}
-> @@ -776,7 +775,6 @@ static int s5p_mfc_open(struct file *file)
->  	while (dev->ctx[ctx->num]) {
->  		ctx->num++;
->  		if (ctx->num >= MFC_NUM_CONTEXTS) {
-> -			mfc_err("Too many open contexts\n");
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-But I think this error message shouldn't be removed since explains why
-the open failed, even when an error code is returned.
+>
+> Regards,
+>
+> 	Hans
+>
+> Changes since v1:
+>
+> - Split into two patches
+> - Drop pr_debug
+>
+> Hans Verkuil (2):
+>    vb2: don't return NULL for alloc and get_userptr ops
+>    vb2: add WARN_ONs checking if a valid struct device was passed
+>
+>   drivers/media/v4l2-core/videobuf2-core.c       | 12 ++++++++----
+>   drivers/media/v4l2-core/videobuf2-dma-contig.c |  9 +++++++++
+>   drivers/media/v4l2-core/videobuf2-dma-sg.c     | 19 +++++++++++++------
+>   drivers/media/v4l2-core/videobuf2-vmalloc.c    | 13 ++++++++-----
+>   include/media/videobuf2-core.h                 |  6 +++---
+>   5 files changed, 41 insertions(+), 18 deletions(-)
+>
 
->  			ret = -EBUSY;
->  			goto err_no_ctx;
->  		}
-> 
-
-Best regards,
+Best regards
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
+
