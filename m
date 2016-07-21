@@ -1,108 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:33640 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751384AbcGPJmp (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:51012 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751821AbcGUImG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2016 05:42:45 -0400
-Date: Sat, 16 Jul 2016 15:12:42 +0530
-From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Tejun Heo <tj@kernel.org>
-Subject: [PATCH] [media] ad9389b: Remove deprecated
- create_singlethread_workqueue
-Message-ID: <20160716094241.GA10290@Karyakshetra>
+	Thu, 21 Jul 2016 04:42:06 -0400
+Subject: Re: [PATCH v6 0/2] [media] atmel-isc: add driver for Atmel ISC
+To: Songjun Wu <songjun.wu@microchip.com>, nicolas.ferre@atmel.com,
+	robh@kernel.org
+References: <1469088900-23935-1-git-send-email-songjun.wu@microchip.com>
+Cc: laurent.pinchart@ideasonboard.com,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+	=?UTF-8?Q?Niklas_S=c3=83=c2=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	Benoit Parrot <bparrot@ti.com>, linux-kernel@vger.kernel.org,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Kamil Debski <kamil@wypas.org>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	=?UTF-8?Q?Richard_R=c3=b6jfors?= <richard@puffinpack.se>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Simon Horman <horms+renesas@verge.net.au>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e0592f57-f679-fcde-7446-e3259ad9825b@xs4all.nl>
+Date: Thu, 21 Jul 2016 10:41:50 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <1469088900-23935-1-git-send-email-songjun.wu@microchip.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The workqueue work_queue is involved in EDID (Extended Display
-Identification Data) handling.
 
-It has a single work item(&state->edid_handler) and hence
-doesn't require ordering. It is not being used on a memory reclaim path.
-Hence, the singlethreaded workqueue has been replaced with
-the use of system_wq.
 
-&state->edid_handler is a self requeueing work item and it has been
-been sync cancelled in ad9389b_remove() to ensure that nothing is
-pending when the driver is disconnected.
+On 07/21/2016 10:14 AM, Songjun Wu wrote:
+> The Image Sensor Controller driver includes two parts.
+> 1) Driver code to implement the ISC function.
+> 2) Device tree binding documentation, it describes how
+>    to add the ISC in device tree.
+> 
+> Test result with v4l-utils 1.10.1
 
-Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
----
- drivers/media/i2c/ad9389b.c | 20 ++++----------------
- 1 file changed, 4 insertions(+), 16 deletions(-)
+Please compile from the v4l-utils repository. The version you used here is out-of-date.
+I continually add new tests, so always compile the latest version from the repo.
 
-diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
-index 0462f46..1ac552d 100644
---- a/drivers/media/i2c/ad9389b.c
-+++ b/drivers/media/i2c/ad9389b.c
-@@ -98,7 +98,6 @@ struct ad9389b_state {
- 	struct ad9389b_state_edid edid;
- 	/* Running counter of the number of detected EDIDs (for debugging) */
- 	unsigned edid_detect_counter;
--	struct workqueue_struct *work_queue;
- 	struct delayed_work edid_handler; /* work entry */
- };
+Regards,
 
-@@ -843,8 +842,7 @@ static void ad9389b_edid_handler(struct work_struct *work)
- 			v4l2_dbg(1, debug, sd, "%s: edid read failed\n", __func__);
- 			ad9389b_s_power(sd, false);
- 			ad9389b_s_power(sd, true);
--			queue_delayed_work(state->work_queue,
--					   &state->edid_handler, EDID_DELAY);
-+			schedule_delayed_work(&state->edid_handler, EDID_DELAY);
- 			return;
- 		}
- 	}
-@@ -933,8 +931,7 @@ static void ad9389b_update_monitor_present_status(struct v4l2_subdev *sd)
- 		ad9389b_setup(sd);
- 		ad9389b_notify_monitor_detect(sd);
- 		state->edid.read_retries = EDID_MAX_RETRIES;
--		queue_delayed_work(state->work_queue,
--				   &state->edid_handler, EDID_DELAY);
-+		schedule_delayed_work(&state->edid_handler, EDID_DELAY);
- 	} else if (!(status & MASK_AD9389B_HPD_DETECT)) {
- 		v4l2_dbg(1, debug, sd, "%s: hotplug not detected\n", __func__);
- 		state->have_monitor = false;
-@@ -1065,8 +1062,7 @@ static bool ad9389b_check_edid_status(struct v4l2_subdev *sd)
- 		ad9389b_wr(sd, 0xc9, 0xf);
- 		ad9389b_wr(sd, 0xc4, state->edid.segments);
- 		state->edid.read_retries = EDID_MAX_RETRIES;
--		queue_delayed_work(state->work_queue,
--				   &state->edid_handler, EDID_DELAY);
-+		schedule_delayed_work(&state->edid_handler, EDID_DELAY);
- 		return false;
- 	}
+	Hans
 
-@@ -1170,13 +1166,6 @@ static int ad9389b_probe(struct i2c_client *client, const struct i2c_device_id *
- 		goto err_entity;
- 	}
-
--	state->work_queue = create_singlethread_workqueue(sd->name);
--	if (state->work_queue == NULL) {
--		v4l2_err(sd, "could not create workqueue\n");
--		err = -ENOMEM;
--		goto err_unreg;
--	}
--
- 	INIT_DELAYED_WORK(&state->edid_handler, ad9389b_edid_handler);
- 	state->dv_timings = dv1080p60;
-
-@@ -1211,9 +1200,8 @@ static int ad9389b_remove(struct i2c_client *client)
- 	ad9389b_s_stream(sd, false);
- 	ad9389b_s_audio_stream(sd, false);
- 	ad9389b_init_setup(sd);
--	cancel_delayed_work(&state->edid_handler);
-+	cancel_delayed_work_sync(&state->edid_handler);
- 	i2c_unregister_device(state->edid_i2c_client);
--	destroy_workqueue(state->work_queue);
- 	v4l2_device_unregister_subdev(sd);
- 	media_entity_cleanup(&sd->entity);
- 	v4l2_ctrl_handler_free(sd->ctrl_handler);
---
-2.1.4
-
+> Driver Info:
+>         Driver name   : atmel_isc
+>         Card type     : Atmel Image Sensor Controller
+>         Bus info      : platform:atmel_isc f0008000.isc
+>         Driver version: 4.7.0
+>         Capabilities  : 0x84200001
+>                 Video Capture
+>                 Streaming
+>                 Extended Pix Format
+>                 Device Capabilities
+>         Device Caps   : 0x04200001
+>                 Video Capture
+>                 Streaming
+>                 Extended Pix Format
+> 
+> Compliance test for device /dev/video0 (not using libv4l2):
+> 
+> Required ioctls:
+>         test VIDIOC_QUERYCAP: OK
+> 
+> Allow for multiple opens:
+>         test second video open: OK
+>         test VIDIOC_QUERYCAP: OK
+>         test VIDIOC_G/S_PRIORITY: OK
+> 
+> Debug ioctls:
+>         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>         test VIDIOC_LOG_STATUS: OK (Not Supported)
+> 
+> Input ioctls:
+>         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMINPUT: OK
+>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>         Inputs: 1 Audio Inputs: 0 Tuners: 0
+> 
+> Output ioctls:
+>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+> 
+> Input/Output configuration ioctls:
+>         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>         test VIDIOC_G/S_EDID: OK (Not Supported)
+> 
+> Test input 0:
+> 
+>         Control ioctls:
+>                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+>                 test VIDIOC_QUERYCTRL: OK (Not Supported)
+>                 test VIDIOC_G/S_CTRL: OK (Not Supported)
+>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>                 Standard Controls: 0 Private Controls: 0
+> 
+>         Format ioctls:
+>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>                 test VIDIOC_G/S_PARM: OK
+>                 test VIDIOC_G_FBUF: OK (Not Supported)
+>                 test VIDIOC_G_FMT: OK
+>                 test VIDIOC_TRY_FMT: OK
+>                 test VIDIOC_S_FMT: OK
+>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>                 test Cropping: OK (Not Supported)
+>                 test Composing: OK (Not Supported)
+>                 test Scaling: OK (Not Supported)
+> 
+>         Codec ioctls:
+>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> 
+>         Buffer ioctls:
+>                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>                 test VIDIOC_EXPBUF: OK
+> 
+> Test input 0:
+> 
+> Stream using all formats:
+>         test MMAP for Format BA81, Frame Size 640x480:
+>                 Stride 640, Field None: OK
+>         test MMAP for Format YUYV, Frame Size 640x480:
+>                 Stride 1280, Field None: OK
+> 
+> Total: 44, Succeeded: 44, Failed: 0, Warnings: 0
+> 
+> Changes in v6:
+> - Add "iscck" and "gck" to clock-names.
+> 
+> Changes in v5:
+> - Modify the macro definition and the related code.
+> - Add clock-output-names.
+> 
+> Changes in v4:
+> - Modify the isc clock code since the dt is changed.
+> - Remove the isc clock nodes.
+> 
+> Changes in v3:
+> - Add pm runtime feature.
+> - Modify the isc clock code since the dt is changed.
+> - Remove the 'atmel,sensor-preferred'.
+> - Modify the isc clock node according to the Rob's remarks.
+> 
+> Changes in v2:
+> - Add "depends on COMMON_CLK" and "VIDEO_V4L2_SUBDEV_API"
+>   in Kconfig file.
+> - Correct typos and coding style according to Laurent's remarks
+> - Delete the loop while in 'isc_clk_enable' function.
+> - Replace 'hsync_active', 'vsync_active' and 'pclk_sample'
+>   with 'pfe_cfg0' in struct isc_subdev_entity.
+> - Add the code to support VIDIOC_CREATE_BUFS in
+>   'isc_queue_setup' function.
+> - Invoke isc_config to configure register in
+>   'isc_start_streaming' function.
+> - Add the struct completion 'comp' to synchronize with
+>   the frame end interrupt in 'isc_stop_streaming' function.
+> - Check the return value of the clk_prepare_enable
+>   in 'isc_open' function.
+> - Set the default format in 'isc_open' function.
+> - Add an exit condition in the loop while in 'isc_config'.
+> - Delete the hardware setup operation in 'isc_set_format'.
+> - Refuse format modification during streaming
+>   in 'isc_s_fmt_vid_cap' function.
+> - Invoke v4l2_subdev_alloc_pad_config to allocate and
+>   initialize the pad config in 'isc_async_complete' function.
+> - Remove the '.owner  = THIS_MODULE,' in atmel_isc_driver.
+> - Replace the module_platform_driver_probe() with
+>   module_platform_driver().
+> - Remove the unit address of the endpoint.
+> - Add the unit address to the clock node.
+> - Avoid using underscores in node names.
+> - Drop the "0x" in the unit address of the i2c node.
+> - Modify the description of 'atmel,sensor-preferred'.
+> - Add the description for the ISC internal clock.
+> 
+> Songjun Wu (2):
+>   [media] atmel-isc: add the Image Sensor Controller code
+>   [media] atmel-isc: DT binding for Image Sensor Controller driver
+> 
+>  .../devicetree/bindings/media/atmel-isc.txt        |   65 +
+>  drivers/media/platform/Kconfig                     |    1 +
+>  drivers/media/platform/Makefile                    |    2 +
+>  drivers/media/platform/atmel/Kconfig               |    9 +
+>  drivers/media/platform/atmel/Makefile              |    1 +
+>  drivers/media/platform/atmel/atmel-isc-regs.h      |  165 +++
+>  drivers/media/platform/atmel/atmel-isc.c           | 1554 ++++++++++++++++++++
+>  7 files changed, 1797 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
+>  create mode 100644 drivers/media/platform/atmel/Kconfig
+>  create mode 100644 drivers/media/platform/atmel/Makefile
+>  create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
+>  create mode 100644 drivers/media/platform/atmel/atmel-isc.c
+> 
