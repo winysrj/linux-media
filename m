@@ -1,67 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f46.google.com ([209.85.215.46]:35527 "EHLO
-	mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124AbcGVTuE (ORCPT
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:35017 "EHLO
+	mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754414AbcGUWDc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 15:50:04 -0400
-Received: by mail-lf0-f46.google.com with SMTP id f93so92475710lfi.2
-        for <linux-media@vger.kernel.org>; Fri, 22 Jul 2016 12:50:03 -0700 (PDT)
-Subject: Re: [PATCH v6 1/4] media: adv7604: automatic "default-input"
- selection
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-References: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
- <1469178554-20719-2-git-send-email-ulrich.hecht+renesas@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	william.towle@codethink.co.uk, geert@linux-m68k.org
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <42f525c3-9d1c-80c4-0e9f-b8242484ffc7@cogentembedded.com>
-Date: Fri, 22 Jul 2016 22:50:00 +0300
+	Thu, 21 Jul 2016 18:03:32 -0400
+Date: Thu, 21 Jul 2016 17:03:30 -0500
+From: Rob Herring <robh@kernel.org>
+To: Songjun Wu <songjun.wu@microchip.com>
+Cc: nicolas.ferre@atmel.com, laurent.pinchart@ideasonboard.com,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v6 2/2] [media] atmel-isc: DT binding for Image Sensor
+ Controller driver
+Message-ID: <20160721220330.GA17291@rob-hp-laptop>
+References: <1469088900-23935-1-git-send-email-songjun.wu@microchip.com>
+ <1469088900-23935-3-git-send-email-songjun.wu@microchip.com>
 MIME-Version: 1.0
-In-Reply-To: <1469178554-20719-2-git-send-email-ulrich.hecht+renesas@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1469088900-23935-3-git-send-email-songjun.wu@microchip.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/22/2016 12:09 PM, Ulrich Hecht wrote:
-
-> Fall back to input 0 if "default-input" property is not present.
->
-> Additionally, documentation in commit bf9c82278c34 ("[media]
-> media: adv7604: ability to read default input port from DT") states
-> that the "default-input" property should reside directly in the node
-> for adv7612. Hence, also adjust the parsing to make the implementation
-> consistent with this.
->
-> Based on patch by William Towle <william.towle@codethink.co.uk>.
->
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+On Thu, Jul 21, 2016 at 04:14:58PM +0800, Songjun Wu wrote:
+> DT binding documentation for ISC driver.
+> 
+> Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
 > ---
->  drivers/media/i2c/adv7604.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 4003831..055c9df 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -3077,10 +3077,13 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
->  	if (!of_property_read_u32(endpoint, "default-input", &v))
->  		state->pdata.default_input = v;
->  	else
-> -		state->pdata.default_input = -1;
-> +		state->pdata.default_input = 0;
->
->  	of_node_put(endpoint);
->
-> +	if (!of_property_read_u32(np, "default-input", &v))
-> +		state->pdata.default_input = v;
+> 
+> Changes in v6:
+> - Add "iscck" and "gck" to clock-names.
+> 
+> Changes in v5:
+> - Add clock-output-names.
+> 
+> Changes in v4:
+> - Remove the isc clock nodes.
+> 
+> Changes in v3:
+> - Remove the 'atmel,sensor-preferred'.
+> - Modify the isc clock node according to the Rob's remarks.
+> 
+> Changes in v2:
+> - Remove the unit address of the endpoint.
+> - Add the unit address to the clock node.
+> - Avoid using underscores in node names.
+> - Drop the "0x" in the unit address of the i2c node.
+> - Modify the description of 'atmel,sensor-preferred'.
+> - Add the description for the ISC internal clock.
+> 
+>  .../devicetree/bindings/media/atmel-isc.txt        | 65 ++++++++++++++++++++++
+>  1 file changed, 65 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
 
-	of_property_read_u32(np, "default-input",
-			     &state->pdata.default_input));
-
-should be equivalent...
-
-MBR, Sergei
-
+Acked-by: Rob Herring <robh@kernel.org>
