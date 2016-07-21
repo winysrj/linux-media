@@ -1,170 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59569 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751881AbcGRSau (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 14:30:50 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 18/18] [media] doc-rst: better name the media books
-Date: Mon, 18 Jul 2016 15:30:40 -0300
-Message-Id: <e1813eda8e7fdacd992224b79102925cf134be8b.1468865380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
-References: <cover.1468865380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
-References: <cover.1468865380.git.mchehab@s-opensource.com>
+Received: from mga03.intel.com ([134.134.136.65]:39553 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751588AbcGULPf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Jul 2016 07:15:35 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: [PATCH v3 2/5] media: Unify IOCTL handler calling
+Date: Thu, 21 Jul 2016 14:14:41 +0300
+Message-Id: <1469099686-10938-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1469099686-10938-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1469099686-10938-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The titles at the media books were misleading, and some books
-were not numbered.
+Each IOCTL handler can be listed in an array instead of using a large and
+cumbersome switch. Do that.
 
-Rename the kAPI book to better reflect its contents, be more
-consistent on the initial rst file for each book and better
-name them.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/index.rst                                   |  2 +-
- Documentation/media/dvb-drivers/index.rst                 |  9 ++++++---
- Documentation/media/{media_drivers.rst => media_kapi.rst} |  9 ++++++---
- Documentation/media/media_uapi.rst                        | 10 +++++-----
- Documentation/media/v4l-drivers/index.rst                 |  8 +++++---
- 5 files changed, 23 insertions(+), 15 deletions(-)
- rename Documentation/media/{media_drivers.rst => media_kapi.rst} (76%)
+ drivers/media/media-device.c | 81 +++++++++++++-------------------------------
+ 1 file changed, 23 insertions(+), 58 deletions(-)
 
-diff --git a/Documentation/index.rst b/Documentation/index.rst
-index 31273cc2e0bc..43c722f15292 100644
---- a/Documentation/index.rst
-+++ b/Documentation/index.rst
-@@ -15,7 +15,7 @@ Contents:
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 3ac526d..6fd9b77 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -419,12 +419,16 @@ static long media_device_get_topology(struct media_device *mdev,
+ 	return 0;
+ }
  
-    kernel-documentation
-    media/media_uapi
--   media/media_drivers
-+   media/media_kapi
-    media/dvb-drivers/index
-    media/v4l-drivers/index
+-#define MEDIA_IOC(__cmd) \
+-	[_IOC_NR(MEDIA_IOC_##__cmd)] = { .cmd = MEDIA_IOC_##__cmd }
++#define MEDIA_IOC(__cmd, func)						\
++	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
++		.cmd = MEDIA_IOC_##__cmd,				\
++		.fn = (long (*)(struct media_device *, void __user *))func,    \
++	}
  
-diff --git a/Documentation/media/dvb-drivers/index.rst b/Documentation/media/dvb-drivers/index.rst
-index 14da36fe4d01..e1d4d87f2a47 100644
---- a/Documentation/media/dvb-drivers/index.rst
-+++ b/Documentation/media/dvb-drivers/index.rst
-@@ -2,9 +2,9 @@
+ /* the table is indexed by _IOC_NR(cmd) */
+ struct media_ioctl_info {
+ 	unsigned int cmd;
++	long (*fn)(struct media_device *dev, void __user *arg);
+ };
  
- .. include:: <isonum.txt>
+ static inline long is_valid_ioctl(const struct media_ioctl_info *info,
+@@ -440,53 +444,28 @@ static long __media_device_ioctl(
+ {
+ 	struct media_devnode *devnode = media_devnode_data(filp);
+ 	struct media_device *dev = devnode->media_dev;
++	const struct media_ioctl_info *info;
+ 	long ret;
  
--#############################################
--Linux Digital Video Broadcast (DVB) subsystem
--#############################################
-+##############################################
-+Linux Digital TV driver-specific documentation
-+##############################################
+ 	ret = is_valid_ioctl(info_array, info_array_len, cmd);
+ 	if (ret)
+ 		return ret;
  
- **Copyright** |copy| 2001-2016 : LinuxTV Developers
- 
-@@ -17,6 +17,9 @@ License".
- 
- .. toctree::
- 	:maxdepth: 5
-+	:numbered:
-+	:caption: Table of Contents
-+	:name: dvb_mastertoc
- 
- 	intro
- 	avermedia
-diff --git a/Documentation/media/media_drivers.rst b/Documentation/media/media_kapi.rst
-similarity index 76%
-rename from Documentation/media/media_drivers.rst
-rename to Documentation/media/media_kapi.rst
-index 8e0f455ff6e0..0af80e90b7b5 100644
---- a/Documentation/media/media_drivers.rst
-+++ b/Documentation/media/media_kapi.rst
-@@ -2,9 +2,9 @@
- 
- .. include:: <isonum.txt>
- 
--=========================
--Media subsystem core kAPI
--=========================
-+===================================
-+Media subsystem kernel internal API
-+===================================
- 
- **Copyright** |copy| 2009-2016 : LinuxTV Developers
- 
-@@ -16,6 +16,9 @@ License".
- 
- .. toctree::
-     :maxdepth: 5
-+    :numbered:
-+    :caption: Table of Contents
-+    :name: kapi_mastertoc
- 
-     kapi/v4l2-framework
-     kapi/v4l2-controls
-diff --git a/Documentation/media/media_uapi.rst b/Documentation/media/media_uapi.rst
-index 5e872c8297b0..debe4531040b 100644
---- a/Documentation/media/media_uapi.rst
-+++ b/Documentation/media/media_uapi.rst
-@@ -2,9 +2,9 @@
- 
- .. include:: <isonum.txt>
- 
--##############################
--Linux Media Infrastructure API
--##############################
-+########################################
-+Linux Media Infrastructure userspace API
-+########################################
- 
- **Copyright** |copy| 2009-2016 : LinuxTV Developers
- 
-@@ -15,10 +15,10 @@ the license is included in the chapter entitled "GNU Free Documentation
- License".
- 
- 
--.. contents::
++	info = &info_array[_IOC_NR(cmd)];
++
+ 	mutex_lock(&dev->graph_mutex);
+-	switch (cmd) {
+-	case MEDIA_IOC_DEVICE_INFO:
+-		ret = media_device_get_info(dev,
+-				(struct media_device_info __user *)arg);
+-		break;
 -
- .. toctree::
-     :maxdepth: 5
-+    :caption: Table of Contents
-+    :name: uapi_mastertoc
+-	case MEDIA_IOC_ENUM_ENTITIES:
+-		ret = media_device_enum_entities(dev,
+-				(struct media_entity_desc __user *)arg);
+-		break;
+-
+-	case MEDIA_IOC_ENUM_LINKS:
+-		ret = media_device_enum_links(dev,
+-				(struct media_links_enum __user *)arg);
+-		break;
+-
+-	case MEDIA_IOC_SETUP_LINK:
+-		ret = media_device_setup_link(dev,
+-				(struct media_link_desc __user *)arg);
+-		break;
+-
+-	case MEDIA_IOC_G_TOPOLOGY:
+-		ret = media_device_get_topology(dev,
+-				(struct media_v2_topology __user *)arg);
+-		break;
+-
+-	default:
+-		ret = -ENOIOCTLCMD;
+-	}
++	ret = info->fn(dev, arg);
+ 	mutex_unlock(&dev->graph_mutex);
  
-     intro
-     uapi/v4l/v4l2
-diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
-index 34990b536d39..8d1710234e5a 100644
---- a/Documentation/media/v4l-drivers/index.rst
-+++ b/Documentation/media/v4l-drivers/index.rst
-@@ -2,9 +2,9 @@
+ 	return ret;
+ }
  
- .. include:: <isonum.txt>
+ static const struct media_ioctl_info ioctl_info[] = {
+-	MEDIA_IOC(DEVICE_INFO),
+-	MEDIA_IOC(ENUM_ENTITIES),
+-	MEDIA_IOC(ENUM_LINKS),
+-	MEDIA_IOC(SETUP_LINK),
+-	MEDIA_IOC(G_TOPOLOGY),
++	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
++	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
++	MEDIA_IOC(ENUM_LINKS, media_device_enum_links),
++	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
++	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
+ };
  
--###########################
--Video4Linux (V4L) subsystem
--###########################
-+################################################
-+Video4Linux (V4L)  driver-specific documentation
-+################################################
+ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+@@ -528,33 +507,19 @@ static long media_device_enum_links32(struct media_device *mdev,
+ #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, struct media_links_enum32)
  
- **Copyright** |copy| 1999-2016 : LinuxTV Developers
+ static const struct media_ioctl_info compat_ioctl_info[] = {
+-	MEDIA_IOC(DEVICE_INFO),
+-	MEDIA_IOC(ENUM_ENTITIES),
+-	MEDIA_IOC(ENUM_LINKS32),
+-	MEDIA_IOC(SETUP_LINK),
+-	MEDIA_IOC(G_TOPOLOGY),
++	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
++	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
++	MEDIA_IOC(ENUM_LINKS32, media_device_enum_links32),
++	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
++	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
+ };
  
-@@ -18,6 +18,8 @@ License".
- .. toctree::
- 	:maxdepth: 5
- 	:numbered:
-+	:caption: Table of Contents
-+	:name: v4l_mastertoc
+ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+ 				      unsigned long arg)
+ {
+-	struct media_devnode *devnode = media_devnode_data(filp);
+-	struct media_device *dev = devnode->media_dev;
+-	long ret;
+-
+-	switch (cmd) {
+-	case MEDIA_IOC_ENUM_LINKS32:
+-		mutex_lock(&dev->graph_mutex);
+-		ret = media_device_enum_links32(dev,
+-				(struct media_links_enum32 __user *)arg);
+-		mutex_unlock(&dev->graph_mutex);
+-		break;
+-
+-	default:
+-		return media_device_ioctl(filp, cmd, arg);
+-	}
+-
+-	return ret;
++	return __media_device_ioctl(
++		filp, cmd, (void __user *)arg,
++		compat_ioctl_info, ARRAY_SIZE(compat_ioctl_info));
+ }
+ #endif /* CONFIG_COMPAT */
  
- 	fourcc
- 	v4l-with-ir
 -- 
 2.7.4
-
 
