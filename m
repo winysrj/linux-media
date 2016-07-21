@@ -1,206 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:38488 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750969AbcGRMow (ORCPT
+Received: from auth.a.painless.aa.net.uk ([90.155.4.51]:50608 "EHLO
+	auth.a.painless.aa.net.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750884AbcGUSUF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 08:44:52 -0400
-Subject: Re: [PATCH] vcodec: mediatek: Add g/s_selection support for V4L2
- Encoder
-To: tiffany lin <tiffany.lin@mediatek.com>
-References: <1464594768-1993-1-git-send-email-tiffany.lin@mediatek.com>
- <4ca82842-968d-a5e2-587d-752c71713607@xs4all.nl>
- <1468477674.32454.36.camel@mtksdaap41>
- <bb96276a-8e6c-a535-6fd3-fe4327238f65@xs4all.nl>
- <1468844895.12740.15.camel@mtksdaap41>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <f2c031e2-82ca-90f4-0900-4dc961a90f58@xs4all.nl>
-Date: Mon, 18 Jul 2016 14:44:45 +0200
+	Thu, 21 Jul 2016 14:20:05 -0400
+Received: from 6.15.169.217.in-addr.arpa ([217.169.15.6] helo=[192.168.2.244])
+	by a.painless.aa.net.uk with esmtpsa (TLSv1:AES128-SHA:128)
+	(Exim 4.77)
+	(envelope-from <linux-media@destevenson.freeserve.co.uk>)
+	id 1bQIZn-0003sP-A7
+	for linux-media@vger.kernel.org; Thu, 21 Jul 2016 19:20:03 +0100
+To: linux-media@vger.kernel.org
+From: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>
+Subject: Sony imx219 driver?
+Message-ID: <57911245.1010500@destevenson.freeserve.co.uk>
+Date: Thu, 21 Jul 2016 19:19:49 +0100
 MIME-Version: 1.0
-In-Reply-To: <1468844895.12740.15.camel@mtksdaap41>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/18/2016 02:28 PM, tiffany lin wrote:
-> Understood now.
-> 
-> Now I am trying to figure out how to make this function right.
-> Our encoder only support crop range from (0, 0) to (width, height), so
-> if s->r.top and s->r.left not 0, I will return -EINVAL.
-> 
-> 
-> Another thing is that in v4l2-compliance test, it has testLegacyCrop.
-> It looks like we still need to support 
->  V4L2_SEL_TGT_COMPOSE_DEFAULT:
->  V4L2_SEL_TGT_COMPOSE_BOUNDS:
->  V4L2_SEL_TGT_COMPOSE:
-> to pass v4l2 compliance test, Or it will fail in 
-> fail: v4l2-test-formats.cpp(1318): !doioctl(node, VIDIOC_G_SELECTION,
-> &sel)
-> fail: v4l2-test-formats.cpp(1336): testLegacyCrop(node)
-> test Cropping: FAIL
+Hi All.
 
-Against which kernel are you testing? In the current media_tree master
-there is a bug in drivers/media/v4l2-core/v4l2-ioctl.c, v4l_cropcap():
+Just a quick query to avoid duplicating effort. Has anyone worked on a 
+Sony IMX219 (or other Sony sensor) subdevice driver as yet?
 
-This code:
+With the new Raspberry Pi camera being IMX219, and as Broadcom have 
+released an soc_camera based driver for the sensor already 
+(https://android.googlesource.com/kernel/bcm/+/android-bcm-tetra-3.10-lollipop-wear-release/drivers/media/video/imx219.c) 
+I was going to investigate converting that to a subdevice. I just wanted 
+to check this wasn't already in someone else's work queue.
 
-if (WARN_ON(!ops->vidioc_cropcap && !ops->vidioc_cropcap))
+A further Google shows that there's also an soc_camera IMX219 driver in 
+ChromiumOS, copyright Andrew Chew @ Nvidia, but author Guennadi 
+Liakhovetski who I know posts on here. 
+https://chromium.googlesource.com/chromiumos/third_party/kernel/+/factory-ryu-6486.14.B-chromeos-3.14/drivers/media/i2c/soc_camera/imx219.c. 
+The Broadcom one supports 8MPix and 1080P, the Chromium one only 8MP. 
+Perhaps a hybrid of the feature set?
+Throw in 
+https://github.com/ZenfoneArea/android_kernel_asus_zenfone5/blob/master/linux/modules/camera/drivers/media/i2c/imx219/imx219.h 
+as well, and we have register sets for numerous readout modes, plus 
+there are the ones in the Pi firmware which can be extracted if necessary.
 
-should be:
 
-if (WARN_ON(!ops->vidioc_cropcap && !ops->vidioc_g_selection))
+On a related note, if putting together a system with IMX219 or similar 
+producing Bayer raw 10, the data on the CSI2 bus is one of the 
+V4L2_PIX_FMT_SRGGB10P formats. What's the correct way to reflect that 
+from the sensor subdevice in an MEDIA_BUS_FMT_ enum?
+The closest is MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE (or LE), but the data 
+isn't padded (the Pi CSI2 receiver can do the unpacking and padding, but 
+that just takes up more memory).|||| Or is it MEDIA_BUS_FMT_SBGGR10_1X10 
+to describe the data on the bus correctly as 10bpp Bayer, and the odd 
+packing is ignored. Or do we need new enums?
 
-The fix is waiting for a pull from Linus.
-
-Also update to the latest v4l2-compliance: I've made some changes that
-might affect this. And I added additional checks to verify if all the
-colorspace-related format fields are properly propagated from the
-output format to the capture format.
-
-Regards,
-
-	Hans
-
-> 
-> I don't understand the following testing code.
-> 
->         /*
->          * If either CROPCAP or G_CROP works, then G_SELECTION should
->          * work as well.
->          * If neither CROPCAP nor G_CROP work, then G_SELECTION
-> shouldn't
->          * work either.
->          */
->         if (!doioctl(node, VIDIOC_CROPCAP, &cap)) {
->                 fail_on_test(doioctl(node, VIDIOC_G_SELECTION, &sel));
-> 
->                 // Checks for invalid types
->                 if (cap.type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
->                         cap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
->                 else
->                         cap.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
->                 fail_on_test(doioctl(node, VIDIOC_CROPCAP, &cap) !=
-> EINVAL);
->                 cap.type = 0xff;
->                 fail_on_test(doioctl(node, VIDIOC_CROPCAP, &cap) !=
-> EINVAL);
->         } else {
->                 fail_on_test(!doioctl(node, VIDIOC_G_SELECTION, &sel));
-> -> fail here
->         }
-> 
-> When test OUTPUT queue, it fail because v4l_cropcap will fail when
-> s.target = V4L2_SEL_TGT_COMPOSE_BOUNDS.
-> If VIDIOC_CROPCAP ioctl fail, VIDIOC_G_SELECTION should fail.
-> But VIDIOC_G_SELECTION target on CROP not COMPOSE and it success.
-> 
-> 
-> best regards,
-> Tiffany
-> 
-> 
-> 
->> Regards,
->>
->> 	Hans
->>
->>>
->>>
->>> static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
->>> 				struct file *file, void *fh, void *arg)
->>> {
->>> 	struct v4l2_crop *p = arg;
->>> 	struct v4l2_selection s = {
->>> 		.type = p->type,
->>> 	};
->>> 	int ret;
->>>
->>> 	if (ops->vidioc_g_crop)
->>> 		return ops->vidioc_g_crop(file, fh, p);
->>> 	/* simulate capture crop using selection api */
->>>
->>> 	/* crop means compose for output devices */
->>> 	if (V4L2_TYPE_IS_OUTPUT(p->type))
->>> 		s.target = V4L2_SEL_TGT_COMPOSE_ACTIVE;
->>> 	else
->>> 		s.target = V4L2_SEL_TGT_CROP_ACTIVE;
->>>
->>> 	ret = ops->vidioc_g_selection(file, fh, &s);
->>>
->>> 	/* copying results to old structure on success */
->>> 	if (!ret)
->>> 		p->c = s.r;
->>> 	return ret;
->>> }
->>>
->>> static int v4l_s_crop(const struct v4l2_ioctl_ops *ops,
->>> 				struct file *file, void *fh, void *arg)
->>> {
->>> 	struct v4l2_crop *p = arg;
->>> 	struct v4l2_selection s = {
->>> 		.type = p->type,
->>> 		.r = p->c,
->>> 	};
->>>
->>> 	if (ops->vidioc_s_crop)
->>> 		return ops->vidioc_s_crop(file, fh, p);
->>> 	/* simulate capture crop using selection api */
->>>
->>> 	/* crop means compose for output devices */
->>> 	if (V4L2_TYPE_IS_OUTPUT(p->type))
->>> 		s.target = V4L2_SEL_TGT_COMPOSE_ACTIVE;
->>> 	else
->>> 		s.target = V4L2_SEL_TGT_CROP_ACTIVE;
->>>
->>> 	return ops->vidioc_s_selection(file, fh, &s);
->>> }
->>>
->>>
->>> best regards,
->>> Tiffany
->>>
->>>
->>>
->>>
->>>> Regards,
->>>>
->>>> 	Hans
->>>>
->>>>> +
->>>>> +	return 0;
->>>>> +}
->>>>> +
->>>>>  static int vidioc_venc_qbuf(struct file *file, void *priv,
->>>>>  			    struct v4l2_buffer *buf)
->>>>>  {
->>>>> @@ -688,6 +759,9 @@ const struct v4l2_ioctl_ops mtk_venc_ioctl_ops = {
->>>>>  
->>>>>  	.vidioc_create_bufs		= v4l2_m2m_ioctl_create_bufs,
->>>>>  	.vidioc_prepare_buf		= v4l2_m2m_ioctl_prepare_buf,
->>>>> +
->>>>> +	.vidioc_g_selection		= vidioc_venc_g_selection,
->>>>> +	.vidioc_s_selection		= vidioc_venc_s_selection,
->>>>>  };
->>>>>  
->>>>>  static int vb2ops_venc_queue_setup(struct vb2_queue *vq,
->>>>>
->>>
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
-> 
-> 
+Thanks.
+   Dave
