@@ -1,265 +1,288 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51691 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:52893 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933300AbcGLMmd (ORCPT
+	with ESMTP id S1754015AbcGUUS0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2016 08:42:33 -0400
+	Thu, 21 Jul 2016 16:18:26 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 19/20] [media] doc-rst: Document LIRC set mode ioctls
-Date: Tue, 12 Jul 2016 09:42:13 -0300
-Message-Id: <8b9e428c8afb86aaaf10edfa37714cc2b62dd604.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468327191.git.mchehab@s-opensource.com>
-References: <cover.1468327191.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 01/12] [media] v4l2-device.h: document functions
+Date: Thu, 21 Jul 2016 17:18:06 -0300
+Message-Id: <8bf2bc4813f5dc2b797576bd9e61b4f5ee86bf22.1469132139.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add LIRC_SET_[REC|SEND]_MODE ioctls to the corresponding
-GET functions, and put all LIRC modes altogether.
-
-As now everything is already documented on its own ioctl
-pages, get rid of lirc_ioctl.rst.
+The functions at v4l2-device.h are not using the proper
+markups. Add it, and include at the v4l2-core.rst.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/media/uapi/rc/lirc-get-rec-mode.rst  | 32 +++--------
- Documentation/media/uapi/rc/lirc-get-send-mode.rst | 17 +++---
- Documentation/media/uapi/rc/lirc_dev_intro.rst     | 34 ++++++++++++
- .../media/uapi/rc/lirc_device_interface.rst        |  1 -
- Documentation/media/uapi/rc/lirc_ioctl.rst         | 64 ----------------------
- 5 files changed, 50 insertions(+), 98 deletions(-)
- delete mode 100644 Documentation/media/uapi/rc/lirc_ioctl.rst
+ Documentation/media/kapi/v4l2-core.rst |   2 +
+ include/media/v4l2-device.h            | 194 ++++++++++++++++++++++++---------
+ 2 files changed, 143 insertions(+), 53 deletions(-)
 
-diff --git a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-index d46a488594c9..586860c36791 100644
---- a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-@@ -1,15 +1,16 @@
- .. -*- coding: utf-8; mode: rst -*-
+diff --git a/Documentation/media/kapi/v4l2-core.rst b/Documentation/media/kapi/v4l2-core.rst
+index a1b73e8d6795..db571a4f498a 100644
+--- a/Documentation/media/kapi/v4l2-core.rst
++++ b/Documentation/media/kapi/v4l2-core.rst
+@@ -11,6 +11,8 @@ Video2Linux devices
  
- .. _lirc_get_rec_mode:
-+.. _lirc_set_rec_mode:
+ .. kernel-doc:: include/media/v4l2-ctrls.h
  
--***********************
--ioctl LIRC_GET_REC_MODE
--***********************
-+**********************************************
-+ioctls LIRC_GET_REC_MODE and LIRC_SET_REC_MODE
-+**********************************************
- 
- Name
- ====
- 
--LIRC_GET_REC_MODE - Get supported receive modes.
-+LIRC_GET_REC_MODE/LIRC_GET_REC_MODE - Get/set supported receive modes.
- 
- Synopsis
- ========
-@@ -23,7 +24,7 @@ Arguments
-     File descriptor returned by open().
- 
- ``request``
--    LIRC_GET_REC_MODE
-+    LIRC_GET_REC_MODE or LIRC_GET_REC_MODE
- 
- ``rx_modes``
-     Bitmask with the supported transmit modes.
-@@ -31,24 +32,9 @@ Arguments
- Description
- ===========
- 
--Get supported receive modes.
--
--Supported receive modes
--=======================
--
--.. _lirc-mode-mode2:
--
--``LIRC_MODE_MODE2``
--
--    The driver returns a sequence of pulse and space codes to userspace.
--
--.. _lirc-mode-lirccode:
--
--``LIRC_MODE_LIRCCODE``
--
--    The IR signal is decoded internally by the receiver. The LIRC interface
--    returns the scancode as an integer value. This is the usual mode used
--    by several TV media cards.
-+Get/set supported receive modes. Only :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`
-+and :ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>` are supported for IR
-+receive.
- 
- 
- Return Value
-diff --git a/Documentation/media/uapi/rc/lirc-get-send-mode.rst b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-index f3fd310a8d7c..3e1d96122ff2 100644
---- a/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-@@ -1,15 +1,16 @@
- .. -*- coding: utf-8; mode: rst -*-
- 
- .. _lirc_get_send_mode:
-+.. _lirc_set_send_mode:
- 
--************************
--ioctl LIRC_GET_SEND_MODE
--************************
-+************************************************
-+ioctls LIRC_GET_SEND_MODE and LIRC_SET_SEND_MODE
-+************************************************
- 
- Name
- ====
- 
--LIRC_GET_SEND_MODE - Get supported transmit mode.
-+LIRC_GET_SEND_MODE/LIRC_SET_SEND_MODE - Get/set supported transmit mode.
- 
- Synopsis
- ========
-@@ -32,13 +33,9 @@ Arguments
- Description
- ===========
- 
--Get supported transmit mode.
-+Get/set supported transmit mode.
- 
--.. _lirc-mode-pulse:
--
--Currently, only ``LIRC_MODE_PULSE`` is supported by lircd on TX. On
--puse mode, a sequence of pulse/space integer values are written to the
--lirc device using :Ref:`lirc-write`.
-+Only :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>` is supported by for IR send.
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/rc/lirc_dev_intro.rst b/Documentation/media/uapi/rc/lirc_dev_intro.rst
-index 9a784c8fe4ea..ef97e40f2fd8 100644
---- a/Documentation/media/uapi/rc/lirc_dev_intro.rst
-+++ b/Documentation/media/uapi/rc/lirc_dev_intro.rst
-@@ -26,3 +26,37 @@ What you should see for a chardev:
- 
-     $ ls -l /dev/lirc*
-     crw-rw---- 1 root root 248, 0 Jul 2 22:20 /dev/lirc0
++.. kernel-doc:: include/media/v4l2-device.h
 +
-+**********
-+LIRC modes
-+**********
+ .. kernel-doc:: include/media/v4l2-dv-timings.h
+ 
+ .. kernel-doc:: include/media/v4l2-event.h
+diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+index d5d45a8d3998..a9d6aa41790e 100644
+--- a/include/media/v4l2-device.h
++++ b/include/media/v4l2-device.h
+@@ -25,100 +25,188 @@
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-dev.h>
+ 
+-/* Each instance of a V4L2 device should create the v4l2_device struct,
+-   either stand-alone or embedded in a larger struct.
+-
+-   It allows easy access to sub-devices (see v4l2-subdev.h) and provides
+-   basic V4L2 device-level support.
+- */
+-
+ #define V4L2_DEVICE_NAME_SIZE (20 + 16)
+ 
+ struct v4l2_ctrl_handler;
+ 
++/**
++ * struct v4l2_device - main struct to for V4L2 device drivers
++ *
++ * @dev: pointer to struct device.
++ * @mdev: pointer to struct media_device
++ * @subdevs: used to keep track of the registered subdevs
++ * @lock: lock this struct; can be used by the driver as well
++ *	if this struct is embedded into a larger struct.
++ * @name: unique device name, by default the driver name + bus ID
++ * @notify: notify callback called by some sub-devices.
++ * @ctrl_handler: The control handler. May be NULL.
++ * @prio: Device's priority state
++ * @ref: Keep track of the references to this struct.
++ * @release: Release function that is called when the ref count
++ *	goes to 0.
++ *
++ * Each instance of a V4L2 device should create the v4l2_device struct,
++ * either stand-alone or embedded in a larger struct.
++ *
++ * It allows easy access to sub-devices (see v4l2-subdev.h) and provides
++ * basic V4L2 device-level support.
++ *
++ * .. note::
++ *
++ *    #) dev->driver_data points to this struct.
++ *    #) dev might be NULL if there is no parent device
++ */
 +
-+LIRC supports some modes of receiving and sending IR codes, as shown
-+on the following table.
+ struct v4l2_device {
+-	/* dev->driver_data points to this struct.
+-	   Note: dev might be NULL if there is no parent device
+-	   as is the case with e.g. ISA devices. */
+ 	struct device *dev;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	struct media_device *mdev;
+ #endif
+-	/* used to keep track of the registered subdevs */
+ 	struct list_head subdevs;
+-	/* lock this struct; can be used by the driver as well if this
+-	   struct is embedded into a larger struct. */
+ 	spinlock_t lock;
+-	/* unique device name, by default the driver name + bus ID */
+ 	char name[V4L2_DEVICE_NAME_SIZE];
+-	/* notify callback called by some sub-devices. */
+ 	void (*notify)(struct v4l2_subdev *sd,
+ 			unsigned int notification, void *arg);
+-	/* The control handler. May be NULL. */
+ 	struct v4l2_ctrl_handler *ctrl_handler;
+-	/* Device's priority state */
+ 	struct v4l2_prio_state prio;
+-	/* Keep track of the references to this struct. */
+ 	struct kref ref;
+-	/* Release function that is called when the ref count goes to 0. */
+ 	void (*release)(struct v4l2_device *v4l2_dev);
+ };
+ 
++/**
++ * v4l2_device_get - gets a V4L2 device reference
++ *
++ * @v4l2_dev: pointer to struct v4l2_device
++ *
++ * This is an ancillary routine meant to increment the usage for the
++ * struct v4l2_device pointed by @v4l2_dev.
++ */
+ static inline void v4l2_device_get(struct v4l2_device *v4l2_dev)
+ {
+ 	kref_get(&v4l2_dev->ref);
+ }
+ 
++/**
++ * v4l2_device_put - putss a V4L2 device reference
++ *
++ * @v4l2_dev: pointer to struct v4l2_device
++ *
++ * This is an ancillary routine meant to decrement the usage for the
++ * struct v4l2_device pointed by @v4l2_dev.
++ */
+ int v4l2_device_put(struct v4l2_device *v4l2_dev);
+ 
+-/* Initialize v4l2_dev and make dev->driver_data point to v4l2_dev.
+-   dev may be NULL in rare cases (ISA devices). In that case you
+-   must fill in the v4l2_dev->name field before calling this function. */
+-int __must_check v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev);
++/**
++ * v4l2_device_register -Initialize v4l2_dev and make dev->driver_data
++ * 	point to v4l2_dev.
++ *
++ * @dev: pointer to struct device
++ * @v4l2_dev: pointer to struct v4l2_device
++ *
++ * .. note::
++ *	dev may be NULL in rare cases (ISA devices).
++ *	In such case the caller must fill in the v4l2_dev->name field
++ *	before calling this function.
++ */
++int __must_check v4l2_device_register(struct device *dev,
++				      struct v4l2_device *v4l2_dev);
+ 
+-/* Optional function to initialize the name field of struct v4l2_device using
+-   the driver name and a driver-global atomic_t instance.
+-   This function will increment the instance counter and returns the instance
+-   value used in the name.
+-
+-   Example:
+-
+-   static atomic_t drv_instance = ATOMIC_INIT(0);
+-
+-   ...
+-
+-   instance = v4l2_device_set_name(&v4l2_dev, "foo", &drv_instance);
+-
+-   The first time this is called the name field will be set to foo0 and
+-   this function returns 0. If the name ends with a digit (e.g. cx18),
+-   then the name will be set to cx18-0 since cx180 looks really odd. */
++/**
++ * v4l2_device_set_name - Optional function to initialize the
++ * 	name field of struct v4l2_device
++ *
++ * @v4l2_dev: pointer to struct v4l2_device
++ * @basename: base name for the device name
++ * @instance: pointer to a static atomic_t var with the instance usage for
++ * 	the device driver.
++ *
++ * v4l2_device_set_name() initializes the name field of struct v4l2_device
++ * using the driver name and a driver-global atomic_t instance.
++ *
++ * This function will increment the instance counter and returns the
++ * instance value used in the name.
++ *
++ * Example:
++ *
++ *   static atomic_t drv_instance = ATOMIC_INIT(0);
++ *
++ *   ...
++ *
++ *   instance = v4l2_device_set_name(&v4l2_dev, "foo", &drv_instance);
++ *
++ * The first time this is called the name field will be set to foo0 and
++ * this function returns 0. If the name ends with a digit (e.g. cx18),
++ * then the name will be set to cx18-0 since cx180 would look really odd.
++ */
+ int v4l2_device_set_name(struct v4l2_device *v4l2_dev, const char *basename,
+-						atomic_t *instance);
++			 atomic_t *instance);
+ 
+-/* Set v4l2_dev->dev to NULL. Call when the USB parent disconnects.
+-   Since the parent disappears this ensures that v4l2_dev doesn't have an
+-   invalid parent pointer. */
++/**
++ * v4l2_device_disconnect - Change V4L2 device state to disconnected.
++ *
++ * @v4l2_dev: pointer to struct v4l2_device
++ *
++ * Should be called when the USB parent disconnects.
++ * Since the parent disappears, this ensures that v4l2_dev doesn't have
++ * an invalid parent pointer.
++ *
++ * .. note:: This function sets v4l2_dev->dev to NULL.
++ */
+ void v4l2_device_disconnect(struct v4l2_device *v4l2_dev);
+ 
+-/* Unregister all sub-devices and any other resources related to v4l2_dev. */
++/**
++ *  v4l2_device_unregister - Unregister all sub-devices and any other
++ *	 resources related to v4l2_dev.
++ *
++ * @v4l2_dev: pointer to struct v4l2_device
++ */
+ void v4l2_device_unregister(struct v4l2_device *v4l2_dev);
+ 
+-/* Register a subdev with a v4l2 device. While registered the subdev module
+-   is marked as in-use. An error is returned if the module is no longer
+-   loaded when you attempt to register it. */
++/**
++ * v4l2_device_register_subdev - Registers a subdev with a v4l2 device.
++ *
++ * @v4l2_dev: pointer to struct v4l2_device
++ * @sd: pointer to struct v4l2_subdev
++ *
++ * While registered, the subdev module is marked as in-use.
++ *
++ * An error is returned if the module is no longer loaded on any attempts
++ * to register it.
++ */
+ int __must_check v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+-						struct v4l2_subdev *sd);
+-/* Unregister a subdev with a v4l2 device. Can also be called if the subdev
+-   wasn't registered. In that case it will do nothing. */
++					     struct v4l2_subdev *sd);
 +
-+.. _lirc-mode-mode2:
-+
-+``LIRC_MODE_MODE2``
-+
-+    The driver returns a sequence of pulse and space codes to userspace.
-+
-+    This mode is used only for IR receive.
-+
-+.. _lirc-mode-lirccode:
-+
-+``LIRC_MODE_LIRCCODE``
-+
-+    The IR signal is decoded internally by the receiver. The LIRC interface
-+    returns the scancode as an integer value. This is the usual mode used
-+    by several TV media cards.
-+
-+    This mode is used only for IR receive.
-+
-+.. _lirc-mode-pulse:
-+
-+``LIRC_MODE_PULSE``
-+
-+    On puse mode, a sequence of pulse/space integer values are written to the
-+    lirc device using :Ref:`lirc-write`.
-+
-+    This mode is used only for IR send.
-diff --git a/Documentation/media/uapi/rc/lirc_device_interface.rst b/Documentation/media/uapi/rc/lirc_device_interface.rst
-index e9cb510349a0..a2ad957c96ae 100644
---- a/Documentation/media/uapi/rc/lirc_device_interface.rst
-+++ b/Documentation/media/uapi/rc/lirc_device_interface.rst
-@@ -27,4 +27,3 @@ LIRC Device Interface
-     lirc-set-rec-timeout-reports
-     lirc-set-measure-carrier-mode
-     lirc-set-wideband-receiver
--    lirc_ioctl
-diff --git a/Documentation/media/uapi/rc/lirc_ioctl.rst b/Documentation/media/uapi/rc/lirc_ioctl.rst
-deleted file mode 100644
-index fe5f2719ea77..000000000000
---- a/Documentation/media/uapi/rc/lirc_ioctl.rst
-+++ /dev/null
-@@ -1,64 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--.. _lirc_ioctl:
--
--************
--LIRC ioctl()
--************
--
--
--Name
--====
--
--LIRC ioctl - Sends a I/O control command to a LIRC device
--
--Synopsis
--========
--
--.. cpp:function:: int ioctl( int fd, int request, struct v4l2_capability *argp )
--
--
--Arguments
--=========
--
--``fd``
--    File descriptor returned by ``open()``.
--
--``request``
--    The type of I/O control that will be used. See table :ref:`lirc-request`
--    for details.
--
--``argp``
--    Arguments for the I/O control. They're specific to each request.
--
--
--The LIRC device's ioctl definition is bound by the ioctl function
--definition of struct file_operations, leaving us with an unsigned int
--for the ioctl command and an unsigned long for the arg. For the purposes
--of ioctl portability across 32-bit and 64-bit, these values are capped
--to their 32-bit sizes.
--
--The ioctls can be used to change specific hardware settings.
--In general each driver should have a default set of settings. The driver
--implementation is expected to re-apply the default settings when the
--device is closed by user-space, so that every application opening the
--device can rely on working with the default settings initially.
--
--.. _lirc-request:
--
--.. _LIRC_SET_SEND_MODE:
--.. _LIRC_SET_REC_MODE:
--
--``LIRC_SET_{SEND,REC}_MODE``
--
--    Set send/receive mode. Largely obsolete for send, as only
--    ``LIRC_MODE_PULSE`` is supported.
--
--.. _lirc_dev_errors:
--
--Return Value
--============
--
--On success 0 is returned, on error -1 and the ``errno`` variable is set
--appropriately. The generic error codes are described at the
--:ref:`Generic Error Codes <gen-errors>` chapter.
++/**
++ * v4l2_device_unregister_subdev - Unregisters a subdev with a v4l2 device.
++ *
++ * @sd: pointer to struct v4l2_subdev
++ *
++ * .. note ::
++ *
++ *	Can also be called if the subdev wasn't registered. In such
++ *	case, it will do nothing.
++ */
+ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd);
+ 
+-/* Register device nodes for all subdev of the v4l2 device that are marked with
+- * the V4L2_SUBDEV_FL_HAS_DEVNODE flag.
++/**
++ * v4l2_device_register_subdev_nodes - Registers device nodes for all subdevs
++ *	of the v4l2 device that are marked with
++ * 	the V4L2_SUBDEV_FL_HAS_DEVNODE flag.
++ *
++ * @v4l2_dev: pointer to struct v4l2_device
+  */
+ int __must_check
+ v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev);
+ 
+-/* Send a notification to v4l2_device. */
++/**
++ * v4l2_subdev_notify - Sends a notification to v4l2_device.
++ *
++ * @sd: pointer to struct v4l2_subdev
++ * @notification: type of notification. Please notice that the notification
++ * 	type is driver-specific.
++ * @arg: arguments for the notification. Those are specific to each
++ *	notification type.
++ */
+ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
+ 				      unsigned int notification, void *arg)
+ {
 -- 
 2.7.4
-
 
