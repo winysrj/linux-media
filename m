@@ -1,84 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:44391 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751300AbcGNRDr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2016 13:03:47 -0400
-Date: Thu, 14 Jul 2016 18:03:40 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: david.brown@arm.com, liviu.dudau@arm.com
-Subject: DRM device memory writeback (Mali-DP)
-Message-ID: <20160714170340.GA32755@e106950-lin.cambridge.arm.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47208
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751462AbcGUKZ2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Jul 2016 06:25:28 -0400
+Date: Thu, 21 Jul 2016 07:25:23 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Daniel Vetter <daniel.vetter@intel.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-doc@vger.kernel.org
+Subject: Re: [PATCH] doc-rst: get rid of warnings at
+ kernel-documentation.rst
+Message-ID: <20160721072523.69c1b42a@recife.lan>
+In-Reply-To: <90A9E97F-874A-4783-8743-354B89722934@darmarit.de>
+References: <610951ea382e015f178bb55391ea21bd80132d70.1469023848.git.mchehab@s-opensource.com>
+	<83940B5E-B900-4D41-9FDA-CE2587ED4665@darmarit.de>
+	<20160720083149.1ea84b43@lwn.net>
+	<731EED92-7B58-4B36-AEF7-250653E90A35@darmarit.de>
+	<20160720120658.4880f37d@recife.lan>
+	<90A9E97F-874A-4783-8743-354B89722934@darmarit.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Wed, 20 Jul 2016 17:33:31 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-The Mali-DP display processors have a memory-writeback engine which
-can write the result of the composition (CRTC output) to a memory
-buffer in a variety of formats.
+> Am 20.07.2016 um 17:06 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> 
+> > Em Wed, 20 Jul 2016 16:49:59 +0200
+> > Markus Heiser <markus.heiser@darmarit.de> escreveu:
+> >   
+> >> Am 20.07.2016 um 16:31 schrieb Jonathan Corbet <corbet@lwn.net>:
+> >>   
+> >>> On Wed, 20 Jul 2016 16:23:28 +0200
+> >>> Markus Heiser <markus.heiser@darmarit.de> wrote:
+> >>>   
+> >>>> Am 20.07.2016 um 16:11 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> >>>>   
+> >>>>> Sphinx 1.4.5 complains about some literal blocks at
+> >>>>> kernel-documentation.rst:
+> >>>>> 
+> >>>>> 	Documentation/kernel-documentation.rst:373: WARNING: Could not lex literal_block as "C". Highlighting skipped.
+> >>>>> 	Documentation/kernel-documentation.rst:378: WARNING: Could not lex literal_block as "C". Highlighting skipped.
+> >>>>> 	Documentation/kernel-documentation.rst:576: WARNING: Could not lex literal_block as "C". Highlighting skipped.
+> >>>>> 
+> >>>>> Fix it by telling Sphinx to consider them as "none" type.      
+> >>>> 
+> >>>> Hi Mauro,
+> >>>> 
+> >>>> IMHO we should better fix this by unsetting the lexers default language 
+> >>>> in the conf.py  [1] ... currently:
+> >>>> 
+> >>>> highlight_language = 'C'  # set this to 'none'
+> >>>> 	
+> >>>> As far as I know the default highlight_language is also the default
+> >>>> for literal blocks starting with "::"    
+> >>> 
+> >>> The thing with that is that a lot of literal blocks *do* have C code, even
+> >>> in kernel-documentation.rst.  Setting that in conf.py would turn off all C
+> >>> highlighting.  I think that might actually be a desirable outcome, but it
+> >>> would be good to make that decision explicitly.
+> >>> 
+> >>> As it happens, I'd already fixed these particular warnings in docs-next:
+> >>> 
+> >>> 	http://permalink.gmane.org/gmane.linux.documentation/39806
+> >>> 
+> >>> I took a different approach; using code-block might actually be better.    
+> >> 
+> >> In some kernel-doc comments we have constructs like this:
+> >> 
+> >> * host point of view, the graphic address space is partitioned by multiple
+> >> * vGPUs in different VMs.::
+> >> *
+> >> *                        vGPU1 view         Host view
+> >> *             0 ------> +-----------+     +-----------+
+> >> *               ^       |///////////|     |   vGPU3   |
+> >> *               |       |///////////|     +-----------+
+> >> *               |       |///////////|     |   vGPU2   |
+> >> *               |       +-----------+     +-----------+
+> >> *        mappable GM    | available | ==> |   vGPU1   |
+> >> *               |       +-----------+     +-----------+
+> >> 
+> >> I mean, in kernel-doc comments it would be nice to have no lexer
+> >> active when starting a literal block with a double colon "::".
+> >> Introducing a none highlighted literal block with a directive
+> >> like ".. highlight::" or ".. code-block" is a bit verbose
+> >> for a C comment.  And on the opposite, if one place a C construct
+> >> in a literal block with a double colon "::", only the highlighting
+> >> is missed, but we get now warning.
+> >> 
+> >> At least a code-block should be a code block, not a diagram 
+> >> or anything other ...
+> >> 
+> >> I don't know whats the best ... but these are my 2cent :)  
+> > 
+> > I actually think that the best would be if we could have a way to
+> > "draw" graphs inside the documentation.  
+> 
+> please .. not yet ;-)  ... we have so many problem sites to 
+> close first ... graphiz & Co. bring additional dependencies
+> to fulfill in context with sphinx 1.2 ...
 
-We're looking for feedback/suggestions on how to expose this in the
-mali-dp DRM kernel driver - possibly via V4L2.
+Yeah, let's close the other issues first ;)
 
-We've got a few use cases where writeback is useful:
-    - testing, to check the displayed image
-    - screen recording
-    - wireless display (e.g. Miracast)
-    - dual-display clone mode
-    - memory-to-memory composition
-Note that the HW is capable of writing one of the input planes instead
-of the CRTC output, but we've no good use-case for wanting to expose
-that.
+> 
+> > We have a few cases of
+> > diagrams like the above at the media documentation too.
+> > 
+> > As Sphinx seems to like ASCIIart, IMHO, the more Sphinx-style
+> > way would be to have a:
+> > 
+> > .. code-block:: asciiart  
+> 
+> > 
+> > markup to handle it.  
+> 
+> why a special markup for a literal block?
 
-In our Android ADF driver[1] we exposed the memory write engine as
-part of the ADF device using ADF's "MEMORY" interface type. DRM/KMS
-doesn't have any similar support for memory output from CRTCs, but we
-want to expose the functionality in the mainline Mali-DP DRM driver.
+What I meant to say is to use something that would convert from
+asciiart into a picture, just like Sphinx does with tables.
 
-A previous discussion on the topic went towards exposing the
-memory-write engine via V4L2[2].
+Anyway, this is not a top priority ;)
 
-I'm thinking to userspace this would look like two distinct devices:
-    - A DRM KMS display controller.
-    - A V4L2 video source.
-They'd both exist in the same kernel driver.
-A V4L2 client can queue up (CAPTURE) buffers in the normal way, and
-the DRM driver would see if there's a buffer to dequeue every time a
-new modeset is received via the DRM API - if so, it can configure the
-HW to dump into it (one-shot operation).
-
-An implication of this is that if the screen is actively displaying a
-static scene and the V4L2 client queues up a buffer, it won't get
-filled until the DRM scene changes. This seems best, otherwise the
-V4L2 driver has to change the HW configuration out-of-band from the
-DRM device which sounds horribly racy.
-
-One further complication is scaling. Our HW has a scaler which can
-tasked with either scaling an input plane or the buffer being written
-to memory, but not both at the same time. This means we need to
-arbitrate the scaler between the DRM device (scaling input planes) and
-the V4L2 device (scaling output buffers).
-
-I think the simplest approach here is to allow V4L2 to "claim" the
-scaler by setting the image size (VIDIOC_S_FMT) to something other
-than the CRTC's current resolution. After that, any attempt to use the
-scaler on an input plane via DRM should fail atomic_check().
-
-If the V4L2 client goes away or sets the image size to the CRTC's
-native resolution, then the DRM device is allowed to use the scaler.
-I don't know if/how the DRM device should communicate to userspace
-that the scaler is or isn't available for use.
-
-Any thoughts on this approach?
-Is it acceptable to both V4L2 and DRM folks?
-
-Thanks for your time,
-
--Brian
-
-[1] http://malideveloper.arm.com/resources/drivers/open-source-mali-dp-adf-kernel-device-drivers/
-[2] https://people.freedesktop.org/~cbrill/dri-log/?channel=dri-devel&date=2016-05-04
+Thanks,
+Mauro
