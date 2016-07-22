@@ -1,133 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f67.google.com ([209.85.220.67]:36769 "EHLO
-	mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755651AbcGFXSa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:18:30 -0400
-Received: by mail-pa0-f67.google.com with SMTP id ib6so106537pad.3
-        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:17:31 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 03/11] media: adv7180: add power pin control
-Date: Wed,  6 Jul 2016 15:59:56 -0700
-Message-Id: <1467846004-12731-4-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:35495 "EHLO
+	mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562AbcGVTJN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2016 15:09:13 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v2] [media] Documentation: Fix V4L2_CTRL_FLAG_VOLATILE
+Date: Fri, 22 Jul 2016 21:09:06 +0200
+Message-Id: <1469214546-27855-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some targets control the ADV7180 power pin via a gpio, so add
-support for "pwdn-gpio" pin control.
+V4L2_CTRL_FLAG_VOLATILE behaviour when V4L2_CTRL_FLAG_EXECUTE_ON_WRITE
+is set was not properly explained.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Also set some hyperlink to ease the Documentation browsing.
+
+Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+Credit-to: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- drivers/media/i2c/Kconfig   |  2 +-
- drivers/media/i2c/adv7180.c | 37 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 38 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 993dc50..80d39f6 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -187,7 +187,7 @@ comment "Video decoders"
+v2: By Hans Verkuil <hansverk@cisco.com>
+-Fix some syntax errors
+
+By Mauro Carvalho Chehab <mchehab@kernel.org>
+-Add hyperlinks
+
+ Documentation/media/uapi/v4l/vidioc-queryctrl.rst | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
+index 8d6e61a7284d..22475f484cb3 100644
+--- a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
++++ b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
+@@ -728,10 +728,12 @@ See also the examples in :ref:`control`.
+ 	  case the hardware calculates the gain value based on the lighting
+ 	  conditions which can change over time.
  
- config VIDEO_ADV7180
- 	tristate "Analog Devices ADV7180 decoder"
--	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-+	depends on GPIOLIB && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
- 	---help---
- 	  Support for the Analog Devices ADV7180 video decoder.
+-	  .. note:: Setting a new value for a volatile control will have no
+-	     effect and no ``V4L2_EVENT_CTRL_CH_VALUE`` will be sent, unless
+-	     the ``V4L2_CTRL_FLAG_EXECUTE_ON_WRITE`` flag (see below) is
+-	     also set. Otherwise the new value will just be ignored.
++	  .. note:: Setting a new value for a volatile control will be ignored
++             unless
++             :ref:`V4L2_CTRL_FLAG_EXECUTE_ON_WRITE <FLAG_EXECUTE_ON_WRITE>`
++             is also set.
++             Setting a new value for a volatile control will *never* trigger a
++             :ref:`V4L2_EVENT_CTRL_CH_VALUE <ctrl-changes-flags>` event.
  
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 967303a..38e5161 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -26,6 +26,7 @@
- #include <linux/i2c.h>
- #include <linux/slab.h>
- #include <linux/of.h>
-+#include <linux/gpio/consumer.h>
- #include <media/v4l2-ioctl.h>
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
-@@ -191,6 +192,7 @@ struct adv7180_state {
- 	struct media_pad	pad;
- 	struct mutex		mutex; /* mutual excl. when accessing chip */
- 	int			irq;
-+	struct gpio_desc	*pwdn_gpio;
- 	v4l2_std_id		curr_norm;
- 	bool			autodetect;
- 	bool			powered;
-@@ -443,6 +445,19 @@ static int adv7180_g_std(struct v4l2_subdev *sd, v4l2_std_id *norm)
- 	return 0;
- }
+     -  .. row 9
  
-+static void adv7180_set_power_pin(struct adv7180_state *state, bool on)
-+{
-+	if (!state->pwdn_gpio)
-+		return;
-+
-+	if (on) {
-+		gpiod_set_value_cansleep(state->pwdn_gpio, 0);
-+		usleep_range(5000, 10000);
-+	} else {
-+		gpiod_set_value_cansleep(state->pwdn_gpio, 1);
-+	}
-+}
-+
- static int adv7180_set_power(struct adv7180_state *state, bool on)
- {
- 	u8 val;
-@@ -1143,6 +1158,8 @@ static int init_device(struct adv7180_state *state)
+@@ -747,6 +749,7 @@ See also the examples in :ref:`control`.
+ 	  payload of the control.
  
- 	mutex_lock(&state->mutex);
+     -  .. row 10
++       .. _FLAG_EXECUTE_ON_WRITE:
  
-+	adv7180_set_power_pin(state, true);
-+
- 	adv7180_write(state, ADV7180_REG_PWR_MAN, ADV7180_PWR_MAN_RES);
- 	usleep_range(5000, 10000);
+        -  ``V4L2_CTRL_FLAG_EXECUTE_ON_WRITE``
  
-@@ -1190,6 +1207,20 @@ out_unlock:
- 	return ret;
- }
- 
-+static int adv7180_of_parse(struct adv7180_state *state)
-+{
-+	struct i2c_client *client = state->client;
-+
-+	state->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "pwdn",
-+						   GPIOD_OUT_HIGH);
-+	if (IS_ERR(state->pwdn_gpio)) {
-+		v4l_err(client, "request for power pin failed\n");
-+		return PTR_ERR(state->pwdn_gpio);
-+	}
-+
-+	return 0;
-+}
-+
- static int adv7180_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *id)
- {
-@@ -1212,6 +1243,10 @@ static int adv7180_probe(struct i2c_client *client,
- 	state->field = V4L2_FIELD_INTERLACED;
- 	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
- 
-+	ret = adv7180_of_parse(state);
-+	if (ret)
-+		return ret;
-+
- 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
- 		state->csi_client = i2c_new_dummy(client->adapter,
- 				ADV7180_DEFAULT_CSI_I2C_ADDR);
-@@ -1303,6 +1338,8 @@ static int adv7180_remove(struct i2c_client *client)
- 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2)
- 		i2c_unregister_device(state->csi_client);
- 
-+	adv7180_set_power_pin(state, false);
-+
- 	mutex_destroy(&state->mutex);
- 
- 	return 0;
 -- 
-1.9.1
+2.8.1
 
