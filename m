@@ -1,71 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 108-197-250-228.lightspeed.miamfl.sbcglobal.net ([108.197.250.228]:38352
-	"EHLO usa.attlocal.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754500AbcGVRyq (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36645 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753137AbcGVJJn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 13:54:46 -0400
-From: Abylay Ospan <aospan@netup.ru>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: Abylay Ospan <aospan@netup.ru>
-Subject: [PATCH] [dvbv5-scan] wait no more than timeout when scanning
-Date: Fri, 22 Jul 2016 13:54:37 -0400
-Message-Id: <1469210077-12313-1-git-send-email-aospan@netup.ru>
+	Fri, 22 Jul 2016 05:09:43 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	william.towle@codethink.co.uk, geert@linux-m68k.org,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v6 4/4] rcar-vin: implement EDID control ioctls
+Date: Fri, 22 Jul 2016 11:09:14 +0200
+Message-Id: <1469178554-20719-5-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-some frontends (mentioned on lgdt3306a) wait timeout inside code like:
-for (i = 20; i > 0; i--) {
-  msleep(50);
+Adds G_EDID and S_EDID.
 
-If there is no-LOCK then dvbv5-scan spent a lot of time (doing 40x calls).
-This patch introduce timeout which 4 sec * multiply. So we do not wait more
-than 4 sec (or so) if no-LOCK.
-
-Signed-off-by: Abylay Ospan <aospan@netup.ru>
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 ---
- utils/dvb/dvbv5-scan.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 33 +++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
-diff --git a/utils/dvb/dvbv5-scan.c b/utils/dvb/dvbv5-scan.c
-index 689bc0b..1fc33d7 100644
---- a/utils/dvb/dvbv5-scan.c
-+++ b/utils/dvb/dvbv5-scan.c
-@@ -182,12 +182,23 @@ static int print_frontend_stats(struct arguments *args,
- 	return 0;
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 396eabc..57e040c 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -661,6 +661,36 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
+ 	return ret;
  }
  
-+/* return timestamp in msec */
-+uint64_t get_timestamp()
++static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
 +{
-+	struct timeval now;
-+	gettimeofday(&now, 0);
-+	return now.tv_sec * 1000 + now.tv_usec/1000;
++	struct rvin_dev *vin = video_drvdata(file);
++	int input, ret;
++
++	input = edid->pad;
++	edid->pad = vin->inputs[input].sink_idx;
++
++	ret = rvin_subdev_call(vin, pad, get_edid, edid);
++
++	edid->pad = input;
++
++	return ret;
 +}
 +
- static int check_frontend(void *__args,
- 			  struct dvb_v5_fe_parms *parms)
- {
- 	struct arguments *args = __args;
- 	int rc, i;
- 	fe_status_t status;
-+	uint64_t start = get_timestamp();
-+	/* msec timeout by default 4 sec * multiply */ 
-+	uint64_t timeout = args->timeout_multiply * 4 * 1000;
- 
- 	args->n_status_lines = 0;
- 	for (i = 0; i < args->timeout_multiply * 40; i++) {
-@@ -203,6 +214,10 @@ static int check_frontend(void *__args,
- 		print_frontend_stats(args, parms);
- 		if (status & FE_HAS_LOCK)
- 			break;
++static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int input, ret;
 +
-+		if ((get_timestamp() - start) > timeout)
-+			break;
++	input = edid->pad;
++	edid->pad = vin->inputs[input].sink_idx;
 +
- 		usleep(100000);
- 	};
++	ret = rvin_subdev_call(vin, pad, set_edid, edid);
++
++	edid->pad = input;
++
++	return ret;
++}
++
+ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+ 	.vidioc_querycap		= rvin_querycap,
+ 	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
+@@ -683,6 +713,9 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+ 	.vidioc_s_dv_timings		= rvin_s_dv_timings,
+ 	.vidioc_query_dv_timings	= rvin_query_dv_timings,
  
++	.vidioc_g_edid			= rvin_g_edid,
++	.vidioc_s_edid			= rvin_s_edid,
++
+ 	.vidioc_querystd		= rvin_querystd,
+ 	.vidioc_g_std			= rvin_g_std,
+ 	.vidioc_s_std			= rvin_s_std,
 -- 
 2.7.4
 
