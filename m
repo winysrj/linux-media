@@ -1,93 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out5-smtp.messagingengine.com ([66.111.4.29]:58878 "EHLO
-	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932166AbcGKLsH (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:36865 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752023AbcGVHVT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2016 07:48:07 -0400
-Date: Mon, 11 Jul 2016 14:48:00 +0300
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Fri, 22 Jul 2016 03:21:19 -0400
+Subject: Re: [PATCH v6 1/2] [media] atmel-isc: add the Image Sensor Controller
+ code
+To: "Wu, Songjun" <Songjun.Wu@microchip.com>, nicolas.ferre@atmel.com,
+	robh@kernel.org
+References: <1469088900-23935-1-git-send-email-songjun.wu@microchip.com>
+ <1469088900-23935-2-git-send-email-songjun.wu@microchip.com>
+ <3ad06658-1e5f-2cd0-f092-4d8f50b4aaa6@xs4all.nl>
+ <bc8fc3da-9fe0-71ee-e55a-4d8c50b10cd3@microchip.com>
+Cc: laurent.pinchart@ideasonboard.com,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	=?UTF-8?Q?Niklas_S=c3=83=c2=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	Benoit Parrot <bparrot@ti.com>, linux-kernel@vger.kernel.org,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Kamil Debski <kamil@wypas.org>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
 	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Kozlov Sergey <serjk@netup.ru>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	=?UTF-8?Q?Richard_R=c3=b6jfors?= <richard@puffinpack.se>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Krzysztof =?utf-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-pci@vger.kernel.org,
-	kernel-mentors@selenic.com,
-	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Subject: Re: [PATCH v3] Add tw5864 driver
-Message-ID: <20160711114800.GW5934@zver>
-References: <20160709194618.15609-1-andrey_utkin@fastmail.com>
- <cac4c81a-9065-2337-7d34-eea8b8482519@xs4all.nl>
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Simon Horman <horms+renesas@verge.net.au>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ebd3617c-ad3c-d0e0-e024-b72924b5f864@xs4all.nl>
+Date: Fri, 22 Jul 2016 09:21:07 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cac4c81a-9065-2337-7d34-eea8b8482519@xs4all.nl>
+In-Reply-To: <bc8fc3da-9fe0-71ee-e55a-4d8c50b10cd3@microchip.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for review Hans!
 
-On Mon, Jul 11, 2016 at 07:58:38AM +0200, Hans Verkuil wrote:
-> > +" v4l2-ctl --device $dev --set-ctrl=video_gop_size=1; done\n"
-> 
-> Replace $dev by /dev/videoX
-> 
-> Wouldn't it make more sense to default to this? And show the warning only if
-> P-frames are enabled?
 
-I believe it's better to leave P-frames on by default. All-I-frames
-stream has huge bitrate. And the pixels artifacts is not very strong,
-it's 0 - 10 bad pixels on picture at same time in our dev environment,
-and probably up to 50 bad pixels max in other environments I know of.
+On 07/22/2016 07:18 AM, Wu, Songjun wrote:
 
-> > +	dma_sync_single_for_cpu(&dev->pci->dev, cur_frame->vlc.dma_addr,
-> > +				H264_VLC_BUF_SIZE, DMA_FROM_DEVICE);
-> > +	dma_sync_single_for_cpu(&dev->pci->dev, cur_frame->mv.dma_addr,
-> > +				H264_MV_BUF_SIZE, DMA_FROM_DEVICE);
-> 
-> This is almost certainly the wrong place. This should probably happen in the
-> tasklet. The tasklet runs after the isr, so by the time the tasklet runs
-> you've already called dma_sync_single_for_device.
+<snip>
 
-Thanks, moved to tasklet subroutine tw5864_handle_frame().
+>>> +/*
+>>> + * index(0~11):  raw formats.
+>>> + * index(12~12): the formats which can be converted from raw format by ISC.
+>>> + * index():      the formats which can only be provided by subdev.
+>>> + */
+>>> +static struct isc_format isc_formats[] = {
+>>
+>> static const
+>>
+> Some members in structure isc_format need be modified, so it can not be 
+> const.
 
-I didn't seem to me like dma_sync_single_for_* can take long time or be
-otherwise bad to be done from interrupt context.
+OK. Please add a comment about that.
 
-> > +static int tw5864_querycap(struct file *file, void *priv,
-> > +			   struct v4l2_capability *cap)
-> > +{
-> > +	struct tw5864_input *input = video_drvdata(file);
-> > +
-> > +	strcpy(cap->driver, "tw5864");
-> > +	snprintf(cap->card, sizeof(cap->card), "TW5864 Encoder %d",
-> > +		 input->nr);
-> > +	sprintf(cap->bus_info, "PCI:%s", pci_name(input->root->pci));
-> > +	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
-> > +		V4L2_CAP_STREAMING;
-> > +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-> 
-> This line can be dropped, the core will fill in the capabilities field for you.
+Regards,
 
-No, removing this line causes v4l2-compliance failures and also ffmpeg fails to
-play the device.
-
-Required ioctls:
-                fail: v4l2-compliance.cpp(550): dcaps & ~caps
-        test VIDIOC_QUERYCAP: FAIL
-
-Allow for multiple opens:
-        test second video open: OK
-                fail: v4l2-compliance.cpp(550): dcaps & ~caps
-        test VIDIOC_QUERYCAP: FAIL
+	Hans
