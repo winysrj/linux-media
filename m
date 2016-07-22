@@ -1,226 +1,415 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:55092 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751824AbcGZHJh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jul 2016 03:09:37 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, crope@iki.fi,
-	Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 1/7] si2165: support i2c_client attach
-Date: Tue, 26 Jul 2016 09:09:02 +0200
-Message-Id: <20160726070908.10135-1-zzam@gentoo.org>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:42551 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753680AbcGVJfG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2016 05:35:06 -0400
+Subject: Re: [PATCH] Staging: media: timblogiw: File cleanup.
+To: Jeremiah Goerdt <jeremiah.goerdt@gmail.com>, mchehab@kernel.org
+References: <20160720184737.GA6101@arch-laptop>
+Cc: gregkh@linuxfoundation.org, richard@puffinpack.se,
+	k.kozlowski@samsung.com, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ce38d7af-efbb-6216-f180-b10f230ab83a@xs4all.nl>
+Date: Fri, 22 Jul 2016 11:34:57 +0200
+MIME-Version: 1.0
+In-Reply-To: <20160720184737.GA6101@arch-laptop>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Afterwards it is possible to convert attaching in card drivers.
+This driver will be removed in 4.8, so I won't take this patch.
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/dvb-frontends/si2165.c | 149 +++++++++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/si2165.h |  22 ++++++
- 2 files changed, 171 insertions(+)
+Regards,
 
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index 8bf716a..2d9bbdd 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -40,6 +40,8 @@
-  */
- 
- struct si2165_state {
-+	struct i2c_client *client;
-+
- 	struct i2c_adapter *i2c;
- 
- 	struct dvb_frontend fe;
-@@ -1157,6 +1159,153 @@ error:
- }
- EXPORT_SYMBOL(si2165_attach);
- 
-+static int si2165_probe(struct i2c_client *client,
-+		const struct i2c_device_id *id)
-+{
-+	struct si2165_state *state = NULL;
-+	struct si2165_platform_data *pdata = client->dev.platform_data;
-+	int n;
-+	int ret = 0;
-+	u8 val;
-+	char rev_char;
-+	const char *chip_name;
-+
-+	/* allocate memory for the internal state */
-+	state = kzalloc(sizeof(struct si2165_state), GFP_KERNEL);
-+	if (state == NULL) {
-+		ret = -ENOMEM;
-+		goto error;
-+	}
-+
-+	/* setup the state */
-+	state->client = client;
-+	state->i2c = client->adapter;
-+	state->config.i2c_addr = client->addr;
-+	state->config.chip_mode = pdata->chip_mode;
-+	state->config.ref_freq_Hz = pdata->ref_freq_Hz;
-+	state->config.inversion = pdata->inversion;
-+
-+	if (state->config.ref_freq_Hz < 4000000
-+	    || state->config.ref_freq_Hz > 27000000) {
-+		dev_err(&state->i2c->dev, "%s: ref_freq of %d Hz not supported by this driver\n",
-+			 KBUILD_MODNAME, state->config.ref_freq_Hz);
-+		ret = -EINVAL;
-+		goto error;
-+	}
-+
-+	/* create dvb_frontend */
-+	memcpy(&state->fe.ops, &si2165_ops,
-+		sizeof(struct dvb_frontend_ops));
-+	state->fe.ops.release = NULL;
-+	state->fe.demodulator_priv = state;
-+	i2c_set_clientdata(client, state);
-+
-+	/* powerup */
-+	ret = si2165_writereg8(state, 0x0000, state->config.chip_mode);
-+	if (ret < 0)
-+		goto nodev_error;
-+
-+	ret = si2165_readreg8(state, 0x0000, &val);
-+	if (ret < 0)
-+		goto nodev_error;
-+	if (val != state->config.chip_mode)
-+		goto nodev_error;
-+
-+	ret = si2165_readreg8(state, 0x0023, &state->chip_revcode);
-+	if (ret < 0)
-+		goto nodev_error;
-+
-+	ret = si2165_readreg8(state, 0x0118, &state->chip_type);
-+	if (ret < 0)
-+		goto nodev_error;
-+
-+	/* powerdown */
-+	ret = si2165_writereg8(state, 0x0000, SI2165_MODE_OFF);
-+	if (ret < 0)
-+		goto nodev_error;
-+
-+	if (state->chip_revcode < 26)
-+		rev_char = 'A' + state->chip_revcode;
-+	else
-+		rev_char = '?';
-+
-+	switch (state->chip_type) {
-+	case 0x06:
-+		chip_name = "Si2161";
-+		state->has_dvbt = true;
-+		break;
-+	case 0x07:
-+		chip_name = "Si2165";
-+		state->has_dvbt = true;
-+		state->has_dvbc = true;
-+		break;
-+	default:
-+		dev_err(&state->i2c->dev, "%s: Unsupported Silicon Labs chip (type %d, rev %d)\n",
-+			KBUILD_MODNAME, state->chip_type, state->chip_revcode);
-+		goto nodev_error;
-+	}
-+
-+	dev_info(&state->i2c->dev,
-+		"%s: Detected Silicon Labs %s-%c (type %d, rev %d)\n",
-+		KBUILD_MODNAME, chip_name, rev_char, state->chip_type,
-+		state->chip_revcode);
-+
-+	strlcat(state->fe.ops.info.name, chip_name,
-+			sizeof(state->fe.ops.info.name));
-+
-+	n = 0;
-+	if (state->has_dvbt) {
-+		state->fe.ops.delsys[n++] = SYS_DVBT;
-+		strlcat(state->fe.ops.info.name, " DVB-T",
-+			sizeof(state->fe.ops.info.name));
-+	}
-+	if (state->has_dvbc) {
-+		state->fe.ops.delsys[n++] = SYS_DVBC_ANNEX_A;
-+		strlcat(state->fe.ops.info.name, " DVB-C",
-+			sizeof(state->fe.ops.info.name));
-+	}
-+
-+	/* return fe pointer */
-+	*pdata->fe = &state->fe;
-+
-+	return 0;
-+
-+nodev_error:
-+	ret = -ENODEV;
-+error:
-+	kfree(state);
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
-+	return ret;
-+}
-+
-+static int si2165_remove(struct i2c_client *client)
-+{
-+	struct si2165_state *state = i2c_get_clientdata(client);
-+
-+	dev_dbg(&client->dev, "\n");
-+
-+	kfree(state);
-+	return 0;
-+}
-+
-+static const struct i2c_device_id si2165_id_table[] = {
-+	{"si2165", 0},
-+	{}
-+};
-+MODULE_DEVICE_TABLE(i2c, si2165_id_table);
-+
-+static struct i2c_driver si2165_driver = {
-+	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= "si2165",
-+	},
-+	.probe		= si2165_probe,
-+	.remove		= si2165_remove,
-+	.id_table	= si2165_id_table,
-+};
-+
-+module_i2c_driver(si2165_driver);
-+
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Turn on/off frontend debugging (default:off).");
- 
-diff --git a/drivers/media/dvb-frontends/si2165.h b/drivers/media/dvb-frontends/si2165.h
-index 8a15d6a..abbebc9 100644
---- a/drivers/media/dvb-frontends/si2165.h
-+++ b/drivers/media/dvb-frontends/si2165.h
-@@ -28,6 +28,28 @@ enum {
- 	SI2165_MODE_PLL_XTAL = 0x21
- };
- 
-+/* I2C addresses
-+ * possible values: 0x64,0x65,0x66,0x67
-+ */
-+struct si2165_platform_data {
-+	/*
-+	 * frontend
-+	 * returned by driver
-+	 */
-+	struct dvb_frontend **fe;
-+
-+	/* external clock or XTAL */
-+	u8 chip_mode;
-+
-+	/* frequency of external clock or xtal in Hz
-+	 * possible values: 4000000, 16000000, 20000000, 240000000, 27000000
-+	 */
-+	u32 ref_freq_Hz;
-+
-+	/* invert the spectrum */
-+	bool inversion;
-+};
-+
- struct si2165_config {
- 	/* i2c addr
- 	 * possible values: 0x64,0x65,0x66,0x67 */
--- 
-2.9.2
+	Hans
 
+On 07/20/2016 08:47 PM, Jeremiah Goerdt wrote:
+> Cleaned up checkpatch.pl warnings and checks.
+> 
+> Signed-off-by: Jeremiah Goerdt <jeremiah.goerdt@gmail.com>
+> ---
+>  drivers/staging/media/timb/timblogiw.c | 134 ++++++++++++++++-----------------
+>  1 file changed, 67 insertions(+), 67 deletions(-)
+> 
+> diff --git a/drivers/staging/media/timb/timblogiw.c b/drivers/staging/media/timb/timblogiw.c
+> index 113c9f3..66d2898 100644
+> --- a/drivers/staging/media/timb/timblogiw.c
+> +++ b/drivers/staging/media/timb/timblogiw.c
+> @@ -10,10 +10,6 @@
+>   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>   * GNU General Public License for more details.
+> - *
+> - * You should have received a copy of the GNU General Public License
+> - * along with this program; if not, write to the Free Software
+> - * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+>   */
+>  
+>  /* Supports:
+> @@ -43,7 +39,6 @@
+>  
+>  #define TIMBLOGIW_HAS_DECODER(lw)	(lw->pdata.encoder.module_name)
+>  
+> -
+>  struct timblogiw {
+>  	struct video_device		video_dev;
+>  	struct v4l2_device		v4l2_dev; /* mutual exclusion */
+> @@ -98,7 +93,6 @@ static int timblogiw_bytes_per_line(const struct timblogiw_tvnorm *norm)
+>  	return norm->width * 2;
+>  }
+>  
+> -
+>  static int timblogiw_frame_size(const struct timblogiw_tvnorm *norm)
+>  {
+>  	return norm->height * timblogiw_bytes_per_line(norm);
+> @@ -107,6 +101,7 @@ static int timblogiw_frame_size(const struct timblogiw_tvnorm *norm)
+>  static const struct timblogiw_tvnorm *timblogiw_get_norm(const v4l2_std_id std)
+>  {
+>  	int i;
+> +
+>  	for (i = 0; i < ARRAY_SIZE(timblogiw_tvnorms); i++)
+>  		if (timblogiw_tvnorms[i].std & std)
+>  			return timblogiw_tvnorms + i;
+> @@ -138,8 +133,8 @@ static void timblogiw_dma_cb(void *data)
+>  	}
+>  
+>  	if (!list_empty(&fh->capture)) {
+> -		vb = list_entry(fh->capture.next, struct videobuf_buffer,
+> -			queue);
+> +		vb = list_entry(
+> +			fh->capture.next, struct videobuf_buffer, queue);
+>  		vb->state = VIDEOBUF_ACTIVE;
+>  	}
+>  
+> @@ -153,8 +148,8 @@ static bool timblogiw_dma_filter_fn(struct dma_chan *chan, void *filter_param)
+>  
+>  /* IOCTL functions */
+>  
+> -static int timblogiw_g_fmt(struct file *file, void  *priv,
+> -	struct v4l2_format *format)
+> +static int timblogiw_g_fmt(
+> +	struct file *file, void *priv, struct v4l2_format *format)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct timblogiw *lw = video_get_drvdata(vdev);
+> @@ -179,8 +174,8 @@ static int timblogiw_g_fmt(struct file *file, void  *priv,
+>  	return 0;
+>  }
+>  
+> -static int timblogiw_try_fmt(struct file *file, void  *priv,
+> -	struct v4l2_format *format)
+> +static int timblogiw_try_fmt(
+> +	struct file *file, void *priv, struct v4l2_format *format)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct v4l2_pix_format *pix = &format->fmt.pix;
+> @@ -204,8 +199,8 @@ static int timblogiw_try_fmt(struct file *file, void  *priv,
+>  	return 0;
+>  }
+>  
+> -static int timblogiw_s_fmt(struct file *file, void  *priv,
+> -	struct v4l2_format *format)
+> +static int timblogiw_s_fmt(
+> +	struct file *file, void *priv, struct v4l2_format *format)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct timblogiw *lw = video_get_drvdata(vdev);
+> @@ -233,15 +228,17 @@ out:
+>  	return err;
+>  }
+>  
+> -static int timblogiw_querycap(struct file *file, void  *priv,
+> -	struct v4l2_capability *cap)
+> +static int timblogiw_querycap(
+> +	struct file *file, void *priv, struct v4l2_capability *cap)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  
+>  	dev_dbg(&vdev->dev, "%s: Entry\n",  __func__);
+> -	strncpy(cap->card, TIMBLOGIWIN_NAME, sizeof(cap->card)-1);
+> +	strncpy(cap->card, TIMBLOGIWIN_NAME, sizeof(cap->card) - 1);
+>  	strncpy(cap->driver, DRIVER_NAME, sizeof(cap->driver) - 1);
+> -	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s", vdev->name);
+> +	snprintf(
+> +		cap->bus_info, sizeof(cap->bus_info),
+> +		"platform:%s", vdev->name);
+>  	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+>  		V4L2_CAP_READWRITE;
+>  	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+> @@ -249,8 +246,8 @@ static int timblogiw_querycap(struct file *file, void  *priv,
+>  	return 0;
+>  }
+>  
+> -static int timblogiw_enum_fmt(struct file *file, void  *priv,
+> -	struct v4l2_fmtdesc *fmt)
+> +static int timblogiw_enum_fmt(
+> +	struct file *file, void *priv, struct v4l2_fmtdesc *fmt)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  
+> @@ -261,15 +258,16 @@ static int timblogiw_enum_fmt(struct file *file, void  *priv,
+>  	memset(fmt, 0, sizeof(*fmt));
+>  	fmt->index = 0;
+>  	fmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> -	strncpy(fmt->description, "4:2:2, packed, YUYV",
+> -		sizeof(fmt->description)-1);
+> +	strncpy(
+> +		fmt->description, "4:2:2, packed, YUYV",
+> +		sizeof(fmt->description) - 1);
+>  	fmt->pixelformat = V4L2_PIX_FMT_UYVY;
+>  
+>  	return 0;
+>  }
+>  
+> -static int timblogiw_g_parm(struct file *file, void *priv,
+> -	struct v4l2_streamparm *sp)
+> +static int timblogiw_g_parm(
+> +	struct file *file, void *priv, struct v4l2_streamparm *sp)
+>  {
+>  	struct timblogiw_fh *fh = priv;
+>  	struct v4l2_captureparm *cp = &sp->parm.capture;
+> @@ -281,8 +279,8 @@ static int timblogiw_g_parm(struct file *file, void *priv,
+>  	return 0;
+>  }
+>  
+> -static int timblogiw_reqbufs(struct file *file, void  *priv,
+> -	struct v4l2_requestbuffers *rb)
+> +static int timblogiw_reqbufs(
+> +	struct file *file, void *priv, struct v4l2_requestbuffers *rb)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct timblogiw_fh *fh = priv;
+> @@ -292,8 +290,8 @@ static int timblogiw_reqbufs(struct file *file, void  *priv,
+>  	return videobuf_reqbufs(&fh->vb_vidq, rb);
+>  }
+>  
+> -static int timblogiw_querybuf(struct file *file, void  *priv,
+> -	struct v4l2_buffer *b)
+> +static int timblogiw_querybuf(
+> +	struct file *file, void *priv, struct v4l2_buffer *b)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct timblogiw_fh *fh = priv;
+> @@ -303,7 +301,8 @@ static int timblogiw_querybuf(struct file *file, void  *priv,
+>  	return videobuf_querybuf(&fh->vb_vidq, b);
+>  }
+>  
+> -static int timblogiw_qbuf(struct file *file, void  *priv, struct v4l2_buffer *b)
+> +static int timblogiw_qbuf(
+> +	struct file *file, void *priv, struct v4l2_buffer *b)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct timblogiw_fh *fh = priv;
+> @@ -313,8 +312,8 @@ static int timblogiw_qbuf(struct file *file, void  *priv, struct v4l2_buffer *b)
+>  	return videobuf_qbuf(&fh->vb_vidq, b);
+>  }
+>  
+> -static int timblogiw_dqbuf(struct file *file, void  *priv,
+> -	struct v4l2_buffer *b)
+> +static int timblogiw_dqbuf(
+> +	struct file *file, void *priv, struct v4l2_buffer *b)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct timblogiw_fh *fh = priv;
+> @@ -324,7 +323,7 @@ static int timblogiw_dqbuf(struct file *file, void  *priv,
+>  	return videobuf_dqbuf(&fh->vb_vidq, b, file->f_flags & O_NONBLOCK);
+>  }
+>  
+> -static int timblogiw_g_std(struct file *file, void  *priv, v4l2_std_id *std)
+> +static int timblogiw_g_std(struct file *file, void *priv, v4l2_std_id *std)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct timblogiw_fh *fh = priv;
+> @@ -335,7 +334,7 @@ static int timblogiw_g_std(struct file *file, void  *priv, v4l2_std_id *std)
+>  	return 0;
+>  }
+>  
+> -static int timblogiw_s_std(struct file *file, void  *priv, v4l2_std_id std)
+> +static int timblogiw_s_std(struct file *file, void *priv, v4l2_std_id std)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct timblogiw *lw = video_get_drvdata(vdev);
+> @@ -357,8 +356,8 @@ static int timblogiw_s_std(struct file *file, void  *priv, v4l2_std_id std)
+>  	return err;
+>  }
+>  
+> -static int timblogiw_enuminput(struct file *file, void  *priv,
+> -	struct v4l2_input *inp)
+> +static int timblogiw_enuminput(
+> +	struct file *file, void *priv, struct v4l2_input *inp)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	int i;
+> @@ -380,8 +379,8 @@ static int timblogiw_enuminput(struct file *file, void  *priv,
+>  	return 0;
+>  }
+>  
+> -static int timblogiw_g_input(struct file *file, void  *priv,
+> -	unsigned int *input)
+> +static int timblogiw_g_input(
+> +	struct file *file, void *priv, unsigned int *input)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  
+> @@ -392,7 +391,8 @@ static int timblogiw_g_input(struct file *file, void  *priv,
+>  	return 0;
+>  }
+>  
+> -static int timblogiw_s_input(struct file *file, void  *priv, unsigned int input)
+> +static int timblogiw_s_input(
+> +	struct file *file, void *priv, unsigned int input)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  
+> @@ -403,7 +403,8 @@ static int timblogiw_s_input(struct file *file, void  *priv, unsigned int input)
+>  	return 0;
+>  }
+>  
+> -static int timblogiw_streamon(struct file *file, void  *priv, enum v4l2_buf_type type)
+> +static int timblogiw_streamon(
+> +	struct file *file, void *priv, enum v4l2_buf_type type)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct timblogiw_fh *fh = priv;
+> @@ -419,8 +420,8 @@ static int timblogiw_streamon(struct file *file, void  *priv, enum v4l2_buf_type
+>  	return videobuf_streamon(&fh->vb_vidq);
+>  }
+>  
+> -static int timblogiw_streamoff(struct file *file, void  *priv,
+> -	enum v4l2_buf_type type)
+> +static int timblogiw_streamoff(
+> +	struct file *file, void *priv, enum v4l2_buf_type type)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct timblogiw_fh *fh = priv;
+> @@ -433,7 +434,7 @@ static int timblogiw_streamoff(struct file *file, void  *priv,
+>  	return videobuf_streamoff(&fh->vb_vidq);
+>  }
+>  
+> -static int timblogiw_querystd(struct file *file, void  *priv, v4l2_std_id *std)
+> +static int timblogiw_querystd(struct file *file, void *priv, v4l2_std_id *std)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct timblogiw *lw = video_get_drvdata(vdev);
+> @@ -443,14 +444,13 @@ static int timblogiw_querystd(struct file *file, void  *priv, v4l2_std_id *std)
+>  
+>  	if (TIMBLOGIW_HAS_DECODER(lw))
+>  		return v4l2_subdev_call(lw->sd_enc, video, querystd, std);
+> -	else {
+> -		*std = fh->cur_norm->std;
+> -		return 0;
+> -	}
+> +
+> +	*std = fh->cur_norm->std;
+> +	return 0;
+>  }
+>  
+> -static int timblogiw_enum_framesizes(struct file *file, void  *priv,
+> -	struct v4l2_frmsizeenum *fsize)
+> +static int timblogiw_enum_framesizes(
+> +	struct file *file, void *priv, struct v4l2_frmsizeenum *fsize)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct timblogiw_fh *fh = priv;
+> @@ -458,8 +458,7 @@ static int timblogiw_enum_framesizes(struct file *file, void  *priv,
+>  	dev_dbg(&vdev->dev, "%s - index: %d, format: %d\n",  __func__,
+>  		fsize->index, fsize->pixel_format);
+>  
+> -	if ((fsize->index != 0) ||
+> -		(fsize->pixel_format != V4L2_PIX_FMT_UYVY))
+> +	if ((fsize->index != 0) || (fsize->pixel_format != V4L2_PIX_FMT_UYVY))
+>  		return -EINVAL;
+>  
+>  	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+> @@ -471,8 +470,8 @@ static int timblogiw_enum_framesizes(struct file *file, void  *priv,
+>  
+>  /* Video buffer functions */
+>  
+> -static int buffer_setup(struct videobuf_queue *vq, unsigned int *count,
+> -	unsigned int *size)
+> +static int buffer_setup(
+> +	struct videobuf_queue *vq, unsigned int *count, unsigned int *size)
+>  {
+>  	struct timblogiw_fh *fh = vq->priv_data;
+>  
+> @@ -487,7 +486,8 @@ static int buffer_setup(struct videobuf_queue *vq, unsigned int *count,
+>  	return 0;
+>  }
+>  
+> -static int buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+> +static int buffer_prepare(
+> +	struct videobuf_queue *vq, struct videobuf_buffer *vb,
+>  	enum v4l2_field field)
+>  {
+>  	struct timblogiw_fh *fh = vq->priv_data;
+> @@ -563,9 +563,9 @@ static void buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
+>  
+>  	spin_unlock_irq(&fh->queue_lock);
+>  
+> -	desc = dmaengine_prep_slave_sg(fh->chan,
+> -		buf->sg, sg_elems, DMA_DEV_TO_MEM,
+> -		DMA_PREP_INTERRUPT);
+> +	desc = dmaengine_prep_slave_sg(
+> +		fh->chan, buf->sg, sg_elems,
+> +		DMA_DEV_TO_MEM, DMA_PREP_INTERRUPT);
+>  	if (!desc) {
+>  		spin_lock_irq(&fh->queue_lock);
+>  		list_del_init(&vb->queue);
+> @@ -581,8 +581,8 @@ static void buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
+>  	spin_lock_irq(&fh->queue_lock);
+>  }
+>  
+> -static void buffer_release(struct videobuf_queue *vq,
+> -	struct videobuf_buffer *vb)
+> +static void buffer_release(
+> +	struct videobuf_queue *vq, struct videobuf_buffer *vb)
+>  {
+>  	struct timblogiw_fh *fh = vq->priv_data;
+>  	struct timblogiw_buffer *buf = container_of(vb, struct timblogiw_buffer,
+> @@ -676,10 +676,10 @@ static int timblogiw_open(struct file *file)
+>  	}
+>  
+>  	file->private_data = fh;
+> -	videobuf_queue_dma_contig_init(&fh->vb_vidq,
+> -		&timblogiw_video_qops, lw->dev, &fh->queue_lock,
+> -		V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
+> -		sizeof(struct timblogiw_buffer), fh, NULL);
+> +	videobuf_queue_dma_contig_init(
+> +		&fh->vb_vidq, &timblogiw_video_qops, lw->dev,
+> +		&fh->queue_lock, V4L2_BUF_TYPE_VIDEO_CAPTURE,
+> +		V4L2_FIELD_NONE, sizeof(struct timblogiw_buffer), fh, NULL);
+>  
+>  	lw->opened = true;
+>  out:
+> @@ -709,8 +709,8 @@ static int timblogiw_close(struct file *file)
+>  	return 0;
+>  }
+>  
+> -static ssize_t timblogiw_read(struct file *file, char __user *data,
+> -	size_t count, loff_t *ppos)
+> +static ssize_t timblogiw_read(
+> +	struct file *file, char __user *data, size_t count, loff_t *ppos)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct timblogiw_fh *fh = file->private_data;
+> @@ -721,8 +721,8 @@ static ssize_t timblogiw_read(struct file *file, char __user *data,
+>  		file->f_flags & O_NONBLOCK);
+>  }
+>  
+> -static unsigned int timblogiw_poll(struct file *file,
+> -	struct poll_table_struct *wait)
+> +static unsigned int timblogiw_poll(
+> +	struct file *file, struct poll_table_struct *wait)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct timblogiw_fh *fh = file->private_data;
+> @@ -867,4 +867,4 @@ module_platform_driver(timblogiw_platform_driver);
+>  MODULE_DESCRIPTION(TIMBLOGIWIN_NAME);
+>  MODULE_AUTHOR("Pelagicore AB <info@pelagicore.com>");
+>  MODULE_LICENSE("GPL v2");
+> -MODULE_ALIAS("platform:"DRIVER_NAME);
+> +MODULE_ALIAS("platform:" DRIVER_NAME);
+> 
