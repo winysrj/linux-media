@@ -1,41 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35029 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751558AbcGUILU (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:23545 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751572AbcGVIdR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2016 04:11:20 -0400
-Subject: Re: [PATCH v3 0/3] support of v4l2 encoder for STMicroelectronics SOC
-To: Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-	linux-media@vger.kernel.org
-References: <1469086804-21652-1-git-send-email-jean-christophe.trotin@st.com>
-Cc: kernel@stlinux.com,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Yannick Fertre <yannick.fertre@st.com>,
-	Hugues Fruchet <hugues.fruchet@st.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e71d58b2-e21a-1879-d69b-271071f27ff3@xs4all.nl>
-Date: Thu, 21 Jul 2016 10:11:11 +0200
+	Fri, 22 Jul 2016 04:33:17 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: <srv_heupstream@mediatek.com>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>,
+	Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: [PATCH v2 1/4] VPU: mediatek: Add mdp support
+Date: Fri, 22 Jul 2016 16:33:00 +0800
+Message-ID: <1469176383-35210-2-git-send-email-minghsiu.tsai@mediatek.com>
+In-Reply-To: <1469176383-35210-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1469176383-35210-1-git-send-email-minghsiu.tsai@mediatek.com>
 MIME-Version: 1.0
-In-Reply-To: <1469086804-21652-1-git-send-email-jean-christophe.trotin@st.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The module is still called 'hva'. I suggest calling it sti-hva instead.
+VPU driver add mdp support
 
-> 	Format ioctls:
-> 		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-> 		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1187): S_PARM is supported for buftype 1, but not ENUM_FRAMEINTERVALS
-> 		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1187): S_PARM is supported for buftype 2, but not ENUM_FRAMEINTERVALS
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+---
+ drivers/media/platform/mtk-vpu/mtk_vpu.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-So why is S_PARM supported? I asked about that in my review, but I got no answer.
+diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.h b/drivers/media/platform/mtk-vpu/mtk_vpu.h
+index f457479..291ae46 100644
+--- a/drivers/media/platform/mtk-vpu/mtk_vpu.h
++++ b/drivers/media/platform/mtk-vpu/mtk_vpu.h
+@@ -53,6 +53,8 @@ typedef void (*ipi_handler_t) (void *data,
+ 			 handle H264 video encoder job, and vice versa.
+  * @IPI_VENC_VP8:	 The interrupt fro vpu is to notify kernel to
+ 			 handle VP8 video encoder job,, and vice versa.
++ * @IPI_MDP:		 The interrupt from vpu is to notify kernel to
++			 handle MDP (Media Data Path) job, and vice versa.
+  * @IPI_MAX:		 The maximum IPI number
+  */
+ 
+@@ -63,6 +65,7 @@ enum ipi_id {
+ 	IPI_VDEC_VP9,
+ 	IPI_VENC_H264,
+ 	IPI_VENC_VP8,
++	IPI_MDP,
+ 	IPI_MAX,
+ };
+ 
+@@ -71,11 +74,13 @@ enum ipi_id {
+  *
+  * @VPU_RST_ENC: encoder reset id
+  * @VPU_RST_DEC: decoder reset id
++ * @VPU_RST_MDP: MDP (Media Data Path) reset id
+  * @VPU_RST_MAX: maximum reset id
+  */
+ enum rst_id {
+ 	VPU_RST_ENC,
+ 	VPU_RST_DEC,
++	VPU_RST_MDP,
+ 	VPU_RST_MAX,
+ };
+ 
+-- 
+1.7.9.5
 
-I've never seen that for m2m devices, and it really makes no sense IMHO.
-
-The 'framerate' is typically driven by how often new frames are submitted by the
-user. It's not up to the driver to mess with that.
-
-Regards,
-
-	Hans
