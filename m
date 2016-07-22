@@ -1,47 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from m12-16.163.com ([220.181.12.16]:51303 "EHLO m12-16.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752012AbcGMMqU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 08:46:20 -0400
-From: weiyj_lk@163.com
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH -next] [media] pulse8-cec: fix non static symbol warning
-Date: Wed, 13 Jul 2016 12:45:00 +0000
-Message-Id: <1468413900-2677-1-git-send-email-weiyj_lk@163.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47250
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752103AbcGVJqM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2016 05:46:12 -0400
+Date: Fri, 22 Jul 2016 06:46:04 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+	Jani Nikula <jani.nikula@intel.com>,
+	Daniel Vetter <daniel.vetter@intel.com>
+Subject: Re: [PATCH 00/18] Complete moving media documentation to ReST
+ format
+Message-ID: <20160722064604.5e4cbe64@recife.lan>
+In-Reply-To: <F30ED754-B987-44B1-B839-9305D7FC1533@darmarit.de>
+References: <cover.1468865380.git.mchehab@s-opensource.com>
+	<578DF08F.8080701@xs4all.nl>
+	<20160719081259.482a8c04@recife.lan>
+	<6702C6D4-929F-420D-9CF9-911CA753B0A7@darmarit.de>
+	<20160719115319.316349a7@recife.lan>
+	<99F50AA7-01F0-4659-82F9-558E19B3855A@darmarit.de>
+	<20160719141843.17bf5a9b@recife.lan>
+	<F30ED754-B987-44B1-B839-9305D7FC1533@darmarit.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Em Thu, 21 Jul 2016 17:17:26 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-Fixes the following sparse warning:
+> Am 19.07.2016 um 19:18 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> 
+> >> A bit OT, but I see that you often use tabs / I recommend to use 
+> >> spaces for indentation:
+> >> 
+> >> http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#whitespace  
+> > 
+> > The Kernel policies are to use tabs instead of spaces,  
+> 
+> Yes, but not in text files .. I think.
 
-drivers/staging/media/pulse8-cec/pulse8-cec.c:427:27: warning:
- symbol 'pulse8_cec_adap_ops' was not declared. Should it be static?
+See chapter 1 of Documentation/CodingStyle:
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/staging/media/pulse8-cec/pulse8-cec.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+			Chapter 1: Indentation
 
-diff --git a/drivers/staging/media/pulse8-cec/pulse8-cec.c b/drivers/staging/media/pulse8-cec/pulse8-cec.c
-index 7d6d5ee..94f8590 100644
---- a/drivers/staging/media/pulse8-cec/pulse8-cec.c
-+++ b/drivers/staging/media/pulse8-cec/pulse8-cec.c
-@@ -424,7 +424,7 @@ static int pulse8_received(struct cec_adapter *adap, struct cec_msg *msg)
- 	return -ENOMSG;
- }
- 
--const struct cec_adap_ops pulse8_cec_adap_ops = {
-+static const struct cec_adap_ops pulse8_cec_adap_ops = {
- 	.adap_enable = pulse8_cec_adap_enable,
- 	.adap_log_addr = pulse8_cec_adap_log_addr,
- 	.adap_transmit = pulse8_cec_adap_transmit,
+	Tabs are 8 characters, and thus indentations are also 8 characters.
 
 
+
+
+> 
+> -- Markus --
+> 
+> > and tabs have
+> > size of 8. I have some git automation to avoid commit patches with
+> > bad whitespaces, and some tools to convert spaces into tabs.  
+> 
+> > 
+> > 
+> > Thanks,
+> > Mauro
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html  
+> 
+
+
+Thanks,
+Mauro
