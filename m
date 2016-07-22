@@ -1,70 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:36152 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439AbcGOPq0 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:40552 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751337AbcGVPDW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 11:46:26 -0400
-Subject: Re: [PATCH] [media] mb86a20s: remove redundant check if val is less
- than zero
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <1468315851-9179-1-git-send-email-colin.king@canonical.com>
- <20160715122008.20c5f59d@recife.lan>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Colin Ian King <colin.king@canonical.com>
-Message-ID: <57890526.2080902@canonical.com>
-Date: Fri, 15 Jul 2016 16:45:42 +0100
-MIME-Version: 1.0
-In-Reply-To: <20160715122008.20c5f59d@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 22 Jul 2016 11:03:22 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 11/11] [media] doc-rst: Fix some typedef ugly warnings
+Date: Fri, 22 Jul 2016 12:03:07 -0300
+Message-Id: <b32909983ab03e03504bb44d5c66f44b9d57adc3.1469199711.git.mchehab@s-opensource.com>
+In-Reply-To: <c2765df5223e1b389c73271397865fbf8bae100e.1469199711.git.mchehab@s-opensource.com>
+References: <c2765df5223e1b389c73271397865fbf8bae100e.1469199711.git.mchehab@s-opensource.com>
+In-Reply-To: <c2765df5223e1b389c73271397865fbf8bae100e.1469199711.git.mchehab@s-opensource.com>
+References: <c2765df5223e1b389c73271397865fbf8bae100e.1469199711.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15/07/16 16:20, Mauro Carvalho Chehab wrote:
-> Em Tue, 12 Jul 2016 10:30:51 +0100
-> Colin King <colin.king@canonical.com> escreveu:
-> 
->> From: Colin Ian King <colin.king@canonical.com>
->>
->> The result of mb86a20s_readreg(state, 0x0a) & 0xf is always in the range
->> 0x00 to 0x0f and can never be negative, so remove the redundant check
->> of the result being less than zero.
->>
->> Signed-off-by: Colin Ian King <colin.king@canonical.com>
->> ---
->>  drivers/media/dvb-frontends/mb86a20s.c | 2 --
->>  1 file changed, 2 deletions(-)
->>
->> diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
->> index fb88ddd..0205846 100644
->> --- a/drivers/media/dvb-frontends/mb86a20s.c
->> +++ b/drivers/media/dvb-frontends/mb86a20s.c
->> @@ -302,8 +302,6 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, enum fe_status *status)
->>  	*status = 0;
->>  
->>  	val = mb86a20s_readreg(state, 0x0a) & 0xf;
->> -	if (val < 0)
->> -		return val;
-> 
-> Actually, mb86a20s_readreg() can return a negative value.
+Sphinx can't handle well typedefs. Change two typedef
+occurrences, in order to cleanup some of such warnings.
 
-Oops, yep, clearly my code is stupid. I'll send a fix soon.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ include/media/v4l2-ctrls.h      | 4 +++-
+ include/media/v4l2-dv-timings.h | 2 +-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-> 
-> Please change the above logic to first check for the value returned
-> from mb86a20s_readreg() and then apply the bitmask.
-> 
-> Thanks,
-> Mauro
-> 
->>  
->>  	if (val >= 2)
->>  		*status |= FE_HAS_SIGNAL;
-> 
-> 
-> 
-> Thanks,
-> Mauro
-> 
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 8b59336b2217..d6f63406b885 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -534,6 +534,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
+ 			const struct v4l2_ctrl_ops *ops,
+ 			u32 id, u8 max, u8 def, const s64 *qmenu_int);
+ 
++typedef bool (*v4l2_ctrl_filter)(const struct v4l2_ctrl *ctrl);
++
+ /**
+  * v4l2_ctrl_add_handler() - Add all controls from handler @add to
+  * handler @hdl.
+@@ -550,7 +552,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
+  */
+ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
+ 			  struct v4l2_ctrl_handler *add,
+-			  bool (*filter)(const struct v4l2_ctrl *ctrl));
++			  v4l2_ctrl_filter filter);
+ 
+ /**
+  * v4l2_ctrl_radio_filter() - Standard filter for radio controls.
+diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
+index 1113c8874c26..65caadf13eec 100644
+--- a/include/media/v4l2-dv-timings.h
++++ b/include/media/v4l2-dv-timings.h
+@@ -28,7 +28,7 @@
+  */
+ extern const struct v4l2_dv_timings v4l2_dv_timings_presets[];
+ 
+-/**
++/*
+  * v4l2_check_dv_timings_fnc - timings check callback
+  *
+  * @t: the v4l2_dv_timings struct.
+-- 
+2.7.4
 
