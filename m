@@ -1,107 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53562 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751869AbcGAMBA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jul 2016 08:01:00 -0400
-Subject: Re: [PATCH v3 0/9] Add MT8173 Video Decoder Driver
-To: andrew-ct chen <andrew-ct.chen@mediatek.com>
-References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
- <20160607112235.475c2e4c@recife.lan> <575746EE.3030706@cisco.com>
- <1465902488.27938.7.camel@mtksdaap41> <20160616075428.0fde4aaa@recife.lan>
- <8a46c1e7-1f27-1e67-8c05-b133598b6a66@xs4all.nl>
- <1467373995.17297.2.camel@mtksdaap41>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	tiffany lin <tiffany.lin@mediatek.com>,
-	devicetree@vger.kernel.org, daniel.thompson@linaro.org,
-	linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org,
-	Hans Verkuil <hansverk@cisco.com>, PoChun.Lin@mediatek.com,
-	Rob Herring <robh+dt@kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Pawel Osciak <posciak@chromium.org>,
-	linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7ee128a2-f026-5404-bbac-6b5c1bee51e7@xs4all.nl>
-Date: Fri, 1 Jul 2016 14:00:54 +0200
+Received: from mga11.intel.com ([192.55.52.93]:1827 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753408AbcGVLFA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2016 07:05:00 -0400
+Subject: Re: [PATCH v3 1/5] media: Determine early whether an IOCTL is
+ supported
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
+References: <1469099686-10938-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1469099686-10938-2-git-send-email-sakari.ailus@linux.intel.com>
+ <02d434b2-c8b6-8697-169e-ec0badd84da9@xs4all.nl>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <5791FDC4.30701@linux.intel.com>
+Date: Fri, 22 Jul 2016 14:04:36 +0300
 MIME-Version: 1.0
-In-Reply-To: <1467373995.17297.2.camel@mtksdaap41>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <02d434b2-c8b6-8697-169e-ec0badd84da9@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/01/2016 01:53 PM, andrew-ct chen wrote:
-> On Fri, 2016-07-01 at 12:11 +0200, Hans Verkuil wrote:
->> On 06/16/2016 12:54 PM, Mauro Carvalho Chehab wrote:
->>> Em Tue, 14 Jun 2016 19:08:08 +0800
->>> tiffany lin <tiffany.lin@mediatek.com> escreveu:
->>>
->>>> Hi Mauro,
->>>>
->>>>
->>>> On Wed, 2016-06-08 at 07:13 +0900, Hans Verkuil wrote:
->>>>>
->>>>> On 06/07/2016 11:22 PM, Mauro Carvalho Chehab wrote:  
->>>>>> Em Mon, 30 May 2016 20:29:14 +0800
->>>>>> Tiffany Lin <tiffany.lin@mediatek.com> escreveu:
->>>>>>  
->>>>>>> ==============
->>>>>>>   Introduction
->>>>>>> ==============
->>>>>>>
->>>>>>> The purpose of this series is to add the driver for video codec hw embedded in the Mediatek's MT8173 SoCs.
->>>>>>> Mediatek Video Codec is able to handle video decoding of in a range of formats.
->>>>>>>
->>>>>>> This patch series add Mediatek block format V4L2_PIX_FMT_MT21, the decoder driver will decoded bitstream to
->>>>>>> V4L2_PIX_FMT_MT21 format.
->>>>>>>
->>>>>>> This patch series rely on MTK VPU driver in patch series "Add MT8173 Video Encoder Driver and VPU Driver"[1]
->>>>>>> and patch "CHROMIUM: v4l: Add V4L2_PIX_FMT_VP9 definition"[2] for VP9 support.
->>>>>>> Mediatek Video Decoder driver rely on VPU driver to load, communicate with VPU.
->>>>>>>
->>>>>>> Internally the driver uses videobuf2 framework and MTK IOMMU and MTK SMI both have been merged in v4.6-rc1.
->>>>>>>
->>>>>>> [1]https://patchwork.linuxtv.org/patch/33734/
->>>>>>> [2]https://chromium-review.googlesource.com/#/c/245241/  
->>>>>>
->>>>>> Hmm... I'm not seeing the firmware for this driver at the
->>>>>> linux-firmware tree:
->>>>>> 	https://git.kernel.org/cgit/linux/kernel/git/firmware/linux-firmware.git/log/
->>>>>>
->>>>>> Nor I'm seeing any pull request for them. Did you send it?
->>>>>> I'll only merge the driver upstream after seeing such pull request.  
->>>>>   
->>>> Sorry, I am not familiar with how to upstream firmware.
->>>> Do you mean we need to upstream vpu firmware first before merge encoder
->>>> driver upstream?
->>>
->>> Please look at this page:
->>> 	https://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches#Firmware_submission
->>>
->>> The information here can also be useful:
->>> 	https://www.kernel.org/doc/readme/firmware-README.AddingFirmware
->>>
->>> In summary, you need to provide redistribution rights for the
->>> firmware blob. You can either submit it to me or directly to
->>> linux-firmware. In the latter, please c/c me on such patch.
->>
->> Tiffany, what is the status of the firmware submission?
->>
->> Regards,
->>
->> 	Hans
-> 
-> Hi Hans,
-> We are working on firmware test to make sure that both decoder and
-> encoder work well. Hopes it can be ready (firmware submission) on July 4
-> or July 5.
+Hi Hans,
 
-OK, great! Just wanted to make sure that this work was progressing and not stalled.
+Hans Verkuil wrote:
+> Hi Sakari,
+>
+> On 07/21/2016 01:14 PM, Sakari Ailus wrote:
+>> Preparation for refactoring media IOCTL handling to unify common parts.
+>>
+>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> ---
+>>   drivers/media/media-device.c | 48 ++++++++++++++++++++++++++++++++++++++++++--
+>>   1 file changed, 46 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+>> index 1795abe..3ac526d 100644
+>> --- a/drivers/media/media-device.c
+>> +++ b/drivers/media/media-device.c
+>> @@ -419,13 +419,33 @@ static long media_device_get_topology(struct media_device *mdev,
+>>   	return 0;
+>>   }
+>>
+>> -static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>> -			       unsigned long arg)
+>> +#define MEDIA_IOC(__cmd) \
+>> +	[_IOC_NR(MEDIA_IOC_##__cmd)] = { .cmd = MEDIA_IOC_##__cmd }
+>> +
+>> +/* the table is indexed by _IOC_NR(cmd) */
+>> +struct media_ioctl_info {
+>> +	unsigned int cmd;
+>> +};
+>> +
+>> +static inline long is_valid_ioctl(const struct media_ioctl_info *info,
+>> +				  unsigned int len, unsigned int cmd)
+>> +{
+>> +	return (_IOC_NR(cmd) >= len
+>> +		|| info[_IOC_NR(cmd)].cmd != cmd) ? -ENOIOCTLCMD : 0;
+>> +}
+>> +
+>> +static long __media_device_ioctl(
+>> +	struct file *filp, unsigned int cmd, void __user *arg,
+>> +	const struct media_ioctl_info *info_array, unsigned int info_array_len)
+>>   {
+>>   	struct media_devnode *devnode = media_devnode_data(filp);
+>>   	struct media_device *dev = devnode->media_dev;
+>>   	long ret;
+>>
+>> +	ret = is_valid_ioctl(info_array, info_array_len, cmd);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>>   	mutex_lock(&dev->graph_mutex);
+>>   	switch (cmd) {
+>>   	case MEDIA_IOC_DEVICE_INFO:
+>> @@ -461,6 +481,22 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>>   	return ret;
+>>   }
+>>
+>> +static const struct media_ioctl_info ioctl_info[] = {
+>> +	MEDIA_IOC(DEVICE_INFO),
+>> +	MEDIA_IOC(ENUM_ENTITIES),
+>> +	MEDIA_IOC(ENUM_LINKS),
+>> +	MEDIA_IOC(SETUP_LINK),
+>> +	MEDIA_IOC(G_TOPOLOGY),
+>> +};
+>
+> Why not move this up and use ARRAY_SIZE instead of having to pass the length around?
+>
+>> +
+>> +static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>> +			       unsigned long arg)
+>> +{
+>> +	return __media_device_ioctl(
+>> +		filp, cmd, (void __user *)arg,
+>> +		ioctl_info, ARRAY_SIZE(ioctl_info));
+>> +}
+>> +
+>>   #ifdef CONFIG_COMPAT
+>>
+>>   struct media_links_enum32 {
+>> @@ -491,6 +527,14 @@ static long media_device_enum_links32(struct media_device *mdev,
+>>
+>>   #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, struct media_links_enum32)
+>>
+>> +static const struct media_ioctl_info compat_ioctl_info[] = {
+>> +	MEDIA_IOC(DEVICE_INFO),
+>> +	MEDIA_IOC(ENUM_ENTITIES),
+>> +	MEDIA_IOC(ENUM_LINKS32),
+>> +	MEDIA_IOC(SETUP_LINK),
+>> +	MEDIA_IOC(G_TOPOLOGY),
+>> +};
+>
+> I assume the size of the compat array will always be the same as that of the 'regular' array.
+> In fact, you should probably test for that (the compiler should be able to catch that).
 
-Thanks!
+Yeah, the sizes will be the same, so ARRAY_SIZE() works well. I'll add a 
+BUILD_BUG_ON() check for the sizes.
 
-	Hans
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
