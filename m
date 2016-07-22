@@ -1,125 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:55060 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756069AbcGGCmj (ORCPT
+Received: from b.painless.aa.net.uk ([81.187.30.52]:46649 "EHLO
+	b.painless.aa.net.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751230AbcGVVe5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jul 2016 22:42:39 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id A0E5718045B
-	for <linux-media@vger.kernel.org>; Thu,  7 Jul 2016 04:42:33 +0200 (CEST)
-Date: Thu, 07 Jul 2016 04:42:33 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160707024233.A0E5718045B@tschai.lan>
+	Fri, 22 Jul 2016 17:34:57 -0400
+Subject: Re: Sony imx219 driver?
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <57911245.1010500@destevenson.freeserve.co.uk>
+ <5c425f34-d044-f228-65a4-f67430d55941@xs4all.nl>
+From: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>
+Message-ID: <57928260.3080503@destevenson.freeserve.co.uk>
+Date: Fri, 22 Jul 2016 21:30:24 +0100
+MIME-Version: 1.0
+In-Reply-To: <5c425f34-d044-f228-65a4-f67430d55941@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Hans.
 
-Results of the daily build of media_tree:
+On 22/07/16 10:46, Hans Verkuil wrote:
+>
+>
+> On 07/21/2016 08:19 PM, Dave Stevenson wrote:
+>> Hi All.
+>>
+>> Just a quick query to avoid duplicating effort. Has anyone worked on a
+>> Sony IMX219 (or other Sony sensor) subdevice driver as yet?
+>
+> Not that I am aware of.
 
-date:		Thu Jul  7 04:00:17 CEST 2016
-git branch:	test
-git hash:	d81295d1bed850335f9f4ccb6b1aa4f6a123d4f0
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+OK, glad to hear I won't be duplicating effort.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mtk: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+>> With the new Raspberry Pi camera being IMX219, and as Broadcom have
+>> released an soc_camera based driver for the sensor already
+>> (https://android.googlesource.com/kernel/bcm/+/android-bcm-tetra-3.10-lollipop-wear-release/drivers/media/video/imx219.c)
+>
+> #@!@$! Why do they never ever ask us what would be a good example driver to use. The
+> soc-camera framework is deprecated and will likely be gone by the end of the year.
 
-Detailed results are available here:
+Yes, a touch grim.
+I'm aware of the project it was done for from my time at Broadcom but 
+wasn't directly involved. Partly in their defence:
+(a) It was almost 3 years ago.
+(b) It's on top of a 3.10 kernel, so lots of the nicer features that are 
+now present just weren't there.
+(c) However they did bastardise even soc_camera to extract extra info 
+from the sensor driver for some of their upper layers. Not so nice.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+>> I was going to investigate converting that to a subdevice. I just wanted
+>> to check this wasn't already in someone else's work queue.
+>>
+>> A further Google shows that there's also an soc_camera IMX219 driver in
+>> ChromiumOS, copyright Andrew Chew @ Nvidia, but author Guennadi
+>> Liakhovetski who I know posts on here.
+>> https://chromium.googlesource.com/chromiumos/third_party/kernel/+/factory-ryu-6486.14.B-chromeos-3.14/drivers/media/i2c/soc_camera/imx219.c.
+>
+> At least for the tegra there is a proper non-soc-camera driver in the works.
 
-Full logs are available here:
+non-soc-camera driver for imx219, or for the tegra hardware blocks? I'm 
+assuming the latter based on you saying you're not aware of an imx219 
+driver being in progress.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+As I have mentioned before, the other half of my playing is a subdevice 
+driver for the CSI2 receiver on Pi. That bcm android kernel tree also 
+released all the info needed for that block into the public domain, so 
+I'm not even breaching NDAs in doing so :-) I hope to test my imx219 
+driver against that.
 
-The Media Infrastructure API from this daily build is here:
+>> The Broadcom one supports 8MPix and 1080P, the Chromium one only 8MP.
+>> Perhaps a hybrid of the feature set?
+>
+> They usually only implement what they need, so I'd say for chromium they only needed 8MP support.
+>
+>> Throw in
+>> https://github.com/ZenfoneArea/android_kernel_asus_zenfone5/blob/master/linux/modules/camera/drivers/media/i2c/imx219/imx219.h
+>> as well, and we have register sets for numerous readout modes, plus
+>> there are the ones in the Pi firmware which can be extracted if necessary.
+>
+> With all that code it shouldn't be hard to write a proper subdev driver.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Indeed.
+I'll try to put something together and submit it to the list. I don't 
+know what my timescales will end up being on it though.
+
+>>
+>> On a related note, if putting together a system with IMX219 or similar
+>> producing Bayer raw 10, the data on the CSI2 bus is one of the
+>> V4L2_PIX_FMT_SRGGB10P formats. What's the correct way to reflect that
+>> from the sensor subdevice in an MEDIA_BUS_FMT_ enum?
+>> The closest is MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE (or LE), but the data
+>> isn't padded (the Pi CSI2 receiver can do the unpacking and padding, but
+>> that just takes up more memory).|||| Or is it MEDIA_BUS_FMT_SBGGR10_1X10
+>> to describe the data on the bus correctly as 10bpp Bayer, and the odd
+>> packing is ignored. Or do we need new enums?
+>
+> Just add new enums to media-bus-format.h. It should be clear from comments and/or
+> the naming of the enum what the exact format it, so you'll need to think about
+> that carefully. Otherwise it's no big deal to add new formats there.
+
+OK, will do.
+I wasn't clear from reading the docs how accurately MEDIA_BUS_FMT_ was 
+describing the pixel layout as it mentions NOT having a 1:1 mapping with 
+V4L2_PIX_FMT_ enums. Having the clarification is great.
+
+Thanks for the advice.
+   Dave
