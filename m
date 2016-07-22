@@ -1,85 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:33259 "EHLO
-	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752072AbcGTAEA (ORCPT
+Received: from mail-lf0-f46.google.com ([209.85.215.46]:35527 "EHLO
+	mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751124AbcGVTuE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 20:04:00 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: lars@metafoo.de
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 01/10] v4l: of: add "newavmode" property for Analog Devices codecs
-Date: Tue, 19 Jul 2016 17:03:28 -0700
-Message-Id: <1468973017-17647-2-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
- <1468973017-17647-1-git-send-email-steve_longerbeam@mentor.com>
+	Fri, 22 Jul 2016 15:50:04 -0400
+Received: by mail-lf0-f46.google.com with SMTP id f93so92475710lfi.2
+        for <linux-media@vger.kernel.org>; Fri, 22 Jul 2016 12:50:03 -0700 (PDT)
+Subject: Re: [PATCH v6 1/4] media: adv7604: automatic "default-input"
+ selection
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
+References: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <1469178554-20719-2-git-send-email-ulrich.hecht+renesas@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	william.towle@codethink.co.uk, geert@linux-m68k.org
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <42f525c3-9d1c-80c4-0e9f-b8242484ffc7@cogentembedded.com>
+Date: Fri, 22 Jul 2016 22:50:00 +0300
+MIME-Version: 1.0
+In-Reply-To: <1469178554-20719-2-git-send-email-ulrich.hecht+renesas@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a "newavmode" boolean property as part of the v4l2 endpoint
-properties. This indicates an Analog Devices decoder is generating EAV/SAV
-codes to suit Analog Devices encoders.
+On 07/22/2016 12:09 PM, Ulrich Hecht wrote:
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
- drivers/media/v4l2-core/v4l2-of.c                            | 4 ++++
- include/media/v4l2-mediabus.h                                | 5 +++++
- 3 files changed, 11 insertions(+)
+> Fall back to input 0 if "default-input" property is not present.
+>
+> Additionally, documentation in commit bf9c82278c34 ("[media]
+> media: adv7604: ability to read default input port from DT") states
+> that the "default-input" property should reside directly in the node
+> for adv7612. Hence, also adjust the parsing to make the implementation
+> consistent with this.
+>
+> Based on patch by William Towle <william.towle@codethink.co.uk>.
+>
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> ---
+>  drivers/media/i2c/adv7604.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 4003831..055c9df 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -3077,10 +3077,13 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+>  	if (!of_property_read_u32(endpoint, "default-input", &v))
+>  		state->pdata.default_input = v;
+>  	else
+> -		state->pdata.default_input = -1;
+> +		state->pdata.default_input = 0;
+>
+>  	of_node_put(endpoint);
+>
+> +	if (!of_property_read_u32(np, "default-input", &v))
+> +		state->pdata.default_input = v;
 
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index 9cd2a36..6f2df51 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -88,6 +88,8 @@ Optional endpoint properties
- - field-even-active: field signal level during the even field data transmission.
- - pclk-sample: sample data on rising (1) or falling (0) edge of the pixel clock
-   signal.
-+- newavmode: a boolean property to indicate an Analog Devices decoder is
-+  operating in NEWAVMODE. Valid for BT.656 busses only.
- - sync-on-green-active: active state of Sync-on-green (SoG) signal, 0/1 for
-   LOW/HIGH respectively.
- - data-lanes: an array of physical data lane indexes. Position of an entry
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index 93b3368..719a7d1 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -109,6 +109,10 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
- 		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
- 			V4L2_MBUS_DATA_ACTIVE_LOW;
- 
-+	if (endpoint->bus_type == V4L2_MBUS_BT656 &&
-+	    of_get_property(node, "newavmode", &v))
-+		flags |= V4L2_MBUS_NEWAVMODE;
-+
- 	if (of_get_property(node, "slave-mode", &v))
- 		flags |= V4L2_MBUS_SLAVE;
- 	else
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 34cc99e..0bd5f0e 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -43,6 +43,11 @@
- /* Active state of Sync-on-green (SoG) signal, 0/1 for LOW/HIGH respectively. */
- #define V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH	(1 << 12)
- #define V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW		(1 << 13)
-+/*
-+ * BT.656 specific flags
-+ */
-+/* Analog Device's NEWAVMODE */
-+#define V4L2_MBUS_NEWAVMODE			(1 << 14)
- 
- /* Serial flags */
- /* How many lanes the client can use */
--- 
-1.9.1
+	of_property_read_u32(np, "default-input",
+			     &state->pdata.default_input));
+
+should be equivalent...
+
+MBR, Sergei
 
