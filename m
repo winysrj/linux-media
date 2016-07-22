@@ -1,226 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45854 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:40459 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751518AbcGRB4a (ORCPT
+	with ESMTP id S1752019AbcGVPDS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 21:56:30 -0400
+	Fri, 22 Jul 2016 11:03:18 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 18/36] [media] doc-rst: add documentation for fimc driver
-Date: Sun, 17 Jul 2016 22:56:01 -0300
-Message-Id: <f0726e4275c169c17238328df9648bea95622879.1468806744.git.mchehab@s-opensource.com>
-In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-In-Reply-To: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
-References: <d8e9230c2e8b8a67162997241d979ee4031cb7fd.1468806744.git.mchehab@s-opensource.com>
+Subject: [PATCH 04/11] [media] v4l2-event.rst: add cross-references and markups
+Date: Fri, 22 Jul 2016 12:03:00 -0300
+Message-Id: <958bb7c5c6447bd5e6f299643c6901e2e94f959f.1469199711.git.mchehab@s-opensource.com>
+In-Reply-To: <c2765df5223e1b389c73271397865fbf8bae100e.1469199711.git.mchehab@s-opensource.com>
+References: <c2765df5223e1b389c73271397865fbf8bae100e.1469199711.git.mchehab@s-opensource.com>
+In-Reply-To: <c2765df5223e1b389c73271397865fbf8bae100e.1469199711.git.mchehab@s-opensource.com>
+References: <c2765df5223e1b389c73271397865fbf8bae100e.1469199711.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert the document to rst and add it to the v4l-drivers
-book.
+Improve events documentation by adding cross references,
+sub-titles and other markup elements.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/media/v4l-drivers/fimc.rst  | 95 +++++++++++++++++++------------
- Documentation/media/v4l-drivers/index.rst |  1 +
- 2 files changed, 60 insertions(+), 36 deletions(-)
+ Documentation/media/kapi/v4l2-event.rst | 137 +++++++++++++++++++-------------
+ 1 file changed, 81 insertions(+), 56 deletions(-)
 
-diff --git a/Documentation/media/v4l-drivers/fimc.rst b/Documentation/media/v4l-drivers/fimc.rst
-index 4fab231be52e..d9f950d90eb5 100644
---- a/Documentation/media/v4l-drivers/fimc.rst
-+++ b/Documentation/media/v4l-drivers/fimc.rst
-@@ -1,7 +1,9 @@
--Samsung S5P/EXYNOS4 FIMC driver
-+.. include:: <isonum.txt>
+diff --git a/Documentation/media/kapi/v4l2-event.rst b/Documentation/media/kapi/v4l2-event.rst
+index 567ff7b1a3c2..0aed99459732 100644
+--- a/Documentation/media/kapi/v4l2-event.rst
++++ b/Documentation/media/kapi/v4l2-event.rst
+@@ -3,7 +3,7 @@ V4L2 events
+ -----------
  
--Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
-----------------------------------------------------------------------------
-+The Samsung S5P/EXYNOS4 FIMC driver
-+===================================
-+
-+Copyright |copy| 2012 - 2013 Samsung Electronics Co., Ltd.
+ The V4L2 events provide a generic way to pass events to user space.
+-The driver must use v4l2_fh to be able to support V4L2 events.
++The driver must use :c:type:`v4l2_fh` to be able to support V4L2 events.
  
- The FIMC (Fully Interactive Mobile Camera) device available in Samsung
- SoC Application Processors is an integrated camera host interface, color
-@@ -12,50 +14,53 @@ slightly different capabilities, like pixel alignment constraints, rotator
- availability, LCD writeback support, etc. The driver is located at
- drivers/media/platform/exynos4-is directory.
+ Events are defined by a type and an optional ID. The ID may refer to a V4L2
+ object such as a control ID. If unused, then the ID is 0.
+@@ -17,93 +17,118 @@ events of another type.
+ But if you get more events of one type than the number of kevents that were
+ reserved, then the oldest event will be dropped and the new one added.
  
--1. Supported SoCs
--=================
-+Supported SoCs
-+--------------
+-Furthermore, the internal struct v4l2_subscribed_event has merge() and
+-replace() callbacks which drivers can set. These callbacks are called when
+-a new event is raised and there is no more room. The replace() callback
+-allows you to replace the payload of the old event with that of the new event,
+-merging any relevant data from the old payload into the new payload that
+-replaces it. It is called when this event type has only one kevent struct
+-allocated. The merge() callback allows you to merge the oldest event payload
+-into that of the second-oldest event payload. It is called when there are two
+-or more kevent structs allocated.
++Furthermore, the internal struct :c:type:`v4l2_subscribed_event` has
++``merge()`` and ``replace()`` callbacks which drivers can set. These
++callbacks are called when a new event is raised and there is no more room.
++The ``replace()`` callback allows you to replace the payload of the old event
++with that of the new event, merging any relevant data from the old payload
++into the new payload that replaces it. It is called when this event type has
++only one kevent struct allocated. The ``merge()`` callback allows you to merge
++the oldest event payload into that of the second-oldest event payload. It is
++called when there are two or more kevent structs allocated.
  
- S5PC100 (mem-to-mem only), S5PV210, EXYNOS4210
+ This way no status information is lost, just the intermediate steps leading
+ up to that state.
  
--2. Supported features
--=====================
-+Supported features
-+------------------
+-A good example of these replace/merge callbacks is in v4l2-event.c:
+-ctrls_replace() and ctrls_merge() callbacks for the control event.
++A good example of these ``replace``/``merge`` callbacks is in v4l2-event.c:
++``ctrls_replace()`` and ``ctrls_merge()`` callbacks for the control event.
  
-- - camera parallel interface capture (ITU-R.BT601/565);
-- - camera serial interface capture (MIPI-CSI2);
-- - memory-to-memory processing (color space conversion, scaling, mirror
--   and rotation);
-- - dynamic pipeline re-configuration at runtime (re-attachment of any FIMC
--   instance to any parallel video input or any MIPI-CSI front-end);
-- - runtime PM and system wide suspend/resume
-+- camera parallel interface capture (ITU-R.BT601/565);
-+- camera serial interface capture (MIPI-CSI2);
-+- memory-to-memory processing (color space conversion, scaling, mirror
-+  and rotation);
-+- dynamic pipeline re-configuration at runtime (re-attachment of any FIMC
-+  instance to any parallel video input or any MIPI-CSI front-end);
-+- runtime PM and system wide suspend/resume
+-Note: these callbacks can be called from interrupt context, so they must be
+-fast.
++.. note::
++	these callbacks can be called from interrupt context, so they must
++	be fast.
  
--Not currently supported:
-- - LCD writeback input
-- - per frame clock gating (mem-to-mem)
-+Not currently supported
-+-----------------------
+-Useful functions:
++In order to queue events to video device, drivers should call:
  
--3. Files partitioning
--=====================
-+- LCD writeback input
-+- per frame clock gating (mem-to-mem)
-+
-+Files partitioning
-+------------------
+-.. code-block:: none
++	:cpp:func:`v4l2_event_queue <v4l2_event_queue>`
++	(:c:type:`vdev <video_device>`, :ref:`ev <v4l2-event>`)
  
- - media device driver
-   drivers/media/platform/exynos4-is/media-dev.[ch]
+-	void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
++The driver's only responsibility is to fill in the type and the data fields.
++The other fields will be filled in by V4L2.
  
-- - camera capture video device driver
-+- camera capture video device driver
-   drivers/media/platform/exynos4-is/fimc-capture.c
- 
-- - MIPI-CSI2 receiver subdev
-+- MIPI-CSI2 receiver subdev
-   drivers/media/platform/exynos4-is/mipi-csis.[ch]
- 
-- - video post-processor (mem-to-mem)
-+- video post-processor (mem-to-mem)
-   drivers/media/platform/exynos4-is/fimc-core.c
- 
-- - common files
-+- common files
-   drivers/media/platform/exynos4-is/fimc-core.h
-   drivers/media/platform/exynos4-is/fimc-reg.h
-   drivers/media/platform/exynos4-is/regs-fimc.h
- 
--4. User space interfaces
--========================
-+User space interfaces
-+---------------------
- 
--4.1. Media device interface
-+Media device interface
-+~~~~~~~~~~~~~~~~~~~~~~
- 
- The driver supports Media Controller API as defined at
- https://linuxtv.org/downloads/v4l-dvb-apis/media_common.html
-@@ -72,7 +77,8 @@ Reconfiguration is done by enabling/disabling media links created by the driver
- during initialization. The internal device topology can be easily discovered
- through media entity and links enumeration.
- 
--4.2. Memory-to-memory video node
-+Memory-to-memory video node
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
- V4L2 memory-to-memory interface at /dev/video? device node.  This is standalone
- video device, it has no media pads. However please note the mem-to-mem and
-@@ -80,7 +86,8 @@ capture video node operation on same FIMC instance is not allowed.  The driver
- detects such cases but the applications should prevent them to avoid an
- undefined behaviour.
- 
--4.3. Capture video node
-+Capture video node
+-  Queue events to video device. The driver's only responsibility is to fill
+-  in the type and the data fields. The other fields will be filled in by
+-  V4L2.
++Event subscription
 +~~~~~~~~~~~~~~~~~~
  
- The driver supports V4L2 Video Capture Interface as defined at:
- https://linuxtv.org/downloads/v4l-dvb-apis/devices.html
-@@ -89,13 +96,15 @@ At the capture and mem-to-mem video nodes only the multi-planar API is
- supported. For more details see:
- https://linuxtv.org/downloads/v4l-dvb-apis/planar-apis.html
+-.. code-block:: none
++Subscribing to an event is via:
  
--4.4. Camera capture subdevs
-+Camera capture subdevs
+-	int v4l2_event_subscribe(struct v4l2_fh *fh,
+-				 struct v4l2_event_subscription *sub, unsigned elems,
+-				 const struct v4l2_subscribed_event_ops *ops)
++	:cpp:func:`v4l2_event_subscribe <v4l2_event_subscribe>`
++	(:c:type:`fh <v4l2_fh>`, :ref:`sub <v4l2-event-subscription>` ,
++	elems, :c:type:`ops <v4l2_subscribed_event_ops>`)
+ 
+-  The video_device->ioctl_ops->vidioc_subscribe_event must check the driver
+-  is able to produce events with specified event id. Then it calls
+-  v4l2_event_subscribe() to subscribe the event.
+ 
+-  The elems argument is the size of the event queue for this event. If it is 0,
+-  then the framework will fill in a default value (this depends on the event
+-  type).
++This function is used to implement :c:type:`video_device`->
++:c:type:`ioctl_ops <v4l2_ioctl_ops>`-> ``vidioc_subscribe_event``,
++but the driver must check first if the driver is able to produce events
++with specified event id, and then should call
++:cpp:func:`v4l2_event_subscribe` to subscribe the event.
+ 
+-  The ops argument allows the driver to specify a number of callbacks:
+-  * add:     called when a new listener gets added (subscribing to the same
+-             event twice will only cause this callback to get called once)
+-  * del:     called when a listener stops listening
+-  * replace: replace event 'old' with event 'new'.
+-  * merge:   merge event 'old' into event 'new'.
+-  All 4 callbacks are optional, if you don't want to specify any callbacks
+-  the ops argument itself maybe NULL.
++The elems argument is the size of the event queue for this event. If it is 0,
++then the framework will fill in a default value (this depends on the event
++type).
+ 
+-.. code-block:: none
++The ops argument allows the driver to specify a number of callbacks:
+ 
+-	int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+-				   struct v4l2_event_subscription *sub)
++======== ==============================================================
++Callback Description
++======== ==============================================================
++add      called when a new listener gets added (subscribing to the same
++         event twice will only cause this callback to get called once)
++del      called when a listener stops listening
++replace  replace event 'old' with event 'new'.
++merge    merge event 'old' into event 'new'.
++======== ==============================================================
+ 
+-  vidioc_unsubscribe_event in struct v4l2_ioctl_ops. A driver may use
+-  v4l2_event_unsubscribe() directly unless it wants to be involved in
+-  unsubscription process.
++All 4 callbacks are optional, if you don't want to specify any callbacks
++the ops argument itself maybe ``NULL``.
+ 
+-  The special type V4L2_EVENT_ALL may be used to unsubscribe all events. The
+-  drivers may want to handle this in a special way.
++Unsubscribing an event
 +~~~~~~~~~~~~~~~~~~~~~~
  
- Each FIMC instance exports a sub-device node (/dev/v4l-subdev?), a sub-device
- node is also created per each available and enabled at the platform level
- MIPI-CSI receiver device (currently up to two).
+-.. code-block:: none
++Unsubscribing to an event is via:
  
--4.5. sysfs
-+sysfs
-+~~~~~
+-	int v4l2_event_pending(struct v4l2_fh *fh)
++	:cpp:func:`v4l2_event_unsubscribe <v4l2_event_unsubscribe>`
++	(:c:type:`fh <v4l2_fh>`, :ref:`sub <v4l2-event-subscription>`)
  
- In order to enable more precise camera pipeline control through the sub-device
- API the driver creates a sysfs entry associated with "s5p-fimc-md" platform
-@@ -115,15 +124,22 @@ when the last configuration steps at the video node is performed.
+-  Returns the number of pending events. Useful when implementing poll.
++This function is used to implement :c:type:`video_device`->
++:c:type:`ioctl_ops <v4l2_ioctl_ops>`-> ``vidioc_unsubscribe_event``.
++A driver may call :cpp:func:`v4l2_event_unsubscribe` directly unless it
++wants to be involved in unsubscription process.
++
++The special type ``V4L2_EVENT_ALL`` may be used to unsubscribe all events. The
++drivers may want to handle this in a special way.
++
++Check if there's a pending event
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++Checking if there's a pending event is via:
++
++	:cpp:func:`v4l2_event_pending <v4l2_event_pending>`
++	(:c:type:`fh <v4l2_fh>`)
++
++
++This function returns the number of pending events. Useful when implementing
++poll.
++
++How events work
++~~~~~~~~~~~~~~~
  
- For full sub-device control support (subdevs configured at user space before
- starting streaming):
--# echo "sub-dev" > /sys/platform/devices/s5p-fimc-md/subdev_conf_mode
-+
-+.. code-block:: none
-+
-+	# echo "sub-dev" > /sys/platform/devices/s5p-fimc-md/subdev_conf_mode
+ Events are delivered to user space through the poll system call. The driver
+-can use v4l2_fh->wait (a wait_queue_head_t) as the argument for poll_wait().
++can use :c:type:`v4l2_fh`->wait (a wait_queue_head_t) as the argument for
++``poll_wait()``.
  
- For V4L2 video node control only (subdevs configured internally by the host
- driver):
--# echo "vid-dev" > /sys/platform/devices/s5p-fimc-md/subdev_conf_mode
-+
-+.. code-block:: none
-+
-+	# echo "vid-dev" > /sys/platform/devices/s5p-fimc-md/subdev_conf_mode
-+
- This is a default option.
+ There are standard and private events. New standard events must use the
+ smallest available event type. The drivers must allocate their events from
+ their own class starting from class base. Class base is
+-V4L2_EVENT_PRIVATE_START + n * 1000 where n is the lowest available number.
++``V4L2_EVENT_PRIVATE_START`` + n * 1000 where n is the lowest available number.
+ The first event type in the class is reserved for future use, so the first
+ available event type is 'class base + 1'.
  
- 5. Device mapping to video and subdev device nodes
--==================================================
-+--------------------------------------------------
+ An example on how the V4L2 events may be used can be found in the OMAP
+-3 ISP driver (drivers/media/platform/omap3isp).
++3 ISP driver (``drivers/media/platform/omap3isp``).
  
- There are associated two video device nodes with each device instance in
- hardware - video capture and mem-to-mem and additionally a subdev node for
-@@ -134,14 +150,21 @@ How to find out which /dev/video? or /dev/v4l-subdev? is assigned to which
- device?
+-A subdev can directly send an event to the v4l2_device notify function with
+-V4L2_DEVICE_NOTIFY_EVENT. This allows the bridge to map the subdev that sends
+-the event to the video node(s) associated with the subdev that need to be
+-informed about such an event.
++A subdev can directly send an event to the :c:type:`v4l2_device` notify
++function with ``V4L2_DEVICE_NOTIFY_EVENT``. This allows the bridge to map
++the subdev that sends the event to the video node(s) associated with the
++subdev that need to be informed about such an event.
  
- You can either grep through the kernel log to find relevant information, i.e.
--# dmesg | grep -i fimc
-+
-+.. code-block:: none
-+
-+	# dmesg | grep -i fimc
-+
- (note that udev, if present, might still have rearranged the video nodes),
- 
- or retrieve the information from /dev/media? with help of the media-ctl tool:
--# media-ctl -p
-+
-+.. code-block:: none
-+
-+	# media-ctl -p
- 
- 7. Build
--========
-+--------
- 
- If the driver is built as a loadable kernel module (CONFIG_VIDEO_SAMSUNG_S5P_FIMC=m)
- two modules are created (in addition to the core v4l2 modules): s5p-fimc.ko and
-diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
-index 1ab7a84de0ff..333f84b9c17e 100644
---- a/Documentation/media/v4l-drivers/index.rst
-+++ b/Documentation/media/v4l-drivers/index.rst
-@@ -25,4 +25,5 @@ License".
- 	cx18
- 	cx88
- 	davinci-vpbe
-+	fimc
- 	zr364xx
+ V4L2 event kAPI
+ ^^^^^^^^^^^^^^^
 -- 
 2.7.4
 
