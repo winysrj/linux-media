@@ -1,48 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:57723 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752492AbcGDHHT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 03:07:19 -0400
-Date: Mon, 4 Jul 2016 00:07:09 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz
-Subject: Re: [RESEND PATCH v2 0/5] ir-rx51 driver fixes
-Message-ID: <20160704070709.GT28140@atomide.com>
-References: <1466623341-30130-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160623044436.GK22406@atomide.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160623044436.GK22406@atomide.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:40457 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752004AbcGVPDS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2016 11:03:18 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 01/11] [media] v4l2-framework.rst: remove videobuf quick chapter
+Date: Fri, 22 Jul 2016 12:02:57 -0300
+Message-Id: <c2765df5223e1b389c73271397865fbf8bae100e.1469199711.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Tony Lindgren <tony@atomide.com> [160622 21:47]:
-> * Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160622 12:25]:
-> > ir-rx51 is a driver for Nokia N900 IR transmitter. The current series
-> > fixes the remaining problems in the driver:
-> 
-> Thanks for updating these.
-> 
-> Trierry, care to ack the PWM patch?
-> 
-> Mauro, do you want me to set up an immutable branch with all
-> these against v4.7-rc1 that we can all merge as needed?
-> 
-> If you want to set up the branch instead, please feel free
-> to add my ack.
+As we merged the videobuf chapter at the kABI section, and it
+is a way more complete, just remove the small videobuf chapter
+that came from framework.txt.
 
-OK so no comments from Mauro, so I've applied these with
-Thierry's ack and pushed out into omap-for-v4.8/legacy branch.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/kapi/v4l2-framework.rst | 16 ----------------
+ 1 file changed, 16 deletions(-)
 
-Regards,
+diff --git a/Documentation/media/kapi/v4l2-framework.rst b/Documentation/media/kapi/v4l2-framework.rst
+index c97ffd0d783b..9204d9329124 100644
+--- a/Documentation/media/kapi/v4l2-framework.rst
++++ b/Documentation/media/kapi/v4l2-framework.rst
+@@ -80,22 +80,6 @@ The V4L2 framework also optionally integrates with the media framework. If a
+ driver sets the struct v4l2_device mdev field, sub-devices and video nodes
+ will automatically appear in the media framework as entities.
+ 
+-
+-
+-video buffer helper functions
+------------------------------
+-
+-The v4l2 core API provides a set of standard methods (called "videobuf")
+-for dealing with video buffers. Those methods allow a driver to implement
+-read(), mmap() and overlay() in a consistent way.  There are currently
+-methods for using video buffers on devices that supports DMA with
+-scatter/gather method (videobuf-dma-sg), DMA with linear access
+-(videobuf-dma-contig), and vmalloced buffers, mostly used on USB drivers
+-(videobuf-vmalloc).
+-
+-Please see Documentation/video4linux/videobuf for more information on how
+-to use the videobuf layer.
+-
+ struct v4l2_fh
+ --------------
+ 
+-- 
+2.7.4
 
-Tony
