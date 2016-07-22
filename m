@@ -1,84 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:64161 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751426AbcGBD7r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2016 23:59:47 -0400
-Subject: Re: [PATCH 28/38] v4l: Add signal lock status to source change events
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	<linux-media@vger.kernel.org>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
- <1465944574-15745-29-git-send-email-steve_longerbeam@mentor.com>
- <dfa4ca42-f527-f48e-e811-e514c167dc8d@xs4all.nl>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <57773C2F.4040107@mentor.com>
-Date: Fri, 1 Jul 2016 20:59:43 -0700
-MIME-Version: 1.0
-In-Reply-To: <dfa4ca42-f527-f48e-e811-e514c167dc8d@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33959 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752850AbcGVJJo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2016 05:09:44 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	william.towle@codethink.co.uk, geert@linux-m68k.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v6 3/4] ARM: dts: koelsch: add HDMI input
+Date: Fri, 22 Jul 2016 11:09:13 +0200
+Message-Id: <1469178554-20719-4-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hverkuil@xs4all.nl>
 
+Add support in the dts for the HDMI input. Based on the Lager dts
+patch from Ulrich Hecht.
 
-On 07/01/2016 12:24 AM, Hans Verkuil wrote:
-> On 06/15/2016 12:49 AM, Steve Longerbeam wrote:
->> Add a signal lock status change to the source changes bitmask.
->> This indicates there was a signal lock or unlock event detected
->> at the input of a video decoder.
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> ---
->>   Documentation/DocBook/media/v4l/vidioc-dqevent.xml | 12 ++++++++++--
->>   include/uapi/linux/videodev2.h                     |  1 +
->>   2 files changed, 11 insertions(+), 2 deletions(-)
->>
->> diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
->> index c9c3c77..7758ad7 100644
->> --- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
->> +++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
->> @@ -233,8 +233,9 @@
->>   	    <entry>
->>   	      <para>This event is triggered when a source parameter change is
->>   	       detected during runtime by the video device. It can be a
->> -	       runtime resolution change triggered by a video decoder or the
->> -	       format change happening on an input connector.
->> +	       runtime resolution change or signal lock status change
->> +	       triggered by a video decoder, or the format change happening
->> +	       on an input connector.
->>   	       This event requires that the <structfield>id</structfield>
->>   	       matches the input index (when used with a video device node)
->>   	       or the pad index (when used with a subdevice node) from which
->> @@ -461,6 +462,13 @@
->>   	    from a video decoder.
->>   	    </entry>
->>   	  </row>
->> +	  <row>
->> +	    <entry><constant>V4L2_EVENT_SRC_CH_LOCK_STATUS</constant></entry>
->> +	    <entry>0x0002</entry>
->> +	    <entry>This event gets triggered when there is a signal lock or
->> +	    unlock detected at the input of a video decoder.
->> +	    </entry>
->> +	  </row>
-> I'm not entirely sure I like this. Typically losing lock means that this event
-> is triggered with the V4L2_EVENT_SRC_CH_RESOLUTION flag set, and userspace has
-> to check the new timings etc., which will fail if there is no lock anymore.
->
-> This information is also available through ENUMINPUT.
->
-> I would need to know more about why you think this is needed, because I don't
-> see what this adds.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+[uli: removed "renesas," prefixes from pfc nodes]
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+---
+ arch/arm/boot/dts/r8a7791-koelsch.dts | 41 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
-Hi Hans,
-
-At least on the ADV718x, a source resolution change (from an 
-autodetected video
-standard change) and a signal lock status change are distinct events. 
-For example
-there can be a temporary loss of input signal lock without a change in 
-detected
-input video standard/resolution.
-
-Steve
+diff --git a/arch/arm/boot/dts/r8a7791-koelsch.dts b/arch/arm/boot/dts/r8a7791-koelsch.dts
+index 980f41b..28ec3a8 100644
+--- a/arch/arm/boot/dts/r8a7791-koelsch.dts
++++ b/arch/arm/boot/dts/r8a7791-koelsch.dts
+@@ -400,6 +400,21 @@
+ 			};
+ 		};
+ 
++		hdmi-in@4c {
++			compatible = "adi,adv7612";
++			reg = <0x4c>;
++			interrupt-parent = <&gpio1>;
++			interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
++			remote = <&vin0>;
++			default-input = <0>;
++
++			port {
++				adv7612: endpoint {
++					remote-endpoint = <&vin0ep>;
++				};
++			};
++		};
++
+ 		eeprom@50 {
+ 			compatible = "renesas,24c02";
+ 			reg = <0x50>;
+@@ -534,6 +549,11 @@
+ 		function = "usb1";
+ 	};
+ 
++	vin0_pins: vin0 {
++		groups = "vin0_data24", "vin0_sync", "vin0_clkenb", "vin0_clk";
++		function = "vin0";
++	};
++
+ 	vin1_pins: vin1 {
+ 		groups = "vin1_data8", "vin1_clk";
+ 		function = "vin1";
+@@ -765,6 +785,27 @@
+ 	cpu0-supply = <&vdd_dvfs>;
+ };
+ 
++/* HDMI video input */
++&vin0 {
++	status = "okay";
++	pinctrl-0 = <&vin0_pins>;
++	pinctrl-names = "default";
++
++	port {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		vin0ep: endpoint {
++			remote-endpoint = <&adv7612>;
++			bus-width = <24>;
++			hsync-active = <0>;
++			vsync-active = <0>;
++			pclk-sample = <1>;
++			data-active = <1>;
++		};
++	};
++};
++
+ /* composite video input */
+ &vin1 {
+ 	status = "okay";
+-- 
+2.7.4
 
