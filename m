@@ -1,94 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps-vb.mhejs.net ([37.28.154.113]:55710 "EHLO vps-vb.mhejs.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751469AbcGBXoH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Jul 2016 19:44:07 -0400
-Message-ID: <57784DF2.9050904@maciej.szmigiero.name>
-Date: Sun, 03 Jul 2016 01:27:46 +0200
-From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+Received: from smtpout.microchip.com ([198.175.253.82]:41193 "EHLO
+	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750920AbcGVFVZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2016 01:21:25 -0400
+Subject: Re: [PATCH v6 0/2] [media] atmel-isc: add driver for Atmel ISC
+To: Hans Verkuil <hverkuil@xs4all.nl>, <nicolas.ferre@atmel.com>,
+	<robh@kernel.org>
+References: <1469088900-23935-1-git-send-email-songjun.wu@microchip.com>
+ <e0592f57-f679-fcde-7446-e3259ad9825b@xs4all.nl>
+CC: <laurent.pinchart@ideasonboard.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	=?UTF-8?Q?Niklas_S=c3=83=c2=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	Benoit Parrot <bparrot@ti.com>, <linux-kernel@vger.kernel.org>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Kamil Debski <kamil@wypas.org>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	=?UTF-8?Q?Richard_R=c3=b6jfors?= <richard@puffinpack.se>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Simon Horman <horms+renesas@verge.net.au>
+From: "Wu, Songjun" <Songjun.Wu@microchip.com>
+Message-ID: <4e2bb244-42ad-3d20-0325-0a35991fae58@microchip.com>
+Date: Fri, 22 Jul 2016 13:21:09 +0800
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>
-Subject: [PATCH][media] saa7134: fix warm Medion 7134 EEPROM read
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <e0592f57-f679-fcde-7446-e3259ad9825b@xs4all.nl>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When saa7134 module driving a Medion 7134 card is reloaded reads of this
-card EEPROM (required for automatic detection of tuner model) will be
-corrupted due to I2C gate in DVB-T demod being left closed.
-This sometimes also happens on first saa7134 module load after a warm
-reboot.
 
-Fix this by opening this I2C gate before doing EEPROM read during i2c
-initialization.
 
-Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
----
-This is a modified version of patch submitted a few years ago:
-http://www.spinics.net/lists/linux-media/msg24455.html .
+On 7/21/2016 16:41, Hans Verkuil wrote:
+>
+>
+> On 07/21/2016 10:14 AM, Songjun Wu wrote:
+>> The Image Sensor Controller driver includes two parts.
+>> 1) Driver code to implement the ISC function.
+>> 2) Device tree binding documentation, it describes how
+>>    to add the ISC in device tree.
+>>
+>> Test result with v4l-utils 1.10.1
+>
+> Please compile from the v4l-utils repository. The version you used here is out-of-date.
+> I continually add new tests, so always compile the latest version from the repo.
+>
+OK, I will compile the latest version from the v4l-utils repository.
+Thank you.
 
-That patch was fixing two problems: with TDA9887 detection on cold
-board and EEPROM read on warm.
-
-TDA9887 detection issue have been solved since by commit
-4aed283c0f7c2 ("switch tuner FMD1216ME_MK3 to analog"),
-however EEPROM read issue remained.
-
-This submission fixes this a little bit earlier in the code than previous
-attempt (during i2c initialization instead of later board init) so
-informational EEPROM read shown in kernel log will also be correct.
-
- drivers/media/pci/saa7134/saa7134-i2c.c | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
-
-diff --git a/drivers/media/pci/saa7134/saa7134-i2c.c b/drivers/media/pci/saa7134/saa7134-i2c.c
-index 8ef6399d794f..bc957528f69f 100644
---- a/drivers/media/pci/saa7134/saa7134-i2c.c
-+++ b/drivers/media/pci/saa7134/saa7134-i2c.c
-@@ -355,12 +355,43 @@ static struct i2c_client saa7134_client_template = {
- 
- /* ----------------------------------------------------------- */
- 
-+/* On Medion 7134 reading EEPROM needs DVB-T demod i2c gate open */
-+static void saa7134_i2c_eeprom_md7134_gate(struct saa7134_dev *dev)
-+{
-+	u8 subaddr = 0x7, dmdregval;
-+	u8 data[2];
-+	int ret;
-+	struct i2c_msg i2cgatemsg_r[] = { {.addr = 0x08, .flags = 0,
-+					   .buf = &subaddr, .len = 1},
-+					  {.addr = 0x08,
-+					   .flags = I2C_M_RD,
-+					   .buf = &dmdregval, .len = 1}
-+					};
-+	struct i2c_msg i2cgatemsg_w[] = { {.addr = 0x08, .flags = 0,
-+					   .buf = data, .len = 2} };
-+
-+	ret = i2c_transfer(&dev->i2c_adap, i2cgatemsg_r, 2);
-+	if ((ret == 2) && (dmdregval & 0x2)) {
-+		pr_debug("%s: DVB-T demod i2c gate was left closed\n",
-+			 dev->name);
-+
-+		data[0] = subaddr;
-+		data[1] = (dmdregval & ~0x2);
-+		if (i2c_transfer(&dev->i2c_adap, i2cgatemsg_w, 1) != 1)
-+			pr_err("%s: EEPROM i2c gate open failure\n",
-+			  dev->name);
-+	}
-+}
-+
- static int
- saa7134_i2c_eeprom(struct saa7134_dev *dev, unsigned char *eedata, int len)
- {
- 	unsigned char buf;
- 	int i,err;
- 
-+	if (dev->board == SAA7134_BOARD_MD7134)
-+		saa7134_i2c_eeprom_md7134_gate(dev);
-+
- 	dev->i2c_client.addr = 0xa0 >> 1;
- 	buf = 0;
- 	if (1 != (err = i2c_master_send(&dev->i2c_client,&buf,1))) {
+> Regards,
+>
+> 	Hans
+>
+>> Driver Info:
+>>         Driver name   : atmel_isc
+>>         Card type     : Atmel Image Sensor Controller
+>>         Bus info      : platform:atmel_isc f0008000.isc
+>>         Driver version: 4.7.0
+>>         Capabilities  : 0x84200001
+>>                 Video Capture
+>>                 Streaming
+>>                 Extended Pix Format
+>>                 Device Capabilities
+>>         Device Caps   : 0x04200001
+>>                 Video Capture
+>>                 Streaming
+>>                 Extended Pix Format
+>>
+>> Compliance test for device /dev/video0 (not using libv4l2):
+>>
+>> Required ioctls:
+>>         test VIDIOC_QUERYCAP: OK
+>>
+>> Allow for multiple opens:
+>>         test second video open: OK
+>>         test VIDIOC_QUERYCAP: OK
+>>         test VIDIOC_G/S_PRIORITY: OK
+>>
+>> Debug ioctls:
+>>         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>>         test VIDIOC_LOG_STATUS: OK (Not Supported)
+>>
+>> Input ioctls:
+>>         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+>>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>>         test VIDIOC_G/S/ENUMINPUT: OK
+>>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>>         Inputs: 1 Audio Inputs: 0 Tuners: 0
+>>
+>> Output ioctls:
+>>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>>         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+>>
+>> Input/Output configuration ioctls:
+>>         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+>>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>>         test VIDIOC_G/S_EDID: OK (Not Supported)
+>>
+>> Test input 0:
+>>
+>>         Control ioctls:
+>>                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+>>                 test VIDIOC_QUERYCTRL: OK (Not Supported)
+>>                 test VIDIOC_G/S_CTRL: OK (Not Supported)
+>>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+>>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+>>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>>                 Standard Controls: 0 Private Controls: 0
+>>
+>>         Format ioctls:
+>>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>>                 test VIDIOC_G/S_PARM: OK
+>>                 test VIDIOC_G_FBUF: OK (Not Supported)
+>>                 test VIDIOC_G_FMT: OK
+>>                 test VIDIOC_TRY_FMT: OK
+>>                 test VIDIOC_S_FMT: OK
+>>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>>                 test Cropping: OK (Not Supported)
+>>                 test Composing: OK (Not Supported)
+>>                 test Scaling: OK (Not Supported)
+>>
+>>         Codec ioctls:
+>>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+>>
+>>         Buffer ioctls:
+>>                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>>                 test VIDIOC_EXPBUF: OK
+>>
+>> Test input 0:
+>>
+>> Stream using all formats:
+>>         test MMAP for Format BA81, Frame Size 640x480:
+>>                 Stride 640, Field None: OK
+>>         test MMAP for Format YUYV, Frame Size 640x480:
+>>                 Stride 1280, Field None: OK
+>>
+>> Total: 44, Succeeded: 44, Failed: 0, Warnings: 0
+>>
+>> Changes in v6:
+>> - Add "iscck" and "gck" to clock-names.
+>>
+>> Changes in v5:
+>> - Modify the macro definition and the related code.
+>> - Add clock-output-names.
+>>
+>> Changes in v4:
+>> - Modify the isc clock code since the dt is changed.
+>> - Remove the isc clock nodes.
+>>
+>> Changes in v3:
+>> - Add pm runtime feature.
+>> - Modify the isc clock code since the dt is changed.
+>> - Remove the 'atmel,sensor-preferred'.
+>> - Modify the isc clock node according to the Rob's remarks.
+>>
+>> Changes in v2:
+>> - Add "depends on COMMON_CLK" and "VIDEO_V4L2_SUBDEV_API"
+>>   in Kconfig file.
+>> - Correct typos and coding style according to Laurent's remarks
+>> - Delete the loop while in 'isc_clk_enable' function.
+>> - Replace 'hsync_active', 'vsync_active' and 'pclk_sample'
+>>   with 'pfe_cfg0' in struct isc_subdev_entity.
+>> - Add the code to support VIDIOC_CREATE_BUFS in
+>>   'isc_queue_setup' function.
+>> - Invoke isc_config to configure register in
+>>   'isc_start_streaming' function.
+>> - Add the struct completion 'comp' to synchronize with
+>>   the frame end interrupt in 'isc_stop_streaming' function.
+>> - Check the return value of the clk_prepare_enable
+>>   in 'isc_open' function.
+>> - Set the default format in 'isc_open' function.
+>> - Add an exit condition in the loop while in 'isc_config'.
+>> - Delete the hardware setup operation in 'isc_set_format'.
+>> - Refuse format modification during streaming
+>>   in 'isc_s_fmt_vid_cap' function.
+>> - Invoke v4l2_subdev_alloc_pad_config to allocate and
+>>   initialize the pad config in 'isc_async_complete' function.
+>> - Remove the '.owner  = THIS_MODULE,' in atmel_isc_driver.
+>> - Replace the module_platform_driver_probe() with
+>>   module_platform_driver().
+>> - Remove the unit address of the endpoint.
+>> - Add the unit address to the clock node.
+>> - Avoid using underscores in node names.
+>> - Drop the "0x" in the unit address of the i2c node.
+>> - Modify the description of 'atmel,sensor-preferred'.
+>> - Add the description for the ISC internal clock.
+>>
+>> Songjun Wu (2):
+>>   [media] atmel-isc: add the Image Sensor Controller code
+>>   [media] atmel-isc: DT binding for Image Sensor Controller driver
+>>
+>>  .../devicetree/bindings/media/atmel-isc.txt        |   65 +
+>>  drivers/media/platform/Kconfig                     |    1 +
+>>  drivers/media/platform/Makefile                    |    2 +
+>>  drivers/media/platform/atmel/Kconfig               |    9 +
+>>  drivers/media/platform/atmel/Makefile              |    1 +
+>>  drivers/media/platform/atmel/atmel-isc-regs.h      |  165 +++
+>>  drivers/media/platform/atmel/atmel-isc.c           | 1554 ++++++++++++++++++++
+>>  7 files changed, 1797 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
+>>  create mode 100644 drivers/media/platform/atmel/Kconfig
+>>  create mode 100644 drivers/media/platform/atmel/Makefile
+>>  create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
+>>  create mode 100644 drivers/media/platform/atmel/atmel-isc.c
+>>
