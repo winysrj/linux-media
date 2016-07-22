@@ -1,81 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:41885 "EHLO smtp3-1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750923AbcGNKQR convert rfc822-to-8bit (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40902 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751244AbcGVO15 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2016 06:16:17 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH 2/2] [media] doc-rst: increase depth of the main index
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <4de33984f6584cbb04e0c2bea8aa5a4c8bcbd2b1.1468417933.git.mchehab@s-opensource.com>
-Date: Thu, 14 Jul 2016 12:16:03 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <C76547C5-1844-4411-9061-CB01D51ACD9B@darmarit.de>
-References: <47e23fda1c738e648d2a5470e1dacdc62ce788a5.1468417933.git.mchehab@s-opensource.com> <4de33984f6584cbb04e0c2bea8aa5a4c8bcbd2b1.1468417933.git.mchehab@s-opensource.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+	Fri, 22 Jul 2016 10:27:57 -0400
+Subject: Re: [PATCH] [media] Documentation: Fix V4L2_CTRL_FLAG_VOLATILE
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org
+References: <1469196454-1396-1-git-send-email-ricardo.ribalda@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ecb2e5b2-3255-e564-b456-8acdf297813b@xs4all.nl>
+Date: Fri, 22 Jul 2016 16:27:51 +0200
+MIME-Version: 1.0
+In-Reply-To: <1469196454-1396-1-git-send-email-ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-Am 13.07.2016 um 15:52 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
 
-> It is useful to have an index with all the book contents somewhere,
-> as it makes easier to seek for something. So, increase maxdepth
-> to 5 for the main index at the beginning of the book.
+On 07/22/2016 04:07 PM, Ricardo Ribalda Delgado wrote:
+> V4L2_CTRL_FLAG_VOLATILE behaviour when V4L2_CTRL_FLAG_EXECUTE_ON_WRITE
+> is set was not properly explained.
 > 
-> While here, remove the genindex content, as it is bogus.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+> Credit-to: Hans Verkuil <hansverk@cisco.com>
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 > ---
-> Documentation/media/media_uapi.rst | 11 +++--------
-> 1 file changed, 3 insertions(+), 8 deletions(-)
+>  Documentation/media/uapi/v4l/vidioc-queryctrl.rst | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 > 
-> diff --git a/Documentation/media/media_uapi.rst b/Documentation/media/media_uapi.rst
-> index 527c6deb1a19..5e872c8297b0 100644
-> --- a/Documentation/media/media_uapi.rst
-> +++ b/Documentation/media/media_uapi.rst
-> @@ -15,8 +15,10 @@ the license is included in the chapter entitled "GNU Free Documentation
-> License".
+> diff --git a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
+> index 8d6e61a7284d..3a30d6cf70b4 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
+> @@ -728,10 +728,10 @@ See also the examples in :ref:`control`.
+>  	  case the hardware calculates the gain value based on the lighting
+>  	  conditions which can change over time.
+>  
+> -	  .. note:: Setting a new value for a volatile control will have no
+> -	     effect and no ``V4L2_EVENT_CTRL_CH_VALUE`` will be sent, unless
+> -	     the ``V4L2_CTRL_FLAG_EXECUTE_ON_WRITE`` flag (see below) is
+> -	     also set. Otherwise the new value will just be ignored.
+> +	  .. note:: Setting a new value for a volatile control will be ignored
+> +             unless `V4L2_CTRL_FLAG_EXECUTE_ON_WRITE`` flag (see below) is also set.
+
+That should start with `` not ` (i.e. a double ` instead of a single `).
+
+> +             Setting a new value for a volatile contol will never trigger a
+
+s/contol/control/
+
+Also emphasize 'never':
+
+s/never/*never*/
+
+> +             ``V4L2_EVENT_CTRL_CH_VALUE`` event.
+>  
+>      -  .. row 9
+>  
 > 
-> 
-> +.. contents::
-> +
 
-Since there is a ".. toctree" with maxdepth, you don't need
-this ".. contents::" directive.
+Regards,
 
-The ".. contents::" directive is helpfull if you want to show
-the contents (e.g.) on top of a file which has no toctree in.
-
--- Markus --
-
-> .. toctree::
-> -    :maxdepth: 1
-> +    :maxdepth: 5
-> 
->     intro
->     uapi/v4l/v4l2
-> @@ -26,10 +28,3 @@ License".
->     uapi/cec/cec-api
->     uapi/gen-errors
->     uapi/fdl-appendix
-> -
-> -.. only:: html
-> -
-> -  Retrieval
-> -  =========
-> -
-> -  * :ref:`genindex`
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+	Hans
