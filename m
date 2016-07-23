@@ -1,85 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38604 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754095AbcGEBbZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2016 21:31:25 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 09/41] Documentation: FE_READ_SNR: improve man-like format
-Date: Mon,  4 Jul 2016 22:30:44 -0300
-Message-Id: <9d0c96ba41f6c1c91d9dfa75159a0e5b841c2066.1467670142.git.mchehab@s-opensource.com>
-In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-In-Reply-To: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
-References: <376f8877e078483e22a906cb0126f8db37bde441.1467670142.git.mchehab@s-opensource.com>
+Received: from mail-io0-f195.google.com ([209.85.223.195]:36270 "EHLO
+	mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751432AbcGWRBE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Jul 2016 13:01:04 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: lars@metafoo.de
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 5/9] media: adv7180: implement g_parm
+Date: Sat, 23 Jul 2016 10:00:45 -0700
+Message-Id: <1469293249-6774-6-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parsing this file were causing lots of warnings with sphinx,
-due to the c function prototypes.
+Implement g_parm to return the current standard's frame period.
 
-Fix that by prepending them with .. c:function::
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Tested-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Tim Harvey <tharvey@gateworks.com>
 
-While here, use the same way we document man-like pages,
-at the V4L side of the book and add escapes to asterisks.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/linux_tv/media/dvb/FE_READ_SNR.rst | 19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+v3: no changes
+v2: no changes
+---
+ drivers/media/i2c/adv7180.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/Documentation/linux_tv/media/dvb/FE_READ_SNR.rst b/Documentation/linux_tv/media/dvb/FE_READ_SNR.rst
-index 2f9759a310f0..11b4f72d684e 100644
---- a/Documentation/linux_tv/media/dvb/FE_READ_SNR.rst
-+++ b/Documentation/linux_tv/media/dvb/FE_READ_SNR.rst
-@@ -6,18 +6,20 @@
- FE_READ_SNR
- ***********
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 58f4eca..b8a6d94 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -764,6 +764,27 @@ static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
+ 	return 0;
+ }
  
--DESCRIPTION
-+Description
-+-----------
- 
- This ioctl call returns the signal-to-noise ratio for the signal
- currently received by the front-end. For this command, read-only access
- to the device is sufficient.
- 
--SYNOPSIS
-+Synopsis
-+--------
- 
--int ioctl(int fd, int request = :ref:`FE_READ_SNR`,
--uint16_t *snr);
-+.. c:function:: int  ioctl(int fd, int request = FE_READ_SNR, int16_t *snr)
- 
--PARAMETERS
-+Arguments
-+----------
- 
- 
- 
-@@ -40,12 +42,13 @@ PARAMETERS
- 
-     -  .. row 3
- 
--       -  uint16_t *snr
-+       -  uint16_t \*snr
- 
--       -  The signal-to-noise ratio is stored into *snr.
-+       -  The signal-to-noise ratio is stored into \*snr.
- 
- 
--RETURN VALUE
-+Return Value
-+------------
- 
- On success 0 is returned, on error -1 and the ``errno`` variable is set
- appropriately. The generic error codes are described at the
++static int adv7180_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
++{
++	struct adv7180_state *state = to_state(sd);
++	struct v4l2_captureparm *cparm = &a->parm.capture;
++
++	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	memset(a, 0, sizeof(*a));
++	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	if (state->curr_norm & V4L2_STD_525_60) {
++		cparm->timeperframe.numerator = 1001;
++		cparm->timeperframe.denominator = 30000;
++	} else {
++		cparm->timeperframe.numerator = 1;
++		cparm->timeperframe.denominator = 25;
++	}
++
++	return 0;
++}
++
+ static int adv7180_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *cropcap)
+ {
+ 	struct adv7180_state *state = to_state(sd);
+@@ -822,6 +843,7 @@ static int adv7180_subscribe_event(struct v4l2_subdev *sd,
+ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+ 	.s_std = adv7180_s_std,
+ 	.g_std = adv7180_g_std,
++	.g_parm = adv7180_g_parm,
+ 	.querystd = adv7180_querystd,
+ 	.g_input_status = adv7180_g_input_status,
+ 	.s_routing = adv7180_s_routing,
 -- 
-2.7.4
+1.9.1
 
