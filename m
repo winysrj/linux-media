@@ -1,71 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40604 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753805AbcGTNUm (ORCPT
+Received: from mail-io0-f195.google.com ([209.85.223.195]:36274 "EHLO
+	mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751427AbcGWRBE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 09:20:42 -0400
-Date: Wed, 20 Jul 2016 16:20:05 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Luis de Bethencourt <luisbg@osg.samsung.com>
-Subject: Re: [PATCH] [media] vb2: map dmabuf for planes on driver queue
- instead of vidioc_qbuf
-Message-ID: <20160720132005.GC7976@valkosipuli.retiisi.org.uk>
-References: <1468599966-31988-1-git-send-email-javier@osg.samsung.com>
+	Sat, 23 Jul 2016 13:01:04 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: lars@metafoo.de
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 6/9] media: adv7180: change mbus format to UYVY
+Date: Sat, 23 Jul 2016 10:00:46 -0700
+Message-Id: <1469293249-6774-7-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1468599966-31988-1-git-send-email-javier@osg.samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+Change the media bus format from YUYV8_2X8 to UYVY8_2X8. Colors
+now look correct when capturing with the i.mx6 backend.
 
-On Fri, Jul 15, 2016 at 12:26:06PM -0400, Javier Martinez Canillas wrote:
-> The buffer planes' dma-buf are currently mapped when buffers are queued
-> from userspace but it's more appropriate to do the mapping when buffers
-> are queued in the driver since that's when the actual DMA operation are
-> going to happen.
-> 
-> Suggested-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> 
-> ---
-> 
-> Hello,
-> 
-> A side effect of this change is that if the dmabuf map fails for some
-> reasons (i.e: a driver using the DMA contig memory allocator but CMA
-> not being enabled), the fail will no longer happen on VIDIOC_QBUF but
-> later (i.e: in VIDIOC_STREAMON).
-> 
-> I don't know if that's an issue though but I think is worth mentioning.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Tested-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Lars-Peter Clausen <lars@metafoo.de>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-I have the same question has Hans --- why?
+---
+v3: no changes
+v2: no changes
+---
+ drivers/media/i2c/adv7180.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-I rather think we should keep the buffers mapped all the time. That'd
-require a bit of extra from the DMA-BUF framework I suppose, to support
-streaming mappings.
-
-The reason for that is performance. If you're passing the buffer between a
-couple of hardware devices, there's no need to map and unmap it every time
-the buffer is accessed by the said devices. That'd avoid an unnecessary
-cache flush as well, something that tends to be quite expensive. On a PC
-with resolutions typically used on webcams that might not really matter. But
-if you have an embedded system with a relatively modest 10 MP camera sensor,
-it's one of the first things you'll notice if you check where the CPU time
-is being spent.
-
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index b8a6d94..ef2a107 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -636,7 +636,7 @@ static int adv7180_enum_mbus_code(struct v4l2_subdev *sd,
+ 	if (code->index != 0)
+ 		return -EINVAL;
+ 
+-	code->code = MEDIA_BUS_FMT_YUYV8_2X8;
++	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
+ 
+ 	return 0;
+ }
+@@ -646,7 +646,7 @@ static int adv7180_mbus_fmt(struct v4l2_subdev *sd,
+ {
+ 	struct adv7180_state *state = to_state(sd);
+ 
+-	fmt->code = MEDIA_BUS_FMT_YUYV8_2X8;
++	fmt->code = MEDIA_BUS_FMT_UYVY8_2X8;
+ 	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 	fmt->width = 720;
+ 	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
 -- 
-Kind regards,
+1.9.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
