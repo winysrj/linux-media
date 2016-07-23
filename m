@@ -1,260 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41278 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754973AbcGHND7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2016 09:03:59 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: corbet@lwn.net, markus.heiser@darmarIT.de,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 06/54] doc-rst: remove Documentation/linux_tv/conf.py file
-Date: Fri,  8 Jul 2016 10:02:58 -0300
-Message-Id: <5d55cd2ee7a869bbe2d2f9d9bd496b630cd1c847.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1467981855.git.mchehab@s-opensource.com>
-References: <cover.1467981855.git.mchehab@s-opensource.com>
+Received: from mail-io0-f194.google.com ([209.85.223.194]:36266 "EHLO
+	mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751426AbcGWRBC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Jul 2016 13:01:02 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: lars@metafoo.de
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 4/9] media: adv7180: add power pin control
+Date: Sat, 23 Jul 2016 10:00:44 -0700
+Message-Id: <1469293249-6774-5-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This file is actually not used to build the media uAPI docbook.
-So, remove it.
+Some targets control the ADV7180 power pin via a gpio, so add
+optional support for "powerdown" pin control.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Tested-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Lars-Peter Clausen <lars@metafoo.de>
+
 ---
- Documentation/linux_tv/conf.py | 221 -----------------------------------------
- 1 file changed, 221 deletions(-)
- delete mode 100644 Documentation/linux_tv/conf.py
 
-diff --git a/Documentation/linux_tv/conf.py b/Documentation/linux_tv/conf.py
-deleted file mode 100644
-index ea5f6ef25d6b..000000000000
---- a/Documentation/linux_tv/conf.py
-+++ /dev/null
-@@ -1,221 +0,0 @@
--# -*- coding: utf-8; mode: python -*-
--#
--# This is the project specific sphinx-build configuration, which is loaded from
--# the base configuration file (``../conf.py``). About config values consult:
--#
--# * http://www.sphinx-doc.org/en/stable/config.html
--#
--# While setting values here, please take care to not overwrite common needed
--# configurations. This means, do not *overwrite* composite values (e.g. the
--# list- or dictionary-value of "latex_elements" resp. "extensions") by
--# thoughtless assignments. Manipulate composite values always by *update*
--# (dict-values) or extend (list-values). Nevertheless, if you know what you are
--# doing, you are free to *overwrite* values to your needs.
--#
--# useful preset names:
--#
--# * BASE_FOLDER: the folder where the top conf.py is located
--# * main_name:   the basename of this project-folder
--
--# Set parser's default kernel-doc mode ``reST|kernel-doc``.
--kernel_doc_mode = "kernel-doc"
--
--# ------------------------------------------------------------------------------
--# General configuration
--# ------------------------------------------------------------------------------
--
--project   = u'LINUX MEDIA INFRASTRUCTURE API'
--copyright = u'2009-2016 : LinuxTV Developers'
--author    = u'The LinuxTV Developers'
--
--# The version info for the project you're documenting, acts as replacement for
--# |version| and |release|, also used in various other places throughout the
--# built documents.
--#
--# The short X.Y version.
--#version   = 'v4.7'
--# The full version, including alpha/beta/rc tags.
--#release   = 'v4.7-rc2'
--
--# extlinks["man"] = ('http://manpages.ubuntu.com/cgi-bin/search.py?q=%s', ' ')
--
--# intersphinx_mapping['kernel-doc'] = ('http://return42.github.io/sphkerneldoc/books/kernel-doc-HOWTO/', None)
--
--extensions.extend([
--    # 'sphinx.ext.pngmath'
--    #, 'sphinx.ext.mathjax'
--])
--
--# ------------------------------------------------------------------------------
--# Options for HTML output
--# ------------------------------------------------------------------------------
--
--# The name for this set of Sphinx documents.  If None, it defaults to
--# "<project> v<release> documentation".
--#html_title = None
--
--# A shorter title for the navigation bar.  Default is the same as html_title.
--#html_short_title = None
--
--# The name of an image file (relative to this directory) to place at the top
--# of the sidebar.
--#html_logo = pathjoin(BASE_FOLDER, "_tex", "logo.png")
--
--# The name of an image file (within the static path) to use as favicon of the
--# docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
--# pixels large.
--#html_favicon = None
--
--# Add any paths that contain custom static files (such as style sheets) here,
--# relative to this directory. They are copied after the builtin static files,
--# so a file named "default.css" will overwrite the builtin "default.css".
--html_static_path.extend([])
--
--# Output file base name for HTML help builder.
--htmlhelp_basename = main_name
--
--# ------------------------------------------------------------------------------
--# Options for rst2pdf output
--# ------------------------------------------------------------------------------
--
--# Grouping the document tree into PDF files. List of tuples
--# (source start file, target name, title, author, options).
--#
--# The options element is a dictionary that lets you override
--# this config per-document.
--# For example,
--# ('index', u'MyProject', u'My Project', u'Author Name',
--#  dict(pdf_compressed = True))
--# would mean that specific document would be compressed
--# regardless of the global pdf_compressed setting.
--#
--# further:  http://rst2pdf.ralsina.me/handbook.html#sphinx
--
--# FIXME: at this time, the rst2pdf fails with a bug
--#pdf_documents = [
--#    (master_doc, main_name, project, author)
--#    , ]
--
--# If false, no index is generated.
--pdf_use_index = False
--
--# How many levels deep should the table of contents be?
--pdf_toc_depth = 3
--
--# Add section number to section references
--pdf_use_numbered_links = False
--
--# Background images fitting mode
--pdf_fit_background_mode = 'scale'
--
--
--# ------------------------------------------------------------------------------
--# Options for manual page output
--# ------------------------------------------------------------------------------
--
--# One entry per manual page. List of tuples
--# (source start file, name, description, authors, manual section).
--# man_pages = [
--#     (master_doc, 'kernel-doc', u'Kernel-Doc',
--#      [author], 1)
--# ]
--
--# If true, show URL addresses after external links.
--#man_show_urls = False
--
--# ------------------------------------------------------------------------------
--# Options for Texinfo output
--# ------------------------------------------------------------------------------
--
--# Grouping the document tree into Texinfo files. List of tuples
--# (source start file, target name, title, author,
--#  dir menu entry, description, category)
--# texinfo_documents = [
--#     (master_doc, 'Kernel-Doc', u'Kernel-Doc Documentation',
--#      author, 'Kernel-Doc', 'One line description of project.',
--#      'Miscellaneous'),
--# ]
--
--# Documents to append as an appendix to all manuals.
--#texinfo_appendices = []
--
--# If false, no module index is generated.
--#texinfo_domain_indices = True
--
--# How to display URL addresses: 'footnote', 'no', or 'inline'.
--#texinfo_show_urls = 'footnote'
--
--# If true, do not generate a @detailmenu in the "Top" node's menu.
--#texinfo_no_detailmenu = False
--
--# ------------------------------------------------------------------------------
--# Options for Epub output
--# ------------------------------------------------------------------------------
--
--# Bibliographic Dublin Core info.
--# epub_title = project
--# epub_author = author
--# epub_publisher = author
--# epub_copyright = copyright
--
--# The basename for the epub file. It defaults to the project name.
--#epub_basename = project
--
--# The HTML theme for the epub output. Since the default themes are not
--# optimized for small screen space, using the same theme for HTML and epub
--# output is usually not wise. This defaults to 'epub', a theme designed to save
--# visual space.
--#epub_theme = 'epub'
--
--# The language of the text. It defaults to the language option
--# or 'en' if the language is not set.
--#epub_language = ''
--
--# The scheme of the identifier. Typical schemes are ISBN or URL.
--#epub_scheme = ''
--
--# The unique identifier of the text. This can be a ISBN number
--# or the project homepage.
--#epub_identifier = ''
--
--# A unique identification for the text.
--#epub_uid = ''
--
--# A tuple containing the cover image and cover page html template filenames.
--#epub_cover = ()
--
--# A sequence of (type, uri, title) tuples for the guide element of content.opf.
--#epub_guide = ()
--
--# HTML files that should be inserted before the pages created by sphinx.
--# The format is a list of tuples containing the path and title.
--#epub_pre_files.extend([])
--
--# HTML files that should be inserted after the pages created by sphinx.
--# The format is a list of tuples containing the path and title.
--#epub_post_files.extend([])
--
--# A list of files that should not be packed into the epub file.
--epub_exclude_files.extend([])
--
--# The depth of the table of contents in toc.ncx.
--#epub_tocdepth = 3
--
--# Allow duplicate toc entries.
--#epub_tocdup = True
--
--# Choose between 'default' and 'includehidden'.
--#epub_tocscope = 'default'
--
--# Fix unsupported image types using the Pillow.
--#epub_fix_images = False
--
--# Scale large images.
--#epub_max_image_width = 0
--
--# How to display URL addresses: 'footnote', 'no', or 'inline'.
--#epub_show_urls = 'inline'
--
--# If false, no index is generated.
--#epub_use_index = True
--
+v3: no changes
+
+v2:
+- placed call to gpiod_get inline in adv7180_probe().
+- rename gpio pin to "powerdown".
+- document optional powerdown-gpios property in
+  Documentation/devicetree/bindings/media/i2c/adv7180.txt.
+- include error number in error message on gpiod_get failure.
+---
+ .../devicetree/bindings/media/i2c/adv7180.txt      |  4 ++++
+ drivers/media/i2c/Kconfig                          |  2 +-
+ drivers/media/i2c/adv7180.c                        | 27 ++++++++++++++++++++++
+ 3 files changed, 32 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7180.txt b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
+index 6c175d2..ab9ef02 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv7180.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
+@@ -15,6 +15,10 @@ Required Properties :
+ 		"adi,adv7282"
+ 		"adi,adv7282-m"
+ 
++Optional Properties :
++- powerdown-gpios: reference to the GPIO connected to the powerdown pin,
++  if any.
++
+ Optional Endpoint Properties :
+ - newavmode: a boolean property to indicate the BT.656 bus is operating
+   in Analog Device's NEWAVMODE. Valid for BT.656 busses only.
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index ce9006e..6769898 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -187,7 +187,7 @@ comment "Video decoders"
+ 
+ config VIDEO_ADV7180
+ 	tristate "Analog Devices ADV7180 decoder"
+-	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
++	depends on GPIOLIB && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+ 	---help---
+ 	  Support for the Analog Devices ADV7180 video decoder.
+ 
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 3067d5f..58f4eca 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -26,6 +26,7 @@
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+ #include <linux/of.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-event.h>
+@@ -215,6 +216,7 @@ struct adv7180_state {
+ 	struct media_pad	pad;
+ 	struct mutex		mutex; /* mutual excl. when accessing chip */
+ 	int			irq;
++	struct gpio_desc	*pwdn_gpio;
+ 	v4l2_std_id		curr_norm;
+ 	bool			newavmode;
+ 	bool			powered;
+@@ -466,6 +468,19 @@ static int adv7180_g_std(struct v4l2_subdev *sd, v4l2_std_id *norm)
+ 	return 0;
+ }
+ 
++static void adv7180_set_power_pin(struct adv7180_state *state, bool on)
++{
++	if (!state->pwdn_gpio)
++		return;
++
++	if (on) {
++		gpiod_set_value_cansleep(state->pwdn_gpio, 0);
++		usleep_range(5000, 10000);
++	} else {
++		gpiod_set_value_cansleep(state->pwdn_gpio, 1);
++	}
++}
++
+ static int adv7180_set_power(struct adv7180_state *state, bool on)
+ {
+ 	u8 val;
+@@ -1219,6 +1234,8 @@ static int init_device(struct adv7180_state *state)
+ 
+ 	mutex_lock(&state->mutex);
+ 
++	adv7180_set_power_pin(state, true);
++
+ 	adv7180_write(state, ADV7180_REG_PWR_MAN, ADV7180_PWR_MAN_RES);
+ 	usleep_range(5000, 10000);
+ 
+@@ -1319,6 +1336,14 @@ static int adv7180_probe(struct i2c_client *client,
+ 
+ 	adv7180_of_parse(state);
+ 
++	state->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "powerdown",
++						   GPIOD_OUT_HIGH);
++	if (IS_ERR(state->pwdn_gpio)) {
++		ret = PTR_ERR(state->pwdn_gpio);
++		v4l_err(client, "request for power pin failed: %d\n", ret);
++		return ret;
++	}
++
+ 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
+ 		state->csi_client = i2c_new_dummy(client->adapter,
+ 				ADV7180_DEFAULT_CSI_I2C_ADDR);
+@@ -1410,6 +1435,8 @@ static int adv7180_remove(struct i2c_client *client)
+ 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2)
+ 		i2c_unregister_device(state->csi_client);
+ 
++	adv7180_set_power_pin(state, false);
++
+ 	mutex_destroy(&state->mutex);
+ 
+ 	return 0;
 -- 
-2.7.4
+1.9.1
 
