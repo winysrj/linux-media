@@ -1,81 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:53740 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750735AbcGBEwS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Jul 2016 00:52:18 -0400
-Date: Sat, 2 Jul 2016 12:50:53 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Andi Shyti <andi.shyti@samsung.com>
-Cc: kbuild-all@01.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: Re: [PATCH] [media] rc: ir-spi: add support for IR LEDs connected
- with SPI
-Message-ID: <201607021238.UTYJugER%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1467362022-12704-1-git-send-email-andi.shyti@samsung.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47841 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751194AbcGWDAT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2016 23:00:19 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 682A8180241
+	for <linux-media@vger.kernel.org>; Sat, 23 Jul 2016 05:00:13 +0200 (CEST)
+Date: Sat, 23 Jul 2016 05:00:13 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160723030013.682A8180241@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.7-rc5 next-20160701]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+Results of the daily build of media_tree:
 
-url:    https://github.com/0day-ci/linux/commits/Andi-Shyti/rc-ir-spi-add-support-for-IR-LEDs-connected-with-SPI/20160702-102955
-base:   git://linuxtv.org/media_tree.git master
-reproduce:
-        # apt-get install sparse
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
+date:		Sat Jul 23 04:00:17 CEST 2016
+git branch:	test
+git hash:	009a620848218d521f008141c62f56bf19294dd9
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1.1-i686: WARNINGS
+linux-4.2-i686: WARNINGS
+linux-4.3-i686: WARNINGS
+linux-4.4-i686: WARNINGS
+linux-4.5-i686: WARNINGS
+linux-4.6-i686: WARNINGS
+linux-4.7-rc1-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0-x86_64: WARNINGS
+linux-4.1.1-x86_64: WARNINGS
+linux-4.2-x86_64: WARNINGS
+linux-4.3-x86_64: WARNINGS
+linux-4.4-x86_64: WARNINGS
+linux-4.5-x86_64: WARNINGS
+linux-4.6-x86_64: WARNINGS
+linux-4.7-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-sparse warnings: (new ones prefixed by >>)
+Detailed results are available here:
 
-   include/linux/compiler.h:232:8: sparse: attribute 'no_sanitize_address': unknown attribute
-   drivers/media/rc/ir-spi.c:156:14: sparse: undefined identifier 'LIRC_SET_LENGTH'
->> drivers/media/rc/ir-spi.c:156:14: sparse: incompatible types for 'case' statement
-   drivers/media/rc/ir-spi.c:156:14: sparse: Expected constant expression in case statement
-   drivers/media/rc/ir-spi.c: In function 'ir_spi_chardev_ioctl':
-   drivers/media/rc/ir-spi.c:156:7: error: 'LIRC_SET_LENGTH' undeclared (first use in this function)
-     case LIRC_SET_LENGTH: {
-          ^~~~~~~~~~~~~~~
-   drivers/media/rc/ir-spi.c:156:7: note: each undeclared identifier is reported only once for each function it appears in
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-vim +/case +156 drivers/media/rc/ir-spi.c
+Full logs are available here:
 
-   140	
-   141	static long ir_spi_chardev_ioctl(struct file *file, unsigned int cmd,
-   142							unsigned long arg)
-   143	{
-   144		__u32 p;
-   145		s32 ret;
-   146		struct ir_spi_data *idata = file->private_data;
-   147	
-   148		switch (cmd) {
-   149		case LIRC_GET_FEATURES:
-   150			return put_user(idata->lirc_driver.features,
-   151						(__u32 __user *) arg);
-   152	
-   153		case LIRC_GET_LENGTH:
-   154			return put_user(idata->xfer.len, (__u32 __user *) arg);
-   155	
- > 156		case LIRC_SET_LENGTH: {
-   157			void *new;
-   158	
-   159			ret = get_user(p, (__u32 __user *) arg);
-   160			if (ret)
-   161				return ret;
-   162	
-   163			/*
-   164			 * the user is trying to set the same
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
