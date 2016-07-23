@@ -1,81 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:45406 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750993AbcGGGjI (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47369
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751241AbcGWCZo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jul 2016 02:39:08 -0400
-Subject: Re: [PATCH v5 4/4] rcar-vin: implement EDID control ioctls
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-References: <1467819576-17743-1-git-send-email-ulrich.hecht+renesas@gmail.com>
- <1467819576-17743-5-git-send-email-ulrich.hecht+renesas@gmail.com>
- <20160707001658.GL20356@bigcity.dyn.berto.se>
-Cc: hans.verkuil@cisco.com, linux-media@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
-	laurent.pinchart@ideasonboard.com, william.towle@codethink.co.uk
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ac9d2b07-ccbc-0e4d-b3fc-081fd1ef25bf@xs4all.nl>
-Date: Thu, 7 Jul 2016 08:39:02 +0200
+	Fri, 22 Jul 2016 22:25:44 -0400
+Date: Fri, 22 Jul 2016 23:25:38 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-doc@vger.kernel.org
+Subject: Re: [PATCH] doc-rst: kernel-doc: fix handling of address_space tags
+Message-ID: <20160722232538.6f6581ff@recife.lan>
+In-Reply-To: <20160722153716.7ac9a4b6@lwn.net>
+References: <263bbae9c1bf6ea7c14dad8c29f9b3148b2b5de7.1469198779.git.mchehab@s-opensource.com>
+	<20160722153716.7ac9a4b6@lwn.net>
 MIME-Version: 1.0
-In-Reply-To: <20160707001658.GL20356@bigcity.dyn.berto.se>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/07/2016 02:16 AM, Niklas Söderlund wrote:
-> Hi Ulrich,
-> 
-> Thanks for your patch.
-> 
-> On 2016-07-06 17:39:36 +0200, Ulrich Hecht wrote:
->> Adds G_EDID and S_EDID.
->>
->> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
->> ---
->>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 17 +++++++++++++++++
->>  1 file changed, 17 insertions(+)
->>
->> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
->> index 396eabc..bd8f14c 100644
->> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
->> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
->> @@ -661,6 +661,20 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
->>  	return ret;
->>  }
->>  
->> +static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
->> +{
->> +	struct rvin_dev *vin = video_drvdata(file);
->> +
->> +	return rvin_subdev_call(vin, pad, get_edid, edid);
-> 
-> You need to add a translation from the rcar-vin drivers view of it's 
-> current input to the subdevices view of how it's pads are arranged. I 
-> think something like this would work:
-> 
->     struct rvin_dev *vin = video_drvdata(file);
->     unsigned int input;
->     int ret;
-> 
->     input = edid->pad;
-> 
->     edid->pad = vin->inputs[input].sink_idx;
-> 
->     ret = vin_subdev_call(vin, pad, get_edid, edid);
-> 
->     edid->pad = input;
-> 
->     return ret;
-> 
-> I know it's not obvious you need this and I can't figure out a better 
-> way to solve runtime switching of subdevices. Any ideas on how to 
-> improve the situation are more then welcome :-)
+Em Fri, 22 Jul 2016 15:37:16 -0600
+Jonathan Corbet <corbet@lwn.net> escreveu:
 
-I agree it is ugly, but it isn't used often enough to warrant the extra
-work. I am thinking that the pad should be an extra argument in the subdev
-op instead of using edid->pad. That should simplify the code.
+> On Fri, 22 Jul 2016 11:46:36 -0300
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> 
+> > The RST cpp:function handler is very pedantic: it doesn't allow any
+> > macros like __user on it:
+> > [...]
+> > So, we have to remove it from the function prototype.  
+> 
+> Sigh, this is the kind of thing where somehow there's always more moles
+> to whack. 
 
-Regards,
+Agreed.
 
-	Hans
+> I feel like there must be a better fix, 
+
+Well, we might create a "kernel-c" domain, I guess. I suspect we'll 
+need something like that anyway, in order to handle things like
+per-subsystem declarations of the syscalls (specially ioctl), but
+I've no idea how difficult would be to do so.
+
+For now, I guess that's the easiest fix.
+
+> but I don't know what
+> it is, so I've applied this, thanks.
+
+Thank you!
+
+> I'm trying to get my act together so that the pull request can go in
+> right away once the merge window opens.  If there's anything else you
+> think really needs to be there, please do let me know.
+
+I suspect that that's it. There are a few trivial conflicts between
+my tree and Daniel's one, as we both are adding new books at
+Documentation/index.rst, but this is something that Stephen already
+handled, and should be easy for Linus to handle as well.
+
+Yet, if you prefer, you could pull from my docs-next branch, but
+there are also lots of subsystem's patch on that, merged from
+my master (stable) branch. So, if you pull from it and send to
+Linus before me, you'll also be sending patches from the media
+subsystem. Not really an issue, as, if Linus pull from my tree
+later, he'll get only the few remains that aren't merged at my
+docs-next branch.
+
+Thanks,
+Mauro
