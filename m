@@ -1,81 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:43900 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753668AbcGSP5M (ORCPT
+Received: from mail-it0-f65.google.com ([209.85.214.65]:36642 "EHLO
+	mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751176AbcGWRBH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 11:57:12 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andi Shyti <andi.shyti@samsung.com>,
-	Andi Shyti <andi@etezian.org>
-Subject: [RFC 5/7] [media] ir-lirc-codec: do not handle any buffer for raw
- transmitters
-Date: Wed, 20 Jul 2016 00:56:56 +0900
-Message-id: <1468943818-26025-6-git-send-email-andi.shyti@samsung.com>
-In-reply-to: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
-References: <1468943818-26025-1-git-send-email-andi.shyti@samsung.com>
+	Sat, 23 Jul 2016 13:01:07 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: lars@metafoo.de
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 9/9] media: adv7180: fix field type
+Date: Sat, 23 Jul 2016 10:00:49 -0700
+Message-Id: <1469293249-6774-10-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Raw transmitters receive the data which need to be sent to
-receivers from userspace as stream of bits, they don't require
-any handling from the lirc framework.
+The ADV7180 and ADV7182 transmit whole fields, bottom field followed
+by top (or vice-versa, depending on detected video standard). So
+for chips that do not have support for explicitly setting the field
+mode, set the field mode to SEQ_BT for PAL, and SEQ_TB for NTSC (there
+seems to be conflicting info on field order of PAL vs NTSC, so follow
+what is in adv7183.c).
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+
 ---
- drivers/media/rc/ir-lirc-codec.c | 30 +++++++++++++++++++-----------
- 1 file changed, 19 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 5effc65..80e94b6 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -121,17 +121,6 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 	if (!lirc)
- 		return -EFAULT;
- 
--	if (n < sizeof(unsigned) || n % sizeof(unsigned))
--		return -EINVAL;
--
--	count = n / sizeof(unsigned);
--	if (count > LIRCBUF_SIZE || count % 2 == 0)
--		return -EINVAL;
--
--	txbuf = memdup_user(buf, n);
--	if (IS_ERR(txbuf))
--		return PTR_ERR(txbuf);
--
- 	dev = lirc->dev;
- 	if (!dev) {
- 		ret = -EFAULT;
-@@ -143,6 +132,25 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 		goto out;
+v3: no changes
+
+v2:
+- the init of state->curr_norm in probe needs to be moved up, ahead
+  of the init of state->field.
+---
+ drivers/media/i2c/adv7180.c | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 6bcc652..3b8041e 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -718,10 +718,17 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
+ 	switch (format->format.field) {
+ 	case V4L2_FIELD_NONE:
+ 		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
+-			format->format.field = V4L2_FIELD_INTERLACED;
++			format->format.field =
++				(state->curr_norm & V4L2_STD_525_60) ?
++				V4L2_FIELD_SEQ_TB : V4L2_FIELD_SEQ_BT;
+ 		break;
+ 	default:
+-		format->format.field = V4L2_FIELD_INTERLACED;
++		if (state->chip_info->flags & ADV7180_FLAG_I2P)
++			format->format.field = V4L2_FIELD_INTERLACED;
++		else
++			format->format.field =
++				(state->curr_norm & V4L2_STD_525_60) ?
++				V4L2_FIELD_SEQ_TB : V4L2_FIELD_SEQ_BT;
+ 		break;
  	}
  
-+	if (dev->driver_type == RC_DRIVER_IR_RAW_TX) {
-+		txbuf = memdup_user(buf, n);
-+		if (IS_ERR(txbuf))
-+			return PTR_ERR(txbuf);
+@@ -1365,8 +1372,14 @@ static int adv7180_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 
+ 	state->client = client;
+-	state->field = V4L2_FIELD_INTERLACED;
+ 	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
++	state->curr_norm = V4L2_STD_NTSC;
 +
-+		return dev->tx_ir(dev, txbuf, n);
-+	}
-+
-+	if (n < sizeof(unsigned) || n % sizeof(unsigned))
-+		return -EINVAL;
-+
-+	count = n / sizeof(unsigned);
-+	if (count > LIRCBUF_SIZE || count % 2 == 0)
-+		return -EINVAL;
-+
-+	txbuf = memdup_user(buf, n);
-+	if (IS_ERR(txbuf))
-+		return PTR_ERR(txbuf);
-+
- 	for (i = 0; i < count; i++) {
- 		if (txbuf[i] > IR_MAX_DURATION / 1000 - duration || !txbuf[i]) {
- 			ret = -EINVAL;
++	if (state->chip_info->flags & ADV7180_FLAG_I2P)
++		state->field = V4L2_FIELD_INTERLACED;
++	else
++		state->field = (state->curr_norm & V4L2_STD_525_60) ?
++			V4L2_FIELD_SEQ_TB : V4L2_FIELD_SEQ_BT;
+ 
+ 	adv7180_of_parse(state);
+ 
+@@ -1396,7 +1409,6 @@ static int adv7180_probe(struct i2c_client *client,
+ 
+ 	state->irq = client->irq;
+ 	mutex_init(&state->mutex);
+-	state->curr_norm = V4L2_STD_NTSC;
+ 	if (state->chip_info->flags & ADV7180_FLAG_RESET_POWERED)
+ 		state->powered = true;
+ 	else
 -- 
-2.8.1
+1.9.1
 
