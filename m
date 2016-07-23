@@ -1,42 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www381.your-server.de ([78.46.137.84]:43930 "EHLO
-	www381.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751909AbcGGP37 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2016 11:29:59 -0400
-Subject: Re: [PATCH 05/11] media: adv7180: init chip with AD recommended
- register settings
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-	linux-media@vger.kernel.org
-References: <1467846004-12731-1-git-send-email-steve_longerbeam@mentor.com>
- <1467846004-12731-6-git-send-email-steve_longerbeam@mentor.com>
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Lars-Peter Clausen <lars@metafoo.de>
-Message-ID: <577E7575.6030501@metafoo.de>
-Date: Thu, 7 Jul 2016 17:29:57 +0200
-MIME-Version: 1.0
-In-Reply-To: <1467846004-12731-6-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-io0-f193.google.com ([209.85.223.193]:35628 "EHLO
+	mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751311AbcGWRA7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Jul 2016 13:00:59 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: lars@metafoo.de
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 1/9] media: adv7180: Fix broken interrupt register access
+Date: Sat, 23 Jul 2016 10:00:41 -0700
+Message-Id: <1469293249-6774-2-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/07/2016 12:59 AM, Steve Longerbeam wrote:
-> Define and load register tables that conform to Analog Device's
-> recommended register settings. It loads the default single-ended
-> CVBS on Ain1 configuration for both ADV7180 and ADV7182 chips.
+Access to the interrupt page registers has been broken since at least
+commit 3999e5d01da7 ("[media] adv7180: Do implicit register paging").
+That commit forgot to add the interrupt page number to the register
+defines.
 
-The driver should already setup the recommended configuration based on the
-current mode. This patch seems to add a set of register writes that only
-apply for a specific mode.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Tested-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Lars-Peter Clausen <lars@metafoo.de>
 
-[...]
-> Note this patch also enables NEWAVMODE, which is also recommended by
-> Analog Devices. This will likely break any current backends using this
-> subdev that are expecting different or manually configured AV codes.
-> 
-> Note also that bt.656-4 support has been removed in this patch, but it
-> will be brought back in a subsequent patch.
+---
+v3: no changes
+v2: no changes
+---
+ drivers/media/i2c/adv7180.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-
-I'm not sure if we can or should break backwards compatibility in this way.
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index b77b0a4..95cbc85 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -100,7 +100,7 @@
+ #define ADV7180_REG_IDENT 0x0011
+ #define ADV7180_ID_7180 0x18
+ 
+-#define ADV7180_REG_ICONF1		0x0040
++#define ADV7180_REG_ICONF1		0x2040
+ #define ADV7180_ICONF1_ACTIVE_LOW	0x01
+ #define ADV7180_ICONF1_PSYNC_ONLY	0x10
+ #define ADV7180_ICONF1_ACTIVE_TO_CLR	0xC0
+@@ -113,15 +113,15 @@
+ 
+ #define ADV7180_IRQ1_LOCK	0x01
+ #define ADV7180_IRQ1_UNLOCK	0x02
+-#define ADV7180_REG_ISR1	0x0042
+-#define ADV7180_REG_ICR1	0x0043
+-#define ADV7180_REG_IMR1	0x0044
+-#define ADV7180_REG_IMR2	0x0048
++#define ADV7180_REG_ISR1	0x2042
++#define ADV7180_REG_ICR1	0x2043
++#define ADV7180_REG_IMR1	0x2044
++#define ADV7180_REG_IMR2	0x2048
+ #define ADV7180_IRQ3_AD_CHANGE	0x08
+-#define ADV7180_REG_ISR3	0x004A
+-#define ADV7180_REG_ICR3	0x004B
+-#define ADV7180_REG_IMR3	0x004C
+-#define ADV7180_REG_IMR4	0x50
++#define ADV7180_REG_ISR3	0x204A
++#define ADV7180_REG_ICR3	0x204B
++#define ADV7180_REG_IMR3	0x204C
++#define ADV7180_REG_IMR4	0x2050
+ 
+ #define ADV7180_REG_NTSC_V_BIT_END	0x00E6
+ #define ADV7180_NTSC_V_BIT_END_MANUAL_NVEND	0x4F
+-- 
+1.9.1
 
