@@ -1,55 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:11276 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750916AbcGMH7b (ORCPT
+Received: from mail-it0-f67.google.com ([209.85.214.67]:33562 "EHLO
+	mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751459AbcGWRBF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 03:59:31 -0400
-Subject: Re: [PATCH 2/2] [media] s5p-g2d: Replace old driver with DRM version
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1464096493-13378-1-git-send-email-k.kozlowski@samsung.com>
- <1464096493-13378-2-git-send-email-k.kozlowski@samsung.com>
- <20160712200202.7496445e@recife.lan>
-Cc: Inki Dae <inki.dae@samsung.com>,
-	Joonyoung Shim <jy0922.shim@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	David Airlie <airlied@linux.ie>, Kukjin Kim <kgene@kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Message-id: <5785F4CA.8070908@samsung.com>
-Date: Wed, 13 Jul 2016 09:59:06 +0200
-MIME-version: 1.0
-In-reply-to: <20160712200202.7496445e@recife.lan>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+	Sat, 23 Jul 2016 13:01:05 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: lars@metafoo.de
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH v3 7/9] v4l: Add signal lock status to source change events
+Date: Sat, 23 Jul 2016 10:00:47 -0700
+Message-Id: <1469293249-6774-8-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1469293249-6774-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/13/2016 01:02 AM, Mauro Carvalho Chehab wrote:
-> I suspect that you'll be applying this one via DRM tree, so:
-> 
-> Em Tue, 24 May 2016 15:28:13 +0200
-> Krzysztof Kozlowski <k.kozlowski@samsung.com> escreveu:
-> 
->> Remove the old non-DRM driver because it is now entirely supported by
->> exynos_drm_g2d driver.
->>
->> Cc: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Kamil Debski <k.debski@samsung.com>
->> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> 
-> Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> 
-> PS.: If you prefer to apply this one via my tree, I'm ok too. Just
-> let me know when the first patch gets merged upstream.
+Add a signal lock status change to the source changes bitmask.
+This indicates there was a signal lock or unlock event detected
+at the input of a video decoder.
 
-This patchset was insufficient and I didn't came up with follow up.
-Please ignore it for now.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Best regards,
-Krzysztof
+---
+v3: no changes
+v2: no changes
+---
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml | 12 ++++++++++--
+ include/uapi/linux/videodev2.h                     |  1 +
+ 2 files changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+index c9c3c77..7758ad7 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+@@ -233,8 +233,9 @@
+ 	    <entry>
+ 	      <para>This event is triggered when a source parameter change is
+ 	       detected during runtime by the video device. It can be a
+-	       runtime resolution change triggered by a video decoder or the
+-	       format change happening on an input connector.
++	       runtime resolution change or signal lock status change
++	       triggered by a video decoder, or the format change happening
++	       on an input connector.
+ 	       This event requires that the <structfield>id</structfield>
+ 	       matches the input index (when used with a video device node)
+ 	       or the pad index (when used with a subdevice node) from which
+@@ -461,6 +462,13 @@
+ 	    from a video decoder.
+ 	    </entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_EVENT_SRC_CH_LOCK_STATUS</constant></entry>
++	    <entry>0x0002</entry>
++	    <entry>This event gets triggered when there is a signal lock or
++	    unlock detected at the input of a video decoder.
++	    </entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 724f43e..08a153f 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -2078,6 +2078,7 @@ struct v4l2_event_frame_sync {
+ };
+ 
+ #define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
++#define V4L2_EVENT_SRC_CH_LOCK_STATUS		(1 << 1)
+ 
+ struct v4l2_event_src_change {
+ 	__u32 changes;
+-- 
+1.9.1
+
