@@ -1,91 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:33884 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751435AbcGPJNY (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47406
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752610AbcGYT2r (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2016 05:13:24 -0400
-Date: Sat, 16 Jul 2016 14:43:20 +0530
-From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Geunyoung Kim <nenggun.kim@samsung.com>,
-	Junghak Sung <jh1009.sung@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Inki Dae <inki.dae@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Tejun Heo <tj@kernel.org>
-Subject: [PATCH 2/2] [media] cx25821: Remove deprecated
- create_singlethread_workqueue
-Message-ID: <ee0a1b0f01f07c3e0e1cbd2fa86e5da4c43629cb.1468659580.git.bhaktipriya96@gmail.com>
-References: <cover.1468659580.git.bhaktipriya96@gmail.com>
+	Mon, 25 Jul 2016 15:28:47 -0400
+Date: Mon, 25 Jul 2016 16:28:41 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Michael Ira Krufky <mkrufky@linuxtv.org>
+Cc: Abylay Ospan <aospan@netup.ru>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [media] lgdt3306a: remove 20*50 msec unnecessary
+ timeout
+Message-ID: <20160725162841.6e11fd2b@recife.lan>
+In-Reply-To: <CAOcJUby+9gTrFUF14pvo1iMa2azD5TfGM8WgeZY1+Bh8CTYVzA@mail.gmail.com>
+References: <1469471939-25393-1-git-send-email-aospan@netup.ru>
+	<CAOcJUby+9gTrFUF14pvo1iMa2azD5TfGM8WgeZY1+Bh8CTYVzA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1468659580.git.bhaktipriya96@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The workqueue "_irq_audio_queues" runs the audio upstream handler.
-It has a single work item(&dev->_audio_work_entry) and hence doesn't
-require ordering. Also, it is not being used on a memory reclaim path.
-Hence, the singlethreaded workqueue has been replaced with the use of
-system_wq.
+Hi Michael,
 
-System workqueues have been able to handle high level of concurrency
-for a long time now and hence it's not required to have a singlethreaded
-workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
-created with create_singlethread_workqueue(), system_wq allows multiple
-work items to overlap executions even on the same CPU; however, a
-per-cpu workqueue doesn't have any CPU locality or global ordering
-guarantee unless the target CPU is explicitly specified and thus the
-increase of local concurrency shouldn't make any difference.
+Em Mon, 25 Jul 2016 14:55:51 -0400
+Michael Ira Krufky <mkrufky@linuxtv.org> escreveu:
 
-Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
----
- drivers/media/pci/cx25821/cx25821-audio-upstream.c | 11 +----------
- drivers/media/pci/cx25821/cx25821.h                |  1 -
- 2 files changed, 1 insertion(+), 11 deletions(-)
+> On Mon, Jul 25, 2016 at 2:38 PM, Abylay Ospan <aospan@netup.ru> wrote:
+> > inside lgdt3306a_search we reading demod status 20 times with 50 msec sleep after each read.
+> > This gives us more than 1 sec of delay. Removing this delay should not affect demod functionality.
+> >
+> > Signed-off-by: Abylay Ospan <aospan@netup.ru>
+> > ---
+> >  drivers/media/dvb-frontends/lgdt3306a.c | 16 ++++------------
+> >  1 file changed, 4 insertions(+), 12 deletions(-)
+> >
+> > diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+> > index 179c26e..dad7ad3 100644
+> > --- a/drivers/media/dvb-frontends/lgdt3306a.c
+> > +++ b/drivers/media/dvb-frontends/lgdt3306a.c
+> > @@ -1737,24 +1737,16 @@ static int lgdt3306a_get_tune_settings(struct dvb_frontend *fe,
+> >  static int lgdt3306a_search(struct dvb_frontend *fe)
+> >  {
+> >         enum fe_status status = 0;
+> > -       int i, ret;
+> > +       int ret;
+> >
+> >         /* set frontend */
+> >         ret = lgdt3306a_set_parameters(fe);
+> >         if (ret)
+> >                 goto error;
+> >
+> > -       /* wait frontend lock */
+> > -       for (i = 20; i > 0; i--) {
+> > -               dbg_info(": loop=%d\n", i);
+> > -               msleep(50);
+> > -               ret = lgdt3306a_read_status(fe, &status);
+> > -               if (ret)
+> > -                       goto error;
+> > -
+> > -               if (status & FE_HAS_LOCK)
+> > -                       break;
+> > -       }
 
-diff --git a/drivers/media/pci/cx25821/cx25821-audio-upstream.c b/drivers/media/pci/cx25821/cx25821-audio-upstream.c
-index 05bd957..1a86dff 100644
---- a/drivers/media/pci/cx25821/cx25821-audio-upstream.c
-+++ b/drivers/media/pci/cx25821/cx25821-audio-upstream.c
-@@ -446,8 +446,7 @@ static int cx25821_audio_upstream_irq(struct cx25821_dev *dev, int chan_num,
+Could you please explain why lgdt3306a needs the above ugly hack?
 
- 			dev->_audioframe_index = dev->_last_index_irq;
 
--			queue_work(dev->_irq_audio_queues,
--				   &dev->_audio_work_entry);
-+			schedule_work(&dev->_audio_work_entry);
- 		}
+> > +       ret = lgdt3306a_read_status(fe, &status);
+> > +       if (ret)
+> > +               goto error;
 
- 		if (dev->_is_first_audio_frame) {
-@@ -639,14 +638,6 @@ int cx25821_audio_upstream_init(struct cx25821_dev *dev, int channel_select)
 
- 	/* Work queue */
- 	INIT_WORK(&dev->_audio_work_entry, cx25821_audioups_handler);
--	dev->_irq_audio_queues =
--	    create_singlethread_workqueue("cx25821_audioworkqueue");
--
--	if (!dev->_irq_audio_queues) {
--		printk(KERN_DEBUG
--			pr_fmt("ERROR: create_singlethread_workqueue() for Audio FAILED!\n"));
--		return -ENOMEM;
--	}
+> >
+> >         /* check if we have a valid signal */
+> >         if (status & FE_HAS_LOCK)  
+> 
+> Your patch removes a loop that was purposefully written here to handle
+> conditions that are not ideal.  Are you sure this change is best for
+> all users?
+> 
+> I would disagree with merging this patch.
+> 
+> Best regards,
+> 
+> Michael Ira Krufky
 
- 	dev->_last_index_irq = 0;
- 	dev->_audio_is_running = 0;
-diff --git a/drivers/media/pci/cx25821/cx25821.h b/drivers/media/pci/cx25821/cx25821.h
-index a513b68..c813d88 100644
---- a/drivers/media/pci/cx25821/cx25821.h
-+++ b/drivers/media/pci/cx25821/cx25821.h
-@@ -294,7 +294,6 @@ struct cx25821_dev {
- 	u32 audio_upstream_riscbuf_size;
- 	u32 audio_upstream_databuf_size;
- 	int _audioframe_index;
--	struct workqueue_struct *_irq_audio_queues;
- 	struct work_struct _audio_work_entry;
- 	char *input_audiofilename;
 
---
-2.1.4
-
+-- 
+Thanks,
+Mauro
