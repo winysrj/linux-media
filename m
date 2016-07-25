@@ -1,112 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39131 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754479AbcGTOlk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2016 10:41:40 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Kees Cook <keescook@chromium.org>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Randy Dunlap <rdunlap@infradead.org>, linux-doc@vger.kernel.org
-Subject: [PATCH 2/5] [media] doc-rst: Fix some Sphinx warnings
-Date: Wed, 20 Jul 2016 11:41:32 -0300
-Message-Id: <d612024e7d2acd7ec82c75b5fed271fd61673386.1469025360.git.mchehab@s-opensource.com>
-In-Reply-To: <ef88f10eb877c427a61c3aacc7ed08ffed0712ab.1469025360.git.mchehab@s-opensource.com>
-References: <ef88f10eb877c427a61c3aacc7ed08ffed0712ab.1469025360.git.mchehab@s-opensource.com>
-In-Reply-To: <ef88f10eb877c427a61c3aacc7ed08ffed0712ab.1469025360.git.mchehab@s-opensource.com>
-References: <ef88f10eb877c427a61c3aacc7ed08ffed0712ab.1469025360.git.mchehab@s-opensource.com>
+Received: from imap.netup.ru ([77.72.80.15]:37041 "EHLO imap.netup.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750742AbcGYEYv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jul 2016 00:24:51 -0400
+MIME-Version: 1.0
+In-Reply-To: <20160713204342.1221511-1-arnd@arndb.de>
+References: <20160713204342.1221511-1-arnd@arndb.de>
+From: Abylay Ospan <aospan@netup.ru>
+Date: Mon, 25 Jul 2016 00:24:27 -0400
+Message-ID: <CAK3bHNXrkqxpwxsL1BE93gw84aAHrxVa+c8m+s9JpQbFwP=rog@mail.gmail.com>
+Subject: Re: [PATCH] [media] cxd2841er: avoid misleading gcc warning
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Sergey Kozlov <serjk@netup.ru>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Jason Baron <jbaron@akamai.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix all remaining media warnings with ReST that are fixable
-without changing at the Sphinx code.
+Hello Arnd,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/v4l-drivers/cx88.rst            | 1 +
- Documentation/media/v4l-drivers/tm6000-cardlist.rst | 2 +-
- drivers/media/dvb-core/dvb_math.h                   | 7 +++++++
- include/media/media-entity.h                        | 6 ++++--
- 4 files changed, 13 insertions(+), 3 deletions(-)
+thanks for patch. it looks ok.
+Acked-by: Abylay Ospan <aospan@netup.ru>
 
-diff --git a/Documentation/media/v4l-drivers/cx88.rst b/Documentation/media/v4l-drivers/cx88.rst
-index 97865007f51f..d8f3a014726a 100644
---- a/Documentation/media/v4l-drivers/cx88.rst
-+++ b/Documentation/media/v4l-drivers/cx88.rst
-@@ -119,6 +119,7 @@ GPIO 16(I believe) is tied to the IR port (if present).
- From the data sheet:
- 
- - Register 24'h20004  PCI Interrupt Status
-+
-  - bit [18]  IR_SMP_INT Set when 32 input samples have been collected over
-  - gpio[16] pin into GP_SAMPLE register.
- 
-diff --git a/Documentation/media/v4l-drivers/tm6000-cardlist.rst b/Documentation/media/v4l-drivers/tm6000-cardlist.rst
-index ca08d4214b38..2fbd3886b5f0 100644
---- a/Documentation/media/v4l-drivers/tm6000-cardlist.rst
-+++ b/Documentation/media/v4l-drivers/tm6000-cardlist.rst
-@@ -1,5 +1,5 @@
- TM6000 cards list
--===============
-+=================
- 
- .. code-block:: none
- 
-diff --git a/drivers/media/dvb-core/dvb_math.h b/drivers/media/dvb-core/dvb_math.h
-index 34dc1df03cab..2f0326674ca6 100644
---- a/drivers/media/dvb-core/dvb_math.h
-+++ b/drivers/media/dvb-core/dvb_math.h
-@@ -30,11 +30,15 @@
-  * @value: The value (must be != 0)
-  *
-  * to use rational values you can use the following method:
-+ *
-  *   intlog2(value) = intlog2(value * 2^x) - x * 2^24
-  *
-  * Some usecase examples:
-+ *
-  *	intlog2(8) will give 3 << 24 = 3 * 2^24
-+ *
-  *	intlog2(9) will give 3 << 24 + ... = 3.16... * 2^24
-+ *
-  *	intlog2(1.5) = intlog2(3) - 2^24 = 0.584... * 2^24
-  *
-  *
-@@ -48,10 +52,13 @@ extern unsigned int intlog2(u32 value);
-  * @value: The value (must be != 0)
-  *
-  * to use rational values you can use the following method:
-+ *
-  *   intlog10(value) = intlog10(value * 10^x) - x * 2^24
-  *
-  * An usecase example:
-+ *
-  *	intlog10(1000) will give 3 << 24 = 3 * 2^24
-+ *
-  *   due to the implementation intlog10(1000) might be not exactly 3 * 2^24
-  *
-  * look at intlog2 for similar examples
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 83877719bef4..3d885d97d149 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -180,8 +180,10 @@ struct media_pad {
-  *			view. The media_entity_pipeline_start() function
-  *			validates all links by calling this operation. Optional.
-  *
-- * .. note:: Those these callbacks are called with struct media_device.@graph_mutex
-- * mutex held.
-+ * .. note::
-+ *
-+ *    Those these callbacks are called with struct media_device.@graph_mutex
-+ *    mutex held.
-  */
- struct media_entity_operations {
- 	int (*link_setup)(struct media_entity *entity,
+
+2016-07-13 16:42 GMT-04:00 Arnd Bergmann <arnd@arndb.de>:
+> The addition of jump label support in dynamic_debug caused an unexpected
+> warning in exactly one file in the kernel:
+>
+> drivers/media/dvb-frontends/cxd2841er.c: In function 'cxd2841er_tune_tc':
+> include/linux/dynamic_debug.h:134:3: error: 'carrier_offset' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+>    __dynamic_dev_dbg(&descriptor, dev, fmt, \
+>    ^~~~~~~~~~~~~~~~~
+> drivers/media/dvb-frontends/cxd2841er.c:3177:11: note: 'carrier_offset' was declared here
+>   int ret, carrier_offset;
+>            ^~~~~~~~~~~~~~
+>
+> The problem seems to be that the compiler gets confused by the extra conditionals
+> in static_branch_unlikely, to the point where it can no longer keep track of
+> which branches have already been taken, and it doesn't realize that this variable
+> is now always initialized when it gets used.
+>
+> I have done lots of randconfig kernel builds and could not find any other file
+> with this behavior, so I assume it's a rare enough glitch that we don't need
+> to change the jump label support but instead just work around the warning in
+> the driver.
+>
+> To achieve that, I'm moving the check for the return value into the switch()
+> statement, which is an obvious transformation, but is enough to un-confuse
+> the compiler here. The resulting code is not as nice to read, but at
+> least we retain the behavior of warning if it gets changed to actually
+> access an uninitialized carrier offset value in the future.
+>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Fixes: (in linux-mm) "dynamic_debug: add jump label support"
+> ---
+>  drivers/media/dvb-frontends/cxd2841er.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+> index 721fb074da7c..0639ca281a2c 100644
+> --- a/drivers/media/dvb-frontends/cxd2841er.c
+> +++ b/drivers/media/dvb-frontends/cxd2841er.c
+> @@ -3223,20 +3223,28 @@ static int cxd2841er_tune_tc(struct dvb_frontend *fe,
+>                                 ret = cxd2841er_get_carrier_offset_i(
+>                                                 priv, p->bandwidth_hz,
+>                                                 &carrier_offset);
+> +                               if (ret)
+> +                                       return ret;
+>                                 break;
+>                         case SYS_DVBT:
+>                                 ret = cxd2841er_get_carrier_offset_t(
+>                                         priv, p->bandwidth_hz,
+>                                         &carrier_offset);
+> +                               if (ret)
+> +                                       return ret;
+>                                 break;
+>                         case SYS_DVBT2:
+>                                 ret = cxd2841er_get_carrier_offset_t2(
+>                                         priv, p->bandwidth_hz,
+>                                         &carrier_offset);
+> +                               if (ret)
+> +                                       return ret;
+>                                 break;
+>                         case SYS_DVBC_ANNEX_A:
+>                                 ret = cxd2841er_get_carrier_offset_c(
+>                                         priv, &carrier_offset);
+> +                               if (ret)
+> +                                       return ret;
+>                                 break;
+>                         default:
+>                                 dev_dbg(&priv->i2c->dev,
+> @@ -3244,8 +3252,6 @@ static int cxd2841er_tune_tc(struct dvb_frontend *fe,
+>                                         __func__, priv->system);
+>                                 return -EINVAL;
+>                         }
+> -                       if (ret)
+> -                               return ret;
+>                         dev_dbg(&priv->i2c->dev, "%s(): carrier offset %d\n",
+>                                 __func__, carrier_offset);
+>                         p->frequency += carrier_offset;
+> --
+> 2.9.0
+>
+
+
+
 -- 
-2.7.4
-
+Abylay Ospan,
+NetUP Inc.
+http://www.netup.tv
