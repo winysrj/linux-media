@@ -1,56 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:41967 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751093AbcGQPCq (ORCPT
+Received: from 108-197-250-228.lightspeed.miamfl.sbcglobal.net ([108.197.250.228]:38382
+	"EHLO usa.attlocal.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752961AbcGYSjD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 11:02:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 4/7] cec: zero unused msg part after msg->len
-Date: Sun, 17 Jul 2016 17:02:31 +0200
-Message-Id: <1468767754-48542-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1468767754-48542-1-git-send-email-hverkuil@xs4all.nl>
-References: <1468767754-48542-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 25 Jul 2016 14:39:03 -0400
+From: Abylay Ospan <aospan@netup.ru>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: Abylay Ospan <aospan@netup.ru>
+Subject: [PATCH] [media] lgdt3306a: remove 20*50 msec unnecessary timeout
+Date: Mon, 25 Jul 2016 14:38:59 -0400
+Message-Id: <1469471939-25393-1-git-send-email-aospan@netup.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+inside lgdt3306a_search we reading demod status 20 times with 50 msec sleep after each read.
+This gives us more than 1 sec of delay. Removing this delay should not affect demod functionality.
 
-Ensure that the unused part of the msg array is zeroed. This is
-required by CEC 2.0 when receiving shorter messages than expected.
-In that case the remaining bytes are assumed to be 0.
-
-There are no such CEC messages yet, but it is required to be future proof.
-
-And since we're doing it for received messages, do it for transmitted
-messages as well. It's unambiguous this way.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Abylay Ospan <aospan@netup.ru>
 ---
- drivers/staging/media/cec/cec-adap.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/dvb-frontends/lgdt3306a.c | 16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
-index 2b34c0f..cd39a9a 100644
---- a/drivers/staging/media/cec/cec-adap.c
-+++ b/drivers/staging/media/cec/cec-adap.c
-@@ -601,6 +601,7 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
- 		dprintk(1, "cec_transmit_msg: can't reply for poll msg\n");
- 		return -EINVAL;
- 	}
-+	memset(msg->msg + msg->len, 0, sizeof(msg->msg) - msg->len);
- 	if (msg->len == 1) {
- 		if (cec_msg_initiator(msg) != 0xf ||
- 		    cec_msg_destination(msg) == 0xf) {
-@@ -771,6 +772,7 @@ void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg)
- 	msg->tx_status = 0;
- 	msg->tx_ts = 0;
- 	msg->flags = 0;
-+	memset(msg->msg + msg->len, 0, sizeof(msg->msg) - msg->len);
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index 179c26e..dad7ad3 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -1737,24 +1737,16 @@ static int lgdt3306a_get_tune_settings(struct dvb_frontend *fe,
+ static int lgdt3306a_search(struct dvb_frontend *fe)
+ {
+ 	enum fe_status status = 0;
+-	int i, ret;
++	int ret;
  
- 	mutex_lock(&adap->lock);
- 	dprintk(2, "cec_received_msg: %*ph\n", msg->len, msg->msg);
+ 	/* set frontend */
+ 	ret = lgdt3306a_set_parameters(fe);
+ 	if (ret)
+ 		goto error;
+ 
+-	/* wait frontend lock */
+-	for (i = 20; i > 0; i--) {
+-		dbg_info(": loop=%d\n", i);
+-		msleep(50);
+-		ret = lgdt3306a_read_status(fe, &status);
+-		if (ret)
+-			goto error;
+-
+-		if (status & FE_HAS_LOCK)
+-			break;
+-	}
++	ret = lgdt3306a_read_status(fe, &status);
++	if (ret)
++		goto error;
+ 
+ 	/* check if we have a valid signal */
+ 	if (status & FE_HAS_LOCK)
 -- 
-2.8.1
+2.7.4
 
