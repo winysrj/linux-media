@@ -1,262 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:60274 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751241AbcGORu1 (ORCPT
+Received: from mail-it0-f67.google.com ([209.85.214.67]:33482 "EHLO
+	mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751105AbcGYThQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 13:50:27 -0400
-Subject: Re: [PATCH] vcodec: mediatek: Add g/s_selection support for V4L2
- Encoder
-To: tiffany lin <tiffany.lin@mediatek.com>
-References: <1464594768-1993-1-git-send-email-tiffany.lin@mediatek.com>
- <4ca82842-968d-a5e2-587d-752c71713607@xs4all.nl>
- <1468477674.32454.36.camel@mtksdaap41>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <bb96276a-8e6c-a535-6fd3-fe4327238f65@xs4all.nl>
-Date: Fri, 15 Jul 2016 19:50:15 +0200
+	Mon, 25 Jul 2016 15:37:16 -0400
+Received: by mail-it0-f67.google.com with SMTP id d65so8235646ith.0
+        for <linux-media@vger.kernel.org>; Mon, 25 Jul 2016 12:37:15 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1468477674.32454.36.camel@mtksdaap41>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20160725162841.6e11fd2b@recife.lan>
+References: <1469471939-25393-1-git-send-email-aospan@netup.ru>
+ <CAOcJUby+9gTrFUF14pvo1iMa2azD5TfGM8WgeZY1+Bh8CTYVzA@mail.gmail.com> <20160725162841.6e11fd2b@recife.lan>
+From: Michael Ira Krufky <mkrufky@linuxtv.org>
+Date: Mon, 25 Jul 2016 15:37:14 -0400
+Message-ID: <CAOcJUbwOHCx1y50zt3Mcd39aUZpqd=mOjkQUgJaPxZzzrzzeLQ@mail.gmail.com>
+Subject: Re: [PATCH] [media] lgdt3306a: remove 20*50 msec unnecessary timeout
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Abylay Ospan <aospan@netup.ru>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/14/2016 08:27 AM, tiffany lin wrote:
-> Hi Hans,
-> 
-> 
-> On Mon, 2016-07-11 at 06:32 +0200, Hans Verkuil wrote:
->> Hi Tiffany,
+On Mon, Jul 25, 2016 at 3:28 PM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> Hi Michael,
+>
+> Em Mon, 25 Jul 2016 14:55:51 -0400
+> Michael Ira Krufky <mkrufky@linuxtv.org> escreveu:
+>
+>> On Mon, Jul 25, 2016 at 2:38 PM, Abylay Ospan <aospan@netup.ru> wrote:
+>> > inside lgdt3306a_search we reading demod status 20 times with 50 msec sleep after each read.
+>> > This gives us more than 1 sec of delay. Removing this delay should not affect demod functionality.
+>> >
+>> > Signed-off-by: Abylay Ospan <aospan@netup.ru>
+>> > ---
+>> >  drivers/media/dvb-frontends/lgdt3306a.c | 16 ++++------------
+>> >  1 file changed, 4 insertions(+), 12 deletions(-)
+>> >
+>> > diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+>> > index 179c26e..dad7ad3 100644
+>> > --- a/drivers/media/dvb-frontends/lgdt3306a.c
+>> > +++ b/drivers/media/dvb-frontends/lgdt3306a.c
+>> > @@ -1737,24 +1737,16 @@ static int lgdt3306a_get_tune_settings(struct dvb_frontend *fe,
+>> >  static int lgdt3306a_search(struct dvb_frontend *fe)
+>> >  {
+>> >         enum fe_status status = 0;
+>> > -       int i, ret;
+>> > +       int ret;
+>> >
+>> >         /* set frontend */
+>> >         ret = lgdt3306a_set_parameters(fe);
+>> >         if (ret)
+>> >                 goto error;
+>> >
+>> > -       /* wait frontend lock */
+>> > -       for (i = 20; i > 0; i--) {
+>> > -               dbg_info(": loop=%d\n", i);
+>> > -               msleep(50);
+>> > -               ret = lgdt3306a_read_status(fe, &status);
+>> > -               if (ret)
+>> > -                       goto error;
+>> > -
+>> > -               if (status & FE_HAS_LOCK)
+>> > -                       break;
+>> > -       }
+>
+> Could you please explain why lgdt3306a needs the above ugly hack?
+>
+>
+>> > +       ret = lgdt3306a_read_status(fe, &status);
+>> > +       if (ret)
+>> > +               goto error;
+>
+>
+>> >
+>> >         /* check if we have a valid signal */
+>> >         if (status & FE_HAS_LOCK)
 >>
->> My apologies for the delay, but here is my review at last:
+>> Your patch removes a loop that was purposefully written here to handle
+>> conditions that are not ideal.  Are you sure this change is best for
+>> all users?
 >>
->> On 05/30/2016 09:52 AM, Tiffany Lin wrote:
->>> This patch add g/s_selection support for MT8173
->>>
->>> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
->>> ---
->>>  drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |   74 ++++++++++++++++++++
->>>  1 file changed, 74 insertions(+)
->>>
->>> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
->>> index 6e72d73..23ef9a1 100644
->>> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
->>> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
->>> @@ -630,6 +630,77 @@ static int vidioc_try_fmt_vid_out_mplane(struct file *file, void *priv,
->>>  	return vidioc_try_fmt(f, fmt);
->>>  }
->>>  
->>> +static int vidioc_venc_g_selection(struct file *file, void *priv,
->>> +				     struct v4l2_selection *s)
->>> +{
->>> +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
->>> +	struct mtk_q_data *q_data;
->>> +
->>> +	/* crop means compose for output devices */
->>> +	switch (s->target) {
->>> +	case V4L2_SEL_TGT_CROP_DEFAULT:
->>> +	case V4L2_SEL_TGT_CROP_BOUNDS:
->>> +	case V4L2_SEL_TGT_CROP:
->>> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
->>> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
->>> +	case V4L2_SEL_TGT_COMPOSE:
->>> +		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
->>> +			mtk_v4l2_err("Invalid s->type = %d", s->type);
->>> +			return -EINVAL;
->>> +		}
->>> +		break;
->>> +	default:
->>> +		mtk_v4l2_err("Invalid s->target = %d", s->target);
->>> +		return -EINVAL;
->>> +	}
->>> +
->>> +	q_data = mtk_venc_get_q_data(ctx, s->type);
->>> +	if (!q_data)
->>> +		return -EINVAL;
->>> +
->>> +	s->r.top = 0;
->>> +	s->r.left = 0;
->>> +	s->r.width = q_data->visible_width;
->>> +	s->r.height = q_data->visible_height;
->>> +
->>> +	return 0;
->>> +}
->>> +
->>> +static int vidioc_venc_s_selection(struct file *file, void *priv,
->>> +				     struct v4l2_selection *s)
->>> +{
->>> +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
->>> +	struct mtk_q_data *q_data;
->>> +
->>> +	switch (s->target) {
->>> +	case V4L2_SEL_TGT_CROP_DEFAULT:
->>> +	case V4L2_SEL_TGT_CROP_BOUNDS:
->>> +	case V4L2_SEL_TGT_CROP:
->>> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
->>> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
->>> +	case V4L2_SEL_TGT_COMPOSE:
->>> +		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
->>> +			mtk_v4l2_err("Invalid s->type = %d", s->type);
->>> +			return -EINVAL;
->>> +		}
->>> +		break;
->>> +	default:
->>> +		mtk_v4l2_err("Invalid s->target = %d", s->target);
->>> +		return -EINVAL;
->>> +	}
->>> +
->>> +	q_data = mtk_venc_get_q_data(ctx, s->type);
->>> +	if (!q_data)
->>> +		return -EINVAL;
->>> +
->>> +	s->r.top = 0;
->>> +	s->r.left = 0;
->>> +	q_data->visible_width = s->r.width;
->>> +	q_data->visible_height = s->r.height;
+>> I would disagree with merging this patch.
 >>
->> This makes no sense.
+>> Best regards,
 >>
->> See this page:
->>
->> https://hverkuil.home.xs4all.nl/spec/media.html#selection-api
->>
->> For the video output direction (memory -> HW encoder) the data source is
->> the memory, the data sink is the HW encoder. For the video capture direction
->> (HW encoder -> memory) the data source is the HW encoder and the data sink
->> is the memory.
->>
->> Usually for m2m devices the video output direction may support cropping and
->> the video capture direction may support composing.
->>
->> It's not clear what you intend here, especially since you set left and right
->> to 0. That's not what the selection operation is supposed to do.
->>
-> I am confused about about g/s_selection.
-> If application want to configure encode area and crop meta-data, it
-> should set crop info to OUTPUT queue, is that right?
-> if user space still use g/s_crop ioctl, in 
-> v4l_g_crop and v4l_s_crop, it set target to V4L2_SEL_TGT_COMPOSE_ACTIVE
-> when buf type is V4L2_TYPE_IS_OUTPUT.
-> 
-> It looks like when work with g/s_crop ioctl, command set to OUTPUT
-> buffer will use target V4L2_SEL_TGT_COMPOSE_ACTIVE.
+>> Michael Ira Krufky
 
-Correct. The semantics of g/s_crop for output devices is really weird
-and g/s_crop is generally useless for mem2mem devices.
+Mauro,
 
-You should completely ignore the old g/s_crop and only look at g/s_selection.
+I cannot speak for the LG DT3306a part itself, but based on my past
+experience I can say the following:
 
-> When work with g/s_selection ictol, command set to OUTPUT buffer will
-> use V4L2_SEL_TGT_CROP_ACTIVE.
-> Is this correct behavior?
+To my understanding, the hardware might not report a lock on the first
+read_status request, so the driver author chose to include a loop to
+retry a few times before giving up.
 
-Yes. What this means is that userspace has to use g/s_selection for
-mem2mem devices since g/s_crop changes the wrong thing: compose instead
-of crop for OUTPUT and crop instead of compose for CAPTURE.
+In real life scenarios, there are marginal signals that may take a
+longer time to lock onto, but once locked, the demod will deliver a
+reliable stream.
 
-The g/s_selection ioctls were added to solve this problem with g/s_crop.
-It always confuses people and it was due to a lack of foresight when the
-old crop API was designed: it was made for video capture where you
-crop on the hardware side (in the video receiver), and for video output it
-would compose the image in the video transmitter's total frame (usually
-720x480/576). None of this applies in general to memory-to-memory devices.
+Most applications will only issue a single tune request when trying to
+tune to a given program.  The application does not retry the tune
+request if the driver reports no lock.
 
-Regards,
+Applying this patch will have the potential to cause userspace to
+appear broken.  Some users will not be able to receive some weaker
+channels anymore, and they will have no way to diagnose the problem
+from within their application.
 
-	Hans
-
-> 
-> 
-> static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
-> 				struct file *file, void *fh, void *arg)
-> {
-> 	struct v4l2_crop *p = arg;
-> 	struct v4l2_selection s = {
-> 		.type = p->type,
-> 	};
-> 	int ret;
-> 
-> 	if (ops->vidioc_g_crop)
-> 		return ops->vidioc_g_crop(file, fh, p);
-> 	/* simulate capture crop using selection api */
-> 
-> 	/* crop means compose for output devices */
-> 	if (V4L2_TYPE_IS_OUTPUT(p->type))
-> 		s.target = V4L2_SEL_TGT_COMPOSE_ACTIVE;
-> 	else
-> 		s.target = V4L2_SEL_TGT_CROP_ACTIVE;
-> 
-> 	ret = ops->vidioc_g_selection(file, fh, &s);
-> 
-> 	/* copying results to old structure on success */
-> 	if (!ret)
-> 		p->c = s.r;
-> 	return ret;
-> }
-> 
-> static int v4l_s_crop(const struct v4l2_ioctl_ops *ops,
-> 				struct file *file, void *fh, void *arg)
-> {
-> 	struct v4l2_crop *p = arg;
-> 	struct v4l2_selection s = {
-> 		.type = p->type,
-> 		.r = p->c,
-> 	};
-> 
-> 	if (ops->vidioc_s_crop)
-> 		return ops->vidioc_s_crop(file, fh, p);
-> 	/* simulate capture crop using selection api */
-> 
-> 	/* crop means compose for output devices */
-> 	if (V4L2_TYPE_IS_OUTPUT(p->type))
-> 		s.target = V4L2_SEL_TGT_COMPOSE_ACTIVE;
-> 	else
-> 		s.target = V4L2_SEL_TGT_CROP_ACTIVE;
-> 
-> 	return ops->vidioc_s_selection(file, fh, &s);
-> }
-> 
-> 
-> best regards,
-> Tiffany
-> 
-> 
-> 
-> 
->> Regards,
->>
->> 	Hans
->>
->>> +
->>> +	return 0;
->>> +}
->>> +
->>>  static int vidioc_venc_qbuf(struct file *file, void *priv,
->>>  			    struct v4l2_buffer *buf)
->>>  {
->>> @@ -688,6 +759,9 @@ const struct v4l2_ioctl_ops mtk_venc_ioctl_ops = {
->>>  
->>>  	.vidioc_create_bufs		= v4l2_m2m_ioctl_create_bufs,
->>>  	.vidioc_prepare_buf		= v4l2_m2m_ioctl_prepare_buf,
->>> +
->>> +	.vidioc_g_selection		= vidioc_venc_g_selection,
->>> +	.vidioc_s_selection		= vidioc_venc_s_selection,
->>>  };
->>>  
->>>  static int vb2ops_venc_queue_setup(struct vb2_queue *vq,
->>>
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+-Mike
