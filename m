@@ -1,112 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60542 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751107AbcGQRHQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 13:07:16 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 13/15] [media] doc-rst: convert ttusb-dev to rst
-Date: Sun, 17 Jul 2016 14:07:08 -0300
-Message-Id: <d91b11bfdb6dd83f4cd0538a9af65276b9b77ace.1468775054.git.mchehab@s-opensource.com>
-In-Reply-To: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
-References: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
-In-Reply-To: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
-References: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
+Received: from mail.horus.com ([78.46.148.228]:60783 "EHLO mail.horus.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752518AbcGZMBX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jul 2016 08:01:23 -0400
+Date: Tue, 26 Jul 2016 13:52:25 +0200
+From: Matthias Reichl <hias@horus.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: IR button repeat not working in kernel 4.6 and 4.7
+Message-ID: <20160726115225.GA15199@camel2.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are some things that needed to be done to convert
-it to ReST. Also, there are some obsolete info there
-related to Kernels 2.4 and 2.6. Update them.
+In kernel 4.6 and 4.7 holding down a button on an IR remote no longer
+results in repeated key down events.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/dvb-drivers/index.rst     |  1 +
- Documentation/media/dvb-drivers/ttusb-dec.rst | 46 +++++++++++++--------------
- 2 files changed, 23 insertions(+), 24 deletions(-)
+I've reproduced that issue on a Raspberry Pi B using a GPIO IR
+receiver. Other systems seem to be affected as well, for
+example Intel NUC with an ITE CIR receiver.
 
-diff --git a/Documentation/media/dvb-drivers/index.rst b/Documentation/media/dvb-drivers/index.rst
-index 7db298f3c6ce..dbc41950d328 100644
---- a/Documentation/media/dvb-drivers/index.rst
-+++ b/Documentation/media/dvb-drivers/index.rst
-@@ -28,4 +28,5 @@ License".
- 	lmedm04
- 	opera-firmware
- 	technisat
-+	ttusb-dec
- 	contributors
-diff --git a/Documentation/media/dvb-drivers/ttusb-dec.rst b/Documentation/media/dvb-drivers/ttusb-dec.rst
-index b2f271cd784b..84fc2199dc29 100644
---- a/Documentation/media/dvb-drivers/ttusb-dec.rst
-+++ b/Documentation/media/dvb-drivers/ttusb-dec.rst
-@@ -5,41 +5,39 @@ Driver Status
- -------------
- 
- Supported:
--	DEC2000-t
--	DEC2450-t
--	DEC3000-s
--	Linux Kernels 2.4 and 2.6
--	Video Streaming
--	Audio Streaming
--	Section Filters
--	Channel Zapping
--	Hotplug firmware loader under 2.6 kernels
-+
-+	- DEC2000-t
-+	- DEC2450-t
-+	- DEC3000-s
-+	- Video Streaming
-+	- Audio Streaming
-+	- Section Filters
-+	- Channel Zapping
-+	- Hotplug firmware loader
- 
- To Do:
--	Tuner status information
--	DVB network interface
--	Streaming video PC->DEC
--	Conax support for 2450-t
-+
-+	- Tuner status information
-+	- DVB network interface
-+	- Streaming video PC->DEC
-+	- Conax support for 2450-t
- 
- Getting the Firmware
- --------------------
- To download the firmware, use the following commands:
--"get_dvb_firmware dec2000t"
--"get_dvb_firmware dec2540t"
--"get_dvb_firmware dec3000s"
- 
-+.. code-block:: none
- 
--Compilation Notes for 2.4 kernels
-----------------------------------
--For 2.4 kernels the firmware for the DECs is compiled into the driver itself.
-+	scripts/get_dvb_firmware dec2000t
-+	scripts/get_dvb_firmware dec2540t
-+	scripts/get_dvb_firmware dec3000s
- 
--Copy the three files downloaded above into the build-2.4 directory.
- 
-+Hotplug Firmware Loading
-+------------------------
- 
--Hotplug Firmware Loading for 2.6 kernels
------------------------------------------
--For 2.6 kernels the firmware is loaded at the point that the driver module is
--loaded.  See linux/Documentation/dvb/firmware.txt for more information.
-+Since 2.6 kernels, the firmware is loaded at the point that the driver module
-+is loaded.
- 
- Copy the three files downloaded above into the /usr/lib/hotplug/firmware or
- /lib/firmware directory (depending on configuration of firmware hotplug).
--- 
-2.7.4
+Bisecting points to this commit as a possible cause for that issue:
 
+commit 078600f514a12fd763ac84c86af68ef5b5267563
+Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Date:   Wed Mar 2 08:00:15 2016 -0300
+
+    [media] rc-core: allow calling rc_open with device not initialized
+
+With upstream kernel 4.6.0 and 4.7.0 the ir-keytable output looks OK:
+
+Found /sys/class/rc/rc0/ (/dev/input/event0) with:
+        Driver gpio-rc-recv, table rc-hauppauge
+        Supported protocols: NEC RC-5 RC-6 JVC SONY SANYO RC-5-SZ SHARP XMP other
+        Enabled protocols: RC-5
+        Name: gpio_ir_recv
+        bus: 25, vendor/product: 0001:0001, version: 0x0100
+        Repeat delay = 500 ms, repeat period = 125 ms
+ 
+But running evtest (or ir-keytable -t) only shows EV_KEY events on
+initial button down and on release:
+
+Event: time 1469531035.490700, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531035.490700, type 1 (EV_KEY), code 2 (KEY_1), value 1
+Event: time 1469531035.490700, -------------- EV_SYN ------------
+Event: time 1469531035.603725, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531035.603725, -------------- EV_SYN ------------
+Event: time 1469531035.716778, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531035.716778, -------------- EV_SYN ------------
+Event: time 1469531035.829849, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531035.829849, -------------- EV_SYN ------------
+Event: time 1469531035.942893, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531035.942893, -------------- EV_SYN ------------
+Event: time 1469531036.055932, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531036.055932, -------------- EV_SYN ------------
+Event: time 1469531036.169004, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531036.169004, -------------- EV_SYN ------------
+Event: time 1469531036.282043, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531036.282043, -------------- EV_SYN ------------
+Event: time 1469531036.395103, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531036.395103, -------------- EV_SYN ------------
+Event: time 1469531036.508157, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531036.508157, -------------- EV_SYN ------------
+Event: time 1469531036.621216, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531036.621216, -------------- EV_SYN ------------
+Event: time 1469531036.734255, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531036.734255, -------------- EV_SYN ------------
+Event: time 1469531036.875917, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531036.875917, -------------- EV_SYN ------------
+Event: time 1469531037.125875, type 1 (EV_KEY), code 2 (KEY_1), value 0
+Event: time 1469531037.125875, -------------- EV_SYN ------------
+
+When reverting commit 078600f514a12fd763ac84c86af68ef5b5267563 in
+kernel 4.6.0 evtest output is back to normal: EV_KEY events with
+value 2 show up between button down and button up:
+
+Event: time 1469531201.086823, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531201.086823, type 1 (EV_KEY), code 2 (KEY_1), value 1
+Event: time 1469531201.086823, -------------- EV_SYN ------------
+Event: time 1469531201.199789, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531201.199789, -------------- EV_SYN ------------
+Event: time 1469531201.312818, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531201.312818, -------------- EV_SYN ------------
+Event: time 1469531201.425846, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531201.425846, -------------- EV_SYN ------------
+Event: time 1469531201.538852, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531201.538852, -------------- EV_SYN ------------
+Event: time 1469531201.578497, type 1 (EV_KEY), code 2 (KEY_1), value 2
+Event: time 1469531201.578497, -------------- EV_SYN ------------
+Event: time 1469531201.651897, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531201.651897, -------------- EV_SYN ------------
+Event: time 1469531201.708488, type 1 (EV_KEY), code 2 (KEY_1), value 2
+Event: time 1469531201.708488, -------------- EV_SYN ------------
+Event: time 1469531201.764901, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531201.764901, -------------- EV_SYN ------------
+Event: time 1469531201.838497, type 1 (EV_KEY), code 2 (KEY_1), value 2
+Event: time 1469531201.838497, -------------- EV_SYN ------------
+Event: time 1469531201.877950, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531201.877950, -------------- EV_SYN ------------
+Event: time 1469531201.968484, type 1 (EV_KEY), code 2 (KEY_1), value 2
+Event: time 1469531201.968484, -------------- EV_SYN ------------
+Event: time 1469531201.990939, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531201.990939, -------------- EV_SYN ------------
+Event: time 1469531202.098497, type 1 (EV_KEY), code 2 (KEY_1), value 2
+Event: time 1469531202.098497, -------------- EV_SYN ------------
+Event: time 1469531202.128516, type 4 (EV_MSC), code 4 (MSC_SCAN), value 1e01
+Event: time 1469531202.128516, -------------- EV_SYN ------------
+Event: time 1469531202.228506, type 1 (EV_KEY), code 2 (KEY_1), value 2
+Event: time 1469531202.228506, -------------- EV_SYN ------------
+Event: time 1469531202.358563, type 1 (EV_KEY), code 2 (KEY_1), value 2
+Event: time 1469531202.358563, -------------- EV_SYN ------------
+Event: time 1469531202.378560, type 1 (EV_KEY), code 2 (KEY_1), value 0
+Event: time 1469531202.378560, -------------- EV_SYN ------------
+
+so long,
+
+Hias
