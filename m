@@ -1,75 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:40265 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754399AbcGEJSC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Jul 2016 05:18:02 -0400
-Date: Tue, 5 Jul 2016 10:18:00 +0100
-From: Sean Young <sean@mess.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	hkallweit1@gmail.com
-Subject: Re: [GIT PULL FOR v4.8] Various dvb/rc fixes/improvements
-Message-ID: <20160705091800.GB32736@gofer.mess.org>
-References: <118e026f-ebc0-a540-195c-44434f40ae46@xs4all.nl>
- <20160704201959.GB28620@gofer.mess.org>
- <691ae86d-ab00-6f4e-5e53-0423bc817ee5@xs4all.nl>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47437
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753895AbcGZBg7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jul 2016 21:36:59 -0400
+Date: Mon, 25 Jul 2016 22:36:53 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Michael Ira Krufky <mkrufky@linuxtv.org>
+Cc: Abylay Ospan <aospan@netup.ru>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [media] lgdt3306a: remove 20*50 msec unnecessary
+ timeout
+Message-ID: <20160725223653.62493982@recife.lan>
+In-Reply-To: <CAOcJUbwOHCx1y50zt3Mcd39aUZpqd=mOjkQUgJaPxZzzrzzeLQ@mail.gmail.com>
+References: <1469471939-25393-1-git-send-email-aospan@netup.ru>
+	<CAOcJUby+9gTrFUF14pvo1iMa2azD5TfGM8WgeZY1+Bh8CTYVzA@mail.gmail.com>
+	<20160725162841.6e11fd2b@recife.lan>
+	<CAOcJUbwOHCx1y50zt3Mcd39aUZpqd=mOjkQUgJaPxZzzrzzeLQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <691ae86d-ab00-6f4e-5e53-0423bc817ee5@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 05, 2016 at 12:25:17AM +0200, Hans Verkuil wrote:
-> On 07/04/2016 10:19 PM, Sean Young wrote:
-> > On Mon, Jul 04, 2016 at 01:54:56PM +0200, Hans Verkuil wrote:
-> >> Mauro,
-> >>
-> >> As requested, I'm helping out with reducing the backlog.
-> >>
-> >> Regards,
-> >>
-> >> 	Hans
-> >>
-> >> The following changes since commit ab46f6d24bf57ddac0f5abe2f546a78af57b476c:
-> >>
-> >>   [media] videodev2.h: Fix V4L2_PIX_FMT_YUV411P description (2016-06-28 11:54:52 -0300)
-> >>
-> >> are available in the git repository at:
-> >>
-> >>   git://linuxtv.org/hverkuil/media_tree.git for-v4.8f
-> >>
-> >> for you to fetch changes up to 920be8ec8843d42ef3181f9a9fb988c49481b165:
-> >>
-> >>   media: rc: nuvoton: remove two unused elements in struct nvt_dev (2016-07-04 13:26:37 +0200)
-> >>
-> >> ----------------------------------------------------------------
-> >> Antti Palosaari (14):
-> >>       si2168: add support for newer firmwares
-> >>       si2168: do not allow driver unbind
-> >>       si2157: do not allow driver unbind
-> >>       m88ds3103: remove useless most significant bit clear
-> >>       m88ds3103: calculate DiSEqC message sending time
-> >>       m88ds3103: improve ts clock setting
-> >>       m88ds3103: use Hz instead of kHz on calculations
-> >>       m88ds3103: refactor firmware download
-> >>       af9033: move statistics to read_status()
-> >>       af9033: do not allow driver unbind
-> >>       it913x: do not allow driver unbind
-> >>       rtl2830: do not allow driver unbind
-> >>       rtl2830: move statistics to read_status()
-> >>       rtl2832: do not allow driver unbind
-> >>
-> >> Heiner Kallweit (12):
-> >>       media: rc: make fifo size for raw events configurable via rc_dev
-> 
-> I kept this one,
-> 
-> >>       media: rc: nuvoton: decrease size of raw event fifo
-> 
-> but dropped this one from the pull request until this is resolved.
+Em Mon, 25 Jul 2016 15:37:14 -0400
+Michael Ira Krufky <mkrufky@linuxtv.org> escreveu:
 
-Both should be dropped as the idea itself is broken.
+> On Mon, Jul 25, 2016 at 3:28 PM, Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+> > Hi Michael,
+> >
+> > Em Mon, 25 Jul 2016 14:55:51 -0400
+> > Michael Ira Krufky <mkrufky@linuxtv.org> escreveu:
+> >  
+> >> On Mon, Jul 25, 2016 at 2:38 PM, Abylay Ospan <aospan@netup.ru> wrote:  
+> >> > inside lgdt3306a_search we reading demod status 20 times with 50 msec sleep after each read.
+> >> > This gives us more than 1 sec of delay. Removing this delay should not affect demod functionality.
+> >> >
+> >> > Signed-off-by: Abylay Ospan <aospan@netup.ru>
+> >> > ---
+> >> >  drivers/media/dvb-frontends/lgdt3306a.c | 16 ++++------------
+> >> >  1 file changed, 4 insertions(+), 12 deletions(-)
+> >> >
+> >> > diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+> >> > index 179c26e..dad7ad3 100644
+> >> > --- a/drivers/media/dvb-frontends/lgdt3306a.c
+> >> > +++ b/drivers/media/dvb-frontends/lgdt3306a.c
+> >> > @@ -1737,24 +1737,16 @@ static int lgdt3306a_get_tune_settings(struct dvb_frontend *fe,
+> >> >  static int lgdt3306a_search(struct dvb_frontend *fe)
+> >> >  {
+> >> >         enum fe_status status = 0;
+> >> > -       int i, ret;
+> >> > +       int ret;
+> >> >
+> >> >         /* set frontend */
+> >> >         ret = lgdt3306a_set_parameters(fe);
+> >> >         if (ret)
+> >> >                 goto error;
+> >> >
+> >> > -       /* wait frontend lock */
+> >> > -       for (i = 20; i > 0; i--) {
+> >> > -               dbg_info(": loop=%d\n", i);
+> >> > -               msleep(50);
+> >> > -               ret = lgdt3306a_read_status(fe, &status);
+> >> > -               if (ret)
+> >> > -                       goto error;
+> >> > -
+> >> > -               if (status & FE_HAS_LOCK)
+> >> > -                       break;
+> >> > -       }  
+> >
+> > Could you please explain why lgdt3306a needs the above ugly hack?
+> >
+> >  
+> >> > +       ret = lgdt3306a_read_status(fe, &status);
+> >> > +       if (ret)
+> >> > +               goto error;  
+> >
+> >  
+> >> >
+> >> >         /* check if we have a valid signal */
+> >> >         if (status & FE_HAS_LOCK)  
+> >>
+> >> Your patch removes a loop that was purposefully written here to handle
+> >> conditions that are not ideal.  Are you sure this change is best for
+> >> all users?
+> >>
+> >> I would disagree with merging this patch.
+> >>
+> >> Best regards,
+> >>
+> >> Michael Ira Krufky  
+> 
+> Mauro,
+> 
+> I cannot speak for the LG DT3306a part itself, but based on my past
+> experience I can say the following:
+> 
+> To my understanding, the hardware might not report a lock on the first
+> read_status request, so the driver author chose to include a loop to
+> retry a few times before giving up.
 
+A one second wait, trying 50 times is not a "few times". It is a lot!
 
-Sean
+> In real life scenarios, there are marginal signals that may take a
+> longer time to lock onto, but once locked, the demod will deliver a
+> reliable stream.
+> 
+> Most applications will only issue a single tune request when trying to
+> tune to a given program. The application does not retry the tune
+> request if the driver reports no lock.
+
+I don't know a single application that would give up after a
+single status request with FE_READ_STATUS. Not even simple
+applications like the legacy dvb-tools do that. If such application
+exits, it is already broken, as it would fail with most drivers,
+as almost no drivers wait for frontend locks.
+
+Also, the frontend thread assumes that the lock will take some
+polls to happen, and it keep polling the status for some time,
+using the status return to do frequency zig-zag, on tuners that
+don't have hardware zig-zag, and to try bandwidth inversion.
+
+Please notice that some legacy DVBv3 applications might want to
+be bothered only after lock. In such case, they would be calling
+FE_GET_EVENT with the device opened in blocking mode:
+	https://linuxtv.org/downloads/v4l-dvb-apis-new/media/uapi/dvb/fe-get-event.html
+
+In such case, the frontend's kthread will keep the ioctl blocked
+until the device is locked, or will keep returning -EWOULDBLOCK
+in non-blocking mode.
+
+> Applying this patch will have the potential to cause userspace to
+> appear broken.  Some users will not be able to receive some weaker
+> channels anymore, and they will have no way to diagnose the problem
+> from within their application.
+
+This is not how it is supposed to work. An ioctl should not block
+for that long time for no reason, specially since the file
+descriptor could be opened in no blocking mode.
+
+The only possible reason to block would be on really broken hardware
+that would stop working if the status is called before a certain
+number of milliseconds. Even so, the proper implementation would be
+add some logic at the driver level to ensure that the hardware won't
+be receiving the status command when it is not ready to answer to
+it. Some drivers do that.
+
+Regards,
+Mauro
