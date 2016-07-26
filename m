@@ -1,183 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:35305 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932464AbcGFXH1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2016 19:07:27 -0400
-Received: by mail-pf0-f195.google.com with SMTP id t190so96366pfb.2
-        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2016 16:07:27 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56273 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752148AbcGZC4E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jul 2016 22:56:04 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id C24E1180156
+	for <linux-media@vger.kernel.org>; Tue, 26 Jul 2016 04:55:57 +0200 (CEST)
+Date: Tue, 26 Jul 2016 04:55:57 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 05/28] gpu: ipu-v3: Add IDMA channel linking support
-Date: Wed,  6 Jul 2016 16:06:35 -0700
-Message-Id: <1467846418-12913-6-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1465944574-15745-1-git-send-email-steve_longerbeam@mentor.com>
- <1467846418-12913-1-git-send-email-steve_longerbeam@mentor.com>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160726025557.C24E1180156@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds functions to link and unlink IDMAC source channels to sink
-channels.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-So far the following links are supported:
+Results of the daily build of media_tree:
 
-IPUV3_CHANNEL_IC_PRP_ENC_MEM -> IPUV3_CHANNEL_MEM_ROT_ENC
-PUV3_CHANNEL_IC_PRP_VF_MEM   -> IPUV3_CHANNEL_MEM_ROT_VF
-IPUV3_CHANNEL_IC_PP_MEM      -> IPUV3_CHANNEL_MEM_ROT_PP
+date:		Tue Jul 26 04:00:20 CEST 2016
+git branch:	test
+git hash:	009a620848218d521f008141c62f56bf19294dd9
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-More links can be added to the idmac_link_info[] array.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1.1-i686: WARNINGS
+linux-4.2-i686: WARNINGS
+linux-4.3-i686: WARNINGS
+linux-4.4-i686: WARNINGS
+linux-4.5-i686: WARNINGS
+linux-4.6-i686: WARNINGS
+linux-4.7-rc1-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0-x86_64: WARNINGS
+linux-4.1.1-x86_64: WARNINGS
+linux-4.2-x86_64: WARNINGS
+linux-4.3-x86_64: WARNINGS
+linux-4.4-x86_64: WARNINGS
+linux-4.5-x86_64: WARNINGS
+linux-4.6-x86_64: WARNINGS
+linux-4.7-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/gpu/ipu-v3/ipu-common.c | 112 ++++++++++++++++++++++++++++++++++++++++
- include/video/imx-ipu-v3.h      |   3 ++
- 2 files changed, 115 insertions(+)
+Detailed results are available here:
 
-diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
-index 49af121..6d1676e 100644
---- a/drivers/gpu/ipu-v3/ipu-common.c
-+++ b/drivers/gpu/ipu-v3/ipu-common.c
-@@ -730,6 +730,118 @@ void ipu_set_ic_src_mux(struct ipu_soc *ipu, int csi_id, bool vdi)
- }
- EXPORT_SYMBOL_GPL(ipu_set_ic_src_mux);
- 
-+
-+/* IDMAC Channel Linking */
-+
-+struct idmac_link_reg_info {
-+	int chno;
-+	u32 reg;
-+	int shift;
-+	int bits;
-+	u32 sel;
-+};
-+
-+struct idmac_link_info {
-+	struct idmac_link_reg_info src;
-+	struct idmac_link_reg_info sink;
-+};
-+
-+static const struct idmac_link_info idmac_link_info[] = {
-+	{
-+		.src  = { 20, IPU_FS_PROC_FLOW1,  0, 4, 7 },
-+		.sink = { 45, IPU_FS_PROC_FLOW2,  0, 4, 1 },
-+	}, {
-+		.src =  { 21, IPU_FS_PROC_FLOW1,  8, 4, 8 },
-+		.sink = { 46, IPU_FS_PROC_FLOW2,  4, 4, 1 },
-+	}, {
-+		.src =  { 22, IPU_FS_PROC_FLOW1, 16, 4, 5 },
-+		.sink = { 47, IPU_FS_PROC_FLOW2, 12, 4, 3 },
-+	},
-+};
-+
-+static const struct idmac_link_info *find_idmac_link_info(
-+	struct ipuv3_channel *src, struct ipuv3_channel *sink)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(idmac_link_info); i++) {
-+		if (src->num == idmac_link_info[i].src.chno &&
-+		    sink->num == idmac_link_info[i].sink.chno)
-+			return &idmac_link_info[i];
-+	}
-+
-+	return NULL;
-+}
-+
-+/*
-+ * Links an IDMAC source channel to a sink channel.
-+ */
-+int ipu_idmac_link(struct ipuv3_channel *src, struct ipuv3_channel *sink)
-+{
-+	struct ipu_soc *ipu = src->ipu;
-+	const struct idmac_link_info *link;
-+	u32 src_reg, sink_reg, src_mask, sink_mask;
-+	unsigned long flags;
-+
-+	link = find_idmac_link_info(src, sink);
-+	if (!link)
-+		return -EINVAL;
-+
-+	src_mask = ((1 << link->src.bits) - 1) << link->src.shift;
-+	sink_mask = ((1 << link->sink.bits) - 1) << link->sink.shift;
-+
-+	spin_lock_irqsave(&ipu->lock, flags);
-+
-+	src_reg = ipu_cm_read(ipu, link->src.reg);
-+	sink_reg = ipu_cm_read(ipu, link->sink.reg);
-+
-+	src_reg &= ~src_mask;
-+	src_reg |= (link->src.sel << link->src.shift);
-+
-+	sink_reg &= ~sink_mask;
-+	sink_reg |= (link->sink.sel << link->sink.shift);
-+
-+	ipu_cm_write(ipu, src_reg, link->src.reg);
-+	ipu_cm_write(ipu, sink_reg, link->sink.reg);
-+
-+	spin_unlock_irqrestore(&ipu->lock, flags);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_idmac_link);
-+
-+/*
-+ * Unlinks IDMAC source and sink channels.
-+ */
-+int ipu_idmac_unlink(struct ipuv3_channel *src, struct ipuv3_channel *sink)
-+{
-+	struct ipu_soc *ipu = src->ipu;
-+	const struct idmac_link_info *link;
-+	u32 src_reg, sink_reg, src_mask, sink_mask;
-+	unsigned long flags;
-+
-+	link = find_idmac_link_info(src, sink);
-+	if (!link)
-+		return -EINVAL;
-+
-+	src_mask = ((1 << link->src.bits) - 1) << link->src.shift;
-+	sink_mask = ((1 << link->sink.bits) - 1) << link->sink.shift;
-+
-+	spin_lock_irqsave(&ipu->lock, flags);
-+
-+	src_reg = ipu_cm_read(ipu, link->src.reg);
-+	sink_reg = ipu_cm_read(ipu, link->sink.reg);
-+
-+	src_reg &= ~src_mask;
-+	sink_reg &= ~sink_mask;
-+
-+	ipu_cm_write(ipu, src_reg, link->src.reg);
-+	ipu_cm_write(ipu, sink_reg, link->sink.reg);
-+
-+	spin_unlock_irqrestore(&ipu->lock, flags);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_idmac_unlink);
-+
- struct ipu_devtype {
- 	const char *name;
- 	unsigned long cm_ofs;
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index b174f8a..0a39c64 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -128,6 +128,7 @@ enum ipu_channel_irq {
- #define IPUV3_CHANNEL_ROT_VF_MEM		49
- #define IPUV3_CHANNEL_ROT_PP_MEM		50
- #define IPUV3_CHANNEL_MEM_BG_SYNC_ALPHA		51
-+#define IPUV3_NUM_CHANNELS			64
- 
- int ipu_map_irq(struct ipu_soc *ipu, int irq);
- int ipu_idmac_channel_irq(struct ipu_soc *ipu, struct ipuv3_channel *channel,
-@@ -171,6 +172,8 @@ int ipu_idmac_get_current_buffer(struct ipuv3_channel *channel);
- bool ipu_idmac_buffer_is_ready(struct ipuv3_channel *channel, u32 buf_num);
- void ipu_idmac_select_buffer(struct ipuv3_channel *channel, u32 buf_num);
- void ipu_idmac_clear_buffer(struct ipuv3_channel *channel, u32 buf_num);
-+int ipu_idmac_link(struct ipuv3_channel *src, struct ipuv3_channel *sink);
-+int ipu_idmac_unlink(struct ipuv3_channel *src, struct ipuv3_channel *sink);
- 
- /*
-  * IPU Channel Parameter Memory (cpmem) functions
--- 
-1.9.1
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
