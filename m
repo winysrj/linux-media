@@ -1,121 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:42772 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751476AbcGTDNU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 23:13:20 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 40DDA18021F
-	for <linux-media@vger.kernel.org>; Wed, 20 Jul 2016 05:13:14 +0200 (CEST)
-Date: Wed, 20 Jul 2016 05:13:14 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mout3.freenet.de ([195.4.92.93]:51177 "EHLO mout3.freenet.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753921AbcG0AN5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jul 2016 20:13:57 -0400
+Received: from [195.4.92.141] (helo=mjail1.freenet.de)
+	by mout3.freenet.de with esmtpa (ID axel.rometsch@freenet.de) (port 25) (Exim 4.85 #1)
+	id 1bSBsg-0003wf-2w
+	for linux-media@vger.kernel.org; Wed, 27 Jul 2016 01:35:22 +0200
+Received: from localhost ([::1]:46427 helo=mjail1.freenet.de)
+	by mjail1.freenet.de with esmtpa (ID axel.rometsch@freenet.de) (Exim 4.85 #1)
+	id 1bSBsf-0008Nf-VJ
+	for linux-media@vger.kernel.org; Wed, 27 Jul 2016 01:35:22 +0200
+Received: from mx13.freenet.de ([195.4.92.23]:34133)
+	by mjail1.freenet.de with esmtpa (ID axel.rometsch@freenet.de) (Exim 4.85 #1)
+	id 1bSBq3-0006x0-FJ
+	for linux-media@vger.kernel.org; Wed, 27 Jul 2016 01:32:39 +0200
+Received: from dslb-094-217-250-129.094.217.pools.vodafone-ip.de ([94.217.250.129]:44994 helo=lucy.localnet)
+	by mx13.freenet.de with esmtpsa (ID axel.rometsch@freenet.de) (TLSv1:DHE-RSA-AES256-SHA:256) (port 25) (Exim 4.85 #1)
+	id 1bSBq3-0002HP-Bt
+	for linux-media@vger.kernel.org; Wed, 27 Jul 2016 01:32:39 +0200
+From: Axel Rometsch <axel.rometsch@freenet.de>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160720031314.40DDA18021F@tschai.lan>
+Subject: Avermedia TD310
+Date: Wed, 27 Jul 2016 01:32:38 +0200
+Message-ID: <3326871.nOY5XFVsrE@lucy>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+would it be possible to add support for the Avermedia TD310 USB TV 
+Dongle? It is a combined DVB-C, DVB-T and DVB-T2 device that supports 
+HEVC.
 
-date:		Wed Jul 20 04:00:18 CEST 2016
-git branch:	test
-git hash:	009a620848218d521f008141c62f56bf19294dd9
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+lsusb
+ID 07ca:1871 AVerMedia Technologies, Inc. 
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1.1-i686: WARNINGS
-linux-4.2-i686: WARNINGS
-linux-4.3-i686: WARNINGS
-linux-4.4-i686: WARNINGS
-linux-4.5-i686: WARNINGS
-linux-4.6-i686: WARNINGS
-linux-4.7-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0-x86_64: WARNINGS
-linux-4.1.1-x86_64: WARNINGS
-linux-4.2-x86_64: WARNINGS
-linux-4.3-x86_64: WARNINGS
-linux-4.4-x86_64: WARNINGS
-linux-4.5-x86_64: WARNINGS
-linux-4.6-x86_64: WARNINGS
-linux-4.7-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+lsusb -v 
+Bus 002 Device 003: ID 07ca:1871 AVerMedia Technologies, Inc. 
+Couldn't open device, some information will be missing
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0 
+  bDeviceProtocol         0 
+  bMaxPacketSize0        64
+  idVendor           0x07ca AVerMedia Technologies, Inc.
+  idProduct          0x1871 
+  bcdDevice            1.00
+  iManufacturer           1 
+  iProduct                2 
+  iSerial                 3 
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           46
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0 
+    bmAttributes         0x80
+      (Bus Powered)
+    MaxPower              500mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           4
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass      0 
+      bInterfaceProtocol      0 
+      iInterface              0 
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x02  EP 2 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x84  EP 4 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x85  EP 5 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
 
-Detailed results are available here:
+Please let me know, if you need further informations
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+thank you
 
-Full logs are available here:
+Axel
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
