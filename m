@@ -1,47 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:35983 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751063AbcGQQIl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 12:08:41 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id DB628180C37
-	for <linux-media@vger.kernel.org>; Sun, 17 Jul 2016 18:08:35 +0200 (CEST)
-Subject: [PATCH 8/7] cec: poll should check if there is room in the tx queue
+Received: from smtp.gentoo.org ([140.211.166.183]:55110 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751824AbcGZHJj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jul 2016 03:09:39 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
 To: linux-media@vger.kernel.org
-References: <1468767754-48542-1-git-send-email-hverkuil@xs4all.nl>
- <1468767754-48542-8-git-send-email-hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <821ffc17-452e-21aa-0303-a9328bf5da5f@xs4all.nl>
-Date: Sun, 17 Jul 2016 18:08:35 +0200
-MIME-Version: 1.0
-In-Reply-To: <1468767754-48542-8-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Cc: mchehab@osg.samsung.com, crope@iki.fi,
+	Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH 3/7] cx231xx: Prepare for attaching new style i2c_client DVB demod drivers
+Date: Tue, 26 Jul 2016 09:09:04 +0200
+Message-Id: <20160726070908.10135-3-zzam@gentoo.org>
+In-Reply-To: <20160726070908.10135-1-zzam@gentoo.org>
+References: <20160726070908.10135-1-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For POLLOUT poll only checked if the adapter was configured, not
-if there was room in the transmit queue. Add that check.
+cx231xx does not yet support attaching new-style i2c_client DVB demod
+drivers. Add necessary code base on tuner support for i2c_client.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 ---
- drivers/staging/media/cec/cec-api.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/usb/cx231xx/cx231xx-dvb.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/staging/media/cec/cec-api.c
-index 559f650..7be7615 100644
---- a/drivers/staging/media/cec/cec-api.c
-+++ b/drivers/staging/media/cec/cec-api.c
-@@ -52,7 +52,8 @@ static unsigned int cec_poll(struct file *filp,
- 	if (!devnode->registered)
- 		return POLLERR | POLLHUP;
- 	mutex_lock(&adap->lock);
--	if (adap->is_configured)
-+	if (adap->is_configured &&
-+	    adap->transmit_queue_sz < CEC_MAX_MSG_TX_QUEUE_SZ)
- 		res |= POLLOUT | POLLWRNORM;
- 	if (fh->queued_msgs)
- 		res |= POLLIN | POLLRDNORM;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index ab2fb9f..f030345 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -65,6 +65,7 @@ struct cx231xx_dvb {
+ 	struct dmx_frontend fe_hw;
+ 	struct dmx_frontend fe_mem;
+ 	struct dvb_net net;
++	struct i2c_client *i2c_client_demod;
+ 	struct i2c_client *i2c_client_tuner;
+ };
+ 
+@@ -586,8 +587,14 @@ static void unregister_dvb(struct cx231xx_dvb *dvb)
+ 	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_hw);
+ 	dvb_dmxdev_release(&dvb->dmxdev);
+ 	dvb_dmx_release(&dvb->demux);
+-	client = dvb->i2c_client_tuner;
+ 	/* remove I2C tuner */
++	client = dvb->i2c_client_tuner;
++	if (client) {
++		module_put(client->dev.driver->owner);
++		i2c_unregister_device(client);
++	}
++	/* remove I2C demod */
++	client = dvb->i2c_client_demod;
+ 	if (client) {
+ 		module_put(client->dev.driver->owner);
+ 		i2c_unregister_device(client);
 -- 
-2.8.1
+2.9.2
+
