@@ -1,74 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:22042 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751037AbcGMNXU (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:59443 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752723AbcGZLtf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2016 09:23:20 -0400
-Message-ID: <1468416155.20788.2.camel@mtksdaap41>
-Subject: Re: [PATCH v2] [media] mtk-vcodec: fix more type mismatches
-From: pochun lin <pochun.lin@mediatek.com>
-To: Arnd Bergmann <arnd@arndb.de>
-CC: <linux-arm-kernel@lists.infradead.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	<linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	<linux-mediatek@lists.infradead.org>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	<linux-media@vger.kernel.org>
-Date: Wed, 13 Jul 2016 21:22:35 +0800
-In-Reply-To: <9022784.B8ChAA686D@wuerfel>
-References: <20160713084916.2765651-1-arnd@arndb.de>
-	 <1468407163.3555.1.camel@mtksdaap41> <9022784.B8ChAA686D@wuerfel>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+	Tue, 26 Jul 2016 07:49:35 -0400
+Subject: Re: Questions about userspace, request and frame API in your Rockchip
+ VPU driver
+To: Tomasz Figa <tfiga@chromium.org>
+References: <153d8766-bb47-30a4-2d9a-c5bb65396ae5@free-electrons.com>
+ <CAAFQd5C3vWrGEBxw3d5ySPV1k2Q4dHz7tGFsyFEcS2LAp05Y4A@mail.gmail.com>
+Cc: posciak@chromium.org, linux-media@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Florent Revest <florent.revest@free-electrons.com>
+Message-ID: <7d8e70b6-a9bc-204d-470b-5a815b886f2e@free-electrons.com>
+Date: Tue, 26 Jul 2016 13:49:32 +0200
 MIME-Version: 1.0
+In-Reply-To: <CAAFQd5C3vWrGEBxw3d5ySPV1k2Q4dHz7tGFsyFEcS2LAp05Y4A@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+Hi,
 
-On Wed, 2016-07-13 at 15:17 +0200, Arnd Bergmann wrote:
-> On Wednesday, July 13, 2016 6:52:43 PM CEST pochun lin wrote:
-> > > diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
-> > > index f4e18bb44cb9..9a600525b3c1 100644
-> > > --- a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
-> > > +++ b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
-> > > @@ -295,9 +295,9 @@ static int h264_enc_alloc_work_buf(struct venc_h264_inst *inst)
-> > >               wb[i].iova = inst->work_bufs[i].dma_addr;
-> > >  
-> > >               mtk_vcodec_debug(inst,
-> > > -                              "work_buf[%d] va=0x%p iova=0x%p size=%zu",
-> > > +                              "work_buf[%d] va=0x%p iova=%pad size=%zu",
-> > >                                i, inst->work_bufs[i].va,
-> > > -                              (void *)inst->work_bufs[i].dma_addr,
-> > > +                              &inst->work_bufs[i].dma_addr,
-> > >                                inst->work_bufs[i].size);
-> > >       }
-> > >  
-> > 
-> > This modified will dump dma_addr's address, not dma_addr value.
-> > In actually, we need to dump dma_addr value.
-> 
-> According to Documentation/printk-formats.txt, it gets passed by
-> reference:
-> 
-> | DMA addresses types dma_addr_t:
-> |
-> |        %pad    0x01234567 or 0x0123456789abcdef
-> |
-> |        For printing a dma_addr_t type which can vary based on build options,
-> |        regardless of the width of the CPU data path. Passed by reference.
-> 
-> The whole point of the %pad/%pr/%pM/... format strings is to print
-> something that cannot be passed by value because the type is not
-> a fixed-size integer.
-> 
-> 	Arnd
+On 26/07/2016 11:26, Tomasz Figa wrote:
+> I think the H264 API is more or less in a good shape. I don't remember
+> exactly, but VP8 API might need a bit more work. There is also VP9 API
+> in the works, but it's a quite early stage. Both are more or less
+> blocked currently on the request API, which needs to be extended to
+> support controls and merged upstream. I believe all the APIs could
+> benefit from adding more platforms to the discussion.
 
-Got it. And sorry I was wrong.
-Thanks your explain clearly.
+Alright, I'll follow their development closely.
 
-Best Regards
-PoChun
+> You're correct. Basically for this kind of dumb decoding there is a
+> need to attach additional data to each frame. In theory that could be
+> done by a series of qbuf, s_ctrl, qbuf, s_ctrl, but it would require a
+> contract with the driver, so that it latches the controls at qbuf time
+> and would make the driver do basically the same as the request API,
+> but on its own. That would overly complicate the driver, considering
+> that you might want to queue multiple frames for better parallelism
+> and each needs its own set of data.
 
+This is indeed what I've been doing until now and I'm currently
+switching to the request API to address this kind of issues. Thanks for
+making it clearer!
+
+I have another question regarding reference frames though. In
+rockchip_vpu, you are referring to previous frames with their index in
+"dst_bufs". Isn't it a problem to access buffers that have already been
+dequeued by the driver ?
+
+>> Also, the text says "The user space code should be implemented as
+>> libv4l2 plugins". And Hans told me the opposite on IRC.
+>>     kido | is developing a libv4l2 plugin interface which uses
+>> libavformat to pre-process buffers the "right" way to do it ?
+>>     hverkuil | kido: no, there isn't. [...]
+>>     hverkuil | Chances are he has code floating around for chromium that
+>> you can use.
+> 
+> Personally I think that a plugin would be a good way to deal with
+> legacy apps. Still, if I remember correctly, the preferred way is to
+> have a shared bitstream parser library and then use the slice/frame
+> API directly in the app, feeding the kernel with data from the parser.
+
+In ChromeOS, I understand that "directly in the app" refers to chromium.
+But in a more traditional linux desktop userspace, I'm still open to
+suggestions of alternatives to a libv4l2 plugin. I thought about a VA
+API backend for slice API but if anyone has a better idea to suggest,
+please let me know.
+
+>> How is the userspace part of your rockchip driver implemented in Chrome
+>> OS and most importantly, do you have any userspace code available to share ?
+> 
+> I believe all the related code should be over there:
+> 
+> https://cs.chromium.org/chromium/src/media/gpu/
+> 
+> There are variants for VA-API, regular "smart" V4L2 codec API and
+> frame/slice API, which you are interested in. The class responsible
+> for talking the V4L2 frame/slice API is
+> v4l2_slice_video_decode_accelerator.cc and there should be also some
+> modules responsible for parsing the bitstream, but I don't have enough
+> knowledge on this code to point exactly.
+
+Great, thanks for pointing me to this code, this is indeed what I've
+been searching for and it will be very helpful !
+
+BR,
+    Florent
+
+-- 
+Florent Revest, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
