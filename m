@@ -1,119 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:29574 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751530AbcGGKRA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2016 06:17:00 -0400
-Message-ID: <1467886612.21382.18.camel@mtksdaap41>
-Subject: Re: [PATCH v3 0/9] Add MT8173 Video Decoder Driver
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
-Date: Thu, 7 Jul 2016 18:16:52 +0800
-In-Reply-To: <577D0576.2050706@xs4all.nl>
-References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
-	 <577D0576.2050706@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail-qk0-f180.google.com ([209.85.220.180]:33417 "EHLO
+	mail-qk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752956AbcGZJ1O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jul 2016 05:27:14 -0400
+Received: by mail-qk0-f180.google.com with SMTP id p74so866637qka.0
+        for <linux-media@vger.kernel.org>; Tue, 26 Jul 2016 02:27:13 -0700 (PDT)
+Received: from mail-qk0-f177.google.com (mail-qk0-f177.google.com. [209.85.220.177])
+        by smtp.gmail.com with ESMTPSA id u6sm18575285qtu.43.2016.07.26.02.27.12
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 26 Jul 2016 02:27:12 -0700 (PDT)
+Received: by mail-qk0-f177.google.com with SMTP id p74so866334qka.0
+        for <linux-media@vger.kernel.org>; Tue, 26 Jul 2016 02:27:12 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <153d8766-bb47-30a4-2d9a-c5bb65396ae5@free-electrons.com>
+References: <153d8766-bb47-30a4-2d9a-c5bb65396ae5@free-electrons.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Tue, 26 Jul 2016 18:26:52 +0900
+Message-ID: <CAAFQd5C3vWrGEBxw3d5ySPV1k2Q4dHz7tGFsyFEcS2LAp05Y4A@mail.gmail.com>
+Subject: Re: Questions about userspace, request and frame API in your Rockchip
+ VPU driver
+To: Florent Revest <florent.revest@free-electrons.com>
+Cc: posciak@chromium.org, linux-media@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Florent,
 
+Let's keep more people in the loop. CCing Pawel, Hans, Laurent and
+linux-media ML, as there might be more people interested in the status
+and/or helping.
 
-On Wed, 2016-07-06 at 15:19 +0200, Hans Verkuil wrote:
-> Hi Tiffany,
-> 
-> I plan to review this patch series on Friday, but one obvious question is
-> what the reason for these failures is:
-> 
-> > Input/Output configuration ioctls:
-> >         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-> >         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-> >         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-> >         test VIDIOC_G/S_EDID: OK (Not Supported)
-> > 
-> >         Control ioctls:
-> >                 test VIDIOC_QUERYCTRL/MENU: OK
-> >                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(357): g_ctrl returned an error (11)
-> >                 test VIDIOC_G/S_CTRL: FAIL
-> >                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(579): g_ext_ctrls returned an error (11)
-> >                 test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
-These fails are because VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS return
-V4L2_CID_MIN_BUFFERS_FOR_CAPTURE only when dirver in MTK_STATE_HEADER
-state, or it will return EAGAIN.
-This could help user space get correct value, not default value that may
-changed base on media content.
+On Tue, Jul 26, 2016 at 4:50 PM, Florent Revest
+<florent.revest@free-electrons.com> wrote:
+> Hi Tomasz,
+>
+> I'm currently an intern at Free Electrons working with Thomas and Maxime
+> who told me that they know you.
 
-> >                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(721): subscribe event for control 'User Controls' failed
-> >                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
-Driver do not support subscribe event for control 'User Controls' for
-now.
-Do we need to support this?
+Yeah, say hi to them from me. ;)
 
-> >                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-> >                 Standard Controls: 2 Private Controls: 0
-> > 
-> >         Format ioctls:
-> >                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-> >                 test VIDIOC_G/S_PARM: OK (Not Supported)
-> >                 test VIDIOC_G_FBUF: OK (Not Supported)
-> >                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-formats.cpp(405): expected EINVAL, but got 11 when getting format for buftype 9
-> >                 test VIDIOC_G_FMT: FAIL
-This is because vidioc_vdec_g_fmt only succeed when context is in
-MTK_STATE_HEADER state, or user space cannot get correct format data
-using this function.
+> I work on a v4l2 m2m VPU driver for
+> Allwinner SoCs. This VPU has very similar problematics as the ones you
+> meet on the Rockchip's RK3229. For instance, it is not able to work on
+> raw bitstream and needs prior frames parsing, which can't be done in
+> kernel space.
+>
+> Some time ago, I asked on the #v4l IRC channel what I should do to
+> implement this behavior correctly and Hans Verkuil told me to get in
+> touch with Pawel Osciak, but he is probably busy with other things and
+> couldn't answer yet.
 
-> >                 test VIDIOC_TRY_FMT: OK (Not Supported)
-> >                 test VIDIOC_S_FMT: OK (Not Supported)
-> >                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-> > 
-> >         Codec ioctls:
-> >                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-> >                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-> >                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> > 
-> >         Buffer ioctls:
-> >                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-> >                 fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-buffers.cpp(500): q.has_expbuf(node)
-Our OUTPUT and CAPTURE queue support both VB2_DMABUF and VB2_MMAP, user
-space can select which to use in runtime.
-So our driver default support v4l2_m2m_ioctl_expbuf functionality.
-In v4l2-compliance test, it will check v4l2_m2m_ioctl_expbuf only valid
-when node->valid_memorytype is V4L2_MEMORY_MMAP.
-So when go through node->valid_memorytype is V4L2_MEMORY_DMABUF, it
-fail.
+Yeah, I'm pretty much sure he is.
 
+>
+> So basically, I'm curious about the state of the "Frame API" he talked
+> about at the linux kernel summit media workshop.
+> https://blogs.s-osg.org/planning-future-media-linux-linux-kernel-summit-media-workshop-seoul-south-korea/
+> Do you know what is the status of this API ?
 
-best regards,
-Tiffany
+I think the H264 API is more or less in a good shape. I don't remember
+exactly, but VP8 API might need a bit more work. There is also VP9 API
+in the works, but it's a quite early stage. Both are more or less
+blocked currently on the request API, which needs to be extended to
+support controls and merged upstream. I believe all the APIs could
+benefit from adding more platforms to the discussion.
 
+>
+> Is this the place where it is implemented ?
+> http://lists.infradead.org/pipermail/linux-rockchip/2016-February/007557.html
+> If I get it right, this is just a new extended control that is attached
+> to a frame with the media request API from Laurent, am I right ? I still
+> have troubles understanding the overall concept of the request API and
+> I'd like to know more about your usage of it.
 
+You're correct. Basically for this kind of dumb decoding there is a
+need to attach additional data to each frame. In theory that could be
+done by a series of qbuf, s_ctrl, qbuf, s_ctrl, but it would require a
+contract with the driver, so that it latches the controls at qbuf time
+and would make the driver do basically the same as the request API,
+but on its own. That would overly complicate the driver, considering
+that you might want to queue multiple frames for better parallelism
+and each needs its own set of data.
 
-> >                 test VIDIOC_EXPBUF: FAIL
-> > 
-> > 
-> > Total: 38, Succeeded: 33, Failed: 5, Warnings: 0
-> 
-> If it is due to a bug in v4l2-compliance, then let me know and I'll fix it. If not,
-> then it should be fixed in the driver.
-> 
-> Frankly, it was the presence of these failures that made me think this patch series
-> wasn't final. Before a v4l2 driver can be accepted in the kernel, v4l2-compliance must pass.
-> 
-> Regards,
-> 
-> 	Hans
+>
+> Also, the text says "The user space code should be implemented as
+> libv4l2 plugins". And Hans told me the opposite on IRC.
+>     kido | is developing a libv4l2 plugin interface which uses
+> libavformat to pre-process buffers the "right" way to do it ?
+>     hverkuil | kido: no, there isn't. [...]
+>     hverkuil | Chances are he has code floating around for chromium that
+> you can use.
 
+Personally I think that a plugin would be a good way to deal with
+legacy apps. Still, if I remember correctly, the preferred way is to
+have a shared bitstream parser library and then use the slice/frame
+API directly in the app, feeding the kernel with data from the parser.
 
+>
+> How is the userspace part of your rockchip driver implemented in Chrome
+> OS and most importantly, do you have any userspace code available to share ?
+
+I believe all the related code should be over there:
+
+https://cs.chromium.org/chromium/src/media/gpu/
+
+There are variants for VA-API, regular "smart" V4L2 codec API and
+frame/slice API, which you are interested in. The class responsible
+for talking the V4L2 frame/slice API is
+v4l2_slice_video_decode_accelerator.cc and there should be also some
+modules responsible for parsing the bitstream, but I don't have enough
+knowledge on this code to point exactly.
+
+Best regards,
+Tomasz
