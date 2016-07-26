@@ -1,73 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from v-smtpgw1.han.skanova.net ([81.236.60.204]:48599 "EHLO
-	v-smtpgw1.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347AbcGNTAT (ORCPT
+Received: from mail-lf0-f54.google.com ([209.85.215.54]:35093 "EHLO
+	mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751418AbcGZGFX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2016 15:00:19 -0400
-Subject: Re: uvcvideo
-To: Charles Stegall <stegall@bayou.uni-linz.ac.at>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20160714141624.GA5718@bayou.uni-linz.ac.at>
- <39843503-ce01-3377-e990-39ca9a4fe850@mbox200.swipnet.se>
- <20160714163010.GA6891@bayou.uni-linz.ac.at>
-From: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
-Message-ID: <364e5b3d-50be-c534-86f4-724c680f41a5@mbox200.swipnet.se>
-Date: Thu, 14 Jul 2016 21:00:14 +0200
+	Tue, 26 Jul 2016 02:05:23 -0400
+Received: by mail-lf0-f54.google.com with SMTP id f93so142995041lfi.2
+        for <linux-media@vger.kernel.org>; Mon, 25 Jul 2016 23:05:22 -0700 (PDT)
+Date: Tue, 26 Jul 2016 08:05:20 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+	<niklas.soderlund@ragnatech.se>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+	linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] rcar-vin: add R-Car gen2 fallback compatibility string
+Message-ID: <20160726060519.GB17189@bigcity.dyn.berto.se>
+References: <2381051.RUpesOs1q9@wasted.cogentembedded.com>
 MIME-Version: 1.0
-In-Reply-To: <20160714163010.GA6891@bayou.uni-linz.ac.at>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <2381051.RUpesOs1q9@wasted.cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2016-07-14 18:30, Charles Stegall wrote:
- > On Thu, Jul 14, 2016 at 05:10:04PM +0200, Torbjorn Jansson wrote:
- >> On 2016-07-14 16:16, Charles Stegall wrote:
- >>>
- >>> this happens ...
- >>>
- >>> modprobe uvcvideo
- >>> modprobe: ERROR: could not insert 'uvcvideo': Exec format error
- >>>
- >> did you get any interesting output in dmesg ?
- >> like problem loading modules or symbol errors?
- >>
- >> this sounds a bit like a problem i had where dmesg showed some symbol
- >> conflicts when i built drivers via media_build.
- >> but i'm no expert on this.
- >
->
-> Thank you for the prompt response.
->
-> pieces of log files, perhaps relevant
->
-> Jul 14 13:15:26 fiji kernel: usb 2-6: new high-speed USB device number 6 using ehci-pci
-> Jul 14 13:15:26 fiji kernel: usb 2-6: New USB device found, idVendor=041e, idProduct=4095
-> Jul 14 13:15:26 fiji kernel: usb 2-6: New USB device strings: Mfr=3, Product=1, SerialNumber=2
-> Jul 14 13:15:26 fiji kernel: usb 2-6: Product: Live! Cam Sync HD VF0770
-> Jul 14 13:15:26 fiji kernel: usb 2-6: Manufacturer: Creative Technology Ltd.
-> Jul 14 13:15:26 fiji kernel: usb 2-6: SerialNumber: 2014032113535
-> Jul 14 13:15:26 fiji kernel: frame_vector: exports duplicate symbol frame_vector_create (owned by kernel)
-> Jul 14 13:15:55 fiji kernel: frame_vector: exports duplicate symbol frame_vector_create (owned by kernel)
-> Jul 14 15:44:16 fiji kernel: uvcvideo: Unknown symbol vb2_vmalloc_memops (err 0)
-> Jul 14 16:04:04 fiji kernel: frame_vector: exports duplicate symbol frame_vector_create (owned by kernel)
-> Jul 14 18:16:10 fiji kernel: frame_vector: exports duplicate symbol frame_vector_create (owned by kernel)
->
+On 2016-07-25 22:19:33 +0300, Sergei Shtylyov wrote:
+> Such fallback string is present in the 'soc_camera' version of the R-Car VIN
+> driver, so need  to add it here as well...
+> 
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-exactly the problem i had, Hans Verkuil pointed me in the right 
-direction on solving this.
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-what has happened is that you most likely used media_build and it 
-installed a module called frame_vector.ko but this module is already 
-built into your kernel so when a module that depends on it tries to load 
-things go wrong and module dont load properly.
+> 
+> ---
+> This patch is against the 'media_tree.git' repo's 'master' branch.
+> This patch conflicts with Niklas Soderlund's former patch "[media] rcar-vin:
+> add  Gen2 and Gen3 fallback compatibility strings"), I got his consent about
+> splitting the gen2 part  of that patch to a separate patch...
+> 
+>  drivers/media/platform/rcar-vin/rcar-core.c |    1 +
+>  1 file changed, 1 insertion(+)
+> 
+> Index: media_tree/drivers/media/platform/rcar-vin/rcar-core.c
+> ===================================================================
+> --- media_tree.orig/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ media_tree/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -209,6 +209,7 @@ static const struct of_device_id rvin_of
+>  	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+>  	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
+>  	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
+> +	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
+>  	{ },
+>  };
+>  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+> 
 
-what i did to work around this was to find the module under 
-/lib/modules/`uname -r` that got installed by media_build and removed it.
-then i reran 'depmod -a' to update module dependencies and problem was 
-solved.
-
-for reference see mail on linux-media list from 2016-06-26 from Hans 
-with subject "Re: media_build & cx23885"
-
+-- 
+Regards,
+Niklas Söderlund
