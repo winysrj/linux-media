@@ -1,589 +1,276 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60539 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751116AbcGQRHR (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:33101 "EHLO
+	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754160AbcG0RfU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2016 13:07:17 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 03/15] [media] doc-rst: Fix format of avermedia.rst
-Date: Sun, 17 Jul 2016 14:06:58 -0300
-Message-Id: <d3686003e034469b7a18fb0dc3603eb74d09481c.1468775054.git.mchehab@s-opensource.com>
-In-Reply-To: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
-References: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
-In-Reply-To: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
-References: <fcbf5ca0b870c26e1c2d89a31c87e65d952dc253.1468775054.git.mchehab@s-opensource.com>
+	Wed, 27 Jul 2016 13:35:20 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAJs94EZt_gw=xenU8Yt79tZxT_jGUW7w1SQjjh2Oe9aCCXSm7A@mail.gmail.com>
+References: <1468959677-1768-1-git-send-email-matwey@sai.msu.ru>
+ <20160719205600.GA14569@uda0271908> <CAJs94EY_cXLA6eggC391eKiPBS-RVPmfPd7Wh4mhjZTQiCSUrA@mail.gmail.com>
+ <20160719213426.GB14569@uda0271908> <CAJs94EbS7C+m_+P61QReAwn=93Yp0B7x4dZ32A8mMAZAM5+osQ@mail.gmail.com>
+ <20160720141334.GC14569@uda0271908> <CAJs94Eb-Z4103JgEL6Xu_tesJ+d81F13UKhuCmVc3DPCBZ8z5w@mail.gmail.com>
+ <20160720150614.GD14569@uda0271908> <CAJs94Eb42kTp0i=Oagip5uGtVTNh6JgoAp_q--+nNGZufD1chA@mail.gmail.com>
+ <CAJs94EZt_gw=xenU8Yt79tZxT_jGUW7w1SQjjh2Oe9aCCXSm7A@mail.gmail.com>
+From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+Date: Wed, 27 Jul 2016 20:34:58 +0300
+Message-ID: <CAJs94EYPwWivWfsrUtETJZp5HHmpT5Qvujq0RexcgHm+k657aQ@mail.gmail.com>
+Subject: Re: pwc over musb: 100% frame drop (lost) on high resolution stream
+To: Bin Liu <b-liu@ti.com>, "Matwey V. Kornilov" <matwey@sai.msu.ru>,
+	hdegoede@redhat.com, linux-media@vger.kernel.org,
+	linux-usb@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This file is almost at the ReST format, but some things need
-to be fixed for it to be parsed.
+Hello,
 
-Also, the documentation there is old. So, add a notice about
-that.
+I've just biseced commit, which introduced this issue
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/dvb-drivers/avermedia.rst | 510 ++++++++++++--------------
- Documentation/media/dvb-drivers/index.rst     |   1 +
- 2 files changed, 239 insertions(+), 272 deletions(-)
+commit f551e13529833e052f75ec628a8af7b034af20f9
+Author: Bin Liu <b-liu@ti.com>
+Date:   Mon Apr 25 15:53:30 2016 -0500
 
-diff --git a/Documentation/media/dvb-drivers/avermedia.rst b/Documentation/media/dvb-drivers/avermedia.rst
-index e44c009ac6c5..49cd9c935307 100644
---- a/Documentation/media/dvb-drivers/avermedia.rst
-+++ b/Documentation/media/dvb-drivers/avermedia.rst
-@@ -1,301 +1,267 @@
- HOWTO: Get An Avermedia DVB-T working under Linux
--	   ______________________________________________
--
--   Table of Contents
--   Assumptions and Introduction
--   The Avermedia DVB-T
--   Getting the card going
--   Receiving DVB-T in Australia
--   Known Limitations
--   Further Update
-+-------------------------------------------------
-+
-+February 14th 2006
-+
-+.. note::
-+
-+   This documentation is outdated. Please check at the DVB wiki
-+   at https://linuxtv.org/wiki for more updated info.
-+
-+   There's a section there specific for Avermedia boards at:
-+   https://linuxtv.org/wiki/index.php/AVerMedia
-+
- 
- Assumptions and Introduction
--
--   It  is assumed that the reader understands the basic structure
--   of  the Linux Kernel DVB drivers and the general principles of
--   Digital TV.
--
--   One  significant difference between Digital TV and Analogue TV
--   that  the  unwary  (like  myself)  should  consider  is  that,
--   although  the  component  structure  of budget DVB-T cards are
--   substantially  similar  to Analogue TV cards, they function in
--   substantially different ways.
--
--   The  purpose  of  an  Analogue TV is to receive and display an
--   Analogue  Television  signal. An Analogue TV signal (otherwise
--   known  as  composite  video)  is  an  analogue  encoding  of a
--   sequence  of  image frames (25 per second) rasterised using an
--   interlacing   technique.   Interlacing  takes  two  fields  to
--   represent  one  frame.  Computers today are at their best when
--   dealing  with  digital  signals,  not  analogue  signals and a
--   composite  video signal is about as far removed from a digital
--   data stream as you can get. Therefore, an Analogue TV card for
--   a PC has the following purpose:
--
--     * Tune the receiver to receive a broadcast signal
--     * demodulate the broadcast signal
--     * demultiplex  the  analogue video signal and analogue audio
--       signal  (note some countries employ a digital audio signal
--       embedded  within the modulated composite analogue signal -
--       NICAM.)
--     * digitize  the analogue video signal and make the resulting
--       datastream available to the data bus.
--
--   The  digital  datastream from an Analogue TV card is generated
--   by  circuitry on the card and is often presented uncompressed.
--   For  a PAL TV signal encoded at a resolution of 768x576 24-bit
--   color pixels over 25 frames per second - a fair amount of data
--   is  generated and must be processed by the PC before it can be
--   displayed  on the video monitor screen. Some Analogue TV cards
--   for  PCs  have  onboard  MPEG2  encoders  which permit the raw
--   digital  data  stream  to be presented to the PC in an encoded
--   and  compressed  form  -  similar  to the form that is used in
--   Digital TV.
--
--   The  purpose of a simple budget digital TV card (DVB-T,C or S)
--   is to simply:
--
--     * Tune the received to receive a broadcast signal.
--     * Extract  the encoded digital datastream from the broadcast
--       signal.
--     * Make  the  encoded digital datastream (MPEG2) available to
--       the data bus.
--
--   The  significant  difference between the two is that the tuner
--   on  the analogue TV card spits out an Analogue signal, whereas
--   the  tuner  on  the  digital  TV  card  spits out a compressed
--   encoded   digital   datastream.   As  the  signal  is  already
--   digitised,  it  is  trivial  to pass this datastream to the PC
--   databus  with  minimal  additional processing and then extract
--   the  digital  video  and audio datastreams passing them to the
--   appropriate software or hardware for decoding and viewing.
--     _________________________________________________________
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+It  is assumed that the reader understands the basic structure
-+of  the Linux Kernel DVB drivers and the general principles of
-+Digital TV.
-+
-+One  significant difference between Digital TV and Analogue TV
-+that  the  unwary  (like  myself)  should  consider  is  that,
-+although  the  component  structure  of budget DVB-T cards are
-+substantially  similar  to Analogue TV cards, they function in
-+substantially different ways.
-+
-+The  purpose  of  an  Analogue TV is to receive and display an
-+Analogue  Television  signal. An Analogue TV signal (otherwise
-+known  as  composite  video)  is  an  analogue  encoding  of a
-+sequence  of  image frames (25 per second) rasterised using an
-+interlacing   technique.   Interlacing  takes  two  fields  to
-+represent  one  frame.  Computers today are at their best when
-+dealing  with  digital  signals,  not  analogue  signals and a
-+composite  video signal is about as far removed from a digital
-+data stream as you can get. Therefore, an Analogue TV card for
-+a PC has the following purpose:
-+
-+* Tune the receiver to receive a broadcast signal
-+* demodulate the broadcast signal
-+* demultiplex  the  analogue video signal and analogue audio
-+  signal. **NOTE:** some countries employ a digital audio signal
-+  embedded  within the modulated composite analogue signal -
-+  NICAM.)
-+* digitize  the analogue video signal and make the resulting
-+  datastream available to the data bus.
-+
-+The  digital  datastream from an Analogue TV card is generated
-+by  circuitry on the card and is often presented uncompressed.
-+For  a PAL TV signal encoded at a resolution of 768x576 24-bit
-+color pixels over 25 frames per second - a fair amount of data
-+is  generated and must be processed by the PC before it can be
-+displayed  on the video monitor screen. Some Analogue TV cards
-+for  PCs  have  onboard  MPEG2  encoders  which permit the raw
-+digital  data  stream  to be presented to the PC in an encoded
-+and  compressed  form  -  similar  to the form that is used in
-+Digital TV.
-+
-+The  purpose of a simple budget digital TV card (DVB-T,C or S)
-+is to simply:
-+
-+* Tune the received to receive a broadcast signal.
-+* Extract  the encoded digital datastream from the broadcast
-+  signal.
-+* Make  the  encoded digital datastream (MPEG2) available to
-+  the data bus.
-+
-+The  significant  difference between the two is that the tuner
-+on  the analogue TV card spits out an Analogue signal, whereas
-+the  tuner  on  the  digital  TV  card  spits out a compressed
-+encoded   digital   datastream.   As  the  signal  is  already
-+digitised,  it  is  trivial  to pass this datastream to the PC
-+databus  with  minimal  additional processing and then extract
-+the  digital  video  and audio datastreams passing them to the
-+appropriate software or hardware for decoding and viewing.
- 
- The Avermedia DVB-T
-+~~~~~~~~~~~~~~~~~~~
- 
--   The Avermedia DVB-T is a budget PCI DVB card. It has 3 inputs:
-+The Avermedia DVB-T is a budget PCI DVB card. It has 3 inputs:
- 
--     * RF Tuner Input
--     * Composite Video Input (RCA Jack)
--     * SVIDEO Input (Mini-DIN)
-+* RF Tuner Input
-+* Composite Video Input (RCA Jack)
-+* SVIDEO Input (Mini-DIN)
- 
--   The  RF  Tuner  Input  is the input to the tuner module of the
--   card.  The  Tuner  is  otherwise known as the "Frontend" . The
--   Frontend of the Avermedia DVB-T is a Microtune 7202D. A timely
--   post  to  the  linux-dvb  mailing  list  ascertained  that the
--   Microtune  7202D  is  supported  by the sp887x driver which is
--   found in the dvb-hw CVS module.
-+The  RF  Tuner  Input  is the input to the tuner module of the
-+card.  The  Tuner  is  otherwise known as the "Frontend" . The
-+Frontend of the Avermedia DVB-T is a Microtune 7202D. A timely
-+post  to  the  linux-dvb  mailing  list  ascertained  that the
-+Microtune  7202D  is  supported  by the sp887x driver which is
-+found in the dvb-hw CVS module.
-+
-+The  DVB-T card is based around the BT878 chip which is a very
-+common multimedia bridge and often found on Analogue TV cards.
-+There is no on-board MPEG2 decoder, which means that all MPEG2
-+decoding  must  be done in software, or if you have one, on an
-+MPEG2 hardware decoding card or chipset.
- 
--   The  DVB-T card is based around the BT878 chip which is a very
--   common multimedia bridge and often found on Analogue TV cards.
--   There is no on-board MPEG2 decoder, which means that all MPEG2
--   decoding  must  be done in software, or if you have one, on an
--   MPEG2 hardware decoding card or chipset.
--     _________________________________________________________
- 
- Getting the card going
--
--   In order to fire up the card, it is necessary to load a number
--   of modules from the DVB driver set. Prior to this it will have
--   been  necessary to download these drivers from the linuxtv CVS
--   server and compile them successfully.
--
--   Depending on the card's feature set, the Device Driver API for
--   DVB under Linux will expose some of the following device files
--   in the /dev tree:
--
--     * /dev/dvb/adapter0/audio0
--     * /dev/dvb/adapter0/ca0
--     * /dev/dvb/adapter0/demux0
--     * /dev/dvb/adapter0/dvr0
--     * /dev/dvb/adapter0/frontend0
--     * /dev/dvb/adapter0/net0
--     * /dev/dvb/adapter0/osd0
--     * /dev/dvb/adapter0/video0
--
--   The  primary  device  nodes that we are interested in (at this
--   stage) for the Avermedia DVB-T are:
--
--     * /dev/dvb/adapter0/dvr0
--     * /dev/dvb/adapter0/frontend0
--
--   The dvr0 device node is used to read the MPEG2 Data Stream and
--   the frontend0 node is used to tune the frontend tuner module.
--
--   At  this  stage,  it  has  not  been  able  to  ascertain  the
--   functionality  of the remaining device nodes in respect of the
--   Avermedia  DVBT.  However,  full  functionality  in respect of
--   tuning,  receiving  and  supplying  the  MPEG2  data stream is
--   possible  with the currently available versions of the driver.
--   It  may be possible that additional functionality is available
--   from  the  card  (i.e.  viewing the additional analogue inputs
--   that  the card presents), but this has not been tested yet. If
--   I get around to this, I'll update the document with whatever I
--   find.
--
--   To  power  up  the  card,  load  the  following modules in the
--   following order:
--
--     * modprobe bttv (normally loaded automatically)
--     * modprobe dvb-bt8xx (or place dvb-bt8xx in /etc/modules)
--
--   Insertion  of  these  modules  into  the  running  kernel will
--   activate the appropriate DVB device nodes. It is then possible
--   to start accessing the card with utilities such as scan, tzap,
--   dvbstream etc.
--
--   The frontend module sp887x.o, requires an external   firmware.
--   Please use  the  command "get_dvb_firmware sp887x" to download
--   it. Then copy it to /usr/lib/hotplug/firmware or /lib/firmware/
--   (depending on configuration of firmware hotplug).
-+~~~~~~~~~~~~~~~~~~~~~~
-+
-+In order to fire up the card, it is necessary to load a number
-+of modules from the DVB driver set. Prior to this it will have
-+been  necessary to download these drivers from the linuxtv CVS
-+server and compile them successfully.
-+
-+Depending on the card's feature set, the Device Driver API for
-+DVB under Linux will expose some of the following device files
-+in the /dev tree:
-+
-+* /dev/dvb/adapter0/audio0
-+* /dev/dvb/adapter0/ca0
-+* /dev/dvb/adapter0/demux0
-+* /dev/dvb/adapter0/dvr0
-+* /dev/dvb/adapter0/frontend0
-+* /dev/dvb/adapter0/net0
-+* /dev/dvb/adapter0/osd0
-+* /dev/dvb/adapter0/video0
-+
-+The  primary  device  nodes that we are interested in (at this
-+stage) for the Avermedia DVB-T are:
-+
-+* /dev/dvb/adapter0/dvr0
-+* /dev/dvb/adapter0/frontend0
-+
-+The dvr0 device node is used to read the MPEG2 Data Stream and
-+the frontend0 node is used to tune the frontend tuner module.
-+
-+At  this  stage,  it  has  not  been  able  to  ascertain  the
-+functionality  of the remaining device nodes in respect of the
-+Avermedia  DVBT.  However,  full  functionality  in respect of
-+tuning,  receiving  and  supplying  the  MPEG2  data stream is
-+possible  with the currently available versions of the driver.
-+It  may be possible that additional functionality is available
-+from  the  card  (i.e.  viewing the additional analogue inputs
-+that  the card presents), but this has not been tested yet. If
-+I get around to this, I'll update the document with whatever I
-+find.
-+
-+To  power  up  the  card,  load  the  following modules in the
-+following order:
-+
-+* modprobe bttv (normally loaded automatically)
-+* modprobe dvb-bt8xx (or place dvb-bt8xx in /etc/modules)
-+
-+Insertion  of  these  modules  into  the  running  kernel will
-+activate the appropriate DVB device nodes. It is then possible
-+to start accessing the card with utilities such as scan, tzap,
-+dvbstream etc.
-+
-+The frontend module sp887x.o, requires an external   firmware.
-+Please use  the  command "get_dvb_firmware sp887x" to download
-+it. Then copy it to /usr/lib/hotplug/firmware or /lib/firmware/
-+(depending on configuration of firmware hotplug).
- 
- Receiving DVB-T in Australia
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
--   I  have  no  experience of DVB-T in other countries other than
--   Australia,  so  I will attempt to explain how it works here in
--   Melbourne  and how this affects the configuration of the DVB-T
--   card.
-+I  have  no  experience of DVB-T in other countries other than
-+Australia,  so  I will attempt to explain how it works here in
-+Melbourne  and how this affects the configuration of the DVB-T
-+card.
- 
--   The  Digital  Broadcasting  Australia  website has a Reception
--   locatortool which provides information on transponder channels
--   and  frequencies.  My  local  transmitter  happens to be Mount
--   Dandenong.
-+The  Digital  Broadcasting  Australia  website has a Reception
-+locatortool which provides information on transponder channels
-+and  frequencies.  My  local  transmitter  happens to be Mount
-+Dandenong.
- 
--   The frequencies broadcast by Mount Dandenong are:
-+The frequencies broadcast by Mount Dandenong are:
- 
--   Table 1. Transponder Frequencies Mount Dandenong, Vic, Aus.
--   Broadcaster Channel Frequency
--   ABC         VHF 12  226.5 MHz
--   TEN         VHF 11  219.5 MHz
--   NINE        VHF 8   191.625 MHz
--   SEVEN       VHF 6   177.5 MHz
--   SBS         UHF 29  536.5 MHz
-+Table 1. Transponder Frequencies Mount Dandenong, Vic, Aus.
-+Broadcaster Channel Frequency
-+ABC         VHF 12  226.5 MHz
-+TEN         VHF 11  219.5 MHz
-+NINE        VHF 8   191.625 MHz
-+SEVEN       VHF 6   177.5 MHz
-+SBS         UHF 29  536.5 MHz
- 
--   The Scan utility has a set of compiled-in defaults for various
--   countries and regions, but if they do not suit, or if you have
--   a pre-compiled scan binary, you can specify a data file on the
--   command  line which contains the transponder frequencies. Here
--   is a sample file for the above channel transponders:
--# Data file for DVB scan program
--#
--# C Frequency SymbolRate FEC QAM
--# S Frequency Polarisation SymbolRate FEC
--# T Frequency Bandwidth FEC FEC2 QAM Mode Guard Hier
--T 226500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 191625000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 219500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 177500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 536500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
-+The Scan utility has a set of compiled-in defaults for various
-+countries and regions, but if they do not suit, or if you have
-+a pre-compiled scan binary, you can specify a data file on the
-+command  line which contains the transponder frequencies. Here
-+is a sample file for the above channel transponders:
- 
--   The   defaults   for   the  transponder  frequency  and  other
--   modulation parameters were obtained from www.dba.org.au.
-+::
- 
--   When  Scan  runs, it will output channels.conf information for
--   any  channel's transponders which the card's frontend can lock
--   onto.  (i.e.  any  whose  signal  is  strong  enough  at  your
--   antenna).
-+	# Data file for DVB scan program
-+	#
-+	# C Frequency SymbolRate FEC QAM
-+	# S Frequency Polarisation SymbolRate FEC
-+	# T Frequency Bandwidth FEC FEC2 QAM Mode Guard Hier
-+	T 226500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
-+	T 191625000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
-+	T 219500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
-+	T 177500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
-+	T 536500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
- 
--   Here's my channels.conf file for anyone who's interested:
--ABC HDTV:226500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64
--:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:2307:0:560
--ABC TV Melbourne:226500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_
--4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:65
--0:561
--ABC TV 2:226500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64
--:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:562
--ABC TV 3:226500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64
--:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:563
--ABC TV 4:226500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64
--:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:564
--ABC DiG Radio:226500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:Q
--AM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:0:2311:56
--6
--TEN Digital:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM
--_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:158
--5
--TEN Digital 1:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:Q
--AM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:1
--586
--TEN Digital 2:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:Q
--AM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:1
--587
--TEN Digital 3:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:Q
--AM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:1
--588
--TEN Digital:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM
--_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:158
--9
--TEN Digital 4:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:Q
--AM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:1
--590
--TEN Digital:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM
--_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:159
--1
--TEN HD:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:T
--RANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:514:0:1592
--TEN Digital:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM
--_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:159
--3
--Nine Digital:191625000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QA
--M_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:513:660:10
--72
--Nine Digital HD:191625000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2
--:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:0:1
--073
--Nine Guide:191625000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_
--64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:514:670:1074
--7 Digital:177500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_6
--4:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:769:770:1328
--7 Digital 1:177500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM
--_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:769:770:1329
--7 Digital 2:177500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM
--_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:769:770:1330
--7 Digital 3:177500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM
--_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:769:770:1331
--7 HD Digital:177500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QA
--M_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:833:834:133
--2
--7 Program Guide:177500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3
--:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:865:866:
--1334
--SBS HD:536500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:T
--RANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:102:103:784
--SBS DIGITAL 1:536500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:Q
--AM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:161:81:785
--SBS DIGITAL 2:536500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:Q
--AM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:162:83:786
--SBS EPG:536500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:
--TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:163:85:787
--SBS RADIO 1:536500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM
--_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:201:798
--SBS RADIO 2:536500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM
--_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:202:799
--     _________________________________________________________
-+The   defaults   for   the  transponder  frequency  and  other
-+modulation parameters were obtained from www.dba.org.au.
-+
-+When  Scan  runs, it will output channels.conf information for
-+any  channel's transponders which the card's frontend can lock
-+onto.  (i.e.  any  whose  signal  is  strong  enough  at  your
-+antenna).
-+
-+Here's my channels.conf file for anyone who's interested:
-+
-+::
-+
-+	ABC HDTV:226500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:2307:0:560
-+	ABC TV Melbourne:226500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:561
-+	ABC TV 2:226500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:562
-+	ABC TV 3:226500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:563
-+	ABC TV 4:226500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:564
-+	ABC DiG Radio:226500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:0:2311:566
-+	TEN Digital:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:1585
-+	TEN Digital 1:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:1586
-+	TEN Digital 2:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:1587
-+	TEN Digital 3:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:1588
-+	TEN Digital:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:1589
-+	TEN Digital 4:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:1590
-+	TEN Digital:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:1591
-+	TEN HD:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:514:0:1592
-+	TEN Digital:219500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:1593
-+	Nine Digital:191625000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:513:660:1072
-+	Nine Digital HD:191625000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:0:1073
-+	Nine Guide:191625000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:514:670:1074
-+	7 Digital:177500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:769:770:1328
-+	7 Digital 1:177500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:769:770:1329
-+	7 Digital 2:177500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:769:770:1330
-+	7 Digital 3:177500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:769:770:1331
-+	7 HD Digital:177500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:833:834:1332
-+	7 Program Guide:177500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:865:866:1334
-+	SBS HD:536500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:102:103:784
-+	SBS DIGITAL 1:536500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:161:81:785
-+	SBS DIGITAL 2:536500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:162:83:786
-+	SBS EPG:536500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:163:85:787
-+	SBS RADIO 1:536500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:201:798
-+	SBS RADIO 2:536500000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:202:799
- 
- Known Limitations
-+~~~~~~~~~~~~~~~~~
- 
--   At  present  I can say with confidence that the frontend tunes
--   via /dev/dvb/adapter{x}/frontend0 and supplies an MPEG2 stream
--   via   /dev/dvb/adapter{x}/dvr0.   I   have   not   tested  the
--   functionality  of any other part of the card yet. I will do so
--   over time and update this document.
-+At  present  I can say with confidence that the frontend tunes
-+via /dev/dvb/adapter{x}/frontend0 and supplies an MPEG2 stream
-+via   /dev/dvb/adapter{x}/dvr0.   I   have   not   tested  the
-+functionality  of any other part of the card yet. I will do so
-+over time and update this document.
- 
--   There  are some limitations in the i2c layer due to a returned
--   error message inconsistency. Although this generates errors in
--   dmesg  and  the  system logs, it does not appear to affect the
--   ability of the frontend to function correctly.
--     _________________________________________________________
-+There  are some limitations in the i2c layer due to a returned
-+error message inconsistency. Although this generates errors in
-+dmesg  and  the  system logs, it does not appear to affect the
-+ability of the frontend to function correctly.
- 
- Further Update
-+~~~~~~~~~~~~~~
- 
--   dvbstream  and  VideoLAN  Client on windows works a treat with
--   DVB,  in  fact  this  is  currently  serving as my main way of
--   viewing  DVB-T  at  the  moment.  Additionally, VLC is happily
--   decoding  HDTV  signals,  although  the PC is dropping the odd
--   frame here and there - I assume due to processing capability -
--   as all the decoding is being done under windows in software.
-+dvbstream  and  VideoLAN  Client on windows works a treat with
-+DVB,  in  fact  this  is  currently  serving as my main way of
-+viewing  DVB-T  at  the  moment.  Additionally, VLC is happily
-+decoding  HDTV  signals,  although  the PC is dropping the odd
-+frame here and there - I assume due to processing capability -
-+as all the decoding is being done under windows in software.
- 
--   Many  thanks to Nigel Pearson for the updates to this document
--   since the recent revision of the driver.
--
--   February 14th 2006
-+Many  thanks to Nigel Pearson for the updates to this document
-+since the recent revision of the driver.
-diff --git a/Documentation/media/dvb-drivers/index.rst b/Documentation/media/dvb-drivers/index.rst
-index 6ec5549d2f07..2a09e9d22664 100644
---- a/Documentation/media/dvb-drivers/index.rst
-+++ b/Documentation/media/dvb-drivers/index.rst
-@@ -19,3 +19,4 @@ License".
- 	:maxdepth: 5
- 
- 	intro
-+	avermedia
+    Revert "usb: musb: musb_host: Enable HCD_BH flag to handle urb
+return in bottom half"
+
+I have not checked yet, if it was intentionnaly fixed.
+
+2016-07-23 22:24 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+> 2016-07-20 21:56 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+>> 2016-07-20 18:06 GMT+03:00 Bin Liu <b-liu@ti.com>:
+>>> Hi,
+>>>
+>>> On Wed, Jul 20, 2016 at 05:44:56PM +0300, Matwey V. Kornilov wrote:
+>>>> 2016-07-20 17:13 GMT+03:00 Bin Liu <b-liu@ti.com>:
+>>>> > Hi,
+>>>> >
+>>>> > On Wed, Jul 20, 2016 at 09:09:42AM +0300, Matwey V. Kornilov wrote:
+>>>> >> 2016-07-20 0:34 GMT+03:00 Bin Liu <b-liu@ti.com>:
+>>>> >> > Hi,
+>>>> >> >
+>>>> >> > On Wed, Jul 20, 2016 at 12:25:44AM +0300, Matwey V. Kornilov wrote:
+>>>> >> >> 2016-07-19 23:56 GMT+03:00 Bin Liu <b-liu@ti.com>:
+>>>> >> >> > Hi,
+>>>> >> >> >
+>>>> >> >> > On Tue, Jul 19, 2016 at 11:21:17PM +0300, matwey@sai.msu.ru wrote:
+>>>> >> >> >> Hello,
+>>>> >> >> >>
+>>>> >> >> >> I have Philips SPC 900 camera (0471:0329) connected to my AM335x based BeagleBoneBlack SBC.
+>>>> >> >> >> I am sure that both of them are fine and work properly.
+>>>> >> >> >> I am running Linux 4.6.4 (my kernel config is available at https://clck.ru/A2kQs ) and I've just discovered, that there is an issue with frame transfer when high resolution formats are used.
+>>>> >> >> >>
+>>>> >> >> >> The issue is the following. I use simple v4l2 example tool (taken from API docs), which source code is available at http://pastebin.com/grcNXxfe
+>>>> >> >> >>
+>>>> >> >> >> When I use (see line 488) 640x480 frames
+>>>> >> >> >>
+>>>> >> >> >>                 fmt.fmt.pix.width       = 640;
+>>>> >> >> >>                 fmt.fmt.pix.height      = 480;
+>>>> >> >> >>
+>>>> >> >> >> then I get "select timeout" and don't get any frames.
+>>>> >> >> >>
+>>>> >> >> >> When I use 320x240 frames
+>>>> >> >> >>
+>>>> >> >> >>                 fmt.fmt.pix.width       = 320;
+>>>> >> >> >>                 fmt.fmt.pix.height      = 240;
+>>>> >> >> >>
+>>>> >> >> >> then about 60% frames are missed. An example outpout of ./a.out -f is available at https://yadi.sk/d/aRka8xWPtSc4y
+>>>> >> >> >> It looks like there are pauses between bulks of frames (frame counter and timestamp as returned from v4l2 API):
+>>>> >> >> >>
+>>>> >> >> >> 3 3705.142553
+>>>> >> >> >> 8 3705.342533
+>>>> >> >> >> 13 3705.542517
+>>>> >> >> >> 110 3708.776208
+>>>> >> >> >> 115 3708.976190
+>>>> >> >> >> 120 3709.176169
+>>>> >> >> >> 125 3709.376152
+>>>> >> >> >> 130 3709.576144
+>>>> >> >> >> 226 3712.807848
+>>>> >> >> >>
+>>>> >> >> >> When I use tiny 160x120 frames
+>>>> >> >> >>
+>>>> >> >> >>                 fmt.fmt.pix.width       = 160;
+>>>> >> >> >>                 fmt.fmt.pix.height      = 120;
+>>>> >> >> >>
+>>>> >> >> >> then more frames are received. See output example at https://yadi.sk/d/DedBmH6ftSc9t
+>>>> >> >> >> That is why I thought that everything was fine in May when used tiny xawtv window to check kernel OOPS presence (see http://www.spinics.net/lists/linux-usb/msg141188.html for reference)
+>>>> >> >> >>
+>>>> >> >> >> Even more. When I introduce USB hub between the host and the webcam, I can not receive even any 320x240 frames.
+>>>> >> >> >>
+>>>> >> >> >> I've managed to use ftrace to see what is going on when no frames are received.
+>>>> >> >> >> I've found that pwc_isoc_handler is called frequently as the following:
+>>>> >> >> >>
+>>>> >> >> >>  0)               |  pwc_isoc_handler [pwc]() {
+>>>> >> >> >>  0)               |    usb_submit_urb [usbcore]() {
+>>>> >> >> >>  0)               |      usb_submit_urb.part.3 [usbcore]() {
+>>>> >> >> >>  0)               |        usb_hcd_submit_urb [usbcore]() {
+>>>> >> >> >>  0)   0.834 us    |          usb_get_urb [usbcore]();
+>>>> >> >> >>  0)               |          musb_map_urb_for_dma [musb_hdrc]() {
+>>>> >> >> >>  0)   0.792 us    |            usb_hcd_map_urb_for_dma [usbcore]();
+>>>> >> >> >>  0)   5.750 us    |          }
+>>>> >> >> >>  0)               |          musb_urb_enqueue [musb_hdrc]() {
+>>>> >> >> >>  0)   0.750 us    |            _raw_spin_lock_irqsave();
+>>>> >> >> >>  0)               |            usb_hcd_link_urb_to_ep [usbcore]() {
+>>>> >> >> >>  0)   0.792 us    |              _raw_spin_lock();
+>>>> >> >> >>  0)   0.791 us    |              _raw_spin_unlock();
+>>>> >> >> >>  0) + 10.500 us   |            }
+>>>> >> >> >>  0)   0.791 us    |            _raw_spin_unlock_irqrestore();
+>>>> >> >> >>  0) + 25.375 us   |          }
+>>>> >> >> >>  0) + 45.208 us   |        }
+>>>> >> >> >>  0) + 51.042 us   |      }
+>>>> >> >> >>  0) + 56.084 us   |    }
+>>>> >> >> >>  0) + 61.292 us   |  }
+>>>> >> >> >>
+>>>> >> >> >> However, pwc_isoc_handler never calls vb2_buffer_done() that is why I get "select timeout" in userspace.
+>>>> >> >> >> Unfortunately, my kernel is not compiled with CONFIG_USB_PWC_DEBUG=y but I can recompile it, if you think that it could provide more information. I am also ready to perform additional tests (use usbmon maybe?).
+>>>> >> >> >>
+>>>> >> >> >> How could this issue be resolved?
+>>>> >> >> >>
+>>>> >> >> >> Thank you.
+>>>> >> >> >
+>>>> >> >> > Do you have CPPI DMA enabled? If so I think you might hit on a known
+>>>> >> >> > issue in CPPI Isoch transfer, in which the MUSB controller only sends IN
+>>>> >> >> > tokens in every other SOF, so only half of the bus bandwidth is
+>>>> >> >> > utilized, which causes video frame drops in higher resolution.
+>>>> >> >> >
+>>>> >> >>
+>>>> >> >> Yes, I do use DMA:
+>>>> >> >>
+>>>> >> >> CONFIG_USB_TI_CPPI41_DMA=y
+>>>> >> >
+>>>> >> > Okay.
+>>>> >> >
+>>>> >> >>
+>>>> >> >> > To confirm this, use a bus analyzer to capture a bus trace, you would
+>>>> >> >> > see no IN tokens in every other SOF while transfering Isoch packets.
+>>>> >> >> >
+>>>> >> >>
+>>>> >> >> I am sorry, I am new to USB debugging. Do you mean I need to use
+>>>> >> >> usbmon or some external hardware device?
+>>>> >> >
+>>>> >> > I barely use usbmon, and not sure if it gives the information I am
+>>>> >> > looking for. But I meant the external test equipment - USB bus protocol
+>>>> >> > analyzer - a bus packet sniffer.
+>>>> >> >
+>>>> >>
+>>>> >> Now I see. I've googled it, they start from $1000, I don't know
+>>>> >> when/whether/where I can get one to try.
+>>>> >
+>>>> > I think you might be able to check it without a sniffer - MUSB
+>>>> > controller can generate SOF interrupts, but it is masked in current
+>>>> > driver. So I think you could enable SOF interrupt, then if you get a log
+>>>> > as
+>>>> >         SOF
+>>>> >         rx packet
+>>>> >         SOF
+>>>> >         rx packet
+>>>> >         SOF
+>>>> >         ...
+>>>> > or
+>>>> >         SOF
+>>>> >         rx packet
+>>>> >         rx packet
+>>>> >         rx packet
+>>>> >         SOF
+>>>> >         rx packet
+>>>> >         rx packet
+>>>> >         rx packet
+>>>> >         SOF
+>>>> >         ...
+>>>> >
+>>>> > which means your issue is different from the one I mentioned. But if
+>>>> > you get a log as
+>>>> >
+>>>> >         SOF
+>>>> >         rx packet
+>>>> >         SOF
+>>>> >         SOF     <--- no rx packets in two consecutive SOFs
+>>>> >         rx packet
+>>>> >         SOF
+>>>> >         SOF
+>>>> >
+>>>> > then you hit on the known issue I mentioned.
+>>>> >
+>>>> >> Until that, could I check something else? For instance, disable
+>>>> >> CONFIG_USB_TI_CPPI41_DMA.
+>>>> >
+>>>> > You could disable it, but I don't think you will get yuv video stream
+>>>> > of 640x480@30fps. PIO mode does not support such high bandwidth. What is
+>>>> > your video requirement anyway?
+>>>>
+>>>> Many thanks for your guidance. I will answer the rest later when will
+>>>> be ready to play with SOF interrupt.
+>>>> Now, I would like to say that use_dma=0 doesn't change the behaviour:
+>>>>
+>>>> # cat /sys/module/musb_hdrc/parameters/use_dma
+>>>> N
+>>>
+>>> It sounds like you have a different issue here. With usb_dma=0, I
+>>> remembered I can get 320x240 YUV stream @30fps from uvc cameras.
+>>>
+>>>>
+>>>> I would like 640x480@5fps which works with x86 based PC. Issue here,
+>>>> that I can not obtain 640x480 at any FPS on musb.
+>>>
+>>> The current CPPI41 driver should be able to handle this. I think you
+>>> really have to debug the pwc driver to figure out why it drops the video
+>>> frame. I personally don't have a pwc supported camera, never looked the
+>>> pwc driver...
+>>
+>> Surprisingly, I've found that my 10-year-old laptop (Intel Core Solo
+>> T1350) has the similar issue with pwc (kernel 3.16). It drops 80% of
+>> 640x480 frames.
+>> Vortex86 200Mhz based rugged PC with 2.6.14 works fine.
+>> Quad-code Atom E3800 based PC with 4.1 also works fine.
+>>
+>> So, I even don't know what to say. Probably, the issue depends on CPU
+>> latency/performance and it was there for a while.
+>> Fortunately, I think, I could use git bisect if I found latest forking
+>> kernel for my laptop.
+>>
+>
+> It seems that the issue is gone in 4.7-rc7, so forget it.
+>
+>>>
+>>>>
+>>>> >
+>>>> >>
+>>>> >> I've found that after hours of transmit, the camera stops iso at all
+>>>> >> (until reset). Maybe its brain becomes damaged by the transfer issues
+>>>> >
+>>>> > How did you check that? MUSB stopped generating RX EP interrupt?
+>>>>
+>>>> Something like that, I suppose. Normally, I see input data flow in
+>>>> usbmon, but don't see frames in v4l2.
+>>>> But when camera 'hungs', I don't see nor input flow (except the
+>>>> control packages exchange) neither frames.
+>>>
+>>> Fair enough.
+>>>
+>>> Regards,
+>>> -Bin.
+>>>
+>>
+>>
+>>
+>> --
+>> With best regards,
+>> Matwey V. Kornilov.
+>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>
+>
+>
+> --
+> With best regards,
+> Matwey V. Kornilov.
+> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+
+
+
 -- 
-2.7.4
-
+With best regards,
+Matwey V. Kornilov.
+Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
