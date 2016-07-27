@@ -1,53 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:36853 "EHLO
-	mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751441AbcGROrY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 10:47:24 -0400
-From: William Breathitt Gray <vilhelm.gray@gmail.com>
-To: mchehab@osg.samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	William Breathitt Gray <vilhelm.gray@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 6/6] radio: aimslab: Utilize the module_isa_driver macro
-Date: Mon, 18 Jul 2016 10:47:17 -0400
-Message-Id: <8f4ded054bbf7dcc49f87a7ba8464e6baeb328e4.1468852798.git.vilhelm.gray@gmail.com>
-In-Reply-To: <cover.1468852798.git.vilhelm.gray@gmail.com>
-References: <cover.1468852798.git.vilhelm.gray@gmail.com>
+Received: from mail.southpole.se ([37.247.8.11]:41664 "EHLO mail.southpole.se"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753179AbcG0Pyv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jul 2016 11:54:51 -0400
+Subject: Re: [PATCH] [media] dw2102: Add support for Terratec Cinergy S2 USB
+ BOX
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Olli Salonen <olli.salonen@iki.fi>
+References: <1451935971-31402-1-git-send-email-p.zabel@pengutronix.de>
+ <CAAZRmGz5vS8vMBEQeMo6BS0XijoCj655jha5vCsiy2P8TcgSoQ@mail.gmail.com>
+ <20160716134707.6cf426ea@recife.lan>
+ <CAAZRmGyo7wRjENT_o8ezdjrBb2xU-zxmRKWakC6H4zVNm+YDeA@mail.gmail.com>
+ <20160718085911.7bbbd38c@recife.lan>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	linux-media <linux-media@vger.kernel.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Christian Zippel <namerp@gmail.com>
+From: Benjamin Larsson <benjamin@southpole.se>
+Message-ID: <5798D479.9080603@southpole.se>
+Date: Wed, 27 Jul 2016 17:34:17 +0200
+MIME-Version: 1.0
+In-Reply-To: <20160718085911.7bbbd38c@recife.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver does not do anything special in module init/exit. This patch
-eliminates the module init/exit boilerplate code by utilizing the
-module_isa_driver macro.
+On 07/18/2016 01:59 PM, Mauro Carvalho Chehab wrote:
+>It would be
+> nice if both Philipp and Benjamin test such patch, for us to be sure
+> that it would work for both.
+>
+> Regards,
+> Mauro
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: William Breathitt Gray <vilhelm.gray@gmail.com>
----
- drivers/media/radio/radio-aimslab.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+I added it to the dvbsky driver so I guess that Philipp has to do the 
+testing.
 
-diff --git a/drivers/media/radio/radio-aimslab.c b/drivers/media/radio/radio-aimslab.c
-index ea930879..d1566a3 100644
---- a/drivers/media/radio/radio-aimslab.c
-+++ b/drivers/media/radio/radio-aimslab.c
-@@ -180,15 +180,4 @@ static struct radio_isa_driver rtrack_driver = {
- 	.max_volume = 0xff,
- };
- 
--static int __init rtrack_init(void)
--{
--	return isa_register_driver(&rtrack_driver.driver, RTRACK_MAX);
--}
--
--static void __exit rtrack_exit(void)
--{
--	isa_unregister_driver(&rtrack_driver.driver);
--}
--
--module_init(rtrack_init);
--module_exit(rtrack_exit);
-+module_isa_driver(rtrack_driver.driver, RTRACK_MAX);
--- 
-2.7.3
-
+MvH
+Benjamin Larsson
