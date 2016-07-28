@@ -1,64 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:47992 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752043AbcGAQUH (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40497 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1163208AbcG1DAa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jul 2016 12:20:07 -0400
-Subject: Re: A potential race
-To: Pavel Andrianov <andrianov@ispras.ru>
-References: <57727001.7040606@ispras.ru> <577680B3.5010901@ispras.ru>
- <8c161772-d2d9-0897-7f76-40caea5f0a93@xs4all.nl> <577685EE.1050704@ispras.ru>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Vladis Dronov <vdronov@redhat.com>,
-	Insu Yun <wuninsu@gmail.com>, Oliver Neukum <oneukum@suse.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Vaishali Thakkar <vaishali.thakkar@oracle.com>,
-	ldv-project@linuxtesting.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <efc6a5f7-00c7-b26c-074e-f7510adc3f60@xs4all.nl>
-Date: Fri, 1 Jul 2016 18:17:30 +0200
-MIME-Version: 1.0
-In-Reply-To: <577685EE.1050704@ispras.ru>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+	Wed, 27 Jul 2016 23:00:30 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 31BEF18021F
+	for <linux-media@vger.kernel.org>; Thu, 28 Jul 2016 05:00:24 +0200 (CEST)
+Date: Thu, 28 Jul 2016 05:00:24 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160728030024.31BEF18021F@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/01/2016 05:02 PM, Pavel Andrianov wrote:
-> 01.07.2016 19:53, Hans Verkuil пишет:
->> On 07/01/2016 04:39 PM, Pavel Andrianov wrote:
->>>   Hi!
->>>
->>> There is a potential race condition between usbvision_v4l2_close and usbvision_disconnect. The possible scenario may be the following. usbvision_disconnect starts execution, assigns usbvision->remove_pending = 1, and is interrupted
->>> (rescheduled) after mutex_unlock. After that usbvision_v4l2_close is executed, decrease usbvision->user-- , checks usbvision->remove_pending, executes usbvision_release and finishes. Then usbvision_disconnect continues its execution. It checks
->>> usbversion->user (it is already 0) and also execute usbvision_release. Thus, release is executed twice. The same situation may
->>> occur if usbvision_v4l2_close is interrupted by usbvision_disconnect. Moreover, the same problem is in usbvision_radio_close. In all these cases the check before call usbvision_release under mutex_lock protection does not solve the problem, because  there may occur an open() after the check and the race takes place again. The question is: why the usbvision_release
->>> is called from close() (usbvision_v4l2_close and usbvision_radio_close)? Usually release functions are called from
->>> disconnect.
->> Please don't use html mail, mailinglists will silently reject this.
->>
->> The usbvision driver is old and unloved and known to be very bad code. It needs a huge amount of work to make all this work correctly.
->>
->> I don't see anyone picking this up...
->>
->> Regards,
->>
->> 	Hans
-> If you know the driver, could you, please, explain me, why 
-> usbvision_release is called from close functions (usbvision_v4l2_close 
-> and usbvision_radio_close) and not only from disconnect? Thanks!
-> 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Because the author didn't know what he was doing. Although, to be fair, we have much better
-solutions for this. But who is willing to put in the time to fix this properly?
+Results of the daily build of media_tree:
 
-The basic idea was: if someone still has a video/radio node open when disconnect happens, then
-we leave it to the last close to call release, otherwise we can call release right away.
+date:		Thu Jul 28 04:00:26 CEST 2016
+git branch:	test
+git hash:	009a620848218d521f008141c62f56bf19294dd9
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-It needs to be rewritten.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1.1-i686: WARNINGS
+linux-4.2-i686: WARNINGS
+linux-4.3-i686: WARNINGS
+linux-4.4-i686: WARNINGS
+linux-4.5-i686: WARNINGS
+linux-4.6-i686: WARNINGS
+linux-4.7-rc1-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0-x86_64: WARNINGS
+linux-4.1.1-x86_64: WARNINGS
+linux-4.2-x86_64: WARNINGS
+linux-4.3-x86_64: WARNINGS
+linux-4.4-x86_64: WARNINGS
+linux-4.5-x86_64: WARNINGS
+linux-4.6-x86_64: WARNINGS
+linux-4.7-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-If you're volunteering to clean this up, then I can give pointers.
+Detailed results are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-	Hans
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
