@@ -1,72 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:56036 "EHLO
-	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753863AbcGSOXL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2016 10:23:11 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org,
-	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 08/16] [media] rcar-vin: move chip check for pixelformat support
-Date: Tue, 19 Jul 2016 16:20:59 +0200
-Message-Id: <20160719142107.22358-9-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20160719142107.22358-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail.kernel.org ([198.145.29.136]:40976 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752180AbcG1Pza (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jul 2016 11:55:30 -0400
 MIME-Version: 1.0
+In-Reply-To: <1469583886.27630.18.camel@mtksdaap41>
+References: <1469176383-35210-1-git-send-email-minghsiu.tsai@mediatek.com>
+ <1469176383-35210-3-git-send-email-minghsiu.tsai@mediatek.com>
+ <20160726185433.GA14609@rob-hp-laptop> <1469583886.27630.18.camel@mtksdaap41>
+From: Rob Herring <robh@kernel.org>
+Date: Thu, 28 Jul 2016 10:55:05 -0500
+Message-ID: <CAL_JsqK4Lz9mSJ+EXAY1g9L-CzBmbsed+MfCjkf_545y1Ov0iw@mail.gmail.com>
+Subject: Re: [PATCH v2 2/4] dt-bindings: Add a binding for Mediatek MDP
+To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Daniel Thompson <daniel.thompson@linaro.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	srv_heupstream@mediatek.com,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	linux-mediatek@lists.infradead.org
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The check for if the specific pixelformat is supported on the current
-chip should happen in VIDIOC_S_FMT and VIDIOC_TRY_FMT and not when we
-try to setup the hardware for streaming.
+On Tue, Jul 26, 2016 at 8:44 PM, Minghsiu Tsai
+<minghsiu.tsai@mediatek.com> wrote:
+> On Tue, 2016-07-26 at 13:54 -0500, Rob Herring wrote:
+>> On Fri, Jul 22, 2016 at 04:33:01PM +0800, Minghsiu Tsai wrote:
+>> > Add a DT binding documentation of MDP for the MT8173 SoC
+>> > from Mediatek
+>> >
+>> > Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+>> > ---
+>> >  .../devicetree/bindings/media/mediatek-mdp.txt     |   96 ++++++++++++++++++++
+>> >  1 file changed, 96 insertions(+)
+>> >  create mode 100644 Documentation/devicetree/bindings/media/mediatek-mdp.txt
+>> >
+>> > diff --git a/Documentation/devicetree/bindings/media/mediatek-mdp.txt b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
+>> > new file mode 100644
+>> > index 0000000..2dad031
+>> > --- /dev/null
+>> > +++ b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
+>> > @@ -0,0 +1,96 @@
+>> > +* Mediatek Media Data Path
+>> > +
+>> > +Media Data Path is used for scaling and color space conversion.
+>> > +
+>> > +Required properties (all function blocks):
+>> > +- compatible: "mediatek,<chip>-mdp"
+>>
+>> What is this, ...
+>>
+>
+> It is used to match platform driver.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-dma.c  | 8 +++-----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 5 +++++
- 2 files changed, 8 insertions(+), 5 deletions(-)
+Would structuring things like this work instead:
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 0836b15..7249c4f 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -225,11 +225,9 @@ static int rvin_setup(struct rvin_dev *vin)
- 		dmr = 0;
- 		break;
- 	case V4L2_PIX_FMT_XBGR32:
--		if (vin->chip == RCAR_GEN2 || vin->chip == RCAR_H1) {
--			dmr = VNDMR_EXRGB;
--			break;
--		}
--		/* fall through */
-+		/* Note: not supported on M1 */
-+		dmr = VNDMR_EXRGB;
-+		break;
- 	default:
- 		vin_err(vin, "Invalid pixelformat (0x%x)\n",
- 			vin->format.pixelformat);
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 09df396..ef3464d 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -192,6 +192,11 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	pix->sizeimage = max_t(u32, pix->sizeimage,
- 			       rvin_format_sizeimage(pix));
- 
-+	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-+		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
-+		return -EINVAL;
-+	}
-+
- 	vin_dbg(vin, "Requested %ux%u Got %ux%u bpl: %d size: %d\n",
- 		rwidth, rheight, pix->width, pix->height,
- 		pix->bytesperline, pix->sizeimage);
--- 
-2.9.0
+{
+  compatible = "mediatek,<chip>-mdp";
+  ranges = ...;
+  {
+    compatible = "mediatek,<chip>-mdp-rdma";
+    ...
+  };
+  {
+    compatible = "mediatek,<chip>-mdp-wdma";
+    ...
+  };
+  ...
+};
 
+>
+>
+>> > +        "mediatek,<chip>-mdp-<function>", one of
+>>
+>> and this?
+>>
+>
+> It is string format of HW block. <chip> could be "mt8173", and
+> <function> are "rdma", "rsz", "wdma", and "wrot".
+>
+>
+>> > +        "mediatek,<chip>-mdp-rdma"  - read DMA
+>> > +        "mediatek,<chip>-mdp-rsz"   - resizer
+>> > +        "mediatek,<chip>-mdp-wdma"  - write DMA
+>> > +        "mediatek,<chip>-mdp-wrot"  - write DMA with rotation
+>>
+>> List what are valid values of <chip>.
+>>
+>
+> <chip> - mt8173. There should be other chip added in future.
+> I will change the property as blow:
+>
+> - compatible: "mediatek,<chip>-mdp"
+>         Should be one of
+>         "mediatek,<chip>-mdp-rdma"  - read DMA
+>         "mediatek,<chip>-mdp-rsz"   - resizer
+>         "mediatek,<chip>-mdp-wdma"  - write DMA
+>         "mediatek,<chip>-mdp-wrot"  - write DMA with rotation
+>         <chip> - could be 8173
+>
+>
+> If don't need <chip>, I also can change it as below. It is more clear.
+
+Up to you. Depends on how many different chips you will have.
+
+> - compatible: "mediatek,mt8173-mdp"
+>         Should be one of
+>         "mediatek,mt8173-mdp-rdma"  - read DMA
+>         "mediatek,mt8173-mdp-rsz"   - resizer
+>         "mediatek,mt8173-mdp-wdma"  - write DMA
+>         "mediatek,mt8173-mdp-wrot"  - write DMA with rotation
+>
+>
+>> > +- reg: Physical base address and length of the function block register space
+>> > +- clocks: device clocks
+>> > +- power-domains: a phandle to the power domain.
+>> > +- mediatek,vpu: the node of video processor unit
+>> > +
+>> > +Required properties (DMA function blocks):
+>> > +- compatible: Should be one of
+>> > +        "mediatek,<chip>-mdp-rdma"
+>> > +        "mediatek,<chip>-mdp-wdma"
+>> > +        "mediatek,<chip>-mdp-wrot"
+>> > +- iommus: should point to the respective IOMMU block with master port as
+>> > +  argument, see Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
+>> > +  for details.
+>> > +- mediatek,larb: must contain the local arbiters in the current Socs.
+>>
+>> It is still not clear which properties apply to which compatible
+>> strings.
+>>
+>
+> I found out the document for larb.
+> I will change the property as below:
+>
+> - mediatek,larb: must contain the local arbiters in the current Socs,
+> see
+> Documentation/devicetree/bindings/memory-controllers/mediatek,smi-larb.txt
+>   for details.
+
+That's good, but not what I meant. You still have properties which
+only apply to certain blocks, but are listed for all blocks like
+mediatek,vpu for example.
+
+Rob
