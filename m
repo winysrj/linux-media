@@ -1,295 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59585 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751915AbcGRSau (ORCPT
+Received: from mail-sn1nam01on0098.outbound.protection.outlook.com ([104.47.32.98]:63841
+	"EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751448AbcG1XpB convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 14:30:50 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 12/18] [media] cx2341x: add contents of README.hm12
-Date: Mon, 18 Jul 2016 15:30:34 -0300
-Message-Id: <b3b7ea9aa7fc7551ee283df6987ceedc709ad56d.1468865380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
-References: <cover.1468865380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1468865380.git.mchehab@s-opensource.com>
-References: <cover.1468865380.git.mchehab@s-opensource.com>
+	Thu, 28 Jul 2016 19:45:01 -0400
+From: "Bird, Timothy" <Tim.Bird@am.sony.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "Shimizu, Kazuhiro" <Kazuhiro.Shimizu@sony.com>,
+	"Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
+	"Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
+	"Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
+	"Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
+	"Berry, Tom" <Tom.Berry@sony.com>,
+	"Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>,
+	"Rowand, Frank" <Frank.Rowand@am.sony.com>,
+	"tbird20d@gmail.com" <tbird20d@gmail.com>
+Subject: Sony tuner chip driver questions
+Date: Thu, 28 Jul 2016 22:12:10 +0000
+Message-ID: <ECADFF3FD767C149AD96A924E7EA6EAF053BB5DA@USCULXMSG02.am.sony.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The README.hm12 file describes the proprietary format used
-by this driver for raw format, called HM12. Add its description
-at the document, after converted to ReST.
+Hello Linux-media people... :-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/v4l-drivers/cx2341x.rst   | 125 ++++++++++++++++++++++++++
- Documentation/video4linux/cx2341x/README.hm12 | 120 -------------------------
- 2 files changed, 125 insertions(+), 120 deletions(-)
- delete mode 100644 Documentation/video4linux/cx2341x/README.hm12
+A group at Sony would like to develop a proper kernel driver
+for a TV/tuner chip that Sony produces, and we'd like to ask some questions
+before we get started.
 
-diff --git a/Documentation/media/v4l-drivers/cx2341x.rst b/Documentation/media/v4l-drivers/cx2341x.rst
-index 57ae45938919..15bfd345df48 100644
---- a/Documentation/media/v4l-drivers/cx2341x.rst
-+++ b/Documentation/media/v4l-drivers/cx2341x.rst
-@@ -3681,3 +3681,128 @@ Register 0x0004 holds the DMA Transfer Status:
- - bit 2:   DMA read error
- - bit 3:   DMA write error
- - bit 4:   Scatter-Gather array error
-+
-+Non-compressed file format
-+--------------------------
-+
-+The cx23416 can produce (and the cx23415 can also read) raw YUV output. The
-+format of a YUV frame is specific to this chip and is called HM12. 'HM' stands
-+for 'Hauppauge Macroblock', which is a misnomer as 'Conexant Macroblock' would
-+be more accurate.
-+
-+The format is YUV 4:2:0 which uses 1 Y byte per pixel and 1 U and V byte per
-+four pixels.
-+
-+The data is encoded as two macroblock planes, the first containing the Y
-+values, the second containing UV macroblocks.
-+
-+The Y plane is divided into blocks of 16x16 pixels from left to right
-+and from top to bottom. Each block is transmitted in turn, line-by-line.
-+
-+So the first 16 bytes are the first line of the top-left block, the
-+second 16 bytes are the second line of the top-left block, etc. After
-+transmitting this block the first line of the block on the right to the
-+first block is transmitted, etc.
-+
-+The UV plane is divided into blocks of 16x8 UV values going from left
-+to right, top to bottom. Each block is transmitted in turn, line-by-line.
-+
-+So the first 16 bytes are the first line of the top-left block and
-+contain 8 UV value pairs (16 bytes in total). The second 16 bytes are the
-+second line of 8 UV pairs of the top-left block, etc. After transmitting
-+this block the first line of the block on the right to the first block is
-+transmitted, etc.
-+
-+The code below is given as an example on how to convert HM12 to separate
-+Y, U and V planes. This code assumes frames of 720x576 (PAL) pixels.
-+
-+The width of a frame is always 720 pixels, regardless of the actual specified
-+width.
-+
-+If the height is not a multiple of 32 lines, then the captured video is
-+missing macroblocks at the end and is unusable. So the height must be a
-+multiple of 32.
-+
-+Raw format c example
-+~~~~~~~~~~~~~~~~~~~~
-+
-+.. code-block:: c
-+
-+	#include <stdio.h>
-+	#include <stdlib.h>
-+	#include <string.h>
-+
-+	static unsigned char frame[576*720*3/2];
-+	static unsigned char framey[576*720];
-+	static unsigned char frameu[576*720 / 4];
-+	static unsigned char framev[576*720 / 4];
-+
-+	static void de_macro_y(unsigned char* dst, unsigned char *src, int dstride, int w, int h)
-+	{
-+	unsigned int y, x, i;
-+
-+	// descramble Y plane
-+	// dstride = 720 = w
-+	// The Y plane is divided into blocks of 16x16 pixels
-+	// Each block in transmitted in turn, line-by-line.
-+	for (y = 0; y < h; y += 16) {
-+		for (x = 0; x < w; x += 16) {
-+		for (i = 0; i < 16; i++) {
-+			memcpy(dst + x + (y + i) * dstride, src, 16);
-+			src += 16;
-+		}
-+		}
-+	}
-+	}
-+
-+	static void de_macro_uv(unsigned char *dstu, unsigned char *dstv, unsigned char *src, int dstride, int w, int h)
-+	{
-+	unsigned int y, x, i;
-+
-+	// descramble U/V plane
-+	// dstride = 720 / 2 = w
-+	// The U/V values are interlaced (UVUV...).
-+	// Again, the UV plane is divided into blocks of 16x16 UV values.
-+	// Each block in transmitted in turn, line-by-line.
-+	for (y = 0; y < h; y += 16) {
-+		for (x = 0; x < w; x += 8) {
-+		for (i = 0; i < 16; i++) {
-+			int idx = x + (y + i) * dstride;
-+
-+			dstu[idx+0] = src[0];  dstv[idx+0] = src[1];
-+			dstu[idx+1] = src[2];  dstv[idx+1] = src[3];
-+			dstu[idx+2] = src[4];  dstv[idx+2] = src[5];
-+			dstu[idx+3] = src[6];  dstv[idx+3] = src[7];
-+			dstu[idx+4] = src[8];  dstv[idx+4] = src[9];
-+			dstu[idx+5] = src[10]; dstv[idx+5] = src[11];
-+			dstu[idx+6] = src[12]; dstv[idx+6] = src[13];
-+			dstu[idx+7] = src[14]; dstv[idx+7] = src[15];
-+			src += 16;
-+		}
-+		}
-+	}
-+	}
-+
-+	/*************************************************************************/
-+	int main(int argc, char **argv)
-+	{
-+	FILE *fin;
-+	int i;
-+
-+	if (argc == 1) fin = stdin;
-+	else fin = fopen(argv[1], "r");
-+
-+	if (fin == NULL) {
-+		fprintf(stderr, "cannot open input\n");
-+		exit(-1);
-+	}
-+	while (fread(frame, sizeof(frame), 1, fin) == 1) {
-+		de_macro_y(framey, frame, 720, 720, 576);
-+		de_macro_uv(frameu, framev, frame + 720 * 576, 720 / 2, 720 / 2, 576 / 2);
-+		fwrite(framey, sizeof(framey), 1, stdout);
-+		fwrite(framev, sizeof(framev), 1, stdout);
-+		fwrite(frameu, sizeof(frameu), 1, stdout);
-+	}
-+	fclose(fin);
-+	return 0;
-+	}
-diff --git a/Documentation/video4linux/cx2341x/README.hm12 b/Documentation/video4linux/cx2341x/README.hm12
-deleted file mode 100644
-index b36148ea0750..000000000000
---- a/Documentation/video4linux/cx2341x/README.hm12
-+++ /dev/null
-@@ -1,120 +0,0 @@
--The cx23416 can produce (and the cx23415 can also read) raw YUV output. The
--format of a YUV frame is specific to this chip and is called HM12. 'HM' stands
--for 'Hauppauge Macroblock', which is a misnomer as 'Conexant Macroblock' would
--be more accurate.
--
--The format is YUV 4:2:0 which uses 1 Y byte per pixel and 1 U and V byte per
--four pixels.
--
--The data is encoded as two macroblock planes, the first containing the Y
--values, the second containing UV macroblocks.
--
--The Y plane is divided into blocks of 16x16 pixels from left to right
--and from top to bottom. Each block is transmitted in turn, line-by-line.
--
--So the first 16 bytes are the first line of the top-left block, the
--second 16 bytes are the second line of the top-left block, etc. After
--transmitting this block the first line of the block on the right to the
--first block is transmitted, etc.
--
--The UV plane is divided into blocks of 16x8 UV values going from left
--to right, top to bottom. Each block is transmitted in turn, line-by-line.
--
--So the first 16 bytes are the first line of the top-left block and
--contain 8 UV value pairs (16 bytes in total). The second 16 bytes are the
--second line of 8 UV pairs of the top-left block, etc. After transmitting
--this block the first line of the block on the right to the first block is
--transmitted, etc.
--
--The code below is given as an example on how to convert HM12 to separate
--Y, U and V planes. This code assumes frames of 720x576 (PAL) pixels.
--
--The width of a frame is always 720 pixels, regardless of the actual specified
--width.
--
--If the height is not a multiple of 32 lines, then the captured video is
--missing macroblocks at the end and is unusable. So the height must be a
--multiple of 32.
--
----------------------------------------------------------------------------
--
--#include <stdio.h>
--#include <stdlib.h>
--#include <string.h>
--
--static unsigned char frame[576*720*3/2];
--static unsigned char framey[576*720];
--static unsigned char frameu[576*720 / 4];
--static unsigned char framev[576*720 / 4];
--
--static void de_macro_y(unsigned char* dst, unsigned char *src, int dstride, int w, int h)
--{
--    unsigned int y, x, i;
--
--    // descramble Y plane
--    // dstride = 720 = w
--    // The Y plane is divided into blocks of 16x16 pixels
--    // Each block in transmitted in turn, line-by-line.
--    for (y = 0; y < h; y += 16) {
--	for (x = 0; x < w; x += 16) {
--	    for (i = 0; i < 16; i++) {
--		memcpy(dst + x + (y + i) * dstride, src, 16);
--		src += 16;
--	    }
--	}
--    }
--}
--
--static void de_macro_uv(unsigned char *dstu, unsigned char *dstv, unsigned char *src, int dstride, int w, int h)
--{
--    unsigned int y, x, i;
--
--    // descramble U/V plane
--    // dstride = 720 / 2 = w
--    // The U/V values are interlaced (UVUV...).
--    // Again, the UV plane is divided into blocks of 16x16 UV values.
--    // Each block in transmitted in turn, line-by-line.
--    for (y = 0; y < h; y += 16) {
--	for (x = 0; x < w; x += 8) {
--	    for (i = 0; i < 16; i++) {
--		int idx = x + (y + i) * dstride;
--
--		dstu[idx+0] = src[0];  dstv[idx+0] = src[1];
--		dstu[idx+1] = src[2];  dstv[idx+1] = src[3];
--		dstu[idx+2] = src[4];  dstv[idx+2] = src[5];
--		dstu[idx+3] = src[6];  dstv[idx+3] = src[7];
--		dstu[idx+4] = src[8];  dstv[idx+4] = src[9];
--		dstu[idx+5] = src[10]; dstv[idx+5] = src[11];
--		dstu[idx+6] = src[12]; dstv[idx+6] = src[13];
--		dstu[idx+7] = src[14]; dstv[idx+7] = src[15];
--		src += 16;
--	    }
--	}
--    }
--}
--
--/*************************************************************************/
--int main(int argc, char **argv)
--{
--    FILE *fin;
--    int i;
--
--    if (argc == 1) fin = stdin;
--    else fin = fopen(argv[1], "r");
--
--    if (fin == NULL) {
--	fprintf(stderr, "cannot open input\n");
--	exit(-1);
--    }
--    while (fread(frame, sizeof(frame), 1, fin) == 1) {
--	de_macro_y(framey, frame, 720, 720, 576);
--	de_macro_uv(frameu, framev, frame + 720 * 576, 720 / 2, 720 / 2, 576 / 2);
--	fwrite(framey, sizeof(framey), 1, stdout);
--	fwrite(framev, sizeof(framev), 1, stdout);
--	fwrite(frameu, sizeof(frameu), 1, stdout);
--    }
--    fclose(fin);
--    return 0;
--}
--
----------------------------------------------------------------------------
--- 
-2.7.4
+FYI - I'm kicking off the conversation thread, but I'm not a TV or media-driver
+person, so please excuse anything that sounds strangely worded or is just
+a really dumb question.  I have experts CC:ed who can clarify anything I
+misstate. :-)
+
+First some background:
+The chip is in the same family as other chips for which there
+are currently some kernel drivers in mainline, produced by
+3rd parties (not Sony). The drivers already in the tree are
+linux/media/dvb-frontend/cxd2820.c, cxd2841er.c, and ascot2e.c.
+
+Currently Sony provides a user-space driver to its customers, but
+we'd like to switch to an in-kernel driver.
+
+The chip has a tuner and demodulator included.
+
+First, we will be delivering the actual video data over SPI.  Currently,
+we only see examples of doing this over PCI and USB busses.  Are
+there any examples of the appropriate method to transfer video
+data (or other high-volume data) over SPI?  If not, are there any
+recommendations or tips for going about this?
+
+Second, the current drivers for the cxd2820 and cxd2841 seem to
+use a lot of hard-coded register values (and don't appear to use
+device tree).  We're not sure if these drivers are the best examples
+to follow in creating a new dvb driver for Linux.  Is there a 
+recommended driver or example that shows the most recent or
+preferred good structure for such drivers, that we should use
+in starting ours?  
+
+Is DVB is the correct kernel subsystem to use for this driver, or
+is V4L more appropriate?
+
+If we have multiple files in our driver, should we put them all in
+the dvb-frontend directory, or should they be sprinkled around
+in different directories based on function?  Or should we create
+a 'sony' directory somewhere to hold them?
+
+What debugging tools, if any, are available for testing dvb drivers
+in the kernel?
+
+Do any current tuner drivers support dual-tuner configurations?
+
+Thanks for any assistance or information you can provide to help us
+get started.
+ -- Tim Bird
+Senior Staff Software Engineer, Sony North America
+
+P.S.  We are ramping up the project now, but will likely get to 
+major development effort in a month or two.
+
+
 
 
