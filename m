@@ -1,353 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:36798 "EHLO
-	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751556AbcGOQN2 (ORCPT
+Received: from mail-pf0-f180.google.com ([209.85.192.180]:35212 "EHLO
+	mail-pf0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750903AbcG1Ev0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2016 12:13:28 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v2 2/6] [media] Documentation: Add HSV format
-Date: Fri, 15 Jul 2016 18:13:15 +0200
-Message-Id: <1468599199-5902-3-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1468599199-5902-1-git-send-email-ricardo.ribalda@gmail.com>
+	Thu, 28 Jul 2016 00:51:26 -0400
+Received: by mail-pf0-f180.google.com with SMTP id x72so17889539pfd.2
+        for <linux-media@vger.kernel.org>; Wed, 27 Jul 2016 21:51:25 -0700 (PDT)
+Received: from [10.171.1.6] ([107.152.98.150])
+        by smtp.gmail.com with ESMTPSA id ph12sm12847418pab.21.2016.07.27.21.51.24
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 27 Jul 2016 21:51:24 -0700 (PDT)
+From: Marty Plummer <netz.kernel@gmail.com>
+Subject: TW2866 i2c driver and solo6x10
+To: linux-media@vger.kernel.org
+Message-ID: <d5269058-c953-5b3e-7b19-0b4c6474714c@gmail.com>
+Date: Wed, 27 Jul 2016 23:51:22 -0500
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="r7AiGaGB7VF0r6kQdisSNBTjjx87clfVc"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Describe the HSV formats
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--r7AiGaGB7VF0r6kQdisSNBTjjx87clfVc
+Content-Type: multipart/mixed; boundary="kLhX9GStd1xChIFV4bGXlhWKq5grIdjGB"
+From: Marty Plummer <netz.kernel@gmail.com>
+To: linux-media@vger.kernel.org
+Message-ID: <d5269058-c953-5b3e-7b19-0b4c6474714c@gmail.com>
+Subject: TW2866 i2c driver and solo6x10
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- Documentation/media/uapi/v4l/hsv-formats.rst       |  19 ++
- Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst | 253 +++++++++++++++++++++
- Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
- Documentation/media/uapi/v4l/v4l2.rst              |   5 +
- 4 files changed, 278 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/hsv-formats.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+--kLhX9GStd1xChIFV4bGXlhWKq5grIdjGB
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/Documentation/media/uapi/v4l/hsv-formats.rst b/Documentation/media/uapi/v4l/hsv-formats.rst
-new file mode 100644
-index 000000000000..f0f2615eaa95
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/hsv-formats.rst
-@@ -0,0 +1,19 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _hsv-formats:
-+
-+***********
-+HSV Formats
-+***********
-+
-+These formats store the color information of the image
-+in a geometrical representation. The colors are mapped into a
-+cylinder, where the angle is the HUE, the height is the VALUE
-+and the distance to the center is the SATURATION. This is a very
-+useful format for image segmentation algorithms.
-+
-+
-+.. toctree::
-+    :maxdepth: 1
-+
-+    pixfmt-packed-hsv
-diff --git a/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
-new file mode 100644
-index 000000000000..b297aa4f7ba6
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
-@@ -0,0 +1,253 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _packed-hsv:
-+
-+******************
-+Packed HSV formats
-+******************
-+
-+*man Packed HSV formats(2)*
-+
-+Packed HSV formats
-+
-+
-+Description
-+===========
-+
-+The HUE (h) is meassured in degrees, one LSB represents two degrees.
-+The SATURATION (s) and the VALUE (v) are measured in percentage of the
-+cylinder: 0 being the smallest value and 255 the maximum.
-+
-+
-+The values are packed in 24 or 32 bit formats.
-+
-+
-+.. flat-table:: Packed HSV Image Formats
-+    :header-rows:  2
-+    :stub-columns: 0
-+
-+
-+    -  .. row 1
-+
-+       -  Identifier
-+
-+       -  Code
-+
-+       -
-+       -  :cspan:`7` Byte 0 in memory
-+
-+       -
-+       -  :cspan:`7` Byte 1
-+
-+       -
-+       -  :cspan:`7` Byte 2
-+
-+       -
-+       -  :cspan:`7` Byte 3
-+
-+    -  .. row 2
-+
-+       -
-+       -
-+       -  Bit
-+
-+       -  7
-+
-+       -  6
-+
-+       -  5
-+
-+       -  4
-+
-+       -  3
-+
-+       -  2
-+
-+       -  1
-+
-+       -  0
-+
-+       -
-+       -  7
-+
-+       -  6
-+
-+       -  5
-+
-+       -  4
-+
-+       -  3
-+
-+       -  2
-+
-+       -  1
-+
-+       -  0
-+
-+       -
-+       -  7
-+
-+       -  6
-+
-+       -  5
-+
-+       -  4
-+
-+       -  3
-+
-+       -  2
-+
-+       -  1
-+
-+       -  0
-+
-+       -
-+       -  7
-+
-+       -  6
-+
-+       -  5
-+
-+       -  4
-+
-+       -  3
-+
-+       -  2
-+
-+       -  1
-+
-+       -  0
-+
-+    -  .. _V4L2-PIX-FMT-HSV32:
-+
-+       -  ``V4L2_PIX_FMT_HSV32``
-+
-+       -  'HSV4'
-+
-+       -
-+       -  -
-+
-+       -  -
-+
-+       -  -
-+
-+       -  -
-+
-+       -  -
-+
-+       -  -
-+
-+       -  -
-+
-+       -  -
-+
-+       -
-+       -  h\ :sub:`7`
-+
-+       -  h\ :sub:`6`
-+
-+       -  h\ :sub:`5`
-+
-+       -  h\ :sub:`4`
-+
-+       -  h\ :sub:`3`
-+
-+       -  h\ :sub:`2`
-+
-+       -  h\ :sub:`1`
-+
-+       -  h\ :sub:`0`
-+
-+       -
-+       -  s\ :sub:`7`
-+
-+       -  s\ :sub:`6`
-+
-+       -  s\ :sub:`5`
-+
-+       -  s\ :sub:`4`
-+
-+       -  s\ :sub:`3`
-+
-+       -  s\ :sub:`2`
-+
-+       -  s\ :sub:`1`
-+
-+       -  s\ :sub:`0`
-+
-+       -
-+       -  v\ :sub:`7`
-+
-+       -  v\ :sub:`6`
-+
-+       -  v\ :sub:`5`
-+
-+       -  v\ :sub:`4`
-+
-+       -  v\ :sub:`3`
-+
-+       -  v\ :sub:`2`
-+
-+       -  v\ :sub:`1`
-+
-+       -  v\ :sub:`0`
-+
-+    -  .. _V4L2-PIX-FMT-HSV24:
-+
-+       -  ``V4L2_PIX_FMT_HSV24``
-+
-+       -  'HSV3'
-+
-+       -
-+       -  h\ :sub:`7`
-+
-+       -  h\ :sub:`6`
-+
-+       -  h\ :sub:`5`
-+
-+       -  h\ :sub:`4`
-+
-+       -  h\ :sub:`3`
-+
-+       -  h\ :sub:`2`
-+
-+       -  h\ :sub:`1`
-+
-+       -  h\ :sub:`0`
-+
-+       -
-+       -  s\ :sub:`7`
-+
-+       -  s\ :sub:`6`
-+
-+       -  s\ :sub:`5`
-+
-+       -  s\ :sub:`4`
-+
-+       -  s\ :sub:`3`
-+
-+       -  s\ :sub:`2`
-+
-+       -  s\ :sub:`1`
-+
-+       -  s\ :sub:`0`
-+
-+       -
-+       -  v\ :sub:`7`
-+
-+       -  v\ :sub:`6`
-+
-+       -  v\ :sub:`5`
-+
-+       -  v\ :sub:`4`
-+
-+       -  v\ :sub:`3`
-+
-+       -  v\ :sub:`2`
-+
-+       -  v\ :sub:`1`
-+
-+       -  v\ :sub:`0`
-+
-+
-+Bit 7 is the most significant bit.
-diff --git a/Documentation/media/uapi/v4l/pixfmt.rst b/Documentation/media/uapi/v4l/pixfmt.rst
-index 81222a99f7ce..1d2270422345 100644
---- a/Documentation/media/uapi/v4l/pixfmt.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt.rst
-@@ -29,6 +29,7 @@ see also :ref:`VIDIOC_G_FBUF <VIDIOC_G_FBUF>`.)
-     pixfmt-indexed
-     pixfmt-rgb
-     yuv-formats
-+    hsv-formats
-     depth-formats
-     pixfmt-013
-     sdr-formats
-diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
-index c0859ebc88ee..6d23bc987f51 100644
---- a/Documentation/media/uapi/v4l/v4l2.rst
-+++ b/Documentation/media/uapi/v4l/v4l2.rst
-@@ -85,6 +85,11 @@ part can be used and distributed without restrictions.
- Revision History
- ****************
- 
-+:revision: 4.8 / 2016-07-15 (*rr*)
-+
-+Introduce HSV formats.
-+
-+
- :revision: 4.5 / 2015-10-29 (*rr*)
- 
- Extend VIDIOC_G_EXT_CTRLS;. Replace ctrl_class with a new union with
--- 
-2.8.1
+I have one of those rebranded chinese security dvrs, the ones with all th=
+e gaping
+security holes. I'd like to fix that up and setup a good rtsp server on i=
+t, but
+first comes low-level stuff, drivers and such. I've been squinting at the=
+ pcb and
+ID'ing chips for a bit now, and I've figured most of them out. Looks like=
+ the actual
+video processing is done on 4 tw2866 chips, though the kernel module has =
+symbols
+referring to tw2865. I've seen another driver in the kernel tree, the blu=
+echerry
+solo6x10, but that's on the pci bus. as far as I can figure, the dvr uses=
+ i2c for
+them. So, what I'm wondering is would it be feasible to factor out some o=
+f the solo
+functionality into a generic tw2865 driver and be able to pull from that =
+for an i2c
+kernel module? I'd really hate to have to rewrite the whole thing, duplic=
+ated code
+and overworking are generally a bad idea, even if I do have a datasheet f=
+or the chip
+in question
 
+
+--kLhX9GStd1xChIFV4bGXlhWKq5grIdjGB--
+
+--r7AiGaGB7VF0r6kQdisSNBTjjx87clfVc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXmY9LAAoJEHWEtN3AMJGNVeMP/i9XMXY3ryV+62IZ8RgNWNbe
+j7/P4YyzgGj3R/5tblXsbw43HroC5uzhjXcCG4fzs8uQE8q48YxKB8Nskoi25qJh
+At77LMNK4Jcc/x0KiJKINa66I0Qd/5OSTmb1gIuXWEeh4uSb+cIyIZq4FyOdgM1a
+tsaNTdO9a4o6mSIjCtHkT/LVt51b1Sx/sUx6G6R+QelaTmeofWMeRZGJIbEy4EyD
+uvEnmeyWXCPeazARAw83tH3x5RQ2w+Uxri3Mgu1/LESshWQtcZ6e6/ITCRy8RcNv
+8StQK51XPwYNZwV+xLR3FNtJg75oeiuVjid+GzNdVtL0HHSMjxf+AHwcEVfdhbtf
+XLjeSZyvVtN7AMDhzcnqF/XBik3kEbIn4whgbp39GlIAGmDJYD9SCtG//5zmc86o
+fQBxbDUJ3gPbq87ZZatgBVEnWUpCiKhAMZTz7uKTj69yLWYkN3BXCX2e9zEtDuG5
+/CYX+sjPbrJwzJ1NXb/bH+NxbiBTV0kHEuzQUzc07ia/uWLUfpqXbJWOesv803L1
+r4BjeOzoMtk5GMLX1gUqt3oAIODTUmFqT3e1Ak1mKhvo/c2NZ88Mqo2pD5qj/cO5
+wdwPEBWX/5KdyKGgulFRfsmaYNltrX0zbqvbwwVOh1XQFrnTXxHjAh+pKnEKIF64
++XGtxsQl5S/qQu6cclzp
+=DEfa
+-----END PGP SIGNATURE-----
+
+--r7AiGaGB7VF0r6kQdisSNBTjjx87clfVc--
