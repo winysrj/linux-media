@@ -1,88 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40480 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751459AbcGNWf0 (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:41747 "EHLO
+	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753219AbcG2Rki (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2016 18:35:26 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [RFC 15/16] omap3isp: Release the isp device struct by media device callback
-Date: Fri, 15 Jul 2016 01:35:10 +0300
-Message-Id: <1468535711-13836-16-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1468535711-13836-1-git-send-email-sakari.ailus@linux.intel.com>
+	Fri, 29 Jul 2016 13:40:38 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com
+Cc: lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com,
+	Steve Longerbeam <steve_longerbeam@mentor.com>,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 6/6] media: adv7180: fix field type
+Date: Fri, 29 Jul 2016 19:40:12 +0200
+Message-Id: <20160729174012.14331-7-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160729174012.14331-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160729174012.14331-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the media device release callback to release the isp device's data
-structure. This approach has the benefit of not releasing memory which may
-still be accessed through open file handles whilst the isp driver is being
-unbound.
+From: Steve Longerbeam <slongerbeam@gmail.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+The ADV7180 and ADV7182 transmit whole fields, bottom field followed
+by top (or vice-versa, depending on detected video standard). So
+for chips that do not have support for explicitly setting the field
+mode, set the field mode to V4L2_FIELD_ALTERNATE.
+
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+[Niklas: changed filed type from V4L2_FIELD_SEQ_{TB,BT} to
+V4L2_FIELD_ALTERNATE]
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/platform/omap3isp/isp.c | 25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ drivers/media/i2c/adv7180.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index b09d2508..a0dff24 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1671,6 +1671,8 @@ static int isp_link_entity(
- 	return media_create_pad_link(entity, i, input, pad, flags);
- }
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index a8b434b..c6fed71 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -680,10 +680,13 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
+ 	switch (format->format.field) {
+ 	case V4L2_FIELD_NONE:
+ 		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
+-			format->format.field = V4L2_FIELD_INTERLACED;
++			format->format.field = V4L2_FIELD_ALTERNATE;
+ 		break;
+ 	default:
+-		format->format.field = V4L2_FIELD_INTERLACED;
++		if (state->chip_info->flags & ADV7180_FLAG_I2P)
++			format->format.field = V4L2_FIELD_INTERLACED;
++		else
++			format->format.field = V4L2_FIELD_ALTERNATE;
+ 		break;
+ 	}
  
-+static void isp_release(struct media_device *mdev);
-+
- static int isp_register_entities(struct isp_device *isp)
- {
- 	int ret;
-@@ -1683,6 +1685,7 @@ static int isp_register_entities(struct isp_device *isp)
- 		sizeof(isp->media_dev->model));
- 	isp->media_dev->hw_revision = isp->revision;
- 	isp->media_dev->link_notify = v4l2_pipeline_link_notify;
-+	isp->media_dev->release = isp_release;
+@@ -1253,8 +1256,13 @@ static int adv7180_probe(struct i2c_client *client,
+ 		return -ENOMEM;
  
- 	isp->v4l2_dev.mdev = isp->media_dev;
- 	ret = v4l2_device_register(isp->dev, &isp->v4l2_dev);
-@@ -1943,6 +1946,20 @@ static void isp_detach_iommu(struct isp_device *isp)
- 	iommu_group_remove_device(isp->dev);
- }
+ 	state->client = client;
+-	state->field = V4L2_FIELD_INTERLACED;
+ 	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
++	state->curr_norm = V4L2_STD_NTSC;
++
++	if (state->chip_info->flags & ADV7180_FLAG_I2P)
++		state->field = V4L2_FIELD_INTERLACED;
++	else
++		state->field = V4L2_FIELD_ALTERNATE;
  
-+static void isp_release(struct media_device *mdev)
-+{
-+	struct isp_device *isp = media_device_priv(mdev);
-+
-+	isp_cleanup_modules(isp);
-+	isp_xclk_cleanup(isp);
-+
-+	__omap3isp_get(isp, false);
-+	isp_detach_iommu(isp);
-+	__omap3isp_put(isp, false);
-+
-+	media_entity_enum_cleanup(&isp->crashed);
-+}
-+
- static int isp_attach_iommu(struct isp_device *isp)
- {
- 	struct dma_iommu_mapping *mapping;
-@@ -2003,14 +2020,6 @@ static int isp_remove(struct platform_device *pdev)
+ 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
+ 		state->csi_client = i2c_new_dummy(client->adapter,
+@@ -1274,7 +1282,6 @@ static int adv7180_probe(struct i2c_client *client,
  
- 	v4l2_async_notifier_unregister(&isp->notifier);
- 	isp_unregister_entities(isp);
--	isp_cleanup_modules(isp);
--	isp_xclk_cleanup(isp);
--
--	__omap3isp_get(isp, false);
--	isp_detach_iommu(isp);
--	__omap3isp_put(isp, false);
--
--	media_entity_enum_cleanup(&isp->crashed);
- 
- 	return 0;
- }
+ 	state->irq = client->irq;
+ 	mutex_init(&state->mutex);
+-	state->curr_norm = V4L2_STD_NTSC;
+ 	if (state->chip_info->flags & ADV7180_FLAG_RESET_POWERED)
+ 		state->powered = true;
+ 	else
 -- 
-2.1.4
+2.9.0
 
