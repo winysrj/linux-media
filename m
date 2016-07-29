@@ -1,206 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 108-197-250-228.lightspeed.miamfl.sbcglobal.net ([108.197.250.228]:48752
-	"EHLO usa.attlocal.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751244AbcGSDK0 (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:53159 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750754AbcG2DPA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2016 23:10:26 -0400
-From: Abylay Ospan <aospan@netup.ru>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: Abylay Ospan <aospan@netup.ru>
-Subject: [PATCH] [media] cxd2841er: freeze/unfreeze registers when reading stats
-Date: Mon, 18 Jul 2016 23:10:20 -0400
-Message-Id: <1468897820-28556-1-git-send-email-aospan@netup.ru>
+	Thu, 28 Jul 2016 23:15:00 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id BB7501800D9
+	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2016 05:14:53 +0200 (CEST)
+Date: Fri, 29 Jul 2016 05:14:53 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160729031453.BB7501800D9@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ensure multiple separate register reads are from the same snapshot
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Abylay Ospan <aospan@netup.ru>
----
- drivers/media/dvb-frontends/cxd2841er.c | 52 +++++++++++++++++++++++++--------
- 1 file changed, 40 insertions(+), 12 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-index 09c3934..d2e28ea 100644
---- a/drivers/media/dvb-frontends/cxd2841er.c
-+++ b/drivers/media/dvb-frontends/cxd2841er.c
-@@ -1570,6 +1570,25 @@ static int cxd2841er_read_ber_t(struct cxd2841er_priv *priv,
- 	return 0;
- }
- 
-+static int cxd2841er_freeze_regs(struct cxd2841er_priv *priv)
-+{
-+	/*
-+	 * Freeze registers: ensure multiple separate register reads
-+	 * are from the same snapshot
-+	 */
-+	cxd2841er_write_reg(priv, I2C_SLVT, 0x01, 0x01);
-+	return 0;
-+}
-+
-+static int cxd2841er_unfreeze_regs(struct cxd2841er_priv *priv)
-+{
-+	/*
-+	 * un-freeze registers
-+	 */
-+	cxd2841er_write_reg(priv, I2C_SLVT, 0x01, 0x00);
-+	return 0;
-+}
-+
- static u32 cxd2841er_dvbs_read_snr(struct cxd2841er_priv *priv,
- 		u8 delsys, u32 *snr)
- {
-@@ -1578,6 +1597,7 @@ static u32 cxd2841er_dvbs_read_snr(struct cxd2841er_priv *priv,
- 	int min_index, max_index, index;
- 	static const struct cxd2841er_cnr_data *cn_data;
- 
-+	cxd2841er_freeze_regs(priv);
- 	/* Set SLV-T Bank : 0xA1 */
- 	cxd2841er_write_reg(priv, I2C_SLVT, 0x00, 0xa1);
- 	/*
-@@ -1629,9 +1649,11 @@ static u32 cxd2841er_dvbs_read_snr(struct cxd2841er_priv *priv,
- 	} else {
- 		dev_dbg(&priv->i2c->dev,
- 			"%s(): no data available\n", __func__);
-+		cxd2841er_unfreeze_regs(priv);
- 		return -EINVAL;
- 	}
- done:
-+	cxd2841er_unfreeze_regs(priv);
- 	*snr = res;
- 	return 0;
- }
-@@ -1655,12 +1677,7 @@ static int cxd2841er_read_snr_c(struct cxd2841er_priv *priv, u32 *snr)
- 		return -EINVAL;
- 	}
- 
--	/*
--	 * Freeze registers: ensure multiple separate register reads
--	 * are from the same snapshot
--	 */
--	cxd2841er_write_reg(priv, I2C_SLVT, 0x01, 0x01);
--
-+	cxd2841er_freeze_regs(priv);
- 	cxd2841er_write_reg(priv, I2C_SLVT, 0x00, 0x40);
- 	cxd2841er_read_regs(priv, I2C_SLVT, 0x19, data, 1);
- 	qam = (enum sony_dvbc_constellation_t) (data[0] & 0x07);
-@@ -1670,6 +1687,7 @@ static int cxd2841er_read_snr_c(struct cxd2841er_priv *priv, u32 *snr)
- 	if (reg == 0) {
- 		dev_dbg(&priv->i2c->dev,
- 				"%s(): reg value out of range\n", __func__);
-+		cxd2841er_unfreeze_regs(priv);
- 		return 0;
- 	}
- 
-@@ -1690,9 +1708,11 @@ static int cxd2841er_read_snr_c(struct cxd2841er_priv *priv, u32 *snr)
- 		*snr = -88 * (int32_t)sony_log(reg) + 86999;
- 		break;
- 	default:
-+		cxd2841er_unfreeze_regs(priv);
- 		return -EINVAL;
- 	}
- 
-+	cxd2841er_unfreeze_regs(priv);
- 	return 0;
- }
- 
-@@ -1707,17 +1727,21 @@ static int cxd2841er_read_snr_t(struct cxd2841er_priv *priv, u32 *snr)
- 			"%s(): invalid state %d\n", __func__, priv->state);
- 		return -EINVAL;
- 	}
-+
-+	cxd2841er_freeze_regs(priv);
- 	cxd2841er_write_reg(priv, I2C_SLVT, 0x00, 0x10);
- 	cxd2841er_read_regs(priv, I2C_SLVT, 0x28, data, sizeof(data));
- 	reg = ((u32)data[0] << 8) | (u32)data[1];
- 	if (reg == 0) {
- 		dev_dbg(&priv->i2c->dev,
- 			"%s(): reg value out of range\n", __func__);
-+		cxd2841er_unfreeze_regs(priv);
- 		return 0;
- 	}
- 	if (reg > 4996)
- 		reg = 4996;
- 	*snr = 10000 * ((intlog10(reg) - intlog10(5350 - reg)) >> 24) + 28500;
-+	cxd2841er_unfreeze_regs(priv);
- 	return 0;
- }
- 
-@@ -1732,18 +1756,22 @@ static int cxd2841er_read_snr_t2(struct cxd2841er_priv *priv, u32 *snr)
- 			"%s(): invalid state %d\n", __func__, priv->state);
- 		return -EINVAL;
- 	}
-+
-+	cxd2841er_freeze_regs(priv);
- 	cxd2841er_write_reg(priv, I2C_SLVT, 0x00, 0x20);
- 	cxd2841er_read_regs(priv, I2C_SLVT, 0x28, data, sizeof(data));
- 	reg = ((u32)data[0] << 8) | (u32)data[1];
- 	if (reg == 0) {
- 		dev_dbg(&priv->i2c->dev,
- 			"%s(): reg value out of range\n", __func__);
-+		cxd2841er_unfreeze_regs(priv);
- 		return 0;
- 	}
- 	if (reg > 10876)
- 		reg = 10876;
- 	*snr = 10000 * ((intlog10(reg) -
- 		intlog10(12600 - reg)) >> 24) + 32000;
-+	cxd2841er_unfreeze_regs(priv);
- 	return 0;
- }
- 
-@@ -1760,21 +1788,20 @@ static int cxd2841er_read_snr_i(struct cxd2841er_priv *priv, u32 *snr)
- 		return -EINVAL;
- 	}
- 
--	/* Freeze all registers */
--	cxd2841er_write_reg(priv, I2C_SLVT, 0x01, 0x01);
--
--
-+	cxd2841er_freeze_regs(priv);
- 	cxd2841er_write_reg(priv, I2C_SLVT, 0x00, 0x60);
- 	cxd2841er_read_regs(priv, I2C_SLVT, 0x28, data, sizeof(data));
- 	reg = ((u32)data[0] << 8) | (u32)data[1];
- 	if (reg == 0) {
- 		dev_dbg(&priv->i2c->dev,
- 				"%s(): reg value out of range\n", __func__);
-+		cxd2841er_unfreeze_regs(priv);
- 		return 0;
- 	}
- 	if (reg > 4996)
- 		reg = 4996;
- 	*snr = 100 * intlog10(reg) - 9031;
-+	cxd2841er_unfreeze_regs(priv);
- 	return 0;
- }
- 
-@@ -1977,7 +2004,7 @@ static void cxd2841er_read_ucblocks(struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct cxd2841er_priv *priv = fe->demodulator_priv;
--	u32 ucblocks;
-+	u32 ucblocks = 0;
- 
- 	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
- 	switch (p->delivery_system) {
-@@ -1999,7 +2026,7 @@ static void cxd2841er_read_ucblocks(struct dvb_frontend *fe)
- 		p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 		return;
- 	}
--	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
-+	dev_dbg(&priv->i2c->dev, "%s() ucblocks=%u\n", __func__, ucblocks);
- 
- 	p->block_error.stat[0].scale = FE_SCALE_COUNTER;
- 	p->block_error.stat[0].uvalue = ucblocks;
-@@ -3076,6 +3103,7 @@ static int cxd2841er_sleep_tc_to_active_c(struct cxd2841er_priv *priv,
- 	/* Enable demod clock */
- 	cxd2841er_write_reg(priv, I2C_SLVT, 0x2c, 0x01);
- 	/* Disable RF level monitor */
-+	cxd2841er_write_reg(priv, I2C_SLVT, 0x59, 0x00);
- 	cxd2841er_write_reg(priv, I2C_SLVT, 0x2f, 0x00);
- 	/* Enable ADC clock */
- 	cxd2841er_write_reg(priv, I2C_SLVT, 0x30, 0x00);
--- 
-2.7.4
+date:		Fri Jul 29 04:00:25 CEST 2016
+git branch:	test
+git hash:	292eaf50c7df4ae2ae8aaa9e1ce3f1240a353ee8
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-multi: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1.1-i686: WARNINGS
+linux-4.2-i686: WARNINGS
+linux-4.3-i686: WARNINGS
+linux-4.4-i686: WARNINGS
+linux-4.5-i686: WARNINGS
+linux-4.6-i686: WARNINGS
+linux-4.7-rc1-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0-x86_64: WARNINGS
+linux-4.1.1-x86_64: WARNINGS
+linux-4.2-x86_64: WARNINGS
+linux-4.3-x86_64: WARNINGS
+linux-4.4-x86_64: WARNINGS
+linux-4.5-x86_64: WARNINGS
+linux-4.6-x86_64: WARNINGS
+linux-4.7-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: ERRORS
+sparse: WARNINGS
+smatch: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
