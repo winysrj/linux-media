@@ -1,76 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:23545 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751572AbcGVIdR (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:58913 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750839AbcG2Tcf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2016 04:33:17 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: <srv_heupstream@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>,
-	Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH v2 1/4] VPU: mediatek: Add mdp support
-Date: Fri, 22 Jul 2016 16:33:00 +0800
-Message-ID: <1469176383-35210-2-git-send-email-minghsiu.tsai@mediatek.com>
-In-Reply-To: <1469176383-35210-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1469176383-35210-1-git-send-email-minghsiu.tsai@mediatek.com>
+	Fri, 29 Jul 2016 15:32:35 -0400
+Subject: Re: [PATCH 6/6] media: adv7180: fix field type
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	=?UTF-8?Q?Niklas_S=c3=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	<linux-media@vger.kernel.org>, <linux-renesas-soc@vger.kernel.org>,
+	<slongerbeam@gmail.com>
+References: <20160729174012.14331-1-niklas.soderlund+renesas@ragnatech.se>
+ <20160729174012.14331-7-niklas.soderlund+renesas@ragnatech.se>
+ <cc084571-3063-a883-b731-0ffe01c4fefa@cogentembedded.com>
+CC: <lars@metafoo.de>, <mchehab@kernel.org>, <hans.verkuil@cisco.com>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <df2a330f-30a3-e296-006e-204fa1771bb5@mentor.com>
+Date: Fri, 29 Jul 2016 12:32:30 -0700
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <cc084571-3063-a883-b731-0ffe01c4fefa@cogentembedded.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VPU driver add mdp support
 
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
----
- drivers/media/platform/mtk-vpu/mtk_vpu.h |    5 +++++
- 1 file changed, 5 insertions(+)
+On 07/29/2016 12:10 PM, Sergei Shtylyov wrote:
+> On 07/29/2016 08:40 PM, Niklas Söderlund wrote:
+>
+>> From: Steve Longerbeam <slongerbeam@gmail.com>
+>>
+>> The ADV7180 and ADV7182 transmit whole fields, bottom field followed
+>> by top (or vice-versa, depending on detected video standard). So
+>> for chips that do not have support for explicitly setting the field
+>> mode, set the field mode to V4L2_FIELD_ALTERNATE.
+>>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>> [Niklas: changed filed type from V4L2_FIELD_SEQ_{TB,BT} to
+>> V4L2_FIELD_ALTERNATE]
+>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>
+> Tested-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>
+>    IIUC, it's a 4th version of this patch; you should have kept the 
+> original change log (below --- tearline) and indicated that in the 
+> subject.
+>
+> MBR, Sergei
 
-diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.h b/drivers/media/platform/mtk-vpu/mtk_vpu.h
-index f457479..291ae46 100644
---- a/drivers/media/platform/mtk-vpu/mtk_vpu.h
-+++ b/drivers/media/platform/mtk-vpu/mtk_vpu.h
-@@ -53,6 +53,8 @@ typedef void (*ipi_handler_t) (void *data,
- 			 handle H264 video encoder job, and vice versa.
-  * @IPI_VENC_VP8:	 The interrupt fro vpu is to notify kernel to
- 			 handle VP8 video encoder job,, and vice versa.
-+ * @IPI_MDP:		 The interrupt from vpu is to notify kernel to
-+			 handle MDP (Media Data Path) job, and vice versa.
-  * @IPI_MAX:		 The maximum IPI number
-  */
- 
-@@ -63,6 +65,7 @@ enum ipi_id {
- 	IPI_VDEC_VP9,
- 	IPI_VENC_H264,
- 	IPI_VENC_VP8,
-+	IPI_MDP,
- 	IPI_MAX,
- };
- 
-@@ -71,11 +74,13 @@ enum ipi_id {
-  *
-  * @VPU_RST_ENC: encoder reset id
-  * @VPU_RST_DEC: decoder reset id
-+ * @VPU_RST_MDP: MDP (Media Data Path) reset id
-  * @VPU_RST_MAX: maximum reset id
-  */
- enum rst_id {
- 	VPU_RST_ENC,
- 	VPU_RST_DEC,
-+	VPU_RST_MDP,
- 	VPU_RST_MAX,
- };
- 
--- 
-1.7.9.5
+This version is fine with me. The i.mx6 h/w motion-compensation 
+deinterlacer (VDIC)
+needs to know the field order, and it can't get that info from 
+V4L2_FIELD_ALTERNATE,
+but it can still determine the order via querystd().
+
+But I agree the change log should be preserved, and the 
+V4L2_FIELD_ALTERNATE change
+added to the change log.
+
+Acked-by: Steve Longerbeam <slongerbeam@gmail.com>
+
+Steve
+
 
