@@ -1,115 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45849
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751492AbcGETpJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2016 15:45:09 -0400
-Subject: Re: [RFC PATCH] media: s5p-mfc - remove vidioc_g_crop
-To: Nicolas Dufresne <nicolas@ndufresne.ca>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <1467322502-11180-1-git-send-email-shuahkh@osg.samsung.com>
- <CAH_td2wtizPpD59h2shZoyuTvSNr=7YjR4mSmTO9FsWaJp8dfA@mail.gmail.com>
- <772ecbb8-b1d2-b4cf-2be2-110f731b9a2b@xs4all.nl>
- <1467595835.2577.2.camel@ndufresne.ca>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>, mchehab@kernel.org,
-	linux-kernel@vger.kernel.org, k.debski@samsung.com,
-	javier@osg.samsung.com, linux-arm-kernel@lists.infradead.org,
-	jtp.park@samsung.com, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <577C0E2F.1050804@osg.samsung.com>
-Date: Tue, 5 Jul 2016 13:44:47 -0600
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43926 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750748AbcGaLJX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Jul 2016 07:09:23 -0400
+Date: Sun, 31 Jul 2016 14:09:15 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Amitoj Kaur Chawla <amitoj1606@gmail.com>
+Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, julia.lawall@lip6.fr
+Subject: Re: [PATCH] i2c: Modify error handling
+Message-ID: <20160731110915.GE3243@valkosipuli.retiisi.org.uk>
+References: <20160731035800.GA4576@amitoj-Inspiron-3542>
 MIME-Version: 1.0
-In-Reply-To: <1467595835.2577.2.camel@ndufresne.ca>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160731035800.GA4576@amitoj-Inspiron-3542>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/03/2016 07:30 PM, Nicolas Dufresne wrote:
-> Le dimanche 03 juillet 2016 à 11:43 +0200, Hans Verkuil a écrit :
->> Hi Nicolas,
->>
->> On 07/02/2016 10:29 PM, Nicolas Dufresne wrote:
->>>
->>> Le 30 juin 2016 5:35 PM, "Shuah Khan" <shuahkh@osg.samsung.com
->>> <mailto:shuahkh@osg.samsung.com>> a écrit :
->>>>
->>>> Remove vidioc_g_crop() from s5p-mfc decoder. Without its s_crop
->>>> counterpart
->>>> g_crop is not useful. Delete it.
->>>
->>> G_CROP tell the userspace which portion of the output is to be
->>> displayed. Example,  1920x1080 inside a buffer of 1920x1088. It can
->>> be
->>> implemented using G_SELECTION too, which emulate G_CROP. removing
->>> this without implementing G_SEKECTION will break certain software
->>> like
->>> GStreamer v4l2 based decoder.
->>
->> Sorry, but this is not correct.
->>
->> G_CROP for VIDEO_OUTPUT returns the output *compose* rectangle, not
->> the output
->> crop rectangle.
->>
->> Don't blame me, this is how it was defined in V4L2. The problem is
->> that for video
->> output (esp. m2m devices) you usually want to set the crop rectangle,
->> and that's
->> why the selection API was added so you can unambiguously set the crop
->> and compose
->> rectangles for both capture and output.
->>
->> Unfortunately, the exynos drivers were written before the
->> G/S_SELECTION API was
->> created, and the crop ioctls in the video output drivers actually set
->> the output
->> crop rectangle instead of the compose rectangle :-(
->>
->> This is a known inconsistency.
->>
->> You are right though that we can't remove g_crop here, I had
->> forgotten about the
->> buffer padding.
->>
->> What should happen here is that g_selection support is added to s5p-
->> mfc, and
->> have that return the proper rectangles. The g_crop can be kept, and a
->> comment
->> should be added that it returns the wrong thing, but that that is
->> needed for
->> backwards compat.
+Hi Amitoj,
 
-Thank you both for the review and comments. I wasn't entirely sure
-about removing g-crop, hence this RFC patch. I will add g_selection
-and the comment to g_crop about returning incorrect info.
-
-thanks,
--- Shuah
-
->>
->> The gstreamer code should use g/s_selection if available. It should
->> check how it
->> is using g/s_crop for video output devices today and remember that
->> for output
->> devices g/s_crop is really g/s_compose, except for the exynos
->> drivers.
+On Sun, Jul 31, 2016 at 09:28:00AM +0530, Amitoj Kaur Chawla wrote:
+> devm_gpiod_get returns an ERR_PTR on error so a null check is
+> incorrect and an IS_ERR check is required.
 > 
-> This is already the case. There is other non-mainline driver that do
-> like exynos (I have been told).
+> The Coccinelle semantic patch used to make this change is as follows:
+> @@
+> expression e;
+> statement S;
+> @@
 > 
-> https://cgit.freedesktop.org/gstreamer/gst-plugins-good/commit/sys?id=7
-> 4f020fd2f1dc645efe35a7ba1f951f9c5ee7c4c
+>   e = devm_gpiod_get(...);
+>  if(
+> -   !e
+> +   IS_ERR(e)
+>    )
+>   {
+>    ...
+> -  return ...;
+> +  return PTR_ERR(e);
+>   }
 > 
->>
->> It's why I recommend the selection API since it doesn't have these
->> problems.
->>
->> I think I should do another push towards implementing the selection
->> API in all
->> drivers. There aren't many left.
->>
->> Regards,
->>
->> 	Hans
+> Signed-off-by: Amitoj Kaur Chawla <amitoj1606@gmail.com>
+> ---
+>  drivers/media/i2c/adp1653.c | 4 ++--
 
+In this exact case, the issue has been fixed by similar patch in media-tree
+master branch. You likely used another branch for preparing this patch.
+
+Nevertheless, thank you for the patch --- this kind of cleanups are always
+much appreciated.
+
+commit 806f8ffa8a0fa9a6f0481c5648c27aa51d10fdc6
+Author: Vladimir Zapolskiy <vz@mleia.com>
+Date:   Mon Mar 7 15:39:32 2016 -0300
+
+    [media] media: i2c/adp1653: fix check of devm_gpiod_get() error code
+    
+    The devm_gpiod_get() function returns either a valid pointer to
+    struct gpio_desc or ERR_PTR() error value, check for NULL is bogus.
+    
+    Signed-off-by: Vladimir Zapolskiy <vz@mleia.com>
+    Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
+index fb7ed73..9e1731c 100644
+--- a/drivers/media/i2c/adp1653.c
++++ b/drivers/media/i2c/adp1653.c
+@@ -466,9 +466,9 @@ static int adp1653_of_init(struct i2c_client *client,
+        of_node_put(child);
+ 
+        pd->enable_gpio = devm_gpiod_get(&client->dev, "enable", GPIOD_OUT_LOW);
+-       if (!pd->enable_gpio) {
++       if (IS_ERR(pd->enable_gpio)) {
+                dev_err(&client->dev, "Error getting GPIO\n");
+-               return -EINVAL;
++               return PTR_ERR(pd->enable_gpio);
+        }
+ 
+        return 0;
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
