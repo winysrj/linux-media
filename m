@@ -1,67 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54982 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750828AbcHKLQi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 07:16:38 -0400
-Date: Thu, 11 Aug 2016 14:16:34 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Message-ID: <20160811111633.GR3182@valkosipuli.retiisi.org.uk>
-References: <574049EF.2090208@gmail.com>
- <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160805102611.GA13116@amd>
- <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
- <20160808214132.GB2946@xo-6d-61-c0.localdomain>
- <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
- <20160808232323.GC2946@xo-6d-61-c0.localdomain>
+Received: from mail-lf0-f47.google.com ([209.85.215.47]:33842 "EHLO
+	mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753291AbcHAUle (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2016 16:41:34 -0400
+Received: by mail-lf0-f47.google.com with SMTP id l69so123932777lfg.1
+        for <linux-media@vger.kernel.org>; Mon, 01 Aug 2016 13:41:33 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Mon, 1 Aug 2016 22:41:30 +0200
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 2/3] soc-camera/rcar-vin: remove obsolete driver
+Message-ID: <20160801204130.GF3672@bigcity.dyn.berto.se>
+References: <1470038065-30789-1-git-send-email-hverkuil@xs4all.nl>
+ <1470038065-30789-3-git-send-email-hverkuil@xs4all.nl>
+ <3585190.qMTDhgQKz3@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20160808232323.GC2946@xo-6d-61-c0.localdomain>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <3585190.qMTDhgQKz3@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 09, 2016 at 01:23:23AM +0200, Pavel Machek wrote:
-> On Wed 2016-08-10 15:01:05, Sakari Ailus wrote:
-> > On Mon, Aug 08, 2016 at 11:41:32PM +0200, Pavel Machek wrote:
-> > > On Mon 2016-08-08 11:09:56, Sakari Ailus wrote:
-> > > > On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
-> > > > > 
-> > > > > This adds support for AD5820 autofocus coil, found for example in
-> > > > > Nokia N900 smartphone.
-> > > > 
-> > > > Thanks, Pavel!
-> > > > 
-> > > > Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get something
-> > > > better in the future, we'll switch to that then.
-> > > > 
-> > > > I've applied this to ad5820 branch in my tree.
-> > > 
-> > > Thanks. If I understands things correctly, both DTS patch and this patch are
-> > > waiting in your tree, so we should be good to go for 4.9 (unless some unexpected
-> > > problems surface)?
+On 2016-08-01 11:31:11 +0300, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thank you for the patch.
+> 
+> On Monday 01 Aug 2016 09:54:24 Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
 > > 
-> > Yeah. I just compiled it but haven't tested it. I presume it'll work. :-)
+> > This driver has been replaced by the non-soc-camera rcar-vin driver.
+> > The soc-camera framework is being deprecated, so drop this older
+> > rcar-vin driver in favor of the newer version that does not rely on
+> > this deprecated framework.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > Cc: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 > 
-> I'm testing it on n900. I guess simpler hardware with ad5820 would be better for the
-> test...
+> I'm all for removal of dead code :-)
 > 
-> What hardware do you have?
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> But please get Niklas' ack to confirm that the new driver supports all the 
+> feature available in the old one.
 
-N900. What else could it be? :-) :-)
+I'm all for removing this code. And I do believe the new driver supports 
+(almost, see 1) all features this one do. There are however two known 
+issues with the new driver which maybe should be resolved before the old 
+one is removed.
+
+1. The soc-camera driver call g_std to determine video standard if field 
+   is V4L2_FIELD_INTERLACED. The new driver dose not.
+
+   I'm preparing a patch which restores this functionality and hope to 
+   post it soon.
+
+2. There is a error in the DT parsing code where of_node_put() is called 
+   twice resulting in a nice backtrace while booting if the debug config 
+   options are enabled.
+
+   There is a fix for this in the Gen3 enablement series but maybe I 
+   should break it out from there and post it separately?
+
+I would like to solve issue no 1 before we remove the soc-camera driver, 
+hopefully we can do so shortly.
+
+> 
+> > ---
+> >  drivers/media/platform/soc_camera/Kconfig    |   10 -
+> >  drivers/media/platform/soc_camera/Makefile   |    1 -
+> >  drivers/media/platform/soc_camera/rcar_vin.c | 1970 -----------------------
+> >  3 files changed, 1981 deletions(-)
+> >  delete mode 100644 drivers/media/platform/soc_camera/rcar_vin.c
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Regards,
+Niklas Söderlund
