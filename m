@@ -1,211 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout.microchip.com ([198.175.253.82]:41347 "EHLO
-	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751865AbcHJSBh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2016 14:01:37 -0400
-Subject: Re: [PATCH v8 1/2] [media] atmel-isc: add the Image Sensor Controller
- code
-To: Hans Verkuil <hverkuil@xs4all.nl>, <nicolas.ferre@atmel.com>,
-	<robh@kernel.org>
-References: <1470211686-2198-1-git-send-email-songjun.wu@microchip.com>
- <1470211686-2198-2-git-send-email-songjun.wu@microchip.com>
- <07cf3e49-da67-74d7-528c-618fe94a15ff@xs4all.nl>
- <240d957c-6738-bab5-824a-1e6a0ddb12ad@xs4all.nl>
- <d200c6d3-80d4-e81e-e7c3-e5716e47ceb8@microchip.com>
- <85f42659-d54f-a841-fa7c-7fc7d6ddb96b@xs4all.nl>
-CC: <laurent.pinchart@ideasonboard.com>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>, "Arnd Bergmann" <arnd@arndb.de>,
-	=?UTF-8?Q?Niklas_S=c3=83=c2=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	Benoit Parrot <bparrot@ti.com>, <linux-kernel@vger.kernel.org>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-	Kamil Debski <kamil@wypas.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	=?UTF-8?Q?Richard_R=c3=b6jfors?= <richard@puffinpack.se>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Simon Horman <horms+renesas@verge.net.au>
-From: "Wu, Songjun" <Songjun.Wu@microchip.com>
-Message-ID: <24516b2e-e165-da81-cd2c-600c35b31f69@microchip.com>
-Date: Wed, 10 Aug 2016 15:14:43 +0800
+Received: from mail.horus.com ([78.46.148.228]:56188 "EHLO mail.horus.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752179AbcHAMJn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Aug 2016 08:09:43 -0400
+Date: Mon, 1 Aug 2016 14:09:00 +0200
+From: Matthias Reichl <hias@horus.com>
+To: Ole Ernst <olebowle@gmx.com>
+Cc: m.chehab@samsung.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Partly revert "[media] rc-core: allow calling rc_open
+ with device not initialized"
+Message-ID: <20160801120900.GA6397@camel2.lan>
+References: <20160726115225.GA15199@camel2.lan>
+ <20160730131927.10308-1-olebowle@gmx.com>
 MIME-Version: 1.0
-In-Reply-To: <85f42659-d54f-a841-fa7c-7fc7d6ddb96b@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160730131927.10308-1-olebowle@gmx.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sat, Jul 30, 2016 at 03:19:27PM +0200, Ole Ernst wrote:
+> This partly reverts commit 078600f514a12fd763ac84c86af68ef5b5267563.
+> 
+> Due to the relocation of input_register_device() call, holding down a
+> button on an IR remote no longer resulted in repeated key down events.
+> 
+> Signed-off-by: Ole Ernst <olebowle@gmx.com>
 
+Tested-by: Matthias Reichl <hias@horus.com>
 
-On 8/10/2016 15:12, Hans Verkuil wrote:
-> On 08/10/2016 07:36 AM, Wu, Songjun wrote:
->>
->>
->> On 8/8/2016 17:56, Hans Verkuil wrote:
->>> On 08/08/2016 11:37 AM, Hans Verkuil wrote:
->>>> On 08/03/2016 10:08 AM, Songjun Wu wrote:
->>>>> Add driver for the Image Sensor Controller. It manages
->>>>> incoming data from a parallel based CMOS/CCD sensor.
->>>>> It has an internal image processor, also integrates a
->>>>> triple channel direct memory access controller master
->>>>> interface.
->>>>>
->>>>> Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
->>>>> ---
->>>>>
->>>>> Changes in v8:
->>>>> - Power on the sensor on the first open in function
->>>>>   'isc_open'.
->>>>> - Power off the sensor on the last release in function
->>>>>   'isc_release'.
->>>>> - Remove the switch of the pipeline.
->>>>>
->>>>> Changes in v7:
->>>>> - Add enum_framesizes and enum_frameintervals.
->>>>> - Call s_stream(0) when stream start fail.
->>>>> - Fill the device_caps field of struct video_device
->>>>>   with V4L2_CAP_STREAMING and V4L2_CAP_VIDEO_CAPTURE.
->>>>> - Initialize the dev of struct vb2_queue.
->>>>> - Set field to FIELD_NONE if the pix field is not supported.
->>>>> - Return the result directly when call g/s_parm of subdev.
->>>>>
->>>>> Changes in v6: None
->>>>> Changes in v5:
->>>>> - Modify the macro definition and the related code.
->>>>>
->>>>> Changes in v4:
->>>>> - Modify the isc clock code since the dt is changed.
->>>>>
->>>>> Changes in v3:
->>>>> - Add pm runtime feature.
->>>>> - Modify the isc clock code since the dt is changed.
->>>>>
->>>>> Changes in v2:
->>>>> - Add "depends on COMMON_CLK" and "VIDEO_V4L2_SUBDEV_API"
->>>>>   in Kconfig file.
->>>>> - Correct typos and coding style according to Laurent's remarks
->>>>> - Delete the loop while in 'isc_clk_enable' function.
->>>>> - Replace 'hsync_active', 'vsync_active' and 'pclk_sample'
->>>>>   with 'pfe_cfg0' in struct isc_subdev_entity.
->>>>> - Add the code to support VIDIOC_CREATE_BUFS in
->>>>>   'isc_queue_setup' function.
->>>>> - Invoke isc_config to configure register in
->>>>>   'isc_start_streaming' function.
->>>>> - Add the struct completion 'comp' to synchronize with
->>>>>   the frame end interrupt in 'isc_stop_streaming' function.
->>>>> - Check the return value of the clk_prepare_enable
->>>>>   in 'isc_open' function.
->>>>> - Set the default format in 'isc_open' function.
->>>>> - Add an exit condition in the loop while in 'isc_config'.
->>>>> - Delete the hardware setup operation in 'isc_set_format'.
->>>>> - Refuse format modification during streaming
->>>>>   in 'isc_s_fmt_vid_cap' function.
->>>>> - Invoke v4l2_subdev_alloc_pad_config to allocate and
->>>>>   initialize the pad config in 'isc_async_complete' function.
->>>>> - Remove the '.owner  = THIS_MODULE,' in atmel_isc_driver.
->>>>> - Replace the module_platform_driver_probe() with
->>>>>   module_platform_driver().
->>>>>
->>>>>  drivers/media/platform/Kconfig                |    1 +
->>>>>  drivers/media/platform/Makefile               |    2 +
->>>>>  drivers/media/platform/atmel/Kconfig          |    9 +
->>>>>  drivers/media/platform/atmel/Makefile         |    1 +
->>>>>  drivers/media/platform/atmel/atmel-isc-regs.h |  165 +++
->>>>>  drivers/media/platform/atmel/atmel-isc.c      | 1503 +++++++++++++++++++++++++
->>>>>  6 files changed, 1681 insertions(+)
->>>>>  create mode 100644 drivers/media/platform/atmel/Kconfig
->>>>>  create mode 100644 drivers/media/platform/atmel/Makefile
->>>>>  create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
->>>>>  create mode 100644 drivers/media/platform/atmel/atmel-isc.c
->>>>>
->>>>
->>>> <snip>
->>>>
->>>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
->>>>> new file mode 100644
->>>>> index 0000000..d99d4a5
->>>>> --- /dev/null
->>>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
->>>>
->>>> <snip>
->>>>
->>>>> +static int isc_set_default_fmt(struct isc_device *isc)
->>>>> +{
->>>>> +	u32 index = isc->num_user_formats - 1;
->>>>
->>>> Why pick the last format? Strictly speaking it doesn't matter, but in practice
->>>> the most common formats tend to be at the beginning of the format list.
->>>>
->>>>> +	struct v4l2_format f = {
->>>>> +		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
->>>>> +		.fmt.pix = {
->>>>> +			.width		= VGA_WIDTH,
->>>>> +			.height		= VGA_HEIGHT,
->>>>> +			.field		= V4L2_FIELD_NONE,
->>>>> +			.pixelformat	= isc->user_formats[index]->fourcc,
->>>>> +		},
->>>>> +	};
->>>>> +
->>>>> +	return isc_set_fmt(isc, &f);
->>>>> +}
->>>>> +
->>>>> +static int isc_open(struct file *file)
->>>>> +{
->>>>> +	struct isc_device *isc = video_drvdata(file);
->>>>> +	struct v4l2_subdev *sd = isc->current_subdev->sd;
->>>>> +	int ret;
->>>>> +
->>>>> +	if (mutex_lock_interruptible(&isc->lock))
->>>>> +		return -ERESTARTSYS;
->>>>> +
->>>>> +	ret = v4l2_fh_open(file);
->>>>> +	if (ret < 0)
->>>>> +		goto unlock;
->>>>> +
->>>>> +	if (!v4l2_fh_is_singular_file(file))
->>>>> +		goto unlock;
->>>>> +
->>>>> +	ret = v4l2_subdev_call(sd, core, s_power, 1);
->>>>> +	if (ret < 0 && ret != -ENOIOCTLCMD)
->>>>> +		goto unlock;
->>>>> +
->>>>> +	ret = isc_set_default_fmt(isc);
->>>>
->>>> This doesn't belong here, this needs to be done in isc_async_complete().
->>>>
->>>> Having the code here means that every time you open the device, the format
->>>> changes back to the default. That's not what you want.
->>>
->>> Actually, you do need to set the format here since here is where you turn on
->>> the sensor power, but it should be the current format, not the default format.
->>>
->>> And in isc_set_default_fmt I recommend that you call the try fmt of the subdev
->>> in order to let the subdev adjust the proposed default format. The 'try' doesn't
->>> need to power on the sensor.
->>>
->> I replace the 'set fmt' with 'try fmt', then test with v4l2-compliance,
->> but there are tree fail cases. I think it's reasonable that setting a
->> default fmt on the first open. When app open the device on the first
->> open, it should set a fmt, or the default fmt will be set.
->
-> It's not reasonable :-). In V4L2 all format (or any other for that matter) settings
-> are persistent.
->
-> Anyway, take a look at my atmel-isi driver:
->
-> https://git.linuxtv.org/hverkuil/media_tree.git/tree/drivers/media/platform/atmel-isi.c?h=sama5d3
->
-> There I use try_fmt as well, and that passes the compliance test just fine.
->
-Thank you, I will try again.
+I tested on Raspberry Pi model B with kernel 4.7.0, gpio-rc-recv,
+rc-hauppauge keymap and with this patch key repeat is working fine
+again.
 
-> Regards,
->
-> 	Hans
->
+Thanks a lot for the quick fix!
+
+Hias
+
+> ---
+>  drivers/media/rc/rc-main.c | 9 ++++-----
+>  1 file changed, 4 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 8e7f292..26fd63b 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -1460,6 +1460,10 @@ int rc_register_device(struct rc_dev *dev)
+>  	dev->input_dev->phys = dev->input_phys;
+>  	dev->input_dev->name = dev->input_name;
+>  
+> +	rc = input_register_device(dev->input_dev);
+> +	if (rc)
+> +		goto out_table;
+> +
+>  	/*
+>  	 * Default delay of 250ms is too short for some protocols, especially
+>  	 * since the timeout is currently set to 250ms. Increase it to 500ms,
+> @@ -1475,11 +1479,6 @@ int rc_register_device(struct rc_dev *dev)
+>  	 */
+>  	dev->input_dev->rep[REP_PERIOD] = 125;
+>  
+> -	/* rc_open will be called here */
+> -	rc = input_register_device(dev->input_dev);
+> -	if (rc)
+> -		goto out_table;
+> -
+>  	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
+>  	dev_info(&dev->dev, "%s as %s\n",
+>  		dev->input_name ?: "Unspecified device", path ?: "N/A");
+> -- 
+> 2.9.0
+> 
