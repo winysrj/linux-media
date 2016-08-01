@@ -1,114 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f181.google.com ([209.85.192.181]:32903 "EHLO
-	mail-pf0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752905AbcHCDXs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 23:23:48 -0400
-Received: by mail-pf0-f181.google.com with SMTP id y134so72539715pfg.0
-        for <linux-media@vger.kernel.org>; Tue, 02 Aug 2016 20:23:43 -0700 (PDT)
-Subject: Re: Memory freeing when dmabuf fds are exported with VIDIOC_EXPBUF
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kazunori Kobayashi <kkobayas@igel.co.jp>
-References: <36bf3ef2-e43a-3910-16e2-b51439be5622@igel.co.jp>
- <2220172.K033cFnpL3@avalon> <f0518dd3-ae01-2da1-12ac-1fb041aaa709@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44097 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132AbcHAJUv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2016 05:20:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
 Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-From: Damian Hobson-Garcia <dhobsong@igel.co.jp>
-Message-ID: <76ad6d96-146f-d2c0-1872-2c7977b3d3b9@igel.co.jp>
-Date: Wed, 3 Aug 2016 12:23:38 +0900
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 3/3] soc-camera/sh_mobile_csi2: remove unused driver
+Date: Mon, 01 Aug 2016 12:19:56 +0300
+Message-ID: <13133835.NIuMLuThPq@avalon>
+In-Reply-To: <d71078e5-e99c-bf41-3c42-98eeed571606@xs4all.nl>
+References: <1470038065-30789-1-git-send-email-hverkuil@xs4all.nl> <2111514.B3c6CcPRxt@avalon> <d71078e5-e99c-bf41-3c42-98eeed571606@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <f0518dd3-ae01-2da1-12ac-1fb041aaa709@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Hans,
 
-On 2016-08-01 7:56 PM, Hans Verkuil wrote:
+On Monday 01 Aug 2016 11:07:03 Hans Verkuil wrote:
+> On 08/01/2016 11:01 AM, Laurent Pinchart wrote:
+> > On Monday 01 Aug 2016 10:56:21 Hans Verkuil wrote:
+> >> On 08/01/2016 10:34 AM, Laurent Pinchart wrote:
+> >>> On Monday 01 Aug 2016 09:54:25 Hans Verkuil wrote:
+> >>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>> 
+> >>>> The sh_mobile_csi2 isn't used anymore (was it ever?), so remove it.
+> >>>> Especially since the soc-camera framework is being deprecated.
+> >>>> 
+> >>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >>>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> >>> 
+> >>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >>> 
+> >>>> ---
+> >>>> 
+> >>>>  drivers/media/platform/soc_camera/Kconfig          |   7 -
+> >>>>  drivers/media/platform/soc_camera/Makefile         |   1 -
+> >>>>  .../platform/soc_camera/sh_mobile_ceu_camera.c     | 229 +-----------
+> >>>>  drivers/media/platform/soc_camera/sh_mobile_csi2.c | 400 -------------
+> >>>>  include/media/drv-intf/sh_mobile_ceu.h             |   1 -
+> >>>>  include/media/drv-intf/sh_mobile_csi2.h            |  48 ---
+> >>>>  6 files changed, 10 insertions(+), 676 deletions(-)
+> >>>>  delete mode 100644 drivers/media/platform/soc_camera/sh_mobile_csi2.c
+> >>>>  delete mode 100644 include/media/drv-intf/sh_mobile_c
+> >>> 
+> >>> Any plan for the sh_mobile_ceu_camera driver by the way ?
+> >> 
+> >> Yes.
+> >> 
+> >> The idea is to replace the remaining soc-camera drivers by 'proper'
+> >> drivers (Robert Jarzmik is working on that for the pxa_camera driver, and
+> >> I am working on the atmel-isi driver).
+> >> 
+> >> Once that's done the only soc-camera driver left is the
+> >> sh_mobile_ceu_camera driver.
+> >> 
+> >> At that moment the soc-camera framework will be folded into the
+> >> sh_mobile_ceu_camera driver and it will cease to exist as a framework.
+> >> It's just a very complex driver. I plan on refactoring it further,
+> >> removing dead code etc.
+> >> 
+> >> My original plan was to replace the sh_mobile_ceu_camera driver by a
+> >> 'proper' driver as well, but it was next to impossible to do that. The
+> >> fact that it didn't use the device tree and the complexity with scaling
+> >> and cropping and the close dependency on soc-camera just made this a no
+> >> go (at least not something I was willing to spend more time on).
+> >> 
+> >> I think this alternative approach has the best chance of succeeding.
+> > 
+> > Are there really users of the CEU driver ? There are a few ARM-based
+> > Renesas platforms that include the CEU, but they're pretty old now and
+> > don't support the CEU in mainline. As far as I know only arch/sh still
+> > makes use of the CEU driver.
 > 
+> Well, I can still test it. And it is still in the arch/sh code. It's not
+> really my decision since I just don't know enough whether or not it can be
+> removed.
 > 
-> On 07/27/2016 02:57 PM, Laurent Pinchart wrote:
->> Hello Kobayashi-san,
->>
->> (CC'ing Hans Verkuil and Marek Szyprowski)
->>
->> On Wednesday 27 Jul 2016 16:51:47 Kazunori Kobayashi wrote:
->>> Hi,
->>>
->>> I have a question about memory freeing by calling REQBUF(0) before all the
->>> dmabuf fds exported with VIDIOC_EXPBUF are closed.
->>>
->>> In calling REQBUF(0), videobuf2-core returns -EBUSY when the reference count
->>> of a vb2 buffer is more than 1. When dmabuf fds are not exported (usual
->>> V4L2_MEMORY_MMAP case), the check is no problem, but when dmabuf fds are
->>> exported and some of them are not closed (in other words the references to
->>> that memory are left), we cannot succeed in calling REQBUF(0) despite being
->>> able to free the memory after all the references are dropped.
->>>
->>> Actually REQBUF(0) does not force a vb2 buffer to be freed but decreases
->>> the refcount of it. Also all the vb2 memory allocators that support dmabuf
->>> exporting (dma-contig, dma-sg, vmalloc) implements memory freeing by
->>> release() of dma_buf_ops, so I think there is no need to return -EBUSY when
->>> exporting dmabuf fds.
->>>
->>> Could you please tell me what you think?
->>
->> I think you're right. vb2 allocates the vb2_buffer and the memops-specific 
->> structure separately. videobuf2-core.c will free the vb2_buffer instance, but 
->> won't touch the memops-specific structure or the buffer memory. Both of these 
->> are reference-counted in the memops allocators. We could thus allow REQBUFS(0) 
->> to proceed even when buffers have been exported (or at least after fixing the 
->> small issues we'll run into, I have a feeling that this is too easy to be 
->> true).
->>
->> Hans, Marek, any opinion on this ?
-> 
-> What is the use-case for this? What you are doing here is to either free all
-> existing buffers or reallocate buffers. We can decide to rely on refcounting,
-> but then you would create a second set of buffers (when re-allocating) or
-> leave a lot of unfreed memory behind. That's pretty hard on the memory usage.
+> You are probably better placed to figure that out.
 
-One use case is performing a buffer resize while actively streaming
-buffers to the display.  It seems that it would be useful to re-allocate
-new buffers (which will have some different properties) while one of the
-old buffers is displayed on screen. When the new buffer replaces the old
-one on screen, the old buffer(s) can be released, freeing the memory
-while the resize appears seamless at the display.  This avoids the rush
-to re-allocate and fill the first buffer after a resize with valid data
-before the next vblank, which can cause flicker when it fails.
+Since arch/sh got taken over by the J-Core developers, not really ;-) What I 
+know is that there's very very little interest at Renesas for SuperH support.
 
-This method requires the application to properly close the dmabuf
-handles when the buffers come off the screen, but Wayland, for example,
-already provides a notification mechanism to achieve this.
+> >> I'm not sure yet what we'll do with the soc-camera sensors. I
+> >> experimented a bit with extracting them from soc-camera, but for most
+> >> it's not easy to do so. Something to look at later.
+> > 
+> > It would be a shame to remove them all, but it also depends on whether we
+> > can find hardware for testing.
+> 
+> Well, they always remain in git, but I know what you mean. Anyway, that's
+> for later.
 
-Thanks,
-Damian
+-- 
+Regards,
 
-> 
-> I think the EBUSY is there to protect the user against him/herself: i.e. don't
-> call this unless you know all refs are closed.
-> 
-> Given the typical large buffersizes we're talking about, I think that EBUSY
-> makes sense.
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>
->>> The code that I am talking about is in
->>> drivers/media/v4l2-core/videobuf2-core.c:
->>>
->>>    if (*count == 0 || q->num_buffers != 0 || q->memory != memory) {
->>>           /*
->>>            * We already have buffers allocated, so first check if they
->>>            * are not in use and can be freed.
->>>            */
->>>           mutex_lock(&q->mmap_lock);
->>>           if (q->memory == VB2_MEMORY_MMAP && __buffers_in_use(q)) {
->>>                   mutex_unlock(&q->mmap_lock);
->>>                   dprintk(1, "memory in use, cannot free\n");
->>>                   return -EBUSY;
->>>           }
->>
+Laurent Pinchart
+
