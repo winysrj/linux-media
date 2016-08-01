@@ -1,277 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44804 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752408AbcHQMUY (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:55575 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752621AbcHAKjw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2016 08:20:24 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v2 2/4] v4l: Define a pixel format for the R-Car VSP1 1-D histogram engine
-Date: Wed, 17 Aug 2016 15:20:28 +0300
-Message-Id: <1471436430-26245-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1471436430-26245-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1471436430-26245-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Mon, 1 Aug 2016 06:39:52 -0400
+Subject: Re: [PATCH v3 5/9] vcodec: mediatek: Add Mediatek V4L2 Video Decoder
+ Driver
+To: Tiffany Lin <tiffany.lin@mediatek.com>
+References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
+ <1464611363-14936-2-git-send-email-tiffany.lin@mediatek.com>
+ <1464611363-14936-3-git-send-email-tiffany.lin@mediatek.com>
+ <1464611363-14936-4-git-send-email-tiffany.lin@mediatek.com>
+ <1464611363-14936-5-git-send-email-tiffany.lin@mediatek.com>
+ <1464611363-14936-6-git-send-email-tiffany.lin@mediatek.com>
+ <32112952-6a34-ac8b-9d06-198c6c653611@xs4all.nl>
+ <1470044307.30651.18.camel@mtksdaap41>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, daniel.thompson@linaro.org,
+	Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8bd71dee-62ec-beba-c1d1-fc7e586d593b@xs4all.nl>
+Date: Mon, 1 Aug 2016 12:39:44 +0200
+MIME-Version: 1.0
+In-Reply-To: <1470044307.30651.18.camel@mtksdaap41>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The format is used on the R-Car VSP1 video queues that carry
-1-D histogram statistics data.
+Hi Tiffany,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-Changes since v1:
+On 08/01/2016 11:38 AM, Tiffany Lin wrote:
+> Hi Hans,
 
-- Rebased on top of the DocBook to reST conversion
+<snip>
 
- Documentation/media/uapi/v4l/meta-formats.rst      |  15 ++
- .../media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst        | 170 +++++++++++++++++++++
- Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
- drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
- include/uapi/linux/videodev2.h                     |   3 +
- 5 files changed, 190 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/meta-formats.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
+>>> +static int vidioc_vdec_g_selection(struct file *file, void *priv,
+>>> +			struct v4l2_selection *s)
+>>> +{
+>>> +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
+>>> +
+>>> +	if (V4L2_TYPE_IS_OUTPUT(s->type))
+>>> +		return -EINVAL;
+>>> +
+>>> +	if (s->target != V4L2_SEL_TGT_CROP)
+>>> +		return -EINVAL;
+>>
+>> How does the cropping rectangle relate to the format size? There is no s_selection,
+>> so this doesn't make sense.
+>>
+> I want to return encoded crop information or real display region that
+> display driver could know where is padding region.
 
-diff --git a/Documentation/media/uapi/v4l/meta-formats.rst b/Documentation/media/uapi/v4l/meta-formats.rst
-new file mode 100644
-index 000000000000..05ab91e12f10
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/meta-formats.rst
-@@ -0,0 +1,15 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _meta-formats:
-+
-+****************
-+Metadata Formats
-+****************
-+
-+These formats are used for the :ref:`metadata` interface only.
-+
-+
-+.. toctree::
-+    :maxdepth: 1
-+
-+    pixfmt-meta-vsp1-hgo
-diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
-new file mode 100644
-index 000000000000..e935e4525b10
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
-@@ -0,0 +1,170 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _v4l2-meta-fmt-vsp1-hgo:
-+
-+*******************************
-+V4L2_META_FMT_VSP1_HGO ('VSPH')
-+*******************************
-+
-+*man V4L2_META_FMT_VSP1_HGO(2)*
-+
-+Renesas R-Car VSP1 1-D Histogram Data
-+
-+
-+Description
-+===========
-+
-+This format describes histogram data generated by the Renesas R-Car VSP1 1-D
-+Histogram (HGO) engine.
-+
-+The VSP1 HGO is a histogram computation engine that can operate on RGB, YCrCb
-+or HSV data. It operates on a possibly cropped and subsampled input image and
-+computes the minimum, maximum and sum of all pixels as well as per-channel
-+histograms.
-+
-+The HGO can compute histograms independently per channel, on the maximum of the
-+three channels (RGB data only) or on the Y channel only (YCbCr only). It can
-+additionally output the histogram with 64 or 256 bins, resulting in four
-+possible modes of operation.
-+
-+- In *64 bins normal mode*, the HGO operates on the three channels independently
-+  to compute three 64-bins histograms. RGB, YCbCr and HSV image formats are
-+  supported.
-+- In *64 bins maximum mode*, the HGO operates on the maximum of the (R, G, B)
-+  channels to compute a single 64-bins histogram. Only the RGB image format is
-+  supported.
-+- In *256 bins normal mode*, the HGO operates on the Y channel to compute a
-+  single 256-bins histogram. Only the YCbCr image format is supported.
-+- In *256 bins maximum mode*, the HGO operates on the maximum of the (R, G, B)
-+  channels to compute a single 256-bins histogram. Only the RGB image format is
-+  supported.
-+
-+**Byte Order.**
-+All data is stored in memory in little endian format. Each cell in the tables
-+contains one byte.
-+
-+.. flat-table:: VSP1 HGO Data - 64 Bins, Normal Mode (792 bytes)
-+    :header-rows:  2
-+    :stub-columns: 0
-+
-+    * - Offset
-+      - :cspan:`4` Memory
-+    * -
-+      - [31:24]
-+      - [23:16]
-+      - [15:8]
-+      - [7:0]
-+    * - 0
-+      - -
-+      - R/Cr/H max [7:0]
-+      - -
-+      - R/Cr/H min [7:0]
-+    * - 4
-+      - -
-+      - G/Y/S max [7:0]
-+      - -
-+      - G/Y/S min [7:0]
-+    * - 8
-+      - -
-+      - B/Cb/V max [7:0]
-+      - -
-+      - B/Cb/V min [7:0]
-+    * - 12
-+      - :cspan:`4` R/Cr/H sum [31:0]
-+    * - 16
-+      - :cspan:`4` G/Y/S sum [31:0]
-+    * - 20
-+      - :cspan:`4` B/Cb/V sum [31:0]
-+    * - 24
-+      - :cspan:`4` R/Cr/H bin 0 [31:0]
-+    * -
-+      - :cspan:`4` ...
-+    * - 276
-+      - :cspan:`4` R/Cr/H bin 63 [31:0]
-+    * - 280
-+      - :cspan:`4` G/Y/S bin 0 [31:0]
-+    * -
-+      - :cspan:`4` ...
-+    * - 532
-+      - :cspan:`4` G/Y/S bin 63 [31:0]
-+    * - 536
-+      - :cspan:`4` B/Cb/V bin 0 [31:0]
-+    * -
-+      - :cspan:`4` ...
-+    * - 788
-+      - :cspan:`4` B/Cb/V bin 63 [31:0]
-+
-+.. flat-table:: VSP1 HGO Data - 64 Bins, Max Mode (264 bytes)
-+    :header-rows:  2
-+    :stub-columns: 0
-+
-+    * - Offset
-+      - :cspan:`4` Memory
-+    * -
-+      - [31:24]
-+      - [23:16]
-+      - [15:8]
-+      - [7:0]
-+    * - 0
-+      - -
-+      - max(R,G,B) max [7:0]
-+      - -
-+      - max(R,G,B) min [7:0]
-+    * - 4
-+      - :cspan:`4` max(R,G,B) sum [31:0]
-+    * - 8
-+      - :cspan:`4` max(R,G,B) bin 0 [31:0]
-+    * -
-+      - :cspan:`4` ...
-+    * - 260
-+      - :cspan:`4` max(R,G,B) bin 63 [31:0]
-+
-+.. flat-table:: VSP1 HGO Data - 256 Bins, Normal Mode (1032 bytes)
-+    :header-rows:  2
-+    :stub-columns: 0
-+
-+    * - Offset
-+      - :cspan:`4` Memory
-+    * -
-+      - [31:24]
-+      - [23:16]
-+      - [15:8]
-+      - [7:0]
-+    * - 0
-+      - -
-+      - Y max [7:0]
-+      - -
-+      - Y min [7:0]
-+    * - 4
-+      - :cspan:`4` Y sum [31:0]
-+    * - 8
-+      - :cspan:`4` Y bin 0 [31:0]
-+    * -
-+      - :cspan:`4` ...
-+    * - 1028
-+      - :cspan:`4` Y bin 255 [31:0]
-+
-+.. flat-table:: VSP1 HGO Data - 256 Bins, Max Mode (1032 bytes)
-+    :header-rows:  2
-+    :stub-columns: 0
-+
-+    * - Offset
-+      - :cspan:`4` Memory
-+    * -
-+      - [31:24]
-+      - [23:16]
-+      - [15:8]
-+      - [7:0]
-+    * - 0
-+      - -
-+      - max(R,G,B) max [7:0]
-+      - -
-+      - max(R,G,B) min [7:0]
-+    * - 4
-+      - :cspan:`4` max(R,G,B) sum [31:0]
-+    * - 8
-+      - :cspan:`4` max(R,G,B) bin 0 [31:0]
-+    * -
-+      - :cspan:`4` ...
-+    * - 1028
-+      - :cspan:`4` max(R,G,B) bin 255 [31:0]
-diff --git a/Documentation/media/uapi/v4l/pixfmt.rst b/Documentation/media/uapi/v4l/pixfmt.rst
-index 81222a99f7ce..e3738a2eb05f 100644
---- a/Documentation/media/uapi/v4l/pixfmt.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt.rst
-@@ -32,4 +32,5 @@ see also :ref:`VIDIOC_G_FBUF <VIDIOC_G_FBUF>`.)
-     depth-formats
-     pixfmt-013
-     sdr-formats
-+    meta-formats
-     pixfmt-reserved
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 0afa07bfea35..8425f0b8ebfb 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1265,6 +1265,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
- 	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
- 	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
-+	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
- 
- 	default:
- 		/* Compressed formats */
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index d1ac0250a966..05b97c2067d4 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -637,6 +637,9 @@ struct v4l2_pix_format {
- #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
- #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
- 
-+/* Meta-data formats */
-+#define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 Histogram */
-+
- /* priv field value to indicates that subsequent fields are valid. */
- #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
- 
--- 
+Sorry, I don't understand this.
+
+This is a decoder, so based on the bitstream it decodes to a certain width
+and height. I assume that is what you refer to as coded_width and coded_height?
+
+If so, then what is the 'real display region' and how does it relate to the
+coded width/height?
+
+This is probably a terminology issue but I need to understand this before I
+can decide what should be done here.
+
 Regards,
 
-Laurent Pinchart
+	Hans
 
+> User space use s_fmt/g_fmt  to set/get coded_width and coded_height, and
+> use g_crop to get real display region.
+> That's why I do not add s_selection.
+> 
+>> Alternatively, it could be that you are really returning V4L2_SEL_TGT_COMPOSE_PADDED.
+>>
+> 
+> V4L2_SEL_TGT_COMPOSE_PADDED means
+> "The active area and all padding pixels that are inserted or modified by
+> hardware."
+> But I just want to return active area to user space.
+> 
+>>> +
+>>> +	if (ctx->state < MTK_STATE_HEADER)
+>>> +		return -EINVAL;
+>>> +
+>>> +	if ((ctx->q_data[MTK_Q_DATA_SRC].fmt->fourcc == V4L2_PIX_FMT_H264) ||
+>>> +	    (ctx->q_data[MTK_Q_DATA_SRC].fmt->fourcc == V4L2_PIX_FMT_VP8) ||
+>>> +	    (ctx->q_data[MTK_Q_DATA_SRC].fmt->fourcc == V4L2_PIX_FMT_VP9)) {
+>>> +
+>>> +		if (vdec_if_get_param(ctx, GET_PARAM_CROP_INFO, &(s->r))) {
+>>> +			mtk_v4l2_debug(2,
+>>> +					"[%d]Error!! Cannot get param : GET_PARAM_CROP_INFO ERR",
+>>> +					ctx->id);
+>>> +			s->r.left = 0;
+>>> +			s->r.top = 0;
+>>> +			s->r.width = ctx->picinfo.buf_w;
+>>> +			s->r.height = ctx->picinfo.buf_h;
+>>> +		}
+>>> +		mtk_v4l2_debug(2, "Cropping info: l=%d t=%d w=%d h=%d",
+>>> +				s->r.left, s->r.top, s->r.width,
+>>> +				s->r.height);
+>>> +	} else {
+>>> +		s->r.left = 0;
+>>> +		s->r.top = 0;
+>>> +		s->r.width = ctx->picinfo.pic_w;
+>>> +		s->r.height = ctx->picinfo.pic_h;
+>>> +		mtk_v4l2_debug(2, "Cropping info: w=%d h=%d fw=%d fh=%d",
+>>> +				s->r.width, s->r.height, ctx->picinfo.buf_w,
+>>> +				ctx->picinfo.buf_h);
+>>> +	}
+>>> +	return 0;
+>>> +}
