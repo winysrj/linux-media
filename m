@@ -1,74 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f48.google.com ([209.85.215.48]:34112 "EHLO
-	mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1950173AbcHROhB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2016 10:37:01 -0400
-Received: by mail-lf0-f48.google.com with SMTP id l89so13184902lfi.1
-        for <linux-media@vger.kernel.org>; Thu, 18 Aug 2016 07:36:59 -0700 (PDT)
-Date: Thu, 18 Aug 2016 16:36:57 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-	<niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Geert Uytterhoeven <geert@glider.be>
-Subject: Re: [PATCH] v4l: rcar-fcp: Don't force users to check for disabled
- FCP support
-Message-ID: <20160818143657.GF7992@bigcity.dyn.berto.se>
-References: <1471440728-16931-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44060 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751336AbcHAI6S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2016 04:58:18 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] v4l2-common: add s_selection helper function
+Date: Mon, 01 Aug 2016 11:57:36 +0300
+Message-ID: <4344856.tFBOPs6Ink@avalon>
+In-Reply-To: <ecb574ab-58df-8a9d-e3c0-c269cb4ad294@xs4all.nl>
+References: <ecb574ab-58df-8a9d-e3c0-c269cb4ad294@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1471440728-16931-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2016-08-17 16:32:08 +0300, Laurent Pinchart wrote:
-> The rcar_fcp_enable() function immediately returns successfully when the
-> FCP device pointer is NULL to avoid forcing the users to check the FCP
-> device manually before every call. However, the stub version of the
-> function used when the FCP driver is disabled returns -ENOSYS
-> unconditionally, resulting in a different API contract for the two
-> versions of the function.
+Hi Hans,
+
+Thank you for the patch.
+
+On Monday 01 Aug 2016 10:45:30 Hans Verkuil wrote:
+> Checking the selection constraint flags is often forgotten by drivers,
+> especially if the selection code just clamps the rectangle to the minimum
+> and maximum allowed rectangles.
 > 
-> As a user that requires FCP support will fail at probe time when calling
-> rcar_fcp_get() if the FCP driver is disabled, the stub version of the
-> rcar_fcp_enable() function will only be called with a NULL FCP device.
-> We can thus return 0 unconditionally to align the behaviour with the
-> normal version of the function.
+> This patch adds a simple helper function that checks the adjusted rectangle
+> against the constraint flags and either returns -ERANGE if it doesn't fit,
+> or fills in the new rectangle and returns 0.
 > 
-> Reported-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-
-Works on Koelsch with shmobile_defconfig.
-
-Tested-by: Niklas Söderlund <niklas.soderlund@ragnatech.se>
-
+> It also adds a small helper function to v4l2-rect.h to check if one
+> rectangle fits inside another.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > ---
->  include/media/rcar-fcp.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> diff --git a/drivers/media/v4l2-core/v4l2-common.c
+> b/drivers/media/v4l2-core/v4l2-common.c index 5b80850..a2e5119 100644
+> --- a/drivers/media/v4l2-core/v4l2-common.c
+> +++ b/drivers/media/v4l2-core/v4l2-common.c
+> @@ -61,6 +61,7 @@
+>  #include <media/v4l2-common.h>
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-rect.h>
 > 
-> diff --git a/include/media/rcar-fcp.h b/include/media/rcar-fcp.h
-> index 4c7fc77eaf29..8723f05c6321 100644
-> --- a/include/media/rcar-fcp.h
-> +++ b/include/media/rcar-fcp.h
-> @@ -29,7 +29,7 @@ static inline struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np)
->  static inline void rcar_fcp_put(struct rcar_fcp_device *fcp) { }
->  static inline int rcar_fcp_enable(struct rcar_fcp_device *fcp)
->  {
-> -	return -ENOSYS;
+>  #include <linux/videodev2.h>
+> 
+> @@ -371,6 +372,21 @@ void v4l_bound_align_image(u32 *w, unsigned int wmin,
+> unsigned int wmax, }
+>  EXPORT_SYMBOL_GPL(v4l_bound_align_image);
+> 
+> +int v4l2_s_selection(struct v4l2_selection *s, const struct v4l2_rect *r)
+> +{
+> +	/* The original rect must lay inside the adjusted one */
+> +	if ((s->flags & V4L2_SEL_FLAG_GE) &&
+> +	    !v4l2_rect_is_inside(&s->r, r))
+> +		return -ERANGE;
+> +	/* The adjusted rect must lay inside the original one */
+> +	if ((s->flags & V4L2_SEL_FLAG_LE) &&
+> +	    !v4l2_rect_is_inside(r, &s->r))
+> +		return -ERANGE;
+
+I'd like to see how this function is used in drivers.
+
+> +	s->r = *r;
 > +	return 0;
->  }
->  static inline void rcar_fcp_disable(struct rcar_fcp_device *fcp) { }
->  #endif
-> -- 
-> Regards,
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_s_selection);
+> +
+>  const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
+>  		const struct v4l2_discrete_probe *probe,
+>  		s32 width, s32 height)
+> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+> index 350cbf9..cfa9cbf 100644
+> --- a/include/media/v4l2-common.h
+> +++ b/include/media/v4l2-common.h
+> @@ -246,6 +246,17 @@ void v4l_bound_align_image(unsigned int *w, unsigned
+> int wmin, unsigned int hmax, unsigned int halign,
+>  			   unsigned int salign);
 > 
-> Laurent Pinchart
+> +/**
+> + * v4l2_s_selection - Helper to check adjusted rectangle against constraint
+> flags
+> + *
+> + * @s: pointer to &struct v4l2_selection containing the original rectangle
+> + * @r: pointer to &struct v4l2_rect containing the adjusted rectangle.
+> + *
+> + * Returns -ERANGE if the adjusted rectangle doesn't fit the constraints
+> + * or 0 if it is fine. On success it sets @s->r to @r.
+> + */
+
+Part of the functions are documented in the header and part in the 
+implementation. We need to pick one option, and I prefer the latter one (which 
+is also more consistent with how functions are documented in most subsystems).
+
+> +int v4l2_s_selection(struct v4l2_selection *s, const struct v4l2_rect *r);
+> +
+>  struct v4l2_discrete_probe {
+>  	const struct v4l2_frmsize_discrete	*sizes;
+>  	int					num_sizes;
+> diff --git a/include/media/v4l2-rect.h b/include/media/v4l2-rect.h
+> index d2125f0..858c8cb 100644
+> --- a/include/media/v4l2-rect.h
+> +++ b/include/media/v4l2-rect.h
+> @@ -95,6 +95,21 @@ static inline bool v4l2_rect_same_size(const struct
+> v4l2_rect *r1, }
 > 
+>  /**
+> + * v4l2_rect_is_inside() - return true if r1 is inside r2
+> + * @r1: rectangle.
+> + * @r2: rectangle.
+> + *
+> + * Return true if r1 fits inside r2.
+> + */
+> +static inline bool v4l2_rect_is_inside(const struct v4l2_rect *r1,
+> +				       const struct v4l2_rect *r2)
+
+How about calling the arguments inner and outer to make the purpose of each 
+argument more explicit from the function prototype ?
+
+Also, I would name the function v4l2_rect_is_contained(), or possibly 
+v4l2_rect_contains() in which case the arguments should be switched. It should 
+also be noted that C doesn't provide support for function overloading so we 
+can't have
+
+/* Rectangle contains rectangle */
+bool v4l2_rect_contains(const struct v4l2_rect *outer,
+			const struct v4l2_rect *inner);
+/* Rectangle contains point */
+bool v4l2_rect_contains(const struct v4l2_rect *rect,
+			unsigned int x, unsigned int y);
+
+Maybe we should thus name the function v4l2_rect_contains_rect() in prevision 
+for a future v4l2_rect_contains_point() ?
+
+> +{
+> +	return r1->left >= r2->left && r1->top >= r2->top &&
+> +	       r1->left + r1->width <= r2->left + r2->width &&
+> +	       r1->top + r1->height <= r2->top + r2->height;
+
+Isn't that's a big long for an inline function ?
+
+> +}
+> +
+> +/**
+>   * v4l2_rect_intersect() - calculate the intersection of two rects.
+>   * @r: intersection of @r1 and @r2.
+>   * @r1: rectangle.
 
 -- 
 Regards,
-Niklas Söderlund
+
+Laurent Pinchart
+
