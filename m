@@ -1,100 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:35035 "EHLO
-	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768357AbcHROfq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2016 10:35:46 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Antti Palosaari <crope@iki.fi>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v5 10/12] [media] videodev2.h Add HSV encoding
-Date: Thu, 18 Aug 2016 16:33:36 +0200
-Message-Id: <1471530818-7928-11-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from mail-qk0-f182.google.com ([209.85.220.182]:36637 "EHLO
+	mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752940AbcHAXAq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2016 19:00:46 -0400
+Received: by mail-qk0-f182.google.com with SMTP id v123so27075899qkh.3
+        for <linux-media@vger.kernel.org>; Mon, 01 Aug 2016 15:59:58 -0700 (PDT)
+MIME-Version: 1.0
+From: CIJOML CIJOMLovic <cijoml@gmail.com>
+Date: Mon, 1 Aug 2016 23:55:52 +0200
+Message-ID: <CAB0z4NpxFtZQ5Z9oeiSR1AWb03SNnYTWQE9nnuOVzso-uh7oQQ@mail.gmail.com>
+Subject: [PATCH TRY 3] Support for EVOLVEO XtraTV stick
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some hardware maps the Hue between 0 and 255 instead of 0-179. Support
-this format with a new field hsv_enc.
+Hello Antti,
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- include/uapi/linux/videodev2.h | 32 +++++++++++++++++++++++++++-----
- 1 file changed, 27 insertions(+), 5 deletions(-)
+since I see that nobody fixed my patch, here is fixed version which
+works for me and is made against latest git version
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 58ed8aedc196..71a4c3c13ee0 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -335,6 +335,19 @@ enum v4l2_ycbcr_encoding {
- };
- 
- /*
-+ * enum v4l2_hsv_encoding values should not collide with the ones from
-+ * enum v4l2_ycbcr_encoding.
-+ */
-+enum v4l2_hsv_encoding {
-+
-+	/* Hue mapped to 0 - 179 */
-+	V4L2_HSV_ENC_180		= 128,
-+
-+	/* Hue mapped to 0-255 */
-+	V4L2_HSV_ENC_256		= 129,
-+};
-+
-+/*
-  * Determine how YCBCR_ENC_DEFAULT should map to a proper Y'CbCr encoding.
-  * This depends on the colorspace.
-  */
-@@ -362,9 +375,10 @@ enum v4l2_quantization {
-  * This depends on whether the image is RGB or not, the colorspace and the
-  * Y'CbCr encoding.
-  */
--#define V4L2_MAP_QUANTIZATION_DEFAULT(is_rgb, colsp, ycbcr_enc) \
--	(((is_rgb) && (colsp) == V4L2_COLORSPACE_BT2020) ? V4L2_QUANTIZATION_LIM_RANGE : \
--	 (((is_rgb) || (ycbcr_enc) == V4L2_YCBCR_ENC_XV601 || \
-+#define V4L2_MAP_QUANTIZATION_DEFAULT(is_rgb_or_yuv, colsp, ycbcr_enc) \
-+	(((is_rgb_or_yuv) && (colsp) == V4L2_COLORSPACE_BT2020) ? \
-+	 V4L2_QUANTIZATION_LIM_RANGE : \
-+	 (((is_rgb_or_yuv) || (ycbcr_enc) == V4L2_YCBCR_ENC_XV601 || \
- 	  (ycbcr_enc) == V4L2_YCBCR_ENC_XV709 || (colsp) == V4L2_COLORSPACE_JPEG) || \
- 	  (colsp) == V4L2_COLORSPACE_ADOBERGB || (colsp) == V4L2_COLORSPACE_SRGB ? \
- 	 V4L2_QUANTIZATION_FULL_RANGE : V4L2_QUANTIZATION_LIM_RANGE))
-@@ -460,7 +474,12 @@ struct v4l2_pix_format {
- 	__u32			colorspace;	/* enum v4l2_colorspace */
- 	__u32			priv;		/* private data, depends on pixelformat */
- 	__u32			flags;		/* format flags (V4L2_PIX_FMT_FLAG_*) */
--	__u32			ycbcr_enc;	/* enum v4l2_ycbcr_encoding */
-+	union {
-+		/* enum v4l2_ycbcr_encoding */
-+		__u32			ycbcr_enc;
-+		/* enum v4l2_hsv_encoding */
-+		__u32			hsv_enc;
-+	};
- 	__u32			quantization;	/* enum v4l2_quantization */
- 	__u32			xfer_func;	/* enum v4l2_xfer_func */
- };
-@@ -1993,7 +2012,10 @@ struct v4l2_pix_format_mplane {
- 	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
- 	__u8				num_planes;
- 	__u8				flags;
--	__u8				ycbcr_enc;
-+	 union {
-+		__u8				ycbcr_enc;
-+		__u8				hsv_enc;
-+	};
- 	__u8				quantization;
- 	__u8				xfer_func;
- 	__u8				reserved[7];
--- 
-2.8.1
+diff -urN media_build.old/linux/drivers/media/dvb-core/dvb-usb-ids.h
+media_build/linux/drivers/media/dvb-core/dvb-usb-ids.h
+--- media_build.old/linux/drivers/media/dvb-core/dvb-usb-ids.h
+2016-05-07 07:45:09.000000000 +0200
++++ media_build/linux/drivers/media/dvb-core/dvb-usb-ids.h
+2016-08-01 23:18:18.660938910 +0200
+@@ -411,4 +411,5 @@
+ #define USB_PID_SVEON_STV27                             0xd3af
+ #define USB_PID_TURBOX_DTT_2000                         0xd3a4
+ #define USB_PID_WINTV_SOLOHD                            0x0264
++#define USB_PID_EVOLVEO_XTRATV_STICK                   0xa115
+ #endif
+diff -urN media_build.old/linux/drivers/media/usb/dvb-usb-v2/af9035.c
+media_build/linux/drivers/media/usb/dvb-usb-v2/af9035.c
+--- media_build.old/linux/drivers/media/usb/dvb-usb-v2/af9035.c
+2016-07-16 07:45:08.000000000 +0200
++++ media_build/linux/drivers/media/usb/dvb-usb-v2/af9035.c
+2016-08-01 23:19:43.853325151 +0200
+@@ -2090,6 +2090,8 @@
+                &af9035_props, "TerraTec Cinergy T Stick (rev. 2)", NULL) },
+        { DVB_USB_DEVICE(USB_VID_AVERMEDIA, 0x0337,
+                &af9035_props, "AVerMedia HD Volar (A867)", NULL) },
++       { DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_EVOLVEO_XTRATV_STICK,
++               &af9035_props, "EVOLVEO XtraTV stick", NULL) },
 
+        /* IT9135 devices */
+        { DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135,
+diff -urN media_build.old/v4l/af9035.c media_build/v4l/af9035.c
+--- media_build.old/v4l/af9035.c        2016-07-16 07:45:08.000000000 +0200
++++ media_build/v4l/af9035.c    2016-08-01 23:19:43.853325151 +0200
+@@ -2090,6 +2090,8 @@
+                &af9035_props, "TerraTec Cinergy T Stick (rev. 2)", NULL) },
+        { DVB_USB_DEVICE(USB_VID_AVERMEDIA, 0x0337,
+                &af9035_props, "AVerMedia HD Volar (A867)", NULL) },
++       { DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_EVOLVEO_XTRATV_STICK,
++               &af9035_props, "EVOLVEO XtraTV stick", NULL) },
+
+        /* IT9135 devices */
+        { DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135,
+
+
+Please apply
+
+Best regards
+
+Michal
+
+2016-08-01 22:35 GMT+02:00 CIJOML CIJOMLovic <cijoml@gmail.com>:
+> Hello Antti,
+>
+> where/how can I remove the key mapping? I am not familiar with this source.
+>
+> Thank you for help
+>
+> Regards
+>
+> Michal
+>
+> 2015-08-31 20:35 GMT+02:00 Antti Palosaari <crope@iki.fi>:
+>> On 08/31/2015 09:04 PM, CIJOML CIJOMLovic wrote:
+>>>
+>>> Hello guys,
+>>>
+>>> please find out down this email patch to support EVOLVEO XtraTV stick.
+>>> This tuner is for android phones with microusb connecter, however with
+>>> reduction it works perfectly with linux kernel:
+>>> The device identify itself at USB bus as Bus 002 Device 004: ID
+>>> 1f4d:a115 G-Tek Electronics Group
+>>> so I have created new vendor group but device named as its commercial
+>>> name.
+>>>
+>>> Thank you for merging this patch to upstream
+>>
+>>
+>> VID for GTEK is already defined there.
+>>
+>> Could you remove also remote controller default keymap as I think there is
+>> no remote controller at all.
+>>
+>> regards
+>> Antti
+>>
+>>>
+>>> Best regards
+>>>
+>>> Michal
+>>>
+>>>
+>>> diff -urN media_build/linux/drivers/media/dvb-core/dvb-usb-ids.h
+>>> media_build.new/linux/drivers/media/dvb-core/dvb-usb-ids.h
+>>> --- media_build/linux/drivers/media/dvb-core/dvb-usb-ids.h
+>>> 2015-05-11 13:20:08.000000000 +0200
+>>> +++ media_build.new/linux/drivers/media/dvb-core/dvb-usb-ids.h
+>>> 2015-06-16 22:26:01.917990493 +0200
+>>> @@ -70,6 +70,8 @@
+>>>   #define USB_VID_EVOLUTEPC            0x1e59
+>>>   #define USB_VID_AZUREWAVE            0x13d3
+>>>   #define USB_VID_TECHNISAT            0x14f7
+>>> +#define USB_VID_GTEK                0x1f4d
+>>> +
+>>>
+>>>   /* Product IDs */
+>>>   #define USB_PID_ADSTECH_USB2_COLD            0xa333
+>>> @@ -388,4 +390,5 @@
+>>>   #define USB_PID_PCTV_2002E_SE                           0x025d
+>>>   #define USB_PID_SVEON_STV27                             0xd3af
+>>>   #define USB_PID_TURBOX_DTT_2000                         0xd3a4
+>>> +#define USB_PID_EVOLVEO_XTRATV_STICK            0xa115
+>>>   #endif
+>>> diff -urN media_build/linux/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> media_build.new/linux/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> --- media_build/linux/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> 2015-05-30 17:32:46.000000000 +0200
+>>> +++ media_build.new/linux/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> 2015-06-16 22:26:14.561990868 +0200
+>>> @@ -2075,6 +2075,8 @@
+>>>           &af9035_props, "PCTV AndroiDTV (78e)", RC_MAP_IT913X_V1) },
+>>>       { DVB_USB_DEVICE(USB_VID_PCTV, USB_PID_PCTV_79E,
+>>>           &af9035_props, "PCTV microStick (79e)", RC_MAP_IT913X_V2) },
+>>> +    { DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_EVOLVEO_XTRATV_STICK,
+>>> +        &af9035_props, "EVOLVEO XtraTV stick", RC_MAP_IT913X_V2) },
+>>>
+>>>       /* IT930x devices */
+>>>       { DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9303,
+>>> r
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>> --
+>> http://palosaari.fi/
