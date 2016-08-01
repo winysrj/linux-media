@@ -1,177 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54120 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754701AbcHZXoq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Aug 2016 19:44:46 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v3 09/21] media: Split initialising and adding media devnode
-Date: Sat, 27 Aug 2016 02:43:17 +0300
-Message-Id: <1472255009-28719-10-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:59100 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752017AbcHAK5B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Aug 2016 06:57:01 -0400
+Subject: Re: Memory freeing when dmabuf fds are exported with VIDIOC_EXPBUF
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kazunori Kobayashi <kkobayas@igel.co.jp>
+References: <36bf3ef2-e43a-3910-16e2-b51439be5622@igel.co.jp>
+ <2220172.K033cFnpL3@avalon>
+Cc: linux-media@vger.kernel.org,
+	Damian Hobson-Garcia <dhobsong@igel.co.jp>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f0518dd3-ae01-2da1-12ac-1fb041aaa709@xs4all.nl>
+Date: Mon, 1 Aug 2016 12:56:55 +0200
+MIME-Version: 1.0
+In-Reply-To: <2220172.K033cFnpL3@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As registering a device node of an entity belonging to a media device
-will require a reference to the struct device. Taking that reference is
-only possible once the device has been initialised, which took place only
-when it was registered. Split this in two, and initialise the device when
-the media device is allocated.
 
-Don't distribute the effects of these changes yet. Add media_device_get()
-and media_device_put() first.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-device.c  | 18 +++++++++++++-----
- drivers/media/media-devnode.c | 17 +++++++++++------
- include/media/media-devnode.h | 19 ++++++++++++++-----
- 3 files changed, 38 insertions(+), 16 deletions(-)
+On 07/27/2016 02:57 PM, Laurent Pinchart wrote:
+> Hello Kobayashi-san,
+> 
+> (CC'ing Hans Verkuil and Marek Szyprowski)
+> 
+> On Wednesday 27 Jul 2016 16:51:47 Kazunori Kobayashi wrote:
+>> Hi,
+>>
+>> I have a question about memory freeing by calling REQBUF(0) before all the
+>> dmabuf fds exported with VIDIOC_EXPBUF are closed.
+>>
+>> In calling REQBUF(0), videobuf2-core returns -EBUSY when the reference count
+>> of a vb2 buffer is more than 1. When dmabuf fds are not exported (usual
+>> V4L2_MEMORY_MMAP case), the check is no problem, but when dmabuf fds are
+>> exported and some of them are not closed (in other words the references to
+>> that memory are left), we cannot succeed in calling REQBUF(0) despite being
+>> able to free the memory after all the references are dropped.
+>>
+>> Actually REQBUF(0) does not force a vb2 buffer to be freed but decreases
+>> the refcount of it. Also all the vb2 memory allocators that support dmabuf
+>> exporting (dma-contig, dma-sg, vmalloc) implements memory freeing by
+>> release() of dma_buf_ops, so I think there is no need to return -EBUSY when
+>> exporting dmabuf fds.
+>>
+>> Could you please tell me what you think?
+> 
+> I think you're right. vb2 allocates the vb2_buffer and the memops-specific 
+> structure separately. videobuf2-core.c will free the vb2_buffer instance, but 
+> won't touch the memops-specific structure or the buffer memory. Both of these 
+> are reference-counted in the memops allocators. We could thus allow REQBUFS(0) 
+> to proceed even when buffers have been exported (or at least after fixing the 
+> small issues we'll run into, I have a feeling that this is too easy to be 
+> true).
+> 
+> Hans, Marek, any opinion on this ?
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 6eca50c..9765031 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -722,19 +722,26 @@ int __must_check __media_device_register(struct media_device *mdev,
- 	/* Set version 0 to indicate user-space that the graph is static */
- 	mdev->topology_version = 0;
- 
-+	media_devnode_init(&mdev->devnode);
-+
- 	ret = media_devnode_register(&mdev->devnode, owner);
- 	if (ret < 0)
--		return ret;
-+		goto out_put;
- 
- 	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
--	if (ret < 0) {
--		media_devnode_unregister(&mdev->devnode);
--		return ret;
--	}
-+	if (ret < 0)
-+		goto out_unregister;
- 
- 	dev_dbg(mdev->dev, "Media device registered\n");
- 
- 	return 0;
-+
-+out_unregister:
-+	media_devnode_unregister(&mdev->devnode);
-+out_put:
-+	put_device(&mdev->devnode.dev);
-+
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(__media_device_register);
- 
-@@ -805,6 +812,7 @@ void media_device_unregister(struct media_device *mdev)
- 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
- 	dev_dbg(mdev->dev, "Media device unregistering\n");
- 	media_devnode_unregister(&mdev->devnode);
-+	put_device(&mdev->devnode.dev);
- }
- EXPORT_SYMBOL_GPL(media_device_unregister);
- 
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index a8302fc..178d692 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -216,6 +216,11 @@ static const struct file_operations media_devnode_fops = {
- 	.llseek = no_llseek,
- };
- 
-+void media_devnode_init(struct media_devnode *devnode)
-+{
-+	device_initialize(&devnode->dev);
-+}
-+
- int __must_check media_devnode_register(struct media_devnode *devnode,
- 					struct module *owner)
- {
-@@ -254,7 +259,7 @@ int __must_check media_devnode_register(struct media_devnode *devnode,
- 	if (devnode->parent)
- 		devnode->dev.parent = devnode->parent;
- 	dev_set_name(&devnode->dev, "media%d", devnode->minor);
--	ret = device_register(&devnode->dev);
-+	ret = device_add(&devnode->dev);
- 	if (ret < 0) {
- 		pr_err("%s: device_register failed\n", __func__);
- 		goto error;
-@@ -284,13 +289,13 @@ void media_devnode_unregister(struct media_devnode *devnode)
- 	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
- 	mutex_unlock(&media_devnode_lock);
- 	cdev_del(&devnode->cdev);
--	device_unregister(&devnode->dev);
-+	device_del(&devnode->dev);
- }
- 
- /*
-  *	Initialise media for linux
-  */
--static int __init media_devnode_init(void)
-+static int __init media_devnode_module_init(void)
- {
- 	int ret;
- 
-@@ -312,14 +317,14 @@ static int __init media_devnode_init(void)
- 	return 0;
- }
- 
--static void __exit media_devnode_exit(void)
-+static void __exit media_devnode_module_exit(void)
- {
- 	bus_unregister(&media_bus_type);
- 	unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
- }
- 
--subsys_initcall(media_devnode_init);
--module_exit(media_devnode_exit)
-+subsys_initcall(media_devnode_module_init);
-+module_exit(media_devnode_module_exit)
- 
- MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
- MODULE_DESCRIPTION("Device node registration for media drivers");
-diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-index a0f6823..68f4b2f 100644
---- a/include/media/media-devnode.h
-+++ b/include/media/media-devnode.h
-@@ -102,6 +102,17 @@ struct media_devnode {
- #define to_media_devnode(cd) container_of(cd, struct media_devnode, dev)
- 
- /**
-+ * media_devnode_init - initialise a media devnode
-+ *
-+ * @devnode: struct media_devnode we want to initialise
-+ *
-+ * Initialise a media devnode. Note that after initialising the media
-+ * devnode is refcounted. Releasing references to it may be done using
-+ * put_device().
-+ */
-+void media_devnode_init(struct media_devnode *devnode);
-+
-+/**
-  * media_devnode_register - register a media device node
-  *
-  * @devnode: struct media_devnode we want to register a device node
-@@ -111,11 +122,9 @@ struct media_devnode {
-  * with the kernel. An error is returned if no free minor number can be found,
-  * or if the registration of the device node fails.
-  *
-- * Zero is returned on success.
-- *
-- * Note that if the media_devnode_register call fails, the release() callback of
-- * the media_devnode structure is *not* called, so the caller is responsible for
-- * freeing any data.
-+ * Zero is returned on success. Note that in case
-+ * media_devnode_register() fails, the caller is responsible for
-+ * releasing the reference to the device using put_device().
-  */
- int __must_check media_devnode_register(struct media_devnode *devnode,
- 					struct module *owner);
--- 
-2.1.4
+What is the use-case for this? What you are doing here is to either free all
+existing buffers or reallocate buffers. We can decide to rely on refcounting,
+but then you would create a second set of buffers (when re-allocating) or
+leave a lot of unfreed memory behind. That's pretty hard on the memory usage.
 
+I think the EBUSY is there to protect the user against him/herself: i.e. don't
+call this unless you know all refs are closed.
+
+Given the typical large buffersizes we're talking about, I think that EBUSY
+makes sense.
+
+Regards,
+
+	Hans
+
+> 
+>> The code that I am talking about is in
+>> drivers/media/v4l2-core/videobuf2-core.c:
+>>
+>>    if (*count == 0 || q->num_buffers != 0 || q->memory != memory) {
+>>           /*
+>>            * We already have buffers allocated, so first check if they
+>>            * are not in use and can be freed.
+>>            */
+>>           mutex_lock(&q->mmap_lock);
+>>           if (q->memory == VB2_MEMORY_MMAP && __buffers_in_use(q)) {
+>>                   mutex_unlock(&q->mmap_lock);
+>>                   dprintk(1, "memory in use, cannot free\n");
+>>                   return -EBUSY;
+>>           }
+> 
