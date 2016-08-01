@@ -1,73 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49454 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752263AbcHPQZv (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:50613 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752047AbcHAI4h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2016 12:25:51 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 0/9] Prepare Sphinx to build media PDF books
-Date: Tue, 16 Aug 2016 13:25:34 -0300
-Message-Id: <cover.1471364025.git.mchehab@s-opensource.com>
+	Mon, 1 Aug 2016 04:56:37 -0400
+Subject: Re: [PATCH 3/3] soc-camera/sh_mobile_csi2: remove unused driver
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1470038065-30789-1-git-send-email-hverkuil@xs4all.nl>
+ <1470038065-30789-4-git-send-email-hverkuil@xs4all.nl>
+ <8220966.xMzG3XxcmY@avalon>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4dafe85c-ec52-9460-1f1e-1d4ae8c456a4@xs4all.nl>
+Date: Mon, 1 Aug 2016 10:56:21 +0200
+MIME-Version: 1.0
+In-Reply-To: <8220966.xMzG3XxcmY@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series fix Sphinx to allow it to build the media documentation as a PDF
-file.
-
-The first patch is actually a bug fix: one of the previous patch broke compilation
-for PDF as a hole, as it added an extra parenthesis to a function call.
-
-The second patch just removes a left over code for rst2pdf.
-
-The other patches change from "pdflatex" to "xelatex" and address several
-issues that prevent building the media books.
-
-Jon,
-
-I think this patch series belong to docs-next. Feel free to merge them there, if
-you agree. There's one extra patch that touches Documentation/conf.py,
-re-adding the media book to the PDF build, but IMHO this one would be better
-to be merged via the media tree, after the fixes inside the media documentation
-to fix the build.
-
-I'm sending the media-specific patches on a separate patch series, meant to
-be merged via the media tree.
-
-As on the previous experimental patch series, I'm pushing the entire stuff
-on my development tree, at:
-	https://git.linuxtv.org//mchehab/experimental.git/log/?h=docs-next
-
-The generated PDF file is at:
-	https://mchehab.fedorapeople.org/media.pdf
-
-Please notice that lots of tables are broken. Fixing them would require manual
-work, as we'll need to add tags to specify the column size via tabularcolumns,
-long tables should use the cssclass:: longtable, and very wide tables will need
-to be rotated and size-adjusted.
-
-Anyway, at least *some* PDF support for media books are now possible.
 
 
-Mauro Carvalho Chehab (9):
-  docs-rst: fix a breakage when building PDF documents
-  docs-rst: remove a rst2pdf left over code
-  docs-rst: allow generating some LaTeX pages in landscape
-  docs-rst: improve output for .. notes:: on LaTeX
-  docs-rst: Don't mangle with UTF-8 chars on LaTeX/PDF output
-  docs-rst: better adjust margins and font size
-  docs-rst: parse-heraders.pl: escape LaTeX characters
-  docs-rst: Don't go to interactive mode on errors
-  docs-rst: enable the Sphinx math extension
+On 08/01/2016 10:34 AM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thank you for the patch.
+> 
+> On Monday 01 Aug 2016 09:54:25 Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> The sh_mobile_csi2 isn't used anymore (was it ever?), so remove it.
+>> Especially since the soc-camera framework is being deprecated.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+>> ---
+>>  drivers/media/platform/soc_camera/Kconfig          |   7 -
+>>  drivers/media/platform/soc_camera/Makefile         |   1 -
+>>  .../platform/soc_camera/sh_mobile_ceu_camera.c     | 229 +-----------
+>>  drivers/media/platform/soc_camera/sh_mobile_csi2.c | 400 ------------------
+>>  include/media/drv-intf/sh_mobile_ceu.h             |   1 -
+>>  include/media/drv-intf/sh_mobile_csi2.h            |  48 ---
+>>  6 files changed, 10 insertions(+), 676 deletions(-)
+>>  delete mode 100644 drivers/media/platform/soc_camera/sh_mobile_csi2.c
+>>  delete mode 100644 include/media/drv-intf/sh_mobile_c
+> 
+> Any plan for the sh_mobile_ceu_camera driver by the way ?
+> 
 
- Documentation/Makefile.sphinx         |  8 ++---
- Documentation/conf.py                 | 66 +++++++++++++++++++++++++++++------
- Documentation/sphinx/parse-headers.pl |  2 +-
- 3 files changed, 60 insertions(+), 16 deletions(-)
+Yes.
 
--- 
-2.7.4
+The idea is to replace the remaining soc-camera drivers by 'proper' drivers
+(Robert Jarzmik is working on that for the pxa_camera driver, and I am working
+on the atmel-isi driver).
 
+Once that's done the only soc-camera driver left is the sh_mobile_ceu_camera
+driver.
 
+At that moment the soc-camera framework will be folded into the sh_mobile_ceu_camera
+driver and it will cease to exist as a framework. It's just a very complex
+driver. I plan on refactoring it further, removing dead code etc.
+
+My original plan was to replace the sh_mobile_ceu_camera driver by a 'proper'
+driver as well, but it was next to impossible to do that. The fact that it
+didn't use the device tree and the complexity with scaling and cropping and
+the close dependency on soc-camera just made this a no go (at least not
+something I was willing to spend more time on).
+
+I think this alternative approach has the best chance of succeeding.
+
+I'm not sure yet what we'll do with the soc-camera sensors. I experimented
+a bit with extracting them from soc-camera, but for most it's not easy to
+do so. Something to look at later.
+
+Regards,
+
+	Hans
