@@ -1,150 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55455
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754789AbcHXMX6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Aug 2016 08:23:58 -0400
-Date: Wed, 24 Aug 2016 09:23:51 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 0/9] Prepare Sphinx to build media PDF books
-Message-ID: <20160824092351.0ca643c9@vento.lan>
-In-Reply-To: <7E41034C-DBBE-4AC0-A533-E03A501EBEE0@darmarit.de>
-References: <cover.1471364025.git.mchehab@s-opensource.com>
-        <20160818172127.190fad79@lwn.net>
-        <20160824074213.56fe8e50@vento.lan>
-        <7E41034C-DBBE-4AC0-A533-E03A501EBEE0@darmarit.de>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44037 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751332AbcHAIhV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2016 04:37:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Niklas =?ISO-8859-1?Q?S=F6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: Re: [PATCH 2/3] soc-camera/rcar-vin: remove obsolete driver
+Date: Mon, 01 Aug 2016 11:31:11 +0300
+Message-ID: <3585190.qMTDhgQKz3@avalon>
+In-Reply-To: <1470038065-30789-3-git-send-email-hverkuil@xs4all.nl>
+References: <1470038065-30789-1-git-send-email-hverkuil@xs4all.nl> <1470038065-30789-3-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Markus,
+Hi Hans,
 
-Em Wed, 24 Aug 2016 13:46:48 +0200
-Markus Heiser <markus.heiser@darmarit.de> escreveu:
+Thank you for the patch.
 
-> Am 24.08.2016 um 12:42 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+On Monday 01 Aug 2016 09:54:24 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> > Markus,
-> > 
-> > Em Thu, 18 Aug 2016 17:21:27 -0600
-> > Jonathan Corbet <corbet@lwn.net> escreveu:
-> >   
-> >> On Tue, 16 Aug 2016 13:25:34 -0300
-> >> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
-> >>   
-> >>> I think this patch series belong to docs-next. Feel free to merge them there, if
-> >>> you agree. There's one extra patch that touches Documentation/conf.py,
-> >>> re-adding the media book to the PDF build, but IMHO this one would be better
-> >>> to be merged via the media tree, after the fixes inside the media documentation
-> >>> to fix the build.    
-> >> 
-> >> It's now in docs-next.  I was able to build some nice-looking docs with it
-> >> without too much (additional) pain...  
-> > 
-> > I'm noticing a very weird behavior when I'm building documentation on
-> > my server. There, I'm using this command:
-> > 
-> > 	$ make cleandocs; make V=1 DOCBOOKS="" SPHINXDIRS=media SPHINX_CONF="conf.py" htmldocs  
+> This driver has been replaced by the non-soc-camera rcar-vin driver.
+> The soc-camera framework is being deprecated, so drop this older
+> rcar-vin driver in favor of the newer version that does not rely on
+> this deprecated framework.
 > 
-> Hi Mauro,
-> 
-> if you build a sub-folder, the conf.py is the default. You don't need 
-> to name conf.py it explicit and you can leave the DOCBOOKS env.
-> 
-> $ make V=1 SPHINXDIRS=media cleandocs htmldocs
-> 
-> or less verbose:
-> 
-> $ make SPHINXDIRS=media cleandocs htmldocs
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Yeah, I know. I added the SPHINX_CONF there because my end goal
-is to use the nitpick config, after cleaning it up ;)
+I'm all for removal of dead code :-)
 
-> 
-> But this does not answer your question ;)
-> 
-> > This is what happens on my local machine:
-> > 	http://pastebin.com/VGqvDa7T  
-> 
-> Seems to build fine. But this is not "make V=1" log.
-> 
-> > And this is the result of the same command on my server, accessed via ssh:
-> > 	http://pastebin.com/1MFi5LEG  
-> 
-> Same here, it is not a "make V=1" log. The errors like:
-> 
->  WARNING: inline latex u"L' = L ^{\\frac{1}{2.19921875}}": latex exited with error
-> 
-> are dubious first. Which branch did you compile. It seems you are
-> using "inline latex" ... this seems not in Jon's docs-next.
-> I checked your experimental docs-next, there is a related
-> markup, so I think you compiling this branch.
-> 
-> .. math::
-> 
->    L' = L ^{\frac{1}{2.19921875}}
-> 
-> So I guess the error message is related to one of the sphinx-extensions:
-> 
-> # The name of the math extension changed on Sphinx 1.4
-> if minor > 3:
->    extensions.append("sphinx.ext.imgmath")
-> else:
->    extensions.append("sphinx.ext.pngmath")
-> 
-> Since there is a log "Running Sphinx v1.4.6" (both, desktop and server) I
-> guess it is related to the sphinx.ext.imgmath extension.
-> 
-> I haven't tested math-extensions yet, I will give it a try
-> and send you my experience later. In the meantime you can check
-> your math-extensions on desktop and server ...
-> 
-> In general I guess: 
-> 
-> 0.) you compiling different branches
-> 
-> or
-> 
-> 1.) on your desktop the math-extension miss some latex stuff
-> and does not run, so you get no errors (or it runs perfect
-> without any error).
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Thanks! that was the case...
+But please get Niklas' ack to confirm that the new driver supports all the 
+feature available in the old one.
 
-I had already those two extensions that are needed by math:
-	texlive-amsmath-svn30645.2.14-24.fc24.1.noarch
-	texlive-amsfonts-svn29208.3.04-24.fc24.1.noarch
+> ---
+>  drivers/media/platform/soc_camera/Kconfig    |   10 -
+>  drivers/media/platform/soc_camera/Makefile   |    1 -
+>  drivers/media/platform/soc_camera/rcar_vin.c | 1970 -----------------------
+>  3 files changed, 1981 deletions(-)
+>  delete mode 100644 drivers/media/platform/soc_camera/rcar_vin.c
 
-But it was missing this one on the server:
-	texlive-anyfontsize.noarch
+-- 
+Regards,
 
-> > Also, if I use the "-j33" sphinx option, it complains:
-> > 
-> > WARNING: the kernel_include extension does not declare if it is safe for parallel reading, assuming it isn't - please ask the extension author to check and make it explicit
-> > WARNING: doing serial read  
-> 
-> Yes I know, it is the same with the kernel_doc extension, I can send a patch for both.
+Laurent Pinchart
 
-That will be very much appreciated, thanks!
-
-> > Btw, we need to add support to build just one PDF file, as we did with
-> > the htmldocs.  
-> 
-> You mean, when you build a subfolder (SPHINXDIRS=media), you wanted
-> to build a PDF with only media stuff in .. right?
-
-Yes.
-
-> .. thats what 
-> I suggested in one of my last mails .. I can sent a patch for this.
-
-Please do that.
-
-Thanks!
-Mauro
