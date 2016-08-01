@@ -1,78 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53441 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752958AbcHJSvL (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:34111 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751170AbcHAHym (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2016 14:51:11 -0400
-Date: Wed, 10 Aug 2016 05:52:47 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jani Nikula <jani.nikula@intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-	Markus Heiser <markus.heiser@darmarit.de>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: Re: parts of media docs sphinx re-building every time?
-Message-ID: <20160810055247.01818851@vela.lan>
-In-Reply-To: <87wpjpvzmk.fsf@intel.com>
-References: <8760rbp8zh.fsf@intel.com>
-	<87wpjpvzmk.fsf@intel.com>
+	Mon, 1 Aug 2016 03:54:42 -0400
+Received: from durdane.fritz.box (marune.xs4all.nl [80.101.105.217])
+	by tschai.lan (Postfix) with ESMTPSA id 0B2C51800F2
+	for <linux-media@vger.kernel.org>; Mon,  1 Aug 2016 09:54:25 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/3] Remove tw686x-kh, soc-camera/rcar-vin and soc-camera/sh_mobile_csi2
+Date: Mon,  1 Aug 2016 09:54:22 +0200
+Message-Id: <1470038065-30789-1-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 10 Aug 2016 10:42:27 +0300
-Jani Nikula <jani.nikula@intel.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> On Mon, 08 Aug 2016, Jani Nikula <jani.nikula@intel.com> wrote:
-> > I wonder if it's related to Documentation/media/Makefile... which I have
-> > to say I am not impressed by. I was really hoping we could build all the
-> > documentation by standalone sphinx-build invocation too, relying only on
-> > the conf.py so that e.g. Read the Docs can build the docs. Part of that
-> > motivation was to keep the build clean in makefiles, and handing the
-> > dependency tracking completely to Sphinx.
-> >
-> > I believe what's in Documentation/media/Makefile,
-> > Documentation/sphinx/parse-headers.pl, and
-> > Documentation/sphinx/kernel_include.py could be replaced by a Sphinx
-> > extension looking at the sources directly. (I presume kernel_include.py
-> > is mostly a workaround to keep out-of-tree builds working?)  
-> 
-> Additionally, 'make pdfdocs' fails with e.g. 
-> 
-> /path/to/linux/Documentation/media/uapi/cec/cec-header.rst:9: SEVERE: Problems with "kernel-include" directive path:
-> InputError: [Errno 2] No such file or directory: '/path/to/linux/Documentation/output/cec.h.rst'.
-> /path/to/linux/Documentation/media/uapi/dvb/audio_h.rst:9: SEVERE: Problems with "kernel-include" directive path:
-> InputError: [Errno 2] No such file or directory: '/path/to/linux/Documentation/output/audio.h.rst'.
-> /path/to/linux/Documentation/media/uapi/dvb/ca_h.rst:9: SEVERE: Problems with "kernel-include" directive path:
-> InputError: [Errno 2] No such file or directory: '/path/to/linux/Documentation/output/ca.h.rst'.
-> /path/to/linux/Documentation/media/uapi/dvb/dmx_h.rst:9: SEVERE: Problems with "kernel-include" directive path:
-> InputError: [Errno 2] No such file or directory: '/path/to/linux/Documentation/output/dmx.h.rst'.
-> 
-> because the makefile hack is only done on htmldocs target.
+Remove these three obsolete drivers: the first two have replacement drivers
+with the same functionality, the last driver is unused.
 
-Hit send too early... this is what happens here if I run make with the
-documents already built:
+Regards,
 
+	Hans
 
-$ make  htmldocs
-make BUILDDIR=Documentation/output -f ./Documentation/media/Makefile htmldocs
-make[2]: Nothing to be done for 'htmldocs'.
-  SPHINX  htmldocs
-Running Sphinx v1.4.5
-loading pickled environment... done
-building [mo]: targets for 0 po files that are out of date
-building [html]: targets for 0 source files that are out of date
-updating environment: 0 added, 0 changed, 0 removed
-looking for now-outdated files... none found
-no targets are out of date.
-build succeeded.
+Hans Verkuil (3):
+  tw686x-kh: remove obsolete driver
+  soc-camera/rcar-vin: remove obsolete driver
+  soc-camera/sh_mobile_csi2: remove unused driver
 
-(docbook build messages suppressed
+ drivers/media/platform/soc_camera/Kconfig          |   17 -
+ drivers/media/platform/soc_camera/Makefile         |    2 -
+ drivers/media/platform/soc_camera/rcar_vin.c       | 1970 --------------------
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |  229 +--
+ drivers/media/platform/soc_camera/sh_mobile_csi2.c |  400 ----
+ drivers/staging/media/Kconfig                      |    2 -
+ drivers/staging/media/Makefile                     |    1 -
+ drivers/staging/media/tw686x-kh/Kconfig            |   17 -
+ drivers/staging/media/tw686x-kh/Makefile           |    3 -
+ drivers/staging/media/tw686x-kh/TODO               |    6 -
+ drivers/staging/media/tw686x-kh/tw686x-kh-core.c   |  140 --
+ drivers/staging/media/tw686x-kh/tw686x-kh-regs.h   |  103 -
+ drivers/staging/media/tw686x-kh/tw686x-kh-video.c  |  813 --------
+ drivers/staging/media/tw686x-kh/tw686x-kh.h        |  117 --
+ include/media/drv-intf/sh_mobile_ceu.h             |    1 -
+ include/media/drv-intf/sh_mobile_csi2.h            |   48 -
+ 16 files changed, 10 insertions(+), 3859 deletions(-)
+ delete mode 100644 drivers/media/platform/soc_camera/rcar_vin.c
+ delete mode 100644 drivers/media/platform/soc_camera/sh_mobile_csi2.c
+ delete mode 100644 drivers/staging/media/tw686x-kh/Kconfig
+ delete mode 100644 drivers/staging/media/tw686x-kh/Makefile
+ delete mode 100644 drivers/staging/media/tw686x-kh/TODO
+ delete mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh-core.c
+ delete mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh-regs.h
+ delete mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh-video.c
+ delete mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh.h
+ delete mode 100644 include/media/drv-intf/sh_mobile_csi2.h
 
+-- 
+2.8.1
 
-Cheers,
-Mauro
