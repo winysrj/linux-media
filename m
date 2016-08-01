@@ -1,106 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:35860 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754237AbcHCP02 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 11:26:28 -0400
-Date: Wed, 3 Aug 2016 08:26:02 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input <linux-input@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv2] serio: add hangup support
-Message-ID: <20160803152602.GB29702@dtor-ws>
-References: <0d959a01-e698-0178-af89-5925469f95ab@xs4all.nl>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36657
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752781AbcHAL0G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2016 07:26:06 -0400
+Date: Mon, 1 Aug 2016 08:19:14 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jani Nikula <jani.nikula@intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michal Marek <mmarek@suse.com>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Ben Hutchings <ben@decadent.org.uk>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>,
+	linux-doc@vger.kernel.org, linux-kbuild@vger.kernel.org
+Subject: Re: [PATCH] doc-rst: Remove the media docbook
+Message-ID: <20160801081914.4c01ddae@recife.lan>
+In-Reply-To: <87invkvmk3.fsf@intel.com>
+References: <4fb2b55b3d3215b2f6c649417d749f8f27b2df77.1469611833.git.mchehab@s-opensource.com>
+	<87invkvmk3.fsf@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0d959a01-e698-0178-af89-5925469f95ab@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 03, 2016 at 01:00:44PM +0200, Hans Verkuil wrote:
-> The Pulse-Eight USB CEC adapter is a usb device that shows up as a ttyACM0 device.
-> It requires that you run inputattach in order to communicate with it via serio.
-> 
-> This all works well, but it would be nice to have a udev rule to automatically
-> start inputattach. That too works OK, but the problem comes when the USB device
-> is unplugged: the tty hangup is never handled by the serio framework so the
-> inputattach utility never exits and you have to kill it manually.
-> 
-> By adding this hangup callback the inputattach utility now properly exits as
-> soon as the USB device is unplugged.
-> 
-> The udev rule I used on my Debian sid system is:
-> 
-> SUBSYSTEM=="tty", KERNEL=="ttyACM[0-9]*", ATTRS{idVendor}=="2548", ATTRS{idProduct}=="1002", ACTION=="add", TAG+="systemd", ENV{SYSTEMD_WANTS}+="pulse8-cec-inputattach@%k.service"
-> 
-> And pulse8-cec-inputattach@%k.service is as follows:
-> 
-> ===============================================================
-> [Unit]
-> Description=inputattach for pulse8-cec device on %I
-> 
-> [Service]
-> Type=simple
-> ExecStart=/usr/local/bin/inputattach --pulse8-cec /dev/%I
-> KillMode=process
-> ===============================================================
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-> Change since the original RFC patch: don't call close() from the hangup() function,
-> instead only set the DEAD flag in hangup() instead of in close().
-> ---
-> diff --git a/drivers/input/serio/serport.c b/drivers/input/serio/serport.c
-> index 9c927d3..4045e95 100644
-> --- a/drivers/input/serio/serport.c
-> +++ b/drivers/input/serio/serport.c
-> @@ -71,7 +71,6 @@ static void serport_serio_close(struct serio *serio)
-> 
->  	spin_lock_irqsave(&serport->lock, flags);
->  	clear_bit(SERPORT_ACTIVE, &serport->flags);
-> -	set_bit(SERPORT_DEAD, &serport->flags);
->  	spin_unlock_irqrestore(&serport->lock, flags);
-> 
->  	wake_up_interruptible(&serport->wait);
+Hi Jani,
 
-I think we should remove this line as well - the waiter is waiting on
-SERPORT_DEAD bit, if we are not setting it we do not need to wake up the
-waiter either.
+Em Mon, 01 Aug 2016 12:57:32 +0300
+Jani Nikula <jani.nikula@intel.com> escreveu:
 
-I can fix it up on my side.
-
-> @@ -248,6 +247,19 @@ static long serport_ldisc_compat_ioctl(struct tty_struct *tty,
->  }
->  #endif
+> On Wed, 27 Jul 2016, Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> > Now that all media documentation was converted to Sphinx, we
+> > should get rid of the old DocBook one, as we don't want people
+> > to submit patches against the old stuff.  
 > 
-> +static int serport_ldisc_hangup(struct tty_struct * tty)
-> +{
-> +	struct serport *serport = (struct serport *) tty->disc_data;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&serport->lock, flags);
-> +	set_bit(SERPORT_DEAD, &serport->flags);
-> +	spin_unlock_irqrestore(&serport->lock, flags);
-> +
-> +	wake_up_interruptible(&serport->wait);
-> +	return 0;
-> +}
-> +
->  static void serport_ldisc_write_wakeup(struct tty_struct * tty)
->  {
->  	struct serport *serport = (struct serport *) tty->disc_data;
-> @@ -274,6 +286,7 @@ static struct tty_ldisc_ops serport_ldisc = {
->  	.compat_ioctl =	serport_ldisc_compat_ioctl,
->  #endif
->  	.receive_buf =	serport_ldisc_receive,
-> +	.hangup =	serport_ldisc_hangup,
->  	.write_wakeup =	serport_ldisc_write_wakeup
->  };
-> 
+> Mauro, judging from the discussions we've had over the past six months,
+> I never would have guessed media docs would be among the first docbooks
+> converted. Fantastic job!
 
-Thanks.
+Thanks!
 
--- 
-Dmitry
+Yeah, I opted to do the full conversion while all the discussions are
+fresh, as I found easier to remember what were the major issues and check
+if they were properly addressed on the conversion.
+
+Thanks for your and Markus support helping to address the issues!
+
+My general impression is that it is now a way easier to maintain the
+media documentation and make it more consistent than with DocBook. 
+
+Thanks,
+Mauro
