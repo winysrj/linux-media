@@ -1,61 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:60831 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753566AbcGDNe6 (ORCPT
+Received: from exsmtp03.microchip.com ([198.175.253.49]:9848 "EHLO
+	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750805AbcHABXl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2016 09:34:58 -0400
-Received: from tschai.fritz.box (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id F1F931800C2
-	for <linux-media@vger.kernel.org>; Mon,  4 Jul 2016 15:34:52 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/7] adv quantization fixes, doc and zero reserved field
-Date: Mon,  4 Jul 2016 15:34:45 +0200
-Message-Id: <1467639292-1066-1-git-send-email-hverkuil@xs4all.nl>
+	Sun, 31 Jul 2016 21:23:41 -0400
+Subject: Re: [PATCH v7 2/2] [media] atmel-isc: DT binding for Image Sensor
+ Controller driver
+To: Rob Herring <robh@kernel.org>
+References: <1469778856-24253-1-git-send-email-songjun.wu@microchip.com>
+ <1469778856-24253-3-git-send-email-songjun.wu@microchip.com>
+ <20160729214454.GA21408@rob-hp-laptop>
+CC: <nicolas.ferre@atmel.com>, <laurent.pinchart@ideasonboard.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	<linux-kernel@vger.kernel.org>
+From: "Wu, Songjun" <Songjun.Wu@microchip.com>
+Message-ID: <5a2cea98-dd8a-159b-7adb-a2533cfde1b0@microchip.com>
+Date: Mon, 1 Aug 2016 09:23:11 +0800
+MIME-Version: 1.0
+In-Reply-To: <20160729214454.GA21408@rob-hp-laptop>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch series fixes a number of quantization range problems in the
-adv drivers. These problems surfaced because of work done to support
-different mediabus formats. In the past this was hardcoded via the
-platform data, but today this is set by the bridge driver.
 
-As a result the quantization range handling broke since the registers
-weren't updated when the mediabus format changed.
+On 7/30/2016 05:44, Rob Herring wrote:
+> On Fri, Jul 29, 2016 at 03:54:08PM +0800, Songjun Wu wrote:
+>> DT binding documentation for ISC driver.
+>>
+>> Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
+>> ---
+>>
+>> Changes in v7: None
+>> Changes in v6:
+>> - Add "iscck" and "gck" to clock-names.
+>>
+>> Changes in v5:
+>> - Add clock-output-names.
+>>
+>> Changes in v4:
+>> - Remove the isc clock nodes.
+>>
+>> Changes in v3:
+>> - Remove the 'atmel,sensor-preferred'.
+>> - Modify the isc clock node according to the Rob's remarks.
+>>
+>> Changes in v2:
+>> - Remove the unit address of the endpoint.
+>> - Add the unit address to the clock node.
+>> - Avoid using underscores in node names.
+>> - Drop the "0x" in the unit address of the i2c node.
+>> - Modify the description of 'atmel,sensor-preferred'.
+>> - Add the description for the ISC internal clock.
+>>
+>>  .../devicetree/bindings/media/atmel-isc.txt        | 65 ++++++++++++++++++++++
+>>  1 file changed, 65 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
+>
+> Please add acks when posting new versions.
+>
+> Rob
+>
+Hi Rob,
 
-The final two patches document the reserved field from v4l2_bt_timings
-and zero that field.
+Thank you for your reminder.
 
-This prepares for upcoming work were the timings struct is extended with
-the CTA-861 VIC code, which is also needed by these drivers to correctly
-setup the AVI InfoFrame.
+Should I Add 'Acked-by: Rob Herring <robh@kernel.org>' behind 
+'Signed-off-by: Songjun Wu <songjun.wu@microchip.com>'?
 
-Regards,
-
-	Hans
-
-Hans Verkuil (7):
-  adv7511: drop adv7511_set_IT_content_AVI_InfoFrame
-  adv7511: fix quantization range handling
-  adv7604/adv7842: fix quantization range handling
-  ezkit/cobalt: drop unused op_656_range setting
-  adv7604/adv7842: drop unused op_656_range and alt_data_sat fields.
-  DocBook media: document the v4l2_bt_timings reserved field
-  v4l2-ioctl: zero the v4l2_bt_timings reserved field
-
- .../DocBook/media/v4l/vidioc-g-dv-timings.xml      |  7 ++++
- arch/blackfin/mach-bf609/boards/ezkit.c            |  2 --
- drivers/media/i2c/adv7511.c                        | 39 ++++++++--------------
- drivers/media/i2c/adv7604.c                        | 27 +++++++++------
- drivers/media/i2c/adv7842.c                        | 26 ++++++++++-----
- drivers/media/pci/cobalt/cobalt-driver.c           |  2 --
- drivers/media/v4l2-core/v4l2-ioctl.c               |  4 +--
- include/media/i2c/adv7604.h                        |  2 --
- include/media/i2c/adv7842.h                        |  2 --
- 9 files changed, 56 insertions(+), 55 deletions(-)
-
--- 
-2.8.1
-
+Should I resend this patch?
