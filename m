@@ -1,68 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:40585 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752306AbcHJSCM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2016 14:02:12 -0400
-Date: Wed, 10 Aug 2016 16:56:56 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Abylay Ospan <aospan@netup.ru>
-Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
-	linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
-	Sergey Kozlov <serjk@netup.ru>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/4] media: pci: netup_unidvb: don't print error when
- adding adapter fails
-Message-ID: <20160810145656.GD1607@katana>
-References: <1470742517-12774-1-git-send-email-wsa-dev@sang-engineering.com>
- <1470742517-12774-2-git-send-email-wsa-dev@sang-engineering.com>
- <CAK3bHNWmxQsAtefcUocoOcEwtWnpptiVxzhXR-+jVU524RmnPw@mail.gmail.com>
- <20160809145856.GC1666@katana>
- <CAK3bHNUL3NjFFex4US09ZnxvKV-1oJAu=qVrZUSgeKy90CBiAA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OROCMA9jn6tkzFBc"
-Content-Disposition: inline
-In-Reply-To: <CAK3bHNUL3NjFFex4US09ZnxvKV-1oJAu=qVrZUSgeKy90CBiAA@mail.gmail.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:38090 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751041AbcHADAR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Jul 2016 23:00:17 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 877AD1800DC
+	for <linux-media@vger.kernel.org>; Mon,  1 Aug 2016 05:00:11 +0200 (CEST)
+Date: Mon, 01 Aug 2016 05:00:11 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160801030011.877AD1800DC@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---OROCMA9jn6tkzFBc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Results of the daily build of media_tree:
 
+date:		Mon Aug  1 04:00:22 CEST 2016
+git branch:	test
+git hash:	292eaf50c7df4ae2ae8aaa9e1ce3f1240a353ee8
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-> if we do not remove this it's also ok, right ? What the big deal to
-> remove this type of messages (i'm just interested) ?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-* Saving memory, especially at runtime.
-* Giving consistent and precise error messages
+Detailed results are available here:
 
-This series is a first step of trying to move generic error messages
-=66rom drivers to subsystem cores.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
+Full logs are available here:
 
---OROCMA9jn6tkzFBc
-Content-Type: application/pgp-signature; name="signature.asc"
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+The Media Infrastructure API from this daily build is here:
 
-iQIcBAEBAgAGBQJXq0C4AAoJEBQN5MwUoCm209YP/jjuQcBKPDTSoGK0Oex4kpmD
-Bp/EgNeFMyKvXpTMsIr+wrSBZ7mABF4/DU3+wvZ5MscrmJfQCcMRnUYOfj/f5ELL
-nAdDKuXaucfH8FJFDFNxqf8A9jjH4sqk6uI0VbyMBgChiSKZqDlp5jNr/91w6bWa
-alLTyFQa876q32krSiQssH2U6/siK7t7Qbcky9OlBqmbUIsUN0rn4eozoUgvxsY6
-yZuPNxiPiwqiENmElGq7QguoFCEmS7D11/MVyjx/x9zs1BLaTgq12HWcUsmbzNWt
-ZZeYRh5eA7JuhdDxEwYfkecJ5jMEOejlk1AZxUiI7FLNEck35yUb4COD/hGG7r1f
-uz1aPqXnQ0vIaCA1yiWTPLGbqN2Fe4aQkTgm75ChF+h4H/F8QSc8XZfYTOKiecib
-lS/7y/4O7svgWhMEAURCP4/uYx2hblVgosHbsZCXruCG3sEqK+bGNzwUD09zdVpe
-wjyo5UiMyZm6F58cToa3YkUKAh5azm6vSuT6HlbdYtP9wicaZfUTxEUsDMxodVqg
-lrNcMco7kPT7nNdqAPt982v5ua6nG/O+AgYxWf9VJUyMmii3BoRG0L6uLSnFWBJW
-7GqJ+NstL5Xn/Nb0YCxGGG8bq9v+uiRIraDKsJdyNAtXPriu0XTKaC1pbO5BKXcv
-ThlMFSgopJTwXq5PzOAk
-=dlU7
------END PGP SIGNATURE-----
-
---OROCMA9jn6tkzFBc--
+http://www.xs4all.nl/~hverkuil/spec/index.html
