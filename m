@@ -1,84 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:52324 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752188AbcHLLJd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2016 07:09:33 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.9] Add new pixelformats
-Message-ID: <5d87f61b-ba1d-0a9e-5e0d-fdc7a8f840c4@xs4all.nl>
-Date: Fri, 12 Aug 2016 13:09:27 +0200
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:53038 "EHLO
+	smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935041AbcHBOvl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 10:51:41 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com
+Cc: lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com,
+	Steve Longerbeam <steve_longerbeam@mentor.com>,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2 7/7] [PATCHv5] media: adv7180: fix field type
+Date: Tue,  2 Aug 2016 16:51:07 +0200
+Message-Id: <20160802145107.24829-8-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes for existing pixelformat descriptions and new pixelformats.
+From: Steve Longerbeam <slongerbeam@gmail.com>
 
-See the cover letter of the patch series:
+The ADV7180 and ADV7182 transmit whole fields, bottom field followed
+by top (or vice-versa, depending on detected video standard). So
+for chips that do not have support for explicitly setting the field
+mode, set the field mode to V4L2_FIELD_ALTERNATE.
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg100998.html
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+[Niklas: changed filed type from V4L2_FIELD_SEQ_{TB,BT} to
+V4L2_FIELD_ALTERNATE]
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-I agree with Sakari's reasoning: these are standard formats that many newer
-devices support. I also like that the list of Bayer formats is now more
-systematic and covers all (?) common formats.
+---
+v5:
+- Readd patch version and changelog which was dropped in v4.
 
-Regards,
+v4:
+- Switch V4L2_FIELD_SEQ_TB/V4L2_FIELD_SEQ_BT to V4L2_FIELD_ALTERNATE.
+- Update of Steves patch by Niklas.
 
-	Hans
+v3: no changes
 
-The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
+v2:
+- the init of state->curr_norm in probe needs to be moved up, ahead
+  of the init of state->field.
+---
+ drivers/media/i2c/adv7180.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index a8b434b..c6fed71 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -680,10 +680,13 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
+ 	switch (format->format.field) {
+ 	case V4L2_FIELD_NONE:
+ 		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
+-			format->format.field = V4L2_FIELD_INTERLACED;
++			format->format.field = V4L2_FIELD_ALTERNATE;
+ 		break;
+ 	default:
+-		format->format.field = V4L2_FIELD_INTERLACED;
++		if (state->chip_info->flags & ADV7180_FLAG_I2P)
++			format->format.field = V4L2_FIELD_INTERLACED;
++		else
++			format->format.field = V4L2_FIELD_ALTERNATE;
+ 		break;
+ 	}
+ 
+@@ -1253,8 +1256,13 @@ static int adv7180_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 
+ 	state->client = client;
+-	state->field = V4L2_FIELD_INTERLACED;
+ 	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
++	state->curr_norm = V4L2_STD_NTSC;
++
++	if (state->chip_info->flags & ADV7180_FLAG_I2P)
++		state->field = V4L2_FIELD_INTERLACED;
++	else
++		state->field = V4L2_FIELD_ALTERNATE;
+ 
+ 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
+ 		state->csi_client = i2c_new_dummy(client->adapter,
+@@ -1274,7 +1282,6 @@ static int adv7180_probe(struct i2c_client *client,
+ 
+ 	state->irq = client->irq;
+ 	mutex_init(&state->mutex);
+-	state->curr_norm = V4L2_STD_NTSC;
+ 	if (state->chip_info->flags & ADV7180_FLAG_RESET_POWERED)
+ 		state->powered = true;
+ 	else
+-- 
+2.9.0
 
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git newpixfmts
-
-for you to fetch changes up to 2feb1e8a20a88bcd0aa4e2b46cabcc51241f37b8:
-
-  doc-rst: Add 16-bit raw bayer pixel format definitions (2016-08-12 13:02:48 +0200)
-
-----------------------------------------------------------------
-Jouni Ukkonen (1):
-      media: Add 1X14 14-bit raw bayer media bus code definitions
-
-Sakari Ailus (10):
-      doc-rst: Correct the ordering of LSBs of the 10-bit raw packed formats
-      doc-rst: Fix number of zeroed high order bits in 12-bit raw format defs
-      doc-rst: Clean up raw bayer pixel format definitions
-      doc-rst: Unify documentation of the 8-bit bayer formats
-      v4l: Add packed Bayer raw12 pixel formats
-      doc-rst: Add 14-bit raw bayer pixel format definitions
-      doc-rst: Add packed Bayer raw14 pixel formats
-      media: Add 1X16 16-bit raw bayer media bus code definitions
-      doc-rst: 16-bit BGGR is always 16 bits
-      doc-rst: Add 16-bit raw bayer pixel format definitions
-
- Documentation/media/uapi/v4l/pixfmt-rgb.rst                          |   8 +-
- Documentation/media/uapi/v4l/pixfmt-sbggr8.rst                       |  81 -----
- Documentation/media/uapi/v4l/pixfmt-sgbrg8.rst                       |  81 -----
- Documentation/media/uapi/v4l/pixfmt-sgrbg8.rst                       |  81 -----
- Documentation/media/uapi/v4l/pixfmt-srggb10.rst                      |  15 +-
- Documentation/media/uapi/v4l/pixfmt-srggb10p.rst                     |  24 +-
- Documentation/media/uapi/v4l/pixfmt-srggb12.rst                      |   5 +-
- Documentation/media/uapi/v4l/pixfmt-srggb12p.rst                     | 107 ++++++
- Documentation/media/uapi/v4l/pixfmt-srggb14.rst                      | 122 +++++++
- Documentation/media/uapi/v4l/pixfmt-srggb14p.rst                     | 127 +++++++
- .../media/uapi/v4l/{pixfmt-sbggr16.rst => pixfmt-srggb16.rst}        |  32 +-
- Documentation/media/uapi/v4l/pixfmt-srggb8.rst                       |  41 ++-
- Documentation/media/uapi/v4l/subdev-formats.rst                      | 546 ++++++++++++++++++++++++++++++-
- drivers/media/v4l2-core/v4l2-ioctl.c                                 |  21 +-
- include/uapi/linux/media-bus-format.h                                |  10 +-
- include/uapi/linux/videodev2.h                                       |  17 +
- 16 files changed, 1012 insertions(+), 306 deletions(-)
- delete mode 100644 Documentation/media/uapi/v4l/pixfmt-sbggr8.rst
- delete mode 100644 Documentation/media/uapi/v4l/pixfmt-sgbrg8.rst
- delete mode 100644 Documentation/media/uapi/v4l/pixfmt-sgrbg8.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb12p.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb14.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb14p.rst
- rename Documentation/media/uapi/v4l/{pixfmt-sbggr16.rst => pixfmt-srggb16.rst} (55%)
