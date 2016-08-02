@@ -1,536 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:26468 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932441AbcHHTb0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2016 15:31:26 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jiri Kosina <trivial@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v3 06/14] media: platform: pxa_camera: trivial move of functions
-Date: Mon,  8 Aug 2016 21:30:44 +0200
-Message-Id: <1470684652-16295-7-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
-References: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
+Received: from mail-lf0-f51.google.com ([209.85.215.51]:33193 "EHLO
+	mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751795AbcHBLCb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 07:02:31 -0400
+Received: by mail-lf0-f51.google.com with SMTP id b199so135660650lfe.0
+        for <linux-media@vger.kernel.org>; Tue, 02 Aug 2016 04:02:23 -0700 (PDT)
+Date: Tue, 2 Aug 2016 13:02:19 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+	<niklas.soderlund@ragnatech.se>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com,
+	lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com
+Subject: Re: [PATCH 4/6] media: rcar-vin: add support for V4L2_FIELD_ALTERNATE
+Message-ID: <20160802110219.GH3672@bigcity.dyn.berto.se>
+References: <20160729174012.14331-1-niklas.soderlund+renesas@ragnatech.se>
+ <20160729174012.14331-5-niklas.soderlund+renesas@ragnatech.se>
+ <8a7c5144-cbab-323f-746d-45923fe748df@xs4all.nl>
+ <20160802103204.GG3672@bigcity.dyn.berto.se>
+ <7ce712b8-e0cb-4a14-74e3-f7cc03fdf19f@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <7ce712b8-e0cb-4a14-74e3-f7cc03fdf19f@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the functions in the file to be regrouped into meaningful blocks :
- 1. pxa camera core handling functions, manipulating the herdware
- 2. videobuf2 functions, dealing with video buffers
- 3. video ioctl (vidioc) related functions
- 4. driver probing, removal, suspend and resume
+On 2016-08-02 12:39:40 +0200, Hans Verkuil wrote:
+> 
+> 
+> On 08/02/2016 12:32 PM, Niklas Söderlund wrote:
+> > Hi Hans,
+> > 
+> > Thanks for your feedback.
+> > 
+> > On 2016-08-02 11:41:15 +0200, Hans Verkuil wrote:
+> >>
+> >>
+> >> On 07/29/2016 07:40 PM, Niklas Söderlund wrote:
+> >>> The HW can capture both ODD and EVEN fields in separate buffers so it's
+> >>> possible to support this field mode.
+> >>>
+> >>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> >>> ---
+> >>>  drivers/media/platform/rcar-vin/rcar-dma.c  | 26 ++++++++++++++++++++------
+> >>>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 12 ++++++++++++
+> >>>  2 files changed, 32 insertions(+), 6 deletions(-)
+> >>>
+> >>> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> >>> index dad3b03..bcdec46 100644
+> >>> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> >>> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> >>> @@ -95,6 +95,7 @@
+> >>>  /* Video n Module Status Register bits */
+> >>>  #define VNMS_FBS_MASK		(3 << 3)
+> >>>  #define VNMS_FBS_SHIFT		3
+> >>> +#define VNMS_FS			(1 << 2)
+> >>>  #define VNMS_AV			(1 << 1)
+> >>>  #define VNMS_CA			(1 << 0)
+> >>>  
+> >>> @@ -147,6 +148,7 @@ static int rvin_setup(struct rvin_dev *vin)
+> >>>  	case V4L2_FIELD_INTERLACED_BT:
+> >>>  		vnmc = VNMC_IM_FULL | VNMC_FOC;
+> >>>  		break;
+> >>> +	case V4L2_FIELD_ALTERNATE:
+> >>>  	case V4L2_FIELD_NONE:
+> >>>  		if (vin->continuous) {
+> >>>  			vnmc = VNMC_IM_ODD_EVEN;
+> >>> @@ -322,15 +324,26 @@ static bool rvin_capture_active(struct rvin_dev *vin)
+> >>>  	return rvin_read(vin, VNMS_REG) & VNMS_CA;
+> >>>  }
+> >>>  
+> >>> -static int rvin_get_active_slot(struct rvin_dev *vin)
+> >>> +static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
+> >>>  {
+> >>>  	if (vin->continuous)
+> >>> -		return (rvin_read(vin, VNMS_REG) & VNMS_FBS_MASK)
+> >>> -			>> VNMS_FBS_SHIFT;
+> >>> +		return (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
+> >>>  
+> >>>  	return 0;
+> >>>  }
+> >>>  
+> >>> +static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
+> >>> +{
+> >>> +	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
+> >>> +		/* If FS is set it's a Even field */
+> >>> +		if (vnms & VNMS_FS)
+> >>> +			return V4L2_FIELD_BOTTOM;
+> >>> +		return V4L2_FIELD_TOP;
+> >>> +	}
+> >>> +
+> >>> +	return vin->format.field;
+> >>> +}
+> >>> +
+> >>>  static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
+> >>>  {
+> >>>  	const struct rvin_video_format *fmt;
+> >>> @@ -871,7 +884,7 @@ static bool rvin_fill_hw(struct rvin_dev *vin)
+> >>>  static irqreturn_t rvin_irq(int irq, void *data)
+> >>>  {
+> >>>  	struct rvin_dev *vin = data;
+> >>> -	u32 int_status;
+> >>> +	u32 int_status, vnms;
+> >>>  	int slot;
+> >>>  	unsigned int sequence, handled = 0;
+> >>>  	unsigned long flags;
+> >>> @@ -898,7 +911,8 @@ static irqreturn_t rvin_irq(int irq, void *data)
+> >>>  	}
+> >>>  
+> >>>  	/* Prepare for capture and update state */
+> >>> -	slot = rvin_get_active_slot(vin);
+> >>> +	vnms = rvin_read(vin, VNMS_REG);
+> >>> +	slot = rvin_get_active_slot(vin, vnms);
+> >>>  	sequence = vin->sequence++;
+> >>>  
+> >>>  	vin_dbg(vin, "IRQ %02d: %d\tbuf0: %c buf1: %c buf2: %c\tmore: %d\n",
+> >>> @@ -913,7 +927,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
+> >>>  		goto done;
+> >>>  
+> >>>  	/* Capture frame */
+> >>> -	vin->queue_buf[slot]->field = vin->format.field;
+> >>> +	vin->queue_buf[slot]->field = rvin_get_active_field(vin, vnms);
+> >>>  	vin->queue_buf[slot]->sequence = sequence;
+> >>>  	vin->queue_buf[slot]->vb2_buf.timestamp = ktime_get_ns();
+> >>>  	vb2_buffer_done(&vin->queue_buf[slot]->vb2_buf, VB2_BUF_STATE_DONE);
+> >>> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> >>> index b6e40ea..00ac2b6 100644
+> >>> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> >>> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> >>> @@ -109,6 +109,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
+> >>>  		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+> >>>  	};
+> >>>  	struct v4l2_mbus_framefmt *mf = &fmt.format;
+> >>> +	v4l2_std_id std;
+> >>>  	int ret;
+> >>>  
+> >>>  	fmt.pad = vin->src_pad_idx;
+> >>> @@ -122,9 +123,19 @@ static int rvin_reset_format(struct rvin_dev *vin)
+> >>>  	vin->format.colorspace	= mf->colorspace;
+> >>>  	vin->format.field	= mf->field;
+> >>>  
+> >>> +	/* If we have a video standard use HW to deinterlace */
+> >>> +	if (vin->format.field == V4L2_FIELD_ALTERNATE &&
+> >>> +	    !v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+> >>> +		if (std & V4L2_STD_625_50)
+> >>> +			vin->format.field = V4L2_FIELD_INTERLACED_TB;
+> >>> +		else
+> >>> +			vin->format.field = V4L2_FIELD_INTERLACED_BT;
+> >>> +	}
+> >>
+> >> Huh? ALTERNATE means that the fields are captured separately, i.e. one buffer
+> >> per field.
+> >>
+> >> There is no HW deinterlacing going on in that case, and ALTERNATE is certainly
+> >> not equal to FIELD_INTERLACED_BT/TB.
+> >>
+> >> If ALTERNATE is chosen as the field format, then VIDIOC_G_FMT should return
+> >> ALTERNATE as the field format, but in struct v4l2_buffer the field will always
+> >> be TOP or BOTTOM.
+> > 
+> > Yes, if S_FMT request ALTERNATE then G_FMT will return ALTERNATE. This 
+> > code was meant to make INTERLACE_{TB,BT} the default field selection if 
+> > the subdevice uses V4L2_FIELD_ALTERNATE. The rvin_reset_format() is only 
+> > called in the following cases:
+> > 
+> > - When the driver is first probed to get initial default values from the 
+> >   subdevice.
+> > 
+> > - S_STD is called and the width, hight and other parameters from the 
+> >   subdevice needs to be updated.
+> > 
+> > Is it wrong to use an INTERLACE field as default if the subdevice 
+> > provides ALTERNATE? My goal was to not change the behavior of the 
+> > rcar-vin driver which default uses INTERLACE today? I'm happy to drop 
+> > this part for v2 if it's the wrong thing to do in this case.
+> 
+> It depends. If the subdev returns ALTERNATE, then the SoC receives the
+> video data as successive fields. How are those processed? Are they combined
+> into frames? If so, then INTERLACED would be correct. If they are kept as
+> separate fields, then the rcar driver should say ALTERNATE as well. If they
+> are placed in one buffer as the top field followed by the bottom field, then
+> SEQ_BT/TB is the correct field format.
 
-This patch doesn't modify a single line of code.
+The driver can process video data received as separate successive fields 
+in two ways.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/platform/soc_camera/pxa_camera.c | 475 +++++++++++++------------
- 1 file changed, 242 insertions(+), 233 deletions(-)
+1. It can keep them in separate fields and provide them in separate 
+   buffers to userspace in the ALTERNATE field format. In this mode it 
+   will sett the ODD and EVEN field type to each buffer. This is what 
+   happens if the driver is asked with S_FMT to use the ALTERNATE field 
+   format.
 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index 6b6b654c8872..f3767415c128 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -540,239 +540,6 @@ out:
- 	spin_unlock_irqrestore(&pcdev->lock, flags);
- }
- 
--static void pxa_buffer_cleanup(struct pxa_buffer *buf)
--{
--	int i;
--
--	for (i = 0; i < 3 && buf->descs[i]; i++) {
--		dmaengine_desc_free(buf->descs[i]);
--		kfree(buf->sg[i]);
--		buf->descs[i] = NULL;
--		buf->sg[i] = NULL;
--		buf->sg_len[i] = 0;
--		buf->plane_sizes[i] = 0;
--	}
--	buf->nb_planes = 0;
--}
--
--static int pxa_buffer_init(struct pxa_camera_dev *pcdev,
--			   struct pxa_buffer *buf)
--{
--	struct vb2_buffer *vb = &buf->vbuf.vb2_buf;
--	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
--	int nb_channels = pcdev->channels;
--	int i, ret = 0;
--	unsigned long size = vb2_plane_size(vb, 0);
--
--	switch (nb_channels) {
--	case 1:
--		buf->plane_sizes[0] = size;
--		break;
--	case 3:
--		buf->plane_sizes[0] = size / 2;
--		buf->plane_sizes[1] = size / 4;
--		buf->plane_sizes[2] = size / 4;
--		break;
--	default:
--		return -EINVAL;
--	};
--	buf->nb_planes = nb_channels;
--
--	ret = sg_split(sgt->sgl, sgt->nents, 0, nb_channels,
--		       buf->plane_sizes, buf->sg, buf->sg_len, GFP_KERNEL);
--	if (ret < 0) {
--		dev_err(pcdev_to_dev(pcdev),
--			"sg_split failed: %d\n", ret);
--		return ret;
--	}
--	for (i = 0; i < nb_channels; i++) {
--		ret = pxa_init_dma_channel(pcdev, buf, i,
--					   buf->sg[i], buf->sg_len[i]);
--		if (ret) {
--			pxa_buffer_cleanup(buf);
--			return ret;
--		}
--	}
--	INIT_LIST_HEAD(&buf->queue);
--
--	return ret;
--}
--
--static void pxac_vb2_cleanup(struct vb2_buffer *vb)
--{
--	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
--	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
--
--	dev_dbg(pcdev_to_dev(pcdev),
--		 "%s(vb=%p)\n", __func__, vb);
--	pxa_buffer_cleanup(buf);
--}
--
--static void pxac_vb2_queue(struct vb2_buffer *vb)
--{
--	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
--	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
--
--	dev_dbg(pcdev_to_dev(pcdev),
--		 "%s(vb=%p) nb_channels=%d size=%lu active=%p\n",
--		__func__, vb, pcdev->channels, vb2_get_plane_payload(vb, 0),
--		pcdev->active);
--
--	list_add_tail(&buf->queue, &pcdev->capture);
--
--	pxa_dma_add_tail_buf(pcdev, buf);
--}
--
--/*
-- * Please check the DMA prepared buffer structure in :
-- *   Documentation/video4linux/pxa_camera.txt
-- * Please check also in pxa_camera_check_link_miss() to understand why DMA chain
-- * modification while DMA chain is running will work anyway.
-- */
--static int pxac_vb2_prepare(struct vb2_buffer *vb)
--{
--	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
--	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
--	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
--	int ret = 0;
--
--	switch (pcdev->channels) {
--	case 1:
--	case 3:
--		vb2_set_plane_payload(vb, 0, icd->sizeimage);
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	dev_dbg(pcdev_to_dev(pcdev),
--		 "%s (vb=%p) nb_channels=%d size=%lu\n",
--		__func__, vb, pcdev->channels, vb2_get_plane_payload(vb, 0));
--
--	WARN_ON(!icd->current_fmt);
--
--#ifdef DEBUG
--	/*
--	 * This can be useful if you want to see if we actually fill
--	 * the buffer with something
--	 */
--	for (i = 0; i < vb->num_planes; i++)
--		memset((void *)vb2_plane_vaddr(vb, i),
--		       0xaa, vb2_get_plane_payload(vb, i));
--#endif
--
--	/*
--	 * I think, in buf_prepare you only have to protect global data,
--	 * the actual buffer is yours
--	 */
--	buf->inwork = 0;
--	pxa_videobuf_set_actdma(pcdev, buf);
--
--	return ret;
--}
--
--static int pxac_vb2_init(struct vb2_buffer *vb)
--{
--	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
--	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
--
--	dev_dbg(pcdev_to_dev(pcdev),
--		 "%s(nb_channels=%d)\n",
--		__func__, pcdev->channels);
--
--	return pxa_buffer_init(pcdev, buf);
--}
--
--static int pxac_vb2_queue_setup(struct vb2_queue *vq,
--				unsigned int *nbufs,
--				unsigned int *num_planes, unsigned int sizes[],
--				void *alloc_ctxs[])
--{
--	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
--	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
--	int size = icd->sizeimage;
--
--	dev_dbg(pcdev_to_dev(pcdev),
--		 "%s(vq=%p nbufs=%d num_planes=%d size=%d)\n",
--		__func__, vq, *nbufs, *num_planes, size);
--	/*
--	 * Called from VIDIOC_REQBUFS or in compatibility mode For YUV422P
--	 * format, even if there are 3 planes Y, U and V, we reply there is only
--	 * one plane, containing Y, U and V data, one after the other.
--	 */
--	if (*num_planes)
--		return sizes[0] < size ? -EINVAL : 0;
--
--	*num_planes = 1;
--	switch (pcdev->channels) {
--	case 1:
--	case 3:
--		sizes[0] = size;
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	alloc_ctxs[0] = pcdev->alloc_ctx;
--	if (!*nbufs)
--		*nbufs = 1;
--
--	return 0;
--}
--
--static int pxac_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
--{
--	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
--
--	dev_dbg(pcdev_to_dev(pcdev), "%s(count=%d) active=%p\n",
--		__func__, count, pcdev->active);
--
--	if (!pcdev->active)
--		pxa_camera_start_capture(pcdev);
--
--	return 0;
--}
--
--static void pxac_vb2_stop_streaming(struct vb2_queue *vq)
--{
--	vb2_wait_for_all_buffers(vq);
--}
--
--static struct vb2_ops pxac_vb2_ops = {
--	.queue_setup		= pxac_vb2_queue_setup,
--	.buf_init		= pxac_vb2_init,
--	.buf_prepare		= pxac_vb2_prepare,
--	.buf_queue		= pxac_vb2_queue,
--	.buf_cleanup		= pxac_vb2_cleanup,
--	.start_streaming	= pxac_vb2_start_streaming,
--	.stop_streaming		= pxac_vb2_stop_streaming,
--	.wait_prepare		= vb2_ops_wait_prepare,
--	.wait_finish		= vb2_ops_wait_finish,
--};
--
--static int pxa_camera_init_videobuf2(struct vb2_queue *vq,
--				     struct soc_camera_device *icd)
--{
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
--	struct pxa_camera_dev *pcdev = ici->priv;
--	int ret;
--
--	vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
--	vq->drv_priv = pcdev;
--	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
--	vq->buf_struct_size = sizeof(struct pxa_buffer);
--
--	vq->ops = &pxac_vb2_ops;
--	vq->mem_ops = &vb2_dma_sg_memops;
--
--	ret = vb2_queue_init(vq);
--	dev_dbg(pcdev_to_dev(pcdev),
--		 "vb2_queue_init(vq=%p): %d\n", vq, ret);
--
--	return ret;
--}
--
- static u32 mclk_get_divisor(struct platform_device *pdev,
- 			    struct pxa_camera_dev *pcdev)
- {
-@@ -1054,6 +821,245 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
- 	__raw_writel(cicr0, pcdev->base + CICR0);
- }
- 
-+/*
-+ * Videobuf2 section
-+ */
-+static void pxa_buffer_cleanup(struct pxa_buffer *buf)
-+{
-+	int i;
-+
-+	for (i = 0; i < 3 && buf->descs[i]; i++) {
-+		dmaengine_desc_free(buf->descs[i]);
-+		kfree(buf->sg[i]);
-+		buf->descs[i] = NULL;
-+		buf->sg[i] = NULL;
-+		buf->sg_len[i] = 0;
-+		buf->plane_sizes[i] = 0;
-+	}
-+	buf->nb_planes = 0;
-+}
-+
-+static int pxa_buffer_init(struct pxa_camera_dev *pcdev,
-+			   struct pxa_buffer *buf)
-+{
-+	struct vb2_buffer *vb = &buf->vbuf.vb2_buf;
-+	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
-+	int nb_channels = pcdev->channels;
-+	int i, ret = 0;
-+	unsigned long size = vb2_plane_size(vb, 0);
-+
-+	switch (nb_channels) {
-+	case 1:
-+		buf->plane_sizes[0] = size;
-+		break;
-+	case 3:
-+		buf->plane_sizes[0] = size / 2;
-+		buf->plane_sizes[1] = size / 4;
-+		buf->plane_sizes[2] = size / 4;
-+		break;
-+	default:
-+		return -EINVAL;
-+	};
-+	buf->nb_planes = nb_channels;
-+
-+	ret = sg_split(sgt->sgl, sgt->nents, 0, nb_channels,
-+		       buf->plane_sizes, buf->sg, buf->sg_len, GFP_KERNEL);
-+	if (ret < 0) {
-+		dev_err(pcdev_to_dev(pcdev),
-+			"sg_split failed: %d\n", ret);
-+		return ret;
-+	}
-+	for (i = 0; i < nb_channels; i++) {
-+		ret = pxa_init_dma_channel(pcdev, buf, i,
-+					   buf->sg[i], buf->sg_len[i]);
-+		if (ret) {
-+			pxa_buffer_cleanup(buf);
-+			return ret;
-+		}
-+	}
-+	INIT_LIST_HEAD(&buf->queue);
-+
-+	return ret;
-+}
-+
-+static void pxac_vb2_cleanup(struct vb2_buffer *vb)
-+{
-+	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
-+	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
-+
-+	dev_dbg(pcdev_to_dev(pcdev),
-+		 "%s(vb=%p)\n", __func__, vb);
-+	pxa_buffer_cleanup(buf);
-+}
-+
-+static void pxac_vb2_queue(struct vb2_buffer *vb)
-+{
-+	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
-+	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
-+
-+	dev_dbg(pcdev_to_dev(pcdev),
-+		 "%s(vb=%p) nb_channels=%d size=%lu active=%p\n",
-+		__func__, vb, pcdev->channels, vb2_get_plane_payload(vb, 0),
-+		pcdev->active);
-+
-+	list_add_tail(&buf->queue, &pcdev->capture);
-+
-+	pxa_dma_add_tail_buf(pcdev, buf);
-+}
-+
-+/*
-+ * Please check the DMA prepared buffer structure in :
-+ *   Documentation/video4linux/pxa_camera.txt
-+ * Please check also in pxa_camera_check_link_miss() to understand why DMA chain
-+ * modification while DMA chain is running will work anyway.
-+ */
-+static int pxac_vb2_prepare(struct vb2_buffer *vb)
-+{
-+	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
-+	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
-+	int ret = 0;
-+
-+	switch (pcdev->channels) {
-+	case 1:
-+	case 3:
-+		vb2_set_plane_payload(vb, 0, icd->sizeimage);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	dev_dbg(pcdev_to_dev(pcdev),
-+		 "%s (vb=%p) nb_channels=%d size=%lu\n",
-+		__func__, vb, pcdev->channels, vb2_get_plane_payload(vb, 0));
-+
-+	WARN_ON(!icd->current_fmt);
-+
-+#ifdef DEBUG
-+	/*
-+	 * This can be useful if you want to see if we actually fill
-+	 * the buffer with something
-+	 */
-+	for (i = 0; i < vb->num_planes; i++)
-+		memset((void *)vb2_plane_vaddr(vb, i),
-+		       0xaa, vb2_get_plane_payload(vb, i));
-+#endif
-+
-+	/*
-+	 * I think, in buf_prepare you only have to protect global data,
-+	 * the actual buffer is yours
-+	 */
-+	buf->inwork = 0;
-+	pxa_videobuf_set_actdma(pcdev, buf);
-+
-+	return ret;
-+}
-+
-+static int pxac_vb2_init(struct vb2_buffer *vb)
-+{
-+	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
-+	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
-+
-+	dev_dbg(pcdev_to_dev(pcdev),
-+		 "%s(nb_channels=%d)\n",
-+		__func__, pcdev->channels);
-+
-+	return pxa_buffer_init(pcdev, buf);
-+}
-+
-+static int pxac_vb2_queue_setup(struct vb2_queue *vq,
-+				unsigned int *nbufs,
-+				unsigned int *num_planes, unsigned int sizes[],
-+				void *alloc_ctxs[])
-+{
-+	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
-+	int size = icd->sizeimage;
-+
-+	dev_dbg(pcdev_to_dev(pcdev),
-+		 "%s(vq=%p nbufs=%d num_planes=%d size=%d)\n",
-+		__func__, vq, *nbufs, *num_planes, size);
-+	/*
-+	 * Called from VIDIOC_REQBUFS or in compatibility mode For YUV422P
-+	 * format, even if there are 3 planes Y, U and V, we reply there is only
-+	 * one plane, containing Y, U and V data, one after the other.
-+	 */
-+	if (*num_planes)
-+		return sizes[0] < size ? -EINVAL : 0;
-+
-+	*num_planes = 1;
-+	switch (pcdev->channels) {
-+	case 1:
-+	case 3:
-+		sizes[0] = size;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	alloc_ctxs[0] = pcdev->alloc_ctx;
-+	if (!*nbufs)
-+		*nbufs = 1;
-+
-+	return 0;
-+}
-+
-+static int pxac_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
-+{
-+	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
-+
-+	dev_dbg(pcdev_to_dev(pcdev), "%s(count=%d) active=%p\n",
-+		__func__, count, pcdev->active);
-+
-+	if (!pcdev->active)
-+		pxa_camera_start_capture(pcdev);
-+
-+	return 0;
-+}
-+
-+static void pxac_vb2_stop_streaming(struct vb2_queue *vq)
-+{
-+	vb2_wait_for_all_buffers(vq);
-+}
-+
-+static struct vb2_ops pxac_vb2_ops = {
-+	.queue_setup		= pxac_vb2_queue_setup,
-+	.buf_init		= pxac_vb2_init,
-+	.buf_prepare		= pxac_vb2_prepare,
-+	.buf_queue		= pxac_vb2_queue,
-+	.buf_cleanup		= pxac_vb2_cleanup,
-+	.start_streaming	= pxac_vb2_start_streaming,
-+	.stop_streaming		= pxac_vb2_stop_streaming,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
-+};
-+
-+static int pxa_camera_init_videobuf2(struct vb2_queue *vq,
-+				     struct soc_camera_device *icd)
-+{
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+	struct pxa_camera_dev *pcdev = ici->priv;
-+	int ret;
-+
-+	vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
-+	vq->drv_priv = pcdev;
-+	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	vq->buf_struct_size = sizeof(struct pxa_buffer);
-+
-+	vq->ops = &pxac_vb2_ops;
-+	vq->mem_ops = &vb2_dma_sg_memops;
-+
-+	ret = vb2_queue_init(vq);
-+	dev_dbg(pcdev_to_dev(pcdev),
-+		 "vb2_queue_init(vq=%p): %d\n", vq, ret);
-+
-+	return ret;
-+}
-+
-+/*
-+ * Video ioctls section
-+ */
- static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
- {
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-@@ -1497,6 +1503,9 @@ static int pxa_camera_querycap(struct soc_camera_host *ici,
- 	return 0;
- }
- 
-+/*
-+ * Driver probe, remove, suspend and resume operations
-+ */
- static int pxa_camera_suspend(struct device *dev)
- {
- 	struct soc_camera_host *ici = to_soc_camera_host(dev);
+2. It can combined the two fields into a frame and present that in one 
+   buffer to userspace. This is what happens if the driver is asked with 
+   S_FMT to use a INTERLACED field format.
+
+
+I added the logic in question to try to keep the current behavior of the 
+rcar-vin driver which would default to a INTERLACED format if it was 
+hooked up a adv7180 subdevice.
+
+So the question in this case as I see it is if it's sane to try to 
+preserve that or if I should just drop the logic above and default to 
+whatever field format the subdevice is using.
+
+The only filed mode I can't figure out how to support with the VIN HW is 
+the SEQ_{BT,TB} formats. I guess I can do some tricks with doing two 
+captures in to the same buffer only changing the offset. I do however do 
+not see a need to add support for this field mode right now.
+
+> 
+> Since I don't know the capabilities of the rcar HW and driver in this regard,
+> I can't really say if it is right or wrong.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> >>
+> >>> +
+> >>>  	switch (vin->format.field) {
+> >>>  	case V4L2_FIELD_TOP:
+> >>>  	case V4L2_FIELD_BOTTOM:
+> >>> +	case V4L2_FIELD_ALTERNATE:
+> >>>  		vin->format.height /= 2;
+> >>>  		break;
+> >>>  	case V4L2_FIELD_NONE:
+> >>> @@ -222,6 +233,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
+> >>>  	switch (pix->field) {
+> >>>  	case V4L2_FIELD_TOP:
+> >>>  	case V4L2_FIELD_BOTTOM:
+> >>> +	case V4L2_FIELD_ALTERNATE:
+> >>>  		pix->height /= 2;
+> >>>  		source->height /= 2;
+> >>>  		break;
+> >>>
+> >>
+> >> Regards,
+> >>
+> >> 	Hans
+> > 
+
 -- 
-2.1.4
-
+Regards,
+Niklas Söderlund
