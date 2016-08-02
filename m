@@ -1,66 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:34886 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751055AbcHZIcT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Aug 2016 04:32:19 -0400
-Received: by mail-lf0-f67.google.com with SMTP id l89so3440885lfi.2
-        for <linux-media@vger.kernel.org>; Fri, 26 Aug 2016 01:32:06 -0700 (PDT)
-From: Johan Fjeldtvedt <jaffe1@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Johan Fjeldtvedt <jaffe1@gmail.com>
-Subject: [PATCH] cec-compliance: recognize PRESUMED_OK and REFUSED as ok
-Date: Fri, 26 Aug 2016 10:31:48 +0200
-Message-Id: <1472200308-20842-1-git-send-email-jaffe1@gmail.com>
+Received: from merlin.infradead.org ([205.233.59.134]:45300 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934568AbcHBPkp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 11:40:45 -0400
+Subject: Re: [PATCH 0947/1285] Replace numeric parameter like 0444 with macro
+To: Mauro Carvalho Chehab <maurochehab@gmail.com>,
+	Baole Ni <baolex.ni@intel.com>
+References: <20160802120134.13166-1-baolex.ni@intel.com>
+ <20160802095118.47dcc5a6@recife.lan>
+Cc: devel@driverdev.osuosl.org, k.kozlowski@samsung.com,
+	mchehab@redhat.com, arnd@arndb.de, gregkh@linuxfoundation.org,
+	linux-media@vger.kernel.org, mchehab@infradead.org,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, chuansheng.liu@intel.com,
+	mchehab@kernel.org, linux-kernel@vger.kernel.org,
+	m.chehab@samsung.com
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <bc61742b-1a7d-ae1f-da8b-dc7888773677@infradead.org>
+Date: Tue, 2 Aug 2016 08:00:54 -0700
+MIME-Version: 1.0
+In-Reply-To: <20160802095118.47dcc5a6@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is only checked for PRESUMED_OK and REFUSED when performing remote
-tests, but these test result codes are also used elsewhere, so checking
-for them is moved to the ok function.
+On 08/02/16 05:51, Mauro Carvalho Chehab wrote:
+> Em Tue,  2 Aug 2016 20:01:34 +0800
+> Baole Ni <baolex.ni@intel.com> escreveu:
+> 
+>> I find that the developers often just specified the numeric value
+>> when calling a macro which is defined with a parameter for access permission.
+>> As we know, these numeric value for access permission have had the corresponding macro,
+>> and that using macro can improve the robustness and readability of the code,
+>> thus, I suggest replacing the numeric parameter with the macro.
+> 
+> Gah!
+> 
+> A patch series with 1285 patches with identical subject!
+> 
+> Please don't ever do something like that. My inbox is not trash!
+> 
+> Instead, please group the changes per subsystem, and use different
+> names for each patch. Makes easier for people to review.
+> 
+> also, you need to send the patches to the subsystem mainatiner, and
+> not adding a random list of people like this:
+> 
+> To: gregkh@linuxfoundation.org, maurochehab@gmail.com, mchehab@infradead.org, mchehab@redhat.com, m.chehab@samsung.com, m.szyprowski@samsung.com, kyungmin.park@samsung.com, k.kozlowski@samsung.com
+> 
+> Btw, use *just* the more recent email of the maintainer, instead of
+> spamming trash to all our emails (even to the ones that we don't use
+> anymore!
+> 
+> I'll just send all those things to /dev/null until you fix your
+> email sending process.
+>
++1285
 
-Signed-off-by: Johan Fjeldtvedt <jaffe1@gmail.com>
----
- utils/cec-compliance/cec-compliance.cpp | 9 +++++++--
- utils/cec-compliance/cec-test.cpp       | 4 ----
- 2 files changed, 7 insertions(+), 6 deletions(-)
+There are people at Intel who know about things like this.
 
-diff --git a/utils/cec-compliance/cec-compliance.cpp b/utils/cec-compliance/cec-compliance.cpp
-index 519c572..ccfa3ba 100644
---- a/utils/cec-compliance/cec-compliance.cpp
-+++ b/utils/cec-compliance/cec-compliance.cpp
-@@ -842,9 +842,14 @@ const char *ok(int res)
- 	if (res == NOTSUPPORTED) {
- 		strcpy(buf, "OK (Not Supported)");
- 		res = 0;
--	} else {
-+	} else if (res == PRESUMED_OK) {
-+		strcpy(buf, "OK (Presumed)");
-+		res = 0;
-+	} else if (res == REFUSED) {
-+		strcpy(buf, "OK (Refused)");
-+		res = 0;
-+	} else
- 		strcpy(buf, "OK");
--	}
- 	tests_total++;
- 	if (res) {
- 		app_result = res;
-diff --git a/utils/cec-compliance/cec-test.cpp b/utils/cec-compliance/cec-test.cpp
-index 5fac04a..07ba4b6 100644
---- a/utils/cec-compliance/cec-test.cpp
-+++ b/utils/cec-compliance/cec-test.cpp
-@@ -1479,10 +1479,6 @@ void testRemote(struct node *node, unsigned me, unsigned la, unsigned test_tags,
- 				printf("\t    %s: OK (Unexpected)\n",
- 				       tests[i].subtests[j].name);
- 			}
--			else if (ret == PRESUMED_OK)
--				printf("\t    %s: OK (Presumed)\n", tests[i].subtests[j].name);
--			else if (ret == REFUSED)
--				printf("\t    %s: OK (Refused)\n", tests[i].subtests[j].name);
- 			else if (ret != NOTAPPLICABLE)
- 				printf("\t    %s: %s\n", tests[i].subtests[j].name, ok(ret));
- 			if (ret == FAIL_CRITICAL)
 -- 
-2.7.4
-
+~Randy
