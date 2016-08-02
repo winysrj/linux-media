@@ -1,198 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f49.google.com ([209.85.215.49]:34312 "EHLO
-	mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751342AbcHBKjP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 06:39:15 -0400
-Received: by mail-lf0-f49.google.com with SMTP id l69so135041739lfg.1
-        for <linux-media@vger.kernel.org>; Tue, 02 Aug 2016 03:39:14 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Tue, 2 Aug 2016 12:32:04 +0200
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com,
-	lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com
-Subject: Re: [PATCH 4/6] media: rcar-vin: add support for V4L2_FIELD_ALTERNATE
-Message-ID: <20160802103204.GG3672@bigcity.dyn.berto.se>
-References: <20160729174012.14331-1-niklas.soderlund+renesas@ragnatech.se>
- <20160729174012.14331-5-niklas.soderlund+renesas@ragnatech.se>
- <8a7c5144-cbab-323f-746d-45923fe748df@xs4all.nl>
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:52982 "EHLO
+	smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935008AbcHBOvc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 10:51:32 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com
+Cc: lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2 3/7] media: rcar-vin: fix bug in scaling
+Date: Tue,  2 Aug 2016 16:51:03 +0200
+Message-Id: <20160802145107.24829-4-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <8a7c5144-cbab-323f-746d-45923fe748df@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+It was not possible to scale beyond the image size of the video source
+limitation. The output frame would be bigger but the captured image was
+limited to the size of the video source.
 
-Thanks for your feedback.
+The error was that the crop boundary was set after the requested frame
+size and not the video source size. This patch breaks out the resetting
+of the crop, compose and format to separate functions so the error wont
+creep back.
 
-On 2016-08-02 11:41:15 +0200, Hans Verkuil wrote:
-> 
-> 
-> On 07/29/2016 07:40 PM, Niklas Söderlund wrote:
-> > The HW can capture both ODD and EVEN fields in separate buffers so it's
-> > possible to support this field mode.
-> > 
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> >  drivers/media/platform/rcar-vin/rcar-dma.c  | 26 ++++++++++++++++++++------
-> >  drivers/media/platform/rcar-vin/rcar-v4l2.c | 12 ++++++++++++
-> >  2 files changed, 32 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> > index dad3b03..bcdec46 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> > +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> > @@ -95,6 +95,7 @@
-> >  /* Video n Module Status Register bits */
-> >  #define VNMS_FBS_MASK		(3 << 3)
-> >  #define VNMS_FBS_SHIFT		3
-> > +#define VNMS_FS			(1 << 2)
-> >  #define VNMS_AV			(1 << 1)
-> >  #define VNMS_CA			(1 << 0)
-> >  
-> > @@ -147,6 +148,7 @@ static int rvin_setup(struct rvin_dev *vin)
-> >  	case V4L2_FIELD_INTERLACED_BT:
-> >  		vnmc = VNMC_IM_FULL | VNMC_FOC;
-> >  		break;
-> > +	case V4L2_FIELD_ALTERNATE:
-> >  	case V4L2_FIELD_NONE:
-> >  		if (vin->continuous) {
-> >  			vnmc = VNMC_IM_ODD_EVEN;
-> > @@ -322,15 +324,26 @@ static bool rvin_capture_active(struct rvin_dev *vin)
-> >  	return rvin_read(vin, VNMS_REG) & VNMS_CA;
-> >  }
-> >  
-> > -static int rvin_get_active_slot(struct rvin_dev *vin)
-> > +static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
-> >  {
-> >  	if (vin->continuous)
-> > -		return (rvin_read(vin, VNMS_REG) & VNMS_FBS_MASK)
-> > -			>> VNMS_FBS_SHIFT;
-> > +		return (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
-> >  
-> >  	return 0;
-> >  }
-> >  
-> > +static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
-> > +{
-> > +	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
-> > +		/* If FS is set it's a Even field */
-> > +		if (vnms & VNMS_FS)
-> > +			return V4L2_FIELD_BOTTOM;
-> > +		return V4L2_FIELD_TOP;
-> > +	}
-> > +
-> > +	return vin->format.field;
-> > +}
-> > +
-> >  static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
-> >  {
-> >  	const struct rvin_video_format *fmt;
-> > @@ -871,7 +884,7 @@ static bool rvin_fill_hw(struct rvin_dev *vin)
-> >  static irqreturn_t rvin_irq(int irq, void *data)
-> >  {
-> >  	struct rvin_dev *vin = data;
-> > -	u32 int_status;
-> > +	u32 int_status, vnms;
-> >  	int slot;
-> >  	unsigned int sequence, handled = 0;
-> >  	unsigned long flags;
-> > @@ -898,7 +911,8 @@ static irqreturn_t rvin_irq(int irq, void *data)
-> >  	}
-> >  
-> >  	/* Prepare for capture and update state */
-> > -	slot = rvin_get_active_slot(vin);
-> > +	vnms = rvin_read(vin, VNMS_REG);
-> > +	slot = rvin_get_active_slot(vin, vnms);
-> >  	sequence = vin->sequence++;
-> >  
-> >  	vin_dbg(vin, "IRQ %02d: %d\tbuf0: %c buf1: %c buf2: %c\tmore: %d\n",
-> > @@ -913,7 +927,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
-> >  		goto done;
-> >  
-> >  	/* Capture frame */
-> > -	vin->queue_buf[slot]->field = vin->format.field;
-> > +	vin->queue_buf[slot]->field = rvin_get_active_field(vin, vnms);
-> >  	vin->queue_buf[slot]->sequence = sequence;
-> >  	vin->queue_buf[slot]->vb2_buf.timestamp = ktime_get_ns();
-> >  	vb2_buffer_done(&vin->queue_buf[slot]->vb2_buf, VB2_BUF_STATE_DONE);
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> > index b6e40ea..00ac2b6 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> > +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> > @@ -109,6 +109,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
-> >  		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-> >  	};
-> >  	struct v4l2_mbus_framefmt *mf = &fmt.format;
-> > +	v4l2_std_id std;
-> >  	int ret;
-> >  
-> >  	fmt.pad = vin->src_pad_idx;
-> > @@ -122,9 +123,19 @@ static int rvin_reset_format(struct rvin_dev *vin)
-> >  	vin->format.colorspace	= mf->colorspace;
-> >  	vin->format.field	= mf->field;
-> >  
-> > +	/* If we have a video standard use HW to deinterlace */
-> > +	if (vin->format.field == V4L2_FIELD_ALTERNATE &&
-> > +	    !v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
-> > +		if (std & V4L2_STD_625_50)
-> > +			vin->format.field = V4L2_FIELD_INTERLACED_TB;
-> > +		else
-> > +			vin->format.field = V4L2_FIELD_INTERLACED_BT;
-> > +	}
-> 
-> Huh? ALTERNATE means that the fields are captured separately, i.e. one buffer
-> per field.
-> 
-> There is no HW deinterlacing going on in that case, and ALTERNATE is certainly
-> not equal to FIELD_INTERLACED_BT/TB.
-> 
-> If ALTERNATE is chosen as the field format, then VIDIOC_G_FMT should return
-> ALTERNATE as the field format, but in struct v4l2_buffer the field will always
-> be TOP or BOTTOM.
+Signed-off-by: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 105 ++++++++++++++--------------
+ 1 file changed, 54 insertions(+), 51 deletions(-)
 
-Yes, if S_FMT request ALTERNATE then G_FMT will return ALTERNATE. This 
-code was meant to make INTERLACE_{TB,BT} the default field selection if 
-the subdevice uses V4L2_FIELD_ALTERNATE. The rvin_reset_format() is only 
-called in the following cases:
-
-- When the driver is first probed to get initial default values from the 
-  subdevice.
-
-- S_STD is called and the width, hight and other parameters from the 
-  subdevice needs to be updated.
-
-Is it wrong to use an INTERLACE field as default if the subdevice 
-provides ALTERNATE? My goal was to not change the behavior of the 
-rcar-vin driver which default uses INTERLACE today? I'm happy to drop 
-this part for v2 if it's the wrong thing to do in this case.
-
-> 
-> > +
-> >  	switch (vin->format.field) {
-> >  	case V4L2_FIELD_TOP:
-> >  	case V4L2_FIELD_BOTTOM:
-> > +	case V4L2_FIELD_ALTERNATE:
-> >  		vin->format.height /= 2;
-> >  		break;
-> >  	case V4L2_FIELD_NONE:
-> > @@ -222,6 +233,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
-> >  	switch (pix->field) {
-> >  	case V4L2_FIELD_TOP:
-> >  	case V4L2_FIELD_BOTTOM:
-> > +	case V4L2_FIELD_ALTERNATE:
-> >  		pix->height /= 2;
-> >  		source->height /= 2;
-> >  		break;
-> > 
-> 
-> Regards,
-> 
-> 	Hans
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 6d4086a..33435d7 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -92,6 +92,54 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
+  * V4L2
+  */
+ 
++static void rvin_reset_crop_compose(struct rvin_dev *vin)
++{
++	vin->crop.top = vin->crop.left = 0;
++	vin->crop.width = vin->source.width;
++	vin->crop.height = vin->source.height;
++
++	vin->compose.top = vin->compose.left = 0;
++	vin->compose.width = vin->format.width;
++	vin->compose.height = vin->format.height;
++}
++
++static int rvin_reset_format(struct rvin_dev *vin)
++{
++	struct v4l2_subdev_format fmt = {
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
++	struct v4l2_mbus_framefmt *mf = &fmt.format;
++	int ret;
++
++	fmt.pad = vin->src_pad_idx;
++
++	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
++	if (ret)
++		return ret;
++
++	vin->format.width	= mf->width;
++	vin->format.height	= mf->height;
++	vin->format.colorspace	= mf->colorspace;
++	vin->format.field	= mf->field;
++
++	switch (vin->format.field) {
++	case V4L2_FIELD_TOP:
++	case V4L2_FIELD_BOTTOM:
++	case V4L2_FIELD_NONE:
++	case V4L2_FIELD_INTERLACED_TB:
++	case V4L2_FIELD_INTERLACED_BT:
++	case V4L2_FIELD_INTERLACED:
++		break;
++	default:
++		vin->format.field = V4L2_FIELD_NONE;
++		break;
++	}
++
++	rvin_reset_crop_compose(vin);
++
++	return 0;
++}
++
+ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 					u32 which,
+ 					struct v4l2_pix_format *pix,
+@@ -251,6 +299,8 @@ static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	vin->format = f->fmt.pix;
+ 
++	rvin_reset_crop_compose(vin);
++
+ 	return 0;
+ }
+ 
+@@ -442,35 +492,14 @@ static int rvin_querystd(struct file *file, void *priv, v4l2_std_id *a)
+ static int rvin_s_std(struct file *file, void *priv, v4l2_std_id a)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+-	struct v4l2_subdev_format fmt = {
+-		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+-	};
+-	struct v4l2_mbus_framefmt *mf = &fmt.format;
+-	int ret = v4l2_subdev_call(sd, video, s_std, a);
++	int ret;
+ 
++	ret = v4l2_subdev_call(vin_to_source(vin), video, s_std, a);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	/* Changing the standard will change the width/height */
+-	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
+-	if (ret) {
+-		vin_err(vin, "Failed to get initial format\n");
+-		return ret;
+-	}
+-
+-	vin->format.width = mf->width;
+-	vin->format.height = mf->height;
+-
+-	vin->crop.top = vin->crop.left = 0;
+-	vin->crop.width = mf->width;
+-	vin->crop.height = mf->height;
+-
+-	vin->compose.top = vin->compose.left = 0;
+-	vin->compose.width = mf->width;
+-	vin->compose.height = mf->height;
+-
+-	return 0;
++	return rvin_reset_format(vin);
+ }
+ 
+ static int rvin_g_std(struct file *file, void *priv, v4l2_std_id *a)
+@@ -776,10 +805,6 @@ static void rvin_notify(struct v4l2_subdev *sd,
+ 
+ int rvin_v4l2_probe(struct rvin_dev *vin)
+ {
+-	struct v4l2_subdev_format fmt = {
+-		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+-	};
+-	struct v4l2_mbus_framefmt *mf = &fmt.format;
+ 	struct video_device *vdev = &vin->vdev;
+ 	struct v4l2_subdev *sd = vin_to_source(vin);
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+@@ -842,31 +867,9 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 
+ 	vin->src_pad_idx = pad_idx;
+ #endif
+-	fmt.pad = vin->src_pad_idx;
+-
+-	/* Try to improve our guess of a reasonable window format */
+-	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
+-	if (ret) {
+-		vin_err(vin, "Failed to get initial format\n");
+-		return ret;
+-	}
+ 
+-	/* Set default format */
+-	vin->format.width	= mf->width;
+-	vin->format.height	= mf->height;
+-	vin->format.colorspace	= mf->colorspace;
+-	vin->format.field	= mf->field;
+ 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
+-
+-
+-	/* Set initial crop and compose */
+-	vin->crop.top = vin->crop.left = 0;
+-	vin->crop.width = mf->width;
+-	vin->crop.height = mf->height;
+-
+-	vin->compose.top = vin->compose.left = 0;
+-	vin->compose.width = mf->width;
+-	vin->compose.height = mf->height;
++	rvin_reset_format(vin);
+ 
+ 	ret = video_register_device(&vin->vdev, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
 -- 
-Regards,
-Niklas Söderlund
+2.9.0
+
