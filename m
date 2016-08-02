@@ -1,157 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:33189 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932959AbcHIN7R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2016 09:59:17 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: <srv_heupstream@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>,
-	Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH v3 2/4] dt-bindings: Add a binding for Mediatek MDP
-Date: Tue, 9 Aug 2016 21:58:55 +0800
-Message-ID: <1470751137-12403-3-git-send-email-minghsiu.tsai@mediatek.com>
-In-Reply-To: <1470751137-12403-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1470751137-12403-1-git-send-email-minghsiu.tsai@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41693 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S966071AbcHBNRC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Aug 2016 09:17:02 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH (repost) 1/2] cec: rename cec_devnode fhs_lock to just lock
+Date: Tue,  2 Aug 2016 15:16:50 +0200
+Message-Id: <1470143811-9228-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1470143811-9228-1-git-send-email-hverkuil@xs4all.nl>
+References: <1470143811-9228-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a DT binding documentation of MDP for the MT8173 SoC
-from Mediatek
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+This lock will be used to protect more than just the fhs list.
+So rename it to just 'lock'.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../devicetree/bindings/media/mediatek-mdp.txt     |  109 ++++++++++++++++++++
- 1 file changed, 109 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-mdp.txt
+ drivers/staging/media/cec/cec-adap.c | 12 ++++++------
+ drivers/staging/media/cec/cec-api.c  |  8 ++++----
+ drivers/staging/media/cec/cec-core.c |  6 +++---
+ include/media/cec.h                  |  2 +-
+ 4 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/mediatek-mdp.txt b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
-new file mode 100644
-index 0000000..4182063
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
-@@ -0,0 +1,109 @@
-+* Mediatek Media Data Path
-+
-+Media Data Path is used for scaling and color space conversion.
-+
-+Required properties (controller (parent) node):
-+- compatible: "mediatek,mt8173-mdp"
-+- mediatek,vpu: the node of video processor unit, see
-+  Documentation/devicetree/bindings/media/mediatek-vpu.txt for details.
-+
-+Required properties (all function blocks, child node):
-+- compatible: Should be one of
-+        "mediatek,mt8173-mdp-rdma"  - read DMA
-+        "mediatek,mt8173-mdp-rsz"   - resizer
-+        "mediatek,mt8173-mdp-wdma"  - write DMA
-+        "mediatek,mt8173-mdp-wrot"  - write DMA with rotation
-+- reg: Physical base address and length of the function block register space
-+- clocks: device clocks, see
-+  Documentation/devicetree/bindings/clock/clock-bindings.txt for details.
-+- power-domains: a phandle to the power domain, see
-+  Documentation/devicetree/bindings/power/power_domain.txt for details.
-+
-+Required properties (DMA function blocks, child node):
-+- compatible: Should be one of
-+        "mediatek,mt8173-mdp-rdma"
-+        "mediatek,mt8173-mdp-wdma"
-+        "mediatek,mt8173-mdp-wrot"
-+- iommus: should point to the respective IOMMU block with master port as
-+  argument, see Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
-+  for details.
-+- mediatek,larb: must contain the local arbiters in the current Socs, see
-+  Documentation/devicetree/bindings/memory-controllers/mediatek,smi-larb.txt
-+  for details.
-+
-+Example:
-+mdp {
-+	compatible = "mediatek,mt8173-mdp";
-+	#address-cells = <2>;
-+	#size-cells = <2>;
-+	ranges;
-+	mediatek,vpu = <&vpu>;
-+
-+	mdp_rdma0: rdma@14001000 {
-+		compatible = "mediatek,mt8173-mdp-rdma";
-+		reg = <0 0x14001000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_RDMA0>,
-+			 <&mmsys CLK_MM_MUTEX_32K>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+		iommus = <&iommu M4U_PORT_MDP_RDMA0>;
-+		mediatek,larb = <&larb0>;
-+	};
-+
-+	mdp_rdma1: rdma@14002000 {
-+		compatible = "mediatek,mt8173-mdp-rdma";
-+		reg = <0 0x14002000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_RDMA1>,
-+			 <&mmsys CLK_MM_MUTEX_32K>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+		iommus = <&iommu M4U_PORT_MDP_RDMA1>;
-+		mediatek,larb = <&larb4>;
-+	};
-+
-+	mdp_rsz0: rsz@14003000 {
-+		compatible = "mediatek,mt8173-mdp-rsz";
-+		reg = <0 0x14003000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_RSZ0>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+	};
-+
-+	mdp_rsz1: rsz@14004000 {
-+		compatible = "mediatek,mt8173-mdp-rsz";
-+		reg = <0 0x14004000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_RSZ1>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+	};
-+
-+	mdp_rsz2: rsz@14005000 {
-+		compatible = "mediatek,mt8173-mdp-rsz";
-+		reg = <0 0x14005000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_RSZ2>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+	};
-+
-+	mdp_wdma0: wdma@14006000 {
-+		compatible = "mediatek,mt8173-mdp-wdma";
-+		reg = <0 0x14006000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_WDMA>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+		iommus = <&iommu M4U_PORT_MDP_WDMA>;
-+		mediatek,larb = <&larb0>;
-+	};
-+
-+	mdp_wrot0: wrot@14007000 {
-+		compatible = "mediatek,mt8173-mdp-wrot";
-+		reg = <0 0x14007000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_WROT0>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+		iommus = <&iommu M4U_PORT_MDP_WROT0>;
-+		mediatek,larb = <&larb0>;
-+	};
-+
-+	mdp_wrot1: wrot@14008000 {
-+		compatible = "mediatek,mt8173-mdp-wrot";
-+		reg = <0 0x14008000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_WROT1>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+		iommus = <&iommu M4U_PORT_MDP_WROT1>;
-+		mediatek,larb = <&larb4>;
-+	};
-+};
+diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
+index b2393bb..9dcb784 100644
+--- a/drivers/staging/media/cec/cec-adap.c
++++ b/drivers/staging/media/cec/cec-adap.c
+@@ -124,10 +124,10 @@ static void cec_queue_event(struct cec_adapter *adap,
+ 	u64 ts = ktime_get_ns();
+ 	struct cec_fh *fh;
+ 
+-	mutex_lock(&adap->devnode.fhs_lock);
++	mutex_lock(&adap->devnode.lock);
+ 	list_for_each_entry(fh, &adap->devnode.fhs, list)
+ 		cec_queue_event_fh(fh, ev, ts);
+-	mutex_unlock(&adap->devnode.fhs_lock);
++	mutex_unlock(&adap->devnode.lock);
+ }
+ 
+ /*
+@@ -191,12 +191,12 @@ static void cec_queue_msg_monitor(struct cec_adapter *adap,
+ 	u32 monitor_mode = valid_la ? CEC_MODE_MONITOR :
+ 				      CEC_MODE_MONITOR_ALL;
+ 
+-	mutex_lock(&adap->devnode.fhs_lock);
++	mutex_lock(&adap->devnode.lock);
+ 	list_for_each_entry(fh, &adap->devnode.fhs, list) {
+ 		if (fh->mode_follower >= monitor_mode)
+ 			cec_queue_msg_fh(fh, msg);
+ 	}
+-	mutex_unlock(&adap->devnode.fhs_lock);
++	mutex_unlock(&adap->devnode.lock);
+ }
+ 
+ /*
+@@ -207,12 +207,12 @@ static void cec_queue_msg_followers(struct cec_adapter *adap,
+ {
+ 	struct cec_fh *fh;
+ 
+-	mutex_lock(&adap->devnode.fhs_lock);
++	mutex_lock(&adap->devnode.lock);
+ 	list_for_each_entry(fh, &adap->devnode.fhs, list) {
+ 		if (fh->mode_follower == CEC_MODE_FOLLOWER)
+ 			cec_queue_msg_fh(fh, msg);
+ 	}
+-	mutex_unlock(&adap->devnode.fhs_lock);
++	mutex_unlock(&adap->devnode.lock);
+ }
+ 
+ /* Notify userspace of an adapter state change. */
+diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/staging/media/cec/cec-api.c
+index 7be7615..4e2696a 100644
+--- a/drivers/staging/media/cec/cec-api.c
++++ b/drivers/staging/media/cec/cec-api.c
+@@ -508,14 +508,14 @@ static int cec_open(struct inode *inode, struct file *filp)
+ 
+ 	filp->private_data = fh;
+ 
+-	mutex_lock(&devnode->fhs_lock);
++	mutex_lock(&devnode->lock);
+ 	/* Queue up initial state events */
+ 	ev_state.state_change.phys_addr = adap->phys_addr;
+ 	ev_state.state_change.log_addr_mask = adap->log_addrs.log_addr_mask;
+ 	cec_queue_event_fh(fh, &ev_state, 0);
+ 
+ 	list_add(&fh->list, &devnode->fhs);
+-	mutex_unlock(&devnode->fhs_lock);
++	mutex_unlock(&devnode->lock);
+ 
+ 	return 0;
+ }
+@@ -540,9 +540,9 @@ static int cec_release(struct inode *inode, struct file *filp)
+ 		cec_monitor_all_cnt_dec(adap);
+ 	mutex_unlock(&adap->lock);
+ 
+-	mutex_lock(&devnode->fhs_lock);
++	mutex_lock(&devnode->lock);
+ 	list_del(&fh->list);
+-	mutex_unlock(&devnode->fhs_lock);
++	mutex_unlock(&devnode->lock);
+ 
+ 	/* Unhook pending transmits from this filehandle. */
+ 	mutex_lock(&adap->lock);
+diff --git a/drivers/staging/media/cec/cec-core.c b/drivers/staging/media/cec/cec-core.c
+index 112a5fa..73792d0 100644
+--- a/drivers/staging/media/cec/cec-core.c
++++ b/drivers/staging/media/cec/cec-core.c
+@@ -117,7 +117,7 @@ static int __must_check cec_devnode_register(struct cec_devnode *devnode,
+ 
+ 	/* Initialization */
+ 	INIT_LIST_HEAD(&devnode->fhs);
+-	mutex_init(&devnode->fhs_lock);
++	mutex_init(&devnode->lock);
+ 
+ 	/* Part 1: Find a free minor number */
+ 	mutex_lock(&cec_devnode_lock);
+@@ -181,10 +181,10 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
+ 	if (!devnode->registered || devnode->unregistered)
+ 		return;
+ 
+-	mutex_lock(&devnode->fhs_lock);
++	mutex_lock(&devnode->lock);
+ 	list_for_each_entry(fh, &devnode->fhs, list)
+ 		wake_up_interruptible(&fh->wait);
+-	mutex_unlock(&devnode->fhs_lock);
++	mutex_unlock(&devnode->lock);
+ 
+ 	devnode->registered = false;
+ 	devnode->unregistered = true;
+diff --git a/include/media/cec.h b/include/media/cec.h
+index dc7854b..fdb5d60 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -57,8 +57,8 @@ struct cec_devnode {
+ 	int minor;
+ 	bool registered;
+ 	bool unregistered;
+-	struct mutex fhs_lock;
+ 	struct list_head fhs;
++	struct mutex lock;
+ };
+ 
+ struct cec_adapter;
 -- 
-1.7.9.5
+2.8.1
 
