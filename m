@@ -1,77 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55984 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934845AbcHJS61 (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:56340 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751578AbcHBHfp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2016 14:58:27 -0400
-Date: Wed, 10 Aug 2016 06:22:02 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jani Nikula <jani.nikula@intel.com>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: Re: parts of media docs sphinx re-building every time?
-Message-ID: <20160810062202.56d72818@vela.lan>
-In-Reply-To: <87mvklvvbd.fsf@intel.com>
-References: <8760rbp8zh.fsf@intel.com>
-	<6D7865EB-9C40-4B8F-8D8F-3B28024624F3@darmarit.de>
-	<87mvklvvbd.fsf@intel.com>
+	Tue, 2 Aug 2016 03:35:45 -0400
+Subject: Re: [PATCH 2/3] soc-camera/rcar-vin: remove obsolete driver
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1470038065-30789-1-git-send-email-hverkuil@xs4all.nl>
+ <1470038065-30789-3-git-send-email-hverkuil@xs4all.nl>
+ <3585190.qMTDhgQKz3@avalon> <20160801204130.GF3672@bigcity.dyn.berto.se>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <6432f1b4-0e27-dcbc-1067-f717bf1a3d66@xs4all.nl>
+Date: Tue, 2 Aug 2016 09:35:21 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20160801204130.GF3672@bigcity.dyn.berto.se>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 10 Aug 2016 12:15:34 +0300
-Jani Nikula <jani.nikula@intel.com> escreveu:
 
-> On Mon, 08 Aug 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
-> > Hi Jani,
-> >
-> > Am 08.08.2016 um 17:37 schrieb Jani Nikula <jani.nikula@intel.com>:
-> >  
-> >> 
-> >> Hi Mauro & co -
-> >> 
-> >> I just noticed running 'make htmldocs' rebuilds parts of media docs
-> >> every time on repeated runs. This shouldn't happen. Please investigate.
-> >> 
-> >> I wonder if it's related to Documentation/media/Makefile... which I have
-> >> to say I am not impressed by. I was really hoping we could build all the
-> >> documentation by standalone sphinx-build invocation too, relying only on
-> >> the conf.py so that e.g. Read the Docs can build the docs. Part of that
-> >> motivation was to keep the build clean in makefiles, and handing the
-> >> dependency tracking completely to Sphinx.
-> >> 
-> >> I believe what's in Documentation/media/Makefile,
-> >> Documentation/sphinx/parse-headers.pl, and
-> >> Documentation/sphinx/kernel_include.py could be replaced by a Sphinx
-> >> extension looking at the sources directly.  
-> >
-> > Yes, parse-headers.pl, kernel_include.py and media/Makefile are needed
-> > for one feature ... not very straight forward.
-> >
-> > If it makes sense to migrate the perl scripts functionality to a
-> > Sphinx extension, may I can help ... depends on what Mauro thinks.
-> >
-> > BTW: parse-headers.pl is not the only perl script I like to migrate to py ;)  
+
+On 08/01/2016 10:41 PM, Niklas Söderlund wrote:
+> On 2016-08-01 11:31:11 +0300, Laurent Pinchart wrote:
+>> Hi Hans,
+>>
+>> Thank you for the patch.
+>>
+>> On Monday 01 Aug 2016 09:54:24 Hans Verkuil wrote:
+>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>
+>>> This driver has been replaced by the non-soc-camera rcar-vin driver.
+>>> The soc-camera framework is being deprecated, so drop this older
+>>> rcar-vin driver in favor of the newer version that does not rely on
+>>> this deprecated framework.
+>>>
+>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>>> Cc: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>>
+>> I'm all for removal of dead code :-)
+>>
+>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>
+>> But please get Niklas' ack to confirm that the new driver supports all the 
+>> feature available in the old one.
 > 
-> If I understand the need of all of this right, I think the cleanest and
-> fastest short term measure would be to make the kernel-include directive
-> extension do the same thing as the kernel-doc directive does: call the
-> perl script from the directive.
+> I'm all for removing this code. And I do believe the new driver supports 
+> (almost, see 1) all features this one do. There are however two known 
+> issues with the new driver which maybe should be resolved before the old 
+> one is removed.
 > 
-> This lets you get rid of Documentation/media/Makefile and you don't have
-> to copy-paste all of Include.run method into kernel_include.py. You can
-> also get rid of specifying environment variables in rst files and
-> parsing them in the extension. We can get rid of the problematic
-> intermediate rst files. This design has been proven with the kernel-doc
-> extension and script already. It's much simpler.
+> 1. The soc-camera driver call g_std to determine video standard if field 
+>    is V4L2_FIELD_INTERLACED. The new driver dose not.
+> 
+>    I'm preparing a patch which restores this functionality and hope to 
+>    post it soon.
 
-Works for me. If someone comes with such patch, I'll happily ack it.
+Shouldn't be a problem to get that in for 4.9.
 
-Cheers,
-Mauro
+> 
+> 2. There is a error in the DT parsing code where of_node_put() is called 
+>    twice resulting in a nice backtrace while booting if the debug config 
+>    options are enabled.
+> 
+>    There is a fix for this in the Gen3 enablement series but maybe I 
+>    should break it out from there and post it separately?
+
+Yes please. It sounds as if this should be backported to 4.8-rcX as well?
+
+> 
+> I would like to solve issue no 1 before we remove the soc-camera driver, 
+> hopefully we can do so shortly.
+
+The removal of the old driver is for 4.9, so there is a lot of time.
+
+Regards,
+
+	Hans
