@@ -1,588 +1,327 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:33147 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759581AbcHEKqo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Aug 2016 06:46:44 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH v3 09/11] media: Add 1X16 16-bit raw bayer media bus code definitions
-Date: Fri,  5 Aug 2016 13:45:39 +0300
-Message-Id: <1470393941-26959-10-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1470393941-26959-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1470393941-26959-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:52967 "EHLO
+	smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934524AbcHBOvc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 10:51:32 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com
+Cc: lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2 0/7] Fix adv7180 and rcar-vin field handling
+Date: Tue,  2 Aug 2016 16:51:00 +0200
+Message-Id: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The codes will be called:
+Hi,
 
-	MEDIA_BUS_FMT_SBGGR16_1X16
-	MEDIA_BUS_FMT_SGBRG16_1X16
-	MEDIA_BUS_FMT_SGRBG16_1X16
-	MEDIA_BUS_FMT_SRGGB16_1X16
+This series add V4L2_FIELD_ALTERNATE support to the rcar-vin driver and 
+changes the field mode reported by adv7180 from V4L2_FIELD_INTERLACED to 
+V4L2_FIELD_ALTERNATE.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/media/uapi/v4l/subdev-formats.rst | 290 +++++++++++++++++++++++-
- include/uapi/linux/media-bus-format.h           |   6 +-
- 2 files changed, 294 insertions(+), 2 deletions(-)
+The change field mode reported by adv7180 was first done by Steve 
+Longerbeam (https://lkml.org/lkml/2016/7/23/107), I have kept and 
+reworked Steves patch to report V4L2_FIELD_ALTERNATE instead of 
+V4L2_FIELD_SEQ_{TB,BT}, after discussions on #v4l this seems more
+correct.
 
-diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
-index 238ecfc..6c1c5af 100644
---- a/Documentation/media/uapi/v4l/subdev-formats.rst
-+++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-@@ -2782,7 +2782,7 @@ organization is given as an example for the first pixel only.
-        -  Code
- 
-        -
--       -  :cspan:`13` Data organization
-+       -  :cspan:`15` Data organization
- 
-     -  .. row 2
- 
-@@ -2790,6 +2790,10 @@ organization is given as an example for the first pixel only.
-        -
-        -  Bit
- 
-+       -  15
-+
-+       -  14
-+
-        -  13
- 
-        -  12
-@@ -2837,6 +2841,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  b\ :sub:`7`
- 
-        -  b\ :sub:`6`
-@@ -2872,6 +2880,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  g\ :sub:`7`
- 
-        -  g\ :sub:`6`
-@@ -2907,6 +2919,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  g\ :sub:`7`
- 
-        -  g\ :sub:`6`
-@@ -2942,6 +2958,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  r\ :sub:`7`
- 
-        -  r\ :sub:`6`
-@@ -2977,6 +2997,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  b\ :sub:`7`
- 
-        -  b\ :sub:`6`
-@@ -3012,6 +3036,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  g\ :sub:`7`
- 
-        -  g\ :sub:`6`
-@@ -3047,6 +3075,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  g\ :sub:`7`
- 
-        -  g\ :sub:`6`
-@@ -3082,6 +3114,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  r\ :sub:`7`
- 
-        -  r\ :sub:`6`
-@@ -3117,6 +3153,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  b\ :sub:`7`
- 
-        -  b\ :sub:`6`
-@@ -3152,6 +3192,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  g\ :sub:`7`
- 
-        -  g\ :sub:`6`
-@@ -3187,6 +3231,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  g\ :sub:`7`
- 
-        -  g\ :sub:`6`
-@@ -3222,6 +3270,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  r\ :sub:`7`
- 
-        -  r\ :sub:`6`
-@@ -3257,6 +3309,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  0
- 
-        -  0
-@@ -3290,6 +3346,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  b\ :sub:`7`
- 
-        -  b\ :sub:`6`
-@@ -3325,6 +3385,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  b\ :sub:`7`
- 
-        -  b\ :sub:`6`
-@@ -3358,6 +3422,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  0
- 
-        -  0
-@@ -3393,6 +3461,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  b\ :sub:`9`
- 
-        -  b\ :sub:`8`
-@@ -3426,6 +3498,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  b\ :sub:`1`
- 
-        -  b\ :sub:`0`
-@@ -3461,6 +3537,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  b\ :sub:`1`
- 
-        -  b\ :sub:`0`
-@@ -3494,6 +3574,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  b\ :sub:`9`
- 
-        -  b\ :sub:`8`
-@@ -3525,6 +3609,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  b\ :sub:`9`
- 
-        -  b\ :sub:`8`
-@@ -3560,6 +3648,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  g\ :sub:`9`
- 
-        -  g\ :sub:`8`
-@@ -3595,6 +3687,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  g\ :sub:`9`
- 
-        -  g\ :sub:`8`
-@@ -3630,6 +3726,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  r\ :sub:`9`
- 
-        -  r\ :sub:`8`
-@@ -3661,6 +3761,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  b\ :sub:`11`
- 
-        -  b\ :sub:`10`
-@@ -3696,6 +3800,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  g\ :sub:`11`
- 
-        -  g\ :sub:`10`
-@@ -3731,6 +3839,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  g\ :sub:`11`
- 
-        -  g\ :sub:`10`
-@@ -3766,6 +3878,10 @@ organization is given as an example for the first pixel only.
- 
-        -  -
- 
-+       -  -
-+
-+       -  -
-+
-        -  r\ :sub:`11`
- 
-        -  r\ :sub:`10`
-@@ -3797,6 +3913,10 @@ organization is given as an example for the first pixel only.
-        -  0x3019
- 
-        -
-+       -  -
-+
-+       -  -
-+
-        -  b\ :sub:`13`
- 
-        -  b\ :sub:`12`
-@@ -3832,6 +3952,10 @@ organization is given as an example for the first pixel only.
-        -  0x301a
- 
-        -
-+       -  -
-+
-+       -  -
-+
-        -  g\ :sub:`13`
- 
-        -  g\ :sub:`12`
-@@ -3867,6 +3991,10 @@ organization is given as an example for the first pixel only.
-        -  0x301b
- 
-        -
-+       -  -
-+
-+       -  -
-+
-        -  g\ :sub:`13`
- 
-        -  g\ :sub:`12`
-@@ -3902,6 +4030,166 @@ organization is given as an example for the first pixel only.
-        -  0x301c
- 
-        -
-+       -  -
-+
-+       -  -
-+
-+       -  r\ :sub:`13`
-+
-+       -  r\ :sub:`12`
-+
-+       -  r\ :sub:`11`
-+
-+       -  r\ :sub:`10`
-+
-+       -  r\ :sub:`9`
-+
-+       -  r\ :sub:`8`
-+
-+       -  r\ :sub:`7`
-+
-+       -  r\ :sub:`6`
-+
-+       -  r\ :sub:`5`
-+
-+       -  r\ :sub:`4`
-+
-+       -  r\ :sub:`3`
-+
-+       -  r\ :sub:`2`
-+
-+       -  r\ :sub:`1`
-+
-+       -  r\ :sub:`0`
-+
-+    -  .. _MEDIA-BUS-FMT-SBGGR16-1X16:
-+
-+       -  MEDIA_BUS_FMT_SBGGR16_1X16
-+
-+       -  0x301d
-+
-+       -
-+       -  b\ :sub:`15`
-+
-+       -  b\ :sub:`14`
-+
-+       -  b\ :sub:`13`
-+
-+       -  b\ :sub:`12`
-+
-+       -  b\ :sub:`11`
-+
-+       -  b\ :sub:`10`
-+
-+       -  b\ :sub:`9`
-+
-+       -  b\ :sub:`8`
-+
-+       -  b\ :sub:`7`
-+
-+       -  b\ :sub:`6`
-+
-+       -  b\ :sub:`5`
-+
-+       -  b\ :sub:`4`
-+
-+       -  b\ :sub:`3`
-+
-+       -  b\ :sub:`2`
-+
-+       -  b\ :sub:`1`
-+
-+       -  b\ :sub:`0`
-+
-+    -  .. _MEDIA-BUS-FMT-SGBRG16-1X16:
-+
-+       -  MEDIA_BUS_FMT_SGBRG16_1X16
-+
-+       -  0x301e
-+
-+       -
-+       -  g\ :sub:`15`
-+
-+       -  g\ :sub:`14`
-+
-+       -  g\ :sub:`13`
-+
-+       -  g\ :sub:`12`
-+
-+       -  g\ :sub:`11`
-+
-+       -  g\ :sub:`10`
-+
-+       -  g\ :sub:`9`
-+
-+       -  g\ :sub:`8`
-+
-+       -  g\ :sub:`7`
-+
-+       -  g\ :sub:`6`
-+
-+       -  g\ :sub:`5`
-+
-+       -  g\ :sub:`4`
-+
-+       -  g\ :sub:`3`
-+
-+       -  g\ :sub:`2`
-+
-+       -  g\ :sub:`1`
-+
-+       -  g\ :sub:`0`
-+
-+    -  .. _MEDIA-BUS-FMT-SGRBG16-1X16:
-+
-+       -  MEDIA_BUS_FMT_SGRBG16_1X16
-+
-+       -  0x301f
-+
-+       -
-+       -  g\ :sub:`15`
-+
-+       -  g\ :sub:`14`
-+
-+       -  g\ :sub:`13`
-+
-+       -  g\ :sub:`12`
-+
-+       -  g\ :sub:`11`
-+
-+       -  g\ :sub:`10`
-+
-+       -  g\ :sub:`9`
-+
-+       -  g\ :sub:`8`
-+
-+       -  g\ :sub:`7`
-+
-+       -  g\ :sub:`6`
-+
-+       -  g\ :sub:`5`
-+
-+       -  g\ :sub:`4`
-+
-+       -  g\ :sub:`3`
-+
-+       -  g\ :sub:`2`
-+
-+       -  g\ :sub:`1`
-+
-+       -  g\ :sub:`0`
-+
-+    -  .. _MEDIA-BUS-FMT-SRGGB16-1X16:
-+
-+       -  MEDIA_BUS_FMT_SRGGB16_1X16
-+
-+       -  0x3020
-+
-+       -
-+       -  r\ :sub:`15`
-+
-+       -  r\ :sub:`14`
-+
-        -  r\ :sub:`13`
- 
-        -  r\ :sub:`12`
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 1dff459..2168759 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -97,7 +97,7 @@
- #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
- #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
- 
--/* Bayer - next is	0x301d */
-+/* Bayer - next is	0x3021 */
- #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
- #define MEDIA_BUS_FMT_SGBRG8_1X8		0x3013
- #define MEDIA_BUS_FMT_SGRBG8_1X8		0x3002
-@@ -126,6 +126,10 @@
- #define MEDIA_BUS_FMT_SGBRG14_1X14		0x301a
- #define MEDIA_BUS_FMT_SGRBG14_1X14		0x301b
- #define MEDIA_BUS_FMT_SRGGB14_1X14		0x301c
-+#define MEDIA_BUS_FMT_SBGGR16_1X16		0x301d
-+#define MEDIA_BUS_FMT_SGBRG16_1X16		0x301e
-+#define MEDIA_BUS_FMT_SGRBG16_1X16		0x301f
-+#define MEDIA_BUS_FMT_SRGGB16_1X16		0x3020
- 
- /* JPEG compressed formats - next is	0x4002 */
- #define MEDIA_BUS_FMT_JPEG_1X8			0x4001
+The rcar-vin changes contains some bug fixes needed to enable 
+V4L2_FIELD_ALTERNATE.
+
+All work is based on top of media-next and is tested on Koelsch. Output 
+of 'v4l2-compliance -fs' is attached bellow and I have tested all fields 
+using qv4l2 and it looks OK to me. I need to disable 'Enable Video 
+Scaling' in the 'Capture' Menu for ODD/EVEN/ALTERNATE or I get a 
+horizontally stretched image. Also for ALTERNATE the 1 line difference 
+between the fields are noticeable. The image jumps up/down 1 line for 
+each other field, but I guess that is normal since the fields are 
+different right?
+
+This series touch two drivers which is not a good thing. But I could not 
+figure out a good way to post them separately since if the adv7180 parts 
+where too be merged before the rcar-vin changes the driver would stop to 
+work on the Koelsch. If some one wants this series split in two let me 
+know.
+
+* Changes since v1
+- Added patch so that V4L2_FIELD_INTERLACED is not treated the same as 
+  V4L2_FIELD_INTERLACED_TB. Instead G_STD will be used to get the video 
+  standard and make a TB/BT decision based on that.
+- Add changelog to Stevens patch which I dropped by mistake when I 
+  applied it to my tree.
+- Add better commit message, comment explaining that INTERLACED will be 
+  used as the default if the subdeivce uses ALTERNATE field mode and 
+  implements G_STD.
+
+
+# v4l2-compliance -d 3 -fs
+v4l2-compliance SHA   : 7785594dd82b4fa04585928e5b825a0df73a2774
+
+Driver Info:
+	Driver name   : rcar_vin
+	Card type     : R_Car_VIN
+	Bus info      : platform:e6ef1000.video
+	Driver version: 4.7.0
+	Capabilities  : 0x85200001
+		Video Capture
+		Read/Write
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x05200001
+		Video Capture
+		Read/Write
+		Streaming
+		Extended Pix Format
+
+Compliance test for device /dev/video3 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+		test VIDIOC_QUERYCTRL: OK
+		test VIDIOC_G/S_CTRL: OK
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 5 Private Controls: 1
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		test VIDIOC_TRY_FMT: OK
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK
+		test Composing: OK
+		test Scaling: OK
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Streaming ioctls:
+	test read/write: OK
+	test MMAP: OK
+	test USERPTR: OK (Not Supported)
+	test DMABUF: Cannot test, specify --expbuf-device
+
+Stream using all formats:
+	test MMAP for Format NV16, Frame Size 2x4:
+		Crop 720x480@0x0, Compose 6x4@0x0, Stride 32, Field None: OK
+		Crop 720x240@0x0, Compose 6x4@0x0, Stride 32, Field Top: OK
+		Crop 720x240@0x0, Compose 6x4@0x0, Stride 32, Field Bottom: OK
+		Crop 720x240@0x0, Compose 6x4@0x0, Stride 32, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 6x4@0x0, Stride 32, Field Alternating: OK
+		Crop 720x240@0x0, Compose 6x4@0x0, Stride 32, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 6x4@0x0, Stride 32, Field Interlaced Bottom-Top: OK
+	test MMAP for Format NV16, Frame Size 2048x2048:
+		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 2048, Field None: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 2048, Field Top: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 2048, Field Bottom: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 2048, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 2048, Field Alternating: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 2048, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 2048, Field Interlaced Bottom-Top: OK
+	test MMAP for Format NV16, Frame Size 736x480:
+		Crop 720x480@0x0, Compose 736x480@0x0, Stride 736, Field None: OK
+		Crop 720x240@0x0, Compose 736x480@0x0, Stride 736, Field Top: OK
+		Crop 720x240@0x0, Compose 736x480@0x0, Stride 736, Field Bottom: OK
+		Crop 720x240@0x0, Compose 736x480@0x0, Stride 736, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 736x480@0x0, Stride 736, Field Alternating: OK
+		Crop 720x240@0x0, Compose 736x480@0x0, Stride 736, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 736x480@0x0, Stride 736, Field Interlaced Bottom-Top: OK
+	test MMAP for Format YUYV, Frame Size 32x4:
+		Crop 720x480@0x0, Compose 32x4@0x0, Stride 64, Field None: OK
+		Crop 720x240@0x0, Compose 32x4@0x0, Stride 64, Field Top: OK
+		Crop 720x240@0x0, Compose 32x4@0x0, Stride 64, Field Bottom: OK
+		Crop 720x240@0x0, Compose 32x4@0x0, Stride 64, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 32x4@0x0, Stride 64, Field Alternating: OK
+		Crop 720x240@0x0, Compose 32x4@0x0, Stride 64, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 32x4@0x0, Stride 64, Field Interlaced Bottom-Top: OK
+	test MMAP for Format YUYV, Frame Size 2048x2048:
+		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field None: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Top: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Bottom: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Alternating: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Bottom-Top: OK
+	test MMAP for Format YUYV, Frame Size 736x480:
+		Crop 720x480@0x0, Compose 736x480@0x0, Stride 1472, Field None: OK
+		Crop 720x240@0x0, Compose 736x480@0x0, Stride 1472, Field Top: OK
+		Crop 720x240@0x0, Compose 736x480@0x0, Stride 1472, Field Bottom: OK
+		Crop 720x240@0x0, Compose 736x480@0x0, Stride 1472, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 736x480@0x0, Stride 1472, Field Alternating: OK
+		Crop 720x240@0x0, Compose 736x480@0x0, Stride 1472, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 736x480@0x0, Stride 1472, Field Interlaced Bottom-Top: OK
+	test MMAP for Format UYVY, Frame Size 2x4:
+		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field None: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Top: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Bottom: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Alternating: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced Bottom-Top: OK
+	test MMAP for Format UYVY, Frame Size 2048x2048:
+		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field None: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Top: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Bottom: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Alternating: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Bottom-Top: OK
+	test MMAP for Format UYVY, Frame Size 720x480:
+		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field None: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Top: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Bottom: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Alternating: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced Bottom-Top: OK
+	test MMAP for Format RGBP, Frame Size 2x4:
+		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field None: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Top: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Bottom: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Alternating: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced Bottom-Top: OK
+	test MMAP for Format RGBP, Frame Size 2048x2048:
+		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field None: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Top: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Bottom: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Alternating: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Bottom-Top: OK
+	test MMAP for Format RGBP, Frame Size 720x480:
+		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field None: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Top: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Bottom: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Alternating: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced Bottom-Top: OK
+	test MMAP for Format XR15, Frame Size 2x4:
+		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field None: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Top: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Bottom: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Alternating: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced Bottom-Top: OK
+	test MMAP for Format XR15, Frame Size 2048x2048:
+		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field None: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Top: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Bottom: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Alternating: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Bottom-Top: OK
+	test MMAP for Format XR15, Frame Size 720x480:
+		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field None: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Top: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Bottom: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Alternating: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced Bottom-Top: OK
+	test MMAP for Format XR24, Frame Size 2x4:
+		Crop 720x480@0x0, Compose 2x4@0x0, Stride 8, Field None: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 8, Field Top: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 8, Field Bottom: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 8, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 8, Field Alternating: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 8, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 2x4@0x0, Stride 8, Field Interlaced Bottom-Top: OK
+	test MMAP for Format XR24, Frame Size 2048x2048:
+		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 8192, Field None: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 8192, Field Top: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 8192, Field Bottom: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 8192, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 8192, Field Alternating: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 8192, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 2048x2048@0x0, Stride 8192, Field Interlaced Bottom-Top: OK
+	test MMAP for Format XR24, Frame Size 720x480:
+		Crop 720x480@0x0, Compose 720x480@0x0, Stride 2880, Field None: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 2880, Field Top: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 2880, Field Bottom: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 2880, Field Interlaced: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 2880, Field Alternating: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 2880, Field Interlaced Top-Bottom: OK
+		Crop 720x240@0x0, Compose 720x480@0x0, Stride 2880, Field Interlaced Bottom-Top: OK
+
+Total: 172, Succeeded: 172, Failed: 0, Warnings: 0
+
+Niklas Söderlund (6):
+  media: rcar-vin: make V4L2_FIELD_INTERLACED standard dependent
+  media: rcar-vin: allow field to be changed
+  media: rcar-vin: fix bug in scaling
+  media: rcar-vin: fix height for TOP and BOTTOM fields
+  media: rcar-vin: add support for V4L2_FIELD_ALTERNATE
+  media: adv7180: fill in mbus format in set_fmt
+
+Steve Longerbeam (1):
+  media: adv7180: fix field type
+
+ drivers/media/i2c/adv7180.c                 |  21 ++--
+ drivers/media/platform/rcar-vin/rcar-dma.c  |  34 ++++--
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 156 +++++++++++++++++-----------
+ 3 files changed, 136 insertions(+), 75 deletions(-)
+
 -- 
-2.7.4
+2.9.0
 
