@@ -1,135 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.goneo.de ([85.220.129.30]:33620 "EHLO smtp1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753191AbcHOOIx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 10:08:53 -0400
-From: Markus Heiser <markus.heiser@darmarit.de>
-To: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jani Nikula <jani.nikula@intel.com>
-Cc: Markus Heiser <markus.heiser@darmarIT.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 2/5] doc-rst:c-domain: ref-name of a function declaration
-Date: Mon, 15 Aug 2016 16:08:25 +0200
-Message-Id: <1471270108-29314-3-git-send-email-markus.heiser@darmarit.de>
-In-Reply-To: <1471270108-29314-1-git-send-email-markus.heiser@darmarit.de>
-References: <1471270108-29314-1-git-send-email-markus.heiser@darmarit.de>
+Received: from mail-lf0-f49.google.com ([209.85.215.49]:34312 "EHLO
+	mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751342AbcHBKjP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 06:39:15 -0400
+Received: by mail-lf0-f49.google.com with SMTP id l69so135041739lfg.1
+        for <linux-media@vger.kernel.org>; Tue, 02 Aug 2016 03:39:14 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Tue, 2 Aug 2016 12:32:04 +0200
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com,
+	lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com
+Subject: Re: [PATCH 4/6] media: rcar-vin: add support for V4L2_FIELD_ALTERNATE
+Message-ID: <20160802103204.GG3672@bigcity.dyn.berto.se>
+References: <20160729174012.14331-1-niklas.soderlund+renesas@ragnatech.se>
+ <20160729174012.14331-5-niklas.soderlund+renesas@ragnatech.se>
+ <8a7c5144-cbab-323f-746d-45923fe748df@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <8a7c5144-cbab-323f-746d-45923fe748df@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Heiser <markus.heiser@darmarIT.de>
+Hi Hans,
 
-Add option 'name' to the "c:function:" directive.  With option 'name'
-the ref-name of a function can be modified. E.g.::
+Thanks for your feedback.
 
-    .. c:function:: int ioctl( int fd, int request )
-       :name: VIDIOC_LOG_STATUS
+On 2016-08-02 11:41:15 +0200, Hans Verkuil wrote:
+> 
+> 
+> On 07/29/2016 07:40 PM, Niklas Söderlund wrote:
+> > The HW can capture both ODD and EVEN fields in separate buffers so it's
+> > possible to support this field mode.
+> > 
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  drivers/media/platform/rcar-vin/rcar-dma.c  | 26 ++++++++++++++++++++------
+> >  drivers/media/platform/rcar-vin/rcar-v4l2.c | 12 ++++++++++++
+> >  2 files changed, 32 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> > index dad3b03..bcdec46 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> > @@ -95,6 +95,7 @@
+> >  /* Video n Module Status Register bits */
+> >  #define VNMS_FBS_MASK		(3 << 3)
+> >  #define VNMS_FBS_SHIFT		3
+> > +#define VNMS_FS			(1 << 2)
+> >  #define VNMS_AV			(1 << 1)
+> >  #define VNMS_CA			(1 << 0)
+> >  
+> > @@ -147,6 +148,7 @@ static int rvin_setup(struct rvin_dev *vin)
+> >  	case V4L2_FIELD_INTERLACED_BT:
+> >  		vnmc = VNMC_IM_FULL | VNMC_FOC;
+> >  		break;
+> > +	case V4L2_FIELD_ALTERNATE:
+> >  	case V4L2_FIELD_NONE:
+> >  		if (vin->continuous) {
+> >  			vnmc = VNMC_IM_ODD_EVEN;
+> > @@ -322,15 +324,26 @@ static bool rvin_capture_active(struct rvin_dev *vin)
+> >  	return rvin_read(vin, VNMS_REG) & VNMS_CA;
+> >  }
+> >  
+> > -static int rvin_get_active_slot(struct rvin_dev *vin)
+> > +static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
+> >  {
+> >  	if (vin->continuous)
+> > -		return (rvin_read(vin, VNMS_REG) & VNMS_FBS_MASK)
+> > -			>> VNMS_FBS_SHIFT;
+> > +		return (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
+> >  
+> >  	return 0;
+> >  }
+> >  
+> > +static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
+> > +{
+> > +	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
+> > +		/* If FS is set it's a Even field */
+> > +		if (vnms & VNMS_FS)
+> > +			return V4L2_FIELD_BOTTOM;
+> > +		return V4L2_FIELD_TOP;
+> > +	}
+> > +
+> > +	return vin->format.field;
+> > +}
+> > +
+> >  static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
+> >  {
+> >  	const struct rvin_video_format *fmt;
+> > @@ -871,7 +884,7 @@ static bool rvin_fill_hw(struct rvin_dev *vin)
+> >  static irqreturn_t rvin_irq(int irq, void *data)
+> >  {
+> >  	struct rvin_dev *vin = data;
+> > -	u32 int_status;
+> > +	u32 int_status, vnms;
+> >  	int slot;
+> >  	unsigned int sequence, handled = 0;
+> >  	unsigned long flags;
+> > @@ -898,7 +911,8 @@ static irqreturn_t rvin_irq(int irq, void *data)
+> >  	}
+> >  
+> >  	/* Prepare for capture and update state */
+> > -	slot = rvin_get_active_slot(vin);
+> > +	vnms = rvin_read(vin, VNMS_REG);
+> > +	slot = rvin_get_active_slot(vin, vnms);
+> >  	sequence = vin->sequence++;
+> >  
+> >  	vin_dbg(vin, "IRQ %02d: %d\tbuf0: %c buf1: %c buf2: %c\tmore: %d\n",
+> > @@ -913,7 +927,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
+> >  		goto done;
+> >  
+> >  	/* Capture frame */
+> > -	vin->queue_buf[slot]->field = vin->format.field;
+> > +	vin->queue_buf[slot]->field = rvin_get_active_field(vin, vnms);
+> >  	vin->queue_buf[slot]->sequence = sequence;
+> >  	vin->queue_buf[slot]->vb2_buf.timestamp = ktime_get_ns();
+> >  	vb2_buffer_done(&vin->queue_buf[slot]->vb2_buf, VB2_BUF_STATE_DONE);
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> > index b6e40ea..00ac2b6 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> > @@ -109,6 +109,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
+> >  		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+> >  	};
+> >  	struct v4l2_mbus_framefmt *mf = &fmt.format;
+> > +	v4l2_std_id std;
+> >  	int ret;
+> >  
+> >  	fmt.pad = vin->src_pad_idx;
+> > @@ -122,9 +123,19 @@ static int rvin_reset_format(struct rvin_dev *vin)
+> >  	vin->format.colorspace	= mf->colorspace;
+> >  	vin->format.field	= mf->field;
+> >  
+> > +	/* If we have a video standard use HW to deinterlace */
+> > +	if (vin->format.field == V4L2_FIELD_ALTERNATE &&
+> > +	    !v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+> > +		if (std & V4L2_STD_625_50)
+> > +			vin->format.field = V4L2_FIELD_INTERLACED_TB;
+> > +		else
+> > +			vin->format.field = V4L2_FIELD_INTERLACED_BT;
+> > +	}
+> 
+> Huh? ALTERNATE means that the fields are captured separately, i.e. one buffer
+> per field.
+> 
+> There is no HW deinterlacing going on in that case, and ALTERNATE is certainly
+> not equal to FIELD_INTERLACED_BT/TB.
+> 
+> If ALTERNATE is chosen as the field format, then VIDIOC_G_FMT should return
+> ALTERNATE as the field format, but in struct v4l2_buffer the field will always
+> be TOP or BOTTOM.
 
-The func-name (e.g. ioctl) remains in the output but the ref-name
-changed from ``ioctl`` to ``VIDIOC_LOG_STATUS``. The index entry for
-this function is also changed to ``VIDIOC_LOG_STATUS`` and the function
-can now referenced by::
+Yes, if S_FMT request ALTERNATE then G_FMT will return ALTERNATE. This 
+code was meant to make INTERLACE_{TB,BT} the default field selection if 
+the subdevice uses V4L2_FIELD_ALTERNATE. The rvin_reset_format() is only 
+called in the following cases:
 
-    :c:func:`VIDIOC_LOG_STATUS`
+- When the driver is first probed to get initial default values from the 
+  subdevice.
 
-Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
----
- Documentation/kernel-documentation.rst | 29 +++++++++++++++++++++++++++++
- Documentation/sphinx/cdomain.py        | 31 +++++++++++++++++++++++++++++++
- 2 files changed, 60 insertions(+)
+- S_STD is called and the width, hight and other parameters from the 
+  subdevice needs to be updated.
 
-diff --git a/Documentation/kernel-documentation.rst b/Documentation/kernel-documentation.rst
-index 391decc..a0dcae1 100644
---- a/Documentation/kernel-documentation.rst
-+++ b/Documentation/kernel-documentation.rst
-@@ -107,6 +107,35 @@ Here are some specific guidelines for the kernel documentation:
-   the order as encountered."), having the higher levels the same overall makes
-   it easier to follow the documents.
- 
-+
-+the C domain
-+------------
-+
-+The `Sphinx C Domain`_ (name c) is suited for documentation of C API. E.g. a
-+function prototype:
-+
-+.. code-block:: rst
-+
-+    .. c:function:: int ioctl( int fd, int request )
-+
-+The C domain of the kernel-doc has some additional features. E.g. you can
-+*rename* the reference name of a function with a common name like ``open`` or
-+``ioctl``:
-+
-+.. code-block:: rst
-+
-+     .. c:function:: int ioctl( int fd, int request )
-+        :name: VIDIOC_LOG_STATUS
-+
-+The func-name (e.g. ioctl) remains in the output but the ref-name changed from
-+``ioctl`` to ``VIDIOC_LOG_STATUS``. The index entry for this function is also
-+changed to ``VIDIOC_LOG_STATUS`` and the function can now referenced by:
-+
-+.. code-block:: rst
-+
-+     :c:func:`VIDIOC_LOG_STATUS`
-+
-+
- list tables
- -----------
- 
-diff --git a/Documentation/sphinx/cdomain.py b/Documentation/sphinx/cdomain.py
-index c32387a..99cd035 100644
---- a/Documentation/sphinx/cdomain.py
-+++ b/Documentation/sphinx/cdomain.py
-@@ -7,8 +7,24 @@ u"""
- 
-     :copyright:  Copyright (C) 2016  Markus Heiser
-     :license:    GPL Version 2, June 1991 see Linux/COPYING for details.
-+
-+    List of customizations:
-+
-+    * Add option 'name' to the "c:function:" directive.  With option 'name' the
-+      ref-name of a function can be modified. E.g.::
-+
-+          .. c:function:: int ioctl( int fd, int request )
-+             :name: VIDIOC_LOG_STATUS
-+
-+      The func-name (e.g. ioctl) remains in the output but the ref-name changed
-+      from 'ioctl' to 'VIDIOC_LOG_STATUS'. The function is referenced by::
-+
-+          * :c:func:`VIDIOC_LOG_STATUS` or
-+          * :any:`VIDIOC_LOG_STATUS` (``:any:`` needs sphinx 1.3)
- """
- 
-+from docutils.parsers.rst import directives
-+
- from sphinx.domains.c import CObject as Base_CObject
- from sphinx.domains.c import CDomain as Base_CDomain
- 
-@@ -29,6 +45,21 @@ class CObject(Base_CObject):
-     """
-     Description of a C language object.
-     """
-+    option_spec = {
-+        "name" : directives.unchanged
-+    }
-+
-+    def handle_signature(self, sig, signode):
-+        """Transform a C signature into RST nodes."""
-+        fullname = super(CObject, self).handle_signature(sig, signode)
-+        if "name" in self.options:
-+            if self.objtype == 'function':
-+                fullname = self.options["name"]
-+            else:
-+                # FIXME: handle :name: value of other declaration types?
-+                pass
-+        return fullname
-+
- 
- class CDomain(Base_CDomain):
- 
+Is it wrong to use an INTERLACE field as default if the subdevice 
+provides ALTERNATE? My goal was to not change the behavior of the 
+rcar-vin driver which default uses INTERLACE today? I'm happy to drop 
+this part for v2 if it's the wrong thing to do in this case.
+
+> 
+> > +
+> >  	switch (vin->format.field) {
+> >  	case V4L2_FIELD_TOP:
+> >  	case V4L2_FIELD_BOTTOM:
+> > +	case V4L2_FIELD_ALTERNATE:
+> >  		vin->format.height /= 2;
+> >  		break;
+> >  	case V4L2_FIELD_NONE:
+> > @@ -222,6 +233,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
+> >  	switch (pix->field) {
+> >  	case V4L2_FIELD_TOP:
+> >  	case V4L2_FIELD_BOTTOM:
+> > +	case V4L2_FIELD_ALTERNATE:
+> >  		pix->height /= 2;
+> >  		source->height /= 2;
+> >  		break;
+> > 
+> 
+> Regards,
+> 
+> 	Hans
+
 -- 
-2.7.4
-
+Regards,
+Niklas Söderlund
