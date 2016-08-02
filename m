@@ -1,54 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www381.your-server.de ([78.46.137.84]:35239 "EHLO
-	www381.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967354AbcHBPbu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 11:31:50 -0400
-Subject: Re: [PATCHv2 7/7] [PATCHv5] media: adv7180: fix field type
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42333 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750954AbcHBHfo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Aug 2016 03:35:44 -0400
+Subject: Re: [PATCH v7 1/2] [media] atmel-isc: add the Image Sensor Controller
+ code
+To: "Wu, Songjun" <Songjun.Wu@microchip.com>, nicolas.ferre@atmel.com
+References: <1469778856-24253-1-git-send-email-songjun.wu@microchip.com>
+ <1469778856-24253-2-git-send-email-songjun.wu@microchip.com>
+ <f77652aa-3d41-d85f-11a9-9f5290223834@xs4all.nl>
+ <b32b2346-cc11-521e-c2f8-6d9e951c7a16@microchip.com>
+Cc: robh@kernel.org, laurent.pinchart@ideasonboard.com,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	=?UTF-8?Q?Niklas_S=c3=83=c2=b6derlund?=
 	<niklas.soderlund+renesas@ragnatech.se>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com
-References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
- <20160802145107.24829-8-niklas.soderlund+renesas@ragnatech.se>
-Cc: mchehab@kernel.org, hans.verkuil@cisco.com,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Lars-Peter Clausen <lars@metafoo.de>
-Message-ID: <3bb2b375-a4a9-00c4-1466-7b1ba8e3bfd8@metafoo.de>
-Date: Tue, 2 Aug 2016 17:00:07 +0200
+	Benoit Parrot <bparrot@ti.com>, linux-kernel@vger.kernel.org,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Kamil Debski <kamil@wypas.org>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	=?UTF-8?Q?Richard_R=c3=b6jfors?= <richard@puffinpack.se>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Simon Horman <horms+renesas@verge.net.au>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <cdb406b8-bb1e-9a78-e07c-f5df3dbcfe34@xs4all.nl>
+Date: Tue, 2 Aug 2016 09:32:44 +0200
 MIME-Version: 1.0
-In-Reply-To: <20160802145107.24829-8-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <b32b2346-cc11-521e-c2f8-6d9e951c7a16@microchip.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[...]
-> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-> index a8b434b..c6fed71 100644
-> --- a/drivers/media/i2c/adv7180.c
-> +++ b/drivers/media/i2c/adv7180.c
-> @@ -680,10 +680,13 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
->  	switch (format->format.field) {
->  	case V4L2_FIELD_NONE:
->  		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
-> -			format->format.field = V4L2_FIELD_INTERLACED;
-> +			format->format.field = V4L2_FIELD_ALTERNATE;
->  		break;
->  	default:
-> -		format->format.field = V4L2_FIELD_INTERLACED;
-> +		if (state->chip_info->flags & ADV7180_FLAG_I2P)
-> +			format->format.field = V4L2_FIELD_INTERLACED;
 
-I'm not convinced this is correct. As far as I understand it when the I2P
-feature is enabled the core outputs full progressive frames at the full
-framerate. If it is bypassed it outputs half-frames. So we have the option
-of either V4L2_FIELD_NONE or V4L2_FIELD_ALTERNATE, but never interlaced. I
-think this branch should setup the field format to be ALTERNATE regardless
-of whether the I2P feature is available.
 
-> +		else
-> +			format->format.field = V4L2_FIELD_ALTERNATE;
->  		break;
->  	}
->  
+On 08/02/2016 08:20 AM, Wu, Songjun wrote:
+>>> +static unsigned int sensor_preferred = 1;
+>>> +module_param(sensor_preferred, uint, S_IRUGO|S_IWUSR);
+>>> +MODULE_PARM_DESC(sensor_preferred,
+>>> +		 "Sensor is preferred to output the specified format (1-on 0-off) default 1");
+>>
+>> I have no idea what this means. Can you elaborate? Why would you want to set this to 0?
+>>
+> ISC can convert the raw format to the other format, e.g. YUYV.
+> If we want to output YUYV format, there are two choices, one is the 
+> sensor output YUYV format, ISC bypass the data to the memory, the other 
+> is the sensor output raw format, ISC convert raw format to YUYV.
+> 
+> So I provide a module parameter to user to select.
+> I prefer to select the sensor to output the specified format, then I set 
+> this parameter to '1', not '0'.
 
+Does this only apply to YUYV?
+
+The reason I am hesitant about this option is that I am not convinced you need
+it. The default (sensor preferred) makes sense and that's what other drivers
+do as well. Unless you know of a real use-case where you want to set this to 0,
+I would just drop this option.
+
+If there *is* a real use-case, then split off adding this module option into a
+separate patch so we can discuss it more without blocking getting this driver
+into mainline. I don't like the way this is done here.
+
+Regards,
+
+	Hans
