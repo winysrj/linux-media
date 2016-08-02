@@ -1,320 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46802 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754481AbcHSKYH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 06:24:07 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v2 17/17] omap3isp: Don't rely on devm for memory resource management
-Date: Fri, 19 Aug 2016 13:23:48 +0300
-Message-Id: <1471602228-30722-18-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:50210 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755463AbcHBL2G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Aug 2016 07:28:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/2] cec: improve locking
+Date: Tue,  2 Aug 2016 13:23:54 +0200
+Message-Id: <1470137034-7313-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1470137034-7313-1-git-send-email-hverkuil@xs4all.nl>
+References: <1470137034-7313-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-devm functions are fine for managing resources that are directly related
-to the device at hand and that have no other dependencies. However, a
-process holding a file handle to a device created by a driver for a device
-may result in the file handle left behind after the device is long gone.
-This will result in accessing released (and potentially reallocated)
-memory.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Instead, rely on the media device which will stick around until all users
-are gone.
+- The global lock was used in cec_get_device when it should have
+  used the devnode lock.
+- cec_put_device also took the global lock, but since the release
+  function takes that lock as well this could lead to a deadlock.
+  Just don't take the lock here since there is no reason for it.
+- cec_devnode_register() should take the global lock when clearing
+  the bit in the global bitmap.
+- In cec_devnode_unregister() place the devnode->(un)register tests
+  and assignments under the devnode lock as well: this has to be
+  in a critical block.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/omap3isp/isp.c         | 38 ++++++++++++++++++++-------
- drivers/media/platform/omap3isp/ispccp2.c     |  3 ++-
- drivers/media/platform/omap3isp/isph3a_aewb.c | 20 +++++++++-----
- drivers/media/platform/omap3isp/isph3a_af.c   | 20 +++++++++-----
- drivers/media/platform/omap3isp/isphist.c     |  5 ++--
- drivers/media/platform/omap3isp/ispstat.c     |  2 ++
- 6 files changed, 63 insertions(+), 25 deletions(-)
+ drivers/staging/media/cec/cec-core.c | 25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 217d4da..3488ed3 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1370,7 +1370,7 @@ static int isp_get_clocks(struct isp_device *isp)
- 	unsigned int i;
- 
- 	for (i = 0; i < ARRAY_SIZE(isp_clocks); ++i) {
--		clk = devm_clk_get(isp->dev, isp_clocks[i]);
-+		clk = clk_get(isp->dev, isp_clocks[i]);
- 		if (IS_ERR(clk)) {
- 			dev_err(isp->dev, "clk_get %s failed\n", isp_clocks[i]);
- 			return PTR_ERR(clk);
-@@ -1382,6 +1382,14 @@ static int isp_get_clocks(struct isp_device *isp)
+diff --git a/drivers/staging/media/cec/cec-core.c b/drivers/staging/media/cec/cec-core.c
+index 73792d0..3b1e4d2 100644
+--- a/drivers/staging/media/cec/cec-core.c
++++ b/drivers/staging/media/cec/cec-core.c
+@@ -51,31 +51,29 @@ int cec_get_device(struct cec_devnode *devnode)
+ {
+ 	/*
+ 	 * Check if the cec device is available. This needs to be done with
+-	 * the cec_devnode_lock held to prevent an open/unregister race:
++	 * the devnode->lock held to prevent an open/unregister race:
+ 	 * without the lock, the device could be unregistered and freed between
+ 	 * the devnode->registered check and get_device() calls, leading to
+ 	 * a crash.
+ 	 */
+-	mutex_lock(&cec_devnode_lock);
++	mutex_lock(&devnode->lock);
+ 	/*
+ 	 * return ENXIO if the cec device has been removed
+ 	 * already or if it is not registered anymore.
+ 	 */
+ 	if (!devnode->registered) {
+-		mutex_unlock(&cec_devnode_lock);
++		mutex_unlock(&devnode->lock);
+ 		return -ENXIO;
+ 	}
+ 	/* and increase the device refcount */
+ 	get_device(&devnode->dev);
+-	mutex_unlock(&cec_devnode_lock);
++	mutex_unlock(&devnode->lock);
  	return 0;
  }
  
-+static void isp_put_clocks(struct isp_device *isp)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(isp_clocks); ++i)
-+		clk_put(isp->clock[i]);
-+}
-+
- /*
-  * omap3isp_get - Acquire the ISP resource.
-  *
-@@ -1596,7 +1604,6 @@ static void isp_unregister_entities(struct isp_device *isp)
- 	omap3isp_stat_unregister_entities(&isp->isp_af);
- 	omap3isp_stat_unregister_entities(&isp->isp_hist);
- 
--	v4l2_device_unregister(&isp->v4l2_dev);
- 	media_device_unregister(isp->media_dev);
- }
- 
-@@ -1952,6 +1959,8 @@ static void isp_release(struct media_device *mdev)
+ void cec_put_device(struct cec_devnode *devnode)
  {
- 	struct isp_device *isp = media_device_priv(mdev);
- 
-+	v4l2_device_unregister(&isp->v4l2_dev);
-+
- 	isp_cleanup_modules(isp);
- 	isp_xclk_cleanup(isp);
- 
-@@ -1960,6 +1969,10 @@ static void isp_release(struct media_device *mdev)
- 	__omap3isp_put(isp, false);
- 
- 	media_entity_enum_cleanup(&isp->crashed);
-+
-+	isp_put_clocks(isp);
-+
-+	kfree(isp);
+-	mutex_lock(&cec_devnode_lock);
+ 	put_device(&devnode->dev);
+-	mutex_unlock(&cec_devnode_lock);
  }
  
- static int isp_attach_iommu(struct isp_device *isp)
-@@ -2212,7 +2225,7 @@ static int isp_probe(struct platform_device *pdev)
- 	int ret;
- 	int i, m;
+ /* Called when the last user of the cec device exits. */
+@@ -84,11 +82,10 @@ static void cec_devnode_release(struct device *cd)
+ 	struct cec_devnode *devnode = to_cec_devnode(cd);
  
--	isp = devm_kzalloc(&pdev->dev, sizeof(*isp), GFP_KERNEL);
-+	isp = kzalloc(sizeof(*isp), GFP_KERNEL);
- 	if (!isp) {
- 		dev_err(&pdev->dev, "could not allocate memory\n");
- 		return -ENOMEM;
-@@ -2221,21 +2234,23 @@ static int isp_probe(struct platform_device *pdev)
- 	ret = of_property_read_u32(pdev->dev.of_node, "ti,phy-type",
- 				   &isp->phy_type);
- 	if (ret)
--		return ret;
-+		goto error_release_isp;
+ 	mutex_lock(&cec_devnode_lock);
+-
+ 	/* Mark device node number as free */
+ 	clear_bit(devnode->minor, cec_devnode_nums);
+-
+ 	mutex_unlock(&cec_devnode_lock);
++
+ 	cec_delete_adapter(to_cec_adapter(devnode));
+ }
  
- 	isp->syscon = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
- 						      "syscon");
--	if (IS_ERR(isp->syscon))
--		return PTR_ERR(isp->syscon);
-+	if (IS_ERR(isp->syscon)) {
-+		ret = PTR_ERR(isp->syscon);
-+		goto error_release_isp;
+@@ -160,7 +157,9 @@ static int __must_check cec_devnode_register(struct cec_devnode *devnode,
+ cdev_del:
+ 	cdev_del(&devnode->cdev);
+ clr_bit:
++	mutex_lock(&cec_devnode_lock);
+ 	clear_bit(devnode->minor, cec_devnode_nums);
++	mutex_unlock(&cec_devnode_lock);
+ 	return ret;
+ }
+ 
+@@ -177,17 +176,21 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
+ {
+ 	struct cec_fh *fh;
+ 
++	mutex_lock(&devnode->lock);
++
+ 	/* Check if devnode was never registered or already unregistered */
+-	if (!devnode->registered || devnode->unregistered)
++	if (!devnode->registered || devnode->unregistered) {
++		mutex_unlock(&devnode->lock);
+ 		return;
 +	}
  
- 	ret = of_property_read_u32_index(pdev->dev.of_node, "syscon", 1,
- 					 &isp->syscon_offset);
- 	if (ret)
--		return ret;
-+		goto error_release_isp;
+-	mutex_lock(&devnode->lock);
+ 	list_for_each_entry(fh, &devnode->fhs, list)
+ 		wake_up_interruptible(&fh->wait);
+-	mutex_unlock(&devnode->lock);
  
- 	ret = isp_of_parse_nodes(&pdev->dev, &isp->notifier);
- 	if (ret < 0)
--		return ret;
-+		goto error_release_isp;
- 
- 	isp->autoidle = autoidle;
- 
-@@ -2252,8 +2267,8 @@ static int isp_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, isp);
- 
- 	/* Regulators */
--	isp->isp_csiphy1.vdd = devm_regulator_get(&pdev->dev, "vdd-csiphy1");
--	isp->isp_csiphy2.vdd = devm_regulator_get(&pdev->dev, "vdd-csiphy2");
-+	isp->isp_csiphy1.vdd = regulator_get(&pdev->dev, "vdd-csiphy1");
-+	isp->isp_csiphy2.vdd = regulator_get(&pdev->dev, "vdd-csiphy2");
- 
- 	/* Clocks
- 	 *
-@@ -2385,6 +2400,9 @@ error_isp:
- 	__omap3isp_put(isp, false);
- error:
- 	mutex_destroy(&isp->isp_mutex);
-+	isp_put_clocks(isp);
-+error_release_isp:
-+	kfree(isp);
- 
- 	return ret;
- }
-diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
-index ca09523..d49ce8a 100644
---- a/drivers/media/platform/omap3isp/ispccp2.c
-+++ b/drivers/media/platform/omap3isp/ispccp2.c
-@@ -1135,7 +1135,7 @@ int omap3isp_ccp2_init(struct isp_device *isp)
- 	 * TODO: Don't hardcode the usage of PHY1 (shared with CSI2c).
- 	 */
- 	if (isp->revision == ISP_REVISION_2_0) {
--		ccp2->vdds_csib = devm_regulator_get(isp->dev, "vdds_csib");
-+		ccp2->vdds_csib = regulator_get(isp->dev, "vdds_csib");
- 		if (IS_ERR(ccp2->vdds_csib)) {
- 			dev_dbg(isp->dev,
- 				"Could not get regulator vdds_csib\n");
-@@ -1163,4 +1163,5 @@ void omap3isp_ccp2_cleanup(struct isp_device *isp)
- 
- 	omap3isp_video_cleanup(&ccp2->video_in);
- 	media_entity_cleanup(&ccp2->subdev.entity);
-+	regulator_put(ccp2->vdds_csib);
- }
-diff --git a/drivers/media/platform/omap3isp/isph3a_aewb.c b/drivers/media/platform/omap3isp/isph3a_aewb.c
-index ccaf92f..130df8b 100644
---- a/drivers/media/platform/omap3isp/isph3a_aewb.c
-+++ b/drivers/media/platform/omap3isp/isph3a_aewb.c
-@@ -289,9 +289,10 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
- {
- 	struct ispstat *aewb = &isp->isp_aewb;
- 	struct omap3isp_h3a_aewb_config *aewb_cfg;
--	struct omap3isp_h3a_aewb_config *aewb_recover_cfg;
-+	struct omap3isp_h3a_aewb_config *aewb_recover_cfg = NULL;
-+	int ret;
- 
--	aewb_cfg = devm_kzalloc(isp->dev, sizeof(*aewb_cfg), GFP_KERNEL);
-+	aewb_cfg = kzalloc(sizeof(*aewb_cfg), GFP_KERNEL);
- 	if (!aewb_cfg)
- 		return -ENOMEM;
- 
-@@ -301,12 +302,12 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
- 	aewb->isp = isp;
- 
- 	/* Set recover state configuration */
--	aewb_recover_cfg = devm_kzalloc(isp->dev, sizeof(*aewb_recover_cfg),
--					GFP_KERNEL);
-+	aewb_recover_cfg = kzalloc(sizeof(*aewb_recover_cfg), GFP_KERNEL);
- 	if (!aewb_recover_cfg) {
- 		dev_err(aewb->isp->dev, "AEWB: cannot allocate memory for "
- 					"recover configuration.\n");
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto err;
- 	}
- 
- 	aewb_recover_cfg->saturation_limit = OMAP3ISP_AEWB_MAX_SATURATION_LIM;
-@@ -323,13 +324,20 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
- 	if (h3a_aewb_validate_params(aewb, aewb_recover_cfg)) {
- 		dev_err(aewb->isp->dev, "AEWB: recover configuration is "
- 					"invalid.\n");
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto err;
- 	}
- 
- 	aewb_recover_cfg->buf_size = h3a_aewb_get_buf_size(aewb_recover_cfg);
- 	aewb->recover_priv = aewb_recover_cfg;
- 
- 	return omap3isp_stat_init(aewb, "AEWB", &h3a_aewb_subdev_ops);
+ 	devnode->registered = false;
+ 	devnode->unregistered = true;
++	mutex_unlock(&devnode->lock);
 +
-+err:
-+	kfree(aewb_cfg);
-+	kfree(aewb_recover_cfg);
-+
-+	return ret;
- }
- 
- /*
-diff --git a/drivers/media/platform/omap3isp/isph3a_af.c b/drivers/media/platform/omap3isp/isph3a_af.c
-index 92937f7..7eecf97 100644
---- a/drivers/media/platform/omap3isp/isph3a_af.c
-+++ b/drivers/media/platform/omap3isp/isph3a_af.c
-@@ -352,9 +352,10 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
- {
- 	struct ispstat *af = &isp->isp_af;
- 	struct omap3isp_h3a_af_config *af_cfg;
--	struct omap3isp_h3a_af_config *af_recover_cfg;
-+	struct omap3isp_h3a_af_config *af_recover_cfg = NULL;
-+	int ret;
- 
--	af_cfg = devm_kzalloc(isp->dev, sizeof(*af_cfg), GFP_KERNEL);
-+	af_cfg = kzalloc(sizeof(*af_cfg), GFP_KERNEL);
- 	if (af_cfg == NULL)
- 		return -ENOMEM;
- 
-@@ -364,12 +365,12 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
- 	af->isp = isp;
- 
- 	/* Set recover state configuration */
--	af_recover_cfg = devm_kzalloc(isp->dev, sizeof(*af_recover_cfg),
--				      GFP_KERNEL);
-+	af_recover_cfg = kzalloc(sizeof(*af_recover_cfg), GFP_KERNEL);
- 	if (!af_recover_cfg) {
- 		dev_err(af->isp->dev, "AF: cannot allocate memory for recover "
- 				      "configuration.\n");
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto err;
- 	}
- 
- 	af_recover_cfg->paxel.h_start = OMAP3ISP_AF_PAXEL_HZSTART_MIN;
-@@ -381,13 +382,20 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
- 	if (h3a_af_validate_params(af, af_recover_cfg)) {
- 		dev_err(af->isp->dev, "AF: recover configuration is "
- 				      "invalid.\n");
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto err;
- 	}
- 
- 	af_recover_cfg->buf_size = h3a_af_get_buf_size(af_recover_cfg);
- 	af->recover_priv = af_recover_cfg;
- 
- 	return omap3isp_stat_init(af, "AF", &h3a_af_subdev_ops);
-+
-+err:
-+	kfree(af_cfg);
-+	kfree(af_recover_cfg);
-+
-+	return ret;
- }
- 
- void omap3isp_h3a_af_cleanup(struct isp_device *isp)
-diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
-index 7138b04..976cab0 100644
---- a/drivers/media/platform/omap3isp/isphist.c
-+++ b/drivers/media/platform/omap3isp/isphist.c
-@@ -477,9 +477,9 @@ int omap3isp_hist_init(struct isp_device *isp)
- {
- 	struct ispstat *hist = &isp->isp_hist;
- 	struct omap3isp_hist_config *hist_cfg;
--	int ret = -1;
-+	int ret;
- 
--	hist_cfg = devm_kzalloc(isp->dev, sizeof(*hist_cfg), GFP_KERNEL);
-+	hist_cfg = kzalloc(sizeof(*hist_cfg), GFP_KERNEL);
- 	if (hist_cfg == NULL)
- 		return -ENOMEM;
- 
-@@ -517,6 +517,7 @@ int omap3isp_hist_init(struct isp_device *isp)
- 	if (ret) {
- 		if (hist->dma_ch)
- 			dma_release_channel(hist->dma_ch);
-+		kfree(hist_cfg);
- 	}
- 
- 	return ret;
-diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
-index 1b9217d..1c1365f 100644
---- a/drivers/media/platform/omap3isp/ispstat.c
-+++ b/drivers/media/platform/omap3isp/ispstat.c
-@@ -1059,4 +1059,6 @@ void omap3isp_stat_cleanup(struct ispstat *stat)
- 	mutex_destroy(&stat->ioctl_lock);
- 	isp_stat_bufs_free(stat);
- 	kfree(stat->buf);
-+	kfree(stat->priv);
-+	kfree(stat->recover_priv);
- }
+ 	device_del(&devnode->dev);
+ 	cdev_del(&devnode->cdev);
+ 	put_device(&devnode->dev);
 -- 
-2.1.4
+2.8.1
 
