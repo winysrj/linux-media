@@ -1,89 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34874 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756135AbcH2HWc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 03:22:32 -0400
-Received: by mail-wm0-f65.google.com with SMTP id i5so8250480wmg.2
-        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2016 00:22:01 -0700 (PDT)
-From: Chris Wilson <chris@chris-wilson.co.uk>
-To: dri-devel@lists.freedesktop.org
-Cc: intel-gfx@lists.freedesktop.org,
-        Chris Wilson <chris@chris-wilson.co.uk>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
-        Alex Deucher <alexander.deucher@amd.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
-Subject: [PATCH 08/11] dma-buf: Restart reservation_object_wait_timeout_rcu() after writes
-Date: Mon, 29 Aug 2016 08:08:31 +0100
-Message-Id: <20160829070834.22296-8-chris@chris-wilson.co.uk>
-In-Reply-To: <20160829070834.22296-1-chris@chris-wilson.co.uk>
-References: <20160829070834.22296-1-chris@chris-wilson.co.uk>
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:35535 "EHLO
+	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935280AbcHBQNE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 12:13:04 -0400
+Received: by mail-wm0-f47.google.com with SMTP id f65so415491015wmi.0
+        for <linux-media@vger.kernel.org>; Tue, 02 Aug 2016 09:12:41 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20160802111129.10826-1-baolex.ni@intel.com>
+References: <20160802111129.10826-1-baolex.ni@intel.com>
+From: Kees Cook <keescook@chromium.org>
+Date: Tue, 2 Aug 2016 09:07:30 -0700
+Message-ID: <CAGXu5jKf9veNb720fQfviQeqbpk3uWa0KX0g5PPSaNMTc4018Q@mail.gmail.com>
+Subject: Re: [PATCH 0435/1285] Replace numeric parameter like 0444 with macro
+To: Baole Ni <baolex.ni@intel.com>,
+	Greg KH <gregkh@linuxfoundation.org>
+Cc: mchehab@kernel.org, maurochehab@gmail.com, mchehab@infradead.org,
+	mchehab@redhat.com, Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	hverkuil@xs4all.nl, a.hajda@samsung.com,
+	Borislav Petkov <bp@alien8.de>, linux-media@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>, javier@osg.samsung.com,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	prabhakar.csengg@gmail.com, chuansheng.liu@intel.com
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to be completely generic, we have to double check the read
-seqlock after acquiring a reference to the fence. If the driver is
-allocating fences from a SLAB_DESTROY_BY_RCU, or similar freelist, then
-within an RCU grace period a fence may be freed and reallocated. The RCU
-read side critical section does not prevent this reallocation, instead
-we have to inspect the reservation's seqlock to double check if the
-fences have been reassigned as we were acquiring our reference.
+There are so many of these, I wonder if it'd be better to just do one
+giant patch, or at least break them up by subsystem instead of by
+individual source file...
 
-Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: linaro-mm-sig@lists.linaro.org
----
- drivers/dma-buf/reservation.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+-Kees
 
-diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
-index 10fd441dd4ed..3369e4668e96 100644
---- a/drivers/dma-buf/reservation.c
-+++ b/drivers/dma-buf/reservation.c
-@@ -388,9 +388,6 @@ retry:
- 		if (fobj)
- 			shared_count = fobj->shared_count;
- 
--		if (read_seqcount_retry(&obj->seq, seq))
--			goto unlock_retry;
--
- 		for (i = 0; i < shared_count; ++i) {
- 			struct fence *lfence = rcu_dereference(fobj->shared[i]);
- 
-@@ -413,9 +410,6 @@ retry:
- 	if (!shared_count) {
- 		struct fence *fence_excl = rcu_dereference(obj->fence_excl);
- 
--		if (read_seqcount_retry(&obj->seq, seq))
--			goto unlock_retry;
--
- 		if (fence_excl &&
- 		    !test_bit(FENCE_FLAG_SIGNALED_BIT, &fence_excl->flags)) {
- 			if (!fence_get_rcu(fence_excl))
-@@ -430,6 +424,11 @@ retry:
- 
- 	rcu_read_unlock();
- 	if (fence) {
-+		if (read_seqcount_retry(&obj->seq, seq)) {
-+			fence_put(fence);
-+			goto retry;
-+		}
-+
- 		ret = fence_wait_timeout(fence, intr, ret);
- 		fence_put(fence);
- 		if (ret > 0 && wait_all && (i + 1 < shared_count))
+On Tue, Aug 2, 2016 at 4:11 AM, Baole Ni <baolex.ni@intel.com> wrote:
+> I find that the developers often just specified the numeric value
+> when calling a macro which is defined with a parameter for access permission.
+> As we know, these numeric value for access permission have had the corresponding macro,
+> and that using macro can improve the robustness and readability of the code,
+> thus, I suggest replacing the numeric parameter with the macro.
+>
+> Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
+> Signed-off-by: Baole Ni <baolex.ni@intel.com>
+> ---
+>  drivers/media/i2c/tvp5150.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index 0b6d46c..d8ffd88 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -33,7 +33,7 @@ MODULE_LICENSE("GPL");
+>
+>
+>  static int debug;
+> -module_param(debug, int, 0644);
+> +module_param(debug, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+>  MODULE_PARM_DESC(debug, "Debug level (0-2)");
+>
+>  struct tvp5150 {
+> --
+> 2.9.2
+>
+
+
+
 -- 
-2.9.3
-
+Kees Cook
+Chrome OS & Brillo Security
