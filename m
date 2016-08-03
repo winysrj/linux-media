@@ -1,67 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42558 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751962AbcHLNRr (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58701 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757758AbcHCLBZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2016 09:17:47 -0400
-Subject: Re: [PATCH v2] V4L2: Add documentation for SDI timings and related
- flags
-To: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>,
-	linux-media@vger.kernel.org
-References: <1470325151-14522-1-git-send-email-charles-antoine.couret@nexvision.fr>
+	Wed, 3 Aug 2016 07:01:25 -0400
+To: linux-input <linux-input@vger.kernel.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <574b72df-b860-4568-8828-1f88e49c8d06@xs4all.nl>
-Date: Fri, 12 Aug 2016 15:17:41 +0200
+Subject: [PATCHv2] serio: add hangup support
+Message-ID: <0d959a01-e698-0178-af89-5925469f95ab@xs4all.nl>
+Date: Wed, 3 Aug 2016 13:00:44 +0200
 MIME-Version: 1.0
-In-Reply-To: <1470325151-14522-1-git-send-email-charles-antoine.couret@nexvision.fr>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/04/2016 05:39 PM, Charles-Antoine Couret wrote:
+The Pulse-Eight USB CEC adapter is a usb device that shows up as a ttyACM0 device.
+It requires that you run inputattach in order to communicate with it via serio.
 
-A commit log is missing here.
+This all works well, but it would be nice to have a udev rule to automatically
+start inputattach. That too works OK, but the problem comes when the USB device
+is unplugged: the tty hangup is never handled by the serio framework so the
+inputattach utility never exits and you have to kill it manually.
 
-> Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
-> ---
->  Documentation/media/uapi/v4l/vidioc-enuminput.rst  | 31 +++++++++++++++++-----
->  .../media/uapi/v4l/vidioc-g-dv-timings.rst         | 16 +++++++++++
->  2 files changed, 40 insertions(+), 7 deletions(-)
-> 
+By adding this hangup callback the inputattach utility now properly exits as
+soon as the USB device is unplugged.
 
-<snip>
+The udev rule I used on my Debian sid system is:
 
-> diff --git a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
-> index f7bf21f..0205bf6 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
-> @@ -339,6 +339,14 @@ EBUSY
->  
->         -  The timings follow the VESA Generalized Timings Formula standard
->  
-> +    -  .. row 7
-> +
-> +       -  ``V4L2_DV_BT_STD_SDI``
-> +
-> +       -  The timings follow the SDI Timings standard.
-> +	  There are not always horizontal syncs/porches or similar in this format.
-> +	  If it is not precised by standard, blanking timings must be set in
-> +	  hsync or vsync fields by default.
+SUBSYSTEM=="tty", KERNEL=="ttyACM[0-9]*", ATTRS{idVendor}=="2548", ATTRS{idProduct}=="1002", ACTION=="add", TAG+="systemd", ENV{SYSTEMD_WANTS}+="pulse8-cec-inputattach@%k.service"
 
-OK. This is confusing. The text was changed after my question about something porch-like
-in the SMPTE-125M standard. But I see nothing like that after re-reading it.
+And pulse8-cec-inputattach@%k.service is as follows:
 
-So what sort of 'porch' timing were you thinking of?
+===============================================================
+[Unit]
+Description=inputattach for pulse8-cec device on %I
 
-I wonder if I shouldn't just use the text from your first patch:
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/inputattach --pulse8-cec /dev/%I
+KillMode=process
+===============================================================
 
-       -  ``V4L2_DV_BT_STD_SDI``
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+Change since the original RFC patch: don't call close() from the hangup() function,
+instead only set the DEAD flag in hangup() instead of in close().
+---
+diff --git a/drivers/input/serio/serport.c b/drivers/input/serio/serport.c
+index 9c927d3..4045e95 100644
+--- a/drivers/input/serio/serport.c
++++ b/drivers/input/serio/serport.c
+@@ -71,7 +71,6 @@ static void serport_serio_close(struct serio *serio)
 
-       -  The timings follow the SDI Timings standard.
-	  There are no horizontal syncs/porches at all in this format.
-	  Total blanking timings must be set in hsync or vsync fields only.
+ 	spin_lock_irqsave(&serport->lock, flags);
+ 	clear_bit(SERPORT_ACTIVE, &serport->flags);
+-	set_bit(SERPORT_DEAD, &serport->flags);
+ 	spin_unlock_irqrestore(&serport->lock, flags);
 
-Regards,
+ 	wake_up_interruptible(&serport->wait);
+@@ -248,6 +247,19 @@ static long serport_ldisc_compat_ioctl(struct tty_struct *tty,
+ }
+ #endif
 
-	Hans
++static int serport_ldisc_hangup(struct tty_struct * tty)
++{
++	struct serport *serport = (struct serport *) tty->disc_data;
++	unsigned long flags;
++
++	spin_lock_irqsave(&serport->lock, flags);
++	set_bit(SERPORT_DEAD, &serport->flags);
++	spin_unlock_irqrestore(&serport->lock, flags);
++
++	wake_up_interruptible(&serport->wait);
++	return 0;
++}
++
+ static void serport_ldisc_write_wakeup(struct tty_struct * tty)
+ {
+ 	struct serport *serport = (struct serport *) tty->disc_data;
+@@ -274,6 +286,7 @@ static struct tty_ldisc_ops serport_ldisc = {
+ 	.compat_ioctl =	serport_ldisc_compat_ioctl,
+ #endif
+ 	.receive_buf =	serport_ldisc_receive,
++	.hangup =	serport_ldisc_hangup,
+ 	.write_wakeup =	serport_ldisc_write_wakeup
+ };
+
