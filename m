@@ -1,67 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp11.smtpout.orange.fr ([80.12.242.133]:39475 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752941AbcHOTcT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 15:32:19 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jiri Kosina <trivial@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v4 08/13] media: platform: pxa_camera: add buffer sequencing
-Date: Mon, 15 Aug 2016 21:01:58 +0200
-Message-Id: <1471287723-25451-9-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1471287723-25451-1-git-send-email-robert.jarzmik@free.fr>
-References: <1471287723-25451-1-git-send-email-robert.jarzmik@free.fr>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:36536 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756518AbcHCSED (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 14:04:03 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: lars@metafoo.de
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v4 3/8] media: adv7180: add support for NEWAVMODE
+Date: Wed,  3 Aug 2016 11:03:45 -0700
+Message-Id: <1470247430-11168-4-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add sequence numbers to completed buffers.
+Parse the optional v4l2 endpoint DT node. If the bus type is
+V4L2_MBUS_BT656 and the endpoint node specifies "newavmode",
+configure the BT.656 bus in NEWAVMODE.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
-Since v3: reset buffer sequence number in start_streaming()
----
- drivers/media/platform/soc_camera/pxa_camera.c | 5 +++++
- 1 file changed, 5 insertions(+)
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index f3922a99405b..2471d036a835 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -223,6 +223,7 @@ struct pxa_camera_dev {
- 	struct list_head	capture;
+---
+
+v4: no changes
+v3:
+- the newavmode endpoint property is now private to adv7180.
+---
+ .../devicetree/bindings/media/i2c/adv7180.txt      |  4 ++
+ drivers/media/i2c/adv7180.c                        | 46 ++++++++++++++++++++--
+ 2 files changed, 47 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7180.txt b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
+index 0d50115..6c175d2 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv7180.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
+@@ -15,6 +15,10 @@ Required Properties :
+ 		"adi,adv7282"
+ 		"adi,adv7282-m"
  
- 	spinlock_t		lock;
-+	unsigned int		buf_sequence;
++Optional Endpoint Properties :
++- newavmode: a boolean property to indicate the BT.656 bus is operating
++  in Analog Device's NEWAVMODE. Valid for BT.656 busses only.
++
+ Example:
  
- 	struct pxa_buffer	*active;
- 	struct tasklet_struct	task_eof;
-@@ -423,10 +424,13 @@ static void pxa_camera_wakeup(struct pxa_camera_dev *pcdev,
- 			      struct pxa_buffer *buf)
+ 	i2c0@1c22000 {
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 6e093c22..467953e 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -31,6 +31,7 @@
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-of.h>
+ #include <linux/mutex.h>
+ #include <linux/delay.h>
+ 
+@@ -106,6 +107,7 @@
+ #define ADV7180_REG_SHAP_FILTER_CTL_1	0x0017
+ #define ADV7180_REG_CTRL_2		0x001d
+ #define ADV7180_REG_VSYNC_FIELD_CTL_1	0x0031
++#define ADV7180_VSYNC_FIELD_CTL_1_NEWAVMODE 0x02
+ #define ADV7180_REG_MANUAL_WIN_CTL_1	0x003d
+ #define ADV7180_REG_MANUAL_WIN_CTL_2	0x003e
+ #define ADV7180_REG_MANUAL_WIN_CTL_3	0x003f
+@@ -214,6 +216,7 @@ struct adv7180_state {
+ 	struct mutex		mutex; /* mutual excl. when accessing chip */
+ 	int			irq;
+ 	v4l2_std_id		curr_norm;
++	bool			newavmode;
+ 	bool			powered;
+ 	bool			streaming;
+ 	u8			input;
+@@ -864,9 +867,15 @@ static int adv7180_init(struct adv7180_state *state)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	/* Manually set V bit end position in NTSC mode */
+-	return adv7180_write(state, ADV7180_REG_NTSC_V_BIT_END,
+-					ADV7180_NTSC_V_BIT_END_MANUAL_NVEND);
++	if (!state->newavmode) {
++		/* Manually set V bit end position in NTSC mode */
++		ret = adv7180_write(state, ADV7180_REG_NTSC_V_BIT_END,
++				    ADV7180_NTSC_V_BIT_END_MANUAL_NVEND);
++		if (ret < 0)
++			return ret;
++	}
++
++	return 0;
+ }
+ 
+ static int adv7180_set_std(struct adv7180_state *state, unsigned int std)
+@@ -1217,6 +1226,13 @@ static int init_device(struct adv7180_state *state)
+ 	if (ret)
+ 		goto out_unlock;
+ 
++	if (state->newavmode) {
++		ret = adv7180_write(state, ADV7180_REG_VSYNC_FIELD_CTL_1,
++				    ADV7180_VSYNC_FIELD_CTL_1_NEWAVMODE);
++		if (ret < 0)
++			goto out_unlock;
++	}
++
+ 	ret = adv7180_program_std(state);
+ 	if (ret)
+ 		goto out_unlock;
+@@ -1257,6 +1273,28 @@ out_unlock:
+ 	return ret;
+ }
+ 
++static void adv7180_of_parse(struct adv7180_state *state)
++{
++	struct i2c_client *client = state->client;
++	struct device_node *np = client->dev.of_node;
++	struct device_node *endpoint;
++	struct v4l2_of_endpoint	ep;
++
++	endpoint = of_graph_get_next_endpoint(np, NULL);
++	if (!endpoint) {
++		v4l_warn(client, "endpoint node not found\n");
++		return;
++	}
++
++	v4l2_of_parse_endpoint(endpoint, &ep);
++	if (ep.bus_type == V4L2_MBUS_BT656) {
++		if (of_property_read_bool(endpoint, "newavmode"))
++			state->newavmode = true;
++	}
++
++	of_node_put(endpoint);
++}
++
+ static int adv7180_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
  {
- 	struct vb2_buffer *vb = &buf->vbuf.vb2_buf;
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+@@ -1279,6 +1317,8 @@ static int adv7180_probe(struct i2c_client *client,
+ 	state->field = V4L2_FIELD_ALTERNATE;
+ 	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
  
- 	/* _init is used to debug races, see comment in pxa_camera_reqbufs() */
- 	list_del_init(&buf->queue);
- 	vb->timestamp = ktime_get_ns();
-+	vbuf->sequence = pcdev->buf_sequence++;
-+	vbuf->field = V4L2_FIELD_NONE;
- 	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
- 	dev_dbg(pcdev_to_dev(pcdev), "%s dequeud buffer (buf=0x%p)\n",
- 		__func__, buf);
-@@ -1022,6 +1026,7 @@ static int pxac_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	dev_dbg(pcdev_to_dev(pcdev), "%s(count=%d) active=%p\n",
- 		__func__, count, pcdev->active);
- 
-+	pcdev->buf_sequence = 0;
- 	if (!pcdev->active)
- 		pxa_camera_start_capture(pcdev);
- 
++	adv7180_of_parse(state);
++
+ 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
+ 		state->csi_client = i2c_new_dummy(client->adapter,
+ 				ADV7180_DEFAULT_CSI_I2C_ADDR);
 -- 
-2.1.4
+1.9.1
 
