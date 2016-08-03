@@ -1,63 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:40451 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751752AbcHLJuI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2016 05:50:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH for 4.8 2/2] pulse8-cec: fix error handling
-Date: Fri, 12 Aug 2016 11:49:57 +0200
-Message-Id: <1470995397-47335-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1470995397-47335-1-git-send-email-hverkuil@xs4all.nl>
-References: <1470995397-47335-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-pa0-f65.google.com ([209.85.220.65]:33109 "EHLO
+	mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932414AbcHCSEJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 14:04:09 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: lars@metafoo.de
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v4 4/8] media: adv7180: add power pin control
+Date: Wed,  3 Aug 2016 11:03:46 -0700
+Message-Id: <1470247430-11168-5-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Some targets control the ADV7180 power pin via a gpio, so add
+optional support for "powerdown" pin control.
 
-Support more error codes and fix a bug where MSGCODE_TRANSMIT_FAILED_LINE
-was mapped to CEC_TX_STATUS_ARB_LOST, which is wrong.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Tested-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Tim Harvey <tharvey@gateworks.com>
+Acked-by: Lars-Peter Clausen <lars@metafoo.de>
 
-Thanks to Pulse-Eight for providing me with the information needed
-to handle this correctly (I hope).
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/pulse8-cec/pulse8-cec.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/staging/media/pulse8-cec/pulse8-cec.c b/drivers/staging/media/pulse8-cec/pulse8-cec.c
-index 28f853c..ed8bd95 100644
---- a/drivers/staging/media/pulse8-cec/pulse8-cec.c
-+++ b/drivers/staging/media/pulse8-cec/pulse8-cec.c
-@@ -114,14 +114,11 @@ static void pulse8_irq_work_handler(struct work_struct *work)
- 		cec_transmit_done(pulse8->adap, CEC_TX_STATUS_OK,
- 				  0, 0, 0, 0);
- 		break;
--	case MSGCODE_TRANSMIT_FAILED_LINE:
--		cec_transmit_done(pulse8->adap, CEC_TX_STATUS_ARB_LOST,
--				  1, 0, 0, 0);
--		break;
- 	case MSGCODE_TRANSMIT_FAILED_ACK:
- 		cec_transmit_done(pulse8->adap, CEC_TX_STATUS_NACK,
- 				  0, 1, 0, 0);
- 		break;
-+	case MSGCODE_TRANSMIT_FAILED_LINE:
- 	case MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA:
- 	case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
- 		cec_transmit_done(pulse8->adap, CEC_TX_STATUS_ERROR,
-@@ -170,6 +167,9 @@ static irqreturn_t pulse8_interrupt(struct serio *serio, unsigned char data,
- 		case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
- 			schedule_work(&pulse8->work);
- 			break;
-+		case MSGCODE_HIGH_ERROR:
-+		case MSGCODE_LOW_ERROR:
-+		case MSGCODE_RECEIVE_FAILED:
- 		case MSGCODE_TIMEOUT_ERROR:
- 			break;
- 		case MSGCODE_COMMAND_ACCEPTED:
+v4: no changes
+v3: no changes
+
+v2:
+- placed call to gpiod_get inline in adv7180_probe().
+- rename gpio pin to "powerdown".
+- document optional powerdown-gpios property in
+  Documentation/devicetree/bindings/media/i2c/adv7180.txt.
+- include error number in error message on gpiod_get failure.
+---
+ .../devicetree/bindings/media/i2c/adv7180.txt      |  4 ++++
+ drivers/media/i2c/Kconfig                          |  2 +-
+ drivers/media/i2c/adv7180.c                        | 27 ++++++++++++++++++++++
+ 3 files changed, 32 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7180.txt b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
+index 6c175d2..ab9ef02 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv7180.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
+@@ -15,6 +15,10 @@ Required Properties :
+ 		"adi,adv7282"
+ 		"adi,adv7282-m"
+ 
++Optional Properties :
++- powerdown-gpios: reference to the GPIO connected to the powerdown pin,
++  if any.
++
+ Optional Endpoint Properties :
+ - newavmode: a boolean property to indicate the BT.656 bus is operating
+   in Analog Device's NEWAVMODE. Valid for BT.656 busses only.
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index ce9006e..6769898 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -187,7 +187,7 @@ comment "Video decoders"
+ 
+ config VIDEO_ADV7180
+ 	tristate "Analog Devices ADV7180 decoder"
+-	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
++	depends on GPIOLIB && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+ 	---help---
+ 	  Support for the Analog Devices ADV7180 video decoder.
+ 
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 467953e..b2df181 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -26,6 +26,7 @@
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+ #include <linux/of.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-event.h>
+@@ -215,6 +216,7 @@ struct adv7180_state {
+ 	struct media_pad	pad;
+ 	struct mutex		mutex; /* mutual excl. when accessing chip */
+ 	int			irq;
++	struct gpio_desc	*pwdn_gpio;
+ 	v4l2_std_id		curr_norm;
+ 	bool			newavmode;
+ 	bool			powered;
+@@ -466,6 +468,19 @@ static int adv7180_g_std(struct v4l2_subdev *sd, v4l2_std_id *norm)
+ 	return 0;
+ }
+ 
++static void adv7180_set_power_pin(struct adv7180_state *state, bool on)
++{
++	if (!state->pwdn_gpio)
++		return;
++
++	if (on) {
++		gpiod_set_value_cansleep(state->pwdn_gpio, 0);
++		usleep_range(5000, 10000);
++	} else {
++		gpiod_set_value_cansleep(state->pwdn_gpio, 1);
++	}
++}
++
+ static int adv7180_set_power(struct adv7180_state *state, bool on)
+ {
+ 	u8 val;
+@@ -1219,6 +1234,8 @@ static int init_device(struct adv7180_state *state)
+ 
+ 	mutex_lock(&state->mutex);
+ 
++	adv7180_set_power_pin(state, true);
++
+ 	adv7180_write(state, ADV7180_REG_PWR_MAN, ADV7180_PWR_MAN_RES);
+ 	usleep_range(5000, 10000);
+ 
+@@ -1319,6 +1336,14 @@ static int adv7180_probe(struct i2c_client *client,
+ 
+ 	adv7180_of_parse(state);
+ 
++	state->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "powerdown",
++						   GPIOD_OUT_HIGH);
++	if (IS_ERR(state->pwdn_gpio)) {
++		ret = PTR_ERR(state->pwdn_gpio);
++		v4l_err(client, "request for power pin failed: %d\n", ret);
++		return ret;
++	}
++
+ 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
+ 		state->csi_client = i2c_new_dummy(client->adapter,
+ 				ADV7180_DEFAULT_CSI_I2C_ADDR);
+@@ -1410,6 +1435,8 @@ static int adv7180_remove(struct i2c_client *client)
+ 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2)
+ 		i2c_unregister_device(state->csi_client);
+ 
++	adv7180_set_power_pin(state, false);
++
+ 	mutex_destroy(&state->mutex);
+ 
+ 	return 0;
 -- 
-2.8.1
+1.9.1
 
