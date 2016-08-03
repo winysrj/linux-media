@@ -1,130 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f65.google.com ([209.85.214.65]:33420 "EHLO
-        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753810AbcHWNMB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 Aug 2016 09:12:01 -0400
+Received: from mail-pf0-f181.google.com ([209.85.192.181]:32903 "EHLO
+	mail-pf0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752905AbcHCDXs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 23:23:48 -0400
+Received: by mail-pf0-f181.google.com with SMTP id y134so72539715pfg.0
+        for <linux-media@vger.kernel.org>; Tue, 02 Aug 2016 20:23:43 -0700 (PDT)
+Subject: Re: Memory freeing when dmabuf fds are exported with VIDIOC_EXPBUF
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kazunori Kobayashi <kkobayas@igel.co.jp>
+References: <36bf3ef2-e43a-3910-16e2-b51439be5622@igel.co.jp>
+ <2220172.K033cFnpL3@avalon> <f0518dd3-ae01-2da1-12ac-1fb041aaa709@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+From: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+Message-ID: <76ad6d96-146f-d2c0-1872-2c7977b3d3b9@igel.co.jp>
+Date: Wed, 3 Aug 2016 12:23:38 +0900
 MIME-Version: 1.0
-In-Reply-To: <36812690.Ma8PvjacQ5@avalon>
-References: <1470757001-4333-1-git-send-email-geert+renesas@glider.be> <36812690.Ma8PvjacQ5@avalon>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 23 Aug 2016 15:11:59 +0200
-Message-ID: <CAMuHMdWoq+F6YWTEGtLc5G4PTQO=F19VaEire9JAr+0z7PxJ-g@mail.gmail.com>
-Subject: Re: [PATCH] [media] rcar-fcp: Make sure rcar_fcp_enable() returns 0
- on success
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <f0518dd3-ae01-2da1-12ac-1fb041aaa709@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Hans,
 
-On Wed, Aug 17, 2016 at 2:55 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Tuesday 09 Aug 2016 17:36:41 Geert Uytterhoeven wrote:
->> When resuming from suspend-to-RAM on r8a7795/salvator-x:
+On 2016-08-01 7:56 PM, Hans Verkuil wrote:
+> 
+> 
+> On 07/27/2016 02:57 PM, Laurent Pinchart wrote:
+>> Hello Kobayashi-san,
 >>
->>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns 1
->>     PM: Device fe940000.fdp1 failed to resume noirq: error 1
->>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns 1
->>     PM: Device fe944000.fdp1 failed to resume noirq: error 1
->>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns 1
->>     PM: Device fe948000.fdp1 failed to resume noirq: error 1
+>> (CC'ing Hans Verkuil and Marek Szyprowski)
 >>
->> According to its documentation, rcar_fcp_enable() returns 0 on success
->> or a negative error code if an error occurs.  Hence
->> fdp1_pm_runtime_resume() and vsp1_pm_runtime_resume() forward its return
->> value to their callers.
+>> On Wednesday 27 Jul 2016 16:51:47 Kazunori Kobayashi wrote:
+>>> Hi,
+>>>
+>>> I have a question about memory freeing by calling REQBUF(0) before all the
+>>> dmabuf fds exported with VIDIOC_EXPBUF are closed.
+>>>
+>>> In calling REQBUF(0), videobuf2-core returns -EBUSY when the reference count
+>>> of a vb2 buffer is more than 1. When dmabuf fds are not exported (usual
+>>> V4L2_MEMORY_MMAP case), the check is no problem, but when dmabuf fds are
+>>> exported and some of them are not closed (in other words the references to
+>>> that memory are left), we cannot succeed in calling REQBUF(0) despite being
+>>> able to free the memory after all the references are dropped.
+>>>
+>>> Actually REQBUF(0) does not force a vb2 buffer to be freed but decreases
+>>> the refcount of it. Also all the vb2 memory allocators that support dmabuf
+>>> exporting (dma-contig, dma-sg, vmalloc) implements memory freeing by
+>>> release() of dma_buf_ops, so I think there is no need to return -EBUSY when
+>>> exporting dmabuf fds.
+>>>
+>>> Could you please tell me what you think?
 >>
->> However, rcar_fcp_enable() forwards the return value of
->> pm_runtime_get_sync(), which can actually be 1 on success, leading to
->> the resume failure above.
+>> I think you're right. vb2 allocates the vb2_buffer and the memops-specific 
+>> structure separately. videobuf2-core.c will free the vb2_buffer instance, but 
+>> won't touch the memops-specific structure or the buffer memory. Both of these 
+>> are reference-counted in the memops allocators. We could thus allow REQBUFS(0) 
+>> to proceed even when buffers have been exported (or at least after fixing the 
+>> small issues we'll run into, I have a feeling that this is too easy to be 
+>> true).
 >>
->> To fix this, consider only negative values returned by
->> pm_runtime_get_sync() to be failures.
+>> Hans, Marek, any opinion on this ?
+> 
+> What is the use-case for this? What you are doing here is to either free all
+> existing buffers or reallocate buffers. We can decide to rely on refcounting,
+> but then you would create a second set of buffers (when re-allocating) or
+> leave a lot of unfreed memory behind. That's pretty hard on the memory usage.
+
+One use case is performing a buffer resize while actively streaming
+buffers to the display.  It seems that it would be useful to re-allocate
+new buffers (which will have some different properties) while one of the
+old buffers is displayed on screen. When the new buffer replaces the old
+one on screen, the old buffer(s) can be released, freeing the memory
+while the resize appears seamless at the display.  This avoids the rush
+to re-allocate and fill the first buffer after a resize with valid data
+before the next vblank, which can cause flicker when it fails.
+
+This method requires the application to properly close the dmabuf
+handles when the buffers come off the screen, but Wayland, for example,
+already provides a notification mechanism to achieve this.
+
+Thanks,
+Damian
+
+> 
+> I think the EBUSY is there to protect the user against him/herself: i.e. don't
+> call this unless you know all refs are closed.
+> 
+> Given the typical large buffersizes we're talking about, I think that EBUSY
+> makes sense.
+> 
+> Regards,
+> 
+> 	Hans
+> 
 >>
->> Fixes: 7b49235e83b2347c ("[media] v4l: Add Renesas R-Car FCP driver")
->> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
->> ---
->>  drivers/media/platform/rcar-fcp.c | 8 +++++++-
->>  1 file changed, 7 insertions(+), 1 deletion(-)
+>>> The code that I am talking about is in
+>>> drivers/media/v4l2-core/videobuf2-core.c:
+>>>
+>>>    if (*count == 0 || q->num_buffers != 0 || q->memory != memory) {
+>>>           /*
+>>>            * We already have buffers allocated, so first check if they
+>>>            * are not in use and can be freed.
+>>>            */
+>>>           mutex_lock(&q->mmap_lock);
+>>>           if (q->memory == VB2_MEMORY_MMAP && __buffers_in_use(q)) {
+>>>                   mutex_unlock(&q->mmap_lock);
+>>>                   dprintk(1, "memory in use, cannot free\n");
+>>>                   return -EBUSY;
+>>>           }
 >>
->> diff --git a/drivers/media/platform/rcar-fcp.c
->> b/drivers/media/platform/rcar-fcp.c index
->> 0ff6b1edf1dbf677..7e944479205d4059 100644
->> --- a/drivers/media/platform/rcar-fcp.c
->> +++ b/drivers/media/platform/rcar-fcp.c
->> @@ -99,10 +99,16 @@ EXPORT_SYMBOL_GPL(rcar_fcp_put);
->>   */
->>  int rcar_fcp_enable(struct rcar_fcp_device *fcp)
->>  {
->> +     int error;
->
-> I was going to write that the driver uses "ret" instead of "error" for integer
-> status return values, but it doesn't as there no such value stored in a
-> variable at all. I will thus argue that it will use that style later, so let's
-> keep the style consistent with the to-be-written code if you don't mind :-)
->
-> Apart from that,
->
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->
-> and applied to my tree.
-
-Thanks!
-
-Where exactly has this been applied?
-
->>       if (!fcp)
->>               return 0;
->>
->> -     return pm_runtime_get_sync(fcp->dev);
->> +     error = pm_runtime_get_sync(fcp->dev);
->> +     if (error < 0)
->> +             return error;
->> +
->> +     return 0;
->>  }
->>  EXPORT_SYMBOL_GPL(rcar_fcp_enable);
-
-BTW, it seems I missed a few more s2ram resume errors:
-
-    dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-    PM: Device fe920000.vsp failed to resume noirq: error -13
-    dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-    PM: Device fe960000.vsp failed to resume noirq: error -13
-    dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-    PM: Device fe9a0000.vsp failed to resume noirq: error -13
-    dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-    PM: Device fe9b0000.vsp failed to resume noirq: error -13
-    dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-    PM: Device fe9c0000.vsp failed to resume noirq: error -13
-    dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-    PM: Device fea20000.vsp failed to resume noirq: error -13
-    dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-    PM: Device fea28000.vsp failed to resume noirq: error -13
-    dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-    PM: Device fea30000.vsp failed to resume noirq: error -13
-    vsp1 fea38000.vsp: failed to reset wpf.0
-    dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -110
-    PM: Device fea38000.vsp failed to resume noirq: error -110
-
--13 == -EACCES, returned by rcar_fcp_enable() as pm_runtime_get_sync()
-is called too early during system resume,
--110 = ETIMEDOUT, returned by vsp1_device_init() due to the failure
-to reset wpf.0.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
