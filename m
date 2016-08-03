@@ -1,33 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay12.ciudad.com.ar ([200.42.138.239]:43916 "EHLO
-	relay12.ciudad.com.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932185AbcHLRpk (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:32906 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752980AbcHCOqj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2016 13:45:40 -0400
-Received: from localhost (relay3.ciudad.com.ar [200.42.138.134])
-	by relay12.ciudad.com.ar (Postfix) with ESMTP id 8FDAE230E6FC
-	for <linux-media@vger.kernel.org>; Fri, 12 Aug 2016 14:37:11 -0300 (ART)
-Date: Fri, 12 Aug 2016 14:35:23 -0300 (ART)
-From: "Mr. John Manfred" <john.manfred12@ciudad.com.ar>
-Reply-To: "www.ups01@gmail.com" <www.ups01@gmail.com>
-Message-ID: <463011733.4163084.1471023323650.JavaMail.zimbra@ciudad.com.ar>
-In-Reply-To: <1591025787.4127424.1471021749792.JavaMail.zimbra@ciudad.com.ar>
-Subject: Regarding your ATM CARD
+	Wed, 3 Aug 2016 10:46:39 -0400
+Subject: Re: [PATCHv2 7/7] [PATCHv5] media: adv7180: fix field type
+To: Ian Arkver <ian.arkver.dev@gmail.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	=?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
+ <20160802145107.24829-8-niklas.soderlund+renesas@ragnatech.se>
+ <3bb2b375-a4a9-00c4-1466-7b1ba8e3bfd8@metafoo.de>
+ <20160803132147.GL3672@bigcity.dyn.berto.se>
+ <927464df-14cb-aadb-c1d9-5a5f0d065828@xs4all.nl>
+ <d7f16469-a4a4-b2cc-2af1-2c3efcd8aac6@metafoo.de>
+ <185998dd-01f5-849b-ec5d-470c31c369c4@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com,
+	mchehab@kernel.org, hans.verkuil@cisco.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <608b08ad-8180-e44d-19e3-540a2968190d@xs4all.nl>
+Date: Wed, 3 Aug 2016 16:45:38 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-To: undisclosed-recipients@vger.kernel.org
+In-Reply-To: <185998dd-01f5-849b-ec5d-470c31c369c4@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-Attention,
-We have deposited your fund ($2.500`000USD) through UPS department after our finally meeting regarding your ATM CARD, All you will do is to contact UPS director Dr.Ibrahim Alfred E-mail:( www.ups01@gmail.com ). he will give you direction on how you will be receiving your ATM CARD .Remember to send him your Full information to avoid wrong delivery such as,
 
-Receiver's Name_______________
-Address: ________________
-Country: ____________
-Phone Number: _____________
+On 08/03/2016 04:42 PM, Ian Arkver wrote:
+> On 03/08/16 15:23, Lars-Peter Clausen wrote:
+>> On 08/03/2016 04:11 PM, Hans Verkuil wrote:
+>>>
+>>> On 08/03/2016 03:21 PM, Niklas Söderlund wrote:
+>>>> On 2016-08-02 17:00:07 +0200, Lars-Peter Clausen wrote:
+>>>>> [...]
+>>>>>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+>>>>>> index a8b434b..c6fed71 100644
+>>>>>> --- a/drivers/media/i2c/adv7180.c
+>>>>>> +++ b/drivers/media/i2c/adv7180.c
+>>>>>> @@ -680,10 +680,13 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
+>>>>>>   	switch (format->format.field) {
+>>>>>>   	case V4L2_FIELD_NONE:
+>>>>>>   		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
+>>>>>> -			format->format.field = V4L2_FIELD_INTERLACED;
+>>>>>> +			format->format.field = V4L2_FIELD_ALTERNATE;
+>>>>>>   		break;
+>>>>>>   	default:
+>>>>>> -		format->format.field = V4L2_FIELD_INTERLACED;
+>>>>>> +		if (state->chip_info->flags & ADV7180_FLAG_I2P)
+>>>>>> +			format->format.field = V4L2_FIELD_INTERLACED;
+>>>>> I'm not convinced this is correct. As far as I understand it when the I2P
+>>>>> feature is enabled the core outputs full progressive frames at the full
+>>>>> framerate. If it is bypassed it outputs half-frames. So we have the option
+>>>>> of either V4L2_FIELD_NONE or V4L2_FIELD_ALTERNATE, but never interlaced. I
+>>>>> think this branch should setup the field format to be ALTERNATE regardless
+>>>>> of whether the I2P feature is available.
+>>> Actually, that's not true. If the progressive frame is obtained by combining
+>>> two fields, then it should return FIELD_INTERLACED. This is how most SDTV
+>>> receivers operate.
+>> This is definitely not covered by the current definition of INTERLACED. It
+>> says that the temporal order of the odd and even lines is the same for each
+>> frame. Whereas for a deinterlaced frame the temporal order changes from
+>> frame to frame.
+>>
+>> E.g. lets say you have half frames A, B, C, D, E, F ...
+>>
+>> The output of the I2P core are frames like (A,B) (C,B) (C,D) (E,D) (E, F) ...
+>>
+>> The first frame is INTERLACED_TB, the second INTERLACED_BT, the third
+>> INTERLACED_TB again and so on. Also you get the same amount of pixels as for
+>> a progressive setup so the data-output-rate is higher. Maybe we need a
+>> FIELD_DEINTERLACED to denote such a setup?
+> I don't think this is correct. The ADV7280 has no framestore, just a 
+> small linebuffer. It does I2P by line doubling plus some filtering and a 
+> little bit of proprietary magic, allegedly.
+> 
+> I believe the output in I2P mode for your example would be (AA) (BB) 
+> (CC). The clock rate and pixel rate is doubled since it sends a full 
+> (faked up) frame per field time.
+> 
+> I don't know what the FIELD_* mode is for line doubled pseudo-progressive.
 
-Though,UPS department you will receive your ATM CARD so contact Dr. Ibrahim Alfred as soon as you receive this email and tell him to show you the way you will receive your ATM CARD.
-Best Regards.
+We don't have one for that either. You really shouldn't do tricks like that,
+it's rather pointless and gives horrible quality.
+
+> 
+> Also, I don't know why anyone would use this mode. I don't see a 
+> scenario where it would actually improve video quality over a more 
+> sophisticated motion adaptive deinterlace and to restore a 25/30fps feed 
+> you'd need to decimate and lose information.
+
+Indeed.
+
+> 
+> Quote from "Rob.Analog", who uses the word "frame" freely, here: 
+> https://ez.analog.com/thread/39382
+> 
+> "2) In I2P mode the number of lines per frame doubles. The ADV7280 still 
+> outputs 50 frames per second ( or 60 frames in NTSC mode) but each frame 
+> now consists of twice as many lines. e.g. if a frame consisted of 288 
+> lines of active video in interlaced mode, this is doubled to 576 lines 
+> of active video in progressive mode. The line doubling is achieved by 
+> the ADV7280 interpolating between two lines of video (e.g. between lines 
+> 1 and 3 on an odd frame) and inserting an extra line (e.g. line 2). 
+> There are also some ADI propriety algorithms that prevent low angle 
+> noise artifacts.
+> 
+> In order to achieve this line doubling, the LLC clock doubles from a 
+> nominal 27MHz to a nominal 54MHz"
+
+It looks like you are correct. I wouldn't bother implementing this.
+
+Regards,
+
+	Hans
