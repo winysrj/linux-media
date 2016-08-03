@@ -1,48 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:36703 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752256AbcHKUaK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 16:30:10 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	mchehab@osg.samsung.com
-Subject: [PATCH v4 0/5] Refactor media IOCTL handling, add variable length arguments
-Date: Thu, 11 Aug 2016 23:29:13 +0300
-Message-Id: <1470947358-31168-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from smtpout.microchip.com ([198.175.253.82]:42128 "EHLO
+	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756144AbcHCI0Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 04:26:24 -0400
+From: Songjun Wu <songjun.wu@microchip.com>
+To: <nicolas.ferre@atmel.com>, <robh@kernel.org>
+CC: <laurent.pinchart@ideasonboard.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	Songjun Wu <songjun.wu@microchip.com>,
+	<devicetree@vger.kernel.org>, "Arnd Bergmann" <arnd@arndb.de>,
+	=?UTF-8?q?Niklas=20S=C3=83=C2=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	Benoit Parrot <bparrot@ti.com>, <linux-kernel@vger.kernel.org>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Kamil Debski <kamil@wypas.org>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	"Geert Uytterhoeven" <geert@linux-m68k.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	=?UTF-8?q?Richard=20R=C3=B6jfors?= <richard@puffinpack.se>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Simon Horman <horms+renesas@verge.net.au>
+Subject: [PATCH v8 0/2] [media] atmel-isc: add driver for Atmel ISC
+Date: Wed, 3 Aug 2016 16:08:02 +0800
+Message-ID: <1470211686-2198-1-git-send-email-songjun.wu@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi folks,
+The Image Sensor Controller driver includes two parts.
+1) Driver code to implement the ISC function.
+2) Device tree binding documentation, it describes how
+   to add the ISC in device tree.
 
-This is the fourth version of the media IOCTL handling rework set. What's
-changed since v3:
+Test result with v4l-utils.
+v4l2-compliance SHA   : not available
 
-patch 1:
+Driver Info:
+        Driver name   : atmel_isc
+        Card type     : Atmel Image Sensor Controller
+        Bus info      : platform:atmel_isc f0008000.isc
+        Driver version: 4.7.0
+        Capabilities  : 0x84200001
+                Video Capture
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04200001
+                Video Capture
+                Streaming
+                Extended Pix Format
 
-- Use BUILD_BUG_ON() and ARRAY_SIZE() to ensure the ioctl array and the
-  equivalent compat array are always in sync. (This caused quite a few
-  conflicts with the rest of the patches.)
+Compliance test for device /dev/video0 (not using libv4l2):
 
-patch 5:                                                                        
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
 
-- Don't use unlikely().
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
 
-- Fix commit message --- the patch was changed to use supported IOCTL sizes
-  but the commit message was not updated.
-                                                                                
----                                                                             
-                                                                                
-The patches themselves have been reworked so I don't detail the changes         
-in this set. What's noteworthy however is that the set adds support for         
-variable length IOCTL arguments.                                                
-                                                                                
-(The motivation for these patches is having found myself pondering whether      
-to have nine or thirteen reserved fields for the request IOCTL. I decided       
-to address the problem instead. If this is found workable on the media          
-controller we could follow the same model on V4L2.)                             
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+                test VIDIOC_QUERYCTRL: OK (Not Supported)
+                test VIDIOC_G/S_CTRL: OK (Not Supported)
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 0 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK (Not Supported)
+                test Scaling: OK (Not Supported)
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Stream using all formats:
+        test MMAP for Format BA81, Frame Size 640x480@60.00 Hz:
+                Stride 640, Field None: OK
+        test MMAP for Format YUYV, Frame Size 640x480@60.00 Hz:
+                Stride 1280, Field None: OK
+
+Total: 45, Succeeded: 45, Failed: 0, Warnings: 0
+
+Changes in v8:
+- Power on the sensor on the first open in function
+  'isc_open'.
+- Power off the sensor on the last release in function
+  'isc_release'.
+- Remove the switch of the pipeline.
+
+Changes in v7:
+- Add enum_framesizes and enum_frameintervals.
+- Call s_stream(0) when stream start fail.
+- Fill the device_caps field of struct video_device
+  with V4L2_CAP_STREAMING and V4L2_CAP_VIDEO_CAPTURE.
+- Initialize the dev of struct vb2_queue.
+- Set field to FIELD_NONE if the pix field is not supported.
+- Return the result directly when call g/s_parm of subdev.
+
+Changes in v6:
+- Add "iscck" and "gck" to clock-names.
+
+Changes in v5:
+- Modify the macro definition and the related code.
+- Add clock-output-names.
+
+Changes in v4:
+- Modify the isc clock code since the dt is changed.
+- Remove the isc clock nodes.
+
+Changes in v3:
+- Add pm runtime feature.
+- Modify the isc clock code since the dt is changed.
+- Remove the 'atmel,sensor-preferred'.
+- Modify the isc clock node according to the Rob's remarks.
+
+Changes in v2:
+- Add "depends on COMMON_CLK" and "VIDEO_V4L2_SUBDEV_API"
+  in Kconfig file.
+- Correct typos and coding style according to Laurent's remarks
+- Delete the loop while in 'isc_clk_enable' function.
+- Replace 'hsync_active', 'vsync_active' and 'pclk_sample'
+  with 'pfe_cfg0' in struct isc_subdev_entity.
+- Add the code to support VIDIOC_CREATE_BUFS in
+  'isc_queue_setup' function.
+- Invoke isc_config to configure register in
+  'isc_start_streaming' function.
+- Add the struct completion 'comp' to synchronize with
+  the frame end interrupt in 'isc_stop_streaming' function.
+- Check the return value of the clk_prepare_enable
+  in 'isc_open' function.
+- Set the default format in 'isc_open' function.
+- Add an exit condition in the loop while in 'isc_config'.
+- Delete the hardware setup operation in 'isc_set_format'.
+- Refuse format modification during streaming
+  in 'isc_s_fmt_vid_cap' function.
+- Invoke v4l2_subdev_alloc_pad_config to allocate and
+  initialize the pad config in 'isc_async_complete' function.
+- Remove the '.owner  = THIS_MODULE,' in atmel_isc_driver.
+- Replace the module_platform_driver_probe() with
+  module_platform_driver().
+- Remove the unit address of the endpoint.
+- Add the unit address to the clock node.
+- Avoid using underscores in node names.
+- Drop the "0x" in the unit address of the i2c node.
+- Modify the description of 'atmel,sensor-preferred'.
+- Add the description for the ISC internal clock.
+
+Songjun Wu (2):
+  [media] atmel-isc: add the Image Sensor Controller code
+  [media] atmel-isc: DT binding for Image Sensor Controller driver
+
+ .../devicetree/bindings/media/atmel-isc.txt        |   65 +
+ drivers/media/platform/Kconfig                     |    1 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/atmel/Kconfig               |    9 +
+ drivers/media/platform/atmel/Makefile              |    1 +
+ drivers/media/platform/atmel/atmel-isc-regs.h      |  165 +++
+ drivers/media/platform/atmel/atmel-isc.c           | 1503 ++++++++++++++++++++
+ 7 files changed, 1746 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
+ create mode 100644 drivers/media/platform/atmel/Kconfig
+ create mode 100644 drivers/media/platform/atmel/Makefile
+ create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
+ create mode 100644 drivers/media/platform/atmel/atmel-isc.c
 
 -- 
-Kind regards,
-Sakari
+2.7.4
 
