@@ -1,145 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59733
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752329AbcHPVK3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2016 17:10:29 -0400
-Subject: Re: [PATCH] [media] vb2: move dma-buf unmap from __vb2_dqbuf() to
- vb2_buffer_done()
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-kernel@vger.kernel.org
-References: <1469038941-5257-1-git-send-email-javier@osg.samsung.com>
- <3b09885c-1bec-fcbe-6c6c-9c753502cb81@xs4all.nl>
- <2c6196f7-d157-ce79-b81e-fa8c8e3ccb6e@osg.samsung.com>
- <57B37BE7.4030009@iki.fi>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Luis de Bethencourt <luisbg@osg.samsung.com>
-Message-ID: <24b9d80b-e7aa-60ea-bad9-ec62ffa04e87@osg.samsung.com>
-Date: Tue, 16 Aug 2016 17:10:16 -0400
+Received: from www381.your-server.de ([78.46.137.84]:56459 "EHLO
+	www381.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754503AbcHCQ7B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 12:59:01 -0400
+Subject: Re: [PATCHv2 7/7] [PATCHv5] media: adv7180: fix field type
+To: Steve Longerbeam <steve_longerbeam@mentor.com>,
+	=?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
+ <20160802145107.24829-8-niklas.soderlund+renesas@ragnatech.se>
+ <3bb2b375-a4a9-00c4-1466-7b1ba8e3bfd8@metafoo.de>
+ <20160803132147.GL3672@bigcity.dyn.berto.se>
+ <2a8ec840-301b-06c8-31ec-42d25b282437@mentor.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com,
+	mchehab@kernel.org, hans.verkuil@cisco.com
+From: Lars-Peter Clausen <lars@metafoo.de>
+Message-ID: <4301a49c-39e3-2b35-74a4-e079b528db9e@metafoo.de>
+Date: Wed, 3 Aug 2016 18:58:55 +0200
 MIME-Version: 1.0
-In-Reply-To: <57B37BE7.4030009@iki.fi>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <2a8ec840-301b-06c8-31ec-42d25b282437@mentor.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari,
-
-On 08/16/2016 04:47 PM, Sakari Ailus wrote:
-> Hi Javier,
+On 08/03/2016 06:55 PM, Steve Longerbeam wrote:
+> On 08/03/2016 06:21 AM, Niklas Söderlund wrote:
+>> On 2016-08-02 17:00:07 +0200, Lars-Peter Clausen wrote:
+>>> [...]
+>>>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+>>>> index a8b434b..c6fed71 100644
+>>>> --- a/drivers/media/i2c/adv7180.c
+>>>> +++ b/drivers/media/i2c/adv7180.c
+>>>> @@ -680,10 +680,13 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
+>>>>  	switch (format->format.field) {
+>>>>  	case V4L2_FIELD_NONE:
+>>>>  		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
+>>>> -			format->format.field = V4L2_FIELD_INTERLACED;
+>>>> +			format->format.field = V4L2_FIELD_ALTERNATE;
+>>>>  		break;
+>>>>  	default:
+>>>> -		format->format.field = V4L2_FIELD_INTERLACED;
+>>>> +		if (state->chip_info->flags & ADV7180_FLAG_I2P)
+>>>> +			format->format.field = V4L2_FIELD_INTERLACED;
+>>> I'm not convinced this is correct. As far as I understand it when the I2P
+>>> feature is enabled the core outputs full progressive frames at the full
+>>> framerate. If it is bypassed it outputs half-frames. So we have the option
+>>> of either V4L2_FIELD_NONE or V4L2_FIELD_ALTERNATE, but never interlaced. I
+>>> think this branch should setup the field format to be ALTERNATE regardless
+>>> of whether the I2P feature is available.
+>> I be happy to update the patch in such manner, but I feel this is more 
+>> for Steven to handle. I have no deep understanding of the adv7180 driver 
+>> and the only HW I have is the adv7180 and not adv7280, adv7280_m, 
+>> adv7282 or adv7282_m which is the models which have the ADV7180_FLAG_I2P 
+>> flag. So I can't really test such a change.
+>>
+>> Steven do you want to update this patch and resend it? 
 > 
-> Javier Martinez Canillas wrote:
->> Hello Hans,
->>
->> Thanks a lot for your feedback.
->>
->> On 08/13/2016 09:47 AM, Hans Verkuil wrote:
->>> On 07/20/2016 08:22 PM, Javier Martinez Canillas wrote:
->>>> Currently the dma-buf is unmapped when the buffer is dequeued by userspace
->>>> but it's not used anymore after the driver finished processing the buffer.
->>>>
->>>> So instead of doing the dma-buf unmapping in __vb2_dqbuf(), it can be made
->>>> in vb2_buffer_done() after the driver notified that buf processing is done.
->>>>
->>>> Decoupling the buffer dequeue from the dma-buf unmapping has also the side
->>>> effect of making possible to add dma-buf fence support in the future since
->>>> the buffer could be dequeued even before the driver has finished using it.
->>>>
->>>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->>>>
->>>> ---
->>>> Hello,
->>>>
->>>> I've tested this patch doing DMA buffer sharing between a
->>>> vivid input and output device with both v4l2-ctl and gst:
->>>>
->>>> $ v4l2-ctl -d0 -e1 --stream-dmabuf --stream-out-mmap
->>>> $ v4l2-ctl -d0 -e1 --stream-mmap --stream-out-dmabuf
->>>> $ gst-launch-1.0 v4l2src device=/dev/video0 io-mode=dmabuf ! v4l2sink device=/dev/video1 io-mode=dmabuf-import
->>>>
->>>> And I didn't find any issues but more testing will be appreciated.
->>>>
->>>> Best regards,
->>>> Javier
->>>>
->>>>  drivers/media/v4l2-core/videobuf2-core.c | 34 +++++++++++++++++++++-----------
->>>>  1 file changed, 22 insertions(+), 12 deletions(-)
->>>>
->>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->>>> index 7128b09810be..973331efaf79 100644
->>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
->>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->>>> @@ -958,6 +958,22 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no)
->>>>  EXPORT_SYMBOL_GPL(vb2_plane_cookie);
->>>>  
->>>>  /**
->>>> + * __vb2_unmap_dmabuf() - unmap dma-buf attached to buffer planes
->>>> + */
->>>> +static void __vb2_unmap_dmabuf(struct vb2_buffer *vb)
->>>> +{
->>>> +	int i;
->>>> +
->>>> +	for (i = 0; i < vb->num_planes; ++i) {
->>>> +		if (!vb->planes[i].dbuf_mapped)
->>>> +			continue;
->>>> +		call_void_memop(vb, unmap_dmabuf,
->>>> +				vb->planes[i].mem_priv);
->>>
->>> Does unmap_dmabuf work in interrupt context? Since vb2_buffer_done can be called from
->>> an irq handler this is a concern.
->>>
->>
->> Good point, I believe it shouldn't be called from atomic context since both
->> the dma_buf_vunmap() and dma_buf_unmap_attachment() functions can sleep.
->>  
->>> That said, vb2_buffer_done already calls call_void_memop(vb, finish, vb->planes[plane].mem_priv);
->>> to sync buffers, and that can take a long time as well. So it is not a good idea to
->>> have this in vb2_buffer_done.
->>>
->>
->> I see.
->>
->>> What I would like to see is to have vb2 handle this finish() call and the vb2_unmap_dmabuf
->>> in some workthread or equivalent.
->>>
->>> It would complicate matters somewhat in vb2, but it would simplify drivers since these
->>> actions would not longer take place in interrupt context.
->>>
->>> I think this patch makes sense, but I would prefer that this is moved out of the interrupt
->>> context.
->>>
->>
->> Ok, I can take a look to this and handle the finish() and unmap_dmabuf()
->> out of interrupt context as you suggested.
-> 
-> I have a patch doing the former which is a part of my cache management
-> fix patchset:
-> 
-> <URL:http://git.retiisi.org.uk/?p=~sailus/linux.git;a=commitdiff;h=b57f937627abda158ada01a3297dbb0f0a57b515>
-> <URL:http://git.retiisi.org.uk/?p=~sailus/linux.git;a=shortlog;h=refs/heads/vb2-dc-noncoherent>
->
+> Hi Niklas, I can update this patch, but it sounds like the whole thing
+> is "up in the air" at this point, and we may want to yank out the I2P
+> support altogether. I'll leave it up to Lars and others to work that out
+> first.
 
-Interesting, thanks for the links.
- 
-> There were a few drivers doing nasty things with memory that I couldn't
-> quite fix back then. Just FYI.
-> 
+Yeah, we should remove the whole I2P stuff, I was misinformed about how it
+works. But either way I think this patch should simply not touch the current
+behavior, so don't add new if (FLAG_I2P) checks.
 
-Did you mean that there were issues with moving finish mem op call to DQBUF?
-
-Do you recall what these drivers were or what were doing that caused problems?
-
-In any case, what Hans proposed AFAIU is not to change when the finish call
-happens but to split the vb2_buffer_done() function and defer part of it to
-a workqueue or kthread. I'll give a try to that approach probably tomorrow.
-
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
