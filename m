@@ -1,70 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36816 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755745AbcH1Qhx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 Aug 2016 12:37:53 -0400
-Received: by mail-wm0-f66.google.com with SMTP id i138so6448524wmf.3
-        for <linux-media@vger.kernel.org>; Sun, 28 Aug 2016 09:37:52 -0700 (PDT)
-From: Chris Wilson <chris@chris-wilson.co.uk>
-To: intel-gfx@lists.freedesktop.org
-Cc: Chris Wilson <chris@chris-wilson.co.uk>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org
-Subject: [PATCH] dma-buf: Do a fast lockless check for poll with timeout=0
-Date: Sun, 28 Aug 2016 17:37:47 +0100
-Message-Id: <20160828163747.32751-1-chris@chris-wilson.co.uk>
+Received: from smtpout.microchip.com ([198.175.253.82]:42128 "EHLO
+	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753679AbcHCI0J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 04:26:09 -0400
+From: Songjun Wu <songjun.wu@microchip.com>
+To: <nicolas.ferre@atmel.com>, <robh@kernel.org>
+CC: <laurent.pinchart@ideasonboard.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	Songjun Wu <songjun.wu@microchip.com>,
+	<devicetree@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH v8 2/2] [media] atmel-isc: DT binding for Image Sensor Controller driver
+Date: Wed, 3 Aug 2016 16:08:04 +0800
+Message-ID: <1470211686-2198-3-git-send-email-songjun.wu@microchip.com>
+In-Reply-To: <1470211686-2198-1-git-send-email-songjun.wu@microchip.com>
+References: <1470211686-2198-1-git-send-email-songjun.wu@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently we install a callback for performing poll on a dma-buf,
-irrespective of the timeout. This involves taking a spinlock, as well as
-unnecessary work, and greatly reduces scaling of poll(.timeout=0) across
-multiple threads.
+DT binding documentation for ISC driver.
 
-We can query whether the poll will block prior to installing the
-callback to make the busy-query fast.
-
-Single thread: 60% faster
-8 threads on 4 (+4 HT) cores: 600% faster
-
-Still not quite the perfect scaling we get with a native busy ioctl, but
-poll(dmabuf) is faster due to the quicker lookup of the object and
-avoiding drm_ioctl().
-
-Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: linaro-mm-sig@lists.linaro.org
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
 ---
- drivers/dma-buf/dma-buf.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index cf04d249a6a4..c7a7bc579941 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -156,6 +156,18 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
- 	if (!events)
- 		return 0;
- 
-+	if (poll_does_not_wait(poll)) {
-+		if (events & POLLOUT &&
-+		    !reservation_object_test_signaled_rcu(resv, true))
-+			events &= ~(POLLOUT | POLLIN);
+Changes in v8: None
+Changes in v7: None
+Changes in v6:
+- Add "iscck" and "gck" to clock-names.
+
+Changes in v5:
+- Add clock-output-names.
+
+Changes in v4:
+- Remove the isc clock nodes.
+
+Changes in v3:
+- Remove the 'atmel,sensor-preferred'.
+- Modify the isc clock node according to the Rob's remarks.
+
+Changes in v2:
+- Remove the unit address of the endpoint.
+- Add the unit address to the clock node.
+- Avoid using underscores in node names.
+- Drop the "0x" in the unit address of the i2c node.
+- Modify the description of 'atmel,sensor-preferred'.
+- Add the description for the ISC internal clock.
+
+ .../devicetree/bindings/media/atmel-isc.txt        | 65 ++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
+
+diff --git a/Documentation/devicetree/bindings/media/atmel-isc.txt b/Documentation/devicetree/bindings/media/atmel-isc.txt
+new file mode 100644
+index 0000000..bbe0e87c
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/atmel-isc.txt
+@@ -0,0 +1,65 @@
++Atmel Image Sensor Controller (ISC)
++----------------------------------------------
 +
-+		if (events & POLLIN &&
-+		    !reservation_object_test_signaled_rcu(resv, false))
-+			events &= ~POLLIN;
++Required properties for ISC:
++- compatible
++	Must be "atmel,sama5d2-isc".
++- reg
++	Physical base address and length of the registers set for the device.
++- interrupts
++	Should contain IRQ line for the ISC.
++- clocks
++	List of clock specifiers, corresponding to entries in
++	the clock-names property;
++	Please refer to clock-bindings.txt.
++- clock-names
++	Required elements: "hclock", "iscck", "gck".
++- #clock-cells
++	Should be 0.
++- clock-output-names
++	Should be "isc-mck".
++- pinctrl-names, pinctrl-0
++	Please refer to pinctrl-bindings.txt.
 +
-+		return events;
-+	}
++ISC supports a single port node with parallel bus. It should contain one
++'port' child node with child 'endpoint' node. Please refer to the bindings
++defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
 +
- retry:
- 	seq = read_seqcount_begin(&resv->seq);
- 	rcu_read_lock();
++Example:
++isc: isc@f0008000 {
++	compatible = "atmel,sama5d2-isc";
++	reg = <0xf0008000 0x4000>;
++	interrupts = <46 IRQ_TYPE_LEVEL_HIGH 5>;
++	clocks = <&isc_clk>, <&iscck>, <&isc_gclk>;
++	clock-names = "hclock", "iscck", "gck";
++	#clock-cells = <0>;
++	clock-output-names = "isc-mck";
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_isc_base &pinctrl_isc_data_8bit &pinctrl_isc_data_9_10 &pinctrl_isc_data_11_12>;
++
++	port {
++		isc_0: endpoint {
++			remote-endpoint = <&ov7740_0>;
++			hsync-active = <1>;
++			vsync-active = <0>;
++			pclk-sample = <1>;
++		};
++	};
++};
++
++i2c1: i2c@fc028000 {
++	ov7740: camera@21 {
++		compatible = "ovti,ov7740";
++		reg = <0x21>;
++		clocks = <&isc>;
++		clock-names = "xvclk";
++		assigned-clocks = <&isc>;
++		assigned-clock-rates = <24000000>;
++
++		port {
++			ov7740_0: endpoint {
++				remote-endpoint = <&isc_0>;
++			};
++		};
++	};
++};
 -- 
-2.9.3
+2.7.4
 
