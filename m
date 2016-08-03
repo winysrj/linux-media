@@ -1,143 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:38698 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751722AbcHKUSd (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58881 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932393AbcHCOaJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 16:18:33 -0400
-Date: Thu, 11 Aug 2016 16:18:31 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-cc: Wade Berrier <wberrier@gmail.com>, Sean Young <sean@mess.org>,
-	<linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>
-Subject: Re: mceusb xhci issue?
-In-Reply-To: <Pine.LNX.4.44L0.1607121150390.1900-100000@iolanthe.rowland.org>
-Message-ID: <Pine.LNX.4.44L0.1608111617100.1381-100000@iolanthe.rowland.org>
+	Wed, 3 Aug 2016 10:30:09 -0400
+Subject: Re: [PATCHv2 7/7] [PATCHv5] media: adv7180: fix field type
+To: Lars-Peter Clausen <lars@metafoo.de>,
+	=?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
+ <20160802145107.24829-8-niklas.soderlund+renesas@ragnatech.se>
+ <3bb2b375-a4a9-00c4-1466-7b1ba8e3bfd8@metafoo.de>
+ <20160803132147.GL3672@bigcity.dyn.berto.se>
+ <927464df-14cb-aadb-c1d9-5a5f0d065828@xs4all.nl>
+ <d7f16469-a4a4-b2cc-2af1-2c3efcd8aac6@metafoo.de>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com,
+	mchehab@kernel.org, hans.verkuil@cisco.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1cbfbbab-7366-74e5-a111-f7e9bc6528e8@xs4all.nl>
+Date: Wed, 3 Aug 2016 16:30:02 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <d7f16469-a4a4-b2cc-2af1-2c3efcd8aac6@metafoo.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I never received any replies to this message.  Should the patch I 
-suggested be merged?
-
-Alan Stern
 
 
-On Tue, 12 Jul 2016, Alan Stern wrote:
+On 08/03/2016 04:23 PM, Lars-Peter Clausen wrote:
+> On 08/03/2016 04:11 PM, Hans Verkuil wrote:
+>>
+>>
+>> On 08/03/2016 03:21 PM, Niklas Söderlund wrote:
+>>> On 2016-08-02 17:00:07 +0200, Lars-Peter Clausen wrote:
+>>>> [...]
+>>>>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+>>>>> index a8b434b..c6fed71 100644
+>>>>> --- a/drivers/media/i2c/adv7180.c
+>>>>> +++ b/drivers/media/i2c/adv7180.c
+>>>>> @@ -680,10 +680,13 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
+>>>>>  	switch (format->format.field) {
+>>>>>  	case V4L2_FIELD_NONE:
+>>>>>  		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
+>>>>> -			format->format.field = V4L2_FIELD_INTERLACED;
+>>>>> +			format->format.field = V4L2_FIELD_ALTERNATE;
+>>>>>  		break;
+>>>>>  	default:
+>>>>> -		format->format.field = V4L2_FIELD_INTERLACED;
+>>>>> +		if (state->chip_info->flags & ADV7180_FLAG_I2P)
+>>>>> +			format->format.field = V4L2_FIELD_INTERLACED;
+>>>>
+>>>> I'm not convinced this is correct. As far as I understand it when the I2P
+>>>> feature is enabled the core outputs full progressive frames at the full
+>>>> framerate. If it is bypassed it outputs half-frames. So we have the option
+>>>> of either V4L2_FIELD_NONE or V4L2_FIELD_ALTERNATE, but never interlaced. I
+>>>> think this branch should setup the field format to be ALTERNATE regardless
+>>>> of whether the I2P feature is available.
+>>
+>> Actually, that's not true. If the progressive frame is obtained by combining
+>> two fields, then it should return FIELD_INTERLACED. This is how most SDTV
+>> receivers operate.
+> 
+> This is definitely not covered by the current definition of INTERLACED. It
+> says that the temporal order of the odd and even lines is the same for each
+> frame. Whereas for a deinterlaced frame the temporal order changes from
+> frame to frame.
+> 
+> E.g. lets say you have half frames A, B, C, D, E, F ...
+> 
+> The output of the I2P core are frames like (A,B) (C,B) (C,D) (E,D) (E, F) ...
 
-> On Sat, 9 Jul 2016, Mauro Carvalho Chehab wrote:
-> 
-> > C/C linux-usb Mailing list:
-> > 
-> > 
-> > Em Wed, 18 May 2016 08:52:28 -0600
-> > Wade Berrier <wberrier@gmail.com> escreveu:
-> 
-> ...
-> 
-> > > > That message above links to some other threads describing the issue.
-> > > > Here's a post with a patch that supposedly works:
-> > > > 
-> > > > http://www.gossamer-threads.com/lists/mythtv/users/587930
-> > > > 
-> > > > No idea if that's the "correct" way to fix this.
-> > > > 
-> > > > I'll be trying that out and then report back...  
-> > > 
-> > > Indeed, this patch does fix the issue:
-> > > 
-> > > ----------------------
-> > > 
-> > > diff --git a/drivers/usb/core/config.c b/drivers/usb/core/config.c
-> > > index 31ccdcc..03321d4 100644
-> > > --- a/drivers/usb/core/config.c
-> > > +++ b/drivers/usb/core/config.c
-> > > @@ -247,7 +247,7 @@ static int usb_parse_endpoint(struct device *ddev, int cfgno, int inum,
-> > >  			/* For low-speed, 10 ms is the official minimum.
-> > >  			 * But some "overclocked" devices might want faster
-> > >  			 * polling so we'll allow it. */
-> > > -			n = 32;
-> > > +			n = 10;
-> > >  			break;
-> > >  		}
-> > >  	} else if (usb_endpoint_xfer_isoc(d)) {
-> > > 
-> > > 
-> > > ----------------------
-> > > 
-> > > Is this change appropriate to be pushed upstream?  Where to go from
-> > > here?
-> > 
-> > This issue is at the USB core. So, it should be reported to the
-> > linux-usb mailing list. 
-> > 
-> > The people there should help about how to proceed to get this
-> > fixed upstream.
-> 
-> Here's a proper version of that patch.  If this is okay, it can be 
-> merged.
-> 
-> Alan Stern
-> 
-> 
-> 
-> Index: usb-4.x/drivers/usb/core/config.c
-> ===================================================================
-> --- usb-4.x.orig/drivers/usb/core/config.c
-> +++ usb-4.x/drivers/usb/core/config.c
-> @@ -213,8 +213,10 @@ static int usb_parse_endpoint(struct dev
->  	memcpy(&endpoint->desc, d, n);
->  	INIT_LIST_HEAD(&endpoint->urb_list);
->  
-> -	/* Fix up bInterval values outside the legal range. Use 32 ms if no
-> -	 * proper value can be guessed. */
-> +	/*
-> +	 * Fix up bInterval values outside the legal range.
-> +	 * Use 10 or 8 ms if no proper value can be guessed.
-> +	 */
->  	i = 0;		/* i = min, j = max, n = default */
->  	j = 255;
->  	if (usb_endpoint_xfer_int(d)) {
-> @@ -223,13 +225,15 @@ static int usb_parse_endpoint(struct dev
->  		case USB_SPEED_SUPER_PLUS:
->  		case USB_SPEED_SUPER:
->  		case USB_SPEED_HIGH:
-> -			/* Many device manufacturers are using full-speed
-> +			/*
-> +			 * Many device manufacturers are using full-speed
->  			 * bInterval values in high-speed interrupt endpoint
->  			 * descriptors. Try to fix those and fall back to a
-> -			 * 32 ms default value otherwise. */
-> +			 * 8 ms default value otherwise.
-> +			 */
->  			n = fls(d->bInterval*8);
->  			if (n == 0)
-> -				n = 9;	/* 32 ms = 2^(9-1) uframes */
-> +				n = 7;	/* 8 ms = 2^(7-1) uframes */
->  			j = 16;
->  
->  			/*
-> @@ -247,7 +251,7 @@ static int usb_parse_endpoint(struct dev
->  			/* For low-speed, 10 ms is the official minimum.
->  			 * But some "overclocked" devices might want faster
->  			 * polling so we'll allow it. */
-> -			n = 32;
-> +			n = 10;
->  			break;
->  		}
->  	} else if (usb_endpoint_xfer_isoc(d)) {
-> @@ -255,10 +259,10 @@ static int usb_parse_endpoint(struct dev
->  		j = 16;
->  		switch (to_usb_device(ddev)->speed) {
->  		case USB_SPEED_HIGH:
-> -			n = 9;		/* 32 ms = 2^(9-1) uframes */
-> +			n = 7;		/* 8 ms = 2^(7-1) uframes */
->  			break;
->  		default:		/* USB_SPEED_FULL */
-> -			n = 6;		/* 32 ms = 2^(6-1) frames */
-> +			n = 4;		/* 8 ms = 2^(4-1) frames */
->  			break;
->  		}
->  	}
+Yuck.
 
+What most devices do is (A,B) (C,D) (E,F) ...
 
+That's FIELD_INTERLACED.
+
+> 
+> The first frame is INTERLACED_TB, the second INTERLACED_BT, the third
+> INTERLACED_TB again and so on. Also you get the same amount of pixels as for
+> a progressive setup so the data-output-rate is higher. Maybe we need a
+> FIELD_DEINTERLACED to denote such a setup?
+> 
+
+Yeah, this is a completely different mode. Do we even want to support this?
+
+Does anyone need this mode? I think we should leave it out until someone actually
+wants to use it. And then we need to come up with a new FIELD_ mode.
+
+Regards,
+
+	Hans
