@@ -1,49 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:47977 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755032AbcHVOFl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 10:05:41 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH] docs-rst: add package adjustbox
-Date: Mon, 22 Aug 2016 11:04:49 -0300
-Message-Id: <1f1ca6f00b0e60054f89b97ba5cc2ba9cade7e73.1471874617.git.mchehab@s-opensource.com>
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:57757 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932620AbcHCVDK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Aug 2016 17:03:10 -0400
+Date: Thu, 4 Aug 2016 00:01:47 +0300
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: Marty Plummer <netz.kernel@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: TW2866 i2c driver and solo6x10
+Message-ID: <20160803210147.GD24606@zver>
+References: <d5269058-c953-5b3e-7b19-0b4c6474714c@gmail.com>
+ <20160803192819.GB24606@zver>
+ <c569d6b2-c9d8-49fe-0bd2-fbd23b15d538@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c569d6b2-c9d8-49fe-0bd2-fbd23b15d538@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We need adjustbox to allow adjusting the size of tables that
-are bigger than the line width. There are quite a few of them
-at the media books.
+On Wed, Aug 03, 2016 at 03:26:39PM -0500, Marty Plummer wrote:
+> An understanable sentement, but its not just about me (though I actually own two
+> of the same dvr's). There is a large number, if reports are to be believed, of
+> more or less identical dvr systems with the same security holes and hard-coded
+> credentials, with no vendor firmware updates. In addition, I am also in possesion
+> of the chip vendor sdk with full source code for the kernel and modules and a
+> host of pertenant datasheets. My end goal is something along the line of openwrt
+> or lede for these systems in the interest of the community at large.
+> 
+> I'm not averse to the concept of hard work, and while I'm very experienced when
+> it comes to kernel hacking I think I can manage well enough with relevant source
+> and examples, of which there is a large amount.
+> 
+> One concern I have is dealing with devicetree, but I think I can manage.
+> 
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
-
-PS.: This changeset were fold into one of the media patches on a previous
-patch series. However, in order to avoid merge conflicts during he merge
-window, better to split and submit it via docs-next tree.
-
- Documentation/conf.py | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/Documentation/conf.py b/Documentation/conf.py
-index 42045c26581b..c25e95d46272 100644
---- a/Documentation/conf.py
-+++ b/Documentation/conf.py
-@@ -326,6 +326,9 @@ latex_elements = {
-         \\setromanfont{DejaVu Sans}
-         \\setmonofont{DejaVu Sans Mono}
- 
-+	% To allow adjusting table sizes
-+	\\usepackage{adjustbox}
-+
-      '''
- }
- 
--- 
-2.7.4
-
-
+That's intriguing. I'm interested to know what this model is and where
+it can be bought, and also to see all the sdk. BTW have you got sdk from
+manufacturer after asking for it, or otherwise? Are manufacturers keen
+to answer technical questions?
