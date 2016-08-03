@@ -1,83 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:15387 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934236AbcHaM4X (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Aug 2016 08:56:23 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Joonyoung Shim <jy0922.shim@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH 2/6] drm/exynos: gsc: fix system and runtime pm integration
-Date: Wed, 31 Aug 2016 14:55:55 +0200
-Message-id: <1472648159-9814-3-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1472648159-9814-1-git-send-email-m.szyprowski@samsung.com>
-References: <1472648159-9814-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mail-lf0-f52.google.com ([209.85.215.52]:34482 "EHLO
+	mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932237AbcHCNa1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 09:30:27 -0400
+Received: by mail-lf0-f52.google.com with SMTP id l69so161109387lfg.1
+        for <linux-media@vger.kernel.org>; Wed, 03 Aug 2016 06:30:26 -0700 (PDT)
+Subject: Re: [PATCHv2 5/7] media: rcar-vin: add support for
+ V4L2_FIELD_ALTERNATE
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	slongerbeam@gmail.com
+References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
+ <20160802145107.24829-6-niklas.soderlund+renesas@ragnatech.se>
+Cc: lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <0bfd0a3b-a5ac-e9f3-1295-72c7b0063e68@cogentembedded.com>
+Date: Wed, 3 Aug 2016 16:22:22 +0300
+MIME-Version: 1.0
+In-Reply-To: <20160802145107.24829-6-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use generic helpers instead of open-coding usage of runtime pm for system
-sleep pm, which was potentially broken for some corner cases.
+Hello.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/gpu/drm/exynos/exynos_drm_gsc.c | 29 ++---------------------------
- 1 file changed, 2 insertions(+), 27 deletions(-)
+On 08/02/2016 05:51 PM, Niklas Söderlund wrote:
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_gsc.c b/drivers/gpu/drm/exynos/exynos_drm_gsc.c
-index 5d20da8f957e..b1894aa9286e 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_gsc.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_gsc.c
-@@ -1760,32 +1760,6 @@ static int gsc_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--#ifdef CONFIG_PM_SLEEP
--static int gsc_suspend(struct device *dev)
--{
--	struct gsc_context *ctx = get_gsc_context(dev);
--
--	DRM_DEBUG_KMS("id[%d]\n", ctx->id);
--
--	if (pm_runtime_suspended(dev))
--		return 0;
--
--	return gsc_clk_ctrl(ctx, false);
--}
--
--static int gsc_resume(struct device *dev)
--{
--	struct gsc_context *ctx = get_gsc_context(dev);
--
--	DRM_DEBUG_KMS("id[%d]\n", ctx->id);
--
--	if (!pm_runtime_suspended(dev))
--		return gsc_clk_ctrl(ctx, true);
--
--	return 0;
--}
--#endif
--
- #ifdef CONFIG_PM
- static int gsc_runtime_suspend(struct device *dev)
- {
-@@ -1807,7 +1781,8 @@ static int gsc_runtime_resume(struct device *dev)
- #endif
- 
- static const struct dev_pm_ops gsc_pm_ops = {
--	SET_SYSTEM_SLEEP_PM_OPS(gsc_suspend, gsc_resume)
-+	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
-+				pm_runtime_force_resume)
- 	SET_RUNTIME_PM_OPS(gsc_runtime_suspend, gsc_runtime_resume, NULL)
- };
- 
--- 
-1.9.1
+> The HW can capture both ODD and EVEN fields in separate buffers so it's
+> possible to support V4L2_FIELD_ALTERNATE. This patch add support for
+> this mode.
+>
+> At probe time and when S_STD is called the driver will default to use
+> V4L2_FIELD_INTERLACED if the subdevice reports V4L2_FIELD_ALTERNATE. The
+> driver will only change the field type if the subdevice implements
+> G_STD, if not it will keep the default at V4L2_FIELD_ALTERNATE.
+>
+> The user can always explicitly ask for V4L2_FIELD_ALTERNATE in S_FTM and
+
+    S_FMT?
+
+> the driver will use that field format.
+>
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+[...]
+
+MBR, Sergei
 
