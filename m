@@ -1,158 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51092 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755070AbcHSIje (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 04:39:34 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 6/6] drm: rcar-du: Map memory through the VSP device
-Date: Fri, 19 Aug 2016 11:39:34 +0300
-Message-Id: <1471595974-28960-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1471595974-28960-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1471595974-28960-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from relay1.mentorg.com ([192.94.38.131]:51098 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932475AbcHCROs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 13:14:48 -0400
+Subject: Re: [PATCHv2 7/7] [PATCHv5] media: adv7180: fix field type
+To: Lars-Peter Clausen <lars@metafoo.de>,
+	=?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
+ <20160802145107.24829-8-niklas.soderlund+renesas@ragnatech.se>
+ <3bb2b375-a4a9-00c4-1466-7b1ba8e3bfd8@metafoo.de>
+ <20160803132147.GL3672@bigcity.dyn.berto.se>
+ <2a8ec840-301b-06c8-31ec-42d25b282437@mentor.com>
+ <4301a49c-39e3-2b35-74a4-e079b528db9e@metafoo.de>
+CC: <linux-media@vger.kernel.org>, <linux-renesas-soc@vger.kernel.org>,
+	<sergei.shtylyov@cogentembedded.com>, <slongerbeam@gmail.com>,
+	<mchehab@kernel.org>, <hans.verkuil@cisco.com>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <53ce2f9b-6f06-dad5-a55d-cb4abbe6db24@mentor.com>
+Date: Wed, 3 Aug 2016 10:14:45 -0700
+MIME-Version: 1.0
+In-Reply-To: <4301a49c-39e3-2b35-74a4-e079b528db9e@metafoo.de>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For planes handled by a VSP instance, map the framebuffer memory through
-the VSP to ensure proper IOMMU handling.
+On 08/03/2016 09:58 AM, Lars-Peter Clausen wrote:
+> On 08/03/2016 06:55 PM, Steve Longerbeam wrote:
+>> On 08/03/2016 06:21 AM, Niklas Söderlund wrote:
+>>> On 2016-08-02 17:00:07 +0200, Lars-Peter Clausen wrote:
+>>>> [...]
+>>>>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+>>>>> index a8b434b..c6fed71 100644
+>>>>> --- a/drivers/media/i2c/adv7180.c
+>>>>> +++ b/drivers/media/i2c/adv7180.c
+>>>>> @@ -680,10 +680,13 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
+>>>>>  	switch (format->format.field) {
+>>>>>  	case V4L2_FIELD_NONE:
+>>>>>  		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
+>>>>> -			format->format.field = V4L2_FIELD_INTERLACED;
+>>>>> +			format->format.field = V4L2_FIELD_ALTERNATE;
+>>>>>  		break;
+>>>>>  	default:
+>>>>> -		format->format.field = V4L2_FIELD_INTERLACED;
+>>>>> +		if (state->chip_info->flags & ADV7180_FLAG_I2P)
+>>>>> +			format->format.field = V4L2_FIELD_INTERLACED;
+>>>> I'm not convinced this is correct. As far as I understand it when the I2P
+>>>> feature is enabled the core outputs full progressive frames at the full
+>>>> framerate. If it is bypassed it outputs half-frames. So we have the option
+>>>> of either V4L2_FIELD_NONE or V4L2_FIELD_ALTERNATE, but never interlaced. I
+>>>> think this branch should setup the field format to be ALTERNATE regardless
+>>>> of whether the I2P feature is available.
+>>> I be happy to update the patch in such manner, but I feel this is more 
+>>> for Steven to handle. I have no deep understanding of the adv7180 driver 
+>>> and the only HW I have is the adv7180 and not adv7280, adv7280_m, 
+>>> adv7282 or adv7282_m which is the models which have the ADV7180_FLAG_I2P 
+>>> flag. So I can't really test such a change.
+>>>
+>>> Steven do you want to update this patch and resend it? 
+>> Hi Niklas, I can update this patch, but it sounds like the whole thing
+>> is "up in the air" at this point, and we may want to yank out the I2P
+>> support altogether. I'll leave it up to Lars and others to work that out
+>> first.
+> Yeah, we should remove the whole I2P stuff, I was misinformed about how it
+> works. But either way I think this patch should simply not touch the current
+> behavior, so don't add new if (FLAG_I2P) checks.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c | 74 ++++++++++++++++++++++++++++++++---
- drivers/gpu/drm/rcar-du/rcar_du_vsp.h |  2 +
- 2 files changed, 70 insertions(+), 6 deletions(-)
+Hi Lars, Ok I can do that. I'll resubmit in next version of my patchset.
 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-index 83ebd162f3ef..851c2e78de0a 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-@@ -19,7 +19,9 @@
- #include <drm/drm_gem_cma_helper.h>
- #include <drm/drm_plane_helper.h>
- 
-+#include <linux/dma-mapping.h>
- #include <linux/of_platform.h>
-+#include <linux/scatterlist.h>
- #include <linux/videodev2.h>
- 
- #include <media/vsp1.h>
-@@ -166,12 +168,9 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
- 	cfg.dst.width = state->state.crtc_w;
- 	cfg.dst.height = state->state.crtc_h;
- 
--	for (i = 0; i < state->format->planes; ++i) {
--		struct drm_gem_cma_object *gem;
--
--		gem = drm_fb_cma_get_gem_obj(fb, i);
--		cfg.mem[i] = gem->paddr + fb->offsets[i];
--	}
-+	for (i = 0; i < state->format->planes; ++i)
-+		cfg.mem[i] = sg_dma_address(state->sg_tables[i].sgl)
-+			   + fb->offsets[i];
- 
- 	for (i = 0; i < ARRAY_SIZE(formats_kms); ++i) {
- 		if (formats_kms[i] == state->format->fourcc) {
-@@ -183,6 +182,67 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
- 	vsp1_du_atomic_update(plane->vsp->vsp, plane->index, &cfg);
- }
- 
-+static int rcar_du_vsp_plane_prepare_fb(struct drm_plane *plane,
-+					struct drm_plane_state *state)
-+{
-+	struct rcar_du_vsp_plane_state *rstate = to_rcar_vsp_plane_state(state);
-+	struct rcar_du_vsp *vsp = to_rcar_vsp_plane(plane)->vsp;
-+	struct rcar_du_device *rcdu = vsp->dev;
-+	unsigned int i;
-+	int ret;
-+
-+	if (!state->fb)
-+		return 0;
-+
-+	for (i = 0; i < rstate->format->planes; ++i) {
-+		struct drm_gem_cma_object *gem =
-+			drm_fb_cma_get_gem_obj(state->fb, i);
-+		struct sg_table *sgt = &rstate->sg_tables[i];
-+
-+		ret = dma_get_sgtable(rcdu->dev, sgt, gem->vaddr, gem->paddr,
-+				      gem->base.size);
-+		if (ret)
-+			goto fail;
-+
-+		ret = vsp1_du_map_sg(vsp->vsp, sgt);
-+		if (!ret) {
-+			sg_free_table(sgt);
-+			ret = -ENOMEM;
-+			goto fail;
-+		}
-+	}
-+
-+	return 0;
-+
-+fail:
-+	for (i--; i >= 0; i--) {
-+		struct sg_table *sgt = &rstate->sg_tables[i];
-+
-+		vsp1_du_unmap_sg(vsp->vsp, sgt);
-+		sg_free_table(sgt);
-+	}
-+
-+	return ret;
-+}
-+
-+static void rcar_du_vsp_plane_cleanup_fb(struct drm_plane *plane,
-+					 struct drm_plane_state *state)
-+{
-+	struct rcar_du_vsp_plane_state *rstate = to_rcar_vsp_plane_state(state);
-+	struct rcar_du_vsp *vsp = to_rcar_vsp_plane(plane)->vsp;
-+	unsigned int i;
-+
-+	if (!state->fb)
-+		return;
-+
-+	for (i = 0; i < rstate->format->planes; ++i) {
-+		struct sg_table *sgt = &rstate->sg_tables[i];
-+
-+		vsp1_du_unmap_sg(vsp->vsp, sgt);
-+		sg_free_table(sgt);
-+	}
-+}
-+
- static int rcar_du_vsp_plane_atomic_check(struct drm_plane *plane,
- 					  struct drm_plane_state *state)
- {
-@@ -223,6 +283,8 @@ static void rcar_du_vsp_plane_atomic_update(struct drm_plane *plane,
- }
- 
- static const struct drm_plane_helper_funcs rcar_du_vsp_plane_helper_funcs = {
-+	.prepare_fb = rcar_du_vsp_plane_prepare_fb,
-+	.cleanup_fb = rcar_du_vsp_plane_cleanup_fb,
- 	.atomic_check = rcar_du_vsp_plane_atomic_check,
- 	.atomic_update = rcar_du_vsp_plane_atomic_update,
- };
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
-index 510dcc9c6816..bbb41610e38a 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
-@@ -43,6 +43,7 @@ static inline struct rcar_du_vsp_plane *to_rcar_vsp_plane(struct drm_plane *p)
-  * struct rcar_du_vsp_plane_state - Driver-specific plane state
-  * @state: base DRM plane state
-  * @format: information about the pixel format used by the plane
-+ * @sg_tables: scatter-gather tables for the frame buffer memory
-  * @alpha: value of the plane alpha property
-  * @zpos: value of the plane zpos property
-  */
-@@ -50,6 +51,7 @@ struct rcar_du_vsp_plane_state {
- 	struct drm_plane_state state;
- 
- 	const struct rcar_du_format_info *format;
-+	struct sg_table sg_tables[3];
- 
- 	unsigned int alpha;
- 	unsigned int zpos;
--- 
-Regards,
-
-Laurent Pinchart
+Steve
 
