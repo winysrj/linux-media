@@ -1,75 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.goneo.de ([85.220.129.30]:33584 "EHLO smtp1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753189AbcHOOIv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 10:08:51 -0400
-From: Markus Heiser <markus.heiser@darmarit.de>
-To: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jani Nikula <jani.nikula@intel.com>
-Cc: Markus Heiser <markus.heiser@darmarIT.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 5/5] doc-rst: migrate ioctl CEC_DQEVENT to c-domain
-Date: Mon, 15 Aug 2016 16:08:28 +0200
-Message-Id: <1471270108-29314-6-git-send-email-markus.heiser@darmarit.de>
-In-Reply-To: <1471270108-29314-1-git-send-email-markus.heiser@darmarit.de>
-References: <1471270108-29314-1-git-send-email-markus.heiser@darmarit.de>
+Received: from mail-lf0-f49.google.com ([209.85.215.49]:33344 "EHLO
+	mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932275AbcHCOWI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 10:22:08 -0400
+Received: by mail-lf0-f49.google.com with SMTP id b199so162567440lfe.0
+        for <linux-media@vger.kernel.org>; Wed, 03 Aug 2016 07:21:49 -0700 (PDT)
+Subject: Re: [PATCHv2 1/7] media: rcar-vin: make V4L2_FIELD_INTERLACED
+ standard dependent
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	slongerbeam@gmail.com
+References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
+ <20160802145107.24829-2-niklas.soderlund+renesas@ragnatech.se>
+Cc: lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <c1fc233e-6ab6-7338-adab-5a32bc1f8e16@cogentembedded.com>
+Date: Wed, 3 Aug 2016 16:58:50 +0300
+MIME-Version: 1.0
+In-Reply-To: <20160802145107.24829-2-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Heiser <markus.heiser@darmarIT.de>
+On 08/02/2016 05:51 PM, Niklas Söderlund wrote:
 
-This is only one example, demonstrating the benefits of the patch
-series.  The CEC_DQEVENT ioctl is migrated to the sphinx c-domain and
-referred by ":name: CEC_DQEVENT".
+> The field V4L2_FIELD_INTERLACED is standard dependent and should not
+> unconditionally be equivalent to V4L2_FIELD_INTERLACED_TB.
+>
+> This patch adds a check to see if the video standard can be obtained and
+> if it's a 60 Hz format. If the condition is meet V4L2_FIELD_INTERLACED
 
-With this change the indirection using ":ref:`CEC_DQEVENT` is no longer
-needed, we can refer the ioctl directly with ":c:func:`CEC_DQEVENT`". As
-addition in the index, there is a entry "CEC_DQEVENT (C function)".
+    s/meet/met/.
 
-Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
----
- Documentation/media/uapi/cec/cec-func-open.rst   | 2 +-
- Documentation/media/uapi/cec/cec-ioc-dqevent.rst | 5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+> is treated as V4L2_FIELD_INTERLACED_BT if not as
+> V4L2_FIELD_INTERLACED_TB.
+>
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+>
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index 496aa97..4063775 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -131,6 +131,7 @@ static u32 rvin_read(struct rvin_dev *vin, u32 offset)
+>  static int rvin_setup(struct rvin_dev *vin)
+>  {
+>  	u32 vnmc, dmr, dmr2, interrupts;
+> +	v4l2_std_id std;
+>  	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
+>
+>  	switch (vin->format.field) {
+> @@ -141,6 +142,13 @@ static int rvin_setup(struct rvin_dev *vin)
+>  		vnmc = VNMC_IM_EVEN;
+>  		break;
+>  	case V4L2_FIELD_INTERLACED:
+> +		/* Default to TB */
+> +		vnmc = VNMC_IM_FULL;
+> +		/* Use BT if video standard can be read and is 60 Hz format */
+> +		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std))
+> +			if (std & V4L2_STD_525_60)
+> +				vnmc = VNMC_IM_FULL | VNMC_FOC;
 
-diff --git a/Documentation/media/uapi/cec/cec-func-open.rst b/Documentation/media/uapi/cec/cec-func-open.rst
-index 38fd7e0..7c0f981 100644
---- a/Documentation/media/uapi/cec/cec-func-open.rst
-+++ b/Documentation/media/uapi/cec/cec-func-open.rst
-@@ -32,7 +32,7 @@ Arguments
-     Open flags. Access mode must be ``O_RDWR``.
- 
-     When the ``O_NONBLOCK`` flag is given, the
--    :ref:`CEC_RECEIVE <CEC_RECEIVE>` and :ref:`CEC_DQEVENT <CEC_DQEVENT>` ioctls
-+    :ref:`CEC_RECEIVE <CEC_RECEIVE>` and :c:func:`CEC_DQEVENT` ioctls
-     will return the ``EAGAIN`` error code when no message or event is available, and
-     ioctls :ref:`CEC_TRANSMIT <CEC_TRANSMIT>`,
-     :ref:`CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>` and
-diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-index 7a6d6d0..4e12e6c 100644
---- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-@@ -15,7 +15,8 @@ CEC_DQEVENT - Dequeue a CEC event
- Synopsis
- ========
- 
--.. cpp:function:: int ioctl( int fd, int request, struct cec_event *argp )
-+.. c:function:: int ioctl( int fd, int request, struct cec_event *argp )
-+   :name: CEC_DQEVENT
- 
- Arguments
- =========
-@@ -36,7 +37,7 @@ Description
-    and is currently only available as a staging kernel module.
- 
- CEC devices can send asynchronous events. These can be retrieved by
--calling :ref:`ioctl CEC_DQEVENT <CEC_DQEVENT>`. If the file descriptor is in
-+calling :c:func:`CEC_DQEVENT`. If the file descriptor is in
- non-blocking mode and no event is pending, then it will return -1 and
- set errno to the ``EAGAIN`` error code.
- 
--- 
-2.7.4
+    I think you either need to fold 2 *if* statements, or add {} in the 1st one.
+
+[...]
+
+MBR, Sergei
 
