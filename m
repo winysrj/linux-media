@@ -1,64 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:40890 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934941AbcHaN5i (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Aug 2016 09:57:38 -0400
-Date: Wed, 31 Aug 2016 15:57:33 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v1.1 3/5] smiapp: Return -EPROBE_DEFER if the clock
- cannot be obtained
-Message-ID: <20160831135733.rkc3a6ognfmnohnr@earth>
-References: <1472629325-30875-4-git-send-email-sakari.ailus@linux.intel.com>
- <1472648277-25888-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-pa0-f66.google.com ([209.85.220.66]:35860 "EHLO
+	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754237AbcHCP02 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 11:26:28 -0400
+Date: Wed, 3 Aug 2016 08:26:02 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-input <linux-input@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv2] serio: add hangup support
+Message-ID: <20160803152602.GB29702@dtor-ws>
+References: <0d959a01-e698-0178-af89-5925469f95ab@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="ci3e7u6tspka3sw3"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1472648277-25888-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <0d959a01-e698-0178-af89-5925469f95ab@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---ci3e7u6tspka3sw3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Wed, Aug 31, 2016 at 03:57:57PM +0300, Sakari Ailus wrote:
-> The clock may be provided by a driver which is yet to probe. Print the
-> actual error code as well.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->
+On Wed, Aug 03, 2016 at 01:00:44PM +0200, Hans Verkuil wrote:
+> The Pulse-Eight USB CEC adapter is a usb device that shows up as a ttyACM0 device.
+> It requires that you run inputattach in order to communicate with it via serio.
+> 
+> This all works well, but it would be nice to have a udev rule to automatically
+> start inputattach. That too works OK, but the problem comes when the USB device
+> is unplugged: the tty hangup is never handled by the serio framework so the
+> inputattach utility never exits and you have to kill it manually.
+> 
+> By adding this hangup callback the inputattach utility now properly exits as
+> soon as the USB device is unplugged.
+> 
+> The udev rule I used on my Debian sid system is:
+> 
+> SUBSYSTEM=="tty", KERNEL=="ttyACM[0-9]*", ATTRS{idVendor}=="2548", ATTRS{idProduct}=="1002", ACTION=="add", TAG+="systemd", ENV{SYSTEMD_WANTS}+="pulse8-cec-inputattach@%k.service"
+> 
+> And pulse8-cec-inputattach@%k.service is as follows:
+> 
+> ===============================================================
+> [Unit]
+> Description=inputattach for pulse8-cec device on %I
+> 
+> [Service]
+> Type=simple
+> ExecStart=/usr/local/bin/inputattach --pulse8-cec /dev/%I
+> KillMode=process
+> ===============================================================
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
 > ---
-> since v1:
-> - Add printing of the original error code
+> Change since the original RFC patch: don't call close() from the hangup() function,
+> instead only set the DEAD flag in hangup() instead of in close().
+> ---
+> diff --git a/drivers/input/serio/serport.c b/drivers/input/serio/serport.c
+> index 9c927d3..4045e95 100644
+> --- a/drivers/input/serio/serport.c
+> +++ b/drivers/input/serio/serport.c
+> @@ -71,7 +71,6 @@ static void serport_serio_close(struct serio *serio)
+> 
+>  	spin_lock_irqsave(&serport->lock, flags);
+>  	clear_bit(SERPORT_ACTIVE, &serport->flags);
+> -	set_bit(SERPORT_DEAD, &serport->flags);
+>  	spin_unlock_irqrestore(&serport->lock, flags);
+> 
+>  	wake_up_interruptible(&serport->wait);
 
-Reviewed-By: Sebastian Reichel <sre@kernel.org>
+I think we should remove this line as well - the waiter is waiting on
+SERPORT_DEAD bit, if we are not setting it we do not need to wake up the
+waiter either.
 
---ci3e7u6tspka3sw3
-Content-Type: application/pgp-signature; name="signature.asc"
+I can fix it up on my side.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> @@ -248,6 +247,19 @@ static long serport_ldisc_compat_ioctl(struct tty_struct *tty,
+>  }
+>  #endif
+> 
+> +static int serport_ldisc_hangup(struct tty_struct * tty)
+> +{
+> +	struct serport *serport = (struct serport *) tty->disc_data;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&serport->lock, flags);
+> +	set_bit(SERPORT_DEAD, &serport->flags);
+> +	spin_unlock_irqrestore(&serport->lock, flags);
+> +
+> +	wake_up_interruptible(&serport->wait);
+> +	return 0;
+> +}
+> +
+>  static void serport_ldisc_write_wakeup(struct tty_struct * tty)
+>  {
+>  	struct serport *serport = (struct serport *) tty->disc_data;
+> @@ -274,6 +286,7 @@ static struct tty_ldisc_ops serport_ldisc = {
+>  	.compat_ioctl =	serport_ldisc_compat_ioctl,
+>  #endif
+>  	.receive_buf =	serport_ldisc_receive,
+> +	.hangup =	serport_ldisc_hangup,
+>  	.write_wakeup =	serport_ldisc_write_wakeup
+>  };
+> 
 
-iQIcBAEBCgAGBQJXxuJKAAoJENju1/PIO/qayA8P/jwmIlvvVkaCESsY3rr4mEYZ
-ytVwUfBrkjSgv89Z8mgBH/vfbNObo+muU33O6GsTxAazdNpWlywWMIOe13tfk/3t
-i5spzKsVid2J46cMvueeqwksUY1AwKvu6DhTNDd+FLO2rnq/mOeJG6LyW7XMD2ab
-IRQZf8OjCL8l9E+OIT5mUFQDV/gYmU7HGQchH9oprF6O0NOIQhuuSx1aW8HUDjtp
-Yg1YXbzyv6LwGTyBHON8W9uC55Zq8j9RGMyOKPLs4YM9a7QHcaTuy802w0GUKu6d
-iI0aEzUHyzuSn165elKQmy0SjyxTHdu5qVseapdemH1sn88LqExxL6oG6+uLN61M
-Q9D+DQQLL8XKTFpwwbKEWodBL56npnkeu+tC0/X2gHwukcRI1kv5eUbyTLQtWQko
-NyPtstjQsZSHpf3psOb4E4sji/Dl+uyQvGVxu63tknq4QXHpGFfRnr6E2pbo2QLG
-I5cMrSY+NgO9K3SMCHHPXyXvD5bE705l/2H9UJSO56lBBG6RW5UfcGWSx+rs7DXD
-lYSJWxpM0k6pNCyu2Ij0AsKN+pcOmMVy2yKhRJenRqIOUnv/jFJORt2P3w1hVTqh
-9yBI8xpZIua7xKNjOwU7kqSRCO9bKP4R+t6Xr9ZjeUTDM8qJSsCNojUXQehMtgHj
-KUxbKH2r7OlU+qmiWlnh
-=tt1w
------END PGP SIGNATURE-----
+Thanks.
 
---ci3e7u6tspka3sw3--
+-- 
+Dmitry
