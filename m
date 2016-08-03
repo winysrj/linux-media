@@ -1,98 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:23554 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752170AbcHODdq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Aug 2016 23:33:46 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH for v4.8] vcodec:mediatek: Refine H264 encoder driver
-Date: Mon, 15 Aug 2016 11:33:32 +0800
-Message-ID: <1471232012-27624-1-git-send-email-tiffany.lin@mediatek.com>
+Received: from www381.your-server.de ([78.46.137.84]:40970 "EHLO
+	www381.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932285AbcHCOaG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 10:30:06 -0400
+Subject: Re: [PATCHv2 7/7] [PATCHv5] media: adv7180: fix field type
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	=?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
+ <20160802145107.24829-8-niklas.soderlund+renesas@ragnatech.se>
+ <3bb2b375-a4a9-00c4-1466-7b1ba8e3bfd8@metafoo.de>
+ <20160803132147.GL3672@bigcity.dyn.berto.se>
+ <927464df-14cb-aadb-c1d9-5a5f0d065828@xs4all.nl>
+ <d7f16469-a4a4-b2cc-2af1-2c3efcd8aac6@metafoo.de>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com,
+	mchehab@kernel.org, hans.verkuil@cisco.com
+From: Lars-Peter Clausen <lars@metafoo.de>
+Message-ID: <c0754004-76bb-bcb4-0816-d986d0ff53d4@metafoo.de>
+Date: Wed, 3 Aug 2016 16:29:02 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <d7f16469-a4a4-b2cc-2af1-2c3efcd8aac6@metafoo.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch :
-1. remove field and function that unused anymore
-2. add support V4L2_MPEG_VIDEO_H264_LEVEL_4_2
+On 08/03/2016 04:23 PM, Lars-Peter Clausen wrote:
+> On 08/03/2016 04:11 PM, Hans Verkuil wrote:
+>>
+>>
+>> On 08/03/2016 03:21 PM, Niklas Söderlund wrote:
+>>> On 2016-08-02 17:00:07 +0200, Lars-Peter Clausen wrote:
+>>>> [...]
+>>>>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+>>>>> index a8b434b..c6fed71 100644
+>>>>> --- a/drivers/media/i2c/adv7180.c
+>>>>> +++ b/drivers/media/i2c/adv7180.c
+>>>>> @@ -680,10 +680,13 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
+>>>>>  	switch (format->format.field) {
+>>>>>  	case V4L2_FIELD_NONE:
+>>>>>  		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
+>>>>> -			format->format.field = V4L2_FIELD_INTERLACED;
+>>>>> +			format->format.field = V4L2_FIELD_ALTERNATE;
+>>>>>  		break;
+>>>>>  	default:
+>>>>> -		format->format.field = V4L2_FIELD_INTERLACED;
+>>>>> +		if (state->chip_info->flags & ADV7180_FLAG_I2P)
+>>>>> +			format->format.field = V4L2_FIELD_INTERLACED;
+>>>>
+>>>> I'm not convinced this is correct. As far as I understand it when the I2P
+>>>> feature is enabled the core outputs full progressive frames at the full
+>>>> framerate. If it is bypassed it outputs half-frames. So we have the option
+>>>> of either V4L2_FIELD_NONE or V4L2_FIELD_ALTERNATE, but never interlaced. I
+>>>> think this branch should setup the field format to be ALTERNATE regardless
+>>>> of whether the I2P feature is available.
+>>
+>> Actually, that's not true. If the progressive frame is obtained by combining
+>> two fields, then it should return FIELD_INTERLACED. This is how most SDTV
+>> receivers operate.
+> 
+> This is definitely not covered by the current definition of INTERLACED. It
+> says that the temporal order of the odd and even lines is the same for each
+> frame. Whereas for a deinterlaced frame the temporal order changes from
+> frame to frame.
+> 
+> E.g. lets say you have half frames A, B, C, D, E, F ...
+> 
+> The output of the I2P core are frames like (A,B) (C,B) (C,D) (E,D) (E, F) ...
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
----
- .../media/platform/mtk-vcodec/venc/venc_h264_if.c  |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+Just for completeness the output expected for INTERLACED would be
 
-diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
-index 9a60052..63d4be4 100644
---- a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
-+++ b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
-@@ -61,6 +61,8 @@ enum venc_h264_bs_mode {
- 
- /*
-  * struct venc_h264_vpu_config - Structure for h264 encoder configuration
-+ *                               AP-W/R : AP is writer/reader on this item
-+ *                               VPU-W/R: VPU is write/reader on this item
-  * @input_fourcc: input fourcc
-  * @bitrate: target bitrate (in bps)
-  * @pic_w: picture width. Picture size is visible stream resolution, in pixels,
-@@ -94,13 +96,13 @@ struct venc_h264_vpu_config {
- 
- /*
-  * struct venc_h264_vpu_buf - Structure for buffer information
-- * @align: buffer alignment (in bytes)
-+ *                            AP-W/R : AP is writer/reader on this item
-+ *                            VPU-W/R: VPU is write/reader on this item
-  * @iova: IO virtual address
-  * @vpua: VPU side memory addr which is used by RC_CODE
-  * @size: buffer size (in bytes)
-  */
- struct venc_h264_vpu_buf {
--	u32 align;
- 	u32 iova;
- 	u32 vpua;
- 	u32 size;
-@@ -108,6 +110,8 @@ struct venc_h264_vpu_buf {
- 
- /*
-  * struct venc_h264_vsi - Structure for VPU driver control and info share
-+ *                        AP-W/R : AP is writer/reader on this item
-+ *                        VPU-W/R: VPU is write/reader on this item
-  * This structure is allocated in VPU side and shared to AP side.
-  * @config: h264 encoder configuration
-  * @work_bufs: working buffer information in VPU side
-@@ -150,12 +154,6 @@ struct venc_h264_inst {
- 	struct mtk_vcodec_ctx *ctx;
- };
- 
--static inline void h264_write_reg(struct venc_h264_inst *inst, u32 addr,
--				  u32 val)
--{
--	writel(val, inst->hw_base + addr);
--}
--
- static inline u32 h264_read_reg(struct venc_h264_inst *inst, u32 addr)
- {
- 	return readl(inst->hw_base + addr);
-@@ -214,6 +212,8 @@ static unsigned int h264_get_level(struct venc_h264_inst *inst,
- 		return 40;
- 	case V4L2_MPEG_VIDEO_H264_LEVEL_4_1:
- 		return 41;
-+	case V4L2_MPEG_VIDEO_H264_LEVEL_4_2:
-+		return 42;
- 	default:
- 		mtk_vcodec_debug(inst, "unsupported level %d", level);
- 		return 31;
--- 
-1.7.9.5
+(A, B), (C, D), (E, F), ...
+
+> 
+> The first frame is INTERLACED_TB, the second INTERLACED_BT, the third
+> INTERLACED_TB again and so on. Also you get the same amount of pixels as for
+> a progressive setup so the data-output-rate is higher. Maybe we need a
+> FIELD_DEINTERLACED to denote such a setup?
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
