@@ -1,49 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f177.google.com ([209.85.217.177]:34944 "EHLO
-        mail-ua0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751427AbcHUIkD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 Aug 2016 04:40:03 -0400
-Received: by mail-ua0-f177.google.com with SMTP id n59so144047791uan.2
-        for <linux-media@vger.kernel.org>; Sun, 21 Aug 2016 01:40:03 -0700 (PDT)
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:56319 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758678AbcHDOPJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Aug 2016 10:15:09 -0400
+Subject: Re: [PATCHv2] v4l2-common: add s_selection helper function
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <c6379bf1-4fdf-7deb-4312-86d26d0ee106@xs4all.nl>
+ <20160804140313.GI3243@valkosipuli.retiisi.org.uk>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <aa119982-53c6-37bf-d019-b6ccd27b5c8a@xs4all.nl>
+Date: Thu, 4 Aug 2016 16:11:55 +0200
 MIME-Version: 1.0
-From: =?UTF-8?B?TmFtIFBo4bqhbSBUaMOgbmg=?= <phamthanhnam.ptn@gmail.com>
-Date: Sun, 21 Aug 2016 15:40:01 +0700
-Message-ID: <CAGpBDHdvvoFgGjrf2oASJR2fUh7TA5OCk479s=_+t0RbcF7zXg@mail.gmail.com>
-Subject: Updated scan tables for DVB-T/T2 in Vietnam
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=94eb2c190fb8a8d058053a90e080
+In-Reply-To: <20160804140313.GI3243@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---94eb2c190fb8a8d058053a90e080
-Content-Type: text/plain; charset=UTF-8
 
-Hi,
-Vietnam officially shut down analog television broadcasting on
-16/Aug/2016 in large cities. Here are updated scan tables for DVB-T/T2
-in Vietnam after many years of experiment and deployment.
-Please consider to commit them. Thank you very much.
-Best regards,
-Nam
 
-P.S. Your server has rejected my email many times :(
+On 08/04/2016 04:03 PM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Mon, Aug 01, 2016 at 12:33:39PM +0200, Hans Verkuil wrote:
+>> Checking the selection constraint flags is often forgotten by drivers, especially
+>> if the selection code just clamps the rectangle to the minimum and maximum allowed
+>> rectangles.
+>>
+>> This patch adds a simple helper function that checks the adjusted rectangle against
+>> the constraint flags and either returns -ERANGE if it doesn't fit, or fills in the
+>> new rectangle and returns 0.
+>>
+>> It also adds a small helper function to v4l2-rect.h to check if one rectangle fits
+>> inside another.
+> 
+> I could have misunderstood the purpose of the patch but... these flags are
+> used by drivers in guidance in adjusting the rectangle in case there are
+> hardware limitations, to make it larger or smaller than requested if the
+> request can't be fulfillsed as such. The intent is *not* to return an error
+> back to the user. In this respect it works quite like e.g. S_FMT does in
+> cases an exact requested format can't be supported.
+> 
+> <URL:https://www.linuxtv.org/downloads/v4l-dvb-apis/apb.html#v4l2-selection-flags>
+> 
+> What can be done is rather driver specific.
+> 
 
---94eb2c190fb8a8d058053a90e080
-Content-Type: application/x-gzip; name="dvb-vn.tar.gz"
-Content-Disposition: attachment; filename="dvb-vn.tar.gz"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_is4d2zyo0
+That's not what the spec says:
 
-H4sIAEFXuVcAA+2XYY+aMBjHfQufoolv9SjQlrtkW1alO8ik3kFlcctC8LxMkomXG2eyb78Hdcbb
-NDcT1Nzk/4KSP6Xtrw95+jCej9rz3BhDUxjzvK0maTbK8kmjQmGMGSMIWtOheLNdyMTEQablUGZR
-TAlF2MKUmg2Eq1zELj39KNJHWMrDJJ0WkzSf5Ol0W7+Xni9Z0Lp9JWqi3xFHbRRn9wXgwZ0bd9oK
-jX6iWHX1Jrqb5cVjNnoq7seleQN7Ub4HL0m4e7O5NxcPRf7+2zTNvl/czabv9C9dj0spel91zRU9
-PxbhMImGkRIBeltOo3TtQyhuB0J2h+BQ+3K5g7rW4dL95LvKS7zP8GTtd/uuSEKuROLdgG8bZNPr
-lZ7sS6FrQd8d9Ljy+xKsWx4YDHqqkMso8KMI7AR6iHLoj7p2PeChm/hSiTDmPTBNw7Z0zfNFyMOu
-N1yP6ktgiJaD8oHq63sjEvbqEE/9mdY6kMZ/5H8vzWdZxXO8kP9tx6Gr/E/KS5n/TYzr/H8MNdEi
-4n8nf0NZq/zfgkvcQqHqtBCPr41gNspUXJ8KFZ8Kzn+IaD1nZFf7MlqG/a+MFmXbIW1rO+XlNshI
-hYIHie+Cg6tgdkxy/LiabDuyyY7DTE/AvCPMV8sP4xjUzDpHagefJfUJsnXl1I11/XfQGgO2oyzx
-dtV/i3pp9f9vE+ogbFJCWAPRg65qpTOv/57V/weaY4/4Y/g5hvgzQuv416pVq9ZB9QsgZGBYABgA
-AA==
---94eb2c190fb8a8d058053a90e080--
+https://hverkuil.home.xs4all.nl/spec/uapi/v4l/vidioc-g-selection.html
+
+ERANGE
+It is not possible to adjust struct v4l2_rect r rectangle to satisfy all constraints given in the flags argument.
+
+It's rather unambiguous, I think.
+
+If you don't want an error, then just leave 'flags' to 0. That makes sense.
+
+Regards,
+
+	Hans
