@@ -1,57 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:38302 "EHLO
-	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932604AbcHJSwf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2016 14:52:35 -0400
-Date: Wed, 10 Aug 2016 09:34:03 +0200
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Pavel Machek <pavel@ucw.cz>,
-	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Message-ID: <20160810073403.GB30047@pali>
-References: <20160521054336.GA27123@amd>
- <573FFF51.1000004@gmail.com>
- <20160521105607.GA20071@amd>
- <574049EF.2090208@gmail.com>
- <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160805102611.GA13116@amd>
- <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+Received: from 6.mo68.mail-out.ovh.net ([46.105.63.100]:48752 "EHLO
+	6.mo68.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758467AbcHDQk6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2016 12:40:58 -0400
+Received: from player788.ha.ovh.net (b7.ovh.net [213.186.33.57])
+	by mo68.mail-out.ovh.net (Postfix) with ESMTP id 8BFFEFF8C31
+	for <linux-media@vger.kernel.org>; Thu,  4 Aug 2016 17:21:43 +0200 (CEST)
+Subject: Re: [PATCH] V4L2: Add documentation for SDI timings and related flags
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1469113476-1645-1-git-send-email-charles-antoine.couret@nexvision.fr>
+ <080c0d20-6268-f1a0-9120-d6e4909bdcd5@xs4all.nl>
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Message-ID: <58f6ea73-e54a-a0f7-305e-2740f5a8bfba@nexvision.fr>
+Date: Thu, 4 Aug 2016 17:21:42 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+In-Reply-To: <080c0d20-6268-f1a0-9120-d6e4909bdcd5@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 08 August 2016 11:09:56 Sakari Ailus wrote:
-> On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
-> > 
-> > This adds support for AD5820 autofocus coil, found for example in
-> > Nokia N900 smartphone.
+Le 04/08/2016 ‡ 12:11, Hans Verkuil a Ècrit :
+
+>> --- a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
+>> +++ b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
+>> @@ -339,6 +339,13 @@ EBUSY
+>>  
+>>         -  The timings follow the VESA Generalized Timings Formula standard
+>>  
+>> +    -  .. row 7
+>> +
+>> +       -  ``V4L2_DV_BT_STD_SDI``
+>> +
+>> +       -  The timings follow the SDI Timings standard.
+>> +	  There are no horizontal syncs/porches at all in this format.
+>> +	  Total blanking timings must be set in hsync or vsync fields only.
 > 
-> Thanks, Pavel!
-> 
-> Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get something
-> better in the future, we'll switch to that then.
+> Didn't you mention on irc that there are actually two blanking timings for
+> vertical blanking? Something frontporch like? I can't remember the details,
+> but if I remember correctly, then you should specify what goes where.
 
-Ok, and what with AD5820_RAMP_TIME and AD5820_RAMP_MODE?
 
-> I've applied this to ad5820 branch in my tree.
+Yes, your're right about this.
+In SMPTE 125M (I like this standard :D), some "frontporchs" or similar values are available.
+So, I can precise that in the documentation and fix SMPTE 125M definition to take this into account.
 
-Are you going to finally send this patch to media tree or pull request
-to Linus?
-
--- 
-Pali Roh√°r
-pali.rohar@gmail.com
+Thank you very much.
+Regards,
+Charles-Antoine Couret
