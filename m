@@ -1,92 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.goneo.de ([85.220.129.33]:45614 "EHLO smtp2.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750914AbcHaKTi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Aug 2016 06:19:38 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH v3] docs-rst: ignore arguments on macro definitions
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <87vayhz4z6.fsf@intel.com>
-Date: Wed, 31 Aug 2016 12:09:39 +0200
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 7bit
-Message-Id: <449181AD-39BC-4A88-A633-13BA1EC21449@darmarit.de>
-References: <e4955d6ed9b730f544fe40b0344c4451dd415cda.1472476362.git.mchehab@s-opensource.com> <BBC1BC77-BCF1-453C-B85D-9758C4C433A6@darmarit.de> <20160829121326.782e4261@vento.lan> <87y43fh9ix.fsf@intel.com> <B29EF07A-454E-456E-91B6-AE5B0D6C04D1@darmarit.de> <87vayhz4z6.fsf@intel.com>
-To: Jani Nikula <jani.nikula@linux.intel.com>
+Received: from 5.mo68.mail-out.ovh.net ([46.105.62.179]:59774 "EHLO
+	5.mo68.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751055AbcHDQUv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2016 12:20:51 -0400
+Received: from player788.ha.ovh.net (b7.ovh.net [213.186.33.57])
+	by mo68.mail-out.ovh.net (Postfix) with ESMTP id B12FAFF9135
+	for <linux-media@vger.kernel.org>; Thu,  4 Aug 2016 17:43:12 +0200 (CEST)
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+To: linux-media@vger.kernel.org
+Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Subject: [PATCH v5 1/2] SDI: add flag for SDI formats and SMPTE 125M definition
+Date: Thu,  4 Aug 2016 17:42:53 +0200
+Message-Id: <1470325374-14784-2-git-send-email-charles-antoine.couret@nexvision.fr>
+In-Reply-To: <1470325374-14784-1-git-send-email-charles-antoine.couret@nexvision.fr>
+References: <1470325374-14784-1-git-send-email-charles-antoine.couret@nexvision.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Adding others generic flags, which could be used by many
+components like GS1662.
 
-Am 31.08.2016 um 11:02 schrieb Jani Nikula <jani.nikula@linux.intel.com>:
+Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+---
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 11 +++++++----
+ include/uapi/linux/v4l2-dv-timings.h      | 12 ++++++++++++
+ include/uapi/linux/videodev2.h            |  8 ++++++++
+ 3 files changed, 27 insertions(+), 4 deletions(-)
 
-> On Wed, 31 Aug 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
->> I haven't tested your suggestion, but since *void* is in the list
->> of stop-words:
->> 
->>    # These C types aren't described anywhere, so don't try to create
->>    # a cross-reference to them
->>    stopwords = set((
->>        'const', 'void', 'char', 'wchar_t', 'int', 'short',
->>        'long', 'float', 'double', 'unsigned', 'signed', 'FILE',
->>        'clock_t', 'time_t', 'ptrdiff_t', 'size_t', 'ssize_t',
->>        'struct', '_Bool',
->>    ))
->> 
->> I think it will work in the matter you think. 
->> 
->> However I like to prefer to fix it in the C-domain, using
->> Mauro's suggestion on argument parsing. IMHO it is not
->> the best solution to add a void type to the reST signature
->> of a macro. This will result in a unusual output and does
->> not fix what is wrong in Sphinx's c-domain (there is also
->> a drawback in the index, where a function-type macro is
->> referred as function, not as macro).
-> 
-> From an API user's perspective, functions and function-like macros
-> should work interchangeably.
-
-Ah, OK.
-
-> Personally, I don't think there needs to be
-> a difference in the index. This seems to be the approach taken in
-> Sphinx, but it just doesn't work well for automatic documentation
-> generation because we can't deduce the parameter types from the macro
-> definition.
-
-In the index, sphinx refers only object-like macros with an entry 
-"FOO (C macro))". Function-like macros are referred as "BAR (C function)".
-
-I thought it is more straight forward to refer all macros with a 
-"BAR (C macro)" entry in the index. I will split this change in
-a separate patch, so we can decide if we like to patch the index
-that way.
-
-But now, as we discuss this, I have another doubt to fix the index.
-It might be confusing when writing references to those macros.
-
-Since function-like macros internally are functions in the c-domain, 
-they are referred with ":c:func:`BAR`". On the other side, object-like
-macros are referred by role ":c:macro:`FOO`".
-
-Taking this into account, it might be one reason more to follow
-your conclusion that functions and function-like macros are 
-interchangeable from the user's perspective.
-
--- Markus --
-
-> 
-> BR,
-> Jani.
-> 
-> 
-> -- 
-> Jani Nikula, Intel Open Source Technology Center
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-doc" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 889de0a..730a7c3 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -306,7 +306,7 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
+ 			(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
+ 			bt->il_vsync, bt->il_vbackporch);
+ 	pr_info("%s: pixelclock: %llu\n", dev_prefix, bt->pixelclock);
+-	pr_info("%s: flags (0x%x):%s%s%s%s%s%s\n", dev_prefix, bt->flags,
++	pr_info("%s: flags (0x%x):%s%s%s%s%s%s%s\n", dev_prefix, bt->flags,
+ 			(bt->flags & V4L2_DV_FL_REDUCED_BLANKING) ?
+ 			" REDUCED_BLANKING" : "",
+ 			((bt->flags & V4L2_DV_FL_REDUCED_BLANKING) &&
+@@ -318,12 +318,15 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
+ 			(bt->flags & V4L2_DV_FL_HALF_LINE) ?
+ 			" HALF_LINE" : "",
+ 			(bt->flags & V4L2_DV_FL_IS_CE_VIDEO) ?
+-			" CE_VIDEO" : "");
+-	pr_info("%s: standards (0x%x):%s%s%s%s\n", dev_prefix, bt->standards,
++			" CE_VIDEO" : "",
++			(bt->flags & V4L2_DV_FL_FIRST_FIELD_EXTRA_LINE) ?
++			" FIRST_FIELD_EXTRA_LINE" : "");
++	pr_info("%s: standards (0x%x):%s%s%s%s%s\n", dev_prefix, bt->standards,
+ 			(bt->standards & V4L2_DV_BT_STD_CEA861) ?  " CEA" : "",
+ 			(bt->standards & V4L2_DV_BT_STD_DMT) ?  " DMT" : "",
+ 			(bt->standards & V4L2_DV_BT_STD_CVT) ?  " CVT" : "",
+-			(bt->standards & V4L2_DV_BT_STD_GTF) ?  " GTF" : "");
++			(bt->standards & V4L2_DV_BT_STD_GTF) ?  " GTF" : "",
++			(bt->standards & V4L2_DV_BT_STD_SDI) ?  " SDI" : "");
+ }
+ EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
+ 
+diff --git a/include/uapi/linux/v4l2-dv-timings.h b/include/uapi/linux/v4l2-dv-timings.h
+index 086168e..b7f3a6b 100644
+--- a/include/uapi/linux/v4l2-dv-timings.h
++++ b/include/uapi/linux/v4l2-dv-timings.h
+@@ -934,4 +934,16 @@
+ 		V4L2_DV_FL_REDUCED_BLANKING) \
+ }
+ 
++/* SDI timings definitions */
++
++/* SMPTE-125M */
++#define V4L2_DV_BT_SDI_720X487I60 { \
++	.type = V4L2_DV_BT_656_1120, \
++	V4L2_INIT_BT_TIMINGS(720, 487, 1, \
++		V4L2_DV_HSYNC_POS_POL, \
++		13500000, 16, 121, 0, 0, 19, 2, 0, 17, 0, \
++		V4L2_DV_BT_STD_SDI, \
++		V4L2_DV_FL_FIRST_FIELD_EXTRA_LINE) \
++}
++
+ #endif
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 8f95191..37126a4 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1259,6 +1259,7 @@ struct v4l2_bt_timings {
+ #define V4L2_DV_BT_STD_DMT	(1 << 1)  /* VESA Discrete Monitor Timings */
+ #define V4L2_DV_BT_STD_CVT	(1 << 2)  /* VESA Coordinated Video Timings */
+ #define V4L2_DV_BT_STD_GTF	(1 << 3)  /* VESA Generalized Timings Formula */
++#define V4L2_DV_BT_STD_SDI	(1 << 4)  /* SDI Timings */
+ 
+ /* Flags */
+ 
+@@ -1290,6 +1291,11 @@ struct v4l2_bt_timings {
+  * use the range 16-235) as opposed to 0-255. All formats defined in CEA-861
+  * except for the 640x480 format are CE formats. */
+ #define V4L2_DV_FL_IS_CE_VIDEO			(1 << 4)
++/* Some formats like SMPTE-125M have an interlaced signal with a odd
++ * total height. For these formats, if this flag is set, the first
++ * field has the extra line. If not, it is the second field.
++ */
++#define V4L2_DV_FL_FIRST_FIELD_EXTRA_LINE		(1 << 5)
+ 
+ /* A few useful defines to calculate the total blanking and frame sizes */
+ #define V4L2_DV_BT_BLANKING_WIDTH(bt) \
+@@ -1413,6 +1419,8 @@ struct v4l2_input {
+ /* field 'status' - analog */
+ #define V4L2_IN_ST_NO_H_LOCK   0x00000100  /* No horizontal sync lock */
+ #define V4L2_IN_ST_COLOR_KILL  0x00000200  /* Color killer is active */
++#define V4L2_IN_ST_NO_V_LOCK   0x00000400  /* No vertical sync lock */
++#define V4L2_IN_ST_NO_STD_LOCK 0x00000800  /* No standard format lock */
+ 
+ /* field 'status' - digital */
+ #define V4L2_IN_ST_NO_SYNC     0x00010000  /* No synchronization lock */
+-- 
+2.7.4
 
