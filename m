@@ -1,136 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:54288 "EHLO smtp3-1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752510AbcHJSJE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2016 14:09:04 -0400
-From: Markus Heiser <markus.heiser@darmarit.de>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Markus Heiser <markus.heiser@darmarIT.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] v4l-utils: fixed dvbv5 vdr format
-Date: Wed, 10 Aug 2016 11:52:19 +0200
-Message-Id: <1470822739-29519-3-git-send-email-markus.heiser@darmarit.de>
-In-Reply-To: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de>
-References: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:40329 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932366AbcHDJaG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Aug 2016 05:30:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/7] vivid: don't mention the obsolete sYCC Y'CbCr encoding
+Date: Thu,  4 Aug 2016 11:28:16 +0200
+Message-Id: <1470302901-29281-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1470302901-29281-1-git-send-email-hverkuil@xs4all.nl>
+References: <1470302901-29281-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Heiser <markus.heiser@darmarIT.de>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-From: Heiser, Markus <markus.heiser@darmarIT.de>
+This encoding is identical to the 601 encoding. The old duplicate
+SYCC define is about to be removed for use in the kernel, so remove
+its use in vivid first.
 
-The vdr format was broken, I got '(null)' entries
-
-HD:11494:S1HC23I0M5N1O35:S:(null):22000:5101:5102,5103,5106,5108:0:0:10301:0:0:0:
-0-:1----:2--------------:3:4-----:
-
-refering to the VDR Wikis ...
-
-* LinuxTV: http://www.linuxtv.org/vdrwiki/index.php/Syntax_of_channels.conf
-* german comunity Wiki: http://www.vdr-wiki.de/wiki/index.php/Channels.conf#Parameter_ab_VDR-1.7.4
-
-There is no field at position 4 / in between "Source" and "SRate" which
-might have a value. I suppose the '(null):' is the result of pointing
-to *nothing*.
-
-An other mistake is the ending colon (":") at the line. It is not
-explicit specified but adding an collon to the end of an channel entry
-will prevent players (like mpv or mplayer) from parsing the line (they
-will ignore these lines).
-
-At least: generating a channel list with
-
-  dvbv5-scan --output-format=vdr ...
-
-will result in the same defective channel entry, containing "(null):"
-and the leading collon ":".
-
-Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- lib/libdvbv5/dvb-vdr-format.c | 45 +++++++++++++++++++++++++++++--------------
- 1 file changed, 31 insertions(+), 14 deletions(-)
+ drivers/media/platform/vivid/vivid-ctrls.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/lib/libdvbv5/dvb-vdr-format.c b/lib/libdvbv5/dvb-vdr-format.c
-index a4bd26b..ab0e5cf 100644
---- a/lib/libdvbv5/dvb-vdr-format.c
-+++ b/lib/libdvbv5/dvb-vdr-format.c
-@@ -309,13 +309,14 @@ int dvb_write_format_vdr(const char *fname,
- 		fprintf(fp, "%s", entry->channel);
- 		if (entry->vchannel)
- 			fprintf(fp, ",%s", entry->vchannel);
-+		fprintf(fp, ":");
- 
- 		/*
- 		 * Output frequency:
- 		 *	in kHz for terrestrial/cable
- 		 *	in MHz for satellite
- 		 */
--		fprintf(fp, ":%i:", freq / 1000);
-+		fprintf(fp, "%i:", freq / 1000);
- 
- 		/* Output modulation parameters */
- 		fmt = &formats[i];
-@@ -349,20 +350,30 @@ int dvb_write_format_vdr(const char *fname,
- 
- 			fprintf(fp, "%s", table->table[data]);
- 		}
--
--		/* Output format type */
--		fprintf(fp, ":%s:", id);
-+		fprintf(fp, ":");
- 
- 		/*
--		 * Output satellite location
--		 * FIXME: probably require some adjustments to match the
--		 *	  format expected by VDR.
-+		 * Output sources configuration for VDR
-+		 *
-+		 *   S (satellite) xy.z (orbital position in degrees) E or W (east or west)
-+		 *
-+		 *   FIXME: in case of ATSC we use "A", this is what w_scan does
- 		 */
--		switch(delsys) {
--		case SYS_DVBS:
--		case SYS_DVBS2:
--			fprintf(fp, "%s:", entry->location);
-+
-+		if (entry->location) {
-+			switch(delsys) {
-+			case SYS_DVBS:
-+			case SYS_DVBS2:
-+				fprintf(fp, "%s", entry->location);
-+				break;
-+			default:
-+				fprintf(fp, "%s", id);
-+				break;
-+			}
-+		} else {
-+			fprintf(fp, "%s", id);
- 		}
-+		fprintf(fp, ":");
- 
- 		/* Output symbol rate */
- 		srate = 27500000;
-@@ -407,10 +418,16 @@ int dvb_write_format_vdr(const char *fname,
- 		/* Output Service ID */
- 		fprintf(fp, "%d:", entry->service_id);
- 
--		/* Output SID, NID, TID and RID */
--		fprintf(fp, "0:0:0:");
-+		/* Output Network ID */
-+		fprintf(fp, "0:");
- 
--		fprintf(fp, "\n");
-+		/* Output Transport Stream ID */
-+		fprintf(fp, "0:");
-+
-+		/* Output Radio ID
-+		 * this is the last entry, tagged bei a new line (not a colon!)
-+		 */
-+		fprintf(fp, "0\n");
- 		line++;
- 	};
- 	fclose (fp);
+diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
+index b98089c..aceb38d 100644
+--- a/drivers/media/platform/vivid/vivid-ctrls.c
++++ b/drivers/media/platform/vivid/vivid-ctrls.c
+@@ -761,7 +761,7 @@ static const char * const vivid_ctrl_ycbcr_enc_strings[] = {
+ 	"Rec. 709",
+ 	"xvYCC 601",
+ 	"xvYCC 709",
+-	"sYCC",
++	"",
+ 	"BT.2020",
+ 	"BT.2020 Constant Luminance",
+ 	"SMPTE 240M",
+@@ -773,6 +773,7 @@ static const struct v4l2_ctrl_config vivid_ctrl_ycbcr_enc = {
+ 	.id = VIVID_CID_YCBCR_ENC,
+ 	.name = "Y'CbCr Encoding",
+ 	.type = V4L2_CTRL_TYPE_MENU,
++	.menu_skip_mask = 1 << 5,
+ 	.max = ARRAY_SIZE(vivid_ctrl_ycbcr_enc_strings) - 2,
+ 	.qmenu = vivid_ctrl_ycbcr_enc_strings,
+ };
 -- 
-2.7.4
+2.8.1
 
