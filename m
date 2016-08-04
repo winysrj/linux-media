@@ -1,148 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46802 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754226AbcHSKYF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 06:24:05 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v2 07/17] media: Split initialisation and adding device
-Date: Fri, 19 Aug 2016 13:23:38 +0300
-Message-Id: <1471602228-30722-8-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from smtp.220.in.ua ([89.184.67.205]:52870 "EHLO smtp.220.in.ua"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750790AbcHDHzU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Aug 2016 03:55:20 -0400
+From: Oleh Kravchenko <oleg@kaa.org.ua>
+To: linux-media@vger.kernel.org, crope@iki.fi
+Cc: Oleh Kravchenko <oleg@kaa.org.ua>
+Subject: [PATCH] [media] si2157: Improve support Si2158-A20 tuner
+Date: Thu,  4 Aug 2016 10:54:02 +0300
+Message-Id: <1470297242-32129-1-git-send-email-oleg@kaa.org.ua>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As registering a device node of an entity belonging to a media device
-will require a reference to the struct device. Taking that reference is
-only possible once the device has been initialised, which took place only
-when it was registered. Split this in two, and initialise the device when
-the media device is allocated.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
 ---
- drivers/media/media-device.c          |  1 +
- drivers/media/media-devnode.c         | 15 ++++++++++-----
- drivers/media/platform/omap3isp/isp.c |  4 +++-
- include/media/media-devnode.h         | 15 +++++++++++----
- 4 files changed, 25 insertions(+), 10 deletions(-)
+ drivers/media/tuners/si2157.c      | 34 +++++++++++++++++++++++++++-------
+ drivers/media/tuners/si2157_priv.h |  1 +
+ 2 files changed, 28 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 5a86d36..d527491 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -707,6 +707,7 @@ struct media_device *media_device_alloc(void)
- 	if (!mdev)
- 		return NULL;
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index 57b2508..d7035a5 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -103,12 +103,21 @@ static int si2157_init(struct dvb_frontend *fe)
+ 		goto warm;
  
-+	media_devnode_init(&mdev->devnode);
- 	media_device_init(mdev);
- 
- 	return mdev;
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index 7481c96..aa8030b 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -219,6 +219,11 @@ static const struct file_operations media_devnode_fops = {
- 	.llseek = no_llseek,
- };
- 
-+void media_devnode_init(struct media_devnode *devnode)
-+{
-+	device_initialize(&devnode->dev);
-+}
+ 	/* power up */
+-	if (dev->chiptype == SI2157_CHIPTYPE_SI2146) {
+-		memcpy(cmd.args, "\xc0\x05\x01\x00\x00\x0b\x00\x00\x01", 9);
+-		cmd.wlen = 9;
+-	} else {
+-		memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
+-		cmd.wlen = 15;
++	switch (dev->chiptype) {
++		case SI2157_CHIPTYPE_SI2146:
++			memcpy(cmd.args, "\xc0\x05\x01\x00\x00\x0b\x00\x00\x01", 9);
++			cmd.wlen = 9;
++			break;
 +
- int __must_check media_devnode_register(struct media_devnode *devnode,
- 					struct module *owner)
- {
-@@ -256,7 +261,7 @@ int __must_check media_devnode_register(struct media_devnode *devnode,
- 	if (devnode->parent)
- 		devnode->dev.parent = devnode->parent;
- 	dev_set_name(&devnode->dev, "media%d", devnode->minor);
--	ret = device_register(&devnode->dev);
-+	ret = device_add(&devnode->dev);
- 	if (ret < 0) {
- 		pr_err("%s: device_register failed\n", __func__);
- 		goto error;
-@@ -291,7 +296,7 @@ void media_devnode_unregister(struct media_devnode *devnode)
- /*
-  *	Initialise media for linux
-  */
--static int __init media_devnode_init(void)
-+static int __init media_devnode_module_init(void)
- {
- 	int ret;
++		case SI2157_CHIPTYPE_SI2158:
++			memcpy(cmd.args, "\xC0\x00\x00\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
++			cmd.wlen = 15;
++			break;
++
++		default:
++			memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
++			cmd.wlen = 15;
++			break;
+ 	}
+ 	cmd.rlen = 1;
+ 	ret = si2157_cmd_execute(client, &cmd);
+@@ -204,6 +213,16 @@ skip_fw_download:
+ 	if (ret)
+ 		goto err;
  
-@@ -313,14 +318,14 @@ static int __init media_devnode_init(void)
- 	return 0;
- }
- 
--static void __exit media_devnode_exit(void)
-+static void __exit media_devnode_module_exit(void)
- {
- 	bus_unregister(&media_bus_type);
- 	unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
- }
- 
--subsys_initcall(media_devnode_init);
--module_exit(media_devnode_exit)
-+subsys_initcall(media_devnode_module_init);
-+module_exit(media_devnode_module_exit)
- 
- MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
- MODULE_DESCRIPTION("Device node registration for media drivers");
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 5d54e2c..aa32537 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1726,8 +1726,10 @@ static int isp_register_entities(struct isp_device *isp)
- 		goto done;
- 
- done:
--	if (ret < 0)
-+	if (ret < 0) {
- 		isp_unregister_entities(isp);
-+		media_device_put(&isp->media_dev);
++	/* start tuner? */
++	if (SI2157_CHIPTYPE_SI2158 == dev->chiptype) {
++		memcpy(cmd.args, "\xC0\x00\x0C", 3);
++		cmd.wlen = 3;
++		cmd.rlen = 1;
++		ret = si2157_cmd_execute(client, &cmd);
++		if (ret)
++			goto err;
 +	}
- 
- 	return ret;
- }
-diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-index a0f6823..5253a4b 100644
---- a/include/media/media-devnode.h
-+++ b/include/media/media-devnode.h
-@@ -102,6 +102,17 @@ struct media_devnode {
- #define to_media_devnode(cd) container_of(cd, struct media_devnode, dev)
- 
- /**
-+ * media_devnode_init - initialise a media devnode
-+ *
-+ * @devnode: struct media_devnode we want to initialise
-+ *
-+ * Initialise a media devnode. Note that after initialising the media
-+ * devnode is refcounted. Releaseing references to it may be done
-+ * using put_device.
-+ */
-+void media_devnode_init(struct media_devnode *devnode);
 +
-+/**
-  * media_devnode_register - register a media device node
-  *
-  * @devnode: struct media_devnode we want to register a device node
-@@ -112,10 +123,6 @@ struct media_devnode {
-  * or if the registration of the device node fails.
-  *
-  * Zero is returned on success.
-- *
-- * Note that if the media_devnode_register call fails, the release() callback of
-- * the media_devnode structure is *not* called, so the caller is responsible for
-- * freeing any data.
-  */
- int __must_check media_devnode_register(struct media_devnode *devnode,
- 					struct module *owner);
+ 	/* query firmware version */
+ 	memcpy(cmd.args, "\x11", 1);
+ 	cmd.wlen = 1;
+@@ -506,8 +525,9 @@ static int si2157_remove(struct i2c_client *client)
+ }
+ 
+ static const struct i2c_device_id si2157_id_table[] = {
+-	{"si2157", SI2157_CHIPTYPE_SI2157},
+ 	{"si2146", SI2157_CHIPTYPE_SI2146},
++	{"si2157", SI2157_CHIPTYPE_SI2157},
++	{"si2158", SI2157_CHIPTYPE_SI2158},
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(i2c, si2157_id_table);
+diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
+index d6b2c7b..677fa00 100644
+--- a/drivers/media/tuners/si2157_priv.h
++++ b/drivers/media/tuners/si2157_priv.h
+@@ -42,6 +42,7 @@ struct si2157_dev {
+ 
+ #define SI2157_CHIPTYPE_SI2157 0
+ #define SI2157_CHIPTYPE_SI2146 1
++#define SI2157_CHIPTYPE_SI2158 2
+ 
+ /* firmware command struct */
+ #define SI2157_ARGLEN      30
 -- 
-2.1.4
+2.7.3
 
