@@ -1,73 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:43095 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932236AbcHKLr3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 07:47:29 -0400
-From: Jani Nikula <jani.nikula@linux.intel.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-doc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, corbet@lwn.net
-Subject: Re: [RFC 3/4] Documentation: move dma-buf documentation to rst
-In-Reply-To: <1470912480-32304-4-git-send-email-sumit.semwal@linaro.org>
-References: <1470912480-32304-1-git-send-email-sumit.semwal@linaro.org> <1470912480-32304-4-git-send-email-sumit.semwal@linaro.org>
-Date: Thu, 11 Aug 2016 14:47:26 +0300
-Message-ID: <87twerv86p.fsf@intel.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:46039 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932165AbcHDIZ4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Aug 2016 04:25:56 -0400
+Subject: Re: [PATCHv2] serio: add hangup support
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+References: <0d959a01-e698-0178-af89-5925469f95ab@xs4all.nl>
+ <20160803152602.GB29702@dtor-ws>
+Cc: linux-input <linux-input@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <54e5a952-f37c-3777-e789-39a4d59e1923@xs4all.nl>
+Date: Thu, 4 Aug 2016 10:25:50 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20160803152602.GB29702@dtor-ws>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 11 Aug 2016, Sumit Semwal <sumit.semwal@linaro.org> wrote:
-> diff --git a/Documentation/dma-buf/guide.rst b/Documentation/dma-buf/guide.rst
-> new file mode 100644
-> index 000000000000..fd3534fdccb3
-> --- /dev/null
-> +++ b/Documentation/dma-buf/guide.rst
-> @@ -0,0 +1,503 @@
-> +
-> +.. _dma-buf-guide:
-> +
-> +============================
-> +DMA Buffer Sharing API Guide
-> +============================
-> +
-> +Sumit Semwal - sumit.semwal@linaro.org, sumits@kernel.org
-
-Please use the format
-
-:author: Sumit Semwal <sumit.semwal@linaro.org>
-
----
-
-While on this subject, please excuse me for hijacking the thread a bit.
-
-Personally, I believe it would be better to leave out authorship notes
-from documentation and source files in collaborative projects. Of
-course, it is only fair that people who deserve credit get the
-credit. Listing the authors in the file is often the natural thing to
-do, and superficially seems fair.
-
-However, when do you add more names to the list? When has someone
-contributed enough to warrant that? Is it fair that the original authors
-keep getting the credit for the contributions of others? After a while,
-perhaps there is next to nothing left of the original contributions, but
-the bar is really high for removing anyone from the authors. Listing the
-authors gives the impression this is *their* file, while everyone should
-feel welcome to contribute, and everyone who contributes should feel
-ownership.
-
-IMHO we would be better off using just the git history for the credits.
 
 
-BR,
-Jani.
+On 08/03/2016 05:26 PM, Dmitry Torokhov wrote:
+> On Wed, Aug 03, 2016 at 01:00:44PM +0200, Hans Verkuil wrote:
+>> The Pulse-Eight USB CEC adapter is a usb device that shows up as a ttyACM0 device.
+>> It requires that you run inputattach in order to communicate with it via serio.
+>>
+>> This all works well, but it would be nice to have a udev rule to automatically
+>> start inputattach. That too works OK, but the problem comes when the USB device
+>> is unplugged: the tty hangup is never handled by the serio framework so the
+>> inputattach utility never exits and you have to kill it manually.
+>>
+>> By adding this hangup callback the inputattach utility now properly exits as
+>> soon as the USB device is unplugged.
+>>
+>> The udev rule I used on my Debian sid system is:
+>>
+>> SUBSYSTEM=="tty", KERNEL=="ttyACM[0-9]*", ATTRS{idVendor}=="2548", ATTRS{idProduct}=="1002", ACTION=="add", TAG+="systemd", ENV{SYSTEMD_WANTS}+="pulse8-cec-inputattach@%k.service"
+>>
+>> And pulse8-cec-inputattach@%k.service is as follows:
+>>
+>> ===============================================================
+>> [Unit]
+>> Description=inputattach for pulse8-cec device on %I
+>>
+>> [Service]
+>> Type=simple
+>> ExecStart=/usr/local/bin/inputattach --pulse8-cec /dev/%I
+>> KillMode=process
+>> ===============================================================
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>> Change since the original RFC patch: don't call close() from the hangup() function,
+>> instead only set the DEAD flag in hangup() instead of in close().
+>> ---
+>> diff --git a/drivers/input/serio/serport.c b/drivers/input/serio/serport.c
+>> index 9c927d3..4045e95 100644
+>> --- a/drivers/input/serio/serport.c
+>> +++ b/drivers/input/serio/serport.c
+>> @@ -71,7 +71,6 @@ static void serport_serio_close(struct serio *serio)
+>>
+>>  	spin_lock_irqsave(&serport->lock, flags);
+>>  	clear_bit(SERPORT_ACTIVE, &serport->flags);
+>> -	set_bit(SERPORT_DEAD, &serport->flags);
+>>  	spin_unlock_irqrestore(&serport->lock, flags);
+>>
+>>  	wake_up_interruptible(&serport->wait);
+> 
+> I think we should remove this line as well - the waiter is waiting on
+> SERPORT_DEAD bit, if we are not setting it we do not need to wake up the
+> waiter either.
+> 
+> I can fix it up on my side.
 
+OK, I wasn't sure about that myself, thanks for looking into this and taking care of it.
 
-PS. I am no saint here, I've got a couple of authors lines myself. I
-promise not to add more. I certainly won't chastise anyone for adding
-theirs.
+Regards,
 
-
--- 
-Jani Nikula, Intel Open Source Technology Center
+	Hans
