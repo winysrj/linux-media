@@ -1,54 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:38574 "EHLO smtp3-1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750785AbcHPHPN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2016 03:15:13 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH 2/2] v4l-utils: fixed dvbv5 vdr format
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <1470822739-29519-3-git-send-email-markus.heiser@darmarit.de>
-Date: Tue, 16 Aug 2016 09:10:35 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <17EDB327-2244-42A4-A052-645D82CA94A4@darmarit.de>
-References: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de> <1470822739-29519-3-git-send-email-markus.heiser@darmarit.de>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46723 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932660AbcHDNVj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2016 09:21:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Kieran Bingham <kieran@ksquared.org.uk>
+Subject: Re: [PATCH] v4l: ioctl: Clear the v4l2_pix_format_mplane reserved field
+Date: Thu, 04 Aug 2016 16:21:42 +0300
+Message-ID: <2087876.N3OQSBIB2n@avalon>
+In-Reply-To: <aa4960c5-780e-bd26-4539-fd867e75f2af@xs4all.nl>
+References: <1467120010-30973-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <aa4960c5-780e-bd26-4539-fd867e75f2af@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
-Am 10.08.2016 um 11:52 schrieb Markus Heiser <markus.heiser@darmarIT.de>:
+On Friday 01 Jul 2016 12:52:31 Hans Verkuil wrote:
+> On 06/28/2016 03:20 PM, Laurent Pinchart wrote:
+> > The S_FMT and TRY_FMT handlers in multiplane mode attempt at clearing
+> > the reserved fields of the v4l2_format structure after the pix_mp
+> > member. However, the reserved fields are inside pix_mp, not after it.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/v4l2-core/v4l2-ioctl.c | 8 ++++----
+> >  1 file changed, 4 insertions(+), 4 deletions(-)
+> > 
+> > Kieran, this should fix the v4l2-compliance failures you saw when not
+> > clearing pix_mp.reserved manually in the FDP1 driver. Could you please
+> > test it ?
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
+> > b/drivers/media/v4l2-core/v4l2-ioctl.c index 19d3aee3b374..86332072a575
+> > 100644
+> > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> > @@ -1508,7 +1508,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops
+> > *ops,> 
+> >  	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> >  		if (unlikely(!is_rx || !is_vid || !ops-
+>vidioc_s_fmt_vid_cap_mplane))
+> >  		
+> >  			break;
+> > 
+> > -		CLEAR_AFTER_FIELD(p, fmt.pix_mp);
+> > +		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+> 
+> The same is needed in v4l_try_fmt.
 
-> The vdr format was broken, I got '(null)' entries
-> 
-> HD:11494:S1HC23I0M5N1O35:S:(null):22000:5101:5102,5103,5106,5108:0:0:10301:0:0:0:
-> 0-:1----:2--------------:3:4-----:
-> 
-> refering to the VDR Wikis ...
-> 
-> * LinuxTV: http://www.linuxtv.org/vdrwiki/index.php/Syntax_of_channels.conf
-> * german comunity Wiki: http://www.vdr-wiki.de/wiki/index.php/Channels.conf#Parameter_ab_VDR-1.7.4
-> 
-> There is no field at position 4 / in between "Source" and "SRate" which
-> might have a value. I suppose the '(null):' is the result of pointing
-> to *nothing*.
-> 
-> An other mistake is the ending colon (":") at the line. It is not
-> explicit specified but adding an collon to the end of an channel entry
-> will prevent players (like mpv or mplayer) from parsing the line (they
-> will ignore these lines).
-> 
-> At least: generating a channel list with
-> 
->  dvbv5-scan --output-format=vdr ...
-> 
-> will result in the same defective channel entry, containing "(null):"
-> and the leading collon ":".
-> 
+Yes it is.
 
-Hi,
+[snip]
 
-please apply this patch or give me at least some feedback / thanks.
+Oh, surprise, it's here already :-)
 
--- Markus 
+> > @@ -1598,7 +1598,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops
+> >  	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> >  		if (unlikely(!is_rx || !is_vid || !ops->
+> > vidioc_try_fmt_vid_cap_mplane))
+> >  			break;
+> > -		CLEAR_AFTER_FIELD(p, fmt.pix_mp);
+> > +		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+> >  		return ops->vidioc_try_fmt_vid_cap_mplane(file, fh, arg);
+> >  	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+> >  		if (unlikely(!is_rx || !is_vid || !ops->
+> > vidioc_try_fmt_vid_overlay))
+> > @@ -1626,7 +1626,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops
+> >  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> >  		if (unlikely(!is_tx || !is_vid || !ops->
+> > vidioc_try_fmt_vid_out_mplane))
+> >  			break;
+> > -		CLEAR_AFTER_FIELD(p, fmt.pix_mp);
+> > +		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+> >  		return ops->vidioc_try_fmt_vid_out_mplane(file, fh, arg);
+> >  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+> >  		if (unlikely(!is_tx || !is_vid ||
+> >  		!ops->vidioc_try_fmt_vid_out_overlay))
+
+-- 
+Regards,
+
+Laurent Pinchart
+
