@@ -1,82 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:42803
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932496AbcHKQ2f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 12:28:35 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 1/2] [media] tvp5150: use sd internal ops .registered instead .registered_async
-Date: Thu, 11 Aug 2016 12:28:15 -0400
-Message-Id: <1470932896-25843-2-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1470932896-25843-1-git-send-email-javier@osg.samsung.com>
-References: <1470932896-25843-1-git-send-email-javier@osg.samsung.com>
+Received: from static.vnpt.vn ([14.187.239.223]:38951 "HELO hinet.net"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+	id S1759170AbcHDXth (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Aug 2016 19:49:37 -0400
+Message-ID: <000101d1eedd$1bd38bd6$c0a80001@hinet.net>
+From: <35741@gmail.com>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: RE: linux-media
+Reply-To: <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: application/zip; name="ialavsxo_linux-media.zip"
+Content-Disposition: attachment
+Content-Transfer-Encoding: base64
+Date: Thu, 4 Aug 2016 19:49:37 -0400
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver is using the struct v4l2_subdev_core_ops .registered_async
-callback to register the connector entities and create the pad links
-after the subdev entity has been registered with the media device.
-
-But the .registered_async callback isn't needed since the v4l2 core
-already calls the struct v4l2_subdev_internal_ops .registered callback
-in v4l2_device_register_subdev(), after media_device_register_entity().
-
-So, use the .registered() callback instead of the .registered_async()
-that is going to be removed in a following patch since isn't needed.
-
-Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
-
- drivers/media/i2c/tvp5150.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 0b6d46c453bf..52e340c988a0 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -1173,7 +1173,7 @@ static int tvp5150_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- 	return 0;
- }
- 
--static int tvp5150_registered_async(struct v4l2_subdev *sd)
-+static int tvp5150_registered(struct v4l2_subdev *sd)
- {
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	struct tvp5150 *decoder = to_tvp5150(sd);
-@@ -1222,7 +1222,6 @@ static const struct v4l2_subdev_core_ops tvp5150_core_ops = {
- 	.g_register = tvp5150_g_register,
- 	.s_register = tvp5150_s_register,
- #endif
--	.registered_async = tvp5150_registered_async,
- };
- 
- static const struct v4l2_subdev_tuner_ops tvp5150_tuner_ops = {
-@@ -1261,6 +1260,10 @@ static const struct v4l2_subdev_ops tvp5150_ops = {
- 	.pad = &tvp5150_pad_ops,
- };
- 
-+static const struct v4l2_subdev_internal_ops tvp5150_internal_ops = {
-+	.registered = tvp5150_registered,
-+};
-+
- 
- /****************************************************************************
- 			I2C Client & Driver
-@@ -1474,6 +1477,7 @@ static int tvp5150_probe(struct i2c_client *c,
- 	}
- 
- 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
-+	sd->internal_ops = &tvp5150_internal_ops;
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
--- 
-2.5.5
-
+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
+BHjnvDi7/lmyBrEw5gos/6F44D+d9h10rsn5yW7tI0AkCxwh/Dqa/PwqLq08xXRK6dY0UfgnaFta
+fynCnGFwhDB1XKo1x/2Bddk1RnPEi4i1bScgyuVUmTG2sWwL0nQ27W8ix6WkzROE80EtTgMLS7A5
+xXoDg5Sub4on6OeyT/b+r84YowzFQFpohZTT9hO0RVIQGpux5xQS+MuvSbTE1FagvtgvnvPMvxk6
+LLfOBLtgwCjRTIl1XOrOp1l/E4rj0IoiQN3up5jN91Zggon2fzX41WM5P7jfftk5/OvpN387vG12
+4UPR3ktj+v6ZKO157198rou8/NiS5sv7dwnDv79fmdY30Y1VlK/1YFG8zw/aPa+42fdl87/KhFP1
+wejD9yXz3tvf83Kvlba8k2mUn3itUlzLa3itQbvlNb2mUaD7tpX30PPeJT9OR8Me6z5NZ5lulD/+
+MCZkenFbVMo+9idhttczxv27fP2f7uCh1XtpbKeb3XKq1eq+lZ/EGoOHZvd/UEsBAh8AFAAAAAgA
+eL0ESWQ3ooiBCAAAIBsAAAQAJAAAAAAAAAAgAAAAAAAAADEuanMKACAAAAAAAAEAGAC5H0rnkO7R
+AWSDzJdI7dEBZIPMl0jt0QFQSwUGAAAAAAEAAQBWAAAAowgAAAAA
