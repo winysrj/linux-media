@@ -1,46 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:37784 "EHLO
-        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755095AbcH3KXq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Aug 2016 06:23:46 -0400
-Received: by mail-wm0-f43.google.com with SMTP id i5so27687663wmg.0
-        for <linux-media@vger.kernel.org>; Tue, 30 Aug 2016 03:23:46 -0700 (PDT)
-Date: Tue, 30 Aug 2016 11:23:42 +0100
-From: Peter Griffin <peter.griffin@linaro.org>
-To: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Yannick Fertre <yannick.fertre@st.com>, kernel@stlinux.com,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [STLinux Kernel] [PATCH v5 0/3] support of v4l2 encoder for
- STMicroelectronics SOC
-Message-ID: <20160830102342.GA19583@griffinp-ThinkPad-X1-Carbon-2nd>
-References: <1472476868-10322-1-git-send-email-jean-christophe.trotin@st.com>
+Received: from tex.lwn.net ([70.33.254.29]:60075 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759310AbcHDXKA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Aug 2016 19:10:00 -0400
+Date: Thu, 4 Aug 2016 17:09:56 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Jani Nikula <jani.nikula@intel.com>
+Cc: linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ben Hutchings <ben@decadent.org.uk>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>
+Subject: Re: [PATCH] DocBook: use DOCBOOKS="" to ignore DocBooks instead of
+ IGNORE_DOCBOOKS=1
+Message-ID: <20160804170956.506d6ad3@lwn.net>
+In-Reply-To: <1470300506-10151-1-git-send-email-jani.nikula@intel.com>
+References: <872c1d8d911f1d4ee48b2185554a63aa9026dc1a.1468080758.git.mchehab@s-opensource.com>
+	<1470300506-10151-1-git-send-email-jani.nikula@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1472476868-10322-1-git-send-email-jean-christophe.trotin@st.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Christophe,
+On Thu,  4 Aug 2016 11:48:26 +0300
+Jani Nikula <jani.nikula@intel.com> wrote:
 
-On Mon, 29 Aug 2016, Jean-Christophe Trotin wrote:
+> Instead of a separate ignore flag, use the obvious DOCBOOKS="" to ignore
+> all DocBook files.
 
-> version 5:
-> - Compilation problem with 4.8-rc1 corrected: unsigned long used for dma_attrs
-> - The video bitrate (V4L2_CID_MPEG_VIDEO_BITRATE) and the CPB size (V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE) were respectively considered in kbps and kb, while the V4L2 API specifies them in bps and kB. This is corrected and the code is now aligned with the V4L2 specification
-> - If the encoder close function (enc->close) has not been called through hva_stop_streaming (e.g. application is killed), it's called at the encoder instance release (hva_release)
-> - hva-v4l2.c: DEFAULT_* renamed HVA_DEFAULT_*
-> - hva-v4l2.c: few log messages modified
-> - typos corrected
-> - V4L2 compliance successfully passed with this version (see report below)
-> 
+Makes sense, applied.
 
-Looks like you forgot to add my: -
+Thanks,
 
- Acked-by: Peter Griffin <peter.griffin@linaro.org>
-
-regards,
-
-Peter.
+jon
