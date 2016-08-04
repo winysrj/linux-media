@@ -1,40 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f53.google.com ([209.85.215.53]:33774 "EHLO
-	mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932453AbcHCRR2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 13:17:28 -0400
-Received: by mail-lf0-f53.google.com with SMTP id b199so166190126lfe.0
-        for <linux-media@vger.kernel.org>; Wed, 03 Aug 2016 10:17:27 -0700 (PDT)
-Subject: Re: [PATCHv2 4/7] media: rcar-vin: fix height for TOP and BOTTOM
- fields
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	slongerbeam@gmail.com
-References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
- <20160802145107.24829-5-niklas.soderlund+renesas@ragnatech.se>
-Cc: lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <b343cd90-05db-a6d5-2e4d-ba345e18bde9@cogentembedded.com>
-Date: Wed, 3 Aug 2016 19:54:11 +0300
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:56701 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756650AbcHDNAj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Aug 2016 09:00:39 -0400
+Subject: Re: [PATCH v3] vcodec: mediatek: Add g/s_selection support for V4L2
+ Encoder
+To: Tiffany Lin <tiffany.lin@mediatek.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+References: <1470305295-27785-1-git-send-email-tiffany.lin@mediatek.com>
+Cc: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f84d1d4c-1794-26f1-f0e2-586dc9dfc687@xs4all.nl>
+Date: Thu, 4 Aug 2016 15:00:21 +0200
 MIME-Version: 1.0
-In-Reply-To: <20160802145107.24829-5-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1470305295-27785-1-git-send-email-tiffany.lin@mediatek.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/02/2016 05:51 PM, Niklas Söderlund wrote:
 
-> The height used for V4L2_FIELD_TOP and V4L2_FIELD_BOTTOM where wrong.
-> The frames only contain one filed so the height should be half of the
 
-    s/filed/field/.
+On 08/04/2016 12:08 PM, Tiffany Lin wrote:
+> This patch add g/s_selection support for MT8173 v4l2 encoder
+> 
+> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> ---
+> v3:
+> - add v4l2_s_selection to check constraint flags
+> - remove visible_height modification in s_fmt_out
 
-> frame.
->
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-[...]
+Is this selection-related, or is this an unrelated bug fix?
+If it is the latter, then please split it up as a separate patch.
 
-MBR, Sergei
+In both cases the commit log should explain a bit more why
+this s_fmt_out change is needed.
 
+> ---
+>  drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |   81 +++++++++++++++++---
+>  1 file changed, 71 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> index 3ed3f2d..c4b8e00 100644
+> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> @@ -487,7 +487,6 @@ static int vidioc_venc_s_fmt_out(struct file *file, void *priv,
+>  	struct mtk_q_data *q_data;
+>  	int ret, i;
+>  	struct mtk_video_fmt *fmt;
+> -	unsigned int pitch_w_div16;
+>  	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
+>  
+>  	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
+> @@ -530,15 +529,6 @@ static int vidioc_venc_s_fmt_out(struct file *file, void *priv,
+>  	q_data->coded_width = f->fmt.pix_mp.width;
+>  	q_data->coded_height = f->fmt.pix_mp.height;
+>  
+> -	pitch_w_div16 = DIV_ROUND_UP(q_data->visible_width, 16);
+> -	if (pitch_w_div16 % 8 != 0) {
+> -		/* Adjust returned width/height, so application could correctly
+> -		 * allocate hw required memory
+> -		 */
+> -		q_data->visible_height += 32;
+> -		vidioc_try_fmt(f, q_data->fmt);
+> -	}
+> -
+>  	q_data->field = f->fmt.pix_mp.field;
+>  	ctx->colorspace = f->fmt.pix_mp.colorspace;
+>  	ctx->ycbcr_enc = f->fmt.pix_mp.ycbcr_enc;
+> @@ -631,6 +621,74 @@ static int vidioc_try_fmt_vid_out_mplane(struct file *file, void *priv,
+>  	return vidioc_try_fmt(f, fmt);
+>  }
+>  
+> +static int vidioc_venc_g_selection(struct file *file, void *priv,
+> +				     struct v4l2_selection *s)
+> +{
+> +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
+> +	struct mtk_q_data *q_data;
+> +
+> +	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +		return -EINVAL;
+> +
+> +	q_data = mtk_venc_get_q_data(ctx, s->type);
+> +	if (!q_data)
+> +		return -EINVAL;
+> +
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> +		s->r.top = 0;
+> +		s->r.left = 0;
+> +		s->r.width = q_data->coded_width;
+> +		s->r.height = q_data->coded_height;
+> +		break;
+> +	case V4L2_SEL_TGT_CROP:
+> +		s->r.top = 0;
+> +		s->r.left = 0;
+> +		s->r.width = q_data->visible_width;
+> +		s->r.height = q_data->visible_height;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int vidioc_venc_s_selection(struct file *file, void *priv,
+> +				     struct v4l2_selection *s)
+> +{
+> +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
+> +	struct mtk_q_data *q_data;
+> +	struct v4l2_rect r = s->r;
+> +	int err;
+> +
+> +	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +		return -EINVAL;
+> +
+> +	q_data = mtk_venc_get_q_data(ctx, s->type);
+> +	if (!q_data)
+> +		return -EINVAL;
+> +
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_CROP:
+> +		/* Only support crop from (0,0) */
+> +		s->r.top = 0;
+> +		s->r.left = 0;
+> +		r.width = min(r.width, q_data->coded_width);
+> +		r.height = min(r.height, q_data->coded_height);
+> +		err = v4l2_s_selection(s, &r);
+> +		if (err)
+> +			return err;
+> +		q_data->visible_width = s->r.width;
+> +		q_data->visible_height = s->r.height;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +	return 0;
+> +}
+> +
+>  static int vidioc_venc_qbuf(struct file *file, void *priv,
+>  			    struct v4l2_buffer *buf)
+>  {
+> @@ -689,6 +747,9 @@ const struct v4l2_ioctl_ops mtk_venc_ioctl_ops = {
+>  
+>  	.vidioc_create_bufs		= v4l2_m2m_ioctl_create_bufs,
+>  	.vidioc_prepare_buf		= v4l2_m2m_ioctl_prepare_buf,
+> +
+> +	.vidioc_g_selection		= vidioc_venc_g_selection,
+> +	.vidioc_s_selection		= vidioc_venc_s_selection,
+>  };
+>  
+>  static int vb2ops_venc_queue_setup(struct vb2_queue *vq,
+> 
+
+The selection code looks good!
+
+	Hans
