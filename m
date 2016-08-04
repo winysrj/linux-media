@@ -1,114 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38574 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932581AbcHWAl7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 20:41:59 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH] docs-rst: kernel-doc: better output struct members
-Date: Mon, 22 Aug 2016 21:41:51 -0300
-Message-Id: <b15e9b9a13cde37628801ad99949e37153309d77.1471912909.git.mchehab@s-opensource.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51219
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751055AbcHDQZW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2016 12:25:22 -0400
+Date: Thu, 4 Aug 2016 13:25:15 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] V4L2: Add documentation for SDI timings and related
+ flags
+Message-ID: <20160804132515.3b3fb132@recife.lan>
+In-Reply-To: <65FBAAA2-4460-4940-920A-575D01EE0923@darmarit.de>
+References: <1470325151-14522-1-git-send-email-charles-antoine.couret@nexvision.fr>
+	<65FBAAA2-4460-4940-920A-575D01EE0923@darmarit.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right now, for a struct, kernel-doc produces the following output:
+Em Thu, 4 Aug 2016 18:04:50 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-	.. c:type:: struct v4l2_prio_state
+> Am 04.08.2016 um 17:39 schrieb Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>:
+> 
+> > Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+> > ---
+> > Documentation/media/uapi/v4l/vidioc-enuminput.rst  | 31 +++++++++++++++++-----
+> > .../media/uapi/v4l/vidioc-g-dv-timings.rst         | 16 +++++++++++
+> > 2 files changed, 40 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/Documentation/media/uapi/v4l/vidioc-enuminput.rst b/Documentation/media/uapi/v4l/vidioc-enuminput.rst
+> > index 5060f54..18331b9 100644
+> > --- a/Documentation/media/uapi/v4l/vidioc-enuminput.rst
+> > +++ b/Documentation/media/uapi/v4l/vidioc-enuminput.rst
+> > @@ -260,17 +260,34 @@ at index zero, incrementing by one until the driver returns ``EINVAL``.
+> > 
+> >    -  .. row 11
+> > 
+> > -       -  :cspan:`2` Digital Video
+> > +       -  ``V4L2_IN_ST_NO_V_LOCK``
+> > +
+> > +       -  0x00000400
+> > +
+> > +       -  No vertical sync lock.
+> > 
+> >    -  .. row 12
+> > 
+> > +       -  ``V4L2_IN_ST_NO_STD_LOCK``
+> > +
+> > +       -  0x00000800
+> > +
+> > +       -  No standard format lock in case of auto-detection format
+> > +	  by the component.
+> > +
+> > +    -  .. row 13
+> > +
+> > +       -  :cspan:`2` Digital Video
+> > +
+> > +    -  .. row 14
+> > +
+> >       -  ``V4L2_IN_ST_NO_SYNC``
+> > 
+> >       -  0x00010000
+> > 
+> >       -  No synchronization lock.
+> > 
+> > -    -  .. row 13
+> > +    -  .. row 15  
+> 
+> Hi Charles,
+> 
+> you don't need to continue the "row nn" comments. These row-numbering 
+> comes from the migration tool when we migrated from DocBook.
+> 
+> @Mauro: may it is the best, we drop all these "row nn" comments?
 
-	   stores the priority states
+For now, let's just keep it. I'll address it later. On several
+tables, the best way would actually to replace the "row \d" comment
+by a reference, like:
 
-	**Definition**
+    -  .. _v4l2-in-st-no-sync:
 
-	::
+      -  ``V4L2_IN_ST_NO_SYNC``
 
-	  struct v4l2_prio_state {
-	    atomic_t prios[4];
-	  };
+      -  0x00010000
 
-	**Members**
 
-	``atomic_t prios[4]``
-	  array with elements to store the array priorities
+and then fix the cross-references at the videodev2.h file, removing
+the exceptions at the videodev2.h.rst.exceptions file.
 
-Putting a member name in verbatim and adding a continuation line
-causes the LaTeX output to generate something like:
-	item[atomic_t prios\[4\]] array with elements to store the array priorities
+I intend to take care of it for 4.9.
 
-Everything inside "item" is non-breakable, with may produce
-lines bigger than the column width.
-
-Also, for function members, like:
-
-        int (* rx_read) (struct v4l2_subdev *sd, u8 *buf, size_t count,ssize_t *num);
-
-It puts the name of the member at the end, like:
-
-        int (*) (struct v4l2_subdev *sd, u8 *buf, size_t count,ssize_t *num) read
-
-With is very confusing.
-
-The best is to highlight what really matters: the member name; the type
-is a secondary information.
-
-So, change kernel-doc, for it to produce the output on a different way:
-
-	**Members**
-
-	``prios[4]``
-	  - **type**: ``atomic_t``
-
-	  array with elements to store the array priorities
-
-With such change, the name of the member will be the first visible
-thing, and will be in bold style. The type will still be there, inside
-a list.
-
-Also, as the type is not part of LaTeX "item[]", LaTeX will split it into
-multiple lines, if needed.
-
-So, both LaTeX/PDF and HTML outputs will look good.
-
-It should be noticed, however, that the way Sphinx LaTeX output handles
-things like:
-
-	Foo
-	   bar
-
-is different than the HTML output. On HTML, it will produce something
-like:
-
-	**Foo**
-	   bar
-
-While, on LaTeX, it puts both foo and bar at the same line, like:
-
-	**Foo** bar
-
-By starting the second line with a dash, both HTML and LaTeX output
-will do the same thing.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- scripts/kernel-doc | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index ba081c7636a2..d225e178aa1b 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -2000,7 +2000,7 @@ sub output_struct_rst(%) {
- 	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
- 	$type = $args{'parametertypes'}{$parameter};
-         print_lineno($parameterdesc_start_lines{$parameter_name});
--	print "``$type $parameter``\n";
-+	print "``" . $parameter . "``\n";
- 	output_highlight_rst($args{'parameterdescs'}{$parameter_name});
- 	print "\n";
-     }
 -- 
-2.7.4
-
+Thanks,
+Mauro
