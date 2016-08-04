@@ -1,110 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:32952 "EHLO
-	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768063AbcHROfq (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:36561 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933160AbcHDJaG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2016 10:35:46 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Antti Palosaari <crope@iki.fi>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v5 00/12] Add HSV format
-Date: Thu, 18 Aug 2016 16:33:26 +0200
-Message-Id: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
+	Thu, 4 Aug 2016 05:30:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/7] videodev2.h: fix sYCC/AdobeYCC default quantization range
+Date: Thu,  4 Aug 2016 11:28:15 +0200
+Message-Id: <1470302901-29281-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1470302901-29281-1-git-send-email-hverkuil@xs4all.nl>
+References: <1470302901-29281-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HSV formats are extremely useful for image segmentation. This set of
-patches makes v4l2 aware of this kind of formats.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Vivid changes have been divided to ease the reviewing process.
+The default quantization range of the Y'CbCr encodings of sRGB
+and AdobeRGB are full range instead of limited range according to
+the corresponding standards.
 
-We are working on patches for Gstreamer and OpenCV that will make use
-of these formats.
+Fix this in the V4L2_MAP_QUANTIZATION_DEFAULT macro.
 
-We still need to decide if and how we will support HUE range 0-255
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/uapi/v4l/pixfmt-007.rst | 4 ++--
+ include/uapi/linux/videodev2.h              | 7 ++++---
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-
-Changelog:
-It is rebased on top of https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=sycc
-
-v5: Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
--Redo "Local optimization for clamp" based on compiler output
-
-Suggested by Hans Verkuil <hverkuil@xs4all.nl> and
-- Start hsv encoding values at 128
-- Fix documentation 
-- Change MAP_QUANTIZATION_DEFAULT
-
-v4:  
-Suggested by Hans Verkuil <hverkuil@xs4all.nl> and
-- Rename YUV to YCBCR
-- Fix numerical error
-
-Suggested by Hans Verkuil <hverkuil@xs4all.nl> and
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
--Implement hsv_encoding for supporting 0-255 range
-
-
-v3:  
--Fix wrong handling of some YUV formats when brightness != 128
-
-Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
--Remove unneeded empty lines on .rst file
-Thanks!
-
-Suggested by Hans Verkuil <hverkuil@xs4all.nl>
--Rebase over master and docs-next
--Introduce TPG_COLOR_ENC_LUMA for gray formats
--CodeStyle
-Thanks!
-
-v2:
-Suggested by Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
--Rebase on top of docs-next (port documentation to .rst)
-
-Ricardo Ribalda Delgado (12):
-  [media] videodev2.h Add HSV formats
-  [media] Documentation: Add HSV format
-  [media] Documentation: Add Ricardo Ribalda
-  [media] vivid: Code refactor for color encoding
-  [media] vivid: Add support for HSV formats
-  [media] vivid: Rename variable
-  [media] vivid: Introduce TPG_COLOR_ENC_LUMA
-  [media] vivid: Fix YUV555 and YUV565 handling
-  [media] vivid: Local optimization
-  [media] videodev2.h Add HSV encoding
-  [media] Documentation: Add HSV encodings
-  [media] vivid: Add support for HSV encoding
-
- Documentation/media/uapi/v4l/hsv-formats.rst       |  19 +
- Documentation/media/uapi/v4l/pixfmt-002.rst        |  12 +-
- Documentation/media/uapi/v4l/pixfmt-003.rst        |  14 +-
- Documentation/media/uapi/v4l/pixfmt-006.rst        |  41 +-
- Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst | 159 ++++++++
- Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
- Documentation/media/uapi/v4l/v4l2.rst              |   9 +
- Documentation/media/videodev2.h.rst.exceptions     |   4 +
- drivers/media/common/v4l2-tpg/v4l2-tpg-core.c      | 411 ++++++++++++++-------
- drivers/media/platform/vivid/vivid-core.h          |   3 +-
- drivers/media/platform/vivid/vivid-ctrls.c         |  25 ++
- drivers/media/platform/vivid/vivid-vid-cap.c       |  17 +-
- drivers/media/platform/vivid/vivid-vid-common.c    |  68 ++--
- drivers/media/platform/vivid/vivid-vid-out.c       |   1 +
- drivers/media/v4l2-core/v4l2-ioctl.c               |   2 +
- include/media/v4l2-tpg.h                           |  24 +-
- include/uapi/linux/videodev2.h                     |  36 +-
- 17 files changed, 664 insertions(+), 182 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/hsv-formats.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
-
+diff --git a/Documentation/media/uapi/v4l/pixfmt-007.rst b/Documentation/media/uapi/v4l/pixfmt-007.rst
+index 8c946b0..017f166 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-007.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-007.rst
+@@ -339,7 +339,7 @@ The :ref:`adobergb` standard defines the colorspace used by computer
+ graphics that use the AdobeRGB colorspace. This is also known as the
+ :ref:`oprgb` standard. The default transfer function is
+ ``V4L2_XFER_FUNC_ADOBERGB``. The default Y'CbCr encoding is
+-``V4L2_YCBCR_ENC_601``. The default Y'CbCr quantization is limited
++``V4L2_YCBCR_ENC_601``. The default Y'CbCr quantization is full
+ range. The chromaticities of the primary colors and the white reference
+ are:
+ 
+@@ -412,7 +412,7 @@ the following ``V4L2_YCBCR_ENC_601`` encoding:
+ 
+ Y' is clamped to the range [0…1] and Cb and Cr are clamped to the range
+ [-0.5…0.5]. This transform is identical to one defined in SMPTE
+-170M/BT.601. The Y'CbCr quantization is limited range.
++170M/BT.601. The Y'CbCr quantization is full range.
+ 
+ 
+ .. _col-bt2020:
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 724f43e..12773f2 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -345,8 +345,8 @@ enum v4l2_quantization {
+ 	/*
+ 	 * The default for R'G'B' quantization is always full range, except
+ 	 * for the BT2020 colorspace. For Y'CbCr the quantization is always
+-	 * limited range, except for COLORSPACE_JPEG, SYCC, XV601 or XV709:
+-	 * those are full range.
++	 * limited range, except for COLORSPACE_JPEG, SRGB, ADOBERGB,
++	 * XV601 or XV709: those are full range.
+ 	 */
+ 	V4L2_QUANTIZATION_DEFAULT     = 0,
+ 	V4L2_QUANTIZATION_FULL_RANGE  = 1,
+@@ -361,7 +361,8 @@ enum v4l2_quantization {
+ #define V4L2_MAP_QUANTIZATION_DEFAULT(is_rgb, colsp, ycbcr_enc) \
+ 	(((is_rgb) && (colsp) == V4L2_COLORSPACE_BT2020) ? V4L2_QUANTIZATION_LIM_RANGE : \
+ 	 (((is_rgb) || (ycbcr_enc) == V4L2_YCBCR_ENC_XV601 || \
+-	  (ycbcr_enc) == V4L2_YCBCR_ENC_XV709 || (colsp) == V4L2_COLORSPACE_JPEG) ? \
++	  (ycbcr_enc) == V4L2_YCBCR_ENC_XV709 || (colsp) == V4L2_COLORSPACE_JPEG) || \
++	  (colsp) == V4L2_COLORSPACE_ADOBERGB || (colsp) == V4L2_COLORSPACE_SRGB ? \
+ 	 V4L2_QUANTIZATION_FULL_RANGE : V4L2_QUANTIZATION_LIM_RANGE))
+ 
+ enum v4l2_priority {
 -- 
 2.8.1
 
