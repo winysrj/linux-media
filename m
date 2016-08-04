@@ -1,117 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35202 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750828AbcH2HZg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 03:25:36 -0400
-Received: by mail-wm0-f68.google.com with SMTP id i5so8260679wmg.2
-        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2016 00:25:36 -0700 (PDT)
-From: Chris Wilson <chris@chris-wilson.co.uk>
-To: dri-devel@lists.freedesktop.org
-Cc: intel-gfx@lists.freedesktop.org,
-        Chris Wilson <chris@chris-wilson.co.uk>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
-Subject: [PATCH 06/11] dma-buf: Introduce fence_get_rcu_safe()
-Date: Mon, 29 Aug 2016 08:08:29 +0100
-Message-Id: <20160829070834.22296-6-chris@chris-wilson.co.uk>
-In-Reply-To: <20160829070834.22296-1-chris@chris-wilson.co.uk>
-References: <20160829070834.22296-1-chris@chris-wilson.co.uk>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41722 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750711AbcHDPJk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Aug 2016 11:09:40 -0400
+Date: Thu, 4 Aug 2016 17:59:25 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCHv2] v4l2-common: add s_selection helper function
+Message-ID: <20160804145925.GM3243@valkosipuli.retiisi.org.uk>
+References: <c6379bf1-4fdf-7deb-4312-86d26d0ee106@xs4all.nl>
+ <20160804140313.GI3243@valkosipuli.retiisi.org.uk>
+ <aa119982-53c6-37bf-d019-b6ccd27b5c8a@xs4all.nl>
+ <20160804141734.GK3243@valkosipuli.retiisi.org.uk>
+ <b343ec5f-0c03-ae92-ef92-a051b23060ca@xs4all.nl>
+ <20160804143813.GL3243@valkosipuli.retiisi.org.uk>
+ <0ea23a54-3a72-665f-30f3-e02f7f6f41fb@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <0ea23a54-3a72-665f-30f3-e02f7f6f41fb@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This variant of fence_get_rcu() takes an RCU protected pointer to a
-fence and carefully returns a reference to the fence ensuring that it is
-not reallocated as it does. This is required when mixing fences and
-SLAB_DESTROY_BY_RCU - although it serves a more pedagogical function atm
+On Thu, Aug 04, 2016 at 04:47:46PM +0200, Hans Verkuil wrote:
+> 
+> 
+> On 08/04/2016 04:38 PM, Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > On Thu, Aug 04, 2016 at 04:27:27PM +0200, Hans Verkuil wrote:
+> >>
+> >>
+> >> On 08/04/2016 04:17 PM, Sakari Ailus wrote:
+> >>> On Thu, Aug 04, 2016 at 04:11:55PM +0200, Hans Verkuil wrote:
+> >>>>
+> >>>>
+> >>>> On 08/04/2016 04:03 PM, Sakari Ailus wrote:
+> >>>>> Hi Hans,
+> >>>>>
+> >>>>> On Mon, Aug 01, 2016 at 12:33:39PM +0200, Hans Verkuil wrote:
+> >>>>>> Checking the selection constraint flags is often forgotten by drivers, especially
+> >>>>>> if the selection code just clamps the rectangle to the minimum and maximum allowed
+> >>>>>> rectangles.
+> >>>>>>
+> >>>>>> This patch adds a simple helper function that checks the adjusted rectangle against
+> >>>>>> the constraint flags and either returns -ERANGE if it doesn't fit, or fills in the
+> >>>>>> new rectangle and returns 0.
+> >>>>>>
+> >>>>>> It also adds a small helper function to v4l2-rect.h to check if one rectangle fits
+> >>>>>> inside another.
+> >>>>>
+> >>>>> I could have misunderstood the purpose of the patch but... these flags are
+> >>>>> used by drivers in guidance in adjusting the rectangle in case there are
+> >>>>> hardware limitations, to make it larger or smaller than requested if the
+> >>>>> request can't be fulfillsed as such. The intent is *not* to return an error
+> >>>>> back to the user. In this respect it works quite like e.g. S_FMT does in
+> >>>>> cases an exact requested format can't be supported.
+> >>>>>
+> >>>>> <URL:https://www.linuxtv.org/downloads/v4l-dvb-apis/apb.html#v4l2-selection-flags>
+> >>>>>
+> >>>>> What can be done is rather driver specific.
+> >>>>>
+> >>>>
+> >>>> That's not what the spec says:
+> >>>>
+> >>>> https://hverkuil.home.xs4all.nl/spec/uapi/v4l/vidioc-g-selection.html
+> >>>>
+> >>>> ERANGE
+> >>>> It is not possible to adjust struct v4l2_rect r rectangle to satisfy all constraints given in the flags argument.
+> >>>>
+> >>>> It's rather unambiguous, I think.
+> >>>>
+> >>>> If you don't want an error, then just leave 'flags' to 0. That makes sense.
+> >>>
+> >>> Does it? I can't imagine a use case for that.
+> >>
+> >> That's just the standard behavior: "I'd like this selection rectangle, but adjust
+> >> however you like it to something that works."
+> > 
+> > That's not how this patch works though: it returns an error instead.
+> 
+> No. If flags == 0, then it returns 0. Did you misread the patch?
 
-Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: linaro-mm-sig@lists.linaro.org
----
- include/linux/fence.h | 56 ++++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 51 insertions(+), 5 deletions(-)
+That's correct. But if you specify flags, instead of adjusting the rectangle
+the function in the patch returns an error.
 
-diff --git a/include/linux/fence.h b/include/linux/fence.h
-index 0d763053f97a..c9c5ba98c302 100644
---- a/include/linux/fence.h
-+++ b/include/linux/fence.h
-@@ -183,6 +183,16 @@ void fence_release(struct kref *kref);
- void fence_free(struct fence *fence);
- 
- /**
-+ * fence_put - decreases refcount of the fence
-+ * @fence:	[in]	fence to reduce refcount of
-+ */
-+static inline void fence_put(struct fence *fence)
-+{
-+	if (fence)
-+		kref_put(&fence->refcount, fence_release);
-+}
-+
-+/**
-  * fence_get - increases refcount of the fence
-  * @fence:	[in]	fence to increase refcount of
-  *
-@@ -210,13 +220,49 @@ static inline struct fence *fence_get_rcu(struct fence *fence)
- }
- 
- /**
-- * fence_put - decreases refcount of the fence
-- * @fence:	[in]	fence to reduce refcount of
-+ * fence_get_rcu_safe  - acquire a reference to an RCU tracked fence
-+ * @fence:	[in]	pointer to fence to increase refcount of
-+ *
-+ * Function returns NULL if no refcount could be obtained, or the fence.
-+ * This function handles acquiring a reference to a fence that may be
-+ * reallocated within the RCU grace period (such as with SLAB_DESTROY_BY_RCU),
-+ * so long as the caller is using RCU on the pointer to the fence.
-+ *
-+ * An alternative mechanism is to employ a seqlock to protect a bunch of
-+ * fences, such as used by struct reservation_object. When using a seqlock,
-+ * the seqlock must be taken before and checked after a reference to the
-+ * fence is acquired (as shown here).
-+ *
-+ * The caller is required to hold the RCU read lock.
-  */
--static inline void fence_put(struct fence *fence)
-+static inline struct fence *fence_get_rcu_safe(struct fence * __rcu *fencep)
- {
--	if (fence)
--		kref_put(&fence->refcount, fence_release);
-+	do {
-+		struct fence *fence;
-+
-+		fence = rcu_dereference(*fencep);
-+		if (!fence || !fence_get_rcu(fence))
-+			return NULL;
-+
-+		/* The atomic_inc_not_zero() inside fence_get_rcu()
-+		 * provides a full memory barrier upon success (such as now).
-+		 * This is paired with the write barrier from assigning
-+		 * to the __rcu protected fence pointer so that if that
-+		 * pointer still matches the current fence, we know we
-+		 * have successfully acquire a reference to it. If it no
-+		 * longer matches, we are holding a reference to some other
-+		 * reallocated pointer. This is possible if the allocator
-+		 * is using a freelist like SLAB_DESTROY_BY_RCU where the
-+		 * fence remains valid for the RCU grace period, but it
-+		 * may be reallocated. When using such allocators, we are
-+		 * responsible for ensuring the reference we get is to
-+		 * the right fence, as below.
-+		 */
-+		if (fence == rcu_access_pointer(*fencep))
-+			return rcu_pointer_handoff(fence);
-+
-+		fence_put(fence);
-+	} while (1);
- }
- 
- int fence_signal(struct fence *fence);
+The purpose of adjusting the rectangle to a particular direction (either up
+or down) is that often in a pipeline scaling is only available either way.
+For cropping this is obvious.
+
+So if you need an image the size of which is no less than a given one, then
+you specify what you want and V4L2_SEL_FL_GE. The flags are there for
+convenience. What I don't quite understand is in which case would an error
+be preferred instead.
+
+> 
+> > 
+> >>
+> >>> The common section still defines these flags differently, and that's the
+> >>> behaviour on V4L2 sub-device interface. Do we have a driver that implements
+> >>> support for these flags as you described?
+> >>>
+> >>
+> >> A quick check: fimc-capture, gsc-m2m, am437, vivid, fimc-lite, bdisp.
+> >>
+> >> Note that VIDIOC_SUBDEV_S_SELECTION doesn't specify an ERANGE error, but I don't know
+> >> if that is intentional or an oversight. At least smiapp-core.c doesn't return an error.
+> > 
+> > Please read the description of the flags in common documentation. The smiapp
+> > driver implements them as described in the common and V4L2 sub-device
+> > documentation:
+> > 
+> > <URL:https://www.linuxtv.org/downloads/v4l-dvb-apis/subdev.html#v4l2-subdev-selections>
+> > <URL:https://www.linuxtv.org/downloads/v4l-dvb-apis/apb.html#v4l2-selection-flags>
+> > 
+> > I.e. they affect rounding in the case where an exact match can't be found,
+> > hardware limitations taken into account. The V4L2 behaviour can be
+> > implemented using the common / sub-device flag definitions but not the other
+> > way around, so we don't necessary have a problem here. It's just that
+> > returning an error in such a case doesn't really make much sense.
+> > 
+> 
+> I think we need to clarify the spec first, since it is clearly ambiguous in some areas.
+
+Not ambiguous but internally conflicting.
+
+> Do you have some time tomorrow to discuss this on irc?
+
+Tomorrow works fine.
+
 -- 
-2.9.3
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
