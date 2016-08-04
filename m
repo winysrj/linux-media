@@ -1,67 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:59128 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755385AbcH2R4M (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 13:56:12 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Jiri Kosina <trivial@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v5 08/13] media: platform: pxa_camera: add buffer sequencing
-Date: Mon, 29 Aug 2016 19:55:53 +0200
-Message-Id: <1472493358-24618-9-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
-References: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
+Received: from 3.mo68.mail-out.ovh.net ([46.105.58.60]:50451 "EHLO
+	3.mo68.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965153AbcHDRBt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2016 13:01:49 -0400
+Received: from player788.ha.ovh.net (b7.ovh.net [213.186.33.57])
+	by mo68.mail-out.ovh.net (Postfix) with ESMTP id 194E6FF928B
+	for <linux-media@vger.kernel.org>; Thu,  4 Aug 2016 17:43:08 +0200 (CEST)
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+To: linux-media@vger.kernel.org
+Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Subject: [PATCH v5 0/2] Add GS1662 driver
+Date: Thu,  4 Aug 2016 17:42:52 +0200
+Message-Id: <1470325374-14784-1-git-send-email-charles-antoine.couret@nexvision.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add sequence numbers to completed buffers.
+These patches add a driver for GS1662 component, a video serializer which
+supports CEA and SDI timings.
+To perform that, we need to determine SDI definition and some flags.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
-Since v3: reset buffer sequence number in start_streaming()
----
- drivers/media/platform/soc_camera/pxa_camera.c | 5 +++++
- 1 file changed, 5 insertions(+)
+The associated documentation will be into another patchset to be
+Sphinx comaptible.
 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index 45583a40a4bd..9b294a14fa2e 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -223,6 +223,7 @@ struct pxa_camera_dev {
- 	struct list_head	capture;
- 
- 	spinlock_t		lock;
-+	unsigned int		buf_sequence;
- 
- 	struct pxa_buffer	*active;
- 	struct tasklet_struct	task_eof;
-@@ -423,10 +424,13 @@ static void pxa_camera_wakeup(struct pxa_camera_dev *pcdev,
- 			      struct pxa_buffer *buf)
- {
- 	struct vb2_buffer *vb = &buf->vbuf.vb2_buf;
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 
- 	/* _init is used to debug races, see comment in pxa_camera_reqbufs() */
- 	list_del_init(&buf->queue);
- 	vb->timestamp = ktime_get_ns();
-+	vbuf->sequence = pcdev->buf_sequence++;
-+	vbuf->field = V4L2_FIELD_NONE;
- 	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
- 	dev_dbg(pcdev_to_dev(pcdev), "%s dequeud buffer (buf=0x%p)\n",
- 		__func__, buf);
-@@ -1022,6 +1026,7 @@ static int pxac_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	dev_dbg(pcdev_to_dev(pcdev), "%s(count=%d) active=%p\n",
- 		__func__, count, pcdev->active);
- 
-+	pcdev->buf_sequence = 0;
- 	if (!pcdev->active)
- 		pxa_camera_start_capture(pcdev);
- 
+This patchset add:
+	* redefine SMPTE-125M timings to be compliant to standard
+
+Charles-Antoine Couret (2):
+  SDI: add flag for SDI formats and SMPTE 125M definition
+  Add GS1662 driver, a video serializer
+
+ drivers/media/Kconfig                     |   1 +
+ drivers/media/Makefile                    |   2 +-
+ drivers/media/spi/Kconfig                 |   9 +
+ drivers/media/spi/Makefile                |   1 +
+ drivers/media/spi/gs1662.c                | 472 ++++++++++++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-dv-timings.c |  11 +-
+ include/uapi/linux/v4l2-dv-timings.h      |  12 +
+ include/uapi/linux/videodev2.h            |   8 +
+ 8 files changed, 511 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/media/spi/Kconfig
+ create mode 100644 drivers/media/spi/Makefile
+ create mode 100644 drivers/media/spi/gs1662.c
+
 -- 
-2.1.4
+2.7.4
 
