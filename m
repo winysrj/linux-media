@@ -1,48 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:34638 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752389AbcHKKsV (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:39455 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756511AbcHEHjP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 06:48:21 -0400
-Received: by mail-pa0-f49.google.com with SMTP id fi15so25156580pac.1
-        for <linux-media@vger.kernel.org>; Thu, 11 Aug 2016 03:48:21 -0700 (PDT)
-From: Sumit Semwal <sumit.semwal@linaro.org>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-doc@vger.kernel.org
-Cc: corbet@lwn.net, linux-kernel@vger.kernel.org,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [RFC 1/4] dma-buf/fence: kerneldoc: remove unused struct members
-Date: Thu, 11 Aug 2016 16:17:57 +0530
-Message-Id: <1470912480-32304-2-git-send-email-sumit.semwal@linaro.org>
-In-Reply-To: <1470912480-32304-1-git-send-email-sumit.semwal@linaro.org>
-References: <1470912480-32304-1-git-send-email-sumit.semwal@linaro.org>
+	Fri, 5 Aug 2016 03:39:15 -0400
+Subject: Re: doc-rst: too much space around ``foo`` text
+To: Markus Heiser <markus.heiser@darmarit.de>
+References: <cc77239c-7e8f-7c03-bcdd-e19d87998aee@xs4all.nl>
+ <DD872694-1DF7-4444-9013-EBCD16801689@darmarit.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <cdd9f195-b304-c814-e967-3f9947a24332@xs4all.nl>
+Date: Fri, 5 Aug 2016 09:39:07 +0200
+MIME-Version: 1.0
+In-Reply-To: <DD872694-1DF7-4444-9013-EBCD16801689@darmarit.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 0431b9065f28ecf6c320fefebe0241620049984f ("staging/android: bring
-struct sync_pt back") removed child_list and active_list from struct fence,
-but left it in kernel doc. Delete them.
+Hi Markus,
 
-Fixes: 0431b9065f28 ("staging/android: bring struct sync_pt back")
+Did you have time to look at this yet? It is for me something that is really
+distracting. I tried to track this down myself but I just don't know enough about
+html/css.
 
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
----
- include/linux/fence.h | 2 --
- 1 file changed, 2 deletions(-)
+The text ``V4L2_XFER_FUNC_709`` is translated to:
 
-diff --git a/include/linux/fence.h b/include/linux/fence.h
-index 1de1b3f6fb76..5aa95eb886f7 100644
---- a/include/linux/fence.h
-+++ b/include/linux/fence.h
-@@ -49,8 +49,6 @@ struct fence_cb;
-  * @timestamp: Timestamp when the fence was signaled.
-  * @status: Optional, only valid if < 0, must be set before calling
-  * fence_signal, indicates that the fence has completed with an error.
-- * @child_list: list of children fences
-- * @active_list: list of active fences
-  *
-  * the flags member must be manipulated and read using the appropriate
-  * atomic ops (bit_*), so taking the spinlock will not be needed most
--- 
-2.7.4
+<code class="docutils literal"><span class="pre">V4L2_XFER_FUNC_709</span></code>.
 
+And it is the <code> part that adds the extra spacing somewhere.
+
+Originally <code> added a rectangle around the text, so I suspect that the extra spacing
+for that rectangle is still added somewhere.
+
+Regards.
+
+	Hans
+
+On 07/09/2016 10:40 AM, Markus Heiser wrote:
+> Hi Hans,
+> 
+> Am 08.07.2016 um 22:52 schrieb Hans Verkuil <hverkuil@xs4all.nl>:
+> 
+>> Hi Markus,
+>>
+>> First of all a big 'Thank you!' for working on this, very much appreciated.
+>> And I also am very grateful that you could convert the CEC docs so quickly for me.
+> 
+> You are welcome :)
+> 
+>> That said, can you take a look at this:
+>>
+>> https://mchehab.fedorapeople.org/media_API_book/linux_tv/media/v4l/vidioc-enum-fmt.html
+>>
+>> As you can see, every text written as ``foo`` in the rst file has a bit too much space
+>> around it. It's especially clear in the description of the 'type' field: the commas
+>> after each V4L2_BUF_TYPE_ constant should be right after the last character, and now
+>> it looks as if there is a space in front.
+>>
+>> It's jarring when you read it, but it is probably easy to fix for someone who knows
+>> this stuff.
+> 
+> Yes, this is a good point, the layout of inline constant markup bothers me also.
+> The Read-The-Doc (RTD) theme we use is IMHO the best on the web, since it is well
+> maintained and supports a good layout on various viewports:
+> 
+>   http://read-the-docs.readthedocs.io/en/latest/theme.html
+> 
+> Nevertheless I think in some details it is a bit to excessive.
+> 
+> I will place it on my TODO list .. hopefully I find the time to solve
+> it in the next days.
+> 
+> -- Markus --
+> 
+>>
+>> Thanks!
+>>
+>> 	Hans
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
