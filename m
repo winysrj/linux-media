@@ -1,116 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52688 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755202AbcHSPEw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 11:04:52 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>,
-        linux-doc@vger.kernel.org
-Subject: [PATCH 2/2] [media] Fix a few additional tables at uAPI for LaTeX output
-Date: Fri, 19 Aug 2016 12:04:40 -0300
-Message-Id: <3acd174d5652598c91cbf0eb4f5726c991ff77a6.1471618226.git.mchehab@s-opensource.com>
-In-Reply-To: <411888a5abc400c7ca33573435d9a4bbce91a4dc.1471618226.git.mchehab@s-opensource.com>
-References: <411888a5abc400c7ca33573435d9a4bbce91a4dc.1471618226.git.mchehab@s-opensource.com>
-In-Reply-To: <411888a5abc400c7ca33573435d9a4bbce91a4dc.1471618226.git.mchehab@s-opensource.com>
-References: <411888a5abc400c7ca33573435d9a4bbce91a4dc.1471618226.git.mchehab@s-opensource.com>
+Received: from mga09.intel.com ([134.134.136.24]:49379 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759628AbcHEKqp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Aug 2016 06:46:45 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl
+Subject: [PATCH v3 05/11] v4l: Add packed Bayer raw12 pixel formats
+Date: Fri,  5 Aug 2016 13:45:35 +0300
+Message-Id: <1470393941-26959-6-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1470393941-26959-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1470393941-26959-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are still a few tables with wrong columns at the uAPI
-docs. Fix them.
+These formats are compressed 12-bit raw bayer formats with four different
+pixel orders. They are similar to 10-bit variants. The formats added by
+this patch are
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+	V4L2_PIX_FMT_SBGGR12P
+	V4L2_PIX_FMT_SGBRG12P
+	V4L2_PIX_FMT_SGRBG12P
+	V4L2_PIX_FMT_SRGGB12P
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/media/uapi/dvb/fe-get-info.rst            | 2 +-
- Documentation/media/uapi/dvb/fe_property_parameters.rst | 5 ++---
- Documentation/media/uapi/v4l/buffer.rst                 | 2 +-
- Documentation/media/uapi/v4l/pixfmt-003.rst             | 2 +-
- Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst     | 2 +-
- 5 files changed, 6 insertions(+), 7 deletions(-)
+ Documentation/media/uapi/v4l/pixfmt-rgb.rst      |   1 +
+ Documentation/media/uapi/v4l/pixfmt-srggb12p.rst | 108 +++++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c             |  12 ++-
+ include/uapi/linux/videodev2.h                   |   5 ++
+ 4 files changed, 122 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb12p.rst
 
-diff --git a/Documentation/media/uapi/dvb/fe-get-info.rst b/Documentation/media/uapi/dvb/fe-get-info.rst
-index 85973be62b0c..87ff3f62050d 100644
---- a/Documentation/media/uapi/dvb/fe-get-info.rst
-+++ b/Documentation/media/uapi/dvb/fe-get-info.rst
-@@ -160,7 +160,7 @@ frontend capabilities
- Capabilities describe what a frontend can do. Some capabilities are
- supported only on some specific frontend types.
+diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+index 9cc9808..81412f7 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+@@ -18,3 +18,4 @@ RGB Formats
+     pixfmt-srggb10alaw8
+     pixfmt-srggb10dpcm8
+     pixfmt-srggb12
++    pixfmt-srggb12p
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb12p.rst b/Documentation/media/uapi/v4l/pixfmt-srggb12p.rst
+new file mode 100644
+index 0000000..807ecf0
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb12p.rst
+@@ -0,0 +1,108 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2-PIX-FMT-SRGGB12P:
++.. _v4l2-pix-fmt-sbggr12p:
++.. _v4l2-pix-fmt-sgbrg12p:
++.. _v4l2-pix-fmt-sgrbg12p:
++
++*******************************************************************************************************************************
++V4L2_PIX_FMT_SRGGB12P ('pRAA'), V4L2_PIX_FMT_SGRBG12P ('pgAA'), V4L2_PIX_FMT_SGBRG12P ('pGAA'), V4L2_PIX_FMT_SBGGR12P ('pBAA'),
++*******************************************************************************************************************************
++
++*man V4L2_PIX_FMT_SRGGB12P(2)*
++
++V4L2_PIX_FMT_SGRBG12P
++V4L2_PIX_FMT_SGBRG12P
++V4L2_PIX_FMT_SBGGR12P
++12-bit packed Bayer formats
++
++
++Description
++===========
++
++These four pixel formats are packed raw sRGB / Bayer formats with 12
++bits per colour. Every two consecutive samples are packed into three
++bytes. Each of the first two bytes contain the 8 high order bits of
++the pixels, and the third byte contains the four least significants
++bits of each pixel, in the same order.
++
++Each n-pixel row contains n/2 green samples and n/2 blue or red
++samples, with alternating green-red and green-blue rows. They are
++conventionally described as GRGR... BGBG..., RGRG... GBGB..., etc.
++Below is an example of one of these formats:
++
++**Byte Order.**
++Each cell is one byte.
++
++
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       2 1 1 1 1 1 1
++
++
++    -  .. row 1
++
++       -  start + 0:
++
++       -  B\ :sub:`00high`
++
++       -  G\ :sub:`01high`
++
++       -  G\ :sub:`01low`\ (bits 7--4) B\ :sub:`00low`\ (bits 3--0)
++
++       -  B\ :sub:`02high`
++
++       -  G\ :sub:`03high`
++
++       -  G\ :sub:`03low`\ (bits 7--4) B\ :sub:`02low`\ (bits 3--0)
++
++    -  .. row 2
++
++       -  start + 5:
++
++       -  G\ :sub:`10high`
++
++       -  R\ :sub:`11high`
++
++       -  R\ :sub:`11low`\ (bits 7--4) G\ :sub:`10low`\ (bits 3--0)
++
++       -  G\ :sub:`12high`
++
++       -  R\ :sub:`13high`
++
++       -  R\ :sub:`13low`\ (bits 3--2) G\ :sub:`12low`\ (bits 3--0)
++
++    -  .. row 3
++
++       -  start + 0:
++
++       -  B\ :sub:`20high`
++
++       -  G\ :sub:`21high`
++
++       -  G\ :sub:`21low`\ (bits 7--4) B\ :sub:`20low`\ (bits 3--0)
++
++       -  B\ :sub:`22high`
++
++       -  G\ :sub:`23high`
++
++       -  G\ :sub:`23low`\ (bits 7--4) B\ :sub:`22low`\ (bits 3--0)
++
++    -  .. row 4
++
++       -  start + 5:
++
++       -  G\ :sub:`30high`
++
++       -  R\ :sub:`31high`
++
++       -  R\ :sub:`31low`\ (bits 7--4) G\ :sub:`30low`\ (bits 3--0)
++
++       -  G\ :sub:`32high`
++
++       -  R\ :sub:`33high`
++
++       -  R\ :sub:`33low`\ (bits 3--2) G\ :sub:`32low`\ (bits 3--0)
++
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 51a0fa1..ebce910 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1213,10 +1213,6 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_SGBRG10:	descr = "10-bit Bayer GBGB/RGRG"; break;
+ 	case V4L2_PIX_FMT_SGRBG10:	descr = "10-bit Bayer GRGR/BGBG"; break;
+ 	case V4L2_PIX_FMT_SRGGB10:	descr = "10-bit Bayer RGRG/GBGB"; break;
+-	case V4L2_PIX_FMT_SBGGR12:	descr = "12-bit Bayer BGBG/GRGR"; break;
+-	case V4L2_PIX_FMT_SGBRG12:	descr = "12-bit Bayer GBGB/RGRG"; break;
+-	case V4L2_PIX_FMT_SGRBG12:	descr = "12-bit Bayer GRGR/BGBG"; break;
+-	case V4L2_PIX_FMT_SRGGB12:	descr = "12-bit Bayer RGRG/GBGB"; break;
+ 	case V4L2_PIX_FMT_SBGGR10P:	descr = "10-bit Bayer BGBG/GRGR Packed"; break;
+ 	case V4L2_PIX_FMT_SGBRG10P:	descr = "10-bit Bayer GBGB/RGRG Packed"; break;
+ 	case V4L2_PIX_FMT_SGRBG10P:	descr = "10-bit Bayer GRGR/BGBG Packed"; break;
+@@ -1229,6 +1225,14 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_SGBRG10DPCM8:	descr = "8-bit Bayer GBGB/RGRG (DPCM)"; break;
+ 	case V4L2_PIX_FMT_SGRBG10DPCM8:	descr = "8-bit Bayer GRGR/BGBG (DPCM)"; break;
+ 	case V4L2_PIX_FMT_SRGGB10DPCM8:	descr = "8-bit Bayer RGRG/GBGB (DPCM)"; break;
++	case V4L2_PIX_FMT_SBGGR12:	descr = "12-bit Bayer BGBG/GRGR"; break;
++	case V4L2_PIX_FMT_SGBRG12:	descr = "12-bit Bayer GBGB/RGRG"; break;
++	case V4L2_PIX_FMT_SGRBG12:	descr = "12-bit Bayer GRGR/BGBG"; break;
++	case V4L2_PIX_FMT_SRGGB12:	descr = "12-bit Bayer RGRG/GBGB"; break;
++	case V4L2_PIX_FMT_SBGGR12P:	descr = "12-bit Bayer BGBG/GRGR Packed"; break;
++	case V4L2_PIX_FMT_SGBRG12P:	descr = "12-bit Bayer GBGB/RGRG Packed"; break;
++	case V4L2_PIX_FMT_SGRBG12P:	descr = "12-bit Bayer GRGR/BGBG Packed"; break;
++	case V4L2_PIX_FMT_SRGGB12P:	descr = "12-bit Bayer RGRG/GBGB Packed"; break;
+ 	case V4L2_PIX_FMT_SBGGR16:	descr = "16-bit Bayer BGBG/GRGR (Exp.)"; break;
+ 	case V4L2_PIX_FMT_SN9C20X_I420:	descr = "GSPCA SN9C20X I420"; break;
+ 	case V4L2_PIX_FMT_SPCA501:	descr = "GSPCA SPCA501"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 724f43e..c9b0055 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -578,6 +578,11 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
+ #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
+ #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
++	/* 12bit raw bayer packed, 6 bytes for every 4 pixels */
++#define V4L2_PIX_FMT_SBGGR12P v4l2_fourcc('p', 'B', 'C', 'C')
++#define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
++#define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
++#define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
+ #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
  
--.. tabularcolumns:: |p{5.5cm}|p{12.0cm}|
-+.. tabularcolumns:: |p{6.5cm}|p{11.0cm}|
- 
- .. _fe-caps:
- 
-diff --git a/Documentation/media/uapi/dvb/fe_property_parameters.rst b/Documentation/media/uapi/dvb/fe_property_parameters.rst
-index d7acc72ebbdf..304ac1a3c2ff 100644
---- a/Documentation/media/uapi/dvb/fe_property_parameters.rst
-+++ b/Documentation/media/uapi/dvb/fe_property_parameters.rst
-@@ -1005,10 +1005,9 @@ Possible values: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, -1 (AUTO)
- Note: Truth table for ``DTV_ISDBT_SOUND_BROADCASTING`` and
- ``DTV_ISDBT_PARTIAL_RECEPTION`` and ``LAYER[A-C]_SEGMENT_COUNT``
- 
--
- .. _isdbt-layer_seg-cnt-table:
- 
--.. flat-table::
-+.. flat-table:: Truth table for ISDB-T Sound Broadcasting
-     :header-rows:  0
-     :stub-columns: 0
- 
-@@ -1101,7 +1100,7 @@ TMCC-structure, as shown in the table below.
- 
- .. _isdbt-layer-interleaving-table:
- 
--.. flat-table::
-+.. flat-table:: ISDB-T time interleaving modes
-     :header-rows:  0
-     :stub-columns: 0
- 
-diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-index 4d315b01c2a4..7bab30b59eae 100644
---- a/Documentation/media/uapi/v4l/buffer.rst
-+++ b/Documentation/media/uapi/v4l/buffer.rst
-@@ -39,7 +39,7 @@ buffer.
- struct v4l2_buffer
- ==================
- 
--.. tabularcolumns:: |p{1.3cm}|p{2.5cm}|p{1.3cm}|p{12.0cm}|
-+.. tabularcolumns:: |p{2.8cm}|p{2.5cm}|p{1.3cm}|p{10.5cm}|
- 
- .. cssclass:: longtable
- 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-003.rst b/Documentation/media/uapi/v4l/pixfmt-003.rst
-index 4a2dbe1095b1..6ec8ce639764 100644
---- a/Documentation/media/uapi/v4l/pixfmt-003.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-003.rst
-@@ -49,7 +49,7 @@ describing all planes of that format.
- 	  applications.
- 
- 
--.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{8.7cm}|
-+.. tabularcolumns:: |p{4.4cm}|p{5.6cm}|p{7.5cm}|
- 
- .. _v4l2-pix-format-mplane:
- 
-diff --git a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
-index 5b80481d8734..f0d33298f329 100644
---- a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
-@@ -229,7 +229,7 @@ still cause this situation.
- 	  ``V4L2_CTRL_FLAG_HAS_PAYLOAD`` is set for this control.
- 
- 
--.. tabularcolumns:: |p{4.0cm}|p{3.0cm}|p{2.0cm}|p{8.5cm}|
-+.. tabularcolumns:: |p{4.0cm}|p{2.0cm}|p{2.0cm}|p{8.5cm}|
- 
- .. _v4l2-ext-controls:
- 
+ /* compressed formats */
 -- 
 2.7.4
 
