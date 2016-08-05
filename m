@@ -1,108 +1,260 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www381.your-server.de ([78.46.137.84]:44719 "EHLO
-	www381.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755878AbcHCPO1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 11:14:27 -0400
-Subject: Re: [PATCHv2 7/7] [PATCHv5] media: adv7180: fix field type
-To: Ian Arkver <ian.arkver.dev@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	=?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
- <20160802145107.24829-8-niklas.soderlund+renesas@ragnatech.se>
- <3bb2b375-a4a9-00c4-1466-7b1ba8e3bfd8@metafoo.de>
- <20160803132147.GL3672@bigcity.dyn.berto.se>
- <927464df-14cb-aadb-c1d9-5a5f0d065828@xs4all.nl>
- <d7f16469-a4a4-b2cc-2af1-2c3efcd8aac6@metafoo.de>
- <185998dd-01f5-849b-ec5d-470c31c369c4@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com,
-	mchehab@kernel.org, hans.verkuil@cisco.com
-From: Lars-Peter Clausen <lars@metafoo.de>
-Message-ID: <62337ce7-52bb-9432-6eb2-3cb238115299@metafoo.de>
-Date: Wed, 3 Aug 2016 16:48:39 +0200
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54018
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934979AbcHEKrc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2016 06:47:32 -0400
+Date: Fri, 5 Aug 2016 07:47:24 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Jani Nikula <jani.nikula@intel.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-doc@vger.kernel.org
+Subject: Re: Functions and data structure cross references with Sphinx
+Message-ID: <20160805074724.74190683@recife.lan>
+In-Reply-To: <91BDDA51-4A60-495F-9475-341950051EE9@darmarit.de>
+References: <20160801082527.0eb7eace@recife.lan>
+	<91BDDA51-4A60-495F-9475-341950051EE9@darmarit.de>
 MIME-Version: 1.0
-In-Reply-To: <185998dd-01f5-849b-ec5d-470c31c369c4@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/03/2016 04:42 PM, Ian Arkver wrote:
-> On 03/08/16 15:23, Lars-Peter Clausen wrote:
->> On 08/03/2016 04:11 PM, Hans Verkuil wrote:
->>>
->>> On 08/03/2016 03:21 PM, Niklas Söderlund wrote:
->>>> On 2016-08-02 17:00:07 +0200, Lars-Peter Clausen wrote:
->>>>> [...]
->>>>>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
->>>>>> index a8b434b..c6fed71 100644
->>>>>> --- a/drivers/media/i2c/adv7180.c
->>>>>> +++ b/drivers/media/i2c/adv7180.c
->>>>>> @@ -680,10 +680,13 @@ static int adv7180_set_pad_format(struct
->>>>>> v4l2_subdev *sd,
->>>>>>       switch (format->format.field) {
->>>>>>       case V4L2_FIELD_NONE:
->>>>>>           if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
->>>>>> -            format->format.field = V4L2_FIELD_INTERLACED;
->>>>>> +            format->format.field = V4L2_FIELD_ALTERNATE;
->>>>>>           break;
->>>>>>       default:
->>>>>> -        format->format.field = V4L2_FIELD_INTERLACED;
->>>>>> +        if (state->chip_info->flags & ADV7180_FLAG_I2P)
->>>>>> +            format->format.field = V4L2_FIELD_INTERLACED;
->>>>> I'm not convinced this is correct. As far as I understand it when the I2P
->>>>> feature is enabled the core outputs full progressive frames at the full
->>>>> framerate. If it is bypassed it outputs half-frames. So we have the option
->>>>> of either V4L2_FIELD_NONE or V4L2_FIELD_ALTERNATE, but never interlaced. I
->>>>> think this branch should setup the field format to be ALTERNATE regardless
->>>>> of whether the I2P feature is available.
->>> Actually, that's not true. If the progressive frame is obtained by combining
->>> two fields, then it should return FIELD_INTERLACED. This is how most SDTV
->>> receivers operate.
->> This is definitely not covered by the current definition of INTERLACED. It
->> says that the temporal order of the odd and even lines is the same for each
->> frame. Whereas for a deinterlaced frame the temporal order changes from
->> frame to frame.
->>
->> E.g. lets say you have half frames A, B, C, D, E, F ...
->>
->> The output of the I2P core are frames like (A,B) (C,B) (C,D) (E,D) (E, F) ...
->>
->> The first frame is INTERLACED_TB, the second INTERLACED_BT, the third
->> INTERLACED_TB again and so on. Also you get the same amount of pixels as for
->> a progressive setup so the data-output-rate is higher. Maybe we need a
->> FIELD_DEINTERLACED to denote such a setup?
-> I don't think this is correct. The ADV7280 has no framestore, just a small
-> linebuffer. It does I2P by line doubling plus some filtering and a little
-> bit of proprietary magic, allegedly.
-> 
-> I believe the output in I2P mode for your example would be (AA) (BB) (CC).
-> The clock rate and pixel rate is doubled since it sends a full (faked up)
-> frame per field time.
-> 
-> I don't know what the FIELD_* mode is for line doubled pseudo-progressive.
-> 
-> Also, I don't know why anyone would use this mode. I don't see a scenario
-> where it would actually improve video quality over a more sophisticated
-> motion adaptive deinterlace and to restore a 25/30fps feed you'd need to
-> decimate and lose information.
-> 
-> Quote from "Rob.Analog", who uses the word "frame" freely, here:
-> https://ez.analog.com/thread/39382
-> 
-> "2) In I2P mode the number of lines per frame doubles. The ADV7280 still
-> outputs 50 frames per second ( or 60 frames in NTSC mode) but each frame now
-> consists of twice as many lines. e.g. if a frame consisted of 288 lines of
-> active video in interlaced mode, this is doubled to 576 lines of active
-> video in progressive mode. The line doubling is achieved by the ADV7280
-> interpolating between two lines of video (e.g. between lines 1 and 3 on an
-> odd frame) and inserting an extra line (e.g. line 2). There are also some
-> ADI propriety algorithms that prevent low angle noise artifacts.
-> 
-> In order to achieve this line doubling, the LLC clock doubles from a nominal
-> 27MHz to a nominal 54MHz"
+Em Fri, 5 Aug 2016 09:29:23 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-Hm, so it is basically just actually a scaling feature rather than a
-deinterlacer. I guess we should expose it as that then.
+> Am 01.08.2016 um 13:25 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> 
+> > There's one remaining major issue I noticed after the conversion of the
+> > media books to Sphinx:
+> > 
+> > While sphinx complains if a cross-reference (using :ref:) points to an
+> > undefined reference, the same doesn't happen if the reference uses
+> > :c:func: and :c:type:.
+> > 
+> > In practice, it means that, if we do some typo there, or if we forget to
+> > add the function/struct prototype (or use the wrong domain, like :cpp:),
+> > Sphinx won't generate the proper cross-reference, nor warning the user.
+> > 
+> > That's specially bad for media, as, while we're using the c domain for
+> > the kAPI and driver-specific books, we need to use the cpp domain on the 
+> > uAPI book - as the c domain doesn't allow multiple declarations for
+> > syscalls, and we have multiple pages for read, write, open, close, 
+> > poll and ioctl.
+> > 
+> > It would be good to have a way to run Sphinx on some "pedantic"
+> > mode or have something similar to xmlint that would be complaining
+> > about invalid c/cpp domain references.
+> > 
+> > Thanks,
+> > Mauro  
+> 
+> Hi Mauro,
+> 
+> there is a nit-picky mode [1], which could be activated by setting
+> "nitpicky=True" in the conf.py or alternative, set "-n" to the 
+> SPHINXOPTS:
+> 
+>   make SPHINXOPTS=-n htmldocs
+> 
+> Within nit-picky mode, Sphinx will warn about **all** references. This
+> might be more then you want. For this, in the conf.py you could
+> assemble a "nitpick_ignore" list [2]. But I think, assemble the
+> ignore list is quite a lot of work.
+> 
+> [1] http://www.sphinx-doc.org/en/stable/config.html#confval-nitpicky
+> [2] http://www.sphinx-doc.org/en/stable/config.html#confval-nitpick_ignore
+
+Yeah, this is what I was looking for.
+
+We indeed want to use this option on media, but there are some things
+that need to be addressed. From some quick tests here, what I noticed
+is:
+
+1) Sphinx will generate several references that should be safely ignored
+for everyone, like "enum", "u32", "int32_t", "bool", "NULL", etc;
+
+2) the usage of cpp domain for system calls make several symbols to
+not match, as the cpp function prototype will generate cross references
+for the cpp domain, instead of using the c domain. So, we need a
+better way to fix it using the c domain, or convert everything to the
+cpp domain;
+
+3) The references generated from the header files I'm parsing don't
+use the c (or cpp) domain. They're declared at the media book as a
+normal reference:
+	Documentation/media/uapi/v4l/field-order.rst:.. _v4l2-field:
+
+and cross-referenced with:
+	ref:`v4l2_field <v4l2-field>`
+
+Is there a way to change it to the c domain?
+
+
+4) there are several references that, IMHO, should be nitpick-ignored
+only when the book is generated stand alone. For example, at the
+media docbooks, we have references for things like:
+
+- pci_dev, mutex, off_t, container_of, etc - those are generic
+  references for the symbols that every driver uses, but, as we
+  don't have the books with those converted yet, nitpick complains.
+  Once we have such references, they should be ignored *only* when
+  the book is generated standalone. As those are "core" symbols,
+  they should be already be documented, but the book was not
+  ported from DocBook yet. Once we have everything ported to
+  Sphinx, I would expect that they all will vanish (and, if not,
+  IMHO, documenting them should be prioritized).
+
+- References for subsystem-specific symbols like: spi_board_info,
+  led_classdev_flash, i2c_adapter, etc. Those would require that
+  the maintainers of the specific subsystems to add documentation
+  to them, as I bet several such symbols won't be currently
+  documented. So, even after the port, I afraid that we'll still
+  have several such symbols missing.
+
+To address (3), we need different sets of nitpick ignore lists.
+
+At least in my case, I have two different procedures, depending
+on the time at the Kernel release cycle:
+
+a) daily patch merge workflow
+   --------------------------
+
+In any case, for (3), I don't want to see those warnings during
+my daily patch handling process where I rebuild documentation for
+every patch that touches a documented file. I want to see only
+things like:
+	Documentation/media/uapi/v4l/hist-v4l2.rst:1295: WARNING: c:type reference target not found: struct v4l2_buffer
+
+With indicates that a new patch would be introducing documentation
+gaps.
+
+So, we need a way to have a per-subsystem nitpick_ignore list
+(or a way to pass such list via command line), for us to be able to
+ignore "alien" symbols that aren't part of the subsystem we're
+maintaining.
+
+b) preparation for the merge window
+   --------------------------------
+
+Late at the patch handling cycle, I run a very long task here that
+builds the media subsystem for 50+ different archs. I also check and
+fix smatch/sparse warnings. During such time, I would love to view
+the full list of missing symbols, in order to be able to handle
+eventual cross-subsystem wrong references (or eventually help documenting
+something that we use at the media subsystem).
+
+So, I would need to use a different nitpick_ignore list.
+
+Is there a way for us to specify the nitpick_ignore list (or a different
+conf.py) via command line?
+
+Btw, I'm enclosing a patch adding several of those references that are
+alien to the media subsystem and currently causes nitpick complains.
+
+
+doc-rst: ignore several undefined symbols in nitpick mode
+    
+using Sphinx in nitpick mode is too verbose to make it useful.
+So, we need to make it less verbose, in order to be able to
+actually use it.
+    
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+diff --git a/Documentation/conf.py b/Documentation/conf.py
+index 96b7aa66c89c..d1805b8710c3 100644
+--- a/Documentation/conf.py
++++ b/Documentation/conf.py
+@@ -419,3 +419,88 @@ pdf_documents = [
+ # line arguments.
+ kerneldoc_bin = '../scripts/kernel-doc'
+ kerneldoc_srctree = '..'
++
++#
++# It is possible to run Sphinx in nickpick mode with:
++#	make SPHINXOPTS=-n htmldocs
++# In such case, it will complain about lots of missing references that
++#	1) are just typedefs like: bool, __u32, etc;
++#	2) It will complain for things like: enum, NULL;
++#	3) It will complain for symbols that should be on different
++#	   books (but currently aren't ported to ReST)
++# The list below has a list of such symbols to be ignored in nitpick mode
++#
++nitpick_ignore = [
++	("c:func", "clock_gettime"),
++	("c:func", "close"),
++	("c:func", "container_of"),
++	("c:func", "determine_valid_ioctls"),
++	("c:func", "ERR_PTR"),
++	("c:func", "ioctl"),
++	("c:func", "IS_ERR"),
++	("c:func", "mmap"),
++	("c:func", "open"),
++	("c:func", "pci_name"),
++	("c:func", "poll"),
++	("c:func", "PTR_ERR"),
++	("c:func", "read"),
++	("c:func", "release"),
++	("c:func", "set"),
++	("c:func", "struct fd_set"),
++	("c:func", "struct pollfd"),
++	("c:func", "usb_make_path"),
++	("c:func", "write"),
++	("c:type", "atomic_t"),
++	("c:type", "bool"),
++	("c:type", "buf_queue"),
++	("c:type", "device"),
++	("c:type", "device_driver"),
++	("c:type", "device_node"),
++	("c:type", "enum"),
++	("c:type", "file"),
++	("c:type", "i2c_adapter"),
++	("c:type", "i2c_board_info"),
++	("c:type", "i2c_client"),
++	("c:type", "ktime_t"),
++	("c:type", "led_classdev_flash"),
++	("c:type", "list_head"),
++	("c:type", "lock_class_key"),
++	("c:type", "module"),
++	("c:type", "mutex"),
++	("c:type", "pci_dev"),
++	("c:type", "pdvbdev"),
++	("c:type", "poll_table_struct"),
++	("c:type", "s32"),
++	("c:type", "s64"),
++	("c:type", "sd"),
++	("c:type", "spi_board_info"),
++	("c:type", "spi_device"),
++	("c:type", "spi_master"),
++	("c:type", "struct fb_fix_screeninfo"),
++	("c:type", "struct pollfd"),
++	("c:type", "struct timeval"),
++	("c:type", "struct video_capability"),
++	("c:type", "u16"),
++	("c:type", "u32"),
++	("c:type", "u64"),
++	("c:type", "u8"),
++	("c:type", "union"),
++	("c:type", "usb_device"),
++
++	("cpp:type", "boolean"),
++	("cpp:type", "fd"),
++	("cpp:type", "fd_set"),
++	("cpp:type", "int16_t"),
++	("cpp:type", "NULL"),
++	("cpp:type", "off_t"),
++	("cpp:type", "pollfd"),
++	("cpp:type", "size_t"),
++	("cpp:type", "ssize_t"),
++	("cpp:type", "timeval"),
++	("cpp:type", "__u16"),
++	("cpp:type", "__u32"),
++	("cpp:type", "__u64"),
++	("cpp:type", "uint16_t"),
++	("cpp:type", "uint32_t"),
++	("cpp:type", "video_system_t"),
++]
+
+
 
