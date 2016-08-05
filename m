@@ -1,121 +1,532 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53669 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751446AbcHDDHN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Aug 2016 23:07:13 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id CC210183974
-	for <linux-media@vger.kernel.org>; Thu,  4 Aug 2016 05:00:55 +0200 (CEST)
-Date: Thu, 04 Aug 2016 05:00:55 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mga03.intel.com ([134.134.136.65]:29585 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759613AbcHEKqi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Aug 2016 06:46:38 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160804030055.CC210183974@tschai.lan>
+Cc: hverkuil@xs4all.nl, Jouni Ukkonen <jouni.ukkonen@intel.com>
+Subject: [PATCH v3 06/11] media: Add 1X14 14-bit raw bayer media bus code definitions
+Date: Fri,  5 Aug 2016 13:45:36 +0300
+Message-Id: <1470393941-26959-7-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1470393941-26959-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1470393941-26959-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Jouni Ukkonen <jouni.ukkonen@intel.com>
 
-Results of the daily build of media_tree:
+The codes will be called:
 
-date:		Thu Aug  4 04:00:15 CEST 2016
-git branch:	test
-git hash:	292eaf50c7df4ae2ae8aaa9e1ce3f1240a353ee8
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+	MEDIA_BUS_FMT_SBGGR14_1X14
+	MEDIA_BUS_FMT_SGBRG14_1X14
+	MEDIA_BUS_FMT_SGRBG14_1X14
+	MEDIA_BUS_FMT_SRGGB14_1X14
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+Signed-off-by: Jouni Ukkonen <jouni.ukkonen@intel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/uapi/v4l/subdev-formats.rst | 258 +++++++++++++++++++++++-
+ include/uapi/linux/media-bus-format.h           |   6 +-
+ 2 files changed, 262 insertions(+), 2 deletions(-)
 
-Detailed results are available here:
+diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+index 6dbb27b..238ecfc 100644
+--- a/Documentation/media/uapi/v4l/subdev-formats.rst
++++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+@@ -2782,7 +2782,7 @@ organization is given as an example for the first pixel only.
+        -  Code
+ 
+        -
+-       -  :cspan:`11` Data organization
++       -  :cspan:`13` Data organization
+ 
+     -  .. row 2
+ 
+@@ -2790,6 +2790,10 @@ organization is given as an example for the first pixel only.
+        -
+        -  Bit
+ 
++       -  13
++
++       -  12
++
+        -  11
+ 
+        -  10
+@@ -2829,6 +2833,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`7`
+ 
+        -  b\ :sub:`6`
+@@ -2860,6 +2868,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`7`
+ 
+        -  g\ :sub:`6`
+@@ -2891,6 +2903,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`7`
+ 
+        -  g\ :sub:`6`
+@@ -2922,6 +2938,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  r\ :sub:`7`
+ 
+        -  r\ :sub:`6`
+@@ -2953,6 +2973,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`7`
+ 
+        -  b\ :sub:`6`
+@@ -2984,6 +3008,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`7`
+ 
+        -  g\ :sub:`6`
+@@ -3015,6 +3043,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`7`
+ 
+        -  g\ :sub:`6`
+@@ -3046,6 +3078,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  r\ :sub:`7`
+ 
+        -  r\ :sub:`6`
+@@ -3077,6 +3113,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`7`
+ 
+        -  b\ :sub:`6`
+@@ -3108,6 +3148,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`7`
+ 
+        -  g\ :sub:`6`
+@@ -3139,6 +3183,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`7`
+ 
+        -  g\ :sub:`6`
+@@ -3170,6 +3218,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  r\ :sub:`7`
+ 
+        -  r\ :sub:`6`
+@@ -3201,6 +3253,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  0
+ 
+        -  0
+@@ -3230,6 +3286,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`7`
+ 
+        -  b\ :sub:`6`
+@@ -3261,6 +3321,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`7`
+ 
+        -  b\ :sub:`6`
+@@ -3290,6 +3354,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  0
+ 
+        -  0
+@@ -3321,6 +3389,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`9`
+ 
+        -  b\ :sub:`8`
+@@ -3350,6 +3422,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`1`
+ 
+        -  b\ :sub:`0`
+@@ -3381,6 +3457,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`1`
+ 
+        -  b\ :sub:`0`
+@@ -3410,6 +3490,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`9`
+ 
+        -  b\ :sub:`8`
+@@ -3437,6 +3521,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`9`
+ 
+        -  b\ :sub:`8`
+@@ -3468,6 +3556,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`9`
+ 
+        -  g\ :sub:`8`
+@@ -3499,6 +3591,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`9`
+ 
+        -  g\ :sub:`8`
+@@ -3530,6 +3626,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  r\ :sub:`9`
+ 
+        -  r\ :sub:`8`
+@@ -3557,6 +3657,10 @@ organization is given as an example for the first pixel only.
+        -  0x3008
+ 
+        -
++       -  -
++
++       -  -
++
+        -  b\ :sub:`11`
+ 
+        -  b\ :sub:`10`
+@@ -3588,6 +3692,10 @@ organization is given as an example for the first pixel only.
+        -  0x3010
+ 
+        -
++       -  -
++
++       -  -
++
+        -  g\ :sub:`11`
+ 
+        -  g\ :sub:`10`
+@@ -3619,6 +3727,10 @@ organization is given as an example for the first pixel only.
+        -  0x3011
+ 
+        -
++       -  -
++
++       -  -
++
+        -  g\ :sub:`11`
+ 
+        -  g\ :sub:`10`
+@@ -3650,6 +3762,150 @@ organization is given as an example for the first pixel only.
+        -  0x3012
+ 
+        -
++       -  -
++
++       -  -
++
++       -  r\ :sub:`11`
++
++       -  r\ :sub:`10`
++
++       -  r\ :sub:`9`
++
++       -  r\ :sub:`8`
++
++       -  r\ :sub:`7`
++
++       -  r\ :sub:`6`
++
++       -  r\ :sub:`5`
++
++       -  r\ :sub:`4`
++
++       -  r\ :sub:`3`
++
++       -  r\ :sub:`2`
++
++       -  r\ :sub:`1`
++
++       -  r\ :sub:`0`
++
++    -  .. _MEDIA-BUS-FMT-SBGGR14-1X14:
++
++       -  MEDIA_BUS_FMT_SBGGR14_1X14
++
++       -  0x3019
++
++       -
++       -  b\ :sub:`13`
++
++       -  b\ :sub:`12`
++
++       -  b\ :sub:`11`
++
++       -  b\ :sub:`10`
++
++       -  b\ :sub:`9`
++
++       -  b\ :sub:`8`
++
++       -  b\ :sub:`7`
++
++       -  b\ :sub:`6`
++
++       -  b\ :sub:`5`
++
++       -  b\ :sub:`4`
++
++       -  b\ :sub:`3`
++
++       -  b\ :sub:`2`
++
++       -  b\ :sub:`1`
++
++       -  b\ :sub:`0`
++
++    -  .. _MEDIA-BUS-FMT-SGBRG14-1X14:
++
++       -  MEDIA_BUS_FMT_SGBRG14_1X14
++
++       -  0x301a
++
++       -
++       -  g\ :sub:`13`
++
++       -  g\ :sub:`12`
++
++       -  g\ :sub:`11`
++
++       -  g\ :sub:`10`
++
++       -  g\ :sub:`9`
++
++       -  g\ :sub:`8`
++
++       -  g\ :sub:`7`
++
++       -  g\ :sub:`6`
++
++       -  g\ :sub:`5`
++
++       -  g\ :sub:`4`
++
++       -  g\ :sub:`3`
++
++       -  g\ :sub:`2`
++
++       -  g\ :sub:`1`
++
++       -  g\ :sub:`0`
++
++    -  .. _MEDIA-BUS-FMT-SGRBG14-1X14:
++
++       -  MEDIA_BUS_FMT_SGRBG14_1X14
++
++       -  0x301b
++
++       -
++       -  g\ :sub:`13`
++
++       -  g\ :sub:`12`
++
++       -  g\ :sub:`11`
++
++       -  g\ :sub:`10`
++
++       -  g\ :sub:`9`
++
++       -  g\ :sub:`8`
++
++       -  g\ :sub:`7`
++
++       -  g\ :sub:`6`
++
++       -  g\ :sub:`5`
++
++       -  g\ :sub:`4`
++
++       -  g\ :sub:`3`
++
++       -  g\ :sub:`2`
++
++       -  g\ :sub:`1`
++
++       -  g\ :sub:`0`
++
++    -  .. _MEDIA-BUS-FMT-SRGGB14-1X14:
++
++       -  MEDIA_BUS_FMT_SRGGB14_1X14
++
++       -  0x301c
++
++       -
++       -  r\ :sub:`13`
++
++       -  r\ :sub:`12`
++
+        -  r\ :sub:`11`
+ 
+        -  r\ :sub:`10`
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 190d491..1dff459 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -97,7 +97,7 @@
+ #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
+ #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
+ 
+-/* Bayer - next is	0x3019 */
++/* Bayer - next is	0x301d */
+ #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
+ #define MEDIA_BUS_FMT_SGBRG8_1X8		0x3013
+ #define MEDIA_BUS_FMT_SGRBG8_1X8		0x3002
+@@ -122,6 +122,10 @@
+ #define MEDIA_BUS_FMT_SGBRG12_1X12		0x3010
+ #define MEDIA_BUS_FMT_SGRBG12_1X12		0x3011
+ #define MEDIA_BUS_FMT_SRGGB12_1X12		0x3012
++#define MEDIA_BUS_FMT_SBGGR14_1X14		0x3019
++#define MEDIA_BUS_FMT_SGBRG14_1X14		0x301a
++#define MEDIA_BUS_FMT_SGRBG14_1X14		0x301b
++#define MEDIA_BUS_FMT_SRGGB14_1X14		0x301c
+ 
+ /* JPEG compressed formats - next is	0x4002 */
+ #define MEDIA_BUS_FMT_JPEG_1X8			0x4001
+-- 
+2.7.4
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
