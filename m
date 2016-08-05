@@ -1,74 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp08.smtpout.orange.fr ([80.12.242.130]:56428 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752256AbcHMLPp (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56578 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1161207AbcHEL0d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Aug 2016 07:15:45 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jiri Kosina <trivial@kernel.org>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 05/14] media: platform: pxa_camera: convert to vb2
-References: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
-	<1470684652-16295-6-git-send-email-robert.jarzmik@free.fr>
-	<87zioht3zi.fsf@belgarion.home>
-	<c682efee-3e92-27c8-9c58-5df70bc5c1ea@xs4all.nl>
-Date: Sat, 13 Aug 2016 13:15:30 +0200
-In-Reply-To: <c682efee-3e92-27c8-9c58-5df70bc5c1ea@xs4all.nl> (Hans Verkuil's
-	message of "Sat, 13 Aug 2016 11:29:49 +0200")
-Message-ID: <87r39sudgt.fsf@belgarion.home>
+	Fri, 5 Aug 2016 07:26:33 -0400
+Date: Fri, 5 Aug 2016 14:26:26 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [PATCH v3 00/11] New raw bayer format definitions, fixes
+Message-ID: <20160805112625.GN3243@valkosipuli.retiisi.org.uk>
+References: <1470393941-26959-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1470393941-26959-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+On Fri, Aug 05, 2016 at 01:45:30PM +0300, Sakari Ailus wrote:
+> Hi all,
+> 
+> This is a third version of the new bayer format patchset. The second version
+> of the set may be found here:
+> 
+> <URL:http://www.spinics.net/lists/linux-media/msg101498.html>
+> 
+> These patches fix and add new raw bayer format definitions. 12-bit packed
+> V4L2 format definition is added as well as definitions of 14-bit media bus
+> codes as well as unpacked and packed V4L2 formats.
+> 
+> No driver uses them right now, yet they're common formats needed by newer
+> devices that use higher bit depths so adding them would make sense.
+> 
+> 16-bit pixel formats are added as well, and the 16-bit formats are now
+> expected to have 16 bits of data. 8-bit format documentation is unified. 
 
-> On 08/13/2016 11:25 AM, Robert Jarzmik wrote:
->> Hi Hans,
->> 
->> Robert Jarzmik <robert.jarzmik@free.fr> writes:
->>> Convert pxa_camera from videobuf to videobuf2.
->> ...zip...
->> 
->>> +static int pxac_vb2_queue_setup(struct vb2_queue *vq,
->>> +				unsigned int *nbufs,
->>> +				unsigned int *num_planes, unsigned int sizes[],
->>> +				void *alloc_ctxs[])
->> 
->> There is an API change here that happened since I wrote this code, ie. void
->> *alloc_ctxs became struct device *alloc_devs.
->> 
->> I made the incremental patch in [1] accrodingly to prepare the v4 iteration, but
->> it triggers new errors in v4l2-compliance -s :
->> Streaming ioctls:
->> 	test read/write: OK (Not Supported)
->> 		fail: v4l2-test-buffers.cpp(293): !(g_flags() & V4L2_BUF_FLAG_DONE)
->> 		fail: v4l2-test-buffers.cpp(703): buf.check(q, last_seq)
->> 		fail: v4l2-test-buffers.cpp(976): captureBufs(node, q, m2m_q, frame_count, false)
->> 	test MMAP: FAIL
->> 		fail: v4l2-test-buffers.cpp(1075): can_stream && ret != EINVAL
->> 	test USERPTR: FAIL
->> 	test DMABUF: Cannot test, specify --expbuf-device
->> Total: 45, Succeeded: 43, Failed: 2, Warnings: 6
->> 
->> I'm a bit puzzled how this change brought this in, so in case you've already
->> encountered this, it could save me investigating more. If nothing obvious
->> appears to you, I'll dig in.
->
-> Make sure you have the latest v4l2-compliance code as well. A fix went into vb2
-> that corrected a bug relating to the V4L2_BUF_FLAG_DONE, but that required a fix for
-> v4l2-compliance as well. I'd say that's what you are seeing here.
+The HTML documentation can be found here:
 
-Indeed, this is fixed in v4l-utils somewhere between v4l-utils-1.8.1 and master,
-and I don't get any error anymore.
+<URL:http://salottisipuli.retiisi.org.uk/~sailus/raw14-doc/media/uapi/v4l/pixfmt-rgb.html>
 
-Thanks for the info, I've updated accordingly my work tree :
-       https://github.com/rjarzmik/linux.git work/v4l2
-
-Cheers.
-
---
-Robert
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
