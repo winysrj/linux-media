@@ -1,245 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exsmtp02.microchip.com ([198.175.253.38]:38192 "EHLO
-	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750974AbcHQGSe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2016 02:18:34 -0400
-From: Songjun Wu <songjun.wu@microchip.com>
-To: <nicolas.ferre@atmel.com>, <robh@kernel.org>
-CC: <laurent.pinchart@ideasonboard.com>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	Songjun Wu <songjun.wu@microchip.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Arnd Bergmann <arnd@arndb.de>,
-	=?UTF-8?q?Niklas=20S=C3=83=C2=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	Benoit Parrot <bparrot@ti.com>,
-	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	=?UTF-8?q?Richard=20R=C3=B6jfors?= <richard@puffinpack.se>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	<devicetree@vger.kernel.org>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Simon Horman <horms+renesas@verge.net.au>,
-	<linux-kernel@vger.kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kamil Debski <kamil@wypas.org>,
-	Mark Rutland <mark.rutland@arm.com>
-Subject: [PATCH v10 0/3] [media] atmel-isc: add driver for Atmel ISC
-Date: Wed, 17 Aug 2016 14:05:26 +0800
-Message-ID: <1471413929-26008-1-git-send-email-songjun.wu@microchip.com>
+Received: from mout.gmx.net ([212.227.15.18]:58292 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750938AbcHFUee (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Aug 2016 16:34:34 -0400
+Received: from acerpc.lan ([84.163.206.196]) by mail.gmx.com (mrgmx003) with
+ ESMTPSA (Nemesis) id 0MGSgq-1bRmic3cye-00DEit for
+ <linux-media@vger.kernel.org>; Sat, 06 Aug 2016 22:34:30 +0200
+From: Georg Wild <georg.wild@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Segfault in dvbv5-scan
+Date: Sat, 06 Aug 2016 22:34:30 +0200
+Message-ID: <4767396.pAn5xf8Txs@acerpc.lan>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Image Sensor Controller driver includes three parts.
-1) Driver code to implement the ISC function.
-2) Device tree binding documentation, it describes how
-   to add the ISC in device tree.
-3) Add an entry to MAINTAINERS for Atmel ISC
+Hello,
 
-Test result with v4l-utils.
-# v4l2-compliance -f
-v4l2-compliance SHA   : not available
+I recently got segmentation faults when using dvbv5-scan (dvbv5-scan 
+-l UNIVERSAL -S1 /usr/share/dvbv5/dvb-s/Astra-19.2E).
 
-Driver Infoatmel_isc f0008000.isc: Format 0xffffffff not found
-atmel_isc f0008000.isc: Format 0xffffffff not found
+I found out that this happened due to (d->length < len) in int isdbt_desc_delivery_init for some transponder, which results in irrealistic d->num_freqs. I did not trace back why this happens, but suggest the patch below to get at least rid of the segfault.
 
-        Driver name   : atmel_isc
-        Card type     : Atmel Image Sensor Controller
-        Bus info      : platform:atmel_isc f0008000.isc
-        Driver version: 4.7.0
-        Capabilities  : 0x84200001
-                Video Capture
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04200001
-                Video Capture
-                Streaming
-                Extended Pix Format
+Additionally I found a memory leak:
+1. dvb-dev.c, dvb_dev_alloc: dvb is alloc'd, dvb->d is returned, the rest is never freed.
 
-Compliance test for device /dev/video0 (not using libv4l2):
 
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
+Regards
+Georg
 
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
 
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
 
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 1 Audio Inputs: 0 Tuners: 0
+---------------- lib/libdvbv5/descriptors/desc_isdbt_delivery.c ----------------
+index 4a0f294..6623ca4 100644
+@@ -36,7 +36,12 @@ int isdbt_desc_delivery_init(struct dvb_v5_fe_parms *parms,
+ 
+ 	bswap16(d->bitfield);
+ 
+-	d->num_freqs = (d->length - len)/ sizeof(uint16_t);
++	if (d->length < len) {
++		dvb_perror("d->length>len!!");
++		d->num_freqs=0;
++	}
++	else
++	  d->num_freqs = (d->length - len)/ sizeof(uint16_t);
+ 	if (!d->num_freqs)
+ 		return 0;
+ 	d->frequency = malloc(d->num_freqs * sizeof(*d->frequency));
 
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
+--------------------------- lib/libdvbv5/dvb-file.c ---------------------------
+index 33481e5..169c0b5 100644
+@@ -1274,6 +1274,7 @@ int dvb_store_channel(struct dvb_file **dvb_file,
+ 			return 0;
+ 	}
+ 
++	if (dvb_scan_handler->sdt->service)
+ 	dvb_sdt_service_foreach(service, dvb_scan_handler->sdt) {
+ 		char *channel = NULL;
+ 		char *vchannel = NULL;
 
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-                test VIDIOC_QUERYCTRL: OK (Not Supported)
-                test VIDIOC_G/S_CTRL: OK (Not Supported)
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 0 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK (Not Supported)
-                test Composing: OK (Not Supported)
-                test Scaling: OK (Not Supported)
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-Stream using all formats:
-        test MMAP for Format BA81, Frame Size 640x480@60.00 Hz:
-                Stride 640, Field None: OK
-        test MMAP for Format YUYV, Frame Size 640x480@60.00 Hz:
-                Stride 1280, Field None: OK
-
-Total: 45, Succeeded: 45, Failed: 0, Warnings: 0
-
-Changes in v10:
-- If 's_power' api does not exist in the sensor driver,
-  the function 'isc_open' will return a value of 0.
-
-Changes in v9:
-- Set the default format in fuction 'isc_async_complete'.
-- Register the video device after everything is configured.
-
-Changes in v8:
-- Power on the sensor on the first open in function
-  'isc_open'.
-- Power off the sensor on the last release in function
-  'isc_release'.
-- Remove the switch of the pipeline.
-
-Changes in v7:
-- Add enum_framesizes and enum_frameintervals.
-- Call s_stream(0) when stream start fail.
-- Fill the device_caps field of struct video_device
-  with V4L2_CAP_STREAMING and V4L2_CAP_VIDEO_CAPTURE.
-- Initialize the dev of struct vb2_queue.
-- Set field to FIELD_NONE if the pix field is not supported.
-- Return the result directly when call g/s_parm of subdev.
-
-Changes in v6:
-- Add "iscck" and "gck" to clock-names.
-
-Changes in v5:
-- Modify the macro definition and the related code.
-- Add clock-output-names.
-
-Changes in v4:
-- Modify the isc clock code since the dt is changed.
-- Remove the isc clock nodes.
-
-Changes in v3:
-- Add pm runtime feature.
-- Modify the isc clock code since the dt is changed.
-- Remove the 'atmel,sensor-preferred'.
-- Modify the isc clock node according to the Rob's remarks.
-
-Changes in v2:
-- Add "depends on COMMON_CLK" and "VIDEO_V4L2_SUBDEV_API"
-  in Kconfig file.
-- Correct typos and coding style according to Laurent's remarks
-- Delete the loop while in 'isc_clk_enable' function.
-- Replace 'hsync_active', 'vsync_active' and 'pclk_sample'
-  with 'pfe_cfg0' in struct isc_subdev_entity.
-- Add the code to support VIDIOC_CREATE_BUFS in
-  'isc_queue_setup' function.
-- Invoke isc_config to configure register in
-  'isc_start_streaming' function.
-- Add the struct completion 'comp' to synchronize with
-  the frame end interrupt in 'isc_stop_streaming' function.
-- Check the return value of the clk_prepare_enable
-  in 'isc_open' function.
-- Set the default format in 'isc_open' function.
-- Add an exit condition in the loop while in 'isc_config'.
-- Delete the hardware setup operation in 'isc_set_format'.
-- Refuse format modification during streaming
-  in 'isc_s_fmt_vid_cap' function.
-- Invoke v4l2_subdev_alloc_pad_config to allocate and
-  initialize the pad config in 'isc_async_complete' function.
-- Remove the '.owner  = THIS_MODULE,' in atmel_isc_driver.
-- Replace the module_platform_driver_probe() with
-  module_platform_driver().
-- Remove the unit address of the endpoint.
-- Add the unit address to the clock node.
-- Avoid using underscores in node names.
-- Drop the "0x" in the unit address of the i2c node.
-- Modify the description of 'atmel,sensor-preferred'.
-- Add the description for the ISC internal clock.
-
-Songjun Wu (3):
-  [media] atmel-isc: add the Image Sensor Controller code
-  [media] atmel-isc: DT binding for Image Sensor Controller driver
-  MAINTAINERS: atmel-isc: add entry for Atmel ISC
-
- .../devicetree/bindings/media/atmel-isc.txt        |   65 +
- MAINTAINERS                                        |    8 +
- drivers/media/platform/Kconfig                     |    1 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/atmel/Kconfig               |    9 +
- drivers/media/platform/atmel/Makefile              |    1 +
- drivers/media/platform/atmel/atmel-isc-regs.h      |  165 +++
- drivers/media/platform/atmel/atmel-isc.c           | 1514 ++++++++++++++++++++
- 8 files changed, 1765 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
- create mode 100644 drivers/media/platform/atmel/Kconfig
- create mode 100644 drivers/media/platform/atmel/Makefile
- create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
- create mode 100644 drivers/media/platform/atmel/atmel-isc.c
-
--- 
-2.7.4
 
