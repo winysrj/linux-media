@@ -1,893 +1,1335 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:12808 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751570AbcHLO41 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2016 10:56:27 -0400
-Date: Fri, 12 Aug 2016 22:55:23 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Tiffany Lin <tiffany.lin@mediatek.com>
-Cc: kbuild-all@01.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, Tiffany.lin@mediatek.com
-Subject: Re: [PATCH v5] vcodec: mediatek: Add g/s_selection support for V4L2
- Encoder
-Message-ID: <201608122229.8GfZ1DND%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="Nq2Wo0NMKNjxTN9z"
-Content-Disposition: inline
-In-Reply-To: <1471011205-17487-1-git-send-email-tiffany.lin@mediatek.com>
+Received: from mailrelay110.isp.belgacom.be ([195.238.20.137]:16266 "EHLO
+	mailrelay110.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751019AbcHFUHC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Aug 2016 16:07:02 -0400
+Received: from ghp.homelinuxserver.org (localhost [127.0.0.1])
+	by ghp.homelinuxserver.org (8.14.4/8.14.4/Debian-8) with ESMTP id u76Fb8a8004921
+	for <linux-media@vger.kernel.org>; Sat, 6 Aug 2016 16:37:08 +0100
+Received: (from root@localhost)
+	by ghp.homelinuxserver.org (8.14.4/8.14.4/Submit) id u76Fb78v004919
+	for linux-media@vger.kernel.org; Sat, 6 Aug 2016 16:37:07 +0100
+Date: Sat, 6 Aug 2016 16:37:07 +0100
+From: g.h.p@skynet.be
+Message-Id: <201608061537.u76Fb78v004919@ghp.homelinuxserver.org>
+Subject: [PATCH] Enable DVB-T with Terratec Cinergy HTC Stick HD (0ccb:0101)
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---Nq2Wo0NMKNjxTN9z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This patch allows the Terratec Cinergy HTC Stick HD (0ccb:0101) to be used to watch DVB-T with Kaffeine, and to use its "grabber" 
+functionality with Mplayer.  For the latter, no code had to be modified, it acts exactly as a "connexant video grabber". 
 
-Hi Tiffany,
+The patch is generated from a Linux kernel 4.6.1, to which I applied Matthias Schwarzott's patches from 26/07/2016 - as a
+consequence, his work is included here, please tell me how to separate it when that's necessary.  My patch will conflict with the
+one from Oleh Kravchenko 04/08/2016.
 
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.8-rc1 next-20160812]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+I haven't got a clue what I am messing with: no experience with TV hardware, no understanding of I2C programming, my changes are based on USB snooping and what I found in the Windows driver's .inf.   Eg. "write pll registers 0x00a0..0x00a3 at once" is no longer true.  Won't this break other HW?
 
-url:    https://github.com/0day-ci/linux/commits/Tiffany-Lin/vcodec-mediatek-Add-g-s_selection-support-for-V4L2-Encoder/20160812-221617
-base:   git://linuxtv.org/media_tree.git master
-config: mips-allyesconfig (attached as .config)
-compiler: mips-linux-gnu-gcc (Debian 5.4.0-6) 5.4.0 20160609
-reproduce:
-        wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # save the attached .config to linux build tree
-        make.cross ARCH=mips 
-
-All warnings (new ones prefixed by >>):
-
-   drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c: In function 'vidioc_venc_s_selection':
->> drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c:673:6: warning: unused variable 'err' [-Wunused-variable]
-     int err;
-         ^
-
-vim +/err +673 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-
-   657			s->r.left = 0;
-   658			s->r.width = q_data->visible_width;
-   659			s->r.height = q_data->visible_height;
-   660			break;
-   661		default:
-   662			return -EINVAL;
-   663		}
-   664	
-   665		return 0;
-   666	}
-   667	
-   668	static int vidioc_venc_s_selection(struct file *file, void *priv,
-   669					     struct v4l2_selection *s)
-   670	{
-   671		struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-   672		struct mtk_q_data *q_data;
- > 673		int err;
-   674	
-   675		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-   676			return -EINVAL;
-   677	
-   678		q_data = mtk_venc_get_q_data(ctx, s->type);
-   679		if (!q_data)
-   680			return -EINVAL;
-   681	
-
+Signed-off-by: Gerard H. Pille <g.h.p@skynet.be>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ drivers/media/dvb-frontends/Kconfig        |   1 +
+ drivers/media/dvb-frontends/si2165.c       | 278 +++++++++++++++++------------
+ drivers/media/dvb-frontends/si2165.h       |  27 +--
+ drivers/media/dvb-frontends/si2165_priv.h  |  17 ++
+ drivers/media/pci/cx23885/cx23885-dvb.c    |  30 +++-
+ drivers/media/tuners/si2157.c              |  52 ++++--
+ drivers/media/tuners/si2157_priv.h         |   2 +
+ drivers/media/tuners/tuner-types.c         |   4 +
+ drivers/media/usb/cx231xx/cx231xx-avcore.c |   8 +-
+ drivers/media/usb/cx231xx/cx231xx-cards.c  |  57 +++++-
+ drivers/media/usb/cx231xx/cx231xx-core.c   |   3 +-
+ drivers/media/usb/cx231xx/cx231xx-dvb.c    | 168 ++++++++++++++---
+ drivers/media/usb/cx231xx/cx231xx.h        |   2 +
+ include/media/tuner.h                      |   2 +
+ 14 files changed, 461 insertions(+), 190 deletions(-)
 
---Nq2Wo0NMKNjxTN9z
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
+diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+index c645aa8..8272c08 100644
+--- a/drivers/media/dvb-frontends/Kconfig
++++ b/drivers/media/dvb-frontends/Kconfig
+@@ -67,6 +67,7 @@ config DVB_TDA18271C2DD
+ config DVB_SI2165
+ 	tristate "Silicon Labs si2165 based"
+ 	depends on DVB_CORE && I2C
++	select REGMAP_I2C
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  A DVB-C/T demodulator.
+diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
+index 8bf716a..efbc43e 100644
+--- a/drivers/media/dvb-frontends/si2165.c
++++ b/drivers/media/dvb-frontends/si2165.c
+@@ -25,6 +25,7 @@
+ #include <linux/string.h>
+ #include <linux/slab.h>
+ #include <linux/firmware.h>
++#include <linux/regmap.h>
+ 
+ #include "dvb_frontend.h"
+ #include "dvb_math.h"
+@@ -40,7 +41,9 @@
+  */
+ 
+ struct si2165_state {
+-	struct i2c_adapter *i2c;
++	struct i2c_client *client;
++
++	struct regmap *regmap;
+ 
+ 	struct dvb_frontend fe;
+ 
+@@ -108,61 +111,27 @@ static int si2165_write(struct si2165_state *state, const u16 reg,
+ 		       const u8 *src, const int count)
+ {
+ 	int ret;
+-	struct i2c_msg msg;
+-	u8 buf[2 + 4]; /* write a maximum of 4 bytes of data */
+-
+-	if (count + 2 > sizeof(buf)) {
+-		dev_warn(&state->i2c->dev,
+-			  "%s: i2c wr reg=%04x: count=%d is too big!\n",
+-			  KBUILD_MODNAME, reg, count);
+-		return -EINVAL;
+-	}
+-	buf[0] = reg >> 8;
+-	buf[1] = reg & 0xff;
+-	memcpy(buf + 2, src, count);
+-
+-	msg.addr = state->config.i2c_addr;
+-	msg.flags = 0;
+-	msg.buf = buf;
+-	msg.len = count + 2;
+ 
+ 	if (debug & DEBUG_I2C_WRITE)
+ 		deb_i2c_write("reg: 0x%04x, data: %*ph\n", reg, count, src);
+ 
+-	ret = i2c_transfer(state->i2c, &msg, 1);
++	ret = regmap_bulk_write(state->regmap, reg, src, count);
+ 
+-	if (ret != 1) {
+-		dev_err(&state->i2c->dev, "%s: ret == %d\n", __func__, ret);
+-		if (ret < 0)
+-			return ret;
+-		else
+-			return -EREMOTEIO;
+-	}
++	if (ret)
++		dev_err(&state->client->dev, "%s: ret == %d\n", __func__, ret);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static int si2165_read(struct si2165_state *state,
+ 		       const u16 reg, u8 *val, const int count)
+ {
+-	int ret;
+-	u8 reg_buf[] = { reg >> 8, reg & 0xff };
+-	struct i2c_msg msg[] = {
+-		{ .addr = state->config.i2c_addr,
+-		  .flags = 0, .buf = reg_buf, .len = 2 },
+-		{ .addr = state->config.i2c_addr,
+-		  .flags = I2C_M_RD, .buf = val, .len = count },
+-	};
+-
+-	ret = i2c_transfer(state->i2c, msg, 2);
++	int ret = regmap_bulk_read(state->regmap, reg, val, count);
+ 
+-	if (ret != 2) {
+-		dev_err(&state->i2c->dev, "%s: error (addr %02x reg %04x error (ret == %i)\n",
++	if (ret) {
++		dev_err(&state->client->dev, "%s: error (addr %02x reg %04x error (ret == %i)\n",
+ 			__func__, state->config.i2c_addr, reg, ret);
+-		if (ret < 0)
+-			return ret;
+-		else
+-			return -EREMOTEIO;
++		return ret;
+ 	}
+ 
+ 	if (debug & DEBUG_I2C_READ)
+@@ -174,9 +143,9 @@ static int si2165_read(struct si2165_state *state,
+ static int si2165_readreg8(struct si2165_state *state,
+ 		       const u16 reg, u8 *val)
+ {
+-	int ret;
+-
+-	ret = si2165_read(state, reg, val, 1);
++	unsigned int val_tmp;
++	int ret = regmap_read(state->regmap, reg, &val_tmp);
++	*val = (u8)val_tmp;
+ 	deb_readreg("R(0x%04x)=0x%02x\n", reg, *val);
+ 	return ret;
+ }
+@@ -194,7 +163,7 @@ static int si2165_readreg16(struct si2165_state *state,
+ 
+ static int si2165_writereg8(struct si2165_state *state, const u16 reg, u8 val)
+ {
+-	return si2165_write(state, reg, &val, 1);
++	return regmap_write(state->regmap, reg, val);
+ }
+ 
+ static int si2165_writereg16(struct si2165_state *state, const u16 reg, u16 val)
+@@ -206,20 +175,23 @@ static int si2165_writereg16(struct si2165_state *state, const u16 reg, u16 val)
+ 
+ static int si2165_writereg24(struct si2165_state *state, const u16 reg, u32 val)
+ {
++	int ret;
+ 	u8 buf[3] = { val & 0xff, (val >> 8) & 0xff, (val >> 16) & 0xff };
+ 
+-	return si2165_write(state, reg, buf, 3);
++	ret = si2165_write(state, reg, buf, 2);
++	if (ret == 0)
++		return si2165_write(state, reg+2, buf+2, 1);
++	return ret;
+ }
+ 
+ static int si2165_writereg32(struct si2165_state *state, const u16 reg, u32 val)
+ {
+-	u8 buf[4] = {
+-		val & 0xff,
+-		(val >> 8) & 0xff,
+-		(val >> 16) & 0xff,
+-		(val >> 24) & 0xff
+-	};
+-	return si2165_write(state, reg, buf, 4);
++	int ret;
++	ret = si2165_writereg16(state, reg, val & 0xffff);
++	if (ret == 0) {
++		ret = si2165_writereg16(state, reg+2, (val >> 16)  & 0xffff);
++	}
++	return ret;
+ }
+ 
+ static int si2165_writereg_mask8(struct si2165_state *state, const u16 reg,
+@@ -276,6 +248,7 @@ static int si2165_init_pll(struct si2165_state *state)
+ 	u8 divm = 8;
+ 	u8 divl = 12;
+ 	u8 buf[4];
++	int ret;
+ 
+ 	/*
+ 	 * hardcoded values can be deleted if calculation is verified
+@@ -316,9 +289,18 @@ static int si2165_init_pll(struct si2165_state *state)
+ 	/* write pll registers 0x00a0..0x00a3 at once */
+ 	buf[0] = divl;
+ 	buf[1] = divm;
++	/*
+ 	buf[2] = (divn & 0x3f) | ((divp == 1) ? 0x40 : 0x00) | 0x80;
+ 	buf[3] = divr;
+ 	return si2165_write(state, 0x00a0, buf, 4);
++	*/
++	ret = si2165_write(state, 0x00a0, buf, 2);
++	if  (ret == 0) {
++		buf[0] = (divn & 0x3f) | ((divp == 1) ? 0x40 : 0x00) | 0x80;
++		buf[1] = divr;
++		ret = si2165_write(state, 0x00a2, buf, 2);
++	}
++	return ret;
+ }
+ 
+ static int si2165_adjust_pll_divl(struct si2165_state *state, u8 divl)
+@@ -345,7 +327,7 @@ static int si2165_wait_init_done(struct si2165_state *state)
+ 			return 0;
+ 		usleep_range(1000, 50000);
+ 	}
+-	dev_err(&state->i2c->dev, "%s: init_done was not set\n",
++	dev_err(&state->client->dev, "%s: init_done was not set\n",
+ 		KBUILD_MODNAME);
+ 	return ret;
+ }
+@@ -374,14 +356,14 @@ static int si2165_upload_firmware_block(struct si2165_state *state,
+ 		wordcount = data[offset];
+ 		if (wordcount < 1 || data[offset+1] ||
+ 		    data[offset+2] || data[offset+3]) {
+-			dev_warn(&state->i2c->dev,
++			dev_warn(&state->client->dev,
+ 				 "%s: bad fw data[0..3] = %*ph\n",
+ 				KBUILD_MODNAME, 4, data);
+ 			return -EINVAL;
+ 		}
+ 
+ 		if (offset + 8 + wordcount * 4 > len) {
+-			dev_warn(&state->i2c->dev,
++			dev_warn(&state->client->dev,
+ 				 "%s: len is too small for block len=%d, wordcount=%d\n",
+ 				KBUILD_MODNAME, len, wordcount);
+ 			return -EINVAL;
+@@ -389,17 +371,26 @@ static int si2165_upload_firmware_block(struct si2165_state *state,
+ 
+ 		buf_ctrl[0] = wordcount - 1;
+ 
+-		ret = si2165_write(state, 0x0364, buf_ctrl, 4);
++		ret = si2165_write(state, 0x0364, buf_ctrl, 2);
++		if (ret < 0)
++			goto error;
++		ret = si2165_write(state, 0x0366, buf_ctrl+2, 2);
+ 		if (ret < 0)
+ 			goto error;
+-		ret = si2165_write(state, 0x0368, data+offset+4, 4);
++		ret = si2165_write(state, 0x0368, data+offset+4, 2);
++		if (ret < 0)
++			goto error;
++		ret = si2165_write(state, 0x036a, data+offset+6, 2);
+ 		if (ret < 0)
+ 			goto error;
+ 
+ 		offset += 8;
+ 
+ 		while (wordcount > 0) {
+-			ret = si2165_write(state, 0x36c, data+offset, 4);
++			ret = si2165_write(state, 0x36c, data+offset, 2);
++			if (ret < 0)
++				goto error;
++			ret = si2165_write(state, 0x36e, data+offset+2, 2);
+ 			if (ret < 0)
+ 				goto error;
+ 			wordcount--;
+@@ -444,15 +435,15 @@ static int si2165_upload_firmware(struct si2165_state *state)
+ 		fw_file = SI2165_FIRMWARE_REV_D;
+ 		break;
+ 	default:
+-		dev_info(&state->i2c->dev, "%s: no firmware file for revision=%d\n",
++		dev_info(&state->client->dev, "%s: no firmware file for revision=%d\n",
+ 			KBUILD_MODNAME, state->chip_revcode);
+ 		return 0;
+ 	}
+ 
+ 	/* request the firmware, this will block and timeout */
+-	ret = request_firmware(&fw, fw_file, state->i2c->dev.parent);
++	ret = request_firmware(&fw, fw_file, &state->client->dev);
+ 	if (ret) {
+-		dev_warn(&state->i2c->dev, "%s: firmware file '%s' not found\n",
++		dev_warn(&state->client->dev, "%s: firmware file '%s' not found\n",
+ 				KBUILD_MODNAME, fw_file);
+ 		goto error;
+ 	}
+@@ -460,11 +451,11 @@ static int si2165_upload_firmware(struct si2165_state *state)
+ 	data = fw->data;
+ 	len = fw->size;
+ 
+-	dev_info(&state->i2c->dev, "%s: downloading firmware from file '%s' size=%d\n",
++	dev_info(&state->client->dev, "%s: downloading firmware from file '%s' size=%d\n",
+ 			KBUILD_MODNAME, fw_file, len);
+ 
+ 	if (len % 4 != 0) {
+-		dev_warn(&state->i2c->dev, "%s: firmware size is not multiple of 4\n",
++		dev_warn(&state->client->dev, "%s: firmware size is not multiple of 4\n",
+ 				KBUILD_MODNAME);
+ 		ret = -EINVAL;
+ 		goto error;
+@@ -472,14 +463,14 @@ static int si2165_upload_firmware(struct si2165_state *state)
+ 
+ 	/* check header (8 bytes) */
+ 	if (len < 8) {
+-		dev_warn(&state->i2c->dev, "%s: firmware header is missing\n",
++		dev_warn(&state->client->dev, "%s: firmware header is missing\n",
+ 				KBUILD_MODNAME);
+ 		ret = -EINVAL;
+ 		goto error;
+ 	}
+ 
+ 	if (data[0] != 1 || data[1] != 0) {
+-		dev_warn(&state->i2c->dev, "%s: firmware file version is wrong\n",
++		dev_warn(&state->client->dev, "%s: firmware file version is wrong\n",
+ 				KBUILD_MODNAME);
+ 		ret = -EINVAL;
+ 		goto error;
+@@ -517,7 +508,7 @@ static int si2165_upload_firmware(struct si2165_state *state)
+ 	/* start right after the header */
+ 	offset = 8;
+ 
+-	dev_info(&state->i2c->dev, "%s: si2165_upload_firmware extracted patch_version=0x%02x, block_count=0x%02x, crc_expected=0x%04x\n",
++	dev_info(&state->client->dev, "%s: si2165_upload_firmware extracted patch_version=0x%02x, block_count=0x%02x, crc_expected=0x%04x\n",
+ 		KBUILD_MODNAME, patch_version, block_count, crc_expected);
+ 
+ 	ret = si2165_upload_firmware_block(state, data, len, &offset, 1);
+@@ -536,7 +527,7 @@ static int si2165_upload_firmware(struct si2165_state *state)
+ 	ret = si2165_upload_firmware_block(state, data, len,
+ 					   &offset, block_count);
+ 	if (ret < 0) {
+-		dev_err(&state->i2c->dev,
++		dev_err(&state->client->dev,
+ 			"%s: firmware could not be uploaded\n",
+ 			KBUILD_MODNAME);
+ 		goto error;
+@@ -548,7 +539,7 @@ static int si2165_upload_firmware(struct si2165_state *state)
+ 		goto error;
+ 
+ 	if (val16 != crc_expected) {
+-		dev_err(&state->i2c->dev,
++		dev_err(&state->client->dev,
+ 			"%s: firmware crc mismatch %04x != %04x\n",
+ 			KBUILD_MODNAME, val16, crc_expected);
+ 		ret = -EINVAL;
+@@ -560,7 +551,7 @@ static int si2165_upload_firmware(struct si2165_state *state)
+ 		goto error;
+ 
+ 	if (len != offset) {
+-		dev_err(&state->i2c->dev,
++		dev_err(&state->client->dev,
+ 			"%s: firmware len mismatch %04x != %04x\n",
+ 			KBUILD_MODNAME, len, offset);
+ 		ret = -EINVAL;
+@@ -577,7 +568,7 @@ static int si2165_upload_firmware(struct si2165_state *state)
+ 	if (ret < 0)
+ 		goto error;
+ 
+-	dev_info(&state->i2c->dev, "%s: fw load finished\n", KBUILD_MODNAME);
++	dev_info(&state->client->dev, "%s: fw load finished\n", KBUILD_MODNAME);
+ 
+ 	ret = 0;
+ 	state->firmware_loaded = true;
+@@ -611,7 +602,7 @@ static int si2165_init(struct dvb_frontend *fe)
+ 	if (ret < 0)
+ 		goto error;
+ 	if (val != state->config.chip_mode) {
+-		dev_err(&state->i2c->dev, "%s: could not set chip_mode\n",
++		dev_err(&state->client->dev, "%s: could not set chip_mode\n",
+ 			KBUILD_MODNAME);
+ 		return -EINVAL;
+ 	}
+@@ -672,9 +663,13 @@ static int si2165_init(struct dvb_frontend *fe)
+ 		goto error;
+ 
+ 	/* dsp_addr_jump */
+-	ret = si2165_writereg32(state, 0x0348, 0xf4000000);
++	ret = si2165_writereg16(state, 0x0348, 0x0000);
++	if (ret < 0)
++		goto error;
++	ret = si2165_writereg16(state, 0x034a, 0xf400);
+ 	if (ret < 0)
+ 		goto error;
++
+ 	/* boot/wdog status */
+ 	ret = si2165_readreg8(state, 0x0341, &val);
+ 	if (ret < 0)
+@@ -751,6 +746,9 @@ static int si2165_set_oversamp(struct si2165_state *state, u32 dvb_rate)
+ 	u64 oversamp;
+ 	u32 reg_value;
+ 
++	if (!dvb_rate)
++		return -EINVAL;
++
+ 	oversamp = si2165_get_fe_clk(state);
+ 	oversamp <<= 23;
+ 	do_div(oversamp, dvb_rate);
+@@ -769,12 +767,15 @@ static int si2165_set_if_freq_shift(struct si2165_state *state)
+ 	u32 IF = 0;
+ 
+ 	if (!fe->ops.tuner_ops.get_if_frequency) {
+-		dev_err(&state->i2c->dev,
++		dev_err(&state->client->dev,
+ 			"%s: Error: get_if_frequency() not defined at tuner. Can't work without it!\n",
+ 			KBUILD_MODNAME);
+ 		return -EINVAL;
+ 	}
+ 
++	if (!fe_clk)
++		return -EINVAL;
++
+ 	fe->ops.tuner_ops.get_if_frequency(fe, &IF);
+ 	if_freq_shift = IF;
+ 	if_freq_shift <<= 29;
+@@ -1003,14 +1004,6 @@ static int si2165_set_frontend(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static void si2165_release(struct dvb_frontend *fe)
+-{
+-	struct si2165_state *state = fe->demodulator_priv;
+-
+-	dprintk("%s: called\n", __func__);
+-	kfree(state);
+-}
+-
+ static struct dvb_frontend_ops si2165_ops = {
+ 	.info = {
+ 		.name = "Silicon Labs ",
+@@ -1046,67 +1039,83 @@ static struct dvb_frontend_ops si2165_ops = {
+ 
+ 	.set_frontend      = si2165_set_frontend,
+ 	.read_status       = si2165_read_status,
+-
+-	.release = si2165_release,
+ };
+ 
+-struct dvb_frontend *si2165_attach(const struct si2165_config *config,
+-				   struct i2c_adapter *i2c)
++static int si2165_probe(struct i2c_client *client,
++		const struct i2c_device_id *id)
+ {
+ 	struct si2165_state *state = NULL;
++	struct si2165_platform_data *pdata = client->dev.platform_data;
+ 	int n;
+-	int io_ret;
++	int ret = 0;
+ 	u8 val;
+ 	char rev_char;
+ 	const char *chip_name;
+-
+-	if (config == NULL || i2c == NULL)
+-		goto error;
++	static const struct regmap_config regmap_config = {
++		.reg_bits = 16,
++		.val_bits = 8,
++		.max_register = 0x08ff,
++	};
+ 
+ 	/* allocate memory for the internal state */
+ 	state = kzalloc(sizeof(struct si2165_state), GFP_KERNEL);
+-	if (state == NULL)
++	if (state == NULL) {
++		ret = -ENOMEM;
+ 		goto error;
++	}
++
++	/* create regmap */
++	state->regmap = devm_regmap_init_i2c(client, &regmap_config);
++	if (IS_ERR(state->regmap)) {
++		ret = PTR_ERR(state->regmap);
++		goto error;
++	}
+ 
+ 	/* setup the state */
+-	state->i2c = i2c;
+-	state->config = *config;
++	state->client = client;
++	state->config.i2c_addr = client->addr;
++	state->config.chip_mode = pdata->chip_mode;
++	state->config.ref_freq_Hz = pdata->ref_freq_Hz;
++	state->config.inversion = pdata->inversion;
+ 
+ 	if (state->config.ref_freq_Hz < 4000000
+ 	    || state->config.ref_freq_Hz > 27000000) {
+-		dev_err(&state->i2c->dev, "%s: ref_freq of %d Hz not supported by this driver\n",
++		dev_err(&state->client->dev, "%s: ref_freq of %d Hz not supported by this driver\n",
+ 			 KBUILD_MODNAME, state->config.ref_freq_Hz);
++		ret = -EINVAL;
+ 		goto error;
+ 	}
+ 
+ 	/* create dvb_frontend */
+ 	memcpy(&state->fe.ops, &si2165_ops,
+ 		sizeof(struct dvb_frontend_ops));
++	state->fe.ops.release = NULL;
+ 	state->fe.demodulator_priv = state;
++	i2c_set_clientdata(client, state);
+ 
+ 	/* powerup */
+-	io_ret = si2165_writereg8(state, 0x0000, state->config.chip_mode);
+-	if (io_ret < 0)
+-		goto error;
++	ret = si2165_writereg8(state, 0x0000, state->config.chip_mode);
++	if (ret < 0)
++		goto nodev_error;
+ 
+-	io_ret = si2165_readreg8(state, 0x0000, &val);
+-	if (io_ret < 0)
+-		goto error;
++	ret = si2165_readreg8(state, 0x0000, &val);
++	if (ret < 0)
++		goto nodev_error;
+ 	if (val != state->config.chip_mode)
+-		goto error;
++		goto nodev_error;
+ 
+-	io_ret = si2165_readreg8(state, 0x0023, &state->chip_revcode);
+-	if (io_ret < 0)
+-		goto error;
++	ret = si2165_readreg8(state, 0x0023, &state->chip_revcode);
++	if (ret < 0)
++		goto nodev_error;
+ 
+-	io_ret = si2165_readreg8(state, 0x0118, &state->chip_type);
+-	if (io_ret < 0)
+-		goto error;
++	ret = si2165_readreg8(state, 0x0118, &state->chip_type);
++	if (ret < 0)
++		goto nodev_error;
+ 
+ 	/* powerdown */
+-	io_ret = si2165_writereg8(state, 0x0000, SI2165_MODE_OFF);
+-	if (io_ret < 0)
+-		goto error;
++	ret = si2165_writereg8(state, 0x0000, SI2165_MODE_OFF);
++	if (ret < 0)
++		goto nodev_error;
+ 
+ 	if (state->chip_revcode < 26)
+ 		rev_char = 'A' + state->chip_revcode;
+@@ -1124,12 +1133,12 @@ struct dvb_frontend *si2165_attach(const struct si2165_config *config,
+ 		state->has_dvbc = true;
+ 		break;
+ 	default:
+-		dev_err(&state->i2c->dev, "%s: Unsupported Silicon Labs chip (type %d, rev %d)\n",
++		dev_err(&state->client->dev, "%s: Unsupported Silicon Labs chip (type %d, rev %d)\n",
+ 			KBUILD_MODNAME, state->chip_type, state->chip_revcode);
+-		goto error;
++		goto nodev_error;
+ 	}
+ 
+-	dev_info(&state->i2c->dev,
++	dev_info(&state->client->dev,
+ 		"%s: Detected Silicon Labs %s-%c (type %d, rev %d)\n",
+ 		KBUILD_MODNAME, chip_name, rev_char, state->chip_type,
+ 		state->chip_revcode);
+@@ -1149,13 +1158,46 @@ struct dvb_frontend *si2165_attach(const struct si2165_config *config,
+ 			sizeof(state->fe.ops.info.name));
+ 	}
+ 
+-	return &state->fe;
++	/* return fe pointer */
++	*pdata->fe = &state->fe;
+ 
++	return 0;
++
++nodev_error:
++	ret = -ENODEV;
+ error:
+ 	kfree(state);
+-	return NULL;
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++	return ret;
++}
++
++static int si2165_remove(struct i2c_client *client)
++{
++	struct si2165_state *state = i2c_get_clientdata(client);
++
++	dev_dbg(&client->dev, "\n");
++
++	kfree(state);
++	return 0;
+ }
+-EXPORT_SYMBOL(si2165_attach);
++
++static const struct i2c_device_id si2165_id_table[] = {
++	{"si2165", 0},
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, si2165_id_table);
++
++static struct i2c_driver si2165_driver = {
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= "si2165",
++	},
++	.probe		= si2165_probe,
++	.remove		= si2165_remove,
++	.id_table	= si2165_id_table,
++};
++
++module_i2c_driver(si2165_driver);
+ 
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "Turn on/off frontend debugging (default:off).");
+diff --git a/drivers/media/dvb-frontends/si2165.h b/drivers/media/dvb-frontends/si2165.h
+index 8a15d6a..76c2ca7 100644
+--- a/drivers/media/dvb-frontends/si2165.h
++++ b/drivers/media/dvb-frontends/si2165.h
+@@ -28,10 +28,15 @@ enum {
+ 	SI2165_MODE_PLL_XTAL = 0x21
+ };
+ 
+-struct si2165_config {
+-	/* i2c addr
+-	 * possible values: 0x64,0x65,0x66,0x67 */
+-	u8 i2c_addr;
++/* I2C addresses
++ * possible values: 0x64,0x65,0x66,0x67
++ */
++struct si2165_platform_data {
++	/*
++	 * frontend
++	 * returned by driver
++	 */
++	struct dvb_frontend **fe;
+ 
+ 	/* external clock or XTAL */
+ 	u8 chip_mode;
+@@ -45,18 +50,4 @@ struct si2165_config {
+ 	bool inversion;
+ };
+ 
+-#if IS_REACHABLE(CONFIG_DVB_SI2165)
+-struct dvb_frontend *si2165_attach(
+-	const struct si2165_config *config,
+-	struct i2c_adapter *i2c);
+-#else
+-static inline struct dvb_frontend *si2165_attach(
+-	const struct si2165_config *config,
+-	struct i2c_adapter *i2c)
+-{
+-	pr_warn("%s: driver disabled by Kconfig\n", __func__);
+-	return NULL;
+-}
+-#endif /* CONFIG_DVB_SI2165 */
+-
+ #endif /* _DVB_SI2165_H */
+diff --git a/drivers/media/dvb-frontends/si2165_priv.h b/drivers/media/dvb-frontends/si2165_priv.h
+index 2b70cf1..e593211 100644
+--- a/drivers/media/dvb-frontends/si2165_priv.h
++++ b/drivers/media/dvb-frontends/si2165_priv.h
+@@ -20,4 +20,21 @@
+ 
+ #define SI2165_FIRMWARE_REV_D "dvb-demod-si2165.fw"
+ 
++struct si2165_config {
++	/* i2c addr
++	 * possible values: 0x64,0x65,0x66,0x67 */
++	u8 i2c_addr;
++
++	/* external clock or XTAL */
++	u8 chip_mode;
++
++	/* frequency of external clock or xtal in Hz
++	 * possible values: 4000000, 16000000, 20000000, 240000000, 27000000
++	 */
++	u32 ref_freq_Hz;
++
++	/* invert the spectrum */
++	bool inversion;
++};
++
+ #endif /* _DVB_SI2165_PRIV */
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index e5748a9..5d0bbe4 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -867,12 +867,6 @@ static const struct tda10071_platform_data hauppauge_tda10071_pdata = {
+ 	.tuner_i2c_addr = 0x54,
+ };
+ 
+-static const struct si2165_config hauppauge_hvr4400_si2165_config = {
+-	.i2c_addr	= 0x64,
+-	.chip_mode	= SI2165_MODE_PLL_XTAL,
+-	.ref_freq_Hz	= 16000000,
+-};
+-
+ static const struct m88ds3103_config dvbsky_t9580_m88ds3103_config = {
+ 	.i2c_addr = 0x68,
+ 	.clock = 27000000,
+@@ -1182,6 +1176,7 @@ static int dvb_register(struct cx23885_tsport *port)
+ 	struct cx23885_i2c *i2c_bus = NULL, *i2c_bus2 = NULL;
+ 	struct vb2_dvb_frontend *fe0, *fe1 = NULL;
+ 	struct si2168_config si2168_config;
++	struct si2165_platform_data si2165_pdata;
+ 	struct si2157_config si2157_config;
+ 	struct ts2020_config ts2020_config;
+ 	struct i2c_board_info info;
+@@ -1839,9 +1834,26 @@ static int dvb_register(struct cx23885_tsport *port)
+ 			break;
+ 		/* port c */
+ 		case 2:
+-			fe0->dvb.frontend = dvb_attach(si2165_attach,
+-					&hauppauge_hvr4400_si2165_config,
+-					&i2c_bus->i2c_adap);
++			/* attach frontend */
++			memset(&si2165_pdata, 0, sizeof(si2165_pdata));
++			si2165_pdata.fe = &fe0->dvb.frontend;
++			si2165_pdata.chip_mode = SI2165_MODE_PLL_XTAL,
++			si2165_pdata.ref_freq_Hz = 16000000,
++			memset(&info, 0, sizeof(struct i2c_board_info));
++			strlcpy(info.type, "si2165", I2C_NAME_SIZE);
++			info.addr = 0x64;
++			info.platform_data = &si2165_pdata;
++			request_module(info.type);
++			client_demod = i2c_new_device(&i2c_bus->i2c_adap, &info);
++			if (client_demod == NULL ||
++					client_demod->dev.driver == NULL)
++				goto frontend_detach;
++			if (!try_module_get(client_demod->dev.driver->owner)) {
++				i2c_unregister_device(client_demod);
++				goto frontend_detach;
++			}
++			port->i2c_client_demod = client_demod;
++
+ 			if (fe0->dvb.frontend == NULL)
+ 				break;
+ 			fe0->dvb.frontend->ops.i2c_gate_ctrl = NULL;
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index 57b2508..39fb443 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -80,7 +80,7 @@ static int si2157_init(struct dvb_frontend *fe)
+ 	struct i2c_client *client = fe->tuner_priv;
+ 	struct si2157_dev *dev = i2c_get_clientdata(client);
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-	int ret, len, remaining;
++	int ret, len, remaining, fw_chunk, inc;
+ 	struct si2157_cmd cmd;
+ 	const struct firmware *fw;
+ 	const char *fw_name;
+@@ -103,12 +103,12 @@ static int si2157_init(struct dvb_frontend *fe)
+ 		goto warm;
+ 
+ 	/* power up */
+-	if (dev->chiptype == SI2157_CHIPTYPE_SI2146) {
+-		memcpy(cmd.args, "\xc0\x05\x01\x00\x00\x0b\x00\x00\x01", 9);
+-		cmd.wlen = 9;
+-	} else {
++	if (dev->chiptype == SI2157_CHIPTYPE_SI2157) {
+ 		memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
+ 		cmd.wlen = 15;
++	} else {
++		memcpy(cmd.args, "\xc0\x05\x01\x00\x00\x0b\x00\x00\x01", 9);
++		cmd.wlen = 9;
+ 	}
+ 	cmd.rlen = 1;
+ 	ret = si2157_cmd_execute(client, &cmd);
+@@ -131,11 +131,17 @@ static int si2157_init(struct dvb_frontend *fe)
+ 	#define SI2157_A30 ('A' << 24 | 57 << 16 | '3' << 8 | '0' << 0)
+ 	#define SI2147_A30 ('A' << 24 | 47 << 16 | '3' << 8 | '0' << 0)
+ 	#define SI2146_A10 ('A' << 24 | 46 << 16 | '1' << 8 | '0' << 0)
++	#define SI2173_A31 ('A' << 24 | 73 << 16 | '3' << 8 | '1' << 0)
+ 
+ 	switch (chip_id) {
+ 	case SI2158_A20:
+ 	case SI2148_A20:
+ 		fw_name = SI2158_A20_FIRMWARE;
++		fw_chunk = 17;
++		break;
++	case SI2173_A31:
++		fw_name = SI2173_A31_FIRMWARE;
++		fw_chunk = 8;
+ 		break;
+ 	case SI2157_A30:
+ 	case SI2147_A30:
+@@ -164,25 +170,29 @@ static int si2157_init(struct dvb_frontend *fe)
+ 		goto err;
+ 	}
+ 
+-	/* firmware should be n chunks of 17 bytes */
+-	if (fw->size % 17 != 0) {
++	/* firmware should be n chunks of 8 or 17 bytes */
++	if (fw->size % fw_chunk != 0) {
+ 		dev_err(&client->dev, "firmware file '%s' is invalid\n",
+ 				fw_name);
+ 		ret = -EINVAL;
+ 		goto err_release_firmware;
+ 	}
+ 
+-	dev_info(&client->dev, "downloading firmware from file '%s'\n",
+-			fw_name);
++	dev_info(&client->dev, "downloading firmware from file '%s', size %zu bytes\n",
++			fw_name, fw->size);
+ 
+-	for (remaining = fw->size; remaining > 0; remaining -= 17) {
+-		len = fw->data[fw->size - remaining];
++	if (fw_chunk == 8)
++		inc = 0;
++	else
++		inc = 1;
++	for (remaining = fw->size; remaining > 0; remaining -= fw_chunk) {
++		len = fw_chunk == 8 ? 8 : fw->data[fw->size - remaining];
+ 		if (len > SI2157_ARGLEN) {
+ 			dev_err(&client->dev, "Bad firmware length\n");
+ 			ret = -EINVAL;
+ 			goto err_release_firmware;
+ 		}
+-		memcpy(cmd.args, &fw->data[(fw->size - remaining) + 1], len);
++		memcpy(cmd.args, &fw->data[(fw->size - remaining) + inc], len);
+ 		cmd.wlen = len;
+ 		cmd.rlen = 1;
+ 		ret = si2157_cmd_execute(client, &cmd);
+@@ -371,7 +381,7 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 
+ static const struct dvb_tuner_ops si2157_ops = {
+ 	.info = {
+-		.name           = "Silicon Labs Si2146/2147/2148/2157/2158",
++		.name           = "Silicon Labs Si2146/2147/2148/2157/2158/2173",
+ 		.frequency_min  = 42000000,
+ 		.frequency_max  = 870000000,
+ 	},
+@@ -395,7 +405,11 @@ static void si2157_stat_work(struct work_struct *work)
+ 
+ 	memcpy(cmd.args, "\x42\x00", 2);
+ 	cmd.wlen = 2;
+-	cmd.rlen = 12;
++	if (dev->chiptype == SI2157_CHIPTYPE_SI2173) {
++		cmd.rlen = 9;
++	} else {
++		cmd.rlen = 12;
++	}
+ 	ret = si2157_cmd_execute(client, &cmd);
+ 	if (ret)
+ 		goto err;
+@@ -470,9 +484,13 @@ static int si2157_probe(struct i2c_client *client,
+ 	}
+ #endif
+ 
+-	dev_info(&client->dev, "Silicon Labs %s successfully attached\n",
++	dev_info(&client->dev, "Silicon Labs %s (chiptype %d) successfully attached\n",
+ 			dev->chiptype == SI2157_CHIPTYPE_SI2146 ?
+-			"Si2146" : "Si2147/2148/2157/2158");
++			"Si2146" : 
++			dev->chiptype == SI2157_CHIPTYPE_SI2173 ?
++			"Si2173" :
++                        "Si2147/2148/2157/2158",
++			dev->chiptype);
+ 
+ 	return 0;
+ 
+@@ -506,6 +524,7 @@ static int si2157_remove(struct i2c_client *client)
+ }
+ 
+ static const struct i2c_device_id si2157_id_table[] = {
++	{"si2173", SI2157_CHIPTYPE_SI2173},
+ 	{"si2157", SI2157_CHIPTYPE_SI2157},
+ 	{"si2146", SI2157_CHIPTYPE_SI2146},
+ 	{}
+@@ -528,3 +547,4 @@ MODULE_DESCRIPTION("Silicon Labs Si2146/2147/2148/2157/2158 silicon tuner driver
+ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+ MODULE_LICENSE("GPL");
+ MODULE_FIRMWARE(SI2158_A20_FIRMWARE);
++MODULE_FIRMWARE(SI2173_A31_FIRMWARE);
+diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
+index d6b2c7b..f1a3f69 100644
+--- a/drivers/media/tuners/si2157_priv.h
++++ b/drivers/media/tuners/si2157_priv.h
+@@ -42,6 +42,7 @@ struct si2157_dev {
+ 
+ #define SI2157_CHIPTYPE_SI2157 0
+ #define SI2157_CHIPTYPE_SI2146 1
++#define SI2157_CHIPTYPE_SI2173 2
+ 
+ /* firmware command struct */
+ #define SI2157_ARGLEN      30
+@@ -52,5 +53,6 @@ struct si2157_cmd {
+ };
+ 
+ #define SI2158_A20_FIRMWARE "dvb-tuner-si2158-a20-01.fw"
++#define SI2173_A31_FIRMWARE "terratec_cinergy_htc_stick_hd0101.fw"
+ 
+ #endif
+diff --git a/drivers/media/tuners/tuner-types.c b/drivers/media/tuners/tuner-types.c
+index 98bc15a..0dc57b1 100644
+--- a/drivers/media/tuners/tuner-types.c
++++ b/drivers/media/tuners/tuner-types.c
+@@ -1941,6 +1941,10 @@ struct tunertype tuners[] = {
+ 		.params = tuner_sony_btf_pg463z_params,
+ 		.count  = ARRAY_SIZE(tuner_sony_btf_pg463z_params),
+ 	},
++	[TUNER_SI2173] = { /* Silicon Labs 2173 */
++		.name   = "Silicon Labs 2173",
++	},
++
+ };
+ EXPORT_SYMBOL(tuners);
+ 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+index 4919137..d408354 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+@@ -360,6 +360,7 @@ int cx231xx_afe_update_power_control(struct cx231xx *dev,
+ 	case CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL:
+ 	case CX231XX_BOARD_HAUPPAUGE_USB2_FM_NTSC:
+ 	case CX231XX_BOARD_OTG102:
++	case CX231XX_BOARD_TERRATEC_CNRG_HTC_HD:
+ 		if (avmode == POLARIS_AVMODE_ANALOGT_TV) {
+ 			while (afe_power_status != (FLD_PWRDN_TUNING_BIAS |
+ 						FLD_PWRDN_ENABLE_PLL)) {
+@@ -599,7 +600,8 @@ int cx231xx_set_video_input_mux(struct cx231xx *dev, u8 input)
+ 				return status;
+ 			}
+ 		}
+-		if (dev->tuner_type == TUNER_NXP_TDA18271)
++		if ((dev->tuner_type == TUNER_NXP_TDA18271) ||
++		    (dev->tuner_type == TUNER_SI2173))
+ 			status = cx231xx_set_decoder_video_input(dev,
+ 							CX231XX_VMUX_TELEVISION,
+ 							INPUT(input)->vmux);
+@@ -906,7 +908,8 @@ int cx231xx_set_decoder_video_input(struct cx231xx *dev,
+ 
+ 			status = vid_blk_write_word(dev, AFE_CTRL, value);
+ 
+-			if (dev->tuner_type == TUNER_NXP_TDA18271) {
++			if ((dev->tuner_type == TUNER_NXP_TDA18271) ||
++			    (dev->tuner_type == TUNER_SI2173)) {
+ 				status = vid_blk_read_word(dev, PIN_CTRL,
+ 				 &value);
+ 				status = vid_blk_write_word(dev, PIN_CTRL,
+@@ -1197,6 +1200,7 @@ int cx231xx_set_audio_decoder_input(struct cx231xx *dev,
+ 					cx231xx_set_field(FLD_SIF_EN, 1));
+ 			break;
+ 		case TUNER_NXP_TDA18271:
++		case TUNER_SI2173:
+ 			/* Normal mode: SIF passthrough at 14.32 MHz */
+ 			status = cx231xx_read_modify_write_i2c_dword(dev,
+ 					VID_BLK_I2C_ADDRESS,
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index c63248a..8c851ab 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -815,6 +815,52 @@ struct cx231xx_board cx231xx_boards[] = {
+ 			.gpio = NULL,
+ 		} },
+ 	},
++ 	[CX231XX_BOARD_TERRATEC_CNRG_HTC_HD] = {
++ 		.name = "Terratec Cinergy HTC Stick HD",
++ 		.tuner_type = TUNER_ABSENT,
++ 		.tuner_addr = 0x60,
++ 		.tuner_gpio = RDE250_XCV_TUNER,
++ 		.tuner_sif_gpio = 0x05,
++ 		.tuner_scl_gpio = 0x1a,
++ 		.tuner_sda_gpio = 0x1b,
++ 		.tuner_i2c_master = I2C_1_MUX_3,
++ 		.demod_addr = 0x64,
++ 		.demod_i2c_master = I2C_2,
++ 		.has_dvb = 1,
++ 		.decoder = CX231XX_AVDECODER,
++ 		.output_mode = OUT_MODE_VIP11,
++ 		.ctl_pin_status_mask = 0xFFFFFFC4,
++ 		.agc_analog_digital_select_gpio = 0x1c,
++ 		.gpio_pin_status_mask = 0x4001000,
++ 		.norm = V4L2_STD_PAL,
++ 		.no_alt_vanc = 1,
++ 		.external_av = 1,
++ 		/* Actually, it has a 417, but it isn't working correctly.
++ 		 * So set to 0 for now until someone can manage to get this
++ 		 * to work reliably. */
++ 		.has_417 = 0,
++ 		.gpio_pin_status_mask = 0x4001000,
++ 		.agc_analog_digital_select_gpio = 0x1c,
++ 		.input = {{
++ 				.type = CX231XX_VMUX_TELEVISION,
++ 				.vmux = CX231XX_VIN_3_1,
++ 				.amux = CX231XX_AMUX_VIDEO,
++ 				.gpio = NULL,
++ 			}, {
++ 				.type = CX231XX_VMUX_COMPOSITE1,
++ 				.vmux = CX231XX_VIN_2_1,
++ 				.amux = CX231XX_AMUX_LINE_IN,
++ 				.gpio = NULL,
++ 			}, {
++ 				.type = CX231XX_VMUX_SVIDEO,
++ 				.vmux = CX231XX_VIN_1_1 |
++ 					(CX231XX_VIN_1_2 << 8) |
++ 					CX25840_SVIDEO_ON,
++ 				.amux = CX231XX_AMUX_LINE_IN,
++ 				.gpio = NULL,
++ 			}
++ 		},
++ 	},
+ 	[CX231XX_BOARD_TERRATEC_GRABBY] = {
+ 		.name = "Terratec Grabby",
+ 		.tuner_type = TUNER_ABSENT,
+@@ -864,6 +910,8 @@ struct usb_device_id cx231xx_id_table[] = {
+ 	 .driver_info = CX231XX_BOARD_CNXT_RDE_250},
+ 	{USB_DEVICE(0x0572, 0x58A0),
+ 	 .driver_info = CX231XX_BOARD_CNXT_RDU_250},
++	{USB_DEVICE(0x0ccd, 0x0101),
++	.driver_info = CX231XX_BOARD_TERRATEC_CNRG_HTC_HD},
+ 	{USB_DEVICE(0x2040, 0xb110),
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL},
+ 	{USB_DEVICE(0x2040, 0xb111),
+@@ -937,6 +985,11 @@ int cx231xx_tuner_callback(void *ptr, int component, int command, int arg)
+ 					       1);
+ 			msleep(10);
+ 		}
++ 	} else if (dev->tuner_type == TUNER_SI2173) {
++ 			dev_dbg(dev->dev,
++ 				"Tuner CB: RESET: cmd %d : tuner type %d\n",
++ 				command, dev->tuner_type);
++ 			rc = cx231xx_set_agc_analog_digital_mux_select(dev, arg);
+ 	} else if (dev->tuner_type == TUNER_NXP_TDA18271) {
+ 		switch (command) {
+ 		case TDA18271_CALLBACK_CMD_AGC_ENABLE:
+@@ -1263,6 +1316,7 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
+ 	/*To workaround error number=-71 on EP0 for VideoGrabber,
+ 		 need set alt here.*/
+ 	if (dev->model == CX231XX_BOARD_CNXT_VIDEO_GRABBER ||
++	    dev->model == CX231XX_BOARD_TERRATEC_CNRG_HTC_HD ||
+ 	    dev->model == CX231XX_BOARD_HAUPPAUGE_USBLIVE2) {
+ 		cx231xx_set_alt_setting(dev, INDEX_VIDEO, 3);
+ 		cx231xx_set_alt_setting(dev, INDEX_VANC, 1);
+@@ -1674,7 +1728,8 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 		}
+ 	}
+ 
+-	if (dev->model == CX231XX_BOARD_CNXT_VIDEO_GRABBER) {
++	if (dev->model == CX231XX_BOARD_CNXT_VIDEO_GRABBER ||
++	    dev->model == CX231XX_BOARD_TERRATEC_CNRG_HTC_HD)  {
+ 		cx231xx_enable_OSC(dev);
+ 		cx231xx_reset_out(dev);
+ 		cx231xx_set_alt_setting(dev, INDEX_VIDEO, 3);
+diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+index 630f4fc..b942fe4 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-core.c
++++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+@@ -52,7 +52,7 @@ MODULE_PARM_DESC(alt, "alternate setting to use for video endpoint");
+ 
+ #define cx231xx_isocdbg(fmt, arg...) do { 	if (core_debug) -		printk(KERN_INFO "%s %s :"fmt, +		printk(KERN_INFO "%s %s :"fmt" ",  			 dev->name, __func__ , ##arg); } while (0)
+ 
+ /*****************************************************************
+@@ -272,6 +272,7 @@ static int __usb_control_msg(struct cx231xx *dev, unsigned int pipe,
+ 	if (reg_debug) {
+ 		if (unlikely(rc < 0)) {
+ 			printk(KERN_CONT "FAILED!\n");
++			dump_stack();
+ 			return rc;
+ 		}
+ 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index ab2fb9f..a890be3 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -65,6 +65,7 @@ struct cx231xx_dvb {
+ 	struct dmx_frontend fe_hw;
+ 	struct dmx_frontend fe_mem;
+ 	struct dvb_net net;
++	struct i2c_client *i2c_client_demod;
+ 	struct i2c_client *i2c_client_tuner;
+ };
+ 
+@@ -150,18 +151,6 @@ static struct tda18271_config pv_tda18271_config = {
+ 	.small_i2c = TDA18271_03_BYTE_CHUNK_INIT,
+ };
+ 
+-static const struct si2165_config hauppauge_930C_HD_1113xx_si2165_config = {
+-	.i2c_addr	= 0x64,
+-	.chip_mode	= SI2165_MODE_PLL_XTAL,
+-	.ref_freq_Hz	= 16000000,
+-};
+-
+-static const struct si2165_config pctv_quatro_stick_1114xx_si2165_config = {
+-	.i2c_addr	= 0x64,
+-	.chip_mode	= SI2165_MODE_PLL_EXT,
+-	.ref_freq_Hz	= 24000000,
+-};
+-
+ static struct lgdt3306a_config hauppauge_955q_lgdt3306a_config = {
+ 	.i2c_addr           = 0x59,
+ 	.qam_if_khz         = 4000,
+@@ -586,8 +575,14 @@ static void unregister_dvb(struct cx231xx_dvb *dvb)
+ 	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_hw);
+ 	dvb_dmxdev_release(&dvb->dmxdev);
+ 	dvb_dmx_release(&dvb->demux);
+-	client = dvb->i2c_client_tuner;
+ 	/* remove I2C tuner */
++	client = dvb->i2c_client_tuner;
++	if (client) {
++		module_put(client->dev.driver->owner);
++		i2c_unregister_device(client);
++	}
++	/* remove I2C demod */
++	client = dvb->i2c_client_demod;
+ 	if (client) {
+ 		module_put(client->dev.driver->owner);
+ 		i2c_unregister_device(client);
+@@ -749,19 +744,38 @@ static int dvb_init(struct cx231xx *dev)
+ 		break;
+ 
+ 	case CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx:
++	{
++		struct i2c_client *client;
++		struct i2c_board_info info;
++		struct si2165_platform_data si2165_pdata;
+ 
+-		dev->dvb->frontend = dvb_attach(si2165_attach,
+-			&hauppauge_930C_HD_1113xx_si2165_config,
+-			demod_i2c
+-			);
++		/* attach demod */
++		memset(&si2165_pdata, 0, sizeof(si2165_pdata));
++		si2165_pdata.fe = &dev->dvb->frontend;
++		si2165_pdata.chip_mode = SI2165_MODE_PLL_XTAL,
++		si2165_pdata.ref_freq_Hz = 16000000,
+ 
+-		if (dev->dvb->frontend == NULL) {
++		memset(&info, 0, sizeof(struct i2c_board_info));
++		strlcpy(info.type, "si2165", I2C_NAME_SIZE);
++		info.addr = 0x64;
++		info.platform_data = &si2165_pdata;
++		request_module(info.type);
++		client = i2c_new_device(demod_i2c, &info);
++		if (client == NULL || client->dev.driver == NULL || dev->dvb->frontend == NULL) {
+ 			dev_err(dev->dev,
+ 				"Failed to attach SI2165 front end\n");
+ 			result = -EINVAL;
+ 			goto out_free;
+ 		}
+ 
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dvb->i2c_client_demod = client;
++
+ 		dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
+ 
+ 		/* define general-purpose callback pointer */
+@@ -774,27 +788,131 @@ static int dvb_init(struct cx231xx *dev)
+ 
+ 		dev->cx231xx_reset_analog_tuner = NULL;
+ 		break;
++	}
++
++ 	case CX231XX_BOARD_TERRATEC_CNRG_HTC_HD:
++ 	{
++ 		struct i2c_client *client;
++ 		struct i2c_board_info info;
++		struct si2165_platform_data si2165_pdata;
++ 		struct si2157_config si2157_config;
++ 
++		/* attach demod */
++		dev_info(dev->dev,
++			 "%s: attach demod\n",
++		       __func__);
++		memset(&si2165_pdata, 0, sizeof(si2165_pdata));
++		si2165_pdata.fe = &dev->dvb->frontend;
++		si2165_pdata.chip_mode = SI2165_MODE_PLL_EXT,
++		si2165_pdata.ref_freq_Hz = 24000000,
++ 
++ 		memset(&info, 0, sizeof(struct i2c_board_info));
++ 		strlcpy(info.type, "si2165", I2C_NAME_SIZE);
++ 		info.addr = 0x64;
++ 		info.platform_data = &si2165_pdata;
++ 		request_module(info.type);
++ 		client = i2c_new_device(demod_i2c, &info);
++		if (client == NULL || client->dev.driver == NULL || dev->dvb->frontend == NULL) {
++			dev_err(dev->dev,
++				"Failed to attach SI2165 front end\n");
++			result = -EINVAL;
++			goto out_free;
++		}
++ 
++ 		if (!try_module_get(client->dev.driver->owner)) {
++ 			i2c_unregister_device(client);
++ 			result = -ENODEV;
++ 			goto out_free;
++ 		}
++		dev_info(dev->dev,
++			 "%s: demod attached\n",
++		       __func__);
++ 
++		dvb->i2c_client_demod = client;
+ 
++		memset(&info, 0, sizeof(struct i2c_board_info));
++
++ 		dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
++ 
++ 		/* define general-purpose callback pointer */
++ 		dvb->frontend->callback = cx231xx_tuner_callback;
++ 
++ 		/* attach tuner */
++		dev_info(dev->dev,
++			 "%s: attach tuner\n",
++		       __func__);
++ 		memset(&si2157_config, 0, sizeof(si2157_config));
++ 		si2157_config.fe = dev->dvb->frontend;
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++ 		si2157_config.mdev = dev->media_dev;
++#endif
++ 		si2157_config.if_port = 0;
++ 		si2157_config.inversion = true;
++		strlcpy(info.type, "si2173", I2C_NAME_SIZE);
++		info.addr = 0x60;
++		info.platform_data = &si2157_config;
++		request_module("si2157");
++
++		client = i2c_new_device(
++			tuner_i2c,
++			&info);
++		if (client == NULL || client->dev.driver == NULL) {
++			dvb_frontend_detach(dev->dvb->frontend);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			dvb_frontend_detach(dev->dvb->frontend);
++			result = -ENODEV;
++			goto out_free;
++		}
++		dev_info(dev->dev,
++			 "%s: tuner attached\n",
++		       __func__);
++ 
++ 		dev->cx231xx_reset_analog_tuner = NULL;
++ 
++ 		dev->dvb->i2c_client_tuner = client;
++ 		break;
++ 	}
+ 	case CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx:
+ 	{
+ 		struct i2c_client *client;
+ 		struct i2c_board_info info;
++		struct si2165_platform_data si2165_pdata;
+ 		struct si2157_config si2157_config;
+ 
+-		memset(&info, 0, sizeof(struct i2c_board_info));
++		/* attach demod */
++		memset(&si2165_pdata, 0, sizeof(si2165_pdata));
++		si2165_pdata.fe = &dev->dvb->frontend;
++		si2165_pdata.chip_mode = SI2165_MODE_PLL_EXT,
++		si2165_pdata.ref_freq_Hz = 24000000,
+ 
+-		dev->dvb->frontend = dvb_attach(si2165_attach,
+-			&pctv_quatro_stick_1114xx_si2165_config,
+-			demod_i2c
+-			);
+-
+-		if (dev->dvb->frontend == NULL) {
++		memset(&info, 0, sizeof(struct i2c_board_info));
++		strlcpy(info.type, "si2165", I2C_NAME_SIZE);
++		info.addr = 0x64;
++		info.platform_data = &si2165_pdata;
++		request_module(info.type);
++		client = i2c_new_device(demod_i2c, &info);
++		if (client == NULL || client->dev.driver == NULL || dev->dvb->frontend == NULL) {
+ 			dev_err(dev->dev,
+ 				"Failed to attach SI2165 front end\n");
+ 			result = -EINVAL;
+ 			goto out_free;
+ 		}
+ 
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dvb->i2c_client_demod = client;
++
++		memset(&info, 0, sizeof(struct i2c_board_info));
++
+ 		dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
+ 
+ 		/* define general-purpose callback pointer */
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 90c8676..603023d 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -78,6 +78,8 @@
+ #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx 20
+ #define CX231XX_BOARD_HAUPPAUGE_955Q 21
+ #define CX231XX_BOARD_TERRATEC_GRABBY 22
++#define CX231XX_BOARD_TERRATEC_CNRG_HTC_HD 23
++
+ 
+ /* Limits minimum and default number of buffers */
+ #define CX231XX_MIN_BUF                 4
+diff --git a/include/media/tuner.h b/include/media/tuner.h
+index b3edc14..975fb89 100644
+--- a/include/media/tuner.h
++++ b/include/media/tuner.h
+@@ -141,6 +141,8 @@
+ #define TUNER_SONY_BTF_PG472Z		89	/* PAL+SECAM */
+ #define TUNER_SONY_BTF_PK467Z		90	/* NTSC_JP */
+ #define TUNER_SONY_BTF_PB463Z		91	/* NTSC */
++#define TUNER_SI2173			92	/* Silicon Labs 2173 */
++
+ 
+ /* tv card specific */
+ #define TDA9887_PRESENT			(1<<0)
+-- 
+2.1.4
 
-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
-DKsCAA==
-
---Nq2Wo0NMKNjxTN9z--
