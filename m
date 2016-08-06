@@ -1,118 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43670 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752487AbcHUMMD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 Aug 2016 08:12:03 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Jani Nikula <jani.nikula@intel.com>, linux-doc@vger.kernel.org
-Subject: [PATCH] docs-rst: kernel-doc: better output struct members
-Date: Sun, 21 Aug 2016 09:11:57 -0300
-Message-Id: <45996a8dc149f7de6ed09d703b76cb65e55b7a9a.1471781478.git.mchehab@s-opensource.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57256
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751741AbcHFUBb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Aug 2016 16:01:31 -0400
+Date: Sat, 6 Aug 2016 07:35:36 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Shuah Khan <shuah.kh@samsung.com>
+Subject: [GIT PULL for v4.8-rc1] mailcap fixup for two entries
+Message-ID: <20160806073536.2bd92a93@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right now, for a struct, kernel-doc produces the following output:
+Hi Linus,
 
-	.. c:type:: struct v4l2_prio_state
+Please pull from my tree for a small fixup on my entry and Shuah's entry at
+.mailcap.
 
-	   stores the priority states
+Basically, those entries were with a syntax that makes get_maintainer.pl to
+do the wrong thing.
 
-	**Definition**
+Thanks!
+Mauro
 
-	::
+PS.: Andrew asked to handle this one via my tree, as he had some issued with
+some UTF-8 characters on this file, at the context lines.
 
-	  struct v4l2_prio_state {
-	    atomic_t prios[4];
-	  };
 
-	**Members**
+The following changes since commit 292eaf50c7df4ae2ae8aaa9e1ce3f1240a353ee8:
 
-	``atomic_t prios[4]``
-	  array with elements to store the array priorities
+  [media] cec: fix off-by-one memset (2016-07-28 20:16:35 -0300)
 
-Putting a member name in verbatim and adding a continuation line
-causes the LaTeX output to generate something like:
-	item[atomic_t prios\[4\]] array with elements to store the array priorities
+are available in the git repository at:
 
-Everything inside "item" is non-breakable, with may produce
-lines bigger than the column width.
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.8-6
 
-Also, for function members, like:
+for you to fetch changes up to 5055610e3d30ed90de77525cf240d0066ac616e4:
 
-        int (* rx_read) (struct v4l2_subdev *sd, u8 *buf, size_t count,ssize_t *num);
+  .mailmap: Correct entries for Mauro Carvalho Chehab and Shuah Khan (2016-08-04 21:35:41 -0300)
 
-It puts the name of the member at the end, like:
+----------------------------------------------------------------
+media updates for v4.8-rc1
 
-        int (*) (struct v4l2_subdev *sd, u8 *buf, size_t count,ssize_t *num) read
+----------------------------------------------------------------
+Joe Perches (1):
+      .mailmap: Correct entries for Mauro Carvalho Chehab and Shuah Khan
 
-With is very confusing.
-
-The best is to highlight what really matters: the member name; the type
-is a secondary information.
-
-So, change kernel-doc, for it to produce the output on a different way:
-
-	**Members**
-
-	``prios[4]``
-	  - **type**: ``atomic_t``
-
-	  array with elements to store the array priorities
-
-With such change, the name of the member will be the first visible
-thing, and will be in bold style. The type will still be there, inside
-a list.
-
-Also, as the type is not part of LaTeX "item[]", LaTeX will split it into
-multiple lines, if needed.
-
-So, both LaTeX/PDF and HTML outputs will look good.
-
-It should be noticed, however, that the way Sphinx LaTeX output handles
-things like:
-
-	Foo
-	   bar
-
-is different than the HTML output. On HTML, it will produce something
-like:
-
-	**Foo**
-	   bar
-
-While, on LaTeX, it puts both foo and bar at the same line, like:
-
-	**Foo** bar
-
-By starting the second line with a dash, both HTML and LaTeX output
-will do the same thing.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- scripts/kernel-doc | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index ba081c7636a2..78e355281e1a 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -2000,7 +2000,8 @@ sub output_struct_rst(%) {
- 	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
- 	$type = $args{'parametertypes'}{$parameter};
-         print_lineno($parameterdesc_start_lines{$parameter_name});
--	print "``$type $parameter``\n";
-+	print "``" . $parameter . "``\n";
-+	print "  - **type**: ``$type``\n\n";
- 	output_highlight_rst($args{'parameterdescs'}{$parameter_name});
- 	print "\n";
-     }
--- 
-2.7.4
-
+ .mailmap | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
