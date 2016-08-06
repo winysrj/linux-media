@@ -1,86 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41162
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756135AbcH2PNd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 11:13:33 -0400
-Date: Mon, 29 Aug 2016 12:13:26 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: Re: [PATCH v3] docs-rst: ignore arguments on macro definitions
-Message-ID: <20160829121326.782e4261@vento.lan>
-In-Reply-To: <BBC1BC77-BCF1-453C-B85D-9758C4C433A6@darmarit.de>
-References: <e4955d6ed9b730f544fe40b0344c4451dd415cda.1472476362.git.mchehab@s-opensource.com>
-        <BBC1BC77-BCF1-453C-B85D-9758C4C433A6@darmarit.de>
+Received: from cloudserver096301.home.net.pl ([79.96.179.35]:65175 "HELO
+	cloudserver096301.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752068AbcHFVHJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Aug 2016 17:07:09 -0400
+Date: Sat, 6 Aug 2016 16:00:22 +0200
+From: Piotr =?iso-8859-1?Q?Kr=F3l?= <piotr.krol@3mdeb.com>
+To: linux-media@vger.kernel.org
+Cc: "linux-sunxi@googlegroups.com" <linux-sunxi@googlegroups.com>,
+	Thomas Johnson <tjohnson@motionfigures.com>,
+	George Saliba <grgsaliba@gmail.com>
+Subject: uvcvideo: Failed to submit URB 0 (-28) with Cam Sync HD VF0770
+ (041e:4095)
+Message-ID: <20160806140022.rgy6f63xtx6667lg@haysend>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 29 Aug 2016 16:12:39 +0200
-Markus Heiser <markus.heiser@darmarit.de> escreveu:
+Hi all,
+We have custom Allwinner A20 based hardware on which we try to utilize
+USB DRD (configured in device tree as host [1]) to connect Creative web
+camera [2].
 
-> Am 29.08.2016 um 15:13 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-> 
-> > A macro definition is mapped via .. c:function:: at the
-> > ReST markup when using the following kernel-doc tag:
-> > 
-> > 	/**
-> > 	 * DMX_FE_ENTRY - Casts elements in the list of registered
-> > 	 *               front-ends from the generic type struct list_head
-> > 	 *               to the type * struct dmx_frontend
-> > 	 *
-> > 	 * @list: list of struct dmx_frontend
-> > 	 */
-> > 	 #define DMX_FE_ENTRY(list) \
-> > 	        list_entry(list, struct dmx_frontend, connectivity_list)
-> > 
-> > However, unlike a function description, the arguments of a macro
-> > doesn't contain the data type.
-> > 
-> > This causes warnings when enabling Sphinx on nitkpick mode,
-> > like this one:
-> > 	./drivers/media/dvb-core/demux.h:358: WARNING: c:type reference target not found: list  
-> 
-> I think this is a drawback of sphinx's C-domain, using function
-> definition for macros also. From the function documentation
-> 
->  """This is also used to describe function-like preprocessor
->     macros. The names of the arguments should be given so
->     they may be used in the description."""
-> 
-> I think about to fix the nitpick message for macros (aka function
-> directive) in the C-domain extension (we already have).
+We use 4.7 kernel release built using buildroot. Hardware configuration can
+be described like that:
 
-Yeah, that could produce a better output, if it is doable.
+A20 mainboard -> LAN9514i -> Creative web camera
 
-> 
-> But for this, I need a rule to distinguish between macros
-> and functions ... is the uppercase of the macro name a good
-> rule to suppress the nitpick message? 
+I tried v4l2grab and fswebcam, but both application result in
+"uvcvideo: Failed to submit URB 0 (-28)" and further complaining that
+there is no space left on device, despite there is planty of free
+space [3]. We also tried to capture in /tmp with the same result.
 
-No. There are lots of macros in lowercase. never did any stats about
-that, but I guess that we actually have a way more such macros in
-lowercase.
+v4l2grab output:
+# v4l2grab -d /dev/video0 -o image.jpg
+[ 1802.800160 ] uvcvideo: Failed to submit URB 0 (-28).
+libv4l2: error turning on stream: No space left on device
+VIDIOC_STREAMON error 28, No space left on device
 
-> Any other suggestions?
+fswebcam output:
+# fswebcam -r 1280x720 --jpeg 95 -D 1 image.jpg
+--- Opening /dev/video0...
+Trying source module v4l2...
+/dev/video0 opened.
+No input was specified, using the first.
+Delaying 1 seconds.
+[  432.952080 ] uvcvideo: Failed to submit URB 0 (-28).
+Error starting stream.
+VIDIOC_STREAMON: No space left on device
+Unable to use mmap. Using read instead.
+Unable to use read.
 
-I guess the best thing is to check if the type is empty, just like
-on this patch. Macros are always:
-	foo(arg1, arg2, arg3, ...)
+What we also tried is checking camera with Raspberry Pi Compute Module
+in that way:
 
-while functions always have some type (with could be as complex as
-a function pointer). So, if all arguments match this rejex:
-	\s*\S+\s*
-Then, it is a macro. Otherwise, it is a function.
+RPICM -> LAN9514i -> LAN9514i -> Creative web camera
 
-There's no way for the C domain to distinguish between a macro or
-a function when the number of arguments is zero, but, on such case,
-it doesn't really matter.
+And this works without problem.
 
-Thanks,
-Mauro
+We proved that USB was correctly configured in host mode by trying
+usb-storage, usbhid and ftdi driver, what can be found in dmesg [4].
+
+I have hard time with finding from what code -28 came from, since calls
+are nested in usb subsystem. What this error means ? How it can be
+avoided ?
+
+Any other ideas how to debug this issue further are welcome.
+
+[1] http://paste.ubuntu.com/22446905/
+[2] http://www.scanmalta.com/scanshop/creative-live-cam-sync-1-3mp-hd-webcam.html
+[3] http://paste.ubuntu.com/22448114/
+[4] http://paste.ubuntu.com/22446585/
+
+-- 
+Best Regards,
+Piotr Król
+Embedded Systems Consultant
+http://3mdeb.com | @3mdeb_com
