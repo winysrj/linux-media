@@ -1,79 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52716 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754002AbcHVMRd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 08:17:33 -0400
-Subject: Re: [RFC v2 08/17] media-device: Make devnode.dev->kobj parent of
- devnode.cdev
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
- <1471602228-30722-9-git-send-email-sakari.ailus@linux.intel.com>
-Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <d5315572-cd27-351c-0f39-d80f2974d652@xs4all.nl>
-Date: Mon, 22 Aug 2016 14:17:28 +0200
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57292
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752037AbcHFU0g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Aug 2016 16:26:36 -0400
+Date: Sat, 6 Aug 2016 09:06:31 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-doc@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 0/3] Add a way to build only media docs
+Message-ID: <20160806090631.71331f82@recife.lan>
+In-Reply-To: <cover.1470484077.git.mchehab@s-opensource.com>
+References: <cover.1470484077.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-In-Reply-To: <1471602228-30722-9-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/19/2016 12:23 PM, Sakari Ailus wrote:
-> The struct cdev embedded in struct media_devnode contains its own kobj.
-> Instead of trying to manage its lifetime separately from struct
-> media_devnode, make the cdev kobj a parent of the struct media_device.dev
-> kobj.
-> 
-> The cdev will thus be released during unregistering the media_devnode, not
-> in media_devnode.dev kobj's release callback.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/media-devnode.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-> index aa8030b..69f84a7 100644
-> --- a/drivers/media/media-devnode.c
-> +++ b/drivers/media/media-devnode.c
-> @@ -63,9 +63,6 @@ static void media_devnode_release(struct device *cd)
->  
->  	mutex_lock(&media_devnode_lock);
->  
-> -	/* Delete the cdev on this minor as well */
-> -	cdev_del(&devnode->cdev);
-> -
->  	/* Mark device node number as free */
->  	clear_bit(devnode->minor, media_devnode_nums);
->  
-> @@ -246,6 +243,7 @@ int __must_check media_devnode_register(struct media_devnode *devnode,
->  
->  	/* Part 2: Initialize and register the character device */
->  	cdev_init(&devnode->cdev, &media_devnode_fops);
-> +	devnode->cdev.kobj.parent = &devnode->dev.kobj;
->  	devnode->cdev.owner = owner;
->  
->  	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
-> @@ -291,6 +289,7 @@ void media_devnode_unregister(struct media_devnode *devnode)
->  	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
->  	mutex_unlock(&media_devnode_lock);
->  	device_unregister(&devnode->dev);
-> +	cdev_del(&devnode->cdev);
+Em Sat,  6 Aug 2016 09:00:31 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-Are you sure about this order? Shouldn't cdev_del be called first?
+> Being able to build just the media docs is important for us due to several
+> reasons:
+> 
+> 1) Media developers community hosts a copy of the media documentation at linuxtv.org
+>     with the very latest  under development documents;
+> 
+> 2) Nitpicking to identify broken references is important to identify documentation gaps
+>     that need to be addressed on future releases;
+> 
+> 3) As media maintainers check patch per patch if a documentation gap is introduced, building
+>     media documentation should be as fast as possible.
+> 
+> This patchset adds a media file adding nitpick support and an extra build target that will
+> compile only the media documentation. It also groups all media documentation into one
+> section on the main Kernel document, with is, IMHO, a good thing as we start adding more
+> stuff there.
+> 
+> Jon,
+> 
+> I'd love to see this patch merged early at the -rc cycle, in order to avoid merge
+> conflicts when people start converting other docbooks to Sphinx, as it touches
+> at the main Makefile and at the Sphinx common stuff. Also, as I'll need to patch my
+> build scripts to check for documentation issues with Sphinx, I need them on my
+> master branch, as otherwise my workflow will be broken until the next Kernel release.
+> 
+> So, If you're ok with this patch series, can you submit to Linus on early -rc? Or 
+> if you prefer, I can do it myself, with your ack.
 
-The register() calls cdev_add() before device_add(), so I would expect the
-reverse order here. This is also what cec-core.c does.
+Forgot to comment, but those patches are applied against ustream master
+branch. I applied them against my development tree at:
+	https://git.linuxtv.org//mchehab/experimental.git/log/?h=docs-next
 
 Regards,
-
-	Hans
-
->  }
->  
->  /*
-> 
+Mauro
