@@ -1,72 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.goneo.de ([85.220.129.33]:37480 "EHLO smtp2.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934320AbcHaP3z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Aug 2016 11:29:55 -0400
-From: Markus Heiser <markus.heiser@darmarit.de>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Markus Heiser <markus.heiser@darmarIT.de>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Subject: [PATCH 1/3] doc-rst:c-domain: fix sphinx version incompatibility
-Date: Wed, 31 Aug 2016 17:29:30 +0200
-Message-Id: <1472657372-21039-2-git-send-email-markus.heiser@darmarit.de>
-In-Reply-To: <1472657372-21039-1-git-send-email-markus.heiser@darmarit.de>
-References: <1472657372-21039-1-git-send-email-markus.heiser@darmarit.de>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:46964 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751063AbcHGDA2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Aug 2016 23:00:28 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 673DC1805F0
+	for <linux-media@vger.kernel.org>; Sun,  7 Aug 2016 05:00:21 +0200 (CEST)
+Date: Sun, 07 Aug 2016 05:00:21 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160807030021.673DC1805F0@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Heiser <markus.heiser@darmarIT.de>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The self.indexnode's tuple has changed in sphinx version 1.4, from a
-former 4 element tuple to a 5 element tuple.
+Results of the daily build of media_tree:
 
-https://github.com/sphinx-doc/sphinx/commit/e6a5a3a92e938fcd75866b4227db9e0524d58f7c
+date:		Sun Aug  7 04:00:20 CEST 2016
+git branch:	test
+git hash:	292eaf50c7df4ae2ae8aaa9e1ce3f1240a353ee8
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
----
- Documentation/sphinx/cdomain.py | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: OK
+apps: ERRORS
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-diff --git a/Documentation/sphinx/cdomain.py b/Documentation/sphinx/cdomain.py
-index 9eb714a..66816ae 100644
---- a/Documentation/sphinx/cdomain.py
-+++ b/Documentation/sphinx/cdomain.py
-@@ -29,11 +29,15 @@ u"""
- 
- from docutils.parsers.rst import directives
- 
-+import sphinx
- from sphinx.domains.c import CObject as Base_CObject
- from sphinx.domains.c import CDomain as Base_CDomain
- 
- __version__  = '1.0'
- 
-+# Get Sphinx version
-+major, minor, patch = map(int, sphinx.__version__.split("."))
-+
- def setup(app):
- 
-     app.override_domain(CDomain)
-@@ -85,8 +89,14 @@ class CObject(Base_CObject):
- 
-         indextext = self.get_index_text(name)
-         if indextext:
--            self.indexnode['entries'].append(('single', indextext,
--                                              targetname, '', None))
-+            if major >= 1 and minor < 4:
-+                # indexnode's tuple changed in 1.4
-+                # https://github.com/sphinx-doc/sphinx/commit/e6a5a3a92e938fcd75866b4227db9e0524d58f7c
-+                self.indexnode['entries'].append(
-+                    ('single', indextext, targetname, ''))
-+            else:
-+                self.indexnode['entries'].append(
-+                    ('single', indextext, targetname, '', None))
- 
- class CDomain(Base_CDomain):
- 
--- 
-2.7.4
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
