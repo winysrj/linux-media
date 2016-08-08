@@ -1,92 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:38246 "EHLO
-        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755439AbcHVNO1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 09:14:27 -0400
-Received: by mail-wm0-f47.google.com with SMTP id o80so143419523wme.1
-        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2016 06:14:27 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH 7/8] media: vidc: add Makefiles and Kconfig files
-Date: Mon, 22 Aug 2016 16:13:38 +0300
-Message-Id: <1471871619-25873-8-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1471871619-25873-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1471871619-25873-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from smtp3-1.goneo.de ([85.220.129.38]:45888 "EHLO smtp3-1.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752054AbcHHQHv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2016 12:07:51 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: parts of media docs sphinx re-building every time?
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <8760rbp8zh.fsf@intel.com>
+Date: Mon, 8 Aug 2016 18:07:10 +0200
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+	Daniel Vetter <daniel.vetter@ffwll.ch>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <6D7865EB-9C40-4B8F-8D8F-3B28024624F3@darmarit.de>
+References: <8760rbp8zh.fsf@intel.com>
+To: Jani Nikula <jani.nikula@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Makefile and Kconfig files to build the video codec driver.
+Hi Jani,
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/platform/qcom/Kconfig       |  8 ++++++++
- drivers/media/platform/qcom/Makefile      |  6 ++++++
- drivers/media/platform/qcom/vidc/Makefile | 19 +++++++++++++++++++
- 3 files changed, 33 insertions(+)
- create mode 100644 drivers/media/platform/qcom/Kconfig
- create mode 100644 drivers/media/platform/qcom/Makefile
- create mode 100644 drivers/media/platform/qcom/vidc/Makefile
+Am 08.08.2016 um 17:37 schrieb Jani Nikula <jani.nikula@intel.com>:
 
-diff --git a/drivers/media/platform/qcom/Kconfig b/drivers/media/platform/qcom/Kconfig
-new file mode 100644
-index 000000000000..4bad5c0f68e4
---- /dev/null
-+++ b/drivers/media/platform/qcom/Kconfig
-@@ -0,0 +1,8 @@
-+comment "Qualcomm V4L2 drivers"
-+
-+menuconfig QCOM_VIDC
-+        tristate "Qualcomm V4L2 encoder/decoder driver"
-+        depends on ARCH_QCOM && VIDEO_V4L2
-+        depends on IOMMU_DMA
-+        depends on QCOM_VENUS_PIL
-+        select VIDEOBUF2_DMA_SG
-diff --git a/drivers/media/platform/qcom/Makefile b/drivers/media/platform/qcom/Makefile
-new file mode 100644
-index 000000000000..150892f6533b
---- /dev/null
-+++ b/drivers/media/platform/qcom/Makefile
-@@ -0,0 +1,6 @@
-+#
-+# Makefile for the QCOM spcific video device drivers
-+# based on V4L2.
-+#
-+
-+obj-$(CONFIG_QCOM_VIDC)     += vidc/
-diff --git a/drivers/media/platform/qcom/vidc/Makefile b/drivers/media/platform/qcom/vidc/Makefile
-new file mode 100644
-index 000000000000..56f5c3924855
---- /dev/null
-+++ b/drivers/media/platform/qcom/vidc/Makefile
-@@ -0,0 +1,19 @@
-+# Makefile for Qualcomm vidc driver
-+
-+vidc-objs += \
-+		core.o \
-+		int_bufs.o \
-+		helpers.o \
-+		vdec.o \
-+		vdec_ctrls.o \
-+		venc.o \
-+		venc_ctrls.o \
-+		mem.o \
-+		resources.o \
-+		load.o \
-+		hfi_venus.o \
-+		hfi_msgs.o \
-+		hfi_cmds.o \
-+		hfi.o \
-+
-+obj-$(CONFIG_QCOM_VIDC) += vidc.o
--- 
-2.7.4
+> 
+> Hi Mauro & co -
+> 
+> I just noticed running 'make htmldocs' rebuilds parts of media docs
+> every time on repeated runs. This shouldn't happen. Please investigate.
+> 
+> I wonder if it's related to Documentation/media/Makefile... which I have
+> to say I am not impressed by. I was really hoping we could build all the
+> documentation by standalone sphinx-build invocation too, relying only on
+> the conf.py so that e.g. Read the Docs can build the docs. Part of that
+> motivation was to keep the build clean in makefiles, and handing the
+> dependency tracking completely to Sphinx.
+> 
+> I believe what's in Documentation/media/Makefile,
+> Documentation/sphinx/parse-headers.pl, and
+> Documentation/sphinx/kernel_include.py could be replaced by a Sphinx
+> extension looking at the sources directly.
+
+Yes, parse-headers.pl, kernel_include.py and media/Makefile are needed
+for one feature ... not very straight forward.
+
+If it makes sense to migrate the perl scripts functionality to a
+Sphinx extension, may I can help ... depends on what Mauro thinks.
+
+BTW: parse-headers.pl is not the only perl script I like to migrate to py ;)
+
+> (I presume kernel_include.py
+> is mostly a workaround to keep out-of-tree builds working?)
+
+Yes, e.g. with "make O=/tmp/kernel htmldocs" the parse-headers.pl output goes 
+to /tmp/kernel and is included by ".. kernel-include: $BUILDDIR/xxx"
+
+-- Markus --
+ 
+> Anyway, the rebuild part is most important. This must be fixed.
+> 
+> 
+> BR,
+> Jani.
+> 
+> -- 
+> Jani Nikula, Intel Open Source Technology Center
 
