@@ -1,153 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45972 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755457AbcHBL2F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Aug 2016 07:28:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/2] cec: rename cec_devnode fhs_lock to just lock
-Date: Tue,  2 Aug 2016 13:23:53 +0200
-Message-Id: <1470137034-7313-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1470137034-7313-1-git-send-email-hverkuil@xs4all.nl>
-References: <1470137034-7313-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp2.goneo.de ([85.220.129.33]:52564 "EHLO smtp2.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752077AbcHHNPZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Aug 2016 09:15:25 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Markus Heiser <markus.heiser@darmarIT.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-doc@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/3] doc-rst: add stand-alone conf.py to media folder
+Date: Mon,  8 Aug 2016 15:14:59 +0200
+Message-Id: <1470662100-6927-3-git-send-email-markus.heiser@darmarit.de>
+In-Reply-To: <1470662100-6927-1-git-send-email-markus.heiser@darmarit.de>
+References: <1470662100-6927-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-This lock will be used to protect more than just the fhs list.
-So rename it to just 'lock'.
+With the media/conf.py, the media folder can be build and distributed
+stand-alone. BTW fixed python indentation in media/conf_nitpick.py.
+Python indentation is 4 spaces [1] and Python 3 disallows mixing the use
+of tabs and spaces for indentation.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+[1] https://www.python.org/dev/peps/pep-0008/#indentation
+[2] https://www.python.org/dev/peps/pep-0008/#tabs-or-spaces
+
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
 ---
- drivers/staging/media/cec/cec-adap.c | 12 ++++++------
- drivers/staging/media/cec/cec-api.c  |  8 ++++----
- drivers/staging/media/cec/cec-core.c |  6 +++---
- include/media/cec.h                  |  2 +-
- 4 files changed, 14 insertions(+), 14 deletions(-)
+ Documentation/media/conf.py         |   3 +
+ Documentation/media/conf_nitpick.py | 150 +++++++++++++++++++-----------------
+ 2 files changed, 81 insertions(+), 72 deletions(-)
+ create mode 100644 Documentation/media/conf.py
 
-diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
-index b2393bb..9dcb784 100644
---- a/drivers/staging/media/cec/cec-adap.c
-+++ b/drivers/staging/media/cec/cec-adap.c
-@@ -124,10 +124,10 @@ static void cec_queue_event(struct cec_adapter *adap,
- 	u64 ts = ktime_get_ns();
- 	struct cec_fh *fh;
+diff --git a/Documentation/media/conf.py b/Documentation/media/conf.py
+new file mode 100644
+index 0000000..62bdba2
+--- /dev/null
++++ b/Documentation/media/conf.py
+@@ -0,0 +1,3 @@
++# -*- coding: utf-8; mode: python -*-
++
++project = 'Linux Media Subsystem Documentation'
+diff --git a/Documentation/media/conf_nitpick.py b/Documentation/media/conf_nitpick.py
+index 9034d7f..e794e3d 100644
+--- a/Documentation/media/conf_nitpick.py
++++ b/Documentation/media/conf_nitpick.py
+@@ -1,4 +1,10 @@
+-nitpicky=True
++# -*- coding: utf-8; mode: python -*-
++
++project = 'Linux Media Subsystem Documentation'
++# within nit-picking build, do not refer to any intersphinx object
++intersphinx_mapping = {}
++
++nitpicky = True
  
--	mutex_lock(&adap->devnode.fhs_lock);
-+	mutex_lock(&adap->devnode.lock);
- 	list_for_each_entry(fh, &adap->devnode.fhs, list)
- 		cec_queue_event_fh(fh, ev, ts);
--	mutex_unlock(&adap->devnode.fhs_lock);
-+	mutex_unlock(&adap->devnode.lock);
- }
+ # It is possible to run Sphinx in nickpick mode with:
+ #	make SPHINXOPTS=-n htmldocs
+@@ -10,76 +16,76 @@ nitpicky=True
+ # The list below has a list of such symbols to be ignored in nitpick mode
+ #
+ nitpick_ignore = [
+-	("c:func", "clock_gettime"),
+-	("c:func", "close"),
+-	("c:func", "container_of"),
+-	("c:func", "determine_valid_ioctls"),
+-	("c:func", "ERR_PTR"),
+-	("c:func", "ioctl"),
+-	("c:func", "IS_ERR"),
+-	("c:func", "mmap"),
+-	("c:func", "open"),
+-	("c:func", "pci_name"),
+-	("c:func", "poll"),
+-	("c:func", "PTR_ERR"),
+-	("c:func", "read"),
+-	("c:func", "release"),
+-	("c:func", "set"),
+-	("c:func", "struct fd_set"),
+-	("c:func", "struct pollfd"),
+-	("c:func", "usb_make_path"),
+-	("c:func", "write"),
+-	("c:type", "atomic_t"),
+-	("c:type", "bool"),
+-	("c:type", "buf_queue"),
+-	("c:type", "device"),
+-	("c:type", "device_driver"),
+-	("c:type", "device_node"),
+-	("c:type", "enum"),
+-	("c:type", "file"),
+-	("c:type", "i2c_adapter"),
+-	("c:type", "i2c_board_info"),
+-	("c:type", "i2c_client"),
+-	("c:type", "ktime_t"),
+-	("c:type", "led_classdev_flash"),
+-	("c:type", "list_head"),
+-	("c:type", "lock_class_key"),
+-	("c:type", "module"),
+-	("c:type", "mutex"),
+-	("c:type", "pci_dev"),
+-	("c:type", "pdvbdev"),
+-	("c:type", "poll_table_struct"),
+-	("c:type", "s32"),
+-	("c:type", "s64"),
+-	("c:type", "sd"),
+-	("c:type", "spi_board_info"),
+-	("c:type", "spi_device"),
+-	("c:type", "spi_master"),
+-	("c:type", "struct fb_fix_screeninfo"),
+-	("c:type", "struct pollfd"),
+-	("c:type", "struct timeval"),
+-	("c:type", "struct video_capability"),
+-	("c:type", "u16"),
+-	("c:type", "u32"),
+-	("c:type", "u64"),
+-	("c:type", "u8"),
+-	("c:type", "union"),
+-	("c:type", "usb_device"),
++    ("c:func", "clock_gettime"),
++    ("c:func", "close"),
++    ("c:func", "container_of"),
++    ("c:func", "determine_valid_ioctls"),
++    ("c:func", "ERR_PTR"),
++    ("c:func", "ioctl"),
++    ("c:func", "IS_ERR"),
++    ("c:func", "mmap"),
++    ("c:func", "open"),
++    ("c:func", "pci_name"),
++    ("c:func", "poll"),
++    ("c:func", "PTR_ERR"),
++    ("c:func", "read"),
++    ("c:func", "release"),
++    ("c:func", "set"),
++    ("c:func", "struct fd_set"),
++    ("c:func", "struct pollfd"),
++    ("c:func", "usb_make_path"),
++    ("c:func", "write"),
++    ("c:type", "atomic_t"),
++    ("c:type", "bool"),
++    ("c:type", "buf_queue"),
++    ("c:type", "device"),
++    ("c:type", "device_driver"),
++    ("c:type", "device_node"),
++    ("c:type", "enum"),
++    ("c:type", "file"),
++    ("c:type", "i2c_adapter"),
++    ("c:type", "i2c_board_info"),
++    ("c:type", "i2c_client"),
++    ("c:type", "ktime_t"),
++    ("c:type", "led_classdev_flash"),
++    ("c:type", "list_head"),
++    ("c:type", "lock_class_key"),
++    ("c:type", "module"),
++    ("c:type", "mutex"),
++    ("c:type", "pci_dev"),
++    ("c:type", "pdvbdev"),
++    ("c:type", "poll_table_struct"),
++    ("c:type", "s32"),
++    ("c:type", "s64"),
++    ("c:type", "sd"),
++    ("c:type", "spi_board_info"),
++    ("c:type", "spi_device"),
++    ("c:type", "spi_master"),
++    ("c:type", "struct fb_fix_screeninfo"),
++    ("c:type", "struct pollfd"),
++    ("c:type", "struct timeval"),
++    ("c:type", "struct video_capability"),
++    ("c:type", "u16"),
++    ("c:type", "u32"),
++    ("c:type", "u64"),
++    ("c:type", "u8"),
++    ("c:type", "union"),
++    ("c:type", "usb_device"),
  
- /*
-@@ -191,12 +191,12 @@ static void cec_queue_msg_monitor(struct cec_adapter *adap,
- 	u32 monitor_mode = valid_la ? CEC_MODE_MONITOR :
- 				      CEC_MODE_MONITOR_ALL;
- 
--	mutex_lock(&adap->devnode.fhs_lock);
-+	mutex_lock(&adap->devnode.lock);
- 	list_for_each_entry(fh, &adap->devnode.fhs, list) {
- 		if (fh->mode_follower >= monitor_mode)
- 			cec_queue_msg_fh(fh, msg);
- 	}
--	mutex_unlock(&adap->devnode.fhs_lock);
-+	mutex_unlock(&adap->devnode.lock);
- }
- 
- /*
-@@ -207,12 +207,12 @@ static void cec_queue_msg_followers(struct cec_adapter *adap,
- {
- 	struct cec_fh *fh;
- 
--	mutex_lock(&adap->devnode.fhs_lock);
-+	mutex_lock(&adap->devnode.lock);
- 	list_for_each_entry(fh, &adap->devnode.fhs, list) {
- 		if (fh->mode_follower == CEC_MODE_FOLLOWER)
- 			cec_queue_msg_fh(fh, msg);
- 	}
--	mutex_unlock(&adap->devnode.fhs_lock);
-+	mutex_unlock(&adap->devnode.lock);
- }
- 
- /* Notify userspace of an adapter state change. */
-diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/staging/media/cec/cec-api.c
-index 7be7615..4e2696a 100644
---- a/drivers/staging/media/cec/cec-api.c
-+++ b/drivers/staging/media/cec/cec-api.c
-@@ -508,14 +508,14 @@ static int cec_open(struct inode *inode, struct file *filp)
- 
- 	filp->private_data = fh;
- 
--	mutex_lock(&devnode->fhs_lock);
-+	mutex_lock(&devnode->lock);
- 	/* Queue up initial state events */
- 	ev_state.state_change.phys_addr = adap->phys_addr;
- 	ev_state.state_change.log_addr_mask = adap->log_addrs.log_addr_mask;
- 	cec_queue_event_fh(fh, &ev_state, 0);
- 
- 	list_add(&fh->list, &devnode->fhs);
--	mutex_unlock(&devnode->fhs_lock);
-+	mutex_unlock(&devnode->lock);
- 
- 	return 0;
- }
-@@ -540,9 +540,9 @@ static int cec_release(struct inode *inode, struct file *filp)
- 		cec_monitor_all_cnt_dec(adap);
- 	mutex_unlock(&adap->lock);
- 
--	mutex_lock(&devnode->fhs_lock);
-+	mutex_lock(&devnode->lock);
- 	list_del(&fh->list);
--	mutex_unlock(&devnode->fhs_lock);
-+	mutex_unlock(&devnode->lock);
- 
- 	/* Unhook pending transmits from this filehandle. */
- 	mutex_lock(&adap->lock);
-diff --git a/drivers/staging/media/cec/cec-core.c b/drivers/staging/media/cec/cec-core.c
-index 112a5fa..73792d0 100644
---- a/drivers/staging/media/cec/cec-core.c
-+++ b/drivers/staging/media/cec/cec-core.c
-@@ -117,7 +117,7 @@ static int __must_check cec_devnode_register(struct cec_devnode *devnode,
- 
- 	/* Initialization */
- 	INIT_LIST_HEAD(&devnode->fhs);
--	mutex_init(&devnode->fhs_lock);
-+	mutex_init(&devnode->lock);
- 
- 	/* Part 1: Find a free minor number */
- 	mutex_lock(&cec_devnode_lock);
-@@ -181,10 +181,10 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
- 	if (!devnode->registered || devnode->unregistered)
- 		return;
- 
--	mutex_lock(&devnode->fhs_lock);
-+	mutex_lock(&devnode->lock);
- 	list_for_each_entry(fh, &devnode->fhs, list)
- 		wake_up_interruptible(&fh->wait);
--	mutex_unlock(&devnode->fhs_lock);
-+	mutex_unlock(&devnode->lock);
- 
- 	devnode->registered = false;
- 	devnode->unregistered = true;
-diff --git a/include/media/cec.h b/include/media/cec.h
-index dc7854b..fdb5d60 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -57,8 +57,8 @@ struct cec_devnode {
- 	int minor;
- 	bool registered;
- 	bool unregistered;
--	struct mutex fhs_lock;
- 	struct list_head fhs;
-+	struct mutex lock;
- };
- 
- struct cec_adapter;
+-	("cpp:type", "boolean"),
+-	("cpp:type", "fd"),
+-	("cpp:type", "fd_set"),
+-	("cpp:type", "int16_t"),
+-	("cpp:type", "NULL"),
+-	("cpp:type", "off_t"),
+-	("cpp:type", "pollfd"),
+-	("cpp:type", "size_t"),
+-	("cpp:type", "ssize_t"),
+-	("cpp:type", "timeval"),
+-	("cpp:type", "__u16"),
+-	("cpp:type", "__u32"),
+-	("cpp:type", "__u64"),
+-	("cpp:type", "uint16_t"),
+-	("cpp:type", "uint32_t"),
+-	("cpp:type", "video_system_t"),
++    ("cpp:type", "boolean"),
++    ("cpp:type", "fd"),
++    ("cpp:type", "fd_set"),
++    ("cpp:type", "int16_t"),
++    ("cpp:type", "NULL"),
++    ("cpp:type", "off_t"),
++    ("cpp:type", "pollfd"),
++    ("cpp:type", "size_t"),
++    ("cpp:type", "ssize_t"),
++    ("cpp:type", "timeval"),
++    ("cpp:type", "__u16"),
++    ("cpp:type", "__u32"),
++    ("cpp:type", "__u64"),
++    ("cpp:type", "uint16_t"),
++    ("cpp:type", "uint32_t"),
++    ("cpp:type", "video_system_t"),
+ ]
 -- 
-2.8.1
+2.7.4
 
