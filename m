@@ -1,113 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:35001 "EHLO
-        mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752325AbcHWDZw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 23:25:52 -0400
-Received: by mail-pa0-f51.google.com with SMTP id hb8so25003816pac.2
-        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2016 20:25:52 -0700 (PDT)
-Date: Mon, 22 Aug 2016 20:25:48 -0700
-From: Bjorn Andersson <bjorn.andersson@linaro.org>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andy Gross <andy.gross@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Subject: Re: [PATCH 5/8] media: vidc: add Host Firmware Interface (HFI)
-Message-ID: <20160823032548.GA26240@tuxbot>
-References: <1471871619-25873-1-git-send-email-stanimir.varbanov@linaro.org>
- <1471871619-25873-6-git-send-email-stanimir.varbanov@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1471871619-25873-6-git-send-email-stanimir.varbanov@linaro.org>
+Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:30323 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932357AbcHHTjA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2016 15:39:00 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Jiri Kosina <trivial@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v3 13/14] media: platform: pxa_camera: change stop_streaming semantics
+Date: Mon,  8 Aug 2016 21:30:51 +0200
+Message-Id: <1470684652-16295-14-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
+References: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 22 Aug 06:13 PDT 2016, Stanimir Varbanov wrote:
+Instead of the legacy behavior where it was required to wait for all
+video buffers to be finished by the hardware, use a cancel like strategy
+: as soon as the stop_streaming() call is done, abort all DMA transfers,
+report the already buffers as failed and return.
 
-> This is the implementation of HFI. It is loaded with the
-> responsibility to comunicate with the firmware through an
-> interface commands and messages.
-> 
->  - hfi.c has interface functions used by the core, decoder
-> and encoder parts to comunicate with the firmware. For example
-> there are functions for session and core initialisation.
-> 
+This makes stop_streaming() more a "cancel capture" than a "wait for end
+of capture" semantic.
 
-I can't help feeling that the split between core.c and hfi.c is a
-remnant of a vidc driver supporting both HFI and pre-HFI with the same
-v4l code.
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-What do you think about merging vidc_core with hfi_core and vidc_inst
-with hfi_inst? Both seems to be in a 1:1 relationship.
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index 20340489e07e..a161b64d420d 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -526,7 +526,8 @@ static void pxa_camera_stop_capture(struct pxa_camera_dev *pcdev)
+ }
+ 
+ static void pxa_camera_wakeup(struct pxa_camera_dev *pcdev,
+-			      struct pxa_buffer *buf)
++			      struct pxa_buffer *buf,
++			      enum vb2_buffer_state state)
+ {
+ 	struct vb2_buffer *vb = &buf->vbuf.vb2_buf;
+ 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+@@ -648,7 +649,7 @@ static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
+ 	}
+ 	buf->active_dma &= ~act_dma;
+ 	if (!buf->active_dma) {
+-		pxa_camera_wakeup(pcdev, buf);
++		pxa_camera_wakeup(pcdev, buf, VB2_BUF_STATE_DONE);
+ 		pxa_camera_check_link_miss(pcdev, last_buf->cookie[chan],
+ 					   last_issued);
+ 	}
+@@ -1090,7 +1091,15 @@ static int pxac_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 
+ static void pxac_vb2_stop_streaming(struct vb2_queue *vq)
+ {
+-	vb2_wait_for_all_buffers(vq);
++	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
++	struct pxa_buffer *buf, *tmp;
++
++	dev_dbg(pcdev_to_dev(pcdev), "%s active=%p\n",
++		__func__, pcdev->active);
++	pxa_camera_stop_capture(pcdev);
++
++	list_for_each_entry_safe(buf, tmp, &pcdev->capture, queue)
++		pxa_camera_wakeup(pcdev, buf, VB2_BUF_STATE_ERROR);
+ }
+ 
+ static struct vb2_ops pxac_vb2_ops = {
+-- 
+2.1.4
 
->  - hfi_cmds has packetization operations which preparing
-> packets to be send from host to firmware.
-> 
->  - hfi_msgs takes care of messages sent from firmware to the
-> host.
-> 
-[..]
-> diff --git a/drivers/media/platform/qcom/vidc/hfi_cmds.c b/drivers/media/platform/qcom/vidc/hfi_cmds.c
-[..]
-> +
-> +static const struct hfi_packetization_ops hfi_default = {
-> +	.sys_init = pkt_sys_init,
-> +	.sys_pc_prep = pkt_sys_pc_prep,
-> +	.sys_idle_indicator = pkt_sys_idle_indicator,
-> +	.sys_power_control = pkt_sys_power_control,
-> +	.sys_set_resource = pkt_sys_set_resource,
-> +	.sys_release_resource = pkt_sys_unset_resource,
-> +	.sys_debug_config = pkt_sys_debug_config,
-> +	.sys_coverage_config = pkt_sys_coverage_config,
-> +	.sys_ping = pkt_sys_ping,
-> +	.sys_image_version = pkt_sys_image_version,
-> +	.ssr_cmd = pkt_ssr_cmd,
-> +	.session_init = pkt_session_init,
-> +	.session_cmd = pkt_session_cmd,
-> +	.session_set_buffers = pkt_session_set_buffers,
-> +	.session_release_buffers = pkt_session_release_buffers,
-> +	.session_etb_decoder = pkt_session_etb_decoder,
-> +	.session_etb_encoder = pkt_session_etb_encoder,
-> +	.session_ftb = pkt_session_ftb,
-> +	.session_parse_seq_header = pkt_session_parse_seq_header,
-> +	.session_get_seq_hdr = pkt_session_get_seq_hdr,
-> +	.session_flush = pkt_session_flush,
-> +	.session_get_property = pkt_session_get_property,
-> +	.session_set_property = pkt_session_set_property,
-> +};
-> +
-> +static const struct hfi_packetization_ops *get_3xx_ops(void)
-> +{
-> +	static struct hfi_packetization_ops hfi_3xx;
-> +
-> +	hfi_3xx = hfi_default;
-> +	hfi_3xx.session_set_property = pkt_session_set_property_3xx;
-> +
-> +	return &hfi_3xx;
-> +}
-> +
-> +const struct hfi_packetization_ops *
-> +hfi_get_pkt_ops(enum hfi_packetization_type type)
-
-The only reasonable argument I can come up with for not just exposing
-these as global functions would be that there are 23 of them... Can we
-skip the jump table?
-
-> +{
-> +	switch (type) {
-> +	case HFI_PACKETIZATION_LEGACY:
-> +		return &hfi_default;
-> +	case HFI_PACKETIZATION_3XX:
-> +		return get_3xx_ops();
-> +	}
-> +
-> +	return NULL;
-> +}
-
-Regards,
-Bjorn
