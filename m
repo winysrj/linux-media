@@ -1,297 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:54618 "EHLO smtp3-1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759655AbcHEMWg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2016 08:22:36 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: Functions and data structure cross references with Sphinx
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <20160805074724.74190683@recife.lan>
-Date: Fri, 5 Aug 2016 14:22:19 +0200
-Cc: Jani Nikula <jani.nikula@intel.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <94956A8D-0933-4096-B732-196D5409D9BA@darmarit.de>
-References: <20160801082527.0eb7eace@recife.lan> <91BDDA51-4A60-495F-9475-341950051EE9@darmarit.de> <20160805074724.74190683@recife.lan>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Received: from cloudserver096301.home.net.pl ([79.96.179.35]:45815 "HELO
+	cloudserver096301.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750979AbcHHXCj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Aug 2016 19:02:39 -0400
+Date: Tue, 9 Aug 2016 01:02:31 +0200
+From: Piotr =?iso-8859-1?Q?Kr=F3l?= <piotr.krol@3mdeb.com>
+To: linux-media@vger.kernel.org,
+	"linux-sunxi@googlegroups.com" <linux-sunxi@googlegroups.com>,
+	Thomas Johnson <tjohnson@motionfigures.com>,
+	George Saliba <grgsaliba@gmail.com>
+Cc: Igor =?utf-8?B?UGXEjW92bmlr?= <notifications@github.com>,
+	hdegoede@redhat.com
+Subject: Re: uvcvideo: Failed to submit URB 0 (-28) with Cam Sync HD VF0770
+ (041e:4095)
+Message-ID: <20160808230231.pxnv6vwhoyqkss7u@haysend>
+References: <20160806140022.rgy6f63xtx6667lg@haysend>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20160806140022.rgy6f63xtx6667lg@haysend>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sat, Aug 06, 2016 at 04:00:22PM +0200, Piotr Król wrote:
+> Hi all,
 
-Am 05.08.2016 um 12:47 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+Hi Hans, Igor,
+I found your discussion about very similar issue here [5]. It looks
+like musb driver in host mode doesn't give enough bandwidth for USB
+camera in my case.
 
-> Em Fri, 5 Aug 2016 09:29:23 +0200
-> Markus Heiser <markus.heiser@darmarit.de> escreveu:
-> 
->> Am 01.08.2016 um 13:25 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
->> 
->>> There's one remaining major issue I noticed after the conversion of the
->>> media books to Sphinx:
->>> 
->>> While sphinx complains if a cross-reference (using :ref:) points to an
->>> undefined reference, the same doesn't happen if the reference uses
->>> :c:func: and :c:type:.
->>> 
->>> In practice, it means that, if we do some typo there, or if we forget to
->>> add the function/struct prototype (or use the wrong domain, like :cpp:),
->>> Sphinx won't generate the proper cross-reference, nor warning the user.
->>> 
->>> That's specially bad for media, as, while we're using the c domain for
->>> the kAPI and driver-specific books, we need to use the cpp domain on the 
->>> uAPI book - as the c domain doesn't allow multiple declarations for
->>> syscalls, and we have multiple pages for read, write, open, close, 
->>> poll and ioctl.
->>> 
->>> It would be good to have a way to run Sphinx on some "pedantic"
->>> mode or have something similar to xmlint that would be complaining
->>> about invalid c/cpp domain references.
->>> 
->>> Thanks,
->>> Mauro  
->> 
->> Hi Mauro,
->> 
->> there is a nit-picky mode [1], which could be activated by setting
->> "nitpicky=True" in the conf.py or alternative, set "-n" to the 
->> SPHINXOPTS:
->> 
->> make SPHINXOPTS=-n htmldocs
->> 
->> Within nit-picky mode, Sphinx will warn about **all** references. This
->> might be more then you want. For this, in the conf.py you could
->> assemble a "nitpick_ignore" list [2]. But I think, assemble the
->> ignore list is quite a lot of work.
->> 
->> [1] http://www.sphinx-doc.org/en/stable/config.html#confval-nitpicky
->> [2] http://www.sphinx-doc.org/en/stable/config.html#confval-nitpick_ignore
-> 
-> Yeah, this is what I was looking for.
-> 
-> We indeed want to use this option on media, but there are some things
-> that need to be addressed. From some quick tests here, what I noticed
-> is:
-> 
-> 1) Sphinx will generate several references that should be safely ignored
-> for everyone, like "enum", "u32", "int32_t", "bool", "NULL", etc;
-> 
-> 2) the usage of cpp domain for system calls make several symbols to
-> not match, as the cpp function prototype will generate cross references
-> for the cpp domain, instead of using the c domain. So, we need a
-> better way to fix it using the c domain, or convert everything to the
-> cpp domain;
-> 
-> 3) The references generated from the header files I'm parsing don't
-> use the c (or cpp) domain. They're declared at the media book as a
-> normal reference:
-> 	Documentation/media/uapi/v4l/field-order.rst:.. _v4l2-field:
-> 
-> and cross-referenced with:
-> 	ref:`v4l2_field <v4l2-field>`
-> 
-> Is there a way to change it to the c domain?
-> 
-> 
-> 4) there are several references that, IMHO, should be nitpick-ignored
-> only when the book is generated stand alone. For example, at the
-> media docbooks, we have references for things like:
-> 
-> - pci_dev, mutex, off_t, container_of, etc - those are generic
-> references for the symbols that every driver uses, but, as we
-> don't have the books with those converted yet, nitpick complains.
-> Once we have such references, they should be ignored *only* when
-> the book is generated standalone. As those are "core" symbols,
-> they should be already be documented, but the book was not
-> ported from DocBook yet. Once we have everything ported to
-> Sphinx, I would expect that they all will vanish (and, if not,
-> IMHO, documenting them should be prioritized).
-> 
-> - References for subsystem-specific symbols like: spi_board_info,
-> led_classdev_flash, i2c_adapter, etc. Those would require that
-> the maintainers of the specific subsystems to add documentation
-> to them, as I bet several such symbols won't be currently
-> documented. So, even after the port, I afraid that we'll still
-> have several such symbols missing.
-> 
-> To address (3), we need different sets of nitpick ignore lists.
-> 
-> At least in my case, I have two different procedures, depending
-> on the time at the Kernel release cycle:
-> 
-> a) daily patch merge workflow
-> --------------------------
-> 
-> In any case, for (3), I don't want to see those warnings during
-> my daily patch handling process where I rebuild documentation for
-> every patch that touches a documented file. I want to see only
-> things like:
-> 	Documentation/media/uapi/v4l/hist-v4l2.rst:1295: WARNING: c:type reference target not found: struct v4l2_buffer
-> 
-> With indicates that a new patch would be introducing documentation
-> gaps.
-> 
-> So, we need a way to have a per-subsystem nitpick_ignore list
-> (or a way to pass such list via command line), for us to be able to
-> ignore "alien" symbols that aren't part of the subsystem we're
-> maintaining.
-> 
-> b) preparation for the merge window
-> --------------------------------
-> 
-> Late at the patch handling cycle, I run a very long task here that
-> builds the media subsystem for 50+ different archs. I also check and
-> fix smatch/sparse warnings. During such time, I would love to view
-> the full list of missing symbols, in order to be able to handle
-> eventual cross-subsystem wrong references (or eventually help documenting
-> something that we use at the media subsystem).
-> 
-> So, I would need to use a different nitpick_ignore list.
-> 
-> Is there a way for us to specify the nitpick_ignore list (or a different
-> conf.py) via command line?
+We tested USB device and getting not so bad results for bulk endpoint
+read (15MB/s) and write (1.8MB/s). I'm not sure, if this numbers make
+sense for isochronous endpoint, but it seems there is enough bandwidth
+for video data transfer.
 
-Since conf.py is python, we could implement something, which loads a
-"conditional configuration", e.g. loading a config with a nitpick_ignore
-list in. Depending on an environment 
+Full dmesg can be found here [6]
 
- "SPHINX_BUILD_CONF=[strong|lazy]-nit-picking.py"
+Have you got any ideas what maybe wrong ? Does it make sense to use musb
+in host mode to transfer video stream ?
 
-we could load individual build-configs overwriting the default settings
-from the origin conf.py.
+Any help appreciated.
 
-On which repo/branch you are working? .. I send you a RFC patch 
-for "conditional configurations".
-
-Back to (3) ... as far as I know, there is no way to add a 
-*Internal Hyperlink Target* (e.g. "_v4l2-field:") to the C or 
-CPP domain.
-
-There is a ":any:" directive does something vice versa.
-
-http://www.sphinx-doc.org/en/stable/markup/inline.html#role-any
-
-But I think, this will not help referencing a type from a function
-prototype to a *Internal Hyperlink Target*, like the struct described
-under the "_v4l2-field:" target.
-
-If ":any:" does not help, we might find a solution with an additional
-crossref-type or something similar:
-
-http://www.sphinx-doc.org/en/stable/extdev/appapi.html#sphinx.application.Sphinx.add_crossref_type
-
-But this needs some more thoughts.
-
--- Markus --
-
-
-> Btw, I'm enclosing a patch adding several of those references that are
-> alien to the media subsystem and currently causes nitpick complains.
+> We have custom Allwinner A20 based hardware on which we try to utilize
+> USB DRD (configured in device tree as host [1]) to connect Creative web
+> camera [2].
 > 
+> We use 4.7 kernel release built using buildroot. Hardware configuration can
+> be described like that:
 > 
-> doc-rst: ignore several undefined symbols in nitpick mode
+> A20 mainboard -> LAN9514i -> Creative web camera
 > 
-> using Sphinx in nitpick mode is too verbose to make it useful.
-> So, we need to make it less verbose, in order to be able to
-> actually use it.
+> I tried v4l2grab and fswebcam, but both application result in
+> "uvcvideo: Failed to submit URB 0 (-28)" and further complaining that
+> there is no space left on device, despite there is planty of free
+> space [3]. We also tried to capture in /tmp with the same result.
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> v4l2grab output:
+> # v4l2grab -d /dev/video0 -o image.jpg
+> [ 1802.800160 ] uvcvideo: Failed to submit URB 0 (-28).
+> libv4l2: error turning on stream: No space left on device
+> VIDIOC_STREAMON error 28, No space left on device
 > 
-> diff --git a/Documentation/conf.py b/Documentation/conf.py
-> index 96b7aa66c89c..d1805b8710c3 100644
-> --- a/Documentation/conf.py
-> +++ b/Documentation/conf.py
-> @@ -419,3 +419,88 @@ pdf_documents = [
-> # line arguments.
-> kerneldoc_bin = '../scripts/kernel-doc'
-> kerneldoc_srctree = '..'
-> +
-> +#
-> +# It is possible to run Sphinx in nickpick mode with:
-> +#	make SPHINXOPTS=-n htmldocs
-> +# In such case, it will complain about lots of missing references that
-> +#	1) are just typedefs like: bool, __u32, etc;
-> +#	2) It will complain for things like: enum, NULL;
-> +#	3) It will complain for symbols that should be on different
-> +#	   books (but currently aren't ported to ReST)
-> +# The list below has a list of such symbols to be ignored in nitpick mode
-> +#
-> +nitpick_ignore = [
-> +	("c:func", "clock_gettime"),
-> +	("c:func", "close"),
-> +	("c:func", "container_of"),
-> +	("c:func", "determine_valid_ioctls"),
-> +	("c:func", "ERR_PTR"),
-> +	("c:func", "ioctl"),
-> +	("c:func", "IS_ERR"),
-> +	("c:func", "mmap"),
-> +	("c:func", "open"),
-> +	("c:func", "pci_name"),
-> +	("c:func", "poll"),
-> +	("c:func", "PTR_ERR"),
-> +	("c:func", "read"),
-> +	("c:func", "release"),
-> +	("c:func", "set"),
-> +	("c:func", "struct fd_set"),
-> +	("c:func", "struct pollfd"),
-> +	("c:func", "usb_make_path"),
-> +	("c:func", "write"),
-> +	("c:type", "atomic_t"),
-> +	("c:type", "bool"),
-> +	("c:type", "buf_queue"),
-> +	("c:type", "device"),
-> +	("c:type", "device_driver"),
-> +	("c:type", "device_node"),
-> +	("c:type", "enum"),
-> +	("c:type", "file"),
-> +	("c:type", "i2c_adapter"),
-> +	("c:type", "i2c_board_info"),
-> +	("c:type", "i2c_client"),
-> +	("c:type", "ktime_t"),
-> +	("c:type", "led_classdev_flash"),
-> +	("c:type", "list_head"),
-> +	("c:type", "lock_class_key"),
-> +	("c:type", "module"),
-> +	("c:type", "mutex"),
-> +	("c:type", "pci_dev"),
-> +	("c:type", "pdvbdev"),
-> +	("c:type", "poll_table_struct"),
-> +	("c:type", "s32"),
-> +	("c:type", "s64"),
-> +	("c:type", "sd"),
-> +	("c:type", "spi_board_info"),
-> +	("c:type", "spi_device"),
-> +	("c:type", "spi_master"),
-> +	("c:type", "struct fb_fix_screeninfo"),
-> +	("c:type", "struct pollfd"),
-> +	("c:type", "struct timeval"),
-> +	("c:type", "struct video_capability"),
-> +	("c:type", "u16"),
-> +	("c:type", "u32"),
-> +	("c:type", "u64"),
-> +	("c:type", "u8"),
-> +	("c:type", "union"),
-> +	("c:type", "usb_device"),
-> +
-> +	("cpp:type", "boolean"),
-> +	("cpp:type", "fd"),
-> +	("cpp:type", "fd_set"),
-> +	("cpp:type", "int16_t"),
-> +	("cpp:type", "NULL"),
-> +	("cpp:type", "off_t"),
-> +	("cpp:type", "pollfd"),
-> +	("cpp:type", "size_t"),
-> +	("cpp:type", "ssize_t"),
-> +	("cpp:type", "timeval"),
-> +	("cpp:type", "__u16"),
-> +	("cpp:type", "__u32"),
-> +	("cpp:type", "__u64"),
-> +	("cpp:type", "uint16_t"),
-> +	("cpp:type", "uint32_t"),
-> +	("cpp:type", "video_system_t"),
-> +]
+> fswebcam output:
+> # fswebcam -r 1280x720 --jpeg 95 -D 1 image.jpg
+> --- Opening /dev/video0...
+> Trying source module v4l2...
+> /dev/video0 opened.
+> No input was specified, using the first.
+> Delaying 1 seconds.
+> [  432.952080 ] uvcvideo: Failed to submit URB 0 (-28).
+> Error starting stream.
+> VIDIOC_STREAMON: No space left on device
+> Unable to use mmap. Using read instead.
+> Unable to use read.
 > 
+> What we also tried is checking camera with Raspberry Pi Compute Module
+> in that way:
 > 
+> RPICM -> LAN9514i -> LAN9514i -> Creative web camera
 > 
+> And this works without problem.
+> 
+> We proved that USB was correctly configured in host mode by trying
+> usb-storage, usbhid and ftdi driver, what can be found in dmesg [4].
+> 
+> I have hard time with finding from what code -28 came from, since calls
+> are nested in usb subsystem. What this error means ? How it can be
+> avoided ?
+> 
+> Any other ideas how to debug this issue further are welcome.
+> 
+> [1] http://paste.ubuntu.com/22446905/
+> [2] http://www.scanmalta.com/scanshop/creative-live-cam-sync-1-3mp-hd-webcam.html
+> [3] http://paste.ubuntu.com/22448114/
+> [4] http://paste.ubuntu.com/22446585/
 
+[5] https://groups.google.com/d/msg/linux-sunxi/-O3GckFuje8/aTAkPk1JCQAJ
+[6] http://paste.ubuntu.com/22747309/
+> 
+> -- 
+> Best Regards,
+> Piotr Król
+> Embedded Systems Consultant
+> http://3mdeb.com | @3mdeb_com
+
+-- 
+Best Regards,
+Piotr Król
+Embedded Systems Consultant
+http://3mdeb.com | @3mdeb_com
