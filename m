@@ -1,59 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51683 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752700AbcHQG3t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2016 02:29:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Songjun Wu <songjun.wu@microchip.com>
-Subject: [RFC PATCH 0/7] atmel-isi: convert to a standalone driver
-Date: Wed, 17 Aug 2016 08:29:36 +0200
-Message-Id: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:25024 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932411AbcHHTbX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2016 15:31:23 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Jiri Kosina <trivial@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v3 03/14] media: mt9m111: use only the SRGB colorspace
+Date: Mon,  8 Aug 2016 21:30:41 +0200
+Message-Id: <1470684652-16295-4-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
+References: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+mt9m111 being a camera sensor, its colorspace should always be SRGB, for
+both RGB based formats or YCbCr based ones.
 
-This patch series converts the soc-camera atmel-isi to a standalone V4L2
-driver.
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/i2c/soc_camera/mt9m111.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-The first 5 patches improve the ov7670 sensor driver, mostly adding modern
-features such as MC and DT support.
-
-The next patch converts the atmel-isi in-place. The final patch adds support
-for this to the dts. I'm not at this moment planning to actually merge it,
-it's an example only.
-
-Once Songjun Wu's atmel-isc driver is merged I plan to make a follow-up patch
-that moves this driver into the new platform/atmel directory.
-
-Tested with my sama5d3-Xplained board and two ov7670 sensors: one with and one
-without reset/pwdn pins.
-
-Regards,
-
-	Hans
-
-Hans Verkuil (7):
-  ov7670: add media controller support
-  ov7670: call v4l2_async_register_subdev
-  ov7670: fix g/s_parm
-  ov7670: get xvclk
-  ov7670: add devicetree support
-  atmel-isi: remove dependency of the soc-camera framework
-  sama5d3 dts: enable atmel-isi
-
- .../devicetree/bindings/media/i2c/ov7670.txt       |   44 +
- MAINTAINERS                                        |    1 +
- arch/arm/boot/dts/at91-sama5d3_xplained.dts        |   61 +-
- arch/arm/boot/dts/sama5d3.dtsi                     |    4 +-
- drivers/media/i2c/ov7670.c                         |   92 +-
- drivers/media/platform/soc_camera/Kconfig          |    3 +-
- drivers/media/platform/soc_camera/atmel-isi.c      | 1216 ++++++++++++--------
- 7 files changed, 913 insertions(+), 508 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
-
+diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
+index ea5b5e709402..aeb056e6e732 100644
+--- a/drivers/media/i2c/soc_camera/mt9m111.c
++++ b/drivers/media/i2c/soc_camera/mt9m111.c
+@@ -188,10 +188,10 @@ struct mt9m111_datafmt {
+ };
+ 
+ static const struct mt9m111_datafmt mt9m111_colour_fmts[] = {
+-	{MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_JPEG},
+-	{MEDIA_BUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_JPEG},
+-	{MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_JPEG},
+-	{MEDIA_BUS_FMT_VYUY8_2X8, V4L2_COLORSPACE_JPEG},
++	{MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_SRGB},
++	{MEDIA_BUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_SRGB},
++	{MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_SRGB},
++	{MEDIA_BUS_FMT_VYUY8_2X8, V4L2_COLORSPACE_SRGB},
+ 	{MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
+ 	{MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE, V4L2_COLORSPACE_SRGB},
+ 	{MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB},
 -- 
-2.8.1
+2.1.4
 
