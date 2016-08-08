@@ -1,88 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:43598 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751382AbcHOINB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 04:13:01 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E4182180831
-	for <linux-media@vger.kernel.org>; Mon, 15 Aug 2016 10:12:55 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.9] Add touch API and atmel_mxt_ts/synaptics drivers
-Message-ID: <7c7c073e-5644-fbee-fb0f-b8e9efec43e9@xs4all.nl>
-Date: Mon, 15 Aug 2016 10:12:55 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:55410 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932444AbcHHTb0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2016 15:31:26 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Jiri Kosina <trivial@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v3 07/14] media: platform: pxa_camera: introduce sensor_call
+Date: Mon,  8 Aug 2016 21:30:45 +0200
+Message-Id: <1470684652-16295-8-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
+References: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds support for /dev/v4l-touchX devices.
+Introduce sensor_call(), which will be used for all sensor invocations.
+This is a preparation move to v4l2 device conversion, ie. soc_camera
+adherence removal.
 
-Regards,
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 27 ++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-	Hans
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index f3767415c128..7d76775ceb3e 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -168,6 +168,9 @@
+ 			CICR0_PERRM | CICR0_QDM | CICR0_CDM | CICR0_SOFM | \
+ 			CICR0_EOFM | CICR0_FOM)
+ 
++#define sensor_call(cam, o, f, args...) \
++	v4l2_subdev_call(sd, o, f, ##args)
++
+ /*
+  * Structures
+  */
+@@ -733,7 +736,7 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	unsigned long dw, bpp;
+ 	u32 cicr0, cicr1, cicr2, cicr3, cicr4 = 0, y_skip_top;
+-	int ret = v4l2_subdev_call(sd, sensor, g_skip_top_lines, &y_skip_top);
++	int ret = sensor_call(pcdev, sensor, g_skip_top_lines, &y_skip_top);
+ 
+ 	if (ret < 0)
+ 		y_skip_top = 0;
+@@ -1076,7 +1079,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
++	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
+ 	if (!ret) {
+ 		common_flags = soc_mbus_config_compatible(&cfg,
+ 							  bus_flags);
+@@ -1120,7 +1123,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
+ 	}
+ 
+ 	cfg.flags = common_flags;
+-	ret = v4l2_subdev_call(sd, video, s_mbus_config, &cfg);
++	ret = sensor_call(pcdev, video, s_mbus_config, &cfg);
+ 	if (ret < 0 && ret != -ENOIOCTLCMD) {
+ 		dev_dbg(icd->parent, "camera s_mbus_config(0x%lx) returned %d\n",
+ 			common_flags, ret);
+@@ -1147,7 +1150,7 @@ static int pxa_camera_try_bus_param(struct soc_camera_device *icd,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
++	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
+ 	if (!ret) {
+ 		common_flags = soc_mbus_config_compatible(&cfg,
+ 							  bus_flags);
+@@ -1198,7 +1201,7 @@ static int pxa_camera_get_formats(struct soc_camera_device *icd, unsigned int id
+ 	};
+ 	const struct soc_mbus_pixelfmt *fmt;
+ 
+-	ret = v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code);
++	ret = sensor_call(pcdev, pad, enum_mbus_code, NULL, &code);
+ 	if (ret < 0)
+ 		/* No more formats */
+ 		return 0;
+@@ -1300,7 +1303,7 @@ static int pxa_camera_set_crop(struct soc_camera_device *icd,
+ 	if (pcdev->platform_flags & PXA_CAMERA_PCLK_EN)
+ 		icd->sense = &sense;
+ 
+-	ret = v4l2_subdev_call(sd, video, s_crop, a);
++	ret = sensor_call(pcdev, video, s_crop, a);
+ 
+ 	icd->sense = NULL;
+ 
+@@ -1310,7 +1313,7 @@ static int pxa_camera_set_crop(struct soc_camera_device *icd,
+ 		return ret;
+ 	}
+ 
+-	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
++	ret = sensor_call(pcdev, pad, get_fmt, NULL, &fmt);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1322,7 +1325,7 @@ static int pxa_camera_set_crop(struct soc_camera_device *icd,
+ 		v4l_bound_align_image(&mf->width, 48, 2048, 1,
+ 			&mf->height, 32, 2048, 0,
+ 			fourcc == V4L2_PIX_FMT_YUV422P ? 4 : 0);
+-		ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &fmt);
++		ret = sensor_call(pcdev, pad, set_fmt, NULL, &fmt);
+ 		if (ret < 0)
+ 			return ret;
+ 
+@@ -1387,7 +1390,7 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
+ 	mf->colorspace	= pix->colorspace;
+ 	mf->code	= xlate->code;
+ 
+-	ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &format);
++	ret = sensor_call(pcdev, pad, set_fmt, NULL, &format);
+ 
+ 	if (mf->code != xlate->code)
+ 		return -EINVAL;
+@@ -1462,7 +1465,7 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
+ 	mf->colorspace	= pix->colorspace;
+ 	mf->code	= xlate->code;
+ 
+-	ret = v4l2_subdev_call(sd, pad, set_fmt, &pad_cfg, &format);
++	ret = sensor_call(pcdev, pad, set_fmt, &pad_cfg, &format);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1520,7 +1523,7 @@ static int pxa_camera_suspend(struct device *dev)
+ 
+ 	if (pcdev->soc_host.icd) {
+ 		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
+-		ret = v4l2_subdev_call(sd, core, s_power, 0);
++		ret = sensor_call(pcdev, core, s_power, 0);
+ 		if (ret == -ENOIOCTLCMD)
+ 			ret = 0;
+ 	}
+@@ -1542,7 +1545,7 @@ static int pxa_camera_resume(struct device *dev)
+ 
+ 	if (pcdev->soc_host.icd) {
+ 		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
+-		ret = v4l2_subdev_call(sd, core, s_power, 1);
++		ret = sensor_call(pcdev, core, s_power, 1);
+ 		if (ret == -ENOIOCTLCMD)
+ 			ret = 0;
+ 	}
+-- 
+2.1.4
 
-The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
-
-  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git touch
-
-for you to fetch changes up to 28a645cb215786839742b276b6d5279dfd7995e7:
-
-  Documentation: add support for V4L touch devices (2016-08-15 09:52:33 +0200)
-
-----------------------------------------------------------------
-Nick Dyer (11):
-      Input: atmel_mxt_ts - update MAINTAINERS email address
-      v4l2-core: Add support for touch devices
-      Input: atmel_mxt_ts - add support for T37 diagnostic data
-      Input: atmel_mxt_ts - output diagnostic debug via V4L2 device
-      Input: atmel_mxt_ts - read touchscreen size
-      Input: atmel_mxt_ts - handle diagnostic data orientation
-      Input: atmel_mxt_ts - add diagnostic data support for mXT1386
-      Input: atmel_mxt_ts - add support for reference data
-      Input: synaptics-rmi4 - add support for F54 diagnostics
-      Input: sur40 - use new V4L2 touch input type
-      Documentation: add support for V4L touch devices
-
- Documentation/media/kapi/v4l2-dev.rst             |   1 +
- Documentation/media/uapi/mediactl/media-types.rst |  24 +-
- Documentation/media/uapi/v4l/dev-touch.rst        |  56 ++++
- Documentation/media/uapi/v4l/devices.rst          |   1 +
- Documentation/media/uapi/v4l/pixfmt-tch-td08.rst  |  80 ++++++
- Documentation/media/uapi/v4l/pixfmt-tch-td16.rst  | 111 ++++++++
- Documentation/media/uapi/v4l/pixfmt-tch-tu08.rst  |  78 ++++++
- Documentation/media/uapi/v4l/pixfmt-tch-tu16.rst  | 110 ++++++++
- Documentation/media/uapi/v4l/pixfmt.rst           |   1 +
- Documentation/media/uapi/v4l/tch-formats.rst      |  18 ++
- Documentation/media/uapi/v4l/vidioc-enuminput.rst |   8 +
- Documentation/media/uapi/v4l/vidioc-querycap.rst  |   8 +
- Documentation/media/videodev2.h.rst.exceptions    |   2 +
- MAINTAINERS                                       |   6 +-
- drivers/input/rmi4/Kconfig                        |  11 +
- drivers/input/rmi4/Makefile                       |   1 +
- drivers/input/rmi4/rmi_bus.c                      |   3 +
- drivers/input/rmi4/rmi_driver.h                   |   1 +
- drivers/input/rmi4/rmi_f54.c                      | 756 ++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/input/touchscreen/Kconfig                 |   8 +
- drivers/input/touchscreen/atmel_mxt_ts.c          | 520 ++++++++++++++++++++++++++++++++++
- drivers/input/touchscreen/sur40.c                 | 122 +++++---
- drivers/media/media-entity.c                      |   2 +
- drivers/media/v4l2-core/v4l2-dev.c                |  14 +-
- drivers/media/v4l2-core/v4l2-ioctl.c              |  36 ++-
- include/media/v4l2-dev.h                          |   4 +-
- include/uapi/linux/media.h                        |   1 +
- include/uapi/linux/videodev2.h                    |   9 +
- 28 files changed, 1940 insertions(+), 52 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/dev-touch.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-tch-td08.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-tch-td16.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-tch-tu08.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-tch-tu16.rst
- create mode 100644 Documentation/media/uapi/v4l/tch-formats.rst
- create mode 100644 drivers/input/rmi4/rmi_f54.c
