@@ -1,64 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:45300 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934568AbcHBPkp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 11:40:45 -0400
-Subject: Re: [PATCH 0947/1285] Replace numeric parameter like 0444 with macro
-To: Mauro Carvalho Chehab <maurochehab@gmail.com>,
-	Baole Ni <baolex.ni@intel.com>
-References: <20160802120134.13166-1-baolex.ni@intel.com>
- <20160802095118.47dcc5a6@recife.lan>
-Cc: devel@driverdev.osuosl.org, k.kozlowski@samsung.com,
-	mchehab@redhat.com, arnd@arndb.de, gregkh@linuxfoundation.org,
-	linux-media@vger.kernel.org, mchehab@infradead.org,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, chuansheng.liu@intel.com,
-	mchehab@kernel.org, linux-kernel@vger.kernel.org,
-	m.chehab@samsung.com
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <bc61742b-1a7d-ae1f-da8b-dc7888773677@infradead.org>
-Date: Tue, 2 Aug 2016 08:00:54 -0700
-MIME-Version: 1.0
-In-Reply-To: <20160802095118.47dcc5a6@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:16412 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752265AbcHHTb3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2016 15:31:29 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Jiri Kosina <trivial@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v3 12/14] media: platform: pxa_camera: add debug register access
+Date: Mon,  8 Aug 2016 21:30:50 +0200
+Message-Id: <1470684652-16295-13-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
+References: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/02/16 05:51, Mauro Carvalho Chehab wrote:
-> Em Tue,  2 Aug 2016 20:01:34 +0800
-> Baole Ni <baolex.ni@intel.com> escreveu:
-> 
->> I find that the developers often just specified the numeric value
->> when calling a macro which is defined with a parameter for access permission.
->> As we know, these numeric value for access permission have had the corresponding macro,
->> and that using macro can improve the robustness and readability of the code,
->> thus, I suggest replacing the numeric parameter with the macro.
-> 
-> Gah!
-> 
-> A patch series with 1285 patches with identical subject!
-> 
-> Please don't ever do something like that. My inbox is not trash!
-> 
-> Instead, please group the changes per subsystem, and use different
-> names for each patch. Makes easier for people to review.
-> 
-> also, you need to send the patches to the subsystem mainatiner, and
-> not adding a random list of people like this:
-> 
-> To: gregkh@linuxfoundation.org, maurochehab@gmail.com, mchehab@infradead.org, mchehab@redhat.com, m.chehab@samsung.com, m.szyprowski@samsung.com, kyungmin.park@samsung.com, k.kozlowski@samsung.com
-> 
-> Btw, use *just* the more recent email of the maintainer, instead of
-> spamming trash to all our emails (even to the ones that we don't use
-> anymore!
-> 
-> I'll just send all those things to /dev/null until you fix your
-> email sending process.
->
-+1285
+Add pxa_camera registers access through advanced video debugging.
 
-There are people at Intel who know about things like this.
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 57 ++++++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
 
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index 1e15734ae287..20340489e07e 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -1344,6 +1344,58 @@ static int pxa_camera_check_frame(u32 width, u32 height)
+ 		(width & 0x01);
+ }
+ 
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++static int pxac_vidioc_g_register(struct file *file, void *priv,
++				  struct v4l2_dbg_register *reg)
++{
++	struct pxa_camera_dev *pcdev = video_drvdata(file);
++
++	if (reg->reg > CIBR2)
++		return -ERANGE;
++
++	reg->val = __raw_readl(pcdev->base + reg->reg);
++	reg->size = sizeof(__u32);
++	return 0;
++}
++
++static int pxac_vidioc_s_register(struct file *file, void *priv,
++				  const struct v4l2_dbg_register *reg)
++{
++	struct pxa_camera_dev *pcdev = video_drvdata(file);
++
++	if (reg->reg > CIBR2)
++		return -ERANGE;
++	if (reg->size != sizeof(__u32))
++		return -EINVAL;
++	__raw_writel(reg->val, pcdev->base + reg->reg);
++	return 0;
++}
++
++static int pxac_vidioc_g_chip_info(struct file *file, void *fh,
++				   struct v4l2_dbg_chip_info *chip)
++{
++	struct pxa_camera_dev *pcdev = video_drvdata(file);
++
++	switch (chip->match.type) {
++	case V4L2_CHIP_MATCH_BRIDGE:
++		if (chip->match.addr > 0)
++			return -EINVAL;
++
++		strlcpy(chip->name, "pxa-camera", sizeof(chip->name));
++		return 0;
++	case V4L2_CHIP_MATCH_SUBDEV:
++		if (chip->match.addr > 0)
++			return -EINVAL;
++
++		strlcpy(chip->name, pcdev->sensor->name, sizeof(chip->name));
++		return 0;
++	default:
++		return -EINVAL;
++	}
++}
++
++#endif
++
+ static int pxac_vidioc_enum_fmt_vid_cap(struct file *filp, void  *priv,
+ 					struct v4l2_fmtdesc *f)
+ {
+@@ -1594,6 +1646,11 @@ static const struct v4l2_ioctl_ops pxa_camera_ioctl_ops = {
+ 	.vidioc_expbuf			= vb2_ioctl_expbuf,
+ 	.vidioc_streamon		= vb2_ioctl_streamon,
+ 	.vidioc_streamoff		= vb2_ioctl_streamoff,
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	.vidioc_g_register		= pxac_vidioc_g_register,
++	.vidioc_s_register		= pxac_vidioc_s_register,
++	.vidioc_g_chip_info		= pxac_vidioc_g_chip_info,
++#endif
+ };
+ 
+ static struct v4l2_clk_ops pxa_camera_mclk_ops = {
 -- 
-~Randy
+2.1.4
+
