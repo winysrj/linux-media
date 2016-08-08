@@ -1,45 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47743 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752017AbcHAK35 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59112 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752005AbcHHIKc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Aug 2016 06:29:57 -0400
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: David Binderman <linuxdev.baldrick@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH for v4.8] cec-funcs.h: fix typo: && should be &
-Message-ID: <3c1ddbdb-1d56-0a7b-c7fa-9ef8c31ca773@xs4all.nl>
-Date: Mon, 1 Aug 2016 12:29:34 +0200
+	Mon, 8 Aug 2016 04:10:32 -0400
+Date: Mon, 8 Aug 2016 11:09:56 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	pali.rohar@gmail.com, sre@kernel.org,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
+Message-ID: <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+References: <20160517181927.GA28741@amd>
+ <20160521054336.GA27123@amd>
+ <573FFF51.1000004@gmail.com>
+ <20160521105607.GA20071@amd>
+ <574049EF.2090208@gmail.com>
+ <20160524090433.GA1277@amd>
+ <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+ <20160805102611.GA13116@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160805102611.GA13116@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix typo where logical AND was used instead of bitwise AND.
+On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
+> 
+> This adds support for AD5820 autofocus coil, found for example in
+> Nokia N900 smartphone.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: David Binderman <linuxdev.baldrick@gmail.com>
----
-diff --git a/include/linux/cec-funcs.h b/include/linux/cec-funcs.h
-index 82c3d3b..9e054aa 100644
---- a/include/linux/cec-funcs.h
-+++ b/include/linux/cec-funcs.h
-@@ -227,7 +227,7 @@ static inline void cec_set_digital_service_id(__u8 *msg,
- 	if (digital->service_id_method == CEC_OP_SERVICE_ID_METHOD_BY_CHANNEL) {
- 		*msg++ = (digital->channel.channel_number_fmt << 2) |
- 			 (digital->channel.major >> 8);
--		*msg++ = digital->channel.major && 0xff;
-+		*msg++ = digital->channel.major & 0xff;
- 		*msg++ = digital->channel.minor >> 8;
- 		*msg++ = digital->channel.minor & 0xff;
- 		*msg++ = 0;
-@@ -1277,7 +1277,7 @@ static inline void cec_msg_user_control_pressed(struct cec_msg *msg,
- 		msg->len += 4;
- 		msg->msg[3] = (ui_cmd->channel_identifier.channel_number_fmt << 2) |
- 			      (ui_cmd->channel_identifier.major >> 8);
--		msg->msg[4] = ui_cmd->channel_identifier.major && 0xff;
-+		msg->msg[4] = ui_cmd->channel_identifier.major & 0xff;
- 		msg->msg[5] = ui_cmd->channel_identifier.minor >> 8;
- 		msg->msg[6] = ui_cmd->channel_identifier.minor & 0xff;
- 		break;
+Thanks, Pavel!
+
+Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get something
+better in the future, we'll switch to that then.
+
+I've applied this to ad5820 branch in my tree.
+
+-- 
+Cheers,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
