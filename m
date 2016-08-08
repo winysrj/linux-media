@@ -1,50 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:42793
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932473AbcHKQ2b (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:51360 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752800AbcHJSts (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 12:28:31 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 0/2] [media] tvp5150: use .registered callback to register entity and links
-Date: Thu, 11 Aug 2016 12:28:14 -0400
-Message-Id: <1470932896-25843-1-git-send-email-javier@osg.samsung.com>
+	Wed, 10 Aug 2016 14:49:48 -0400
+Date: Mon, 8 Aug 2016 23:41:32 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	pali.rohar@gmail.com, sre@kernel.org,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
+Message-ID: <20160808214132.GB2946@xo-6d-61-c0.localdomain>
+References: <20160521054336.GA27123@amd>
+ <573FFF51.1000004@gmail.com>
+ <20160521105607.GA20071@amd>
+ <574049EF.2090208@gmail.com>
+ <20160524090433.GA1277@amd>
+ <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+ <20160805102611.GA13116@amd>
+ <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Mon 2016-08-08 11:09:56, Sakari Ailus wrote:
+> On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
+> > 
+> > This adds support for AD5820 autofocus coil, found for example in
+> > Nokia N900 smartphone.
+> 
+> Thanks, Pavel!
+> 
+> Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get something
+> better in the future, we'll switch to that then.
+> 
+> I've applied this to ad5820 branch in my tree.
 
-Sakari pointed out in "[PATCH 2/8] [media] v4l2-async: call registered_async
-after subdev registration" [0] that the added .registered_async callback isn't
-needed since the v4l2 core already has an internal_ops .registered callback.
-
-I missed that there was already this when added the .registered_async callback,
-sorry about that.
-
-This small series convert the tvp5150 driver to use the proper .registered and
-remove .registered_async since isn't needed.
-
-[0]: https://lkml.org/lkml/2016/8/11/254
+Thanks. If I understands things correctly, both DTS patch and this patch are
+waiting in your tree, so we should be good to go for 4.9 (unless some unexpected
+problems surface)?
 
 Best regards,
-Javier
-
-
-Javier Martinez Canillas (2):
-  [media] tvp5150: use sd internal ops .registered instead
-    .registered_async
-  [media] v4l2-async: remove unneeded .registered_async callback
-
- drivers/media/i2c/tvp5150.c          | 8 ++++++--
- drivers/media/v4l2-core/v4l2-async.c | 7 -------
- include/media/v4l2-subdev.h          | 3 ---
- 3 files changed, 6 insertions(+), 12 deletions(-)
-
+									Pavel
 -- 
-2.5.5
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
