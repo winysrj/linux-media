@@ -1,96 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.goneo.de ([85.220.129.33]:52658 "EHLO smtp2.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161166AbcHEL6A convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2016 07:58:00 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: Sphinx-doc: build over N processes in parallel
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <20160805084102.7692632a@recife.lan>
-Date: Fri, 5 Aug 2016 13:57:18 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Kees Cook <keescook@chromium.org>, linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <FB3C0DBA-B3D0-40DB-8A44-B9D719575F80@darmarit.de>
-References: <d612024e7d2acd7ec82c75b5fed271fd61673386.1469017917.git.mchehab@s-opensource.com> <20160720100027.440796a4@recife.lan> <250A8BC9-A965-4162-BF63-6FFFBCD42D89@darmarit.de> <20160720110413.68334513@recife.lan> <800F814C-6238-4AF3-8D35-81EBD6EDEDFA@darmarit.de> <20160805084102.7692632a@recife.lan>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:51038 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752426AbcHIC7m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Aug 2016 22:59:42 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 122B11800D5
+	for <linux-media@vger.kernel.org>; Tue,  9 Aug 2016 04:59:36 +0200 (CEST)
+Date: Tue, 09 Aug 2016 04:59:36 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160809025936.122B11800D5@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Am 05.08.2016 um 13:41 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+Results of the daily build of media_tree:
 
-> Em Fri, 5 Aug 2016 11:56:44 +0200
-> Markus Heiser <markus.heiser@darmarit.de> escreveu:
-> 
->> Am 20.07.2016 um 16:04 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
->> 
->>> 
->>> A completely unrelated question: it seems that Sphinx is using just
->>> one CPU to do its builds:
->>> 
->>> %Cpu0  :  3,0 us,  7,6 sy,  0,0 ni, 89,4 id,  0,0 wa,  0,0 hi,  0,0 si,  0,0 st
->>> %Cpu1  :100,0 us,  0,0 sy,  0,0 ni,  0,0 id,  0,0 wa,  0,0 hi,  0,0 si,  0,0 st
->>> %Cpu2  :  1,3 us,  2,7 sy,  0,0 ni, 95,7 id,  0,3 wa,  0,0 hi,  0,0 si,  0,0 st
->>> %Cpu3  :  1,0 us,  3,3 sy,  0,0 ni, 95,7 id,  0,0 wa,  0,0 hi,  0,0 si,  0,0 st
->>> KiB Mem : 15861876 total,  5809820 free,  1750528 used,  8301528 buff/cache
->>> KiB Swap:  8200188 total,  8200188 free,        0 used. 13382964 avail Mem 
->>> 
->>> PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND     
->>> 5660 mchehab   20   0  325256  89776   8300 R  99,7  0,6   0:22.25 sphinx-bui+ 
->>> 
->>> Are there any way to speed it up and make it use all available CPUs?  
->> 
->> Hi Mauro, 
->> 
->> sorry for the late reply. There is a sphinx-build option "-j N" [1].
->> It is in a *experimental* state in Sphinx v1.2 and has been improved 
->> in v1.3. Set e.g. "-j2" to the SPHINXOPTS to use two cores.
->> 
->> make SPHINXOPTS=-j2 htmldocs
->> 
->> But take into account what the documentation says: """not all parts and 
->> not all builders of Sphinx can be parallelized.""".
->> 
->> [1] http://www.sphinx-doc.org/en/stable/invocation.html#cmdoption-sphinx-build-j
-> 
-> Good, thanks!
-> 
-> Did some tests here on a machine with 32 CPU threads using a PCIe SSD disk,
-> using Sphinx 1.4.5.
-> 
-> Using -j32, those are the timings:
-> 
-> real	0m59.522s
-> user	1m29.968s
-> sys	0m4.975s
-> 
-> not using it, I got:
-> 
-> real	1m27.814s
-> user	1m26.465s
-> sys	0m1.842s
-> 
-> Not much gain :(
-> 
-> Regards,
-> Mauro
+date:		Tue Aug  9 04:00:27 CEST 2016
+git branch:	test
+git hash:	b6aa39228966e0d3f0bc3306be1892f87792903a
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-I think, that only some reading / writing parts of the sphinx implementation
-are parallel and most of the stuff is sequential. I haven't looked through
-but I think, generating env and traversing trees etc. are always steps which
-has to be consecutively.
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-multi: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1.1-i686: WARNINGS
+linux-4.2-i686: WARNINGS
+linux-4.3-i686: WARNINGS
+linux-4.4-i686: WARNINGS
+linux-4.5-i686: WARNINGS
+linux-4.6-i686: WARNINGS
+linux-4.7-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0-x86_64: WARNINGS
+linux-4.1.1-x86_64: WARNINGS
+linux-4.2-x86_64: WARNINGS
+linux-4.3-x86_64: WARNINGS
+linux-4.4-x86_64: WARNINGS
+linux-4.5-x86_64: WARNINGS
+linux-4.6-x86_64: WARNINGS
+linux-4.7-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-I guess you will get same results with 2 or 4 threads :(
+Detailed results are available here:
 
---Markus--
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
 
-  
+http://www.xs4all.nl/~hverkuil/spec/index.html
