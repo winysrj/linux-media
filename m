@@ -1,1724 +1,690 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:38224 "EHLO
-        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755452AbcHVNOc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 09:14:32 -0400
-Received: by mail-wm0-f42.google.com with SMTP id o80so143418471wme.1
-        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2016 06:14:25 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH 6/8] media: vidc: add Venus HFI files
-Date: Mon, 22 Aug 2016 16:13:37 +0300
-Message-Id: <1471871619-25873-7-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1471871619-25873-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1471871619-25873-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from mga03.intel.com ([134.134.136.65]:32694 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932570AbcHIXT4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Aug 2016 19:19:56 -0400
+Date: Wed, 10 Aug 2016 07:19:14 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Max Kellermann <max.kellermann@gmail.com>
+Cc: kbuild-all@01.org, linux-media@vger.kernel.org,
+	shuahkh@osg.samsung.com, mchehab@osg.samsung.com,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 05/12] [media] dvb_frontend: merge duplicate
+ dvb_tuner_ops.release implementations
+Message-ID: <201608100750.YxXRYGwi%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="8t9RHnE3ZwKMSgU+"
+Content-Disposition: inline
+In-Reply-To: <147077834639.21835.9626267699459771690.stgit@woodpecker.blarg.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here is the implementation of Venus video accelerator low-level
-functionality. It contanins code which setup the registers and
-startup uthe processor, allocate and manipulates with the shared
-memory used for sending commands and receiving messages.
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+--8t9RHnE3ZwKMSgU+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Max,
+
+[auto build test ERROR on linuxtv-media/master]
+[also build test ERROR on v4.8-rc1 next-20160809]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Max-Kellermann/rc-main-clear-rc_map-name-in-ir_free_table/20160810-054811
+base:   git://linuxtv.org/media_tree.git master
+config: i386-randconfig-s0-201632 (attached as .config)
+compiler: gcc-6 (Debian 6.1.1-9) 6.1.1 20160705
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=i386 
+
+All errors (new ones prefixed by >>):
+
+>> ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/tea5767.ko] undefined!
+>> ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/tea5761.ko] undefined!
+>> ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/tda827x.ko] undefined!
+>> ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/mt20xx.ko] undefined!
+>> ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/mc44s803.ko] undefined!
+
 ---
- drivers/media/platform/qcom/vidc/hfi_venus.c    | 1539 +++++++++++++++++++++++
- drivers/media/platform/qcom/vidc/hfi_venus.h    |   25 +
- drivers/media/platform/qcom/vidc/hfi_venus_io.h |   98 ++
- 3 files changed, 1662 insertions(+)
- create mode 100644 drivers/media/platform/qcom/vidc/hfi_venus.c
- create mode 100644 drivers/media/platform/qcom/vidc/hfi_venus.h
- create mode 100644 drivers/media/platform/qcom/vidc/hfi_venus_io.h
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
-diff --git a/drivers/media/platform/qcom/vidc/hfi_venus.c b/drivers/media/platform/qcom/vidc/hfi_venus.c
-new file mode 100644
-index 000000000000..1193fa136711
---- /dev/null
-+++ b/drivers/media/platform/qcom/vidc/hfi_venus.c
-@@ -0,0 +1,1539 @@
-+/*
-+ * Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
-+ * Copyright (C) 2016 Linaro Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#include <linux/delay.h>
-+#include <linux/device.h>
-+#include <linux/interrupt.h>
-+#include <linux/iopoll.h>
-+#include <linux/kernel.h>
-+#include <linux/qcom_scm.h>
-+#include <linux/slab.h>
-+
-+#include "hfi_cmds.h"
-+#include "hfi_msgs.h"
-+#include "mem.h"
-+#include "hfi_venus.h"
-+#include "hfi_venus_io.h"
-+
-+#define HFI_MASK_QHDR_TX_TYPE		0xff000000
-+#define HFI_MASK_QHDR_RX_TYPE		0x00ff0000
-+#define HFI_MASK_QHDR_PRI_TYPE		0x0000ff00
-+#define HFI_MASK_QHDR_ID_TYPE		0x000000ff
-+
-+#define HFI_HOST_TO_CTRL_CMD_Q		0
-+#define HFI_CTRL_TO_HOST_MSG_Q		1
-+#define HFI_CTRL_TO_HOST_DBG_Q		2
-+#define HFI_MASK_QHDR_STATUS		0x000000ff
-+
-+#define IFACEQ_NUM			3
-+#define IFACEQ_CMD_IDX			0
-+#define IFACEQ_MSG_IDX			1
-+#define IFACEQ_DBG_IDX			2
-+#define IFACEQ_MAX_BUF_COUNT		50
-+#define IFACEQ_MAX_PARALLEL_CLNTS	16
-+#define IFACEQ_DFLT_QHDR		0x01010000
-+
-+#define POLL_INTERVAL_US		50
-+
-+#define IFACEQ_MAX_PKT_SIZE		1024
-+#define IFACEQ_MED_PKT_SIZE		768
-+#define IFACEQ_MIN_PKT_SIZE		8
-+#define IFACEQ_VAR_SMALL_PKT_SIZE	100
-+#define IFACEQ_VAR_LARGE_PKT_SIZE	512
-+#define IFACEQ_VAR_HUGE_PKT_SIZE	(1024 * 12)
-+
-+enum tzbsp_video_state {
-+	TZBSP_VIDEO_STATE_SUSPEND = 0,
-+	TZBSP_VIDEO_STATE_RESUME
-+};
-+
-+struct hfi_queue_table_header {
-+	u32 version;
-+	u32 size;
-+	u32 qhdr0_offset;
-+	u32 qhdr_size;
-+	u32 num_q;
-+	u32 num_active_q;
-+};
-+
-+struct hfi_queue_header {
-+	u32 status;
-+	u32 start_addr;
-+	u32 type;
-+	u32 q_size;
-+	u32 pkt_size;
-+	u32 pkt_drop_cnt;
-+	u32 rx_wm;
-+	u32 tx_wm;
-+	u32 rx_req;
-+	u32 tx_req;
-+	u32 rx_irq_status;
-+	u32 tx_irq_status;
-+	u32 read_idx;
-+	u32 write_idx;
-+};
-+
-+#define IFACEQ_TABLE_SIZE	\
-+	(sizeof(struct hfi_queue_table_header) +	\
-+	 sizeof(struct hfi_queue_header) * IFACEQ_NUM)
-+
-+#define IFACEQ_QUEUE_SIZE	(IFACEQ_MAX_PKT_SIZE *	\
-+	IFACEQ_MAX_BUF_COUNT * IFACEQ_MAX_PARALLEL_CLNTS)
-+
-+#define IFACEQ_GET_QHDR_START_ADDR(ptr, i)	\
-+	(void *)(((ptr) + sizeof(struct hfi_queue_table_header)) +	\
-+		((i) * sizeof(struct hfi_queue_header)))
-+
-+#define QDSS_SIZE		SZ_4K
-+#define SFR_SIZE		SZ_4K
-+#define QUEUE_SIZE		\
-+	(IFACEQ_TABLE_SIZE + (IFACEQ_QUEUE_SIZE * IFACEQ_NUM))
-+
-+#define ALIGNED_QDSS_SIZE	ALIGN(QDSS_SIZE, SZ_4K)
-+#define ALIGNED_SFR_SIZE	ALIGN(SFR_SIZE, SZ_4K)
-+#define ALIGNED_QUEUE_SIZE	ALIGN(QUEUE_SIZE, SZ_4K)
-+#define SHARED_QSIZE		ALIGN(ALIGNED_SFR_SIZE + ALIGNED_QUEUE_SIZE + \
-+				      ALIGNED_QDSS_SIZE, SZ_1M)
-+
-+struct mem_desc {
-+	u32 da;		/* device address */
-+	void *kva;	/* kernel virtual address */
-+	u32 size;
-+	struct vidc_mem *mem;
-+};
-+
-+struct iface_queue {
-+	struct hfi_queue_header *qhdr;
-+	struct mem_desc qmem;
-+};
-+
-+enum venus_state {
-+	VENUS_STATE_DEINIT = 1,
-+	VENUS_STATE_INIT,
-+};
-+
-+struct venus_hfi_device {
-+	struct device *dev;
-+	void __iomem *base;
-+	u32 irq_status;
-+	u32 last_packet_type;
-+	bool power_enabled;
-+	bool suspended;
-+	struct completion pwr_collapse_prep;
-+	struct completion release_resource;
-+	struct mutex lock;
-+	struct mem_desc ifaceq_table;
-+	struct mem_desc sfr;
-+	struct iface_queue queues[IFACEQ_NUM];
-+	const struct vidc_resources *res;
-+	enum venus_state state;
-+	const struct hfi_packetization_ops *pkt_ops;
-+	enum hfi_packetization_type packetization_type;
-+	u8 pkt_buf[IFACEQ_VAR_HUGE_PKT_SIZE];
-+	u8 dbg_buf[IFACEQ_VAR_HUGE_PKT_SIZE];
-+};
-+
-+#define VENUS_FW_DEBUG_MSG_LOW			0x1
-+#define VENUS_FW_DEBUG_MSG_MEDIUM		0x2
-+#define VENUS_FW_DEBUG_MSG_HIGH			0x4
-+#define VENUS_FW_DEBUG_MSG_ERROR		0x8
-+#define VENUS_FW_DEBUG_MSG_FATAL		0x10
-+
-+static bool venus_pkt_debug;
-+static int venus_fw_debug = VENUS_FW_DEBUG_MSG_ERROR | VENUS_FW_DEBUG_MSG_FATAL;
-+static bool venus_sys_idle_indicator;
-+static bool venus_fw_low_power_mode = true;
-+static int venus_hw_rsp_timeout = 1000;
-+static bool venus_fw_coverage;
-+
-+static void venus_set_state(struct venus_hfi_device *hdev,
-+			    enum venus_state state)
-+{
-+	mutex_lock(&hdev->lock);
-+	hdev->state = state;
-+	mutex_unlock(&hdev->lock);
-+}
-+
-+static bool venus_is_valid_state(struct venus_hfi_device *hdev)
-+{
-+	return hdev->state != VENUS_STATE_DEINIT;
-+}
-+
-+static void venus_dump_packet(struct venus_hfi_device *hdev, u8 *packet)
-+{
-+	struct device *dev = hdev->dev;
-+	u32 c = 0, pkt_size = *(u32 *)packet;
-+	const int row_size = 32;
-+	/*
-+	 * row must contain enough for 0xdeadbaad * 8 to be converted into
-+	 * "de ad ba ab " * 8 + '\0'
-+	 */
-+	char row[3 * row_size];
-+
-+	if (!venus_pkt_debug)
-+		return;
-+
-+	for (c = 0; c * row_size < pkt_size; ++c) {
-+		int bytes_to_read = ((c + 1) * row_size > pkt_size) ?
-+			pkt_size % row_size : row_size;
-+		hex_dump_to_buffer(packet + c * row_size, bytes_to_read,
-+				   row_size, 4, row, sizeof(row), false);
-+		dev_dbg(dev, "%s\n", row);
-+	}
-+}
-+
-+static int venus_write_queue(struct venus_hfi_device *hdev,
-+			     struct iface_queue *queue,
-+			     void *packet, u32 *rx_req)
-+{
-+	struct hfi_queue_header *qhdr;
-+	u32 dwords, new_wr_idx;
-+	u32 empty_space, rd_idx, wr_idx, qsize;
-+	u32 *wr_ptr;
-+
-+	if (!queue->qmem.kva)
-+		return -EINVAL;
-+
-+	qhdr = queue->qhdr;
-+	if (!qhdr)
-+		return -EINVAL;
-+
-+	venus_dump_packet(hdev, packet);
-+
-+	dwords = (*(u32 *)packet) >> 2;
-+	if (!dwords)
-+		return -EINVAL;
-+
-+	rd_idx = qhdr->read_idx;
-+	wr_idx = qhdr->write_idx;
-+	qsize = qhdr->q_size;
-+	/* ensure rd/wr indices's are read from memory */
-+	rmb();
-+
-+	if (wr_idx >= rd_idx)
-+		empty_space = qsize - (wr_idx - rd_idx);
-+	else
-+		empty_space = rd_idx - wr_idx;
-+
-+	if (empty_space <= dwords) {
-+		qhdr->tx_req = 1;
-+		/* ensure tx_req is updated in memory */
-+		wmb();
-+		return -ENOSPC;
-+	}
-+
-+	qhdr->tx_req = 0;
-+	/* ensure tx_req is updated in memory */
-+	wmb();
-+
-+	new_wr_idx = wr_idx + dwords;
-+	wr_ptr = (u32 *)(queue->qmem.kva + (wr_idx << 2));
-+	if (new_wr_idx < qsize) {
-+		memcpy(wr_ptr, packet, dwords << 2);
-+	} else {
-+		size_t len;
-+
-+		new_wr_idx -= qsize;
-+		len = (dwords - new_wr_idx) << 2;
-+		memcpy(wr_ptr, packet, len);
-+		memcpy(queue->qmem.kva, packet + len, new_wr_idx << 2);
-+	}
-+
-+	/* make sure packet is written before updating the write index */
-+	wmb();
-+
-+	qhdr->write_idx = new_wr_idx;
-+	*rx_req = qhdr->rx_req ? 1 : 0;
-+
-+	/* make sure write index is updated before an interupt is raised */
-+	mb();
-+
-+	return 0;
-+}
-+
-+static int venus_read_queue(struct venus_hfi_device *hdev,
-+			    struct iface_queue *queue, void *pkt, u32 *tx_req)
-+{
-+	struct hfi_queue_header *qhdr;
-+	u32 dwords, new_rd_idx;
-+	u32 rd_idx, wr_idx, type, qsize;
-+	u32 *rd_ptr;
-+	u32 recv_request = 0;
-+	int ret = 0;
-+
-+	if (!queue->qmem.kva)
-+		return -EINVAL;
-+
-+	qhdr = queue->qhdr;
-+	if (!qhdr)
-+		return -EINVAL;
-+
-+	type = qhdr->type;
-+	rd_idx = qhdr->read_idx;
-+	wr_idx = qhdr->write_idx;
-+	qsize = qhdr->q_size;
-+
-+	/* make sure data is valid before using it */
-+	rmb();
-+
-+	/*
-+	 * Do not set receive request for debug queue, if set, Venus generates
-+	 * interrupt for debug messages even when there is no response message
-+	 * available. In general debug queue will not become full as it is being
-+	 * emptied out for every interrupt from Venus. Venus will anyway
-+	 * generates interrupt if it is full.
-+	 */
-+	if (type & HFI_CTRL_TO_HOST_MSG_Q)
-+		recv_request = 1;
-+
-+	if (rd_idx == wr_idx) {
-+		qhdr->rx_req = recv_request;
-+		*tx_req = 0;
-+		/* update rx_req field in memory */
-+		wmb();
-+		return -ENODATA;
-+	}
-+
-+	rd_ptr = (u32 *)(queue->qmem.kva + (rd_idx << 2));
-+	dwords = *rd_ptr >> 2;
-+	if (!dwords)
-+		return -EINVAL;
-+
-+	new_rd_idx = rd_idx + dwords;
-+	if (((dwords << 2) <= IFACEQ_VAR_HUGE_PKT_SIZE) && rd_idx <= qsize) {
-+		if (new_rd_idx < qsize) {
-+			memcpy(pkt, rd_ptr, dwords << 2);
-+		} else {
-+			size_t len;
-+
-+			new_rd_idx -= qsize;
-+			len = (dwords - new_rd_idx) << 2;
-+			memcpy(pkt, rd_ptr, len);
-+			memcpy(pkt + len, queue->qmem.kva, new_rd_idx << 2);
-+		}
-+	} else {
-+		/* bad packet received, dropping */
-+		new_rd_idx = qhdr->write_idx;
-+		ret = -EBADMSG;
-+	}
-+
-+	/* ensure the packet is read before updating read index */
-+	rmb();
-+
-+	qhdr->read_idx = new_rd_idx;
-+	/* ensure updating read index */
-+	wmb();
-+
-+	rd_idx = qhdr->read_idx;
-+	wr_idx = qhdr->write_idx;
-+	/* ensure rd/wr indices are read from memory */
-+	rmb();
-+
-+	if (rd_idx != wr_idx)
-+		qhdr->rx_req = 0;
-+	else
-+		qhdr->rx_req = recv_request;
-+
-+	*tx_req = qhdr->tx_req ? 1 : 0;
-+
-+	/* ensure rx_req is stored to memory and tx_req is loaded from memory */
-+	mb();
-+
-+	venus_dump_packet(hdev, pkt);
-+
-+	return ret;
-+}
-+
-+static int venus_alloc(struct venus_hfi_device *hdev, struct mem_desc *desc,
-+		       u32 size)
-+{
-+	struct vidc_mem *mem;
-+
-+	mem = mem_alloc(hdev->dev, size, 1);
-+	if (IS_ERR(mem))
-+		return PTR_ERR(mem);
-+
-+	desc->size = mem->size;
-+	desc->mem = mem;
-+	desc->kva = mem->kvaddr;
-+	desc->da = mem->da;
-+
-+	return 0;
-+}
-+
-+static void venus_free(struct vidc_mem *mem)
-+{
-+	mem_free(mem);
-+}
-+
-+static void venus_writel(struct venus_hfi_device *hdev, u32 reg, u32 value)
-+{
-+	writel(value, hdev->base + reg);
-+}
-+
-+static u32 venus_readl(struct venus_hfi_device *hdev, u32 reg)
-+{
-+	return readl(hdev->base + reg);
-+}
-+
-+static void venus_set_registers(struct venus_hfi_device *hdev)
-+{
-+	const struct reg_val *tbl = hdev->res->reg_tbl;
-+	unsigned int count = hdev->res->reg_tbl_size;
-+	int i;
-+
-+	for (i = 0; i < count; i++)
-+		venus_writel(hdev, tbl[i].reg, tbl[i].value);
-+}
-+
-+static void venus_soft_int(struct venus_hfi_device *hdev)
-+{
-+	venus_writel(hdev, CPU_IC_SOFTINT, BIT(CPU_IC_SOFTINT_H2A_SHIFT));
-+}
-+
-+static int venus_iface_cmdq_write_nolock(struct venus_hfi_device *hdev,
-+					 void *pkt)
-+{
-+	struct device *dev = hdev->dev;
-+	struct hfi_pkt_hdr *cmd_packet;
-+	struct iface_queue *queue;
-+	u32 rx_req;
-+	int ret;
-+
-+	WARN(!mutex_is_locked(&hdev->lock),
-+	     "cmd queue write lock must be acquired");
-+
-+	if (!venus_is_valid_state(hdev)) {
-+		dev_err(dev, "%s: fw not in init state\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	cmd_packet = (struct hfi_pkt_hdr *)pkt;
-+	hdev->last_packet_type = cmd_packet->pkt_type;
-+
-+	queue = &hdev->queues[IFACEQ_CMD_IDX];
-+
-+	ret = venus_write_queue(hdev, queue, pkt, &rx_req);
-+	if (ret) {
-+		dev_err(dev, "write to iface cmd queue failed (%d)\n", ret);
-+		return ret;
-+	}
-+
-+	if (rx_req)
-+		venus_soft_int(hdev);
-+
-+	return 0;
-+}
-+
-+static int venus_iface_cmdq_write(struct venus_hfi_device *hdev, void *pkt)
-+{
-+	int ret;
-+
-+	mutex_lock(&hdev->lock);
-+	ret = venus_iface_cmdq_write_nolock(hdev, pkt);
-+	mutex_unlock(&hdev->lock);
-+
-+	return ret;
-+}
-+
-+static int venus_hfi_core_set_resource(struct venus_hfi_device *hdev,
-+				       u32 id, u32 size, u32 addr, void *cookie)
-+{
-+	struct hfi_sys_set_resource_pkt *pkt;
-+	u8 packet[IFACEQ_VAR_SMALL_PKT_SIZE];
-+	int ret;
-+
-+	if (id == VIDC_RESOURCE_NONE)
-+		return 0;
-+
-+	pkt = (struct hfi_sys_set_resource_pkt *) packet;
-+
-+	ret = call_hfi_pkt_op(hdev, sys_set_resource, pkt, id, size, addr,
-+			      cookie);
-+	if (ret)
-+		return ret;
-+
-+	ret = venus_iface_cmdq_write(hdev, pkt);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static int venus_tzbsp_set_video_state(enum tzbsp_video_state state)
-+{
-+	return qcom_scm_video_set_state(state, 0);
-+}
-+
-+static int venus_reset_core(struct venus_hfi_device *hdev)
-+{
-+	struct device *dev = hdev->dev;
-+	u32 ctrl_status = 0, count = 0;
-+	int max_tries = 100, ret = 0;
-+
-+	venus_writel(hdev, VIDC_CTRL_INIT, BIT(VIDC_CTRL_INIT_CTRL_SHIFT));
-+	venus_writel(hdev, WRAPPER_INTR_MASK, WRAPPER_INTR_MASK_A2HVCODEC_MASK);
-+	venus_writel(hdev, CPU_CS_SCIACMDARG3, 1);
-+
-+	while (!ctrl_status && count < max_tries) {
-+		ctrl_status = venus_readl(hdev, CPU_CS_SCIACMDARG0);
-+		if ((ctrl_status & 0xfe) == 0x4) {
-+			dev_err(dev, "invalid setting for UC_REGION\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+
-+		usleep_range(500, 1000);
-+		count++;
-+	}
-+
-+	if (count >= max_tries)
-+		ret = -ETIMEDOUT;
-+
-+	return ret;
-+}
-+
-+static u32 venus_hwversion(struct venus_hfi_device *hdev)
-+{
-+	struct device *dev = hdev->dev;
-+	u32 ver = venus_readl(hdev, WRAPPER_HW_VERSION);
-+	u32 major, minor, step;
-+
-+	major = ver & WRAPPER_HW_VERSION_MAJOR_VERSION_MASK;
-+	major = major >> WRAPPER_HW_VERSION_MAJOR_VERSION_SHIFT;
-+	minor = ver & WRAPPER_HW_VERSION_MINOR_VERSION_MASK;
-+	minor = minor >> WRAPPER_HW_VERSION_MINOR_VERSION_SHIFT;
-+	step = ver & WRAPPER_HW_VERSION_STEP_VERSION_MASK;
-+
-+	dev_dbg(dev, "venus hw version %d.%d.%d\n", major, minor, step);
-+
-+	return major;
-+}
-+
-+static int venus_run(struct venus_hfi_device *hdev)
-+{
-+	struct device *dev = hdev->dev;
-+	int ret;
-+
-+	/*
-+	 * Re-program all of the registers that get reset as a result of
-+	 * regulator_disable() and _enable()
-+	 */
-+	venus_set_registers(hdev);
-+
-+	venus_writel(hdev, UC_REGION_ADDR, hdev->ifaceq_table.da);
-+	venus_writel(hdev, UC_REGION_SIZE, SHARED_QSIZE);
-+	venus_writel(hdev, CPU_CS_SCIACMDARG2, hdev->ifaceq_table.da);
-+	venus_writel(hdev, CPU_CS_SCIACMDARG1, 0x01);
-+	if (hdev->sfr.da)
-+		venus_writel(hdev, SFR_ADDR, hdev->sfr.da);
-+
-+	ret = venus_reset_core(hdev);
-+	if (ret) {
-+		dev_err(dev, "failed to reset venus core\n");
-+		return ret;
-+	}
-+
-+	venus_hwversion(hdev);
-+
-+	return 0;
-+}
-+
-+static int venus_halt_axi(struct venus_hfi_device *hdev)
-+{
-+	struct device *dev = hdev->dev;
-+	void __iomem *base = hdev->base;
-+	u32 val;
-+	int ret;
-+
-+	/* Halt AXI and AXI IMEM VBIF Access */
-+	val = venus_readl(hdev, VBIF_AXI_HALT_CTRL0);
-+	val |= VBIF_AXI_HALT_CTRL0_HALT_REQ;
-+	venus_writel(hdev, VBIF_AXI_HALT_CTRL0, val);
-+
-+	/* Request for AXI bus port halt */
-+	ret = readl_poll_timeout(base + VBIF_AXI_HALT_CTRL1, val,
-+				 val & VBIF_AXI_HALT_CTRL1_HALT_ACK,
-+				 POLL_INTERVAL_US,
-+				 VBIF_AXI_HALT_ACK_TIMEOUT_US);
-+	if (ret) {
-+		dev_err(dev, "AXI bus port halt timeout\n");
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int venus_power_off(struct venus_hfi_device *hdev)
-+{
-+	int ret;
-+
-+	if (!hdev->power_enabled)
-+		return 0;
-+
-+	ret = venus_halt_axi(hdev);
-+	if (ret)
-+		return ret;
-+
-+	ret = venus_tzbsp_set_video_state(TZBSP_VIDEO_STATE_SUSPEND);
-+	if (ret)
-+		return ret;
-+
-+	hdev->power_enabled = false;
-+
-+	return 0;
-+}
-+
-+static int venus_power_on(struct venus_hfi_device *hdev)
-+{
-+	int ret;
-+
-+	if (hdev->power_enabled)
-+		return 0;
-+
-+	ret = venus_tzbsp_set_video_state(TZBSP_VIDEO_STATE_RESUME);
-+	if (ret)
-+		goto err;
-+
-+	ret = venus_run(hdev);
-+	if (ret)
-+		goto err_suspend;
-+
-+	hdev->power_enabled = true;
-+
-+	return 0;
-+
-+err_suspend:
-+	venus_tzbsp_set_video_state(TZBSP_VIDEO_STATE_SUSPEND);
-+err:
-+	hdev->power_enabled = false;
-+	return ret;
-+}
-+
-+static int venus_iface_msgq_read_nolock(struct venus_hfi_device *hdev,
-+					void *pkt)
-+{
-+	struct iface_queue *queue;
-+	u32 tx_req;
-+	int ret;
-+
-+	if (!venus_is_valid_state(hdev))
-+		return -EINVAL;
-+
-+	queue = &hdev->queues[IFACEQ_MSG_IDX];
-+
-+	ret = venus_read_queue(hdev, queue, pkt, &tx_req);
-+	if (ret)
-+		return ret;
-+
-+	if (tx_req)
-+		venus_soft_int(hdev);
-+
-+	return 0;
-+}
-+
-+static int venus_iface_msgq_read(struct venus_hfi_device *hdev, void *pkt)
-+{
-+	int ret;
-+
-+	mutex_lock(&hdev->lock);
-+	ret = venus_iface_msgq_read_nolock(hdev, pkt);
-+	mutex_unlock(&hdev->lock);
-+
-+	return ret;
-+}
-+
-+static int venus_iface_dbgq_read_nolock(struct venus_hfi_device *hdev,
-+					void *pkt)
-+{
-+	struct iface_queue *queue;
-+	u32 tx_req;
-+	int ret;
-+
-+	ret = venus_is_valid_state(hdev);
-+	if (!ret)
-+		return -EINVAL;
-+
-+	queue = &hdev->queues[IFACEQ_DBG_IDX];
-+
-+	ret = venus_read_queue(hdev, queue, pkt, &tx_req);
-+	if (ret)
-+		return ret;
-+
-+	if (tx_req)
-+		venus_soft_int(hdev);
-+
-+	return 0;
-+}
-+
-+static int venus_iface_dbgq_read(struct venus_hfi_device *hdev, void *pkt)
-+{
-+	int ret;
-+
-+	if (!pkt)
-+		return -EINVAL;
-+
-+	mutex_lock(&hdev->lock);
-+	ret = venus_iface_dbgq_read_nolock(hdev, pkt);
-+	mutex_unlock(&hdev->lock);
-+
-+	return ret;
-+}
-+
-+static void venus_set_qhdr_defaults(struct hfi_queue_header *qhdr)
-+{
-+	qhdr->status = 1;
-+	qhdr->type = IFACEQ_DFLT_QHDR;
-+	qhdr->q_size = IFACEQ_QUEUE_SIZE / 4;
-+	qhdr->pkt_size = 0;
-+	qhdr->rx_wm = 1;
-+	qhdr->tx_wm = 1;
-+	qhdr->rx_req = 1;
-+	qhdr->tx_req = 0;
-+	qhdr->rx_irq_status = 0;
-+	qhdr->tx_irq_status = 0;
-+	qhdr->read_idx = 0;
-+	qhdr->write_idx = 0;
-+}
-+
-+static void venus_interface_queues_release(struct venus_hfi_device *hdev)
-+{
-+	mutex_lock(&hdev->lock);
-+
-+	venus_free(hdev->ifaceq_table.mem);
-+	venus_free(hdev->sfr.mem);
-+
-+	memset(hdev->queues, 0, sizeof(hdev->queues));
-+	memset(&hdev->ifaceq_table, 0, sizeof(hdev->ifaceq_table));
-+	memset(&hdev->sfr, 0, sizeof(hdev->sfr));
-+
-+	mutex_unlock(&hdev->lock);
-+}
-+
-+static int venus_interface_queues_init(struct venus_hfi_device *hdev)
-+{
-+	struct hfi_queue_table_header *tbl_hdr;
-+	struct iface_queue *queue;
-+	struct hfi_sfr *sfr;
-+	struct mem_desc desc = {0};
-+	unsigned int offset;
-+	unsigned int i;
-+	int ret;
-+
-+	ret = venus_alloc(hdev, &desc, ALIGNED_QUEUE_SIZE);
-+	if (ret)
-+		return ret;
-+
-+	hdev->ifaceq_table.kva = desc.kva;
-+	hdev->ifaceq_table.da = desc.da;
-+	hdev->ifaceq_table.size = IFACEQ_TABLE_SIZE;
-+	hdev->ifaceq_table.mem = desc.mem;
-+	offset = hdev->ifaceq_table.size;
-+
-+	for (i = 0; i < IFACEQ_NUM; i++) {
-+		queue = &hdev->queues[i];
-+		queue->qmem.da = desc.da + offset;
-+		queue->qmem.kva = desc.kva + offset;
-+		queue->qmem.size = IFACEQ_QUEUE_SIZE;
-+		queue->qmem.mem = NULL;
-+		offset += queue->qmem.size;
-+		queue->qhdr =
-+			IFACEQ_GET_QHDR_START_ADDR(hdev->ifaceq_table.kva, i);
-+
-+		venus_set_qhdr_defaults(queue->qhdr);
-+
-+		queue->qhdr->start_addr = queue->qmem.da;
-+
-+		if (i == IFACEQ_CMD_IDX)
-+			queue->qhdr->type |= HFI_HOST_TO_CTRL_CMD_Q;
-+		else if (i == IFACEQ_MSG_IDX)
-+			queue->qhdr->type |= HFI_CTRL_TO_HOST_MSG_Q;
-+		else if (i == IFACEQ_DBG_IDX)
-+			queue->qhdr->type |= HFI_CTRL_TO_HOST_DBG_Q;
-+	}
-+
-+	tbl_hdr = hdev->ifaceq_table.kva;
-+	tbl_hdr->version = 0;
-+	tbl_hdr->size = IFACEQ_TABLE_SIZE;
-+	tbl_hdr->qhdr0_offset = sizeof(struct hfi_queue_table_header);
-+	tbl_hdr->qhdr_size = sizeof(struct hfi_queue_header);
-+	tbl_hdr->num_q = IFACEQ_NUM;
-+	tbl_hdr->num_active_q = IFACEQ_NUM;
-+
-+	/*
-+	 * Set receive request to zero on debug queue as there is no
-+	 * need of interrupt from video hardware for debug messages
-+	 */
-+	queue = &hdev->queues[IFACEQ_DBG_IDX];
-+	queue->qhdr->rx_req = 0;
-+
-+	ret = venus_alloc(hdev, &desc, ALIGNED_SFR_SIZE);
-+	if (ret) {
-+		hdev->sfr.da = 0;
-+	} else {
-+		hdev->sfr.da = desc.da;
-+		hdev->sfr.kva = desc.kva;
-+		hdev->sfr.size = ALIGNED_SFR_SIZE;
-+		hdev->sfr.mem = desc.mem;
-+		sfr = hdev->sfr.kva;
-+		sfr->buf_size = ALIGNED_SFR_SIZE;
-+	}
-+
-+	/* ensure table and queue header structs are settled in memory */
-+	wmb();
-+
-+	return 0;
-+}
-+
-+static int venus_sys_set_debug(struct venus_hfi_device *hdev, u32 debug)
-+{
-+	struct hfi_sys_set_property_pkt *pkt;
-+	u8 packet[IFACEQ_VAR_SMALL_PKT_SIZE];
-+	int ret;
-+
-+	pkt = (struct hfi_sys_set_property_pkt *) packet;
-+
-+	call_hfi_pkt_op(hdev, sys_debug_config, pkt, HFI_DEBUG_MODE_QUEUE,
-+			debug);
-+
-+	ret = venus_iface_cmdq_write(hdev, pkt);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static int venus_sys_set_coverage(struct venus_hfi_device *hdev, u32 mode)
-+{
-+	struct hfi_sys_set_property_pkt *pkt;
-+	u8 packet[IFACEQ_VAR_SMALL_PKT_SIZE];
-+	int ret;
-+
-+	pkt = (struct hfi_sys_set_property_pkt *) packet;
-+
-+	call_hfi_pkt_op(hdev, sys_coverage_config, pkt, mode);
-+
-+	ret = venus_iface_cmdq_write(hdev, pkt);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static int venus_sys_set_idle_message(struct venus_hfi_device *hdev,
-+				      bool enable)
-+{
-+	struct hfi_sys_set_property_pkt *pkt;
-+	u8 packet[IFACEQ_VAR_SMALL_PKT_SIZE];
-+	int ret;
-+
-+	if (!enable)
-+		return 0;
-+
-+	pkt = (struct hfi_sys_set_property_pkt *) packet;
-+
-+	call_hfi_pkt_op(hdev, sys_idle_indicator, pkt, enable);
-+
-+	ret = venus_iface_cmdq_write(hdev, pkt);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static int venus_sys_set_power_control(struct venus_hfi_device *hdev,
-+				       bool enable)
-+{
-+	struct hfi_sys_set_property_pkt *pkt;
-+	u8 packet[IFACEQ_VAR_SMALL_PKT_SIZE];
-+	int ret;
-+
-+	pkt = (struct hfi_sys_set_property_pkt *) packet;
-+
-+	call_hfi_pkt_op(hdev, sys_power_control, pkt, enable);
-+
-+	ret = venus_iface_cmdq_write(hdev, pkt);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static int venus_get_queue_size(struct venus_hfi_device *hdev,
-+				unsigned int index)
-+{
-+	struct hfi_queue_header *qhdr;
-+
-+	if (index >= IFACEQ_NUM)
-+		return -EINVAL;
-+
-+	qhdr = hdev->queues[index].qhdr;
-+	if (!qhdr)
-+		return -EINVAL;
-+
-+	return abs(qhdr->read_idx - qhdr->write_idx);
-+}
-+
-+static int venus_sys_set_default_properties(struct venus_hfi_device *hdev)
-+{
-+	struct device *dev = hdev->dev;
-+	int ret;
-+
-+	ret = venus_sys_set_debug(hdev, venus_fw_debug);
-+	if (ret)
-+		dev_warn(dev, "setting fw debug msg ON failed (%d)\n", ret);
-+
-+	ret = venus_sys_set_idle_message(hdev, venus_sys_idle_indicator);
-+	if (ret)
-+		dev_warn(dev, "setting idle response ON failed (%d)\n", ret);
-+
-+	ret = venus_sys_set_power_control(hdev, venus_fw_low_power_mode);
-+	if (ret)
-+		dev_warn(dev, "setting hw power collapse ON failed (%d)\n",
-+			 ret);
-+
-+	return ret;
-+}
-+
-+static int venus_session_cmd(struct hfi_inst *inst, u32 pkt_type)
-+{
-+	struct venus_hfi_device *hdev = inst->priv;
-+	struct hfi_session_pkt pkt;
-+	int ret;
-+
-+	call_hfi_pkt_op(hdev, session_cmd, &pkt, pkt_type, inst);
-+
-+	ret = venus_iface_cmdq_write(hdev, &pkt);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static void venus_flush_debug_queue(struct venus_hfi_device *hdev)
-+{
-+	void *packet = hdev->dbg_buf;
-+	struct device *dev = hdev->dev;
-+
-+	while (!venus_iface_dbgq_read(hdev, packet)) {
-+		struct hfi_msg_sys_coverage_pkt *pkt = packet;
-+
-+		if (pkt->hdr.pkt_type != HFI_MSG_SYS_COV) {
-+			struct hfi_msg_sys_debug_pkt *pkt = packet;
-+
-+			dev_dbg(dev, "%s", pkt->msg_data);
-+		}
-+	}
-+}
-+
-+static int venus_prepare_power_collapse(struct venus_hfi_device *hdev)
-+{
-+	unsigned long timeout = msecs_to_jiffies(venus_hw_rsp_timeout);
-+	struct hfi_sys_pc_prep_pkt pkt;
-+	int ret;
-+
-+	init_completion(&hdev->pwr_collapse_prep);
-+
-+	call_hfi_pkt_op(hdev, sys_pc_prep, &pkt);
-+
-+	ret = venus_iface_cmdq_write(hdev, &pkt);
-+	if (ret)
-+		return ret;
-+
-+	ret = wait_for_completion_timeout(&hdev->pwr_collapse_prep, timeout);
-+	if (!ret) {
-+		venus_flush_debug_queue(hdev);
-+		return -ETIMEDOUT;
-+	}
-+
-+	return 0;
-+}
-+
-+static int venus_are_queues_empty(struct venus_hfi_device *hdev)
-+{
-+	int ret1, ret2;
-+
-+	ret1 = venus_get_queue_size(hdev, IFACEQ_MSG_IDX);
-+	if (ret1 < 0)
-+		return ret1;
-+
-+	ret2 = venus_get_queue_size(hdev, IFACEQ_CMD_IDX);
-+	if (ret2 < 0)
-+		return ret2;
-+
-+	if (!ret1 && !ret2)
-+		return 1;
-+
-+	return 0;
-+}
-+
-+static void venus_sfr_print(struct venus_hfi_device *hdev)
-+{
-+	struct device *dev = hdev->dev;
-+	struct hfi_sfr *sfr = hdev->sfr.kva;
-+	void *p;
-+
-+	if (!sfr)
-+		return;
-+
-+	p = memchr(sfr->data, '\0', sfr->buf_size);
-+	/*
-+	 * SFR isn't guaranteed to be NULL terminated since SYS_ERROR indicates
-+	 * that Venus is in the process of crashing.
-+	 */
-+	if (p == NULL)
-+		sfr->data[sfr->buf_size - 1] = '\0';
-+
-+	dev_err(dev, "SFR message from FW: %s\n", sfr->data);
-+}
-+
-+static void venus_process_msg_sys_error(struct venus_hfi_device *hdev,
-+					void *packet)
-+{
-+	struct hfi_msg_event_notify_pkt *event_pkt = packet;
-+
-+	if (event_pkt->event_id != HFI_EVENT_SYS_ERROR)
-+		return;
-+
-+	venus_set_state(hdev, VENUS_STATE_DEINIT);
-+
-+	/*
-+	 * Once SYS_ERROR received from HW, it is safe to halt the AXI.
-+	 * With SYS_ERROR, Venus FW may have crashed and HW might be
-+	 * active and causing unnecessary transactions. Hence it is
-+	 * safe to stop all AXI transactions from venus subsystem.
-+	 */
-+	venus_halt_axi(hdev);
-+	venus_sfr_print(hdev);
-+}
-+
-+static irqreturn_t venus_isr_thread(int irq, struct hfi_core *hfi)
-+{
-+	struct venus_hfi_device *hdev = to_hfi_priv(hfi);
-+	void *pkt = hdev->pkt_buf;
-+	u32 msg_ret;
-+
-+	if (!hdev)
-+		return IRQ_NONE;
-+
-+	if (hdev->irq_status & WRAPPER_INTR_STATUS_A2HWD_MASK) {
-+		venus_sfr_print(hdev);
-+		hfi_process_watchdog_timeout(hfi);
-+	}
-+
-+	while (!venus_iface_msgq_read(hdev, pkt)) {
-+		msg_ret = hfi_process_msg_packet(hfi, pkt);
-+		switch (msg_ret) {
-+		case HFI_MSG_EVENT_NOTIFY:
-+			venus_process_msg_sys_error(hdev, pkt);
-+			break;
-+		case HFI_MSG_SYS_INIT:
-+			venus_hfi_core_set_resource(hdev, hdev->res->vmem_id,
-+						    hdev->res->vmem_size,
-+						    hdev->res->vmem_addr,
-+						    hdev);
-+			break;
-+		case HFI_MSG_SYS_RELEASE_RESOURCE:
-+			complete(&hdev->release_resource);
-+			break;
-+		case HFI_MSG_SYS_PC_PREP:
-+			complete(&hdev->pwr_collapse_prep);
-+			break;
-+		default:
-+			break;
-+		}
-+	}
-+
-+	venus_flush_debug_queue(hdev);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static irqreturn_t venus_isr(int irq, struct hfi_core *hfi)
-+{
-+	struct venus_hfi_device *hdev = to_hfi_priv(hfi);
-+	u32 status;
-+
-+	if (!hdev)
-+		return IRQ_NONE;
-+
-+	status = venus_readl(hdev, WRAPPER_INTR_STATUS);
-+
-+	if (status & WRAPPER_INTR_STATUS_A2H_MASK ||
-+	    status & WRAPPER_INTR_STATUS_A2HWD_MASK ||
-+	    status & CPU_CS_SCIACMDARG0_INIT_IDLE_MSG_MASK)
-+		hdev->irq_status = status;
-+
-+	venus_writel(hdev, CPU_CS_A2HSOFTINTCLR, 1);
-+	venus_writel(hdev, WRAPPER_INTR_CLEAR, status);
-+
-+	return IRQ_WAKE_THREAD;
-+}
-+
-+static int venus_hfi_core_init(struct hfi_core *hfi)
-+{
-+	struct venus_hfi_device *hdev = to_hfi_priv(hfi);
-+	struct device *dev = hfi->dev;
-+	struct hfi_sys_get_property_pkt version_pkt;
-+	struct hfi_sys_init_pkt pkt;
-+	int ret;
-+
-+	call_hfi_pkt_op(hdev, sys_init, &pkt, HFI_VIDEO_ARCH_OX);
-+
-+	ret = venus_iface_cmdq_write(hdev, &pkt);
-+	if (ret)
-+		return ret;
-+
-+	call_hfi_pkt_op(hdev, sys_image_version, &version_pkt);
-+
-+	ret = venus_iface_cmdq_write(hdev, &version_pkt);
-+	if (ret)
-+		dev_warn(dev, "failed to send image version pkt to fw\n");
-+
-+	venus_set_state(hdev, VENUS_STATE_INIT);
-+
-+	return 0;
-+}
-+
-+static int venus_hfi_core_deinit(struct hfi_core *hfi)
-+{
-+	struct venus_hfi_device *hdev = to_hfi_priv(hfi);
-+
-+	venus_set_state(hdev, VENUS_STATE_DEINIT);
-+	hdev->suspended = true;
-+
-+	return 0;
-+}
-+
-+static int venus_hfi_core_ping(struct hfi_core *hfi, u32 cookie)
-+{
-+	struct venus_hfi_device *hdev = to_hfi_priv(hfi);
-+	struct hfi_sys_ping_pkt pkt;
-+
-+	call_hfi_pkt_op(hdev, sys_ping, &pkt, cookie);
-+
-+	return venus_iface_cmdq_write(hdev, &pkt);
-+}
-+
-+static int venus_hfi_core_trigger_ssr(struct hfi_core *hfi,
-+				      u32 trigger_type)
-+{
-+	struct venus_hfi_device *hdev = to_hfi_priv(hfi);
-+	struct hfi_sys_test_ssr_pkt pkt;
-+	int ret;
-+
-+	ret = call_hfi_pkt_op(hdev, ssr_cmd, trigger_type, &pkt);
-+	if (ret)
-+		return ret;
-+
-+	return venus_iface_cmdq_write(hdev, &pkt);
-+}
-+
-+int venus_hfi_session_init(struct hfi_core *hfi, struct hfi_inst *inst,
-+			   u32 session_type, u32 codec)
-+{
-+	struct venus_hfi_device *hdev = to_hfi_priv(hfi);
-+	struct hfi_session_init_pkt pkt;
-+	int ret;
-+
-+	inst->priv = hdev;
-+
-+	ret = venus_sys_set_default_properties(hdev);
-+	if (ret)
-+		return ret;
-+
-+	ret = call_hfi_pkt_op(hdev, session_init, &pkt, inst, session_type,
-+			      codec);
-+	if (ret)
-+		goto err;
-+
-+	ret = venus_iface_cmdq_write(hdev, &pkt);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+
-+err:
-+	venus_flush_debug_queue(hdev);
-+	return ret;
-+}
-+
-+static int venus_hfi_session_end(struct hfi_inst *inst)
-+{
-+	struct venus_hfi_device *hdev = inst->priv;
-+	struct device *dev = hdev->dev;
-+
-+	if (venus_fw_coverage) {
-+		if (venus_sys_set_coverage(hdev, venus_fw_coverage))
-+			dev_warn(dev, "fw coverage msg ON failed\n");
-+	}
-+
-+	return venus_session_cmd(inst, HFI_CMD_SYS_SESSION_END);
-+}
-+
-+static int venus_hfi_session_abort(struct hfi_inst *inst)
-+{
-+	struct venus_hfi_device *hdev = inst->priv;
-+
-+	venus_flush_debug_queue(hdev);
-+
-+	return venus_session_cmd(inst, HFI_CMD_SYS_SESSION_ABORT);
-+}
-+
-+static int venus_hfi_session_flush(struct hfi_inst *inst, u32 flush_mode)
-+{
-+	struct venus_hfi_device *hdev = inst->priv;
-+	struct hfi_session_flush_pkt pkt;
-+	int ret;
-+
-+	ret = call_hfi_pkt_op(hdev, session_flush, &pkt, inst, flush_mode);
-+	if (ret)
-+		return ret;
-+
-+	return venus_iface_cmdq_write(hdev, &pkt);
-+}
-+
-+static int venus_hfi_session_start(struct hfi_inst *inst)
-+{
-+	return venus_session_cmd(inst, HFI_CMD_SESSION_START);
-+}
-+
-+static int venus_hfi_session_stop(struct hfi_inst *inst)
-+{
-+	return venus_session_cmd(inst, HFI_CMD_SESSION_STOP);
-+}
-+
-+static int venus_hfi_session_etb(struct hfi_inst *inst,
-+				 struct hfi_frame_data *in_frame)
-+{
-+	struct venus_hfi_device *hdev = inst->priv;
-+	u32 session_type = inst->session_type;
-+	int ret;
-+
-+	if (session_type == VIDC_SESSION_TYPE_DEC) {
-+		struct hfi_session_empty_buffer_compressed_pkt pkt;
-+
-+		ret = call_hfi_pkt_op(hdev, session_etb_decoder, &pkt, inst,
-+				      in_frame);
-+		if (ret)
-+			return ret;
-+
-+		ret = venus_iface_cmdq_write(hdev, &pkt);
-+	} else if (session_type == VIDC_SESSION_TYPE_ENC) {
-+		struct hfi_session_empty_buffer_uncompressed_plane0_pkt pkt;
-+
-+		ret = call_hfi_pkt_op(hdev, session_etb_encoder, &pkt, inst,
-+				      in_frame);
-+		if (ret)
-+			return ret;
-+
-+		ret = venus_iface_cmdq_write(hdev, &pkt);
-+	} else {
-+		ret = -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+static int venus_hfi_session_ftb(struct hfi_inst *inst,
-+				 struct hfi_frame_data *out_frame)
-+{
-+	struct venus_hfi_device *hdev = inst->priv;
-+	struct hfi_session_fill_buffer_pkt pkt;
-+	int ret;
-+
-+	ret = call_hfi_pkt_op(hdev, session_ftb, &pkt, inst, out_frame);
-+	if (ret)
-+		return ret;
-+
-+	return venus_iface_cmdq_write(hdev, &pkt);
-+}
-+
-+static int venus_hfi_session_set_buffers(struct hfi_inst *inst,
-+					 struct hfi_buffer_desc *bd)
-+{
-+	struct venus_hfi_device *hdev = inst->priv;
-+	struct hfi_session_set_buffers_pkt *pkt;
-+	u8 packet[IFACEQ_VAR_LARGE_PKT_SIZE];
-+	int ret;
-+
-+	if (bd->buffer_type == HFI_BUFFER_INPUT)
-+		return 0;
-+
-+	pkt = (struct hfi_session_set_buffers_pkt *)packet;
-+
-+	ret = call_hfi_pkt_op(hdev, session_set_buffers, pkt, inst, bd);
-+	if (ret)
-+		return ret;
-+
-+	return venus_iface_cmdq_write(hdev, pkt);
-+}
-+
-+static int venus_hfi_session_release_buffers(struct hfi_inst *inst,
-+					     struct hfi_buffer_desc *bd)
-+{
-+	struct venus_hfi_device *hdev = inst->priv;
-+	struct hfi_session_release_buffer_pkt *pkt;
-+	u8 packet[IFACEQ_VAR_LARGE_PKT_SIZE];
-+	int ret;
-+
-+	if (bd->buffer_type == HFI_BUFFER_INPUT)
-+		return 0;
-+
-+	pkt = (struct hfi_session_release_buffer_pkt *) packet;
-+
-+	ret = call_hfi_pkt_op(hdev, session_release_buffers, pkt, inst, bd);
-+	if (ret)
-+		return ret;
-+
-+	return venus_iface_cmdq_write(hdev, pkt);
-+}
-+
-+static int venus_hfi_session_load_res(struct hfi_inst *inst)
-+{
-+	return venus_session_cmd(inst, HFI_CMD_SESSION_LOAD_RESOURCES);
-+}
-+
-+static int venus_hfi_session_release_res(struct hfi_inst *inst)
-+{
-+	return venus_session_cmd(inst, HFI_CMD_SESSION_RELEASE_RESOURCES);
-+}
-+
-+static int venus_hfi_session_parse_seq_hdr(struct hfi_inst *inst,
-+					   u32 seq_hdr, u32 seq_hdr_len)
-+{
-+	struct venus_hfi_device *hdev = inst->priv;
-+	struct hfi_session_parse_sequence_header_pkt *pkt;
-+	u8 packet[IFACEQ_VAR_SMALL_PKT_SIZE];
-+	int ret;
-+
-+	pkt = (struct hfi_session_parse_sequence_header_pkt *) packet;
-+
-+	ret = call_hfi_pkt_op(hdev, session_parse_seq_header,
-+			      pkt, inst, seq_hdr, seq_hdr_len);
-+	if (ret)
-+		return ret;
-+
-+	ret = venus_iface_cmdq_write(hdev, pkt);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static int venus_hfi_session_get_seq_hdr(struct hfi_inst *inst,
-+					 u32 seq_hdr, u32 seq_hdr_len)
-+{
-+	struct venus_hfi_device *hdev = inst->priv;
-+	struct hfi_session_get_sequence_header_pkt *pkt;
-+	u8 packet[IFACEQ_VAR_SMALL_PKT_SIZE];
-+	int ret;
-+
-+	pkt = (struct hfi_session_get_sequence_header_pkt *) packet;
-+
-+	ret = call_hfi_pkt_op(hdev, session_get_seq_hdr, pkt, inst, seq_hdr,
-+			      seq_hdr_len);
-+	if (ret)
-+		return ret;
-+
-+	return venus_iface_cmdq_write(hdev, pkt);
-+}
-+
-+static int venus_hfi_session_set_property(struct hfi_inst *inst, u32 ptype,
-+					  void *pdata)
-+{
-+	struct venus_hfi_device *hdev = inst->priv;
-+	struct hfi_session_set_property_pkt *pkt;
-+	u8 packet[IFACEQ_VAR_LARGE_PKT_SIZE];
-+	int ret;
-+
-+	pkt = (struct hfi_session_set_property_pkt *) packet;
-+
-+	ret = call_hfi_pkt_op(hdev, session_set_property, pkt, inst, ptype,
-+			      pdata);
-+	if (ret)
-+		return ret;
-+
-+	return venus_iface_cmdq_write(hdev, pkt);
-+}
-+
-+static int venus_hfi_session_get_property(struct hfi_inst *inst, u32 ptype)
-+{
-+	struct venus_hfi_device *hdev = inst->priv;
-+	struct hfi_session_get_property_pkt pkt;
-+	int ret;
-+
-+	ret = call_hfi_pkt_op(hdev, session_get_property, &pkt, inst, ptype);
-+	if (ret)
-+		return ret;
-+
-+	return venus_iface_cmdq_write(hdev, &pkt);
-+}
-+
-+static int venus_hfi_resume(struct hfi_core *hfi)
-+{
-+	struct venus_hfi_device *hdev = to_hfi_priv(hfi);
-+	int ret = 0;
-+
-+	mutex_lock(&hdev->lock);
-+
-+	if (hdev->suspended == false)
-+		goto unlock;
-+
-+	ret = venus_power_on(hdev);
-+
-+unlock:
-+	if (!ret)
-+		hdev->suspended = false;
-+
-+	mutex_unlock(&hdev->lock);
-+
-+	return ret;
-+}
-+
-+static int venus_hfi_suspend(struct hfi_core *hfi)
-+{
-+	struct venus_hfi_device *hdev = to_hfi_priv(hfi);
-+	struct device *dev = hfi->dev;
-+	u32 ctrl_status;
-+	int ret;
-+
-+	if (!hdev->power_enabled || hdev->suspended)
-+		return 0;
-+
-+	mutex_lock(&hdev->lock);
-+	ret = venus_is_valid_state(hdev);
-+	mutex_unlock(&hdev->lock);
-+
-+	if (!ret) {
-+		dev_err(dev, "bad state, cannot suspend\n");
-+		return -EINVAL;
-+	}
-+
-+	ret = venus_prepare_power_collapse(hdev);
-+	if (ret) {
-+		dev_err(dev, "prepare for power collapse fail (%d)\n", ret);
-+		return ret;
-+	}
-+
-+	mutex_lock(&hdev->lock);
-+
-+	if (hdev->last_packet_type != HFI_CMD_SYS_PC_PREP) {
-+		mutex_unlock(&hdev->lock);
-+		return -EINVAL;
-+	}
-+
-+	ret = venus_are_queues_empty(hdev);
-+	if (ret < 0 || !ret) {
-+		mutex_unlock(&hdev->lock);
-+		return -EINVAL;
-+	}
-+
-+	ctrl_status = venus_readl(hdev, CPU_CS_SCIACMDARG0);
-+	if (!(ctrl_status & CPU_CS_SCIACMDARG0_PC_READY)) {
-+		mutex_unlock(&hdev->lock);
-+		return -EINVAL;
-+	}
-+
-+	ret = venus_power_off(hdev);
-+	if (ret) {
-+		mutex_unlock(&hdev->lock);
-+		return ret;
-+	}
-+
-+	hdev->suspended = true;
-+
-+	mutex_unlock(&hdev->lock);
-+
-+	return 0;
-+}
-+
-+static const struct hfi_ops venus_hfi_ops = {
-+	.core_init			= venus_hfi_core_init,
-+	.core_deinit			= venus_hfi_core_deinit,
-+	.core_ping			= venus_hfi_core_ping,
-+	.core_trigger_ssr		= venus_hfi_core_trigger_ssr,
-+
-+	.session_init			= venus_hfi_session_init,
-+	.session_end			= venus_hfi_session_end,
-+	.session_abort			= venus_hfi_session_abort,
-+	.session_flush			= venus_hfi_session_flush,
-+	.session_start			= venus_hfi_session_start,
-+	.session_stop			= venus_hfi_session_stop,
-+	.session_etb			= venus_hfi_session_etb,
-+	.session_ftb			= venus_hfi_session_ftb,
-+	.session_set_buffers		= venus_hfi_session_set_buffers,
-+	.session_release_buffers	= venus_hfi_session_release_buffers,
-+	.session_load_res		= venus_hfi_session_load_res,
-+	.session_release_res		= venus_hfi_session_release_res,
-+	.session_parse_seq_hdr		= venus_hfi_session_parse_seq_hdr,
-+	.session_get_seq_hdr		= venus_hfi_session_get_seq_hdr,
-+	.session_set_property		= venus_hfi_session_set_property,
-+	.session_get_property		= venus_hfi_session_get_property,
-+
-+	.resume				= venus_hfi_resume,
-+	.suspend			= venus_hfi_suspend,
-+
-+	.isr				= venus_isr,
-+	.isr_thread			= venus_isr_thread,
-+};
-+
-+void venus_hfi_destroy(struct hfi_core *hfi)
-+{
-+	struct venus_hfi_device *hdev = to_hfi_priv(hfi);
-+
-+	venus_interface_queues_release(hdev);
-+	mutex_destroy(&hdev->lock);
-+	kfree(hdev);
-+}
-+
-+int venus_hfi_create(struct hfi_core *hfi, const struct vidc_resources *res,
-+		     void __iomem *base)
-+{
-+	struct venus_hfi_device *hdev;
-+	int ret;
-+
-+	hdev = kzalloc(sizeof(*hdev), GFP_KERNEL);
-+	if (!hdev)
-+		return -ENOMEM;
-+
-+	mutex_init(&hdev->lock);
-+
-+	hdev->res = res;
-+	hdev->pkt_ops = hfi->pkt_ops;
-+	hdev->packetization_type = HFI_PACKETIZATION_LEGACY;
-+	hdev->base = base;
-+	hdev->dev = hfi->dev;
-+	hdev->suspended = true;
-+
-+	hfi->priv = hdev;
-+	hfi->ops = &venus_hfi_ops;
-+	hfi->core_caps = VIDC_ENC_ROTATION_CAPABILITY |
-+			 VIDC_ENC_SCALING_CAPABILITY |
-+			 VIDC_ENC_DEINTERLACE_CAPABILITY |
-+			 VIDC_DEC_MULTI_STREAM_CAPABILITY;
-+
-+	ret = venus_interface_queues_init(hdev);
-+	if (ret)
-+		goto err_kfree;
-+
-+	return 0;
-+
-+err_kfree:
-+	kfree(hdev);
-+	hfi->priv = NULL;
-+	hfi->ops = NULL;
-+	return ret;
-+}
-diff --git a/drivers/media/platform/qcom/vidc/hfi_venus.h b/drivers/media/platform/qcom/vidc/hfi_venus.h
-new file mode 100644
-index 000000000000..c2e6e4235a0b
---- /dev/null
-+++ b/drivers/media/platform/qcom/vidc/hfi_venus.h
-@@ -0,0 +1,25 @@
-+/*
-+ * Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
-+ * Copyright (C) 2016 Linaro Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+#ifndef __VENUS_HFI_H__
-+#define __VENUS_HFI_H__
-+
-+struct hfi_core;
-+struct vidc_resources;
-+
-+void venus_hfi_destroy(struct hfi_core *hfi);
-+int venus_hfi_create(struct hfi_core *hfi, const struct vidc_resources *res,
-+		     void __iomem *base);
-+
-+#endif
-diff --git a/drivers/media/platform/qcom/vidc/hfi_venus_io.h b/drivers/media/platform/qcom/vidc/hfi_venus_io.h
-new file mode 100644
-index 000000000000..7df09fb72011
---- /dev/null
-+++ b/drivers/media/platform/qcom/vidc/hfi_venus_io.h
-@@ -0,0 +1,98 @@
-+/*
-+ * Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
-+ * Copyright (C) 2016 Linaro Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+#ifndef __VENUS_HFI_IO_H__
-+#define __VENUS_HFI_IO_H__
-+
-+#define VBIF_BASE				0x80000
-+
-+#define VBIF_AXI_HALT_CTRL0			(VBIF_BASE + 0x208)
-+#define VBIF_AXI_HALT_CTRL1			(VBIF_BASE + 0x20c)
-+
-+#define VBIF_AXI_HALT_CTRL0_HALT_REQ		BIT(0)
-+#define VBIF_AXI_HALT_CTRL1_HALT_ACK		BIT(0)
-+#define VBIF_AXI_HALT_ACK_TIMEOUT_US		500000
-+
-+#define CPU_BASE				0xc0000
-+#define CPU_CS_BASE				(CPU_BASE + 0x12000)
-+#define CPU_IC_BASE				(CPU_BASE + 0x1f000)
-+
-+#define CPU_CS_A2HSOFTINTCLR			(CPU_CS_BASE + 0x1c)
-+
-+#define VIDC_CTRL_INIT				(CPU_CS_BASE + 0x48)
-+#define VIDC_CTRL_INIT_RESERVED_BITS31_1_MASK	0xfffffffe
-+#define VIDC_CTRL_INIT_RESERVED_BITS31_1_SHIFT	1
-+#define VIDC_CTRL_INIT_CTRL_MASK		0x1
-+#define VIDC_CTRL_INIT_CTRL_SHIFT		0
-+
-+/* HFI control status */
-+#define CPU_CS_SCIACMDARG0			(CPU_CS_BASE + 0x4c)
-+#define CPU_CS_SCIACMDARG0_MASK			0xff
-+#define CPU_CS_SCIACMDARG0_SHIFT		0x0
-+#define CPU_CS_SCIACMDARG0_ERROR_STATUS_MASK	0xfe
-+#define CPU_CS_SCIACMDARG0_ERROR_STATUS_SHIFT	0x1
-+#define CPU_CS_SCIACMDARG0_INIT_STATUS_MASK	0x1
-+#define CPU_CS_SCIACMDARG0_INIT_STATUS_SHIFT	0x0
-+#define CPU_CS_SCIACMDARG0_PC_READY		0x100
-+#define CPU_CS_SCIACMDARG0_INIT_IDLE_MSG_MASK	0x40000000
-+
-+/* HFI queue table info */
-+#define CPU_CS_SCIACMDARG1			(CPU_CS_BASE + 0x50)
-+
-+/* HFI queue table address */
-+#define CPU_CS_SCIACMDARG2			(CPU_CS_BASE + 0x54)
-+
-+/* vidc cpu */
-+#define CPU_CS_SCIACMDARG3			(CPU_CS_BASE + 0x58)
-+
-+#define SFR_ADDR				(CPU_CS_BASE + 0x5c)
-+#define MMAP_ADDR				(CPU_CS_BASE + 0x60)
-+#define UC_REGION_ADDR				(CPU_CS_BASE + 0x64)
-+#define UC_REGION_SIZE				(CPU_CS_BASE + 0x68)
-+
-+#define CPU_IC_SOFTINT				(CPU_IC_BASE + 0x18)
-+#define CPU_IC_SOFTINT_H2A_MASK			0x8000
-+#define CPU_IC_SOFTINT_H2A_SHIFT		0xf
-+
-+/* vidc wrapper */
-+#define WRAPPER_BASE				0x000e0000
-+
-+#define WRAPPER_HW_VERSION			(WRAPPER_BASE + 0x00)
-+#define WRAPPER_HW_VERSION_MAJOR_VERSION_MASK	0x78000000
-+#define WRAPPER_HW_VERSION_MAJOR_VERSION_SHIFT	28
-+#define WRAPPER_HW_VERSION_MINOR_VERSION_MASK	0xfff0000
-+#define WRAPPER_HW_VERSION_MINOR_VERSION_SHIFT	16
-+#define WRAPPER_HW_VERSION_STEP_VERSION_MASK	0xffff
-+
-+#define WRAPPER_INTR_STATUS			(WRAPPER_BASE + 0x0c)
-+#define WRAPPER_INTR_STATUS_A2HWD_MASK		0x10
-+#define WRAPPER_INTR_STATUS_A2HWD_SHIFT		0x4
-+#define WRAPPER_INTR_STATUS_A2H_MASK		0x4
-+#define WRAPPER_INTR_STATUS_A2H_SHIFT		0x2
-+
-+#define WRAPPER_INTR_MASK			(WRAPPER_BASE + 0x10)
-+#define WRAPPER_INTR_MASK_A2HWD_BASK		0x10
-+#define WRAPPER_INTR_MASK_A2HWD_SHIFT		0x4
-+#define WRAPPER_INTR_MASK_A2HVCODEC_MASK	0x8
-+#define WRAPPER_INTR_MASK_A2HVCODEC_SHIFT	0x3
-+#define WRAPPER_INTR_MASK_A2HCPU_MASK		0x4
-+#define WRAPPER_INTR_MASK_A2HCPU_SHIFT		0x2
-+
-+#define WRAPPER_INTR_CLEAR			(WRAPPER_BASE + 0x14)
-+#define WRAPPER_INTR_CLEAR_A2HWD_MASK		0x10
-+#define WRAPPER_INTR_CLEAR_A2HWD_SHIFT		0x4
-+#define WRAPPER_INTR_CLEAR_A2H_MASK		0x4
-+#define WRAPPER_INTR_CLEAR_A2H_SHIFT		0x2
-+
-+#endif
--- 
-2.7.4
+--8t9RHnE3ZwKMSgU+
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
 
+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
+
+--8t9RHnE3ZwKMSgU+--
