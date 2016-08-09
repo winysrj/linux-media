@@ -1,54 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35584 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751195AbcH2SQU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 14:16:20 -0400
-Received: by mail-wm0-f68.google.com with SMTP id i5so10588212wmg.2
-        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2016 11:16:19 -0700 (PDT)
-From: Chris Wilson <chris@chris-wilson.co.uk>
-To: dri-devel@lists.freedesktop.org
-Cc: Chris Wilson <chris@chris-wilson.co.uk>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
-Subject: [PATCH] dma-buf/sync-file: Avoid enable fence signaling if poll(.timeout=0)
-Date: Mon, 29 Aug 2016 19:16:13 +0100
-Message-Id: <20160829181613.30722-1-chris@chris-wilson.co.uk>
-In-Reply-To: <20160829070834.22296-11-chris@chris-wilson.co.uk>
-References: <20160829070834.22296-11-chris@chris-wilson.co.uk>
+Received: from swift.blarg.de ([78.47.110.205]:51785 "EHLO swift.blarg.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932400AbcHIVlp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Aug 2016 17:41:45 -0400
+Subject: [PATCH 07/12] [media] dvb_frontend: merge the two
+ dvb_frontend_detach() versions
+From: Max Kellermann <max.kellermann@gmail.com>
+To: linux-media@vger.kernel.org, shuahkh@osg.samsung.com,
+	mchehab@osg.samsung.com
+Cc: linux-kernel@vger.kernel.org
+Date: Tue, 09 Aug 2016 23:32:36 +0200
+Message-ID: <147077835649.21835.12512832101795060316.stgit@woodpecker.blarg.de>
+In-Reply-To: <147077832610.21835.743840405297289081.stgit@woodpecker.blarg.de>
+References: <147077832610.21835.743840405297289081.stgit@woodpecker.blarg.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If we being polled with a timeout of zero, a nonblocking busy query,
-we don't need to install any fence callbacks as we will not be waiting.
-As we only install the callback once, the overhead comes from the atomic
-bit test that also causes serialisation between threads.
+This code duplication is confusing and error prone.  Let's merge them
+by moving the release/dvb_detach call into one function with one
+#ifdef.
 
-Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Gustavo Padovan <gustavo@padovan.org>
-Cc: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: linaro-mm-sig@lists.linaro.org
+Signed-off-by: Max Kellermann <max.kellermann@gmail.com>
 ---
- drivers/dma-buf/sync_file.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/dvb-core/dvb_frontend.c |   42 +++++++++------------------------
+ 1 file changed, 12 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/dma-buf/sync_file.c b/drivers/dma-buf/sync_file.c
-index 486d29c1a830..abb5fdab75fd 100644
---- a/drivers/dma-buf/sync_file.c
-+++ b/drivers/dma-buf/sync_file.c
-@@ -306,7 +306,8 @@ static unsigned int sync_file_poll(struct file *file, poll_table *wait)
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index fea635b..1177414 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -2754,40 +2754,22 @@ int dvb_unregister_frontend(struct dvb_frontend* fe)
+ }
+ EXPORT_SYMBOL(dvb_unregister_frontend);
  
- 	poll_wait(file, &sync_file->wq, wait);
- 
--	if (!test_and_set_bit(POLL_ENABLED, &sync_file->fence->flags)) {
-+	if (!poll_does_not_wait(wait) &&
-+	    !test_and_set_bit(POLL_ENABLED, &sync_file->fence->flags)) {
- 		if (fence_add_callback(sync_file->fence, &sync_file->cb,
- 				       fence_check_cb_func) < 0)
- 			wake_up_all(&sync_file->wq);
--- 
-2.9.3
+-#ifdef CONFIG_MEDIA_ATTACH
+-void dvb_frontend_detach(struct dvb_frontend* fe)
++static void dvb_frontend_invoke_release(struct dvb_frontend *fe,
++					void (*release)(struct dvb_frontend *fe))
+ {
+-	void *ptr;
+-
+-	if (fe->ops.release_sec) {
+-		fe->ops.release_sec(fe);
+-		dvb_detach(fe->ops.release_sec);
+-	}
+-	if (fe->ops.tuner_ops.release) {
+-		fe->ops.tuner_ops.release(fe);
+-		dvb_detach(fe->ops.tuner_ops.release);
+-	}
+-	if (fe->ops.analog_ops.release) {
+-		fe->ops.analog_ops.release(fe);
+-		dvb_detach(fe->ops.analog_ops.release);
+-	}
+-	ptr = (void*)fe->ops.release;
+-	if (ptr) {
+-		fe->ops.release(fe);
+-		dvb_detach(ptr);
++	if (release) {
++		release(fe);
++#ifdef CONFIG_MEDIA_ATTACH
++		dvb_detach(release);
++#endif
+ 	}
+ }
+-#else
++
+ void dvb_frontend_detach(struct dvb_frontend* fe)
+ {
+-	if (fe->ops.release_sec)
+-		fe->ops.release_sec(fe);
+-	if (fe->ops.tuner_ops.release)
+-		fe->ops.tuner_ops.release(fe);
+-	if (fe->ops.analog_ops.release)
+-		fe->ops.analog_ops.release(fe);
+-	if (fe->ops.release)
+-		fe->ops.release(fe);
++	dvb_frontend_invoke_release(fe, fe->ops.release_sec);
++	dvb_frontend_invoke_release(fe, fe->ops.tuner_ops.release);
++	dvb_frontend_invoke_release(fe, fe->ops.analog_ops.release);
++	dvb_frontend_invoke_release(fe, fe->ops.release);
+ }
+-#endif
+ EXPORT_SYMBOL(dvb_frontend_detach);
 
