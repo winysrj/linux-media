@@ -1,39 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34662 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752174AbcHUSn0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 Aug 2016 14:43:26 -0400
-From: Jannik Becher <becher.jannik@gmail.com>
-To: crope@iki.fi
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Jannik Becher <Becher.Jannik@gmail.com>
-Subject: [PATCH] drivers: hackrf: fixed a coding style issue
-Date: Sun, 21 Aug 2016 20:44:20 +0200
-Message-Id: <20160821184420.30115-1-Becher.Jannik@gmail.com>
+Received: from sauhun.de ([89.238.76.85]:55514 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750798AbcHILfU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Aug 2016 07:35:20 -0400
+From: Wolfram Sang <wsa-dev@sang-engineering.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org,
+	Wolfram Sang <wsa-dev@sang-engineering.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org
+Subject: [PATCH 0/4] media: don't print error when adding adapter fails
+Date: Tue,  9 Aug 2016 13:35:12 +0200
+Message-Id: <1470742517-12774-1-git-send-email-wsa-dev@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-changed 'unsigned' to 'unsigned int' to obtain the coding style.
+Since v4.8-rc1, the I2C core will print detailed information when adding an I2C
+adapter fails. So, drivers can skip this now.
 
-Signed-off-by: Jannik Becher <Becher.Jannik@gmail.com>
----
- drivers/media/usb/hackrf/hackrf.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Should go via subsystem tree, I'd think.
 
-diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
-index b1e229a..fc67648 100644
---- a/drivers/media/usb/hackrf/hackrf.c
-+++ b/drivers/media/usb/hackrf/hackrf.c
-@@ -129,7 +129,7 @@ struct hackrf_dev {
- 	struct list_head rx_buffer_list;
- 	struct list_head tx_buffer_list;
- 	spinlock_t buffer_list_lock; /* Protects buffer_list */
--	unsigned sequence;	     /* Buffer sequence counter */
-+	unsigned int sequence;	     /* Buffer sequence counter */
- 	unsigned int vb_full;        /* vb is full and packets dropped */
- 	unsigned int vb_empty;       /* vb is empty and packets dropped */
- 
+Wolfram Sang (4):
+  media: pci: netup_unidvb: don't print error when adding adapter fails
+  media: pci: pt3: don't print error when adding adapter fails
+  media: platform: exynos4-is: fimc-is-i2c: don't print error when
+    adding adapter fails
+  media: usb: dvb-usb-v2: dvb_usb_core: don't print error when adding
+    adapter fails
+
+ drivers/media/pci/netup_unidvb/netup_unidvb_i2c.c | 5 +----
+ drivers/media/pci/pt3/pt3.c                       | 4 +---
+ drivers/media/platform/exynos4-is/fimc-is-i2c.c   | 5 +----
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c       | 2 --
+ 4 files changed, 3 insertions(+), 13 deletions(-)
+
 -- 
-2.9.3
+2.8.1
 
