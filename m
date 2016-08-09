@@ -1,126 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:60521
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752168AbcHHR0m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2016 13:26:42 -0400
-Date: Mon, 8 Aug 2016 14:26:35 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Jani Nikula <jani.nikula@intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: Re: parts of media docs sphinx re-building every time?
-Message-ID: <20160808142635.4d766f8c@recife.lan>
-In-Reply-To: <6D7865EB-9C40-4B8F-8D8F-3B28024624F3@darmarit.de>
-References: <8760rbp8zh.fsf@intel.com>
-	<6D7865EB-9C40-4B8F-8D8F-3B28024624F3@darmarit.de>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:61643 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932802AbcHIN7Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2016 09:59:16 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: <srv_heupstream@mediatek.com>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
+Subject: [PATCH v3 0/4] Add MT8173 MDP Driver 
+Date: Tue, 9 Aug 2016 21:58:53 +0800
+Message-ID: <1470751137-12403-1-git-send-email-minghsiu.tsai@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jani,
+Changes in v3:
+- Modify device ndoe as structured one.
+- Fix conflict in dts on Linux 4.8-rc1
 
-Em Mon, 8 Aug 2016 18:07:10 +0200
-Markus Heiser <markus.heiser@darmarit.de> escreveu:
+Changes in v2:
+- Add section to describe blocks function in dts-bindings
+- Remove the assignment of device_caps in querycap()
+- Remove format's name assignment
+- Copy colorspace-related parameters from OUTPUT to CAPTURE
+- Use m2m helper functions
+- Fix DMA allocation failure
+- Initialize lazily vpu instance in streamon()
 
-> Hi Jani,
-> 
-> Am 08.08.2016 um 17:37 schrieb Jani Nikula <jani.nikula@intel.com>:
-> 
-> > 
-> > Hi Mauro & co -
-> > 
-> > I just noticed running 'make htmldocs' rebuilds parts of media docs
-> > every time on repeated runs. This shouldn't happen. Please investigate.
+==============
+ Introduction
+==============
 
-Perhaps there are some Makefile dependencies there that are not ok.
-I'll look in to it.
+The purpose of this series is to add the driver for Media Data Path HW embedded in the Mediatek's MT8173 SoC.
+MDP is used for scaling and color space conversion.
 
-> > 
-> > I wonder if it's related to Documentation/media/Makefile... which I have
-> > to say I am not impressed by. I was really hoping we could build all the
-> > documentation by standalone sphinx-build invocation too, relying only on
-> > the conf.py so that e.g. Read the Docs can build the docs. Part of that
-> > motivation was to keep the build clean in makefiles, and handing the
-> > dependency tracking completely to Sphinx.
-> > 
-> > I believe what's in Documentation/media/Makefile,
-> > Documentation/sphinx/parse-headers.pl, and
-> > Documentation/sphinx/kernel_include.py could be replaced by a Sphinx
-> > extension looking at the sources directly.  
-> 
-> Yes, parse-headers.pl, kernel_include.py and media/Makefile are needed
-> for one feature ... not very straight forward.
-> 
-> If it makes sense to migrate the perl scripts functionality to a
-> Sphinx extension, may I can help ... depends on what Mauro thinks.
-> 
-> BTW: parse-headers.pl is not the only perl script I like to migrate to py ;)
+It could convert V4L2_PIX_FMT_MT21 to V4L2_PIX_FMT_NV12M or V4L2_PIX_FMT_YUV420M.
 
-As discussed before, we need to be able to auto-generate cross references
-from the headers. Unfortunately, Sphinx acts like a 5-years-old-boy by
-painting source files some random colors, but not doing anything
-useful like creating cross references with the documentation.
+NV12M/YUV420M/MT21 -> MDP -> NV12M/YUV420M
 
-So, we need an extra script for the media build to convert the API headers
-into rst files. This work is somewhat complex, as there are symbols that
-we explicitly want to ignore, including ifdef symbols like:
+This patch series rely on MTK VPU driver in patch series "Add MT8173 Video Encoder Driver and VPU Driver"[1] and "Add MT8173 Video Decoder Driver"[2].
+MDP driver rely on VPU driver to load, communicate with VPU.
 
-	#define _UAPI__LINUX_VIDEODEV2_H
-	#ifdef _UAPI__LINUX_VIDEODEV2_H
-		...
-	#endif
+Internally the driver uses videobuf2 framework and MTK IOMMU and MTK SMI both have been merged in v4.6-rc1.
 
-We also want to do things like:
+[1]https://patchwork.kernel.org/patch/9002171/
+[2]https://patchwork.kernel.org/patch/9141245/
 
-	replace symbol V4L2_TUNER_ANALOG_TV v4l2-tuner-type
-	replace symbol V4L2_TUNER_RADIO v4l2-tuner-type
-	replace symbol V4L2_TUNER_RF v4l2-tuner-type
-	replace symbol V4L2_TUNER_SDR v4l2-tuner-type
+==================
+ Device interface
+==================
 
-in order to make all symbols to point to the same element at the rst file,
-that are usually inside a table.
+In principle the driver bases on v4l2 memory-to-memory framework:
+it provides a single video node and each opened file handle gets its own private context with separate buffer queues. Each context consist of 2 buffer queues: OUTPUT (for source buffers) and CAPTURE (for destination buffers).
+OUTPUT and CAPTURE buffer could be MMAP or DMABUF memory type.
 
-(I actually want to change this to point to an specific row at the
-table, but there are almost 400 symbols to be fixed, and changing it
-will take some time, and will likely require manual work).
+v4l2-compliance test output:
+# v4l2-compliance -d /dev/image-proc0
+v4l2-compliance SHA   : ee1ab491019f80052834d14c76bdd1c1b46f2158
 
-The goal of Documentation/sphinx/parse-headers.pl script is to generate
-such parsed headers, with the cross-references modified by an exceptions
-file at Documentation/media/*.h.rst.exceptions.
+Driver Info:
+        Driver name   : mtk-mdp
+        Card type     : soc:mdp
+        Bus info      : platform:mt8173
+        Driver version: 4.8.0
+        Capabilities  : 0x84204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
 
-This returns back a feature that we used to have with DocBook.
+Compliance test for device /dev/image-proc0 (not using libv4l2):
 
-The Documentation/media/Makefile rules what should be converted,
-and what exception file will be used to generate the rst file:
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
 
-	$(BUILDDIR)/audio.h.rst: ${UAPI}/dvb/audio.h ${PARSER} $(SRC_DIR)/audio.h.rst.exceptions
-		@$($(quiet)gen_rst)
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
 
-We might move that to Documentation/Makefile.sphinx, if you don't
-like having another makefile, but IMHO, this will be messy and will
-cause conflicts during the merge window.
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
 
-With regards to use python, well... I don't program on python, 
-nor I'm interested on doing it ATM... I actually wrote one python script
-a long time ago - that I had to fix to work on a newer python 2.x version,
-as the unicode API was changed - and very likely it won't work on python 3
-anymore, as lots of API got changed.
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
 
-The thing is: perl is reliable enough for not needing to rewrite the script
-every time someone comes with some crazy idea that would break the language
-API and force changes at the scripts. So, I prefer to keep that script in a 
-language that doesn't bite me on upgrades. As a plus, it doesn't forces
-me to adopt random alien code style of 4 space indentations, and not use
-tabs. But that's me.
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
 
-So, I'm not against porting it. Yet, what would be the advantage of porting
-it to Python? If there's no clear advantage, let's keep it in perl, as it
-is easier to maintain.
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
 
-Thanks,
-Mauro
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 5 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK
+                test Composing: OK
+                test Scaling: OK (Not Supported)
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+
+
+Minghsiu Tsai (4):
+  VPU: mediatek: Add mdp support
+  dt-bindings: Add a binding for Mediatek MDP
+  media: Add Mediatek MDP Driver
+  arm64: dts: mediatek: Add MDP for MT8173
+
+ .../devicetree/bindings/media/mediatek-mdp.txt     |  109 ++
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi           |   84 ++
+ drivers/media/platform/Kconfig                     |   16 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/mtk-mdp/Makefile            |    9 +
+ drivers/media/platform/mtk-mdp/mtk_mdp_comp.c      |  159 +++
+ drivers/media/platform/mtk-mdp/mtk_mdp_comp.h      |   72 ++
+ drivers/media/platform/mtk-mdp/mtk_mdp_core.c      |  294 +++++
+ drivers/media/platform/mtk-mdp/mtk_mdp_core.h      |  240 ++++
+ drivers/media/platform/mtk-mdp/mtk_mdp_ipi.h       |  126 ++
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c       | 1263 ++++++++++++++++++++
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.h       |   22 +
+ drivers/media/platform/mtk-mdp/mtk_mdp_regs.c      |  153 +++
+ drivers/media/platform/mtk-mdp/mtk_mdp_regs.h      |   31 +
+ drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c       |  145 +++
+ drivers/media/platform/mtk-mdp/mtk_mdp_vpu.h       |   41 +
+ drivers/media/platform/mtk-vpu/mtk_vpu.h           |    5 +
+ 17 files changed, 2771 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/mediatek-mdp.txt
+ create mode 100644 drivers/media/platform/mtk-mdp/Makefile
+ create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_comp.c
+ create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_comp.h
+ create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+ create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_core.h
+ create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_ipi.h
+ create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+ create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_m2m.h
+ create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_regs.c
+ create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_regs.h
+ create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c
+ create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_vpu.h
+
+--
+1.7.9.5
+
