@@ -1,83 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36612 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753052AbcHVNw3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 09:52:29 -0400
-Date: Mon, 22 Aug 2016 16:52:24 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, m.chehab@osg.samsung.com,
-        shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com
-Subject: Re: [RFC v2 08/17] media-device: Make devnode.dev->kobj parent of
- devnode.cdev
-Message-ID: <20160822135224.GD12130@valkosipuli.retiisi.org.uk>
-References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
- <1471602228-30722-9-git-send-email-sakari.ailus@linux.intel.com>
- <d5315572-cd27-351c-0f39-d80f2974d652@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d5315572-cd27-351c-0f39-d80f2974d652@xs4all.nl>
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:9942 "EHLO
+	mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932171AbcHIQVW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Aug 2016 12:21:22 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: kernel-janitors@vger.kernel.org,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] mtk-vcodec: constify venc_common_if structures
+Date: Tue,  9 Aug 2016 18:03:55 +0200
+Message-Id: <1470758635-13193-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 22, 2016 at 02:17:28PM +0200, Hans Verkuil wrote:
-> On 08/19/2016 12:23 PM, Sakari Ailus wrote:
-> > The struct cdev embedded in struct media_devnode contains its own kobj.
-> > Instead of trying to manage its lifetime separately from struct
-> > media_devnode, make the cdev kobj a parent of the struct media_device.dev
-> > kobj.
-> > 
-> > The cdev will thus be released during unregistering the media_devnode, not
-> > in media_devnode.dev kobj's release callback.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/media/media-devnode.c | 5 ++---
-> >  1 file changed, 2 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-> > index aa8030b..69f84a7 100644
-> > --- a/drivers/media/media-devnode.c
-> > +++ b/drivers/media/media-devnode.c
-> > @@ -63,9 +63,6 @@ static void media_devnode_release(struct device *cd)
-> >  
-> >  	mutex_lock(&media_devnode_lock);
-> >  
-> > -	/* Delete the cdev on this minor as well */
-> > -	cdev_del(&devnode->cdev);
-> > -
-> >  	/* Mark device node number as free */
-> >  	clear_bit(devnode->minor, media_devnode_nums);
-> >  
-> > @@ -246,6 +243,7 @@ int __must_check media_devnode_register(struct media_devnode *devnode,
-> >  
-> >  	/* Part 2: Initialize and register the character device */
-> >  	cdev_init(&devnode->cdev, &media_devnode_fops);
-> > +	devnode->cdev.kobj.parent = &devnode->dev.kobj;
-> >  	devnode->cdev.owner = owner;
-> >  
-> >  	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
-> > @@ -291,6 +289,7 @@ void media_devnode_unregister(struct media_devnode *devnode)
-> >  	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
-> >  	mutex_unlock(&media_devnode_lock);
-> >  	device_unregister(&devnode->dev);
-> > +	cdev_del(&devnode->cdev);
-> 
-> Are you sure about this order? Shouldn't cdev_del be called first?
-> 
-> The register() calls cdev_add() before device_add(), so I would expect the
-> reverse order here. This is also what cec-core.c does.
+The venc_common_if structures are never modified, so declare them as const.
 
-Correct.
+Done with the help of Coccinelle.
 
-It's possible that device_unregister() releases the last reference to the
-struct device, which in turn causes the memory to be released.
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-I'll fix that.
+---
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h    |    2 +-
+ drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c |    6 +++---
+ drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c  |    6 +++---
+ drivers/media/platform/mtk-vcodec/venc_drv_if.c       |    4 ++--
+ 4 files changed, 9 insertions(+), 9 deletions(-)
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
+index 94f0a42..b0cb3ed 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
+@@ -240,7 +240,7 @@ struct mtk_vcodec_ctx {
+ 	enum mtk_encode_param param_change;
+ 	struct mtk_enc_params enc_params;
+ 
+-	struct venc_common_if *enc_if;
++	const struct venc_common_if *enc_if;
+ 	unsigned long drv_handle;
+ 
+ 	int int_cond;
+diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+index 9a60052..532cd36 100644
+--- a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
++++ b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+@@ -664,16 +664,16 @@ static int h264_enc_deinit(unsigned long handle)
+ 	return ret;
+ }
+ 
+-static struct venc_common_if venc_h264_if = {
++static const struct venc_common_if venc_h264_if = {
+ 	h264_enc_init,
+ 	h264_enc_encode,
+ 	h264_enc_set_param,
+ 	h264_enc_deinit,
+ };
+ 
+-struct venc_common_if *get_h264_enc_comm_if(void);
++const struct venc_common_if *get_h264_enc_comm_if(void);
+ 
+-struct venc_common_if *get_h264_enc_comm_if(void)
++const struct venc_common_if *get_h264_enc_comm_if(void)
+ {
+ 	return &venc_h264_if;
+ }
+diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+index 60bbcd2..bdf6780 100644
+--- a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
++++ b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+@@ -471,16 +471,16 @@ static int vp8_enc_deinit(unsigned long handle)
+ 	return ret;
+ }
+ 
+-static struct venc_common_if venc_vp8_if = {
++static const struct venc_common_if venc_vp8_if = {
+ 	vp8_enc_init,
+ 	vp8_enc_encode,
+ 	vp8_enc_set_param,
+ 	vp8_enc_deinit,
+ };
+ 
+-struct venc_common_if *get_vp8_enc_comm_if(void);
++const struct venc_common_if *get_vp8_enc_comm_if(void);
+ 
+-struct venc_common_if *get_vp8_enc_comm_if(void)
++const struct venc_common_if *get_vp8_enc_comm_if(void)
+ {
+ 	return &venc_vp8_if;
+ }
+diff --git a/drivers/media/platform/mtk-vcodec/venc_drv_if.c b/drivers/media/platform/mtk-vcodec/venc_drv_if.c
+index c4c83e7..d02d5f1 100644
+--- a/drivers/media/platform/mtk-vcodec/venc_drv_if.c
++++ b/drivers/media/platform/mtk-vcodec/venc_drv_if.c
+@@ -26,8 +26,8 @@
+ #include "mtk_vcodec_enc_pm.h"
+ #include "mtk_vpu.h"
+ 
+-struct venc_common_if *get_h264_enc_comm_if(void);
+-struct venc_common_if *get_vp8_enc_comm_if(void);
++const struct venc_common_if *get_h264_enc_comm_if(void);
++const struct venc_common_if *get_vp8_enc_comm_if(void);
+ 
+ int venc_if_init(struct mtk_vcodec_ctx *ctx, unsigned int fourcc)
+ {
+
