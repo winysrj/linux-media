@@ -1,53 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34849
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752629AbcHQS3O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2016 14:29:14 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org
-Subject: [RFC PATCH 0/2] [media] vb2: defer part of vb2_buffer_done() and move dma-buf unmap from DQBUF
-Date: Wed, 17 Aug 2016 14:28:55 -0400
-Message-Id: <1471458537-16859-1-git-send-email-javier@osg.samsung.com>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:33189 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932959AbcHIN7R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2016 09:59:17 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: <srv_heupstream@mediatek.com>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>,
+	Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: [PATCH v3 2/4] dt-bindings: Add a binding for Mediatek MDP
+Date: Tue, 9 Aug 2016 21:58:55 +0800
+Message-ID: <1470751137-12403-3-git-send-email-minghsiu.tsai@mediatek.com>
+In-Reply-To: <1470751137-12403-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1470751137-12403-1-git-send-email-minghsiu.tsai@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Add a DT binding documentation of MDP for the MT8173 SoC
+from Mediatek
 
-This patch series attempt to do the dma-buf unmap as soon as possible, once
-the driver has finished using the buffer. Instead of waiting until DQBUF to
-do the unmap.
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+---
+ .../devicetree/bindings/media/mediatek-mdp.txt     |  109 ++++++++++++++++++++
+ 1 file changed, 109 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/mediatek-mdp.txt
 
-Patch #1 splits vb2_buffer_done() and moves part of its logic to a workqueue
-to avoid calling the vb2 .finish mem ops. Since doing a buffer sync can take
-a lot of time so isn't suitable for interrupt context. This was suggested by
-Hans Verkuil on a previous patch [0].
-
-Patch #2 then moves the dma-buf unmap out of DQBUF to vb2_done_work() now that
-this is executed in process context since the dmabuf unmap operation can sleep.
-
-[0]: https://lkml.org/lkml/2016/8/13/36
-
-Best regards,
-Javier
-
-
-Javier Martinez Canillas (2):
-  [media] vb2: defer sync buffers from vb2_buffer_done() with a
-    workqueue
-  [media] vb2: move dma-buf unmap from __vb2_dqbuf() to vb2_done_work()
-
- drivers/media/v4l2-core/videobuf2-core.c | 114 ++++++++++++++++++++-----------
- include/media/videobuf2-core.h           |   5 ++
- 2 files changed, 79 insertions(+), 40 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/media/mediatek-mdp.txt b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
+new file mode 100644
+index 0000000..4182063
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
+@@ -0,0 +1,109 @@
++* Mediatek Media Data Path
++
++Media Data Path is used for scaling and color space conversion.
++
++Required properties (controller (parent) node):
++- compatible: "mediatek,mt8173-mdp"
++- mediatek,vpu: the node of video processor unit, see
++  Documentation/devicetree/bindings/media/mediatek-vpu.txt for details.
++
++Required properties (all function blocks, child node):
++- compatible: Should be one of
++        "mediatek,mt8173-mdp-rdma"  - read DMA
++        "mediatek,mt8173-mdp-rsz"   - resizer
++        "mediatek,mt8173-mdp-wdma"  - write DMA
++        "mediatek,mt8173-mdp-wrot"  - write DMA with rotation
++- reg: Physical base address and length of the function block register space
++- clocks: device clocks, see
++  Documentation/devicetree/bindings/clock/clock-bindings.txt for details.
++- power-domains: a phandle to the power domain, see
++  Documentation/devicetree/bindings/power/power_domain.txt for details.
++
++Required properties (DMA function blocks, child node):
++- compatible: Should be one of
++        "mediatek,mt8173-mdp-rdma"
++        "mediatek,mt8173-mdp-wdma"
++        "mediatek,mt8173-mdp-wrot"
++- iommus: should point to the respective IOMMU block with master port as
++  argument, see Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
++  for details.
++- mediatek,larb: must contain the local arbiters in the current Socs, see
++  Documentation/devicetree/bindings/memory-controllers/mediatek,smi-larb.txt
++  for details.
++
++Example:
++mdp {
++	compatible = "mediatek,mt8173-mdp";
++	#address-cells = <2>;
++	#size-cells = <2>;
++	ranges;
++	mediatek,vpu = <&vpu>;
++
++	mdp_rdma0: rdma@14001000 {
++		compatible = "mediatek,mt8173-mdp-rdma";
++		reg = <0 0x14001000 0 0x1000>;
++		clocks = <&mmsys CLK_MM_MDP_RDMA0>,
++			 <&mmsys CLK_MM_MUTEX_32K>;
++		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++		iommus = <&iommu M4U_PORT_MDP_RDMA0>;
++		mediatek,larb = <&larb0>;
++	};
++
++	mdp_rdma1: rdma@14002000 {
++		compatible = "mediatek,mt8173-mdp-rdma";
++		reg = <0 0x14002000 0 0x1000>;
++		clocks = <&mmsys CLK_MM_MDP_RDMA1>,
++			 <&mmsys CLK_MM_MUTEX_32K>;
++		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++		iommus = <&iommu M4U_PORT_MDP_RDMA1>;
++		mediatek,larb = <&larb4>;
++	};
++
++	mdp_rsz0: rsz@14003000 {
++		compatible = "mediatek,mt8173-mdp-rsz";
++		reg = <0 0x14003000 0 0x1000>;
++		clocks = <&mmsys CLK_MM_MDP_RSZ0>;
++		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++	};
++
++	mdp_rsz1: rsz@14004000 {
++		compatible = "mediatek,mt8173-mdp-rsz";
++		reg = <0 0x14004000 0 0x1000>;
++		clocks = <&mmsys CLK_MM_MDP_RSZ1>;
++		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++	};
++
++	mdp_rsz2: rsz@14005000 {
++		compatible = "mediatek,mt8173-mdp-rsz";
++		reg = <0 0x14005000 0 0x1000>;
++		clocks = <&mmsys CLK_MM_MDP_RSZ2>;
++		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++	};
++
++	mdp_wdma0: wdma@14006000 {
++		compatible = "mediatek,mt8173-mdp-wdma";
++		reg = <0 0x14006000 0 0x1000>;
++		clocks = <&mmsys CLK_MM_MDP_WDMA>;
++		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++		iommus = <&iommu M4U_PORT_MDP_WDMA>;
++		mediatek,larb = <&larb0>;
++	};
++
++	mdp_wrot0: wrot@14007000 {
++		compatible = "mediatek,mt8173-mdp-wrot";
++		reg = <0 0x14007000 0 0x1000>;
++		clocks = <&mmsys CLK_MM_MDP_WROT0>;
++		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++		iommus = <&iommu M4U_PORT_MDP_WROT0>;
++		mediatek,larb = <&larb0>;
++	};
++
++	mdp_wrot1: wrot@14008000 {
++		compatible = "mediatek,mt8173-mdp-wrot";
++		reg = <0 0x14008000 0 0x1000>;
++		clocks = <&mmsys CLK_MM_MDP_WROT1>;
++		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
++		iommus = <&iommu M4U_PORT_MDP_WROT1>;
++		mediatek,larb = <&larb4>;
++	};
++};
 -- 
-2.5.5
+1.7.9.5
 
