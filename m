@@ -1,79 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:28670 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756381AbcHaHoJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Aug 2016 03:44:09 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id F220E2084C
-        for <linux-media@vger.kernel.org>; Wed, 31 Aug 2016 10:43:00 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 4/5] smiapp: Constify the regs argument to smiapp_write_8s()
-Date: Wed, 31 Aug 2016 10:42:04 +0300
-Message-Id: <1472629325-30875-5-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1472629325-30875-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1472629325-30875-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from sauhun.de ([89.238.76.85]:57240 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752154AbcHIO7E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Aug 2016 10:59:04 -0400
+Date: Tue, 9 Aug 2016 16:58:56 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Abylay Ospan <aospan@netup.ru>
+Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
+	linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
+	Sergey Kozlov <serjk@netup.ru>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/4] media: pci: netup_unidvb: don't print error when
+ adding adapter fails
+Message-ID: <20160809145856.GC1666@katana>
+References: <1470742517-12774-1-git-send-email-wsa-dev@sang-engineering.com>
+ <1470742517-12774-2-git-send-email-wsa-dev@sang-engineering.com>
+ <CAK3bHNWmxQsAtefcUocoOcEwtWnpptiVxzhXR-+jVU524RmnPw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XMCwj5IQnwKtuyBG"
+Content-Disposition: inline
+In-Reply-To: <CAK3bHNWmxQsAtefcUocoOcEwtWnpptiVxzhXR-+jVU524RmnPw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The data may now be const as well.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-quirk.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+--XMCwj5IQnwKtuyBG
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-quirk.c b/drivers/media/i2c/smiapp/smiapp-quirk.c
-index d7e22bc..cb128ea 100644
---- a/drivers/media/i2c/smiapp/smiapp-quirk.c
-+++ b/drivers/media/i2c/smiapp/smiapp-quirk.c
-@@ -26,7 +26,7 @@ static int smiapp_write_8(struct smiapp_sensor *sensor, u16 reg, u8 val)
- }
- 
- static int smiapp_write_8s(struct smiapp_sensor *sensor,
--			   struct smiapp_reg_8 *regs, int len)
-+			   const struct smiapp_reg_8 *regs, int len)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
- 	int rval;
-@@ -71,7 +71,7 @@ static int jt8ew9_limits(struct smiapp_sensor *sensor)
- 
- static int jt8ew9_post_poweron(struct smiapp_sensor *sensor)
- {
--	struct smiapp_reg_8 regs[] = {
-+	const struct smiapp_reg_8 regs[] = {
- 		{ 0x30a3, 0xd8 }, /* Output port control : LVDS ports only */
- 		{ 0x30ae, 0x00 }, /* 0x0307 pll_multiplier maximum value on PLL input 9.6MHz ( 19.2MHz is divided on pre_pll_div) */
- 		{ 0x30af, 0xd0 }, /* 0x0307 pll_multiplier maximum value on PLL input 9.6MHz ( 19.2MHz is divided on pre_pll_div) */
-@@ -115,7 +115,7 @@ const struct smiapp_quirk smiapp_jt8ew9_quirk = {
- static int imx125es_post_poweron(struct smiapp_sensor *sensor)
- {
- 	/* Taken from v02. No idea what the other two are. */
--	struct smiapp_reg_8 regs[] = {
-+	const struct smiapp_reg_8 regs[] = {
- 		/*
- 		 * 0x3302: clk during frame blanking:
- 		 * 0x00 - HS mode, 0x01 - LP11
-@@ -145,8 +145,7 @@ static int jt8ev1_post_poweron(struct smiapp_sensor *sensor)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
- 	int rval;
--
--	struct smiapp_reg_8 regs[] = {
-+	const struct smiapp_reg_8 regs[] = {
- 		{ 0x3031, 0xcd }, /* For digital binning (EQ_MONI) */
- 		{ 0x30a3, 0xd0 }, /* FLASH STROBE enable */
- 		{ 0x3237, 0x00 }, /* For control of pulse timing for ADC */
-@@ -167,8 +166,7 @@ static int jt8ev1_post_poweron(struct smiapp_sensor *sensor)
- 		{ 0x33cf, 0xec }, /* For Black sun */
- 		{ 0x3328, 0x80 }, /* Ugh. No idea what's this. */
- 	};
--
--	struct smiapp_reg_8 regs_96[] = {
-+	const struct smiapp_reg_8 regs_96[] = {
- 		{ 0x30ae, 0x00 }, /* For control of ADC clock */
- 		{ 0x30af, 0xd0 },
- 		{ 0x30b0, 0x01 },
--- 
-2.7.4
 
+> Sometimes it better to show more message - especially in error conditions=
+ :)
+
+Sure, if they contain additional information.
+
+> btw, do you make sanity check for "duplicate" log messages ?
+
+I checked all error messages if they contain additional information.
+
+>     =C2=A0 =C2=A0 =C2=A0 =C2=A0 ret =3D i2c_add_adapter(&i2c->adap);
+>     -=C2=A0 =C2=A0 =C2=A0 =C2=A0if (ret) {
+>     -=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0dev_err(&ndev=
+->pci_dev->dev,
+>     -=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0"%s(): failed to add I2C adapter\n", __func__);
+>     +=C2=A0 =C2=A0 =C2=A0 =C2=A0if (ret)
+>     =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return ret;
+>     -=C2=A0 =C2=A0 =C2=A0 =C2=A0}
+
+IMHO, this one doesn't. __func__ is not helpful to users. And the error
+messages in the core will make sure that a developer knows where to
+start looking.
+
+
+--XMCwj5IQnwKtuyBG
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXqe+wAAoJEBQN5MwUoCm2ZkwP/1vF0X1lQoqHci9o8z7a/vI/
+EHtLWcEvszMoTiwQDSzFi2GsI1LqGVTHGS+h7+WrHCSgHQbL1F+VUuTl3A3mxNk3
+8yanxLrEz/FT5OLxn040+rvDVeCftkzz/awhg4tsPBnyy0IQ6c0/YcRrY/pdKBUL
+ElfNsRIJndK5/9RkrOFkk+EjJ/eqRgE7orB32PwYwwT/wRmhlPfXvp0Ehilv878k
+315WxuBB1JyUa8S0mEeiD+kgGaPcAEPLfLc5bdmbBnqYMJO1QUvJ1youl1rzI5RN
+ymW3i6LtMBN5aqLc33F4U1q2er5BpH1LvVPVzeiMZTzuS2k973nrHhChe29rmpGk
+8Cb/kZHxsTv/VFnW5VvuM4Br64FNJOlI0YN8IPDTI/wsn+BXEQXdjU5gJpkqLcs1
+mu9Q8IpKBw+ESgN2sVVutec1Yy8WkqYUTne7FroSLJA/kM/qc/59Po6dCAjuSUO9
+EfON/IpnSWyORx9MDMDxS0PEi/qA/h+tvY1KgxRwHjrtbYFgJelhPMxou93nUt0B
+dIy1ly/CLB4uBEPhkOf0tbyrk7pTF1JPh9tatdLtp2D+c/gMbnAz+TQnR6jiXWrQ
+75miUJc+B6ToIj2PFBW7PQO0X8vcuyjW5wUpTfbNtNpYMOJ4BSVvOftk1/i1JHZ8
+10rxnwHOJEStUExkMB24
+=qqiA
+-----END PGP SIGNATURE-----
+
+--XMCwj5IQnwKtuyBG--
