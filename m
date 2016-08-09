@@ -1,46 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.goneo.de ([85.220.129.33]:52544 "EHLO smtp2.goneo.de"
+Received: from swift.blarg.de ([78.47.110.205]:60456 "EHLO swift.blarg.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751798AbcHHNPZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Aug 2016 09:15:25 -0400
-From: Markus Heiser <markus.heiser@darmarit.de>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Markus Heiser <markus.heiser@darmarIT.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-doc@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 0/3] doc-rst: more generic way to build only sphinx sub-folders
-Date: Mon,  8 Aug 2016 15:14:57 +0200
-Message-Id: <1470662100-6927-1-git-send-email-markus.heiser@darmarit.de>
+	id S932378AbcHIVlp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Aug 2016 17:41:45 -0400
+Subject: [PATCH 11/12] [media] media-entity: clear media_gobj.mdev in
+ _destroy()
+From: Max Kellermann <max.kellermann@gmail.com>
+To: linux-media@vger.kernel.org, shuahkh@osg.samsung.com,
+	mchehab@osg.samsung.com
+Cc: linux-kernel@vger.kernel.org
+Date: Tue, 09 Aug 2016 23:32:57 +0200
+Message-ID: <147077837761.21835.15641401024739733305.stgit@woodpecker.blarg.de>
+In-Reply-To: <147077832610.21835.743840405297289081.stgit@woodpecker.blarg.de>
+References: <147077832610.21835.743840405297289081.stgit@woodpecker.blarg.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Heiser <markus.heiser@darmarIT.de>
+media_gobj_destroy() may be called twice on one instance - once by
+media_device_unregister() and again by dvb_media_device_free().  The
+function media_remove_intf_links() establishes and documents the
+convention that mdev==NULL means that the object is not registered,
+but nobody ever NULLs this variable.  So this patch really implements
+this behavior, and adds another mdev==NULL check to
+media_gobj_destroy() to protect against double removal.
 
-Hi Mauro,
+Signed-off-by: Max Kellermann <max.kellermann@gmail.com>
+---
+ drivers/media/media-entity.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-this is my approach for a more generic way to build only sphinx sub-folders, we
-discussed in [1]. The last patch adds a minimal conf.py to the gpu folder, if
-you don't want to patch the gpu folder drop it.
-
-[1] http://marc.info/?t=147051523900002
-
-Markus Heiser (3):
-  doc-rst: generic way to build only sphinx sub-folders
-  doc-rst: add stand-alone conf.py to media folder
-  doc-rst: add stand-alone conf.py to gpu folder
-
- Documentation/DocBook/Makefile      |   2 +-
- Documentation/Makefile.sphinx       |  52 +++++++++----
- Documentation/gpu/conf.py           |   3 +
- Documentation/media/conf.py         |   3 +
- Documentation/media/conf_nitpick.py | 150 +++++++++++++++++++-----------------
- Documentation/sphinx/load_config.py |  20 +++--
- Makefile                            |   6 --
- 7 files changed, 137 insertions(+), 99 deletions(-)
- create mode 100644 Documentation/gpu/conf.py
- create mode 100644 Documentation/media/conf.py
-
--- 
-2.7.4
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index d8a2299..9526338 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -203,10 +203,16 @@ void media_gobj_destroy(struct media_gobj *gobj)
+ {
+ 	dev_dbg_obj(__func__, gobj);
+ 
++	/* Do nothing if the object is not linked. */
++	if (gobj->mdev == NULL)
++		return;
++
+ 	gobj->mdev->topology_version++;
+ 
+ 	/* Remove the object from mdev list */
+ 	list_del(&gobj->list);
++
++	gobj->mdev = NULL;
+ }
+ 
+ int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
 
