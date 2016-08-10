@@ -1,39 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:60075 "EHLO vena.lwn.net"
+Received: from smtp3-1.goneo.de ([85.220.129.38]:54288 "EHLO smtp3-1.goneo.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759310AbcHDXKA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Aug 2016 19:10:00 -0400
-Date: Thu, 4 Aug 2016 17:09:56 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Jani Nikula <jani.nikula@intel.com>
-Cc: linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ben Hutchings <ben@decadent.org.uk>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>
-Subject: Re: [PATCH] DocBook: use DOCBOOKS="" to ignore DocBooks instead of
- IGNORE_DOCBOOKS=1
-Message-ID: <20160804170956.506d6ad3@lwn.net>
-In-Reply-To: <1470300506-10151-1-git-send-email-jani.nikula@intel.com>
-References: <872c1d8d911f1d4ee48b2185554a63aa9026dc1a.1468080758.git.mchehab@s-opensource.com>
-	<1470300506-10151-1-git-send-email-jani.nikula@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+	id S1752510AbcHJSJE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Aug 2016 14:09:04 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Markus Heiser <markus.heiser@darmarIT.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] v4l-utils: fixed dvbv5 vdr format
+Date: Wed, 10 Aug 2016 11:52:19 +0200
+Message-Id: <1470822739-29519-3-git-send-email-markus.heiser@darmarit.de>
+In-Reply-To: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de>
+References: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu,  4 Aug 2016 11:48:26 +0300
-Jani Nikula <jani.nikula@intel.com> wrote:
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-> Instead of a separate ignore flag, use the obvious DOCBOOKS="" to ignore
-> all DocBook files.
+From: Heiser, Markus <markus.heiser@darmarIT.de>
 
-Makes sense, applied.
+The vdr format was broken, I got '(null)' entries
 
-Thanks,
+HD:11494:S1HC23I0M5N1O35:S:(null):22000:5101:5102,5103,5106,5108:0:0:10301:0:0:0:
+0-:1----:2--------------:3:4-----:
 
-jon
+refering to the VDR Wikis ...
+
+* LinuxTV: http://www.linuxtv.org/vdrwiki/index.php/Syntax_of_channels.conf
+* german comunity Wiki: http://www.vdr-wiki.de/wiki/index.php/Channels.conf#Parameter_ab_VDR-1.7.4
+
+There is no field at position 4 / in between "Source" and "SRate" which
+might have a value. I suppose the '(null):' is the result of pointing
+to *nothing*.
+
+An other mistake is the ending colon (":") at the line. It is not
+explicit specified but adding an collon to the end of an channel entry
+will prevent players (like mpv or mplayer) from parsing the line (they
+will ignore these lines).
+
+At least: generating a channel list with
+
+  dvbv5-scan --output-format=vdr ...
+
+will result in the same defective channel entry, containing "(null):"
+and the leading collon ":".
+
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
+---
+ lib/libdvbv5/dvb-vdr-format.c | 45 +++++++++++++++++++++++++++++--------------
+ 1 file changed, 31 insertions(+), 14 deletions(-)
+
+diff --git a/lib/libdvbv5/dvb-vdr-format.c b/lib/libdvbv5/dvb-vdr-format.c
+index a4bd26b..ab0e5cf 100644
+--- a/lib/libdvbv5/dvb-vdr-format.c
++++ b/lib/libdvbv5/dvb-vdr-format.c
+@@ -309,13 +309,14 @@ int dvb_write_format_vdr(const char *fname,
+ 		fprintf(fp, "%s", entry->channel);
+ 		if (entry->vchannel)
+ 			fprintf(fp, ",%s", entry->vchannel);
++		fprintf(fp, ":");
+ 
+ 		/*
+ 		 * Output frequency:
+ 		 *	in kHz for terrestrial/cable
+ 		 *	in MHz for satellite
+ 		 */
+-		fprintf(fp, ":%i:", freq / 1000);
++		fprintf(fp, "%i:", freq / 1000);
+ 
+ 		/* Output modulation parameters */
+ 		fmt = &formats[i];
+@@ -349,20 +350,30 @@ int dvb_write_format_vdr(const char *fname,
+ 
+ 			fprintf(fp, "%s", table->table[data]);
+ 		}
+-
+-		/* Output format type */
+-		fprintf(fp, ":%s:", id);
++		fprintf(fp, ":");
+ 
+ 		/*
+-		 * Output satellite location
+-		 * FIXME: probably require some adjustments to match the
+-		 *	  format expected by VDR.
++		 * Output sources configuration for VDR
++		 *
++		 *   S (satellite) xy.z (orbital position in degrees) E or W (east or west)
++		 *
++		 *   FIXME: in case of ATSC we use "A", this is what w_scan does
+ 		 */
+-		switch(delsys) {
+-		case SYS_DVBS:
+-		case SYS_DVBS2:
+-			fprintf(fp, "%s:", entry->location);
++
++		if (entry->location) {
++			switch(delsys) {
++			case SYS_DVBS:
++			case SYS_DVBS2:
++				fprintf(fp, "%s", entry->location);
++				break;
++			default:
++				fprintf(fp, "%s", id);
++				break;
++			}
++		} else {
++			fprintf(fp, "%s", id);
+ 		}
++		fprintf(fp, ":");
+ 
+ 		/* Output symbol rate */
+ 		srate = 27500000;
+@@ -407,10 +418,16 @@ int dvb_write_format_vdr(const char *fname,
+ 		/* Output Service ID */
+ 		fprintf(fp, "%d:", entry->service_id);
+ 
+-		/* Output SID, NID, TID and RID */
+-		fprintf(fp, "0:0:0:");
++		/* Output Network ID */
++		fprintf(fp, "0:");
+ 
+-		fprintf(fp, "\n");
++		/* Output Transport Stream ID */
++		fprintf(fp, "0:");
++
++		/* Output Radio ID
++		 * this is the last entry, tagged bei a new line (not a colon!)
++		 */
++		fprintf(fp, "0\n");
+ 		line++;
+ 	};
+ 	fclose (fp);
+-- 
+2.7.4
+
