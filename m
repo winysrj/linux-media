@@ -1,49 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:47350 "EHLO vena.lwn.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752173AbcHVVeY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 17:34:24 -0400
-Date: Mon, 22 Aug 2016 15:34:21 -0600
-From: Jonathan Corbet <corbet@lwn.net>
+Received: from smtp3-1.goneo.de ([85.220.129.38]:38209 "EHLO smtp3-1.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752508AbcHJSJE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Aug 2016 14:09:04 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
 To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Jani Nikula <jani.nikula@intel.com>, linux-doc@vger.kernel.org
-Subject: Re: [PATCH] docs-rst: kernel-doc: better output struct members
-Message-ID: <20160822153421.1e334ab0@lwn.net>
-In-Reply-To: <45996a8dc149f7de6ed09d703b76cb65e55b7a9a.1471781478.git.mchehab@s-opensource.com>
-References: <45996a8dc149f7de6ed09d703b76cb65e55b7a9a.1471781478.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Cc: Markus Heiser <markus.heiser@darmarIT.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/2] v4l-utils: add comments to the build instructions
+Date: Wed, 10 Aug 2016 11:52:18 +0200
+Message-Id: <1470822739-29519-2-git-send-email-markus.heiser@darmarit.de>
+In-Reply-To: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de>
+References: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 21 Aug 2016 09:11:57 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-> So, change kernel-doc, for it to produce the output on a different way:
-> 
-> 	**Members**
-> 
-> 	``prios[4]``
-> 	  - **type**: ``atomic_t``
-> 
-> 	  array with elements to store the array priorities
-> 
-> With such change, the name of the member will be the first visible
-> thing, and will be in bold style. The type will still be there, inside
-> a list.
+From: Heiser, Markus <markus.heiser@darmarIT.de>
 
-OK, I'll confess to not being 100% convinced on this one.  I certainly
-sympathize with the problem that drives this change, but I think the
-result is a bit on the noisy and visually distracting side.  
+On Debian derivated distributions (ubuntu 16.04) the package
+'autoconf-archive' is required.
 
-I wonder if we might be better off to just leave the "type:" bulleted
-line out entirely?  The type information already appears in the structure
-listing directly above, so it's arguably redundant here.  If formatting
-the type is getting in the way here, perhaps the right answer is just
-"don't do that"?
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
+---
+ README | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-jon
+diff --git a/README b/README
+index 1dd5108..172bed0 100644
+--- a/README
++++ b/README
+@@ -22,7 +22,8 @@ each distro.
+ 
+ On Debian and derivated distributions, you need to install the following
+ packages with apt-get or aptitude:
+-	debhelper dh-autoreconf autotools-dev doxygen graphviz libasound2-dev
++	debhelper dh-autoreconf autotools-dev autoconf-archive
++        doxygen graphviz libasound2-dev
+ 	libtool libjpeg-dev libqt4-dev libqt4-opengl-dev libudev-dev libx11-dev
+ 	pkg-config udev make gcc git
+ 
+@@ -47,6 +48,11 @@ After downloading and installing the needed packages, you should run:
+ 	./configure
+ 	make
+ 
++If ./configure exit with some errors try::
++
++	autoreconf -i --force
++	./configure
++
+ And, to install on your system:
+ 	sudo make install
+ 
+-- 
+2.7.4
+
