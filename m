@@ -1,47 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:16473 "EHLO mga04.intel.com"
+Received: from swift.blarg.de ([78.47.110.205]:34075 "EHLO swift.blarg.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752097AbcHKTbk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 15:31:40 -0400
-Subject: Re: [PATCH 0/2] [media] tvp5150: use .registered callback to register
- entity and links
-To: Javier Martinez Canillas <javier@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-References: <1470932896-25843-1-git-send-email-javier@osg.samsung.com>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <57ACD297.1070408@linux.intel.com>
-Date: Thu, 11 Aug 2016 22:31:35 +0300
+	id S935066AbcHJULv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Aug 2016 16:11:51 -0400
+Date: Wed, 10 Aug 2016 13:56:10 +0200
+From: Max Kellermann <max@duempel.org>
+To: linux-media@vger.kernel.org, shuahkh@osg.samsung.com,
+	mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 05/12] [media] dvb_frontend: merge duplicate
+ dvb_tuner_ops.release implementations
+Message-ID: <20160810115610.GA4143@swift.blarg.de>
+References: <147077834639.21835.9626267699459771690.stgit@woodpecker.blarg.de>
+ <201608100642.lXQqbCz6%fengguang.wu@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <1470932896-25843-1-git-send-email-javier@osg.samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201608100642.lXQqbCz6%fengguang.wu@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Javier Martinez Canillas wrote:
-> Hello,
->
-> Sakari pointed out in "[PATCH 2/8] [media] v4l2-async: call registered_async
-> after subdev registration" [0] that the added .registered_async callback isn't
-> needed since the v4l2 core already has an internal_ops .registered callback.
->
-> I missed that there was already this when added the .registered_async callback,
-> sorry about that.
->
-> This small series convert the tvp5150 driver to use the proper .registered and
-> remove .registered_async since isn't needed.
+On 2016/08/10 01:01, kbuild test robot <lkp@intel.com> wrote:
+> url:    https://github.com/0day-ci/linux/commits/Max-Kellermann/rc-main-clear-rc_map-name-in-ir_free_table/20160810-054811
+> base:   git://linuxtv.org/media_tree.git master
+> config: i386-randconfig-n0-201632 (attached as .config)
+> compiler: gcc-6 (Debian 6.1.1-9) 6.1.1 20160705
+> reproduce:
+>         # save the attached .config to linux build tree
+>         make ARCH=i386 
+> 
+> All errors (new ones prefixed by >>):
+> 
+> >> drivers/built-in.o:(.rodata+0x55f58): undefined reference to `dvb_tuner_simple_release'
+>    drivers/built-in.o:(.rodata+0x56038): undefined reference to `dvb_tuner_simple_release'
+>    drivers/built-in.o:(.rodata+0x56618): undefined reference to `dvb_tuner_simple_release'
+>    drivers/built-in.o:(.rodata+0x566f8): undefined reference to `dvb_tuner_simple_release'
+>    drivers/built-in.o:(.rodata+0x57998): undefined reference to `dvb_tuner_simple_release'
 
-Thanks!
+This configuration breaks because there is no dependency from those
+tuners to dvb_frontend.c (where dvb_tuner_simple_release).  However,
+without dvb_frontend.c, there is no user of such a tuner, and this
+configuration doesn't make sense.
 
-For both:
+Before I spend time on fixing this, I'd like to know if this patch has
+a chance to be merged, or if you generally reject my idea of folding
+duplicate code.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Two solutions come to my mind:
 
--- 
-Kind regards,
+1.) add a dependency
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.) move dvb_tuner_simple_release() to a new library, which all tuner
+    implementations depend on (which may some day have more common
+    tuner code)
+
+Opinions?
+
+Max
+
