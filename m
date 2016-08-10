@@ -1,86 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:36744 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752415AbcHLGf0 (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41710 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S938892AbcHJTkU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2016 02:35:26 -0400
-Received: by mail-wm0-f47.google.com with SMTP id q128so10567248wma.1
-        for <linux-media@vger.kernel.org>; Thu, 11 Aug 2016 23:35:25 -0700 (PDT)
+	Wed, 10 Aug 2016 15:40:20 -0400
+Subject: Re: [PATCH v8 1/2] [media] atmel-isc: add the Image Sensor Controller
+ code
+To: "Wu, Songjun" <Songjun.Wu@microchip.com>, nicolas.ferre@atmel.com,
+	robh@kernel.org
+References: <1470211686-2198-1-git-send-email-songjun.wu@microchip.com>
+ <1470211686-2198-2-git-send-email-songjun.wu@microchip.com>
+ <07cf3e49-da67-74d7-528c-618fe94a15ff@xs4all.nl>
+ <240d957c-6738-bab5-824a-1e6a0ddb12ad@xs4all.nl>
+ <d200c6d3-80d4-e81e-e7c3-e5716e47ceb8@microchip.com>
+Cc: laurent.pinchart@ideasonboard.com,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	=?UTF-8?Q?Niklas_S=c3=83=c2=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	Benoit Parrot <bparrot@ti.com>, linux-kernel@vger.kernel.org,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Kamil Debski <kamil@wypas.org>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	=?UTF-8?Q?Richard_R=c3=b6jfors?= <richard@puffinpack.se>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Simon Horman <horms+renesas@verge.net.au>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <85f42659-d54f-a841-fa7c-7fc7d6ddb96b@xs4all.nl>
+Date: Wed, 10 Aug 2016 09:12:35 +0200
 MIME-Version: 1.0
-In-Reply-To: <20160811083652.55371952@lwn.net>
-References: <1470912480-32304-1-git-send-email-sumit.semwal@linaro.org> <20160811083652.55371952@lwn.net>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Fri, 12 Aug 2016 12:05:04 +0530
-Message-ID: <CAO_48GEUzviZT0HMa8UhT+jN-eNmbTyTdnBs9SZFXz2fJ0m-7Q@mail.gmail.com>
-Subject: Re: [RFC 0/4] doc: dma-buf: sphinx conversion and cleanup
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	linux-doc@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <d200c6d3-80d4-e81e-e7c3-e5716e47ceb8@microchip.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jon!
-
-On 11 August 2016 at 20:06, Jonathan Corbet <corbet@lwn.net> wrote:
-> On Thu, 11 Aug 2016 16:17:56 +0530
-> Sumit Semwal <sumit.semwal@linaro.org> wrote:
->
->> Convert dma-buf documentation over to sphinx; also cleanup to
->> address sphinx warnings.
+On 08/10/2016 07:36 AM, Wu, Songjun wrote:
+> 
+> 
+> On 8/8/2016 17:56, Hans Verkuil wrote:
+>> On 08/08/2016 11:37 AM, Hans Verkuil wrote:
+>>> On 08/03/2016 10:08 AM, Songjun Wu wrote:
+>>>> Add driver for the Image Sensor Controller. It manages
+>>>> incoming data from a parallel based CMOS/CCD sensor.
+>>>> It has an internal image processor, also integrates a
+>>>> triple channel direct memory access controller master
+>>>> interface.
+>>>>
+>>>> Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
+>>>> ---
+>>>>
+>>>> Changes in v8:
+>>>> - Power on the sensor on the first open in function
+>>>>   'isc_open'.
+>>>> - Power off the sensor on the last release in function
+>>>>   'isc_release'.
+>>>> - Remove the switch of the pipeline.
+>>>>
+>>>> Changes in v7:
+>>>> - Add enum_framesizes and enum_frameintervals.
+>>>> - Call s_stream(0) when stream start fail.
+>>>> - Fill the device_caps field of struct video_device
+>>>>   with V4L2_CAP_STREAMING and V4L2_CAP_VIDEO_CAPTURE.
+>>>> - Initialize the dev of struct vb2_queue.
+>>>> - Set field to FIELD_NONE if the pix field is not supported.
+>>>> - Return the result directly when call g/s_parm of subdev.
+>>>>
+>>>> Changes in v6: None
+>>>> Changes in v5:
+>>>> - Modify the macro definition and the related code.
+>>>>
+>>>> Changes in v4:
+>>>> - Modify the isc clock code since the dt is changed.
+>>>>
+>>>> Changes in v3:
+>>>> - Add pm runtime feature.
+>>>> - Modify the isc clock code since the dt is changed.
+>>>>
+>>>> Changes in v2:
+>>>> - Add "depends on COMMON_CLK" and "VIDEO_V4L2_SUBDEV_API"
+>>>>   in Kconfig file.
+>>>> - Correct typos and coding style according to Laurent's remarks
+>>>> - Delete the loop while in 'isc_clk_enable' function.
+>>>> - Replace 'hsync_active', 'vsync_active' and 'pclk_sample'
+>>>>   with 'pfe_cfg0' in struct isc_subdev_entity.
+>>>> - Add the code to support VIDIOC_CREATE_BUFS in
+>>>>   'isc_queue_setup' function.
+>>>> - Invoke isc_config to configure register in
+>>>>   'isc_start_streaming' function.
+>>>> - Add the struct completion 'comp' to synchronize with
+>>>>   the frame end interrupt in 'isc_stop_streaming' function.
+>>>> - Check the return value of the clk_prepare_enable
+>>>>   in 'isc_open' function.
+>>>> - Set the default format in 'isc_open' function.
+>>>> - Add an exit condition in the loop while in 'isc_config'.
+>>>> - Delete the hardware setup operation in 'isc_set_format'.
+>>>> - Refuse format modification during streaming
+>>>>   in 'isc_s_fmt_vid_cap' function.
+>>>> - Invoke v4l2_subdev_alloc_pad_config to allocate and
+>>>>   initialize the pad config in 'isc_async_complete' function.
+>>>> - Remove the '.owner  = THIS_MODULE,' in atmel_isc_driver.
+>>>> - Replace the module_platform_driver_probe() with
+>>>>   module_platform_driver().
+>>>>
+>>>>  drivers/media/platform/Kconfig                |    1 +
+>>>>  drivers/media/platform/Makefile               |    2 +
+>>>>  drivers/media/platform/atmel/Kconfig          |    9 +
+>>>>  drivers/media/platform/atmel/Makefile         |    1 +
+>>>>  drivers/media/platform/atmel/atmel-isc-regs.h |  165 +++
+>>>>  drivers/media/platform/atmel/atmel-isc.c      | 1503 +++++++++++++++++++++++++
+>>>>  6 files changed, 1681 insertions(+)
+>>>>  create mode 100644 drivers/media/platform/atmel/Kconfig
+>>>>  create mode 100644 drivers/media/platform/atmel/Makefile
+>>>>  create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
+>>>>  create mode 100644 drivers/media/platform/atmel/atmel-isc.c
+>>>>
+>>>
+>>> <snip>
+>>>
+>>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+>>>> new file mode 100644
+>>>> index 0000000..d99d4a5
+>>>> --- /dev/null
+>>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
+>>>
+>>> <snip>
+>>>
+>>>> +static int isc_set_default_fmt(struct isc_device *isc)
+>>>> +{
+>>>> +	u32 index = isc->num_user_formats - 1;
+>>>
+>>> Why pick the last format? Strictly speaking it doesn't matter, but in practice
+>>> the most common formats tend to be at the beginning of the format list.
+>>>
+>>>> +	struct v4l2_format f = {
+>>>> +		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+>>>> +		.fmt.pix = {
+>>>> +			.width		= VGA_WIDTH,
+>>>> +			.height		= VGA_HEIGHT,
+>>>> +			.field		= V4L2_FIELD_NONE,
+>>>> +			.pixelformat	= isc->user_formats[index]->fourcc,
+>>>> +		},
+>>>> +	};
+>>>> +
+>>>> +	return isc_set_fmt(isc, &f);
+>>>> +}
+>>>> +
+>>>> +static int isc_open(struct file *file)
+>>>> +{
+>>>> +	struct isc_device *isc = video_drvdata(file);
+>>>> +	struct v4l2_subdev *sd = isc->current_subdev->sd;
+>>>> +	int ret;
+>>>> +
+>>>> +	if (mutex_lock_interruptible(&isc->lock))
+>>>> +		return -ERESTARTSYS;
+>>>> +
+>>>> +	ret = v4l2_fh_open(file);
+>>>> +	if (ret < 0)
+>>>> +		goto unlock;
+>>>> +
+>>>> +	if (!v4l2_fh_is_singular_file(file))
+>>>> +		goto unlock;
+>>>> +
+>>>> +	ret = v4l2_subdev_call(sd, core, s_power, 1);
+>>>> +	if (ret < 0 && ret != -ENOIOCTLCMD)
+>>>> +		goto unlock;
+>>>> +
+>>>> +	ret = isc_set_default_fmt(isc);
+>>>
+>>> This doesn't belong here, this needs to be done in isc_async_complete().
+>>>
+>>> Having the code here means that every time you open the device, the format
+>>> changes back to the default. That's not what you want.
 >>
->> While at that, convert dma-buf-sharing.txt as well, and make it the
->> dma-buf API guide.
->
-> Thanks for working to improve the documentation!  I do have a few overall
-> comments...
->
-Thank you for your review, and comments; my responses are inline.
+>> Actually, you do need to set the format here since here is where you turn on
+>> the sensor power, but it should be the current format, not the default format.
+>>
+>> And in isc_set_default_fmt I recommend that you call the try fmt of the subdev
+>> in order to let the subdev adjust the proposed default format. The 'try' doesn't
+>> need to power on the sensor.
+>>
+> I replace the 'set fmt' with 'try fmt', then test with v4l2-compliance, 
+> but there are tree fail cases. I think it's reasonable that setting a 
+> default fmt on the first open. When app open the device on the first 
+> open, it should set a fmt, or the default fmt will be set.
 
->  - The two comment fixes are a separate thing that should go straight to
->    the dma-buf maintainer, who is ... <looks> ... evidently somebody
->    familiar to you :)  I assume you'll merge those two directly?
->
-Yes, of course :) - I will merge them directly, and will remove them
-from v2 of this series.
+It's not reasonable :-). In V4L2 all format (or any other for that matter) settings
+are persistent.
 
->  - It looks like you create a new RST document but leave the old one in
->    place.  Having two copies of the document around can only lead to
->    confusion, so I think the old one should go.
->
-Agreed on this as well; will correct it.
+Anyway, take a look at my atmel-isi driver:
 
->  - I really wonder if we want to start carving pieces out of
->    device-drivers.tmpl in this way.  I guess I would rather see the
->    conversion of that book and the better integration of the other docs
->    *into* it.  One of the goals of this whole thing is to unify our
->    documentation, not to reinforce the silos.
->
-I should've mentioned it in the cover letter - my intention of taking
-the dma-buf pieces out was to focus on these first while moving to
-sphinx.
+https://git.linuxtv.org/hverkuil/media_tree.git/tree/drivers/media/platform/atmel-isi.c?h=sama5d3
 
-My proposal would be, if all the device driver section owners could
-take the relevant pieces, convert them to sphinx (ironing out warnings
-etc in the process), then we can again 'bind' them together into the
-device drivers book in rst format.
-This breaks the documentation conversion task into manageable pieces
-that can be handled independently, and gives everyone flexibility to
-work on their schedules.
+There I use try_fmt as well, and that passes the compliance test just fine.
 
-This should also help in a good technical re-look at the content by
-subsystem developers, and make any documentation updates as required.
-The beauty of sphinx should allow us this, I think? Just my 2 cents.
+Regards,
 
-> Does that make sense?
->
-I do hope that my proposal above finds some merit with everyone.
-
-> Thanks,
->
-> jon
-
-BR,
-Sumit.
+	Hans
