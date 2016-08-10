@@ -1,114 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54122 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754703AbcHZXos (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Aug 2016 19:44:48 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v3 19/21] omap3isp: Allocate the media device dynamically
-Date: Sat, 27 Aug 2016 02:43:27 +0300
-Message-Id: <1472255009-28719-20-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:53456 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753005AbcHJSvM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Aug 2016 14:51:12 -0400
+Date: Wed, 10 Aug 2016 07:11:50 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Jani Nikula <jani.nikula@intel.com>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+	Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: Re: parts of media docs sphinx re-building every time?
+Message-ID: <20160810071150.61d3adcf@vela.lan>
+In-Reply-To: <63B4006C-EF1F-4291-B235-A562EA53DFA6@darmarit.de>
+References: <8760rbp8zh.fsf@intel.com>
+	<6D7865EB-9C40-4B8F-8D8F-3B28024624F3@darmarit.de>
+	<87mvklvvbd.fsf@intel.com>
+	<20160810062202.56d72818@vela.lan>
+	<63B4006C-EF1F-4291-B235-A562EA53DFA6@darmarit.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the new media_device_alloc() API to allocate and release the media
-device.
+Em Wed, 10 Aug 2016 11:58:48 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/platform/omap3isp/isp.c      | 24 +++++++++++++-----------
- drivers/media/platform/omap3isp/isp.h      |  2 +-
- drivers/media/platform/omap3isp/ispvideo.c |  2 +-
- 3 files changed, 15 insertions(+), 13 deletions(-)
+> Am 10.08.2016 um 11:22 schrieb Mauro Carvalho Chehab <mchehab@infradead.org>:
+> 
+> > Em Wed, 10 Aug 2016 12:15:34 +0300
+> > Jani Nikula <jani.nikula@intel.com> escreveu:
+> >   
+> >> On Mon, 08 Aug 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:  
+> >>> Hi Jani,
+> >>> 
+> >>> Am 08.08.2016 um 17:37 schrieb Jani Nikula <jani.nikula@intel.com>:
+> >>>   
+> >>>> 
+> >>>> Hi Mauro & co -
+> >>>> 
+> >>>> I just noticed running 'make htmldocs' rebuilds parts of media docs
+> >>>> every time on repeated runs. This shouldn't happen. Please investigate.
+> >>>> 
+> >>>> I wonder if it's related to Documentation/media/Makefile... which I have
+> >>>> to say I am not impressed by. I was really hoping we could build all the
+> >>>> documentation by standalone sphinx-build invocation too, relying only on
+> >>>> the conf.py so that e.g. Read the Docs can build the docs. Part of that
+> >>>> motivation was to keep the build clean in makefiles, and handing the
+> >>>> dependency tracking completely to Sphinx.
+> >>>> 
+> >>>> I believe what's in Documentation/media/Makefile,
+> >>>> Documentation/sphinx/parse-headers.pl, and
+> >>>> Documentation/sphinx/kernel_include.py could be replaced by a Sphinx
+> >>>> extension looking at the sources directly.    
+> >>> 
+> >>> Yes, parse-headers.pl, kernel_include.py and media/Makefile are needed
+> >>> for one feature ... not very straight forward.
+> >>> 
+> >>> If it makes sense to migrate the perl scripts functionality to a
+> >>> Sphinx extension, may I can help ... depends on what Mauro thinks.
+> >>> 
+> >>> BTW: parse-headers.pl is not the only perl script I like to migrate to py ;)    
+> >> 
+> >> If I understand the need of all of this right, I think the cleanest and
+> >> fastest short term measure would be to make the kernel-include directive
+> >> extension do the same thing as the kernel-doc directive does: call the
+> >> perl script from the directive.
+> >> 
+> >> This lets you get rid of Documentation/media/Makefile and you don't have
+> >> to copy-paste all of Include.run method into kernel_include.py. You can
+> >> also get rid of specifying environment variables in rst files and
+> >> parsing them in the extension. We can get rid of the problematic
+> >> intermediate rst files. This design has been proven with the kernel-doc
+> >> extension and script already. It's much simpler.  
+> > 
+> > Works for me. If someone comes with such patch, I'll happily ack it.
+> > 
+> > Cheers,
+> > Mauro  
+> 
+> Hi Jani & Mauro,
+> 
+> I will give it a try ... but currently I'am working in some other tasks.
+> I think next week I will find some time to implement.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 5d54e2c..565d392 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1597,8 +1597,8 @@ static void isp_unregister_entities(struct isp_device *isp)
- 	omap3isp_stat_unregister_entities(&isp->isp_hist);
- 
- 	v4l2_device_unregister(&isp->v4l2_dev);
--	media_device_unregister(&isp->media_dev);
--	media_device_cleanup(&isp->media_dev);
-+	media_device_unregister(isp->media_dev);
-+	media_device_put(isp->media_dev);
- }
- 
- static int isp_link_entity(
-@@ -1676,14 +1676,16 @@ static int isp_register_entities(struct isp_device *isp)
- {
- 	int ret;
- 
--	isp->media_dev.dev = isp->dev;
--	strlcpy(isp->media_dev.model, "TI OMAP3 ISP",
--		sizeof(isp->media_dev.model));
--	isp->media_dev.hw_revision = isp->revision;
--	isp->media_dev.link_notify = v4l2_pipeline_link_notify;
--	media_device_init(&isp->media_dev);
-+	isp->media_dev = media_device_alloc(isp->dev, isp);
-+	if (!isp->media_dev)
-+		return -ENOMEM;
-+
-+	strlcpy(isp->media_dev->model, "TI OMAP3 ISP",
-+		sizeof(isp->media_dev->model));
-+	isp->media_dev->hw_revision = isp->revision;
-+	isp->media_dev->link_notify = v4l2_pipeline_link_notify;
- 
--	isp->v4l2_dev.mdev = &isp->media_dev;
-+	isp->v4l2_dev.mdev = isp->media_dev;
- 	ret = v4l2_device_register(isp->dev, &isp->v4l2_dev);
- 	if (ret < 0) {
- 		dev_err(isp->dev, "%s: V4L2 device registration failed (%d)\n",
-@@ -2161,7 +2163,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- 	struct isp_bus_cfg *bus;
- 	int ret;
- 
--	ret = media_entity_enum_init(&isp->crashed, &isp->media_dev);
-+	ret = media_entity_enum_init(&isp->crashed, isp->media_dev);
- 	if (ret)
- 		return ret;
- 
-@@ -2179,7 +2181,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- 	if (ret < 0)
- 		return ret;
- 
--	return media_device_register(&isp->media_dev);
-+	return media_device_register(isp->media_dev);
- }
- 
- /*
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 7e6f663..7378279 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -176,7 +176,7 @@ struct isp_xclk {
- struct isp_device {
- 	struct v4l2_device v4l2_dev;
- 	struct v4l2_async_notifier notifier;
--	struct media_device media_dev;
-+	struct media_device *media_dev;
- 	struct device *dev;
- 	u32 revision;
- 
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 7d9f359..45ef38c 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -1077,7 +1077,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	pipe = video->video.entity.pipe
- 	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
- 
--	ret = media_entity_enum_init(&pipe->ent_enum, &video->isp->media_dev);
-+	ret = media_entity_enum_init(&pipe->ent_enum, video->isp->media_dev);
- 	if (ret)
- 		goto err_enum_init;
- 
--- 
-2.1.4
+Good enough to me, Thanks for looking into that!
 
+Cheers,
+Mauro
