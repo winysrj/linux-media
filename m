@@ -1,66 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:58929 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755656AbcH2R4J (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 13:56:09 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Jiri Kosina <trivial@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v5 00/13] pxa_camera transition to v4l2 standalone device
-Date: Mon, 29 Aug 2016 19:55:45 +0200
-Message-Id: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
+Received: from bombadil.infradead.org ([198.137.202.9]:53431 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752887AbcHJSvL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Aug 2016 14:51:11 -0400
+Date: Wed, 10 Aug 2016 05:47:55 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jani Nikula <jani.nikula@intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+	Markus Heiser <markus.heiser@darmarit.de>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: Re: parts of media docs sphinx re-building every time?
+Message-ID: <20160810054755.0175f331@vela.lan>
+In-Reply-To: <8760rbp8zh.fsf@intel.com>
+References: <8760rbp8zh.fsf@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no change between v4 and v5, ie. the global diff is empty, only one
-line was shifted to prevent breaking bisectablility.
+Em Mon, 08 Aug 2016 18:37:38 +0300
+Jani Nikula <jani.nikula@intel.com> escreveu:
 
-All the text in https://lkml.org/lkml/2016/8/15/609 is still applicable.
+> Hi Mauro & co -
+> 
+> I just noticed running 'make htmldocs' rebuilds parts of media docs
+> every time on repeated runs. This shouldn't happen. Please investigate.
 
-Cheers.
+I was unable to reproduce it here. Are you passing any special options
+to the building system?
 
---
-Robert
+According to media Makefile, it should run the script only on four
+conditions:
+	- if the dynamically-generated rst file is not found (e. g. after
+	  make cleandocs);
+	- if the header file is changed;
+	- if the exceptions file changes;
+	- if the perl parser is changed.
 
-Robert Jarzmik (13):
-  media: mt9m111: make a standalone v4l2 subdevice
-  media: mt9m111: use only the SRGB colorspace
-  media: mt9m111: move mt9m111 out of soc_camera
-  media: platform: pxa_camera: convert to vb2
-  media: platform: pxa_camera: trivial move of functions
-  media: platform: pxa_camera: introduce sensor_call
-  media: platform: pxa_camera: make printk consistent
-  media: platform: pxa_camera: add buffer sequencing
-  media: platform: pxa_camera: remove set_crop
-  media: platform: pxa_camera: make a standalone v4l2 device
-  media: platform: pxa_camera: add debug register access
-  media: platform: pxa_camera: change stop_streaming semantics
-  media: platform: pxa_camera: move pxa_camera out of soc_camera
+All rules are like:
 
- drivers/media/i2c/Kconfig                      |    7 +
- drivers/media/i2c/Makefile                     |    1 +
- drivers/media/i2c/mt9m111.c                    | 1033 ++++++++++++
- drivers/media/i2c/soc_camera/Kconfig           |    7 +-
- drivers/media/i2c/soc_camera/Makefile          |    1 -
- drivers/media/i2c/soc_camera/mt9m111.c         | 1054 ------------
- drivers/media/platform/Kconfig                 |    8 +
- drivers/media/platform/Makefile                |    1 +
- drivers/media/platform/pxa_camera.c            | 2096 ++++++++++++++++++++++++
- drivers/media/platform/soc_camera/Kconfig      |    8 -
- drivers/media/platform/soc_camera/Makefile     |    1 -
- drivers/media/platform/soc_camera/pxa_camera.c | 1866 ---------------------
- include/linux/platform_data/media/camera-pxa.h |    2 +
- 13 files changed, 3153 insertions(+), 2932 deletions(-)
- create mode 100644 drivers/media/i2c/mt9m111.c
- delete mode 100644 drivers/media/i2c/soc_camera/mt9m111.c
- create mode 100644 drivers/media/platform/pxa_camera.c
- delete mode 100644 drivers/media/platform/soc_camera/pxa_camera.c
+$(BUILDDIR)/audio.h.rst: ${UAPI}/dvb/audio.h ${PARSER} $(SRC_DIR)/audio.h.rst.exceptions
 
--- 
-2.1.4
+Regards,
+Mauro
 
+
+
+Cheers,
+Mauro
