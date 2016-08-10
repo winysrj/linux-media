@@ -1,63 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46676 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751405AbcHDLrn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2016 07:47:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH v2] media-ctl: Initialize ioctl arguments to 0
-Date: Thu,  4 Aug 2016 14:38:06 +0300
-Message-Id: <1470310686-19896-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp2.goneo.de ([85.220.129.33]:51100 "EHLO smtp2.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S936506AbcHJTEi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Aug 2016 15:04:38 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: parts of media docs sphinx re-building every time?
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <20160810074635.515fe28b@lwn.net>
+Date: Wed, 10 Aug 2016 16:16:11 +0200
+Cc: Jani Nikula <jani.nikula@intel.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-doc@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <59C5F886-CAB7-49D0-87A6-134E37AB0856@darmarit.de>
+References: <8760rbp8zh.fsf@intel.com> <20160810054755.0175f331@vela.lan> <87k2fpvuyj.fsf@intel.com> <20160810074635.515fe28b@lwn.net>
+To: Jonathan Corbet <corbet@lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This ensures that the reserved fields are properly set to 0 as required
-by the API.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- utils/media-ctl/libmediactl.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Am 10.08.2016 um 15:46 schrieb Jonathan Corbet <corbet@lwn.net>:
 
-Changes since v1:
+> On Wed, 10 Aug 2016 12:23:16 +0300
+> Jani Nikula <jani.nikula@intel.com> wrote:
+> 
+>>>> I just noticed running 'make htmldocs' rebuilds parts of media docs
+>>>> every time on repeated runs. This shouldn't happen. Please investigate.  
+>>> 
+>>> I was unable to reproduce it here. Are you passing any special options
+>>> to the building system?  
+>> 
+>> Hmh, I can't reproduce this now either. I was able to hit this on
+>> another machine consistently, even with 'make cleandocs' in
+>> between. I'll check the environment on the other machine when I get my
+>> hands on it.
+> 
+> Just FWIW, I've been trying to find a moment to come back to this because
+> I couldn't reproduce it either...
+> 
+> jon
 
-- Use struct initializers instead of memset
 
-diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
-index 636821abc85c..1fd6525b40d3 100644
---- a/utils/media-ctl/libmediactl.c
-+++ b/utils/media-ctl/libmediactl.c
-@@ -212,8 +212,8 @@ int media_setup_link(struct media_device *media,
- 		     struct media_pad *sink,
- 		     __u32 flags)
- {
-+	struct media_link_desc ulink = { { 0 } };
- 	struct media_link *link;
--	struct media_link_desc ulink;
- 	unsigned int i;
- 	int ret;
- 
-@@ -324,7 +324,7 @@ static int media_enum_links(struct media_device *media)
- 
- 	for (id = 1; id <= media->entities_count; id++) {
- 		struct media_entity *entity = &media->entities[id - 1];
--		struct media_links_enum links;
-+		struct media_links_enum links = { 0 };
- 		unsigned int i;
- 
- 		links.entity = entity->info.id;
-@@ -593,6 +593,8 @@ int media_device_enumerate(struct media_device *media)
- 	if (ret < 0)
- 		return ret;
- 
-+	memset(&media->info, 0, sizeof(media->info));
-+
- 	ret = ioctl(media->fd, MEDIA_IOC_DEVICE_INFO, &media->info);
- 	if (ret < 0) {
- 		ret = -errno;
--- 
-Regards,
+Hmm, I have had problems with the relative BUILDDIR make environment, so I switched
+to absolute pathname .. see my "more generic way" patch:
 
-Laurent Pinchart
+ htmldocs:
+-	$(MAKE) BUILDDIR=$(BUILDDIR) -f $(srctree)/Documentation/media/Makefile $@
++	$(MAKE) BUILDDIR=$(abspath $(BUILDDIR)) -f $(srctree)/Documentation/media/Makefile $@
+
+could this the reason why you can't reproduce it?
+
+My problem was vice versa, if I called "make O=/tmp/kernel htmldocs" after
+a make with normal output, the rst files has been found in Documents/output
+and not regenerated in /tmp/kernel/Documents/output. 
+
+And with "make O=/tmp/kernel clean", the rst files in Documents/output resists.
+
+This was very confusing to me, so I changed it to absolute pathname.
+
+--Markus--
 
