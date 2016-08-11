@@ -1,58 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34600 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753164AbcHUSXL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 Aug 2016 14:23:11 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 2/2] docs-rst: Fix an warning when in interactive mode
-Date: Sun, 21 Aug 2016 15:23:04 -0300
-Message-Id: <1a1375ce4fd1f8f95695cfcc809899e58f157b2d.1471803675.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471803675.git.mchehab@s-opensource.com>
-References: <cover.1471803675.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471803675.git.mchehab@s-opensource.com>
-References: <cover.1471803675.git.mchehab@s-opensource.com>
+Received: from mga03.intel.com ([134.134.136.65]:43095 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932236AbcHKLr3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2016 07:47:29 -0400
+From: Jani Nikula <jani.nikula@linux.intel.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-doc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, corbet@lwn.net
+Subject: Re: [RFC 3/4] Documentation: move dma-buf documentation to rst
+In-Reply-To: <1470912480-32304-4-git-send-email-sumit.semwal@linaro.org>
+References: <1470912480-32304-1-git-send-email-sumit.semwal@linaro.org> <1470912480-32304-4-git-send-email-sumit.semwal@linaro.org>
+Date: Thu, 11 Aug 2016 14:47:26 +0300
+Message-ID: <87twerv86p.fsf@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When XeLaTeX is in interactive mode, it complains that
-py@noticelength already exists. Rename it and declare it
-only once to avoid such messages.
+On Thu, 11 Aug 2016, Sumit Semwal <sumit.semwal@linaro.org> wrote:
+> diff --git a/Documentation/dma-buf/guide.rst b/Documentation/dma-buf/guide.rst
+> new file mode 100644
+> index 000000000000..fd3534fdccb3
+> --- /dev/null
+> +++ b/Documentation/dma-buf/guide.rst
+> @@ -0,0 +1,503 @@
+> +
+> +.. _dma-buf-guide:
+> +
+> +============================
+> +DMA Buffer Sharing API Guide
+> +============================
+> +
+> +Sumit Semwal - sumit.semwal@linaro.org, sumits@kernel.org
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Please use the format
+
+:author: Sumit Semwal <sumit.semwal@linaro.org>
+
 ---
- Documentation/conf.py | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/conf.py b/Documentation/conf.py
-index f71b71048e37..42045c26581b 100644
---- a/Documentation/conf.py
-+++ b/Documentation/conf.py
-@@ -282,14 +282,14 @@ latex_elements = {
- 	\\definecolor{WarningColor}{RGB}{255,204,204}
- 	\\definecolor{AttentionColor}{RGB}{255,255,204}
- 	\\definecolor{OtherColor}{RGB}{204,204,204}
-+        \\newlength{\\mynoticelength}
-         \\makeatletter\\newenvironment{coloredbox}[1]{%
--	   \\newlength{\\py@noticelength}
- 	   \\setlength{\\fboxrule}{1pt}
- 	   \\setlength{\\fboxsep}{7pt}
--	   \\setlength{\\py@noticelength}{\\linewidth}
--	   \\addtolength{\\py@noticelength}{-2\\fboxsep}
--	   \\addtolength{\\py@noticelength}{-2\\fboxrule}
--           \\begin{lrbox}{\\@tempboxa}\\begin{minipage}{\\py@noticelength}}{\\end{minipage}\\end{lrbox}%
-+	   \\setlength{\\mynoticelength}{\\linewidth}
-+	   \\addtolength{\\mynoticelength}{-2\\fboxsep}
-+	   \\addtolength{\\mynoticelength}{-2\\fboxrule}
-+           \\begin{lrbox}{\\@tempboxa}\\begin{minipage}{\\mynoticelength}}{\\end{minipage}\\end{lrbox}%
- 	   \\ifthenelse%
- 	      {\\equal{\\py@noticetype}{note}}%
- 	      {\\colorbox{NoteColor}{\\usebox{\\@tempboxa}}}%
+While on this subject, please excuse me for hijacking the thread a bit.
+
+Personally, I believe it would be better to leave out authorship notes
+from documentation and source files in collaborative projects. Of
+course, it is only fair that people who deserve credit get the
+credit. Listing the authors in the file is often the natural thing to
+do, and superficially seems fair.
+
+However, when do you add more names to the list? When has someone
+contributed enough to warrant that? Is it fair that the original authors
+keep getting the credit for the contributions of others? After a while,
+perhaps there is next to nothing left of the original contributions, but
+the bar is really high for removing anyone from the authors. Listing the
+authors gives the impression this is *their* file, while everyone should
+feel welcome to contribute, and everyone who contributes should feel
+ownership.
+
+IMHO we would be better off using just the git history for the credits.
+
+
+BR,
+Jani.
+
+
+PS. I am no saint here, I've got a couple of authors lines myself. I
+promise not to add more. I certainly won't chastise anyone for adding
+theirs.
+
+
 -- 
-2.7.4
-
-
+Jani Nikula, Intel Open Source Technology Center
