@@ -1,71 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35127 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752583AbcHTKKn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 20 Aug 2016 06:10:43 -0400
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-To: linux-media@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org,
-        narmstrong@baylibre.com, linus.walleij@linaro.org,
-        khilman@baylibre.com, carlo@caione.org
-Cc: linux-arm-kernel@lists.infradead.org, mchehab@kernel.org,
-        will.deacon@arm.com, catalin.marinas@arm.com, mark.rutland@arm.com,
-        robh+dt@kernel.org, b.galvani@gmail.com,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Subject: [PATCH v5 0/6] Add Meson 8b / GXBB support to the IR driver
-Date: Sat, 20 Aug 2016 11:54:18 +0200
-Message-Id: <20160820095424.636-1-martin.blumenstingl@googlemail.com>
-In-Reply-To: <20160819215547.20063-1-martin.blumenstingl@googlemail.com>
-References: <20160819215547.20063-1-martin.blumenstingl@googlemail.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:42737
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751059AbcHKQOM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2016 12:14:12 -0400
+Subject: Re: [PATCH 2/8] [media] v4l2-async: call registered_async after
+ subdev registration
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <1454699398-8581-1-git-send-email-javier@osg.samsung.com>
+ <1454699398-8581-3-git-send-email-javier@osg.samsung.com>
+ <20160811111042.GQ3182@valkosipuli.retiisi.org.uk>
+ <20160811111817.GS3182@valkosipuli.retiisi.org.uk>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Message-ID: <7c4b87b3-38e9-6b4e-730e-d65b0d72dd1d@osg.samsung.com>
+Date: Thu, 11 Aug 2016 12:14:01 -0400
+MIME-Version: 1.0
+In-Reply-To: <20160811111817.GS3182@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Newer Amlogic platforms (Meson 8b and GXBB) use a slightly different
-register layout for their Infrared Remoete Controller. The decoder mode
-is now configured in another register. Without the changes to the
-meson-ir driver we are simply getting incorrect "durations" reported
-from the hardware (because the hardware is not in time measurement aka
-software decode mode).
+Hello Sakari,
 
-This problem was also noticed by some people trying to use this on an
-ODROID-C1 and ODROID-C2 - the workaround there (probably because the
-datasheets were not publicy available yet at that time) was to switch
-to ir_raw_event_store_edge (which leaves it up to the kernel to measure
-the duration of a pulse). See [0] and [1] for the corresponding
-patches.
+Thanks a lot for your feedback.
 
-Changes in v5:
-- changed pin function and group names to remote_input_ao so they match
-  with the datasheet
+On 08/11/2016 07:18 AM, Sakari Ailus wrote:
+> On Thu, Aug 11, 2016 at 02:10:43PM +0300, Sakari Ailus wrote:
 
+[snip]
 
-Tested-by: Neil Armstrong <narmstrong@baylibre.com>
+>>>  
+>>> +	ret = v4l2_subdev_call(sd, core, registered_async);
+>>> +	if (ret < 0) {
+>>> +		if (notifier->unbind)
+>>> +			notifier->unbind(notifier, sd, asd);
+>>> +		return ret;
+>>> +	}
+>>> +
+>>>  	if (list_empty(&notifier->waiting) && notifier->complete)
+>>>  		return notifier->complete(notifier);
+>>
+>> I noticed this just now but what do you need this and the next patch for?
+>>
+>> We already have a callback for the same purpose: it's
+>> v4l2_subdev_ops.internal_ops.registered(). And there's similar
+>> unregistered() callback as well.
+>>
 
+Oh, I missed we already had those calls. When adding the connector
+support, I looked at struct v4l2_subdev_core_ops and didn't find a
+callback that fit but didn't notice we already had a .registered()
+in struct struct v4l2_subdev_internal_ops. Sorry about that...
 
-[0] https://github.com/erdoukki/linux-amlogic-1/commit/969b2e2242fb14a13cb651f9a1cf771b599c958b
-[1] http://forum.odroid.com/viewtopic.php?f=135&t=20504
+>> Could you use these callbacks instead?
 
+Yes, those can be used indeed. I'll post patches using that instead
+and removing the .registered_async callback since as you said isn't
+really needed.
 
-Martin Blumenstingl (3):
-  pinctrl: amlogic: gxbb: add the IR remote input pin
-  ARM64: dts: amlogic: add the input pin for the IR remote
-  ARM64: dts: meson-gxbb: Enable the the IR decoder on supported boards
-
-Neil Armstrong (3):
-  dt-bindings: media: meson-ir: Add Meson8b and GXBB compatible strings
-  media: rc: meson-ir: Add support for newer versions of the IR decoder
-  ARM64: dts: meson-gxbb: Add Infrared Remote Controller decoder
-
- .../devicetree/bindings/media/meson-ir.txt         |  5 +++-
- .../arm64/boot/dts/amlogic/meson-gxbb-odroidc2.dts |  6 +++++
- arch/arm64/boot/dts/amlogic/meson-gxbb-p20x.dtsi   |  6 +++++
- .../boot/dts/amlogic/meson-gxbb-vega-s95.dtsi      |  6 +++++
- arch/arm64/boot/dts/amlogic/meson-gxbb.dtsi        | 14 +++++++++++
- drivers/media/rc/meson-ir.c                        | 29 ++++++++++++++++++----
- drivers/pinctrl/meson/pinctrl-meson-gxbb.c         |  8 ++++++
- 7 files changed, 68 insertions(+), 6 deletions(-)
-
+Best regards,
 -- 
-2.9.3
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
