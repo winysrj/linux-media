@@ -1,86 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:35318 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932465AbcHCSEM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 14:04:12 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: lars@metafoo.de
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH v4 7/8] v4l: Add signal lock status to source change events
-Date: Wed,  3 Aug 2016 11:03:49 -0700
-Message-Id: <1470247430-11168-8-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54894 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751004AbcHKLKs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2016 07:10:48 -0400
+Date: Thu, 11 Aug 2016 14:10:43 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/8] [media] v4l2-async: call registered_async after
+ subdev registration
+Message-ID: <20160811111042.GQ3182@valkosipuli.retiisi.org.uk>
+References: <1454699398-8581-1-git-send-email-javier@osg.samsung.com>
+ <1454699398-8581-3-git-send-email-javier@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1454699398-8581-3-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a signal lock status change to the source changes bitmask.
-This indicates there was a signal lock or unlock event detected
-at the input of a video decoder.
+Hi Javier,
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On Fri, Feb 05, 2016 at 04:09:52PM -0300, Javier Martinez Canillas wrote:
+> V4L2 sub-devices might need to do initialization that depends on being
+> registered with a V4L2 device. As an example, sub-devices with Media
+> Controller support may need to register entities and create pad links.
+> 
+> Execute the registered_async callback after the sub-device has been
+> registered with the V4L2 device so the driver can do any needed init.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> ---
+> 
+>  drivers/media/v4l2-core/v4l2-async.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 5bada202b2d3..716bfd47daab 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -119,6 +119,13 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
+>  		return ret;
+>  	}
+>  
+> +	ret = v4l2_subdev_call(sd, core, registered_async);
+> +	if (ret < 0) {
+> +		if (notifier->unbind)
+> +			notifier->unbind(notifier, sd, asd);
+> +		return ret;
+> +	}
+> +
+>  	if (list_empty(&notifier->waiting) && notifier->complete)
+>  		return notifier->complete(notifier);
 
----
+I noticed this just now but what do you need this and the next patch for?
 
-v4:
-- converted to rst from DocBook
+We already have a callback for the same purpose: it's
+v4l2_subdev_ops.internal_ops.registered(). And there's similar
+unregistered() callback as well.
 
-v3: no changes
-v2: no changes
----
- Documentation/media/uapi/v4l/vidioc-dqevent.rst | 9 +++++++++
- Documentation/media/videodev2.h.rst.exceptions  | 1 +
- include/uapi/linux/videodev2.h                  | 1 +
- 3 files changed, 11 insertions(+)
+Could you use these callbacks instead?
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-dqevent.rst b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-index 73c0d5b..7d8a053 100644
---- a/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-@@ -564,6 +564,15 @@ call.
- 	  an input. This can come from an input connector or from a video
- 	  decoder.
- 
-+    -  .. row 2
-+
-+       -  ``V4L2_EVENT_SRC_CH_LOCK_STATUS``
-+
-+       -  0x0002
-+
-+       -  This event gets triggered when there is a signal lock or
-+	  unlock detected at the input of a video decoder.
-+
- 
- Return Value
- ============
-diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-index 9bb9a6c..f412cc8 100644
---- a/Documentation/media/videodev2.h.rst.exceptions
-+++ b/Documentation/media/videodev2.h.rst.exceptions
-@@ -453,6 +453,7 @@ replace define V4L2_EVENT_CTRL_CH_FLAGS ctrl-changes-flags
- replace define V4L2_EVENT_CTRL_CH_RANGE ctrl-changes-flags
- 
- replace define V4L2_EVENT_SRC_CH_RESOLUTION src-changes-flags
-+replace define V4L2_EVENT_SRC_CH_LOCK_STATUS src-changes-flags
- 
- replace define V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ v4l2-event-motion-det
- 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 724f43e..08a153f 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -2078,6 +2078,7 @@ struct v4l2_event_frame_sync {
- };
- 
- #define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
-+#define V4L2_EVENT_SRC_CH_LOCK_STATUS		(1 << 1)
- 
- struct v4l2_event_src_change {
- 	__u32 changes;
+What made me notice this is because the two patches break all other drivers
+that do not implement registered_async(). This would be fixed by your
+follow-up patch which is not merged, but the real question is: are these
+patches needed to begin with?
+
 -- 
-1.9.1
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
