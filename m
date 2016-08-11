@@ -1,58 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:54134 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752247AbcHNJqC (ORCPT
+Received: from exsmtp03.microchip.com ([198.175.253.49]:24344 "EHLO
+	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932310AbcHKHTi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Aug 2016 05:46:02 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Tiffany Lin <tiffany.lin@mediatek.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] for v4.8 mtk-vcodec: add HAS_DMA dependency
-Message-ID: <616ddb70-e1e4-0477-857a-a5ac4d77ffa8@xs4all.nl>
-Date: Sun, 14 Aug 2016 11:45:54 +0200
+	Thu, 11 Aug 2016 03:19:38 -0400
+From: Songjun Wu <songjun.wu@microchip.com>
+To: <nicolas.ferre@atmel.com>, <robh@kernel.org>
+CC: <laurent.pinchart@ideasonboard.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	Songjun Wu <songjun.wu@microchip.com>,
+	<devicetree@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH v9 2/2] [media] atmel-isc: DT binding for Image Sensor Controller driver
+Date: Thu, 11 Aug 2016 15:06:42 +0800
+Message-ID: <1470899202-13933-3-git-send-email-songjun.wu@microchip.com>
+In-Reply-To: <1470899202-13933-1-git-send-email-songjun.wu@microchip.com>
+References: <1470899202-13933-1-git-send-email-songjun.wu@microchip.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes this kbuild test robot error:
+DT binding documentation for ISC driver.
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
-head:   329f4152911c276b074bec75a0443f88821afdb7
-commit: c1023ba74fc77dc56dc317bd98f5060aab889ac1 [media] drivers/media/platform/Kconfig: fix VIDEO_MEDIATEK_VCODEC dependency
-date:   5 weeks ago
-config: m32r-allyesconfig (attached as .config)
-compiler: m32r-linux-gcc (GCC) 4.9.0
-reproduce:
-        wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        git checkout c1023ba74fc77dc56dc317bd98f5060aab889ac1
-        # save the attached .config to linux build tree
-        make.cross ARCH=m32r
-
-All errors (new ones prefixed by >>):
-
-   drivers/media/v4l2-core/videobuf2-dma-contig.c: In function 'vb2_dc_get_userptr':
->> >> drivers/media/v4l2-core/videobuf2-dma-contig.c:486:2: error: implicit declaration of function 'dma_get_cache_alignment' [-Werror=implicit-function-declaration]
-     unsigned long dma_align = dma_get_cache_alignment();
-     ^
-   cc1: some warnings being treated as errors
-
-This driver depends on HAS_DMA for dma_get_cache_alignment().
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
 ---
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index f25344b..552b635 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -169,7 +169,7 @@ config VIDEO_MEDIATEK_VPU
- config VIDEO_MEDIATEK_VCODEC
- 	tristate "Mediatek Video Codec driver"
- 	depends on MTK_IOMMU || COMPILE_TEST
--	depends on VIDEO_DEV && VIDEO_V4L2
-+	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
- 	depends on ARCH_MEDIATEK || COMPILE_TEST
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
+
+Changes in v9: None
+Changes in v8: None
+Changes in v7: None
+Changes in v6:
+- Add "iscck" and "gck" to clock-names.
+
+Changes in v5:
+- Add clock-output-names.
+
+Changes in v4:
+- Remove the isc clock nodes.
+
+Changes in v3:
+- Remove the 'atmel,sensor-preferred'.
+- Modify the isc clock node according to the Rob's remarks.
+
+Changes in v2:
+- Remove the unit address of the endpoint.
+- Add the unit address to the clock node.
+- Avoid using underscores in node names.
+- Drop the "0x" in the unit address of the i2c node.
+- Modify the description of 'atmel,sensor-preferred'.
+- Add the description for the ISC internal clock.
+
+ .../devicetree/bindings/media/atmel-isc.txt        | 65 ++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
+
+diff --git a/Documentation/devicetree/bindings/media/atmel-isc.txt b/Documentation/devicetree/bindings/media/atmel-isc.txt
+new file mode 100644
+index 0000000..bbe0e87c
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/atmel-isc.txt
+@@ -0,0 +1,65 @@
++Atmel Image Sensor Controller (ISC)
++----------------------------------------------
++
++Required properties for ISC:
++- compatible
++	Must be "atmel,sama5d2-isc".
++- reg
++	Physical base address and length of the registers set for the device.
++- interrupts
++	Should contain IRQ line for the ISC.
++- clocks
++	List of clock specifiers, corresponding to entries in
++	the clock-names property;
++	Please refer to clock-bindings.txt.
++- clock-names
++	Required elements: "hclock", "iscck", "gck".
++- #clock-cells
++	Should be 0.
++- clock-output-names
++	Should be "isc-mck".
++- pinctrl-names, pinctrl-0
++	Please refer to pinctrl-bindings.txt.
++
++ISC supports a single port node with parallel bus. It should contain one
++'port' child node with child 'endpoint' node. Please refer to the bindings
++defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++isc: isc@f0008000 {
++	compatible = "atmel,sama5d2-isc";
++	reg = <0xf0008000 0x4000>;
++	interrupts = <46 IRQ_TYPE_LEVEL_HIGH 5>;
++	clocks = <&isc_clk>, <&iscck>, <&isc_gclk>;
++	clock-names = "hclock", "iscck", "gck";
++	#clock-cells = <0>;
++	clock-output-names = "isc-mck";
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_isc_base &pinctrl_isc_data_8bit &pinctrl_isc_data_9_10 &pinctrl_isc_data_11_12>;
++
++	port {
++		isc_0: endpoint {
++			remote-endpoint = <&ov7740_0>;
++			hsync-active = <1>;
++			vsync-active = <0>;
++			pclk-sample = <1>;
++		};
++	};
++};
++
++i2c1: i2c@fc028000 {
++	ov7740: camera@21 {
++		compatible = "ovti,ov7740";
++		reg = <0x21>;
++		clocks = <&isc>;
++		clock-names = "xvclk";
++		assigned-clocks = <&isc>;
++		assigned-clock-rates = <24000000>;
++
++		port {
++			ov7740_0: endpoint {
++				remote-endpoint = <&isc_0>;
++			};
++		};
++	};
++};
+-- 
+2.7.4
+
