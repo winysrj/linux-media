@@ -1,155 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:36594 "EHLO
-	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768260AbcHROfq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2016 10:35:46 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Antti Palosaari <crope@iki.fi>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v5 07/12] [media] vivid: Introduce TPG_COLOR_ENC_LUMA
-Date: Thu, 18 Aug 2016 16:33:33 +0200
-Message-Id: <1471530818-7928-8-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from mga02.intel.com ([134.134.136.20]:36707 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752258AbcHKUaL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2016 16:30:11 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	mchehab@osg.samsung.com
+Subject: [PATCH v4 5/5] media: Support variable size IOCTL arguments
+Date: Thu, 11 Aug 2016 23:29:18 +0300
+Message-Id: <1470947358-31168-6-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1470947358-31168-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1470947358-31168-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simplifies handling of Gray formats.
+Maintain a list of supported IOCTL argument sizes and allow only those in
+the list.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+As an additional bonus, IOCTL handlers will be able to check whether the
+caller actually set (using the argument size) the field vs. assigning it
+to zero. Separate macro can be provided for that.
+
+This will be easier for applications as well since there is no longer the
+problem of setting the reserved fields zero, or at least it is a lesser
+problem.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/common/v4l2-tpg/v4l2-tpg-core.c   | 26 +++++++++++++++++++------
- drivers/media/platform/vivid/vivid-vid-common.c |  6 +++---
- include/media/v4l2-tpg.h                        |  1 +
- 3 files changed, 24 insertions(+), 9 deletions(-)
+ drivers/media/media-device.c | 56 ++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 51 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-index 0aeabe92ff32..920c8495f3dd 100644
---- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-+++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-@@ -234,10 +234,12 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
- 	case V4L2_PIX_FMT_XBGR32:
- 	case V4L2_PIX_FMT_ARGB32:
- 	case V4L2_PIX_FMT_ABGR32:
-+		tpg->color_enc = TGP_COLOR_ENC_RGB;
-+		break;
- 	case V4L2_PIX_FMT_GREY:
- 	case V4L2_PIX_FMT_Y16:
- 	case V4L2_PIX_FMT_Y16_BE:
--		tpg->color_enc = TGP_COLOR_ENC_RGB;
-+		tpg->color_enc = TGP_COLOR_ENC_LUMA;
- 		break;
- 	case V4L2_PIX_FMT_YUV444:
- 	case V4L2_PIX_FMT_YUV555:
-@@ -823,9 +825,9 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 		g <<= 4;
- 		b <<= 4;
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 6f565a2..aa37520 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -384,22 +384,36 @@ static long copy_arg_to_user(void __user *uarg, void *karg, unsigned int cmd)
+ /* Do acquire the graph mutex */
+ #define MEDIA_IOC_FL_GRAPH_MUTEX	BIT(0)
+ 
+-#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
++#define MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz, from_user, to_user)	\
+ 	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
+ 		.cmd = MEDIA_IOC_##__cmd,				\
+ 		.fn = (long (*)(struct media_device *, void *))func,	\
+ 		.flags = fl,						\
++		.alt_arg_sizes = alt_sz,				\
+ 		.arg_from_user = from_user,				\
+ 		.arg_to_user = to_user,					\
  	}
--	if (tpg->qual == TPG_QUAL_GRAY || tpg->fourcc == V4L2_PIX_FMT_GREY ||
--	    tpg->fourcc == V4L2_PIX_FMT_Y16 ||
--	    tpg->fourcc == V4L2_PIX_FMT_Y16_BE) {
+ 
+-#define MEDIA_IOC(__cmd, func, fl)					\
+-	MEDIA_IOC_ARG(__cmd, func, fl, copy_arg_from_user, copy_arg_to_user)
++#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
++	MEDIA_IOC_SZ_ARG(__cmd, func, fl, NULL, from_user, to_user)
 +
-+	if (tpg->qual == TPG_QUAL_GRAY ||
-+	    tpg->color_enc ==  TGP_COLOR_ENC_LUMA) {
- 		/* Rec. 709 Luma function */
- 		/* (0.2126, 0.7152, 0.0722) * (255 * 256) */
- 		r = g = b = (13879 * r + 46688 * g + 4713 * b) >> 16;
-@@ -865,8 +867,9 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 		b = (b - (16 << 4)) * 255 / 219;
- 	}
++#define MEDIA_IOC_SZ(__cmd, func, fl, alt_sz)			\
++	MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz,		\
++			 copy_arg_from_user, copy_arg_to_user)
++
++#define MEDIA_IOC(__cmd, func, fl)				\
++	MEDIA_IOC_ARG(__cmd, func, fl,				\
++		      copy_arg_from_user, copy_arg_to_user)
  
--	if (tpg->brightness != 128 || tpg->contrast != 128 ||
--	    tpg->saturation != 128 || tpg->hue) {
-+	if ((tpg->brightness != 128 || tpg->contrast != 128 ||
-+	     tpg->saturation != 128 || tpg->hue) &&
-+	    tpg->color_enc != TGP_COLOR_ENC_LUMA) {
- 		/* Implement these operations */
- 		int y, cb, cr;
- 		int tmp_cb, tmp_cr;
-@@ -892,6 +895,10 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 			return;
- 		}
- 		ycbcr_to_color(tpg, y, cb, cr, &r, &g, &b);
-+	} else if ((tpg->brightness != 128 || tpg->contrast != 128) &&
-+		   tpg->color_enc == TGP_COLOR_ENC_LUMA) {
-+		r = (16 << 4) + ((r - (16 << 4)) * tpg->contrast) / 128;
-+		r += (tpg->brightness << 4) - (128 << 4);
- 	}
- 
- 	switch (tpg->color_enc) {
-@@ -942,6 +949,11 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 		tpg->colors[k][2] = cr;
- 		break;
- 	}
-+	case TGP_COLOR_ENC_LUMA:
-+	{
-+		tpg->colors[k][0] = r >> 4;
-+		break;
-+	}
- 	case TGP_COLOR_ENC_RGB:
- 	{
- 		if (tpg->real_quantization == V4L2_QUANTIZATION_LIM_RANGE) {
-@@ -1983,6 +1995,8 @@ static const char *tpg_color_enc_str(enum tgp_color_enc
- 		return "HSV";
- 	case TGP_COLOR_ENC_YCBCR:
- 		return "Y'CbCr";
-+	case TGP_COLOR_ENC_LUMA:
-+		return "Luma";
- 	case TGP_COLOR_ENC_RGB:
- 	default:
- 		return "R'G'B";
-diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
-index 20822b5111b3..e0df44151461 100644
---- a/drivers/media/platform/vivid/vivid-vid-common.c
-+++ b/drivers/media/platform/vivid/vivid-vid-common.c
-@@ -184,7 +184,7 @@ struct vivid_fmt vivid_formats[] = {
- 		.fourcc   = V4L2_PIX_FMT_GREY,
- 		.vdownsampling = { 1 },
- 		.bit_depth = { 8 },
--		.color_enc = TGP_COLOR_ENC_YCBCR,
-+		.color_enc = TGP_COLOR_ENC_LUMA,
- 		.planes   = 1,
- 		.buffers = 1,
- 	},
-@@ -192,7 +192,7 @@ struct vivid_fmt vivid_formats[] = {
- 		.fourcc   = V4L2_PIX_FMT_Y16,
- 		.vdownsampling = { 1 },
- 		.bit_depth = { 16 },
--		.color_enc = TGP_COLOR_ENC_YCBCR,
-+		.color_enc = TGP_COLOR_ENC_LUMA,
- 		.planes   = 1,
- 		.buffers = 1,
- 	},
-@@ -200,7 +200,7 @@ struct vivid_fmt vivid_formats[] = {
- 		.fourcc   = V4L2_PIX_FMT_Y16_BE,
- 		.vdownsampling = { 1 },
- 		.bit_depth = { 16 },
--		.color_enc = TGP_COLOR_ENC_YCBCR,
-+		.color_enc = TGP_COLOR_ENC_LUMA,
- 		.planes   = 1,
- 		.buffers = 1,
- 	},
-diff --git a/include/media/v4l2-tpg.h b/include/media/v4l2-tpg.h
-index 4a40f9b79053..8abed92317e8 100644
---- a/include/media/v4l2-tpg.h
-+++ b/include/media/v4l2-tpg.h
-@@ -91,6 +91,7 @@ enum tgp_color_enc {
- 	TGP_COLOR_ENC_RGB,
- 	TGP_COLOR_ENC_YCBCR,
- 	TGP_COLOR_ENC_HSV,
-+	TGP_COLOR_ENC_LUMA,
+ /* the table is indexed by _IOC_NR(cmd) */
+ struct media_ioctl_info {
+ 	unsigned int cmd;
+ 	unsigned short flags;
++	/*
++	 * Sizes of the alternative arguments. If there are none, this
++	 * pointer is NULL.
++	 */
++	const unsigned short *alt_arg_sizes;
+ 	long (*fn)(struct media_device *dev, void *arg);
+ 	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
+ 	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
+@@ -413,11 +427,40 @@ static const struct media_ioctl_info ioctl_info[] = {
+ 	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
  };
  
- extern const char * const tpg_aspect_strings[];
++#define MASK_IOC_SIZE(cmd) \
++	((cmd) & ~(_IOC_SIZEMASK << _IOC_SIZESHIFT))
++
+ static inline long is_valid_ioctl(const struct media_ioctl_info *info,
+ 				  unsigned int cmd)
+ {
+-	return (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
+-		|| info[_IOC_NR(cmd)].cmd != cmd) ? -ENOIOCTLCMD : 0;
++	const unsigned short *alt_arg_sizes;
++
++	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info))
++		return -ENOIOCTLCMD;
++
++	info += _IOC_NR(cmd);
++
++	if (info->cmd == cmd)
++		return 0;
++
++	/*
++	 * Verify that the size-dependent patch of the IOCTL command
++	 * matches and that the size does not exceed the principal
++	 * argument size.
++	 */
++	if (MASK_IOC_SIZE(info->cmd) != MASK_IOC_SIZE(cmd)
++	    || _IOC_SIZE(info->cmd) < _IOC_SIZE(cmd))
++		return -ENOIOCTLCMD;
++
++	alt_arg_sizes = info->alt_arg_sizes;
++	if (!alt_arg_sizes)
++		return -ENOIOCTLCMD;
++
++	for (; *alt_arg_sizes; alt_arg_sizes++)
++		if (_IOC_SIZE(cmd) == *alt_arg_sizes)
++			return 0;
++
++	return -ENOIOCTLCMD;
+ }
+ 
+ static long __media_device_ioctl(
+@@ -448,6 +491,9 @@ static long __media_device_ioctl(
+ 			goto out_free;
+ 	}
+ 
++	/* Set the rest of the argument struct to zero */
++	memset(karg + _IOC_SIZE(cmd), 0, _IOC_SIZE(info->cmd) - _IOC_SIZE(cmd));
++
+ 	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
+ 		mutex_lock(&dev->graph_mutex);
+ 
 -- 
-2.8.1
+2.7.4
 
