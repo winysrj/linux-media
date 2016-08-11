@@ -1,64 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cloudserver096301.home.net.pl ([79.96.179.35]:60829 "HELO
-	cloudserver096301.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751059AbcHFWV3 (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:38698 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751722AbcHKUSd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Aug 2016 18:21:29 -0400
-Date: Sat, 6 Aug 2016 17:14:46 +0200
-From: Piotr =?iso-8859-1?Q?Kr=F3l?= <piotr.krol@3mdeb.com>
-To: Bastiaan van den Berg <buzztiaan@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	"linux-sunxi@googlegroups.com" <linux-sunxi@googlegroups.com>,
-	Thomas Johnson <tjohnson@motionfigures.com>,
-	George Saliba <grgsaliba@gmail.com>
-Subject: Re: [linux-sunxi] uvcvideo: Failed to submit URB 0 (-28) with Cam
- Sync HD VF0770 (041e:4095)
-Message-ID: <20160806151446.gyrtri4pphpasaoj@haysend>
-References: <20160806140022.rgy6f63xtx6667lg@haysend>
- <CACLj26K4UC9rAdgm-AF_6qcuSxrLoTRBNaqvsu-gbGP2MNJwRQ@mail.gmail.com>
+	Thu, 11 Aug 2016 16:18:33 -0400
+Date: Thu, 11 Aug 2016 16:18:31 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+cc: Wade Berrier <wberrier@gmail.com>, Sean Young <sean@mess.org>,
+	<linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>
+Subject: Re: mceusb xhci issue?
+In-Reply-To: <Pine.LNX.4.44L0.1607121150390.1900-100000@iolanthe.rowland.org>
+Message-ID: <Pine.LNX.4.44L0.1608111617100.1381-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CACLj26K4UC9rAdgm-AF_6qcuSxrLoTRBNaqvsu-gbGP2MNJwRQ@mail.gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 06, 2016 at 04:05:04PM +0200, Bastiaan van den Berg wrote:
+I never received any replies to this message.  Should the patch I 
+suggested be merged?
 
-Hi Bastiaan,
+Alan Stern
 
-> First google hit on actual error suggests the 'out of space' is a way to denote
-> bandwidth limitation
-> it also has a workaround
+
+On Tue, 12 Jul 2016, Alan Stern wrote:
+
+> On Sat, 9 Jul 2016, Mauro Carvalho Chehab wrote:
 > 
-> http://answers.ros.org/question/12582/usb_cam-vidioc_streamon-error-28/
+> > C/C linux-usb Mailing list:
+> > 
+> > 
+> > Em Wed, 18 May 2016 08:52:28 -0600
+> > Wade Berrier <wberrier@gmail.com> escreveu:
+> 
+> ...
+> 
+> > > > That message above links to some other threads describing the issue.
+> > > > Here's a post with a patch that supposedly works:
+> > > > 
+> > > > http://www.gossamer-threads.com/lists/mythtv/users/587930
+> > > > 
+> > > > No idea if that's the "correct" way to fix this.
+> > > > 
+> > > > I'll be trying that out and then report back...  
+> > > 
+> > > Indeed, this patch does fix the issue:
+> > > 
+> > > ----------------------
+> > > 
+> > > diff --git a/drivers/usb/core/config.c b/drivers/usb/core/config.c
+> > > index 31ccdcc..03321d4 100644
+> > > --- a/drivers/usb/core/config.c
+> > > +++ b/drivers/usb/core/config.c
+> > > @@ -247,7 +247,7 @@ static int usb_parse_endpoint(struct device *ddev, int cfgno, int inum,
+> > >  			/* For low-speed, 10 ms is the official minimum.
+> > >  			 * But some "overclocked" devices might want faster
+> > >  			 * polling so we'll allow it. */
+> > > -			n = 32;
+> > > +			n = 10;
+> > >  			break;
+> > >  		}
+> > >  	} else if (usb_endpoint_xfer_isoc(d)) {
+> > > 
+> > > 
+> > > ----------------------
+> > > 
+> > > Is this change appropriate to be pushed upstream?  Where to go from
+> > > here?
+> > 
+> > This issue is at the USB core. So, it should be reported to the
+> > linux-usb mailing list. 
+> > 
+> > The people there should help about how to proceed to get this
+> > fixed upstream.
+> 
+> Here's a proper version of that patch.  If this is okay, it can be 
+> merged.
+> 
+> Alan Stern
+> 
+> 
+> 
+> Index: usb-4.x/drivers/usb/core/config.c
+> ===================================================================
+> --- usb-4.x.orig/drivers/usb/core/config.c
+> +++ usb-4.x/drivers/usb/core/config.c
+> @@ -213,8 +213,10 @@ static int usb_parse_endpoint(struct dev
+>  	memcpy(&endpoint->desc, d, n);
+>  	INIT_LIST_HEAD(&endpoint->urb_list);
+>  
+> -	/* Fix up bInterval values outside the legal range. Use 32 ms if no
+> -	 * proper value can be guessed. */
+> +	/*
+> +	 * Fix up bInterval values outside the legal range.
+> +	 * Use 10 or 8 ms if no proper value can be guessed.
+> +	 */
+>  	i = 0;		/* i = min, j = max, n = default */
+>  	j = 255;
+>  	if (usb_endpoint_xfer_int(d)) {
+> @@ -223,13 +225,15 @@ static int usb_parse_endpoint(struct dev
+>  		case USB_SPEED_SUPER_PLUS:
+>  		case USB_SPEED_SUPER:
+>  		case USB_SPEED_HIGH:
+> -			/* Many device manufacturers are using full-speed
+> +			/*
+> +			 * Many device manufacturers are using full-speed
+>  			 * bInterval values in high-speed interrupt endpoint
+>  			 * descriptors. Try to fix those and fall back to a
+> -			 * 32 ms default value otherwise. */
+> +			 * 8 ms default value otherwise.
+> +			 */
+>  			n = fls(d->bInterval*8);
+>  			if (n == 0)
+> -				n = 9;	/* 32 ms = 2^(9-1) uframes */
+> +				n = 7;	/* 8 ms = 2^(7-1) uframes */
+>  			j = 16;
+>  
+>  			/*
+> @@ -247,7 +251,7 @@ static int usb_parse_endpoint(struct dev
+>  			/* For low-speed, 10 ms is the official minimum.
+>  			 * But some "overclocked" devices might want faster
+>  			 * polling so we'll allow it. */
+> -			n = 32;
+> +			n = 10;
+>  			break;
+>  		}
+>  	} else if (usb_endpoint_xfer_isoc(d)) {
+> @@ -255,10 +259,10 @@ static int usb_parse_endpoint(struct dev
+>  		j = 16;
+>  		switch (to_usb_device(ddev)->speed) {
+>  		case USB_SPEED_HIGH:
+> -			n = 9;		/* 32 ms = 2^(9-1) uframes */
+> +			n = 7;		/* 8 ms = 2^(7-1) uframes */
+>  			break;
+>  		default:		/* USB_SPEED_FULL */
+> -			n = 6;		/* 32 ms = 2^(6-1) frames */
+> +			n = 4;		/* 8 ms = 2^(4-1) frames */
+>  			break;
+>  		}
+>  	}
 
-Apparently my goole results are not tweaked well for UVC issues. Thanks
-for this link.
 
-Unfortunately this doesn't help. Full test log can be found here [1].
-
-I assume this log mean quirk was applied correctly:
-# modprobe uvcvideo quirks=128
-[   63.137035] uvcvideo: Found UVC 1.00 device Live! Cam Sync HD VF0770 (041e:4095)
-[   63.144561] uvcvideo: Forcing device quirks to 0x80 by module parameter for testing purpose.
-[   63.152987] uvcvideo: Please report required quirks to the linux-uvc-devel mailing list.
-[   63.172943] input: Live! Cam Sync HD VF0770 as /devices/platform/soc@01c00000/1c13000.usb/musb-hdrc.1.auto/usb5/5-1/5-1.2/5-1.2:1.0/input/input1
-[   63.186367] usbcore: registered new interface driver uvcvideo
-[   63.192113] USB Video Class driver (1.1.1)
-
-# v4l2grab -d /dev/video0 -o image.jpg
-[   78.631747] uvcvideo: Failed to submit URB 0 (-28).
-libv4l2: error turning on stream: No space left on device
-VIDIOC_STREAMON error 28, No space left on device
-
-Maybe I should cc linux-uvc-devel as mention in log ?
-
-[1] http://paste.ubuntu.com/22455180/
-
--- 
-Best Regards,
-Piotr Król
-Embedded Systems Consultant
-http://3mdeb.com | @3mdeb_com
