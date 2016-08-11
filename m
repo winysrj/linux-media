@@ -1,25 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:53038 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756559AbcHaHnm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Aug 2016 03:43:42 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id EC52D202BC
-        for <linux-media@vger.kernel.org>; Wed, 31 Aug 2016 10:43:00 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/5] smiapp cleanups, retry probe if getting clock fails
-Date: Wed, 31 Aug 2016 10:42:00 +0300
-Message-Id: <1472629325-30875-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from www.zeus03.de ([194.117.254.33]:56203 "EHLO mail.zeus03.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932430AbcHKVLR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2016 17:11:17 -0400
+From: Wolfram Sang <wsa-dev@sang-engineering.com>
+To: linux-usb@vger.kernel.org
+Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 06/28] media: usb: as102: as102_usb_drv: don't print error when allocating urb fails
+Date: Thu, 11 Aug 2016 23:03:42 +0200
+Message-Id: <1470949451-24823-7-git-send-email-wsa-dev@sang-engineering.com>
+In-Reply-To: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
+References: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+kmalloc will print enough information in case of failure.
 
-These patches contain cleanups for the smiapp driver and return
--EPROBE_DEFER if getting the clock fails.
+Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
+---
+ drivers/media/usb/as102/as102_usb_drv.c | 2 --
+ 1 file changed, 2 deletions(-)
 
+diff --git a/drivers/media/usb/as102/as102_usb_drv.c b/drivers/media/usb/as102/as102_usb_drv.c
+index 0e8030c071b8e7..68c3a80ce349b7 100644
+--- a/drivers/media/usb/as102/as102_usb_drv.c
++++ b/drivers/media/usb/as102/as102_usb_drv.c
+@@ -270,8 +270,6 @@ static int as102_alloc_usb_stream_buffer(struct as102_dev_t *dev)
+ 
+ 		urb = usb_alloc_urb(0, GFP_ATOMIC);
+ 		if (urb == NULL) {
+-			dev_dbg(&dev->bus_adap.usb_dev->dev,
+-				"%s: usb_alloc_urb failed\n", __func__);
+ 			as102_free_usb_stream_buffer(dev);
+ 			return -ENOMEM;
+ 		}
 -- 
-Kind regards,
-Sakari
+2.8.1
 
