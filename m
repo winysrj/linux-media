@@ -1,97 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:55322 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751156AbcHANnj (ORCPT
+Received: from mail-wm0-f53.google.com ([74.125.82.53]:38075 "EHLO
+	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751722AbcHKMbs convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Aug 2016 09:43:39 -0400
-Subject: Re: [RFC PATCH] serio: add hangup support
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-References: <287a7f88-5d45-bb45-c98e-22a2313ab780@xs4all.nl>
- <20160715163119.GA27847@dtor-ws>
-Cc: linux-input <linux-input@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Pavel Machek <pavel@ucw.cz>, Vojtech Pavlik <vojtech@suse.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <fcdd38a6-52f3-3c01-d99f-3a978bfac512@xs4all.nl>
-Date: Mon, 1 Aug 2016 15:43:32 +0200
+	Thu, 11 Aug 2016 08:31:48 -0400
+Received: by mail-wm0-f53.google.com with SMTP id o80so12904051wme.1
+        for <linux-media@vger.kernel.org>; Thu, 11 Aug 2016 05:31:47 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20160715163119.GA27847@dtor-ws>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <87twerv86p.fsf@intel.com>
+References: <1470912480-32304-1-git-send-email-sumit.semwal@linaro.org>
+ <1470912480-32304-4-git-send-email-sumit.semwal@linaro.org> <87twerv86p.fsf@intel.com>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Thu, 11 Aug 2016 18:01:25 +0530
+Message-ID: <CAO_48GHSFkOjtV0EaAmP_aU9U3AQU62=QPTdopNOfE2v+vSSRg@mail.gmail.com>
+Subject: Re: [RFC 3/4] Documentation: move dma-buf documentation to rst
+To: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	linux-doc@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	corbet@lwn.net
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello Jani,
 
-
-On 07/15/2016 06:31 PM, Dmitry Torokhov wrote:
-> Hi Hans,
-> 
-> On Fri, Jul 15, 2016 at 01:27:21PM +0200, Hans Verkuil wrote:
->> For the upcoming 4.8 kernel I made a driver for the Pulse-Eight USB CEC adapter.
->> This is a usb device that shows up as a ttyACM0 device. It requires that you run
->> inputattach in order to communicate with it via serio.
->>
->> This all works well, but it would be nice to have a udev rule to automatically
->> start inputattach. That too works OK, but the problem comes when the USB device
->> is unplugged: the tty hangup is never handled by the serio framework so the
->> inputattach utility never exits and you have to kill it manually.
->>
->> By adding this hangup callback the inputattach utility now exists as soon as I
->> unplug the USB device.
->>
->> Is this the correct approach?
->>
->> BTW, the new driver is found here:
->>
->> https://git.linuxtv.org/media_tree.git/tree/drivers/staging/media/pulse8-cec
->>
->> Regards,
->>
->> 	Hans
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> ---
->> diff --git a/drivers/input/serio/serport.c b/drivers/input/serio/serport.c
->> index 9c927d3..a615846 100644
->> --- a/drivers/input/serio/serport.c
->> +++ b/drivers/input/serio/serport.c
->> @@ -248,6 +248,14 @@ static long serport_ldisc_compat_ioctl(struct tty_struct *tty,
->>  }
->>  #endif
->>
->> +static int serport_ldisc_hangup(struct tty_struct * tty)
->> +{
->> +	struct serport *serport = (struct serport *) tty->disc_data;
+On 11 August 2016 at 17:17, Jani Nikula <jani.nikula@linux.intel.com> wrote:
+> On Thu, 11 Aug 2016, Sumit Semwal <sumit.semwal@linaro.org> wrote:
+>> diff --git a/Documentation/dma-buf/guide.rst b/Documentation/dma-buf/guide.rst
+>> new file mode 100644
+>> index 000000000000..fd3534fdccb3
+>> --- /dev/null
+>> +++ b/Documentation/dma-buf/guide.rst
+>> @@ -0,0 +1,503 @@
 >> +
->> +	serport_serio_close(serport->serio);
-> 
-> I see what you mean, but this is not quite correct. I think we should
-> make serport_serio_close() only reset the SERPORT_ACTIVE flag and have
-> serport_ldisc_hangup() actually do:
-> 
-> 	spin_lock_irqsave(&serport->lock, flags);
-> 	set_bit(SERPORT_DEAD, &serport->flags);
-> 	spin_unlock_irqrestore(&serport->lock, flags);
-> 
-> 	wake_up_interruptible(&serport->wait);
+>> +.. _dma-buf-guide:
+>> +
+>> +============================
+>> +DMA Buffer Sharing API Guide
+>> +============================
+>> +
+>> +Sumit Semwal - sumit.semwal@linaro.org, sumits@kernel.org
+>
+> Please use the format
+>
+> :author: Sumit Semwal <sumit.semwal@linaro.org>
+>
+Thanks very much for reviewing!
+> ---
+>
+> While on this subject, please excuse me for hijacking the thread a bit.
+>
+> Personally, I believe it would be better to leave out authorship notes
+> from documentation and source files in collaborative projects. Of
+> course, it is only fair that people who deserve credit get the
+> credit. Listing the authors in the file is often the natural thing to
+> do, and superficially seems fair.
+>
+> However, when do you add more names to the list? When has someone
+> contributed enough to warrant that? Is it fair that the original authors
+> keep getting the credit for the contributions of others? After a while,
+> perhaps there is next to nothing left of the original contributions, but
+> the bar is really high for removing anyone from the authors. Listing the
+> authors gives the impression this is *their* file, while everyone should
+> feel welcome to contribute, and everyone who contributes should feel
+> ownership.
+>
+> IMHO we would be better off using just the git history for the credits.
+>
+:) - I totally agree with your stand; this patch was an (almost)
+direct conversion from the earlier format, hence this patch.
 
-I'm preparing a v2 of this patch, but I wonder if in this hangup code
-I also need to clear the SERPORT_ACTIVE flag. Or is it guaranteed that
-close() always precedes hangup()? In which case close() always clears that
-flag.
+But yes, I will remove it in the next iteration.
+>
+> BR,
+> Jani.
+>
+>
+BR,
+Sumit.
 
-Regards,
+> PS. I am no saint here, I've got a couple of authors lines myself. I
+> promise not to add more. I certainly won't chastise anyone for adding
+> theirs.
+>
+>
+> --
+> Jani Nikula, Intel Open Source Technology Center
 
-	Hans
 
-> 
-> i.e. if user (via device-driver - input core - evdev - userspace chain)
-> stops using serio port we should not kill inputattach instance right
-> then and there, but wait for the serial port device disconnect or
-> something else killing inputattach.
-> 
-> Vojtech, do you recall any of this code?
-> 
-> Thanks.
-> 
+
+-- 
+Thanks and regards,
+
+Sumit Semwal
+Linaro Mobile Group - Kernel Team Lead
+Linaro.org │ Open source software for ARM SoCs
