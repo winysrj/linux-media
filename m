@@ -1,45 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:40451 "EHLO smtp3-1.goneo.de"
+Received: from www.zeus03.de ([194.117.254.33]:56218 "EHLO mail.zeus03.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752696AbcHMONe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Aug 2016 10:13:34 -0400
-From: Markus Heiser <markus.heiser@darmarit.de>
-To: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jani Nikula <jani.nikula@intel.com>
-Cc: Markus Heiser <markus.heiser@darmarIT.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 4/7] doc-rst: add stand-alone conf.py to gpu folder
-Date: Sat, 13 Aug 2016 16:12:45 +0200
-Message-Id: <1471097568-25990-5-git-send-email-markus.heiser@darmarit.de>
-In-Reply-To: <1471097568-25990-1-git-send-email-markus.heiser@darmarit.de>
-References: <1471097568-25990-1-git-send-email-markus.heiser@darmarit.de>
+	id S932484AbcHKVLU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2016 17:11:20 -0400
+From: Wolfram Sang <wsa-dev@sang-engineering.com>
+To: linux-usb@vger.kernel.org
+Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 09/28] media: usb: cx231xx: cx231xx-audio: don't print error when allocating urb fails
+Date: Thu, 11 Aug 2016 23:03:45 +0200
+Message-Id: <1470949451-24823-10-git-send-email-wsa-dev@sang-engineering.com>
+In-Reply-To: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
+References: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Heiser <markus.heiser@darmarIT.de>
+kmalloc will print enough information in case of failure.
 
-With the gpu/conf.py, the gpu folder can be build and distributed
-stand-alone. To compile only the html of 'gpu' folder use::
-
-  make SPHINXDIRS="gpu" htmldocs
-
-Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
+Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
 ---
- Documentation/gpu/conf.py | 3 +++
- 1 file changed, 3 insertions(+)
- create mode 100644 Documentation/gpu/conf.py
+ drivers/media/usb/cx231xx/cx231xx-audio.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/Documentation/gpu/conf.py b/Documentation/gpu/conf.py
-new file mode 100644
-index 0000000..d60bcd0
---- /dev/null
-+++ b/Documentation/gpu/conf.py
-@@ -0,0 +1,3 @@
-+# -*- coding: utf-8; mode: python -*-
-+
-+project = "Linux GPU Driver Developer's Guide"
+diff --git a/drivers/media/usb/cx231xx/cx231xx-audio.c b/drivers/media/usb/cx231xx/cx231xx-audio.c
+index a6a9508418f8ee..4cd5fa91612f62 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-audio.c
++++ b/drivers/media/usb/cx231xx/cx231xx-audio.c
+@@ -293,7 +293,6 @@ static int cx231xx_init_audio_isoc(struct cx231xx *dev)
+ 		memset(dev->adev.transfer_buffer[i], 0x80, sb_size);
+ 		urb = usb_alloc_urb(CX231XX_ISO_NUM_AUDIO_PACKETS, GFP_ATOMIC);
+ 		if (!urb) {
+-			dev_err(dev->dev, "usb_alloc_urb failed!\n");
+ 			for (j = 0; j < i; j++) {
+ 				usb_free_urb(dev->adev.urb[j]);
+ 				kfree(dev->adev.transfer_buffer[j]);
+@@ -355,7 +354,6 @@ static int cx231xx_init_audio_bulk(struct cx231xx *dev)
+ 		memset(dev->adev.transfer_buffer[i], 0x80, sb_size);
+ 		urb = usb_alloc_urb(CX231XX_NUM_AUDIO_PACKETS, GFP_ATOMIC);
+ 		if (!urb) {
+-			dev_err(dev->dev, "usb_alloc_urb failed!\n");
+ 			for (j = 0; j < i; j++) {
+ 				usb_free_urb(dev->adev.urb[j]);
+ 				kfree(dev->adev.transfer_buffer[j]);
 -- 
-2.7.4
+2.8.1
 
