@@ -1,104 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54122 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754705AbcHZXop (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Aug 2016 19:44:45 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v3 10/21] media: Shuffle functions around
-Date: Sat, 27 Aug 2016 02:43:18 +0300
-Message-Id: <1472255009-28719-11-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from www.zeus03.de ([194.117.254.33]:56307 "EHLO mail.zeus03.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932700AbcHKVLd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2016 17:11:33 -0400
+From: Wolfram Sang <wsa-dev@sang-engineering.com>
+To: linux-usb@vger.kernel.org
+Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 27/28] media: usb: usbvision: usbvision-core: don't print error when allocating urb fails
+Date: Thu, 11 Aug 2016 23:04:03 +0200
+Message-Id: <1470949451-24823-28-git-send-email-wsa-dev@sang-engineering.com>
+In-Reply-To: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
+References: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the call paths of the functions in question will change, move them
-around in anticipation of that. No other changes.
+kmalloc will print enough information in case of failure.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
 ---
- drivers/media/media-device.c | 56 ++++++++++++++++++++++----------------------
- 1 file changed, 28 insertions(+), 28 deletions(-)
+ drivers/media/usb/usbvision/usbvision-core.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 9765031..3b96de5 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -662,6 +662,34 @@ void media_device_unregister_entity(struct media_entity *entity)
- }
- EXPORT_SYMBOL_GPL(media_device_unregister_entity);
+diff --git a/drivers/media/usb/usbvision/usbvision-core.c b/drivers/media/usb/usbvision/usbvision-core.c
+index 52ac4391582c49..c23bf73a68ea97 100644
+--- a/drivers/media/usb/usbvision/usbvision-core.c
++++ b/drivers/media/usb/usbvision/usbvision-core.c
+@@ -2303,11 +2303,8 @@ int usbvision_init_isoc(struct usb_usbvision *usbvision)
+ 		struct urb *urb;
  
-+int __must_check media_device_register_entity_notify(struct media_device *mdev,
-+					struct media_entity_notify *nptr)
-+{
-+	mutex_lock(&mdev->graph_mutex);
-+	list_add_tail(&nptr->list, &mdev->entity_notify);
-+	mutex_unlock(&mdev->graph_mutex);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(media_device_register_entity_notify);
-+
-+/*
-+ * Note: Should be called with mdev->lock held.
-+ */
-+static void __media_device_unregister_entity_notify(struct media_device *mdev,
-+					struct media_entity_notify *nptr)
-+{
-+	list_del(&nptr->list);
-+}
-+
-+void media_device_unregister_entity_notify(struct media_device *mdev,
-+					struct media_entity_notify *nptr)
-+{
-+	mutex_lock(&mdev->graph_mutex);
-+	__media_device_unregister_entity_notify(mdev, nptr);
-+	mutex_unlock(&mdev->graph_mutex);
-+}
-+EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
-+
- /**
-  * media_device_init() - initialize a media device
-  * @mdev:	The media device
-@@ -745,34 +773,6 @@ out_put:
- }
- EXPORT_SYMBOL_GPL(__media_device_register);
- 
--int __must_check media_device_register_entity_notify(struct media_device *mdev,
--					struct media_entity_notify *nptr)
--{
--	mutex_lock(&mdev->graph_mutex);
--	list_add_tail(&nptr->list, &mdev->entity_notify);
--	mutex_unlock(&mdev->graph_mutex);
--	return 0;
--}
--EXPORT_SYMBOL_GPL(media_device_register_entity_notify);
--
--/*
-- * Note: Should be called with mdev->lock held.
-- */
--static void __media_device_unregister_entity_notify(struct media_device *mdev,
--					struct media_entity_notify *nptr)
--{
--	list_del(&nptr->list);
--}
--
--void media_device_unregister_entity_notify(struct media_device *mdev,
--					struct media_entity_notify *nptr)
--{
--	mutex_lock(&mdev->graph_mutex);
--	__media_device_unregister_entity_notify(mdev, nptr);
--	mutex_unlock(&mdev->graph_mutex);
--}
--EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
--
- void media_device_unregister(struct media_device *mdev)
- {
- 	struct media_entity *entity;
+ 		urb = usb_alloc_urb(USBVISION_URB_FRAMES, GFP_KERNEL);
+-		if (urb == NULL) {
+-			dev_err(&usbvision->dev->dev,
+-				"%s: usb_alloc_urb() failed\n", __func__);
++		if (urb == NULL)
+ 			return -ENOMEM;
+-		}
+ 		usbvision->sbuf[buf_idx].urb = urb;
+ 		usbvision->sbuf[buf_idx].data =
+ 			usb_alloc_coherent(usbvision->dev,
 -- 
-2.1.4
+2.8.1
 
