@@ -1,72 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:54347 "EHLO
-	smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932369AbcHOPHS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 11:07:18 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
-	hverkuil@xs4all.nl
-Cc: linux-renesas-soc@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com,
-	sergei.shtylyov@cogentembedded.com,
-	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv3 06/10] [media] rcar-vin: do not use v4l2_device_call_until_err()
-Date: Mon, 15 Aug 2016 17:06:31 +0200
-Message-Id: <20160815150635.22637-7-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-dm3nam03on0081.outbound.protection.outlook.com ([104.47.41.81]:54430
+	"EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752059AbcHKGnM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2016 02:43:12 -0400
+From: Liu Ying <gnuiyl@gmail.com>
+To: <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 1/3] [media] media-entity.h: Correct KernelDoc of media_entity_enum_empty()
+Date: Thu, 11 Aug 2016 13:10:09 +0800
+Message-ID: <1470892211-31387-1-git-send-email-gnuiyl@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix a error from the original driver where v4l2_device_call_until_err()
-where used for the pad specific v4l2 operation set_fmt.  Also fix up the
-error path from this fix so if there is an error it will be propagated
-to the caller.
+The function media_entity_enum_empty() returns true when the bitmap
+of the input parameter media entity enumeration is empty instead of marked.
+This patch corrects the return value description of the function.
 
-The error path label have also been renamed as a result from a
-nitpicking review comment since we are fixing other issues here.
-
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Liu Ying <gnuiyl@gmail.com>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ include/media/media-entity.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 72fe6bc..3f80a0b 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -114,10 +114,9 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 
- 	format.pad = vin->src_pad_idx;
- 
--	ret = v4l2_device_call_until_err(sd->v4l2_dev, 0, pad, set_fmt,
--					 pad_cfg, &format);
--	if (ret < 0)
--		goto cleanup;
-+	ret = v4l2_subdev_call(sd, pad, set_fmt, pad_cfg, &format);
-+	if (ret < 0 && ret != -ENOIOCTLCMD)
-+		goto done;
- 
- 	v4l2_fill_pix_format(pix, &format.format);
- 
-@@ -127,9 +126,9 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
- 		source->height);
- 
--cleanup:
-+done:
- 	v4l2_subdev_free_pad_config(pad_cfg);
--	return 0;
-+	return ret;
- }
- 
- static int __rvin_try_format(struct rvin_dev *vin,
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 09b03c1..48b4b6b 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -486,7 +486,7 @@ media_entity_enum_test_and_set(struct media_entity_enum *ent_enum,
+  *
+  * @ent_enum: Entity enumeration
+  *
+- * Returns true if the entity was marked.
++ * Returns true if the entity was empty.
+  */
+ static inline bool media_entity_enum_empty(struct media_entity_enum *ent_enum)
+ {
 -- 
-2.9.2
+2.7.4
 
