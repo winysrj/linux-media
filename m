@@ -1,51 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:17024 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755620AbcH2R4I (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 13:56:08 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Jiri Kosina <trivial@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v5 02/13] media: mt9m111: use only the SRGB colorspace
-Date: Mon, 29 Aug 2016 19:55:47 +0200
-Message-Id: <1472493358-24618-3-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
-References: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
+Received: from www.zeus03.de ([194.117.254.33]:56270 "EHLO mail.zeus03.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932654AbcHKVL1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2016 17:11:27 -0400
+From: Wolfram Sang <wsa-dev@sang-engineering.com>
+To: linux-usb@vger.kernel.org
+Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 19/28] media: usb: hdpvr: hdpvr-video: don't print error when allocating urb fails
+Date: Thu, 11 Aug 2016 23:03:55 +0200
+Message-Id: <1470949451-24823-20-git-send-email-wsa-dev@sang-engineering.com>
+In-Reply-To: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
+References: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-mt9m111 being a camera sensor, its colorspace should always be SRGB, for
-both RGB based formats or YCbCr based ones.
+kmalloc will print enough information in case of failure.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
 ---
- drivers/media/i2c/soc_camera/mt9m111.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/usb/hdpvr/hdpvr-video.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
-index a7efaa5964d1..b7c4f371bae1 100644
---- a/drivers/media/i2c/soc_camera/mt9m111.c
-+++ b/drivers/media/i2c/soc_camera/mt9m111.c
-@@ -188,10 +188,10 @@ struct mt9m111_datafmt {
- };
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 2a3a8b470555b9..6d43d75493ea0e 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -155,10 +155,8 @@ int hdpvr_alloc_buffers(struct hdpvr_device *dev, uint count)
+ 		buf->dev = dev;
  
- static const struct mt9m111_datafmt mt9m111_colour_fmts[] = {
--	{MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_JPEG},
--	{MEDIA_BUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_JPEG},
--	{MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_JPEG},
--	{MEDIA_BUS_FMT_VYUY8_2X8, V4L2_COLORSPACE_JPEG},
-+	{MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_SRGB},
-+	{MEDIA_BUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_SRGB},
-+	{MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_SRGB},
-+	{MEDIA_BUS_FMT_VYUY8_2X8, V4L2_COLORSPACE_SRGB},
- 	{MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
- 	{MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE, V4L2_COLORSPACE_SRGB},
- 	{MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB},
+ 		urb = usb_alloc_urb(0, GFP_KERNEL);
+-		if (!urb) {
+-			v4l2_err(&dev->v4l2_dev, "cannot allocate urb\n");
++		if (!urb)
+ 			goto exit_urb;
+-		}
+ 		buf->urb = urb;
+ 
+ 		mem = usb_alloc_coherent(dev->udev, dev->bulk_in_size, GFP_KERNEL,
 -- 
-2.1.4
+2.8.1
 
