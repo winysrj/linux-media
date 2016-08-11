@@ -1,181 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46730 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752779AbcHSKYD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 06:24:03 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v2 02/17] Revert "[media] media: fix use-after-free in cdev_put() when app exits after driver unbind"
-Date: Fri, 19 Aug 2016 13:23:33 +0300
-Message-Id: <1471602228-30722-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:32869 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932249AbcHKPoc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2016 11:44:32 -0400
+Subject: Re: [PATCH v4 9/9] arm64: dts: mediatek: Add Video Decoder for MT8173
+To: Tiffany Lin <tiffany.lin@mediatek.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+References: <1470840534-4788-1-git-send-email-tiffany.lin@mediatek.com>
+ <1470840534-4788-2-git-send-email-tiffany.lin@mediatek.com>
+ <1470840534-4788-3-git-send-email-tiffany.lin@mediatek.com>
+ <1470840534-4788-4-git-send-email-tiffany.lin@mediatek.com>
+ <1470840534-4788-5-git-send-email-tiffany.lin@mediatek.com>
+ <1470840534-4788-6-git-send-email-tiffany.lin@mediatek.com>
+ <1470840534-4788-7-git-send-email-tiffany.lin@mediatek.com>
+ <1470840534-4788-8-git-send-email-tiffany.lin@mediatek.com>
+ <1470840534-4788-9-git-send-email-tiffany.lin@mediatek.com>
+ <1470840534-4788-10-git-send-email-tiffany.lin@mediatek.com>
+Cc: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
+From: Matthias Brugger <matthias.bgg@gmail.com>
+Message-ID: <de51caf8-6db5-4754-0683-d3390dd2ac09@gmail.com>
+Date: Thu, 11 Aug 2016 17:44:27 +0200
+MIME-Version: 1.0
+In-Reply-To: <1470840534-4788-10-git-send-email-tiffany.lin@mediatek.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit 5b28dde51d0c ("[media] media: fix use-after-free in
-cdev_put() when app exits after driver unbind"). The commit was part of an
-original patchset to avoid crashes when an unregistering device is in use.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-device.c  |  6 ++----
- drivers/media/media-devnode.c | 48 +++++++++++++++++--------------------------
- 2 files changed, 21 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 33a9952..e61fa66 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -723,16 +723,16 @@ int __must_check __media_device_register(struct media_device *mdev,
- 
- 	ret = media_devnode_register(mdev, devnode, owner);
- 	if (ret < 0) {
--		/* devnode free is handled in media_devnode_*() */
- 		mdev->devnode = NULL;
-+		kfree(devnode);
- 		return ret;
- 	}
- 
- 	ret = device_create_file(&devnode->dev, &dev_attr_model);
- 	if (ret < 0) {
--		/* devnode free is handled in media_devnode_*() */
- 		mdev->devnode = NULL;
- 		media_devnode_unregister(devnode);
-+		kfree(devnode);
- 		return ret;
- 	}
- 
-@@ -812,8 +812,6 @@ void media_device_unregister(struct media_device *mdev)
- 	if (media_devnode_is_registered(mdev->devnode)) {
- 		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
- 		media_devnode_unregister(mdev->devnode);
--		/* devnode free is handled in media_devnode_*() */
--		mdev->devnode = NULL;
- 	}
- }
- EXPORT_SYMBOL_GPL(media_device_unregister);
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index 5b605ff..ecdc02d 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -63,8 +63,13 @@ static void media_devnode_release(struct device *cd)
- 	struct media_devnode *devnode = to_media_devnode(cd);
- 
- 	mutex_lock(&media_devnode_lock);
-+
-+	/* Delete the cdev on this minor as well */
-+	cdev_del(&devnode->cdev);
-+
- 	/* Mark device node number as free */
- 	clear_bit(devnode->minor, media_devnode_nums);
-+
- 	mutex_unlock(&media_devnode_lock);
- 
- 	/* Release media_devnode and perform other cleanups as needed. */
-@@ -72,7 +77,6 @@ static void media_devnode_release(struct device *cd)
- 		devnode->release(devnode);
- 
- 	kfree(devnode);
--	pr_debug("%s: Media Devnode Deallocated\n", __func__);
- }
- 
- static struct bus_type media_bus_type = {
-@@ -201,8 +205,6 @@ static int media_release(struct inode *inode, struct file *filp)
- 	/* decrease the refcount unconditionally since the release()
- 	   return value is ignored. */
- 	put_device(&devnode->dev);
--
--	pr_debug("%s: Media Release\n", __func__);
- 	return 0;
- }
- 
-@@ -233,7 +235,6 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 	if (minor == MEDIA_NUM_DEVICES) {
- 		mutex_unlock(&media_devnode_lock);
- 		pr_err("could not get a free minor\n");
--		kfree(devnode);
- 		return -ENFILE;
- 	}
- 
-@@ -243,31 +244,27 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 	devnode->minor = minor;
- 	devnode->media_dev = mdev;
- 
--	/* Part 1: Initialize dev now to use dev.kobj for cdev.kobj.parent */
--	devnode->dev.bus = &media_bus_type;
--	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
--	devnode->dev.release = media_devnode_release;
--	if (devnode->parent)
--		devnode->dev.parent = devnode->parent;
--	dev_set_name(&devnode->dev, "media%d", devnode->minor);
--	device_initialize(&devnode->dev);
--
- 	/* Part 2: Initialize and register the character device */
- 	cdev_init(&devnode->cdev, &media_devnode_fops);
- 	devnode->cdev.owner = owner;
--	devnode->cdev.kobj.parent = &devnode->dev.kobj;
- 
- 	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
- 	if (ret < 0) {
- 		pr_err("%s: cdev_add failed\n", __func__);
--		goto cdev_add_error;
-+		goto error;
- 	}
- 
--	/* Part 3: Add the media device */
--	ret = device_add(&devnode->dev);
-+	/* Part 3: Register the media device */
-+	devnode->dev.bus = &media_bus_type;
-+	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
-+	devnode->dev.release = media_devnode_release;
-+	if (devnode->parent)
-+		devnode->dev.parent = devnode->parent;
-+	dev_set_name(&devnode->dev, "media%d", devnode->minor);
-+	ret = device_register(&devnode->dev);
- 	if (ret < 0) {
--		pr_err("%s: device_add failed\n", __func__);
--		goto device_add_error;
-+		pr_err("%s: device_register failed\n", __func__);
-+		goto error;
- 	}
- 
- 	/* Part 4: Activate this minor. The char device can now be used. */
-@@ -275,15 +272,12 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 
- 	return 0;
- 
--device_add_error:
--	cdev_del(&devnode->cdev);
--cdev_add_error:
-+error:
- 	mutex_lock(&media_devnode_lock);
-+	cdev_del(&devnode->cdev);
- 	clear_bit(devnode->minor, media_devnode_nums);
--	devnode->media_dev = NULL;
- 	mutex_unlock(&media_devnode_lock);
- 
--	put_device(&devnode->dev);
- 	return ret;
- }
- 
-@@ -295,12 +289,8 @@ void media_devnode_unregister(struct media_devnode *devnode)
- 
- 	mutex_lock(&media_devnode_lock);
- 	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
--	/* Delete the cdev on this minor as well */
--	cdev_del(&devnode->cdev);
- 	mutex_unlock(&media_devnode_lock);
--	device_del(&devnode->dev);
--	devnode->media_dev = NULL;
--	put_device(&devnode->dev);
-+	device_unregister(&devnode->dev);
- }
- 
- /*
--- 
-2.1.4
+On 10/08/16 16:48, Tiffany Lin wrote:
+> Add video decoder node for MT8173
+>
+> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> ---
+>  arch/arm64/boot/dts/mediatek/mt8173.dtsi |   44 ++++++++++++++++++++++++++++++
+>  1 file changed, 44 insertions(+)
+>
+> diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+> index 10f638f..2872cd7 100644
+> --- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+> +++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+> @@ -974,6 +974,50 @@
+>  			#clock-cells = <1>;
+>  		};
+>
+> +		vcodec_dec: vcodec@16000000 {
+> +			compatible = "mediatek,mt8173-vcodec-dec";
+> +			reg = <0 0x16000000 0 0x100>,	/* VDEC_SYS */
+> +			      <0 0x16020000 0 0x1000>,	/* VDEC_MISC */
+> +			      <0 0x16021000 0 0x800>,	/* VDEC_LD */
+> +			      <0 0x16021800 0 0x800>,	/* VDEC_TOP */
+> +			      <0 0x16022000 0 0x1000>,	/* VDEC_CM */
+> +			      <0 0x16023000 0 0x1000>,	/* VDEC_AD */
+> +			      <0 0x16024000 0 0x1000>,	/* VDEC_AV */
+> +			      <0 0x16025000 0 0x1000>,	/* VDEC_PP */
+> +			      <0 0x16026800 0 0x800>,	/* VDEC_HWD */
+> +			      <0 0x16027000 0 0x800>,	/* VDEC_HWQ */
+> +			      <0 0x16027800 0 0x800>,	/* VDEC_HWB */
+> +			      <0 0x16028400 0 0x400>;	/* VDEC_HWG */
+> +			interrupts = <GIC_SPI 204 IRQ_TYPE_LEVEL_LOW>;
+> +			mediatek,larb = <&larb1>;
+> +			iommus = <&iommu M4U_PORT_HW_VDEC_MC_EXT>,
+> +				 <&iommu M4U_PORT_HW_VDEC_PP_EXT>,
+> +				 <&iommu M4U_PORT_HW_VDEC_AVC_MV_EXT>,
+> +				 <&iommu M4U_PORT_HW_VDEC_PRED_RD_EXT>,
+> +				 <&iommu M4U_PORT_HW_VDEC_PRED_WR_EXT>,
+> +				 <&iommu M4U_PORT_HW_VDEC_UFO_EXT>,
+> +				 <&iommu M4U_PORT_HW_VDEC_VLD_EXT>,
+> +				 <&iommu M4U_PORT_HW_VDEC_VLD2_EXT>;
+> +			mediatek,vpu = <&vpu>;
+> +			power-domains = <&scpsys MT8173_POWER_DOMAIN_VDEC>;
+> +			clocks = <&apmixedsys CLK_APMIXED_VCODECPLL>,
+> +				 <&topckgen CLK_TOP_UNIVPLL_D2>,
+> +				 <&topckgen CLK_TOP_CCI400_SEL>,
+> +				 <&topckgen CLK_TOP_VDEC_SEL>,
+> +				 <&topckgen CLK_TOP_VCODECPLL>,
+> +				 <&apmixedsys CLK_APMIXED_VENCPLL>,
+> +				 <&topckgen CLK_TOP_VENC_LT_SEL>,
+> +				 <&topckgen CLK_TOP_VCODECPLL_370P5>;
+> +			clock-names = "vcodecpll",
+> +				      "univpll_d2",
+> +				      "clk_cci400_sel",
+> +				      "vdec_sel",
+> +				      "vdecpll",
+> +				      "vencpll",
+> +				      "venc_lt_sel",
+> +				      "vdec_bus_clk_src";
+> +		};
+> +
 
+Shouldn't we set here:
+status = "disabled";
+
+To save power on headless systems?
+
+Regards,
+Matthias
+
+>  		larb1: larb@16010000 {
+>  			compatible = "mediatek,mt8173-smi-larb";
+>  			reg = <0 0x16010000 0 0x1000>;
+>
