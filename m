@@ -1,40 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:60811 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754238AbcHWGvD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 Aug 2016 02:51:03 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id BD5A51800C3
-        for <linux-media@vger.kernel.org>; Tue, 23 Aug 2016 08:48:37 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] redrat3: fix sparse warning
-Message-ID: <0a64424f-6e91-a5dc-2320-b0694ecb0ac4@xs4all.nl>
-Date: Tue, 23 Aug 2016 08:48:37 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from www.zeus03.de ([194.117.254.33]:56250 "EHLO mail.zeus03.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932368AbcHKVLZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2016 17:11:25 -0400
+From: Wolfram Sang <wsa-dev@sang-engineering.com>
+To: linux-usb@vger.kernel.org
+Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 15/28] media: usb: gspca: benq: don't print error when allocating urb fails
+Date: Thu, 11 Aug 2016 23:03:51 +0200
+Message-Id: <1470949451-24823-16-git-send-email-wsa-dev@sang-engineering.com>
+In-Reply-To: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
+References: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix this sparse warning:
+kmalloc will print enough information in case of failure.
 
-drivers/media/rc/redrat3.c:490:18: warning: incorrect type in assignment (different base types)
-drivers/media/rc/redrat3.c:495:9: warning: cast to restricted __be32
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
 ---
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 399f44d..3d849ff 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -480,7 +480,7 @@ static int redrat3_set_timeout(struct rc_dev *rc_dev, unsigned int timeoutns)
- 	struct redrat3_dev *rr3 = rc_dev->priv;
- 	struct usb_device *udev = rr3->udev;
- 	struct device *dev = rr3->dev;
--	u32 *timeout;
-+	__be32 *timeout;
- 	int ret;
+ drivers/media/usb/gspca/benq.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
- 	timeout = kmalloc(sizeof(*timeout), GFP_KERNEL);
+diff --git a/drivers/media/usb/gspca/benq.c b/drivers/media/usb/gspca/benq.c
+index 790baed339639d..5fa67b78ad49b1 100644
+--- a/drivers/media/usb/gspca/benq.c
++++ b/drivers/media/usb/gspca/benq.c
+@@ -95,10 +95,8 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ #define SD_NPKT 32
+ 	for (n = 0; n < 4; n++) {
+ 		urb = usb_alloc_urb(SD_NPKT, GFP_KERNEL);
+-		if (!urb) {
+-			pr_err("usb_alloc_urb failed\n");
++		if (!urb)
+ 			return -ENOMEM;
+-		}
+ 		gspca_dev->urb[n] = urb;
+ 		urb->transfer_buffer = usb_alloc_coherent(gspca_dev->dev,
+ 						SD_PKT_SZ * SD_NPKT,
+-- 
+2.8.1
+
