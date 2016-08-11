@@ -1,40 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:36915 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754799AbcHVJFQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 05:05:16 -0400
-Received: by mail-wm0-f48.google.com with SMTP id i5so132536986wmg.0
-        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2016 02:05:11 -0700 (PDT)
-From: Johan Fjeldtvedt <jaffe1@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Johan Fjeldtvedt <jaffe1@gmail.com>
-Subject: [PATCHv2 0/4] pulse8-cec: Add support for storing and optionally restoring config
-Date: Mon, 22 Aug 2016 11:04:50 +0200
-Message-Id: <1471856694-14182-1-git-send-email-jaffe1@gmail.com>
+Received: from www.zeus03.de ([194.117.254.33]:58004 "EHLO mail.zeus03.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932555AbcHKVXu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2016 17:23:50 -0400
+From: Wolfram Sang <wsa-dev@sang-engineering.com>
+To: linux-usb@vger.kernel.org
+Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: [PATCH 3/6] staging: media: lirc: lirc_sasem: don't print error when allocating urb fails
+Date: Thu, 11 Aug 2016 23:23:40 +0200
+Message-Id: <1470950624-26455-4-git-send-email-wsa-dev@sang-engineering.com>
+In-Reply-To: <1470950624-26455-1-git-send-email-wsa-dev@sang-engineering.com>
+References: <1470950624-26455-1-git-send-email-wsa-dev@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds support for storing the CEC adapter config in the Pulse-Eight
-dongle's persistent memory, and to optionally restore it when the device
-is (re)connected. This allows the dongle to continue operating with the
-same settings when the PC is suspended.
+kmalloc will print enough information in case of failure.
 
-Changes in v2:
- - Fix checkpatch warnings and spelling error
- - Add missing break
- - Don't propagate internal error code to user space
+Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
+---
+ drivers/staging/media/lirc/lirc_sasem.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-Johan Fjeldtvedt (4):
-  cec: allow configuration both from within driver and from user space
-  pulse8-cec: serialize communication with adapter
-  pulse8-cec: add notes about behavior in autonomous mode
-  pulse8-cec: sync configuration with adapter
-
- drivers/staging/media/cec/cec-adap.c          |   4 -
- drivers/staging/media/pulse8-cec/pulse8-cec.c | 341 +++++++++++++++++++++-----
- 2 files changed, 283 insertions(+), 62 deletions(-)
-
+diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
+index 2218d0042030ed..b080fde6d740c9 100644
+--- a/drivers/staging/media/lirc/lirc_sasem.c
++++ b/drivers/staging/media/lirc/lirc_sasem.c
+@@ -758,17 +758,12 @@ static int sasem_probe(struct usb_interface *interface,
+ 	}
+ 	rx_urb = usb_alloc_urb(0, GFP_KERNEL);
+ 	if (!rx_urb) {
+-		dev_err(&interface->dev,
+-			"%s: usb_alloc_urb failed for IR urb\n", __func__);
+ 		alloc_status = 5;
+ 		goto alloc_status_switch;
+ 	}
+ 	if (vfd_ep_found) {
+ 		tx_urb = usb_alloc_urb(0, GFP_KERNEL);
+ 		if (!tx_urb) {
+-			dev_err(&interface->dev,
+-				"%s: usb_alloc_urb failed for VFD urb",
+-				__func__);
+ 			alloc_status = 6;
+ 			goto alloc_status_switch;
+ 		}
 -- 
-2.7.4
+2.8.1
 
