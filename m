@@ -1,49 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:54276 "EHLO
-	smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932338AbcHOPHP (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37586 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932504AbcHKVJj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 11:07:15 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
-	hverkuil@xs4all.nl
-Cc: linux-renesas-soc@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com,
-	sergei.shtylyov@cogentembedded.com,
-	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv3 03/10] [media] rcar-vin: arrange enum chip_id in chronological order
-Date: Mon, 15 Aug 2016 17:06:28 +0200
-Message-Id: <20160815150635.22637-4-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
+	Thu, 11 Aug 2016 17:09:39 -0400
+Date: Fri, 12 Aug 2016 00:09:05 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>,
+	linux-media@vger.kernel.org
+Subject: Re: Sony imx219 driver?
+Message-ID: <20160811210905.GV3182@valkosipuli.retiisi.org.uk>
+References: <57911245.1010500@destevenson.freeserve.co.uk>
+ <5c425f34-d044-f228-65a4-f67430d55941@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5c425f34-d044-f228-65a4-f67430d55941@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-vin.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi Hans and Dave,
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 31ad39a..b9274132 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -30,9 +30,9 @@
- #define HW_BUFFER_MASK 0x7f
- 
- enum chip_id {
--	RCAR_GEN2,
- 	RCAR_H1,
- 	RCAR_M1,
-+	RCAR_GEN2,
- };
- 
- /**
+On Fri, Jul 22, 2016 at 11:46:59AM +0200, Hans Verkuil wrote:
+> > On a related note, if putting together a system with IMX219 or similar 
+> > producing Bayer raw 10, the data on the CSI2 bus is one of the 
+> > V4L2_PIX_FMT_SRGGB10P formats. What's the correct way to reflect that 
+> > from the sensor subdevice in an MEDIA_BUS_FMT_ enum?
+> > The closest is MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE (or LE), but the data 
+> > isn't padded (the Pi CSI2 receiver can do the unpacking and padding, but 
+> > that just takes up more memory).|||| Or is it MEDIA_BUS_FMT_SBGGR10_1X10 
+> > to describe the data on the bus correctly as 10bpp Bayer, and the odd 
+> > packing is ignored. Or do we need new enums?
+> 
+> Just add new enums to media-bus-format.h. It should be clear from comments and/or
+> the naming of the enum what the exact format it, so you'll need to think about
+> that carefully. Otherwise it's no big deal to add new formats there.
+
+The existing drivers that use 10-bit raw bayer formats on serial busses
+(such as CSI-2) use 1X10 variants of the media bus formats. That's perhaps
+not the neatest possible way to solve that, but that's what existing drivers
+do. And doing differently breaks things.
+
 -- 
-2.9.2
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
