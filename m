@@ -1,43 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:55527 "EHLO pokefinder.org"
+Received: from www.zeus03.de ([194.117.254.33]:56187 "EHLO mail.zeus03.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752647AbcHILfZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Aug 2016 07:35:25 -0400
+	id S1752299AbcHKVLO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2016 17:11:14 -0400
 From: Wolfram Sang <wsa-dev@sang-engineering.com>
-To: linux-kernel@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org,
-	Wolfram Sang <wsa-dev@sang-engineering.com>,
-	Antti Palosaari <crope@iki.fi>,
+To: linux-usb@vger.kernel.org
+Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
 	Mauro Carvalho Chehab <mchehab@kernel.org>,
 	linux-media@vger.kernel.org
-Subject: [PATCH 4/4] media: usb: dvb-usb-v2: dvb_usb_core: don't print error when adding adapter fails
-Date: Tue,  9 Aug 2016 13:35:16 +0200
-Message-Id: <1470742517-12774-5-git-send-email-wsa-dev@sang-engineering.com>
-In-Reply-To: <1470742517-12774-1-git-send-email-wsa-dev@sang-engineering.com>
-References: <1470742517-12774-1-git-send-email-wsa-dev@sang-engineering.com>
+Subject: [PATCH 02/28] media: radio: si470x: radio-si470x-usb: don't print error when allocating urb fails
+Date: Thu, 11 Aug 2016 23:03:38 +0200
+Message-Id: <1470949451-24823-3-git-send-email-wsa-dev@sang-engineering.com>
+In-Reply-To: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
+References: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The core will do this for us now.
+kmalloc will print enough information in case of failure.
 
 Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
 ---
- drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/media/radio/si470x/radio-si470x-usb.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-index 3fbb2cd19f5e2a..a8e6624fbe8347 100644
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-@@ -82,8 +82,6 @@ static int dvb_usbv2_i2c_init(struct dvb_usb_device *d)
- 	ret = i2c_add_adapter(&d->i2c_adap);
- 	if (ret < 0) {
- 		d->i2c_adap.algo = NULL;
--		dev_err(&d->udev->dev, "%s: i2c_add_adapter() failed=%d\n",
--				KBUILD_MODNAME, ret);
- 		goto err;
- 	}
+diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
+index 091d793f658361..4b132c29f2900c 100644
+--- a/drivers/media/radio/si470x/radio-si470x-usb.c
++++ b/drivers/media/radio/si470x/radio-si470x-usb.c
+@@ -627,7 +627,6 @@ static int si470x_usb_driver_probe(struct usb_interface *intf,
  
+ 	radio->int_in_urb = usb_alloc_urb(0, GFP_KERNEL);
+ 	if (!radio->int_in_urb) {
+-		dev_info(&intf->dev, "could not allocate int_in_urb");
+ 		retval = -ENOMEM;
+ 		goto err_intbuffer;
+ 	}
 -- 
 2.8.1
 
