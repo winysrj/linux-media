@@ -1,123 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:47334 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752152AbcHQDBG (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47092 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750708AbcHLH7q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2016 23:01:06 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 914381804AB
-	for <linux-media@vger.kernel.org>; Wed, 17 Aug 2016 05:00:32 +0200 (CEST)
-Date: Wed, 17 Aug 2016 05:00:32 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Fri, 12 Aug 2016 03:59:46 -0400
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 2D5886009F
+	for <linux-media@vger.kernel.org>; Fri, 12 Aug 2016 10:59:43 +0300 (EEST)
+Date: Fri, 12 Aug 2016 10:59:12 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160817030032.914381804AB@tschai.lan>
+Subject: [GIT PULL FOR v4.9] ad5820 lens driver
+Message-ID: <20160812075912.GW3182@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mauro,
 
-Results of the daily build of media_tree:
+These two patches add support for the ad5820 lens found e.g. in the N900.
 
-date:		Wed Aug 17 04:00:17 CEST 2016
-git branch:	test
-git hash:	b6aa39228966e0d3f0bc3306be1892f87792903a
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+Please pull.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1.1-i686: WARNINGS
-linux-4.2-i686: WARNINGS
-linux-4.3-i686: WARNINGS
-linux-4.4-i686: WARNINGS
-linux-4.5-i686: WARNINGS
-linux-4.6-i686: WARNINGS
-linux-4.7-i686: WARNINGS
-linux-4.8-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0-x86_64: WARNINGS
-linux-4.1.1-x86_64: WARNINGS
-linux-4.2-x86_64: WARNINGS
-linux-4.3-x86_64: WARNINGS
-linux-4.4-x86_64: WARNINGS
-linux-4.5-x86_64: WARNINGS
-linux-4.6-x86_64: WARNINGS
-linux-4.7-x86_64: WARNINGS
-linux-4.8-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
 
-Detailed results are available here:
+The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
 
-Full logs are available here:
+are available in the git repository at:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+  ssh://linuxtv.org/git/sailus/media_tree.git ad5820
 
-The Media Infrastructure API from this daily build is here:
+for you to fetch changes up to 28439c96ba81e71d9b7dfb276172def0e06d34b2:
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+  ad5820: Add driver for auto-focus coil (2016-08-11 13:38:45 +0300)
+
+----------------------------------------------------------------
+Pavel Machek (2):
+      dt/bindings: device tree description for AD5820 camera auto-focus coil
+      ad5820: Add driver for auto-focus coil
+
+ .../devicetree/bindings/media/i2c/ad5820.txt       |  19 ++
+ drivers/media/i2c/Kconfig                          |   7 +
+ drivers/media/i2c/Makefile                         |   1 +
+ drivers/media/i2c/ad5820.c                         | 380
+ +++++++++++++++++++++
+ 4 files changed, 407 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ad5820.txt
+ create mode 100644 drivers/media/i2c/ad5820.c
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
