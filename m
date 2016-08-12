@@ -1,118 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.133]:53425 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756294AbcHXNuI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Aug 2016 09:50:08 -0400
-Date: Wed, 24 Aug 2016 15:49:34 +0200
-From: Alban Bedel <alban.bedel@avionic-design.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Alban Bedel <alban.bedel@avionic-design.de>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Bryan Wu <cooloney@gmail.com>, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] v4l2-async: Always unregister the subdev on
- failure
-Message-ID: <20160824154934.07f75979@avionic-0020>
-In-Reply-To: <38e4b736-b053-05e0-112b-550411ecb56c@xs4all.nl>
-References: <1462981201-14768-1-git-send-email-alban.bedel@avionic-design.de>
-        <429cc087-85e3-7bfa-b0b6-ab9434e5d47c@osg.samsung.com>
-        <20160511183252.6270d740@avionic-0020>
-        <38e4b736-b053-05e0-112b-550411ecb56c@xs4all.nl>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:56613 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750922AbcHLHqS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Aug 2016 03:46:18 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 87B7A1800A9
+	for <linux-media@vger.kernel.org>; Fri, 12 Aug 2016 09:46:07 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.9] Remove tw686x-kh, sh_mobile_csi2 and s5p-tv
+Message-ID: <6cebd1f6-5b97-1a90-e373-e5fc0a8986ca@xs4all.nl>
+Date: Fri, 12 Aug 2016 09:46:07 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/AcTbSniZ/wTXtYlT40_Sr8_"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/AcTbSniZ/wTXtYlT40_Sr8_
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Spring cleaning...
 
-On Fri, 1 Jul 2016 13:55:44 +0200
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+The new rcar-vin driver needs a bit more work before the old soc-camera driver
+can be removed, so that soc-camera driver is not included in this pull request.
 
-> On 05/11/2016 06:32 PM, Alban Bedel wrote:
-> > On Wed, 11 May 2016 12:22:44 -0400
-> > Javier Martinez Canillas <javier@osg.samsung.com> wrote:
-> >  =20
-> >> Hello Alban,
-> >>
-> >> On 05/11/2016 11:40 AM, Alban Bedel wrote: =20
-> >>> In v4l2_async_test_notify() if the registered_async callback or the
-> >>> complete notifier returns an error the subdev is not unregistered.
-> >>> This leave paths where v4l2_async_register_subdev() can fail but
-> >>> leave the subdev still registered.
-> >>>
-> >>> Add the required calls to v4l2_device_unregister_subdev() to plug
-> >>> these holes.
-> >>>
-> >>> Signed-off-by: Alban Bedel <alban.bedel@avionic-design.de>
-> >>> ---
-> >>>  drivers/media/v4l2-core/v4l2-async.c | 10 ++++++++--
-> >>>  1 file changed, 8 insertions(+), 2 deletions(-)
-> >>>
-> >>> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l=
-2-core/v4l2-async.c
-> >>> index ceb28d4..43393f8 100644
-> >>> --- a/drivers/media/v4l2-core/v4l2-async.c
-> >>> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> >>> @@ -121,13 +121,19 @@ static int v4l2_async_test_notify(struct v4l2_a=
-sync_notifier *notifier,
-> >>> =20
-> >>>  	ret =3D v4l2_subdev_call(sd, core, registered_async);
-> >>>  	if (ret < 0 && ret !=3D -ENOIOCTLCMD) {
-> >>> +		v4l2_device_unregister_subdev(sd);
-> >>>  		if (notifier->unbind)
-> >>>  			notifier->unbind(notifier, sd, asd);
-> >>>  		return ret;
-> >>>  	}
-> >>> =20
-> >>> -	if (list_empty(&notifier->waiting) && notifier->complete)
-> >>> -		return notifier->complete(notifier);
-> >>> +	if (list_empty(&notifier->waiting) && notifier->complete) {
-> >>> +		ret =3D notifier->complete(notifier);
-> >>> +		if (ret < 0) {
-> >>> +			v4l2_device_unregister_subdev(sd); =20
-> >>
-> >> Isn't a call to notifier->unbind() missing here as well?
-> >>
-> >> Also, I think the error path is becoming too duplicated and complex, so
-> >> maybe we can have a single error path and use goto labels as is common
-> >> in Linux? For example something like the following (not tested) can be
-> >> squashed on top of your change: =20
-> >=20
-> > Yes, that look better. I'll test it and report tomorrow. =20
->=20
-> I haven't heard anything back about this. Did you manage to test it?
+Regards,
 
-Yes, that's working fine. Sorry for the delay, I'm sending the v2 patch.
+	Hans
 
-Alban
+The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
 
+  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
 
---Sig_/AcTbSniZ/wTXtYlT40_Sr8_
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+are available in the git repository at:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+  git://linuxtv.org/hverkuil/media_tree.git deldrvs
 
-iQIcBAEBCAAGBQJXvaXuAAoJEHSUmkuduC285AUQANhHvlzcasSofAqH4eHyyrUY
-wM4whFXW9djk6FnM++djql7Au10dlCDk4u36mo0hq13fa6OM81o/OeXb+SifK9mO
-64mH9C0YreGLlXeJ9VOO1REDd3Scu4L5i9Hpra2DxYkkTQS0CC+uAuZ5kWp25csT
-NyV69kHw4NDJZdzzha0ABfjniEQq/aD0vZnTITjhZs2Trkl8zRaiXEePhRMqUUGn
-4agczXV82kW89FCmAVXSNOqHP/pWko7sIWtFNnFbwo42bCbxRNbIcEXh+ZA+EVSq
-pwX9gG1d5vnFxH3gyDeTeDY2nk/e2gQunYxKHrGERN6S+Xd0dNwrDP/2lDz+Ke05
-qDdu8cxuCbxv91gng3sqmACC0qR/z6VIThiS01SCgRzMLOv0ZuF8Rj/Ii3kvdmrN
-WME0kxTfpim3+bdHRUo+GZhcT5eEGVU7MqcyA/ysjS1NEF5+SAZa9lW2XEDsJK9i
-4nzfy2o6N0VF6bWWjPYt8bwN24+i4KYKcstmHxCIRDxskJi3VEakoXGoO04Ecow7
-bwTXroOni2xgoyGEX16lIfZBdl4WWgLZeLN0kU+LzPOrknbbu13EjDHa3W2wA2tb
-8aG5Of5d3bqMb/f/di/RztVYA2NpO4PcXM8D1/iacXiMn0Mq0ePrbpxzdmTAgnXR
-AKzc/oitUEwM4xEdYwBd
-=JFl1
------END PGP SIGNATURE-----
+for you to fetch changes up to bc06be8818ce2700020500bbff6c56ac91815627:
 
---Sig_/AcTbSniZ/wTXtYlT40_Sr8_--
+  s5p-tv: remove obsolete driver (2016-08-12 09:41:06 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (3):
+      tw686x-kh: remove obsolete driver
+      soc-camera/sh_mobile_csi2: remove unused driver
+      s5p-tv: remove obsolete driver
+
+ MAINTAINERS                                              |    8 -
+ drivers/gpu/drm/exynos/Kconfig                           |    3 +-
+ drivers/media/platform/Kconfig                           |    1 -
+ drivers/media/platform/Makefile                          |    1 -
+ drivers/media/platform/s5p-tv/Kconfig                    |   88 ----
+ drivers/media/platform/s5p-tv/Makefile                   |   19 -
+ drivers/media/platform/s5p-tv/hdmi_drv.c                 | 1059 ---------------------------------------
+ drivers/media/platform/s5p-tv/hdmiphy_drv.c              |  324 ------------
+ drivers/media/platform/s5p-tv/mixer.h                    |  364 --------------
+ drivers/media/platform/s5p-tv/mixer_drv.c                |  527 --------------------
+ drivers/media/platform/s5p-tv/mixer_grp_layer.c          |  270 ----------
+ drivers/media/platform/s5p-tv/mixer_reg.c                |  551 --------------------
+ drivers/media/platform/s5p-tv/mixer_video.c              | 1130 ------------------------------------------
+ drivers/media/platform/s5p-tv/mixer_vp_layer.c           |  242 ---------
+ drivers/media/platform/s5p-tv/regs-hdmi.h                |  146 ------
+ drivers/media/platform/s5p-tv/regs-mixer.h               |  122 -----
+ drivers/media/platform/s5p-tv/regs-sdo.h                 |   63 ---
+ drivers/media/platform/s5p-tv/regs-vp.h                  |   88 ----
+ drivers/media/platform/s5p-tv/sdo_drv.c                  |  497 -------------------
+ drivers/media/platform/s5p-tv/sii9234_drv.c              |  407 ---------------
+ drivers/media/platform/soc_camera/Kconfig                |    7 -
+ drivers/media/platform/soc_camera/Makefile               |    1 -
+ drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c |  229 +--------
+ drivers/media/platform/soc_camera/sh_mobile_csi2.c       |  400 ---------------
+ drivers/staging/media/Kconfig                            |    2 -
+ drivers/staging/media/Makefile                           |    1 -
+ drivers/staging/media/tw686x-kh/Kconfig                  |   17 -
+ drivers/staging/media/tw686x-kh/Makefile                 |    3 -
+ drivers/staging/media/tw686x-kh/TODO                     |    6 -
+ drivers/staging/media/tw686x-kh/tw686x-kh-core.c         |  140 ------
+ drivers/staging/media/tw686x-kh/tw686x-kh-regs.h         |  103 ----
+ drivers/staging/media/tw686x-kh/tw686x-kh-video.c        |  813 ------------------------------
+ drivers/staging/media/tw686x-kh/tw686x-kh.h              |  117 -----
+ include/media/drv-intf/sh_mobile_ceu.h                   |    1 -
+ include/media/drv-intf/sh_mobile_csi2.h                  |   48 --
+ 35 files changed, 11 insertions(+), 7787 deletions(-)
+ delete mode 100644 drivers/media/platform/s5p-tv/Kconfig
+ delete mode 100644 drivers/media/platform/s5p-tv/Makefile
+ delete mode 100644 drivers/media/platform/s5p-tv/hdmi_drv.c
+ delete mode 100644 drivers/media/platform/s5p-tv/hdmiphy_drv.c
+ delete mode 100644 drivers/media/platform/s5p-tv/mixer.h
+ delete mode 100644 drivers/media/platform/s5p-tv/mixer_drv.c
+ delete mode 100644 drivers/media/platform/s5p-tv/mixer_grp_layer.c
+ delete mode 100644 drivers/media/platform/s5p-tv/mixer_reg.c
+ delete mode 100644 drivers/media/platform/s5p-tv/mixer_video.c
+ delete mode 100644 drivers/media/platform/s5p-tv/mixer_vp_layer.c
+ delete mode 100644 drivers/media/platform/s5p-tv/regs-hdmi.h
+ delete mode 100644 drivers/media/platform/s5p-tv/regs-mixer.h
+ delete mode 100644 drivers/media/platform/s5p-tv/regs-sdo.h
+ delete mode 100644 drivers/media/platform/s5p-tv/regs-vp.h
+ delete mode 100644 drivers/media/platform/s5p-tv/sdo_drv.c
+ delete mode 100644 drivers/media/platform/s5p-tv/sii9234_drv.c
+ delete mode 100644 drivers/media/platform/soc_camera/sh_mobile_csi2.c
+ delete mode 100644 drivers/staging/media/tw686x-kh/Kconfig
+ delete mode 100644 drivers/staging/media/tw686x-kh/Makefile
+ delete mode 100644 drivers/staging/media/tw686x-kh/TODO
+ delete mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh-core.c
+ delete mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh-regs.h
+ delete mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh-video.c
+ delete mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh.h
+ delete mode 100644 include/media/drv-intf/sh_mobile_csi2.h
