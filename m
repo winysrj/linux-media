@@ -1,451 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:57451 "EHLO smtp3-1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932266AbcHOHOt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 03:14:49 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH] cec-core.rst: convert old cec.txt to sphinx.
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <d9859156-fb5d-1829-c880-0d58c5d8680e@xs4all.nl>
-Date: Mon, 15 Aug 2016 09:14:28 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <DE024ED9-EC42-439E-A9F6-65A107E30303@darmarit.de>
-References: <d9859156-fb5d-1829-c880-0d58c5d8680e@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:52324 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752188AbcHLLJd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Aug 2016 07:09:33 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.9] Add new pixelformats
+Message-ID: <5d87f61b-ba1d-0a9e-5e0d-fdc7a8f840c4@xs4all.nl>
+Date: Fri, 12 Aug 2016 13:09:27 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Fixes for existing pixelformat descriptions and new pixelformats.
 
-you don't need to change the header underlines if you don't want.
-Any file could start with e.g. "===" headers marking the top 
-section and "---" marking the subsections, independent on which
-level this file is included in a toctree.
+See the cover letter of the patch series:
 
-http://static.lwn.net/kerneldoc/kernel-documentation.html#specific-guidelines-for-the-kernel-documentation
-http://www.sphinx-doc.org/en/stable/rest.html#sections
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg100998.html
 
--- Markus --
+I agree with Sakari's reasoning: these are standard formats that many newer
+devices support. I also like that the list of Bayer formats is now more
+systematic and covers all (?) common formats.
 
-Am 14.08.2016 um 15:18 schrieb Hans Verkuil <hverkuil@xs4all.nl>:
+Regards,
 
-> Convert the old ascii CEC kapi documentation to sphinx documentation.
-> 
-> No textual changes, just an initial conversion.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-> Documentation/{cec.txt => media/kapi/cec-core.rst} | 202 ++++++++++++---------
-> Documentation/media/media_kapi.rst                 |   1 +
-> MAINTAINERS                                        |   4 +-
-> 3 files changed, 119 insertions(+), 88 deletions(-)
-> rename Documentation/{cec.txt => media/kapi/cec-core.rst} (53%)
-> 
-> diff --git a/Documentation/cec.txt b/Documentation/media/kapi/cec-core.rst
-> similarity index 53%
-> rename from Documentation/cec.txt
-> rename to Documentation/media/kapi/cec-core.rst
-> index 75155fe..b776a59 100644
-> --- a/Documentation/cec.txt
-> +++ b/Documentation/media/kapi/cec-core.rst
-> @@ -1,5 +1,5 @@
-> CEC Kernel Support
-> -==================
-> +------------------
-> 
-> The CEC framework provides a unified kernel interface for use with HDMI CEC
-> hardware. It is designed to handle a multiple types of hardware (receivers,
-> @@ -10,7 +10,7 @@ feature into the kernel's remote control framework.
-> 
-> 
-> The CEC Protocol
-> -----------------
-> +~~~~~~~~~~~~~~~~
-> 
-> The CEC protocol enables consumer electronic devices to communicate with each
-> other through the HDMI connection. The protocol uses logical addresses in the
-> @@ -28,62 +28,65 @@ http://www.microprocessor.org/HDMISpecification13a.pdf
-> 
-> 
-> The Kernel Interface
-> -====================
-> +~~~~~~~~~~~~~~~~~~~~
-> 
-> CEC Adapter
-> ------------
-> +^^^^^^^^^^^
-> 
-> The struct cec_adapter represents the CEC adapter hardware. It is created by
-> calling cec_allocate_adapter() and deleted by calling cec_delete_adapter():
-> 
-> -struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
-> +..  code-block:: c
-> +
-> +    struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
-> 	       void *priv, const char *name, u32 caps, u8 available_las,
-> 	       struct device *parent);
-> -void cec_delete_adapter(struct cec_adapter *adap);
-> +    void cec_delete_adapter(struct cec_adapter *adap);
-> 
-> To create an adapter you need to pass the following information:
-> 
-> -ops: adapter operations which are called by the CEC framework and that you
-> -have to implement.
-> -
-> -priv: will be stored in adap->priv and can be used by the adapter ops.
-> -
-> -name: the name of the CEC adapter. Note: this name will be copied.
-> +- ``ops``: adapter operations which are called by the CEC framework and that you
-> +  have to implement.
-> +- ``priv``: will be stored in ``adap->priv`` and can be used by the adapter ops.
-> +- ``name``: the name of the CEC adapter. Note: this name will be copied.
-> +- ``caps``: capabilities of the CEC adapter. These capabilities determine the
-> +  capabilities of the hardware and which parts are to be handled
-> +  by userspace and which parts are handled by kernelspace. The
-> +  capabilities are returned by ``CEC_ADAP_G_CAPS``.
-> +- ``available_las``: the number of simultaneous logical addresses that this
-> +  adapter can handle. Must be 1 <= ``available_las`` <= ``CEC_MAX_LOG_ADDRS``.
-> +- ``parent``: the parent device.
-> 
-> -caps: capabilities of the CEC adapter. These capabilities determine the
-> -	capabilities of the hardware and which parts are to be handled
-> -	by userspace and which parts are handled by kernelspace. The
-> -	capabilities are returned by CEC_ADAP_G_CAPS.
-> 
-> -available_las: the number of simultaneous logical addresses that this
-> -	adapter can handle. Must be 1 <= available_las <= CEC_MAX_LOG_ADDRS.
-> +To register the ``/dev/cecX`` device node and the remote control device (if
-> +``CEC_CAP_RC`` is set) you call:
-> 
-> -parent: the parent device.
-> +..  code-block:: c
-> 
-> -
-> -To register the /dev/cecX device node and the remote control device (if
-> -CEC_CAP_RC is set) you call:
-> -
-> -int cec_register_adapter(struct cec_adapter *adap);
-> +    int cec_register_adapter(struct cec_adapter *adap);
-> 
-> To unregister the devices call:
-> 
-> -void cec_unregister_adapter(struct cec_adapter *adap);
-> +..  code-block:: c
-> +
-> +    void cec_unregister_adapter(struct cec_adapter *adap);
-> 
-> -Note: if cec_register_adapter() fails, then call cec_delete_adapter() to
-> -clean up. But if cec_register_adapter() succeeded, then only call
-> -cec_unregister_adapter() to clean up, never cec_delete_adapter(). The
-> +Note: if ``cec_register_adapter()`` fails, then call ``cec_delete_adapter()`` to
-> +clean up. But if ``cec_register_adapter()`` succeeded, then only call
-> +``cec_unregister_adapter()`` to clean up, never ``cec_delete_adapter()``. The
-> unregister function will delete the adapter automatically once the last user
-> -of that /dev/cecX device has closed its file handle.
-> +of that ``/dev/cecX`` device has closed its file handle.
-> 
-> 
-> Implementing the Low-Level CEC Adapter
-> ---------------------------------------
-> +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> The following low-level adapter operations have to be implemented in
-> your driver:
-> 
-> -struct cec_adap_ops {
-> +..  code-block:: c
-> +
-> +    struct cec_adap_ops {
-> 	/* Low-level callbacks */
-> 	int (*adap_enable)(struct cec_adapter *adap, bool enable);
-> 	int (*adap_monitor_all_enable)(struct cec_adapter *adap, bool enable);
-> @@ -94,74 +97,87 @@ struct cec_adap_ops {
-> 
-> 	/* High-level callbacks */
-> 	...
-> -};
-> +    };
-> 
-> The three low-level ops deal with various aspects of controlling the CEC adapter
-> -hardware:
-> -
-> +hardware.
-> 
-> To enable/disable the hardware:
-> 
-> +..  code-block:: c
-> +
-> 	int (*adap_enable)(struct cec_adapter *adap, bool enable);
-> 
-> This callback enables or disables the CEC hardware. Enabling the CEC hardware
-> means powering it up in a state where no logical addresses are claimed. This
-> -op assumes that the physical address (adap->phys_addr) is valid when enable is
-> +op assumes that the physical address (``adap->phys_addr``) is valid when enable is
-> true and will not change while the CEC adapter remains enabled. The initial
-> -state of the CEC adapter after calling cec_allocate_adapter() is disabled.
-> +state of the CEC adapter after calling ``cec_allocate_adapter()`` is disabled.
-> 
-> -Note that adap_enable must return 0 if enable is false.
-> +Note that ``adap_enable`` must return 0 if enable is false.
-> 
-> 
-> To enable/disable the 'monitor all' mode:
-> 
-> +..  code-block:: c
-> +
-> 	int (*adap_monitor_all_enable)(struct cec_adapter *adap, bool enable);
-> 
-> If enabled, then the adapter should be put in a mode to also monitor messages
-> that not for us. Not all hardware supports this and this function is only
-> -called if the CEC_CAP_MONITOR_ALL capability is set. This callback is optional
-> +called if the ``CEC_CAP_MONITOR_ALL`` capability is set. This callback is optional
-> (some hardware may always be in 'monitor all' mode).
-> 
-> -Note that adap_monitor_all_enable must return 0 if enable is false.
-> +Note that ``adap_monitor_all_enable`` must return 0 if enable is false.
-> 
-> 
-> To program a new logical address:
-> 
-> +..  code-block:: c
-> +
-> 	int (*adap_log_addr)(struct cec_adapter *adap, u8 logical_addr);
-> 
-> -If logical_addr == CEC_LOG_ADDR_INVALID then all programmed logical addresses
-> +If ``logical_addr`` == ``CEC_LOG_ADDR_INVALID`` then all programmed logical addresses
-> are to be erased. Otherwise the given logical address should be programmed.
-> If the maximum number of available logical addresses is exceeded, then it
-> -should return -ENXIO. Once a logical address is programmed the CEC hardware
-> +should return ``-ENXIO``. Once a logical address is programmed the CEC hardware
-> can receive directed messages to that address.
-> 
-> -Note that adap_log_addr must return 0 if logical_addr is CEC_LOG_ADDR_INVALID.
-> +Note that ``adap_log_addr`` must return 0 if logical_addr is ``CEC_LOG_ADDR_INVALID``.
-> 
-> 
-> To transmit a new message:
-> 
-> +..  code-block:: c
-> +
-> 	int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
-> 			     u32 signal_free_time, struct cec_msg *msg);
-> 
-> -This transmits a new message. The attempts argument is the suggested number of
-> +This transmits a new message. The ``attempts`` argument is the suggested number of
-> attempts for the transmit.
-> 
-> -The signal_free_time is the number of data bit periods that the adapter should
-> +The ``signal_free_time`` is the number of data bit periods that the adapter should
-> wait when the line is free before attempting to send a message. This value
-> depends on whether this transmit is a retry, a message from a new initiator or
-> a new message for the same initiator. Most hardware will handle this
-> automatically, but in some cases this information is needed.
-> 
-> -The CEC_FREE_TIME_TO_USEC macro can be used to convert signal_free_time to
-> +The ``CEC_FREE_TIME_TO_USEC`` macro can be used to convert ``signal_free_time`` to
-> microseconds (one data bit period is 2.4 ms).
-> 
-> 
-> To log the current CEC hardware status:
-> 
-> -	void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
-> +..  code-block:: c
-> +
-> +    void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
-> 
-> This optional callback can be used to show the status of the CEC hardware.
-> -The status is available through debugfs: cat /sys/kernel/debug/cec/cecX/status
-> +The status is available through debugfs:
-> +
-> +..  code-block:: c
-> +
-> +    cat /sys/kernel/debug/cec/cecX/status
-> 
-> 
-> Your adapter driver will also have to react to events (typically interrupt
-> @@ -169,29 +185,31 @@ driven) by calling into the framework in the following situations:
-> 
-> When a transmit finished (successfully or otherwise):
-> 
-> -void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
-> +..  code-block:: c
-> +
-> +    void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
-> 		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
-> 
-> The status can be one of:
-> 
-> -CEC_TX_STATUS_OK: the transmit was successful.
-> -CEC_TX_STATUS_ARB_LOST: arbitration was lost: another CEC initiator
-> -took control of the CEC line and you lost the arbitration.
-> -CEC_TX_STATUS_NACK: the message was nacked (for a directed message) or
-> -acked (for a broadcast message). A retransmission is needed.
-> -CEC_TX_STATUS_LOW_DRIVE: low drive was detected on the CEC bus. This
-> -indicates that a follower detected an error on the bus and requested a
-> -retransmission.
-> -CEC_TX_STATUS_ERROR: some unspecified error occurred: this can be one of
-> -the previous two if the hardware cannot differentiate or something else
-> -entirely.
-> -CEC_TX_STATUS_MAX_RETRIES: could not transmit the message after
-> -trying multiple times. Should only be set by the driver if it has hardware
-> -support for retrying messages. If set, then the framework assumes that it
-> -doesn't have to make another attempt to transmit the message since the
-> -hardware did that already.
-> -
-> -The *_cnt arguments are the number of error conditions that were seen.
-> +- ``CEC_TX_STATUS_OK``: the transmit was successful.
-> +- ``CEC_TX_STATUS_ARB_LOST``: arbitration was lost: another CEC initiator
-> +  took control of the CEC line and you lost the arbitration.
-> +- ``CEC_TX_STATUS_NACK``: the message was nacked (for a directed message) or
-> +  acked (for a broadcast message). A retransmission is needed.
-> +- ``CEC_TX_STATUS_LOW_DRIVE``: low drive was detected on the CEC bus. This
-> +  indicates that a follower detected an error on the bus and requested a
-> +  retransmission.
-> +- ``CEC_TX_STATUS_ERROR``: some unspecified error occurred: this can be one of
-> +  the previous two if the hardware cannot differentiate or something else
-> +  entirely.
-> +- ``CEC_TX_STATUS_MAX_RETRIES``: could not transmit the message after
-> +  trying multiple times. Should only be set by the driver if it has hardware
-> +  support for retrying messages. If set, then the framework assumes that it
-> +  doesn't have to make another attempt to transmit the message since the
-> +  hardware did that already.
-> +
-> +The ``_cnt`` arguments are the number of error conditions that were seen.
-> This may be 0 if no information is available. Drivers that do not support
-> hardware retry can just set the counter corresponding to the transmit error
-> to 1, if the hardware does support retry then either set these counters to
-> @@ -200,68 +218,80 @@ times, or fill in the correct values as reported by the hardware.
-> 
-> When a CEC message was received:
-> 
-> -void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
-> +..  code-block:: c
-> +
-> +    void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
-> 
-> Speaks for itself.
-> 
-> Implementing the High-Level CEC Adapter
-> ----------------------------------------
-> +^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 
-> The low-level operations drive the hardware, the high-level operations are
-> CEC protocol driven. The following high-level callbacks are available:
-> 
-> -struct cec_adap_ops {
-> +..  code-block:: c
-> +
-> +    struct cec_adap_ops {
-> 	/* Low-level callbacks */
-> 	...
-> 
-> 	/* High-level CEC message callback */
-> 	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
-> -};
-> +    };
-> 
-> -The received() callback allows the driver to optionally handle a newly
-> +The ``received()`` callback allows the driver to optionally handle a newly
-> received CEC message
-> 
-> +..  code-block:: c
-> +
-> 	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
-> 
-> If the driver wants to process a CEC message, then it can implement this
-> callback. If it doesn't want to handle this message, then it should return
-> --ENOMSG, otherwise the CEC framework assumes it processed this message and
-> +``-ENOMSG``, otherwise the CEC framework assumes it processed this message and
-> it will not no anything with it.
-> 
-> 
-> CEC framework functions
-> ------------------------
-> +^^^^^^^^^^^^^^^^^^^^^^^
-> 
-> CEC Adapter drivers can call the following CEC framework functions:
-> 
-> -int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
-> +..  code-block:: c
-> +
-> +    int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
-> 		     bool block);
-> 
-> -Transmit a CEC message. If block is true, then wait until the message has been
-> +Transmit a CEC message. If ``block`` is true, then wait until the message has been
-> transmitted, otherwise just queue it and return.
-> 
-> -void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block);
-> +..  code-block:: c
-> 
-> -Change the physical address. This function will set adap->phys_addr and
-> -send an event if it has changed. If cec_s_log_addrs() has been called and
-> +    void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block);
-> +
-> +Change the physical address. This function will set ``adap->phys_addr`` and
-> +send an event if it has changed. If ``cec_s_log_addrs()`` has been called and
-> the physical address has become valid, then the CEC framework will start
-> -claiming the logical addresses. If block is true, then this function won't
-> +claiming the logical addresses. If ``block`` is true, then this function won't
-> return until this process has finished.
-> 
-> When the physical address is set to a valid value the CEC adapter will
-> -be enabled (see the adap_enable op). When it is set to CEC_PHYS_ADDR_INVALID,
-> +be enabled (see the ``adap_enable`` op). When it is set to ``CEC_PHYS_ADDR_INVALID``,
-> then the CEC adapter will be disabled. If you change a valid physical address
-> to another valid physical address, then this function will first set the
-> -address to CEC_PHYS_ADDR_INVALID before enabling the new physical address.
-> +address to ``CEC_PHYS_ADDR_INVALID`` before enabling the new physical address.
-> +
-> +..  code-block:: c
-> 
-> -int cec_s_log_addrs(struct cec_adapter *adap,
-> +    int cec_s_log_addrs(struct cec_adapter *adap,
-> 		    struct cec_log_addrs *log_addrs, bool block);
-> 
-> -Claim the CEC logical addresses. Should never be called if CEC_CAP_LOG_ADDRS
-> -is set. If block is true, then wait until the logical addresses have been
-> +Claim the CEC logical addresses. Should never be called if ``CEC_CAP_LOG_ADDRS``
-> +is set. If ``block`` is true, then wait until the logical addresses have been
-> claimed, otherwise just queue it and return. To unconfigure all logical
-> -addresses call this function with log_addrs set to NULL or with
-> -log_addrs->num_log_addrs set to 0. The block argument is ignored when
-> +addresses call this function with ``log_addrs`` set to ``NULL`` or with
-> +``log_addrs->num_log_addrs`` set to 0. The ``block`` argument is ignored when
-> unconfiguring. This function will just return if the physical address is
-> invalid. Once the physical address becomes valid, then the framework will
-> attempt to claim these logical addresses.
-> diff --git a/Documentation/media/media_kapi.rst b/Documentation/media/media_kapi.rst
-> index b71e8e8..f282ca2 100644
-> --- a/Documentation/media/media_kapi.rst
-> +++ b/Documentation/media/media_kapi.rst
-> @@ -32,3 +32,4 @@ For more details see the file COPYING in the source distribution of Linux.
->    kapi/dtv-core
->    kapi/rc-core
->    kapi/mc-core
-> +    kapi/cec-core
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 20bb1d0..b1081c6 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -2901,8 +2901,8 @@ L:	linux-media@vger.kernel.org
-> T:	git git://linuxtv.org/media_tree.git
-> W:	http://linuxtv.org
-> S:	Supported
-> -F:	Documentation/cec.txt
-> -F:	Documentation/DocBook/media/v4l/cec*
-> +F:	Documentation/media/kapi/cec-core.rst
-> +F:	Documentation/media/uapi/cec/
-> F:	drivers/staging/media/cec/
-> F:	drivers/media/cec-edid.c
-> F:	drivers/media/rc/keymaps/rc-cec.c
-> -- 
-> 2.8.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Hans
 
+The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
+
+  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git newpixfmts
+
+for you to fetch changes up to 2feb1e8a20a88bcd0aa4e2b46cabcc51241f37b8:
+
+  doc-rst: Add 16-bit raw bayer pixel format definitions (2016-08-12 13:02:48 +0200)
+
+----------------------------------------------------------------
+Jouni Ukkonen (1):
+      media: Add 1X14 14-bit raw bayer media bus code definitions
+
+Sakari Ailus (10):
+      doc-rst: Correct the ordering of LSBs of the 10-bit raw packed formats
+      doc-rst: Fix number of zeroed high order bits in 12-bit raw format defs
+      doc-rst: Clean up raw bayer pixel format definitions
+      doc-rst: Unify documentation of the 8-bit bayer formats
+      v4l: Add packed Bayer raw12 pixel formats
+      doc-rst: Add 14-bit raw bayer pixel format definitions
+      doc-rst: Add packed Bayer raw14 pixel formats
+      media: Add 1X16 16-bit raw bayer media bus code definitions
+      doc-rst: 16-bit BGGR is always 16 bits
+      doc-rst: Add 16-bit raw bayer pixel format definitions
+
+ Documentation/media/uapi/v4l/pixfmt-rgb.rst                          |   8 +-
+ Documentation/media/uapi/v4l/pixfmt-sbggr8.rst                       |  81 -----
+ Documentation/media/uapi/v4l/pixfmt-sgbrg8.rst                       |  81 -----
+ Documentation/media/uapi/v4l/pixfmt-sgrbg8.rst                       |  81 -----
+ Documentation/media/uapi/v4l/pixfmt-srggb10.rst                      |  15 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb10p.rst                     |  24 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb12.rst                      |   5 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb12p.rst                     | 107 ++++++
+ Documentation/media/uapi/v4l/pixfmt-srggb14.rst                      | 122 +++++++
+ Documentation/media/uapi/v4l/pixfmt-srggb14p.rst                     | 127 +++++++
+ .../media/uapi/v4l/{pixfmt-sbggr16.rst => pixfmt-srggb16.rst}        |  32 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb8.rst                       |  41 ++-
+ Documentation/media/uapi/v4l/subdev-formats.rst                      | 546 ++++++++++++++++++++++++++++++-
+ drivers/media/v4l2-core/v4l2-ioctl.c                                 |  21 +-
+ include/uapi/linux/media-bus-format.h                                |  10 +-
+ include/uapi/linux/videodev2.h                                       |  17 +
+ 16 files changed, 1012 insertions(+), 306 deletions(-)
+ delete mode 100644 Documentation/media/uapi/v4l/pixfmt-sbggr8.rst
+ delete mode 100644 Documentation/media/uapi/v4l/pixfmt-sgbrg8.rst
+ delete mode 100644 Documentation/media/uapi/v4l/pixfmt-sgrbg8.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb12p.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb14.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb14p.rst
+ rename Documentation/media/uapi/v4l/{pixfmt-sbggr16.rst => pixfmt-srggb16.rst} (55%)
