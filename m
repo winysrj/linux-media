@@ -1,61 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51092 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755042AbcHSIj3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 04:39:29 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 3/6] v4l: rcar-fcp: Don't get/put module reference
-Date: Fri, 19 Aug 2016 11:39:31 +0300
-Message-Id: <1471595974-28960-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1471595974-28960-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1471595974-28960-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51837 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752175AbcHLKGv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Aug 2016 06:06:51 -0400
+Subject: Re: [PATCH] Documentation: add support for V4L touch devices
+To: y@shmanahar.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+References: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
+ <1468876312-24688-1-git-send-email-y>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	Nick Dyer <nick@shmanahar.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <b96bd93f-5336-eb88-70dc-4ba4076b9511@xs4all.nl>
+Date: Fri, 12 Aug 2016 12:06:45 +0200
+MIME-Version: 1.0
+In-Reply-To: <1468876312-24688-1-git-send-email-y>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Direct callers of the FCP API hold a reference to the FCP module due to
-module linkage, there's no need to take another one manually. Take a
-reference to the device instead to ensure that it won't disappear being
-the caller's back.
+Hi Nick,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/rcar-fcp.c | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+On 07/18/2016 11:11 PM, y@shmanahar.org wrote:
+> From: Nick Dyer <nick@shmanahar.org>
+> 
+> Signed-off-by: Nick Dyer <nick@shmanahar.org>
 
-diff --git a/drivers/media/platform/rcar-fcp.c b/drivers/media/platform/rcar-fcp.c
-index f7bcbf7677a0..7427be1c3741 100644
---- a/drivers/media/platform/rcar-fcp.c
-+++ b/drivers/media/platform/rcar-fcp.c
-@@ -53,14 +53,7 @@ struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np)
- 		if (fcp->dev->of_node != np)
- 			continue;
- 
--		/*
--		 * Make sure the module won't be unloaded behind our back. This
--		 * is a poor man's safety net, the module should really not be
--		 * unloaded while FCP users can be active.
--		 */
--		if (!try_module_get(fcp->dev->driver->owner))
--			fcp = NULL;
--
-+		get_device(fcp->dev);
- 		goto done;
- 	}
- 
-@@ -81,7 +74,7 @@ EXPORT_SYMBOL_GPL(rcar_fcp_get);
- void rcar_fcp_put(struct rcar_fcp_device *fcp)
- {
- 	if (fcp)
--		module_put(fcp->dev->driver->owner);
-+		put_device(fcp->dev);
- }
- EXPORT_SYMBOL_GPL(rcar_fcp_put);
- 
--- 
+I'm missing documentation for the new V4L2_CAP_TOUCH capability and the
+V4L2_INPUT_TYPE_TOUCH define.
+
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-tch-tu08.rst b/Documentation/media/uapi/v4l/pixfmt-tch-tu08.rst
+> new file mode 100644
+> index 0000000..32e21f8
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/pixfmt-tch-tu08.rst
+> @@ -0,0 +1,78 @@
+> +.. -*- coding: utf-8; mode: rst -*-
+> +
+> +.. _V4L2-TCH-FMT-DELTA-TU08:
+
+The -DELTA part should be removed here and in tu16.rst.
+
+> +
+> +**************************
+> +V4L2_TCH_FMT_DELTA_TU08 ('TU08')
+> +**************************
+> +
+> +*man V4L2_TCH_FMT_DELTA_TU08(2)*
+
+Ditto.
+
 Regards,
 
-Laurent Pinchart
-
+	Hans
