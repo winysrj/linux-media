@@ -1,92 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51011 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752902AbcHOVXR (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33786 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751678AbcHLIiJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 17:23:17 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH RFC v2 3/9] docs-rst: Don't mangle with UTF-8 chars on LaTeX/PDF output
-Date: Mon, 15 Aug 2016 18:21:54 -0300
-Message-Id: <5ceebc273ff089c275c753c78f6e6c6e732b4077.1471294965.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471294965.git.mchehab@s-opensource.com>
-References: <cover.1471294965.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471294965.git.mchehab@s-opensource.com>
-References: <cover.1471294965.git.mchehab@s-opensource.com>
+	Fri, 12 Aug 2016 04:38:09 -0400
+Received: by mail-wm0-f67.google.com with SMTP id o80so1599369wme.0
+        for <linux-media@vger.kernel.org>; Fri, 12 Aug 2016 01:38:08 -0700 (PDT)
+Date: Fri, 12 Aug 2016 10:38:04 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	linux-doc@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC 0/4] doc: dma-buf: sphinx conversion and cleanup
+Message-ID: <20160812083804.GP6232@phenom.ffwll.local>
+References: <1470912480-32304-1-git-send-email-sumit.semwal@linaro.org>
+ <20160811083652.55371952@lwn.net>
+ <CAO_48GEUzviZT0HMa8UhT+jN-eNmbTyTdnBs9SZFXz2fJ0m-7Q@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAO_48GEUzviZT0HMa8UhT+jN-eNmbTyTdnBs9SZFXz2fJ0m-7Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pdflatex doesn't accept using some UTF-8 chars, like
-"equal or less than" or "equal or greater than" chars. However,
-the media documents use them. So, we need to use XeLaTeX for
-conversion, and a font that accepts such characters.
+On Fri, Aug 12, 2016 at 12:05:04PM +0530, Sumit Semwal wrote:
+> Hi Jon!
+> 
+> On 11 August 2016 at 20:06, Jonathan Corbet <corbet@lwn.net> wrote:
+> > On Thu, 11 Aug 2016 16:17:56 +0530
+> > Sumit Semwal <sumit.semwal@linaro.org> wrote:
+> >
+> >> Convert dma-buf documentation over to sphinx; also cleanup to
+> >> address sphinx warnings.
+> >>
+> >> While at that, convert dma-buf-sharing.txt as well, and make it the
+> >> dma-buf API guide.
+> >
+> > Thanks for working to improve the documentation!  I do have a few overall
+> > comments...
+> >
+> Thank you for your review, and comments; my responses are inline.
+> 
+> >  - The two comment fixes are a separate thing that should go straight to
+> >    the dma-buf maintainer, who is ... <looks> ... evidently somebody
+> >    familiar to you :)  I assume you'll merge those two directly?
+> >
+> Yes, of course :) - I will merge them directly, and will remove them
+> from v2 of this series.
+> 
+> >  - It looks like you create a new RST document but leave the old one in
+> >    place.  Having two copies of the document around can only lead to
+> >    confusion, so I think the old one should go.
+> >
+> Agreed on this as well; will correct it.
+> 
+> >  - I really wonder if we want to start carving pieces out of
+> >    device-drivers.tmpl in this way.  I guess I would rather see the
+> >    conversion of that book and the better integration of the other docs
+> >    *into* it.  One of the goals of this whole thing is to unify our
+> >    documentation, not to reinforce the silos.
+> >
+> I should've mentioned it in the cover letter - my intention of taking
+> the dma-buf pieces out was to focus on these first while moving to
+> sphinx.
+> 
+> My proposal would be, if all the device driver section owners could
+> take the relevant pieces, convert them to sphinx (ironing out warnings
+> etc in the process), then we can again 'bind' them together into the
+> device drivers book in rst format.
+> This breaks the documentation conversion task into manageable pieces
+> that can be handled independently, and gives everyone flexibility to
+> work on their schedules.
+> 
+> This should also help in a good technical re-look at the content by
+> subsystem developers, and make any documentation updates as required.
+> The beauty of sphinx should allow us this, I think? Just my 2 cents.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/Makefile.sphinx |  6 +++---
- Documentation/conf.py         | 11 +++++++++++
- 2 files changed, 14 insertions(+), 3 deletions(-)
+I already tried to trick Sumit into converting the entire
+device-drivers.tmpl, but he didn't take the bait ;-)
 
-diff --git a/Documentation/Makefile.sphinx b/Documentation/Makefile.sphinx
-index fc29e08085aa..aa7ff32be589 100644
---- a/Documentation/Makefile.sphinx
-+++ b/Documentation/Makefile.sphinx
-@@ -26,7 +26,7 @@ else ifneq ($(DOCBOOKS),)
- else # HAVE_SPHINX
- 
- # User-friendly check for pdflatex
--HAVE_PDFLATEX := $(shell if which pdflatex >/dev/null 2>&1; then echo 1; else echo 0; fi)
-+HAVE_PDFLATEX := $(shell if which xelatex >/dev/null 2>&1; then echo 1; else echo 0; fi)
- 
- # Internal variables.
- PAPEROPT_a4     = -D latex_paper_size=a4
-@@ -45,11 +45,11 @@ htmldocs:
- 
- pdfdocs:
- ifeq ($(HAVE_PDFLATEX),0)
--	$(warning The 'pdflatex' command was not found. Make sure you have it installed and in PATH to produce PDF output.)
-+	$(warning The 'xelatex' command was not found. Make sure you have it installed and in PATH to produce PDF output.)
- 	@echo "  SKIP    Sphinx $@ target."
- else # HAVE_PDFLATEX
- 	$(call cmd,sphinx,latex)
--	$(Q)$(MAKE) -C $(BUILDDIR)/latex
-+	$(Q)$(MAKE) PDFLATEX=xelatex -C $(BUILDDIR)/latex
- endif # HAVE_PDFLATEX
- 
- epubdocs:
-diff --git a/Documentation/conf.py b/Documentation/conf.py
-index bbf2878d9945..f4469cd0340d 100644
---- a/Documentation/conf.py
-+++ b/Documentation/conf.py
-@@ -260,6 +260,10 @@ latex_elements = {
- # Latex figure (float) alignment
- #'figure_align': 'htbp',
- 
-+# Don't mangle with UTF-8 chars
-+'inputenc': '',
-+'utf8extra': '',
-+
- # Additional stuff for the LaTeX preamble.
-     'preamble': '''
-         % Allow generate some pages in landscape
-@@ -287,6 +291,13 @@ latex_elements = {
-           \\end{graybox}
-         }
- 	\\makeatother
-+
-+	% Use some font with UTF-8 support with XeLaTeX
-+        \\usepackage{fontspec}
-+        \\setsansfont{DejaVu Serif}
-+        \\setromanfont{DejaVu Sans}
-+        \\setmonofont{DejaVu Sans Mono}
-+
-      '''
- }
- 
+I think just extracting dma-buf stuff (dma_buf, fence, reservation and all
+that) is ok though, it is a fairly stand-alone topic.
+-Daniel
+
+> 
+> > Does that make sense?
+> >
+> I do hope that my proposal above finds some merit with everyone.
+> 
+> > Thanks,
+> >
+> > jon
+> 
+> BR,
+> Sumit.
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+
 -- 
-2.7.4
-
-
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
