@@ -1,63 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:33964 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932367AbcHCSEL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 14:04:11 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: lars@metafoo.de
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 6/8] media: adv7180: change mbus format to UYVY
-Date: Wed,  3 Aug 2016 11:03:48 -0700
-Message-Id: <1470247430-11168-7-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:52507 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752463AbcHLLW0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Aug 2016 07:22:26 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id B80CF1800A9
+	for <linux-media@vger.kernel.org>; Fri, 12 Aug 2016 13:22:16 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.9] Colorspace handling fixes
+Message-ID: <7dcd9871-dd3a-2754-61a4-57ac935abd30@xs4all.nl>
+Date: Fri, 12 Aug 2016 13:22:16 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change the media bus format from YUYV8_2X8 to UYVY8_2X8. Colors
-now look correct when capturing with the i.mx6 backend.
+This pull request fixes a number of bugs/documentation mistakes w.r.t.
+colorspaces.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Tested-by: Tim Harvey <tharvey@gateworks.com>
-Acked-by: Tim Harvey <tharvey@gateworks.com>
-Acked-by: Lars-Peter Clausen <lars@metafoo.de>
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+The main one is that the V4L2_YCBCR_ENC_SYCC was mistakenly added. It turns
+out it is identical to the BT.601 Y'CbCr encoding. So the use of the old SYCC
+define has been removed from the kernel and documentation.
 
----
-v4: no changes
-v3: no changes
-v2: no changes
----
- drivers/media/i2c/adv7180.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Some other changes: a 4th decimal was added to the BT.601 conversion matrices,
+the default Y'CbCr quantization range for sRGB and AdobeRGB is full range
+instead of limited range, and two textual mistakes were fixed in the doc.
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 9705e24..abdc519 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -636,7 +636,7 @@ static int adv7180_enum_mbus_code(struct v4l2_subdev *sd,
- 	if (code->index != 0)
- 		return -EINVAL;
- 
--	code->code = MEDIA_BUS_FMT_YUYV8_2X8;
-+	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
- 
- 	return 0;
- }
-@@ -646,7 +646,7 @@ static int adv7180_mbus_fmt(struct v4l2_subdev *sd,
- {
- 	struct adv7180_state *state = to_state(sd);
- 
--	fmt->code = MEDIA_BUS_FMT_YUYV8_2X8;
-+	fmt->code = MEDIA_BUS_FMT_UYVY8_2X8;
- 	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 	fmt->width = 720;
- 	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
--- 
-1.9.1
+Regards,
 
+	Hans
+
+The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
+
+  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git sycc
+
+for you to fetch changes up to 90c7c496be2ddabc4ea42453e56edd807ca8592e:
+
+  pixfmt-007.rst: fix copy-and-paste error in SMPTE-240M doc (2016-08-12 13:12:28 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (7):
+      videodev2.h: fix sYCC/AdobeYCC default quantization range
+      vivid: don't mention the obsolete sYCC Y'CbCr encoding
+      v4l2-tpg-core: drop SYCC, use higher precision 601 conversion matrix
+      videodev2.h: put V4L2_YCBCR_ENC_SYCC under #ifndef __KERNEL__
+      pixfmt.rst: drop V4L2_YCBCR_ENC_SYCC from the documentation
+      pixfmt-007.rst: fix a messed up note in the DCI-P3 doc
+      pixfmt-007.rst: fix copy-and-paste error in SMPTE-240M doc
+
+ Documentation/media/uapi/v4l/pixfmt-006.rst   | 10 ++--------
+ Documentation/media/uapi/v4l/pixfmt-007.rst   | 58 ++++++++++++++++++++++++++-----------------------------
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 14 ++++++--------
+ drivers/media/platform/vivid/vivid-ctrls.c    |  3 ++-
+ include/uapi/linux/videodev2.h                | 21 ++++++++++++--------
+ 5 files changed, 50 insertions(+), 56 deletions(-)
