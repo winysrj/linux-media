@@ -1,96 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37979 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754884AbcHSNte (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 09:49:34 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id 45E711800DD
-        for <linux-media@vger.kernel.org>; Fri, 19 Aug 2016 15:48:58 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42558 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751962AbcHLNRr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Aug 2016 09:17:47 -0400
+Subject: Re: [PATCH v2] V4L2: Add documentation for SDI timings and related
+ flags
+To: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>,
+	linux-media@vger.kernel.org
+References: <1470325151-14522-1-git-send-email-charles-antoine.couret@nexvision.fr>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.8] Fixes and updates (mostly cec-related) (v3)
-Message-ID: <d9987eba-e843-c755-8de7-1499e5d4252b@xs4all.nl>
-Date: Fri, 19 Aug 2016 15:48:58 +0200
+Message-ID: <574b72df-b860-4568-8828-1f88e49c8d06@xs4all.nl>
+Date: Fri, 12 Aug 2016 15:17:41 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1470325151-14522-1-git-send-email-charles-antoine.couret@nexvision.fr>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 08/04/2016 05:39 PM, Charles-Antoine Couret wrote:
 
-These are (regression) fixes for 4.8, mostly related to the cec framework.
+A commit log is missing here.
 
-It fixes some dubious locking code, two typos in cec-funcs.h, a missing reply
-for the Record On/Off messages, improves the documentation, adds a TODO line,
-adds a flag to explicitly allow fallback to Unregistered, ensures unclaimed
-LAs are set to INVALID, prevents broadcast messages from being processed
-when they should be ignored and add a IEEE ID check when locating in physical
-address location in the EDID.
+> Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+> ---
+>  Documentation/media/uapi/v4l/vidioc-enuminput.rst  | 31 +++++++++++++++++-----
+>  .../media/uapi/v4l/vidioc-g-dv-timings.rst         | 16 +++++++++++
+>  2 files changed, 40 insertions(+), 7 deletions(-)
+> 
 
-The CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK patch changes the default behavior,
-so I would like to get that in for 4.8 rather than waiting for 4.9.
+<snip>
 
-The cec-compliance test we've been working on is done and merged in v4l-utils.
-This means we have 99% coverage (only some CDC HEC tests are missing since
-that's rarely used). These patches fix some remaining problems that we've found
-while working on this test.
+> diff --git a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
+> index f7bf21f..0205bf6 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
+> @@ -339,6 +339,14 @@ EBUSY
+>  
+>         -  The timings follow the VESA Generalized Timings Formula standard
+>  
+> +    -  .. row 7
+> +
+> +       -  ``V4L2_DV_BT_STD_SDI``
+> +
+> +       -  The timings follow the SDI Timings standard.
+> +	  There are not always horizontal syncs/porches or similar in this format.
+> +	  If it is not precised by standard, blanking timings must be set in
+> +	  hsync or vsync fields by default.
 
-I hope to fix the remaining items from the TODO list for 4.9 so that the
-framework can be mainlined soon.
+OK. This is confusing. The text was changed after my question about something porch-like
+in the SMPTE-125M standard. But I see nothing like that after re-reading it.
 
-There are three other patches: the mediatek patch adds a missing HAS_DMA
-dependency to shut the kbuild robot up, and there are two fixes for the pulse8-cec
-driver. Many thanks to Pulse-Eight for providing me with the information
-necessary for these two patches.
+So what sort of 'porch' timing were you thinking of?
+
+I wonder if I shouldn't just use the text from your first patch:
+
+       -  ``V4L2_DV_BT_STD_SDI``
+
+       -  The timings follow the SDI Timings standard.
+	  There are no horizontal syncs/porches at all in this format.
+	  Total blanking timings must be set in hsync or vsync fields only.
 
 Regards,
 
 	Hans
-
-v3: add cec-edid: check for IEEE identifier
-v2: fixing a bug in the "cec: add CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK flag"
-patch and adding "cec: set unclaimed addresses to CEC_LOG_ADDR_INVALID".
-
-The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
-
-  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.8a
-
-for you to fetch changes up to d9fb56631ec40780de628ce5dc9f519f5e336e1c:
-
-  cec-edid: check for IEEE identifier (2016-08-19 15:30:23 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (13):
-      cec: rename cec_devnode fhs_lock to just lock
-      cec: improve locking
-      cec-funcs.h: fix typo: && should be &
-      cec-funcs.h: add reply argument for Record On/Off
-      cec: improve dqevent documentation
-      cec: add CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK flag
-      cec: set unclaimed addresses to CEC_LOG_ADDR_INVALID
-      cec: add item to TODO
-      cec: ignore messages when log_addr_mask == 0
-      mtk-vcodec: add HAS_DMA dependency
-      pulse8-cec: set correct Signal Free Time
-      pulse8-cec: fix error handling
-      cec-edid: check for IEEE identifier
-
- Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst | 21 ++++++++++++++++++++-
- Documentation/media/uapi/cec/cec-ioc-dqevent.rst          |  8 ++++++--
- drivers/media/cec-edid.c                                  |  5 ++++-
- drivers/media/platform/Kconfig                            |  2 +-
- drivers/staging/media/cec/TODO                            |  1 +
- drivers/staging/media/cec/cec-adap.c                      | 23 +++++++++++++++++------
- drivers/staging/media/cec/cec-api.c                       | 10 +++++-----
- drivers/staging/media/cec/cec-core.c                      | 27 +++++++++++++++------------
- drivers/staging/media/pulse8-cec/pulse8-cec.c             | 10 +++++-----
- include/linux/cec-funcs.h                                 |  9 ++++++---
- include/linux/cec.h                                       |  5 ++++-
- include/media/cec.h                                       |  2 +-
- 12 files changed, 85 insertions(+), 38 deletions(-)
