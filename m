@@ -1,55 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33716 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756096AbcHBF6z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 01:58:55 -0400
-Received: by mail-wm0-f65.google.com with SMTP id o80so28995848wme.0
-        for <linux-media@vger.kernel.org>; Mon, 01 Aug 2016 22:58:00 -0700 (PDT)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 3/3] media: rc: nuvoton: simplify nvt_get_rx_ir_data a little
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <64fc324e-631a-84cc-1e65-981be88eed42@gmail.com>
-Date: Tue, 2 Aug 2016 07:45:51 +0200
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:54891 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751627AbcHNJaD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Aug 2016 05:30:03 -0400
+Subject: Re: [PATCH v3 00/14] pxa_camera transition to v4l2 standalone device
+To: Robert Jarzmik <robert.jarzmik@free.fr>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Jiri Kosina <trivial@kernel.org>
+References: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2402d569-742d-482a-ac8f-3868f59510f3@xs4all.nl>
+Date: Sat, 13 Aug 2016 21:02:11 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simplify the code a little.
+On 08/08/2016 09:30 PM, Robert Jarzmik wrote:
+> Hi Hans,
+> 
+> We're leaving the domain of the RFC to a proper submission.
+> 
+> This is very alike to what you reviewed earlier, the code is very close, and :
+>  - the split between patches is done to better isolate cleanups from real code
+>  - start_streaming() was implemented
+>  - your remarks have been taken into account (please double-check if you're
+>    happy with it)
+>  - v4l2-compliance -f and v4l2-compliance -s were run without any error, and 6 warnings
+> 	warn: v4l2-test-formats.cpp(713): TRY_FMT cannot handle an invalid pixelformat.
+> 	warn: v4l2-test-formats.cpp(714): This may or may not be a problem. For more information see:
+> 	warn: v4l2-test-formats.cpp(715): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+>  - soc_camera is not touched anymore
+>  - the driver is still functional from a capture point of view as before
+>   (ie. taking a real picture)
+>  
+> I'm still relying on soc_mediabus, hence the not-so-nice Makefile diff hunk.
+> 
+> The only architecture which will have its deconfigs impacted is pxa, under my
+> maintainance, and once the review is finished and you have a landing cycle I'll
+> complete with a simple serie on the pxa side (defconfig + platform data).
+> 
+> I've also put the whole serie here if you want to fetch and review from git directly :
+>  - git fetch https://github.com/rjarzmik/linux.git work/v4l2
+> 
+> Happy review.
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/nuvoton-cir.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+As you can see from my replies I only have a few small review comments remaining.
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index fc462f6..04fedaa 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -791,7 +791,7 @@ static void nvt_handle_rx_fifo_overrun(struct nvt_dev *nvt)
- /* copy data from hardware rx fifo into driver buffer */
- static void nvt_get_rx_ir_data(struct nvt_dev *nvt)
- {
--	u8 fifocount, val;
-+	u8 fifocount;
- 	int i;
- 
- 	/* Get count of how many bytes to read from RX FIFO */
-@@ -800,10 +800,8 @@ static void nvt_get_rx_ir_data(struct nvt_dev *nvt)
- 	nvt_dbg("attempting to fetch %u bytes from hw rx fifo", fifocount);
- 
- 	/* Read fifocount bytes from CIR Sample RX FIFO register */
--	for (i = 0; i < fifocount; i++) {
--		val = nvt_cir_reg_read(nvt, CIR_SRXFIFO);
--		nvt->buf[i] = val;
--	}
-+	for (i = 0; i < fifocount; i++)
-+		nvt->buf[i] = nvt_cir_reg_read(nvt, CIR_SRXFIFO);
- 
- 	nvt->pkts = fifocount;
- 	nvt_dbg("%s: pkts now %d", __func__, nvt->pkts);
--- 
-2.9.2
+Can you fix it and post a v4 (rebased to the latest kernel)? Please also add the
+v4l2-compliance -f output to the cover letter.
 
+Unless I see something new I plan to make a pull request of v4 for 4.9.
+
+I hope to post my conversion of the atmel-isi driver soon, and that might give
+you some ideas on how to get rid of the soc-mbus stuff in a follow-up patch.
+
+Regards,
+
+	Hans
