@@ -1,257 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:35007 "EHLO
-	mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768221AbcHROfq (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:56334 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752167AbcHNJZq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2016 10:35:46 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Antti Palosaari <crope@iki.fi>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v5 02/12] [media] Documentation: Add HSV format
-Date: Thu, 18 Aug 2016 16:33:28 +0200
-Message-Id: <1471530818-7928-3-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
+	Sun, 14 Aug 2016 05:25:46 -0400
+Subject: Re: [PATCH v3 11/14] media: platform: pxa_camera: make a standalone
+ v4l2 device
+To: Robert Jarzmik <robert.jarzmik@free.fr>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Jiri Kosina <trivial@kernel.org>
+References: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
+ <1470684652-16295-12-git-send-email-robert.jarzmik@free.fr>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c51a3d10-58d5-ef7c-ec9c-60dc70e124f3@xs4all.nl>
+Date: Sat, 13 Aug 2016 20:58:28 +0200
+MIME-Version: 1.0
+In-Reply-To: <1470684652-16295-12-git-send-email-robert.jarzmik@free.fr>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Describe the HSV formats
+On 08/08/2016 09:30 PM, Robert Jarzmik wrote:
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- Documentation/media/uapi/v4l/hsv-formats.rst       |  19 +++
- Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst | 158 +++++++++++++++++++++
- Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
- Documentation/media/uapi/v4l/v4l2.rst              |   5 +
- 4 files changed, 183 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/hsv-formats.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+<snip>
 
-diff --git a/Documentation/media/uapi/v4l/hsv-formats.rst b/Documentation/media/uapi/v4l/hsv-formats.rst
-new file mode 100644
-index 000000000000..f0f2615eaa95
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/hsv-formats.rst
-@@ -0,0 +1,19 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _hsv-formats:
-+
-+***********
-+HSV Formats
-+***********
-+
-+These formats store the color information of the image
-+in a geometrical representation. The colors are mapped into a
-+cylinder, where the angle is the HUE, the height is the VALUE
-+and the distance to the center is the SATURATION. This is a very
-+useful format for image segmentation algorithms.
-+
-+
-+.. toctree::
-+    :maxdepth: 1
-+
-+    pixfmt-packed-hsv
-diff --git a/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
-new file mode 100644
-index 000000000000..60ac821e309d
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
-@@ -0,0 +1,158 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _packed-hsv:
-+
-+******************
-+Packed HSV formats
-+******************
-+
-+*man Packed HSV formats(2)*
-+
-+Packed HSV formats
-+
-+
-+Description
-+===========
-+
-+The *hue* (h) is measured in degrees, one LSB represents two degrees.
-+The *saturation* (s) and the *value* (v) are measured in percentage of the
-+cylinder: 0 being the smallest value and 255 the maximum.
-+
-+
-+The values are packed in 24 or 32 bit formats.
-+
-+
-+.. flat-table:: Packed HSV Image Formats
-+    :header-rows:  2
-+    :stub-columns: 0
-+
-+    -  .. row 1
-+
-+       -  Identifier
-+       -  Code
-+       -
-+       -  :cspan:`7` Byte 0 in memory
-+       -
-+       -  :cspan:`7` Byte 1
-+       -
-+       -  :cspan:`7` Byte 2
-+       -
-+       -  :cspan:`7` Byte 3
-+
-+    -  .. row 2
-+
-+       -
-+       -
-+       -  Bit
-+       -  7
-+       -  6
-+       -  5
-+       -  4
-+       -  3
-+       -  2
-+       -  1
-+       -  0
-+       -
-+       -  7
-+       -  6
-+       -  5
-+       -  4
-+       -  3
-+       -  2
-+       -  1
-+       -  0
-+       -
-+       -  7
-+       -  6
-+       -  5
-+       -  4
-+       -  3
-+       -  2
-+       -  1
-+       -  0
-+       -
-+       -  7
-+       -  6
-+       -  5
-+       -  4
-+       -  3
-+       -  2
-+       -  1
-+       -  0
-+
-+    -  .. _V4L2-PIX-FMT-HSV32:
-+
-+       -  ``V4L2_PIX_FMT_HSV32``
-+       -  'HSV4'
-+       -
-+       -  -
-+       -  -
-+       -  -
-+       -  -
-+       -  -
-+       -  -
-+       -  -
-+       -  -
-+       -
-+       -  h\ :sub:`7`
-+       -  h\ :sub:`6`
-+       -  h\ :sub:`5`
-+       -  h\ :sub:`4`
-+       -  h\ :sub:`3`
-+       -  h\ :sub:`2`
-+       -  h\ :sub:`1`
-+       -  h\ :sub:`0`
-+       -
-+       -  s\ :sub:`7`
-+       -  s\ :sub:`6`
-+       -  s\ :sub:`5`
-+       -  s\ :sub:`4`
-+       -  s\ :sub:`3`
-+       -  s\ :sub:`2`
-+       -  s\ :sub:`1`
-+       -  s\ :sub:`0`
-+       -
-+       -  v\ :sub:`7`
-+       -  v\ :sub:`6`
-+       -  v\ :sub:`5`
-+       -  v\ :sub:`4`
-+       -  v\ :sub:`3`
-+       -  v\ :sub:`2`
-+       -  v\ :sub:`1`
-+       -  v\ :sub:`0`
-+
-+    -  .. _V4L2-PIX-FMT-HSV24:
-+
-+       -  ``V4L2_PIX_FMT_HSV24``
-+       -  'HSV3'
-+       -
-+       -  h\ :sub:`7`
-+       -  h\ :sub:`6`
-+       -  h\ :sub:`5`
-+       -  h\ :sub:`4`
-+       -  h\ :sub:`3`
-+       -  h\ :sub:`2`
-+       -  h\ :sub:`1`
-+       -  h\ :sub:`0`
-+       -
-+       -  s\ :sub:`7`
-+       -  s\ :sub:`6`
-+       -  s\ :sub:`5`
-+       -  s\ :sub:`4`
-+       -  s\ :sub:`3`
-+       -  s\ :sub:`2`
-+       -  s\ :sub:`1`
-+       -  s\ :sub:`0`
-+       -
-+       -  v\ :sub:`7`
-+       -  v\ :sub:`6`
-+       -  v\ :sub:`5`
-+       -  v\ :sub:`4`
-+       -  v\ :sub:`3`
-+       -  v\ :sub:`2`
-+       -  v\ :sub:`1`
-+       -  v\ :sub:`0`
-+       -
-+       -
-+
-+Bit 7 is the most significant bit.
-diff --git a/Documentation/media/uapi/v4l/pixfmt.rst b/Documentation/media/uapi/v4l/pixfmt.rst
-index 81222a99f7ce..1d2270422345 100644
---- a/Documentation/media/uapi/v4l/pixfmt.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt.rst
-@@ -29,6 +29,7 @@ see also :ref:`VIDIOC_G_FBUF <VIDIOC_G_FBUF>`.)
-     pixfmt-indexed
-     pixfmt-rgb
-     yuv-formats
-+    hsv-formats
-     depth-formats
-     pixfmt-013
-     sdr-formats
-diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
-index 5e41a8505301..36c6d0dc3859 100644
---- a/Documentation/media/uapi/v4l/v4l2.rst
-+++ b/Documentation/media/uapi/v4l/v4l2.rst
-@@ -89,6 +89,11 @@ part can be used and distributed without restrictions.
- Revision History
- ****************
- 
-+:revision: 4.9 / 2016-07-15 (*rr*)
-+
-+Introduce HSV formats.
-+
-+
- :revision: 4.5 / 2015-10-29 (*rr*)
- 
- Extend VIDIOC_G_EXT_CTRLS;. Replace ctrl_class with a new union with
--- 
-2.8.1
+> +static int pxa_camera_sensor_bound(struct v4l2_async_notifier *notifier,
+> +		     struct v4l2_subdev *subdev,
+> +		     struct v4l2_async_subdev *asd)
+> +{
+> +	int err;
+> +	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
+> +	struct pxa_camera_dev *pcdev = v4l2_dev_to_pcdev(v4l2_dev);
+> +	struct video_device *vdev = &pcdev->vdev;
+> +	struct v4l2_pix_format *pix = &pcdev->current_pix;
+> +	struct v4l2_subdev_format format = {
+> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+> +	};
+> +	struct v4l2_mbus_framefmt *mf = &format.format;
+> +
+> +	dev_info(pcdev_to_dev(pcdev), "%s(): trying to bind a device\n",
+> +		 __func__);
+> +	mutex_lock(&pcdev->mlock);
+> +	*vdev = pxa_camera_videodev_template;
+> +	vdev->v4l2_dev = v4l2_dev;
+> +	vdev->lock = &pcdev->mlock;
+> +	pcdev->sensor = subdev;
+> +	pcdev->vdev.queue = &pcdev->vb2_vq;
+> +	pcdev->vdev.v4l2_dev = &pcdev->v4l2_dev;
 
+You're missing this line here:
+
+	pcdev->vdev.ctrl_handler = subdev->ctrl_handler;
+
+This ensures that the sensor's controls are exposed to the video device node.
+
+> +	video_set_drvdata(&pcdev->vdev, pcdev);
+> +
+> +	v4l2_disable_ioctl(vdev, VIDIOC_G_STD);
+> +	v4l2_disable_ioctl(vdev, VIDIOC_S_STD);
+
+Since you don't implement vidioc_g/s_std these two lines can be removed.
+
+> +
+> +	err = pxa_camera_build_formats(pcdev);
+> +	if (err) {
+> +		dev_err(pcdev_to_dev(pcdev), "building formats failed: %d\n",
+> +			err);
+> +		goto out;
+> +	}
+> +
+> +	pcdev->current_fmt = pcdev->user_formats;
+> +	pix->field = V4L2_FIELD_NONE;
+> +	pix->width = DEFAULT_WIDTH;
+> +	pix->height = DEFAULT_HEIGHT;
+> +	pix->bytesperline =
+> +		soc_mbus_bytes_per_line(pix->width,
+> +					pcdev->current_fmt->host_fmt);
+> +	pix->sizeimage =
+> +		soc_mbus_image_size(pcdev->current_fmt->host_fmt,
+> +				    pix->bytesperline, pix->height);
+> +	pix->pixelformat = pcdev->current_fmt->host_fmt->fourcc;
+> +	v4l2_fill_mbus_format(mf, pix, pcdev->current_fmt->code);
+> +	err = sensor_call(pcdev, pad, set_fmt, NULL, &format);
+> +	if (err)
+> +		goto out;
+> +
+> +	v4l2_fill_pix_format(pix, mf);
+> +	pr_info("%s(): colorspace=0x%x pixfmt=0x%x\n",
+> +		__func__, pix->colorspace, pix->pixelformat);
+> +
+> +	err = pxa_camera_init_videobuf2(pcdev);
+> +	if (err)
+> +		goto out;
+> +
+> +	err = video_register_device(&pcdev->vdev, VFL_TYPE_GRABBER, -1);
+> +	if (err) {
+> +		v4l2_err(v4l2_dev, "register video device failed: %d\n", err);
+> +		pcdev->sensor = NULL;
+> +	} else {
+> +		dev_info(pcdev_to_dev(pcdev),
+> +			 "PXA Camera driver attached to camera %s\n",
+> +			 subdev->name);
+> +		subdev->owner = v4l2_dev->dev->driver->owner;
+> +	}
+> +out:
+> +	mutex_unlock(&pcdev->mlock);
+> +	return err;
+> +}
+
+Regards,
+
+	Hans
