@@ -1,181 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53954 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754501AbcHZXon (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Aug 2016 19:44:43 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v3 02/21] Revert "[media] media: fix use-after-free in cdev_put() when app exits after driver unbind"
-Date: Sat, 27 Aug 2016 02:43:10 +0300
-Message-Id: <1472255009-28719-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from smtp3-1.goneo.de ([85.220.129.38]:55974 "EHLO smtp3-1.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752695AbcHMONe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Aug 2016 10:13:34 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jani Nikula <jani.nikula@intel.com>
+Cc: Markus Heiser <markus.heiser@darmarIT.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 1/7] doc-rst: generic way to build only sphinx sub-folders
+Date: Sat, 13 Aug 2016 16:12:42 +0200
+Message-Id: <1471097568-25990-2-git-send-email-markus.heiser@darmarit.de>
+In-Reply-To: <1471097568-25990-1-git-send-email-markus.heiser@darmarit.de>
+References: <1471097568-25990-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit 5b28dde51d0c ("[media] media: fix use-after-free in
-cdev_put() when app exits after driver unbind"). The commit was part of an
-original patchset to avoid crashes when an unregistering device is in use.
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Add a generic way to build only a reST sub-folder with or
+without a individual *build-theme*.
+
+* control *sub-folders* by environment SPHINXDIRS
+* control *build-theme* by environment SPHINX_CONF
+
+Folders with a conf.py file, matching $(srctree)/Documentation/*/conf.py
+can be build and distributed *stand-alone*. E.g. to compile only the
+html of 'media' and 'gpu' folder use::
+
+  make SPHINXDIRS="media gpu" htmldocs
+
+To use an additional sphinx-build configuration (*build-theme*) set the
+name of the configuration file to SPHINX_CONF. E.g. to compile only the
+html of 'media' with the *nit-picking* build use::
+
+  make SPHINXDIRS=media SPHINX_CONF=conf_nitpick.py htmldocs
+
+With this, the Documentation/conf.py is read first and updated with the
+configuration values from the Documentation/media/conf_nitpick.py.
+
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
 ---
- drivers/media/media-device.c  |  6 ++----
- drivers/media/media-devnode.c | 48 +++++++++++++++++--------------------------
- 2 files changed, 21 insertions(+), 33 deletions(-)
+ Documentation/DocBook/Makefile      |  7 ++++++
+ Documentation/Makefile.sphinx       | 43 +++++++++++++++++++++++++++++++------
+ Documentation/conf.py               |  7 ++++++
+ Documentation/sphinx/load_config.py | 33 ++++++++++++++++++++++++++++
+ 4 files changed, 83 insertions(+), 7 deletions(-)
+ create mode 100644 Documentation/sphinx/load_config.py
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 33a9952..e61fa66 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -723,16 +723,16 @@ int __must_check __media_device_register(struct media_device *mdev,
+diff --git a/Documentation/DocBook/Makefile b/Documentation/DocBook/Makefile
+index 64460a8..a91c965 100644
+--- a/Documentation/DocBook/Makefile
++++ b/Documentation/DocBook/Makefile
+@@ -22,9 +22,15 @@ ifeq ($(DOCBOOKS),)
+ # Skip DocBook build if the user explicitly requested no DOCBOOKS.
+ .DEFAULT:
+ 	@echo "  SKIP    DocBook $@ target (DOCBOOKS=\"\" specified)."
++else
++ifneq ($(SPHINXDIRS),)
  
- 	ret = media_devnode_register(mdev, devnode, owner);
- 	if (ret < 0) {
--		/* devnode free is handled in media_devnode_*() */
- 		mdev->devnode = NULL;
-+		kfree(devnode);
- 		return ret;
- 	}
++# Skip DocBook build if the user explicitly requested a sphinx dir
++.DEFAULT:
++	@echo "  SKIP    DocBook $@ target (SPHINXDIRS specified)."
+ else
  
- 	ret = device_create_file(&devnode->dev, &dev_attr_model);
- 	if (ret < 0) {
--		/* devnode free is handled in media_devnode_*() */
- 		mdev->devnode = NULL;
- 		media_devnode_unregister(devnode);
-+		kfree(devnode);
- 		return ret;
- 	}
- 
-@@ -812,8 +812,6 @@ void media_device_unregister(struct media_device *mdev)
- 	if (media_devnode_is_registered(mdev->devnode)) {
- 		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
- 		media_devnode_unregister(mdev->devnode);
--		/* devnode free is handled in media_devnode_*() */
--		mdev->devnode = NULL;
- 	}
- }
- EXPORT_SYMBOL_GPL(media_device_unregister);
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index 5b605ff..ecdc02d 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -63,8 +63,13 @@ static void media_devnode_release(struct device *cd)
- 	struct media_devnode *devnode = to_media_devnode(cd);
- 
- 	mutex_lock(&media_devnode_lock);
 +
-+	/* Delete the cdev on this minor as well */
-+	cdev_del(&devnode->cdev);
+ ###
+ # The build process is as follows (targets):
+ #              (xmldocs) [by docproc]
+@@ -221,6 +227,7 @@ silent_gen_xml = :
+ 	   echo "</programlisting>")  > $@
+ 
+ endif # DOCBOOKS=""
++endif # SPHINDIR=...
+ 
+ ###
+ # Help targets as used by the top-level makefile
+diff --git a/Documentation/Makefile.sphinx b/Documentation/Makefile.sphinx
+index fc29e08..ea0664c 100644
+--- a/Documentation/Makefile.sphinx
++++ b/Documentation/Makefile.sphinx
+@@ -5,6 +5,9 @@
+ # You can set these variables from the command line.
+ SPHINXBUILD   = sphinx-build
+ SPHINXOPTS    =
++SPHINXDIRS    = .
++_SPHINXDIRS   = $(patsubst $(srctree)/Documentation/%/conf.py,%,$(wildcard $(srctree)/Documentation/*/conf.py))
++SPHINX_CONF   = conf.py
+ PAPER         =
+ BUILDDIR      = $(obj)/output
+ 
+@@ -33,30 +36,50 @@ PAPEROPT_a4     = -D latex_paper_size=a4
+ PAPEROPT_letter = -D latex_paper_size=letter
+ KERNELDOC       = $(srctree)/scripts/kernel-doc
+ KERNELDOC_CONF  = -D kerneldoc_srctree=$(srctree) -D kerneldoc_bin=$(KERNELDOC)
+-ALLSPHINXOPTS   = -D version=$(KERNELVERSION) -D release=$(KERNELRELEASE) -d $(BUILDDIR)/.doctrees $(KERNELDOC_CONF) $(PAPEROPT_$(PAPER)) -c $(srctree)/$(src) $(SPHINXOPTS) $(srctree)/$(src)
++ALLSPHINXOPTS   =  $(KERNELDOC_CONF) $(PAPEROPT_$(PAPER)) $(SPHINXOPTS)
+ # the i18n builder cannot share the environment and doctrees with the others
+ I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
+ 
+-quiet_cmd_sphinx = SPHINX  $@
+-      cmd_sphinx = $(MAKE) BUILDDIR=$(BUILDDIR) $(build)=Documentation/media all; BUILDDIR=$(BUILDDIR) $(SPHINXBUILD) -b $2 $(ALLSPHINXOPTS) $(BUILDDIR)/$2
++# commands; the 'cmd' from scripts/Kbuild.include is not *loopable*
++loop_cmd = $(echo-cmd) $(cmd_$(1))
 +
- 	/* Mark device node number as free */
- 	clear_bit(devnode->minor, media_devnode_nums);
++# $2 sphinx builder e.g. "html"
++# $3 name of the build subfolder / e.g. "media", used as:
++#    * dest folder relative to $(BUILDDIR) and
++#    * cache folder relative to $(BUILDDIR)/.doctrees
++# $4 dest subfolder e.g. "man" for man pages at media/man
++# $5 reST source folder relative to $(srctree)/$(src),
++#    e.g. "media" for the linux-tv book-set at ./Documentation/media
 +
- 	mutex_unlock(&media_devnode_lock);
++quiet_cmd_sphinx = SPHINX  $@ --> file://$(abspath $(BUILDDIR)/$3/$4);
++      cmd_sphinx = $(MAKE) BUILDDIR=$(abspath $(BUILDDIR)) $(build)=Documentation/media all;\
++	BUILDDIR=$(abspath $(BUILDDIR)) SPHINX_CONF=$(abspath $(srctree)/$(src)/$5/$(SPHINX_CONF)) \
++	$(SPHINXBUILD) \
++	-b $2 \
++	-c $(abspath $(srctree)/$(src)) \
++	-d $(abspath $(BUILDDIR)/.doctrees/$3) \
++	-D version=$(KERNELVERSION) -D release=$(KERNELRELEASE) \
++	$(ALLSPHINXOPTS) \
++	$(abspath $(srctree)/$(src)/$5) \
++	$(abspath $(BUILDDIR)/$3/$4);
  
- 	/* Release media_devnode and perform other cleanups as needed. */
-@@ -72,7 +77,6 @@ static void media_devnode_release(struct device *cd)
- 		devnode->release(devnode);
+ htmldocs:
+-	$(call cmd,sphinx,html)
++	@$(foreach var,$(SPHINXDIRS),$(call loop_cmd,sphinx,html,$(var),,$(var)))
  
- 	kfree(devnode);
--	pr_debug("%s: Media Devnode Deallocated\n", __func__);
- }
+ pdfdocs:
+ ifeq ($(HAVE_PDFLATEX),0)
+ 	$(warning The 'pdflatex' command was not found. Make sure you have it installed and in PATH to produce PDF output.)
+ 	@echo "  SKIP    Sphinx $@ target."
+ else # HAVE_PDFLATEX
+-	$(call cmd,sphinx,latex)
++	@$(call loop_cmd,sphinx,latex,.,latex,.))
+ 	$(Q)$(MAKE) -C $(BUILDDIR)/latex
+ endif # HAVE_PDFLATEX
  
- static struct bus_type media_bus_type = {
-@@ -201,8 +205,6 @@ static int media_release(struct inode *inode, struct file *filp)
- 	/* decrease the refcount unconditionally since the release()
- 	   return value is ignored. */
- 	put_device(&devnode->dev);
--
--	pr_debug("%s: Media Release\n", __func__);
- 	return 0;
- }
+ epubdocs:
+-	$(call cmd,sphinx,epub)
++	@$(foreach var,$(SPHINXDIRS),$(call loop_cmd,sphinx,epub,$(var),epub,$(var)))
  
-@@ -233,7 +235,6 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 	if (minor == MEDIA_NUM_DEVICES) {
- 		mutex_unlock(&media_devnode_lock);
- 		pr_err("could not get a free minor\n");
--		kfree(devnode);
- 		return -ENFILE;
- 	}
+ xmldocs:
+-	$(call cmd,sphinx,xml)
++	@$(foreach var,$(SPHINXDIRS),$(call loop_cmd,sphinx,xml,$(var),xml,$(var)))
  
-@@ -243,31 +244,27 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 	devnode->minor = minor;
- 	devnode->media_dev = mdev;
+ # no-ops for the Sphinx toolchain
+ sgmldocs:
+@@ -76,3 +99,9 @@ dochelp:
+ 	@echo  '  epubdocs        - EPUB'
+ 	@echo  '  xmldocs         - XML'
+ 	@echo  '  cleandocs       - clean all generated files'
++	@echo
++	@echo  '  make SPHINXDIRS="s1 s2" [target] Generate only docs of folder s1, s2'
++	@echo  '  valid values for SPHINXDIRS are: $(_SPHINXDIRS)'
++	@echo
++	@echo  '  make SPHINX_CONF={conf-file} [target] use *additional* sphinx-build'
++	@echo  '  configuration. This is e.g. useful to build with nit-picking config.'
+diff --git a/Documentation/conf.py b/Documentation/conf.py
+index b198147..5c06b01 100644
+--- a/Documentation/conf.py
++++ b/Documentation/conf.py
+@@ -19,6 +19,7 @@ import os
+ # add these directories to sys.path here. If the directory is relative to the
+ # documentation root, use os.path.abspath to make it absolute, like shown here.
+ sys.path.insert(0, os.path.abspath('sphinx'))
++from load_config import loadConfig
  
--	/* Part 1: Initialize dev now to use dev.kobj for cdev.kobj.parent */
--	devnode->dev.bus = &media_bus_type;
--	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
--	devnode->dev.release = media_devnode_release;
--	if (devnode->parent)
--		devnode->dev.parent = devnode->parent;
--	dev_set_name(&devnode->dev, "media%d", devnode->minor);
--	device_initialize(&devnode->dev);
--
- 	/* Part 2: Initialize and register the character device */
- 	cdev_init(&devnode->cdev, &media_devnode_fops);
- 	devnode->cdev.owner = owner;
--	devnode->cdev.kobj.parent = &devnode->dev.kobj;
+ # -- General configuration ------------------------------------------------
  
- 	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
- 	if (ret < 0) {
- 		pr_err("%s: cdev_add failed\n", __func__);
--		goto cdev_add_error;
-+		goto error;
- 	}
- 
--	/* Part 3: Add the media device */
--	ret = device_add(&devnode->dev);
-+	/* Part 3: Register the media device */
-+	devnode->dev.bus = &media_bus_type;
-+	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
-+	devnode->dev.release = media_devnode_release;
-+	if (devnode->parent)
-+		devnode->dev.parent = devnode->parent;
-+	dev_set_name(&devnode->dev, "media%d", devnode->minor);
-+	ret = device_register(&devnode->dev);
- 	if (ret < 0) {
--		pr_err("%s: device_add failed\n", __func__);
--		goto device_add_error;
-+		pr_err("%s: device_register failed\n", __func__);
-+		goto error;
- 	}
- 
- 	/* Part 4: Activate this minor. The char device can now be used. */
-@@ -275,15 +272,12 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 
- 	return 0;
- 
--device_add_error:
--	cdev_del(&devnode->cdev);
--cdev_add_error:
-+error:
- 	mutex_lock(&media_devnode_lock);
-+	cdev_del(&devnode->cdev);
- 	clear_bit(devnode->minor, media_devnode_nums);
--	devnode->media_dev = NULL;
- 	mutex_unlock(&media_devnode_lock);
- 
--	put_device(&devnode->dev);
- 	return ret;
- }
- 
-@@ -295,12 +289,8 @@ void media_devnode_unregister(struct media_devnode *devnode)
- 
- 	mutex_lock(&media_devnode_lock);
- 	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
--	/* Delete the cdev on this minor as well */
--	cdev_del(&devnode->cdev);
- 	mutex_unlock(&media_devnode_lock);
--	device_del(&devnode->dev);
--	devnode->media_dev = NULL;
--	put_device(&devnode->dev);
-+	device_unregister(&devnode->dev);
- }
- 
- /*
+@@ -421,3 +422,9 @@ pdf_documents = [
+ # line arguments.
+ kerneldoc_bin = '../scripts/kernel-doc'
+ kerneldoc_srctree = '..'
++
++# ------------------------------------------------------------------------------
++# Since loadConfig overwrites settings from the global namespace, it has to be
++# the last statement in the conf.py file
++# ------------------------------------------------------------------------------
++loadConfig(globals())
+diff --git a/Documentation/sphinx/load_config.py b/Documentation/sphinx/load_config.py
+new file mode 100644
+index 0000000..88e5e4a
+--- /dev/null
++++ b/Documentation/sphinx/load_config.py
+@@ -0,0 +1,33 @@
++# -*- coding: utf-8; mode: python -*-
++# pylint: disable=R0903, C0330, R0914, R0912, E0401
++
++import os
++import sys
++from sphinx.util.pycompat import execfile_
++
++# ------------------------------------------------------------------------------
++def loadConfig(namespace):
++# ------------------------------------------------------------------------------
++
++    u"""Load an additional configuration file into *namespace*.
++
++    The name of the configuration file is taken from the environment
++    ``SPHINX_CONF``. The external configuration file extends (or overwrites) the
++    configuration values from the origin ``conf.py``.  With this you are able to
++    maintain *build themes*.  """
++
++    config_file = os.environ.get("SPHINX_CONF", None)
++    if (config_file is not None
++        and os.path.normpath(namespace["__file__"]) != os.path.normpath(config_file) ):
++        config_file = os.path.abspath(config_file)
++
++        if os.path.isfile(config_file):
++            sys.stdout.write("load additional sphinx-config: %s\n" % config_file)
++            config = namespace.copy()
++            config['__file__'] = config_file
++            execfile_(config_file, config)
++            del config['__file__']
++            namespace.update(config)
++        else:
++            sys.stderr.write("WARNING: additional sphinx-config not found: %s\n" % config_file)
++
 -- 
-2.1.4
+2.7.4
 
