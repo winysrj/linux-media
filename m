@@ -1,58 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:38209 "EHLO smtp3-1.goneo.de"
+Received: from smtp2.goneo.de ([85.220.129.33]:42350 "EHLO smtp2.goneo.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752508AbcHJSJE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2016 14:09:04 -0400
+	id S1752384AbcHMOjA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Aug 2016 10:39:00 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH 1/3] doc-rst: generic way to build only sphinx sub-folders
 From: Markus Heiser <markus.heiser@darmarit.de>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Markus Heiser <markus.heiser@darmarIT.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] v4l-utils: add comments to the build instructions
-Date: Wed, 10 Aug 2016 11:52:18 +0200
-Message-Id: <1470822739-29519-2-git-send-email-markus.heiser@darmarit.de>
-In-Reply-To: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de>
-References: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de>
+In-Reply-To: <20160812152020.21754cf8@lwn.net>
+Date: Sat, 13 Aug 2016 16:38:14 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Transfer-Encoding: 7bit
+Message-Id: <8DE431CA-5ADB-4D65-B2B4-1BBF58D3EF60@darmarit.de>
+References: <1470662100-6927-1-git-send-email-markus.heiser@darmarit.de> <1470662100-6927-2-git-send-email-markus.heiser@darmarit.de> <20160812152020.21754cf8@lwn.net>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Heiser <markus.heiser@darmarIT.de>
 
-From: Heiser, Markus <markus.heiser@darmarIT.de>
+Am 12.08.2016 um 23:20 schrieb Jonathan Corbet <corbet@lwn.net>:
 
-On Debian derivated distributions (ubuntu 16.04) the package
-'autoconf-archive' is required.
+> On Mon,  8 Aug 2016 15:14:58 +0200
+> Markus Heiser <markus.heiser@darmarit.de> wrote:
+> 
+>> Remove the 'DOC_NITPIC_TARGETS' from main $(srctree)/Makefile and add a
+>> more generic way to build only a reST sub-folder.
+>> 
+> 
+> So I went to apply these, but this one, at least, doesn't apply.  Could I
+> get you to respin the series against current mainline (or docs-next)?
+> 
+> Thanks,
+> 
+> jon
 
-Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
----
- README | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+Yes, it was based on Mauro's experimantal mchehab/docs-next. Since
+Mauro is on a journey, I merged it on top of your docs-next and send
+the *consolidation* patch
 
-diff --git a/README b/README
-index 1dd5108..172bed0 100644
---- a/README
-+++ b/README
-@@ -22,7 +22,8 @@ each distro.
+  https://www.mail-archive.com/linux-media@vger.kernel.org/msg101262.html
+
+@Mauro: I hope this is OK for you?
+
+-- Markus --
+
+
  
- On Debian and derivated distributions, you need to install the following
- packages with apt-get or aptitude:
--	debhelper dh-autoreconf autotools-dev doxygen graphviz libasound2-dev
-+	debhelper dh-autoreconf autotools-dev autoconf-archive
-+        doxygen graphviz libasound2-dev
- 	libtool libjpeg-dev libqt4-dev libqt4-opengl-dev libudev-dev libx11-dev
- 	pkg-config udev make gcc git
- 
-@@ -47,6 +48,11 @@ After downloading and installing the needed packages, you should run:
- 	./configure
- 	make
- 
-+If ./configure exit with some errors try::
-+
-+	autoreconf -i --force
-+	./configure
-+
- And, to install on your system:
- 	sudo make install
- 
--- 
-2.7.4
-
