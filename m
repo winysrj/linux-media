@@ -1,59 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f49.google.com ([209.85.215.49]:36475 "EHLO
-	mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751820AbcHCNhl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 09:37:41 -0400
-Received: by mail-lf0-f49.google.com with SMTP id g62so161263481lfe.3
-        for <linux-media@vger.kernel.org>; Wed, 03 Aug 2016 06:36:22 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Wed, 3 Aug 2016 15:36:20 +0200
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	slongerbeam@gmail.com, lars@metafoo.de, mchehab@kernel.org,
-	hans.verkuil@cisco.com
-Subject: Re: [PATCHv2 5/7] media: rcar-vin: add support for
- V4L2_FIELD_ALTERNATE
-Message-ID: <20160803133619.GM3672@bigcity.dyn.berto.se>
-References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
- <20160802145107.24829-6-niklas.soderlund+renesas@ragnatech.se>
- <0bfd0a3b-a5ac-e9f3-1295-72c7b0063e68@cogentembedded.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:52655 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752134AbcHMNrk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Aug 2016 09:47:40 -0400
+Subject: Re: [PATCH] [media] vb2: move dma-buf unmap from __vb2_dqbuf() to
+ vb2_buffer_done()
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	linux-kernel@vger.kernel.org
+References: <1469038941-5257-1-git-send-email-javier@osg.samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Luis de Bethencourt <luisbg@osg.samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <3b09885c-1bec-fcbe-6c6c-9c753502cb81@xs4all.nl>
+Date: Sat, 13 Aug 2016 15:47:34 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <0bfd0a3b-a5ac-e9f3-1295-72c7b0063e68@cogentembedded.com>
+In-Reply-To: <1469038941-5257-1-git-send-email-javier@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2016-08-03 16:22:22 +0300, Sergei Shtylyov wrote:
-> Hello.
+On 07/20/2016 08:22 PM, Javier Martinez Canillas wrote:
+> Currently the dma-buf is unmapped when the buffer is dequeued by userspace
+> but it's not used anymore after the driver finished processing the buffer.
 > 
-> On 08/02/2016 05:51 PM, Niklas Söderlund wrote:
+> So instead of doing the dma-buf unmapping in __vb2_dqbuf(), it can be made
+> in vb2_buffer_done() after the driver notified that buf processing is done.
 > 
-> > The HW can capture both ODD and EVEN fields in separate buffers so it's
-> > possible to support V4L2_FIELD_ALTERNATE. This patch add support for
-> > this mode.
-> > 
-> > At probe time and when S_STD is called the driver will default to use
-> > V4L2_FIELD_INTERLACED if the subdevice reports V4L2_FIELD_ALTERNATE. The
-> > driver will only change the field type if the subdevice implements
-> > G_STD, if not it will keep the default at V4L2_FIELD_ALTERNATE.
-> > 
-> > The user can always explicitly ask for V4L2_FIELD_ALTERNATE in S_FTM and
+> Decoupling the buffer dequeue from the dma-buf unmapping has also the side
+> effect of making possible to add dma-buf fence support in the future since
+> the buffer could be dequeued even before the driver has finished using it.
 > 
->    S_FMT?
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> 
+> ---
+> Hello,
+> 
+> I've tested this patch doing DMA buffer sharing between a
+> vivid input and output device with both v4l2-ctl and gst:
+> 
+> $ v4l2-ctl -d0 -e1 --stream-dmabuf --stream-out-mmap
+> $ v4l2-ctl -d0 -e1 --stream-mmap --stream-out-dmabuf
+> $ gst-launch-1.0 v4l2src device=/dev/video0 io-mode=dmabuf ! v4l2sink device=/dev/video1 io-mode=dmabuf-import
+> 
+> And I didn't find any issues but more testing will be appreciated.
+> 
+> Best regards,
+> Javier
+> 
+>  drivers/media/v4l2-core/videobuf2-core.c | 34 +++++++++++++++++++++-----------
+>  1 file changed, 22 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 7128b09810be..973331efaf79 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -958,6 +958,22 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no)
+>  EXPORT_SYMBOL_GPL(vb2_plane_cookie);
+>  
+>  /**
+> + * __vb2_unmap_dmabuf() - unmap dma-buf attached to buffer planes
+> + */
+> +static void __vb2_unmap_dmabuf(struct vb2_buffer *vb)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < vb->num_planes; ++i) {
+> +		if (!vb->planes[i].dbuf_mapped)
+> +			continue;
+> +		call_void_memop(vb, unmap_dmabuf,
+> +				vb->planes[i].mem_priv);
 
-yes :-)
+Does unmap_dmabuf work in interrupt context? Since vb2_buffer_done can be called from
+an irq handler this is a concern.
 
-> 
-> > the driver will use that field format.
-> > 
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> [...]
-> 
-> MBR, Sergei
-> 
+That said, vb2_buffer_done already calls call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+to sync buffers, and that can take a long time as well. So it is not a good idea to
+have this in vb2_buffer_done.
 
--- 
+What I would like to see is to have vb2 handle this finish() call and the vb2_unmap_dmabuf
+in some workthread or equivalent.
+
+It would complicate matters somewhat in vb2, but it would simplify drivers since these
+actions would not longer take place in interrupt context.
+
+I think this patch makes sense, but I would prefer that this is moved out of the interrupt
+context.
+
 Regards,
-Niklas Söderlund
+
+	Hans
+
+> +		vb->planes[i].dbuf_mapped = 0;
+> +	}
+> +}
+> +
+> +/**
+>   * vb2_buffer_done() - inform videobuf that an operation on a buffer is finished
+>   * @vb:		vb2_buffer returned from the driver
+>   * @state:	either VB2_BUF_STATE_DONE if the operation finished successfully,
+> @@ -1028,6 +1044,9 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>  			__enqueue_in_driver(vb);
+>  		return;
+>  	default:
+> +		if (q->memory == VB2_MEMORY_DMABUF)
+> +			__vb2_unmap_dmabuf(vb);
+> +
+>  		/* Inform any processes that may be waiting for buffers */
+>  		wake_up(&q->done_wq);
+>  		break;
+> @@ -1708,23 +1727,11 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
+>   */
+>  static void __vb2_dqbuf(struct vb2_buffer *vb)
+>  {
+> -	struct vb2_queue *q = vb->vb2_queue;
+> -	unsigned int i;
+> -
+>  	/* nothing to do if the buffer is already dequeued */
+>  	if (vb->state == VB2_BUF_STATE_DEQUEUED)
+>  		return;
+>  
+>  	vb->state = VB2_BUF_STATE_DEQUEUED;
+> -
+> -	/* unmap DMABUF buffer */
+> -	if (q->memory == VB2_MEMORY_DMABUF)
+> -		for (i = 0; i < vb->num_planes; ++i) {
+> -			if (!vb->planes[i].dbuf_mapped)
+> -				continue;
+> -			call_void_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
+> -			vb->planes[i].dbuf_mapped = 0;
+> -		}
+>  }
+>  
+>  /**
+> @@ -1861,6 +1868,9 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>  			call_void_vb_qop(vb, buf_finish, vb);
+>  		}
+>  		__vb2_dqbuf(vb);
+> +
+> +		if (q->memory == VB2_MEMORY_DMABUF)
+> +			__vb2_unmap_dmabuf(vb);
+>  	}
+>  }
+>  
+> 
