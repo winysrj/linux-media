@@ -1,93 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51287 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752429AbcHVIzq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 04:55:46 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id 15112180456
-        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2016 10:55:40 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv2] cobalt: update EDID
-Message-ID: <224e6949-71d6-b64d-ee1d-8844f3af0cd3@xs4all.nl>
-Date: Mon, 22 Aug 2016 10:55:40 +0200
+Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:50758 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752256AbcHMJZy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Aug 2016 05:25:54 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Jiri Kosina <trivial@kernel.org>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 05/14] media: platform: pxa_camera: convert to vb2
+References: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
+	<1470684652-16295-6-git-send-email-robert.jarzmik@free.fr>
+Date: Sat, 13 Aug 2016 11:25:37 +0200
+In-Reply-To: <1470684652-16295-6-git-send-email-robert.jarzmik@free.fr>
+	(Robert Jarzmik's message of "Mon, 8 Aug 2016 21:30:43 +0200")
+Message-ID: <87zioht3zi.fsf@belgarion.home>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update the cobalt EDID, fixing various incorrect values (wrong name,
-product code, various video capabilities).
+Hi Hans,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/drivers/media/pci/cobalt/cobalt-driver.c b/drivers/media/pci/cobalt/cobalt-driver.c
-index 476f7f0..2475553 100644
---- a/drivers/media/pci/cobalt/cobalt-driver.c
-+++ b/drivers/media/pci/cobalt/cobalt-driver.c
-@@ -60,30 +60,31 @@ MODULE_DESCRIPTION("cobalt driver");
- MODULE_LICENSE("GPL");
+Robert Jarzmik <robert.jarzmik@free.fr> writes:
+> Convert pxa_camera from videobuf to videobuf2.
+...zip...
 
- static u8 edid[256] = {
--	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
--	0x50, 0x21, 0x9C, 0x27, 0x00, 0x00, 0x00, 0x00,
--	0x19, 0x12, 0x01, 0x03, 0x80, 0x00, 0x00, 0x78,
--	0x0E, 0x00, 0xB2, 0xA0, 0x57, 0x49, 0x9B, 0x26,
--	0x10, 0x48, 0x4F, 0x2F, 0xCF, 0x00, 0x31, 0x59,
-+	0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
-+	0x50, 0x21, 0x32, 0x27, 0x00, 0x00, 0x00, 0x00,
-+	0x22, 0x1a, 0x01, 0x03, 0x80, 0x30, 0x1b, 0x78,
-+	0x1f, 0xee, 0x91, 0xa3, 0x54, 0x4c, 0x99, 0x26,
-+	0x0f, 0x50, 0x54, 0x2f, 0xcf, 0x00, 0x31, 0x59,
- 	0x45, 0x59, 0x61, 0x59, 0x81, 0x99, 0x01, 0x01,
--	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3A,
--	0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C,
--	0x46, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E,
--	0x00, 0x00, 0x00, 0xFD, 0x00, 0x31, 0x55, 0x18,
--	0x5E, 0x11, 0x00, 0x0A, 0x20, 0x20, 0x20, 0x20,
--	0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x43,
--	0x20, 0x39, 0x30, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
--	0x0A, 0x0A, 0x0A, 0x0A, 0x00, 0x00, 0x00, 0x10,
-+	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3a,
-+	0x80, 0x18, 0x71, 0x38, 0x2d, 0x40, 0x58, 0x2c,
-+	0x46, 0x00, 0xe0, 0x0e, 0x11, 0x00, 0x00, 0x1e,
-+	0x00, 0x00, 0x00, 0xfd, 0x00, 0x18, 0x55, 0x18,
-+	0x5e, 0x11, 0x00, 0x0a, 0x20, 0x20, 0x20, 0x20,
-+	0x20, 0x20, 0x00, 0x00, 0x00, 0xfc, 0x00, 0x63,
-+	0x6f, 0x62, 0x61, 0x6c, 0x74, 0x0a, 0x20, 0x20,
-+	0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0x10,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x8c,
-+
-+	0x02, 0x03, 0x1f, 0xf0, 0x4a, 0x90, 0x1f, 0x04,
-+	0x13, 0x22, 0x21, 0x20, 0x02, 0x11, 0x01, 0x23,
-+	0x09, 0x07, 0x07, 0x68, 0x03, 0x0c, 0x00, 0x10,
-+	0x00, 0x00, 0x22, 0x0f, 0xe2, 0x00, 0xea, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x68,
--	0x02, 0x03, 0x1a, 0xc0, 0x48, 0xa2, 0x10, 0x04,
--	0x02, 0x01, 0x21, 0x14, 0x13, 0x23, 0x09, 0x07,
--	0x07, 0x65, 0x03, 0x0c, 0x00, 0x10, 0x00, 0xe2,
--	0x00, 0x2a, 0x01, 0x1d, 0x00, 0x80, 0x51, 0xd0,
--	0x1c, 0x20, 0x40, 0x80, 0x35, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x1e, 0x8c, 0x0a, 0xd0, 0x8a,
--	0x20, 0xe0, 0x2d, 0x10, 0x10, 0x3e, 0x96, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00,
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-@@ -91,7 +92,7 @@ static u8 edid[256] = {
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd7
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xa7,
+> +static int pxac_vb2_queue_setup(struct vb2_queue *vq,
+> +				unsigned int *nbufs,
+> +				unsigned int *num_planes, unsigned int sizes[],
+> +				void *alloc_ctxs[])
+
+There is an API change here that happened since I wrote this code, ie. void
+*alloc_ctxs became struct device *alloc_devs.
+
+I made the incremental patch in [1] accrodingly to prepare the v4 iteration, but
+it triggers new errors in v4l2-compliance -s :
+Streaming ioctls:
+	test read/write: OK (Not Supported)
+		fail: v4l2-test-buffers.cpp(293): !(g_flags() & V4L2_BUF_FLAG_DONE)
+		fail: v4l2-test-buffers.cpp(703): buf.check(q, last_seq)
+		fail: v4l2-test-buffers.cpp(976): captureBufs(node, q, m2m_q, frame_count, false)
+	test MMAP: FAIL
+		fail: v4l2-test-buffers.cpp(1075): can_stream && ret != EINVAL
+	test USERPTR: FAIL
+	test DMABUF: Cannot test, specify --expbuf-device
+Total: 45, Succeeded: 43, Failed: 2, Warnings: 6
+
+I'm a bit puzzled how this change brought this in, so in case you've already
+encountered this, it could save me investigating more. If nothing obvious
+appears to you, I'll dig in.
+
+Cheers.
+
+-- 
+Robert
+
+[1]
+diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+index a161b64d420d..41359a183e83 100644
+--- a/drivers/media/platform/pxa_camera.c
++++ b/drivers/media/platform/pxa_camera.c
+@@ -269,8 +269,6 @@ struct pxa_camera_dev {
+ 	struct tasklet_struct	task_eof;
+ 
+ 	u32			save_cicr[5];
+-
+-	void			*alloc_ctx;
  };
-
- static void cobalt_set_interrupt(struct cobalt *cobalt, bool enable)
-
+ 
+ struct pxa_cam {
+@@ -1043,7 +1041,7 @@ static int pxac_vb2_init(struct vb2_buffer *vb)
+ static int pxac_vb2_queue_setup(struct vb2_queue *vq,
+ 				unsigned int *nbufs,
+ 				unsigned int *num_planes, unsigned int sizes[],
+-				void *alloc_ctxs[])
++				struct device *alloc_devs[])
+ {
+ 	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
+ 	int size = pcdev->current_pix.sizeimage;
+@@ -1069,7 +1067,6 @@ static int pxac_vb2_queue_setup(struct vb2_queue *vq,
+ 		return -EINVAL;
+ 	}
+ 
+-	alloc_ctxs[0] = pcdev->alloc_ctx;
+ 	if (!*nbufs)
+ 		*nbufs = 1;
+ 
+@@ -1125,6 +1122,7 @@ static int pxa_camera_init_videobuf2(struct pxa_camera_dev *pcdev)
+ 	vq->drv_priv = pcdev;
+ 	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	vq->buf_struct_size = sizeof(struct pxa_buffer);
++	vq->dev = pcdev->v4l2_dev.dev;
+ 
+ 	vq->ops = &pxac_vb2_ops;
+ 	vq->mem_ops = &vb2_dma_sg_memops;
+@@ -1918,10 +1916,6 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 
+-	pcdev->alloc_ctx = vb2_dma_sg_init_ctx(&pdev->dev);
+-	if (IS_ERR(pcdev->alloc_ctx))
+-		return PTR_ERR(pcdev->alloc_ctx);
+-
+ 	pcdev->clk = devm_clk_get(&pdev->dev, NULL);
+ 	if (IS_ERR(pcdev->clk))
+ 		return PTR_ERR(pcdev->clk);
+@@ -2091,9 +2085,8 @@ static int pxa_camera_remove(struct platform_device *pdev)
+ 	dma_release_channel(pcdev->dma_chans[0]);
+ 	dma_release_channel(pcdev->dma_chans[1]);
+ 	dma_release_channel(pcdev->dma_chans[2]);
+-	vb2_dma_sg_cleanup_ctx(pcdev->alloc_ctx);
+-	v4l2_clk_unregister(pcdev->mclk_clk);
+ 
++	v4l2_clk_unregister(pcdev->mclk_clk);
+ 	v4l2_device_unregister(&pcdev->v4l2_dev);
+ 
+ 	dev_info(&pdev->dev, "PXA Camera driver unloaded\n");
