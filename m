@@ -1,123 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:40661 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751736AbcHZDGB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Aug 2016 23:06:01 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id EAAF91800D9
-        for <linux-media@vger.kernel.org>; Fri, 26 Aug 2016 05:03:42 +0200 (CEST)
-Date: Fri, 26 Aug 2016 05:03:42 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160826030342.EAAF91800D9@tschai.lan>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:38497 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752273AbcHMNwN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Aug 2016 09:52:13 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id D5DC918026F
+	for <linux-media@vger.kernel.org>; Sat, 13 Aug 2016 15:52:07 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.9] More fixes
+Message-ID: <99357be0-3a8e-4ddf-96f4-2b0e53ebe4dd@xs4all.nl>
+Date: Sat, 13 Aug 2016 15:52:07 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Various fixes and documentation updates.
 
-Results of the daily build of media_tree:
+Regards,
 
-date:		Fri Aug 26 04:00:15 CEST 2016
-git branch:	test
-git hash:	fb6609280db902bd5d34445fba1c926e95e63914
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+	Hans
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: OK
-linux-4.8-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-linux-4.8-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
 
-Detailed results are available here:
+  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+are available in the git repository at:
 
-Full logs are available here:
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.9b
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+for you to fetch changes up to 2079de1b912ef2fc930b52708274913a226f91ad:
 
-The Media Infrastructure API from this daily build is here:
+  vidioc-g-dv-timings.rst: document the v4l2_bt_timings reserved field (2016-08-13 15:50:53 +0200)
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+----------------------------------------------------------------
+Florian Echtler (1):
+      sur40: properly report a single frame rate of 60 FPS
+
+Hans Verkuil (3):
+      vb2: don't return NULL for alloc and get_userptr ops
+      vb2: add WARN_ONs checking if a valid struct device was passed
+      vidioc-g-dv-timings.rst: document the v4l2_bt_timings reserved field
+
+Javier Martinez Canillas (2):
+      vb2: include lengths in dmabuf qbuf debug message
+      vb2: remove TODO comment for dma-buf in QBUF
+
+Ricardo Ribalda Delgado (1):
+      Documentation: Fix V4L2_CTRL_FLAG_VOLATILE
+
+ Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst |  8 ++++++++
+ Documentation/media/uapi/v4l/vidioc-queryctrl.rst    | 11 +++++++----
+ drivers/input/touchscreen/sur40.c                    | 26 +++++++++++++++++++++-----
+ drivers/media/v4l2-core/videobuf2-core.c             | 25 ++++++++++++++++---------
+ drivers/media/v4l2-core/videobuf2-dma-contig.c       |  9 +++++++++
+ drivers/media/v4l2-core/videobuf2-dma-sg.c           | 19 +++++++++++++------
+ drivers/media/v4l2-core/videobuf2-vmalloc.c          | 13 ++++++++-----
+ include/media/videobuf2-core.h                       |  6 +++---
+ 8 files changed, 85 insertions(+), 32 deletions(-)
