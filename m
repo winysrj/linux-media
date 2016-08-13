@@ -1,95 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58881 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932393AbcHCOaJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Aug 2016 10:30:09 -0400
-Subject: Re: [PATCHv2 7/7] [PATCHv5] media: adv7180: fix field type
-To: Lars-Peter Clausen <lars@metafoo.de>,
-	=?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
- <20160802145107.24829-8-niklas.soderlund+renesas@ragnatech.se>
- <3bb2b375-a4a9-00c4-1466-7b1ba8e3bfd8@metafoo.de>
- <20160803132147.GL3672@bigcity.dyn.berto.se>
- <927464df-14cb-aadb-c1d9-5a5f0d065828@xs4all.nl>
- <d7f16469-a4a4-b2cc-2af1-2c3efcd8aac6@metafoo.de>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com,
-	mchehab@kernel.org, hans.verkuil@cisco.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1cbfbbab-7366-74e5-a111-f7e9bc6528e8@xs4all.nl>
-Date: Wed, 3 Aug 2016 16:30:02 +0200
-MIME-Version: 1.0
-In-Reply-To: <d7f16469-a4a4-b2cc-2af1-2c3efcd8aac6@metafoo.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from smtp3-1.goneo.de ([85.220.129.38]:49937 "EHLO smtp3-1.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752683AbcHMONe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Aug 2016 10:13:34 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jani Nikula <jani.nikula@intel.com>
+Cc: Markus Heiser <markus.heiser@darmarIT.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 3/7] doc-rst: add media/conf_nitpick.py
+Date: Sat, 13 Aug 2016 16:12:44 +0200
+Message-Id: <1471097568-25990-4-git-send-email-markus.heiser@darmarit.de>
+In-Reply-To: <1471097568-25990-1-git-send-email-markus.heiser@darmarit.de>
+References: <1471097568-25990-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
+The media/conf_nitpick.py is a *build-theme* wich uses the nit-picking
+mode of sphinx. To compile only the html of 'media' with the nit-picking
+build use::
 
-On 08/03/2016 04:23 PM, Lars-Peter Clausen wrote:
-> On 08/03/2016 04:11 PM, Hans Verkuil wrote:
->>
->>
->> On 08/03/2016 03:21 PM, Niklas Söderlund wrote:
->>> On 2016-08-02 17:00:07 +0200, Lars-Peter Clausen wrote:
->>>> [...]
->>>>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
->>>>> index a8b434b..c6fed71 100644
->>>>> --- a/drivers/media/i2c/adv7180.c
->>>>> +++ b/drivers/media/i2c/adv7180.c
->>>>> @@ -680,10 +680,13 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
->>>>>  	switch (format->format.field) {
->>>>>  	case V4L2_FIELD_NONE:
->>>>>  		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
->>>>> -			format->format.field = V4L2_FIELD_INTERLACED;
->>>>> +			format->format.field = V4L2_FIELD_ALTERNATE;
->>>>>  		break;
->>>>>  	default:
->>>>> -		format->format.field = V4L2_FIELD_INTERLACED;
->>>>> +		if (state->chip_info->flags & ADV7180_FLAG_I2P)
->>>>> +			format->format.field = V4L2_FIELD_INTERLACED;
->>>>
->>>> I'm not convinced this is correct. As far as I understand it when the I2P
->>>> feature is enabled the core outputs full progressive frames at the full
->>>> framerate. If it is bypassed it outputs half-frames. So we have the option
->>>> of either V4L2_FIELD_NONE or V4L2_FIELD_ALTERNATE, but never interlaced. I
->>>> think this branch should setup the field format to be ALTERNATE regardless
->>>> of whether the I2P feature is available.
->>
->> Actually, that's not true. If the progressive frame is obtained by combining
->> two fields, then it should return FIELD_INTERLACED. This is how most SDTV
->> receivers operate.
-> 
-> This is definitely not covered by the current definition of INTERLACED. It
-> says that the temporal order of the odd and even lines is the same for each
-> frame. Whereas for a deinterlaced frame the temporal order changes from
-> frame to frame.
-> 
-> E.g. lets say you have half frames A, B, C, D, E, F ...
-> 
-> The output of the I2P core are frames like (A,B) (C,B) (C,D) (E,D) (E, F) ...
+  make SPHINXDIRS=media SPHINX_CONF=conf_nitpick.py htmldocs
 
-Yuck.
+With this, the Documentation/conf.py is read first and updated with the
+configuration values from the Documentation/media/conf_nitpick.py.
 
-What most devices do is (A,B) (C,D) (E,F) ...
+The origin media/conf_nitpick.py comes from Mauro's experimental
+docs-next branch::
 
-That's FIELD_INTERLACED.
+  https://git.linuxtv.org/mchehab/experimental.git mchehab/docs-next
 
-> 
-> The first frame is INTERLACED_TB, the second INTERLACED_BT, the third
-> INTERLACED_TB again and so on. Also you get the same amount of pixels as for
-> a progressive setup so the data-output-rate is higher. Maybe we need a
-> FIELD_DEINTERLACED to denote such a setup?
-> 
+BTW fixed python indentation in media/conf_nitpick.py.  Python
+indentation is 4 spaces [1] and Python 3 disallows mixing the use of
+tabs and spaces for indentation [2].
 
-Yeah, this is a completely different mode. Do we even want to support this?
+[1] https://www.python.org/dev/peps/pep-0008/#indentation
+[2] https://www.python.org/dev/peps/pep-0008/#tabs-or-spaces
 
-Does anyone need this mode? I think we should leave it out until someone actually
-wants to use it. And then we need to come up with a new FIELD_ mode.
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
+---
+ Documentation/media/conf_nitpick.py | 93 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 93 insertions(+)
+ create mode 100644 Documentation/media/conf_nitpick.py
 
-Regards,
+diff --git a/Documentation/media/conf_nitpick.py b/Documentation/media/conf_nitpick.py
+new file mode 100644
+index 0000000..11beac2
+--- /dev/null
++++ b/Documentation/media/conf_nitpick.py
+@@ -0,0 +1,93 @@
++# -*- coding: utf-8; mode: python -*-
++
++project = 'Linux Media Subsystem Documentation'
++
++# It is possible to run Sphinx in nickpick mode with:
++nitpicky = True
++
++# within nit-picking build, do not refer to any intersphinx object
++intersphinx_mapping = {}
++
++# In nickpick mode, it will complain about lots of missing references that
++#
++# 1) are just typedefs like: bool, __u32, etc;
++# 2) It will complain for things like: enum, NULL;
++# 3) It will complain for symbols that should be on different
++#    books (but currently aren't ported to ReST)
++#
++# The list below has a list of such symbols to be ignored in nitpick mode
++#
++nitpick_ignore = [
++    ("c:func", "clock_gettime"),
++    ("c:func", "close"),
++    ("c:func", "container_of"),
++    ("c:func", "determine_valid_ioctls"),
++    ("c:func", "ERR_PTR"),
++    ("c:func", "ioctl"),
++    ("c:func", "IS_ERR"),
++    ("c:func", "mmap"),
++    ("c:func", "open"),
++    ("c:func", "pci_name"),
++    ("c:func", "poll"),
++    ("c:func", "PTR_ERR"),
++    ("c:func", "read"),
++    ("c:func", "release"),
++    ("c:func", "set"),
++    ("c:func", "struct fd_set"),
++    ("c:func", "struct pollfd"),
++    ("c:func", "usb_make_path"),
++    ("c:func", "write"),
++    ("c:type", "atomic_t"),
++    ("c:type", "bool"),
++    ("c:type", "buf_queue"),
++    ("c:type", "device"),
++    ("c:type", "device_driver"),
++    ("c:type", "device_node"),
++    ("c:type", "enum"),
++    ("c:type", "file"),
++    ("c:type", "i2c_adapter"),
++    ("c:type", "i2c_board_info"),
++    ("c:type", "i2c_client"),
++    ("c:type", "ktime_t"),
++    ("c:type", "led_classdev_flash"),
++    ("c:type", "list_head"),
++    ("c:type", "lock_class_key"),
++    ("c:type", "module"),
++    ("c:type", "mutex"),
++    ("c:type", "pci_dev"),
++    ("c:type", "pdvbdev"),
++    ("c:type", "poll_table_struct"),
++    ("c:type", "s32"),
++    ("c:type", "s64"),
++    ("c:type", "sd"),
++    ("c:type", "spi_board_info"),
++    ("c:type", "spi_device"),
++    ("c:type", "spi_master"),
++    ("c:type", "struct fb_fix_screeninfo"),
++    ("c:type", "struct pollfd"),
++    ("c:type", "struct timeval"),
++    ("c:type", "struct video_capability"),
++    ("c:type", "u16"),
++    ("c:type", "u32"),
++    ("c:type", "u64"),
++    ("c:type", "u8"),
++    ("c:type", "union"),
++    ("c:type", "usb_device"),
++
++    ("cpp:type", "boolean"),
++    ("cpp:type", "fd"),
++    ("cpp:type", "fd_set"),
++    ("cpp:type", "int16_t"),
++    ("cpp:type", "NULL"),
++    ("cpp:type", "off_t"),
++    ("cpp:type", "pollfd"),
++    ("cpp:type", "size_t"),
++    ("cpp:type", "ssize_t"),
++    ("cpp:type", "timeval"),
++    ("cpp:type", "__u16"),
++    ("cpp:type", "__u32"),
++    ("cpp:type", "__u64"),
++    ("cpp:type", "uint16_t"),
++    ("cpp:type", "uint32_t"),
++    ("cpp:type", "video_system_t"),
++]
+-- 
+2.7.4
 
-	Hans
