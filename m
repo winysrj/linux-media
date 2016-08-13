@@ -1,65 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:52960 "EHLO
-	smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964968AbcHBOvd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 10:51:33 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com
-Cc: lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com,
-	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 1/7] media: rcar-vin: make V4L2_FIELD_INTERLACED standard dependent
-Date: Tue,  2 Aug 2016 16:51:01 +0200
-Message-Id: <20160802145107.24829-2-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52200 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751726AbcHMJ34 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Aug 2016 05:29:56 -0400
+Subject: Re: [PATCH v3 05/14] media: platform: pxa_camera: convert to vb2
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+References: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
+ <1470684652-16295-6-git-send-email-robert.jarzmik@free.fr>
+ <87zioht3zi.fsf@belgarion.home>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Jiri Kosina <trivial@kernel.org>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c682efee-3e92-27c8-9c58-5df70bc5c1ea@xs4all.nl>
+Date: Sat, 13 Aug 2016 11:29:49 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <87zioht3zi.fsf@belgarion.home>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The field V4L2_FIELD_INTERLACED is standard dependent and should not
-unconditionally be equivalent to V4L2_FIELD_INTERLACED_TB.
+On 08/13/2016 11:25 AM, Robert Jarzmik wrote:
+> Hi Hans,
+> 
+> Robert Jarzmik <robert.jarzmik@free.fr> writes:
+>> Convert pxa_camera from videobuf to videobuf2.
+> ...zip...
+> 
+>> +static int pxac_vb2_queue_setup(struct vb2_queue *vq,
+>> +				unsigned int *nbufs,
+>> +				unsigned int *num_planes, unsigned int sizes[],
+>> +				void *alloc_ctxs[])
+> 
+> There is an API change here that happened since I wrote this code, ie. void
+> *alloc_ctxs became struct device *alloc_devs.
+> 
+> I made the incremental patch in [1] accrodingly to prepare the v4 iteration, but
+> it triggers new errors in v4l2-compliance -s :
+> Streaming ioctls:
+> 	test read/write: OK (Not Supported)
+> 		fail: v4l2-test-buffers.cpp(293): !(g_flags() & V4L2_BUF_FLAG_DONE)
+> 		fail: v4l2-test-buffers.cpp(703): buf.check(q, last_seq)
+> 		fail: v4l2-test-buffers.cpp(976): captureBufs(node, q, m2m_q, frame_count, false)
+> 	test MMAP: FAIL
+> 		fail: v4l2-test-buffers.cpp(1075): can_stream && ret != EINVAL
+> 	test USERPTR: FAIL
+> 	test DMABUF: Cannot test, specify --expbuf-device
+> Total: 45, Succeeded: 43, Failed: 2, Warnings: 6
+> 
+> I'm a bit puzzled how this change brought this in, so in case you've already
+> encountered this, it could save me investigating more. If nothing obvious
+> appears to you, I'll dig in.
 
-This patch adds a check to see if the video standard can be obtained and
-if it's a 60 Hz format. If the condition is meet V4L2_FIELD_INTERLACED
-is treated as V4L2_FIELD_INTERLACED_BT if not as
-V4L2_FIELD_INTERLACED_TB.
+Make sure you have the latest v4l2-compliance code as well. A fix went into vb2
+that corrected a bug relating to the V4L2_BUF_FLAG_DONE, but that required a fix for
+v4l2-compliance as well. I'd say that's what you are seeing here.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Regards,
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 496aa97..4063775 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -131,6 +131,7 @@ static u32 rvin_read(struct rvin_dev *vin, u32 offset)
- static int rvin_setup(struct rvin_dev *vin)
- {
- 	u32 vnmc, dmr, dmr2, interrupts;
-+	v4l2_std_id std;
- 	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
- 
- 	switch (vin->format.field) {
-@@ -141,6 +142,13 @@ static int rvin_setup(struct rvin_dev *vin)
- 		vnmc = VNMC_IM_EVEN;
- 		break;
- 	case V4L2_FIELD_INTERLACED:
-+		/* Default to TB */
-+		vnmc = VNMC_IM_FULL;
-+		/* Use BT if video standard can be read and is 60 Hz format */
-+		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std))
-+			if (std & V4L2_STD_525_60)
-+				vnmc = VNMC_IM_FULL | VNMC_FOC;
-+		break;
- 	case V4L2_FIELD_INTERLACED_TB:
- 		vnmc = VNMC_IM_FULL;
- 		break;
--- 
-2.9.0
-
+	Hans
