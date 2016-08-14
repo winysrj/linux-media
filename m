@@ -1,44 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.zeus03.de ([194.117.254.33]:56304 "EHLO mail.zeus03.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932694AbcHKVLc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 17:11:32 -0400
-From: Wolfram Sang <wsa-dev@sang-engineering.com>
-To: linux-usb@vger.kernel.org
-Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 25/28] media: usb: tm6000: tm6000-dvb: don't print error when allocating urb fails
-Date: Thu, 11 Aug 2016 23:04:01 +0200
-Message-Id: <1470949451-24823-26-git-send-email-wsa-dev@sang-engineering.com>
-In-Reply-To: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
-References: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37181 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752156AbcHNJlu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Aug 2016 05:41:50 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id C70E4180AA9
+	for <linux-media@vger.kernel.org>; Sun, 14 Aug 2016 11:41:03 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.9] New tw5864 driver (v2)
+Message-ID: <80f707e8-6a52-6c9a-82ba-db9c8f5d0113@xs4all.nl>
+Date: Sun, 14 Aug 2016 11:41:03 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kmalloc will print enough information in case of failure.
+Passed v4l2-compliance, see https://patchwork.linuxtv.org/patch/35671/
+for more details about the device.
 
-Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
----
- drivers/media/usb/tm6000/tm6000-dvb.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+Regards,
 
-diff --git a/drivers/media/usb/tm6000/tm6000-dvb.c b/drivers/media/usb/tm6000/tm6000-dvb.c
-index 095f5db1a790f9..0426b210383b7c 100644
---- a/drivers/media/usb/tm6000/tm6000-dvb.c
-+++ b/drivers/media/usb/tm6000/tm6000-dvb.c
-@@ -129,10 +129,8 @@ static int tm6000_start_stream(struct tm6000_core *dev)
- 	}
- 
- 	dvb->bulk_urb = usb_alloc_urb(0, GFP_KERNEL);
--	if (dvb->bulk_urb == NULL) {
--		printk(KERN_ERR "tm6000: couldn't allocate urb\n");
-+	if (dvb->bulk_urb == NULL)
- 		return -ENOMEM;
--	}
- 
- 	pipe = usb_rcvbulkpipe(dev->udev, dev->bulk_in.endp->desc.bEndpointAddress
- 							  & USB_ENDPOINT_NUMBER_MASK);
--- 
-2.8.1
+	Hans
 
+Change since v2: fix Kconfig dependency.
+
+The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
+
+  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git tw5864
+
+for you to fetch changes up to 5984370475abcaca7bca8aa3b207ce4f7a397951:
+
+  tw5864: add missing HAS_DMA dependency (2016-08-14 11:37:29 +0200)
+
+----------------------------------------------------------------
+Andrey Utkin (1):
+      pci: Add tw5864 driver
+
+Hans Verkuil (1):
+      tw5864: add missing HAS_DMA dependency
+
+ MAINTAINERS                             |    8 +
+ drivers/media/pci/Kconfig               |    1 +
+ drivers/media/pci/Makefile              |    1 +
+ drivers/media/pci/tw5864/Kconfig        |   12 +
+ drivers/media/pci/tw5864/Makefile       |    3 +
+ drivers/media/pci/tw5864/tw5864-core.c  |  359 ++++++++++
+ drivers/media/pci/tw5864/tw5864-h264.c  |  259 ++++++++
+ drivers/media/pci/tw5864/tw5864-reg.h   | 2133 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/pci/tw5864/tw5864-util.c  |   37 ++
+ drivers/media/pci/tw5864/tw5864-video.c | 1514 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/pci/tw5864/tw5864.h       |  205 ++++++
+ 11 files changed, 4532 insertions(+)
+ create mode 100644 drivers/media/pci/tw5864/Kconfig
+ create mode 100644 drivers/media/pci/tw5864/Makefile
+ create mode 100644 drivers/media/pci/tw5864/tw5864-core.c
+ create mode 100644 drivers/media/pci/tw5864/tw5864-h264.c
+ create mode 100644 drivers/media/pci/tw5864/tw5864-reg.h
+ create mode 100644 drivers/media/pci/tw5864/tw5864-util.c
+ create mode 100644 drivers/media/pci/tw5864/tw5864-video.c
+ create mode 100644 drivers/media/pci/tw5864/tw5864.h
