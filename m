@@ -1,121 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58813 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751138AbcHEC7T (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:51489 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752904AbcHNKHN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Aug 2016 22:59:19 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 5E6EB180050
-	for <linux-media@vger.kernel.org>; Fri,  5 Aug 2016 04:58:41 +0200 (CEST)
-Date: Fri, 05 Aug 2016 04:58:41 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160805025841.5E6EB180050@tschai.lan>
+	Sun, 14 Aug 2016 06:07:13 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 4A3F0180AA9
+	for <linux-media@vger.kernel.org>; Sun, 14 Aug 2016 12:07:08 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.8] fixes and updates (mostly cec-related)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <d3c89ce0-d96b-ff3f-44c1-1d907bad3473@xs4all.nl>
+Date: Sun, 14 Aug 2016 12:07:08 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mauro,
 
-Results of the daily build of media_tree:
+These are (regression) fixes for 4.8, mostly related to the cec framework.
 
-date:		Fri Aug  5 04:00:24 CEST 2016
-git branch:	test
-git hash:	292eaf50c7df4ae2ae8aaa9e1ce3f1240a353ee8
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+It fixes some dubious locking code, two typos in cec-funcs.h, a missing reply
+for the Record On/Off messages, improves the documentation, adds a TODO line,
+adds a flag to explicitly allow fallback to Unregistered and prevents
+broadcast messages from being processed when they should be ignored.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+The CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK patch changes the default behavior,
+so I would like to get that in for 4.8 rather than waiting for 4.9.
 
-Detailed results are available here:
+The cec-compliance test we've been working on is nearly done and I hope to
+merge that in v4l-utils by Monday. This means we have 99% coverage (only some
+CDC HEC tests are missing since that's rarely used). These patches fix some
+remaining problems that we've found.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+I hope to fix the remaining items from the TODO list for 4.9 so that the
+framework can be mainlined soon.
 
-Full logs are available here:
+There are three other patches: the mediatek patch adds a missing HAS_DMA
+dependency to shut the kbuild robot up, and there are two fixes for the pulse8-cec
+driver. Many thanks to Pulse-Eight for providing me with the information
+necessary for these two patches.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+Regards,
 
-The Media Infrastructure API from this daily build is here:
+	Hans
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Note: this supersedes my previous "cec fixes and updates" pull request.
+
+The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
+
+  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.8a
+
+for you to fetch changes up to 68373dd7572958e5b8ada02845899577b2c9772d:
+
+  pulse8-cec: fix error handling (2016-08-14 12:06:08 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (11):
+      cec: rename cec_devnode fhs_lock to just lock
+      cec: improve locking
+      cec-funcs.h: fix typo: && should be &
+      cec-funcs.h: add reply argument for Record On/Off
+      cec: improve dqevent documentation
+      cec: add CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK flag
+      cec: add item to TODO
+      cec: ignore messages when log_addr_mask == 0
+      mtk-vcodec: add HAS_DMA dependency
+      pulse8-cec: set correct Signal Free Time
+      pulse8-cec: fix error handling
+
+ Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst | 21 ++++++++++++++++++++-
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst          |  8 ++++++--
+ drivers/media/platform/Kconfig                            |  2 +-
+ drivers/staging/media/cec/TODO                            |  1 +
+ drivers/staging/media/cec/cec-adap.c                      | 18 ++++++++++++------
+ drivers/staging/media/cec/cec-api.c                       | 10 +++++-----
+ drivers/staging/media/cec/cec-core.c                      | 27 +++++++++++++++------------
+ drivers/staging/media/pulse8-cec/pulse8-cec.c             | 10 +++++-----
+ include/linux/cec-funcs.h                                 |  9 ++++++---
+ include/linux/cec.h                                       |  5 ++++-
+ include/media/cec.h                                       |  2 +-
+ 11 files changed, 76 insertions(+), 37 deletions(-)
