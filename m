@@ -1,279 +1,433 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54114 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752847AbcHRKXZ (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:54585 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751900AbcHNNTl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2016 06:23:25 -0400
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-To: <laurent.pinchart@ideasonboard.com>
-CC: <hans.verkuil@cisco.com>, <linux-media@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <arnd@arndb.de>,
-	<linux@armlinux.org.uk>
-Subject: [PATCH] [media] v4l: omap_vout: vrfb: Convert to dmaengine
-Date: Thu, 18 Aug 2016 13:22:59 +0300
-Message-ID: <20160818102259.5815-1-peter.ujfalusi@ti.com>
+	Sun, 14 Aug 2016 09:19:41 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id C6641180492
+	for <linux-media@vger.kernel.org>; Sun, 14 Aug 2016 15:18:50 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] cec-core.rst: convert old cec.txt to sphinx.
+Message-ID: <d9859156-fb5d-1829-c880-0d58c5d8680e@xs4all.nl>
+Date: Sun, 14 Aug 2016 15:18:50 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The dmaengine driver for sDMA now have support for interleaved transfer.
-This trasnfer type was open coded with the legacy omap-dma API, but now
-we can move it to dmaengine.
+Convert the old ascii CEC kapi documentation to sphinx documentation.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+No textual changes, just an initial conversion.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-The dmaengine driver for sDMA now have support for interleaved transfer.
-This trasnfer type was open coded with the legacy omap-dma API, but now
-we can move it to dmaengine.
+ Documentation/{cec.txt => media/kapi/cec-core.rst} | 202 ++++++++++++---------
+ Documentation/media/media_kapi.rst                 |   1 +
+ MAINTAINERS                                        |   4 +-
+ 3 files changed, 119 insertions(+), 88 deletions(-)
+ rename Documentation/{cec.txt => media/kapi/cec-core.rst} (53%)
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
-Hi,
+diff --git a/Documentation/cec.txt b/Documentation/media/kapi/cec-core.rst
+similarity index 53%
+rename from Documentation/cec.txt
+rename to Documentation/media/kapi/cec-core.rst
+index 75155fe..b776a59 100644
+--- a/Documentation/cec.txt
++++ b/Documentation/media/kapi/cec-core.rst
+@@ -1,5 +1,5 @@
+ CEC Kernel Support
+-==================
++------------------
 
-I do not have access to any hardware where I could test if the conversion works
-correctly. I think it should. The dmaengine part looks fine to me - not that
-this means too much as I have written it ;)
-Based on debugging the code with starring at it I think the old and the new way
-would end up setting up the DMA in a same way. However the dmaengine driver will
-set CSDP_DST_PACKED | CSDP_SRC_PACKED.
+ The CEC framework provides a unified kernel interface for use with HDMI CEC
+ hardware. It is designed to handle a multiple types of hardware (receivers,
+@@ -10,7 +10,7 @@ feature into the kernel's remote control framework.
 
-Laurent: would you be able to test this?
 
-Regards,
-Peter
+ The CEC Protocol
+-----------------
++~~~~~~~~~~~~~~~~
 
- drivers/media/platform/omap/omap_vout_vrfb.c | 133 ++++++++++++++++-----------
- drivers/media/platform/omap/omap_voutdef.h   |   6 +-
- 2 files changed, 83 insertions(+), 56 deletions(-)
+ The CEC protocol enables consumer electronic devices to communicate with each
+ other through the HDMI connection. The protocol uses logical addresses in the
+@@ -28,62 +28,65 @@ http://www.microprocessor.org/HDMISpecification13a.pdf
 
-diff --git a/drivers/media/platform/omap/omap_vout_vrfb.c b/drivers/media/platform/omap/omap_vout_vrfb.c
-index b8638e4e1627..957ff7621652 100644
---- a/drivers/media/platform/omap/omap_vout_vrfb.c
-+++ b/drivers/media/platform/omap/omap_vout_vrfb.c
-@@ -16,7 +16,6 @@
- #include <media/videobuf-dma-contig.h>
- #include <media/v4l2-device.h>
 
--#include <linux/omap-dma.h>
- #include <video/omapvrfb.h>
+ The Kernel Interface
+-====================
++~~~~~~~~~~~~~~~~~~~~
 
- #include "omap_voutdef.h"
-@@ -63,7 +62,7 @@ static int omap_vout_allocate_vrfb_buffers(struct omap_vout_device *vout,
- /*
-  * Wakes up the application once the DMA transfer to VRFB space is completed.
-  */
--static void omap_vout_vrfb_dma_tx_callback(int lch, u16 ch_status, void *data)
-+static void omap_vout_vrfb_dma_tx_callback(void *data)
- {
- 	struct vid_vrfb_dma *t = (struct vid_vrfb_dma *) data;
+ CEC Adapter
+------------
++^^^^^^^^^^^
 
-@@ -94,6 +93,7 @@ int omap_vout_setup_vrfb_bufs(struct platform_device *pdev, int vid_num,
- 	int ret = 0, i, j;
- 	struct omap_vout_device *vout;
- 	struct video_device *vfd;
-+	dma_cap_mask_t mask;
- 	int image_width, image_height;
- 	int vrfb_num_bufs = VRFB_NUM_BUFS;
- 	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
-@@ -131,17 +131,26 @@ int omap_vout_setup_vrfb_bufs(struct platform_device *pdev, int vid_num,
- 	/*
- 	 * Request and Initialize DMA, for DMA based VRFB transfer
- 	 */
--	vout->vrfb_dma_tx.dev_id = OMAP_DMA_NO_DEVICE;
--	vout->vrfb_dma_tx.dma_ch = -1;
--	vout->vrfb_dma_tx.req_status = DMA_CHAN_ALLOTED;
--	ret = omap_request_dma(vout->vrfb_dma_tx.dev_id, "VRFB DMA TX",
--			omap_vout_vrfb_dma_tx_callback,
--			(void *) &vout->vrfb_dma_tx, &vout->vrfb_dma_tx.dma_ch);
--	if (ret < 0) {
-+	dma_cap_zero(mask);
-+	dma_cap_set(DMA_INTERLEAVE, mask);
-+	vout->vrfb_dma_tx.chan = dma_request_chan_by_mask(&mask);
-+	if (IS_ERR(vout->vrfb_dma_tx.chan)) {
- 		vout->vrfb_dma_tx.req_status = DMA_CHAN_NOT_ALLOTED;
-+	} else {
-+		size_t xt_size = sizeof(struct dma_interleaved_template) +
-+				 sizeof(struct data_chunk);
+ The struct cec_adapter represents the CEC adapter hardware. It is created by
+ calling cec_allocate_adapter() and deleted by calling cec_delete_adapter():
+
+-struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
++..  code-block:: c
 +
-+		vout->vrfb_dma_tx.xt = kzalloc(xt_size, GFP_KERNEL);
-+		if (!vout->vrfb_dma_tx.xt) {
-+			dma_release_channel(vout->vrfb_dma_tx.chan);
-+			vout->vrfb_dma_tx.req_status = DMA_CHAN_NOT_ALLOTED;
-+		}
-+	}
-+
-+	if (vout->vrfb_dma_tx.req_status == DMA_CHAN_NOT_ALLOTED)
- 		dev_info(&pdev->dev, ": failed to allocate DMA Channel for"
- 				" video%d\n", vfd->minor);
--	}
-+
- 	init_waitqueue_head(&vout->vrfb_dma_tx.wait);
++    struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 	       void *priv, const char *name, u32 caps, u8 available_las,
+ 	       struct device *parent);
+-void cec_delete_adapter(struct cec_adapter *adap);
++    void cec_delete_adapter(struct cec_adapter *adap);
 
- 	/* statically allocated the VRFB buffer is done through
-@@ -176,7 +185,9 @@ void omap_vout_release_vrfb(struct omap_vout_device *vout)
+ To create an adapter you need to pass the following information:
 
- 	if (vout->vrfb_dma_tx.req_status == DMA_CHAN_ALLOTED) {
- 		vout->vrfb_dma_tx.req_status = DMA_CHAN_NOT_ALLOTED;
--		omap_free_dma(vout->vrfb_dma_tx.dma_ch);
-+		kfree(vout->vrfb_dma_tx.xt);
-+		dmaengine_terminate_sync(vout->vrfb_dma_tx.chan);
-+		dma_release_channel(vout->vrfb_dma_tx.chan);
- 	}
- }
-
-@@ -218,70 +229,84 @@ int omap_vout_vrfb_buffer_setup(struct omap_vout_device *vout,
- }
-
- int omap_vout_prepare_vrfb(struct omap_vout_device *vout,
--				struct videobuf_buffer *vb)
-+			   struct videobuf_buffer *vb)
- {
--	dma_addr_t dmabuf;
--	struct vid_vrfb_dma *tx;
-+	struct dma_async_tx_descriptor *tx;
-+	enum dma_ctrl_flags flags;
-+	struct dma_chan *chan = vout->vrfb_dma_tx.chan;
-+	struct dma_device *dmadev = chan->device;
-+	struct dma_interleaved_template *xt = vout->vrfb_dma_tx.xt;
-+	dma_cookie_t cookie;
-+	enum dma_status status;
- 	enum dss_rotation rotation;
--	u32 dest_frame_index = 0, src_element_index = 0;
--	u32 dest_element_index = 0, src_frame_index = 0;
--	u32 elem_count = 0, frame_count = 0, pixsize = 2;
-+	size_t dst_icg;
-+	u32 pixsize;
-
- 	if (!is_rotation_enabled(vout))
- 		return 0;
-
--	dmabuf = vout->buf_phy_addr[vb->i];
- 	/* If rotation is enabled, copy input buffer into VRFB
- 	 * memory space using DMA. We are copying input buffer
- 	 * into VRFB memory space of desired angle and DSS will
- 	 * read image VRFB memory for 0 degree angle
- 	 */
-+
- 	pixsize = vout->bpp * vout->vrfb_bpp;
--	/*
--	 * DMA transfer in double index mode
--	 */
-+	dst_icg = ((MAX_PIXELS_PER_LINE * pixsize) -
-+		  (vout->pix.width * vout->bpp)) + 1;
-+
-+	xt->src_start = vout->buf_phy_addr[vb->i];
-+	xt->dst_start = vout->vrfb_context[vb->i].paddr[0];
-+
-+	xt->numf = vout->pix.height;
-+	xt->frame_size = 1;
-+	xt->sgl[0].size = vout->pix.width * vout->bpp;
-+	xt->sgl[0].icg = dst_icg;
-+
-+	xt->dir = DMA_MEM_TO_MEM;
-+	xt->src_sgl = false;
-+	xt->src_inc = true;
-+	xt->dst_sgl = true;
-+	xt->dst_inc = true;
-+
-+	tx = dmadev->device_prep_interleaved_dma(chan, xt, flags);
-+	if (tx == NULL) {
-+		pr_err("%s: DMA interleaved prep error\n", __func__);
-+		return -EINVAL;
-+	}
-
--	/* Frame index */
--	dest_frame_index = ((MAX_PIXELS_PER_LINE * pixsize) -
--			(vout->pix.width * vout->bpp)) + 1;
+-ops: adapter operations which are called by the CEC framework and that you
+-have to implement.
 -
--	/* Source and destination parameters */
--	src_element_index = 0;
--	src_frame_index = 0;
--	dest_element_index = 1;
--	/* Number of elements per frame */
--	elem_count = vout->pix.width * vout->bpp;
--	frame_count = vout->pix.height;
--	tx = &vout->vrfb_dma_tx;
--	tx->tx_status = 0;
--	omap_set_dma_transfer_params(tx->dma_ch, OMAP_DMA_DATA_TYPE_S32,
--			(elem_count / 4), frame_count, OMAP_DMA_SYNC_ELEMENT,
--			tx->dev_id, 0x0);
--	/* src_port required only for OMAP1 */
--	omap_set_dma_src_params(tx->dma_ch, 0, OMAP_DMA_AMODE_POST_INC,
--			dmabuf, src_element_index, src_frame_index);
--	/*set dma source burst mode for VRFB */
--	omap_set_dma_src_burst_mode(tx->dma_ch, OMAP_DMA_DATA_BURST_16);
--	rotation = calc_rotation(vout);
-+	tx->callback = omap_vout_vrfb_dma_tx_callback;
-+	tx->callback_param = &vout->vrfb_dma_tx;
-+
-+	cookie = dmaengine_submit(tx);
-+	if (dma_submit_error(cookie)) {
-+		pr_err("%s: dmaengine_submit failed (%d)\n", __func__, cookie);
-+		return -EINVAL;
-+	}
+-priv: will be stored in adap->priv and can be used by the adapter ops.
+-
+-name: the name of the CEC adapter. Note: this name will be copied.
++- ``ops``: adapter operations which are called by the CEC framework and that you
++  have to implement.
++- ``priv``: will be stored in ``adap->priv`` and can be used by the adapter ops.
++- ``name``: the name of the CEC adapter. Note: this name will be copied.
++- ``caps``: capabilities of the CEC adapter. These capabilities determine the
++  capabilities of the hardware and which parts are to be handled
++  by userspace and which parts are handled by kernelspace. The
++  capabilities are returned by ``CEC_ADAP_G_CAPS``.
++- ``available_las``: the number of simultaneous logical addresses that this
++  adapter can handle. Must be 1 <= ``available_las`` <= ``CEC_MAX_LOG_ADDRS``.
++- ``parent``: the parent device.
 
--	/* dest_port required only for OMAP1 */
--	omap_set_dma_dest_params(tx->dma_ch, 0, OMAP_DMA_AMODE_DOUBLE_IDX,
--			vout->vrfb_context[vb->i].paddr[0], dest_element_index,
--			dest_frame_index);
--	/*set dma dest burst mode for VRFB */
--	omap_set_dma_dest_burst_mode(tx->dma_ch, OMAP_DMA_DATA_BURST_16);
--	omap_dma_set_global_params(DMA_DEFAULT_ARB_RATE, 0x20, 0);
-+	vout->vrfb_dma_tx.tx_status = 0;
-+	dma_async_issue_pending(chan);
+-caps: capabilities of the CEC adapter. These capabilities determine the
+-	capabilities of the hardware and which parts are to be handled
+-	by userspace and which parts are handled by kernelspace. The
+-	capabilities are returned by CEC_ADAP_G_CAPS.
 
--	omap_start_dma(tx->dma_ch);
--	wait_event_interruptible_timeout(tx->wait, tx->tx_status == 1,
-+	wait_event_interruptible_timeout(vout->vrfb_dma_tx.wait,
-+					 vout->vrfb_dma_tx.tx_status == 1,
- 					 VRFB_TX_TIMEOUT);
+-available_las: the number of simultaneous logical addresses that this
+-	adapter can handle. Must be 1 <= available_las <= CEC_MAX_LOG_ADDRS.
++To register the ``/dev/cecX`` device node and the remote control device (if
++``CEC_CAP_RC`` is set) you call:
 
--	if (tx->tx_status == 0) {
--		omap_stop_dma(tx->dma_ch);
-+	status = dma_async_is_tx_complete(chan, cookie, NULL, NULL);
-+
-+	if (vout->vrfb_dma_tx.tx_status == 0) {
-+		pr_err("%s: Timeout while waiting for DMA\n", __func__);
-+		dmaengine_terminate_sync(chan);
-+		return -EINVAL;
-+	} else if (status != DMA_COMPLETE) {
-+		pr_err("%s: DMA completion %s status\n", __func__,
-+		       status == DMA_ERROR ? "error" : "busy");
-+		dmaengine_terminate_sync(chan);
- 		return -EINVAL;
- 	}
-+
- 	/* Store buffers physical address into an array. Addresses
- 	 * from this array will be used to configure DSS */
-+	rotation = calc_rotation(vout);
- 	vout->queued_buf_addr[vb->i] = (u8 *)
- 		vout->vrfb_context[vb->i].paddr[rotation];
- 	return 0;
-diff --git a/drivers/media/platform/omap/omap_voutdef.h b/drivers/media/platform/omap/omap_voutdef.h
-index 80c79fabdf95..56b630b1c8b4 100644
---- a/drivers/media/platform/omap/omap_voutdef.h
-+++ b/drivers/media/platform/omap/omap_voutdef.h
-@@ -14,6 +14,7 @@
- #include <media/v4l2-ctrls.h>
- #include <video/omapfb_dss.h>
- #include <video/omapvrfb.h>
-+#include <linux/dmaengine.h>
+-parent: the parent device.
++..  code-block:: c
 
- #define YUYV_BPP        2
- #define RGB565_BPP      2
-@@ -81,8 +82,9 @@ enum vout_rotaion_type {
-  * for VRFB hidden buffer
-  */
- struct vid_vrfb_dma {
--	int dev_id;
--	int dma_ch;
-+	struct dma_chan *chan;
-+	struct dma_interleaved_template *xt;
+-
+-To register the /dev/cecX device node and the remote control device (if
+-CEC_CAP_RC is set) you call:
+-
+-int cec_register_adapter(struct cec_adapter *adap);
++    int cec_register_adapter(struct cec_adapter *adap);
+
+ To unregister the devices call:
+
+-void cec_unregister_adapter(struct cec_adapter *adap);
++..  code-block:: c
 +
- 	int req_status;
- 	int tx_status;
- 	wait_queue_head_t wait;
---
-2.9.2
++    void cec_unregister_adapter(struct cec_adapter *adap);
+
+-Note: if cec_register_adapter() fails, then call cec_delete_adapter() to
+-clean up. But if cec_register_adapter() succeeded, then only call
+-cec_unregister_adapter() to clean up, never cec_delete_adapter(). The
++Note: if ``cec_register_adapter()`` fails, then call ``cec_delete_adapter()`` to
++clean up. But if ``cec_register_adapter()`` succeeded, then only call
++``cec_unregister_adapter()`` to clean up, never ``cec_delete_adapter()``. The
+ unregister function will delete the adapter automatically once the last user
+-of that /dev/cecX device has closed its file handle.
++of that ``/dev/cecX`` device has closed its file handle.
+
+
+ Implementing the Low-Level CEC Adapter
+---------------------------------------
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ The following low-level adapter operations have to be implemented in
+ your driver:
+
+-struct cec_adap_ops {
++..  code-block:: c
++
++    struct cec_adap_ops {
+ 	/* Low-level callbacks */
+ 	int (*adap_enable)(struct cec_adapter *adap, bool enable);
+ 	int (*adap_monitor_all_enable)(struct cec_adapter *adap, bool enable);
+@@ -94,74 +97,87 @@ struct cec_adap_ops {
+
+ 	/* High-level callbacks */
+ 	...
+-};
++    };
+
+ The three low-level ops deal with various aspects of controlling the CEC adapter
+-hardware:
+-
++hardware.
+
+ To enable/disable the hardware:
+
++..  code-block:: c
++
+ 	int (*adap_enable)(struct cec_adapter *adap, bool enable);
+
+ This callback enables or disables the CEC hardware. Enabling the CEC hardware
+ means powering it up in a state where no logical addresses are claimed. This
+-op assumes that the physical address (adap->phys_addr) is valid when enable is
++op assumes that the physical address (``adap->phys_addr``) is valid when enable is
+ true and will not change while the CEC adapter remains enabled. The initial
+-state of the CEC adapter after calling cec_allocate_adapter() is disabled.
++state of the CEC adapter after calling ``cec_allocate_adapter()`` is disabled.
+
+-Note that adap_enable must return 0 if enable is false.
++Note that ``adap_enable`` must return 0 if enable is false.
+
+
+ To enable/disable the 'monitor all' mode:
+
++..  code-block:: c
++
+ 	int (*adap_monitor_all_enable)(struct cec_adapter *adap, bool enable);
+
+ If enabled, then the adapter should be put in a mode to also monitor messages
+ that not for us. Not all hardware supports this and this function is only
+-called if the CEC_CAP_MONITOR_ALL capability is set. This callback is optional
++called if the ``CEC_CAP_MONITOR_ALL`` capability is set. This callback is optional
+ (some hardware may always be in 'monitor all' mode).
+
+-Note that adap_monitor_all_enable must return 0 if enable is false.
++Note that ``adap_monitor_all_enable`` must return 0 if enable is false.
+
+
+ To program a new logical address:
+
++..  code-block:: c
++
+ 	int (*adap_log_addr)(struct cec_adapter *adap, u8 logical_addr);
+
+-If logical_addr == CEC_LOG_ADDR_INVALID then all programmed logical addresses
++If ``logical_addr`` == ``CEC_LOG_ADDR_INVALID`` then all programmed logical addresses
+ are to be erased. Otherwise the given logical address should be programmed.
+ If the maximum number of available logical addresses is exceeded, then it
+-should return -ENXIO. Once a logical address is programmed the CEC hardware
++should return ``-ENXIO``. Once a logical address is programmed the CEC hardware
+ can receive directed messages to that address.
+
+-Note that adap_log_addr must return 0 if logical_addr is CEC_LOG_ADDR_INVALID.
++Note that ``adap_log_addr`` must return 0 if logical_addr is ``CEC_LOG_ADDR_INVALID``.
+
+
+ To transmit a new message:
+
++..  code-block:: c
++
+ 	int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
+ 			     u32 signal_free_time, struct cec_msg *msg);
+
+-This transmits a new message. The attempts argument is the suggested number of
++This transmits a new message. The ``attempts`` argument is the suggested number of
+ attempts for the transmit.
+
+-The signal_free_time is the number of data bit periods that the adapter should
++The ``signal_free_time`` is the number of data bit periods that the adapter should
+ wait when the line is free before attempting to send a message. This value
+ depends on whether this transmit is a retry, a message from a new initiator or
+ a new message for the same initiator. Most hardware will handle this
+ automatically, but in some cases this information is needed.
+
+-The CEC_FREE_TIME_TO_USEC macro can be used to convert signal_free_time to
++The ``CEC_FREE_TIME_TO_USEC`` macro can be used to convert ``signal_free_time`` to
+ microseconds (one data bit period is 2.4 ms).
+
+
+ To log the current CEC hardware status:
+
+-	void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
++..  code-block:: c
++
++    void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
+
+ This optional callback can be used to show the status of the CEC hardware.
+-The status is available through debugfs: cat /sys/kernel/debug/cec/cecX/status
++The status is available through debugfs:
++
++..  code-block:: c
++
++    cat /sys/kernel/debug/cec/cecX/status
+
+
+ Your adapter driver will also have to react to events (typically interrupt
+@@ -169,29 +185,31 @@ driven) by calling into the framework in the following situations:
+
+ When a transmit finished (successfully or otherwise):
+
+-void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
++..  code-block:: c
++
++    void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+ 		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
+
+ The status can be one of:
+
+-CEC_TX_STATUS_OK: the transmit was successful.
+-CEC_TX_STATUS_ARB_LOST: arbitration was lost: another CEC initiator
+-took control of the CEC line and you lost the arbitration.
+-CEC_TX_STATUS_NACK: the message was nacked (for a directed message) or
+-acked (for a broadcast message). A retransmission is needed.
+-CEC_TX_STATUS_LOW_DRIVE: low drive was detected on the CEC bus. This
+-indicates that a follower detected an error on the bus and requested a
+-retransmission.
+-CEC_TX_STATUS_ERROR: some unspecified error occurred: this can be one of
+-the previous two if the hardware cannot differentiate or something else
+-entirely.
+-CEC_TX_STATUS_MAX_RETRIES: could not transmit the message after
+-trying multiple times. Should only be set by the driver if it has hardware
+-support for retrying messages. If set, then the framework assumes that it
+-doesn't have to make another attempt to transmit the message since the
+-hardware did that already.
+-
+-The *_cnt arguments are the number of error conditions that were seen.
++- ``CEC_TX_STATUS_OK``: the transmit was successful.
++- ``CEC_TX_STATUS_ARB_LOST``: arbitration was lost: another CEC initiator
++  took control of the CEC line and you lost the arbitration.
++- ``CEC_TX_STATUS_NACK``: the message was nacked (for a directed message) or
++  acked (for a broadcast message). A retransmission is needed.
++- ``CEC_TX_STATUS_LOW_DRIVE``: low drive was detected on the CEC bus. This
++  indicates that a follower detected an error on the bus and requested a
++  retransmission.
++- ``CEC_TX_STATUS_ERROR``: some unspecified error occurred: this can be one of
++  the previous two if the hardware cannot differentiate or something else
++  entirely.
++- ``CEC_TX_STATUS_MAX_RETRIES``: could not transmit the message after
++  trying multiple times. Should only be set by the driver if it has hardware
++  support for retrying messages. If set, then the framework assumes that it
++  doesn't have to make another attempt to transmit the message since the
++  hardware did that already.
++
++The ``_cnt`` arguments are the number of error conditions that were seen.
+ This may be 0 if no information is available. Drivers that do not support
+ hardware retry can just set the counter corresponding to the transmit error
+ to 1, if the hardware does support retry then either set these counters to
+@@ -200,68 +218,80 @@ times, or fill in the correct values as reported by the hardware.
+
+ When a CEC message was received:
+
+-void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
++..  code-block:: c
++
++    void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
+
+ Speaks for itself.
+
+ Implementing the High-Level CEC Adapter
+----------------------------------------
++^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ The low-level operations drive the hardware, the high-level operations are
+ CEC protocol driven. The following high-level callbacks are available:
+
+-struct cec_adap_ops {
++..  code-block:: c
++
++    struct cec_adap_ops {
+ 	/* Low-level callbacks */
+ 	...
+
+ 	/* High-level CEC message callback */
+ 	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
+-};
++    };
+
+-The received() callback allows the driver to optionally handle a newly
++The ``received()`` callback allows the driver to optionally handle a newly
+ received CEC message
+
++..  code-block:: c
++
+ 	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
+
+ If the driver wants to process a CEC message, then it can implement this
+ callback. If it doesn't want to handle this message, then it should return
+--ENOMSG, otherwise the CEC framework assumes it processed this message and
++``-ENOMSG``, otherwise the CEC framework assumes it processed this message and
+ it will not no anything with it.
+
+
+ CEC framework functions
+------------------------
++^^^^^^^^^^^^^^^^^^^^^^^
+
+ CEC Adapter drivers can call the following CEC framework functions:
+
+-int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
++..  code-block:: c
++
++    int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
+ 		     bool block);
+
+-Transmit a CEC message. If block is true, then wait until the message has been
++Transmit a CEC message. If ``block`` is true, then wait until the message has been
+ transmitted, otherwise just queue it and return.
+
+-void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block);
++..  code-block:: c
+
+-Change the physical address. This function will set adap->phys_addr and
+-send an event if it has changed. If cec_s_log_addrs() has been called and
++    void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block);
++
++Change the physical address. This function will set ``adap->phys_addr`` and
++send an event if it has changed. If ``cec_s_log_addrs()`` has been called and
+ the physical address has become valid, then the CEC framework will start
+-claiming the logical addresses. If block is true, then this function won't
++claiming the logical addresses. If ``block`` is true, then this function won't
+ return until this process has finished.
+
+ When the physical address is set to a valid value the CEC adapter will
+-be enabled (see the adap_enable op). When it is set to CEC_PHYS_ADDR_INVALID,
++be enabled (see the ``adap_enable`` op). When it is set to ``CEC_PHYS_ADDR_INVALID``,
+ then the CEC adapter will be disabled. If you change a valid physical address
+ to another valid physical address, then this function will first set the
+-address to CEC_PHYS_ADDR_INVALID before enabling the new physical address.
++address to ``CEC_PHYS_ADDR_INVALID`` before enabling the new physical address.
++
++..  code-block:: c
+
+-int cec_s_log_addrs(struct cec_adapter *adap,
++    int cec_s_log_addrs(struct cec_adapter *adap,
+ 		    struct cec_log_addrs *log_addrs, bool block);
+
+-Claim the CEC logical addresses. Should never be called if CEC_CAP_LOG_ADDRS
+-is set. If block is true, then wait until the logical addresses have been
++Claim the CEC logical addresses. Should never be called if ``CEC_CAP_LOG_ADDRS``
++is set. If ``block`` is true, then wait until the logical addresses have been
+ claimed, otherwise just queue it and return. To unconfigure all logical
+-addresses call this function with log_addrs set to NULL or with
+-log_addrs->num_log_addrs set to 0. The block argument is ignored when
++addresses call this function with ``log_addrs`` set to ``NULL`` or with
++``log_addrs->num_log_addrs`` set to 0. The ``block`` argument is ignored when
+ unconfiguring. This function will just return if the physical address is
+ invalid. Once the physical address becomes valid, then the framework will
+ attempt to claim these logical addresses.
+diff --git a/Documentation/media/media_kapi.rst b/Documentation/media/media_kapi.rst
+index b71e8e8..f282ca2 100644
+--- a/Documentation/media/media_kapi.rst
++++ b/Documentation/media/media_kapi.rst
+@@ -32,3 +32,4 @@ For more details see the file COPYING in the source distribution of Linux.
+     kapi/dtv-core
+     kapi/rc-core
+     kapi/mc-core
++    kapi/cec-core
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 20bb1d0..b1081c6 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2901,8 +2901,8 @@ L:	linux-media@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ W:	http://linuxtv.org
+ S:	Supported
+-F:	Documentation/cec.txt
+-F:	Documentation/DocBook/media/v4l/cec*
++F:	Documentation/media/kapi/cec-core.rst
++F:	Documentation/media/uapi/cec/
+ F:	drivers/staging/media/cec/
+ F:	drivers/media/cec-edid.c
+ F:	drivers/media/rc/keymaps/rc-cec.c
+-- 
+2.8.1
 
