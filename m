@@ -1,70 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:45888 "EHLO smtp3-1.goneo.de"
+Received: from tex.lwn.net ([70.33.254.29]:42605 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752054AbcHHQHv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2016 12:07:51 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: parts of media docs sphinx re-building every time?
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <8760rbp8zh.fsf@intel.com>
-Date: Mon, 8 Aug 2016 18:07:10 +0200
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
+	id S932638AbcHNSJW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Aug 2016 14:09:22 -0400
+Date: Sun, 14 Aug 2016 12:09:20 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jani Nikula <jani.nikula@intel.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <6D7865EB-9C40-4B8F-8D8F-3B28024624F3@darmarit.de>
-References: <8760rbp8zh.fsf@intel.com>
-To: Jani Nikula <jani.nikula@intel.com>
+	linux-doc@vger.kernel.org
+Subject: Re: [PATCH 0/7] doc-rst: sphinx sub-folders & parseheaders
+ directive
+Message-ID: <20160814120920.62098dae@lwn.net>
+In-Reply-To: <1471097568-25990-1-git-send-email-markus.heiser@darmarit.de>
+References: <1471097568-25990-1-git-send-email-markus.heiser@darmarit.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jani,
+On Sat, 13 Aug 2016 16:12:41 +0200
+Markus Heiser <markus.heiser@darmarit.de> wrote:
 
-Am 08.08.2016 um 17:37 schrieb Jani Nikula <jani.nikula@intel.com>:
-
+> this series is a consolidation on Jon's docs-next branch. It merges the "sphinx
+> sub-folders" patch [1] and the "parseheaders directive" patch [2] on top of
+> Jon's docs-next.
 > 
-> Hi Mauro & co -
+> In sense of consolidation, it also includes:
 > 
-> I just noticed running 'make htmldocs' rebuilds parts of media docs
-> every time on repeated runs. This shouldn't happen. Please investigate.
+> *  doc-rst: add media/conf_nitpick.py
 > 
-> I wonder if it's related to Documentation/media/Makefile... which I have
-> to say I am not impressed by. I was really hoping we could build all the
-> documentation by standalone sphinx-build invocation too, relying only on
-> the conf.py so that e.g. Read the Docs can build the docs. Part of that
-> motivation was to keep the build clean in makefiles, and handing the
-> dependency tracking completely to Sphinx.
+>    Adds media/conf_nitpick.py from mchehab/docs-next [3].
 > 
-> I believe what's in Documentation/media/Makefile,
-> Documentation/sphinx/parse-headers.pl, and
-> Documentation/sphinx/kernel_include.py could be replaced by a Sphinx
-> extension looking at the sources directly.
+> *  doc-rst: migrated media build to parseheaders directive
 
-Yes, parse-headers.pl, kernel_include.py and media/Makefile are needed
-for one feature ... not very straight forward.
+OK, I have applied the first five of these, but stopped at parse-header.
+At this point, I have a few requests.  These are in approximate order of
+decreasing importance, but they're all important, I think.
 
-If it makes sense to migrate the perl scripts functionality to a
-Sphinx extension, may I can help ... depends on what Mauro thinks.
+- The new directive could really use some ... documentation.  Preferably in
+  kernel-documentation.rst with the rest.  What is parse-header, how does
+  it differ from kernel-doc, why might a kernel developer doing
+  documentation want (or not want) to use it?  That's all pretty obscure
+  now.  If we want others to jump onto this little bandwagon of ours, we
+  need to make sure it's all really clear.
 
-BTW: parse-headers.pl is not the only perl script I like to migrate to py ;)
+- Along those lines, is parse-header the right name for this thing?
+  "Parsing" isn't necessarily the goal of somebody who uses this directive,
+  right?  They want to extract documentation information.  Can we come up
+  with a better name?
 
-> (I presume kernel_include.py
-> is mostly a workaround to keep out-of-tree builds working?)
+- Can we please try to get the coding style a bit more in line with both
+  kernel and Python community norms?  I suspect some people will get grumpy
+  if they see this code.  In particular:
 
-Yes, e.g. with "make O=/tmp/kernel htmldocs" the parse-headers.pl output goes 
-to /tmp/kernel and is included by ".. kernel-include: $BUILDDIR/xxx"
+    - Please try to stick to the 80-column limit when possible.  Python
+      makes that a bit harder than C does, and please don't put in
+      ridiculous line breaks that make the code worse.  But sticking a bit
+      closer to the rule would be good.
 
--- Markus --
- 
-> Anyway, the rebuild part is most important. This must be fixed.
-> 
-> 
-> BR,
-> Jani.
-> 
-> -- 
-> Jani Nikula, Intel Open Source Technology Center
+    - The "#========================" lines around function/class
+      definition lines or other comments are not helpful, please avoid
+      them.  Instead, placing a real comment with actual informative text
+      above the function/class would be a good thing.  (I could live with
+      Python docstrings if you prefer, though I will confess I prefer
+      ordinary comments).
 
+    - No commas at the beginning of continuation lines, please; that would
+      get you yelled at in C code.  If you need to break a function call
+      (or whatever), please put the commas at the end of the line as is
+      done elsewhere.
+
+  Sorry to poke at nits here, but we want others in the kernel community to
+  be able to look at this code, and that will be easier if we stick closer
+  to the usual rules.
+
+Thanks,
+
+jon
