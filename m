@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:42620 "EHLO smtp3-1.goneo.de"
+Received: from tex.lwn.net ([70.33.254.29]:42637 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751561AbcHLOtH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2016 10:49:07 -0400
-From: Markus Heiser <markus.heiser@darmarit.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jani Nikula <jani.nikula@intel.com>
-Cc: Markus Heiser <markus.heiser@darmarIT.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/3] doc-rst: add docutils config file
-Date: Fri, 12 Aug 2016 16:48:42 +0200
-Message-Id: <1471013324-18914-2-git-send-email-markus.heiser@darmarit.de>
-In-Reply-To: <1471013324-18914-1-git-send-email-markus.heiser@darmarit.de>
-References: <1471013324-18914-1-git-send-email-markus.heiser@darmarit.de>
+	id S1752075AbcHNSYC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Aug 2016 14:24:02 -0400
+Date: Sun, 14 Aug 2016 12:24:00 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Markus Heiser <markus.heiser@darmarit.de>,
+	linux-doc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] doc-rst: customize RTD theme, drop padding of inline
+ literal
+Message-ID: <20160814122400.04dfbd81@lwn.net>
+In-Reply-To: <54a6dd78-b424-6bdc-2c46-25e44b3c41f7@xs4all.nl>
+References: <1470388783-5200-1-git-send-email-markus.heiser@darmarit.de>
+	<54a6dd78-b424-6bdc-2c46-25e44b3c41f7@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Heiser <markus.heiser@darmarIT.de>
+On Fri, 5 Aug 2016 11:27:07 +0200
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-To stop the sphinx-build on severe errors and exit with an exit code (to
-stop make) the halt_level must be set. The halt_level can't be set from
-sphinx, it is a docutils configuration [1]. For this a docutils.conf was
-added.
+> On 08/05/2016 11:19 AM, Markus Heiser wrote:
+> > From: Markus Heiser <markus.heiser@darmarIT.de>
+> > 
+> > Remove the distracting (left/right) padding of inline literals. (HTML
+> > <code>). Requested and discussed in [1].
+> > 
+> > [1] http://www.spinics.net/lists/linux-media/msg103991.html
+> > 
+> > Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>  
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Thank you! Thank you! Thank you!
+> 
+> So much better!
 
-[1] http://docutils.sourceforge.net/docs/user/config.html
+Agreed, this one was really needed.  Applied to the 4.8-fixes branch,
+thanks.
 
-Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
----
- Documentation/docutils.conf | 7 +++++++
- 1 file changed, 7 insertions(+)
- create mode 100644 Documentation/docutils.conf
-
-diff --git a/Documentation/docutils.conf b/Documentation/docutils.conf
-new file mode 100644
-index 0000000..2830772
---- /dev/null
-+++ b/Documentation/docutils.conf
-@@ -0,0 +1,7 @@
-+# -*- coding: utf-8 mode: conf-colon -*-
-+#
-+# docutils configuration file
-+# http://docutils.sourceforge.net/docs/user/config.html
-+
-+[general]
-+halt_level: severe
-\ No newline at end of file
--- 
-2.7.4
-
+jon
