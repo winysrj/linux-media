@@ -1,123 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34849 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752404AbcHTC46 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 22:56:58 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id 86B301804AB
-        for <linux-media@vger.kernel.org>; Sat, 20 Aug 2016 04:56:52 +0200 (CEST)
-Date: Sat, 20 Aug 2016 04:56:52 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160820025652.86B301804AB@tschai.lan>
+Received: from imap.netup.ru ([77.72.80.14]:45857 "EHLO imap.netup.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750905AbcHNIYW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Aug 2016 04:24:22 -0400
+MIME-Version: 1.0
+In-Reply-To: <1471112214-19547-1-git-send-email-colin.king@canonical.com>
+References: <1471112214-19547-1-git-send-email-colin.king@canonical.com>
+From: Abylay Ospan <aospan@netup.ru>
+Date: Sat, 13 Aug 2016 23:37:13 -0400
+Message-ID: <CAK3bHNV=TsAQ0x6S1f4+h_4Ar0rkPhpx2-gSLtQvFWuScXHwKw@mail.gmail.com>
+Subject: Re: [PATCH] helene: fix memory leak when heleno_x_pon fails
+To: Colin King <colin.king@canonical.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Colin,
 
-Results of the daily build of media_tree:
+It's really possible memory leak here. thanks for fix.
 
-date:		Sat Aug 20 04:00:26 CEST 2016
-git branch:	test
-git hash:	b6aa39228966e0d3f0bc3306be1892f87792903a
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+Acked-by: Abylay Ospan <aospan@netup.ru>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1.1-i686: WARNINGS
-linux-4.2-i686: WARNINGS
-linux-4.3-i686: WARNINGS
-linux-4.4-i686: WARNINGS
-linux-4.5-i686: WARNINGS
-linux-4.6-i686: WARNINGS
-linux-4.7-i686: WARNINGS
-linux-4.8-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0-x86_64: WARNINGS
-linux-4.1.1-x86_64: WARNINGS
-linux-4.2-x86_64: WARNINGS
-linux-4.3-x86_64: WARNINGS
-linux-4.4-x86_64: WARNINGS
-linux-4.5-x86_64: WARNINGS
-linux-4.6-x86_64: WARNINGS
-linux-4.7-x86_64: WARNINGS
-linux-4.8-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+2016-08-13 14:16 GMT-04:00 Colin King <colin.king@canonical.com>:
+> From: Colin Ian King <colin.king@canonical.com>
+>
+> The error return path of failed calls to heleno_x_pon leak
+> memory because priv is not kfree'd.  Fix this by kfree'ing
+> priv before returning.
+>
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> ---
+>  drivers/media/dvb-frontends/helene.c | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/helene.c b/drivers/media/dvb-frontends/helene.c
+> index 97a8982..3d1cd5f 100644
+> --- a/drivers/media/dvb-frontends/helene.c
+> +++ b/drivers/media/dvb-frontends/helene.c
+> @@ -987,8 +987,10 @@ struct dvb_frontend *helene_attach_s(struct dvb_frontend *fe,
+>         if (fe->ops.i2c_gate_ctrl)
+>                 fe->ops.i2c_gate_ctrl(fe, 1);
+>
+> -       if (helene_x_pon(priv) != 0)
+> +       if (helene_x_pon(priv) != 0) {
+> +               kfree(priv);
+>                 return NULL;
+> +       }
+>
+>         if (fe->ops.i2c_gate_ctrl)
+>                 fe->ops.i2c_gate_ctrl(fe, 0);
+> @@ -1021,8 +1023,10 @@ struct dvb_frontend *helene_attach(struct dvb_frontend *fe,
+>         if (fe->ops.i2c_gate_ctrl)
+>                 fe->ops.i2c_gate_ctrl(fe, 1);
+>
+> -       if (helene_x_pon(priv) != 0)
+> +       if (helene_x_pon(priv) != 0) {
+> +               kfree(priv);
+>                 return NULL;
+> +       }
+>
+>         if (fe->ops.i2c_gate_ctrl)
+>                 fe->ops.i2c_gate_ctrl(fe, 0);
+> --
+> 2.8.1
+>
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+Abylay Ospan,
+NetUP Inc.
+http://www.netup.tv
