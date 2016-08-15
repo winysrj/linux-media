@@ -1,49 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:50486 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751432AbcHKKTQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 06:19:16 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id 5840820ADD
-	for <linux-media@vger.kernel.org>; Thu, 11 Aug 2016 13:19:12 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/1] v4l: Do not allow re-registering sub-devices
-Date: Thu, 11 Aug 2016 13:18:37 +0300
-Message-Id: <1470910717-18575-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:62294 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752096AbcHOCPn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Aug 2016 22:15:43 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH v6] vcodec: mediatek: Add g/s_selection support for V4L2 Encoder
+Date: Mon, 15 Aug 2016 10:15:33 +0800
+Message-ID: <1471227333-384-1-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Albeit not prohibited explicitly, re-registering sub-devices generated a
-big, loud warning which quite likely soon was followed by a crash. What
-followed was re-initialising a media entity, driver's registered() callback
-being called and re-adding a list entry to a list.
+This patch add g/s_selection for MT8173 V4L2 Encoder.
+Only output queue support g/s_selection to configure crop.
+The top/left of active rectangle should always be (0,0)
 
-Prevent this by returning an error if a sub-device is already registered.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
 ---
- drivers/media/v4l2-core/v4l2-device.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+v6:
+- remove unused err variable from s_selection
+v5:
+- remove visible_height change to a separate patch
+v4:
+- do not return -ERANGE and just select a rectangle that works with the
+  hardware and is closest to the requested rectangle
+- refine v3 note about remove visible_height modification in s_fmt_out
+v3:
+- add v4l2_s_selection to check constraint flags
+- remove visible_height modification in s_fmt_out, it will make v4l2-compliance
+  test Cropping fail becuase visible_height larger than coded_height.
+---
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |   66 ++++++++++++++++++++
+ 1 file changed, 66 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 06fa5f1..6136571 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -160,12 +160,9 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 	int err;
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+index 3ed3f2d..b1f0acb 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+@@ -631,6 +631,69 @@ static int vidioc_try_fmt_vid_out_mplane(struct file *file, void *priv,
+ 	return vidioc_try_fmt(f, fmt);
+ }
  
- 	/* Check for valid input */
--	if (v4l2_dev == NULL || sd == NULL || !sd->name[0])
-+	if (!v4l2_dev || sd->v4l2_dev || !sd || !sd->name[0])
- 		return -EINVAL;
++static int vidioc_venc_g_selection(struct file *file, void *priv,
++				     struct v4l2_selection *s)
++{
++	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
++	struct mtk_q_data *q_data;
++
++	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return -EINVAL;
++
++	q_data = mtk_venc_get_q_data(ctx, s->type);
++	if (!q_data)
++		return -EINVAL;
++
++	switch (s->target) {
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++		s->r.top = 0;
++		s->r.left = 0;
++		s->r.width = q_data->coded_width;
++		s->r.height = q_data->coded_height;
++		break;
++	case V4L2_SEL_TGT_CROP:
++		s->r.top = 0;
++		s->r.left = 0;
++		s->r.width = q_data->visible_width;
++		s->r.height = q_data->visible_height;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int vidioc_venc_s_selection(struct file *file, void *priv,
++				     struct v4l2_selection *s)
++{
++	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
++	struct mtk_q_data *q_data;
++
++	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return -EINVAL;
++
++	q_data = mtk_venc_get_q_data(ctx, s->type);
++	if (!q_data)
++		return -EINVAL;
++
++	switch (s->target) {
++	case V4L2_SEL_TGT_CROP:
++		/* Only support crop from (0,0) */
++		s->r.top = 0;
++		s->r.left = 0;
++		s->r.width = min(s->r.width, q_data->coded_width);
++		s->r.height = min(s->r.height, q_data->coded_height);
++		q_data->visible_width = s->r.width;
++		q_data->visible_height = s->r.height;
++		break;
++	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
+ static int vidioc_venc_qbuf(struct file *file, void *priv,
+ 			    struct v4l2_buffer *buf)
+ {
+@@ -689,6 +752,9 @@ const struct v4l2_ioctl_ops mtk_venc_ioctl_ops = {
  
--	/* Warn if we apparently re-register a subdev */
--	WARN_ON(sd->v4l2_dev != NULL);
--
- 	/*
- 	 * The reason to acquire the module here is to avoid unloading
- 	 * a module of sub-device which is registered to a media
+ 	.vidioc_create_bufs		= v4l2_m2m_ioctl_create_bufs,
+ 	.vidioc_prepare_buf		= v4l2_m2m_ioctl_prepare_buf,
++
++	.vidioc_g_selection		= vidioc_venc_g_selection,
++	.vidioc_s_selection		= vidioc_venc_s_selection,
+ };
+ 
+ static int vb2ops_venc_queue_setup(struct vb2_queue *vq,
 -- 
-2.7.4
+1.7.9.5
 
