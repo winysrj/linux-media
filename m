@@ -1,52 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:40329 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932366AbcHDJaG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Aug 2016 05:30:06 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/7] vivid: don't mention the obsolete sYCC Y'CbCr encoding
-Date: Thu,  4 Aug 2016 11:28:16 +0200
-Message-Id: <1470302901-29281-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1470302901-29281-1-git-send-email-hverkuil@xs4all.nl>
-References: <1470302901-29281-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp1.goneo.de ([85.220.129.30]:33584 "EHLO smtp1.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753189AbcHOOIv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 10:08:51 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jani Nikula <jani.nikula@intel.com>
+Cc: Markus Heiser <markus.heiser@darmarIT.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 5/5] doc-rst: migrate ioctl CEC_DQEVENT to c-domain
+Date: Mon, 15 Aug 2016 16:08:28 +0200
+Message-Id: <1471270108-29314-6-git-send-email-markus.heiser@darmarit.de>
+In-Reply-To: <1471270108-29314-1-git-send-email-markus.heiser@darmarit.de>
+References: <1471270108-29314-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-This encoding is identical to the 601 encoding. The old duplicate
-SYCC define is about to be removed for use in the kernel, so remove
-its use in vivid first.
+This is only one example, demonstrating the benefits of the patch
+series.  The CEC_DQEVENT ioctl is migrated to the sphinx c-domain and
+referred by ":name: CEC_DQEVENT".
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+With this change the indirection using ":ref:`CEC_DQEVENT` is no longer
+needed, we can refer the ioctl directly with ":c:func:`CEC_DQEVENT`". As
+addition in the index, there is a entry "CEC_DQEVENT (C function)".
+
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
 ---
- drivers/media/platform/vivid/vivid-ctrls.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/media/uapi/cec/cec-func-open.rst   | 2 +-
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
-index b98089c..aceb38d 100644
---- a/drivers/media/platform/vivid/vivid-ctrls.c
-+++ b/drivers/media/platform/vivid/vivid-ctrls.c
-@@ -761,7 +761,7 @@ static const char * const vivid_ctrl_ycbcr_enc_strings[] = {
- 	"Rec. 709",
- 	"xvYCC 601",
- 	"xvYCC 709",
--	"sYCC",
-+	"",
- 	"BT.2020",
- 	"BT.2020 Constant Luminance",
- 	"SMPTE 240M",
-@@ -773,6 +773,7 @@ static const struct v4l2_ctrl_config vivid_ctrl_ycbcr_enc = {
- 	.id = VIVID_CID_YCBCR_ENC,
- 	.name = "Y'CbCr Encoding",
- 	.type = V4L2_CTRL_TYPE_MENU,
-+	.menu_skip_mask = 1 << 5,
- 	.max = ARRAY_SIZE(vivid_ctrl_ycbcr_enc_strings) - 2,
- 	.qmenu = vivid_ctrl_ycbcr_enc_strings,
- };
+diff --git a/Documentation/media/uapi/cec/cec-func-open.rst b/Documentation/media/uapi/cec/cec-func-open.rst
+index 38fd7e0..7c0f981 100644
+--- a/Documentation/media/uapi/cec/cec-func-open.rst
++++ b/Documentation/media/uapi/cec/cec-func-open.rst
+@@ -32,7 +32,7 @@ Arguments
+     Open flags. Access mode must be ``O_RDWR``.
+ 
+     When the ``O_NONBLOCK`` flag is given, the
+-    :ref:`CEC_RECEIVE <CEC_RECEIVE>` and :ref:`CEC_DQEVENT <CEC_DQEVENT>` ioctls
++    :ref:`CEC_RECEIVE <CEC_RECEIVE>` and :c:func:`CEC_DQEVENT` ioctls
+     will return the ``EAGAIN`` error code when no message or event is available, and
+     ioctls :ref:`CEC_TRANSMIT <CEC_TRANSMIT>`,
+     :ref:`CEC_ADAP_S_PHYS_ADDR <CEC_ADAP_S_PHYS_ADDR>` and
+diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+index 7a6d6d0..4e12e6c 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+@@ -15,7 +15,8 @@ CEC_DQEVENT - Dequeue a CEC event
+ Synopsis
+ ========
+ 
+-.. cpp:function:: int ioctl( int fd, int request, struct cec_event *argp )
++.. c:function:: int ioctl( int fd, int request, struct cec_event *argp )
++   :name: CEC_DQEVENT
+ 
+ Arguments
+ =========
+@@ -36,7 +37,7 @@ Description
+    and is currently only available as a staging kernel module.
+ 
+ CEC devices can send asynchronous events. These can be retrieved by
+-calling :ref:`ioctl CEC_DQEVENT <CEC_DQEVENT>`. If the file descriptor is in
++calling :c:func:`CEC_DQEVENT`. If the file descriptor is in
+ non-blocking mode and no event is pending, then it will return -1 and
+ set errno to the ``EAGAIN`` error code.
+ 
 -- 
-2.8.1
+2.7.4
 
