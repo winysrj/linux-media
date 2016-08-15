@@ -1,119 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:15136 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751647AbcHFUJQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Aug 2016 16:09:16 -0400
-From: Jani Nikula <jani.nikula@intel.com>
-To: Markus Heiser <markus.heiser@darmarit.de>,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	linux-media@vger.kernel.org
-Cc: Markus Heiser <markus.heiser@darmarIT.de>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: Re: [PATCH] doc-rst: support *sphinx build themes*
-In-Reply-To: <1470410047-9911-1-git-send-email-markus.heiser@darmarit.de>
-References: <1470410047-9911-1-git-send-email-markus.heiser@darmarit.de>
-Date: Sat, 06 Aug 2016 19:41:49 +0300
-Message-ID: <87eg6126k2.fsf@intel.com>
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:54254 "EHLO
+	smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932233AbcHOPHP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 11:07:15 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl
+Cc: linux-renesas-soc@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com,
+	sergei.shtylyov@cogentembedded.com,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv3 01/10] [media] rcar-vin: fix indentation errors in rcar-v4l2.c
+Date: Mon, 15 Aug 2016 17:06:26 +0200
+Message-Id: <20160815150635.22637-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 05 Aug 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
-> From: Markus Heiser <markus.heiser@darmarIT.de>
->
-> Load an additional configuration file into conf.py namespace.
->
-> The name of the configuration file is taken from the environment
-> SPHINX_CONF. The external configuration file extends (or overwrites) the
-> configuration values from the origin conf.py.  With this you are
-> able to maintain *build themes*.
->
-> E.g. to create your own nit-picking *build theme*, create a file
-> Documentation/conf_nitpick.py::
->
->   nitpicky=True
->   nitpick_ignore = [
->       ("c:func", "clock_gettime"),
->       ...
->       ]
->
-> and run make with SPHINX_CONF environment::
->
->   make SPHINX_CONF=conf_nitpick.py htmldocs
+Fix broken indentations and line breaks.
 
-I think I would try to accomplish this by using the -c option in
-SPHINXOPTS, and loading the main config file from the "special case"
-config file. I think it would be a more generic approach instead of a
-specific framework of our own. *shrug*.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 46 +++++++++++++----------------
+ 1 file changed, 21 insertions(+), 25 deletions(-)
 
-BR,
-Jani.
-
-
->
-> Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
-> ---
->  Documentation/conf.py               |  9 +++++++++
->  Documentation/sphinx/load_config.py | 25 +++++++++++++++++++++++++
->  2 files changed, 34 insertions(+)
->  create mode 100644 Documentation/sphinx/load_config.py
->
-> diff --git a/Documentation/conf.py b/Documentation/conf.py
-> index 96b7aa6..d502775 100644
-> --- a/Documentation/conf.py
-> +++ b/Documentation/conf.py
-> @@ -20,6 +20,8 @@ import os
->  # documentation root, use os.path.abspath to make it absolute, like shown here.
->  sys.path.insert(0, os.path.abspath('sphinx'))
->  
-> +from load_config import loadConfig
-> +
->  # -- General configuration ------------------------------------------------
->  
->  # If your documentation needs a minimal Sphinx version, state it here.
-> @@ -419,3 +421,10 @@ pdf_documents = [
->  # line arguments.
->  kerneldoc_bin = '../scripts/kernel-doc'
->  kerneldoc_srctree = '..'
-> +
-> +
-> +# ------------------------------------------------------------------------------
-> +# Since loadConfig overwrites settings from the global namespace, it has to be
-> +# the last statement in the conf.py file
-> +# ------------------------------------------------------------------------------
-> +loadConfig(globals())
-> diff --git a/Documentation/sphinx/load_config.py b/Documentation/sphinx/load_config.py
-> new file mode 100644
-> index 0000000..44bdd22
-> --- /dev/null
-> +++ b/Documentation/sphinx/load_config.py
-> @@ -0,0 +1,25 @@
-> +# -*- coding: utf-8; mode: python -*-
-> +# pylint: disable=R0903, C0330, R0914, R0912, E0401
-> +
-> +import os
-> +from sphinx.util.pycompat import execfile_
-> +
-> +# ------------------------------------------------------------------------------
-> +def loadConfig(namespace):
-> +# ------------------------------------------------------------------------------
-> +
-> +    u"""Load an additional configuration file into *namespace*.
-> +
-> +    The name of the configuration file is taken from the environment
-> +    ``SPHINX_CONF``. The external configuration file extends (or overwrites) the
-> +    configuration values from the origin ``conf.py``.  With this you are able to
-> +    maintain *build themes*.  """
-> +
-> +    config_file = os.environ.get("SPHINX_CONF", None)
-> +    if config_file is not None and os.path.exists(config_file):
-> +        config_file = os.path.abspath(config_file)
-> +        config = namespace.copy()
-> +        config['__file__'] = config_file
-> +        execfile_(config_file, config)
-> +        del config['__file__']
-> +        namespace.update(config)
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 10a5c10..f26e3cd 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -93,9 +93,9 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
+  */
+ 
+ static int __rvin_try_format_source(struct rvin_dev *vin,
+-					u32 which,
+-					struct v4l2_pix_format *pix,
+-					struct rvin_source_fmt *source)
++				    u32 which,
++				    struct v4l2_pix_format *pix,
++				    struct rvin_source_fmt *source)
+ {
+ 	struct v4l2_subdev *sd;
+ 	struct v4l2_subdev_pad_config *pad_cfg;
+@@ -133,9 +133,9 @@ cleanup:
+ }
+ 
+ static int __rvin_try_format(struct rvin_dev *vin,
+-				 u32 which,
+-				 struct v4l2_pix_format *pix,
+-				 struct rvin_source_fmt *source)
++			     u32 which,
++			     struct v4l2_pix_format *pix,
++			     struct rvin_source_fmt *source)
+ {
+ 	const struct rvin_video_format *info;
+ 	u32 rwidth, rheight, walign;
+@@ -219,7 +219,7 @@ static int rvin_try_fmt_vid_cap(struct file *file, void *priv,
+ 	struct rvin_source_fmt source;
+ 
+ 	return __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_TRY, &f->fmt.pix,
+-				     &source);
++				 &source);
+ }
+ 
+ static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
+@@ -233,7 +233,7 @@ static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
+ 		return -EBUSY;
+ 
+ 	ret = __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_ACTIVE, &f->fmt.pix,
+-				    &source);
++				&source);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -334,8 +334,8 @@ static int rvin_s_selection(struct file *file, void *fh,
+ 		vin->crop = s->r = r;
+ 
+ 		vin_dbg(vin, "Cropped %dx%d@%d:%d of %dx%d\n",
+-			 r.width, r.height, r.left, r.top,
+-			 vin->source.width, vin->source.height);
++			r.width, r.height, r.left, r.top,
++			vin->source.width, vin->source.height);
+ 		break;
+ 	case V4L2_SEL_TGT_COMPOSE:
+ 		/* Make sure compose rect fits inside output format */
+@@ -359,8 +359,8 @@ static int rvin_s_selection(struct file *file, void *fh,
+ 		vin->compose = s->r = r;
+ 
+ 		vin_dbg(vin, "Compose %dx%d@%d:%d in %dx%d\n",
+-			 r.width, r.height, r.left, r.top,
+-			 vin->format.width, vin->format.height);
++			r.width, r.height, r.left, r.top,
++			vin->format.width, vin->format.height);
+ 		break;
+ 	default:
+ 		return -EINVAL;
+@@ -483,7 +483,7 @@ static int rvin_subscribe_event(struct v4l2_fh *fh,
+ }
+ 
+ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
+-				    struct v4l2_enum_dv_timings *timings)
++				struct v4l2_enum_dv_timings *timings)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+ 	struct v4l2_subdev *sd = vin_to_source(vin);
+@@ -500,14 +500,13 @@ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
+ }
+ 
+ static int rvin_s_dv_timings(struct file *file, void *priv_fh,
+-				    struct v4l2_dv_timings *timings)
++			     struct v4l2_dv_timings *timings)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+ 	struct v4l2_subdev *sd = vin_to_source(vin);
+ 	int err;
+ 
+-	err = v4l2_subdev_call(sd,
+-			video, s_dv_timings, timings);
++	err = v4l2_subdev_call(sd, video, s_dv_timings, timings);
+ 	if (!err) {
+ 		vin->source.width = timings->bt.width;
+ 		vin->source.height = timings->bt.height;
+@@ -518,27 +517,25 @@ static int rvin_s_dv_timings(struct file *file, void *priv_fh,
+ }
+ 
+ static int rvin_g_dv_timings(struct file *file, void *priv_fh,
+-				    struct v4l2_dv_timings *timings)
++			     struct v4l2_dv_timings *timings)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+ 	struct v4l2_subdev *sd = vin_to_source(vin);
+ 
+-	return v4l2_subdev_call(sd,
+-			video, g_dv_timings, timings);
++	return v4l2_subdev_call(sd, video, g_dv_timings, timings);
+ }
+ 
+ static int rvin_query_dv_timings(struct file *file, void *priv_fh,
+-				    struct v4l2_dv_timings *timings)
++				 struct v4l2_dv_timings *timings)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+ 	struct v4l2_subdev *sd = vin_to_source(vin);
+ 
+-	return v4l2_subdev_call(sd,
+-			video, query_dv_timings, timings);
++	return v4l2_subdev_call(sd, video, query_dv_timings, timings);
+ }
+ 
+ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
+-				    struct v4l2_dv_timings_cap *cap)
++			       struct v4l2_dv_timings_cap *cap)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+ 	struct v4l2_subdev *sd = vin_to_source(vin);
+@@ -825,8 +822,7 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	vin->src_pad_idx = 0;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
+-		if (sd->entity.pads[pad_idx].flags
+-				== MEDIA_PAD_FL_SOURCE)
++		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
+ 			break;
+ 	if (pad_idx >= sd->entity.num_pads)
+ 		return -EINVAL;
 -- 
-Jani Nikula, Intel Open Source Technology Center
+2.9.2
+
