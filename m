@@ -1,143 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:10632 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753997AbcHSLjg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 07:39:36 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-CC: <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH v4 4/4] arm64: dts: mediatek: Add MDP for MT8173
-Date: Fri, 19 Aug 2016 19:39:27 +0800
-Message-ID: <1471606767-3218-5-git-send-email-minghsiu.tsai@mediatek.com>
-In-Reply-To: <1471606767-3218-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1471606767-3218-1-git-send-email-minghsiu.tsai@mediatek.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:42870 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752073AbcHOIsz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 04:48:55 -0400
+Subject: Re: [PATCH v6 4/4] rcar-vin: implement EDID control ioctls
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+References: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <1469178554-20719-5-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <0bf4740a-7200-c6c4-c432-6a8152dec17a@xs4all.nl>
+ <CAO3366xk6hjh2abbYcXmuYKcK39Y9psgYvHkZo3FH4JbU1KY0g@mail.gmail.com>
+Cc: hans.verkuil@cisco.com,
+	=?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Laurent <laurent.pinchart@ideasonboard.com>,
+	William Towle <william.towle@codethink.co.uk>,
+	Geert Uytterhoeven <geert@linux-m68k.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8fa9ac5e-f6a1-b632-766b-f1d850bc06d4@xs4all.nl>
+Date: Mon, 15 Aug 2016 10:48:49 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <CAO3366xk6hjh2abbYcXmuYKcK39Y9psgYvHkZo3FH4JbU1KY0g@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add MDP node for MT8173
+On 08/15/2016 10:37 AM, Ulrich Hecht wrote:
+> On Sat, Aug 13, 2016 at 3:30 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 07/22/2016 11:09 AM, Ulrich Hecht wrote:
+>>> Adds G_EDID and S_EDID.
+>>>
+>>> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+>>> ---
+>>>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 33 +++++++++++++++++++++++++++++
+>>>  1 file changed, 33 insertions(+)
+>>>
+>>> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+>>> index 396eabc..57e040c 100644
+>>> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+>>> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+>>> @@ -661,6 +661,36 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
+>>>       return ret;
+>>>  }
+>>>
+>>> +static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+>>> +{
+>>> +     struct rvin_dev *vin = video_drvdata(file);
+>>> +     int input, ret;
+>>> +
+>>> +     input = edid->pad;
+>>> +     edid->pad = vin->inputs[input].sink_idx;
+>>
+>> There is no vin->inputs array. Are there some other patches that need to be merged
+>> first?
+> 
+> It depends on "[PATCHv2 12/16] [media] rcar-vin: allow subdevices to
+> be bound late" from "[PATCHv2 00/16] rcar-vin: Enable Gen3 support".
+> Does that series have a chance of getting merged any time soon?
 
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
----
- arch/arm64/boot/dts/mediatek/mt8173.dtsi |   84 ++++++++++++++++++++++++++++++
- 1 file changed, 84 insertions(+)
+I hope to review it today or Friday.
 
-diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-index 10f638f..cd93228 100644
---- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-+++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-@@ -41,6 +41,14 @@
- 		dpi0 = &dpi0;
- 		dsi0 = &dsi0;
- 		dsi1 = &dsi1;
-+		mdp_rdma0 = &mdp_rdma0;
-+		mdp_rdma1 = &mdp_rdma1;
-+		mdp_rsz0 = &mdp_rsz0;
-+		mdp_rsz1 = &mdp_rsz1;
-+		mdp_rsz2 = &mdp_rsz2;
-+		mdp_wdma0 = &mdp_wdma0;
-+		mdp_wrot0 = &mdp_wrot0;
-+		mdp_wrot1 = &mdp_wrot1;
- 	};
- 
- 	cpus {
-@@ -716,6 +724,82 @@
- 			#clock-cells = <1>;
- 		};
- 
-+		mdp {
-+			compatible = "mediatek,mt8173-mdp";
-+			#address-cells = <2>;
-+			#size-cells = <2>;
-+			ranges;
-+			mediatek,vpu = <&vpu>;
-+
-+			mdp_rdma0: rdma@14001000 {
-+				compatible = "mediatek,mt8173-mdp-rdma";
-+				reg = <0 0x14001000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_RDMA0>,
-+					 <&mmsys CLK_MM_MUTEX_32K>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+				iommus = <&iommu M4U_PORT_MDP_RDMA0>;
-+				mediatek,larb = <&larb0>;
-+			};
-+
-+			mdp_rdma1: rdma@14002000 {
-+				compatible = "mediatek,mt8173-mdp-rdma";
-+				reg = <0 0x14002000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_RDMA1>,
-+					 <&mmsys CLK_MM_MUTEX_32K>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+				iommus = <&iommu M4U_PORT_MDP_RDMA1>;
-+				mediatek,larb = <&larb4>;
-+			};
-+
-+			mdp_rsz0: rsz@14003000 {
-+				compatible = "mediatek,mt8173-mdp-rsz";
-+				reg = <0 0x14003000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_RSZ0>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+			};
-+
-+			mdp_rsz1: rsz@14004000 {
-+				compatible = "mediatek,mt8173-mdp-rsz";
-+				reg = <0 0x14004000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_RSZ1>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+			};
-+
-+			mdp_rsz2: rsz@14005000 {
-+				compatible = "mediatek,mt8173-mdp-rsz";
-+				reg = <0 0x14005000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_RSZ2>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+			};
-+
-+			mdp_wdma0: wdma@14006000 {
-+				compatible = "mediatek,mt8173-mdp-wdma";
-+				reg = <0 0x14006000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_WDMA>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+				iommus = <&iommu M4U_PORT_MDP_WDMA>;
-+				mediatek,larb = <&larb0>;
-+			};
-+
-+			mdp_wrot0: wrot@14007000 {
-+				compatible = "mediatek,mt8173-mdp-wrot";
-+				reg = <0 0x14007000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_WROT0>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+				iommus = <&iommu M4U_PORT_MDP_WROT0>;
-+				mediatek,larb = <&larb0>;
-+			};
-+
-+			mdp_wrot1: wrot@14008000 {
-+				compatible = "mediatek,mt8173-mdp-wrot";
-+				reg = <0 0x14008000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_WROT1>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+				iommus = <&iommu M4U_PORT_MDP_WROT1>;
-+				mediatek,larb = <&larb4>;
-+			};
-+		};
-+
- 		ovl0: ovl@1400c000 {
- 			compatible = "mediatek,mt8173-disp-ovl";
- 			reg = <0 0x1400c000 0 0x1000>;
--- 
-1.7.9.5
+Can you repost anyway: the dts patches don't apply cleanly anymore, and
+I prefer that you fix that. I want to avoid making a mistake when I fix them up.
 
+Regards,
+
+	Hans
