@@ -1,57 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.zeus03.de ([194.117.254.33]:56298 "EHLO mail.zeus03.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932680AbcHKVLa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 17:11:30 -0400
-From: Wolfram Sang <wsa-dev@sang-engineering.com>
-To: linux-usb@vger.kernel.org
-Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
+Received: from smtpout.microchip.com ([198.175.253.82]:31495 "EHLO
+	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751382AbcHOHsW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 03:48:22 -0400
+Subject: Re: [PATCH v9 0/2] [media] atmel-isc: add driver for Atmel ISC
+To: Hans Verkuil <hverkuil@xs4all.nl>, <nicolas.ferre@atmel.com>,
+	<robh@kernel.org>
+References: <1470899202-13933-1-git-send-email-songjun.wu@microchip.com>
+ <676111f8-e179-b2cc-4792-cd4304995e31@xs4all.nl>
+CC: <laurent.pinchart@ideasonboard.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 22/28] media: usb: s2255: s2255drv: don't print error when allocating urb fails
-Date: Thu, 11 Aug 2016 23:03:58 +0200
-Message-Id: <1470949451-24823-23-git-send-email-wsa-dev@sang-engineering.com>
-In-Reply-To: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
-References: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
+	Arnd Bergmann <arnd@arndb.de>,
+	=?UTF-8?Q?Niklas_S=c3=83=c2=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	Benoit Parrot <bparrot@ti.com>, <linux-kernel@vger.kernel.org>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	<devicetree@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>,
+	Kamil Debski <kamil@wypas.org>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	=?UTF-8?Q?Richard_R=c3=b6jfors?= <richard@puffinpack.se>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Simon Horman <horms+renesas@verge.net.au>
+From: "Wu, Songjun" <Songjun.Wu@microchip.com>
+Message-ID: <160e313b-9a3e-2ca7-93cd-ef23eb412535@microchip.com>
+Date: Mon, 15 Aug 2016 15:47:21 +0800
+MIME-Version: 1.0
+In-Reply-To: <676111f8-e179-b2cc-4792-cd4304995e31@xs4all.nl>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kmalloc will print enough information in case of failure.
 
-Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
----
- drivers/media/usb/s2255/s2255drv.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index 43ba71a7d02b8f..9458eb0ef66f43 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -2113,11 +2113,8 @@ static int s2255_start_readpipe(struct s2255_dev *dev)
- 	pipe_info->state = 1;
- 	pipe_info->err_count = 0;
- 	pipe_info->stream_urb = usb_alloc_urb(0, GFP_KERNEL);
--	if (!pipe_info->stream_urb) {
--		dev_err(&dev->udev->dev,
--			"ReadStream: Unable to alloc URB\n");
-+	if (!pipe_info->stream_urb)
- 		return -ENOMEM;
--	}
- 	/* transfer buffer allocated in board_init */
- 	usb_fill_bulk_urb(pipe_info->stream_urb, dev->udev,
- 			  pipe,
-@@ -2290,10 +2287,8 @@ static int s2255_probe(struct usb_interface *interface,
- 	}
- 
- 	dev->fw_data->fw_urb = usb_alloc_urb(0, GFP_KERNEL);
--	if (!dev->fw_data->fw_urb) {
--		dev_err(&interface->dev, "out of memory!\n");
-+	if (!dev->fw_data->fw_urb)
- 		goto errorFWURB;
--	}
- 
- 	dev->fw_data->pfw_data = kzalloc(CHUNK_SIZE, GFP_KERNEL);
- 	if (!dev->fw_data->pfw_data) {
--- 
-2.8.1
+On 8/15/2016 15:34, Hans Verkuil wrote:
+> On 08/11/2016 09:06 AM, Songjun Wu wrote:
+>> The Image Sensor Controller driver includes two parts.
+>> 1) Driver code to implement the ISC function.
+>> 2) Device tree binding documentation, it describes how
+>>    to add the ISC in device tree.
+>
+> So close...
+>
+> Running checkpatch gives me:
+>
+> WARNING: added, moved or deleted file(s), does MAINTAINERS need updating?
+> #133:
+> new file mode 100644
+>
+> Can you make a patch adding an entry to MAINTAINERS? No need to repost the other
+> two.
+>
+Thank you.
+Nicolas or I will make a patch to add an entry to MAINTAINERS.
 
+> Regards,
+>
+> 	Hans
+>
