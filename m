@@ -1,73 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42333 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750954AbcHBHfo (ORCPT
+Received: from smtp11.smtpout.orange.fr ([80.12.242.133]:39383 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753004AbcHOTCU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Aug 2016 03:35:44 -0400
-Subject: Re: [PATCH v7 1/2] [media] atmel-isc: add the Image Sensor Controller
- code
-To: "Wu, Songjun" <Songjun.Wu@microchip.com>, nicolas.ferre@atmel.com
-References: <1469778856-24253-1-git-send-email-songjun.wu@microchip.com>
- <1469778856-24253-2-git-send-email-songjun.wu@microchip.com>
- <f77652aa-3d41-d85f-11a9-9f5290223834@xs4all.nl>
- <b32b2346-cc11-521e-c2f8-6d9e951c7a16@microchip.com>
-Cc: robh@kernel.org, laurent.pinchart@ideasonboard.com,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	=?UTF-8?Q?Niklas_S=c3=83=c2=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	Benoit Parrot <bparrot@ti.com>, linux-kernel@vger.kernel.org,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-	Kamil Debski <kamil@wypas.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	=?UTF-8?Q?Richard_R=c3=b6jfors?= <richard@puffinpack.se>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Simon Horman <horms+renesas@verge.net.au>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cdb406b8-bb1e-9a78-e07c-f5df3dbcfe34@xs4all.nl>
-Date: Tue, 2 Aug 2016 09:32:44 +0200
-MIME-Version: 1.0
-In-Reply-To: <b32b2346-cc11-521e-c2f8-6d9e951c7a16@microchip.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Mon, 15 Aug 2016 15:02:20 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Jiri Kosina <trivial@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v4 09/13] media: platform: pxa_camera: remove set_crop
+Date: Mon, 15 Aug 2016 21:01:59 +0200
+Message-Id: <1471287723-25451-10-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1471287723-25451-1-git-send-email-robert.jarzmik@free.fr>
+References: <1471287723-25451-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This is to be seen as a regression as the set_crop function is
+removed. This is a temporary situation in the v4l2 porting, and will
+have to be added later.
 
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 76 --------------------------
+ 1 file changed, 76 deletions(-)
 
-On 08/02/2016 08:20 AM, Wu, Songjun wrote:
->>> +static unsigned int sensor_preferred = 1;
->>> +module_param(sensor_preferred, uint, S_IRUGO|S_IWUSR);
->>> +MODULE_PARM_DESC(sensor_preferred,
->>> +		 "Sensor is preferred to output the specified format (1-on 0-off) default 1");
->>
->> I have no idea what this means. Can you elaborate? Why would you want to set this to 0?
->>
-> ISC can convert the raw format to the other format, e.g. YUYV.
-> If we want to output YUYV format, there are two choices, one is the 
-> sensor output YUYV format, ISC bypass the data to the memory, the other 
-> is the sensor output raw format, ISC convert raw format to YUYV.
-> 
-> So I provide a module parameter to user to select.
-> I prefer to select the sensor to output the specified format, then I set 
-> this parameter to '1', not '0'.
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index 2471d036a835..a2fedc9bb71c 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -1295,81 +1295,6 @@ static int pxa_camera_check_frame(u32 width, u32 height)
+ 		(width & 0x01);
+ }
+ 
+-static int pxa_camera_set_crop(struct soc_camera_device *icd,
+-			       const struct v4l2_crop *a)
+-{
+-	const struct v4l2_rect *rect = &a->c;
+-	struct device *dev = icd->parent;
+-	struct soc_camera_host *ici = to_soc_camera_host(dev);
+-	struct pxa_camera_dev *pcdev = ici->priv;
+-	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+-	struct soc_camera_sense sense = {
+-		.master_clock = pcdev->mclk,
+-		.pixel_clock_max = pcdev->ciclk / 4,
+-	};
+-	struct v4l2_subdev_format fmt = {
+-		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+-	};
+-	struct v4l2_mbus_framefmt *mf = &fmt.format;
+-	struct pxa_cam *cam = icd->host_priv;
+-	u32 fourcc = icd->current_fmt->host_fmt->fourcc;
+-	int ret;
+-
+-	/* If PCLK is used to latch data from the sensor, check sense */
+-	if (pcdev->platform_flags & PXA_CAMERA_PCLK_EN)
+-		icd->sense = &sense;
+-
+-	ret = sensor_call(pcdev, video, s_crop, a);
+-
+-	icd->sense = NULL;
+-
+-	if (ret < 0) {
+-		dev_warn(pcdev_to_dev(pcdev), "Failed to crop to %ux%u@%u:%u\n",
+-			 rect->width, rect->height, rect->left, rect->top);
+-		return ret;
+-	}
+-
+-	ret = sensor_call(pcdev, pad, get_fmt, NULL, &fmt);
+-	if (ret < 0)
+-		return ret;
+-
+-	if (pxa_camera_check_frame(mf->width, mf->height)) {
+-		/*
+-		 * Camera cropping produced a frame beyond our capabilities.
+-		 * FIXME: just extract a subframe, that we can process.
+-		 */
+-		v4l_bound_align_image(&mf->width, 48, 2048, 1,
+-			&mf->height, 32, 2048, 0,
+-			fourcc == V4L2_PIX_FMT_YUV422P ? 4 : 0);
+-		ret = sensor_call(pcdev, pad, set_fmt, NULL, &fmt);
+-		if (ret < 0)
+-			return ret;
+-
+-		if (pxa_camera_check_frame(mf->width, mf->height)) {
+-			dev_warn(pcdev_to_dev(pcdev),
+-				 "Inconsistent state. Use S_FMT to repair\n");
+-			return -EINVAL;
+-		}
+-	}
+-
+-	if (sense.flags & SOCAM_SENSE_PCLK_CHANGED) {
+-		if (sense.pixel_clock > sense.pixel_clock_max) {
+-			dev_err(pcdev_to_dev(pcdev),
+-				"pixel clock %lu set by the camera too high!",
+-				sense.pixel_clock);
+-			return -EIO;
+-		}
+-		recalculate_fifo_timeout(pcdev, sense.pixel_clock);
+-	}
+-
+-	icd->user_width		= mf->width;
+-	icd->user_height	= mf->height;
+-
+-	pxa_camera_setup_cicr(icd, cam->flags, fourcc);
+-
+-	return ret;
+-}
+-
+ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
+ 			      struct v4l2_format *f)
+ {
+@@ -1582,7 +1507,6 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
+ 	.remove		= pxa_camera_remove_device,
+ 	.clock_start	= pxa_camera_clock_start,
+ 	.clock_stop	= pxa_camera_clock_stop,
+-	.set_crop	= pxa_camera_set_crop,
+ 	.get_formats	= pxa_camera_get_formats,
+ 	.put_formats	= pxa_camera_put_formats,
+ 	.set_fmt	= pxa_camera_set_fmt,
+-- 
+2.1.4
 
-Does this only apply to YUYV?
-
-The reason I am hesitant about this option is that I am not convinced you need
-it. The default (sensor preferred) makes sense and that's what other drivers
-do as well. Unless you know of a real use-case where you want to set this to 0,
-I would just drop this option.
-
-If there *is* a real use-case, then split off adding this module option into a
-separate patch so we can discuss it more without blocking getting this driver
-into mainline. I don't like the way this is done here.
-
-Regards,
-
-	Hans
