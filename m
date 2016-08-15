@@ -1,45 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56578 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1161207AbcHEL0d (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:34436 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751032AbcHOHYu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Aug 2016 07:26:33 -0400
-Date: Fri, 5 Aug 2016 14:26:26 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [PATCH v3 00/11] New raw bayer format definitions, fixes
-Message-ID: <20160805112625.GN3243@valkosipuli.retiisi.org.uk>
-References: <1470393941-26959-1-git-send-email-sakari.ailus@linux.intel.com>
+	Mon, 15 Aug 2016 03:24:50 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 4467C180831
+	for <linux-media@vger.kernel.org>; Mon, 15 Aug 2016 09:24:45 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.8] Fixed for mediatek encoder
+Message-ID: <fff44d36-51c7-61e9-c9f5-89ce88e5ed2f@xs4all.nl>
+Date: Mon, 15 Aug 2016 09:24:45 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1470393941-26959-1-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 05, 2016 at 01:45:30PM +0300, Sakari Ailus wrote:
-> Hi all,
-> 
-> This is a third version of the new bayer format patchset. The second version
-> of the set may be found here:
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg101498.html>
-> 
-> These patches fix and add new raw bayer format definitions. 12-bit packed
-> V4L2 format definition is added as well as definitions of 14-bit media bus
-> codes as well as unpacked and packed V4L2 formats.
-> 
-> No driver uses them right now, yet they're common formats needed by newer
-> devices that use higher bit depths so adding them would make sense.
-> 
-> 16-bit pixel formats are added as well, and the 16-bit formats are now
-> expected to have 16 bits of data. 8-bit format documentation is unified. 
+Various fixes for 4.8 for the new mediatek encoder driver.
 
-The HTML documentation can be found here:
+	Hans
 
-<URL:http://salottisipuli.retiisi.org.uk/~sailus/raw14-doc/media/uapi/v4l/pixfmt-rgb.html>
+The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.8b
+
+for you to fetch changes up to 14afb4c1a43bd05012cc0994691a0e19533a9908:
+
+  vcodec:mediatek: Refine VP8 encoder driver (2016-08-15 09:23:35 +0200)
+
+----------------------------------------------------------------
+Tiffany Lin (7):
+      vcodec:mediatek:code refine for v4l2 Encoder driver
+      vcodec:mediatek: Fix fops_vcodec_release flow for V4L2 Encoder
+      vcodec:mediatek: Fix visible_height larger than coded_height issue in s_fmt_out
+      vcodec:mediatek: Add timestamp and timecode copy for V4L2 Encoder
+      vcodec:mediatek: change H264 profile default to profile high
+      vcodec:mediatek: Refine H264 encoder driver
+      vcodec:mediatek: Refine VP8 encoder driver
+
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h     |  1 -
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c     | 42 ++++++++++++++++++++++++++----------------
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c |  6 +++++-
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h    |  1 -
+ drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c  | 16 ++++++++--------
+ drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c   | 16 +++++++---------
+ 6 files changed, 46 insertions(+), 36 deletions(-)
