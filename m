@@ -1,113 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:59624 "EHLO
-        aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751774AbcHXKrZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Aug 2016 06:47:25 -0400
-Subject: Re: [PATCH] cec tools: exit if device is disconnected
-To: Johan Fjeldtvedt <jaffe1@gmail.com>, linux-media@vger.kernel.org
-References: <1472034678-13813-1-git-send-email-jaffe1@gmail.com>
- <1472034678-13813-2-git-send-email-jaffe1@gmail.com>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <57BD7B3A.4080500@cisco.com>
-Date: Wed, 24 Aug 2016 12:47:22 +0200
-MIME-Version: 1.0
-In-Reply-To: <1472034678-13813-2-git-send-email-jaffe1@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from smtp3-1.goneo.de ([85.220.129.38]:51868 "EHLO smtp3-1.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752796AbcHOMrY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 08:47:24 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH] doc-rst: kernel-doc: fix handling of address_space tags
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <263bbae9c1bf6ea7c14dad8c29f9b3148b2b5de7.1469198779.git.mchehab@s-opensource.com>
+Date: Mon, 15 Aug 2016 14:47:08 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-doc@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <69B89C91-584C-425D-A722-F609A1FB4562@darmarit.de>
+References: <263bbae9c1bf6ea7c14dad8c29f9b3148b2b5de7.1469198779.git.mchehab@s-opensource.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Jonathan Corbet <corbet@lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/24/16 12:31, Johan Fjeldtvedt wrote:
-> If the CEC device is disconnected, ioctl will return ENODEV. This is
-> checked for in cec-ctl (when monitoring), cec-follower and
-> cec-compliance, to make these exit when the CEC device disappears.
+
+Am 22.07.2016 um 16:46 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+
+> The RST cpp:function handler is very pedantic: it doesn't allow any
+> macros like __user on it:
 > 
-> Signed-off-by: Johan Fjeldtvedt <jaffe1@gmail.com>
+> 	Documentation/media/kapi/dtv-core.rst:28: WARNING: Error when parsing function declaration.
+> 	If the function has no return type:
+> 	  Error in declarator or parameters and qualifiers
+> 	  Invalid definition: Expecting "(" in parameters_and_qualifiers. [error at 8]
+> 	    ssize_t dvb_ringbuffer_pkt_read_user (struct dvb_ringbuffer * rbuf, size_t idx, int offset, u8 __user * buf, size_t len)
+> 	    --------^
+> 	If the function has a return type:
+> 	  Error in declarator or parameters and qualifiers
+> 	  If pointer to member declarator:
+> 	    Invalid definition: Expected '::' in pointer to member (function). [error at 37]
+> 	      ssize_t dvb_ringbuffer_pkt_read_user (struct dvb_ringbuffer * rbuf, size_t idx, int offset, u8 __user * buf, size_t len)
+> 	      -------------------------------------^
+> 	  If declarator-id:
+> 	    Invalid definition: Expecting "," or ")" in parameters_and_qualifiers, got "*". [error at 102]
+> 	      ssize_t dvb_ringbuffer_pkt_read_user (struct dvb_ringbuffer * rbuf, size_t idx, int offset, u8 __user * buf, size_t len)
+> 	      ------------------------------------------------------------------------------------------------------^
+> 
+
+May I'am wrong, but as far as I know, we get this error only 
+if we are using the CPP-domain. Since the kernel-doc parser
+uses the C-domain, we should not have those error messages
+(tested here with sphinx 1.4).
+
+That said, I don't see the need to change the kernel-doc parser
+eleminating the address_space tags.
+
+Or did I missed some point?
+
+-- Markus --
+
+> So, we have to remove it from the function prototype.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 > ---
->  utils/cec-compliance/cec-compliance.h |  9 +++++++--
->  utils/cec-ctl/cec-ctl.cpp             |  7 ++++++-
->  utils/cec-follower/cec-processing.cpp | 14 ++++++++++++--
->  3 files changed, 25 insertions(+), 5 deletions(-)
+> scripts/kernel-doc | 4 ++++
+> 1 file changed, 4 insertions(+)
 > 
-> diff --git a/utils/cec-compliance/cec-compliance.h b/utils/cec-compliance/cec-compliance.h
-> index cb236fd..6b180c1 100644
-> --- a/utils/cec-compliance/cec-compliance.h
-> +++ b/utils/cec-compliance/cec-compliance.h
-> @@ -334,10 +334,15 @@ static inline bool transmit_timeout(struct node *node, struct cec_msg *msg,
->  				    unsigned timeout = 2000)
->  {
->  	struct cec_msg original_msg = *msg;
-> +	int res;
->  
->  	msg->timeout = timeout;
-> -	if (doioctl(node, CEC_TRANSMIT, msg) ||
-> -	    !(msg->tx_status & CEC_TX_STATUS_OK))
-> +	res = doioctl(node, CEC_TRANSMIT, msg);
-> +	if (res == ENODEV) {
-> +		printf("No device.\n");
-
-I think that "Device was disconnected." would be a better text to use. It's a bit more
-descriptive.
-
-Regards,
-
-	Hans
-
-> +		exit(1);
-> +	}
-> +	if (res || !(msg->tx_status & CEC_TX_STATUS_OK))
->  		return false;
->  
->  	if (((msg->rx_status & CEC_RX_STATUS_OK) || (msg->rx_status & CEC_RX_STATUS_FEATURE_ABORT))
-> diff --git a/utils/cec-ctl/cec-ctl.cpp b/utils/cec-ctl/cec-ctl.cpp
-> index 2d0d9e5..10efcbd 100644
-> --- a/utils/cec-ctl/cec-ctl.cpp
-> +++ b/utils/cec-ctl/cec-ctl.cpp
-> @@ -1945,7 +1945,12 @@ skip_la:
->  				struct cec_msg msg = { };
->  				__u8 from, to;
->  
-> -				if (doioctl(&node, CEC_RECEIVE, &msg))
-> +				res = doioctl(&node, CEC_RECEIVE, &msg);
-> +				if (res == ENODEV) {
-> +					printf("No device.\n");
-> +					break;
-> +				}
-> +				if (res)
->  					continue;
->  
->  				from = cec_msg_initiator(&msg);
-> diff --git a/utils/cec-follower/cec-processing.cpp b/utils/cec-follower/cec-processing.cpp
-> index 34d65e4..bbe80c5 100644
-> --- a/utils/cec-follower/cec-processing.cpp
-> +++ b/utils/cec-follower/cec-processing.cpp
-> @@ -979,7 +979,12 @@ void testProcessing(struct node *node)
->  		if (FD_ISSET(fd, &ex_fds)) {
->  			struct cec_event ev;
->  
-> -			if (doioctl(node, CEC_DQEVENT, &ev))
-> +			res = doioctl(node, CEC_DQEVENT, &ev);
-> +			if (res == ENODEV) {
-> +				printf("No device.\n");
-> +				break;
-> +			}
-> +			if (res)
->  				continue;
->  			log_event(ev);
->  			if (ev.event == CEC_EVENT_STATE_CHANGE) {
-> @@ -995,7 +1000,12 @@ void testProcessing(struct node *node)
->  		if (FD_ISSET(fd, &rd_fds)) {
->  			struct cec_msg msg = { };
->  
-> -			if (doioctl(node, CEC_RECEIVE, &msg))
-> +			res = doioctl(node, CEC_RECEIVE, &msg);
-> +			if (res == ENODEV) {
-> +				printf("No device.\n");
-> +				break;
-> +			}
-> +			if (res)
->  				continue;
->  
->  			__u8 from = cec_msg_initiator(&msg);
+> diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+> index 41eade332307..4394746cc1aa 100755
+> --- a/scripts/kernel-doc
+> +++ b/scripts/kernel-doc
+> @@ -1848,6 +1848,10 @@ sub output_function_rst(%) {
+> 	}
+> 	$count++;
+> 	$type = $args{'parametertypes'}{$parameter};
+> +
+> +	# RST doesn't like address_space tags at function prototypes
+> +	$type =~ s/__(user|kernel|iomem|percpu|pmem|rcu)\s*//;
+> +
+> 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+> 	    # pointer-to-function
+> 	    print $1 . $parameter . ") (" . $2;
+> -- 
+> 2.7.4
 > 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
