@@ -1,51 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:57525 "EHLO
-        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753508AbcHXImh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Aug 2016 04:42:37 -0400
-Received: from [10.47.79.81] ([10.47.79.81])
-        (authenticated bits=0)
-        by aer-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id u7O8arYb029238
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-        for <linux-media@vger.kernel.org>; Wed, 24 Aug 2016 08:36:54 GMT
-To: linux-media <linux-media@vger.kernel.org>
-From: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH for v4.8] cec: don't Feature Abort broadcast msgs when
- unregistered
-Message-ID: <57BD5CA5.9040102@cisco.com>
-Date: Wed, 24 Aug 2016 10:36:53 +0200
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:54264 "EHLO
+	smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932339AbcHOPHU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 11:07:20 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl
+Cc: linux-renesas-soc@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com,
+	sergei.shtylyov@cogentembedded.com,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv3 02/10] [media] rcar-vin: reduce indentation in rvin_s_dv_timings()
+Date: Mon, 15 Aug 2016 17:06:27 +0200
+Message-Id: <20160815150635.22637-3-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the adapter is configured as 'Unregistered', then cec_receive_notify incorrectly
-thinks that broadcast messages are directed messages. The destination for broadcast
-messages is 0xf, and the logical address assigned to Unregistered devices is also
-0xf and the logic didn't handle that correctly.
+Align style with the rest of the driver.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
-diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
-index b2393bb..51bb581 100644
---- a/drivers/staging/media/cec/cec-adap.c
-+++ b/drivers/staging/media/cec/cec-adap.c
-@@ -1398,7 +1398,6 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 	u8 init_laddr = cec_msg_initiator(msg);
- 	u8 devtype = cec_log_addr2dev(adap, dest_laddr);
- 	int la_idx = cec_log_addr2idx(adap, dest_laddr);
--	bool is_directed = la_idx >= 0;
- 	bool from_unregistered = init_laddr == 0xf;
- 	struct cec_msg tx_cec_msg = { };
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-@@ -1560,7 +1559,7 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 		 * Unprocessed messages are aborted if userspace isn't doing
- 		 * any processing either.
- 		 */
--		if (is_directed && !is_reply && !adap->follower_cnt &&
-+		if (!is_broadcast && !is_reply && !adap->follower_cnt &&
- 		    !adap->cec_follower && msg->msg[1] != CEC_MSG_FEATURE_ABORT)
- 			return cec_feature_abort(adap, msg);
- 		break;
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index f26e3cd..72fe6bc 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -504,16 +504,18 @@ static int rvin_s_dv_timings(struct file *file, void *priv_fh,
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+ 	struct v4l2_subdev *sd = vin_to_source(vin);
+-	int err;
+-
+-	err = v4l2_subdev_call(sd, video, s_dv_timings, timings);
+-	if (!err) {
+-		vin->source.width = timings->bt.width;
+-		vin->source.height = timings->bt.height;
+-		vin->format.width = timings->bt.width;
+-		vin->format.height = timings->bt.height;
+-	}
+-	return err;
++	int ret;
++
++	ret = v4l2_subdev_call(sd, video, s_dv_timings, timings);
++	if (ret)
++		return ret;
++
++	vin->source.width = timings->bt.width;
++	vin->source.height = timings->bt.height;
++	vin->format.width = timings->bt.width;
++	vin->format.height = timings->bt.height;
++
++	return 0;
+ }
+ 
+ static int rvin_g_dv_timings(struct file *file, void *priv_fh,
+-- 
+2.9.2
+
