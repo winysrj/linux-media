@@ -1,67 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.goneo.de ([85.220.129.33]:51100 "EHLO smtp2.goneo.de"
+Received: from smtp1.goneo.de ([85.220.129.30]:33610 "EHLO smtp1.goneo.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S936506AbcHJTEi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2016 15:04:38 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: parts of media docs sphinx re-building every time?
+	id S1753192AbcHOOI5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 10:08:57 -0400
 From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <20160810074635.515fe28b@lwn.net>
-Date: Wed, 10 Aug 2016 16:16:11 +0200
-Cc: Jani Nikula <jani.nikula@intel.com>,
+To: Jonathan Corbet <corbet@lwn.net>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jani Nikula <jani.nikula@intel.com>
+Cc: Markus Heiser <markus.heiser@darmarIT.de>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-doc@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <59C5F886-CAB7-49D0-87A6-134E37AB0856@darmarit.de>
-References: <8760rbp8zh.fsf@intel.com> <20160810054755.0175f331@vela.lan> <87k2fpvuyj.fsf@intel.com> <20160810074635.515fe28b@lwn.net>
-To: Jonathan Corbet <corbet@lwn.net>
+	linux-doc@vger.kernel.org
+Subject: [PATCH 3/5] doc-rst: moved *duplicate* warnings to nitpicky mode
+Date: Mon, 15 Aug 2016 16:08:26 +0200
+Message-Id: <1471270108-29314-4-git-send-email-markus.heiser@darmarit.de>
+In-Reply-To: <1471270108-29314-1-git-send-email-markus.heiser@darmarit.de>
+References: <1471270108-29314-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-Am 10.08.2016 um 15:46 schrieb Jonathan Corbet <corbet@lwn.net>:
+Moved the *duplicate C object description* warnings for function
+declarations in the nitpicky mode. In nitpick mode, you can suppress
+those warnings (e.g. ioctl) with::
 
-> On Wed, 10 Aug 2016 12:23:16 +0300
-> Jani Nikula <jani.nikula@intel.com> wrote:
-> 
->>>> I just noticed running 'make htmldocs' rebuilds parts of media docs
->>>> every time on repeated runs. This shouldn't happen. Please investigate.  
->>> 
->>> I was unable to reproduce it here. Are you passing any special options
->>> to the building system?  
->> 
->> Hmh, I can't reproduce this now either. I was able to hit this on
->> another machine consistently, even with 'make cleandocs' in
->> between. I'll check the environment on the other machine when I get my
->> hands on it.
-> 
-> Just FWIW, I've been trying to find a moment to come back to this because
-> I couldn't reproduce it either...
-> 
-> jon
+  nitpicky = True
+  nitpick_ignore = [
+      ("c:func", "ioctl"),
+  ]
 
+See Sphinx documentation for the config values for ``nitpick`` and
+``nitpick_ignore`` [1].
 
-Hmm, I have had problems with the relative BUILDDIR make environment, so I switched
-to absolute pathname .. see my "more generic way" patch:
+With this change all the ".. cpp:function:: int ioctl(..)" descriptions
+(found in the media book) can be migrated to ".. c:function:: int
+ioctl(..)", without getting any warnings. E.g.::
 
- htmldocs:
--	$(MAKE) BUILDDIR=$(BUILDDIR) -f $(srctree)/Documentation/media/Makefile $@
-+	$(MAKE) BUILDDIR=$(abspath $(BUILDDIR)) -f $(srctree)/Documentation/media/Makefile $@
+  .. cpp:function:: int ioctl( int fd, int request, struct cec_event *argp )
 
-could this the reason why you can't reproduce it?
+  .. c:function:: int ioctl( int fd, int request, struct cec_event *argp )
 
-My problem was vice versa, if I called "make O=/tmp/kernel htmldocs" after
-a make with normal output, the rst files has been found in Documents/output
-and not regenerated in /tmp/kernel/Documents/output. 
+The main effect, is that we get those *CPP-types* back into Sphinx's C-
+namespace and we need no longer to distinguish between c/cpp references,
+when we refer a function like the ioctl.
 
-And with "make O=/tmp/kernel clean", the rst files in Documents/output resists.
+[1] http://www.sphinx-doc.org/en/stable/config.html?highlight=nitpick#confval-nitpicky
 
-This was very confusing to me, so I changed it to absolute pathname.
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
+---
+ Documentation/sphinx/cdomain.py | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
---Markus--
+diff --git a/Documentation/sphinx/cdomain.py b/Documentation/sphinx/cdomain.py
+index 99cd035..cb4e8c9 100644
+--- a/Documentation/sphinx/cdomain.py
++++ b/Documentation/sphinx/cdomain.py
+@@ -10,6 +10,10 @@ u"""
+ 
+     List of customizations:
+ 
++    * Moved the *duplicate C object description* warnings for function
++      declarations in the nitpicky mode. See Sphinx documentation for
++      the config values for ``nitpick`` and ``nitpick_ignore``.
++
+     * Add option 'name' to the "c:function:" directive.  With option 'name' the
+       ref-name of a function can be modified. E.g.::
+ 
+@@ -60,6 +64,29 @@ class CObject(Base_CObject):
+                 pass
+         return fullname
+ 
++    def add_target_and_index(self, name, sig, signode):
++        # for C API items we add a prefix since names are usually not qualified
++        # by a module name and so easily clash with e.g. section titles
++        targetname = 'c.' + name
++        if targetname not in self.state.document.ids:
++            signode['names'].append(targetname)
++            signode['ids'].append(targetname)
++            signode['first'] = (not self.names)
++            self.state.document.note_explicit_target(signode)
++            inv = self.env.domaindata['c']['objects']
++            if (name in inv and self.env.config.nitpicky):
++                if self.objtype == 'function':
++                    if ('c:func', name) not in self.env.config.nitpick_ignore:
++                        self.state_machine.reporter.warning(
++                            'duplicate C object description of %s, ' % name +
++                            'other instance in ' + self.env.doc2path(inv[name][0]),
++                            line=self.lineno)
++            inv[name] = (self.env.docname, self.objtype)
++
++        indextext = self.get_index_text(name)
++        if indextext:
++            self.indexnode['entries'].append(('single', indextext,
++                                              targetname, '', None))
+ 
+ class CDomain(Base_CDomain):
+ 
+-- 
+2.7.4
 
