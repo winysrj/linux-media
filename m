@@ -1,53 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55154 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750763AbcHQGrH (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:51021 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752923AbcHOVXR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2016 02:47:07 -0400
-Date: Wed, 17 Aug 2016 09:47:03 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	mchehab@s-opensource.com
-Subject: Re: Submit media entity without media device
-Message-ID: <20160817064702.GC3182@valkosipuli.retiisi.org.uk>
-References: <0b6c1a36-8770-b9f0-4d31-6b2aa31bed5c@synopsys.com>
- <3968b7c6-ee8b-b290-22e4-edb46ae1b6cc@synopsys.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3968b7c6-ee8b-b290-22e4-edb46ae1b6cc@synopsys.com>
+	Mon, 15 Aug 2016 17:23:17 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH RFC v2 6/9] [media] vidioc-enumstd.rst: fix a broken reference
+Date: Mon, 15 Aug 2016 18:21:57 -0300
+Message-Id: <9b2a43d6f162e3d3fa20a77553426b9a57a775c4.1471294965.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471294965.git.mchehab@s-opensource.com>
+References: <cover.1471294965.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471294965.git.mchehab@s-opensource.com>
+References: <cover.1471294965.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ramiro,
+Somehow, the conversion broke a reference here. Re-add it.
 
-On Tue, Aug 16, 2016 at 04:13:46PM +0100, Ramiro Oliveira wrote:
-> Just adding some people to the CC list.
-> 
-> 
-> On 28-06-2016 13:00, Ramiro Oliveira wrote:
-> > Hi all,
-> >
-> > We at Synopsys have a media device driver and in that media device we have a
-> > media entity for our CSI-2 Host.
-> >
-> > At the moment we aren't ready to submit the entire media device, so I was
-> > wondering if it was possible to submit a media entity driver separately, without
-> > the rest of the architecture, and if so where should we place it.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/v4l/vidioc-enumstd.rst | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Just the CSI-2 receiver support should be fine. You can then extend it later
-on to cover more functionality. A media device is still needed: media
-entities may not exist without the media device. The media graph may well be
-amended later on. (But changing what's already there should be avoided as it
-changes the user space interface.)
-
-Pick a name, typically hardware block names or such work the best in such
-cases. If yours is a platform driver it'll go under
-drivers/media/platform (PCI goes under pci and so on).
-
+diff --git a/Documentation/media/uapi/v4l/vidioc-enumstd.rst b/Documentation/media/uapi/v4l/vidioc-enumstd.rst
+index 6699b26cdeb4..a936fe32ce9c 100644
+--- a/Documentation/media/uapi/v4l/vidioc-enumstd.rst
++++ b/Documentation/media/uapi/v4l/vidioc-enumstd.rst
+@@ -269,7 +269,7 @@ support digital TV. See also the Linux DVB API at
+ 
+ .. _video-standards:
+ 
+-.. flat-table:: Video Standards (based on [])
++.. flat-table:: Video Standards (based on :ref:`itu470`)
+     :header-rows:  1
+     :stub-columns: 0
+ 
 -- 
-Kind regards,
+2.7.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+
