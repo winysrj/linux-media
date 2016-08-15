@@ -1,51 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46908 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754774AbcHXQaq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Aug 2016 12:30:46 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 1/2] [media] tw5864-core: remove double irq lock code
-Date: Wed, 24 Aug 2016 13:30:39 -0300
-Message-Id: <c5f789d7d85f4c4b6bcdb2b1674d6495f05ada42.1472056235.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailgw01.mediatek.com ([210.61.82.183]:38199 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752113AbcHODJN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Aug 2016 23:09:13 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH for v4.8] vcodec:mediatek: Fix visible_height larger than coded_height issue in s_fmt_out
+Date: Mon, 15 Aug 2016 11:08:03 +0800
+Message-ID: <1471230483-23568-1-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As warned by smatch:
-	drivers/media/pci/tw5864/tw5864-core.c:160 tw5864_h264_isr() error: double lock 'irqsave:flags'
-	drivers/media/pci/tw5864/tw5864-core.c:174 tw5864_h264_isr() error: double unlock 'irqsave:flags'
+The original code add extra 32 line to visible_height.
+It is incorrect, 32 line should be add to coded_height.
+The purpose is that user space could calcuate real buffer size needed by using
+coded_width * coded_height.
+But this method will make v4l2-compliance test fail, since g_fmt != s_fmt(g_fmt)
+So remove extend visible_height or coded_height, user space should just
+use sizeimage to get real buffer size needed
 
-Remove the IRQ duplicated lock.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
 ---
- drivers/media/pci/tw5864/tw5864-core.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff --git a/drivers/media/pci/tw5864/tw5864-core.c b/drivers/media/pci/tw5864/tw5864-core.c
-index 440cd7bb8d04..e3d884e963c0 100644
---- a/drivers/media/pci/tw5864/tw5864-core.c
-+++ b/drivers/media/pci/tw5864/tw5864-core.c
-@@ -157,12 +157,10 @@ static void tw5864_h264_isr(struct tw5864_dev *dev)
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+index a145130..cd36c9e 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+@@ -487,7 +487,6 @@ static int vidioc_venc_s_fmt_out(struct file *file, void *priv,
+ 	struct mtk_q_data *q_data;
+ 	int ret, i;
+ 	struct mtk_video_fmt *fmt;
+-	unsigned int pitch_w_div16;
+ 	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
  
- 		cur_frame = next_frame;
+ 	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
+@@ -530,15 +529,6 @@ static int vidioc_venc_s_fmt_out(struct file *file, void *priv,
+ 	q_data->coded_width = f->fmt.pix_mp.width;
+ 	q_data->coded_height = f->fmt.pix_mp.height;
  
--		spin_lock_irqsave(&input->slock, flags);
- 		input->frame_seqno++;
- 		input->frame_gop_seqno++;
- 		if (input->frame_gop_seqno >= input->gop)
- 			input->frame_gop_seqno = 0;
--		spin_unlock_irqrestore(&input->slock, flags);
- 	} else {
- 		dev_err(&dev->pci->dev,
- 			"Skipped frame on input %d because all buffers busy\n",
+-	pitch_w_div16 = DIV_ROUND_UP(q_data->visible_width, 16);
+-	if (pitch_w_div16 % 8 != 0) {
+-		/* Adjust returned width/height, so application could correctly
+-		 * allocate hw required memory
+-		 */
+-		q_data->visible_height += 32;
+-		vidioc_try_fmt(f, q_data->fmt);
+-	}
+-
+ 	q_data->field = f->fmt.pix_mp.field;
+ 	ctx->colorspace = f->fmt.pix_mp.colorspace;
+ 	ctx->ycbcr_enc = f->fmt.pix_mp.ycbcr_enc;
 -- 
-2.7.4
+1.7.9.5
 
