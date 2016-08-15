@@ -1,179 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43185 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754589AbcHSNFK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 09:05:10 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>
-Subject: [PATCH 10/15] [media] adjust remaining tables at DVB uAPI documentation
-Date: Fri, 19 Aug 2016 10:05:00 -0300
-Message-Id: <9a946e73535dd550904586bcb5b21c04f70abb72.1471611003.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471611003.git.mchehab@s-opensource.com>
-References: <cover.1471611003.git.mchehab@s-opensource.com>
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:54335 "EHLO
+	smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932349AbcHOPHR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 11:07:17 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl
+Cc: linux-renesas-soc@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com,
+	sergei.shtylyov@cogentembedded.com,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv3 08/10] [media] rcar-vin: move chip check for pixelformat support
+Date: Mon, 15 Aug 2016 17:06:33 +0200
+Message-Id: <20160815150635.22637-9-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <cover.1471611003.git.mchehab@s-opensource.com>
-References: <cover.1471611003.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=true
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are a few broken tables on LaTeX output at the DVB
-uAPI documentation. Fix them.
+The check for if the specific pixelformat is supported on the current
+chip should happen in VIDIOC_S_FMT and VIDIOC_TRY_FMT and not when we
+try to setup the hardware for streaming.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- Documentation/media/uapi/dvb/audio-fopen.rst        | 2 ++
- Documentation/media/uapi/dvb/ca-fopen.rst           | 2 ++
- Documentation/media/uapi/dvb/dmx-fread.rst          | 3 ++-
- Documentation/media/uapi/dvb/dmx-fwrite.rst         | 2 ++
- Documentation/media/uapi/dvb/dmx-set-pes-filter.rst | 2 +-
- Documentation/media/uapi/dvb/dmx-start.rst          | 2 +-
- Documentation/media/uapi/dvb/dmx_types.rst          | 1 +
- Documentation/media/uapi/dvb/fe-get-info.rst        | 1 +
- Documentation/media/uapi/dvb/fe-read-status.rst     | 1 +
- Documentation/media/uapi/dvb/video-fopen.rst        | 2 ++
- 10 files changed, 15 insertions(+), 3 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 8 +++-----
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 5 +++++
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/media/uapi/dvb/audio-fopen.rst b/Documentation/media/uapi/dvb/audio-fopen.rst
-index ec3b23aa79b3..3ef4fd62ffb6 100644
---- a/Documentation/media/uapi/dvb/audio-fopen.rst
-+++ b/Documentation/media/uapi/dvb/audio-fopen.rst
-@@ -80,6 +80,8 @@ AUDIO_GET_STATUS. All other call will return with an error code.
- Return Value
- ------------
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 496aa97..3df3f0c 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -225,11 +225,9 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		dmr = 0;
+ 		break;
+ 	case V4L2_PIX_FMT_XBGR32:
+-		if (vin->chip == RCAR_GEN2 || vin->chip == RCAR_H1) {
+-			dmr = VNDMR_EXRGB;
+-			break;
+-		}
+-		/* fall through */
++		/* Note: not supported on M1 */
++		dmr = VNDMR_EXRGB;
++		break;
+ 	default:
+ 		vin_err(vin, "Invalid pixelformat (0x%x)\n",
+ 			vin->format.pixelformat);
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 09df396..ef3464d 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -192,6 +192,11 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	pix->sizeimage = max_t(u32, pix->sizeimage,
+ 			       rvin_format_sizeimage(pix));
  
-+.. tabularcolumns:: |p{2.5cm}|p{15.0cm}|
++	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
++		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
++		return -EINVAL;
++	}
 +
- .. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-diff --git a/Documentation/media/uapi/dvb/ca-fopen.rst b/Documentation/media/uapi/dvb/ca-fopen.rst
-index f284461cce20..9960fc76189c 100644
---- a/Documentation/media/uapi/dvb/ca-fopen.rst
-+++ b/Documentation/media/uapi/dvb/ca-fopen.rst
-@@ -79,6 +79,8 @@ the device in this mode will fail, and an error code will be returned.
- Return Value
- ------------
- 
-+.. tabularcolumns:: |p{2.5cm}|p{15.0cm}|
-+
- .. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-diff --git a/Documentation/media/uapi/dvb/dmx-fread.rst b/Documentation/media/uapi/dvb/dmx-fread.rst
-index d25b19e4f696..266c9ca259c9 100644
---- a/Documentation/media/uapi/dvb/dmx-fread.rst
-+++ b/Documentation/media/uapi/dvb/dmx-fread.rst
-@@ -53,10 +53,11 @@ data. The filtered data is transferred from the driver’s internal
- circular buffer to buf. The maximum amount of data to be transferred is
- implied by count.
- 
--
- Return Value
- ------------
- 
-+.. tabularcolumns:: |p{2.5cm}|p{15.0cm}|
-+
- .. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-diff --git a/Documentation/media/uapi/dvb/dmx-fwrite.rst b/Documentation/media/uapi/dvb/dmx-fwrite.rst
-index 9efd81a1b5c8..3d76470bef60 100644
---- a/Documentation/media/uapi/dvb/dmx-fwrite.rst
-+++ b/Documentation/media/uapi/dvb/dmx-fwrite.rst
-@@ -59,6 +59,8 @@ The amount of data to be transferred is implied by count.
- Return Value
- ------------
- 
-+.. tabularcolumns:: |p{2.5cm}|p{15.0cm}|
-+
- .. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-diff --git a/Documentation/media/uapi/dvb/dmx-set-pes-filter.rst b/Documentation/media/uapi/dvb/dmx-set-pes-filter.rst
-index addc321011ce..d71db779b6fd 100644
---- a/Documentation/media/uapi/dvb/dmx-set-pes-filter.rst
-+++ b/Documentation/media/uapi/dvb/dmx-set-pes-filter.rst
-@@ -61,7 +61,7 @@ On success 0 is returned, on error -1 and the ``errno`` variable is set
- appropriately. The generic error codes are described at the
- :ref:`Generic Error Codes <gen-errors>` chapter.
- 
--
-+.. tabularcolumns:: |p{2.5cm}|p{15.0cm}|
- 
- .. flat-table::
-     :header-rows:  0
-diff --git a/Documentation/media/uapi/dvb/dmx-start.rst b/Documentation/media/uapi/dvb/dmx-start.rst
-index 9835d1e78400..959b5eee2647 100644
---- a/Documentation/media/uapi/dvb/dmx-start.rst
-+++ b/Documentation/media/uapi/dvb/dmx-start.rst
-@@ -53,7 +53,7 @@ On success 0 is returned, on error -1 and the ``errno`` variable is set
- appropriately. The generic error codes are described at the
- :ref:`Generic Error Codes <gen-errors>` chapter.
- 
--
-+.. tabularcolumns:: |p{2.5cm}|p{15.0cm}|
- 
- .. flat-table::
-     :header-rows:  0
-diff --git a/Documentation/media/uapi/dvb/dmx_types.rst b/Documentation/media/uapi/dvb/dmx_types.rst
-index 7a8900af2680..efd564035958 100644
---- a/Documentation/media/uapi/dvb/dmx_types.rst
-+++ b/Documentation/media/uapi/dvb/dmx_types.rst
-@@ -12,6 +12,7 @@ Demux Data Types
- Output for the demux
- ====================
- 
-+.. tabularcolumns:: |p{5.0cm}|p{12.5cm}|
- 
- .. _dmx-output:
- 
-diff --git a/Documentation/media/uapi/dvb/fe-get-info.rst b/Documentation/media/uapi/dvb/fe-get-info.rst
-index 80644072087f..85973be62b0c 100644
---- a/Documentation/media/uapi/dvb/fe-get-info.rst
-+++ b/Documentation/media/uapi/dvb/fe-get-info.rst
-@@ -160,6 +160,7 @@ frontend capabilities
- Capabilities describe what a frontend can do. Some capabilities are
- supported only on some specific frontend types.
- 
-+.. tabularcolumns:: |p{5.5cm}|p{12.0cm}|
- 
- .. _fe-caps:
- 
-diff --git a/Documentation/media/uapi/dvb/fe-read-status.rst b/Documentation/media/uapi/dvb/fe-read-status.rst
-index defe30d036ec..def8160d6807 100644
---- a/Documentation/media/uapi/dvb/fe-read-status.rst
-+++ b/Documentation/media/uapi/dvb/fe-read-status.rst
-@@ -56,6 +56,7 @@ The fe_status parameter is used to indicate the current state and/or
- state changes of the frontend hardware. It is produced using the enum
- :ref:`fe_status <fe-status>` values on a bitmask
- 
-+.. tabularcolumns:: |p{3.5cm}|p{14.0cm}|
- 
- .. _fe-status:
- 
-diff --git a/Documentation/media/uapi/dvb/video-fopen.rst b/Documentation/media/uapi/dvb/video-fopen.rst
-index 9e5471557b83..9addca95516e 100644
---- a/Documentation/media/uapi/dvb/video-fopen.rst
-+++ b/Documentation/media/uapi/dvb/video-fopen.rst
-@@ -82,6 +82,8 @@ return an error code.
- Return Value
- ------------
- 
-+.. tabularcolumns:: |p{2.5cm}|p{15.0cm}|
-+
- .. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
+ 	vin_dbg(vin, "Requested %ux%u Got %ux%u bpl: %d size: %d\n",
+ 		rwidth, rheight, pix->width, pix->height,
+ 		pix->bytesperline, pix->sizeimage);
 -- 
-2.7.4
-
+2.9.2
 
