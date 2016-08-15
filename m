@@ -1,68 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49619 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:43981 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S938773AbcHJSrO (ORCPT
+	with ESMTP id S932201AbcHOWjg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2016 14:47:14 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mon, 15 Aug 2016 18:39:36 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
 	Mauro Carvalho Chehab <mchehab@kernel.org>,
 	Markus Heiser <markus.heiser@darmarIT.de>,
 	linux-doc@vger.kernel.org
-Subject: [PATCH] doc-rst: build the dynamic rst files for non-html doc targets
-Date: Wed, 10 Aug 2016 05:35:11 -0300
-Message-Id: <65c5113d1b9b27f7fd7eae997e034da532f918c9.1470818058.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Subject: [PATCH RFC] [media] pixfmt-packed-rgb.rst: rotate a big table
+Date: Mon, 15 Aug 2016 19:39:30 -0300
+Message-Id: <3eaf1d4cfd703bbc591e4c1c444728f3bb2a9fbd.1471300597.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right now, the media makefile is called only for html docs.
-Call it also for the other documentation targets.
+Rotates the big RGB packed table to landscape.
 
-Please notice that, while we added it to pdf target at
-Documentation/media/Makefile, it won't actually build
-a PDF from media, because rst2pdf can't handle complex
-documents.
+This is actually an example patch that depends on the past RFCv2 9 patches
+series I sent before.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+It uses LaTex adjustbox extension to rotate the packed RGB big table,
+and rotate it to landscape. This way, the table appears on the entire
+page.
+
+It should be noticed, however, that the table is not well displayed, as the size
+hints are not ok. Not sure how to fix such issue.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/Makefile.sphinx | 2 ++
- Documentation/media/Makefile  | 3 +++
- 2 files changed, 5 insertions(+)
+ Documentation/conf.py                              | 3 +++
+ Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst | 9 ++++++++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/Makefile.sphinx b/Documentation/Makefile.sphinx
-index 857f1e273418..038559388168 100644
---- a/Documentation/Makefile.sphinx
-+++ b/Documentation/Makefile.sphinx
-@@ -53,9 +53,11 @@ else # HAVE_RST2PDF
- endif # HAVE_RST2PDF
+diff --git a/Documentation/conf.py b/Documentation/conf.py
+index e081f56a019c..2bc91fcc6d1f 100644
+--- a/Documentation/conf.py
++++ b/Documentation/conf.py
+@@ -291,6 +291,9 @@ latex_elements = {
+         \\setromanfont{DejaVu Sans}
+         \\setmonofont{DejaVu Sans Mono}
  
- epubdocs:
-+	$(MAKE) BUILDDIR=$(BUILDDIR) -f $(srctree)/Documentation/media/Makefile $@
- 	$(call cmd,sphinx,epub)
++	% To allow adjusting table sizes
++	\\usepackage{adjustbox}
++
+      '''
+ }
  
- xmldocs:
-+	$(MAKE) BUILDDIR=$(BUILDDIR) -f $(srctree)/Documentation/media/Makefile $@
- 	$(call cmd,sphinx,xml)
+diff --git a/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
+index c7aa2e91ac78..9a909cd99361 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
+@@ -19,6 +19,10 @@ graphics frame buffers. They occupy 8, 16, 24 or 32 bits per pixel.
+ These are all packed-pixel formats, meaning all the data for a pixel lie
+ next to each other in memory.
  
- # no-ops for the Sphinx toolchain
-diff --git a/Documentation/media/Makefile b/Documentation/media/Makefile
-index 39e2d766dbe3..79784e848fc0 100644
---- a/Documentation/media/Makefile
-+++ b/Documentation/media/Makefile
-@@ -11,6 +11,9 @@ FILES = audio.h.rst ca.h.rst dmx.h.rst frontend.h.rst net.h.rst video.h.rst \
- TARGETS := $(addprefix $(BUILDDIR)/, $(FILES))
++.. raw:: latex
++
++    \begin{landscape}
++    \begin{adjustbox}{width=\columnwidth}
  
- htmldocs: $(BUILDDIR) ${TARGETS}
-+epubdocs: $(BUILDDIR) ${TARGETS}
-+xmldocs: $(BUILDDIR) ${TARGETS}
-+pdfdocs: $(BUILDDIR) ${TARGETS}
+ .. _rgb-formats:
  
- $(BUILDDIR):
- 	$(Q)mkdir -p $@
+@@ -26,7 +30,6 @@ next to each other in memory.
+     :header-rows:  2
+     :stub-columns: 0
+ 
+-
+     -  .. row 1
+ 
+        -  Identifier
+@@ -942,6 +945,10 @@ next to each other in memory.
+ 
+        -  b\ :sub:`0`
+ 
++.. raw:: latex
++
++    \end{adjustbox}
++    \end{landscape}
+ 
+ Bit 7 is the most significant bit.
+ 
 -- 
 2.7.4
+
 
