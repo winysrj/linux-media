@@ -1,75 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34242 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751294AbcHVMkV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 08:40:21 -0400
-Date: Mon, 22 Aug 2016 15:40:18 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, m.chehab@osg.samsung.com,
-        shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com
-Subject: Re: [RFC v2 06/17] media: Dynamically allocate the media device
-Message-ID: <20160822124018.GC12130@valkosipuli.retiisi.org.uk>
-References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
- <1471602228-30722-7-git-send-email-sakari.ailus@linux.intel.com>
- <b9aefadd-054e-bece-da6b-4f599d5173a2@xs4all.nl>
- <20160822123820.GB12130@valkosipuli.retiisi.org.uk>
+Received: from bombadil.infradead.org ([198.137.202.9]:43437 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753105AbcHOQXu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 12:23:50 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH RFC 3/5] [media] docs-rst: get rid of extra less or equal symbols
+Date: Mon, 15 Aug 2016 13:23:42 -0300
+Message-Id: <d7aee61a32bbcfdf252e52d847c483210d6b8e52.1471277426.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471277426.git.mchehab@s-opensource.com>
+References: <cover.1471277426.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160822123820.GB12130@valkosipuli.retiisi.org.uk>
+In-Reply-To: <cover.1471277426.git.mchehab@s-opensource.com>
+References: <cover.1471277426.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=true
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 22, 2016 at 03:38:20PM +0300, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Mon, Aug 22, 2016 at 02:01:44PM +0200, Hans Verkuil wrote:
-> > On 08/19/2016 12:23 PM, Sakari Ailus wrote:
-> > > From: Sakari Ailus <sakari.ailus@iki.fi>
-> > > 
-> > > Allow allocating the media device dynamically. As the struct media_device
-> > > embeds struct media_devnode, the lifetime of that object is that same than
-> > > that of the media_device.
-> > > 
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > ---
-> > >  drivers/media/media-device.c | 22 ++++++++++++++++++++++
-> > >  include/media/media-device.h | 38 ++++++++++++++++++++++++++++++++++++++
-> > >  2 files changed, 60 insertions(+)
-> > > 
-> > > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > > index a431775..5a86d36 100644
-> > > --- a/drivers/media/media-device.c
-> > > +++ b/drivers/media/media-device.c
-> > > @@ -544,7 +544,15 @@ static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
-> > >  
-> > >  static void media_device_release(struct media_devnode *devnode)
-> > >  {
-> > > +	struct media_device *mdev = to_media_device(devnode);
-> > > +
-> > > +	ida_destroy(&mdev->entity_internal_idx);
-> > > +	mdev->entity_internal_idx_max = 0;
-> > > +	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
-> > > +	mutex_destroy(&mdev->graph_mutex);
-> > >  	dev_dbg(devnode->parent, "Media device released\n");
-> > > +
-> > > +	kfree(mdev);
-> > 
-> > Doesn't this break bisect? mdev is now freed, but media_device_alloc isn't
-> > called yet.
-> > 
-> > That doesn't seem right.
-> 
-> You're right.
-> 
-> media_device_release() actually may only be called for drivers that use
-> media_device_init(). I'll fix that.
+The LaTeX output format doesn't support less or equal UTF-8
+symbols. So, we need to get rid of them or to convert to
+math expressions.
 
-s/media_device_init/media_device_alloc/
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst | 2 +-
+ Documentation/media/uapi/v4l/dev-overlay.rst              | 7 ++++++-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
+diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
+index 04ee90099676..a7315a8d219a 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
+@@ -114,7 +114,7 @@ logical address types are already defined will return with error ``EBUSY``.
+ 
+        -  ``num_log_addrs``
+ 
+-       -  Number of logical addresses to set up. Must be ≤
++       -  Number of logical addresses to set up. Must be less or equal to
+ 	  ``available_log_addrs`` as returned by
+ 	  :ref:`CEC_ADAP_G_CAPS`. All arrays in
+ 	  this structure are only filled up to index
+diff --git a/Documentation/media/uapi/v4l/dev-overlay.rst b/Documentation/media/uapi/v4l/dev-overlay.rst
+index 92b4471b0c6e..13359134b468 100644
+--- a/Documentation/media/uapi/v4l/dev-overlay.rst
++++ b/Documentation/media/uapi/v4l/dev-overlay.rst
+@@ -216,7 +216,12 @@ bits like:
+ 
+     ((__u8 *) bitmap)[w.width * y + x / 8] & (1 << (x & 7))
+ 
+-where ``0`` ≤ x < ``w.width`` and ``0`` ≤ y <``w.height``. [#f2]_
++where [#f2]_:
++
++.. math::
++
++    0 \le x < w.width \text{, and }
++    0 \le y < w.height
+ 
+ When a clipping bit mask is not supported the driver ignores this field,
+ its contents after calling :ref:`VIDIOC_S_FMT <VIDIOC_G_FMT>` are
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
+
+
