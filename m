@@ -1,65 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:15387 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934233AbcHaM40 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Aug 2016 08:56:26 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Joonyoung Shim <jy0922.shim@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH 5/6] media: s5p-cec: fix system and runtime pm integration
-Date: Wed, 31 Aug 2016 14:55:58 +0200
-Message-id: <1472648159-9814-6-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1472648159-9814-1-git-send-email-m.szyprowski@samsung.com>
-References: <1472648159-9814-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:59827 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752607AbcHOD0K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Aug 2016 23:26:10 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH for v4.8] vcodec:mediatek: change H264 profile default to profile high
+Date: Mon, 15 Aug 2016 11:26:02 +0800
+Message-ID: <1471231562-25191-1-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use generic helpers instead of open-coding usage of runtime pm for system
-sleep pm, which was potentially broken for some corner cases.
+This patch change default H264 profile from V4L2_MPEG_VIDEO_H264_PROFILE_MAIN
+to V4L2_MPEG_VIDEO_H264_PROFILE_HIGH
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
 ---
- drivers/staging/media/s5p-cec/s5p_cec.c | 17 ++---------------
- 1 file changed, 2 insertions(+), 15 deletions(-)
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/s5p-cec/s5p_cec.c b/drivers/staging/media/s5p-cec/s5p_cec.c
-index 78333273c4e5..77d9887801b8 100644
---- a/drivers/staging/media/s5p-cec/s5p_cec.c
-+++ b/drivers/staging/media/s5p-cec/s5p_cec.c
-@@ -250,22 +250,9 @@ static int s5p_cec_runtime_resume(struct device *dev)
- 	return 0;
- }
- 
--static int __maybe_unused s5p_cec_suspend(struct device *dev)
--{
--	if (pm_runtime_suspended(dev))
--		return 0;
--	return s5p_cec_runtime_suspend(dev);
--}
--
--static int __maybe_unused s5p_cec_resume(struct device *dev)
--{
--	if (pm_runtime_suspended(dev))
--		return 0;
--	return s5p_cec_runtime_resume(dev);
--}
--
- static const struct dev_pm_ops s5p_cec_pm_ops = {
--	SET_SYSTEM_SLEEP_PM_OPS(s5p_cec_suspend, s5p_cec_resume)
-+	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
-+				pm_runtime_force_resume)
- 	SET_RUNTIME_PM_OPS(s5p_cec_runtime_suspend, s5p_cec_runtime_resume,
- 			   NULL)
- };
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+index 7bef7ba..284c1a7 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+@@ -1288,7 +1288,7 @@ int mtk_vcodec_enc_ctrls_setup(struct mtk_vcodec_ctx *ctx)
+ 			0, V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE);
+ 	v4l2_ctrl_new_std_menu(handler, ops, V4L2_CID_MPEG_VIDEO_H264_PROFILE,
+ 			V4L2_MPEG_VIDEO_H264_PROFILE_HIGH,
+-			0, V4L2_MPEG_VIDEO_H264_PROFILE_MAIN);
++			0, V4L2_MPEG_VIDEO_H264_PROFILE_HIGH);
+ 	v4l2_ctrl_new_std_menu(handler, ops, V4L2_CID_MPEG_VIDEO_H264_LEVEL,
+ 			V4L2_MPEG_VIDEO_H264_LEVEL_4_2,
+ 			0, V4L2_MPEG_VIDEO_H264_LEVEL_4_0);
 -- 
-1.9.1
+1.7.9.5
 
