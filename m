@@ -1,48 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.zeus03.de ([194.117.254.33]:56218 "EHLO mail.zeus03.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932484AbcHKVLU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 17:11:20 -0400
-From: Wolfram Sang <wsa-dev@sang-engineering.com>
-To: linux-usb@vger.kernel.org
-Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 09/28] media: usb: cx231xx: cx231xx-audio: don't print error when allocating urb fails
-Date: Thu, 11 Aug 2016 23:03:45 +0200
-Message-Id: <1470949451-24823-10-git-send-email-wsa-dev@sang-engineering.com>
-In-Reply-To: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
-References: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
+Received: from smtp11.smtpout.orange.fr ([80.12.242.133]:27256 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752905AbcHOTCP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 15:02:15 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Jiri Kosina <trivial@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v4 02/13] media: mt9m111: use only the SRGB colorspace
+Date: Mon, 15 Aug 2016 21:01:52 +0200
+Message-Id: <1471287723-25451-3-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1471287723-25451-1-git-send-email-robert.jarzmik@free.fr>
+References: <1471287723-25451-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kmalloc will print enough information in case of failure.
+mt9m111 being a camera sensor, its colorspace should always be SRGB, for
+both RGB based formats or YCbCr based ones.
 
-Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 ---
- drivers/media/usb/cx231xx/cx231xx-audio.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/media/i2c/soc_camera/mt9m111.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-audio.c b/drivers/media/usb/cx231xx/cx231xx-audio.c
-index a6a9508418f8ee..4cd5fa91612f62 100644
---- a/drivers/media/usb/cx231xx/cx231xx-audio.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-audio.c
-@@ -293,7 +293,6 @@ static int cx231xx_init_audio_isoc(struct cx231xx *dev)
- 		memset(dev->adev.transfer_buffer[i], 0x80, sb_size);
- 		urb = usb_alloc_urb(CX231XX_ISO_NUM_AUDIO_PACKETS, GFP_ATOMIC);
- 		if (!urb) {
--			dev_err(dev->dev, "usb_alloc_urb failed!\n");
- 			for (j = 0; j < i; j++) {
- 				usb_free_urb(dev->adev.urb[j]);
- 				kfree(dev->adev.transfer_buffer[j]);
-@@ -355,7 +354,6 @@ static int cx231xx_init_audio_bulk(struct cx231xx *dev)
- 		memset(dev->adev.transfer_buffer[i], 0x80, sb_size);
- 		urb = usb_alloc_urb(CX231XX_NUM_AUDIO_PACKETS, GFP_ATOMIC);
- 		if (!urb) {
--			dev_err(dev->dev, "usb_alloc_urb failed!\n");
- 			for (j = 0; j < i; j++) {
- 				usb_free_urb(dev->adev.urb[j]);
- 				kfree(dev->adev.transfer_buffer[j]);
+diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
+index a7efaa5964d1..b7c4f371bae1 100644
+--- a/drivers/media/i2c/soc_camera/mt9m111.c
++++ b/drivers/media/i2c/soc_camera/mt9m111.c
+@@ -188,10 +188,10 @@ struct mt9m111_datafmt {
+ };
+ 
+ static const struct mt9m111_datafmt mt9m111_colour_fmts[] = {
+-	{MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_JPEG},
+-	{MEDIA_BUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_JPEG},
+-	{MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_JPEG},
+-	{MEDIA_BUS_FMT_VYUY8_2X8, V4L2_COLORSPACE_JPEG},
++	{MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_SRGB},
++	{MEDIA_BUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_SRGB},
++	{MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_SRGB},
++	{MEDIA_BUS_FMT_VYUY8_2X8, V4L2_COLORSPACE_SRGB},
+ 	{MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
+ 	{MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE, V4L2_COLORSPACE_SRGB},
+ 	{MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB},
 -- 
-2.8.1
+2.1.4
 
