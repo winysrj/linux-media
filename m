@@ -1,210 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout.microchip.com ([198.175.253.82]:44755 "EHLO
-	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752005AbcHHKMM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2016 06:12:12 -0400
-Subject: Re: [PATCH v8 1/2] [media] atmel-isc: add the Image Sensor Controller
- code
-To: Hans Verkuil <hverkuil@xs4all.nl>, <nicolas.ferre@atmel.com>,
-	<robh@kernel.org>
-References: <1470211686-2198-1-git-send-email-songjun.wu@microchip.com>
- <1470211686-2198-2-git-send-email-songjun.wu@microchip.com>
- <07cf3e49-da67-74d7-528c-618fe94a15ff@xs4all.nl>
- <240d957c-6738-bab5-824a-1e6a0ddb12ad@xs4all.nl>
-CC: <laurent.pinchart@ideasonboard.com>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-	=?UTF-8?Q?Niklas_S=c3=83=c2=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	Benoit Parrot <bparrot@ti.com>, <linux-kernel@vger.kernel.org>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-	Kamil Debski <kamil@wypas.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	=?UTF-8?Q?Richard_R=c3=b6jfors?= <richard@puffinpack.se>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Simon Horman <horms+renesas@verge.net.au>
-From: "Wu, Songjun" <Songjun.Wu@microchip.com>
-Message-ID: <91b2a3b4-44d5-4f67-96e4-e361088fad54@microchip.com>
-Date: Mon, 8 Aug 2016 18:11:24 +0800
-MIME-Version: 1.0
-In-Reply-To: <240d957c-6738-bab5-824a-1e6a0ddb12ad@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:51011 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752902AbcHOVXR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 17:23:17 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH RFC v2 3/9] docs-rst: Don't mangle with UTF-8 chars on LaTeX/PDF output
+Date: Mon, 15 Aug 2016 18:21:54 -0300
+Message-Id: <5ceebc273ff089c275c753c78f6e6c6e732b4077.1471294965.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471294965.git.mchehab@s-opensource.com>
+References: <cover.1471294965.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471294965.git.mchehab@s-opensource.com>
+References: <cover.1471294965.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+pdflatex doesn't accept using some UTF-8 chars, like
+"equal or less than" or "equal or greater than" chars. However,
+the media documents use them. So, we need to use XeLaTeX for
+conversion, and a font that accepts such characters.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/Makefile.sphinx |  6 +++---
+ Documentation/conf.py         | 11 +++++++++++
+ 2 files changed, 14 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/Makefile.sphinx b/Documentation/Makefile.sphinx
+index fc29e08085aa..aa7ff32be589 100644
+--- a/Documentation/Makefile.sphinx
++++ b/Documentation/Makefile.sphinx
+@@ -26,7 +26,7 @@ else ifneq ($(DOCBOOKS),)
+ else # HAVE_SPHINX
+ 
+ # User-friendly check for pdflatex
+-HAVE_PDFLATEX := $(shell if which pdflatex >/dev/null 2>&1; then echo 1; else echo 0; fi)
++HAVE_PDFLATEX := $(shell if which xelatex >/dev/null 2>&1; then echo 1; else echo 0; fi)
+ 
+ # Internal variables.
+ PAPEROPT_a4     = -D latex_paper_size=a4
+@@ -45,11 +45,11 @@ htmldocs:
+ 
+ pdfdocs:
+ ifeq ($(HAVE_PDFLATEX),0)
+-	$(warning The 'pdflatex' command was not found. Make sure you have it installed and in PATH to produce PDF output.)
++	$(warning The 'xelatex' command was not found. Make sure you have it installed and in PATH to produce PDF output.)
+ 	@echo "  SKIP    Sphinx $@ target."
+ else # HAVE_PDFLATEX
+ 	$(call cmd,sphinx,latex)
+-	$(Q)$(MAKE) -C $(BUILDDIR)/latex
++	$(Q)$(MAKE) PDFLATEX=xelatex -C $(BUILDDIR)/latex
+ endif # HAVE_PDFLATEX
+ 
+ epubdocs:
+diff --git a/Documentation/conf.py b/Documentation/conf.py
+index bbf2878d9945..f4469cd0340d 100644
+--- a/Documentation/conf.py
++++ b/Documentation/conf.py
+@@ -260,6 +260,10 @@ latex_elements = {
+ # Latex figure (float) alignment
+ #'figure_align': 'htbp',
+ 
++# Don't mangle with UTF-8 chars
++'inputenc': '',
++'utf8extra': '',
++
+ # Additional stuff for the LaTeX preamble.
+     'preamble': '''
+         % Allow generate some pages in landscape
+@@ -287,6 +291,13 @@ latex_elements = {
+           \\end{graybox}
+         }
+ 	\\makeatother
++
++	% Use some font with UTF-8 support with XeLaTeX
++        \\usepackage{fontspec}
++        \\setsansfont{DejaVu Serif}
++        \\setromanfont{DejaVu Sans}
++        \\setmonofont{DejaVu Sans Mono}
++
+      '''
+ }
+ 
+-- 
+2.7.4
 
 
-On 8/8/2016 17:56, Hans Verkuil wrote:
-> On 08/08/2016 11:37 AM, Hans Verkuil wrote:
->> On 08/03/2016 10:08 AM, Songjun Wu wrote:
->>> Add driver for the Image Sensor Controller. It manages
->>> incoming data from a parallel based CMOS/CCD sensor.
->>> It has an internal image processor, also integrates a
->>> triple channel direct memory access controller master
->>> interface.
->>>
->>> Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
->>> ---
->>>
->>> Changes in v8:
->>> - Power on the sensor on the first open in function
->>>   'isc_open'.
->>> - Power off the sensor on the last release in function
->>>   'isc_release'.
->>> - Remove the switch of the pipeline.
->>>
->>> Changes in v7:
->>> - Add enum_framesizes and enum_frameintervals.
->>> - Call s_stream(0) when stream start fail.
->>> - Fill the device_caps field of struct video_device
->>>   with V4L2_CAP_STREAMING and V4L2_CAP_VIDEO_CAPTURE.
->>> - Initialize the dev of struct vb2_queue.
->>> - Set field to FIELD_NONE if the pix field is not supported.
->>> - Return the result directly when call g/s_parm of subdev.
->>>
->>> Changes in v6: None
->>> Changes in v5:
->>> - Modify the macro definition and the related code.
->>>
->>> Changes in v4:
->>> - Modify the isc clock code since the dt is changed.
->>>
->>> Changes in v3:
->>> - Add pm runtime feature.
->>> - Modify the isc clock code since the dt is changed.
->>>
->>> Changes in v2:
->>> - Add "depends on COMMON_CLK" and "VIDEO_V4L2_SUBDEV_API"
->>>   in Kconfig file.
->>> - Correct typos and coding style according to Laurent's remarks
->>> - Delete the loop while in 'isc_clk_enable' function.
->>> - Replace 'hsync_active', 'vsync_active' and 'pclk_sample'
->>>   with 'pfe_cfg0' in struct isc_subdev_entity.
->>> - Add the code to support VIDIOC_CREATE_BUFS in
->>>   'isc_queue_setup' function.
->>> - Invoke isc_config to configure register in
->>>   'isc_start_streaming' function.
->>> - Add the struct completion 'comp' to synchronize with
->>>   the frame end interrupt in 'isc_stop_streaming' function.
->>> - Check the return value of the clk_prepare_enable
->>>   in 'isc_open' function.
->>> - Set the default format in 'isc_open' function.
->>> - Add an exit condition in the loop while in 'isc_config'.
->>> - Delete the hardware setup operation in 'isc_set_format'.
->>> - Refuse format modification during streaming
->>>   in 'isc_s_fmt_vid_cap' function.
->>> - Invoke v4l2_subdev_alloc_pad_config to allocate and
->>>   initialize the pad config in 'isc_async_complete' function.
->>> - Remove the '.owner  = THIS_MODULE,' in atmel_isc_driver.
->>> - Replace the module_platform_driver_probe() with
->>>   module_platform_driver().
->>>
->>>  drivers/media/platform/Kconfig                |    1 +
->>>  drivers/media/platform/Makefile               |    2 +
->>>  drivers/media/platform/atmel/Kconfig          |    9 +
->>>  drivers/media/platform/atmel/Makefile         |    1 +
->>>  drivers/media/platform/atmel/atmel-isc-regs.h |  165 +++
->>>  drivers/media/platform/atmel/atmel-isc.c      | 1503 +++++++++++++++++++++++++
->>>  6 files changed, 1681 insertions(+)
->>>  create mode 100644 drivers/media/platform/atmel/Kconfig
->>>  create mode 100644 drivers/media/platform/atmel/Makefile
->>>  create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
->>>  create mode 100644 drivers/media/platform/atmel/atmel-isc.c
->>>
->>
->> <snip>
->>
->>> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
->>> new file mode 100644
->>> index 0000000..d99d4a5
->>> --- /dev/null
->>> +++ b/drivers/media/platform/atmel/atmel-isc.c
->>
->> <snip>
->>
->>> +static int isc_set_default_fmt(struct isc_device *isc)
->>> +{
->>> +	u32 index = isc->num_user_formats - 1;
->>
->> Why pick the last format? Strictly speaking it doesn't matter, but in practice
->> the most common formats tend to be at the beginning of the format list.
->>
->>> +	struct v4l2_format f = {
->>> +		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
->>> +		.fmt.pix = {
->>> +			.width		= VGA_WIDTH,
->>> +			.height		= VGA_HEIGHT,
->>> +			.field		= V4L2_FIELD_NONE,
->>> +			.pixelformat	= isc->user_formats[index]->fourcc,
->>> +		},
->>> +	};
->>> +
->>> +	return isc_set_fmt(isc, &f);
->>> +}
->>> +
->>> +static int isc_open(struct file *file)
->>> +{
->>> +	struct isc_device *isc = video_drvdata(file);
->>> +	struct v4l2_subdev *sd = isc->current_subdev->sd;
->>> +	int ret;
->>> +
->>> +	if (mutex_lock_interruptible(&isc->lock))
->>> +		return -ERESTARTSYS;
->>> +
->>> +	ret = v4l2_fh_open(file);
->>> +	if (ret < 0)
->>> +		goto unlock;
->>> +
->>> +	if (!v4l2_fh_is_singular_file(file))
->>> +		goto unlock;
->>> +
->>> +	ret = v4l2_subdev_call(sd, core, s_power, 1);
->>> +	if (ret < 0 && ret != -ENOIOCTLCMD)
->>> +		goto unlock;
->>> +
->>> +	ret = isc_set_default_fmt(isc);
->>
->> This doesn't belong here, this needs to be done in isc_async_complete().
->>
->> Having the code here means that every time you open the device, the format
->> changes back to the default. That's not what you want.
->
-> Actually, you do need to set the format here since here is where you turn on
-> the sensor power, but it should be the current format, not the default format.
->
-> And in isc_set_default_fmt I recommend that you call the try fmt of the subdev
-> in order to let the subdev adjust the proposed default format. The 'try' doesn't
-> need to power on the sensor.
->
-Accept, thank you.
-
-My purpose is to set a default format, if the default format is not set, 
-there will be a fail case when tested by v4l2-tool. I will try to modify 
-the code and test again.
-
->>
->>> +	if (ret)
->
-> You also need to power off the sd on error!
->
-Accept, thank you.
-
->>> +		goto unlock;
->>> +
->>> +unlock:
->>> +	mutex_unlock(&isc->lock);
->>> +	return ret;
->>> +}
->>> +
->>
->
-> Regards,
->
-> 	Hans
->
