@@ -1,123 +1,614 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50673 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751993AbcHLC7H (ORCPT
+Received: from smtp11.smtpout.orange.fr ([80.12.242.133]:20506 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752208AbcHOTCP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 22:59:07 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 378651804F4
-	for <linux-media@vger.kernel.org>; Fri, 12 Aug 2016 04:59:01 +0200 (CEST)
-Date: Fri, 12 Aug 2016 04:59:01 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160812025901.378651804F4@tschai.lan>
+	Mon, 15 Aug 2016 15:02:15 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Jiri Kosina <trivial@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v4 00/13] pxa_camera transition to v4l2 standalone device
+Date: Mon, 15 Aug 2016 21:01:50 +0200
+Message-Id: <1471287723-25451-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Hans,
 
-Results of the daily build of media_tree:
+Now only your comments have been taken between v3 and v4, the buffer sequence
+number reset, and the rebase on top of v4.8-rc1, which makes the diffstat with
+the former submission :
+ drivers/media/i2c/mt9m111.c               | 14 ++------------
+ drivers/media/platform/pxa_camera.c       | 45 +++++----------------------------------------
+ drivers/media/platform/soc_camera/Kconfig | 12 ++----------
+ 3 files changed, 9 insertions(+), 62 deletions(-)
 
-date:		Fri Aug 12 04:00:17 CEST 2016
-git branch:	test
-git hash:	b6aa39228966e0d3f0bc3306be1892f87792903a
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+I've also put the whole serie here if you want to fetch and review from git directly :
+ - git fetch https://github.com/rjarzmik/linux.git work/v4l2
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1.1-i686: WARNINGS
-linux-4.2-i686: WARNINGS
-linux-4.3-i686: WARNINGS
-linux-4.4-i686: WARNINGS
-linux-4.5-i686: WARNINGS
-linux-4.6-i686: WARNINGS
-linux-4.7-i686: WARNINGS
-linux-4.8-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0-x86_64: WARNINGS
-linux-4.1.1-x86_64: WARNINGS
-linux-4.2-x86_64: WARNINGS
-linux-4.3-x86_64: WARNINGS
-linux-4.4-x86_64: WARNINGS
-linux-4.5-x86_64: WARNINGS
-linux-4.6-x86_64: WARNINGS
-linux-4.7-x86_64: WARNINGS
-linux-4.8-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+The result of v4l-compliance -s is in [1].
+The result of v4l-compliance -f is in [2].
 
-Detailed results are available here:
+Happy review.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+--
+Robert
 
-Full logs are available here:
+Robert Jarzmik (13):
+  media: mt9m111: make a standalone v4l2 subdevice
+  media: mt9m111: use only the SRGB colorspace
+  media: mt9m111: move mt9m111 out of soc_camera
+  media: platform: pxa_camera: convert to vb2
+  media: platform: pxa_camera: trivial move of functions
+  media: platform: pxa_camera: introduce sensor_call
+  media: platform: pxa_camera: make printk consistent
+  media: platform: pxa_camera: add buffer sequencing
+  media: platform: pxa_camera: remove set_crop
+  media: platform: pxa_camera: make a standalone v4l2 device
+  media: platform: pxa_camera: add debug register access
+  media: platform: pxa_camera: change stop_streaming semantics
+  media: platform: pxa_camera: move pxa_camera out of soc_camera
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+ drivers/media/i2c/Kconfig                      |    7 +
+ drivers/media/i2c/Makefile                     |    1 +
+ drivers/media/i2c/mt9m111.c                    | 1033 ++++++++++++
+ drivers/media/i2c/soc_camera/Kconfig           |    7 +-
+ drivers/media/i2c/soc_camera/Makefile          |    1 -
+ drivers/media/i2c/soc_camera/mt9m111.c         | 1054 ------------
+ drivers/media/platform/Kconfig                 |    8 +
+ drivers/media/platform/Makefile                |    1 +
+ drivers/media/platform/pxa_camera.c            | 2096 ++++++++++++++++++++++++
+ drivers/media/platform/soc_camera/Kconfig      |    8 -
+ drivers/media/platform/soc_camera/Makefile     |    1 -
+ drivers/media/platform/soc_camera/pxa_camera.c | 1866 ---------------------
+ include/linux/platform_data/media/camera-pxa.h |    2 +
+ 13 files changed, 3153 insertions(+), 2932 deletions(-)
+ create mode 100644 drivers/media/i2c/mt9m111.c
+ delete mode 100644 drivers/media/i2c/soc_camera/mt9m111.c
+ create mode 100644 drivers/media/platform/pxa_camera.c
+ delete mode 100644 drivers/media/platform/soc_camera/pxa_camera.c
 
-The Media Infrastructure API from this daily build is here:
+-- 
+2.1.4
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+[1] v4l-compliance -s
+v4l2-compliance SHA   : f1348b4a819271d4138d62be5cee2e5aed1601d7
+
+Driver Info:
+	Driver name   : pxa27x-camera
+	Card type     : PXA_Camera
+	Bus info      : platform:pxa-camera
+	Driver version: 4.8.0
+	Capabilities  : 0x84200001
+		Video Capture
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x04200001
+		Video Capture
+		Streaming
+		Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+		test VIDIOC_QUERYCTRL: OK
+		test VIDIOC_G/S_CTRL: OK
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+		fail: v4l2-test-controls.cpp(782): subscribe event for control 'User Controls' failed
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 7 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK (Not Supported)
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		warn: v4l2-test-formats.cpp(717): TRY_FMT cannot handle an invalid pixelformat.
+		warn: v4l2-test-formats.cpp(718): This may or may not be a problem. For more information see:
+		warn: v4l2-test-formats.cpp(719): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_TRY_FMT: OK
+		warn: v4l2-test-formats.cpp(977): S_FMT cannot handle an invalid pixelformat.
+		warn: v4l2-test-formats.cpp(978): This may or may not be a problem. For more information see:
+		warn: v4l2-test-formats.cpp(979): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK (Not Supported)
+		test Composing: OK (Not Supported)
+		test Scaling: OK
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Streaming ioctls:
+	test read/write: OK (Not Supported)
+	test MMAP: OK
+	test USERPTR: OK
+	test DMABUF: Cannot test, specify --expbuf-device
+
+
+Total: 46, Succeeded: 45, Failed: 1, Warnings: 6
+
+
+[2] v4l-compliance -f
+v4l2-compliance SHA   : f1348b4a819271d4138d62be5cee2e5aed1601d7
+
+Driver Info:
+	Driver name   : pxa27x-camera
+	Card type     : PXA_Camera
+	Bus info      : platform:pxa-camera
+	Driver version: 4.8.0
+	Capabilities  : 0x84200001
+		Video Capture
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x04200001
+		Video Capture
+		Streaming
+		Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+		test VIDIOC_QUERYCTRL: OK
+		test VIDIOC_G/S_CTRL: OK
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+		fail: v4l2-test-controls.cpp(782): subscribe event for control 'User Controls' failed
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 7 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK (Not Supported)
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		warn: v4l2-test-formats.cpp(717): TRY_FMT cannot handle an invalid pixelformat.
+		warn: v4l2-test-formats.cpp(718): This may or may not be a problem. For more information see:
+		warn: v4l2-test-formats.cpp(719): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_TRY_FMT: OK
+		warn: v4l2-test-formats.cpp(977): S_FMT cannot handle an invalid pixelformat.
+		warn: v4l2-test-formats.cpp(978): This may or may not be a problem. For more information see:
+		warn: v4l2-test-formats.cpp(979): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK (Not Supported)
+		test Composing: OK (Not Supported)
+		test Scaling: OK
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Stream using all formats:
+	test MMAP for Format YUYV, Frame Size 48x32:
+		Stride 96, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format YUYV, Frame Size 1280x1024:
+		Stride 2560, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format YUYV, Frame Size 640x480:
+		Stride 1280, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format YVYU, Frame Size 48x32:
+		Stride 96, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format YVYU, Frame Size 1280x1024:
+		Stride 2560, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format YVYU, Frame Size 640x480:
+		Stride 1280, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format 422P, Frame Size 48x32:
+		Stride 48, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format 422P, Frame Size 1280x1024:
+		Stride 1280, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format 422P, Frame Size 640x480:
+		Stride 640, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format UYVY, Frame Size 48x32:
+		Stride 96, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format UYVY, Frame Size 1280x1024:
+		Stride 2560, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format UYVY, Frame Size 640x480:
+		Stride 1280, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format VYUY, Frame Size 48x32:
+		Stride 96, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format VYUY, Frame Size 1280x1024:
+		Stride 2560, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format VYUY, Frame Size 640x480:
+		Stride 1280, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format RGBO, Frame Size 48x32:
+		Stride 96, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format RGBO, Frame Size 1280x1024:
+		Stride 2560, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format RGBO, Frame Size 640x480:
+		Stride 1280, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format RGBQ, Frame Size 48x32:
+		Stride 96, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format RGBQ, Frame Size 1280x1024:
+		Stride 2560, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format RGBQ, Frame Size 640x480:
+		Stride 1280, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format RGBP, Frame Size 48x32:
+		Stride 96, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format RGBP, Frame Size 1280x1024:
+		Stride 2560, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format RGBP, Frame Size 640x480:
+		Stride 1280, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format RGBR, Frame Size 48x32:
+		Stride 96, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format RGBR, Frame Size 1280x1024:
+		Stride 2560, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format RGBR, Frame Size 640x480:
+		Stride 1280, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format BA81, Frame Size 48x32:
+		Stride 48, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format BA81, Frame Size 1280x1024:
+		Stride 1280, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format BA81, Frame Size 640x480:
+		Stride 640, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format BG10, Frame Size 1280x1024:
+		Stride 2560, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format BG10, Frame Size 1280x1024:
+		Stride 2560, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+	test MMAP for Format BG10, Frame Size 1280x1024:
+		Stride 2560, Field None: OK   
+		Stride 0, Field Top: OK   
+		Stride 0, Field Bottom: OK   
+		Stride 0, Field Interlaced: OK   
+		Stride 0, Field Sequential Top-Bottom: OK   
+		Stride 0, Field Sequential Bottom-Top: OK   
+		Stride 0, Field Alternating: OK   
+		Stride 0, Field Interlaced Top-Bottom: OK   
+		Stride 0, Field Interlaced Bottom-Top: OK   
+
+Total: 340, Succeeded: 339, Failed: 1, Warnings: 6
