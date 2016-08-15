@@ -1,123 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.goneo.de ([85.220.129.30]:35920 "EHLO smtp1.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754002AbcHVMRw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 08:17:52 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: RFC? [PATCH] docs-rst: kernel-doc: better output struct members
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <87wpj9t3zp.fsf@intel.com>
-Date: Mon, 22 Aug 2016 14:17:35 +0200
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <68264B40-A3A7-4EC9-A591-34611A8595E6@darmarit.de>
-References: <45996a8dc149f7de6ed09d703b76cb65e55b7a9a.1471781478.git.mchehab@s-opensource.com> <970CC2BB-EFCC-41D7-9BFD-3F295DDB1FE4@darmarit.de> <20160822070633.163af4b5@vento.lan> <874m6duk8o.fsf@intel.com> <921CD8C1-C4E7-4052-A8B1-B9DFE9159122@darmarit.de> <87wpj9t3zp.fsf@intel.com>
-To: Jani Nikula <jani.nikula@intel.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:48761 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751375AbcHOHPg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 03:15:36 -0400
+Subject: Re: [PATCH v9 0/2] [media] atmel-isc: add driver for Atmel ISC
+To: "Wu, Songjun" <Songjun.Wu@microchip.com>, nicolas.ferre@atmel.com,
+	robh@kernel.org
+References: <1470899202-13933-1-git-send-email-songjun.wu@microchip.com>
+ <c6593866-db70-b2a6-ee5a-32b6fecc3775@xs4all.nl>
+ <c422fc89-8184-5416-4574-77d6234aa4be@microchip.com>
+Cc: laurent.pinchart@ideasonboard.com,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	=?UTF-8?Q?Niklas_S=c3=83=c2=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	Benoit Parrot <bparrot@ti.com>, linux-kernel@vger.kernel.org,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+	Kamil Debski <kamil@wypas.org>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	=?UTF-8?Q?Richard_R=c3=b6jfors?= <richard@puffinpack.se>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Simon Horman <horms+renesas@verge.net.au>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <89ed4a10-30d7-87ca-8d9d-22ea2634e4af@xs4all.nl>
+Date: Mon, 15 Aug 2016 09:15:23 +0200
+MIME-Version: 1.0
+In-Reply-To: <c422fc89-8184-5416-4574-77d6234aa4be@microchip.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-Am 22.08.2016 um 13:52 schrieb Jani Nikula <jani.nikula@intel.com>:
-
-> On Mon, 22 Aug 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
->> Am 22.08.2016 um 13:16 schrieb Jani Nikula <jani.nikula@intel.com>:
->> 
->>> On Mon, 22 Aug 2016, Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
->>>> Markus,
->>>> 
->>>> Em Mon, 22 Aug 2016 10:56:01 +0200
->>>> Markus Heiser <markus.heiser@darmarit.de> escreveu:
->>>> 
->>>>> Am 21.08.2016 um 14:11 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
->>>>> 
->>>>>> Right now, for a struct, kernel-doc produces the following output:
->>>>>> 
->>>>>> 	.. c:type:: struct v4l2_prio_state
->>>>>> 
->>>>>> 	   stores the priority states
->>>>>> 
->>>>>> 	**Definition**
->>>>>> 
->>>>>> 	::
->>>>>> 
->>>>>> 	  struct v4l2_prio_state {
->>>>>> 	    atomic_t prios[4];
->>>>>> 	  };
->>>>>> 
->>>>>> 	**Members**
->>>>>> 
->>>>>> 	``atomic_t prios[4]``
->>>>>> 	  array with elements to store the array priorities
->>>>>> 
->>>>>> Putting a member name in verbatim and adding a continuation line
->>>>>> causes the LaTeX output to generate something like:
->>>>>> 	item[atomic_t prios\[4\]] array with elements to store the array priorities  
->>>>> 
->>>>> 
->>>>> Right now, the description of C-struct members is a simple rest-definition-list 
->>>>> (not in the c-domain). It might be better to use the c-domain for members:
->>>>> 
->>>>> http://www.sphinx-doc.org/en/stable/domains.html#directive-c:member
->>>>> 
->>>>> But this is not the only thing we have to consider. To make a valid C-struct
->>>>> description (with targets/references in the c-domain) we need a more
->>>>> *structured* reST markup where the members are described in the block-content
->>>>> of the struct directive. E.g:
->>>>> 
->>>>> <SNIP> -----------
->>>>> |.. c:type:: struct v4l2_subdev_ir_ops
->>>>> |
->>>>> |   operations for IR subdevices
->>>>> |
->>>>> |   .. c:member::  int (* rx_read) (struct v4l2_subdev *sd, u8 *buf, size_t count,ssize_t *num)
->>>>> |
->>>>> <SNIP> -----------
->>>>> 
->>>>> By this small example, you see, that we have to discuss the whole markup 
->>>>> produced by the kernel-doc script (function arguments, unions etc.). 
->>>>> IMHO, since kernel-doc is widely used, this should be a RFC.
->>>> 
->>>> I tried using c:member. It won't work on LaTeX output, as it will
->>>> still put everything into a LaTeX item, with doesn't do line breaks.
->>> 
->>> I've tried c:member before, and I'm not convinced it buys us anything
->>> useful. I'm also not convinced we'd need more structured rst markup
->>> within struct or function descriptions in addition to what we currently
->>> have. Keep it simple.
->>> 
->>> BR,
->>> Jani.
->> 
->> It buys, that we stay in the c-domain and we can refer to the members
->> with the :c:member role. E.g :c:member:`v4l2_subdev_ir_ops.rx_read`.
+On 08/15/2016 08:09 AM, Wu, Songjun wrote:
 > 
-> Yes, it allows anchors to members, while detaching the member
-> descriptions from the struct descriptions.
-
-May I misunderstood you "detaching"? .. As far as I know, the members
-has to be in the (indented) block of struct description (like above).
-
-Anyway, I realized (last mail), that the c-parser of Sphinx is totally 
-broken in type / name detecting from signatures, with we have no reliable 
-anchors and it makes no more sense to follow my first intention.
-
-To summarize: after a few thoughts ... I agree with your KIS strategy ;-)
-
--- Markus --
-
-> In the output, there is no
-> perceivable parent-child relationship between the struct and its
-> members. Arguably the resulting documentation is harder to follow with
-> c:member than without. I think it's sufficient to link to the struct
-> descriptions. It's not enough to say that theoretically using c:member
-> is the right thing; it needs to be better in practice too.
 > 
-> BR,
-> Jani.
-> 
+> On 8/12/2016 15:32, Hans Verkuil wrote:
+>> One quick question:
+>>
+>> On 08/11/2016 09:06 AM, Songjun Wu wrote:
+>>> The Image Sensor Controller driver includes two parts.
+>>> 1) Driver code to implement the ISC function.
+>>> 2) Device tree binding documentation, it describes how
+>>>    to add the ISC in device tree.
+>>>
+>>> Test result with v4l-utils.
+>>> # v4l2-compliance -f
+>>> v4l2-compliance SHA   : not available
+>>>
+>>> Driver Info:
+>>>         Driver name   : atmel_isc
+>>>         Card type     : Atmel Image Sensor Controller
+>>>         Bus info      : platform:atmel_isc f0008000.isc
+>>>         Driver version: 4.7.0
+>>>         Capabilities  : 0x84200001
+>>>                 Video Capture
+>>>                 Streaming
+>>>                 Extended Pix Format
+>>>                 Device Capabilities
+>>>         Device Caps   : 0x04200001
+>>>                 Video Capture
+>>>                 Streaming
+>>>                 Extended Pix Format
+>>>
+>>> Compliance test for device /dev/video0 (not using libv4l2):
+>>>
+>>> Required ioctls:
+>>>         test VIDIOC_QUERYCAP: OK
+>>>
+>>> Allow for multiple opens:
+>>>         test second video open: OK
+>>>         test VIDIOC_QUERYCAP: OK
+>>>         test VIDIOC_G/S_PRIORITY: OK
+>>>         test for unlimited opens: OK
+>>>
+>>> Debug ioctls:
+>>>         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>>>         test VIDIOC_LOG_STATUS: OK (Not Supported)
+>>>
+>>> Input ioctls:
+>>>         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+>>>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>>>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>>>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>>>         test VIDIOC_G/S/ENUMINPUT: OK
+>>>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>>>         Inputs: 1 Audio Inputs: 0 Tuners: 0
+>>>
+>>> Output ioctls:
+>>>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>>>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>>>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>>>         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>>>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>>>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+>>>
+>>> Input/Output configuration ioctls:
+>>>         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+>>>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>>>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>>>         test VIDIOC_G/S_EDID: OK (Not Supported)
+>>>
+>>> Test input 0:
+>>>
+>>>         Control ioctls:
+>>>                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+>>>                 test VIDIOC_QUERYCTRL: OK (Not Supported)
+>>>                 test VIDIOC_G/S_CTRL: OK (Not Supported)
+>>>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+>>>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+>>>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>>>                 Standard Controls: 0 Private Controls: 0
+>>
+>> Can you confirm that the sensor subdevice you are using does not have any controls?
+>> I ask since that is fairly unusual, so I want to make sure that controls are really
+>> not supported in this setup.
+>>
+> Sorry for the late reply.
+> The subdevice I use supports controls, but I did not develop the v4l2 
+> controls in the sensor driver.
 
+So you mean the sensor hardware has controls, but the sensor driver doesn't implement
+them? Do I understand you correctly?
+
+> Should I add the v4l2 controls and test again?
+
+If the sensor driver does not implement controls (i.e. has a struct v4l2_ctrl_handler),
+then everything is fine and the v4l2-compliance output is correct.
+
+Please confirm this. I just want to be 100% certain about this before I make the pull
+request.
+
+Thanks,
+
+	Hans
