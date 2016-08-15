@@ -1,32 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp90.iad3a.emailsrvr.com ([173.203.187.90]:41423 "EHLO
-	smtp90.iad3a.emailsrvr.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752329AbcHPV3v (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:54348 "EHLO
+	smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932372AbcHOPHS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2016 17:29:51 -0400
-Received: from smtp4.relay.iad3a.emailsrvr.com (localhost [127.0.0.1])
-	by smtp4.relay.iad3a.emailsrvr.com (SMTP Server) with ESMTP id 2B15DC0456
-	for <linux-media@vger.kernel.org>; Tue, 16 Aug 2016 17:29:50 -0400 (EDT)
-Received: from smtp192.mex08.mlsrvr.com (unknown [74.205.9.160])
-	by smtp4.relay.iad3a.emailsrvr.com (SMTP Server) with ESMTPS id 243FEC038A
-	for <linux-media@vger.kernel.org>; Tue, 16 Aug 2016 17:29:50 -0400 (EDT)
-From: Steve Preston <stevepr@netstevepr.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Linux support for current StarTech analog video capture device
- (SAA711xx)
-Date: Tue, 16 Aug 2016 21:29:49 +0000
-Message-ID: <2d1d06c05dae478b9bc2484e9d1da36c@MBX06A-IAD3.mex08.mlsrvr.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+	Mon, 15 Aug 2016 11:07:18 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl
+Cc: linux-renesas-soc@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com,
+	sergei.shtylyov@cogentembedded.com,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv3 10/10] [media] rcar-vin: move media bus information to struct rvin_graph_entity
+Date: Mon, 15 Aug 2016 17:06:35 +0200
+Message-Id: <20160815150635.22637-11-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I realize this is a long shot but I was directed to this mailing list as one possibility  . 
- 
-I work with a group of amateur astronomers who use analog video cameras to record occultations ( www.occulations.org ).  Several observers have been using the StarTech SVID2USB2 class of analog capture devices (USB dongle) under Windows.  The StarTech devices are one of the few such devices which are readily available today. These StarTech devices seemed to be based on the empia 28xx + SAA71xx chipset devices which have some support in the linux kernel.  Unfortunately, we are having trouble with the StarTech devices in Linux.  Does anyone on this list know of anyone in the linxtv.org (or related) community that might be willing to help us modify a current driver to enable the StarTech device(s)?  Or, do you know of anyone who currently works with analog video capture hardware in linux who might be willing to provide other ideas?
- 
-Thanks in advance for any help you can provide,
-Steve
+The primary reason for this change is to prepare for Gen3 support where
+there will be more then one possible video source. Each source will have
+its own media bus format and code, so it needs to be moved from the per
+device structure to a structure used to represent an individual
+connection to a video source.
+
+Signed-off-by: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 12 ++++++------
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 10 +++++-----
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  2 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  9 +++++----
+ 4 files changed, 17 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 39bf6fc..64999a2 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -31,9 +31,9 @@
+ 
+ #define notifier_to_vin(n) container_of(n, struct rvin_dev, notifier)
+ 
+-static bool rvin_mbus_supported(struct rvin_dev *vin)
++static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
+ {
+-	struct v4l2_subdev *sd = vin->digital.subdev;
++	struct v4l2_subdev *sd = entity->subdev;
+ 	struct v4l2_subdev_mbus_code_enum code = {
+ 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+ 	};
+@@ -46,7 +46,7 @@ static bool rvin_mbus_supported(struct rvin_dev *vin)
+ 		case MEDIA_BUS_FMT_YUYV8_2X8:
+ 		case MEDIA_BUS_FMT_YUYV10_2X10:
+ 		case MEDIA_BUS_FMT_RGB888_1X24:
+-			vin->source.code = code.code;
++			entity->code = code.code;
+ 			return true;
+ 		default:
+ 			break;
+@@ -62,14 +62,14 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+ 	int ret;
+ 
+ 	/* Verify subdevices mbus format */
+-	if (!rvin_mbus_supported(vin)) {
++	if (!rvin_mbus_supported(&vin->digital)) {
+ 		vin_err(vin, "Unsupported media bus format for %s\n",
+ 			vin->digital.subdev->name);
+ 		return -EINVAL;
+ 	}
+ 
+ 	vin_dbg(vin, "Found media bus format for %s: %d\n",
+-		vin->digital.subdev->name, vin->source.code);
++		vin->digital.subdev->name, vin->digital.code);
+ 
+ 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
+ 	if (ret < 0) {
+@@ -170,7 +170,7 @@ static int rvin_digital_graph_parse(struct rvin_dev *vin)
+ 	}
+ 	of_node_put(np);
+ 
+-	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->mbus_cfg);
++	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->digital.mbus_cfg);
+ 	of_node_put(ep);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 3df3f0c..46abdb0 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -163,7 +163,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	/*
+ 	 * Input interface
+ 	 */
+-	switch (vin->source.code) {
++	switch (vin->digital.code) {
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 		/* BT.601/BT.1358 16bit YCbCr422 */
+ 		vnmc |= VNMC_INF_YUV16;
+@@ -171,7 +171,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_YUYV8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+-		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -180,7 +180,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_YUYV10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+-		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -192,11 +192,11 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+ 
+ 	/* Hsync Signal Polarity Select */
+-	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
++	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_HPS;
+ 
+ 	/* Vsync Signal Polarity Select */
+-	if (!(vin->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
++	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_VPS;
+ 
+ 	/*
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index ef3464d..d0e9d65 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -106,7 +106,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 
+ 	sd = vin_to_source(vin);
+ 
+-	v4l2_fill_mbus_format(&format.format, pix, vin->source.code);
++	v4l2_fill_mbus_format(&format.format, pix, vin->digital.code);
+ 
+ 	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
+ 	if (pad_cfg == NULL)
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index edfe658..793184d 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -50,12 +50,10 @@ enum rvin_dma_state {
+ 
+ /**
+  * struct rvin_source_fmt - Source information
+- * @code:	Media bus format from source
+  * @width:	Width from source
+  * @height:	Height from source
+  */
+ struct rvin_source_fmt {
+-	u32 code;
+ 	u32 width;
+ 	u32 height;
+ };
+@@ -74,10 +72,15 @@ struct rvin_video_format {
+  * struct rvin_graph_entity - Video endpoint from async framework
+  * @asd:	sub-device descriptor for async framework
+  * @subdev:	subdevice matched using async framework
++ * @code:	Media bus format from source
++ * @mbus_cfg:	Media bus format from DT
+  */
+ struct rvin_graph_entity {
+ 	struct v4l2_async_subdev asd;
+ 	struct v4l2_subdev *subdev;
++
++	u32 code;
++	struct v4l2_mbus_config mbus_cfg;
+ };
+ 
+ /**
+@@ -85,7 +88,6 @@ struct rvin_graph_entity {
+  * @dev:		(OF) device
+  * @base:		device I/O register space remapped to virtual memory
+  * @chip:		type of VIN chip
+- * @mbus_cfg		media bus configuration
+  *
+  * @vdev:		V4L2 video device associated with VIN
+  * @v4l2_dev:		V4L2 device
+@@ -115,7 +117,6 @@ struct rvin_dev {
+ 	struct device *dev;
+ 	void __iomem *base;
+ 	enum chip_id chip;
+-	struct v4l2_mbus_config mbus_cfg;
+ 
+ 	struct video_device vdev;
+ 	struct v4l2_device v4l2_dev;
+-- 
+2.9.2
 
