@@ -1,180 +1,359 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:48003 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751332AbcHAJPi (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:29463 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932171AbcHODrJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Aug 2016 05:15:38 -0400
-Subject: Re: [PATCH] v4l2-common: add s_selection helper function
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <ecb574ab-58df-8a9d-e3c0-c269cb4ad294@xs4all.nl>
- <4344856.tFBOPs6Ink@avalon>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2d7d69aa-27fd-56af-dd12-f7583bda7dda@xs4all.nl>
-Date: Mon, 1 Aug 2016 11:15:32 +0200
-MIME-Version: 1.0
-In-Reply-To: <4344856.tFBOPs6Ink@avalon>
-Content-Type: text/plain; charset=windows-1252
+	Sun, 14 Aug 2016 23:47:09 -0400
+Message-ID: <1471232822.22671.2.camel@mtksdaap41>
+Subject: Re: [PATCH] vcodec: mediatek: bug fix and code refine for mt8173
+ v4l2 Encoder
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>
+Date: Mon, 15 Aug 2016 11:47:02 +0800
+In-Reply-To: <04b80466-4d83-63f8-46a3-c1ab273f5dae@xs4all.nl>
+References: <1471012549-19849-1-git-send-email-tiffany.lin@mediatek.com>
+	 <04b80466-4d83-63f8-46a3-c1ab273f5dae@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
-
-On 08/01/2016 10:57 AM, Laurent Pinchart wrote:
-> Hi Hans,
+On Sun, 2016-08-14 at 13:40 +0200, Hans Verkuil wrote:
+> On 08/12/2016 04:35 PM, Tiffany Lin wrote:
+> >     This patch include fixs:
+> >     1. Remove unused include in mtk_vcodec_drv.h
+> >     2. Fix visible_height larger than coded_height issue in s_fmt_out
+> >     3. Add timestamp and timecode copy
+> >     4. Fix mtk_vcodec_vdec_release should be called after v4l2_m2m_ctx_release
+> >     5. Remove unused define MTK_INST_WORK_THREAD_ABORT_DONE
+> >     6. Add support V4L2_MPEG_VIDEO_H264_LEVEL_4_2
+> >     4. Refine  venc_h264_if.c and venc_vp8_if.c
 > 
-> Thank you for the patch.
+> I would prefer it if this can be split up into separate patches, one for each fix.
 > 
-> On Monday 01 Aug 2016 10:45:30 Hans Verkuil wrote:
->> Checking the selection constraint flags is often forgotten by drivers,
->> especially if the selection code just clamps the rectangle to the minimum
->> and maximum allowed rectangles.
->>
->> This patch adds a simple helper function that checks the adjusted rectangle
->> against the constraint flags and either returns -ERANGE if it doesn't fit,
->> or fills in the new rectangle and returns 0.
->>
->> It also adds a small helper function to v4l2-rect.h to check if one
->> rectangle fits inside another.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->> diff --git a/drivers/media/v4l2-core/v4l2-common.c
->> b/drivers/media/v4l2-core/v4l2-common.c index 5b80850..a2e5119 100644
->> --- a/drivers/media/v4l2-core/v4l2-common.c
->> +++ b/drivers/media/v4l2-core/v4l2-common.c
->> @@ -61,6 +61,7 @@
->>  #include <media/v4l2-common.h>
->>  #include <media/v4l2-device.h>
->>  #include <media/v4l2-ctrls.h>
->> +#include <media/v4l2-rect.h>
->>
->>  #include <linux/videodev2.h>
->>
->> @@ -371,6 +372,21 @@ void v4l_bound_align_image(u32 *w, unsigned int wmin,
->> unsigned int wmax, }
->>  EXPORT_SYMBOL_GPL(v4l_bound_align_image);
->>
->> +int v4l2_s_selection(struct v4l2_selection *s, const struct v4l2_rect *r)
->> +{
->> +	/* The original rect must lay inside the adjusted one */
->> +	if ((s->flags & V4L2_SEL_FLAG_GE) &&
->> +	    !v4l2_rect_is_inside(&s->r, r))
->> +		return -ERANGE;
->> +	/* The adjusted rect must lay inside the original one */
->> +	if ((s->flags & V4L2_SEL_FLAG_LE) &&
->> +	    !v4l2_rect_is_inside(r, &s->r))
->> +		return -ERANGE;
+> Also, should this be merged for v4.8 or can this wait for 4.9? When you split it
+> up you can use [PATCH for v4.8] as prefix for those patches that should go to v4.8.
 > 
-> I'd like to see how this function is used in drivers.
+I split up this patch into separate patches and resent them.
+Please note there is dependency between these patches.
 
-See my comments here:
+best regards,
+Tiffany
 
-https://patchwork.linuxtv.org/patch/35794/
 
+> Regards,
 > 
->> +	s->r = *r;
->> +	return 0;
->> +}
->> +EXPORT_SYMBOL_GPL(v4l2_s_selection);
->> +
->>  const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
->>  		const struct v4l2_discrete_probe *probe,
->>  		s32 width, s32 height)
->> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
->> index 350cbf9..cfa9cbf 100644
->> --- a/include/media/v4l2-common.h
->> +++ b/include/media/v4l2-common.h
->> @@ -246,6 +246,17 @@ void v4l_bound_align_image(unsigned int *w, unsigned
->> int wmin, unsigned int hmax, unsigned int halign,
->>  			   unsigned int salign);
->>
->> +/**
->> + * v4l2_s_selection - Helper to check adjusted rectangle against constraint
->> flags
->> + *
->> + * @s: pointer to &struct v4l2_selection containing the original rectangle
->> + * @r: pointer to &struct v4l2_rect containing the adjusted rectangle.
->> + *
->> + * Returns -ERANGE if the adjusted rectangle doesn't fit the constraints
->> + * or 0 if it is fine. On success it sets @s->r to @r.
->> + */
+> 	Hans
 > 
-> Part of the functions are documented in the header and part in the 
-> implementation. We need to pick one option, and I prefer the latter one (which 
-> is also more consistent with how functions are documented in most subsystems).
+> > 
+> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> > ---
+> >  drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h |    1 -
+> >  drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |   42 ++++++++++++--------
+> >  .../media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c |    6 ++-
+> >  .../media/platform/mtk-vcodec/mtk_vcodec_intr.h    |    1 -
+> >  .../media/platform/mtk-vcodec/mtk_vcodec_util.c    |   11 ++---
+> >  .../media/platform/mtk-vcodec/venc/venc_h264_if.c  |   16 ++++----
+> >  .../media/platform/mtk-vcodec/venc/venc_vp8_if.c   |   16 ++++----
+> >  7 files changed, 52 insertions(+), 41 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
+> > index 94f0a42..3a8e695 100644
+> > --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
+> > +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
+> > @@ -23,7 +23,6 @@
+> >  #include <media/v4l2-ioctl.h>
+> >  #include <media/videobuf2-core.h>
+> >  
+> > -#include "mtk_vcodec_util.h"
+> >  
+> >  #define MTK_VCODEC_DRV_NAME	"mtk_vcodec_drv"
+> >  #define MTK_VCODEC_ENC_NAME	"mtk-vcodec-enc"
+> > diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> > index 0a895e0..34fd89c 100644
+> > --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> > +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> > @@ -487,7 +487,6 @@ static int vidioc_venc_s_fmt_out(struct file *file, void *priv,
+> >  	struct mtk_q_data *q_data;
+> >  	int ret, i;
+> >  	struct mtk_video_fmt *fmt;
+> > -	unsigned int pitch_w_div16;
+> >  	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
+> >  
+> >  	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
+> > @@ -530,15 +529,6 @@ static int vidioc_venc_s_fmt_out(struct file *file, void *priv,
+> >  	q_data->coded_width = f->fmt.pix_mp.width;
+> >  	q_data->coded_height = f->fmt.pix_mp.height;
+> >  
+> > -	pitch_w_div16 = DIV_ROUND_UP(q_data->visible_width, 16);
+> > -	if (pitch_w_div16 % 8 != 0) {
+> > -		/* Adjust returned width/height, so application could correctly
+> > -		 * allocate hw required memory
+> > -		 */
+> > -		q_data->visible_height += 32;
+> > -		vidioc_try_fmt(f, q_data->fmt);
+> > -	}
+> > -
+> >  	q_data->field = f->fmt.pix_mp.field;
+> >  	ctx->colorspace = f->fmt.pix_mp.colorspace;
+> >  	ctx->ycbcr_enc = f->fmt.pix_mp.ycbcr_enc;
+> > @@ -945,7 +935,8 @@ static int mtk_venc_encode_header(void *priv)
+> >  {
+> >  	struct mtk_vcodec_ctx *ctx = priv;
+> >  	int ret;
+> > -	struct vb2_buffer *dst_buf;
+> > +	struct vb2_buffer *src_buf, *dst_buf;
+> > +	struct vb2_v4l2_buffer *dst_vb2_v4l2, *src_vb2_v4l2;
+> >  	struct mtk_vcodec_mem bs_buf;
+> >  	struct venc_done_result enc_result;
+> >  
+> > @@ -978,6 +969,15 @@ static int mtk_venc_encode_header(void *priv)
+> >  		mtk_v4l2_err("venc_if_encode failed=%d", ret);
+> >  		return -EINVAL;
+> >  	}
+> > +	src_buf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
+> > +	if (src_buf) {
+> > +		src_vb2_v4l2 = to_vb2_v4l2_buffer(src_buf);
+> > +		dst_vb2_v4l2 = to_vb2_v4l2_buffer(dst_buf);
+> > +		dst_buf->timestamp = src_buf->timestamp;
+> > +		dst_vb2_v4l2->timecode = src_vb2_v4l2->timecode;
+> > +	} else {
+> > +		mtk_v4l2_err("No timestamp for the header buffer.");
+> > +	}
+> >  
+> >  	ctx->state = MTK_STATE_HEADER;
+> >  	dst_buf->planes[0].bytesused = enc_result.bs_size;
+> > @@ -1070,7 +1070,7 @@ static void mtk_venc_worker(struct work_struct *work)
+> >  	struct mtk_vcodec_mem bs_buf;
+> >  	struct venc_done_result enc_result;
+> >  	int ret, i;
+> > -	struct vb2_v4l2_buffer *vb2_v4l2;
+> > +	struct vb2_v4l2_buffer *dst_vb2_v4l2, *src_vb2_v4l2;
+> >  
+> >  	/* check dst_buf, dst_buf may be removed in device_run
+> >  	 * to stored encdoe header so we need check dst_buf and
+> > @@ -1110,9 +1110,14 @@ static void mtk_venc_worker(struct work_struct *work)
+> >  	ret = venc_if_encode(ctx, VENC_START_OPT_ENCODE_FRAME,
+> >  			     &frm_buf, &bs_buf, &enc_result);
+> >  
+> > -	vb2_v4l2 = container_of(dst_buf, struct vb2_v4l2_buffer, vb2_buf);
+> > +	src_vb2_v4l2 = to_vb2_v4l2_buffer(src_buf);
+> > +	dst_vb2_v4l2 = to_vb2_v4l2_buffer(dst_buf);
+> > +
+> > +	dst_buf->timestamp = src_buf->timestamp;
+> > +	dst_vb2_v4l2->timecode = src_vb2_v4l2->timecode;
+> > +
+> >  	if (enc_result.is_key_frm)
+> > -		vb2_v4l2->flags |= V4L2_BUF_FLAG_KEYFRAME;
+> > +		dst_vb2_v4l2->flags |= V4L2_BUF_FLAG_KEYFRAME;
+> >  
+> >  	if (ret) {
+> >  		v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf),
+> > @@ -1284,7 +1289,7 @@ int mtk_vcodec_enc_ctrls_setup(struct mtk_vcodec_ctx *ctx)
+> >  			0, V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE);
+> >  	v4l2_ctrl_new_std_menu(handler, ops, V4L2_CID_MPEG_VIDEO_H264_PROFILE,
+> >  			V4L2_MPEG_VIDEO_H264_PROFILE_HIGH,
+> > -			0, V4L2_MPEG_VIDEO_H264_PROFILE_MAIN);
+> > +			0, V4L2_MPEG_VIDEO_H264_PROFILE_HIGH);
+> >  	v4l2_ctrl_new_std_menu(handler, ops, V4L2_CID_MPEG_VIDEO_H264_LEVEL,
+> >  			V4L2_MPEG_VIDEO_H264_LEVEL_4_2,
+> >  			0, V4L2_MPEG_VIDEO_H264_LEVEL_4_0);
+> > @@ -1355,5 +1360,10 @@ int mtk_venc_lock(struct mtk_vcodec_ctx *ctx)
+> >  
+> >  void mtk_vcodec_enc_release(struct mtk_vcodec_ctx *ctx)
+> >  {
+> > -	venc_if_deinit(ctx);
+> > +	int ret = venc_if_deinit(ctx);
+> > +
+> > +	if (ret)
+> > +		mtk_v4l2_err("venc_if_deinit failed=%d", ret);
+> > +
+> > +	ctx->state = MTK_STATE_FREE;
+> >  }
+> > diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
+> > index c7806ec..5cd2151 100644
+> > --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
+> > +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
+> > @@ -218,11 +218,15 @@ static int fops_vcodec_release(struct file *file)
+> >  	mtk_v4l2_debug(1, "[%d] encoder", ctx->id);
+> >  	mutex_lock(&dev->dev_mutex);
+> >  
+> > +	/*
+> > +	 * Call v4l2_m2m_ctx_release to make sure the worker thread is not
+> > +	 * running after venc_if_deinit.
+> > +	 */
+> > +	v4l2_m2m_ctx_release(ctx->m2m_ctx);
+> >  	mtk_vcodec_enc_release(ctx);
+> >  	v4l2_fh_del(&ctx->fh);
+> >  	v4l2_fh_exit(&ctx->fh);
+> >  	v4l2_ctrl_handler_free(&ctx->ctrl_hdl);
+> > -	v4l2_m2m_ctx_release(ctx->m2m_ctx);
+> >  
+> >  	list_del_init(&ctx->list);
+> >  	dev->num_instances--;
+> > diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h
+> > index 33e890f..1213185 100644
+> > --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h
+> > +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h
+> > @@ -16,7 +16,6 @@
+> >  #define _MTK_VCODEC_INTR_H_
+> >  
+> >  #define MTK_INST_IRQ_RECEIVED		0x1
+> > -#define MTK_INST_WORK_THREAD_ABORT_DONE	0x2
+> >  
+> >  struct mtk_vcodec_ctx;
+> >  
+> > diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c
+> > index 5e36513..21c9b81 100644
+> > --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c
+> > +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c
+> > @@ -81,14 +81,15 @@ void mtk_vcodec_mem_free(struct mtk_vcodec_ctx *data,
+> >  		return;
+> >  	}
+> >  
+> > -	dma_free_coherent(dev, size, mem->va, mem->dma_addr);
+> > -	mem->va = NULL;
+> > -	mem->dma_addr = 0;
+> > -	mem->size = 0;
+> > -
+> >  	mtk_v4l2_debug(3, "[%d]  - va      = %p", ctx->id, mem->va);
+> >  	mtk_v4l2_debug(3, "[%d]  - dma     = 0x%lx", ctx->id,
+> >  		       (unsigned long)mem->dma_addr);
+> >  	mtk_v4l2_debug(3, "[%d]    size = 0x%lx", ctx->id, size);
+> > +
+> > +	dma_free_coherent(dev, size, mem->va, mem->dma_addr);
+> > +	mem->va = NULL;
+> > +	mem->dma_addr = 0;
+> > +	mem->size = 0;
+> >  }
+> >  EXPORT_SYMBOL(mtk_vcodec_mem_free);
+> > +
+> > diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+> > index 9a60052..63d4be4 100644
+> > --- a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+> > +++ b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+> > @@ -61,6 +61,8 @@ enum venc_h264_bs_mode {
+> >  
+> >  /*
+> >   * struct venc_h264_vpu_config - Structure for h264 encoder configuration
+> > + *                               AP-W/R : AP is writer/reader on this item
+> > + *                               VPU-W/R: VPU is write/reader on this item
+> >   * @input_fourcc: input fourcc
+> >   * @bitrate: target bitrate (in bps)
+> >   * @pic_w: picture width. Picture size is visible stream resolution, in pixels,
+> > @@ -94,13 +96,13 @@ struct venc_h264_vpu_config {
+> >  
+> >  /*
+> >   * struct venc_h264_vpu_buf - Structure for buffer information
+> > - * @align: buffer alignment (in bytes)
+> > + *                            AP-W/R : AP is writer/reader on this item
+> > + *                            VPU-W/R: VPU is write/reader on this item
+> >   * @iova: IO virtual address
+> >   * @vpua: VPU side memory addr which is used by RC_CODE
+> >   * @size: buffer size (in bytes)
+> >   */
+> >  struct venc_h264_vpu_buf {
+> > -	u32 align;
+> >  	u32 iova;
+> >  	u32 vpua;
+> >  	u32 size;
+> > @@ -108,6 +110,8 @@ struct venc_h264_vpu_buf {
+> >  
+> >  /*
+> >   * struct venc_h264_vsi - Structure for VPU driver control and info share
+> > + *                        AP-W/R : AP is writer/reader on this item
+> > + *                        VPU-W/R: VPU is write/reader on this item
+> >   * This structure is allocated in VPU side and shared to AP side.
+> >   * @config: h264 encoder configuration
+> >   * @work_bufs: working buffer information in VPU side
+> > @@ -150,12 +154,6 @@ struct venc_h264_inst {
+> >  	struct mtk_vcodec_ctx *ctx;
+> >  };
+> >  
+> > -static inline void h264_write_reg(struct venc_h264_inst *inst, u32 addr,
+> > -				  u32 val)
+> > -{
+> > -	writel(val, inst->hw_base + addr);
+> > -}
+> > -
+> >  static inline u32 h264_read_reg(struct venc_h264_inst *inst, u32 addr)
+> >  {
+> >  	return readl(inst->hw_base + addr);
+> > @@ -214,6 +212,8 @@ static unsigned int h264_get_level(struct venc_h264_inst *inst,
+> >  		return 40;
+> >  	case V4L2_MPEG_VIDEO_H264_LEVEL_4_1:
+> >  		return 41;
+> > +	case V4L2_MPEG_VIDEO_H264_LEVEL_4_2:
+> > +		return 42;
+> >  	default:
+> >  		mtk_vcodec_debug(inst, "unsupported level %d", level);
+> >  		return 31;
+> > diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+> > index 60bbcd2..6d97584 100644
+> > --- a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+> > +++ b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+> > @@ -56,6 +56,8 @@ enum venc_vp8_vpu_work_buf {
+> >  
+> >  /*
+> >   * struct venc_vp8_vpu_config - Structure for vp8 encoder configuration
+> > + *                              AP-W/R : AP is writer/reader on this item
+> > + *                              VPU-W/R: VPU is write/reader on this item
+> >   * @input_fourcc: input fourcc
+> >   * @bitrate: target bitrate (in bps)
+> >   * @pic_w: picture width. Picture size is visible stream resolution, in pixels,
+> > @@ -83,14 +85,14 @@ struct venc_vp8_vpu_config {
+> >  };
+> >  
+> >  /*
+> > - * struct venc_vp8_vpu_buf -Structure for buffer information
+> > - * @align: buffer alignment (in bytes)
+> > + * struct venc_vp8_vpu_buf - Structure for buffer information
+> > + *                           AP-W/R : AP is writer/reader on this item
+> > + *                           VPU-W/R: VPU is write/reader on this item
+> >   * @iova: IO virtual address
+> >   * @vpua: VPU side memory addr which is used by RC_CODE
+> >   * @size: buffer size (in bytes)
+> >   */
+> >  struct venc_vp8_vpu_buf {
+> > -	u32 align;
+> >  	u32 iova;
+> >  	u32 vpua;
+> >  	u32 size;
+> > @@ -98,6 +100,8 @@ struct venc_vp8_vpu_buf {
+> >  
+> >  /*
+> >   * struct venc_vp8_vsi - Structure for VPU driver control and info share
+> > + *                       AP-W/R : AP is writer/reader on this item
+> > + *                       VPU-W/R: VPU is write/reader on this item
+> >   * This structure is allocated in VPU side and shared to AP side.
+> >   * @config: vp8 encoder configuration
+> >   * @work_bufs: working buffer information in VPU side
+> > @@ -138,12 +142,6 @@ struct venc_vp8_inst {
+> >  	struct mtk_vcodec_ctx *ctx;
+> >  };
+> >  
+> > -static inline void vp8_enc_write_reg(struct venc_vp8_inst *inst, u32 addr,
+> > -				     u32 val)
+> > -{
+> > -	writel(val, inst->hw_base + addr);
+> > -}
+> > -
+> >  static inline u32 vp8_enc_read_reg(struct venc_vp8_inst *inst, u32 addr)
+> >  {
+> >  	return readl(inst->hw_base + addr);
+> > 
 
-I'll move it.
 
-> 
->> +int v4l2_s_selection(struct v4l2_selection *s, const struct v4l2_rect *r);
->> +
->>  struct v4l2_discrete_probe {
->>  	const struct v4l2_frmsize_discrete	*sizes;
->>  	int					num_sizes;
->> diff --git a/include/media/v4l2-rect.h b/include/media/v4l2-rect.h
->> index d2125f0..858c8cb 100644
->> --- a/include/media/v4l2-rect.h
->> +++ b/include/media/v4l2-rect.h
->> @@ -95,6 +95,21 @@ static inline bool v4l2_rect_same_size(const struct
->> v4l2_rect *r1, }
->>
->>  /**
->> + * v4l2_rect_is_inside() - return true if r1 is inside r2
->> + * @r1: rectangle.
->> + * @r2: rectangle.
->> + *
->> + * Return true if r1 fits inside r2.
->> + */
->> +static inline bool v4l2_rect_is_inside(const struct v4l2_rect *r1,
->> +				       const struct v4l2_rect *r2)
-> 
-> How about calling the arguments inner and outer to make the purpose of each 
-> argument more explicit from the function prototype ?
-
-Much better, thanks.
-
-> Also, I would name the function v4l2_rect_is_contained(), or possibly 
-> v4l2_rect_contains() in which case the arguments should be switched. It should 
-> also be noted that C doesn't provide support for function overloading so we 
-> can't have
-> 
-> /* Rectangle contains rectangle */
-> bool v4l2_rect_contains(const struct v4l2_rect *outer,
-> 			const struct v4l2_rect *inner);
-> /* Rectangle contains point */
-> bool v4l2_rect_contains(const struct v4l2_rect *rect,
-> 			unsigned int x, unsigned int y);
-> 
-> Maybe we should thus name the function v4l2_rect_contains_rect() in prevision 
-> for a future v4l2_rect_contains_point() ?
-
-I prefer is_inside. The name implies that one rect is inside another
-whereas 'contains' just suggests that some object is contained by a rect.
-Also, the 'inside' terminology is already used in v4l2-rect.h.
-
-> 
->> +{
->> +	return r1->left >= r2->left && r1->top >= r2->top &&
->> +	       r1->left + r1->width <= r2->left + r2->width &&
->> +	       r1->top + r1->height <= r2->top + r2->height;
-> 
-> Isn't that's a big long for an inline function ?
-
-I don't think so.
-
-> 
->> +}
->> +
->> +/**
->>   * v4l2_rect_intersect() - calculate the intersection of two rects.
->>   * @r: intersection of @r1 and @r2.
->>   * @r1: rectangle.
-> 
-
-Regards,
-
-	Hans
