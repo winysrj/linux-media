@@ -1,98 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:38140 "EHLO smtp3-1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751093AbcHKMNd convert rfc822-to-8bit (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:23554 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752170AbcHODdq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 08:13:33 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [RFC 3/4] Documentation: move dma-buf documentation to rst
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <CAB6B88B-C9E4-4213-A8A2-7BB39EC9B5F6@darmarit.de>
-Date: Thu, 11 Aug 2016 14:12:03 +0200
-Cc: "linux-media@vger.kernel.org Mailing List"
-	<linux-media@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org Development"
-	<dri-devel@lists.freedesktop.org>, linaro-mm-sig@lists.linaro.org,
-	linux-doc@vger.kernel.org,
-	"corbet@lwn.net Corbet" <corbet@lwn.net>,
-	"linux-kernel@vger.kernel.org List" <linux-kernel@vger.kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <7000584B-8BE3-4948-8DB2-4088F3C88295@darmarit.de>
-References: <1470912480-32304-1-git-send-email-sumit.semwal@linaro.org> <1470912480-32304-4-git-send-email-sumit.semwal@linaro.org> <CAB6B88B-C9E4-4213-A8A2-7BB39EC9B5F6@darmarit.de>
-To: Sumit Semwal <sumit.semwal@linaro.org>
+	Sun, 14 Aug 2016 23:33:46 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH for v4.8] vcodec:mediatek: Refine H264 encoder driver
+Date: Mon, 15 Aug 2016 11:33:32 +0800
+Message-ID: <1471232012-27624-1-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch :
+1. remove field and function that unused anymore
+2. add support V4L2_MPEG_VIDEO_H264_LEVEL_4_2
 
-Am 11.08.2016 um 13:58 schrieb Markus Heiser <markus.heiser@darmarit.de>:
->> +.. note:: Until this stage, the buffer-exporter has the option to choose not to
->> +   actually allocate the backing storage for this buffer, but wait for the
->> +   first buffer-user to request use of buffer for allocation.
-> 
-> Use newlines ... which are markups in reST ;)
-> 
-> .. note:: 
-> 
-> Until this stage, the buffer-exporter has the option to choose not to
-> actually allocate the backing storage for this buffer, but wait for the
-> first buffer-user to request use of buffer for allocation.
-> 
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+---
+ .../media/platform/mtk-vcodec/venc/venc_h264_if.c  |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-Sorry, my f... apple mail drops leading whitespaces ...
-
-|.. note::
-|
-|   Until this stage, the buffer-exporter has the option to choose not to
-|   actually allocate the backing storage for this buffer, but wait for the
-
->> +Kernel cpu access to a dma-buf buffer object
->> +============================================
->> +
->> +The motivation to allow cpu access from the kernel to a dma-buf object from the
->> +importers side are:
->> +
->> +* fallback operations, e.g. if the devices is connected to a usb bus and the
->> +  kernel needs to shuffle the data around first before sending it away.
->> +* full transparency for existing users on the importer side, i.e. userspace
->> +  should not notice the difference between a normal object from that subsystem
->> +  and an imported one backed by a dma-buf. This is really important for drm
->> +  opengl drivers that expect to still use all the existing upload/download
->> +  paths.
-> 
-> I is recommended to separate blocks (in this case the list item blocks) with
-> a newline. E.g.
-> 
-> * first lorem
-> ipsum
-> 
-> * second lorem
-> ipsum
-> 
-> If you have only one-liners, it is OK to write
-> 
-> * first
-> * second
-> 
-
-same here, leading whitespace are droped by the mail client.
-
-|* first lorem
-|  ipsum
-|
-|* second lorem
-|  ipsum
-
-Sorry for disorientation. For a snatch I forgot, that 
-that Apple & MS have a mistaken idea of "plain text" ;)
-
-
--- Markus --
-
-
-
-
-
-
-
+diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+index 9a60052..63d4be4 100644
+--- a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
++++ b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+@@ -61,6 +61,8 @@ enum venc_h264_bs_mode {
+ 
+ /*
+  * struct venc_h264_vpu_config - Structure for h264 encoder configuration
++ *                               AP-W/R : AP is writer/reader on this item
++ *                               VPU-W/R: VPU is write/reader on this item
+  * @input_fourcc: input fourcc
+  * @bitrate: target bitrate (in bps)
+  * @pic_w: picture width. Picture size is visible stream resolution, in pixels,
+@@ -94,13 +96,13 @@ struct venc_h264_vpu_config {
+ 
+ /*
+  * struct venc_h264_vpu_buf - Structure for buffer information
+- * @align: buffer alignment (in bytes)
++ *                            AP-W/R : AP is writer/reader on this item
++ *                            VPU-W/R: VPU is write/reader on this item
+  * @iova: IO virtual address
+  * @vpua: VPU side memory addr which is used by RC_CODE
+  * @size: buffer size (in bytes)
+  */
+ struct venc_h264_vpu_buf {
+-	u32 align;
+ 	u32 iova;
+ 	u32 vpua;
+ 	u32 size;
+@@ -108,6 +110,8 @@ struct venc_h264_vpu_buf {
+ 
+ /*
+  * struct venc_h264_vsi - Structure for VPU driver control and info share
++ *                        AP-W/R : AP is writer/reader on this item
++ *                        VPU-W/R: VPU is write/reader on this item
+  * This structure is allocated in VPU side and shared to AP side.
+  * @config: h264 encoder configuration
+  * @work_bufs: working buffer information in VPU side
+@@ -150,12 +154,6 @@ struct venc_h264_inst {
+ 	struct mtk_vcodec_ctx *ctx;
+ };
+ 
+-static inline void h264_write_reg(struct venc_h264_inst *inst, u32 addr,
+-				  u32 val)
+-{
+-	writel(val, inst->hw_base + addr);
+-}
+-
+ static inline u32 h264_read_reg(struct venc_h264_inst *inst, u32 addr)
+ {
+ 	return readl(inst->hw_base + addr);
+@@ -214,6 +212,8 @@ static unsigned int h264_get_level(struct venc_h264_inst *inst,
+ 		return 40;
+ 	case V4L2_MPEG_VIDEO_H264_LEVEL_4_1:
+ 		return 41;
++	case V4L2_MPEG_VIDEO_H264_LEVEL_4_2:
++		return 42;
+ 	default:
+ 		mtk_vcodec_debug(inst, "unsupported level %d", level);
+ 		return 31;
+-- 
+1.7.9.5
 
