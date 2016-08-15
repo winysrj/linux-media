@@ -1,50 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:32971 "EHLO
-	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768253AbcHROfq (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:32817 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752856AbcHOPhN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2016 10:35:46 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Antti Palosaari <crope@iki.fi>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v5 03/12] [media] Documentation: Add Ricardo Ribalda
-Date: Thu, 18 Aug 2016 16:33:29 +0200
-Message-Id: <1471530818-7928-4-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
+	Mon, 15 Aug 2016 11:37:13 -0400
+From: Chris Wilson <chris@chris-wilson.co.uk>
+To: dri-devel@lsits.freedesktop.org
+Cc: intel-gfx@lists.freedesktop.org,
+	Chris Wilson <chris@chris-wilson.co.uk>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Eric Anholt <eric@anholt.net>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2] dma-buf: Wait on the reservation object when sync'ing before CPU access
+Date: Mon, 15 Aug 2016 16:37:05 +0100
+Message-Id: <1471275425-30062-1-git-send-email-chris@chris-wilson.co.uk>
+In-Reply-To: <1466492640-12551-1-git-send-email-chris@chris-wilson.co.uk>
+References: <1466492640-12551-1-git-send-email-chris@chris-wilson.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-My initials were on the Changelog, but there was no link to my name.
+Rendering operations to the dma-buf are tracked implicitly via the
+reservation_object (dmabuf->resv). This is used to allow poll() to
+wait upon outstanding rendering (or just query the current status of
+rendering). The dma-buf sync ioctl allows userspace to prepare the
+dma-buf for CPU access, which should include waiting upon rendering.
+(Some drivers may need to do more work to ensure that the dma-buf mmap
+is coherent as well as complete.)
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+v2: Always wait upon the reservation object implicitly. We choose to do
+it after the native handler in case it can do so more efficiently.
+
+Testcase: igt/prime_vgem
+Testcase: igt/gem_concurrent_blit # *vgem*
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Eric Anholt <eric@anholt.net>
+Cc: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linaro-mm-sig@lists.linaro.org
+Cc: linux-kernel@vger.kernel.org
 ---
- Documentation/media/uapi/v4l/v4l2.rst | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/dma-buf/dma-buf.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
-index 36c6d0dc3859..cf4a40ff7e14 100644
---- a/Documentation/media/uapi/v4l/v4l2.rst
-+++ b/Documentation/media/uapi/v4l/v4l2.rst
-@@ -68,6 +68,10 @@ Authors, in alphabetical order:
+diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+index ddaee60ae52a..cf04d249a6a4 100644
+--- a/drivers/dma-buf/dma-buf.c
++++ b/drivers/dma-buf/dma-buf.c
+@@ -586,6 +586,22 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
+ }
+ EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
  
-   - SDR API.
- 
-+- Ribalda, Ricardo
++static int __dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
++				      enum dma_data_direction direction)
++{
++	bool write = (direction == DMA_BIDIRECTIONAL ||
++		      direction == DMA_TO_DEVICE);
++	struct reservation_object *resv = dmabuf->resv;
++	long ret;
 +
-+  - Introduce HSV formats and other minor changes.
++	/* Wait on any implicit rendering fences */
++	ret = reservation_object_wait_timeout_rcu(resv, write, true,
++						  MAX_SCHEDULE_TIMEOUT);
++	if (ret < 0)
++		return ret;
 +
- - Rubli, Martin
++	return 0;
++}
  
-   - Designed and documented the VIDIOC_ENUM_FRAMESIZES and VIDIOC_ENUM_FRAMEINTERVALS ioctls.
+ /**
+  * dma_buf_begin_cpu_access - Must be called before accessing a dma_buf from the
+@@ -608,6 +624,13 @@ int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
+ 	if (dmabuf->ops->begin_cpu_access)
+ 		ret = dmabuf->ops->begin_cpu_access(dmabuf, direction);
+ 
++	/* Ensure that all fences are waited upon - but we first allow
++	 * the native handler the chance to do so more efficiently if it
++	 * chooses. A double invocation here will be reasonably cheap no-op.
++	 */
++	if (ret == 0)
++		ret = __dma_buf_begin_cpu_access(dmabuf, direction);
++
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(dma_buf_begin_cpu_access);
 -- 
 2.8.1
 
