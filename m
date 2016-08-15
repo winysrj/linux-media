@@ -1,62 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44834 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752488AbcHQM1B (ORCPT
+Received: from buckingham.telekom.sk ([213.81.152.80]:55944 "EHLO
+	smtp.t-com.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753030AbcHOPbf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2016 08:27:01 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Songjun Wu <songjun.wu@microchip.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 2/7] ov7670: call v4l2_async_register_subdev
-Date: Wed, 17 Aug 2016 15:27:15 +0300
-Message-ID: <1725866.OjAFEA93KG@avalon>
-In-Reply-To: <1471415383-38531-3-git-send-email-hverkuil@xs4all.nl>
-References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl> <1471415383-38531-3-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 15 Aug 2016 11:31:35 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-disposition: inline
+Content-type: text/plain; charset=us-ascii
+Received: from stonline.sk ([unknown] [192.168.32.30])
+ by mta-out2.stonline.sk (STOnline ESMTP Server)
+ with ESMTP id <0OBY00KYGIXNYVA0@mta-out2.stonline.sk> for
+ linux-media@vger.kernel.org; Mon, 15 Aug 2016 17:27:23 +0200 (CEST)
+From: =?iso-8859-2?B?TmVkdmXvYWwgTWFyaeFu?= <neiveial@stonline.sk>
+To: linux-media@vger.kernel.org
+Message-id: <7530c2753e75.57b1fc75@stonline.sk>
+Date: Mon, 15 Aug 2016 17:31:33 +0200
+Content-language: sk
+Subject: TS discontinuity invalid eit section
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-Thank you for the patch.
+Hi,
 
-On Wednesday 17 Aug 2016 08:29:38 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Add v4l2-async support for this driver.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/i2c/ov7670.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-> index 25f46c7..26ad1a2 100644
-> --- a/drivers/media/i2c/ov7670.c
-> +++ b/drivers/media/i2c/ov7670.c
-> @@ -1662,6 +1662,14 @@ static int ov7670_probe(struct i2c_client *client,
->  	v4l2_ctrl_cluster(2, &info->saturation);
->  	v4l2_ctrl_handler_setup(&info->hdl);
-> 
-> +	ret = v4l2_async_register_subdev(&info->sd);
-> +	if (ret < 0) {
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +		media_entity_cleanup(&info->sd.entity);
-> +#endif
+I have PCI_e tbs6928(FE)-linux tbs driver; usb TT 3650CI-media build drivers.
+For both cards noticing the same problem-astra 23.5;dvb-s2 transp.(not all).
+It's about problem drivers.Tested with dvblast, mumudvb, vdr.
 
-Don't you need to also call v4l2_ctrl_handler_free() ?
+~$ dvblast -f 12363000
+...
+warning: TS discontinuity on pid   18 expected_cc 15 got  0 (EPG, sid 0)
+warning: TS discontinuity on pid   18 expected_cc  7 got  8 (EPG, sid 0)
+warning: invalid EIT section received on PID 18
+error type: invalid_eit_section pid: 18
+warning: TS discontinuity on pid   18 expected_cc  2 got  3 (EPG, sid 0)
+...
 
-> +		return ret;
-> +	}
-> +
->  	return 0;
->  }
-
--- 
-Regards,
-
-Laurent Pinchart
-
+image falls apart.
+Tested on different kernels(ubuntu,debian).
+It can do anything to help?
