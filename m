@@ -1,168 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:26461 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755303AbcH2R4I (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 13:56:08 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Jiri Kosina <trivial@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v5 01/13] media: mt9m111: make a standalone v4l2 subdevice
-Date: Mon, 29 Aug 2016 19:55:46 +0200
-Message-Id: <1472493358-24618-2-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
-References: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
+Received: from bombadil.infradead.org ([198.137.202.9]:51007 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752713AbcHOVXR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 17:23:17 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH RFC v2 0/9]  Make PDF output for media book to work
+Date: Mon, 15 Aug 2016 18:21:51 -0300
+Message-Id: <cover.1471294965.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the soc_camera adherence. Mostly the change removes the power
-manipulation provided by soc_camera, and instead :
- - powers on the sensor when the s_power control is activated
- - powers on the sensor in initial probe
- - enables and disables the MCLK provided to it in power on/off
+This patch series fix the severe issues related to LaTeX output with media.
+After applying it, "make pdfdocs" generates the Kernel documentation with
+all books upstream, including the media books.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/i2c/soc_camera/mt9m111.c | 51 ++++++++++------------------------
- 1 file changed, 15 insertions(+), 36 deletions(-)
+There are still some caveats, but the end result can be seen at:
+	https://mchehab.fedorapeople.org/TheLinuxKernel.pdf
 
-diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
-index 6dfaead6aaa8..a7efaa5964d1 100644
---- a/drivers/media/i2c/soc_camera/mt9m111.c
-+++ b/drivers/media/i2c/soc_camera/mt9m111.c
-@@ -16,10 +16,11 @@
- #include <linux/v4l2-mediabus.h>
- #include <linux/module.h>
- 
--#include <media/soc_camera.h>
-+#include <media/v4l2-async.h>
- #include <media/v4l2-clk.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
- 
- /*
-  * MT9M111, MT9M112 and MT9M131:
-@@ -388,7 +389,7 @@ static int mt9m111_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
- 	struct v4l2_rect rect = a->c;
- 	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
- 	int width, height;
--	int ret;
-+	int ret, align = 0;
- 
- 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
-@@ -396,17 +397,19 @@ static int mt9m111_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
- 	if (mt9m111->fmt->code == MEDIA_BUS_FMT_SBGGR8_1X8 ||
- 	    mt9m111->fmt->code == MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE) {
- 		/* Bayer format - even size lengths */
--		rect.width	= ALIGN(rect.width, 2);
--		rect.height	= ALIGN(rect.height, 2);
-+		align = 1;
- 		/* Let the user play with the starting pixel */
- 	}
- 
- 	/* FIXME: the datasheet doesn't specify minimum sizes */
--	soc_camera_limit_side(&rect.left, &rect.width,
--		     MT9M111_MIN_DARK_COLS, 2, MT9M111_MAX_WIDTH);
--
--	soc_camera_limit_side(&rect.top, &rect.height,
--		     MT9M111_MIN_DARK_ROWS, 2, MT9M111_MAX_HEIGHT);
-+	v4l_bound_align_image(&rect.width, 2, MT9M111_MAX_WIDTH, align,
-+			      &rect.height, 2, MT9M111_MAX_HEIGHT, align, 0);
-+	rect.left = clamp(rect.left, MT9M111_MIN_DARK_COLS,
-+			  MT9M111_MIN_DARK_COLS + MT9M111_MAX_WIDTH -
-+			  (__s32)rect.width);
-+	rect.top = clamp(rect.top, MT9M111_MIN_DARK_ROWS,
-+			 MT9M111_MIN_DARK_ROWS + MT9M111_MAX_HEIGHT -
-+			 (__s32)rect.height);
- 
- 	width = min(mt9m111->width, rect.width);
- 	height = min(mt9m111->height, rect.height);
-@@ -775,17 +778,16 @@ static int mt9m111_init(struct mt9m111 *mt9m111)
- static int mt9m111_power_on(struct mt9m111 *mt9m111)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	int ret;
- 
--	ret = soc_camera_power_on(&client->dev, ssdd, mt9m111->clk);
-+	ret = v4l2_clk_enable(mt9m111->clk);
- 	if (ret < 0)
- 		return ret;
- 
- 	ret = mt9m111_resume(mt9m111);
- 	if (ret < 0) {
- 		dev_err(&client->dev, "Failed to resume the sensor: %d\n", ret);
--		soc_camera_power_off(&client->dev, ssdd, mt9m111->clk);
-+		v4l2_clk_disable(mt9m111->clk);
- 	}
- 
- 	return ret;
-@@ -793,11 +795,8 @@ static int mt9m111_power_on(struct mt9m111 *mt9m111)
- 
- static void mt9m111_power_off(struct mt9m111 *mt9m111)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--
- 	mt9m111_suspend(mt9m111);
--	soc_camera_power_off(&client->dev, ssdd, mt9m111->clk);
-+	v4l2_clk_disable(mt9m111->clk);
- }
- 
- static int mt9m111_s_power(struct v4l2_subdev *sd, int on)
-@@ -854,14 +853,10 @@ static int mt9m111_enum_mbus_code(struct v4l2_subdev *sd,
- static int mt9m111_g_mbus_config(struct v4l2_subdev *sd,
- 				struct v4l2_mbus_config *cfg)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--
- 	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING |
- 		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_HIGH |
- 		V4L2_MBUS_DATA_ACTIVE_HIGH;
- 	cfg->type = V4L2_MBUS_PARALLEL;
--	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
- 
- 	return 0;
- }
-@@ -933,20 +928,8 @@ static int mt9m111_probe(struct i2c_client *client,
- {
- 	struct mt9m111 *mt9m111;
- 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	int ret;
- 
--	if (client->dev.of_node) {
--		ssdd = devm_kzalloc(&client->dev, sizeof(*ssdd), GFP_KERNEL);
--		if (!ssdd)
--			return -ENOMEM;
--		client->dev.platform_data = ssdd;
--	}
--	if (!ssdd) {
--		dev_err(&client->dev, "mt9m111: driver needs platform data\n");
--		return -EINVAL;
--	}
--
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
- 		dev_warn(&adapter->dev,
- 			 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
-@@ -992,10 +975,6 @@ static int mt9m111_probe(struct i2c_client *client,
- 	mt9m111->lastpage	= -1;
- 	mutex_init(&mt9m111->power_lock);
- 
--	ret = soc_camera_power_init(&client->dev, ssdd);
--	if (ret < 0)
--		goto out_hdlfree;
--
- 	ret = mt9m111_video_probe(client);
- 	if (ret < 0)
- 		goto out_hdlfree;
+To help people testing it, I pushed the patches on this series, plus two patches
+from Jani at:
+	https://git.linuxtv.org/mchehab/experimental.git/log/?h=docs-next
+
+This series contain:
+
+1) 3 patches fixing LaTeX handling at Documentation/conf.py
+
+Those patches use "xelatex" instead of "pdflatex", with fix support for
+UTF-8 characters, needed by the media books. It also fixes the breakages
+on LaTeX Sphinx output for notes inside tables. Finally, it allows rotating
+some pages at the PDF output. This is needed in order to output very big
+tables. Patches to rotate such tables are not in this series.
+
+2) a patch that makes usage of Sphinx math extension;
+
+3) One patch converting some GIF files to PNG (needed by pdflatex).
+   Didn't check if xelatex needs it, but it is still a good idea to use PNG.
+
+4) 3 fixup patches (that are actually independent of this series
+
+5)  A hack that does two things:
+    - comment out C blocks inside tables, as Sphinx 1.4.5 produces a broken
+      LaTeX file if it sees such blocks;
+
+    - Cleans the auto-generated rst files, as the escape codes there are meant
+      to work with HTML, and not LaTeX. It is likely easy to fix the perl script to do
+      the right thing here, but, as Markus is writing a Sphinx extension for it,
+      let's discuss it uptream before doing rework.
+
+PS.: The last patch are not meant to be merged. Merging the other ones should
+be OK.
+
+Mauro Carvalho Chehab (9):
+  docs-rst: allow generating some LaTeX pages in landscape
+  docs-rst: improve output for .. notes:: on LaTeX
+  docs-rst: Don't mangle with UTF-8 chars on LaTeX/PDF output
+  [media] pixfmt-007.rst: use Sphinx math:: expressions
+  [media] pixfmt-nv12mt.rst: use PNG instead of GIF
+  [media] vidioc-enumstd.rst: fix a broken reference
+  [media] vidioc-enumstd.rst: remove bullets from sound carrier
+  [media] docs-rst: better use the .. note:: tag
+  HACK: make pdfdocs build with media books
+
+ Documentation/Makefile.sphinx                      |   7 +-
+ Documentation/conf.py                              |  56 ++++--
+ Documentation/media/uapi/cec/cec-func-close.rst    |   4 +-
+ Documentation/media/uapi/cec/cec-func-ioctl.rst    |   4 +-
+ Documentation/media/uapi/cec/cec-func-open.rst     |   4 +-
+ Documentation/media/uapi/cec/cec-func-poll.rst     |   4 +-
+ Documentation/media/uapi/cec/cec-intro.rst         |   4 +-
+ .../media/uapi/cec/cec-ioc-adap-g-caps.rst         |   4 +-
+ .../media/uapi/cec/cec-ioc-adap-g-log-addrs.rst    |   4 +-
+ .../media/uapi/cec/cec-ioc-adap-g-phys-addr.rst    |   4 +-
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst   |   4 +-
+ Documentation/media/uapi/cec/cec-ioc-g-mode.rst    |   4 +-
+ Documentation/media/uapi/cec/cec-ioc-receive.rst   |   4 +-
+ .../media/uapi/dvb/dvb-fe-read-status.rst          |   4 +-
+ Documentation/media/uapi/dvb/dvbapi.rst            |   4 +-
+ Documentation/media/uapi/dvb/dvbproperty.rst       |   4 +-
+ Documentation/media/uapi/dvb/examples.rst          |   4 +-
+ Documentation/media/uapi/dvb/fe-get-info.rst       |   4 +-
+ Documentation/media/uapi/dvb/fe-read-status.rst    |   4 +-
+ Documentation/media/uapi/dvb/frontend.rst          |   4 +-
+ .../media/uapi/rc/lirc-set-wideband-receiver.rst   |   4 +-
+ Documentation/media/uapi/v4l/audio.rst             |   4 +-
+ Documentation/media/uapi/v4l/buffer.rst            |  13 +-
+ Documentation/media/uapi/v4l/crop.rst              |  12 +-
+ Documentation/media/uapi/v4l/dev-codec.rst         |   4 +-
+ Documentation/media/uapi/v4l/dev-osd.rst           |   4 +-
+ Documentation/media/uapi/v4l/dev-overlay.rst       |   8 +-
+ Documentation/media/uapi/v4l/dev-rds.rst           |   4 +-
+ Documentation/media/uapi/v4l/extended-controls.rst |   4 +-
+ Documentation/media/uapi/v4l/func-mmap.rst         |   4 +-
+ Documentation/media/uapi/v4l/pixfmt-006.rst        |   4 +-
+ Documentation/media/uapi/v4l/pixfmt-007.rst        | 187 ++++++++++++++-------
+ Documentation/media/uapi/v4l/pixfmt-nv12mt.rst     |   4 +-
+ .../media/uapi/v4l/pixfmt-nv12mt_files/nv12mt.gif  | Bin 2108 -> 0 bytes
+ .../media/uapi/v4l/pixfmt-nv12mt_files/nv12mt.png  | Bin 0 -> 1920 bytes
+ .../v4l/pixfmt-nv12mt_files/nv12mt_example.gif     | Bin 6858 -> 0 bytes
+ .../v4l/pixfmt-nv12mt_files/nv12mt_example.png     | Bin 0 -> 5261 bytes
+ Documentation/media/uapi/v4l/pixfmt-sbggr16.rst    |   4 +-
+ Documentation/media/uapi/v4l/pixfmt-y16-be.rst     |   4 +-
+ Documentation/media/uapi/v4l/pixfmt-y16.rst        |   4 +-
+ Documentation/media/uapi/v4l/standard.rst          |   4 +-
+ Documentation/media/uapi/v4l/tuner.rst             |   4 +-
+ Documentation/media/uapi/v4l/userp.rst             |   4 +-
+ .../media/uapi/v4l/vidioc-dv-timings-cap.rst       |   4 +-
+ .../media/uapi/v4l/vidioc-enum-dv-timings.rst      |   4 +-
+ Documentation/media/uapi/v4l/vidioc-enum-fmt.rst   |  17 +-
+ .../media/uapi/v4l/vidioc-enum-frameintervals.rst  |   4 +-
+ .../media/uapi/v4l/vidioc-enum-framesizes.rst      |   4 +-
+ .../media/uapi/v4l/vidioc-enum-freq-bands.rst      |   4 +-
+ .../media/uapi/v4l/vidioc-enumaudioout.rst         |   4 +-
+ Documentation/media/uapi/v4l/vidioc-enumstd.rst    |  27 ++-
+ Documentation/media/uapi/v4l/vidioc-g-audioout.rst |   4 +-
+ Documentation/media/uapi/v4l/vidioc-g-edid.rst     |   4 +-
+ .../media/uapi/v4l/vidioc-g-ext-ctrls.rst          |   8 +-
+ .../media/uapi/v4l/vidioc-g-modulator.rst          |   4 +-
+ .../media/uapi/v4l/vidioc-g-sliced-vbi-cap.rst     |   4 +-
+ Documentation/media/uapi/v4l/vidioc-g-tuner.rst    |   8 +-
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst       |   4 +-
+ .../media/uapi/v4l/vidioc-query-dv-timings.rst     |   4 +-
+ Documentation/media/uapi/v4l/vidioc-querycap.rst   |  20 +--
+ Documentation/media/uapi/v4l/vidioc-queryctrl.rst  |  16 +-
+ Documentation/media/uapi/v4l/vidioc-querystd.rst   |   4 +-
+ Documentation/media/uapi/v4l/vidioc-streamon.rst   |   4 +-
+ .../media/uapi/v4l/vidioc-subscribe-event.rst      |   4 +-
+ Documentation/media/v4l-drivers/bttv.rst           |   1 +
+ 65 files changed, 396 insertions(+), 176 deletions(-)
+ delete mode 100644 Documentation/media/uapi/v4l/pixfmt-nv12mt_files/nv12mt.gif
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-nv12mt_files/nv12mt.png
+ delete mode 100644 Documentation/media/uapi/v4l/pixfmt-nv12mt_files/nv12mt_example.gif
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-nv12mt_files/nv12mt_example.png
+
 -- 
-2.1.4
+2.7.4
+
 
