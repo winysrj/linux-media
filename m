@@ -1,44 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:41336 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758851AbcHaNZd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Aug 2016 09:25:33 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH 0/3] Exynos4-IS: improve clock management
-Date: Wed, 31 Aug 2016 15:25:15 +0200
-Message-id: <1472649918-10371-1-git-send-email-m.szyprowski@samsung.com>
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:36687 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752762AbcHON1B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 09:27:01 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Jiri Kosina <trivial@kernel.org>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 09/14] media: platform: pxa_camera: add buffer sequencing
+References: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
+	<1470684652-16295-10-git-send-email-robert.jarzmik@free.fr>
+Date: Mon, 15 Aug 2016 15:26:57 +0200
+In-Reply-To: <1470684652-16295-10-git-send-email-robert.jarzmik@free.fr>
+	(Robert Jarzmik's message of "Mon, 8 Aug 2016 21:30:47 +0200")
+Message-ID: <87mvkeqi1q.fsf@belgarion.home>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear All,
+Robert Jarzmik <robert.jarzmik@free.fr> writes:
 
-This is a set of a few patches for Exynos4-IS driver, which improve clock
-management. Those patches are needed for improved runtime pm
-management for Exynos clocks driver, which will be posted in a
-separate thread.
+> Add sequence numbers to completed buffers.
+>
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> ---
+>  drivers/media/platform/soc_camera/pxa_camera.c | 5 +++++
+>  1 file changed, 5 insertions(+)
+>
+> diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+> index d66443ac1f4d..8a65f126d091 100644
+> --- a/drivers/media/platform/soc_camera/pxa_camera.c
+> +++ b/drivers/media/platform/soc_camera/pxa_camera.c
+> @@ -401,6 +402,7 @@ static void pxa_camera_start_capture(struct pxa_camera_dev *pcdev)
+>  	unsigned long cicr0;
+>  
+>  	dev_dbg(pcdev_to_dev(pcdev), "%s\n", __func__);
+> +	pcdev->buf_sequence = 0;
 
-Best regards
-Marek Szyprowski
-Samsung R&D Institute Poland
+I'm not so sure this is the right place to reset the buffer sequence.
 
+I've seen no documentation on the rules applicable to this sequence number:
+ - should it be reset if a "start streaming" operation occurs ?
+ - should it be reset if a streams stops by lack of video buffers queued ?
+ - should it be reset in queue_setup() like in other drivers ?
 
-Marek Szyprowski (3):
-  exynos4-is: Add support for all required clocks
-  exynos4-is: Improve clock management
-  ARM: exynos: add all required FIMC-IS clocks to exynos4x12 dtsi
+Or should it _never_ be reset and only be a monotonic raising number ?
 
- .../devicetree/bindings/media/exynos4-fimc-is.txt        |  7 ++++---
- arch/arm/boot/dts/exynos4x12.dtsi                        |  5 ++++-
- drivers/media/platform/exynos4-is/fimc-is.c              |  3 +++
- drivers/media/platform/exynos4-is/fimc-is.h              |  3 +++
- drivers/media/platform/exynos4-is/fimc-lite.c            | 16 ++++------------
- 5 files changed, 18 insertions(+), 16 deletions(-)
+Cheers.
 
--- 
-1.9.1
-
+--
+Robert
