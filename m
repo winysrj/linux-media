@@ -1,68 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from michel.telenet-ops.be ([195.130.137.88]:59232 "EHLO
-	michel.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751865AbcHIPgs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2016 11:36:48 -0400
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH] [media] rcar-fcp: Make sure rcar_fcp_enable() returns 0 on success
-Date: Tue,  9 Aug 2016 17:36:41 +0200
-Message-Id: <1470757001-4333-1-git-send-email-geert+renesas@glider.be>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:57682 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752554AbcHOHCb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 03:02:31 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 6774F180831
+	for <linux-media@vger.kernel.org>; Mon, 15 Aug 2016 09:02:25 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.9] New tw5864 driver (v3)
+Message-ID: <71b01d59-34ac-4ac0-8530-5b10784c47be@xs4all.nl>
+Date: Mon, 15 Aug 2016 09:02:25 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When resuming from suspend-to-RAM on r8a7795/salvator-x:
+Passed v4l2-compliance, see https://patchwork.linuxtv.org/patch/35671/
+for more details about the device.
 
-    dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns 1
-    PM: Device fe940000.fdp1 failed to resume noirq: error 1
-    dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns 1
-    PM: Device fe944000.fdp1 failed to resume noirq: error 1
-    dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns 1
-    PM: Device fe948000.fdp1 failed to resume noirq: error 1
+Regards,
 
-According to its documentation, rcar_fcp_enable() returns 0 on success
-or a negative error code if an error occurs.  Hence
-fdp1_pm_runtime_resume() and vsp1_pm_runtime_resume() forward its return
-value to their callers.
+	Hans
 
-However, rcar_fcp_enable() forwards the return value of
-pm_runtime_get_sync(), which can actually be 1 on success, leading to
-the resume failure above.
+Change since v2: fix commit log of first patch: contained text that should have been removed.
+Change since v1: fix Kconfig dependency.
 
-To fix this, consider only negative values returned by
-pm_runtime_get_sync() to be failures.
+The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
 
-Fixes: 7b49235e83b2347c ("[media] v4l: Add Renesas R-Car FCP driver")
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
----
- drivers/media/platform/rcar-fcp.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
 
-diff --git a/drivers/media/platform/rcar-fcp.c b/drivers/media/platform/rcar-fcp.c
-index 0ff6b1edf1dbf677..7e944479205d4059 100644
---- a/drivers/media/platform/rcar-fcp.c
-+++ b/drivers/media/platform/rcar-fcp.c
-@@ -99,10 +99,16 @@ EXPORT_SYMBOL_GPL(rcar_fcp_put);
-  */
- int rcar_fcp_enable(struct rcar_fcp_device *fcp)
- {
-+	int error;
-+
- 	if (!fcp)
- 		return 0;
- 
--	return pm_runtime_get_sync(fcp->dev);
-+	error = pm_runtime_get_sync(fcp->dev);
-+	if (error < 0)
-+		return error;
-+
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(rcar_fcp_enable);
- 
--- 
-1.9.1
+are available in the git repository at:
 
+  git://linuxtv.org/hverkuil/media_tree.git tw5864
+
+for you to fetch changes up to d65dc0593dc31b97e432b9d666d7eab1dce970db:
+
+  tw5864: add missing HAS_DMA dependency (2016-08-15 08:59:11 +0200)
+
+----------------------------------------------------------------
+Andrey Utkin (1):
+      pci: Add tw5864 driver
+
+Hans Verkuil (1):
+      tw5864: add missing HAS_DMA dependency
+
+ MAINTAINERS                             |    8 +
+ drivers/media/pci/Kconfig               |    1 +
+ drivers/media/pci/Makefile              |    1 +
+ drivers/media/pci/tw5864/Kconfig        |   12 +
+ drivers/media/pci/tw5864/Makefile       |    3 +
+ drivers/media/pci/tw5864/tw5864-core.c  |  359 ++++++++++
+ drivers/media/pci/tw5864/tw5864-h264.c  |  259 ++++++++
+ drivers/media/pci/tw5864/tw5864-reg.h   | 2133 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/pci/tw5864/tw5864-util.c  |   37 ++
+ drivers/media/pci/tw5864/tw5864-video.c | 1514 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/pci/tw5864/tw5864.h       |  205 ++++++
+ 11 files changed, 4532 insertions(+)
+ create mode 100644 drivers/media/pci/tw5864/Kconfig
+ create mode 100644 drivers/media/pci/tw5864/Makefile
+ create mode 100644 drivers/media/pci/tw5864/tw5864-core.c
+ create mode 100644 drivers/media/pci/tw5864/tw5864-h264.c
+ create mode 100644 drivers/media/pci/tw5864/tw5864-reg.h
+ create mode 100644 drivers/media/pci/tw5864/tw5864-util.c
+ create mode 100644 drivers/media/pci/tw5864/tw5864-video.c
+ create mode 100644 drivers/media/pci/tw5864/tw5864.h
