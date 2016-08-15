@@ -1,147 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f65.google.com ([209.85.220.65]:33109 "EHLO
-	mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932414AbcHCSEJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 14:04:09 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: lars@metafoo.de
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 4/8] media: adv7180: add power pin control
-Date: Wed,  3 Aug 2016 11:03:46 -0700
-Message-Id: <1470247430-11168-5-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:43443 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753137AbcHOQXu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 12:23:50 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Markus Heiser <markus.heiser@darmarit.de>,
+	Jani Nikula <jani.nikula@intel.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH RFC 0/5] Start changing media docs to build with PDF
+Date: Mon, 15 Aug 2016 13:23:39 -0300
+Message-Id: <cover.1471277426.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some targets control the ADV7180 power pin via a gpio, so add
-optional support for "powerdown" pin control.
+This series are experimental patches that change some things at the media
+books in order to make pdflatex to produce a valid document.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Tested-by: Tim Harvey <tharvey@gateworks.com>
-Acked-by: Tim Harvey <tharvey@gateworks.com>
-Acked-by: Lars-Peter Clausen <lars@metafoo.de>
+The first patch use Sphinx math extension. Please notice that it only works if
+the rst2pdf extension is disabled, as otherwise Sphinx 1.4.x will complain about
+duplicated math modules. So, it can only be applied if we give up using rst2pdf
+or find the bug that prevents using it together with the math extension at the
+Sphinx conf.py.
 
----
+The other two patches fix some additional issues that are needed for the Latex
+output to work. 
 
-v4: no changes
-v3: no changes
+The forth patch is actually a bug fix, and should be merged upstream anyway.
 
-v2:
-- placed call to gpiod_get inline in adv7180_probe().
-- rename gpio pin to "powerdown".
-- document optional powerdown-gpios property in
-  Documentation/devicetree/bindings/media/i2c/adv7180.txt.
-- include error number in error message on gpiod_get failure.
----
- .../devicetree/bindings/media/i2c/adv7180.txt      |  4 ++++
- drivers/media/i2c/Kconfig                          |  2 +-
- drivers/media/i2c/adv7180.c                        | 27 ++++++++++++++++++++++
- 3 files changed, 32 insertions(+), 1 deletion(-)
+The last patch is actually a HACK!!! should *never* be merged upstream as-is.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7180.txt b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
-index 6c175d2..ab9ef02 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv7180.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
-@@ -15,6 +15,10 @@ Required Properties :
- 		"adi,adv7282"
- 		"adi,adv7282-m"
- 
-+Optional Properties :
-+- powerdown-gpios: reference to the GPIO connected to the powerdown pin,
-+  if any.
-+
- Optional Endpoint Properties :
- - newavmode: a boolean property to indicate the BT.656 bus is operating
-   in Analog Device's NEWAVMODE. Valid for BT.656 busses only.
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index ce9006e..6769898 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -187,7 +187,7 @@ comment "Video decoders"
- 
- config VIDEO_ADV7180
- 	tristate "Analog Devices ADV7180 decoder"
--	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-+	depends on GPIOLIB && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
- 	---help---
- 	  Support for the Analog Devices ADV7180 video decoder.
- 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 467953e..b2df181 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -26,6 +26,7 @@
- #include <linux/i2c.h>
- #include <linux/slab.h>
- #include <linux/of.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/videodev2.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-event.h>
-@@ -215,6 +216,7 @@ struct adv7180_state {
- 	struct media_pad	pad;
- 	struct mutex		mutex; /* mutual excl. when accessing chip */
- 	int			irq;
-+	struct gpio_desc	*pwdn_gpio;
- 	v4l2_std_id		curr_norm;
- 	bool			newavmode;
- 	bool			powered;
-@@ -466,6 +468,19 @@ static int adv7180_g_std(struct v4l2_subdev *sd, v4l2_std_id *norm)
- 	return 0;
- }
- 
-+static void adv7180_set_power_pin(struct adv7180_state *state, bool on)
-+{
-+	if (!state->pwdn_gpio)
-+		return;
-+
-+	if (on) {
-+		gpiod_set_value_cansleep(state->pwdn_gpio, 0);
-+		usleep_range(5000, 10000);
-+	} else {
-+		gpiod_set_value_cansleep(state->pwdn_gpio, 1);
-+	}
-+}
-+
- static int adv7180_set_power(struct adv7180_state *state, bool on)
- {
- 	u8 val;
-@@ -1219,6 +1234,8 @@ static int init_device(struct adv7180_state *state)
- 
- 	mutex_lock(&state->mutex);
- 
-+	adv7180_set_power_pin(state, true);
-+
- 	adv7180_write(state, ADV7180_REG_PWR_MAN, ADV7180_PWR_MAN_RES);
- 	usleep_range(5000, 10000);
- 
-@@ -1319,6 +1336,14 @@ static int adv7180_probe(struct i2c_client *client,
- 
- 	adv7180_of_parse(state);
- 
-+	state->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "powerdown",
-+						   GPIOD_OUT_HIGH);
-+	if (IS_ERR(state->pwdn_gpio)) {
-+		ret = PTR_ERR(state->pwdn_gpio);
-+		v4l_err(client, "request for power pin failed: %d\n", ret);
-+		return ret;
-+	}
-+
- 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
- 		state->csi_client = i2c_new_dummy(client->adapter,
- 				ADV7180_DEFAULT_CSI_I2C_ADDR);
-@@ -1410,6 +1435,8 @@ static int adv7180_remove(struct i2c_client *client)
- 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2)
- 		i2c_unregister_device(state->csi_client);
- 
-+	adv7180_set_power_pin(state, false);
-+
- 	mutex_destroy(&state->mutex);
- 
- 	return 0;
+It is there to show that somehow, Sphinx LaTeX tables output is broken. On several
+places where we add a note or an attention on a table row, the Latex output is
+broken.  I suspect that the bug is actually when multiple lines are generated inside
+a table row, but I don't know enough about LaTeX to be sure...
+
+Anyway, this is just a PoC. I don't care enough about PDF output to try fixing
+the issues at rst2pdf or at Sphinx LaTeX output (needed by pdflatex). Yet, I'd like
+to see patch 1 applied, as the math expressions look a way better using LaTeX
+math than before. Yet, if we do that, we'll end by needing the LaTeX big 
+dependency chain.
+
+Mauro Carvalho Chehab (5):
+  [media] pixfmt-007.rst: use Sphinx math:: expressions
+  [media] pixfmt-nv12mt.rst: use PNG instead of GIF
+  [media] docs-rst: get rid of extra less or equal symbols
+  [media] vidioc-enumstd.rst: fix a broken reference
+  HACK!!!!
+
+ Documentation/conf.py                              |   9 +-
+ .../media/uapi/cec/cec-ioc-adap-g-log-addrs.rst    |   2 +-
+ Documentation/media/uapi/v4l/buffer.rst            |  15 +-
+ Documentation/media/uapi/v4l/dev-overlay.rst       |   7 +-
+ Documentation/media/uapi/v4l/pixfmt-007.rst        | 175 ++++++++++++++-------
+ Documentation/media/uapi/v4l/pixfmt-nv12mt.rst     |   4 +-
+ .../media/uapi/v4l/pixfmt-nv12mt_files/nv12mt.gif  | Bin 2108 -> 0 bytes
+ .../media/uapi/v4l/pixfmt-nv12mt_files/nv12mt.png  | Bin 0 -> 1920 bytes
+ .../v4l/pixfmt-nv12mt_files/nv12mt_example.gif     | Bin 6858 -> 0 bytes
+ .../v4l/pixfmt-nv12mt_files/nv12mt_example.png     | Bin 0 -> 5261 bytes
+ Documentation/media/uapi/v4l/vidioc-enum-fmt.rst   |  17 +-
+ .../media/uapi/v4l/vidioc-enum-freq-bands.rst      |  14 +-
+ Documentation/media/uapi/v4l/vidioc-enumstd.rst    |   2 +-
+ 13 files changed, 152 insertions(+), 93 deletions(-)
+ delete mode 100644 Documentation/media/uapi/v4l/pixfmt-nv12mt_files/nv12mt.gif
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-nv12mt_files/nv12mt.png
+ delete mode 100644 Documentation/media/uapi/v4l/pixfmt-nv12mt_files/nv12mt_example.gif
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-nv12mt_files/nv12mt_example.png
+
 -- 
-1.9.1
+2.7.4
+
 
