@@ -1,119 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:48002 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752131AbcHAKe0 (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:54337 "EHLO
+	smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932353AbcHOPHR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Aug 2016 06:34:26 -0400
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv2] v4l2-common: add s_selection helper function
-Message-ID: <c6379bf1-4fdf-7deb-4312-86d26d0ee106@xs4all.nl>
-Date: Mon, 1 Aug 2016 12:33:39 +0200
+	Mon, 15 Aug 2016 11:07:17 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
+	hverkuil@xs4all.nl
+Cc: linux-renesas-soc@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com,
+	sergei.shtylyov@cogentembedded.com,
+	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv3 07/10] [media] rcar-vin: add dependency on MEDIA_CONTROLLER
+Date: Mon, 15 Aug 2016 17:06:32 +0200
+Message-Id: <20160815150635.22637-8-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Checking the selection constraint flags is often forgotten by drivers, especially
-if the selection code just clamps the rectangle to the minimum and maximum allowed
-rectangles.
+This is done in preparation for Gen3 support where media controller
+support will be mandatory for the driver.
 
-This patch adds a simple helper function that checks the adjusted rectangle against
-the constraint flags and either returns -ERANGE if it doesn't fit, or fills in the
-new rectangle and returns 0.
-
-It also adds a small helper function to v4l2-rect.h to check if one rectangle fits
-inside another.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
-v2:
-- renamed r1/r2 to inner/outer
-- moved documentation to source
----
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index 5b80850..f7c34f6 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -61,6 +61,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-rect.h>
+ drivers/media/platform/rcar-vin/Kconfig     | 2 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 7 +------
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
- #include <linux/videodev2.h>
+diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
+index b2ff2d4..111d2a1 100644
+--- a/drivers/media/platform/rcar-vin/Kconfig
++++ b/drivers/media/platform/rcar-vin/Kconfig
+@@ -1,6 +1,6 @@
+ config VIDEO_RCAR_VIN
+ 	tristate "R-Car Video Input (VIN) Driver"
+-	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF && HAS_DMA
++	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF && HAS_DMA && MEDIA_CONTROLLER
+ 	depends on ARCH_RENESAS || COMPILE_TEST
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	---help---
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 3f80a0b..09df396 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -771,10 +771,7 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	struct v4l2_mbus_framefmt *mf = &fmt.format;
+ 	struct video_device *vdev = &vin->vdev;
+ 	struct v4l2_subdev *sd = vin_to_source(vin);
+-#if defined(CONFIG_MEDIA_CONTROLLER)
+-	int pad_idx;
+-#endif
+-	int ret;
++	int pad_idx, ret;
+ 
+ 	v4l2_set_subdev_hostdata(sd, vin);
+ 
+@@ -821,7 +818,6 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 		V4L2_CAP_READWRITE;
+ 
+ 	vin->src_pad_idx = 0;
+-#if defined(CONFIG_MEDIA_CONTROLLER)
+ 	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
+ 		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
+ 			break;
+@@ -829,7 +825,6 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 		return -EINVAL;
+ 
+ 	vin->src_pad_idx = pad_idx;
+-#endif
+ 	fmt.pad = vin->src_pad_idx;
+ 
+ 	/* Try to improve our guess of a reasonable window format */
+-- 
+2.9.2
 
-@@ -371,6 +372,30 @@ void v4l_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
- }
- EXPORT_SYMBOL_GPL(v4l_bound_align_image);
-
-+/**
-+ * v4l2_s_selection - Helper to check adjusted rectangle against constraint flags
-+ *
-+ * @s: pointer to &struct v4l2_selection containing the original rectangle
-+ * @r: pointer to &struct v4l2_rect containing the adjusted rectangle.
-+ *
-+ * Returns -ERANGE if the adjusted rectangle doesn't fit the constraints
-+ * or 0 if it is fine. On success it sets @s->r to @r.
-+ */
-+int v4l2_s_selection(struct v4l2_selection *s, const struct v4l2_rect *r)
-+{
-+	/* The original rect must lay inside the adjusted one */
-+	if ((s->flags & V4L2_SEL_FLAG_GE) &&
-+	    !v4l2_rect_is_inside(&s->r, r))
-+		return -ERANGE;
-+	/* The adjusted rect must lay inside the original one */
-+	if ((s->flags & V4L2_SEL_FLAG_LE) &&
-+	    !v4l2_rect_is_inside(r, &s->r))
-+		return -ERANGE;
-+	s->r = *r;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_s_selection);
-+
- const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
- 		const struct v4l2_discrete_probe *probe,
- 		s32 width, s32 height)
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 350cbf9..226e0cf 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -246,6 +246,8 @@ void v4l_bound_align_image(unsigned int *w, unsigned int wmin,
- 			   unsigned int hmax, unsigned int halign,
- 			   unsigned int salign);
-
-+int v4l2_s_selection(struct v4l2_selection *s, const struct v4l2_rect *r);
-+
- struct v4l2_discrete_probe {
- 	const struct v4l2_frmsize_discrete	*sizes;
- 	int					num_sizes;
-diff --git a/include/media/v4l2-rect.h b/include/media/v4l2-rect.h
-index d2125f0..6d9de07 100644
---- a/include/media/v4l2-rect.h
-+++ b/include/media/v4l2-rect.h
-@@ -95,6 +95,21 @@ static inline bool v4l2_rect_same_size(const struct v4l2_rect *r1,
- }
-
- /**
-+ * v4l2_rect_is_inside() - return true if inner is inside outer
-+ * @inner: rectangle.
-+ * @outer: rectangle.
-+ *
-+ * Return true if @inner fits inside @outer.
-+ */
-+static inline bool v4l2_rect_is_inside(const struct v4l2_rect *inner,
-+				       const struct v4l2_rect *outer)
-+{
-+	return inner->left >= outer->left && inner->top >= outer->top &&
-+	       inner->left + inner->width <= outer->left + outer->width &&
-+	       inner->top + inner->height <= outer->top + outer->height;
-+}
-+
-+/**
-  * v4l2_rect_intersect() - calculate the intersection of two rects.
-  * @r: intersection of @r1 and @r2.
-  * @r1: rectangle.
