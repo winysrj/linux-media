@@ -1,57 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:51360 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752800AbcHJSts (ORCPT
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:33723 "EHLO
+	mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752796AbcHOIha (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2016 14:49:48 -0400
-Date: Mon, 8 Aug 2016 23:41:32 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Message-ID: <20160808214132.GB2946@xo-6d-61-c0.localdomain>
-References: <20160521054336.GA27123@amd>
- <573FFF51.1000004@gmail.com>
- <20160521105607.GA20071@amd>
- <574049EF.2090208@gmail.com>
- <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160805102611.GA13116@amd>
- <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+	Mon, 15 Aug 2016 04:37:30 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+In-Reply-To: <0bf4740a-7200-c6c4-c432-6a8152dec17a@xs4all.nl>
+References: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <1469178554-20719-5-git-send-email-ulrich.hecht+renesas@gmail.com> <0bf4740a-7200-c6c4-c432-6a8152dec17a@xs4all.nl>
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Date: Mon, 15 Aug 2016 10:37:29 +0200
+Message-ID: <CAO3366xk6hjh2abbYcXmuYKcK39Y9psgYvHkZo3FH4JbU1KY0g@mail.gmail.com>
+Subject: Re: [PATCH v6 4/4] rcar-vin: implement EDID control ioctls
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: hans.verkuil@cisco.com,
+	=?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Laurent <laurent.pinchart@ideasonboard.com>,
+	William Towle <william.towle@codethink.co.uk>,
+	Geert Uytterhoeven <geert@linux-m68k.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 2016-08-08 11:09:56, Sakari Ailus wrote:
-> On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
-> > 
-> > This adds support for AD5820 autofocus coil, found for example in
-> > Nokia N900 smartphone.
-> 
-> Thanks, Pavel!
-> 
-> Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get something
-> better in the future, we'll switch to that then.
-> 
-> I've applied this to ad5820 branch in my tree.
+On Sat, Aug 13, 2016 at 3:30 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 07/22/2016 11:09 AM, Ulrich Hecht wrote:
+>> Adds G_EDID and S_EDID.
+>>
+>> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+>> ---
+>>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 33 +++++++++++++++++++++++++++++
+>>  1 file changed, 33 insertions(+)
+>>
+>> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+>> index 396eabc..57e040c 100644
+>> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+>> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+>> @@ -661,6 +661,36 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
+>>       return ret;
+>>  }
+>>
+>> +static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+>> +{
+>> +     struct rvin_dev *vin = video_drvdata(file);
+>> +     int input, ret;
+>> +
+>> +     input = edid->pad;
+>> +     edid->pad = vin->inputs[input].sink_idx;
+>
+> There is no vin->inputs array. Are there some other patches that need to be merged
+> first?
 
-Thanks. If I understands things correctly, both DTS patch and this patch are
-waiting in your tree, so we should be good to go for 4.9 (unless some unexpected
-problems surface)?
+It depends on "[PATCHv2 12/16] [media] rcar-vin: allow subdevices to
+be bound late" from "[PATCHv2 00/16] rcar-vin: Enable Gen3 support".
+Does that series have a chance of getting merged any time soon?
 
-Best regards,
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+CU
+Uli
