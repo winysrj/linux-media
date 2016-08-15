@@ -1,103 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44097 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132AbcHAJUv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2016 05:20:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 3/3] soc-camera/sh_mobile_csi2: remove unused driver
-Date: Mon, 01 Aug 2016 12:19:56 +0300
-Message-ID: <13133835.NIuMLuThPq@avalon>
-In-Reply-To: <d71078e5-e99c-bf41-3c42-98eeed571606@xs4all.nl>
-References: <1470038065-30789-1-git-send-email-hverkuil@xs4all.nl> <2111514.B3c6CcPRxt@avalon> <d71078e5-e99c-bf41-3c42-98eeed571606@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp1.goneo.de ([85.220.129.30]:42414 "EHLO smtp1.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752713AbcHOPQW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2016 11:16:22 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jani Nikula <jani.nikula@intel.com>
+Cc: Markus Heiser <markus.heiser@darmarIT.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH] doc-rst: add index to sub-folders
+Date: Mon, 15 Aug 2016 17:15:59 +0200
+Message-Id: <1471274159-2533-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-On Monday 01 Aug 2016 11:07:03 Hans Verkuil wrote:
-> On 08/01/2016 11:01 AM, Laurent Pinchart wrote:
-> > On Monday 01 Aug 2016 10:56:21 Hans Verkuil wrote:
-> >> On 08/01/2016 10:34 AM, Laurent Pinchart wrote:
-> >>> On Monday 01 Aug 2016 09:54:25 Hans Verkuil wrote:
-> >>>> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>> 
-> >>>> The sh_mobile_csi2 isn't used anymore (was it ever?), so remove it.
-> >>>> Especially since the soc-camera framework is being deprecated.
-> >>>> 
-> >>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >>> 
-> >>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>> 
-> >>>> ---
-> >>>> 
-> >>>>  drivers/media/platform/soc_camera/Kconfig          |   7 -
-> >>>>  drivers/media/platform/soc_camera/Makefile         |   1 -
-> >>>>  .../platform/soc_camera/sh_mobile_ceu_camera.c     | 229 +-----------
-> >>>>  drivers/media/platform/soc_camera/sh_mobile_csi2.c | 400 -------------
-> >>>>  include/media/drv-intf/sh_mobile_ceu.h             |   1 -
-> >>>>  include/media/drv-intf/sh_mobile_csi2.h            |  48 ---
-> >>>>  6 files changed, 10 insertions(+), 676 deletions(-)
-> >>>>  delete mode 100644 drivers/media/platform/soc_camera/sh_mobile_csi2.c
-> >>>>  delete mode 100644 include/media/drv-intf/sh_mobile_c
-> >>> 
-> >>> Any plan for the sh_mobile_ceu_camera driver by the way ?
-> >> 
-> >> Yes.
-> >> 
-> >> The idea is to replace the remaining soc-camera drivers by 'proper'
-> >> drivers (Robert Jarzmik is working on that for the pxa_camera driver, and
-> >> I am working on the atmel-isi driver).
-> >> 
-> >> Once that's done the only soc-camera driver left is the
-> >> sh_mobile_ceu_camera driver.
-> >> 
-> >> At that moment the soc-camera framework will be folded into the
-> >> sh_mobile_ceu_camera driver and it will cease to exist as a framework.
-> >> It's just a very complex driver. I plan on refactoring it further,
-> >> removing dead code etc.
-> >> 
-> >> My original plan was to replace the sh_mobile_ceu_camera driver by a
-> >> 'proper' driver as well, but it was next to impossible to do that. The
-> >> fact that it didn't use the device tree and the complexity with scaling
-> >> and cropping and the close dependency on soc-camera just made this a no
-> >> go (at least not something I was willing to spend more time on).
-> >> 
-> >> I think this alternative approach has the best chance of succeeding.
-> > 
-> > Are there really users of the CEU driver ? There are a few ARM-based
-> > Renesas platforms that include the CEU, but they're pretty old now and
-> > don't support the CEU in mainline. As far as I know only arch/sh still
-> > makes use of the CEU driver.
-> 
-> Well, I can still test it. And it is still in the arch/sh code. It's not
-> really my decision since I just don't know enough whether or not it can be
-> removed.
-> 
-> You are probably better placed to figure that out.
+Add a index if only a sub-folder is build e.g.::
 
-Since arch/sh got taken over by the J-Core developers, not really ;-) What I 
-know is that there's very very little interest at Renesas for SuperH support.
+  make SPHINXDIRS=media cleandocs htmldocs
 
-> >> I'm not sure yet what we'll do with the soc-camera sensors. I
-> >> experimented a bit with extracting them from soc-camera, but for most
-> >> it's not easy to do so. Something to look at later.
-> > 
-> > It would be a shame to remove them all, but it also depends on whether we
-> > can find hardware for testing.
-> 
-> Well, they always remain in git, but I know what you mean. Anyway, that's
-> for later.
+BTW: removed dead search link in the top-index file
 
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
+---
+ Documentation/gpu/conf.py     | 2 ++
+ Documentation/gpu/index.rst   | 7 +++++++
+ Documentation/index.rst       | 1 -
+ Documentation/media/conf.py   | 2 ++
+ Documentation/media/index.rst | 7 +++++++
+ 5 files changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/gpu/conf.py b/Documentation/gpu/conf.py
+index d60bcd0..6314d17 100644
+--- a/Documentation/gpu/conf.py
++++ b/Documentation/gpu/conf.py
+@@ -1,3 +1,5 @@
+ # -*- coding: utf-8; mode: python -*-
+ 
+ project = "Linux GPU Driver Developer's Guide"
++
++tags.add("subproject")
+diff --git a/Documentation/gpu/index.rst b/Documentation/gpu/index.rst
+index fcac0fa..5ff3d2b 100644
+--- a/Documentation/gpu/index.rst
++++ b/Documentation/gpu/index.rst
+@@ -12,3 +12,10 @@ Linux GPU Driver Developer's Guide
+    drm-uapi
+    i915
+    vga-switcheroo
++
++.. only::  subproject
++
++   Indices
++   =======
++
++   * :ref:`genindex`
+diff --git a/Documentation/index.rst b/Documentation/index.rst
+index bdd9525..a15f818 100644
+--- a/Documentation/index.rst
++++ b/Documentation/index.rst
+@@ -19,4 +19,3 @@ Indices and tables
+ ==================
+ 
+ * :ref:`genindex`
+-* :ref:`search`
+diff --git a/Documentation/media/conf.py b/Documentation/media/conf.py
+index 62bdba2..77cb2bb 100644
+--- a/Documentation/media/conf.py
++++ b/Documentation/media/conf.py
+@@ -1,3 +1,5 @@
+ # -*- coding: utf-8; mode: python -*-
+ 
+ project = 'Linux Media Subsystem Documentation'
++
++tags.add("subproject")
+diff --git a/Documentation/media/index.rst b/Documentation/media/index.rst
+index e85c557..7f8f0af 100644
+--- a/Documentation/media/index.rst
++++ b/Documentation/media/index.rst
+@@ -10,3 +10,10 @@ Contents:
+    media_kapi
+    dvb-drivers/index
+    v4l-drivers/index
++
++.. only::  subproject
++
++   Indices
++   =======
++
++   * :ref:`genindex`
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
 
