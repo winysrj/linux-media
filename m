@@ -1,41 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.zeus03.de ([194.117.254.33]:56282 "EHLO mail.zeus03.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932673AbcHKVL2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 17:11:28 -0400
-From: Wolfram Sang <wsa-dev@sang-engineering.com>
-To: linux-usb@vger.kernel.org
-Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
-	Antti Palosaari <crope@iki.fi>,
+Received: from bombadil.infradead.org ([198.137.202.9]:35268 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752821AbcHPQrm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Aug 2016 12:47:42 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
 	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 20/28] media: usb: msi2500: msi2500: don't print error when allocating urb fails
-Date: Thu, 11 Aug 2016 23:03:56 +0200
-Message-Id: <1470949451-24823-21-git-send-email-wsa-dev@sang-engineering.com>
-In-Reply-To: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
-References: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 6/9] [media] docs-rst: get rid of code-block inside tables
+Date: Tue, 16 Aug 2016 13:47:34 -0300
+Message-Id: <ec129bcabb1a9538d1d0f677b399eff30e4555c3.1471365031.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471365031.git.mchehab@s-opensource.com>
+References: <cover.1471365031.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471365031.git.mchehab@s-opensource.com>
+References: <cover.1471365031.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kmalloc will print enough information in case of failure.
+There are two tables with a C code-block inside it. Unfortunately,
+that causes LaTeX output to break. Yet, there's nothing special
+there, so let's remove the code-block from them.
 
-Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/msi2500/msi2500.c | 1 -
- 1 file changed, 1 deletion(-)
+ Documentation/media/uapi/v4l/vidioc-enum-fmt.rst |  5 +----
+ Documentation/media/uapi/v4l/vidioc-querycap.rst | 12 +++---------
+ 2 files changed, 4 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
-index e7f167d44c61ce..367eb7e2a31dbc 100644
---- a/drivers/media/usb/msi2500/msi2500.c
-+++ b/drivers/media/usb/msi2500/msi2500.c
-@@ -509,7 +509,6 @@ static int msi2500_isoc_init(struct msi2500_dev *dev)
- 	for (i = 0; i < MAX_ISO_BUFS; i++) {
- 		urb = usb_alloc_urb(ISO_FRAMES_PER_DESC, GFP_KERNEL);
- 		if (urb == NULL) {
--			dev_err(dev->dev, "Failed to allocate urb %d\n", i);
- 			msi2500_isoc_cleanup(dev);
- 			return -ENOMEM;
- 		}
+diff --git a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
+index 4715261631ab..13d5b509a829 100644
+--- a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
++++ b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
+@@ -105,11 +105,8 @@ one until ``EINVAL`` is returned.
+ 
+        -  :cspan:`2`
+ 
+-
+ 	  .. _v4l2-fourcc:
+-	  .. code-block:: c
+-
+-	      #define v4l2_fourcc(a,b,c,d) (((__u32)(a)<<0)|((__u32)(b)<<8)|((__u32)(c)<<16)|((__u32)(d)<<24))
++	  ``#define v4l2_fourcc(a,b,c,d) (((__u32)(a)<<0)|((__u32)(b)<<8)|((__u32)(c)<<16)|((__u32)(d)<<24))``
+ 
+ 	  Several image formats are already defined by this specification in
+ 	  :ref:`pixfmt`.
+diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+index b10fed313f99..f37fc3badcdf 100644
+--- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
++++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+@@ -117,17 +117,11 @@ specification the ioctl returns an ``EINVAL`` error code.
+ 
+        -  :cspan:`2`
+ 
++	  ``#define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))``
+ 
+-	  .. code-block:: c
++	  ``__u32 version = KERNEL_VERSION(0, 8, 1);``
+ 
+-	      #define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))
+-
+-	      __u32 version = KERNEL_VERSION(0, 8, 1);
+-
+-	      printf ("Version: %u.%u.%u\\n",
+-		  (version >> 16) & 0xFF,
+-		  (version >> 8) & 0xFF,
+-		   version & 0xFF);
++	  ``printf ("Version: %u.%u.%u\\n", (version >> 16) & 0xFF, (version >> 8) & 0xFF, version & 0xFF);``
+ 
+     -  .. row 6
+ 
 -- 
-2.8.1
+2.7.4
+
 
