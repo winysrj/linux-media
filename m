@@ -1,121 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:46964 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751063AbcHGDA2 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:35270 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752909AbcHPQrm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Aug 2016 23:00:28 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 673DC1805F0
-	for <linux-media@vger.kernel.org>; Sun,  7 Aug 2016 05:00:21 +0200 (CEST)
-Date: Sun, 07 Aug 2016 05:00:21 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160807030021.673DC1805F0@tschai.lan>
+	Tue, 16 Aug 2016 12:47:42 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 7/9] [media] pixfmt-packed-rgb.rst: rotate a big table
+Date: Tue, 16 Aug 2016 13:47:35 -0300
+Message-Id: <b103e0f405929fff61ffe871df8b7d5242c6b793.1471365031.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471365031.git.mchehab@s-opensource.com>
+References: <cover.1471365031.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471365031.git.mchehab@s-opensource.com>
+References: <cover.1471365031.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Rotates the big RGB packed table to landscape.
 
-Results of the daily build of media_tree:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/conf.py                              | 3 +++
+ Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst | 9 ++++++++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-date:		Sun Aug  7 04:00:20 CEST 2016
-git branch:	test
-git hash:	292eaf50c7df4ae2ae8aaa9e1ce3f1240a353ee8
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+diff --git a/Documentation/conf.py b/Documentation/conf.py
+index 39b9c4a26f6e..64f5fb4170a9 100644
+--- a/Documentation/conf.py
++++ b/Documentation/conf.py
+@@ -306,6 +306,9 @@ latex_elements = {
+         \\setromanfont{DejaVu Sans}
+         \\setmonofont{DejaVu Sans Mono}
+ 
++	% To allow adjusting table sizes
++	\\usepackage{adjustbox}
++
+      '''
+ }
+ 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
+index c7aa2e91ac78..9a909cd99361 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
+@@ -19,6 +19,10 @@ graphics frame buffers. They occupy 8, 16, 24 or 32 bits per pixel.
+ These are all packed-pixel formats, meaning all the data for a pixel lie
+ next to each other in memory.
+ 
++.. raw:: latex
++
++    \begin{landscape}
++    \begin{adjustbox}{width=\columnwidth}
+ 
+ .. _rgb-formats:
+ 
+@@ -26,7 +30,6 @@ next to each other in memory.
+     :header-rows:  2
+     :stub-columns: 0
+ 
+-
+     -  .. row 1
+ 
+        -  Identifier
+@@ -942,6 +945,10 @@ next to each other in memory.
+ 
+        -  b\ :sub:`0`
+ 
++.. raw:: latex
++
++    \end{adjustbox}
++    \end{landscape}
+ 
+ Bit 7 is the most significant bit.
+ 
+-- 
+2.7.4
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-apps: ERRORS
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
