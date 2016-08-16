@@ -1,94 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:43688 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933214AbcHaOSv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Aug 2016 10:18:51 -0400
-Date: Wed, 31 Aug 2016 16:18:46 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v1.1 5/5] smiapp: Switch to gpiod API for GPIO control
-Message-ID: <20160831141846.3wfdgosly5z7y6h5@earth>
-References: <1472629325-30875-4-git-send-email-sakari.ailus@linux.intel.com>
- <1472648456-26608-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57913
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753182AbcHPN70 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Aug 2016 09:59:26 -0400
+Subject: Re: [PATCH] [media] vb2: move dma-buf unmap from __vb2_dqbuf() to
+ vb2_buffer_done()
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-kernel@vger.kernel.org
+References: <1469038941-5257-1-git-send-email-javier@osg.samsung.com>
+ <3b09885c-1bec-fcbe-6c6c-9c753502cb81@xs4all.nl>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Luis de Bethencourt <luisbg@osg.samsung.com>
+Message-ID: <2c6196f7-d157-ce79-b81e-fa8c8e3ccb6e@osg.samsung.com>
+Date: Tue, 16 Aug 2016 09:58:21 -0400
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="deouasal256xgimc"
-Content-Disposition: inline
-In-Reply-To: <1472648456-26608-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <3b09885c-1bec-fcbe-6c6c-9c753502cb81@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello Hans,
 
---deouasal256xgimc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks a lot for your feedback.
 
-Hi,
-
-On Wed, Aug 31, 2016 at 04:00:56PM +0300, Sakari Ailus wrote:
-> Switch from the old gpio API to the new descriptor based gpiod API.
+On 08/13/2016 09:47 AM, Hans Verkuil wrote:
+> On 07/20/2016 08:22 PM, Javier Martinez Canillas wrote:
+>> Currently the dma-buf is unmapped when the buffer is dequeued by userspace
+>> but it's not used anymore after the driver finished processing the buffer.
+>>
+>> So instead of doing the dma-buf unmapping in __vb2_dqbuf(), it can be made
+>> in vb2_buffer_done() after the driver notified that buf processing is done.
+>>
+>> Decoupling the buffer dequeue from the dma-buf unmapping has also the side
+>> effect of making possible to add dma-buf fence support in the future since
+>> the buffer could be dequeued even before the driver has finished using it.
+>>
+>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>>
+>> ---
+>> Hello,
+>>
+>> I've tested this patch doing DMA buffer sharing between a
+>> vivid input and output device with both v4l2-ctl and gst:
+>>
+>> $ v4l2-ctl -d0 -e1 --stream-dmabuf --stream-out-mmap
+>> $ v4l2-ctl -d0 -e1 --stream-mmap --stream-out-dmabuf
+>> $ gst-launch-1.0 v4l2src device=/dev/video0 io-mode=dmabuf ! v4l2sink device=/dev/video1 io-mode=dmabuf-import
+>>
+>> And I didn't find any issues but more testing will be appreciated.
+>>
+>> Best regards,
+>> Javier
+>>
+>>  drivers/media/v4l2-core/videobuf2-core.c | 34 +++++++++++++++++++++-----------
+>>  1 file changed, 22 insertions(+), 12 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>> index 7128b09810be..973331efaf79 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -958,6 +958,22 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no)
+>>  EXPORT_SYMBOL_GPL(vb2_plane_cookie);
+>>  
+>>  /**
+>> + * __vb2_unmap_dmabuf() - unmap dma-buf attached to buffer planes
+>> + */
+>> +static void __vb2_unmap_dmabuf(struct vb2_buffer *vb)
+>> +{
+>> +	int i;
+>> +
+>> +	for (i = 0; i < vb->num_planes; ++i) {
+>> +		if (!vb->planes[i].dbuf_mapped)
+>> +			continue;
+>> +		call_void_memop(vb, unmap_dmabuf,
+>> +				vb->planes[i].mem_priv);
+> 
+> Does unmap_dmabuf work in interrupt context? Since vb2_buffer_done can be called from
+> an irq handler this is a concern.
 >
-> [...]
+
+Good point, I believe it shouldn't be called from atomic context since both
+the dma_buf_vunmap() and dma_buf_unmap_attachment() functions can sleep.
+ 
+> That said, vb2_buffer_done already calls call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+> to sync buffers, and that can take a long time as well. So it is not a good idea to
+> have this in vb2_buffer_done.
 >
-> @@ -2572,17 +2569,10 @@ static int smiapp_init(struct smiapp_sensor *sens=
-or)
->  		}
->  	}
-> =20
-> -	if (gpio_is_valid(sensor->hwcfg->xshutdown)) {
-> -		rval =3D devm_gpio_request_one(
-> -			&client->dev, sensor->hwcfg->xshutdown, 0,
-> -			"SMIA++ xshutdown");
-> -		if (rval < 0) {
-> -			dev_err(&client->dev,
-> -				"unable to acquire reset gpio %d\n",
-> -				sensor->hwcfg->xshutdown);
-> -			return rval;
-> -		}
-> -	}
-> +	sensor->xshutdown =3D devm_gpiod_get_optional(&client->dev, "xshutdown",
-> +						    GPIOD_OUT_LOW);
-> +	if (!sensor->xshutdown)
-> +		dev_dbg(&client->dev, "no xshutdown GPIO available\n");
 
-devm_gpiod_get_optional may return an error pointer, e.g. for
--EPROBE_DEFER, so you should add:
+I see.
 
-if (IS_ERR(sensor->xshutdown)) {
-    rval =3D PTR_ERR(sensor->xshutdown);
-    dev_err(&client->dev, "Could not get gpio (%ld)\n", rval);
-    return rval;
-}
+> What I would like to see is to have vb2 handle this finish() call and the vb2_unmap_dmabuf
+> in some workthread or equivalent.
+> 
+> It would complicate matters somewhat in vb2, but it would simplify drivers since these
+> actions would not longer take place in interrupt context.
+>
+> I think this patch makes sense, but I would prefer that this is moved out of the interrupt
+> context.
+>
 
-> [...]
+Ok, I can take a look to this and handle the finish() and unmap_dmabuf()
+out of interrupt context as you suggested.
 
-Otherwise the patch looks fine, so with this fixed:
+> Regards,
+> 
+> 	Hans
+> 
 
-Reviewed-By: Sebastian Reichel <sre@kernel.org>
-
--- Sebastian
-
---deouasal256xgimc
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJXxudDAAoJENju1/PIO/qab38P/3OvMNiHej9FIwrvgtMUa2uL
-ni7QXyVyVHsZWGSAOGmYKRTdPL8792pGRct7qsZRiRL+3z3iTEnWdwrDrFU8ZkN5
-X+EdA4WfvajKK8BATnuwkAYv5FjNBdcdE4t7FeGAt/bEY9Uw3uG2VYetIBh0lsyn
-Wi0dQi6cxHFlSqfTcXzTxbQUcOxzycp4xaqpwkS373xkqiYmJjhLMXHJvOZKahLr
-YkYdEDJcC6mEyLwojizcdKEpNq7CC7KwsslluZGHGV2MbDUUxSTLJCjXO0b33/kh
-U/C9r3YUz/CMKE5hn60QbdocNgZfucYrXBpD+azvz8s4W6EtFQKTU22DR5sAWM+1
-ShdXLU9fG5j8NqkEu/z7K+iJ6LpwazX+hby7riHkItH2QpivAISNtaujRNec+I+A
-hK1Aq0gRblsVfw7PVeSzLeqwXAKCBqBOQx8bPMcfnOEVIVZuyhekzv7MjH5r+U/S
-xM1OQqvJhovfasRCKMzJ3iIS1x2fQlQlms7B4+ZO0ZsFLtlk8mqJMlNJAOq+eVZJ
-B+1VXEFUkIrAhaSiMdeLljm1aqw13W9nQZJA19RUDS4LvCM7EHGGPIWrSCJcsiLd
-Fe1YvF6wjb7uyKxqhaRcU0n8K/0gXx5pTbt81EksHifjedpnVAUlpvOIUAo23e1Z
-bKsaW93Kkmt/gZui0S8P
-=oXA9
------END PGP SIGNATURE-----
-
---deouasal256xgimc--
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
