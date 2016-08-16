@@ -1,70 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47830 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946030AbcHRN0N (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58583
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753416AbcHPQvT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2016 09:26:13 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH] v4l: vsp1: Fix tri-planar format support through DRM API
-Date: Thu, 18 Aug 2016 16:26:13 +0300
-Message-Id: <1471526773-12046-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Tue, 16 Aug 2016 12:51:19 -0400
+Date: Tue, 16 Aug 2016 13:51:12 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: Re: [PATCH RFC v2 3/9] docs-rst: Don't mangle with UTF-8 chars on
+ LaTeX/PDF output
+Message-ID: <20160816135112.4207b489@vento.lan>
+In-Reply-To: <1C2F668D-41DD-4682-89D9-639430AAF3A6@darmarit.de>
+References: <cover.1471294965.git.mchehab@s-opensource.com>
+	<5ceebc273ff089c275c753c78f6e6c6e732b4077.1471294965.git.mchehab@s-opensource.com>
+	<4483E8C4-BBAC-4866-881D-3FBA5B85E834@darmarit.de>
+	<20160816063605.6ef0ed27@vento.lan>
+	<20160816080338.56c6e5d1@vento.lan>
+	<1C2F668D-41DD-4682-89D9-639430AAF3A6@darmarit.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vsp1 driver supports tri-planar formats, but the DRM API only passes
-two memory addresses. Add a third one.
+Em Tue, 16 Aug 2016 13:48:13 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drm.c | 6 +++---
- include/media/vsp1.h                   | 2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+> Am 16.08.2016 um 13:03 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> 
+> > Em Tue, 16 Aug 2016 06:36:05 -0300
+> > Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+> > 
+> > 2) the Latex auto-generated Makefile is hardcoded to use pdflatex. So,
+> > I had to manually replace it to xelatex. One easy solution would be to
+> > not use Make -C $BUILDDIR/latex, but to just call xelatex $BUILDDIR/$tex_name.  
+> 
+> I recommend to ship your own tex-Makefile, see:
+> 
+>   https://lkml.org/lkml/2016/8/10/114
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index 0a98a3c49b73..f76131b192a4 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -276,12 +276,12 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
- 	}
- 
- 	dev_dbg(vsp1->dev,
--		"%s: RPF%u: (%u,%u)/%ux%u -> (%u,%u)/%ux%u (%08x), pitch %u dma { %pad, %pad } zpos %u\n",
-+		"%s: RPF%u: (%u,%u)/%ux%u -> (%u,%u)/%ux%u (%08x), pitch %u dma { %pad, %pad, %pad } zpos %u\n",
- 		__func__, rpf_index,
- 		cfg->src.left, cfg->src.top, cfg->src.width, cfg->src.height,
- 		cfg->dst.left, cfg->dst.top, cfg->dst.width, cfg->dst.height,
- 		cfg->pixelformat, cfg->pitch, &cfg->mem[0], &cfg->mem[1],
--		cfg->zpos);
-+		&cfg->mem[2], cfg->zpos);
- 
- 	/* Store the format, stride, memory buffer address, crop and compose
- 	 * rectangles and Z-order position and for the input.
-@@ -301,7 +301,7 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
- 
- 	rpf->mem.addr[0] = cfg->mem[0];
- 	rpf->mem.addr[1] = cfg->mem[1];
--	rpf->mem.addr[2] = 0;
-+	rpf->mem.addr[2] = cfg->mem[2];
- 
- 	vsp1->drm->inputs[rpf_index].crop = cfg->src;
- 	vsp1->drm->inputs[rpf_index].compose = cfg->dst;
-diff --git a/include/media/vsp1.h b/include/media/vsp1.h
-index 9322d9775fb7..458b400373d4 100644
---- a/include/media/vsp1.h
-+++ b/include/media/vsp1.h
-@@ -26,7 +26,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int width,
- struct vsp1_du_atomic_config {
- 	u32 pixelformat;
- 	unsigned int pitch;
--	dma_addr_t mem[2];
-+	dma_addr_t mem[3];
- 	struct v4l2_rect src;
- 	struct v4l2_rect dst;
- 	unsigned int alpha;
--- 
+That makes sense for me, but let the others review what we have so far.
+We can later improve and use a makefile for tex. I would prefer to call
+the version that will be copied to the output dir with a different name
+(like Makefile.tex or Makefile.in), as I found really weird to have a
+file called Makefile inside the Kernel tree that contains just a makefile
+prototype.
+
 Regards,
-
-Laurent Pinchart
-
+Mauro
