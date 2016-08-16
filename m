@@ -1,254 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46304 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754588AbcHSBEr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Aug 2016 21:04:47 -0400
-Date: Thu, 18 Aug 2016 23:28:45 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        pali.rohar@gmail.com, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-        linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Message-ID: <20160818212845.GA30383@amd>
-References: <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160805102611.GA13116@amd>
- <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
- <20160808214132.GB2946@xo-6d-61-c0.localdomain>
- <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
- <20160808232323.GC2946@xo-6d-61-c0.localdomain>
- <20160811111633.GR3182@valkosipuli.retiisi.org.uk>
- <20160818104539.GA7427@amd>
- <20160818202559.GF3182@valkosipuli.retiisi.org.uk>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49050 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753391AbcHPUrl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Aug 2016 16:47:41 -0400
+Subject: Re: [PATCH] [media] vb2: move dma-buf unmap from __vb2_dqbuf() to
+ vb2_buffer_done()
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-kernel@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Luis de Bethencourt <luisbg@osg.samsung.com>
+References: <1469038941-5257-1-git-send-email-javier@osg.samsung.com>
+ <3b09885c-1bec-fcbe-6c6c-9c753502cb81@xs4all.nl>
+ <2c6196f7-d157-ce79-b81e-fa8c8e3ccb6e@osg.samsung.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Message-ID: <57B37BE7.4030009@iki.fi>
+Date: Tue, 16 Aug 2016 23:47:35 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160818202559.GF3182@valkosipuli.retiisi.org.uk>
+In-Reply-To: <2c6196f7-d157-ce79-b81e-fa8c8e3ccb6e@osg.samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Hi Javier,
 
-> > Heh. Basically anything is easier to develop for than n900 :-(.
+Javier Martinez Canillas wrote:
+> Hello Hans,
 > 
-> Is it?
+> Thanks a lot for your feedback.
 > 
-> I actually find the old Nokia devices very practical. It's easy to boot your
-> own kernel and things just work... until musb broke a bit recently. It
-> requires reconnecting the usb cable again to function.
+> On 08/13/2016 09:47 AM, Hans Verkuil wrote:
+>> On 07/20/2016 08:22 PM, Javier Martinez Canillas wrote:
+>>> Currently the dma-buf is unmapped when the buffer is dequeued by userspace
+>>> but it's not used anymore after the driver finished processing the buffer.
+>>>
+>>> So instead of doing the dma-buf unmapping in __vb2_dqbuf(), it can be made
+>>> in vb2_buffer_done() after the driver notified that buf processing is done.
+>>>
+>>> Decoupling the buffer dequeue from the dma-buf unmapping has also the side
+>>> effect of making possible to add dma-buf fence support in the future since
+>>> the buffer could be dequeued even before the driver has finished using it.
+>>>
+>>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>>>
+>>> ---
+>>> Hello,
+>>>
+>>> I've tested this patch doing DMA buffer sharing between a
+>>> vivid input and output device with both v4l2-ctl and gst:
+>>>
+>>> $ v4l2-ctl -d0 -e1 --stream-dmabuf --stream-out-mmap
+>>> $ v4l2-ctl -d0 -e1 --stream-mmap --stream-out-dmabuf
+>>> $ gst-launch-1.0 v4l2src device=/dev/video0 io-mode=dmabuf ! v4l2sink device=/dev/video1 io-mode=dmabuf-import
+>>>
+>>> And I didn't find any issues but more testing will be appreciated.
+>>>
+>>> Best regards,
+>>> Javier
+>>>
+>>>  drivers/media/v4l2-core/videobuf2-core.c | 34 +++++++++++++++++++++-----------
+>>>  1 file changed, 22 insertions(+), 12 deletions(-)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>>> index 7128b09810be..973331efaf79 100644
+>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>>> @@ -958,6 +958,22 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no)
+>>>  EXPORT_SYMBOL_GPL(vb2_plane_cookie);
+>>>  
+>>>  /**
+>>> + * __vb2_unmap_dmabuf() - unmap dma-buf attached to buffer planes
+>>> + */
+>>> +static void __vb2_unmap_dmabuf(struct vb2_buffer *vb)
+>>> +{
+>>> +	int i;
+>>> +
+>>> +	for (i = 0; i < vb->num_planes; ++i) {
+>>> +		if (!vb->planes[i].dbuf_mapped)
+>>> +			continue;
+>>> +		call_void_memop(vb, unmap_dmabuf,
+>>> +				vb->planes[i].mem_priv);
+>>
+>> Does unmap_dmabuf work in interrupt context? Since vb2_buffer_done can be called from
+>> an irq handler this is a concern.
+>>
 > 
-> I have to admit I mostly use an N9.
-
-Well, yes, I guess it sucks less than most phones, but...
-
-I wish I had working .5TB drive, and CPU fast enough to compile kernel
-in say hour, and enough memory to run emacs and g++ at the same time,
-ethernet connection, working RTC and real keyboard and monitor...
-
-Development would be way easier if I could just disconnect the N900
-peripherals and connect them to the PC. Ok, I can dream, right?
-
-
-> > I guess subdevs for omap3 should be merged at this point. Do you have
-> > any plans to do that, or should I take a look?
+> Good point, I believe it shouldn't be called from atomic context since both
+> the dma_buf_vunmap() and dma_buf_unmap_attachment() functions can sleep.
+>  
+>> That said, vb2_buffer_done already calls call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+>> to sync buffers, and that can take a long time as well. So it is not a good idea to
+>> have this in vb2_buffer_done.
+>>
 > 
-> What's still missing? I think I've yet to check the et8ek8 driver and the
-> device tree description is missing. That's what comes to mind right now.
+> I see.
+> 
+>> What I would like to see is to have vb2 handle this finish() call and the vb2_unmap_dmabuf
+>> in some workthread or equivalent.
+>>
+>> It would complicate matters somewhat in vb2, but it would simplify drivers since these
+>> actions would not longer take place in interrupt context.
+>>
+>> I think this patch makes sense, but I would prefer that this is moved out of the interrupt
+>> context.
+>>
+> 
+> Ok, I can take a look to this and handle the finish() and unmap_dmabuf()
+> out of interrupt context as you suggested.
 
-et8ek8 driver is important, yes. But there's the support for parsing
-sub-devices from the dt missing, too. This stuff (I believe it is
-originally from you).
+I have a patch doing the former which is a part of my cache management
+fix patchset:
 
-Best regards,
-								Pavel
+<URL:http://git.retiisi.org.uk/?p=~sailus/linux.git;a=commitdiff;h=b57f937627abda158ada01a3297dbb0f0a57b515>
+<URL:http://git.retiisi.org.uk/?p=~sailus/linux.git;a=shortlog;h=refs/heads/vb2-dc-noncoherent>
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 5d54e2c..23d484c 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2098,10 +2151,51 @@ static int isp_of_parse_node(struct device *dev, struct device_node *node,
- 	return 0;
- }
- 
-+static int isp_of_parse_node(struct device *dev, struct device_node *node,
-+			     struct v4l2_async_notifier *notifier,
-+			     u32 group_id, bool link)
-+{
-+	struct isp_async_subdev *isd;
-+
-+	isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
-+	if (!isd) {
-+		of_node_put(node);
-+		return -ENOMEM;
-+	}
-+
-+	notifier->subdevs[notifier->num_subdevs] = &isd->asd;
-+
-+	if (link) {
-+		if (isp_of_parse_node_endpoint(dev, node, isd)) {
-+			of_node_put(node);
-+			return -EINVAL;
-+		}
-+
-+		isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
-+		of_node_put(node);
-+	} else {
-+		isd->asd.match.of.node = node;
-+	}
-+
-+	if (!isd->asd.match.of.node) {
-+		dev_warn(dev, "bad remote port parent\n");
-+		return -EINVAL;
-+	}
-+
-+	isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
-+	isd->group_id = group_id;
-+	notifier->num_subdevs++;
-+
-+	return 0;
-+}
-+
- static int isp_of_parse_nodes(struct device *dev,
- 			      struct v4l2_async_notifier *notifier)
- {
- 	struct device_node *node = NULL;
-+	int ret;
-+	unsigned int flash = 0;
-+	u32 group_id = 0;
- 
- 	notifier->subdevs = devm_kcalloc(
- 		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
-@@ -2110,30 +2204,57 @@ static int isp_of_parse_nodes(struct device *dev,
- 
- 	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
- 	       (node = of_graph_get_next_endpoint(dev->of_node, node))) {
--		struct isp_async_subdev *isd;
-+		ret = isp_of_parse_node(dev, node, notifier, group_id++, true);
-+		if (ret)
-+			return ret;
-+	}
- 
--		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
--		if (!isd) {
--			of_node_put(node);
--			return -ENOMEM;
--		}
-+	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
-+	       (node = of_parse_phandle(dev->of_node, "ti,camera-flashes",
-+					flash++))) {
-+		struct device_node *sensor_node =
-+			of_parse_phandle(dev->of_node, "ti,camera-flashes",
-+					 flash++);
-+		unsigned int i;
-+		u32 flash_group_id;
-+
-+		if (!sensor_node)
-+			return -EINVAL;
- 
--		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
-+		for (i = 0; i < notifier->num_subdevs; i++) {
-+			struct isp_async_subdev *isd = container_of(
-+				notifier->subdevs[i], struct isp_async_subdev,
-+				asd);
- 
--		if (isp_of_parse_node(dev, node, isd)) {
--			of_node_put(node);
--			return -EINVAL;
-+			if (!isd->bus)
-+				continue;
-+
-+			dev_dbg(dev, "match \"%s\", \"%s\"\n",sensor_node->name,
-+				isd->asd.match.of.node->name);
-+
-+			if (sensor_node != isd->asd.match.of.node)
-+				continue;
-+
-+			dev_dbg(dev, "found\n");
-+
-+			flash_group_id = isd->group_id;
-+			break;
- 		}
- 
--		isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
--		of_node_put(node);
--		if (!isd->asd.match.of.node) {
--			dev_warn(dev, "bad remote port parent\n");
--			return -EINVAL;
-+		/*
-+		 * No sensor was found --- complain and allocate a new
-+		 * group ID.
-+		 */
-+		if (i == notifier->num_subdevs) {
-+			dev_warn(dev, "no device node \"%s\" was found",
-+				 sensor_node->name);
-+			flash_group_id = group_id++;
- 		}
- 
--		isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
--		notifier->num_subdevs++;
-+		ret = isp_of_parse_node(dev, node, notifier, flash_group_id,
-+					false);
-+		if (ret)
-+			return ret;
- 	}
- 
- 	return notifier->num_subdevs;
-@@ -2146,8 +2267,9 @@ static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
- 	struct isp_async_subdev *isd =
- 		container_of(asd, struct isp_async_subdev, asd);
- 
-+//	subdev->entity.group_id = isd->group_id;
- 	isd->sd = subdev;
--	isd->sd->host_priv = &isd->bus;
-+	isd->sd->host_priv = isd->bus;
- 
- 	return 0;
- }
-@@ -2350,12 +2472,15 @@ static int isp_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto error_register_entities;
- 
--	isp->notifier.bound = isp_subdev_notifier_bound;
--	isp->notifier.complete = isp_subdev_notifier_complete;
-+	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node) {
-+		isp->notifier.bound = isp_subdev_notifier_bound;
-+		isp->notifier.complete = isp_subdev_notifier_complete;
- 
--	ret = v4l2_async_notifier_register(&isp->v4l2_dev, &isp->notifier);
--	if (ret)
--		goto error_register_entities;
-+		ret = v4l2_async_notifier_register(&isp->v4l2_dev,
-+						   &isp->notifier);
-+		if (ret)
-+			goto error_register_entities;
-+	}
- 
- 	isp_core_init(isp, 1);
- 	omap3isp_put(isp);
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 7e6f663..639b3ca 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -228,8 +228,9 @@ struct isp_device {
- 
- struct isp_async_subdev {
- 	struct v4l2_subdev *sd;
--	struct isp_bus_cfg bus;
-+	struct isp_bus_cfg *bus;
- 	struct v4l2_async_subdev asd;
-+	u32 group_id;
- };
- 
- #define v4l2_dev_to_isp_device(dev) \
-
-
+There were a few drivers doing nasty things with memory that I couldn't
+quite fix back then. Just FYI.
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Regards,
+
+Sakari Ailus
+sakari.ailus@iki.fi
