@@ -1,73 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59483
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754080AbcHYMlX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Aug 2016 08:41:23 -0400
-Date: Thu, 25 Aug 2016 09:41:14 -0300
+Received: from bombadil.infradead.org ([198.137.202.9]:49449 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752150AbcHPQZv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Aug 2016 12:25:51 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Kevin Hilman <khilman@baylibre.com>
-Cc: Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org,
-        narmstrong@baylibre.com, carlo@caione.org,
-        linux-arm-kernel@lists.infradead.org, linus.walleij@linaro.org,
-        will.deacon@arm.com, catalin.marinas@arm.com, mark.rutland@arm.com,
-        robh+dt@kernel.org
-Subject: Re: [PATCH v4 4/6] media: rc: meson-ir: Add support for newer
- versions of the IR decoder
-Message-ID: <20160825094114.2ca0a9e9@vento.lan>
-In-Reply-To: <7hy43s5r7d.fsf@baylibre.com>
-References: <20160628191802.21227-1-martin.blumenstingl@googlemail.com>
-        <20160819215547.20063-1-martin.blumenstingl@googlemail.com>
-        <20160819215547.20063-5-martin.blumenstingl@googlemail.com>
-        <7hy43s5r7d.fsf@baylibre.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 5/9] docs-rst: Don't mangle with UTF-8 chars on LaTeX/PDF output
+Date: Tue, 16 Aug 2016 13:25:39 -0300
+Message-Id: <974887b551803aaaa2fcebe20e050f1455262f9b.1471364025.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471364025.git.mchehab@s-opensource.com>
+References: <cover.1471364025.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471364025.git.mchehab@s-opensource.com>
+References: <cover.1471364025.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 19 Aug 2016 15:28:22 -0700
-Kevin Hilman <khilman@baylibre.com> escreveu:
+pdflatex doesn't accept using some UTF-8 chars, like
+"equal or less than" or "equal or greater than" chars. However,
+the media documents use them. So, we need to use XeLaTeX for
+conversion, and a font that accepts such characters.
 
-> Martin Blumenstingl <martin.blumenstingl@googlemail.com> writes:
-> 
-> > From: Neil Armstrong <narmstrong@baylibre.com>
-> >
-> > Newer SoCs (Meson 8b and GXBB) are using REG2 (offset 0x20) instead of
-> > REG1 to configure the decoder mode. This makes it necessary to
-> > introduce new bindings so the driver knows which register has to be
-> > used.
-> >
-> > Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-> > Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>  
-> 
-> Acked-by: Kevin Hilman <khilman@baylibre.com>
-> 
-> Mauro, are you the one to pick up new media/rc drivers?  Or if you
-> prefer, with your ack, I'll take this along with the DT and submit via
-> arm-soc.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/Makefile.sphinx |  6 +++---
+ Documentation/conf.py         | 11 +++++++++++
+ 2 files changed, 14 insertions(+), 3 deletions(-)
 
-I generally pick new media rc drivers, but in the specific case of this
-patchset, it is just adding a few extra lines to existing drivers, and
-most of the work are actually at the ARM tree.
+diff --git a/Documentation/Makefile.sphinx b/Documentation/Makefile.sphinx
+index fdef3a4bc8c7..16a3502c9e40 100644
+--- a/Documentation/Makefile.sphinx
++++ b/Documentation/Makefile.sphinx
+@@ -29,7 +29,7 @@ else ifneq ($(DOCBOOKS),)
+ else # HAVE_SPHINX
+ 
+ # User-friendly check for pdflatex
+-HAVE_PDFLATEX := $(shell if which pdflatex >/dev/null 2>&1; then echo 1; else echo 0; fi)
++HAVE_PDFLATEX := $(shell if which xelatex >/dev/null 2>&1; then echo 1; else echo 0; fi)
+ 
+ # Internal variables.
+ PAPEROPT_a4     = -D latex_paper_size=a4
+@@ -68,11 +68,11 @@ htmldocs:
+ 
+ pdfdocs:
+ ifeq ($(HAVE_PDFLATEX),0)
+-	$(warning The 'pdflatex' command was not found. Make sure you have it installed and in PATH to produce PDF output.)
++	$(warning The 'xelatex' command was not found. Make sure you have it installed and in PATH to produce PDF output.)
+ 	@echo "  SKIP    Sphinx $@ target."
+ else # HAVE_PDFLATEX
+ 	@$(call loop_cmd,sphinx,latex,.,latex,.)
+-	$(Q)$(MAKE) -C $(BUILDDIR)/latex
++	$(Q)$(MAKE) PDFLATEX=xelatex -C $(BUILDDIR)/latex
+ endif # HAVE_PDFLATEX
+ 
+ epubdocs:
+diff --git a/Documentation/conf.py b/Documentation/conf.py
+index f91acc78e20b..e254198b1dbf 100644
+--- a/Documentation/conf.py
++++ b/Documentation/conf.py
+@@ -254,6 +254,10 @@ latex_elements = {
+ # Latex figure (float) alignment
+ #'figure_align': 'htbp',
+ 
++# Don't mangle with UTF-8 chars
++'inputenc': '',
++'utf8extra': '',
++
+ # Additional stuff for the LaTeX preamble.
+     'preamble': '''
+         % Allow generate some pages in landscape
+@@ -281,6 +285,13 @@ latex_elements = {
+           \\end{graybox}
+         }
+ 	\\makeatother
++
++	% Use some font with UTF-8 support with XeLaTeX
++        \\usepackage{fontspec}
++        \\setsansfont{DejaVu Serif}
++        \\setromanfont{DejaVu Sans}
++        \\setmonofont{DejaVu Sans Mono}
++
+      '''
+ }
+ 
+-- 
+2.7.4
 
-So, feel free to merge via arm-soc with my ack:
 
-Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-> 
-> Thanks,
-> 
-> Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
-Thanks,
-Mauro
