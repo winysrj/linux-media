@@ -1,75 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:33189 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932914AbcHIN7K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2016 09:59:10 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: <srv_heupstream@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>,
-	Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH v3 1/4] VPU: mediatek: Add mdp support
-Date: Tue, 9 Aug 2016 21:58:54 +0800
-Message-ID: <1470751137-12403-2-git-send-email-minghsiu.tsai@mediatek.com>
-In-Reply-To: <1470751137-12403-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1470751137-12403-1-git-send-email-minghsiu.tsai@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:49454 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752263AbcHPQZv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Aug 2016 12:25:51 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 0/9] Prepare Sphinx to build media PDF books
+Date: Tue, 16 Aug 2016 13:25:34 -0300
+Message-Id: <cover.1471364025.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VPU driver add mdp support
+This patch series fix Sphinx to allow it to build the media documentation as a PDF
+file.
 
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
----
- drivers/media/platform/mtk-vpu/mtk_vpu.h |    5 +++++
- 1 file changed, 5 insertions(+)
+The first patch is actually a bug fix: one of the previous patch broke compilation
+for PDF as a hole, as it added an extra parenthesis to a function call.
 
-diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.h b/drivers/media/platform/mtk-vpu/mtk_vpu.h
-index f457479..291ae46 100644
---- a/drivers/media/platform/mtk-vpu/mtk_vpu.h
-+++ b/drivers/media/platform/mtk-vpu/mtk_vpu.h
-@@ -53,6 +53,8 @@ typedef void (*ipi_handler_t) (void *data,
- 			 handle H264 video encoder job, and vice versa.
-  * @IPI_VENC_VP8:	 The interrupt fro vpu is to notify kernel to
- 			 handle VP8 video encoder job,, and vice versa.
-+ * @IPI_MDP:		 The interrupt from vpu is to notify kernel to
-+			 handle MDP (Media Data Path) job, and vice versa.
-  * @IPI_MAX:		 The maximum IPI number
-  */
- 
-@@ -63,6 +65,7 @@ enum ipi_id {
- 	IPI_VDEC_VP9,
- 	IPI_VENC_H264,
- 	IPI_VENC_VP8,
-+	IPI_MDP,
- 	IPI_MAX,
- };
- 
-@@ -71,11 +74,13 @@ enum ipi_id {
-  *
-  * @VPU_RST_ENC: encoder reset id
-  * @VPU_RST_DEC: decoder reset id
-+ * @VPU_RST_MDP: MDP (Media Data Path) reset id
-  * @VPU_RST_MAX: maximum reset id
-  */
- enum rst_id {
- 	VPU_RST_ENC,
- 	VPU_RST_DEC,
-+	VPU_RST_MDP,
- 	VPU_RST_MAX,
- };
- 
+The second patch just removes a left over code for rst2pdf.
+
+The other patches change from "pdflatex" to "xelatex" and address several
+issues that prevent building the media books.
+
+Jon,
+
+I think this patch series belong to docs-next. Feel free to merge them there, if
+you agree. There's one extra patch that touches Documentation/conf.py,
+re-adding the media book to the PDF build, but IMHO this one would be better
+to be merged via the media tree, after the fixes inside the media documentation
+to fix the build.
+
+I'm sending the media-specific patches on a separate patch series, meant to
+be merged via the media tree.
+
+As on the previous experimental patch series, I'm pushing the entire stuff
+on my development tree, at:
+	https://git.linuxtv.org//mchehab/experimental.git/log/?h=docs-next
+
+The generated PDF file is at:
+	https://mchehab.fedorapeople.org/media.pdf
+
+Please notice that lots of tables are broken. Fixing them would require manual
+work, as we'll need to add tags to specify the column size via tabularcolumns,
+long tables should use the cssclass:: longtable, and very wide tables will need
+to be rotated and size-adjusted.
+
+Anyway, at least *some* PDF support for media books are now possible.
+
+
+Mauro Carvalho Chehab (9):
+  docs-rst: fix a breakage when building PDF documents
+  docs-rst: remove a rst2pdf left over code
+  docs-rst: allow generating some LaTeX pages in landscape
+  docs-rst: improve output for .. notes:: on LaTeX
+  docs-rst: Don't mangle with UTF-8 chars on LaTeX/PDF output
+  docs-rst: better adjust margins and font size
+  docs-rst: parse-heraders.pl: escape LaTeX characters
+  docs-rst: Don't go to interactive mode on errors
+  docs-rst: enable the Sphinx math extension
+
+ Documentation/Makefile.sphinx         |  8 ++---
+ Documentation/conf.py                 | 66 +++++++++++++++++++++++++++++------
+ Documentation/sphinx/parse-headers.pl |  2 +-
+ 3 files changed, 60 insertions(+), 16 deletions(-)
+
 -- 
-1.7.9.5
+2.7.4
+
 
