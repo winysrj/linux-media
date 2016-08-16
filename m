@@ -1,231 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exsmtp03.microchip.com ([198.175.253.49]:24344 "EHLO
-	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932346AbcHKHTe (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56830
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753692AbcHPJgM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 03:19:34 -0400
-From: Songjun Wu <songjun.wu@microchip.com>
-To: <nicolas.ferre@atmel.com>, <robh@kernel.org>
-CC: <laurent.pinchart@ideasonboard.com>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	Songjun Wu <songjun.wu@microchip.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	=?UTF-8?q?Niklas=20S=C3=83=C2=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	Benoit Parrot <bparrot@ti.com>, <linux-kernel@vger.kernel.org>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-	<devicetree@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>,
-	Kamil Debski <kamil@wypas.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	=?UTF-8?q?Richard=20R=C3=B6jfors?= <richard@puffinpack.se>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Simon Horman <horms+renesas@verge.net.au>
-Subject: [PATCH v9 0/2] [media] atmel-isc: add driver for Atmel ISC
-Date: Thu, 11 Aug 2016 15:06:40 +0800
-Message-ID: <1470899202-13933-1-git-send-email-songjun.wu@microchip.com>
+	Tue, 16 Aug 2016 05:36:12 -0400
+Date: Tue, 16 Aug 2016 06:36:05 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: Re: [PATCH RFC v2 3/9] docs-rst: Don't mangle with UTF-8 chars on
+ LaTeX/PDF output
+Message-ID: <20160816063605.6ef0ed27@vento.lan>
+In-Reply-To: <4483E8C4-BBAC-4866-881D-3FBA5B85E834@darmarit.de>
+References: <cover.1471294965.git.mchehab@s-opensource.com>
+	<5ceebc273ff089c275c753c78f6e6c6e732b4077.1471294965.git.mchehab@s-opensource.com>
+	<4483E8C4-BBAC-4866-881D-3FBA5B85E834@darmarit.de>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Image Sensor Controller driver includes two parts.
-1) Driver code to implement the ISC function.
-2) Device tree binding documentation, it describes how
-   to add the ISC in device tree.
+Em Tue, 16 Aug 2016 10:27:34 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-Test result with v4l-utils.
-# v4l2-compliance -f
-v4l2-compliance SHA   : not available
+> Am 15.08.2016 um 23:21 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> 
+> > pdflatex doesn't accept using some UTF-8 chars, like
+> > "equal or less than" or "equal or greater than" chars. However,
+> > the media documents use them. So, we need to use XeLaTeX for
+> > conversion, and a font that accepts such characters.  
+> 
+> Right, we should use the XeLaTeX engine. But ...
+> 
+> Sphinx LaTeX output was/is developed for LaTeX, not for XeLaTeX.
 
-Driver Info:
-        Driver name   : atmel_isc
-        Card type     : Atmel Image Sensor Controller
-        Bus info      : platform:atmel_isc f0008000.isc
-        Driver version: 4.7.0
-        Capabilities  : 0x84200001
-                Video Capture
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04200001
-                Video Capture
-                Streaming
-                Extended Pix Format
+Yes, but official support for XeLaTeX was added for 1.5:
+	https://github.com/agda/agda/commit/a6a437316c9b9d998e6d6d0a6a654a63422a4212
 
-Compliance test for device /dev/video0 (not using libv4l2):
+And the change there was really simple: it just adds it to the generated
+Makefile.
 
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
+> E.g. in its defaults it uses "inputenc" and other stuff which
+> is not a part of XeLaTeX.
+> 
+> * https://github.com/sphinx-doc/sphinx/issues/894#issuecomment-220786426
+> 
+> This patch removes the "inputenc", thats right, but I think over
+> short/long term we will see more errors related to LaTeX/XeLaTeX
+> distinction. 
 
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
+Actually, I don't expect troubles at long term, as it is now officially
+supported.
 
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
+> And we will see that some conversion will break, depending
+> on the sphinx version we use (There might be some non XeLateX friendly 
+> changes in the sphinx-versions, since it is not tested with XeLaTeX).
 
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 1 Audio Inputs: 0 Tuners: 0
+Yeah, we need to double-check backward compatibility, and eventually
+disable it on older versions.
 
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
+I can't easily test version 1.3.x anymore, as Fedora 24 upgraded to
+Sphinx 1.4.4. The book builds fine on both 1.4.4 and 1.4.5.
 
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
+I'll install a Debian Jessie LXC container and double-check if the build
+is fine with Sphinx version 1.2.x and check the package requirements.
 
-Test input 0:
+>    Nevertheless, XeLaTeX is the right choice!
+> 
+> My Suggestion is, that you merge this patch on top of Jon's doc-next. 
+> There, we have the sub-folders feature, with we can test book by book
+> and improve our toolchain.
+> 
+> -- Markus --
+> 
+> 
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > ---
+> > Documentation/Makefile.sphinx |  6 +++---
+> > Documentation/conf.py         | 11 +++++++++++
+> > 2 files changed, 14 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/Documentation/Makefile.sphinx b/Documentation/Makefile.sphinx
+> > index fc29e08085aa..aa7ff32be589 100644
+> > --- a/Documentation/Makefile.sphinx
+> > +++ b/Documentation/Makefile.sphinx
+> > @@ -26,7 +26,7 @@ else ifneq ($(DOCBOOKS),)
+> > else # HAVE_SPHINX
+> > 
+> > # User-friendly check for pdflatex
+> > -HAVE_PDFLATEX := $(shell if which pdflatex >/dev/null 2>&1; then echo 1; else echo 0; fi)
+> > +HAVE_PDFLATEX := $(shell if which xelatex >/dev/null 2>&1; then echo 1; else echo 0; fi)
+> > 
+> > # Internal variables.
+> > PAPEROPT_a4     = -D latex_paper_size=a4
+> > @@ -45,11 +45,11 @@ htmldocs:
+> > 
+> > pdfdocs:
+> > ifeq ($(HAVE_PDFLATEX),0)
+> > -	$(warning The 'pdflatex' command was not found. Make sure you have it installed and in PATH to produce PDF output.)
+> > +	$(warning The 'xelatex' command was not found. Make sure you have it installed and in PATH to produce PDF output.)
+> > 	@echo "  SKIP    Sphinx $@ target."
+> > else # HAVE_PDFLATEX
+> > 	$(call cmd,sphinx,latex)
+> > -	$(Q)$(MAKE) -C $(BUILDDIR)/latex
+> > +	$(Q)$(MAKE) PDFLATEX=xelatex -C $(BUILDDIR)/latex
+> > endif # HAVE_PDFLATEX
+> > 
+> > epubdocs:
+> > diff --git a/Documentation/conf.py b/Documentation/conf.py
+> > index bbf2878d9945..f4469cd0340d 100644
+> > --- a/Documentation/conf.py
+> > +++ b/Documentation/conf.py
+> > @@ -260,6 +260,10 @@ latex_elements = {
+> > # Latex figure (float) alignment
+> > #'figure_align': 'htbp',
+> > 
+> > +# Don't mangle with UTF-8 chars
+> > +'inputenc': '',
+> > +'utf8extra': '',
+> > +
+> > # Additional stuff for the LaTeX preamble.
+> >     'preamble': '''
+> >         % Allow generate some pages in landscape
+> > @@ -287,6 +291,13 @@ latex_elements = {
+> >           \\end{graybox}
+> >         }
+> > 	\\makeatother
+> > +
+> > +	% Use some font with UTF-8 support with XeLaTeX
+> > +        \\usepackage{fontspec}
+> > +        \\setsansfont{DejaVu Serif}
+> > +        \\setromanfont{DejaVu Sans}
+> > +        \\setmonofont{DejaVu Sans Mono}
+> > +
+> >      '''
+> > }
+> > 
+> > -- 
+> > 2.7.4
+> > 
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html  
+> 
 
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-                test VIDIOC_QUERYCTRL: OK (Not Supported)
-                test VIDIOC_G/S_CTRL: OK (Not Supported)
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 0 Private Controls: 0
 
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK (Not Supported)
-                test Composing: OK (Not Supported)
-                test Scaling: OK (Not Supported)
 
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-Stream using all formats:
-        test MMAP for Format BA81, Frame Size 640x480@60.00 Hz:
-                Stride 640, Field None: OK
-        test MMAP for Format YUYV, Frame Size 640x480@60.00 Hz:
-                Stride 1280, Field None: OK
-
-Total: 45, Succeeded: 45, Failed: 0, Warnings: 0
-
-Changes in v9:
-- Set the default format in fuction 'isc_async_complete'.
-- Register the video device after everything is configured.
-
-Changes in v8:
-- Power on the sensor on the first open in function
-  'isc_open'.
-- Power off the sensor on the last release in function
-  'isc_release'.
-- Remove the switch of the pipeline.
-
-Changes in v7:
-- Add enum_framesizes and enum_frameintervals.
-- Call s_stream(0) when stream start fail.
-- Fill the device_caps field of struct video_device
-  with V4L2_CAP_STREAMING and V4L2_CAP_VIDEO_CAPTURE.
-- Initialize the dev of struct vb2_queue.
-- Set field to FIELD_NONE if the pix field is not supported.
-- Return the result directly when call g/s_parm of subdev.
-
-Changes in v6:
-- Add "iscck" and "gck" to clock-names.
-
-Changes in v5:
-- Modify the macro definition and the related code.
-- Add clock-output-names.
-
-Changes in v4:
-- Modify the isc clock code since the dt is changed.
-- Remove the isc clock nodes.
-
-Changes in v3:
-- Add pm runtime feature.
-- Modify the isc clock code since the dt is changed.
-- Remove the 'atmel,sensor-preferred'.
-- Modify the isc clock node according to the Rob's remarks.
-
-Changes in v2:
-- Add "depends on COMMON_CLK" and "VIDEO_V4L2_SUBDEV_API"
-  in Kconfig file.
-- Correct typos and coding style according to Laurent's remarks
-- Delete the loop while in 'isc_clk_enable' function.
-- Replace 'hsync_active', 'vsync_active' and 'pclk_sample'
-  with 'pfe_cfg0' in struct isc_subdev_entity.
-- Add the code to support VIDIOC_CREATE_BUFS in
-  'isc_queue_setup' function.
-- Invoke isc_config to configure register in
-  'isc_start_streaming' function.
-- Add the struct completion 'comp' to synchronize with
-  the frame end interrupt in 'isc_stop_streaming' function.
-- Check the return value of the clk_prepare_enable
-  in 'isc_open' function.
-- Set the default format in 'isc_open' function.
-- Add an exit condition in the loop while in 'isc_config'.
-- Delete the hardware setup operation in 'isc_set_format'.
-- Refuse format modification during streaming
-  in 'isc_s_fmt_vid_cap' function.
-- Invoke v4l2_subdev_alloc_pad_config to allocate and
-  initialize the pad config in 'isc_async_complete' function.
-- Remove the '.owner  = THIS_MODULE,' in atmel_isc_driver.
-- Replace the module_platform_driver_probe() with
-  module_platform_driver().
-- Remove the unit address of the endpoint.
-- Add the unit address to the clock node.
-- Avoid using underscores in node names.
-- Drop the "0x" in the unit address of the i2c node.
-- Modify the description of 'atmel,sensor-preferred'.
-- Add the description for the ISC internal clock.
-
-Songjun Wu (2):
-  [media] atmel-isc: add the Image Sensor Controller code
-  [media] atmel-isc: DT binding for Image Sensor Controller driver
-
- .../devicetree/bindings/media/atmel-isc.txt        |   65 +
- drivers/media/platform/Kconfig                     |    1 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/atmel/Kconfig               |    9 +
- drivers/media/platform/atmel/Makefile              |    1 +
- drivers/media/platform/atmel/atmel-isc-regs.h      |  165 +++
- drivers/media/platform/atmel/atmel-isc.c           | 1512 ++++++++++++++++++++
- 7 files changed, 1755 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
- create mode 100644 drivers/media/platform/atmel/Kconfig
- create mode 100644 drivers/media/platform/atmel/Makefile
- create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
- create mode 100644 drivers/media/platform/atmel/atmel-isc.c
-
--- 
-2.7.4
-
+Thanks,
+Mauro
