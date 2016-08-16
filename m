@@ -1,41 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.zeus03.de ([194.117.254.33]:56287 "EHLO mail.zeus03.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932642AbcHKVL3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 17:11:29 -0400
-From: Wolfram Sang <wsa-dev@sang-engineering.com>
-To: linux-usb@vger.kernel.org
-Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from bombadil.infradead.org ([198.137.202.9]:35274 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752529AbcHPQrm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Aug 2016 12:47:42 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
 	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 21/28] media: usb: pwc: pwc-if: don't print error when allocating urb fails
-Date: Thu, 11 Aug 2016 23:03:57 +0200
-Message-Id: <1470949451-24823-22-git-send-email-wsa-dev@sang-engineering.com>
-In-Reply-To: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
-References: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 3/9] [media] vidioc-enumstd.rst: remove bullets from sound carrier
+Date: Tue, 16 Aug 2016 13:47:31 -0300
+Message-Id: <a21c19591838d1c5606d1238555d99287c273827.1471365031.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471365031.git.mchehab@s-opensource.com>
+References: <cover.1471365031.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+In-Reply-To: <cover.1471365031.git.mchehab@s-opensource.com>
+References: <cover.1471365031.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=true
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kmalloc will print enough information in case of failure.
+The items at the sound carrier had a bullet. Those are not needed.
 
-Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
+So, get rid of them.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/pwc/pwc-if.c | 1 -
- 1 file changed, 1 deletion(-)
+ Documentation/media/uapi/v4l/vidioc-enumstd.rst | 25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-index b51b27a3fd6108..c4454c928776f7 100644
---- a/drivers/media/usb/pwc/pwc-if.c
-+++ b/drivers/media/usb/pwc/pwc-if.c
-@@ -410,7 +410,6 @@ retry:
- 	for (i = 0; i < MAX_ISO_BUFS; i++) {
- 		urb = usb_alloc_urb(ISO_FRAMES_PER_DESC, GFP_KERNEL);
- 		if (urb == NULL) {
--			PWC_ERROR("Failed to allocate urb %d\n", i);
- 			pwc_isoc_cleanup(pdev);
- 			return -ENOMEM;
- 		}
+diff --git a/Documentation/media/uapi/v4l/vidioc-enumstd.rst b/Documentation/media/uapi/v4l/vidioc-enumstd.rst
+index a936fe32ce9c..f61f0c6b0723 100644
+--- a/Documentation/media/uapi/v4l/vidioc-enumstd.rst
++++ b/Documentation/media/uapi/v4l/vidioc-enumstd.rst
+@@ -330,8 +330,7 @@ support digital TV. See also the Linux DVB API at
+ 
+        -  4433618.75 ± 1
+ 
+-       -  :cspan:`3` f\ :sub:`OR` = 4406250 ± 2000, f\ :sub:`OB` = 4250000
+-	  ± 2000
++       -  :cspan:`3` f\ :sub:`OR` = 4406250 ± 2000, f\ :sub:`OB` = 4250000 ± 2000
+ 
+     -  .. row 5
+ 
+@@ -363,27 +362,27 @@ support digital TV. See also the Linux DVB API at
+ 
+        -  Sound carrier relative to vision carrier (MHz)
+ 
+-       -  + 4.5
++       -  4.5
+ 
+-       -  + 4.5
++       -  4.5
+ 
+-       -  + 4.5
++       -  4.5
+ 
+-       -  + 5.5 ± 0.001  [#f4]_  [#f5]_  [#f6]_  [#f7]_
++       -  5.5 ± 0.001  [#f4]_  [#f5]_  [#f6]_  [#f7]_
+ 
+-       -  + 6.5 ± 0.001
++       -  6.5 ± 0.001
+ 
+-       -  + 5.5
++       -  5.5
+ 
+-       -  + 5.9996 ± 0.0005
++       -  5.9996 ± 0.0005
+ 
+-       -  + 5.5 ± 0.001
++       -  5.5 ± 0.001
+ 
+-       -  + 6.5 ± 0.001
++       -  6.5 ± 0.001
+ 
+-       -  + 6.5
++       -  6.5
+ 
+-       -  + 6.5  [#f8]_
++       -  6.5 [#f8]_
+ 
+ 
+ Return Value
 -- 
-2.8.1
+2.7.4
+
 
