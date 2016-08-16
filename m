@@ -1,345 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:34161 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1757777AbcHYJkE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Aug 2016 05:40:04 -0400
-From: Florent Revest <florent.revest@free-electrons.com>
-To: linux-media@vger.kernel.org
-Cc: florent.revest@free-electrons.com, linux-sunxi@googlegroups.com,
-        maxime.ripard@free-electrons.com, posciak@chromium.org,
-        hans.verkuil@cisco.com, thomas.petazzoni@free-electrons.com,
-        mchehab@kernel.org, linux-kernel@vger.kernel.org, wens@csie.org
-Subject: [RFC 01/10] clk: sunxi-ng: Add a couple of A13 clocks
-Date: Thu, 25 Aug 2016 11:39:40 +0200
-Message-Id: <1472117989-21455-2-git-send-email-florent.revest@free-electrons.com>
-In-Reply-To: <1472117989-21455-1-git-send-email-florent.revest@free-electrons.com>
-References: <1472117989-21455-1-git-send-email-florent.revest@free-electrons.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:35258 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752053AbcHPQrm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Aug 2016 12:47:42 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 0/9] Fix some issues at the media documentation to allow PDF build
+Date: Tue, 16 Aug 2016 13:47:28 -0300
+Message-Id: <cover.1471365031.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new style driver for the clock control unit in Allwinner A13.
+This patch series fix several issues with the media build.
 
-Only AVS and VE are supported since they weren't provided until now and are
-needed for "sunxi-cedrus".
+The first 4 patches are actually some random fixups that were noticed
+while fixing the PDF build;
 
-Signed-off-by: Florent Revest <florent.revest@free-electrons.com>
----
- .../devicetree/bindings/clock/sunxi-ccu.txt        |  1 +
- arch/arm/boot/dts/sun5i-a13.dtsi                   | 11 +++
- drivers/clk/sunxi-ng/Kconfig                       | 11 +++
- drivers/clk/sunxi-ng/Makefile                      |  1 +
- drivers/clk/sunxi-ng/ccu-sun5i-a13.c               | 80 ++++++++++++++++++++++
- drivers/clk/sunxi-ng/ccu-sun5i-a13.h               | 25 +++++++
- include/dt-bindings/clock/sun5i-a13-ccu.h          | 49 +++++++++++++
- include/dt-bindings/reset/sun5i-a13-ccu.h          | 48 +++++++++++++
- 8 files changed, 226 insertions(+)
- create mode 100644 drivers/clk/sunxi-ng/ccu-sun5i-a13.c
- create mode 100644 drivers/clk/sunxi-ng/ccu-sun5i-a13.h
- create mode 100644 include/dt-bindings/clock/sun5i-a13-ccu.h
- create mode 100644 include/dt-bindings/reset/sun5i-a13-ccu.h
+The next patch makes usage of Sphinx math expressions, to improve
+readability of some formulas at pixfmt-007.rst, related to color space
+conversions;
 
-diff --git a/Documentation/devicetree/bindings/clock/sunxi-ccu.txt b/Documentation/devicetree/bindings/clock/sunxi-ccu.txt
-index cb91507..7bb7a6a 100644
---- a/Documentation/devicetree/bindings/clock/sunxi-ccu.txt
-+++ b/Documentation/devicetree/bindings/clock/sunxi-ccu.txt
-@@ -4,6 +4,7 @@ Allwinner Clock Control Unit Binding
- Required properties :
- - compatible: must contain one of the following compatible:
- 		- "allwinner,sun8i-h3-ccu"
-+		- "allwinner,sun5i-a13-ccu"
- 
- - reg: Must contain the registers base address and length
- - clocks: phandle to the oscillators feeding the CCU. Two are needed:
-diff --git a/arch/arm/boot/dts/sun5i-a13.dtsi b/arch/arm/boot/dts/sun5i-a13.dtsi
-index e012890..2afe05fb 100644
---- a/arch/arm/boot/dts/sun5i-a13.dtsi
-+++ b/arch/arm/boot/dts/sun5i-a13.dtsi
-@@ -46,8 +46,10 @@
- 
- #include "sun5i.dtsi"
- 
-+#include <dt-bindings/clock/sun5i-a13-ccu.h>
- #include <dt-bindings/pinctrl/sun4i-a10.h>
- #include <dt-bindings/thermal/thermal.h>
-+#include <dt-bindings/reset/sun5i-a13-ccu.h>
- 
- / {
- 	interrupt-parent = <&intc>;
-@@ -327,6 +329,15 @@
- 				};
- 			};
- 		};
-+
-+		ccu: clock@01c20000 {
-+			compatible = "allwinner,sun5i-a13-ccu";
-+			reg = <0x01c20000 0x400>;
-+			clocks = <&osc24M>, <&osc32k>;
-+			clock-names = "hosc", "losc";
-+			#clock-cells = <1>;
-+			#reset-cells = <1>;
-+		};
- 	};
- };
- 
-diff --git a/drivers/clk/sunxi-ng/Kconfig b/drivers/clk/sunxi-ng/Kconfig
-index 2afcbd3..8faba4e 100644
---- a/drivers/clk/sunxi-ng/Kconfig
-+++ b/drivers/clk/sunxi-ng/Kconfig
-@@ -51,6 +51,17 @@ config SUNXI_CCU_MP
- 
- # SoC Drivers
- 
-+config SUN5I_A13_CCU
-+	bool "Support for the Allwinner A13 CCU"
-+	select SUNXI_CCU_DIV
-+	select SUNXI_CCU_NK
-+	select SUNXI_CCU_NKM
-+	select SUNXI_CCU_NKMP
-+	select SUNXI_CCU_NM
-+	select SUNXI_CCU_MP
-+	select SUNXI_CCU_PHASE
-+	default ARCH_SUN5I
-+
- config SUN8I_H3_CCU
- 	bool "Support for the Allwinner H3 CCU"
- 	select SUNXI_CCU_DIV
-diff --git a/drivers/clk/sunxi-ng/Makefile b/drivers/clk/sunxi-ng/Makefile
-index 633ce64..1710745 100644
---- a/drivers/clk/sunxi-ng/Makefile
-+++ b/drivers/clk/sunxi-ng/Makefile
-@@ -17,4 +17,5 @@ obj-$(CONFIG_SUNXI_CCU_NM)	+= ccu_nm.o
- obj-$(CONFIG_SUNXI_CCU_MP)	+= ccu_mp.o
- 
- # SoC support
-+obj-$(CONFIG_SUN5I_A13_CCU)	+= ccu-sun5i-a13.o
- obj-$(CONFIG_SUN8I_H3_CCU)	+= ccu-sun8i-h3.o
-diff --git a/drivers/clk/sunxi-ng/ccu-sun5i-a13.c b/drivers/clk/sunxi-ng/ccu-sun5i-a13.c
-new file mode 100644
-index 0000000..7f1da20
---- /dev/null
-+++ b/drivers/clk/sunxi-ng/ccu-sun5i-a13.c
-@@ -0,0 +1,80 @@
-+/*
-+ * Copyright (c) 2016 Maxime Ripard. All rights reserved.
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/clk-provider.h>
-+#include <linux/of_address.h>
-+
-+#include "ccu_common.h"
-+#include "ccu_reset.h"
-+
-+#include "ccu_div.h"
-+#include "ccu_gate.h"
-+#include "ccu_mp.h"
-+#include "ccu_mult.h"
-+#include "ccu_nk.h"
-+#include "ccu_nkm.h"
-+#include "ccu_nkmp.h"
-+#include "ccu_nm.h"
-+#include "ccu_phase.h"
-+
-+#include "ccu-sun5i-a13.h"
-+
-+static SUNXI_CCU_GATE(ve_clk, "ve", "pll4",
-+		      0x13c, BIT(31), CLK_SET_RATE_PARENT);
-+
-+static SUNXI_CCU_GATE(avs_clk,	"avs",	"osc24M",
-+		      0x144, BIT(31), 0);
-+
-+static struct ccu_common *sun5i_a13_ccu_clks[] = {
-+	&ve_clk.common,
-+	&avs_clk.common,
-+};
-+
-+static struct clk_hw_onecell_data sun5i_a13_hw_clks = {
-+	.hws	= {
-+		[CLK_VE]		= &ve_clk.common.hw,
-+		[CLK_AVS]		= &avs_clk.common.hw,
-+	},
-+	.num	= CLK_NUMBER,
-+};
-+
-+static struct ccu_reset_map sun5i_a13_ccu_resets[] = {
-+	[RST_VE]		=  { 0x13c, BIT(0) },
-+};
-+
-+static const struct sunxi_ccu_desc sun5i_a13_ccu_desc = {
-+	.ccu_clks	= sun5i_a13_ccu_clks,
-+	.num_ccu_clks	= ARRAY_SIZE(sun5i_a13_ccu_clks),
-+
-+	.hw_clks	= &sun5i_a13_hw_clks,
-+
-+	.resets		= sun5i_a13_ccu_resets,
-+	.num_resets	= ARRAY_SIZE(sun5i_a13_ccu_resets),
-+};
-+
-+static void __init sun5i_a13_ccu_setup(struct device_node *node)
-+{
-+	void __iomem *reg;
-+
-+	reg = of_iomap(node, 0);
-+	if (IS_ERR(reg)) {
-+		pr_err("%s: Could not map the clock registers\n",
-+		       of_node_full_name(node));
-+		return;
-+	}
-+
-+	sunxi_ccu_probe(node, reg, &sun5i_a13_ccu_desc);
-+}
-+
-+CLK_OF_DECLARE(sun5i_A13_ccu, "allwinner,sun5i-a13-ccu",
-+	       sun5i_a13_ccu_setup);
-diff --git a/drivers/clk/sunxi-ng/ccu-sun5i-a13.h b/drivers/clk/sunxi-ng/ccu-sun5i-a13.h
-new file mode 100644
-index 0000000..a52af0b
---- /dev/null
-+++ b/drivers/clk/sunxi-ng/ccu-sun5i-a13.h
-@@ -0,0 +1,25 @@
-+/*
-+ * Copyright 2016 Maxime Ripard
-+ *
-+ * Maxime Ripard <maxime.ripard@free-electrons.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _CCU_SUN5I_A13_H_
-+#define _CCU_SUN5I_A13_H_
-+
-+#include <dt-bindings/clock/sun5i-a13-ccu.h>
-+#include <dt-bindings/reset/sun5i-a13-ccu.h>
-+
-+#define CLK_NUMBER		2
-+
-+#endif /* _CCU_SUN5I_A13_H_ */
-diff --git a/include/dt-bindings/clock/sun5i-a13-ccu.h b/include/dt-bindings/clock/sun5i-a13-ccu.h
-new file mode 100644
-index 0000000..1218338
---- /dev/null
-+++ b/include/dt-bindings/clock/sun5i-a13-ccu.h
-@@ -0,0 +1,49 @@
-+/*
-+ * Copyright (C) 2016 Maxime Ripard <maxime.ripard@free-electrons.com>
-+ *
-+ * This file is dual-licensed: you can use it either under the terms
-+ * of the GPL or the X11 license, at your option. Note that this dual
-+ * licensing only applies to this file, and not this project as a
-+ * whole.
-+ *
-+ *  a) This file is free software; you can redistribute it and/or
-+ *     modify it under the terms of the GNU General Public License as
-+ *     published by the Free Software Foundation; either version 2 of the
-+ *     License, or (at your option) any later version.
-+ *
-+ *     This file is distributed in the hope that it will be useful,
-+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *     GNU General Public License for more details.
-+ *
-+ * Or, alternatively,
-+ *
-+ *  b) Permission is hereby granted, free of charge, to any person
-+ *     obtaining a copy of this software and associated documentation
-+ *     files (the "Software"), to deal in the Software without
-+ *     restriction, including without limitation the rights to use,
-+ *     copy, modify, merge, publish, distribute, sublicense, and/or
-+ *     sell copies of the Software, and to permit persons to whom the
-+ *     Software is furnished to do so, subject to the following
-+ *     conditions:
-+ *
-+ *     The above copyright notice and this permission notice shall be
-+ *     included in all copies or substantial portions of the Software.
-+ *
-+ *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-+ *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-+ *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-+ *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-+ *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-+ *     OTHER DEALINGS IN THE SOFTWARE.
-+ */
-+
-+#ifndef _DT_BINDINGS_CLK_SUN8I_a13_H_
-+#define _DT_BINDINGS_CLK_SUN8I_a13_H_
-+
-+#define CLK_VE			0
-+#define CLK_AVS			1
-+
-+#endif /* _DT_BINDINGS_CLK_SUN8I_A13_H_ */
-diff --git a/include/dt-bindings/reset/sun5i-a13-ccu.h b/include/dt-bindings/reset/sun5i-a13-ccu.h
-new file mode 100644
-index 0000000..f20b4f6
---- /dev/null
-+++ b/include/dt-bindings/reset/sun5i-a13-ccu.h
-@@ -0,0 +1,48 @@
-+/*
-+ * Copyright (C) 2016 Maxime Ripard <maxime.ripard@free-electrons.com>
-+ *
-+ * This file is dual-licensed: you can use it either under the terms
-+ * of the GPL or the X11 license, at your option. Note that this dual
-+ * licensing only applies to this file, and not this project as a
-+ * whole.
-+ *
-+ *  a) This file is free software; you can redistribute it and/or
-+ *     modify it under the terms of the GNU General Public License as
-+ *     published by the Free Software Foundation; either version 2 of the
-+ *     License, or (at your option) any later version.
-+ *
-+ *     This file is distributed in the hope that it will be useful,
-+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *     GNU General Public License for more details.
-+ *
-+ * Or, alternatively,
-+ *
-+ *  b) Permission is hereby granted, free of charge, to any person
-+ *     obtaining a copy of this software and associated documentation
-+ *     files (the "Software"), to deal in the Software without
-+ *     restriction, including without limitation the rights to use,
-+ *     copy, modify, merge, publish, distribute, sublicense, and/or
-+ *     sell copies of the Software, and to permit persons to whom the
-+ *     Software is furnished to do so, subject to the following
-+ *     conditions:
-+ *
-+ *     The above copyright notice and this permission notice shall be
-+ *     included in all copies or substantial portions of the Software.
-+ *
-+ *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-+ *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-+ *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-+ *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-+ *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-+ *     OTHER DEALINGS IN THE SOFTWARE.
-+ */
-+
-+#ifndef _DT_BINDINGS_RST_SUN5I_A13_H_
-+#define _DT_BINDINGS_RST_SUN5I_A13_H_
-+
-+#define RST_VE			0
-+
-+#endif /* _DT_BINDINGS_RST_SUN5I_A13_H_ */
+The 6th patch removes code blocks from tables, as Sphinx LaTeX output
+for those blocks are broken. As the code there is really trivial, it doesn't
+hurt much to just convert them into literals.
+
+The 7th and 8th patch are actually two examples about how to improve
+table outputs with LaTeX/PDF. The problem is that LaTeX requires explicit
+markups to adjust the columns size. Also, Sphinx, by default, produce
+portrait, single-paged tables. Manual work will be needed to fix all tables
+and make them appear.
+
+The last patch restores the build of the media documentation.
+
+Please notice that there are some non-fatal issues related to the media
+header files converted by parse-headers.pl. Those don't happen on
+Sphinx 1.3.x. So, I suspect that this is actually due to some bug at the
+Sphinx 1.4.x output, but I didn't try to investigate, as just ignoring them
+seems to be OK (at least, visually, the output looked good on my eyes).
+
+This series require my previous 9-patch docs-next series, with fix
+bugs related to LaTeX handling.
+
+
+I'm pushing the entire stuff of both series on my development tree, at:
+	https://git.linuxtv.org//mchehab/experimental.git/log/?h=docs-next
+
+The generated media PDF file is at:
+	https://mchehab.fedorapeople.org/media.pdf
+
+Mauro Carvalho Chehab (9):
+  [media] pixfmt-nv12mt.rst: use PNG instead of GIF
+  [media] vidioc-enumstd.rst: fix a broken reference
+  [media] vidioc-enumstd.rst: remove bullets from sound carrier
+  [media] docs-rst: better use the .. note:: tag
+  [media] pixfmt-007.rst: use Sphinx math:: expressions
+  [media] docs-rst: get rid of code-block inside tables
+  [media] pixfmt-packed-rgb.rst: rotate a big table
+  [media] vidioc-querycap.rst: Better format tables on PDF output
+  docs-rst: add media documentation to PDF output
+
+ Documentation/conf.py                              |   5 +
+ Documentation/media/uapi/cec/cec-func-close.rst    |   4 +-
+ Documentation/media/uapi/cec/cec-func-ioctl.rst    |   4 +-
+ Documentation/media/uapi/cec/cec-func-open.rst     |   4 +-
+ Documentation/media/uapi/cec/cec-func-poll.rst     |   4 +-
+ Documentation/media/uapi/cec/cec-intro.rst         |   4 +-
+ .../media/uapi/cec/cec-ioc-adap-g-caps.rst         |   4 +-
+ .../media/uapi/cec/cec-ioc-adap-g-log-addrs.rst    |   4 +-
+ .../media/uapi/cec/cec-ioc-adap-g-phys-addr.rst    |   4 +-
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst   |   4 +-
+ Documentation/media/uapi/cec/cec-ioc-g-mode.rst    |   4 +-
+ Documentation/media/uapi/cec/cec-ioc-receive.rst   |   4 +-
+ .../media/uapi/dvb/dvb-fe-read-status.rst          |   4 +-
+ Documentation/media/uapi/dvb/dvbapi.rst            |   4 +-
+ Documentation/media/uapi/dvb/dvbproperty.rst       |   4 +-
+ Documentation/media/uapi/dvb/examples.rst          |   4 +-
+ Documentation/media/uapi/dvb/fe-get-info.rst       |   4 +-
+ Documentation/media/uapi/dvb/fe-read-status.rst    |   4 +-
+ Documentation/media/uapi/dvb/frontend.rst          |   4 +-
+ .../media/uapi/rc/lirc-set-wideband-receiver.rst   |   4 +-
+ Documentation/media/uapi/v4l/audio.rst             |   4 +-
+ Documentation/media/uapi/v4l/buffer.rst            |  13 +-
+ Documentation/media/uapi/v4l/crop.rst              |  12 +-
+ Documentation/media/uapi/v4l/dev-codec.rst         |   4 +-
+ Documentation/media/uapi/v4l/dev-osd.rst           |   4 +-
+ Documentation/media/uapi/v4l/dev-overlay.rst       |   8 +-
+ Documentation/media/uapi/v4l/dev-rds.rst           |   4 +-
+ Documentation/media/uapi/v4l/extended-controls.rst |   4 +-
+ Documentation/media/uapi/v4l/func-mmap.rst         |   4 +-
+ Documentation/media/uapi/v4l/pixfmt-006.rst        |   4 +-
+ Documentation/media/uapi/v4l/pixfmt-007.rst        | 187 ++++++++++++++-------
+ Documentation/media/uapi/v4l/pixfmt-nv12mt.rst     |   4 +-
+ .../media/uapi/v4l/pixfmt-nv12mt_files/nv12mt.gif  | Bin 2108 -> 0 bytes
+ .../media/uapi/v4l/pixfmt-nv12mt_files/nv12mt.png  | Bin 0 -> 1920 bytes
+ .../v4l/pixfmt-nv12mt_files/nv12mt_example.gif     | Bin 6858 -> 0 bytes
+ .../v4l/pixfmt-nv12mt_files/nv12mt_example.png     | Bin 0 -> 5261 bytes
+ Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst |   9 +-
+ Documentation/media/uapi/v4l/pixfmt-sbggr16.rst    |   4 +-
+ Documentation/media/uapi/v4l/pixfmt-y16-be.rst     |   4 +-
+ Documentation/media/uapi/v4l/pixfmt-y16.rst        |   4 +-
+ Documentation/media/uapi/v4l/standard.rst          |   4 +-
+ Documentation/media/uapi/v4l/tuner.rst             |   4 +-
+ Documentation/media/uapi/v4l/userp.rst             |   4 +-
+ .../media/uapi/v4l/vidioc-dv-timings-cap.rst       |   4 +-
+ .../media/uapi/v4l/vidioc-enum-dv-timings.rst      |   4 +-
+ Documentation/media/uapi/v4l/vidioc-enum-fmt.rst   |  14 +-
+ .../media/uapi/v4l/vidioc-enum-frameintervals.rst  |   4 +-
+ .../media/uapi/v4l/vidioc-enum-framesizes.rst      |   4 +-
+ .../media/uapi/v4l/vidioc-enum-freq-bands.rst      |   4 +-
+ .../media/uapi/v4l/vidioc-enumaudioout.rst         |   4 +-
+ Documentation/media/uapi/v4l/vidioc-enumstd.rst    |  27 ++-
+ Documentation/media/uapi/v4l/vidioc-g-audioout.rst |   4 +-
+ Documentation/media/uapi/v4l/vidioc-g-edid.rst     |   4 +-
+ .../media/uapi/v4l/vidioc-g-ext-ctrls.rst          |   8 +-
+ .../media/uapi/v4l/vidioc-g-modulator.rst          |   4 +-
+ .../media/uapi/v4l/vidioc-g-sliced-vbi-cap.rst     |   4 +-
+ Documentation/media/uapi/v4l/vidioc-g-tuner.rst    |   8 +-
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst       |   4 +-
+ .../media/uapi/v4l/vidioc-query-dv-timings.rst     |   4 +-
+ Documentation/media/uapi/v4l/vidioc-querycap.rst   |  22 +--
+ Documentation/media/uapi/v4l/vidioc-queryctrl.rst  |  16 +-
+ Documentation/media/uapi/v4l/vidioc-querystd.rst   |   4 +-
+ Documentation/media/uapi/v4l/vidioc-streamon.rst   |   4 +-
+ .../media/uapi/v4l/vidioc-subscribe-event.rst      |   4 +-
+ Documentation/media/v4l-drivers/bttv.rst           |   1 +
+ 65 files changed, 360 insertions(+), 162 deletions(-)
+ delete mode 100644 Documentation/media/uapi/v4l/pixfmt-nv12mt_files/nv12mt.gif
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-nv12mt_files/nv12mt.png
+ delete mode 100644 Documentation/media/uapi/v4l/pixfmt-nv12mt_files/nv12mt_example.gif
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-nv12mt_files/nv12mt_example.png
+
 -- 
 2.7.4
+
 
