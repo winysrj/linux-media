@@ -1,82 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:33320 "EHLO
-	mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754059AbcHCRsP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 13:48:15 -0400
-Received: by mail-lf0-f52.google.com with SMTP id b199so166755066lfe.0
-        for <linux-media@vger.kernel.org>; Wed, 03 Aug 2016 10:48:14 -0700 (PDT)
-Date: Wed, 3 Aug 2016 19:19:48 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-	<niklas.soderlund@ragnatech.se>
-To: Steve Longerbeam <steve_longerbeam@mentor.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>, linux-media@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org,
-	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com,
-	mchehab@kernel.org, hans.verkuil@cisco.com
-Subject: Re: [PATCHv2 7/7] [PATCHv5] media: adv7180: fix field type
-Message-ID: <20160803171947.GN3672@bigcity.dyn.berto.se>
-References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
- <20160802145107.24829-8-niklas.soderlund+renesas@ragnatech.se>
- <3bb2b375-a4a9-00c4-1466-7b1ba8e3bfd8@metafoo.de>
- <20160803132147.GL3672@bigcity.dyn.berto.se>
- <2a8ec840-301b-06c8-31ec-42d25b282437@mentor.com>
- <4301a49c-39e3-2b35-74a4-e079b528db9e@metafoo.de>
- <53ce2f9b-6f06-dad5-a55d-cb4abbe6db24@mentor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <53ce2f9b-6f06-dad5-a55d-cb4abbe6db24@mentor.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:51342 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753558AbcHQG36 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Aug 2016 02:29:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Songjun Wu <songjun.wu@microchip.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 4/7] ov7670: get xvclk
+Date: Wed, 17 Aug 2016 08:29:40 +0200
+Message-Id: <1471415383-38531-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
+References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2016-08-03 10:14:45 -0700, Steve Longerbeam wrote:
-> On 08/03/2016 09:58 AM, Lars-Peter Clausen wrote:
-> > On 08/03/2016 06:55 PM, Steve Longerbeam wrote:
-> >> On 08/03/2016 06:21 AM, Niklas Söderlund wrote:
-> >>> On 2016-08-02 17:00:07 +0200, Lars-Peter Clausen wrote:
-> >>>> [...]
-> >>>>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-> >>>>> index a8b434b..c6fed71 100644
-> >>>>> --- a/drivers/media/i2c/adv7180.c
-> >>>>> +++ b/drivers/media/i2c/adv7180.c
-> >>>>> @@ -680,10 +680,13 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
-> >>>>>  	switch (format->format.field) {
-> >>>>>  	case V4L2_FIELD_NONE:
-> >>>>>  		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
-> >>>>> -			format->format.field = V4L2_FIELD_INTERLACED;
-> >>>>> +			format->format.field = V4L2_FIELD_ALTERNATE;
-> >>>>>  		break;
-> >>>>>  	default:
-> >>>>> -		format->format.field = V4L2_FIELD_INTERLACED;
-> >>>>> +		if (state->chip_info->flags & ADV7180_FLAG_I2P)
-> >>>>> +			format->format.field = V4L2_FIELD_INTERLACED;
-> >>>> I'm not convinced this is correct. As far as I understand it when the I2P
-> >>>> feature is enabled the core outputs full progressive frames at the full
-> >>>> framerate. If it is bypassed it outputs half-frames. So we have the option
-> >>>> of either V4L2_FIELD_NONE or V4L2_FIELD_ALTERNATE, but never interlaced. I
-> >>>> think this branch should setup the field format to be ALTERNATE regardless
-> >>>> of whether the I2P feature is available.
-> >>> I be happy to update the patch in such manner, but I feel this is more 
-> >>> for Steven to handle. I have no deep understanding of the adv7180 driver 
-> >>> and the only HW I have is the adv7180 and not adv7280, adv7280_m, 
-> >>> adv7282 or adv7282_m which is the models which have the ADV7180_FLAG_I2P 
-> >>> flag. So I can't really test such a change.
-> >>>
-> >>> Steven do you want to update this patch and resend it? 
-> >> Hi Niklas, I can update this patch, but it sounds like the whole thing
-> >> is "up in the air" at this point, and we may want to yank out the I2P
-> >> support altogether. I'll leave it up to Lars and others to work that out
-> >> first.
-> > Yeah, we should remove the whole I2P stuff, I was misinformed about how it
-> > works. But either way I think this patch should simply not touch the current
-> > behavior, so don't add new if (FLAG_I2P) checks.
-> 
-> Hi Lars, Ok I can do that. I'll resubmit in next version of my patchset.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks Steven, then I will drop this patch in my v3. Can you pleas CC me 
-when you send out your patch?
+Get the clock for this sensor.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/ov7670.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index fe527b2..57adf3d 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -10,6 +10,7 @@
+  * This file may be distributed under the terms of the GNU General
+  * Public License, version 2.
+  */
++#include <linux/clk.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+@@ -18,6 +19,7 @@
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-clk.h>
+ #include <media/v4l2-mediabus.h>
+ #include <media/v4l2-image-sizes.h>
+ #include <media/i2c/ov7670.h>
+@@ -228,6 +230,7 @@ struct ov7670_info {
+ 		struct v4l2_ctrl *hue;
+ 	};
+ 	struct ov7670_format_struct *fmt;  /* Current format */
++	struct v4l2_clk *clk;
+ 	int min_width;			/* Filter out smaller sizes */
+ 	int min_height;			/* Filter out smaller sizes */
+ 	int clock_speed;		/* External clock speed (MHz) */
+@@ -1588,8 +1591,19 @@ static int ov7670_probe(struct i2c_client *client,
+ 			info->pclk_hb_disable = true;
+ 	}
+ 
++	info->clk = v4l2_clk_get(&client->dev, "xvclk");
++	if (IS_ERR(info->clk))
++		return -EPROBE_DEFER;
++	v4l2_clk_enable(info->clk);
++
++	info->clock_speed = v4l2_clk_get_rate(info->clk) / 1000000;
++	if (info->clock_speed < 12 ||
++	    info->clock_speed > 48)
++		return -EINVAL;
++
+ 	/* Make sure it's an ov7670 */
+ 	ret = ov7670_detect(sd);
++
+ 	if (ret) {
+ 		v4l_dbg(1, debug, client,
+ 			"chip found @ 0x%x (%s) is not an ov7670 chip.\n",
+@@ -1682,6 +1696,7 @@ static int ov7670_remove(struct i2c_client *client)
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	media_entity_cleanup(&sd->entity);
+ #endif
++	v4l2_clk_put(info->clk);
+ 	return 0;
+ }
+ 
 -- 
-Regards,
-Niklas Söderlund
+2.8.1
+
