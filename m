@@ -1,33 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:45930 "EHLO
-        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932696AbcH3RPN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Aug 2016 13:15:13 -0400
-Date: Tue, 30 Aug 2016 19:14:52 +0200
-From: Greg KH <greg@kroah.com>
-To: Wolfram Sang <wsa-dev@sang-engineering.com>
-Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 00/28] media: don't print error when allocating urb fails
-Message-ID: <20160830171452.GA13250@kroah.com>
-References: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34849
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752629AbcHQS3O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Aug 2016 14:29:14 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org
+Subject: [RFC PATCH 0/2] [media] vb2: defer part of vb2_buffer_done() and move dma-buf unmap from DQBUF
+Date: Wed, 17 Aug 2016 14:28:55 -0400
+Message-Id: <1471458537-16859-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 11, 2016 at 11:03:36PM +0200, Wolfram Sang wrote:
-> This per-subsystem series is part of a tree wide cleanup. usb_alloc_urb() uses
-> kmalloc which already prints enough information on failure. So, let's simply
-> remove those "allocation failed" messages from drivers like we did already for
-> other -ENOMEM cases. gkh acked this approach when we talked about it at LCJ in
-> Tokyo a few weeks ago.
+Hello,
 
-I've taken all of these through the usb tree given the delay in response
-from the media developers :)
+This patch series attempt to do the dma-buf unmap as soon as possible, once
+the driver has finished using the buffer. Instead of waiting until DQBUF to
+do the unmap.
 
-thanks,
+Patch #1 splits vb2_buffer_done() and moves part of its logic to a workqueue
+to avoid calling the vb2 .finish mem ops. Since doing a buffer sync can take
+a lot of time so isn't suitable for interrupt context. This was suggested by
+Hans Verkuil on a previous patch [0].
 
-greg k-h
+Patch #2 then moves the dma-buf unmap out of DQBUF to vb2_done_work() now that
+this is executed in process context since the dmabuf unmap operation can sleep.
+
+[0]: https://lkml.org/lkml/2016/8/13/36
+
+Best regards,
+Javier
+
+
+Javier Martinez Canillas (2):
+  [media] vb2: defer sync buffers from vb2_buffer_done() with a
+    workqueue
+  [media] vb2: move dma-buf unmap from __vb2_dqbuf() to vb2_done_work()
+
+ drivers/media/v4l2-core/videobuf2-core.c | 114 ++++++++++++++++++++-----------
+ include/media/videobuf2-core.h           |   5 ++
+ 2 files changed, 79 insertions(+), 40 deletions(-)
+
+-- 
+2.5.5
+
