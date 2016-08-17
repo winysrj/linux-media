@@ -1,66 +1,245 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57324 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750927AbcHQJCU (ORCPT
+Received: from exsmtp02.microchip.com ([198.175.253.38]:38192 "EHLO
+	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750974AbcHQGSe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2016 05:02:20 -0400
-Date: Wed, 17 Aug 2016 12:01:44 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Wed, 17 Aug 2016 02:18:34 -0400
+From: Songjun Wu <songjun.wu@microchip.com>
+To: <nicolas.ferre@atmel.com>, <robh@kernel.org>
+CC: <laurent.pinchart@ideasonboard.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	Songjun Wu <songjun.wu@microchip.com>,
 	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org
-Subject: Re: [RESEND PATCH] [media] vb2: Fix vb2_core_dqbuf() kernel-doc
-Message-ID: <20160817090144.GD3182@valkosipuli.retiisi.org.uk>
-References: <1471357216-23230-1-git-send-email-javier@osg.samsung.com>
+	Guenter Roeck <linux@roeck-us.net>,
+	Arnd Bergmann <arnd@arndb.de>,
+	=?UTF-8?q?Niklas=20S=C3=83=C2=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	Benoit Parrot <bparrot@ti.com>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	=?UTF-8?q?Richard=20R=C3=B6jfors?= <richard@puffinpack.se>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	<devicetree@vger.kernel.org>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Simon Horman <horms+renesas@verge.net.au>,
+	<linux-kernel@vger.kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kamil Debski <kamil@wypas.org>,
+	Mark Rutland <mark.rutland@arm.com>
+Subject: [PATCH v10 0/3] [media] atmel-isc: add driver for Atmel ISC
+Date: Wed, 17 Aug 2016 14:05:26 +0800
+Message-ID: <1471413929-26008-1-git-send-email-songjun.wu@microchip.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1471357216-23230-1-git-send-email-javier@osg.samsung.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+The Image Sensor Controller driver includes three parts.
+1) Driver code to implement the ISC function.
+2) Device tree binding documentation, it describes how
+   to add the ISC in device tree.
+3) Add an entry to MAINTAINERS for Atmel ISC
 
-On Tue, Aug 16, 2016 at 10:20:16AM -0400, Javier Martinez Canillas wrote:
-> The kernel-doc has the wrong function name and also the pindex
-> parameter is missing in the documentation.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> 
-> ---
-> 
-> This patch was posted some weeks ago but I noticed that wasn't
-> picked by patchwork, so I'm resend it.
-> 
->  drivers/media/v4l2-core/videobuf2-core.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index ca8ffeb56d72..1dbd7beb71f0 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1726,8 +1726,9 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
->  }
->  
->  /**
-> - * vb2_dqbuf() - Dequeue a buffer to the userspace
-> + * vb2_core_dqbuf() - Dequeue a buffer to the userspace
->   * @q:		videobuf2 queue
-> + * @pindex:	id number of the buffer
+Test result with v4l-utils.
+# v4l2-compliance -f
+v4l2-compliance SHA   : not available
 
-How about: "Pointer to the buffer index. May be NULL.".
+Driver Infoatmel_isc f0008000.isc: Format 0xffffffff not found
+atmel_isc f0008000.isc: Format 0xffffffff not found
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+        Driver name   : atmel_isc
+        Card type     : Atmel Image Sensor Controller
+        Bus info      : platform:atmel_isc f0008000.isc
+        Driver version: 4.7.0
+        Capabilities  : 0x84200001
+                Video Capture
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04200001
+                Video Capture
+                Streaming
+                Extended Pix Format
 
->   * @pb:		buffer structure passed from userspace to vidioc_dqbuf handler
->   *		in driver
->   * @nonblocking: if true, this call will not sleep waiting for a buffer if no
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+                test VIDIOC_QUERYCTRL: OK (Not Supported)
+                test VIDIOC_G/S_CTRL: OK (Not Supported)
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 0 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK (Not Supported)
+                test Scaling: OK (Not Supported)
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Stream using all formats:
+        test MMAP for Format BA81, Frame Size 640x480@60.00 Hz:
+                Stride 640, Field None: OK
+        test MMAP for Format YUYV, Frame Size 640x480@60.00 Hz:
+                Stride 1280, Field None: OK
+
+Total: 45, Succeeded: 45, Failed: 0, Warnings: 0
+
+Changes in v10:
+- If 's_power' api does not exist in the sensor driver,
+  the function 'isc_open' will return a value of 0.
+
+Changes in v9:
+- Set the default format in fuction 'isc_async_complete'.
+- Register the video device after everything is configured.
+
+Changes in v8:
+- Power on the sensor on the first open in function
+  'isc_open'.
+- Power off the sensor on the last release in function
+  'isc_release'.
+- Remove the switch of the pipeline.
+
+Changes in v7:
+- Add enum_framesizes and enum_frameintervals.
+- Call s_stream(0) when stream start fail.
+- Fill the device_caps field of struct video_device
+  with V4L2_CAP_STREAMING and V4L2_CAP_VIDEO_CAPTURE.
+- Initialize the dev of struct vb2_queue.
+- Set field to FIELD_NONE if the pix field is not supported.
+- Return the result directly when call g/s_parm of subdev.
+
+Changes in v6:
+- Add "iscck" and "gck" to clock-names.
+
+Changes in v5:
+- Modify the macro definition and the related code.
+- Add clock-output-names.
+
+Changes in v4:
+- Modify the isc clock code since the dt is changed.
+- Remove the isc clock nodes.
+
+Changes in v3:
+- Add pm runtime feature.
+- Modify the isc clock code since the dt is changed.
+- Remove the 'atmel,sensor-preferred'.
+- Modify the isc clock node according to the Rob's remarks.
+
+Changes in v2:
+- Add "depends on COMMON_CLK" and "VIDEO_V4L2_SUBDEV_API"
+  in Kconfig file.
+- Correct typos and coding style according to Laurent's remarks
+- Delete the loop while in 'isc_clk_enable' function.
+- Replace 'hsync_active', 'vsync_active' and 'pclk_sample'
+  with 'pfe_cfg0' in struct isc_subdev_entity.
+- Add the code to support VIDIOC_CREATE_BUFS in
+  'isc_queue_setup' function.
+- Invoke isc_config to configure register in
+  'isc_start_streaming' function.
+- Add the struct completion 'comp' to synchronize with
+  the frame end interrupt in 'isc_stop_streaming' function.
+- Check the return value of the clk_prepare_enable
+  in 'isc_open' function.
+- Set the default format in 'isc_open' function.
+- Add an exit condition in the loop while in 'isc_config'.
+- Delete the hardware setup operation in 'isc_set_format'.
+- Refuse format modification during streaming
+  in 'isc_s_fmt_vid_cap' function.
+- Invoke v4l2_subdev_alloc_pad_config to allocate and
+  initialize the pad config in 'isc_async_complete' function.
+- Remove the '.owner  = THIS_MODULE,' in atmel_isc_driver.
+- Replace the module_platform_driver_probe() with
+  module_platform_driver().
+- Remove the unit address of the endpoint.
+- Add the unit address to the clock node.
+- Avoid using underscores in node names.
+- Drop the "0x" in the unit address of the i2c node.
+- Modify the description of 'atmel,sensor-preferred'.
+- Add the description for the ISC internal clock.
+
+Songjun Wu (3):
+  [media] atmel-isc: add the Image Sensor Controller code
+  [media] atmel-isc: DT binding for Image Sensor Controller driver
+  MAINTAINERS: atmel-isc: add entry for Atmel ISC
+
+ .../devicetree/bindings/media/atmel-isc.txt        |   65 +
+ MAINTAINERS                                        |    8 +
+ drivers/media/platform/Kconfig                     |    1 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/atmel/Kconfig               |    9 +
+ drivers/media/platform/atmel/Makefile              |    1 +
+ drivers/media/platform/atmel/atmel-isc-regs.h      |  165 +++
+ drivers/media/platform/atmel/atmel-isc.c           | 1514 ++++++++++++++++++++
+ 8 files changed, 1765 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
+ create mode 100644 drivers/media/platform/atmel/Kconfig
+ create mode 100644 drivers/media/platform/atmel/Makefile
+ create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
+ create mode 100644 drivers/media/platform/atmel/atmel-isc.c
 
 -- 
-Cheers,
+2.7.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
