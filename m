@@ -1,160 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35507 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750828AbcH2HUx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 03:20:53 -0400
-Received: by mail-wm0-f65.google.com with SMTP id i5so8247264wmg.2
-        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2016 00:20:52 -0700 (PDT)
-From: Chris Wilson <chris@chris-wilson.co.uk>
-To: dri-devel@lists.freedesktop.org
-Cc: intel-gfx@lists.freedesktop.org,
-        Chris Wilson <chris@chris-wilson.co.uk>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
-        Alex Deucher <alexander.deucher@amd.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
-Subject: [PATCH 07/11] dma-buf: Restart reservation_object_get_fences_rcu() after writes
-Date: Mon, 29 Aug 2016 08:08:30 +0100
-Message-Id: <20160829070834.22296-7-chris@chris-wilson.co.uk>
-In-Reply-To: <20160829070834.22296-1-chris@chris-wilson.co.uk>
-References: <20160829070834.22296-1-chris@chris-wilson.co.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44804 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752408AbcHQMUY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Aug 2016 08:20:24 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v2 2/4] v4l: Define a pixel format for the R-Car VSP1 1-D histogram engine
+Date: Wed, 17 Aug 2016 15:20:28 +0300
+Message-Id: <1471436430-26245-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1471436430-26245-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1471436430-26245-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to be completely generic, we have to double check the read
-seqlock after acquiring a reference to the fence. If the driver is
-allocating fences from a SLAB_DESTROY_BY_RCU, or similar freelist, then
-within an RCU grace period a fence may be freed and reallocated. The RCU
-read side critical section does not prevent this reallocation, instead
-we have to inspect the reservation's seqlock to double check if the
-fences have been reassigned as we were acquiring our reference.
+The format is used on the R-Car VSP1 video queues that carry
+1-D histogram statistics data.
 
-Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: linaro-mm-sig@lists.linaro.org
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/dma-buf/reservation.c | 71 +++++++++++++++++++------------------------
- 1 file changed, 31 insertions(+), 40 deletions(-)
+Changes since v1:
 
-diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
-index 723d8af988e5..10fd441dd4ed 100644
---- a/drivers/dma-buf/reservation.c
-+++ b/drivers/dma-buf/reservation.c
-@@ -280,18 +280,24 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
- 				      unsigned *pshared_count,
- 				      struct fence ***pshared)
- {
--	unsigned shared_count = 0;
--	unsigned retry = 1;
--	struct fence **shared = NULL, *fence_excl = NULL;
--	int ret = 0;
-+	struct fence **shared = NULL;
-+	struct fence *fence_excl;
-+	unsigned shared_count;
-+	int ret = 1;
- 
--	while (retry) {
-+	do {
- 		struct reservation_object_list *fobj;
- 		unsigned seq;
-+		unsigned i;
- 
--		seq = read_seqcount_begin(&obj->seq);
-+		shared_count = i = 0;
- 
- 		rcu_read_lock();
-+		seq = read_seqcount_begin(&obj->seq);
+- Rebased on top of the DocBook to reST conversion
+
+ Documentation/media/uapi/v4l/meta-formats.rst      |  15 ++
+ .../media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst        | 170 +++++++++++++++++++++
+ Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
+ include/uapi/linux/videodev2.h                     |   3 +
+ 5 files changed, 190 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/meta-formats.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
+
+diff --git a/Documentation/media/uapi/v4l/meta-formats.rst b/Documentation/media/uapi/v4l/meta-formats.rst
+new file mode 100644
+index 000000000000..05ab91e12f10
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/meta-formats.rst
+@@ -0,0 +1,15 @@
++.. -*- coding: utf-8; mode: rst -*-
 +
-+		fence_excl = rcu_dereference(obj->fence_excl);
-+		if (fence_excl && !fence_get_rcu(fence_excl))
-+			goto unlock;
- 
- 		fobj = rcu_dereference(obj->fence);
- 		if (fobj) {
-@@ -309,52 +315,37 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
- 				}
- 
- 				ret = -ENOMEM;
--				shared_count = 0;
- 				break;
- 			}
- 			shared = nshared;
--			memcpy(shared, fobj->shared, sz);
- 			shared_count = fobj->shared_count;
--		} else
--			shared_count = 0;
--		fence_excl = rcu_dereference(obj->fence_excl);
--
--		retry = read_seqcount_retry(&obj->seq, seq);
--		if (retry)
--			goto unlock;
--
--		if (!fence_excl || fence_get_rcu(fence_excl)) {
--			unsigned i;
- 
- 			for (i = 0; i < shared_count; ++i) {
--				if (fence_get_rcu(shared[i]))
--					continue;
--
--				/* uh oh, refcount failed, abort and retry */
--				while (i--)
--					fence_put(shared[i]);
--
--				if (fence_excl) {
--					fence_put(fence_excl);
--					fence_excl = NULL;
--				}
--
--				retry = 1;
--				break;
-+				shared[i] = rcu_dereference(fobj->shared[i]);
-+				if (!fence_get_rcu(shared[i]))
-+					break;
- 			}
--		} else
--			retry = 1;
-+		}
++.. _meta-formats:
 +
-+		if (i != shared_count || read_seqcount_retry(&obj->seq, seq)) {
-+			while (i--)
-+				fence_put(shared[i]);
-+			fence_put(fence_excl);
-+			goto unlock;
-+		}
- 
-+		ret = 0;
- unlock:
- 		rcu_read_unlock();
--	}
--	*pshared_count = shared_count;
--	if (shared_count)
--		*pshared = shared;
--	else {
--		*pshared = NULL;
-+	} while (ret);
++****************
++Metadata Formats
++****************
 +
-+	if (!shared_count) {
- 		kfree(shared);
-+		shared = NULL;
- 	}
++These formats are used for the :ref:`metadata` interface only.
 +
-+	*pshared_count = shared_count;
-+	*pshared = shared;
- 	*pfence_excl = fence_excl;
++
++.. toctree::
++    :maxdepth: 1
++
++    pixfmt-meta-vsp1-hgo
+diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
+new file mode 100644
+index 000000000000..e935e4525b10
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
+@@ -0,0 +1,170 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _v4l2-meta-fmt-vsp1-hgo:
++
++*******************************
++V4L2_META_FMT_VSP1_HGO ('VSPH')
++*******************************
++
++*man V4L2_META_FMT_VSP1_HGO(2)*
++
++Renesas R-Car VSP1 1-D Histogram Data
++
++
++Description
++===========
++
++This format describes histogram data generated by the Renesas R-Car VSP1 1-D
++Histogram (HGO) engine.
++
++The VSP1 HGO is a histogram computation engine that can operate on RGB, YCrCb
++or HSV data. It operates on a possibly cropped and subsampled input image and
++computes the minimum, maximum and sum of all pixels as well as per-channel
++histograms.
++
++The HGO can compute histograms independently per channel, on the maximum of the
++three channels (RGB data only) or on the Y channel only (YCbCr only). It can
++additionally output the histogram with 64 or 256 bins, resulting in four
++possible modes of operation.
++
++- In *64 bins normal mode*, the HGO operates on the three channels independently
++  to compute three 64-bins histograms. RGB, YCbCr and HSV image formats are
++  supported.
++- In *64 bins maximum mode*, the HGO operates on the maximum of the (R, G, B)
++  channels to compute a single 64-bins histogram. Only the RGB image format is
++  supported.
++- In *256 bins normal mode*, the HGO operates on the Y channel to compute a
++  single 256-bins histogram. Only the YCbCr image format is supported.
++- In *256 bins maximum mode*, the HGO operates on the maximum of the (R, G, B)
++  channels to compute a single 256-bins histogram. Only the RGB image format is
++  supported.
++
++**Byte Order.**
++All data is stored in memory in little endian format. Each cell in the tables
++contains one byte.
++
++.. flat-table:: VSP1 HGO Data - 64 Bins, Normal Mode (792 bytes)
++    :header-rows:  2
++    :stub-columns: 0
++
++    * - Offset
++      - :cspan:`4` Memory
++    * -
++      - [31:24]
++      - [23:16]
++      - [15:8]
++      - [7:0]
++    * - 0
++      - -
++      - R/Cr/H max [7:0]
++      - -
++      - R/Cr/H min [7:0]
++    * - 4
++      - -
++      - G/Y/S max [7:0]
++      - -
++      - G/Y/S min [7:0]
++    * - 8
++      - -
++      - B/Cb/V max [7:0]
++      - -
++      - B/Cb/V min [7:0]
++    * - 12
++      - :cspan:`4` R/Cr/H sum [31:0]
++    * - 16
++      - :cspan:`4` G/Y/S sum [31:0]
++    * - 20
++      - :cspan:`4` B/Cb/V sum [31:0]
++    * - 24
++      - :cspan:`4` R/Cr/H bin 0 [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 276
++      - :cspan:`4` R/Cr/H bin 63 [31:0]
++    * - 280
++      - :cspan:`4` G/Y/S bin 0 [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 532
++      - :cspan:`4` G/Y/S bin 63 [31:0]
++    * - 536
++      - :cspan:`4` B/Cb/V bin 0 [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 788
++      - :cspan:`4` B/Cb/V bin 63 [31:0]
++
++.. flat-table:: VSP1 HGO Data - 64 Bins, Max Mode (264 bytes)
++    :header-rows:  2
++    :stub-columns: 0
++
++    * - Offset
++      - :cspan:`4` Memory
++    * -
++      - [31:24]
++      - [23:16]
++      - [15:8]
++      - [7:0]
++    * - 0
++      - -
++      - max(R,G,B) max [7:0]
++      - -
++      - max(R,G,B) min [7:0]
++    * - 4
++      - :cspan:`4` max(R,G,B) sum [31:0]
++    * - 8
++      - :cspan:`4` max(R,G,B) bin 0 [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 260
++      - :cspan:`4` max(R,G,B) bin 63 [31:0]
++
++.. flat-table:: VSP1 HGO Data - 256 Bins, Normal Mode (1032 bytes)
++    :header-rows:  2
++    :stub-columns: 0
++
++    * - Offset
++      - :cspan:`4` Memory
++    * -
++      - [31:24]
++      - [23:16]
++      - [15:8]
++      - [7:0]
++    * - 0
++      - -
++      - Y max [7:0]
++      - -
++      - Y min [7:0]
++    * - 4
++      - :cspan:`4` Y sum [31:0]
++    * - 8
++      - :cspan:`4` Y bin 0 [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 1028
++      - :cspan:`4` Y bin 255 [31:0]
++
++.. flat-table:: VSP1 HGO Data - 256 Bins, Max Mode (1032 bytes)
++    :header-rows:  2
++    :stub-columns: 0
++
++    * - Offset
++      - :cspan:`4` Memory
++    * -
++      - [31:24]
++      - [23:16]
++      - [15:8]
++      - [7:0]
++    * - 0
++      - -
++      - max(R,G,B) max [7:0]
++      - -
++      - max(R,G,B) min [7:0]
++    * - 4
++      - :cspan:`4` max(R,G,B) sum [31:0]
++    * - 8
++      - :cspan:`4` max(R,G,B) bin 0 [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 1028
++      - :cspan:`4` max(R,G,B) bin 255 [31:0]
+diff --git a/Documentation/media/uapi/v4l/pixfmt.rst b/Documentation/media/uapi/v4l/pixfmt.rst
+index 81222a99f7ce..e3738a2eb05f 100644
+--- a/Documentation/media/uapi/v4l/pixfmt.rst
++++ b/Documentation/media/uapi/v4l/pixfmt.rst
+@@ -32,4 +32,5 @@ see also :ref:`VIDIOC_G_FBUF <VIDIOC_G_FBUF>`.)
+     depth-formats
+     pixfmt-013
+     sdr-formats
++    meta-formats
+     pixfmt-reserved
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 0afa07bfea35..8425f0b8ebfb 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1265,6 +1265,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
+ 	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
+ 	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
++	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
  
- 	return ret;
+ 	default:
+ 		/* Compressed formats */
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index d1ac0250a966..05b97c2067d4 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -637,6 +637,9 @@ struct v4l2_pix_format {
+ #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
+ #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
+ 
++/* Meta-data formats */
++#define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 Histogram */
++
+ /* priv field value to indicates that subsequent fields are valid. */
+ #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
+ 
 -- 
-2.9.3
+Regards,
+
+Laurent Pinchart
 
