@@ -1,108 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.goneo.de ([85.220.129.30]:38952 "EHLO smtp1.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758909AbcHaKhx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Aug 2016 06:37:53 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH v3] docs-rst: ignore arguments on macro definitions
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <20160831072629.6b42ff3c@vento.lan>
-Date: Wed, 31 Aug 2016 12:37:19 +0200
-Cc: Jani Nikula <jani.nikula@linux.intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <032E655B-9A46-42B2-973F-4A64DE1A3D0D@darmarit.de>
-References: <e4955d6ed9b730f544fe40b0344c4451dd415cda.1472476362.git.mchehab@s-opensource.com> <BBC1BC77-BCF1-453C-B85D-9758C4C433A6@darmarit.de> <20160829121326.782e4261@vento.lan> <87y43fh9ix.fsf@intel.com> <B29EF07A-454E-456E-91B6-AE5B0D6C04D1@darmarit.de> <87vayhz4z6.fsf@intel.com> <449181AD-39BC-4A88-A633-13BA1EC21449@darmarit.de> <20160831072629.6b42ff3c@vento.lan>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44856 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751839AbcHQMnr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Aug 2016 08:43:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Songjun Wu <songjun.wu@microchip.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 5/7] ov7670: add devicetree support
+Date: Wed, 17 Aug 2016 15:44 +0300
+Message-ID: <3513546.0HAk52lbkG@avalon>
+In-Reply-To: <1471415383-38531-6-git-send-email-hverkuil@xs4all.nl>
+References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl> <1471415383-38531-6-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
-Am 31.08.2016 um 12:26 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+Thank you for the patch.
 
-> Em Wed, 31 Aug 2016 12:09:39 +0200
-> Markus Heiser <markus.heiser@darmarit.de> escreveu:
+On Wednesday 17 Aug 2016 08:29:41 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
->> Am 31.08.2016 um 11:02 schrieb Jani Nikula <jani.nikula@linux.intel.com>:
->> 
->>> On Wed, 31 Aug 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:  
->>>> I haven't tested your suggestion, but since *void* is in the list
->>>> of stop-words:
->>>> 
->>>>   # These C types aren't described anywhere, so don't try to create
->>>>   # a cross-reference to them
->>>>   stopwords = set((
->>>>       'const', 'void', 'char', 'wchar_t', 'int', 'short',
->>>>       'long', 'float', 'double', 'unsigned', 'signed', 'FILE',
->>>>       'clock_t', 'time_t', 'ptrdiff_t', 'size_t', 'ssize_t',
->>>>       'struct', '_Bool',
->>>>   ))
->>>> 
->>>> I think it will work in the matter you think. 
->>>> 
->>>> However I like to prefer to fix it in the C-domain, using
->>>> Mauro's suggestion on argument parsing. IMHO it is not
->>>> the best solution to add a void type to the reST signature
->>>> of a macro. This will result in a unusual output and does
->>>> not fix what is wrong in Sphinx's c-domain (there is also
->>>> a drawback in the index, where a function-type macro is
->>>> referred as function, not as macro).  
->>> 
->>> From an API user's perspective, functions and function-like macros
->>> should work interchangeably.  
->> 
->> Ah, OK.
->> 
->>> Personally, I don't think there needs to be
->>> a difference in the index. This seems to be the approach taken in
->>> Sphinx, but it just doesn't work well for automatic documentation
->>> generation because we can't deduce the parameter types from the macro
->>> definition.  
->> 
->> In the index, sphinx refers only object-like macros with an entry 
->> "FOO (C macro))". Function-like macros are referred as "BAR (C function)".
->> 
->> I thought it is more straight forward to refer all macros with a 
->> "BAR (C macro)" entry in the index. I will split this change in
->> a separate patch, so we can decide if we like to patch the index
->> that way.
->> 
->> But now, as we discuss this, I have another doubt to fix the index.
->> It might be confusing when writing references to those macros.
->> 
->> Since function-like macros internally are functions in the c-domain, 
->> they are referred with ":c:func:`BAR`". On the other side, object-like
->> macros are referred by role ":c:macro:`FOO`".
->> 
->> Taking this into account, it might be one reason more to follow
->> your conclusion that functions and function-like macros are 
->> interchangeable from the user's perspective.
+> Add DT support. Use it to get the reset and pwdn pins (if there are any).
+> Tested with one sensor requiring reset/pwdn and one sensor that doesn't
+> have reset/pwdn pins.
 > 
-> It is not uncommon to "promote" some such macros to inline
-> functions, in order to have a stronger type check, or to do the
-> reverse, when we need a more generic declaration that would work
-> for multiple types.
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  .../devicetree/bindings/media/i2c/ov7670.txt       | 44 +++++++++++++++++
+>  MAINTAINERS                                        |  1 +
+>  drivers/media/i2c/ov7670.c                         | 51 +++++++++++++++++++
+>  3 files changed, 96 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
 > 
-> So, keeping both macro function-like functions and functions using
-> the :c:function: seems to be the best, IMHO. It also makes life
-> easier for kernel-doc script.
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+> b/Documentation/devicetree/bindings/media/i2c/ov7670.txt new file mode
+> 100644
+> index 0000000..3231c47
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+> @@ -0,0 +1,44 @@
+> +* Omnivision OV7670 CMOS sensor
+> +
+> +The Omnivision OV7670 sensor support multiple resolutions output, such as
 
+s/support/supports/
 
-May, I was unclear. I don't want to change the behavior: """keeping both
-macro function-like functions and functions using the :c:function:""". 
+> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
+> +output format.
 
-The only thing I thought to change is, how the index entry will be. 
-First I thought it might be more straight forward to refer func-like 
-as "BAR (C macro)". But after Jani's conclusion, I had a doubt if
-this is really a better entry in the index, than that what sphinx
-already does "BAR (C function)".
+s/format/formats/ (and possibly s/can support/can support the/)
 
-Sorry for the confusion.
+> +
+> +Required Properties:
+> +- compatible: should be "ovti,ov7670"
+> +- clocks: reference to the xvclk input clock.
+> +- clock-names: should be "xvclk".
+> +
+> +Optional Properties:
+> +- resetb-gpios: reference to the GPIO connected to the resetb pin, if any.
+> +- pwdn-gpios: reference to the GPIO connected to the pwdn pin, if any.
+> +
+> +The device node must contain one 'port' child node for its digital output
+> +video port, in accordance with the video interface bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +Example:
+> +
+> +	i2c1: i2c@f0018000 {
+> +		status = "okay";
+> +
+> +		ov7670: camera@0x21 {
+> +			compatible = "ovti,ov7670";
+> +			reg = <0x21>;
+> +			pinctrl-names = "default";
+> +			pinctrl-0 = <&pinctrl_pck0_as_isi_mck
+> &pinctrl_sensor_power
+> &pinctrl_sensor_reset>;
 
--- Markus --
+The pinctrl properties should be part of the clock provider DT node.
 
+> +			resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
+> +			pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
+> +			clocks = <&pck0>;
+> +			clock-names = "xvclk";
+> +			assigned-clocks = <&pck0>;
+> +			assigned-clock-rates = <24000000>;
 
+You should compute and set the clock rate dynamically in the driver, not 
+hardcode it in DT.
 
+> +			port {
+> +				ov7670_0: endpoint {
+> +					remote-endpoint = <&isi_0>;
+> +					bus-width = <8>;
+> +				};
+> +			};
+> +		};
+> +	};
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 20bb1d0..1fec3a6 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -8615,6 +8615,7 @@ L:	linux-media@vger.kernel.org
+>  T:	git git://linuxtv.org/media_tree.git
+>  S:	Maintained
+>  F:	drivers/media/i2c/ov7670.c
+> +F:	Documentation/devicetree/bindings/media/i2c/ov7670.txt
+> 
+>  ONENAND FLASH DRIVER
+>  M:	Kyungmin Park <kyungmin.park@samsung.com>
+> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+> index 57adf3d..a401b99 100644
+> --- a/drivers/media/i2c/ov7670.c
+> +++ b/drivers/media/i2c/ov7670.c
+> @@ -17,6 +17,9 @@
+>  #include <linux/i2c.h>
+>  #include <linux/delay.h>
+>  #include <linux/videodev2.h>
+> +#include <linux/gpio.h>
+> +#include <linux/gpio/consumer.h>
+> +#include <linux/of_gpio.h>
+
+I don't think you need of_gpio.h.
+
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-clk.h>
+> @@ -231,6 +234,8 @@ struct ov7670_info {
+>  	};
+>  	struct ov7670_format_struct *fmt;  /* Current format */
+>  	struct v4l2_clk *clk;
+> +	struct gpio_desc *resetb_gpio;
+> +	struct gpio_desc *pwdn_gpio;
+>  	int min_width;			/* Filter out smaller sizes */
+>  	int min_height;			/* Filter out smaller sizes */
+>  	int clock_speed;		/* External clock speed (MHz) */
+> @@ -1551,6 +1556,40 @@ static const struct ov7670_devtype ov7670_devdata[] =
+> { },
+>  };
+> 
+> +static int ov7670_probe_dt(struct i2c_client *client,
+
+The function doesn't actually depend on DT, how about calling it 
+ov7670_init_gpio() or something similar ?
+
+> +		struct ov7670_info *info)
+> +{
+> +	/* Request the reset GPIO deasserted */
+> +	info->resetb_gpio = devm_gpiod_get_optional(&client->dev, "resetb",
+> +			GPIOD_OUT_LOW);
+> +	if (!info->resetb_gpio)
+> +		dev_dbg(&client->dev, "resetb gpio is not assigned!\n");
+
+I don't think the debug message is really worth it, but that's up to you.
+
+> +	else if (IS_ERR(info->resetb_gpio)) {
+> +		dev_info(&client->dev, "no resetb\n");
+
+If you write this "no %s\n", "resetb" and do the same for the "no pwdn\n" 
+string below you will save a bit of memory as all strings will be shared. I 
+would also write it as "can't get %s GPIO\n" (or something similar), the "no 
+%s\n" message seems a bit confusing to me.
+
+> +		return PTR_ERR(info->resetb_gpio);
+> +	}
+> +
+> +	/* Request the power down GPIO asserted */
+> +	info->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "pwdn",
+> +			GPIOD_OUT_LOW);
+> +	if (!info->pwdn_gpio)
+> +		dev_dbg(&client->dev, "pwdn gpio is not assigned!\n");
+> +	else if (IS_ERR(info->pwdn_gpio)) {
+> +		dev_info(&client->dev, "no pwdn\n");
+> +		return PTR_ERR(info->pwdn_gpio);
+> +	}
+> +
+> +	if (info->resetb_gpio) {
+> +		/* Active the resetb pin to perform a reset pulse */
+> +		gpiod_direction_output(info->resetb_gpio, 1);
+> +		usleep_range(3000, 5000);
+> +		gpiod_direction_output(info->resetb_gpio, 0);
+> +	}
+> +	usleep_range(3000, 5000);
+
+Do you need to sleep if you can't reset the sensor ?
+
+> +
+> +	return 0;
+> +}
+> +
+>  static int ov7670_probe(struct i2c_client *client,
+>  			const struct i2c_device_id *id)
+>  {
+> @@ -1596,6 +1635,10 @@ static int ov7670_probe(struct i2c_client *client,
+>  		return -EPROBE_DEFER;
+>  	v4l2_clk_enable(info->clk);
+> 
+> +	ret = ov7670_probe_dt(client, info);
+> +	if (ret)
+> +		return ret;
+> +
+>  	info->clock_speed = v4l2_clk_get_rate(info->clk) / 1000000;
+>  	if (info->clock_speed < 12 ||
+>  	    info->clock_speed > 48)
+> @@ -1707,6 +1750,14 @@ static const struct i2c_device_id ov7670_id[] = {
+>  };
+>  MODULE_DEVICE_TABLE(i2c, ov7670_id);
+> 
+> +#if IS_ENABLED(CONFIG_OF)
+> +static const struct of_device_id ov7670_of_match[] = {
+> +	{ .compatible = "ovti,ov7670", },
+> +	{ /* sentinel */ },
+> +};
+> +MODULE_DEVICE_TABLE(of, ov7670_of_match);
+> +#endif
+> +
+>  static struct i2c_driver ov7670_driver = {
+>  	.driver = {
+>  		.name	= "ov7670",
+
+Shouldn't you set .of_match_table() here ?
+
+-- 
+Regards,
+
+Laurent Pinchart
