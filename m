@@ -1,73 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49441 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752115AbcHPQZv (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42981 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752700AbcHQG3y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2016 12:25:51 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 3/9] docs-rst: allow generating some LaTeX pages in landscape
-Date: Tue, 16 Aug 2016 13:25:37 -0300
-Message-Id: <ae30cc50406bedd6445929b7245b059df7b634ab.1471364025.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471364025.git.mchehab@s-opensource.com>
-References: <cover.1471364025.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471364025.git.mchehab@s-opensource.com>
-References: <cover.1471364025.git.mchehab@s-opensource.com>
+	Wed, 17 Aug 2016 02:29:54 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Songjun Wu <songjun.wu@microchip.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 1/7] ov7670: add media controller support
+Date: Wed, 17 Aug 2016 08:29:37 +0200
+Message-Id: <1471415383-38531-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
+References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Portrait is too small for some tables used at the media docs.
-So, allow documents to tell Sphinx to generate some pages
-in landscape by using:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-.. raw:: latex
+Add media controller support.
 
-    \begin{landscape}
-
-<some stuff>
-
-.. raw:: latex
-
-    \end{landscape}
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/conf.py | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/media/i2c/ov7670.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/Documentation/conf.py b/Documentation/conf.py
-index 2c60df7e5b79..42175e87e425 100644
---- a/Documentation/conf.py
-+++ b/Documentation/conf.py
-@@ -246,16 +246,19 @@ htmlhelp_basename = 'TheLinuxKerneldoc'
- 
- latex_elements = {
- # The paper size ('letterpaper' or 'a4paper').
--#'papersize': 'letterpaper',
-+'papersize': 'a4paper',
- 
- # The font size ('10pt', '11pt' or '12pt').
--#'pointsize': '10pt',
--
--# Additional stuff for the LaTeX preamble.
--#'preamble': '',
-+'pointsize': '10pt',
- 
- # Latex figure (float) alignment
- #'figure_align': 'htbp',
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index 56cfb5c..25f46c7 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -210,6 +210,7 @@ struct ov7670_devtype {
+ struct ov7670_format_struct;  /* coming later */
+ struct ov7670_info {
+ 	struct v4l2_subdev sd;
++	struct media_pad pad;
+ 	struct v4l2_ctrl_handler hdl;
+ 	struct {
+ 		/* gain cluster */
+@@ -1641,6 +1642,16 @@ static int ov7670_probe(struct i2c_client *client,
+ 		v4l2_ctrl_handler_free(&info->hdl);
+ 		return err;
+ 	}
 +
-+# Additional stuff for the LaTeX preamble.
-+    'preamble': '''
-+        % Allow generate some pages in landscape
-+        \\usepackage{lscape}
-+     '''
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	info->pad.flags = MEDIA_PAD_FL_SOURCE;
++	info->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++	ret = media_entity_pads_init(&info->sd.entity, 1, &info->pad);
++	if (ret < 0) {
++		v4l2_ctrl_handler_free(&info->hdl);
++		return ret;
++	}
++#endif
+ 	/*
+ 	 * We have checked empirically that hw allows to read back the gain
+ 	 * value chosen by auto gain but that's not the case for auto exposure.
+@@ -1662,6 +1673,9 @@ static int ov7670_remove(struct i2c_client *client)
+ 
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&info->hdl);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&sd->entity);
++#endif
+ 	return 0;
  }
  
- # Grouping the document tree into LaTeX files. List of tuples
 -- 
-2.7.4
-
+2.8.1
 
