@@ -1,155 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp11.smtpout.orange.fr ([80.12.242.133]:35789 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753002AbcHOTCS (ORCPT
+Received: from out2-smtp.messagingengine.com ([66.111.4.26]:39386 "EHLO
+	out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751463AbcHQLAH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 15:02:18 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jiri Kosina <trivial@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v4 06/13] media: platform: pxa_camera: introduce sensor_call
-Date: Mon, 15 Aug 2016 21:01:56 +0200
-Message-Id: <1471287723-25451-7-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1471287723-25451-1-git-send-email-robert.jarzmik@free.fr>
-References: <1471287723-25451-1-git-send-email-robert.jarzmik@free.fr>
+	Wed, 17 Aug 2016 07:00:07 -0400
+Date: Wed, 17 Aug 2016 13:58:22 +0300
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: Steve Preston <stevepr@netstevepr.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Linux support for current StarTech analog video capture device
+ (SAA711xx)
+Message-ID: <20160817105822.7fum27zgz2e3hf4o@acer>
+References: <2d1d06c05dae478b9bc2484e9d1da36c@MBX06A-IAD3.mex08.mlsrvr.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <2d1d06c05dae478b9bc2484e9d1da36c@MBX06A-IAD3.mex08.mlsrvr.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Introduce sensor_call(), which will be used for all sensor invocations.
-This is a preparation move to v4l2 device conversion, ie. soc_camera
-adherence removal.
+On Tue, Aug 16, 2016 at 09:29:49PM +0000, Steve Preston wrote:
+> I realize this is a long shot but I was directed to this mailing list as one possibility  . 
+>  
+> I work with a group of amateur astronomers who use analog video cameras to record occultations ( www.occulations.org ).  Several observers have been using the StarTech SVID2USB2 class of analog capture devices (USB dongle) under Windows.  The StarTech devices are one of the few such devices which are readily available today. These StarTech devices seemed to be based on the empia 28xx + SAA71xx chipset devices which have some support in the linux kernel.  Unfortunately, we are having trouble with the StarTech devices in Linux.  Does anyone on this list know of anyone in the linxtv.org (or related) community that might be willing to help us modify a current driver to enable the StarTech device(s)?  Or, do you know of anyone who currently works with analog video capture hardware in linux who might be willing to provide other ideas?
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/platform/soc_camera/pxa_camera.c | 27 ++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index 0a9e4bdccece..171e3c57615c 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -168,6 +168,9 @@
- 			CICR0_PERRM | CICR0_QDM | CICR0_CDM | CICR0_SOFM | \
- 			CICR0_EOFM | CICR0_FOM)
- 
-+#define sensor_call(cam, o, f, args...) \
-+	v4l2_subdev_call(sd, o, f, ##args)
-+
- /*
-  * Structures
-  */
-@@ -731,7 +734,7 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
- 	unsigned long dw, bpp;
- 	u32 cicr0, cicr1, cicr2, cicr3, cicr4 = 0, y_skip_top;
--	int ret = v4l2_subdev_call(sd, sensor, g_skip_top_lines, &y_skip_top);
-+	int ret = sensor_call(pcdev, sensor, g_skip_top_lines, &y_skip_top);
- 
- 	if (ret < 0)
- 		y_skip_top = 0;
-@@ -1074,7 +1077,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
- 	if (ret < 0)
- 		return ret;
- 
--	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
-+	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
- 	if (!ret) {
- 		common_flags = soc_mbus_config_compatible(&cfg,
- 							  bus_flags);
-@@ -1118,7 +1121,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
- 	}
- 
- 	cfg.flags = common_flags;
--	ret = v4l2_subdev_call(sd, video, s_mbus_config, &cfg);
-+	ret = sensor_call(pcdev, video, s_mbus_config, &cfg);
- 	if (ret < 0 && ret != -ENOIOCTLCMD) {
- 		dev_dbg(icd->parent, "camera s_mbus_config(0x%lx) returned %d\n",
- 			common_flags, ret);
-@@ -1145,7 +1148,7 @@ static int pxa_camera_try_bus_param(struct soc_camera_device *icd,
- 	if (ret < 0)
- 		return ret;
- 
--	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
-+	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
- 	if (!ret) {
- 		common_flags = soc_mbus_config_compatible(&cfg,
- 							  bus_flags);
-@@ -1196,7 +1199,7 @@ static int pxa_camera_get_formats(struct soc_camera_device *icd, unsigned int id
- 	};
- 	const struct soc_mbus_pixelfmt *fmt;
- 
--	ret = v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code);
-+	ret = sensor_call(pcdev, pad, enum_mbus_code, NULL, &code);
- 	if (ret < 0)
- 		/* No more formats */
- 		return 0;
-@@ -1298,7 +1301,7 @@ static int pxa_camera_set_crop(struct soc_camera_device *icd,
- 	if (pcdev->platform_flags & PXA_CAMERA_PCLK_EN)
- 		icd->sense = &sense;
- 
--	ret = v4l2_subdev_call(sd, video, s_crop, a);
-+	ret = sensor_call(pcdev, video, s_crop, a);
- 
- 	icd->sense = NULL;
- 
-@@ -1308,7 +1311,7 @@ static int pxa_camera_set_crop(struct soc_camera_device *icd,
- 		return ret;
- 	}
- 
--	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
-+	ret = sensor_call(pcdev, pad, get_fmt, NULL, &fmt);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -1320,7 +1323,7 @@ static int pxa_camera_set_crop(struct soc_camera_device *icd,
- 		v4l_bound_align_image(&mf->width, 48, 2048, 1,
- 			&mf->height, 32, 2048, 0,
- 			fourcc == V4L2_PIX_FMT_YUV422P ? 4 : 0);
--		ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &fmt);
-+		ret = sensor_call(pcdev, pad, set_fmt, NULL, &fmt);
- 		if (ret < 0)
- 			return ret;
- 
-@@ -1385,7 +1388,7 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
- 	mf->colorspace	= pix->colorspace;
- 	mf->code	= xlate->code;
- 
--	ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &format);
-+	ret = sensor_call(pcdev, pad, set_fmt, NULL, &format);
- 
- 	if (mf->code != xlate->code)
- 		return -EINVAL;
-@@ -1460,7 +1463,7 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
- 	mf->colorspace	= pix->colorspace;
- 	mf->code	= xlate->code;
- 
--	ret = v4l2_subdev_call(sd, pad, set_fmt, &pad_cfg, &format);
-+	ret = sensor_call(pcdev, pad, set_fmt, &pad_cfg, &format);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -1518,7 +1521,7 @@ static int pxa_camera_suspend(struct device *dev)
- 
- 	if (pcdev->soc_host.icd) {
- 		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
--		ret = v4l2_subdev_call(sd, core, s_power, 0);
-+		ret = sensor_call(pcdev, core, s_power, 0);
- 		if (ret == -ENOIOCTLCMD)
- 			ret = 0;
- 	}
-@@ -1540,7 +1543,7 @@ static int pxa_camera_resume(struct device *dev)
- 
- 	if (pcdev->soc_host.icd) {
- 		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
--		ret = v4l2_subdev_call(sd, core, s_power, 1);
-+		ret = sensor_call(pcdev, core, s_power, 1);
- 		if (ret == -ENOIOCTLCMD)
- 			ret = 0;
- 	}
--- 
-2.1.4
-
+Please try what Hans has proposed. Then come back to here and post what
+is your current state.
+Please keep me in CC when you post. I would like to help.
+Where can one buy online the exact device you're talking about?
