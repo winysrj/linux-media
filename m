@@ -1,151 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:36536 "EHLO
-	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756518AbcHCSED (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 14:04:03 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: lars@metafoo.de
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 3/8] media: adv7180: add support for NEWAVMODE
-Date: Wed,  3 Aug 2016 11:03:45 -0700
-Message-Id: <1470247430-11168-4-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34870
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753017AbcHQS3b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Aug 2016 14:29:31 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org
+Subject: [RFC PATCH 2/2] [media] vb2: move dma-buf unmap from __vb2_dqbuf() to vb2_done_work()
+Date: Wed, 17 Aug 2016 14:28:57 -0400
+Message-Id: <1471458537-16859-3-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1471458537-16859-1-git-send-email-javier@osg.samsung.com>
+References: <1471458537-16859-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse the optional v4l2 endpoint DT node. If the bus type is
-V4L2_MBUS_BT656 and the endpoint node specifies "newavmode",
-configure the BT.656 bus in NEWAVMODE.
+Currently the dma-buf is unmapped when the buffer is dequeued by userspace
+but it's not used anymore after the driver finished processing the buffer.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+So instead of doing the dma-buf unmapping in __vb2_dqbuf(), it can be made
+in vb2_done_work() after the driver notified that has finished processing.
+
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
 ---
 
-v4: no changes
-v3:
-- the newavmode endpoint property is now private to adv7180.
----
- .../devicetree/bindings/media/i2c/adv7180.txt      |  4 ++
- drivers/media/i2c/adv7180.c                        | 46 ++++++++++++++++++++--
- 2 files changed, 47 insertions(+), 3 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 33 ++++++++++++++++++++------------
+ 1 file changed, 21 insertions(+), 12 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7180.txt b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
-index 0d50115..6c175d2 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv7180.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
-@@ -15,6 +15,10 @@ Required Properties :
- 		"adi,adv7282"
- 		"adi,adv7282-m"
- 
-+Optional Endpoint Properties :
-+- newavmode: a boolean property to indicate the BT.656 bus is operating
-+  in Analog Device's NEWAVMODE. Valid for BT.656 busses only.
-+
- Example:
- 
- 	i2c0@1c22000 {
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 6e093c22..467953e 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -31,6 +31,7 @@
- #include <media/v4l2-event.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-of.h>
- #include <linux/mutex.h>
- #include <linux/delay.h>
- 
-@@ -106,6 +107,7 @@
- #define ADV7180_REG_SHAP_FILTER_CTL_1	0x0017
- #define ADV7180_REG_CTRL_2		0x001d
- #define ADV7180_REG_VSYNC_FIELD_CTL_1	0x0031
-+#define ADV7180_VSYNC_FIELD_CTL_1_NEWAVMODE 0x02
- #define ADV7180_REG_MANUAL_WIN_CTL_1	0x003d
- #define ADV7180_REG_MANUAL_WIN_CTL_2	0x003e
- #define ADV7180_REG_MANUAL_WIN_CTL_3	0x003f
-@@ -214,6 +216,7 @@ struct adv7180_state {
- 	struct mutex		mutex; /* mutual excl. when accessing chip */
- 	int			irq;
- 	v4l2_std_id		curr_norm;
-+	bool			newavmode;
- 	bool			powered;
- 	bool			streaming;
- 	u8			input;
-@@ -864,9 +867,15 @@ static int adv7180_init(struct adv7180_state *state)
- 	if (ret < 0)
- 		return ret;
- 
--	/* Manually set V bit end position in NTSC mode */
--	return adv7180_write(state, ADV7180_REG_NTSC_V_BIT_END,
--					ADV7180_NTSC_V_BIT_END_MANUAL_NVEND);
-+	if (!state->newavmode) {
-+		/* Manually set V bit end position in NTSC mode */
-+		ret = adv7180_write(state, ADV7180_REG_NTSC_V_BIT_END,
-+				    ADV7180_NTSC_V_BIT_END_MANUAL_NVEND);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return 0;
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 14bed8acf3cf..5f930dbedfa4 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -315,6 +315,21 @@ static void __setup_offsets(struct vb2_buffer *vb)
+ 	}
  }
  
- static int adv7180_set_std(struct adv7180_state *state, unsigned int std)
-@@ -1217,6 +1226,13 @@ static int init_device(struct adv7180_state *state)
- 	if (ret)
- 		goto out_unlock;
- 
-+	if (state->newavmode) {
-+		ret = adv7180_write(state, ADV7180_REG_VSYNC_FIELD_CTL_1,
-+				    ADV7180_VSYNC_FIELD_CTL_1_NEWAVMODE);
-+		if (ret < 0)
-+			goto out_unlock;
-+	}
-+
- 	ret = adv7180_program_std(state);
- 	if (ret)
- 		goto out_unlock;
-@@ -1257,6 +1273,28 @@ out_unlock:
- 	return ret;
- }
- 
-+static void adv7180_of_parse(struct adv7180_state *state)
++ /**
++ * __vb2_unmap_dmabuf() - unmap dma-buf attached to buffer planes
++ */
++static void __vb2_unmap_dmabuf(struct vb2_buffer *vb)
 +{
-+	struct i2c_client *client = state->client;
-+	struct device_node *np = client->dev.of_node;
-+	struct device_node *endpoint;
-+	struct v4l2_of_endpoint	ep;
++	int i;
 +
-+	endpoint = of_graph_get_next_endpoint(np, NULL);
-+	if (!endpoint) {
-+		v4l_warn(client, "endpoint node not found\n");
-+		return;
++	for (i = 0; i < vb->num_planes; ++i) {
++		if (!vb->planes[i].dbuf_mapped)
++			continue;
++		call_void_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
++		vb->planes[i].dbuf_mapped = 0;
 +	}
-+
-+	v4l2_of_parse_endpoint(endpoint, &ep);
-+	if (ep.bus_type == V4L2_MBUS_BT656) {
-+		if (of_property_read_bool(endpoint, "newavmode"))
-+			state->newavmode = true;
-+	}
-+
-+	of_node_put(endpoint);
 +}
 +
- static int adv7180_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *id)
+ static void vb2_done_work(struct work_struct *work)
  {
-@@ -1279,6 +1317,8 @@ static int adv7180_probe(struct i2c_client *client,
- 	state->field = V4L2_FIELD_ALTERNATE;
- 	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
- 
-+	adv7180_of_parse(state);
+ 	struct vb2_buffer *vb = container_of(work, struct vb2_buffer,
+@@ -348,6 +363,9 @@ static void vb2_done_work(struct work_struct *work)
+ 			__enqueue_in_driver(vb);
+ 		break;
+ 	default:
++		if (q->memory == VB2_MEMORY_DMABUF)
++			__vb2_unmap_dmabuf(vb);
 +
- 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
- 		state->csi_client = i2c_new_dummy(client->adapter,
- 				ADV7180_DEFAULT_CSI_I2C_ADDR);
+ 		/* Inform any processes that may be waiting for buffers */
+ 		wake_up(&q->done_wq);
+ 		break;
+@@ -1725,23 +1743,11 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
+  */
+ static void __vb2_dqbuf(struct vb2_buffer *vb)
+ {
+-	struct vb2_queue *q = vb->vb2_queue;
+-	unsigned int i;
+-
+ 	/* nothing to do if the buffer is already dequeued */
+ 	if (vb->state == VB2_BUF_STATE_DEQUEUED)
+ 		return;
+ 
+ 	vb->state = VB2_BUF_STATE_DEQUEUED;
+-
+-	/* unmap DMABUF buffer */
+-	if (q->memory == VB2_MEMORY_DMABUF)
+-		for (i = 0; i < vb->num_planes; ++i) {
+-			if (!vb->planes[i].dbuf_mapped)
+-				continue;
+-			call_void_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
+-			vb->planes[i].dbuf_mapped = 0;
+-		}
+ }
+ 
+ /**
+@@ -1885,6 +1891,9 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 			call_void_vb_qop(vb, buf_finish, vb);
+ 		}
+ 		__vb2_dqbuf(vb);
++
++		if (q->memory == VB2_MEMORY_DMABUF)
++			__vb2_unmap_dmabuf(vb);
+ 	}
+ }
+ 
 -- 
-1.9.1
+2.5.5
 
