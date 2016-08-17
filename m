@@ -1,333 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:14611 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752650AbcHLOgE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2016 10:36:04 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH] vcodec: mediatek: bug fix and code refine for mt8173 v4l2 Encoder
-Date: Fri, 12 Aug 2016 22:35:49 +0800
-Message-ID: <1471012549-19849-1-git-send-email-tiffany.lin@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from smtp3-1.goneo.de ([85.220.129.38]:34570 "EHLO smtp3-1.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751602AbcHQG11 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Aug 2016 02:27:27 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH 0/7] doc-rst: sphinx sub-folders & parseheaders directive
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <D841D797-4EF0-4D32-BD74-6F675822C940@darmarit.de>
+Date: Wed, 17 Aug 2016 08:26:20 +0200
+Cc: Jani Nikula <jani.nikula@intel.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-doc@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <37686C71-79BB-4077-A262-9108632FB244@darmarit.de>
+References: <1471097568-25990-1-git-send-email-markus.heiser@darmarit.de> <20160814120920.62098dae@lwn.net> <DCB8AFBC-2E5E-4CD0-97A0-9325686CE17F@darmarit.de> <20160816152243.17927afe@vento.lan> <D841D797-4EF0-4D32-BD74-6F675822C940@darmarit.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Jonathan Corbet <corbet@lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-    This patch include fixs:
-    1. Remove unused include in mtk_vcodec_drv.h
-    2. Fix visible_height larger than coded_height issue in s_fmt_out
-    3. Add timestamp and timecode copy
-    4. Fix mtk_vcodec_vdec_release should be called after v4l2_m2m_ctx_release
-    5. Remove unused define MTK_INST_WORK_THREAD_ABORT_DONE
-    6. Add support V4L2_MPEG_VIDEO_H264_LEVEL_4_2
-    4. Refine  venc_h264_if.c and venc_vp8_if.c
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
----
- drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h |    1 -
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |   42 ++++++++++++--------
- .../media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c |    6 ++-
- .../media/platform/mtk-vcodec/mtk_vcodec_intr.h    |    1 -
- .../media/platform/mtk-vcodec/mtk_vcodec_util.c    |   11 ++---
- .../media/platform/mtk-vcodec/venc/venc_h264_if.c  |   16 ++++----
- .../media/platform/mtk-vcodec/venc/venc_vp8_if.c   |   16 ++++----
- 7 files changed, 52 insertions(+), 41 deletions(-)
+Am 17.08.2016 um 07:44 schrieb Markus Heiser <markus.heiser@darmarit.de>:
 
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
-index 94f0a42..3a8e695 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
-@@ -23,7 +23,6 @@
- #include <media/v4l2-ioctl.h>
- #include <media/videobuf2-core.h>
- 
--#include "mtk_vcodec_util.h"
- 
- #define MTK_VCODEC_DRV_NAME	"mtk_vcodec_drv"
- #define MTK_VCODEC_ENC_NAME	"mtk-vcodec-enc"
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-index 0a895e0..34fd89c 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-@@ -487,7 +487,6 @@ static int vidioc_venc_s_fmt_out(struct file *file, void *priv,
- 	struct mtk_q_data *q_data;
- 	int ret, i;
- 	struct mtk_video_fmt *fmt;
--	unsigned int pitch_w_div16;
- 	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
- 
- 	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
-@@ -530,15 +529,6 @@ static int vidioc_venc_s_fmt_out(struct file *file, void *priv,
- 	q_data->coded_width = f->fmt.pix_mp.width;
- 	q_data->coded_height = f->fmt.pix_mp.height;
- 
--	pitch_w_div16 = DIV_ROUND_UP(q_data->visible_width, 16);
--	if (pitch_w_div16 % 8 != 0) {
--		/* Adjust returned width/height, so application could correctly
--		 * allocate hw required memory
--		 */
--		q_data->visible_height += 32;
--		vidioc_try_fmt(f, q_data->fmt);
--	}
--
- 	q_data->field = f->fmt.pix_mp.field;
- 	ctx->colorspace = f->fmt.pix_mp.colorspace;
- 	ctx->ycbcr_enc = f->fmt.pix_mp.ycbcr_enc;
-@@ -945,7 +935,8 @@ static int mtk_venc_encode_header(void *priv)
- {
- 	struct mtk_vcodec_ctx *ctx = priv;
- 	int ret;
--	struct vb2_buffer *dst_buf;
-+	struct vb2_buffer *src_buf, *dst_buf;
-+	struct vb2_v4l2_buffer *dst_vb2_v4l2, *src_vb2_v4l2;
- 	struct mtk_vcodec_mem bs_buf;
- 	struct venc_done_result enc_result;
- 
-@@ -978,6 +969,15 @@ static int mtk_venc_encode_header(void *priv)
- 		mtk_v4l2_err("venc_if_encode failed=%d", ret);
- 		return -EINVAL;
- 	}
-+	src_buf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
-+	if (src_buf) {
-+		src_vb2_v4l2 = to_vb2_v4l2_buffer(src_buf);
-+		dst_vb2_v4l2 = to_vb2_v4l2_buffer(dst_buf);
-+		dst_buf->timestamp = src_buf->timestamp;
-+		dst_vb2_v4l2->timecode = src_vb2_v4l2->timecode;
-+	} else {
-+		mtk_v4l2_err("No timestamp for the header buffer.");
-+	}
- 
- 	ctx->state = MTK_STATE_HEADER;
- 	dst_buf->planes[0].bytesused = enc_result.bs_size;
-@@ -1070,7 +1070,7 @@ static void mtk_venc_worker(struct work_struct *work)
- 	struct mtk_vcodec_mem bs_buf;
- 	struct venc_done_result enc_result;
- 	int ret, i;
--	struct vb2_v4l2_buffer *vb2_v4l2;
-+	struct vb2_v4l2_buffer *dst_vb2_v4l2, *src_vb2_v4l2;
- 
- 	/* check dst_buf, dst_buf may be removed in device_run
- 	 * to stored encdoe header so we need check dst_buf and
-@@ -1110,9 +1110,14 @@ static void mtk_venc_worker(struct work_struct *work)
- 	ret = venc_if_encode(ctx, VENC_START_OPT_ENCODE_FRAME,
- 			     &frm_buf, &bs_buf, &enc_result);
- 
--	vb2_v4l2 = container_of(dst_buf, struct vb2_v4l2_buffer, vb2_buf);
-+	src_vb2_v4l2 = to_vb2_v4l2_buffer(src_buf);
-+	dst_vb2_v4l2 = to_vb2_v4l2_buffer(dst_buf);
-+
-+	dst_buf->timestamp = src_buf->timestamp;
-+	dst_vb2_v4l2->timecode = src_vb2_v4l2->timecode;
-+
- 	if (enc_result.is_key_frm)
--		vb2_v4l2->flags |= V4L2_BUF_FLAG_KEYFRAME;
-+		dst_vb2_v4l2->flags |= V4L2_BUF_FLAG_KEYFRAME;
- 
- 	if (ret) {
- 		v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf),
-@@ -1284,7 +1289,7 @@ int mtk_vcodec_enc_ctrls_setup(struct mtk_vcodec_ctx *ctx)
- 			0, V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE);
- 	v4l2_ctrl_new_std_menu(handler, ops, V4L2_CID_MPEG_VIDEO_H264_PROFILE,
- 			V4L2_MPEG_VIDEO_H264_PROFILE_HIGH,
--			0, V4L2_MPEG_VIDEO_H264_PROFILE_MAIN);
-+			0, V4L2_MPEG_VIDEO_H264_PROFILE_HIGH);
- 	v4l2_ctrl_new_std_menu(handler, ops, V4L2_CID_MPEG_VIDEO_H264_LEVEL,
- 			V4L2_MPEG_VIDEO_H264_LEVEL_4_2,
- 			0, V4L2_MPEG_VIDEO_H264_LEVEL_4_0);
-@@ -1355,5 +1360,10 @@ int mtk_venc_lock(struct mtk_vcodec_ctx *ctx)
- 
- void mtk_vcodec_enc_release(struct mtk_vcodec_ctx *ctx)
- {
--	venc_if_deinit(ctx);
-+	int ret = venc_if_deinit(ctx);
-+
-+	if (ret)
-+		mtk_v4l2_err("venc_if_deinit failed=%d", ret);
-+
-+	ctx->state = MTK_STATE_FREE;
- }
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
-index c7806ec..5cd2151 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
-@@ -218,11 +218,15 @@ static int fops_vcodec_release(struct file *file)
- 	mtk_v4l2_debug(1, "[%d] encoder", ctx->id);
- 	mutex_lock(&dev->dev_mutex);
- 
-+	/*
-+	 * Call v4l2_m2m_ctx_release to make sure the worker thread is not
-+	 * running after venc_if_deinit.
-+	 */
-+	v4l2_m2m_ctx_release(ctx->m2m_ctx);
- 	mtk_vcodec_enc_release(ctx);
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
- 	v4l2_ctrl_handler_free(&ctx->ctrl_hdl);
--	v4l2_m2m_ctx_release(ctx->m2m_ctx);
- 
- 	list_del_init(&ctx->list);
- 	dev->num_instances--;
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h
-index 33e890f..1213185 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h
-@@ -16,7 +16,6 @@
- #define _MTK_VCODEC_INTR_H_
- 
- #define MTK_INST_IRQ_RECEIVED		0x1
--#define MTK_INST_WORK_THREAD_ABORT_DONE	0x2
- 
- struct mtk_vcodec_ctx;
- 
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c
-index 5e36513..21c9b81 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c
-@@ -81,14 +81,15 @@ void mtk_vcodec_mem_free(struct mtk_vcodec_ctx *data,
- 		return;
- 	}
- 
--	dma_free_coherent(dev, size, mem->va, mem->dma_addr);
--	mem->va = NULL;
--	mem->dma_addr = 0;
--	mem->size = 0;
--
- 	mtk_v4l2_debug(3, "[%d]  - va      = %p", ctx->id, mem->va);
- 	mtk_v4l2_debug(3, "[%d]  - dma     = 0x%lx", ctx->id,
- 		       (unsigned long)mem->dma_addr);
- 	mtk_v4l2_debug(3, "[%d]    size = 0x%lx", ctx->id, size);
-+
-+	dma_free_coherent(dev, size, mem->va, mem->dma_addr);
-+	mem->va = NULL;
-+	mem->dma_addr = 0;
-+	mem->size = 0;
- }
- EXPORT_SYMBOL(mtk_vcodec_mem_free);
-+
-diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
-index 9a60052..63d4be4 100644
---- a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
-+++ b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
-@@ -61,6 +61,8 @@ enum venc_h264_bs_mode {
- 
- /*
-  * struct venc_h264_vpu_config - Structure for h264 encoder configuration
-+ *                               AP-W/R : AP is writer/reader on this item
-+ *                               VPU-W/R: VPU is write/reader on this item
-  * @input_fourcc: input fourcc
-  * @bitrate: target bitrate (in bps)
-  * @pic_w: picture width. Picture size is visible stream resolution, in pixels,
-@@ -94,13 +96,13 @@ struct venc_h264_vpu_config {
- 
- /*
-  * struct venc_h264_vpu_buf - Structure for buffer information
-- * @align: buffer alignment (in bytes)
-+ *                            AP-W/R : AP is writer/reader on this item
-+ *                            VPU-W/R: VPU is write/reader on this item
-  * @iova: IO virtual address
-  * @vpua: VPU side memory addr which is used by RC_CODE
-  * @size: buffer size (in bytes)
-  */
- struct venc_h264_vpu_buf {
--	u32 align;
- 	u32 iova;
- 	u32 vpua;
- 	u32 size;
-@@ -108,6 +110,8 @@ struct venc_h264_vpu_buf {
- 
- /*
-  * struct venc_h264_vsi - Structure for VPU driver control and info share
-+ *                        AP-W/R : AP is writer/reader on this item
-+ *                        VPU-W/R: VPU is write/reader on this item
-  * This structure is allocated in VPU side and shared to AP side.
-  * @config: h264 encoder configuration
-  * @work_bufs: working buffer information in VPU side
-@@ -150,12 +154,6 @@ struct venc_h264_inst {
- 	struct mtk_vcodec_ctx *ctx;
- };
- 
--static inline void h264_write_reg(struct venc_h264_inst *inst, u32 addr,
--				  u32 val)
--{
--	writel(val, inst->hw_base + addr);
--}
--
- static inline u32 h264_read_reg(struct venc_h264_inst *inst, u32 addr)
- {
- 	return readl(inst->hw_base + addr);
-@@ -214,6 +212,8 @@ static unsigned int h264_get_level(struct venc_h264_inst *inst,
- 		return 40;
- 	case V4L2_MPEG_VIDEO_H264_LEVEL_4_1:
- 		return 41;
-+	case V4L2_MPEG_VIDEO_H264_LEVEL_4_2:
-+		return 42;
- 	default:
- 		mtk_vcodec_debug(inst, "unsupported level %d", level);
- 		return 31;
-diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
-index 60bbcd2..6d97584 100644
---- a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
-+++ b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
-@@ -56,6 +56,8 @@ enum venc_vp8_vpu_work_buf {
- 
- /*
-  * struct venc_vp8_vpu_config - Structure for vp8 encoder configuration
-+ *                              AP-W/R : AP is writer/reader on this item
-+ *                              VPU-W/R: VPU is write/reader on this item
-  * @input_fourcc: input fourcc
-  * @bitrate: target bitrate (in bps)
-  * @pic_w: picture width. Picture size is visible stream resolution, in pixels,
-@@ -83,14 +85,14 @@ struct venc_vp8_vpu_config {
- };
- 
- /*
-- * struct venc_vp8_vpu_buf -Structure for buffer information
-- * @align: buffer alignment (in bytes)
-+ * struct venc_vp8_vpu_buf - Structure for buffer information
-+ *                           AP-W/R : AP is writer/reader on this item
-+ *                           VPU-W/R: VPU is write/reader on this item
-  * @iova: IO virtual address
-  * @vpua: VPU side memory addr which is used by RC_CODE
-  * @size: buffer size (in bytes)
-  */
- struct venc_vp8_vpu_buf {
--	u32 align;
- 	u32 iova;
- 	u32 vpua;
- 	u32 size;
-@@ -98,6 +100,8 @@ struct venc_vp8_vpu_buf {
- 
- /*
-  * struct venc_vp8_vsi - Structure for VPU driver control and info share
-+ *                       AP-W/R : AP is writer/reader on this item
-+ *                       VPU-W/R: VPU is write/reader on this item
-  * This structure is allocated in VPU side and shared to AP side.
-  * @config: vp8 encoder configuration
-  * @work_bufs: working buffer information in VPU side
-@@ -138,12 +142,6 @@ struct venc_vp8_inst {
- 	struct mtk_vcodec_ctx *ctx;
- };
- 
--static inline void vp8_enc_write_reg(struct venc_vp8_inst *inst, u32 addr,
--				     u32 val)
--{
--	writel(val, inst->hw_base + addr);
--}
--
- static inline u32 vp8_enc_read_reg(struct venc_vp8_inst *inst, u32 addr)
- {
- 	return readl(inst->hw_base + addr);
--- 
-1.7.9.5
+> 
+> @Daniel: I added you to this discussion. May you are interested in, 
+> it is about the parse-headers functionality from Mauro.
+> 
+> Am 16.08.2016 um 20:22 schrieb Mauro Carvalho Chehab <mchehab@infradead.org>:
+> 
+>> Em Mon, 15 Aug 2016 10:21:07 +0200
+>> Markus Heiser <markus.heiser@darmarit.de> escreveu:
+>> 
+>>> Am 14.08.2016 um 20:09 schrieb Jonathan Corbet <corbet@lwn.net>:
+> 
+> ...
+> 
+>>>> but stopped at parse-header.
+>>>> At this point, I have a few requests.  These are in approximate order of
+>>>> decreasing importance, but they're all important, I think.
+>> 
+>> After writing the PDF support, I'm starting to think that maybe we
+>> should migrate the entire functionality to the Sphinx extension.
+>> The rationale is that we won't need to be concerned about output
+>> specific escape codes there.
+> 
+> What do you mean with "output specific escape codes"? This: 
+> 
+> <SNIP>----
+> #
+> # Add escape codes for special characters
+> #
+> $data =~ s,([\_\`\*\<\>\&\\\\:\/\|]),\\$1,g;
+> 
+> $data =~ s,DEPRECATED,**DEPRECATED**,g;
+> <SNIP>----
+> 
+> will be resist, even if you implement it in python.
+> 
+> 
+>>>> - The new directive could really use some ... documentation.  Preferably in
+>>>> kernel-documentation.rst with the rest.  What is parse-header, how does
+>>>> it differ from kernel-doc, why might a kernel developer doing
+>>>> documentation want (or not want) to use it?  That's all pretty obscure
+>>>> now.  If we want others to jump onto this little bandwagon of ours, we
+>>>> need to make sure it's all really clear.  
+>>> 
+>>> This could be answered by Mauro.
+>> 
+>> We use it to allow including an entire header file as-is at the
+>> documentation, and cross-reference it with the documents.
+>> 
+>> IMO, this is very useful to document the ioctl UAPI. There, the most
+>> important things to be documented are the ioctl themselves. We don't
+>> have any way to document via kernel-doc (as they're #define macros).
+>> 
+>> Also, when documenting an ioctl, we want to document the structures
+>> that are used (most media ioctls use a struct instead of a single value).
+>> 
+>> So, what we do is that we write a proper description for the ioctl and
+>> everything related to it outside the source code. As we want to be
+>> sure that everything in the header is documented, we use the
+>> "parse-header.pl" (ok, this name really sucks) to create cross-references
+>> between the header and the documentation itself.
+>> 
+>> So, it is actually a script that replaces all occurrences of typedefs,
+>> defines, structs, functions, enums into references to the uAPI
+>> documentation.
+>> 
+>> This is is somewhat equivalent to:
+>> 	.. code-block:: c
+>> 
+>> Or, even better, it resembles the Doxygen's \example directive:
+>> 	https://www.stack.nl/~dimitri/doxygen/manual/commands.html#cmdexample
+>> 
+>> With produces a parsed file, like this one:
+>> 	https://linuxtv.org/docs/libdvbv5/dvb-fe-tool_8c-example.html
+>> 
+>> Except that:
+>> 
+>> 1) It doesn't randomly painting the file;
+>> 
+>> 2) All places where the a typedef, define, struct, struct member,
+>> function or enum exists are replaced by a cross-reference to the
+>> documentation (except if explicitly defined to not do that, via a
+>> configuration file).
+>> 
+>> That, plus the nitpick mode at Sphinx, allows us to check what
+>> parts of the uAPI file aren't documented.
+>> 
+>>>> - Along those lines, is parse-header the right name for this thing?
+>>>> "Parsing" isn't necessarily the goal of somebody who uses this directive,
+>>>> right?  They want to extract documentation information.  Can we come up
+>>>> with a better name?  
+>>> 
+>>> Mauro, what is your suggestion and how would we go on in this topic?
+>> 
+>> Maybe we could call it as: "include-c-code-block" or something similar.
+> 
+> Hmm, that's not any better, IMHO ... there is a 'parsed-literal' so, what's
+> wrong with a 'parsed-header' directive or for my sake ' parse-c-header'.
+> IMHO it is very unspecific what this directive does and it might be changed in
+> the near future if someone (e.g. Daniel [1]) see more use cases then the one yet.
+> 
+> [1] https://www.mail-archive.com/linux-media%40vger.kernel.org/msg101129.html
+> 
+> -- Markus --
+> 
 
+One more thought; parse-header and kernel_doc, are parsing C code.
+But both implement their own C-parser ... may it is time to look
+for a more general parser solution:
+
+   * http://git.kernel.org/cgit/devel/sparse/sparse.git
+   * https://github.com/eliben/pycparser
+
+Only read the documentation of pycparser, sound promising to me.
+With something like "parse_file" we could parse the headers
+
+   * https://github.com/eliben/pycparser/blob/master/pycparser/__init__.py#L54
+
+and with subclassing the "CGenerator" class and overwriting some visit-methods:
+
+   * https://github.com/eliben/pycparser/blob/master/pycparser/c_generator.py#L12
+
+we can produce the reST output. There is a small example parsing C to
+an AST and back to C:
+
+https://github.com/eliben/pycparser/blob/master/examples/c-to-c.py#L21
+
+-- Markus
