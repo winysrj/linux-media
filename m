@@ -1,76 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:62239 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751817AbcHSLjf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 07:39:35 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-CC: <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH v4 1/4] VPU: mediatek: Add mdp support
-Date: Fri, 19 Aug 2016 19:39:24 +0800
-Message-ID: <1471606767-3218-2-git-send-email-minghsiu.tsai@mediatek.com>
-In-Reply-To: <1471606767-3218-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1471606767-3218-1-git-send-email-minghsiu.tsai@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44800 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752408AbcHQMUV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Aug 2016 08:20:21 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v2 0/4] R-Car VSP1 1-D Histogram support
+Date: Wed, 17 Aug 2016 15:20:26 +0300
+Message-Id: <1471436430-26245-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VPU driver add mdp support
+Hello,
 
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
----
- drivers/media/platform/mtk-vpu/mtk_vpu.h |    5 +++++
- 1 file changed, 5 insertions(+)
+This patch series implements support for the Renesas R-Car VSP1 1-D histogram
+generator (HGO). It is based on top of the latest media tree's master branch,
+and available for convenience at
 
-diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.h b/drivers/media/platform/mtk-vpu/mtk_vpu.h
-index f457479..291ae46 100644
---- a/drivers/media/platform/mtk-vpu/mtk_vpu.h
-+++ b/drivers/media/platform/mtk-vpu/mtk_vpu.h
-@@ -53,6 +53,8 @@ typedef void (*ipi_handler_t) (void *data,
- 			 handle H264 video encoder job, and vice versa.
-  * @IPI_VENC_VP8:	 The interrupt fro vpu is to notify kernel to
- 			 handle VP8 video encoder job,, and vice versa.
-+ * @IPI_MDP:		 The interrupt from vpu is to notify kernel to
-+			 handle MDP (Media Data Path) job, and vice versa.
-  * @IPI_MAX:		 The maximum IPI number
-  */
- 
-@@ -63,6 +65,7 @@ enum ipi_id {
- 	IPI_VDEC_VP9,
- 	IPI_VENC_H264,
- 	IPI_VENC_VP8,
-+	IPI_MDP,
- 	IPI_MAX,
- };
- 
-@@ -71,11 +74,13 @@ enum ipi_id {
-  *
-  * @VPU_RST_ENC: encoder reset id
-  * @VPU_RST_DEC: decoder reset id
-+ * @VPU_RST_MDP: MDP (Media Data Path) reset id
-  * @VPU_RST_MAX: maximum reset id
-  */
- enum rst_id {
- 	VPU_RST_ENC,
- 	VPU_RST_DEC,
-+	VPU_RST_MDP,
- 	VPU_RST_MAX,
- };
- 
+        git://linuxtv.org/pinchartl/media.git vsp1/hgo
+
+The series starts with the implementation and documentation of the new V4L2
+metadata API (1/4), followed by a new pixel format for the R-Car VSP1 1-D
+histogram (2/4). The last two patches (3/4 and 4/4) implement support for the
+API in the vsp1 driver.
+
+Laurent Pinchart (4):
+  v4l: Add metadata buffer type and format
+  v4l: Define a pixel format for the R-Car VSP1 1-D histogram engine
+  v4l: vsp1: Add HGO support
+  v4l: vsp1: Don't create HGO entity when the userspace API is disabled
+
+ Documentation/media/uapi/v4l/buffer.rst            |   8 +
+ Documentation/media/uapi/v4l/dev-meta.rst          |  69 +++
+ Documentation/media/uapi/v4l/devices.rst           |   1 +
+ Documentation/media/uapi/v4l/meta-formats.rst      |  15 +
+ .../media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst        | 170 +++++++
+ Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
+ Documentation/media/uapi/v4l/vidioc-querycap.rst   |  14 +-
+ Documentation/media/videodev2.h.rst.exceptions     |   2 +
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/vsp1/Makefile               |   1 +
+ drivers/media/platform/vsp1/vsp1.h                 |   3 +
+ drivers/media/platform/vsp1/vsp1_drm.c             |   2 +-
+ drivers/media/platform/vsp1/vsp1_drv.c             |  44 +-
+ drivers/media/platform/vsp1/vsp1_entity.c          | 136 +++++-
+ drivers/media/platform/vsp1/vsp1_entity.h          |   7 +-
+ drivers/media/platform/vsp1/vsp1_hgo.c             | 501 +++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_hgo.h             |  50 ++
+ drivers/media/platform/vsp1/vsp1_histo.c           | 324 +++++++++++++
+ drivers/media/platform/vsp1/vsp1_histo.h           |  69 +++
+ drivers/media/platform/vsp1/vsp1_pipe.c            |  22 +-
+ drivers/media/platform/vsp1/vsp1_pipe.h            |   2 +
+ drivers/media/platform/vsp1/vsp1_regs.h            |  24 +-
+ drivers/media/platform/vsp1/vsp1_video.c           |  22 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  19 +
+ drivers/media/v4l2-core/v4l2-dev.c                 |  16 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c               |  42 ++
+ drivers/media/v4l2-core/videobuf2-v4l2.c           |   3 +
+ include/media/v4l2-ioctl.h                         |  17 +
+ include/uapi/linux/videodev2.h                     |  17 +
+ 29 files changed, 1552 insertions(+), 50 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/dev-meta.rst
+ create mode 100644 Documentation/media/uapi/v4l/meta-formats.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
+ create mode 100644 drivers/media/platform/vsp1/vsp1_hgo.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_hgo.h
+ create mode 100644 drivers/media/platform/vsp1/vsp1_histo.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_histo.h
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
