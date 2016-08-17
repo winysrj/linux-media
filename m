@@ -1,112 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swift.blarg.de ([78.47.110.205]:36146 "EHLO swift.blarg.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932529AbcHIVls (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Aug 2016 17:41:48 -0400
-Subject: [PATCH 02/12] [media] dvbdev: split dvb_unregister_device()
-From: Max Kellermann <max.kellermann@gmail.com>
-To: linux-media@vger.kernel.org, shuahkh@osg.samsung.com,
-	mchehab@osg.samsung.com
-Cc: linux-kernel@vger.kernel.org
-Date: Tue, 09 Aug 2016 23:32:11 +0200
-Message-ID: <147077833114.21835.9046868208246740006.stgit@woodpecker.blarg.de>
-In-Reply-To: <147077832610.21835.743840405297289081.stgit@woodpecker.blarg.de>
-References: <147077832610.21835.743840405297289081.stgit@woodpecker.blarg.de>
+Received: from exsmtp02.microchip.com ([198.175.253.38]:38246 "EHLO
+	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753797AbcHQGTD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Aug 2016 02:19:03 -0400
+From: Songjun Wu <songjun.wu@microchip.com>
+To: <nicolas.ferre@atmel.com>, <robh@kernel.org>
+CC: <laurent.pinchart@ideasonboard.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	Songjun Wu <songjun.wu@microchip.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	<linux-kernel@vger.kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH v10 3/3] MAINTAINERS: atmel-isc: add entry for Atmel ISC
+Date: Wed, 17 Aug 2016 14:05:29 +0800
+Message-ID: <1471413929-26008-4-git-send-email-songjun.wu@microchip.com>
+In-Reply-To: <1471413929-26008-1-git-send-email-songjun.wu@microchip.com>
+References: <1471413929-26008-1-git-send-email-songjun.wu@microchip.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dvb_unregister_device() has a major problem: it combines unregistering
-with memory disposal.  Sometimes, it is necessary to unregister a
-device, but no memory can be freed yet, because a process still has a
-(stale) file handle.  Therefore, we need to split
-dvb_unregister_device().  This will allow sanitizing a few callers.
+Add the MAINTAINERS' entry for Microchip / Atmel Image Sensor Controller.
 
-With my new design, dvb_unregister_device() appears misnamed, but to
-reduce patch noise, I'm not renaming it just yet.
-
-Signed-off-by: Max Kellermann <max.kellermann@gmail.com>
+Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
 ---
- drivers/media/dvb-core/dvbdev.c |   19 ++++++++++++++++++-
- drivers/media/dvb-core/dvbdev.h |   23 +++++++++++++++++++++++
- 2 files changed, 41 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 75a3f4b..1bc2dba 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -523,7 +523,7 @@ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
- EXPORT_SYMBOL(dvb_register_device);
+Changes in v10: None
+Changes in v9: None
+Changes in v8: None
+Changes in v7: None
+Changes in v6: None
+Changes in v5: None
+Changes in v4: None
+Changes in v3: None
+Changes in v2: None
+
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 20bb1d0..21a6f6f 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7733,6 +7733,14 @@ T:	git git://git.monstr.eu/linux-2.6-microblaze.git
+ S:	Supported
+ F:	arch/microblaze/
  
- 
--void dvb_unregister_device(struct dvb_device *dvbdev)
-+void dvb_remove_device(struct dvb_device *dvbdev)
- {
- 	if (!dvbdev)
- 		return;
-@@ -537,9 +537,26 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
- 	device_destroy(dvb_class, MKDEV(DVB_MAJOR, dvbdev->minor));
- 
- 	list_del (&dvbdev->list_head);
-+}
-+EXPORT_SYMBOL(dvb_remove_device);
++MICROCHIP / ATMEL ISC DRIVER
++M:	Songjun Wu <songjun.wu@microchip.com>
++L:	linux-media@vger.kernel.org
++S:	Supported
++F:	drivers/media/platform/atmel/atmel-isc.c
++F:	drivers/media/platform/atmel/atmel-isc-regs.h
++F:	devicetree/bindings/media/atmel-isc.txt
 +
-+
-+void dvb_free_device(struct dvb_device *dvbdev)
-+{
-+	if (!dvbdev)
-+		return;
-+
- 	kfree (dvbdev->fops);
- 	kfree (dvbdev);
- }
-+EXPORT_SYMBOL(dvb_free_device);
-+
-+
-+void dvb_unregister_device(struct dvb_device *dvbdev)
-+{
-+	dvb_remove_device(dvbdev);
-+	dvb_free_device(dvbdev);
-+}
- EXPORT_SYMBOL(dvb_unregister_device);
- 
- 
-diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-index 4aff7bd..576bbd4 100644
---- a/drivers/media/dvb-core/dvbdev.h
-+++ b/drivers/media/dvb-core/dvbdev.h
-@@ -212,8 +212,31 @@ int dvb_register_device(struct dvb_adapter *adap,
- 			int demux_sink_pads);
- 
- /**
-+ * dvb_remove_device - Remove a registered DVB device
-+ *
-+ * This does not free memory.  To do that, call dvb_free_device().
-+ *
-+ * @dvbdev:	pointer to struct dvb_device
-+ */
-+void dvb_remove_device(struct dvb_device *dvbdev);
-+
-+/**
-+ * dvb_free_device - Free memory occupied by a DVB device.
-+ *
-+ * Call dvb_unregister_device() before calling this function.
-+ *
-+ * @dvbdev:	pointer to struct dvb_device
-+ */
-+void dvb_free_device(struct dvb_device *dvbdev);
-+
-+/**
-  * dvb_unregister_device - Unregisters a DVB device
-  *
-+ * This is a combination of dvb_remove_device() and dvb_free_device().
-+ * Using this function is usually a mistake, and is often an indicator
-+ * for a use-after-free bug (when a userspace process keeps a file
-+ * handle to a detached device).
-+ *
-  * @dvbdev:	pointer to struct dvb_device
-  */
- void dvb_unregister_device(struct dvb_device *dvbdev);
+ MICROSOFT SURFACE PRO 3 BUTTON DRIVER
+ M:	Chen Yu <yu.c.chen@intel.com>
+ L:	platform-driver-x86@vger.kernel.org
+-- 
+2.7.4
 
