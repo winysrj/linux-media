@@ -1,168 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp11.smtpout.orange.fr ([80.12.242.133]:17798 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752863AbcHOTCP (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34859
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753007AbcHQS3V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 15:02:15 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jiri Kosina <trivial@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v4 01/13] media: mt9m111: make a standalone v4l2 subdevice
-Date: Mon, 15 Aug 2016 21:01:51 +0200
-Message-Id: <1471287723-25451-2-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1471287723-25451-1-git-send-email-robert.jarzmik@free.fr>
-References: <1471287723-25451-1-git-send-email-robert.jarzmik@free.fr>
+	Wed, 17 Aug 2016 14:29:21 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org
+Subject: [RFC PATCH 1/2] [media] vb2: defer sync buffers from vb2_buffer_done() with a workqueue
+Date: Wed, 17 Aug 2016 14:28:56 -0400
+Message-Id: <1471458537-16859-2-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1471458537-16859-1-git-send-email-javier@osg.samsung.com>
+References: <1471458537-16859-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the soc_camera adherence. Mostly the change removes the power
-manipulation provided by soc_camera, and instead :
- - powers on the sensor when the s_power control is activated
- - powers on the sensor in initial probe
- - enables and disables the MCLK provided to it in power on/off
+The vb2_buffer_done() function can be called from interrupt context but it
+currently calls the vb2 memory allocator .finish operation to sync buffers
+and this can take a long time, so it's not suitable to be done there.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+This patch defers part of the vb2_buffer_done() logic to a worker thread
+to avoid doing the time consuming operation in interrupt context.
+
+This will also allow to unmap the dmabuf as soon as possible once the buf
+has been processed by the driver instead of waiting until user-space call
+VIDIOC_DQBUF. Since the dmabuf unmap can sleep, it couldn't be done from
+the vb2_buffer_done() function as it was before.
+
+Suggested-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 ---
- drivers/media/i2c/soc_camera/mt9m111.c | 51 ++++++++++------------------------
- 1 file changed, 15 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
-index 6dfaead6aaa8..a7efaa5964d1 100644
---- a/drivers/media/i2c/soc_camera/mt9m111.c
-+++ b/drivers/media/i2c/soc_camera/mt9m111.c
-@@ -16,10 +16,11 @@
- #include <linux/v4l2-mediabus.h>
- #include <linux/module.h>
- 
--#include <media/soc_camera.h>
-+#include <media/v4l2-async.h>
- #include <media/v4l2-clk.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
- 
- /*
-  * MT9M111, MT9M112 and MT9M131:
-@@ -388,7 +389,7 @@ static int mt9m111_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
- 	struct v4l2_rect rect = a->c;
- 	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
- 	int width, height;
--	int ret;
-+	int ret, align = 0;
- 
- 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
-@@ -396,17 +397,19 @@ static int mt9m111_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
- 	if (mt9m111->fmt->code == MEDIA_BUS_FMT_SBGGR8_1X8 ||
- 	    mt9m111->fmt->code == MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE) {
- 		/* Bayer format - even size lengths */
--		rect.width	= ALIGN(rect.width, 2);
--		rect.height	= ALIGN(rect.height, 2);
-+		align = 1;
- 		/* Let the user play with the starting pixel */
+ drivers/media/v4l2-core/videobuf2-core.c | 81 +++++++++++++++++++++-----------
+ include/media/videobuf2-core.h           |  5 ++
+ 2 files changed, 58 insertions(+), 28 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 1dbd7beb71f0..14bed8acf3cf 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -315,6 +315,45 @@ static void __setup_offsets(struct vb2_buffer *vb)
  	}
- 
- 	/* FIXME: the datasheet doesn't specify minimum sizes */
--	soc_camera_limit_side(&rect.left, &rect.width,
--		     MT9M111_MIN_DARK_COLS, 2, MT9M111_MAX_WIDTH);
--
--	soc_camera_limit_side(&rect.top, &rect.height,
--		     MT9M111_MIN_DARK_ROWS, 2, MT9M111_MAX_HEIGHT);
-+	v4l_bound_align_image(&rect.width, 2, MT9M111_MAX_WIDTH, align,
-+			      &rect.height, 2, MT9M111_MAX_HEIGHT, align, 0);
-+	rect.left = clamp(rect.left, MT9M111_MIN_DARK_COLS,
-+			  MT9M111_MIN_DARK_COLS + MT9M111_MAX_WIDTH -
-+			  (__s32)rect.width);
-+	rect.top = clamp(rect.top, MT9M111_MIN_DARK_ROWS,
-+			 MT9M111_MIN_DARK_ROWS + MT9M111_MAX_HEIGHT -
-+			 (__s32)rect.height);
- 
- 	width = min(mt9m111->width, rect.width);
- 	height = min(mt9m111->height, rect.height);
-@@ -775,17 +778,16 @@ static int mt9m111_init(struct mt9m111 *mt9m111)
- static int mt9m111_power_on(struct mt9m111 *mt9m111)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	int ret;
- 
--	ret = soc_camera_power_on(&client->dev, ssdd, mt9m111->clk);
-+	ret = v4l2_clk_enable(mt9m111->clk);
- 	if (ret < 0)
- 		return ret;
- 
- 	ret = mt9m111_resume(mt9m111);
- 	if (ret < 0) {
- 		dev_err(&client->dev, "Failed to resume the sensor: %d\n", ret);
--		soc_camera_power_off(&client->dev, ssdd, mt9m111->clk);
-+		v4l2_clk_disable(mt9m111->clk);
- 	}
- 
- 	return ret;
-@@ -793,11 +795,8 @@ static int mt9m111_power_on(struct mt9m111 *mt9m111)
- 
- static void mt9m111_power_off(struct mt9m111 *mt9m111)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--
- 	mt9m111_suspend(mt9m111);
--	soc_camera_power_off(&client->dev, ssdd, mt9m111->clk);
-+	v4l2_clk_disable(mt9m111->clk);
  }
  
- static int mt9m111_s_power(struct v4l2_subdev *sd, int on)
-@@ -854,14 +853,10 @@ static int mt9m111_enum_mbus_code(struct v4l2_subdev *sd,
- static int mt9m111_g_mbus_config(struct v4l2_subdev *sd,
- 				struct v4l2_mbus_config *cfg)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--
- 	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING |
- 		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_HIGH |
- 		V4L2_MBUS_DATA_ACTIVE_HIGH;
- 	cfg->type = V4L2_MBUS_PARALLEL;
--	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
- 
- 	return 0;
- }
-@@ -933,20 +928,8 @@ static int mt9m111_probe(struct i2c_client *client,
- {
- 	struct mt9m111 *mt9m111;
- 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
++static void vb2_done_work(struct work_struct *work)
++{
++	struct vb2_buffer *vb = container_of(work, struct vb2_buffer,
++					     done_work);
++	struct vb2_queue *q = vb->vb2_queue;
++	unsigned long flags;
++	unsigned int plane;
++
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
++
++	spin_lock_irqsave(&q->done_lock, flags);
++	if (vb->state == VB2_BUF_STATE_QUEUED ||
++	    vb->state == VB2_BUF_STATE_REQUEUEING) {
++		vb->state = VB2_BUF_STATE_QUEUED;
++	} else {
++		/* Add the buffer to the done buffers list */
++		list_add_tail(&vb->done_entry, &q->done_list);
++	}
++	atomic_dec(&q->owned_by_drv_count);
++	spin_unlock_irqrestore(&q->done_lock, flags);
++
++	trace_vb2_buf_done(q, vb);
++
++	switch (vb->state) {
++	case VB2_BUF_STATE_QUEUED:
++		break;
++	case VB2_BUF_STATE_REQUEUEING:
++		if (q->start_streaming_called)
++			__enqueue_in_driver(vb);
++		break;
++	default:
++		/* Inform any processes that may be waiting for buffers */
++		wake_up(&q->done_wq);
++		break;
++	}
++}
++
+ /**
+  * __vb2_queue_alloc() - allocate videobuf buffer structures and (for MMAP type)
+  * video buffer memory for all buffers/planes on the queue and initializes the
+@@ -330,6 +369,10 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+ 	struct vb2_buffer *vb;
  	int ret;
  
--	if (client->dev.of_node) {
--		ssdd = devm_kzalloc(&client->dev, sizeof(*ssdd), GFP_KERNEL);
--		if (!ssdd)
--			return -ENOMEM;
--		client->dev.platform_data = ssdd;
--	}
--	if (!ssdd) {
--		dev_err(&client->dev, "mt9m111: driver needs platform data\n");
--		return -EINVAL;
--	}
--
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
- 		dev_warn(&adapter->dev,
- 			 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
-@@ -992,10 +975,6 @@ static int mt9m111_probe(struct i2c_client *client,
- 	mt9m111->lastpage	= -1;
- 	mutex_init(&mt9m111->power_lock);
++	q->vb2_workqueue = alloc_ordered_workqueue("vb2_wq", 0);
++	if (!q->vb2_workqueue)
++		return buffer;
++
+ 	for (buffer = 0; buffer < num_buffers; ++buffer) {
+ 		/* Allocate videobuf buffer structures */
+ 		vb = kzalloc(q->buf_struct_size, GFP_KERNEL);
+@@ -344,6 +387,8 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+ 		vb->index = q->num_buffers + buffer;
+ 		vb->type = q->type;
+ 		vb->memory = memory;
++		INIT_WORK(&vb->done_work, vb2_done_work);
++
+ 		for (plane = 0; plane < num_planes; ++plane) {
+ 			vb->planes[plane].length = plane_sizes[plane];
+ 			vb->planes[plane].min_length = plane_sizes[plane];
+@@ -982,7 +1027,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 	unsigned long flags;
+-	unsigned int plane;
  
--	ret = soc_camera_power_init(&client->dev, ssdd);
--	if (ret < 0)
--		goto out_hdlfree;
+ 	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
+ 		return;
+@@ -1003,36 +1047,11 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	dprintk(4, "done processing on buffer %d, state: %d\n",
+ 			vb->index, state);
+ 
+-	/* sync buffers */
+-	for (plane = 0; plane < vb->num_planes; ++plane)
+-		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
 -
- 	ret = mt9m111_video_probe(client);
- 	if (ret < 0)
- 		goto out_hdlfree;
+ 	spin_lock_irqsave(&q->done_lock, flags);
+-	if (state == VB2_BUF_STATE_QUEUED ||
+-	    state == VB2_BUF_STATE_REQUEUEING) {
+-		vb->state = VB2_BUF_STATE_QUEUED;
+-	} else {
+-		/* Add the buffer to the done buffers list */
+-		list_add_tail(&vb->done_entry, &q->done_list);
+-		vb->state = state;
+-	}
+-	atomic_dec(&q->owned_by_drv_count);
++	vb->state = state;
+ 	spin_unlock_irqrestore(&q->done_lock, flags);
+ 
+-	trace_vb2_buf_done(q, vb);
+-
+-	switch (state) {
+-	case VB2_BUF_STATE_QUEUED:
+-		return;
+-	case VB2_BUF_STATE_REQUEUEING:
+-		if (q->start_streaming_called)
+-			__enqueue_in_driver(vb);
+-		return;
+-	default:
+-		/* Inform any processes that may be waiting for buffers */
+-		wake_up(&q->done_wq);
+-		break;
+-	}
++	queue_work(q->vb2_workqueue, &vb->done_work);
+ }
+ EXPORT_SYMBOL_GPL(vb2_buffer_done);
+ 
+@@ -1812,6 +1831,12 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	if (q->start_streaming_called)
+ 		call_void_qop(q, stop_streaming, q);
+ 
++	if (q->vb2_workqueue) {
++		flush_workqueue(q->vb2_workqueue);
++		destroy_workqueue(q->vb2_workqueue);
++		q->vb2_workqueue = NULL;
++	}
++
+ 	/*
+ 	 * If you see this warning, then the driver isn't cleaning up properly
+ 	 * in stop_streaming(). See the stop_streaming() documentation in
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index a4a9a55a0c42..dd765ef06cce 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -242,6 +242,9 @@ struct vb2_buffer {
+ 
+ 	struct list_head	queued_entry;
+ 	struct list_head	done_entry;
++
++	struct work_struct	done_work;
++
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	/*
+ 	 * Counters for how often these buffer-related ops are
+@@ -523,6 +526,8 @@ struct vb2_queue {
+ 	struct vb2_fileio_data		*fileio;
+ 	struct vb2_threadio_data	*threadio;
+ 
++	struct workqueue_struct		*vb2_workqueue;
++
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	/*
+ 	 * Counters for how often these queue-related ops are
 -- 
-2.1.4
+2.5.5
 
