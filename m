@@ -1,88 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46804 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754466AbcHSKYH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 06:24:07 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v2 16/17] omap3isp: Release the isp device struct by media device callback
-Date: Fri, 19 Aug 2016 13:23:47 +0300
-Message-Id: <1471602228-30722-17-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from exsmtp02.microchip.com ([198.175.253.38]:38213 "EHLO
+	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753722AbcHQGSy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Aug 2016 02:18:54 -0400
+From: Songjun Wu <songjun.wu@microchip.com>
+To: <nicolas.ferre@atmel.com>, <robh@kernel.org>
+CC: <laurent.pinchart@ideasonboard.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	Songjun Wu <songjun.wu@microchip.com>,
+	<devicetree@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH v10 2/3] [media] atmel-isc: DT binding for Image Sensor Controller driver
+Date: Wed, 17 Aug 2016 14:05:28 +0800
+Message-ID: <1471413929-26008-3-git-send-email-songjun.wu@microchip.com>
+In-Reply-To: <1471413929-26008-1-git-send-email-songjun.wu@microchip.com>
+References: <1471413929-26008-1-git-send-email-songjun.wu@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the media device release callback to release the isp device's data
-structure. This approach has the benefit of not releasing memory which may
-still be accessed through open file handles whilst the isp driver is being
-unbound.
+DT binding documentation for ISC driver.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
 ---
- drivers/media/platform/omap3isp/isp.c | 25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 1e42d37..217d4da 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1671,6 +1671,8 @@ static int isp_link_entity(
- 	return media_create_pad_link(entity, i, input, pad, flags);
- }
- 
-+static void isp_release(struct media_device *mdev);
+Changes in v10: None
+Changes in v9: None
+Changes in v8: None
+Changes in v7: None
+Changes in v6:
+- Add "iscck" and "gck" to clock-names.
+
+Changes in v5:
+- Add clock-output-names.
+
+Changes in v4:
+- Remove the isc clock nodes.
+
+Changes in v3:
+- Remove the 'atmel,sensor-preferred'.
+- Modify the isc clock node according to the Rob's remarks.
+
+Changes in v2:
+- Remove the unit address of the endpoint.
+- Add the unit address to the clock node.
+- Avoid using underscores in node names.
+- Drop the "0x" in the unit address of the i2c node.
+- Modify the description of 'atmel,sensor-preferred'.
+- Add the description for the ISC internal clock.
+
+ .../devicetree/bindings/media/atmel-isc.txt        | 65 ++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
+
+diff --git a/Documentation/devicetree/bindings/media/atmel-isc.txt b/Documentation/devicetree/bindings/media/atmel-isc.txt
+new file mode 100644
+index 0000000..bbe0e87c
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/atmel-isc.txt
+@@ -0,0 +1,65 @@
++Atmel Image Sensor Controller (ISC)
++----------------------------------------------
 +
- static int isp_register_entities(struct isp_device *isp)
- {
- 	int ret;
-@@ -1683,6 +1685,7 @@ static int isp_register_entities(struct isp_device *isp)
- 		sizeof(isp->media_dev->model));
- 	isp->media_dev->hw_revision = isp->revision;
- 	isp->media_dev->link_notify = v4l2_pipeline_link_notify;
-+	isp->media_dev->release = isp_release;
- 
- 	isp->v4l2_dev.mdev = isp->media_dev;
- 	ret = v4l2_device_register(isp->dev, &isp->v4l2_dev);
-@@ -1945,6 +1948,20 @@ static void isp_detach_iommu(struct isp_device *isp)
- 	iommu_group_remove_device(isp->dev);
- }
- 
-+static void isp_release(struct media_device *mdev)
-+{
-+	struct isp_device *isp = media_device_priv(mdev);
++Required properties for ISC:
++- compatible
++	Must be "atmel,sama5d2-isc".
++- reg
++	Physical base address and length of the registers set for the device.
++- interrupts
++	Should contain IRQ line for the ISC.
++- clocks
++	List of clock specifiers, corresponding to entries in
++	the clock-names property;
++	Please refer to clock-bindings.txt.
++- clock-names
++	Required elements: "hclock", "iscck", "gck".
++- #clock-cells
++	Should be 0.
++- clock-output-names
++	Should be "isc-mck".
++- pinctrl-names, pinctrl-0
++	Please refer to pinctrl-bindings.txt.
 +
-+	isp_cleanup_modules(isp);
-+	isp_xclk_cleanup(isp);
++ISC supports a single port node with parallel bus. It should contain one
++'port' child node with child 'endpoint' node. Please refer to the bindings
++defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
 +
-+	__omap3isp_get(isp, false);
-+	isp_detach_iommu(isp);
-+	__omap3isp_put(isp, false);
++Example:
++isc: isc@f0008000 {
++	compatible = "atmel,sama5d2-isc";
++	reg = <0xf0008000 0x4000>;
++	interrupts = <46 IRQ_TYPE_LEVEL_HIGH 5>;
++	clocks = <&isc_clk>, <&iscck>, <&isc_gclk>;
++	clock-names = "hclock", "iscck", "gck";
++	#clock-cells = <0>;
++	clock-output-names = "isc-mck";
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_isc_base &pinctrl_isc_data_8bit &pinctrl_isc_data_9_10 &pinctrl_isc_data_11_12>;
 +
-+	media_entity_enum_cleanup(&isp->crashed);
-+}
++	port {
++		isc_0: endpoint {
++			remote-endpoint = <&ov7740_0>;
++			hsync-active = <1>;
++			vsync-active = <0>;
++			pclk-sample = <1>;
++		};
++	};
++};
 +
- static int isp_attach_iommu(struct isp_device *isp)
- {
- 	struct dma_iommu_mapping *mapping;
-@@ -2005,14 +2022,6 @@ static int isp_remove(struct platform_device *pdev)
- 
- 	v4l2_async_notifier_unregister(&isp->notifier);
- 	isp_unregister_entities(isp);
--	isp_cleanup_modules(isp);
--	isp_xclk_cleanup(isp);
--
--	__omap3isp_get(isp, false);
--	isp_detach_iommu(isp);
--	__omap3isp_put(isp, false);
--
--	media_entity_enum_cleanup(&isp->crashed);
- 
- 	return 0;
- }
++i2c1: i2c@fc028000 {
++	ov7740: camera@21 {
++		compatible = "ovti,ov7740";
++		reg = <0x21>;
++		clocks = <&isc>;
++		clock-names = "xvclk";
++		assigned-clocks = <&isc>;
++		assigned-clock-rates = <24000000>;
++
++		port {
++			ov7740_0: endpoint {
++				remote-endpoint = <&isc_0>;
++			};
++		};
++	};
++};
 -- 
-2.1.4
+2.7.4
 
