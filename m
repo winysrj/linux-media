@@ -1,64 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46804 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754219AbcHSKYF (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:35697 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754618AbcHSDqv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 06:24:05 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v2 08/17] media-device: Make devnode.dev->kobj parent of devnode.cdev
-Date: Fri, 19 Aug 2016 13:23:39 +0300
-Message-Id: <1471602228-30722-9-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+        Thu, 18 Aug 2016 23:46:51 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Markus Heiser <markus.heiser@darmarIT.de>
+Subject: [PATCH 18/20] [media] dev-subdev.rst: make table fully visible on LaTeX
+Date: Thu, 18 Aug 2016 13:15:47 -0300
+Message-Id: <546a6ac8213037d3f5144b56bcb62961501fdf24.1471532123.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
+References: <cover.1471532122.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
+References: <cover.1471532122.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The struct cdev embedded in struct media_devnode contains its own kobj.
-Instead of trying to manage its lifetime separately from struct
-media_devnode, make the cdev kobj a parent of the struct media_device.dev
-kobj.
+The table there is too big and doesn't have format hints for
+LaTeX output.
 
-The cdev will thus be released during unregistering the media_devnode, not
-in media_devnode.dev kobj's release callback.
+Fix it.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/media-devnode.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ Documentation/media/uapi/v4l/dev-subdev.rst | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index aa8030b..69f84a7 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -63,9 +63,6 @@ static void media_devnode_release(struct device *cd)
+diff --git a/Documentation/media/uapi/v4l/dev-subdev.rst b/Documentation/media/uapi/v4l/dev-subdev.rst
+index 5a112eb7a245..b1aed4541bca 100644
+--- a/Documentation/media/uapi/v4l/dev-subdev.rst
++++ b/Documentation/media/uapi/v4l/dev-subdev.rst
+@@ -204,9 +204,16 @@ list entity names and pad numbers).
  
- 	mutex_lock(&media_devnode_lock);
+ .. _sample-pipeline-config:
  
--	/* Delete the cdev on this minor as well */
--	cdev_del(&devnode->cdev);
--
- 	/* Mark device node number as free */
- 	clear_bit(devnode->minor, media_devnode_nums);
++.. raw:: latex
++
++    \newline\newline\begin{adjustbox}{width=\columnwidth}
++
++.. tabularcolumns:: |p{4.5cm}|p{4.5cm}|p{4.5cm}|p{4.5cm}|p{4.5cm}|p{4.5cm}|p{4.5cm}|
++
+ .. flat-table:: Sample Pipeline Configuration
+     :header-rows:  1
+     :stub-columns: 0
++    :widths: 5 5 5 5 5 5 5
  
-@@ -246,6 +243,7 @@ int __must_check media_devnode_register(struct media_devnode *devnode,
  
- 	/* Part 2: Initialize and register the character device */
- 	cdev_init(&devnode->cdev, &media_devnode_fops);
-+	devnode->cdev.kobj.parent = &devnode->dev.kobj;
- 	devnode->cdev.owner = owner;
+     -  .. row 1
+@@ -288,7 +295,9 @@ list entity names and pad numbers).
  
- 	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
-@@ -291,6 +289,7 @@ void media_devnode_unregister(struct media_devnode *devnode)
- 	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
- 	mutex_unlock(&media_devnode_lock);
- 	device_unregister(&devnode->dev);
-+	cdev_del(&devnode->cdev);
- }
+        -  *1280x960/SGRBG8_1X8*
  
- /*
++.. raw:: latex
+ 
++    \end{adjustbox}\newline\newline
+ 
+ 1. Initial state. The sensor source pad format is set to its native 3MP
+    size and V4L2_MBUS_FMT_SGRBG8_1X8 media bus code. Formats on the
 -- 
-2.1.4
+2.7.4
+
 
