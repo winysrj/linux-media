@@ -1,87 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:16692 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932199AbcHHTbW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2016 15:31:22 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jiri Kosina <trivial@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v3 00/14] pxa_camera transition to v4l2 standalone device
-Date: Mon,  8 Aug 2016 21:30:38 +0200
-Message-Id: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46304 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754588AbcHSBEr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Aug 2016 21:04:47 -0400
+Date: Thu, 18 Aug 2016 23:28:45 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+        aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+        linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
+Message-ID: <20160818212845.GA30383@amd>
+References: <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+ <20160805102611.GA13116@amd>
+ <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+ <20160808214132.GB2946@xo-6d-61-c0.localdomain>
+ <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
+ <20160808232323.GC2946@xo-6d-61-c0.localdomain>
+ <20160811111633.GR3182@valkosipuli.retiisi.org.uk>
+ <20160818104539.GA7427@amd>
+ <20160818202559.GF3182@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160818202559.GF3182@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi!
 
-We're leaving the domain of the RFC to a proper submission.
+> > Heh. Basically anything is easier to develop for than n900 :-(.
+> 
+> Is it?
+> 
+> I actually find the old Nokia devices very practical. It's easy to boot your
+> own kernel and things just work... until musb broke a bit recently. It
+> requires reconnecting the usb cable again to function.
+> 
+> I have to admit I mostly use an N9.
 
-This is very alike to what you reviewed earlier, the code is very close, and :
- - the split between patches is done to better isolate cleanups from real code
- - start_streaming() was implemented
- - your remarks have been taken into account (please double-check if you're
-   happy with it)
- - v4l2-compliance -f and v4l2-compliance -s were run without any error, and 6 warnings
-	warn: v4l2-test-formats.cpp(713): TRY_FMT cannot handle an invalid pixelformat.
-	warn: v4l2-test-formats.cpp(714): This may or may not be a problem. For more information see:
-	warn: v4l2-test-formats.cpp(715): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
- - soc_camera is not touched anymore
- - the driver is still functional from a capture point of view as before
-  (ie. taking a real picture)
+Well, yes, I guess it sucks less than most phones, but...
+
+I wish I had working .5TB drive, and CPU fast enough to compile kernel
+in say hour, and enough memory to run emacs and g++ at the same time,
+ethernet connection, working RTC and real keyboard and monitor...
+
+Development would be way easier if I could just disconnect the N900
+peripherals and connect them to the PC. Ok, I can dream, right?
+
+
+> > I guess subdevs for omap3 should be merged at this point. Do you have
+> > any plans to do that, or should I take a look?
+> 
+> What's still missing? I think I've yet to check the et8ek8 driver and the
+> device tree description is missing. That's what comes to mind right now.
+
+et8ek8 driver is important, yes. But there's the support for parsing
+sub-devices from the dt missing, too. This stuff (I believe it is
+originally from you).
+
+Best regards,
+								Pavel
+
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 5d54e2c..23d484c 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2098,10 +2151,51 @@ static int isp_of_parse_node(struct device *dev, struct device_node *node,
+ 	return 0;
+ }
  
-I'm still relying on soc_mediabus, hence the not-so-nice Makefile diff hunk.
++static int isp_of_parse_node(struct device *dev, struct device_node *node,
++			     struct v4l2_async_notifier *notifier,
++			     u32 group_id, bool link)
++{
++	struct isp_async_subdev *isd;
++
++	isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
++	if (!isd) {
++		of_node_put(node);
++		return -ENOMEM;
++	}
++
++	notifier->subdevs[notifier->num_subdevs] = &isd->asd;
++
++	if (link) {
++		if (isp_of_parse_node_endpoint(dev, node, isd)) {
++			of_node_put(node);
++			return -EINVAL;
++		}
++
++		isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
++		of_node_put(node);
++	} else {
++		isd->asd.match.of.node = node;
++	}
++
++	if (!isd->asd.match.of.node) {
++		dev_warn(dev, "bad remote port parent\n");
++		return -EINVAL;
++	}
++
++	isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
++	isd->group_id = group_id;
++	notifier->num_subdevs++;
++
++	return 0;
++}
++
+ static int isp_of_parse_nodes(struct device *dev,
+ 			      struct v4l2_async_notifier *notifier)
+ {
+ 	struct device_node *node = NULL;
++	int ret;
++	unsigned int flash = 0;
++	u32 group_id = 0;
+ 
+ 	notifier->subdevs = devm_kcalloc(
+ 		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+@@ -2110,30 +2204,57 @@ static int isp_of_parse_nodes(struct device *dev,
+ 
+ 	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
+ 	       (node = of_graph_get_next_endpoint(dev->of_node, node))) {
+-		struct isp_async_subdev *isd;
++		ret = isp_of_parse_node(dev, node, notifier, group_id++, true);
++		if (ret)
++			return ret;
++	}
+ 
+-		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+-		if (!isd) {
+-			of_node_put(node);
+-			return -ENOMEM;
+-		}
++	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
++	       (node = of_parse_phandle(dev->of_node, "ti,camera-flashes",
++					flash++))) {
++		struct device_node *sensor_node =
++			of_parse_phandle(dev->of_node, "ti,camera-flashes",
++					 flash++);
++		unsigned int i;
++		u32 flash_group_id;
++
++		if (!sensor_node)
++			return -EINVAL;
+ 
+-		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
++		for (i = 0; i < notifier->num_subdevs; i++) {
++			struct isp_async_subdev *isd = container_of(
++				notifier->subdevs[i], struct isp_async_subdev,
++				asd);
+ 
+-		if (isp_of_parse_node(dev, node, isd)) {
+-			of_node_put(node);
+-			return -EINVAL;
++			if (!isd->bus)
++				continue;
++
++			dev_dbg(dev, "match \"%s\", \"%s\"\n",sensor_node->name,
++				isd->asd.match.of.node->name);
++
++			if (sensor_node != isd->asd.match.of.node)
++				continue;
++
++			dev_dbg(dev, "found\n");
++
++			flash_group_id = isd->group_id;
++			break;
+ 		}
+ 
+-		isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
+-		of_node_put(node);
+-		if (!isd->asd.match.of.node) {
+-			dev_warn(dev, "bad remote port parent\n");
+-			return -EINVAL;
++		/*
++		 * No sensor was found --- complain and allocate a new
++		 * group ID.
++		 */
++		if (i == notifier->num_subdevs) {
++			dev_warn(dev, "no device node \"%s\" was found",
++				 sensor_node->name);
++			flash_group_id = group_id++;
+ 		}
+ 
+-		isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
+-		notifier->num_subdevs++;
++		ret = isp_of_parse_node(dev, node, notifier, flash_group_id,
++					false);
++		if (ret)
++			return ret;
+ 	}
+ 
+ 	return notifier->num_subdevs;
+@@ -2146,8 +2267,9 @@ static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
+ 	struct isp_async_subdev *isd =
+ 		container_of(asd, struct isp_async_subdev, asd);
+ 
++//	subdev->entity.group_id = isd->group_id;
+ 	isd->sd = subdev;
+-	isd->sd->host_priv = &isd->bus;
++	isd->sd->host_priv = isd->bus;
+ 
+ 	return 0;
+ }
+@@ -2350,12 +2472,15 @@ static int isp_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto error_register_entities;
+ 
+-	isp->notifier.bound = isp_subdev_notifier_bound;
+-	isp->notifier.complete = isp_subdev_notifier_complete;
++	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node) {
++		isp->notifier.bound = isp_subdev_notifier_bound;
++		isp->notifier.complete = isp_subdev_notifier_complete;
+ 
+-	ret = v4l2_async_notifier_register(&isp->v4l2_dev, &isp->notifier);
+-	if (ret)
+-		goto error_register_entities;
++		ret = v4l2_async_notifier_register(&isp->v4l2_dev,
++						   &isp->notifier);
++		if (ret)
++			goto error_register_entities;
++	}
+ 
+ 	isp_core_init(isp, 1);
+ 	omap3isp_put(isp);
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index 7e6f663..639b3ca 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -228,8 +228,9 @@ struct isp_device {
+ 
+ struct isp_async_subdev {
+ 	struct v4l2_subdev *sd;
+-	struct isp_bus_cfg bus;
++	struct isp_bus_cfg *bus;
+ 	struct v4l2_async_subdev asd;
++	u32 group_id;
+ };
+ 
+ #define v4l2_dev_to_isp_device(dev) \
 
-The only architecture which will have its deconfigs impacted is pxa, under my
-maintainance, and once the review is finished and you have a landing cycle I'll
-complete with a simple serie on the pxa side (defconfig + platform data).
 
-I've also put the whole serie here if you want to fetch and review from git directly :
- - git fetch https://github.com/rjarzmik/linux.git work/v4l2
-
-Happy review.
-
---
-Robert
-
-Robert Jarzmik (14):
-  media: mt9m111: make a standalone v4l2 subdevice
-  media: mt9m111: prevent module removal while in use
-  media: mt9m111: use only the SRGB colorspace
-  media: mt9m111: move mt9m111 out of soc_camera
-  media: platform: pxa_camera: convert to vb2
-  media: platform: pxa_camera: trivial move of functions
-  media: platform: pxa_camera: introduce sensor_call
-  media: platform: pxa_camera: make printk consistent
-  media: platform: pxa_camera: add buffer sequencing
-  media: platform: pxa_camera: remove set_crop
-  media: platform: pxa_camera: make a standalone v4l2 device
-  media: platform: pxa_camera: add debug register access
-  media: platform: pxa_camera: change stop_streaming semantics
-  media: platform: pxa_camera: move pxa_camera out of soc_camera
-
- drivers/media/i2c/Kconfig                      |    7 +
- drivers/media/i2c/Makefile                     |    1 +
- drivers/media/i2c/mt9m111.c                    | 1043 ++++++++++++
- drivers/media/i2c/soc_camera/Kconfig           |    7 +-
- drivers/media/i2c/soc_camera/Makefile          |    1 -
- drivers/media/i2c/soc_camera/mt9m111.c         | 1054 ------------
- drivers/media/platform/Kconfig                 |    8 +
- drivers/media/platform/Makefile                |    1 +
- drivers/media/platform/pxa_camera.c            | 2131 ++++++++++++++++++++++++
- drivers/media/platform/soc_camera/Kconfig      |    8 +-
- drivers/media/platform/soc_camera/Makefile     |    1 -
- drivers/media/platform/soc_camera/pxa_camera.c | 1866 ---------------------
- include/linux/platform_data/media/camera-pxa.h |    2 +
- 13 files changed, 3202 insertions(+), 2928 deletions(-)
- create mode 100644 drivers/media/i2c/mt9m111.c
- delete mode 100644 drivers/media/i2c/soc_camera/mt9m111.c
- create mode 100644 drivers/media/platform/pxa_camera.c
- delete mode 100644 drivers/media/platform/soc_camera/pxa_camera.c
 
 -- 
-2.1.4
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
