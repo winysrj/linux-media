@@ -1,74 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:35046 "EHLO
-	mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752073AbcHOJQy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 05:16:54 -0400
-MIME-Version: 1.0
-In-Reply-To: <8fa9ac5e-f6a1-b632-766b-f1d850bc06d4@xs4all.nl>
-References: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
- <1469178554-20719-5-git-send-email-ulrich.hecht+renesas@gmail.com>
- <0bf4740a-7200-c6c4-c432-6a8152dec17a@xs4all.nl> <CAO3366xk6hjh2abbYcXmuYKcK39Y9psgYvHkZo3FH4JbU1KY0g@mail.gmail.com>
- <8fa9ac5e-f6a1-b632-766b-f1d850bc06d4@xs4all.nl>
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Date: Mon, 15 Aug 2016 11:16:52 +0200
-Message-ID: <CAO3366yRecNYwD7WMOLpsLDW_v2NWBnt+AfK8Wbmd20+UXvtQg@mail.gmail.com>
-Subject: Re: [PATCH v6 4/4] rcar-vin: implement EDID control ioctls
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: hans.verkuil@cisco.com,
-	=?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Laurent <laurent.pinchart@ideasonboard.com>,
-	William Towle <william.towle@codethink.co.uk>,
-	Geert Uytterhoeven <geert@linux-m68k.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from bombadil.infradead.org ([198.137.202.9]:57556 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754690AbcHSDaq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Aug 2016 23:30:46 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Markus Heiser <markus.heiser@darmarIT.de>
+Subject: [PATCH 16/20] [media] dev-sliced-vbi.rst: Adjust tables on LaTeX output
+Date: Thu, 18 Aug 2016 13:15:45 -0300
+Message-Id: <87391ed7cdb51e1167cab7475a3a2fa2fea1bb2e.1471532123.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
+References: <cover.1471532122.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
+References: <cover.1471532122.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 15, 2016 at 10:48 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 08/15/2016 10:37 AM, Ulrich Hecht wrote:
->> On Sat, Aug 13, 2016 at 3:30 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> On 07/22/2016 11:09 AM, Ulrich Hecht wrote:
->>>> Adds G_EDID and S_EDID.
->>>>
->>>> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
->>>> ---
->>>>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 33 +++++++++++++++++++++++++++++
->>>>  1 file changed, 33 insertions(+)
->>>>
->>>> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
->>>> index 396eabc..57e040c 100644
->>>> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
->>>> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
->>>> @@ -661,6 +661,36 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
->>>>       return ret;
->>>>  }
->>>>
->>>> +static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
->>>> +{
->>>> +     struct rvin_dev *vin = video_drvdata(file);
->>>> +     int input, ret;
->>>> +
->>>> +     input = edid->pad;
->>>> +     edid->pad = vin->inputs[input].sink_idx;
->>>
->>> There is no vin->inputs array. Are there some other patches that need to be merged
->>> first?
->>
->> It depends on "[PATCHv2 12/16] [media] rcar-vin: allow subdevices to
->> be bound late" from "[PATCHv2 00/16] rcar-vin: Enable Gen3 support".
->> Does that series have a chance of getting merged any time soon?
->
-> I hope to review it today or Friday.
->
-> Can you repost anyway: the dts patches don't apply cleanly anymore, and
-> I prefer that you fix that. I want to avoid making a mistake when I fix them up.
+Better format the tables in a way that will fit inside the
+page.
 
-The patches are current, but they depend on changes in the
-renesas-drivers tree not upstream yet.
-Should we perhaps split this series into code and DT?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/v4l/dev-sliced-vbi.rst | 34 +++++++++++++++++--------
+ 1 file changed, 24 insertions(+), 10 deletions(-)
 
-CU
-Uli
+diff --git a/Documentation/media/uapi/v4l/dev-sliced-vbi.rst b/Documentation/media/uapi/v4l/dev-sliced-vbi.rst
+index 9f348e164782..074aa3798152 100644
+--- a/Documentation/media/uapi/v4l/dev-sliced-vbi.rst
++++ b/Documentation/media/uapi/v4l/dev-sliced-vbi.rst
+@@ -105,7 +105,9 @@ which may return ``EBUSY`` can be the
+ struct v4l2_sliced_vbi_format
+ -----------------------------
+ 
+-.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{2.9cm}|p{2.9cm}|p{2.9cm}|
++.. tabularcolumns:: |p{1.0cm}|p{4.5cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|
++
++.. cssclass:: longtable
+ 
+ .. flat-table::
+     :header-rows:  0
+@@ -242,16 +244,20 @@ struct v4l2_sliced_vbi_format
+        -  ``reserved``\ [2]
+ 
+        -  :cspan:`2` This array is reserved for future extensions.
++
+ 	  Applications and drivers must set it to zero.
+ 
+ 
+-
+ .. _vbi-services2:
+ 
+ Sliced VBI services
+ -------------------
+ 
+-.. tabularcolumns:: |p{4.4cm}|p{2.2cm}|p{2.2cm}|p{4.4cm}|p{4.3cm}|
++.. raw:: latex
++
++    \newline\newline\begin{adjustbox}{width=\columnwidth}
++
++.. tabularcolumns:: |p{5.0cm}|p{1.4cm}|p{3.0cm}|p{2.5cm}|p{9.0cm}|
+ 
+ .. flat-table::
+     :header-rows:  1
+@@ -277,7 +283,9 @@ Sliced VBI services
+ 
+        -  0x0001
+ 
+-       -  :ref:`ets300706`, :ref:`itu653`
++       -  :ref:`ets300706`,
++
++	  :ref:`itu653`
+ 
+        -  PAL/SECAM line 7-22, 320-335 (second field 7-22)
+ 
+@@ -316,7 +324,9 @@ Sliced VBI services
+ 
+        -  0x4000
+ 
+-       -  :ref:`itu1119`, :ref:`en300294`
++       -  :ref:`itu1119`,
++
++	  :ref:`en300294`
+ 
+        -  PAL/SECAM line 23
+ 
+@@ -344,6 +354,10 @@ Sliced VBI services
+ 
+        -  :cspan:`2` Set of services applicable to 625 line systems.
+ 
++.. raw:: latex
++
++    \end{adjustbox}\newline\newline
++
+ 
+ Drivers may return an ``EINVAL`` error code when applications attempt to
+ read or write data without prior format negotiation, after switching the
+@@ -561,7 +575,7 @@ number).
+ struct v4l2_mpeg_vbi_fmt_ivtv
+ -----------------------------
+ 
+-.. tabularcolumns:: |p{3.5cm}|p{3.5cm}|p{3.5cm}|p{7.0cm}|
++.. tabularcolumns:: |p{1.0cm}|p{3.5cm}|p{1.0cm}|p{11.5cm}|
+ 
+ .. flat-table::
+     :header-rows:  0
+@@ -661,7 +675,7 @@ Magic Constants for struct v4l2_mpeg_vbi_fmt_ivtv magic field
+ struct v4l2_mpeg_vbi_itv0
+ -------------------------
+ 
+-.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{8.7cm}|
++.. tabularcolumns:: |p{4.4cm}|p{2.4cm}|p{10.7cm}|
+ 
+ .. flat-table::
+     :header-rows:  0
+@@ -687,9 +701,9 @@ struct v4l2_mpeg_vbi_itv0
+ 	  ::
+ 
+ 	      linemask[0] b0:     line  6     first field
+-	      linemask[0] b17:        line 23     first field
+-	      linemask[0] b18:        line  6     second field
+-	      linemask[0] b31:        line 19     second field
++	      linemask[0] b17:    line 23     first field
++	      linemask[0] b18:    line  6     second field
++	      linemask[0] b31:    line 19     second field
+ 	      linemask[1] b0:     line 20     second field
+ 	      linemask[1] b3:     line 23     second field
+ 	      linemask[1] b4-b31: unused and set to 0
+-- 
+2.7.4
+
+
