@@ -1,46 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33664 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:35692 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753140AbcHXNxq (ORCPT
+        with ESMTP id S1753925AbcHSDqr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Aug 2016 09:53:46 -0400
+        Thu, 18 Aug 2016 23:46:47 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Markus Heiser <markus.heiser@darmarit.de>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>,
-        linux-doc@vger.kernel.org
-Subject: [PATCH] [media] extended-controls.rst: fix a build warning
-Date: Wed, 24 Aug 2016 10:52:55 -0300
-Message-Id: <2ba775d0f643a070ff0820a3059572871d947e6a.1472046767.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        Markus Heiser <markus.heiser@darmarIT.de>
+Subject: [PATCH 17/20] [media] dev-rds.rst: adjust table dimentions for LaTeX
+Date: Thu, 18 Aug 2016 13:15:46 -0300
+Message-Id: <fc4017a41a92f38079a9f6dfbd7b344a7c527b8b.1471532123.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
+References: <cover.1471532122.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
+References: <cover.1471532122.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-/devel/v4l/patchwork/Documentation/media/uapi/v4l/extended-controls.rst:2116: WARNING: Inline literal start-string without end-string.
+One of the tables has wrong column dimentions. Fix it.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/media/uapi/v4l/extended-controls.rst | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/media/uapi/v4l/dev-rds.rst | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-index 9c6aff3e97c1..1f1518e4859d 100644
---- a/Documentation/media/uapi/v4l/extended-controls.rst
-+++ b/Documentation/media/uapi/v4l/extended-controls.rst
-@@ -2112,8 +2112,8 @@ enum v4l2_mpeg_video_h264_sei_fp_arrangement_type -
+diff --git a/Documentation/media/uapi/v4l/dev-rds.rst b/Documentation/media/uapi/v4l/dev-rds.rst
+index 35117414c86b..841761a3ea59 100644
+--- a/Documentation/media/uapi/v4l/dev-rds.rst
++++ b/Documentation/media/uapi/v4l/dev-rds.rst
+@@ -170,7 +170,7 @@ RDS datastructures
  
- .. _v4l2-mpeg-video-h264-fmo-map-type:
+ .. _v4l2-rds-block-codes:
  
--``V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE`` ````
--    (enum)
-+``V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE``
-+   (enum)
+-.. tabularcolumns:: |p{2.2cm}|p{2.2cm}|p{2.2cm}|p{10.9cm}|
++.. tabularcolumns:: |p{5.6cm}|p{2.0cm}|p{1.5cm}|p{7.0cm}|
  
- enum v4l2_mpeg_video_h264_fmo_map_type -
-     When using FMO, the map type divides the image in different scan
+ .. flat-table:: Block defines
+     :header-rows:  0
 -- 
 2.7.4
+
 
