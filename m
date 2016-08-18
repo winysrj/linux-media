@@ -1,82 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:54337 "EHLO
-	smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932353AbcHOPHR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 11:07:17 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
-	hverkuil@xs4all.nl
-Cc: linux-renesas-soc@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com,
-	sergei.shtylyov@cogentembedded.com,
-	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv3 07/10] [media] rcar-vin: add dependency on MEDIA_CONTROLLER
-Date: Mon, 15 Aug 2016 17:06:32 +0200
-Message-Id: <20160815150635.22637-8-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([198.137.202.9]:35632 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754321AbcHSDqD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Aug 2016 23:46:03 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Markus Heiser <markus.heiser@darmarIT.de>
+Subject: [PATCH 03/20] [media] control.rst: Fix table width
+Date: Thu, 18 Aug 2016 13:15:32 -0300
+Message-Id: <f62cd8cdcfb3fe7f3e39dd02dfcb9e2588ac5e72.1471532123.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
+References: <cover.1471532122.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
+References: <cover.1471532122.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is done in preparation for Gen3 support where media controller
-support will be mandatory for the driver.
+Manually adjust the table width for it to look nice on PDF output.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/rcar-vin/Kconfig     | 2 +-
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 7 +------
- 2 files changed, 2 insertions(+), 7 deletions(-)
+ Documentation/media/uapi/v4l/control.rst | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
-index b2ff2d4..111d2a1 100644
---- a/drivers/media/platform/rcar-vin/Kconfig
-+++ b/drivers/media/platform/rcar-vin/Kconfig
-@@ -1,6 +1,6 @@
- config VIDEO_RCAR_VIN
- 	tristate "R-Car Video Input (VIN) Driver"
--	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF && HAS_DMA
-+	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF && HAS_DMA && MEDIA_CONTROLLER
- 	depends on ARCH_RENESAS || COMPILE_TEST
- 	select VIDEOBUF2_DMA_CONTIG
- 	---help---
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 3f80a0b..09df396 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -771,10 +771,7 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	struct v4l2_mbus_framefmt *mf = &fmt.format;
- 	struct video_device *vdev = &vin->vdev;
- 	struct v4l2_subdev *sd = vin_to_source(vin);
--#if defined(CONFIG_MEDIA_CONTROLLER)
--	int pad_idx;
--#endif
--	int ret;
-+	int pad_idx, ret;
+diff --git a/Documentation/media/uapi/v4l/control.rst b/Documentation/media/uapi/v4l/control.rst
+index 10ab53dd3163..e881cd1f30d6 100644
+--- a/Documentation/media/uapi/v4l/control.rst
++++ b/Documentation/media/uapi/v4l/control.rst
+@@ -191,10 +191,12 @@ Control IDs
  
- 	v4l2_set_subdev_hostdata(sd, vin);
  
-@@ -821,7 +818,6 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 		V4L2_CAP_READWRITE;
  
- 	vin->src_pad_idx = 0;
--#if defined(CONFIG_MEDIA_CONTROLLER)
- 	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
- 		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
- 			break;
-@@ -829,7 +825,6 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 		return -EINVAL;
++.. tabularcolumns:: |p{5.5cm}|p{12cm}|
++
+ .. flat-table::
+     :header-rows:  0
+     :stub-columns: 0
+-
++    :widths: 11 24
  
- 	vin->src_pad_idx = pad_idx;
--#endif
- 	fmt.pad = vin->src_pad_idx;
+     -  .. row 1
  
- 	/* Try to improve our guess of a reasonable window format */
 -- 
-2.9.2
+2.7.4
+
 
