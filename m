@@ -1,73 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:56188 "EHLO mail.horus.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752179AbcHAMJn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Aug 2016 08:09:43 -0400
-Date: Mon, 1 Aug 2016 14:09:00 +0200
-From: Matthias Reichl <hias@horus.com>
-To: Ole Ernst <olebowle@gmx.com>
-Cc: m.chehab@samsung.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Partly revert "[media] rc-core: allow calling rc_open
- with device not initialized"
-Message-ID: <20160801120900.GA6397@camel2.lan>
-References: <20160726115225.GA15199@camel2.lan>
- <20160730131927.10308-1-olebowle@gmx.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51369 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753135AbcHRHOP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Aug 2016 03:14:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH for v4.8] cec-edid: check for IEEE identifier
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mailing list - DRI developers <dri-devel@lists.freedesktop.org>
+Message-ID: <09104964-b93a-cbdb-8065-13558aa85f74@xs4all.nl>
+Date: Thu, 18 Aug 2016 09:13:42 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160730131927.10308-1-olebowle@gmx.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 30, 2016 at 03:19:27PM +0200, Ole Ernst wrote:
-> This partly reverts commit 078600f514a12fd763ac84c86af68ef5b5267563.
-> 
-> Due to the relocation of input_register_device() call, holding down a
-> button on an IR remote no longer resulted in repeated key down events.
-> 
-> Signed-off-by: Ole Ernst <olebowle@gmx.com>
+The cec_get_edid_spa_location() function did not verify that the IEEE
+identifier in the Vendor Specific Data Block matched the HDMI-LLC
+identifier. This could result in the wrong VSDB block being returned.
 
-Tested-by: Matthias Reichl <hias@horus.com>
+For example, for HDMI 2.0 EDIDs there is also a HDMI Forum VSDB.
 
-I tested on Raspberry Pi model B with kernel 4.7.0, gpio-rc-recv,
-rc-hauppauge keymap and with this patch key repeat is working fine
-again.
+So check the IEEE identifier as well.
 
-Thanks a lot for the quick fix!
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/drivers/media/cec-edid.c b/drivers/media/cec-edid.c
+index 7001824..5719b99 100644
+--- a/drivers/media/cec-edid.c
++++ b/drivers/media/cec-edid.c
+@@ -70,7 +70,10 @@ static unsigned int cec_get_edid_spa_location(const u8 *edid, unsigned int size)
+ 				u8 tag = edid[i] >> 5;
+ 				u8 len = edid[i] & 0x1f;
 
-Hias
+-				if (tag == 3 && len >= 5 && i + len <= end)
++				if (tag == 3 && len >= 5 && i + len <= end &&
++				    edid[i + 1] == 0x03 &&
++				    edid[i + 2] == 0x0c &&
++				    edid[i + 3] == 0x00)
+ 					return i + 4;
+ 				i += len + 1;
+ 			} while (i < end);
 
-> ---
->  drivers/media/rc/rc-main.c | 9 ++++-----
->  1 file changed, 4 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 8e7f292..26fd63b 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -1460,6 +1460,10 @@ int rc_register_device(struct rc_dev *dev)
->  	dev->input_dev->phys = dev->input_phys;
->  	dev->input_dev->name = dev->input_name;
->  
-> +	rc = input_register_device(dev->input_dev);
-> +	if (rc)
-> +		goto out_table;
-> +
->  	/*
->  	 * Default delay of 250ms is too short for some protocols, especially
->  	 * since the timeout is currently set to 250ms. Increase it to 500ms,
-> @@ -1475,11 +1479,6 @@ int rc_register_device(struct rc_dev *dev)
->  	 */
->  	dev->input_dev->rep[REP_PERIOD] = 125;
->  
-> -	/* rc_open will be called here */
-> -	rc = input_register_device(dev->input_dev);
-> -	if (rc)
-> -		goto out_table;
-> -
->  	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
->  	dev_info(&dev->dev, "%s as %s\n",
->  		dev->input_name ?: "Unspecified device", path ?: "N/A");
-> -- 
-> 2.9.0
-> 
+
