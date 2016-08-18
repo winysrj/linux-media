@@ -1,59 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static.vnpt.vn ([14.187.239.223]:38951 "HELO hinet.net"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-	id S1759170AbcHDXth (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Aug 2016 19:49:37 -0400
-Message-ID: <000101d1eedd$1bd38bd6$c0a80001@hinet.net>
-From: <35741@gmail.com>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: RE: linux-media
-Reply-To: <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: application/zip; name="ialavsxo_linux-media.zip"
-Content-Disposition: attachment
-Content-Transfer-Encoding: base64
-Date: Thu, 4 Aug 2016 19:49:37 -0400
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:36596 "EHLO
+	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1768303AbcHROfq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Aug 2016 10:35:46 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Antti Palosaari <crope@iki.fi>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v5 08/12] [media] vivid: Fix YUV555 and YUV565 handling
+Date: Thu, 18 Aug 2016 16:33:34 +0200
+Message-Id: <1471530818-7928-9-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-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
-BHjnvDi7/lmyBrEw5gos/6F44D+d9h10rsn5yW7tI0AkCxwh/Dqa/PwqLq08xXRK6dY0UfgnaFta
-fynCnGFwhDB1XKo1x/2Bddk1RnPEi4i1bScgyuVUmTG2sWwL0nQ27W8ix6WkzROE80EtTgMLS7A5
-xXoDg5Sub4on6OeyT/b+r84YowzFQFpohZTT9hO0RVIQGpux5xQS+MuvSbTE1FagvtgvnvPMvxk6
-LLfOBLtgwCjRTIl1XOrOp1l/E4rj0IoiQN3up5jN91Zggon2fzX41WM5P7jfftk5/OvpN387vG12
-4UPR3ktj+v6ZKO157198rou8/NiS5sv7dwnDv79fmdY30Y1VlK/1YFG8zw/aPa+42fdl87/KhFP1
-wejD9yXz3tvf83Kvlba8k2mUn3itUlzLa3itQbvlNb2mUaD7tpX30PPeJT9OR8Me6z5NZ5lulD/+
-MCZkenFbVMo+9idhttczxv27fP2f7uCh1XtpbKeb3XKq1eq+lZ/EGoOHZvd/UEsBAh8AFAAAAAgA
-eL0ESWQ3ooiBCAAAIBsAAAQAJAAAAAAAAAAgAAAAAAAAADEuanMKACAAAAAAAAEAGAC5H0rnkO7R
-AWSDzJdI7dEBZIPMl0jt0QFQSwUGAAAAAAEAAQBWAAAAowgAAAAA
+precalculate_color() had a optimization that avoided duplicated
+conversion for YUV formats. This optimization did not take into
+consideration YUV444, YUV555, YUV565 or limited range quantization.
+
+This patch keeps the optimization, but fixes the wrong handling.
+
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+index 920c8495f3dd..7364ced09abc 100644
+--- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
++++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+@@ -795,6 +795,8 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 	int r = tpg_colors[col].r;
+ 	int g = tpg_colors[col].g;
+ 	int b = tpg_colors[col].b;
++	int y, cb, cr;
++	bool ycbcr_valid = false;
+ 
+ 	if (k == TPG_COLOR_TEXTBG) {
+ 		col = tpg_get_textbg_color(tpg);
+@@ -871,7 +873,6 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 	     tpg->saturation != 128 || tpg->hue) &&
+ 	    tpg->color_enc != TGP_COLOR_ENC_LUMA) {
+ 		/* Implement these operations */
+-		int y, cb, cr;
+ 		int tmp_cb, tmp_cr;
+ 
+ 		/* First convert to YCbCr */
+@@ -888,13 +889,10 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 
+ 		cb = (128 << 4) + (tmp_cb * tpg->contrast * tpg->saturation) / (128 * 128);
+ 		cr = (128 << 4) + (tmp_cr * tpg->contrast * tpg->saturation) / (128 * 128);
+-		if (tpg->color_enc == TGP_COLOR_ENC_YCBCR) {
+-			tpg->colors[k][0] = clamp(y >> 4, 1, 254);
+-			tpg->colors[k][1] = clamp(cb >> 4, 1, 254);
+-			tpg->colors[k][2] = clamp(cr >> 4, 1, 254);
+-			return;
+-		}
+-		ycbcr_to_color(tpg, y, cb, cr, &r, &g, &b);
++		if (tpg->color_enc == TGP_COLOR_ENC_YCBCR)
++			ycbcr_valid = true;
++		else
++			ycbcr_to_color(tpg, y, cb, cr, &r, &g, &b);
+ 	} else if ((tpg->brightness != 128 || tpg->contrast != 128) &&
+ 		   tpg->color_enc == TGP_COLOR_ENC_LUMA) {
+ 		r = (16 << 4) + ((r - (16 << 4)) * tpg->contrast) / 128;
+@@ -915,9 +913,8 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 	case TGP_COLOR_ENC_YCBCR:
+ 	{
+ 		/* Convert to YCbCr */
+-		int y, cb, cr;
+-
+-		color_to_ycbcr(tpg, r, g, b, &y, &cb, &cr);
++		if (!ycbcr_valid)
++			color_to_ycbcr(tpg, r, g, b, &y, &cb, &cr);
+ 
+ 		if (tpg->real_quantization == V4L2_QUANTIZATION_LIM_RANGE) {
+ 			y = clamp(y, 16 << 4, 235 << 4);
+-- 
+2.8.1
+
