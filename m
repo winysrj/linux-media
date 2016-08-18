@@ -1,149 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46850 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754299AbcHSKYG (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:55784 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754632AbcHSDPc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 06:24:06 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v2 13/17] media: Shuffle functions around
-Date: Fri, 19 Aug 2016 13:23:44 +0300
-Message-Id: <1471602228-30722-14-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+        Thu, 18 Aug 2016 23:15:32 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Markus Heiser <markus.heiser@darmarIT.de>,
+        Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH 05/20] [media] docs-rst: add column hints for pixfmt-002 and pixfmt-006
+Date: Thu, 18 Aug 2016 13:15:34 -0300
+Message-Id: <f274ff730fd2dab1d61ad16555e520ea8bfbc4ad.1471532123.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
+References: <cover.1471532122.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
+References: <cover.1471532122.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the call paths of the functions in question will change, move them
-around in anticipation of that. No other changes.
+Add column hints for LaTeX to format columns on the tables inside
+pixfmt-002.rst and pixfmt-006.rst.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/media-device.c | 88 ++++++++++++++++++++++----------------------
- 1 file changed, 44 insertions(+), 44 deletions(-)
+ Documentation/media/uapi/v4l/pixfmt-002.rst | 4 +++-
+ Documentation/media/uapi/v4l/pixfmt-006.rst | 5 +++++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 7f90cb82..0656daf 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -542,22 +542,6 @@ static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
-  * Registration/unregistration
-  */
+diff --git a/Documentation/media/uapi/v4l/pixfmt-002.rst b/Documentation/media/uapi/v4l/pixfmt-002.rst
+index 27d4e78760ba..368da55e5f07 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-002.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-002.rst
+@@ -7,7 +7,9 @@ Single-planar format structure
  
--static void media_device_release(struct media_devnode *devnode)
--{
--	struct media_device *mdev = to_media_device(devnode);
--
--	ida_destroy(&mdev->entity_internal_idx);
--	mdev->entity_internal_idx_max = 0;
--	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
--	mutex_destroy(&mdev->graph_mutex);
--	dev_dbg(devnode->parent, "Media device released\n");
--
--	if (mdev->release)
--		mdev->release(mdev);
--
--	kfree(mdev);
--}
--
- /**
-  * media_device_register_entity - Register an entity with a media device
-  * @mdev:	The media device
-@@ -678,6 +662,34 @@ void media_device_unregister_entity(struct media_entity *entity)
- }
- EXPORT_SYMBOL_GPL(media_device_unregister_entity);
+ .. _v4l2-pix-format:
  
-+int __must_check media_device_register_entity_notify(struct media_device *mdev,
-+					struct media_entity_notify *nptr)
-+{
-+	mutex_lock(&mdev->graph_mutex);
-+	list_add_tail(&nptr->list, &mdev->entity_notify);
-+	mutex_unlock(&mdev->graph_mutex);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(media_device_register_entity_notify);
+-.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{8.7cm}|
++.. tabularcolumns:: |p{4.0cm}|p{2.5cm}|p{11.0cm}|
 +
-+/*
-+ * Note: Should be called with mdev->lock held.
-+ */
-+static void __media_device_unregister_entity_notify(struct media_device *mdev,
-+					struct media_entity_notify *nptr)
-+{
-+	list_del(&nptr->list);
-+}
-+
-+void media_device_unregister_entity_notify(struct media_device *mdev,
-+					struct media_entity_notify *nptr)
-+{
-+	mutex_lock(&mdev->graph_mutex);
-+	__media_device_unregister_entity_notify(mdev, nptr);
-+	mutex_unlock(&mdev->graph_mutex);
-+}
-+EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
-+
- /**
-  * media_device_init() - initialize a media device
-  * @mdev:	The media device
-@@ -741,6 +753,22 @@ void media_device_cleanup(struct media_device *mdev)
- }
- EXPORT_SYMBOL_GPL(media_device_cleanup);
++.. cssclass:: longtable
  
-+static void media_device_release(struct media_devnode *devnode)
-+{
-+	struct media_device *mdev = to_media_device(devnode);
-+
-+	ida_destroy(&mdev->entity_internal_idx);
-+	mdev->entity_internal_idx_max = 0;
-+	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
-+	mutex_destroy(&mdev->graph_mutex);
-+	dev_dbg(devnode->parent, "Media device released\n");
-+
-+	if (mdev->release)
-+		mdev->release(mdev);
-+
-+	kfree(mdev);
-+}
-+
- int __must_check __media_device_register(struct media_device *mdev,
- 					 struct module *owner)
- {
-@@ -770,34 +798,6 @@ int __must_check __media_device_register(struct media_device *mdev,
- }
- EXPORT_SYMBOL_GPL(__media_device_register);
+ .. flat-table:: struct v4l2_pix_format
+     :header-rows:  0
+diff --git a/Documentation/media/uapi/v4l/pixfmt-006.rst b/Documentation/media/uapi/v4l/pixfmt-006.rst
+index 1c8321f9b1fb..56b691300158 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-006.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-006.rst
+@@ -25,6 +25,7 @@ needs to be filled in.
+    colorspaces except for BT.2020 which uses limited range R'G'B'
+    quantization.
  
--int __must_check media_device_register_entity_notify(struct media_device *mdev,
--					struct media_entity_notify *nptr)
--{
--	mutex_lock(&mdev->graph_mutex);
--	list_add_tail(&nptr->list, &mdev->entity_notify);
--	mutex_unlock(&mdev->graph_mutex);
--	return 0;
--}
--EXPORT_SYMBOL_GPL(media_device_register_entity_notify);
--
--/*
-- * Note: Should be called with mdev->lock held.
-- */
--static void __media_device_unregister_entity_notify(struct media_device *mdev,
--					struct media_entity_notify *nptr)
--{
--	list_del(&nptr->list);
--}
--
--void media_device_unregister_entity_notify(struct media_device *mdev,
--					struct media_entity_notify *nptr)
--{
--	mutex_lock(&mdev->graph_mutex);
--	__media_device_unregister_entity_notify(mdev, nptr);
--	mutex_unlock(&mdev->graph_mutex);
--}
--EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
--
- void media_device_unregister(struct media_device *mdev)
- {
- 	struct media_entity *entity;
++.. tabularcolumns:: |p{6.0cm}|p{11.5cm}|
+ 
+ .. _v4l2-colorspace:
+ 
+@@ -183,6 +184,8 @@ needs to be filled in.
+ 
+ .. _v4l2-ycbcr-encoding:
+ 
++.. tabularcolumns:: |p{6.5cm}|p{11.0cm}|
++
+ .. flat-table:: V4L2 Y'CbCr Encodings
+     :header-rows:  1
+     :stub-columns: 0
+@@ -252,6 +255,8 @@ needs to be filled in.
+ 
+ .. _v4l2-quantization:
+ 
++.. tabularcolumns:: |p{6.5cm}|p{11.0cm}|
++
+ .. flat-table:: V4L2 Quantization Methods
+     :header-rows:  1
+     :stub-columns: 0
 -- 
-2.1.4
+2.7.4
+
 
