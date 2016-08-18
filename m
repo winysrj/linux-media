@@ -1,506 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f176.google.com ([209.85.161.176]:34662 "EHLO
-        mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756292AbcH3Q7w (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:35603 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754302AbcHSDo4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Aug 2016 12:59:52 -0400
-Received: by mail-yw0-f176.google.com with SMTP id z8so15121251ywa.1
-        for <linux-media@vger.kernel.org>; Tue, 30 Aug 2016 09:59:52 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <512b52ab.02de420a.7040.7417SMTPIN_ADDED_BROKEN@mx.google.com>
-References: <512b52ab.02de420a.7040.7417SMTPIN_ADDED_BROKEN@mx.google.com>
-From: Rob Clark <robdclark@gmail.com>
-Date: Tue, 30 Aug 2016 12:59:50 -0400
-Message-ID: <CAF6AEGv7tz0AOz64fbA-exyFOBxW2RfWEq9m4fYVa5tZP8LUNw@mail.gmail.com>
-Subject: Re: [Mesa-dev] [RFC] New dma_buf -> EGLImage EGL extension - Final
- spec published!
-To: Tom Cooksey <tom.cooksey@arm.com>
-Cc: "mesa-dev@lists.freedesktop.org" <mesa-dev@lists.freedesktop.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+        Thu, 18 Aug 2016 23:44:56 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Markus Heiser <markus.heiser@darmarit.de>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 00/20] First part of LaTeX build fixes for the media book
+Date: Thu, 18 Aug 2016 13:15:29 -0300
+Message-Id: <cover.1471532122.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tom,
+This one fix most of the issues with LaTeX output for the media book at
+the V4L2 book, before "Function Reference". So, up to page 181 of a 969
+pages document.
 
-hmm, I wonder if it was a bug/oversight for the YUV capabilities of
-this extension to not depend on OES_EGL_image_external (which
-unfortunately, doesn't seem to have a GL counterpart)?
+There are still some things that I was not able to fix on this set:
 
-I think this currently implies that you could sample from an imported
-YUV eglimg using (for example) sampler2D in GL or GLES, which I think
-was not the intention.
+- the ".. notes::" tag inside a table column are getting the wrong size.
+This should be fixable by rewriting a LaTeX code at conf.py, but I was
+unable to do that, as I'm not familiar with LaTeX syntax. Tried some
+things, but gave up as it was taking a lot of time. So, I just moved on
+to other things;
 
-BR,
--R
+- The Sphinx ReST tables are incomplete for LaTeX. There are several
+missing features:
 
-On Mon, Feb 25, 2013 at 6:54 AM, Tom Cooksey <tom.cooksey@arm.com> wrote:
-> Hi All,
->
-> The final spec has had enum values assigned and been published on Khronos:
->
-> http://www.khronos.org/registry/egl/extensions/EXT/EGL_EXT_image_dma_buf_import.txt
->
-> Thanks to all who've provided input.
->
->
-> Cheers,
->
-> Tom
->
->
->
->> -----Original Message-----
->> From: mesa-dev-bounces+tom.cooksey=arm.com@lists.freedesktop.org [mailto:mesa-dev-
->> bounces+tom.cooksey=arm.com@lists.freedesktop.org] On Behalf Of Tom Cooksey
->> Sent: 04 October 2012 13:10
->> To: mesa-dev@lists.freedesktop.org; linaro-mm-sig@lists.linaro.org; dri-
->> devel@lists.freedesktop.org; linux-media@vger.kernel.org
->> Subject: [Mesa-dev] [RFC] New dma_buf -> EGLImage EGL extension - New draft!
->>
->> Hi All,
->>
->> After receiving a fair bit of feedback (thanks!), I've updated the
->> EGL_EXT_image_dma_buf_import spec
->> and expanded it to resolve a number of the issues. Please find the latest draft below and let
->> me
->> know any additional feedback you might have, either on the lists or by private e-mail - I
->> don't mind
->> which.
->>
->> I think the only remaining issue now is if we need a mechanism whereby an application can
->> query
->> which drm_fourcc.h formats EGL supports or if just failing with EGL_BAD_MATCH when the
->> application
->> has use one EGL doesn't support is sufficient. Any thoughts?
->>
->>
->> Cheers,
->>
->> Tom
->>
->>
->> --------------------8<--------------------
->>
->>
->> Name
->>
->>     EXT_image_dma_buf_import
->>
->> Name Strings
->>
->>     EGL_EXT_image_dma_buf_import
->>
->> Contributors
->>
->>     Jesse Barker
->>     Rob Clark
->>     Tom Cooksey
->>
->> Contacts
->>
->>     Jesse Barker (jesse 'dot' barker 'at' linaro 'dot' org)
->>     Tom Cooksey (tom 'dot' cooksey 'at' arm 'dot' com)
->>
->> Status
->>
->>     DRAFT
->>
->> Version
->>
->>     Version 4, October 04, 2012
->>
->> Number
->>
->>     EGL Extension ???
->>
->> Dependencies
->>
->>     EGL 1.2 is required.
->>
->>     EGL_KHR_image_base is required.
->>
->>     The EGL implementation must be running on a Linux kernel supporting the
->>     dma_buf buffer sharing mechanism.
->>
->>     This extension is written against the wording of the EGL 1.2 Specification.
->>
->> Overview
->>
->>     This extension allows creating an EGLImage from a Linux dma_buf file
->>     descriptor or multiple file descriptors in the case of multi-plane YUV
->>     images.
->>
->> New Types
->>
->>     None
->>
->> New Procedures and Functions
->>
->>     None
->>
->> New Tokens
->>
->>     Accepted by the <target> parameter of eglCreateImageKHR:
->>
->>         EGL_LINUX_DMA_BUF_EXT
->>
->>     Accepted as an attribute in the <attrib_list> parameter of
->>     eglCreateImageKHR:
->>
->>         EGL_LINUX_DRM_FOURCC_EXT
->>         EGL_DMA_BUF_PLANE0_FD_EXT
->>         EGL_DMA_BUF_PLANE0_OFFSET_EXT
->>         EGL_DMA_BUF_PLANE0_PITCH_EXT
->>         EGL_DMA_BUF_PLANE1_FD_EXT
->>         EGL_DMA_BUF_PLANE1_OFFSET_EXT
->>         EGL_DMA_BUF_PLANE1_PITCH_EXT
->>         EGL_DMA_BUF_PLANE2_FD_EXT
->>         EGL_DMA_BUF_PLANE2_OFFSET_EXT
->>         EGL_DMA_BUF_PLANE2_PITCH_EXT
->>         EGL_YUV_COLOR_SPACE_HINT_EXT
->>         EGL_SAMPLE_RANGE_HINT_EXT
->>         EGL_YUV_CHROMA_HORIZONTAL_SITING_HINT_EXT
->>         EGL_YUV_CHROMA_VERTICAL_SITING_HINT_EXT
->>
->>     Accepted as the value for the EGL_YUV_COLOR_SPACE_HINT_EXT attribute:
->>
->>         EGL_ITU_REC601_EXT
->>         EGL_ITU_REC709_EXT
->>         EGL_ITU_REC2020_EXT
->>
->>     Accepted as the value for the EGL_SAMPLE_RANGE_HINT_EXT attribute:
->>
->>         EGL_YUV_FULL_RANGE_EXT
->>         EGL_YUV_NARROW_RANGE_EXT
->>
->>     Accepted as the value for the EGL_YUV_CHROMA_HORIZONTAL_SITING_HINT_EXT &
->>     EGL_YUV_CHROMA_VERTICAL_SITING_HINT_EXT attributes:
->>
->>         EGL_YUV_CHROMA_SITING_0_EXT
->>         EGL_YUV_CHROMA_SITING_0_5_EXT
->>
->>
->> Additions to Chapter 2 of the EGL 1.2 Specification (EGL Operation)
->>
->>     Add to section 2.5.1 "EGLImage Specification" (as defined by the
->>     EGL_KHR_image_base specification), in the description of
->>     eglCreateImageKHR:
->>
->>    "Values accepted for <target> are listed in Table aaa, below.
->>
->>       +-------------------------+--------------------------------------------+
->>       |  <target>               |  Notes                                     |
->>       +-------------------------+--------------------------------------------+
->>       |  EGL_LINUX_DMA_BUF_EXT  |   Used for EGLImages imported from Linux   |
->>       |                         |   dma_buf file descriptors                 |
->>       +-------------------------+--------------------------------------------+
->>        Table aaa.  Legal values for eglCreateImageKHR <target> parameter
->>
->>     ...
->>
->>     If <target> is EGL_LINUX_DMA_BUF_EXT, <dpy> must be a valid display, <ctx>
->>     must be EGL_NO_CONTEXT, and <buffer> must be NULL, cast into the type
->>     EGLClientBuffer. The details of the image is specified by the attributes
->>     passed into eglCreateImageKHR. Required attributes and their values are as
->>     follows:
->>
->>         * EGL_WIDTH & EGL_HEIGHT: The logical dimensions of the buffer in pixels
->>
->>         * EGL_LINUX_DRM_FOURCC_EXT: The pixel format of the buffer, as specified
->>           by drm_fourcc.h and used as the pixel_format parameter of the
->>           drm_mode_fb_cmd2 ioctl.
->>
->>         * EGL_DMA_BUF_PLANE0_FD_EXT: The dma_buf file descriptor of plane 0 of
->>           the image.
->>
->>         * EGL_DMA_BUF_PLANE0_OFFSET_EXT: The offset from the start of the
->>           dma_buf of the first sample in plane 0, in bytes.
->>
->>         * EGL_DMA_BUF_PLANE0_PITCH_EXT: The number of bytes between the start of
->>           subsequent rows of samples in plane 0. May have special meaning for
->>           non-linear formats.
->>
->>     For images in an RGB color-space or those using a single-plane YUV format,
->>     only the first plane's file descriptor, offset & pitch should be specified.
->>     For semi-planar YUV formats, the chroma samples are stored in plane 1 and
->>     for fully planar formats, U-samples are stored in plane 1 and V-samples are
->>     stored in plane 2. Planes 1 & 2 are specified by the following attributes,
->>     which have the same meanings as defined above for plane 0:
->>
->>         * EGL_DMA_BUF_PLANE1_FD_EXT
->>         * EGL_DMA_BUF_PLANE1_OFFSET_EXT
->>         * EGL_DMA_BUF_PLANE1_PITCH_EXT
->>         * EGL_DMA_BUF_PLANE2_FD_EXT
->>         * EGL_DMA_BUF_PLANE2_OFFSET_EXT
->>         * EGL_DMA_BUF_PLANE2_PITCH_EXT
->>
->>     In addition to the above required attributes, the application may also
->>     provide hints as to how the data should be interpreted by the GL. If any of
->>     these hints are not specified, the GL will guess based on the pixel format
->>     passed as the EGL_LINUX_DRM_FOURCC_EXT attribute or may fall-back to some
->>     default value. Not all GLs will be able to support all combinations of
->>     these hints and are free to use whatever settings they choose to achieve
->>     the closest possible match.
->>
->>         * EGL_YUV_COLOR_SPACE_HINT_EXT: The color-space the data is in. Only
->>           relevant for images in a YUV format, ignored when specified for an
->>           image in an RGB format. Accepted values are:
->>           EGL_ITU_REC601_EXT, EGL_ITU_REC709_EXT & EGL_ITU_REC2020_EXT.
->>
->>         * EGL_YUV_CHROMA_HORIZONTAL_SITING_HINT_EXT &
->>           EGL_YUV_CHROMA_VERTICAL_SITING_HINT_EXT: Where chroma samples are
->>           sited relative to luma samples when the image is in a sub-sampled
->>           format. When the image is not using chroma sub-sampling, the luma and
->>           chroma samples are assumed to be co-sited. Siting is split into the
->>           vertical and horizontal and is in a fixed range. A siting of zero
->>           means the first luma sample is taken from the same position in that
->>           dimension as the chroma sample. This is best illustrated in the
->>           diagram below:
->>
->>                  (0.5, 0.5)        (0.0, 0.5)        (0.0, 0.0)
->>                 +   +   +   +     +   +   +   +     *   +   *   +
->>                   x       x       x       x
->>                 +   +   +   +     +   +   +   +     +   +   +   +
->>
->>                 +   +   +   +     +   +   +   +     *   +   *   +
->>                   x       x       x       x
->>                 +   +   +   +     +   +   +   +     +   +   +   +
->>
->>             Luma samples (+), Chroma samples (x) Chrome & Luma samples (*)
->>
->>           Note this attribute is ignored for RGB images and non sub-sampled
->>           YUV images. Accepted values are: EGL_YUV_CHROMA_SITING_0_EXT (0.0)
->>           & EGL_YUV_CHROMA_SITING_0_5_EXT (0.5)
->>
->>         * EGL_SAMPLE_RANGE_HINT_EXT: The numerical range of samples. Only
->>           relevant for images in a YUV format, ignored when specified for
->>           images in an RGB format. Accepted values are: EGL_YUV_FULL_RANGE_EXT
->>           (0-256) & EGL_YUV_NARROW_RANGE_EXT (16-235).
->>
->>
->>     If eglCreateImageKHR is successful for a EGL_LINUX_DMA_BUF_EXT target, the
->>     EGL takes ownership of the file descriptor and is responsible for closing
->>     it, which it may do at any time while the EGLDisplay is initialized."
->>
->>
->>     Add to the list of error conditions for eglCreateImageKHR:
->>
->>       "* If <target> is EGL_LINUX_DMA_BUF_EXT and <buffer> is not NULL, the
->>          error EGL_BAD_PARAMETER is generated.
->>
->>        * If <target> is EGL_LINUX_DMA_BUF_EXT, and the list of attributes is
->>          incomplete, EGL_BAD_PARAMETER is generated.
->>
->>        * If <target> is EGL_LINUX_DMA_BUF_EXT, and the EGL_LINUX_DRM_FOURCC_EXT
->>          attribute is set to a format not supported by the EGL, EGL_BAD_MATCH
->>          is generated.
->>
->>        * If <target> is EGL_LINUX_DMA_BUF_EXT, and the EGL_LINUX_DRM_FOURCC_EXT
->>          attribute indicates a single-plane format, EGL_BAD_ATTRIBUTE is
->>          generated if any of the EGL_DMA_BUF_PLANE1_* or EGL_DMA_BUF_PLANE2_*
->>          attributes are specified.
->>
->>        * If <target> is EGL_LINUX_DMA_BUF_EXT and the value specified for
->>          EGL_YUV_COLOR_SPACE_HINT_EXT is not EGL_ITU_REC601_EXT,
->>          EGL_ITU_REC709_EXT or EGL_ITU_REC2020_EXT, EGL_BAD_ATTRIBUTE is
->>          generated.
->>
->>        * If <target> is EGL_LINUX_DMA_BUF_EXT and the value specified for
->>          EGL_SAMPLE_RANGE_HINT_EXT is not EGL_YUV_FULL_RANGE_EXT or
->>          EGL_YUV_NARROW_RANGE_EXT, EGL_BAD_ATTRIBUTE is generated.
->>
->>        * If <target> is EGL_LINUX_DMA_BUF_EXT and the value specified for
->>          EGL_YUV_CHROMA_HORIZONTAL_SITING_HINT_EXT or
->>          EGL_YUV_CHROMA_VERTICAL_SITING_HINT_EXT is not
->>          EGL_YUV_CHROMA_SITING_0_EXT or EGL_YUV_CHROMA_SITING_0_5_EXT,
->>          EGL_BAD_ATTRIBUTE is generated.
->>
->>        * If <target> is EGL_LINUX_DMA_BUF_EXT and one or more of the values
->>          specified for a plane's pitch or offset isn't supported by EGL,
->>          EGL_BAD_ACCESS is generated.
->>
->>        * If <target> is EGL_LINUX_DMA_BUF_EXT and eglCreateImageKHR fails,
->>          EGL does not retain ownership of the file descriptor and it is the
->>          responsibility of the application to close it."
->>
->>
->> Issues
->>
->>     1. Should this be a KHR or EXT extension?
->>
->>     ANSWER: EXT. Khronos EGL working group not keen on this extension as it is
->>     seen as contradicting the EGLStream direction the specification is going in.
->>     The working group recommends creating additional specs to allow an EGLStream
->>     producer/consumer connected to v4l2/DRM or any other Linux interface.
->>
->>     2. Should this be a generic any platform extension, or a Linux-only
->>     extension which explicitly states the handles are dma_buf fds?
->>
->>     ANSWER: There's currently no intention to port this extension to any OS not
->>     based on the Linux kernel. Consequently, this spec can be explicitly written
->>     against Linux and the dma_buf API.
->>
->>     3. Does ownership of the file descriptor pass to the EGL library?
->>
->>     ANSWER: If eglCreateImageKHR is successful, EGL assumes ownership of the
->>     file descriptors and is responsible for closing them.
->>
->>     4. How are the different YUV color spaces handled (BT.709/BT.601)?
->>
->>     ANSWER: The pixel formats defined in drm_fourcc.h only specify how the data
->>     is laid out in memory. It does not define how that data should be
->>     interpreted. Added a new EGL_YUV_COLOR_SPACE_HINT_EXT attribute to allow the
->>     application to specify which color space the data is in to allow the GL to
->>     choose an appropriate set of co-efficients if it needs to convert that data
->>     to RGB for example.
->>
->>     5. What chroma-siting is used for sub-sampled YUV formats?
->>
->>     ANSWER: The chroma siting is not specified by either the v4l2 or DRM APIs.
->>     This is similar to the color-space issue (4) in that the chroma siting
->>     doesn't affect how the data is stored in memory. However, the GL will need
->>     to know the siting in order to filter the image correctly. While the visual
->>     impact of getting the siting wrong is minor, provision should be made to
->>     allow an application to specify the siting if desired. Added additional
->>     EGL_YUV_CHROMA_HORIZONTAL_SITING_HINT_EXT &
->>     EGL_YUV_CHROMA_VERTICAL_SITING_HINT_EXT attributes to allow the siting to
->>     be specified using a set of pre-defined values (0 or 0.5).
->>
->>     6. How can an application query which formats the EGL implementation
->>     supports?
->>
->>     PROPOSAL: Don't provide a query mechanism but instead add an error condition
->>     that EGL_BAD_MATCH is raised if the EGL implementation doesn't support that
->>     particular format.
->>
->>     7. Which image formats should be supported and how is format specified?
->>
->>     Seem to be two options 1) specify a new enum in this specification and
->>     enumerate all possible formats. 2) Use an existing enum already in Linux,
->>     either v4l2_mbus_pixelcode and/or those formats listed in drm_fourcc.h?
->>
->>     ANSWER: Go for option 2) and just use values defined in drm_fourcc.h.
->>
->>     8. How can AYUV images be handled?
->>
->>     ANSWER: At least on fourcc.org and in drm_fourcc.h, there only seems to be
->>     a single AYUV format and that is a packed format, so everything, including
->>     the alpha component would be in the first plane.
->>
->>     9. How can you import interlaced images?
->>
->>     ANSWER: Interlaced frames are usually stored with the top & bottom fields
->>     interleaved in a single buffer. As the fields would need to be displayed as
->>     at different times, the application would create two EGLImages from the same
->>     buffer, one for the top field and another for the bottom. Both EGLImages
->>     would set the pitch to 2x the buffer width and the second EGLImage would use
->>     a suitable offset to indicate it started on the second line of the buffer.
->>     This should work regardless of whether the data is packed in a single plane,
->>     semi-planar or multi-planar.
->>
->>     If each interlaced field is stored in a separate buffer then it should be
->>     trivial to create two EGLImages, one for each field's buffer.
->>
->>     10. How are semi-planar/planar formats handled that have a different
->>     width/height for Y' and CbCr such as YUV420?
->>
->>     ANSWER: The spec says EGL_WIDTH & EGL_HEIGHT specify the *logical* width and
->>     height of the buffer in pixels. For pixel formats with sub-sampled Chroma
->>     values, it should be trivial for the EGL implementation to calculate the
->>     width/height of the Chroma sample buffers using the logical width & height
->>     and by inspecting the pixel format passed as the EGL_LINUX_DRM_FOURCC_EXT
->>     attribute. I.e. If the pixel format says it's YUV420, the Chroma buffer's
->>     width = EGL_WIDTH/2 & height =EGL_HEIGHT/2.
->>
->>     11. How are Bayer formats handled?
->>
->>     ANSWER: As of Linux 2.6.34, drm_fourcc.h does not include any Bayer formats.
->>     However, future kernel versions may add such formats in which case they
->>     would be handled in the same way as any other format.
->>
->>     12. Should the spec support buffers which have samples in a "narrow range"?
->>
->>     Content sampled from older analogue sources typically don't use the full
->>     (0-256) range of the data type storing the sample and instead use a narrow
->>     (16-235) range to allow some headroom & toeroom in the signals to avoid
->>     clipping signals which overshoot slightly during processing. This is
->>     sometimes known as signals using "studio swing".
->>
->>     ANSWER: Add a new attribute to define if the samples use a narrow 16-235
->>     range or the full 0-256 range.
->>
->>     13. Specifying the color space and range seems cumbersome, why not just
->>     allow the application to specify the full YUV->RGB color conversion matrix?
->>
->>     ANSWER: Some hardware may not be able to use an arbitrary conversion matrix
->>     and needs to select an appropriate pre-defined matrix based on the color
->>     space and the sample range.
->>
->>     14. How do you handle EGL implementations which have restrictions on pitch
->>     and/or offset?
->>
->>     ANSWER: Buffers being imported using dma_buf pretty much have to be
->>     allocated by a kernel-space driver. As such, it is expected that a system
->>     integrator would make sure all devices which allocate buffers suitable for
->>     exporting make sure they use a pitch supported by all possible importers.
->>     However, it is still possible eglCreateImageKHR can fail due to an
->>     unsupported pitch. Added a new error to the list indicating this.
->>
->>     15. Should this specification also describe how to export an existing
->>     EGLImage as a dma_buf file descriptor?
->>
->>     ANSWER: No. Importing and exporting buffers are two separate operations and
->>     importing an existing dma_buf fd into an EGLImage is useful functionality in
->>     itself. Agree that exporting an EGLImage as a dma_buf fd is useful, E.g. it
->>     could be used by an OpenMAX IL implementation's OMX_UseEGLImage function to
->>     give access to the buffer backing an EGLImage to video hardware. However,
->>     exporting can be split into a separate extension specification.
->>
->>
->> Revision History
->>
->> #4 (Tom Cooksey, October 04, 2012)
->>    - Fixed issue numbering!
->>    - Added issues 8 - 15.
->>    - Promoted proposal for Issue 3 to be the answer.
->>    - Added an additional attribute to allow an application to specify the color
->>      space as a hint which should address issue 4.
->>    - Added an additional attribute to allow an application to specify the chroma
->>      siting as a hint which should address issue 5.
->>    - Added an additional attribute to allow an application to specify the sample
->>      range as a hint which should address the new issue 12.
->>    - Added language to end of error section clarifying who owns the fd passed
->>      to eglCreateImageKHR if an error is generated.
->>
->> #3 (Tom Cooksey, August 16, 2012)
->>    - Changed name from EGL_EXT_image_external and re-written language to
->>      explicitly state this for use with Linux & dma_buf.
->>    - Added a list of issues, including some still open ones.
->>
->> #2 (Jesse Barker, May 30, 2012)
->>    - Revision to split eglCreateImageKHR functionality from export
->>      Functionality.
->>    - Update definition of EGLNativeBufferType to be a struct containing a list
->>      of handles to support multi-buffer/multi-planar formats.
->>
->> #1 (Jesse Barker, March 20, 2012)
->>    - Initial draft.
->>
->>
->>
->>
->> _______________________________________________
->> mesa-dev mailing list
->> mesa-dev@lists.freedesktop.org
->> http://lists.freedesktop.org/mailman/listinfo/mesa-dev
->
->
->
->
-> _______________________________________________
-> mesa-dev mailing list
-> mesa-dev@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/mesa-dev
+1) All LaTeX tables with a line bigger than \columwidth require an extra
+tag to describe column widthes (.. tabularcolumns::). Without that, it
+will assume that all columns are the same. The :widths: parameter of
+flat-table is silently ignored;
+
+2) LaTex tables bigger than one page explicitly require a tag (..
+cssclass:: longtable). Without that, the table will avance 'till the end
+of the page;
+
+3) Too wide tables require to use LaTeX adjustbox extension. As Sphinx
+doesn't have support for it, the code should add a hack (via .. raw::
+latex)
+
+4) I got two tables where the latex tag (.. raw:: latex) didn't work. No
+idea why.
+
+5) Now, several tables have several tags to initialize a table:
+
+	.. raw:: latex
+
+	    \newline\newline\begin{adjustbox}{width=\columnwidth}
+
+	.. tabularcolumns:: |p{7.6cm}|p{1.6cm}|p{0.7cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5
+cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|
+
+	.. _v4l2-mbus-pixelcode-bayer:
+
+	.. cssclass: longtable
+
+	.. flat-table:: Bayer Formats
+...
+
+The order where those things happen matter. if the order gets wrong, the
+tag won't do what it was expected to do.
+
+If I got it right, cssclass should happen just before flat-table. If the
+table has a tag, it should be after tabularcolumns. The raw::latex seems
+to happen before all other tags.
+
+There are also some troubles with Sphinx build system related to PDF
+generation:
+
+- It doesn't honour SPHINXDIRS when building PDF/LaTeX files;
+
+- Sometimes, the flat-table extension crashes, when the ":widths:" or
+".. tabularcolumns::" doesn't match the size of a table. When this
+happens, it produces an incomplete LaTeX file until removing the
+contents of Documentation/output.
+
+I'll continue working on the LaTeX output fixups. I'll later check how
+to solve the huge amount of warnings it outputs.
+
+-
+
+That's said, IMHO, the LaTeX/PDF output is very nice, as we can have
+everything into a single file, and the output is great, IMHO.
+
+Once the tables are resized with adjustbox, it is even easier to read
+than HTML, as we can see the entire table altogether without needing
+to scroll on the big ones.
+
+
+Markus,
+
+It would be great if you could look on the above issues for us and see
+what could be done to improve it.
+
+
+Mauro Carvalho Chehab (20):
+  [media] docs-rst: re-generate typical_media_device.pdf
+  [media] docs-rst: add tabularcolumns to all tables
+  [media] control.rst: Fix table width
+  [media] extended-controls.rst: fix table sizes
+  [media] docs-rst: add column hints for pixfmt-002 and pixfmt-006
+  [media] pixfmt-packed-rgb.rst: Fix cell spans
+  [media] pixfmt-packed-rgb.rst: adjust tables to fit in LaTeX
+  [media] pixfmt-packed-yuv.rst: adjust tables to fit in LaTeX
+  [media] docs-rst: remove width hints from pixfmt byte order tables
+  [media] buffer.rst: Adjust table columns for LaTeX output
+  [media] dev-overlay.rst: don't ident a note
+  [media] dev-raw-vbi.rst: add a footnote for the count limits
+  [media] dev-raw-vbi.rst: adjust table columns for LaTeX output
+  [media] docs-rst: re-generate vbi_525.pdf and vbi_625.pdf
+  [media] dev-sliced-vbi.rst: use a footnote for VBI images
+  [media] dev-sliced-vbi.rst: Adjust tables on LaTeX output
+  [media] dev-rds.rst: adjust table dimentions for LaTeX
+  [media] dev-subdev.rst: make table fully visible on LaTeX
+  [media] subdev-formats.rst: adjust most of the tables to fill in page
+  [media] diff-v4l.rst: Make capabilities table fit in LaTeX
+
+ .../media/media_api_files/typical_media_device.pdf |  Bin 134268 -> 52895 bytes
+ .../media/uapi/cec/cec-ioc-adap-g-caps.rst         |    4 +
+ .../media/uapi/cec/cec-ioc-adap-g-log-addrs.rst    |   10 +
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst   |   10 +
+ Documentation/media/uapi/cec/cec-ioc-g-mode.rst    |    6 +
+ Documentation/media/uapi/cec/cec-ioc-receive.rst   |    6 +
+ .../media/uapi/dvb/fe-diseqc-recv-slave-reply.rst  |    2 +
+ .../media/uapi/dvb/fe-diseqc-send-master-cmd.rst   |    2 +
+ Documentation/media/uapi/dvb/fe-get-info.rst       |    2 +
+ Documentation/media/uapi/dvb/fe-type-t.rst         |    2 +
+ Documentation/media/uapi/gen-errors.rst            |    2 +
+ .../media/uapi/mediactl/media-ioc-device-info.rst  |    2 +
+ .../uapi/mediactl/media-ioc-enum-entities.rst      |    2 +
+ .../media/uapi/mediactl/media-ioc-enum-links.rst   |    6 +
+ .../media/uapi/mediactl/media-ioc-g-topology.rst   |   12 +
+ Documentation/media/uapi/rc/rc-tables.rst          |    2 +
+ Documentation/media/uapi/v4l/buffer.rst            |   28 +-
+ Documentation/media/uapi/v4l/control.rst           |    4 +-
+ Documentation/media/uapi/v4l/dev-overlay.rst       |   10 +-
+ Documentation/media/uapi/v4l/dev-raw-vbi.rst       |   16 +-
+ .../media/uapi/v4l/dev-raw-vbi_files/vbi_525.pdf   |  Bin 3395 -> 3706 bytes
+ .../media/uapi/v4l/dev-raw-vbi_files/vbi_625.pdf   |  Bin 3683 -> 3996 bytes
+ Documentation/media/uapi/v4l/dev-rds.rst           |    6 +
+ Documentation/media/uapi/v4l/dev-sdr.rst           |    2 +
+ Documentation/media/uapi/v4l/dev-sliced-vbi.rst    |   50 +-
+ Documentation/media/uapi/v4l/dev-subdev.rst        |    9 +
+ Documentation/media/uapi/v4l/diff-v4l.rst          |    4 +-
+ Documentation/media/uapi/v4l/extended-controls.rst |   63 +-
+ Documentation/media/uapi/v4l/field-order.rst       |    2 +
+ Documentation/media/uapi/v4l/pixfmt-002.rst        |    4 +
+ Documentation/media/uapi/v4l/pixfmt-003.rst        |    4 +
+ Documentation/media/uapi/v4l/pixfmt-006.rst        |    5 +
+ Documentation/media/uapi/v4l/pixfmt-007.rst        |   18 +
+ Documentation/media/uapi/v4l/pixfmt-013.rst        |    2 +
+ Documentation/media/uapi/v4l/pixfmt-grey.rst       |    5 -
+ Documentation/media/uapi/v4l/pixfmt-m420.rst       |    4 -
+ Documentation/media/uapi/v4l/pixfmt-nv12.rst       |    4 -
+ Documentation/media/uapi/v4l/pixfmt-nv12m.rst      |    3 -
+ Documentation/media/uapi/v4l/pixfmt-nv12mt.rst     |    2 -
+ Documentation/media/uapi/v4l/pixfmt-nv16.rst       |    5 -
+ Documentation/media/uapi/v4l/pixfmt-nv16m.rst      |    5 -
+ Documentation/media/uapi/v4l/pixfmt-nv24.rst       |    5 -
+ Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst |  115 +-
+ Documentation/media/uapi/v4l/pixfmt-packed-yuv.rst |   26 +-
+ Documentation/media/uapi/v4l/pixfmt-reserved.rst   |    4 +
+ Documentation/media/uapi/v4l/pixfmt-sbggr16.rst    |    6 -
+ Documentation/media/uapi/v4l/pixfmt-sbggr8.rst     |    4 -
+ Documentation/media/uapi/v4l/pixfmt-sdr-cs08.rst   |    5 -
+ Documentation/media/uapi/v4l/pixfmt-sdr-cs14le.rst |    5 -
+ Documentation/media/uapi/v4l/pixfmt-sdr-cu08.rst   |    6 -
+ Documentation/media/uapi/v4l/pixfmt-sdr-cu16le.rst |    4 -
+ Documentation/media/uapi/v4l/pixfmt-sdr-ru12le.rst |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-sgbrg8.rst     |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-sgrbg8.rst     |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb10.rst    |    3 +-
+ .../media/uapi/v4l/pixfmt-srggb10alaw8.rst         |    2 -
+ Documentation/media/uapi/v4l/pixfmt-srggb10p.rst   |   12 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb12.rst    |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb8.rst     |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-uv8.rst        |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-uyvy.rst       |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-vyuy.rst       |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-y10.rst        |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-y10b.rst       |    6 -
+ Documentation/media/uapi/v4l/pixfmt-y12.rst        |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-y12i.rst       |    3 -
+ Documentation/media/uapi/v4l/pixfmt-y16-be.rst     |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-y16.rst        |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-y41p.rst       |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-y8i.rst        |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv410.rst     |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv411p.rst    |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv420.rst     |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv420m.rst    |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv422m.rst    |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv422p.rst    |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv444m.rst    |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-yuyv.rst       |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-yvyu.rst       |    3 +-
+ Documentation/media/uapi/v4l/pixfmt-z16.rst        |    3 +-
+ Documentation/media/uapi/v4l/subdev-formats.rst    | 5577 ++++++++++----------
+ .../media/uapi/v4l/vidioc-create-bufs.rst          |    2 +
+ Documentation/media/uapi/v4l/vidioc-cropcap.rst    |    4 +
+ .../media/uapi/v4l/vidioc-dbg-g-chip-info.rst      |    6 +
+ .../media/uapi/v4l/vidioc-dbg-g-register.rst       |    4 +
+ .../media/uapi/v4l/vidioc-decoder-cmd.rst          |    4 +
+ Documentation/media/uapi/v4l/vidioc-dqevent.rst    |   18 +
+ .../media/uapi/v4l/vidioc-dv-timings-cap.rst       |    4 +
+ .../media/uapi/v4l/vidioc-encoder-cmd.rst          |    6 +
+ .../media/uapi/v4l/vidioc-enum-dv-timings.rst      |    2 +
+ Documentation/media/uapi/v4l/vidioc-enum-fmt.rst   |    4 +
+ .../media/uapi/v4l/vidioc-enum-frameintervals.rst  |    4 +
+ .../media/uapi/v4l/vidioc-enum-framesizes.rst      |    6 +
+ .../media/uapi/v4l/vidioc-enum-freq-bands.rst      |    4 +
+ Documentation/media/uapi/v4l/vidioc-enuminput.rst  |    6 +
+ Documentation/media/uapi/v4l/vidioc-enumoutput.rst |    6 +
+ Documentation/media/uapi/v4l/vidioc-enumstd.rst    |    6 +
+ Documentation/media/uapi/v4l/vidioc-expbuf.rst     |    2 +
+ Documentation/media/uapi/v4l/vidioc-g-audio.rst    |    6 +
+ Documentation/media/uapi/v4l/vidioc-g-audioout.rst |    2 +
+ Documentation/media/uapi/v4l/vidioc-g-crop.rst     |    2 +
+ Documentation/media/uapi/v4l/vidioc-g-ctrl.rst     |    2 +
+ .../media/uapi/v4l/vidioc-g-dv-timings.rst         |    6 +
+ Documentation/media/uapi/v4l/vidioc-g-edid.rst     |    2 +
+ .../media/uapi/v4l/vidioc-g-enc-index.rst          |    6 +
+ .../media/uapi/v4l/vidioc-g-ext-ctrls.rst          |    6 +
+ Documentation/media/uapi/v4l/vidioc-g-fbuf.rst     |    6 +
+ .../media/uapi/v4l/vidioc-g-frequency.rst          |    2 +
+ Documentation/media/uapi/v4l/vidioc-g-jpegcomp.rst |    4 +
+ .../media/uapi/v4l/vidioc-g-modulator.rst          |    4 +
+ Documentation/media/uapi/v4l/vidioc-g-parm.rst     |   10 +
+ Documentation/media/uapi/v4l/vidioc-g-priority.rst |    2 +
+ .../media/uapi/v4l/vidioc-g-selection.rst          |    2 +
+ .../media/uapi/v4l/vidioc-g-sliced-vbi-cap.rst     |    4 +
+ Documentation/media/uapi/v4l/vidioc-g-tuner.rst    |    8 +
+ Documentation/media/uapi/v4l/vidioc-queryctrl.rst  |   10 +
+ Documentation/media/uapi/v4l/vidioc-reqbufs.rst    |    2 +
+ .../media/uapi/v4l/vidioc-s-hw-freq-seek.rst       |    2 +
+ .../uapi/v4l/vidioc-subdev-enum-frame-interval.rst |    2 +
+ .../uapi/v4l/vidioc-subdev-enum-frame-size.rst     |    2 +
+ .../uapi/v4l/vidioc-subdev-enum-mbus-code.rst      |    2 +
+ .../media/uapi/v4l/vidioc-subdev-g-crop.rst        |    2 +
+ .../media/uapi/v4l/vidioc-subdev-g-fmt.rst         |    4 +
+ .../uapi/v4l/vidioc-subdev-g-frame-interval.rst    |    2 +
+ .../media/uapi/v4l/vidioc-subdev-g-selection.rst   |    2 +
+ .../media/uapi/v4l/vidioc-subscribe-event.rst      |    4 +
+ 126 files changed, 3375 insertions(+), 3001 deletions(-)
+
+--
+2.7.4
+
+
