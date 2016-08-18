@@ -1,87 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:39455 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756511AbcHEHjP (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:37177
+	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753831AbcHRJ33 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Aug 2016 03:39:15 -0400
-Subject: Re: doc-rst: too much space around ``foo`` text
-To: Markus Heiser <markus.heiser@darmarit.de>
-References: <cc77239c-7e8f-7c03-bcdd-e19d87998aee@xs4all.nl>
- <DD872694-1DF7-4444-9013-EBCD16801689@darmarit.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cdd9f195-b304-c814-e967-3f9947a24332@xs4all.nl>
-Date: Fri, 5 Aug 2016 09:39:07 +0200
+	Thu, 18 Aug 2016 05:29:29 -0400
+Date: Thu, 18 Aug 2016 06:29:21 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Alexandre-Xavier =?UTF-8?B?TGFib250w6ktTGFtb3VyZXV4?=
+	<axdoomer@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Adding Linux support for the Ion Video 2 PC analog video
+ capture device (em28xx)
+Message-ID: <20160818062921.0d98f3bb@vento.lan>
+In-Reply-To: <CAKTMqxu=UuUmzPxhXKBza=1BBgK5DoMxtx4eFqLiEanvL-dqyw@mail.gmail.com>
+References: <CAKTMqxu=UuUmzPxhXKBza=1BBgK5DoMxtx4eFqLiEanvL-dqyw@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <DD872694-1DF7-4444-9013-EBCD16801689@darmarit.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Markus,
+Em Wed, 17 Aug 2016 15:26:40 -0400
+Alexandre-Xavier Labonté-Lamoureux  <axdoomer@gmail.com> escreveu:
 
-Did you have time to look at this yet? It is for me something that is really
-distracting. I tried to track this down myself but I just don't know enough about
-html/css.
+> Hi,
+> 
+> I have an Ion Video 2 PC and a StarTech svid2usb23 (id: 0xeb1a,
+> 0x5051). I have documented them here:
+> https://linuxtv.org/wiki/index.php/Ion_Video_2_PC
+> 
+> I can get them to be recognized by patching the em28xx driver. I use
+> "EM2860_BOARD_TVP5150_REFERENCE_DESIGN".
+> (The patch can be found here:
+> https://www.linuxtv.org/wiki/index.php/Ion_Video_2_PC#Making_it_work)
+> 
+> Yet, it almost works, there is only one bug.
+> 
+> When I plug something yellow composite input of the device, it
+> captures one frame then stops. If I disconnect the composite video so
+> that there is no video input, then it starts capturing frames again.
+> So the device doesn't want to capture video when there is input, it
+> only captures frames when their is nothing connected to it.
+> 
+> I can see that it stops capturing frames by looking at the frame
+> counter in qv4l2.
+> I have made a video about this problem: https://youtu.be/z96OfgHGDao?t=40s
+> You can see what I explained in the previous paragraph at 1:58 in the video.
+> 
+> These are the chips inside the Ion Video 2 PC:
+> * Empia EM2860
+> * Empia EMP202
+> * 5150AM1
+> 
+> What would be the next thing to do to make it work? Thanks.
 
-The text ``V4L2_XFER_FUNC_709`` is translated to:
+It seems that you're using some game console to generate images.
+Those usually output video in progressive mode, instead of using
+interlaced mode. Maybe that's the cause of the issues you're
+having.
 
-<code class="docutils literal"><span class="pre">V4L2_XFER_FUNC_709</span></code>.
+You could try to write a quick hack by patching em28xx_v4l2_init, at 
+drivers/media/usb/em28xx/em28xx-video.c.
 
-And it is the <code> part that adds the extra spacing somewhere.
+Seek for those lines:
 
-Originally <code> added a rectangle around the text, so I suspect that the extra spacing
-for that rectangle is still added somewhere.
+        if (dev->board.is_webcam)
+                v4l2->progressive = true;
 
-Regards.
+And comment the first one. If this works, then we may add a modprobe
+parameter (like saa7134) or something else to fix it.
 
-	Hans
-
-On 07/09/2016 10:40 AM, Markus Heiser wrote:
-> Hi Hans,
-> 
-> Am 08.07.2016 um 22:52 schrieb Hans Verkuil <hverkuil@xs4all.nl>:
-> 
->> Hi Markus,
->>
->> First of all a big 'Thank you!' for working on this, very much appreciated.
->> And I also am very grateful that you could convert the CEC docs so quickly for me.
-> 
-> You are welcome :)
-> 
->> That said, can you take a look at this:
->>
->> https://mchehab.fedorapeople.org/media_API_book/linux_tv/media/v4l/vidioc-enum-fmt.html
->>
->> As you can see, every text written as ``foo`` in the rst file has a bit too much space
->> around it. It's especially clear in the description of the 'type' field: the commas
->> after each V4L2_BUF_TYPE_ constant should be right after the last character, and now
->> it looks as if there is a space in front.
->>
->> It's jarring when you read it, but it is probably easy to fix for someone who knows
->> this stuff.
-> 
-> Yes, this is a good point, the layout of inline constant markup bothers me also.
-> The Read-The-Doc (RTD) theme we use is IMHO the best on the web, since it is well
-> maintained and supports a good layout on various viewports:
-> 
->   http://read-the-docs.readthedocs.io/en/latest/theme.html
-> 
-> Nevertheless I think in some details it is a bit to excessive.
-> 
-> I will place it on my TODO list .. hopefully I find the time to solve
-> it in the next days.
-> 
-> -- Markus --
-> 
->>
->> Thanks!
->>
->> 	Hans
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Thanks,
+Mauro
