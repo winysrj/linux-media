@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:57574 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:35605 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754724AbcHSDas (ORCPT
+        with ESMTP id S1754630AbcHSDo5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Aug 2016 23:30:48 -0400
+        Thu, 18 Aug 2016 23:44:57 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
@@ -12,9 +12,9 @@ Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Markus Heiser <markus.heiser@darmarit.de>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Markus Heiser <markus.heiser@darmarIT.de>
-Subject: [PATCH 06/20] [media] pixfmt-packed-rgb.rst: Fix cell spans
-Date: Thu, 18 Aug 2016 13:15:35 -0300
-Message-Id: <3a295ee7bcbbe1ccecbfb3600a0dcb4addeeb16a.1471532123.git.mchehab@s-opensource.com>
+Subject: [PATCH 10/20] [media] buffer.rst: Adjust table columns for LaTeX output
+Date: Thu, 18 Aug 2016 13:15:39 -0300
+Message-Id: <876cec7bec35cd23e97fffdedd595cc10ae5335d.1471532123.git.mchehab@s-opensource.com>
 In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
 References: <cover.1471532122.git.mchehab@s-opensource.com>
 In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
@@ -22,194 +22,82 @@ References: <cover.1471532122.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is an extra column just before eack pack of bits, to
-improve table reading, but the header file didn't take this
-into account.
-
-Fix it.
+The table columns are not properly displayed. Also, some
+tables are too big to fit into just one page. So, fix them,
+in order to better display the tables.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst | 78 ++++++++++++----------
- 1 file changed, 42 insertions(+), 36 deletions(-)
+ Documentation/media/uapi/v4l/buffer.rst | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
-index 8997b51ac230..3a7133fbec80 100644
---- a/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
-@@ -39,10 +39,13 @@ next to each other in memory.
-        -
-        -  :cspan:`7` Byte 0 in memory
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index 064bc03b7a1d..4d315b01c2a4 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -39,12 +39,14 @@ buffer.
+ struct v4l2_buffer
+ ==================
  
-+       -
-        -  :cspan:`7` Byte 1
+-.. tabularcolumns:: |p{3.5cm}|p{3.5cm}|p{3.5cm}|p{7.0cm}|
++.. tabularcolumns:: |p{1.3cm}|p{2.5cm}|p{1.3cm}|p{12.0cm}|
++
++.. cssclass:: longtable
  
-+       -
-        -  :cspan:`7` Byte 2
+ .. flat-table:: struct v4l2_buffer
+     :header-rows:  0
+     :stub-columns: 0
+-    :widths:       1 1 1 2
++    :widths:       1 2 1 10
  
-+       -
-        -  :cspan:`7` Byte 3
  
-     -  .. row 2
-@@ -205,13 +208,13 @@ next to each other in memory.
-        -  b\ :sub:`0`
+     -  .. row 1
+@@ -286,6 +288,8 @@ struct v4l2_plane
  
-        -
--       -  -
-+       -
+ .. tabularcolumns:: |p{3.5cm}|p{3.5cm}|p{3.5cm}|p{7.0cm}|
  
--       -  -
-+       -
++.. cssclass:: longtable
++
+ .. flat-table::
+     :header-rows:  0
+     :stub-columns: 0
+@@ -403,12 +407,14 @@ struct v4l2_plane
+ enum v4l2_buf_type
+ ==================
  
--       -  -
-+       -
+-.. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
++.. cssclass:: longtable
++
++.. tabularcolumns:: |p{7.2cm}|p{0.6cm}|p{9.7cm}|
  
--       -  -
-+       -
+ .. flat-table::
+     :header-rows:  0
+     :stub-columns: 0
+-    :widths:       3 1 4
++    :widths:       4 1 9
  
-        -  r\ :sub:`3`
  
-@@ -285,7 +288,7 @@ next to each other in memory.
-        -  b\ :sub:`0`
+     -  .. row 1
+@@ -519,7 +525,9 @@ enum v4l2_buf_type
+ Buffer Flags
+ ============
  
-        -
--       -  -
-+       -
+-.. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
++.. tabularcolumns:: |p{7.0cm}|p{2.2cm}|p{8.3cm}|
++
++.. cssclass:: longtable
  
-        -  r\ :sub:`4`
+ .. flat-table::
+     :header-rows:  0
+@@ -953,7 +961,7 @@ Timecode Types
+ Timecode Flags
+ --------------
  
-@@ -388,7 +391,7 @@ next to each other in memory.
-        -  'XR15' | (1 << 31)
+-.. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
++.. tabularcolumns:: |p{6.6cm}|p{1.4cm}|p{9.5cm}|
  
-        -
--       -  -
-+       -
- 
-        -  r\ :sub:`4`
- 
-@@ -620,34 +623,34 @@ next to each other in memory.
- 
-        -  r\ :sub:`0`
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
-        -
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
-     -  .. _V4L2-PIX-FMT-ABGR32:
- 
-@@ -781,21 +784,21 @@ next to each other in memory.
-        -  r\ :sub:`0`
- 
-        -
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
-     -  .. _V4L2-PIX-FMT-ARGB32:
- 
-@@ -878,21 +881,21 @@ next to each other in memory.
-        -  'BX24'
- 
-        -
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
--       -  -
-+       -
- 
-        -
-        -  r\ :sub:`7`
-@@ -1124,10 +1127,13 @@ either the corresponding ARGB or XRGB format, depending on the driver.
-        -
-        -  :cspan:`7` Byte 0 in memory
- 
-+       -
-        -  :cspan:`7` Byte 1
- 
-+       -
-        -  :cspan:`7` Byte 2
- 
-+       -
-        -  :cspan:`7` Byte 3
- 
-     -  .. row 2
+ .. flat-table::
+     :header-rows:  0
 -- 
 2.7.4
 
