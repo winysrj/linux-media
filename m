@@ -1,109 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41158 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S933629AbcHDOqK (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:35007 "EHLO
+	mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1768221AbcHROfq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Aug 2016 10:46:10 -0400
-Date: Thu, 4 Aug 2016 17:38:13 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCHv2] v4l2-common: add s_selection helper function
-Message-ID: <20160804143813.GL3243@valkosipuli.retiisi.org.uk>
-References: <c6379bf1-4fdf-7deb-4312-86d26d0ee106@xs4all.nl>
- <20160804140313.GI3243@valkosipuli.retiisi.org.uk>
- <aa119982-53c6-37bf-d019-b6ccd27b5c8a@xs4all.nl>
- <20160804141734.GK3243@valkosipuli.retiisi.org.uk>
- <b343ec5f-0c03-ae92-ef92-a051b23060ca@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <b343ec5f-0c03-ae92-ef92-a051b23060ca@xs4all.nl>
+	Thu, 18 Aug 2016 10:35:46 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Antti Palosaari <crope@iki.fi>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v5 02/12] [media] Documentation: Add HSV format
+Date: Thu, 18 Aug 2016 16:33:28 +0200
+Message-Id: <1471530818-7928-3-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Describe the HSV formats
 
-On Thu, Aug 04, 2016 at 04:27:27PM +0200, Hans Verkuil wrote:
-> 
-> 
-> On 08/04/2016 04:17 PM, Sakari Ailus wrote:
-> > On Thu, Aug 04, 2016 at 04:11:55PM +0200, Hans Verkuil wrote:
-> >>
-> >>
-> >> On 08/04/2016 04:03 PM, Sakari Ailus wrote:
-> >>> Hi Hans,
-> >>>
-> >>> On Mon, Aug 01, 2016 at 12:33:39PM +0200, Hans Verkuil wrote:
-> >>>> Checking the selection constraint flags is often forgotten by drivers, especially
-> >>>> if the selection code just clamps the rectangle to the minimum and maximum allowed
-> >>>> rectangles.
-> >>>>
-> >>>> This patch adds a simple helper function that checks the adjusted rectangle against
-> >>>> the constraint flags and either returns -ERANGE if it doesn't fit, or fills in the
-> >>>> new rectangle and returns 0.
-> >>>>
-> >>>> It also adds a small helper function to v4l2-rect.h to check if one rectangle fits
-> >>>> inside another.
-> >>>
-> >>> I could have misunderstood the purpose of the patch but... these flags are
-> >>> used by drivers in guidance in adjusting the rectangle in case there are
-> >>> hardware limitations, to make it larger or smaller than requested if the
-> >>> request can't be fulfillsed as such. The intent is *not* to return an error
-> >>> back to the user. In this respect it works quite like e.g. S_FMT does in
-> >>> cases an exact requested format can't be supported.
-> >>>
-> >>> <URL:https://www.linuxtv.org/downloads/v4l-dvb-apis/apb.html#v4l2-selection-flags>
-> >>>
-> >>> What can be done is rather driver specific.
-> >>>
-> >>
-> >> That's not what the spec says:
-> >>
-> >> https://hverkuil.home.xs4all.nl/spec/uapi/v4l/vidioc-g-selection.html
-> >>
-> >> ERANGE
-> >> It is not possible to adjust struct v4l2_rect r rectangle to satisfy all constraints given in the flags argument.
-> >>
-> >> It's rather unambiguous, I think.
-> >>
-> >> If you don't want an error, then just leave 'flags' to 0. That makes sense.
-> > 
-> > Does it? I can't imagine a use case for that.
-> 
-> That's just the standard behavior: "I'd like this selection rectangle, but adjust
-> however you like it to something that works."
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ Documentation/media/uapi/v4l/hsv-formats.rst       |  19 +++
+ Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst | 158 +++++++++++++++++++++
+ Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
+ Documentation/media/uapi/v4l/v4l2.rst              |   5 +
+ 4 files changed, 183 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/hsv-formats.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
 
-That's not how this patch works though: it returns an error instead.
-
-> 
-> > The common section still defines these flags differently, and that's the
-> > behaviour on V4L2 sub-device interface. Do we have a driver that implements
-> > support for these flags as you described?
-> > 
-> 
-> A quick check: fimc-capture, gsc-m2m, am437, vivid, fimc-lite, bdisp.
-> 
-> Note that VIDIOC_SUBDEV_S_SELECTION doesn't specify an ERANGE error, but I don't know
-> if that is intentional or an oversight. At least smiapp-core.c doesn't return an error.
-
-Please read the description of the flags in common documentation. The smiapp
-driver implements them as described in the common and V4L2 sub-device
-documentation:
-
-<URL:https://www.linuxtv.org/downloads/v4l-dvb-apis/subdev.html#v4l2-subdev-selections>
-<URL:https://www.linuxtv.org/downloads/v4l-dvb-apis/apb.html#v4l2-selection-flags>
-
-I.e. they affect rounding in the case where an exact match can't be found,
-hardware limitations taken into account. The V4L2 behaviour can be
-implemented using the common / sub-device flag definitions but not the other
-way around, so we don't necessary have a problem here. It's just that
-returning an error in such a case doesn't really make much sense.
-
+diff --git a/Documentation/media/uapi/v4l/hsv-formats.rst b/Documentation/media/uapi/v4l/hsv-formats.rst
+new file mode 100644
+index 000000000000..f0f2615eaa95
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/hsv-formats.rst
+@@ -0,0 +1,19 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _hsv-formats:
++
++***********
++HSV Formats
++***********
++
++These formats store the color information of the image
++in a geometrical representation. The colors are mapped into a
++cylinder, where the angle is the HUE, the height is the VALUE
++and the distance to the center is the SATURATION. This is a very
++useful format for image segmentation algorithms.
++
++
++.. toctree::
++    :maxdepth: 1
++
++    pixfmt-packed-hsv
+diff --git a/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+new file mode 100644
+index 000000000000..60ac821e309d
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+@@ -0,0 +1,158 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _packed-hsv:
++
++******************
++Packed HSV formats
++******************
++
++*man Packed HSV formats(2)*
++
++Packed HSV formats
++
++
++Description
++===========
++
++The *hue* (h) is measured in degrees, one LSB represents two degrees.
++The *saturation* (s) and the *value* (v) are measured in percentage of the
++cylinder: 0 being the smallest value and 255 the maximum.
++
++
++The values are packed in 24 or 32 bit formats.
++
++
++.. flat-table:: Packed HSV Image Formats
++    :header-rows:  2
++    :stub-columns: 0
++
++    -  .. row 1
++
++       -  Identifier
++       -  Code
++       -
++       -  :cspan:`7` Byte 0 in memory
++       -
++       -  :cspan:`7` Byte 1
++       -
++       -  :cspan:`7` Byte 2
++       -
++       -  :cspan:`7` Byte 3
++
++    -  .. row 2
++
++       -
++       -
++       -  Bit
++       -  7
++       -  6
++       -  5
++       -  4
++       -  3
++       -  2
++       -  1
++       -  0
++       -
++       -  7
++       -  6
++       -  5
++       -  4
++       -  3
++       -  2
++       -  1
++       -  0
++       -
++       -  7
++       -  6
++       -  5
++       -  4
++       -  3
++       -  2
++       -  1
++       -  0
++       -
++       -  7
++       -  6
++       -  5
++       -  4
++       -  3
++       -  2
++       -  1
++       -  0
++
++    -  .. _V4L2-PIX-FMT-HSV32:
++
++       -  ``V4L2_PIX_FMT_HSV32``
++       -  'HSV4'
++       -
++       -  -
++       -  -
++       -  -
++       -  -
++       -  -
++       -  -
++       -  -
++       -  -
++       -
++       -  h\ :sub:`7`
++       -  h\ :sub:`6`
++       -  h\ :sub:`5`
++       -  h\ :sub:`4`
++       -  h\ :sub:`3`
++       -  h\ :sub:`2`
++       -  h\ :sub:`1`
++       -  h\ :sub:`0`
++       -
++       -  s\ :sub:`7`
++       -  s\ :sub:`6`
++       -  s\ :sub:`5`
++       -  s\ :sub:`4`
++       -  s\ :sub:`3`
++       -  s\ :sub:`2`
++       -  s\ :sub:`1`
++       -  s\ :sub:`0`
++       -
++       -  v\ :sub:`7`
++       -  v\ :sub:`6`
++       -  v\ :sub:`5`
++       -  v\ :sub:`4`
++       -  v\ :sub:`3`
++       -  v\ :sub:`2`
++       -  v\ :sub:`1`
++       -  v\ :sub:`0`
++
++    -  .. _V4L2-PIX-FMT-HSV24:
++
++       -  ``V4L2_PIX_FMT_HSV24``
++       -  'HSV3'
++       -
++       -  h\ :sub:`7`
++       -  h\ :sub:`6`
++       -  h\ :sub:`5`
++       -  h\ :sub:`4`
++       -  h\ :sub:`3`
++       -  h\ :sub:`2`
++       -  h\ :sub:`1`
++       -  h\ :sub:`0`
++       -
++       -  s\ :sub:`7`
++       -  s\ :sub:`6`
++       -  s\ :sub:`5`
++       -  s\ :sub:`4`
++       -  s\ :sub:`3`
++       -  s\ :sub:`2`
++       -  s\ :sub:`1`
++       -  s\ :sub:`0`
++       -
++       -  v\ :sub:`7`
++       -  v\ :sub:`6`
++       -  v\ :sub:`5`
++       -  v\ :sub:`4`
++       -  v\ :sub:`3`
++       -  v\ :sub:`2`
++       -  v\ :sub:`1`
++       -  v\ :sub:`0`
++       -
++       -
++
++Bit 7 is the most significant bit.
+diff --git a/Documentation/media/uapi/v4l/pixfmt.rst b/Documentation/media/uapi/v4l/pixfmt.rst
+index 81222a99f7ce..1d2270422345 100644
+--- a/Documentation/media/uapi/v4l/pixfmt.rst
++++ b/Documentation/media/uapi/v4l/pixfmt.rst
+@@ -29,6 +29,7 @@ see also :ref:`VIDIOC_G_FBUF <VIDIOC_G_FBUF>`.)
+     pixfmt-indexed
+     pixfmt-rgb
+     yuv-formats
++    hsv-formats
+     depth-formats
+     pixfmt-013
+     sdr-formats
+diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
+index 5e41a8505301..36c6d0dc3859 100644
+--- a/Documentation/media/uapi/v4l/v4l2.rst
++++ b/Documentation/media/uapi/v4l/v4l2.rst
+@@ -89,6 +89,11 @@ part can be used and distributed without restrictions.
+ Revision History
+ ****************
+ 
++:revision: 4.9 / 2016-07-15 (*rr*)
++
++Introduce HSV formats.
++
++
+ :revision: 4.5 / 2015-10-29 (*rr*)
+ 
+ Extend VIDIOC_G_EXT_CTRLS;. Replace ctrl_class with a new union with
 -- 
-Regards,
+2.8.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
