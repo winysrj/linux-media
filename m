@@ -1,129 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44440 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752244AbcHAQC4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2016 12:02:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Kazunori Kobayashi <kkobayas@igel.co.jp>,
-	linux-media@vger.kernel.org,
-	Damian Hobson-Garcia <dhobsong@igel.co.jp>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: Memory freeing when dmabuf fds are exported with VIDIOC_EXPBUF
-Date: Mon, 01 Aug 2016 19:02:41 +0300
-Message-ID: <1771120.d40lGdzCeM@avalon>
-In-Reply-To: <b3161f8d-b958-41ca-f0e6-65a16c63f22c@xs4all.nl>
-References: <36bf3ef2-e43a-3910-16e2-b51439be5622@igel.co.jp> <1677075.k8UG1Er7L0@avalon> <b3161f8d-b958-41ca-f0e6-65a16c63f22c@xs4all.nl>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35108 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754277AbcHSBPn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Aug 2016 21:15:43 -0400
+Date: Thu, 18 Aug 2016 23:26:00 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+        aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+        linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
+Message-ID: <20160818202559.GF3182@valkosipuli.retiisi.org.uk>
+References: <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+ <20160805102611.GA13116@amd>
+ <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+ <20160808214132.GB2946@xo-6d-61-c0.localdomain>
+ <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
+ <20160808232323.GC2946@xo-6d-61-c0.localdomain>
+ <20160811111633.GR3182@valkosipuli.retiisi.org.uk>
+ <20160818104539.GA7427@amd>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160818104539.GA7427@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Pavel,
 
-On Monday 01 Aug 2016 15:59:54 Hans Verkuil wrote:
-> On 08/01/2016 03:49 PM, Laurent Pinchart wrote:
-> > On Monday 01 Aug 2016 14:27:48 Hans Verkuil wrote:
-> >> On 08/01/2016 02:17 PM, Laurent Pinchart wrote:
-> >>> On Monday 01 Aug 2016 12:56:55 Hans Verkuil wrote:
-> >>>> On 07/27/2016 02:57 PM, Laurent Pinchart wrote:
-> >>>>> On Wednesday 27 Jul 2016 16:51:47 Kazunori Kobayashi wrote:
-> >>>>>> Hi,
-> >>>>>> 
-> >>>>>> I have a question about memory freeing by calling REQBUF(0) before
-> >>>>>> all the dmabuf fds exported with VIDIOC_EXPBUF are closed.
-> >>>>>> 
-> >>>>>> In calling REQBUF(0), videobuf2-core returns -EBUSY when the
-> >>>>>> reference count of a vb2 buffer is more than 1. When dmabuf fds are
-> >>>>>> not exported (usual V4L2_MEMORY_MMAP case), the check is no problem,
-> >>>>>> but when dmabuf fds are exported and some of them are not closed (in
-> >>>>>> other words the references to that memory are left), we cannot
-> >>>>>> succeed in calling REQBUF(0) despite being able to free the memory
-> >>>>>> after all the references are dropped.
-> >>>>>> 
-> >>>>>> Actually REQBUF(0) does not force a vb2 buffer to be freed but
-> >>>>>> decreases the refcount of it. Also all the vb2 memory allocators that
-> >>>>>> support dmabuf exporting (dma-contig, dma-sg, vmalloc) implements
-> >>>>>> memory freeing by release() of dma_buf_ops, so I think there is no
-> >>>>>> need to return -EBUSY when exporting dmabuf fds.
-> >>>>>> 
-> >>>>>> Could you please tell me what you think?
-> >>>>> 
-> >>>>> I think you're right. vb2 allocates the vb2_buffer and the
-> >>>>> memops-specific structure separately. videobuf2-core.c will free the
-> >>>>> vb2_buffer instance, but won't touch the memops-specific structure or
-> >>>>> the buffer memory. Both of these are reference-counted in the memops
-> >>>>> allocators. We could thus allow REQBUFS(0) to proceed even when
-> >>>>> buffers have been exported (or at least after fixing the small issues
-> >>>>> we'll run into, I have a feeling that this is too easy to be true).
-> >>>>> 
-> >>>>> Hans, Marek, any opinion on this ?
-> >>>> 
-> >>>> What is the use-case for this? What you are doing here is to either
-> >>>> free all existing buffers or reallocate buffers. We can decide to rely
-> >>>> on refcounting, but then you would create a second set of buffers (when
-> >>>> re-allocating) or leave a lot of unfreed memory behind. That's pretty
-> >>>> hard on the memory usage.
-> >>> 
-> >>> Speaking of which, we have no way today to really limit memory usage. I
-> >>> wonder whether we should try to integrate support for resource limits in
-> >>> V4L2.
-> >> 
-> >> I'm opposed to that. We had drivers in the past that did that (perhaps
-> >> there are still a few old ones left), but I removed those checks. In
-> >> practice this all depends on the use-case. And if you try to allocate
-> >> more buffers than there is memory, you just get ENOMEM. Which is what it
-> >> is there for.
-> >> 
-> >> After all, how to decide what limit to use? If someone wants to use all
-> >> 32 buffers for some reason, or allocate larger buffers than strictly
-> >> needed, then they should be able to do so. Perhaps you want to be able to
-> >> capture a burst of high quality snapshots without having to process them
-> >> immediately. Or other video streams are going to be composed into the
-> >> buffers so you need to make them larger.
-> >> 
-> >> The only real limits are the amount of physical (DMAable) memory and the
-> >> artificial 32 buffer limit which we already know is insufficient in
-> >> certain use-cases.
+On Thu, Aug 18, 2016 at 12:45:39PM +0200, Pavel Machek wrote:
+> On Thu 2016-08-11 14:16:34, Sakari Ailus wrote:
+> > On Tue, Aug 09, 2016 at 01:23:23AM +0200, Pavel Machek wrote:
+> > > On Wed 2016-08-10 15:01:05, Sakari Ailus wrote:
+> > > > On Mon, Aug 08, 2016 at 11:41:32PM +0200, Pavel Machek wrote:
+> > > > > On Mon 2016-08-08 11:09:56, Sakari Ailus wrote:
+> > > > > > On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
+> > > > > > > 
+> > > > > > > This adds support for AD5820 autofocus coil, found for example in
+> > > > > > > Nokia N900 smartphone.
+> > > > > > 
+> > > > > > Thanks, Pavel!
+> > > > > > 
+> > > > > > Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get something
+> > > > > > better in the future, we'll switch to that then.
+> > > > > > 
+> > > > > > I've applied this to ad5820 branch in my tree.
+> > > > > 
+> > > > > Thanks. If I understands things correctly, both DTS patch and this patch are
+> > > > > waiting in your tree, so we should be good to go for 4.9 (unless some unexpected
+> > > > > problems surface)?
+> > > > 
+> > > > Yeah. I just compiled it but haven't tested it. I presume it'll work. :-)
+> > > 
+> > > I'm testing it on n900. I guess simpler hardware with ad5820 would be better for the
+> > > test...
+> > > 
+> > > What hardware do you have?
 > > 
-> > When the user running V4L2 applications has full control over the system,
-> > perhaps, but how about shared systems where the system administrator wants
-> > to control resource usage per user ? Containers also come to mind,
-> > per-cgroup memory limits should be honoured.
+> > N900. What else could it be? :-) :-)
 > 
-> If an administrator explicitly restricts memory usage, then it would make
-> sense to honor that. Are those checks perhaps already done deep in the mm
-> code? I've no idea what would be involved.
+> Heh. Basically anything is easier to develop for than n900 :-(.
 
-To be honest, I haven't checked.
+Is it?
 
-> > And even for single-user systems, having the system start trashing because
-> > a random 3rd party video application decided to allocate a large number
-> > of buffers for no good reason provides a pretty bad user experience.
+I actually find the old Nokia devices very practical. It's easy to boot your
+own kernel and things just work... until musb broke a bit recently. It
+requires reconnecting the usb cable again to function.
+
+I have to admit I mostly use an N9.
+
 > 
-> How would you know it is 'for no good reason'?
+> Ok, for real testing, Ivaylo's camera patchset is useful, so that you
+> have picture to work with, plus your subdevs for omap3 patchset (which
+> needs a forward port).
+> 
+> I have patches against v4.7, if you are interested.
 
-That's a good question. On one extreme an application trying to allocate 32 
-50MB buffers would seem suspicious to me, but on the other hand it would be 
-difficult to answer the question in a way that can be translated into code.
+They should be pretty close to mainline. The rebase should be very easy.
 
-One thing we should perhaps do, though, is make sure that drivers limit the 
-size of the buffers being allocated. If a device resolution is limited to VGA 
-images, it makes little sense to allow VIDIOC_CREATE_BUF to allocate 20MB 
-buffers. There could perhaps be use cases though, when sharing a buffer 
-between devices.
+Patches against media-tree master branch would always be better naturally.
+:-)
 
-> Like any other application if it uses too much memory either don't use it or
-> fix it. It's not up to the kernel to limit this arbitrarily.
->
-> My opinion, of course.
+> 
+> I guess subdevs for omap3 should be merged at this point. Do you have
+> any plans to do that, or should I take a look?
 
-A valued opinion :-)
+What's still missing? I think I've yet to check the et8ek8 driver and the
+device tree description is missing. That's what comes to mind right now.
 
 -- 
-Regards,
+Kind regards,
 
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
