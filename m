@@ -1,50 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:59827 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752607AbcHOD0K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Aug 2016 23:26:10 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH for v4.8] vcodec:mediatek: change H264 profile default to profile high
-Date: Mon, 15 Aug 2016 11:26:02 +0800
-Message-ID: <1471231562-25191-1-git-send-email-tiffany.lin@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:57546 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754702AbcHSDap (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Aug 2016 23:30:45 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Markus Heiser <markus.heiser@darmarIT.de>
+Subject: [PATCH 12/20] [media] dev-raw-vbi.rst: add a footnote for the count limits
+Date: Thu, 18 Aug 2016 13:15:41 -0300
+Message-Id: <a732c3e6320dfa6e08cc8d661db9c6113ec2542d.1471532123.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
+References: <cover.1471532122.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
+References: <cover.1471532122.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch change default H264 profile from V4L2_MPEG_VIDEO_H264_PROFILE_MAIN
-to V4L2_MPEG_VIDEO_H264_PROFILE_HIGH
+There's a bug with LaTeX output on flat-tables with Sphinx 1.4.5
+that prevents references at a cell span to be broken. As the
+text is indeed too long, it makes sense to place the reference
+to the pictures showing the VBI limits as a footnote.
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+That makes the text easier to read and also solves the issue
+with LaTeX output.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/media/uapi/v4l/dev-raw-vbi.rst | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-index 7bef7ba..284c1a7 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-@@ -1288,7 +1288,7 @@ int mtk_vcodec_enc_ctrls_setup(struct mtk_vcodec_ctx *ctx)
- 			0, V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE);
- 	v4l2_ctrl_new_std_menu(handler, ops, V4L2_CID_MPEG_VIDEO_H264_PROFILE,
- 			V4L2_MPEG_VIDEO_H264_PROFILE_HIGH,
--			0, V4L2_MPEG_VIDEO_H264_PROFILE_MAIN);
-+			0, V4L2_MPEG_VIDEO_H264_PROFILE_HIGH);
- 	v4l2_ctrl_new_std_menu(handler, ops, V4L2_CID_MPEG_VIDEO_H264_LEVEL,
- 			V4L2_MPEG_VIDEO_H264_LEVEL_4_2,
- 			0, V4L2_MPEG_VIDEO_H264_LEVEL_4_0);
+diff --git a/Documentation/media/uapi/v4l/dev-raw-vbi.rst b/Documentation/media/uapi/v4l/dev-raw-vbi.rst
+index 95de08b8fbf2..859b5bc8abbb 100644
+--- a/Documentation/media/uapi/v4l/dev-raw-vbi.rst
++++ b/Documentation/media/uapi/v4l/dev-raw-vbi.rst
+@@ -196,10 +196,9 @@ and always returns default parameters as :ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>` does
+ 	  driver. Anyway, drivers may not support single field capturing and
+ 	  return both count values non-zero.
+ 
+-	  Both ``count`` values set to zero, or line numbers outside the
+-	  bounds depicted in :ref:`vbi-525` and :ref:`vbi-625`, or a
+-	  field image covering lines of two fields, are invalid and shall
+-	  not be returned by the driver.
++	  Both ``count`` values set to zero, or line numbers are outside the
++	  bounds depicted\ [#f4]_, or a field image covering lines of two
++	  fields, are invalid and shall not be returned by the driver.
+ 
+ 	  To initialize the ``start`` and ``count`` fields, applications
+ 	  must first determine the current video standard selection. The
+@@ -352,3 +351,6 @@ another process.
+    Most VBI services transmit on both fields, but some have different
+    semantics depending on the field number. These cannot be reliable
+    decoded or encoded when ``V4L2_VBI_UNSYNC`` is set.
++
++.. [#f4]
++   The valid values ar shown at :ref:`vbi-525` and :ref:`vbi-625`.
 -- 
-1.7.9.5
+2.7.4
+
 
