@@ -1,42 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f65.google.com ([209.85.214.65]:34748 "EHLO
-        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753890AbcHSIoR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 04:44:17 -0400
-MIME-Version: 1.0
-In-Reply-To: <1471595974-28960-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1471595974-28960-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1471595974-28960-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Fri, 19 Aug 2016 10:44:16 +0200
-Message-ID: <CAMuHMdUAi+Zm1fDiTKzZ+HLM1ZqZ=LKmBehC8YNkQoVe53et8Q@mail.gmail.com>
-Subject: Re: [PATCH 3/6] v4l: rcar-fcp: Don't get/put module reference
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        DRI Development <dri-devel@lists.freedesktop.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:32971 "EHLO
+	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1768253AbcHROfq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Aug 2016 10:35:46 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Markus Heiser <markus.heiser@darmarIT.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	Antti Palosaari <crope@iki.fi>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v5 03/12] [media] Documentation: Add Ricardo Ribalda
+Date: Thu, 18 Aug 2016 16:33:29 +0200
+Message-Id: <1471530818-7928-4-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 19, 2016 at 10:39 AM, Laurent Pinchart
-<laurent.pinchart+renesas@ideasonboard.com> wrote:
-> Direct callers of the FCP API hold a reference to the FCP module due to
-> module linkage, there's no need to take another one manually. Take a
-> reference to the device instead to ensure that it won't disappear being
+My initials were on the Changelog, but there was no link to my name.
 
-... behind
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ Documentation/media/uapi/v4l/v4l2.rst | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-> the caller's back.
+diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
+index 36c6d0dc3859..cf4a40ff7e14 100644
+--- a/Documentation/media/uapi/v4l/v4l2.rst
++++ b/Documentation/media/uapi/v4l/v4l2.rst
+@@ -68,6 +68,10 @@ Authors, in alphabetical order:
+ 
+   - SDR API.
+ 
++- Ribalda, Ricardo
++
++  - Introduce HSV formats and other minor changes.
++
+ - Rubli, Martin
+ 
+   - Designed and documented the VIDIOC_ENUM_FRAMESIZES and VIDIOC_ENUM_FRAMEINTERVALS ioctls.
+-- 
+2.8.1
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
