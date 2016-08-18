@@ -1,49 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43477 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:35633 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754127AbcHSUnk (ORCPT
+        with ESMTP id S1753982AbcHSDqJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 16:43:40 -0400
-Date: Fri, 19 Aug 2016 17:43:17 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Jani Nikula <jani.nikula@intel.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Subject: Re: [PATCH 1/7] doc-rst: generic way to build only sphinx
- sub-folders
-Message-ID: <20160819174317.3c0675a5@vento.lan>
-In-Reply-To: <20160819174038.0fb5901a@vento.lan>
-References: <1471097568-25990-1-git-send-email-markus.heiser@darmarit.de>
-        <1471097568-25990-2-git-send-email-markus.heiser@darmarit.de>
-        <20160818163514.43539c11@lwn.net>
-        <09880F76-6FE1-48E6-B76D-DFC4F47182D7@darmarit.de>
-        <8737m0udod.fsf@intel.com>
-        <92FD7AE6-E093-439C-A2AC-5F39EC1F4BED@darmarit.de>
-        <20160819174038.0fb5901a@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Thu, 18 Aug 2016 23:46:09 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Markus Heiser <markus.heiser@darmarIT.de>
+Subject: [PATCH 08/20] [media] pixfmt-packed-yuv.rst: adjust tables to fit in LaTeX
+Date: Thu, 18 Aug 2016 13:15:37 -0300
+Message-Id: <ef5c1b9cec4a8ab3de20c2f13593775745cb77b1.1471532123.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
+References: <cover.1471532122.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
+References: <cover.1471532122.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 19 Aug 2016 17:40:38 -0300
-Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
+Adjust the table to fit at the LaTeX and PDF outputs, just like
+what was done with pixfmt-packed-rgb.rst.
 
-> Em Fri, 19 Aug 2016 17:52:07 +0200
-> Markus Heiser <markus.heiser@darmarit.de> escreveu:
-> 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/v4l/pixfmt-packed-yuv.rst | 26 ++++++++++++++--------
+ 1 file changed, 17 insertions(+), 9 deletions(-)
 
-> > After said this, what is your suggestion? For me its all equal, these 
-> > are only my 2cent to this discussion :-)
+diff --git a/Documentation/media/uapi/v4l/pixfmt-packed-yuv.rst b/Documentation/media/uapi/v4l/pixfmt-packed-yuv.rst
+index 54716455f453..2ffcee5b383b 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-packed-yuv.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-packed-yuv.rst
+@@ -6,18 +6,19 @@
+ Packed YUV formats
+ ******************
+ 
+-*man Packed YUV formats(2)*
+-
+-Packed YUV formats
+-
+-
+ Description
+ ===========
+ 
+ Similar to the packed RGB formats these formats store the Y, Cb and Cr
+ component of each pixel in one 16 or 32 bit word.
+ 
++.. raw:: latex
+ 
++    \newline\newline\begin{adjustbox}{width=\columnwidth}
++
++.. _rgb-formats:
++
++.. tabularcolumns:: |p{4.5cm}|p{3.3cm}|p{0.7cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.2cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.2cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.2cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{1.7cm}|
+ 
+ .. flat-table:: Packed YUV Image Formats
+     :header-rows:  2
+@@ -309,8 +310,15 @@ component of each pixel in one 16 or 32 bit word.
+ 
+        -  Cr\ :sub:`0`
+ 
++.. raw:: latex
+ 
+-Bit 7 is the most significant bit. The value of a = alpha bits is
+-undefined when reading from the driver, ignored when writing to the
+-driver, except when alpha blending has been negotiated for a
+-:ref:`Video Overlay <overlay>` or :ref:`Video Output Overlay <osd>`.
++    \end{adjustbox}\newline\newline
++
++.. note::
++
++    #) Bit 7 is the most significant bit;
++
++    #) The value of a = alpha bits is undefined when reading from the driver,
++       ignored when writing to the driver, except when alpha blending has
++       been negotiated for a :ref:`Video Overlay <overlay>` or
++       :ref:`Video Output Overlay <osd>`.
+-- 
+2.7.4
 
-Forgot to mention, but I noticed that, sometimes, the building system
-doesn't get the cross-references right, and produces a PDF file
-(or an HTML file) with no TOC tables. The output files are still
-generated.
 
-I didn't try to track the root case.
-
-Thanks,
-Mauro
