@@ -1,86 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37334 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755991AbcHVONQ (ORCPT
+Received: from smtp90.iad3a.emailsrvr.com ([173.203.187.90]:38180 "EHLO
+        smtp90.iad3a.emailsrvr.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753990AbcHSNwZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 10:13:16 -0400
-Date: Mon, 22 Aug 2016 17:13:11 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, m.chehab@osg.samsung.com,
-        shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com
-Subject: Re: [RFC v2 17/17] omap3isp: Don't rely on devm for memory resource
- management
-Message-ID: <20160822141311.GF12130@valkosipuli.retiisi.org.uk>
-References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
- <1471602228-30722-18-git-send-email-sakari.ailus@linux.intel.com>
- <e0d07a7a-100f-9415-9b25-678d1a4101a1@xs4all.nl>
- <20160822140231.GE12130@valkosipuli.retiisi.org.uk>
+        Fri, 19 Aug 2016 09:52:25 -0400
+From: Steve Preston <stevepr@netstevepr.com>
+To: Andrey Utkin <andrey_utkin@fastmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: Linux support for current StarTech analog video capture device
+ (SAA711xx)
+Date: Fri, 19 Aug 2016 13:52:23 +0000
+Message-ID: <2fb767603a2e450a89ab263e2224026e@MBX06A-IAD3.mex08.mlsrvr.com>
+References: <2d1d06c05dae478b9bc2484e9d1da36c@MBX06A-IAD3.mex08.mlsrvr.com>
+ <20160817105822.7fum27zgz2e3hf4o@acer>
+In-Reply-To: <20160817105822.7fum27zgz2e3hf4o@acer>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160822140231.GE12130@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 22, 2016 at 05:02:31PM +0300, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Mon, Aug 22, 2016 at 02:40:39PM +0200, Hans Verkuil wrote:
-> > On 08/19/2016 12:23 PM, Sakari Ailus wrote:
-> > > devm functions are fine for managing resources that are directly related
-> > > to the device at hand and that have no other dependencies. However, a
-> > > process holding a file handle to a device created by a driver for a device
-> > > may result in the file handle left behind after the device is long gone.
-> > > This will result in accessing released (and potentially reallocated)
-> > > memory.
-> > > 
-> > > Instead, rely on the media device which will stick around until all users
-> > > are gone.
-> > > 
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > ---
-> > >  drivers/media/platform/omap3isp/isp.c         | 38 ++++++++++++++++++++-------
-> > >  drivers/media/platform/omap3isp/ispccp2.c     |  3 ++-
-> > >  drivers/media/platform/omap3isp/isph3a_aewb.c | 20 +++++++++-----
-> > >  drivers/media/platform/omap3isp/isph3a_af.c   | 20 +++++++++-----
-> > >  drivers/media/platform/omap3isp/isphist.c     |  5 ++--
-> > >  drivers/media/platform/omap3isp/ispstat.c     |  2 ++
-> > >  6 files changed, 63 insertions(+), 25 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> > > index 217d4da..3488ed3 100644
-> > > --- a/drivers/media/platform/omap3isp/isp.c
-> > > +++ b/drivers/media/platform/omap3isp/isp.c
-> > > @@ -1370,7 +1370,7 @@ static int isp_get_clocks(struct isp_device *isp)
-> > >  	unsigned int i;
-> > >  
-> > >  	for (i = 0; i < ARRAY_SIZE(isp_clocks); ++i) {
-> > > -		clk = devm_clk_get(isp->dev, isp_clocks[i]);
-> > 
-> > I wonder, would it be possible to use the media device itself for these devm_
-> > functions? Since the media device is the last one to be released...
-> 
-> Do you happen to mean... struct media_device->devnode.dev?
-> 
-> Interesting idea, I can't see why not. That'd actually make the required
-> driver changes to fix the drivers quite a bit easier to make. And we could
-> still use devm_() functions.
+Hello everyone,
 
-That might have been a little bit too fast.
+Sorry for the slow response.  Several people have offered to help and this is greatly appreciated. I'm not the occultation person actually doing the dev work on our Linux project.  I have forwarded the suggestions from this thread on the list and we let you know as we make progress.
 
-In fact, device_release() in drivers/base/core.c does release resources
-bound to device (devm) *before* calling the driver's release callback.
+We have two models of the StarTech in use: SVID2USB2 and SVID2USB23.  The "23" version is the only version currently listed on StarTech's website.  It is available via Amazon in the USA but I'm not sure about other countries.
 
-This means that the driver's device release callback may not access
-resources allocated with devm functions. Considering that devm_() functions
-have been broken and fixed before [1], could this be more than a bug?
+Thanks again,
+Steve
 
-The comments there seem off topic mostly.
-
-[1] a525a3ddeaca69f405d98442ab3c0746e53168dc
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
