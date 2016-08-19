@@ -1,101 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.goneo.de ([85.220.129.30]:33610 "EHLO smtp1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753192AbcHOOI5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 10:08:57 -0400
-From: Markus Heiser <markus.heiser@darmarit.de>
-To: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jani Nikula <jani.nikula@intel.com>
-Cc: Markus Heiser <markus.heiser@darmarIT.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 3/5] doc-rst: moved *duplicate* warnings to nitpicky mode
-Date: Mon, 15 Aug 2016 16:08:26 +0200
-Message-Id: <1471270108-29314-4-git-send-email-markus.heiser@darmarit.de>
-In-Reply-To: <1471270108-29314-1-git-send-email-markus.heiser@darmarit.de>
-References: <1471270108-29314-1-git-send-email-markus.heiser@darmarit.de>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51092 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755070AbcHSIje (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Aug 2016 04:39:34 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 6/6] drm: rcar-du: Map memory through the VSP device
+Date: Fri, 19 Aug 2016 11:39:34 +0300
+Message-Id: <1471595974-28960-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1471595974-28960-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1471595974-28960-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Heiser <markus.heiser@darmarIT.de>
+For planes handled by a VSP instance, map the framebuffer memory through
+the VSP to ensure proper IOMMU handling.
 
-Moved the *duplicate C object description* warnings for function
-declarations in the nitpicky mode. In nitpick mode, you can suppress
-those warnings (e.g. ioctl) with::
-
-  nitpicky = True
-  nitpick_ignore = [
-      ("c:func", "ioctl"),
-  ]
-
-See Sphinx documentation for the config values for ``nitpick`` and
-``nitpick_ignore`` [1].
-
-With this change all the ".. cpp:function:: int ioctl(..)" descriptions
-(found in the media book) can be migrated to ".. c:function:: int
-ioctl(..)", without getting any warnings. E.g.::
-
-  .. cpp:function:: int ioctl( int fd, int request, struct cec_event *argp )
-
-  .. c:function:: int ioctl( int fd, int request, struct cec_event *argp )
-
-The main effect, is that we get those *CPP-types* back into Sphinx's C-
-namespace and we need no longer to distinguish between c/cpp references,
-when we refer a function like the ioctl.
-
-[1] http://www.sphinx-doc.org/en/stable/config.html?highlight=nitpick#confval-nitpicky
-
-Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- Documentation/sphinx/cdomain.py | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c | 74 ++++++++++++++++++++++++++++++++---
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.h |  2 +
+ 2 files changed, 70 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/sphinx/cdomain.py b/Documentation/sphinx/cdomain.py
-index 99cd035..cb4e8c9 100644
---- a/Documentation/sphinx/cdomain.py
-+++ b/Documentation/sphinx/cdomain.py
-@@ -10,6 +10,10 @@ u"""
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+index 83ebd162f3ef..851c2e78de0a 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+@@ -19,7 +19,9 @@
+ #include <drm/drm_gem_cma_helper.h>
+ #include <drm/drm_plane_helper.h>
  
-     List of customizations:
++#include <linux/dma-mapping.h>
+ #include <linux/of_platform.h>
++#include <linux/scatterlist.h>
+ #include <linux/videodev2.h>
  
-+    * Moved the *duplicate C object description* warnings for function
-+      declarations in the nitpicky mode. See Sphinx documentation for
-+      the config values for ``nitpick`` and ``nitpick_ignore``.
+ #include <media/vsp1.h>
+@@ -166,12 +168,9 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
+ 	cfg.dst.width = state->state.crtc_w;
+ 	cfg.dst.height = state->state.crtc_h;
+ 
+-	for (i = 0; i < state->format->planes; ++i) {
+-		struct drm_gem_cma_object *gem;
+-
+-		gem = drm_fb_cma_get_gem_obj(fb, i);
+-		cfg.mem[i] = gem->paddr + fb->offsets[i];
+-	}
++	for (i = 0; i < state->format->planes; ++i)
++		cfg.mem[i] = sg_dma_address(state->sg_tables[i].sgl)
++			   + fb->offsets[i];
+ 
+ 	for (i = 0; i < ARRAY_SIZE(formats_kms); ++i) {
+ 		if (formats_kms[i] == state->format->fourcc) {
+@@ -183,6 +182,67 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
+ 	vsp1_du_atomic_update(plane->vsp->vsp, plane->index, &cfg);
+ }
+ 
++static int rcar_du_vsp_plane_prepare_fb(struct drm_plane *plane,
++					struct drm_plane_state *state)
++{
++	struct rcar_du_vsp_plane_state *rstate = to_rcar_vsp_plane_state(state);
++	struct rcar_du_vsp *vsp = to_rcar_vsp_plane(plane)->vsp;
++	struct rcar_du_device *rcdu = vsp->dev;
++	unsigned int i;
++	int ret;
 +
-     * Add option 'name' to the "c:function:" directive.  With option 'name' the
-       ref-name of a function can be modified. E.g.::
- 
-@@ -60,6 +64,29 @@ class CObject(Base_CObject):
-                 pass
-         return fullname
- 
-+    def add_target_and_index(self, name, sig, signode):
-+        # for C API items we add a prefix since names are usually not qualified
-+        # by a module name and so easily clash with e.g. section titles
-+        targetname = 'c.' + name
-+        if targetname not in self.state.document.ids:
-+            signode['names'].append(targetname)
-+            signode['ids'].append(targetname)
-+            signode['first'] = (not self.names)
-+            self.state.document.note_explicit_target(signode)
-+            inv = self.env.domaindata['c']['objects']
-+            if (name in inv and self.env.config.nitpicky):
-+                if self.objtype == 'function':
-+                    if ('c:func', name) not in self.env.config.nitpick_ignore:
-+                        self.state_machine.reporter.warning(
-+                            'duplicate C object description of %s, ' % name +
-+                            'other instance in ' + self.env.doc2path(inv[name][0]),
-+                            line=self.lineno)
-+            inv[name] = (self.env.docname, self.objtype)
++	if (!state->fb)
++		return 0;
 +
-+        indextext = self.get_index_text(name)
-+        if indextext:
-+            self.indexnode['entries'].append(('single', indextext,
-+                                              targetname, '', None))
++	for (i = 0; i < rstate->format->planes; ++i) {
++		struct drm_gem_cma_object *gem =
++			drm_fb_cma_get_gem_obj(state->fb, i);
++		struct sg_table *sgt = &rstate->sg_tables[i];
++
++		ret = dma_get_sgtable(rcdu->dev, sgt, gem->vaddr, gem->paddr,
++				      gem->base.size);
++		if (ret)
++			goto fail;
++
++		ret = vsp1_du_map_sg(vsp->vsp, sgt);
++		if (!ret) {
++			sg_free_table(sgt);
++			ret = -ENOMEM;
++			goto fail;
++		}
++	}
++
++	return 0;
++
++fail:
++	for (i--; i >= 0; i--) {
++		struct sg_table *sgt = &rstate->sg_tables[i];
++
++		vsp1_du_unmap_sg(vsp->vsp, sgt);
++		sg_free_table(sgt);
++	}
++
++	return ret;
++}
++
++static void rcar_du_vsp_plane_cleanup_fb(struct drm_plane *plane,
++					 struct drm_plane_state *state)
++{
++	struct rcar_du_vsp_plane_state *rstate = to_rcar_vsp_plane_state(state);
++	struct rcar_du_vsp *vsp = to_rcar_vsp_plane(plane)->vsp;
++	unsigned int i;
++
++	if (!state->fb)
++		return;
++
++	for (i = 0; i < rstate->format->planes; ++i) {
++		struct sg_table *sgt = &rstate->sg_tables[i];
++
++		vsp1_du_unmap_sg(vsp->vsp, sgt);
++		sg_free_table(sgt);
++	}
++}
++
+ static int rcar_du_vsp_plane_atomic_check(struct drm_plane *plane,
+ 					  struct drm_plane_state *state)
+ {
+@@ -223,6 +283,8 @@ static void rcar_du_vsp_plane_atomic_update(struct drm_plane *plane,
+ }
  
- class CDomain(Base_CDomain):
+ static const struct drm_plane_helper_funcs rcar_du_vsp_plane_helper_funcs = {
++	.prepare_fb = rcar_du_vsp_plane_prepare_fb,
++	.cleanup_fb = rcar_du_vsp_plane_cleanup_fb,
+ 	.atomic_check = rcar_du_vsp_plane_atomic_check,
+ 	.atomic_update = rcar_du_vsp_plane_atomic_update,
+ };
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
+index 510dcc9c6816..bbb41610e38a 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
++++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
+@@ -43,6 +43,7 @@ static inline struct rcar_du_vsp_plane *to_rcar_vsp_plane(struct drm_plane *p)
+  * struct rcar_du_vsp_plane_state - Driver-specific plane state
+  * @state: base DRM plane state
+  * @format: information about the pixel format used by the plane
++ * @sg_tables: scatter-gather tables for the frame buffer memory
+  * @alpha: value of the plane alpha property
+  * @zpos: value of the plane zpos property
+  */
+@@ -50,6 +51,7 @@ struct rcar_du_vsp_plane_state {
+ 	struct drm_plane_state state;
  
+ 	const struct rcar_du_format_info *format;
++	struct sg_table sg_tables[3];
+ 
+ 	unsigned int alpha;
+ 	unsigned int zpos;
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
 
