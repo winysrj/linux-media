@@ -1,50 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:34482 "EHLO
-	mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932237AbcHCNa1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 09:30:27 -0400
-Received: by mail-lf0-f52.google.com with SMTP id l69so161109387lfg.1
-        for <linux-media@vger.kernel.org>; Wed, 03 Aug 2016 06:30:26 -0700 (PDT)
-Subject: Re: [PATCHv2 5/7] media: rcar-vin: add support for
- V4L2_FIELD_ALTERNATE
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	slongerbeam@gmail.com
-References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
- <20160802145107.24829-6-niklas.soderlund+renesas@ragnatech.se>
-Cc: lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <0bfd0a3b-a5ac-e9f3-1295-72c7b0063e68@cogentembedded.com>
-Date: Wed, 3 Aug 2016 16:22:22 +0300
-MIME-Version: 1.0
-In-Reply-To: <20160802145107.24829-6-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34251 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754510AbcHSQg0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Aug 2016 12:36:26 -0400
+Received: by mail-wm0-f68.google.com with SMTP id q128so4068033wma.1
+        for <linux-media@vger.kernel.org>; Fri, 19 Aug 2016 09:36:25 -0700 (PDT)
+From: Johan Fjeldtvedt <jaffe1@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Johan Fjeldtvedt <jaffe1@gmail.com>
+Subject: [PATCH 3/4] pulse8-cec: add notes about behavior in autonomous mode
+Date: Fri, 19 Aug 2016 18:36:15 +0200
+Message-Id: <1471624576-9823-3-git-send-email-jaffe1@gmail.com>
+In-Reply-To: <1471624576-9823-1-git-send-email-jaffe1@gmail.com>
+References: <1471624576-9823-1-git-send-email-jaffe1@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+The pulse8 dongle has some quirky behaviors when in autonomous mode.
+Document these.
 
-On 08/02/2016 05:51 PM, Niklas Söderlund wrote:
+Signed-off-by: Johan Fjeldtvedt <jaffe1@gmail.com>
+---
+ drivers/staging/media/pulse8-cec/pulse8-cec.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-> The HW can capture both ODD and EVEN fields in separate buffers so it's
-> possible to support V4L2_FIELD_ALTERNATE. This patch add support for
-> this mode.
->
-> At probe time and when S_STD is called the driver will default to use
-> V4L2_FIELD_INTERLACED if the subdevice reports V4L2_FIELD_ALTERNATE. The
-> driver will only change the field type if the subdevice implements
-> G_STD, if not it will keep the default at V4L2_FIELD_ALTERNATE.
->
-> The user can always explicitly ask for V4L2_FIELD_ALTERNATE in S_FTM and
-
-    S_FMT?
-
-> the driver will use that field format.
->
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-[...]
-
-MBR, Sergei
+diff --git a/drivers/staging/media/pulse8-cec/pulse8-cec.c b/drivers/staging/media/pulse8-cec/pulse8-cec.c
+index fdb2407..4d20e72 100644
+--- a/drivers/staging/media/pulse8-cec/pulse8-cec.c
++++ b/drivers/staging/media/pulse8-cec/pulse8-cec.c
+@@ -10,6 +10,29 @@
+  * this archive for more details.
+  */
+ 
++/*
++ * Notes:
++ *
++ * - Devices with firmware version < 2 do not store their configuration in
++ *   EEPROM.
++ *
++ * - In autonomous mode, only messages from a TV will be acknowledged, even
++ *   polling messages. Upon receiving a message from a TV, the dongle will
++ *   respond to messages from any logical address.
++ *
++ * - In autonomous mode, the dongle will by default reply Feature Abort
++ *   [Unrecognized Opcode] when it receives Give Device Vendor ID. It will
++ *   however observe vendor ID's reported by other devices and possibly
++ *   alter this behavior. When TV's (and TV's only) report that their vendor ID
++ *   is LG (0x00e091), the dongle will itself reply that it has the same vendor
++ *   ID, and it will respond to at least one vendor specific command.
++ *
++ * - In autonomous mode, the dongle is known to attempt wakeup if it receives
++ *   <User Control Pressed> ["Power On"], ["Power] or ["Power Toggle"], or if it
++ *   receives <Set Stream Path> with its own physical address. It also does this
++ *   if it receives <Vendor Specific Command> [0x03 0x00] from an LG TV.
++ */
++
+ #include <linux/completion.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+-- 
+2.7.4
 
