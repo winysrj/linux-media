@@ -1,75 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:46726 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932105AbcHHTbW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2016 15:31:22 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jiri Kosina <trivial@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v3 02/14] media: mt9m111: prevent module removal while in use
-Date: Mon,  8 Aug 2016 21:30:40 +0200
-Message-Id: <1470684652-16295-3-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
-References: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:42030
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751817AbcHSNh5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Aug 2016 09:37:57 -0400
+Date: Fri, 19 Aug 2016 10:37:50 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kamil Debski <kamil@wypas.org>
+Subject: Re: [PATCH 13/15] [media] cec-core: Convert it to ReST format
+Message-ID: <20160819103750.300b4afe@vento.lan>
+In-Reply-To: <26805b9a-8e8d-2b22-0777-af2311fbfb9e@cisco.com>
+References: <cover.1471611003.git.mchehab@s-opensource.com>
+        <b85163fc1723bdb240ce3136552ac1683999051c.1471611003.git.mchehab@s-opensource.com>
+        <26805b9a-8e8d-2b22-0777-af2311fbfb9e@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mt9m111 can be a removable module : the only case where the module
-should be kept loaded is while it is used, ie. while an active
-transation is ongoing on it.
+Em Fri, 19 Aug 2016 15:24:16 +0200
+Hans Verkuil <hansverk@cisco.com> escreveu:
 
-The notion of active transaction is mapped on the power state of the
-module : if powered on the removal is prohibited.
+> On 08/19/2016 03:05 PM, Mauro Carvalho Chehab wrote:
+> > There are some things there that aren't ok for ReST format.
+> >
+> > Fix them.
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
+> 
+> OK, so I posted a similar patch for this:
+> 
+> https://patchwork.linuxtv.org/patch/36376/
+> 
+> It's part of one of my pull requests, but I guess you can skip that patch.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/i2c/soc_camera/mt9m111.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+Sorry, I didn't notice. I'm actually waiting for Jon to merge the
+remaining patches for the Sphinx rst core before starting handling
+and merging our patches. I want to avoid having a separate branch for
+documentation this time.
 
-diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
-index a7efaa5964d1..ea5b5e709402 100644
---- a/drivers/media/i2c/soc_camera/mt9m111.c
-+++ b/drivers/media/i2c/soc_camera/mt9m111.c
-@@ -780,23 +780,33 @@ static int mt9m111_power_on(struct mt9m111 *mt9m111)
- 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
- 	int ret;
- 
-+	if (!try_module_get(THIS_MODULE))
-+		return -ENXIO;
-+
- 	ret = v4l2_clk_enable(mt9m111->clk);
- 	if (ret < 0)
--		return ret;
-+		goto out_module_put;
- 
- 	ret = mt9m111_resume(mt9m111);
- 	if (ret < 0) {
- 		dev_err(&client->dev, "Failed to resume the sensor: %d\n", ret);
--		v4l2_clk_disable(mt9m111->clk);
-+		goto out_clk_disable;
- 	}
- 
- 	return ret;
-+
-+out_clk_disable:
-+	v4l2_clk_disable(mt9m111->clk);
-+out_module_put:
-+	module_put(THIS_MODULE);
-+	return ret;
- }
- 
- static void mt9m111_power_off(struct mt9m111 *mt9m111)
- {
- 	mt9m111_suspend(mt9m111);
- 	v4l2_clk_disable(mt9m111->clk);
-+	module_put(THIS_MODULE);
- }
- 
- static int mt9m111_s_power(struct v4l2_subdev *sd, int on)
--- 
-2.1.4
+IMHO, my approach is better than you for functions, as it declares
+functions and struct using the proper macros that are also used
+by kernel-doc script.
 
+Yet, I didn't touch at MAINTAINERS nor I used ``constant`` or
+:c:type:/:c:func: for references of the functions/struct. 
+Would you care to rebase your patch on the top of mine doing such
+changes?
+
+Thanks!
+Mauro
