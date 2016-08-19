@@ -1,72 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:51098 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932475AbcHCROs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 13:14:48 -0400
-Subject: Re: [PATCHv2 7/7] [PATCHv5] media: adv7180: fix field type
-To: Lars-Peter Clausen <lars@metafoo.de>,
-	=?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
-References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
- <20160802145107.24829-8-niklas.soderlund+renesas@ragnatech.se>
- <3bb2b375-a4a9-00c4-1466-7b1ba8e3bfd8@metafoo.de>
- <20160803132147.GL3672@bigcity.dyn.berto.se>
- <2a8ec840-301b-06c8-31ec-42d25b282437@mentor.com>
- <4301a49c-39e3-2b35-74a4-e079b528db9e@metafoo.de>
-CC: <linux-media@vger.kernel.org>, <linux-renesas-soc@vger.kernel.org>,
-	<sergei.shtylyov@cogentembedded.com>, <slongerbeam@gmail.com>,
-	<mchehab@kernel.org>, <hans.verkuil@cisco.com>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <53ce2f9b-6f06-dad5-a55d-cb4abbe6db24@mentor.com>
-Date: Wed, 3 Aug 2016 10:14:45 -0700
-MIME-Version: 1.0
-In-Reply-To: <4301a49c-39e3-2b35-74a4-e079b528db9e@metafoo.de>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46852 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754438AbcHSKYG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Aug 2016 06:24:06 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v2 14/17] media-device: Postpone graph object removal until free
+Date: Fri, 19 Aug 2016 13:23:45 +0300
+Message-Id: <1471602228-30722-15-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/03/2016 09:58 AM, Lars-Peter Clausen wrote:
-> On 08/03/2016 06:55 PM, Steve Longerbeam wrote:
->> On 08/03/2016 06:21 AM, Niklas Söderlund wrote:
->>> On 2016-08-02 17:00:07 +0200, Lars-Peter Clausen wrote:
->>>> [...]
->>>>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
->>>>> index a8b434b..c6fed71 100644
->>>>> --- a/drivers/media/i2c/adv7180.c
->>>>> +++ b/drivers/media/i2c/adv7180.c
->>>>> @@ -680,10 +680,13 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
->>>>>  	switch (format->format.field) {
->>>>>  	case V4L2_FIELD_NONE:
->>>>>  		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
->>>>> -			format->format.field = V4L2_FIELD_INTERLACED;
->>>>> +			format->format.field = V4L2_FIELD_ALTERNATE;
->>>>>  		break;
->>>>>  	default:
->>>>> -		format->format.field = V4L2_FIELD_INTERLACED;
->>>>> +		if (state->chip_info->flags & ADV7180_FLAG_I2P)
->>>>> +			format->format.field = V4L2_FIELD_INTERLACED;
->>>> I'm not convinced this is correct. As far as I understand it when the I2P
->>>> feature is enabled the core outputs full progressive frames at the full
->>>> framerate. If it is bypassed it outputs half-frames. So we have the option
->>>> of either V4L2_FIELD_NONE or V4L2_FIELD_ALTERNATE, but never interlaced. I
->>>> think this branch should setup the field format to be ALTERNATE regardless
->>>> of whether the I2P feature is available.
->>> I be happy to update the patch in such manner, but I feel this is more 
->>> for Steven to handle. I have no deep understanding of the adv7180 driver 
->>> and the only HW I have is the adv7180 and not adv7280, adv7280_m, 
->>> adv7282 or adv7282_m which is the models which have the ADV7180_FLAG_I2P 
->>> flag. So I can't really test such a change.
->>>
->>> Steven do you want to update this patch and resend it? 
->> Hi Niklas, I can update this patch, but it sounds like the whole thing
->> is "up in the air" at this point, and we may want to yank out the I2P
->> support altogether. I'll leave it up to Lars and others to work that out
->> first.
-> Yeah, we should remove the whole I2P stuff, I was misinformed about how it
-> works. But either way I think this patch should simply not touch the current
-> behavior, so don't add new if (FLAG_I2P) checks.
+The media device itself will be unregistered based on it being unbound and
+driver's remove callback being called. The graph objects themselves may
+still be in use; rely on the media device release callback to release
+them.
 
-Hi Lars, Ok I can do that. I'll resubmit in next version of my patchset.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-device.c | 44 ++++++++++++++++++++------------------------
+ 1 file changed, 20 insertions(+), 24 deletions(-)
 
-Steve
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 0656daf..cbbc397 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -756,6 +756,26 @@ EXPORT_SYMBOL_GPL(media_device_cleanup);
+ static void media_device_release(struct media_devnode *devnode)
+ {
+ 	struct media_device *mdev = to_media_device(devnode);
++	struct media_entity *entity;
++	struct media_entity *next;
++	struct media_interface *intf, *tmp_intf;
++	struct media_entity_notify *notify, *nextp;
++
++	/* Remove all entities from the media device */
++	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
++		__media_device_unregister_entity(entity);
++
++	/* Remove all entity_notify callbacks from the media device */
++	list_for_each_entry_safe(notify, nextp, &mdev->entity_notify, list)
++		__media_device_unregister_entity_notify(mdev, notify);
++
++	/* Remove all interfaces from the media device */
++	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
++				 graph_obj.list) {
++		__media_remove_intf_links(intf);
++		media_gobj_destroy(&intf->graph_obj);
++		kfree(intf);
++	}
+ 
+ 	ida_destroy(&mdev->entity_internal_idx);
+ 	mdev->entity_internal_idx_max = 0;
+@@ -800,38 +820,14 @@ EXPORT_SYMBOL_GPL(__media_device_register);
+ 
+ void media_device_unregister(struct media_device *mdev)
+ {
+-	struct media_entity *entity;
+-	struct media_entity *next;
+-	struct media_interface *intf, *tmp_intf;
+-	struct media_entity_notify *notify, *nextp;
+-
+ 	if (mdev == NULL)
+ 		return;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+-
+-	/* Check if mdev was ever registered at all */
+ 	if (!media_devnode_is_registered(&mdev->devnode)) {
+ 		mutex_unlock(&mdev->graph_mutex);
+ 		return;
+ 	}
+-
+-	/* Remove all entities from the media device */
+-	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+-		__media_device_unregister_entity(entity);
+-
+-	/* Remove all entity_notify callbacks from the media device */
+-	list_for_each_entry_safe(notify, nextp, &mdev->entity_notify, list)
+-		__media_device_unregister_entity_notify(mdev, notify);
+-
+-	/* Remove all interfaces from the media device */
+-	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
+-				 graph_obj.list) {
+-		__media_remove_intf_links(intf);
+-		media_gobj_destroy(&intf->graph_obj);
+-		kfree(intf);
+-	}
+-
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
+ 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+-- 
+2.1.4
 
