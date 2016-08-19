@@ -1,99 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:53038 "EHLO
-	smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935041AbcHBOvl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 10:51:41 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com
-Cc: lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com,
-	Steve Longerbeam <steve_longerbeam@mentor.com>,
-	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 7/7] [PATCHv5] media: adv7180: fix field type
-Date: Tue,  2 Aug 2016 16:51:07 +0200
-Message-Id: <20160802145107.24829-8-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37979 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754884AbcHSNte (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Aug 2016 09:49:34 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 45E711800DD
+        for <linux-media@vger.kernel.org>; Fri, 19 Aug 2016 15:48:58 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.8] Fixes and updates (mostly cec-related) (v3)
+Message-ID: <d9987eba-e843-c755-8de7-1499e5d4252b@xs4all.nl>
+Date: Fri, 19 Aug 2016 15:48:58 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Steve Longerbeam <slongerbeam@gmail.com>
+Hi Mauro,
 
-The ADV7180 and ADV7182 transmit whole fields, bottom field followed
-by top (or vice-versa, depending on detected video standard). So
-for chips that do not have support for explicitly setting the field
-mode, set the field mode to V4L2_FIELD_ALTERNATE.
+These are (regression) fixes for 4.8, mostly related to the cec framework.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-[Niklas: changed filed type from V4L2_FIELD_SEQ_{TB,BT} to
-V4L2_FIELD_ALTERNATE]
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+It fixes some dubious locking code, two typos in cec-funcs.h, a missing reply
+for the Record On/Off messages, improves the documentation, adds a TODO line,
+adds a flag to explicitly allow fallback to Unregistered, ensures unclaimed
+LAs are set to INVALID, prevents broadcast messages from being processed
+when they should be ignored and add a IEEE ID check when locating in physical
+address location in the EDID.
 
----
-v5:
-- Readd patch version and changelog which was dropped in v4.
+The CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK patch changes the default behavior,
+so I would like to get that in for 4.8 rather than waiting for 4.9.
 
-v4:
-- Switch V4L2_FIELD_SEQ_TB/V4L2_FIELD_SEQ_BT to V4L2_FIELD_ALTERNATE.
-- Update of Steves patch by Niklas.
+The cec-compliance test we've been working on is done and merged in v4l-utils.
+This means we have 99% coverage (only some CDC HEC tests are missing since
+that's rarely used). These patches fix some remaining problems that we've found
+while working on this test.
 
-v3: no changes
+I hope to fix the remaining items from the TODO list for 4.9 so that the
+framework can be mainlined soon.
 
-v2:
-- the init of state->curr_norm in probe needs to be moved up, ahead
-  of the init of state->field.
----
- drivers/media/i2c/adv7180.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+There are three other patches: the mediatek patch adds a missing HAS_DMA
+dependency to shut the kbuild robot up, and there are two fixes for the pulse8-cec
+driver. Many thanks to Pulse-Eight for providing me with the information
+necessary for these two patches.
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index a8b434b..c6fed71 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -680,10 +680,13 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
- 	switch (format->format.field) {
- 	case V4L2_FIELD_NONE:
- 		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
--			format->format.field = V4L2_FIELD_INTERLACED;
-+			format->format.field = V4L2_FIELD_ALTERNATE;
- 		break;
- 	default:
--		format->format.field = V4L2_FIELD_INTERLACED;
-+		if (state->chip_info->flags & ADV7180_FLAG_I2P)
-+			format->format.field = V4L2_FIELD_INTERLACED;
-+		else
-+			format->format.field = V4L2_FIELD_ALTERNATE;
- 		break;
- 	}
- 
-@@ -1253,8 +1256,13 @@ static int adv7180_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 
- 	state->client = client;
--	state->field = V4L2_FIELD_INTERLACED;
- 	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
-+	state->curr_norm = V4L2_STD_NTSC;
-+
-+	if (state->chip_info->flags & ADV7180_FLAG_I2P)
-+		state->field = V4L2_FIELD_INTERLACED;
-+	else
-+		state->field = V4L2_FIELD_ALTERNATE;
- 
- 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
- 		state->csi_client = i2c_new_dummy(client->adapter,
-@@ -1274,7 +1282,6 @@ static int adv7180_probe(struct i2c_client *client,
- 
- 	state->irq = client->irq;
- 	mutex_init(&state->mutex);
--	state->curr_norm = V4L2_STD_NTSC;
- 	if (state->chip_info->flags & ADV7180_FLAG_RESET_POWERED)
- 		state->powered = true;
- 	else
--- 
-2.9.0
+Regards,
 
+	Hans
+
+v3: add cec-edid: check for IEEE identifier
+v2: fixing a bug in the "cec: add CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK flag"
+patch and adding "cec: set unclaimed addresses to CEC_LOG_ADDR_INVALID".
+
+The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
+
+  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.8a
+
+for you to fetch changes up to d9fb56631ec40780de628ce5dc9f519f5e336e1c:
+
+  cec-edid: check for IEEE identifier (2016-08-19 15:30:23 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (13):
+      cec: rename cec_devnode fhs_lock to just lock
+      cec: improve locking
+      cec-funcs.h: fix typo: && should be &
+      cec-funcs.h: add reply argument for Record On/Off
+      cec: improve dqevent documentation
+      cec: add CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK flag
+      cec: set unclaimed addresses to CEC_LOG_ADDR_INVALID
+      cec: add item to TODO
+      cec: ignore messages when log_addr_mask == 0
+      mtk-vcodec: add HAS_DMA dependency
+      pulse8-cec: set correct Signal Free Time
+      pulse8-cec: fix error handling
+      cec-edid: check for IEEE identifier
+
+ Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst | 21 ++++++++++++++++++++-
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst          |  8 ++++++--
+ drivers/media/cec-edid.c                                  |  5 ++++-
+ drivers/media/platform/Kconfig                            |  2 +-
+ drivers/staging/media/cec/TODO                            |  1 +
+ drivers/staging/media/cec/cec-adap.c                      | 23 +++++++++++++++++------
+ drivers/staging/media/cec/cec-api.c                       | 10 +++++-----
+ drivers/staging/media/cec/cec-core.c                      | 27 +++++++++++++++------------
+ drivers/staging/media/pulse8-cec/pulse8-cec.c             | 10 +++++-----
+ include/linux/cec-funcs.h                                 |  9 ++++++---
+ include/linux/cec.h                                       |  5 ++++-
+ include/media/cec.h                                       |  2 +-
+ 12 files changed, 85 insertions(+), 38 deletions(-)
