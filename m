@@ -1,50 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:25024 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932411AbcHHTbX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2016 15:31:23 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jiri Kosina <trivial@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v3 03/14] media: mt9m111: use only the SRGB colorspace
-Date: Mon,  8 Aug 2016 21:30:41 +0200
-Message-Id: <1470684652-16295-4-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
-References: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
+Received: from mout.web.de ([212.227.15.14]:56079 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750731AbcHSIRi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Aug 2016 04:17:38 -0400
+To: linux-media@vger.kernel.org,
+        Abhilash Jindal <klock.android@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max@duempel.org>,
+        Michael Ira Krufky <mkrufky@linuxtv.org>,
+        Shuah Khan <shuah@kernel.org>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] [media] dvb_frontend: Use memdup_user() rather than
+ duplicating its implementation
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+Message-ID: <40f67371-815d-ad02-7bf7-db9998da0262@users.sourceforge.net>
+Date: Fri, 19 Aug 2016 10:17:16 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-mt9m111 being a camera sensor, its colorspace should always be SRGB, for
-both RGB based formats or YCbCr based ones.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 19 Aug 2016 10:04:54 +0200
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+* Reuse existing functionality from memdup_user() instead of keeping
+  duplicate source code.
+
+  This issue was detected by using the Coccinelle software.
+
+* Return directly if this copy operation failed.
+
+* Replace the specification of data structures by pointer dereferences
+  to make the corresponding size determination a bit safer according to
+  the Linux coding style convention.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/i2c/soc_camera/mt9m111.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/dvb-core/dvb_frontend.c | 28 ++++++----------------------
+ 1 file changed, 6 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
-index ea5b5e709402..aeb056e6e732 100644
---- a/drivers/media/i2c/soc_camera/mt9m111.c
-+++ b/drivers/media/i2c/soc_camera/mt9m111.c
-@@ -188,10 +188,10 @@ struct mt9m111_datafmt {
- };
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index be99c8d..01511e5 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -1969,17 +1969,9 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ 		if ((tvps->num == 0) || (tvps->num > DTV_IOCTL_MAX_MSGS))
+ 			return -EINVAL;
  
- static const struct mt9m111_datafmt mt9m111_colour_fmts[] = {
--	{MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_JPEG},
--	{MEDIA_BUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_JPEG},
--	{MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_JPEG},
--	{MEDIA_BUS_FMT_VYUY8_2X8, V4L2_COLORSPACE_JPEG},
-+	{MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_SRGB},
-+	{MEDIA_BUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_SRGB},
-+	{MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_SRGB},
-+	{MEDIA_BUS_FMT_VYUY8_2X8, V4L2_COLORSPACE_SRGB},
- 	{MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
- 	{MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE, V4L2_COLORSPACE_SRGB},
- 	{MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB},
+-		tvp = kmalloc(tvps->num * sizeof(struct dtv_property), GFP_KERNEL);
+-		if (!tvp) {
+-			err = -ENOMEM;
+-			goto out;
+-		}
+-
+-		if (copy_from_user(tvp, (void __user *)tvps->props,
+-				   tvps->num * sizeof(struct dtv_property))) {
+-			err = -EFAULT;
+-			goto out;
+-		}
++		tvp = memdup_user(tvps->props, tvps->num * sizeof(*tvp));
++		if (IS_ERR(tvp))
++			return PTR_ERR(tvp);
+ 
+ 		for (i = 0; i < tvps->num; i++) {
+ 			err = dtv_property_process_set(fe, tvp + i, file);
+@@ -2002,17 +1994,9 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ 		if ((tvps->num == 0) || (tvps->num > DTV_IOCTL_MAX_MSGS))
+ 			return -EINVAL;
+ 
+-		tvp = kmalloc(tvps->num * sizeof(struct dtv_property), GFP_KERNEL);
+-		if (!tvp) {
+-			err = -ENOMEM;
+-			goto out;
+-		}
+-
+-		if (copy_from_user(tvp, (void __user *)tvps->props,
+-				   tvps->num * sizeof(struct dtv_property))) {
+-			err = -EFAULT;
+-			goto out;
+-		}
++		tvp = memdup_user(tvps->props, tvps->num * sizeof(*tvp));
++		if (IS_ERR(tvp))
++			return PTR_ERR(tvp);
+ 
+ 		/*
+ 		 * Let's use our own copy of property cache, in order to
 -- 
-2.1.4
+2.9.3
 
