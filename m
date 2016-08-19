@@ -1,76 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:12359 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1758203AbcH3MZ5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Aug 2016 08:25:57 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-CC: <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH v5 1/5] VPU: mediatek: Add mdp support
-Date: Tue, 30 Aug 2016 20:25:40 +0800
-Message-ID: <1472559944-55114-2-git-send-email-minghsiu.tsai@mediatek.com>
-In-Reply-To: <1472559944-55114-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1472559944-55114-1-git-send-email-minghsiu.tsai@mediatek.com>
+Received: from mail-bl2nam02on0128.outbound.protection.outlook.com ([104.47.38.128]:13889
+        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1755417AbcHSPQJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Aug 2016 11:16:09 -0400
+From: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        "Bird, Timothy" <Tim.Bird@am.sony.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "Shimizu, Kazuhiro" <Kazuhiro.Shimizu@sony.com>,
+        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
+        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
+        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
+        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
+        "Berry, Tom" <Tom.Berry@sony.com>,
+        "Rowand, Frank" <Frank.Rowand@am.sony.com>,
+        "tbird20d@gmail.com" <tbird20d@gmail.com>,
+        "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
+Subject: RE: Sony tuner chip driver questions
+Date: Fri, 19 Aug 2016 09:44:06 +0000
+Message-ID: <02699364973B424C83A42A84B04FDA852B0AB5@JPYOKXMS113.jp.sony.com>
+References: <ECADFF3FD767C149AD96A924E7EA6EAF053BB5DA@USCULXMSG02.am.sony.com>
+ <20160729075741.15e1a05b@recife.lan>
+ <02699364973B424C83A42A84B04FDA852AA1FB@JPYOKXMS113.jp.sony.com>
+In-Reply-To: <02699364973B424C83A42A84B04FDA852AA1FB@JPYOKXMS113.jp.sony.com>
+Content-Language: ja-JP
+Content-Type: text/plain; charset="iso-2022-jp"
 MIME-Version: 1.0
-Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VPU driver add mdp support
+Dear Mauro
 
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
----
- drivers/media/platform/mtk-vpu/mtk_vpu.h |    5 +++++
- 1 file changed, 5 insertions(+)
+We discuss about
+> At the DVB frontend, the tuner and demodulators should be implemented
+> on different drivers, even when both are encapsulated on the same silicon.
+with our HW developers and SW designers.
 
-diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.h b/drivers/media/platform/mtk-vpu/mtk_vpu.h
-index f457479..291ae46 100644
---- a/drivers/media/platform/mtk-vpu/mtk_vpu.h
-+++ b/drivers/media/platform/mtk-vpu/mtk_vpu.h
-@@ -53,6 +53,8 @@ typedef void (*ipi_handler_t) (void *data,
- 			 handle H264 video encoder job, and vice versa.
-  * @IPI_VENC_VP8:	 The interrupt fro vpu is to notify kernel to
- 			 handle VP8 video encoder job,, and vice versa.
-+ * @IPI_MDP:		 The interrupt from vpu is to notify kernel to
-+			 handle MDP (Media Data Path) job, and vice versa.
-  * @IPI_MAX:		 The maximum IPI number
-  */
- 
-@@ -63,6 +65,7 @@ enum ipi_id {
- 	IPI_VDEC_VP9,
- 	IPI_VENC_H264,
- 	IPI_VENC_VP8,
-+	IPI_MDP,
- 	IPI_MAX,
- };
- 
-@@ -71,11 +74,13 @@ enum ipi_id {
-  *
-  * @VPU_RST_ENC: encoder reset id
-  * @VPU_RST_DEC: decoder reset id
-+ * @VPU_RST_MDP: MDP (Media Data Path) reset id
-  * @VPU_RST_MAX: maximum reset id
-  */
- enum rst_id {
- 	VPU_RST_ENC,
- 	VPU_RST_DEC,
-+	VPU_RST_MDP,
- 	VPU_RST_MAX,
- };
- 
--- 
-1.7.9.5
+Our codes for tuner and demodulator driver of user-space driver are encapsulated 
+in order to optimize tuner control sequence.
+(Our tuner driver often have to set rf tuner registers and demodulator alternately. )
+And there are some registers which simultaneously set parameter for tuner and demodulator block.
+Additionally, we think about current TV tuner IC trend and linux tuner driver.
+
+I summarized our study results and proposals as follows.
+
+・In our case the tuner and demodulator are single chip architecture, so the tuner control cannot be distinguished from demodulator functionality. It is therefore difficult to separate tuner code and demodulator code.
+・We understand that single chip solutions may become more popular for smartphone and low power tuner device (USB, etc) so mixed driver will be main stream.
+・We intend to add the driver incorporating tuner and demodulator code to /media/dvb-frontend/XXXX (XXXX is our tuner name folder)
+・We will create our driver to have same API structure as the current tuner and demodulator driver code.
+  (drivers/media/dvb-frontends/m88rs2000.c and tda10071.c also seem to have tuner and demodulator code.
+  We would like to refer to their codes for our creating.)
+
+Could you give us your advice and comments?
+
+Best Regards & Thanks
+Takiguchi
 
