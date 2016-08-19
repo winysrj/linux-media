@@ -1,44 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:44039 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755456AbcHBL2F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Aug 2016 07:28:05 -0400
-Received: from durdane.fritz.box (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id 59BAB1800E4
-	for <linux-media@vger.kernel.org>; Tue,  2 Aug 2016 13:23:55 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/2] cec: improve locking
-Date: Tue,  2 Aug 2016 13:23:52 +0200
-Message-Id: <1470137034-7313-1-git-send-email-hverkuil@xs4all.nl>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46850 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754299AbcHSKYG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Aug 2016 06:24:06 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v2 13/17] media: Shuffle functions around
+Date: Fri, 19 Aug 2016 13:23:44 +0300
+Message-Id: <1471602228-30722-14-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+As the call paths of the functions in question will change, move them
+around in anticipation of that. No other changes.
 
-While reviewing the CEC core code I noticed a few potential problems
-with locking under normal (and even not so normal) circumstances this
-wouldn't cause problems, but in theory there could be corner cases where
-you could get a deadlock or perhaps a race condition.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-device.c | 88 ++++++++++++++++++++++----------------------
+ 1 file changed, 44 insertions(+), 44 deletions(-)
 
-The first patch just renames a lock, the second actually improved the
-locking scheme.
-
-Regards,
-
-	Hans
-
-Hans Verkuil (2):
-  cec: rename cec_devnode fhs_lock to just lock
-  cec: improve locking
-
- drivers/staging/media/cec/cec-adap.c | 12 ++++++------
- drivers/staging/media/cec/cec-api.c  |  8 ++++----
- drivers/staging/media/cec/cec-core.c | 27 +++++++++++++++------------
- include/media/cec.h                  |  2 +-
- 4 files changed, 26 insertions(+), 23 deletions(-)
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 7f90cb82..0656daf 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -542,22 +542,6 @@ static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
+  * Registration/unregistration
+  */
+ 
+-static void media_device_release(struct media_devnode *devnode)
+-{
+-	struct media_device *mdev = to_media_device(devnode);
+-
+-	ida_destroy(&mdev->entity_internal_idx);
+-	mdev->entity_internal_idx_max = 0;
+-	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
+-	mutex_destroy(&mdev->graph_mutex);
+-	dev_dbg(devnode->parent, "Media device released\n");
+-
+-	if (mdev->release)
+-		mdev->release(mdev);
+-
+-	kfree(mdev);
+-}
+-
+ /**
+  * media_device_register_entity - Register an entity with a media device
+  * @mdev:	The media device
+@@ -678,6 +662,34 @@ void media_device_unregister_entity(struct media_entity *entity)
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister_entity);
+ 
++int __must_check media_device_register_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	mutex_lock(&mdev->graph_mutex);
++	list_add_tail(&nptr->list, &mdev->entity_notify);
++	mutex_unlock(&mdev->graph_mutex);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(media_device_register_entity_notify);
++
++/*
++ * Note: Should be called with mdev->lock held.
++ */
++static void __media_device_unregister_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	list_del(&nptr->list);
++}
++
++void media_device_unregister_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	mutex_lock(&mdev->graph_mutex);
++	__media_device_unregister_entity_notify(mdev, nptr);
++	mutex_unlock(&mdev->graph_mutex);
++}
++EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
++
+ /**
+  * media_device_init() - initialize a media device
+  * @mdev:	The media device
+@@ -741,6 +753,22 @@ void media_device_cleanup(struct media_device *mdev)
+ }
+ EXPORT_SYMBOL_GPL(media_device_cleanup);
+ 
++static void media_device_release(struct media_devnode *devnode)
++{
++	struct media_device *mdev = to_media_device(devnode);
++
++	ida_destroy(&mdev->entity_internal_idx);
++	mdev->entity_internal_idx_max = 0;
++	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
++	mutex_destroy(&mdev->graph_mutex);
++	dev_dbg(devnode->parent, "Media device released\n");
++
++	if (mdev->release)
++		mdev->release(mdev);
++
++	kfree(mdev);
++}
++
+ int __must_check __media_device_register(struct media_device *mdev,
+ 					 struct module *owner)
+ {
+@@ -770,34 +798,6 @@ int __must_check __media_device_register(struct media_device *mdev,
+ }
+ EXPORT_SYMBOL_GPL(__media_device_register);
+ 
+-int __must_check media_device_register_entity_notify(struct media_device *mdev,
+-					struct media_entity_notify *nptr)
+-{
+-	mutex_lock(&mdev->graph_mutex);
+-	list_add_tail(&nptr->list, &mdev->entity_notify);
+-	mutex_unlock(&mdev->graph_mutex);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(media_device_register_entity_notify);
+-
+-/*
+- * Note: Should be called with mdev->lock held.
+- */
+-static void __media_device_unregister_entity_notify(struct media_device *mdev,
+-					struct media_entity_notify *nptr)
+-{
+-	list_del(&nptr->list);
+-}
+-
+-void media_device_unregister_entity_notify(struct media_device *mdev,
+-					struct media_entity_notify *nptr)
+-{
+-	mutex_lock(&mdev->graph_mutex);
+-	__media_device_unregister_entity_notify(mdev, nptr);
+-	mutex_unlock(&mdev->graph_mutex);
+-}
+-EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
+-
+ void media_device_unregister(struct media_device *mdev)
+ {
+ 	struct media_entity *entity;
 -- 
-2.8.1
+2.1.4
 
