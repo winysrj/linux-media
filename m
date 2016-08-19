@@ -1,508 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:26481 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933249AbcH2NWG (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46740 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754080AbcHSKYD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 09:22:06 -0400
-From: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v5 0/3] support of v4l2 encoder for STMicroelectronics SOC
-Date: Mon, 29 Aug 2016 15:21:05 +0200
-Message-ID: <1472476868-10322-1-git-send-email-jean-christophe.trotin@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Fri, 19 Aug 2016 06:24:03 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v2 03/17] Revert "[media] media-device: dynamically allocate struct media_devnode"
+Date: Fri, 19 Aug 2016 13:23:34 +0300
+Message-Id: <1471602228-30722-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-version 5:
-- Compilation problem with 4.8-rc1 corrected: unsigned long used for dma_attrs
-- The video bitrate (V4L2_CID_MPEG_VIDEO_BITRATE) and the CPB size (V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE) were respectively considered in kbps and kb, while the V4L2 API specifies them in bps and kB. This is corrected and the code is now aligned with the V4L2 specification
-- If the encoder close function (enc->close) has not been called through hva_stop_streaming (e.g. application is killed), it's called at the encoder instance release (hva_release)
-- hva-v4l2.c: DEFAULT_* renamed HVA_DEFAULT_*
-- hva-v4l2.c: few log messages modified
-- typos corrected
-- V4L2 compliance successfully passed with this version (see report below)
-
-version 4:
-- Module renamed "st-hva" as suggested by Hans
-- resource_size() inline function used to calculate the esram size
-- V4L2 compliance successfully passed with this version (see report below)
-
-version 3:
-- Comments from Nicolas, Javier and Hans about version 2 taken into account:
-	- Kconfig's comment reworked
-        - querycap: "driver" contains the name of the encoder ("hva"), "card" identifies the hardware version ("hva<hw_ip_version>" with <hw_ip_version> equal to 400 here, which leads to "hva400"), and "bus_info" indicates the location of the device ("platform:8c85000.hva")
-	- device_caps field of struct video_device set to V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M
-	- colorspace management aligned on the vim2m and mtk-vcodec drivers' code
-	- useless debug messages removed
-	- in case of error in start_streaming, all pending buffers for queue are returned to vb2 in the QUEUED state
-	- hardware restriction with regards to the number of codec instances managed in start_streaming instead of open (then, the v4l2-compliance test for unlimited opens passes)
-	- typos corrected
-- V4L2 compliance successfully passed with this version (see report below)
-
-version 2:
-- List of pixel formats supported by the encoder reduced to NV12 and NV21
-- x86_64 compilation warnings corrected
-- V4L2 compliance successfully passed with this version (see report below)
-- All remarks about version 1 of hva-v4l2.c taken into account:
-        - V4L2 mem2mem framework used 
-	- V4L2 control framework used
-	- allocator context initialized in the probe and cleaned up in the remove
-	- start_streaming and stop_streaming ops added
-	- colorspace, bytesperline and sizeimage fields initialized in TRY_FMT
-	- better estimation of sizeimage for compressed formats
-	- checks and debugging logs already covered by vb2 removed
-	- some dev_err changed in dev_dbg
-	- typos corrected
-
-version 1:
-- Initial submission.
-
-Only one feature supported and tested:
-- encode (NV12, NV21) to H.264 video format
-
-The driver is mainly implemented across three files:
-- hva-v4l2.c
-- hva-h264.c
-- hva-hw.c
-hva-v4l2.c manages the V4L2 interface with the userland.
-It calls the HW services that are implemented in hva-hw.c.
-hva-h264.c manages specific part of H.264 codec.
-
-Below is the v4l2-compliance report for the version 5 of the hva driver:
-
-root@sti-next:/home/video_test# v4l2-compliance -d /dev/video0
-
-Driver Info:
-	Driver name   : st-hva
-	Card type     : st-hva400
-	Bus info      : platform:8c85000.hva
-	Driver version: 4.8.0
-	Capabilities  : 0x84208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-		test VIDIOC_QUERYCTRL: OK
-		test VIDIOC_G/S_CTRL: OK
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 16 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1187): S_PARM is supported for buftype 1, but not ENUM_FRAMEINTERVALS
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1187): S_PARM is supported for buftype 2, but not ENUM_FRAMEINTERVALS
-		test VIDIOC_G/S_PARM: OK
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(717): TRY_FMT cannot handle an invalid pixelformat.
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(718): This may or may not be a problem. For more information see:
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(719): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-		test VIDIOC_TRY_FMT: OK
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(977): S_FMT cannot handle an invalid pixelformat.
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(978): This may or may not be a problem. For more information see:
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(979): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		test Composing: OK (Not Supported)
-		test Scaling: OK
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 8
-
-root@sti-next:/home/video_test# v4l2-compliance -f -d /dev/video0
-
-Driver Info:
-	Driver name   : st-hva
-	Card type     : st-hva400
-	Bus info      : platform:8c85000.hva
-	Driver version: 4.8.0
-	Capabilities  : 0x84208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-		test VIDIOC_QUERYCTRL: OK
-		test VIDIOC_G/S_CTRL: OK
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 16 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1187): S_PARM is supported for buftype 1, but not ENUM_FRAMEINTERVALS
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1187): S_PARM is supported for buftype 2, but not ENUM_FRAMEINTERVALS
-		test VIDIOC_G/S_PARM: OK
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(717): TRY_FMT cannot handle an invalid pixelformat.
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(718): This may or may not be a problem. For more information see:
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(719): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-		test VIDIOC_TRY_FMT: OK
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(977): S_FMT cannot handle an invalid pixelformat.
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(978): This may or may not be a problem. For more information see:
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(979): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		test Composing: OK (Not Supported)
-		test Scaling: OK
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-Stream using all formats:
-	Not supported for M2M devices
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 8
-
-root@sti-next:/home/video_test# v4l2-compliance -a -d /dev/video0
-
-Driver Info:
-	Driver name   : st-hva
-	Card type     : st-hva400
-	Bus info      : platform:8c85000.hva
-	Driver version: 4.8.0
-	Capabilities  : 0x84208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-		test VIDIOC_QUERYCTRL: OK
-		test VIDIOC_G/S_CTRL: OK
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 16 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1187): S_PARM is supported for buftype 1, but not ENUM_FRAMEINTERVALS
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1187): S_PARM is supported for buftype 2, but not ENUM_FRAMEINTERVALS
-		test VIDIOC_G/S_PARM: OK
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(717): TRY_FMT cannot handle an invalid pixelformat.
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(718): This may or may not be a problem. For more information see:
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(719): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-		test VIDIOC_TRY_FMT: OK
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(977): S_FMT cannot handle an invalid pixelformat.
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(978): This may or may not be a problem. For more information see:
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(979): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		test Composing: OK (Not Supported)
-		test Scaling: OK
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 8
-
-root@sti-next:/home/video_test# v4l2-compliance -s -d /dev/video0
-
-Driver Info:
-	Driver name   : st-hva
-	Card type     : st-hva400
-	Bus info      : platform:8c85000.hva
-	Driver version: 4.8.0
-	Capabilities  : 0x84208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-		test VIDIOC_QUERYCTRL: OK
-		test VIDIOC_G/S_CTRL: OK
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 16 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1187): S_PARM is supported for buftype 1, but not ENUM_FRAMEINTERVALS
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1187): S_PARM is supported for buftype 2, but not ENUM_FRAMEINTERVALS
-		test VIDIOC_G/S_PARM: OK
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(717): TRY_FMT cannot handle an invalid pixelformat.
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(718): This may or may not be a problem. For more information see:
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(719): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-		test VIDIOC_TRY_FMT: OK
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(977): S_FMT cannot handle an invalid pixelformat.
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(978): This may or may not be a problem. For more information see:
-		warn: /local/home/frq08988/views/opensdk-2.1.4.1/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(979): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		test Composing: OK (Not Supported)
-		test Scaling: OK
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-Streaming ioctls:
-	test read/write: OK (Not Supported)
-	test MMAP: OK                                     
-	test USERPTR: OK (Not Supported)
-	test DMABUF: Cannot test, specify --expbuf-device
-
-
-Total: 46, Succeeded: 46, Failed: 0, Warnings: 8
-
-Jean-Christophe Trotin (3):
-  Documentation: DT: add bindings for ST HVA
-  st-hva: multi-format video encoder V4L2 driver
-  st-hva: add H.264 video encoding support
-
- .../devicetree/bindings/media/st,st-hva.txt        |   24 +
- drivers/media/platform/Kconfig                     |   14 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/sti/hva/Makefile            |    2 +
- drivers/media/platform/sti/hva/hva-h264.c          | 1050 +++++++++++++++
- drivers/media/platform/sti/hva/hva-hw.c            |  538 ++++++++
- drivers/media/platform/sti/hva/hva-hw.h            |   42 +
- drivers/media/platform/sti/hva/hva-mem.c           |   59 +
- drivers/media/platform/sti/hva/hva-mem.h           |   34 +
- drivers/media/platform/sti/hva/hva-v4l2.c          | 1403 ++++++++++++++++++++
- drivers/media/platform/sti/hva/hva.h               |  315 +++++
- 11 files changed, 3482 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,st-hva.txt
- create mode 100644 drivers/media/platform/sti/hva/Makefile
- create mode 100644 drivers/media/platform/sti/hva/hva-h264.c
- create mode 100644 drivers/media/platform/sti/hva/hva-hw.c
- create mode 100644 drivers/media/platform/sti/hva/hva-hw.h
- create mode 100644 drivers/media/platform/sti/hva/hva-mem.c
- create mode 100644 drivers/media/platform/sti/hva/hva-mem.h
- create mode 100644 drivers/media/platform/sti/hva/hva-v4l2.c
- create mode 100644 drivers/media/platform/sti/hva/hva.h
-
+This reverts commit a087ce704b80 ("[media] media-device: dynamically
+allocate struct media_devnode"). The commit was part of an original
+patchset to avoid crashes when an unregistering device is in use.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-device.c           | 44 +++++++++++-----------------------
+ drivers/media/media-devnode.c          |  7 +-----
+ drivers/media/usb/au0828/au0828-core.c |  4 ++--
+ drivers/media/usb/uvc/uvc_driver.c     |  2 +-
+ include/media/media-device.h           |  5 +++-
+ include/media/media-devnode.h          | 15 ++----------
+ 6 files changed, 24 insertions(+), 53 deletions(-)
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index e61fa66..a1cd50f 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -423,7 +423,7 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 			       unsigned long arg)
+ {
+ 	struct media_devnode *devnode = media_devnode_data(filp);
+-	struct media_device *dev = devnode->media_dev;
++	struct media_device *dev = to_media_device(devnode);
+ 	long ret;
+ 
+ 	mutex_lock(&dev->graph_mutex);
+@@ -495,7 +495,7 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+ 				      unsigned long arg)
+ {
+ 	struct media_devnode *devnode = media_devnode_data(filp);
+-	struct media_device *dev = devnode->media_dev;
++	struct media_device *dev = to_media_device(devnode);
+ 	long ret;
+ 
+ 	switch (cmd) {
+@@ -531,8 +531,7 @@ static const struct media_file_operations media_device_fops = {
+ static ssize_t show_model(struct device *cd,
+ 			  struct device_attribute *attr, char *buf)
+ {
+-	struct media_devnode *devnode = to_media_devnode(cd);
+-	struct media_device *mdev = devnode->media_dev;
++	struct media_device *mdev = to_media_device(to_media_devnode(cd));
+ 
+ 	return sprintf(buf, "%.*s\n", (int)sizeof(mdev->model), mdev->model);
+ }
+@@ -705,34 +704,23 @@ EXPORT_SYMBOL_GPL(media_device_cleanup);
+ int __must_check __media_device_register(struct media_device *mdev,
+ 					 struct module *owner)
+ {
+-	struct media_devnode *devnode;
+ 	int ret;
+ 
+-	devnode = kzalloc(sizeof(*devnode), GFP_KERNEL);
+-	if (!devnode)
+-		return -ENOMEM;
+-
+ 	/* Register the device node. */
+-	mdev->devnode = devnode;
+-	devnode->fops = &media_device_fops;
+-	devnode->parent = mdev->dev;
+-	devnode->release = media_device_release;
++	mdev->devnode.fops = &media_device_fops;
++	mdev->devnode.parent = mdev->dev;
++	mdev->devnode.release = media_device_release;
+ 
+ 	/* Set version 0 to indicate user-space that the graph is static */
+ 	mdev->topology_version = 0;
+ 
+-	ret = media_devnode_register(mdev, devnode, owner);
+-	if (ret < 0) {
+-		mdev->devnode = NULL;
+-		kfree(devnode);
++	ret = media_devnode_register(&mdev->devnode, owner);
++	if (ret < 0)
+ 		return ret;
+-	}
+ 
+-	ret = device_create_file(&devnode->dev, &dev_attr_model);
++	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
+ 	if (ret < 0) {
+-		mdev->devnode = NULL;
+-		media_devnode_unregister(devnode);
+-		kfree(devnode);
++		media_devnode_unregister(&mdev->devnode);
+ 		return ret;
+ 	}
+ 
+@@ -783,7 +771,7 @@ void media_device_unregister(struct media_device *mdev)
+ 	mutex_lock(&mdev->graph_mutex);
+ 
+ 	/* Check if mdev was ever registered at all */
+-	if (!media_devnode_is_registered(mdev->devnode)) {
++	if (!media_devnode_is_registered(&mdev->devnode)) {
+ 		mutex_unlock(&mdev->graph_mutex);
+ 		return;
+ 	}
+@@ -806,13 +794,9 @@ void media_device_unregister(struct media_device *mdev)
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
+-	dev_dbg(mdev->dev, "Media device unregistered\n");
+-
+-	/* Check if mdev devnode was registered */
+-	if (media_devnode_is_registered(mdev->devnode)) {
+-		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
+-		media_devnode_unregister(mdev->devnode);
+-	}
++	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
++	dev_dbg(mdev->dev, "Media device unregistering\n");
++	media_devnode_unregister(&mdev->devnode);
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister);
+ 
+diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+index ecdc02d..7481c96 100644
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -44,7 +44,6 @@
+ #include <linux/uaccess.h>
+ 
+ #include <media/media-devnode.h>
+-#include <media/media-device.h>
+ 
+ #define MEDIA_NUM_DEVICES	256
+ #define MEDIA_NAME		"media"
+@@ -75,8 +74,6 @@ static void media_devnode_release(struct device *cd)
+ 	/* Release media_devnode and perform other cleanups as needed. */
+ 	if (devnode->release)
+ 		devnode->release(devnode);
+-
+-	kfree(devnode);
+ }
+ 
+ static struct bus_type media_bus_type = {
+@@ -222,8 +219,7 @@ static const struct file_operations media_devnode_fops = {
+ 	.llseek = no_llseek,
+ };
+ 
+-int __must_check media_devnode_register(struct media_device *mdev,
+-					struct media_devnode *devnode,
++int __must_check media_devnode_register(struct media_devnode *devnode,
+ 					struct module *owner)
+ {
+ 	int minor;
+@@ -242,7 +238,6 @@ int __must_check media_devnode_register(struct media_device *mdev,
+ 	mutex_unlock(&media_devnode_lock);
+ 
+ 	devnode->minor = minor;
+-	devnode->media_dev = mdev;
+ 
+ 	/* Part 2: Initialize and register the character device */
+ 	cdev_init(&devnode->cdev, &media_devnode_fops);
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index bf53553..321ea5c 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -142,7 +142,7 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+ 	struct media_device *mdev = dev->media_dev;
+ 	struct media_entity_notify *notify, *nextp;
+ 
+-	if (!mdev || !media_devnode_is_registered(mdev->devnode))
++	if (!mdev || !media_devnode_is_registered(&mdev->devnode))
+ 		return;
+ 
+ 	/* Remove au0828 entity_notify callbacks */
+@@ -482,7 +482,7 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+ 	if (!dev->media_dev)
+ 		return 0;
+ 
+-	if (!media_devnode_is_registered(dev->media_dev->devnode)) {
++	if (!media_devnode_is_registered(&dev->media_dev->devnode)) {
+ 
+ 		/* register media device */
+ 		ret = media_device_register(dev->media_dev);
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 302e284..451e84e9 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1674,7 +1674,7 @@ static void uvc_delete(struct uvc_device *dev)
+ 	if (dev->vdev.dev)
+ 		v4l2_device_unregister(&dev->vdev);
+ #ifdef CONFIG_MEDIA_CONTROLLER
+-	if (media_devnode_is_registered(dev->mdev.devnode))
++	if (media_devnode_is_registered(&dev->mdev.devnode))
+ 		media_device_unregister(&dev->mdev);
+ 	media_device_cleanup(&dev->mdev);
+ #endif
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 2819524..4eee613 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -116,7 +116,7 @@ struct media_entity_notify {
+ struct media_device {
+ 	/* dev->driver_data points to this struct. */
+ 	struct device *dev;
+-	struct media_devnode *devnode;
++	struct media_devnode devnode;
+ 
+ 	char model[32];
+ 	char driver_name[32];
+@@ -162,6 +162,9 @@ struct usb_device;
+ #define MEDIA_DEV_NOTIFY_PRE_LINK_CH	0
+ #define MEDIA_DEV_NOTIFY_POST_LINK_CH	1
+ 
++/* media_devnode to media_device */
++#define to_media_device(node) container_of(node, struct media_device, devnode)
++
+ /**
+  * media_entity_enum_init - Initialise an entity enumeration
+  *
+diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+index d5037a9..a0f6823 100644
+--- a/include/media/media-devnode.h
++++ b/include/media/media-devnode.h
+@@ -33,8 +33,6 @@
+ #include <linux/device.h>
+ #include <linux/cdev.h>
+ 
+-struct media_device;
+-
+ /*
+  * Flag to mark the media_devnode struct as registered. Drivers must not touch
+  * this flag directly, it will be set and cleared by media_devnode_register and
+@@ -84,8 +82,6 @@ struct media_file_operations {
+  * before registering the node.
+  */
+ struct media_devnode {
+-	struct media_device *media_dev;
+-
+ 	/* device ops */
+ 	const struct media_file_operations *fops;
+ 
+@@ -108,8 +104,7 @@ struct media_devnode {
+ /**
+  * media_devnode_register - register a media device node
+  *
+- * @mdev: struct media_device we want to register a device node
+- * @devnode: media device node structure we want to register
++ * @devnode: struct media_devnode we want to register a device node
+  * @owner: should be filled with %THIS_MODULE
+  *
+  * The registration code assigns minor numbers and registers the new device node
+@@ -122,8 +117,7 @@ struct media_devnode {
+  * the media_devnode structure is *not* called, so the caller is responsible for
+  * freeing any data.
+  */
+-int __must_check media_devnode_register(struct media_device *mdev,
+-					struct media_devnode *devnode,
++int __must_check media_devnode_register(struct media_devnode *devnode,
+ 					struct module *owner);
+ 
+ /**
+@@ -153,14 +147,9 @@ static inline struct media_devnode *media_devnode_data(struct file *filp)
+  *	false otherwise.
+  *
+  * @devnode: pointer to struct &media_devnode.
+- *
+- * Note: If mdev is NULL, it also returns false.
+  */
+ static inline int media_devnode_is_registered(struct media_devnode *devnode)
+ {
+-	if (!devnode)
+-		return false;
+-
+ 	return test_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
+ }
+ 
 -- 
-1.9.1
+2.1.4
 
