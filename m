@@ -1,44 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:56319 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753290AbcHXLX1 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51092 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755042AbcHSIj3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Aug 2016 07:23:27 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH] [media] ad5820: fix one smatch warning
-Date: Wed, 24 Aug 2016 08:23:20 -0300
-Message-Id: <1ee6dd5a918bd98dea20a2847f1ca15964dca952.1472037792.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        Fri, 19 Aug 2016 04:39:29 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 3/6] v4l: rcar-fcp: Don't get/put module reference
+Date: Fri, 19 Aug 2016 11:39:31 +0300
+Message-Id: <1471595974-28960-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1471595974-28960-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1471595974-28960-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/i2c/ad5820.c:61:24: error: dubious one-bit signed bitfield
+Direct callers of the FCP API hold a reference to the FCP module due to
+module linkage, there's no need to take another one manually. Take a
+reference to the device instead to ensure that it won't disappear being
+the caller's back.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/i2c/ad5820.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/rcar-fcp.c | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
-index 62cc1f54622f..d7ad5c1a1219 100644
---- a/drivers/media/i2c/ad5820.c
-+++ b/drivers/media/i2c/ad5820.c
-@@ -58,7 +58,7 @@ struct ad5820_device {
- 	struct mutex power_lock;
- 	int power_count;
+diff --git a/drivers/media/platform/rcar-fcp.c b/drivers/media/platform/rcar-fcp.c
+index f7bcbf7677a0..7427be1c3741 100644
+--- a/drivers/media/platform/rcar-fcp.c
++++ b/drivers/media/platform/rcar-fcp.c
+@@ -53,14 +53,7 @@ struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np)
+ 		if (fcp->dev->of_node != np)
+ 			continue;
  
--	int standby : 1;
-+	unsigned int standby : 1;
- };
+-		/*
+-		 * Make sure the module won't be unloaded behind our back. This
+-		 * is a poor man's safety net, the module should really not be
+-		 * unloaded while FCP users can be active.
+-		 */
+-		if (!try_module_get(fcp->dev->driver->owner))
+-			fcp = NULL;
+-
++		get_device(fcp->dev);
+ 		goto done;
+ 	}
  
- static int ad5820_write(struct ad5820_device *coil, u16 data)
+@@ -81,7 +74,7 @@ EXPORT_SYMBOL_GPL(rcar_fcp_get);
+ void rcar_fcp_put(struct rcar_fcp_device *fcp)
+ {
+ 	if (fcp)
+-		module_put(fcp->dev->driver->owner);
++		put_device(fcp->dev);
+ }
+ EXPORT_SYMBOL_GPL(rcar_fcp_put);
+ 
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
 
