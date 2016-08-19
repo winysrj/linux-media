@@ -1,84 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:34220 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1758997AbcHYJk2 (ORCPT
+Received: from mail-it0-f65.google.com ([209.85.214.65]:34748 "EHLO
+        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753890AbcHSIoR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Aug 2016 05:40:28 -0400
-From: Florent Revest <florent.revest@free-electrons.com>
-To: linux-media@vger.kernel.org
-Cc: florent.revest@free-electrons.com, linux-sunxi@googlegroups.com,
-        maxime.ripard@free-electrons.com, posciak@chromium.org,
-        hans.verkuil@cisco.com, thomas.petazzoni@free-electrons.com,
-        mchehab@kernel.org, linux-kernel@vger.kernel.org, wens@csie.org
-Subject: [RFC 09/10] ARM: dts: sun5i: Use video-engine node
-Date: Thu, 25 Aug 2016 11:39:48 +0200
-Message-Id: <1472117989-21455-10-git-send-email-florent.revest@free-electrons.com>
-In-Reply-To: <1472117989-21455-1-git-send-email-florent.revest@free-electrons.com>
-References: <1472117989-21455-1-git-send-email-florent.revest@free-electrons.com>
+        Fri, 19 Aug 2016 04:44:17 -0400
+MIME-Version: 1.0
+In-Reply-To: <1471595974-28960-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1471595974-28960-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1471595974-28960-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Fri, 19 Aug 2016 10:44:16 +0200
+Message-ID: <CAMuHMdUAi+Zm1fDiTKzZ+HLM1ZqZ=LKmBehC8YNkQoVe53et8Q@mail.gmail.com>
+Subject: Re: [PATCH 3/6] v4l: rcar-fcp: Don't get/put module reference
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        DRI Development <dri-devel@lists.freedesktop.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we have a driver matching "allwinner,sun5i-a13-video-engine" we
-can load it.
+On Fri, Aug 19, 2016 at 10:39 AM, Laurent Pinchart
+<laurent.pinchart+renesas@ideasonboard.com> wrote:
+> Direct callers of the FCP API hold a reference to the FCP module due to
+> module linkage, there's no need to take another one manually. Take a
+> reference to the device instead to ensure that it won't disappear being
 
-The "video-engine" node depends on the new sunxi-ng's CCU clock and
-reset bindings. This patch also includes a ve_reserved DMA pool for
-videobuf2 buffer allocations in sunxi-cedrus.
+... behind
 
-Signed-off-by: Florent Revest <florent.revest@free-electrons.com>
----
- arch/arm/boot/dts/sun5i-a13.dtsi | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+> the caller's back.
 
-diff --git a/arch/arm/boot/dts/sun5i-a13.dtsi b/arch/arm/boot/dts/sun5i-a13.dtsi
-index 2afe05fb..384b645 100644
---- a/arch/arm/boot/dts/sun5i-a13.dtsi
-+++ b/arch/arm/boot/dts/sun5i-a13.dtsi
-@@ -69,6 +69,19 @@
- 		};
- 	};
- 
-+	reserved-memory {
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges;
-+
-+		ve_reserved: cma {
-+			compatible = "shared-dma-pool";
-+			reg = <0x43d00000 0x9000000>;
-+			no-map;
-+			linux,cma-default;
-+		};
-+	};
-+
- 	thermal-zones {
- 		cpu_thermal {
- 			/* milliseconds */
-@@ -330,6 +343,24 @@
- 			};
- 		};
- 
-+		video-engine {
-+			compatible = "allwinner,sun5i-a13-video-engine";
-+			memory-region = <&ve_reserved>;
-+
-+			clocks = <&ahb_gates 32>, <&ccu CLK_VE>,
-+				 <&dram_gates 0>;
-+			clock-names = "ahb", "mod", "ram";
-+
-+			assigned-clocks = <&ccu CLK_VE>;
-+			assigned-clock-rates = <320000000>;
-+
-+			resets = <&ccu RST_VE>;
-+
-+			interrupts = <53>;
-+
-+			reg = <0x01c0e000 4096>;
-+		};
-+
- 		ccu: clock@01c20000 {
- 			compatible = "allwinner,sun5i-a13-ccu";
- 			reg = <0x01c20000 0x400>;
--- 
-2.7.4
+Gr{oetje,eeting}s,
 
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
