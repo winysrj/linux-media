@@ -1,64 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54118 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754594AbcHZXop (ORCPT
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:34491 "EHLO
+        mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754127AbcHSW22 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Aug 2016 19:44:45 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v3 07/21] media-device: Make devnode.dev->kobj parent of devnode.cdev
-Date: Sat, 27 Aug 2016 02:43:15 +0300
-Message-Id: <1472255009-28719-8-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
+        Fri, 19 Aug 2016 18:28:28 -0400
+Received: by mail-pa0-f50.google.com with SMTP id fi15so19727658pac.1
+        for <linux-media@vger.kernel.org>; Fri, 19 Aug 2016 15:28:27 -0700 (PDT)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org,
+        narmstrong@baylibre.com, carlo@caione.org,
+        linux-arm-kernel@lists.infradead.org, linus.walleij@linaro.org,
+        mchehab@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com,
+        mark.rutland@arm.com, robh+dt@kernel.org
+Subject: Re: [PATCH v4 4/6] media: rc: meson-ir: Add support for newer versions of the IR decoder
+References: <20160628191802.21227-1-martin.blumenstingl@googlemail.com>
+        <20160819215547.20063-1-martin.blumenstingl@googlemail.com>
+        <20160819215547.20063-5-martin.blumenstingl@googlemail.com>
+Date: Fri, 19 Aug 2016 15:28:22 -0700
+In-Reply-To: <20160819215547.20063-5-martin.blumenstingl@googlemail.com>
+        (Martin Blumenstingl's message of "Fri, 19 Aug 2016 23:55:45 +0200")
+Message-ID: <7hy43s5r7d.fsf@baylibre.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The struct cdev embedded in struct media_devnode contains its own kobj.
-Instead of trying to manage its lifetime separately from struct
-media_devnode, make the cdev kobj a parent of the struct media_device.dev
-kobj.
+Martin Blumenstingl <martin.blumenstingl@googlemail.com> writes:
 
-The cdev will thus be released during unregistering the media_devnode, not
-in media_devnode.dev kobj's release callback.
+> From: Neil Armstrong <narmstrong@baylibre.com>
+>
+> Newer SoCs (Meson 8b and GXBB) are using REG2 (offset 0x20) instead of
+> REG1 to configure the decoder mode. This makes it necessary to
+> introduce new bindings so the driver knows which register has to be
+> used.
+>
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+> Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-devnode.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+Acked-by: Kevin Hilman <khilman@baylibre.com>
 
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index 7481c96..a8302fc 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -63,9 +63,6 @@ static void media_devnode_release(struct device *cd)
- 
- 	mutex_lock(&media_devnode_lock);
- 
--	/* Delete the cdev on this minor as well */
--	cdev_del(&devnode->cdev);
--
- 	/* Mark device node number as free */
- 	clear_bit(devnode->minor, media_devnode_nums);
- 
-@@ -241,6 +238,7 @@ int __must_check media_devnode_register(struct media_devnode *devnode,
- 
- 	/* Part 2: Initialize and register the character device */
- 	cdev_init(&devnode->cdev, &media_devnode_fops);
-+	devnode->cdev.kobj.parent = &devnode->dev.kobj;
- 	devnode->cdev.owner = owner;
- 
- 	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
-@@ -285,6 +283,7 @@ void media_devnode_unregister(struct media_devnode *devnode)
- 	mutex_lock(&media_devnode_lock);
- 	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
- 	mutex_unlock(&media_devnode_lock);
-+	cdev_del(&devnode->cdev);
- 	device_unregister(&devnode->dev);
- }
- 
--- 
-2.1.4
+Mauro, are you the one to pick up new media/rc drivers?  Or if you
+prefer, with your ack, I'll take this along with the DT and submit via
+arm-soc.
 
+Thanks,
+
+Kevin
