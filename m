@@ -1,117 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:46532 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752026AbcHAOAI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Aug 2016 10:00:08 -0400
-Subject: Re: Memory freeing when dmabuf fds are exported with VIDIOC_EXPBUF
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <36bf3ef2-e43a-3910-16e2-b51439be5622@igel.co.jp>
- <1654646.5z1yHJNanq@avalon> <826e1919-49c9-c65c-8911-17baf34c1421@xs4all.nl>
- <1677075.k8UG1Er7L0@avalon>
-Cc: Kazunori Kobayashi <kkobayas@igel.co.jp>,
-	linux-media@vger.kernel.org,
-	Damian Hobson-Garcia <dhobsong@igel.co.jp>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b3161f8d-b958-41ca-f0e6-65a16c63f22c@xs4all.nl>
-Date: Mon, 1 Aug 2016 15:59:54 +0200
-MIME-Version: 1.0
-In-Reply-To: <1677075.k8UG1Er7L0@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36342 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754611AbcHSV5c (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Aug 2016 17:57:32 -0400
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+To: linux-media@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org,
+        narmstrong@baylibre.com, khilman@baylibre.com, carlo@caione.org
+Cc: linux-arm-kernel@lists.infradead.org, linus.walleij@linaro.org,
+        mchehab@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com,
+        mark.rutland@arm.com, robh+dt@kernel.org,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Subject: [PATCH v4 4/6] media: rc: meson-ir: Add support for newer versions of the IR decoder
+Date: Fri, 19 Aug 2016 23:55:45 +0200
+Message-Id: <20160819215547.20063-5-martin.blumenstingl@googlemail.com>
+In-Reply-To: <20160819215547.20063-1-martin.blumenstingl@googlemail.com>
+References: <20160628191802.21227-1-martin.blumenstingl@googlemail.com>
+ <20160819215547.20063-1-martin.blumenstingl@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Neil Armstrong <narmstrong@baylibre.com>
 
+Newer SoCs (Meson 8b and GXBB) are using REG2 (offset 0x20) instead of
+REG1 to configure the decoder mode. This makes it necessary to
+introduce new bindings so the driver knows which register has to be
+used.
 
-On 08/01/2016 03:49 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Monday 01 Aug 2016 14:27:48 Hans Verkuil wrote:
->> On 08/01/2016 02:17 PM, Laurent Pinchart wrote:
->>> On Monday 01 Aug 2016 12:56:55 Hans Verkuil wrote:
->>>> On 07/27/2016 02:57 PM, Laurent Pinchart wrote:
->>>>> On Wednesday 27 Jul 2016 16:51:47 Kazunori Kobayashi wrote:
->>>>>> Hi,
->>>>>>
->>>>>> I have a question about memory freeing by calling REQBUF(0) before all
->>>>>> the dmabuf fds exported with VIDIOC_EXPBUF are closed.
->>>>>>
->>>>>> In calling REQBUF(0), videobuf2-core returns -EBUSY when the reference
->>>>>> count of a vb2 buffer is more than 1. When dmabuf fds are not exported
->>>>>> (usual V4L2_MEMORY_MMAP case), the check is no problem, but when dmabuf
->>>>>> fds are exported and some of them are not closed (in other words the
->>>>>> references to that memory are left), we cannot succeed in calling
->>>>>> REQBUF(0) despite being able to free the memory after all the
->>>>>> references are dropped.
->>>>>>
->>>>>> Actually REQBUF(0) does not force a vb2 buffer to be freed but
->>>>>> decreases the refcount of it. Also all the vb2 memory allocators that
->>>>>> support dmabuf exporting (dma-contig, dma-sg, vmalloc) implements
->>>>>> memory freeing by release() of dma_buf_ops, so I think there is no need
->>>>>> to return -EBUSY when exporting dmabuf fds.
->>>>>>
->>>>>> Could you please tell me what you think?
->>>>>
->>>>> I think you're right. vb2 allocates the vb2_buffer and the
->>>>> memops-specific structure separately. videobuf2-core.c will free the
->>>>> vb2_buffer instance, but won't touch the memops-specific structure or
->>>>> the buffer memory. Both of these are reference-counted in the memops
->>>>> allocators. We could thus allow REQBUFS(0) to proceed even when buffers
->>>>> have been exported (or at least after fixing the small issues we'll run
->>>>> into, I have a feeling that this is too easy to be true).
->>>>>
->>>>> Hans, Marek, any opinion on this ?
->>>>
->>>> What is the use-case for this? What you are doing here is to either free
->>>> all existing buffers or reallocate buffers. We can decide to rely on
->>>> refcounting, but then you would create a second set of buffers (when
->>>> re-allocating) or leave a lot of unfreed memory behind. That's pretty
->>>> hard
->>>> on the memory usage.
->>>
->>> Speaking of which, we have no way today to really limit memory usage. I
->>> wonder whether we should try to integrate support for resource limits in
->>> V4L2.
->>
->> I'm opposed to that. We had drivers in the past that did that (perhaps there
->> are still a few old ones left), but I removed those checks. In practice
->> this all depends on the use-case. And if you try to allocate more buffers
->> than there is memory, you just get ENOMEM. Which is what it is there for.
->>
->> After all, how to decide what limit to use? If someone wants to use all 32
->> buffers for some reason, or allocate larger buffers than strictly needed,
->> then they should be able to do so. Perhaps you want to be able to capture a
->> burst of high quality snapshots without having to process them immediately.
->> Or other video streams are going to be composed into the buffers so you
->> need to make them larger.
->>
->> The only real limits are the amount of physical (DMAable) memory and the
->> artificial 32 buffer limit which we already know is insufficient in
->> certain use-cases.
-> 
-> When the user running V4L2 applications has full control over the system, 
-> perhaps, but how about shared systems where the system administrator wants to 
-> control resource usage per user ? Containers also come to mind, per-cgroup 
-> memory limits should be honoured.
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+---
+ drivers/media/rc/meson-ir.c | 29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
 
-If an administrator explicitly restricts memory usage, then it would make sense
-to honor that. Are those checks perhaps already done deep in the mm code? I've
-no idea what would be involved.
+diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
+index fcc3b82..003fff0 100644
+--- a/drivers/media/rc/meson-ir.c
++++ b/drivers/media/rc/meson-ir.c
+@@ -24,6 +24,7 @@
+ 
+ #define DRIVER_NAME		"meson-ir"
+ 
++/* valid on all Meson platforms */
+ #define IR_DEC_LDR_ACTIVE	0x00
+ #define IR_DEC_LDR_IDLE		0x04
+ #define IR_DEC_LDR_REPEAT	0x08
+@@ -32,12 +33,21 @@
+ #define IR_DEC_FRAME		0x14
+ #define IR_DEC_STATUS		0x18
+ #define IR_DEC_REG1		0x1c
++/* only available on Meson 8b and newer */
++#define IR_DEC_REG2		0x20
+ 
+ #define REG0_RATE_MASK		(BIT(11) - 1)
+ 
+-#define REG1_MODE_MASK		(BIT(7) | BIT(8))
+-#define REG1_MODE_NEC		(0 << 7)
+-#define REG1_MODE_GENERAL	(2 << 7)
++#define DECODE_MODE_NEC		0x0
++#define DECODE_MODE_RAW		0x2
++
++/* Meson 6b uses REG1 to configure the mode */
++#define REG1_MODE_MASK		GENMASK(8, 7)
++#define REG1_MODE_SHIFT		7
++
++/* Meson 8b / GXBB use REG2 to configure the mode */
++#define REG2_MODE_MASK		GENMASK(3, 0)
++#define REG2_MODE_SHIFT		0
+ 
+ #define REG1_TIME_IV_SHIFT	16
+ #define REG1_TIME_IV_MASK	((BIT(13) - 1) << REG1_TIME_IV_SHIFT)
+@@ -158,8 +168,15 @@ static int meson_ir_probe(struct platform_device *pdev)
+ 	/* Reset the decoder */
+ 	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_RESET, REG1_RESET);
+ 	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_RESET, 0);
+-	/* Set general operation mode */
+-	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_MODE_MASK, REG1_MODE_GENERAL);
++
++	/* Set general operation mode (= raw/software decoding) */
++	if (of_device_is_compatible(node, "amlogic,meson6-ir"))
++		meson_ir_set_mask(ir, IR_DEC_REG1, REG1_MODE_MASK,
++				  DECODE_MODE_RAW << REG1_MODE_SHIFT);
++	else
++		meson_ir_set_mask(ir, IR_DEC_REG2, REG2_MODE_MASK,
++				  DECODE_MODE_RAW << REG2_MODE_SHIFT);
++
+ 	/* Set rate */
+ 	meson_ir_set_mask(ir, IR_DEC_REG0, REG0_RATE_MASK, MESON_TRATE - 1);
+ 	/* IRQ on rising and falling edges */
+@@ -197,6 +214,8 @@ static int meson_ir_remove(struct platform_device *pdev)
+ 
+ static const struct of_device_id meson_ir_match[] = {
+ 	{ .compatible = "amlogic,meson6-ir" },
++	{ .compatible = "amlogic,meson8b-ir" },
++	{ .compatible = "amlogic,meson-gxbb-ir" },
+ 	{ },
+ };
+ 
+-- 
+2.9.3
 
-> And even for single-user systems, having the system start trashing because a 
-> random 3rd party video application decided to allocate a large number of 
-> buffers for no good reason provides a pretty bad user experience.
-> 
-
-How would you know it is 'for no good reason'? Like any other application if it
-uses too much memory either don't use it or fix it. It's not up to the kernel
-to limit this arbitrarily.
-
-My opinion, of course.
-
-Regards,
-
-	Hans
