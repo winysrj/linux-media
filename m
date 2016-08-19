@@ -1,142 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:1399 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932558AbcHIN7L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2016 09:59:11 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: <srv_heupstream@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>,
-	Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH v3 4/4] arm64: dts: mediatek: Add MDP for MT8173
-Date: Tue, 9 Aug 2016 21:58:57 +0800
-Message-ID: <1470751137-12403-5-git-send-email-minghsiu.tsai@mediatek.com>
-In-Reply-To: <1470751137-12403-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1470751137-12403-1-git-send-email-minghsiu.tsai@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51092 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754472AbcHSIj2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Aug 2016 04:39:28 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 2/6] drm: Unconstify state argument to prepare_fb()/cleanup_fb()
+Date: Fri, 19 Aug 2016 11:39:30 +0300
+Message-Id: <1471595974-28960-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1471595974-28960-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1471595974-28960-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add MDP node for MT8173
+The functions might need to modify the state to store memory-related
+data.
 
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- arch/arm64/boot/dts/mediatek/mt8173.dtsi |   84 ++++++++++++++++++++++++++++++
- 1 file changed, 84 insertions(+)
+ drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_plane.c | 4 ++--
+ drivers/gpu/drm/i915/intel_display.c            | 4 ++--
+ drivers/gpu/drm/i915/intel_drv.h                | 4 ++--
+ drivers/gpu/drm/msm/mdp/mdp4/mdp4_plane.c       | 4 ++--
+ drivers/gpu/drm/msm/mdp/mdp5/mdp5_plane.c       | 4 ++--
+ drivers/gpu/drm/omapdrm/omap_plane.c            | 4 ++--
+ drivers/gpu/drm/rockchip/rockchip_drm_vop.c     | 4 ++--
+ include/drm/drm_modeset_helper_vtables.h        | 4 ++--
+ 8 files changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-index 10f638f..cd93228 100644
---- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-+++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-@@ -41,6 +41,14 @@
- 		dpi0 = &dpi0;
- 		dsi0 = &dsi0;
- 		dsi1 = &dsi1;
-+		mdp_rdma0 = &mdp_rdma0;
-+		mdp_rdma1 = &mdp_rdma1;
-+		mdp_rsz0 = &mdp_rsz0;
-+		mdp_rsz1 = &mdp_rsz1;
-+		mdp_rsz2 = &mdp_rsz2;
-+		mdp_wdma0 = &mdp_wdma0;
-+		mdp_wrot0 = &mdp_wrot0;
-+		mdp_wrot1 = &mdp_wrot1;
- 	};
+diff --git a/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_plane.c b/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_plane.c
+index 016c191221f3..ae2b31dd9487 100644
+--- a/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_plane.c
++++ b/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_plane.c
+@@ -755,7 +755,7 @@ static int atmel_hlcdc_plane_atomic_check(struct drm_plane *p,
+ }
  
- 	cpus {
-@@ -716,6 +724,82 @@
- 			#clock-cells = <1>;
- 		};
+ static int atmel_hlcdc_plane_prepare_fb(struct drm_plane *p,
+-					const struct drm_plane_state *new_state)
++					struct drm_plane_state *new_state)
+ {
+ 	/*
+ 	 * FIXME: we should avoid this const -> non-const cast but it's
+@@ -780,7 +780,7 @@ static int atmel_hlcdc_plane_prepare_fb(struct drm_plane *p,
+ }
  
-+		mdp {
-+			compatible = "mediatek,mt8173-mdp";
-+			#address-cells = <2>;
-+			#size-cells = <2>;
-+			ranges;
-+			mediatek,vpu = <&vpu>;
-+
-+			mdp_rdma0: rdma@14001000 {
-+				compatible = "mediatek,mt8173-mdp-rdma";
-+				reg = <0 0x14001000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_RDMA0>,
-+					 <&mmsys CLK_MM_MUTEX_32K>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+				iommus = <&iommu M4U_PORT_MDP_RDMA0>;
-+				mediatek,larb = <&larb0>;
-+			};
-+
-+			mdp_rdma1: rdma@14002000 {
-+				compatible = "mediatek,mt8173-mdp-rdma";
-+				reg = <0 0x14002000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_RDMA1>,
-+					 <&mmsys CLK_MM_MUTEX_32K>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+				iommus = <&iommu M4U_PORT_MDP_RDMA1>;
-+				mediatek,larb = <&larb4>;
-+			};
-+
-+			mdp_rsz0: rsz@14003000 {
-+				compatible = "mediatek,mt8173-mdp-rsz";
-+				reg = <0 0x14003000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_RSZ0>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+			};
-+
-+			mdp_rsz1: rsz@14004000 {
-+				compatible = "mediatek,mt8173-mdp-rsz";
-+				reg = <0 0x14004000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_RSZ1>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+			};
-+
-+			mdp_rsz2: rsz@14005000 {
-+				compatible = "mediatek,mt8173-mdp-rsz";
-+				reg = <0 0x14005000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_RSZ2>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+			};
-+
-+			mdp_wdma0: wdma@14006000 {
-+				compatible = "mediatek,mt8173-mdp-wdma";
-+				reg = <0 0x14006000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_WDMA>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+				iommus = <&iommu M4U_PORT_MDP_WDMA>;
-+				mediatek,larb = <&larb0>;
-+			};
-+
-+			mdp_wrot0: wrot@14007000 {
-+				compatible = "mediatek,mt8173-mdp-wrot";
-+				reg = <0 0x14007000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_WROT0>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+				iommus = <&iommu M4U_PORT_MDP_WROT0>;
-+				mediatek,larb = <&larb0>;
-+			};
-+
-+			mdp_wrot1: wrot@14008000 {
-+				compatible = "mediatek,mt8173-mdp-wrot";
-+				reg = <0 0x14008000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_WROT1>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+				iommus = <&iommu M4U_PORT_MDP_WROT1>;
-+				mediatek,larb = <&larb4>;
-+			};
-+		};
-+
- 		ovl0: ovl@1400c000 {
- 			compatible = "mediatek,mt8173-disp-ovl";
- 			reg = <0 0x1400c000 0 0x1000>;
+ static void atmel_hlcdc_plane_cleanup_fb(struct drm_plane *p,
+-				const struct drm_plane_state *old_state)
++				struct drm_plane_state *old_state)
+ {
+ 	/*
+ 	 * FIXME: we should avoid this const -> non-const cast but it's
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index dcf93b3d4fb6..cf70de704b2a 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -13974,7 +13974,7 @@ static const struct drm_crtc_funcs intel_crtc_funcs = {
+  */
+ int
+ intel_prepare_plane_fb(struct drm_plane *plane,
+-		       const struct drm_plane_state *new_state)
++		       struct drm_plane_state *new_state)
+ {
+ 	struct drm_device *dev = plane->dev;
+ 	struct drm_framebuffer *fb = new_state->fb;
+@@ -14058,7 +14058,7 @@ intel_prepare_plane_fb(struct drm_plane *plane,
+  */
+ void
+ intel_cleanup_plane_fb(struct drm_plane *plane,
+-		       const struct drm_plane_state *old_state)
++		       struct drm_plane_state *old_state)
+ {
+ 	struct drm_device *dev = plane->dev;
+ 	struct intel_plane_state *old_intel_state;
+diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
+index cc937a19b1ba..aa0d6679eff3 100644
+--- a/drivers/gpu/drm/i915/intel_drv.h
++++ b/drivers/gpu/drm/i915/intel_drv.h
+@@ -1238,9 +1238,9 @@ void intel_finish_page_flip_cs(struct drm_i915_private *dev_priv, int pipe);
+ void intel_finish_page_flip_mmio(struct drm_i915_private *dev_priv, int pipe);
+ void intel_check_page_flip(struct drm_i915_private *dev_priv, int pipe);
+ int intel_prepare_plane_fb(struct drm_plane *plane,
+-			   const struct drm_plane_state *new_state);
++			   struct drm_plane_state *new_state);
+ void intel_cleanup_plane_fb(struct drm_plane *plane,
+-			    const struct drm_plane_state *old_state);
++			    struct drm_plane_state *old_state);
+ int intel_plane_atomic_get_property(struct drm_plane *plane,
+ 				    const struct drm_plane_state *state,
+ 				    struct drm_property *property,
+diff --git a/drivers/gpu/drm/msm/mdp/mdp4/mdp4_plane.c b/drivers/gpu/drm/msm/mdp/mdp4/mdp4_plane.c
+index 9f96dfe67769..0689a06bec8e 100644
+--- a/drivers/gpu/drm/msm/mdp/mdp4/mdp4_plane.c
++++ b/drivers/gpu/drm/msm/mdp/mdp4/mdp4_plane.c
+@@ -99,7 +99,7 @@ static const struct drm_plane_funcs mdp4_plane_funcs = {
+ };
+ 
+ static int mdp4_plane_prepare_fb(struct drm_plane *plane,
+-		const struct drm_plane_state *new_state)
++		struct drm_plane_state *new_state)
+ {
+ 	struct mdp4_plane *mdp4_plane = to_mdp4_plane(plane);
+ 	struct mdp4_kms *mdp4_kms = get_kms(plane);
+@@ -113,7 +113,7 @@ static int mdp4_plane_prepare_fb(struct drm_plane *plane,
+ }
+ 
+ static void mdp4_plane_cleanup_fb(struct drm_plane *plane,
+-		const struct drm_plane_state *old_state)
++		struct drm_plane_state *old_state)
+ {
+ 	struct mdp4_plane *mdp4_plane = to_mdp4_plane(plane);
+ 	struct mdp4_kms *mdp4_kms = get_kms(plane);
+diff --git a/drivers/gpu/drm/msm/mdp/mdp5/mdp5_plane.c b/drivers/gpu/drm/msm/mdp/mdp5/mdp5_plane.c
+index 432c09836b0e..1ef024df51a8 100644
+--- a/drivers/gpu/drm/msm/mdp/mdp5/mdp5_plane.c
++++ b/drivers/gpu/drm/msm/mdp/mdp5/mdp5_plane.c
+@@ -250,7 +250,7 @@ static const struct drm_plane_funcs mdp5_plane_funcs = {
+ };
+ 
+ static int mdp5_plane_prepare_fb(struct drm_plane *plane,
+-		const struct drm_plane_state *new_state)
++		struct drm_plane_state *new_state)
+ {
+ 	struct mdp5_plane *mdp5_plane = to_mdp5_plane(plane);
+ 	struct mdp5_kms *mdp5_kms = get_kms(plane);
+@@ -264,7 +264,7 @@ static int mdp5_plane_prepare_fb(struct drm_plane *plane,
+ }
+ 
+ static void mdp5_plane_cleanup_fb(struct drm_plane *plane,
+-		const struct drm_plane_state *old_state)
++		struct drm_plane_state *old_state)
+ {
+ 	struct mdp5_plane *mdp5_plane = to_mdp5_plane(plane);
+ 	struct mdp5_kms *mdp5_kms = get_kms(plane);
+diff --git a/drivers/gpu/drm/omapdrm/omap_plane.c b/drivers/gpu/drm/omapdrm/omap_plane.c
+index 5252ab720e70..bdfbb6181398 100644
+--- a/drivers/gpu/drm/omapdrm/omap_plane.c
++++ b/drivers/gpu/drm/omapdrm/omap_plane.c
+@@ -60,7 +60,7 @@ to_omap_plane_state(struct drm_plane_state *state)
+ }
+ 
+ static int omap_plane_prepare_fb(struct drm_plane *plane,
+-				 const struct drm_plane_state *new_state)
++				 struct drm_plane_state *new_state)
+ {
+ 	if (!new_state->fb)
+ 		return 0;
+@@ -69,7 +69,7 @@ static int omap_plane_prepare_fb(struct drm_plane *plane,
+ }
+ 
+ static void omap_plane_cleanup_fb(struct drm_plane *plane,
+-				  const struct drm_plane_state *old_state)
++				  struct drm_plane_state *old_state)
+ {
+ 	if (old_state->fb)
+ 		omap_framebuffer_unpin(old_state->fb);
+diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
+index 91305eb7d312..a2466e37b0a1 100644
+--- a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
++++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
+@@ -569,7 +569,7 @@ static void vop_plane_destroy(struct drm_plane *plane)
+ }
+ 
+ static int vop_plane_prepare_fb(struct drm_plane *plane,
+-				const struct drm_plane_state *new_state)
++				struct drm_plane_state *new_state)
+ {
+ 	if (plane->state->fb)
+ 		drm_framebuffer_reference(plane->state->fb);
+@@ -578,7 +578,7 @@ static int vop_plane_prepare_fb(struct drm_plane *plane,
+ }
+ 
+ static void vop_plane_cleanup_fb(struct drm_plane *plane,
+-				 const struct drm_plane_state *old_state)
++				 struct drm_plane_state *old_state)
+ {
+ 	if (old_state->fb)
+ 		drm_framebuffer_unreference(old_state->fb);
+diff --git a/include/drm/drm_modeset_helper_vtables.h b/include/drm/drm_modeset_helper_vtables.h
+index b55f21857a98..bfe145e602d2 100644
+--- a/include/drm/drm_modeset_helper_vtables.h
++++ b/include/drm/drm_modeset_helper_vtables.h
+@@ -826,7 +826,7 @@ struct drm_plane_helper_funcs {
+ 	 * everything else must complete successfully.
+ 	 */
+ 	int (*prepare_fb)(struct drm_plane *plane,
+-			  const struct drm_plane_state *new_state);
++			  struct drm_plane_state *new_state);
+ 	/**
+ 	 * @cleanup_fb:
+ 	 *
+@@ -837,7 +837,7 @@ struct drm_plane_helper_funcs {
+ 	 * transitional plane helpers, but it is optional.
+ 	 */
+ 	void (*cleanup_fb)(struct drm_plane *plane,
+-			   const struct drm_plane_state *old_state);
++			   struct drm_plane_state *old_state);
+ 
+ 	/**
+ 	 * @atomic_check:
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
