@@ -1,138 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41722 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750711AbcHDPJk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Aug 2016 11:09:40 -0400
-Date: Thu, 4 Aug 2016 17:59:25 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCHv2] v4l2-common: add s_selection helper function
-Message-ID: <20160804145925.GM3243@valkosipuli.retiisi.org.uk>
-References: <c6379bf1-4fdf-7deb-4312-86d26d0ee106@xs4all.nl>
- <20160804140313.GI3243@valkosipuli.retiisi.org.uk>
- <aa119982-53c6-37bf-d019-b6ccd27b5c8a@xs4all.nl>
- <20160804141734.GK3243@valkosipuli.retiisi.org.uk>
- <b343ec5f-0c03-ae92-ef92-a051b23060ca@xs4all.nl>
- <20160804143813.GL3243@valkosipuli.retiisi.org.uk>
- <0ea23a54-3a72-665f-30f3-e02f7f6f41fb@xs4all.nl>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:34649 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754242AbcHSGDj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Aug 2016 02:03:39 -0400
+Subject: Re: [PATCH v3 3/4] media: Add Mediatek MDP Driver
+To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+References: <1470751137-12403-1-git-send-email-minghsiu.tsai@mediatek.com>
+ <1470751137-12403-4-git-send-email-minghsiu.tsai@mediatek.com>
+ <861e5c51-1333-fdc7-2793-d4741a48c72f@xs4all.nl>
+ <1471586051.1540.11.camel@mtksdaap41>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, daniel.thompson@linaro.org,
+        Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        srv_heupstream@mediatek.com,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-mediatek@lists.infradead.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2d18a4ee-69e6-e400-22b6-b3867b91b5c0@xs4all.nl>
+Date: Fri, 19 Aug 2016 08:03:29 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0ea23a54-3a72-665f-30f3-e02f7f6f41fb@xs4all.nl>
+In-Reply-To: <1471586051.1540.11.camel@mtksdaap41>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 04, 2016 at 04:47:46PM +0200, Hans Verkuil wrote:
+On 08/19/2016 07:54 AM, Minghsiu Tsai wrote:
+> On Mon, 2016-08-15 at 14:55 +0200, Hans Verkuil wrote:
+>> On 08/09/2016 03:58 PM, Minghsiu Tsai wrote:
+>> This isn't right. For VIDEO_CAPTURE you support the COMPOSE targets, and for
+>> the VIDEO_OUTPUT you support the CROP targets. Right now I can use e.g. TGT_CROP
+>> with VIDEO_CAPTURE, which isn't correct.
+>>
+>> s_selection has the same problem.
+>>
 > 
+> So my understanding is
+> VIDEO_OUTPUT -> only allow to use target XXX_CROP_XXX
+> VIDEO_CAPTURE -> only allow to use target XXX_COMPOSE_XXX
 > 
-> On 08/04/2016 04:38 PM, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > On Thu, Aug 04, 2016 at 04:27:27PM +0200, Hans Verkuil wrote:
-> >>
-> >>
-> >> On 08/04/2016 04:17 PM, Sakari Ailus wrote:
-> >>> On Thu, Aug 04, 2016 at 04:11:55PM +0200, Hans Verkuil wrote:
-> >>>>
-> >>>>
-> >>>> On 08/04/2016 04:03 PM, Sakari Ailus wrote:
-> >>>>> Hi Hans,
-> >>>>>
-> >>>>> On Mon, Aug 01, 2016 at 12:33:39PM +0200, Hans Verkuil wrote:
-> >>>>>> Checking the selection constraint flags is often forgotten by drivers, especially
-> >>>>>> if the selection code just clamps the rectangle to the minimum and maximum allowed
-> >>>>>> rectangles.
-> >>>>>>
-> >>>>>> This patch adds a simple helper function that checks the adjusted rectangle against
-> >>>>>> the constraint flags and either returns -ERANGE if it doesn't fit, or fills in the
-> >>>>>> new rectangle and returns 0.
-> >>>>>>
-> >>>>>> It also adds a small helper function to v4l2-rect.h to check if one rectangle fits
-> >>>>>> inside another.
-> >>>>>
-> >>>>> I could have misunderstood the purpose of the patch but... these flags are
-> >>>>> used by drivers in guidance in adjusting the rectangle in case there are
-> >>>>> hardware limitations, to make it larger or smaller than requested if the
-> >>>>> request can't be fulfillsed as such. The intent is *not* to return an error
-> >>>>> back to the user. In this respect it works quite like e.g. S_FMT does in
-> >>>>> cases an exact requested format can't be supported.
-> >>>>>
-> >>>>> <URL:https://www.linuxtv.org/downloads/v4l-dvb-apis/apb.html#v4l2-selection-flags>
-> >>>>>
-> >>>>> What can be done is rather driver specific.
-> >>>>>
-> >>>>
-> >>>> That's not what the spec says:
-> >>>>
-> >>>> https://hverkuil.home.xs4all.nl/spec/uapi/v4l/vidioc-g-selection.html
-> >>>>
-> >>>> ERANGE
-> >>>> It is not possible to adjust struct v4l2_rect r rectangle to satisfy all constraints given in the flags argument.
-> >>>>
-> >>>> It's rather unambiguous, I think.
-> >>>>
-> >>>> If you don't want an error, then just leave 'flags' to 0. That makes sense.
-> >>>
-> >>> Does it? I can't imagine a use case for that.
-> >>
-> >> That's just the standard behavior: "I'd like this selection rectangle, but adjust
-> >> however you like it to something that works."
-> > 
-> > That's not how this patch works though: it returns an error instead.
-> 
-> No. If flags == 0, then it returns 0. Did you misread the patch?
+> Am I right?
 
-That's correct. But if you specify flags, instead of adjusting the rectangle
-the function in the patch returns an error.
+Correct.
 
-The purpose of adjusting the rectangle to a particular direction (either up
-or down) is that often in a pipeline scaling is only available either way.
-For cropping this is obvious.
+Regards,
 
-So if you need an image the size of which is no less than a given one, then
-you specify what you want and V4L2_SEL_FL_GE. The flags are there for
-convenience. What I don't quite understand is in which case would an error
-be preferred instead.
-
-> 
-> > 
-> >>
-> >>> The common section still defines these flags differently, and that's the
-> >>> behaviour on V4L2 sub-device interface. Do we have a driver that implements
-> >>> support for these flags as you described?
-> >>>
-> >>
-> >> A quick check: fimc-capture, gsc-m2m, am437, vivid, fimc-lite, bdisp.
-> >>
-> >> Note that VIDIOC_SUBDEV_S_SELECTION doesn't specify an ERANGE error, but I don't know
-> >> if that is intentional or an oversight. At least smiapp-core.c doesn't return an error.
-> > 
-> > Please read the description of the flags in common documentation. The smiapp
-> > driver implements them as described in the common and V4L2 sub-device
-> > documentation:
-> > 
-> > <URL:https://www.linuxtv.org/downloads/v4l-dvb-apis/subdev.html#v4l2-subdev-selections>
-> > <URL:https://www.linuxtv.org/downloads/v4l-dvb-apis/apb.html#v4l2-selection-flags>
-> > 
-> > I.e. they affect rounding in the case where an exact match can't be found,
-> > hardware limitations taken into account. The V4L2 behaviour can be
-> > implemented using the common / sub-device flag definitions but not the other
-> > way around, so we don't necessary have a problem here. It's just that
-> > returning an error in such a case doesn't really make much sense.
-> > 
-> 
-> I think we need to clarify the spec first, since it is clearly ambiguous in some areas.
-
-Not ambiguous but internally conflicting.
-
-> Do you have some time tomorrow to discuss this on irc?
-
-Tomorrow works fine.
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Hans
