@@ -1,56 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swift.blarg.de ([78.47.110.205]:60456 "EHLO swift.blarg.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932378AbcHIVlp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Aug 2016 17:41:45 -0400
-Subject: [PATCH 11/12] [media] media-entity: clear media_gobj.mdev in
- _destroy()
-From: Max Kellermann <max.kellermann@gmail.com>
-To: linux-media@vger.kernel.org, shuahkh@osg.samsung.com,
-	mchehab@osg.samsung.com
-Cc: linux-kernel@vger.kernel.org
-Date: Tue, 09 Aug 2016 23:32:57 +0200
-Message-ID: <147077837761.21835.15641401024739733305.stgit@woodpecker.blarg.de>
-In-Reply-To: <147077832610.21835.743840405297289081.stgit@woodpecker.blarg.de>
-References: <147077832610.21835.743840405297289081.stgit@woodpecker.blarg.de>
+Received: from mout.web.de ([212.227.15.14]:49338 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750879AbcHSJRs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Aug 2016 05:17:48 -0400
+Subject: [PATCH 0/2] uvc_v4l2: Fine-tuning for uvc_ioctl_ctrl_map()
+References: <566ABCD9.1060404@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+To: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <95aa5fcd-8610-debc-70b0-30b2ed3302d2@users.sourceforge.net>
+Date: Fri, 19 Aug 2016 11:17:32 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <566ABCD9.1060404@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-media_gobj_destroy() may be called twice on one instance - once by
-media_device_unregister() and again by dvb_media_device_free().  The
-function media_remove_intf_links() establishes and documents the
-convention that mdev==NULL means that the object is not registered,
-but nobody ever NULLs this variable.  So this patch really implements
-this behavior, and adds another mdev==NULL check to
-media_gobj_destroy() to protect against double removal.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 19 Aug 2016 11:11:01 +0200
 
-Signed-off-by: Max Kellermann <max.kellermann@gmail.com>
----
- drivers/media/media-entity.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+A few update suggestions were taken into account
+from static source code analysis.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index d8a2299..9526338 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -203,10 +203,16 @@ void media_gobj_destroy(struct media_gobj *gobj)
- {
- 	dev_dbg_obj(__func__, gobj);
- 
-+	/* Do nothing if the object is not linked. */
-+	if (gobj->mdev == NULL)
-+		return;
-+
- 	gobj->mdev->topology_version++;
- 
- 	/* Remove the object from mdev list */
- 	list_del(&gobj->list);
-+
-+	gobj->mdev = NULL;
- }
- 
- int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
+Markus Elfring (2):
+  Use memdup_user() rather than duplicating its implementation
+  One function call less after error detection
+
+ drivers/media/usb/uvc/uvc_v4l2.c | 20 +++++++-------------
+ 1 file changed, 7 insertions(+), 13 deletions(-)
+
+-- 
+2.9.3
 
