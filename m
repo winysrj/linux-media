@@ -1,68 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:32792 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757503AbcHWNlH (ORCPT
+Received: from mail-wm0-f48.google.com ([74.125.82.48]:36644 "EHLO
+        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754099AbcHSSfz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 Aug 2016 09:41:07 -0400
-Received: by mail-it0-f67.google.com with SMTP id d65so8069618ith.0
-        for <linux-media@vger.kernel.org>; Tue, 23 Aug 2016 06:41:01 -0700 (PDT)
+        Fri, 19 Aug 2016 14:35:55 -0400
+Received: by mail-wm0-f48.google.com with SMTP id q128so44793678wma.1
+        for <linux-media@vger.kernel.org>; Fri, 19 Aug 2016 11:35:40 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20160823070818.42ffec00@lwn.net>
-References: <1471878705-3963-1-git-send-email-sumit.semwal@linaro.org>
- <1471878705-3963-3-git-send-email-sumit.semwal@linaro.org>
- <20160822124930.02dbbafc@vento.lan> <20160823060135.GJ24290@phenom.ffwll.local>
- <20160823070818.42ffec00@lwn.net>
-From: Daniel Vetter <daniel@ffwll.ch>
-Date: Tue, 23 Aug 2016 15:28:55 +0200
-Message-ID: <CAKMK7uFMDcwk=ovX9+_R4FBOx6=sYnaOZwHuHSdQixdk-5_hwg@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] Documentation/sphinx: link dma-buf rsts
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        linux-doc@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <CAGoCfixmx7hoCDT9a3HfwHDdtxyW9Y1SgvgpyiZn9BNPf8eqkQ@mail.gmail.com>
+References: <2d1d06c05dae478b9bc2484e9d1da36c@MBX06A-IAD3.mex08.mlsrvr.com>
+ <20160817105822.7fum27zgz2e3hf4o@acer> <2fb767603a2e450a89ab263e2224026e@MBX06A-IAD3.mex08.mlsrvr.com>
+ <CAGoCfixmx7hoCDT9a3HfwHDdtxyW9Y1SgvgpyiZn9BNPf8eqkQ@mail.gmail.com>
+From: =?UTF-8?Q?Alexandre=2DXavier_Labont=C3=A9=2DLamoureux?=
+        <axdoomer@gmail.com>
+Date: Fri, 19 Aug 2016 14:28:49 -0400
+Message-ID: <CAKTMqxsWDTA39DdscZRYXR20T65aiBbUPs5_yPV9m9MCo2eLUg@mail.gmail.com>
+Subject: Re: Linux support for current StarTech analog video capture device (SAA711xx)
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 23, 2016 at 3:08 PM, Jonathan Corbet <corbet@lwn.net> wrote:
-> On Tue, 23 Aug 2016 08:01:35 +0200
-> Daniel Vetter <daniel@ffwll.ch> wrote:
->
->> I'm also not too sure about whether dma-buf really should be it's own
->> subdirectory. It's plucked from the device-drivers.tmpl, I think an
->> overall device-drivers/ for all the misc subsystems and support code would
->> be better. Then one toc there, which fans out to either kernel-doc and
->> overview docs.
->
-> I'm quite convinced it shouldn't be.
->
-> If you get a chance, could you have a look at the "RFC: The beginning of
-> a proper driver-api book" series I posted yesterday (yes, I should have
-> copied more of you, sorry)?  It shows the direction I would like to go
-> with driver API documentation, and, assuming we go that way, I'd like the
-> dma-buf documentation to fit into that.
+Hi,
 
-Looks real pretty, ack on that. And we can always split up more, e.g.
-by extracting dma-buf.rst (and merg the current dma-buffer-sharing.txt
-into that one).
+If this is the SVID2USB23 with the id 0xeb1a, 0x5051, then I hope
+someone will get it to work, because it will fix my Ion Video 2 PC
+which has the same hardware. I wrote a wiki page about it:
+https://www.linuxtv.org/wiki/index.php/Ion_Video_2_PC
 
-I think the more interesting story is, what's your plan with all the
-other driver related subsystem? Especially the ones which already have
-full directories of their own, like e.g. Documentation/gpio/. I think
-those should be really part of the infrastructure section (or
-something equally high-level), together with other awesome servies
-like pwm, regman, irqchip, ... And then there's also the large-scale
-subsystems like media or gpu. What's the plan to tie them all
-together? Personally I'm leaning towards keeping the existing
-directories (where they exist already), but inserting links into the
-overall driver-api section.
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+Best regards to every of you,
+Alexandre-Xavier
+
+On Fri, Aug 19, 2016 at 10:01 AM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> Hi Steve,
+>
+>> We have two models of the StarTech in use: SVID2USB2 and SVID2USB23.  The "23" version is the only version currently listed on StarTech's website.  It is available via Amazon in the USA but I'm not sure about other countries.
+>
+> Have you actually opened these units up and confirmed what chips are
+> inside of them?  Or did you determine it's em28xx/saa711x via a Google
+> search.  The reason I ask is many of these devices will quietly change
+> their internal design over time, without changing the plastics and/or
+> model number.  Hence you cannot simply rely on what somebody else may
+> have said in terms of what chips are inside the device you're holding
+> in your hand.
+>
+> First step would probably be to confirm the chips in question.  If
+> they really are based on the em2882/saa7115, then it should be pretty
+> easy to get working with a minor code change to the driver.
+>
+> If you're in the US and you're willing to throw it in a USPS flat rate
+> box and ship it to me, I can probably have it working in about an
+> hour.
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
