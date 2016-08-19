@@ -1,124 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.goneo.de ([85.220.129.33]:39680 "EHLO smtp2.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932942AbcH2OMy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 10:12:54 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH v3] docs-rst: ignore arguments on macro definitions
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <e4955d6ed9b730f544fe40b0344c4451dd415cda.1472476362.git.mchehab@s-opensource.com>
-Date: Mon, 29 Aug 2016 16:12:39 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <BBC1BC77-BCF1-453C-B85D-9758C4C433A6@darmarit.de>
-References: <e4955d6ed9b730f544fe40b0344c4451dd415cda.1472476362.git.mchehab@s-opensource.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35294 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754510AbcHSQgZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Aug 2016 12:36:25 -0400
+Received: by mail-wm0-f68.google.com with SMTP id i5so4068487wmg.2
+        for <linux-media@vger.kernel.org>; Fri, 19 Aug 2016 09:36:24 -0700 (PDT)
+From: Johan Fjeldtvedt <jaffe1@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Johan Fjeldtvedt <jaffe1@gmail.com>
+Subject: [PATCH 1/4] cec: allow configuration both from within driver and from user space
+Date: Fri, 19 Aug 2016 18:36:13 +0200
+Message-Id: <1471624576-9823-1-git-send-email-jaffe1@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+It makes sense for adapters such as the Pulse-Eight to be configurable
+both from within the driver and from user space, so remove the
+requirement that drivers only can call cec_s_log_addrs or
+cec_s_phys_addr if they don't expose those capabilities to user space.
 
-Am 29.08.2016 um 15:13 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+Signed-off-by: Johan Fjeldtvedt <jaffe1@gmail.com>
+---
+ drivers/staging/media/cec/cec-adap.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-> A macro definition is mapped via .. c:function:: at the
-> ReST markup when using the following kernel-doc tag:
-> 
-> 	/**
-> 	 * DMX_FE_ENTRY - Casts elements in the list of registered
-> 	 *               front-ends from the generic type struct list_head
-> 	 *               to the type * struct dmx_frontend
-> 	 *
-> 	 * @list: list of struct dmx_frontend
-> 	 */
-> 	 #define DMX_FE_ENTRY(list) \
-> 	        list_entry(list, struct dmx_frontend, connectivity_list)
-> 
-> However, unlike a function description, the arguments of a macro
-> doesn't contain the data type.
-> 
-> This causes warnings when enabling Sphinx on nitkpick mode,
-> like this one:
-> 	./drivers/media/dvb-core/demux.h:358: WARNING: c:type reference target not found: list
-
-I think this is a drawback of sphinx's C-domain, using function
-definition for macros also. From the function documentation
-
- """This is also used to describe function-like preprocessor
-    macros. The names of the arguments should be given so
-    they may be used in the description."""
-
-I think about to fix the nitpick message for macros (aka function
-directive) in the C-domain extension (we already have).
-
-But for this, I need a rule to distinguish between macros
-and functions ... is the uppercase of the macro name a good
-rule to suppress the nitpick message? Any other suggestions?
-
--- Markus --
-
-> 
-> That happens because kernel-doc output for the above is:
-> 
-> 	.. c:function:: DMX_FE_ENTRY ( list)
-> 
-> 	   Casts elements in the list of registered front-ends from the generic type struct list_head to the type * struct dmx_frontend
-> 
-> 	**Parameters**
-> 
-> 	``list``
-> 	  list of struct dmx_frontend
-> 
-> As the type is blank, Sphinx would think that ``list`` is a type,
-> and will try to add a cross reference for it, using their internal
-> representation for c:type:`list`.
-> 
-> However, ``list`` is not a type. So, that would cause either the
-> above warning, or if a ``list`` type exists, it would create
-> a reference to the wrong place at the doc.
-> 
-> To avoid that, let's ommit macro arguments from c:function::
-> declaration. As each argument will appear below the Parameters,
-> the type of the argument can be described there, if needed.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
-> 
-> v3: version 2 patch caused a regression when handling function arguments,
-> because the counter were not incremented on all cases. Fix it.
-> 
-> scripts/kernel-doc | 5 +++--
-> 1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-> index d225e178aa1b..bac0af4fc659 100755
-> --- a/scripts/kernel-doc
-> +++ b/scripts/kernel-doc
-> @@ -1846,14 +1846,15 @@ sub output_function_rst(%) {
-> 	if ($count ne 0) {
-> 	    print ", ";
-> 	}
-> -	$count++;
-> 	$type = $args{'parametertypes'}{$parameter};
-> 
-> 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
-> 	    # pointer-to-function
-> 	    print $1 . $parameter . ") (" . $2;
-> -	} else {
-> +	    $count++;
-> +	} elsif ($type ne "") {
-> 	    print $type . " " . $parameter;
-> +	    $count++;
-> 	}
->    }
->    print ")\n\n";
-> -- 
-> 2.7.4
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
+index b2393bb..608e3e7 100644
+--- a/drivers/staging/media/cec/cec-adap.c
++++ b/drivers/staging/media/cec/cec-adap.c
+@@ -1153,8 +1153,6 @@ void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block)
+ 	if (IS_ERR_OR_NULL(adap))
+ 		return;
+ 
+-	if (WARN_ON(adap->capabilities & CEC_CAP_PHYS_ADDR))
+-		return;
+ 	mutex_lock(&adap->lock);
+ 	__cec_s_phys_addr(adap, phys_addr, block);
+ 	mutex_unlock(&adap->lock);
+@@ -1295,8 +1293,6 @@ int cec_s_log_addrs(struct cec_adapter *adap,
+ {
+ 	int err;
+ 
+-	if (WARN_ON(adap->capabilities & CEC_CAP_LOG_ADDRS))
+-		return -EINVAL;
+ 	mutex_lock(&adap->lock);
+ 	err = __cec_s_log_addrs(adap, log_addrs, block);
+ 	mutex_unlock(&adap->lock);
+-- 
+2.7.4
 
