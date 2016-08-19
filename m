@@ -1,70 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35696 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754322AbcHSDqu (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33061 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754617AbcHSQgZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Aug 2016 23:46:50 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>
-Subject: [PATCH 20/20] [media] diff-v4l.rst: Make capabilities table fit in LaTeX
-Date: Thu, 18 Aug 2016 13:15:49 -0300
-Message-Id: <9c5cc2e8a1f01eb7418967c0cf75a7f579e5403e.1471532123.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
-References: <cover.1471532122.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
-References: <cover.1471532122.git.mchehab@s-opensource.com>
+        Fri, 19 Aug 2016 12:36:25 -0400
+Received: by mail-wm0-f65.google.com with SMTP id o80so4081725wme.0
+        for <linux-media@vger.kernel.org>; Fri, 19 Aug 2016 09:36:25 -0700 (PDT)
+From: Johan Fjeldtvedt <jaffe1@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Johan Fjeldtvedt <jaffe1@gmail.com>
+Subject: [PATCH 2/4] pulse8-cec: serialize communication with adapter
+Date: Fri, 19 Aug 2016 18:36:14 +0200
+Message-Id: <1471624576-9823-2-git-send-email-jaffe1@gmail.com>
+In-Reply-To: <1471624576-9823-1-git-send-email-jaffe1@gmail.com>
+References: <1471624576-9823-1-git-send-email-jaffe1@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This table has several troubles:
-	- a duplicated "struct" on its name;
-	- a reference to a V4L version 1 struct that will never
-	  point to something (as we got rid of V4L1 API a long
-	  time ago);
-	- misses hints for LaTeX output (column size and longtable
-	  style).
+Make sending messages to the adapter serialized within the driver.
 
-Fix them.
+send_and_wait is split into send_and_wait_once, which only sends once
+and checks for the result, and the higher level send_and_wait, which
+performs locking and retries.
 
-It should be noticed that the first column of this table is
-not aligned with the rest. I suspect that this is a bug at
-the flat-table extension.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Johan Fjeldtvedt <jaffe1@gmail.com>
 ---
- Documentation/media/uapi/v4l/diff-v4l.rst | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/staging/media/pulse8-cec/pulse8-cec.c | 50 ++++++++++++++++-----------
+ 1 file changed, 30 insertions(+), 20 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/diff-v4l.rst b/Documentation/media/uapi/v4l/diff-v4l.rst
-index e1e034df514c..93263e477127 100644
---- a/Documentation/media/uapi/v4l/diff-v4l.rst
-+++ b/Documentation/media/uapi/v4l/diff-v4l.rst
-@@ -95,7 +95,9 @@ and radio devices supporting a set of related functions like video
- capturing, video overlay and VBI capturing. See :ref:`open` for an
- introduction.
+diff --git a/drivers/staging/media/pulse8-cec/pulse8-cec.c b/drivers/staging/media/pulse8-cec/pulse8-cec.c
+index ed8bd95..fdb2407 100644
+--- a/drivers/staging/media/pulse8-cec/pulse8-cec.c
++++ b/drivers/staging/media/pulse8-cec/pulse8-cec.c
+@@ -99,6 +99,7 @@ struct pulse8 {
+ 	unsigned int idx;
+ 	bool escape;
+ 	bool started;
++	struct mutex write_lock;
+ };
  
-+.. tabularcolumns:: |p{5.5cm}|p{6.5cm}|p{5.5cm}
+ static void pulse8_irq_work_handler(struct work_struct *work)
+@@ -233,8 +234,8 @@ static int pulse8_send(struct serio *serio, const u8 *command, u8 cmd_len)
+ 	return err;
+ }
  
-+.. cssclass:: longtable
+-static int pulse8_send_and_wait(struct pulse8 *pulse8,
+-				const u8 *cmd, u8 cmd_len, u8 response, u8 size)
++static int pulse8_send_and_wait_once(struct pulse8 *pulse8,
++				     const u8 *cmd, u8 cmd_len, u8 response, u8 size)
+ {
+ 	int err;
  
- .. flat-table::
-     :header-rows:  1
-@@ -104,7 +106,7 @@ introduction.
+@@ -250,24 +251,8 @@ static int pulse8_send_and_wait(struct pulse8 *pulse8,
+ 	if ((pulse8->data[0] & 0x3f) == MSGCODE_COMMAND_REJECTED &&
+ 	    cmd[0] != MSGCODE_SET_CONTROLLED &&
+ 	    cmd[0] != MSGCODE_SET_AUTO_ENABLED &&
+-	    cmd[0] != MSGCODE_GET_BUILDDATE) {
+-		u8 cmd_sc[2];
+-
+-		cmd_sc[0] = MSGCODE_SET_CONTROLLED;
+-		cmd_sc[1] = 1;
+-		err = pulse8_send_and_wait(pulse8, cmd_sc, 2,
+-					   MSGCODE_COMMAND_ACCEPTED, 1);
+-		if (err)
+-			return err;
+-		init_completion(&pulse8->cmd_done);
+-
+-		err = pulse8_send(pulse8->serio, cmd, cmd_len);
+-		if (err)
+-			return err;
+-
+-		if (!wait_for_completion_timeout(&pulse8->cmd_done, HZ))
+-			return -ETIMEDOUT;
+-	}
++	    cmd[0] != MSGCODE_GET_BUILDDATE)
++		return -ENOTTY;
+ 	if (response &&
+ 	    ((pulse8->data[0] & 0x3f) != response || pulse8->len < size + 1)) {
+ 		dev_info(pulse8->dev, "transmit: failed %02x\n",
+@@ -277,6 +262,30 @@ static int pulse8_send_and_wait(struct pulse8 *pulse8,
+ 	return 0;
+ }
  
-     -  .. row 1
++static int pulse8_send_and_wait(struct pulse8 *pulse8,
++				const u8 *cmd, u8 cmd_len, u8 response, u8 size)
++{
++	u8 cmd_sc[2];
++	int err;
++
++	mutex_lock(&pulse8->write_lock);
++	err = pulse8_send_and_wait_once(pulse8, cmd, cmd_len, response, size);
++
++	if (err == -ENOTTY) {
++		cmd_sc[0] = MSGCODE_SET_CONTROLLED;
++		cmd_sc[1] = 1;
++		err = pulse8_send_and_wait_once(pulse8, cmd_sc, 2,
++						MSGCODE_COMMAND_ACCEPTED, 1);
++		if (err)
++			goto unlock;
++		err = pulse8_send_and_wait_once(pulse8, cmd, cmd_len, response, size);
++	}
++
++  unlock:
++	mutex_unlock(&pulse8->write_lock);
++	return err;
++}
++
+ static int pulse8_setup(struct pulse8 *pulse8, struct serio *serio)
+ {
+ 	u8 *data = pulse8->data + 1;
+@@ -453,6 +462,7 @@ static int pulse8_connect(struct serio *serio, struct serio_driver *drv)
+ 	pulse8->dev = &serio->dev;
+ 	serio_set_drvdata(serio, pulse8);
+ 	INIT_WORK(&pulse8->work, pulse8_irq_work_handler);
++	mutex_init(&pulse8->write_lock);
  
--       -  struct :c:type:`struct video_capability` ``type``
-+       -  ``struct video_capability`` ``type``
- 
-        -  struct :ref:`v4l2_capability <v4l2-capability>`
- 	  ``capabilities`` flags
+ 	err = serio_open(serio, drv);
+ 	if (err)
 -- 
 2.7.4
-
 
