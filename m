@@ -1,66 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp02.smtpout.orange.fr ([80.12.242.124]:50796 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756362AbcHCSDy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 14:03:54 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: platform: pxa_camera: convert to vb2
-References: <1457543851-17823-1-git-send-email-robert.jarzmik@free.fr>
-	<56E2BD79.9080405@xs4all.nl> <87k2fzxd42.fsf@belgarion.home>
-	<bafc1ef7-8343-c208-3621-02cc95316dbc@xs4all.nl>
-Date: Wed, 03 Aug 2016 19:55:17 +0200
-In-Reply-To: <bafc1ef7-8343-c208-3621-02cc95316dbc@xs4all.nl> (Hans Verkuil's
-	message of "Wed, 3 Aug 2016 09:39:12 +0200")
-Message-ID: <87fuqlyby2.fsf@belgarion.home>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34849 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752404AbcHTC46 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Aug 2016 22:56:58 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 86B301804AB
+        for <linux-media@vger.kernel.org>; Sat, 20 Aug 2016 04:56:52 +0200 (CEST)
+Date: Sat, 20 Aug 2016 04:56:52 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160820025652.86B301804AB@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On 08/02/2016 08:03 PM, Robert Jarzmik wrote:
->> Hans Verkuil <hverkuil@xs4all.nl> writes:
->> [ 1509.773051] pxa27x-camera pxa27x-camera.0: s_fmt_vid_cap(pix=48x32:56595559)
->> [ 1509.777213] pxa27x-camera pxa27x-camera.0: current_fmt->fourcc: 0x56595559
->> 	RJK: Here we switch to 48x32 format
->> 
->> [ 1509.777386] pxa27x-camera pxa27x-camera.0: pxac_vb2_queue_setup(vq=c312f290 nbufs=3 num_planes=0 size=614400)
->
-> But this debug line indicates that pcdev->current_pix.sizeimage is still the old value: this
-> should have been updated by the S_FMT call. You'd have to debug that a bit more, it looks like
-> there is a bug somewhere in the driver.
->
-> I suspect this line in pxac_vidioc_try_fmt_vid_cap:
-> pix->sizeimage = max_t(u32, pix->sizeimage, ret);
->
-> This should just be pix->sizeimage = ret.
+Results of the daily build of media_tree:
 
-Hi Hans and Laurent,
+date:		Sat Aug 20 04:00:26 CEST 2016
+git branch:	test
+git hash:	b6aa39228966e0d3f0bc3306be1892f87792903a
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-Thanks for pinpointing this one, that's exactly where the problem comes
-from. I'm rerunning my capture tests as well as v4l2-compliance -s and
-v4l2-compliance -f to be sure.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1.1-i686: WARNINGS
+linux-4.2-i686: WARNINGS
+linux-4.3-i686: WARNINGS
+linux-4.4-i686: WARNINGS
+linux-4.5-i686: WARNINGS
+linux-4.6-i686: WARNINGS
+linux-4.7-i686: WARNINGS
+linux-4.8-rc1-i686: WARNINGS
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0-x86_64: WARNINGS
+linux-4.1.1-x86_64: WARNINGS
+linux-4.2-x86_64: WARNINGS
+linux-4.3-x86_64: WARNINGS
+linux-4.4-x86_64: WARNINGS
+linux-4.5-x86_64: WARNINGS
+linux-4.6-x86_64: WARNINGS
+linux-4.7-x86_64: WARNINGS
+linux-4.8-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-That leads me to a question for Laurent :
- - in the commit bed8d8033037 ("[media] soc-camera: Honor user-requested
- bytesperline and sizeimage")
- - in the hunk
-   @@ -177,22 +178,22 @@ static int soc_camera_try_fmt(struct soc_camera_device *icd,
- - you added this:
-   pix->sizeimage = max_t(u32, pix->sizeimage, ret);
+Detailed results are available here:
 
-As I blindly copied it from soc_camera.c to pxa_camera.c, I didn't pay attention
-to it. I'd like to understand what this is for, why using the maximum of the
-computed image size and imagesize instead of using directly the computed
-imagesize, and if it is applicable to the pxa_camera case.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Thanks in advance.
+Full logs are available here:
 
---
-Robert
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
