@@ -1,104 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:40480 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752876AbcHLN42 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2016 09:56:28 -0400
-Subject: Re: [PATCH v4 10/12] [media] videodev2.h Add HSV encoding
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Antti Palosaari <crope@iki.fi>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <1468845736-19651-1-git-send-email-ricardo.ribalda@gmail.com>
- <1468845736-19651-11-git-send-email-ricardo.ribalda@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ae3baa0f-2446-cf25-09a9-de25919dde57@xs4all.nl>
-Date: Fri, 12 Aug 2016 15:56:23 +0200
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:36715 "EHLO
+        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751059AbcHTUow (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 20 Aug 2016 16:44:52 -0400
+Received: by mail-wm0-f47.google.com with SMTP id q128so73741000wma.1
+        for <linux-media@vger.kernel.org>; Sat, 20 Aug 2016 13:44:51 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1468845736-19651-11-git-send-email-ricardo.ribalda@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: =?UTF-8?Q?Alexandre=2DXavier_Labont=C3=A9=2DLamoureux?=
+        <axdoomer@gmail.com>
+Date: Sat, 20 Aug 2016 16:44:50 -0400
+Message-ID: <CAKTMqxu_qTdGt5gL2-Xft0mYD9oU-v_OCsgrvXfXTiNa+hZRQg@mail.gmail.com>
+Subject: ALSA sound errors when using QV4L2
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/18/2016 02:42 PM, Ricardo Ribalda Delgado wrote:
-> Some hardware maps the Hue between 0 and 255 instead of 0-179. Support
-> this format with a new field hsv_enc.
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> ---
->  include/uapi/linux/videodev2.h | 21 +++++++++++++++++++--
->  1 file changed, 19 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index c7fb760386cf..49edc462ca8e 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -330,6 +330,15 @@ enum v4l2_ycbcr_encoding {
->  	V4L2_YCBCR_ENC_SMPTE240M      = 8,
->  };
->  
-> +enum v4l2_hsv_encoding {
-> +
-> +	/* Hue mapped to 0 - 179 */
-> +	V4L2_HSV_ENC_180		= 16,
+Hi,
 
-The value 16 is too low. Start at 128 instead. I expect more ycbcr encodings in the future.
-You might want to add a comment to indicate that these hsv_encoding values shouldn't conflict
-with the ycbcr_encoding values.
+When I use qv4l2 and start recording, I get these repetitively printed
+in my terminal:
 
-The V4L2_MAP_QUANTIZATION_DEFAULT should also be updated since if it is an hsv encoding,
-then the quantization should be full range.
+ALSA lib pcm.c:7843:(snd_pcm_recover) overrun occurred
+ALSA lib pcm.c:7843:(snd_pcm_recover) underrun occurred
 
-Unfortunately, this will conflict with this pull request:
+There is skipping in the the sound. I get these error message whatever
+device that I use. There must be a bug in the v4l driver that causes
+this. I can't use any other software than qv4l2 to test this, because
+others will cause my system to freeze (see my previous email). Is it
+possible to fix this?
 
-https://patchwork.linuxtv.org/patch/36348/
-
-It might be better to wait until that is merged.
-
-Regards,
-
-	Hans
-
-> +
-> +	/* Hue mapped to 0-255 */
-> +	V4L2_HSV_ENC_256		= 17,
-> +};
-> +
->  /*
->   * Determine how YCBCR_ENC_DEFAULT should map to a proper Y'CbCr encoding.
->   * This depends on the colorspace.
-> @@ -455,7 +464,12 @@ struct v4l2_pix_format {
->  	__u32			colorspace;	/* enum v4l2_colorspace */
->  	__u32			priv;		/* private data, depends on pixelformat */
->  	__u32			flags;		/* format flags (V4L2_PIX_FMT_FLAG_*) */
-> -	__u32			ycbcr_enc;	/* enum v4l2_ycbcr_encoding */
-> +	union {
-> +		/* enum v4l2_ycbcr_encoding */
-> +		__u32			ycbcr_enc;
-> +		/* enum v4l2_hsv_encoding */
-> +		__u32			hsv_enc;
-> +	};
->  	__u32			quantization;	/* enum v4l2_quantization */
->  	__u32			xfer_func;	/* enum v4l2_xfer_func */
->  };
-> @@ -1988,7 +2002,10 @@ struct v4l2_pix_format_mplane {
->  	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
->  	__u8				num_planes;
->  	__u8				flags;
-> -	__u8				ycbcr_enc;
-> +	 union {
-> +		__u8				ycbcr_enc;
-> +		__u8				hsv_enc;
-> +	};
->  	__u8				quantization;
->  	__u8				xfer_func;
->  	__u8				reserved[7];
-> 
+Thanks,
+Alexandre-Xavier
