@@ -1,56 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swift.blarg.de ([78.47.110.205]:58796 "EHLO swift.blarg.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932518AbcHIVlr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Aug 2016 17:41:47 -0400
-Subject: [PATCH 12/12] drivers/media/media-device: fix double free bug in
- _unregister()
-From: Max Kellermann <max.kellermann@gmail.com>
-To: linux-media@vger.kernel.org, shuahkh@osg.samsung.com,
-	mchehab@osg.samsung.com
-Cc: linux-kernel@vger.kernel.org
-Date: Tue, 09 Aug 2016 23:33:03 +0200
-Message-ID: <147077838352.21835.6880456010787221722.stgit@woodpecker.blarg.de>
-In-Reply-To: <147077832610.21835.743840405297289081.stgit@woodpecker.blarg.de>
-References: <147077832610.21835.743840405297289081.stgit@woodpecker.blarg.de>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33736 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750917AbcHTU3D (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 20 Aug 2016 16:29:03 -0400
+Received: by mail-wm0-f65.google.com with SMTP id o80so7792718wme.0
+        for <linux-media@vger.kernel.org>; Sat, 20 Aug 2016 13:29:03 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: =?UTF-8?Q?Alexandre=2DXavier_Labont=C3=A9=2DLamoureux?=
+        <axdoomer@gmail.com>
+Date: Sat, 20 Aug 2016 16:29:01 -0400
+Message-ID: <CAKTMqxuTTwSgZ40uVbikGGt1=wgdCfd=OkhJq8Bdz9LYLTsR6A@mail.gmail.com>
+Subject: Computer freeze caused by the media drivers?
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While removing all interfaces in media_device_unregister(), all
-media_interface pointers are freed.  This is illegal and results in
-double kfree() if any media_interface is still linked at this point;
-maybe because a userspace process still has a file handle.  Once the
-process closes the file handle, dvb_media_device_free() gets called,
-which frees the dvb_device.intf_devnode again.
+Hi,
 
-This patch removes the unnecessary kfree() call, and documents who's
-responsible for really freeing it.
+I have the latest v4l driver. When I use VLC to open my webcam stream,
+it causes the computer to freeze. If I use my August vgb100 or any
+other of my USB recording device and disconnect them, the computer
+will freeze.
 
-Signed-off-by: Max Kellermann <max.kellermann@gmail.com>
----
- drivers/media/media-device.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+When I say freeze, I mean there is no error message, no keyboard LEDs
+flashing, I can move my cursor on the screen, but when I click, it
+doesn't do anything. The computer doesn't respond to keyboard keys
+(e.g.: CTRL+ALT+F1). I can still head the audio from my Youtube video
+at the back that keeps playing. The only thing to do is hard-restart
+the computer.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 1795abe..113a4d1 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -803,9 +803,13 @@ void media_device_unregister(struct media_device *mdev)
- 	/* Remove all interfaces from the media device */
- 	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
- 				 graph_obj.list) {
-+		/*
-+		 * Unlink the interface, but don't free it here; the
-+		 * module which created it is responsible for freeing
-+		 * it
-+		 */
- 		__media_remove_intf_links(intf);
- 		media_gobj_destroy(&intf->graph_obj);
--		kfree(intf);
- 	}
- 
- 	mutex_unlock(&mdev->graph_mutex);
+I don't know if it's the media module that causes a freeze. How do I
+find the cause? We should fix it. I feel like it's a kernel freeze
+caused by this module, but I may not be right.
 
+Thanks,
+Alexandre-Xavier
