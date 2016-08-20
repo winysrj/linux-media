@@ -1,317 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:5902 "EHLO
-        aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754171AbcHSNYV (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48551 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752835AbcHTMwM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 09:24:21 -0400
-Subject: Re: [PATCH 13/15] [media] cec-core: Convert it to ReST format
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <cover.1471611003.git.mchehab@s-opensource.com>
- <b85163fc1723bdb240ce3136552ac1683999051c.1471611003.git.mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kamil Debski <kamil@wypas.org>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <26805b9a-8e8d-2b22-0777-af2311fbfb9e@cisco.com>
-Date: Fri, 19 Aug 2016 15:24:16 +0200
+        Sat, 20 Aug 2016 08:52:12 -0400
+Date: Sat, 20 Aug 2016 09:51:57 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Markus Heiser <markus.heiser@darmarit.de>,
+        Jani Nikula <jani.nikula@intel.com>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-doc@vger.kernel.org
+Subject: Re: [PATCH 1/7] doc-rst: generic way to build only sphinx
+ sub-folders
+Message-ID: <20160820095157.1464e2cf@vento.lan>
+In-Reply-To: <92FD7AE6-E093-439C-A2AC-5F39EC1F4BED@darmarit.de>
+References: <1471097568-25990-1-git-send-email-markus.heiser@darmarit.de>
+        <1471097568-25990-2-git-send-email-markus.heiser@darmarit.de>
+        <20160818163514.43539c11@lwn.net>
+        <09880F76-6FE1-48E6-B76D-DFC4F47182D7@darmarit.de>
+        <8737m0udod.fsf@intel.com>
+        <92FD7AE6-E093-439C-A2AC-5F39EC1F4BED@darmarit.de>
 MIME-Version: 1.0
-In-Reply-To: <b85163fc1723bdb240ce3136552ac1683999051c.1471611003.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/19/2016 03:05 PM, Mauro Carvalho Chehab wrote:
-> There are some things there that aren't ok for ReST format.
->
-> Fix them.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Em Fri, 19 Aug 2016 17:52:07 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-OK, so I posted a similar patch for this:
+> Am 19.08.2016 um 14:49 schrieb Jani Nikula <jani.nikula@intel.com>:
+> 
+> > On Fri, 19 Aug 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:  
+> >> Am 19.08.2016 um 00:35 schrieb Jonathan Corbet <corbet@lwn.net>:
+> >> * the pdf goes to the "latex" folder .. since this is WIP
+> >>  and there are different solutions conceivable ... I left
+> >>  it open for the first.  
+> > 
+> > Mea culpa. As I said, I intended my patches as RFC only.  
+> 
+> I think this is OK for the first. I thought that we first
+> let finish Mauro's task on making the media PDF and after
+> this we decide how move from the latex folder to a pdf folder
+> (one solution see below).
 
-https://patchwork.linuxtv.org/patch/36376/
+Finished handling all tables. I'm sending the last 2 patches
+right now. Now, all tables fit into the page margins. Yet, I
+suspect that flat-table extension causes some troubles when cspan
+is used for LaTeX. It would be good if Markus could double check them.
 
-It's part of one of my pull requests, but I guess you can skip that patch.
+There are just two things that won't fit at the margins of the document:
 
-	Hans
+1) included files with long lines. We might put those includes into
+a begingroup and use a smaller font, but IMHO the best is to fix the
+few cases on them, as those lines are very likely violating the 80 column
+limit;
 
-> ---
->  Documentation/media/kapi/cec-core.rst | 145 ++++++++++++++++++++++------------
->  1 file changed, 93 insertions(+), 52 deletions(-)
->
-> diff --git a/Documentation/media/kapi/cec-core.rst b/Documentation/media/kapi/cec-core.rst
-> index 75155fe37153..88c33b53ec13 100644
-> --- a/Documentation/media/kapi/cec-core.rst
-> +++ b/Documentation/media/kapi/cec-core.rst
-> @@ -36,39 +36,50 @@ CEC Adapter
->  The struct cec_adapter represents the CEC adapter hardware. It is created by
->  calling cec_allocate_adapter() and deleted by calling cec_delete_adapter():
->
-> -struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
-> +.. c:function::
-> +   struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
->  	       void *priv, const char *name, u32 caps, u8 available_las,
->  	       struct device *parent);
-> -void cec_delete_adapter(struct cec_adapter *adap);
-> +
-> +.. c:function::
-> +   void cec_delete_adapter(struct cec_adapter *adap);
->
->  To create an adapter you need to pass the following information:
->
-> -ops: adapter operations which are called by the CEC framework and that you
-> -have to implement.
-> +ops:
-> +	adapter operations which are called by the CEC framework and that you
-> +	have to implement.
->
-> -priv: will be stored in adap->priv and can be used by the adapter ops.
-> +priv:
-> +	will be stored in adap->priv and can be used by the adapter ops.
->
-> -name: the name of the CEC adapter. Note: this name will be copied.
-> +name:
-> +	the name of the CEC adapter. Note: this name will be copied.
->
-> -caps: capabilities of the CEC adapter. These capabilities determine the
-> +caps:
-> +	capabilities of the CEC adapter. These capabilities determine the
->  	capabilities of the hardware and which parts are to be handled
->  	by userspace and which parts are handled by kernelspace. The
->  	capabilities are returned by CEC_ADAP_G_CAPS.
->
-> -available_las: the number of simultaneous logical addresses that this
-> +available_las:
-> +	the number of simultaneous logical addresses that this
->  	adapter can handle. Must be 1 <= available_las <= CEC_MAX_LOG_ADDRS.
->
-> -parent: the parent device.
-> +parent:
-> +	the parent device.
->
->
->  To register the /dev/cecX device node and the remote control device (if
->  CEC_CAP_RC is set) you call:
->
-> -int cec_register_adapter(struct cec_adapter *adap);
-> +.. c:function::
-> +	int cec_register_adapter(struct cec_adapter \*adap);
->
->  To unregister the devices call:
->
-> -void cec_unregister_adapter(struct cec_adapter *adap);
-> +.. c:function::
-> +	void cec_unregister_adapter(struct cec_adapter \*adap);
->
->  Note: if cec_register_adapter() fails, then call cec_delete_adapter() to
->  clean up. But if cec_register_adapter() succeeded, then only call
-> @@ -83,18 +94,23 @@ Implementing the Low-Level CEC Adapter
->  The following low-level adapter operations have to be implemented in
->  your driver:
->
-> -struct cec_adap_ops {
-> -	/* Low-level callbacks */
-> -	int (*adap_enable)(struct cec_adapter *adap, bool enable);
-> -	int (*adap_monitor_all_enable)(struct cec_adapter *adap, bool enable);
-> -	int (*adap_log_addr)(struct cec_adapter *adap, u8 logical_addr);
-> -	int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
-> -			     u32 signal_free_time, struct cec_msg *msg);
-> -	void (*adap_log_status)(struct cec_adapter *adap);
-> +.. c:type:: struct cec_adap_ops
->
-> -	/* High-level callbacks */
-> -	...
-> -};
-> +.. code-block:: none
-> +
-> +	struct cec_adap_ops
-> +	{
-> +		/* Low-level callbacks */
-> +		int (*adap_enable)(struct cec_adapter *adap, bool enable);
-> +		int (*adap_monitor_all_enable)(struct cec_adapter *adap, bool enable);
-> +		int (*adap_log_addr)(struct cec_adapter *adap, u8 logical_addr);
-> +		int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
-> +				      u32 signal_free_time, struct cec_msg *msg);
-> +		void (\*adap_log_status)(struct cec_adapter *adap);
-> +
-> +		/* High-level callbacks */
-> +		...
-> +	};
->
->  The three low-level ops deal with various aspects of controlling the CEC adapter
->  hardware:
-> @@ -102,6 +118,7 @@ hardware:
->
->  To enable/disable the hardware:
->
-> +.. c:function::
->  	int (*adap_enable)(struct cec_adapter *adap, bool enable);
->
->  This callback enables or disables the CEC hardware. Enabling the CEC hardware
-> @@ -115,6 +132,7 @@ Note that adap_enable must return 0 if enable is false.
->
->  To enable/disable the 'monitor all' mode:
->
-> +.. c:function::
->  	int (*adap_monitor_all_enable)(struct cec_adapter *adap, bool enable);
->
->  If enabled, then the adapter should be put in a mode to also monitor messages
-> @@ -127,6 +145,7 @@ Note that adap_monitor_all_enable must return 0 if enable is false.
->
->  To program a new logical address:
->
-> +.. c:function::
->  	int (*adap_log_addr)(struct cec_adapter *adap, u8 logical_addr);
->
->  If logical_addr == CEC_LOG_ADDR_INVALID then all programmed logical addresses
-> @@ -140,6 +159,7 @@ Note that adap_log_addr must return 0 if logical_addr is CEC_LOG_ADDR_INVALID.
->
->  To transmit a new message:
->
-> +.. c:function::
->  	int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
->  			     u32 signal_free_time, struct cec_msg *msg);
->
-> @@ -158,6 +178,7 @@ microseconds (one data bit period is 2.4 ms).
->
->  To log the current CEC hardware status:
->
-> +.. c:function::
->  	void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
->
->  This optional callback can be used to show the status of the CEC hardware.
-> @@ -169,29 +190,41 @@ driven) by calling into the framework in the following situations:
->
->  When a transmit finished (successfully or otherwise):
->
-> -void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
-> +.. c:function::
-> +	void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
->  		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
->
->  The status can be one of:
->
-> -CEC_TX_STATUS_OK: the transmit was successful.
-> -CEC_TX_STATUS_ARB_LOST: arbitration was lost: another CEC initiator
-> -took control of the CEC line and you lost the arbitration.
-> -CEC_TX_STATUS_NACK: the message was nacked (for a directed message) or
-> -acked (for a broadcast message). A retransmission is needed.
-> -CEC_TX_STATUS_LOW_DRIVE: low drive was detected on the CEC bus. This
-> -indicates that a follower detected an error on the bus and requested a
-> -retransmission.
-> -CEC_TX_STATUS_ERROR: some unspecified error occurred: this can be one of
-> -the previous two if the hardware cannot differentiate or something else
-> -entirely.
-> -CEC_TX_STATUS_MAX_RETRIES: could not transmit the message after
-> -trying multiple times. Should only be set by the driver if it has hardware
-> -support for retrying messages. If set, then the framework assumes that it
-> -doesn't have to make another attempt to transmit the message since the
-> -hardware did that already.
-> +CEC_TX_STATUS_OK:
-> +	the transmit was successful.
->
-> -The *_cnt arguments are the number of error conditions that were seen.
-> +CEC_TX_STATUS_ARB_LOST:
-> +	arbitration was lost: another CEC initiator
-> +	took control of the CEC line and you lost the arbitration.
-> +
-> +CEC_TX_STATUS_NACK:
-> +	the message was nacked (for a directed message) or
-> +	acked (for a broadcast message). A retransmission is needed.
-> +
-> +CEC_TX_STATUS_LOW_DRIVE:
-> +	low drive was detected on the CEC bus. This indicates that
-> +	a follower detected an error on the bus and requested a
-> +	retransmission.
-> +
-> +CEC_TX_STATUS_ERROR:
-> +	some unspecified error occurred: this can be one of
-> +	the previous two if the hardware cannot differentiate or something
-> +	else entirely.
-> +
-> +CEC_TX_STATUS_MAX_RETRIES:
-> +	could not transmit the message after trying multiple times.
-> +	Should only be set by the driver if it has hardware support for
-> +	retrying messages. If set, then the framework assumes that it
-> +	doesn't have to make another attempt to transmit the message
-> +	since the hardware did that already.
-> +
-> +The \*_cnt arguments are the number of error conditions that were seen.
->  This may be 0 if no information is available. Drivers that do not support
->  hardware retry can just set the counter corresponding to the transmit error
->  to 1, if the hardware does support retry then either set these counters to
-> @@ -200,7 +233,8 @@ times, or fill in the correct values as reported by the hardware.
->
->  When a CEC message was received:
->
-> -void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
-> +.. c:function::
-> +	void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
->
->  Speaks for itself.
->
-> @@ -210,17 +244,20 @@ Implementing the High-Level CEC Adapter
->  The low-level operations drive the hardware, the high-level operations are
->  CEC protocol driven. The following high-level callbacks are available:
->
-> -struct cec_adap_ops {
-> -	/* Low-level callbacks */
-> -	...
-> +.. code-block:: none
->
-> -	/* High-level CEC message callback */
-> -	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
-> -};
-> +	struct cec_adap_ops {
-> +		/\* Low-level callbacks \*/
-> +		...
-> +
-> +		/\* High-level CEC message callback \*/
-> +		int (\*received)(struct cec_adapter \*adap, struct cec_msg \*msg);
-> +	};
->
->  The received() callback allows the driver to optionally handle a newly
->  received CEC message
->
-> +.. c:function::
->  	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
->
->  If the driver wants to process a CEC message, then it can implement this
-> @@ -234,13 +271,16 @@ CEC framework functions
->
->  CEC Adapter drivers can call the following CEC framework functions:
->
-> -int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
-> -		     bool block);
-> +.. c:function::
-> +	int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
-> +			     bool block);
->
->  Transmit a CEC message. If block is true, then wait until the message has been
->  transmitted, otherwise just queue it and return.
->
-> -void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block);
-> +.. c:function::
-> +	void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr,
-> +			     bool block);
->
->  Change the physical address. This function will set adap->phys_addr and
->  send an event if it has changed. If cec_s_log_addrs() has been called and
-> @@ -254,8 +294,9 @@ then the CEC adapter will be disabled. If you change a valid physical address
->  to another valid physical address, then this function will first set the
->  address to CEC_PHYS_ADDR_INVALID before enabling the new physical address.
->
-> -int cec_s_log_addrs(struct cec_adapter *adap,
-> -		    struct cec_log_addrs *log_addrs, bool block);
-> +.. c:function::
-> +	int cec_s_log_addrs(struct cec_adapter *adap,
-> +			    struct cec_log_addrs *log_addrs, bool block);
->
->  Claim the CEC logical addresses. Should never be called if CEC_CAP_LOG_ADDRS
->  is set. If block is true, then wait until the logical addresses have been
->
+2) kernel-doc output for big arguments.
 
+We have lots of function argument inside several media structs, like
+at:
+	struct v4l2_subdev_core_ops.
+
+one of such arguments is this function:
+
+int (* s_io_pin_config) (struct v4l2_subdev *sd, size_t n,struct v4l2_subdev_io_pin_config *pincfg);
+
+When kernel-doc generates the Members description, as the above line is
+bigger than 80 columns, it simply truncates its description to:
+
+	Members
+	int (*)(struct v4l2_subdev *sd) log_status callback for VIDIOC_LOG_STATUS ioctl handler code.
+	int (*)(struct v4l2_subdev *sd,size_t n,struct v4l2_subdev_io_pin_config *pincfg) s_io_pin_con
+	...
+
+The LaTeX output for it is:
+
+	\textbf{Members}
+	\begin{description}
+	\item[{\sphinxcode{int (*)(struct v4l2\_subdev *sd) log\_status}}] \leavevmode
+	callback for \sphinxcode{VIDIOC\_LOG\_STATUS} ioctl handler code.
+
+	\item[{\sphinxcode{int (*)(struct v4l2\_subdev *sd, size\_t n,struct v4l2\_subdev\_io\_pin\_config *pincfg) s\_io\_pin\_config}}] \leavevmode
+	configure one or more chip I/O pins for chips that
+	multiplex different internal signal pads out to IO pins.  This function
+	takes a pointer to an array of `n' pin configuration entries, one for
+	each pin being configured.  This function could be called at times
+	other than just subdevice initialization.
+
+It seems that \sphinxcode{} doesn't allow line breaks. Maybe we can
+override it via conf.py. I'll play with it and see if I can find a
+solution. Yet, this could have side effects on other places.
+
+Any suggestions about how to fix it?
+
+PS.: if you want to see, it is at:
+	https://mchehab.fedorapeople.org/media.pdf
+
+on page 623.
+
+There is one additional issue on LaTeX output: it numbered the
+document on a very different way than on html. Also, it has just one
+TOC. This is very bad, because, as we had to manually numerate
+figures, their number/names look weird on LaTeX output.
+
+Thanks,
+Mauro
