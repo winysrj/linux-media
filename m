@@ -1,142 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:32982 "EHLO
-        mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753091AbcHWDff (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:42901 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753656AbcHTKyb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 23:35:35 -0400
-Received: by mail-pa0-f52.google.com with SMTP id ti13so43673677pac.0
-        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2016 20:35:34 -0700 (PDT)
-Date: Mon, 22 Aug 2016 20:35:31 -0700
-From: Bjorn Andersson <bjorn.andersson@linaro.org>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andy Gross <andy.gross@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Subject: Re: [PATCH 6/8] media: vidc: add Venus HFI files
-Message-ID: <20160823033531.GB26240@tuxbot>
-References: <1471871619-25873-1-git-send-email-stanimir.varbanov@linaro.org>
- <1471871619-25873-7-git-send-email-stanimir.varbanov@linaro.org>
+        Sat, 20 Aug 2016 06:54:31 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 5977E1800DD
+        for <linux-media@vger.kernel.org>; Sat, 20 Aug 2016 12:54:26 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH for v4.8] cec-funcs.h: add missing vendor-specific messages
+Message-ID: <a0bc830d-dd5a-4697-905f-da21013f205b@xs4all.nl>
+Date: Sat, 20 Aug 2016 12:54:26 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1471871619-25873-7-git-send-email-stanimir.varbanov@linaro.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 22 Aug 06:13 PDT 2016, Stanimir Varbanov wrote:
+The cec-funcs.h header was missing support for these three vendor-specific messages:
 
-> Here is the implementation of Venus video accelerator low-level
-> functionality. It contanins code which setup the registers and
-> startup uthe processor, allocate and manipulates with the shared
-> memory used for sending commands and receiving messages.
-> 
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> ---
->  drivers/media/platform/qcom/vidc/hfi_venus.c    | 1539 +++++++++++++++++++++++
->  drivers/media/platform/qcom/vidc/hfi_venus.h    |   25 +
->  drivers/media/platform/qcom/vidc/hfi_venus_io.h |   98 ++
->  3 files changed, 1662 insertions(+)
->  create mode 100644 drivers/media/platform/qcom/vidc/hfi_venus.c
->  create mode 100644 drivers/media/platform/qcom/vidc/hfi_venus.h
->  create mode 100644 drivers/media/platform/qcom/vidc/hfi_venus_io.h
-> 
-> diff --git a/drivers/media/platform/qcom/vidc/hfi_venus.c b/drivers/media/platform/qcom/vidc/hfi_venus.c
-[..]
-> +
-> +static const struct hfi_ops venus_hfi_ops = {
-> +	.core_init			= venus_hfi_core_init,
-> +	.core_deinit			= venus_hfi_core_deinit,
-> +	.core_ping			= venus_hfi_core_ping,
-> +	.core_trigger_ssr		= venus_hfi_core_trigger_ssr,
-> +
-> +	.session_init			= venus_hfi_session_init,
-> +	.session_end			= venus_hfi_session_end,
-> +	.session_abort			= venus_hfi_session_abort,
-> +	.session_flush			= venus_hfi_session_flush,
-> +	.session_start			= venus_hfi_session_start,
-> +	.session_stop			= venus_hfi_session_stop,
-> +	.session_etb			= venus_hfi_session_etb,
-> +	.session_ftb			= venus_hfi_session_ftb,
-> +	.session_set_buffers		= venus_hfi_session_set_buffers,
-> +	.session_release_buffers	= venus_hfi_session_release_buffers,
-> +	.session_load_res		= venus_hfi_session_load_res,
-> +	.session_release_res		= venus_hfi_session_release_res,
-> +	.session_parse_seq_hdr		= venus_hfi_session_parse_seq_hdr,
-> +	.session_get_seq_hdr		= venus_hfi_session_get_seq_hdr,
-> +	.session_set_property		= venus_hfi_session_set_property,
-> +	.session_get_property		= venus_hfi_session_get_property,
-> +
-> +	.resume				= venus_hfi_resume,
-> +	.suspend			= venus_hfi_suspend,
-> +
-> +	.isr				= venus_isr,
-> +	.isr_thread			= venus_isr_thread,
-> +};
-> +
-> +void venus_hfi_destroy(struct hfi_core *hfi)
-> +{
-> +	struct venus_hfi_device *hdev = to_hfi_priv(hfi);
-> +
-> +	venus_interface_queues_release(hdev);
-> +	mutex_destroy(&hdev->lock);
-> +	kfree(hdev);
-> +}
-> +
-> +int venus_hfi_create(struct hfi_core *hfi, const struct vidc_resources *res,
-> +		     void __iomem *base)
-> +{
+CEC_MSG_VENDOR_COMMAND
+CEC_MSG_VENDOR_COMMAND_WITH_ID
+CEC_MSG_VENDOR_REMOTE_BUTTON_DOWN
 
-Rather than having the core figure out which *_hfi_create() to call I
-think this should be the probe() entry point, calling into the core
-registering the venus_hfi_ops - a common-probe() in the hfi/vidc core
-could still do most of the heavy lifting.
+Add wrappers for these messages.
 
-Probing the driver up from the transport rather than for the highest
-logical layer allows us to inject a separate hfi_ops for the apr tal
-case.
+I originally postponed adding these wrappers due to the fact that the argument is
+just a byte array which cec-ctl couldn't handle at the time, and then I just forgot
+to add them once the CEC framework was finalized.
 
-> +	struct venus_hfi_device *hdev;
-> +	int ret;
-> +
-> +	hdev = kzalloc(sizeof(*hdev), GFP_KERNEL);
-> +	if (!hdev)
-> +		return -ENOMEM;
-> +
-> +	mutex_init(&hdev->lock);
-> +
-> +	hdev->res = res;
-> +	hdev->pkt_ops = hfi->pkt_ops;
-> +	hdev->packetization_type = HFI_PACKETIZATION_LEGACY;
-> +	hdev->base = base;
-> +	hdev->dev = hfi->dev;
-> +	hdev->suspended = true;
-> +
-> +	hfi->priv = hdev;
-> +	hfi->ops = &venus_hfi_ops;
-> +	hfi->core_caps = VIDC_ENC_ROTATION_CAPABILITY |
-> +			 VIDC_ENC_SCALING_CAPABILITY |
-> +			 VIDC_ENC_DEINTERLACE_CAPABILITY |
-> +			 VIDC_DEC_MULTI_STREAM_CAPABILITY;
-> +
-> +	ret = venus_interface_queues_init(hdev);
-> +	if (ret)
-> +		goto err_kfree;
-> +
-> +	return 0;
-> +
-> +err_kfree:
-> +	kfree(hdev);
-> +	hfi->priv = NULL;
-> +	hfi->ops = NULL;
-> +	return ret;
-> +}
+It wasn't until an attempt to transmit a vendor specific command was made that I
+realized that these wrappers were missing.
 
-I'll try to find some time to do a more detailed review of the
-implementation.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/include/linux/cec-funcs.h b/include/linux/cec-funcs.h
+index 8af613e..138bbf7 100644
+--- a/include/linux/cec-funcs.h
++++ b/include/linux/cec-funcs.h
+@@ -1144,6 +1144,75 @@ static inline void cec_msg_give_device_vendor_id(struct cec_msg *msg,
+ 	msg->reply = reply ? CEC_MSG_DEVICE_VENDOR_ID : 0;
+ }
 
-Regards,
-Bjorn
++static inline void cec_msg_vendor_command(struct cec_msg *msg,
++					  __u8 size, const __u8 *vendor_cmd)
++{
++	if (size > 14)
++		size = 14;
++	msg->len = 2 + size;
++	msg->msg[1] = CEC_MSG_VENDOR_COMMAND;
++	memcpy(msg->msg + 2, vendor_cmd, size);
++}
++
++static inline void cec_ops_vendor_command(const struct cec_msg *msg,
++					  __u8 *size,
++					  const __u8 **vendor_cmd)
++{
++	*size = msg->len - 2;
++
++	if (*size > 14)
++		*size = 14;
++	*vendor_cmd = msg->msg + 2;
++}
++
++static inline void cec_msg_vendor_command_with_id(struct cec_msg *msg,
++						  __u32 vendor_id, __u8 size,
++						  const __u8 *vendor_cmd)
++{
++	if (size > 11)
++		size = 11;
++	msg->len = 5 + size;
++	msg->msg[1] = CEC_MSG_VENDOR_COMMAND_WITH_ID;
++	msg->msg[2] = vendor_id >> 16;
++	msg->msg[3] = (vendor_id >> 8) & 0xff;
++	msg->msg[4] = vendor_id & 0xff;
++	memcpy(msg->msg + 5, vendor_cmd, size);
++}
++
++static inline void cec_ops_vendor_command_with_id(const struct cec_msg *msg,
++						  __u32 *vendor_id,  __u8 *size,
++						  const __u8 **vendor_cmd)
++{
++	*size = msg->len - 5;
++
++	if (*size > 11)
++		*size = 11;
++	*vendor_id = (msg->msg[2] << 16) | (msg->msg[3] << 8) | msg->msg[4];
++	*vendor_cmd = msg->msg + 5;
++}
++
++static inline void cec_msg_vendor_remote_button_down(struct cec_msg *msg,
++						     __u8 size,
++						     const __u8 *rc_code)
++{
++	if (size > 14)
++		size = 14;
++	msg->len = 2 + size;
++	msg->msg[1] = CEC_MSG_VENDOR_REMOTE_BUTTON_DOWN;
++	memcpy(msg->msg + 2, rc_code, size);
++}
++
++static inline void cec_ops_vendor_remote_button_down(const struct cec_msg *msg,
++						     __u8 *size,
++						     const __u8 **rc_code)
++{
++	*size = msg->len - 2;
++
++	if (*size > 14)
++		*size = 14;
++	*rc_code = msg->msg + 2;
++}
++
+ static inline void cec_msg_vendor_remote_button_up(struct cec_msg *msg)
+ {
+ 	msg->len = 2;
