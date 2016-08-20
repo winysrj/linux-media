@@ -1,96 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:60426 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752294AbcHMNbG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Aug 2016 09:31:06 -0400
-Subject: Re: [PATCH v6 4/4] rcar-vin: implement EDID control ioctls
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-References: <1469178554-20719-1-git-send-email-ulrich.hecht+renesas@gmail.com>
- <1469178554-20719-5-git-send-email-ulrich.hecht+renesas@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	william.towle@codethink.co.uk, geert@linux-m68k.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0bf4740a-7200-c6c4-c432-6a8152dec17a@xs4all.nl>
-Date: Sat, 13 Aug 2016 15:30:59 +0200
-MIME-Version: 1.0
-In-Reply-To: <1469178554-20719-5-git-send-email-ulrich.hecht+renesas@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36678 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753616AbcHTKrP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 20 Aug 2016 06:47:15 -0400
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+To: linux-media@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org,
+        narmstrong@baylibre.com, linus.walleij@linaro.org,
+        khilman@baylibre.com, carlo@caione.org
+Cc: linux-arm-kernel@lists.infradead.org, mchehab@kernel.org,
+        will.deacon@arm.com, catalin.marinas@arm.com, mark.rutland@arm.com,
+        robh+dt@kernel.org, b.galvani@gmail.com,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Subject: [PATCH v5 1/6] pinctrl: amlogic: gxbb: add the IR remote input pin
+Date: Sat, 20 Aug 2016 11:54:19 +0200
+Message-Id: <20160820095424.636-2-martin.blumenstingl@googlemail.com>
+In-Reply-To: <20160820095424.636-1-martin.blumenstingl@googlemail.com>
+References: <20160819215547.20063-1-martin.blumenstingl@googlemail.com>
+ <20160820095424.636-1-martin.blumenstingl@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/22/2016 11:09 AM, Ulrich Hecht wrote:
-> Adds G_EDID and S_EDID.
-> 
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 33 +++++++++++++++++++++++++++++
->  1 file changed, 33 insertions(+)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index 396eabc..57e040c 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -661,6 +661,36 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
->  	return ret;
->  }
->  
-> +static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	int input, ret;
-> +
-> +	input = edid->pad;
-> +	edid->pad = vin->inputs[input].sink_idx;
+This adds the IR remote receiver to the AO domain devices.
 
-There is no vin->inputs array. Are there some other patches that need to be merged
-first?
+Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Reviewed-by: Kevin Hilman <khilman@baylibre.com>
+---
+ drivers/pinctrl/meson/pinctrl-meson-gxbb.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Anyway, it would be good if you can post a rebased v7, I had to manually update
-one or two other patches from this series as well to make them apply so a new patch
-series would be helpful.
+diff --git a/drivers/pinctrl/meson/pinctrl-meson-gxbb.c b/drivers/pinctrl/meson/pinctrl-meson-gxbb.c
+index cb4d6ad..ff900d1 100644
+--- a/drivers/pinctrl/meson/pinctrl-meson-gxbb.c
++++ b/drivers/pinctrl/meson/pinctrl-meson-gxbb.c
+@@ -225,6 +225,8 @@ static const unsigned int i2c_sda_ao_pins[] = {PIN(GPIOAO_5, 0) };
+ static const unsigned int i2c_slave_sck_ao_pins[] = {PIN(GPIOAO_4, 0) };
+ static const unsigned int i2c_slave_sda_ao_pins[] = {PIN(GPIOAO_5, 0) };
+ 
++static const unsigned int remote_input_ao_pins[] = {PIN(GPIOAO_7, 0) };
++
+ static struct meson_pmx_group meson_gxbb_periphs_groups[] = {
+ 	GPIO_GROUP(GPIOZ_0, EE_OFF),
+ 	GPIO_GROUP(GPIOZ_1, EE_OFF),
+@@ -432,6 +434,7 @@ static struct meson_pmx_group meson_gxbb_aobus_groups[] = {
+ 	GROUP(i2c_sda_ao,	0,	5),
+ 	GROUP(i2c_slave_sck_ao, 0,	2),
+ 	GROUP(i2c_slave_sda_ao, 0,	1),
++	GROUP(remote_input_ao,	0,	0),
+ };
+ 
+ static const char * const gpio_periphs_groups[] = {
+@@ -521,6 +524,10 @@ static const char * const i2c_slave_ao_groups[] = {
+ 	"i2c_slave_sdk_ao", "i2c_slave_sda_ao",
+ };
+ 
++static const char * const remote_input_ao_groups[] = {
++	"remote_input_ao",
++};
++
+ static struct meson_pmx_func meson_gxbb_periphs_functions[] = {
+ 	FUNCTION(gpio_periphs),
+ 	FUNCTION(emmc),
+@@ -537,6 +544,7 @@ static struct meson_pmx_func meson_gxbb_aobus_functions[] = {
+ 	FUNCTION(uart_ao_b),
+ 	FUNCTION(i2c_ao),
+ 	FUNCTION(i2c_slave_ao),
++	FUNCTION(remote_input_ao),
+ };
+ 
+ static struct meson_bank meson_gxbb_periphs_banks[] = {
+-- 
+2.9.3
 
-Regards,
-
-	Hans
-
-> +
-> +	ret = rvin_subdev_call(vin, pad, get_edid, edid);
-> +
-> +	edid->pad = input;
-> +
-> +	return ret;
-> +}
-> +
-> +static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	int input, ret;
-> +
-> +	input = edid->pad;
-> +	edid->pad = vin->inputs[input].sink_idx;
-> +
-> +	ret = rvin_subdev_call(vin, pad, set_edid, edid);
-> +
-> +	edid->pad = input;
-> +
-> +	return ret;
-> +}
-> +
->  static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
->  	.vidioc_querycap		= rvin_querycap,
->  	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
-> @@ -683,6 +713,9 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
->  	.vidioc_s_dv_timings		= rvin_s_dv_timings,
->  	.vidioc_query_dv_timings	= rvin_query_dv_timings,
->  
-> +	.vidioc_g_edid			= rvin_g_edid,
-> +	.vidioc_s_edid			= rvin_s_edid,
-> +
->  	.vidioc_querystd		= rvin_querystd,
->  	.vidioc_g_std			= rvin_g_std,
->  	.vidioc_s_std			= rvin_s_std,
-> 
