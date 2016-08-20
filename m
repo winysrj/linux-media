@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34811 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752787AbcHTJzf (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33470 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753284AbcHTJzg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 20 Aug 2016 05:55:35 -0400
+        Sat, 20 Aug 2016 05:55:36 -0400
 From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
 To: linux-media@vger.kernel.org, linux-gpio@vger.kernel.org,
         linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org,
@@ -13,9 +13,9 @@ Cc: linux-arm-kernel@lists.infradead.org, mchehab@kernel.org,
         will.deacon@arm.com, catalin.marinas@arm.com, mark.rutland@arm.com,
         robh+dt@kernel.org, b.galvani@gmail.com,
         Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Subject: [PATCH v5 3/6] dt-bindings: media: meson-ir: Add Meson8b and GXBB compatible strings
-Date: Sat, 20 Aug 2016 11:54:21 +0200
-Message-Id: <20160820095424.636-4-martin.blumenstingl@googlemail.com>
+Subject: [PATCH v5 5/6] ARM64: dts: meson-gxbb: Add Infrared Remote Controller decoder
+Date: Sat, 20 Aug 2016 11:54:23 +0200
+Message-Id: <20160820095424.636-6-martin.blumenstingl@googlemail.com>
 In-Reply-To: <20160820095424.636-1-martin.blumenstingl@googlemail.com>
 References: <20160819215547.20063-1-martin.blumenstingl@googlemail.com>
  <20160820095424.636-1-martin.blumenstingl@googlemail.com>
@@ -24,32 +24,33 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Neil Armstrong <narmstrong@baylibre.com>
 
-New bindings are needed as the register layout on the newer platforms
-is slightly different compared to Meson6b.
+This adds the Infrared Remote Controller node so boards with an IR
+remote can simply enable it.
 
 Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Acked-by: Rob Herring <robh@kernel.org>
 ---
- Documentation/devicetree/bindings/media/meson-ir.txt | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/arm64/boot/dts/amlogic/meson-gxbb.dtsi | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/meson-ir.txt b/Documentation/devicetree/bindings/media/meson-ir.txt
-index 407848e..e7e3f3c 100644
---- a/Documentation/devicetree/bindings/media/meson-ir.txt
-+++ b/Documentation/devicetree/bindings/media/meson-ir.txt
-@@ -1,7 +1,10 @@
- * Amlogic Meson IR remote control receiver
+diff --git a/arch/arm64/boot/dts/amlogic/meson-gxbb.dtsi b/arch/arm64/boot/dts/amlogic/meson-gxbb.dtsi
+index 96f4574..1cdc059 100644
+--- a/arch/arm64/boot/dts/amlogic/meson-gxbb.dtsi
++++ b/arch/arm64/boot/dts/amlogic/meson-gxbb.dtsi
+@@ -226,6 +226,13 @@
+ 				clocks = <&xtal>;
+ 				status = "disabled";
+ 			};
++
++			ir: ir@580 {
++				compatible = "amlogic,meson-gxbb-ir";
++				reg = <0x0 0x00580 0x0 0x40>;
++				interrupts = <GIC_SPI 196 IRQ_TYPE_EDGE_RISING>;
++				status = "disabled";
++			};
+ 		};
  
- Required properties:
-- - compatible	: should be "amlogic,meson6-ir"
-+ - compatible	: depending on the platform this should be one of:
-+		  - "amlogic,meson6-ir"
-+		  - "amlogic,meson8b-ir"
-+		  - "amlogic,meson-gxbb-ir"
-  - reg		: physical base address and length of the device registers
-  - interrupts	: a single specifier for the interrupt from the device
- 
+ 		periphs: periphs@c8834000 {
 -- 
 2.9.3
 
