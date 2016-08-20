@@ -1,79 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:33125 "EHLO
-	mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965442AbcHBMwG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 08:52:06 -0400
-Date: Tue, 2 Aug 2016 09:51:18 -0300
-From: Mauro Carvalho Chehab <maurochehab@gmail.com>
-To: Baole Ni <baolex.ni@intel.com>
-Cc: mchehab@kernel.org, mchehab@infradead.org, mchehab@redhat.com,
-	m.chehab@samsung.com, gregkh@linuxfoundation.org,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	k.kozlowski@samsung.com, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	amitoj1606@gmail.com, arnd@arndb.de, hverkuil@xs4all.nl,
-	chuansheng.liu@intel.com
-Subject: Re: [PATCH 0947/1285] Replace numeric parameter like 0444 with
- macro
-Message-ID: <20160802095118.47dcc5a6@recife.lan>
-In-Reply-To: <20160802120134.13166-1-baolex.ni@intel.com>
-References: <20160802120134.13166-1-baolex.ni@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34811 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752787AbcHTJzf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 20 Aug 2016 05:55:35 -0400
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+To: linux-media@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org,
+        narmstrong@baylibre.com, linus.walleij@linaro.org,
+        khilman@baylibre.com, carlo@caione.org
+Cc: linux-arm-kernel@lists.infradead.org, mchehab@kernel.org,
+        will.deacon@arm.com, catalin.marinas@arm.com, mark.rutland@arm.com,
+        robh+dt@kernel.org, b.galvani@gmail.com,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Subject: [PATCH v5 3/6] dt-bindings: media: meson-ir: Add Meson8b and GXBB compatible strings
+Date: Sat, 20 Aug 2016 11:54:21 +0200
+Message-Id: <20160820095424.636-4-martin.blumenstingl@googlemail.com>
+In-Reply-To: <20160820095424.636-1-martin.blumenstingl@googlemail.com>
+References: <20160819215547.20063-1-martin.blumenstingl@googlemail.com>
+ <20160820095424.636-1-martin.blumenstingl@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue,  2 Aug 2016 20:01:34 +0800
-Baole Ni <baolex.ni@intel.com> escreveu:
+From: Neil Armstrong <narmstrong@baylibre.com>
 
-> I find that the developers often just specified the numeric value
-> when calling a macro which is defined with a parameter for access permission.
-> As we know, these numeric value for access permission have had the corresponding macro,
-> and that using macro can improve the robustness and readability of the code,
-> thus, I suggest replacing the numeric parameter with the macro.
+New bindings are needed as the register layout on the newer platforms
+is slightly different compared to Meson6b.
 
-Gah!
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Acked-by: Rob Herring <robh@kernel.org>
+---
+ Documentation/devicetree/bindings/media/meson-ir.txt | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-A patch series with 1285 patches with identical subject!
+diff --git a/Documentation/devicetree/bindings/media/meson-ir.txt b/Documentation/devicetree/bindings/media/meson-ir.txt
+index 407848e..e7e3f3c 100644
+--- a/Documentation/devicetree/bindings/media/meson-ir.txt
++++ b/Documentation/devicetree/bindings/media/meson-ir.txt
+@@ -1,7 +1,10 @@
+ * Amlogic Meson IR remote control receiver
+ 
+ Required properties:
+- - compatible	: should be "amlogic,meson6-ir"
++ - compatible	: depending on the platform this should be one of:
++		  - "amlogic,meson6-ir"
++		  - "amlogic,meson8b-ir"
++		  - "amlogic,meson-gxbb-ir"
+  - reg		: physical base address and length of the device registers
+  - interrupts	: a single specifier for the interrupt from the device
+ 
+-- 
+2.9.3
 
-Please don't ever do something like that. My inbox is not trash!
-
-Instead, please group the changes per subsystem, and use different
-names for each patch. Makes easier for people to review.
-
-also, you need to send the patches to the subsystem mainatiner, and
-not adding a random list of people like this:
-
-To: gregkh@linuxfoundation.org, maurochehab@gmail.com, mchehab@infradead.org, mchehab@redhat.com, m.chehab@samsung.com, m.szyprowski@samsung.com, kyungmin.park@samsung.com, k.kozlowski@samsung.com
-
-Btw, use *just* the more recent email of the maintainer, instead of
-spamming trash to all our emails (even to the ones that we don't use
-anymore!
-
-I'll just send all those things to /dev/null until you fix your
-email sending process.
-
-Regards,
-Mauro
-
-> 
-> Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
-> Signed-off-by: Baole Ni <baolex.ni@intel.com>
-> ---
->  drivers/staging/media/omap1/omap1_camera.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/omap1/omap1_camera.c b/drivers/staging/media/omap1/omap1_camera.c
-> index 54b8dd2..6e125dc 100644
-> --- a/drivers/staging/media/omap1/omap1_camera.c
-> +++ b/drivers/staging/media/omap1/omap1_camera.c
-> @@ -1692,7 +1692,7 @@ static struct platform_driver omap1_cam_driver = {
->  
->  module_platform_driver(omap1_cam_driver);
->  
-> -module_param(sg_mode, bool, 0644);
-> +module_param(sg_mode, bool, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
->  MODULE_PARM_DESC(sg_mode, "videobuf mode, 0: dma-contig (default), 1: dma-sg");
->  
->  MODULE_DESCRIPTION("OMAP1 Camera Interface driver");
