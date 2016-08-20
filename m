@@ -1,54 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:17365 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754570AbcHaNZe (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36549 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752379AbcHTKIJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Aug 2016 09:25:34 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH 3/3] ARM: exynos: add all required FIMC-IS clocks to exynos4x12
- dtsi
-Date: Wed, 31 Aug 2016 15:25:18 +0200
-Message-id: <1472649918-10371-4-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1472649918-10371-1-git-send-email-m.szyprowski@samsung.com>
-References: <1472649918-10371-1-git-send-email-m.szyprowski@samsung.com>
+        Sat, 20 Aug 2016 06:08:09 -0400
+Received: by mail-wm0-f67.google.com with SMTP id i138so6294518wmf.3
+        for <linux-media@vger.kernel.org>; Sat, 20 Aug 2016 03:07:53 -0700 (PDT)
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+To: linux-media@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org,
+        narmstrong@baylibre.com, linus.walleij@linaro.org,
+        khilman@baylibre.com, carlo@caione.org
+Cc: linux-arm-kernel@lists.infradead.org, mchehab@kernel.org,
+        will.deacon@arm.com, catalin.marinas@arm.com, mark.rutland@arm.com,
+        robh+dt@kernel.org, b.galvani@gmail.com,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Subject: [PATCH v5 0/6] Add Meson 8b / GXBB support to the IR driver
+Date: Sat, 20 Aug 2016 11:53:23 +0200
+Message-Id: <20160820095329.549-1-martin.blumenstingl@googlemail.com>
+In-Reply-To: <20160628191802.21227-1-martin.blumenstingl@googlemail.com>
+References: <20160628191802.21227-1-martin.blumenstingl@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-FIMC-IS blocks must control 3 more clocks ("gicisp", "mcuctl_isp" and
-"pwm_isp") to make the hardware fully operational.
+Newer Amlogic platforms (Meson 8b and GXBB) use a slightly different
+register layout for their Infrared Remoete Controller. The decoder mode
+is now configured in another register. Without the changes to the
+meson-ir driver we are simply getting incorrect "durations" reported
+from the hardware (because the hardware is not in time measurement aka
+software decode mode).
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- arch/arm/boot/dts/exynos4x12.dtsi | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+This problem was also noticed by some people trying to use this on an
+ODROID-C1 and ODROID-C2 - the workaround there (probably because the
+datasheets were not publicy available yet at that time) was to switch
+to ir_raw_event_store_edge (which leaves it up to the kernel to measure
+the duration of a pulse). See [0] and [1] for the corresponding
+patches.
 
-diff --git a/arch/arm/boot/dts/exynos4x12.dtsi b/arch/arm/boot/dts/exynos4x12.dtsi
-index c452499ae8c9..3394bdcf10ae 100644
---- a/arch/arm/boot/dts/exynos4x12.dtsi
-+++ b/arch/arm/boot/dts/exynos4x12.dtsi
-@@ -157,7 +157,9 @@
- 				 <&clock CLK_MOUT_MPLL_USER_T>,
- 				 <&clock CLK_FIMC_ISP>, <&clock CLK_FIMC_DRC>,
- 				 <&clock CLK_FIMC_FD>, <&clock CLK_MCUISP>,
--				 <&clock CLK_DIV_ISP0>,<&clock CLK_DIV_ISP1>,
-+				 <&clock CLK_GICISP>, <&clock CLK_MCUCTL_ISP>,
-+				 <&clock CLK_PWM_ISP>,
-+				 <&clock CLK_DIV_ISP0>, <&clock CLK_DIV_ISP1>,
- 				 <&clock CLK_DIV_MCUISP0>,
- 				 <&clock CLK_DIV_MCUISP1>,
- 				 <&clock CLK_UART_ISP_SCLK>,
-@@ -167,6 +169,7 @@
- 			clock-names = "lite0", "lite1", "ppmuispx",
- 				      "ppmuispmx", "mpll", "isp",
- 				      "drc", "fd", "mcuisp",
-+				      "gicisp", "mcuctl_isp", "pwm_isp",
- 				      "ispdiv0", "ispdiv1", "mcuispdiv0",
- 				      "mcuispdiv1", "uart", "aclk200",
- 				      "div_aclk200", "aclk400mcuisp",
+Changes in v5:
+- changed pin function and group names to remote_input_ao so they match
+  with the datasheet
+
+
+Tested-by: Neil Armstrong <narmstrong@baylibre.com>
+
+
+[0] https://github.com/erdoukki/linux-amlogic-1/commit/969b2e2242fb14a13cb651f9a1cf771b599c958b
+[1] http://forum.odroid.com/viewtopic.php?f=135&t=20504
+
+
+Martin Blumenstingl (3):
+  pinctrl: amlogic: gxbb: add the IR remote input pin
+  ARM64: dts: amlogic: add the input pin for the IR remote
+  ARM64: dts: meson-gxbb: Enable the the IR decoder on supported boards
+
+Neil Armstrong (3):
+  dt-bindings: media: meson-ir: Add Meson8b and GXBB compatible strings
+  media: rc: meson-ir: Add support for newer versions of the IR decoder
+  ARM64: dts: meson-gxbb: Add Infrared Remote Controller decoder
+
+ .../devicetree/bindings/media/meson-ir.txt         |  5 +++-
+ .../arm64/boot/dts/amlogic/meson-gxbb-odroidc2.dts |  6 +++++
+ arch/arm64/boot/dts/amlogic/meson-gxbb-p20x.dtsi   |  6 +++++
+ .../boot/dts/amlogic/meson-gxbb-vega-s95.dtsi      |  6 +++++
+ arch/arm64/boot/dts/amlogic/meson-gxbb.dtsi        | 14 +++++++++++
+ drivers/media/rc/meson-ir.c                        | 29 ++++++++++++++++++----
+ drivers/pinctrl/meson/pinctrl-meson-gxbb.c         |  8 ++++++
+ 7 files changed, 68 insertions(+), 6 deletions(-)
+
 -- 
-1.9.1
+2.9.3
 
