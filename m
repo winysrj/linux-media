@@ -1,56 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from leibniz.telenet-ops.be ([195.130.137.77]:59125 "EHLO
-	leibniz.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753319AbcHCSaU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 14:30:20 -0400
-Received: from albert.telenet-ops.be (albert.telenet-ops.be [IPv6:2a02:1800:110:4::f00:1a])
-	by leibniz.telenet-ops.be (Postfix) with ESMTP id 3s4Lkl0X19zMrMy7
-	for <linux-media@vger.kernel.org>; Wed,  3 Aug 2016 20:12:15 +0200 (CEST)
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH 1/2] [media] VIDEO_MEDIATEK_VCODEC should depend on HAS_DMA
-Date: Wed,  3 Aug 2016 20:10:08 +0200
-Message-Id: <1470247809-31212-1-git-send-email-geert@linux-m68k.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([198.137.202.9]:43710 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753632AbcHTBlA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Aug 2016 21:41:00 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Markus Heiser <markus.heiser@darmarIT.de>,
+        linux-doc@vger.kernel.org
+Subject: [PATCH 2/3] [media] subdev-formats.rst: adjust tables size for LaTeX output
+Date: Fri, 19 Aug 2016 22:40:52 -0300
+Message-Id: <bb0ad67625f529519625c0b6544beb355f8543cf.1471657229.git.mchehab@s-opensource.com>
+In-Reply-To: <abb3c02861cfaf59fbdce94117aade037cb6d32c.1471657229.git.mchehab@s-opensource.com>
+References: <abb3c02861cfaf59fbdce94117aade037cb6d32c.1471657229.git.mchehab@s-opensource.com>
+In-Reply-To: <abb3c02861cfaf59fbdce94117aade037cb6d32c.1471657229.git.mchehab@s-opensource.com>
+References: <abb3c02861cfaf59fbdce94117aade037cb6d32c.1471657229.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If NO_DMA=y:
+There are two big tables here that are very hard to adjust its
+size.
 
-    warning: (VIDEO_MEDIATEK_VCODEC && VIDEO_DM365_VPFE && VIDEO_OMAP4) selects VIDEOBUF2_DMA_CONTIG which has unmet direct dependencies (MEDIA_SUPPORT && HAS_DMA)
+The first one would fit into one page, but the latex.py logic
+at Sphinx auto-switches to longtable when there are more than 30
+rows. There's no way to override without coding.
 
-    drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_get_userptr’:
-    drivers/media/v4l2-core/videobuf2-dma-contig.c:486: error: implicit declaration of function ‘dma_get_cache_alignment’
+The second one is really big, and won't fit on a single page.
+So, it has to use tiny font to fit.
 
-VIDEO_MEDIATEK_VCODEC selects VIDEOBUF2_DMA_CONTIG, which bypasses its
-dependency on HAS_DMA.  Make VIDEO_MEDIATEK_VCODEC depend on HAS_DMA to
-fix this.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/media/uapi/v4l/subdev-formats.rst | 36 ++++++++++++++++++++-----
+ 1 file changed, 30 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index f25344bc79126e2f..552b635cfce7f02b 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -169,7 +169,7 @@ config VIDEO_MEDIATEK_VPU
- config VIDEO_MEDIATEK_VCODEC
- 	tristate "Mediatek Video Codec driver"
- 	depends on MTK_IOMMU || COMPILE_TEST
--	depends on VIDEO_DEV && VIDEO_V4L2
-+	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
- 	depends on ARCH_MEDIATEK || COMPILE_TEST
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
+diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+index a347fcc206db..0b31943bb300 100644
+--- a/Documentation/media/uapi/v4l/subdev-formats.rst
++++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+@@ -154,18 +154,26 @@ half of the green value) transferred first will be named
+ 
+ The following tables list existing packed RGB formats.
+ 
+-.. FIXME: I was unable to find a way to use adjustbox or landscape for this table!
++.. HACK: ideally, we would be using adjustbox here. However, Sphinx
++.. is a very bad behaviored guy: if the table has more than 30 cols,
++.. it switches to long table, and there's no way to override it.
+ 
+-.. tabularcolumns:: |p{7.6cm}|p{1.6cm}|p{0.7cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{-1.0cm}|
++
++.. tabularcolumns:: |p{4.0cm}|p{0.7cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22}|
+ 
+ .. _v4l2-mbus-pixelcode-rgb:
+ 
++.. raw:: latex
++
++    \begingroup
++    \tiny
++    \setlength{\tabcolsep}{2pt}
++
+ .. flat-table:: RGB formats
+     :header-rows:  2
+     :stub-columns: 0
+     :widths: 36 7 3 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+ 
+-
+     -  .. row 1
+ 
+        -  Identifier
+@@ -2355,6 +2363,10 @@ The following tables list existing packed RGB formats.
+ 
+        -  b\ :sub:`0`
+ 
++.. raw:: latex
++
++    \endgroup
++
+ On LVDS buses, usually each sample is transferred serialized in seven
+ time slots per pixel clock, on three (18-bit) or four (24-bit)
+ differential data pairs at the same time. The remaining bits are used
+@@ -3751,13 +3763,22 @@ the following codes.
+ 
+ -  d for dummy bits
+ 
+-.. FIXME: I was unable to find a way to use adjustbox or landscape for this table!
+ 
+-.. tabularcolumns:: |p{7.6cm}|p{1.6cm}|p{0.7cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{-1.0cm}|
++.. tabularcolumns:: |p{4.0cm}|p{0.7cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22}|
+ 
+ .. _v4l2-mbus-pixelcode-yuv8:
+ 
+-.. cssclass:: longtable
++
++.. HACK: ideally, we would be using adjustbox here. However, this
++.. will never work for this table, as, even with tiny font, it is
++.. to big for a single page. So, we need to manually adjust the
++.. size.
++
++.. raw:: latex
++
++    \begingroup
++    \tiny
++    \setlength{\tabcolsep}{2pt}
+ 
+ .. flat-table:: YUV Formats
+     :header-rows:  2
+@@ -11439,6 +11460,9 @@ the following codes.
+        -  v\ :sub:`0`
+ 
+ 
++.. raw:: latex
++
++	\endgroup
+ 
+ HSV/HSL Formats
+ ^^^^^^^^^^^^^^^
 -- 
-1.9.1
+2.7.4
 
