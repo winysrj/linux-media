@@ -1,53 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:51496 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752537AbcHOJHN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 05:07:13 -0400
-Subject: Re: [PATCH v3 0/9] Add MT8173 Video Decoder Driver
-To: Tiffany Lin <tiffany.lin@mediatek.com>
-References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
- <bdac7fe1-6425-2a3d-777f-86cfd1ee26e0@xs4all.nl>
- <1471251821.28498.7.camel@mtksdaap41>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, daniel.thompson@linaro.org,
-	Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <74aa2d31-97dd-d274-e07d-b4532c0f4fa5@xs4all.nl>
-Date: Mon, 15 Aug 2016 11:07:06 +0200
-MIME-Version: 1.0
-In-Reply-To: <1471251821.28498.7.camel@mtksdaap41>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:34601 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753125AbcHUSXL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 Aug 2016 14:23:11 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 0/2] Two additional patches for Documentation/conf.py
+Date: Sun, 21 Aug 2016 15:23:02 -0300
+Message-Id: <cover.1471803675.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/15/2016 11:03 AM, Tiffany Lin wrote:
-> Hi Hans,
-> 
-> I upstream v4 on 8/10, I don't know why this version is not shown in
-> https://patchwork.kernel.org.
-> But I could see it in other link.
-> http://www.spinics.net/lists/arm-kernel/msg523095.html
-> I refine DocBook and vb2 queue_setup function in v4.
-> 
-> For the MT21 format, if I put MT21 into separate patch, this patch
-> series will build fail, I was confused how to fix this issue?
+The first patch in this series use the type of notice box to color the box,
+providing a functionality that it is also used on the HTML theme we use.
 
-Just don't implement that pixelformat yet. I.e. everything else can be
-implemented, just don't add MT21 to the list of pixelformats. Do that in
-a separate patch at the end.
+The second patch is a fix for a non-fatal error when building LaTeX on
+interactive mode.
 
-If that pixelformat isn't exposed, then nobody will use it either :-)
+Mauro Carvalho Chehab (2):
+  docs-rst: Use better colors for note/warning/attention boxes
+  docs-rst: Fix an warning when in interactive mode
 
-Regards,
+ Documentation/conf.py | 44 +++++++++++++++++++++++++++++---------------
+ 1 file changed, 29 insertions(+), 15 deletions(-)
 
-	Hans
+-- 
+2.7.4
+
+
