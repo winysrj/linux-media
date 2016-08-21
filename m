@@ -1,39 +1,546 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:55395 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752488AbcHQWIo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2016 18:08:44 -0400
-Subject: Re: [PATCH v4] [media] vimc: Virtual Media Controller core, capture
- and sensor
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, jgebben@codeaurora.org,
-	mchehab@osg.samsung.com
-References: <1464706979-32340-1-git-send-email-helen.koike@collabora.co.uk>
- <5aae6086-6ba3-c278-ec48-043b17b4aa33@xs4all.nl>
-Cc: Helen Fornazier <helen.fornazier@gmail.com>
-From: Helen Koike <helen.koike@collabora.co.uk>
-Message-ID: <5f356876-2d91-cebb-a3f6-47ec21753c62@collabora.co.uk>
-Date: Wed, 17 Aug 2016 19:08:08 -0300
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:34845 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753425AbcHUQHi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 Aug 2016 12:07:38 -0400
 MIME-Version: 1.0
-In-Reply-To: <5aae6086-6ba3-c278-ec48-043b17b4aa33@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAJs94EZHz5ehE_wC2DeETeRooq5R-rD2f-8L53VYi7VaCtXGDA@mail.gmail.com>
+References: <1468959677-1768-1-git-send-email-matwey@sai.msu.ru>
+ <20160719205600.GA14569@uda0271908> <CAJs94EY_cXLA6eggC391eKiPBS-RVPmfPd7Wh4mhjZTQiCSUrA@mail.gmail.com>
+ <20160719213426.GB14569@uda0271908> <CAJs94EbS7C+m_+P61QReAwn=93Yp0B7x4dZ32A8mMAZAM5+osQ@mail.gmail.com>
+ <20160720141334.GC14569@uda0271908> <CAJs94Eb-Z4103JgEL6Xu_tesJ+d81F13UKhuCmVc3DPCBZ8z5w@mail.gmail.com>
+ <20160720150614.GD14569@uda0271908> <CAJs94Eb42kTp0i=Oagip5uGtVTNh6JgoAp_q--+nNGZufD1chA@mail.gmail.com>
+ <CAJs94EZt_gw=xenU8Yt79tZxT_jGUW7w1SQjjh2Oe9aCCXSm7A@mail.gmail.com>
+ <CAJs94EYPwWivWfsrUtETJZp5HHmpT5Qvujq0RexcgHm+k657aQ@mail.gmail.com>
+ <CAJs94Eb=iPC57N8ecvmOr__1LhTjFTuRtHd1svDbwgVXtYX5=g@mail.gmail.com>
+ <CAJs94EYzTXJsr6vPw+MmtHUCzcoyxDmSmU-04YENP-9mZ5MdgA@mail.gmail.com>
+ <CAJs94EbpTzpzDeubBGOaqPavwBHzgKhb9E0MN0_v_irWRRwJDQ@mail.gmail.com>
+ <CAJs94EYu4i791s9bOgQrYGNgkkzs_K30tKF-4w2xZFja1TVwSA@mail.gmail.com>
+ <CAJs94EY0O=j_fqRqvTwrNGr9Nx8griWc7EuBchDC7P3whf+rrg@mail.gmail.com>
+ <CAJs94EZ-Y5-KCEXsDAzZi2tehqRU=g1opRvwBM+Qyt-z=3u4hg@mail.gmail.com>
+ <CAJs94EZOnDcGC=3uvvDpsBA-cqgaBi6UQ2vESw+qGBmd4U5qeA@mail.gmail.com>
+ <CAJs94EZhcauKcBWbowoLVEhyb=G+d3jaxc8FuvokZBKfT-LPGA@mail.gmail.com>
+ <CAJs94EYJ46i39KBJ5hsuY8M2C1c8hCNQbBBm3cMW7wQunCeEyA@mail.gmail.com>
+ <CAJs94EbxFzHrEGsxV5AS55nE6eYH_bXrd1h2pHpo_HCrWXtYkA@mail.gmail.com> <CAJs94EZHz5ehE_wC2DeETeRooq5R-rD2f-8L53VYi7VaCtXGDA@mail.gmail.com>
+From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+Date: Sun, 21 Aug 2016 19:07:14 +0300
+Message-ID: <CAJs94EYxbF5HT35pCNa7LT_AQMj=hVz8L826W-uzdLeQwzYXYQ@mail.gmail.com>
+Subject: Re: pwc over musb: 100% frame drop (lost) on high resolution stream
+To: Bin Liu <b-liu@ti.com>, "Matwey V. Kornilov" <matwey@sai.msu.ru>,
+        hdegoede@redhat.com, linux-media@vger.kernel.org,
+        linux-usb@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans
+In both cases (with or without HCD_BH), usb_hcd_giveback_urb is called
+every 0.01 sec. It is not clear why behavior is so different.
 
-On 01-07-2016 09:39, Hans Verkuil wrote:
-> Hi Helen,
+2016-08-21 17:02 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+> I've just measured that
 >
-> Better late than never, but I finally have time for a review, mostly with a eye for V4L2 issues.
+> it takes 150 us in average for pwc_isoc_handler to run
+> 350 us - __usb_hcd_giveback_urb
+>
+> So, it takes either 50 us (with HCD_BH) or 400 us (without) for
+> usb_hcd_giveback_urb to run.
+>
+>
+> 2016-08-20 21:09 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+>> I've just checked 4.8-rc2 - same behaviour.
+>>
+>> 2016-08-18 16:31 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+>>> Any ideas?
+>>>
+>>> 2016-08-04 23:08 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+>>>> When DMA is not used, I see the same behavior: lots of zero-length
+>>>> packages received.
+>>>>
+>>>> Can It be related to some kind of USB overflow due to long input data
+>>>> processing with disabled IRQ?
+>>>> When HCD_BC is used then part of processing is postponed and this can
+>>>> explain greater throughput due to better latency.
+>>>>
+>>>> 2016-08-04 22:58 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+>>>>> I've just found that in such cases, when DMA actual length is zero,
+>>>>> both cppi41_channel->prog_len and txstate.residue equal 960 at
+>>>>> musb_cppi41 line 225:
+>>>>>
+>>>>> http://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/tree/drivers/usb/musb/musb_cppi41.c#n225
+>>>>>
+>>>>> 2016-08-04 22:08 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+>>>>>> I've just found that dma->actual_len equals to zero in most cases at
+>>>>>> musb_host.c line 1946.
+>>>>>> And this produces zero-length packages.
+>>>>>>
+>>>>>> http://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/tree/drivers/usb/musb/musb_host.c#n1946
+>>>>>>
+>>>>>> Any ideas why?
+>>>>>>
+>>>>>> 2016-08-04 19:57 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+>>>>>>> I've just found that many packages in URBs have zero actual_length (It
+>>>>>>> is a question why).
+>>>>>>> Then the following end of frame criteria leads to `frame underflow' message:
+>>>>>>>
+>>>>>>>                 if (flen < pdev->vlast_packet_size) {
+>>>>>>>                         /* Shorter packet... end of frame */
+>>>>>>>                         if (pdev->vsync == 2)
+>>>>>>>                                 pwc_frame_complete(pdev);
+>>>>>>>                         if (pdev->fill_buf == NULL)
+>>>>>>>                                 pdev->fill_buf = pwc_get_next_fill_buf(pdev);
+>>>>>>>                         if (pdev->fill_buf) {
+>>>>>>>                                 pdev->fill_buf->filled = 0;
+>>>>>>>                                 pdev->vsync = 1;
+>>>>>>>                         }
+>>>>>>>                 }
+>>>>>>>
+>>>>>>> 2016-08-01 21:16 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+>>>>>>>> pwc module output with trace=511 is the following:
+>>>>>>>>
+>>>>>>>> [   24.793109] usbcore: registered new interface driver Philips webcam
+>>>>>>>> [   29.276979] pwc: Unsupported pixel format
+>>>>>>>> [   29.277055] pwc: pwc_vidioc_fill_fmt() width=640, height=480,
+>>>>>>>> bytesperline=640, sizeimage=460800, pixelformat=YU12
+>>>>>>>> [   29.277090] pwc: Trying to set format to: width=640 height=480
+>>>>>>>> fps=15 format=YU12
+>>>>>>>> [   29.277123] pwc: set_video_mode(640x480 @ 30, pixfmt 32315559).
+>>>>>>>> [   29.277145] pwc: decode_size = 5.
+>>>>>>>> [   29.277180] pwc: frame_size=63120, vframes=15, vsize=5, vbandlength=526
+>>>>>>>> [   29.277204] pwc: Set resolution to 640x480
+>>>>>>>> [   29.277225] pwc: pwc_set_video_mode(), return=0
+>>>>>>>> [   29.277256] pwc: pwc_vidioc_fill_fmt() width=640, height=480,
+>>>>>>>> bytesperline=640, sizeimage=460800, pixelformat=YU12
+>>>>>>>> [   29.277306] pwc: ioctl(VIDIOC_G_FMT) return size 640x480
+>>>>>>>> [   29.277337] pwc: pwc_vidioc_fill_fmt() width=640, height=480,
+>>>>>>>> bytesperline=640, sizeimage=460800, pixelformat=YU12
+>>>>>>>> [   29.277449] pwc: set_video_mode(640x480 @ 10, pixfmt 32315559).
+>>>>>>>> [   29.277475] pwc: decode_size = 5.
+>>>>>>>> [   29.278726] pwc: frame_size=94560, vframes=10, vsize=5, vbandlength=788
+>>>>>>>> [   29.278750] pwc: Set resolution to 640x480
+>>>>>>>> [   29.300374] pwc: set_video_mode(640x480 @ 10, pixfmt 32315559).
+>>>>>>>> [   29.300420] pwc: decode_size = 5.
+>>>>>>>> [   29.441759] pwc: frame_size=94560, vframes=10, vsize=5, vbandlength=788
+>>>>>>>> [   29.441792] pwc: Set resolution to 640x480
+>>>>>>>> [   29.441824] pwc: Setting alternate interface 9
+>>>>>>>> [   29.455061] pwc: Allocated URB at 0xc9b83600
+>>>>>>>> [   29.455850] pwc: Allocated URB at 0xc9b83400
+>>>>>>>> [   29.456040] pwc: Allocated URB at 0xc9b83200
+>>>>>>>> [   29.456271] pwc: URB 0xc9b83600 submitted.
+>>>>>>>> [   29.456310] pwc: URB 0xc9b83400 submitted.
+>>>>>>>> [   29.456341] pwc: URB 0xc9b83200 submitted.
+>>>>>>>> [   29.456362] pwc: << pwc_isoc_init()
+>>>>>>>> [   30.078550] pwc: Frame buffer underflow (20076 bytes); discarded.
+>>>>>>>> [   30.170543] pwc: Frame buffer underflow (12428 bytes); discarded.
+>>>>>>>> [   30.272538] pwc: Frame buffer underflow (14340 bytes); discarded.
+>>>>>>>> [   30.374541] pwc: Frame buffer underflow (16252 bytes); discarded.
+>>>>>>>> [   30.476535] pwc: Frame buffer underflow (18164 bytes); discarded.
+>>>>>>>> [   30.578532] pwc: Frame buffer underflow (20076 bytes); discarded.
+>>>>>>>> [   30.670538] pwc: Frame buffer underflow (12428 bytes); discarded.
+>>>>>>>> [   30.772544] pwc: Frame buffer underflow (14340 bytes); discarded.
+>>>>>>>> [   30.874547] pwc: Frame buffer underflow (16252 bytes); discarded.
+>>>>>>>> [   30.976552] pwc: Frame buffer underflow (18164 bytes); discarded.
+>>>>>>>> [   31.078536] pwc: Frame buffer underflow (20076 bytes); discarded.
+>>>>>>>> [   31.170533] pwc: Frame buffer underflow (12428 bytes); discarded.
+>>>>>>>> [   31.272549] pwc: Frame buffer underflow (14340 bytes); discarded.
+>>>>>>>> [   31.374545] pwc: Frame buffer underflow (16252 bytes); discarded.
+>>>>>>>> [   31.476537] pwc: Frame buffer underflow (18164 bytes); discarded.
+>>>>>>>> [   31.578536] pwc: Frame buffer underflow (20076 bytes); discarded.
+>>>>>>>> [   31.660895] pwc: Frame buffer underflow (11472 bytes); discarded.
+>>>>>>>> [   31.772554] pwc: Frame buffer underflow (14340 bytes); discarded.
+>>>>>>>> [   31.874548] pwc: Frame buffer underflow (16252 bytes); discarded.
+>>>>>>>> [   31.976533] pwc: Frame buffer underflow (18164 bytes); discarded.
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> 2016-07-31 23:31 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+>>>>>>>>> Hello,
+>>>>>>>>>
+>>>>>>>>> I've also just found that the same commit breaks cpufreq on BeagleBone Black :)
+>>>>>>>>>
+>>>>>>>>> So, probably without HCD_BH flag musb works correctly only at 1Ghz CPU
+>>>>>>>>> frequency, which is unlisted and being set to 720Mhz by cpufreq driver
+>>>>>>>>> (as it did whet there was cpufreq driver).
+>>>>>>>>>
+>>>>>>>>> 2016-07-29 21:01 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+>>>>>>>>>> Hello,
+>>>>>>>>>>
+>>>>>>>>>> I've found that the following commit fixes the issue:
+>>>>>>>>>>
+>>>>>>>>>> commit 7694ca6e1d6f01122f05039b81f70f64b1ec4063
+>>>>>>>>>> Author: Viresh Kumar <viresh.kumar@linaro.org>
+>>>>>>>>>> Date:   Fri Apr 22 16:58:42 2016 +0530
+>>>>>>>>>>
+>>>>>>>>>>     cpufreq: omap: Use generic platdev driver
+>>>>>>>>>>
+>>>>>>>>>>     The cpufreq-dt-platdev driver supports creation of cpufreq-dt platform
+>>>>>>>>>>     device now, reuse that and remove similar code from platform code.
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>> 2016-07-28 19:16 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+>>>>>>>>>>> Hello,
+>>>>>>>>>>>
+>>>>>>>>>>> I've just bisected commit, which fixed the issue in v4.7
+>>>>>>>>>>>
+>>>>>>>>>>> commit 9fa64d6424adabf0e3a546ae24d01a62a927b342
+>>>>>>>>>>> Merge: f55532a febce40
+>>>>>>>>>>> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>>>>>>>>> Date:   Sat Apr 2 01:07:17 2016 +0200
+>>>>>>>>>>>
+>>>>>>>>>>>     Merge back intel_pstate fixes for v4.6.
+>>>>>>>>>>>
+>>>>>>>>>>>     * pm-cpufreq:
+>>>>>>>>>>>       intel_pstate: Avoid extra invocation of intel_pstate_sample()
+>>>>>>>>>>>       intel_pstate: Do not set utilization update hook too early
+>>>>>>>>>>>
+>>>>>>>>>>> Unfortunately, intel_pstate branch doesn't have
+>>>>>>>>>>> f551e13529833e052f75ec628a8af7b034af20f9 applied.
+>>>>>>>>>>> I'll try to bisect this branch with the patch manually applied.
+>>>>>>>>>>>
+>>>>>>>>>>> 2016-07-27 20:34 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+>>>>>>>>>>>> Hello,
+>>>>>>>>>>>>
+>>>>>>>>>>>> I've just biseced commit, which introduced this issue
+>>>>>>>>>>>>
+>>>>>>>>>>>> commit f551e13529833e052f75ec628a8af7b034af20f9
+>>>>>>>>>>>> Author: Bin Liu <b-liu@ti.com>
+>>>>>>>>>>>> Date:   Mon Apr 25 15:53:30 2016 -0500
+>>>>>>>>>>>>
+>>>>>>>>>>>>     Revert "usb: musb: musb_host: Enable HCD_BH flag to handle urb
+>>>>>>>>>>>> return in bottom half"
+>>>>>>>>>>>>
+>>>>>>>>>>>> I have not checked yet, if it was intentionnaly fixed.
+>>>>>>>>>>>>
+>>>>>>>>>>>> 2016-07-23 22:24 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+>>>>>>>>>>>>> 2016-07-20 21:56 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+>>>>>>>>>>>>>> 2016-07-20 18:06 GMT+03:00 Bin Liu <b-liu@ti.com>:
+>>>>>>>>>>>>>>> Hi,
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> On Wed, Jul 20, 2016 at 05:44:56PM +0300, Matwey V. Kornilov wrote:
+>>>>>>>>>>>>>>>> 2016-07-20 17:13 GMT+03:00 Bin Liu <b-liu@ti.com>:
+>>>>>>>>>>>>>>>> > Hi,
+>>>>>>>>>>>>>>>> >
+>>>>>>>>>>>>>>>> > On Wed, Jul 20, 2016 at 09:09:42AM +0300, Matwey V. Kornilov wrote:
+>>>>>>>>>>>>>>>> >> 2016-07-20 0:34 GMT+03:00 Bin Liu <b-liu@ti.com>:
+>>>>>>>>>>>>>>>> >> > Hi,
+>>>>>>>>>>>>>>>> >> >
+>>>>>>>>>>>>>>>> >> > On Wed, Jul 20, 2016 at 12:25:44AM +0300, Matwey V. Kornilov wrote:
+>>>>>>>>>>>>>>>> >> >> 2016-07-19 23:56 GMT+03:00 Bin Liu <b-liu@ti.com>:
+>>>>>>>>>>>>>>>> >> >> > Hi,
+>>>>>>>>>>>>>>>> >> >> >
+>>>>>>>>>>>>>>>> >> >> > On Tue, Jul 19, 2016 at 11:21:17PM +0300, matwey@sai.msu.ru wrote:
+>>>>>>>>>>>>>>>> >> >> >> Hello,
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >> I have Philips SPC 900 camera (0471:0329) connected to my AM335x based BeagleBoneBlack SBC.
+>>>>>>>>>>>>>>>> >> >> >> I am sure that both of them are fine and work properly.
+>>>>>>>>>>>>>>>> >> >> >> I am running Linux 4.6.4 (my kernel config is available at https://clck.ru/A2kQs ) and I've just discovered, that there is an issue with frame transfer when high resolution formats are used.
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >> The issue is the following. I use simple v4l2 example tool (taken from API docs), which source code is available at http://pastebin.com/grcNXxfe
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >> When I use (see line 488) 640x480 frames
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >>                 fmt.fmt.pix.width       = 640;
+>>>>>>>>>>>>>>>> >> >> >>                 fmt.fmt.pix.height      = 480;
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >> then I get "select timeout" and don't get any frames.
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >> When I use 320x240 frames
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >>                 fmt.fmt.pix.width       = 320;
+>>>>>>>>>>>>>>>> >> >> >>                 fmt.fmt.pix.height      = 240;
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >> then about 60% frames are missed. An example outpout of ./a.out -f is available at https://yadi.sk/d/aRka8xWPtSc4y
+>>>>>>>>>>>>>>>> >> >> >> It looks like there are pauses between bulks of frames (frame counter and timestamp as returned from v4l2 API):
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >> 3 3705.142553
+>>>>>>>>>>>>>>>> >> >> >> 8 3705.342533
+>>>>>>>>>>>>>>>> >> >> >> 13 3705.542517
+>>>>>>>>>>>>>>>> >> >> >> 110 3708.776208
+>>>>>>>>>>>>>>>> >> >> >> 115 3708.976190
+>>>>>>>>>>>>>>>> >> >> >> 120 3709.176169
+>>>>>>>>>>>>>>>> >> >> >> 125 3709.376152
+>>>>>>>>>>>>>>>> >> >> >> 130 3709.576144
+>>>>>>>>>>>>>>>> >> >> >> 226 3712.807848
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >> When I use tiny 160x120 frames
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >>                 fmt.fmt.pix.width       = 160;
+>>>>>>>>>>>>>>>> >> >> >>                 fmt.fmt.pix.height      = 120;
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >> then more frames are received. See output example at https://yadi.sk/d/DedBmH6ftSc9t
+>>>>>>>>>>>>>>>> >> >> >> That is why I thought that everything was fine in May when used tiny xawtv window to check kernel OOPS presence (see http://www.spinics.net/lists/linux-usb/msg141188.html for reference)
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >> Even more. When I introduce USB hub between the host and the webcam, I can not receive even any 320x240 frames.
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >> I've managed to use ftrace to see what is going on when no frames are received.
+>>>>>>>>>>>>>>>> >> >> >> I've found that pwc_isoc_handler is called frequently as the following:
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >>  0)               |  pwc_isoc_handler [pwc]() {
+>>>>>>>>>>>>>>>> >> >> >>  0)               |    usb_submit_urb [usbcore]() {
+>>>>>>>>>>>>>>>> >> >> >>  0)               |      usb_submit_urb.part.3 [usbcore]() {
+>>>>>>>>>>>>>>>> >> >> >>  0)               |        usb_hcd_submit_urb [usbcore]() {
+>>>>>>>>>>>>>>>> >> >> >>  0)   0.834 us    |          usb_get_urb [usbcore]();
+>>>>>>>>>>>>>>>> >> >> >>  0)               |          musb_map_urb_for_dma [musb_hdrc]() {
+>>>>>>>>>>>>>>>> >> >> >>  0)   0.792 us    |            usb_hcd_map_urb_for_dma [usbcore]();
+>>>>>>>>>>>>>>>> >> >> >>  0)   5.750 us    |          }
+>>>>>>>>>>>>>>>> >> >> >>  0)               |          musb_urb_enqueue [musb_hdrc]() {
+>>>>>>>>>>>>>>>> >> >> >>  0)   0.750 us    |            _raw_spin_lock_irqsave();
+>>>>>>>>>>>>>>>> >> >> >>  0)               |            usb_hcd_link_urb_to_ep [usbcore]() {
+>>>>>>>>>>>>>>>> >> >> >>  0)   0.792 us    |              _raw_spin_lock();
+>>>>>>>>>>>>>>>> >> >> >>  0)   0.791 us    |              _raw_spin_unlock();
+>>>>>>>>>>>>>>>> >> >> >>  0) + 10.500 us   |            }
+>>>>>>>>>>>>>>>> >> >> >>  0)   0.791 us    |            _raw_spin_unlock_irqrestore();
+>>>>>>>>>>>>>>>> >> >> >>  0) + 25.375 us   |          }
+>>>>>>>>>>>>>>>> >> >> >>  0) + 45.208 us   |        }
+>>>>>>>>>>>>>>>> >> >> >>  0) + 51.042 us   |      }
+>>>>>>>>>>>>>>>> >> >> >>  0) + 56.084 us   |    }
+>>>>>>>>>>>>>>>> >> >> >>  0) + 61.292 us   |  }
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >> However, pwc_isoc_handler never calls vb2_buffer_done() that is why I get "select timeout" in userspace.
+>>>>>>>>>>>>>>>> >> >> >> Unfortunately, my kernel is not compiled with CONFIG_USB_PWC_DEBUG=y but I can recompile it, if you think that it could provide more information. I am also ready to perform additional tests (use usbmon maybe?).
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >> How could this issue be resolved?
+>>>>>>>>>>>>>>>> >> >> >>
+>>>>>>>>>>>>>>>> >> >> >> Thank you.
+>>>>>>>>>>>>>>>> >> >> >
+>>>>>>>>>>>>>>>> >> >> > Do you have CPPI DMA enabled? If so I think you might hit on a known
+>>>>>>>>>>>>>>>> >> >> > issue in CPPI Isoch transfer, in which the MUSB controller only sends IN
+>>>>>>>>>>>>>>>> >> >> > tokens in every other SOF, so only half of the bus bandwidth is
+>>>>>>>>>>>>>>>> >> >> > utilized, which causes video frame drops in higher resolution.
+>>>>>>>>>>>>>>>> >> >> >
+>>>>>>>>>>>>>>>> >> >>
+>>>>>>>>>>>>>>>> >> >> Yes, I do use DMA:
+>>>>>>>>>>>>>>>> >> >>
+>>>>>>>>>>>>>>>> >> >> CONFIG_USB_TI_CPPI41_DMA=y
+>>>>>>>>>>>>>>>> >> >
+>>>>>>>>>>>>>>>> >> > Okay.
+>>>>>>>>>>>>>>>> >> >
+>>>>>>>>>>>>>>>> >> >>
+>>>>>>>>>>>>>>>> >> >> > To confirm this, use a bus analyzer to capture a bus trace, you would
+>>>>>>>>>>>>>>>> >> >> > see no IN tokens in every other SOF while transfering Isoch packets.
+>>>>>>>>>>>>>>>> >> >> >
+>>>>>>>>>>>>>>>> >> >>
+>>>>>>>>>>>>>>>> >> >> I am sorry, I am new to USB debugging. Do you mean I need to use
+>>>>>>>>>>>>>>>> >> >> usbmon or some external hardware device?
+>>>>>>>>>>>>>>>> >> >
+>>>>>>>>>>>>>>>> >> > I barely use usbmon, and not sure if it gives the information I am
+>>>>>>>>>>>>>>>> >> > looking for. But I meant the external test equipment - USB bus protocol
+>>>>>>>>>>>>>>>> >> > analyzer - a bus packet sniffer.
+>>>>>>>>>>>>>>>> >> >
+>>>>>>>>>>>>>>>> >>
+>>>>>>>>>>>>>>>> >> Now I see. I've googled it, they start from $1000, I don't know
+>>>>>>>>>>>>>>>> >> when/whether/where I can get one to try.
+>>>>>>>>>>>>>>>> >
+>>>>>>>>>>>>>>>> > I think you might be able to check it without a sniffer - MUSB
+>>>>>>>>>>>>>>>> > controller can generate SOF interrupts, but it is masked in current
+>>>>>>>>>>>>>>>> > driver. So I think you could enable SOF interrupt, then if you get a log
+>>>>>>>>>>>>>>>> > as
+>>>>>>>>>>>>>>>> >         SOF
+>>>>>>>>>>>>>>>> >         rx packet
+>>>>>>>>>>>>>>>> >         SOF
+>>>>>>>>>>>>>>>> >         rx packet
+>>>>>>>>>>>>>>>> >         SOF
+>>>>>>>>>>>>>>>> >         ...
+>>>>>>>>>>>>>>>> > or
+>>>>>>>>>>>>>>>> >         SOF
+>>>>>>>>>>>>>>>> >         rx packet
+>>>>>>>>>>>>>>>> >         rx packet
+>>>>>>>>>>>>>>>> >         rx packet
+>>>>>>>>>>>>>>>> >         SOF
+>>>>>>>>>>>>>>>> >         rx packet
+>>>>>>>>>>>>>>>> >         rx packet
+>>>>>>>>>>>>>>>> >         rx packet
+>>>>>>>>>>>>>>>> >         SOF
+>>>>>>>>>>>>>>>> >         ...
+>>>>>>>>>>>>>>>> >
+>>>>>>>>>>>>>>>> > which means your issue is different from the one I mentioned. But if
+>>>>>>>>>>>>>>>> > you get a log as
+>>>>>>>>>>>>>>>> >
+>>>>>>>>>>>>>>>> >         SOF
+>>>>>>>>>>>>>>>> >         rx packet
+>>>>>>>>>>>>>>>> >         SOF
+>>>>>>>>>>>>>>>> >         SOF     <--- no rx packets in two consecutive SOFs
+>>>>>>>>>>>>>>>> >         rx packet
+>>>>>>>>>>>>>>>> >         SOF
+>>>>>>>>>>>>>>>> >         SOF
+>>>>>>>>>>>>>>>> >
+>>>>>>>>>>>>>>>> > then you hit on the known issue I mentioned.
+>>>>>>>>>>>>>>>> >
+>>>>>>>>>>>>>>>> >> Until that, could I check something else? For instance, disable
+>>>>>>>>>>>>>>>> >> CONFIG_USB_TI_CPPI41_DMA.
+>>>>>>>>>>>>>>>> >
+>>>>>>>>>>>>>>>> > You could disable it, but I don't think you will get yuv video stream
+>>>>>>>>>>>>>>>> > of 640x480@30fps. PIO mode does not support such high bandwidth. What is
+>>>>>>>>>>>>>>>> > your video requirement anyway?
+>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>> Many thanks for your guidance. I will answer the rest later when will
+>>>>>>>>>>>>>>>> be ready to play with SOF interrupt.
+>>>>>>>>>>>>>>>> Now, I would like to say that use_dma=0 doesn't change the behaviour:
+>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>> # cat /sys/module/musb_hdrc/parameters/use_dma
+>>>>>>>>>>>>>>>> N
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> It sounds like you have a different issue here. With usb_dma=0, I
+>>>>>>>>>>>>>>> remembered I can get 320x240 YUV stream @30fps from uvc cameras.
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>> I would like 640x480@5fps which works with x86 based PC. Issue here,
+>>>>>>>>>>>>>>>> that I can not obtain 640x480 at any FPS on musb.
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> The current CPPI41 driver should be able to handle this. I think you
+>>>>>>>>>>>>>>> really have to debug the pwc driver to figure out why it drops the video
+>>>>>>>>>>>>>>> frame. I personally don't have a pwc supported camera, never looked the
+>>>>>>>>>>>>>>> pwc driver...
+>>>>>>>>>>>>>>
+>>>>>>>>>>>>>> Surprisingly, I've found that my 10-year-old laptop (Intel Core Solo
+>>>>>>>>>>>>>> T1350) has the similar issue with pwc (kernel 3.16). It drops 80% of
+>>>>>>>>>>>>>> 640x480 frames.
+>>>>>>>>>>>>>> Vortex86 200Mhz based rugged PC with 2.6.14 works fine.
+>>>>>>>>>>>>>> Quad-code Atom E3800 based PC with 4.1 also works fine.
+>>>>>>>>>>>>>>
+>>>>>>>>>>>>>> So, I even don't know what to say. Probably, the issue depends on CPU
+>>>>>>>>>>>>>> latency/performance and it was there for a while.
+>>>>>>>>>>>>>> Fortunately, I think, I could use git bisect if I found latest forking
+>>>>>>>>>>>>>> kernel for my laptop.
+>>>>>>>>>>>>>>
+>>>>>>>>>>>>>
+>>>>>>>>>>>>> It seems that the issue is gone in 4.7-rc7, so forget it.
+>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>> >
+>>>>>>>>>>>>>>>> >>
+>>>>>>>>>>>>>>>> >> I've found that after hours of transmit, the camera stops iso at all
+>>>>>>>>>>>>>>>> >> (until reset). Maybe its brain becomes damaged by the transfer issues
+>>>>>>>>>>>>>>>> >
+>>>>>>>>>>>>>>>> > How did you check that? MUSB stopped generating RX EP interrupt?
+>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>> Something like that, I suppose. Normally, I see input data flow in
+>>>>>>>>>>>>>>>> usbmon, but don't see frames in v4l2.
+>>>>>>>>>>>>>>>> But when camera 'hungs', I don't see nor input flow (except the
+>>>>>>>>>>>>>>>> control packages exchange) neither frames.
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> Fair enough.
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> Regards,
+>>>>>>>>>>>>>>> -Bin.
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>
+>>>>>>>>>>>>>> --
+>>>>>>>>>>>>>> With best regards,
+>>>>>>>>>>>>>> Matwey V. Kornilov.
+>>>>>>>>>>>>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+>>>>>>>>>>>>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>>>>>>>>>>>>>
+>>>>>>>>>>>>>
+>>>>>>>>>>>>>
+>>>>>>>>>>>>> --
+>>>>>>>>>>>>> With best regards,
+>>>>>>>>>>>>> Matwey V. Kornilov.
+>>>>>>>>>>>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+>>>>>>>>>>>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>>>>>>>>>>>>
+>>>>>>>>>>>>
+>>>>>>>>>>>>
+>>>>>>>>>>>> --
+>>>>>>>>>>>> With best regards,
+>>>>>>>>>>>> Matwey V. Kornilov.
+>>>>>>>>>>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+>>>>>>>>>>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>>>>>>>>>>>
+>>>>>>>>>>>
+>>>>>>>>>>>
+>>>>>>>>>>> --
+>>>>>>>>>>> With best regards,
+>>>>>>>>>>> Matwey V. Kornilov.
+>>>>>>>>>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+>>>>>>>>>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>> --
+>>>>>>>>>> With best regards,
+>>>>>>>>>> Matwey V. Kornilov.
+>>>>>>>>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+>>>>>>>>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> --
+>>>>>>>>> With best regards,
+>>>>>>>>> Matwey V. Kornilov.
+>>>>>>>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+>>>>>>>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> --
+>>>>>>>> With best regards,
+>>>>>>>> Matwey V. Kornilov.
+>>>>>>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+>>>>>>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> --
+>>>>>>> With best regards,
+>>>>>>> Matwey V. Kornilov.
+>>>>>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+>>>>>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> --
+>>>>>> With best regards,
+>>>>>> Matwey V. Kornilov.
+>>>>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+>>>>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>>>>>
+>>>>>
+>>>>>
+>>>>> --
+>>>>> With best regards,
+>>>>> Matwey V. Kornilov.
+>>>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+>>>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>>>>
+>>>>
+>>>>
+>>>> --
+>>>> With best regards,
+>>>> Matwey V. Kornilov.
+>>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+>>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>>>
+>>>
+>>>
+>>> --
+>>> With best regards,
+>>> Matwey V. Kornilov.
+>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>>
+>>
+>>
+>> --
+>> With best regards,
+>> Matwey V. Kornilov.
+>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>
+>
+>
+> --
+> With best regards,
+> Matwey V. Kornilov.
+> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
 
-Thank you for your review, I'll incorporate your suggestions in v5.
-I am also preparing a patch series that integrates the tpg and have much 
-more functionality, I want to add the optimization where I analyze the 
-pipe and generate the final image directly from the video capture node 
-instead of processing all the images in each processing unit. I hope 
-that it will be useful.
 
-Helen
+
+-- 
+With best regards,
+Matwey V. Kornilov.
+Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
