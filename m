@@ -1,130 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43441 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753109AbcHOQXu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 12:23:50 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH RFC 5/5] HACK!!!!
-Date: Mon, 15 Aug 2016 13:23:44 -0300
-Message-Id: <7eddead1e85f4805d508fe6f31d6985e33d4999c.1471277426.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471277426.git.mchehab@s-opensource.com>
-References: <cover.1471277426.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471277426.git.mchehab@s-opensource.com>
-References: <cover.1471277426.git.mchehab@s-opensource.com>
+Received: from mail-lf0-f54.google.com ([209.85.215.54]:36546 "EHLO
+        mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750961AbcHVIca (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 04:32:30 -0400
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.44L0.1608211759290.425-100000@netrider.rowland.org>
+References: <CAJs94EYxbF5HT35pCNa7LT_AQMj=hVz8L826W-uzdLeQwzYXYQ@mail.gmail.com>
+ <Pine.LNX.4.44L0.1608211759290.425-100000@netrider.rowland.org>
+From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+Date: Mon, 22 Aug 2016 11:32:07 +0300
+Message-ID: <CAJs94EYBROS3WiUOrjsx8rDHK27w4Q6z=kH4=Obua8jM9_6AmQ@mail.gmail.com>
+Subject: Re: pwc over musb: 100% frame drop (lost) on high resolution stream
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Bin Liu <b-liu@ti.com>, hdegoede@redhat.com,
+        linux-media@vger.kernel.org, linux-usb@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please, never apply this!
+2016-08-22 1:00 GMT+03:00 Alan Stern <stern@rowland.harvard.edu>:
+> On Sun, 21 Aug 2016, Matwey V. Kornilov wrote:
+>
+>> In both cases (with or without HCD_BH), usb_hcd_giveback_urb is called
+>> every 0.01 sec. It is not clear why behavior is so different.
+>
+> What behavior are you asking about?  The difference between HCD_BH set
+> and not set?
+>
 
-This hack comments out some stuff, in order to fix a few table outputs when
-using Sphinx LaTeX output and pdflatex. Please notice that this *won't* fix
-all bugs. A lot more similar hacks is needed, as it seems that Sphinx LaTeX
-is broken for non-trivial tables.
+The difference between HCD_BH set and not set is that when it is not
+set then usb_hcd_giveback_urb() receive zero-length URBs. And this
+breaks my pwc webcam. And the question is how to fix it.
+As far as I can see, usb_hcd_giveback_urb is being called with the
+same rate in both cases, so zero-length URBs are probably supposed to
+be data-carrying.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/buffer.rst                 | 15 ++++++++++-----
- Documentation/media/uapi/v4l/vidioc-enum-fmt.rst        | 17 +++++++++--------
- Documentation/media/uapi/v4l/vidioc-enum-freq-bands.rst | 14 ++++++++------
- 3 files changed, 27 insertions(+), 19 deletions(-)
+> Alan Stern
+>
 
-diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-index 5deb4a46f992..0b0af04ec955 100644
---- a/Documentation/media/uapi/v4l/buffer.rst
-+++ b/Documentation/media/uapi/v4l/buffer.rst
-@@ -166,11 +166,16 @@ struct v4l2_buffer
- 	  output device because the application did not pass new data in
- 	  time.
- 
--	  .. note:: This may count the frames received e.g. over USB, without
--	     taking into account the frames dropped by the remote hardware due
--	     to limited compression throughput or bus bandwidth. These devices
--	     identify by not enumerating any video standards, see
--	     :ref:`standard`.
-+	  FOO
-+
-+..	  .. note::
-+..
-+..	     This may count the frames received e.g. over USB, without
-+..	     taking into account the frames dropped by the remote hardware due
-+..	     to limited compression throughput or bus bandwidth. These devices
-+..	     identify by not enumerating any video standards, see
-+..	     :ref:`standard`.
-+
- 
-     -  .. row 10
- 
-diff --git a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-index 90996f69d6ae..f4b79975aefd 100644
---- a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-@@ -51,7 +51,6 @@ one until ``EINVAL`` is returned.
-     :stub-columns: 0
-     :widths:       1 1 2
- 
--
-     -  .. row 1
- 
-        -  __u32
-@@ -106,15 +105,17 @@ one until ``EINVAL`` is returned.
- 
- 
- 	  .. _v4l2-fourcc:
--	  .. code-block:: c
--
--	      #define v4l2_fourcc(a,b,c,d) (((__u32)(a)<<0)|((__u32)(b)<<8)|((__u32)(c)<<16)|((__u32)(d)<<24))
--
-+..	  .. code-block:: c
-+..
-+..	      #define v4l2_fourcc(a,b,c,d) (((__u32)(a)<<0)|((__u32)(b)<<8)|((__u32)(c)<<16)|((__u32)(d)<<24))
-+..
- 	  Several image formats are already defined by this specification in
- 	  :ref:`pixfmt`.
--
--	  .. attention:: These codes are not the same as those used
--	     in the Windows world.
-+..
-+..	  .. attention::
-+..
-+..	     These codes are not the same as those used
-+..	     in the Windows world.
- 
-     -  .. row 7
- 
-diff --git a/Documentation/media/uapi/v4l/vidioc-enum-freq-bands.rst b/Documentation/media/uapi/v4l/vidioc-enum-freq-bands.rst
-index 00ab5e19cc1d..8564b9c2983e 100644
---- a/Documentation/media/uapi/v4l/vidioc-enum-freq-bands.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-enum-freq-bands.rst
-@@ -129,12 +129,14 @@ of the corresponding tuner/modulator is set.
-        -  :cspan:`2` The supported modulation systems of this frequency
- 	  band. See :ref:`band-modulation`.
- 
--	  .. note:: Currently only one modulation system per frequency band
--	     is supported. More work will need to be done if multiple
--	     modulation systems are possible. Contact the linux-media
--	     mailing list
--	     (`https://linuxtv.org/lists.php <https://linuxtv.org/lists.php>`__)
--	     if you need such functionality.
-+..	  .. note::
-+..
-+..	     Currently only one modulation system per frequency band
-+..	     is supported. More work will need to be done if multiple
-+..	     modulation systems are possible. Contact the linux-media
-+..	     mailing list
-+..	     (`https://linuxtv.org/lists.php <https://linuxtv.org/lists.php>`__)
-+..	     if you need such functionality.
- 
-     -  .. row 8
- 
+
+
 -- 
-2.7.4
-
-
+With best regards,
+Matwey V. Kornilov.
+Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
