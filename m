@@ -1,68 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:35535 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935280AbcHBQNE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 12:13:04 -0400
-Received: by mail-wm0-f47.google.com with SMTP id f65so415491015wmi.0
-        for <linux-media@vger.kernel.org>; Tue, 02 Aug 2016 09:12:41 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20160802111129.10826-1-baolex.ni@intel.com>
-References: <20160802111129.10826-1-baolex.ni@intel.com>
-From: Kees Cook <keescook@chromium.org>
-Date: Tue, 2 Aug 2016 09:07:30 -0700
-Message-ID: <CAGXu5jKf9veNb720fQfviQeqbpk3uWa0KX0g5PPSaNMTc4018Q@mail.gmail.com>
-Subject: Re: [PATCH 0435/1285] Replace numeric parameter like 0444 with macro
-To: Baole Ni <baolex.ni@intel.com>,
-	Greg KH <gregkh@linuxfoundation.org>
-Cc: mchehab@kernel.org, maurochehab@gmail.com, mchehab@infradead.org,
-	mchehab@redhat.com, Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	hverkuil@xs4all.nl, a.hajda@samsung.com,
-	Borislav Petkov <bp@alien8.de>, linux-media@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>, javier@osg.samsung.com,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	prabhakar.csengg@gmail.com, chuansheng.liu@intel.com
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:38058 "EHLO
+        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754876AbcHVNOR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 09:14:17 -0400
+Received: by mail-wm0-f52.google.com with SMTP id o80so143410897wme.1
+        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2016 06:14:17 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org
+Subject: [PATCH 1/8] doc: DT: vidc: binding document for Qualcomm video driver
+Date: Mon, 22 Aug 2016 16:13:32 +0300
+Message-Id: <1471871619-25873-2-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1471871619-25873-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1471871619-25873-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are so many of these, I wonder if it'd be better to just do one
-giant patch, or at least break them up by subsystem instead of by
-individual source file...
+Adds binding document for vidc video encoder/decoder driver
 
--Kees
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: devicetree@vger.kernel.org
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ .../devicetree/bindings/media/qcom,vidc.txt        | 61 ++++++++++++++++++++++
+ 1 file changed, 61 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/qcom,vidc.txt
 
-On Tue, Aug 2, 2016 at 4:11 AM, Baole Ni <baolex.ni@intel.com> wrote:
-> I find that the developers often just specified the numeric value
-> when calling a macro which is defined with a parameter for access permission.
-> As we know, these numeric value for access permission have had the corresponding macro,
-> and that using macro can improve the robustness and readability of the code,
-> thus, I suggest replacing the numeric parameter with the macro.
->
-> Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
-> Signed-off-by: Baole Ni <baolex.ni@intel.com>
-> ---
->  drivers/media/i2c/tvp5150.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> index 0b6d46c..d8ffd88 100644
-> --- a/drivers/media/i2c/tvp5150.c
-> +++ b/drivers/media/i2c/tvp5150.c
-> @@ -33,7 +33,7 @@ MODULE_LICENSE("GPL");
->
->
->  static int debug;
-> -module_param(debug, int, 0644);
-> +module_param(debug, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
->  MODULE_PARM_DESC(debug, "Debug level (0-2)");
->
->  struct tvp5150 {
-> --
-> 2.9.2
->
-
-
-
+diff --git a/Documentation/devicetree/bindings/media/qcom,vidc.txt b/Documentation/devicetree/bindings/media/qcom,vidc.txt
+new file mode 100644
+index 000000000000..0d50a7b2e3ed
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/qcom,vidc.txt
+@@ -0,0 +1,61 @@
++* Qualcomm video encoder/decoder accelerator
++
++- compatible:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Value should contain
++			- "qcom,vidc-msm8916"
++			- "qcom,vidc-msm8996"
++- reg:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: Register ranges as listed in the reg-names property
++
++- interrupts:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition:
++
++- power-domains:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A phandle and power domain specifier pairs to the
++		    power domain which is responsible for collapsing
++		    and restoring power to the peripheral
++
++- clocks:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: List of phandle and clock specifier pairs as listed
++		    in clock-names property
++- clock-names:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Should contain the following entries
++			- "core"  Core video accelerator clock
++			- "iface" Video accelerator AHB clock
++			- "bus"	  Video accelerator AXI clock
++- rproc:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A phandle to remote processor responsible for
++		    firmware loading
++
++- iommus:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A list of phandle and IOMMU specifier pairs
++
++* An Example
++	qcom,vidc@1d00000 {
++		compatible = "qcom,vidc-msm8916";
++		reg = <0x01d00000 0xff000>;
++		clocks = <&gcc GCC_VENUS0_VCODEC0_CLK>,
++			 <&gcc GCC_VENUS0_AHB_CLK>,
++			 <&gcc GCC_VENUS0_AXI_CLK>;
++		clock-names = "core", "iface", "bus";
++		interrupts = <GIC_SPI 44 0>;
++		power-domains = <&gcc VENUS_GDSC>;
++		rproc = <&vidc_rproc>;
++		iommus = <&apps_iommu 5>;
++	};
 -- 
-Kees Cook
-Chrome OS & Brillo Security
+2.7.4
+
