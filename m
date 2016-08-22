@@ -1,40 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.zeus03.de ([194.117.254.33]:56216 "EHLO mail.zeus03.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932273AbcHKVLU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 17:11:20 -0400
-From: Wolfram Sang <wsa-dev@sang-engineering.com>
-To: linux-usb@vger.kernel.org
-Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 08/28] media: usb: cpia2: cpia2_usb: don't print error when allocating urb fails
-Date: Thu, 11 Aug 2016 23:03:44 +0200
-Message-Id: <1470949451-24823-9-git-send-email-wsa-dev@sang-engineering.com>
-In-Reply-To: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
-References: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:49754 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751754AbcHVJPY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 05:15:24 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 714FD180BB8
+        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2016 11:15:18 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.9] rcar-vin: clean up and prepare for Gen3
+Message-ID: <47a78b54-1ab9-8a2b-de9a-2b9472a69c3c@xs4all.nl>
+Date: Mon, 22 Aug 2016 11:15:18 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kmalloc will print enough information in case of failure.
+See cover letter of this patch series for more details:
 
-Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
----
- drivers/media/usb/cpia2/cpia2_usb.c | 1 -
- 1 file changed, 1 deletion(-)
+http://www.spinics.net/lists/linux-renesas-soc/msg06449.html
 
-diff --git a/drivers/media/usb/cpia2/cpia2_usb.c b/drivers/media/usb/cpia2/cpia2_usb.c
-index c1aa1ab2ece9ff..13620cdf05996f 100644
---- a/drivers/media/usb/cpia2/cpia2_usb.c
-+++ b/drivers/media/usb/cpia2/cpia2_usb.c
-@@ -662,7 +662,6 @@ static int submit_urbs(struct camera_data *cam)
- 		}
- 		urb = usb_alloc_urb(FRAMES_PER_DESC, GFP_KERNEL);
- 		if (!urb) {
--			ERR("%s: usb_alloc_urb error!\n", __func__);
- 			for (j = 0; j < i; j++)
- 				usb_free_urb(cam->sbuf[j].urb);
- 			return -ENOMEM;
--- 
-2.8.1
+	Hans
 
+The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
+
+  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git rcarvin
+
+for you to fetch changes up to 77434b5e30b57eaed9932cc95d03004702993950:
+
+  rcar-vin: move media bus information to struct rvin_graph_entity (2016-08-19 16:08:48 +0200)
+
+----------------------------------------------------------------
+Niklas Söderlund (10):
+      rcar-vin: fix indentation errors in rcar-v4l2.c
+      rcar-vin: reduce indentation in rvin_s_dv_timings()
+      rcar-vin: arrange enum chip_id in chronological order
+      rcar-vin: rename entity to digital
+      rcar-vin: return correct error from platform_get_irq()
+      rcar-vin: do not use v4l2_device_call_until_err()
+      rcar-vin: add dependency on MEDIA_CONTROLLER
+      rcar-vin: move chip check for pixelformat support
+      rcar-vin: rework how subdeivce is found and bound
+      rcar-vin: move media bus information to struct rvin_graph_entity
+
+ drivers/media/platform/rcar-vin/Kconfig     |   2 +-
+ drivers/media/platform/rcar-vin/rcar-core.c | 258 ++++++++++++++++++++++++++------------------------------
+ drivers/media/platform/rcar-vin/rcar-dma.c  |  18 ++--
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  91 ++++++++++----------
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  25 +++---
+ 5 files changed, 186 insertions(+), 208 deletions(-)
