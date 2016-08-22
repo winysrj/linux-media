@@ -1,66 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:56319 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758678AbcHDOPJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Aug 2016 10:15:09 -0400
-Subject: Re: [PATCHv2] v4l2-common: add s_selection helper function
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <c6379bf1-4fdf-7deb-4312-86d26d0ee106@xs4all.nl>
- <20160804140313.GI3243@valkosipuli.retiisi.org.uk>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:34093 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754196AbcHVL4q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 07:56:46 -0400
+Subject: Re: [RFC v2 04/17] media: Remove useless curly braces and parentheses
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1471602228-30722-5-git-send-email-sakari.ailus@linux.intel.com>
+Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <aa119982-53c6-37bf-d019-b6ccd27b5c8a@xs4all.nl>
-Date: Thu, 4 Aug 2016 16:11:55 +0200
+Message-ID: <47b3f4d9-82dc-4ab3-ea11-775bde742f48@xs4all.nl>
+Date: Mon, 22 Aug 2016 13:56:39 +0200
 MIME-Version: 1.0
-In-Reply-To: <20160804140313.GI3243@valkosipuli.retiisi.org.uk>
+In-Reply-To: <1471602228-30722-5-git-send-email-sakari.ailus@linux.intel.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 08/19/2016 12:23 PM, Sakari Ailus wrote:
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 08/04/2016 04:03 PM, Sakari Ailus wrote:
-> Hi Hans,
+> ---
+>  drivers/media/media-device.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
 > 
-> On Mon, Aug 01, 2016 at 12:33:39PM +0200, Hans Verkuil wrote:
->> Checking the selection constraint flags is often forgotten by drivers, especially
->> if the selection code just clamps the rectangle to the minimum and maximum allowed
->> rectangles.
->>
->> This patch adds a simple helper function that checks the adjusted rectangle against
->> the constraint flags and either returns -ERANGE if it doesn't fit, or fills in the
->> new rectangle and returns 0.
->>
->> It also adds a small helper function to v4l2-rect.h to check if one rectangle fits
->> inside another.
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index a1cd50f..8bdc316 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -596,9 +596,8 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+>  			       &entity->pads[i].graph_obj);
+>  
+>  	/* invoke entity_notify callbacks */
+> -	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
+> -		(notify)->notify(entity, notify->notify_data);
+> -	}
+> +	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list)
+> +		notify->notify(entity, notify->notify_data);
+>  
+>  	if (mdev->entity_internal_idx_max
+>  	    >= mdev->pm_count_walk.ent_enum.idx_max) {
 > 
-> I could have misunderstood the purpose of the patch but... these flags are
-> used by drivers in guidance in adjusting the rectangle in case there are
-> hardware limitations, to make it larger or smaller than requested if the
-> request can't be fulfillsed as such. The intent is *not* to return an error
-> back to the user. In this respect it works quite like e.g. S_FMT does in
-> cases an exact requested format can't be supported.
-> 
-> <URL:https://www.linuxtv.org/downloads/v4l-dvb-apis/apb.html#v4l2-selection-flags>
-> 
-> What can be done is rather driver specific.
-> 
-
-That's not what the spec says:
-
-https://hverkuil.home.xs4all.nl/spec/uapi/v4l/vidioc-g-selection.html
-
-ERANGE
-It is not possible to adjust struct v4l2_rect r rectangle to satisfy all constraints given in the flags argument.
-
-It's rather unambiguous, I think.
-
-If you don't want an error, then just leave 'flags' to 0. That makes sense.
-
-Regards,
-
-	Hans
