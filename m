@@ -1,63 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:36561 "EHLO
-        mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755045AbcHSWXV (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:46474 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751640AbcHVL5T (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 18:23:21 -0400
-Received: by mail-pa0-f44.google.com with SMTP id pp5so19663720pac.3
-        for <linux-media@vger.kernel.org>; Fri, 19 Aug 2016 15:23:20 -0700 (PDT)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Cc: linux-media@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org,
-        narmstrong@baylibre.com, carlo@caione.org,
-        linux-arm-kernel@lists.infradead.org, linus.walleij@linaro.org,
-        mchehab@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com,
-        mark.rutland@arm.com, robh+dt@kernel.org
-Subject: Re: [PATCH v4 1/6] pinctrl: amlogic: gxbb: add the IR remote pin
-References: <20160628191802.21227-1-martin.blumenstingl@googlemail.com>
-        <20160819215547.20063-1-martin.blumenstingl@googlemail.com>
-        <20160819215547.20063-2-martin.blumenstingl@googlemail.com>
-Date: Fri, 19 Aug 2016 15:23:19 -0700
-In-Reply-To: <20160819215547.20063-2-martin.blumenstingl@googlemail.com>
-        (Martin Blumenstingl's message of "Fri, 19 Aug 2016 23:55:42 +0200")
-Message-ID: <7h4m6g7608.fsf@baylibre.com>
+        Mon, 22 Aug 2016 07:57:19 -0400
+Subject: Re: [RFC v2 05/17] media: devnode: Rename mdev argument as devnode
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1471602228-30722-6-git-send-email-sakari.ailus@linux.intel.com>
+Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e40e04a5-4816-c143-ba2f-4d11a254541f@xs4all.nl>
+Date: Mon, 22 Aug 2016 13:57:13 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1471602228-30722-6-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Martin Blumenstingl <martin.blumenstingl@googlemail.com> writes:
+On 08/19/2016 12:23 PM, Sakari Ailus wrote:
+> Historically, mdev argument name was being used on both struct
+> media_device and struct media_devnode. Recently most occurrences of mdev
+> referring to struct media_devnode were replaced by devnode, which makes
+> more sense. Fix the last remaining occurrence.
+> 
+> Fixes: 163f1e93e9950 ("[media] media-devnode: fix namespace mess")
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-> This adds the IR remote receiver to the AO domain devices.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-nit Re: Subject: should specify IR remote *input* pin.
-
-> Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
 > ---
->  drivers/pinctrl/meson/pinctrl-meson-gxbb.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
->
-> diff --git a/drivers/pinctrl/meson/pinctrl-meson-gxbb.c b/drivers/pinctrl/meson/pinctrl-meson-gxbb.c
-> index cb4d6ad..8fffb31 100644
-> --- a/drivers/pinctrl/meson/pinctrl-meson-gxbb.c
-> +++ b/drivers/pinctrl/meson/pinctrl-meson-gxbb.c
-> @@ -225,6 +225,8 @@ static const unsigned int i2c_sda_ao_pins[] = {PIN(GPIOAO_5, 0) };
->  static const unsigned int i2c_slave_sck_ao_pins[] = {PIN(GPIOAO_4, 0) };
->  static const unsigned int i2c_slave_sda_ao_pins[] = {PIN(GPIOAO_5, 0) };
+>  drivers/media/media-device.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 8bdc316..a431775 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -542,9 +542,9 @@ static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
+>   * Registration/unregistration
+>   */
 >  
-> +static const unsigned int ir_in_ao_pins[] = {PIN(GPIOAO_7, 0) };
-> +
-
-I'm trying to keep the names here so they match the datasheet, which
-calls this remote_input_ao.  Please update throughout the patch.
-
-Otherwise looks good to me.  Feel free to add
-
-Reviewed-by: Kevin Hilman <khilman@baylibre.com>
-
-and Linus W can queue it up.
-
-Thanks,
-
-Kevin
+> -static void media_device_release(struct media_devnode *mdev)
+> +static void media_device_release(struct media_devnode *devnode)
+>  {
+> -	dev_dbg(mdev->parent, "Media device released\n");
+> +	dev_dbg(devnode->parent, "Media device released\n");
+>  }
+>  
+>  /**
+> 
