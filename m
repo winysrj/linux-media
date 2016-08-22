@@ -1,81 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:38205 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752234AbcHJSu1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2016 14:50:27 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0OBO006X7L6Q1050@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 10 Aug 2016 07:40:02 +0100 (BST)
-Subject: Re: [PATCHv2] s5p-tv: remove obsolete driver
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <2e2aa6f8-9eb7-cee3-6182-600b7c090f37@xs4all.nl>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Message-id: <68e8d4e9-769b-cf83-1ad3-133a8218ad80@samsung.com>
-Date: Wed, 10 Aug 2016 08:40:01 +0200
-MIME-version: 1.0
-In-reply-to: <2e2aa6f8-9eb7-cee3-6182-600b7c090f37@xs4all.nl>
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 7bit
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60217 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751032AbcHVMTH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 08:19:07 -0400
+Subject: Re: [RFC v2 10/17] media: Provide a way to the driver to set a
+ private pointer
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1471602228-30722-11-git-send-email-sakari.ailus@linux.intel.com>
+Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <46e84612-1c10-41c0-ecea-b681df518548@xs4all.nl>
+Date: Mon, 22 Aug 2016 14:19:02 +0200
+MIME-Version: 1.0
+In-Reply-To: <1471602228-30722-11-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/05/2016 03:38 PM, Hans Verkuil wrote:
-> The s5p-tv driver has been replaced by the exynos drm driver for quite a
-> long time now. Remove this driver to avoid having duplicate drivers,
-> of which this one is considered dead code by Samsung.
+On 08/19/2016 12:23 PM, Sakari Ailus wrote:
+> Now that the media device can be allocated dynamically, drivers have no
+> longer a way to conveniently obtain the driver private data structure.
+> Provide one again in the form of a private pointer passed to the
+> media_device_alloc() function.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
 > ---
-> Second version: forgot to update MAINTAINERS, rewrote the commit log,
-> and remove the s5p-tv include from platform/Kconfig.
-> ---
->  MAINTAINERS                                     |    8 -
->  drivers/gpu/drm/exynos/Kconfig                  |    3 +-
->  drivers/media/platform/Kconfig                  |    1 -
->  drivers/media/platform/Makefile                 |    1 -
->  drivers/media/platform/s5p-tv/Kconfig           |   88 --
->  drivers/media/platform/s5p-tv/Makefile          |   19 -
->  drivers/media/platform/s5p-tv/hdmi_drv.c        | 1059 ---------------------
->  drivers/media/platform/s5p-tv/hdmiphy_drv.c     |  324 -------
->  drivers/media/platform/s5p-tv/mixer.h           |  364 --------
->  drivers/media/platform/s5p-tv/mixer_drv.c       |  527 -----------
->  drivers/media/platform/s5p-tv/mixer_grp_layer.c |  270 ------
->  drivers/media/platform/s5p-tv/mixer_reg.c       |  551 -----------
->  drivers/media/platform/s5p-tv/mixer_video.c     | 1130 -----------------------
->  drivers/media/platform/s5p-tv/mixer_vp_layer.c  |  242 -----
->  drivers/media/platform/s5p-tv/regs-hdmi.h       |  146 ---
->  drivers/media/platform/s5p-tv/regs-mixer.h      |  122 ---
->  drivers/media/platform/s5p-tv/regs-sdo.h        |   63 --
->  drivers/media/platform/s5p-tv/regs-vp.h         |   88 --
->  drivers/media/platform/s5p-tv/sdo_drv.c         |  497 ----------
->  drivers/media/platform/s5p-tv/sii9234_drv.c     |  407 --------
->  20 files changed, 1 insertion(+), 5909 deletions(-)
->  delete mode 100644 drivers/media/platform/s5p-tv/Kconfig
->  delete mode 100644 drivers/media/platform/s5p-tv/Makefile
->  delete mode 100644 drivers/media/platform/s5p-tv/hdmi_drv.c
->  delete mode 100644 drivers/media/platform/s5p-tv/hdmiphy_drv.c
->  delete mode 100644 drivers/media/platform/s5p-tv/mixer.h
->  delete mode 100644 drivers/media/platform/s5p-tv/mixer_drv.c
->  delete mode 100644 drivers/media/platform/s5p-tv/mixer_grp_layer.c
->  delete mode 100644 drivers/media/platform/s5p-tv/mixer_reg.c
->  delete mode 100644 drivers/media/platform/s5p-tv/mixer_video.c
->  delete mode 100644 drivers/media/platform/s5p-tv/mixer_vp_layer.c
->  delete mode 100644 drivers/media/platform/s5p-tv/regs-hdmi.h
->  delete mode 100644 drivers/media/platform/s5p-tv/regs-mixer.h
->  delete mode 100644 drivers/media/platform/s5p-tv/regs-sdo.h
->  delete mode 100644 drivers/media/platform/s5p-tv/regs-vp.h
->  delete mode 100644 drivers/media/platform/s5p-tv/sdo_drv.c
->  delete mode 100644 drivers/media/platform/s5p-tv/sii9234_drv.c
-
-Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-
-Best regards,
-Krzysztof
-
-
+>  drivers/media/media-device.c |  3 ++-
+>  include/media/media-device.h | 15 ++++++++++++++-
+>  2 files changed, 16 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 6c8b689..27d5214 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -699,7 +699,7 @@ void media_device_init(struct media_device *mdev)
+>  }
+>  EXPORT_SYMBOL_GPL(media_device_init);
+>  
+> -struct media_device *media_device_alloc(struct device *dev)
+> +struct media_device *media_device_alloc(struct device *dev, void *priv)
+>  {
+>  	struct media_device *mdev;
+>  
+> @@ -716,6 +716,7 @@ struct media_device *media_device_alloc(struct device *dev)
+>  	media_devnode_init(&mdev->devnode);
+>  	mdev->dev = dev;
+>  	media_device_init(mdev);
+> +	mdev->priv = priv;
+>  
+>  	return mdev;
+>  }
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index 8ccc8e8..cfcec1b 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -52,6 +52,7 @@ struct media_entity_notify {
+>   * struct media_device - Media device
+>   * @dev:	Parent device
+>   * @devnode:	Media device node
+> + * @priv:	A pointer to driver private data
+>   * @driver_name: Optional device driver name. If not set, calls to
+>   *		%MEDIA_IOC_DEVICE_INFO will return dev->driver->name.
+>   *		This is needed for USB drivers for example, as otherwise
+> @@ -117,6 +118,7 @@ struct media_device {
+>  	/* dev->driver_data points to this struct. */
+>  	struct device *dev;
+>  	struct media_devnode devnode;
+> +	void *priv;
+>  
+>  	char model[32];
+>  	char driver_name[32];
+> @@ -200,6 +202,7 @@ void media_device_init(struct media_device *mdev);
+>   * media_device_alloc() - Allocate and initialise a media device
+>   *
+>   * @dev:	The associated struct device pointer
+> + * @priv:	pointer to a driver private data structure
+>   *
+>   * Allocate and initialise a media device. Returns a media device.
+>   * The media device is refcounted, and this function returns a media
+> @@ -208,7 +211,7 @@ void media_device_init(struct media_device *mdev);
+>   * References are taken and given using media_device_get() and
+>   * media_device_put().
+>   */
+> -struct media_device *media_device_alloc(struct device *dev);
+> +struct media_device *media_device_alloc(struct device *dev, void *priv);
+>  
+>  /**
+>   * media_device_get() - Get a reference to a media device
+> @@ -235,6 +238,16 @@ struct media_device *media_device_alloc(struct device *dev);
+>  	} while (0)
+>  
+>  /**
+> + * media_device_priv() - Obtain the driver private pointer
+> + *
+> + * Returns a pointer passed to the media_device_alloc() function.
+> + */
+> +static inline void *media_device_priv(struct media_device *mdev)
+> +{
+> +	return mdev->priv;
+> +}
+> +
+> +/**
+>   * media_device_cleanup() - Cleanups a media device element
+>   *
+>   * @mdev:	pointer to struct &media_device
+> 
