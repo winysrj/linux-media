@@ -1,51 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.mda.gov.br ([200.198.212.37]:12830 "EHLO mx2.mda.gov.br"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753554AbcHADUZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2016 23:20:25 -0400
-Date: Sun, 31 Jul 2016 21:50:35 -0300 (BRT)
-From: DIAMOND SWISS LOANS CAPITAL <ana.vitorino@mda.gov.br>
-Reply-To: "diamondswissloanscapital@gmail.com"
-	  <diamondswissloanscapital@gmail.com>
-Message-ID: <1267172707.100074.1470012635512.JavaMail.zimbra@mda.gov.br>
-Subject: lening
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34320 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754796AbcHVJFN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 05:05:13 -0400
+Received: by mail-wm0-f65.google.com with SMTP id q128so12447596wma.1
+        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2016 02:05:13 -0700 (PDT)
+From: Johan Fjeldtvedt <jaffe1@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Johan Fjeldtvedt <jaffe1@gmail.com>
+Subject: [PATCHv2 3/4] pulse8-cec: add notes about behavior in autonomous mode
+Date: Mon, 22 Aug 2016 11:04:53 +0200
+Message-Id: <1471856694-14182-4-git-send-email-jaffe1@gmail.com>
+In-Reply-To: <1471856694-14182-1-git-send-email-jaffe1@gmail.com>
+References: <1471856694-14182-1-git-send-email-jaffe1@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The pulse8 dongle has some quirky behaviors when in autonomous mode.
+Document these.
 
+Signed-off-by: Johan Fjeldtvedt <jaffe1@gmail.com>
+---
+ drivers/staging/media/pulse8-cec/pulse8-cec.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-Goede dag Client,
+diff --git a/drivers/staging/media/pulse8-cec/pulse8-cec.c b/drivers/staging/media/pulse8-cec/pulse8-cec.c
+index 37c8418..aa679a3 100644
+--- a/drivers/staging/media/pulse8-cec/pulse8-cec.c
++++ b/drivers/staging/media/pulse8-cec/pulse8-cec.c
+@@ -10,6 +10,29 @@
+  * this archive for more details.
+  */
+ 
++/*
++ * Notes:
++ *
++ * - Devices with firmware version < 2 do not store their configuration in
++ *   EEPROM.
++ *
++ * - In autonomous mode, only messages from a TV will be acknowledged, even
++ *   polling messages. Upon receiving a message from a TV, the dongle will
++ *   respond to messages from any logical address.
++ *
++ * - In autonomous mode, the dongle will by default reply Feature Abort
++ *   [Unrecognized Opcode] when it receives Give Device Vendor ID. It will
++ *   however observe vendor ID's reported by other devices and possibly
++ *   alter this behavior. When TV's (and TV's only) report that their vendor ID
++ *   is LG (0x00e091), the dongle will itself reply that it has the same vendor
++ *   ID, and it will respond to at least one vendor specific command.
++ *
++ * - In autonomous mode, the dongle is known to attempt wakeup if it receives
++ *   <User Control Pressed> ["Power On"], ["Power] or ["Power Toggle"], or if it
++ *   receives <Set Stream Path> with its own physical address. It also does this
++ *   if it receives <Vendor Specific Command> [0x03 0x00] from an LG TV.
++ */
++
+ #include <linux/completion.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+-- 
+2.7.4
 
-      
-    We zijn Diamond Zwitserse leningen CAPITAL het geven van leningen via e-mail advertentie. Wij bieden verschillende soorten leningen (korte en lange termijn leningen, persoonlijke leningen, leningen aan bedrijven etc.) met 1% rente. We geven leningen aan mensen in nood niet, ongeacht hun locatie, geslacht, burgerlijke staat, opleiding, status van de taak, maar moet een juridische middelen van terugbetaling hebben. Onze leningen variëren tussen 5.000,00 tot 10.000.000,00 US Dollar of Euro of Pound met een maximale duur van 15 years.DIAMOND SWISS lening bedrijf is een van de grootste Finance Company in de Europese landen, met meer dan $ 2trillion particuliere en zakelijke beleggingsportefeuilles Als u geïnteresseerd bent voor meer informatie, vul dan onderstaand formulier in en stuur het naar ons e-mail adres: diamondswissloans@europe.com
-
-Heeft u een financiële hulp nodig? Noodzaak van een legitieme krediet voor belang? Heeft u een zakelijke lening nodig? Heeft u een lening nodig om een huis, auto te kopen, betaal uw facturen en schulden? Heeft u geld nodig om problemen op te lossen? Als dat zo vriendelijk een aanvraag voor een lening met ons met 1% rente
-
-INFORMATIE NODIG
-
-Jullie namen:
-
-Adres: ....
-Telefoon: .....
-Benodigd ....
-Duur: .....
-Bezetting: .....
-Maandelijks Inkomen Level: .....
-Geslacht: .....
-Geboortedatum: ....
-Staat: .....
-Land: .....
-Doel: .....
-
-Voor meer informatie contact met ons op voor meer informatie. Gelieve onmiddellijk te reageren op deze e-mail: diamondswissloans@europe.com
-
-"We tonen u een betere manier om uw financiële vrijheid"
-
-Met vriendelijke groet,
-
-Mr.Diamond Peters
