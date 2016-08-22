@@ -1,85 +1,1504 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:55062 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752305AbcHZJet (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57491 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755430AbcHVOjF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Aug 2016 05:34:49 -0400
-Subject: Re: Plan to support Rockchip VPU in DRM, is it a good idea
-To: Randy Li <randy.li@rock-chips.com>, dri-devel@lists.freedesktop.org
-References: <a56a7da9-154b-c889-67f6-81bd7e4c7a7d@rock-chips.com>
-Cc: airlied@linux.ie,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org
+        Mon, 22 Aug 2016 10:39:05 -0400
+Subject: Re: [PATCH 3/8] media: vidc: decoder: add video decoder files
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1471871619-25873-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1471871619-25873-4-git-send-email-stanimir.varbanov@linaro.org>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <526b56fc-004b-a25d-e370-3e5c03d8e2f0@xs4all.nl>
-Date: Fri, 26 Aug 2016 11:34:38 +0200
+Message-ID: <133fe2fe-8ede-6903-e948-52b5784b648a@xs4all.nl>
+Date: Mon, 22 Aug 2016 16:38:55 +0200
 MIME-Version: 1.0
-In-Reply-To: <a56a7da9-154b-c889-67f6-81bd7e4c7a7d@rock-chips.com>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1471871619-25873-4-git-send-email-stanimir.varbanov@linaro.org>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Randi,
-
-On 08/26/2016 04:13 AM, Randy Li wrote:
-> Hello,
->    We always use some kind of hack work to make our Video Process 
-> Unit(Multi-format Video Encoder/Decoder) work in kernel. From a 
-> customize driver(vpu service) to the customize V4L2 driver. The V4L2 
-> subsystem is really not suitable for the stateless Video process or it 
-> could make driver too fat.
->    After talking to some kindness Intel guys and moving our userspace 
-> library to VA-API driver, I find the DRM may the good choice for us.
-> But I don't know whether it is welcome to to submit a video driver in 
-> DRM subsystem?
->    Also our VPU(Video process unit) is not just like the Intel's, we 
-> don't have VCS, we based on registers to set the encoder/decoder. I 
-> think we may need a lots of IOCTL then. Also we do have a IOMMU in VPU 
-> but also not a isolated memory for VPU, I don't know I should use TT 
-> memory or GEM memory.
->    I am actually not a member of the department in charge of VPU, and I 
-> am just beginning to learning DRM(thank the help from Intel again), I am 
-> not so good at memory part as well(I am more familiar with CMA not the 
-> IOMMU way), I may need know guide about the implementations when I am 
-> going to submit driver, I hope I could get help from someone.
+On 08/22/2016 03:13 PM, Stanimir Varbanov wrote:
+> This consists of video decoder implementation plus decoder
+> controls.
 > 
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+>  drivers/media/platform/qcom/vidc/vdec.c       | 1100 +++++++++++++++++++++++++
+>  drivers/media/platform/qcom/vidc/vdec.h       |   27 +
+>  drivers/media/platform/qcom/vidc/vdec_ctrls.c |  200 +++++
+>  drivers/media/platform/qcom/vidc/vdec_ctrls.h |   21 +
+>  4 files changed, 1348 insertions(+)
+>  create mode 100644 drivers/media/platform/qcom/vidc/vdec.c
+>  create mode 100644 drivers/media/platform/qcom/vidc/vdec.h
+>  create mode 100644 drivers/media/platform/qcom/vidc/vdec_ctrls.c
+>  create mode 100644 drivers/media/platform/qcom/vidc/vdec_ctrls.h
+> 
+> diff --git a/drivers/media/platform/qcom/vidc/vdec.c b/drivers/media/platform/qcom/vidc/vdec.c
+> new file mode 100644
+> index 000000000000..a631a354742f
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/vidc/vdec.c
+> @@ -0,0 +1,1100 @@
+> +/*
+> + * Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+> + * Copyright (C) 2016 Linaro Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + */
+> +#include <linux/slab.h>
+> +#include <linux/pm_runtime.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-event.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/videobuf2-dma-sg.h>
+> +
+> +#include "core.h"
+> +#include "helpers.h"
+> +#include "load.h"
+> +#include "vdec.h"
+> +#include "vdec_ctrls.h"
+> +
+> +#define MACROBLOCKS_PER_PIXEL	(16 * 16)
+> +
+> +static u32 get_framesize_nv12(int plane, u32 height, u32 width)
+> +{
+> +	u32 y_stride, uv_stride, y_plane;
+> +	u32 y_sclines, uv_sclines, uv_plane;
+> +	u32 size;
+> +
+> +	y_stride = ALIGN(width, 128);
+> +	uv_stride = ALIGN(width, 128);
+> +	y_sclines = ALIGN(height, 32);
+> +	uv_sclines = ALIGN(((height + 1) >> 1), 16);
+> +
+> +	y_plane = y_stride * y_sclines;
+> +	uv_plane = uv_stride * uv_sclines + SZ_4K;
+> +	size = y_plane + uv_plane + SZ_8K;
+> +
+> +	return ALIGN(size, SZ_4K);
+> +}
+> +
+> +static u32 get_framesize_compressed(u32 mbs_per_frame)
+> +{
+> +	return ((mbs_per_frame * MACROBLOCKS_PER_PIXEL * 3 / 2) / 2) + 128;
+> +}
+> +
+> +static const struct vidc_format vdec_formats[] = {
+> +	{
+> +		.pixfmt = V4L2_PIX_FMT_NV12,
+> +		.num_planes = 1,
+> +		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
+> +	}, {
+> +		.pixfmt = V4L2_PIX_FMT_MPEG4,
+> +		.num_planes = 1,
+> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+> +	}, {
+> +		.pixfmt = V4L2_PIX_FMT_MPEG2,
+> +		.num_planes = 1,
+> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+> +	}, {
+> +		.pixfmt = V4L2_PIX_FMT_H263,
+> +		.num_planes = 1,
+> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+> +	}, {
+> +		.pixfmt = V4L2_PIX_FMT_VC1_ANNEX_G,
+> +		.num_planes = 1,
+> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+> +	}, {
+> +		.pixfmt = V4L2_PIX_FMT_VC1_ANNEX_L,
+> +		.num_planes = 1,
+> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+> +	}, {
+> +		.pixfmt = V4L2_PIX_FMT_H264,
+> +		.num_planes = 1,
+> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+> +	}, {
+> +		.pixfmt = V4L2_PIX_FMT_VP8,
+> +		.num_planes = 1,
+> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+> +	}, {
+> +		.pixfmt = V4L2_PIX_FMT_XVID,
+> +		.num_planes = 1,
+> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+> +	},
+> +};
+> +
+> +static const struct vidc_format *find_format(u32 pixfmt, u32 type)
+> +{
+> +	const struct vidc_format *fmt = vdec_formats;
+> +	unsigned int size = ARRAY_SIZE(vdec_formats);
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < size; i++) {
+> +		if (fmt[i].pixfmt == pixfmt)
+> +			break;
+> +	}
+> +
+> +	if (i == size || fmt[i].type != type)
+> +		return NULL;
+> +
+> +	return &fmt[i];
+> +}
+> +
+> +static const struct vidc_format *find_format_by_index(int index, u32 type)
+> +{
+> +	const struct vidc_format *fmt = vdec_formats;
+> +	unsigned int size = ARRAY_SIZE(vdec_formats);
+> +	int i, k = 0;
+> +
+> +	if (index < 0 || index > size)
+> +		return NULL;
+> +
+> +	for (i = 0; i < size; i++) {
+> +		if (fmt[i].type != type)
+> +			continue;
+> +		if (k == index)
+> +			break;
+> +		k++;
+> +	}
+> +
+> +	if (i == size)
+> +		return NULL;
+> +
+> +	return &fmt[i];
+> +}
+> +
+> +static int vdec_set_properties(struct vidc_inst *inst)
+> +{
+> +	struct vdec_controls *ctr = &inst->controls.dec;
+> +	struct hfi_core *hfi = &inst->core->hfi;
+> +	struct hfi_enable en = { .enable = 1 };
+> +	struct hfi_framerate frate;
+> +	u32 ptype;
+> +	int ret;
+> +
+> +	ptype = HFI_PROPERTY_PARAM_VDEC_CONTINUE_DATA_TRANSFER;
+> +	ret = vidc_hfi_session_set_property(hfi, inst->hfi_inst, ptype, &en);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ptype = HFI_PROPERTY_CONFIG_FRAME_RATE;
+> +	frate.buffer_type = HFI_BUFFER_INPUT;
+> +	frate.framerate = inst->fps * (1 << 16);
+> +
+> +	ret = vidc_hfi_session_set_property(hfi, inst->hfi_inst, ptype, &frate);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (ctr->post_loop_deb_mode) {
+> +		ptype = HFI_PROPERTY_CONFIG_VDEC_POST_LOOP_DEBLOCKER;
+> +		en.enable = 1;
+> +		ret = vidc_hfi_session_set_property(hfi, inst->hfi_inst, ptype,
+> +						    &en);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct vidc_format *
+> +vdec_try_fmt_common(struct vidc_inst *inst, struct v4l2_format *f)
+> +{
+> +	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
+> +	struct v4l2_plane_pix_format *pfmt = pixmp->plane_fmt;
+> +	struct hfi_inst *hfi_inst = inst->hfi_inst;
+> +	const struct vidc_format *fmt;
+> +	unsigned int p;
+> +
+> +	memset(pfmt[0].reserved, 0, sizeof(pfmt[0].reserved));
+> +	memset(pixmp->reserved, 0, sizeof(pixmp->reserved));
+> +
+> +	fmt = find_format(pixmp->pixelformat, f->type);
+> +	if (!fmt) {
+> +		if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +			pixmp->pixelformat = V4L2_PIX_FMT_NV12;
+> +		else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +			pixmp->pixelformat = V4L2_PIX_FMT_H264;
+> +		else
+> +			return NULL;
+> +		fmt = find_format(pixmp->pixelformat, f->type);
+> +		pixmp->width = 1280;
+> +		pixmp->height = 720;
+> +	}
+> +
+> +	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +		pixmp->height = ALIGN(pixmp->height, 32);
+> +
+> +	pixmp->width = clamp(pixmp->width, hfi_inst->width.min,
+> +			     hfi_inst->width.max);
+> +	pixmp->height = clamp(pixmp->height, hfi_inst->height.min,
+> +			      hfi_inst->height.max);
+> +	if (pixmp->field == V4L2_FIELD_ANY)
+> +		pixmp->field = V4L2_FIELD_NONE;
+> +	pixmp->num_planes = fmt->num_planes;
+> +	pixmp->flags = 0;
+> +
+> +	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> +		for (p = 0; p < pixmp->num_planes; p++) {
+> +			pfmt[p].sizeimage = get_framesize_nv12(p, pixmp->height,
+> +							       pixmp->width);
+> +
+> +			pfmt[p].bytesperline = ALIGN(pixmp->width, 128);
+> +		}
+> +	} else {
+> +		u32 mbs = pixmp->width * pixmp->height / MACROBLOCKS_PER_PIXEL;
+> +
+> +		pfmt[0].sizeimage = get_framesize_compressed(mbs);
+> +		pfmt[0].bytesperline = 0;
+> +	}
+> +
+> +	return fmt;
+> +}
+> +
+> +static int vdec_try_fmt(struct file *file, void *fh, struct v4l2_format *f)
+> +{
+> +	struct vidc_inst *inst = to_inst(file);
+> +	const struct vidc_format *fmt;
+> +
+> +	fmt = vdec_try_fmt_common(inst, f);
+> +	if (!fmt)
+> +		return -EINVAL;
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
+> +{
+> +	struct vidc_inst *inst = to_inst(file);
+> +	const struct vidc_format *fmt = NULL;
+> +	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
+> +
+> +	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +		fmt = inst->fmt_cap;
+> +	else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		fmt = inst->fmt_out;
+> +
+> +	if (inst->in_reconfig) {
+> +		inst->height = inst->reconfig_height;
+> +		inst->width = inst->reconfig_width;
+> +		inst->in_reconfig = false;
+> +	}
+> +
+> +	pixmp->pixelformat = fmt->pixfmt;
+> +
+> +	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> +		pixmp->width = inst->width;
+> +		pixmp->height = inst->height;
+> +		pixmp->colorspace = inst->colorspace;
+> +		pixmp->ycbcr_enc = inst->ycbcr_enc;
+> +		pixmp->quantization = inst->quantization;
+> +		pixmp->xfer_func = inst->xfer_func;
+> +	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> +		pixmp->width = inst->out_width;
+> +		pixmp->height = inst->out_height;
+> +	}
+> +
+> +	vdec_try_fmt_common(inst, f);
 
-It makes no sense to do this in the DRM subsystem IMHO. There are already
-quite a few HW codecs implemented in the V4L2 subsystem and more are in the
-pipeline. Putting codec support in different subsystems will just make
-userspace software much harder to write.
+Is this call really necessary? The current format should always be a valid format,
+so this is dubious.
 
-One of the codecs that was posted to linux-media was actually from Rockchip:
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_s_fmt(struct file *file, void *fh, struct v4l2_format *f)
+> +{
+> +	struct vidc_inst *inst = to_inst(file);
+> +	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
+> +	struct v4l2_pix_format_mplane orig_pixmp;
+> +	const struct vidc_format *fmt;
+> +	struct v4l2_format format;
+> +	u32 pixfmt_out = 0, pixfmt_cap = 0;
+> +
+> +	orig_pixmp = *pixmp;
+> +
+> +	fmt = vdec_try_fmt_common(inst, f);
+> +	if (!fmt)
+> +		return -EINVAL;
+> +
+> +	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> +		pixfmt_out = pixmp->pixelformat;
+> +		pixfmt_cap = inst->fmt_cap->pixfmt;
+> +	} else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> +		pixfmt_cap = pixmp->pixelformat;
+> +		pixfmt_out = inst->fmt_out->pixfmt;
+> +	}
+> +
+> +	memset(&format, 0, sizeof(format));
+> +
+> +	format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+> +	format.fmt.pix_mp.pixelformat = pixfmt_out;
+> +	format.fmt.pix_mp.width = orig_pixmp.width;
+> +	format.fmt.pix_mp.height = orig_pixmp.height;
+> +	vdec_try_fmt_common(inst, &format);
+> +	inst->out_width = format.fmt.pix_mp.width;
+> +	inst->out_height = format.fmt.pix_mp.height;
+> +	inst->colorspace = pixmp->colorspace;
+> +	inst->ycbcr_enc = pixmp->ycbcr_enc;
+> +	inst->quantization = pixmp->quantization;
+> +	inst->xfer_func = pixmp->xfer_func;
 
-https://lkml.org/lkml/2016/2/29/861
+These four fields can only be set if f->type == VIDEO_OUTPUT.
 
-There is also a libVA driver (I think) that sits on top of it:
+> +
+> +	memset(&format, 0, sizeof(format));
+> +
+> +	format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+> +	format.fmt.pix_mp.pixelformat = pixfmt_cap;
+> +	format.fmt.pix_mp.width = orig_pixmp.width;
+> +	format.fmt.pix_mp.height = orig_pixmp.height;
+> +	vdec_try_fmt_common(inst, &format);
+> +	inst->width = format.fmt.pix_mp.width;
+> +	inst->height = format.fmt.pix_mp.height;
 
-https://github.com/rockchip-linux/rockchip-va-driver/tree/v4l2-libvpu
+This doesn't look right.
 
-For the Allwinner a patch series was posted yesterday:
+If I understand this code correctly, the capture and output format
+depend on one another. Can you explain a bit more what the dependencies
+are? I have to revisit this later, once I have a better idea of what's
+going on here.
 
-https://lkml.org/lkml/2016/8/25/246
+> +
+> +	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		inst->fmt_out = fmt;
+> +	else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +		inst->fmt_cap = fmt;
+> +
+> +	return 0;
+> +}
+> +
+> +static int
+> +vdec_g_selection(struct file *file, void *priv, struct v4l2_selection *s)
+> +{
+> +	struct vidc_inst *inst = to_inst(file);
+> +
+> +	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +		return -EINVAL;
+> +
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> +	case V4L2_SEL_TGT_CROP:
+> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+> +	case V4L2_SEL_TGT_COMPOSE:
 
-They created a pretty generic libVA userspace that looks very promising at
-first glance.
+You can't set both crop and compose with just a single s->r. That makes no sense.
 
-What these have in common is that they depend on the Request API and Frame API,
-neither of which has been merged. The problem is that the Request API requires
-more work since not only controls have to be part of a request, but also formats,
-selection rectangles, and even dynamic routing changes. While that is not relevant
-for codecs, it is relevant for Android CameraHAL in general and complex devices
-like Google's Project Ara.
+What exactly are you trying to do here?
 
-This is being worked on, but it is simply not yet ready. The core V4L2 developers
-involved in this plan to discuss this on the Monday before the ELCE in Berlin,
-to see if we can fast track this work somehow so this support can be merged.
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	s->r.top = 0;
+> +	s->r.left = 0;
+> +	s->r.width = inst->out_width;
+> +	s->r.height = inst->out_height;
+> +
+> +	return 0;
+> +}
+> +
+> +static int
+> +vdec_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *b)
+> +{
+> +	struct vb2_queue *queue = vidc_to_vb2q(file, b->type);
+> +
+> +	if (!queue)
+> +		return -EINVAL;
+> +
+> +	if (!b->count)
+> +		vb2_core_queue_release(queue);
 
-If there are missing features in V4L2 (other that the two APIs discussed above)
-that prevent you from creating a good driver, then please discuss that with us.
-We are always open to suggestions and improvements and want to work with you on
-that.
+Don't do this. Let vb2_reqbufs handle this for you.
+
+> +
+> +	return vb2_reqbufs(queue, b);
+> +}
+> +
+> +static int
+> +vdec_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
+> +{
+> +	strlcpy(cap->driver, VIDC_DRV_NAME, sizeof(cap->driver));
+> +	strlcpy(cap->card, "video decoder", sizeof(cap->card));
+> +	strlcpy(cap->bus_info, "platform:vidc", sizeof(cap->bus_info));
+> +
+> +	cap->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
+> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+
+Drop these two lines. Instead set the device_caps field of struct video_device
+to V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING. The v4l2 core will fill
+in these two cap fields for you based on the vdev->device_caps field.
+
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_enum_fmt(struct file *file, void *fh, struct v4l2_fmtdesc *f)
+> +{
+> +	const struct vidc_format *fmt;
+> +
+> +	memset(f->reserved, 0, sizeof(f->reserved));
+> +
+> +	fmt = find_format_by_index(f->index, f->type);
+> +	if (!fmt)
+> +		return -EINVAL;
+> +
+> +	f->pixelformat = fmt->pixfmt;
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_querybuf(struct file *file, void *fh, struct v4l2_buffer *b)
+> +{
+> +	struct vb2_queue *queue = vidc_to_vb2q(file, b->type);
+> +	unsigned int p;
+> +	int ret;
+> +
+> +	if (!queue)
+> +		return -EINVAL;
+> +
+> +	ret = vb2_querybuf(queue, b);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (b->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
+> +	    b->memory == V4L2_MEMORY_MMAP) {
+> +		for (p = 0; p < b->length; p++)
+> +			b->m.planes[p].m.mem_offset += DST_QUEUE_OFF_BASE;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int
+> +vdec_create_bufs(struct file *file, void *fh, struct v4l2_create_buffers *b)
+> +{
+> +	struct vb2_queue *queue = vidc_to_vb2q(file, b->format.type);
+> +
+> +	if (!queue)
+> +		return -EINVAL;
+> +
+> +	return vb2_create_bufs(queue, b);
+> +}
+> +
+> +static int vdec_prepare_buf(struct file *file, void *fh, struct v4l2_buffer *b)
+> +{
+> +	struct vb2_queue *queue = vidc_to_vb2q(file, b->type);
+> +
+> +	if (!queue)
+> +		return -EINVAL;
+> +
+> +	return vb2_prepare_buf(queue, b);
+> +}
+> +
+> +static int vdec_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
+> +{
+> +	struct vb2_queue *queue = vidc_to_vb2q(file, b->type);
+> +
+> +	if (!queue)
+> +		return -EINVAL;
+> +
+> +	return vb2_qbuf(queue, b);
+> +}
+> +
+> +static int
+> +vdec_exportbuf(struct file *file, void *fh, struct v4l2_exportbuffer *b)
+> +{
+> +	struct vb2_queue *queue = vidc_to_vb2q(file, b->type);
+> +
+> +	if (!queue)
+> +		return -EINVAL;
+> +
+> +	return vb2_expbuf(queue, b);
+> +}
+> +
+> +static int vdec_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
+> +{
+> +	struct vb2_queue *queue = vidc_to_vb2q(file, b->type);
+> +
+> +	if (!queue)
+> +		return -EINVAL;
+> +
+> +	return vb2_dqbuf(queue, b, file->f_flags & O_NONBLOCK);
+> +}
+> +
+> +static int vdec_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+> +{
+> +	struct vb2_queue *queue = vidc_to_vb2q(file, type);
+> +
+> +	if (!queue)
+> +		return -EINVAL;
+> +
+> +	return vb2_streamon(queue, type);
+> +}
+> +
+> +static int vdec_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+> +{
+> +	struct vb2_queue *queue = vidc_to_vb2q(file, type);
+> +
+> +	if (!queue)
+> +		return -EINVAL;
+> +
+> +	return vb2_streamoff(queue, type);
+> +}
+
+Is there a reason why the v4l2-mem2mem framework isn't used? It seems to me that
+a lot of this code is in there as well.
+
+> +
+> +static int vdec_s_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
+> +{
+> +	struct vidc_inst *inst = to_inst(file);
+> +	struct v4l2_captureparm *cap = &a->parm.capture;
+> +	struct v4l2_fract *timeperframe = &cap->timeperframe;
+> +	u64 us_per_frame, fps;
+> +
+> +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
+> +	    a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		return -EINVAL;
+> +
+> +	memset(cap->reserved, 0, sizeof(cap->reserved));
+> +	if (!timeperframe->denominator)
+> +		timeperframe->denominator = inst->timeperframe.denominator;
+> +	if (!timeperframe->numerator)
+> +		timeperframe->numerator = inst->timeperframe.numerator;
+> +	cap->readbuffers = 0;
+
+Just set readbuffers to the minimum number of required buffers. Hmm, shouldn't
+v4l2-compliance complain about a 0 value for readbuffers? Odd.
+
+Also, for output use v4l2_outputparm. I know, they are the same, but I don't
+really like it when that fact is (ab)used.
+
+> +	cap->extendedmode = 0;
+> +	cap->capability = V4L2_CAP_TIMEPERFRAME;
+> +	us_per_frame = timeperframe->numerator * (u64)USEC_PER_SEC;
+> +	do_div(us_per_frame, timeperframe->denominator);
+> +
+> +	if (!us_per_frame)
+> +		return -EINVAL;
+> +
+> +	fps = (u64)USEC_PER_SEC;
+> +	do_div(fps, us_per_frame);
+> +
+> +	inst->fps = fps;
+> +	inst->timeperframe = *timeperframe;
+
+Can both capture and output set the timeperframe? Is that intended?
+
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
+> +{
+> +	struct vidc_inst *inst = to_inst(file);
+> +
+> +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
+> +	    a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		return -EINVAL;
+> +
+> +	a->parm.capture.capability |= V4L2_CAP_TIMEPERFRAME;
+> +	a->parm.capture.timeperframe = inst->timeperframe;
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_enum_framesizes(struct file *file, void *fh,
+> +				struct v4l2_frmsizeenum *fsize)
+> +{
+> +	struct hfi_inst *hfi_inst = to_hfi_inst(file);
+> +	const struct vidc_format *fmt;
+> +
+> +	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
+> +
+> +	fmt = find_format(fsize->pixel_format,
+> +			  V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
+> +	if (!fmt) {
+> +		fmt = find_format(fsize->pixel_format,
+> +				  V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
+> +		if (!fmt)
+> +			return -EINVAL;
+> +	}
+> +
+> +	if (fsize->index)
+> +		return -EINVAL;
+> +
+> +	fsize->stepwise.min_width = hfi_inst->width.min;
+> +	fsize->stepwise.max_width = hfi_inst->width.max;
+> +	fsize->stepwise.step_width = hfi_inst->width.step_size;
+> +	fsize->stepwise.min_height = hfi_inst->height.min;
+> +	fsize->stepwise.max_height = hfi_inst->height.max;
+> +	fsize->stepwise.step_height = hfi_inst->height.step_size;
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_enum_frameintervals(struct file *file, void *fh,
+> +				    struct v4l2_frmivalenum *fival)
+> +{
+> +	struct hfi_inst *hfi_inst = to_hfi_inst(file);
+> +	const struct vidc_format *fmt;
+> +
+> +	fival->type = V4L2_FRMIVAL_TYPE_STEPWISE;
+> +
+> +	fmt = find_format(fival->pixel_format,
+> +			  V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
+> +	if (!fmt)
+> +		return -EINVAL;
+> +
+> +	if (fival->index)
+> +		return -EINVAL;
+> +
+> +	if (!fival->width || !fival->height)
+> +		return -EINVAL;
+> +
+> +	if (fival->width > hfi_inst->width.max ||
+> +	    fival->width < hfi_inst->width.min ||
+> +	    fival->height > hfi_inst->height.max ||
+> +	    fival->height < hfi_inst->height.min)
+> +		return -EINVAL;
+> +
+> +	fival->stepwise.min.numerator = hfi_inst->framerate.min;
+> +	fival->stepwise.min.denominator = 1;
+> +	fival->stepwise.max.numerator = hfi_inst->framerate.max;
+> +	fival->stepwise.max.denominator = 1;
+> +	fival->stepwise.step.numerator = hfi_inst->framerate.step_size;
+> +	fival->stepwise.step.denominator = 1;
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_subscribe_event(struct v4l2_fh *fh,
+> +				const struct v4l2_event_subscription *sub)
+> +{
+> +	switch (sub->type) {
+> +	case V4L2_EVENT_EOS:
+> +		return v4l2_event_subscribe(fh, sub, 2, NULL);
+> +	case V4L2_EVENT_SOURCE_CHANGE:
+> +		return v4l2_src_change_event_subscribe(fh, sub);
+> +	case V4L2_EVENT_CTRL:
+> +		return v4l2_ctrl_subscribe_event(fh, sub);
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
+> +
+> +static const struct v4l2_ioctl_ops vdec_ioctl_ops = {
+> +	.vidioc_querycap = vdec_querycap,
+> +	.vidioc_enum_fmt_vid_cap_mplane = vdec_enum_fmt,
+> +	.vidioc_enum_fmt_vid_out_mplane = vdec_enum_fmt,
+> +	.vidioc_s_fmt_vid_cap_mplane = vdec_s_fmt,
+> +	.vidioc_s_fmt_vid_out_mplane = vdec_s_fmt,
+> +	.vidioc_g_fmt_vid_cap_mplane = vdec_g_fmt,
+> +	.vidioc_g_fmt_vid_out_mplane = vdec_g_fmt,
+> +	.vidioc_try_fmt_vid_cap_mplane = vdec_try_fmt,
+> +	.vidioc_try_fmt_vid_out_mplane = vdec_try_fmt,
+> +	.vidioc_g_selection = vdec_g_selection,
+> +	.vidioc_reqbufs = vdec_reqbufs,
+> +	.vidioc_querybuf = vdec_querybuf,
+> +	.vidioc_create_bufs = vdec_create_bufs,
+> +	.vidioc_prepare_buf = vdec_prepare_buf,
+> +	.vidioc_qbuf = vdec_qbuf,
+> +	.vidioc_expbuf = vdec_exportbuf,
+> +	.vidioc_dqbuf = vdec_dqbuf,
+> +	.vidioc_streamon = vdec_streamon,
+> +	.vidioc_streamoff = vdec_streamoff,
+> +	.vidioc_s_parm = vdec_s_parm,
+> +	.vidioc_g_parm = vdec_g_parm,
+> +	.vidioc_enum_framesizes = vdec_enum_framesizes,
+> +	.vidioc_enum_frameintervals = vdec_enum_frameintervals,
+> +	.vidioc_subscribe_event = vdec_subscribe_event,
+> +	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+> +};
+> +
+> +static int vdec_init_session(struct vidc_inst *inst)
+> +{
+> +	struct hfi_core *hfi = &inst->core->hfi;
+> +	u32 pixfmt = inst->fmt_out->pixfmt;
+> +	struct hfi_framesize fs;
+> +	u32 ptype;
+> +	int ret;
+> +
+> +	ret = vidc_hfi_session_init(hfi, inst->hfi_inst, pixfmt,
+> +				    VIDC_SESSION_TYPE_DEC);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ptype = HFI_PROPERTY_PARAM_FRAME_SIZE;
+> +	fs.buffer_type = HFI_BUFFER_INPUT;
+> +	fs.width = inst->out_width;
+> +	fs.height = inst->out_height;
+> +
+> +	ret = vidc_hfi_session_set_property(hfi, inst->hfi_inst, ptype, &fs);
+> +	if (ret)
+> +		goto err;
+> +
+> +	fs.buffer_type = HFI_BUFFER_OUTPUT;
+> +	fs.width = inst->width;
+> +	fs.height = inst->height;
+> +
+> +	ret = vidc_hfi_session_set_property(hfi, inst->hfi_inst, ptype, &fs);
+> +	if (ret)
+> +		goto err;
+> +
+> +	pixfmt = inst->fmt_cap->pixfmt;
+> +
+> +	ret = vidc_set_color_format(inst, HFI_BUFFER_OUTPUT, pixfmt);
+> +	if (ret)
+> +		goto err;
+> +
+> +	return 0;
+> +err:
+> +	vidc_hfi_session_deinit(hfi, inst->hfi_inst);
+> +	return ret;
+> +}
+> +
+> +static int vdec_cap_num_buffers(struct vidc_inst *inst,
+> +				struct hfi_buffer_requirements *bufreq)
+> +{
+> +	struct hfi_core *hfi = &inst->core->hfi;
+> +	struct device *dev = inst->core->dev;
+> +	int ret, ret2;
+> +
+> +	ret = pm_runtime_get_sync(dev);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = vdec_init_session(inst);
+> +	if (ret)
+> +		goto put_sync;
+> +
+> +	ret = vidc_buf_descs(inst, HFI_BUFFER_OUTPUT, bufreq);
+> +
+> +	vidc_hfi_session_deinit(hfi, inst->hfi_inst);
+> +
+> +put_sync:
+> +	ret2 = pm_runtime_put_sync(dev);
+> +
+> +	return ret ? ret : ret2;
+> +}
+> +
+> +static int vdec_queue_setup(struct vb2_queue *q,
+> +			    unsigned int *num_buffers, unsigned int *num_planes,
+> +			    unsigned int sizes[], struct device *alloc_devs[])
+> +{
+> +	struct vidc_inst *inst = vb2_get_drv_priv(q);
+> +	struct hfi_buffer_requirements bufreq;
+> +	unsigned int p;
+> +	int ret = 0;
+> +	u32 mbs;
+> +
+> +	switch (q->type) {
+> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> +		*num_planes = inst->fmt_out->num_planes;
+> +
+> +		*num_buffers = clamp_val(*num_buffers, 4, VIDEO_MAX_FRAME);
+
+No need to check for VIDEO_MAX_FRAME. I assume 4 is the minimum required
+number of buffers. Just set min_buffers_needed in struct vb2_queue to 4 instead.
+
+> +
+> +		mbs = inst->out_width * inst->out_height /
+> +				MACROBLOCKS_PER_PIXEL;
+> +		for (p = 0; p < *num_planes; p++) {
+> +			sizes[p] = get_framesize_compressed(mbs);
+> +			alloc_devs[p] = inst->core->dev;
+
+Don't do this here. Just set the dev field of vb2_queue to inst->core->dev.
+alloc_devs[] is prefilled with q->dev by vb2.
+
+> +		}
+> +
+> +		inst->num_input_bufs = *num_buffers;
+> +		break;
+> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> +		*num_planes = inst->fmt_cap->num_planes;
+> +
+> +		ret = vdec_cap_num_buffers(inst, &bufreq);
+> +		if (ret)
+> +			break;
+> +
+> +		*num_buffers = max(*num_buffers, bufreq.count_actual);
+
+How is bufreq.count_actual derived? I.e. what does it depend on?
+
+> +
+> +		for (p = 0; p < *num_planes; p++) {
+> +			sizes[p] = get_framesize_nv12(p, inst->height,
+> +						      inst->width);
+> +			alloc_devs[p] = inst->core->dev;
+> +		}
+> +
+> +		inst->num_output_bufs = *num_buffers;
+> +		break;
+> +	default:
+> +		ret = -EINVAL;
+> +		break;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +static int vdec_check_configuration(struct vidc_inst *inst)
+> +{
+> +	struct hfi_buffer_requirements bufreq;
+> +	int ret;
+> +
+> +	ret = vidc_buf_descs(inst, HFI_BUFFER_OUTPUT, &bufreq);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (inst->num_output_bufs < bufreq.count_actual ||
+> +	    inst->num_output_bufs < bufreq.count_min)
+> +		return -EINVAL;
+> +
+> +	ret = vidc_buf_descs(inst, HFI_BUFFER_INPUT, &bufreq);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (inst->num_input_bufs < bufreq.count_min)
+> +		return -EINVAL;
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+> +{
+> +	struct vidc_inst *inst = vb2_get_drv_priv(q);
+> +	struct hfi_core *hfi = &inst->core->hfi;
+> +	struct device *dev = inst->core->dev;
+> +	struct hfi_buffer_requirements bufreq;
+> +	struct hfi_buffer_count_actual buf_count;
+> +	struct vb2_queue *queue;
+> +	u32 ptype;
+> +	int ret;
+> +
+> +	switch (q->type) {
+> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> +		queue = &inst->bufq_cap;
+> +		break;
+> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> +		queue = &inst->bufq_out;
+> +		break;
+> +	default:
+
+If start_streaming fails, then all pending buffers have to be returned by the driver
+by calling vb2_buffer_done(VB2_BUF_STATE_QUEUED). This will give ownership back to
+userspace.
+
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (!vb2_is_streaming(queue))
+> +		return 0;
+
+Can never happen, no need to test for this.
+
+> +
+> +	inst->in_reconfig = false;
+> +	inst->sequence = 0;
+> +
+> +	ret = pm_runtime_get_sync(dev);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = vdec_init_session(inst);
+> +	if (ret)
+> +		goto put_sync;
+> +
+> +	ret = vdec_set_properties(inst);
+> +	if (ret)
+> +		goto deinit_sess;
+> +
+> +	ret = vdec_check_configuration(inst);
+> +	if (ret)
+> +		goto deinit_sess;
+> +
+> +	ptype = HFI_PROPERTY_PARAM_BUFFER_COUNT_ACTUAL;
+> +	buf_count.type = HFI_BUFFER_INPUT;
+> +	buf_count.count_actual = inst->num_input_bufs;
+> +
+> +	ret = vidc_hfi_session_set_property(hfi, inst->hfi_inst,
+> +					    ptype, &buf_count);
+> +	if (ret)
+> +		goto deinit_sess;
+> +
+> +	ret = vidc_buf_descs(inst, HFI_BUFFER_OUTPUT, &bufreq);
+> +	if (ret)
+> +		goto deinit_sess;
+> +
+> +	ptype = HFI_PROPERTY_PARAM_BUFFER_COUNT_ACTUAL;
+> +	buf_count.type = HFI_BUFFER_OUTPUT;
+> +	buf_count.count_actual = inst->num_output_bufs;
+> +
+> +	ret = vidc_hfi_session_set_property(hfi, inst->hfi_inst,
+> +					    ptype, &buf_count);
+> +	if (ret)
+> +		goto deinit_sess;
+> +
+> +	if (inst->num_output_bufs != bufreq.count_actual) {
+> +		struct hfi_buffer_display_hold_count_actual display;
+> +
+> +		ptype = HFI_PROPERTY_PARAM_BUFFER_DISPLAY_HOLD_COUNT_ACTUAL;
+> +		display.type = HFI_BUFFER_OUTPUT;
+> +		display.hold_count = inst->num_output_bufs -
+> +				     bufreq.count_actual;
+> +
+> +		ret = vidc_hfi_session_set_property(hfi, inst->hfi_inst,
+> +						    ptype, &display);
+> +		if (ret)
+> +			goto deinit_sess;
+> +	}
+> +
+> +	ret = vidc_vb2_start_streaming(inst);
+> +	if (ret)
+> +		goto deinit_sess;
+> +
+> +	return 0;
+> +
+> +deinit_sess:
+> +	vidc_hfi_session_deinit(hfi, inst->hfi_inst);
+
+Note that vidc_vb2_start_streaming already calls vidc_hfi_session_deinit on error.
+No idea if vidc_hfi_session_deinit can handle that, I just thought I'd mention it.
+
+> +put_sync:
+> +	pm_runtime_put_sync(dev);
+> +	return ret;
+> +}
+> +
+> +static const struct vb2_ops vdec_vb2_ops = {
+> +	.queue_setup = vdec_queue_setup,
+> +	.buf_init = vidc_vb2_buf_init,
+> +	.buf_prepare = vidc_vb2_buf_prepare,
+> +	.start_streaming = vdec_start_streaming,
+> +	.stop_streaming = vidc_vb2_stop_streaming,
+
+
+Note that stop_streaming has to return all pending buffers by calling vb2_buffer_done(VB2_BUF_STATE_ERROR).
+This will give ownership back to userspace.
+
+And I don't think vidc_vb2_stop_streaming does that right now.
+
+> +	.buf_queue = vidc_vb2_buf_queue,
+> +};
+> +
+> +static int vdec_empty_buf_done(struct hfi_inst *hfi_inst, u32 addr,
+> +			       u32 bytesused, u32 data_offset, u32 flags)
+> +{
+> +	struct vidc_inst *inst = hfi_inst->ops_priv;
+> +	struct vb2_v4l2_buffer *vbuf;
+> +	struct vb2_buffer *vb;
+> +
+> +	vbuf = vidc_vb2_find_buf(inst, addr);
+> +	if (!vbuf)
+> +		return -EINVAL;
+> +
+> +	vb = &vbuf->vb2_buf;
+> +	vbuf->flags = flags;
+> +
+> +	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_fill_buf_done(struct hfi_inst *hfi_inst, u32 addr,
+> +			      u32 bytesused, u32 data_offset, u32 flags,
+> +			      struct timeval *timestamp)
+> +{
+> +	struct vidc_inst *inst = hfi_inst->ops_priv;
+> +	struct vb2_v4l2_buffer *vbuf;
+> +	struct vb2_buffer *vb;
+> +
+> +	vbuf = vidc_vb2_find_buf(inst, addr);
+> +	if (!vbuf)
+> +		return -EINVAL;
+> +
+> +	vb = &vbuf->vb2_buf;
+> +	vb->planes[0].bytesused = bytesused;
+> +	vb->planes[0].data_offset = data_offset;
+> +	vb->timestamp = timeval_to_ns(timestamp);
+> +	vbuf->flags = flags;
+> +	vbuf->sequence = inst->sequence++;
+> +
+> +	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+> +
+> +	if (vbuf->flags & V4L2_BUF_FLAG_LAST) {
+> +		const struct v4l2_event ev = {
+
+I think this can be static const.
+
+> +			.type = V4L2_EVENT_EOS
+> +		};
+> +
+> +		v4l2_event_queue_fh(&inst->fh, &ev);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_event_notify(struct hfi_inst *hfi_inst, u32 event,
+> +			     struct hfi_event_data *data)
+> +{
+> +	struct vidc_inst *inst = hfi_inst->ops_priv;
+> +	struct device *dev = inst->core->dev;
+> +	const struct v4l2_event ev = { .type = V4L2_EVENT_SOURCE_CHANGE };
+
+I think this can be static const.
+
+> +
+> +	switch (event) {
+> +	case EVT_SESSION_ERROR:
+> +		if (hfi_inst) {
+> +			mutex_lock(&hfi_inst->lock);
+> +			inst->hfi_inst->state = INST_INVALID;
+> +			mutex_unlock(&hfi_inst->lock);
+> +		}
+> +		dev_err(dev, "dec: event session error (inst:%p)\n", hfi_inst);
+> +		break;
+> +	case EVT_SYS_EVENT_CHANGE:
+> +		switch (data->event_type) {
+> +		case HFI_EVENT_DATA_SEQUENCE_CHANGED_SUFFICIENT_BUF_RESOURCES:
+> +			dev_dbg(dev, "event sufficient resources\n");
+> +			break;
+> +		case HFI_EVENT_DATA_SEQUENCE_CHANGED_INSUFFICIENT_BUF_RESOURCES:
+> +			inst->reconfig_height = data->height;
+> +			inst->reconfig_width = data->width;
+> +			inst->in_reconfig = true;
+> +
+> +			v4l2_event_queue_fh(&inst->fh, &ev);
+> +
+> +			dev_dbg(dev, "event not sufficient resources (%ux%u)\n",
+> +				data->width, data->height);
+> +			break;
+> +		default:
+> +			break;
+> +		}
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct hfi_inst_ops vdec_hfi_ops = {
+> +	.empty_buf_done = vdec_empty_buf_done,
+> +	.fill_buf_done = vdec_fill_buf_done,
+> +	.event_notify = vdec_event_notify,
+> +};
+> +
+> +static void vdec_inst_init(struct vidc_inst *inst)
+> +{
+> +	struct hfi_inst *hfi_inst = inst->hfi_inst;
+> +
+> +	inst->fmt_out = &vdec_formats[6];
+> +	inst->fmt_cap = &vdec_formats[0];
+> +	inst->width = 1280;
+> +	inst->height = ALIGN(720, 32);
+> +	inst->out_width = 1280;
+> +	inst->out_height = 720;
+> +	inst->fps = 30;
+> +	inst->timeperframe.numerator = 1;
+> +	inst->timeperframe.denominator = 30;
+> +
+> +	hfi_inst->width.min = 64;
+> +	hfi_inst->width.max = 1920;
+> +	hfi_inst->width.step_size = 1;
+> +	hfi_inst->height.min = 64;
+> +	hfi_inst->height.max = ALIGN(1080, 32);
+> +	hfi_inst->height.step_size = 1;
+> +	hfi_inst->framerate.min = 1;
+> +	hfi_inst->framerate.max = 30;
+> +	hfi_inst->framerate.step_size = 1;
+> +	hfi_inst->mbs_per_frame.min = 16;
+> +	hfi_inst->mbs_per_frame.max = 8160;
+> +}
+> +
+> +int vdec_init(struct vidc_core *core, struct video_device *dec)
+> +{
+> +	int ret;
+> +
+> +	dec->release = video_device_release_empty;
+> +	dec->fops = &vidc_fops;
+> +	dec->ioctl_ops = &vdec_ioctl_ops;
+> +	dec->vfl_dir = VFL_DIR_M2M;
+> +	dec->v4l2_dev = &core->v4l2_dev;
+> +
+> +	ret = video_register_device(dec, VFL_TYPE_GRABBER, -1);
+> +	if (ret)
+> +		return ret;
+> +
+> +	video_set_drvdata(dec, core);
+> +
+> +	return 0;
+> +}
+> +
+> +void vdec_deinit(struct vidc_core *core, struct video_device *dec)
+> +{
+> +	video_unregister_device(dec);
+> +}
+> +
+> +int vdec_open(struct vidc_inst *inst)
+> +{
+> +	struct hfi_core *hfi = &inst->core->hfi;
+> +	struct vb2_queue *q;
+> +	int ret;
+> +
+> +	ret = vdec_ctrl_init(inst);
+> +	if (ret)
+> +		return ret;
+> +
+> +	inst->hfi_inst = vidc_hfi_session_create(hfi, &vdec_hfi_ops, inst);
+> +	if (IS_ERR(inst->hfi_inst)) {
+> +		ret = PTR_ERR(inst->hfi_inst);
+> +		goto err_ctrl_deinit;
+> +	}
+> +
+> +	vdec_inst_init(inst);
+> +
+> +	q = &inst->bufq_cap;
+> +	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+> +	q->io_modes = VB2_MMAP | VB2_DMABUF;
+> +	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> +	q->ops = &vdec_vb2_ops;
+> +	q->mem_ops = &vb2_dma_sg_memops;
+> +	q->drv_priv = inst;
+> +	q->buf_struct_size = sizeof(struct vidc_buffer);
+> +	q->allow_zero_bytesused = 1;
+> +	ret = vb2_queue_init(q);
+> +	if (ret)
+> +		goto err_session_destroy;
+> +
+> +	q = &inst->bufq_out;
+> +	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+> +	q->io_modes = VB2_MMAP | VB2_DMABUF;
+> +	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> +	q->ops = &vdec_vb2_ops;
+> +	q->mem_ops = &vb2_dma_sg_memops;
+> +	q->drv_priv = inst;
+> +	q->buf_struct_size = sizeof(struct vidc_buffer);
+> +	q->allow_zero_bytesused = 1;
+> +	ret = vb2_queue_init(q);
+> +	if (ret)
+> +		goto err_cap_queue_release;
+> +
+> +	return 0;
+> +
+> +err_cap_queue_release:
+> +	vb2_queue_release(&inst->bufq_cap);
+> +err_session_destroy:
+> +	vidc_hfi_session_destroy(hfi, inst->hfi_inst);
+> +	inst->hfi_inst = NULL;
+> +err_ctrl_deinit:
+> +	vdec_ctrl_deinit(inst);
+> +	return ret;
+> +}
+> +
+> +void vdec_close(struct vidc_inst *inst)
+> +{
+> +	struct hfi_core *hfi = &inst->core->hfi;
+> +
+> +	vb2_queue_release(&inst->bufq_out);
+> +	vb2_queue_release(&inst->bufq_cap);
+> +	vdec_ctrl_deinit(inst);
+> +	vidc_hfi_session_destroy(hfi, inst->hfi_inst);
+> +}
+> diff --git a/drivers/media/platform/qcom/vidc/vdec.h b/drivers/media/platform/qcom/vidc/vdec.h
+> new file mode 100644
+> index 000000000000..f67de6d73f85
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/vidc/vdec.h
+> @@ -0,0 +1,27 @@
+> +/*
+> + * Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+> + * Copyright (C) 2016 Linaro Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + */
+> +#ifndef __VIDC_VDEC_H__
+> +#define __VIDC_VDEC_H__
+> +
+> +struct vidc_core;
+> +struct video_device;
+> +struct vidc_inst;
+> +
+> +int vdec_init(struct vidc_core *core, struct video_device *dec);
+> +void vdec_deinit(struct vidc_core *core, struct video_device *dec);
+> +int vdec_open(struct vidc_inst *inst);
+> +void vdec_close(struct vidc_inst *inst);
+> +
+> +#endif
+> diff --git a/drivers/media/platform/qcom/vidc/vdec_ctrls.c b/drivers/media/platform/qcom/vidc/vdec_ctrls.c
+> new file mode 100644
+> index 000000000000..59225d8f1fd9
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/vidc/vdec_ctrls.c
+> @@ -0,0 +1,200 @@
+> +/*
+> + * Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+> + * Copyright (C) 2016 Linaro Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + */
+> +#include <linux/types.h>
+> +#include <media/v4l2-ctrls.h>
+> +
+> +#include "core.h"
+> +
+> +static struct vidc_ctrl vdec_ctrls[] = {
+> +	{
+> +		.id = V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE,
+> +		.type = V4L2_CTRL_TYPE_MENU,
+> +		.min = V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE,
+> +		.max = V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_CODING_EFFICIENCY,
+> +		.def = V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE,
+> +		.flags = V4L2_CTRL_FLAG_VOLATILE,
+> +		.menu_skip_mask = ~(
+> +			(1 << V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE) |
+> +			(1 << V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_SIMPLE)
+> +		),
+> +	}, {
+> +		.id = V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL,
+> +		.type = V4L2_CTRL_TYPE_MENU,
+> +		.min = V4L2_MPEG_VIDEO_MPEG4_LEVEL_0,
+> +		.max = V4L2_MPEG_VIDEO_MPEG4_LEVEL_5,
+> +		.def = V4L2_MPEG_VIDEO_MPEG4_LEVEL_0,
+> +		.flags = V4L2_CTRL_FLAG_VOLATILE,
+> +	}, {
+> +		.id = V4L2_CID_MPEG_VIDEO_H264_PROFILE,
+> +		.type = V4L2_CTRL_TYPE_MENU,
+> +		.min = V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE,
+> +		.max = V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH,
+> +		.def = V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE,
+> +		.flags = V4L2_CTRL_FLAG_VOLATILE,
+> +		.menu_skip_mask = ~(
+> +		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE) |
+> +		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE) |
+> +		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_MAIN) |
+> +		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_HIGH) |
+> +		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_STEREO_HIGH) |
+> +		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH)
+> +		),
+> +	}, {
+> +		.id = V4L2_CID_MPEG_VIDEO_H264_LEVEL,
+> +		.type = V4L2_CTRL_TYPE_MENU,
+> +		.min = V4L2_MPEG_VIDEO_H264_LEVEL_1_0,
+> +		.max = V4L2_MPEG_VIDEO_H264_LEVEL_5_1,
+> +		.def = V4L2_MPEG_VIDEO_H264_LEVEL_1_0,
+> +		.flags = V4L2_CTRL_FLAG_VOLATILE,
+> +	}, {
+> +		.id = V4L2_CID_MPEG_VIDEO_VPX_PROFILE,
+> +		.type = V4L2_CTRL_TYPE_INTEGER,
+> +		.min = 0,
+> +		.max = 3,
+> +		.step = 1,
+> +		.def = 0,
+> +		.flags = V4L2_CTRL_FLAG_VOLATILE,
+> +	}, {
+> +		.id = V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER,
+> +		.type = V4L2_CTRL_TYPE_BOOLEAN,
+> +		.def = 0,
+> +	},
+> +};
+> +
+> +#define NUM_CTRLS	ARRAY_SIZE(vdec_ctrls)
+> +
+> +static int vdec_op_s_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct vidc_inst *inst = ctrl_to_inst(ctrl);
+> +	struct vdec_controls *ctr = &inst->controls.dec;
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER:
+> +		ctr->post_loop_deb_mode = ctrl->val;
+> +		break;
+> +	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+> +	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
+> +		ctr->profile = ctrl->val;
+> +		break;
+> +	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
+> +		ctr->level = ctrl->val;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_op_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct vidc_inst *inst = ctrl_to_inst(ctrl);
+> +	struct vdec_controls *ctr = &inst->controls.dec;
+> +	struct hfi_core *hfi = &inst->core->hfi;
+> +	union hfi_get_property hprop;
+> +	u32 ptype = HFI_PROPERTY_PARAM_PROFILE_LEVEL_CURRENT;
+> +	int ret;
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+> +	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
+> +		ret = vidc_hfi_session_get_property(hfi, inst->hfi_inst, ptype,
+> +						    &hprop);
+> +		if (!ret)
+> +			ctr->profile = hprop.profile_level.profile;
+> +		ctrl->val = ctr->profile;
+> +		break;
+> +	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
+> +		ret = vidc_hfi_session_get_property(hfi, inst->hfi_inst, ptype,
+> +						    &hprop);
+> +		if (!ret)
+> +			ctr->level = hprop.profile_level.level;
+> +		ctrl->val = ctr->level;
+> +		break;
+> +	case V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER:
+> +		ctrl->val = ctr->post_loop_deb_mode;
+> +		break;
+
+Why are these volatile?
+
+> +	default:
+> +		return -EINVAL;
+> +	};
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_ctrl_ops vdec_ctrl_ops = {
+> +	.s_ctrl = vdec_op_s_ctrl,
+> +	.g_volatile_ctrl = vdec_op_g_volatile_ctrl,
+> +};
+> +
+> +int vdec_ctrl_init(struct vidc_inst *inst)
+> +{
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	ret = v4l2_ctrl_handler_init(&inst->ctrl_handler, NUM_CTRLS);
+> +	if (ret)
+> +		return ret;
+> +
+> +	for (i = 0; i < NUM_CTRLS; i++) {
+> +		struct v4l2_ctrl *ctrl;
+> +
+> +		if (vdec_ctrls[i].type == V4L2_CTRL_TYPE_MENU) {
+> +			ctrl = v4l2_ctrl_new_std_menu(&inst->ctrl_handler,
+> +					&vdec_ctrl_ops,
+> +					vdec_ctrls[i].id,
+> +					vdec_ctrls[i].max,
+> +					vdec_ctrls[i].menu_skip_mask,
+> +					vdec_ctrls[i].def);
+> +		} else {
+> +			ctrl = v4l2_ctrl_new_std(&inst->ctrl_handler,
+> +					&vdec_ctrl_ops,
+> +					vdec_ctrls[i].id,
+> +					vdec_ctrls[i].min,
+> +					vdec_ctrls[i].max,
+> +					vdec_ctrls[i].step,
+> +					vdec_ctrls[i].def);
+> +		}
+
+Why have this vdec_ctrls array at all? Just call v4l2_ctrl_new_std(_menu)
+directly for the controls you want to add. Most drivers do that.
+
+> +
+> +		if (!ctrl)
+> +			return -EINVAL;
+> +
+> +		switch (vdec_ctrls[i].id) {
+> +		case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+> +		case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
+> +		case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
+> +		case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
+> +		case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
+> +			ctrl->flags |= vdec_ctrls[i].flags;
+> +			break;
+> +		}
+> +
+> +		ret = inst->ctrl_handler.error;
+> +		if (ret) {
+> +			v4l2_ctrl_handler_free(&inst->ctrl_handler);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +void vdec_ctrl_deinit(struct vidc_inst *inst)
+> +{
+> +	v4l2_ctrl_handler_free(&inst->ctrl_handler);
+> +}
+> diff --git a/drivers/media/platform/qcom/vidc/vdec_ctrls.h b/drivers/media/platform/qcom/vidc/vdec_ctrls.h
+> new file mode 100644
+> index 000000000000..18f14d06deed
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/vidc/vdec_ctrls.h
+> @@ -0,0 +1,21 @@
+> +/*
+> + * Copyright (c) 2015, The Linux Foundation. All rights reserved.
+> + * Copyright (C) 2016 Linaro Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + */
+> +#ifndef __VIDC_VDEC_CTRLS_H__
+> +#define __VIDC_VDEC_CTRLS_H__
+> +
+> +int vdec_ctrl_init(struct vidc_inst *inst);
+> +void vdec_ctrl_deinit(struct vidc_inst *inst);
+> +
+> +#endif
+> 
 
 Regards,
 
