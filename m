@@ -1,121 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:44311 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933377AbcHBD1m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Aug 2016 23:27:42 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0BDD6180050
-	for <linux-media@vger.kernel.org>; Tue,  2 Aug 2016 05:23:55 +0200 (CEST)
-Date: Tue, 02 Aug 2016 05:23:54 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160802032355.0BDD6180050@tschai.lan>
+Received: from smtp1.goneo.de ([85.220.129.30]:56724 "EHLO smtp1.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751688AbcHVLln (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 07:41:43 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: RFC? [PATCH] docs-rst: kernel-doc: better output struct members
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <874m6duk8o.fsf@intel.com>
+Date: Mon, 22 Aug 2016 13:40:56 +0200
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-doc@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <921CD8C1-C4E7-4052-A8B1-B9DFE9159122@darmarit.de>
+References: <45996a8dc149f7de6ed09d703b76cb65e55b7a9a.1471781478.git.mchehab@s-opensource.com> <970CC2BB-EFCC-41D7-9BFD-3F295DDB1FE4@darmarit.de> <20160822070633.163af4b5@vento.lan> <874m6duk8o.fsf@intel.com>
+To: Jani Nikula <jani.nikula@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+Am 22.08.2016 um 13:16 schrieb Jani Nikula <jani.nikula@intel.com>:
 
-date:		Tue Aug  2 04:00:23 CEST 2016
-git branch:	test
-git hash:	292eaf50c7df4ae2ae8aaa9e1ce3f1240a353ee8
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+> On Mon, 22 Aug 2016, Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+>> Markus,
+>> 
+>> Em Mon, 22 Aug 2016 10:56:01 +0200
+>> Markus Heiser <markus.heiser@darmarit.de> escreveu:
+>> 
+>>> Am 21.08.2016 um 14:11 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+>>> 
+>>>> Right now, for a struct, kernel-doc produces the following output:
+>>>> 
+>>>> 	.. c:type:: struct v4l2_prio_state
+>>>> 
+>>>> 	   stores the priority states
+>>>> 
+>>>> 	**Definition**
+>>>> 
+>>>> 	::
+>>>> 
+>>>> 	  struct v4l2_prio_state {
+>>>> 	    atomic_t prios[4];
+>>>> 	  };
+>>>> 
+>>>> 	**Members**
+>>>> 
+>>>> 	``atomic_t prios[4]``
+>>>> 	  array with elements to store the array priorities
+>>>> 
+>>>> Putting a member name in verbatim and adding a continuation line
+>>>> causes the LaTeX output to generate something like:
+>>>> 	item[atomic_t prios\[4\]] array with elements to store the array priorities  
+>>> 
+>>> 
+>>> Right now, the description of C-struct members is a simple rest-definition-list 
+>>> (not in the c-domain). It might be better to use the c-domain for members:
+>>> 
+>>>  http://www.sphinx-doc.org/en/stable/domains.html#directive-c:member
+>>> 
+>>> But this is not the only thing we have to consider. To make a valid C-struct
+>>> description (with targets/references in the c-domain) we need a more
+>>> *structured* reST markup where the members are described in the block-content
+>>> of the struct directive. E.g:
+>>> 
+>>> <SNIP> -----------
+>>> |.. c:type:: struct v4l2_subdev_ir_ops
+>>> |
+>>> |   operations for IR subdevices
+>>> |
+>>> |   .. c:member::  int (* rx_read) (struct v4l2_subdev *sd, u8 *buf, size_t count,ssize_t *num)
+>>> |
+>>> <SNIP> -----------
+>>> 
+>>> By this small example, you see, that we have to discuss the whole markup 
+>>> produced by the kernel-doc script (function arguments, unions etc.). 
+>>> IMHO, since kernel-doc is widely used, this should be a RFC.
+>> 
+>> I tried using c:member. It won't work on LaTeX output, as it will
+>> still put everything into a LaTeX item, with doesn't do line breaks.
+> 
+> I've tried c:member before, and I'm not convinced it buys us anything
+> useful. I'm also not convinced we'd need more structured rst markup
+> within struct or function descriptions in addition to what we currently
+> have. Keep it simple.
+> 
+> BR,
+> Jani.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+It buys, that we stay in the c-domain and we can refer to the members
+with the :c:member role. E.g :c:member:`v4l2_subdev_ir_ops.rx_read`.
 
-Detailed results are available here:
+-- Markus --
+ 
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
