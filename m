@@ -1,47 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fireflyinternet.com ([109.228.58.192]:62845 "EHLO
-        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751610AbcH1Uu7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 Aug 2016 16:50:59 -0400
-Date: Sun, 28 Aug 2016 21:50:49 +0100
-From: Chris Wilson <chris@chris-wilson.co.uk>
-To: intel-gfx@lists.freedesktop.org,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org
-Subject: Re: [PATCH] dma-buf: Do a fast lockless check for poll with timeout=0
-Message-ID: <20160828205049.GC23758@nuc-i3427.alporthouse.com>
-References: <20160828163747.32751-1-chris@chris-wilson.co.uk>
- <20160828203354.GB23758@nuc-i3427.alporthouse.com>
+Received: from tex.lwn.net ([70.33.254.29]:47350 "EHLO vena.lwn.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752173AbcHVVeY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 17:34:24 -0400
+Date: Mon, 22 Aug 2016 15:34:21 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Jani Nikula <jani.nikula@intel.com>, linux-doc@vger.kernel.org
+Subject: Re: [PATCH] docs-rst: kernel-doc: better output struct members
+Message-ID: <20160822153421.1e334ab0@lwn.net>
+In-Reply-To: <45996a8dc149f7de6ed09d703b76cb65e55b7a9a.1471781478.git.mchehab@s-opensource.com>
+References: <45996a8dc149f7de6ed09d703b76cb65e55b7a9a.1471781478.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160828203354.GB23758@nuc-i3427.alporthouse.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Aug 28, 2016 at 09:33:54PM +0100, Chris Wilson wrote:
-> On Sun, Aug 28, 2016 at 05:37:47PM +0100, Chris Wilson wrote:
-> > Currently we install a callback for performing poll on a dma-buf,
-> > irrespective of the timeout. This involves taking a spinlock, as well as
-> > unnecessary work, and greatly reduces scaling of poll(.timeout=0) across
-> > multiple threads.
-> > 
-> > We can query whether the poll will block prior to installing the
-> > callback to make the busy-query fast.
-> > 
-> > Single thread: 60% faster
-> > 8 threads on 4 (+4 HT) cores: 600% faster
+On Sun, 21 Aug 2016 09:11:57 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+
+> So, change kernel-doc, for it to produce the output on a different way:
 > 
-> Hmm, this only really applies to the idle case.
-> reservation_object_test_signaled_rcu() is still a major bottleneck when
-> busy, due to the dance inside reservation_object_test_signaled_single()
+> 	**Members**
+> 
+> 	``prios[4]``
+> 	  - **type**: ``atomic_t``
+> 
+> 	  array with elements to store the array priorities
+> 
+> With such change, the name of the member will be the first visible
+> thing, and will be in bold style. The type will still be there, inside
+> a list.
 
-The fix is not difficult, just requires extending the seqlock to catch
-the RCU race (i.e. earlier patches). I'll resend that series in the
-morning.
--Chris
+OK, I'll confess to not being 100% convinced on this one.  I certainly
+sympathize with the problem that drives this change, but I think the
+result is a bit on the noisy and visually distracting side.  
 
--- 
-Chris Wilson, Intel Open Source Technology Centre
+I wonder if we might be better off to just leave the "type:" bulleted
+line out entirely?  The type information already appears in the structure
+listing directly above, so it's arguably redundant here.  If formatting
+the type is getting in the way here, perhaps the right answer is just
+"don't do that"?
+
+jon
