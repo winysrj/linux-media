@@ -1,121 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:52129 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751011AbcHFVcC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Aug 2016 17:32:02 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 7B883180050
-	for <linux-media@vger.kernel.org>; Sat,  6 Aug 2016 05:03:50 +0200 (CEST)
-Date: Sat, 06 Aug 2016 05:03:50 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160806030350.7B883180050@tschai.lan>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:44531 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753485AbcHVJhb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 05:37:31 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id AD915180456
+        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2016 11:37:25 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.9] Add touch API and atmel_mxt_ts/synaptics drivers
+ (v2)
+Message-ID: <512b4ae8-719d-56ff-3d17-1bc2e7815ab9@xs4all.nl>
+Date: Mon, 22 Aug 2016 11:37:25 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patch series adds support for /dev/v4l-touchX devices.
 
-Results of the daily build of media_tree:
+Regards,
 
-date:		Sat Aug  6 04:00:22 CEST 2016
-git branch:	test
-git hash:	292eaf50c7df4ae2ae8aaa9e1ce3f1240a353ee8
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+	Hans
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+Changes since v1:
 
-Detailed results are available here:
+Updated the sur40 patch to fix a compiler error.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Full logs are available here:
+The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
 
-The Media Infrastructure API from this daily build is here:
+are available in the git repository at:
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+  git://linuxtv.org/hverkuil/media_tree.git touch
+
+for you to fetch changes up to 29064fa6376528929d1aa560f6faa7bddc333d69:
+
+  Documentation: add support for V4L touch devices (2016-08-22 11:29:22 +0200)
+
+----------------------------------------------------------------
+Nick Dyer (11):
+      Input: atmel_mxt_ts - update MAINTAINERS email address
+      v4l2-core: Add support for touch devices
+      Input: atmel_mxt_ts - add support for T37 diagnostic data
+      Input: atmel_mxt_ts - output diagnostic debug via V4L2 device
+      Input: atmel_mxt_ts - read touchscreen size
+      Input: atmel_mxt_ts - handle diagnostic data orientation
+      Input: atmel_mxt_ts - add diagnostic data support for mXT1386
+      Input: atmel_mxt_ts - add support for reference data
+      Input: synaptics-rmi4 - add support for F54 diagnostics
+      Input: sur40 - use new V4L2 touch input type
+      Documentation: add support for V4L touch devices
+
+ Documentation/media/kapi/v4l2-dev.rst             |   1 +
+ Documentation/media/uapi/mediactl/media-types.rst |  24 +-
+ Documentation/media/uapi/v4l/dev-touch.rst        |  56 ++++
+ Documentation/media/uapi/v4l/devices.rst          |   1 +
+ Documentation/media/uapi/v4l/pixfmt-tch-td08.rst  |  80 ++++++
+ Documentation/media/uapi/v4l/pixfmt-tch-td16.rst  | 111 ++++++++
+ Documentation/media/uapi/v4l/pixfmt-tch-tu08.rst  |  78 ++++++
+ Documentation/media/uapi/v4l/pixfmt-tch-tu16.rst  | 110 ++++++++
+ Documentation/media/uapi/v4l/pixfmt.rst           |   1 +
+ Documentation/media/uapi/v4l/tch-formats.rst      |  18 ++
+ Documentation/media/uapi/v4l/vidioc-enuminput.rst |   8 +
+ Documentation/media/uapi/v4l/vidioc-querycap.rst  |   8 +
+ Documentation/media/videodev2.h.rst.exceptions    |   2 +
+ MAINTAINERS                                       |   6 +-
+ drivers/input/rmi4/Kconfig                        |  11 +
+ drivers/input/rmi4/Makefile                       |   1 +
+ drivers/input/rmi4/rmi_bus.c                      |   3 +
+ drivers/input/rmi4/rmi_driver.h                   |   1 +
+ drivers/input/rmi4/rmi_f54.c                      | 756 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/input/touchscreen/Kconfig                 |   8 +
+ drivers/input/touchscreen/atmel_mxt_ts.c          | 520 ++++++++++++++++++++++++++++++++++
+ drivers/input/touchscreen/sur40.c                 | 124 ++++++---
+ drivers/media/media-entity.c                      |   2 +
+ drivers/media/v4l2-core/v4l2-dev.c                |  14 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c              |  36 ++-
+ include/media/v4l2-dev.h                          |   4 +-
+ include/uapi/linux/media.h                        |   1 +
+ include/uapi/linux/videodev2.h                    |   9 +
+ 28 files changed, 1942 insertions(+), 52 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/dev-touch.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-tch-td08.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-tch-td16.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-tch-tu08.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-tch-tu16.rst
+ create mode 100644 Documentation/media/uapi/v4l/tch-formats.rst
+ create mode 100644 drivers/input/rmi4/rmi_f54.c
