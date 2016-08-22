@@ -1,77 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp11.smtpout.orange.fr ([80.12.242.133]:44618 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753032AbcHOTC0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 15:02:26 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jiri Kosina <trivial@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v4 12/13] media: platform: pxa_camera: change stop_streaming semantics
-Date: Mon, 15 Aug 2016 21:02:02 +0200
-Message-Id: <1471287723-25451-13-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1471287723-25451-1-git-send-email-robert.jarzmik@free.fr>
-References: <1471287723-25451-1-git-send-email-robert.jarzmik@free.fr>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34454 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753031AbcHVJ1T (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 05:27:19 -0400
+MIME-Version: 1.0
+In-Reply-To: <f36bf112-d05a-1d61-ca04-f38a1ede75aa@xs4all.nl>
+References: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1471530818-7928-11-git-send-email-ricardo.ribalda@gmail.com> <f36bf112-d05a-1d61-ca04-f38a1ede75aa@xs4all.nl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Mon, 22 Aug 2016 11:26:57 +0200
+Message-ID: <CAPybu_3ziKaOtS2JR8CnuO8CSAP4VZREXBn8+Bi+H99nJmKqfA@mail.gmail.com>
+Subject: Re: [PATCH v5 10/12] [media] videodev2.h Add HSV encoding
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+        Antti Palosaari <crope@iki.fi>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Shuah Khan <shuah@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of the legacy behavior where it was required to wait for all
-video buffers to be finished by the hardware, use a cancel like strategy
-: as soon as the stop_streaming() call is done, abort all DMA transfers,
-report the already buffers as failed and return.
+Hello Hans:
 
-This makes stop_streaming() more a "cancel capture" than a "wait for end
-of capture" semantic.
+>
+> That should be is_rgb_or_hsv.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/platform/soc_camera/pxa_camera.c | 15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+Sorry about that! I am resending v5_2 with only that patch fixed
 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index fb89b85f59ab..868c6ad4784c 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -523,7 +523,8 @@ static void pxa_camera_stop_capture(struct pxa_camera_dev *pcdev)
- }
- 
- static void pxa_camera_wakeup(struct pxa_camera_dev *pcdev,
--			      struct pxa_buffer *buf)
-+			      struct pxa_buffer *buf,
-+			      enum vb2_buffer_state state)
- {
- 	struct vb2_buffer *vb = &buf->vbuf.vb2_buf;
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-@@ -645,7 +646,7 @@ static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
- 	}
- 	buf->active_dma &= ~act_dma;
- 	if (!buf->active_dma) {
--		pxa_camera_wakeup(pcdev, buf);
-+		pxa_camera_wakeup(pcdev, buf, VB2_BUF_STATE_DONE);
- 		pxa_camera_check_link_miss(pcdev, last_buf->cookie[chan],
- 					   last_issued);
- 	}
-@@ -1087,7 +1088,15 @@ static int pxac_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
- 
- static void pxac_vb2_stop_streaming(struct vb2_queue *vq)
- {
--	vb2_wait_for_all_buffers(vq);
-+	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
-+	struct pxa_buffer *buf, *tmp;
-+
-+	dev_dbg(pcdev_to_dev(pcdev), "%s active=%p\n",
-+		__func__, pcdev->active);
-+	pxa_camera_stop_capture(pcdev);
-+
-+	list_for_each_entry_safe(buf, tmp, &pcdev->capture, queue)
-+		pxa_camera_wakeup(pcdev, buf, VB2_BUF_STATE_ERROR);
- }
- 
- static struct vb2_ops pxac_vb2_ops = {
--- 
-2.1.4
+>
+> All other patches look OK.
 
+Thanks
+
+>
+> It would be useful though if you could rebase on top of https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=sycc.
+> I have a pull request outstanding for that tree, and it will conflict with this patch.
+
+It should be already be rebased over that branch:
+
+ricardo@neopili:~/curro/linux-upstream$ git rebase hans/sycc
+Current branch vivid-hsv-v5 is up to date.
+
+
+Best regards!
