@@ -1,36 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.goneo.de ([85.220.129.30]:56544 "EHLO smtp1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753220AbcHPLtL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2016 07:49:11 -0400
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34242 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751294AbcHVMkV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 08:40:21 -0400
+Date: Mon, 22 Aug 2016 15:40:18 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, m.chehab@osg.samsung.com,
+        shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com
+Subject: Re: [RFC v2 06/17] media: Dynamically allocate the media device
+Message-ID: <20160822124018.GC12130@valkosipuli.retiisi.org.uk>
+References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1471602228-30722-7-git-send-email-sakari.ailus@linux.intel.com>
+ <b9aefadd-054e-bece-da6b-4f599d5173a2@xs4all.nl>
+ <20160822123820.GB12130@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH RFC v2 3/9] docs-rst: Don't mangle with UTF-8 chars on LaTeX/PDF output
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <20160816080338.56c6e5d1@vento.lan>
-Date: Tue, 16 Aug 2016 13:48:13 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <1C2F668D-41DD-4682-89D9-639430AAF3A6@darmarit.de>
-References: <cover.1471294965.git.mchehab@s-opensource.com> <5ceebc273ff089c275c753c78f6e6c6e732b4077.1471294965.git.mchehab@s-opensource.com> <4483E8C4-BBAC-4866-881D-3FBA5B85E834@darmarit.de> <20160816063605.6ef0ed27@vento.lan> <20160816080338.56c6e5d1@vento.lan>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Content-Disposition: inline
+In-Reply-To: <20160822123820.GB12130@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-Am 16.08.2016 um 13:03 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-
-> Em Tue, 16 Aug 2016 06:36:05 -0300
-> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+On Mon, Aug 22, 2016 at 03:38:20PM +0300, Sakari Ailus wrote:
+> Hi Hans,
 > 
-> 2) the Latex auto-generated Makefile is hardcoded to use pdflatex. So,
-> I had to manually replace it to xelatex. One easy solution would be to
-> not use Make -C $BUILDDIR/latex, but to just call xelatex $BUILDDIR/$tex_name.
+> On Mon, Aug 22, 2016 at 02:01:44PM +0200, Hans Verkuil wrote:
+> > On 08/19/2016 12:23 PM, Sakari Ailus wrote:
+> > > From: Sakari Ailus <sakari.ailus@iki.fi>
+> > > 
+> > > Allow allocating the media device dynamically. As the struct media_device
+> > > embeds struct media_devnode, the lifetime of that object is that same than
+> > > that of the media_device.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > ---
+> > >  drivers/media/media-device.c | 22 ++++++++++++++++++++++
+> > >  include/media/media-device.h | 38 ++++++++++++++++++++++++++++++++++++++
+> > >  2 files changed, 60 insertions(+)
+> > > 
+> > > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > > index a431775..5a86d36 100644
+> > > --- a/drivers/media/media-device.c
+> > > +++ b/drivers/media/media-device.c
+> > > @@ -544,7 +544,15 @@ static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
+> > >  
+> > >  static void media_device_release(struct media_devnode *devnode)
+> > >  {
+> > > +	struct media_device *mdev = to_media_device(devnode);
+> > > +
+> > > +	ida_destroy(&mdev->entity_internal_idx);
+> > > +	mdev->entity_internal_idx_max = 0;
+> > > +	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
+> > > +	mutex_destroy(&mdev->graph_mutex);
+> > >  	dev_dbg(devnode->parent, "Media device released\n");
+> > > +
+> > > +	kfree(mdev);
+> > 
+> > Doesn't this break bisect? mdev is now freed, but media_device_alloc isn't
+> > called yet.
+> > 
+> > That doesn't seem right.
+> 
+> You're right.
+> 
+> media_device_release() actually may only be called for drivers that use
+> media_device_init(). I'll fix that.
 
-I recommend to ship your own tex-Makefile, see:
+s/media_device_init/media_device_alloc/
 
-  https://lkml.org/lkml/2016/8/10/114
-
--- Markus 
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
