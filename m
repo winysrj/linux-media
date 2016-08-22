@@ -1,103 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34516 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753890AbcHXKv2 (ORCPT
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:35033 "EHLO
+        mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755058AbcHVPVT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Aug 2016 06:51:28 -0400
-Received: by mail-wm0-f65.google.com with SMTP id q128so2067149wma.1
-        for <linux-media@vger.kernel.org>; Wed, 24 Aug 2016 03:51:12 -0700 (PDT)
-From: Johan Fjeldtvedt <jaffe1@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Johan Fjeldtvedt <jaffe1@gmail.com>
-Subject: [PATCHv2] cec tools: exit if device is disconnected
-Date: Wed, 24 Aug 2016 12:51:03 +0200
-Message-Id: <1472035863-14763-1-git-send-email-jaffe1@gmail.com>
+        Mon, 22 Aug 2016 11:21:19 -0400
+Received: by mail-pa0-f52.google.com with SMTP id hb8so20057829pac.2
+        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2016 08:21:19 -0700 (PDT)
+From: Sumit Semwal <sumit.semwal@linaro.org>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, linux-doc@vger.kernel.org
+Cc: corbet@lwn.net, linux-kernel@vger.kernel.org,
+        markus.heiser@darmarit.de, jani.nikula@linux.intel.com,
+        Sumit Semwal <sumit.semwal@linaro.org>
+Subject: [PATCH v2 0/2] doc: dma-buf: sphinx conversion
+Date: Mon, 22 Aug 2016 20:41:43 +0530
+Message-Id: <1471878705-3963-1-git-send-email-sumit.semwal@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the CEC device is disconnected, ioctl will return ENODEV. This is
-checked for in cec-ctl (when monitoring), cec-follower and
-cec-compliance, to make these exit when the CEC device disappears.
+Convert dma-buf documentation over to sphinx.
 
-Signed-off-by: Johan Fjeldtvedt <jaffe1@gmail.com>
----
- utils/cec-compliance/cec-compliance.h |  9 +++++++--
- utils/cec-ctl/cec-ctl.cpp             |  7 ++++++-
- utils/cec-follower/cec-processing.cpp | 14 ++++++++++++--
- 3 files changed, 25 insertions(+), 5 deletions(-)
+While at that, convert dma-buf-sharing.txt as well, and make it the
+dma-buf API guide.
 
-diff --git a/utils/cec-compliance/cec-compliance.h b/utils/cec-compliance/cec-compliance.h
-index cb236fd..d59ec1d 100644
---- a/utils/cec-compliance/cec-compliance.h
-+++ b/utils/cec-compliance/cec-compliance.h
-@@ -334,10 +334,15 @@ static inline bool transmit_timeout(struct node *node, struct cec_msg *msg,
- 				    unsigned timeout = 2000)
- {
- 	struct cec_msg original_msg = *msg;
-+	int res;
- 
- 	msg->timeout = timeout;
--	if (doioctl(node, CEC_TRANSMIT, msg) ||
--	    !(msg->tx_status & CEC_TX_STATUS_OK))
-+	res = doioctl(node, CEC_TRANSMIT, msg);
-+	if (res == ENODEV) {
-+		printf("Device was disconnected.\n");
-+		exit(1);
-+	}
-+	if (res || !(msg->tx_status & CEC_TX_STATUS_OK))
- 		return false;
- 
- 	if (((msg->rx_status & CEC_RX_STATUS_OK) || (msg->rx_status & CEC_RX_STATUS_FEATURE_ABORT))
-diff --git a/utils/cec-ctl/cec-ctl.cpp b/utils/cec-ctl/cec-ctl.cpp
-index 2d0d9e5..5938971 100644
---- a/utils/cec-ctl/cec-ctl.cpp
-+++ b/utils/cec-ctl/cec-ctl.cpp
-@@ -1945,7 +1945,12 @@ skip_la:
- 				struct cec_msg msg = { };
- 				__u8 from, to;
- 
--				if (doioctl(&node, CEC_RECEIVE, &msg))
-+				res = doioctl(&node, CEC_RECEIVE, &msg);
-+				if (res == ENODEV) {
-+					printf("Device was disconnected.\n");
-+					break;
-+				}
-+				if (res)
- 					continue;
- 
- 				from = cec_msg_initiator(&msg);
-diff --git a/utils/cec-follower/cec-processing.cpp b/utils/cec-follower/cec-processing.cpp
-index 34d65e4..c20fa49 100644
---- a/utils/cec-follower/cec-processing.cpp
-+++ b/utils/cec-follower/cec-processing.cpp
-@@ -979,7 +979,12 @@ void testProcessing(struct node *node)
- 		if (FD_ISSET(fd, &ex_fds)) {
- 			struct cec_event ev;
- 
--			if (doioctl(node, CEC_DQEVENT, &ev))
-+			res = doioctl(node, CEC_DQEVENT, &ev);
-+			if (res == ENODEV) {
-+				printf("Device was disconnected.\n");
-+				break;
-+			}
-+			if (res)
- 				continue;
- 			log_event(ev);
- 			if (ev.event == CEC_EVENT_STATE_CHANGE) {
-@@ -995,7 +1000,12 @@ void testProcessing(struct node *node)
- 		if (FD_ISSET(fd, &rd_fds)) {
- 			struct cec_msg msg = { };
- 
--			if (doioctl(node, CEC_RECEIVE, &msg))
-+			res = doioctl(node, CEC_RECEIVE, &msg);
-+			if (res == ENODEV) {
-+				printf("Device was disconnected.\n");
-+				break;
-+			}
-+			if (res)
- 				continue;
- 
- 			__u8 from = cec_msg_initiator(&msg);
+There is no content change yet; only format conversion and creation of
+some hyperlinks.
+
+v2: Address review comments from Jonathan Corbet and Markus Heiser.
+
+Sumit Semwal (2):
+  Documentation: move dma-buf documentation to rst
+  Documentation/sphinx: link dma-buf rsts
+
+ Documentation/DocBook/device-drivers.tmpl |  41 ---
+ Documentation/dma-buf-sharing.txt         | 482 ----------------------------
+ Documentation/dma-buf/guide.rst           | 507 ++++++++++++++++++++++++++++++
+ Documentation/dma-buf/intro.rst           |  82 +++++
+ Documentation/index.rst                   |   2 +
+ MAINTAINERS                               |   2 +-
+ 6 files changed, 592 insertions(+), 524 deletions(-)
+ delete mode 100644 Documentation/dma-buf-sharing.txt
+ create mode 100644 Documentation/dma-buf/guide.rst
+ create mode 100644 Documentation/dma-buf/intro.rst
+
 -- 
 2.7.4
 
