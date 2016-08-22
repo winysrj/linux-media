@@ -1,75 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:52979 "EHLO
-	smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965289AbcHBOvm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 10:51:42 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com
-Cc: lars@metafoo.de, mchehab@kernel.org, hans.verkuil@cisco.com,
-	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 2/7] media: rcar-vin: allow field to be changed
-Date: Tue,  2 Aug 2016 16:51:02 +0200
-Message-Id: <20160802145107.24829-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37334 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755991AbcHVONQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 10:13:16 -0400
+Date: Mon, 22 Aug 2016 17:13:11 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, m.chehab@osg.samsung.com,
+        shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com
+Subject: Re: [RFC v2 17/17] omap3isp: Don't rely on devm for memory resource
+ management
+Message-ID: <20160822141311.GF12130@valkosipuli.retiisi.org.uk>
+References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1471602228-30722-18-git-send-email-sakari.ailus@linux.intel.com>
+ <e0d07a7a-100f-9415-9b25-678d1a4101a1@xs4all.nl>
+ <20160822140231.GE12130@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160822140231.GE12130@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver forced whatever field was set by the source subdevice to be
-used. This patch allows the user to change from the default field.
+On Mon, Aug 22, 2016 at 05:02:31PM +0300, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Mon, Aug 22, 2016 at 02:40:39PM +0200, Hans Verkuil wrote:
+> > On 08/19/2016 12:23 PM, Sakari Ailus wrote:
+> > > devm functions are fine for managing resources that are directly related
+> > > to the device at hand and that have no other dependencies. However, a
+> > > process holding a file handle to a device created by a driver for a device
+> > > may result in the file handle left behind after the device is long gone.
+> > > This will result in accessing released (and potentially reallocated)
+> > > memory.
+> > > 
+> > > Instead, rely on the media device which will stick around until all users
+> > > are gone.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > ---
+> > >  drivers/media/platform/omap3isp/isp.c         | 38 ++++++++++++++++++++-------
+> > >  drivers/media/platform/omap3isp/ispccp2.c     |  3 ++-
+> > >  drivers/media/platform/omap3isp/isph3a_aewb.c | 20 +++++++++-----
+> > >  drivers/media/platform/omap3isp/isph3a_af.c   | 20 +++++++++-----
+> > >  drivers/media/platform/omap3isp/isphist.c     |  5 ++--
+> > >  drivers/media/platform/omap3isp/ispstat.c     |  2 ++
+> > >  6 files changed, 63 insertions(+), 25 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+> > > index 217d4da..3488ed3 100644
+> > > --- a/drivers/media/platform/omap3isp/isp.c
+> > > +++ b/drivers/media/platform/omap3isp/isp.c
+> > > @@ -1370,7 +1370,7 @@ static int isp_get_clocks(struct isp_device *isp)
+> > >  	unsigned int i;
+> > >  
+> > >  	for (i = 0; i < ARRAY_SIZE(isp_clocks); ++i) {
+> > > -		clk = devm_clk_get(isp->dev, isp_clocks[i]);
+> > 
+> > I wonder, would it be possible to use the media device itself for these devm_
+> > functions? Since the media device is the last one to be released...
+> 
+> Do you happen to mean... struct media_device->devnode.dev?
+> 
+> Interesting idea, I can't see why not. That'd actually make the required
+> driver changes to fix the drivers quite a bit easier to make. And we could
+> still use devm_() functions.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+That might have been a little bit too fast.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 10a5c10..6d4086a 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -102,6 +102,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 	struct v4l2_subdev_format format = {
- 		.which = which,
- 	};
-+	enum v4l2_field field;
- 	int ret;
- 
- 	sd = vin_to_source(vin);
-@@ -114,6 +115,8 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 
- 	format.pad = vin->src_pad_idx;
- 
-+	field = pix->field;
-+
- 	ret = v4l2_device_call_until_err(sd->v4l2_dev, 0, pad, set_fmt,
- 					 pad_cfg, &format);
- 	if (ret < 0)
-@@ -121,6 +124,8 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 
- 	v4l2_fill_pix_format(pix, &format.format);
- 
-+	pix->field = field;
-+
- 	source->width = pix->width;
- 	source->height = pix->height;
- 
-@@ -144,6 +149,10 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	rwidth = pix->width;
- 	rheight = pix->height;
- 
-+	/* Keep current field if no specific one is asked for */
-+	if (pix->field == V4L2_FIELD_ANY)
-+		pix->field = vin->format.field;
-+
- 	/*
- 	 * Retrieve format information and select the current format if the
- 	 * requested format isn't supported.
+In fact, device_release() in drivers/base/core.c does release resources
+bound to device (devm) *before* calling the driver's release callback.
+
+This means that the driver's device release callback may not access
+resources allocated with devm functions. Considering that devm_() functions
+have been broken and fixed before [1], could this be more than a bug?
+
+The comments there seem off topic mostly.
+
+[1] a525a3ddeaca69f405d98442ab3c0746e53168dc
+
 -- 
-2.9.0
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
