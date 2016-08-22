@@ -1,155 +1,333 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:34376 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755754AbcH2R4L (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36418 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751294AbcHVMkp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 13:56:11 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Jiri Kosina <trivial@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v5 06/13] media: platform: pxa_camera: introduce sensor_call
-Date: Mon, 29 Aug 2016 19:55:51 +0200
-Message-Id: <1472493358-24618-7-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
-References: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
+        Mon, 22 Aug 2016 08:40:45 -0400
+Subject: Re: [RFC v2 17/17] omap3isp: Don't rely on devm for memory resource
+ management
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1471602228-30722-18-git-send-email-sakari.ailus@linux.intel.com>
+Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e0d07a7a-100f-9415-9b25-678d1a4101a1@xs4all.nl>
+Date: Mon, 22 Aug 2016 14:40:39 +0200
+MIME-Version: 1.0
+In-Reply-To: <1471602228-30722-18-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Introduce sensor_call(), which will be used for all sensor invocations.
-This is a preparation move to v4l2 device conversion, ie. soc_camera
-adherence removal.
+On 08/19/2016 12:23 PM, Sakari Ailus wrote:
+> devm functions are fine for managing resources that are directly related
+> to the device at hand and that have no other dependencies. However, a
+> process holding a file handle to a device created by a driver for a device
+> may result in the file handle left behind after the device is long gone.
+> This will result in accessing released (and potentially reallocated)
+> memory.
+> 
+> Instead, rely on the media device which will stick around until all users
+> are gone.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/platform/omap3isp/isp.c         | 38 ++++++++++++++++++++-------
+>  drivers/media/platform/omap3isp/ispccp2.c     |  3 ++-
+>  drivers/media/platform/omap3isp/isph3a_aewb.c | 20 +++++++++-----
+>  drivers/media/platform/omap3isp/isph3a_af.c   | 20 +++++++++-----
+>  drivers/media/platform/omap3isp/isphist.c     |  5 ++--
+>  drivers/media/platform/omap3isp/ispstat.c     |  2 ++
+>  6 files changed, 63 insertions(+), 25 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+> index 217d4da..3488ed3 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -1370,7 +1370,7 @@ static int isp_get_clocks(struct isp_device *isp)
+>  	unsigned int i;
+>  
+>  	for (i = 0; i < ARRAY_SIZE(isp_clocks); ++i) {
+> -		clk = devm_clk_get(isp->dev, isp_clocks[i]);
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/platform/soc_camera/pxa_camera.c | 27 ++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+I wonder, would it be possible to use the media device itself for these devm_
+functions? Since the media device is the last one to be released...
 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index 9d7c30cb1463..9870c53e0ec2 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -168,6 +168,9 @@
- 			CICR0_PERRM | CICR0_QDM | CICR0_CDM | CICR0_SOFM | \
- 			CICR0_EOFM | CICR0_FOM)
- 
-+#define sensor_call(cam, o, f, args...) \
-+	v4l2_subdev_call(sd, o, f, ##args)
-+
- /*
-  * Structures
-  */
-@@ -731,7 +734,7 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
- 	unsigned long dw, bpp;
- 	u32 cicr0, cicr1, cicr2, cicr3, cicr4 = 0, y_skip_top;
--	int ret = v4l2_subdev_call(sd, sensor, g_skip_top_lines, &y_skip_top);
-+	int ret = sensor_call(pcdev, sensor, g_skip_top_lines, &y_skip_top);
- 
- 	if (ret < 0)
- 		y_skip_top = 0;
-@@ -1073,7 +1076,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
- 	if (ret < 0)
- 		return ret;
- 
--	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
-+	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
- 	if (!ret) {
- 		common_flags = soc_mbus_config_compatible(&cfg,
- 							  bus_flags);
-@@ -1117,7 +1120,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
- 	}
- 
- 	cfg.flags = common_flags;
--	ret = v4l2_subdev_call(sd, video, s_mbus_config, &cfg);
-+	ret = sensor_call(pcdev, video, s_mbus_config, &cfg);
- 	if (ret < 0 && ret != -ENOIOCTLCMD) {
- 		dev_dbg(icd->parent, "camera s_mbus_config(0x%lx) returned %d\n",
- 			common_flags, ret);
-@@ -1144,7 +1147,7 @@ static int pxa_camera_try_bus_param(struct soc_camera_device *icd,
- 	if (ret < 0)
- 		return ret;
- 
--	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
-+	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
- 	if (!ret) {
- 		common_flags = soc_mbus_config_compatible(&cfg,
- 							  bus_flags);
-@@ -1195,7 +1198,7 @@ static int pxa_camera_get_formats(struct soc_camera_device *icd, unsigned int id
- 	};
- 	const struct soc_mbus_pixelfmt *fmt;
- 
--	ret = v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code);
-+	ret = sensor_call(pcdev, pad, enum_mbus_code, NULL, &code);
- 	if (ret < 0)
- 		/* No more formats */
- 		return 0;
-@@ -1297,7 +1300,7 @@ static int pxa_camera_set_crop(struct soc_camera_device *icd,
- 	if (pcdev->platform_flags & PXA_CAMERA_PCLK_EN)
- 		icd->sense = &sense;
- 
--	ret = v4l2_subdev_call(sd, video, s_crop, a);
-+	ret = sensor_call(pcdev, video, s_crop, a);
- 
- 	icd->sense = NULL;
- 
-@@ -1307,7 +1310,7 @@ static int pxa_camera_set_crop(struct soc_camera_device *icd,
- 		return ret;
- 	}
- 
--	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
-+	ret = sensor_call(pcdev, pad, get_fmt, NULL, &fmt);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -1319,7 +1322,7 @@ static int pxa_camera_set_crop(struct soc_camera_device *icd,
- 		v4l_bound_align_image(&mf->width, 48, 2048, 1,
- 			&mf->height, 32, 2048, 0,
- 			fourcc == V4L2_PIX_FMT_YUV422P ? 4 : 0);
--		ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &fmt);
-+		ret = sensor_call(pcdev, pad, set_fmt, NULL, &fmt);
- 		if (ret < 0)
- 			return ret;
- 
-@@ -1384,7 +1387,7 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
- 	mf->colorspace	= pix->colorspace;
- 	mf->code	= xlate->code;
- 
--	ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &format);
-+	ret = sensor_call(pcdev, pad, set_fmt, NULL, &format);
- 
- 	if (mf->code != xlate->code)
- 		return -EINVAL;
-@@ -1459,7 +1462,7 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
- 	mf->colorspace	= pix->colorspace;
- 	mf->code	= xlate->code;
- 
--	ret = v4l2_subdev_call(sd, pad, set_fmt, &pad_cfg, &format);
-+	ret = sensor_call(pcdev, pad, set_fmt, &pad_cfg, &format);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -1517,7 +1520,7 @@ static int pxa_camera_suspend(struct device *dev)
- 
- 	if (pcdev->soc_host.icd) {
- 		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
--		ret = v4l2_subdev_call(sd, core, s_power, 0);
-+		ret = sensor_call(pcdev, core, s_power, 0);
- 		if (ret == -ENOIOCTLCMD)
- 			ret = 0;
- 	}
-@@ -1539,7 +1542,7 @@ static int pxa_camera_resume(struct device *dev)
- 
- 	if (pcdev->soc_host.icd) {
- 		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
--		ret = v4l2_subdev_call(sd, core, s_power, 1);
-+		ret = sensor_call(pcdev, core, s_power, 1);
- 		if (ret == -ENOIOCTLCMD)
- 			ret = 0;
- 	}
--- 
-2.1.4
+Regards,
 
+	Hans
+
+> +		clk = clk_get(isp->dev, isp_clocks[i]);
+>  		if (IS_ERR(clk)) {
+>  			dev_err(isp->dev, "clk_get %s failed\n", isp_clocks[i]);
+>  			return PTR_ERR(clk);
+> @@ -1382,6 +1382,14 @@ static int isp_get_clocks(struct isp_device *isp)
+>  	return 0;
+>  }
+>  
+> +static void isp_put_clocks(struct isp_device *isp)
+> +{
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(isp_clocks); ++i)
+> +		clk_put(isp->clock[i]);
+> +}
+> +
+>  /*
+>   * omap3isp_get - Acquire the ISP resource.
+>   *
+> @@ -1596,7 +1604,6 @@ static void isp_unregister_entities(struct isp_device *isp)
+>  	omap3isp_stat_unregister_entities(&isp->isp_af);
+>  	omap3isp_stat_unregister_entities(&isp->isp_hist);
+>  
+> -	v4l2_device_unregister(&isp->v4l2_dev);
+>  	media_device_unregister(isp->media_dev);
+>  }
+>  
+> @@ -1952,6 +1959,8 @@ static void isp_release(struct media_device *mdev)
+>  {
+>  	struct isp_device *isp = media_device_priv(mdev);
+>  
+> +	v4l2_device_unregister(&isp->v4l2_dev);
+> +
+>  	isp_cleanup_modules(isp);
+>  	isp_xclk_cleanup(isp);
+>  
+> @@ -1960,6 +1969,10 @@ static void isp_release(struct media_device *mdev)
+>  	__omap3isp_put(isp, false);
+>  
+>  	media_entity_enum_cleanup(&isp->crashed);
+> +
+> +	isp_put_clocks(isp);
+> +
+> +	kfree(isp);
+>  }
+>  
+>  static int isp_attach_iommu(struct isp_device *isp)
+> @@ -2212,7 +2225,7 @@ static int isp_probe(struct platform_device *pdev)
+>  	int ret;
+>  	int i, m;
+>  
+> -	isp = devm_kzalloc(&pdev->dev, sizeof(*isp), GFP_KERNEL);
+> +	isp = kzalloc(sizeof(*isp), GFP_KERNEL);
+>  	if (!isp) {
+>  		dev_err(&pdev->dev, "could not allocate memory\n");
+>  		return -ENOMEM;
+> @@ -2221,21 +2234,23 @@ static int isp_probe(struct platform_device *pdev)
+>  	ret = of_property_read_u32(pdev->dev.of_node, "ti,phy-type",
+>  				   &isp->phy_type);
+>  	if (ret)
+> -		return ret;
+> +		goto error_release_isp;
+>  
+>  	isp->syscon = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
+>  						      "syscon");
+> -	if (IS_ERR(isp->syscon))
+> -		return PTR_ERR(isp->syscon);
+> +	if (IS_ERR(isp->syscon)) {
+> +		ret = PTR_ERR(isp->syscon);
+> +		goto error_release_isp;
+> +	}
+>  
+>  	ret = of_property_read_u32_index(pdev->dev.of_node, "syscon", 1,
+>  					 &isp->syscon_offset);
+>  	if (ret)
+> -		return ret;
+> +		goto error_release_isp;
+>  
+>  	ret = isp_of_parse_nodes(&pdev->dev, &isp->notifier);
+>  	if (ret < 0)
+> -		return ret;
+> +		goto error_release_isp;
+>  
+>  	isp->autoidle = autoidle;
+>  
+> @@ -2252,8 +2267,8 @@ static int isp_probe(struct platform_device *pdev)
+>  	platform_set_drvdata(pdev, isp);
+>  
+>  	/* Regulators */
+> -	isp->isp_csiphy1.vdd = devm_regulator_get(&pdev->dev, "vdd-csiphy1");
+> -	isp->isp_csiphy2.vdd = devm_regulator_get(&pdev->dev, "vdd-csiphy2");
+> +	isp->isp_csiphy1.vdd = regulator_get(&pdev->dev, "vdd-csiphy1");
+> +	isp->isp_csiphy2.vdd = regulator_get(&pdev->dev, "vdd-csiphy2");
+>  
+>  	/* Clocks
+>  	 *
+> @@ -2385,6 +2400,9 @@ error_isp:
+>  	__omap3isp_put(isp, false);
+>  error:
+>  	mutex_destroy(&isp->isp_mutex);
+> +	isp_put_clocks(isp);
+> +error_release_isp:
+> +	kfree(isp);
+>  
+>  	return ret;
+>  }
+> diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
+> index ca09523..d49ce8a 100644
+> --- a/drivers/media/platform/omap3isp/ispccp2.c
+> +++ b/drivers/media/platform/omap3isp/ispccp2.c
+> @@ -1135,7 +1135,7 @@ int omap3isp_ccp2_init(struct isp_device *isp)
+>  	 * TODO: Don't hardcode the usage of PHY1 (shared with CSI2c).
+>  	 */
+>  	if (isp->revision == ISP_REVISION_2_0) {
+> -		ccp2->vdds_csib = devm_regulator_get(isp->dev, "vdds_csib");
+> +		ccp2->vdds_csib = regulator_get(isp->dev, "vdds_csib");
+>  		if (IS_ERR(ccp2->vdds_csib)) {
+>  			dev_dbg(isp->dev,
+>  				"Could not get regulator vdds_csib\n");
+> @@ -1163,4 +1163,5 @@ void omap3isp_ccp2_cleanup(struct isp_device *isp)
+>  
+>  	omap3isp_video_cleanup(&ccp2->video_in);
+>  	media_entity_cleanup(&ccp2->subdev.entity);
+> +	regulator_put(ccp2->vdds_csib);
+>  }
+> diff --git a/drivers/media/platform/omap3isp/isph3a_aewb.c b/drivers/media/platform/omap3isp/isph3a_aewb.c
+> index ccaf92f..130df8b 100644
+> --- a/drivers/media/platform/omap3isp/isph3a_aewb.c
+> +++ b/drivers/media/platform/omap3isp/isph3a_aewb.c
+> @@ -289,9 +289,10 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
+>  {
+>  	struct ispstat *aewb = &isp->isp_aewb;
+>  	struct omap3isp_h3a_aewb_config *aewb_cfg;
+> -	struct omap3isp_h3a_aewb_config *aewb_recover_cfg;
+> +	struct omap3isp_h3a_aewb_config *aewb_recover_cfg = NULL;
+> +	int ret;
+>  
+> -	aewb_cfg = devm_kzalloc(isp->dev, sizeof(*aewb_cfg), GFP_KERNEL);
+> +	aewb_cfg = kzalloc(sizeof(*aewb_cfg), GFP_KERNEL);
+>  	if (!aewb_cfg)
+>  		return -ENOMEM;
+>  
+> @@ -301,12 +302,12 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
+>  	aewb->isp = isp;
+>  
+>  	/* Set recover state configuration */
+> -	aewb_recover_cfg = devm_kzalloc(isp->dev, sizeof(*aewb_recover_cfg),
+> -					GFP_KERNEL);
+> +	aewb_recover_cfg = kzalloc(sizeof(*aewb_recover_cfg), GFP_KERNEL);
+>  	if (!aewb_recover_cfg) {
+>  		dev_err(aewb->isp->dev, "AEWB: cannot allocate memory for "
+>  					"recover configuration.\n");
+> -		return -ENOMEM;
+> +		ret = -ENOMEM;
+> +		goto err;
+>  	}
+>  
+>  	aewb_recover_cfg->saturation_limit = OMAP3ISP_AEWB_MAX_SATURATION_LIM;
+> @@ -323,13 +324,20 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
+>  	if (h3a_aewb_validate_params(aewb, aewb_recover_cfg)) {
+>  		dev_err(aewb->isp->dev, "AEWB: recover configuration is "
+>  					"invalid.\n");
+> -		return -EINVAL;
+> +		ret = -EINVAL;
+> +		goto err;
+>  	}
+>  
+>  	aewb_recover_cfg->buf_size = h3a_aewb_get_buf_size(aewb_recover_cfg);
+>  	aewb->recover_priv = aewb_recover_cfg;
+>  
+>  	return omap3isp_stat_init(aewb, "AEWB", &h3a_aewb_subdev_ops);
+> +
+> +err:
+> +	kfree(aewb_cfg);
+> +	kfree(aewb_recover_cfg);
+> +
+> +	return ret;
+>  }
+>  
+>  /*
+> diff --git a/drivers/media/platform/omap3isp/isph3a_af.c b/drivers/media/platform/omap3isp/isph3a_af.c
+> index 92937f7..7eecf97 100644
+> --- a/drivers/media/platform/omap3isp/isph3a_af.c
+> +++ b/drivers/media/platform/omap3isp/isph3a_af.c
+> @@ -352,9 +352,10 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
+>  {
+>  	struct ispstat *af = &isp->isp_af;
+>  	struct omap3isp_h3a_af_config *af_cfg;
+> -	struct omap3isp_h3a_af_config *af_recover_cfg;
+> +	struct omap3isp_h3a_af_config *af_recover_cfg = NULL;
+> +	int ret;
+>  
+> -	af_cfg = devm_kzalloc(isp->dev, sizeof(*af_cfg), GFP_KERNEL);
+> +	af_cfg = kzalloc(sizeof(*af_cfg), GFP_KERNEL);
+>  	if (af_cfg == NULL)
+>  		return -ENOMEM;
+>  
+> @@ -364,12 +365,12 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
+>  	af->isp = isp;
+>  
+>  	/* Set recover state configuration */
+> -	af_recover_cfg = devm_kzalloc(isp->dev, sizeof(*af_recover_cfg),
+> -				      GFP_KERNEL);
+> +	af_recover_cfg = kzalloc(sizeof(*af_recover_cfg), GFP_KERNEL);
+>  	if (!af_recover_cfg) {
+>  		dev_err(af->isp->dev, "AF: cannot allocate memory for recover "
+>  				      "configuration.\n");
+> -		return -ENOMEM;
+> +		ret = -ENOMEM;
+> +		goto err;
+>  	}
+>  
+>  	af_recover_cfg->paxel.h_start = OMAP3ISP_AF_PAXEL_HZSTART_MIN;
+> @@ -381,13 +382,20 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
+>  	if (h3a_af_validate_params(af, af_recover_cfg)) {
+>  		dev_err(af->isp->dev, "AF: recover configuration is "
+>  				      "invalid.\n");
+> -		return -EINVAL;
+> +		ret = -EINVAL;
+> +		goto err;
+>  	}
+>  
+>  	af_recover_cfg->buf_size = h3a_af_get_buf_size(af_recover_cfg);
+>  	af->recover_priv = af_recover_cfg;
+>  
+>  	return omap3isp_stat_init(af, "AF", &h3a_af_subdev_ops);
+> +
+> +err:
+> +	kfree(af_cfg);
+> +	kfree(af_recover_cfg);
+> +
+> +	return ret;
+>  }
+>  
+>  void omap3isp_h3a_af_cleanup(struct isp_device *isp)
+> diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
+> index 7138b04..976cab0 100644
+> --- a/drivers/media/platform/omap3isp/isphist.c
+> +++ b/drivers/media/platform/omap3isp/isphist.c
+> @@ -477,9 +477,9 @@ int omap3isp_hist_init(struct isp_device *isp)
+>  {
+>  	struct ispstat *hist = &isp->isp_hist;
+>  	struct omap3isp_hist_config *hist_cfg;
+> -	int ret = -1;
+> +	int ret;
+>  
+> -	hist_cfg = devm_kzalloc(isp->dev, sizeof(*hist_cfg), GFP_KERNEL);
+> +	hist_cfg = kzalloc(sizeof(*hist_cfg), GFP_KERNEL);
+>  	if (hist_cfg == NULL)
+>  		return -ENOMEM;
+>  
+> @@ -517,6 +517,7 @@ int omap3isp_hist_init(struct isp_device *isp)
+>  	if (ret) {
+>  		if (hist->dma_ch)
+>  			dma_release_channel(hist->dma_ch);
+> +		kfree(hist_cfg);
+>  	}
+>  
+>  	return ret;
+> diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
+> index 1b9217d..1c1365f 100644
+> --- a/drivers/media/platform/omap3isp/ispstat.c
+> +++ b/drivers/media/platform/omap3isp/ispstat.c
+> @@ -1059,4 +1059,6 @@ void omap3isp_stat_cleanup(struct ispstat *stat)
+>  	mutex_destroy(&stat->ioctl_lock);
+>  	isp_stat_bufs_free(stat);
+>  	kfree(stat->buf);
+> +	kfree(stat->priv);
+> +	kfree(stat->recover_priv);
+>  }
+> 
