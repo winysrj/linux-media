@@ -1,71 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:1972 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937473AbcHJSoM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2016 14:44:12 -0400
-From: Jani Nikula <jani.nikula@intel.com>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: Re: parts of media docs sphinx re-building every time?
-In-Reply-To: <6D7865EB-9C40-4B8F-8D8F-3B28024624F3@darmarit.de>
-References: <8760rbp8zh.fsf@intel.com> <6D7865EB-9C40-4B8F-8D8F-3B28024624F3@darmarit.de>
-Date: Wed, 10 Aug 2016 12:15:34 +0300
-Message-ID: <87mvklvvbd.fsf@intel.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43533 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751168AbcHVM00 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 08:26:26 -0400
+Subject: Re: [RFC v2 12/17] v4l: Acquire a reference to the media device for
+ every video device
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1471602228-30722-13-git-send-email-sakari.ailus@linux.intel.com>
+Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e737280e-95b0-af13-27d1-cb8207d3da02@xs4all.nl>
+Date: Mon, 22 Aug 2016 14:25:25 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1471602228-30722-13-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 08 Aug 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
-> Hi Jani,
->
-> Am 08.08.2016 um 17:37 schrieb Jani Nikula <jani.nikula@intel.com>:
->
->> 
->> Hi Mauro & co -
->> 
->> I just noticed running 'make htmldocs' rebuilds parts of media docs
->> every time on repeated runs. This shouldn't happen. Please investigate.
->> 
->> I wonder if it's related to Documentation/media/Makefile... which I have
->> to say I am not impressed by. I was really hoping we could build all the
->> documentation by standalone sphinx-build invocation too, relying only on
->> the conf.py so that e.g. Read the Docs can build the docs. Part of that
->> motivation was to keep the build clean in makefiles, and handing the
->> dependency tracking completely to Sphinx.
->> 
->> I believe what's in Documentation/media/Makefile,
->> Documentation/sphinx/parse-headers.pl, and
->> Documentation/sphinx/kernel_include.py could be replaced by a Sphinx
->> extension looking at the sources directly.
->
-> Yes, parse-headers.pl, kernel_include.py and media/Makefile are needed
-> for one feature ... not very straight forward.
->
-> If it makes sense to migrate the perl scripts functionality to a
-> Sphinx extension, may I can help ... depends on what Mauro thinks.
->
-> BTW: parse-headers.pl is not the only perl script I like to migrate to py ;)
+On 08/19/2016 12:23 PM, Sakari Ailus wrote:
+> The video device depends on the existence of its media device --- if there
+> is one. Acquire a reference to it.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-If I understand the need of all of this right, I think the cleanest and
-fastest short term measure would be to make the kernel-include directive
-extension do the same thing as the kernel-doc directive does: call the
-perl script from the directive.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-This lets you get rid of Documentation/media/Makefile and you don't have
-to copy-paste all of Include.run method into kernel_include.py. You can
-also get rid of specifying environment variables in rst files and
-parsing them in the extension. We can get rid of the problematic
-intermediate rst files. This design has been proven with the kernel-doc
-extension and script already. It's much simpler.
-
-BR,
-Jani.
-
-
--- 
-Jani Nikula, Intel Open Source Technology Center
+> ---
+>  drivers/media/v4l2-core/v4l2-dev.c | 13 +++++++++++--
+>  1 file changed, 11 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index e6da353..cda04ff 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -171,6 +171,9 @@ static void v4l2_device_release(struct device *cd)
+>  {
+>  	struct video_device *vdev = to_video_device(cd);
+>  	struct v4l2_device *v4l2_dev = vdev->v4l2_dev;
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +	struct media_device *mdev = v4l2_dev->mdev;
+> +#endif
+>  
+>  	mutex_lock(&videodev_lock);
+>  	if (WARN_ON(video_device[vdev->minor] != vdev)) {
+> @@ -193,8 +196,8 @@ static void v4l2_device_release(struct device *cd)
+>  
+>  	mutex_unlock(&videodev_lock);
+>  
+> -#if defined(CONFIG_MEDIA_CONTROLLER)
+> -	if (v4l2_dev->mdev) {
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +	if (mdev) {
+>  		/* Remove interfaces and interface links */
+>  		media_devnode_remove(vdev->intf_devnode);
+>  		if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
+> @@ -220,6 +223,11 @@ static void v4l2_device_release(struct device *cd)
+>  	/* Decrease v4l2_device refcount */
+>  	if (v4l2_dev)
+>  		v4l2_device_put(v4l2_dev);
+> +
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +	if (mdev)
+> +		media_device_put(mdev);
+> +#endif
+>  }
+>  
+>  static struct class video_class = {
+> @@ -808,6 +816,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
+>  
+>  	/* FIXME: how to create the other interface links? */
+>  
+> +	media_device_get(vdev->v4l2_dev->mdev);
+>  #endif
+>  	return 0;
+>  }
+> 
