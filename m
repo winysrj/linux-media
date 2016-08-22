@@ -1,67 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33743 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751148AbcHLJAJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2016 05:00:09 -0400
-Received: by mail-wm0-f68.google.com with SMTP id o80so1692280wme.0
-        for <linux-media@vger.kernel.org>; Fri, 12 Aug 2016 02:00:09 -0700 (PDT)
-Date: Fri, 12 Aug 2016 10:44:41 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, corbet@lwn.net
-Subject: Re: [RFC 2/4] dma-buf/fence: kerneldoc: remove spurious section
- header
-Message-ID: <20160812084441.GR6232@phenom.ffwll.local>
-References: <1470912480-32304-1-git-send-email-sumit.semwal@linaro.org>
- <1470912480-32304-3-git-send-email-sumit.semwal@linaro.org>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:59541 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752632AbcHVK5x (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 06:57:53 -0400
+Subject: Re: [PATCH v5] [media] vimc: Virtual Media Controller core, capture
+ and sensor
+To: Helen Koike <helen.koike@collabora.co.uk>,
+        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        jgebben@codeaurora.org, mchehab@osg.samsung.com
+References: <5aae6086-6ba3-c278-ec48-043b17b4aa33@xs4all.nl>
+ <1471471756-6114-1-git-send-email-helen.koike@collabora.co.uk>
+Cc: Helen Fornazier <helen.fornazier@gmail.com>,
+        Helen Koike <helen.koike@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ee909db9-eb2b-d81a-347a-fe12112aa1cf@xs4all.nl>
+Date: Mon, 22 Aug 2016 12:57:45 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1470912480-32304-3-git-send-email-sumit.semwal@linaro.org>
+In-Reply-To: <1471471756-6114-1-git-send-email-helen.koike@collabora.co.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 11, 2016 at 04:17:58PM +0530, Sumit Semwal wrote:
-> Commit e941759c74a44d6ac2eed21bb0a38b21fe4559e2 ("fence: dma-buf
-> cross-device synchronization (v18)") had a spurious kerneldoc section
-> header that caused Sphinx to complain. Fix it.
-> 
-> Fixes: e941759c74a4 ("fence: dma-buf cross-device synchronization (v18)")
-> 
-> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+Hi Helen,
 
-On patches 1&2 Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+A few small code comments are below.
 
+Note that if I try to capture I see these two messages in the kernel log:
 
-> ---
->  include/linux/fence.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+[588197.368145] vimc vimc.0: Entity type for entity Sensor A was not initialized!
+[588197.368169] vimc vimc.0: Entity type for entity Sensor B was not initialized!
+
+I also can't capture anything: v4l2-ctl --stream-mmap just sits there, waiting for
+frames, I guess.
+
+I'm not sure if that has to do with the two warnings above.
+
+I am assuming that the initial pipeline is correct and that you should be able
+to start streaming. If not, then attempting to start streaming should return an
+error.
+
+On 08/18/2016 12:09 AM, Helen Koike wrote:
+> From: Helen Fornazier <helen.fornazier@gmail.com>
 > 
-> diff --git a/include/linux/fence.h b/include/linux/fence.h
-> index 5aa95eb886f7..5de89dab0013 100644
-> --- a/include/linux/fence.h
-> +++ b/include/linux/fence.h
-> @@ -60,7 +60,7 @@ struct fence_cb;
->   * implementer of the fence for its own purposes. Can be used in different
->   * ways by different fence implementers, so do not rely on this.
->   *
-> - * *) Since atomic bitops are used, this is not guaranteed to be the case.
-> + * Since atomic bitops are used, this is not guaranteed to be the case.
->   * Particularly, if the bit was set, but fence_signal was called right
->   * before this bit was set, it would have been able to set the
->   * FENCE_FLAG_SIGNALED_BIT, before enable_signaling was called.
-> -- 
-> 2.7.4
+> First version of the Virtual Media Controller.
+> Add a simple version of the core of the driver, the capture and
+> sensor nodes in the topology, generating a grey image in a hardcoded
+> format.
 > 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+> Signed-off-by: Helen Koike <helen.koike@collabora.com>
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+<snip>
+
+> +static int vimc_cap_querycap(struct file *file, void *priv,
+> +			     struct v4l2_capability *cap)
+> +{
+> +	struct vimc_cap_device *vcap = video_drvdata(file);
+> +
+> +	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
+> +	strlcpy(cap->card, KBUILD_MODNAME, sizeof(cap->card));
+> +	snprintf(cap->bus_info, sizeof(cap->bus_info),
+> +		 "platform:%s", vcap->v4l2_dev->name);
+> +
+> +	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+
+This line should be moved to vimc_cap_create:
+
+	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+
+This is new. The v4l2 core will fill in the querycap capabilities for you
+based on vdev->device_caps.
+
+> +
+> +	return 0;
+> +}
+
+<snip>
+
+> +static int vimc_device_register(struct vimc_device *vimc)
+> +{
+> +	unsigned int i;
+> +	int ret = 0;
+> +
+> +	/* Allocate memory for the vimc_ent_devices pointers */
+> +	vimc->ved = devm_kcalloc(vimc->mdev.dev, vimc->pipe_cfg->num_ents,
+> +				 sizeof(*vimc->ved), GFP_KERNEL);
+> +	if (!vimc->ved)
+> +		return -ENOMEM;
+> +
+> +	/* Register the media device */
+> +	ret = media_device_register(&vimc->mdev);
+> +	if (ret) {
+> +		dev_err(vimc->mdev.dev,
+> +			"media device register failed (err=%d)\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	/* Link the media device within the v4l2_device */
+> +	vimc->v4l2_dev.mdev = &vimc->mdev;
+> +
+> +	/* Register the v4l2 struct */
+> +	ret = v4l2_device_register(vimc->mdev.dev, &vimc->v4l2_dev);
+> +	if (ret) {
+> +		dev_err(vimc->mdev.dev,
+> +			"v4l2 device register failed (err=%d)\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	/* Initialize entities */
+> +	for (i = 0; i < vimc->pipe_cfg->num_ents; i++) {
+> +		struct vimc_ent_device *(*create_func)(struct v4l2_device *,
+> +						       const char *const,
+> +						       u16,
+> +						       const unsigned long *);
+> +
+> +		/* Register the specific node */
+> +		switch (vimc->pipe_cfg->ents[i].node) {
+> +		case VIMC_ENT_NODE_SENSOR:
+> +			create_func = vimc_sen_create;
+> +			break;
+> +
+> +		case VIMC_ENT_NODE_CAPTURE:
+> +			create_func = vimc_cap_create;
+> +			break;
+> +
+> +		/* TODO: Instantiate the specific topology node */
+> +		case VIMC_ENT_NODE_INPUT:
+> +		case VIMC_ENT_NODE_DEBAYER:
+> +		case VIMC_ENT_NODE_SCALER:
+> +		default:
+> +			/* TODO: remove this when all the entities specific
+> +			 * code are implemented
+> +			 */
+> +			create_func = vimc_raw_create;
+> +			break;
+> +		}
+> +
+> +		vimc->ved[i] = create_func(&vimc->v4l2_dev,
+> +					   vimc->pipe_cfg->ents[i].name,
+> +					   vimc->pipe_cfg->ents[i].pads_qty,
+> +					   vimc->pipe_cfg->ents[i].pads_flag);
+> +		if (IS_ERR(vimc->ved[i])) {
+> +			ret = PTR_ERR(vimc->ved[i]);
+> +			vimc->ved[i] = NULL;
+> +			goto err;
+> +		}
+> +
+> +		/* Set use_count to keep track of the ved structure */
+> +		vimc->ved[i]->ent->use_count = i;
+> +	}
+> +
+> +	/* Initialize the links between entities */
+> +	for (i = 0; i < vimc->pipe_cfg->num_links; i++) {
+> +		const struct vimc_ent_link *link = &vimc->pipe_cfg->links[i];
+> +
+> +		ret = media_create_pad_link(vimc->ved[link->src_ent]->ent,
+> +					    link->src_pad,
+> +					    vimc->ved[link->sink_ent]->ent,
+> +					    link->sink_pad,
+> +					    link->flags);
+> +		if (ret)
+> +			goto err;
+> +	}
+> +
+> +	/* Expose all subdev's nodes*/
+> +	ret = v4l2_device_register_subdev_nodes(&vimc->v4l2_dev);
+> +	if (ret) {
+> +		dev_err(vimc->mdev.dev,
+> +			"vimc subdev nodes registration failed (err=%d)\n",
+> +			ret);
+> +		goto err;
+> +	}
+> +
+> +	return 0;
+> +
+> +err:
+> +	/* Destroy de so far created topology */
+
+s/de/the/
+
+> +	vimc_device_unregister(vimc);
+> +
+> +	return ret;
+> +}
+
+Regards,
+
+	Hans
