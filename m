@@ -1,112 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:36125 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750999AbcHZHpj (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36612 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753052AbcHVNw3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Aug 2016 03:45:39 -0400
-Subject: Re: [RFC PATCH 5/7] ov7670: add devicetree support
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
- <1471415383-38531-6-git-send-email-hverkuil@xs4all.nl>
- <3513546.0HAk52lbkG@avalon>
-Cc: linux-media@vger.kernel.org, Songjun Wu <songjun.wu@microchip.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <86f01ea7-984c-0b9e-477a-c04f61d44db1@xs4all.nl>
-Date: Fri, 26 Aug 2016 09:45:25 +0200
+        Mon, 22 Aug 2016 09:52:29 -0400
+Date: Mon, 22 Aug 2016 16:52:24 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, m.chehab@osg.samsung.com,
+        shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com
+Subject: Re: [RFC v2 08/17] media-device: Make devnode.dev->kobj parent of
+ devnode.cdev
+Message-ID: <20160822135224.GD12130@valkosipuli.retiisi.org.uk>
+References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1471602228-30722-9-git-send-email-sakari.ailus@linux.intel.com>
+ <d5315572-cd27-351c-0f39-d80f2974d652@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <3513546.0HAk52lbkG@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <d5315572-cd27-351c-0f39-d80f2974d652@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Mon, Aug 22, 2016 at 02:17:28PM +0200, Hans Verkuil wrote:
+> On 08/19/2016 12:23 PM, Sakari Ailus wrote:
+> > The struct cdev embedded in struct media_devnode contains its own kobj.
+> > Instead of trying to manage its lifetime separately from struct
+> > media_devnode, make the cdev kobj a parent of the struct media_device.dev
+> > kobj.
+> > 
+> > The cdev will thus be released during unregistering the media_devnode, not
+> > in media_devnode.dev kobj's release callback.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  drivers/media/media-devnode.c | 5 ++---
+> >  1 file changed, 2 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+> > index aa8030b..69f84a7 100644
+> > --- a/drivers/media/media-devnode.c
+> > +++ b/drivers/media/media-devnode.c
+> > @@ -63,9 +63,6 @@ static void media_devnode_release(struct device *cd)
+> >  
+> >  	mutex_lock(&media_devnode_lock);
+> >  
+> > -	/* Delete the cdev on this minor as well */
+> > -	cdev_del(&devnode->cdev);
+> > -
+> >  	/* Mark device node number as free */
+> >  	clear_bit(devnode->minor, media_devnode_nums);
+> >  
+> > @@ -246,6 +243,7 @@ int __must_check media_devnode_register(struct media_devnode *devnode,
+> >  
+> >  	/* Part 2: Initialize and register the character device */
+> >  	cdev_init(&devnode->cdev, &media_devnode_fops);
+> > +	devnode->cdev.kobj.parent = &devnode->dev.kobj;
+> >  	devnode->cdev.owner = owner;
+> >  
+> >  	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
+> > @@ -291,6 +289,7 @@ void media_devnode_unregister(struct media_devnode *devnode)
+> >  	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
+> >  	mutex_unlock(&media_devnode_lock);
+> >  	device_unregister(&devnode->dev);
+> > +	cdev_del(&devnode->cdev);
+> 
+> Are you sure about this order? Shouldn't cdev_del be called first?
+> 
+> The register() calls cdev_add() before device_add(), so I would expect the
+> reverse order here. This is also what cec-core.c does.
 
-On 08/17/2016 02:44 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday 17 Aug 2016 08:29:41 Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Add DT support. Use it to get the reset and pwdn pins (if there are any).
->> Tested with one sensor requiring reset/pwdn and one sensor that doesn't
->> have reset/pwdn pins.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  .../devicetree/bindings/media/i2c/ov7670.txt       | 44 +++++++++++++++++
->>  MAINTAINERS                                        |  1 +
->>  drivers/media/i2c/ov7670.c                         | 51 +++++++++++++++++++
->>  3 files changed, 96 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/ov7670.txt
->> b/Documentation/devicetree/bindings/media/i2c/ov7670.txt new file mode
->> 100644
->> index 0000000..3231c47
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
->> @@ -0,0 +1,44 @@
->> +* Omnivision OV7670 CMOS sensor
->> +
->> +The Omnivision OV7670 sensor support multiple resolutions output, such as
-> 
-> s/support/supports/
-> 
->> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
->> +output format.
-> 
-> s/format/formats/ (and possibly s/can support/can support the/)
-> 
->> +
->> +Required Properties:
->> +- compatible: should be "ovti,ov7670"
->> +- clocks: reference to the xvclk input clock.
->> +- clock-names: should be "xvclk".
->> +
->> +Optional Properties:
->> +- resetb-gpios: reference to the GPIO connected to the resetb pin, if any.
->> +- pwdn-gpios: reference to the GPIO connected to the pwdn pin, if any.
->> +
->> +The device node must contain one 'port' child node for its digital output
->> +video port, in accordance with the video interface bindings defined in
->> +Documentation/devicetree/bindings/media/video-interfaces.txt.
->> +
->> +Example:
->> +
->> +	i2c1: i2c@f0018000 {
->> +		status = "okay";
->> +
->> +		ov7670: camera@0x21 {
->> +			compatible = "ovti,ov7670";
->> +			reg = <0x21>;
->> +			pinctrl-names = "default";
->> +			pinctrl-0 = <&pinctrl_pck0_as_isi_mck
->> &pinctrl_sensor_power
->> &pinctrl_sensor_reset>;
-> 
-> The pinctrl properties should be part of the clock provider DT node.
+Correct.
 
-Do you have examples of that?
+It's possible that device_unregister() releases the last reference to the
+struct device, which in turn causes the memory to be released.
 
-I just copied this from existing atmel dts code (arch/arm/boot/dts/sama5d3xmb.dtsi).
+I'll fix that.
 
-> 
->> +			resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
->> +			pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
->> +			clocks = <&pck0>;
->> +			clock-names = "xvclk";
->> +			assigned-clocks = <&pck0>;
->> +			assigned-clock-rates = <24000000>;
-> 
-> You should compute and set the clock rate dynamically in the driver, not 
-> hardcode it in DT.
-
-Do you have an example of that? Again, I just copied this from the same sama5d3xmb.dtsi.
-
-Regards,
-
-	Hans
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
