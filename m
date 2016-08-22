@@ -1,101 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:33148 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754154AbcHVJ2M (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 05:28:12 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Markus Heiser <markus.heiser@darmarIT.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-        Antti Palosaari <crope@iki.fi>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v5_2 10/12] [media] videodev2.h Add HSV encoding
-Date: Mon, 22 Aug 2016 11:28:07 +0200
-Message-Id: <1471858087-24528-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from smtp3-1.goneo.de ([85.220.129.38]:49909 "EHLO smtp3-1.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751139AbcHVJyF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 05:54:05 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH 2/2] v4l-utils: fixed dvbv5 vdr format
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <17EDB327-2244-42A4-A052-645D82CA94A4@darmarit.de>
+Date: Mon, 22 Aug 2016 11:53:50 +0200
+Content-Transfer-Encoding: 8BIT
+Message-Id: <98711254-BA6F-4A69-BDD3-6B32FCEF2689@darmarit.de>
+References: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de> <1470822739-29519-3-git-send-email-markus.heiser@darmarit.de> <17EDB327-2244-42A4-A052-645D82CA94A4@darmarit.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some hardware maps the Hue between 0 and 255 instead of 0-179. Support
-this format with a new field hsv_enc.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
+Am 16.08.2016 um 09:10 schrieb Markus Heiser <markus.heiser@darmarIT.de>:
 
-v5_2: s/s_rgb_or_yuv/s_rgb_or_hsv/
-Thanks Hans!!
- include/uapi/linux/videodev2.h | 32 +++++++++++++++++++++++++++-----
- 1 file changed, 27 insertions(+), 5 deletions(-)
+> Am 10.08.2016 um 11:52 schrieb Markus Heiser <markus.heiser@darmarIT.de>:
+> 
+>> The vdr format was broken, I got '(null)' entries
+>> 
+>> HD:11494:S1HC23I0M5N1O35:S:(null):22000:5101:5102,5103,5106,5108:0:0:10301:0:0:0:
+>> 0-:1----:2--------------:3:4-----:
+>> 
+>> refering to the VDR Wikis ...
+>> 
+>> * LinuxTV: http://www.linuxtv.org/vdrwiki/index.php/Syntax_of_channels.conf
+>> * german comunity Wiki: http://www.vdr-wiki.de/wiki/index.php/Channels.conf#Parameter_ab_VDR-1.7.4
+>> 
+>> There is no field at position 4 / in between "Source" and "SRate" which
+>> might have a value. I suppose the '(null):' is the result of pointing
+>> to *nothing*.
+>> 
+>> An other mistake is the ending colon (":") at the line. It is not
+>> explicit specified but adding an collon to the end of an channel entry
+>> will prevent players (like mpv or mplayer) from parsing the line (they
+>> will ignore these lines).
+>> 
+>> At least: generating a channel list with
+>> 
+>> dvbv5-scan --output-format=vdr ...
+>> 
+>> will result in the same defective channel entry, containing "(null):"
+>> and the leading collon ":".
+>> 
+> 
+> Hi,
+> 
+> please apply this patch or give me at least some feedback / thanks.
+> 
+> -- Markus ----
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 58ed8aedc196..baa874d91299 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -335,6 +335,19 @@ enum v4l2_ycbcr_encoding {
- };
- 
- /*
-+ * enum v4l2_hsv_encoding values should not collide with the ones from
-+ * enum v4l2_ycbcr_encoding.
-+ */
-+enum v4l2_hsv_encoding {
-+
-+	/* Hue mapped to 0 - 179 */
-+	V4L2_HSV_ENC_180		= 128,
-+
-+	/* Hue mapped to 0-255 */
-+	V4L2_HSV_ENC_256		= 129,
-+};
-+
-+/*
-  * Determine how YCBCR_ENC_DEFAULT should map to a proper Y'CbCr encoding.
-  * This depends on the colorspace.
-  */
-@@ -362,9 +375,10 @@ enum v4l2_quantization {
-  * This depends on whether the image is RGB or not, the colorspace and the
-  * Y'CbCr encoding.
-  */
--#define V4L2_MAP_QUANTIZATION_DEFAULT(is_rgb, colsp, ycbcr_enc) \
--	(((is_rgb) && (colsp) == V4L2_COLORSPACE_BT2020) ? V4L2_QUANTIZATION_LIM_RANGE : \
--	 (((is_rgb) || (ycbcr_enc) == V4L2_YCBCR_ENC_XV601 || \
-+#define V4L2_MAP_QUANTIZATION_DEFAULT(is_rgb_or_hsv, colsp, ycbcr_enc) \
-+	(((is_rgb_or_hsv) && (colsp) == V4L2_COLORSPACE_BT2020) ? \
-+	 V4L2_QUANTIZATION_LIM_RANGE : \
-+	 (((is_rgb_or_hsv) || (ycbcr_enc) == V4L2_YCBCR_ENC_XV601 || \
- 	  (ycbcr_enc) == V4L2_YCBCR_ENC_XV709 || (colsp) == V4L2_COLORSPACE_JPEG) || \
- 	  (colsp) == V4L2_COLORSPACE_ADOBERGB || (colsp) == V4L2_COLORSPACE_SRGB ? \
- 	 V4L2_QUANTIZATION_FULL_RANGE : V4L2_QUANTIZATION_LIM_RANGE))
-@@ -460,7 +474,12 @@ struct v4l2_pix_format {
- 	__u32			colorspace;	/* enum v4l2_colorspace */
- 	__u32			priv;		/* private data, depends on pixelformat */
- 	__u32			flags;		/* format flags (V4L2_PIX_FMT_FLAG_*) */
--	__u32			ycbcr_enc;	/* enum v4l2_ycbcr_encoding */
-+	union {
-+		/* enum v4l2_ycbcr_encoding */
-+		__u32			ycbcr_enc;
-+		/* enum v4l2_hsv_encoding */
-+		__u32			hsv_enc;
-+	};
- 	__u32			quantization;	/* enum v4l2_quantization */
- 	__u32			xfer_func;	/* enum v4l2_xfer_func */
- };
-@@ -1993,7 +2012,10 @@ struct v4l2_pix_format_mplane {
- 	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
- 	__u8				num_planes;
- 	__u8				flags;
--	__u8				ycbcr_enc;
-+	 union {
-+		__u8				ycbcr_enc;
-+		__u8				hsv_enc;
-+	};
- 	__u8				quantization;
- 	__u8				xfer_func;
- 	__u8				reserved[7];
--- 
-2.8.1
+Sorry for bumping ... but, since there is no reaction on the ML
+I have to bump :-(
 
+Please, please, please ...  apply this patch. The VDR format of
+the libdvbv5 is definitely broken!
+
+ https://patchwork.linuxtv.org/patch/36293/
+
+-- Markus 
