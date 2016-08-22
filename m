@@ -1,119 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:36703 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752100AbcHKUaK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 16:30:10 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	mchehab@osg.samsung.com
-Subject: [PATCH v4 1/5] media: Determine early whether an IOCTL is supported
-Date: Thu, 11 Aug 2016 23:29:14 +0300
-Message-Id: <1470947358-31168-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1470947358-31168-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1470947358-31168-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:49179 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750892AbcHVMFN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 08:05:13 -0400
+Subject: Re: [RFC v2 07/17] media: Split initialisation and adding device
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1471602228-30722-8-git-send-email-sakari.ailus@linux.intel.com>
+Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <3f658f69-e1c7-4f50-f656-d602e4e979f4@xs4all.nl>
+Date: Mon, 22 Aug 2016 14:05:07 +0200
+MIME-Version: 1.0
+In-Reply-To: <1471602228-30722-8-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Preparation for refactoring media IOCTL handling to unify common parts.
+On 08/19/2016 12:23 PM, Sakari Ailus wrote:
+> As registering a device node of an entity belonging to a media device
+> will require a reference to the struct device. Taking that reference is
+> only possible once the device has been initialised, which took place only
+> when it was registered. Split this in two, and initialise the device when
+> the media device is allocated.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-device.c | 54 ++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 52 insertions(+), 2 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 1795abe..aedd64e 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -419,13 +419,41 @@ static long media_device_get_topology(struct media_device *mdev,
- 	return 0;
- }
- 
--static long media_device_ioctl(struct file *filp, unsigned int cmd,
--			       unsigned long arg)
-+#define MEDIA_IOC(__cmd) \
-+	[_IOC_NR(MEDIA_IOC_##__cmd)] = { .cmd = MEDIA_IOC_##__cmd }
-+
-+/* the table is indexed by _IOC_NR(cmd) */
-+struct media_ioctl_info {
-+	unsigned int cmd;
-+};
-+
-+static const struct media_ioctl_info ioctl_info[] = {
-+	MEDIA_IOC(DEVICE_INFO),
-+	MEDIA_IOC(ENUM_ENTITIES),
-+	MEDIA_IOC(ENUM_LINKS),
-+	MEDIA_IOC(SETUP_LINK),
-+	MEDIA_IOC(G_TOPOLOGY),
-+};
-+
-+static inline long is_valid_ioctl(const struct media_ioctl_info *info,
-+				  unsigned int cmd)
-+{
-+	return (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
-+		|| info[_IOC_NR(cmd)].cmd != cmd) ? -ENOIOCTLCMD : 0;
-+}
-+
-+static long __media_device_ioctl(
-+	struct file *filp, unsigned int cmd, void __user *arg,
-+	const struct media_ioctl_info *info_array)
- {
- 	struct media_devnode *devnode = media_devnode_data(filp);
- 	struct media_device *dev = devnode->media_dev;
- 	long ret;
- 
-+	ret = is_valid_ioctl(info_array, cmd);
-+	if (ret)
-+		return ret;
-+
- 	mutex_lock(&dev->graph_mutex);
- 	switch (cmd) {
- 	case MEDIA_IOC_DEVICE_INFO:
-@@ -461,6 +489,13 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 	return ret;
- }
- 
-+static long media_device_ioctl(struct file *filp, unsigned int cmd,
-+			       unsigned long arg)
-+{
-+	return __media_device_ioctl(
-+		filp, cmd, (void __user *)arg, ioctl_info);
-+}
-+
- #ifdef CONFIG_COMPAT
- 
- struct media_links_enum32 {
-@@ -491,6 +526,14 @@ static long media_device_enum_links32(struct media_device *mdev,
- 
- #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, struct media_links_enum32)
- 
-+static const struct media_ioctl_info compat_ioctl_info[] = {
-+	MEDIA_IOC(DEVICE_INFO),
-+	MEDIA_IOC(ENUM_ENTITIES),
-+	MEDIA_IOC(ENUM_LINKS32),
-+	MEDIA_IOC(SETUP_LINK),
-+	MEDIA_IOC(G_TOPOLOGY),
-+};
-+
- static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
- 				      unsigned long arg)
- {
-@@ -498,6 +541,13 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
- 	struct media_device *dev = devnode->media_dev;
- 	long ret;
- 
-+	/*
-+	 * The number of supported IOCTLs is the same for both regular and
-+	 * compat cases. Instead of passing the sizes around, ensure that
-+	 * they match.
-+	 */
-+	BUILD_BUG_ON(ARRAY_SIZE(ioctl_info) != ARRAY_SIZE(compat_ioctl_info));
-+
- 	switch (cmd) {
- 	case MEDIA_IOC_ENUM_LINKS32:
- 		mutex_lock(&dev->graph_mutex);
--- 
-2.7.4
-
+> ---
+>  drivers/media/media-device.c          |  1 +
+>  drivers/media/media-devnode.c         | 15 ++++++++++-----
+>  drivers/media/platform/omap3isp/isp.c |  4 +++-
+>  include/media/media-devnode.h         | 15 +++++++++++----
+>  4 files changed, 25 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 5a86d36..d527491 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -707,6 +707,7 @@ struct media_device *media_device_alloc(void)
+>  	if (!mdev)
+>  		return NULL;
+>  
+> +	media_devnode_init(&mdev->devnode);
+>  	media_device_init(mdev);
+>  
+>  	return mdev;
+> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+> index 7481c96..aa8030b 100644
+> --- a/drivers/media/media-devnode.c
+> +++ b/drivers/media/media-devnode.c
+> @@ -219,6 +219,11 @@ static const struct file_operations media_devnode_fops = {
+>  	.llseek = no_llseek,
+>  };
+>  
+> +void media_devnode_init(struct media_devnode *devnode)
+> +{
+> +	device_initialize(&devnode->dev);
+> +}
+> +
+>  int __must_check media_devnode_register(struct media_devnode *devnode,
+>  					struct module *owner)
+>  {
+> @@ -256,7 +261,7 @@ int __must_check media_devnode_register(struct media_devnode *devnode,
+>  	if (devnode->parent)
+>  		devnode->dev.parent = devnode->parent;
+>  	dev_set_name(&devnode->dev, "media%d", devnode->minor);
+> -	ret = device_register(&devnode->dev);
+> +	ret = device_add(&devnode->dev);
+>  	if (ret < 0) {
+>  		pr_err("%s: device_register failed\n", __func__);
+>  		goto error;
+> @@ -291,7 +296,7 @@ void media_devnode_unregister(struct media_devnode *devnode)
+>  /*
+>   *	Initialise media for linux
+>   */
+> -static int __init media_devnode_init(void)
+> +static int __init media_devnode_module_init(void)
+>  {
+>  	int ret;
+>  
+> @@ -313,14 +318,14 @@ static int __init media_devnode_init(void)
+>  	return 0;
+>  }
+>  
+> -static void __exit media_devnode_exit(void)
+> +static void __exit media_devnode_module_exit(void)
+>  {
+>  	bus_unregister(&media_bus_type);
+>  	unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
+>  }
+>  
+> -subsys_initcall(media_devnode_init);
+> -module_exit(media_devnode_exit)
+> +subsys_initcall(media_devnode_module_init);
+> +module_exit(media_devnode_module_exit)
+>  
+>  MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
+>  MODULE_DESCRIPTION("Device node registration for media drivers");
+> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+> index 5d54e2c..aa32537 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -1726,8 +1726,10 @@ static int isp_register_entities(struct isp_device *isp)
+>  		goto done;
+>  
+>  done:
+> -	if (ret < 0)
+> +	if (ret < 0) {
+>  		isp_unregister_entities(isp);
+> +		media_device_put(&isp->media_dev);
+> +	}
+>  
+>  	return ret;
+>  }
+> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+> index a0f6823..5253a4b 100644
+> --- a/include/media/media-devnode.h
+> +++ b/include/media/media-devnode.h
+> @@ -102,6 +102,17 @@ struct media_devnode {
+>  #define to_media_devnode(cd) container_of(cd, struct media_devnode, dev)
+>  
+>  /**
+> + * media_devnode_init - initialise a media devnode
+> + *
+> + * @devnode: struct media_devnode we want to initialise
+> + *
+> + * Initialise a media devnode. Note that after initialising the media
+> + * devnode is refcounted. Releaseing references to it may be done
+> + * using put_device.
+> + */
+> +void media_devnode_init(struct media_devnode *devnode);
+> +
+> +/**
+>   * media_devnode_register - register a media device node
+>   *
+>   * @devnode: struct media_devnode we want to register a device node
+> @@ -112,10 +123,6 @@ struct media_devnode {
+>   * or if the registration of the device node fails.
+>   *
+>   * Zero is returned on success.
+> - *
+> - * Note that if the media_devnode_register call fails, the release() callback of
+> - * the media_devnode structure is *not* called, so the caller is responsible for
+> - * freeing any data.
+>   */
+>  int __must_check media_devnode_register(struct media_devnode *devnode,
+>  					struct module *owner);
+> 
