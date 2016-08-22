@@ -1,154 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:55410 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932444AbcHHTb0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2016 15:31:26 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jiri Kosina <trivial@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v3 07/14] media: platform: pxa_camera: introduce sensor_call
-Date: Mon,  8 Aug 2016 21:30:45 +0200
-Message-Id: <1470684652-16295-8-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
-References: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35471 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754794AbcHVJFM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 05:05:12 -0400
+Received: by mail-wm0-f67.google.com with SMTP id i5so12450654wmg.2
+        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2016 02:05:11 -0700 (PDT)
+From: Johan Fjeldtvedt <jaffe1@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Johan Fjeldtvedt <jaffe1@gmail.com>
+Subject: [PATCHv2 1/4] cec: allow configuration both from within driver and from user space
+Date: Mon, 22 Aug 2016 11:04:51 +0200
+Message-Id: <1471856694-14182-2-git-send-email-jaffe1@gmail.com>
+In-Reply-To: <1471856694-14182-1-git-send-email-jaffe1@gmail.com>
+References: <1471856694-14182-1-git-send-email-jaffe1@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Introduce sensor_call(), which will be used for all sensor invocations.
-This is a preparation move to v4l2 device conversion, ie. soc_camera
-adherence removal.
+It makes sense for adapters such as the Pulse-Eight to be configurable
+both from within the driver and from user space, so remove the
+requirement that drivers only can call cec_s_log_addrs or
+cec_s_phys_addr if they don't expose those capabilities to user space.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Signed-off-by: Johan Fjeldtvedt <jaffe1@gmail.com>
 ---
- drivers/media/platform/soc_camera/pxa_camera.c | 27 ++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ drivers/staging/media/cec/cec-adap.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index f3767415c128..7d76775ceb3e 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -168,6 +168,9 @@
- 			CICR0_PERRM | CICR0_QDM | CICR0_CDM | CICR0_SOFM | \
- 			CICR0_EOFM | CICR0_FOM)
+diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
+index b2393bb..608e3e7 100644
+--- a/drivers/staging/media/cec/cec-adap.c
++++ b/drivers/staging/media/cec/cec-adap.c
+@@ -1153,8 +1153,6 @@ void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block)
+ 	if (IS_ERR_OR_NULL(adap))
+ 		return;
  
-+#define sensor_call(cam, o, f, args...) \
-+	v4l2_subdev_call(sd, o, f, ##args)
-+
- /*
-  * Structures
-  */
-@@ -733,7 +736,7 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
- 	unsigned long dw, bpp;
- 	u32 cicr0, cicr1, cicr2, cicr3, cicr4 = 0, y_skip_top;
--	int ret = v4l2_subdev_call(sd, sensor, g_skip_top_lines, &y_skip_top);
-+	int ret = sensor_call(pcdev, sensor, g_skip_top_lines, &y_skip_top);
+-	if (WARN_ON(adap->capabilities & CEC_CAP_PHYS_ADDR))
+-		return;
+ 	mutex_lock(&adap->lock);
+ 	__cec_s_phys_addr(adap, phys_addr, block);
+ 	mutex_unlock(&adap->lock);
+@@ -1295,8 +1293,6 @@ int cec_s_log_addrs(struct cec_adapter *adap,
+ {
+ 	int err;
  
- 	if (ret < 0)
- 		y_skip_top = 0;
-@@ -1076,7 +1079,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
- 	if (ret < 0)
- 		return ret;
- 
--	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
-+	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
- 	if (!ret) {
- 		common_flags = soc_mbus_config_compatible(&cfg,
- 							  bus_flags);
-@@ -1120,7 +1123,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
- 	}
- 
- 	cfg.flags = common_flags;
--	ret = v4l2_subdev_call(sd, video, s_mbus_config, &cfg);
-+	ret = sensor_call(pcdev, video, s_mbus_config, &cfg);
- 	if (ret < 0 && ret != -ENOIOCTLCMD) {
- 		dev_dbg(icd->parent, "camera s_mbus_config(0x%lx) returned %d\n",
- 			common_flags, ret);
-@@ -1147,7 +1150,7 @@ static int pxa_camera_try_bus_param(struct soc_camera_device *icd,
- 	if (ret < 0)
- 		return ret;
- 
--	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
-+	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
- 	if (!ret) {
- 		common_flags = soc_mbus_config_compatible(&cfg,
- 							  bus_flags);
-@@ -1198,7 +1201,7 @@ static int pxa_camera_get_formats(struct soc_camera_device *icd, unsigned int id
- 	};
- 	const struct soc_mbus_pixelfmt *fmt;
- 
--	ret = v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code);
-+	ret = sensor_call(pcdev, pad, enum_mbus_code, NULL, &code);
- 	if (ret < 0)
- 		/* No more formats */
- 		return 0;
-@@ -1300,7 +1303,7 @@ static int pxa_camera_set_crop(struct soc_camera_device *icd,
- 	if (pcdev->platform_flags & PXA_CAMERA_PCLK_EN)
- 		icd->sense = &sense;
- 
--	ret = v4l2_subdev_call(sd, video, s_crop, a);
-+	ret = sensor_call(pcdev, video, s_crop, a);
- 
- 	icd->sense = NULL;
- 
-@@ -1310,7 +1313,7 @@ static int pxa_camera_set_crop(struct soc_camera_device *icd,
- 		return ret;
- 	}
- 
--	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
-+	ret = sensor_call(pcdev, pad, get_fmt, NULL, &fmt);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -1322,7 +1325,7 @@ static int pxa_camera_set_crop(struct soc_camera_device *icd,
- 		v4l_bound_align_image(&mf->width, 48, 2048, 1,
- 			&mf->height, 32, 2048, 0,
- 			fourcc == V4L2_PIX_FMT_YUV422P ? 4 : 0);
--		ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &fmt);
-+		ret = sensor_call(pcdev, pad, set_fmt, NULL, &fmt);
- 		if (ret < 0)
- 			return ret;
- 
-@@ -1387,7 +1390,7 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
- 	mf->colorspace	= pix->colorspace;
- 	mf->code	= xlate->code;
- 
--	ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &format);
-+	ret = sensor_call(pcdev, pad, set_fmt, NULL, &format);
- 
- 	if (mf->code != xlate->code)
- 		return -EINVAL;
-@@ -1462,7 +1465,7 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
- 	mf->colorspace	= pix->colorspace;
- 	mf->code	= xlate->code;
- 
--	ret = v4l2_subdev_call(sd, pad, set_fmt, &pad_cfg, &format);
-+	ret = sensor_call(pcdev, pad, set_fmt, &pad_cfg, &format);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -1520,7 +1523,7 @@ static int pxa_camera_suspend(struct device *dev)
- 
- 	if (pcdev->soc_host.icd) {
- 		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
--		ret = v4l2_subdev_call(sd, core, s_power, 0);
-+		ret = sensor_call(pcdev, core, s_power, 0);
- 		if (ret == -ENOIOCTLCMD)
- 			ret = 0;
- 	}
-@@ -1542,7 +1545,7 @@ static int pxa_camera_resume(struct device *dev)
- 
- 	if (pcdev->soc_host.icd) {
- 		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
--		ret = v4l2_subdev_call(sd, core, s_power, 1);
-+		ret = sensor_call(pcdev, core, s_power, 1);
- 		if (ret == -ENOIOCTLCMD)
- 			ret = 0;
- 	}
+-	if (WARN_ON(adap->capabilities & CEC_CAP_LOG_ADDRS))
+-		return -EINVAL;
+ 	mutex_lock(&adap->lock);
+ 	err = __cec_s_log_addrs(adap, log_addrs, block);
+ 	mutex_unlock(&adap->lock);
 -- 
-2.1.4
+2.7.4
 
