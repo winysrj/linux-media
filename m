@@ -1,87 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www381.your-server.de ([78.46.137.84]:40970 "EHLO
-	www381.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932285AbcHCOaG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 10:30:06 -0400
-Subject: Re: [PATCHv2 7/7] [PATCHv5] media: adv7180: fix field type
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	=?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <20160802145107.24829-1-niklas.soderlund+renesas@ragnatech.se>
- <20160802145107.24829-8-niklas.soderlund+renesas@ragnatech.se>
- <3bb2b375-a4a9-00c4-1466-7b1ba8e3bfd8@metafoo.de>
- <20160803132147.GL3672@bigcity.dyn.berto.se>
- <927464df-14cb-aadb-c1d9-5a5f0d065828@xs4all.nl>
- <d7f16469-a4a4-b2cc-2af1-2c3efcd8aac6@metafoo.de>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	sergei.shtylyov@cogentembedded.com, slongerbeam@gmail.com,
-	mchehab@kernel.org, hans.verkuil@cisco.com
-From: Lars-Peter Clausen <lars@metafoo.de>
-Message-ID: <c0754004-76bb-bcb4-0816-d986d0ff53d4@metafoo.de>
-Date: Wed, 3 Aug 2016 16:29:02 +0200
-MIME-Version: 1.0
-In-Reply-To: <d7f16469-a4a4-b2cc-2af1-2c3efcd8aac6@metafoo.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from mail-wm0-f48.google.com ([74.125.82.48]:36915 "EHLO
+        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754799AbcHVJFQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 05:05:16 -0400
+Received: by mail-wm0-f48.google.com with SMTP id i5so132536986wmg.0
+        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2016 02:05:11 -0700 (PDT)
+From: Johan Fjeldtvedt <jaffe1@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Johan Fjeldtvedt <jaffe1@gmail.com>
+Subject: [PATCHv2 0/4] pulse8-cec: Add support for storing and optionally restoring config
+Date: Mon, 22 Aug 2016 11:04:50 +0200
+Message-Id: <1471856694-14182-1-git-send-email-jaffe1@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/03/2016 04:23 PM, Lars-Peter Clausen wrote:
-> On 08/03/2016 04:11 PM, Hans Verkuil wrote:
->>
->>
->> On 08/03/2016 03:21 PM, Niklas Söderlund wrote:
->>> On 2016-08-02 17:00:07 +0200, Lars-Peter Clausen wrote:
->>>> [...]
->>>>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
->>>>> index a8b434b..c6fed71 100644
->>>>> --- a/drivers/media/i2c/adv7180.c
->>>>> +++ b/drivers/media/i2c/adv7180.c
->>>>> @@ -680,10 +680,13 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
->>>>>  	switch (format->format.field) {
->>>>>  	case V4L2_FIELD_NONE:
->>>>>  		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
->>>>> -			format->format.field = V4L2_FIELD_INTERLACED;
->>>>> +			format->format.field = V4L2_FIELD_ALTERNATE;
->>>>>  		break;
->>>>>  	default:
->>>>> -		format->format.field = V4L2_FIELD_INTERLACED;
->>>>> +		if (state->chip_info->flags & ADV7180_FLAG_I2P)
->>>>> +			format->format.field = V4L2_FIELD_INTERLACED;
->>>>
->>>> I'm not convinced this is correct. As far as I understand it when the I2P
->>>> feature is enabled the core outputs full progressive frames at the full
->>>> framerate. If it is bypassed it outputs half-frames. So we have the option
->>>> of either V4L2_FIELD_NONE or V4L2_FIELD_ALTERNATE, but never interlaced. I
->>>> think this branch should setup the field format to be ALTERNATE regardless
->>>> of whether the I2P feature is available.
->>
->> Actually, that's not true. If the progressive frame is obtained by combining
->> two fields, then it should return FIELD_INTERLACED. This is how most SDTV
->> receivers operate.
-> 
-> This is definitely not covered by the current definition of INTERLACED. It
-> says that the temporal order of the odd and even lines is the same for each
-> frame. Whereas for a deinterlaced frame the temporal order changes from
-> frame to frame.
-> 
-> E.g. lets say you have half frames A, B, C, D, E, F ...
-> 
-> The output of the I2P core are frames like (A,B) (C,B) (C,D) (E,D) (E, F) ...
+This adds support for storing the CEC adapter config in the Pulse-Eight
+dongle's persistent memory, and to optionally restore it when the device
+is (re)connected. This allows the dongle to continue operating with the
+same settings when the PC is suspended.
 
-Just for completeness the output expected for INTERLACED would be
+Changes in v2:
+ - Fix checkpatch warnings and spelling error
+ - Add missing break
+ - Don't propagate internal error code to user space
 
-(A, B), (C, D), (E, F), ...
+Johan Fjeldtvedt (4):
+  cec: allow configuration both from within driver and from user space
+  pulse8-cec: serialize communication with adapter
+  pulse8-cec: add notes about behavior in autonomous mode
+  pulse8-cec: sync configuration with adapter
 
-> 
-> The first frame is INTERLACED_TB, the second INTERLACED_BT, the third
-> INTERLACED_TB again and so on. Also you get the same amount of pixels as for
-> a progressive setup so the data-output-rate is higher. Maybe we need a
-> FIELD_DEINTERLACED to denote such a setup?
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+ drivers/staging/media/cec/cec-adap.c          |   4 -
+ drivers/staging/media/pulse8-cec/pulse8-cec.c | 341 +++++++++++++++++++++-----
+ 2 files changed, 283 insertions(+), 62 deletions(-)
+
+-- 
+2.7.4
 
