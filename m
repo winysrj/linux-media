@@ -1,211 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:62239 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754043AbcHSLjh (ORCPT
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:32982 "EHLO
+        mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753091AbcHWDff (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 07:39:37 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-CC: <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
-Subject: [PATCH v4 0/4] Add MT8173 MDP Driver 
-Date: Fri, 19 Aug 2016 19:39:23 +0800
-Message-ID: <1471606767-3218-1-git-send-email-minghsiu.tsai@mediatek.com>
+        Mon, 22 Aug 2016 23:35:35 -0400
+Received: by mail-pa0-f52.google.com with SMTP id ti13so43673677pac.0
+        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2016 20:35:34 -0700 (PDT)
+Date: Mon, 22 Aug 2016 20:35:31 -0700
+From: Bjorn Andersson <bjorn.andersson@linaro.org>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Gross <andy.gross@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Subject: Re: [PATCH 6/8] media: vidc: add Venus HFI files
+Message-ID: <20160823033531.GB26240@tuxbot>
+References: <1471871619-25873-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1471871619-25873-7-git-send-email-stanimir.varbanov@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1471871619-25873-7-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changes in v4:
-- Add "depends on HAS_DMA" in Kconfig.
-- Fix s/g_selection()
-- Replace struct v4l2_crop with u32 and struct v4l2_rect 
-- Remove VB2_USERPTR
-- Move mutex lock after ctx allocation in mtk_mdp_m2m_open()
-- Add new format V4L2_PIX_FMT_YVU420 to support software on Android platform.
-- Only width/height of image in format V4L2_PIX_FMT_MT21 is aligned to 16/16, 
-  other ones are aligned to 2/2 by default
+On Mon 22 Aug 06:13 PDT 2016, Stanimir Varbanov wrote:
 
-Changes in v3:
-- Modify device ndoe as structured one.
-- Fix conflict in dts on Linux 4.8-rc1
+> Here is the implementation of Venus video accelerator low-level
+> functionality. It contanins code which setup the registers and
+> startup uthe processor, allocate and manipulates with the shared
+> memory used for sending commands and receiving messages.
+> 
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+>  drivers/media/platform/qcom/vidc/hfi_venus.c    | 1539 +++++++++++++++++++++++
+>  drivers/media/platform/qcom/vidc/hfi_venus.h    |   25 +
+>  drivers/media/platform/qcom/vidc/hfi_venus_io.h |   98 ++
+>  3 files changed, 1662 insertions(+)
+>  create mode 100644 drivers/media/platform/qcom/vidc/hfi_venus.c
+>  create mode 100644 drivers/media/platform/qcom/vidc/hfi_venus.h
+>  create mode 100644 drivers/media/platform/qcom/vidc/hfi_venus_io.h
+> 
+> diff --git a/drivers/media/platform/qcom/vidc/hfi_venus.c b/drivers/media/platform/qcom/vidc/hfi_venus.c
+[..]
+> +
+> +static const struct hfi_ops venus_hfi_ops = {
+> +	.core_init			= venus_hfi_core_init,
+> +	.core_deinit			= venus_hfi_core_deinit,
+> +	.core_ping			= venus_hfi_core_ping,
+> +	.core_trigger_ssr		= venus_hfi_core_trigger_ssr,
+> +
+> +	.session_init			= venus_hfi_session_init,
+> +	.session_end			= venus_hfi_session_end,
+> +	.session_abort			= venus_hfi_session_abort,
+> +	.session_flush			= venus_hfi_session_flush,
+> +	.session_start			= venus_hfi_session_start,
+> +	.session_stop			= venus_hfi_session_stop,
+> +	.session_etb			= venus_hfi_session_etb,
+> +	.session_ftb			= venus_hfi_session_ftb,
+> +	.session_set_buffers		= venus_hfi_session_set_buffers,
+> +	.session_release_buffers	= venus_hfi_session_release_buffers,
+> +	.session_load_res		= venus_hfi_session_load_res,
+> +	.session_release_res		= venus_hfi_session_release_res,
+> +	.session_parse_seq_hdr		= venus_hfi_session_parse_seq_hdr,
+> +	.session_get_seq_hdr		= venus_hfi_session_get_seq_hdr,
+> +	.session_set_property		= venus_hfi_session_set_property,
+> +	.session_get_property		= venus_hfi_session_get_property,
+> +
+> +	.resume				= venus_hfi_resume,
+> +	.suspend			= venus_hfi_suspend,
+> +
+> +	.isr				= venus_isr,
+> +	.isr_thread			= venus_isr_thread,
+> +};
+> +
+> +void venus_hfi_destroy(struct hfi_core *hfi)
+> +{
+> +	struct venus_hfi_device *hdev = to_hfi_priv(hfi);
+> +
+> +	venus_interface_queues_release(hdev);
+> +	mutex_destroy(&hdev->lock);
+> +	kfree(hdev);
+> +}
+> +
+> +int venus_hfi_create(struct hfi_core *hfi, const struct vidc_resources *res,
+> +		     void __iomem *base)
+> +{
 
-Changes in v2:
-- Add section to describe blocks function in dts-bindings
-- Remove the assignment of device_caps in querycap()
-- Remove format's name assignment
-- Copy colorspace-related parameters from OUTPUT to CAPTURE
-- Use m2m helper functions
-- Fix DMA allocation failure
-- Initialize lazily vpu instance in streamon()
+Rather than having the core figure out which *_hfi_create() to call I
+think this should be the probe() entry point, calling into the core
+registering the venus_hfi_ops - a common-probe() in the hfi/vidc core
+could still do most of the heavy lifting.
 
-==============
- Introduction
-==============
+Probing the driver up from the transport rather than for the highest
+logical layer allows us to inject a separate hfi_ops for the apr tal
+case.
 
-The purpose of this series is to add the driver for Media Data Path HW embedded in the Mediatek's MT8173 SoC.
-MDP is used for scaling and color space conversion.
+> +	struct venus_hfi_device *hdev;
+> +	int ret;
+> +
+> +	hdev = kzalloc(sizeof(*hdev), GFP_KERNEL);
+> +	if (!hdev)
+> +		return -ENOMEM;
+> +
+> +	mutex_init(&hdev->lock);
+> +
+> +	hdev->res = res;
+> +	hdev->pkt_ops = hfi->pkt_ops;
+> +	hdev->packetization_type = HFI_PACKETIZATION_LEGACY;
+> +	hdev->base = base;
+> +	hdev->dev = hfi->dev;
+> +	hdev->suspended = true;
+> +
+> +	hfi->priv = hdev;
+> +	hfi->ops = &venus_hfi_ops;
+> +	hfi->core_caps = VIDC_ENC_ROTATION_CAPABILITY |
+> +			 VIDC_ENC_SCALING_CAPABILITY |
+> +			 VIDC_ENC_DEINTERLACE_CAPABILITY |
+> +			 VIDC_DEC_MULTI_STREAM_CAPABILITY;
+> +
+> +	ret = venus_interface_queues_init(hdev);
+> +	if (ret)
+> +		goto err_kfree;
+> +
+> +	return 0;
+> +
+> +err_kfree:
+> +	kfree(hdev);
+> +	hfi->priv = NULL;
+> +	hfi->ops = NULL;
+> +	return ret;
+> +}
 
-It could convert V4L2_PIX_FMT_MT21 to V4L2_PIX_FMT_NV12M or V4L2_PIX_FMT_YUV420M.
+I'll try to find some time to do a more detailed review of the
+implementation.
 
-NV12M/YUV420M/MT21 -> MDP -> NV12M/YUV420M
-
-This patch series rely on MTK VPU driver in patch series "Add MT8173 Video Encoder Driver and VPU Driver"[1] and "Add MT8173 Video Decoder Driver"[2].
-MDP driver rely on VPU driver to load, communicate with VPU.
-
-Internally the driver uses videobuf2 framework and MTK IOMMU and MTK SMI both have been merged in v4.6-rc1.
-
-[1]https://patchwork.kernel.org/patch/9002171/
-[2]https://patchwork.kernel.org/patch/9141245/
-
-==================
- Device interface
-==================
-
-In principle the driver bases on v4l2 memory-to-memory framework:
-it provides a single video node and each opened file handle gets its own private context with separate buffer queues. Each context consist of 2 buffer queues: OUTPUT (for source buffers) and CAPTURE (for destination buffers).
-OUTPUT and CAPTURE buffer could be MMAP or DMABUF memory type.
-
-v4l2-compliance test output:
-# v4l2-compliance -d /dev/image-proc0
-v4l2-compliance SHA   : ee1ab491019f80052834d14c76bdd1c1b46f2158
-
-Driver Info:
-        Driver name   : mtk-mdp
-        Card type     : soc:mdp
-        Bus info      : platform:mt8173
-        Driver version: 4.8.0
-        Capabilities  : 0x84204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/image-proc0 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-                test VIDIOC_QUERYCTRL: OK
-                test VIDIOC_G/S_CTRL: OK
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 5 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK
-                test Composing: OK
-                test Scaling: OK (Not Supported)
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-
-
-Minghsiu Tsai (4):
-  VPU: mediatek: Add mdp support
-  dt-bindings: Add a binding for Mediatek MDP
-  media: Add Mediatek MDP Driver
-  arm64: dts: mediatek: Add MDP for MT8173
-
- .../devicetree/bindings/media/mediatek-mdp.txt     |  109 ++
- arch/arm64/boot/dts/mediatek/mt8173.dtsi           |   84 ++
- drivers/media/platform/Kconfig                     |   17 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/mtk-mdp/Makefile            |    9 +
- drivers/media/platform/mtk-mdp/mtk_mdp_comp.c      |  159 +++
- drivers/media/platform/mtk-mdp/mtk_mdp_comp.h      |   72 ++
- drivers/media/platform/mtk-mdp/mtk_mdp_core.c      |  294 +++++
- drivers/media/platform/mtk-mdp/mtk_mdp_core.h      |  260 ++++
- drivers/media/platform/mtk-mdp/mtk_mdp_ipi.h       |  126 ++
- drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c       | 1269 ++++++++++++++++++++
- drivers/media/platform/mtk-mdp/mtk_mdp_m2m.h       |   22 +
- drivers/media/platform/mtk-mdp/mtk_mdp_regs.c      |  156 +++
- drivers/media/platform/mtk-mdp/mtk_mdp_regs.h      |   31 +
- drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c       |  145 +++
- drivers/media/platform/mtk-mdp/mtk_mdp_vpu.h       |   41 +
- drivers/media/platform/mtk-vpu/mtk_vpu.h           |    5 +
- 17 files changed, 2801 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-mdp.txt
- create mode 100644 drivers/media/platform/mtk-mdp/Makefile
- create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_comp.c
- create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_comp.h
- create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_core.c
- create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_core.h
- create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_ipi.h
- create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
- create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_m2m.h
- create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_regs.c
- create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_regs.h
- create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c
- create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_vpu.h
-
--- 
-1.7.9.5
-
+Regards,
+Bjorn
