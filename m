@@ -1,106 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46384 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753430AbcHWBEX (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:60811 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754238AbcHWGvD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 21:04:23 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+        Tue, 23 Aug 2016 02:51:03 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id BD5A51800C3
+        for <linux-media@vger.kernel.org>; Tue, 23 Aug 2016 08:48:37 +0200 (CEST)
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH v2] docs-rst: kernel-doc: better output struct members
-Date: Mon, 22 Aug 2016 22:02:57 -0300
-Message-Id: <ceda73b9b2e626b2e78cc8c0061b2d7639c70def.1471914176.git.mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] redrat3: fix sparse warning
+Message-ID: <0a64424f-6e91-a5dc-2320-b0694ecb0ac4@xs4all.nl>
+Date: Tue, 23 Aug 2016 08:48:37 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right now, for a struct, kernel-doc produces the following output:
+Fix this sparse warning:
 
-	.. c:type:: struct v4l2_prio_state
+drivers/media/rc/redrat3.c:490:18: warning: incorrect type in assignment (different base types)
+drivers/media/rc/redrat3.c:495:9: warning: cast to restricted __be32
 
-	   stores the priority states
-
-	**Definition**
-
-	::
-
-	  struct v4l2_prio_state {
-	    atomic_t prios[4];
-	  };
-
-	**Members**
-
-	``atomic_t prios[4]``
-	  array with elements to store the array priorities
-
-Putting a member name in verbatim and adding a continuation line
-causes the LaTeX output to generate something like:
-	item[atomic_t prios\[4\]] array with elements to store the array priorities
-
-Everything inside "item" is non-breakable, with may produce
-lines bigger than the column width.
-
-Also, for function members, like:
-
-        int (* rx_read) (struct v4l2_subdev *sd, u8 *buf, size_t count,ssize_t *num);
-
-It puts the name of the member at the end, like:
-
-        int (*) (struct v4l2_subdev *sd, u8 *buf, size_t count,ssize_t *num) read
-
-With is very confusing.
-
-The best is to highlight what really matters: the member name.
-is a secondary information.
-
-So, change kernel-doc, for it to produce the output on a different way:
-
-	**Members**
-
-	``prios[4]``
-
-	  array with elements to store the array priorities
-
-Also, as the type is not part of LaTeX "item[]", LaTeX will split it into
-multiple lines, if needed.
-
-So, both LaTeX/PDF and HTML outputs will look good.
-
-It should be noticed, however, that the way Sphinx LaTeX output handles
-things like:
-
-	Foo
-	   bar
-
-is different than the HTML output. On HTML, it will produce something
-like:
-
-	**Foo**
-	   bar
-
-While, on LaTeX, it puts both foo and bar at the same line, like:
-
-	**Foo** bar
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- scripts/kernel-doc | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+index 399f44d..3d849ff 100644
+--- a/drivers/media/rc/redrat3.c
++++ b/drivers/media/rc/redrat3.c
+@@ -480,7 +480,7 @@ static int redrat3_set_timeout(struct rc_dev *rc_dev, unsigned int timeoutns)
+ 	struct redrat3_dev *rr3 = rc_dev->priv;
+ 	struct usb_device *udev = rr3->udev;
+ 	struct device *dev = rr3->dev;
+-	u32 *timeout;
++	__be32 *timeout;
+ 	int ret;
 
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index ba081c7636a2..d225e178aa1b 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -2000,7 +2000,7 @@ sub output_struct_rst(%) {
- 	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
- 	$type = $args{'parametertypes'}{$parameter};
-         print_lineno($parameterdesc_start_lines{$parameter_name});
--	print "``$type $parameter``\n";
-+	print "``" . $parameter . "``\n";
- 	output_highlight_rst($args{'parameterdescs'}{$parameter_name});
- 	print "\n";
-     }
--- 
-2.7.4
-
+ 	timeout = kmalloc(sizeof(*timeout), GFP_KERNEL);
