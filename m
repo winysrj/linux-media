@@ -1,538 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:36535 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755693AbcH2SDl (ORCPT
+Received: from mail-it0-f67.google.com ([209.85.214.67]:32792 "EHLO
+        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757503AbcHWNlH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 14:03:41 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Jiri Kosina <trivial@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v5 05/13] media: platform: pxa_camera: trivial move of functions
-Date: Mon, 29 Aug 2016 19:55:50 +0200
-Message-Id: <1472493358-24618-6-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
-References: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
+        Tue, 23 Aug 2016 09:41:07 -0400
+Received: by mail-it0-f67.google.com with SMTP id d65so8069618ith.0
+        for <linux-media@vger.kernel.org>; Tue, 23 Aug 2016 06:41:01 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20160823070818.42ffec00@lwn.net>
+References: <1471878705-3963-1-git-send-email-sumit.semwal@linaro.org>
+ <1471878705-3963-3-git-send-email-sumit.semwal@linaro.org>
+ <20160822124930.02dbbafc@vento.lan> <20160823060135.GJ24290@phenom.ffwll.local>
+ <20160823070818.42ffec00@lwn.net>
+From: Daniel Vetter <daniel@ffwll.ch>
+Date: Tue, 23 Aug 2016 15:28:55 +0200
+Message-ID: <CAKMK7uFMDcwk=ovX9+_R4FBOx6=sYnaOZwHuHSdQixdk-5_hwg@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] Documentation/sphinx: link dma-buf rsts
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        linux-doc@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the functions in the file to be regrouped into meaningful blocks :
- 1. pxa camera core handling functions, manipulating the herdware
- 2. videobuf2 functions, dealing with video buffers
- 3. video ioctl (vidioc) related functions
- 4. driver probing, removal, suspend and resume
+On Tue, Aug 23, 2016 at 3:08 PM, Jonathan Corbet <corbet@lwn.net> wrote:
+> On Tue, 23 Aug 2016 08:01:35 +0200
+> Daniel Vetter <daniel@ffwll.ch> wrote:
+>
+>> I'm also not too sure about whether dma-buf really should be it's own
+>> subdirectory. It's plucked from the device-drivers.tmpl, I think an
+>> overall device-drivers/ for all the misc subsystems and support code would
+>> be better. Then one toc there, which fans out to either kernel-doc and
+>> overview docs.
+>
+> I'm quite convinced it shouldn't be.
+>
+> If you get a chance, could you have a look at the "RFC: The beginning of
+> a proper driver-api book" series I posted yesterday (yes, I should have
+> copied more of you, sorry)?  It shows the direction I would like to go
+> with driver API documentation, and, assuming we go that way, I'd like the
+> dma-buf documentation to fit into that.
 
-This patch doesn't modify a single line of code.
+Looks real pretty, ack on that. And we can always split up more, e.g.
+by extracting dma-buf.rst (and merg the current dma-buffer-sharing.txt
+into that one).
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
-Since v3: replace void *alloc_ctxt by struct device *alloc_devs impact
-Since v4: videobuf2 device init change impact
----
- drivers/media/platform/soc_camera/pxa_camera.c | 473 +++++++++++++------------
- 1 file changed, 241 insertions(+), 232 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index d1881d35d81d..9d7c30cb1463 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -538,238 +538,6 @@ out:
- 	spin_unlock_irqrestore(&pcdev->lock, flags);
- }
- 
--static void pxa_buffer_cleanup(struct pxa_buffer *buf)
--{
--	int i;
--
--	for (i = 0; i < 3 && buf->descs[i]; i++) {
--		dmaengine_desc_free(buf->descs[i]);
--		kfree(buf->sg[i]);
--		buf->descs[i] = NULL;
--		buf->sg[i] = NULL;
--		buf->sg_len[i] = 0;
--		buf->plane_sizes[i] = 0;
--	}
--	buf->nb_planes = 0;
--}
--
--static int pxa_buffer_init(struct pxa_camera_dev *pcdev,
--			   struct pxa_buffer *buf)
--{
--	struct vb2_buffer *vb = &buf->vbuf.vb2_buf;
--	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
--	int nb_channels = pcdev->channels;
--	int i, ret = 0;
--	unsigned long size = vb2_plane_size(vb, 0);
--
--	switch (nb_channels) {
--	case 1:
--		buf->plane_sizes[0] = size;
--		break;
--	case 3:
--		buf->plane_sizes[0] = size / 2;
--		buf->plane_sizes[1] = size / 4;
--		buf->plane_sizes[2] = size / 4;
--		break;
--	default:
--		return -EINVAL;
--	};
--	buf->nb_planes = nb_channels;
--
--	ret = sg_split(sgt->sgl, sgt->nents, 0, nb_channels,
--		       buf->plane_sizes, buf->sg, buf->sg_len, GFP_KERNEL);
--	if (ret < 0) {
--		dev_err(pcdev_to_dev(pcdev),
--			"sg_split failed: %d\n", ret);
--		return ret;
--	}
--	for (i = 0; i < nb_channels; i++) {
--		ret = pxa_init_dma_channel(pcdev, buf, i,
--					   buf->sg[i], buf->sg_len[i]);
--		if (ret) {
--			pxa_buffer_cleanup(buf);
--			return ret;
--		}
--	}
--	INIT_LIST_HEAD(&buf->queue);
--
--	return ret;
--}
--
--static void pxac_vb2_cleanup(struct vb2_buffer *vb)
--{
--	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
--	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
--
--	dev_dbg(pcdev_to_dev(pcdev),
--		 "%s(vb=%p)\n", __func__, vb);
--	pxa_buffer_cleanup(buf);
--}
--
--static void pxac_vb2_queue(struct vb2_buffer *vb)
--{
--	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
--	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
--
--	dev_dbg(pcdev_to_dev(pcdev),
--		 "%s(vb=%p) nb_channels=%d size=%lu active=%p\n",
--		__func__, vb, pcdev->channels, vb2_get_plane_payload(vb, 0),
--		pcdev->active);
--
--	list_add_tail(&buf->queue, &pcdev->capture);
--
--	pxa_dma_add_tail_buf(pcdev, buf);
--}
--
--/*
-- * Please check the DMA prepared buffer structure in :
-- *   Documentation/video4linux/pxa_camera.txt
-- * Please check also in pxa_camera_check_link_miss() to understand why DMA chain
-- * modification while DMA chain is running will work anyway.
-- */
--static int pxac_vb2_prepare(struct vb2_buffer *vb)
--{
--	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
--	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
--	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
--	int ret = 0;
--
--	switch (pcdev->channels) {
--	case 1:
--	case 3:
--		vb2_set_plane_payload(vb, 0, icd->sizeimage);
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	dev_dbg(pcdev_to_dev(pcdev),
--		 "%s (vb=%p) nb_channels=%d size=%lu\n",
--		__func__, vb, pcdev->channels, vb2_get_plane_payload(vb, 0));
--
--	WARN_ON(!icd->current_fmt);
--
--#ifdef DEBUG
--	/*
--	 * This can be useful if you want to see if we actually fill
--	 * the buffer with something
--	 */
--	for (i = 0; i < vb->num_planes; i++)
--		memset((void *)vb2_plane_vaddr(vb, i),
--		       0xaa, vb2_get_plane_payload(vb, i));
--#endif
--
--	/*
--	 * I think, in buf_prepare you only have to protect global data,
--	 * the actual buffer is yours
--	 */
--	buf->inwork = 0;
--	pxa_videobuf_set_actdma(pcdev, buf);
--
--	return ret;
--}
--
--static int pxac_vb2_init(struct vb2_buffer *vb)
--{
--	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
--	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
--
--	dev_dbg(pcdev_to_dev(pcdev),
--		 "%s(nb_channels=%d)\n",
--		__func__, pcdev->channels);
--
--	return pxa_buffer_init(pcdev, buf);
--}
--
--static int pxac_vb2_queue_setup(struct vb2_queue *vq,
--				unsigned int *nbufs,
--				unsigned int *num_planes, unsigned int sizes[],
--				struct device *alloc_devs[])
--{
--	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
--	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
--	int size = icd->sizeimage;
--
--	dev_dbg(pcdev_to_dev(pcdev),
--		 "%s(vq=%p nbufs=%d num_planes=%d size=%d)\n",
--		__func__, vq, *nbufs, *num_planes, size);
--	/*
--	 * Called from VIDIOC_REQBUFS or in compatibility mode For YUV422P
--	 * format, even if there are 3 planes Y, U and V, we reply there is only
--	 * one plane, containing Y, U and V data, one after the other.
--	 */
--	if (*num_planes)
--		return sizes[0] < size ? -EINVAL : 0;
--
--	*num_planes = 1;
--	switch (pcdev->channels) {
--	case 1:
--	case 3:
--		sizes[0] = size;
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	if (!*nbufs)
--		*nbufs = 1;
--
--	return 0;
--}
--
--static int pxac_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
--{
--	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
--
--	dev_dbg(pcdev_to_dev(pcdev), "%s(count=%d) active=%p\n",
--		__func__, count, pcdev->active);
--
--	if (!pcdev->active)
--		pxa_camera_start_capture(pcdev);
--
--	return 0;
--}
--
--static void pxac_vb2_stop_streaming(struct vb2_queue *vq)
--{
--	vb2_wait_for_all_buffers(vq);
--}
--
--static struct vb2_ops pxac_vb2_ops = {
--	.queue_setup		= pxac_vb2_queue_setup,
--	.buf_init		= pxac_vb2_init,
--	.buf_prepare		= pxac_vb2_prepare,
--	.buf_queue		= pxac_vb2_queue,
--	.buf_cleanup		= pxac_vb2_cleanup,
--	.start_streaming	= pxac_vb2_start_streaming,
--	.stop_streaming		= pxac_vb2_stop_streaming,
--	.wait_prepare		= vb2_ops_wait_prepare,
--	.wait_finish		= vb2_ops_wait_finish,
--};
--
--static int pxa_camera_init_videobuf2(struct vb2_queue *vq,
--				     struct soc_camera_device *icd)
--{
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
--	struct pxa_camera_dev *pcdev = ici->priv;
--	int ret;
--
--	vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
--	vq->drv_priv = pcdev;
--	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
--	vq->buf_struct_size = sizeof(struct pxa_buffer);
--
--	vq->ops = &pxac_vb2_ops;
--	vq->mem_ops = &vb2_dma_sg_memops;
--
--	ret = vb2_queue_init(vq);
--	dev_dbg(pcdev_to_dev(pcdev),
--		 "vb2_queue_init(vq=%p): %d\n", vq, ret);
--
--	return ret;
--}
--
- static u32 mclk_get_divisor(struct platform_device *pdev,
- 			    struct pxa_camera_dev *pcdev)
- {
-@@ -1051,6 +819,244 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
- 	__raw_writel(cicr0, pcdev->base + CICR0);
- }
- 
-+/*
-+ * Videobuf2 section
-+ */
-+static void pxa_buffer_cleanup(struct pxa_buffer *buf)
-+{
-+	int i;
-+
-+	for (i = 0; i < 3 && buf->descs[i]; i++) {
-+		dmaengine_desc_free(buf->descs[i]);
-+		kfree(buf->sg[i]);
-+		buf->descs[i] = NULL;
-+		buf->sg[i] = NULL;
-+		buf->sg_len[i] = 0;
-+		buf->plane_sizes[i] = 0;
-+	}
-+	buf->nb_planes = 0;
-+}
-+
-+static int pxa_buffer_init(struct pxa_camera_dev *pcdev,
-+			   struct pxa_buffer *buf)
-+{
-+	struct vb2_buffer *vb = &buf->vbuf.vb2_buf;
-+	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
-+	int nb_channels = pcdev->channels;
-+	int i, ret = 0;
-+	unsigned long size = vb2_plane_size(vb, 0);
-+
-+	switch (nb_channels) {
-+	case 1:
-+		buf->plane_sizes[0] = size;
-+		break;
-+	case 3:
-+		buf->plane_sizes[0] = size / 2;
-+		buf->plane_sizes[1] = size / 4;
-+		buf->plane_sizes[2] = size / 4;
-+		break;
-+	default:
-+		return -EINVAL;
-+	};
-+	buf->nb_planes = nb_channels;
-+
-+	ret = sg_split(sgt->sgl, sgt->nents, 0, nb_channels,
-+		       buf->plane_sizes, buf->sg, buf->sg_len, GFP_KERNEL);
-+	if (ret < 0) {
-+		dev_err(pcdev_to_dev(pcdev),
-+			"sg_split failed: %d\n", ret);
-+		return ret;
-+	}
-+	for (i = 0; i < nb_channels; i++) {
-+		ret = pxa_init_dma_channel(pcdev, buf, i,
-+					   buf->sg[i], buf->sg_len[i]);
-+		if (ret) {
-+			pxa_buffer_cleanup(buf);
-+			return ret;
-+		}
-+	}
-+	INIT_LIST_HEAD(&buf->queue);
-+
-+	return ret;
-+}
-+
-+static void pxac_vb2_cleanup(struct vb2_buffer *vb)
-+{
-+	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
-+	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
-+
-+	dev_dbg(pcdev_to_dev(pcdev),
-+		 "%s(vb=%p)\n", __func__, vb);
-+	pxa_buffer_cleanup(buf);
-+}
-+
-+static void pxac_vb2_queue(struct vb2_buffer *vb)
-+{
-+	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
-+	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
-+
-+	dev_dbg(pcdev_to_dev(pcdev),
-+		 "%s(vb=%p) nb_channels=%d size=%lu active=%p\n",
-+		__func__, vb, pcdev->channels, vb2_get_plane_payload(vb, 0),
-+		pcdev->active);
-+
-+	list_add_tail(&buf->queue, &pcdev->capture);
-+
-+	pxa_dma_add_tail_buf(pcdev, buf);
-+}
-+
-+/*
-+ * Please check the DMA prepared buffer structure in :
-+ *   Documentation/video4linux/pxa_camera.txt
-+ * Please check also in pxa_camera_check_link_miss() to understand why DMA chain
-+ * modification while DMA chain is running will work anyway.
-+ */
-+static int pxac_vb2_prepare(struct vb2_buffer *vb)
-+{
-+	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
-+	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
-+	int ret = 0;
-+
-+	switch (pcdev->channels) {
-+	case 1:
-+	case 3:
-+		vb2_set_plane_payload(vb, 0, icd->sizeimage);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	dev_dbg(pcdev_to_dev(pcdev),
-+		 "%s (vb=%p) nb_channels=%d size=%lu\n",
-+		__func__, vb, pcdev->channels, vb2_get_plane_payload(vb, 0));
-+
-+	WARN_ON(!icd->current_fmt);
-+
-+#ifdef DEBUG
-+	/*
-+	 * This can be useful if you want to see if we actually fill
-+	 * the buffer with something
-+	 */
-+	for (i = 0; i < vb->num_planes; i++)
-+		memset((void *)vb2_plane_vaddr(vb, i),
-+		       0xaa, vb2_get_plane_payload(vb, i));
-+#endif
-+
-+	/*
-+	 * I think, in buf_prepare you only have to protect global data,
-+	 * the actual buffer is yours
-+	 */
-+	buf->inwork = 0;
-+	pxa_videobuf_set_actdma(pcdev, buf);
-+
-+	return ret;
-+}
-+
-+static int pxac_vb2_init(struct vb2_buffer *vb)
-+{
-+	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
-+	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
-+
-+	dev_dbg(pcdev_to_dev(pcdev),
-+		 "%s(nb_channels=%d)\n",
-+		__func__, pcdev->channels);
-+
-+	return pxa_buffer_init(pcdev, buf);
-+}
-+
-+static int pxac_vb2_queue_setup(struct vb2_queue *vq,
-+				unsigned int *nbufs,
-+				unsigned int *num_planes, unsigned int sizes[],
-+				struct device *alloc_devs[])
-+{
-+	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
-+	int size = icd->sizeimage;
-+
-+	dev_dbg(pcdev_to_dev(pcdev),
-+		 "%s(vq=%p nbufs=%d num_planes=%d size=%d)\n",
-+		__func__, vq, *nbufs, *num_planes, size);
-+	/*
-+	 * Called from VIDIOC_REQBUFS or in compatibility mode For YUV422P
-+	 * format, even if there are 3 planes Y, U and V, we reply there is only
-+	 * one plane, containing Y, U and V data, one after the other.
-+	 */
-+	if (*num_planes)
-+		return sizes[0] < size ? -EINVAL : 0;
-+
-+	*num_planes = 1;
-+	switch (pcdev->channels) {
-+	case 1:
-+	case 3:
-+		sizes[0] = size;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (!*nbufs)
-+		*nbufs = 1;
-+
-+	return 0;
-+}
-+
-+static int pxac_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
-+{
-+	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
-+
-+	dev_dbg(pcdev_to_dev(pcdev), "%s(count=%d) active=%p\n",
-+		__func__, count, pcdev->active);
-+
-+	if (!pcdev->active)
-+		pxa_camera_start_capture(pcdev);
-+
-+	return 0;
-+}
-+
-+static void pxac_vb2_stop_streaming(struct vb2_queue *vq)
-+{
-+	vb2_wait_for_all_buffers(vq);
-+}
-+
-+static struct vb2_ops pxac_vb2_ops = {
-+	.queue_setup		= pxac_vb2_queue_setup,
-+	.buf_init		= pxac_vb2_init,
-+	.buf_prepare		= pxac_vb2_prepare,
-+	.buf_queue		= pxac_vb2_queue,
-+	.buf_cleanup		= pxac_vb2_cleanup,
-+	.start_streaming	= pxac_vb2_start_streaming,
-+	.stop_streaming		= pxac_vb2_stop_streaming,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
-+};
-+
-+static int pxa_camera_init_videobuf2(struct vb2_queue *vq,
-+				     struct soc_camera_device *icd)
-+{
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+	struct pxa_camera_dev *pcdev = ici->priv;
-+	int ret;
-+
-+	vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
-+	vq->drv_priv = pcdev;
-+	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	vq->buf_struct_size = sizeof(struct pxa_buffer);
-+
-+	vq->ops = &pxac_vb2_ops;
-+	vq->mem_ops = &vb2_dma_sg_memops;
-+
-+	ret = vb2_queue_init(vq);
-+	dev_dbg(pcdev_to_dev(pcdev),
-+		 "vb2_queue_init(vq=%p): %d\n", vq, ret);
-+
-+	return ret;
-+}
-+
-+/*
-+ * Video ioctls section
-+ */
- static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
- {
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-@@ -1494,6 +1500,9 @@ static int pxa_camera_querycap(struct soc_camera_host *ici,
- 	return 0;
- }
- 
-+/*
-+ * Driver probe, remove, suspend and resume operations
-+ */
- static int pxa_camera_suspend(struct device *dev)
- {
- 	struct soc_camera_host *ici = to_soc_camera_host(dev);
+I think the more interesting story is, what's your plan with all the
+other driver related subsystem? Especially the ones which already have
+full directories of their own, like e.g. Documentation/gpio/. I think
+those should be really part of the infrastructure section (or
+something equally high-level), together with other awesome servies
+like pwm, regman, irqchip, ... And then there's also the large-scale
+subsystems like media or gpu. What's the plan to tie them all
+together? Personally I'm leaning towards keeping the existing
+directories (where they exist already), but inserting links into the
+overall driver-api section.
+-Daniel
 -- 
-2.1.4
-
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
