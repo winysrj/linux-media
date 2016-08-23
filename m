@@ -1,132 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:36590 "EHLO
-        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753684AbcHZOVO (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52981
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751799AbcHWTa4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Aug 2016 10:21:14 -0400
-Received: by mail-wm0-f41.google.com with SMTP id q128so281446800wma.1
-        for <linux-media@vger.kernel.org>; Fri, 26 Aug 2016 07:21:13 -0700 (PDT)
-Subject: Re: [PATCH 5/8] media: vidc: add Host Firmware Interface (HFI)
-To: Bjorn Andersson <bjorn.andersson@linaro.org>
-References: <1471871619-25873-1-git-send-email-stanimir.varbanov@linaro.org>
- <1471871619-25873-6-git-send-email-stanimir.varbanov@linaro.org>
- <20160823032548.GA26240@tuxbot>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andy Gross <andy.gross@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <48705e6e-b7eb-cd47-e9ee-6a4eae841fcc@linaro.org>
-Date: Fri, 26 Aug 2016 17:21:10 +0300
+        Tue, 23 Aug 2016 15:30:56 -0400
+Date: Tue, 23 Aug 2016 16:30:47 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Nick Dyer <nick@shmanahar.org>, Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+        Benson Leung <bleung@chromium.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Chris Healy <cphealy@gmail.com>,
+        Henrik Rydberg <rydberg@bitmath.org>,
+        Andrew Duggan <aduggan@synaptics.com>,
+        James Chen <james.chen@emc.com.tw>,
+        Dudley Du <dudl@cypress.com>,
+        Andrew de los Reyes <adlr@chromium.org>,
+        sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+        Florian Echtler <floe@butterbrot.org>
+Subject: Re: [PATCH v8 03/10] Input: atmel_mxt_ts - add support for T37
+ diagnostic data
+Message-ID: <20160823163047.0ba303cc@vento.lan>
+In-Reply-To: <1468876238-24599-4-git-send-email-nick@shmanahar.org>
+References: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
+        <1468876238-24599-4-git-send-email-nick@shmanahar.org>
 MIME-Version: 1.0
-In-Reply-To: <20160823032548.GA26240@tuxbot>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bjorn,
+Hi Dmitry,
 
-Thanks for the comments!
+Em Mon, 18 Jul 2016 22:10:31 +0100
+Nick Dyer <nick@shmanahar.org> escreveu:
 
-On 08/23/2016 06:25 AM, Bjorn Andersson wrote:
-> On Mon 22 Aug 06:13 PDT 2016, Stanimir Varbanov wrote:
-> 
->> This is the implementation of HFI. It is loaded with the
->> responsibility to comunicate with the firmware through an
->> interface commands and messages.
->>
->>  - hfi.c has interface functions used by the core, decoder
->> and encoder parts to comunicate with the firmware. For example
->> there are functions for session and core initialisation.
->>
-> 
-> I can't help feeling that the split between core.c and hfi.c is a
-> remnant of a vidc driver supporting both HFI and pre-HFI with the same
-> v4l code.
-> 
-> What do you think about merging vidc_core with hfi_core and vidc_inst
-> with hfi_inst? Both seems to be in a 1:1 relationship.
+> Atmel maXTouch devices have a T37 object which can be used to read raw
+> touch deltas from the device. This consists of an array of 16-bit
+> integers, one for each node on the touchscreen matrix.
 
-OK, I can give it a try.
+Is it ok to merge this patch (and the other patches on this series)
+via my tree?
+
+Regards,
+Mauro
 
 > 
->>  - hfi_cmds has packetization operations which preparing
->> packets to be send from host to firmware.
->>
->>  - hfi_msgs takes care of messages sent from firmware to the
->> host.
->>
-> [..]
->> diff --git a/drivers/media/platform/qcom/vidc/hfi_cmds.c b/drivers/media/platform/qcom/vidc/hfi_cmds.c
-> [..]
->> +
->> +static const struct hfi_packetization_ops hfi_default = {
->> +	.sys_init = pkt_sys_init,
->> +	.sys_pc_prep = pkt_sys_pc_prep,
->> +	.sys_idle_indicator = pkt_sys_idle_indicator,
->> +	.sys_power_control = pkt_sys_power_control,
->> +	.sys_set_resource = pkt_sys_set_resource,
->> +	.sys_release_resource = pkt_sys_unset_resource,
->> +	.sys_debug_config = pkt_sys_debug_config,
->> +	.sys_coverage_config = pkt_sys_coverage_config,
->> +	.sys_ping = pkt_sys_ping,
->> +	.sys_image_version = pkt_sys_image_version,
->> +	.ssr_cmd = pkt_ssr_cmd,
->> +	.session_init = pkt_session_init,
->> +	.session_cmd = pkt_session_cmd,
->> +	.session_set_buffers = pkt_session_set_buffers,
->> +	.session_release_buffers = pkt_session_release_buffers,
->> +	.session_etb_decoder = pkt_session_etb_decoder,
->> +	.session_etb_encoder = pkt_session_etb_encoder,
->> +	.session_ftb = pkt_session_ftb,
->> +	.session_parse_seq_header = pkt_session_parse_seq_header,
->> +	.session_get_seq_hdr = pkt_session_get_seq_hdr,
->> +	.session_flush = pkt_session_flush,
->> +	.session_get_property = pkt_session_get_property,
->> +	.session_set_property = pkt_session_set_property,
->> +};
->> +
->> +static const struct hfi_packetization_ops *get_3xx_ops(void)
->> +{
->> +	static struct hfi_packetization_ops hfi_3xx;
->> +
->> +	hfi_3xx = hfi_default;
->> +	hfi_3xx.session_set_property = pkt_session_set_property_3xx;
->> +
->> +	return &hfi_3xx;
->> +}
->> +
->> +const struct hfi_packetization_ops *
->> +hfi_get_pkt_ops(enum hfi_packetization_type type)
+> Signed-off-by: Nick Dyer <nick@shmanahar.org>
+> ---
+>  drivers/input/touchscreen/Kconfig        |    6 ++
+>  drivers/input/touchscreen/atmel_mxt_ts.c |  159 ++++++++++++++++++++++++++++++
+>  2 files changed, 165 insertions(+)
 > 
-> The only reasonable argument I can come up with for not just exposing
-> these as global functions would be that there are 23 of them... Can we
-> skip the jump table?
+> diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
+> index 8ecdc38..da96ecf 100644
+> --- a/drivers/input/touchscreen/Kconfig
+> +++ b/drivers/input/touchscreen/Kconfig
+> @@ -115,6 +115,12 @@ config TOUCHSCREEN_ATMEL_MXT
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called atmel_mxt_ts.
+>  
+> +config TOUCHSCREEN_ATMEL_MXT_T37
+> +	bool "Support T37 Diagnostic Data"
+> +	depends on TOUCHSCREEN_ATMEL_MXT
+> +	help
+> +	  Say Y here if you want support for the T37 Diagnostic Data object.
+> +
+>  config TOUCHSCREEN_AUO_PIXCIR
+>  	tristate "AUO in-cell touchscreen using Pixcir ICs"
+>  	depends on I2C
+> diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+> index 5af7907..0048233 100644
+> --- a/drivers/input/touchscreen/atmel_mxt_ts.c
+> +++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+> @@ -124,6 +124,19 @@ struct t9_range {
+>  #define MXT_COMMS_CTRL		0
+>  #define MXT_COMMS_CMD		1
+>  
+> +/* MXT_DEBUG_DIAGNOSTIC_T37 */
+> +#define MXT_DIAGNOSTIC_PAGEUP	0x01
+> +#define MXT_DIAGNOSTIC_DELTAS	0x10
+> +#define MXT_DIAGNOSTIC_SIZE	128
+> +
+> +struct t37_debug {
+> +#ifdef CONFIG_TOUCHSCREEN_ATMEL_MXT_T37
+> +	u8 mode;
+> +	u8 page;
+> +	u8 data[MXT_DIAGNOSTIC_SIZE];
+> +#endif
+> +};
+> +
+>  /* Define for MXT_GEN_COMMAND_T6 */
+>  #define MXT_BOOT_VALUE		0xa5
+>  #define MXT_RESET_VALUE		0x01
+> @@ -205,6 +218,14 @@ struct mxt_object {
+>  	u8 num_report_ids;
+>  } __packed;
+>  
+> +struct mxt_dbg {
+> +	u16 t37_address;
+> +	u16 diag_cmd_address;
+> +	struct t37_debug *t37_buf;
+> +	unsigned int t37_pages;
+> +	unsigned int t37_nodes;
+> +};
+> +
+>  /* Each client has this additional data */
+>  struct mxt_data {
+>  	struct i2c_client *client;
+> @@ -233,6 +254,7 @@ struct mxt_data {
+>  	u8 num_touchids;
+>  	u8 multitouch;
+>  	struct t7_config t7_cfg;
+> +	struct mxt_dbg dbg;
+>  
+>  	/* Cached parameters from object table */
+>  	u16 T5_address;
+> @@ -2043,6 +2065,141 @@ recheck:
+>  	return 0;
+>  }
+>  
+> +#ifdef CONFIG_TOUCHSCREEN_ATMEL_MXT_T37
+> +static u16 mxt_get_debug_value(struct mxt_data *data, unsigned int x,
+> +			       unsigned int y)
+> +{
+> +	struct mxt_dbg *dbg = &data->dbg;
+> +	unsigned int ofs, page;
+> +
+> +	ofs = (y + (x * data->info.matrix_ysize)) * sizeof(u16);
+> +	page = ofs / MXT_DIAGNOSTIC_SIZE;
+> +	ofs %= MXT_DIAGNOSTIC_SIZE;
+> +
+> +	return get_unaligned_le16(&dbg->t37_buf[page].data[ofs]);
+> +}
+> +
+> +static int mxt_convert_debug_pages(struct mxt_data *data, u16 *outbuf)
+> +{
+> +	struct mxt_dbg *dbg = &data->dbg;
+> +	unsigned int x = 0;
+> +	unsigned int y = 0;
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < dbg->t37_nodes; i++) {
+> +		outbuf[i] = mxt_get_debug_value(data, x, y);
+> +
+> +		/* Next value */
+> +		if (++x >= data->info.matrix_xsize) {
+> +			x = 0;
+> +			y++;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int mxt_read_diagnostic_debug(struct mxt_data *data, u8 mode,
+> +				     u16 *outbuf)
+> +{
+> +	struct mxt_dbg *dbg = &data->dbg;
+> +	int retries = 0;
+> +	int page;
+> +	int ret;
+> +	u8 cmd = mode;
+> +	struct t37_debug *p;
+> +	u8 cmd_poll;
+> +
+> +	for (page = 0; page < dbg->t37_pages; page++) {
+> +		p = dbg->t37_buf + page;
+> +
+> +		ret = mxt_write_reg(data->client, dbg->diag_cmd_address,
+> +				    cmd);
+> +		if (ret)
+> +			return ret;
+> +
+> +		retries = 0;
+> +		msleep(20);
+> +wait_cmd:
+> +		/* Read back command byte */
+> +		ret = __mxt_read_reg(data->client, dbg->diag_cmd_address,
+> +				     sizeof(cmd_poll), &cmd_poll);
+> +		if (ret)
+> +			return ret;
+> +
+> +		/* Field is cleared once the command has been processed */
+> +		if (cmd_poll) {
+> +			if (retries++ > 100)
+> +				return -EINVAL;
+> +
+> +			msleep(20);
+> +			goto wait_cmd;
+> +		}
+> +
+> +		/* Read T37 page */
+> +		ret = __mxt_read_reg(data->client, dbg->t37_address,
+> +				     sizeof(struct t37_debug), p);
+> +		if (ret)
+> +			return ret;
+> +
+> +		if (p->mode != mode || p->page != page) {
+> +			dev_err(&data->client->dev, "T37 page mismatch\n");
+> +			return -EINVAL;
+> +		}
+> +
+> +		dev_dbg(&data->client->dev, "%s page:%d retries:%d\n",
+> +			__func__, page, retries);
+> +
+> +		/* For remaining pages, write PAGEUP rather than mode */
+> +		cmd = MXT_DIAGNOSTIC_PAGEUP;
+> +	}
+> +
+> +	return mxt_convert_debug_pages(data, outbuf);
+> +}
+> +
+> +static void mxt_debug_init(struct mxt_data *data)
+> +{
+> +	struct mxt_dbg *dbg = &data->dbg;
+> +	struct mxt_object *object;
+> +
+> +	object = mxt_get_object(data, MXT_GEN_COMMAND_T6);
+> +	if (!object)
+> +		goto error;
+> +
+> +	dbg->diag_cmd_address = object->start_address + MXT_COMMAND_DIAGNOSTIC;
+> +
+> +	object = mxt_get_object(data, MXT_DEBUG_DIAGNOSTIC_T37);
+> +	if (!object)
+> +		goto error;
+> +
+> +	if (mxt_obj_size(object) != sizeof(struct t37_debug)) {
+> +		dev_warn(&data->client->dev, "Bad T37 size");
+> +		goto error;
+> +	}
+> +
+> +	dbg->t37_address = object->start_address;
+> +
+> +	/* Calculate size of data and allocate buffer */
+> +	dbg->t37_nodes = data->info.matrix_xsize * data->info.matrix_ysize;
+> +	dbg->t37_pages = DIV_ROUND_UP(dbg->t37_nodes * sizeof(u16),
+> +				      sizeof(dbg->t37_buf->data));
+> +
+> +	dbg->t37_buf = devm_kmalloc_array(&data->client->dev, dbg->t37_pages,
+> +					  sizeof(struct t37_debug), GFP_KERNEL);
+> +	if (!dbg->t37_buf)
+> +		goto error;
+> +
+> +	return;
+> +
+> +error:
+> +	dev_warn(&data->client->dev, "Error initializing T37\n");
+> +}
+> +#else
+> +static void mxt_debug_init(struct mxt_data *data)
+> +{
+> +}
+> +#endif
+> +
+>  static int mxt_configure_objects(struct mxt_data *data,
+>  				 const struct firmware *cfg)
+>  {
+> @@ -2070,6 +2227,8 @@ static int mxt_configure_objects(struct mxt_data *data,
+>  		dev_warn(dev, "No touch object detected\n");
+>  	}
+>  
+> +	mxt_debug_init(data);
+> +
+>  	dev_info(dev,
+>  		 "Family: %u Variant: %u Firmware V%u.%u.%02X Objects: %u\n",
+>  		 info->family_id, info->variant_id, info->version >> 4,
 
-Of course we can, but what will be the benefit, increased readability ?
-Let's keep it for now. Once the driver is merged some smarter guy could
-came up with better solution ;)
-
-> 
->> +{
->> +	switch (type) {
->> +	case HFI_PACKETIZATION_LEGACY:
->> +		return &hfi_default;
->> +	case HFI_PACKETIZATION_3XX:
->> +		return get_3xx_ops();
->> +	}
->> +
->> +	return NULL;
->> +}
-> 
-> Regards,
-> Bjorn
-> 
 
 -- 
-regards,
-Stan
+Thanks,
+Mauro
