@@ -1,59 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bl2nam02on0128.outbound.protection.outlook.com ([104.47.38.128]:13889
-        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1755417AbcHSPQJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 11:16:09 -0400
-From: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        "Bird, Timothy" <Tim.Bird@am.sony.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Shimizu, Kazuhiro" <Kazuhiro.Shimizu@sony.com>,
-        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
-        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
-        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
-        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
-        "Berry, Tom" <Tom.Berry@sony.com>,
-        "Rowand, Frank" <Frank.Rowand@am.sony.com>,
-        "tbird20d@gmail.com" <tbird20d@gmail.com>,
-        "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
-Subject: RE: Sony tuner chip driver questions
-Date: Fri, 19 Aug 2016 09:44:06 +0000
-Message-ID: <02699364973B424C83A42A84B04FDA852B0AB5@JPYOKXMS113.jp.sony.com>
-References: <ECADFF3FD767C149AD96A924E7EA6EAF053BB5DA@USCULXMSG02.am.sony.com>
- <20160729075741.15e1a05b@recife.lan>
- <02699364973B424C83A42A84B04FDA852AA1FB@JPYOKXMS113.jp.sony.com>
-In-Reply-To: <02699364973B424C83A42A84B04FDA852AA1FB@JPYOKXMS113.jp.sony.com>
-Content-Language: ja-JP
-Content-Type: text/plain; charset="iso-2022-jp"
-MIME-Version: 1.0
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44282 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756113AbcHWDBg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 23:01:36 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 2C611180453
+        for <linux-media@vger.kernel.org>; Tue, 23 Aug 2016 05:01:30 +0200 (CEST)
+Date: Tue, 23 Aug 2016 05:01:30 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160823030130.2C611180453@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Mauro
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-We discuss about
-> At the DVB frontend, the tuner and demodulators should be implemented
-> on different drivers, even when both are encapsulated on the same silicon.
-with our HW developers and SW designers.
+Results of the daily build of media_tree:
 
-Our codes for tuner and demodulator driver of user-space driver are encapsulated 
-in order to optimize tuner control sequence.
-(Our tuner driver often have to set rf tuner registers and demodulator alternately. )
-And there are some registers which simultaneously set parameter for tuner and demodulator block.
-Additionally, we think about current TV tuner IC trend and linux tuner driver.
+date:		Tue Aug 23 04:00:21 CEST 2016
+git branch:	test
+git hash:	0d1c7d60c287d13cfea27b50f75dbff411544488
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-I summarized our study results and proposals as follows.
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: OK
+linux-git-arm-multi: ERRORS
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: OK
+linux-4.8-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: OK
+linux-4.8-rc1-x86_64: OK
+apps: OK
+spec-git: ERRORS
+sparse: WARNINGS
+smatch: WARNINGS
 
-・In our case the tuner and demodulator are single chip architecture, so the tuner control cannot be distinguished from demodulator functionality. It is therefore difficult to separate tuner code and demodulator code.
-・We understand that single chip solutions may become more popular for smartphone and low power tuner device (USB, etc) so mixed driver will be main stream.
-・We intend to add the driver incorporating tuner and demodulator code to /media/dvb-frontend/XXXX (XXXX is our tuner name folder)
-・We will create our driver to have same API structure as the current tuner and demodulator driver code.
-  (drivers/media/dvb-frontends/m88rs2000.c and tda10071.c also seem to have tuner and demodulator code.
-  We would like to refer to their codes for our creating.)
+Detailed results are available here:
 
-Could you give us your advice and comments?
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Best Regards & Thanks
-Takiguchi
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
