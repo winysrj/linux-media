@@ -1,109 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44844 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751590AbcHQMbO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2016 08:31:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Songjun Wu <songjun.wu@microchip.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 4/7] ov7670: get xvclk
-Date: Wed, 17 Aug 2016 15:30:40 +0300
-Message-ID: <3609336.4L2FU6pBu3@avalon>
-In-Reply-To: <1471415383-38531-5-git-send-email-hverkuil@xs4all.nl>
-References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl> <1471415383-38531-5-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bombadil.infradead.org ([198.137.202.9]:38574 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932581AbcHWAl7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Aug 2016 20:41:59 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH] docs-rst: kernel-doc: better output struct members
+Date: Mon, 22 Aug 2016 21:41:51 -0300
+Message-Id: <b15e9b9a13cde37628801ad99949e37153309d77.1471912909.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Right now, for a struct, kernel-doc produces the following output:
 
-Thank you for the patch.
+	.. c:type:: struct v4l2_prio_state
 
-On Wednesday 17 Aug 2016 08:29:40 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Get the clock for this sensor.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/i2c/ov7670.c | 15 +++++++++++++++
->  1 file changed, 15 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-> index fe527b2..57adf3d 100644
-> --- a/drivers/media/i2c/ov7670.c
-> +++ b/drivers/media/i2c/ov7670.c
-> @@ -10,6 +10,7 @@
->   * This file may be distributed under the terms of the GNU General
->   * Public License, version 2.
->   */
-> +#include <linux/clk.h>
->  #include <linux/init.h>
->  #include <linux/module.h>
->  #include <linux/slab.h>
-> @@ -18,6 +19,7 @@
->  #include <linux/videodev2.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-clk.h>
->  #include <media/v4l2-mediabus.h>
->  #include <media/v4l2-image-sizes.h>
->  #include <media/i2c/ov7670.h>
-> @@ -228,6 +230,7 @@ struct ov7670_info {
->  		struct v4l2_ctrl *hue;
->  	};
->  	struct ov7670_format_struct *fmt;  /* Current format */
-> +	struct v4l2_clk *clk;
->  	int min_width;			/* Filter out smaller sizes */
->  	int min_height;			/* Filter out smaller sizes */
->  	int clock_speed;		/* External clock speed (MHz) */
-> @@ -1588,8 +1591,19 @@ static int ov7670_probe(struct i2c_client *client,
->  			info->pclk_hb_disable = true;
->  	}
-> 
-> +	info->clk = v4l2_clk_get(&client->dev, "xvclk");
-> +	if (IS_ERR(info->clk))
-> +		return -EPROBE_DEFER;
-> +	v4l2_clk_enable(info->clk);
+	   stores the priority states
 
-Do you really need the V4L2 clock API here, or could you use the CCF API 
-directly ?
+	**Definition**
 
-> +	info->clock_speed = v4l2_clk_get_rate(info->clk) / 1000000;
-> +	if (info->clock_speed < 12 ||
-> +	    info->clock_speed > 48)
-> +		return -EINVAL;
-> +
+	::
 
-You need error handling here too. I recommend adding error handling code at 
-the end of the function and using goto's.
+	  struct v4l2_prio_state {
+	    atomic_t prios[4];
+	  };
 
->  	/* Make sure it's an ov7670 */
->  	ret = ov7670_detect(sd);
-> +
+	**Members**
 
-No need for a blank line here.
+	``atomic_t prios[4]``
+	  array with elements to store the array priorities
 
->  	if (ret) {
->  		v4l_dbg(1, debug, client,
->  			"chip found @ 0x%x (%s) is not an ov7670 chip.\n",
-> @@ -1682,6 +1696,7 @@ static int ov7670_remove(struct i2c_client *client)
->  #if defined(CONFIG_MEDIA_CONTROLLER)
->  	media_entity_cleanup(&sd->entity);
->  #endif
-> +	v4l2_clk_put(info->clk);
+Putting a member name in verbatim and adding a continuation line
+causes the LaTeX output to generate something like:
+	item[atomic_t prios\[4\]] array with elements to store the array priorities
 
-Don't you need to call v4l2_clk_disable() before ?
+Everything inside "item" is non-breakable, with may produce
+lines bigger than the column width.
 
->  	return 0;
->  }
+Also, for function members, like:
 
+        int (* rx_read) (struct v4l2_subdev *sd, u8 *buf, size_t count,ssize_t *num);
+
+It puts the name of the member at the end, like:
+
+        int (*) (struct v4l2_subdev *sd, u8 *buf, size_t count,ssize_t *num) read
+
+With is very confusing.
+
+The best is to highlight what really matters: the member name; the type
+is a secondary information.
+
+So, change kernel-doc, for it to produce the output on a different way:
+
+	**Members**
+
+	``prios[4]``
+	  - **type**: ``atomic_t``
+
+	  array with elements to store the array priorities
+
+With such change, the name of the member will be the first visible
+thing, and will be in bold style. The type will still be there, inside
+a list.
+
+Also, as the type is not part of LaTeX "item[]", LaTeX will split it into
+multiple lines, if needed.
+
+So, both LaTeX/PDF and HTML outputs will look good.
+
+It should be noticed, however, that the way Sphinx LaTeX output handles
+things like:
+
+	Foo
+	   bar
+
+is different than the HTML output. On HTML, it will produce something
+like:
+
+	**Foo**
+	   bar
+
+While, on LaTeX, it puts both foo and bar at the same line, like:
+
+	**Foo** bar
+
+By starting the second line with a dash, both HTML and LaTeX output
+will do the same thing.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ scripts/kernel-doc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index ba081c7636a2..d225e178aa1b 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -2000,7 +2000,7 @@ sub output_struct_rst(%) {
+ 	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	$type = $args{'parametertypes'}{$parameter};
+         print_lineno($parameterdesc_start_lines{$parameter_name});
+-	print "``$type $parameter``\n";
++	print "``" . $parameter . "``\n";
+ 	output_highlight_rst($args{'parameterdescs'}{$parameter_name});
+ 	print "\n";
+     }
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
 
