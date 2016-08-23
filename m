@@ -1,103 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36342 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754611AbcHSV5c (ORCPT
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:38838 "EHLO
+        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757306AbcHWNfh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 17:57:32 -0400
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-To: linux-media@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org,
-        narmstrong@baylibre.com, khilman@baylibre.com, carlo@caione.org
-Cc: linux-arm-kernel@lists.infradead.org, linus.walleij@linaro.org,
-        mchehab@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com,
-        mark.rutland@arm.com, robh+dt@kernel.org,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Subject: [PATCH v4 4/6] media: rc: meson-ir: Add support for newer versions of the IR decoder
-Date: Fri, 19 Aug 2016 23:55:45 +0200
-Message-Id: <20160819215547.20063-5-martin.blumenstingl@googlemail.com>
-In-Reply-To: <20160819215547.20063-1-martin.blumenstingl@googlemail.com>
-References: <20160628191802.21227-1-martin.blumenstingl@googlemail.com>
- <20160819215547.20063-1-martin.blumenstingl@googlemail.com>
+        Tue, 23 Aug 2016 09:35:37 -0400
+Received: by mail-wm0-f51.google.com with SMTP id o80so195756954wme.1
+        for <linux-media@vger.kernel.org>; Tue, 23 Aug 2016 06:34:08 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20160823070818.42ffec00@lwn.net>
+References: <1471878705-3963-1-git-send-email-sumit.semwal@linaro.org>
+ <1471878705-3963-3-git-send-email-sumit.semwal@linaro.org>
+ <20160822124930.02dbbafc@vento.lan> <20160823060135.GJ24290@phenom.ffwll.local>
+ <20160823070818.42ffec00@lwn.net>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Tue, 23 Aug 2016 19:03:47 +0530
+Message-ID: <CAO_48GG-svRna2Q326VjiTjgT12O5OEg2VPP+_5DkxWc30bO7w@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] Documentation/sphinx: link dma-buf rsts
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        linux-doc@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        DRI mailing list <dri-devel@lists.freedesktop.org>,
+        Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Neil Armstrong <narmstrong@baylibre.com>
+Hi Jon,
 
-Newer SoCs (Meson 8b and GXBB) are using REG2 (offset 0x20) instead of
-REG1 to configure the decoder mode. This makes it necessary to
-introduce new bindings so the driver knows which register has to be
-used.
+On 23 August 2016 at 18:38, Jonathan Corbet <corbet@lwn.net> wrote:
+> On Tue, 23 Aug 2016 08:01:35 +0200
+> Daniel Vetter <daniel@ffwll.ch> wrote:
+>
+>> I'm also not too sure about whether dma-buf really should be it's own
+>> subdirectory. It's plucked from the device-drivers.tmpl, I think an
+>> overall device-drivers/ for all the misc subsystems and support code would
+>> be better. Then one toc there, which fans out to either kernel-doc and
+>> overview docs.
+>
+> I'm quite convinced it shouldn't be.
+>
+> If you get a chance, could you have a look at the "RFC: The beginning of
+> a proper driver-api book" series I posted yesterday (yes, I should have
+> copied more of you, sorry)?  It shows the direction I would like to go
+> with driver API documentation, and, assuming we go that way, I'd like the
+> dma-buf documentation to fit into that.
+>
 
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
----
- drivers/media/rc/meson-ir.c | 29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+Thanks for your comments, and direction. I'll rework the patches on
+top of yours then.
+I'll have a look at your patches to think about how do we handle API
+guides / detailed documentation as well.
 
-diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
-index fcc3b82..003fff0 100644
---- a/drivers/media/rc/meson-ir.c
-+++ b/drivers/media/rc/meson-ir.c
-@@ -24,6 +24,7 @@
- 
- #define DRIVER_NAME		"meson-ir"
- 
-+/* valid on all Meson platforms */
- #define IR_DEC_LDR_ACTIVE	0x00
- #define IR_DEC_LDR_IDLE		0x04
- #define IR_DEC_LDR_REPEAT	0x08
-@@ -32,12 +33,21 @@
- #define IR_DEC_FRAME		0x14
- #define IR_DEC_STATUS		0x18
- #define IR_DEC_REG1		0x1c
-+/* only available on Meson 8b and newer */
-+#define IR_DEC_REG2		0x20
- 
- #define REG0_RATE_MASK		(BIT(11) - 1)
- 
--#define REG1_MODE_MASK		(BIT(7) | BIT(8))
--#define REG1_MODE_NEC		(0 << 7)
--#define REG1_MODE_GENERAL	(2 << 7)
-+#define DECODE_MODE_NEC		0x0
-+#define DECODE_MODE_RAW		0x2
-+
-+/* Meson 6b uses REG1 to configure the mode */
-+#define REG1_MODE_MASK		GENMASK(8, 7)
-+#define REG1_MODE_SHIFT		7
-+
-+/* Meson 8b / GXBB use REG2 to configure the mode */
-+#define REG2_MODE_MASK		GENMASK(3, 0)
-+#define REG2_MODE_SHIFT		0
- 
- #define REG1_TIME_IV_SHIFT	16
- #define REG1_TIME_IV_MASK	((BIT(13) - 1) << REG1_TIME_IV_SHIFT)
-@@ -158,8 +168,15 @@ static int meson_ir_probe(struct platform_device *pdev)
- 	/* Reset the decoder */
- 	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_RESET, REG1_RESET);
- 	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_RESET, 0);
--	/* Set general operation mode */
--	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_MODE_MASK, REG1_MODE_GENERAL);
-+
-+	/* Set general operation mode (= raw/software decoding) */
-+	if (of_device_is_compatible(node, "amlogic,meson6-ir"))
-+		meson_ir_set_mask(ir, IR_DEC_REG1, REG1_MODE_MASK,
-+				  DECODE_MODE_RAW << REG1_MODE_SHIFT);
-+	else
-+		meson_ir_set_mask(ir, IR_DEC_REG2, REG2_MODE_MASK,
-+				  DECODE_MODE_RAW << REG2_MODE_SHIFT);
-+
- 	/* Set rate */
- 	meson_ir_set_mask(ir, IR_DEC_REG0, REG0_RATE_MASK, MESON_TRATE - 1);
- 	/* IRQ on rising and falling edges */
-@@ -197,6 +214,8 @@ static int meson_ir_remove(struct platform_device *pdev)
- 
- static const struct of_device_id meson_ir_match[] = {
- 	{ .compatible = "amlogic,meson6-ir" },
-+	{ .compatible = "amlogic,meson8b-ir" },
-+	{ .compatible = "amlogic,meson-gxbb-ir" },
- 	{ },
- };
- 
--- 
-2.9.3
+> Thanks,
+>
+> jon
 
+Best,
+Sumit.
