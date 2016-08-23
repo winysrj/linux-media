@@ -1,127 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:42316 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755704AbcH2SDm (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49918
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932581AbcHWAlH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 14:03:42 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Jiri Kosina <trivial@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v5 09/13] media: platform: pxa_camera: remove set_crop
-Date: Mon, 29 Aug 2016 19:55:54 +0200
-Message-Id: <1472493358-24618-10-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
-References: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
+        Mon, 22 Aug 2016 20:41:07 -0400
+Date: Mon, 22 Aug 2016 21:40:55 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Jani Nikula <jani.nikula@intel.com>, linux-doc@vger.kernel.org
+Subject: Re: [PATCH] docs-rst: kernel-doc: better output struct members
+Message-ID: <20160822214055.7c56f06d@vento.lan>
+In-Reply-To: <20160822153421.1e334ab0@lwn.net>
+References: <45996a8dc149f7de6ed09d703b76cb65e55b7a9a.1471781478.git.mchehab@s-opensource.com>
+        <20160822153421.1e334ab0@lwn.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is to be seen as a regression as the set_crop function is
-removed. This is a temporary situation in the v4l2 porting, and will
-have to be added later.
+Em Mon, 22 Aug 2016 15:34:21 -0600
+Jonathan Corbet <corbet@lwn.net> escreveu:
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/platform/soc_camera/pxa_camera.c | 76 --------------------------
- 1 file changed, 76 deletions(-)
+> On Sun, 21 Aug 2016 09:11:57 -0300
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> 
+> > So, change kernel-doc, for it to produce the output on a different way:
+> > 
+> > 	**Members**
+> > 
+> > 	``prios[4]``
+> > 	  - **type**: ``atomic_t``
+> > 
+> > 	  array with elements to store the array priorities
+> > 
+> > With such change, the name of the member will be the first visible
+> > thing, and will be in bold style. The type will still be there, inside
+> > a list.  
+> 
+> OK, I'll confess to not being 100% convinced on this one.  I certainly
+> sympathize with the problem that drives this change, but I think the
+> result is a bit on the noisy and visually distracting side.  
+> 
+> I wonder if we might be better off to just leave the "type:" bulleted
+> line out entirely?  The type information already appears in the structure
+> listing directly above, so it's arguably redundant here.  If formatting
+> the type is getting in the way here, perhaps the right answer is just
+> "don't do that"?
 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index 9b294a14fa2e..8f329d0b2cda 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -1294,81 +1294,6 @@ static int pxa_camera_check_frame(u32 width, u32 height)
- 		(width & 0x01);
- }
- 
--static int pxa_camera_set_crop(struct soc_camera_device *icd,
--			       const struct v4l2_crop *a)
--{
--	const struct v4l2_rect *rect = &a->c;
--	struct device *dev = icd->parent;
--	struct soc_camera_host *ici = to_soc_camera_host(dev);
--	struct pxa_camera_dev *pcdev = ici->priv;
--	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
--	struct soc_camera_sense sense = {
--		.master_clock = pcdev->mclk,
--		.pixel_clock_max = pcdev->ciclk / 4,
--	};
--	struct v4l2_subdev_format fmt = {
--		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
--	};
--	struct v4l2_mbus_framefmt *mf = &fmt.format;
--	struct pxa_cam *cam = icd->host_priv;
--	u32 fourcc = icd->current_fmt->host_fmt->fourcc;
--	int ret;
--
--	/* If PCLK is used to latch data from the sensor, check sense */
--	if (pcdev->platform_flags & PXA_CAMERA_PCLK_EN)
--		icd->sense = &sense;
--
--	ret = sensor_call(pcdev, video, s_crop, a);
--
--	icd->sense = NULL;
--
--	if (ret < 0) {
--		dev_warn(pcdev_to_dev(pcdev), "Failed to crop to %ux%u@%u:%u\n",
--			 rect->width, rect->height, rect->left, rect->top);
--		return ret;
--	}
--
--	ret = sensor_call(pcdev, pad, get_fmt, NULL, &fmt);
--	if (ret < 0)
--		return ret;
--
--	if (pxa_camera_check_frame(mf->width, mf->height)) {
--		/*
--		 * Camera cropping produced a frame beyond our capabilities.
--		 * FIXME: just extract a subframe, that we can process.
--		 */
--		v4l_bound_align_image(&mf->width, 48, 2048, 1,
--			&mf->height, 32, 2048, 0,
--			fourcc == V4L2_PIX_FMT_YUV422P ? 4 : 0);
--		ret = sensor_call(pcdev, pad, set_fmt, NULL, &fmt);
--		if (ret < 0)
--			return ret;
--
--		if (pxa_camera_check_frame(mf->width, mf->height)) {
--			dev_warn(pcdev_to_dev(pcdev),
--				 "Inconsistent state. Use S_FMT to repair\n");
--			return -EINVAL;
--		}
--	}
--
--	if (sense.flags & SOCAM_SENSE_PCLK_CHANGED) {
--		if (sense.pixel_clock > sense.pixel_clock_max) {
--			dev_err(pcdev_to_dev(pcdev),
--				"pixel clock %lu set by the camera too high!",
--				sense.pixel_clock);
--			return -EIO;
--		}
--		recalculate_fifo_timeout(pcdev, sense.pixel_clock);
--	}
--
--	icd->user_width		= mf->width;
--	icd->user_height	= mf->height;
--
--	pxa_camera_setup_cicr(icd, cam->flags, fourcc);
--
--	return ret;
--}
--
- static int pxa_camera_set_fmt(struct soc_camera_device *icd,
- 			      struct v4l2_format *f)
- {
-@@ -1581,7 +1506,6 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
- 	.remove		= pxa_camera_remove_device,
- 	.clock_start	= pxa_camera_clock_start,
- 	.clock_stop	= pxa_camera_clock_stop,
--	.set_crop	= pxa_camera_set_crop,
- 	.get_formats	= pxa_camera_get_formats,
- 	.put_formats	= pxa_camera_put_formats,
- 	.set_fmt	= pxa_camera_set_fmt,
--- 
-2.1.4
+I almost stripped the type on the first version of this patch, as I had
+the same doubt as you ;)
 
+I ended keeping it just because I didn't have a strong argument to
+strip it.
+
+There is another reason too... just stripping it will produce a
+little difference at the output:
+
+With HTML, the output is:
+
+	*struct v4l2_subdev_tuner_ops*
+
+	    Callbacks used when v4l device was opened in radio mode.
+
+	...
+
+	*Members*
+
+	*s_radio*
+	    callback for VIDIOC_S_RADIO ioctl handler code.
+	...
+
+On LaTeX/PDF, is displayed as:
+
+	*struct v4l2_subdev_tuner_ops*
+
+	    Callbacks used when v4l device was opened in radio mode.
+
+	...
+
+	*Members*
+
+	*s_radio* callback for VIDIOC_S_RADIO ioctl handler code.
+
+
+Anyway, I'm OK on just stripping the type. I'm sending a second version
+of it.
+
+Thanks!
+Mauro
