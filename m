@@ -1,50 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:9590 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752754AbcHVBIK (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.131]:54066 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753057AbcHXN5D (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 Aug 2016 21:08:10 -0400
-Message-ID: <1471828082.30956.1.camel@mtksdaap41>
-Subject: Re: [PATCH v4 2/4] dt-bindings: Add a binding for Mediatek MDP
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Rob Herring <robh@kernel.org>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>,
-        "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
-Date: Mon, 22 Aug 2016 09:08:02 +0800
-In-Reply-To: <20160819141655.GA18486@rob-hp-laptop>
-References: <1471606767-3218-1-git-send-email-minghsiu.tsai@mediatek.com>
-         <1471606767-3218-3-git-send-email-minghsiu.tsai@mediatek.com>
-         <20160819141655.GA18486@rob-hp-laptop>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+        Wed, 24 Aug 2016 09:57:03 -0400
+From: Alban Bedel <alban.bedel@avionic-design.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-kernel@vger.kernel.org,
+        Alban Bedel <alban.bedel@avionic-design.de>
+Subject: [PATCH v2] [media] v4l2-async: Always unregister the subdev on failure
+Date: Wed, 24 Aug 2016 15:49:48 +0200
+Message-Id: <20160824134948.21607-1-alban.bedel@avionic-design.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2016-08-19 at 09:16 -0500, Rob Herring wrote:
-> On Fri, Aug 19, 2016 at 07:39:25PM +0800, Minghsiu Tsai wrote:
-> > Add a DT binding documentation of MDP for the MT8173 SoC
-> > from Mediatek
-> > 
-> > Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-> > ---
-> >  .../devicetree/bindings/media/mediatek-mdp.txt     |  109 ++++++++++++++++++++
-> >  1 file changed, 109 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/media/mediatek-mdp.txt
-> 
-> Please add acks when posting new versions.
-> 
-> Rob
+In v4l2_async_test_notify() if the registered_async callback or the
+complete notifier returns an error the subdev is not unregistered.
+This leave paths where v4l2_async_register_subdev() can fail but
+leave the subdev still registered.
 
-Sorry for my mistake. I will add it in next version.
+Add the required calls to v4l2_device_unregister_subdev() to plug
+these holes.
+
+Signed-off-by: Alban Bedel <alban.bedel@avionic-design.de>
+---
+Changelog:
+v2: * Added the missing unbind() calls as suggested by Javier.
+---
+ drivers/media/v4l2-core/v4l2-async.c | 29 +++++++++++++++++------------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index ceb28d47c3f9..abe512d0b4cb 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -113,23 +113,28 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
+ 	list_move(&sd->async_list, &notifier->done);
+ 
+ 	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+-	if (ret < 0) {
+-		if (notifier->unbind)
+-			notifier->unbind(notifier, sd, asd);
+-		return ret;
+-	}
++	if (ret < 0)
++		goto err_subdev_register;
+ 
+ 	ret = v4l2_subdev_call(sd, core, registered_async);
+-	if (ret < 0 && ret != -ENOIOCTLCMD) {
+-		if (notifier->unbind)
+-			notifier->unbind(notifier, sd, asd);
+-		return ret;
++	if (ret < 0 && ret != -ENOIOCTLCMD)
++		goto err_subdev_call;
++
++	if (list_empty(&notifier->waiting) && notifier->complete) {
++		ret = notifier->complete(notifier);
++		if (ret < 0)
++			goto err_subdev_call;
+ 	}
+ 
+-	if (list_empty(&notifier->waiting) && notifier->complete)
+-		return notifier->complete(notifier);
+-
+ 	return 0;
++
++err_subdev_call:
++	v4l2_device_unregister_subdev(sd);
++err_subdev_register:
++	if (notifier->unbind)
++		notifier->unbind(notifier, sd, asd);
++
++	return ret;
+ }
+ 
+ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+-- 
+2.9.3
 
