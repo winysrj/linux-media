@@ -1,40 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:47309 "EHLO vena.lwn.net"
+Received: from smtp1.goneo.de ([85.220.129.30]:41464 "EHLO smtp1.goneo.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756653AbcHVVZJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 17:25:09 -0400
-Date: Mon, 22 Aug 2016 15:25:01 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        id S1754243AbcHXPhI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 24 Aug 2016 11:37:08 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Markus Heiser <markus.heiser@darmarIT.de>,
+        Jonathan Corbet <corbet@lwn.net>,
         Jani Nikula <jani.nikula@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Subject: Re: [RFC PATCH 0/5] doc-rst: improvements Sphinx's C-domain
-Message-ID: <20160822152501.402ba6e0@lwn.net>
-In-Reply-To: <1471270108-29314-1-git-send-email-markus.heiser@darmarit.de>
-References: <1471270108-29314-1-git-send-email-markus.heiser@darmarit.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 0/3] doc-rst: generic way to build PDF of sub-folder
+Date: Wed, 24 Aug 2016 17:36:13 +0200
+Message-Id: <1472052976-22541-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 15 Aug 2016 16:08:23 +0200
-Markus Heiser <markus.heiser@darmarit.de> wrote:
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-> this is my approach to eliminate some distortions we have with the c/cpp Sphinx
-> domains. The C domain is simple: it assumes that all functions, enums, etc
-> are global, e. g. there should be just one function called "ioctl", or "open".
-> With the 'name' option e.g.:
-> 
->     .. c:function:: int ioctl( int fd, int request )
->        :name: VIDIOC_LOG_STATUS
-> 
-> we can rename those functions. Another nice feature around this *global*
-> namespace topic is, that the *duplicate C object description* warnings for
-> function declarations are moved to the nitpicky mode.
+Hi Mauro,
 
-I've applied these to the docs tree, thanks.
+here is a small patch series which extends the method to build only sub-folders
+to the targets "latexdocs" and "pdfdocs".
 
-jon
+If you think, that the two first patches works for you, path them with your next
+merge to Jon's doc-next.
+
+The last patch in this series is just for you. It is a small example to
+illustrate how we can build small books and link them with intersphinx.
+
+-- Markus --
+
+Markus Heiser (3):
+  doc-rst: generic way to build PDF of sub-folders
+  doc-rst: define PDF's of the media folder
+  doc-rst:media: build separated PDF books (experimental)
+
+ Documentation/Makefile.sphinx |  4 ++--
+ Documentation/media/conf.py   | 20 ++++++++++++++++++++
+ 2 files changed, 22 insertions(+), 2 deletions(-)
+
+-- 
+2.7.4
+
