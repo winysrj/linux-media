@@ -1,109 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:43542 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752597AbcHVM00 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55241
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755480AbcHXKmV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 08:26:26 -0400
-Subject: Re: [RFC v2 14/17] media-device: Postpone graph object removal until
- free
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
- <1471602228-30722-15-git-send-email-sakari.ailus@linux.intel.com>
-Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5b2909aa-a1c3-3806-d1f0-168fa283108c@xs4all.nl>
-Date: Mon, 22 Aug 2016 14:26:08 +0200
+        Wed, 24 Aug 2016 06:42:21 -0400
+Date: Wed, 24 Aug 2016 07:42:13 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 0/9] Prepare Sphinx to build media PDF books
+Message-ID: <20160824074213.56fe8e50@vento.lan>
+In-Reply-To: <20160818172127.190fad79@lwn.net>
+References: <cover.1471364025.git.mchehab@s-opensource.com>
+        <20160818172127.190fad79@lwn.net>
 MIME-Version: 1.0
-In-Reply-To: <1471602228-30722-15-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/19/2016 12:23 PM, Sakari Ailus wrote:
-> The media device itself will be unregistered based on it being unbound and
-> driver's remove callback being called. The graph objects themselves may
-> still be in use; rely on the media device release callback to release
-> them.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Markus,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Em Thu, 18 Aug 2016 17:21:27 -0600
+Jonathan Corbet <corbet@lwn.net> escreveu:
 
-> ---
->  drivers/media/media-device.c | 44 ++++++++++++++++++++------------------------
->  1 file changed, 20 insertions(+), 24 deletions(-)
+> On Tue, 16 Aug 2016 13:25:34 -0300
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
 > 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 0656daf..cbbc397 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -756,6 +756,26 @@ EXPORT_SYMBOL_GPL(media_device_cleanup);
->  static void media_device_release(struct media_devnode *devnode)
->  {
->  	struct media_device *mdev = to_media_device(devnode);
-> +	struct media_entity *entity;
-> +	struct media_entity *next;
-> +	struct media_interface *intf, *tmp_intf;
-> +	struct media_entity_notify *notify, *nextp;
-> +
-> +	/* Remove all entities from the media device */
-> +	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
-> +		__media_device_unregister_entity(entity);
-> +
-> +	/* Remove all entity_notify callbacks from the media device */
-> +	list_for_each_entry_safe(notify, nextp, &mdev->entity_notify, list)
-> +		__media_device_unregister_entity_notify(mdev, notify);
-> +
-> +	/* Remove all interfaces from the media device */
-> +	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
-> +				 graph_obj.list) {
-> +		__media_remove_intf_links(intf);
-> +		media_gobj_destroy(&intf->graph_obj);
-> +		kfree(intf);
-> +	}
->  
->  	ida_destroy(&mdev->entity_internal_idx);
->  	mdev->entity_internal_idx_max = 0;
-> @@ -800,38 +820,14 @@ EXPORT_SYMBOL_GPL(__media_device_register);
->  
->  void media_device_unregister(struct media_device *mdev)
->  {
-> -	struct media_entity *entity;
-> -	struct media_entity *next;
-> -	struct media_interface *intf, *tmp_intf;
-> -	struct media_entity_notify *notify, *nextp;
-> -
->  	if (mdev == NULL)
->  		return;
->  
->  	mutex_lock(&mdev->graph_mutex);
-> -
-> -	/* Check if mdev was ever registered at all */
->  	if (!media_devnode_is_registered(&mdev->devnode)) {
->  		mutex_unlock(&mdev->graph_mutex);
->  		return;
->  	}
-> -
-> -	/* Remove all entities from the media device */
-> -	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
-> -		__media_device_unregister_entity(entity);
-> -
-> -	/* Remove all entity_notify callbacks from the media device */
-> -	list_for_each_entry_safe(notify, nextp, &mdev->entity_notify, list)
-> -		__media_device_unregister_entity_notify(mdev, notify);
-> -
-> -	/* Remove all interfaces from the media device */
-> -	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
-> -				 graph_obj.list) {
-> -		__media_remove_intf_links(intf);
-> -		media_gobj_destroy(&intf->graph_obj);
-> -		kfree(intf);
-> -	}
-> -
->  	mutex_unlock(&mdev->graph_mutex);
->  
->  	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+> > I think this patch series belong to docs-next. Feel free to merge them there, if
+> > you agree. There's one extra patch that touches Documentation/conf.py,
+> > re-adding the media book to the PDF build, but IMHO this one would be better
+> > to be merged via the media tree, after the fixes inside the media documentation
+> > to fix the build.  
 > 
+> It's now in docs-next.  I was able to build some nice-looking docs with it
+> without too much (additional) pain...
+
+I'm noticing a very weird behavior when I'm building documentation on
+my server. There, I'm using this command:
+
+	$ make cleandocs; make V=1 DOCBOOKS="" SPHINXDIRS=media SPHINX_CONF="conf.py" htmldocs
+
+This is what happens on my local machine:
+	http://pastebin.com/VGqvDa7T
+
+And this is the result of the same command on my server, accessed via ssh:
+	http://pastebin.com/1MFi5LEG
+
+As you can see, it seems that internally sphinx is calling a
+make -C Documentation/output/latex, with is very bad, because it takes
+a lot of extra time to run and produces an useless output. It also produces 
+a wrong output, as it would be calling pdflatex, instead of xelatex.
+
+Do you have any glue about what's going on?
+
+Also, if I use the "-j33" sphinx option, it complains:
+
+WARNING: the kernel_include extension does not declare if it is safe for parallel reading, assuming it isn't - please ask the extension author to check and make it explicit
+WARNING: doing serial read
+
+Btw, we need to add support to build just one PDF file, as we did with
+the htmldocs.
+
+Thanks,
+Mauro
