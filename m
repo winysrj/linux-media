@@ -1,204 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:38693 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759612AbcHEKqh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Aug 2016 06:46:37 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH v3 07/11] doc-rst: Add 14-bit raw bayer pixel format definitions
-Date: Fri,  5 Aug 2016 13:45:37 +0300
-Message-Id: <1470393941-26959-8-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1470393941-26959-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1470393941-26959-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55455
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754789AbcHXMX6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 24 Aug 2016 08:23:58 -0400
+Date: Wed, 24 Aug 2016 09:23:51 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 0/9] Prepare Sphinx to build media PDF books
+Message-ID: <20160824092351.0ca643c9@vento.lan>
+In-Reply-To: <7E41034C-DBBE-4AC0-A533-E03A501EBEE0@darmarit.de>
+References: <cover.1471364025.git.mchehab@s-opensource.com>
+        <20160818172127.190fad79@lwn.net>
+        <20160824074213.56fe8e50@vento.lan>
+        <7E41034C-DBBE-4AC0-A533-E03A501EBEE0@darmarit.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The formats added by this patch are:
+Hi Markus,
 
-	V4L2_PIX_FMT_SBGGR14
-	V4L2_PIX_FMT_SGBRG14
-	V4L2_PIX_FMT_SGRBG14
-	V4L2_PIX_FMT_SRGGB14
+Em Wed, 24 Aug 2016 13:46:48 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-Signed-off-by: Jouni Ukkonen <jouni.ukkonen@intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/v4l/pixfmt-rgb.rst     |   1 +
- Documentation/media/uapi/v4l/pixfmt-srggb14.rst | 122 ++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ioctl.c            |   4 +
- include/uapi/linux/videodev2.h                  |   4 +
- 4 files changed, 131 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb14.rst
+> Am 24.08.2016 um 12:42 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> 
+> > Markus,
+> > 
+> > Em Thu, 18 Aug 2016 17:21:27 -0600
+> > Jonathan Corbet <corbet@lwn.net> escreveu:
+> >   
+> >> On Tue, 16 Aug 2016 13:25:34 -0300
+> >> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> >>   
+> >>> I think this patch series belong to docs-next. Feel free to merge them there, if
+> >>> you agree. There's one extra patch that touches Documentation/conf.py,
+> >>> re-adding the media book to the PDF build, but IMHO this one would be better
+> >>> to be merged via the media tree, after the fixes inside the media documentation
+> >>> to fix the build.    
+> >> 
+> >> It's now in docs-next.  I was able to build some nice-looking docs with it
+> >> without too much (additional) pain...  
+> > 
+> > I'm noticing a very weird behavior when I'm building documentation on
+> > my server. There, I'm using this command:
+> > 
+> > 	$ make cleandocs; make V=1 DOCBOOKS="" SPHINXDIRS=media SPHINX_CONF="conf.py" htmldocs  
+> 
+> Hi Mauro,
+> 
+> if you build a sub-folder, the conf.py is the default. You don't need 
+> to name conf.py it explicit and you can leave the DOCBOOKS env.
+> 
+> $ make V=1 SPHINXDIRS=media cleandocs htmldocs
+> 
+> or less verbose:
+> 
+> $ make SPHINXDIRS=media cleandocs htmldocs
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-index 81412f7..548551a 100644
---- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-@@ -19,3 +19,4 @@ RGB Formats
-     pixfmt-srggb10dpcm8
-     pixfmt-srggb12
-     pixfmt-srggb12p
-+    pixfmt-srggb14
-diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb14.rst b/Documentation/media/uapi/v4l/pixfmt-srggb14.rst
-new file mode 100644
-index 0000000..829ce97
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-srggb14.rst
-@@ -0,0 +1,122 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2-PIX-FMT-SRGGB14:
-+.. _v4l2-pix-fmt-sbggr14:
-+.. _v4l2-pix-fmt-sgbrg14:
-+.. _v4l2-pix-fmt-sgrbg14:
-+
-+
-+***************************************************************************************************************************
-+V4L2_PIX_FMT_SRGGB14 ('RG14'), V4L2_PIX_FMT_SGRBG14 ('GR14'), V4L2_PIX_FMT_SGBRG14 ('GB14'), V4L2_PIX_FMT_SBGGR14 ('BG14'),
-+***************************************************************************************************************************
-+
-+*man V4L2_PIX_FMT_SRGGB14(2)*
-+
-+V4L2_PIX_FMT_SGRBG14
-+V4L2_PIX_FMT_SGBRG14
-+V4L2_PIX_FMT_SBGGR14
-+14-bit Bayer formats expanded to 16 bits
-+
-+
-+Description
-+===========
-+
-+These four pixel formats are raw sRGB / Bayer formats with 14 bits per
-+colour. Each sample is stored in a 16-bit word, with two unused high
-+bits filled with zeros. Each n-pixel row contains n/2 green samples
-+and n/2 blue or red samples, with alternating red and blue rows. Bytes
-+are stored in memory in little endian order. They are conventionally
-+described as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an
-+example of one of these formats:
-+
-+**Byte Order.**
-+Each cell is one byte, the two most significant bits in the high bytes are
-+zero.
-+
-+
-+
-+.. flat-table::
-+    :header-rows:  0
-+    :stub-columns: 0
-+    :widths:       2 1 1 1 1 1 1 1 1
-+
-+
-+    -  .. row 1
-+
-+       -  start + 0:
-+
-+       -  B\ :sub:`00low`
-+
-+       -  B\ :sub:`00high`
-+
-+       -  G\ :sub:`01low`
-+
-+       -  G\ :sub:`01high`
-+
-+       -  B\ :sub:`02low`
-+
-+       -  B\ :sub:`02high`
-+
-+       -  G\ :sub:`03low`
-+
-+       -  G\ :sub:`03high`
-+
-+    -  .. row 2
-+
-+       -  start + 8:
-+
-+       -  G\ :sub:`10low`
-+
-+       -  G\ :sub:`10high`
-+
-+       -  R\ :sub:`11low`
-+
-+       -  R\ :sub:`11high`
-+
-+       -  G\ :sub:`12low`
-+
-+       -  G\ :sub:`12high`
-+
-+       -  R\ :sub:`13low`
-+
-+       -  R\ :sub:`13high`
-+
-+    -  .. row 3
-+
-+       -  start + 16:
-+
-+       -  B\ :sub:`20low`
-+
-+       -  B\ :sub:`20high`
-+
-+       -  G\ :sub:`21low`
-+
-+       -  G\ :sub:`21high`
-+
-+       -  B\ :sub:`22low`
-+
-+       -  B\ :sub:`22high`
-+
-+       -  G\ :sub:`23low`
-+
-+       -  G\ :sub:`23high`
-+
-+    -  .. row 4
-+
-+       -  start + 24:
-+
-+       -  G\ :sub:`30low`
-+
-+       -  G\ :sub:`30high`
-+
-+       -  R\ :sub:`31low`
-+
-+       -  R\ :sub:`31high`
-+
-+       -  G\ :sub:`32low`
-+
-+       -  G\ :sub:`32high`
-+
-+       -  R\ :sub:`33low`
-+
-+       -  R\ :sub:`33high`
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index ebce910..29d9f8f 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1233,6 +1233,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_PIX_FMT_SGBRG12P:	descr = "12-bit Bayer GBGB/RGRG Packed"; break;
- 	case V4L2_PIX_FMT_SGRBG12P:	descr = "12-bit Bayer GRGR/BGBG Packed"; break;
- 	case V4L2_PIX_FMT_SRGGB12P:	descr = "12-bit Bayer RGRG/GBGB Packed"; break;
-+	case V4L2_PIX_FMT_SBGGR14:	descr = "14-bit Bayer BGBG/GRGR"; break;
-+	case V4L2_PIX_FMT_SGBRG14:	descr = "14-bit Bayer GBGB/RGRG"; break;
-+	case V4L2_PIX_FMT_SGRBG14:	descr = "14-bit Bayer GRGR/BGBG"; break;
-+	case V4L2_PIX_FMT_SRGGB14:	descr = "14-bit Bayer RGRG/GBGB"; break;
- 	case V4L2_PIX_FMT_SBGGR16:	descr = "16-bit Bayer BGBG/GRGR (Exp.)"; break;
- 	case V4L2_PIX_FMT_SN9C20X_I420:	descr = "GSPCA SN9C20X I420"; break;
- 	case V4L2_PIX_FMT_SPCA501:	descr = "GSPCA SPCA501"; break;
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index c9b0055..dd7b29d 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -583,6 +583,10 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
- #define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
- #define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
-+#define V4L2_PIX_FMT_SBGGR14 v4l2_fourcc('B', 'G', '1', '4') /* 14  BGBG.. GRGR.. */
-+#define V4L2_PIX_FMT_SGBRG14 v4l2_fourcc('G', 'B', '1', '4') /* 14  GBGB.. RGRG.. */
-+#define V4L2_PIX_FMT_SGRBG14 v4l2_fourcc('G', 'R', '1', '4') /* 14  GRGR.. BGBG.. */
-+#define V4L2_PIX_FMT_SRGGB14 v4l2_fourcc('R', 'G', '1', '4') /* 14  RGRG.. GBGB.. */
- #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
- 
- /* compressed formats */
--- 
-2.7.4
+Yeah, I know. I added the SPHINX_CONF there because my end goal
+is to use the nitpick config, after cleaning it up ;)
 
+> 
+> But this does not answer your question ;)
+> 
+> > This is what happens on my local machine:
+> > 	http://pastebin.com/VGqvDa7T  
+> 
+> Seems to build fine. But this is not "make V=1" log.
+> 
+> > And this is the result of the same command on my server, accessed via ssh:
+> > 	http://pastebin.com/1MFi5LEG  
+> 
+> Same here, it is not a "make V=1" log. The errors like:
+> 
+>  WARNING: inline latex u"L' = L ^{\\frac{1}{2.19921875}}": latex exited with error
+> 
+> are dubious first. Which branch did you compile. It seems you are
+> using "inline latex" ... this seems not in Jon's docs-next.
+> I checked your experimental docs-next, there is a related
+> markup, so I think you compiling this branch.
+> 
+> .. math::
+> 
+>    L' = L ^{\frac{1}{2.19921875}}
+> 
+> So I guess the error message is related to one of the sphinx-extensions:
+> 
+> # The name of the math extension changed on Sphinx 1.4
+> if minor > 3:
+>    extensions.append("sphinx.ext.imgmath")
+> else:
+>    extensions.append("sphinx.ext.pngmath")
+> 
+> Since there is a log "Running Sphinx v1.4.6" (both, desktop and server) I
+> guess it is related to the sphinx.ext.imgmath extension.
+> 
+> I haven't tested math-extensions yet, I will give it a try
+> and send you my experience later. In the meantime you can check
+> your math-extensions on desktop and server ...
+> 
+> In general I guess: 
+> 
+> 0.) you compiling different branches
+> 
+> or
+> 
+> 1.) on your desktop the math-extension miss some latex stuff
+> and does not run, so you get no errors (or it runs perfect
+> without any error).
+
+Thanks! that was the case...
+
+I had already those two extensions that are needed by math:
+	texlive-amsmath-svn30645.2.14-24.fc24.1.noarch
+	texlive-amsfonts-svn29208.3.04-24.fc24.1.noarch
+
+But it was missing this one on the server:
+	texlive-anyfontsize.noarch
+
+> > Also, if I use the "-j33" sphinx option, it complains:
+> > 
+> > WARNING: the kernel_include extension does not declare if it is safe for parallel reading, assuming it isn't - please ask the extension author to check and make it explicit
+> > WARNING: doing serial read  
+> 
+> Yes I know, it is the same with the kernel_doc extension, I can send a patch for both.
+
+That will be very much appreciated, thanks!
+
+> > Btw, we need to add support to build just one PDF file, as we did with
+> > the htmldocs.  
+> 
+> You mean, when you build a subfolder (SPHINXDIRS=media), you wanted
+> to build a PDF with only media stuff in .. right?
+
+Yes.
+
+> .. thats what 
+> I suggested in one of my last mails .. I can sent a patch for this.
+
+Please do that.
+
+Thanks!
+Mauro
