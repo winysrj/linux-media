@@ -1,59 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:57501 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754618AbcHSDai (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:18125 "EHLO
+        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752902AbcHXKWO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Aug 2016 23:30:38 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>
-Subject: [PATCH 13/20] [media] dev-raw-vbi.rst: adjust table columns for LaTeX output
-Date: Thu, 18 Aug 2016 13:15:42 -0300
-Message-Id: <60a2303eafe3d220277c035c51c4d6b57518e115.1471532123.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
-References: <cover.1471532122.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
-References: <cover.1471532122.git.mchehab@s-opensource.com>
+        Wed, 24 Aug 2016 06:22:14 -0400
+To: LMML <linux-media@vger.kernel.org>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PULL] Samsung media driver updates
+Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+Message-id: <c452c720-b789-0b35-3685-30785f6b4991@samsung.com>
+Date: Wed, 24 Aug 2016 12:21:21 +0200
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the needed tags to fix LaTeX output of the tables there.
+Hi Mauro,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/dev-raw-vbi.rst | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+this includes Samsung SoC media driver fixes and cleanups for v4.9.
 
-diff --git a/Documentation/media/uapi/v4l/dev-raw-vbi.rst b/Documentation/media/uapi/v4l/dev-raw-vbi.rst
-index 859b5bc8abbb..1b59239c7fb7 100644
---- a/Documentation/media/uapi/v4l/dev-raw-vbi.rst
-+++ b/Documentation/media/uapi/v4l/dev-raw-vbi.rst
-@@ -102,7 +102,9 @@ and always returns default parameters as :ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>` does
- 
- .. _v4l2-vbi-format:
- 
--.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{8.7cm}|
-+.. tabularcolumns:: |p{2.4cm}|p{4.4cm}|p{10.7cm}|
-+
-+.. cssclass:: longtable
- 
- .. flat-table:: struct v4l2_vbi_format
-     :header-rows:  0
-@@ -228,7 +230,7 @@ and always returns default parameters as :ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>` does
- 
- .. _vbifmt-flags:
- 
--.. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
-+.. tabularcolumns:: |p{4.0cm}|p{1.5cm}|p{12.0cm}|
- 
- .. flat-table:: Raw VBI Format Flags
-     :header-rows:  0
+The following changes since commit 29b4817d4018df78086157ea3a55c1d9424a7cfc:
+
+  Linux 4.8-rc1 (2016-08-07 18:18:00 -0700)
+
+are available in the git repository at:
+
+  git://linuxtv.org/snawrocki/samsung.git for-v4.9/media/next
+
+for you to fetch changes up to ba0f105e7ca81a25b58a5e57ebe30fc51f116616:
+
+  exynos4-is: fimc-is-i2c: don't print error when adding adapter fails
+(2016-08-12 16:42:21 +0200)
+
+----------------------------------------------------------------
+Bhaktipriya Shridhar (1):
+      s5p-mfc: Remove deprecated create_singlethread_workqueue
+
+Javier Martinez Canillas (5):
+      s5p-jpeg: set capablity bus_info as required by VIDIOC_QUERYCAP
+      exynos4-is: Fix fimc_is_parse_sensor_config() nodes handling
+      s5p-jpeg: only fill driver's name in capabilities driver field
+      gsc-m2m: add device name sufix to bus_info capatiliby field
+      gsc-m2m: improve v4l2_capability driver and card fields
+
+Shuah Khan (6):
+      media: Doc s5p-mfc add missing fields to s5p_mfc_dev structure definition
+      media: s5p-mfc fix invalid memory access from s5p_mfc_release()
+      media: s5p-mfc remove void function return statement
+      media: s5p-mfc Fix misspelled error message and checkpatch errors
+      media: s5p-mfc remove unnecessary error messages
+      media: s5p-jpeg add missing blank lines after declarations
+
+Wei Yongjun (1):
+      s5p-mfc: remove redundant return value check of platform_get_resource()
+
+Wolfram Sang (1):
+      exynos4-is: fimc-is-i2c: don't print error when adding adapter fails
+
+ drivers/media/platform/exynos-gsc/gsc-m2m.c     |  7 +++---
+ drivers/media/platform/exynos4-is/fimc-is-i2c.c |  5 +---
+ drivers/media/platform/exynos4-is/fimc-is.c     | 16 +++++++-----
+ drivers/media/platform/s5p-jpeg/jpeg-core.c     | 20 ++++++++++-----
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        | 86
+++++++++++++++++++++++++++++++++++++++++-------------------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  2 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    | 11 +++++----
+ 7 files changed, 90 insertions(+), 57 deletions(-)
+
 -- 
-2.7.4
-
-
+Thanks,
+Sylwester
