@@ -1,80 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:15387 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934320AbcHaM4Y (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:46908 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754774AbcHXQaq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Aug 2016 08:56:24 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Joonyoung Shim <jy0922.shim@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH 3/6] drm/exynos: rotator: fix system and runtime pm integration
-Date: Wed, 31 Aug 2016 14:55:56 +0200
-Message-id: <1472648159-9814-4-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1472648159-9814-1-git-send-email-m.szyprowski@samsung.com>
-References: <1472648159-9814-1-git-send-email-m.szyprowski@samsung.com>
+        Wed, 24 Aug 2016 12:30:46 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 1/2] [media] tw5864-core: remove double irq lock code
+Date: Wed, 24 Aug 2016 13:30:39 -0300
+Message-Id: <c5f789d7d85f4c4b6bcdb2b1674d6495f05ada42.1472056235.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use generic helpers instead of open-coding usage of runtime pm for system
-sleep pm, which was potentially broken for some corner cases.
+As warned by smatch:
+	drivers/media/pci/tw5864/tw5864-core.c:160 tw5864_h264_isr() error: double lock 'irqsave:flags'
+	drivers/media/pci/tw5864/tw5864-core.c:174 tw5864_h264_isr() error: double unlock 'irqsave:flags'
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Remove the IRQ duplicated lock.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/gpu/drm/exynos/exynos_drm_rotator.c | 26 ++------------------------
- 1 file changed, 2 insertions(+), 24 deletions(-)
+ drivers/media/pci/tw5864/tw5864-core.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_rotator.c b/drivers/gpu/drm/exynos/exynos_drm_rotator.c
-index 404367a430b5..6591e406084c 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_rotator.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_rotator.c
-@@ -794,29 +794,6 @@ static int rotator_clk_crtl(struct rot_context *rot, bool enable)
- 	return 0;
- }
+diff --git a/drivers/media/pci/tw5864/tw5864-core.c b/drivers/media/pci/tw5864/tw5864-core.c
+index 440cd7bb8d04..e3d884e963c0 100644
+--- a/drivers/media/pci/tw5864/tw5864-core.c
++++ b/drivers/media/pci/tw5864/tw5864-core.c
+@@ -157,12 +157,10 @@ static void tw5864_h264_isr(struct tw5864_dev *dev)
  
--
--#ifdef CONFIG_PM_SLEEP
--static int rotator_suspend(struct device *dev)
--{
--	struct rot_context *rot = dev_get_drvdata(dev);
--
--	if (pm_runtime_suspended(dev))
--		return 0;
--
--	return rotator_clk_crtl(rot, false);
--}
--
--static int rotator_resume(struct device *dev)
--{
--	struct rot_context *rot = dev_get_drvdata(dev);
--
--	if (!pm_runtime_suspended(dev))
--		return rotator_clk_crtl(rot, true);
--
--	return 0;
--}
--#endif
--
- static int rotator_runtime_suspend(struct device *dev)
- {
- 	struct rot_context *rot = dev_get_drvdata(dev);
-@@ -833,7 +810,8 @@ static int rotator_runtime_resume(struct device *dev)
- #endif
+ 		cur_frame = next_frame;
  
- static const struct dev_pm_ops rotator_pm_ops = {
--	SET_SYSTEM_SLEEP_PM_OPS(rotator_suspend, rotator_resume)
-+	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
-+				pm_runtime_force_resume)
- 	SET_RUNTIME_PM_OPS(rotator_runtime_suspend, rotator_runtime_resume,
- 									NULL)
- };
+-		spin_lock_irqsave(&input->slock, flags);
+ 		input->frame_seqno++;
+ 		input->frame_gop_seqno++;
+ 		if (input->frame_gop_seqno >= input->gop)
+ 			input->frame_gop_seqno = 0;
+-		spin_unlock_irqrestore(&input->slock, flags);
+ 	} else {
+ 		dev_err(&dev->pci->dev,
+ 			"Skipped frame on input %d because all buffers busy\n",
 -- 
-1.9.1
+2.7.4
 
