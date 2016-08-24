@@ -1,68 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37181 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752156AbcHNJlu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Aug 2016 05:41:50 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C70E4180AA9
-	for <linux-media@vger.kernel.org>; Sun, 14 Aug 2016 11:41:03 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.9] New tw5864 driver (v2)
-Message-ID: <80f707e8-6a52-6c9a-82ba-db9c8f5d0113@xs4all.nl>
-Date: Sun, 14 Aug 2016 11:41:03 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:56319 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753290AbcHXLX1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 24 Aug 2016 07:23:27 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>,
+        =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH] [media] ad5820: fix one smatch warning
+Date: Wed, 24 Aug 2016 08:23:20 -0300
+Message-Id: <1ee6dd5a918bd98dea20a2847f1ca15964dca952.1472037792.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Passed v4l2-compliance, see https://patchwork.linuxtv.org/patch/35671/
-for more details about the device.
+drivers/media/i2c/ad5820.c:61:24: error: dubious one-bit signed bitfield
 
-Regards,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/i2c/ad5820.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-	Hans
+diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
+index 62cc1f54622f..d7ad5c1a1219 100644
+--- a/drivers/media/i2c/ad5820.c
++++ b/drivers/media/i2c/ad5820.c
+@@ -58,7 +58,7 @@ struct ad5820_device {
+ 	struct mutex power_lock;
+ 	int power_count;
+ 
+-	int standby : 1;
++	unsigned int standby : 1;
+ };
+ 
+ static int ad5820_write(struct ad5820_device *coil, u16 data)
+-- 
+2.7.4
 
-Change since v2: fix Kconfig dependency.
-
-The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
-
-  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git tw5864
-
-for you to fetch changes up to 5984370475abcaca7bca8aa3b207ce4f7a397951:
-
-  tw5864: add missing HAS_DMA dependency (2016-08-14 11:37:29 +0200)
-
-----------------------------------------------------------------
-Andrey Utkin (1):
-      pci: Add tw5864 driver
-
-Hans Verkuil (1):
-      tw5864: add missing HAS_DMA dependency
-
- MAINTAINERS                             |    8 +
- drivers/media/pci/Kconfig               |    1 +
- drivers/media/pci/Makefile              |    1 +
- drivers/media/pci/tw5864/Kconfig        |   12 +
- drivers/media/pci/tw5864/Makefile       |    3 +
- drivers/media/pci/tw5864/tw5864-core.c  |  359 ++++++++++
- drivers/media/pci/tw5864/tw5864-h264.c  |  259 ++++++++
- drivers/media/pci/tw5864/tw5864-reg.h   | 2133 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/pci/tw5864/tw5864-util.c  |   37 ++
- drivers/media/pci/tw5864/tw5864-video.c | 1514 ++++++++++++++++++++++++++++++++++++++++++
- drivers/media/pci/tw5864/tw5864.h       |  205 ++++++
- 11 files changed, 4532 insertions(+)
- create mode 100644 drivers/media/pci/tw5864/Kconfig
- create mode 100644 drivers/media/pci/tw5864/Makefile
- create mode 100644 drivers/media/pci/tw5864/tw5864-core.c
- create mode 100644 drivers/media/pci/tw5864/tw5864-h264.c
- create mode 100644 drivers/media/pci/tw5864/tw5864-reg.h
- create mode 100644 drivers/media/pci/tw5864/tw5864-util.c
- create mode 100644 drivers/media/pci/tw5864/tw5864-video.c
- create mode 100644 drivers/media/pci/tw5864/tw5864.h
