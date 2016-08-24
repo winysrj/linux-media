@@ -1,120 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:55575 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752621AbcHAKjw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Aug 2016 06:39:52 -0400
-Subject: Re: [PATCH v3 5/9] vcodec: mediatek: Add Mediatek V4L2 Video Decoder
- Driver
-To: Tiffany Lin <tiffany.lin@mediatek.com>
-References: <1464611363-14936-1-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-2-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-3-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-4-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-5-git-send-email-tiffany.lin@mediatek.com>
- <1464611363-14936-6-git-send-email-tiffany.lin@mediatek.com>
- <32112952-6a34-ac8b-9d06-198c6c653611@xs4all.nl>
- <1470044307.30651.18.camel@mtksdaap41>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, daniel.thompson@linaro.org,
-	Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8bd71dee-62ec-beba-c1d1-fc7e586d593b@xs4all.nl>
-Date: Mon, 1 Aug 2016 12:39:44 +0200
+Received: from mga05.intel.com ([192.55.52.43]:16547 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753639AbcHXLqv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 24 Aug 2016 07:46:51 -0400
+Subject: Re: [PATCH] [media] ad5820: fix one smatch warning
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>,
+        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
+References: <1ee6dd5a918bd98dea20a2847f1ca15964dca952.1472037792.git.mchehab@s-opensource.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <57BD8924.9000405@linux.intel.com>
+Date: Wed, 24 Aug 2016 14:46:44 +0300
 MIME-Version: 1.0
-In-Reply-To: <1470044307.30651.18.camel@mtksdaap41>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1ee6dd5a918bd98dea20a2847f1ca15964dca952.1472037792.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tiffany,
+Hi Mauro,
 
-On 08/01/2016 11:38 AM, Tiffany Lin wrote:
-> Hi Hans,
-
-<snip>
-
->>> +static int vidioc_vdec_g_selection(struct file *file, void *priv,
->>> +			struct v4l2_selection *s)
->>> +{
->>> +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
->>> +
->>> +	if (V4L2_TYPE_IS_OUTPUT(s->type))
->>> +		return -EINVAL;
->>> +
->>> +	if (s->target != V4L2_SEL_TGT_CROP)
->>> +		return -EINVAL;
->>
->> How does the cropping rectangle relate to the format size? There is no s_selection,
->> so this doesn't make sense.
->>
-> I want to return encoded crop information or real display region that
-> display driver could know where is padding region.
-
-Sorry, I don't understand this.
-
-This is a decoder, so based on the bitstream it decodes to a certain width
-and height. I assume that is what you refer to as coded_width and coded_height?
-
-If so, then what is the 'real display region' and how does it relate to the
-coded width/height?
-
-This is probably a terminology issue but I need to understand this before I
-can decide what should be done here.
-
-Regards,
-
-	Hans
-
-> User space use s_fmt/g_fmt  to set/get coded_width and coded_height, and
-> use g_crop to get real display region.
-> That's why I do not add s_selection.
+Mauro Carvalho Chehab wrote:
+> drivers/media/i2c/ad5820.c:61:24: error: dubious one-bit signed bitfield
 > 
->> Alternatively, it could be that you are really returning V4L2_SEL_TGT_COMPOSE_PADDED.
->>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/i2c/ad5820.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> V4L2_SEL_TGT_COMPOSE_PADDED means
-> "The active area and all padding pixels that are inserted or modified by
-> hardware."
-> But I just want to return active area to user space.
+> diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
+> index 62cc1f54622f..d7ad5c1a1219 100644
+> --- a/drivers/media/i2c/ad5820.c
+> +++ b/drivers/media/i2c/ad5820.c
+> @@ -58,7 +58,7 @@ struct ad5820_device {
+>  	struct mutex power_lock;
+>  	int power_count;
+>  
+> -	int standby : 1;
+> +	unsigned int standby : 1;
+
+I guess a bool would be a better match for this one. It's what it's used
+for. [01] assignments should be replaced by boolean values.
+
+I can submit a patch for this as well, up to you.
+
+>  };
+>  
+>  static int ad5820_write(struct ad5820_device *coil, u16 data)
 > 
->>> +
->>> +	if (ctx->state < MTK_STATE_HEADER)
->>> +		return -EINVAL;
->>> +
->>> +	if ((ctx->q_data[MTK_Q_DATA_SRC].fmt->fourcc == V4L2_PIX_FMT_H264) ||
->>> +	    (ctx->q_data[MTK_Q_DATA_SRC].fmt->fourcc == V4L2_PIX_FMT_VP8) ||
->>> +	    (ctx->q_data[MTK_Q_DATA_SRC].fmt->fourcc == V4L2_PIX_FMT_VP9)) {
->>> +
->>> +		if (vdec_if_get_param(ctx, GET_PARAM_CROP_INFO, &(s->r))) {
->>> +			mtk_v4l2_debug(2,
->>> +					"[%d]Error!! Cannot get param : GET_PARAM_CROP_INFO ERR",
->>> +					ctx->id);
->>> +			s->r.left = 0;
->>> +			s->r.top = 0;
->>> +			s->r.width = ctx->picinfo.buf_w;
->>> +			s->r.height = ctx->picinfo.buf_h;
->>> +		}
->>> +		mtk_v4l2_debug(2, "Cropping info: l=%d t=%d w=%d h=%d",
->>> +				s->r.left, s->r.top, s->r.width,
->>> +				s->r.height);
->>> +	} else {
->>> +		s->r.left = 0;
->>> +		s->r.top = 0;
->>> +		s->r.width = ctx->picinfo.pic_w;
->>> +		s->r.height = ctx->picinfo.pic_h;
->>> +		mtk_v4l2_debug(2, "Cropping info: w=%d h=%d fw=%d fh=%d",
->>> +				s->r.width, s->r.height, ctx->picinfo.buf_w,
->>> +				ctx->picinfo.buf_h);
->>> +	}
->>> +	return 0;
->>> +}
+
+
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
