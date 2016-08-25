@@ -1,92 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:41442 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753280AbcHNLuj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Aug 2016 07:50:39 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id A4F0B180AA9
-	for <linux-media@vger.kernel.org>; Sun, 14 Aug 2016 13:50:33 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.8] fixes and updates (mostly cec-related) (v2)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <840c13c2-d3a6-a74e-e2ed-e34527e04b2f@xs4all.nl>
-Date: Sun, 14 Aug 2016 13:50:33 +0200
+Received: from out2-smtp.messagingengine.com ([66.111.4.26]:35687 "EHLO
+        out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933796AbcHYP2D (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 25 Aug 2016 11:28:03 -0400
+Message-Id: <1472136366.1628907.705944009.76C1558A@webmail.messagingengine.com>
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+Subject: Re: [PATCH 1/2] [media] tw5864-core: remove double irq lock code
+Date: Thu, 25 Aug 2016 17:46:06 +0300
+In-Reply-To: <c5f789d7d85f4c4b6bcdb2b1674d6495f05ada42.1472056235.git.mchehab@s-opensource.com>
+References: <c5f789d7d85f4c4b6bcdb2b1674d6495f05ada42.1472056235.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+For some reason (maybe "unlisted recipients"?), my reply didn't get
+through to maillists. Resending my reply.
 
-These are (regression) fixes for 4.8, mostly related to the cec framework.
+On Wed, Aug 24, 2016, at 19:30, Mauro Carvalho Chehab wrote:
+> As warned by smatch:
+> 	drivers/media/pci/tw5864/tw5864-core.c:160 tw5864_h264_isr() error: double lock 'irqsave:flags'
+> 	drivers/media/pci/tw5864/tw5864-core.c:174 tw5864_h264_isr() error: double unlock 'irqsave:flags'
+> 
+> Remove the IRQ duplicated lock.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/pci/tw5864/tw5864-core.c | 2 --
+>  1 file changed, 2 deletions(-)
+> 
+> diff --git a/drivers/media/pci/tw5864/tw5864-core.c
+> b/drivers/media/pci/tw5864/tw5864-core.c
+> index 440cd7bb8d04..e3d884e963c0 100644
+> --- a/drivers/media/pci/tw5864/tw5864-core.c
+> +++ b/drivers/media/pci/tw5864/tw5864-core.c
+> @@ -157,12 +157,10 @@ static void tw5864_h264_isr(struct tw5864_dev *dev)
+>  
+>  		cur_frame = next_frame;
+>  
+> -               spin_lock_irqsave(&input->slock, flags);
+>  		input->frame_seqno++;
+>  		input->frame_gop_seqno++;
+>  		if (input->frame_gop_seqno >= input->gop)
+>  			input->frame_gop_seqno = 0;
+> -               spin_unlock_irqrestore(&input->slock, flags);
+>  	} else {
+>  		dev_err(&dev->pci->dev,
+>  			"Skipped frame on input %d because all buffers busy\n",
 
-It fixes some dubious locking code, two typos in cec-funcs.h, a missing reply
-for the Record On/Off messages, improves the documentation, adds a TODO line,
-adds a flag to explicitly allow fallback to Unregistered, ensures unclaimed
-LAs are set to INVALID and prevents broadcast messages from being processed
-when they should be ignored.
 
-The CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK patch changes the default behavior,
-so I would like to get that in for 4.8 rather than waiting for 4.9.
+Thank you very much for catching this issue, but NACK on the patch.
 
-The cec-compliance test we've been working on is nearly done and I hope to
-merge that in v4l-utils by Monday. This means we have 99% coverage (only some
-CDC HEC tests are missing since that's rarely used). These patches fix some
-remaining problems that we've found.
+These two lock operations are on different spinlocks. One for device,
+another
+one for input (a subordinate entity of device). What is superfluous here
+is
+second _irqsave. Also "flags" variable reuse is wrong. So what would be
+right,
+in my opinion, is the following (going to submit this patch):
 
-I hope to fix the remaining items from the TODO list for 4.9 so that the
-framework can be mainlined soon.
-
-There are three other patches: the mediatek patch adds a missing HAS_DMA
-dependency to shut the kbuild robot up, and there are two fixes for the pulse8-cec
-driver. Many thanks to Pulse-Eight for providing me with the information
-necessary for these two patches.
-
-Regards,
-
-	Hans
-
-Repost, fixing a bug in the "cec: add CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK flag"
-patch and adding "cec: set unclaimed addresses to CEC_LOG_ADDR_INVALID".
-
-The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
-
-  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.8a
-
-for you to fetch changes up to 83f921bdf1783e52b346afa43a50eb0453431dbf:
-
-  pulse8-cec: fix error handling (2016-08-14 13:34:44 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (12):
-      cec: rename cec_devnode fhs_lock to just lock
-      cec: improve locking
-      cec-funcs.h: fix typo: && should be &
-      cec-funcs.h: add reply argument for Record On/Off
-      cec: improve dqevent documentation
-      cec: add CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK flag
-      cec: set unclaimed addresses to CEC_LOG_ADDR_INVALID
-      cec: add item to TODO
-      cec: ignore messages when log_addr_mask == 0
-      mtk-vcodec: add HAS_DMA dependency
-      pulse8-cec: set correct Signal Free Time
-      pulse8-cec: fix error handling
-
- Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst | 21 ++++++++++++++++++++-
- Documentation/media/uapi/cec/cec-ioc-dqevent.rst          |  8 ++++++--
- drivers/media/platform/Kconfig                            |  2 +-
- drivers/staging/media/cec/TODO                            |  1 +
- drivers/staging/media/cec/cec-adap.c                      | 23 +++++++++++++++++------
- drivers/staging/media/cec/cec-api.c                       | 10 +++++-----
- drivers/staging/media/cec/cec-core.c                      | 27 +++++++++++++++------------
- drivers/staging/media/pulse8-cec/pulse8-cec.c             | 10 +++++-----
- include/linux/cec-funcs.h                                 |  9 ++++++---
- include/linux/cec.h                                       |  5 ++++-
- include/media/cec.h                                       |  2 +-
- 11 files changed, 81 insertions(+), 37 deletions(-)
+diff --git a/drivers/media/pci/tw5864/tw5864-core.c
+b/drivers/media/pci/tw5864/tw5864-core.c
+index 440cd7b..1d43b96 100644
+--- a/drivers/media/pci/tw5864/tw5864-core.c
++++ b/drivers/media/pci/tw5864/tw5864-core.c
+@@ -157,12 +157,12 @@ static void tw5864_h264_isr(struct tw5864_dev
+*dev)
+ 
+ 		cur_frame = next_frame;
+ 
+-               spin_lock_irqsave(&input->slock, flags);
++               spin_lock(&input->slock);
+ 		input->frame_seqno++;
+ 		input->frame_gop_seqno++;
+ 		if (input->frame_gop_seqno >= input->gop)
+ 			input->frame_gop_seqno = 0;
+-               spin_unlock_irqrestore(&input->slock, flags);
++               spin_unlock(&input->slock);
+ 	} else {
+ 		dev_err(&dev->pci->dev,
+ 			"Skipped frame on input %d because all buffers
+ 			busy\n",
