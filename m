@@ -1,58 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35643 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754321AbcHSDqW (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:34179 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1758718AbcHYJkL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Aug 2016 23:46:22 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>
-Subject: [PATCH 11/20] [media] dev-overlay.rst: don't ident a note
-Date: Thu, 18 Aug 2016 13:15:40 -0300
-Message-Id: <4f52641358cc2b5c8c658e2cddd87e8f22b26b8f.1471532123.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
-References: <cover.1471532122.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
-References: <cover.1471532122.git.mchehab@s-opensource.com>
+        Thu, 25 Aug 2016 05:40:11 -0400
+From: Florent Revest <florent.revest@free-electrons.com>
+To: linux-media@vger.kernel.org
+Cc: florent.revest@free-electrons.com, linux-sunxi@googlegroups.com,
+        maxime.ripard@free-electrons.com, posciak@chromium.org,
+        hans.verkuil@cisco.com, thomas.petazzoni@free-electrons.com,
+        mchehab@kernel.org, linux-kernel@vger.kernel.org, wens@csie.org
+Subject: [RFC 03/10] v4l: Add sunxi Video Engine pixel format
+Date: Thu, 25 Aug 2016 11:39:42 +0200
+Message-Id: <1472117989-21455-4-git-send-email-florent.revest@free-electrons.com>
+In-Reply-To: <1472117989-21455-1-git-send-email-florent.revest@free-electrons.com>
+References: <1472117989-21455-1-git-send-email-florent.revest@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's one note there that it is indented for no good reason.
-Fix it.
+Add support for the allwinner's proprietary pixel format described in
+details here: http://linux-sunxi.org/File:Ve_tile_format_v1.pdf
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+This format is similar to V4L2_PIX_FMT_NV12M but the planes are divided
+in tiles of 32x32px.
+
+Signed-off-by: Florent Revest <florent.revest@free-electrons.com>
 ---
- Documentation/media/uapi/v4l/dev-overlay.rst | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/uapi/linux/videodev2.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/media/uapi/v4l/dev-overlay.rst b/Documentation/media/uapi/v4l/dev-overlay.rst
-index d47a6bbc2e98..50e2d52fcae6 100644
---- a/Documentation/media/uapi/v4l/dev-overlay.rst
-+++ b/Documentation/media/uapi/v4l/dev-overlay.rst
-@@ -238,12 +238,12 @@ exceeded are undefined. [#f3]_
-     :ref:`VIDIOC_S_FBUF <VIDIOC_G_FBUF>`,
-     :ref:`framebuffer-flags`).
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 904c44c..96e034d 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -627,6 +627,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
+ #define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
+ #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
++#define V4L2_PIX_FMT_SUNXI    v4l2_fourcc('S', 'X', 'I', 'Y') /* Sunxi VE's 32x32 tiled NV12 */
  
--    .. note::
-+.. note::
- 
--       This field was added in Linux 2.6.23, extending the
--       structure. However the :ref:`VIDIOC_[G|S|TRY]_FMT <VIDIOC_G_FMT>`
--       ioctls, which take a pointer to a :ref:`v4l2_format <v4l2-format>`
--       parent structure with padding bytes at the end, are not affected.
-+   This field was added in Linux 2.6.23, extending the
-+   structure. However the :ref:`VIDIOC_[G|S|TRY]_FMT <VIDIOC_G_FMT>`
-+   ioctls, which take a pointer to a :ref:`v4l2_format <v4l2-format>`
-+   parent structure with padding bytes at the end, are not affected.
- 
- 
- .. _v4l2-clip:
+ /* SDR formats - used only for Software Defined Radio devices */
+ #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
 -- 
 2.7.4
-
 
