@@ -1,62 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36616 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750806AbcHSI4g (ORCPT
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:33411 "EHLO
+        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933301AbcHYLpw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 04:56:36 -0400
-Received: by mail-wm0-f68.google.com with SMTP id i138so2559606wmf.3
-        for <linux-media@vger.kernel.org>; Fri, 19 Aug 2016 01:56:09 -0700 (PDT)
-From: Johan Fjeldtvedt <jaffe1@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Johan Fjeldtvedt <jaffe1@gmail.com>
-Subject: [PATCH] cec-follower/cec-compliance: fix bug in string conversion
-Date: Fri, 19 Aug 2016 10:56:06 +0200
-Message-Id: <1471596966-6164-1-git-send-email-jaffe1@gmail.com>
+        Thu, 25 Aug 2016 07:45:52 -0400
+Received: by mail-wm0-f54.google.com with SMTP id d196so38188822wmd.0
+        for <linux-media@vger.kernel.org>; Thu, 25 Aug 2016 04:45:51 -0700 (PDT)
+Date: Thu, 25 Aug 2016 12:45:48 +0100
+From: Peter Griffin <peter.griffin@linaro.org>
+To: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Yannick Fertre <yannick.fertre@st.com>, kernel@stlinux.com,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [STLinux Kernel] [PATCH v4 0/3] support of v4l2 encoder for
+ STMicroelectronics SOC
+Message-ID: <20160825114548.GC3281@griffinp-ThinkPad-X1-Carbon-2nd>
+References: <1469457850-17973-1-git-send-email-jean-christophe.trotin@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1469457850-17973-1-git-send-email-jean-christophe.trotin@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In all_dev_types2s: don't try to erase the last two characters in the
-string if it is empty.
+Hi Jean-Christophe,
 
-This was fixed in cec-ctl, so the same fix is applied to cec-compliance
-and cec-follower.
+On Mon, 25 Jul 2016, Jean-Christophe Trotin wrote:
 
-Signed-off-by: Johan Fjeldtvedt <jaffe1@gmail.com>
----
- utils/cec-compliance/cec-compliance.cpp | 4 +++-
- utils/cec-follower/cec-follower.cpp     | 4 +++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+> version 4:
+> - Module renamed "st-hva" as suggested by Hans
+> - resource_size() inline function used to calculate the esram size
+> - V4L2 compliance successfully passed with this version (see report below)
 
-diff --git a/utils/cec-compliance/cec-compliance.cpp b/utils/cec-compliance/cec-compliance.cpp
-index c40d4b1..519c572 100644
---- a/utils/cec-compliance/cec-compliance.cpp
-+++ b/utils/cec-compliance/cec-compliance.cpp
-@@ -358,7 +358,9 @@ std::string all_dev_types2s(unsigned types)
- 		s += "Audio System, ";
- 	if (types & CEC_OP_ALL_DEVTYPE_SWITCH)
- 		s += "Switch, ";
--	return s.erase(s.length() - 2, 2);
-+	if (s.length())
-+		return s.erase(s.length() - 2, 2);
-+	return s;
- }
- 
- std::string rc_src_prof2s(unsigned prof)
-diff --git a/utils/cec-follower/cec-follower.cpp b/utils/cec-follower/cec-follower.cpp
-index abb06a8..7850ecd 100644
---- a/utils/cec-follower/cec-follower.cpp
-+++ b/utils/cec-follower/cec-follower.cpp
-@@ -305,7 +305,9 @@ std::string all_dev_types2s(unsigned types)
- 		s += "Audio System, ";
- 	if (types & CEC_OP_ALL_DEVTYPE_SWITCH)
- 		s += "Switch, ";
--	return s.erase(s.length() - 2, 2);
-+	if (s.length())
-+		return s.erase(s.length() - 2, 2);
-+	return s;
- }
- 
- std::string rc_src_prof2s(unsigned prof)
--- 
-2.7.4
+For the series: -
 
+Acked-by: Peter Griffin <peter.griffin@linaro.org>
+
+regards,
+
+Peter.
