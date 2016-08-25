@@ -1,93 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:35464
-	"EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753186AbcHQVVh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2016 17:21:37 -0400
-Subject: Re: [RFC PATCH 1/2] [media] vb2: defer sync buffers from
- vb2_buffer_done() with a workqueue
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <1471458537-16859-1-git-send-email-javier@osg.samsung.com>
- <1471458537-16859-2-git-send-email-javier@osg.samsung.com>
- <20160817195027.GE3182@valkosipuli.retiisi.org.uk>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org
-Message-ID: <7900e8f2-8435-c11c-ea0a-083f2d4b2a65@osg.samsung.com>
-Date: Wed, 17 Aug 2016 17:21:16 -0400
-MIME-Version: 1.0
-In-Reply-To: <20160817195027.GE3182@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47795 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751593AbcHYFEr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 25 Aug 2016 01:04:47 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 473E7180AB1
+        for <linux-media@vger.kernel.org>; Thu, 25 Aug 2016 04:26:11 +0200 (CEST)
+Date: Thu, 25 Aug 2016 04:26:11 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160825022611.473E7180AB1@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks a lot for your feedback.
+Results of the daily build of media_tree:
 
-On 08/17/2016 03:50 PM, Sakari Ailus wrote:
-> Hi Javier,
-> 
-> On Wed, Aug 17, 2016 at 02:28:56PM -0400, Javier Martinez Canillas wrote:
->> The vb2_buffer_done() function can be called from interrupt context but it
->> currently calls the vb2 memory allocator .finish operation to sync buffers
->> and this can take a long time, so it's not suitable to be done there.
->>
->> This patch defers part of the vb2_buffer_done() logic to a worker thread
->> to avoid doing the time consuming operation in interrupt context.
-> 
-> I agree the interrupt handler is not the best place to perform the work in
-> vb2_buffer_done() (including cache flushing), but is a work queue an ideal
-> solution?
->
+date:		Thu Aug 25 04:00:22 CEST 2016
+git branch:	test
+git hash:	fb6609280db902bd5d34445fba1c926e95e63914
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-I would also like to know Hans opinions since he suggested deferring the buffer
-sync to be done in a worker thread (if I understood his suggestions correctly).
- 
-> The work queue task is a regular kernel thread not subject to
-> sched_setscheduler(2) and alike, which user space programs can and do use to
-> change how the scheduler treats these processes. Requiring a work queue to
-> be run between the interrupt arriving from the hardware and the user space
-> process being able to dequeue the related buffer would hurt use cases where
-> strict time limits are crucial.
-> 
-> Neither I propose making the work queue to have real time priority either,
-> albeit I think might still be marginally better.
->
-> Additionally, the work queue brings another context switch per dequeued
-> buffer. This would also be undesirable on IoT and mobile systems that often
-> handle multiple buffer queues simultaneously.
->
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-i686: ERRORS
+linux-4.7-i686: ERRORS
+linux-4.8-rc1-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-x86_64: ERRORS
+linux-4.7-x86_64: ERRORS
+linux-4.8-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-multi
+ABI WARNING: change for blackfin-bf561
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse: WARNINGS
+smatch: WARNINGS
 
-Yes, I agree with you that this change might increase the latency.
- 
-> Performing this task in the context of the process that actually dequeues
-> the buffer avoids both of these problem entirely as there are no other
-> processes involved.
-> 
+Detailed results are available here:
 
-You already mentioned in the other thread that you prefer to move the buffer
-sync to DQBUF. But as I explained there, the reason why I want to move the
-dma-buf unmapping out of DQBUF is to allow other drivers that share the same
-DMA buffer to access the buffer even when a DQBUF has not been called yet.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-This may be possible if vb2 supports implicit dma-buf fences and in this case
-user-space doesn't even need to call DQBUF/QBUF, since the fences can be used
-to serialize the access to the shared DMA buffer. Instead of using DQBUF/QBUF
-as a serialization mechanism like is the case for the current non-fences case.
+Full logs are available here:
 
-It would be possible to move the cache flushing to DQBUF and leave the dma-buf
-unmap there, and do these operations when the driver calls vb2_buffer_done()
-only when implicit fences are used. But it would simplify the vb2-core if this
-is consistent between the fences and non-fences cases.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
