@@ -1,101 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43227 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754931AbcHSNFO (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:35702 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752414AbcHZLiZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 09:05:14 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>
-Subject: [PATCH 11/15] [media] media-types.rst: adjust tables to fit on LaTeX output
-Date: Fri, 19 Aug 2016 10:05:01 -0300
-Message-Id: <4c09bcb0af4ca441e7f06dacd88dffdec4f9ef1e.1471611003.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471611003.git.mchehab@s-opensource.com>
-References: <cover.1471611003.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471611003.git.mchehab@s-opensource.com>
-References: <cover.1471611003.git.mchehab@s-opensource.com>
+        Fri, 26 Aug 2016 07:38:25 -0400
+Received: by mail-lf0-f65.google.com with SMTP id l89so3653334lfi.2
+        for <linux-media@vger.kernel.org>; Fri, 26 Aug 2016 04:37:44 -0700 (PDT)
+From: Johan Fjeldtvedt <jaffe1@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Johan Fjeldtvedt <jaffe1@gmail.com>
+Subject: [PATCH 2/2] cec-follower: extend man page
+Date: Fri, 26 Aug 2016 13:37:25 +0200
+Message-Id: <1472211445-26700-2-git-send-email-jaffe1@gmail.com>
+In-Reply-To: <1472211445-26700-1-git-send-email-jaffe1@gmail.com>
+References: <1472211445-26700-1-git-send-email-jaffe1@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A few tables at the media uAPI documentation have columns
-not well dimentioned. Adjust them.
+The man page is extended with some more information about the tool and
+what it does, and a SEE ALSO section is added.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Johan Fjeldtvedt <jaffe1@gmail.com>
 ---
- Documentation/media/uapi/mediactl/media-types.rst | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ utils/cec-follower/cec-follower.1.in | 45 ++++++++++++++++++++++++++++++------
+ 1 file changed, 38 insertions(+), 7 deletions(-)
 
-diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
-index c77717b236ce..20f99301bfdb 100644
---- a/Documentation/media/uapi/mediactl/media-types.rst
-+++ b/Documentation/media/uapi/mediactl/media-types.rst
-@@ -5,9 +5,12 @@
- Types and flags used to represent the media graph elements
- ==========================================================
+diff --git a/utils/cec-follower/cec-follower.1.in b/utils/cec-follower/cec-follower.1.in
+index 3f32125..1134648 100644
+--- a/utils/cec-follower/cec-follower.1.in
++++ b/utils/cec-follower/cec-follower.1.in
+@@ -1,19 +1,48 @@
+ .TH "CEC-FOLLOWER" "1" "August 2016" "v4l-utils @PACKAGE_VERSION@" "User Commands"
+ .SH NAME
+-cec-follower - An application to emulate cec followers
++cec-follower - An application to emulate CEC followers
+ .SH SYNOPSIS
+ .B cec-follower
+ [\fI-h\fR] [\fI-d <dev>\fR] [other options]
+ .SH DESCRIPTION
+-The cec-follower tool is used to emulate cec followers. Based on the configured
+-logical address(es) of the CEC device it will emulate the CEC behavior accordingly.
++The \fBcec-follower\fR tool is used to emulate CEC followers. Based on the configured
++logical address(es) of the CEC device it will emulate the CEC behavior
++accordingly.
  
-+..  tabularcolumns:: |p{8.0cm}|p{10.5cm}|
+-It is basically a message loop, waiting for messages to arrive and taking the
+-appropriate action for each message.
++Configuring the CEC device is done using \fBcec-ctl\fR. Certain CEC functionalities
++are only emulated if the corresponding Device Features flag is set (these are set
++when configuring with \fBcec-ctl\fR). These are:
  
- .. _media-entity-type:
+-This makes it possible to act as a specific CEC device. It is also a reference
+-implementation on how a follower should behave.
++    - Audio Return Channel (RX and TX)
++    - Audio Rate Control
++    - Deck Control
++    - Record TV screen
  
-+.. cssclass:: longtable
++\fBcec-follower\fR is basically a message loop, waiting for messages to arrive
++and taking the appropriate action for each message (incoming messages can be
++shown with the \fI--show-msgs\fR option). The follower maintains an internal
++state with appropriate parameters such as volume, current active source, power
++state and so on (state changes can be shown with the \fI--show-state\fR option).
 +
- .. flat-table:: Media entity types
-     :header-rows:  0
-     :stub-columns: 0
-@@ -15,10 +18,12 @@ Types and flags used to represent the media graph elements
- 
-     -  .. row 1
- 
--       ..  _MEDIA-ENT-F-UNKNOWN:
-+       .. _MEDIA-ENT-F-UNKNOWN:
-        .. _MEDIA-ENT-F-V4L2-SUBDEV-UNKNOWN:
- 
--       -  ``MEDIA_ENT_F_UNKNOWN`` and ``MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN``
-+       -  ``MEDIA_ENT_F_UNKNOWN`` and
++It also aims to be a reference implementation on how a follower should behave.
 +
-+	  ``MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN``
- 
-        -  Unknown entity. That generally indicates that a driver didn't
- 	  initialize properly the entity, with is a Kernel bug
-@@ -294,6 +299,8 @@ Types and flags used to represent the media graph elements
- 	  its source pad.
- 
- 
-+..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
++\fBcec-follower\fR will keep track of incoming messages and look for violations
++of the CEC specification with regards to timings. For example, it will warn if
++it receives the same message again within 200ms after it replied <Feature Abort>
++["Unrecognized Opcode"] to that message, and it will check that press and hold
++behavior is done properly.
 +
- .. _media-entity-flag:
++\fBcec-follower\fR will periodically send out polling messages to discover when
++a remote device is removed or a new one has appeared. When a device is removed,
++the recorded information about it is cleared. Each logical address is polled
++about once every 15 seconds. In between polls, removing a remote device or
++replacing it with a new one is not detected.
++
++When running compliance tests with \fBcec-compliance\fR, \fBcec-follower\fR
++should be run on the same device to act on incoming messages that are not replies
++to messages sent by the compliance tool. Before each test run \fBcec-follower\fR
++should be restarted if it is running, to initialize the emulated device with a
++clean and known initial state.
+ .SH OPTIONS
+ .TP
+ \fB\-d\fR, \fB\-\-device\fR=\fI<dev>\fR
+@@ -43,3 +72,5 @@ This manual page is a work in progress.
  
- .. flat-table:: Media entity flags
-@@ -319,6 +326,7 @@ Types and flags used to represent the media graph elements
-        -  The entity represents a data conector
- 
- 
-+..  tabularcolumns:: |p{6.5cm}|p{6.0cm}|p{5.0cm}|
- 
- .. _media-intf-type:
- 
-@@ -508,6 +516,7 @@ Types and flags used to represent the media graph elements
-        -  typically, /dev/snd/timer
- 
- 
-+.. tabularcolumns:: |p{5.5cm}|p{12.0cm}|
- 
- .. _media-pad-flag:
- 
-@@ -551,6 +560,7 @@ Types and flags used to represent the media graph elements
- One and only one of ``MEDIA_PAD_FL_SINK`` and ``MEDIA_PAD_FL_SOURCE``
- must be set for every pad.
- 
-+.. tabularcolumns:: |p{5.5cm}|p{12.0cm}|
- 
- .. _media-link-flag:
- 
+ Bug reports or questions about this utility should be sent to the linux-media@vger.kernel.org
+ mailinglist.
++.SH SEE ALSO
++\fBcec-compliance\fR(1), \fBcec-ctl\fR(1)
 -- 
 2.7.4
-
 
