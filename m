@@ -1,138 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:57556 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754690AbcHSDaq (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54116 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754702AbcHZXop (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Aug 2016 23:30:46 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>
-Subject: [PATCH 16/20] [media] dev-sliced-vbi.rst: Adjust tables on LaTeX output
-Date: Thu, 18 Aug 2016 13:15:45 -0300
-Message-Id: <87391ed7cdb51e1167cab7475a3a2fa2fea1bb2e.1471532123.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
-References: <cover.1471532122.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471532122.git.mchehab@s-opensource.com>
-References: <cover.1471532122.git.mchehab@s-opensource.com>
+        Fri, 26 Aug 2016 19:44:45 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [RFC v3 08/21] media: Enable allocating the media device dynamically
+Date: Sat, 27 Aug 2016 02:43:16 +0300
+Message-Id: <1472255009-28719-9-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Better format the tables in a way that will fit inside the
-page.
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Allow allocating the media device dynamically. As the struct media_device
+embeds struct media_devnode, the lifetime of that object is that same than
+that of the media_device.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/media/uapi/v4l/dev-sliced-vbi.rst | 34 +++++++++++++++++--------
- 1 file changed, 24 insertions(+), 10 deletions(-)
+ drivers/media/media-device.c | 15 +++++++++++++++
+ include/media/media-device.h | 13 +++++++++++++
+ 2 files changed, 28 insertions(+)
 
-diff --git a/Documentation/media/uapi/v4l/dev-sliced-vbi.rst b/Documentation/media/uapi/v4l/dev-sliced-vbi.rst
-index 9f348e164782..074aa3798152 100644
---- a/Documentation/media/uapi/v4l/dev-sliced-vbi.rst
-+++ b/Documentation/media/uapi/v4l/dev-sliced-vbi.rst
-@@ -105,7 +105,9 @@ which may return ``EBUSY`` can be the
- struct v4l2_sliced_vbi_format
- -----------------------------
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index d90d8c6..6eca50c 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -686,6 +686,21 @@ void media_device_init(struct media_device *mdev)
+ }
+ EXPORT_SYMBOL_GPL(media_device_init);
  
--.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{2.9cm}|p{2.9cm}|p{2.9cm}|
-+.. tabularcolumns:: |p{1.0cm}|p{4.5cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|
++struct media_device *media_device_alloc(struct device *dev)
++{
++	struct media_device *mdev;
 +
-+.. cssclass:: longtable
- 
- .. flat-table::
-     :header-rows:  0
-@@ -242,16 +244,20 @@ struct v4l2_sliced_vbi_format
-        -  ``reserved``\ [2]
- 
-        -  :cspan:`2` This array is reserved for future extensions.
++	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
++	if (!mdev)
++		return NULL;
 +
- 	  Applications and drivers must set it to zero.
- 
- 
--
- .. _vbi-services2:
- 
- Sliced VBI services
- -------------------
- 
--.. tabularcolumns:: |p{4.4cm}|p{2.2cm}|p{2.2cm}|p{4.4cm}|p{4.3cm}|
-+.. raw:: latex
++	mdev->dev = dev;
++	media_device_init(mdev);
 +
-+    \newline\newline\begin{adjustbox}{width=\columnwidth}
++	return mdev;
++}
++EXPORT_SYMBOL_GPL(media_device_alloc);
 +
-+.. tabularcolumns:: |p{5.0cm}|p{1.4cm}|p{3.0cm}|p{2.5cm}|p{9.0cm}|
+ void media_device_cleanup(struct media_device *mdev)
+ {
+ 	ida_destroy(&mdev->entity_internal_idx);
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 4eee613..1fdfbd7 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -197,6 +197,15 @@ static inline __must_check int media_entity_enum_init(
+ void media_device_init(struct media_device *mdev);
  
- .. flat-table::
-     :header-rows:  1
-@@ -277,7 +283,9 @@ Sliced VBI services
- 
-        -  0x0001
- 
--       -  :ref:`ets300706`, :ref:`itu653`
-+       -  :ref:`ets300706`,
+ /**
++ * media_device_alloc() - Allocate and initialise a media device
++ *
++ * @dev:	The associated struct device pointer
++ *
++ * Allocate and initialise a media device. Returns a media device.
++ */
++struct media_device *media_device_alloc(struct device *dev);
 +
-+	  :ref:`itu653`
++/**
+  * media_device_cleanup() - Cleanups a media device element
+  *
+  * @mdev:	pointer to struct &media_device
+@@ -425,6 +434,10 @@ void __media_device_usb_init(struct media_device *mdev,
+ 			     const char *driver_name);
  
-        -  PAL/SECAM line 7-22, 320-335 (second field 7-22)
- 
-@@ -316,7 +324,9 @@ Sliced VBI services
- 
-        -  0x4000
- 
--       -  :ref:`itu1119`, :ref:`en300294`
-+       -  :ref:`itu1119`,
-+
-+	  :ref:`en300294`
- 
-        -  PAL/SECAM line 23
- 
-@@ -344,6 +354,10 @@ Sliced VBI services
- 
-        -  :cspan:`2` Set of services applicable to 625 line systems.
- 
-+.. raw:: latex
-+
-+    \end{adjustbox}\newline\newline
-+
- 
- Drivers may return an ``EINVAL`` error code when applications attempt to
- read or write data without prior format negotiation, after switching the
-@@ -561,7 +575,7 @@ number).
- struct v4l2_mpeg_vbi_fmt_ivtv
- -----------------------------
- 
--.. tabularcolumns:: |p{3.5cm}|p{3.5cm}|p{3.5cm}|p{7.0cm}|
-+.. tabularcolumns:: |p{1.0cm}|p{3.5cm}|p{1.0cm}|p{11.5cm}|
- 
- .. flat-table::
-     :header-rows:  0
-@@ -661,7 +675,7 @@ Magic Constants for struct v4l2_mpeg_vbi_fmt_ivtv magic field
- struct v4l2_mpeg_vbi_itv0
- -------------------------
- 
--.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{8.7cm}|
-+.. tabularcolumns:: |p{4.4cm}|p{2.4cm}|p{10.7cm}|
- 
- .. flat-table::
-     :header-rows:  0
-@@ -687,9 +701,9 @@ struct v4l2_mpeg_vbi_itv0
- 	  ::
- 
- 	      linemask[0] b0:     line  6     first field
--	      linemask[0] b17:        line 23     first field
--	      linemask[0] b18:        line  6     second field
--	      linemask[0] b31:        line 19     second field
-+	      linemask[0] b17:    line 23     first field
-+	      linemask[0] b18:    line  6     second field
-+	      linemask[0] b31:    line 19     second field
- 	      linemask[1] b0:     line 20     second field
- 	      linemask[1] b3:     line 23     second field
- 	      linemask[1] b4-b31: unused and set to 0
+ #else
++static inline struct media_device *media_device_alloc(struct device *dev)
++{
++	return NULL;
++}
+ static inline int media_device_register(struct media_device *mdev)
+ {
+ 	return 0;
 -- 
-2.7.4
-
+2.1.4
 
