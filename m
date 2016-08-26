@@ -1,131 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout.microchip.com ([198.175.253.82]:42128 "EHLO
-	email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753679AbcHCI0J (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 04:26:09 -0400
-From: Songjun Wu <songjun.wu@microchip.com>
-To: <nicolas.ferre@atmel.com>, <robh@kernel.org>
-CC: <laurent.pinchart@ideasonboard.com>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	Songjun Wu <songjun.wu@microchip.com>,
-	<devicetree@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	<linux-kernel@vger.kernel.org>
-Subject: [PATCH v8 2/2] [media] atmel-isc: DT binding for Image Sensor Controller driver
-Date: Wed, 3 Aug 2016 16:08:04 +0800
-Message-ID: <1470211686-2198-3-git-send-email-songjun.wu@microchip.com>
-In-Reply-To: <1470211686-2198-1-git-send-email-songjun.wu@microchip.com>
-References: <1470211686-2198-1-git-send-email-songjun.wu@microchip.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:55062 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752305AbcHZJet (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 Aug 2016 05:34:49 -0400
+Subject: Re: Plan to support Rockchip VPU in DRM, is it a good idea
+To: Randy Li <randy.li@rock-chips.com>, dri-devel@lists.freedesktop.org
+References: <a56a7da9-154b-c889-67f6-81bd7e4c7a7d@rock-chips.com>
+Cc: airlied@linux.ie,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <526b56fc-004b-a25d-e370-3e5c03d8e2f0@xs4all.nl>
+Date: Fri, 26 Aug 2016 11:34:38 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <a56a7da9-154b-c889-67f6-81bd7e4c7a7d@rock-chips.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DT binding documentation for ISC driver.
+Hi Randi,
 
-Acked-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
----
+On 08/26/2016 04:13 AM, Randy Li wrote:
+> Hello,
+>    We always use some kind of hack work to make our Video Process 
+> Unit(Multi-format Video Encoder/Decoder) work in kernel. From a 
+> customize driver(vpu service) to the customize V4L2 driver. The V4L2 
+> subsystem is really not suitable for the stateless Video process or it 
+> could make driver too fat.
+>    After talking to some kindness Intel guys and moving our userspace 
+> library to VA-API driver, I find the DRM may the good choice for us.
+> But I don't know whether it is welcome to to submit a video driver in 
+> DRM subsystem?
+>    Also our VPU(Video process unit) is not just like the Intel's, we 
+> don't have VCS, we based on registers to set the encoder/decoder. I 
+> think we may need a lots of IOCTL then. Also we do have a IOMMU in VPU 
+> but also not a isolated memory for VPU, I don't know I should use TT 
+> memory or GEM memory.
+>    I am actually not a member of the department in charge of VPU, and I 
+> am just beginning to learning DRM(thank the help from Intel again), I am 
+> not so good at memory part as well(I am more familiar with CMA not the 
+> IOMMU way), I may need know guide about the implementations when I am 
+> going to submit driver, I hope I could get help from someone.
+> 
 
-Changes in v8: None
-Changes in v7: None
-Changes in v6:
-- Add "iscck" and "gck" to clock-names.
+It makes no sense to do this in the DRM subsystem IMHO. There are already
+quite a few HW codecs implemented in the V4L2 subsystem and more are in the
+pipeline. Putting codec support in different subsystems will just make
+userspace software much harder to write.
 
-Changes in v5:
-- Add clock-output-names.
+One of the codecs that was posted to linux-media was actually from Rockchip:
 
-Changes in v4:
-- Remove the isc clock nodes.
+https://lkml.org/lkml/2016/2/29/861
 
-Changes in v3:
-- Remove the 'atmel,sensor-preferred'.
-- Modify the isc clock node according to the Rob's remarks.
+There is also a libVA driver (I think) that sits on top of it:
 
-Changes in v2:
-- Remove the unit address of the endpoint.
-- Add the unit address to the clock node.
-- Avoid using underscores in node names.
-- Drop the "0x" in the unit address of the i2c node.
-- Modify the description of 'atmel,sensor-preferred'.
-- Add the description for the ISC internal clock.
+https://github.com/rockchip-linux/rockchip-va-driver/tree/v4l2-libvpu
 
- .../devicetree/bindings/media/atmel-isc.txt        | 65 ++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
+For the Allwinner a patch series was posted yesterday:
 
-diff --git a/Documentation/devicetree/bindings/media/atmel-isc.txt b/Documentation/devicetree/bindings/media/atmel-isc.txt
-new file mode 100644
-index 0000000..bbe0e87c
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/atmel-isc.txt
-@@ -0,0 +1,65 @@
-+Atmel Image Sensor Controller (ISC)
-+----------------------------------------------
-+
-+Required properties for ISC:
-+- compatible
-+	Must be "atmel,sama5d2-isc".
-+- reg
-+	Physical base address and length of the registers set for the device.
-+- interrupts
-+	Should contain IRQ line for the ISC.
-+- clocks
-+	List of clock specifiers, corresponding to entries in
-+	the clock-names property;
-+	Please refer to clock-bindings.txt.
-+- clock-names
-+	Required elements: "hclock", "iscck", "gck".
-+- #clock-cells
-+	Should be 0.
-+- clock-output-names
-+	Should be "isc-mck".
-+- pinctrl-names, pinctrl-0
-+	Please refer to pinctrl-bindings.txt.
-+
-+ISC supports a single port node with parallel bus. It should contain one
-+'port' child node with child 'endpoint' node. Please refer to the bindings
-+defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+isc: isc@f0008000 {
-+	compatible = "atmel,sama5d2-isc";
-+	reg = <0xf0008000 0x4000>;
-+	interrupts = <46 IRQ_TYPE_LEVEL_HIGH 5>;
-+	clocks = <&isc_clk>, <&iscck>, <&isc_gclk>;
-+	clock-names = "hclock", "iscck", "gck";
-+	#clock-cells = <0>;
-+	clock-output-names = "isc-mck";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_isc_base &pinctrl_isc_data_8bit &pinctrl_isc_data_9_10 &pinctrl_isc_data_11_12>;
-+
-+	port {
-+		isc_0: endpoint {
-+			remote-endpoint = <&ov7740_0>;
-+			hsync-active = <1>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+		};
-+	};
-+};
-+
-+i2c1: i2c@fc028000 {
-+	ov7740: camera@21 {
-+		compatible = "ovti,ov7740";
-+		reg = <0x21>;
-+		clocks = <&isc>;
-+		clock-names = "xvclk";
-+		assigned-clocks = <&isc>;
-+		assigned-clock-rates = <24000000>;
-+
-+		port {
-+			ov7740_0: endpoint {
-+				remote-endpoint = <&isc_0>;
-+			};
-+		};
-+	};
-+};
--- 
-2.7.4
+https://lkml.org/lkml/2016/8/25/246
 
+They created a pretty generic libVA userspace that looks very promising at
+first glance.
+
+What these have in common is that they depend on the Request API and Frame API,
+neither of which has been merged. The problem is that the Request API requires
+more work since not only controls have to be part of a request, but also formats,
+selection rectangles, and even dynamic routing changes. While that is not relevant
+for codecs, it is relevant for Android CameraHAL in general and complex devices
+like Google's Project Ara.
+
+This is being worked on, but it is simply not yet ready. The core V4L2 developers
+involved in this plan to discuss this on the Monday before the ELCE in Berlin,
+to see if we can fast track this work somehow so this support can be merged.
+
+If there are missing features in V4L2 (other that the two APIs discussed above)
+that prevent you from creating a good driver, then please discuss that with us.
+We are always open to suggestions and improvements and want to work with you on
+that.
+
+Regards,
+
+	Hans
