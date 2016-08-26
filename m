@@ -1,40 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:15772 "EHLO
-        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753384AbcHXKRy (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53946 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754471AbcHZXon (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Aug 2016 06:17:54 -0400
-Received: from [10.47.79.81] ([10.47.79.81])
-        (authenticated bits=0)
-        by aer-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id u7OAHMH9020013
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-        for <linux-media@vger.kernel.org>; Wed, 24 Aug 2016 10:17:23 GMT
-To: linux-media <linux-media@vger.kernel.org>
-From: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH for v4.8] cec: fix ioctl return code when not registered
-Message-ID: <57BD7432.9090502@cisco.com>
-Date: Wed, 24 Aug 2016 12:17:22 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Fri, 26 Aug 2016 19:44:43 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v3 01/21] Revert "[media] media: fix media devnode ioctl/syscall and unregister race"
+Date: Sat, 27 Aug 2016 02:43:09 +0300
+Message-Id: <1472255009-28719-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Don't return the confusing -EIO error code when the device is not registered,
-instead return -ENODEV which is the proper thing to do in this situation.
+This reverts commit 6f0dd24a084a ("[media] media: fix media devnode
+ioctl/syscall and unregister race"). The commit was part of an original
+patchset to avoid crashes when an unregistering device is in use.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/staging/media/cec/cec-api.c
-index 7be7615..049f171 100644
---- a/drivers/staging/media/cec/cec-api.c
-+++ b/drivers/staging/media/cec/cec-api.c
-@@ -435,7 +435,7 @@ static long cec_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 	void __user *parg = (void __user *)arg;
+ drivers/media/media-device.c  | 15 +++++++--------
+ drivers/media/media-devnode.c |  8 +-------
+ include/media/media-devnode.h | 16 ++--------------
+ 3 files changed, 10 insertions(+), 29 deletions(-)
 
- 	if (!devnode->registered)
--		return -EIO;
-+		return -ENODEV;
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 1795abe..33a9952 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -732,7 +732,6 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 	if (ret < 0) {
+ 		/* devnode free is handled in media_devnode_*() */
+ 		mdev->devnode = NULL;
+-		media_devnode_unregister_prepare(devnode);
+ 		media_devnode_unregister(devnode);
+ 		return ret;
+ 	}
+@@ -789,9 +788,6 @@ void media_device_unregister(struct media_device *mdev)
+ 		return;
+ 	}
+ 
+-	/* Clear the devnode register bit to avoid races with media dev open */
+-	media_devnode_unregister_prepare(mdev->devnode);
+-
+ 	/* Remove all entities from the media device */
+ 	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+ 		__media_device_unregister_entity(entity);
+@@ -812,10 +808,13 @@ void media_device_unregister(struct media_device *mdev)
+ 
+ 	dev_dbg(mdev->dev, "Media device unregistered\n");
+ 
+-	device_remove_file(&mdev->devnode->dev, &dev_attr_model);
+-	media_devnode_unregister(mdev->devnode);
+-	/* devnode free is handled in media_devnode_*() */
+-	mdev->devnode = NULL;
++	/* Check if mdev devnode was registered */
++	if (media_devnode_is_registered(mdev->devnode)) {
++		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
++		media_devnode_unregister(mdev->devnode);
++		/* devnode free is handled in media_devnode_*() */
++		mdev->devnode = NULL;
++	}
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister);
+ 
+diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+index f2772ba..5b605ff 100644
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -287,7 +287,7 @@ cdev_add_error:
+ 	return ret;
+ }
+ 
+-void media_devnode_unregister_prepare(struct media_devnode *devnode)
++void media_devnode_unregister(struct media_devnode *devnode)
+ {
+ 	/* Check if devnode was ever registered at all */
+ 	if (!media_devnode_is_registered(devnode))
+@@ -295,12 +295,6 @@ void media_devnode_unregister_prepare(struct media_devnode *devnode)
+ 
+ 	mutex_lock(&media_devnode_lock);
+ 	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
+-	mutex_unlock(&media_devnode_lock);
+-}
+-
+-void media_devnode_unregister(struct media_devnode *devnode)
+-{
+-	mutex_lock(&media_devnode_lock);
+ 	/* Delete the cdev on this minor as well */
+ 	cdev_del(&devnode->cdev);
+ 	mutex_unlock(&media_devnode_lock);
+diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+index 37d4948..d5037a9 100644
+--- a/include/media/media-devnode.h
++++ b/include/media/media-devnode.h
+@@ -127,26 +127,14 @@ int __must_check media_devnode_register(struct media_device *mdev,
+ 					struct module *owner);
+ 
+ /**
+- * media_devnode_unregister_prepare - clear the media device node register bit
+- * @devnode: the device node to prepare for unregister
+- *
+- * This clears the passed device register bit. Future open calls will be met
+- * with errors. Should be called before media_devnode_unregister() to avoid
+- * races with unregister and device file open calls.
+- *
+- * This function can safely be called if the device node has never been
+- * registered or has already been unregistered.
+- */
+-void media_devnode_unregister_prepare(struct media_devnode *devnode);
+-
+-/**
+  * media_devnode_unregister - unregister a media device node
+  * @devnode: the device node to unregister
+  *
+  * This unregisters the passed device. Future open calls will be met with
+  * errors.
+  *
+- * Should be called after media_devnode_unregister_prepare()
++ * This function can safely be called if the device node has never been
++ * registered or has already been unregistered.
+  */
+ void media_devnode_unregister(struct media_devnode *devnode);
+ 
+-- 
+2.1.4
 
- 	switch (cmd) {
- 	case CEC_ADAP_G_CAPS:
