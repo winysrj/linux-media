@@ -1,54 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44033 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750885AbcHAIe1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2016 04:34:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 3/3] soc-camera/sh_mobile_csi2: remove unused driver
-Date: Mon, 01 Aug 2016 11:34:26 +0300
-Message-ID: <8220966.xMzG3XxcmY@avalon>
-In-Reply-To: <1470038065-30789-4-git-send-email-hverkuil@xs4all.nl>
-References: <1470038065-30789-1-git-send-email-hverkuil@xs4all.nl> <1470038065-30789-4-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53966 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754114AbcHZXom (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 Aug 2016 19:44:42 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v3 04/21] media: Remove useless curly braces and parentheses
+Date: Sat, 27 Aug 2016 02:43:12 +0300
+Message-Id: <1472255009-28719-5-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/media-device.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-Thank you for the patch.
-
-On Monday 01 Aug 2016 09:54:25 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The sh_mobile_csi2 isn't used anymore (was it ever?), so remove it.
-> Especially since the soc-camera framework is being deprecated.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/platform/soc_camera/Kconfig          |   7 -
->  drivers/media/platform/soc_camera/Makefile         |   1 -
->  .../platform/soc_camera/sh_mobile_ceu_camera.c     | 229 +-----------
->  drivers/media/platform/soc_camera/sh_mobile_csi2.c | 400 ------------------
->  include/media/drv-intf/sh_mobile_ceu.h             |   1 -
->  include/media/drv-intf/sh_mobile_csi2.h            |  48 ---
->  6 files changed, 10 insertions(+), 676 deletions(-)
->  delete mode 100644 drivers/media/platform/soc_camera/sh_mobile_csi2.c
->  delete mode 100644 include/media/drv-intf/sh_mobile_c
-
-Any plan for the sh_mobile_ceu_camera driver by the way ?
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index a1cd50f..8bdc316 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -596,9 +596,8 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 			       &entity->pads[i].graph_obj);
+ 
+ 	/* invoke entity_notify callbacks */
+-	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
+-		(notify)->notify(entity, notify->notify_data);
+-	}
++	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list)
++		notify->notify(entity, notify->notify_data);
+ 
+ 	if (mdev->entity_internal_idx_max
+ 	    >= mdev->pm_count_walk.ent_enum.idx_max) {
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.4
 
