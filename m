@@ -1,106 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:46818 "EHLO smtp3-1.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754127AbcHSPw0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 11:52:26 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH 1/7] doc-rst: generic way to build only sphinx sub-folders
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <8737m0udod.fsf@intel.com>
-Date: Fri, 19 Aug 2016 17:52:07 +0200
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <92FD7AE6-E093-439C-A2AC-5F39EC1F4BED@darmarit.de>
-References: <1471097568-25990-1-git-send-email-markus.heiser@darmarit.de> <1471097568-25990-2-git-send-email-markus.heiser@darmarit.de> <20160818163514.43539c11@lwn.net> <09880F76-6FE1-48E6-B76D-DFC4F47182D7@darmarit.de> <8737m0udod.fsf@intel.com>
-To: Jani Nikula <jani.nikula@intel.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53954 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754501AbcHZXon (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 Aug 2016 19:44:43 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v3 02/21] Revert "[media] media: fix use-after-free in cdev_put() when app exits after driver unbind"
+Date: Sat, 27 Aug 2016 02:43:10 +0300
+Message-Id: <1472255009-28719-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This reverts commit 5b28dde51d0c ("[media] media: fix use-after-free in
+cdev_put() when app exits after driver unbind"). The commit was part of an
+original patchset to avoid crashes when an unregistering device is in use.
 
-Am 19.08.2016 um 14:49 schrieb Jani Nikula <jani.nikula@intel.com>:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-device.c  |  6 ++----
+ drivers/media/media-devnode.c | 48 +++++++++++++++++--------------------------
+ 2 files changed, 21 insertions(+), 33 deletions(-)
 
-> On Fri, 19 Aug 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
->> Am 19.08.2016 um 00:35 schrieb Jonathan Corbet <corbet@lwn.net>:
->> * the pdf goes to the "latex" folder .. since this is WIP
->>  and there are different solutions conceivable ... I left
->>  it open for the first.
-> 
-> Mea culpa. As I said, I intended my patches as RFC only.
-
-I think this is OK for the first. I thought that we first
-let finish Mauro's task on making the media PDF and after
-this we decide how move from the latex folder to a pdf folder
-(one solution see below).
-
->>> I'm not sure that we actually need the format-specific subfolders, but we
->>> should be consistent across all the formats and in the documentation and,
->>> as of this patch, we're not.
->> 
->> IMHO a structure where only non-HTML formats are placed in subfolders
->> (described above) is the better choice.
->> 
->> In the long run I like to get rid of all the intermediate formats
->> (latex, .doctrees) and build a clear output-folder (with all formats
->> in) which could be copied 1:1 to a static HTTP-server.
-> 
-> When I added the Documentation/output subfolder, my main intention was
-> to separate the source documents from everything that is generated,
-> intermediate or final. I suggest you keep the generated files somewhere
-> under output. This'll be handly also when ensuring O= works.
-
-Yes, everything is under output / tested O=..
-
-> I set up the format specific subfolders, because I thought people would
-> want to keep them separated and independent. For me, all the formats
-> were equal and at the same level in that regard. You're suggesting to
-> make html the root of everything?
-
-Yes this was my intention. With some additional work, we can build a 
-root index.html where the other formats are linked. Since other
-formats *below* index.html, everything is *reachable* from the root
-index.html.
-
-Am 19.08.2016 um 15:32 schrieb Mauro Carvalho Chehab <mchehab@infradead.org>:
-> 
-> Agreed. it should either use subfolders or not.
-> 
-> IMHO, the best would be to just output everything at 
-> Documentation/output, if this is possible. That "fixes" the issue
-> of generating PDF files at the latex dir, with sounds weird, IMHO.
-
-Changing the latex/pdf issue should be  just a two-liner (not yet tested).
-
-@@ -71,8 +71,8 @@ ifeq ($(HAVE_PDFLATEX),0)
- 	$(warning The 'xelatex' command was not found. Make sure you have it installed and in PATH to produce PDF output.)
- 	@echo "  SKIP    Sphinx $@ target."
- else # HAVE_PDFLATEX
--	@$(call loop_cmd,sphinx,latex,.,latex,.)
--	$(Q)$(MAKE) PDFLATEX=xelatex LATEXOPTS="-interaction=nonstopmode" -C $(BUILDDIR)/latex
-+	@$(call loop_cmd,sphinx,latex,.,pdf,.)
-+	$(Q)$(MAKE) PDFLATEX=xelatex LATEXOPTS="-interaction=nonstopmode" -C $(BUILDDIR)/pdf
- endif # HAVE_PDFLATEX
-
-
-> I guess I mention on a previous e-mail, but SPHINXDIRS= is not working
-> for PDF files generation.
-
-Not yet, there is a concurrency question to answer, should sub-folder's 
-PDFs defined in the main conf.py-file or in the sub-folder conf.py?
-
-I suggest the last one, or in other words: the PDF content of a target
-should have the same content as the HTML target even if it is a subfolder
-or the whole documentation. But this is only possible if we know, that
-all media content can be integrated in the big PDF file.
-
-After said this, what is your suggestion? For me its all equal, these 
-are only my 2cent to this discussion :-)
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 33a9952..e61fa66 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -723,16 +723,16 @@ int __must_check __media_device_register(struct media_device *mdev,
  
--- Markus --
+ 	ret = media_devnode_register(mdev, devnode, owner);
+ 	if (ret < 0) {
+-		/* devnode free is handled in media_devnode_*() */
+ 		mdev->devnode = NULL;
++		kfree(devnode);
+ 		return ret;
+ 	}
+ 
+ 	ret = device_create_file(&devnode->dev, &dev_attr_model);
+ 	if (ret < 0) {
+-		/* devnode free is handled in media_devnode_*() */
+ 		mdev->devnode = NULL;
+ 		media_devnode_unregister(devnode);
++		kfree(devnode);
+ 		return ret;
+ 	}
+ 
+@@ -812,8 +812,6 @@ void media_device_unregister(struct media_device *mdev)
+ 	if (media_devnode_is_registered(mdev->devnode)) {
+ 		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
+ 		media_devnode_unregister(mdev->devnode);
+-		/* devnode free is handled in media_devnode_*() */
+-		mdev->devnode = NULL;
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister);
+diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+index 5b605ff..ecdc02d 100644
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -63,8 +63,13 @@ static void media_devnode_release(struct device *cd)
+ 	struct media_devnode *devnode = to_media_devnode(cd);
+ 
+ 	mutex_lock(&media_devnode_lock);
++
++	/* Delete the cdev on this minor as well */
++	cdev_del(&devnode->cdev);
++
+ 	/* Mark device node number as free */
+ 	clear_bit(devnode->minor, media_devnode_nums);
++
+ 	mutex_unlock(&media_devnode_lock);
+ 
+ 	/* Release media_devnode and perform other cleanups as needed. */
+@@ -72,7 +77,6 @@ static void media_devnode_release(struct device *cd)
+ 		devnode->release(devnode);
+ 
+ 	kfree(devnode);
+-	pr_debug("%s: Media Devnode Deallocated\n", __func__);
+ }
+ 
+ static struct bus_type media_bus_type = {
+@@ -201,8 +205,6 @@ static int media_release(struct inode *inode, struct file *filp)
+ 	/* decrease the refcount unconditionally since the release()
+ 	   return value is ignored. */
+ 	put_device(&devnode->dev);
+-
+-	pr_debug("%s: Media Release\n", __func__);
+ 	return 0;
+ }
+ 
+@@ -233,7 +235,6 @@ int __must_check media_devnode_register(struct media_device *mdev,
+ 	if (minor == MEDIA_NUM_DEVICES) {
+ 		mutex_unlock(&media_devnode_lock);
+ 		pr_err("could not get a free minor\n");
+-		kfree(devnode);
+ 		return -ENFILE;
+ 	}
+ 
+@@ -243,31 +244,27 @@ int __must_check media_devnode_register(struct media_device *mdev,
+ 	devnode->minor = minor;
+ 	devnode->media_dev = mdev;
+ 
+-	/* Part 1: Initialize dev now to use dev.kobj for cdev.kobj.parent */
+-	devnode->dev.bus = &media_bus_type;
+-	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
+-	devnode->dev.release = media_devnode_release;
+-	if (devnode->parent)
+-		devnode->dev.parent = devnode->parent;
+-	dev_set_name(&devnode->dev, "media%d", devnode->minor);
+-	device_initialize(&devnode->dev);
+-
+ 	/* Part 2: Initialize and register the character device */
+ 	cdev_init(&devnode->cdev, &media_devnode_fops);
+ 	devnode->cdev.owner = owner;
+-	devnode->cdev.kobj.parent = &devnode->dev.kobj;
+ 
+ 	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
+ 	if (ret < 0) {
+ 		pr_err("%s: cdev_add failed\n", __func__);
+-		goto cdev_add_error;
++		goto error;
+ 	}
+ 
+-	/* Part 3: Add the media device */
+-	ret = device_add(&devnode->dev);
++	/* Part 3: Register the media device */
++	devnode->dev.bus = &media_bus_type;
++	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
++	devnode->dev.release = media_devnode_release;
++	if (devnode->parent)
++		devnode->dev.parent = devnode->parent;
++	dev_set_name(&devnode->dev, "media%d", devnode->minor);
++	ret = device_register(&devnode->dev);
+ 	if (ret < 0) {
+-		pr_err("%s: device_add failed\n", __func__);
+-		goto device_add_error;
++		pr_err("%s: device_register failed\n", __func__);
++		goto error;
+ 	}
+ 
+ 	/* Part 4: Activate this minor. The char device can now be used. */
+@@ -275,15 +272,12 @@ int __must_check media_devnode_register(struct media_device *mdev,
+ 
+ 	return 0;
+ 
+-device_add_error:
+-	cdev_del(&devnode->cdev);
+-cdev_add_error:
++error:
+ 	mutex_lock(&media_devnode_lock);
++	cdev_del(&devnode->cdev);
+ 	clear_bit(devnode->minor, media_devnode_nums);
+-	devnode->media_dev = NULL;
+ 	mutex_unlock(&media_devnode_lock);
+ 
+-	put_device(&devnode->dev);
+ 	return ret;
+ }
+ 
+@@ -295,12 +289,8 @@ void media_devnode_unregister(struct media_devnode *devnode)
+ 
+ 	mutex_lock(&media_devnode_lock);
+ 	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
+-	/* Delete the cdev on this minor as well */
+-	cdev_del(&devnode->cdev);
+ 	mutex_unlock(&media_devnode_lock);
+-	device_del(&devnode->dev);
+-	devnode->media_dev = NULL;
+-	put_device(&devnode->dev);
++	device_unregister(&devnode->dev);
+ }
+ 
+ /*
+-- 
+2.1.4
 
-> 
-> Thanks,
-> Mauro
