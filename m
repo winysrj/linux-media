@@ -1,455 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:34067 "EHLO
-	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758849AbcHDTIY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2016 15:08:24 -0400
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:42330 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751135AbcHZK52 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 Aug 2016 06:57:28 -0400
+Subject: Re: Plan to support Rockchip VPU in DRM, is it a good idea
+To: Randy Li <randy.li@rock-chips.com>, dri-devel@lists.freedesktop.org
+References: <a56a7da9-154b-c889-67f6-81bd7e4c7a7d@rock-chips.com>
+ <526b56fc-004b-a25d-e370-3e5c03d8e2f0@xs4all.nl>
+ <c0aadac7-b16d-dc5d-41b0-d5aaac528ef0@rock-chips.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org,
+        "ayaka@soulik.info" <ayaka@soulik.info>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <992cd079-87f1-99b9-3ba0-85cb31b93035@xs4all.nl>
+Date: Fri, 26 Aug 2016 12:56:47 +0200
 MIME-Version: 1.0
-In-Reply-To: <CAJs94EY0O=j_fqRqvTwrNGr9Nx8griWc7EuBchDC7P3whf+rrg@mail.gmail.com>
-References: <1468959677-1768-1-git-send-email-matwey@sai.msu.ru>
- <20160719205600.GA14569@uda0271908> <CAJs94EY_cXLA6eggC391eKiPBS-RVPmfPd7Wh4mhjZTQiCSUrA@mail.gmail.com>
- <20160719213426.GB14569@uda0271908> <CAJs94EbS7C+m_+P61QReAwn=93Yp0B7x4dZ32A8mMAZAM5+osQ@mail.gmail.com>
- <20160720141334.GC14569@uda0271908> <CAJs94Eb-Z4103JgEL6Xu_tesJ+d81F13UKhuCmVc3DPCBZ8z5w@mail.gmail.com>
- <20160720150614.GD14569@uda0271908> <CAJs94Eb42kTp0i=Oagip5uGtVTNh6JgoAp_q--+nNGZufD1chA@mail.gmail.com>
- <CAJs94EZt_gw=xenU8Yt79tZxT_jGUW7w1SQjjh2Oe9aCCXSm7A@mail.gmail.com>
- <CAJs94EYPwWivWfsrUtETJZp5HHmpT5Qvujq0RexcgHm+k657aQ@mail.gmail.com>
- <CAJs94Eb=iPC57N8ecvmOr__1LhTjFTuRtHd1svDbwgVXtYX5=g@mail.gmail.com>
- <CAJs94EYzTXJsr6vPw+MmtHUCzcoyxDmSmU-04YENP-9mZ5MdgA@mail.gmail.com>
- <CAJs94EbpTzpzDeubBGOaqPavwBHzgKhb9E0MN0_v_irWRRwJDQ@mail.gmail.com>
- <CAJs94EYu4i791s9bOgQrYGNgkkzs_K30tKF-4w2xZFja1TVwSA@mail.gmail.com> <CAJs94EY0O=j_fqRqvTwrNGr9Nx8griWc7EuBchDC7P3whf+rrg@mail.gmail.com>
-From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Date: Thu, 4 Aug 2016 22:08:00 +0300
-Message-ID: <CAJs94EZ-Y5-KCEXsDAzZi2tehqRU=g1opRvwBM+Qyt-z=3u4hg@mail.gmail.com>
-Subject: Re: pwc over musb: 100% frame drop (lost) on high resolution stream
-To: Bin Liu <b-liu@ti.com>, "Matwey V. Kornilov" <matwey@sai.msu.ru>,
-	hdegoede@redhat.com, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <c0aadac7-b16d-dc5d-41b0-d5aaac528ef0@rock-chips.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've just found that dma->actual_len equals to zero in most cases at
-musb_host.c line 1946.
-And this produces zero-length packages.
-
-http://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/tree/drivers/usb/musb/musb_host.c#n1946
-
-Any ideas why?
-
-2016-08-04 19:57 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
-> I've just found that many packages in URBs have zero actual_length (It
-> is a question why).
-> Then the following end of frame criteria leads to `frame underflow' message:
->
->                 if (flen < pdev->vlast_packet_size) {
->                         /* Shorter packet... end of frame */
->                         if (pdev->vsync == 2)
->                                 pwc_frame_complete(pdev);
->                         if (pdev->fill_buf == NULL)
->                                 pdev->fill_buf = pwc_get_next_fill_buf(pdev);
->                         if (pdev->fill_buf) {
->                                 pdev->fill_buf->filled = 0;
->                                 pdev->vsync = 1;
->                         }
->                 }
->
-> 2016-08-01 21:16 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
->> pwc module output with trace=511 is the following:
+On 08/26/2016 12:05 PM, Randy Li wrote:
+> 
+> 
+> On 08/26/2016 05:34 PM, Hans Verkuil wrote:
+>> Hi Randi,
 >>
->> [   24.793109] usbcore: registered new interface driver Philips webcam
->> [   29.276979] pwc: Unsupported pixel format
->> [   29.277055] pwc: pwc_vidioc_fill_fmt() width=640, height=480,
->> bytesperline=640, sizeimage=460800, pixelformat=YU12
->> [   29.277090] pwc: Trying to set format to: width=640 height=480
->> fps=15 format=YU12
->> [   29.277123] pwc: set_video_mode(640x480 @ 30, pixfmt 32315559).
->> [   29.277145] pwc: decode_size = 5.
->> [   29.277180] pwc: frame_size=63120, vframes=15, vsize=5, vbandlength=526
->> [   29.277204] pwc: Set resolution to 640x480
->> [   29.277225] pwc: pwc_set_video_mode(), return=0
->> [   29.277256] pwc: pwc_vidioc_fill_fmt() width=640, height=480,
->> bytesperline=640, sizeimage=460800, pixelformat=YU12
->> [   29.277306] pwc: ioctl(VIDIOC_G_FMT) return size 640x480
->> [   29.277337] pwc: pwc_vidioc_fill_fmt() width=640, height=480,
->> bytesperline=640, sizeimage=460800, pixelformat=YU12
->> [   29.277449] pwc: set_video_mode(640x480 @ 10, pixfmt 32315559).
->> [   29.277475] pwc: decode_size = 5.
->> [   29.278726] pwc: frame_size=94560, vframes=10, vsize=5, vbandlength=788
->> [   29.278750] pwc: Set resolution to 640x480
->> [   29.300374] pwc: set_video_mode(640x480 @ 10, pixfmt 32315559).
->> [   29.300420] pwc: decode_size = 5.
->> [   29.441759] pwc: frame_size=94560, vframes=10, vsize=5, vbandlength=788
->> [   29.441792] pwc: Set resolution to 640x480
->> [   29.441824] pwc: Setting alternate interface 9
->> [   29.455061] pwc: Allocated URB at 0xc9b83600
->> [   29.455850] pwc: Allocated URB at 0xc9b83400
->> [   29.456040] pwc: Allocated URB at 0xc9b83200
->> [   29.456271] pwc: URB 0xc9b83600 submitted.
->> [   29.456310] pwc: URB 0xc9b83400 submitted.
->> [   29.456341] pwc: URB 0xc9b83200 submitted.
->> [   29.456362] pwc: << pwc_isoc_init()
->> [   30.078550] pwc: Frame buffer underflow (20076 bytes); discarded.
->> [   30.170543] pwc: Frame buffer underflow (12428 bytes); discarded.
->> [   30.272538] pwc: Frame buffer underflow (14340 bytes); discarded.
->> [   30.374541] pwc: Frame buffer underflow (16252 bytes); discarded.
->> [   30.476535] pwc: Frame buffer underflow (18164 bytes); discarded.
->> [   30.578532] pwc: Frame buffer underflow (20076 bytes); discarded.
->> [   30.670538] pwc: Frame buffer underflow (12428 bytes); discarded.
->> [   30.772544] pwc: Frame buffer underflow (14340 bytes); discarded.
->> [   30.874547] pwc: Frame buffer underflow (16252 bytes); discarded.
->> [   30.976552] pwc: Frame buffer underflow (18164 bytes); discarded.
->> [   31.078536] pwc: Frame buffer underflow (20076 bytes); discarded.
->> [   31.170533] pwc: Frame buffer underflow (12428 bytes); discarded.
->> [   31.272549] pwc: Frame buffer underflow (14340 bytes); discarded.
->> [   31.374545] pwc: Frame buffer underflow (16252 bytes); discarded.
->> [   31.476537] pwc: Frame buffer underflow (18164 bytes); discarded.
->> [   31.578536] pwc: Frame buffer underflow (20076 bytes); discarded.
->> [   31.660895] pwc: Frame buffer underflow (11472 bytes); discarded.
->> [   31.772554] pwc: Frame buffer underflow (14340 bytes); discarded.
->> [   31.874548] pwc: Frame buffer underflow (16252 bytes); discarded.
->> [   31.976533] pwc: Frame buffer underflow (18164 bytes); discarded.
->>
->>
->> 2016-07-31 23:31 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+>> On 08/26/2016 04:13 AM, Randy Li wrote:
 >>> Hello,
+>>>    We always use some kind of hack work to make our Video Process
+>>> Unit(Multi-format Video Encoder/Decoder) work in kernel. From a
+>>> customize driver(vpu service) to the customize V4L2 driver. The V4L2
+>>> subsystem is really not suitable for the stateless Video process or it
+>>> could make driver too fat.
+>>>    After talking to some kindness Intel guys and moving our userspace
+>>> library to VA-API driver, I find the DRM may the good choice for us.
+>>> But I don't know whether it is welcome to to submit a video driver in
+>>> DRM subsystem?
+>>>    Also our VPU(Video process unit) is not just like the Intel's, we
+>>> don't have VCS, we based on registers to set the encoder/decoder. I
+>>> think we may need a lots of IOCTL then. Also we do have a IOMMU in VPU
+>>> but also not a isolated memory for VPU, I don't know I should use TT
+>>> memory or GEM memory.
+>>>    I am actually not a member of the department in charge of VPU, and I
+>>> am just beginning to learning DRM(thank the help from Intel again), I am
+>>> not so good at memory part as well(I am more familiar with CMA not the
+>>> IOMMU way), I may need know guide about the implementations when I am
+>>> going to submit driver, I hope I could get help from someone.
 >>>
->>> I've also just found that the same commit breaks cpufreq on BeagleBone Black :)
->>>
->>> So, probably without HCD_BH flag musb works correctly only at 1Ghz CPU
->>> frequency, which is unlisted and being set to 720Mhz by cpufreq driver
->>> (as it did whet there was cpufreq driver).
->>>
->>> 2016-07-29 21:01 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
->>>> Hello,
->>>>
->>>> I've found that the following commit fixes the issue:
->>>>
->>>> commit 7694ca6e1d6f01122f05039b81f70f64b1ec4063
->>>> Author: Viresh Kumar <viresh.kumar@linaro.org>
->>>> Date:   Fri Apr 22 16:58:42 2016 +0530
->>>>
->>>>     cpufreq: omap: Use generic platdev driver
->>>>
->>>>     The cpufreq-dt-platdev driver supports creation of cpufreq-dt platform
->>>>     device now, reuse that and remove similar code from platform code.
->>>>
->>>>
->>>> 2016-07-28 19:16 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
->>>>> Hello,
->>>>>
->>>>> I've just bisected commit, which fixed the issue in v4.7
->>>>>
->>>>> commit 9fa64d6424adabf0e3a546ae24d01a62a927b342
->>>>> Merge: f55532a febce40
->>>>> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>>>> Date:   Sat Apr 2 01:07:17 2016 +0200
->>>>>
->>>>>     Merge back intel_pstate fixes for v4.6.
->>>>>
->>>>>     * pm-cpufreq:
->>>>>       intel_pstate: Avoid extra invocation of intel_pstate_sample()
->>>>>       intel_pstate: Do not set utilization update hook too early
->>>>>
->>>>> Unfortunately, intel_pstate branch doesn't have
->>>>> f551e13529833e052f75ec628a8af7b034af20f9 applied.
->>>>> I'll try to bisect this branch with the patch manually applied.
->>>>>
->>>>> 2016-07-27 20:34 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
->>>>>> Hello,
->>>>>>
->>>>>> I've just biseced commit, which introduced this issue
->>>>>>
->>>>>> commit f551e13529833e052f75ec628a8af7b034af20f9
->>>>>> Author: Bin Liu <b-liu@ti.com>
->>>>>> Date:   Mon Apr 25 15:53:30 2016 -0500
->>>>>>
->>>>>>     Revert "usb: musb: musb_host: Enable HCD_BH flag to handle urb
->>>>>> return in bottom half"
->>>>>>
->>>>>> I have not checked yet, if it was intentionnaly fixed.
->>>>>>
->>>>>> 2016-07-23 22:24 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
->>>>>>> 2016-07-20 21:56 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
->>>>>>>> 2016-07-20 18:06 GMT+03:00 Bin Liu <b-liu@ti.com>:
->>>>>>>>> Hi,
->>>>>>>>>
->>>>>>>>> On Wed, Jul 20, 2016 at 05:44:56PM +0300, Matwey V. Kornilov wrote:
->>>>>>>>>> 2016-07-20 17:13 GMT+03:00 Bin Liu <b-liu@ti.com>:
->>>>>>>>>> > Hi,
->>>>>>>>>> >
->>>>>>>>>> > On Wed, Jul 20, 2016 at 09:09:42AM +0300, Matwey V. Kornilov wrote:
->>>>>>>>>> >> 2016-07-20 0:34 GMT+03:00 Bin Liu <b-liu@ti.com>:
->>>>>>>>>> >> > Hi,
->>>>>>>>>> >> >
->>>>>>>>>> >> > On Wed, Jul 20, 2016 at 12:25:44AM +0300, Matwey V. Kornilov wrote:
->>>>>>>>>> >> >> 2016-07-19 23:56 GMT+03:00 Bin Liu <b-liu@ti.com>:
->>>>>>>>>> >> >> > Hi,
->>>>>>>>>> >> >> >
->>>>>>>>>> >> >> > On Tue, Jul 19, 2016 at 11:21:17PM +0300, matwey@sai.msu.ru wrote:
->>>>>>>>>> >> >> >> Hello,
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >> I have Philips SPC 900 camera (0471:0329) connected to my AM335x based BeagleBoneBlack SBC.
->>>>>>>>>> >> >> >> I am sure that both of them are fine and work properly.
->>>>>>>>>> >> >> >> I am running Linux 4.6.4 (my kernel config is available at https://clck.ru/A2kQs ) and I've just discovered, that there is an issue with frame transfer when high resolution formats are used.
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >> The issue is the following. I use simple v4l2 example tool (taken from API docs), which source code is available at http://pastebin.com/grcNXxfe
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >> When I use (see line 488) 640x480 frames
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >>                 fmt.fmt.pix.width       = 640;
->>>>>>>>>> >> >> >>                 fmt.fmt.pix.height      = 480;
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >> then I get "select timeout" and don't get any frames.
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >> When I use 320x240 frames
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >>                 fmt.fmt.pix.width       = 320;
->>>>>>>>>> >> >> >>                 fmt.fmt.pix.height      = 240;
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >> then about 60% frames are missed. An example outpout of ./a.out -f is available at https://yadi.sk/d/aRka8xWPtSc4y
->>>>>>>>>> >> >> >> It looks like there are pauses between bulks of frames (frame counter and timestamp as returned from v4l2 API):
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >> 3 3705.142553
->>>>>>>>>> >> >> >> 8 3705.342533
->>>>>>>>>> >> >> >> 13 3705.542517
->>>>>>>>>> >> >> >> 110 3708.776208
->>>>>>>>>> >> >> >> 115 3708.976190
->>>>>>>>>> >> >> >> 120 3709.176169
->>>>>>>>>> >> >> >> 125 3709.376152
->>>>>>>>>> >> >> >> 130 3709.576144
->>>>>>>>>> >> >> >> 226 3712.807848
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >> When I use tiny 160x120 frames
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >>                 fmt.fmt.pix.width       = 160;
->>>>>>>>>> >> >> >>                 fmt.fmt.pix.height      = 120;
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >> then more frames are received. See output example at https://yadi.sk/d/DedBmH6ftSc9t
->>>>>>>>>> >> >> >> That is why I thought that everything was fine in May when used tiny xawtv window to check kernel OOPS presence (see http://www.spinics.net/lists/linux-usb/msg141188.html for reference)
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >> Even more. When I introduce USB hub between the host and the webcam, I can not receive even any 320x240 frames.
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >> I've managed to use ftrace to see what is going on when no frames are received.
->>>>>>>>>> >> >> >> I've found that pwc_isoc_handler is called frequently as the following:
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >>  0)               |  pwc_isoc_handler [pwc]() {
->>>>>>>>>> >> >> >>  0)               |    usb_submit_urb [usbcore]() {
->>>>>>>>>> >> >> >>  0)               |      usb_submit_urb.part.3 [usbcore]() {
->>>>>>>>>> >> >> >>  0)               |        usb_hcd_submit_urb [usbcore]() {
->>>>>>>>>> >> >> >>  0)   0.834 us    |          usb_get_urb [usbcore]();
->>>>>>>>>> >> >> >>  0)               |          musb_map_urb_for_dma [musb_hdrc]() {
->>>>>>>>>> >> >> >>  0)   0.792 us    |            usb_hcd_map_urb_for_dma [usbcore]();
->>>>>>>>>> >> >> >>  0)   5.750 us    |          }
->>>>>>>>>> >> >> >>  0)               |          musb_urb_enqueue [musb_hdrc]() {
->>>>>>>>>> >> >> >>  0)   0.750 us    |            _raw_spin_lock_irqsave();
->>>>>>>>>> >> >> >>  0)               |            usb_hcd_link_urb_to_ep [usbcore]() {
->>>>>>>>>> >> >> >>  0)   0.792 us    |              _raw_spin_lock();
->>>>>>>>>> >> >> >>  0)   0.791 us    |              _raw_spin_unlock();
->>>>>>>>>> >> >> >>  0) + 10.500 us   |            }
->>>>>>>>>> >> >> >>  0)   0.791 us    |            _raw_spin_unlock_irqrestore();
->>>>>>>>>> >> >> >>  0) + 25.375 us   |          }
->>>>>>>>>> >> >> >>  0) + 45.208 us   |        }
->>>>>>>>>> >> >> >>  0) + 51.042 us   |      }
->>>>>>>>>> >> >> >>  0) + 56.084 us   |    }
->>>>>>>>>> >> >> >>  0) + 61.292 us   |  }
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >> However, pwc_isoc_handler never calls vb2_buffer_done() that is why I get "select timeout" in userspace.
->>>>>>>>>> >> >> >> Unfortunately, my kernel is not compiled with CONFIG_USB_PWC_DEBUG=y but I can recompile it, if you think that it could provide more information. I am also ready to perform additional tests (use usbmon maybe?).
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >> How could this issue be resolved?
->>>>>>>>>> >> >> >>
->>>>>>>>>> >> >> >> Thank you.
->>>>>>>>>> >> >> >
->>>>>>>>>> >> >> > Do you have CPPI DMA enabled? If so I think you might hit on a known
->>>>>>>>>> >> >> > issue in CPPI Isoch transfer, in which the MUSB controller only sends IN
->>>>>>>>>> >> >> > tokens in every other SOF, so only half of the bus bandwidth is
->>>>>>>>>> >> >> > utilized, which causes video frame drops in higher resolution.
->>>>>>>>>> >> >> >
->>>>>>>>>> >> >>
->>>>>>>>>> >> >> Yes, I do use DMA:
->>>>>>>>>> >> >>
->>>>>>>>>> >> >> CONFIG_USB_TI_CPPI41_DMA=y
->>>>>>>>>> >> >
->>>>>>>>>> >> > Okay.
->>>>>>>>>> >> >
->>>>>>>>>> >> >>
->>>>>>>>>> >> >> > To confirm this, use a bus analyzer to capture a bus trace, you would
->>>>>>>>>> >> >> > see no IN tokens in every other SOF while transfering Isoch packets.
->>>>>>>>>> >> >> >
->>>>>>>>>> >> >>
->>>>>>>>>> >> >> I am sorry, I am new to USB debugging. Do you mean I need to use
->>>>>>>>>> >> >> usbmon or some external hardware device?
->>>>>>>>>> >> >
->>>>>>>>>> >> > I barely use usbmon, and not sure if it gives the information I am
->>>>>>>>>> >> > looking for. But I meant the external test equipment - USB bus protocol
->>>>>>>>>> >> > analyzer - a bus packet sniffer.
->>>>>>>>>> >> >
->>>>>>>>>> >>
->>>>>>>>>> >> Now I see. I've googled it, they start from $1000, I don't know
->>>>>>>>>> >> when/whether/where I can get one to try.
->>>>>>>>>> >
->>>>>>>>>> > I think you might be able to check it without a sniffer - MUSB
->>>>>>>>>> > controller can generate SOF interrupts, but it is masked in current
->>>>>>>>>> > driver. So I think you could enable SOF interrupt, then if you get a log
->>>>>>>>>> > as
->>>>>>>>>> >         SOF
->>>>>>>>>> >         rx packet
->>>>>>>>>> >         SOF
->>>>>>>>>> >         rx packet
->>>>>>>>>> >         SOF
->>>>>>>>>> >         ...
->>>>>>>>>> > or
->>>>>>>>>> >         SOF
->>>>>>>>>> >         rx packet
->>>>>>>>>> >         rx packet
->>>>>>>>>> >         rx packet
->>>>>>>>>> >         SOF
->>>>>>>>>> >         rx packet
->>>>>>>>>> >         rx packet
->>>>>>>>>> >         rx packet
->>>>>>>>>> >         SOF
->>>>>>>>>> >         ...
->>>>>>>>>> >
->>>>>>>>>> > which means your issue is different from the one I mentioned. But if
->>>>>>>>>> > you get a log as
->>>>>>>>>> >
->>>>>>>>>> >         SOF
->>>>>>>>>> >         rx packet
->>>>>>>>>> >         SOF
->>>>>>>>>> >         SOF     <--- no rx packets in two consecutive SOFs
->>>>>>>>>> >         rx packet
->>>>>>>>>> >         SOF
->>>>>>>>>> >         SOF
->>>>>>>>>> >
->>>>>>>>>> > then you hit on the known issue I mentioned.
->>>>>>>>>> >
->>>>>>>>>> >> Until that, could I check something else? For instance, disable
->>>>>>>>>> >> CONFIG_USB_TI_CPPI41_DMA.
->>>>>>>>>> >
->>>>>>>>>> > You could disable it, but I don't think you will get yuv video stream
->>>>>>>>>> > of 640x480@30fps. PIO mode does not support such high bandwidth. What is
->>>>>>>>>> > your video requirement anyway?
->>>>>>>>>>
->>>>>>>>>> Many thanks for your guidance. I will answer the rest later when will
->>>>>>>>>> be ready to play with SOF interrupt.
->>>>>>>>>> Now, I would like to say that use_dma=0 doesn't change the behaviour:
->>>>>>>>>>
->>>>>>>>>> # cat /sys/module/musb_hdrc/parameters/use_dma
->>>>>>>>>> N
->>>>>>>>>
->>>>>>>>> It sounds like you have a different issue here. With usb_dma=0, I
->>>>>>>>> remembered I can get 320x240 YUV stream @30fps from uvc cameras.
->>>>>>>>>
->>>>>>>>>>
->>>>>>>>>> I would like 640x480@5fps which works with x86 based PC. Issue here,
->>>>>>>>>> that I can not obtain 640x480 at any FPS on musb.
->>>>>>>>>
->>>>>>>>> The current CPPI41 driver should be able to handle this. I think you
->>>>>>>>> really have to debug the pwc driver to figure out why it drops the video
->>>>>>>>> frame. I personally don't have a pwc supported camera, never looked the
->>>>>>>>> pwc driver...
->>>>>>>>
->>>>>>>> Surprisingly, I've found that my 10-year-old laptop (Intel Core Solo
->>>>>>>> T1350) has the similar issue with pwc (kernel 3.16). It drops 80% of
->>>>>>>> 640x480 frames.
->>>>>>>> Vortex86 200Mhz based rugged PC with 2.6.14 works fine.
->>>>>>>> Quad-code Atom E3800 based PC with 4.1 also works fine.
->>>>>>>>
->>>>>>>> So, I even don't know what to say. Probably, the issue depends on CPU
->>>>>>>> latency/performance and it was there for a while.
->>>>>>>> Fortunately, I think, I could use git bisect if I found latest forking
->>>>>>>> kernel for my laptop.
->>>>>>>>
->>>>>>>
->>>>>>> It seems that the issue is gone in 4.7-rc7, so forget it.
->>>>>>>
->>>>>>>>>
->>>>>>>>>>
->>>>>>>>>> >
->>>>>>>>>> >>
->>>>>>>>>> >> I've found that after hours of transmit, the camera stops iso at all
->>>>>>>>>> >> (until reset). Maybe its brain becomes damaged by the transfer issues
->>>>>>>>>> >
->>>>>>>>>> > How did you check that? MUSB stopped generating RX EP interrupt?
->>>>>>>>>>
->>>>>>>>>> Something like that, I suppose. Normally, I see input data flow in
->>>>>>>>>> usbmon, but don't see frames in v4l2.
->>>>>>>>>> But when camera 'hungs', I don't see nor input flow (except the
->>>>>>>>>> control packages exchange) neither frames.
->>>>>>>>>
->>>>>>>>> Fair enough.
->>>>>>>>>
->>>>>>>>> Regards,
->>>>>>>>> -Bin.
->>>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>> --
->>>>>>>> With best regards,
->>>>>>>> Matwey V. Kornilov.
->>>>>>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
->>>>>>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> --
->>>>>>> With best regards,
->>>>>>> Matwey V. Kornilov.
->>>>>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
->>>>>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
->>>>>>
->>>>>>
->>>>>>
->>>>>> --
->>>>>> With best regards,
->>>>>> Matwey V. Kornilov.
->>>>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
->>>>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
->>>>>
->>>>>
->>>>>
->>>>> --
->>>>> With best regards,
->>>>> Matwey V. Kornilov.
->>>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
->>>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
->>>>
->>>>
->>>>
->>>> --
->>>> With best regards,
->>>> Matwey V. Kornilov.
->>>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
->>>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
->>>
->>>
->>>
->>> --
->>> With best regards,
->>> Matwey V. Kornilov.
->>> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
->>> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
 >>
+>> It makes no sense to do this in the DRM subsystem IMHO. There are already
+>> quite a few HW codecs implemented in the V4L2 subsystem and more are in the
+>> pipeline. Putting codec support in different subsystems will just make
+>> userspace software much harder to write.
 >>
+>> One of the codecs that was posted to linux-media was actually from Rockchip:
 >>
->> --
->> With best regards,
->> Matwey V. Kornilov.
->> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
->> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
->
->
->
-> --
-> With best regards,
-> Matwey V. Kornilov.
-> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
-> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>> https://lkml.org/lkml/2016/2/29/861
+>>
+>> There is also a libVA driver (I think) that sits on top of it:
+>>
+>> https://github.com/rockchip-linux/rockchip-va-driver/tree/v4l2-libvpu
+> It is old version, I am the author of this
+> https://github.com/rockchip-linux/rockchip-va-driver
+>>
+>> For the Allwinner a patch series was posted yesterday:
+>>
+>> https://lkml.org/lkml/2016/8/25/246
+>>
+>> They created a pretty generic libVA userspace that looks very promising at
+>> first glance.
+>>
+>> What these have in common is that they depend on the Request API and Frame API,
+>> neither of which has been merged. The problem is that the Request API requires
+>> more work since not only controls have to be part of a request, but also formats,
+>> selection rectangles, and even dynamic routing changes. While that is not relevant
+>> for codecs, it is relevant for Android CameraHAL in general and complex devices
+>> like Google's Project Ara.
+> Actually just as the Intel did, our hardware decoder/encoder need full 
+> settings for them, most of them are relevant to the codec. You may 
+> notice that there is four extra control need to be set before. If the 
+> libvpu(a helper library we offered to parse each slice to generate 
+> decoder settings) is remove(in process now, only three decoder settings 
+> can't got from VA-API directly), it would be more clearly.
+> We really a lots decoder settings information to make the decoder work.
+>>
+>> This is being worked on, but it is simply not yet ready. The core V4L2 developers
+>> involved in this plan to discuss this on the Monday before the ELCE in Berlin,
+>> to see if we can fast track this work somehow so this support can be merged.
+>>
+> I am glad to hear that. I hope that I could have an opportunity to show 
+> our problems.
+>> If there are missing features in V4L2 (other that the two APIs discussed above)
+>> that prevent you from creating a good driver, then please discuss that with us.
+>> We are always open to suggestions and improvements and want to work with you on
+>> that.
+> I have a few experience with the s5p-mfc, and I do wrote a V4L2 encoder 
+> plugin for Gstreamer.  I don't think the V4L2 is good place for us 
+> stateless video processor, unless it would break the present implementation.
+> 
+>    The stateful and stateless are operated quite differently. The 
+> stateless must parse the header and set those settings for every frames.
+> The request data may quite different from vendor to vendor, even chip to 
+> chip. It is impossible to make a common way to send those settings to 
+> driver.For the samsung MFC, you don't need to do any parse work at all.
+>    Anyway, I would like to follow what Intel does now, we are both 
+> stateless video processor.
 
+I don't see the problem. As I understand it what the hardware needs is the
+video data and settings (i.e. 'state'). It will process the video data (encode
+or decode) and return the result (probably with additional settings/state).
 
+V4L2 + Request API does exactly that. What does DRM offer you that makes life
+easier for you compared to V4L2? I am not aware of Intel upstreaming any of
+their codec solutions, if you have pointers to patches from them attempting
+to do that, then please let me know.
 
--- 
-With best regards,
-Matwey V. Kornilov.
-Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
-119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+If your goal is to get your code into the upstream kernel, then I am not
+sure Intel is the best place to look: I have yet to see patches from their
+media (camera/isp/codec) team. They do not seem to care about kernel
+upstreaming.
+
+I am trying to avoid that support for these devices gets fragmented over
+various subsystems and with various userspace solutions. I don't think that
+is in anyone's interest.
+
+Regards,
+
+	Hans
