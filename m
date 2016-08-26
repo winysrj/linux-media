@@ -1,84 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:50393 "EHLO vena.lwn.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757331AbcHWOQh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 Aug 2016 10:16:37 -0400
-Date: Tue, 23 Aug 2016 08:16:33 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        linux-doc@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 2/2] Documentation/sphinx: link dma-buf rsts
-Message-ID: <20160823081633.123ae938@lwn.net>
-In-Reply-To: <CAKMK7uFMDcwk=ovX9+_R4FBOx6=sYnaOZwHuHSdQixdk-5_hwg@mail.gmail.com>
-References: <1471878705-3963-1-git-send-email-sumit.semwal@linaro.org>
-        <1471878705-3963-3-git-send-email-sumit.semwal@linaro.org>
-        <20160822124930.02dbbafc@vento.lan>
-        <20160823060135.GJ24290@phenom.ffwll.local>
-        <20160823070818.42ffec00@lwn.net>
-        <CAKMK7uFMDcwk=ovX9+_R4FBOx6=sYnaOZwHuHSdQixdk-5_hwg@mail.gmail.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:36125 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750999AbcHZHpj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 Aug 2016 03:45:39 -0400
+Subject: Re: [RFC PATCH 5/7] ov7670: add devicetree support
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
+ <1471415383-38531-6-git-send-email-hverkuil@xs4all.nl>
+ <3513546.0HAk52lbkG@avalon>
+Cc: linux-media@vger.kernel.org, Songjun Wu <songjun.wu@microchip.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <86f01ea7-984c-0b9e-477a-c04f61d44db1@xs4all.nl>
+Date: Fri, 26 Aug 2016 09:45:25 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <3513546.0HAk52lbkG@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 23 Aug 2016 15:28:55 +0200
-Daniel Vetter <daniel@ffwll.ch> wrote:
+Hi Laurent,
 
-> I think the more interesting story is, what's your plan with all the
-> other driver related subsystem? Especially the ones which already have
-> full directories of their own, like e.g. Documentation/gpio/. I think
-> those should be really part of the infrastructure section (or
-> something equally high-level), together with other awesome servies
-> like pwm, regman, irqchip, ... And then there's also the large-scale
-> subsystems like media or gpu. What's the plan to tie them all
-> together? Personally I'm leaning towards keeping the existing
-> directories (where they exist already), but inserting links into the
-> overall driver-api section.
+On 08/17/2016 02:44 PM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday 17 Aug 2016 08:29:41 Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Add DT support. Use it to get the reset and pwdn pins (if there are any).
+>> Tested with one sensor requiring reset/pwdn and one sensor that doesn't
+>> have reset/pwdn pins.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  .../devicetree/bindings/media/i2c/ov7670.txt       | 44 +++++++++++++++++
+>>  MAINTAINERS                                        |  1 +
+>>  drivers/media/i2c/ov7670.c                         | 51 +++++++++++++++++++
+>>  3 files changed, 96 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+>> b/Documentation/devicetree/bindings/media/i2c/ov7670.txt new file mode
+>> 100644
+>> index 0000000..3231c47
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+>> @@ -0,0 +1,44 @@
+>> +* Omnivision OV7670 CMOS sensor
+>> +
+>> +The Omnivision OV7670 sensor support multiple resolutions output, such as
+> 
+> s/support/supports/
+> 
+>> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
+>> +output format.
+> 
+> s/format/formats/ (and possibly s/can support/can support the/)
+> 
+>> +
+>> +Required Properties:
+>> +- compatible: should be "ovti,ov7670"
+>> +- clocks: reference to the xvclk input clock.
+>> +- clock-names: should be "xvclk".
+>> +
+>> +Optional Properties:
+>> +- resetb-gpios: reference to the GPIO connected to the resetb pin, if any.
+>> +- pwdn-gpios: reference to the GPIO connected to the pwdn pin, if any.
+>> +
+>> +The device node must contain one 'port' child node for its digital output
+>> +video port, in accordance with the video interface bindings defined in
+>> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+>> +
+>> +Example:
+>> +
+>> +	i2c1: i2c@f0018000 {
+>> +		status = "okay";
+>> +
+>> +		ov7670: camera@0x21 {
+>> +			compatible = "ovti,ov7670";
+>> +			reg = <0x21>;
+>> +			pinctrl-names = "default";
+>> +			pinctrl-0 = <&pinctrl_pck0_as_isi_mck
+>> &pinctrl_sensor_power
+>> &pinctrl_sensor_reset>;
+> 
+> The pinctrl properties should be part of the clock provider DT node.
 
-To say I have a plan is to overstate things somewhat...
+Do you have examples of that?
 
-One objective I do have, though, is to declutter Documentation/.
-Presenting people looking for docs with a 270-file directory is
-unfriendly to say the least.  We don't organize the code that way; the
-average in the kernel is <... find | wc -l ... > about 15
-files/directory, which is rather more manageable.  Someday I'd like
-Documentation/ to look a lot more like the top-level directory.
+I just copied this from existing atmel dts code (arch/arm/boot/dts/sama5d3xmb.dtsi).
 
-It seems to me that we have a few basic types of stuff here:
+> 
+>> +			resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
+>> +			pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
+>> +			clocks = <&pck0>;
+>> +			clock-names = "xvclk";
+>> +			assigned-clocks = <&pck0>;
+>> +			assigned-clock-rates = <24000000>;
+> 
+> You should compute and set the clock rate dynamically in the driver, not 
+> hardcode it in DT.
 
- - Driver API documentation, obviously, is a lot of it, and I would like
-   to organize it better and to move it out of the top-level directory.
+Do you have an example of that? Again, I just copied this from the same sama5d3xmb.dtsi.
 
- - Hardware usage information - module parameters, sysfs files, supported
-   hardware information, graphic descriptions of the ancestry of hardware
-   engineers, etc.  The readership for this stuff is quite different, and
-   I think it should be separate; often it's intertwined with API
-   information at the moment.
+Regards,
 
- - Other usage information - a lot of what's under filesystems/ for
-   example, and more.
-
- - Core API documentation.
-
- - Kernel development tools - the stuff I started pulling together into
-   the dev-tools/ subdirectory.
-
- - How to deal with this unruly mob - SubmittingPatches, CodingStyle,
-   development-process, etc.  There's process stuff, and general
-   development documents like volatile-considered-harmful.txt or
-   memory-barriers.txt
-
-We can go a long way by organizing this stuff within the formatted
-documentation, but I really think we need to organize the directory
-structure as well.  I see that as a slow-moving process that will take
-years, but I do think it's a direction we should go.
-
-jon
+	Hans
