@@ -1,58 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:34912 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753125AbcHPXbS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2016 19:31:18 -0400
-To: LKML <linux-kernel@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: [PATCH] dma-buf: fix kernel-doc warning and typos
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <224865a5-947d-9a28-c60a-18fa86bc9329@infradead.org>
-Date: Tue, 16 Aug 2016 16:31:00 -0700
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:40661 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751736AbcHZDGB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 25 Aug 2016 23:06:01 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id EAAF91800D9
+        for <linux-media@vger.kernel.org>; Fri, 26 Aug 2016 05:03:42 +0200 (CEST)
+Date: Fri, 26 Aug 2016 05:03:42 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160826030342.EAAF91800D9@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <rdunlap@infradead.org>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Fix dma-buf kernel-doc warning and 2 minor typos in
-fence_array_create().
+Results of the daily build of media_tree:
 
-Fixes this warning:
-..//drivers/dma-buf/fence-array.c:124: warning: No description found for parameter 'signal_on_any'
+date:		Fri Aug 26 04:00:15 CEST 2016
+git branch:	test
+git hash:	fb6609280db902bd5d34445fba1c926e95e63914
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc:	Sumit Semwal <sumit.semwal@linaro.org>
-Cc:	linux-media@vger.kernel.org
-Cc:	dri-devel@lists.freedesktop.org
-Cc:	linaro-mm-sig@lists.linaro.org
----
- drivers/dma-buf/fence-array.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: OK
+linux-4.8-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: OK
+linux-4.8-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
---- lnx-48-rc2.orig/drivers/dma-buf/fence-array.c
-+++ lnx-48-rc2/drivers/dma-buf/fence-array.c
-@@ -106,14 +106,14 @@ const struct fence_ops fence_array_ops =
-  * @fences:		[in]	array containing the fences
-  * @context:		[in]	fence context to use
-  * @seqno:		[in]	sequence number to use
-- * @signal_on_any	[in]	signal on any fence in the array
-+ * @signal_on_any:	[in]	signal on any fence in the array
-  *
-  * Allocate a fence_array object and initialize the base fence with fence_init().
-  * In case of error it returns NULL.
-  *
-- * The caller should allocte the fences array with num_fences size
-+ * The caller should allocate the fences array with num_fences size
-  * and fill it with the fences it wants to add to the object. Ownership of this
-- * array is take and fence_put() is used on each fence on release.
-+ * array is taken and fence_put() is used on each fence on release.
-  *
-  * If @signal_on_any is true the fence array signals if any fence in the array
-  * signals, otherwise it signals when all fences in the array signal.
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
