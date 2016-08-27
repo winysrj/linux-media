@@ -1,95 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:34396 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753622AbcHCGdJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2016 02:33:09 -0400
-Date: Tue, 2 Aug 2016 23:32:30 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-input <linux-input@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Pavel Machek <pavel@ucw.cz>, Vojtech Pavlik <vojtech@suse.com>
-Subject: Re: [RFC PATCH] serio: add hangup support
-Message-ID: <20160803063230.GB32559@dtor-ws>
-References: <287a7f88-5d45-bb45-c98e-22a2313ab780@xs4all.nl>
- <20160715163119.GA27847@dtor-ws>
- <fcdd38a6-52f3-3c01-d99f-3a978bfac512@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <fcdd38a6-52f3-3c01-d99f-3a978bfac512@xs4all.nl>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:59167 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754775AbcH0CtY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 Aug 2016 22:49:24 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 4A43D1800B5
+        for <linux-media@vger.kernel.org>; Sat, 27 Aug 2016 04:48:45 +0200 (CEST)
+Date: Sat, 27 Aug 2016 04:48:45 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160827024845.4A43D1800B5@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 01, 2016 at 03:43:32PM +0200, Hans Verkuil wrote:
-> 
-> 
-> On 07/15/2016 06:31 PM, Dmitry Torokhov wrote:
-> > Hi Hans,
-> > 
-> > On Fri, Jul 15, 2016 at 01:27:21PM +0200, Hans Verkuil wrote:
-> >> For the upcoming 4.8 kernel I made a driver for the Pulse-Eight USB CEC adapter.
-> >> This is a usb device that shows up as a ttyACM0 device. It requires that you run
-> >> inputattach in order to communicate with it via serio.
-> >>
-> >> This all works well, but it would be nice to have a udev rule to automatically
-> >> start inputattach. That too works OK, but the problem comes when the USB device
-> >> is unplugged: the tty hangup is never handled by the serio framework so the
-> >> inputattach utility never exits and you have to kill it manually.
-> >>
-> >> By adding this hangup callback the inputattach utility now exists as soon as I
-> >> unplug the USB device.
-> >>
-> >> Is this the correct approach?
-> >>
-> >> BTW, the new driver is found here:
-> >>
-> >> https://git.linuxtv.org/media_tree.git/tree/drivers/staging/media/pulse8-cec
-> >>
-> >> Regards,
-> >>
-> >> 	Hans
-> >>
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >> ---
-> >> diff --git a/drivers/input/serio/serport.c b/drivers/input/serio/serport.c
-> >> index 9c927d3..a615846 100644
-> >> --- a/drivers/input/serio/serport.c
-> >> +++ b/drivers/input/serio/serport.c
-> >> @@ -248,6 +248,14 @@ static long serport_ldisc_compat_ioctl(struct tty_struct *tty,
-> >>  }
-> >>  #endif
-> >>
-> >> +static int serport_ldisc_hangup(struct tty_struct * tty)
-> >> +{
-> >> +	struct serport *serport = (struct serport *) tty->disc_data;
-> >> +
-> >> +	serport_serio_close(serport->serio);
-> > 
-> > I see what you mean, but this is not quite correct. I think we should
-> > make serport_serio_close() only reset the SERPORT_ACTIVE flag and have
-> > serport_ldisc_hangup() actually do:
-> > 
-> > 	spin_lock_irqsave(&serport->lock, flags);
-> > 	set_bit(SERPORT_DEAD, &serport->flags);
-> > 	spin_unlock_irqrestore(&serport->lock, flags);
-> > 
-> > 	wake_up_interruptible(&serport->wait);
-> 
-> I'm preparing a v2 of this patch, but I wonder if in this hangup code
-> I also need to clear the SERPORT_ACTIVE flag. Or is it guaranteed that
-> close() always precedes hangup()? In which case close() always clears that
-> flag.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-No, we could get hangup and that would wake up the reader which will
-cause de-registration of serio port. As part of that process
-serport_serio_close() will be called (if serio port has been opened by
-someone).
+Results of the daily build of media_tree:
 
-You should not need to clear "active" flag in hangup code.
+date:		Sat Aug 27 04:00:16 CEST 2016
+git branch:	test
+git hash:	fb6609280db902bd5d34445fba1c926e95e63914
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-Thanks.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: OK
+linux-4.8-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: OK
+linux-4.8-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
--- 
-Dmitry
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
