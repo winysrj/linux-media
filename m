@@ -1,89 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f47.google.com ([209.85.215.47]:33842 "EHLO
-	mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753291AbcHAUle (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2016 16:41:34 -0400
-Received: by mail-lf0-f47.google.com with SMTP id l69so123932777lfg.1
-        for <linux-media@vger.kernel.org>; Mon, 01 Aug 2016 13:41:33 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Mon, 1 Aug 2016 22:41:30 +0200
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 2/3] soc-camera/rcar-vin: remove obsolete driver
-Message-ID: <20160801204130.GF3672@bigcity.dyn.berto.se>
-References: <1470038065-30789-1-git-send-email-hverkuil@xs4all.nl>
- <1470038065-30789-3-git-send-email-hverkuil@xs4all.nl>
- <3585190.qMTDhgQKz3@avalon>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33042 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755737AbcH1REj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 28 Aug 2016 13:04:39 -0400
+Received: by mail-wm0-f66.google.com with SMTP id o80so6541308wme.0
+        for <linux-media@vger.kernel.org>; Sun, 28 Aug 2016 10:04:38 -0700 (PDT)
+Date: Sun, 28 Aug 2016 19:04:35 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: intel-gfx@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+        linux-media@vger.kernel.org,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        dri-devel@lists.freedesktop.org
+Subject: Re: [Intel-gfx] [PATCH] dma-buf: Do a fast lockless check for poll
+ with timeout=0
+Message-ID: <20160828170435.GC10980@phenom.ffwll.local>
+References: <20160828163747.32751-1-chris@chris-wilson.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <3585190.qMTDhgQKz3@avalon>
+In-Reply-To: <20160828163747.32751-1-chris@chris-wilson.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2016-08-01 11:31:11 +0300, Laurent Pinchart wrote:
-> Hi Hans,
+On Sun, Aug 28, 2016 at 05:37:47PM +0100, Chris Wilson wrote:
+> Currently we install a callback for performing poll on a dma-buf,
+> irrespective of the timeout. This involves taking a spinlock, as well as
+> unnecessary work, and greatly reduces scaling of poll(.timeout=0) across
+> multiple threads.
 > 
-> Thank you for the patch.
+> We can query whether the poll will block prior to installing the
+> callback to make the busy-query fast.
 > 
-> On Monday 01 Aug 2016 09:54:24 Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > This driver has been replaced by the non-soc-camera rcar-vin driver.
-> > The soc-camera framework is being deprecated, so drop this older
-> > rcar-vin driver in favor of the newer version that does not rely on
-> > this deprecated framework.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > Cc: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Single thread: 60% faster
+> 8 threads on 4 (+4 HT) cores: 600% faster
 > 
-> I'm all for removal of dead code :-)
+> Still not quite the perfect scaling we get with a native busy ioctl, but
+> poll(dmabuf) is faster due to the quicker lookup of the object and
+> avoiding drm_ioctl().
 > 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+> Cc: Sumit Semwal <sumit.semwal@linaro.org>
+> Cc: linux-media@vger.kernel.org
+> Cc: dri-devel@lists.freedesktop.org
+> Cc: linaro-mm-sig@lists.linaro.org
+
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+
+> ---
+>  drivers/dma-buf/dma-buf.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
 > 
-> But please get Niklas' ack to confirm that the new driver supports all the 
-> feature available in the old one.
-
-I'm all for removing this code. And I do believe the new driver supports 
-(almost, see 1) all features this one do. There are however two known 
-issues with the new driver which maybe should be resolved before the old 
-one is removed.
-
-1. The soc-camera driver call g_std to determine video standard if field 
-   is V4L2_FIELD_INTERLACED. The new driver dose not.
-
-   I'm preparing a patch which restores this functionality and hope to 
-   post it soon.
-
-2. There is a error in the DT parsing code where of_node_put() is called 
-   twice resulting in a nice backtrace while booting if the debug config 
-   options are enabled.
-
-   There is a fix for this in the Gen3 enablement series but maybe I 
-   should break it out from there and post it separately?
-
-I would like to solve issue no 1 before we remove the soc-camera driver, 
-hopefully we can do so shortly.
-
-> 
-> > ---
-> >  drivers/media/platform/soc_camera/Kconfig    |   10 -
-> >  drivers/media/platform/soc_camera/Makefile   |    1 -
-> >  drivers/media/platform/soc_camera/rcar_vin.c | 1970 -----------------------
-> >  3 files changed, 1981 deletions(-)
-> >  delete mode 100644 drivers/media/platform/soc_camera/rcar_vin.c
-> 
+> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> index cf04d249a6a4..c7a7bc579941 100644
+> --- a/drivers/dma-buf/dma-buf.c
+> +++ b/drivers/dma-buf/dma-buf.c
+> @@ -156,6 +156,18 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
+>  	if (!events)
+>  		return 0;
+>  
+> +	if (poll_does_not_wait(poll)) {
+> +		if (events & POLLOUT &&
+> +		    !reservation_object_test_signaled_rcu(resv, true))
+> +			events &= ~(POLLOUT | POLLIN);
+> +
+> +		if (events & POLLIN &&
+> +		    !reservation_object_test_signaled_rcu(resv, false))
+> +			events &= ~POLLIN;
+> +
+> +		return events;
+> +	}
+> +
+>  retry:
+>  	seq = read_seqcount_begin(&resv->seq);
+>  	rcu_read_lock();
 > -- 
-> Regards,
+> 2.9.3
 > 
-> Laurent Pinchart
-> 
+> _______________________________________________
+> Intel-gfx mailing list
+> Intel-gfx@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/intel-gfx
 
 -- 
-Regards,
-Niklas Söderlund
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
