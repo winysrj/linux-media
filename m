@@ -1,48 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp10.smtpout.orange.fr ([80.12.242.132]:42992 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752881AbcHOOmn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 10:42:43 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jiri Kosina <trivial@kernel.org>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 09/14] media: platform: pxa_camera: add buffer sequencing
-References: <1470684652-16295-1-git-send-email-robert.jarzmik@free.fr>
-	<1470684652-16295-10-git-send-email-robert.jarzmik@free.fr>
-	<87mvkeqi1q.fsf@belgarion.home>
-	<9883272f-cffd-e550-f784-32977bace0c0@xs4all.nl>
-Date: Mon, 15 Aug 2016 16:42:38 +0200
-In-Reply-To: <9883272f-cffd-e550-f784-32977bace0c0@xs4all.nl> (Hans Verkuil's
-	message of "Mon, 15 Aug 2016 15:31:14 +0200")
-Message-ID: <87inv2qejl.fsf@belgarion.home>
+Received: from mail-lf0-f45.google.com ([209.85.215.45]:36801 "EHLO
+        mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755268AbcH1KOS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 28 Aug 2016 06:14:18 -0400
 MIME-Version: 1.0
-Content-Type: text/plain
+From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+Date: Sun, 28 Aug 2016 13:13:55 +0300
+Message-ID: <CAJs94EYkgXtr7P+HLsBnu6=j==g=wWRVFy91vofcdDziSfw60w@mail.gmail.com>
+Subject: musb: isoc pkt loss with pwc
+To: Alan Stern <stern@rowland.harvard.edu>, Bin Liu <b-liu@ti.com>,
+        hdegoede@redhat.com, linux-media@vger.kernel.org,
+        linux-usb@vger.kernel.org
+Content-Type: multipart/mixed; boundary=001a114a8dca897521053b1f02e2
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+--001a114a8dca897521053b1f02e2
+Content-Type: text/plain; charset=UTF-8
 
-> On 08/15/2016 03:26 PM, Robert Jarzmik wrote:
->> Robert Jarzmik <robert.jarzmik@free.fr> writes:
->> I've seen no documentation on the rules applicable to this sequence number:
->>  - should it be reset if a "start streaming" operation occurs ?
->
-> start_streaming is the recommended place for setting the counter to 0. It's what
-> v4l2-compliance expects.
->
-> It is not documented since 1) not every driver does this and 2) there may
-> be cases where this behavior is not desired.
->
-> That said, I have yet to see a driver where zeroing this in start_streaming
-> is not appropriate.
+Hello Bin,
 
-Thanks for the information Hans, I'll modify this patch accordingly.
+I would like to start new thread on my issue. Let me recall where the issue is:
+There is 100% frame lost in pwc webcam driver due to lots of
+zero-length packages coming from musb driver.
+The issue is present in all kernels (including 4.8) starting from the commit:
 
-Cheers.
+f551e13529833e052f75ec628a8af7b034af20f9 ("Revert "usb: musb:
+musb_host: Enable HCD_BH flag to handle urb return in bottom half"")
 
---
-Robert
+The issue is here both when DMA enabled and DMA disabled.
+
+Attached here is a plot. The vertical axis designates the value of
+rx_count variable from function musb_host_packet_rx(). One may see
+that there are only two possibilities: 0 bytes and 956 bytes.
+The horizontal axis is the last three digits of the timestamp when
+musb_host_packet_rx() invoked. I.e for [   38.115379] it is 379. Given
+that my webcam is USB 1.1 and base time is 1 ms, then all frames
+should be grouped close to some single value. (Repeating package
+receive event every 1 ms won't change last tree digits considerably)
+One may see that it is not true, in practice there are two groups. And
+receive time strongly correlates with the package size. Packages
+received near round ms are 956 bytes long, packages received near 400
+us are 0 bytes long.
+
+I don't know how exactly SOF and IN are synchronized in musb, could
+someone give a hint? But from what I see the time difference between
+subsequent IN package requests is sometimes more than 1 ms due to
+heavy urb->complete() callback. After such events only zero length
+packages are received. Surprisingly, that `synchronization' is
+recovered sometimes in the middle of URB like the following:
+
+[  163.207363] musb int
+[  163.207380] rx_count 0
+[  163.207393] req pkt c9c76200 // Expected musb int at 163.208393
+[  163.207403] int end
+// No interrupt at 163.208393
+[  163.209001] musb int
+[  163.209017] rx_count 956
+[  163.209108] req pkt c9c76200
+[  163.209118] int end
+
+And then the series of 956 bytes long packages are received until URB
+giveback will occasionally break it again.
+Do I understand correctly, that SOF is generated every 1 ms by
+hardware and should be followed by IN immediately?
+If so, it is not clear to me how they should be aligned when the time
+difference between to subsequent INs is greater than 1ms.
+
+-- 
+With best regards,
+Matwey V. Kornilov.
+Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+
+--001a114a8dca897521053b1f02e2
+Content-Type: application/pdf; name="Rplots.pdf"
+Content-Disposition: attachment; filename="Rplots.pdf"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_isefoe120
+
+JVBERi0xLjQKJYHigeOBz4HTXHIKMSAwIG9iago8PAovQ3JlYXRpb25EYXRlIChEOjIwMTYwODI4
+MTIzNjQ0KQovTW9kRGF0ZSAoRDoyMDE2MDgyODEyMzY0NCkKL1RpdGxlIChSIEdyYXBoaWNzIE91
+dHB1dCkKL1Byb2R1Y2VyIChSIDMuMS4xKQovQ3JlYXRvciAoUikKPj4KZW5kb2JqCjIgMCBvYmoK
+PDwgL1R5cGUgL0NhdGFsb2cgL1BhZ2VzIDMgMCBSID4+CmVuZG9iago3IDAgb2JqCjw8IC9UeXBl
+IC9QYWdlIC9QYXJlbnQgMyAwIFIgL0NvbnRlbnRzIDggMCBSIC9SZXNvdXJjZXMgNCAwIFIgPj4K
+ZW5kb2JqCjggMCBvYmoKPDwKL0xlbmd0aCAyOTgyIC9GaWx0ZXIgL0ZsYXRlRGVjb2RlCj4+CnN0
+cmVhbQp4nO2dXW/cxhWG7/dXzKUNpGPOkFyStzaSAAYcNJGAXhi+aGX1w3Ec2DIQ9N93qF1pt0ar
+xjyAXjw958KKKO5kycOX5+Od81HSy1TSu/Rx92P6mMYld0Oa+jwMaShDnmrqp5LHmj5dpz+lD7tn
+Nz99/zy9uNh1ueu6dP7z4sUP7a/TmH7bvX6TuvR2V9LL9u/drqwfSK92zy93z74r7esu/7r++JSm
+PMztk93hl6nmfklDnfO+S5e/pCfvn6bLd+3s5afdt5f/a/Xc52n76nbL/cBcbZNaybNMaqYrV64e
+6j4vNc3DttVln4dp++r2H8N3j+vbvHX1UHKZN6+uXa6G+7ZJTbi6LnkyfPece8Nq0/NWrq5jXmTP
+myu1Oc+G7xbqFjDWsPctlZoNa0MemU8s9BoOa7b7FiJV6qeSsdYZvjv8NRrWhN9txJpSaja9Zlot
+xRpWK0r1mk7mNpbKyCsOuco4LiWvWPNs+O4xVxmvqESLVxbahhbTlUv9tbBjAjum9BWFcWj45zip
+2dCixJqSd8AiFfyGhl7jYU3HO3BtKFevebWhXM8juHvaTi5Xr8X+9xapDbmD6jUu1vzqNY/+mpGN
+tfGKNu5emRurlJqNu7dJzfTElCy0W7Qoc8Bt+wZ1yjPUjilzocP602JBLO/QT7nfXq0gzXcQ5tb0
+XZ56VWShlJpNr9ny7r3qNaUNxVrgYGtwWIt9Il9Ss/lr2HcsmEFnsQFXaoG1x7ehytiAy91Tq8+k
+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
+V7rj4XVWrRItZS02RM6qtXG53HlUXF/RrdSUWOP2IOdiDctSgTkurHcfek0gNduVY5EK5ri4NpSa
+/Ua2BoE1mi2xSW3InUusKecTKW0od/9bWYUl5HJDr+GwptNrRl7RlBNcuimPe8PyJQ+W5XMey/Zb
+X/K4PYm8dDXPluVN8NuvvXRDnizLu7xYLr7keTtqliFXw+qHs/d/TB93z25++v55enGx63LXtYVn
+Py9e/ND+Oo3pt93rN23R211JL9u/d7uyfiC92o3LurMy9SvX/0sa+mV9vQ6H79PFF6cPR/v9Wkix
+ni3jsP56d/p4eDpfh2Xdv7g7fzw8ne+HYd1buTt/PDyd/7fLub+60/lVdrc3f3XzH27+5upDE209
+irbm44nDj8PxOOa5vZHTqs5W4XarcO+fyoNLS7vY2p+tbSj7/atru5U6n62uX7O675ugzr+7/5rV
+a0PE/vy7h9Pq9oS7Ic1Trt3hebejfhpXF/oIh/PTZd0JPRydzpYVJdP96ePh6XztSy79/fnj4el8
+3/W5nP73x8Oz84fLuT9/urrzWz+73z+ciWEoedqvm3Ltsf/XB/7g2tJAXPYPPbMHl9d6e7tfiP33
+L1/63C23y/cblvf7JqzDxc9fPvTjW7Yb2i/to0cdcHc4NLgv+3Z8+PAXh3cfvrhVSObXstbbF705
+pdMBoa/+cfXp15vrq18/vL35iptuv7aLrF1zV25F/vrJH5+moUtP/nz189P29/Tk+nN6f/3hb5//
+/k36yz8/X988fZMuX94q1t2/AFC8iC9lbmRzdHJlYW0KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUg
+L1BhZ2VzIC9LaWRzIFsgNyAwIFIgXSAvQ291bnQgMSAvTWVkaWFCb3ggWzAgMCA1MDQgNTA0XSA+
+PgplbmRvYmoKNCAwIG9iago8PAovUHJvY1NldCBbL1BERiAvVGV4dF0KL0ZvbnQgPDwgL0YxIDEw
+IDAgUiAvRjIgMTEgMCBSID4+Ci9FeHRHU3RhdGUgPDwgPj4KL0NvbG9yU3BhY2UgPDwgL3NSR0Ig
+NSAwIFIgPj4KPj4KZW5kb2JqCjUgMCBvYmoKWy9JQ0NCYXNlZCA2IDAgUl0KZW5kb2JqCjYgMCBv
+YmoKPDwgL0FsdGVybmF0ZSAvRGV2aWNlUkdCIC9OIDMgL0xlbmd0aCAyNTk2IC9GaWx0ZXIgL0Zs
+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
+F/os3LlwPME+oTjh+iLjRXmLLizWWJy++PgSxSWcJUcS0YkxiS2J7zmhnAbO9NKApbVLp7hs7i7u
+E54Hbwdvku/KL+dPJLkmlSc9SnZN3p48meKeUpHyVMAWVAuep/qn1qW+TgtN25/2KT0mvT0Dl5GY
+cVRIEaYJ+zK1M/Myh7PMs4qzpMucl+1cNiUKEjVlQ9mLsrvFNNnP1IDERLJeMprjllOT8yY3OvdI
+nnKeMG9gudnyTcsn8n3zv16BWsFd0VugW7C2YHSl58r6VdCqpat6V+uvLlo9vsZvzYG1hLVpa38o
+tC4sL3y5LmZdT5FW0ZqisfV+61uLFYpFxTc2uGyo24jaKNg4uGnupqpNH0t4JRdLrUsrSt9v5m6+
++JXNV5VffdqStGWwzKFsz1bMVuHW69vctx0oVy7PLx/bHrK9cwdjR8mOlzuX7LxQYVdRt4uwS7JL
+Whlc2V1lULW16n11SvVIjVdNe61m7aba17t5u6/s8djTVqdVV1r3bq9g7816v/rOBqOGin2YfTn7
+HjZGN/Z/zfq6uUmjqbTpw37hfumBiAN9zY7NzS2aLWWtcKukdfJgwsHL33h/093GbKtvp7eXHgKH
+JIcef5v47fXDQYd7j7COtH1n+F1tB7WjpBPqXN451ZXSJe2O6x4+Gni0t8elp+N7y+/3H9M9VnNc
+5XjZCcKJohOfTuafnD6Vderp6eTTY71Leu+ciT1zrS+8b/Bs0Nnz53zPnen37D953vX8sQvOF45e
+ZF3suuRwqXPAfqDjB/sfOgYdBjuHHIe6Lztd7hmeN3ziivuV01e9r567FnDt0sj8keHrUddv3ki4
+Ib3Ju/noVvqt57dzbs/cWXMXfbfkntK9ivua9xt+NP2xXeogPT7qPTrwYMGDO2PcsSc/Zf/0frzo
+IflhxYTORPMj20fHJn0nLz9e+Hj8SdaTmafFPyv/XPvM5Nl3v3j8MjAVOzX+XPT806+bX6i/2P/S
+7mXvdNj0/VcZr2Zel7xRf3PgLett/7uYdxMzue+x7ys/mH7o+Rj08e6njE+ffgP3hPP7ZW5kc3Ry
+ZWFtCmVuZG9iago5IDAgb2JqCjw8Ci9UeXBlIC9FbmNvZGluZyAvQmFzZUVuY29kaW5nIC9QREZE
+b2NFbmNvZGluZwovRGlmZmVyZW5jZXMgWwogMC8ubm90ZGVmIDEvLm5vdGRlZiAyLy5ub3RkZWYg
+My8ubm90ZGVmIDQvLm5vdGRlZiA1Ly5ub3RkZWYgNi8ubm90ZGVmIDcvLm5vdGRlZgogOC8ubm90
+ZGVmIDkvLm5vdGRlZiAxMC8ubm90ZGVmIDExLy5ub3RkZWYgMTIvLm5vdGRlZiAxMy8ubm90ZGVm
+IDE0Ly5ub3RkZWYgMTUvLm5vdGRlZgogMTYvLm5vdGRlZiAxNy8ubm90ZGVmIDE4Ly5ub3RkZWYg
+MTkvLm5vdGRlZiAyMC8ubm90ZGVmIDIxLy5ub3RkZWYgMjIvLm5vdGRlZiAyMy8ubm90ZGVmCiAy
+NC8ubm90ZGVmIDI1Ly5ub3RkZWYgMjYvLm5vdGRlZiAyNy8ubm90ZGVmIDI4Ly5ub3RkZWYgMjkv
+Lm5vdGRlZiAzMC8ubm90ZGVmIDMxLy5ub3RkZWYKIDMyL3NwYWNlIDMzL2V4Y2xhbSAzNC9xdW90
+ZWRibCAzNS9udW1iZXJzaWduIDM2L2RvbGxhciAzNy9wZXJjZW50IDM4L2FtcGVyc2FuZCAzOS9x
+dW90ZXJpZ2h0CiA0MC9wYXJlbmxlZnQgNDEvcGFyZW5yaWdodCA0Mi9hc3RlcmlzayA0My9wbHVz
+IDQ0L2NvbW1hIDQ1L21pbnVzIDQ2L3BlcmlvZCA0Ny9zbGFzaAogNDgvemVybyA0OS9vbmUgNTAv
+dHdvIDUxL3RocmVlIDUyL2ZvdXIgNTMvZml2ZSA1NC9zaXggNTUvc2V2ZW4KIDU2L2VpZ2h0IDU3
+L25pbmUgNTgvY29sb24gNTkvc2VtaWNvbG9uIDYwL2xlc3MgNjEvZXF1YWwgNjIvZ3JlYXRlciA2
+My9xdWVzdGlvbgogNjQvYXQgNjUvQSA2Ni9CIDY3L0MgNjgvRCA2OS9FIDcwL0YgNzEvRwogNzIv
+SCA3My9JIDc0L0ogNzUvSyA3Ni9MIDc3L00gNzgvTiA3OS9PCiA4MC9QIDgxL1EgODIvUiA4My9T
+IDg0L1QgODUvVSA4Ni9WIDg3L1cKIDg4L1ggODkvWSA5MC9aIDkxL2JyYWNrZXRsZWZ0IDkyL2Jh
+Y2tzbGFzaCA5My9icmFja2V0cmlnaHQgOTQvYXNjaWljaXJjdW0gOTUvdW5kZXJzY29yZQogOTYv
+cXVvdGVsZWZ0IDk3L2EgOTgvYiA5OS9jIDEwMC9kIDEwMS9lIDEwMi9mIDEwMy9nCiAxMDQvaCAx
+MDUvaSAxMDYvaiAxMDcvayAxMDgvbCAxMDkvbSAxMTAvbiAxMTEvbwogMTEyL3AgMTEzL3EgMTE0
+L3IgMTE1L3MgMTE2L3QgMTE3L3UgMTE4L3YgMTE5L3cKIDEyMC94IDEyMS95IDEyMi96IDEyMy9i
+cmFjZWxlZnQgMTI0L2JhciAxMjUvYnJhY2VyaWdodCAxMjYvYXNjaWl0aWxkZSAxMjcvLm5vdGRl
+ZgogMTI4Ly5ub3RkZWYgMTI5Ly5ub3RkZWYgMTMwLy5ub3RkZWYgMTMxLy5ub3RkZWYgMTMyLy5u
+b3RkZWYgMTMzLy5ub3RkZWYgMTM0Ly5ub3RkZWYgMTM1Ly5ub3RkZWYKIDEzNi8ubm90ZGVmIDEz
+Ny8ubm90ZGVmIDEzOC8ubm90ZGVmIDEzOS8ubm90ZGVmIDE0MC8ubm90ZGVmIDE0MS8ubm90ZGVm
+IDE0Mi8ubm90ZGVmIDE0My8ubm90ZGVmCiAxNDQvLm5vdGRlZiAxNDUvLm5vdGRlZiAxNDYvLm5v
+dGRlZiAxNDcvLm5vdGRlZiAxNDgvLm5vdGRlZiAxNDkvLm5vdGRlZiAxNTAvLm5vdGRlZiAxNTEv
+Lm5vdGRlZgogMTUyLy5ub3RkZWYgMTUzLy5ub3RkZWYgMTU0Ly5ub3RkZWYgMTU1Ly5ub3RkZWYg
+MTU2Ly5ub3RkZWYgMTU3Ly5ub3RkZWYgMTU4Ly5ub3RkZWYgMTU5Ly5ub3RkZWYKIDE2MC9zcGFj
+ZSAxNjEvYWZpaTEwMDIzIDE2Mi9hZmlpMTAwNTEgMTYzL2FmaWkxMDA1MiAxNjQvYWZpaTEwMDUz
+IDE2NS9hZmlpMTAwNTQgMTY2L2FmaWkxMDA1NSAxNjcvYWZpaTEwMDU2CiAxNjgvYWZpaTEwMDU3
+IDE2OS9hZmlpMTAwNTggMTcwL2FmaWkxMDA1OSAxNzEvYWZpaTEwMDYwIDE3Mi9hZmlpMTAwNjEg
+MTczL2h5cGhlbiAxNzQvYWZpaTEwMDYyIDE3NS9hZmlpMTAxNDUKIDE3Ni9hZmlpMTAwMTcgMTc3
+L2FmaWkxMDAxOCAxNzgvYWZpaTEwMDE5IDE3OS9hZmlpMTAwMjAgMTgwL2FmaWkxMDAyMSAxODEv
+YWZpaTEwMDIyIDE4Mi9hZmlpMTAwMjQgMTgzL2FmaWkxMDAyNQogMTg0L2FmaWkxMDAyNiAxODUv
+YWZpaTEwMDI3IDE4Ni9hZmlpMTAwMjggMTg3L2FmaWkxMDAyOSAxODgvYWZpaTEwMDMwIDE4OS9h
+ZmlpMTAwMzEgMTkwL2FmaWkxMDAzMiAxOTEvYWZpaTEwMDMzCiAxOTIvYWZpaTEwMDM0IDE5My9h
+ZmlpMTAwMzUgMTk0L2FmaWkxMDAzNiAxOTUvYWZpaTEwMDM3IDE5Ni9hZmlpMTAwMzggMTk3L2Fm
+aWkxMDAzOSAxOTgvYWZpaTEwMDQwIDE5OS9hZmlpMTAwNDEKIDIwMC9hZmlpMTAwNDIgMjAxL2Fm
+aWkxMDA0MyAyMDIvYWZpaTEwMDQ0IDIwMy9hZmlpMTAwNDUgMjA0L2FmaWkxMDA0NiAyMDUvYWZp
+aTEwMDQ3IDIwNi9hZmlpMTAwNDggMjA3L2FmaWkxMDA0OQogMjA4L2FmaWkxMDA2NSAyMDkvYWZp
+aTEwMDY2IDIxMC9hZmlpMTAwNjcgMjExL2FmaWkxMDA2OCAyMTIvYWZpaTEwMDY5IDIxMy9hZmlp
+MTAwNzAgMjE0L2FmaWkxMDA3MiAyMTUvYWZpaTEwMDczCiAyMTYvYWZpaTEwMDc0IDIxNy9hZmlp
+MTAwNzUgMjE4L2FmaWkxMDA3NiAyMTkvYWZpaTEwMDc3IDIyMC9hZmlpMTAwNzggMjIxL2FmaWkx
+MDA3OSAyMjIvYWZpaTEwMDgwIDIyMy9hZmlpMTAwODEKIDIyNC9hZmlpMTAwODIgMjI1L2FmaWkx
+MDA4MyAyMjYvYWZpaTEwMDg0IDIyNy9hZmlpMTAwODUgMjI4L2FmaWkxMDA4NiAyMjkvYWZpaTEw
+MDg3IDIzMC9hZmlpMTAwODggMjMxL2FmaWkxMDA4OQogMjMyL2FmaWkxMDA5MCAyMzMvYWZpaTEw
+MDkxIDIzNC9hZmlpMTAwOTIgMjM1L2FmaWkxMDA5MyAyMzYvYWZpaTEwMDk0IDIzNy9hZmlpMTAw
+OTUgMjM4L2FmaWkxMDA5NiAyMzkvYWZpaTEwMDk3CiAyNDAvYWZpaTYxMzUyIDI0MS9hZmlpMTAw
+NzEgMjQyL2FmaWkxMDA5OSAyNDMvYWZpaTEwMTAwIDI0NC9hZmlpMTAxMDEgMjQ1L2FmaWkxMDEw
+MiAyNDYvYWZpaTEwMTAzIDI0Ny9hZmlpMTAxMDQKIDI0OC9hZmlpMTAxMDUgMjQ5L2FmaWkxMDEw
+NiAyNTAvYWZpaTEwMTA3IDI1MS9hZmlpMTAxMDggMjUyL2FmaWkxMDEwOSAyNTMvc2VjdGlvbiAy
+NTQvYWZpaTEwMTEwIDI1NS9hZmlpMTAxOTMKCl0KPj4KZW5kb2JqCjEwIDAgb2JqCjw8IC9UeXBl
+IC9Gb250IC9TdWJ0eXBlIC9UeXBlMSAvTmFtZSAvRjEgL0Jhc2VGb250IC9aYXBmRGluZ2JhdHMg
+Pj4KZW5kb2JqCjExIDAgb2JqCjw8IC9UeXBlIC9Gb250IC9TdWJ0eXBlIC9UeXBlMSAvTmFtZSAv
+RjIgL0Jhc2VGb250IC9IZWx2ZXRpY2EKL0VuY29kaW5nIDkgMCBSID4+CmVuZG9iagp4cmVmCjAg
+MTIKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIxIDAwMDAwIG4gCjAwMDAwMDAxNjMgMDAw
+MDAgbiAKMDAwMDAwMzM0NiAwMDAwMCBuIAowMDAwMDAzNDI5IDAwMDAwIG4gCjAwMDAwMDM1NTMg
+MDAwMDAgbiAKMDAwMDAwMzU4NiAwMDAwMCBuIAowMDAwMDAwMjEyIDAwMDAwIG4gCjAwMDAwMDAy
+OTIgMDAwMDAgbiAKMDAwMDAwNjI4MSAwMDAwMCBuIAowMDAwMDA5MjE3IDAwMDAwIG4gCjAwMDAw
+MDkzMDEgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSAxMiAvSW5mbyAxIDAgUiAvUm9vdCAyIDAg
+UiA+PgpzdGFydHhyZWYKOTM5OAolJUVPRgo=
+--001a114a8dca897521053b1f02e2--
