@@ -1,83 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48646 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756632AbcH2MrC (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41162
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756135AbcH2PNd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 08:47:02 -0400
+        Mon, 29 Aug 2016 11:13:33 -0400
+Date: Mon, 29 Aug 2016 12:13:26 -0300
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-doc@vger.kernel.org
-Subject: [PATCH] docs-rst: ignore arguments on macro definitions
-Date: Mon, 29 Aug 2016 09:46:55 -0300
-Message-Id: <4c17e7ca240665196c187b0d44c97b77fd1d2e3b.1472474795.git.mchehab@s-opensource.com>
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: Re: [PATCH v3] docs-rst: ignore arguments on macro definitions
+Message-ID: <20160829121326.782e4261@vento.lan>
+In-Reply-To: <BBC1BC77-BCF1-453C-B85D-9758C4C433A6@darmarit.de>
+References: <e4955d6ed9b730f544fe40b0344c4451dd415cda.1472476362.git.mchehab@s-opensource.com>
+        <BBC1BC77-BCF1-453C-B85D-9758C4C433A6@darmarit.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A macro definition is mapped via .. c:function:: at the
-ReST markup when using the following kernel-doc tag:
+Em Mon, 29 Aug 2016 16:12:39 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-	/**
-	 * DMX_FE_ENTRY - Casts elements in the list of registered
-	 *               front-ends from the generic type struct list_head
-	 *               to the type * struct dmx_frontend
-	 *
-	 * @list: list of struct dmx_frontend
-	 */
-	 #define DMX_FE_ENTRY(list) \
-	        list_entry(list, struct dmx_frontend, connectivity_list)
+> Am 29.08.2016 um 15:13 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> 
+> > A macro definition is mapped via .. c:function:: at the
+> > ReST markup when using the following kernel-doc tag:
+> > 
+> > 	/**
+> > 	 * DMX_FE_ENTRY - Casts elements in the list of registered
+> > 	 *               front-ends from the generic type struct list_head
+> > 	 *               to the type * struct dmx_frontend
+> > 	 *
+> > 	 * @list: list of struct dmx_frontend
+> > 	 */
+> > 	 #define DMX_FE_ENTRY(list) \
+> > 	        list_entry(list, struct dmx_frontend, connectivity_list)
+> > 
+> > However, unlike a function description, the arguments of a macro
+> > doesn't contain the data type.
+> > 
+> > This causes warnings when enabling Sphinx on nitkpick mode,
+> > like this one:
+> > 	./drivers/media/dvb-core/demux.h:358: WARNING: c:type reference target not found: list  
+> 
+> I think this is a drawback of sphinx's C-domain, using function
+> definition for macros also. From the function documentation
+> 
+>  """This is also used to describe function-like preprocessor
+>     macros. The names of the arguments should be given so
+>     they may be used in the description."""
+> 
+> I think about to fix the nitpick message for macros (aka function
+> directive) in the C-domain extension (we already have).
 
-However, unlike a function description, the arguments of a macro
-doesn't contain the data type.
+Yeah, that could produce a better output, if it is doable.
 
-This causes warnings when enabling Sphinx on nitkpick mode,
-like this one:
-	./drivers/media/dvb-core/demux.h:358: WARNING: c:type reference target not found: list
+> 
+> But for this, I need a rule to distinguish between macros
+> and functions ... is the uppercase of the macro name a good
+> rule to suppress the nitpick message? 
 
-That happens because kernel-doc output for the above is:
+No. There are lots of macros in lowercase. never did any stats about
+that, but I guess that we actually have a way more such macros in
+lowercase.
 
-	.. c:function:: DMX_FE_ENTRY ( list)
+> Any other suggestions?
 
-	   Casts elements in the list of registered front-ends from the generic type struct list_head to the type * struct dmx_frontend
+I guess the best thing is to check if the type is empty, just like
+on this patch. Macros are always:
+	foo(arg1, arg2, arg3, ...)
 
-	**Parameters**
+while functions always have some type (with could be as complex as
+a function pointer). So, if all arguments match this rejex:
+	\s*\S+\s*
+Then, it is a macro. Otherwise, it is a function.
 
-	``list``
-	  list of struct dmx_frontend
+There's no way for the C domain to distinguish between a macro or
+a function when the number of arguments is zero, but, on such case,
+it doesn't really matter.
 
-As the type is blank, Sphinx would think that ``list`` is a type,
-and will try to add a cross reference for it, using their internal
-representation for c:type:`list`.
-
-However, ``list`` is not a type. So, that would cause either the
-above warning, or if a ``list`` type exists, it would create
-a reference to the wrong place at the doc.
-
-To avoid that, let's ommit macro arguments from c:function::
-declaration. As each argument will appear below the Parameters,
-the type of the argument can be described there, if needed.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- scripts/kernel-doc | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index d225e178aa1b..040ee75ecfea 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -1852,7 +1852,7 @@ sub output_function_rst(%) {
- 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
- 	    # pointer-to-function
- 	    print $1 . $parameter . ") (" . $2;
--	} else {
-+	} elsif ($type ne "") {
- 	    print $type . " " . $parameter;
- 	}
-     }
--- 
-2.7.4
-
-
+Thanks,
+Mauro
