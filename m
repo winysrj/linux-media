@@ -1,47 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.netup.ru ([77.72.80.14]:34594 "EHLO imap.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S936445AbcHJSoB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2016 14:44:01 -0400
-MIME-Version: 1.0
-In-Reply-To: <20160810145656.GD1607@katana>
-References: <1470742517-12774-1-git-send-email-wsa-dev@sang-engineering.com>
- <1470742517-12774-2-git-send-email-wsa-dev@sang-engineering.com>
- <CAK3bHNWmxQsAtefcUocoOcEwtWnpptiVxzhXR-+jVU524RmnPw@mail.gmail.com>
- <20160809145856.GC1666@katana> <CAK3bHNUL3NjFFex4US09ZnxvKV-1oJAu=qVrZUSgeKy90CBiAA@mail.gmail.com>
- <20160810145656.GD1607@katana>
-From: Abylay Ospan <aospan@netup.ru>
-Date: Wed, 10 Aug 2016 11:06:54 -0400
-Message-ID: <CAK3bHNV8JQ6h09i9YFYJyHoi=XDF827iLZFROsc5mX28HW9ASw@mail.gmail.com>
-Subject: Re: [PATCH 1/4] media: pci: netup_unidvb: don't print error when
- adding adapter fails
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
-	linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
-	Sergey Kozlov <serjk@netup.ru>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35584 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751195AbcH2SQU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Aug 2016 14:16:20 -0400
+Received: by mail-wm0-f68.google.com with SMTP id i5so10588212wmg.2
+        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2016 11:16:19 -0700 (PDT)
+From: Chris Wilson <chris@chris-wilson.co.uk>
+To: dri-devel@lists.freedesktop.org
+Cc: Chris Wilson <chris@chris-wilson.co.uk>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
+Subject: [PATCH] dma-buf/sync-file: Avoid enable fence signaling if poll(.timeout=0)
+Date: Mon, 29 Aug 2016 19:16:13 +0100
+Message-Id: <20160829181613.30722-1-chris@chris-wilson.co.uk>
+In-Reply-To: <20160829070834.22296-11-chris@chris-wilson.co.uk>
+References: <20160829070834.22296-11-chris@chris-wilson.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-make sense. thanks for explaining and for patch !
+If we being polled with a timeout of zero, a nonblocking busy query,
+we don't need to install any fence callbacks as we will not be waiting.
+As we only install the callback once, the overhead comes from the atomic
+bit test that also causes serialisation between threads.
 
-2016-08-10 10:56 GMT-04:00 Wolfram Sang <wsa@the-dreams.de>:
->
->> if we do not remove this it's also ok, right ? What the big deal to
->> remove this type of messages (i'm just interested) ?
->
-> * Saving memory, especially at runtime.
-> * Giving consistent and precise error messages
->
-> This series is a first step of trying to move generic error messages
-> from drivers to subsystem cores.
->
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linaro-mm-sig@lists.linaro.org
+---
+ drivers/dma-buf/sync_file.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-
-
+diff --git a/drivers/dma-buf/sync_file.c b/drivers/dma-buf/sync_file.c
+index 486d29c1a830..abb5fdab75fd 100644
+--- a/drivers/dma-buf/sync_file.c
++++ b/drivers/dma-buf/sync_file.c
+@@ -306,7 +306,8 @@ static unsigned int sync_file_poll(struct file *file, poll_table *wait)
+ 
+ 	poll_wait(file, &sync_file->wq, wait);
+ 
+-	if (!test_and_set_bit(POLL_ENABLED, &sync_file->fence->flags)) {
++	if (!poll_does_not_wait(wait) &&
++	    !test_and_set_bit(POLL_ENABLED, &sync_file->fence->flags)) {
+ 		if (fence_add_callback(sync_file->fence, &sync_file->cb,
+ 				       fence_check_cb_func) < 0)
+ 			wake_up_all(&sync_file->wq);
 -- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+2.9.3
+
