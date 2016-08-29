@@ -1,164 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51683 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753669AbcHQGaC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2016 02:30:02 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Songjun Wu <songjun.wu@microchip.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 7/7] sama5d3 dts: enable atmel-isi
-Date: Wed, 17 Aug 2016 08:29:43 +0200
-Message-Id: <1471415383-38531-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
-References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:34376 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755754AbcH2R4L (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Aug 2016 13:56:11 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Jiri Kosina <trivial@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v5 06/13] media: platform: pxa_camera: introduce sensor_call
+Date: Mon, 29 Aug 2016 19:55:51 +0200
+Message-Id: <1472493358-24618-7-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
+References: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Introduce sensor_call(), which will be used for all sensor invocations.
+This is a preparation move to v4l2 device conversion, ie. soc_camera
+adherence removal.
 
-This illustrates the changes needed to the dts in order to hook up the
-ov7670. I don't plan on merging this.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 ---
- arch/arm/boot/dts/at91-sama5d3_xplained.dts | 61 ++++++++++++++++++++++++++---
- arch/arm/boot/dts/sama5d3.dtsi              |  4 +-
- 2 files changed, 58 insertions(+), 7 deletions(-)
+ drivers/media/platform/soc_camera/pxa_camera.c | 27 ++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/boot/dts/at91-sama5d3_xplained.dts b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-index c51fc65..ac7f7f3 100644
---- a/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-+++ b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-@@ -65,18 +65,53 @@
- 				status = "okay";
- 			};
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index 9d7c30cb1463..9870c53e0ec2 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -168,6 +168,9 @@
+ 			CICR0_PERRM | CICR0_QDM | CICR0_CDM | CICR0_SOFM | \
+ 			CICR0_EOFM | CICR0_FOM)
  
-+			isi0: isi@f0034000 {
-+				status = "okay";
-+				port {
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					isi_0: endpoint {
-+						reg = <0>;
-+						remote-endpoint = <&ov7670_0>;
-+						bus-width = <8>;
-+						vsync-active = <1>;
-+						hsync-active = <1>;
-+					};
-+				};
-+			};
++#define sensor_call(cam, o, f, args...) \
++	v4l2_subdev_call(sd, o, f, ##args)
 +
- 			i2c0: i2c@f0014000 {
- 				pinctrl-0 = <&pinctrl_i2c0_pu>;
--				status = "okay";
-+				status = "disabled";
- 			};
+ /*
+  * Structures
+  */
+@@ -731,7 +734,7 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	unsigned long dw, bpp;
+ 	u32 cicr0, cicr1, cicr2, cicr3, cicr4 = 0, y_skip_top;
+-	int ret = v4l2_subdev_call(sd, sensor, g_skip_top_lines, &y_skip_top);
++	int ret = sensor_call(pcdev, sensor, g_skip_top_lines, &y_skip_top);
  
- 			i2c1: i2c@f0018000 {
- 				status = "okay";
+ 	if (ret < 0)
+ 		y_skip_top = 0;
+@@ -1073,7 +1076,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
+ 	if (ret < 0)
+ 		return ret;
  
-+				ov7670: camera@0x21 {
-+					compatible = "ovti,ov7670";
-+					reg = <0x21>;
-+					pinctrl-names = "default";
-+					pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
-+					resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
-+					pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
-+					clocks = <&pck0>;
-+					clock-names = "xvclk";
-+					assigned-clocks = <&pck0>;
-+					assigned-clock-rates = <24000000>;
-+
-+					port {
-+						ov7670_0: endpoint {
-+							remote-endpoint = <&isi_0>;
-+							bus-width = <8>;
-+						};
-+					};
-+				};
-+
- 				pmic: act8865@5b {
- 					compatible = "active-semi,act8865";
- 					reg = <0x5b>;
--					status = "disabled";
-+					status = "okay";
+-	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
++	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
+ 	if (!ret) {
+ 		common_flags = soc_mbus_config_compatible(&cfg,
+ 							  bus_flags);
+@@ -1117,7 +1120,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
+ 	}
  
- 					regulators {
- 						vcc_1v8_reg: DCDC_REG1 {
-@@ -130,7 +165,7 @@
- 			pwm0: pwm@f002c000 {
- 				pinctrl-names = "default";
- 				pinctrl-0 = <&pinctrl_pwm0_pwmh0_0 &pinctrl_pwm0_pwmh1_0>;
--				status = "okay";
-+				status = "disabled";
- 			};
+ 	cfg.flags = common_flags;
+-	ret = v4l2_subdev_call(sd, video, s_mbus_config, &cfg);
++	ret = sensor_call(pcdev, video, s_mbus_config, &cfg);
+ 	if (ret < 0 && ret != -ENOIOCTLCMD) {
+ 		dev_dbg(icd->parent, "camera s_mbus_config(0x%lx) returned %d\n",
+ 			common_flags, ret);
+@@ -1144,7 +1147,7 @@ static int pxa_camera_try_bus_param(struct soc_camera_device *icd,
+ 	if (ret < 0)
+ 		return ret;
  
- 			usart0: serial@f001c000 {
-@@ -143,7 +178,7 @@
- 			};
+-	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
++	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
+ 	if (!ret) {
+ 		common_flags = soc_mbus_config_compatible(&cfg,
+ 							  bus_flags);
+@@ -1195,7 +1198,7 @@ static int pxa_camera_get_formats(struct soc_camera_device *icd, unsigned int id
+ 	};
+ 	const struct soc_mbus_pixelfmt *fmt;
  
- 			uart0: serial@f0024000 {
--				status = "okay";
-+				status = "disabled";
- 			};
+-	ret = v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code);
++	ret = sensor_call(pcdev, pad, enum_mbus_code, NULL, &code);
+ 	if (ret < 0)
+ 		/* No more formats */
+ 		return 0;
+@@ -1297,7 +1300,7 @@ static int pxa_camera_set_crop(struct soc_camera_device *icd,
+ 	if (pcdev->platform_flags & PXA_CAMERA_PCLK_EN)
+ 		icd->sense = &sense;
  
- 			mmc1: mmc@f8000000 {
-@@ -181,7 +216,7 @@
- 			i2c2: i2c@f801c000 {
- 				dmas = <0>, <0>;	/* Do not use DMA for i2c2 */
- 				pinctrl-0 = <&pinctrl_i2c2_pu>;
--				status = "okay";
-+				status = "disabled";
- 			};
+-	ret = v4l2_subdev_call(sd, video, s_crop, a);
++	ret = sensor_call(pcdev, video, s_crop, a);
  
- 			macb1: ethernet@f802c000 {
-@@ -200,6 +235,22 @@
- 			};
+ 	icd->sense = NULL;
  
- 			pinctrl@fffff200 {
-+				camera_sensor {
-+					pinctrl_pck0_as_isi_mck: pck0_as_isi_mck-0 {
-+						atmel,pins =
-+							<AT91_PIOD 30 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* ISI_MCK */
-+					};
-+
-+					pinctrl_sensor_power: sensor_power-0 {
-+						atmel,pins =
-+							<AT91_PIOE 13 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
-+					};
-+
-+					pinctrl_sensor_reset: sensor_reset-0 {
-+						atmel,pins =
-+							<AT91_PIOE 11 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
-+					};
-+				};
- 				board {
- 					pinctrl_i2c0_pu: i2c0_pu {
- 						atmel,pins =
-diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
-index 4c84d33..a4afa84 100644
---- a/arch/arm/boot/dts/sama5d3.dtsi
-+++ b/arch/arm/boot/dts/sama5d3.dtsi
-@@ -176,7 +176,7 @@
- 				#address-cells = <1>;
- 				#size-cells = <0>;
- 				clocks = <&twi1_clk>;
--				status = "disabled";
-+				status = "ok";
- 			};
+@@ -1307,7 +1310,7 @@ static int pxa_camera_set_crop(struct soc_camera_device *icd,
+ 		return ret;
+ 	}
  
- 			usart0: serial@f001c000 {
-@@ -235,7 +235,7 @@
- 				pinctrl-0 = <&pinctrl_isi_data_0_7>;
- 				clocks = <&isi_clk>;
- 				clock-names = "isi_clk";
--				status = "disabled";
-+				status = "ok";
- 				port {
- 					#address-cells = <1>;
- 					#size-cells = <0>;
+-	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
++	ret = sensor_call(pcdev, pad, get_fmt, NULL, &fmt);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1319,7 +1322,7 @@ static int pxa_camera_set_crop(struct soc_camera_device *icd,
+ 		v4l_bound_align_image(&mf->width, 48, 2048, 1,
+ 			&mf->height, 32, 2048, 0,
+ 			fourcc == V4L2_PIX_FMT_YUV422P ? 4 : 0);
+-		ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &fmt);
++		ret = sensor_call(pcdev, pad, set_fmt, NULL, &fmt);
+ 		if (ret < 0)
+ 			return ret;
+ 
+@@ -1384,7 +1387,7 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
+ 	mf->colorspace	= pix->colorspace;
+ 	mf->code	= xlate->code;
+ 
+-	ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &format);
++	ret = sensor_call(pcdev, pad, set_fmt, NULL, &format);
+ 
+ 	if (mf->code != xlate->code)
+ 		return -EINVAL;
+@@ -1459,7 +1462,7 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
+ 	mf->colorspace	= pix->colorspace;
+ 	mf->code	= xlate->code;
+ 
+-	ret = v4l2_subdev_call(sd, pad, set_fmt, &pad_cfg, &format);
++	ret = sensor_call(pcdev, pad, set_fmt, &pad_cfg, &format);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1517,7 +1520,7 @@ static int pxa_camera_suspend(struct device *dev)
+ 
+ 	if (pcdev->soc_host.icd) {
+ 		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
+-		ret = v4l2_subdev_call(sd, core, s_power, 0);
++		ret = sensor_call(pcdev, core, s_power, 0);
+ 		if (ret == -ENOIOCTLCMD)
+ 			ret = 0;
+ 	}
+@@ -1539,7 +1542,7 @@ static int pxa_camera_resume(struct device *dev)
+ 
+ 	if (pcdev->soc_host.icd) {
+ 		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
+-		ret = v4l2_subdev_call(sd, core, s_power, 1);
++		ret = sensor_call(pcdev, core, s_power, 1);
+ 		if (ret == -ENOIOCTLCMD)
+ 			ret = 0;
+ 	}
 -- 
-2.8.1
+2.1.4
 
