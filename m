@@ -1,81 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:34209 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1758962AbcHYJk0 (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34654 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750828AbcH2HUv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Aug 2016 05:40:26 -0400
-From: Florent Revest <florent.revest@free-electrons.com>
-To: linux-media@vger.kernel.org
-Cc: florent.revest@free-electrons.com, linux-sunxi@googlegroups.com,
-        maxime.ripard@free-electrons.com, posciak@chromium.org,
-        hans.verkuil@cisco.com, thomas.petazzoni@free-electrons.com,
-        mchehab@kernel.org, linux-kernel@vger.kernel.org, wens@csie.org
-Subject: [RFC 10/10] sunxi-cedrus: Add device tree binding document
-Date: Thu, 25 Aug 2016 11:39:49 +0200
-Message-Id: <1472117989-21455-11-git-send-email-florent.revest@free-electrons.com>
-In-Reply-To: <1472117989-21455-1-git-send-email-florent.revest@free-electrons.com>
-References: <1472117989-21455-1-git-send-email-florent.revest@free-electrons.com>
+        Mon, 29 Aug 2016 03:20:51 -0400
+Received: by mail-wm0-f65.google.com with SMTP id q128so8245975wma.1
+        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2016 00:20:50 -0700 (PDT)
+From: Chris Wilson <chris@chris-wilson.co.uk>
+To: dri-devel@lists.freedesktop.org
+Cc: intel-gfx@lists.freedesktop.org,
+        Chris Wilson <chris@chris-wilson.co.uk>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
+Subject: [PATCH 10/11] dma-buf: Use seqlock to close RCU race in test_signaled_single
+Date: Mon, 29 Aug 2016 08:08:33 +0100
+Message-Id: <20160829070834.22296-10-chris@chris-wilson.co.uk>
+In-Reply-To: <20160829070834.22296-1-chris@chris-wilson.co.uk>
+References: <20160829070834.22296-1-chris@chris-wilson.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Device Tree bindings for the Allwinner's video engine
+With the seqlock now extended to cover the lookup of the fence and its
+testing, we can perform that testing solely under the seqlock guard and
+avoid the effective locking and serialisation of acquiring a reference to
+the request.  As the fence is RCU protected we know it cannot disappear
+as we test it, the same guarantee that made it safe to acquire the
+reference previously.  The seqlock tests whether the fence was replaced
+as we are testing it telling us whether or not we can trust the result
+(if not, we just repeat the test until stable).
 
-Signed-off-by: Florent Revest <florent.revest@free-electrons.com>
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linaro-mm-sig@lists.linaro.org
 ---
- .../devicetree/bindings/media/sunxi-cedrus.txt     | 44 ++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sunxi-cedrus.txt
+ drivers/dma-buf/reservation.c | 32 ++++----------------------------
+ 1 file changed, 4 insertions(+), 28 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/sunxi-cedrus.txt b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-new file mode 100644
-index 0000000..26f2e09
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-@@ -0,0 +1,44 @@
-+Device-Tree bindings for SUNXI video engine found in sunXi SoC family
-+
-+Required properties:
-+- compatible	    : "allwinner,sun5i-a13-video-engine";
-+- memory-region     : DMA pool for buffers allocation;
-+- clocks	    : list of clock specifiers, corresponding to
-+		      entries in clock-names property;
-+- clock-names	    : should contain "ahb", "mod" and "ram" entries;
-+- resets	    : phandle for reset;
-+- interrupts	    : should contain VE interrupt number;
-+- reg		    : should contain register base and length of VE.
-+
-+Example:
-+
-+reserved-memory {
-+	#address-cells = <1>;
-+	#size-cells = <1>;
-+	ranges;
-+
-+	ve_reserved: cma {
-+		compatible = "shared-dma-pool";
-+		reg = <0x43d00000 0x9000000>;
-+		no-map;
-+		linux,cma-default;
-+	};
-+};
-+
-+video-engine {
-+	compatible = "allwinner,sun5i-a13-video-engine";
-+	memory-region = <&ve_reserved>;
-+
-+	clocks = <&ahb_gates 32>, <&ccu CLK_VE>,
-+		 <&dram_gates 0>;
-+	clock-names = "ahb", "mod", "ram";
-+
-+	assigned-clocks = <&ccu CLK_VE>;
-+	assigned-clock-rates = <320000000>;
-+
-+	resets = <&ccu RST_VE>;
-+
-+	interrupts = <53>;
-+
-+	reg = <0x01c0e000 4096>;
-+};
+diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+index e74493e7332b..1ddffa5adb5a 100644
+--- a/drivers/dma-buf/reservation.c
++++ b/drivers/dma-buf/reservation.c
+@@ -442,24 +442,6 @@ unlock_retry:
+ }
+ EXPORT_SYMBOL_GPL(reservation_object_wait_timeout_rcu);
+ 
+-
+-static inline int
+-reservation_object_test_signaled_single(struct fence *passed_fence)
+-{
+-	struct fence *fence, *lfence = passed_fence;
+-	int ret = 1;
+-
+-	if (!test_bit(FENCE_FLAG_SIGNALED_BIT, &lfence->flags)) {
+-		fence = fence_get_rcu(lfence);
+-		if (!fence)
+-			return -1;
+-
+-		ret = !!fence_is_signaled(fence);
+-		fence_put(fence);
+-	}
+-	return ret;
+-}
+-
+ /**
+  * reservation_object_test_signaled_rcu - Test if a reservation object's
+  * fences have been signaled.
+@@ -474,7 +456,7 @@ bool reservation_object_test_signaled_rcu(struct reservation_object *obj,
+ 					  bool test_all)
+ {
+ 	unsigned seq, shared_count;
+-	int ret;
++	bool ret;
+ 
+ 	rcu_read_lock();
+ retry:
+@@ -494,10 +476,8 @@ retry:
+ 		for (i = 0; i < shared_count; ++i) {
+ 			struct fence *fence = rcu_dereference(fobj->shared[i]);
+ 
+-			ret = reservation_object_test_signaled_single(fence);
+-			if (ret < 0)
+-				goto retry;
+-			else if (!ret)
++			ret = fence_is_signaled(fence);
++			if (!ret)
+ 				break;
+ 		}
+ 
+@@ -509,11 +489,7 @@ retry:
+ 		struct fence *fence_excl = rcu_dereference(obj->fence_excl);
+ 
+ 		if (fence_excl) {
+-			ret = reservation_object_test_signaled_single(
+-								fence_excl);
+-			if (ret < 0)
+-				goto retry;
+-
++			ret = fence_is_signaled(fence_excl);
+ 			if (read_seqcount_retry(&obj->seq, seq))
+ 				goto retry;
+ 		}
 -- 
-2.7.4
+2.9.3
 
