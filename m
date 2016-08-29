@@ -1,49 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:34093 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754196AbcHVL4q (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34289 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752889AbcH2HZg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 07:56:46 -0400
-Subject: Re: [RFC v2 04/17] media: Remove useless curly braces and parentheses
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
- <1471602228-30722-5-git-send-email-sakari.ailus@linux.intel.com>
-Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <47b3f4d9-82dc-4ab3-ea11-775bde742f48@xs4all.nl>
-Date: Mon, 22 Aug 2016 13:56:39 +0200
-MIME-Version: 1.0
-In-Reply-To: <1471602228-30722-5-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Mon, 29 Aug 2016 03:25:36 -0400
+Received: by mail-wm0-f65.google.com with SMTP id q128so8258758wma.1
+        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2016 00:25:11 -0700 (PDT)
+From: Chris Wilson <chris@chris-wilson.co.uk>
+To: dri-devel@lists.freedesktop.org
+Cc: intel-gfx@lists.freedesktop.org,
+        Chris Wilson <chris@chris-wilson.co.uk>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
+Subject: [PATCH 11/11] dma-buf: Do a fast lockless check for poll with timeout=0
+Date: Mon, 29 Aug 2016 08:08:34 +0100
+Message-Id: <20160829070834.22296-11-chris@chris-wilson.co.uk>
+In-Reply-To: <20160829070834.22296-1-chris@chris-wilson.co.uk>
+References: <20160829070834.22296-1-chris@chris-wilson.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/19/2016 12:23 PM, Sakari Ailus wrote:
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Currently we install a callback for performing poll on a dma-buf,
+irrespective of the timeout. This involves taking a spinlock, as well as
+unnecessary work, and greatly reduces scaling of poll(.timeout=0) across
+multiple threads.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+We can query whether the poll will block prior to installing the
+callback to make the busy-query fast.
 
-> ---
->  drivers/media/media-device.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index a1cd50f..8bdc316 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -596,9 +596,8 @@ int __must_check media_device_register_entity(struct media_device *mdev,
->  			       &entity->pads[i].graph_obj);
->  
->  	/* invoke entity_notify callbacks */
-> -	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
-> -		(notify)->notify(entity, notify->notify_data);
-> -	}
-> +	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list)
-> +		notify->notify(entity, notify->notify_data);
->  
->  	if (mdev->entity_internal_idx_max
->  	    >= mdev->pm_count_walk.ent_enum.idx_max) {
-> 
+Single thread: 60% faster
+8 threads on 4 (+4 HT) cores: 600% faster
+
+Still not quite the perfect scaling we get with a native busy ioctl, but
+poll(dmabuf) is faster due to the quicker lookup of the object and
+avoiding drm_ioctl().
+
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linaro-mm-sig@lists.linaro.org
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+ drivers/dma-buf/dma-buf.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+index cf04d249a6a4..c7a7bc579941 100644
+--- a/drivers/dma-buf/dma-buf.c
++++ b/drivers/dma-buf/dma-buf.c
+@@ -156,6 +156,18 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
+ 	if (!events)
+ 		return 0;
+ 
++	if (poll_does_not_wait(poll)) {
++		if (events & POLLOUT &&
++		    !reservation_object_test_signaled_rcu(resv, true))
++			events &= ~(POLLOUT | POLLIN);
++
++		if (events & POLLIN &&
++		    !reservation_object_test_signaled_rcu(resv, false))
++			events &= ~POLLIN;
++
++		return events;
++	}
++
+ retry:
+ 	seq = read_seqcount_begin(&resv->seq);
+ 	rcu_read_lock();
+-- 
+2.9.3
+
