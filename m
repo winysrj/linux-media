@@ -1,108 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54112 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754628AbcHZXor (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34874 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756135AbcH2HWc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Aug 2016 19:44:47 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v3 15/21] media: Provide a way to the driver to set a private pointer
-Date: Sat, 27 Aug 2016 02:43:23 +0300
-Message-Id: <1472255009-28719-16-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
+        Mon, 29 Aug 2016 03:22:32 -0400
+Received: by mail-wm0-f65.google.com with SMTP id i5so8250480wmg.2
+        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2016 00:22:01 -0700 (PDT)
+From: Chris Wilson <chris@chris-wilson.co.uk>
+To: dri-devel@lists.freedesktop.org
+Cc: intel-gfx@lists.freedesktop.org,
+        Chris Wilson <chris@chris-wilson.co.uk>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
+        Alex Deucher <alexander.deucher@amd.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
+Subject: [PATCH 08/11] dma-buf: Restart reservation_object_wait_timeout_rcu() after writes
+Date: Mon, 29 Aug 2016 08:08:31 +0100
+Message-Id: <20160829070834.22296-8-chris@chris-wilson.co.uk>
+In-Reply-To: <20160829070834.22296-1-chris@chris-wilson.co.uk>
+References: <20160829070834.22296-1-chris@chris-wilson.co.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the media device can be allocated dynamically, drivers have no
-longer a way to conveniently obtain the driver private data structure.
-Provide one again in the form of a private pointer passed to the
-media_device_alloc() function.
+In order to be completely generic, we have to double check the read
+seqlock after acquiring a reference to the fence. If the driver is
+allocating fences from a SLAB_DESTROY_BY_RCU, or similar freelist, then
+within an RCU grace period a fence may be freed and reallocated. The RCU
+read side critical section does not prevent this reallocation, instead
+we have to inspect the reservation's seqlock to double check if the
+fences have been reassigned as we were acquiring our reference.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linaro-mm-sig@lists.linaro.org
 ---
- drivers/media/media-device.c |  3 ++-
- include/media/media-device.h | 15 ++++++++++++++-
- 2 files changed, 16 insertions(+), 2 deletions(-)
+ drivers/dma-buf/reservation.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 8c08839..5698823 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -731,7 +731,7 @@ static void media_device_release(struct media_devnode *devnode)
- 	kfree(mdev);
- }
+diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+index 10fd441dd4ed..3369e4668e96 100644
+--- a/drivers/dma-buf/reservation.c
++++ b/drivers/dma-buf/reservation.c
+@@ -388,9 +388,6 @@ retry:
+ 		if (fobj)
+ 			shared_count = fobj->shared_count;
  
--struct media_device *media_device_alloc(struct device *dev)
-+struct media_device *media_device_alloc(struct device *dev, void *priv)
- {
- 	struct media_device *mdev;
+-		if (read_seqcount_retry(&obj->seq, seq))
+-			goto unlock_retry;
+-
+ 		for (i = 0; i < shared_count; ++i) {
+ 			struct fence *lfence = rcu_dereference(fobj->shared[i]);
  
-@@ -747,6 +747,7 @@ struct media_device *media_device_alloc(struct device *dev)
+@@ -413,9 +410,6 @@ retry:
+ 	if (!shared_count) {
+ 		struct fence *fence_excl = rcu_dereference(obj->fence_excl);
  
- 	mdev->dev = dev;
- 	media_device_init(mdev);
-+	mdev->priv = priv;
+-		if (read_seqcount_retry(&obj->seq, seq))
+-			goto unlock_retry;
+-
+ 		if (fence_excl &&
+ 		    !test_bit(FENCE_FLAG_SIGNALED_BIT, &fence_excl->flags)) {
+ 			if (!fence_get_rcu(fence_excl))
+@@ -430,6 +424,11 @@ retry:
  
- 	mdev->devnode.release = media_device_release;
- 
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index a3d8dd4..9728d8a 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -52,6 +52,7 @@ struct media_entity_notify {
-  * struct media_device - Media device
-  * @dev:	Parent device
-  * @devnode:	Media device node
-+ * @priv:	A pointer to driver private data
-  * @driver_name: Optional device driver name. If not set, calls to
-  *		%MEDIA_IOC_DEVICE_INFO will return dev->driver->name.
-  *		This is needed for USB drivers for example, as otherwise
-@@ -117,6 +118,7 @@ struct media_device {
- 	/* dev->driver_data points to this struct. */
- 	struct device *dev;
- 	struct media_devnode devnode;
-+	void *priv;
- 
- 	char model[32];
- 	char driver_name[32];
-@@ -204,6 +206,7 @@ void media_device_init(struct media_device *mdev);
-  * media_device_alloc() - Allocate and initialise a media device
-  *
-  * @dev:	The associated struct device pointer
-+ * @priv:	pointer to a driver private data structure
-  *
-  * Allocate and initialise a media device. Returns a media device.
-  * The media device is refcounted, and this function returns a media
-@@ -212,7 +215,7 @@ void media_device_init(struct media_device *mdev);
-  * References are taken and given using media_device_get() and
-  * media_device_put().
-  */
--struct media_device *media_device_alloc(struct device *dev);
-+struct media_device *media_device_alloc(struct device *dev, void *priv);
- 
- /**
-  * media_device_get() - Get a reference to a media device
-@@ -239,6 +242,16 @@ struct media_device *media_device_alloc(struct device *dev);
- 	} while (0)
- 
- /**
-+ * media_device_priv() - Obtain the driver private pointer
-+ *
-+ * Returns a pointer passed to the media_device_alloc() function.
-+ */
-+static inline void *media_device_priv(struct media_device *mdev)
-+{
-+	return mdev->priv;
-+}
+ 	rcu_read_unlock();
+ 	if (fence) {
++		if (read_seqcount_retry(&obj->seq, seq)) {
++			fence_put(fence);
++			goto retry;
++		}
 +
-+/**
-  * media_device_cleanup() - Cleanups a media device element
-  *
-  * @mdev:	pointer to struct &media_device
+ 		ret = fence_wait_timeout(fence, intr, ret);
+ 		fence_put(fence);
+ 		if (ret > 0 && wait_all && (i + 1 < shared_count))
 -- 
-2.1.4
+2.9.3
 
