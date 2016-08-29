@@ -1,165 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35320 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753393AbcHUSve (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 Aug 2016 14:51:34 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+Received: from mga06.intel.com ([134.134.136.31]:31257 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933393AbcH2Pgx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Aug 2016 11:36:53 -0400
+From: Jani Nikula <jani.nikula@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Markus Heiser <markus.heiser@darmarit.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>
-Subject: [PATCH 1/2] [media] docs-rst: fix some LaTeX errors when in interactive mode
-Date: Sun, 21 Aug 2016 15:51:27 -0300
-Message-Id: <d3a26c93496a56d76db52297bbead041c3a4a23a.1471805458.git.mchehab@s-opensource.com>
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: Re: [PATCH v3] docs-rst: ignore arguments on macro definitions
+In-Reply-To: <20160829121326.782e4261@vento.lan>
+References: <e4955d6ed9b730f544fe40b0344c4451dd415cda.1472476362.git.mchehab@s-opensource.com> <BBC1BC77-BCF1-453C-B85D-9758C4C433A6@darmarit.de> <20160829121326.782e4261@vento.lan>
+Date: Mon, 29 Aug 2016 18:36:38 +0300
+Message-ID: <87y43fh9ix.fsf@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several minor issues that are seen when building
-PDF on interactive mode.
+On Mon, 29 Aug 2016, Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> Em Mon, 29 Aug 2016 16:12:39 +0200
+> Markus Heiser <markus.heiser@darmarit.de> escreveu:
+>
+>> Am 29.08.2016 um 15:13 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+>> 
+>> > A macro definition is mapped via .. c:function:: at the
+>> > ReST markup when using the following kernel-doc tag:
+>> > 
+>> > 	/**
+>> > 	 * DMX_FE_ENTRY - Casts elements in the list of registered
+>> > 	 *               front-ends from the generic type struct list_head
+>> > 	 *               to the type * struct dmx_frontend
+>> > 	 *
+>> > 	 * @list: list of struct dmx_frontend
+>> > 	 */
+>> > 	 #define DMX_FE_ENTRY(list) \
+>> > 	        list_entry(list, struct dmx_frontend, connectivity_list)
+>> > 
+>> > However, unlike a function description, the arguments of a macro
+>> > doesn't contain the data type.
+>> > 
+>> > This causes warnings when enabling Sphinx on nitkpick mode,
+>> > like this one:
+>> > 	./drivers/media/dvb-core/demux.h:358: WARNING: c:type reference target not found: list  
+>> 
+>> I think this is a drawback of sphinx's C-domain, using function
+>> definition for macros also. From the function documentation
+>> 
+>>  """This is also used to describe function-like preprocessor
+>>     macros. The names of the arguments should be given so
+>>     they may be used in the description."""
+>> 
+>> I think about to fix the nitpick message for macros (aka function
+>> directive) in the C-domain extension (we already have).
+>
+> Yeah, that could produce a better output, if it is doable.
+>
+>> 
+>> But for this, I need a rule to distinguish between macros
+>> and functions ... is the uppercase of the macro name a good
+>> rule to suppress the nitpick message? 
+>
+> No. There are lots of macros in lowercase. never did any stats about
+> that, but I guess that we actually have a way more such macros in
+> lowercase.
+>
+>> Any other suggestions?
+>
+> I guess the best thing is to check if the type is empty, just like
+> on this patch. Macros are always:
+> 	foo(arg1, arg2, arg3, ...)
+>
+> while functions always have some type (with could be as complex as
+> a function pointer). So, if all arguments match this rejex:
+> 	\s*\S+\s*
+> Then, it is a macro. Otherwise, it is a function.
+>
+> There's no way for the C domain to distinguish between a macro or
+> a function when the number of arguments is zero, but, on such case,
+> it doesn't really matter.
 
-Fix them.
+What does Sphinx say if you add "void" as the type? Or a fake
+"macroparam" type?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/dev-sliced-vbi.rst          | 2 +-
- Documentation/media/uapi/v4l/dev-subdev.rst              | 2 +-
- Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst       | 3 +--
- Documentation/media/uapi/v4l/subdev-formats.rst          | 6 +++---
- Documentation/media/uapi/v4l/vidioc-enumstd.rst          | 2 +-
- Documentation/media/uapi/v4l/vidioc-g-sliced-vbi-cap.rst | 2 +-
- Documentation/media/uapi/v4l/vidioc-g-tuner.rst          | 4 ++--
- 7 files changed, 10 insertions(+), 11 deletions(-)
+If those hacks don't help, Mauro's suggestion seems sane.
 
-diff --git a/Documentation/media/uapi/v4l/dev-sliced-vbi.rst b/Documentation/media/uapi/v4l/dev-sliced-vbi.rst
-index 074aa3798152..86d2d698d2af 100644
---- a/Documentation/media/uapi/v4l/dev-sliced-vbi.rst
-+++ b/Documentation/media/uapi/v4l/dev-sliced-vbi.rst
-@@ -255,7 +255,7 @@ Sliced VBI services
- 
- .. raw:: latex
- 
--    \newline\newline\begin{adjustbox}{width=\columnwidth}
-+    \begin{adjustbox}{width=\columnwidth}
- 
- .. tabularcolumns:: |p{5.0cm}|p{1.4cm}|p{3.0cm}|p{2.5cm}|p{9.0cm}|
- 
-diff --git a/Documentation/media/uapi/v4l/dev-subdev.rst b/Documentation/media/uapi/v4l/dev-subdev.rst
-index 7d20c725583d..1045b3c61031 100644
---- a/Documentation/media/uapi/v4l/dev-subdev.rst
-+++ b/Documentation/media/uapi/v4l/dev-subdev.rst
-@@ -204,7 +204,7 @@ list entity names and pad numbers).
- 
- .. raw:: latex
- 
--    \newline\newline\begin{adjustbox}{width=\columnwidth}
-+    \begin{adjustbox}{width=\columnwidth}
- 
- .. tabularcolumns:: |p{4.5cm}|p{4.5cm}|p{4.5cm}|p{4.5cm}|p{4.5cm}|p{4.5cm}|p{4.5cm}|
- 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
-index 39875b4158d2..c94e1a5fee4d 100644
---- a/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
-@@ -16,7 +16,7 @@ next to each other in memory.
- 
- .. raw:: latex
- 
--    \newline\newline\begin{adjustbox}{width=\columnwidth}
-+    \begin{adjustbox}{width=\columnwidth}
- 
- .. tabularcolumns:: |p{4.5cm}|p{3.3cm}|p{0.7cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.2cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.2cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.2cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{1.7cm}|
- 
-@@ -1114,7 +1114,6 @@ either the corresponding ARGB or XRGB format, depending on the driver.
- 
- .. raw:: latex
- 
--    \newline\newline
-     \begin{adjustbox}{width=\columnwidth}
- 
- .. tabularcolumns:: |p{4.2cm}|p{1.0cm}|p{0.7cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.2cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.2cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.2cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{0.4cm}|p{1.7cm}|
-diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
-index 0b31943bb300..8b1ba4f53b18 100644
---- a/Documentation/media/uapi/v4l/subdev-formats.rst
-+++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-@@ -159,7 +159,7 @@ The following tables list existing packed RGB formats.
- .. it switches to long table, and there's no way to override it.
- 
- 
--.. tabularcolumns:: |p{4.0cm}|p{0.7cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22}|
-+.. tabularcolumns:: |p{4.0cm}|p{0.7cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|
- 
- .. _v4l2-mbus-pixelcode-rgb:
- 
-@@ -2377,7 +2377,7 @@ JEIDA defined bit mapping will be named
- 
- .. raw:: latex
- 
--    \newline\newline\begin{adjustbox}{width=\columnwidth}
-+    \begin{adjustbox}{width=\columnwidth}
- 
- .. _v4l2-mbus-pixelcode-rgb-lvds:
- 
-@@ -3764,7 +3764,7 @@ the following codes.
- -  d for dummy bits
- 
- 
--.. tabularcolumns:: |p{4.0cm}|p{0.7cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22}|
-+.. tabularcolumns:: |p{4.0cm}|p{0.7cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|p{0.22cm}|
- 
- .. _v4l2-mbus-pixelcode-yuv8:
- 
-diff --git a/Documentation/media/uapi/v4l/vidioc-enumstd.rst b/Documentation/media/uapi/v4l/vidioc-enumstd.rst
-index 4c4b61561d85..5bd85932d33b 100644
---- a/Documentation/media/uapi/v4l/vidioc-enumstd.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-enumstd.rst
-@@ -271,7 +271,7 @@ support digital TV. See also the Linux DVB API at
- 
- .. raw:: latex
- 
--    \newline\newline\begin{adjustbox}{width=\columnwidth}
-+    \begin{adjustbox}{width=\columnwidth}
- 
- ..                            NTSC/M   PAL/M    /N       /B       /D       /H       /I        SECAM/B    /D       /K1     /L
- .. tabularcolumns:: |p{2.7cm}|p{2.6cm}|p{3.0cm}|p{3.2cm}|p{3.2cm}|p{2.2cm}|p{1.2cm}|p{3.2cm}|p{3.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|
-diff --git a/Documentation/media/uapi/v4l/vidioc-g-sliced-vbi-cap.rst b/Documentation/media/uapi/v4l/vidioc-g-sliced-vbi-cap.rst
-index 6913f125c4f8..abda04b07999 100644
---- a/Documentation/media/uapi/v4l/vidioc-g-sliced-vbi-cap.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-g-sliced-vbi-cap.rst
-@@ -179,7 +179,7 @@ the sliced VBI API is unsupported or ``type`` is invalid.
- 
- .. raw:: latex
- 
--    \newline\newline\begin{adjustbox}{width=\columnwidth}
-+    \begin{adjustbox}{width=\columnwidth}
- 
- .. tabularcolumns:: |p{5.0cm}|p{1.4cm}|p{3.0cm}|p{2.5cm}|p{9.0cm}|
- 
-diff --git a/Documentation/media/uapi/v4l/vidioc-g-tuner.rst b/Documentation/media/uapi/v4l/vidioc-g-tuner.rst
-index 333457fcdbe0..4658a4715a5e 100644
---- a/Documentation/media/uapi/v4l/vidioc-g-tuner.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-g-tuner.rst
-@@ -257,7 +257,7 @@ To change the radio frequency the
- 
-        -  :cspan:`1` Reserved for future extensions.
- 
--	   Drivers and applications must set the array to zero.
-+	  Drivers and applications must set the array to zero.
- 
- 
- 
-@@ -620,7 +620,7 @@ To change the radio frequency the
- 
- .. raw:: latex
- 
--    \newline\newline\begin{adjustbox}{width=\columnwidth}
-+    \begin{adjustbox}{width=\columnwidth}
- 
- .. _tuner-matrix:
- 
+BR,
+Jani.
+
+
+
+>
+> Thanks,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-doc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 -- 
-2.7.4
-
+Jani Nikula, Intel Open Source Technology Center
