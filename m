@@ -1,207 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51092 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754472AbcHSIj2 (ORCPT
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:38463 "EHLO
+        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756135AbcH2OXI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 04:39:28 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 2/6] drm: Unconstify state argument to prepare_fb()/cleanup_fb()
-Date: Fri, 19 Aug 2016 11:39:30 +0300
-Message-Id: <1471595974-28960-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1471595974-28960-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1471595974-28960-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+        Mon, 29 Aug 2016 10:23:08 -0400
+Received: by mail-wm0-f41.google.com with SMTP id o80so94750753wme.1
+        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2016 07:22:12 -0700 (PDT)
+Subject: Re: [PATCH 3/8] media: vidc: decoder: add video decoder files
+To: Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1471871619-25873-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1471871619-25873-4-git-send-email-stanimir.varbanov@linaro.org>
+ <133fe2fe-8ede-6903-e948-52b5784b648a@xs4all.nl>
+ <8d32132a-e831-edb6-e2ae-e3b24677da96@linaro.org>
+ <57BC4BC6.5000102@cisco.com>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <c161a005-0c28-0502-6edf-a74fa15b3849@linaro.org>
+Date: Mon, 29 Aug 2016 17:22:09 +0300
+MIME-Version: 1.0
+In-Reply-To: <57BC4BC6.5000102@cisco.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The functions might need to modify the state to store memory-related
-data.
+Hi Hans,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_plane.c | 4 ++--
- drivers/gpu/drm/i915/intel_display.c            | 4 ++--
- drivers/gpu/drm/i915/intel_drv.h                | 4 ++--
- drivers/gpu/drm/msm/mdp/mdp4/mdp4_plane.c       | 4 ++--
- drivers/gpu/drm/msm/mdp/mdp5/mdp5_plane.c       | 4 ++--
- drivers/gpu/drm/omapdrm/omap_plane.c            | 4 ++--
- drivers/gpu/drm/rockchip/rockchip_drm_vop.c     | 4 ++--
- include/drm/drm_modeset_helper_vtables.h        | 4 ++--
- 8 files changed, 16 insertions(+), 16 deletions(-)
+<cut>
 
-diff --git a/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_plane.c b/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_plane.c
-index 016c191221f3..ae2b31dd9487 100644
---- a/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_plane.c
-+++ b/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_plane.c
-@@ -755,7 +755,7 @@ static int atmel_hlcdc_plane_atomic_check(struct drm_plane *p,
- }
- 
- static int atmel_hlcdc_plane_prepare_fb(struct drm_plane *p,
--					const struct drm_plane_state *new_state)
-+					struct drm_plane_state *new_state)
- {
- 	/*
- 	 * FIXME: we should avoid this const -> non-const cast but it's
-@@ -780,7 +780,7 @@ static int atmel_hlcdc_plane_prepare_fb(struct drm_plane *p,
- }
- 
- static void atmel_hlcdc_plane_cleanup_fb(struct drm_plane *p,
--				const struct drm_plane_state *old_state)
-+				struct drm_plane_state *old_state)
- {
- 	/*
- 	 * FIXME: we should avoid this const -> non-const cast but it's
-diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
-index dcf93b3d4fb6..cf70de704b2a 100644
---- a/drivers/gpu/drm/i915/intel_display.c
-+++ b/drivers/gpu/drm/i915/intel_display.c
-@@ -13974,7 +13974,7 @@ static const struct drm_crtc_funcs intel_crtc_funcs = {
-  */
- int
- intel_prepare_plane_fb(struct drm_plane *plane,
--		       const struct drm_plane_state *new_state)
-+		       struct drm_plane_state *new_state)
- {
- 	struct drm_device *dev = plane->dev;
- 	struct drm_framebuffer *fb = new_state->fb;
-@@ -14058,7 +14058,7 @@ intel_prepare_plane_fb(struct drm_plane *plane,
-  */
- void
- intel_cleanup_plane_fb(struct drm_plane *plane,
--		       const struct drm_plane_state *old_state)
-+		       struct drm_plane_state *old_state)
- {
- 	struct drm_device *dev = plane->dev;
- 	struct intel_plane_state *old_intel_state;
-diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
-index cc937a19b1ba..aa0d6679eff3 100644
---- a/drivers/gpu/drm/i915/intel_drv.h
-+++ b/drivers/gpu/drm/i915/intel_drv.h
-@@ -1238,9 +1238,9 @@ void intel_finish_page_flip_cs(struct drm_i915_private *dev_priv, int pipe);
- void intel_finish_page_flip_mmio(struct drm_i915_private *dev_priv, int pipe);
- void intel_check_page_flip(struct drm_i915_private *dev_priv, int pipe);
- int intel_prepare_plane_fb(struct drm_plane *plane,
--			   const struct drm_plane_state *new_state);
-+			   struct drm_plane_state *new_state);
- void intel_cleanup_plane_fb(struct drm_plane *plane,
--			    const struct drm_plane_state *old_state);
-+			    struct drm_plane_state *old_state);
- int intel_plane_atomic_get_property(struct drm_plane *plane,
- 				    const struct drm_plane_state *state,
- 				    struct drm_property *property,
-diff --git a/drivers/gpu/drm/msm/mdp/mdp4/mdp4_plane.c b/drivers/gpu/drm/msm/mdp/mdp4/mdp4_plane.c
-index 9f96dfe67769..0689a06bec8e 100644
---- a/drivers/gpu/drm/msm/mdp/mdp4/mdp4_plane.c
-+++ b/drivers/gpu/drm/msm/mdp/mdp4/mdp4_plane.c
-@@ -99,7 +99,7 @@ static const struct drm_plane_funcs mdp4_plane_funcs = {
- };
- 
- static int mdp4_plane_prepare_fb(struct drm_plane *plane,
--		const struct drm_plane_state *new_state)
-+		struct drm_plane_state *new_state)
- {
- 	struct mdp4_plane *mdp4_plane = to_mdp4_plane(plane);
- 	struct mdp4_kms *mdp4_kms = get_kms(plane);
-@@ -113,7 +113,7 @@ static int mdp4_plane_prepare_fb(struct drm_plane *plane,
- }
- 
- static void mdp4_plane_cleanup_fb(struct drm_plane *plane,
--		const struct drm_plane_state *old_state)
-+		struct drm_plane_state *old_state)
- {
- 	struct mdp4_plane *mdp4_plane = to_mdp4_plane(plane);
- 	struct mdp4_kms *mdp4_kms = get_kms(plane);
-diff --git a/drivers/gpu/drm/msm/mdp/mdp5/mdp5_plane.c b/drivers/gpu/drm/msm/mdp/mdp5/mdp5_plane.c
-index 432c09836b0e..1ef024df51a8 100644
---- a/drivers/gpu/drm/msm/mdp/mdp5/mdp5_plane.c
-+++ b/drivers/gpu/drm/msm/mdp/mdp5/mdp5_plane.c
-@@ -250,7 +250,7 @@ static const struct drm_plane_funcs mdp5_plane_funcs = {
- };
- 
- static int mdp5_plane_prepare_fb(struct drm_plane *plane,
--		const struct drm_plane_state *new_state)
-+		struct drm_plane_state *new_state)
- {
- 	struct mdp5_plane *mdp5_plane = to_mdp5_plane(plane);
- 	struct mdp5_kms *mdp5_kms = get_kms(plane);
-@@ -264,7 +264,7 @@ static int mdp5_plane_prepare_fb(struct drm_plane *plane,
- }
- 
- static void mdp5_plane_cleanup_fb(struct drm_plane *plane,
--		const struct drm_plane_state *old_state)
-+		struct drm_plane_state *old_state)
- {
- 	struct mdp5_plane *mdp5_plane = to_mdp5_plane(plane);
- 	struct mdp5_kms *mdp5_kms = get_kms(plane);
-diff --git a/drivers/gpu/drm/omapdrm/omap_plane.c b/drivers/gpu/drm/omapdrm/omap_plane.c
-index 5252ab720e70..bdfbb6181398 100644
---- a/drivers/gpu/drm/omapdrm/omap_plane.c
-+++ b/drivers/gpu/drm/omapdrm/omap_plane.c
-@@ -60,7 +60,7 @@ to_omap_plane_state(struct drm_plane_state *state)
- }
- 
- static int omap_plane_prepare_fb(struct drm_plane *plane,
--				 const struct drm_plane_state *new_state)
-+				 struct drm_plane_state *new_state)
- {
- 	if (!new_state->fb)
- 		return 0;
-@@ -69,7 +69,7 @@ static int omap_plane_prepare_fb(struct drm_plane *plane,
- }
- 
- static void omap_plane_cleanup_fb(struct drm_plane *plane,
--				  const struct drm_plane_state *old_state)
-+				  struct drm_plane_state *old_state)
- {
- 	if (old_state->fb)
- 		omap_framebuffer_unpin(old_state->fb);
-diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
-index 91305eb7d312..a2466e37b0a1 100644
---- a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
-+++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
-@@ -569,7 +569,7 @@ static void vop_plane_destroy(struct drm_plane *plane)
- }
- 
- static int vop_plane_prepare_fb(struct drm_plane *plane,
--				const struct drm_plane_state *new_state)
-+				struct drm_plane_state *new_state)
- {
- 	if (plane->state->fb)
- 		drm_framebuffer_reference(plane->state->fb);
-@@ -578,7 +578,7 @@ static int vop_plane_prepare_fb(struct drm_plane *plane,
- }
- 
- static void vop_plane_cleanup_fb(struct drm_plane *plane,
--				 const struct drm_plane_state *old_state)
-+				 struct drm_plane_state *old_state)
- {
- 	if (old_state->fb)
- 		drm_framebuffer_unreference(old_state->fb);
-diff --git a/include/drm/drm_modeset_helper_vtables.h b/include/drm/drm_modeset_helper_vtables.h
-index b55f21857a98..bfe145e602d2 100644
---- a/include/drm/drm_modeset_helper_vtables.h
-+++ b/include/drm/drm_modeset_helper_vtables.h
-@@ -826,7 +826,7 @@ struct drm_plane_helper_funcs {
- 	 * everything else must complete successfully.
- 	 */
- 	int (*prepare_fb)(struct drm_plane *plane,
--			  const struct drm_plane_state *new_state);
-+			  struct drm_plane_state *new_state);
- 	/**
- 	 * @cleanup_fb:
- 	 *
-@@ -837,7 +837,7 @@ struct drm_plane_helper_funcs {
- 	 * transitional plane helpers, but it is optional.
- 	 */
- 	void (*cleanup_fb)(struct drm_plane *plane,
--			   const struct drm_plane_state *old_state);
-+			   struct drm_plane_state *old_state);
- 
- 	/**
- 	 * @atomic_check:
+>>>> +static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+>>>> +{
+>>>> +	struct vidc_inst *inst = vb2_get_drv_priv(q);
+>>>> +	struct hfi_core *hfi = &inst->core->hfi;
+>>>> +	struct device *dev = inst->core->dev;
+>>>> +	struct hfi_buffer_requirements bufreq;
+>>>> +	struct hfi_buffer_count_actual buf_count;
+>>>> +	struct vb2_queue *queue;
+>>>> +	u32 ptype;
+>>>> +	int ret;
+>>>> +
+>>>> +	switch (q->type) {
+>>>> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+>>>> +		queue = &inst->bufq_cap;
+>>>> +		break;
+>>>> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+>>>> +		queue = &inst->bufq_out;
+>>>> +		break;
+>>>> +	default:
+>>>
+>>> If start_streaming fails, then all pending buffers have to be returned by the driver
+>>> by calling vb2_buffer_done(VB2_BUF_STATE_QUEUED). This will give ownership back to
+>>> userspace.
+>>
+>> Infact this error path shouldn't be possible, because videobu2-core
+>> should check q->type before jumping here?
+> 
+> Sorry, I wasn't clear. It is not just this place (and you are right, the error
+> path here isn't possible), but any place where an error is returned in this
+> function.
+> 
+> Those should be replaced by a goto fail; and in the fail label all pending buffers
+> have to be returned. Same code as in stop_streaming, but you call vb2_buffer_done
+> with state QUEUED instead of state ERROR.
+
+OK, I need to call vb2_buffer_done(ERROR) for every queued buffer
+(before invocation of STREAM_ON) if start_streaming failed.
+
+I think that in present code I have calls to vb2_buffer_done but with
+status DONE.
+
+<cut>
+
+>>>> +static int vdec_op_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+>>>> +{
+>>>> +	struct vidc_inst *inst = ctrl_to_inst(ctrl);
+>>>> +	struct vdec_controls *ctr = &inst->controls.dec;
+>>>> +	struct hfi_core *hfi = &inst->core->hfi;
+>>>> +	union hfi_get_property hprop;
+>>>> +	u32 ptype = HFI_PROPERTY_PARAM_PROFILE_LEVEL_CURRENT;
+>>>> +	int ret;
+>>>> +
+>>>> +	switch (ctrl->id) {
+>>>> +	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
+>>>> +	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+>>>> +	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
+>>>> +		ret = vidc_hfi_session_get_property(hfi, inst->hfi_inst, ptype,
+>>>> +						    &hprop);
+>>>> +		if (!ret)
+>>>> +			ctr->profile = hprop.profile_level.profile;
+>>>> +		ctrl->val = ctr->profile;
+>>>> +		break;
+>>>> +	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
+>>>> +	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
+>>>> +		ret = vidc_hfi_session_get_property(hfi, inst->hfi_inst, ptype,
+>>>> +						    &hprop);
+>>>> +		if (!ret)
+>>>> +			ctr->level = hprop.profile_level.level;
+>>>> +		ctrl->val = ctr->level;
+>>>> +		break;
+>>>> +	case V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER:
+>>>> +		ctrl->val = ctr->post_loop_deb_mode;
+>>>> +		break;
+>>>
+>>> Why are these volatile?
+>>
+>> Because the firmware acording to stream headers that profile and levels
+>> are different.
+> 
+> But when these change, isn't the driver told about it? And can these
+> change midstream? I would expect this to be set once when you start
+> decoding and not change afterwards.
+
+Actually the decoder firmware will detect the profile/level pair itself
+based on elementary stream headers. So I'd expect that getting those
+parameters by session_get_property API will just return what the decoder
+thinks about profile/level.
+
 -- 
-Regards,
-
-Laurent Pinchart
-
+regards,
+Stan
