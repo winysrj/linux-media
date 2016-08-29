@@ -1,76 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:8725 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751839AbcHQNlp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2016 09:41:45 -0400
-Subject: Re: [PATCH v10 3/3] MAINTAINERS: atmel-isc: add entry for Atmel ISC
-To: Songjun Wu <songjun.wu@microchip.com>, <robh@kernel.org>
-References: <1471413929-26008-1-git-send-email-songjun.wu@microchip.com>
- <1471413929-26008-4-git-send-email-songjun.wu@microchip.com>
-CC: <linux-arm-kernel@lists.infradead.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	<linux-kernel@vger.kernel.org>,
-	"Geert Uytterhoeven" <geert@linux-m68k.org>,
-	<laurent.pinchart@ideasonboard.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Guenter Roeck <linux@roeck-us.net>,
-	<linux-media@vger.kernel.org>
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
-Message-ID: <1400f664-09d5-98f6-e237-b5b1c5edae1d@atmel.com>
-Date: Wed, 17 Aug 2016 06:41:12 -0700
+Received: from mail-it0-f46.google.com ([209.85.214.46]:38848 "EHLO
+        mail-it0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753500AbcH2T2X (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Aug 2016 15:28:23 -0400
+Received: by mail-it0-f46.google.com with SMTP id g62so1519238ith.1
+        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2016 12:28:23 -0700 (PDT)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Cc: linux-media@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org,
+        narmstrong@baylibre.com, linus.walleij@linaro.org,
+        carlo@caione.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com,
+        mark.rutland@arm.com, robh+dt@kernel.org, b.galvani@gmail.com
+Subject: Re: [PATCH v5 0/6] Add Meson 8b / GXBB support to the IR driver
+References: <20160819215547.20063-1-martin.blumenstingl@googlemail.com>
+        <20160820095424.636-1-martin.blumenstingl@googlemail.com>
+Date: Mon, 29 Aug 2016 14:28:10 -0500
+In-Reply-To: <20160820095424.636-1-martin.blumenstingl@googlemail.com> (Martin
+        Blumenstingl's message of "Sat, 20 Aug 2016 11:54:18 +0200")
+Message-ID: <m2shtniddh.fsf@baylibre.com>
 MIME-Version: 1.0
-In-Reply-To: <1471413929-26008-4-git-send-email-songjun.wu@microchip.com>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 16/08/2016 à 23:05, Songjun Wu a écrit :
-> Add the MAINTAINERS' entry for Microchip / Atmel Image Sensor Controller.
-> 
-> Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
+Martin Blumenstingl <martin.blumenstingl@googlemail.com> writes:
 
-Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+> Newer Amlogic platforms (Meson 8b and GXBB) use a slightly different
+> register layout for their Infrared Remoete Controller. The decoder mode
+> is now configured in another register. Without the changes to the
+> meson-ir driver we are simply getting incorrect "durations" reported
+> from the hardware (because the hardware is not in time measurement aka
+> software decode mode).
+>
+> This problem was also noticed by some people trying to use this on an
+> ODROID-C1 and ODROID-C2 - the workaround there (probably because the
+> datasheets were not publicy available yet at that time) was to switch
+> to ir_raw_event_store_edge (which leaves it up to the kernel to measure
+> the duration of a pulse). See [0] and [1] for the corresponding
+> patches.
+>
+> Changes in v5:
+> - changed pin function and group names to remote_input_ao so they match
+>   with the datasheet
+>
+> Tested-by: Neil Armstrong <narmstrong@baylibre.com>
 
-> ---
-> 
-> Changes in v10: None
-> Changes in v9: None
-> Changes in v8: None
-> Changes in v7: None
-> Changes in v6: None
-> Changes in v5: None
-> Changes in v4: None
-> Changes in v3: None
-> Changes in v2: None
-> 
->  MAINTAINERS | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 20bb1d0..21a6f6f 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -7733,6 +7733,14 @@ T:	git git://git.monstr.eu/linux-2.6-microblaze.git
->  S:	Supported
->  F:	arch/microblaze/
->  
-> +MICROCHIP / ATMEL ISC DRIVER
-> +M:	Songjun Wu <songjun.wu@microchip.com>
-> +L:	linux-media@vger.kernel.org
-> +S:	Supported
-> +F:	drivers/media/platform/atmel/atmel-isc.c
-> +F:	drivers/media/platform/atmel/atmel-isc-regs.h
-> +F:	devicetree/bindings/media/atmel-isc.txt
-> +
->  MICROSOFT SURFACE PRO 3 BUTTON DRIVER
->  M:	Chen Yu <yu.c.chen@intel.com>
->  L:	platform-driver-x86@vger.kernel.org
-> 
+Thanks for the respin.  I'll take the driver and DT/bindings through the
+arm-soc tree and Linus has taken the pinctrl patch.
 
-
--- 
-Nicolas Ferre
+Kevin
