@@ -1,88 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55942
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752945AbcHXOwq (ORCPT
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:42316 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755704AbcH2SDm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Aug 2016 10:52:46 -0400
-Date: Wed, 24 Aug 2016 11:52:41 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Chris Mayo <aklhfex@gmail.com>
-Subject: Re: [PATCH 2/2] v4l-utils: fixed dvbv5 vdr format
-Message-ID: <20160824115241.7e2c90ca@vento.lan>
-In-Reply-To: <20160824114927.3c6ab0d6@vento.lan>
-References: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de>
-        <1470822739-29519-3-git-send-email-markus.heiser@darmarit.de>
-        <20160824114927.3c6ab0d6@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Mon, 29 Aug 2016 14:03:42 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Jiri Kosina <trivial@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v5 09/13] media: platform: pxa_camera: remove set_crop
+Date: Mon, 29 Aug 2016 19:55:54 +0200
+Message-Id: <1472493358-24618-10-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
+References: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 24 Aug 2016 11:49:27 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+This is to be seen as a regression as the set_crop function is
+removed. This is a temporary situation in the v4l2 porting, and will
+have to be added later.
 
-> Hi Markus,
-> 
-> Em Wed, 10 Aug 2016 11:52:19 +0200
-> Markus Heiser <markus.heiser@darmarit.de> escreveu:
-> 
-> > From: Markus Heiser <markus.heiser@darmarIT.de>
-> > 
-> > From: Heiser, Markus <markus.heiser@darmarIT.de>
-> > 
-> > The vdr format was broken, I got '(null)' entries
-> > 
-> > HD:11494:S1HC23I0M5N1O35:S:(null):22000:5101:5102,5103,5106,5108:0:0:10301:0:0:0:
-> > 0-:1----:2--------------:3:4-----:
-> > 
-> > refering to the VDR Wikis ...
-> > 
-> > * LinuxTV: http://www.linuxtv.org/vdrwiki/index.php/Syntax_of_channels.conf
-> > * german comunity Wiki: http://www.vdr-wiki.de/wiki/index.php/Channels.conf#Parameter_ab_VDR-1.7.4
-> > 
-> > There is no field at position 4 / in between "Source" and "SRate" which
-> > might have a value. I suppose the '(null):' is the result of pointing
-> > to *nothing*.
-> > 
-> > An other mistake is the ending colon (":") at the line. It is not
-> > explicit specified but adding an collon to the end of an channel entry
-> > will prevent players (like mpv or mplayer) from parsing the line (they
-> > will ignore these lines).
-> > 
-> > At least: generating a channel list with
-> > 
-> >   dvbv5-scan --output-format=vdr ...
-> > 
-> > will result in the same defective channel entry, containing "(null):"
-> > and the leading collon ":".  
-> 
-> Sorry for taking too long to handle that. I usually stop handling
-> patches one week before the merge window, returning to merge only
-> after -rc1. This time, it took a little more time, due to the Sphinx
-> changes, as I was needing some patches to be merged upstream, in order
-> to change my handling scripts to work with the new way.
-> 
-> Anyway, with regards to this patch, not sure if you saw, but
-> Chris Mayo sent us a different fix for it:
-> 
-> 	https://patchwork.linuxtv.org/patch/35803/
-> 
-> With is meant to support VDR format as used on version 2.2. Not sure
-> if this format is backward-compatible with versions 1.x, but usually
-> VDR just adds new parameters to the lines.
-> 
-> So, I'm inclined to merge Chris patch instead of yours.
-> 
-> So, could you please test if his patch does what's needed?
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 76 --------------------------
+ 1 file changed, 76 deletions(-)
 
-PS.: If the formats for v 1.x are not compatible with the ones for
-v2.x, then the best would be to change the code to add a new format
-for vdr v2.x, while keep supporting vdr v1.x.
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index 9b294a14fa2e..8f329d0b2cda 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -1294,81 +1294,6 @@ static int pxa_camera_check_frame(u32 width, u32 height)
+ 		(width & 0x01);
+ }
+ 
+-static int pxa_camera_set_crop(struct soc_camera_device *icd,
+-			       const struct v4l2_crop *a)
+-{
+-	const struct v4l2_rect *rect = &a->c;
+-	struct device *dev = icd->parent;
+-	struct soc_camera_host *ici = to_soc_camera_host(dev);
+-	struct pxa_camera_dev *pcdev = ici->priv;
+-	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+-	struct soc_camera_sense sense = {
+-		.master_clock = pcdev->mclk,
+-		.pixel_clock_max = pcdev->ciclk / 4,
+-	};
+-	struct v4l2_subdev_format fmt = {
+-		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+-	};
+-	struct v4l2_mbus_framefmt *mf = &fmt.format;
+-	struct pxa_cam *cam = icd->host_priv;
+-	u32 fourcc = icd->current_fmt->host_fmt->fourcc;
+-	int ret;
+-
+-	/* If PCLK is used to latch data from the sensor, check sense */
+-	if (pcdev->platform_flags & PXA_CAMERA_PCLK_EN)
+-		icd->sense = &sense;
+-
+-	ret = sensor_call(pcdev, video, s_crop, a);
+-
+-	icd->sense = NULL;
+-
+-	if (ret < 0) {
+-		dev_warn(pcdev_to_dev(pcdev), "Failed to crop to %ux%u@%u:%u\n",
+-			 rect->width, rect->height, rect->left, rect->top);
+-		return ret;
+-	}
+-
+-	ret = sensor_call(pcdev, pad, get_fmt, NULL, &fmt);
+-	if (ret < 0)
+-		return ret;
+-
+-	if (pxa_camera_check_frame(mf->width, mf->height)) {
+-		/*
+-		 * Camera cropping produced a frame beyond our capabilities.
+-		 * FIXME: just extract a subframe, that we can process.
+-		 */
+-		v4l_bound_align_image(&mf->width, 48, 2048, 1,
+-			&mf->height, 32, 2048, 0,
+-			fourcc == V4L2_PIX_FMT_YUV422P ? 4 : 0);
+-		ret = sensor_call(pcdev, pad, set_fmt, NULL, &fmt);
+-		if (ret < 0)
+-			return ret;
+-
+-		if (pxa_camera_check_frame(mf->width, mf->height)) {
+-			dev_warn(pcdev_to_dev(pcdev),
+-				 "Inconsistent state. Use S_FMT to repair\n");
+-			return -EINVAL;
+-		}
+-	}
+-
+-	if (sense.flags & SOCAM_SENSE_PCLK_CHANGED) {
+-		if (sense.pixel_clock > sense.pixel_clock_max) {
+-			dev_err(pcdev_to_dev(pcdev),
+-				"pixel clock %lu set by the camera too high!",
+-				sense.pixel_clock);
+-			return -EIO;
+-		}
+-		recalculate_fifo_timeout(pcdev, sense.pixel_clock);
+-	}
+-
+-	icd->user_width		= mf->width;
+-	icd->user_height	= mf->height;
+-
+-	pxa_camera_setup_cicr(icd, cam->flags, fourcc);
+-
+-	return ret;
+-}
+-
+ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
+ 			      struct v4l2_format *f)
+ {
+@@ -1581,7 +1506,6 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
+ 	.remove		= pxa_camera_remove_device,
+ 	.clock_start	= pxa_camera_clock_start,
+ 	.clock_stop	= pxa_camera_clock_stop,
+-	.set_crop	= pxa_camera_set_crop,
+ 	.get_formats	= pxa_camera_get_formats,
+ 	.put_formats	= pxa_camera_put_formats,
+ 	.set_fmt	= pxa_camera_set_fmt,
+-- 
+2.1.4
 
-
-
-Thanks,
-Mauro
