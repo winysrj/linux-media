@@ -1,121 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:38090 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751041AbcHADAR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2016 23:00:17 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 877AD1800DC
-	for <linux-media@vger.kernel.org>; Mon,  1 Aug 2016 05:00:11 +0200 (CEST)
-Date: Mon, 01 Aug 2016 05:00:11 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160801030011.877AD1800DC@tschai.lan>
+Received: from bombadil.infradead.org ([198.137.202.9]:48646 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756632AbcH2MrC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Aug 2016 08:47:02 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-doc@vger.kernel.org
+Subject: [PATCH] docs-rst: ignore arguments on macro definitions
+Date: Mon, 29 Aug 2016 09:46:55 -0300
+Message-Id: <4c17e7ca240665196c187b0d44c97b77fd1d2e3b.1472474795.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+A macro definition is mapped via .. c:function:: at the
+ReST markup when using the following kernel-doc tag:
 
-Results of the daily build of media_tree:
+	/**
+	 * DMX_FE_ENTRY - Casts elements in the list of registered
+	 *               front-ends from the generic type struct list_head
+	 *               to the type * struct dmx_frontend
+	 *
+	 * @list: list of struct dmx_frontend
+	 */
+	 #define DMX_FE_ENTRY(list) \
+	        list_entry(list, struct dmx_frontend, connectivity_list)
 
-date:		Mon Aug  1 04:00:22 CEST 2016
-git branch:	test
-git hash:	292eaf50c7df4ae2ae8aaa9e1ce3f1240a353ee8
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+However, unlike a function description, the arguments of a macro
+doesn't contain the data type.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+This causes warnings when enabling Sphinx on nitkpick mode,
+like this one:
+	./drivers/media/dvb-core/demux.h:358: WARNING: c:type reference target not found: list
 
-Detailed results are available here:
+That happens because kernel-doc output for the above is:
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+	.. c:function:: DMX_FE_ENTRY ( list)
 
-Full logs are available here:
+	   Casts elements in the list of registered front-ends from the generic type struct list_head to the type * struct dmx_frontend
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+	**Parameters**
 
-The Media Infrastructure API from this daily build is here:
+	``list``
+	  list of struct dmx_frontend
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+As the type is blank, Sphinx would think that ``list`` is a type,
+and will try to add a cross reference for it, using their internal
+representation for c:type:`list`.
+
+However, ``list`` is not a type. So, that would cause either the
+above warning, or if a ``list`` type exists, it would create
+a reference to the wrong place at the doc.
+
+To avoid that, let's ommit macro arguments from c:function::
+declaration. As each argument will appear below the Parameters,
+the type of the argument can be described there, if needed.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ scripts/kernel-doc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index d225e178aa1b..040ee75ecfea 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -1852,7 +1852,7 @@ sub output_function_rst(%) {
+ 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+ 	    # pointer-to-function
+ 	    print $1 . $parameter . ") (" . $2;
+-	} else {
++	} elsif ($type ne "") {
+ 	    print $type . " " . $parameter;
+ 	}
+     }
+-- 
+2.7.4
+
+
