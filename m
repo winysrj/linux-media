@@ -1,90 +1,229 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:36596 "EHLO
-	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768303AbcHROfq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2016 10:35:46 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Markus Heiser <markus.heiser@darmarIT.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	Antti Palosaari <crope@iki.fi>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v5 08/12] [media] vivid: Fix YUV555 and YUV565 handling
-Date: Thu, 18 Aug 2016 16:33:34 +0200
-Message-Id: <1471530818-7928-9-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1471530818-7928-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:23026
+        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932750AbcH2N3y (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Aug 2016 09:29:54 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Andy Walls <awalls@md.metrocast.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH] [media]: constify i2c_algorithm structures
+Date: Mon, 29 Aug 2016 15:12:01 +0200
+Message-Id: <1472476321-16672-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-precalculate_color() had a optimization that avoided duplicated
-conversion for YUV formats. This optimization did not take into
-consideration YUV444, YUV555, YUV565 or limited range quantization.
+These i2c_algorithm structures are only stored in the alg field of an
+i2c_adapter structure, which is declared as const.  This declare the
+structures as const as well.
 
-This patch keeps the optimization, but fixes the wrong handling.
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+// <smpl>
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct i2c_algorithm i@p = { ... };
+
+@ok@
+identifier r.i;
+struct i2c_adapter e;
+position p;
+@@
+e.alg = &i@p;
+
+@bad@
+position p != {r.p,ok.p};
+identifier r.i;
+@@
+i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+ struct i2c_algorithm i = { ... };
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
- drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ drivers/media/pci/cx23885/cx23885-i2c.c       |    2 +-
+ drivers/media/pci/cx25821/cx25821-i2c.c       |    2 +-
+ drivers/media/pci/ivtv/ivtv-i2c.c             |    2 +-
+ drivers/media/pci/saa7134/saa7134-i2c.c       |    2 +-
+ drivers/media/pci/saa7164/saa7164-i2c.c       |    2 +-
+ drivers/media/radio/si4713/radio-usb-si4713.c |    2 +-
+ drivers/media/usb/cx231xx/cx231xx-i2c.c       |    2 +-
+ drivers/media/usb/em28xx/em28xx-i2c.c         |    2 +-
+ drivers/media/usb/go7007/go7007-i2c.c         |    2 +-
+ drivers/media/usb/go7007/go7007-usb.c         |    2 +-
+ drivers/media/usb/hdpvr/hdpvr-i2c.c           |    2 +-
+ drivers/media/usb/stk1160/stk1160-i2c.c       |    2 +-
+ 12 files changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-index 920c8495f3dd..7364ced09abc 100644
---- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-+++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-@@ -795,6 +795,8 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 	int r = tpg_colors[col].r;
- 	int g = tpg_colors[col].g;
- 	int b = tpg_colors[col].b;
-+	int y, cb, cr;
-+	bool ycbcr_valid = false;
+diff --git a/drivers/media/pci/ivtv/ivtv-i2c.c b/drivers/media/pci/ivtv/ivtv-i2c.c
+index bccbf2d..dd57442 100644
+--- a/drivers/media/pci/ivtv/ivtv-i2c.c
++++ b/drivers/media/pci/ivtv/ivtv-i2c.c
+@@ -625,7 +625,7 @@ static u32 ivtv_functionality(struct i2c_adapter *adap)
+ 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
+ }
  
- 	if (k == TPG_COLOR_TEXTBG) {
- 		col = tpg_get_textbg_color(tpg);
-@@ -871,7 +873,6 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 	     tpg->saturation != 128 || tpg->hue) &&
- 	    tpg->color_enc != TGP_COLOR_ENC_LUMA) {
- 		/* Implement these operations */
--		int y, cb, cr;
- 		int tmp_cb, tmp_cr;
+-static struct i2c_algorithm ivtv_algo = {
++static const struct i2c_algorithm ivtv_algo = {
+ 	.master_xfer   = ivtv_xfer,
+ 	.functionality = ivtv_functionality,
+ };
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 1a9e1e5..8b690ac 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -855,7 +855,7 @@ static u32 functionality(struct i2c_adapter *i2c_adap)
+ 	return 0;
+ }
  
- 		/* First convert to YCbCr */
-@@ -888,13 +889,10 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+-static struct i2c_algorithm em28xx_algo = {
++static const struct i2c_algorithm em28xx_algo = {
+ 	.master_xfer   = em28xx_i2c_xfer,
+ 	.functionality = functionality,
+ };
+diff --git a/drivers/media/radio/si4713/radio-usb-si4713.c b/drivers/media/radio/si4713/radio-usb-si4713.c
+index 5146be2..e5e5a16 100644
+--- a/drivers/media/radio/si4713/radio-usb-si4713.c
++++ b/drivers/media/radio/si4713/radio-usb-si4713.c
+@@ -402,7 +402,7 @@ static u32 si4713_functionality(struct i2c_adapter *adapter)
+ 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
+ }
  
- 		cb = (128 << 4) + (tmp_cb * tpg->contrast * tpg->saturation) / (128 * 128);
- 		cr = (128 << 4) + (tmp_cr * tpg->contrast * tpg->saturation) / (128 * 128);
--		if (tpg->color_enc == TGP_COLOR_ENC_YCBCR) {
--			tpg->colors[k][0] = clamp(y >> 4, 1, 254);
--			tpg->colors[k][1] = clamp(cb >> 4, 1, 254);
--			tpg->colors[k][2] = clamp(cr >> 4, 1, 254);
--			return;
--		}
--		ycbcr_to_color(tpg, y, cb, cr, &r, &g, &b);
-+		if (tpg->color_enc == TGP_COLOR_ENC_YCBCR)
-+			ycbcr_valid = true;
-+		else
-+			ycbcr_to_color(tpg, y, cb, cr, &r, &g, &b);
- 	} else if ((tpg->brightness != 128 || tpg->contrast != 128) &&
- 		   tpg->color_enc == TGP_COLOR_ENC_LUMA) {
- 		r = (16 << 4) + ((r - (16 << 4)) * tpg->contrast) / 128;
-@@ -915,9 +913,8 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 	case TGP_COLOR_ENC_YCBCR:
- 	{
- 		/* Convert to YCbCr */
--		int y, cb, cr;
--
--		color_to_ycbcr(tpg, r, g, b, &y, &cb, &cr);
-+		if (!ycbcr_valid)
-+			color_to_ycbcr(tpg, r, g, b, &y, &cb, &cr);
+-static struct i2c_algorithm si4713_algo = {
++static const struct i2c_algorithm si4713_algo = {
+ 	.master_xfer   = si4713_transfer,
+ 	.functionality = si4713_functionality,
+ };
+diff --git a/drivers/media/usb/go7007/go7007-i2c.c b/drivers/media/usb/go7007/go7007-i2c.c
+index 55addfa..c084bf7 100644
+--- a/drivers/media/usb/go7007/go7007-i2c.c
++++ b/drivers/media/usb/go7007/go7007-i2c.c
+@@ -191,7 +191,7 @@ static u32 go7007_functionality(struct i2c_adapter *adapter)
+ 	return I2C_FUNC_SMBUS_BYTE_DATA;
+ }
  
- 		if (tpg->real_quantization == V4L2_QUANTIZATION_LIM_RANGE) {
- 			y = clamp(y, 16 << 4, 235 << 4);
--- 
-2.8.1
+-static struct i2c_algorithm go7007_algo = {
++static const struct i2c_algorithm go7007_algo = {
+ 	.smbus_xfer	= go7007_smbus_xfer,
+ 	.master_xfer	= go7007_i2c_master_xfer,
+ 	.functionality	= go7007_functionality,
+diff --git a/drivers/media/usb/go7007/go7007-usb.c b/drivers/media/usb/go7007/go7007-usb.c
+index 14d3f8c..ed9bcaf 100644
+--- a/drivers/media/usb/go7007/go7007-usb.c
++++ b/drivers/media/usb/go7007/go7007-usb.c
+@@ -1032,7 +1032,7 @@ static u32 go7007_usb_functionality(struct i2c_adapter *adapter)
+ 	return (I2C_FUNC_SMBUS_EMUL) & ~I2C_FUNC_SMBUS_QUICK;
+ }
+ 
+-static struct i2c_algorithm go7007_usb_algo = {
++static const struct i2c_algorithm go7007_usb_algo = {
+ 	.master_xfer	= go7007_usb_i2c_master_xfer,
+ 	.functionality	= go7007_usb_functionality,
+ };
+diff --git a/drivers/media/pci/cx23885/cx23885-i2c.c b/drivers/media/pci/cx23885/cx23885-i2c.c
+index ae061b3..6159122 100644
+--- a/drivers/media/pci/cx23885/cx23885-i2c.c
++++ b/drivers/media/pci/cx23885/cx23885-i2c.c
+@@ -258,7 +258,7 @@ static u32 cx23885_functionality(struct i2c_adapter *adap)
+ 	return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_I2C;
+ }
+ 
+-static struct i2c_algorithm cx23885_i2c_algo_template = {
++static const struct i2c_algorithm cx23885_i2c_algo_template = {
+ 	.master_xfer	= i2c_xfer,
+ 	.functionality	= cx23885_functionality,
+ };
+diff --git a/drivers/media/pci/cx25821/cx25821-i2c.c b/drivers/media/pci/cx25821/cx25821-i2c.c
+index dca37c7..63ba25b 100644
+--- a/drivers/media/pci/cx25821/cx25821-i2c.c
++++ b/drivers/media/pci/cx25821/cx25821-i2c.c
+@@ -281,7 +281,7 @@ static u32 cx25821_functionality(struct i2c_adapter *adap)
+ 		I2C_FUNC_SMBUS_READ_WORD_DATA | I2C_FUNC_SMBUS_WRITE_WORD_DATA;
+ }
+ 
+-static struct i2c_algorithm cx25821_i2c_algo_template = {
++static const struct i2c_algorithm cx25821_i2c_algo_template = {
+ 	.master_xfer = i2c_xfer,
+ 	.functionality = cx25821_functionality,
+ #ifdef NEED_ALGO_CONTROL
+diff --git a/drivers/media/pci/saa7164/saa7164-i2c.c b/drivers/media/pci/saa7164/saa7164-i2c.c
+index 0342d84..024f4e2 100644
+--- a/drivers/media/pci/saa7164/saa7164-i2c.c
++++ b/drivers/media/pci/saa7164/saa7164-i2c.c
+@@ -75,7 +75,7 @@ static u32 saa7164_functionality(struct i2c_adapter *adap)
+ 	return I2C_FUNC_I2C;
+ }
+ 
+-static struct i2c_algorithm saa7164_i2c_algo_template = {
++static const struct i2c_algorithm saa7164_i2c_algo_template = {
+ 	.master_xfer	= i2c_xfer,
+ 	.functionality	= saa7164_functionality,
+ };
+diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+index 473cd34..f04b471 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
++++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+@@ -454,7 +454,7 @@ static u32 functionality(struct i2c_adapter *adap)
+ 	return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_I2C;
+ }
+ 
+-static struct i2c_algorithm cx231xx_algo = {
++static const struct i2c_algorithm cx231xx_algo = {
+ 	.master_xfer = cx231xx_i2c_xfer,
+ 	.functionality = functionality,
+ };
+diff --git a/drivers/media/usb/hdpvr/hdpvr-i2c.c b/drivers/media/usb/hdpvr/hdpvr-i2c.c
+index a38f58c..608ae96 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-i2c.c
++++ b/drivers/media/usb/hdpvr/hdpvr-i2c.c
+@@ -180,7 +180,7 @@ static u32 hdpvr_functionality(struct i2c_adapter *adapter)
+ 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
+ }
+ 
+-static struct i2c_algorithm hdpvr_algo = {
++static const struct i2c_algorithm hdpvr_algo = {
+ 	.master_xfer   = hdpvr_transfer,
+ 	.functionality = hdpvr_functionality,
+ };
+diff --git a/drivers/media/pci/saa7134/saa7134-i2c.c b/drivers/media/pci/saa7134/saa7134-i2c.c
+index 8ef6399..2dac48f 100644
+--- a/drivers/media/pci/saa7134/saa7134-i2c.c
++++ b/drivers/media/pci/saa7134/saa7134-i2c.c
+@@ -338,7 +338,7 @@ static u32 functionality(struct i2c_adapter *adap)
+ 	return I2C_FUNC_SMBUS_EMUL;
+ }
+ 
+-static struct i2c_algorithm saa7134_algo = {
++static const struct i2c_algorithm saa7134_algo = {
+ 	.master_xfer   = saa7134_i2c_xfer,
+ 	.functionality = functionality,
+ };
+diff --git a/drivers/media/usb/stk1160/stk1160-i2c.c b/drivers/media/usb/stk1160/stk1160-i2c.c
+index 850cf28..3f2517b 100644
+--- a/drivers/media/usb/stk1160/stk1160-i2c.c
++++ b/drivers/media/usb/stk1160/stk1160-i2c.c
+@@ -235,7 +235,7 @@ static u32 functionality(struct i2c_adapter *adap)
+ 	return I2C_FUNC_SMBUS_EMUL;
+ }
+ 
+-static struct i2c_algorithm algo = {
++static const struct i2c_algorithm algo = {
+ 	.master_xfer   = stk1160_i2c_xfer,
+ 	.functionality = functionality,
+ };
 
