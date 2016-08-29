@@ -1,129 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43168 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754706AbcHSNFK (ORCPT
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:59128 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755385AbcH2R4M (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 09:05:10 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>
-Subject: [PATCH 04/15] [media] vidioc-g-sliced-vbi-cap.rst: make tables fit on LaTeX output
-Date: Fri, 19 Aug 2016 10:04:54 -0300
-Message-Id: <0e7c7bacdf7c80360e10eaa76545c05e59925c78.1471611003.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471611003.git.mchehab@s-opensource.com>
-References: <cover.1471611003.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1471611003.git.mchehab@s-opensource.com>
-References: <cover.1471611003.git.mchehab@s-opensource.com>
+        Mon, 29 Aug 2016 13:56:12 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Jiri Kosina <trivial@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v5 08/13] media: platform: pxa_camera: add buffer sequencing
+Date: Mon, 29 Aug 2016 19:55:53 +0200
+Message-Id: <1472493358-24618-9-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
+References: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The tables don't fit at the page on this file. As noticed
-before, Sphinx (or LaTeX?) does a crap job on tables with
-cell span, and some work has to be done to make it fit.
+Add sequence numbers to completed buffers.
 
-Move the see also reference to a footnote, break one paragraph
-into two and adjust the table columns to make it visible.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 ---
- .../media/uapi/v4l/vidioc-g-sliced-vbi-cap.rst     | 30 +++++++++++++++++-----
- 1 file changed, 23 insertions(+), 7 deletions(-)
+Since v3: reset buffer sequence number in start_streaming()
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-g-sliced-vbi-cap.rst b/Documentation/media/uapi/v4l/vidioc-g-sliced-vbi-cap.rst
-index 0d4b6b0044a0..740324e6e5db 100644
---- a/Documentation/media/uapi/v4l/vidioc-g-sliced-vbi-cap.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-g-sliced-vbi-cap.rst
-@@ -48,7 +48,7 @@ the sliced VBI API is unsupported or ``type`` is invalid.
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index 45583a40a4bd..9b294a14fa2e 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -223,6 +223,7 @@ struct pxa_camera_dev {
+ 	struct list_head	capture;
  
- .. _v4l2-sliced-vbi-cap:
+ 	spinlock_t		lock;
++	unsigned int		buf_sequence;
  
--.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{2.9cm}|p{2.9cm}|p{2.9cm}|
-+.. tabularcolumns:: |p{1.2cm}|p{4.2cm}|p{4.1cm}|p{4.0cm}|p{4.0cm}|
+ 	struct pxa_buffer	*active;
+ 	struct tasklet_struct	task_eof;
+@@ -423,10 +424,13 @@ static void pxa_camera_wakeup(struct pxa_camera_dev *pcdev,
+ 			      struct pxa_buffer *buf)
+ {
+ 	struct vb2_buffer *vb = &buf->vbuf.vb2_buf;
++	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
  
- .. flat-table:: struct v4l2_sliced_vbi_cap
-     :header-rows:  0
-@@ -63,6 +63,7 @@ the sliced VBI API is unsupported or ``type`` is invalid.
-        -  ``service_set``
+ 	/* _init is used to debug races, see comment in pxa_camera_reqbufs() */
+ 	list_del_init(&buf->queue);
+ 	vb->timestamp = ktime_get_ns();
++	vbuf->sequence = pcdev->buf_sequence++;
++	vbuf->field = V4L2_FIELD_NONE;
+ 	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+ 	dev_dbg(pcdev_to_dev(pcdev), "%s dequeud buffer (buf=0x%p)\n",
+ 		__func__, buf);
+@@ -1022,6 +1026,7 @@ static int pxac_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	dev_dbg(pcdev_to_dev(pcdev), "%s(count=%d) active=%p\n",
+ 		__func__, count, pcdev->active);
  
-        -  :cspan:`2` A set of all data services supported by the driver.
-+
- 	  Equal to the union of all elements of the ``service_lines`` array.
++	pcdev->buf_sequence = 0;
+ 	if (!pcdev->active)
+ 		pxa_camera_start_capture(pcdev);
  
-     -  .. row 2
-@@ -74,8 +75,7 @@ the sliced VBI API is unsupported or ``type`` is invalid.
-        -  :cspan:`2` Each element of this array contains a set of data
- 	  services the hardware can look for or insert into a particular
- 	  scan line. Data services are defined in :ref:`vbi-services`.
--	  Array indices map to ITU-R line numbers (see also :ref:`vbi-525`
--	  and :ref:`vbi-625`) as follows:
-+	  Array indices map to ITU-R line numbers\ [#f1]_ as follows:
- 
-     -  .. row 3
- 
-@@ -171,14 +171,22 @@ the sliced VBI API is unsupported or ``type`` is invalid.
-        -  ``reserved``\ [3]
- 
-        -  :cspan:`2` This array is reserved for future extensions.
-+
- 	  Applications and drivers must set it to zero.
- 
-+.. [#f1]
- 
-+   See also :ref:`vbi-525` and :ref:`vbi-625`.
-+
-+
-+.. raw:: latex
-+
-+    \newline\newline\begin{adjustbox}{width=\columnwidth}
-+
-+.. tabularcolumns:: |p{5.0cm}|p{1.4cm}|p{3.0cm}|p{2.5cm}|p{9.0cm}|
- 
- .. _vbi-services:
- 
--.. tabularcolumns:: |p{4.4cm}|p{2.2cm}|p{2.2cm}|p{4.4cm}|p{4.3cm}|
--
- .. flat-table:: Sliced VBI services
-     :header-rows:  1
-     :stub-columns: 0
-@@ -203,7 +211,9 @@ the sliced VBI API is unsupported or ``type`` is invalid.
- 
-        -  0x0001
- 
--       -  :ref:`ets300706`, :ref:`itu653`
-+       -  :ref:`ets300706`,
-+
-+	  :ref:`itu653`
- 
-        -  PAL/SECAM line 7-22, 320-335 (second field 7-22)
- 
-@@ -242,7 +252,9 @@ the sliced VBI API is unsupported or ``type`` is invalid.
- 
-        -  0x4000
- 
--       -  :ref:`en300294`, :ref:`itu1119`
-+       -  :ref:`en300294`,
-+
-+	  :ref:`itu1119`
- 
-        -  PAL/SECAM line 23
- 
-@@ -270,6 +282,10 @@ the sliced VBI API is unsupported or ``type`` is invalid.
- 
-        -  :cspan:`2` Set of services applicable to 625 line systems.
- 
-+.. raw:: latex
-+
-+    \end{adjustbox}\newline\newline
-+
- 
- Return Value
- ============
 -- 
-2.7.4
-
+2.1.4
 
