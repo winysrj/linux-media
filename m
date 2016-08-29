@@ -1,183 +1,538 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:5335 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752037AbcHBGKG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2016 02:10:06 -0400
-Message-ID: <1470116986.16982.5.camel@mtksdaap41>
-Subject: Re: [PATCH v2 2/4] dt-bindings: Add a binding for Mediatek MDP
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Rob Herring <robh@kernel.org>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	Daniel Thompson <daniel.thompson@linaro.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	<srv_heupstream@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>
-Date: Tue, 2 Aug 2016 13:49:46 +0800
-In-Reply-To: <CAL_JsqK4Lz9mSJ+EXAY1g9L-CzBmbsed+MfCjkf_545y1Ov0iw@mail.gmail.com>
-References: <1469176383-35210-1-git-send-email-minghsiu.tsai@mediatek.com>
-	 <1469176383-35210-3-git-send-email-minghsiu.tsai@mediatek.com>
-	 <20160726185433.GA14609@rob-hp-laptop>
-	 <1469583886.27630.18.camel@mtksdaap41>
-	 <CAL_JsqK4Lz9mSJ+EXAY1g9L-CzBmbsed+MfCjkf_545y1Ov0iw@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:36535 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755693AbcH2SDl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Aug 2016 14:03:41 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Jiri Kosina <trivial@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v5 05/13] media: platform: pxa_camera: trivial move of functions
+Date: Mon, 29 Aug 2016 19:55:50 +0200
+Message-Id: <1472493358-24618-6-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
+References: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2016-07-28 at 10:55 -0500, Rob Herring wrote:
-> On Tue, Jul 26, 2016 at 8:44 PM, Minghsiu Tsai
-> <minghsiu.tsai@mediatek.com> wrote:
-> > On Tue, 2016-07-26 at 13:54 -0500, Rob Herring wrote:
-> >> On Fri, Jul 22, 2016 at 04:33:01PM +0800, Minghsiu Tsai wrote:
-> >> > Add a DT binding documentation of MDP for the MT8173 SoC
-> >> > from Mediatek
-> >> >
-> >> > Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-> >> > ---
-> >> >  .../devicetree/bindings/media/mediatek-mdp.txt     |   96 ++++++++++++++++++++
-> >> >  1 file changed, 96 insertions(+)
-> >> >  create mode 100644 Documentation/devicetree/bindings/media/mediatek-mdp.txt
-> >> >
-> >> > diff --git a/Documentation/devicetree/bindings/media/mediatek-mdp.txt b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
-> >> > new file mode 100644
-> >> > index 0000000..2dad031
-> >> > --- /dev/null
-> >> > +++ b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
-> >> > @@ -0,0 +1,96 @@
-> >> > +* Mediatek Media Data Path
-> >> > +
-> >> > +Media Data Path is used for scaling and color space conversion.
-> >> > +
-> >> > +Required properties (all function blocks):
-> >> > +- compatible: "mediatek,<chip>-mdp"
-> >>
-> >> What is this, ...
-> >>
-> >
-> > It is used to match platform driver.
-> 
-> Would structuring things like this work instead:
-> 
-> {
->   compatible = "mediatek,<chip>-mdp";
->   ranges = ...;
->   {
->     compatible = "mediatek,<chip>-mdp-rdma";
->     ...
->   };
->   {
->     compatible = "mediatek,<chip>-mdp-wdma";
->     ...
->   };
->   ...
-> };
-> 
+Move the functions in the file to be regrouped into meaningful blocks :
+ 1. pxa camera core handling functions, manipulating the herdware
+ 2. videobuf2 functions, dealing with video buffers
+ 3. video ioctl (vidioc) related functions
+ 4. driver probing, removal, suspend and resume
 
-I am trying to modify it as structured node. But mdp failed to convert
-image. Under debugging.
+This patch doesn't modify a single line of code.
 
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+Since v3: replace void *alloc_ctxt by struct device *alloc_devs impact
+Since v4: videobuf2 device init change impact
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 473 +++++++++++++------------
+ 1 file changed, 241 insertions(+), 232 deletions(-)
 
-> >
-> >
-> >> > +        "mediatek,<chip>-mdp-<function>", one of
-> >>
-> >> and this?
-> >>
-> >
-> > It is string format of HW block. <chip> could be "mt8173", and
-> > <function> are "rdma", "rsz", "wdma", and "wrot".
-> >
-> >
-> >> > +        "mediatek,<chip>-mdp-rdma"  - read DMA
-> >> > +        "mediatek,<chip>-mdp-rsz"   - resizer
-> >> > +        "mediatek,<chip>-mdp-wdma"  - write DMA
-> >> > +        "mediatek,<chip>-mdp-wrot"  - write DMA with rotation
-> >>
-> >> List what are valid values of <chip>.
-> >>
-> >
-> > <chip> - mt8173. There should be other chip added in future.
-> > I will change the property as blow:
-> >
-> > - compatible: "mediatek,<chip>-mdp"
-> >         Should be one of
-> >         "mediatek,<chip>-mdp-rdma"  - read DMA
-> >         "mediatek,<chip>-mdp-rsz"   - resizer
-> >         "mediatek,<chip>-mdp-wdma"  - write DMA
-> >         "mediatek,<chip>-mdp-wrot"  - write DMA with rotation
-> >         <chip> - could be 8173
-> >
-> >
-> > If don't need <chip>, I also can change it as below. It is more clear.
-> 
-> Up to you. Depends on how many different chips you will have.
-> 
-
-I will replace "<chip>" with "mt8173"
-
-
-> > - compatible: "mediatek,mt8173-mdp"
-> >         Should be one of
-> >         "mediatek,mt8173-mdp-rdma"  - read DMA
-> >         "mediatek,mt8173-mdp-rsz"   - resizer
-> >         "mediatek,mt8173-mdp-wdma"  - write DMA
-> >         "mediatek,mt8173-mdp-wrot"  - write DMA with rotation
-> >
-> >
-> >> > +- reg: Physical base address and length of the function block register space
-> >> > +- clocks: device clocks
-> >> > +- power-domains: a phandle to the power domain.
-> >> > +- mediatek,vpu: the node of video processor unit
-> >> > +
-> >> > +Required properties (DMA function blocks):
-> >> > +- compatible: Should be one of
-> >> > +        "mediatek,<chip>-mdp-rdma"
-> >> > +        "mediatek,<chip>-mdp-wdma"
-> >> > +        "mediatek,<chip>-mdp-wrot"
-> >> > +- iommus: should point to the respective IOMMU block with master port as
-> >> > +  argument, see Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
-> >> > +  for details.
-> >> > +- mediatek,larb: must contain the local arbiters in the current Socs.
-> >>
-> >> It is still not clear which properties apply to which compatible
-> >> strings.
-> >>
-> >
-> > I found out the document for larb.
-> > I will change the property as below:
-> >
-> > - mediatek,larb: must contain the local arbiters in the current Socs,
-> > see
-> > Documentation/devicetree/bindings/memory-controllers/mediatek,smi-larb.txt
-> >   for details.
-> 
-> That's good, but not what I meant. You still have properties which
-> only apply to certain blocks, but are listed for all blocks like
-> mediatek,vpu for example.
-> 
-> Rob
-
-
-I find out other properties' document. 
-
-- clocks: device clocks, see
-  Documentation/devicetree/bindings/clock/clock-bindings.txt for
-details.
-- power-domains: a phandle to the power domain, see
-  Documentation/devicetree/bindings/power/power_domain.txt for details.
-- mediatek,vpu: the node of video processor unit, see
-  Documentation/devicetree/bindings/media/mediatek-vpu.txt for details.
-
-
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index d1881d35d81d..9d7c30cb1463 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -538,238 +538,6 @@ out:
+ 	spin_unlock_irqrestore(&pcdev->lock, flags);
+ }
+ 
+-static void pxa_buffer_cleanup(struct pxa_buffer *buf)
+-{
+-	int i;
+-
+-	for (i = 0; i < 3 && buf->descs[i]; i++) {
+-		dmaengine_desc_free(buf->descs[i]);
+-		kfree(buf->sg[i]);
+-		buf->descs[i] = NULL;
+-		buf->sg[i] = NULL;
+-		buf->sg_len[i] = 0;
+-		buf->plane_sizes[i] = 0;
+-	}
+-	buf->nb_planes = 0;
+-}
+-
+-static int pxa_buffer_init(struct pxa_camera_dev *pcdev,
+-			   struct pxa_buffer *buf)
+-{
+-	struct vb2_buffer *vb = &buf->vbuf.vb2_buf;
+-	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
+-	int nb_channels = pcdev->channels;
+-	int i, ret = 0;
+-	unsigned long size = vb2_plane_size(vb, 0);
+-
+-	switch (nb_channels) {
+-	case 1:
+-		buf->plane_sizes[0] = size;
+-		break;
+-	case 3:
+-		buf->plane_sizes[0] = size / 2;
+-		buf->plane_sizes[1] = size / 4;
+-		buf->plane_sizes[2] = size / 4;
+-		break;
+-	default:
+-		return -EINVAL;
+-	};
+-	buf->nb_planes = nb_channels;
+-
+-	ret = sg_split(sgt->sgl, sgt->nents, 0, nb_channels,
+-		       buf->plane_sizes, buf->sg, buf->sg_len, GFP_KERNEL);
+-	if (ret < 0) {
+-		dev_err(pcdev_to_dev(pcdev),
+-			"sg_split failed: %d\n", ret);
+-		return ret;
+-	}
+-	for (i = 0; i < nb_channels; i++) {
+-		ret = pxa_init_dma_channel(pcdev, buf, i,
+-					   buf->sg[i], buf->sg_len[i]);
+-		if (ret) {
+-			pxa_buffer_cleanup(buf);
+-			return ret;
+-		}
+-	}
+-	INIT_LIST_HEAD(&buf->queue);
+-
+-	return ret;
+-}
+-
+-static void pxac_vb2_cleanup(struct vb2_buffer *vb)
+-{
+-	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
+-	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
+-
+-	dev_dbg(pcdev_to_dev(pcdev),
+-		 "%s(vb=%p)\n", __func__, vb);
+-	pxa_buffer_cleanup(buf);
+-}
+-
+-static void pxac_vb2_queue(struct vb2_buffer *vb)
+-{
+-	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
+-	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
+-
+-	dev_dbg(pcdev_to_dev(pcdev),
+-		 "%s(vb=%p) nb_channels=%d size=%lu active=%p\n",
+-		__func__, vb, pcdev->channels, vb2_get_plane_payload(vb, 0),
+-		pcdev->active);
+-
+-	list_add_tail(&buf->queue, &pcdev->capture);
+-
+-	pxa_dma_add_tail_buf(pcdev, buf);
+-}
+-
+-/*
+- * Please check the DMA prepared buffer structure in :
+- *   Documentation/video4linux/pxa_camera.txt
+- * Please check also in pxa_camera_check_link_miss() to understand why DMA chain
+- * modification while DMA chain is running will work anyway.
+- */
+-static int pxac_vb2_prepare(struct vb2_buffer *vb)
+-{
+-	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
+-	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
+-	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
+-	int ret = 0;
+-
+-	switch (pcdev->channels) {
+-	case 1:
+-	case 3:
+-		vb2_set_plane_payload(vb, 0, icd->sizeimage);
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	dev_dbg(pcdev_to_dev(pcdev),
+-		 "%s (vb=%p) nb_channels=%d size=%lu\n",
+-		__func__, vb, pcdev->channels, vb2_get_plane_payload(vb, 0));
+-
+-	WARN_ON(!icd->current_fmt);
+-
+-#ifdef DEBUG
+-	/*
+-	 * This can be useful if you want to see if we actually fill
+-	 * the buffer with something
+-	 */
+-	for (i = 0; i < vb->num_planes; i++)
+-		memset((void *)vb2_plane_vaddr(vb, i),
+-		       0xaa, vb2_get_plane_payload(vb, i));
+-#endif
+-
+-	/*
+-	 * I think, in buf_prepare you only have to protect global data,
+-	 * the actual buffer is yours
+-	 */
+-	buf->inwork = 0;
+-	pxa_videobuf_set_actdma(pcdev, buf);
+-
+-	return ret;
+-}
+-
+-static int pxac_vb2_init(struct vb2_buffer *vb)
+-{
+-	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
+-	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
+-
+-	dev_dbg(pcdev_to_dev(pcdev),
+-		 "%s(nb_channels=%d)\n",
+-		__func__, pcdev->channels);
+-
+-	return pxa_buffer_init(pcdev, buf);
+-}
+-
+-static int pxac_vb2_queue_setup(struct vb2_queue *vq,
+-				unsigned int *nbufs,
+-				unsigned int *num_planes, unsigned int sizes[],
+-				struct device *alloc_devs[])
+-{
+-	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
+-	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
+-	int size = icd->sizeimage;
+-
+-	dev_dbg(pcdev_to_dev(pcdev),
+-		 "%s(vq=%p nbufs=%d num_planes=%d size=%d)\n",
+-		__func__, vq, *nbufs, *num_planes, size);
+-	/*
+-	 * Called from VIDIOC_REQBUFS or in compatibility mode For YUV422P
+-	 * format, even if there are 3 planes Y, U and V, we reply there is only
+-	 * one plane, containing Y, U and V data, one after the other.
+-	 */
+-	if (*num_planes)
+-		return sizes[0] < size ? -EINVAL : 0;
+-
+-	*num_planes = 1;
+-	switch (pcdev->channels) {
+-	case 1:
+-	case 3:
+-		sizes[0] = size;
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	if (!*nbufs)
+-		*nbufs = 1;
+-
+-	return 0;
+-}
+-
+-static int pxac_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
+-{
+-	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
+-
+-	dev_dbg(pcdev_to_dev(pcdev), "%s(count=%d) active=%p\n",
+-		__func__, count, pcdev->active);
+-
+-	if (!pcdev->active)
+-		pxa_camera_start_capture(pcdev);
+-
+-	return 0;
+-}
+-
+-static void pxac_vb2_stop_streaming(struct vb2_queue *vq)
+-{
+-	vb2_wait_for_all_buffers(vq);
+-}
+-
+-static struct vb2_ops pxac_vb2_ops = {
+-	.queue_setup		= pxac_vb2_queue_setup,
+-	.buf_init		= pxac_vb2_init,
+-	.buf_prepare		= pxac_vb2_prepare,
+-	.buf_queue		= pxac_vb2_queue,
+-	.buf_cleanup		= pxac_vb2_cleanup,
+-	.start_streaming	= pxac_vb2_start_streaming,
+-	.stop_streaming		= pxac_vb2_stop_streaming,
+-	.wait_prepare		= vb2_ops_wait_prepare,
+-	.wait_finish		= vb2_ops_wait_finish,
+-};
+-
+-static int pxa_camera_init_videobuf2(struct vb2_queue *vq,
+-				     struct soc_camera_device *icd)
+-{
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+-	struct pxa_camera_dev *pcdev = ici->priv;
+-	int ret;
+-
+-	vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+-	vq->drv_priv = pcdev;
+-	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+-	vq->buf_struct_size = sizeof(struct pxa_buffer);
+-
+-	vq->ops = &pxac_vb2_ops;
+-	vq->mem_ops = &vb2_dma_sg_memops;
+-
+-	ret = vb2_queue_init(vq);
+-	dev_dbg(pcdev_to_dev(pcdev),
+-		 "vb2_queue_init(vq=%p): %d\n", vq, ret);
+-
+-	return ret;
+-}
+-
+ static u32 mclk_get_divisor(struct platform_device *pdev,
+ 			    struct pxa_camera_dev *pcdev)
+ {
+@@ -1051,6 +819,244 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
+ 	__raw_writel(cicr0, pcdev->base + CICR0);
+ }
+ 
++/*
++ * Videobuf2 section
++ */
++static void pxa_buffer_cleanup(struct pxa_buffer *buf)
++{
++	int i;
++
++	for (i = 0; i < 3 && buf->descs[i]; i++) {
++		dmaengine_desc_free(buf->descs[i]);
++		kfree(buf->sg[i]);
++		buf->descs[i] = NULL;
++		buf->sg[i] = NULL;
++		buf->sg_len[i] = 0;
++		buf->plane_sizes[i] = 0;
++	}
++	buf->nb_planes = 0;
++}
++
++static int pxa_buffer_init(struct pxa_camera_dev *pcdev,
++			   struct pxa_buffer *buf)
++{
++	struct vb2_buffer *vb = &buf->vbuf.vb2_buf;
++	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
++	int nb_channels = pcdev->channels;
++	int i, ret = 0;
++	unsigned long size = vb2_plane_size(vb, 0);
++
++	switch (nb_channels) {
++	case 1:
++		buf->plane_sizes[0] = size;
++		break;
++	case 3:
++		buf->plane_sizes[0] = size / 2;
++		buf->plane_sizes[1] = size / 4;
++		buf->plane_sizes[2] = size / 4;
++		break;
++	default:
++		return -EINVAL;
++	};
++	buf->nb_planes = nb_channels;
++
++	ret = sg_split(sgt->sgl, sgt->nents, 0, nb_channels,
++		       buf->plane_sizes, buf->sg, buf->sg_len, GFP_KERNEL);
++	if (ret < 0) {
++		dev_err(pcdev_to_dev(pcdev),
++			"sg_split failed: %d\n", ret);
++		return ret;
++	}
++	for (i = 0; i < nb_channels; i++) {
++		ret = pxa_init_dma_channel(pcdev, buf, i,
++					   buf->sg[i], buf->sg_len[i]);
++		if (ret) {
++			pxa_buffer_cleanup(buf);
++			return ret;
++		}
++	}
++	INIT_LIST_HEAD(&buf->queue);
++
++	return ret;
++}
++
++static void pxac_vb2_cleanup(struct vb2_buffer *vb)
++{
++	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
++	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
++
++	dev_dbg(pcdev_to_dev(pcdev),
++		 "%s(vb=%p)\n", __func__, vb);
++	pxa_buffer_cleanup(buf);
++}
++
++static void pxac_vb2_queue(struct vb2_buffer *vb)
++{
++	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
++	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
++
++	dev_dbg(pcdev_to_dev(pcdev),
++		 "%s(vb=%p) nb_channels=%d size=%lu active=%p\n",
++		__func__, vb, pcdev->channels, vb2_get_plane_payload(vb, 0),
++		pcdev->active);
++
++	list_add_tail(&buf->queue, &pcdev->capture);
++
++	pxa_dma_add_tail_buf(pcdev, buf);
++}
++
++/*
++ * Please check the DMA prepared buffer structure in :
++ *   Documentation/video4linux/pxa_camera.txt
++ * Please check also in pxa_camera_check_link_miss() to understand why DMA chain
++ * modification while DMA chain is running will work anyway.
++ */
++static int pxac_vb2_prepare(struct vb2_buffer *vb)
++{
++	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
++	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
++	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
++	int ret = 0;
++
++	switch (pcdev->channels) {
++	case 1:
++	case 3:
++		vb2_set_plane_payload(vb, 0, icd->sizeimage);
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	dev_dbg(pcdev_to_dev(pcdev),
++		 "%s (vb=%p) nb_channels=%d size=%lu\n",
++		__func__, vb, pcdev->channels, vb2_get_plane_payload(vb, 0));
++
++	WARN_ON(!icd->current_fmt);
++
++#ifdef DEBUG
++	/*
++	 * This can be useful if you want to see if we actually fill
++	 * the buffer with something
++	 */
++	for (i = 0; i < vb->num_planes; i++)
++		memset((void *)vb2_plane_vaddr(vb, i),
++		       0xaa, vb2_get_plane_payload(vb, i));
++#endif
++
++	/*
++	 * I think, in buf_prepare you only have to protect global data,
++	 * the actual buffer is yours
++	 */
++	buf->inwork = 0;
++	pxa_videobuf_set_actdma(pcdev, buf);
++
++	return ret;
++}
++
++static int pxac_vb2_init(struct vb2_buffer *vb)
++{
++	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vb->vb2_queue);
++	struct pxa_buffer *buf = vb2_to_pxa_buffer(vb);
++
++	dev_dbg(pcdev_to_dev(pcdev),
++		 "%s(nb_channels=%d)\n",
++		__func__, pcdev->channels);
++
++	return pxa_buffer_init(pcdev, buf);
++}
++
++static int pxac_vb2_queue_setup(struct vb2_queue *vq,
++				unsigned int *nbufs,
++				unsigned int *num_planes, unsigned int sizes[],
++				struct device *alloc_devs[])
++{
++	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
++	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
++	int size = icd->sizeimage;
++
++	dev_dbg(pcdev_to_dev(pcdev),
++		 "%s(vq=%p nbufs=%d num_planes=%d size=%d)\n",
++		__func__, vq, *nbufs, *num_planes, size);
++	/*
++	 * Called from VIDIOC_REQBUFS or in compatibility mode For YUV422P
++	 * format, even if there are 3 planes Y, U and V, we reply there is only
++	 * one plane, containing Y, U and V data, one after the other.
++	 */
++	if (*num_planes)
++		return sizes[0] < size ? -EINVAL : 0;
++
++	*num_planes = 1;
++	switch (pcdev->channels) {
++	case 1:
++	case 3:
++		sizes[0] = size;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	if (!*nbufs)
++		*nbufs = 1;
++
++	return 0;
++}
++
++static int pxac_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
++{
++	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
++
++	dev_dbg(pcdev_to_dev(pcdev), "%s(count=%d) active=%p\n",
++		__func__, count, pcdev->active);
++
++	if (!pcdev->active)
++		pxa_camera_start_capture(pcdev);
++
++	return 0;
++}
++
++static void pxac_vb2_stop_streaming(struct vb2_queue *vq)
++{
++	vb2_wait_for_all_buffers(vq);
++}
++
++static struct vb2_ops pxac_vb2_ops = {
++	.queue_setup		= pxac_vb2_queue_setup,
++	.buf_init		= pxac_vb2_init,
++	.buf_prepare		= pxac_vb2_prepare,
++	.buf_queue		= pxac_vb2_queue,
++	.buf_cleanup		= pxac_vb2_cleanup,
++	.start_streaming	= pxac_vb2_start_streaming,
++	.stop_streaming		= pxac_vb2_stop_streaming,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
++};
++
++static int pxa_camera_init_videobuf2(struct vb2_queue *vq,
++				     struct soc_camera_device *icd)
++{
++	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++	struct pxa_camera_dev *pcdev = ici->priv;
++	int ret;
++
++	vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
++	vq->drv_priv = pcdev;
++	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	vq->buf_struct_size = sizeof(struct pxa_buffer);
++
++	vq->ops = &pxac_vb2_ops;
++	vq->mem_ops = &vb2_dma_sg_memops;
++
++	ret = vb2_queue_init(vq);
++	dev_dbg(pcdev_to_dev(pcdev),
++		 "vb2_queue_init(vq=%p): %d\n", vq, ret);
++
++	return ret;
++}
++
++/*
++ * Video ioctls section
++ */
+ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
+ {
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+@@ -1494,6 +1500,9 @@ static int pxa_camera_querycap(struct soc_camera_host *ici,
+ 	return 0;
+ }
+ 
++/*
++ * Driver probe, remove, suspend and resume operations
++ */
+ static int pxa_camera_suspend(struct device *dev)
+ {
+ 	struct soc_camera_host *ici = to_soc_camera_host(dev);
+-- 
+2.1.4
 
