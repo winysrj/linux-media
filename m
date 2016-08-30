@@ -1,153 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41693 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966071AbcHBNRC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Aug 2016 09:17:02 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH (repost) 1/2] cec: rename cec_devnode fhs_lock to just lock
-Date: Tue,  2 Aug 2016 15:16:50 +0200
-Message-Id: <1470143811-9228-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1470143811-9228-1-git-send-email-hverkuil@xs4all.nl>
-References: <1470143811-9228-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.9]:54877 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750800AbcH3XVF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 Aug 2016 19:21:05 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 2/3] docs-rst: kernel-doc: fix typedef output in RST format
+Date: Tue, 30 Aug 2016 20:20:58 -0300
+Message-Id: <9fd5454e49cb08751279198c57413948863ccadb.1472598859.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1472598859.git.mchehab@s-opensource.com>
+References: <cover.1472598859.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1472598859.git.mchehab@s-opensource.com>
+References: <cover.1472598859.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+When using a typedef function like this one:
+	typedef bool v4l2_check_dv_timings_fnc (const struct v4l2_dv_timings * t, void * handle);
 
-This lock will be used to protect more than just the fhs list.
-So rename it to just 'lock'.
+The Sphinx C domain expects it to create a c:type: reference,
+as that's the way it creates the type references when parsing
+a c:function:: declaration.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+So, a declaration like:
+
+	.. c:function:: bool v4l2_valid_dv_timings (const struct v4l2_dv_timings * t, const struct v4l2_dv_timings_cap * cap, v4l2_check_dv_timings_fnc fnc, void * fnc_handle)
+
+Will create a cross reference for :c:type:`v4l2_check_dv_timings_fnc`.
+
+So, when outputting such typedefs in RST format, we need to handle
+this special case, as otherwise it will produce those warnings:
+
+	./include/media/v4l2-dv-timings.h:43: WARNING: c:type reference target not found: v4l2_check_dv_timings_fnc
+	./include/media/v4l2-dv-timings.h:60: WARNING: c:type reference target not found: v4l2_check_dv_timings_fnc
+	./include/media/v4l2-dv-timings.h:81: WARNING: c:type reference target not found: v4l2_check_dv_timings_fnc
+
+So, change the kernel-doc script to produce a RST output for the
+above typedef as:
+	.. c:type:: v4l2_check_dv_timings_fnc
+
+	   **Typedef**: timings check callback
+
+	**Syntax**
+
+	  ``bool v4l2_check_dv_timings_fnc (const struct v4l2_dv_timings * t, void * handle);``
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/staging/media/cec/cec-adap.c | 12 ++++++------
- drivers/staging/media/cec/cec-api.c  |  8 ++++----
- drivers/staging/media/cec/cec-core.c |  6 +++---
- include/media/cec.h                  |  2 +-
- 4 files changed, 14 insertions(+), 14 deletions(-)
+ scripts/kernel-doc | 32 +++++++++++++++++++++++---------
+ 1 file changed, 23 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
-index b2393bb..9dcb784 100644
---- a/drivers/staging/media/cec/cec-adap.c
-+++ b/drivers/staging/media/cec/cec-adap.c
-@@ -124,10 +124,10 @@ static void cec_queue_event(struct cec_adapter *adap,
- 	u64 ts = ktime_get_ns();
- 	struct cec_fh *fh;
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index d94870270d8e..091e49167b44 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -1831,13 +1831,22 @@ sub output_function_rst(%) {
+     my %args = %{$_[0]};
+     my ($parameter, $section);
+     my $oldprefix = $lineprefix;
+-    my $start;
++    my $start = "";
  
--	mutex_lock(&adap->devnode.fhs_lock);
-+	mutex_lock(&adap->devnode.lock);
- 	list_for_each_entry(fh, &adap->devnode.fhs, list)
- 		cec_queue_event_fh(fh, ev, ts);
--	mutex_unlock(&adap->devnode.fhs_lock);
-+	mutex_unlock(&adap->devnode.lock);
- }
+-    print ".. c:function:: ";
++    if ($args{'typedef'}) {
++	print ".. c:type:: ". $args{'function'} . "\n\n";
++	print_lineno($declaration_start_line);
++	print "   **Typedef**: ";
++	$lineprefix = "";
++	output_highlight_rst($args{'purpose'});
++	$start = "\n\n**Syntax**\n\n  ``";
++    } else {
++	print ".. c:function:: ";
++    }
+     if ($args{'functiontype'} ne "") {
+-	$start = $args{'functiontype'} . " " . $args{'function'} . " (";
++	$start .= $args{'functiontype'} . " " . $args{'function'} . " (";
+     } else {
+-	$start = $args{'function'} . " (";
++	$start .= $args{'function'} . " (";
+     }
+     print $start;
  
- /*
-@@ -191,12 +191,12 @@ static void cec_queue_msg_monitor(struct cec_adapter *adap,
- 	u32 monitor_mode = valid_la ? CEC_MODE_MONITOR :
- 				      CEC_MODE_MONITOR_ALL;
- 
--	mutex_lock(&adap->devnode.fhs_lock);
-+	mutex_lock(&adap->devnode.lock);
- 	list_for_each_entry(fh, &adap->devnode.fhs, list) {
- 		if (fh->mode_follower >= monitor_mode)
- 			cec_queue_msg_fh(fh, msg);
+@@ -1857,11 +1866,15 @@ sub output_function_rst(%) {
+ 	    $count++;
  	}
--	mutex_unlock(&adap->devnode.fhs_lock);
-+	mutex_unlock(&adap->devnode.lock);
- }
+     }
+-    print ")\n\n";
+-    print_lineno($declaration_start_line);
+-    $lineprefix = "   ";
+-    output_highlight_rst($args{'purpose'});
+-    print "\n";
++    if ($args{'typedef'}) {
++	print ");``\n\n";
++    } else {
++	print ")\n\n";
++	print_lineno($declaration_start_line);
++	$lineprefix = "   ";
++	output_highlight_rst($args{'purpose'});
++	print "\n";
++    }
  
- /*
-@@ -207,12 +207,12 @@ static void cec_queue_msg_followers(struct cec_adapter *adap,
- {
- 	struct cec_fh *fh;
- 
--	mutex_lock(&adap->devnode.fhs_lock);
-+	mutex_lock(&adap->devnode.lock);
- 	list_for_each_entry(fh, &adap->devnode.fhs, list) {
- 		if (fh->mode_follower == CEC_MODE_FOLLOWER)
- 			cec_queue_msg_fh(fh, msg);
- 	}
--	mutex_unlock(&adap->devnode.fhs_lock);
-+	mutex_unlock(&adap->devnode.lock);
- }
- 
- /* Notify userspace of an adapter state change. */
-diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/staging/media/cec/cec-api.c
-index 7be7615..4e2696a 100644
---- a/drivers/staging/media/cec/cec-api.c
-+++ b/drivers/staging/media/cec/cec-api.c
-@@ -508,14 +508,14 @@ static int cec_open(struct inode *inode, struct file *filp)
- 
- 	filp->private_data = fh;
- 
--	mutex_lock(&devnode->fhs_lock);
-+	mutex_lock(&devnode->lock);
- 	/* Queue up initial state events */
- 	ev_state.state_change.phys_addr = adap->phys_addr;
- 	ev_state.state_change.log_addr_mask = adap->log_addrs.log_addr_mask;
- 	cec_queue_event_fh(fh, &ev_state, 0);
- 
- 	list_add(&fh->list, &devnode->fhs);
--	mutex_unlock(&devnode->fhs_lock);
-+	mutex_unlock(&devnode->lock);
- 
- 	return 0;
- }
-@@ -540,9 +540,9 @@ static int cec_release(struct inode *inode, struct file *filp)
- 		cec_monitor_all_cnt_dec(adap);
- 	mutex_unlock(&adap->lock);
- 
--	mutex_lock(&devnode->fhs_lock);
-+	mutex_lock(&devnode->lock);
- 	list_del(&fh->list);
--	mutex_unlock(&devnode->fhs_lock);
-+	mutex_unlock(&devnode->lock);
- 
- 	/* Unhook pending transmits from this filehandle. */
- 	mutex_lock(&adap->lock);
-diff --git a/drivers/staging/media/cec/cec-core.c b/drivers/staging/media/cec/cec-core.c
-index 112a5fa..73792d0 100644
---- a/drivers/staging/media/cec/cec-core.c
-+++ b/drivers/staging/media/cec/cec-core.c
-@@ -117,7 +117,7 @@ static int __must_check cec_devnode_register(struct cec_devnode *devnode,
- 
- 	/* Initialization */
- 	INIT_LIST_HEAD(&devnode->fhs);
--	mutex_init(&devnode->fhs_lock);
-+	mutex_init(&devnode->lock);
- 
- 	/* Part 1: Find a free minor number */
- 	mutex_lock(&cec_devnode_lock);
-@@ -181,10 +181,10 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
- 	if (!devnode->registered || devnode->unregistered)
- 		return;
- 
--	mutex_lock(&devnode->fhs_lock);
-+	mutex_lock(&devnode->lock);
- 	list_for_each_entry(fh, &devnode->fhs, list)
- 		wake_up_interruptible(&fh->wait);
--	mutex_unlock(&devnode->fhs_lock);
-+	mutex_unlock(&devnode->lock);
- 
- 	devnode->registered = false;
- 	devnode->unregistered = true;
-diff --git a/include/media/cec.h b/include/media/cec.h
-index dc7854b..fdb5d60 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -57,8 +57,8 @@ struct cec_devnode {
- 	int minor;
- 	bool registered;
- 	bool unregistered;
--	struct mutex fhs_lock;
- 	struct list_head fhs;
-+	struct mutex lock;
- };
- 
- struct cec_adapter;
+     print "**Parameters**\n\n";
+     $lineprefix = "  ";
+@@ -2204,6 +2217,7 @@ sub dump_typedef($$) {
+ 	output_declaration($declaration_name,
+ 			   'function',
+ 			   {'function' => $declaration_name,
++			    'typedef' => 1,
+ 			    'module' => $modulename,
+ 			    'functiontype' => $return_type,
+ 			    'parameterlist' => \@parameterlist,
 -- 
-2.8.1
+2.7.4
+
 
