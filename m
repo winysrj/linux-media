@@ -1,93 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:32931 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753890AbcHXKY0 (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:28042 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1757871AbcH3Mjt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Aug 2016 06:24:26 -0400
-Received: by mail-wm0-f65.google.com with SMTP id o80so1968196wme.0
-        for <linux-media@vger.kernel.org>; Wed, 24 Aug 2016 03:24:25 -0700 (PDT)
-From: Johan Fjeldtvedt <jaffe1@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Johan Fjeldtvedt <jaffe1@gmail.com>
-Subject: [PATCH] cec-compliance: fix Device OSD Transfer tests
-Date: Wed, 24 Aug 2016 12:24:05 +0200
-Message-Id: <1472034245-13683-1-git-send-email-jaffe1@gmail.com>
+        Tue, 30 Aug 2016 08:39:49 -0400
+From: Jean Christophe TROTIN <jean-christophe.trotin@st.com>
+To: Peter Griffin <peter.griffin@linaro.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Yannick FERTRE <yannick.fertre@st.com>,
+        "kernel@stlinux.com" <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Date: Tue, 30 Aug 2016 14:39:41 +0200
+Subject: RE: [STLinux Kernel] [PATCH v5 0/3] support of v4l2 encoder for
+ STMicroelectronics SOC
+Message-ID: <A08861FBFE4B8946AB3E6ED5F2D3FEC302BFBA07B6@SAFEX1MAIL3.st.com>
+References: <1472476868-10322-1-git-send-email-jean-christophe.trotin@st.com>
+ <20160830102342.GA19583@griffinp-ThinkPad-X1-Carbon-2nd>
+In-Reply-To: <20160830102342.GA19583@griffinp-ThinkPad-X1-Carbon-2nd>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove a check for whether the first Set OSD String test applies, since this
-test itself is used to determine whether the others apply. This bug
-caused the tests to never be run.
+Hi Peter,
 
-Also fix the test for Set OSD String where the default display control
-operand is given. In this case, when in interactive mode, we should wait for
-at least 20 s and ask the user if there was any change (according to the CEC
-1.4b CTS).
+First of all, thanks for your answer.
+Sorry for the mistake: I missed your first "acked-by" on the version 4 (it seems that I have to review the rules that classify my emails!).
+I wait for some other comments about the version 5, and I will add your "acked-by" in the next version.
 
-Signed-off-by: Johan Fjeldtvedt <jaffe1@gmail.com>
----
- utils/cec-compliance/cec-test.cpp | 26 +++++++++++---------------
- 1 file changed, 11 insertions(+), 15 deletions(-)
+Regards,
+JC.
 
-diff --git a/utils/cec-compliance/cec-test.cpp b/utils/cec-compliance/cec-test.cpp
-index 5fac04a..20d818f 100644
---- a/utils/cec-compliance/cec-test.cpp
-+++ b/utils/cec-compliance/cec-test.cpp
-@@ -354,16 +354,13 @@ static struct remote_subtest device_osd_transfer_subtests[] = {
- 
- static int osd_string_set_default(struct node *node, unsigned me, unsigned la, bool interactive)
- {
--	if (!node->remote[la].has_osd)
--		return NOTAPPLICABLE;
--
- 	struct cec_msg msg = { };
- 	char osd[14];
- 	bool unsuitable = false;
- 
- 	sprintf(osd, "Rept %x from %x", la, me);
- 
--	interactive_info(true, "You should see \"%s\" appear on the screen for approximately one second.", osd);
-+	interactive_info(true, "You should see \"%s\" appear on the screen", osd);
- 	cec_msg_init(&msg, me, la);
- 	cec_msg_set_osd_string(&msg, CEC_OP_DISP_CTL_DEFAULT, osd);
- 	fail_on_test(!transmit_timeout(node, &msg));
-@@ -380,18 +377,17 @@ static int osd_string_set_default(struct node *node, unsigned me, unsigned la, b
- 		warn("The device is in an unsuitable state or cannot display the complete message.\n");
- 		unsuitable = true;
- 	}
--
--	cec_msg_init(&msg, me, la);
--	cec_msg_set_osd_string(&msg, CEC_OP_DISP_CTL_CLEAR, "");
--	fail_on_test(!transmit_timeout(node, &msg, 250));
--	fail_on_test(cec_msg_status_is_abort(&msg));
--	fail_on_test(!unsuitable && interactive && !question("Did the string appear?"));
--
- 	node->remote[la].has_osd = true;
--	if (interactive)
--		return 0;
--	else
-+	if (!interactive)
- 		return PRESUMED_OK;
-+
-+	/* The CEC 1.4b CTS specifies that one should wait at least 20 seconds for the
-+	   string to be cleared on the remote device */
-+	interactive_info(true, "Waiting 20s for OSD string to be cleared on the remote device");
-+	sleep(20);
-+	fail_on_test(!unsuitable && interactive && !question("Did the string appear and then disappear?"));
-+
-+	return 0;
- }
- 
- static int osd_string_set_until_clear(struct node *node, unsigned me, unsigned la, bool interactive)
-@@ -411,7 +407,7 @@ static int osd_string_set_until_clear(struct node *node, unsigned me, unsigned l
- 	cec_msg_init(&msg, me, la);
- 	cec_msg_set_osd_string(&msg, CEC_OP_DISP_CTL_UNTIL_CLEARED, osd);
- 	fail_on_test(!transmit(node, &msg));
--	if (cec_msg_status_is_abort(&msg) && abort_reason(&msg) != CEC_OP_ABORT_UNRECOGNIZED_OP) {
-+	if (cec_msg_status_is_abort(&msg) && !unrecognized_op(&msg)) {
- 		warn("The device is in an unsuitable state or cannot display the complete message.\n");
- 		unsuitable = true;
- 	}
--- 
-2.7.4
+Jean-Christophe TROTIN | TINA: 1667397 | Tel: +33 244027397 | Mobile: +33 624726135
 
+STMicroelectronics
+9-11 rue Pierre-Félix Delarue | 72100 Le Mans | France
+ST online: www.st.com
+
+
+-----Original Message-----
+From: Peter Griffin [mailto:peter.griffin@linaro.org] 
+Sent: mardi 30 août 2016 12:24
+To: Jean Christophe TROTIN <jean-christophe.trotin@st.com>
+Cc: linux-media@vger.kernel.org; Hans Verkuil <hverkuil@xs4all.nl>; Yannick FERTRE <yannick.fertre@st.com>; kernel@stlinux.com; Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [STLinux Kernel] [PATCH v5 0/3] support of v4l2 encoder for STMicroelectronics SOC
+
+Hi Jean-Christophe,
+
+On Mon, 29 Aug 2016, Jean-Christophe Trotin wrote:
+
+> version 5:
+> - Compilation problem with 4.8-rc1 corrected: unsigned long used for dma_attrs
+> - The video bitrate (V4L2_CID_MPEG_VIDEO_BITRATE) and the CPB size (V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE) were respectively considered in kbps and kb, while the V4L2 API specifies them in bps and kB. This is corrected and the code is now aligned with the V4L2 specification
+> - If the encoder close function (enc->close) has not been called through hva_stop_streaming (e.g. application is killed), it's called at the encoder instance release (hva_release)
+> - hva-v4l2.c: DEFAULT_* renamed HVA_DEFAULT_*
+> - hva-v4l2.c: few log messages modified
+> - typos corrected
+> - V4L2 compliance successfully passed with this version (see report below)
+> 
+
+Looks like you forgot to add my: -
+
+ Acked-by: Peter Griffin <peter.griffin@linaro.org>
+
+regards,
+
+Peter.
