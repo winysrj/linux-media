@@ -1,56 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46673 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753291AbcHDLoD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2016 07:44:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran@ksquared.org.uk>
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] v4l: Extend FCP compatible list to support the FDP
-Date: Thu, 04 Aug 2016 14:44:05 +0300
-Message-ID: <3571037.vkY2aLVIRq@avalon>
-In-Reply-To: <1465492003-1554-2-git-send-email-kieran@bingham.xyz>
-References: <1465492003-1554-1-git-send-email-kieran@bingham.xyz> <1465492003-1554-2-git-send-email-kieran@bingham.xyz>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:34798 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758132AbcH3Mbf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 Aug 2016 08:31:35 -0400
+Received: by mail-lf0-f66.google.com with SMTP id k135so891969lfb.1
+        for <linux-media@vger.kernel.org>; Tue, 30 Aug 2016 05:31:34 -0700 (PDT)
+From: Johan Fjeldtvedt <jaffe1@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Johan Fjeldtvedt <jaffe1@gmail.com>
+Subject: [PATCH 1/2] pulse8-cec: fixes
+Date: Tue, 30 Aug 2016 14:31:28 +0200
+Message-Id: <20160830123129.24306-1-jaffe1@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Fix some small things:
+    - clean up setup function
+    - use MSGEND instead of 0xfe
+    - don't assign "return value" from cec_phys_addr to err,
+      it has return type void.
 
-Thank you for the patch.
+Signed-off-by: Johan Fjeldtvedt <jaffe1@gmail.com>
+---
+ drivers/staging/media/pulse8-cec/pulse8-cec.c | 33 ++++++++-------------------
+ 1 file changed, 10 insertions(+), 23 deletions(-)
 
-On Thursday 09 Jun 2016 18:06:43 Kieran Bingham wrote:
-> The FCP must be powered up for the FDP1 to function, even when the FDP1
-> does not make use of the FCNL features. Extend the compatible list
-> to allow us to use the power domain and runtime-pm support.
-> 
-> Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree.
-
-> ---
->  drivers/media/platform/rcar-fcp.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/platform/rcar-fcp.c
-> b/drivers/media/platform/rcar-fcp.c index 6a7bcc3028b1..0ff6b1edf1db 100644
-> --- a/drivers/media/platform/rcar-fcp.c
-> +++ b/drivers/media/platform/rcar-fcp.c
-> @@ -160,6 +160,7 @@ static int rcar_fcp_remove(struct platform_device *pdev)
-> 
->  static const struct of_device_id rcar_fcp_of_match[] = {
->  	{ .compatible = "renesas,fcpv" },
-> +	{ .compatible = "renesas,fcpf" },
->  	{ },
->  };
-
+diff --git a/drivers/staging/media/pulse8-cec/pulse8-cec.c b/drivers/staging/media/pulse8-cec/pulse8-cec.c
+index 193f4d1..1158ba9 100644
+--- a/drivers/staging/media/pulse8-cec/pulse8-cec.c
++++ b/drivers/staging/media/pulse8-cec/pulse8-cec.c
+@@ -266,7 +266,7 @@ static int pulse8_send(struct serio *serio, const u8 *command, u8 cmd_len)
+ 		}
+ 	}
+ 	if (!err)
+-		err = serio_write(serio, 0xfe);
++		err = serio_write(serio, MSGEND);
+ 
+ 	return err;
+ }
+@@ -331,40 +331,29 @@ static int pulse8_setup(struct pulse8 *pulse8, struct serio *serio,
+ 	u8 *data = pulse8->data + 1;
+ 	u8 cmd[2];
+ 	int err;
++	struct tm tm;
++	time_t date;
+ 
+ 	pulse8->vers = 0;
+ 
+-	cmd[0] = MSGCODE_PING;
+-	err = pulse8_send_and_wait(pulse8, cmd, 1,
+-				   MSGCODE_COMMAND_ACCEPTED, 0);
+ 	cmd[0] = MSGCODE_FIRMWARE_VERSION;
+-	if (!err)
+-		err = pulse8_send_and_wait(pulse8, cmd, 1, cmd[0], 2);
++	err = pulse8_send_and_wait(pulse8, cmd, 1, cmd[0], 2);
+ 	if (err)
+ 		return err;
+-
+ 	pulse8->vers = (data[0] << 8) | data[1];
+-
+ 	dev_info(pulse8->dev, "Firmware version %04x\n", pulse8->vers);
+ 	if (pulse8->vers < 2)
+ 		return 0;
+ 
+ 	cmd[0] = MSGCODE_GET_BUILDDATE;
+-	if (!err)
+-		err = pulse8_send_and_wait(pulse8, cmd, 1, cmd[0], 4);
+-	if (!err) {
+-		time_t date = (data[0] << 24) | (data[1] << 16) |
+-			(data[2] << 8) | data[3];
+-		struct tm tm;
+-
+-		time_to_tm(date, 0, &tm);
+-
+-		dev_info(pulse8->dev, "Firmware build date %04ld.%02d.%02d %02d:%02d:%02d\n",
+-			 tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+-			 tm.tm_hour, tm.tm_min, tm.tm_sec);
+-	}
++	err = pulse8_send_and_wait(pulse8, cmd, 1, cmd[0], 4);
+ 	if (err)
+ 		return err;
++	date = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
++	time_to_tm(date, 0, &tm);
++	dev_info(pulse8->dev, "Firmware build date %04ld.%02d.%02d %02d:%02d:%02d\n",
++		 tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
++		 tm.tm_hour, tm.tm_min, tm.tm_sec);
+ 
+ 	dev_dbg(pulse8->dev, "Persistent config:\n");
+ 	cmd[0] = MSGCODE_GET_AUTO_ENABLED;
+@@ -456,8 +445,6 @@ static int pulse8_apply_persistent_config(struct pulse8 *pulse8,
+ 		return err;
+ 
+ 	cec_s_phys_addr(pulse8->adap, pa, false);
+-	if (err)
+-		return err;
+ 
+ 	return 0;
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+2.9.3
 
