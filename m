@@ -1,46 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49441 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750980AbcHaGuW (ORCPT
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:37784 "EHLO
+        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755095AbcH3KXq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Aug 2016 02:50:22 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id 2CC8018014C
-        for <linux-media@vger.kernel.org>; Wed, 31 Aug 2016 08:50:17 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.8] Two cec bug fixes
-Message-ID: <c8b26179-2cac-af84-2113-4a0099ab5c29@xs4all.nl>
-Date: Wed, 31 Aug 2016 08:50:17 +0200
+        Tue, 30 Aug 2016 06:23:46 -0400
+Received: by mail-wm0-f43.google.com with SMTP id i5so27687663wmg.0
+        for <linux-media@vger.kernel.org>; Tue, 30 Aug 2016 03:23:46 -0700 (PDT)
+Date: Tue, 30 Aug 2016 11:23:42 +0100
+From: Peter Griffin <peter.griffin@linaro.org>
+To: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Yannick Fertre <yannick.fertre@st.com>, kernel@stlinux.com,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [STLinux Kernel] [PATCH v5 0/3] support of v4l2 encoder for
+ STMicroelectronics SOC
+Message-ID: <20160830102342.GA19583@griffinp-ThinkPad-X1-Carbon-2nd>
+References: <1472476868-10322-1-git-send-email-jean-christophe.trotin@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1472476868-10322-1-git-send-email-jean-christophe.trotin@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Two CEC bug fixes that should go into 4.8.
+Hi Jean-Christophe,
 
-Regards,
+On Mon, 29 Aug 2016, Jean-Christophe Trotin wrote:
 
-	Hans
+> version 5:
+> - Compilation problem with 4.8-rc1 corrected: unsigned long used for dma_attrs
+> - The video bitrate (V4L2_CID_MPEG_VIDEO_BITRATE) and the CPB size (V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE) were respectively considered in kbps and kb, while the V4L2 API specifies them in bps and kB. This is corrected and the code is now aligned with the V4L2 specification
+> - If the encoder close function (enc->close) has not been called through hva_stop_streaming (e.g. application is killed), it's called at the encoder instance release (hva_release)
+> - hva-v4l2.c: DEFAULT_* renamed HVA_DEFAULT_*
+> - hva-v4l2.c: few log messages modified
+> - typos corrected
+> - V4L2 compliance successfully passed with this version (see report below)
+> 
 
-The following changes since commit fb6609280db902bd5d34445fba1c926e95e63914:
+Looks like you forgot to add my: -
 
-  [media] dvb_frontend: Use memdup_user() rather than duplicating its implementation (2016-08-24 17:20:45 -0300)
+ Acked-by: Peter Griffin <peter.griffin@linaro.org>
 
-are available in the git repository at:
+regards,
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.8c
-
-for you to fetch changes up to 7f1d4c0bb422351f494fb276eeeea5457026800b:
-
-  cec: fix ioctl return code when not registered (2016-08-31 08:47:28 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (2):
-      cec: don't Feature Abort broadcast msgs when unregistered
-      cec: fix ioctl return code when not registered
-
- drivers/staging/media/cec/cec-adap.c | 3 +--
- drivers/staging/media/cec/cec-api.c  | 2 +-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+Peter.
