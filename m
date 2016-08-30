@@ -1,38 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:48969 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752796AbcHJSOl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2016 14:14:41 -0400
-From: Jani Nikula <jani.nikula@intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Markus Heiser <markus.heiser@darmarit.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: Re: parts of media docs sphinx re-building every time?
-In-Reply-To: <20160808142635.4d766f8c@recife.lan>
-References: <8760rbp8zh.fsf@intel.com> <6D7865EB-9C40-4B8F-8D8F-3B28024624F3@darmarit.de> <20160808142635.4d766f8c@recife.lan>
-Date: Wed, 10 Aug 2016 10:46:44 +0300
-Message-ID: <87twetvzff.fsf@intel.com>
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:45930 "EHLO
+        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932696AbcH3RPN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 Aug 2016 13:15:13 -0400
+Date: Tue, 30 Aug 2016 19:14:52 +0200
+From: Greg KH <greg@kroah.com>
+To: Wolfram Sang <wsa-dev@sang-engineering.com>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 00/28] media: don't print error when allocating urb fails
+Message-ID: <20160830171452.GA13250@kroah.com>
+References: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 08 Aug 2016, Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
-> The goal of Documentation/sphinx/parse-headers.pl script is to generate
-> such parsed headers, with the cross-references modified by an exceptions
-> file at Documentation/media/*.h.rst.exceptions.
+On Thu, Aug 11, 2016 at 11:03:36PM +0200, Wolfram Sang wrote:
+> This per-subsystem series is part of a tree wide cleanup. usb_alloc_urb() uses
+> kmalloc which already prints enough information on failure. So, let's simply
+> remove those "allocation failed" messages from drivers like we did already for
+> other -ENOMEM cases. gkh acked this approach when we talked about it at LCJ in
+> Tokyo a few weeks ago.
 
-Would you be so kind as to state in a few lines what you want to
-achieve? I can guess based on the current solution, but I'd like to hear
-it from you. Please leave out rants about tools and languages etc. so we
-can focus on the problem statement, and try to figure out the best
-overall solution.
+I've taken all of these through the usb tree given the delay in response
+from the media developers :)
 
-Thanks,
-Jani.
+thanks,
 
--- 
-Jani Nikula, Intel Open Source Technology Center
+greg k-h
