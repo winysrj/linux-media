@@ -1,190 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:59541 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752632AbcHVK5x (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 06:57:53 -0400
-Subject: Re: [PATCH v5] [media] vimc: Virtual Media Controller core, capture
- and sensor
-To: Helen Koike <helen.koike@collabora.co.uk>,
-        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        jgebben@codeaurora.org, mchehab@osg.samsung.com
-References: <5aae6086-6ba3-c278-ec48-043b17b4aa33@xs4all.nl>
- <1471471756-6114-1-git-send-email-helen.koike@collabora.co.uk>
-Cc: Helen Fornazier <helen.fornazier@gmail.com>,
-        Helen Koike <helen.koike@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ee909db9-eb2b-d81a-347a-fe12112aa1cf@xs4all.nl>
-Date: Mon, 22 Aug 2016 12:57:45 +0200
-MIME-Version: 1.0
-In-Reply-To: <1471471756-6114-1-git-send-email-helen.koike@collabora.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mga05.intel.com ([192.55.52.43]:31187 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932635AbcHaHnI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Aug 2016 03:43:08 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id ECEF1204A3
+        for <linux-media@vger.kernel.org>; Wed, 31 Aug 2016 10:43:00 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 3/5] smiapp: Return -EPROBE_DEFER if the clock cannot be obtained
+Date: Wed, 31 Aug 2016 10:42:03 +0300
+Message-Id: <1472629325-30875-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1472629325-30875-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1472629325-30875-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Helen,
+The clock may be provided by a driver which is yet to probe.
 
-A few small code comments are below.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Note that if I try to capture I see these two messages in the kernel log:
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 92a6859..aaf5299 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2558,7 +2558,7 @@ static int smiapp_init(struct smiapp_sensor *sensor)
+ 		sensor->ext_clk = devm_clk_get(&client->dev, NULL);
+ 		if (IS_ERR(sensor->ext_clk)) {
+ 			dev_err(&client->dev, "could not get clock\n");
+-			return PTR_ERR(sensor->ext_clk);
++			return -EPROBE_DEFER;
+ 		}
+ 
+ 		rval = clk_set_rate(sensor->ext_clk,
+-- 
+2.7.4
 
-[588197.368145] vimc vimc.0: Entity type for entity Sensor A was not initialized!
-[588197.368169] vimc vimc.0: Entity type for entity Sensor B was not initialized!
-
-I also can't capture anything: v4l2-ctl --stream-mmap just sits there, waiting for
-frames, I guess.
-
-I'm not sure if that has to do with the two warnings above.
-
-I am assuming that the initial pipeline is correct and that you should be able
-to start streaming. If not, then attempting to start streaming should return an
-error.
-
-On 08/18/2016 12:09 AM, Helen Koike wrote:
-> From: Helen Fornazier <helen.fornazier@gmail.com>
-> 
-> First version of the Virtual Media Controller.
-> Add a simple version of the core of the driver, the capture and
-> sensor nodes in the topology, generating a grey image in a hardcoded
-> format.
-> 
-> Signed-off-by: Helen Koike <helen.koike@collabora.com>
-
-<snip>
-
-> +static int vimc_cap_querycap(struct file *file, void *priv,
-> +			     struct v4l2_capability *cap)
-> +{
-> +	struct vimc_cap_device *vcap = video_drvdata(file);
-> +
-> +	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
-> +	strlcpy(cap->card, KBUILD_MODNAME, sizeof(cap->card));
-> +	snprintf(cap->bus_info, sizeof(cap->bus_info),
-> +		 "platform:%s", vcap->v4l2_dev->name);
-> +
-> +	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-
-This line should be moved to vimc_cap_create:
-
-	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-
-This is new. The v4l2 core will fill in the querycap capabilities for you
-based on vdev->device_caps.
-
-> +
-> +	return 0;
-> +}
-
-<snip>
-
-> +static int vimc_device_register(struct vimc_device *vimc)
-> +{
-> +	unsigned int i;
-> +	int ret = 0;
-> +
-> +	/* Allocate memory for the vimc_ent_devices pointers */
-> +	vimc->ved = devm_kcalloc(vimc->mdev.dev, vimc->pipe_cfg->num_ents,
-> +				 sizeof(*vimc->ved), GFP_KERNEL);
-> +	if (!vimc->ved)
-> +		return -ENOMEM;
-> +
-> +	/* Register the media device */
-> +	ret = media_device_register(&vimc->mdev);
-> +	if (ret) {
-> +		dev_err(vimc->mdev.dev,
-> +			"media device register failed (err=%d)\n", ret);
-> +		return ret;
-> +	}
-> +
-> +	/* Link the media device within the v4l2_device */
-> +	vimc->v4l2_dev.mdev = &vimc->mdev;
-> +
-> +	/* Register the v4l2 struct */
-> +	ret = v4l2_device_register(vimc->mdev.dev, &vimc->v4l2_dev);
-> +	if (ret) {
-> +		dev_err(vimc->mdev.dev,
-> +			"v4l2 device register failed (err=%d)\n", ret);
-> +		return ret;
-> +	}
-> +
-> +	/* Initialize entities */
-> +	for (i = 0; i < vimc->pipe_cfg->num_ents; i++) {
-> +		struct vimc_ent_device *(*create_func)(struct v4l2_device *,
-> +						       const char *const,
-> +						       u16,
-> +						       const unsigned long *);
-> +
-> +		/* Register the specific node */
-> +		switch (vimc->pipe_cfg->ents[i].node) {
-> +		case VIMC_ENT_NODE_SENSOR:
-> +			create_func = vimc_sen_create;
-> +			break;
-> +
-> +		case VIMC_ENT_NODE_CAPTURE:
-> +			create_func = vimc_cap_create;
-> +			break;
-> +
-> +		/* TODO: Instantiate the specific topology node */
-> +		case VIMC_ENT_NODE_INPUT:
-> +		case VIMC_ENT_NODE_DEBAYER:
-> +		case VIMC_ENT_NODE_SCALER:
-> +		default:
-> +			/* TODO: remove this when all the entities specific
-> +			 * code are implemented
-> +			 */
-> +			create_func = vimc_raw_create;
-> +			break;
-> +		}
-> +
-> +		vimc->ved[i] = create_func(&vimc->v4l2_dev,
-> +					   vimc->pipe_cfg->ents[i].name,
-> +					   vimc->pipe_cfg->ents[i].pads_qty,
-> +					   vimc->pipe_cfg->ents[i].pads_flag);
-> +		if (IS_ERR(vimc->ved[i])) {
-> +			ret = PTR_ERR(vimc->ved[i]);
-> +			vimc->ved[i] = NULL;
-> +			goto err;
-> +		}
-> +
-> +		/* Set use_count to keep track of the ved structure */
-> +		vimc->ved[i]->ent->use_count = i;
-> +	}
-> +
-> +	/* Initialize the links between entities */
-> +	for (i = 0; i < vimc->pipe_cfg->num_links; i++) {
-> +		const struct vimc_ent_link *link = &vimc->pipe_cfg->links[i];
-> +
-> +		ret = media_create_pad_link(vimc->ved[link->src_ent]->ent,
-> +					    link->src_pad,
-> +					    vimc->ved[link->sink_ent]->ent,
-> +					    link->sink_pad,
-> +					    link->flags);
-> +		if (ret)
-> +			goto err;
-> +	}
-> +
-> +	/* Expose all subdev's nodes*/
-> +	ret = v4l2_device_register_subdev_nodes(&vimc->v4l2_dev);
-> +	if (ret) {
-> +		dev_err(vimc->mdev.dev,
-> +			"vimc subdev nodes registration failed (err=%d)\n",
-> +			ret);
-> +		goto err;
-> +	}
-> +
-> +	return 0;
-> +
-> +err:
-> +	/* Destroy de so far created topology */
-
-s/de/the/
-
-> +	vimc_device_unregister(vimc);
-> +
-> +	return ret;
-> +}
-
-Regards,
-
-	Hans
