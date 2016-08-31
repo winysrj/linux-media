@@ -1,64 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39430 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752435AbcHQTvR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2016 15:51:17 -0400
-Date: Wed, 17 Aug 2016 22:50:27 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 1/2] [media] vb2: defer sync buffers from
- vb2_buffer_done() with a workqueue
-Message-ID: <20160817195027.GE3182@valkosipuli.retiisi.org.uk>
-References: <1471458537-16859-1-git-send-email-javier@osg.samsung.com>
- <1471458537-16859-2-git-send-email-javier@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1471458537-16859-2-git-send-email-javier@osg.samsung.com>
+Received: from smtp2.goneo.de ([85.220.129.33]:37480 "EHLO smtp2.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934320AbcHaP3z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Aug 2016 11:29:55 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Markus Heiser <markus.heiser@darmarIT.de>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jani Nikula <jani.nikula@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-doc@vger.kernel.org
+Subject: [PATCH 1/3] doc-rst:c-domain: fix sphinx version incompatibility
+Date: Wed, 31 Aug 2016 17:29:30 +0200
+Message-Id: <1472657372-21039-2-git-send-email-markus.heiser@darmarit.de>
+In-Reply-To: <1472657372-21039-1-git-send-email-markus.heiser@darmarit.de>
+References: <1472657372-21039-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-On Wed, Aug 17, 2016 at 02:28:56PM -0400, Javier Martinez Canillas wrote:
-> The vb2_buffer_done() function can be called from interrupt context but it
-> currently calls the vb2 memory allocator .finish operation to sync buffers
-> and this can take a long time, so it's not suitable to be done there.
-> 
-> This patch defers part of the vb2_buffer_done() logic to a worker thread
-> to avoid doing the time consuming operation in interrupt context.
+The self.indexnode's tuple has changed in sphinx version 1.4, from a
+former 4 element tuple to a 5 element tuple.
 
-I agree the interrupt handler is not the best place to perform the work in
-vb2_buffer_done() (including cache flushing), but is a work queue an ideal
-solution?
+https://github.com/sphinx-doc/sphinx/commit/e6a5a3a92e938fcd75866b4227db9e0524d58f7c
 
-The work queue task is a regular kernel thread not subject to
-sched_setscheduler(2) and alike, which user space programs can and do use to
-change how the scheduler treats these processes. Requiring a work queue to
-be run between the interrupt arriving from the hardware and the user space
-process being able to dequeue the related buffer would hurt use cases where
-strict time limits are crucial.
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
+---
+ Documentation/sphinx/cdomain.py | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-Neither I propose making the work queue to have real time priority either,
-albeit I think might still be marginally better.
-
-Additionally, the work queue brings another context switch per dequeued
-buffer. This would also be undesirable on IoT and mobile systems that often
-handle multiple buffer queues simultaneously.
-
-Performing this task in the context of the process that actually dequeues
-the buffer avoids both of these problem entirely as there are no other
-processes involved.
-
+diff --git a/Documentation/sphinx/cdomain.py b/Documentation/sphinx/cdomain.py
+index 9eb714a..66816ae 100644
+--- a/Documentation/sphinx/cdomain.py
++++ b/Documentation/sphinx/cdomain.py
+@@ -29,11 +29,15 @@ u"""
+ 
+ from docutils.parsers.rst import directives
+ 
++import sphinx
+ from sphinx.domains.c import CObject as Base_CObject
+ from sphinx.domains.c import CDomain as Base_CDomain
+ 
+ __version__  = '1.0'
+ 
++# Get Sphinx version
++major, minor, patch = map(int, sphinx.__version__.split("."))
++
+ def setup(app):
+ 
+     app.override_domain(CDomain)
+@@ -85,8 +89,14 @@ class CObject(Base_CObject):
+ 
+         indextext = self.get_index_text(name)
+         if indextext:
+-            self.indexnode['entries'].append(('single', indextext,
+-                                              targetname, '', None))
++            if major >= 1 and minor < 4:
++                # indexnode's tuple changed in 1.4
++                # https://github.com/sphinx-doc/sphinx/commit/e6a5a3a92e938fcd75866b4227db9e0524d58f7c
++                self.indexnode['entries'].append(
++                    ('single', indextext, targetname, ''))
++            else:
++                self.indexnode['entries'].append(
++                    ('single', indextext, targetname, '', None))
+ 
+ class CDomain(Base_CDomain):
+ 
 -- 
-Kind regards,
+2.7.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
