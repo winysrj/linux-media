@@ -1,45 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:36450 "EHLO
-        mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932346AbcHVPTV (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:41336 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758851AbcHaNZd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 11:19:21 -0400
-Received: by mail-pa0-f53.google.com with SMTP id pp5so38549258pac.3
-        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2016 08:18:51 -0700 (PDT)
-From: Sumit Semwal <sumit.semwal@linaro.org>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, linux-doc@vger.kernel.org
-Cc: corbet@lwn.net, linux-kernel@vger.kernel.org,
-        markus.heiser@darmarit.de, jani.nikula@linux.intel.com,
-        Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH v2 2/2] Documentation/sphinx: link dma-buf rsts
-Date: Mon, 22 Aug 2016 20:41:45 +0530
-Message-Id: <1471878705-3963-3-git-send-email-sumit.semwal@linaro.org>
-In-Reply-To: <1471878705-3963-1-git-send-email-sumit.semwal@linaro.org>
-References: <1471878705-3963-1-git-send-email-sumit.semwal@linaro.org>
+        Wed, 31 Aug 2016 09:25:33 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [PATCH 0/3] Exynos4-IS: improve clock management
+Date: Wed, 31 Aug 2016 15:25:15 +0200
+Message-id: <1472649918-10371-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Include dma-buf sphinx documentation into top level index.
+Dear All,
 
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
----
- Documentation/index.rst | 2 ++
- 1 file changed, 2 insertions(+)
+This is a set of a few patches for Exynos4-IS driver, which improve clock
+management. Those patches are needed for improved runtime pm
+management for Exynos clocks driver, which will be posted in a
+separate thread.
 
-diff --git a/Documentation/index.rst b/Documentation/index.rst
-index e0fc72963e87..8d05070122c2 100644
---- a/Documentation/index.rst
-+++ b/Documentation/index.rst
-@@ -14,6 +14,8 @@ Contents:
-    :maxdepth: 2
- 
-    kernel-documentation
-+   dma-buf/intro
-+   dma-buf/guide
-    media/media_uapi
-    media/media_kapi
-    media/dvb-drivers/index
+Best regards
+Marek Szyprowski
+Samsung R&D Institute Poland
+
+
+Marek Szyprowski (3):
+  exynos4-is: Add support for all required clocks
+  exynos4-is: Improve clock management
+  ARM: exynos: add all required FIMC-IS clocks to exynos4x12 dtsi
+
+ .../devicetree/bindings/media/exynos4-fimc-is.txt        |  7 ++++---
+ arch/arm/boot/dts/exynos4x12.dtsi                        |  5 ++++-
+ drivers/media/platform/exynos4-is/fimc-is.c              |  3 +++
+ drivers/media/platform/exynos4-is/fimc-is.h              |  3 +++
+ drivers/media/platform/exynos4-is/fimc-lite.c            | 16 ++++------------
+ 5 files changed, 18 insertions(+), 16 deletions(-)
+
 -- 
-2.7.4
+1.9.1
 
