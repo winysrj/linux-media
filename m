@@ -1,53 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:57196 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933253AbcHDJaG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Aug 2016 05:30:06 -0400
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49441 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750980AbcHaGuW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Aug 2016 02:50:22 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 2CC8018014C
+        for <linux-media@vger.kernel.org>; Wed, 31 Aug 2016 08:50:17 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 6/7] pixfmt-007.rst: fix a messed up note in the DCI-P3 doc
-Date: Thu,  4 Aug 2016 11:28:20 +0200
-Message-Id: <1470302901-29281-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1470302901-29281-1-git-send-email-hverkuil@xs4all.nl>
-References: <1470302901-29281-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.8] Two cec bug fixes
+Message-ID: <c8b26179-2cac-af84-2113-4a0099ab5c29@xs4all.nl>
+Date: Wed, 31 Aug 2016 08:50:17 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Two CEC bug fixes that should go into 4.8.
 
-The text of the note included text that shouldn't have been part
-of the note. Move that out of the note into the proper place.
+Regards,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/v4l/pixfmt-007.rst | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+	Hans
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-007.rst b/Documentation/media/uapi/v4l/pixfmt-007.rst
-index 0f9ce74..6ca475a 100644
---- a/Documentation/media/uapi/v4l/pixfmt-007.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-007.rst
-@@ -532,13 +532,13 @@ Colorspace DCI-P3 (V4L2_COLORSPACE_DCI_P3)
- The :ref:`smpte431` standard defines the colorspace used by cinema
- projectors that use the DCI-P3 colorspace. The default transfer function
- is ``V4L2_XFER_FUNC_DCI_P3``. The default Y'CbCr encoding is
--``V4L2_YCBCR_ENC_709``.
-+``V4L2_YCBCR_ENC_709``. The default Y'CbCr quantization is limited range.
- 
--.. note:: Note that this colorspace does not specify a
-+.. note:: Note that this colorspace standard does not specify a
-    Y'CbCr encoding since it is not meant to be encoded to Y'CbCr. So this
--   default Y'CbCr encoding was picked because it is the HDTV encoding. The
--   default Y'CbCr quantization is limited range. The chromaticities of the
--   primary colors and the white reference are:
-+   default Y'CbCr encoding was picked because it is the HDTV encoding.
-+
-+The chromaticities of the primary colors and the white reference are:
- 
- 
- 
--- 
-2.8.1
+The following changes since commit fb6609280db902bd5d34445fba1c926e95e63914:
 
+  [media] dvb_frontend: Use memdup_user() rather than duplicating its implementation (2016-08-24 17:20:45 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.8c
+
+for you to fetch changes up to 7f1d4c0bb422351f494fb276eeeea5457026800b:
+
+  cec: fix ioctl return code when not registered (2016-08-31 08:47:28 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (2):
+      cec: don't Feature Abort broadcast msgs when unregistered
+      cec: fix ioctl return code when not registered
+
+ drivers/staging/media/cec/cec-adap.c | 3 +--
+ drivers/staging/media/cec/cec-api.c  | 2 +-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
