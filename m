@@ -1,89 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:51868 "EHLO smtp3-1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752796AbcHOMrY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2016 08:47:24 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH] doc-rst: kernel-doc: fix handling of address_space tags
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <263bbae9c1bf6ea7c14dad8c29f9b3148b2b5de7.1469198779.git.mchehab@s-opensource.com>
-Date: Mon, 15 Aug 2016 14:47:08 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <69B89C91-584C-425D-A722-F609A1FB4562@darmarit.de>
-References: <263bbae9c1bf6ea7c14dad8c29f9b3148b2b5de7.1469198779.git.mchehab@s-opensource.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-	Jonathan Corbet <corbet@lwn.net>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:53302 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1757620AbcHaCzb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 Aug 2016 22:55:31 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 5BA85180A25
+        for <linux-media@vger.kernel.org>; Wed, 31 Aug 2016 04:54:40 +0200 (CEST)
+Date: Wed, 31 Aug 2016 04:54:40 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160831025440.5BA85180A25@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Am 22.07.2016 um 16:46 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+Results of the daily build of media_tree:
 
-> The RST cpp:function handler is very pedantic: it doesn't allow any
-> macros like __user on it:
-> 
-> 	Documentation/media/kapi/dtv-core.rst:28: WARNING: Error when parsing function declaration.
-> 	If the function has no return type:
-> 	  Error in declarator or parameters and qualifiers
-> 	  Invalid definition: Expecting "(" in parameters_and_qualifiers. [error at 8]
-> 	    ssize_t dvb_ringbuffer_pkt_read_user (struct dvb_ringbuffer * rbuf, size_t idx, int offset, u8 __user * buf, size_t len)
-> 	    --------^
-> 	If the function has a return type:
-> 	  Error in declarator or parameters and qualifiers
-> 	  If pointer to member declarator:
-> 	    Invalid definition: Expected '::' in pointer to member (function). [error at 37]
-> 	      ssize_t dvb_ringbuffer_pkt_read_user (struct dvb_ringbuffer * rbuf, size_t idx, int offset, u8 __user * buf, size_t len)
-> 	      -------------------------------------^
-> 	  If declarator-id:
-> 	    Invalid definition: Expecting "," or ")" in parameters_and_qualifiers, got "*". [error at 102]
-> 	      ssize_t dvb_ringbuffer_pkt_read_user (struct dvb_ringbuffer * rbuf, size_t idx, int offset, u8 __user * buf, size_t len)
-> 	      ------------------------------------------------------------------------------------------------------^
-> 
+date:		Wed Aug 31 04:00:17 CEST 2016
+git branch:	test
+git hash:	fb6609280db902bd5d34445fba1c926e95e63914
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-May I'am wrong, but as far as I know, we get this error only 
-if we are using the CPP-domain. Since the kernel-doc parser
-uses the C-domain, we should not have those error messages
-(tested here with sphinx 1.4).
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: OK
+linux-4.8-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: OK
+linux-4.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-That said, I don't see the need to change the kernel-doc parser
-eleminating the address_space tags.
+Detailed results are available here:
 
-Or did I missed some point?
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
--- Markus --
+Full logs are available here:
 
-> So, we have to remove it from the function prototype.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
-> scripts/kernel-doc | 4 ++++
-> 1 file changed, 4 insertions(+)
-> 
-> diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-> index 41eade332307..4394746cc1aa 100755
-> --- a/scripts/kernel-doc
-> +++ b/scripts/kernel-doc
-> @@ -1848,6 +1848,10 @@ sub output_function_rst(%) {
-> 	}
-> 	$count++;
-> 	$type = $args{'parametertypes'}{$parameter};
-> +
-> +	# RST doesn't like address_space tags at function prototypes
-> +	$type =~ s/__(user|kernel|iomem|percpu|pmem|rcu)\s*//;
-> +
-> 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
-> 	    # pointer-to-function
-> 	    print $1 . $parameter . ") (" . $2;
-> -- 
-> 2.7.4
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
