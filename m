@@ -1,129 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:61032 "EHLO mga06.intel.com"
+Received: from smtp2.goneo.de ([85.220.129.33]:37490 "EHLO smtp2.goneo.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934226AbcHaNCb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Aug 2016 09:02:31 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, sre@kernel.org
-Subject: [PATCH v1.1 6/6] smiapp: Remove set_xclk() callback from hwconfig
-Date: Wed, 31 Aug 2016 16:01:37 +0300
-Message-Id: <1472648497-26658-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1472629325-30875-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1472629325-30875-1-git-send-email-sakari.ailus@linux.intel.com>
+        id S933887AbcHaP34 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Aug 2016 11:29:56 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Markus Heiser <markus.heiser@darmarIT.de>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jani Nikula <jani.nikula@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-doc@vger.kernel.org
+Subject: [PATCH 2/3] doc-rst:c-domain: function-like macros arguments
+Date: Wed, 31 Aug 2016 17:29:31 +0200
+Message-Id: <1472657372-21039-3-git-send-email-markus.heiser@darmarit.de>
+In-Reply-To: <1472657372-21039-1-git-send-email-markus.heiser@darmarit.de>
+References: <1472657372-21039-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The clock framework is generally so well supported that there's no reason
-to keep this one around.
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Handle signatures of function-like macros well. Don't try to deduce
+arguments types of function-like macros.
+
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c | 49 ++++++++++++----------------------
- include/media/i2c/smiapp.h             |  2 --
- 2 files changed, 17 insertions(+), 34 deletions(-)
+ Documentation/sphinx/cdomain.py | 55 ++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 54 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 1ecc9a4..05ab0d0 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -1201,11 +1201,7 @@ static int smiapp_power_on(struct smiapp_sensor *sensor)
- 	}
- 	usleep_range(1000, 1000);
+diff --git a/Documentation/sphinx/cdomain.py b/Documentation/sphinx/cdomain.py
+index 66816ae..0816090 100644
+--- a/Documentation/sphinx/cdomain.py
++++ b/Documentation/sphinx/cdomain.py
+@@ -1,4 +1,5 @@
+ # -*- coding: utf-8; mode: python -*-
++# pylint: disable=W0141,C0113,C0103,C0325
+ u"""
+     cdomain
+     ~~~~~~~
+@@ -25,11 +26,18 @@ u"""
  
--	if (sensor->hwcfg->set_xclk)
--		rval = sensor->hwcfg->set_xclk(
--			&sensor->src->sd, sensor->hwcfg->ext_clk);
--	else
--		rval = clk_prepare_enable(sensor->ext_clk);
-+	rval = clk_prepare_enable(sensor->ext_clk);
- 	if (rval < 0) {
- 		dev_dbg(&client->dev, "failed to enable xclk\n");
- 		goto out_xclk_fail;
-@@ -1322,10 +1318,7 @@ static int smiapp_power_on(struct smiapp_sensor *sensor)
+           * :c:func:`VIDIOC_LOG_STATUS` or
+           * :any:`VIDIOC_LOG_STATUS` (``:any:`` needs sphinx 1.3)
++
++     * Handle signatures of function-like macros well. Don't try to deduce
++       arguments types of function-like macros.
++
+ """
  
- out_cci_addr_fail:
- 	gpiod_set_value(sensor->xshutdown, 0);
--	if (sensor->hwcfg->set_xclk)
--		sensor->hwcfg->set_xclk(&sensor->src->sd, 0);
--	else
--		clk_disable_unprepare(sensor->ext_clk);
-+	clk_disable_unprepare(sensor->ext_clk);
++from docutils import nodes
+ from docutils.parsers.rst import directives
  
- out_xclk_fail:
- 	regulator_disable(sensor->vana);
-@@ -1347,10 +1340,7 @@ static void smiapp_power_off(struct smiapp_sensor *sensor)
- 			     SMIAPP_SOFTWARE_RESET);
+ import sphinx
++from sphinx import addnodes
++from sphinx.domains.c import c_funcptr_sig_re, c_sig_re
+ from sphinx.domains.c import CObject as Base_CObject
+ from sphinx.domains.c import CDomain as Base_CDomain
  
- 	gpiod_set_value(sensor->xshutdown, 0);
--	if (sensor->hwcfg->set_xclk)
--		sensor->hwcfg->set_xclk(&sensor->src->sd, 0);
--	else
--		clk_disable_unprepare(sensor->ext_clk);
-+	clk_disable_unprepare(sensor->ext_clk);
- 	usleep_range(5000, 5000);
- 	regulator_disable(sensor->vana);
- 	sensor->streaming = false;
-@@ -2551,22 +2541,20 @@ static int smiapp_init(struct smiapp_sensor *sensor)
- 		return PTR_ERR(sensor->vana);
- 	}
+@@ -38,6 +46,7 @@ __version__  = '1.0'
+ # Get Sphinx version
+ major, minor, patch = map(int, sphinx.__version__.split("."))
  
--	if (!sensor->hwcfg->set_xclk) {
--		sensor->ext_clk = devm_clk_get(&client->dev, NULL);
--		if (IS_ERR(sensor->ext_clk)) {
--			dev_err(&client->dev, "could not get clock (%ld)\n",
--				PTR_ERR(sensor->ext_clk));
--			return -EPROBE_DEFER;
--		}
-+	sensor->ext_clk = devm_clk_get(&client->dev, NULL);
-+	if (IS_ERR(sensor->ext_clk)) {
-+		dev_err(&client->dev, "could not get clock (%ld)\n",
-+			PTR_ERR(sensor->ext_clk));
-+		return -EPROBE_DEFER;
-+	}
++
+ def setup(app):
  
--		rval = clk_set_rate(sensor->ext_clk,
--				    sensor->hwcfg->ext_clk);
--		if (rval < 0) {
--			dev_err(&client->dev,
--				"unable to set clock freq to %u\n",
--				sensor->hwcfg->ext_clk);
--			return rval;
--		}
-+	rval = clk_set_rate(sensor->ext_clk,
-+			    sensor->hwcfg->ext_clk);
-+	if (rval < 0) {
-+		dev_err(&client->dev,
-+			"unable to set clock freq to %u\n",
-+			sensor->hwcfg->ext_clk);
-+		return rval;
- 	}
+     app.override_domain(CDomain)
+@@ -57,9 +66,53 @@ class CObject(Base_CObject):
+         "name" : directives.unchanged
+     }
  
- 	sensor->xshutdown = devm_gpiod_get_optional(&client->dev, "xshutdown",
-@@ -3108,10 +3096,7 @@ static int smiapp_remove(struct i2c_client *client)
- 
- 	if (sensor->power_count) {
- 		gpiod_set_value(sensor->xshutdown, 0);
--		if (sensor->hwcfg->set_xclk)
--			sensor->hwcfg->set_xclk(&sensor->src->sd, 0);
--		else
--			clk_disable_unprepare(sensor->ext_clk);
-+		clk_disable_unprepare(sensor->ext_clk);
- 		sensor->power_count = 0;
- 	}
- 
-diff --git a/include/media/i2c/smiapp.h b/include/media/i2c/smiapp.h
-index eacc3f4..635007e 100644
---- a/include/media/i2c/smiapp.h
-+++ b/include/media/i2c/smiapp.h
-@@ -73,8 +73,6 @@ struct smiapp_hwconfig {
- 	enum smiapp_module_board_orient module_board_orient;
- 
- 	struct smiapp_flash_strobe_parms *strobe_setup;
--
--	int (*set_xclk)(struct v4l2_subdev *sd, int hz);
- };
- 
- #endif /* __SMIAPP_H_  */
++    def handle_func_like_macro(self, sig, signode):
++        u"""Handles signatures of function-like macros.
++
++        If the objtype is 'function' and the the signature ``sig`` is a
++        function-like macro, the name of the macro is returned. Otherwise
++        ``False`` is returned.  """
++
++        if not self.objtype == 'function':
++            return False
++
++        m = c_funcptr_sig_re.match(sig)
++        if m is None:
++            m = c_sig_re.match(sig)
++        if m is None:
++            raise ValueError('no match')
++
++        rettype, fullname, arglist, _const = m.groups()
++        if rettype or not arglist.strip():
++            return False
++
++        arglist = arglist.replace('`', '').replace('\\ ', '').strip()  # remove markup
++        arglist = [a.strip() for a in arglist.split(",")]
++
++        # has the first argument a type?
++        if len(arglist[0].split(" ")) > 1:
++            return False
++
++        # This is a function-like macro, it's arguments are typeless!
++        signode  += addnodes.desc_name(fullname, fullname)
++        paramlist = addnodes.desc_parameterlist()
++        signode  += paramlist
++
++        for argname in arglist:
++            param = addnodes.desc_parameter('', '', noemph=True)
++            # separate by non-breaking space in the output
++            param += nodes.emphasis(argname, argname)
++            paramlist += param
++
++        return fullname
++
+     def handle_signature(self, sig, signode):
+         """Transform a C signature into RST nodes."""
+-        fullname = super(CObject, self).handle_signature(sig, signode)
++
++        fullname = self.handle_func_like_macro(sig, signode)
++        if not fullname:
++            fullname = super(CObject, self).handle_signature(sig, signode)
++
+         if "name" in self.options:
+             if self.objtype == 'function':
+                 fullname = self.options["name"]
 -- 
 2.7.4
 
