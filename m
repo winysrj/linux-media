@@ -1,151 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:49937 "EHLO smtp3-1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752683AbcHMONe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Aug 2016 10:13:34 -0400
-From: Markus Heiser <markus.heiser@darmarit.de>
-To: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jani Nikula <jani.nikula@intel.com>
-Cc: Markus Heiser <markus.heiser@darmarIT.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 3/7] doc-rst: add media/conf_nitpick.py
-Date: Sat, 13 Aug 2016 16:12:44 +0200
-Message-Id: <1471097568-25990-4-git-send-email-markus.heiser@darmarit.de>
-In-Reply-To: <1471097568-25990-1-git-send-email-markus.heiser@darmarit.de>
-References: <1471097568-25990-1-git-send-email-markus.heiser@darmarit.de>
+Received: from mga07.intel.com ([134.134.136.100]:33356 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934161AbcHaNCv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Aug 2016 09:02:51 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, sre@kernel.org
+Subject: [PATCH v1.1 5/5] smiapp: Switch to gpiod API for GPIO control
+Date: Wed, 31 Aug 2016 16:00:56 +0300
+Message-Id: <1472648456-26608-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1472629325-30875-4-git-send-email-sakari.ailus@linux.intel.com>
+References: <1472629325-30875-4-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Heiser <markus.heiser@darmarIT.de>
+Switch from the old gpio API to the new descriptor based gpiod API.
 
-The media/conf_nitpick.py is a *build-theme* wich uses the nit-picking
-mode of sphinx. To compile only the html of 'media' with the nit-picking
-build use::
-
-  make SPHINXDIRS=media SPHINX_CONF=conf_nitpick.py htmldocs
-
-With this, the Documentation/conf.py is read first and updated with the
-configuration values from the Documentation/media/conf_nitpick.py.
-
-The origin media/conf_nitpick.py comes from Mauro's experimental
-docs-next branch::
-
-  https://git.linuxtv.org/mchehab/experimental.git mchehab/docs-next
-
-BTW fixed python indentation in media/conf_nitpick.py.  Python
-indentation is 4 spaces [1] and Python 3 disallows mixing the use of
-tabs and spaces for indentation [2].
-
-[1] https://www.python.org/dev/peps/pep-0008/#indentation
-[2] https://www.python.org/dev/peps/pep-0008/#tabs-or-spaces
-
-Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/media/conf_nitpick.py | 93 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 93 insertions(+)
- create mode 100644 Documentation/media/conf_nitpick.py
+- Remove xshutdown field in smiapp_hwconfig, and SMIAPP_NO_XSHUTDOWN macro
 
-diff --git a/Documentation/media/conf_nitpick.py b/Documentation/media/conf_nitpick.py
-new file mode 100644
-index 0000000..11beac2
---- /dev/null
-+++ b/Documentation/media/conf_nitpick.py
-@@ -0,0 +1,93 @@
-+# -*- coding: utf-8; mode: python -*-
-+
-+project = 'Linux Media Subsystem Documentation'
-+
-+# It is possible to run Sphinx in nickpick mode with:
-+nitpicky = True
-+
-+# within nit-picking build, do not refer to any intersphinx object
-+intersphinx_mapping = {}
-+
-+# In nickpick mode, it will complain about lots of missing references that
-+#
-+# 1) are just typedefs like: bool, __u32, etc;
-+# 2) It will complain for things like: enum, NULL;
-+# 3) It will complain for symbols that should be on different
-+#    books (but currently aren't ported to ReST)
-+#
-+# The list below has a list of such symbols to be ignored in nitpick mode
-+#
-+nitpick_ignore = [
-+    ("c:func", "clock_gettime"),
-+    ("c:func", "close"),
-+    ("c:func", "container_of"),
-+    ("c:func", "determine_valid_ioctls"),
-+    ("c:func", "ERR_PTR"),
-+    ("c:func", "ioctl"),
-+    ("c:func", "IS_ERR"),
-+    ("c:func", "mmap"),
-+    ("c:func", "open"),
-+    ("c:func", "pci_name"),
-+    ("c:func", "poll"),
-+    ("c:func", "PTR_ERR"),
-+    ("c:func", "read"),
-+    ("c:func", "release"),
-+    ("c:func", "set"),
-+    ("c:func", "struct fd_set"),
-+    ("c:func", "struct pollfd"),
-+    ("c:func", "usb_make_path"),
-+    ("c:func", "write"),
-+    ("c:type", "atomic_t"),
-+    ("c:type", "bool"),
-+    ("c:type", "buf_queue"),
-+    ("c:type", "device"),
-+    ("c:type", "device_driver"),
-+    ("c:type", "device_node"),
-+    ("c:type", "enum"),
-+    ("c:type", "file"),
-+    ("c:type", "i2c_adapter"),
-+    ("c:type", "i2c_board_info"),
-+    ("c:type", "i2c_client"),
-+    ("c:type", "ktime_t"),
-+    ("c:type", "led_classdev_flash"),
-+    ("c:type", "list_head"),
-+    ("c:type", "lock_class_key"),
-+    ("c:type", "module"),
-+    ("c:type", "mutex"),
-+    ("c:type", "pci_dev"),
-+    ("c:type", "pdvbdev"),
-+    ("c:type", "poll_table_struct"),
-+    ("c:type", "s32"),
-+    ("c:type", "s64"),
-+    ("c:type", "sd"),
-+    ("c:type", "spi_board_info"),
-+    ("c:type", "spi_device"),
-+    ("c:type", "spi_master"),
-+    ("c:type", "struct fb_fix_screeninfo"),
-+    ("c:type", "struct pollfd"),
-+    ("c:type", "struct timeval"),
-+    ("c:type", "struct video_capability"),
-+    ("c:type", "u16"),
-+    ("c:type", "u32"),
-+    ("c:type", "u64"),
-+    ("c:type", "u8"),
-+    ("c:type", "union"),
-+    ("c:type", "usb_device"),
-+
-+    ("cpp:type", "boolean"),
-+    ("cpp:type", "fd"),
-+    ("cpp:type", "fd_set"),
-+    ("cpp:type", "int16_t"),
-+    ("cpp:type", "NULL"),
-+    ("cpp:type", "off_t"),
-+    ("cpp:type", "pollfd"),
-+    ("cpp:type", "size_t"),
-+    ("cpp:type", "ssize_t"),
-+    ("cpp:type", "timeval"),
-+    ("cpp:type", "__u16"),
-+    ("cpp:type", "__u32"),
-+    ("cpp:type", "__u64"),
-+    ("cpp:type", "uint16_t"),
-+    ("cpp:type", "uint32_t"),
-+    ("cpp:type", "video_system_t"),
-+]
+ drivers/media/i2c/smiapp/smiapp-core.c | 36 +++++++++++-----------------------
+ drivers/media/i2c/smiapp/smiapp.h      |  1 +
+ include/media/i2c/smiapp.h             |  3 ---
+ 3 files changed, 12 insertions(+), 28 deletions(-)
+
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 103e335..1ecc9a4 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -24,8 +24,8 @@
+ #include <linux/delay.h>
+ #include <linux/device.h>
+ #include <linux/gpio.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/module.h>
+-#include <linux/of_gpio.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/smiapp.h>
+@@ -1212,8 +1212,7 @@ static int smiapp_power_on(struct smiapp_sensor *sensor)
+ 	}
+ 	usleep_range(1000, 1000);
+ 
+-	if (gpio_is_valid(sensor->hwcfg->xshutdown))
+-		gpio_set_value(sensor->hwcfg->xshutdown, 1);
++	gpiod_set_value(sensor->xshutdown, 1);
+ 
+ 	sleep = SMIAPP_RESET_DELAY(sensor->hwcfg->ext_clk);
+ 	usleep_range(sleep, sleep);
+@@ -1322,8 +1321,7 @@ static int smiapp_power_on(struct smiapp_sensor *sensor)
+ 	return 0;
+ 
+ out_cci_addr_fail:
+-	if (gpio_is_valid(sensor->hwcfg->xshutdown))
+-		gpio_set_value(sensor->hwcfg->xshutdown, 0);
++	gpiod_set_value(sensor->xshutdown, 0);
+ 	if (sensor->hwcfg->set_xclk)
+ 		sensor->hwcfg->set_xclk(&sensor->src->sd, 0);
+ 	else
+@@ -1348,8 +1346,7 @@ static void smiapp_power_off(struct smiapp_sensor *sensor)
+ 			     SMIAPP_REG_U8_SOFTWARE_RESET,
+ 			     SMIAPP_SOFTWARE_RESET);
+ 
+-	if (gpio_is_valid(sensor->hwcfg->xshutdown))
+-		gpio_set_value(sensor->hwcfg->xshutdown, 0);
++	gpiod_set_value(sensor->xshutdown, 0);
+ 	if (sensor->hwcfg->set_xclk)
+ 		sensor->hwcfg->set_xclk(&sensor->src->sd, 0);
+ 	else
+@@ -2572,17 +2569,10 @@ static int smiapp_init(struct smiapp_sensor *sensor)
+ 		}
+ 	}
+ 
+-	if (gpio_is_valid(sensor->hwcfg->xshutdown)) {
+-		rval = devm_gpio_request_one(
+-			&client->dev, sensor->hwcfg->xshutdown, 0,
+-			"SMIA++ xshutdown");
+-		if (rval < 0) {
+-			dev_err(&client->dev,
+-				"unable to acquire reset gpio %d\n",
+-				sensor->hwcfg->xshutdown);
+-			return rval;
+-		}
+-	}
++	sensor->xshutdown = devm_gpiod_get_optional(&client->dev, "xshutdown",
++						    GPIOD_OUT_LOW);
++	if (!sensor->xshutdown)
++		dev_dbg(&client->dev, "no xshutdown GPIO available\n");
+ 
+ 	rval = smiapp_power_on(sensor);
+ 	if (rval)
+@@ -3020,9 +3010,6 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+ 	hwcfg->lanes = bus_cfg->bus.mipi_csi2.num_data_lanes;
+ 	dev_dbg(dev, "lanes %u\n", hwcfg->lanes);
+ 
+-	/* xshutdown GPIO is optional */
+-	hwcfg->xshutdown = of_get_named_gpio(dev->of_node, "reset-gpios", 0);
+-
+ 	/* NVM size is not mandatory */
+ 	of_property_read_u32(dev->of_node, "nokia,nvm-size",
+ 				    &hwcfg->nvm_size);
+@@ -3034,8 +3021,8 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+ 		goto out_err;
+ 	}
+ 
+-	dev_dbg(dev, "reset %d, nvm %d, clk %d, csi %d\n", hwcfg->xshutdown,
+-		hwcfg->nvm_size, hwcfg->ext_clk, hwcfg->csi_signalling_mode);
++	dev_dbg(dev, "nvm %d, clk %d, csi %d\n", hwcfg->nvm_size,
++		hwcfg->ext_clk, hwcfg->csi_signalling_mode);
+ 
+ 	if (!bus_cfg->nr_of_link_frequencies) {
+ 		dev_warn(dev, "no link frequencies defined\n");
+@@ -3120,8 +3107,7 @@ static int smiapp_remove(struct i2c_client *client)
+ 	v4l2_async_unregister_subdev(subdev);
+ 
+ 	if (sensor->power_count) {
+-		if (gpio_is_valid(sensor->hwcfg->xshutdown))
+-			gpio_set_value(sensor->hwcfg->xshutdown, 0);
++		gpiod_set_value(sensor->xshutdown, 0);
+ 		if (sensor->hwcfg->set_xclk)
+ 			sensor->hwcfg->set_xclk(&sensor->src->sd, 0);
+ 		else
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index 6ff095a..c504bd8 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -200,6 +200,7 @@ struct smiapp_sensor {
+ 	struct smiapp_hwconfig *hwcfg;
+ 	struct regulator *vana;
+ 	struct clk *ext_clk;
++	struct gpio_desc *xshutdown;
+ 	u32 limits[SMIAPP_LIMIT_LAST];
+ 	u8 nbinning_subtypes;
+ 	struct smiapp_binning_subtype binning_subtypes[SMIAPP_BINNING_SUBTYPES];
+diff --git a/include/media/i2c/smiapp.h b/include/media/i2c/smiapp.h
+index a4a1b51..eacc3f4 100644
+--- a/include/media/i2c/smiapp.h
++++ b/include/media/i2c/smiapp.h
+@@ -36,8 +36,6 @@
+ #define SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_STROBE	1
+ #define SMIAPP_CSI_SIGNALLING_MODE_CSI2			2
+ 
+-#define SMIAPP_NO_XSHUTDOWN	-1
+-
+ /*
+  * Sometimes due to board layout considerations the camera module can be
+  * mounted rotated. The typical rotation used is 180 degrees which can be
+@@ -77,7 +75,6 @@ struct smiapp_hwconfig {
+ 	struct smiapp_flash_strobe_parms *strobe_setup;
+ 
+ 	int (*set_xclk)(struct v4l2_subdev *sd, int hz);
+-	int32_t xshutdown;		/* gpio or SMIAPP_NO_XSHUTDOWN */
+ };
+ 
+ #endif /* __SMIAPP_H_  */
 -- 
 2.7.4
 
