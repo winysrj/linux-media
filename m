@@ -1,68 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51837 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752175AbcHLKGv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2016 06:06:51 -0400
-Subject: Re: [PATCH] Documentation: add support for V4L touch devices
-To: y@shmanahar.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-References: <1468876238-24599-1-git-send-email-nick@shmanahar.org>
- <1468876312-24688-1-git-send-email-y>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	Nick Dyer <nick@shmanahar.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b96bd93f-5336-eb88-70dc-4ba4076b9511@xs4all.nl>
-Date: Fri, 12 Aug 2016 12:06:45 +0200
-MIME-Version: 1.0
-In-Reply-To: <1468876312-24688-1-git-send-email-y>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from smtp2.goneo.de ([85.220.129.33]:37456 "EHLO smtp2.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933887AbcHaP3y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Aug 2016 11:29:54 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Markus Heiser <markus.heiser@darmarIT.de>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jani Nikula <jani.nikula@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-doc@vger.kernel.org
+Subject: [RFC PATCH 0/3] doc-rst:c-domain: fix some issues in the c-domain
+Date: Wed, 31 Aug 2016 17:29:29 +0200
+Message-Id: <1472657372-21039-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nick,
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-On 07/18/2016 11:11 PM, y@shmanahar.org wrote:
-> From: Nick Dyer <nick@shmanahar.org>
-> 
-> Signed-off-by: Nick Dyer <nick@shmanahar.org>
+Hi Jon,
 
-I'm missing documentation for the new V4L2_CAP_TOUCH capability and the
-V4L2_INPUT_TYPE_TOUCH define.
+this is a small series, fixing a issues about sphinx version incompatibility and
+adds improved handling of function-like macros [1]. The last patch is optional,
+I don't know if it is better to create 'FOO (C macro)' index entries instead of
+'FOO (C function)' entries (what sphinx does) [2].
 
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-tch-tu08.rst b/Documentation/media/uapi/v4l/pixfmt-tch-tu08.rst
-> new file mode 100644
-> index 0000000..32e21f8
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/pixfmt-tch-tu08.rst
-> @@ -0,0 +1,78 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _V4L2-TCH-FMT-DELTA-TU08:
+[1] https://www.mail-archive.com/linux-doc@vger.kernel.org/msg05673.html
+[2] https://www.mail-archive.com/linux-doc@vger.kernel.org/msg05678.html
 
-The -DELTA part should be removed here and in tu16.rst.
+Markus Heiser (3):
+  doc-rst:c-domain: fix sphinx version incompatibility
+  doc-rst:c-domain: function-like macros arguments
+  doc-rst:c-domain: function-like macros index entry
 
-> +
-> +**************************
-> +V4L2_TCH_FMT_DELTA_TU08 ('TU08')
-> +**************************
-> +
-> +*man V4L2_TCH_FMT_DELTA_TU08(2)*
+ Documentation/sphinx/cdomain.py | 79 +++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 76 insertions(+), 3 deletions(-)
 
-Ditto.
+-- 
+2.7.4
 
-Regards,
-
-	Hans
