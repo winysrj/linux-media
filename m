@@ -1,79 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:56576 "EHLO mout.web.de"
+Received: from mail.kernel.org ([198.145.29.136]:40890 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752067AbcHSJ0H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Aug 2016 05:26:07 -0400
-Subject: [PATCH 2/2] uvc_v4l2: One function call less in uvc_ioctl_ctrl_map()
- after error detection
-To: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <95aa5fcd-8610-debc-70b0-30b2ed3302d2@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <8f89ec37-1556-4c09-f0b7-df87b4169320@users.sourceforge.net>
-Date: Fri, 19 Aug 2016 11:25:44 +0200
+        id S934941AbcHaN5i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Aug 2016 09:57:38 -0400
+Date: Wed, 31 Aug 2016 15:57:33 +0200
+From: Sebastian Reichel <sre@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v1.1 3/5] smiapp: Return -EPROBE_DEFER if the clock
+ cannot be obtained
+Message-ID: <20160831135733.rkc3a6ognfmnohnr@earth>
+References: <1472629325-30875-4-git-send-email-sakari.ailus@linux.intel.com>
+ <1472648277-25888-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <95aa5fcd-8610-debc-70b0-30b2ed3302d2@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="ci3e7u6tspka3sw3"
+Content-Disposition: inline
+In-Reply-To: <1472648277-25888-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 19 Aug 2016 11:00:38 +0200
 
-The kfree() function was called in two cases by the uvc_ioctl_ctrl_map()
-function during error handling even if the passed data structure element
-contained a null pointer.
+--ci3e7u6tspka3sw3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Adjust jump targets according to the Linux coding style convention.
+Hi,
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/uvc/uvc_v4l2.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+On Wed, Aug 31, 2016 at 03:57:57PM +0300, Sakari Ailus wrote:
+> The clock may be provided by a driver which is yet to probe. Print the
+> actual error code as well.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>
+> ---
+> since v1:
+> - Add printing of the original error code
 
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index a7e12fd..52a2af8 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -66,14 +66,14 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain *chain,
- 		if (xmap->menu_count == 0 ||
- 		    xmap->menu_count > UVC_MAX_CONTROL_MENU_ENTRIES) {
- 			ret = -EINVAL;
--			goto done;
-+			goto free_map;
- 		}
- 
- 		size = xmap->menu_count * sizeof(*map->menu_info);
- 		map->menu_info = memdup_user(xmap->menu_info, size);
- 		if (IS_ERR(map->menu_info)) {
- 			ret = PTR_ERR(map->menu_info);
--			goto done;
-+			goto free_map;
- 		}
- 
- 		map->menu_count = xmap->menu_count;
-@@ -83,13 +83,12 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain *chain,
- 		uvc_trace(UVC_TRACE_CONTROL, "Unsupported V4L2 control type "
- 			  "%u.\n", xmap->v4l2_type);
- 		ret = -ENOTTY;
--		goto done;
-+		goto free_map;
- 	}
- 
- 	ret = uvc_ctrl_add_mapping(chain, map);
--
--done:
- 	kfree(map->menu_info);
-+free_map:
- 	kfree(map);
- 
- 	return ret;
--- 
-2.9.3
+Reviewed-By: Sebastian Reichel <sre@kernel.org>
 
+--ci3e7u6tspka3sw3
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJXxuJKAAoJENju1/PIO/qayA8P/jwmIlvvVkaCESsY3rr4mEYZ
+ytVwUfBrkjSgv89Z8mgBH/vfbNObo+muU33O6GsTxAazdNpWlywWMIOe13tfk/3t
+i5spzKsVid2J46cMvueeqwksUY1AwKvu6DhTNDd+FLO2rnq/mOeJG6LyW7XMD2ab
+IRQZf8OjCL8l9E+OIT5mUFQDV/gYmU7HGQchH9oprF6O0NOIQhuuSx1aW8HUDjtp
+Yg1YXbzyv6LwGTyBHON8W9uC55Zq8j9RGMyOKPLs4YM9a7QHcaTuy802w0GUKu6d
+iI0aEzUHyzuSn165elKQmy0SjyxTHdu5qVseapdemH1sn88LqExxL6oG6+uLN61M
+Q9D+DQQLL8XKTFpwwbKEWodBL56npnkeu+tC0/X2gHwukcRI1kv5eUbyTLQtWQko
+NyPtstjQsZSHpf3psOb4E4sji/Dl+uyQvGVxu63tknq4QXHpGFfRnr6E2pbo2QLG
+I5cMrSY+NgO9K3SMCHHPXyXvD5bE705l/2H9UJSO56lBBG6RW5UfcGWSx+rs7DXD
+lYSJWxpM0k6pNCyu2Ij0AsKN+pcOmMVy2yKhRJenRqIOUnv/jFJORt2P3w1hVTqh
+9yBI8xpZIua7xKNjOwU7kqSRCO9bKP4R+t6Xr9ZjeUTDM8qJSsCNojUXQehMtgHj
+KUxbKH2r7OlU+qmiWlnh
+=tt1w
+-----END PGP SIGNATURE-----
+
+--ci3e7u6tspka3sw3--
