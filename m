@@ -1,133 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:36707 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752258AbcHKUaL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 16:30:11 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	mchehab@osg.samsung.com
-Subject: [PATCH v4 5/5] media: Support variable size IOCTL arguments
-Date: Thu, 11 Aug 2016 23:29:18 +0300
-Message-Id: <1470947358-31168-6-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1470947358-31168-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1470947358-31168-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail.kernel.org ([198.145.29.136]:54404 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757337AbcHaMVT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Aug 2016 08:21:19 -0400
+Date: Wed, 31 Aug 2016 14:21:12 +0200
+From: Sebastian Reichel <sre@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/5] smiapp cleanups, retry probe if getting clock fails
+Message-ID: <20160831122112.2jtdvy54jhq3z2ak@earth>
+References: <1472629325-30875-1-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="mfxcy67aza45hxvn"
+Content-Disposition: inline
+In-Reply-To: <1472629325-30875-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Maintain a list of supported IOCTL argument sizes and allow only those in
-the list.
 
-As an additional bonus, IOCTL handlers will be able to check whether the
-caller actually set (using the argument size) the field vs. assigning it
-to zero. Separate macro can be provided for that.
+--mfxcy67aza45hxvn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This will be easier for applications as well since there is no longer the
-problem of setting the reserved fields zero, or at least it is a lesser
-problem.
+Hi,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-device.c | 56 ++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 51 insertions(+), 5 deletions(-)
+On Wed, Aug 31, 2016 at 10:42:00AM +0300, Sakari Ailus wrote:
+> These patches contain cleanups for the smiapp driver and return
+> -EPROBE_DEFER if getting the clock fails.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 6f565a2..aa37520 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -384,22 +384,36 @@ static long copy_arg_to_user(void __user *uarg, void *karg, unsigned int cmd)
- /* Do acquire the graph mutex */
- #define MEDIA_IOC_FL_GRAPH_MUTEX	BIT(0)
- 
--#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
-+#define MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz, from_user, to_user)	\
- 	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
- 		.cmd = MEDIA_IOC_##__cmd,				\
- 		.fn = (long (*)(struct media_device *, void *))func,	\
- 		.flags = fl,						\
-+		.alt_arg_sizes = alt_sz,				\
- 		.arg_from_user = from_user,				\
- 		.arg_to_user = to_user,					\
- 	}
- 
--#define MEDIA_IOC(__cmd, func, fl)					\
--	MEDIA_IOC_ARG(__cmd, func, fl, copy_arg_from_user, copy_arg_to_user)
-+#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
-+	MEDIA_IOC_SZ_ARG(__cmd, func, fl, NULL, from_user, to_user)
-+
-+#define MEDIA_IOC_SZ(__cmd, func, fl, alt_sz)			\
-+	MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz,		\
-+			 copy_arg_from_user, copy_arg_to_user)
-+
-+#define MEDIA_IOC(__cmd, func, fl)				\
-+	MEDIA_IOC_ARG(__cmd, func, fl,				\
-+		      copy_arg_from_user, copy_arg_to_user)
- 
- /* the table is indexed by _IOC_NR(cmd) */
- struct media_ioctl_info {
- 	unsigned int cmd;
- 	unsigned short flags;
-+	/*
-+	 * Sizes of the alternative arguments. If there are none, this
-+	 * pointer is NULL.
-+	 */
-+	const unsigned short *alt_arg_sizes;
- 	long (*fn)(struct media_device *dev, void *arg);
- 	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
- 	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
-@@ -413,11 +427,40 @@ static const struct media_ioctl_info ioctl_info[] = {
- 	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
- };
- 
-+#define MASK_IOC_SIZE(cmd) \
-+	((cmd) & ~(_IOC_SIZEMASK << _IOC_SIZESHIFT))
-+
- static inline long is_valid_ioctl(const struct media_ioctl_info *info,
- 				  unsigned int cmd)
- {
--	return (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
--		|| info[_IOC_NR(cmd)].cmd != cmd) ? -ENOIOCTLCMD : 0;
-+	const unsigned short *alt_arg_sizes;
-+
-+	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info))
-+		return -ENOIOCTLCMD;
-+
-+	info += _IOC_NR(cmd);
-+
-+	if (info->cmd == cmd)
-+		return 0;
-+
-+	/*
-+	 * Verify that the size-dependent patch of the IOCTL command
-+	 * matches and that the size does not exceed the principal
-+	 * argument size.
-+	 */
-+	if (MASK_IOC_SIZE(info->cmd) != MASK_IOC_SIZE(cmd)
-+	    || _IOC_SIZE(info->cmd) < _IOC_SIZE(cmd))
-+		return -ENOIOCTLCMD;
-+
-+	alt_arg_sizes = info->alt_arg_sizes;
-+	if (!alt_arg_sizes)
-+		return -ENOIOCTLCMD;
-+
-+	for (; *alt_arg_sizes; alt_arg_sizes++)
-+		if (_IOC_SIZE(cmd) == *alt_arg_sizes)
-+			return 0;
-+
-+	return -ENOIOCTLCMD;
- }
- 
- static long __media_device_ioctl(
-@@ -448,6 +491,9 @@ static long __media_device_ioctl(
- 			goto out_free;
- 	}
- 
-+	/* Set the rest of the argument struct to zero */
-+	memset(karg + _IOC_SIZE(cmd), 0, _IOC_SIZE(info->cmd) - _IOC_SIZE(cmd));
-+
- 	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
- 		mutex_lock(&dev->graph_mutex);
- 
--- 
-2.7.4
+Apart from comments on patches 3 & 5 the patchset is
 
+Reviewed-By: Sebastian Reichel <sre@kernel.org>
+
+-- Sebastian
+
+--mfxcy67aza45hxvn
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJXxsu4AAoJENju1/PIO/qayWEQAKUi/z0twBL7dw6XFmP2xhtQ
+vRLLfj0rOMT0J84QgeSvRgMtLQPOs1uy9bcC8CdULSg6FsznLMnn2rHFjqZSCNUH
+E4NprfR+2VTD2l5st3OQ2NNnz6ISHimFWNDs7OXlTge97cjiN0qrzD2rMspmCgFM
+mEB+NpdkhsqtD/Qzp+g9NbyCqvRthnJIqxsHJp72bhNi+cMSHUB12L/1KEbipQRo
+oerF1AvN9cLWvT2dQJOFnYkSk6s3M6ULb5wxxoR82sMrg0Oz5lrwcAycopyEpzSR
+ALeWU2gaB6iYK7FLe2Ckn7BoFEsLhbjmDunBmrpdYedx0ueb5JcxlQ/rHX3Tzw7F
+1Ou0GWpnH8y5KbWA/A7T2knarN6pr6XU7UakXGmVqFVRhT8/lIvMAF0FjQJnlUc3
+hV0uCM1DHTTBbCrHW0lkSVd6IdyqGyWDz0upwBCi+ClJ0hAYZFvU/Jmj+hf42HWv
+pjCEdTqzfF3EmsARM1MFa1AjN7al0AYYmgGLJtYoAW4reWMI9JWvU10EmJ13aNG6
+rRjNvnCMBncu7YP52k7xyJ/eAy+p11tvucw2dSef/SvXDBOcvMphIEHE83IlNtAD
+tD2EbSvkRolNhkB8WWFt05/LQ94TYgQ4hbJfvXrbYOsowvBM804Acu2TcXk/LF10
+jbhRbFsTF9Lp+Fy1Bx07
+=7qaz
+-----END PGP SIGNATURE-----
+
+--mfxcy67aza45hxvn--
