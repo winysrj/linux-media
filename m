@@ -1,41 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.zeus03.de ([194.117.254.33]:56199 "EHLO mail.zeus03.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932368AbcHKVLQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2016 17:11:16 -0400
-From: Wolfram Sang <wsa-dev@sang-engineering.com>
-To: linux-usb@vger.kernel.org
-Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 05/28] media: usb: airspy: airspy: don't print error when allocating urb fails
-Date: Thu, 11 Aug 2016 23:03:41 +0200
-Message-Id: <1470949451-24823-6-git-send-email-wsa-dev@sang-engineering.com>
-In-Reply-To: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
-References: <1470949451-24823-1-git-send-email-wsa-dev@sang-engineering.com>
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:1216 "EHLO
+        aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933612AbcHaInP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Aug 2016 04:43:15 -0400
+Received: from [10.47.79.81] ([10.47.79.81])
+        (authenticated bits=0)
+        by aer-core-1.cisco.com (8.14.5/8.14.5) with ESMTP id u7V8h4ZL009349
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+        for <linux-media@vger.kernel.org>; Wed, 31 Aug 2016 08:43:06 GMT
+To: linux-media <linux-media@vger.kernel.org>
+From: Hans Verkuil <hansverk@cisco.com>
+Subject: RFC: V4L2_PIX_FMT_NV16: should it allow padding after each plane?
+Message-ID: <57C69897.8010200@cisco.com>
+Date: Wed, 31 Aug 2016 10:43:03 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kmalloc will print enough information in case of failure.
+The NV16 documentation allows for padding after each line:
 
-Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
----
- drivers/media/usb/airspy/airspy.c | 1 -
- 1 file changed, 1 deletion(-)
+https://hverkuil.home.xs4all.nl/spec/uapi/v4l/pixfmt-nv16.html
 
-diff --git a/drivers/media/usb/airspy/airspy.c b/drivers/media/usb/airspy/airspy.c
-index fe031b06935fbb..3c556ee306cd33 100644
---- a/drivers/media/usb/airspy/airspy.c
-+++ b/drivers/media/usb/airspy/airspy.c
-@@ -426,7 +426,6 @@ static int airspy_alloc_urbs(struct airspy *s)
- 		dev_dbg(s->dev, "alloc urb=%d\n", i);
- 		s->urb_list[i] = usb_alloc_urb(0, GFP_ATOMIC);
- 		if (!s->urb_list[i]) {
--			dev_dbg(s->dev, "failed\n");
- 			for (j = 0; j < i; j++)
- 				usb_free_urb(s->urb_list[j]);
- 			return -ENOMEM;
--- 
-2.8.1
+But I have one case where there is also padding after each plane.
 
+Can we fold that into the existing NV16 format? I.e., in that case
+the size of each plane is sizeimage / 2.
+
+Or do I have to make a new NV16PAD format that allows such padding?
+
+I am in favor of extending the NV16 specification since I believe it
+makes sense, but I want to know what others think.
+
+Regards,
+
+	Hans
