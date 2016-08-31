@@ -1,105 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34062 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754144AbcHXKpM (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:15387 "EHLO
+        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934233AbcHaM40 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Aug 2016 06:45:12 -0400
-Received: by mail-wm0-f65.google.com with SMTP id q128so2043560wma.1
-        for <linux-media@vger.kernel.org>; Wed, 24 Aug 2016 03:44:32 -0700 (PDT)
-From: Johan Fjeldtvedt <jaffe1@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Johan Fjeldtvedt <jaffe1@gmail.com>
-Subject: [PATCH] cec tools: exit if device is disconnected
-Date: Wed, 24 Aug 2016 12:31:18 +0200
-Message-Id: <1472034678-13813-2-git-send-email-jaffe1@gmail.com>
-In-Reply-To: <1472034678-13813-1-git-send-email-jaffe1@gmail.com>
-References: <1472034678-13813-1-git-send-email-jaffe1@gmail.com>
+        Wed, 31 Aug 2016 08:56:26 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Joonyoung Shim <jy0922.shim@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: [PATCH 5/6] media: s5p-cec: fix system and runtime pm integration
+Date: Wed, 31 Aug 2016 14:55:58 +0200
+Message-id: <1472648159-9814-6-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1472648159-9814-1-git-send-email-m.szyprowski@samsung.com>
+References: <1472648159-9814-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the CEC device is disconnected, ioctl will return ENODEV. This is
-checked for in cec-ctl (when monitoring), cec-follower and
-cec-compliance, to make these exit when the CEC device disappears.
+Use generic helpers instead of open-coding usage of runtime pm for system
+sleep pm, which was potentially broken for some corner cases.
 
-Signed-off-by: Johan Fjeldtvedt <jaffe1@gmail.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- utils/cec-compliance/cec-compliance.h |  9 +++++++--
- utils/cec-ctl/cec-ctl.cpp             |  7 ++++++-
- utils/cec-follower/cec-processing.cpp | 14 ++++++++++++--
- 3 files changed, 25 insertions(+), 5 deletions(-)
+ drivers/staging/media/s5p-cec/s5p_cec.c | 17 ++---------------
+ 1 file changed, 2 insertions(+), 15 deletions(-)
 
-diff --git a/utils/cec-compliance/cec-compliance.h b/utils/cec-compliance/cec-compliance.h
-index cb236fd..6b180c1 100644
---- a/utils/cec-compliance/cec-compliance.h
-+++ b/utils/cec-compliance/cec-compliance.h
-@@ -334,10 +334,15 @@ static inline bool transmit_timeout(struct node *node, struct cec_msg *msg,
- 				    unsigned timeout = 2000)
- {
- 	struct cec_msg original_msg = *msg;
-+	int res;
+diff --git a/drivers/staging/media/s5p-cec/s5p_cec.c b/drivers/staging/media/s5p-cec/s5p_cec.c
+index 78333273c4e5..77d9887801b8 100644
+--- a/drivers/staging/media/s5p-cec/s5p_cec.c
++++ b/drivers/staging/media/s5p-cec/s5p_cec.c
+@@ -250,22 +250,9 @@ static int s5p_cec_runtime_resume(struct device *dev)
+ 	return 0;
+ }
  
- 	msg->timeout = timeout;
--	if (doioctl(node, CEC_TRANSMIT, msg) ||
--	    !(msg->tx_status & CEC_TX_STATUS_OK))
-+	res = doioctl(node, CEC_TRANSMIT, msg);
-+	if (res == ENODEV) {
-+		printf("No device.\n");
-+		exit(1);
-+	}
-+	if (res || !(msg->tx_status & CEC_TX_STATUS_OK))
- 		return false;
- 
- 	if (((msg->rx_status & CEC_RX_STATUS_OK) || (msg->rx_status & CEC_RX_STATUS_FEATURE_ABORT))
-diff --git a/utils/cec-ctl/cec-ctl.cpp b/utils/cec-ctl/cec-ctl.cpp
-index 2d0d9e5..10efcbd 100644
---- a/utils/cec-ctl/cec-ctl.cpp
-+++ b/utils/cec-ctl/cec-ctl.cpp
-@@ -1945,7 +1945,12 @@ skip_la:
- 				struct cec_msg msg = { };
- 				__u8 from, to;
- 
--				if (doioctl(&node, CEC_RECEIVE, &msg))
-+				res = doioctl(&node, CEC_RECEIVE, &msg);
-+				if (res == ENODEV) {
-+					printf("No device.\n");
-+					break;
-+				}
-+				if (res)
- 					continue;
- 
- 				from = cec_msg_initiator(&msg);
-diff --git a/utils/cec-follower/cec-processing.cpp b/utils/cec-follower/cec-processing.cpp
-index 34d65e4..bbe80c5 100644
---- a/utils/cec-follower/cec-processing.cpp
-+++ b/utils/cec-follower/cec-processing.cpp
-@@ -979,7 +979,12 @@ void testProcessing(struct node *node)
- 		if (FD_ISSET(fd, &ex_fds)) {
- 			struct cec_event ev;
- 
--			if (doioctl(node, CEC_DQEVENT, &ev))
-+			res = doioctl(node, CEC_DQEVENT, &ev);
-+			if (res == ENODEV) {
-+				printf("No device.\n");
-+				break;
-+			}
-+			if (res)
- 				continue;
- 			log_event(ev);
- 			if (ev.event == CEC_EVENT_STATE_CHANGE) {
-@@ -995,7 +1000,12 @@ void testProcessing(struct node *node)
- 		if (FD_ISSET(fd, &rd_fds)) {
- 			struct cec_msg msg = { };
- 
--			if (doioctl(node, CEC_RECEIVE, &msg))
-+			res = doioctl(node, CEC_RECEIVE, &msg);
-+			if (res == ENODEV) {
-+				printf("No device.\n");
-+				break;
-+			}
-+			if (res)
- 				continue;
- 
- 			__u8 from = cec_msg_initiator(&msg);
+-static int __maybe_unused s5p_cec_suspend(struct device *dev)
+-{
+-	if (pm_runtime_suspended(dev))
+-		return 0;
+-	return s5p_cec_runtime_suspend(dev);
+-}
+-
+-static int __maybe_unused s5p_cec_resume(struct device *dev)
+-{
+-	if (pm_runtime_suspended(dev))
+-		return 0;
+-	return s5p_cec_runtime_resume(dev);
+-}
+-
+ static const struct dev_pm_ops s5p_cec_pm_ops = {
+-	SET_SYSTEM_SLEEP_PM_OPS(s5p_cec_suspend, s5p_cec_resume)
++	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
++				pm_runtime_force_resume)
+ 	SET_RUNTIME_PM_OPS(s5p_cec_runtime_suspend, s5p_cec_runtime_resume,
+ 			   NULL)
+ };
 -- 
-2.7.4
+1.9.1
 
