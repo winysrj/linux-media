@@ -1,54 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f46.google.com ([209.85.214.46]:38848 "EHLO
-        mail-it0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753500AbcH2T2X (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Aug 2016 15:28:23 -0400
-Received: by mail-it0-f46.google.com with SMTP id g62so1519238ith.1
-        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2016 12:28:23 -0700 (PDT)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Cc: linux-media@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org,
-        narmstrong@baylibre.com, linus.walleij@linaro.org,
-        carlo@caione.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com,
-        mark.rutland@arm.com, robh+dt@kernel.org, b.galvani@gmail.com
-Subject: Re: [PATCH v5 0/6] Add Meson 8b / GXBB support to the IR driver
-References: <20160819215547.20063-1-martin.blumenstingl@googlemail.com>
-        <20160820095424.636-1-martin.blumenstingl@googlemail.com>
-Date: Mon, 29 Aug 2016 14:28:10 -0500
-In-Reply-To: <20160820095424.636-1-martin.blumenstingl@googlemail.com> (Martin
-        Blumenstingl's message of "Sat, 20 Aug 2016 11:54:18 +0200")
-Message-ID: <m2shtniddh.fsf@baylibre.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mga03.intel.com ([134.134.136.65]:51448 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932794AbcHaHnI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Aug 2016 03:43:08 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id 2351120872
+        for <linux-media@vger.kernel.org>; Wed, 31 Aug 2016 10:43:01 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 5/5] smiapp: Switch to gpiod API for GPIO control
+Date: Wed, 31 Aug 2016 10:42:05 +0300
+Message-Id: <1472629325-30875-6-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1472629325-30875-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1472629325-30875-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Martin Blumenstingl <martin.blumenstingl@googlemail.com> writes:
+Switch from the old gpio API to the new descriptor based gpiod API.
 
-> Newer Amlogic platforms (Meson 8b and GXBB) use a slightly different
-> register layout for their Infrared Remoete Controller. The decoder mode
-> is now configured in another register. Without the changes to the
-> meson-ir driver we are simply getting incorrect "durations" reported
-> from the hardware (because the hardware is not in time measurement aka
-> software decode mode).
->
-> This problem was also noticed by some people trying to use this on an
-> ODROID-C1 and ODROID-C2 - the workaround there (probably because the
-> datasheets were not publicy available yet at that time) was to switch
-> to ir_raw_event_store_edge (which leaves it up to the kernel to measure
-> the duration of a pulse). See [0] and [1] for the corresponding
-> patches.
->
-> Changes in v5:
-> - changed pin function and group names to remote_input_ao so they match
->   with the datasheet
->
-> Tested-by: Neil Armstrong <narmstrong@baylibre.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 28 +++++++++++++++-------------
+ drivers/media/i2c/smiapp/smiapp.h      |  1 +
+ 2 files changed, 16 insertions(+), 13 deletions(-)
 
-Thanks for the respin.  I'll take the driver and DT/bindings through the
-arm-soc tree and Linus has taken the pinctrl patch.
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index aaf5299..d07e060 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -24,8 +24,8 @@
+ #include <linux/delay.h>
+ #include <linux/device.h>
+ #include <linux/gpio.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/module.h>
+-#include <linux/of_gpio.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/smiapp.h>
+@@ -1212,8 +1212,7 @@ static int smiapp_power_on(struct smiapp_sensor *sensor)
+ 	}
+ 	usleep_range(1000, 1000);
+ 
+-	if (gpio_is_valid(sensor->hwcfg->xshutdown))
+-		gpio_set_value(sensor->hwcfg->xshutdown, 1);
++	gpiod_set_value(sensor->xshutdown, 1);
+ 
+ 	sleep = SMIAPP_RESET_DELAY(sensor->hwcfg->ext_clk);
+ 	usleep_range(sleep, sleep);
+@@ -1322,8 +1321,7 @@ static int smiapp_power_on(struct smiapp_sensor *sensor)
+ 	return 0;
+ 
+ out_cci_addr_fail:
+-	if (gpio_is_valid(sensor->hwcfg->xshutdown))
+-		gpio_set_value(sensor->hwcfg->xshutdown, 0);
++	gpiod_set_value(sensor->xshutdown, 0);
+ 	if (sensor->hwcfg->set_xclk)
+ 		sensor->hwcfg->set_xclk(&sensor->src->sd, 0);
+ 	else
+@@ -1348,8 +1346,7 @@ static void smiapp_power_off(struct smiapp_sensor *sensor)
+ 			     SMIAPP_REG_U8_SOFTWARE_RESET,
+ 			     SMIAPP_SOFTWARE_RESET);
+ 
+-	if (gpio_is_valid(sensor->hwcfg->xshutdown))
+-		gpio_set_value(sensor->hwcfg->xshutdown, 0);
++	gpiod_set_value(sensor->xshutdown, 0);
+ 	if (sensor->hwcfg->set_xclk)
+ 		sensor->hwcfg->set_xclk(&sensor->src->sd, 0);
+ 	else
+@@ -2571,7 +2568,11 @@ static int smiapp_init(struct smiapp_sensor *sensor)
+ 		}
+ 	}
+ 
+-	if (gpio_is_valid(sensor->hwcfg->xshutdown)) {
++	if (client->dev.of_node) {
++		sensor->xshutdown =
++			devm_gpiod_get_optional(&client->dev, "xshutdown",
++						GPIOD_OUT_LOW);
++	} else if (gpio_is_valid(sensor->hwcfg->xshutdown)) {
+ 		rval = devm_gpio_request_one(
+ 			&client->dev, sensor->hwcfg->xshutdown, 0,
+ 			"SMIA++ xshutdown");
+@@ -2581,8 +2582,13 @@ static int smiapp_init(struct smiapp_sensor *sensor)
+ 				sensor->hwcfg->xshutdown);
+ 			return rval;
+ 		}
++
++		sensor->xshutdown = gpio_to_desc(sensor->hwcfg->xshutdown);
+ 	}
+ 
++	if (!sensor->xshutdown)
++		dev_dbg(&client->dev, "no xshutdown GPIO available\n");
++
+ 	rval = smiapp_power_on(sensor);
+ 	if (rval)
+ 		return -ENODEV;
+@@ -3019,9 +3025,6 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+ 	hwcfg->lanes = bus_cfg->bus.mipi_csi2.num_data_lanes;
+ 	dev_dbg(dev, "lanes %u\n", hwcfg->lanes);
+ 
+-	/* xshutdown GPIO is optional */
+-	hwcfg->xshutdown = of_get_named_gpio(dev->of_node, "reset-gpios", 0);
+-
+ 	/* NVM size is not mandatory */
+ 	of_property_read_u32(dev->of_node, "nokia,nvm-size",
+ 				    &hwcfg->nvm_size);
+@@ -3119,8 +3122,7 @@ static int smiapp_remove(struct i2c_client *client)
+ 	v4l2_async_unregister_subdev(subdev);
+ 
+ 	if (sensor->power_count) {
+-		if (gpio_is_valid(sensor->hwcfg->xshutdown))
+-			gpio_set_value(sensor->hwcfg->xshutdown, 0);
++		gpiod_set_value(sensor->xshutdown, 0);
+ 		if (sensor->hwcfg->set_xclk)
+ 			sensor->hwcfg->set_xclk(&sensor->src->sd, 0);
+ 		else
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index 6ff095a..c504bd8 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -200,6 +200,7 @@ struct smiapp_sensor {
+ 	struct smiapp_hwconfig *hwcfg;
+ 	struct regulator *vana;
+ 	struct clk *ext_clk;
++	struct gpio_desc *xshutdown;
+ 	u32 limits[SMIAPP_LIMIT_LAST];
+ 	u8 nbinning_subtypes;
+ 	struct smiapp_binning_subtype binning_subtypes[SMIAPP_BINNING_SUBTYPES];
+-- 
+2.7.4
 
-Kevin
