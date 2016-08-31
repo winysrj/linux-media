@@ -1,155 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:49179 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750892AbcHVMFN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Aug 2016 08:05:13 -0400
-Subject: Re: [RFC v2 07/17] media: Split initialisation and adding device
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <1471602228-30722-1-git-send-email-sakari.ailus@linux.intel.com>
- <1471602228-30722-8-git-send-email-sakari.ailus@linux.intel.com>
-Cc: m.chehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3f658f69-e1c7-4f50-f656-d602e4e979f4@xs4all.nl>
-Date: Mon, 22 Aug 2016 14:05:07 +0200
-MIME-Version: 1.0
-In-Reply-To: <1471602228-30722-8-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
+Received: from smtp2.goneo.de ([85.220.129.33]:45614 "EHLO smtp2.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750914AbcHaKTi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Aug 2016 06:19:38 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH v3] docs-rst: ignore arguments on macro definitions
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <87vayhz4z6.fsf@intel.com>
+Date: Wed, 31 Aug 2016 12:09:39 +0200
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
 Content-Transfer-Encoding: 7bit
+Message-Id: <449181AD-39BC-4A88-A633-13BA1EC21449@darmarit.de>
+References: <e4955d6ed9b730f544fe40b0344c4451dd415cda.1472476362.git.mchehab@s-opensource.com> <BBC1BC77-BCF1-453C-B85D-9758C4C433A6@darmarit.de> <20160829121326.782e4261@vento.lan> <87y43fh9ix.fsf@intel.com> <B29EF07A-454E-456E-91B6-AE5B0D6C04D1@darmarit.de> <87vayhz4z6.fsf@intel.com>
+To: Jani Nikula <jani.nikula@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/19/2016 12:23 PM, Sakari Ailus wrote:
-> As registering a device node of an entity belonging to a media device
-> will require a reference to the struct device. Taking that reference is
-> only possible once the device has been initialised, which took place only
-> when it was registered. Split this in two, and initialise the device when
-> the media device is allocated.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Am 31.08.2016 um 11:02 schrieb Jani Nikula <jani.nikula@linux.intel.com>:
 
-> ---
->  drivers/media/media-device.c          |  1 +
->  drivers/media/media-devnode.c         | 15 ++++++++++-----
->  drivers/media/platform/omap3isp/isp.c |  4 +++-
->  include/media/media-devnode.h         | 15 +++++++++++----
->  4 files changed, 25 insertions(+), 10 deletions(-)
+> On Wed, 31 Aug 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
+>> I haven't tested your suggestion, but since *void* is in the list
+>> of stop-words:
+>> 
+>>    # These C types aren't described anywhere, so don't try to create
+>>    # a cross-reference to them
+>>    stopwords = set((
+>>        'const', 'void', 'char', 'wchar_t', 'int', 'short',
+>>        'long', 'float', 'double', 'unsigned', 'signed', 'FILE',
+>>        'clock_t', 'time_t', 'ptrdiff_t', 'size_t', 'ssize_t',
+>>        'struct', '_Bool',
+>>    ))
+>> 
+>> I think it will work in the matter you think. 
+>> 
+>> However I like to prefer to fix it in the C-domain, using
+>> Mauro's suggestion on argument parsing. IMHO it is not
+>> the best solution to add a void type to the reST signature
+>> of a macro. This will result in a unusual output and does
+>> not fix what is wrong in Sphinx's c-domain (there is also
+>> a drawback in the index, where a function-type macro is
+>> referred as function, not as macro).
 > 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 5a86d36..d527491 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -707,6 +707,7 @@ struct media_device *media_device_alloc(void)
->  	if (!mdev)
->  		return NULL;
->  
-> +	media_devnode_init(&mdev->devnode);
->  	media_device_init(mdev);
->  
->  	return mdev;
-> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-> index 7481c96..aa8030b 100644
-> --- a/drivers/media/media-devnode.c
-> +++ b/drivers/media/media-devnode.c
-> @@ -219,6 +219,11 @@ static const struct file_operations media_devnode_fops = {
->  	.llseek = no_llseek,
->  };
->  
-> +void media_devnode_init(struct media_devnode *devnode)
-> +{
-> +	device_initialize(&devnode->dev);
-> +}
-> +
->  int __must_check media_devnode_register(struct media_devnode *devnode,
->  					struct module *owner)
->  {
-> @@ -256,7 +261,7 @@ int __must_check media_devnode_register(struct media_devnode *devnode,
->  	if (devnode->parent)
->  		devnode->dev.parent = devnode->parent;
->  	dev_set_name(&devnode->dev, "media%d", devnode->minor);
-> -	ret = device_register(&devnode->dev);
-> +	ret = device_add(&devnode->dev);
->  	if (ret < 0) {
->  		pr_err("%s: device_register failed\n", __func__);
->  		goto error;
-> @@ -291,7 +296,7 @@ void media_devnode_unregister(struct media_devnode *devnode)
->  /*
->   *	Initialise media for linux
->   */
-> -static int __init media_devnode_init(void)
-> +static int __init media_devnode_module_init(void)
->  {
->  	int ret;
->  
-> @@ -313,14 +318,14 @@ static int __init media_devnode_init(void)
->  	return 0;
->  }
->  
-> -static void __exit media_devnode_exit(void)
-> +static void __exit media_devnode_module_exit(void)
->  {
->  	bus_unregister(&media_bus_type);
->  	unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
->  }
->  
-> -subsys_initcall(media_devnode_init);
-> -module_exit(media_devnode_exit)
-> +subsys_initcall(media_devnode_module_init);
-> +module_exit(media_devnode_module_exit)
->  
->  MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
->  MODULE_DESCRIPTION("Device node registration for media drivers");
-> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> index 5d54e2c..aa32537 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -1726,8 +1726,10 @@ static int isp_register_entities(struct isp_device *isp)
->  		goto done;
->  
->  done:
-> -	if (ret < 0)
-> +	if (ret < 0) {
->  		isp_unregister_entities(isp);
-> +		media_device_put(&isp->media_dev);
-> +	}
->  
->  	return ret;
->  }
-> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-> index a0f6823..5253a4b 100644
-> --- a/include/media/media-devnode.h
-> +++ b/include/media/media-devnode.h
-> @@ -102,6 +102,17 @@ struct media_devnode {
->  #define to_media_devnode(cd) container_of(cd, struct media_devnode, dev)
->  
->  /**
-> + * media_devnode_init - initialise a media devnode
-> + *
-> + * @devnode: struct media_devnode we want to initialise
-> + *
-> + * Initialise a media devnode. Note that after initialising the media
-> + * devnode is refcounted. Releaseing references to it may be done
-> + * using put_device.
-> + */
-> +void media_devnode_init(struct media_devnode *devnode);
-> +
-> +/**
->   * media_devnode_register - register a media device node
->   *
->   * @devnode: struct media_devnode we want to register a device node
-> @@ -112,10 +123,6 @@ struct media_devnode {
->   * or if the registration of the device node fails.
->   *
->   * Zero is returned on success.
-> - *
-> - * Note that if the media_devnode_register call fails, the release() callback of
-> - * the media_devnode structure is *not* called, so the caller is responsible for
-> - * freeing any data.
->   */
->  int __must_check media_devnode_register(struct media_devnode *devnode,
->  					struct module *owner);
+> From an API user's perspective, functions and function-like macros
+> should work interchangeably.
+
+Ah, OK.
+
+> Personally, I don't think there needs to be
+> a difference in the index. This seems to be the approach taken in
+> Sphinx, but it just doesn't work well for automatic documentation
+> generation because we can't deduce the parameter types from the macro
+> definition.
+
+In the index, sphinx refers only object-like macros with an entry 
+"FOO (C macro))". Function-like macros are referred as "BAR (C function)".
+
+I thought it is more straight forward to refer all macros with a 
+"BAR (C macro)" entry in the index. I will split this change in
+a separate patch, so we can decide if we like to patch the index
+that way.
+
+But now, as we discuss this, I have another doubt to fix the index.
+It might be confusing when writing references to those macros.
+
+Since function-like macros internally are functions in the c-domain, 
+they are referred with ":c:func:`BAR`". On the other side, object-like
+macros are referred by role ":c:macro:`FOO`".
+
+Taking this into account, it might be one reason more to follow
+your conclusion that functions and function-like macros are 
+interchangeable from the user's perspective.
+
+-- Markus --
+
 > 
+> BR,
+> Jani.
+> 
+> 
+> -- 
+> Jani Nikula, Intel Open Source Technology Center
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-doc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
