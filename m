@@ -1,45 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:55520 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752614AbcHILfX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Aug 2016 07:35:23 -0400
-From: Wolfram Sang <wsa-dev@sang-engineering.com>
-To: linux-kernel@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org,
-	Wolfram Sang <wsa-dev@sang-engineering.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 2/4] media: pci: pt3: don't print error when adding adapter fails
-Date: Tue,  9 Aug 2016 13:35:14 +0200
-Message-Id: <1470742517-12774-3-git-send-email-wsa-dev@sang-engineering.com>
-In-Reply-To: <1470742517-12774-1-git-send-email-wsa-dev@sang-engineering.com>
-References: <1470742517-12774-1-git-send-email-wsa-dev@sang-engineering.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:15387 "EHLO
+        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934320AbcHaM4Y (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Aug 2016 08:56:24 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Joonyoung Shim <jy0922.shim@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: [PATCH 3/6] drm/exynos: rotator: fix system and runtime pm integration
+Date: Wed, 31 Aug 2016 14:55:56 +0200
+Message-id: <1472648159-9814-4-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1472648159-9814-1-git-send-email-m.szyprowski@samsung.com>
+References: <1472648159-9814-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The core will do this for us now.
+Use generic helpers instead of open-coding usage of runtime pm for system
+sleep pm, which was potentially broken for some corner cases.
 
-Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/pci/pt3/pt3.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/gpu/drm/exynos/exynos_drm_rotator.c | 26 ++------------------------
+ 1 file changed, 2 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/media/pci/pt3/pt3.c b/drivers/media/pci/pt3/pt3.c
-index eff5e9f51ace3d..7fb649e523f46e 100644
---- a/drivers/media/pci/pt3/pt3.c
-+++ b/drivers/media/pci/pt3/pt3.c
-@@ -798,10 +798,8 @@ static int pt3_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	strlcpy(i2c->name, DRV_NAME, sizeof(i2c->name));
- 	i2c_set_adapdata(i2c, pt3);
- 	ret = i2c_add_adapter(i2c);
--	if (ret < 0) {
--		dev_err(&pdev->dev, "Failed to add i2c adapter\n");
-+	if (ret < 0)
- 		goto err_i2cbuf;
--	}
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_rotator.c b/drivers/gpu/drm/exynos/exynos_drm_rotator.c
+index 404367a430b5..6591e406084c 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_rotator.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_rotator.c
+@@ -794,29 +794,6 @@ static int rotator_clk_crtl(struct rot_context *rot, bool enable)
+ 	return 0;
+ }
  
- 	for (i = 0; i < PT3_NUM_FE; i++) {
- 		ret = pt3_alloc_adapter(pt3, i);
+-
+-#ifdef CONFIG_PM_SLEEP
+-static int rotator_suspend(struct device *dev)
+-{
+-	struct rot_context *rot = dev_get_drvdata(dev);
+-
+-	if (pm_runtime_suspended(dev))
+-		return 0;
+-
+-	return rotator_clk_crtl(rot, false);
+-}
+-
+-static int rotator_resume(struct device *dev)
+-{
+-	struct rot_context *rot = dev_get_drvdata(dev);
+-
+-	if (!pm_runtime_suspended(dev))
+-		return rotator_clk_crtl(rot, true);
+-
+-	return 0;
+-}
+-#endif
+-
+ static int rotator_runtime_suspend(struct device *dev)
+ {
+ 	struct rot_context *rot = dev_get_drvdata(dev);
+@@ -833,7 +810,8 @@ static int rotator_runtime_resume(struct device *dev)
+ #endif
+ 
+ static const struct dev_pm_ops rotator_pm_ops = {
+-	SET_SYSTEM_SLEEP_PM_OPS(rotator_suspend, rotator_resume)
++	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
++				pm_runtime_force_resume)
+ 	SET_RUNTIME_PM_OPS(rotator_runtime_suspend, rotator_runtime_resume,
+ 									NULL)
+ };
 -- 
-2.8.1
+1.9.1
 
