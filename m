@@ -1,198 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:36975 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751158AbcHHJ4Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Aug 2016 05:56:25 -0400
-Subject: Re: [PATCH v8 1/2] [media] atmel-isc: add the Image Sensor Controller
- code
-To: Songjun Wu <songjun.wu@microchip.com>, nicolas.ferre@atmel.com,
-	robh@kernel.org
-References: <1470211686-2198-1-git-send-email-songjun.wu@microchip.com>
- <1470211686-2198-2-git-send-email-songjun.wu@microchip.com>
- <07cf3e49-da67-74d7-528c-618fe94a15ff@xs4all.nl>
-Cc: laurent.pinchart@ideasonboard.com,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	=?UTF-8?Q?Niklas_S=c3=83=c2=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	Benoit Parrot <bparrot@ti.com>, linux-kernel@vger.kernel.org,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-	Kamil Debski <kamil@wypas.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	=?UTF-8?Q?Richard_R=c3=b6jfors?= <richard@puffinpack.se>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Simon Horman <horms+renesas@verge.net.au>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <240d957c-6738-bab5-824a-1e6a0ddb12ad@xs4all.nl>
-Date: Mon, 8 Aug 2016 11:56:19 +0200
-MIME-Version: 1.0
-In-Reply-To: <07cf3e49-da67-74d7-528c-618fe94a15ff@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from smtp1.goneo.de ([85.220.129.30]:38952 "EHLO smtp1.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758909AbcHaKhx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Aug 2016 06:37:53 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH v3] docs-rst: ignore arguments on macro definitions
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <20160831072629.6b42ff3c@vento.lan>
+Date: Wed, 31 Aug 2016 12:37:19 +0200
+Cc: Jani Nikula <jani.nikula@linux.intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <032E655B-9A46-42B2-973F-4A64DE1A3D0D@darmarit.de>
+References: <e4955d6ed9b730f544fe40b0344c4451dd415cda.1472476362.git.mchehab@s-opensource.com> <BBC1BC77-BCF1-453C-B85D-9758C4C433A6@darmarit.de> <20160829121326.782e4261@vento.lan> <87y43fh9ix.fsf@intel.com> <B29EF07A-454E-456E-91B6-AE5B0D6C04D1@darmarit.de> <87vayhz4z6.fsf@intel.com> <449181AD-39BC-4A88-A633-13BA1EC21449@darmarit.de> <20160831072629.6b42ff3c@vento.lan>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/08/2016 11:37 AM, Hans Verkuil wrote:
-> On 08/03/2016 10:08 AM, Songjun Wu wrote:
->> Add driver for the Image Sensor Controller. It manages
->> incoming data from a parallel based CMOS/CCD sensor.
->> It has an internal image processor, also integrates a
->> triple channel direct memory access controller master
->> interface.
->>
->> Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
->> ---
->>
->> Changes in v8:
->> - Power on the sensor on the first open in function
->>   'isc_open'.
->> - Power off the sensor on the last release in function
->>   'isc_release'.
->> - Remove the switch of the pipeline.
->>
->> Changes in v7:
->> - Add enum_framesizes and enum_frameintervals.
->> - Call s_stream(0) when stream start fail.
->> - Fill the device_caps field of struct video_device
->>   with V4L2_CAP_STREAMING and V4L2_CAP_VIDEO_CAPTURE.
->> - Initialize the dev of struct vb2_queue.
->> - Set field to FIELD_NONE if the pix field is not supported.
->> - Return the result directly when call g/s_parm of subdev.
->>
->> Changes in v6: None
->> Changes in v5:
->> - Modify the macro definition and the related code.
->>
->> Changes in v4:
->> - Modify the isc clock code since the dt is changed.
->>
->> Changes in v3:
->> - Add pm runtime feature.
->> - Modify the isc clock code since the dt is changed.
->>
->> Changes in v2:
->> - Add "depends on COMMON_CLK" and "VIDEO_V4L2_SUBDEV_API"
->>   in Kconfig file.
->> - Correct typos and coding style according to Laurent's remarks
->> - Delete the loop while in 'isc_clk_enable' function.
->> - Replace 'hsync_active', 'vsync_active' and 'pclk_sample'
->>   with 'pfe_cfg0' in struct isc_subdev_entity.
->> - Add the code to support VIDIOC_CREATE_BUFS in
->>   'isc_queue_setup' function.
->> - Invoke isc_config to configure register in
->>   'isc_start_streaming' function.
->> - Add the struct completion 'comp' to synchronize with
->>   the frame end interrupt in 'isc_stop_streaming' function.
->> - Check the return value of the clk_prepare_enable
->>   in 'isc_open' function.
->> - Set the default format in 'isc_open' function.
->> - Add an exit condition in the loop while in 'isc_config'.
->> - Delete the hardware setup operation in 'isc_set_format'.
->> - Refuse format modification during streaming
->>   in 'isc_s_fmt_vid_cap' function.
->> - Invoke v4l2_subdev_alloc_pad_config to allocate and
->>   initialize the pad config in 'isc_async_complete' function.
->> - Remove the '.owner  = THIS_MODULE,' in atmel_isc_driver.
->> - Replace the module_platform_driver_probe() with
->>   module_platform_driver().
->>
->>  drivers/media/platform/Kconfig                |    1 +
->>  drivers/media/platform/Makefile               |    2 +
->>  drivers/media/platform/atmel/Kconfig          |    9 +
->>  drivers/media/platform/atmel/Makefile         |    1 +
->>  drivers/media/platform/atmel/atmel-isc-regs.h |  165 +++
->>  drivers/media/platform/atmel/atmel-isc.c      | 1503 +++++++++++++++++++++++++
->>  6 files changed, 1681 insertions(+)
->>  create mode 100644 drivers/media/platform/atmel/Kconfig
->>  create mode 100644 drivers/media/platform/atmel/Makefile
->>  create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
->>  create mode 100644 drivers/media/platform/atmel/atmel-isc.c
->>
-> 
-> <snip>
-> 
->> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
->> new file mode 100644
->> index 0000000..d99d4a5
->> --- /dev/null
->> +++ b/drivers/media/platform/atmel/atmel-isc.c
-> 
-> <snip>
-> 
->> +static int isc_set_default_fmt(struct isc_device *isc)
->> +{
->> +	u32 index = isc->num_user_formats - 1;
-> 
-> Why pick the last format? Strictly speaking it doesn't matter, but in practice
-> the most common formats tend to be at the beginning of the format list.
-> 
->> +	struct v4l2_format f = {
->> +		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
->> +		.fmt.pix = {
->> +			.width		= VGA_WIDTH,
->> +			.height		= VGA_HEIGHT,
->> +			.field		= V4L2_FIELD_NONE,
->> +			.pixelformat	= isc->user_formats[index]->fourcc,
->> +		},
->> +	};
->> +
->> +	return isc_set_fmt(isc, &f);
->> +}
->> +
->> +static int isc_open(struct file *file)
->> +{
->> +	struct isc_device *isc = video_drvdata(file);
->> +	struct v4l2_subdev *sd = isc->current_subdev->sd;
->> +	int ret;
->> +
->> +	if (mutex_lock_interruptible(&isc->lock))
->> +		return -ERESTARTSYS;
->> +
->> +	ret = v4l2_fh_open(file);
->> +	if (ret < 0)
->> +		goto unlock;
->> +
->> +	if (!v4l2_fh_is_singular_file(file))
->> +		goto unlock;
->> +
->> +	ret = v4l2_subdev_call(sd, core, s_power, 1);
->> +	if (ret < 0 && ret != -ENOIOCTLCMD)
->> +		goto unlock;
->> +
->> +	ret = isc_set_default_fmt(isc);
-> 
-> This doesn't belong here, this needs to be done in isc_async_complete().
-> 
-> Having the code here means that every time you open the device, the format
-> changes back to the default. That's not what you want.
 
-Actually, you do need to set the format here since here is where you turn on
-the sensor power, but it should be the current format, not the default format.
+Am 31.08.2016 um 12:26 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
 
-And in isc_set_default_fmt I recommend that you call the try fmt of the subdev
-in order to let the subdev adjust the proposed default format. The 'try' doesn't
-need to power on the sensor.
-
+> Em Wed, 31 Aug 2016 12:09:39 +0200
+> Markus Heiser <markus.heiser@darmarit.de> escreveu:
 > 
->> +	if (ret)
-
-You also need to power off the sd on error!
-
->> +		goto unlock;
->> +
->> +unlock:
->> +	mutex_unlock(&isc->lock);
->> +	return ret;
->> +}
->> +
+>> Am 31.08.2016 um 11:02 schrieb Jani Nikula <jani.nikula@linux.intel.com>:
+>> 
+>>> On Wed, 31 Aug 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:  
+>>>> I haven't tested your suggestion, but since *void* is in the list
+>>>> of stop-words:
+>>>> 
+>>>>   # These C types aren't described anywhere, so don't try to create
+>>>>   # a cross-reference to them
+>>>>   stopwords = set((
+>>>>       'const', 'void', 'char', 'wchar_t', 'int', 'short',
+>>>>       'long', 'float', 'double', 'unsigned', 'signed', 'FILE',
+>>>>       'clock_t', 'time_t', 'ptrdiff_t', 'size_t', 'ssize_t',
+>>>>       'struct', '_Bool',
+>>>>   ))
+>>>> 
+>>>> I think it will work in the matter you think. 
+>>>> 
+>>>> However I like to prefer to fix it in the C-domain, using
+>>>> Mauro's suggestion on argument parsing. IMHO it is not
+>>>> the best solution to add a void type to the reST signature
+>>>> of a macro. This will result in a unusual output and does
+>>>> not fix what is wrong in Sphinx's c-domain (there is also
+>>>> a drawback in the index, where a function-type macro is
+>>>> referred as function, not as macro).  
+>>> 
+>>> From an API user's perspective, functions and function-like macros
+>>> should work interchangeably.  
+>> 
+>> Ah, OK.
+>> 
+>>> Personally, I don't think there needs to be
+>>> a difference in the index. This seems to be the approach taken in
+>>> Sphinx, but it just doesn't work well for automatic documentation
+>>> generation because we can't deduce the parameter types from the macro
+>>> definition.  
+>> 
+>> In the index, sphinx refers only object-like macros with an entry 
+>> "FOO (C macro))". Function-like macros are referred as "BAR (C function)".
+>> 
+>> I thought it is more straight forward to refer all macros with a 
+>> "BAR (C macro)" entry in the index. I will split this change in
+>> a separate patch, so we can decide if we like to patch the index
+>> that way.
+>> 
+>> But now, as we discuss this, I have another doubt to fix the index.
+>> It might be confusing when writing references to those macros.
+>> 
+>> Since function-like macros internally are functions in the c-domain, 
+>> they are referred with ":c:func:`BAR`". On the other side, object-like
+>> macros are referred by role ":c:macro:`FOO`".
+>> 
+>> Taking this into account, it might be one reason more to follow
+>> your conclusion that functions and function-like macros are 
+>> interchangeable from the user's perspective.
 > 
+> It is not uncommon to "promote" some such macros to inline
+> functions, in order to have a stronger type check, or to do the
+> reverse, when we need a more generic declaration that would work
+> for multiple types.
+> 
+> So, keeping both macro function-like functions and functions using
+> the :c:function: seems to be the best, IMHO. It also makes life
+> easier for kernel-doc script.
 
-Regards,
 
-	Hans
+May, I was unclear. I don't want to change the behavior: """keeping both
+macro function-like functions and functions using the :c:function:""". 
+
+The only thing I thought to change is, how the index entry will be. 
+First I thought it might be more straight forward to refer func-like 
+as "BAR (C macro)". But after Jani's conclusion, I had a doubt if
+this is really a better entry in the index, than that what sphinx
+already does "BAR (C function)".
+
+Sorry for the confusion.
+
+-- Markus --
+
+
+
