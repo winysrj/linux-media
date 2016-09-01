@@ -1,282 +1,333 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:56241 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932321AbcIFSbI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 14:31:08 -0400
-Message-ID: <1473186661.2668.10.camel@ndufresne.ca>
-Subject: Re: [PATCH] [media] vb2: map dmabuf for planes on driver queue
- instead of vidioc_qbuf
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-Reply-To: nicolas@ndufresne.ca
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Luis de Bethencourt <luisbg@osg.samsung.com>
-Date: Tue, 06 Sep 2016 14:31:01 -0400
-In-Reply-To: <1f87017c-5d5f-bcdc-3df3-e04962cbc978@samsung.com>
-References: <1468599966-31988-1-git-send-email-javier@osg.samsung.com>
-         <1f87017c-5d5f-bcdc-3df3-e04962cbc978@samsung.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-q4O3ERaA18VniHeu7zPG"
-Mime-Version: 1.0
+Received: from mailout4.samsung.com ([203.254.224.34]:44395 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757245AbcIAV1Y (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 17:27:24 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
+        Andi Shyti <andi@etezian.org>
+Subject: [PATCH v2 7/7] [media] rc: add support for IR LEDs driven through SPI
+Date: Fri, 02 Sep 2016 02:16:29 +0900
+Message-id: <20160901171629.15422-8-andi.shyti@samsung.com>
+In-reply-to: <20160901171629.15422-1-andi.shyti@samsung.com>
+References: <20160901171629.15422-1-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The ir-spi is a simple device driver which supports the
+connection between an IR LED and the MOSI line of an SPI device.
 
---=-q4O3ERaA18VniHeu7zPG
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+The driver, indeed, uses the SPI framework to stream the raw data
+provided by userspace through an rc character device. The chardev
+is handled by the LIRC framework and its functionality basically
+provides:
 
-Le lundi 18 juillet 2016 =C3=A0 12:27 +0200, Marek Szyprowski a =C3=A9crit=
-=C2=A0:
-> Hello,
->=20
->=20
-> On 2016-07-15 18:26, Javier Martinez Canillas wrote:
-> > The buffer planes' dma-buf are currently mapped when buffers are queued
-> > from userspace but it's more appropriate to do the mapping when buffers
-> > are queued in the driver since that's when the actual DMA operation are
-> > going to happen.
-> >=20
-> > Suggested-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-> > Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->=20
-> Sorry, but I don't get why such change is really needed. If possible it i=
-s
-> better to report errors to userspace as early as possible, not postpone t=
-hem
-> to the moment, when they cannot be easily debugged.
+ - write: the driver gets a pulse/space signal and translates it
+   to a binary signal that will be streamed to the IR led through
+   the SPI framework.
+ - set frequency: sets the frequency whith which the data should
+   be sent. This is handle with ioctl with the
+   LIRC_SET_SEND_CARRIER flag (as per lirc documentation)
+ - set duty cycle: this is also handled with ioctl with the
+   LIRC_SET_SEND_DUTY_CYCLE flag. The driver handles duty cycles
+   of 50%, 60%, 70%, 75%, 80% and 90%, calculated on 16bit data.
 
-Postponing errors is not the goal. It's an unwanted side effect of this
-proposed patch (should have been marque RFQ, as Javier corrected). A
-correct solution would figure-out the error without paying the cost of
-mapping the memory (which is often expensive).
+The character device is created under /dev/lircX name, where X is
+and ID assigned by the LIRC framework.
 
->=20
-> >=20
-> > ---
-> >=20
-> > Hello,
-> >=20
-> > A side effect of this change is that if the dmabuf map fails for
-> > some
-> > reasons (i.e: a driver using the DMA contig memory allocator but
-> > CMA
-> > not being enabled), the fail will no longer happen on VIDIOC_QBUF
-> > but
-> > later (i.e: in VIDIOC_STREAMON).
-> >=20
-> > I don't know if that's an issue though but I think is worth
-> > mentioning.
-> >=20
-> > Best regards,
-> > Javier
-> >=20
-> > =C2=A0 drivers/media/v4l2-core/videobuf2-core.c | 88
-> > ++++++++++++++++++++------------
-> > =C2=A0 1 file changed, 54 insertions(+), 34 deletions(-)
-> >=20
-> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> > b/drivers/media/v4l2-core/videobuf2-core.c
-> > index ca8ffeb56d72..3fdf882bf279 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-core.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > @@ -186,7 +186,7 @@ module_param(debug, int, 0644);
-> > =C2=A0 })
-> > =C2=A0=C2=A0
-> > =C2=A0 static void __vb2_queue_cancel(struct vb2_queue *q);
-> > -static void __enqueue_in_driver(struct vb2_buffer *vb);
-> > +static int __enqueue_in_driver(struct vb2_buffer *vb);
-> > =C2=A0=C2=A0
-> > =C2=A0 /**
-> > =C2=A0=C2=A0=C2=A0* __vb2_buf_mem_alloc() - allocate video memory for t=
-he given
-> > buffer
-> > @@ -1271,20 +1271,6 @@ static int __qbuf_dmabuf(struct vb2_buffer
-> > *vb, const void *pb)
-> > =C2=A0=C2=A0		vb->planes[plane].mem_priv =3D mem_priv;
-> > =C2=A0=C2=A0	}
-> > =C2=A0=C2=A0
-> > -	/* TODO: This pins the buffer(s)
-> > with=C2=A0=C2=A0dma_buf_map_attachment()).. but
-> > -	=C2=A0* really we want to do this just before the DMA, not
-> > while queueing
-> > -	=C2=A0* the buffer(s)..
-> > -	=C2=A0*/
-> > -	for (plane =3D 0; plane < vb->num_planes; ++plane) {
-> > -		ret =3D call_memop(vb, map_dmabuf, vb-
-> > >planes[plane].mem_priv);
-> > -		if (ret) {
-> > -			dprintk(1, "failed to map dmabuf for plane
-> > %d\n",
-> > -				plane);
-> > -			goto err;
-> > -		}
-> > -		vb->planes[plane].dbuf_mapped =3D 1;
-> > -	}
-> > -
-> > =C2=A0=C2=A0	/*
-> > =C2=A0=C2=A0	=C2=A0* Now that everything is in order, copy relevant
-> > information
-> > =C2=A0=C2=A0	=C2=A0* provided by userspace.
-> > @@ -1296,51 +1282,79 @@ static int __qbuf_dmabuf(struct vb2_buffer
-> > *vb, const void *pb)
-> > =C2=A0=C2=A0		vb->planes[plane].data_offset =3D
-> > planes[plane].data_offset;
-> > =C2=A0=C2=A0	}
-> > =C2=A0=C2=A0
-> > -	if (reacquired) {
-> > -		/*
-> > -		=C2=A0* Call driver-specific initialization on the
-> > newly acquired buffer,
-> > -		=C2=A0* if provided.
-> > -		=C2=A0*/
-> > -		ret =3D call_vb_qop(vb, buf_init, vb);
-> > +	return 0;
-> > +err:
-> > +	/* In case of errors, release planes that were already
-> > acquired */
-> > +	__vb2_buf_dmabuf_put(vb);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +/**
-> > + * __buf_map_dmabuf() - map dmabuf for buffer planes
-> > + */
-> > +static int __buf_map_dmabuf(struct vb2_buffer *vb)
-> > +{
-> > +	int ret;
-> > +	unsigned int plane;
-> > +
-> > +	for (plane =3D 0; plane < vb->num_planes; ++plane) {
-> > +		ret =3D call_memop(vb, map_dmabuf, vb-
-> > >planes[plane].mem_priv);
-> > =C2=A0=C2=A0		if (ret) {
-> > -			dprintk(1, "buffer initialization
-> > failed\n");
-> > -			goto err;
-> > +			dprintk(1, "failed to map dmabuf for plane
-> > %d\n",
-> > +				plane);
-> > +			return ret;
-> > =C2=A0=C2=A0		}
-> > +		vb->planes[plane].dbuf_mapped =3D 1;
-> > +	}
-> > +
-> > +	/*
-> > +	=C2=A0* Call driver-specific initialization on the newly
-> > +	=C2=A0* acquired buffer, if provided.
-> > +	=C2=A0*/
-> > +	ret =3D call_vb_qop(vb, buf_init, vb);
-> > +	if (ret) {
-> > +		dprintk(1, "buffer initialization failed\n");
-> > +		return ret;
-> > =C2=A0=C2=A0	}
-> > =C2=A0=C2=A0
-> > =C2=A0=C2=A0	ret =3D call_vb_qop(vb, buf_prepare, vb);
-> > =C2=A0=C2=A0	if (ret) {
-> > =C2=A0=C2=A0		dprintk(1, "buffer preparation failed\n");
-> > =C2=A0=C2=A0		call_void_vb_qop(vb, buf_cleanup, vb);
-> > -		goto err;
-> > +		return ret;
-> > =C2=A0=C2=A0	}
-> > =C2=A0=C2=A0
-> > =C2=A0=C2=A0	return 0;
-> > -err:
-> > -	/* In case of errors, release planes that were already
-> > acquired */
-> > -	__vb2_buf_dmabuf_put(vb);
-> > -
-> > -	return ret;
-> > =C2=A0 }
-> > =C2=A0=C2=A0
-> > =C2=A0 /**
-> > =C2=A0=C2=A0=C2=A0* __enqueue_in_driver() - enqueue a vb2_buffer in dri=
-ver for
-> > processing
-> > =C2=A0=C2=A0=C2=A0*/
-> > -static void __enqueue_in_driver(struct vb2_buffer *vb)
-> > +static int __enqueue_in_driver(struct vb2_buffer *vb)
-> > =C2=A0 {
-> > =C2=A0=C2=A0	struct vb2_queue *q =3D vb->vb2_queue;
-> > =C2=A0=C2=A0	unsigned int plane;
-> > +	int ret;
-> > =C2=A0=C2=A0
-> > =C2=A0=C2=A0	vb->state =3D VB2_BUF_STATE_ACTIVE;
-> > =C2=A0=C2=A0	atomic_inc(&q->owned_by_drv_count);
-> > =C2=A0=C2=A0
-> > =C2=A0=C2=A0	trace_vb2_buf_queue(q, vb);
-> > =C2=A0=C2=A0
-> > +	if (q->memory =3D=3D VB2_MEMORY_DMABUF) {
-> > +		ret =3D __buf_map_dmabuf(vb);
-> > +		if (ret)
-> > +			return ret;
-> > +	}
-> > +
-> > =C2=A0=C2=A0	/* sync buffers */
-> > =C2=A0=C2=A0	for (plane =3D 0; plane < vb->num_planes; ++plane)
-> > =C2=A0=C2=A0		call_void_memop(vb, prepare, vb-
-> > >planes[plane].mem_priv);
-> > =C2=A0=C2=A0
-> > =C2=A0=C2=A0	call_void_vb_qop(vb, buf_queue, vb);
-> > +
-> > +	return 0;
-> > =C2=A0 }
-> > =C2=A0=C2=A0
-> > =C2=A0 static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
-> > @@ -1438,8 +1452,11 @@ static int vb2_start_streaming(struct
-> > vb2_queue *q)
-> > =C2=A0=C2=A0	=C2=A0* If any buffers were queued before streamon,
-> > =C2=A0=C2=A0	=C2=A0* we can now pass them to driver for processing.
-> > =C2=A0=C2=A0	=C2=A0*/
-> > -	list_for_each_entry(vb, &q->queued_list, queued_entry)
-> > -		__enqueue_in_driver(vb);
-> > +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-> > +		ret =3D __enqueue_in_driver(vb);
-> > +		if (ret < 0)
-> > +			return ret;
-> > +	}
-> > =C2=A0=C2=A0
-> > =C2=A0=C2=A0	/* Tell the driver to start streaming */
-> > =C2=A0=C2=A0	q->start_streaming_called =3D 1;
-> > @@ -1540,8 +1557,11 @@ int vb2_core_qbuf(struct vb2_queue *q,
-> > unsigned int index, void *pb)
-> > =C2=A0=C2=A0	=C2=A0* If already streaming, give the buffer to driver fo=
-r
-> > processing.
-> > =C2=A0=C2=A0	=C2=A0* If not, the buffer will be given to driver on next
-> > streamon.
-> > =C2=A0=C2=A0	=C2=A0*/
-> > -	if (q->start_streaming_called)
-> > -		__enqueue_in_driver(vb);
-> > +	if (q->start_streaming_called) {
-> > +		ret =3D __enqueue_in_driver(vb);
-> > +		if (ret)
-> > +			return ret;
-> > +	}
-> > =C2=A0=C2=A0
-> > =C2=A0=C2=A0	/* Fill buffer information for the userspace */
-> > =C2=A0=C2=A0	if (pb)
->=20
-> Best regards
---=-q4O3ERaA18VniHeu7zPG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Example of usage:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+        fd = open("/dev/lirc0", O_RDWR);
+        if (fd < 0)
+                return -1;
 
-iEYEABECAAYFAlfPC2UACgkQcVMCLawGqBylBACgsi8Vh6EEiXZQUuPozGwJq1Rx
-UJIAoLxdu5c76WTCUqm+cBrPVlZgWVLP
-=uTet
------END PGP SIGNATURE-----
+        val = 608000;
+        ret = ioctl(fd, LIRC_SET_SEND_CARRIER, &val);
+        if (ret < 0)
+                return -1;
 
---=-q4O3ERaA18VniHeu7zPG--
+	val = 60;
+        ret = ioctl(fd, LIRC_SET_SEND_DUTY_CYCLE, &val);
+        if (ret < 0)
+                return -1;
+
+        n = write(fd, buffer, BUF_LEN);
+        if (n < 0 || n != BUF_LEN)
+                ret = -1;
+
+        close(fd);
+
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+---
+ drivers/media/rc/Kconfig  |   9 ++
+ drivers/media/rc/Makefile |   1 +
+ drivers/media/rc/ir-spi.c | 221 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 231 insertions(+)
+ create mode 100644 drivers/media/rc/ir-spi.c
+
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 370e16e..207dfcc 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -261,6 +261,15 @@ config IR_REDRAT3
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called redrat3.
+ 
++config IR_SPI
++	tristate "SPI connected IR LED"
++	depends on SPI && LIRC
++	---help---
++	  Say Y if you want to use an IR LED connected through SPI bus.
++
++	  To compile this driver as a module, choose M here: the module will be
++	  called ir-spi.
++
+ config IR_STREAMZAP
+ 	tristate "Streamzap PC Remote IR Receiver"
+ 	depends on USB_ARCH_HAS_HCD
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 379a5c0..1417c8d 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -27,6 +27,7 @@ obj-$(CONFIG_IR_NUVOTON) += nuvoton-cir.o
+ obj-$(CONFIG_IR_ENE) += ene_ir.o
+ obj-$(CONFIG_IR_REDRAT3) += redrat3.o
+ obj-$(CONFIG_IR_RX51) += ir-rx51.o
++obj-$(CONFIG_IR_SPI) += ir-spi.o
+ obj-$(CONFIG_IR_STREAMZAP) += streamzap.o
+ obj-$(CONFIG_IR_WINBOND_CIR) += winbond-cir.o
+ obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
+diff --git a/drivers/media/rc/ir-spi.c b/drivers/media/rc/ir-spi.c
+new file mode 100644
+index 0000000..34d5a0c
+--- /dev/null
++++ b/drivers/media/rc/ir-spi.c
+@@ -0,0 +1,221 @@
++/*
++ * Copyright (c) 2016 Samsung Electronics Co., Ltd.
++ * Author: Andi Shyti <andi.shyti@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * SPI driven IR LED device driver
++ */
++
++#include <linux/delay.h>
++#include <linux/fs.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/of_gpio.h>
++#include <linux/regulator/consumer.h>
++#include <linux/spi/spi.h>
++#include <media/rc-core.h>
++
++#define IR_SPI_DRIVER_NAME		"ir-spi"
++
++/* pulse value for different duty cycles */
++#define IR_SPI_PULSE_DC_50		0xff00
++#define IR_SPI_PULSE_DC_60		0xfc00
++#define IR_SPI_PULSE_DC_70		0xf800
++#define IR_SPI_PULSE_DC_75		0xf000
++#define IR_SPI_PULSE_DC_80		0xc000
++#define IR_SPI_PULSE_DC_90		0x8000
++
++/* duty cycles values */
++#define IR_SPI_DUTY_CYCLE_50		50
++#define IR_SPI_DUTY_CYCLE_60		60
++#define IR_SPI_DUTY_CYCLE_70		70
++#define IR_SPI_DUTY_CYCLE_75		75
++#define IR_SPI_DUTY_CYCLE_80		80
++#define IR_SPI_DUTY_CYCLE_90		90
++
++#define IR_SPI_DEFAULT_FREQUENCY	38000
++#define IR_SPI_BIT_PER_WORD		    8
++#define IR_SPI_MAX_BUFSIZE		 4096
++
++struct ir_spi_data {
++	u32 freq;
++	u8 duty_cycle;
++	bool negated;
++
++	u16 tx_buf[IR_SPI_MAX_BUFSIZE];
++	u16 pulse;
++	u16 space;
++
++	struct rc_dev *rc;
++	struct spi_device *spi;
++	struct regulator *regulator;
++};
++
++static int ir_spi_tx(struct rc_dev *dev, unsigned int *buffer, unsigned int count)
++{
++	int i;
++	int ret;
++	unsigned int len = 0;
++	struct ir_spi_data *idata = dev->priv;
++	struct spi_transfer xfer;
++
++	/* convert the pulse/space signal to raw binary signal */
++	for (i = 0; i < count; i++) {
++		int j;
++		u16 val = ((i+1) % 2) ? idata->pulse : idata->space;
++
++		if (len + buffer[i] >= IR_SPI_MAX_BUFSIZE)
++			return -EINVAL;
++
++		/*
++		 * the first value in buffer is a pulse, so that 0, 2, 4, ...
++		 * contain a pulse duration. On the contrary, 1, 3, 5, ...
++		 * contain a space duration.
++		 */
++		val = (i % 2) ? idata->space : idata->pulse;
++		for (j = 0; j < buffer[i]; j++)
++			idata->tx_buf[len++] = val;
++	}
++
++	pr_info("from %u data, we originated %u raw data\n", count, len);
++
++	memset(&xfer, 0, sizeof(xfer));
++
++	xfer.speed_hz = idata->freq;
++	xfer.len = len * sizeof(*idata->tx_buf);
++	xfer.tx_buf = idata->tx_buf;
++
++	ret = regulator_enable(idata->regulator);
++	if (ret)
++		return ret;
++
++	ret = spi_sync_transfer(idata->spi, &xfer, 1);
++	if (ret)
++		dev_err(&idata->spi->dev, "unable to deliver the signal\n");
++
++	regulator_disable(idata->regulator);
++
++	return ret ? ret : len;
++}
++
++static int ir_spi_set_tx_carrier(struct rc_dev *dev, u32 carrier)
++{
++	struct ir_spi_data *idata = dev->priv;
++
++	if (!carrier)
++		return -EINVAL;
++
++	idata->freq = carrier;
++
++	return 0;
++}
++
++static int ir_spi_set_duty_cycle(struct rc_dev *dev, u32 duty_cycle)
++{
++	struct ir_spi_data *idata = dev->priv;
++
++	switch (duty_cycle) {
++	case IR_SPI_DUTY_CYCLE_90:
++		idata->pulse = IR_SPI_PULSE_DC_90;
++		break;
++	case IR_SPI_DUTY_CYCLE_80:
++		idata->pulse = IR_SPI_PULSE_DC_80;
++		break;
++	case IR_SPI_DUTY_CYCLE_75:
++		idata->pulse = IR_SPI_PULSE_DC_75;
++		break;
++	case IR_SPI_DUTY_CYCLE_70:
++		idata->pulse = IR_SPI_PULSE_DC_70;
++		break;
++	case IR_SPI_DUTY_CYCLE_60:
++		idata->pulse = IR_SPI_PULSE_DC_60;
++		break;
++	case IR_SPI_DUTY_CYCLE_50:
++	default:
++		idata->pulse = IR_SPI_PULSE_DC_50;
++	}
++
++	if (idata->negated) {
++		idata->pulse = ~idata->pulse;
++		idata->space = 0xffff;
++	} else {
++		idata->space = 0;
++	}
++
++	return 0;
++}
++
++static int ir_spi_probe(struct spi_device *spi)
++{
++	int ret;
++	u8 dc;
++	struct ir_spi_data *idata;
++
++	idata = devm_kzalloc(&spi->dev, sizeof(*idata), GFP_KERNEL);
++	if (!idata)
++		return -ENOMEM;
++
++	idata->regulator = devm_regulator_get(&spi->dev, "irda_regulator");
++	if (IS_ERR(idata->regulator))
++		return PTR_ERR(idata->regulator);
++
++	idata->rc = rc_allocate_device(RC_DRIVER_IR_RAW_TX);
++	if (!idata->rc)
++		return -ENOMEM;
++
++	idata->rc->tx_ir           = ir_spi_tx;
++	idata->rc->s_tx_carrier    = ir_spi_set_tx_carrier;
++	idata->rc->s_tx_duty_cycle = ir_spi_set_duty_cycle;
++	idata->rc->driver_name     = IR_SPI_DRIVER_NAME;
++	idata->rc->priv            = idata;
++	idata->spi                 = spi;
++
++	idata->negated = of_property_read_bool(spi->dev.of_node, "negated");
++	ret = of_property_read_u8(spi->dev.of_node, "duty-cycle", &dc);
++	if (ret)
++		dc = IR_SPI_DUTY_CYCLE_50;
++
++	ret = ir_spi_set_duty_cycle(idata->rc, dc);
++	if (ret)
++		return ret;
++
++	idata->freq = IR_SPI_DEFAULT_FREQUENCY;
++
++	ret = rc_register_device(idata->rc);
++	if (ret)
++		rc_unregister_device(idata->rc);
++
++	return ret;
++}
++
++static int ir_spi_remove(struct spi_device *spi)
++{
++	struct ir_spi_data *idata = spi_get_drvdata(spi);
++
++	rc_unregister_device(idata->rc);
++
++	return 0;
++}
++
++static const struct of_device_id ir_spi_of_match[] = {
++	{ .compatible = "ir-spi" },
++	{},
++};
++
++static struct spi_driver ir_spi_driver = {
++	.probe = ir_spi_probe,
++	.remove = ir_spi_remove,
++	.driver = {
++		.name = IR_SPI_DRIVER_NAME,
++		.of_match_table = ir_spi_of_match,
++	},
++};
++
++module_spi_driver(ir_spi_driver);
++
++MODULE_AUTHOR("Andi Shyti <andi.shyti@samsung.com>");
++MODULE_DESCRIPTION("SPI IR LED");
++MODULE_LICENSE("GPL v2");
+-- 
+2.9.3
 
