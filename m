@@ -1,47 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:54613 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752144AbcIPNdk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 09:33:40 -0400
-To: LMML <linux-media@vger.kernel.org>
-Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PULL] Samsung fixes for 4.8
-Message-id: <8001c83d-0e3a-61cb-bf53-8c2b497bd0ed@samsung.com>
-Date: Fri, 16 Sep 2016 15:33:33 +0200
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 7bit
-References: <CGME20160916133335eucas1p2417ec5672f250c3eaca8e424293ce783@eucas1p2.samsung.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:44395 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755667AbcIAV1V (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 17:27:21 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
+        Andi Shyti <andi@etezian.org>
+Subject: [PATCH v2 5/7] [media] ir-lirc-codec: don't wait any transmitting time
+ for tx only devices
+Date: Fri, 02 Sep 2016 02:16:27 +0900
+Message-id: <20160901171629.15422-6-andi.shyti@samsung.com>
+In-reply-to: <20160901171629.15422-1-andi.shyti@samsung.com>
+References: <20160901171629.15422-1-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Transmitters do not need to wait until the data has been sent
+(and of course received). Return before waiting.
 
-The following changes since commit 7892a1f64a447b6f65fe2888688883b7c26d81d3:
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+---
+ drivers/media/rc/ir-lirc-codec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-  [media] rcar-fcp: Make sure rcar_fcp_enable() returns 0 on success (2016-09-15 09:02:16 -0300)
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index c327730..d8953fb 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -153,7 +153,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 	}
+ 
+ 	ret = dev->tx_ir(dev, txbuf, count);
+-	if (ret < 0)
++	if (ret < 0 || dev->driver_type == RC_DRIVER_IR_RAW_TX)
+ 		goto out;
+ 
+ 	for (duration = i = 0; i < ret; i++)
+-- 
+2.9.3
 
-are available in the git repository at:
-
-  git://linuxtv.org/snawrocki/samsung.git for-v4.9/media/fixes
-
-for you to fetch changes up to 8beaa9d0595aa2ae1f63be364c80189e53cbfe15:
-
-  exynos4-is: Clear I2C_ISP adapter's power.ignore_children flag (2016-09-16 15:25:55 +0200)
-
-----------------------------------------------------------------
-Marek Szyprowski (1):
-      s5p-mfc: fix failure path of s5p_mfc_alloc_memdev()
-
-Sylwester Nawrocki (1):
-      exynos4-is: Clear I2C_ISP adapter's power.ignore_children flag
-
- drivers/media/platform/exynos4-is/fimc-is-i2c.c | 25 ++++++++++++++++++-------
- drivers/media/platform/s5p-mfc/s5p_mfc.c        |  1 +
- 2 files changed, 19 insertions(+), 7 deletions(-)
-
---
-Thanks, 
-Sylwester
