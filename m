@@ -1,70 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:6487 "EHLO mga04.intel.com"
+Received: from gofer.mess.org ([80.229.237.210]:50797 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750997AbcISU6j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 16:58:39 -0400
-Subject: Re: [PATCH v2 01/17] smiapp: Move sub-device initialisation into a
- separate function
-To: Sebastian Reichel <sre@ring0.de>
-Cc: linux-media@vger.kernel.org
-References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
- <1473938551-14503-2-git-send-email-sakari.ailus@linux.intel.com>
- <20160919201131.f5eeca2vvjabqhpm@earth>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <57E05179.4080902@linux.intel.com>
-Date: Mon, 19 Sep 2016 23:58:33 +0300
+        id S1757188AbcIAVXy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Sep 2016 17:23:54 -0400
+Date: Thu, 1 Sep 2016 22:23:51 +0100
+From: Sean Young <sean@mess.org>
+To: Andi Shyti <andi.shyti@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Andi Shyti <andi@etezian.org>
+Subject: Re: [PATCH v2 1/7] [media] rc-main: assign driver type during
+ allocation
+Message-ID: <20160901212351.GB22198@gofer.mess.org>
+References: <20160901171629.15422-1-andi.shyti@samsung.com>
+ <20160901171629.15422-2-andi.shyti@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <20160919201131.f5eeca2vvjabqhpm@earth>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160901171629.15422-2-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sebastian,
+On Fri, Sep 02, 2016 at 02:16:23AM +0900, Andi Shyti wrote:
+> The driver type can be assigned immediately when an RC device
+> requests to the framework to allocate the device.
+> 
+> This is an 'enum rc_driver_type' data type and specifies whether
+> the device is a raw receiver or scancode receiver. The type will
+> be given as parameter to the rc_allocate_device device.
+> 
+> Change accordingly all the drivers calling rc_allocate_device()
+> so that the device type is specified during the rc device
+> allocation. Whenever the device type is not specified, it will be
+> set as RC_DRIVER_SCANCODE which was the default '0' value.
+> 
+> Suggested-by: Sean Young <sean@mess.org>
+> Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+> ---
 
-Thank you for the review!
+...
 
-Sebastian Reichel wrote:
-> Hi,
->
-> On Thu, Sep 15, 2016 at 02:22:15PM +0300, Sakari Ailus wrote:
->> Simplify smiapp_init() by moving the initialisation of individual
->> sub-devices to a separate function.
->
-> Reviewed-By: Sebastian Reichel <sre@kernel.org>
->
->> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->> ---
->>   drivers/media/i2c/smiapp/smiapp-core.c | 108 +++++++++++++++------------------
->>   1 file changed, 49 insertions(+), 59 deletions(-)
->>
->> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
->> index 44f8c7e..862017e 100644
->> --- a/drivers/media/i2c/smiapp/smiapp-core.c
->> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
->>
->> [...]
->>
->> +	if (sensor->scaler)
->> +		smiapp_create_subdev(sensor, sensor->scaler, "scaler");
->
-> I would add the NULL check to smiapp_create_subdev.
+> diff --git a/drivers/media/pci/cx88/cx88-input.c b/drivers/media/pci/cx88/cx88-input.c
+> index 3f1342c..e52bf69 100644
+> --- a/drivers/media/pci/cx88/cx88-input.c
+> +++ b/drivers/media/pci/cx88/cx88-input.c
+> @@ -271,7 +271,7 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
+>  				 */
+>  
+>  	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+> -	dev = rc_allocate_device();
+> +	dev = rc_allocate_device(RC_DRIVER_IR_RAW);
+>  	if (!ir || !dev)
+>  		goto err_out_free;
+>  
 
-I first thought I'd say it makes it cleaner what's optional and what's 
-not. The same is however visible some ten--twenty lines above this code, 
-so not really an argument for that. Will fix.
-
->
->> +	smiapp_create_subdev(sensor, sensor->binner, "binner");
->> +	smiapp_create_subdev(sensor, sensor->pixel_array, "pixel_array");
->>
->>   	dev_dbg(&client->dev, "profile %d\n", sensor->minfo.smiapp_profile);
->>
->
-> -- Sebastian
->
+If ir->sampling = 0 then it should be RC_DRIVER_SCANCODE.
 
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+> @@ -481,7 +481,6 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
+>  	dev->scancode_mask = hardware_mask;
+>  
+>  	if (ir->sampling) {
+> -		dev->driver_type = RC_DRIVER_IR_RAW;
+>  		dev->timeout = 10 * 1000 * 1000; /* 10 ms */
+>  	} else {
+>  		dev->driver_type = RC_DRIVER_SCANCODE;
+
+That assignment shouldn't really be there any more.
+
+
+> diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
+> index c8042c3..e9d4a47 100644
+> --- a/drivers/media/pci/saa7134/saa7134-input.c
+> +++ b/drivers/media/pci/saa7134/saa7134-input.c
+> @@ -849,7 +849,7 @@ int saa7134_input_init1(struct saa7134_dev *dev)
+>  	}
+>  
+>  	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+> -	rc = rc_allocate_device();
+> +	rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+>  	if (!ir || !rc) {
+>  		err = -ENOMEM;
+>  		goto err_out_free;
+
+This is not correct, I'm afraid. If you look at the code you can see that
+if raw_decode is true, then it should be RC_DRIVER_IR_RAW.
+
+
+Sean
