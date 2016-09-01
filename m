@@ -1,82 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37328 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751099AbcI3Kzz (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44938 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751493AbcIAMCs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Sep 2016 06:55:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Cc: horms@verge.net.au, geert@linux-m68k.org, hans.verkuil@cisco.com,
-        niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com
-Subject: Re: [PATCH 1/3] ARM: dts: r8a7793: Enable VIN0, VIN1
-Date: Fri, 30 Sep 2016 13:55:50 +0300
-Message-ID: <1961479.Ly4IFObGfR@avalon>
-In-Reply-To: <20160916130935.21292-2-ulrich.hecht+renesas@gmail.com>
-References: <20160916130935.21292-1-ulrich.hecht+renesas@gmail.com> <20160916130935.21292-2-ulrich.hecht+renesas@gmail.com>
+        Thu, 1 Sep 2016 08:02:48 -0400
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 7774E6009C
+        for <linux-media@vger.kernel.org>; Thu,  1 Sep 2016 15:02:44 +0300 (EEST)
+Date: Thu, 1 Sep 2016 15:02:44 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.9] smiapp cleanups and probe deferral
+Message-ID: <20160901120243.GV12130@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ulrich,
+Hi Mauro,
 
-Thanks for the patch.
+Here are cleanups and probe deferral in case of a failure to obtain a clock
+for the smiapp driver.
 
-On Friday 16 Sep 2016 15:09:33 Ulrich Hecht wrote:
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> ---
->  arch/arm/boot/dts/r8a7793.dtsi | 20 ++++++++++++++++++++
->  1 file changed, 20 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/r8a7793.dtsi b/arch/arm/boot/dts/r8a7793.dtsi
-> index 8d02aac..0898668 100644
-> --- a/arch/arm/boot/dts/r8a7793.dtsi
-> +++ b/arch/arm/boot/dts/r8a7793.dtsi
-> @@ -30,6 +30,8 @@
->  		i2c7 = &i2c7;
->  		i2c8 = &i2c8;
->  		spi0 = &qspi;
-> +		vin0 = &vin0;
-> +		vin1 = &vin1;
+Please pull.
 
-Why is this needed ?
 
->  	};
-> 
->  	cpus {
-> @@ -852,6 +854,24 @@
->  		status = "disabled";
->  	};
-> 
-> +	vin0: video@e6ef0000 {
-> +		compatible = "renesas,vin-r8a7793";
-> +		reg = <0 0xe6ef0000 0 0x1000>;
-> +		interrupts = <GIC_SPI 188 IRQ_TYPE_LEVEL_HIGH>;
-> +		clocks = <&mstp8_clks R8A7793_CLK_VIN0>;
-> +		power-domains = <&sysc R8A7793_PD_ALWAYS_ON>;
-> +		status = "disabled";
-> +	};
-> +
-> +	vin1: video@e6ef1000 {
-> +		compatible = "renesas,vin-r8a7793";
-> +		reg = <0 0xe6ef1000 0 0x1000>;
-> +		interrupts = <GIC_SPI 189 IRQ_TYPE_LEVEL_HIGH>;
-> +		clocks = <&mstp8_clks R8A7793_CLK_VIN1>;
-> +		power-domains = <&sysc R8A7793_PD_ALWAYS_ON>;
-> +		status = "disabled";
-> +	};
-> +
+The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
 
-As Geert mentioned, you should add vin2 here.
+  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
 
->  	qspi: spi@e6b10000 {
->  		compatible = "renesas,qspi-r8a7793", "renesas,qspi";
->  		reg = <0 0xe6b10000 0 0x2c>;
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git smiapp
+
+for you to fetch changes up to e5523b3e420ea19172e364bb6f10ce6eeec61efc:
+
+  smiapp: Remove set_xclk() callback from hwconfig (2016-09-01 12:42:13 +0300)
+
+----------------------------------------------------------------
+Sakari Ailus (6):
+      smiapp: Unify enforced and need-based 8-bit read
+      smiapp: Rename smiapp_platform_data as smiapp_hwconfig
+      smiapp: Return -EPROBE_DEFER if the clock cannot be obtained
+      smiapp: Constify the regs argument to smiapp_write_8s()
+      smiapp: Switch to gpiod API for GPIO control
+      smiapp: Remove set_xclk() callback from hwconfig
+
+ drivers/media/i2c/smiapp/smiapp-core.c  | 172 +++++++++++++-------------------
+ drivers/media/i2c/smiapp/smiapp-quirk.c |  16 ++-
+ drivers/media/i2c/smiapp/smiapp-regs.c  |  22 ++--
+ drivers/media/i2c/smiapp/smiapp.h       |   3 +-
+ include/media/i2c/smiapp.h              |   7 +-
+ 5 files changed, 93 insertions(+), 127 deletions(-)
 
 -- 
-Regards,
+Kind regards,
 
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
