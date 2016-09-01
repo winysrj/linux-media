@@ -1,35 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f50.google.com ([209.85.215.50]:36604 "EHLO
-        mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752292AbcILXDK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Sep 2016 19:03:10 -0400
-Received: by mail-lf0-f50.google.com with SMTP id g62so97918953lfe.3
-        for <linux-media@vger.kernel.org>; Mon, 12 Sep 2016 16:03:09 -0700 (PDT)
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        mchehab@kernel.org, hans.verkuil@cisco.com, Julia.Lawall@lip6.fr
-Cc: andrey_utkin@fastmail.com, maintainers@bluecherrydvr.com,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Subject: [PATCH 0/2] [media] tw5864 constify some structures
-Date: Tue, 13 Sep 2016 02:02:36 +0300
-Message-Id: <20160912230238.2302-1-andrey.utkin@corp.bluecherry.net>
+Received: from youngberry.canonical.com ([91.189.89.112]:37775 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753229AbcIALLD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 07:11:03 -0400
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michael Ira Krufky <mkrufky@linuxtv.org>,
+        linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] lgdt3306a: fix spelling mistake "supportted" -> "supported"
+Date: Thu,  1 Sep 2016 12:09:41 +0100
+Message-Id: <20160901110941.27824-1-colin.king@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tw5864 is a recently submitted driver and it is currently present only
-in media tree.
+From: Colin Ian King <colin.king@canonical.com>
 
-Recent patches submitted by Julia Lawall urged me to make similar
-changes in this driver.
+Trivial fix to spelling mistake in pr_warn message.
 
-Andrey Utkin (2):
-  [media] tw5864: constify vb2_ops structure
-  [media] tw5864: constify struct video_device template
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/dvb-frontends/lgdt3306a.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/media/pci/tw5864/tw5864-video.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index 179c26e..afb9d73 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -731,7 +731,7 @@ static int lgdt3306a_set_if(struct lgdt3306a_state *state,
+ 
+ 	switch (if_freq_khz) {
+ 	default:
+-		pr_warn("IF=%d KHz is not supportted, 3250 assumed\n",
++		pr_warn("IF=%d KHz is not supported, 3250 assumed\n",
+ 			if_freq_khz);
+ 		/* fallthrough */
+ 	case 3250: /* 3.25Mhz */
 -- 
-2.9.2
+2.9.3
 
