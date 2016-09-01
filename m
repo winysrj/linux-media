@@ -1,46 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:58708 "EHLO ni.piap.pl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752313AbcIZFiK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Sep 2016 01:38:10 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Andrey Utkin <andrey_utkin@fastmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Ismael Luceno <ismael@iodev.co.uk>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>
-Subject: Re: solo6010 modprobe lockup since e1ceb25a (v4.3 regression)
-References: <20160915130441.ji3f3jiiebsnsbct@acer>
-        <9cbb2079-f705-5312-d295-34bc3c8dadb9@xs4all.nl>
-        <m3k2e5wfxy.fsf@t19.piap.pl> <20160921134554.s3tdolyej6r2w5wh@zver>
-        <m360powc4m.fsf@t19.piap.pl> <20160922152356.nhgacxprxtvutb67@zver>
-Date: Mon, 26 Sep 2016 07:38:05 +0200
-In-Reply-To: <20160922152356.nhgacxprxtvutb67@zver> (Andrey Utkin's message of
-        "Thu, 22 Sep 2016 18:23:56 +0300")
-Message-ID: <m3ponri5ky.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout1.samsung.com ([203.254.224.24]:46549 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756588AbcIAV1W (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 17:27:22 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
+        Andi Shyti <andi@etezian.org>
+Subject: [PATCH v2 6/7] Documentation: bindings: add documentation for ir-spi
+ device driver
+Date: Fri, 02 Sep 2016 02:16:28 +0900
+Message-id: <20160901171629.15422-7-andi.shyti@samsung.com>
+In-reply-to: <20160901171629.15422-1-andi.shyti@samsung.com>
+References: <20160901171629.15422-1-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andrey Utkin <andrey_utkin@fastmail.com> writes:
+Document the ir-spi driver's binding which is a IR led driven
+through the SPI line.
 
-> On Thu, Sep 22, 2016 at 10:51:37AM +0200, Krzysztof Hałasa wrote:
->> I wonder if the following fixes the problem (completely untested).
->
-> I have given this a run, and it still hangs.
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+---
+ Documentation/devicetree/bindings/media/spi-ir.txt | 26 ++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/spi-ir.txt
 
-Does (only) adding the
-
-	pci_read_config_word(solo_dev->pdev, PCI_STATUS, &val);
-
-in solo_reg_write() help?
+diff --git a/Documentation/devicetree/bindings/media/spi-ir.txt b/Documentation/devicetree/bindings/media/spi-ir.txt
+new file mode 100644
+index 0000000..85cb21b
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/spi-ir.txt
+@@ -0,0 +1,26 @@
++Device tree bindings for IR LED connected through SPI bus which is used as
++remote controller.
++
++The IR LED switch is connected to the MOSI line of the SPI device and the data
++are delivered thourgh that.
++
++Required properties:
++	- compatible: should be "ir-spi".
++
++Optional properties:
++	- irled,switch: specifies the gpio switch which enables the irled/
++	- negated: boolean value that specifies whether the output is negated
++	  with a NOT gate.
++	- duty-cycle: 8 bit value that stores the percentage of the duty cycle.
++	  it can be 50, 60, 70, 75, 80 or 90.
++
++Example:
++
++        irled@0 {
++                compatible = "ir-spi";
++                reg = <0x0>;
++                spi-max-frequency = <5000000>;
++                irled,switch = <&gpr3 3 0>;
++		negated;
++		duty-cycle = /bits/ 8 <60>;
++        };
 -- 
-Krzysztof Halasa
+2.9.3
 
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
