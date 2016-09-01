@@ -1,119 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1.mo173.mail-out.ovh.net ([178.33.111.180]:43098 "EHLO
-        1.mo173.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750922AbcIOPaQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 11:30:16 -0400
-Received: from player711.ha.ovh.net (b9.ovh.net [213.186.33.59])
-        by mo173.mail-out.ovh.net (Postfix) with ESMTP id F2E331010C86
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 17:30:13 +0200 (CEST)
-From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Received: from mailout2.samsung.com ([203.254.224.25]:44181 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755066AbcIALjh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 07:39:37 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
-Subject: [PATCH v7 1/2] SDI: add flag for SDI formats and SMPTE 125M definition
-Date: Thu, 15 Sep 2016 17:29:50 +0200
-Message-Id: <1473953391-3974-2-git-send-email-charles-antoine.couret@nexvision.fr>
-In-Reply-To: <1473953391-3974-1-git-send-email-charles-antoine.couret@nexvision.fr>
-References: <1473953391-3974-1-git-send-email-charles-antoine.couret@nexvision.fr>
+Cc: m.szyprowski@samsung.com, wsa@the-dreams.de,
+        b.zolnierkie@samsung.com, linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        stable@vger.kernel.org
+Subject: [PATCH 1/4] exynos4-is: Clear isp-i2c adapter power.ignore_children
+ flag
+Date: Thu, 01 Sep 2016 13:39:16 +0200
+Message-id: <1472729956-17475-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adding others generic flags, which could be used by many
-components like GS1662.
+Since commit 04f59143b571161d25315dd52d7a2ecc022cb71a
+("i2c: let I2C masters ignore their children for PM")
+the power.ignore_children flag is set when registering an I2C
+adapter. Since I2C transfers are not managed by the fimc-isp-i2c
+driver its clients use pm_runtime_* calls directly to communicate
+required power state of the bus controller.
+However when the power.ignore_children flag is set that doesn't
+work, so clear that flag back after registering the adapter.
+While at it drop pm_runtime_enable() call on the i2c_adapter
+as it is already done by the I2C subsystem when registering
+I2C adapter.
 
-Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Cc: <stable@vger.kernel.org> # 4.7+
+Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-dv-timings.c | 11 +++++++----
- include/uapi/linux/v4l2-dv-timings.h      | 12 ++++++++++++
- include/uapi/linux/videodev2.h            |  8 ++++++++
- 3 files changed, 27 insertions(+), 4 deletions(-)
+ drivers/media/platform/exynos4-is/fimc-is-i2c.c | 25 ++++++++++++++++++-------
+ 1 file changed, 18 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 889de0a..730a7c3 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -306,7 +306,7 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
- 			(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
- 			bt->il_vsync, bt->il_vbackporch);
- 	pr_info("%s: pixelclock: %llu\n", dev_prefix, bt->pixelclock);
--	pr_info("%s: flags (0x%x):%s%s%s%s%s%s\n", dev_prefix, bt->flags,
-+	pr_info("%s: flags (0x%x):%s%s%s%s%s%s%s\n", dev_prefix, bt->flags,
- 			(bt->flags & V4L2_DV_FL_REDUCED_BLANKING) ?
- 			" REDUCED_BLANKING" : "",
- 			((bt->flags & V4L2_DV_FL_REDUCED_BLANKING) &&
-@@ -318,12 +318,15 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
- 			(bt->flags & V4L2_DV_FL_HALF_LINE) ?
- 			" HALF_LINE" : "",
- 			(bt->flags & V4L2_DV_FL_IS_CE_VIDEO) ?
--			" CE_VIDEO" : "");
--	pr_info("%s: standards (0x%x):%s%s%s%s\n", dev_prefix, bt->standards,
-+			" CE_VIDEO" : "",
-+			(bt->flags & V4L2_DV_FL_FIRST_FIELD_EXTRA_LINE) ?
-+			" FIRST_FIELD_EXTRA_LINE" : "");
-+	pr_info("%s: standards (0x%x):%s%s%s%s%s\n", dev_prefix, bt->standards,
- 			(bt->standards & V4L2_DV_BT_STD_CEA861) ?  " CEA" : "",
- 			(bt->standards & V4L2_DV_BT_STD_DMT) ?  " DMT" : "",
- 			(bt->standards & V4L2_DV_BT_STD_CVT) ?  " CVT" : "",
--			(bt->standards & V4L2_DV_BT_STD_GTF) ?  " GTF" : "");
-+			(bt->standards & V4L2_DV_BT_STD_GTF) ?  " GTF" : "",
-+			(bt->standards & V4L2_DV_BT_STD_SDI) ?  " SDI" : "");
- }
- EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
+diff --git a/drivers/media/platform/exynos4-is/fimc-is-i2c.c b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+index 7521aa5..03b4246 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is-i2c.c
++++ b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+@@ -55,26 +55,37 @@ static int fimc_is_i2c_probe(struct platform_device *pdev)
+ 	i2c_adap->algo = &fimc_is_i2c_algorithm;
+ 	i2c_adap->class = I2C_CLASS_SPD;
  
-diff --git a/include/uapi/linux/v4l2-dv-timings.h b/include/uapi/linux/v4l2-dv-timings.h
-index 086168e..f319571 100644
---- a/include/uapi/linux/v4l2-dv-timings.h
-+++ b/include/uapi/linux/v4l2-dv-timings.h
-@@ -934,4 +934,16 @@
- 		V4L2_DV_FL_REDUCED_BLANKING) \
- }
- 
-+/* SDI timings definitions */
++	platform_set_drvdata(pdev, isp_i2c);
++	pm_runtime_enable(&pdev->dev);
 +
-+/* SMPTE-125M */
-+#define V4L2_DV_BT_SDI_720X487I60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(720, 487, 1, \
-+		V4L2_DV_HSYNC_POS_POL, \
-+		13500000, 16, 121, 0, 0, 19, 0, 0, 19, 0, \
-+		V4L2_DV_BT_STD_SDI, \
-+		V4L2_DV_FL_FIRST_FIELD_EXTRA_LINE) \
-+}
+ 	ret = i2c_add_adapter(i2c_adap);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "failed to add I2C bus %s\n",
+ 						node->full_name);
+-		return ret;
++		goto err_pm_dis;
+ 	}
+ 
+-	platform_set_drvdata(pdev, isp_i2c);
+-
+-	pm_runtime_enable(&pdev->dev);
+-	pm_runtime_enable(&i2c_adap->dev);
+-
++	/*
++	 * Client drivers of this adapter don't do any I2C transfers as that
++	 * is handled by the ISP firmware.  But we rely on the runtime PM
++	 * state propagation from the clients up to the adapter driver so
++	 * clear the ignore_children flags here.  PM rutnime calls are not
++	 * used in probe() handler of clients of this adapter so there is
++	 * no issues with clearing the flag right after registering the I2C
++	 * adapter.
++	 */
++	pm_suspend_ignore_children(&i2c_adap->dev, false);
+ 	return 0;
 +
- #endif
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 8f95191..37126a4 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1259,6 +1259,7 @@ struct v4l2_bt_timings {
- #define V4L2_DV_BT_STD_DMT	(1 << 1)  /* VESA Discrete Monitor Timings */
- #define V4L2_DV_BT_STD_CVT	(1 << 2)  /* VESA Coordinated Video Timings */
- #define V4L2_DV_BT_STD_GTF	(1 << 3)  /* VESA Generalized Timings Formula */
-+#define V4L2_DV_BT_STD_SDI	(1 << 4)  /* SDI Timings */
++err_pm_dis:
++	pm_runtime_disable(&pdev->dev);
++	return ret;
+ }
  
- /* Flags */
+ static int fimc_is_i2c_remove(struct platform_device *pdev)
+ {
+ 	struct fimc_is_i2c *isp_i2c = platform_get_drvdata(pdev);
  
-@@ -1290,6 +1291,11 @@ struct v4l2_bt_timings {
-  * use the range 16-235) as opposed to 0-255. All formats defined in CEA-861
-  * except for the 640x480 format are CE formats. */
- #define V4L2_DV_FL_IS_CE_VIDEO			(1 << 4)
-+/* Some formats like SMPTE-125M have an interlaced signal with a odd
-+ * total height. For these formats, if this flag is set, the first
-+ * field has the extra line. If not, it is the second field.
-+ */
-+#define V4L2_DV_FL_FIRST_FIELD_EXTRA_LINE		(1 << 5)
+-	pm_runtime_disable(&isp_i2c->adapter.dev);
+ 	pm_runtime_disable(&pdev->dev);
+ 	i2c_del_adapter(&isp_i2c->adapter);
  
- /* A few useful defines to calculate the total blanking and frame sizes */
- #define V4L2_DV_BT_BLANKING_WIDTH(bt) \
-@@ -1413,6 +1419,8 @@ struct v4l2_input {
- /* field 'status' - analog */
- #define V4L2_IN_ST_NO_H_LOCK   0x00000100  /* No horizontal sync lock */
- #define V4L2_IN_ST_COLOR_KILL  0x00000200  /* Color killer is active */
-+#define V4L2_IN_ST_NO_V_LOCK   0x00000400  /* No vertical sync lock */
-+#define V4L2_IN_ST_NO_STD_LOCK 0x00000800  /* No standard format lock */
- 
- /* field 'status' - digital */
- #define V4L2_IN_ST_NO_SYNC     0x00010000  /* No synchronization lock */
 -- 
-2.7.4
+1.9.1
 
