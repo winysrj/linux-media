@@ -1,100 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37685 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755059AbcIEOdS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Sep 2016 10:33:18 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id 510781858C8
-        for <linux-media@vger.kernel.org>; Mon,  5 Sep 2016 16:33:14 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv3] cobalt: update EDID
-Message-ID: <eba42224-42c2-d393-6baa-cbf51b71a439@xs4all.nl>
-Date: Mon, 5 Sep 2016 16:33:14 +0200
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51681 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932811AbcIAVWU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 17:22:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 1/4] v4l: Add metadata buffer type and format
+Date: Fri, 02 Sep 2016 00:22:42 +0300
+Message-ID: <2431560.80mbed248J@avalon>
+In-Reply-To: <20160829091339.GN12130@valkosipuli.retiisi.org.uk>
+References: <1471436430-26245-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1471436430-26245-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20160829091339.GN12130@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update the cobalt EDID, fixing various incorrect values (wrong name,
-product code, various video capabilities).
+Hi Sakari,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-Changes since v2: fix Display Type setting
----
- drivers/media/pci/cobalt/cobalt-driver.c | 47 ++++++++++++++++----------------
- 1 file changed, 24 insertions(+), 23 deletions(-)
+On Monday 29 Aug 2016 12:13:40 Sakari Ailus wrote:
+> On Wed, Aug 17, 2016 at 03:20:27PM +0300, Laurent Pinchart wrote:
+> > The metadata buffer type is used to transfer metadata between userspace
+> > and kernelspace through a V4L2 buffers queue. It comes with a new
+> > metadata capture capability and format description.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> > Tested-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> > ---
+> > Changes since v1:
+> > 
+> > - Rebased on top of the DocBook to reST conversion
+> > 
+> >  Documentation/media/uapi/v4l/buffer.rst          |  8 +++
+> >  Documentation/media/uapi/v4l/dev-meta.rst        | 69 +++++++++++++++++++
+> >  Documentation/media/uapi/v4l/devices.rst         |  1 +
+> >  Documentation/media/uapi/v4l/vidioc-querycap.rst | 14 +++--
+> >  Documentation/media/videodev2.h.rst.exceptions   |  2 +
+> >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c    | 19 +++++++
+> >  drivers/media/v4l2-core/v4l2-dev.c               | 16 +++---
+> >  drivers/media/v4l2-core/v4l2-ioctl.c             | 41 ++++++++++++++
+> >  drivers/media/v4l2-core/videobuf2-v4l2.c         |  3 ++
+> >  include/media/v4l2-ioctl.h                       | 17 ++++++
+> >  include/uapi/linux/videodev2.h                   | 14 +++++
+> >  11 files changed, 195 insertions(+), 9 deletions(-)
+> >  create mode 100644 Documentation/media/uapi/v4l/dev-meta.rst
 
-diff --git a/drivers/media/pci/cobalt/cobalt-driver.c b/drivers/media/pci/cobalt/cobalt-driver.c
-index 476f7f0..9796340 100644
---- a/drivers/media/pci/cobalt/cobalt-driver.c
-+++ b/drivers/media/pci/cobalt/cobalt-driver.c
-@@ -60,30 +60,31 @@ MODULE_DESCRIPTION("cobalt driver");
- MODULE_LICENSE("GPL");
+[snip]
 
- static u8 edid[256] = {
--	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
--	0x50, 0x21, 0x9C, 0x27, 0x00, 0x00, 0x00, 0x00,
--	0x19, 0x12, 0x01, 0x03, 0x80, 0x00, 0x00, 0x78,
--	0x0E, 0x00, 0xB2, 0xA0, 0x57, 0x49, 0x9B, 0x26,
--	0x10, 0x48, 0x4F, 0x2F, 0xCF, 0x00, 0x31, 0x59,
-+	0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
-+	0x50, 0x21, 0x32, 0x27, 0x00, 0x00, 0x00, 0x00,
-+	0x22, 0x1a, 0x01, 0x03, 0x80, 0x30, 0x1b, 0x78,
-+	0x0f, 0xee, 0x91, 0xa3, 0x54, 0x4c, 0x99, 0x26,
-+	0x0f, 0x50, 0x54, 0x2f, 0xcf, 0x00, 0x31, 0x59,
- 	0x45, 0x59, 0x61, 0x59, 0x81, 0x99, 0x01, 0x01,
--	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3A,
--	0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C,
--	0x46, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E,
--	0x00, 0x00, 0x00, 0xFD, 0x00, 0x31, 0x55, 0x18,
--	0x5E, 0x11, 0x00, 0x0A, 0x20, 0x20, 0x20, 0x20,
--	0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x43,
--	0x20, 0x39, 0x30, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
--	0x0A, 0x0A, 0x0A, 0x0A, 0x00, 0x00, 0x00, 0x10,
-+	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3a,
-+	0x80, 0x18, 0x71, 0x38, 0x2d, 0x40, 0x58, 0x2c,
-+	0x46, 0x00, 0xe0, 0x0e, 0x11, 0x00, 0x00, 0x1e,
-+	0x00, 0x00, 0x00, 0xfd, 0x00, 0x18, 0x55, 0x18,
-+	0x5e, 0x11, 0x00, 0x0a, 0x20, 0x20, 0x20, 0x20,
-+	0x20, 0x20, 0x00, 0x00, 0x00, 0xfc, 0x00, 0x63,
-+	0x6f, 0x62, 0x61, 0x6c, 0x74, 0x0a, 0x20, 0x20,
-+	0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0x10,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x9c,
-+
-+	0x02, 0x03, 0x1f, 0xf0, 0x4a, 0x90, 0x1f, 0x04,
-+	0x13, 0x22, 0x21, 0x20, 0x02, 0x11, 0x01, 0x23,
-+	0x09, 0x07, 0x07, 0x68, 0x03, 0x0c, 0x00, 0x10,
-+	0x00, 0x00, 0x22, 0x0f, 0xe2, 0x00, 0xea, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x68,
--	0x02, 0x03, 0x1a, 0xc0, 0x48, 0xa2, 0x10, 0x04,
--	0x02, 0x01, 0x21, 0x14, 0x13, 0x23, 0x09, 0x07,
--	0x07, 0x65, 0x03, 0x0c, 0x00, 0x10, 0x00, 0xe2,
--	0x00, 0x2a, 0x01, 0x1d, 0x00, 0x80, 0x51, 0xd0,
--	0x1c, 0x20, 0x40, 0x80, 0x35, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x1e, 0x8c, 0x0a, 0xd0, 0x8a,
--	0x20, 0xe0, 0x2d, 0x10, 0x10, 0x3e, 0x96, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00,
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-@@ -91,7 +92,7 @@ static u8 edid[256] = {
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd7
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xa7,
- };
+> > diff --git a/Documentation/media/uapi/v4l/dev-meta.rst
+> > b/Documentation/media/uapi/v4l/dev-meta.rst new file mode 100644
+> > index 000000000000..252ed05b4841
+> > --- /dev/null
+> > +++ b/Documentation/media/uapi/v4l/dev-meta.rst
+> > @@ -0,0 +1,69 @@
+> > +.. -*- coding: utf-8; mode: rst -*-
+> > +
+> > +.. _metadata:
+> > +
+> > +******************
+> > +Metadata Interface
+> > +******************
+> > +
+> > +Metadata refers to any non-image data that supplements video frames with
+> > +additional information. This may include statistics computed over the
+> > image +or frame capture parameters supplied by the image source. This
+> > interface is +intended for transfer of metadata to userspace and control
+> > of that operation. +
+> > +The metadata interface is implemented on video capture device nodes. The
+> > device +can be dedicated to metadata or can implement both video and
+> > metadata capture +as specified in its reported capabilities.
+> > +
+> > +.. note::
+> > +
+> > +    This is an :ref:`experimental` interface and may
+> > +    change in the future.
+> > +
+> > +Querying Capabilities
+> > +=====================
+> > +
+> > +Device nodes supporting the metadata interface set the
+> > ``V4L2_CAP_META_CAPTURE`` +flag in the ``device_caps`` field of the
+> > +:ref:`v4l2_capability <v4l2-capability>` structure returned by the
+> > +:ref:`VIDIOC_QUERYCAP` ioctl. That flag means the device can capture
+> > +metadata to memory.
+> > +
+> > +At least one of the read/write or streaming I/O methods must be
+> > supported.
+> > +
+> > +
+> > +Data Format Negotiation
+> > +=======================
+> > +
+> > +The metadata device uses the :ref:`format` ioctls to select the capture
+> > format. +The metadata buffer content format is bound to that selected
+> > format. In addition +to the basic :ref:`format` ioctls, the
+> > :ref:`VIDIOC_ENUM_FMT` ioctl must be +supported as well.
+> > +
+> > +To use the :ref:`format` ioctls applications set the ``type`` of the
+> > +:ref:`v4l2_format <v4l2-format>` structure to
+> > ``V4L2_BUF_TYPE_META_CAPTURE`` +and use the :ref:`v4l2_meta_format
+> > <v4l2-meta-format>` ``meta`` member of the +``fmt`` union as needed per
+> > the desired operation. The :ref:`v4l2-meta-format` +structure contains
+> > two fields, ``dataformat`` is set by applications to the V4L2
+>
+> I might not specify the number of number of fields here. It has high chances
+> of not getting updated when more fields are added. Up to you.
 
- static void cobalt_set_interrupt(struct cobalt *cobalt, bool enable)
+This has been copied from dev-sdr.rst. I can drop the last sentence completely 
+as the parameters are described in the table below. Hans, any opinion ?
+
+> > +FourCC code of the desired format, and ``buffersize`` set by drivers to
+> > the +maximum buffer size (in bytes) required for data transfer.
+> > +
+> > +.. _v4l2-meta-format:
+> > +.. flat-table:: struct v4l2_meta_format
+> > +    :header-rows:  0
+> > +    :stub-columns: 0
+> > +    :widths:       1 1 2
+> > +
+> > +    * - __u32
+> > +      - ``dataformat``
+> > +      - The data format, set by the application. This is a little endian
+> > +        :ref:`four character code <v4l2-fourcc>`. V4L2 defines metadata
+> > formats +        in :ref:`meta-formats`.
+> > +    * - __u32
+> > +      - ``buffersize``
+> > +      - Maximum buffer size in bytes required for data. The value is set
+> > by the +        driver.
+> 
+> We'll need to add width and heigth as well but it could be done later on.
+
+Unless you have a use case you can upstream now for those fields we'll have to 
+add them later.
+
+> > +    * - __u8
+> > +      - ``reserved[24]``
+> > +      - This array is reserved for future extensions. Drivers and
+> > applications +        must set it to zero.
+> 
+> struct v4l2_pix_format has grown without use of reserved fields and it's
+> been around for ages.
+> 
+> It's not directly used in an IOCTL but within an union in another struct so
+> this is possible. I would consider doing the same here. Or at least
+> increasing the number of reserved fields (and possibly making the type u32)
+> if you feel we shouldn't go that way.
+
+I'm fine with dropping the reserved fields.
+
 -- 
-2.8.1
+Regards,
+
+Laurent Pinchart
 
