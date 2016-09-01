@@ -1,100 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:36744 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932235AbcILN5m (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Sep 2016 09:57:42 -0400
-MIME-Version: 1.0
-In-Reply-To: <877fah5j35.fsf@linux.intel.com>
-References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr>
- <20160911172105.GB5493@intel.com> <alpine.DEB.2.10.1609121051050.3049@hadrien>
- <20160912131625.GD957@intel.com> <877fah5j35.fsf@linux.intel.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 12 Sep 2016 15:57:40 +0200
-Message-ID: <CAMuHMdXuvrY987eTOmV+Ltaev=LrsDGuuE0+mmjJB7cAr+19ug@mail.gmail.com>
-Subject: Re: [PATCH 00/26] constify local structures
-To: Felipe Balbi <felipe.balbi@linux.intel.com>
-Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
-        Julia Lawall <julia.lawall@lip6.fr>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Joe Perches <joe@perches.com>,
-        "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Linux PM list <linux-pm@vger.kernel.org>,
-        platform-driver-x86@vger.kernel.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-can@vger.kernel.org,
-        Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Mustafa Ismail <mustafa.ismail@intel.com>,
-        Chien Tin Tung <chien.tin.tung@intel.com>,
-        linux-rdma <linux-rdma@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        driverdevel <devel@driverdev.osuosl.org>,
-        ALSA Development Mailing List <alsa-devel@alsa-project.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        tpmdd-devel@lists.sourceforge.net,
-        scsi <linux-scsi@vger.kernel.org>,
-        linux-spi <linux-spi@vger.kernel.org>,
-        USB list <linux-usb@vger.kernel.org>,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout1.samsung.com ([203.254.224.24]:46549 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753580AbcIAV1U (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 17:27:20 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
+        Andi Shyti <andi@etezian.org>
+Subject: [PATCH v2 4/7] [media] rc-ir-raw: do not generate any receiving thread
+ for raw transmitters
+Date: Fri, 02 Sep 2016 02:16:26 +0900
+Message-id: <20160901171629.15422-5-andi.shyti@samsung.com>
+In-reply-to: <20160901171629.15422-1-andi.shyti@samsung.com>
+References: <20160901171629.15422-1-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 12, 2016 at 3:43 PM, Felipe Balbi
-<felipe.balbi@linux.intel.com> wrote:
-> Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com> writes:
->> On Mon, Sep 12, 2016 at 10:54:07AM +0200, Julia Lawall wrote:
->>> On Sun, 11 Sep 2016, Jarkko Sakkinen wrote:
->>> > On Sun, Sep 11, 2016 at 03:05:42PM +0200, Julia Lawall wrote:
->>> > > Constify local structures.
->>> > >
->>> > > The semantic patch that makes this change is as follows:
->>> > > (http://coccinelle.lip6.fr/)
->>> >
->>> > Just my two cents but:
->>> >
->>> > 1. You *can* use a static analysis too to find bugs or other issues.
->>> > 2. However, you should manually do the commits and proper commit
->>> >    messages to subsystems based on your findings. And I generally think
->>> >    that if one contributes code one should also at least smoke test changes
->>> >    somehow.
->>> >
->>> > I don't know if I'm alone with my opinion. I just think that one should
->>> > also do the analysis part and not blindly create and submit patches.
->>>
->>> All of the patches are compile tested.  And the individual patches are
->>
->> Compile-testing is not testing. If you are not able to test a commit,
->> you should explain why.
->
-> Dude, Julia has been doing semantic patching for years already and
-> nobody has raised any concerns so far. There's already an expectation
-> that Coccinelle *works* and Julia's sematic patches are sound.
+Raw IR transmitters do not need any thread listening for
+occurring events. Check the driver type before running the
+thread.
 
-+1
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+---
+ drivers/media/rc/rc-ir-raw.c | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-> Besides, adding 'const' is something that causes virtually no functional
-> changes to the point that build-testing is really all you need. Any
-> problems caused by adding 'const' to a definition will be seen by build
-> errors or warnings.
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 144304c..64ddc3d 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -274,12 +274,19 @@ int ir_raw_event_register(struct rc_dev *dev)
+ 	INIT_KFIFO(dev->raw->kfifo);
+ 
+ 	spin_lock_init(&dev->raw->lock);
+-	dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
+-				       "rc%u", dev->minor);
+ 
+-	if (IS_ERR(dev->raw->thread)) {
+-		rc = PTR_ERR(dev->raw->thread);
+-		goto out;
++	/*
++	 * raw transmitters do not need any event registration
++	 * because the event is coming from userspace
++	 */
++	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
++		dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
++					       "rc%u", dev->minor);
++
++		if (IS_ERR(dev->raw->thread)) {
++			rc = PTR_ERR(dev->raw->thread);
++			goto out;
++		}
+ 	}
+ 
+ 	mutex_lock(&ir_raw_handler_lock);
+-- 
+2.9.3
 
-Unfortunately in this particular case they could lead to failures that can only
-be detected at runtime, when failing o write to a read-only piece of memory,
-due to the casting away of the constness of the pointers later.
-Fortunately this was detected during code review (doh...).
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
