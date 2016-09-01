@@ -1,95 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.220.in.ua ([89.184.67.205]:52870 "EHLO smtp.220.in.ua"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750790AbcHDHzU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Aug 2016 03:55:20 -0400
-From: Oleh Kravchenko <oleg@kaa.org.ua>
-To: linux-media@vger.kernel.org, crope@iki.fi
-Cc: Oleh Kravchenko <oleg@kaa.org.ua>
-Subject: [PATCH] [media] si2157: Improve support Si2158-A20 tuner
-Date: Thu,  4 Aug 2016 10:54:02 +0300
-Message-Id: <1470297242-32129-1-git-send-email-oleg@kaa.org.ua>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:42897 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1760961AbcIACyT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Aug 2016 22:54:19 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id DC3A618014C
+        for <linux-media@vger.kernel.org>; Thu,  1 Sep 2016 04:54:12 +0200 (CEST)
+Date: Thu, 01 Sep 2016 04:54:12 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160901025412.DC3A618014C@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
----
- drivers/media/tuners/si2157.c      | 34 +++++++++++++++++++++++++++-------
- drivers/media/tuners/si2157_priv.h |  1 +
- 2 files changed, 28 insertions(+), 7 deletions(-)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 57b2508..d7035a5 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -103,12 +103,21 @@ static int si2157_init(struct dvb_frontend *fe)
- 		goto warm;
- 
- 	/* power up */
--	if (dev->chiptype == SI2157_CHIPTYPE_SI2146) {
--		memcpy(cmd.args, "\xc0\x05\x01\x00\x00\x0b\x00\x00\x01", 9);
--		cmd.wlen = 9;
--	} else {
--		memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
--		cmd.wlen = 15;
-+	switch (dev->chiptype) {
-+		case SI2157_CHIPTYPE_SI2146:
-+			memcpy(cmd.args, "\xc0\x05\x01\x00\x00\x0b\x00\x00\x01", 9);
-+			cmd.wlen = 9;
-+			break;
-+
-+		case SI2157_CHIPTYPE_SI2158:
-+			memcpy(cmd.args, "\xC0\x00\x00\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
-+			cmd.wlen = 15;
-+			break;
-+
-+		default:
-+			memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
-+			cmd.wlen = 15;
-+			break;
- 	}
- 	cmd.rlen = 1;
- 	ret = si2157_cmd_execute(client, &cmd);
-@@ -204,6 +213,16 @@ skip_fw_download:
- 	if (ret)
- 		goto err;
- 
-+	/* start tuner? */
-+	if (SI2157_CHIPTYPE_SI2158 == dev->chiptype) {
-+		memcpy(cmd.args, "\xC0\x00\x0C", 3);
-+		cmd.wlen = 3;
-+		cmd.rlen = 1;
-+		ret = si2157_cmd_execute(client, &cmd);
-+		if (ret)
-+			goto err;
-+	}
-+
- 	/* query firmware version */
- 	memcpy(cmd.args, "\x11", 1);
- 	cmd.wlen = 1;
-@@ -506,8 +525,9 @@ static int si2157_remove(struct i2c_client *client)
- }
- 
- static const struct i2c_device_id si2157_id_table[] = {
--	{"si2157", SI2157_CHIPTYPE_SI2157},
- 	{"si2146", SI2157_CHIPTYPE_SI2146},
-+	{"si2157", SI2157_CHIPTYPE_SI2157},
-+	{"si2158", SI2157_CHIPTYPE_SI2158},
- 	{}
- };
- MODULE_DEVICE_TABLE(i2c, si2157_id_table);
-diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
-index d6b2c7b..677fa00 100644
---- a/drivers/media/tuners/si2157_priv.h
-+++ b/drivers/media/tuners/si2157_priv.h
-@@ -42,6 +42,7 @@ struct si2157_dev {
- 
- #define SI2157_CHIPTYPE_SI2157 0
- #define SI2157_CHIPTYPE_SI2146 1
-+#define SI2157_CHIPTYPE_SI2158 2
- 
- /* firmware command struct */
- #define SI2157_ARGLEN      30
--- 
-2.7.3
+Results of the daily build of media_tree:
 
+date:		Thu Sep  1 04:00:17 CEST 2016
+git branch:	test
+git hash:	fb6609280db902bd5d34445fba1c926e95e63914
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: OK
+linux-4.8-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: OK
+linux-4.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
