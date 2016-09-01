@@ -1,59 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48181 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753791AbcIDOOI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Sep 2016 10:14:08 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Terry Heo <terryheo@google.com>, Peter Rosin <peda@axentia.se>
-Subject: [PATCH 7/7] [media] cx231xx-core: fix GPIO comments
-Date: Sun,  4 Sep 2016 11:13:59 -0300
-Message-Id: <3a3bfcd1835249e7ec923d43fded6f00b468dafb.1472998424.git.mchehab@s-opensource.com>
-In-Reply-To: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
-References: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
-In-Reply-To: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
-References: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:39384 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933481AbcIALrY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 07:47:24 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, b.zolnierkie@samsung.com,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 3/3] s5c73m3: Fix entity function assignment for the OIF subdev
+Date: Thu, 01 Sep 2016 13:47:07 +0200
+Message-id: <1472730427-17821-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1472730427-17821-1-git-send-email-s.nawrocki@samsung.com>
+References: <1472730427-17821-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The number of the cx231xx REQ for GPIO register set/get are wrong.
-They should follow what's there at cx231xx-pcb-cfg.h.
+Suppresses warnings like:
+s5p-fimc-md camera: Entity type for entity S5C73M3-OIF was not initialized!
 
-Noticed while checking the cx231xx parser at the v4l-utils.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-core.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-index 44288f265a26..f5220e726523 100644
---- a/drivers/media/usb/cx231xx/cx231xx-core.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-@@ -1457,14 +1457,14 @@ int cx231xx_send_gpio_cmd(struct cx231xx *dev, u32 gpio_bit, u8 *gpio_val,
- 	/* set request */
- 	if (!request) {
- 		if (direction)
--			ven_req.bRequest = VRT_GET_GPIO;	/* 0x8 gpio */
-+			ven_req.bRequest = VRT_GET_GPIO;	/* 0x9 gpio */
- 		else
--			ven_req.bRequest = VRT_SET_GPIO;	/* 0x9 gpio */
-+			ven_req.bRequest = VRT_SET_GPIO;	/* 0x8 gpio */
- 	} else {
- 		if (direction)
--			ven_req.bRequest = VRT_GET_GPIE;	/* 0xa gpie */
-+			ven_req.bRequest = VRT_GET_GPIE;	/* 0xb gpie */
- 		else
--			ven_req.bRequest = VRT_SET_GPIE;	/* 0xb gpie */
-+			ven_req.bRequest = VRT_SET_GPIE;	/* 0xa gpie */
- 	}
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+index 08af58f..3844853 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
++++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+@@ -1706,7 +1706,7 @@ static int s5c73m3_probe(struct i2c_client *client,
+ 	state->oif_pads[OIF_ISP_PAD].flags = MEDIA_PAD_FL_SINK;
+ 	state->oif_pads[OIF_JPEG_PAD].flags = MEDIA_PAD_FL_SINK;
+ 	state->oif_pads[OIF_SOURCE_PAD].flags = MEDIA_PAD_FL_SOURCE;
+-	oif_sd->entity.function = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
++	oif_sd->entity.function = MEDIA_ENT_F_PROC_VIDEO_SCALER;
  
- 	/* set index value */
+ 	ret = media_entity_pads_init(&oif_sd->entity, OIF_NUM_PADS,
+ 							state->oif_pads);
 -- 
-2.7.4
+1.9.1
 
