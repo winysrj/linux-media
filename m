@@ -1,147 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:51497 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754605AbcIEMC0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Sep 2016 08:02:26 -0400
-Subject: Re: [PATCH v5 2/3] st-hva: multi-format video encoder V4L2 driver
-To: Jean Christophe TROTIN <jean-christophe.trotin@st.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1472476868-10322-1-git-send-email-jean-christophe.trotin@st.com>
- <1472476868-10322-3-git-send-email-jean-christophe.trotin@st.com>
- <398d281c-feb1-d290-b603-d4709914cb0d@xs4all.nl>
- <e89aec4f-d7bb-d51c-ef51-b3e198d266f2@st.com>
-Cc: "kernel@stlinux.com" <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick FERTRE <yannick.fertre@st.com>,
-        Hugues FRUCHET <hugues.fruchet@st.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0ed7f811-f9a4-be44-3043-0a7669a497e1@xs4all.nl>
-Date: Mon, 5 Sep 2016 14:02:16 +0200
-MIME-Version: 1.0
-In-Reply-To: <e89aec4f-d7bb-d51c-ef51-b3e198d266f2@st.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from smtp2.goneo.de ([85.220.129.33]:45652 "EHLO smtp2.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933171AbcIAQiu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Sep 2016 12:38:50 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH] doc-rst:sphinx-extensions: add metadata parallel-safe
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <99F693FF-B49B-43DE-9D03-632121FCAE0A@darmarit.de>
+Date: Thu, 1 Sep 2016 18:38:36 +0200
+Cc: Jonathan Corbet <corbet@lwn.net>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-doc@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <8F59F755-FCF7-47A6-81E3-8FD584436E82@darmarit.de>
+References: <1472045724-14559-1-git-send-email-markus.heiser@darmarit.de> <20160901082136.597c37bf@lwn.net> <87inufzoa5.fsf@intel.com> <99F693FF-B49B-43DE-9D03-632121FCAE0A@darmarit.de>
+To: Jani Nikula <jani.nikula@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/05/2016 01:47 PM, Jean Christophe TROTIN wrote:
-> 
-> 
-> On 09/05/2016 10:24 AM, Hans Verkuil wrote:
->> On 08/29/2016 03:21 PM, Jean-Christophe Trotin wrote:
->>> This patch adds V4L2 HVA (Hardware Video Accelerator) video encoder
->>> driver for STMicroelectronics SoC. It uses the V4L2 mem2mem framework.
->>>
->>> This patch only contains the core parts of the driver:
->>> - the V4L2 interface with the userland (hva-v4l2.c)
->>> - the hardware services (hva-hw.c)
->>> - the memory management utilities (hva-mem.c)
->>>
->>> This patch doesn't include the support of specific codec (e.g. H.264)
->>> video encoding: this support is part of subsequent patches.
->>>
->>> Signed-off-by: Yannick Fertre <yannick.fertre@st.com>
->>> Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
->>> ---
->>>  drivers/media/platform/Kconfig            |   14 +
->>>  drivers/media/platform/Makefile           |    1 +
->>>  drivers/media/platform/sti/hva/Makefile   |    2 +
->>>  drivers/media/platform/sti/hva/hva-hw.c   |  538 ++++++++++++
->>>  drivers/media/platform/sti/hva/hva-hw.h   |   42 +
->>>  drivers/media/platform/sti/hva/hva-mem.c  |   59 ++
->>>  drivers/media/platform/sti/hva/hva-mem.h  |   34 +
->>>  drivers/media/platform/sti/hva/hva-v4l2.c | 1296 +++++++++++++++++++++++++++++
->>>  drivers/media/platform/sti/hva/hva.h      |  290 +++++++
->>>  9 files changed, 2276 insertions(+)
->>>  create mode 100644 drivers/media/platform/sti/hva/Makefile
->>>  create mode 100644 drivers/media/platform/sti/hva/hva-hw.c
->>>  create mode 100644 drivers/media/platform/sti/hva/hva-hw.h
->>>  create mode 100644 drivers/media/platform/sti/hva/hva-mem.c
->>>  create mode 100644 drivers/media/platform/sti/hva/hva-mem.h
->>>  create mode 100644 drivers/media/platform/sti/hva/hva-v4l2.c
->>>  create mode 100644 drivers/media/platform/sti/hva/hva.h
->>>
->>
->> <snip>
->>
->>> +static int hva_s_parm(struct file *file, void *fh, struct v4l2_streamparm *sp)
->>> +{
->>> +	struct hva_ctx *ctx = fh_to_ctx(file->private_data);
->>> +	struct v4l2_fract *time_per_frame = &ctx->ctrls.time_per_frame;
->>> +
->>> +	time_per_frame->numerator = sp->parm.capture.timeperframe.numerator;
->>> +	time_per_frame->denominator =
->>> +		sp->parm.capture.timeperframe.denominator;
->>> +
->>> +	return 0;
->>> +}
->>> +
->>> +static int hva_g_parm(struct file *file, void *fh, struct v4l2_streamparm *sp)
->>> +{
->>> +	struct hva_ctx *ctx = fh_to_ctx(file->private_data);
->>> +	struct v4l2_fract *time_per_frame = &ctx->ctrls.time_per_frame;
->>> +
->>> +	sp->parm.capture.timeperframe.numerator = time_per_frame->numerator;
->>> +	sp->parm.capture.timeperframe.denominator =
->>> +		time_per_frame->denominator;
->>> +
->>> +	return 0;
->>> +}
->>
->> In this implementation g/s_parm is supported for both capture and output. Is that
->> intended? If so, please add a comment. If not, then you should check the type.
->>
->> Also the V4L2_CAP_TIMEPERFRAME capability isn't set. I've just added a check to
->> v4l2-compliance to test for that.
->>
->> As per the kbuild robot report you also need to depend on HAS_DMA in the Kconfig.
->>
->> I have no other comments, so once these comments are fixed I can make a pull request.
->>
->> Making a v6 should be quick: if you can post v6 today, then I would very much appreciate
->> it.
->>
->> Regards,
->>
->> 	Hans
->>
-> 
-> Hi Hans,
-> 
-> I've aligned the implementation g/s parm with the ones available in coda and 
-> mtk-vcodec: g/s parm is supported for output and is rejected (-EINVAL) for any 
-> other type.
-> 
-> I'm confused with the V4L2_CAP_TIMEPERFRAME capability: my understanding is that 
-> it should be set only in g_parm (as it's presently done in coda and mtk-vcodec). 
 
-It should be set for both. But v4l2-compliance didn't check for that in the past,
-so there are several older drivers that didn't set that capability for s_parm.
+Am 01.09.2016 um 18:22 schrieb Markus Heiser <markus.heiser@darmarit.de>:
 
-I'll ask mediatek to set the capability flag in their driver.
-
-> But, doing this way, then there's a warning with the v4l2-compliance test that 
-> you add. Indeed, this test checks the capability after a call to s_parm (which 
-> would mean that s_parm should also set the capability), and moreover, always 
-> checks it for capture (parm.parm.capture.capability) even the type is output. 
-
-The capture and output layouts are the same, so this works for both.
-
-It's simple: if you can set the timeperframe, then this capability should be set.
-
-Regards,
-
-	Hans
-
-> Could you bring me some explanation about this point (either by email or by IRC)?
 > 
-> The problem reported by the kbuild robot ("depends on HAS_DMA" missing in the 
-> Kconfig) will also be corrected in the version 6.
+> Am 01.09.2016 um 16:29 schrieb Jani Nikula <jani.nikula@linux.intel.com>:
 > 
-> I'm ready to deliver a version 6 today: the only remaining point is about the 
-> V4L2_CAP_TIMEPERFRAME capability as explained above.
+>> On Thu, 01 Sep 2016, Jonathan Corbet <corbet@lwn.net> wrote:
+>>> On Wed, 24 Aug 2016 15:35:24 +0200
+>>> Markus Heiser <markus.heiser@darmarit.de> wrote:
+>>> 
+>>>> With metadata "parallel_read_safe = True" a extension is marked as
+>>>> save for "parallel reading of source". This is needed if you want
+>>>> build in parallel with N processes. E.g.:
+>>>> 
+>>>> make SPHINXOPTS=-j4 htmldocs
+>>> 
+>>> A definite improvement; applied to the docs tree, thanks.
+>> 
+>> The Sphinx docs say -jN "should be considered experimental" [1]. Any
+>> idea *how* experimental that is, really? Could we add some -j by
+>> default?
 > 
-> Regards,
-> Jean-Christophe.
+> My experience is, that parallel build is only strong on "reading
+> input" and weak on "writing output". I can't see any rich performance
+> increase on more than -j2 ... 
 > 
+> Mauro posted [2] his experience with -j8 compared to serial. He
+> also compares -j8 to -j16:
+> 
+>> PS: on my server with 16 dual-thread Xeon CPU, the gain with a
+>> bigger value for -j was not impressive. Got about the same time as
+>> with -j8 or -j32 there.
+> 
+> I guess he will get nearly the same results with -j2 ;)
+> 
+> If we want to add a -j default, I suggest -j2. 
+> 
+> [2] https://www.mail-archive.com/linux-doc%40vger.kernel.org/msg05552.html
+> 
+> -- Markus --
+> 
+
+Sorry, forget to mentioning, that there has been some improvements
+to parallel build in Sphinx 1.3 compared to 1.2. But in 1.3.2 they
+have also fixed a bug which lets parallel builds hang :-o
+
+https://github.com/sphinx-doc/sphinx/blob/master/CHANGES#L665
+
+This in mind and if we really support down to sphinx 1.2 ... we
+should not use any -j default.
+
+IMHO we should get rid of this sphinx 1.2. downward compatibility,
+it makes so may problems (e.g. see [3]) ... but we have discussed
+this already and I don't want to restart this thread ;-) 
+
+[3] https://www.mail-archive.com/linux-doc%40vger.kernel.org/msg05695.html
+
+-- Markus --
+
+
+
+> 
+>> BR,
+>> Jani.
+>> 
+>> 
+>> [1] http://www.sphinx-doc.org/en/stable/invocation.html#invocation-of-sphinx-build
+>> 
+>> -- 
+>> Jani Nikula, Intel Open Source Technology Center
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-doc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
