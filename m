@@ -1,77 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:43405 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754740AbcIOJ7W (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 05:59:22 -0400
-Subject: Re: [PATCH v2] V4L2: Add documentation for SDI timings and related
- flags
-To: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>,
-        linux-media@vger.kernel.org
-References: <1470325151-14522-1-git-send-email-charles-antoine.couret@nexvision.fr>
- <574b72df-b860-4568-8828-1f88e49c8d06@xs4all.nl>
- <c91b9015-c484-a635-4f62-3ef7395f82f2@nexvision.fr>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3687b133-9af5-45fb-ffc0-6e44eb410354@xs4all.nl>
-Date: Thu, 15 Sep 2016 11:59:15 +0200
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:32917 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932940AbcIBQq6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2016 12:46:58 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        sergei.shtylyov@cogentembedded.com, hans.verkuil@cisco.com
+Cc: slongerbeam@gmail.com, lars@metafoo.de, mchehab@kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv3 5/6] media: rcar-vin: fix height for TOP and BOTTOM fields
+Date: Fri,  2 Sep 2016 18:45:00 +0200
+Message-Id: <20160902164501.19535-6-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160902164501.19535-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160902164501.19535-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <c91b9015-c484-a635-4f62-3ef7395f82f2@nexvision.fr>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The height used for V4L2_FIELD_TOP and V4L2_FIELD_BOTTOM where wrong.
+The frames only contain one field so the height should be half of the
+frame.
 
+Signed-off-by: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 29 +++++++++++++++++------------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
 
-On 09/07/2016 11:26 AM, Charles-Antoine Couret wrote:
-> Le 12/08/2016 à 15:17, Hans Verkuil a écrit :
->> On 08/04/2016 05:39 PM, Charles-Antoine Couret wrote:
->>
->> A commit log is missing here.
-> 
-> Yeah I will fix that.
-> 
->>> diff --git a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
->>> index f7bf21f..0205bf6 100644
->>> --- a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
->>> +++ b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
->>> @@ -339,6 +339,14 @@ EBUSY
->>>  
->>>         -  The timings follow the VESA Generalized Timings Formula standard
->>>  
->>> +    -  .. row 7
->>> +
->>> +       -  ``V4L2_DV_BT_STD_SDI``
->>> +
->>> +       -  The timings follow the SDI Timings standard.
->>> +	  There are not always horizontal syncs/porches or similar in this format.
->>> +	  If it is not precised by standard, blanking timings must be set in
->>> +	  hsync or vsync fields by default.
->>
->> OK. This is confusing. The text was changed after my question about something porch-like
->> in the SMPTE-125M standard. But I see nothing like that after re-reading it.
->>
->> So what sort of 'porch' timing were you thinking of?
-> 
-> In SMPTE-125M for example, the time between the real horizontal blanking is precised (16 pixelclock).
-> For me it looks like front porch timing.
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 47d8d97..1392514 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -125,6 +125,8 @@ static int rvin_reset_format(struct rvin_dev *vin)
+ 	switch (vin->format.field) {
+ 	case V4L2_FIELD_TOP:
+ 	case V4L2_FIELD_BOTTOM:
++		vin->format.height /= 2;
++		break;
+ 	case V4L2_FIELD_NONE:
+ 	case V4L2_FIELD_INTERLACED_TB:
+ 	case V4L2_FIELD_INTERLACED_BT:
+@@ -220,21 +222,13 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	/* Limit to source capabilities */
+ 	__rvin_try_format_source(vin, which, pix, source);
+ 
+-	/* If source can't match format try if VIN can scale */
+-	if (source->width != rwidth || source->height != rheight)
+-		rvin_scale_try(vin, pix, rwidth, rheight);
+-
+-	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
+-	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
+-
+-	/* Limit to VIN capabilities */
+-	v4l_bound_align_image(&pix->width, 2, RVIN_MAX_WIDTH, walign,
+-			      &pix->height, 4, RVIN_MAX_HEIGHT, 2, 0);
+-
+ 	switch (pix->field) {
+-	case V4L2_FIELD_NONE:
+ 	case V4L2_FIELD_TOP:
+ 	case V4L2_FIELD_BOTTOM:
++		pix->height /= 2;
++		source->height /= 2;
++		break;
++	case V4L2_FIELD_NONE:
+ 	case V4L2_FIELD_INTERLACED_TB:
+ 	case V4L2_FIELD_INTERLACED_BT:
+ 	case V4L2_FIELD_INTERLACED:
+@@ -244,6 +238,17 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 		break;
+ 	}
+ 
++	/* If source can't match format try if VIN can scale */
++	if (source->width != rwidth || source->height != rheight)
++		rvin_scale_try(vin, pix, rwidth, rheight);
++
++	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
++	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
++
++	/* Limit to VIN capabilities */
++	v4l_bound_align_image(&pix->width, 2, RVIN_MAX_WIDTH, walign,
++			      &pix->height, 4, RVIN_MAX_HEIGHT, 2, 0);
++
+ 	pix->bytesperline = max_t(u32, pix->bytesperline,
+ 				  rvin_format_bytesperline(pix));
+ 	pix->sizeimage = max_t(u32, pix->sizeimage,
+-- 
+2.9.3
 
-Well, for some variants it is actually half-timings (21.5). In addition, it doesn't
-seem to be used at all, it is just to relate the analog hsync to the digital sample.
-
->> I wonder if I shouldn't just use the text from your first patch:
->>
->>        -  ``V4L2_DV_BT_STD_SDI``
->>
->>        -  The timings follow the SDI Timings standard.
->> 	  There are no horizontal syncs/porches at all in this format.
->> 	  Total blanking timings must be set in hsync or vsync fields only.
-> 
-> I agree with that if you prefer, after all the front/backporch are probably irrelevant in this case.
-> So, if you confirm this way, I would send you another patchset to fix that.
-
-I think we should stick to this text.
-
-Regards,
-
-	Hans
