@@ -1,77 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f46.google.com ([209.85.215.46]:36338 "EHLO
-        mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751063AbcIONTN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 09:19:13 -0400
-Received: by mail-lf0-f46.google.com with SMTP id g62so34709803lfe.3
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 06:19:12 -0700 (PDT)
-Date: Thu, 15 Sep 2016 15:19:05 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran+renesas@ksquared.org.uk>
-Subject: Re: [PATCH 11/13] v4l: vsp1: Determine partition requirements for
- scaled images
-Message-ID: <20160915131905.GB19172@bigcity.dyn.berto.se>
-References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1473808626-19488-12-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <20160914192733.GL739@bigcity.dyn.berto.se>
- <1554377.UPrL1uhbCT@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1554377.UPrL1uhbCT@avalon>
+Received: from mail.kapsi.fi ([217.30.184.167]:49259 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752968AbcIBWht (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Sep 2016 18:37:49 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 8/9] cxd2820r: improve lock detection
+Date: Sat,  3 Sep 2016 01:37:23 +0300
+Message-Id: <1472855844-8665-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1472855844-8665-1-git-send-email-crope@iki.fi>
+References: <1472855844-8665-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2016-09-14 23:00:33 +0300, Laurent Pinchart wrote:
-> Hi Niklas,
-> 
-> On Wednesday 14 Sep 2016 21:27:33 Niklas Söderlund wrote:
-> > On 2016-09-14 02:17:04 +0300, Laurent Pinchart wrote:
-> > > From: Kieran Bingham <kieran+renesas@bingham.xyz>
-> > > 
-> > > The partition algorithm needs to determine the capabilities of each
-> > > entity in the pipeline to identify the correct maximum partition width.
-> > > 
-> > > Extend the vsp1 entity operations to provide a max_width operation and
-> > > use this call to calculate the number of partitions that will be
-> > > processed by the algorithm.
-> > > 
-> > > Gen 2 hardware does not require multiple partitioning, and as such
-> > > will always return a single partition.
-> > > 
-> > > Signed-off-by: Kieran Bingham <kieran+renesas@bingham.xyz>
-> > > Signed-off-by: Laurent Pinchart
-> > > <laurent.pinchart+renesas@ideasonboard.com>
-> > 
-> > I can't find the information about the partition limitations for SRU or
-> > UDS in any of the documents I have.
-> 
-> That's because it's not documented in the datasheet :-(
+Check demod and ts locks and report lock status according to those.
 
-Sometimes a kind soul provides you with the proper documentation :-)
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/cxd2820r_c.c  | 29 ++++++++++++--------
+ drivers/media/dvb-frontends/cxd2820r_t.c  | 44 ++++++++++++-------------------
+ drivers/media/dvb-frontends/cxd2820r_t2.c | 26 ++++++++++--------
+ 3 files changed, 50 insertions(+), 49 deletions(-)
 
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-> 
-> > But for the parts not relating to the logic of figuring out the hscale from
-> > the input/output formats width:
-> > 
-> > Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> 
-> Thanks.
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-
+diff --git a/drivers/media/dvb-frontends/cxd2820r_c.c b/drivers/media/dvb-frontends/cxd2820r_c.c
+index beb46a6..0f96add 100644
+--- a/drivers/media/dvb-frontends/cxd2820r_c.c
++++ b/drivers/media/dvb-frontends/cxd2820r_c.c
+@@ -160,25 +160,32 @@ int cxd2820r_read_status_c(struct dvb_frontend *fe, enum fe_status *status)
+ 	struct i2c_client *client = priv->client[0];
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+-	unsigned int utmp;
++	unsigned int utmp, utmp1, utmp2;
+ 	u8 buf[3];
+-	*status = 0;
+ 
+-	ret = cxd2820r_rd_regs(priv, 0x10088, buf, 2);
++	/* Lock detection */
++	ret = cxd2820r_rd_reg(priv, 0x10088, &buf[0]);
++	if (ret)
++		goto error;
++	ret = cxd2820r_rd_reg(priv, 0x10073, &buf[1]);
+ 	if (ret)
+ 		goto error;
+ 
+-	if (((buf[0] >> 0) & 0x01) == 1) {
+-		*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER |
+-			FE_HAS_VITERBI | FE_HAS_SYNC;
++	utmp1 = (buf[0] >> 0) & 0x01;
++	utmp2 = (buf[1] >> 3) & 0x01;
+ 
+-		if (((buf[1] >> 3) & 0x01) == 1) {
+-			*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER |
+-				FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+-		}
++	if (utmp1 == 1 && utmp2 == 1) {
++		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
++			  FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
++	} else if (utmp1 == 1 || utmp2 == 1) {
++		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
++			  FE_HAS_VITERBI | FE_HAS_SYNC;
++	} else {
++		*status = 0;
+ 	}
+ 
+-	dev_dbg(&client->dev, "lock=%*ph\n", 2, buf);
++	dev_dbg(&client->dev, "status=%02x raw=%*ph sync=%u ts=%u\n",
++		*status, 2, buf, utmp1, utmp2);
+ 
+ 	/* Signal strength */
+ 	if (*status & FE_HAS_SIGNAL) {
+diff --git a/drivers/media/dvb-frontends/cxd2820r_t.c b/drivers/media/dvb-frontends/cxd2820r_t.c
+index 174d916..19f72cd 100644
+--- a/drivers/media/dvb-frontends/cxd2820r_t.c
++++ b/drivers/media/dvb-frontends/cxd2820r_t.c
+@@ -265,42 +265,32 @@ int cxd2820r_read_status_t(struct dvb_frontend *fe, enum fe_status *status)
+ 	struct i2c_client *client = priv->client[0];
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+-	unsigned int utmp;
+-	u8 buf[4];
+-	*status = 0;
++	unsigned int utmp, utmp1, utmp2;
++	u8 buf[3];
+ 
++	/* Lock detection */
+ 	ret = cxd2820r_rd_reg(priv, 0x00010, &buf[0]);
+ 	if (ret)
+ 		goto error;
++	ret = cxd2820r_rd_reg(priv, 0x00073, &buf[1]);
++	if (ret)
++		goto error;
+ 
+-	if ((buf[0] & 0x07) == 6) {
+-		ret = cxd2820r_rd_reg(priv, 0x00073, &buf[1]);
+-		if (ret)
+-			goto error;
++	utmp1 = (buf[0] >> 0) & 0x07;
++	utmp2 = (buf[1] >> 3) & 0x01;
+ 
+-		if (((buf[1] >> 3) & 0x01) == 1) {
+-			*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER |
+-				FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+-		} else {
+-			*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER |
+-				FE_HAS_VITERBI | FE_HAS_SYNC;
+-		}
++	if (utmp1 == 6 && utmp2 == 1) {
++		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
++			  FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
++	} else if (utmp1 == 6 || utmp2 == 1) {
++		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
++			  FE_HAS_VITERBI | FE_HAS_SYNC;
+ 	} else {
+-		ret = cxd2820r_rd_reg(priv, 0x00014, &buf[2]);
+-		if (ret)
+-			goto error;
+-
+-		if ((buf[2] & 0x0f) >= 4) {
+-			ret = cxd2820r_rd_reg(priv, 0x00a14, &buf[3]);
+-			if (ret)
+-				goto error;
+-
+-			if (((buf[3] >> 4) & 0x01) == 1)
+-				*status |= FE_HAS_SIGNAL;
+-		}
++		*status = 0;
+ 	}
+ 
+-	dev_dbg(&client->dev, "lock=%*ph\n", 4, buf);
++	dev_dbg(&client->dev, "status=%02x raw=%*ph sync=%u ts=%u\n",
++		*status, 2, buf, utmp1, utmp2);
+ 
+ 	/* Signal strength */
+ 	if (*status & FE_HAS_SIGNAL) {
+diff --git a/drivers/media/dvb-frontends/cxd2820r_t2.c b/drivers/media/dvb-frontends/cxd2820r_t2.c
+index 939a68d..4a6fbf8 100644
+--- a/drivers/media/dvb-frontends/cxd2820r_t2.c
++++ b/drivers/media/dvb-frontends/cxd2820r_t2.c
+@@ -293,25 +293,29 @@ int cxd2820r_read_status_t2(struct dvb_frontend *fe, enum fe_status *status)
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct i2c_client *client = priv->client[0];
+ 	int ret;
+-	unsigned int utmp;
++	unsigned int utmp, utmp1, utmp2;
+ 	u8 buf[4];
+-	*status = 0;
+ 
++	/* Lock detection */
+ 	ret = cxd2820r_rd_reg(priv, 0x02010 , &buf[0]);
+ 	if (ret)
+ 		goto error;
+ 
+-	if ((buf[0] & 0x07) == 6) {
+-		if (((buf[0] >> 5) & 0x01) == 1) {
+-			*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER |
+-				FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+-		} else {
+-			*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER |
+-				FE_HAS_VITERBI | FE_HAS_SYNC;
+-		}
++	utmp1 = (buf[0] >> 0) & 0x07;
++	utmp2 = (buf[0] >> 5) & 0x01;
++
++	if (utmp1 == 6 && utmp2 == 1) {
++		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
++			  FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
++	} else if (utmp1 == 6 || utmp2 == 1) {
++		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
++			  FE_HAS_VITERBI | FE_HAS_SYNC;
++	} else {
++		*status = 0;
+ 	}
+ 
+-	dev_dbg(&client->dev, "lock=%*ph\n", 1, buf);
++	dev_dbg(&client->dev, "status=%02x raw=%*ph sync=%u ts=%u\n",
++		*status, 1, buf, utmp1, utmp2);
+ 
+ 	/* Signal strength */
+ 	if (*status & FE_HAS_SIGNAL) {
 -- 
-Regards,
-Niklas Söderlund
+http://palosaari.fi/
+
