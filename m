@@ -1,64 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:56413 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933144AbcIPK5b (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:57611 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750697AbcIBC7L (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 06:57:31 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Thu, 1 Sep 2016 22:59:11 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 9184D180378
+        for <linux-media@vger.kernel.org>; Fri,  2 Sep 2016 04:59:05 +0200 (CEST)
+Date: Fri, 02 Sep 2016 04:59:05 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 7/8] adv7604: add vic detect
-Date: Fri, 16 Sep 2016 12:57:10 +0200
-Message-Id: <1474023431-32533-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
-References: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160902025905.9184D180378@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Obtain the correct timings based on the VIC code from the AVI InfoFrame.
+Results of the daily build of media_tree:
 
-It does a sanity check to see if at least the measured width and height
-are in line with what the VIC code reports. If not, then use the timings
-instead of the VIC code (as per the CEA-861 spec).
+date:		Fri Sep  2 04:00:16 CEST 2016
+git branch:	test
+git hash:	fb6609280db902bd5d34445fba1c926e95e63914
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7604.c | 18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: OK
+linux-4.8-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: OK
+linux-4.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 4003831..1ab7572 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1566,10 +1566,24 @@ static int adv76xx_query_dv_timings(struct v4l2_subdev *sd,
- 		V4L2_DV_INTERLACED : V4L2_DV_PROGRESSIVE;
- 
- 	if (is_digital_input(sd)) {
-+		bool hdmi_signal = hdmi_read(sd, 0x05) & 0x80;
-+		u8 vic = 0;
-+		u32 w, h;
-+
-+		w = hdmi_read16(sd, 0x07, info->linewidth_mask);
-+		h = hdmi_read16(sd, 0x09, info->field0_height_mask);
-+
-+		if (hdmi_signal && (io_read(sd, 0x60) & 1))
-+			vic = infoframe_read(sd, 0x04);
-+
-+		if (vic && v4l2_find_dv_timings_cea861_vic(timings, vic) &&
-+		    bt->width == w && bt->height == h)
-+			goto found;
-+
- 		timings->type = V4L2_DV_BT_656_1120;
- 
--		bt->width = hdmi_read16(sd, 0x07, info->linewidth_mask);
--		bt->height = hdmi_read16(sd, 0x09, info->field0_height_mask);
-+		bt->width = w;
-+		bt->height = h;
- 		bt->pixelclock = info->read_hdmi_pixelclock(sd);
- 		bt->hfrontporch = hdmi_read16(sd, 0x20, info->hfrontporch_mask);
- 		bt->hsync = hdmi_read16(sd, 0x22, info->hsync_mask);
--- 
-2.8.1
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
