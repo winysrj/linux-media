@@ -1,83 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:57485 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757861AbcIPN7N (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35398 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750939AbcIBISI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 09:59:13 -0400
-Received: from eucas1p1.samsung.com (unknown [182.198.249.206])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0ODL00HQIO6LLF80@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2016 14:59:09 +0100 (BST)
-Received: from eusmges5.samsung.com (unknown [203.254.199.245])
- by     eucas1p2.samsung.com (KnoxPortal)
- with ESMTP id  20160916135908eucas1p26dc9e17ea7af6789d19c8b8ec85a8153~00m47bspE3029230292eucas1p2M
-        for <linux-media@vger.kernel.org>; Fri, 16 Sep 2016 13:59:08 +0000 (GMT)
-Received: from eusmgms2.samsung.com (unknown [182.198.249.180])
- by     eucas1p1.samsung.com (KnoxPortal)
- with ESMTP id  20160916135908eucas1p120b1cdfc27742ce8771116e5f37e6fd1~00m4UtzG61753017530eucas1p11
-        for <linux-media@vger.kernel.org>; Fri, 16 Sep 2016 13:59:08 +0000 (GMT)
-Received: from [106.116.147.40] by eusync4.samsung.com
- (Oracle        Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with   ESMTPA id <0ODL00CNBO6JCG80@eusync4.samsung.com> for
-        linux-media@vger.kernel.org; Fri, 16 Sep 2016 14:59:07 +0100 (BST)
-To: LMML <linux-media@vger.kernel.org>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PULL] Samsung SoC updates for v4.9, part 2
-Message-id: <34c3d2d7-c80c-0438-7a3b-8b4636f65d97@samsung.com>
-Date: Fri, 16 Sep 2016 15:59:06 +0200
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 7bit
-References: <CGME20160916135908eucas1p120b1cdfc27742ce8771116e5f37e6fd1@eucas1p1.samsung.com>
+        Fri, 2 Sep 2016 04:18:08 -0400
+Date: Fri, 2 Sep 2016 11:18:05 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 1/4] v4l: Add metadata buffer type and format
+Message-ID: <20160902081804.GY12130@valkosipuli.retiisi.org.uk>
+References: <1471436430-26245-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <20160829091339.GN12130@valkosipuli.retiisi.org.uk>
+ <2431560.80mbed248J@avalon>
+ <6187282.rGRMgY1WYC@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6187282.rGRMgY1WYC@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Laurent,
 
-The following changes since commit c3b809834db8b1a8891c7ff873a216eac119628d:
+On Fri, Sep 02, 2016 at 12:40:18AM +0300, Laurent Pinchart wrote:
+...
+> > >> +Data Format Negotiation
+> > >> +=======================
+> > >> +
+> > >> +The metadata device uses the :ref:`format` ioctls to select the capture
+> > >> format. +The metadata buffer content format is bound to that selected
+> > >> format. In addition +to the basic :ref:`format` ioctls, the
+> > >> 
+> > >> :ref:`VIDIOC_ENUM_FMT` ioctl must be +supported as well.
+> > >> 
+> > >> +
+> > >> +To use the :ref:`format` ioctls applications set the ``type`` of the
+> > >> +:ref:`v4l2_format <v4l2-format>` structure to
+> > >> ``V4L2_BUF_TYPE_META_CAPTURE`` +and use the :ref:`v4l2_meta_format
+> > >> <v4l2-meta-format>` ``meta`` member of the +``fmt`` union as needed per
+> > >> the desired operation. The :ref:`v4l2-meta-format` +structure contains
+> > >> two fields, ``dataformat`` is set by applications to the V4L2
+> > > 
+> > > I might not specify the number of number of fields here. It has high
+> > > chances of not getting updated when more fields are added. Up to you.
+> > 
+> > This has been copied from dev-sdr.rst. I can drop the last sentence
+> > completely as the parameters are described in the table below. Hans, any
+> > opinion ?
+> 
+> How about this ?
+> 
+> To use the :ref:`format` ioctls applications set the ``type`` of the
 
-  [media] pulse8-cec: fix compiler warning (2016-09-12 06:42:44 -0300)
+s/of/field of/
 
-are available in the git repository at:
+?
 
-  git://linuxtv.org/snawrocki/samsung.git for-v4.9/media/next-2
+> :ref:`v4l2_format <v4l2-format>` structure to ``V4L2_BUF_TYPE_META_CAPTURE``
+> and use the :ref:`v4l2_meta_format <v4l2-meta-format>` ``meta`` member of the
+> ``fmt`` union as needed per the desired operation. Both drivers and 
+> applications must set the remainder of the :ref:`v4l2_format <v4l2-format>` 
+> structure to 0.
 
-for you to fetch changes up to 131ea909aa6a0befe0fc23d32fa5725042373d22:
-
-  exynos4-is: add of_platform_populate() call for FIMC-IS child devices (2016-09-16 15:55:12 +0200)
-
-----------------------------------------------------------------
-Christophe JAILLET (1):
-      s5p-cec: Fix memory allocation failure check
-
-Marek Szyprowski (4):
-      s5p-jpeg: fix system and runtime PM integration
-      s5p-cec: fix system and runtime PM integration
-      exynos4-is: Add support for all required clocks
-      exynos4-is: Improve clock management
-
-Sylwester Nawrocki (5):
-      exynos4-is: Add missing entity function initialization
-      s5k6a3: Add missing entity function initialization
-      s5c73m3: Fix entity function assignment for the OIF subdev
-      exynos4-is: Clear isp-i2c adapter power.ignore_children flag
-      exynos4-is: add of_platform_populate() call for FIMC-IS child devices
-
- .../bindings/media/exynos4-fimc-is.txt          |  7 +++---
- drivers/media/i2c/s5c73m3/s5c73m3-core.c        |  2 +-
- drivers/media/i2c/s5k6a3.c                      |  1 +
- .../media/platform/exynos4-is/fimc-capture.c    |  1 +
- drivers/media/platform/exynos4-is/fimc-is-i2c.c | 24 ++++++++++++++------
- drivers/media/platform/exynos4-is/fimc-is.c     | 13 ++++++++++-
- drivers/media/platform/exynos4-is/fimc-is.h     |  3 +++
- drivers/media/platform/exynos4-is/fimc-isp.c    |  1 +
- drivers/media/platform/exynos4-is/fimc-lite.c   | 17 ++++----------
- drivers/media/platform/exynos4-is/mipi-csis.c   |  1 +
- drivers/media/platform/s5p-jpeg/jpeg-core.c     | 21 ++---------------
- drivers/staging/media/s5p-cec/s5p_cec.c         | 19 +++-------------
- 12 files changed, 51 insertions(+), 59 deletions(-)
-
---
-Thanks, 
-Sylwester
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
