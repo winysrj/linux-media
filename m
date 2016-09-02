@@ -1,172 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50153 "EHLO comal.ext.ti.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933687AbcI1VW3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Sep 2016 17:22:29 -0400
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: [Patch 21/35] media: ti-vpe: vpdma: Corrected YUV422 data type label.
-Date: Wed, 28 Sep 2016 16:22:26 -0500
-Message-ID: <20160928212226.27265-1-bparrot@ti.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:48017 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753017AbcIBOyh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2016 10:54:37 -0400
+Date: Fri, 2 Sep 2016 11:54:28 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-doc@vger.kernel.org
+Subject: Re: [PATCH] doc-rst:sphinx-extensions: add metadata parallel-safe
+Message-ID: <20160902115428.2acf1e8a@vento.lan>
+In-Reply-To: <99F693FF-B49B-43DE-9D03-632121FCAE0A@darmarit.de>
+References: <1472045724-14559-1-git-send-email-markus.heiser@darmarit.de>
+        <20160901082136.597c37bf@lwn.net>
+        <87inufzoa5.fsf@intel.com>
+        <99F693FF-B49B-43DE-9D03-632121FCAE0A@darmarit.de>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The YUV data type definition below are taken from
-both the TRM and i839 Errata information.
-Use the correct data type considering byte
-reordering of components.
+Em Thu, 1 Sep 2016 18:22:09 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-Added the 2 missing YUV422 variant.
-Also since the single use of "C" in the 422 case
-to mean "Cr" (i.e. V component). It was decided
-to explicitly label them CR to remove any confusion.
-Bear in mind that the type label refer to the memory
-packed order (LSB - MSB).
+> Am 01.09.2016 um 16:29 schrieb Jani Nikula <jani.nikula@linux.intel.com>:
+> 
+> > On Thu, 01 Sep 2016, Jonathan Corbet <corbet@lwn.net> wrote:  
+> >> On Wed, 24 Aug 2016 15:35:24 +0200
+> >> Markus Heiser <markus.heiser@darmarit.de> wrote:
+> >>   
+> >>> With metadata "parallel_read_safe = True" a extension is marked as
+> >>> save for "parallel reading of source". This is needed if you want
+> >>> build in parallel with N processes. E.g.:
+> >>> 
+> >>>  make SPHINXOPTS=-j4 htmldocs  
+> >> 
+> >> A definite improvement; applied to the docs tree, thanks.  
+> > 
+> > The Sphinx docs say -jN "should be considered experimental" [1]. Any
+> > idea *how* experimental that is, really? Could we add some -j by
+> > default?  
+> 
+> My experience is, that parallel build is only strong on "reading
+> input" and weak on "writing output". I can't see any rich performance
+> increase on more than -j2 ... 
+> 
+> Mauro posted [2] his experience with -j8 compared to serial. He
+> also compares -j8 to -j16:
+> 
+> > PS: on my server with 16 dual-thread Xeon CPU, the gain with a
+> > bigger value for -j was not impressive. Got about the same time as
+> > with -j8 or -j32 there.  
+> 
+> I guess he will get nearly the same results with -j2 ;)
+> 
+> If we want to add a -j default, I suggest -j2. 
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
----
- drivers/media/platform/ti-vpe/vpdma.c      | 18 ++++++++++++++----
- drivers/media/platform/ti-vpe/vpdma.h      |  6 ++++--
- drivers/media/platform/ti-vpe/vpdma_priv.h | 19 ++++++++++++++++---
- drivers/media/platform/ti-vpe/vpe.c        |  8 ++++----
- 4 files changed, 38 insertions(+), 13 deletions(-)
+Actually, here I got better results with -j4, on my NUC with
+one quad-core, 8 threads Intel(R) Core(TM) i7-6770HQ CPU @ 2.60GHz
+and m2SATA SSD disk. 
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index 9f396ff03394..8cf2922c9c6f 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -59,9 +59,9 @@ const struct vpdma_data_format vpdma_yuv_fmts[] = {
- 		.data_type	= DATA_TYPE_C420,
- 		.depth		= 4,
- 	},
--	[VPDMA_DATA_FMT_YC422] = {
-+	[VPDMA_DATA_FMT_YCR422] = {
- 		.type		= VPDMA_DATA_FMT_TYPE_YUV,
--		.data_type	= DATA_TYPE_YC422,
-+		.data_type	= DATA_TYPE_YCR422,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_YC444] = {
-@@ -69,9 +69,19 @@ const struct vpdma_data_format vpdma_yuv_fmts[] = {
- 		.data_type	= DATA_TYPE_YC444,
- 		.depth		= 24,
- 	},
--	[VPDMA_DATA_FMT_CY422] = {
-+	[VPDMA_DATA_FMT_CRY422] = {
- 		.type		= VPDMA_DATA_FMT_TYPE_YUV,
--		.data_type	= DATA_TYPE_CY422,
-+		.data_type	= DATA_TYPE_CRY422,
-+		.depth		= 16,
-+	},
-+	[VPDMA_DATA_FMT_CBY422] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
-+		.data_type	= DATA_TYPE_CBY422,
-+		.depth		= 16,
-+	},
-+	[VPDMA_DATA_FMT_YCB422] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
-+		.data_type	= DATA_TYPE_YCB422,
- 		.depth		= 16,
- 	},
- };
-diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
-index ccf871ad8800..405a6febc254 100644
---- a/drivers/media/platform/ti-vpe/vpdma.h
-+++ b/drivers/media/platform/ti-vpe/vpdma.h
-@@ -74,9 +74,11 @@ enum vpdma_yuv_formats {
- 	VPDMA_DATA_FMT_C444,
- 	VPDMA_DATA_FMT_C422,
- 	VPDMA_DATA_FMT_C420,
--	VPDMA_DATA_FMT_YC422,
-+	VPDMA_DATA_FMT_YCR422,
- 	VPDMA_DATA_FMT_YC444,
--	VPDMA_DATA_FMT_CY422,
-+	VPDMA_DATA_FMT_CRY422,
-+	VPDMA_DATA_FMT_CBY422,
-+	VPDMA_DATA_FMT_YCB422,
- };
- 
- enum vpdma_rgb_formats {
-diff --git a/drivers/media/platform/ti-vpe/vpdma_priv.h b/drivers/media/platform/ti-vpe/vpdma_priv.h
-index 54b6aa866c74..f974a803fa27 100644
---- a/drivers/media/platform/ti-vpe/vpdma_priv.h
-+++ b/drivers/media/platform/ti-vpe/vpdma_priv.h
-@@ -77,16 +77,29 @@
- #define VPDMA_LIST_TYPE_SHFT		16
- #define VPDMA_LIST_SIZE_MASK		0xffff
- 
--/* VPDMA data type values for data formats */
-+/*
-+ * The YUV data type definition below are taken from
-+ * both the TRM and i839 Errata information.
-+ * Use the correct data type considering byte
-+ * reordering of components.
-+ *
-+ * Also since the single use of "C" in the 422 case
-+ * to mean "Cr" (i.e. V component). It was decided
-+ * to explicitly label them CR to remove any confusion.
-+ * Bear in mind that the type label refer to the memory
-+ * packed order (LSB - MSB).
-+ */
- #define DATA_TYPE_Y444				0x0
- #define DATA_TYPE_Y422				0x1
- #define DATA_TYPE_Y420				0x2
- #define DATA_TYPE_C444				0x4
- #define DATA_TYPE_C422				0x5
- #define DATA_TYPE_C420				0x6
--#define DATA_TYPE_YC422				0x7
- #define DATA_TYPE_YC444				0x8
--#define DATA_TYPE_CY422				0x27
-+#define DATA_TYPE_YCB422			0x7
-+#define DATA_TYPE_YCR422			0x17
-+#define DATA_TYPE_CBY422			0x27
-+#define DATA_TYPE_CRY422			0x37
- 
- #define DATA_TYPE_RGB16_565			0x0
- #define DATA_TYPE_ARGB_1555			0x1
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 57d19ad6d4a5..ee85c68d5771 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -237,7 +237,7 @@ struct vpe_fmt {
- 
- static struct vpe_fmt vpe_formats[] = {
- 	{
--		.name		= "YUV 422 co-planar",
-+		.name		= "NV16 YUV 422 co-planar",
- 		.fourcc		= V4L2_PIX_FMT_NV16,
- 		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
- 		.coplanar	= 1,
-@@ -246,7 +246,7 @@ static struct vpe_fmt vpe_formats[] = {
- 				  },
- 	},
- 	{
--		.name		= "YUV 420 co-planar",
-+		.name		= "NV12 YUV 420 co-planar",
- 		.fourcc		= V4L2_PIX_FMT_NV12,
- 		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
- 		.coplanar	= 1,
-@@ -259,7 +259,7 @@ static struct vpe_fmt vpe_formats[] = {
- 		.fourcc		= V4L2_PIX_FMT_YUYV,
- 		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
- 		.coplanar	= 0,
--		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_YC422],
-+		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_YCB422],
- 				  },
- 	},
- 	{
-@@ -267,7 +267,7 @@ static struct vpe_fmt vpe_formats[] = {
- 		.fourcc		= V4L2_PIX_FMT_UYVY,
- 		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
- 		.coplanar	= 0,
--		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_CY422],
-+		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_CBY422],
- 				  },
- 	},
- 	{
--- 
-2.9.0
+This is with -j2:
 
+$ make DOCBOOKS="" SPHINXOPTS="-j2" SPHINXDIRS=media SPHINX_CONF="conf_nitpick.py" htmldocs 2>err
+
+real	0m46.568s
+user	1m0.676s
+sys	0m3.019s
+
+And this is with -j4:
+
+$ make DOCBOOKS="" SPHINXOPTS="-j4" SPHINXDIRS=media SPHINX_CONF="conf_nitpick.py" htmldocs 2>err
+
+real	0m25.356s
+user	1m1.408s
+sys	0m2.912s
+
+Btw, this is the result on a dual octa-core Intel(R) Xeon(R) CPU E5-2670 0 
+@ 2.60GHz, CPU (total of 32 threads), using PCIe SSD disks:
+
+$ for i in $(seq 32 -1 1); do echo "with SPHINXOPTS= -j$i"; make cleandocs;/usr/bin/time --format="real %E nuser %U sys %S" make DOCBOOKS=""  SPHINXOPTS="-j$i" SPHINXDIRS=media SPHINX_CONF="conf.py" SPHINXDIRS=media htmldocs >err; done
+with SPHINXOPTS= -j32
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:23.05 nuser 98.77 sys 6.45
+with SPHINXOPTS= -j31
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:22.81 nuser 97.80 sys 6.12
+with SPHINXOPTS= -j30
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:23.16 nuser 97.68 sys 6.41
+with SPHINXOPTS= -j29
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:22.74 nuser 98.02 sys 6.33
+with SPHINXOPTS= -j28
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:23.18 nuser 95.75 sys 6.14
+with SPHINXOPTS= -j27
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:22.67 nuser 96.66 sys 6.27
+with SPHINXOPTS= -j26
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:22.66 nuser 95.93 sys 6.50
+with SPHINXOPTS= -j25
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:23.71 nuser 95.43 sys 6.43
+with SPHINXOPTS= -j24
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:23.71 nuser 94.27 sys 6.42
+with SPHINXOPTS= -j23
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:23.46 nuser 93.85 sys 6.35
+with SPHINXOPTS= -j22
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:23.28 nuser 91.52 sys 6.29
+with SPHINXOPTS= -j21
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:23.93 nuser 90.37 sys 6.14
+with SPHINXOPTS= -j20
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:24.88 nuser 91.40 sys 6.36
+with SPHINXOPTS= -j19
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:24.00 nuser 89.68 sys 5.82
+with SPHINXOPTS= -j18
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:23.73 nuser 89.68 sys 5.92
+with SPHINXOPTS= -j17
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:23.75 nuser 87.85 sys 5.58
+with SPHINXOPTS= -j16
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:24.54 nuser 87.87 sys 5.94
+with SPHINXOPTS= -j15
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:25.45 nuser 88.25 sys 6.28
+with SPHINXOPTS= -j14
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:23.79 nuser 87.23 sys 5.80
+with SPHINXOPTS= -j13
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:24.15 nuser 86.06 sys 5.48
+with SPHINXOPTS= -j12
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:24.02 nuser 85.94 sys 5.55
+with SPHINXOPTS= -j11
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:23.79 nuser 85.12 sys 5.38
+with SPHINXOPTS= -j10
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:25.37 nuser 85.32 sys 5.52
+with SPHINXOPTS= -j9
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:26.04 nuser 86.96 sys 5.58
+with SPHINXOPTS= -j8
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:26.76 nuser 86.38 sys 5.84
+with SPHINXOPTS= -j7
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:27.90 nuser 85.33 sys 5.54
+with SPHINXOPTS= -j6
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:28.44 nuser 84.59 sys 5.44
+with SPHINXOPTS= -j5
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:31.82 nuser 83.98 sys 5.56
+with SPHINXOPTS= -j4
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:35.68 nuser 83.98 sys 5.52
+with SPHINXOPTS= -j3
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 0:43.00 nuser 85.08 sys 5.78
+with SPHINXOPTS= -j2
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 1:10.72 nuser 88.61 sys 6.17
+with SPHINXOPTS= -j1
+make[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+real 1:27.23 nuser 84.49 sys 2.97
+
+There, -j4 is not the best performance. it goes to the ~23-24 seconds only
+with -j11.
+
+So, setting a default is not trivial, and seems to depend a lot on the
+actual machine used on the build.
+
+Regards,
+Mauro
