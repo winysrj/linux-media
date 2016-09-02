@@ -1,83 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:33676 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933536AbcIWAXf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Sep 2016 20:23:35 -0400
-Subject: Re: g_webcam Isoch high bandwidth transfer
-To: Bin Liu <b-liu@ti.com>,
-        Felipe Balbi <felipe.balbi@linux.intel.com>,
-        linux-usb@vger.kernel.org, linux-media@vger.kernel.org
-References: <20160920170441.GA10705@uda0271908>
- <871t0d4r72.fsf@linux.intel.com> <20160921132702.GA18578@uda0271908>
- <87oa3go065.fsf@linux.intel.com> <87lgyknyp7.fsf@linux.intel.com>
- <87d1jw6yfd.fsf@linux.intel.com> <20160922133327.GA31827@uda0271908>
- <87a8ezn2av.fsf@linux.intel.com> <20160922201131.GD31827@uda0271908>
-From: yfw <nh26223@gmail.com>
-Message-ID: <05d5b2dd-0c1b-e7bd-afc5-313b5a5ab268@gmail.com>
-Date: Fri, 23 Sep 2016 08:23:25 +0800
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:32890 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932911AbcIBQqz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2016 12:46:55 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        sergei.shtylyov@cogentembedded.com, hans.verkuil@cisco.com
+Cc: slongerbeam@gmail.com, lars@metafoo.de, mchehab@kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv3 2/6] media: rcar-vin: make V4L2_FIELD_INTERLACED standard dependent
+Date: Fri,  2 Sep 2016 18:44:57 +0200
+Message-Id: <20160902164501.19535-3-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160902164501.19535-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160902164501.19535-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20160922201131.GD31827@uda0271908>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bin,
+The field V4L2_FIELD_INTERLACED is standard dependent and should not
+unconditionally be equivalent to V4L2_FIELD_INTERLACED_TB.
 
-On 2016/9/23 4:11, Bin Liu wrote:
-> +Fengwei Yin per his request.
-Thanks a lot for adding me to this thread.
+This patch adds a check to see if the video standard can be obtained and
+if it's a 60 Hz format. If the condition is met V4L2_FIELD_INTERLACED
+is treated as V4L2_FIELD_INTERLACED_BT if not as
+V4L2_FIELD_INTERLACED_TB.
 
->
-> On Thu, Sep 22, 2016 at 10:48:40PM +0300, Felipe Balbi wrote:
->>
->> Hi,
->>
->> Bin Liu <b-liu@ti.com> writes:
->>
->> [...]
->>
->>>> Here's one that actually compiles, sorry about that.
->>>
->>> No worries, I was sleeping ;-)
->>>
->>> I will test it out early next week. Thanks.
->>
->> meanwhile, how about some instructions on how to test this out myself?
->> How are you using g_webcam and what are you running on host side? Got a
->> nice list of commands there I can use? I think I can get to bottom of
->> this much quicker if I can reproduce it locally ;-)
-I am using similar use case with a different gadget function driver.
->
-> On device side:
-> - first patch g_webcam as in my first email in this thread to enable
->   640x480@30fps;
-> - # modprobe g_webcam streaming_maxpacket=3072
-> - then run uvc-gadget to feed the YUV frames;
-> 	http://git.ideasonboard.org/uvc-gadget.git
-- I am using uvc function driver  + configfs.
-- maxpacket in configfs was set to 3072.
-- uvc-gadget from the same source as Bin.
->
-> On host side:
-> - first check the device ep descriptor, which should be
-> 	wMaxPacketSize     0x1400  3x 1024 bytes
-> - then use luvcview or yavta to capture the video stream
-- lsusb give me same wMaxPacketSize.
-- I am using example (changed a little bit) from libuvc.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Regards
-Yin, Fengwei
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 46abdb0..d57801b 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -131,6 +131,7 @@ static u32 rvin_read(struct rvin_dev *vin, u32 offset)
+ static int rvin_setup(struct rvin_dev *vin)
+ {
+ 	u32 vnmc, dmr, dmr2, interrupts;
++	v4l2_std_id std;
+ 	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
+ 
+ 	switch (vin->format.field) {
+@@ -141,6 +142,14 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		vnmc = VNMC_IM_EVEN;
+ 		break;
+ 	case V4L2_FIELD_INTERLACED:
++		/* Default to TB */
++		vnmc = VNMC_IM_FULL;
++		/* Use BT if video standard can be read and is 60 Hz format */
++		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
++			if (std & V4L2_STD_525_60)
++				vnmc = VNMC_IM_FULL | VNMC_FOC;
++		}
++		break;
+ 	case V4L2_FIELD_INTERLACED_TB:
+ 		vnmc = VNMC_IM_FULL;
+ 		break;
+-- 
+2.9.3
 
->
-> Capture the bus trace to check if multiple IN transactions happens in
-> each SOF.
->
-> The data buffer size in the usb_request coming from the uvc driver is
-> 5120 bytes, so there should be 3 IN transactions if the UDC works
-> correctly.
->
-> Regards,
-> -Bin.
->
