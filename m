@@ -1,40 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:29362 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754958AbcIRSr0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Sep 2016 14:47:26 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
+Received: from youngberry.canonical.com ([91.189.89.112]:38858 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753471AbcICRGX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Sep 2016 13:06:23 -0400
+From: Colin King <colin.king@canonical.com>
+To: Jemma Denson <jdenson@gmail.com>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 1/2] [media] pxa_camera: make soc_mbus_xlate_by_fourcc() static
-References: <8f05b34a8be23d483661de181aa77c07d8a1bd58.1473429632.git.mchehab@s-opensource.com>
-Date: Sun, 18 Sep 2016 20:47:20 +0200
-In-Reply-To: <8f05b34a8be23d483661de181aa77c07d8a1bd58.1473429632.git.mchehab@s-opensource.com>
-        (Mauro Carvalho Chehab's message of "Fri, 9 Sep 2016 11:00:39 -0300")
-Message-ID: <87wpi9dozr.fsf@belgarion.home>
+        linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] cx24120: do not allow an invalid delivery system types
+Date: Sat,  3 Sep 2016 18:04:17 +0100
+Message-Id: <20160903170417.14061-1-colin.king@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab <mchehab@s-opensource.com> writes:
+From: Colin Ian King <colin.king@canonical.com>
 
-> As warned by smatch:
->
-> drivers/media/platform/pxa_camera.c:283:39: warning: no previous prototype for 'soc_mbus_xlate_by_fourcc' [-Wmissing-prototypes]
->  const struct soc_camera_format_xlate *soc_mbus_xlate_by_fourcc(
->                                        ^~~~~~~~~~~~~~~~~~~~~~~~
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+cx24120_set_frontend currently allows invalid delivery system types
+other than SYS_DVBS2 and SYS_DVBS.  Fix this by returning -EINVAL
+for invalid values.
 
-Cheers.
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/dvb-frontends/cx24120.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---
-Robert
+diff --git a/drivers/media/dvb-frontends/cx24120.c b/drivers/media/dvb-frontends/cx24120.c
+index 066ee38..3112a32 100644
+--- a/drivers/media/dvb-frontends/cx24120.c
++++ b/drivers/media/dvb-frontends/cx24120.c
+@@ -1154,8 +1154,7 @@ static int cx24120_set_frontend(struct dvb_frontend *fe)
+ 		dev_dbg(&state->i2c->dev,
+ 			"delivery system(%d) not supported\n",
+ 			c->delivery_system);
+-		ret = -EINVAL;
+-		break;
++		return -EINVAL;
+ 	}
+ 
+ 	state->dnxt.delsys = c->delivery_system;
+-- 
+2.9.3
+
