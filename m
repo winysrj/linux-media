@@ -1,81 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36505 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753345AbcI0Ts4 (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47205 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752044AbcICCxP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Sep 2016 15:48:56 -0400
-Received: by mail-wm0-f68.google.com with SMTP id b184so2710115wma.3
-        for <linux-media@vger.kernel.org>; Tue, 27 Sep 2016 12:48:55 -0700 (PDT)
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH] rc: ir-raw: change type of available_protocols to atomic64_t
-Message-ID: <368a90c9-a1ff-3f2d-609e-c255c486e406@gmail.com>
-Date: Tue, 27 Sep 2016 21:48:47 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Fri, 2 Sep 2016 22:53:15 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 598FF1858C7
+        for <linux-media@vger.kernel.org>; Sat,  3 Sep 2016 04:53:09 +0200 (CEST)
+Date: Sat, 03 Sep 2016 04:53:09 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160903025309.598FF1858C7@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changing available_protocols to atomic64_t allows to get rid of the
-mutex protecting access to the variable. This helps to simplify
-the code.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/rc-ir-raw.c | 17 ++++-------------
- 1 file changed, 4 insertions(+), 13 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 205ecc6..1c42a9f 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -26,8 +26,7 @@ static LIST_HEAD(ir_raw_client_list);
- /* Used to handle IR raw handler extensions */
- static DEFINE_MUTEX(ir_raw_handler_lock);
- static LIST_HEAD(ir_raw_handler_list);
--static DEFINE_MUTEX(available_protocols_lock);
--static u64 available_protocols;
-+static atomic64_t available_protocols = ATOMIC64_INIT(0);
- 
- static int ir_raw_event_thread(void *data)
- {
-@@ -234,11 +233,7 @@ EXPORT_SYMBOL_GPL(ir_raw_event_handle);
- u64
- ir_raw_get_allowed_protocols(void)
- {
--	u64 protocols;
--	mutex_lock(&available_protocols_lock);
--	protocols = available_protocols;
--	mutex_unlock(&available_protocols_lock);
--	return protocols;
-+	return atomic64_read(&available_protocols);
- }
- 
- static int change_protocol(struct rc_dev *dev, u64 *rc_type)
-@@ -331,9 +326,7 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler)
- 	if (ir_raw_handler->raw_register)
- 		list_for_each_entry(raw, &ir_raw_client_list, list)
- 			ir_raw_handler->raw_register(raw->dev);
--	mutex_lock(&available_protocols_lock);
--	available_protocols |= ir_raw_handler->protocols;
--	mutex_unlock(&available_protocols_lock);
-+	atomic64_or(ir_raw_handler->protocols, &available_protocols);
- 	mutex_unlock(&ir_raw_handler_lock);
- 
- 	return 0;
-@@ -352,9 +345,7 @@ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler)
- 		if (ir_raw_handler->raw_unregister)
- 			ir_raw_handler->raw_unregister(raw->dev);
- 	}
--	mutex_lock(&available_protocols_lock);
--	available_protocols &= ~protocols;
--	mutex_unlock(&available_protocols_lock);
-+	atomic64_andnot(protocols, &available_protocols);
- 	mutex_unlock(&ir_raw_handler_lock);
- }
- EXPORT_SYMBOL(ir_raw_handler_unregister);
--- 
-2.9.3
+date:		Sat Sep  3 04:00:15 CEST 2016
+git branch:	test
+git hash:	fb6609280db902bd5d34445fba1c926e95e63914
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: OK
+linux-4.8-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: OK
+linux-4.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
