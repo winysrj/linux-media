@@ -1,93 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:58125 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755262AbcIALyz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 07:54:55 -0400
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-        wsa@the-dreams.de, linux-samsung-soc@vger.kernel.org,
-        stable@vger.kernel.org
-Subject: Re: [PATCH 1/4] exynos4-is: Clear isp-i2c adapter
- power.ignore_children flag
-Date: Thu, 01 Sep 2016 13:54:49 +0200
-Message-id: <4547892.mzTdl6x2IH@amdc1976>
-In-reply-to: <1472729956-17475-1-git-send-email-s.nawrocki@samsung.com>
-References: <1472729956-17475-1-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-transfer-encoding: 7Bit
-Content-type: text/plain; charset=us-ascii
+Received: from mail-lf0-f43.google.com ([209.85.215.43]:36444 "EHLO
+        mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753239AbcICULm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Sep 2016 16:11:42 -0400
+Received: by mail-lf0-f43.google.com with SMTP id g62so104211799lfe.3
+        for <linux-media@vger.kernel.org>; Sat, 03 Sep 2016 13:11:41 -0700 (PDT)
+Subject: Re: [PATCH] vsp1: add R8A7792 VSP1V support
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <10305550.upKOiT5SIy@wasted.cogentembedded.com>
+ <2246517.O4DQlKpR2A@avalon>
+Cc: mchehab@kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <15818c6d-2753-0e3c-d87d-8dfc101055b3@cogentembedded.com>
+Date: Sat, 3 Sep 2016 23:11:38 +0300
+MIME-Version: 1.0
+In-Reply-To: <2246517.O4DQlKpR2A@avalon>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello.
 
-Hi,
+On 09/02/2016 01:47 AM, Laurent Pinchart wrote:
 
-On Thursday, September 01, 2016 01:39:16 PM Sylwester Nawrocki wrote:
-> Since commit 04f59143b571161d25315dd52d7a2ecc022cb71a
-> ("i2c: let I2C masters ignore their children for PM")
-> the power.ignore_children flag is set when registering an I2C
-> adapter. Since I2C transfers are not managed by the fimc-isp-i2c
-> driver its clients use pm_runtime_* calls directly to communicate
-> required power state of the bus controller.
-> However when the power.ignore_children flag is set that doesn't
-> work, so clear that flag back after registering the adapter.
-> While at it drop pm_runtime_enable() call on the i2c_adapter
-> as it is already done by the I2C subsystem when registering
-> I2C adapter.
-> 
-> Cc: <stable@vger.kernel.org> # 4.7+
+>> Add  support for the R8A7792 VSP1V cores which are different from the other
+>> gen2 VSP1 cores...
+>>
+>> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>>
+>> ---
+>> This patch is against the 'media_tree.git' repo's 'master' branch.
+>
+> The vsp1/next branch of my media.git tree contains a few patches that conflict
+> with this patch. I've resolved the conflicts manually and pushed the result to
+>
+> 	git://linuxtv.org/pinchartl/media.git vsp1/next
+>
+> Could you please check the conflict resolution ?
 
-You may also use "Fixes:" tag to mark the original commit that
-this one corrects.
+    It seems alright. But I hate, hate, hate the forced branch updates! One 
+wrong move and you're trapped with the changes you don't know how to resolve 
+anyway... :-(
 
-> Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> ---
->  drivers/media/platform/exynos4-is/fimc-is-i2c.c | 25 ++++++++++++++++++-------
->  1 file changed, 18 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/platform/exynos4-is/fimc-is-i2c.c b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
-> index 7521aa5..03b4246 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-is-i2c.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
-> @@ -55,26 +55,37 @@ static int fimc_is_i2c_probe(struct platform_device *pdev)
->  	i2c_adap->algo = &fimc_is_i2c_algorithm;
->  	i2c_adap->class = I2C_CLASS_SPD;
->  
-> +	platform_set_drvdata(pdev, isp_i2c);
-> +	pm_runtime_enable(&pdev->dev);
-> +
->  	ret = i2c_add_adapter(i2c_adap);
->  	if (ret < 0) {
->  		dev_err(&pdev->dev, "failed to add I2C bus %s\n",
->  						node->full_name);
-> -		return ret;
-> +		goto err_pm_dis;
->  	}
->  
-> -	platform_set_drvdata(pdev, isp_i2c);
-> -
-> -	pm_runtime_enable(&pdev->dev);
-> -	pm_runtime_enable(&i2c_adap->dev);
-> -
-> +	/*
-> +	 * Client drivers of this adapter don't do any I2C transfers as that
-> +	 * is handled by the ISP firmware.  But we rely on the runtime PM
-> +	 * state propagation from the clients up to the adapter driver so
-> +	 * clear the ignore_children flags here.  PM rutnime calls are not
+> Could you please also give me the full 32-bit IP version number for the VSP1V-
+> D and VSP1V-S on R8A7792 ?
 
-Minor nit:
+    As I told you on IRC:
 
-"rutnime" typo
+[    2.563823] vsp1 fe928000.vsp1: IP version 0x01011201
+[    2.574416] vsp1 fe930000.vsp1: IP version 0x01011301
+[    2.583543] vsp1 fe938000.vsp1: IP version 0x01011301
 
-Otherwise it looks all fine to me.
-
-Reviewed-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+MBR, Sergei
 
