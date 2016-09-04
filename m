@@ -1,42 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52517 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750721AbcIFHeE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Sep 2016 03:34:04 -0400
-Subject: Re: [PATCH v6] [media] vimc: Virtual Media Controller core, capture
- and sensor
-To: Helen Koike <helen.koike@collabora.com>,
-        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        jgebben@codeaurora.org, mchehab@osg.samsung.com
-References: <ee909db9-eb2b-d81a-347a-fe12112aa1cf@xs4all.nl>
- <37dc3fa2c020c30f8ced9749f81394d585a37ec1.1473018878.git.helen.koike@collabora.com>
-Cc: Helen Fornazier <helen.fornazier@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cd080d30-e0eb-a544-5512-0de634f1cf22@xs4all.nl>
-Date: Tue, 6 Sep 2016 09:33:54 +0200
-MIME-Version: 1.0
-In-Reply-To: <37dc3fa2c020c30f8ced9749f81394d585a37ec1.1473018878.git.helen.koike@collabora.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:48172 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752979AbcIDOOH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Sep 2016 10:14:07 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Matthias Schwarzott <zzam@gentoo.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 5/7] [media] cx231xx: fix PV SBTVD Hybrid AGC GPIO pin
+Date: Sun,  4 Sep 2016 11:13:57 -0300
+Message-Id: <fd945f1d7b8536951c7116d84f7a100dd82d712b.1472998424.git.mchehab@s-opensource.com>
+In-Reply-To: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
+References: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
+In-Reply-To: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
+References: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/04/16 22:02, Helen Koike wrote:
-> From: Helen Fornazier <helen.fornazier@gmail.com>
->
-> First version of the Virtual Media Controller.
-> Add a simple version of the core of the driver, the capture and
-> sensor nodes in the topology, generating a grey image in a hardcoded
-> format.
->
-> Signed-off-by: Helen Koike <helen.koike@collabora.com>
->
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-One thing is missing: a MAINTAINERS entry. Can you make a separate patch
-updating the MAINTAINERS file?
+The AGC GPIO pin for this board is wrong. it should be GPIO 28
+(0x1c).
 
-Thanks!
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-	Hans
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index c63248a18823..72c246bfaa1c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -486,7 +486,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.output_mode = OUT_MODE_VIP11,
+ 		.demod_xfer_mode = 0,
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+-		.agc_analog_digital_select_gpio = 0x00,	/* According with PV cxPolaris.inf file */
++		.agc_analog_digital_select_gpio = 0x1c,
+ 		.tuner_sif_gpio = -1,
+ 		.tuner_scl_gpio = -1,
+ 		.tuner_sda_gpio = -1,
+-- 
+2.7.4
 
