@@ -1,50 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52432 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755607AbcILHqv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Sep 2016 03:46:51 -0400
-Received: from [192.168.1.137] (marune.xs4all.nl [80.101.105.217])
-        by tschai.lan (Postfix) with ESMTPSA id BFF8C18026F
-        for <linux-media@vger.kernel.org>; Mon, 12 Sep 2016 09:46:45 +0200 (CEST)
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.9] Fix two compilation issues
-Message-ID: <6ca10155-97ba-a64b-b761-3e23ed9416d9@xs4all.nl>
-Date: Mon, 12 Sep 2016 09:46:45 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from pv33p04im-asmtp002.me.com ([17.143.181.11]:47320 "EHLO
+        pv33p04im-asmtp002.me.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752962AbcIDT4E (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Sep 2016 15:56:04 -0400
+Received: from process-dkim-sign-daemon.pv33p04im-asmtp002.me.com by
+ pv33p04im-asmtp002.me.com
+ (Oracle Communications Messaging Server 7.0.5.38.0 64bit (built Feb 26 2016))
+ id <0OCZ00400WMQSG00@pv33p04im-asmtp002.me.com> for
+ linux-media@vger.kernel.org; Sun, 04 Sep 2016 19:55:13 +0000 (GMT)
+Content-type: text/plain; charset=us-ascii
+MIME-version: 1.0 (1.0)
+Subject: Re: uvcvideo error on second capture from USB device,
+ leading to V4L2_BUF_FLAG_ERROR
+From: Oliver Collyer <ovcollyer@mac.com>
+In-reply-to: <20160904192538.75czuv7c2imru6ds@zver>
+Date: Sun, 04 Sep 2016 22:55:07 +0300
+Cc: linux-media@vger.kernel.org
+Content-transfer-encoding: quoted-printable
+Message-id: <2C343957-781F-4169-BB0A-01A9F6A1EB32@mac.com>
+References: <C29C248E-5D7A-4E69-A88D-7B971D42E984@mac.com>
+ <20160904192538.75czuv7c2imru6ds@zver>
+To: Andrey Utkin <andrey_utkin@fastmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Andrey
 
-These two patches fix compilation issues for 4.9. One simple warning and one
-fixing duplicate functions.
+I'm already building my own FFmpeg from git master but in any case it happen=
+s with the V4L2 API capture example in exactly the same way.
 
-Regards,
+I have rebuilt uvcvideo/v4l from media_build with same result but I'll try l=
+ater kernel.
 
-	Hans
+Regards
 
-The following changes since commit 8a5a2ba86ab8fc12267fea974b9cd730ad2dee24:
+Oliver
 
-  [media] v4l: vsp1: Add R8A7792 VSP1V support (2016-09-09 11:32:43 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.9d
-
-for you to fetch changes up to 2fb0feefa258953ebdb0f81931f4725fd5498c14:
-
-  pulse8-cec: fix compiler warning (2016-09-11 11:00:15 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (2):
-      pxa_camera: merge soc_mediabus.c into pxa_camera.c
-      pulse8-cec: fix compiler warning
-
- drivers/media/platform/Makefile               |   2 +-
- drivers/media/platform/pxa_camera.c           | 482 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----
- drivers/staging/media/pulse8-cec/pulse8-cec.c |   2 +-
- 3 files changed, 460 insertions(+), 26 deletions(-)
+> On 4 Sep 2016, at 22:25, Andrey Utkin <andrey_utkin@fastmail.com> wrote:
+>=20
+> Hi!
+> Seems like weird error in V4L subsystem or in uvcvideo driver, in the
+> most standard usage scenario.
+> Please retry with kernel and FFmpeg as new as possible, best if compiled
+> from latest upstream sources.
+> For kernel please try release 4.7.2 or even linux-next
+> (git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git), for
+> FFmpeg please make a git clone from git://source.ffmpeg.org/ffmpeg.git
+> and there do "./configure && make" and run obtained "ffmpeg" binary.
+>=20
+> Please CC me when you come back with your results.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
