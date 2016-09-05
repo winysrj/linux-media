@@ -1,123 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:57611 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750697AbcIBC7L (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Sep 2016 22:59:11 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id 9184D180378
-        for <linux-media@vger.kernel.org>; Fri,  2 Sep 2016 04:59:05 +0200 (CEST)
-Date: Fri, 02 Sep 2016 04:59:05 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160902025905.9184D180378@tschai.lan>
+Received: from pv33p04im-asmtp001.me.com ([17.143.181.10]:37300 "EHLO
+        pv33p04im-asmtp001.me.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932266AbcIEUcS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 16:32:18 -0400
+Received: from process-dkim-sign-daemon.pv33p04im-asmtp001.me.com by
+ pv33p04im-asmtp001.me.com
+ (Oracle Communications Messaging Server 7.0.5.38.0 64bit (built Feb 26 2016))
+ id <0OD100800STCLH00@pv33p04im-asmtp001.me.com> for
+ linux-media@vger.kernel.org; Mon, 05 Sep 2016 20:32:16 +0000 (GMT)
+Content-type: text/plain; charset=utf-8
+MIME-version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Subject: Re: uvcvideo error on second capture from USB device,
+ leading to V4L2_BUF_FLAG_ERROR
+From: Oliver Collyer <ovcollyer@mac.com>
+In-reply-to: <20160905201935.wpgtrtt7e4bjjylo@zver>
+Date: Mon, 05 Sep 2016 23:32:10 +0300
+Cc: linux-media@vger.kernel.org
+Content-transfer-encoding: quoted-printable
+Message-id: <A7196057-BFD6-4CF4-8386-7101688FC3F6@mac.com>
+References: <C29C248E-5D7A-4E69-A88D-7B971D42E984@mac.com>
+ <20160904192538.75czuv7c2imru6ds@zver>
+ <AE433005-988F-4352-8CF3-30690C82CAA6@mac.com>
+ <20160905201935.wpgtrtt7e4bjjylo@zver>
+To: Andrey Utkin <andrey_utkin@fastmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+> On 5 Sep 2016, at 23:19, Andrey Utkin <andrey_utkin@fastmail.com> =
+wrote:
+>=20
+> On Mon, Sep 05, 2016 at 10:43:49PM +0300, Oliver Collyer wrote:
+>> I do not have any knowledge of uvcvideo and the associated classes =
+apart from the studying I=E2=80=99ve done the past day or two, but it =
+seems likely that error -71 and the later setting of V4L2_BUF_FLAG_ERROR =
+are linked. Also, the fact it only happens in captures after the first =
+one suggests something isn=E2=80=99t being cleared down or released =
+properly in uvcvideo/v4l2-core at the end of the first capture.
+>>=20
+>> Let me know what I need to do next to further narrow it down.
+>=20
+> Have tried to reproduce this (with kernel 4.6.0 and fresh build of
+> ffmpeg) with uvcvideo-driven laptop webcam, and it doesn't happen to =
+me.
+> Also -EPROTO in uvcvideo comes from low-level USB stuff, see
+> drivers/media/usb/uvc/uvc_status.c:127:
+>=20
+> 	case -EPROTO:		/* Device is disconnected (reported by =
+some
+> 				 * host controller). */
+>=20
+> So it seems like hardware misbehaves. To further clairify situation, I
+> have such question: do the devices work in other operation systems on
+> the same machine?
+>=20
 
-date:		Fri Sep  2 04:00:16 CEST 2016
-git branch:	test
-git hash:	fb6609280db902bd5d34445fba1c926e95e63914
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+Yes, they work perfectly with dshow on Windows on on multiple PCs =
+including this one.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: OK
-linux-4.8-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-linux-4.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+> Reviewing your original email mentioning that two different devices
+> reproduce same problem, which is apparently related to disconnection =
+in
+> the middle of USB communication, I came to me that the connected =
+device
+> may be underpowered. So,
+> - try plugging your devices through reliable _active_ USB hub,
+> - use the most reliable cables you can get,
+> - plug into USB 3.0 port if available - it should provide more power
+>   than 1.0 and 2.0.
 
-Detailed results are available here:
+I will experiment with different ports and report back.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Still, I=E2=80=99m not sure how that suggestion fits with the fact that =
+it always works perfectly after "modprobe -r uvcvideo && modprobe =
+uvcvideo=E2=80=9D and only fails again once the capture is stopped and =
+restarted?
 
-Full logs are available here:
+Perhaps some kind of =E2=80=9Cquirk=E2=80=9D can be added for these =
+devices that does some extra clearing up/re-initializing at the start of =
+the capture - kind of like *some* of what reloading the module does but =
+only for the specific device.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" =
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
