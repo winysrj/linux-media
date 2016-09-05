@@ -1,198 +1,301 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58399 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750878AbcISPAj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 11:00:39 -0400
-Date: Mon, 19 Sep 2016 12:00:30 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "linux-doc@vger.kernel.org Mailing List" <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH v2 0/3] doc-rst:c-domain: fix some issues in the
- c-domain
-Message-ID: <20160919120030.4e390e9a@vento.lan>
-In-Reply-To: <1089B8C0-6296-4CC4-84B9-A1F62FA565AD@darmarit.de>
-References: <1473232378-11869-1-git-send-email-markus.heiser@darmarit.de>
-        <20160909090832.35c2d982@vento.lan>
-        <73B0403A-272C-4058-A0D9-493C685EE332@darmarit.de>
-        <1089B8C0-6296-4CC4-84B9-A1F62FA565AD@darmarit.de>
+Received: from mail-lf0-f43.google.com ([209.85.215.43]:34238 "EHLO
+        mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751221AbcIENeN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 09:34:13 -0400
+Received: by mail-lf0-f43.google.com with SMTP id u14so4053108lfd.1
+        for <linux-media@vger.kernel.org>; Mon, 05 Sep 2016 06:34:12 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Mon, 5 Sep 2016 15:34:10 +0200
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        corbet@lwn.net, mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com
+Subject: Re: [PATCH 1/2] v4l: Define a pixel format for the R-Car VSP1 2-D
+ histogram engine
+Message-ID: <20160905133410.GB27014@bigcity.dyn.berto.se>
+References: <20160902134714.12224-1-niklas.soderlund+renesas@ragnatech.se>
+ <20160902134714.12224-2-niklas.soderlund+renesas@ragnatech.se>
+ <1585972.8hbKlnL4cD@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1585972.8hbKlnL4cD@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 19 Sep 2016 13:36:55 +0200
-Markus Heiser <markus.heiser@darmarit.de> escreveu:
+Hi Laurent,
 
-> Hi Mauro, 
-> 
-> sorry for my late reply (so much work to do) ..
-> 
-> Am 09.09.2016 um 14:25 schrieb Markus Heiser <markus.heiser@darmarIT.de>:
-> 
-> >> Using either this approach or my kernel-doc patch, I'm now getting
-> >> only two warnings:
-> >> 
-> >> 1) at media-entity.h, even without nitpick mode:
-> >> 
-> >> ./include/media/media-entity.h:1053: warning: No description found for parameter '...'  
-> 
-> FYI: This message comes from the kernel-doc parser.
-> 
-> >> This is caused by this kernel-doc tag and the corresponding macro:
-> >> 
-> >> 	/**
-> >> 	 * media_entity_call - Calls a struct media_entity_operations operation on
-> >> 	 *	an entity
-> >> 	 *
-> >> 	 * @entity: entity where the @operation will be called
-> >> 	 * @operation: type of the operation. Should be the name of a member of
-> >> 	 *	struct &media_entity_operations.
-> >> 	 *
-> >> 	 * This helper function will check if @operation is not %NULL. On such case,
-> >> 	 * it will issue a call to @operation\(@entity, @args\).
-> >> 	 */
-> >> 
-> >> 	#define media_entity_call(entity, operation, args...)			\
-> >> 		(((entity)->ops && (entity)->ops->operation) ?			\
-> >> 		 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
-> >> 
-> >> 
-> >> Basically, the Sphinx C domain seems to be expecting a description for
-> >> "...". I didn't find any way to get rid of that.  
-> 
-> This is a bug in the kernel-doc parser.	The parser generates:
-> 
->   .. c:function:: media_entity_call ( entity,  operation,  ...)
-> 
-> correct is:
-> 
->   .. c:function::  media_entity_call( entity,  operation,  args...)
-> 
-> So both, the message and the wrong parse result comes from kernel-doc.
+Thanks for your review.
 
-Ok, I'll try to address it by fixing kernel-doc script.
+On 2016-09-05 16:05:10 +0300, Laurent Pinchart wrote:
+> Hi Niklas,
+> 
+> Thank you for the patch.
+> 
+> On Friday 02 Sep 2016 15:47:13 Niklas Söderlund wrote:
+> > The format is used on the R-Car VSP1 video queues that carry
+> > 2-D histogram statistics data.
+> > 
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  Documentation/media/uapi/v4l/meta-formats.rst      |   1 +
+> >  .../media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst        | 150 ++++++++++++++++++
+> >  drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
+> >  include/uapi/linux/videodev2.h                     |   3 +-
+> >  4 files changed, 154 insertions(+), 1 deletion(-)
+> >  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
+> 
+> [snip]
+> 
+> > diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
+> > b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst new file mode
+> > 100644
+> > index 0000000..a093f0a
+> > --- /dev/null
+> > +++ b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
+> > @@ -0,0 +1,150 @@
+> > +.. -*- coding: utf-8; mode: rst -*-
+> > +
+> > +.. _v4l2-meta-fmt-vsp1-hgt:
+> > +
+> > +*******************************
+> > +V4L2_META_FMT_VSP1_HGT ('VSPT')
+> > +*******************************
+> > +
+> > +*man V4L2_META_FMT_VSP1_HGT(2)*
+> > +
+> > +Renesas R-Car VSP1 2-D Histogram Data
+> > +
+> > +
+> > +Description
+> > +===========
+> > +
+> > +This format describes histogram data generated by the Renesas R-Car VSP1
+> > +2-D Histogram (HGT) engine.
+> > +
+> > +The VSP1 HGT is a histogram computation engine that operates on HSV
+> > +data. It operates on a possibly cropped and subsampled input image and
+> > +computes the sum, maximum and minimum of the S component as well as a
+> > +weighted frequency histogram based on the H and S components.
+> > +
+> > +The histogram is a matrix of 6 Hue and 32 Saturation buckets, 192 in
+> > +total. Each HSV value is added to one or more buckets with a wight
+> 
+> s/wight/weight/
 
-> 
-> >> 
-> >> 2) a nitpick warning at v4l2-mem2mem.h:
-> >> 
-> >> ./include/media/v4l2-mem2mem.h:339: WARNING: c:type reference target not found: queue_init  
-> 
-> FYI: this message comes from sphinx c-domain.
-> 
-> >> 	/**
-> >> 	 * v4l2_m2m_ctx_init() - allocate and initialize a m2m context
-> >> 	 *
-> >> 	 * @m2m_dev: opaque pointer to the internal data to handle M2M context
-> >> 	 * @drv_priv: driver's instance private data
-> >> 	 * @queue_init: a callback for queue type-specific initialization function
-> >> 	 * 	to be used for initializing videobuf_queues
-> >> 	 *
-> >> 	 * Usually called from driver's ``open()`` function.
-> >> 	 */
-> >> 	struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
-> >> 			void *drv_priv,
-> >> 			int (*queue_init)(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq));
-> >> 
-> >> I checked the output of kernel-doc, and it looked ok. Yet, it expects
-> >> "queue_init" to be defined somehow. I suspect that this is an error at
-> >> Sphinx C domain parser.  
-> 
-> Hmm, as far as I see, the output is not correct ... The output of
-> functions with a function pointer argument are missing the 
-> leading parenthesis in the function definition:
-> 
->   .. c:function:: struct v4l2_m2m_ctx * v4l2_m2m_ctx_init (struct v4l2_m2m_dev * m2m_dev, void * drv_priv, int (*queue_init) (void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq)
-> 
-> The missing parenthesis cause the error message. 
-
-
-Ah, OK! I'll kernel-doc and see what's happening here.
+Will fix.
 
 > 
-> The output of the parameter description is:
+> > +between 1 and 16 depending on how the Hue areas are setup.
 > 
->   ``int (*)(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq) queue_init``
->     a callback for queue type-specific initialization function
->     to be used for initializing videobuf_queues
-> 
-> Correct (and IMO better to read) is:
-> 
->   .. c:function:: struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev, void *drv_priv, int (*queue_init)(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq))
-> 
-> and the parameter description should be something like ...
-> 
->    :param int (\*queue_init)(void \*priv, struct vb2_queue \*src_vq, struct vb2_queue \*dst_vq):
->         a callback for queue type-specific initialization function
->         to be used for initializing videobuf_queues
+> I would say 'depending on the Hue areas configuration' to insist on the fact 
+> that the configuration can be changed by the application.
 
-I guess the better would be to strip the parameter type and output
-it as:
-	queue_init
-		a callback for queue type-specific initialization function
-		to be used for initializing videobuf_queues
-
-As I pointed before, the point is that such argument can easily have
-more than 80 columns, with would cause troubles with LaTeX output,
-as LaTeX doesn't break long verbatim text on multiple lines.
-
-I submitted one patch fixing it. Not sure if it got merged by Jon
-or not.
+Will fix.
 
 > 
-> I tested this with my linuxdoc tools (parser) with I get no
-> error messages from the sphinx c-domain.
+> > Finding the
+> > +correct buckets is done by inspecting the H and S value independently.
 > 
-> BTW: 
-> 
-> The parser of my linuxdoc project is more strict and spit out some 
-> warnings, which are not detected by the kernel-doc parser from the
-> kernel source tree.
-> 
-> For your rework on kernel-doc comments, it might be helpful to see
-> those messages, so I recommend to install the linuxdoc package and
-> do some lint.
-> 
-> install: https://return42.github.io/linuxdoc/install.html
-> lint:    https://return42.github.io/linuxdoc/cmd-line.html#kernel-lintdoc
+> Maybe s/correct/corresponding/ ?
 
-Interesting! Yeah, it caught a lot more errors ;)
-
-If I understood it right, I could do something like:
-
-diff --git a/Documentation/media/conf_nitpick.py b/Documentation/media/conf_nitpick.py
-index 480d548af670..2de603871536 100644
---- a/Documentation/media/conf_nitpick.py
-+++ b/Documentation/media/conf_nitpick.py
-@@ -107,3 +107,9 @@ nitpick_ignore = [
- 
-     ("c:type", "v4l2_m2m_dev"),
- ]
-+
-+
-+extensions.append("linuxdoc.rstKernelDoc")
-+extensions.append("linuxdoc.rstFlatTable")
-+extensions.append("linuxdoc.kernel_include")
-+extensions.append("linuxdoc.manKernelDoc")
-
-Right? It would be good to do some sort of logic on the
-above for it to automatically include it, if linuxdoc is
-present, otherwise print a warning and do "just" the normal
-Sphinx tests.
+Will fix.
 
 > 
-> E.g. if you want to lint your whole include/media tree type:
+> > +The Saturation position **n** (0 - 31) in the matrix are found by the
 > 
->   kernel-lintdoc [--sloppy] include/media
+> Maybe s/in the matrix/of the bucket/, or s/in the matrix/of the bucket in the 
+> matrix/ ?
+> s/are found/is found/ or maybe 'is computed' ?
 
-Yeah, running it manually is another way, although I prefer to have
-it done via a Makefile target, and doing only for the files that
-are currently inside a Sphinx rst file (at least on a first moment).
+Will fix.
 
-Thanks,
-Mauro
+> 
+> > +expression:
+> > +
+> > +    8 * n <= S < 8 * (n + 1)
+> 
+> How about simply 'n = S / 8' ?
+
+Will fix.
+
+> 
+> > +The Hue positions **m** (0 - 5) in the matrix depends on how the HGT Hue
+> 
+> s/positions/position/
+
+Will fix.
+
+> 
+> > +areas are configured. There are 6 user configurable Hue Areas which can
+> > +be configured to cover overlapping Hue values:
+> > +
+> > +::
+> > +
+> > +         Area 0       Area 1       Area 2       Area 3       Area 4      
+> > Area 5 +        ________     ________     ________     ________    
+> > ________     ________ +   \   /|      |\   /|      |\   /|      |\   /|    
+> >  |\   /|      |\   /|      |\   / +    \ / |      | \ / |      | \ / |     
+> > | \ / |      | \ / |      | \ / |      | \ / +     X  |      |  X  |      |
+> >  X  |      |  X  |      |  X  |      |  X  |      |  X +    / \ |      | /
+> > \ |      | / \ |      | / \ |      | / \ |      | / \ |      | / \ +   /  
+> > \|      |/   \|      |/   \|      |/   \|      |/   \|      |/   \|      |/
+> >   \ +  5U   0L      0U   1L      1U   2L      2U   3L      3U   4L      4U 
+> >  5L      5U   0L +        <0..............................Hue
+> > Value............................255>
+> > +
+> > +As shown in the diagram a single Hue vale can be attributed to more then
+> 
+> s/vale/value/
+> s/then/than/
+
+Will fix.
+
+> 
+> > +one Hue area. In such case the Hue value is attributed to both Hue
+> > +Areas, but with a weight. The maximum weight is 16 and is associated
+> > +with all Hue values that are inside the center of a Hue area (between nL
+> > +-- nU). Values outside this area are weighted with a rounded down value
+> > +along the diagonal line. If there is no overlapped areas specified the
+> > +value is included in the lower area.
+> 
+> This sounds a bit confusing to me. How about the following ?
+> 
+> "The Hue position **m** (0 - 5) of the bucket [in the matrix]* depends on how 
+> the HGT Hue areas are configured. There are 6 user configurable Hue Areas 
+> which can be configured to cover overlapping Hue values:
+> 
+> [diagram]
+> 
+> When two consecutive areas don't overlap (n+1L is equal to nU) the boundary 
+> value is considered as part of the lower area.
+> 
+> Pixels with a hue value included in the centre of an area (between nL and nU 
+> included) are are attributed to that single area and given a weight of 16. 
+> Pixels with a hue value included in the overlapping region between two areas 
+> (between n+1L and nU excluded) are attributed to both areas and given a weight  
+> for each of these areas proportional to their position along the diagonal 
+> lines (rounded down)."
+> 
+> * Add "in the matrix" depending on the wording of the saturation description.
+> 
+
+Will fix.
+
+> > +The Hue area setup must match one of the following constrains:
+> > +
+> > +::
+> > +
+> > +    0L <= 0U <= 1L <= 1U <= 2L <= 2U <= 3L <= 3U <= 4L <= 4U <= 5L <= 5U
+> > +
+> > +::
+> > +
+> > +    0U <= 1L <= 1U <= 2L <= 2U <= 3L <= 3U <= 4L <= 4U <= 5L <= 5U <= 0L
+> > +
+> > +**Byte Order.**
+> > +All data is stored in memory in little endian format. Each cell in the
+> > tables +contains one byte.
+> > +
+> > +.. flat-table:: VSP1 HGT Data - (800 bytes)
+> > +    :header-rows:  2
+> > +    :stub-columns: 0
+> > +
+> > +    * - Offset
+> > +      - :cspan:`4` Memory
+> > +    * -
+> > +      - [31:24]
+> > +      - [23:16]
+> > +      - [15:8]
+> > +      - [7:0]
+> > +    * - 0
+> > +      - -
+> > +      - S max [7:0]
+> > +      - -
+> > +      - S min [7:0]
+> > +    * - 4
+> > +      - :cspan:`4` S sum [31:0]
+> > +    * - 8
+> > +      - -
+> > +      - Hue Area 0 Lower Boundary (0L) [0:7]
+> > +      - -
+> > +      - Hue Area 0 Upper Boundary (0U) [0:7]
+> > +    * - 12
+> > +      - -
+> > +      - Hue Area 1 Lower Boundary (1L) [0:7]
+> > +      - -
+> > +      - Hue Area 1 Upper Boundary (1U) [0:7]
+> > +    * - 16
+> > +      - -
+> > +      - Hue Area 2 Lower Boundary (2L) [0:7]
+> > +      - -
+> > +      - Hue Area 2 Upper Boundary (2U) [0:7]
+> > +    * - 20
+> > +      - -
+> > +      - Hue Area 3 Lower Boundary (3L) [0:7]
+> > +      - -
+> > +      - Hue Area 3 Upper Boundary (3U) [0:7]
+> > +    * - 24
+> > +      - -
+> > +      - Hue Area 4 Lower Boundary (4L) [0:7]
+> > +      - -
+> > +      - Hue Area 4 Upper Boundary (4U) [0:7]
+> > +    * - 28
+> > +      - -
+> > +      - Hue Area 5 Lower Boundary (5L) [0:7]
+> > +      - -
+> > +      - Hue Area 5 Upper Boundary (5U) [0:7]
+> 
+> What's the rationale for including the boundaries in the statistics buffer ? 
+> Boundaries are configured by userspace, they should be known to the 
+> application already.
+
+At the time I thought it would easy userspaces consumption of the data, 
+for example if the histograms where recorded for later processing. Other 
+then that I have no good rationale for including them. I be happy to 
+drop them in v2 if you see no value in them.
+
+> 
+> > +    * - 32
+> > +      - :cspan:`4` Histogram bucket (m=0, n=0) [31:0]
+> > +    * - 36
+> > +      - :cspan:`4` Histogram bucket (m=0, n=1) [31:0]
+> > +    * -
+> > +      - :cspan:`4` ...
+> > +    * - 156
+> > +      - :cspan:`4` Histogram bucket (m=0, n=31) [31:0]
+> > +    * - 160
+> > +      - :cspan:`4` Histogram bucket (m=1, n=0) [31:0]
+> > +    * -
+> > +      - :cspan:`4` ...
+> > +    * - 288
+> > +      - :cspan:`4` Histogram bucket (m=2, n=0) [31:0]
+> > +    * -
+> > +      - :cspan:`4` ...
+> > +    * - 416
+> > +      - :cspan:`4` Histogram bucket (m=3, n=0) [31:0]
+> > +    * -
+> > +      - :cspan:`4` ...
+> > +    * - 544
+> > +      - :cspan:`4` Histogram bucket (m=4, n=0) [31:0]
+> > +    * -
+> > +      - :cspan:`4` ...
+> > +    * - 672
+> > +      - :cspan:`4` Histogram bucket (m=5, n=0) [31:0]
+> > +    * -
+> > +      - :cspan:`4` ...
+> > +    * - 796
+> > +      - :cspan:`4` Histogram bucket (m=5, n=31) [31:0]
+> 
+> [snip]
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+
+-- 
+Regards,
+Niklas Söderlund
