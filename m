@@ -1,111 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37285 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751437AbcISR7J (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:51532 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932669AbcIEJxz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 13:59:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran+renesas@ksquared.org.uk>
-Subject: Re: [PATCH 06/13] v4l: vsp1: Disable cropping on WPF sink pad
-Date: Mon, 19 Sep 2016 20:59:56 +0300
-Message-ID: <6925382.EfY6pk391A@avalon>
-In-Reply-To: <20160919145543.6fbdeadb@vento.lan>
-References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1473808626-19488-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20160919145543.6fbdeadb@vento.lan>
+        Mon, 5 Sep 2016 05:53:55 -0400
+Subject: Re: [PATCH v5 0/9] Add MT8173 Video Decoder Driver
+To: Tiffany Lin <tiffany.lin@mediatek.com>
+References: <1472818800-22558-1-git-send-email-tiffany.lin@mediatek.com>
+ <616d95a4-e6f3-5c42-d435-eb73795bd82c@xs4all.nl>
+ <1473069011.23162.7.camel@mtksdaap41>
+Cc: daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2d332670-edfd-5f2e-2c7f-4346e60baf75@xs4all.nl>
+Date: Mon, 5 Sep 2016 11:53:48 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1473069011.23162.7.camel@mtksdaap41>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-On Monday 19 Sep 2016 14:55:43 Mauro Carvalho Chehab wrote:
-> Em Wed, 14 Sep 2016 02:16:59 +0300 Laurent Pinchart escreveu:
-> > Cropping on the WPF sink pad restricts the left and top coordinates to
-> > 0-255. The same result can be obtained by cropping on the RPF without
-> > any such restriction, this feature isn't useful. Disable it.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/platform/vsp1/vsp1_rwpf.c | 37
-> >  +++++++++++++++++---------------- drivers/media/platform/vsp1/vsp1_wpf.c
-> >   | 18 +++++++---------
-> >  2 files changed, 26 insertions(+), 29 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c
-> > b/drivers/media/platform/vsp1/vsp1_rwpf.c index
-> > 8cb87e96b78b..a3ace8df7f4d 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_rwpf.c
-> > +++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
-> > @@ -66,7 +66,6 @@ static int vsp1_rwpf_set_format(struct v4l2_subdev
-> > *subdev,> 
-> >  	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
-> >  	struct v4l2_subdev_pad_config *config;
-> >  	struct v4l2_mbus_framefmt *format;
-> > 
-> > -	struct v4l2_rect *crop;
-> > 
-> >  	int ret = 0;
-> >  	
-> >  	mutex_lock(&rwpf->entity.lock);
-> > 
-> > @@ -103,12 +102,16 @@ static int vsp1_rwpf_set_format(struct v4l2_subdev
-> > *subdev,> 
-> >  	fmt->format = *format;
-> > 
-> > -	/* Update the sink crop rectangle. */
-> > -	crop = vsp1_rwpf_get_crop(rwpf, config);
-> > -	crop->left = 0;
-> > -	crop->top = 0;
-> > -	crop->width = fmt->format.width;
-> > -	crop->height = fmt->format.height;
-> > +	if (rwpf->entity.type == VSP1_ENTITY_RPF) {
-> > +		struct v4l2_rect *crop;
-> > +
-> > +		/* Update the sink crop rectangle. */
-> > +		crop = vsp1_rwpf_get_crop(rwpf, config);
-> > +		crop->left = 0;
-> > +		crop->top = 0;
-> > +		crop->width = fmt->format.width;
-> > +		crop->height = fmt->format.height;
-> > +	}
-> > 
-> >  	/* Propagate the format to the source pad. */
-> >  	format = vsp1_entity_get_pad_format(&rwpf->entity, config,
-> > 
-> > @@ -129,8 +132,10 @@ static int vsp1_rwpf_get_selection(struct v4l2_subdev
-> > *subdev,> 
-> >  	struct v4l2_mbus_framefmt *format;
-> >  	int ret = 0;
-> > 
-> > -	/* Cropping is implemented on the sink pad. */
-> > -	if (sel->pad != RWPF_PAD_SINK)
-> > +	/* Cropping is only supported on the RPF and is implemented on the 
-sink
-> > +	 * pad.
-> > +	 */
+On 09/05/2016 11:50 AM, Tiffany Lin wrote:
+> Hi Hans,
 > 
-> Please read CodingStyle and run checkpatch before sending stuff upstream.
+> On Mon, 2016-09-05 at 11:33 +0200, Hans Verkuil wrote:
+>> On 09/02/2016 02:19 PM, Tiffany Lin wrote:
+>>> ==============
+>>>  Introduction
+>>> ==============
+>>>
+>>> The purpose of this series is to add the driver for video codec hw embedded in the Mediatek's MT8173 SoCs.
+>>> Mediatek Video Codec is able to handle video decoding and encoding of in a range of formats.
+>>>
+>>> This patch series rely on MTK VPU driver that have been merged in v4.8-rc1.
+>>> Mediatek Video Decoder driver rely on VPU driver to load, communicate with VPU.
+>>>
+>>> Internally the driver uses videobuf2 framework, and MTK IOMMU and MTK SMI both have been merged in v4.6-rc1.
+>>>
+>>> [1]https://chromium-review.googlesource.com/#/c/245241/
+>>
+>> This patch series fails to apply to the media_tree master (patch 3/9). Can you rebase and repost?
+>>
+>> I'm ready to make a pull request for this, so I hope you can fix this soon.
+>>
+> I saw Encoder fix patches in fixes branch.
+> This patch series is base on Encoder fix patches. 
 > 
-> This violates the CodingStyle: it should be, instead:
-> 	/*
-> 	 * foo
-> 	 * bar
-> 	 */
+> [media] vcodec:mediatek: Refine VP8 encoder driver
+> [media] vcodec:mediatek: Refine H264 encoder driver
+> [media] vcodec:mediatek: change H264 profile default to profile high
+> [media] vcodec:mediatek: Add timestamp and timecode copy for V4L2
+> Encoder
+> [media] vcodec:mediatek: Fix visible_height larger than coded_height
+> issue in s_fmt_out
+> [media] vcodec:mediatek: Fix fops_vcodec_release flow for V4L2 Encoder
+> [media] vcodec:mediatek:code refine for v4l2 Encoder driver
+> [media] dvb_frontend: Use memdup_user() rather than duplicating its
+> implementation
+> 
+> 
+> If I do not rebase decoder patch series base on Encoder fix pathces.
+> Then it will fail after Encoder fix patches merged.
+> 
+> May I know what parent patch I need to rebase to to fix this issue?
 
-But it's consistent with the coding style of this driver. I'm OK fixing it, 
-but it should be done globally in that case.
+Ah, OK. I will retest placing this on top of those fixes. I forgot about the
+pending fixes. I'll handle this.
 
-> This time, I'll fix it, but next time I might not have enough time, and
-> need to reject the patch series.
-
--- 
 Regards,
 
-Laurent Pinchart
-
+	Hans
