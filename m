@@ -1,37 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:32768 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932240AbcIALEW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 07:04:22 -0400
-Subject: Re: [PATCH 3/3] ARM: exynos: add all required FIMC-IS clocks to
- exynos4x12 dtsi
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <1472649918-10371-1-git-send-email-m.szyprowski@samsung.com>
- <1472649918-10371-4-git-send-email-m.szyprowski@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Message-id: <0cd31285-5b72-6d3d-7c4c-036aecf55f4e@samsung.com>
-Date: Thu, 01 Sep 2016 13:04:17 +0200
-MIME-version: 1.0
-In-reply-to: <1472649918-10371-4-git-send-email-m.szyprowski@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:55021 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932651AbcIEKcs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 06:32:48 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 00/12] Fix ISDB-T tuning on PV SBTVD Hybrid
+Date: Mon,  5 Sep 2016 07:32:28 -0300
+Message-Id: <cover.1473071468.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/31/2016 03:25 PM, Marek Szyprowski wrote:
-> FIMC-IS blocks must control 3 more clocks ("gicisp", "mcuctl_isp" and
-> "pwm_isp") to make the hardware fully operational.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->  arch/arm/boot/dts/exynos4x12.dtsi | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> 
+This patch series fix a series of bugs and issues related to PV SBTVD device
+while tuning to ISDB-T channels found in Brazil.
 
-Thanks, applied.
+Mauro Carvalho Chehab (12):
+  [media] cx231xx: don't return error on success
+  [media] cx231xx: fix GPIOs for Pixelview SBTVD hybrid
+  [media] cx231xx: prints error code if can't switch TV mode
+  [media] mb86a20s: fix the locking logic
+  [media] cx231xx: fix PV SBTVD Hybrid AGC GPIO pin
+  [media] mb86a20s: fix demod settings
+  [media] cx231xx-core: fix GPIO comments
+  [media] cx231xx-i2c: handle errors with cx231xx_get_i2c_adap()
+  [media] cx231xx: can't proceed if I2C bus register fails
+  [media] cx231xx-cards: unregister IR earlier
+  [media] tda18271: use prefix on all printk messages
+  [media] tea5767: use module prefix on printed messages
 
-Best regards,
-Krzysztof
+ drivers/media/dvb-frontends/mb86a20s.c     | 104 +++++++++++++++--------------
+ drivers/media/tuners/tda18271-fe.c         |  11 +--
+ drivers/media/tuners/tda18271-priv.h       |   2 +
+ drivers/media/tuners/tea5767.c             |   9 ++-
+ drivers/media/usb/cx231xx/cx231xx-avcore.c |   5 +-
+ drivers/media/usb/cx231xx/cx231xx-cards.c  |   6 +-
+ drivers/media/usb/cx231xx/cx231xx-core.c   |  44 +++++++++---
+ drivers/media/usb/cx231xx/cx231xx-i2c.c    |   2 +-
+ 8 files changed, 108 insertions(+), 75 deletions(-)
+
+-- 
+2.7.4
+
 
