@@ -1,79 +1,298 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:33363 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755092AbcIVNSA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Sep 2016 09:18:00 -0400
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932127AbcIENEo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 09:04:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        corbet@lwn.net, mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com
+Subject: Re: [PATCH 1/2] v4l: Define a pixel format for the R-Car VSP1 2-D histogram engine
+Date: Mon, 05 Sep 2016 16:05:10 +0300
+Message-ID: <1585972.8hbKlnL4cD@avalon>
+In-Reply-To: <20160902134714.12224-2-niklas.soderlund+renesas@ragnatech.se>
+References: <20160902134714.12224-1-niklas.soderlund+renesas@ragnatech.se> <20160902134714.12224-2-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <3410700.SJlxHzK90c@avalon>
-References: <20160916093942.17213-1-ulrich.hecht+renesas@gmail.com>
- <20160916093942.17213-3-ulrich.hecht+renesas@gmail.com> <3410700.SJlxHzK90c@avalon>
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Date: Thu, 22 Sep 2016 15:17:58 +0200
-Message-ID: <CAO3366wMc9s6vH4rm=SAus46AUdPKQuKucv2=_ktMBLKONr4kQ@mail.gmail.com>
-Subject: Re: [PATCH 2/2] media: adv7604: automatic "default-input" selection
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: hans.verkuil@cisco.com,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        William Towle <william.towle@codethink.co.uk>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 16, 2016 at 11:57 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Ulrich,
->
-> Thank you for the patch.
+Hi Niklas,
 
-Thanks for your review.
+Thank you for the patch.
 
->
-> On Friday 16 Sep 2016 11:39:42 Ulrich Hecht wrote:
->> Fall back to input 0 if "default-input" property is not present.
->>
->> Documentation states that the "default-input" property should reside
->> directly in the node for adv7612.
->
-> Not just fo adv7612.
->
->> Hence, also adjust the parsing to make the implementation consistent with
->> this.
->>
->> Based on patch by William Towle <william.towle@codethink.co.uk>.
->>
->> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/i2c/adv7604.c | 5 ++++-
->>  1 file changed, 4 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
->> index 4003831..055c9df 100644
->> --- a/drivers/media/i2c/adv7604.c
->> +++ b/drivers/media/i2c/adv7604.c
->> @@ -3077,10 +3077,13 @@ static int adv76xx_parse_dt(struct adv76xx_state
->> *state)
->>       if (!of_property_read_u32(endpoint, "default-input", &v))
->
-> Should this be removed if the property has to be in the device node and not in
-> the endpoint ?
+On Friday 02 Sep 2016 15:47:13 Niklas S=F6derlund wrote:
+> The format is used on the R-Car VSP1 video queues that carry
+> 2-D histogram statistics data.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
+.se>
+> ---
+>  Documentation/media/uapi/v4l/meta-formats.rst      |   1 +
+>  .../media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst        | 150 +++++++++++=
++++++++
+>  drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
+>  include/uapi/linux/videodev2.h                     |   3 +-
+>  4 files changed, 154 insertions(+), 1 deletion(-)
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt=
+.rst
 
-Probably, considering it's not used anywhere yet.
+[snip]
 
->
->>               state->pdata.default_input = v;
->>       else
->> -             state->pdata.default_input = -1;
->> +             state->pdata.default_input = 0;
->
-> What was the use case for setting it to -1 ? Is it safe to change that ?
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
+> b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst new file mode=
 
-Not sure. Might as well leave it at -1, we define the default in the DT anyway.
+> 100644
+> index 0000000..a093f0a
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
+> @@ -0,0 +1,150 @@
+> +.. -*- coding: utf-8; mode: rst -*-
+> +
+> +.. _v4l2-meta-fmt-vsp1-hgt:
+> +
+> +*******************************
+> +V4L2_META_FMT_VSP1_HGT ('VSPT')
+> +*******************************
+> +
+> +*man V4L2_META_FMT_VSP1_HGT(2)*
+> +
+> +Renesas R-Car VSP1 2-D Histogram Data
+> +
+> +
+> +Description
+> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> +
+> +This format describes histogram data generated by the Renesas R-Car =
+VSP1
+> +2-D Histogram (HGT) engine.
+> +
+> +The VSP1 HGT is a histogram computation engine that operates on HSV
+> +data. It operates on a possibly cropped and subsampled input image a=
+nd
+> +computes the sum, maximum and minimum of the S component as well as =
+a
+> +weighted frequency histogram based on the H and S components.
+> +
+> +The histogram is a matrix of 6 Hue and 32 Saturation buckets, 192 in=
 
-CU
-Uli
+> +total. Each HSV value is added to one or more buckets with a wight
+
+s/wight/weight/
+
+> +between 1 and 16 depending on how the Hue areas are setup.
+
+I would say 'depending on the Hue areas configuration' to insist on the=
+ fact=20
+that the configuration can be changed by the application.
+
+> Finding the
+> +correct buckets is done by inspecting the H and S value independentl=
+y.
+
+Maybe s/correct/corresponding/ ?
+
+> +The Saturation position **n** (0 - 31) in the matrix are found by th=
+e
+
+Maybe s/in the matrix/of the bucket/, or s/in the matrix/of the bucket =
+in the=20
+matrix/ ?
+s/are found/is found/ or maybe 'is computed' ?
+
+> +expression:
+> +
+> +    8 * n <=3D S < 8 * (n + 1)
+
+How about simply 'n =3D S / 8' ?
+
+> +The Hue positions **m** (0 - 5) in the matrix depends on how the HGT=
+ Hue
+
+s/positions/position/
+
+> +areas are configured. There are 6 user configurable Hue Areas which =
+can
+> +be configured to cover overlapping Hue values:
+> +
+> +::
+> +
+> +         Area 0       Area 1       Area 2       Area 3       Area 4 =
+    =20
+> Area 5 +        ________     ________     ________     ________   =20=
+
+> ________     ________ +   \   /|      |\   /|      |\   /|      |\   =
+/|   =20
+>  |\   /|      |\   /|      |\   / +    \ / |      | \ / |      | \ / =
+|    =20
+> | \ / |      | \ / |      | \ / |      | \ / +     X  |      |  X  | =
+     |
+>  X  |      |  X  |      |  X  |      |  X  |      |  X +    / \ |    =
+  | /
+> \ |      | / \ |      | / \ |      | / \ |      | / \ |      | / \ + =
+  / =20
+> \|      |/   \|      |/   \|      |/   \|      |/   \|      |/   \|  =
+    |/
+>   \ +  5U   0L      0U   1L      1U   2L      2U   3L      3U   4L   =
+   4U=20
+>  5L      5U   0L +        <0..............................Hue
+> Value............................255>
+> +
+> +As shown in the diagram a single Hue vale can be attributed to more =
+then
+
+s/vale/value/
+s/then/than/
+
+> +one Hue area. In such case the Hue value is attributed to both Hue
+> +Areas, but with a weight. The maximum weight is 16 and is associated=
+
+> +with all Hue values that are inside the center of a Hue area (betwee=
+n nL
+> +-- nU). Values outside this area are weighted with a rounded down va=
+lue
+> +along the diagonal line. If there is no overlapped areas specified t=
+he
+> +value is included in the lower area.
+
+This sounds a bit confusing to me. How about the following ?
+
+"The Hue position **m** (0 - 5) of the bucket [in the matrix]* depends =
+on how=20
+the HGT Hue areas are configured. There are 6 user configurable Hue Are=
+as=20
+which can be configured to cover overlapping Hue values:
+
+[diagram]
+
+When two consecutive areas don't overlap (n+1L is equal to nU) the boun=
+dary=20
+value is considered as part of the lower area.
+
+Pixels with a hue value included in the centre of an area (between nL a=
+nd nU=20
+included) are are attributed to that single area and given a weight of =
+16.=20
+Pixels with a hue value included in the overlapping region between two =
+areas=20
+(between n+1L and nU excluded) are attributed to both areas and given a=
+ weight =20
+for each of these areas proportional to their position along the diagon=
+al=20
+lines (rounded down)."
+
+* Add "in the matrix" depending on the wording of the saturation descri=
+ption.
+
+> +The Hue area setup must match one of the following constrains:
+> +
+> +::
+> +
+> +    0L <=3D 0U <=3D 1L <=3D 1U <=3D 2L <=3D 2U <=3D 3L <=3D 3U <=3D =
+4L <=3D 4U <=3D 5L <=3D 5U
+> +
+> +::
+> +
+> +    0U <=3D 1L <=3D 1U <=3D 2L <=3D 2U <=3D 3L <=3D 3U <=3D 4L <=3D =
+4U <=3D 5L <=3D 5U <=3D 0L
+> +
+> +**Byte Order.**
+> +All data is stored in memory in little endian format. Each cell in t=
+he
+> tables +contains one byte.
+> +
+> +.. flat-table:: VSP1 HGT Data - (800 bytes)
+> +    :header-rows:  2
+> +    :stub-columns: 0
+> +
+> +    * - Offset
+> +      - :cspan:`4` Memory
+> +    * -
+> +      - [31:24]
+> +      - [23:16]
+> +      - [15:8]
+> +      - [7:0]
+> +    * - 0
+> +      - -
+> +      - S max [7:0]
+> +      - -
+> +      - S min [7:0]
+> +    * - 4
+> +      - :cspan:`4` S sum [31:0]
+> +    * - 8
+> +      - -
+> +      - Hue Area 0 Lower Boundary (0L) [0:7]
+> +      - -
+> +      - Hue Area 0 Upper Boundary (0U) [0:7]
+> +    * - 12
+> +      - -
+> +      - Hue Area 1 Lower Boundary (1L) [0:7]
+> +      - -
+> +      - Hue Area 1 Upper Boundary (1U) [0:7]
+> +    * - 16
+> +      - -
+> +      - Hue Area 2 Lower Boundary (2L) [0:7]
+> +      - -
+> +      - Hue Area 2 Upper Boundary (2U) [0:7]
+> +    * - 20
+> +      - -
+> +      - Hue Area 3 Lower Boundary (3L) [0:7]
+> +      - -
+> +      - Hue Area 3 Upper Boundary (3U) [0:7]
+> +    * - 24
+> +      - -
+> +      - Hue Area 4 Lower Boundary (4L) [0:7]
+> +      - -
+> +      - Hue Area 4 Upper Boundary (4U) [0:7]
+> +    * - 28
+> +      - -
+> +      - Hue Area 5 Lower Boundary (5L) [0:7]
+> +      - -
+> +      - Hue Area 5 Upper Boundary (5U) [0:7]
+
+What's the rationale for including the boundaries in the statistics buf=
+fer ?=20
+Boundaries are configured by userspace, they should be known to the=20
+application already.
+
+> +    * - 32
+> +      - :cspan:`4` Histogram bucket (m=3D0, n=3D0) [31:0]
+> +    * - 36
+> +      - :cspan:`4` Histogram bucket (m=3D0, n=3D1) [31:0]
+> +    * -
+> +      - :cspan:`4` ...
+> +    * - 156
+> +      - :cspan:`4` Histogram bucket (m=3D0, n=3D31) [31:0]
+> +    * - 160
+> +      - :cspan:`4` Histogram bucket (m=3D1, n=3D0) [31:0]
+> +    * -
+> +      - :cspan:`4` ...
+> +    * - 288
+> +      - :cspan:`4` Histogram bucket (m=3D2, n=3D0) [31:0]
+> +    * -
+> +      - :cspan:`4` ...
+> +    * - 416
+> +      - :cspan:`4` Histogram bucket (m=3D3, n=3D0) [31:0]
+> +    * -
+> +      - :cspan:`4` ...
+> +    * - 544
+> +      - :cspan:`4` Histogram bucket (m=3D4, n=3D0) [31:0]
+> +    * -
+> +      - :cspan:`4` ...
+> +    * - 672
+> +      - :cspan:`4` Histogram bucket (m=3D5, n=3D0) [31:0]
+> +    * -
+> +      - :cspan:`4` ...
+> +    * - 796
+> +      - :cspan:`4` Histogram bucket (m=3D5, n=3D31) [31:0]
+
+[snip]
+
+--=20
+Regards,
+
+Laurent Pinchart
+
