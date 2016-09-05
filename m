@@ -1,123 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47205 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752044AbcICCxP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Sep 2016 22:53:15 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id 598FF1858C7
-        for <linux-media@vger.kernel.org>; Sat,  3 Sep 2016 04:53:09 +0200 (CEST)
-Date: Sat, 03 Sep 2016 04:53:09 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160903025309.598FF1858C7@tschai.lan>
+Received: from bombadil.infradead.org ([198.137.202.9]:55028 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932483AbcIEKcs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 06:32:48 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v2 04/12] [media] mb86a20s: fix the locking logic
+Date: Mon,  5 Sep 2016 07:32:32 -0300
+Message-Id: <15155db2de50cd9ceaa896a21a877211c1837b1c.1473071468.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473071468.git.mchehab@s-opensource.com>
+References: <cover.1473071468.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473071468.git.mchehab@s-opensource.com>
+References: <cover.1473071468.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Results of the daily build of media_tree:
+On this frontend, it takes a while to start output normal
+TS data. That only happens on state S9. On S8, the TS output
+is enabled, but it is not reliable enough.
 
-date:		Sat Sep  3 04:00:15 CEST 2016
-git branch:	test
-git hash:	fb6609280db902bd5d34445fba1c926e95e63914
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+However, the zigzag loop is too fast to let it sync.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: OK
-linux-4.8-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-linux-4.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+As, on practical tests, the zigzag software loop doesn't
+seem to be helping, but just slowing down the tuning, let's
+switch to hardware algorithm, as the tuners used on such
+devices are capable of work with frequency drifts without
+any help from software.
 
-Detailed results are available here:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index fb88dddaf3a3..66939eca445b 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -317,7 +317,11 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ 	if (val >= 7)
+ 		*status |= FE_HAS_SYNC;
+ 
+-	if (val >= 8)				/* Maybe 9? */
++	/*
++	 * Actually, on state S8, it starts receiving TS, but the TS
++	 * output is only on normal state after the transition to S9.
++	 */
++	if (val >= 9)
+ 		*status |= FE_HAS_LOCK;
+ 
+ 	dev_dbg(&state->i2c->dev, "%s: Status = 0x%02x (state = %d)\n",
+@@ -2057,6 +2061,11 @@ static void mb86a20s_release(struct dvb_frontend *fe)
+ 	kfree(state);
+ }
+ 
++static int mb86a20s_get_frontend_algo(struct dvb_frontend *fe)
++{
++        return DVBFE_ALGO_HW;
++}
++
+ static struct dvb_frontend_ops mb86a20s_ops;
+ 
+ struct dvb_frontend *mb86a20s_attach(const struct mb86a20s_config *config,
+@@ -2129,6 +2138,7 @@ static struct dvb_frontend_ops mb86a20s_ops = {
+ 	.read_status = mb86a20s_read_status_and_stats,
+ 	.read_signal_strength = mb86a20s_read_signal_strength_from_cache,
+ 	.tune = mb86a20s_tune,
++	.get_frontend_algo = mb86a20s_get_frontend_algo,
+ };
+ 
+ MODULE_DESCRIPTION("DVB Frontend module for Fujitsu mb86A20s hardware");
+-- 
+2.7.4
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
