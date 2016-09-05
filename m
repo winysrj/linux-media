@@ -1,159 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46920 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758819AbcIMXQh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Sep 2016 19:16:37 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran+renesas@ksquared.org.uk>
-Subject: [PATCH 06/13] v4l: vsp1: Disable cropping on WPF sink pad
-Date: Wed, 14 Sep 2016 02:16:59 +0300
-Message-Id: <1473808626-19488-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:55024 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933017AbcIEKcs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 06:32:48 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 12/12] [media] tea5767: use module prefix on printed messages
+Date: Mon,  5 Sep 2016 07:32:40 -0300
+Message-Id: <feb1581b07d0d7160b84854419613503f9c6446c.1473071468.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473071468.git.mchehab@s-opensource.com>
+References: <cover.1473071468.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473071468.git.mchehab@s-opensource.com>
+References: <cover.1473071468.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cropping on the WPF sink pad restricts the left and top coordinates to
-0-255. The same result can be obtained by cropping on the RPF without
-any such restriction, this feature isn't useful. Disable it.
+use pr_fmt() & friends for error messages to output like:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+[    9.651721] tea5767: Chip ID is not zero. It is not a TEA5767
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/vsp1/vsp1_rwpf.c | 37 +++++++++++++++++----------------
- drivers/media/platform/vsp1/vsp1_wpf.c  | 18 +++++++---------
- 2 files changed, 26 insertions(+), 29 deletions(-)
+ drivers/media/tuners/tea5767.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
-index 8cb87e96b78b..a3ace8df7f4d 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
-@@ -66,7 +66,6 @@ static int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
- 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
- 	struct v4l2_subdev_pad_config *config;
- 	struct v4l2_mbus_framefmt *format;
--	struct v4l2_rect *crop;
- 	int ret = 0;
+diff --git a/drivers/media/tuners/tea5767.c b/drivers/media/tuners/tea5767.c
+index 36e85d81acb2..cd535cd4c071 100644
+--- a/drivers/media/tuners/tea5767.c
++++ b/drivers/media/tuners/tea5767.c
+@@ -10,6 +10,8 @@
+  * from their contributions on DScaler.
+  */
  
- 	mutex_lock(&rwpf->entity.lock);
-@@ -103,12 +102,16 @@ static int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
- 
- 	fmt->format = *format;
- 
--	/* Update the sink crop rectangle. */
--	crop = vsp1_rwpf_get_crop(rwpf, config);
--	crop->left = 0;
--	crop->top = 0;
--	crop->width = fmt->format.width;
--	crop->height = fmt->format.height;
-+	if (rwpf->entity.type == VSP1_ENTITY_RPF) {
-+		struct v4l2_rect *crop;
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
-+		/* Update the sink crop rectangle. */
-+		crop = vsp1_rwpf_get_crop(rwpf, config);
-+		crop->left = 0;
-+		crop->top = 0;
-+		crop->width = fmt->format.width;
-+		crop->height = fmt->format.height;
-+	}
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+@@ -370,17 +372,18 @@ int tea5767_autodetection(struct i2c_adapter* i2c_adap, u8 i2c_addr)
+ {
+ 	struct tuner_i2c_props i2c = { .adap = i2c_adap, .addr = i2c_addr };
+ 	unsigned char buffer[7] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
++
+ 	int rc;
  
- 	/* Propagate the format to the source pad. */
- 	format = vsp1_entity_get_pad_format(&rwpf->entity, config,
-@@ -129,8 +132,10 @@ static int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
- 	struct v4l2_mbus_framefmt *format;
- 	int ret = 0;
- 
--	/* Cropping is implemented on the sink pad. */
--	if (sel->pad != RWPF_PAD_SINK)
-+	/* Cropping is only supported on the RPF and is implemented on the sink
-+	 * pad.
-+	 */
-+	if (rwpf->entity.type == VSP1_ENTITY_WPF || sel->pad != RWPF_PAD_SINK)
+ 	if ((rc = tuner_i2c_xfer_recv(&i2c, buffer, 7))< 5) {
+-		printk(KERN_WARNING "It is not a TEA5767. Received %i bytes.\n", rc);
++		pr_warn("It is not a TEA5767. Received %i bytes.\n", rc);
  		return -EINVAL;
- 
- 	mutex_lock(&rwpf->entity.lock);
-@@ -175,8 +180,10 @@ static int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
- 	struct v4l2_rect *crop;
- 	int ret = 0;
- 
--	/* Cropping is implemented on the sink pad. */
--	if (sel->pad != RWPF_PAD_SINK)
-+	/* Cropping is only supported on the RPF and is implemented on the sink
-+	 * pad.
-+	 */
-+	if (rwpf->entity.type == VSP1_ENTITY_WPF || sel->pad != RWPF_PAD_SINK)
- 		return -EINVAL;
- 
- 	if (sel->target != V4L2_SEL_TGT_CROP)
-@@ -190,9 +197,7 @@ static int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
- 		goto done;
  	}
  
--	/* Make sure the crop rectangle is entirely contained in the image. The
--	 * WPF top and left offsets are limited to 255.
--	 */
-+	/* Make sure the crop rectangle is entirely contained in the image. */
- 	format = vsp1_entity_get_pad_format(&rwpf->entity, config,
- 					    RWPF_PAD_SINK);
- 
-@@ -208,10 +213,6 @@ static int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
- 
- 	sel->r.left = min_t(unsigned int, sel->r.left, format->width - 2);
- 	sel->r.top = min_t(unsigned int, sel->r.top, format->height - 2);
--	if (rwpf->entity.type == VSP1_ENTITY_WPF) {
--		sel->r.left = min_t(unsigned int, sel->r.left, 255);
--		sel->r.top = min_t(unsigned int, sel->r.top, 255);
--	}
- 	sel->r.width = min_t(unsigned int, sel->r.width,
- 			     format->width - sel->r.left);
- 	sel->r.height = min_t(unsigned int, sel->r.height,
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 748f5af90b7e..f3a593196282 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -212,7 +212,6 @@ static void wpf_configure(struct vsp1_entity *entity,
- 	struct vsp1_device *vsp1 = wpf->entity.vsp1;
- 	const struct v4l2_mbus_framefmt *source_format;
- 	const struct v4l2_mbus_framefmt *sink_format;
--	const struct v4l2_rect *crop;
- 	unsigned int i;
- 	u32 outfmt = 0;
- 	u32 srcrpf = 0;
-@@ -237,16 +236,6 @@ static void wpf_configure(struct vsp1_entity *entity,
- 		return;
+ 	/* If all bytes are the same then it's a TV tuner and not a tea5767 */
+ 	if (buffer[0] == buffer[1] && buffer[0] == buffer[2] &&
+ 	    buffer[0] == buffer[3] && buffer[0] == buffer[4]) {
+-		printk(KERN_WARNING "All bytes are equal. It is not a TEA5767\n");
++		pr_warn("All bytes are equal. It is not a TEA5767\n");
+ 		return -EINVAL;
  	}
  
--	/* Cropping */
--	crop = vsp1_rwpf_get_crop(wpf, wpf->entity.config);
--
--	vsp1_wpf_write(wpf, dl, VI6_WPF_HSZCLIP, VI6_WPF_SZCLIP_EN |
--		       (crop->left << VI6_WPF_SZCLIP_OFST_SHIFT) |
--		       (crop->width << VI6_WPF_SZCLIP_SIZE_SHIFT));
--	vsp1_wpf_write(wpf, dl, VI6_WPF_VSZCLIP, VI6_WPF_SZCLIP_EN |
--		       (crop->top << VI6_WPF_SZCLIP_OFST_SHIFT) |
--		       (crop->height << VI6_WPF_SZCLIP_SIZE_SHIFT));
--
- 	/* Format */
- 	sink_format = vsp1_entity_get_pad_format(&wpf->entity,
- 						 wpf->entity.config,
-@@ -255,6 +244,13 @@ static void wpf_configure(struct vsp1_entity *entity,
- 						   wpf->entity.config,
- 						   RWPF_PAD_SOURCE);
+@@ -390,7 +393,7 @@ int tea5767_autodetection(struct i2c_adapter* i2c_adap, u8 i2c_addr)
+ 	 *  Byte 5: bit 7:0 : == 0
+ 	 */
+ 	if (((buffer[3] & 0x0f) != 0x00) || (buffer[4] != 0x00)) {
+-		printk(KERN_WARNING "Chip ID is not zero. It is not a TEA5767\n");
++		pr_warn("Chip ID is not zero. It is not a TEA5767\n");
+ 		return -EINVAL;
+ 	}
  
-+	vsp1_wpf_write(wpf, dl, VI6_WPF_HSZCLIP, VI6_WPF_SZCLIP_EN |
-+		       (0 << VI6_WPF_SZCLIP_OFST_SHIFT) |
-+		       (source_format->width << VI6_WPF_SZCLIP_SIZE_SHIFT));
-+	vsp1_wpf_write(wpf, dl, VI6_WPF_VSZCLIP, VI6_WPF_SZCLIP_EN |
-+		       (0 << VI6_WPF_SZCLIP_OFST_SHIFT) |
-+		       (source_format->height << VI6_WPF_SZCLIP_SIZE_SHIFT));
-+
- 	if (!pipe->lif) {
- 		const struct v4l2_pix_format_mplane *format = &wpf->format;
- 		const struct vsp1_format_info *fmtinfo = wpf->fmtinfo;
 -- 
-Regards,
+2.7.4
 
-Laurent Pinchart
 
