@@ -1,64 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:2783 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932548AbcIGG4z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 02:56:55 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
-        Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH 1/4] v4l: add Mediatek compressed video block format
-Date: Wed, 7 Sep 2016 14:56:40 +0800
-Message-ID: <1473231403-14900-2-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1473231403-14900-1-git-send-email-tiffany.lin@mediatek.com>
-References: <1473231403-14900-1-git-send-email-tiffany.lin@mediatek.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44369 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932174AbcIELtO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 07:49:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Baoyou Xie <baoyou.xie@linaro.org>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, arnd@arndb.de, xie.baoyou@zte.com.cn
+Subject: Re: [PATCH] staging: media: omap4iss: mark omap4iss_flush() static
+Date: Mon, 05 Sep 2016 14:49:40 +0300
+Message-ID: <1671412.XD9t8jCPcC@avalon>
+In-Reply-To: <1472971301-4650-1-git-send-email-baoyou.xie@linaro.org>
+References: <1472971301-4650-1-git-send-email-baoyou.xie@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add V4L2_PIX_FMT_MT21C format used on MT8173 driver.
-It is compressed format and need MT8173 MDP driver to transfer to other
-standard format.
+Hi Baoyou,
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c |    1 +
- include/uapi/linux/videodev2.h       |    1 +
- 2 files changed, 2 insertions(+)
+Thank you for the patch.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 2bd1581..1d45c58 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1288,6 +1288,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 		case V4L2_PIX_FMT_JPGL:		descr = "JPEG Lite"; break;
- 		case V4L2_PIX_FMT_SE401:	descr = "GSPCA SE401"; break;
- 		case V4L2_PIX_FMT_S5C_UYVY_JPG:	descr = "S5C73MX interleaved UYVY/JPEG"; break;
-+		case V4L2_PIX_FMT_MT21C:	descr = "Mediatek Compressed Format"; break;
- 		default:
- 			WARN(1, "Unknown pixelformat 0x%08x\n", fmt->pixelformat);
- 			if (fmt->description[0])
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 43326c3..ddd0083 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -635,6 +635,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
- #define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
- #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
-+#define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
- 
- /* SDR formats - used only for Software Defined Radio devices */
- #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+On Sunday 04 Sep 2016 14:41:41 Baoyou Xie wrote:
+> We get 1 warning when building kernel with W=1:
+> drivers/staging/media/omap4iss/iss.c:64:6: warning: no previous prototype
+> for 'omap4iss_flush' [-Wmissing-prototypes]
+> 
+> In fact, this function is only used in the file in which it is
+> declared and don't need a declaration, but can be made static.
+> so this patch marks this function with 'static'.
+> 
+> Signed-off-by: Baoyou Xie <baoyou.xie@linaro.org>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/staging/media/omap4iss/iss.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/staging/media/omap4iss/iss.c
+> b/drivers/staging/media/omap4iss/iss.c index 6ceb4eb..e27c7a9 100644
+> --- a/drivers/staging/media/omap4iss/iss.c
+> +++ b/drivers/staging/media/omap4iss/iss.c
+> @@ -61,7 +61,7 @@ static void iss_print_status(struct iss_device *iss)
+>   * See this link for reference:
+>   *   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg08149.html
+>   */
+> -void omap4iss_flush(struct iss_device *iss)
+> +static void omap4iss_flush(struct iss_device *iss)
+>  {
+>  	iss_reg_write(iss, OMAP4_ISS_MEM_TOP, ISS_HL_REVISION, 0);
+>  	iss_reg_read(iss, OMAP4_ISS_MEM_TOP, ISS_HL_REVISION);
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
