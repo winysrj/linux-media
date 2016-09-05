@@ -1,47 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:42095 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755843AbcILMxq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Sep 2016 08:53:46 -0400
-From: Helen Koike <helen.koike@collabora.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Helen Koike <helen.koike@collabora.com>,
-        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        jgebben@codeaurora.org, mchehab@osg.samsung.com
-Cc: Helen Fornazier <helen.fornazier@gmail.com>
-Subject: [PATCH] [media] MAINTAINERS: add vimc entry
-Date: Mon, 12 Sep 2016 09:53:28 -0300
-Message-Id: <0fe6a27b269e5d3da10e3c842f8cc3c466873703.1473684735.git.helen.koike@collabora.com>
-In-Reply-To: <cd080d30-e0eb-a544-5512-0de634f1cf22@xs4all.nl>
-References: <cd080d30-e0eb-a544-5512-0de634f1cf22@xs4all.nl>
+Received: from mout.kundenserver.de ([212.227.17.10]:65453 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755414AbcIELya (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 07:54:30 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Baoyou Xie <baoyou.xie@linaro.org>
+Cc: laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        xie.baoyou@zte.com.cn
+Subject: Re: [PATCH] staging: media: omap4iss: mark omap4iss_flush() static
+Date: Mon, 05 Sep 2016 13:49:14 +0200
+Message-ID: <5765742.RO4gM8FzCf@wuerfel>
+In-Reply-To: <1472971301-4650-1-git-send-email-baoyou.xie@linaro.org>
+References: <1472971301-4650-1-git-send-email-baoyou.xie@linaro.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Helen Koike <helen.koike@collabora.com>
----
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+On Sunday, September 4, 2016 2:41:41 PM CEST Baoyou Xie wrote:
+> We get 1 warning when building kernel with W=1:
+> drivers/staging/media/omap4iss/iss.c:64:6: warning: no previous prototype for 'omap4iss_flush' [-Wmissing-prototypes]
+> 
+> In fact, this function is only used in the file in which it is
+> declared and don't need a declaration, but can be made static.
+> so this patch marks this function with 'static'.
+> 
+> Signed-off-by: Baoyou Xie <baoyou.xie@linaro.org>
+> 
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0a16a82..43e0eb4 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -12540,6 +12540,14 @@ W:	https://linuxtv.org
- S:	Maintained
- F:	drivers/media/platform/vivid/*
- 
-+VIMC VIRTUAL MEDIA CONTROLLER DRIVER
-+M:	Helen Koike <helen.koike@collabora.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+W:	https://linuxtv.org
-+S:	Maintained
-+F:	drivers/media/platform/vimc/*
-+
- VLAN (802.1Q)
- M:	Patrick McHardy <kaber@trash.net>
- L:	netdev@vger.kernel.org
--- 
-2.7.4
-
+Acked-by: Arnd Bergmann <arnd@arndb.de>
