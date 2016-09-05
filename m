@@ -1,45 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f46.google.com ([209.85.215.46]:34778 "EHLO
-        mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753535AbcICSDo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Sep 2016 14:03:44 -0400
-Received: by mail-lf0-f46.google.com with SMTP id p41so84765951lfi.1
-        for <linux-media@vger.kernel.org>; Sat, 03 Sep 2016 11:02:20 -0700 (PDT)
-Subject: Re: [PATCHv3 04/10] [media] rcar-vin: rename entity to digital
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
-        hverkuil@xs4all.nl
-References: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
- <20160815150635.22637-5-niklas.soderlund+renesas@ragnatech.se>
-Cc: linux-renesas-soc@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <dbce9ab7-fc11-1a66-cb68-63196562f1d1@cogentembedded.com>
-Date: Sat, 3 Sep 2016 21:02:16 +0300
-MIME-Version: 1.0
-In-Reply-To: <20160815150635.22637-5-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([198.137.202.9]:55037 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933086AbcIEKcs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 06:32:48 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH v2 11/12] [media] tda18271: use prefix on all printk messages
+Date: Mon,  5 Sep 2016 07:32:39 -0300
+Message-Id: <a45df59548c13f3a3d3d9fd95b6e88434dc114ef.1473071468.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473071468.git.mchehab@s-opensource.com>
+References: <cover.1473071468.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473071468.git.mchehab@s-opensource.com>
+References: <cover.1473071468.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Some messages have a hardcoded prefix; others not. Use the
+pr_fmt() to ensure that all messages will use the same prefix.
 
-On 08/15/2016 06:06 PM, Niklas Söderlund wrote:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/tuners/tda18271-fe.c   | 11 ++++++-----
+ drivers/media/tuners/tda18271-priv.h |  2 ++
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-> When Gen3 support is added to the driver more then one possible video
+diff --git a/drivers/media/tuners/tda18271-fe.c b/drivers/media/tuners/tda18271-fe.c
+index f8620741bb5f..2d50e8b1dce1 100644
+--- a/drivers/media/tuners/tda18271-fe.c
++++ b/drivers/media/tuners/tda18271-fe.c
+@@ -18,11 +18,12 @@
+     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+ 
+-#include <linux/delay.h>
+-#include <linux/videodev2.h>
+ #include "tda18271-priv.h"
+ #include "tda8290.h"
+ 
++#include <linux/delay.h>
++#include <linux/videodev2.h>
++
+ int tda18271_debug;
+ module_param_named(debug, tda18271_debug, int, 0644);
+ MODULE_PARM_DESC(debug, "set debug level "
+@@ -646,7 +647,7 @@ static int tda18271_calc_rf_filter_curve(struct dvb_frontend *fe)
+ 	unsigned int i;
+ 	int ret;
+ 
+-	tda_info("tda18271: performing RF tracking filter calibration\n");
++	tda_info("performing RF tracking filter calibration\n");
+ 
+ 	/* wait for die temperature stabilization */
+ 	msleep(200);
+@@ -692,12 +693,12 @@ static int tda18271c2_rf_cal_init(struct dvb_frontend *fe)
+ 	if (tda_fail(ret))
+ 		goto fail;
+ 
+-	tda_info("tda18271: RF tracking filter calibration complete\n");
++	tda_info("RF tracking filter calibration complete\n");
+ 
+ 	priv->cal_initialized = true;
+ 	goto end;
+ fail:
+-	tda_info("tda18271: RF tracking filter calibration failed!\n");
++	tda_info("RF tracking filter calibration failed!\n");
+ end:
+ 	return ret;
+ }
+diff --git a/drivers/media/tuners/tda18271-priv.h b/drivers/media/tuners/tda18271-priv.h
+index cc80f544af34..0bcc735a0427 100644
+--- a/drivers/media/tuners/tda18271-priv.h
++++ b/drivers/media/tuners/tda18271-priv.h
+@@ -21,6 +21,8 @@
+ #ifndef __TDA18271_PRIV_H__
+ #define __TDA18271_PRIV_H__
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/kernel.h>
+ #include <linux/types.h>
+ #include <linux/mutex.h>
+-- 
+2.7.4
 
-    s/then/than/.
-
-> source entity will be possible. Knowing that the name entity is a bad
-> one, rename it to digital since it will deal with the digital input
-> source.
->
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-[...]
-
-    Other than that, the patch looked OK to me.
-
-MBR, Sergei
 
