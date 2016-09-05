@@ -1,126 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41793 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932575AbcIUN3w (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Sep 2016 09:29:52 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Songjun Wu <songjun.wu@microchip.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 5/7] ov7670: add devicetree support
-Date: Wed, 21 Sep 2016 16:30:41 +0300
-Message-ID: <1604903.n7jWqSPYYZ@avalon>
-In-Reply-To: <86f01ea7-984c-0b9e-477a-c04f61d44db1@xs4all.nl>
-References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl> <3513546.0HAk52lbkG@avalon> <86f01ea7-984c-0b9e-477a-c04f61d44db1@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp3-1.goneo.de ([85.220.129.38]:47785 "EHLO smtp3-1.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932127AbcIENNT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Sep 2016 09:13:19 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH 2/2] v4l-utils: fixed dvbv5 vdr format
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <20160824115241.7e2c90ca@vento.lan>
+Date: Mon, 5 Sep 2016 15:13:04 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <28A9DFEA-1E94-4EE0-A2BB-B22D029683B9@darmarit.de>
+References: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de> <1470822739-29519-3-git-send-email-markus.heiser@darmarit.de> <20160824114927.3c6ab0d6@vento.lan> <20160824115241.7e2c90ca@vento.lan>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Chris Mayo <aklhfex@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Mauro, (Hi Chris)
 
-On Friday 26 Aug 2016 09:45:25 Hans Verkuil wrote:
-> On 08/17/2016 02:44 PM, Laurent Pinchart wrote:
-> > On Wednesday 17 Aug 2016 08:29:41 Hans Verkuil wrote:
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >> 
-> >> Add DT support. Use it to get the reset and pwdn pins (if there are any).
-> >> Tested with one sensor requiring reset/pwdn and one sensor that doesn't
-> >> have reset/pwdn pins.
-> >> 
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >> 
-> >>  .../devicetree/bindings/media/i2c/ov7670.txt       | 44 ++++++++++++++
-> >>  MAINTAINERS                                        |  1 +
-> >>  drivers/media/i2c/ov7670.c                         | 51 ++++++++++++++++
-> >>  3 files changed, 96 insertions(+)
-> >>  create mode 100644
-> >>  Documentation/devicetree/bindings/media/i2c/ov7670.txt
-> >> 
-> >> diff --git a/Documentation/devicetree/bindings/media/i2c/ov7670.txt
-> >> b/Documentation/devicetree/bindings/media/i2c/ov7670.txt new file mode
-> >> 100644
-> >> index 0000000..3231c47
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
-> >> @@ -0,0 +1,44 @@
-> >> +* Omnivision OV7670 CMOS sensor
-> >> +
-> >> +The Omnivision OV7670 sensor support multiple resolutions output, such
-> >> as
-> > 
-> > s/support/supports/
-> > 
-> >> +CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
-> >> +output format.
-> > 
-> > s/format/formats/ (and possibly s/can support/can support the/)
-> > 
-> >> +
-> >> +Required Properties:
-> >> +- compatible: should be "ovti,ov7670"
-> >> +- clocks: reference to the xvclk input clock.
-> >> +- clock-names: should be "xvclk".
-> >> +
-> >> +Optional Properties:
-> >> +- resetb-gpios: reference to the GPIO connected to the resetb pin, if
-> >> any.
-> >> +- pwdn-gpios: reference to the GPIO connected to the pwdn pin, if any.
-> >> +
-> >> +The device node must contain one 'port' child node for its digital
-> >> output
-> >> +video port, in accordance with the video interface bindings defined in
-> >> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> >> +
-> >> +Example:
-> >> +
-> >> +	i2c1: i2c@f0018000 {
-> >> +		status = "okay";
-> >> +
-> >> +		ov7670: camera@0x21 {
-> >> +			compatible = "ovti,ov7670";
-> >> +			reg = <0x21>;
-> >> +			pinctrl-names = "default";
-> >> +			pinctrl-0 = <&pinctrl_pck0_as_isi_mck
-> >> &pinctrl_sensor_power
-> >> &pinctrl_sensor_reset>;
-> > 
-> > The pinctrl properties should be part of the clock provider DT node.
+sorry for my late reply. I test the v4-utils on my HTPC,
+where I'am not often have time for experimentation ;-)
+
+Am 24.08.2016 um 16:52 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+
+> Em Wed, 24 Aug 2016 11:49:27 -0300
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 > 
-> Do you have examples of that?
-
-Sure, it's pretty simple. The pinctrl_pck0_as_isi_mck can just be moved to the 
-isi DT node, as the isi is the clock provider for the sensor.
-
-The two other properties, however, have to stay here (I think I've overlooked 
-them in my previous review e-mail), so I'm also not totally opposed to keeping 
-all three pinctrl entries together.
-
-> I just copied this from existing atmel dts code
-> (arch/arm/boot/dts/sama5d3xmb.dtsi).
->
-> >> +			resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
-> >> +			pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
-> >> +			clocks = <&pck0>;
-> >> +			clock-names = "xvclk";
-
-I missed this, isn't the pin named "xclk" in the datasheet ?
-
-> >> +			assigned-clocks = <&pck0>;
-> >> +			assigned-clock-rates = <24000000>;
-> > 
-> > You should compute and set the clock rate dynamically in the driver, not
-> > hardcode it in DT.
+>> Hi Markus,
+>> 
+>> Em Wed, 10 Aug 2016 11:52:19 +0200
+>> Markus Heiser <markus.heiser@darmarit.de> escreveu:
+>> 
+>>> From: Markus Heiser <markus.heiser@darmarIT.de>
+>>> 
+>>> From: Heiser, Markus <markus.heiser@darmarIT.de>
+>>> 
+>>> The vdr format was broken, I got '(null)' entries
+>>> 
+>>> HD:11494:S1HC23I0M5N1O35:S:(null):22000:5101:5102,5103,5106,5108:0:0:10301:0:0:0:
+>>> 0-:1----:2--------------:3:4-----:
+>>> 
+>>> refering to the VDR Wikis ...
+>>> 
+>>> * LinuxTV: http://www.linuxtv.org/vdrwiki/index.php/Syntax_of_channels.conf
+>>> * german comunity Wiki: http://www.vdr-wiki.de/wiki/index.php/Channels.conf#Parameter_ab_VDR-1.7.4
+>>> 
+>>> There is no field at position 4 / in between "Source" and "SRate" which
+>>> might have a value. I suppose the '(null):' is the result of pointing
+>>> to *nothing*.
+>>> 
+>>> An other mistake is the ending colon (":") at the line. It is not
+>>> explicit specified but adding an collon to the end of an channel entry
+>>> will prevent players (like mpv or mplayer) from parsing the line (they
+>>> will ignore these lines).
+>>> 
+>>> At least: generating a channel list with
+>>> 
+>>>  dvbv5-scan --output-format=vdr ...
+>>> 
+>>> will result in the same defective channel entry, containing "(null):"
+>>> and the leading collon ":".  
+>> 
+>> Sorry for taking too long to handle that. I usually stop handling
+>> patches one week before the merge window, returning to merge only
+>> after -rc1. This time, it took a little more time, due to the Sphinx
+>> changes, as I was needing some patches to be merged upstream, in order
+>> to change my handling scripts to work with the new way.
+>> 
+>> Anyway, with regards to this patch, not sure if you saw, but
+>> Chris Mayo sent us a different fix for it:
+>> 
+>> 	https://patchwork.linuxtv.org/patch/35803/
+>> 
+>> With is meant to support VDR format as used on version 2.2. Not sure
+>> if this format is backward-compatible with versions 1.x, but usually
+>> VDR just adds new parameters to the lines.
+>> 
+>> So, I'm inclined to merge Chris patch instead of yours.
+>> 
+>> So, could you please test if his patch does what's needed?
 > 
-> Do you have an example of that? Again, I just copied this from the same
-> sama5d3xmb.dtsi.
+> PS.: If the formats for v 1.x are not compatible with the ones for
+> v2.x, then the best would be to change the code to add a new format
+> for vdr v2.x, while keep supporting vdr v1.x.
 
-Please see my reply to Sakari's e-mail in the same thread.
+Hmm, I'am a bit confused about vdr's channel.conf v1.x and v2.x.
 
--- 
-Regards,
+I can't find any documentation on this and since there is no
+version control system for vdr it is hard to dig the history.
 
-Laurent Pinchart
+As far as I can see, Chris fixes an issue with DVB-T and the
+issue with the leading ":".
+
+My patch fixes an issue with DVB-S/2 entry-location (and the
+issue with the leading ":").
+
+I will give it a try to merge my changes on top of Chris's
+patch and test DVB-T & DVB-S2 on my HTPC with an vdr server.
+
+
+-- Markus --
+
+> 
+> 
+> 
+> Thanks,
+> Mauro
+
