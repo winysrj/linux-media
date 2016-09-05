@@ -1,69 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 4.mo173.mail-out.ovh.net ([46.105.34.219]:42425 "EHLO
-        4.mo173.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756574AbcIGL6x (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 07:58:53 -0400
-Received: from player711.ha.ovh.net (b9.ovh.net [213.186.33.59])
-        by mo173.mail-out.ovh.net (Postfix) with ESMTP id 60280100C656
-        for <linux-media@vger.kernel.org>; Wed,  7 Sep 2016 11:29:20 +0200 (CEST)
-Subject: Re: [PATCH v2] V4L2: Add documentation for SDI timings and related
- flags
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <1470325151-14522-1-git-send-email-charles-antoine.couret@nexvision.fr>
- <574b72df-b860-4568-8828-1f88e49c8d06@xs4all.nl>
-From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
-Message-ID: <c91b9015-c484-a635-4f62-3ef7395f82f2@nexvision.fr>
-Date: Wed, 7 Sep 2016 11:26:22 +0200
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:50092 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932127AbcIENCQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Sep 2016 09:02:16 -0400
+Subject: Re: [PATCH 2/2] pulse8-cec: store logical address mask
+To: Johan Fjeldtvedt <jaffe1@gmail.com>, linux-media@vger.kernel.org
+References: <20160830123129.24306-1-jaffe1@gmail.com>
+ <20160830123129.24306-2-jaffe1@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f1337508-d648-7cbe-cd0b-b39021913815@xs4all.nl>
+Date: Mon, 5 Sep 2016 15:02:10 +0200
 MIME-Version: 1.0
-In-Reply-To: <574b72df-b860-4568-8828-1f88e49c8d06@xs4all.nl>
+In-Reply-To: <20160830123129.24306-2-jaffe1@gmail.com>
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 12/08/2016 à 15:17, Hans Verkuil a écrit :
-> On 08/04/2016 05:39 PM, Charles-Antoine Couret wrote:
+On 08/30/2016 02:31 PM, Johan Fjeldtvedt wrote:
+> In addition to setting the ACK mask, also set the logical address mask
+> setting in the dongle. This is (and not the ACK mask) is persisted for
+> use in autonomous mode.
 > 
-> A commit log is missing here.
-
-Yeah I will fix that.
-
->> diff --git a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
->> index f7bf21f..0205bf6 100644
->> --- a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
->> +++ b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
->> @@ -339,6 +339,14 @@ EBUSY
->>  
->>         -  The timings follow the VESA Generalized Timings Formula standard
->>  
->> +    -  .. row 7
->> +
->> +       -  ``V4L2_DV_BT_STD_SDI``
->> +
->> +       -  The timings follow the SDI Timings standard.
->> +	  There are not always horizontal syncs/porches or similar in this format.
->> +	  If it is not precised by standard, blanking timings must be set in
->> +	  hsync or vsync fields by default.
+> The logical address mask to use is deduced from the primary device type
+> in adap->log_addrs.
 > 
-> OK. This is confusing. The text was changed after my question about something porch-like
-> in the SMPTE-125M standard. But I see nothing like that after re-reading it.
+> Signed-off-by: Johan Fjeldtvedt <jaffe1@gmail.com>
+> ---
+>  drivers/staging/media/pulse8-cec/pulse8-cec.c | 34 +++++++++++++++++++++++++++
+>  1 file changed, 34 insertions(+)
 > 
-> So what sort of 'porch' timing were you thinking of?
+> diff --git a/drivers/staging/media/pulse8-cec/pulse8-cec.c b/drivers/staging/media/pulse8-cec/pulse8-cec.c
+> index 1158ba9..ede285a 100644
+> --- a/drivers/staging/media/pulse8-cec/pulse8-cec.c
+> +++ b/drivers/staging/media/pulse8-cec/pulse8-cec.c
+> @@ -498,6 +498,40 @@ static int pulse8_cec_adap_log_addr(struct cec_adapter *adap, u8 log_addr)
+>  	if (err)
+>  		goto unlock;
+>  
+> +	switch (adap->log_addrs.primary_device_type[0]) {
+> +	case CEC_OP_PRIM_DEVTYPE_TV:
+> +		mask = 0;
 
-In SMPTE-125M for example, the time between the real horizontal blanking is precised (16 pixelclock).
-For me it looks like front porch timing.
- 
-> I wonder if I shouldn't just use the text from your first patch:
-> 
->        -  ``V4L2_DV_BT_STD_SDI``
-> 
->        -  The timings follow the SDI Timings standard.
-> 	  There are no horizontal syncs/porches at all in this format.
-> 	  Total blanking timings must be set in hsync or vsync fields only.
+Is this right? Shouldn't it be 0x001?
 
-I agree with that if you prefer, after all the front/backporch are probably irrelevant in this case.
-So, if you confirm this way, I would send you another patchset to fix that.
+> +		break;
+> +	case CEC_OP_PRIM_DEVTYPE_RECORD:
+> +		mask = 0x206;
 
-Thank you.
+Note that cec.h has CEC_LOG_ADDR_MASK_ defines. It's better to use those.
+
 Regards,
-Charles-Antoine Couret
+
+	Hans
+
+> +		break;
+> +	case CEC_OP_PRIM_DEVTYPE_TUNER:
+> +		mask = 0x4C8;
+> +		break;
+> +	case CEC_OP_PRIM_DEVTYPE_PLAYBACK:
+> +		mask = 0x910;
+> +		break;
+> +	case CEC_OP_PRIM_DEVTYPE_AUDIOSYSTEM:
+> +		mask = 0x20;
+> +		break;
+> +	case CEC_OP_PRIM_DEVTYPE_SWITCH:
+> +		mask = 0x8000;
+> +		break;
+> +	case CEC_OP_PRIM_DEVTYPE_PROCESSOR:
+> +		mask = 0x4000;
+> +		break;
+> +	default:
+> +		mask = 0;
+> +		break;
+> +	}
+> +	cmd[0] = MSGCODE_SET_LOGICAL_ADDRESS_MASK;
+> +	cmd[1] = mask >> 8;
+> +	cmd[2] = mask & 0xff;
+> +	err = pulse8_send_and_wait(pulse8, cmd, 3,
+> +				   MSGCODE_COMMAND_ACCEPTED, 0);
+> +	if (err)
+> +		goto unlock;
+> +
+>  	cmd[0] = MSGCODE_SET_DEFAULT_LOGICAL_ADDRESS;
+>  	cmd[1] = log_addr;
+>  	err = pulse8_send_and_wait(pulse8, cmd, 2,
+> 
