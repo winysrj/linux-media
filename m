@@ -1,142 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49690 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751168AbcINWFS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Sep 2016 18:05:18 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [v4l-utils PATCH v1.2 2/2] media-ctl: Print information related to a single entity
-Date: Thu, 15 Sep 2016 01:05:58 +0300
-Message-ID: <163775066.40INlWgSp9@avalon>
-In-Reply-To: <1473863379-4875-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <2226876.Vxqef30rz5@avalon> <1473863379-4875-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-it0-f66.google.com ([209.85.214.66]:33349 "EHLO
+        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753518AbcIEIUx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 04:20:53 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <9895129.d3fHn4vy22@avalon>
+References: <1470757001-4333-1-git-send-email-geert+renesas@glider.be>
+ <36812690.Ma8PvjacQ5@avalon> <CAMuHMdWoq+F6YWTEGtLc5G4PTQO=F19VaEire9JAr+0z7PxJ-g@mail.gmail.com>
+ <9895129.d3fHn4vy22@avalon>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Mon, 5 Sep 2016 10:20:52 +0200
+Message-ID: <CAMuHMdUzEsPNuqTn0pc0SwocoT3o5c0bxtrwKvUxJ6VvKRS7Yg@mail.gmail.com>
+Subject: Re: [PATCH] [media] rcar-fcp: Make sure rcar_fcp_enable() returns 0
+ on success
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Laurent,
 
-Thank you for the patch.
+On Mon, Sep 5, 2016 at 10:17 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>> BTW, it seems I missed a few more s2ram resume errors:
+>>
+>>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
+>>     PM: Device fe920000.vsp failed to resume noirq: error -13
+>>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
+>>     PM: Device fe960000.vsp failed to resume noirq: error -13
+>>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
+>>     PM: Device fe9a0000.vsp failed to resume noirq: error -13
+>>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
+>>     PM: Device fe9b0000.vsp failed to resume noirq: error -13
+>>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
+>>     PM: Device fe9c0000.vsp failed to resume noirq: error -13
+>>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
+>>     PM: Device fea20000.vsp failed to resume noirq: error -13
+>>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
+>>     PM: Device fea28000.vsp failed to resume noirq: error -13
+>>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
+>>     PM: Device fea30000.vsp failed to resume noirq: error -13
+>>     vsp1 fea38000.vsp: failed to reset wpf.0
+>>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -110
+>>     PM: Device fea38000.vsp failed to resume noirq: error -110
+>>
+>> -13 == -EACCES, returned by rcar_fcp_enable() as pm_runtime_get_sync()
+>> is called too early during system resume,
+>
+> Do you have a fix for this ? :-)
 
-On Wednesday 14 Sep 2016 17:29:39 Sakari Ailus wrote:
-> Add a possibility to printing all information related to a given entity by
-> using both -p and -e options. This may be handy sometimes if only a single
-> entity is of interest and there are many entities.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> Fixed the commit message as well.
-> 
->  utils/media-ctl/media-ctl.c | 33 +++++++++++++++------------------
->  utils/media-ctl/options.c   |  2 ++
->  2 files changed, 17 insertions(+), 18 deletions(-)
-> 
-> diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
-> index 0499008..109cc11 100644
-> --- a/utils/media-ctl/media-ctl.c
-> +++ b/utils/media-ctl/media-ctl.c
-> @@ -504,19 +504,11 @@ static void media_print_topology_text(struct
-> media_device *media) media, media_get_entity(media, i));
->  }
-> 
-> -void media_print_topology(struct media_device *media, int dot)
-> -{
-> -	if (dot)
-> -		media_print_topology_dot(media);
-> -	else
-> -		media_print_topology_text(media);
-> -}
-> -
->  int main(int argc, char **argv)
->  {
->  	struct media_device *media;
-> +	struct media_entity *entity = NULL;
->  	int ret = -1;
-> -	const char *devname;
-> 
->  	if (parse_cmdline(argc, argv))
->  		return EXIT_FAILURE;
-> @@ -562,17 +554,11 @@ int main(int argc, char **argv)
->  	}
-> 
->  	if (media_opts.entity) {
-> -		struct media_entity *entity;
-> -
->  		entity = media_get_entity_by_name(media, media_opts.entity);
->  		if (entity == NULL) {
->  			printf("Entity '%s' not found\n", media_opts.entity);
->  			goto out;
->  		}
-> -
-> -		devname = media_entity_get_devname(entity);
-> -		if (devname)
-> -			printf("%s\n", devname);
->  	}
-> 
->  	if (media_opts.fmt_pad) {
-> @@ -611,9 +597,20 @@ int main(int argc, char **argv)
->  		}
->  	}
-> 
-> -	if (media_opts.print || media_opts.print_dot) {
-> -		media_print_topology(media, media_opts.print_dot);
-> -		printf("\n");
-> +	if (media_opts.print_dot) {
-> +		media_print_topology_dot(media);
-> +	} else if (media_opts.print) {
-> +		if (entity) {
-> +			media_print_topology_text_entity(media, entity);
-> +		} else {
-> +			media_print_topology_text(media);
-> +		}
+Unfortuately not.
 
-You could remove the curly braces here.
+Gr{oetje,eeting}s,
 
-> +	} else if (entity) {
-> +		const char *devname;
-> +
-> +		devname = media_entity_get_devname(entity);
-> +		if (devname)
-> +			printf("%s\n", devname);
->  	}
-> 
->  	if (media_opts.reset) {
-> diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-> index a288a1b..304a86c 100644
-> --- a/utils/media-ctl/options.c
-> +++ b/utils/media-ctl/options.c
-> @@ -52,6 +52,8 @@ static void usage(const char *argv0)
->  	printf("-l, --links links	Comma-separated list of link 
-descriptors to
-> setup\n"); printf("    --known-mbus-fmts	List known media bus formats 
-and
-> their numeric values\n"); printf("-p, --print-topology	Print the 
-device
-> topology\n");
-> +	printf("			If entity name is specified using -e 
-option, information\n");
-> +	printf("			related to that entity only is 
-printed.\n");
+                        Geert
 
-Nitpicking, was anything wrong with
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-printf("-p, --print-topology    Print the device topology. If an entity\n");
-printf("                        is specified through the -e option, print\n");
-printf("                        information for that entity only.\n);
-
-? I think the help text looks more natural when using articles :-)
-
->  	printf("    --print-dot		Print the device topology as a dot 
-graph\n");
->  	printf("-r, --reset		Reset all links to inactive\n");
->  	printf("-v, --verbose		Be verbose\n");
-
--- 
-Regards,
-
-Laurent Pinchart
-
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
