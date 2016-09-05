@@ -1,73 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:32977 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751021AbcIORdc (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:60273 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755544AbcIEKJb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 13:33:32 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        magnus.damm@gmail.com, ulrich.hecht+renesas@gmail.com,
-        laurent.pinchart@ideasonboard.com, william.towle@codethink.co.uk
-Subject: [PATCH v9 0/2] rcar-vin EDID control ioctls
-Date: Thu, 15 Sep 2016 19:33:22 +0200
-Message-Id: <20160915173324.24539-1-ulrich.hecht+renesas@gmail.com>
+        Mon, 5 Sep 2016 06:09:31 -0400
+Subject: Re: [PATCH v5 0/9] Add MT8173 Video Decoder Driver
+To: Tiffany Lin <tiffany.lin@mediatek.com>
+References: <1472818800-22558-1-git-send-email-tiffany.lin@mediatek.com>
+ <616d95a4-e6f3-5c42-d435-eb73795bd82c@xs4all.nl>
+ <1473069011.23162.7.camel@mtksdaap41>
+ <2d332670-edfd-5f2e-2c7f-4346e60baf75@xs4all.nl>
+Cc: daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <91bd60ab-868a-78b8-a09d-544376913387@xs4all.nl>
+Date: Mon, 5 Sep 2016 12:09:22 +0200
+MIME-Version: 1.0
+In-Reply-To: <2d332670-edfd-5f2e-2c7f-4346e60baf75@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+On 09/05/2016 11:53 AM, Hans Verkuil wrote:
+> On 09/05/2016 11:50 AM, Tiffany Lin wrote:
+>> Hi Hans,
+>>
+>> On Mon, 2016-09-05 at 11:33 +0200, Hans Verkuil wrote:
+>>> On 09/02/2016 02:19 PM, Tiffany Lin wrote:
+>>>> ==============
+>>>>  Introduction
+>>>> ==============
+>>>>
+>>>> The purpose of this series is to add the driver for video codec hw embedded in the Mediatek's MT8173 SoCs.
+>>>> Mediatek Video Codec is able to handle video decoding and encoding of in a range of formats.
+>>>>
+>>>> This patch series rely on MTK VPU driver that have been merged in v4.8-rc1.
+>>>> Mediatek Video Decoder driver rely on VPU driver to load, communicate with VPU.
+>>>>
+>>>> Internally the driver uses videobuf2 framework, and MTK IOMMU and MTK SMI both have been merged in v4.6-rc1.
+>>>>
+>>>> [1]https://chromium-review.googlesource.com/#/c/245241/
+>>>
+>>> This patch series fails to apply to the media_tree master (patch 3/9). Can you rebase and repost?
+>>>
+>>> I'm ready to make a pull request for this, so I hope you can fix this soon.
+>>>
+>> I saw Encoder fix patches in fixes branch.
+>> This patch series is base on Encoder fix patches. 
+>>
+>> [media] vcodec:mediatek: Refine VP8 encoder driver
+>> [media] vcodec:mediatek: Refine H264 encoder driver
+>> [media] vcodec:mediatek: change H264 profile default to profile high
+>> [media] vcodec:mediatek: Add timestamp and timecode copy for V4L2
+>> Encoder
+>> [media] vcodec:mediatek: Fix visible_height larger than coded_height
+>> issue in s_fmt_out
+>> [media] vcodec:mediatek: Fix fops_vcodec_release flow for V4L2 Encoder
+>> [media] vcodec:mediatek:code refine for v4l2 Encoder driver
+>> [media] dvb_frontend: Use memdup_user() rather than duplicating its
+>> implementation
+>>
+>>
+>> If I do not rebase decoder patch series base on Encoder fix pathces.
+>> Then it will fail after Encoder fix patches merged.
+>>
+>> May I know what parent patch I need to rebase to to fix this issue?
+> 
+> Ah, OK. I will retest placing this on top of those fixes. I forgot about the
+> pending fixes. I'll handle this.
 
-This revision sits on top of Hans's rcar branch and adds pad sanity checks
-for g_edid and s_edid, the sink pad fix for the DV timings suggested by
-Niklas, and documents sink_pad_idx. Good night!
+OK, that works much better when it is on top of the fixes.
 
-CU
-Uli
+Only one thing is missing: an entry in the MAINTAINERS file. Strange that that
+wasn't done for the encoder driver, we must have missed that. So can you make a
+patch adding the en/decoder driver to this file? I'm ready to make the pull
+request once I have that.
 
+Regards,
 
-Changes since v8:
-- dumped merged default-input patch
-- added pad sanity check
-- added DV timings sink pad fix
-- documented sink_pad_idx
-- added Acked-By
-
-Changes since v7:
-- do not fail if there is no sink pad
-
-Changes since v6:
-- work without subdev abstraction layer
-- split off DT parts, to be handled separately
-
-Changes since v5:
-- implement vin/subdev pad translation
-- move i2c devices
-
-Changes since v4:
-- drop merged patches
-- adv7604: always fall back to input 0 if nothing else is specified
-- rcar-vin: implement G_EDID, S_EDID in place of hard-coded EDID blob
-
-Changes since v3:
-- rvin_enum_dv_timings(): use vin->src_pad_idx
-- rvin_dv_timings_cap(): likewise
-- rvin_s_dv_timings(): update vin->format
-- add Koelsch support
-
-Changes since v2:
-- rebased on top of rcar-vin driver v4
-- removed "adv7604: fix SPA register location for ADV7612" (picked up)
-- changed prefix of dts patch to "ARM: dts: lager: "
-
-
-Ulrich Hecht (2):
-  rcar-vin: implement EDID control ioctls
-  media: rcar-vin: use sink pad index for DV timings
-
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 52 +++++++++++++++++++++++++++--
- drivers/media/platform/rcar-vin/rcar-vin.h  |  2 ++
- 2 files changed, 52 insertions(+), 2 deletions(-)
-
--- 
-2.9.3
-
+	Hans
