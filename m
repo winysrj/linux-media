@@ -1,85 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54026 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752151AbcIGWY4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 18:24:56 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran@ksquared.org.uk>
-Subject: [PATCH v3 09/10] v4l: fdp1: Fix field validation when preparing buffer
-Date: Thu,  8 Sep 2016 01:25:09 +0300
-Message-Id: <1473287110-780-10-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1473287110-780-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1473287110-780-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37685 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932575AbcIEOeF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Sep 2016 10:34:05 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 75EB41858C8
+        for <linux-media@vger.kernel.org>; Mon,  5 Sep 2016 16:34:01 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.9] Various fixes
+Message-ID: <857b705b-740b-bb3c-7c5a-baeed4cfb5f8@xs4all.nl>
+Date: Mon, 5 Sep 2016 16:34:01 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ensure that the buffer field matches the field configured for the
-format.
+The following changes since commit fb6609280db902bd5d34445fba1c926e95e63914:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/rcar_fdp1.c | 40 +++++++++++++++++++++++++++++++-------
- 1 file changed, 33 insertions(+), 7 deletions(-)
+  [media] dvb_frontend: Use memdup_user() rather than duplicating its implementation (2016-08-24 17:20:45 -0300)
 
-diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
-index 480f89381f15..c25531a919db 100644
---- a/drivers/media/platform/rcar_fdp1.c
-+++ b/drivers/media/platform/rcar_fdp1.c
-@@ -1884,17 +1884,43 @@ static int fdp1_buf_prepare(struct vb2_buffer *vb)
- 
- 	q_data = get_q_data(ctx, vb->vb2_queue->type);
- 
--	/* Default to Progressive if ANY selected */
--	if (vbuf->field == V4L2_FIELD_ANY)
--		vbuf->field = V4L2_FIELD_NONE;
-+	if (V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
-+		bool field_valid = true;
-+
-+		/* Validate the buffer field. */
-+		switch (q_data->format.field) {
-+		case V4L2_FIELD_NONE:
-+			if (vbuf->field != V4L2_FIELD_NONE)
-+				field_valid = false;
-+			break;
-+
-+		case V4L2_FIELD_ALTERNATE:
-+			if (vbuf->field != V4L2_FIELD_TOP &&
-+			    vbuf->field != V4L2_FIELD_BOTTOM)
-+				field_valid = false;
-+			break;
- 
--	/* We only support progressive CAPTURE */
--	if (!V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type) &&
--	     vbuf->field != V4L2_FIELD_NONE) {
--		dprintk(ctx->fdp1, "field isn't supported on capture\n");
-+		case V4L2_FIELD_INTERLACED:
-+		case V4L2_FIELD_SEQ_TB:
-+		case V4L2_FIELD_SEQ_BT:
-+		case V4L2_FIELD_INTERLACED_TB:
-+		case V4L2_FIELD_INTERLACED_BT:
-+			if (vbuf->field != q_data->format.field)
-+				field_valid = false;
-+			break;
-+		}
-+
-+		if (!field_valid) {
-+			dprintk(ctx->fdp1,
-+				"buffer field %u invalid for format field %u\n",
-+				vbuf->field, q_data->format.field);
- 			return -EINVAL;
-+		}
-+	} else {
-+		vbuf->field = V4L2_FIELD_NONE;
- 	}
- 
-+	/* Validate the planes sizes. */
- 	for (i = 0; i < q_data->format.num_planes; i++) {
- 		unsigned long size = q_data->format.plane_fmt[i].sizeimage;
- 
--- 
-Regards,
+are available in the git repository at:
 
-Laurent Pinchart
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.9c
 
+for you to fetch changes up to fb1f780359fcf558a4c2a41f29aef52b96ade94a:
+
+  cobalt: update EDID (2016-09-05 16:30:39 +0200)
+
+----------------------------------------------------------------
+Andrey Utkin (1):
+      tw5864-core: remove excessive irqsave
+
+Ezequiel Garcia (1):
+      media: tw686x: Support frame sizes and frame intervals enumeration
+
+Hans Verkuil (3):
+      Revert "[media] tw5864: remove double irq lock code"
+      vivid: update EDID
+      cobalt: update EDID
+
+Johan Fjeldtvedt (5):
+      cec: allow configuration both from within driver and from user space
+      pulse8-cec: serialize communication with adapter
+      pulse8-cec: add notes about behavior in autonomous mode
+      pulse8-cec: sync configuration with adapter
+      pulse8-cec: fixes
+
+Markus Elfring (2):
+      media/i2c: Delete owner assignment
+      radio-si470x-i2c: Delete owner assignment
+
+Songjun Wu (1):
+      atmel-isc: remove the warning
+
+Tiffany Lin (1):
+      vcodec: mediatek: Add g/s_selection support for V4L2 Encoder
+
+ drivers/media/i2c/ad9389b.c                        |   1 -
+ drivers/media/i2c/adv7183.c                        |   1 -
+ drivers/media/i2c/adv7393.c                        |   1 -
+ drivers/media/i2c/cs3308.c                         |   1 -
+ drivers/media/i2c/s5k4ecgx.c                       |   1 -
+ drivers/media/i2c/s5k6a3.c                         |   1 -
+ drivers/media/i2c/ths8200.c                        |   1 -
+ drivers/media/i2c/tlv320aic23b.c                   |   1 -
+ drivers/media/i2c/tvp514x.c                        |   1 -
+ drivers/media/i2c/tvp7002.c                        |   1 -
+ drivers/media/i2c/vs6624.c                         |   1 -
+ drivers/media/pci/cobalt/cobalt-driver.c           |  47 +++----
+ drivers/media/pci/tw5864/tw5864-core.c             |   2 +
+ drivers/media/pci/tw686x/tw686x-video.c            |  38 +++++
+ drivers/media/platform/atmel/atmel-isc.c           |   2 +-
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |  66 +++++++++
+ drivers/media/platform/vivid/vivid-core.c          |  58 ++++----
+ drivers/media/radio/si470x/radio-si470x-i2c.c      |   1 -
+ drivers/staging/media/cec/cec-adap.c               |   4 -
+ drivers/staging/media/pulse8-cec/pulse8-cec.c      | 366 ++++++++++++++++++++++++++++++++++++++-----------
+ 20 files changed, 449 insertions(+), 146 deletions(-)
