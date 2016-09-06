@@ -1,61 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:53910 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750790AbcISJj1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 05:39:27 -0400
-Message-ID: <1474277960.25758.12.camel@mtksdaap41>
-Subject: Re: [PATCH] pixfmt-reserved.rst: Improve MT21C documentation
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Mon, 19 Sep 2016 17:39:20 +0800
-In-Reply-To: <82516dbf-d85e-ac69-0059-8235e4903e5a@xs4all.nl>
-References: <82516dbf-d85e-ac69-0059-8235e4903e5a@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+Received: from smtp10.smtpout.orange.fr ([80.12.242.132]:28263 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755384AbcIFJMD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 05:12:03 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Jiri Kosina <trivial@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v6 06/14] media: platform: pxa_camera: introduce sensor_call
+Date: Tue,  6 Sep 2016 11:04:16 +0200
+Message-Id: <1473152664-5077-6-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
+References: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Introduce sensor_call(), which will be used for all sensor invocations.
+This is a preparation move to v4l2 device conversion, ie. soc_camera
+adherence removal.
 
-On Mon, 2016-09-19 at 09:22 +0200, Hans Verkuil wrote:
-> Improve the MT21C documentation, making it clearer that this format requires the MDP
-> for further processing.
-> 
-> Also fix the fourcc (it was a fivecc :-) )
-> 
-reviewed-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 27 ++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-Thanks. I did not notice it become fivecc.
-
-best regards,
-Tiffany
-
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-reserved.rst b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-> index 0989e99..a019f15 100644
-> --- a/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-> +++ b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-> @@ -343,13 +343,13 @@ please make a proposal on the linux-media mailing list.
-> 
->         -  ``V4L2_PIX_FMT_MT21C``
-> 
-> -       -  'MT21C'
-> +       -  'MT21'
-> 
->         -  Compressed two-planar YVU420 format used by Mediatek MT8173.
->            The compression is lossless.
-> -          It is an opaque intermediate format, and MDP HW could convert
-> -          V4L2_PIX_FMT_MT21C to V4L2_PIX_FMT_NV12M,
-> -          V4L2_PIX_FMT_YUV420M and V4L2_PIX_FMT_YVU420.
-> +          It is an opaque intermediate format and the MDP hardware must be
-> +	  used to convert ``V4L2_PIX_FMT_MT21C`` to ``V4L2_PIX_FMT_NV12M``,
-> +          ``V4L2_PIX_FMT_YUV420M`` or ``V4L2_PIX_FMT_YVU420``.
-> 
->  .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
-> 
-
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index 62e3f69a17ec..3091ec708a46 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -168,6 +168,9 @@
+ 			CICR0_PERRM | CICR0_QDM | CICR0_CDM | CICR0_SOFM | \
+ 			CICR0_EOFM | CICR0_FOM)
+ 
++#define sensor_call(cam, o, f, args...) \
++	v4l2_subdev_call(sd, o, f, ##args)
++
+ /*
+  * Structures
+  */
+@@ -731,7 +734,7 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	unsigned long dw, bpp;
+ 	u32 cicr0, cicr1, cicr2, cicr3, cicr4 = 0, y_skip_top;
+-	int ret = v4l2_subdev_call(sd, sensor, g_skip_top_lines, &y_skip_top);
++	int ret = sensor_call(pcdev, sensor, g_skip_top_lines, &y_skip_top);
+ 
+ 	if (ret < 0)
+ 		y_skip_top = 0;
+@@ -1073,7 +1076,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
++	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
+ 	if (!ret) {
+ 		common_flags = soc_mbus_config_compatible(&cfg,
+ 							  bus_flags);
+@@ -1117,7 +1120,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
+ 	}
+ 
+ 	cfg.flags = common_flags;
+-	ret = v4l2_subdev_call(sd, video, s_mbus_config, &cfg);
++	ret = sensor_call(pcdev, video, s_mbus_config, &cfg);
+ 	if (ret < 0 && ret != -ENOIOCTLCMD) {
+ 		dev_dbg(icd->parent, "camera s_mbus_config(0x%lx) returned %d\n",
+ 			common_flags, ret);
+@@ -1144,7 +1147,7 @@ static int pxa_camera_try_bus_param(struct soc_camera_device *icd,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
++	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
+ 	if (!ret) {
+ 		common_flags = soc_mbus_config_compatible(&cfg,
+ 							  bus_flags);
+@@ -1195,7 +1198,7 @@ static int pxa_camera_get_formats(struct soc_camera_device *icd, unsigned int id
+ 	};
+ 	const struct soc_mbus_pixelfmt *fmt;
+ 
+-	ret = v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code);
++	ret = sensor_call(pcdev, pad, enum_mbus_code, NULL, &code);
+ 	if (ret < 0)
+ 		/* No more formats */
+ 		return 0;
+@@ -1303,7 +1306,7 @@ static int pxa_camera_set_selection(struct soc_camera_device *icd,
+ 	if (pcdev->platform_flags & PXA_CAMERA_PCLK_EN)
+ 		icd->sense = &sense;
+ 
+-	ret = v4l2_subdev_call(sd, pad, set_selection, NULL, &sdsel);
++	ret = sensor_call(pcdev, pad, set_selection, NULL, &sdsel);
+ 
+ 	icd->sense = NULL;
+ 
+@@ -1314,7 +1317,7 @@ static int pxa_camera_set_selection(struct soc_camera_device *icd,
+ 	}
+ 	sel->r = sdsel.r;
+ 
+-	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
++	ret = sensor_call(pcdev, pad, get_fmt, NULL, &fmt);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1326,7 +1329,7 @@ static int pxa_camera_set_selection(struct soc_camera_device *icd,
+ 		v4l_bound_align_image(&mf->width, 48, 2048, 1,
+ 			&mf->height, 32, 2048, 0,
+ 			fourcc == V4L2_PIX_FMT_YUV422P ? 4 : 0);
+-		ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &fmt);
++		ret = sensor_call(pcdev, pad, set_fmt, NULL, &fmt);
+ 		if (ret < 0)
+ 			return ret;
+ 
+@@ -1391,7 +1394,7 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
+ 	mf->colorspace	= pix->colorspace;
+ 	mf->code	= xlate->code;
+ 
+-	ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &format);
++	ret = sensor_call(pcdev, pad, set_fmt, NULL, &format);
+ 
+ 	if (mf->code != xlate->code)
+ 		return -EINVAL;
+@@ -1466,7 +1469,7 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
+ 	mf->colorspace	= pix->colorspace;
+ 	mf->code	= xlate->code;
+ 
+-	ret = v4l2_subdev_call(sd, pad, set_fmt, &pad_cfg, &format);
++	ret = sensor_call(pcdev, pad, set_fmt, &pad_cfg, &format);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1524,7 +1527,7 @@ static int pxa_camera_suspend(struct device *dev)
+ 
+ 	if (pcdev->soc_host.icd) {
+ 		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
+-		ret = v4l2_subdev_call(sd, core, s_power, 0);
++		ret = sensor_call(pcdev, core, s_power, 0);
+ 		if (ret == -ENOIOCTLCMD)
+ 			ret = 0;
+ 	}
+@@ -1546,7 +1549,7 @@ static int pxa_camera_resume(struct device *dev)
+ 
+ 	if (pcdev->soc_host.icd) {
+ 		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
+-		ret = v4l2_subdev_call(sd, core, s_power, 1);
++		ret = sensor_call(pcdev, core, s_power, 1);
+ 		if (ret == -ENOIOCTLCMD)
+ 			ret = 0;
+ 	}
+-- 
+2.1.4
 
