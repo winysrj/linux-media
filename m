@@ -1,40 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:53031
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753371AbcIIPXe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Sep 2016 11:23:34 -0400
-Date: Fri, 9 Sep 2016 23:23:20 +0800 (SGT)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Andrey Utkin <andrey_utkin@fastmail.com>
-cc: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
-        kernel-janitors@vger.kernel.org, Abylay Ospan <aospan@netup.ru>,
-        Sergey Kozlov <serjk@netup.ru>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Ismael Luceno <ismael@iodev.co.uk>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] [media] pci: constify vb2_ops structures
-In-Reply-To: <20160909150716.daols6gymz2miiko@zver>
-Message-ID: <alpine.DEB.2.10.1609092322490.2832@hadrien>
-References: <1473379158-17344-1-git-send-email-Julia.Lawall@lip6.fr> <20160909091741.re5ll3jelooeitpv@zver> <alpine.DEB.2.10.1609092231090.2832@hadrien> <20160909150716.daols6gymz2miiko@zver>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:56758 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932802AbcIFGfl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 02:35:41 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+Subject: [PATCH] vcodec: mediatek: add Maintainers entry for Mediatek MT8173 vcodec drivers
+Date: Tue, 6 Sep 2016 14:35:30 +0800
+Message-ID: <1473143730-22156-1-git-send-email-tiffany.lin@mediatek.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add Tiffany Lin and Andrew-CT Chen as maintainers for
+Mediatek MT8173 vcodec drivers
 
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+---
+ MAINTAINERS |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-On Fri, 9 Sep 2016, Andrey Utkin wrote:
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0a16a82..ed830c7 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7590,6 +7590,15 @@ F:	include/uapi/linux/meye.h
+ F:	include/uapi/linux/ivtv*
+ F:	include/uapi/linux/uvcvideo.h
+ 
++MT8173 MEDIA DRIVER
++M:	Tiffany Lin <tiffany.lin@mediatek.com>
++M:	Andrew-CT Chen <andrew-ct.chen@mediatek.com>
++S:	Supported
++F:	drivers/media/platform/mtk-vcodec/
++F:	drivers/media/platform/mtk-vpu/
++F:	Documentation/devicetree/bindings/media/mediatek-vcodec.txt
++F:	Documentation/devicetree/bindings/media/mediatek-vpu.txt
++
+ MEDIATEK ETHERNET DRIVER
+ M:	Felix Fietkau <nbd@openwrt.org>
+ M:	John Crispin <blogic@openwrt.org>
+-- 
+1.7.9.5
 
-> On Fri, Sep 09, 2016 at 10:31:30PM +0800, Julia Lawall wrote:
-> > Will this soon reach linux-next?
->
-> No idea. Indeed it's simpler if you leave your patch as is, and then
-> later we patch this new driver separately.
-
-OK, thanks.
-
-julia
