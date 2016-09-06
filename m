@@ -1,45 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52760 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751201AbcIGJxA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 05:53:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH] [v4l-utils] libdvb5: Fix multiple definition of dvb_dev_remote_init linking error
-Date: Wed,  7 Sep 2016 12:53:26 +0300
-Message-Id: <1473242006-1284-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41265 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932406AbcIFKm3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Sep 2016 06:42:29 -0400
+Subject: Re: Build fails
+To: timo.helkio@kapsi.fi, linux-media@vger.kernel.org
+References: <7f64a902-3436-e21c-653d-5dff2c1115a2@kapsi.fi>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4d834cab-e834-1a20-f9cf-d03c7ed4bb31@xs4all.nl>
+Date: Tue, 6 Sep 2016 12:42:22 +0200
+MIME-Version: 1.0
+In-Reply-To: <7f64a902-3436-e21c-653d-5dff2c1115a2@kapsi.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function is defined in a header file when HAVE_DVBV5_REMOTE is not
-set. It needs to be marked as static inline.
+On 09/06/16 12:21, Timo Helkiö wrote:
+> make -C /omat/media_build/v4l allyesconfig
+> make[1]: Entering directory '/omat/media_build/v4l'
+> No version yet, using 4.4.0-36-generic
+> make[2]: Entering directory '/omat/media_build/linux'
+> Syncing with dir ../media/
+> Applying patches for kernel 4.4.0-36-generic
+> patch -s -f -N -p1 -i ../backports/api_version.patch
+> patch -s -f -N -p1 -i ../backports/pr_fmt.patch
+> patch -s -f -N -p1 -i ../backports/debug.patch
+> patch -s -f -N -p1 -i ../backports/drx39xxj.patch
+> patch -s -f -N -p1 -i ../backports/v4.7_dma_attrs.patch
+> patch -s -f -N -p1 -i ../backports/v4.6_i2c_mux.patch
+> 1 out of 2 hunks FAILED
+> Makefile:138: recipe for target 'apply_patches' failed
+> make[2]: *** [apply_patches] Error 1
+> make[2]: Leaving directory '/omat/media_build/linux'
+> Makefile:369: recipe for target 'allyesconfig' failed
+> make[1]: *** [allyesconfig] Error 2
+> make[1]: Leaving directory '/omat/media_build/v4l'
+> Makefile:26: recipe for target 'allyesconfig' failed
+> make: *** [allyesconfig] Error 2
+> can't select all drivers at ./build line 490.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- lib/include/libdvbv5/dvb-dev.h | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+Fixed 15 minutes ago in the media_build repo!
 
-diff --git a/lib/include/libdvbv5/dvb-dev.h b/lib/include/libdvbv5/dvb-dev.h
-index da42671143a5..02b87016a3d3 100644
---- a/lib/include/libdvbv5/dvb-dev.h
-+++ b/lib/include/libdvbv5/dvb-dev.h
-@@ -449,8 +449,11 @@ int dvb_dev_remote_init(struct dvb_device *d, char *server, int port);
- 
- #else
- 
--int dvb_dev_remote_init(struct dvb_device *d, char *server, int port)
--{ return -1; };
-+static inline int dvb_dev_remote_init(struct dvb_device *d, char *server,
-+				      int port)
-+{
-+	return -1;
-+};
- 
- #endif
- 
--- 
-Regards,
+	Hans
 
-Laurent Pinchart
-
+>
+>
+>          Timo Helkiö
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
