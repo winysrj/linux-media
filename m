@@ -1,180 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:25115 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755542AbcIKN0W (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Sep 2016 09:26:22 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: linux-renesas-soc@vger.kernel.org
-Cc: joe@perches.com, kernel-janitors@vger.kernel.org,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-can@vger.kernel.org,
-        Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Mustafa Ismail <mustafa.ismail@intel.com>,
-        Chien Tin Tung <chien.tin.tung@intel.com>,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-        linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        tpmdd-devel@lists.sourceforge.net, linux-scsi@vger.kernel.org,
-        linux-spi@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH 00/26] constify local structures
-Date: Sun, 11 Sep 2016 15:05:42 +0200
-Message-Id: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr>
+Received: from mout.kundenserver.de ([212.227.17.13]:56191 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933818AbcIFJVV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 05:21:21 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Baoyou Xie <baoyou.xie@linaro.org>
+Cc: p.zabel@pengutronix.de, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        xie.baoyou@zte.com.cn
+Subject: Re: [PATCH] [media] coda: add missing header dependencies
+Date: Tue, 06 Sep 2016 11:21:38 +0200
+Message-ID: <17845866.BEgCsGq73Z@wuerfel>
+In-Reply-To: <1473148256-25347-1-git-send-email-baoyou.xie@linaro.org>
+References: <1473148256-25347-1-git-send-email-baoyou.xie@linaro.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Constify local structures.
+On Tuesday, September 6, 2016 3:50:56 PM CEST Baoyou Xie wrote:
+>  #include <linux/kernel.h>
+>  #include <linux/string.h>
+> +#include <coda.h>
+> 
 
-The semantic patch that makes this change is as follows:
-(http://coccinelle.lip6.fr/)
+by convention, we tend to write this as
 
-// <smpl>
-// The first rule ignores some cases that posed problems
-@r disable optional_qualifier@
-identifier s != {peri_clk_data,threshold_attr,tracer_flags,tracer};
-identifier i != {s5k5baf_cis_rect,smtcfb_fix};
-position p;
-@@
-static struct s i@p = { ... };
+#include "coda.h"
 
-@lstruct@
-identifier r.s;
-@@
-struct s { ... };
+otherwise the patch looks good to me,
 
-@used depends on lstruct@
-identifier r.i;
-@@
-i
-
-@bad1@
-expression e;
-identifier r.i;
-assignment operator a;
-@@
- (<+...i...+>) a e
-
-@bad2@
-identifier r.i;
-@@
- &(<+...i...+>)
-
-@bad3@
-identifier r.i;
-declarer d;
-@@
- d(...,<+...i...+>,...);
-
-@bad4@
-identifier r.i;
-type T;
-T[] e;
-identifier f;
-position p;
-@@
-
-f@p(...,
-(
-  (<+...i...+>)
-&
-  e
-)
-,...)
-
-@bad4a@
-identifier r.i;
-type T;
-T *e;
-identifier f;
-position p;
-@@
-
-f@p(...,
-(
-  (<+...i...+>)
-&
-  e
-)
-,...)
-
-@ok5@
-expression *e;
-identifier r.i;
-position p;
-@@
-e =@p i
-
-@bad5@
-expression *e;
-identifier r.i;
-position p != ok5.p;
-@@
-e =@p (<+...i...+>)
-
-@rr depends on used && !bad1 && !bad2 && !bad3 && !bad4 && !bad4a && !bad5@
-identifier s,r.i;
-position r.p;
-@@
-
-static
-+const
- struct s i@p = { ... };
-
-@depends on used && !bad1 && !bad2 && !bad3 && !bad4 && !bad4a && !bad5
- disable optional_qualifier@
-identifier rr.s,r.i;
-@@
-
-static
-+const
- struct s i;
-// </smpl>
-
----
-
- drivers/acpi/acpi_apd.c                              |    8 +++---
- drivers/char/tpm/tpm-interface.c                     |   10 ++++----
- drivers/char/tpm/tpm-sysfs.c                         |    2 -
- drivers/cpufreq/intel_pstate.c                       |    8 +++---
- drivers/infiniband/hw/i40iw/i40iw_uk.c               |    6 ++---
- drivers/media/i2c/tvp514x.c                          |    2 -
- drivers/media/pci/ddbridge/ddbridge-core.c           |   18 +++++++--------
- drivers/media/pci/ngene/ngene-cards.c                |   14 ++++++------
- drivers/media/pci/smipcie/smipcie-main.c             |    8 +++---
- drivers/misc/sgi-xp/xpc_uv.c                         |    2 -
- drivers/net/arcnet/com20020-pci.c                    |   10 ++++----
- drivers/net/can/c_can/c_can_pci.c                    |    4 +--
- drivers/net/can/sja1000/plx_pci.c                    |   20 ++++++++---------
- drivers/net/ethernet/mellanox/mlx4/main.c            |    4 +--
- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c |    2 -
- drivers/net/ethernet/renesas/sh_eth.c                |   14 ++++++------
- drivers/net/ethernet/stmicro/stmmac/stmmac_pci.c     |    2 -
- drivers/net/wireless/ath/dfs_pattern_detector.c      |    2 -
- drivers/net/wireless/intel/iwlegacy/3945.c           |    4 +--
- drivers/net/wireless/realtek/rtlwifi/rtl8188ee/sw.c  |    2 -
- drivers/net/wireless/realtek/rtlwifi/rtl8192ce/sw.c  |    2 -
- drivers/net/wireless/realtek/rtlwifi/rtl8192de/sw.c  |    2 -
- drivers/net/wireless/realtek/rtlwifi/rtl8192ee/sw.c  |    2 -
- drivers/net/wireless/realtek/rtlwifi/rtl8192se/sw.c  |    2 -
- drivers/net/wireless/realtek/rtlwifi/rtl8723ae/sw.c  |    2 -
- drivers/net/wireless/realtek/rtlwifi/rtl8723be/sw.c  |    2 -
- drivers/net/wireless/realtek/rtlwifi/rtl8821ae/sw.c  |    2 -
- drivers/platform/chrome/chromeos_laptop.c            |   22 +++++++++----------
- drivers/platform/x86/intel_scu_ipc.c                 |    6 ++---
- drivers/platform/x86/intel_telemetry_debugfs.c       |    2 -
- drivers/scsi/esas2r/esas2r_flash.c                   |    2 -
- drivers/scsi/hptiop.c                                |    6 ++---
- drivers/spi/spi-dw-pci.c                             |    4 +--
- drivers/staging/rtl8192e/rtl8192e/rtl_core.c         |    2 -
- drivers/usb/misc/ezusb.c                             |    2 -
- drivers/video/fbdev/matrox/matroxfb_g450.c           |    2 -
- lib/crc64_ecma.c                                     |    2 -
- sound/pci/ctxfi/ctatc.c                              |    2 -
- sound/pci/hda/patch_ca0132.c                         |   10 ++++----
- sound/pci/riptide/riptide.c                          |    2 -
- 40 files changed, 110 insertions(+), 110 deletions(-)
+Acked-by: Arnd Bergmann <arnd@arndb.de>
