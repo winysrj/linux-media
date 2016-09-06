@@ -1,38 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:43963 "EHLO
-        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751308AbcIONVy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 09:21:54 -0400
-Date: Thu, 15 Sep 2016 16:19:52 +0300
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Krzysztof =?utf-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Ismael Luceno <ismael@iodev.co.uk>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>
-Subject: Re: solo6010 modprobe lockup since e1ceb25a (v4.3 regression)
-Message-ID: <20160915131952.rqiy55dqex4ggtnm@acer>
-References: <20160915130441.ji3f3jiiebsnsbct@acer>
- <9cbb2079-f705-5312-d295-34bc3c8dadb9@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9cbb2079-f705-5312-d295-34bc3c8dadb9@xs4all.nl>
+Received: from mga01.intel.com ([192.55.52.88]:48817 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753413AbcIFL5m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Sep 2016 07:57:42 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl
+Subject: [PATCH v4 1/8] doc-rst: Correct the ordering of LSBs of the 10-bit raw packed formats
+Date: Tue,  6 Sep 2016 14:55:33 +0300
+Message-Id: <1473162940-31486-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1473162940-31486-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1473162940-31486-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 15, 2016 at 03:15:53PM +0200, Hans Verkuil wrote:
-> It could be related to the fact that a PCI write may be delayed unless
-> it is followed by a read (see also the comments in drivers/media/pci/ivtv/ivtv-driver.h).
+The 10-bit packed raw bayer format documented that the data of the first
+pixel of a four-pixel group was found in the first byte and the two
+highest bits of the fifth byte. This was not entirely correct. The two
+bits in the fifth byte are the two lowest bits. The second pixel occupies
+the second byte and third and fourth least significant bits and so on.
 
-Thanks for explanation!
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Aviv Greenberg <aviv.d.greenberg@intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/uapi/v4l/pixfmt-srggb10p.rst | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-> That was probably the reason for the pci_read_config_word in the reg_write
-> code. Try putting that back (and just that).
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
+index a5752b9..cc573c9 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
+@@ -56,8 +56,8 @@ Each cell is one byte.
+ 
+        -  G\ :sub:`03high`
+ 
+-       -  B\ :sub:`00low`\ (bits 7--6) G\ :sub:`01low`\ (bits 5--4)
+-	  B\ :sub:`02low`\ (bits 3--2) G\ :sub:`03low`\ (bits 1--0)
++       -  G\ :sub:`03low`\ (bits 7--6) B\ :sub:`02low`\ (bits 5--4)
++	  G\ :sub:`01low`\ (bits 3--2) B\ :sub:`00low`\ (bits 1--0)
+ 
+     -  .. row 2
+ 
+@@ -71,8 +71,8 @@ Each cell is one byte.
+ 
+        -  R\ :sub:`13high`
+ 
+-       -  G\ :sub:`10low`\ (bits 7--6) R\ :sub:`11low`\ (bits 5--4)
+-	  G\ :sub:`12low`\ (bits 3--2) R\ :sub:`13low`\ (bits 1--0)
++       -  R\ :sub:`13low`\ (bits 7--6) G\ :sub:`12low`\ (bits 5--4)
++	  R\ :sub:`11low`\ (bits 3--2) G\ :sub:`10low`\ (bits 1--0)
+ 
+     -  .. row 3
+ 
+@@ -86,8 +86,8 @@ Each cell is one byte.
+ 
+        -  G\ :sub:`23high`
+ 
+-       -  B\ :sub:`20low`\ (bits 7--6) G\ :sub:`21low`\ (bits 5--4)
+-	  B\ :sub:`22low`\ (bits 3--2) G\ :sub:`23low`\ (bits 1--0)
++       -  G\ :sub:`23low`\ (bits 7--6) B\ :sub:`22low`\ (bits 5--4)
++	  G\ :sub:`21low`\ (bits 3--2) B\ :sub:`20low`\ (bits 1--0)
+ 
+     -  .. row 4
+ 
+@@ -101,8 +101,8 @@ Each cell is one byte.
+ 
+        -  R\ :sub:`33high`
+ 
+-       -  G\ :sub:`30low`\ (bits 7--6) R\ :sub:`31low`\ (bits 5--4)
+-	  G\ :sub:`32low`\ (bits 3--2) R\ :sub:`33low`\ (bits 1--0)
++       -  R\ :sub:`33low`\ (bits 7--6) G\ :sub:`32low`\ (bits 5--4)
++	  R\ :sub:`31low`\ (bits 3--2) G\ :sub:`30low`\ (bits 1--0)
+ 
+ .. raw:: latex
+ 
+-- 
+2.7.4
 
-In this case reg_write becomes not atomic, thus spinlock would be
-required again here, right?
