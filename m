@@ -1,123 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:27799 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752768AbcI0HOY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Sep 2016 03:14:24 -0400
-From: Felipe Balbi <felipe.balbi@linux.intel.com>
-To: Bin Liu <b-liu@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-        nh26223@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: Re: g_webcam Isoch high bandwidth transfer
-In-Reply-To: <20160926140248.GF31827@uda0271908>
-References: <20160920170441.GA10705@uda0271908> <871t0d4r72.fsf@linux.intel.com> <20160921132702.GA18578@uda0271908> <87oa3go065.fsf@linux.intel.com> <87lgyknyp7.fsf@linux.intel.com> <87d1jw6yfd.fsf@linux.intel.com> <20160922133327.GA31827@uda0271908> <87a8ezn2av.fsf@linux.intel.com> <20160922201131.GD31827@uda0271908> <87shsr5a3e.fsf@linux.intel.com> <20160926140248.GF31827@uda0271908>
-Date: Tue, 27 Sep 2016 10:14:07 +0300
-Message-ID: <87inth4xxc.fsf@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha256; protocol="application/pgp-signature"
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:56259 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755981AbcIFSe6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 14:34:58 -0400
+Message-ID: <1473186892.2668.14.camel@ndufresne.ca>
+Subject: Re: [PATCH] [media] vb2: map dmabuf for planes on driver queue
+ instead of vidioc_qbuf
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+Reply-To: nicolas@ndufresne.ca
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Luis de Bethencourt <luisbg@osg.samsung.com>
+Date: Tue, 06 Sep 2016 14:34:52 -0400
+In-Reply-To: <20160720132005.GC7976@valkosipuli.retiisi.org.uk>
+References: <1468599966-31988-1-git-send-email-javier@osg.samsung.com>
+         <20160720132005.GC7976@valkosipuli.retiisi.org.uk>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-RcdezD98ndYiF1pBg0DM"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---=-=-=
-Content-Type: text/plain
+
+--=-RcdezD98ndYiF1pBg0DM
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
+Le mercredi 20 juillet 2016 =C3=A0 16:20 +0300, Sakari Ailus a =C3=A9crit=
+=C2=A0:
+> Hi Javier,
+>=20
+> On Fri, Jul 15, 2016 at 12:26:06PM -0400, Javier Martinez Canillas
+> wrote:
+> > The buffer planes' dma-buf are currently mapped when buffers are queued
+> > from userspace but it's more appropriate to do the mapping when buffers
+> > are queued in the driver since that's when the actual DMA operation are
+> > going to happen.
+> >=20
+> > Suggested-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+> > Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> >=20
+> > ---
+> >=20
+> > Hello,
+> >=20
+> > A side effect of this change is that if the dmabuf map fails for some
+> > reasons (i.e: a driver using the DMA contig memory allocator but CMA
+> > not being enabled), the fail will no longer happen on VIDIOC_QBUF but
+> > later (i.e: in VIDIOC_STREAMON).
+> >=20
+> > I don't know if that's an issue though but I think is worth mentioning.
+>=20
+> I have the same question has Hans --- why?
+>=20
+> I rather think we should keep the buffers mapped all the time. That'd
+> require a bit of extra from the DMA-BUF framework I suppose, to support
+> streaming mappings.
+>=20
+> The reason for that is performance. If you're passing the buffer between =
+a
+> couple of hardware devices, there's no need to map and unmap it every tim=
+e
+> the buffer is accessed by the said devices. That'd avoid an unnecessary
+> cache flush as well, something that tends to be quite expensive. On a PC
+> with resolutions typically used on webcams that might not really matter. =
+But
+> if you have an embedded system with a relatively modest 10 MP camera sens=
+or,
+> it's one of the first things you'll notice if you check where the CPU tim=
+e
+> is being spent.
 
-Hi,
-
-Bin Liu <b-liu@ti.com> writes:
-> On Fri, Sep 23, 2016 at 10:49:57AM +0300, Felipe Balbi wrote:
->>=20
->> Hi,
->>=20
->> Bin Liu <b-liu@ti.com> writes:
->> > +Fengwei Yin per his request.
->> >
->> > On Thu, Sep 22, 2016 at 10:48:40PM +0300, Felipe Balbi wrote:
->> >>=20
->> >> Hi,
->> >>=20
->> >> Bin Liu <b-liu@ti.com> writes:
->> >>=20
->> >> [...]
->> >>=20
->> >> >> Here's one that actually compiles, sorry about that.
->> >> >
->> >> > No worries, I was sleeping ;-)
->> >> >
->> >> > I will test it out early next week. Thanks.
->> >>=20
->> >> meanwhile, how about some instructions on how to test this out myself?
->> >> How are you using g_webcam and what are you running on host side? Got=
- a
->> >> nice list of commands there I can use? I think I can get to bottom of
->> >> this much quicker if I can reproduce it locally ;-)
->> >
->> > On device side:
->> > - first patch g_webcam as in my first email in this thread to enable
->> >   640x480@30fps;
->> > - # modprobe g_webcam streaming_maxpacket=3D3072
->> > - then run uvc-gadget to feed the YUV frames;
->> > 	http://git.ideasonboard.org/uvc-gadget.git
->>=20
->> as is, g_webcam never enumerates to the host. It's calls to
->
-> Right, on mainline kernel (I tested 4.8.0-rc7) g_webcam is broken with
-> DWC3, g_webcam does not enumerate on the host. But it works on v4.4.21.
-
-There aren't that many changes related to g_webcam though.
-
-$ git log --oneline --no-merges v4.4..HEAD -- drivers/usb/gadget/function/f=
-_uvc.c drivers/usb/gadget/legacy/webcam.c drivers/usb/gadget/function/uvc*
-4fbac5206afd usb: gadget: uvc: Add missing call for additional setup data
-bd610c5aa9fc usb: gadget: uvc: Fix return value in case of error
-36c0f8b32c4b [media] vb2: replace void *alloc_ctxs by struct device *alloc_=
-devs
-1ae1602de028 configfs: switch ->default groups to a linked list
-d6dd645eae76 [media] media: videobuf2: Move timestamp to vb2_buffer
-df9ecb0cad14 [media] vb2: drop v4l2_format argument from queue_setup
-0aecfc1b359d usb: gadget: composite: remove redundant bcdUSB setting in leg=
-acy
-
->> uvc-gadget keeps printing this error message:
->>=20
->>  159         if ((ret =3D ioctl(dev->fd, VIDIOC_DQBUF, &buf)) < 0) {
->>  160                 printf("Unable to dequeue buffer: %s (%d).\n", stre=
-rror(errno),
->>  161                         errno);
->>  162                 return ret;
->>  163         }
->
-> I removed this printf, since it floods the console if start uvc-gadget
-> before connect to the host.
-
-fair enough
-
-> BTY, you don't have to start uvc-gadget first then connect usb cable. I
-> keep the cable always connected.
-
-good to know. Thanks
-
-=2D-=20
-balbi
-
---=-=-=
+That is very interesting since the initial discussion started from the
+idea of adding an implicit fence wait to the map operation. This way we
+could have a dma-buf fence attached without having to modify the
+drivers to support it. Buffer handles could be dispatched before there
+is any data in it. Though, if we keep it mapped, I believe this idea is
+simply incompatible and fences should remain explicit for extra
+flexibility.
+--=-RcdezD98ndYiF1pBg0DM
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-iQIcBAEBCAAGBQJX6hw/AAoJEMy+uJnhGpkGHYEP/jjCvSKn2WD2I+aiMtS31n8A
-DeAke8blDzaNtfFvkpOOjIWwPEcr1zfoYtSaWd+MzVIdVNbDre6aTcy5SxABNHMs
-NGKdZjkHvbcOi97V56RZITBcqUBzPFJUGC6jFHh3KYjdWW1xjqvbqouQJfLv1Rgk
-x4WTVhYTG/6w+7yLUvciRX9/Yrp2uZK+ARKT8KbWRMwsX/xcbGeX7S6pLbcijgLb
-K5RjwxV5K3EskUXoNY0xgODQ/dHToX1XYPjkTz2zw4EpwST/Rc6+FPmvpJzIBwco
-pdRf6M0X7R459mW266Glj6gbji8z4sp16/7xp560Zaw0eEvhiGfIexmgxK+3jyA9
-4JbQ6nD553ou+uw7LfLxFG7vXWABiEuv7VwGQIwOP0j+wE2JUOJgotZ5WsnFWtyO
-r6Hktq/ohHP3wzfpnudjodRXDg70AM8pR5rSb9I2ZL0yn16uPfr5e8z+iyd0tbB6
-xayYha29nExdOBDnWHLIp197w1EEMGWHugTkYUgcFoYL/qaN2rM3mnfqg9QKPCUs
-hJT4401njNTcjb8Jr5k11lRhCs/YnrS+bExfmaHa22g9Ys2/Qz859dpPAgcSyVQh
-fc89hpDN5262vyABecjesQACWBAWBb4Kh8NAUmx2bqfsZmObNOONJoPVayniHpEP
-6rrmj9RhGXEdr5DbN40N
-=c7fT
+iEYEABECAAYFAlfPDEwACgkQcVMCLawGqByubACgu+GXVJ9P6QTCgaFIeJAhiKS9
+AKwAnjkyUr9jyj4g85VYxoPQdtoLRjWN
+=nxBJ
 -----END PGP SIGNATURE-----
---=-=-=--
+
+--=-RcdezD98ndYiF1pBg0DM--
+
