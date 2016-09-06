@@ -1,86 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f47.google.com ([209.85.215.47]:34249 "EHLO
-        mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932373AbcIBQNZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2016 12:13:25 -0400
-Received: by mail-lf0-f47.google.com with SMTP id p41so68644067lfi.1
-        for <linux-media@vger.kernel.org>; Fri, 02 Sep 2016 09:13:24 -0700 (PDT)
-Date: Fri, 2 Sep 2016 18:13:21 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, slongerbeam@gmail.com,
-        lars@metafoo.de, hans.verkuil@cisco.com, mchehab@kernel.org
-Subject: Re: [PATCH] [media] rcar-vin: add legacy mode for wrong media bus
- formats
-Message-ID: <20160902161321.GM24983@bigcity.dyn.berto.se>
-References: <20160708104327.6329-1-niklas.soderlund+renesas@ragnatech.se>
- <4776c0f7-22da-6e72-f0c8-c02fc07b38dc@xs4all.nl>
- <20160720122907.GC20569@bigcity.dyn.berto.se>
- <578F7054.2000302@cisco.com>
- <ab5a8bf5-39c4-585e-e1f6-5151e888a8cf@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <ab5a8bf5-39c4-585e-e1f6-5151e888a8cf@xs4all.nl>
+Received: from pv33p04im-asmtp001.me.com ([17.143.181.10]:55760 "EHLO
+        pv33p04im-asmtp001.me.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933053AbcIFKwI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 06:52:08 -0400
+Received: from process-dkim-sign-daemon.pv33p04im-asmtp001.me.com by
+ pv33p04im-asmtp001.me.com
+ (Oracle Communications Messaging Server 7.0.5.38.0 64bit (built Feb 26 2016))
+ id <0OD200000WNZKG00@pv33p04im-asmtp001.me.com> for
+ linux-media@vger.kernel.org; Tue, 06 Sep 2016 10:51:56 +0000 (GMT)
+Content-type: text/plain; charset=utf-8
+MIME-version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Subject: Re: uvcvideo error on second capture from USB device,
+ leading to V4L2_BUF_FLAG_ERROR
+From: Oliver Collyer <ovcollyer@mac.com>
+In-reply-to: <20160905201935.wpgtrtt7e4bjjylo@zver>
+Date: Tue, 06 Sep 2016 13:51:51 +0300
+Cc: Andrey Utkin <andrey_utkin@fastmail.com>
+Content-transfer-encoding: quoted-printable
+Message-id: <FE81AFD0-C5F1-4FE7-A282-3294E668066C@mac.com>
+References: <C29C248E-5D7A-4E69-A88D-7B971D42E984@mac.com>
+ <20160904192538.75czuv7c2imru6ds@zver>
+ <AE433005-988F-4352-8CF3-30690C82CAA6@mac.com>
+ <20160905201935.wpgtrtt7e4bjjylo@zver>
+To: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2016-08-22 11:12:59 +0200, Hans Verkuil wrote:
-> On 07/20/2016 02:36 PM, Hans Verkuil wrote:
-> > On 07/20/2016 02:29 PM, Niklas Söderlund wrote:
-> >> Hi Hans,
-> >>
-> >> Thanks for your feedback.
-> >>
-> >> On 2016-07-20 11:48:40 +0200, Hans Verkuil wrote:
-> >>> On 07/08/2016 12:43 PM, Niklas Söderlund wrote:
-> >>>> A recent bugfix to adv7180 brought to light that the rcar-vin driver are
-> >>>> looking for the wrong media bus format. It was looking for a YUVU format
-> >>>> but then expecting UYVY data. The bugfix for adv7180 will break the
-> >>>> usage of rcar-vin together with a adv7180 as found on Renesas R-Car2
-> >>>> Koelsch boards for example.
-> >>>>
-> >>>> This patch fix the rcar-vin driver to look for the correct UYVU formats
-> >>>> and adds a legacy mode. The legacy mode is needed since I don't know if
-> >>>> other devices provide a incorrect media bus format and I don't want to
-> >>>> break any working configurations. Hopefully the legacy mode can be
-> >>>> removed sometime in the future.
-> >>>
-> >>> I'd rather have a version without the legacy code. You have to assume that
-> >>> subdevs return correct values otherwise what's the point of the mediabus
-> >>> formats?
-> >>>
-> >>> So this is simply an adv7180 bug fix + this r-car fix to stay consistent
-> >>> with the adv7180.
-> >>
-> >> On principal I agree with you. My goal with this patch is just to make
-> >> sure there is no case where the rcar-vin driver won't work with the
-> >> adv7180. The plan was to drop the legacy mode in a separate patch after
-> >> both the adv7182 and rcar-vin patches where picked up.
-> >>
-> >> I'm happy to drop the 'legacy support' for the wrong formats from this
-> >> patch as long as I can be sure that there is no breaking. Should I
-> >> rewrite this patch to drop the wrong formats and submit it as a series
-> >> together with the adv7180 patch so they can be picked up together? Or do
-> >> you know of a better way?
-> > 
-> > Why not combine this patch and the adv7180 patch in a single patch? Just keep
-> > Steve's Signed-off-by line together with yours. That way everything stays
-> > in sync. The only other user of the adv7180 doesn't look at the mediabus
-> > formats at all, so it isn't affected.
-> 
-> Niklas,
-> 
-> Were you planning to make a combined adv7180/rcar-vin patch for this?
-> 
-> I would prefer this solution rather than keeping legacy code around.
+So today I installed Ubuntu 16.04 on another PC (this one a high spec =
+machine with a Rampage V Extreme motherboard) and I reproduced exactly =
+the same errors and trace.
 
-Sorry for the delay Hans. I just posted a combined patch for adv7180 and 
-rcar-vin. Thanks for picking up the cleanup patches!
+Rebooting the same PC back into Windows 10 and using the same USB 3.0 =
+port, I had no problems capturing using FFmpeg via DirectShow. I could =
+start and stop the capture repeatedly without any warnings or errors =
+appearing in FFmpeg (built from the same source).
 
--- 
-Regards,
-Niklas Söderlund
+If the hardware is misbehaving, on both these capture devices, then DS =
+must be handling it better than V4L2. Or there is simply an obscure bug =
+in V4L2 which only manifests itself with certain devices.
+
+Would providing ssh access to the machine be of interest to anyone who =
+wants to debug this?
+
+> On 5 Sep 2016, at 23:19, Andrey Utkin <andrey_utkin@fastmail.com> =
+wrote:
+>=20
+> On Mon, Sep 05, 2016 at 10:43:49PM +0300, Oliver Collyer wrote:
+>> I do not have any knowledge of uvcvideo and the associated classes =
+apart from the studying I=E2=80=99ve done the past day or two, but it =
+seems likely that error -71 and the later setting of V4L2_BUF_FLAG_ERROR =
+are linked. Also, the fact it only happens in captures after the first =
+one suggests something isn=E2=80=99t being cleared down or released =
+properly in uvcvideo/v4l2-core at the end of the first capture.
+>>=20
+>> Let me know what I need to do next to further narrow it down.
+>=20
+> Have tried to reproduce this (with kernel 4.6.0 and fresh build of
+> ffmpeg) with uvcvideo-driven laptop webcam, and it doesn't happen to =
+me.
+> Also -EPROTO in uvcvideo comes from low-level USB stuff, see
+> drivers/media/usb/uvc/uvc_status.c:127:
+>=20
+> 	case -EPROTO:		/* Device is disconnected (reported by =
+some
+> 				 * host controller). */
+>=20
+> So it seems like hardware misbehaves. To further clairify situation, I
+> have such question: do the devices work in other operation systems on
+> the same machine?
+>=20
+> Reviewing your original email mentioning that two different devices
+> reproduce same problem, which is apparently related to disconnection =
+in
+> the middle of USB communication, I came to me that the connected =
+device
+> may be underpowered. So,
+> - try plugging your devices through reliable _active_ USB hub,
+> - use the most reliable cables you can get,
+> - plug into USB 3.0 port if available - it should provide more power
+>   than 1.0 and 2.0.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" =
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
