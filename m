@@ -1,76 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:36083 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932785AbcIGMNn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 08:13:43 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com
-Cc: corbet@lwn.net, mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv3 0/2] v4l: vsp1: Add HGT support
-Date: Wed,  7 Sep 2016 14:09:36 +0200
-Message-Id: <20160907120938.818-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mga04.intel.com ([192.55.52.120]:41506 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755283AbcIFL4o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Sep 2016 07:56:44 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl
+Subject: [PATCH v4 3/8] doc-rst: Clean up raw bayer pixel format definitions
+Date: Tue,  6 Sep 2016 14:55:35 +0300
+Message-Id: <1473162940-31486-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1473162940-31486-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1473162940-31486-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+- Explicitly state that the most significant n bits are zeroed on 10 and
+  12 bpp formats.
+- Remove extra comma from the last entry of the format list
+- Add a missing colon before a list
+- Use figures versus word numerals consistently
 
-This series add support for the VSP1 2-D histogram engine HGT.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/uapi/v4l/pixfmt-srggb10.rst  | 15 ++++++++-------
+ Documentation/media/uapi/v4l/pixfmt-srggb10p.rst |  8 ++++----
+ Documentation/media/uapi/v4l/pixfmt-srggb12.rst  |  5 +++--
+ 3 files changed, 15 insertions(+), 13 deletions(-)
 
-It's based on top of Laurent Pinchart tree at
-git://linuxtv.org/pinchartl/media.git hgo. And depends on Laurents patch
-'[PATCH] v4l: vsp1: Move subdev operations from HGO to common histogram
-code'.
-
-It is tested on Koelsch using a modified vsp-tests suite package,
-modifications can be found at https://git.ragnatech.se/vsp-tests hgt.
-
-* Changes since v2
-- Add .try_ctrl() handling and return -EINVAL instead of trying to correct the 
-  hue areas. Thanks Laurent for suggesting a solution to this.
-- Fixed typo in pixel format documentation, thanks Laurent for spotting it.
-
-* Changes since v1
-- Rebased on top of Laurents patch which made all subdev operations
-  common for HGO and HGT. This removed a lot of code that is now shared.
-- Removed the Hue area configuration for the histogram pixel format.
-  These values are set by userspace so it already knows them.
-- Updated pixel format documentation after input from Laurent.
-- Better aligned the code to the existing VSP code base.
-- Simplify check that hue areas are valid for the hardware.
-- Fixed spelling.
-
-Niklas Söderlund (2):
-  v4l: Define a pixel format for the R-Car VSP1 2-D histogram engine
-  v4l: vsp1: Add HGT support
-
- Documentation/media/uapi/v4l/meta-formats.rst      |   1 +
- .../media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst        | 120 +++++++++++
- drivers/media/platform/vsp1/Makefile               |   2 +-
- drivers/media/platform/vsp1/vsp1.h                 |   3 +
- drivers/media/platform/vsp1/vsp1_drv.c             |  33 ++-
- drivers/media/platform/vsp1/vsp1_entity.c          |  33 ++-
- drivers/media/platform/vsp1/vsp1_entity.h          |   1 +
- drivers/media/platform/vsp1/vsp1_hgt.c             | 221 +++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_hgt.h             |  42 ++++
- drivers/media/platform/vsp1/vsp1_pipe.c            |  16 ++
- drivers/media/platform/vsp1/vsp1_pipe.h            |   2 +
- drivers/media/platform/vsp1/vsp1_regs.h            |   9 +
- drivers/media/platform/vsp1/vsp1_video.c           |  10 +-
- drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
- include/uapi/linux/videodev2.h                     |   3 +-
- 15 files changed, 480 insertions(+), 17 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
- create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.h
-
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10.rst
+index 8af7569..b145c75 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-srggb10.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb10.rst
+@@ -20,15 +20,16 @@ Description
+ ===========
+ 
+ These four pixel formats are raw sRGB / Bayer formats with 10 bits per
+-colour. Each colour component is stored in a 16-bit word, with 6 unused
+-high bits filled with zeros. Each n-pixel row contains n/2 green samples
+-and n/2 blue or red samples, with alternating red and blue rows. Bytes
+-are stored in memory in little endian order. They are conventionally
+-described as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example
+-of one of these formats
++sample. Each sample is stored in a 16-bit word, with 6 unused
++high bits filled with zeros. Each n-pixel row contains n/2 green samples and
++n/2 blue or red samples, with alternating red and blue rows. Bytes are
++stored in memory in little endian order. They are conventionally described
++as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example of one of
++these formats:
+ 
+ **Byte Order.**
+-Each cell is one byte, high 6 bits in high bytes are 0.
++Each cell is one byte, the 6 most significant bits in the high bytes
++are 0.
+ 
+ 
+ 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
+index cc573c9..80e3457 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
+@@ -20,10 +20,10 @@ Description
+ ===========
+ 
+ These four pixel formats are packed raw sRGB / Bayer formats with 10
+-bits per colour. Every four consecutive colour components are packed
+-into 5 bytes. Each of the first 4 bytes contain the 8 high order bits of
+-the pixels, and the fifth byte contains the two least significants bits
+-of each pixel, in the same order.
++bits per sample. Every four consecutive samples are packed into 5
++bytes. Each of the first 4 bytes contain the 8 high order bits
++of the pixels, and the 5th byte contains the 2 least significants
++bits of each pixel, in the same order.
+ 
+ Each n-pixel row contains n/2 green samples and n/2 blue or red samples,
+ with alternating green-red and green-blue rows. They are conventionally
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb12.rst b/Documentation/media/uapi/v4l/pixfmt-srggb12.rst
+index b2880df..4776f3f 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-srggb12.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb12.rst
+@@ -26,10 +26,11 @@ high bits filled with zeros. Each n-pixel row contains n/2 green samples
+ and n/2 blue or red samples, with alternating red and blue rows. Bytes
+ are stored in memory in little endian order. They are conventionally
+ described as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example
+-of one of these formats
++of one of these formats:
+ 
+ **Byte Order.**
+-Each cell is one byte, high 4 bits in high bytes are 0.
++Each cell is one byte, the 4 most significant bits in the high bytes are
++0.
+ 
+ 
+ 
 -- 
-2.9.3
+2.7.4
 
