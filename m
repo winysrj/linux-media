@@ -1,54 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.goneo.de ([85.220.129.33]:58496 "EHLO smtp2.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965693AbcIWNfQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Sep 2016 09:35:16 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH 06/11] dma-buf: Introduce fence_get_rcu_safe()
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <20160923125932.GG3988@dvetter-linux.ger.corp.intel.com>
-Date: Fri, 23 Sep 2016 15:34:32 +0200
-Cc: Chris Wilson <chris@chris-wilson.co.uk>,
-        dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <D6338AA5-B3C3-48DE-9318-B7255F1F2E84@darmarit.de>
-References: <20160829070834.22296-1-chris@chris-wilson.co.uk> <20160829070834.22296-6-chris@chris-wilson.co.uk> <20160923125932.GG3988@dvetter-linux.ger.corp.intel.com>
-To: Daniel Vetter <daniel@ffwll.ch>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40817
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964810AbcIFSVV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 14:21:21 -0400
+Date: Tue, 6 Sep 2016 15:21:15 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 2/4] v4l: Define a pixel format for the R-Car VSP1
+ 1-D histogram engine
+Message-ID: <20160906152115.25241928@vento.lan>
+In-Reply-To: <2924098.oMaQNCPtyr@avalon>
+References: <1471436430-26245-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+        <1471436430-26245-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+        <20160906140651.214e6f01@vento.lan>
+        <2924098.oMaQNCPtyr@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Tue, 06 Sep 2016 21:11:10 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Am 23.09.2016 um 14:59 schrieb Daniel Vetter <daniel@ffwll.ch>:
-
->> 
->> /**
->> - * fence_put - decreases refcount of the fence
->> - * @fence:	[in]	fence to reduce refcount of
->> + * fence_get_rcu_safe  - acquire a reference to an RCU tracked fence
->> + * @fence:	[in]	pointer to fence to increase refcount of
->> + *
->> + * Function returns NULL if no refcount could be obtained, or the fence.
->> + * This function handles acquiring a reference to a fence that may be
->> + * reallocated within the RCU grace period (such as with SLAB_DESTROY_BY_RCU),
->> + * so long as the caller is using RCU on the pointer to the fence.
->> + *
->> + * An alternative mechanism is to employ a seqlock to protect a bunch of
->> + * fences, such as used by struct reservation_object. When using a seqlock,
->> + * the seqlock must be taken before and checked after a reference to the
->> + * fence is acquired (as shown here).
->> + *
->> + * The caller is required to hold the RCU read lock.
+> Hi Mauro,
 > 
-> Would be good to cross reference the various fence_get functions a bit
-> better in the docs. But since the docs aren't yet pulled into the rst/html
-> output, that doesn't matter that much
+> On Tuesday 06 Sep 2016 14:06:51 Mauro Carvalho Chehab wrote:
+> > Em Wed, 17 Aug 2016 15:20:28 +0300 Laurent Pinchart escreveu:  
+> > > The format is used on the R-Car VSP1 video queues that carry
+> > > 1-D histogram statistics data.
+> > > 
+> > > Signed-off-by: Laurent Pinchart
+> > > <laurent.pinchart+renesas@ideasonboard.com>
+> > > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > ---
+> > > Changes since v1:
+> > > 
+> > > - Rebased on top of the DocBook to reST conversion
+> > > 
+> > >  Documentation/media/uapi/v4l/meta-formats.rst      |  15 ++
+> > >  .../media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst        | 170 ++++++++++++++++
+> > >  Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
+> > >  drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
+> > >  include/uapi/linux/videodev2.h                     |   3 +
+> > >  5 files changed, 190 insertions(+)
+> > >  create mode 100644 Documentation/media/uapi/v4l/meta-formats.rst
+> > >  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
+> > > 
+> > > diff --git a/Documentation/media/uapi/v4l/meta-formats.rst
+> > > b/Documentation/media/uapi/v4l/meta-formats.rst new file mode 100644
+> > > index 000000000000..05ab91e12f10
+> > > --- /dev/null
+> > > +++ b/Documentation/media/uapi/v4l/meta-formats.rst
+> > > @@ -0,0 +1,15 @@
+> > > +.. -*- coding: utf-8; mode: rst -*-
+> > > +
+> > > +.. _meta-formats:
+> > > +
+> > > +****************
+> > > +Metadata Formats
+> > > +****************
+> > > +
+> > > +These formats are used for the :ref:`metadata` interface only.
+> > > +
+> > > +
+> > > +.. toctree::
+> > > +    :maxdepth: 1
+> > > +
+> > > +    pixfmt-meta-vsp1-hgo
+> > > diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
+> > > b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst new file mode
+> > > 100644
+> > > index 000000000000..e935e4525b10
+> > > --- /dev/null
+> > > +++ b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
+> > > @@ -0,0 +1,170 @@
+> > > +.. -*- coding: utf-8; mode: rst -*-
+> > > +
+> > > +.. _v4l2-meta-fmt-vsp1-hgo:
+> > > +
+> > > +*******************************
+> > > +V4L2_META_FMT_VSP1_HGO ('VSPH')
+> > > +*******************************
+> > > +
+> > > +*man V4L2_META_FMT_VSP1_HGO(2)*  
+> > 
+> > Just remove it. This is some trash that came from the conversions.
+> > I have a set of patches removing it on the existing man pages.  
+> 
+> Sure, I will do.
 
-Hi Daniel ... I'am working on ;-)
+Thanks!
 
-* http://return42.github.io/sphkerneldoc/linux_src_doc/include/linux/fence_h.html
+> > > +
+> > > +Renesas R-Car VSP1 1-D Histogram Data
+> > > +
+> > > +
+> > > +Description
+> > > +===========
+> > > +
+> > > +This format describes histogram data generated by the Renesas R-Car VSP1
+> > > 1-D +Histogram (HGO) engine.
+> > > +
+> > > +The VSP1 HGO is a histogram computation engine that can operate on RGB,
+> > > YCrCb +or HSV data. It operates on a possibly cropped and subsampled
+> > > input image and +computes the minimum, maximum and sum of all pixels as
+> > > well as per-channel +histograms.
+> > > +
+> > > +The HGO can compute histograms independently per channel, on the maximum
+> > > of the +three channels (RGB data only) or on the Y channel only (YCbCr
+> > > only). It can +additionally output the histogram with 64 or 256 bins,
+> > > resulting in four +possible modes of operation.
+> > > +
+> > > +- In *64 bins normal mode*, the HGO operates on the three channels
+> > > independently +  to compute three 64-bins histograms. RGB, YCbCr and HSV
+> > > image formats are +  supported.
+> > > +- In *64 bins maximum mode*, the HGO operates on the maximum of the (R,
+> > > G, B) +  channels to compute a single 64-bins histogram. Only the RGB
+> > > image format is +  supported.
+> > > +- In *256 bins normal mode*, the HGO operates on the Y channel to compute
+> > > a +  single 256-bins histogram. Only the YCbCr image format is supported.
+> > > +- In *256 bins maximum mode*, the HGO operates on the maximum of the (R,
+> > > G, B) +  channels to compute a single 256-bins histogram. Only the RGB
+> > > image format is +  supported.  
+> > 
+> > As they all share the same FOURCC format, according with the documentation,
+> > how the user is supposed to switch between those modes? Or is it depend on
+> > the video format? In any case, please add some explanation, and cross-refs
+> > if needed.  
+> 
+> The modes are selected using controls, they don't depend on the video format. 
+> Do you think it would make sense to cross-reference between formats and 
+> controls ?
 
--- Markus 
+It probably makes a way more sense to use enum_fmt/s_fmt/g_fmt ioctls and
+add one different fourcc per format.
+
+Using a control instead of *fmt to select the format seems really weird,
+as it is not what it is expected for the fourcc formats.
+
+
+Thanks,
+Mauro
