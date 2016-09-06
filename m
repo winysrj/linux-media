@@ -1,65 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.goneo.de ([85.220.129.30]:47080 "EHLO smtp1.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752420AbcIGF0j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Sep 2016 01:26:39 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH 2/3] doc-rst:c-domain: function-like macros arguments
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <20160906062723.5125b89b@lwn.net>
-Date: Wed, 7 Sep 2016 07:26:27 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <DD0DE746-C3A0-4863-A199-B9A7944F4CE4@darmarit.de>
-References: <1472657372-21039-1-git-send-email-markus.heiser@darmarit.de> <1472657372-21039-3-git-send-email-markus.heiser@darmarit.de> <20160906062723.5125b89b@lwn.net>
-To: Jonathan Corbet <corbet@lwn.net>
+Received: from mail-pf0-f182.google.com ([209.85.192.182]:34158 "EHLO
+        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750721AbcIFHvM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 03:51:12 -0400
+Received: by mail-pf0-f182.google.com with SMTP id p64so71941319pfb.1
+        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2016 00:51:11 -0700 (PDT)
+From: Baoyou Xie <baoyou.xie@linaro.org>
+To: p.zabel@pengutronix.de, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        arnd@arndb.de, baoyou.xie@linaro.org, xie.baoyou@zte.com.cn
+Subject: [PATCH] [media] coda: add missing header dependencies
+Date: Tue,  6 Sep 2016 15:50:56 +0800
+Message-Id: <1473148256-25347-1-git-send-email-baoyou.xie@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+We get 1 warning when building kernel with W=1:
+drivers/media/platform/coda/coda-h264.c:22:5: warning: no previous prototype for 'coda_h264_padding' [-Wmissing-prototypes]
 
-Am 06.09.2016 um 14:27 schrieb Jonathan Corbet <corbet@lwn.net>:
+In fact, this function is declared in coda.h, so this patch
+add missing header dependencies.
 
-> So I'm going into total nit-picking territory here, but since I'm looking
-> at it and I think the series needs a respin anyway...
-> 
-> On Wed, 31 Aug 2016 17:29:31 +0200
-> Markus Heiser <markus.heiser@darmarit.de> wrote:
-> 
->> +        m = c_funcptr_sig_re.match(sig)
->> +        if m is None:
->> +            m = c_sig_re.match(sig)
->> +        if m is None:
->> +            raise ValueError('no match')
-> 
-> How about we put that second test inside the first if block and avoid the
-> redundant None test if the first match works?  The energy saved may
-> prevent a hurricane someday :)
+Signed-off-by: Baoyou Xie <baoyou.xie@linaro.org>
+---
+ drivers/media/platform/coda/coda-h264.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-And prohibit the MS-Windows update installer will save the climate ;)
-It is a habit of mine to avoid indentations, but you are right,
-it is not appropriate here.
-
->> +
->> +        rettype, fullname, arglist, _const = m.groups()
->> +        if rettype or not arglist.strip():
->> +            return False
->> +
->> +        arglist = arglist.replace('`', '').replace('\\ ', '').strip()  # remove markup
->> +        arglist = [a.strip() for a in arglist.split(",")]
-> 
-> Similarly, stripping the args three times seems a bit much.  The middle
-> one is totally redundant and could go at a minimum.
-
-Thanks for pointing this. You are right, I will fix it.
-
--- Markus --
-
-> 
-> Thanks,
-> 
-> jon
+diff --git a/drivers/media/platform/coda/coda-h264.c b/drivers/media/platform/coda/coda-h264.c
+index 456773a..09dfcca 100644
+--- a/drivers/media/platform/coda/coda-h264.c
++++ b/drivers/media/platform/coda/coda-h264.c
+@@ -13,6 +13,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/string.h>
++#include <coda.h>
+ 
+ static const u8 coda_filler_nal[14] = { 0x00, 0x00, 0x00, 0x01, 0x0c, 0xff,
+ 			0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80 };
+-- 
+2.7.4
 
