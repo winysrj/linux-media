@@ -1,176 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54021 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750946AbcIGWYm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 18:24:42 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran@ksquared.org.uk>
-Subject: [PATCH v3 00/10] v4l: platform: Add Renesas R-Car FDP1 Driver
-Date: Thu,  8 Sep 2016 01:25:00 +0300
-Message-Id: <1473287110-780-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:43900 "EHLO
+        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754196AbcIFM20 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Sep 2016 08:28:26 -0400
+Date: Tue, 6 Sep 2016 15:28:23 +0300
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: Oliver Collyer <ovcollyer@mac.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: uvcvideo error on second capture from USB device, leading to
+ V4L2_BUF_FLAG_ERROR
+Message-ID: <20160906122823.toxscjyxomrh2col@zver>
+References: <C29C248E-5D7A-4E69-A88D-7B971D42E984@mac.com>
+ <20160904192538.75czuv7c2imru6ds@zver>
+ <AE433005-988F-4352-8CF3-30690C82CAA6@mac.com>
+ <20160905201935.wpgtrtt7e4bjjylo@zver>
+ <FE81AFD0-C5F1-4FE7-A282-3294E668066C@mac.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <FE81AFD0-C5F1-4FE7-A282-3294E668066C@mac.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Tue, Sep 06, 2016 at 01:51:51PM +0300, Oliver Collyer wrote:
+> So today I installed Ubuntu 16.04 on another PC (this one a high spec machine with a Rampage V Extreme motherboard) and I reproduced exactly the same errors and trace.
+> 
+> Rebooting the same PC back into Windows 10 and using the same USB 3.0 port, I had no problems capturing using FFmpeg via DirectShow. I could start and stop the capture repeatedly without any warnings or errors appearing in FFmpeg (built from the same source).
+> 
+> If the hardware is misbehaving, on both these capture devices, then DS must be handling it better than V4L2. Or there is simply an obscure bug in V4L2 which only manifests itself with certain devices.
+> 
+> Would providing ssh access to the machine be of interest to anyone who wants to debug this?
 
-Here's the third version of the Renesas R-Car FDP1 driver.
+I am curious to tinker with this, just not sure about free time for it.
+Please go through the following instruction, and then we'll see if ssh
+is going to help to debug this.
 
-The FDP1 (Fine Display Processor) is a hardware memory-to-memory de-interlacer
-device, with capability to convert from various YCbCr/YUV formats to both
-YCbCr/YUV and RGB formats at the same time as converting interlaced content to
-progressive.
+Also I think it is worth to CC actual manufacturers. There are addresses
+for technical support of both devices in public on maker websites.
+Please CC them when replying with new logs, to let them catch up.
 
-Patch 01/10 fixes an issue in the V4L2 ioctl handling core code. It has been
-posted before and hasn't been changed.
+So, I am still not certain what confuses the device, i.e. where the
+faulty usage pattern comes from: ffmpeg or driver. So I'd like you to
+check the difference with various userspace applications which involve
+streaming from device.
 
-Patch 02/10 adds a new standard V4L2 menu control for the deinterlacing mode.
-The menu items are driver specific.
+For each of your two devices, alone (not two at same time), do this:
 
-Patch 03/10 extends the FCP driver to support the FDP1. It has been posted
-before and hasn't been changed.
+For each command from this list:
+"v4l2-compliance -s -d /dev/video0",
+"ffmpeg -f v4l2 -i /dev/video0 -vcodec rawvideo -f null -y /dev/null",
+"<what you referred to as 'capture API example'>"
+(feel free to add more, maybe mplayer invocation or such)
 
-Patch 04/10 adds the FDP1 driver unchanged compared to the v2 posted by
-Kieran. Patches 05/10 to 09/10 then fix issues in the driver and incorporate
-review comments. They will eventually be squashed into patch 04/10, but are
-currently separate to allow easier review of the changes.
+dmesg -C
+plug in the device
+modprobe uvcvideo module
+run the command twice or more in row
+save uncut commands output (with command lines) to separate file
+rmmod uvcvideo
+unplug the device
+save "dmesg" output to separate file
 
-Patch 10/10 reworks buffer handling in the FDP1 driver. This is experimental
-and doesn't fix any known bug. I've included the patch in the series to get
-feedback on whether this is a good idea.
 
-Kieran, I noticed that your patches are authored by
+Done.
 
-	Kieran Bingham <kieran@ksquared.org.uk>
+I guess this test makes sense, or am I missing something you've already
+told us?
 
-Is that correct or should it be changed to
-
-	Kieran Bingham <kieran+renesas@bingham.xyz>
-
-?
-
-Here is the V4L2 compliance report.
-
-v4l2-compliance SHA   : abc1453dfe89f244dccd3460d8e1a2e3091cbadb
-
-Driver Info:
-        Driver name   : rcar_fdp1
-        Card type     : rcar_fdp1
-        Bus info      : platform:rcar_fdp1
-        Driver version: 4.8.0
-        Capabilities  : 0x84204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-                test VIDIOC_QUERYCTRL: OK
-                test VIDIOC_G/S_CTRL: OK
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 5 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK (Not Supported)
-                test Composing: OK (Not Supported)
-                test Scaling: OK
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-
-Geert Uytterhoeven (1):
-  v4l: fdp1: vb2_queue dev conversion
-
-Kieran Bingham (2):
-  v4l: Extend FCP compatible list to support the FDP
-  v4l: Add Renesas R-Car FDP1 Driver
-
-Laurent Pinchart (7):
-  v4l: ioctl: Clear the v4l2_pix_format_mplane reserved field
-  v4l: ctrls: Add deinterlacing mode control
-  v4l: fdp1: Incorporate miscellaneous review comments
-  v4l: fdp1: Remove unused struct fdp1_v4l2_buffer
-  v4l: fdp1: Rewrite format setting code
-  v4l: fdp1: Fix field validation when preparing buffer
-  v4l: fdp1: Store buffer information in vb2 buffer
-
- Documentation/media/uapi/v4l/extended-controls.rst |    4 +
- MAINTAINERS                                        |    9 +
- drivers/media/platform/Kconfig                     |   13 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/rcar-fcp.c                  |    1 +
- drivers/media/platform/rcar_fdp1.c                 | 2456 ++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c               |    2 +
- drivers/media/v4l2-core/v4l2-ioctl.c               |    8 +-
- include/uapi/linux/v4l2-controls.h                 |    1 +
- 9 files changed, 2491 insertions(+), 4 deletions(-)
- create mode 100644 drivers/media/platform/rcar_fdp1.c
-
--- 
-Regards,
-
-Laurent Pinchart
-
+If you go making a script for this, make sure to notice if rmmod fails
+for any reason, etc.
