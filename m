@@ -1,82 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37685 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932575AbcIEOeF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Sep 2016 10:34:05 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id 75EB41858C8
-        for <linux-media@vger.kernel.org>; Mon,  5 Sep 2016 16:34:01 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.9] Various fixes
-Message-ID: <857b705b-740b-bb3c-7c5a-baeed4cfb5f8@xs4all.nl>
-Date: Mon, 5 Sep 2016 16:34:01 +0200
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40285
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932874AbcIFPr3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 11:47:29 -0400
+Date: Tue, 6 Sep 2016 12:47:23 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: VDR User <user.vdr@gmail.com>
+Cc: Chris Mayo <aklhfex@gmail.com>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] v4l-utils: fixed dvbv5 vdr format
+Message-ID: <20160906124723.6783fd39@vento.lan>
+In-Reply-To: <CAA7C2qj5ap3PoK2uenF+kqpCrqjO9znR4y5Y7h2UoaENDcT8XA@mail.gmail.com>
+References: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de>
+        <1470822739-29519-3-git-send-email-markus.heiser@darmarit.de>
+        <20160824114927.3c6ab0d6@vento.lan>
+        <20160824115241.7e2c90ca@vento.lan>
+        <28A9DFEA-1E94-4EE0-A2BB-B22D029683B9@darmarit.de>
+        <20160905102511.6de3dbe4@vento.lan>
+        <eaa7b609-2c27-9943-5197-d9bec71b2db7@gmail.com>
+        <20160906064108.5bd84045@vento.lan>
+        <CAA7C2qj5ap3PoK2uenF+kqpCrqjO9znR4y5Y7h2UoaENDcT8XA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit fb6609280db902bd5d34445fba1c926e95e63914:
+Em Tue, 6 Sep 2016 08:16:22 -0700
+VDR User <user.vdr@gmail.com> escreveu:
 
-  [media] dvb_frontend: Use memdup_user() rather than duplicating its implementation (2016-08-24 17:20:45 -0300)
+> I can tell you that people do still use VDR-1.6.0-3. It would be
+> unwise (and unnecessary) to break backwards compatible, which would be
+> grounds for NACK if you ask me. Knowingly causing breakage has always
+> been an unpopular thing in the VDR community, and this sounds like
+> it's going beyond fixing a small issue to fixing it til it breaks.
 
-are available in the git repository at:
+Well, the libdvbv5 VDR output support was written aiming VDR version 2.1.6.
+I've no idea if it works with VDR 1.6.0. Don't remember if I tested support
+for such version when I wrote the code.
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.9c
+Also, as it seems that VDR 1.6.0 was released in 2008, it probably won't
+support DVB-T2 (with was added in 2011) and may not support DVB-S2
+(added in 2008, but support for DTV_STREAM_ID seems to be added only
+in 2012).
 
-for you to fetch changes up to fb1f780359fcf558a4c2a41f29aef52b96ade94a:
+So, at least for DVB-T2/DVB-S2, people likely need some version newer
+than VDR 1.6.0 for full support. If so, the changes proposed by Markus
+and Chris won't be disruptive for 1.6, as they seem to be touching only
+on DVB-T2 and DVB-S2 support, right?
 
-  cobalt: update EDID (2016-09-05 16:30:39 +0200)
+Please correct me if I'm wrong.
 
-----------------------------------------------------------------
-Andrey Utkin (1):
-      tw5864-core: remove excessive irqsave
-
-Ezequiel Garcia (1):
-      media: tw686x: Support frame sizes and frame intervals enumeration
-
-Hans Verkuil (3):
-      Revert "[media] tw5864: remove double irq lock code"
-      vivid: update EDID
-      cobalt: update EDID
-
-Johan Fjeldtvedt (5):
-      cec: allow configuration both from within driver and from user space
-      pulse8-cec: serialize communication with adapter
-      pulse8-cec: add notes about behavior in autonomous mode
-      pulse8-cec: sync configuration with adapter
-      pulse8-cec: fixes
-
-Markus Elfring (2):
-      media/i2c: Delete owner assignment
-      radio-si470x-i2c: Delete owner assignment
-
-Songjun Wu (1):
-      atmel-isc: remove the warning
-
-Tiffany Lin (1):
-      vcodec: mediatek: Add g/s_selection support for V4L2 Encoder
-
- drivers/media/i2c/ad9389b.c                        |   1 -
- drivers/media/i2c/adv7183.c                        |   1 -
- drivers/media/i2c/adv7393.c                        |   1 -
- drivers/media/i2c/cs3308.c                         |   1 -
- drivers/media/i2c/s5k4ecgx.c                       |   1 -
- drivers/media/i2c/s5k6a3.c                         |   1 -
- drivers/media/i2c/ths8200.c                        |   1 -
- drivers/media/i2c/tlv320aic23b.c                   |   1 -
- drivers/media/i2c/tvp514x.c                        |   1 -
- drivers/media/i2c/tvp7002.c                        |   1 -
- drivers/media/i2c/vs6624.c                         |   1 -
- drivers/media/pci/cobalt/cobalt-driver.c           |  47 +++----
- drivers/media/pci/tw5864/tw5864-core.c             |   2 +
- drivers/media/pci/tw686x/tw686x-video.c            |  38 +++++
- drivers/media/platform/atmel/atmel-isc.c           |   2 +-
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |  66 +++++++++
- drivers/media/platform/vivid/vivid-core.c          |  58 ++++----
- drivers/media/radio/si470x/radio-si470x-i2c.c      |   1 -
- drivers/staging/media/cec/cec-adap.c               |   4 -
- drivers/staging/media/pulse8-cec/pulse8-cec.c      | 366 ++++++++++++++++++++++++++++++++++++++-----------
- 20 files changed, 449 insertions(+), 146 deletions(-)
+Thanks,
+Mauro
