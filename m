@@ -1,123 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:52335 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755607AbcIGDCe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Sep 2016 23:02:34 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id 9C8701800E4
-        for <linux-media@vger.kernel.org>; Wed,  7 Sep 2016 05:02:27 +0200 (CEST)
-Date: Wed, 07 Sep 2016 05:02:27 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160907030227.9C8701800E4@tschai.lan>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:32982 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933412AbcIFOkE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 10:40:04 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com
+Cc: corbet@lwn.net, mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2 0/2] v4l: vsp1: Add HGT support
+Date: Tue,  6 Sep 2016 16:38:54 +0200
+Message-Id: <20160906143856.27564-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+This series add support for the VSP1 2-D histogram engine HGT.
 
-date:		Wed Sep  7 04:00:21 CEST 2016
-git branch:	test
-git hash:	036bbb8213ecca49799217f30497dc0484178e53
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+It's based on top of Laurent Pinchart tree at 
+git://linuxtv.org/pinchartl/media.git hgo. And depends on Laurents patch 
+'[PATCH] v4l: vsp1: Move subdev operations from HGO to common histogram 
+code'.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: WARNINGS
-linux-4.8-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-linux-4.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+It is tested on Koelsch using a modified vsp-tests suite package,
+modifications can be found at https://git.ragnatech.se/vsp-tests hgt.
 
-Detailed results are available here:
+* Changes since v1
+- Rebased on top of Laurents patch which made all subdev operations 
+  common for HGO and HGT. This removed a lot of code that is now shared.
+- Removed the Hue area configuration for the histogram pixel format.  
+  These values are set by userspace so it already knows them.
+- Updated pixel format documentation after input from Laurent.
+- Better aligned the code to the existing VSP code base.
+- Simplify check that hue areas are valid for the hardware.
+- Fixed spelling.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Niklas Söderlund (2):
+  v4l: Define a pixel format for the R-Car VSP1 2-D histogram engine
+  v4l: vsp1: Add HGT support
 
-Full logs are available here:
+ Documentation/media/uapi/v4l/meta-formats.rst      |   1 +
+ .../media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst        | 122 ++++++++++++
+ drivers/media/platform/vsp1/Makefile               |   2 +-
+ drivers/media/platform/vsp1/vsp1.h                 |   3 +
+ drivers/media/platform/vsp1/vsp1_drv.c             |  33 +++-
+ drivers/media/platform/vsp1/vsp1_entity.c          |  33 +++-
+ drivers/media/platform/vsp1/vsp1_entity.h          |   1 +
+ drivers/media/platform/vsp1/vsp1_hgt.c             | 217 +++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_hgt.h             |  42 ++++
+ drivers/media/platform/vsp1/vsp1_pipe.c            |  16 ++
+ drivers/media/platform/vsp1/vsp1_pipe.h            |   2 +
+ drivers/media/platform/vsp1/vsp1_regs.h            |   9 +
+ drivers/media/platform/vsp1/vsp1_video.c           |  10 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
+ include/uapi/linux/videodev2.h                     |   3 +-
+ 15 files changed, 478 insertions(+), 17 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
+ create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.h
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+-- 
+2.9.3
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
