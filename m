@@ -1,49 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:36493 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752469AbcIORdg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 13:33:36 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        magnus.damm@gmail.com, ulrich.hecht+renesas@gmail.com,
-        laurent.pinchart@ideasonboard.com, william.towle@codethink.co.uk
-Subject: [PATCH v9 2/2] media: rcar-vin: use sink pad index for DV timings
-Date: Thu, 15 Sep 2016 19:33:24 +0200
-Message-Id: <20160915173324.24539-3-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <20160915173324.24539-1-ulrich.hecht+renesas@gmail.com>
-References: <20160915173324.24539-1-ulrich.hecht+renesas@gmail.com>
+Received: from smtp10.smtpout.orange.fr ([80.12.242.132]:49589 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756055AbcIFJMF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 05:12:05 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Jiri Kosina <trivial@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v6 11/14] media: platform: pxa_camera: add debug register access
+Date: Tue,  6 Sep 2016 11:04:21 +0200
+Message-Id: <1473152664-5077-11-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
+References: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Add pxa_camera registers access through advanced video debugging.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index f35005c..2bbe6d4 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -550,7 +550,7 @@ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
- 	int pad, ret;
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 32 ++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index 395cd398c32b..fb89b85f59ab 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -1342,6 +1342,34 @@ static int pxa_camera_check_frame(u32 width, u32 height)
+ 		(width & 0x01);
+ }
  
- 	pad = timings->pad;
--	timings->pad = vin->src_pad_idx;
-+	timings->pad = vin->sink_pad_idx;
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++static int pxac_vidioc_g_register(struct file *file, void *priv,
++				  struct v4l2_dbg_register *reg)
++{
++	struct pxa_camera_dev *pcdev = video_drvdata(file);
++
++	if (reg->reg > CIBR2)
++		return -ERANGE;
++
++	reg->val = __raw_readl(pcdev->base + reg->reg);
++	reg->size = sizeof(__u32);
++	return 0;
++}
++
++static int pxac_vidioc_s_register(struct file *file, void *priv,
++				  const struct v4l2_dbg_register *reg)
++{
++	struct pxa_camera_dev *pcdev = video_drvdata(file);
++
++	if (reg->reg > CIBR2)
++		return -ERANGE;
++	if (reg->size != sizeof(__u32))
++		return -EINVAL;
++	__raw_writel(reg->val, pcdev->base + reg->reg);
++	return 0;
++}
++#endif
++
+ static int pxac_vidioc_enum_fmt_vid_cap(struct file *filp, void  *priv,
+ 					struct v4l2_fmtdesc *f)
+ {
+@@ -1592,6 +1620,10 @@ static const struct v4l2_ioctl_ops pxa_camera_ioctl_ops = {
+ 	.vidioc_expbuf			= vb2_ioctl_expbuf,
+ 	.vidioc_streamon		= vb2_ioctl_streamon,
+ 	.vidioc_streamoff		= vb2_ioctl_streamoff,
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	.vidioc_g_register		= pxac_vidioc_g_register,
++	.vidioc_s_register		= pxac_vidioc_s_register,
++#endif
+ };
  
- 	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
- 
-@@ -604,7 +604,7 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
- 	int pad, ret;
- 
- 	pad = cap->pad;
--	cap->pad = vin->src_pad_idx;
-+	cap->pad = vin->sink_pad_idx;
- 
- 	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
- 
+ static struct v4l2_clk_ops pxa_camera_mclk_ops = {
 -- 
-2.9.3
+2.1.4
 
