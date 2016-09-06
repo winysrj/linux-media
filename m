@@ -1,92 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:50797 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757188AbcIAVXy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Sep 2016 17:23:54 -0400
-Date: Thu, 1 Sep 2016 22:23:51 +0100
-From: Sean Young <sean@mess.org>
-To: Andi Shyti <andi.shyti@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Andi Shyti <andi@etezian.org>
-Subject: Re: [PATCH v2 1/7] [media] rc-main: assign driver type during
- allocation
-Message-ID: <20160901212351.GB22198@gofer.mess.org>
-References: <20160901171629.15422-1-andi.shyti@samsung.com>
- <20160901171629.15422-2-andi.shyti@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160901171629.15422-2-andi.shyti@samsung.com>
+Received: from smtp10.smtpout.orange.fr ([80.12.242.132]:29209 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932486AbcIFJEe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 05:04:34 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Jiri Kosina <trivial@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v6 09/14] media: platform: pxa_camera: remove set_selection
+Date: Tue,  6 Sep 2016 11:04:19 +0200
+Message-Id: <1473152664-5077-9-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
+References: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 02, 2016 at 02:16:23AM +0900, Andi Shyti wrote:
-> The driver type can be assigned immediately when an RC device
-> requests to the framework to allocate the device.
-> 
-> This is an 'enum rc_driver_type' data type and specifies whether
-> the device is a raw receiver or scancode receiver. The type will
-> be given as parameter to the rc_allocate_device device.
-> 
-> Change accordingly all the drivers calling rc_allocate_device()
-> so that the device type is specified during the rc device
-> allocation. Whenever the device type is not specified, it will be
-> set as RC_DRIVER_SCANCODE which was the default '0' value.
-> 
-> Suggested-by: Sean Young <sean@mess.org>
-> Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
-> ---
+This is to be seen as a regression as the set_selection (former
+set_crop) function is removed. This is a temporary situation in the v4l2
+porting, and will have to be added later.
 
-...
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 83 --------------------------
+ 1 file changed, 83 deletions(-)
 
-> diff --git a/drivers/media/pci/cx88/cx88-input.c b/drivers/media/pci/cx88/cx88-input.c
-> index 3f1342c..e52bf69 100644
-> --- a/drivers/media/pci/cx88/cx88-input.c
-> +++ b/drivers/media/pci/cx88/cx88-input.c
-> @@ -271,7 +271,7 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
->  				 */
->  
->  	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
-> -	dev = rc_allocate_device();
-> +	dev = rc_allocate_device(RC_DRIVER_IR_RAW);
->  	if (!ir || !dev)
->  		goto err_out_free;
->  
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index d9e2570d3931..8f329d0b2cda 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -1294,88 +1294,6 @@ static int pxa_camera_check_frame(u32 width, u32 height)
+ 		(width & 0x01);
+ }
+ 
+-static int pxa_camera_set_selection(struct soc_camera_device *icd,
+-				    struct v4l2_selection *sel)
+-{
+-	const struct v4l2_rect *rect = &sel->r;
+-	struct device *dev = icd->parent;
+-	struct soc_camera_host *ici = to_soc_camera_host(dev);
+-	struct pxa_camera_dev *pcdev = ici->priv;
+-	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+-	struct soc_camera_sense sense = {
+-		.master_clock = pcdev->mclk,
+-		.pixel_clock_max = pcdev->ciclk / 4,
+-	};
+-	struct v4l2_subdev_format fmt = {
+-		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+-	};
+-	struct v4l2_mbus_framefmt *mf = &fmt.format;
+-	struct pxa_cam *cam = icd->host_priv;
+-	u32 fourcc = icd->current_fmt->host_fmt->fourcc;
+-	struct v4l2_subdev_selection sdsel = {
+-		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+-		.target = sel->target,
+-		.flags = sel->flags,
+-		.r = sel->r,
+-	};
+-	int ret;
+-
+-	/* If PCLK is used to latch data from the sensor, check sense */
+-	if (pcdev->platform_flags & PXA_CAMERA_PCLK_EN)
+-		icd->sense = &sense;
+-
+-	ret = sensor_call(pcdev, pad, set_selection, NULL, &sdsel);
+-
+-	icd->sense = NULL;
+-
+-	if (ret < 0) {
+-		dev_warn(pcdev_to_dev(pcdev), "Failed to crop to %ux%u@%u:%u\n",
+-			 rect->width, rect->height, rect->left, rect->top);
+-		return ret;
+-	}
+-	sel->r = sdsel.r;
+-
+-	ret = sensor_call(pcdev, pad, get_fmt, NULL, &fmt);
+-	if (ret < 0)
+-		return ret;
+-
+-	if (pxa_camera_check_frame(mf->width, mf->height)) {
+-		/*
+-		 * Camera cropping produced a frame beyond our capabilities.
+-		 * FIXME: just extract a subframe, that we can process.
+-		 */
+-		v4l_bound_align_image(&mf->width, 48, 2048, 1,
+-			&mf->height, 32, 2048, 0,
+-			fourcc == V4L2_PIX_FMT_YUV422P ? 4 : 0);
+-		ret = sensor_call(pcdev, pad, set_fmt, NULL, &fmt);
+-		if (ret < 0)
+-			return ret;
+-
+-		if (pxa_camera_check_frame(mf->width, mf->height)) {
+-			dev_warn(pcdev_to_dev(pcdev),
+-				 "Inconsistent state. Use S_FMT to repair\n");
+-			return -EINVAL;
+-		}
+-	}
+-
+-	if (sense.flags & SOCAM_SENSE_PCLK_CHANGED) {
+-		if (sense.pixel_clock > sense.pixel_clock_max) {
+-			dev_err(pcdev_to_dev(pcdev),
+-				"pixel clock %lu set by the camera too high!",
+-				sense.pixel_clock);
+-			return -EIO;
+-		}
+-		recalculate_fifo_timeout(pcdev, sense.pixel_clock);
+-	}
+-
+-	icd->user_width		= mf->width;
+-	icd->user_height	= mf->height;
+-
+-	pxa_camera_setup_cicr(icd, cam->flags, fourcc);
+-
+-	return ret;
+-}
+-
+ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
+ 			      struct v4l2_format *f)
+ {
+@@ -1588,7 +1506,6 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
+ 	.remove		= pxa_camera_remove_device,
+ 	.clock_start	= pxa_camera_clock_start,
+ 	.clock_stop	= pxa_camera_clock_stop,
+-	.set_selection	= pxa_camera_set_selection,
+ 	.get_formats	= pxa_camera_get_formats,
+ 	.put_formats	= pxa_camera_put_formats,
+ 	.set_fmt	= pxa_camera_set_fmt,
+-- 
+2.1.4
 
-If ir->sampling = 0 then it should be RC_DRIVER_SCANCODE.
-
-
-> @@ -481,7 +481,6 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
->  	dev->scancode_mask = hardware_mask;
->  
->  	if (ir->sampling) {
-> -		dev->driver_type = RC_DRIVER_IR_RAW;
->  		dev->timeout = 10 * 1000 * 1000; /* 10 ms */
->  	} else {
->  		dev->driver_type = RC_DRIVER_SCANCODE;
-
-That assignment shouldn't really be there any more.
-
-
-> diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
-> index c8042c3..e9d4a47 100644
-> --- a/drivers/media/pci/saa7134/saa7134-input.c
-> +++ b/drivers/media/pci/saa7134/saa7134-input.c
-> @@ -849,7 +849,7 @@ int saa7134_input_init1(struct saa7134_dev *dev)
->  	}
->  
->  	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
-> -	rc = rc_allocate_device();
-> +	rc = rc_allocate_device(RC_DRIVER_SCANCODE);
->  	if (!ir || !rc) {
->  		err = -ENOMEM;
->  		goto err_out_free;
-
-This is not correct, I'm afraid. If you look at the code you can see that
-if raw_decode is true, then it should be RC_DRIVER_IR_RAW.
-
-
-Sean
