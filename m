@@ -1,61 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:53312 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751443AbcISWzg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 18:55:36 -0400
-Date: Tue, 20 Sep 2016 00:55:21 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/5] smiapp: Set device for pixel array and binner
-Message-ID: <20160919225519.xcy7abku7frm45a2@earth>
-References: <1473938961-16067-1-git-send-email-sakari.ailus@linux.intel.com>
- <1473938961-16067-3-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="i3ozvuqp3bkpe2ob"
-Content-Disposition: inline
-In-Reply-To: <1473938961-16067-3-git-send-email-sakari.ailus@linux.intel.com>
+Received: from smtp10.smtpout.orange.fr ([80.12.242.132]:39274 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755531AbcIFJEa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 05:04:30 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Jiri Kosina <trivial@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v6 02/14] media: mt9m111: use only the SRGB colorspace
+Date: Tue,  6 Sep 2016 11:04:12 +0200
+Message-Id: <1473152664-5077-2-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
+References: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+mt9m111 being a camera sensor, its colorspace should always be SRGB, for
+both RGB based formats or YCbCr based ones.
 
---i3ozvuqp3bkpe2ob
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/i2c/soc_camera/mt9m111.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Hi,
+diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
+index 7faf49f0d9f9..72e71b762827 100644
+--- a/drivers/media/i2c/soc_camera/mt9m111.c
++++ b/drivers/media/i2c/soc_camera/mt9m111.c
+@@ -188,10 +188,10 @@ struct mt9m111_datafmt {
+ };
+ 
+ static const struct mt9m111_datafmt mt9m111_colour_fmts[] = {
+-	{MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_JPEG},
+-	{MEDIA_BUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_JPEG},
+-	{MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_JPEG},
+-	{MEDIA_BUS_FMT_VYUY8_2X8, V4L2_COLORSPACE_JPEG},
++	{MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_SRGB},
++	{MEDIA_BUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_SRGB},
++	{MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_SRGB},
++	{MEDIA_BUS_FMT_VYUY8_2X8, V4L2_COLORSPACE_SRGB},
+ 	{MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
+ 	{MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE, V4L2_COLORSPACE_SRGB},
+ 	{MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB},
+-- 
+2.1.4
 
-On Thu, Sep 15, 2016 at 02:29:18PM +0300, Sakari Ailus wrote:
-> The dev field of the v4l2_subdev was left NULL for the pixel array and
-> binner sub-devices. Fix this.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Reviewed-By: Sebastian Reichel <sre@kernel.org>
-
--- Sebastian
-
---i3ozvuqp3bkpe2ob
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJX4GzXAAoJENju1/PIO/qaIOwQAIcgqiGl38FLlVOZAgP6kqa/
-iu0Zp4Ea+r/3wvEptiUhulpJXxFYJQbdTRMYH0ryyzfSJtCrY7F8ZBZ3ymx/hlkE
-8xv5/TJJIBjBbqw0uWwCyCTX7reEbAsVYpcRG+LTUNk5ESwi3htp2ZXiMjNOnR0F
-K4qWc15RV9tNH2gbqoQs2s8jF/hejrO1VbIwGxBcQ+N2RkVnygEBXouqPK7YQ3on
-RmWhTmxjMPzdsB/1KOFEhpKD2F0fJe4o8hQfTSj6HScO92pLlRJcVtk5AkORFxRd
-QrLy5udBQ6ICzUVndVU61BUGl1+QpKuR6ol/1i4qTR0jivyEIcyo45Me4LbzSaSb
-Wacq/QTSGWzY21PtUT/61/nOCH5Ia3phjITfDeMTWUU1+JT87dVNGjcCPJvMjm+c
-FnqkXqjZw7Zuo+8iXkwi+YMuiDkoIn2OAXkTSQbZcqIvwRJ1gq3IHw5lSXL3Wz/d
-xAyaaEhTrlCO1gkcgagdPBLjHDqED+ajIqNTNi+oHUrBVT+bcZDhO85ENPer9J6h
-vTRXWfllQeNowjPKnqpRvijoArjg8jcnOPDxI12SW8OwrCM8RhMrK8EQ5Sh5sEM8
-ftmXOoTbgIHMV8Ou9EJn0WQgU5fL1zMNdKWUnYNNn4lO0aBAurwM5DEo2nLheqDa
-Z55cxA3Iab4XitmeVNPc
-=aR4D
------END PGP SIGNATURE-----
-
---i3ozvuqp3bkpe2ob--
