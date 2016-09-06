@@ -1,50 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43881 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965316AbcIHMET (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:19 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 24/47] [media] v4l2-dv-timings.h: let kernel-doc parte the typedef argument
-Date: Thu,  8 Sep 2016 09:03:46 -0300
-Message-Id: <4d2bc4d5e5f70ec9e9fd02f2d67ebb2e3e8d1fe3.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
+Received: from smtp10.smtpout.orange.fr ([80.12.242.132]:33053 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756056AbcIFJMF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 05:12:05 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Jiri Kosina <trivial@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v6 12/14] media: platform: pxa_camera: change stop_streaming semantics
+Date: Tue,  6 Sep 2016 11:04:22 +0200
+Message-Id: <1473152664-5077-12-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
+References: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that scripts/kernel-doc was fixed to parse the typedef
-argument used here, let it produce documentation.
+Instead of the legacy behavior where it was required to wait for all
+video buffers to be finished by the hardware, use a cancel like strategy
+: as soon as the stop_streaming() call is done, abort all DMA transfers,
+report the already buffers as failed and return.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+This makes stop_streaming() more a "cancel capture" than a "wait for end
+of capture" semantic.
+
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 ---
- include/media/v4l2-dv-timings.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/soc_camera/pxa_camera.c | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
-index 65caadf13eec..0a7d9e1fc8c8 100644
---- a/include/media/v4l2-dv-timings.h
-+++ b/include/media/v4l2-dv-timings.h
-@@ -28,8 +28,8 @@
-  */
- extern const struct v4l2_dv_timings v4l2_dv_timings_presets[];
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index fb89b85f59ab..868c6ad4784c 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -523,7 +523,8 @@ static void pxa_camera_stop_capture(struct pxa_camera_dev *pcdev)
+ }
  
--/*
-- * v4l2_check_dv_timings_fnc - timings check callback
-+/**
-+ * typedef v4l2_check_dv_timings_fnc - timings check callback
-  *
-  * @t: the v4l2_dv_timings struct.
-  * @handle: a handle from the driver.
+ static void pxa_camera_wakeup(struct pxa_camera_dev *pcdev,
+-			      struct pxa_buffer *buf)
++			      struct pxa_buffer *buf,
++			      enum vb2_buffer_state state)
+ {
+ 	struct vb2_buffer *vb = &buf->vbuf.vb2_buf;
+ 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+@@ -645,7 +646,7 @@ static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
+ 	}
+ 	buf->active_dma &= ~act_dma;
+ 	if (!buf->active_dma) {
+-		pxa_camera_wakeup(pcdev, buf);
++		pxa_camera_wakeup(pcdev, buf, VB2_BUF_STATE_DONE);
+ 		pxa_camera_check_link_miss(pcdev, last_buf->cookie[chan],
+ 					   last_issued);
+ 	}
+@@ -1087,7 +1088,15 @@ static int pxac_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 
+ static void pxac_vb2_stop_streaming(struct vb2_queue *vq)
+ {
+-	vb2_wait_for_all_buffers(vq);
++	struct pxa_camera_dev *pcdev = vb2_get_drv_priv(vq);
++	struct pxa_buffer *buf, *tmp;
++
++	dev_dbg(pcdev_to_dev(pcdev), "%s active=%p\n",
++		__func__, pcdev->active);
++	pxa_camera_stop_capture(pcdev);
++
++	list_for_each_entry_safe(buf, tmp, &pcdev->capture, queue)
++		pxa_camera_wakeup(pcdev, buf, VB2_BUF_STATE_ERROR);
+ }
+ 
+ static struct vb2_ops pxac_vb2_ops = {
 -- 
-2.7.4
-
+2.1.4
 
