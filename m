@@ -1,439 +1,588 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:34747 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751967AbcILQB3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Sep 2016 12:01:29 -0400
-From: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v1 1/2] st-hva: encoding summary at instance release
-Date: Mon, 12 Sep 2016 18:01:14 +0200
-Message-ID: <1473696075-9190-2-git-send-email-jean-christophe.trotin@st.com>
-In-Reply-To: <1473696075-9190-1-git-send-email-jean-christophe.trotin@st.com>
-References: <1473696075-9190-1-git-send-email-jean-christophe.trotin@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mga05.intel.com ([192.55.52.43]:62675 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755616AbcIFL4t (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Sep 2016 07:56:49 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl
+Subject: [PATCH v4 7/8] media: Add 1X16 16-bit raw bayer media bus code definitions
+Date: Tue,  6 Sep 2016 14:55:39 +0300
+Message-Id: <1473162940-31486-8-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1473162940-31486-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1473162940-31486-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch prints unconditionnaly a short summary about the encoding
-operation at each instance closing, for debug purpose:
-- information about the stream (format, profile, level, resolution)
-- performance information (number of encoded frames, maximum framerate)
-- potential (system, encoding...) errors
+The codes will be called:
 
-Signed-off-by: Yannick Fertre <yannick.fertre@st.com>
-Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+	MEDIA_BUS_FMT_SBGGR16_1X16
+	MEDIA_BUS_FMT_SGBRG16_1X16
+	MEDIA_BUS_FMT_SGRBG16_1X16
+	MEDIA_BUS_FMT_SRGGB16_1X16
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/sti/hva/Makefile    |   2 +-
- drivers/media/platform/sti/hva/hva-debug.c | 125 +++++++++++++++++++++++++++++
- drivers/media/platform/sti/hva/hva-h264.c  |   6 ++
- drivers/media/platform/sti/hva/hva-hw.c    |   5 ++
- drivers/media/platform/sti/hva/hva-mem.c   |   5 +-
- drivers/media/platform/sti/hva/hva-v4l2.c  |  30 ++++---
- drivers/media/platform/sti/hva/hva.h       |  27 +++++++
- 7 files changed, 188 insertions(+), 12 deletions(-)
- create mode 100644 drivers/media/platform/sti/hva/hva-debug.c
+ Documentation/media/uapi/v4l/subdev-formats.rst | 290 +++++++++++++++++++++++-
+ include/uapi/linux/media-bus-format.h           |   6 +-
+ 2 files changed, 294 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/sti/hva/Makefile b/drivers/media/platform/sti/hva/Makefile
-index ffb69ce..0895d2d 100644
---- a/drivers/media/platform/sti/hva/Makefile
-+++ b/drivers/media/platform/sti/hva/Makefile
-@@ -1,2 +1,2 @@
- obj-$(CONFIG_VIDEO_STI_HVA) := st-hva.o
--st-hva-y := hva-v4l2.o hva-hw.o hva-mem.o hva-h264.o
-+st-hva-y := hva-v4l2.o hva-hw.o hva-mem.o hva-h264.o hva-debug.o
-diff --git a/drivers/media/platform/sti/hva/hva-debug.c b/drivers/media/platform/sti/hva/hva-debug.c
-new file mode 100644
-index 0000000..71bbf32
---- /dev/null
-+++ b/drivers/media/platform/sti/hva/hva-debug.c
-@@ -0,0 +1,125 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2015
-+ * Authors: Yannick Fertre <yannick.fertre@st.com>
-+ *          Hugues Fruchet <hugues.fruchet@st.com>
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#include "hva.h"
-+
-+/*
-+ * encoding summary
-+ */
-+
-+char *hva_dbg_summary(struct hva_ctx *ctx)
-+{
-+	struct hva_streaminfo *stream = &ctx->streaminfo;
-+	struct hva_frameinfo *frame = &ctx->frameinfo;
-+	struct hva_ctx_dbg *dbg = &ctx->dbg;
-+	static char str[200] = "";
-+	char *cur = str;
-+	size_t left = sizeof(str);
-+	int cnt = 0;
-+	int ret = 0;
-+	u32 errors;
-+
-+	/* frame info */
-+	cur += cnt;
-+	left -= cnt;
-+	ret = snprintf(cur, left, "%4.4s %dx%d > ",
-+		       (char *)&frame->pixelformat,
-+		       frame->aligned_width, frame->aligned_height);
-+	cnt = (left > ret ? ret : left);
-+
-+	/* stream info */
-+	cur += cnt;
-+	left -= cnt;
-+	ret = snprintf(cur, left, "%4.4s %dx%d %s %s: ",
-+		       (char *)&stream->streamformat,
-+		       stream->width, stream->height,
-+		       stream->profile, stream->level);
-+	cnt = (left > ret ? ret : left);
-+
-+	/* performance info */
-+	cur += cnt;
-+	left -= cnt;
-+	ret = snprintf(cur, left, "%d frames encoded", dbg->cnt_duration);
-+	cnt = (left > ret ? ret : left);
-+
-+	if (dbg->cnt_duration && dbg->total_duration) {
-+		u64 div;
-+		u32 fps;
-+
-+		div = (u64)dbg->cnt_duration * 100000;
-+		do_div(div, dbg->total_duration);
-+		fps = (u32)div;
-+		cur += cnt;
-+		left -= cnt;
-+		ret = snprintf(cur, left, ", max fps (0.1Hz)=%d", fps);
-+		cnt = (left > ret ? ret : left);
-+	}
-+
-+	/* error info */
-+	errors = dbg->sys_errors + dbg->encode_errors + dbg->frame_errors;
-+	if (errors) {
-+		cur += cnt;
-+		left -= cnt;
-+		ret = snprintf(cur, left, ", %d errors", errors);
-+		cnt = (left > ret ? ret : left);
-+	}
-+
-+	return str;
-+}
-+
-+/*
-+ * performance debug info
-+ */
-+
-+void hva_dbg_perf_begin(struct hva_ctx *ctx)
-+{
-+	struct hva_ctx_dbg *dbg = &ctx->dbg;
-+
-+	dbg->begin = ktime_get();
-+
-+	/*
-+	 * filter sequences valid for performance:
-+	 * - begin/begin (no stream available) is an invalid sequence
-+	 * - begin/end is a valid sequence
-+	 */
-+	dbg->is_valid_period = false;
-+}
-+
-+void hva_dbg_perf_end(struct hva_ctx *ctx, struct hva_stream *stream)
-+{
-+	struct device *dev = ctx_to_dev(ctx);
-+	u64 div;
-+	u32 duration;
-+	u32 bytesused;
-+	u32 timestamp;
-+	struct hva_ctx_dbg *dbg = &ctx->dbg;
-+	ktime_t end = ktime_get();
-+
-+	/* stream bytesused and timestamp in us */
-+	bytesused = vb2_get_plane_payload(&stream->vbuf.vb2_buf, 0);
-+	div = stream->vbuf.vb2_buf.timestamp;
-+	do_div(div, 1000);
-+	timestamp = (u32)div;
-+
-+	/* encoding duration */
-+	div = (u64)ktime_us_delta(end, dbg->begin);
-+
-+	dev_dbg(dev,
-+		"%s perf stream[%d] dts=%d encoded using %d bytes in %d us",
-+		ctx->name,
-+		stream->vbuf.sequence,
-+		timestamp,
-+		bytesused, (u32)div);
-+
-+	do_div(div, 100);
-+	duration = (u32)div;
-+
-+	dbg->total_duration += duration;
-+	dbg->cnt_duration++;
-+
-+	dbg->is_valid_period = true;
-+}
-diff --git a/drivers/media/platform/sti/hva/hva-h264.c b/drivers/media/platform/sti/hva/hva-h264.c
-index 8cc8467..b1e2b60 100644
---- a/drivers/media/platform/sti/hva/hva-h264.c
-+++ b/drivers/media/platform/sti/hva/hva-h264.c
-@@ -607,6 +607,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
- 			"%s   width(%d) or height(%d) exceeds limits (%dx%d)\n",
- 			pctx->name, frame_width, frame_height,
- 			H264_MAX_SIZE_W, H264_MAX_SIZE_H);
-+		pctx->dbg.frame_errors++;
- 		return -EINVAL;
- 	}
+diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+index 07e7cf98..06d8981 100644
+--- a/Documentation/media/uapi/v4l/subdev-formats.rst
++++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+@@ -2812,7 +2812,7 @@ organization is given as an example for the first pixel only.
+        -  Code
  
-@@ -717,6 +718,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
- 	default:
- 		dev_err(dev, "%s   invalid source pixel format\n",
- 			pctx->name);
-+		pctx->dbg.frame_errors++;
- 		return -EINVAL;
- 	}
+        -
+-       -  :cspan:`13` Data organization
++       -  :cspan:`15` Data organization
  
-@@ -741,6 +743,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+     -  .. row 2
  
- 	if (td->framerate_den == 0) {
- 		dev_err(dev, "%s   invalid framerate\n", pctx->name);
-+		pctx->dbg.frame_errors++;
- 		return -EINVAL;
- 	}
+@@ -2820,6 +2820,10 @@ organization is given as an example for the first pixel only.
+        -
+        -  Bit
  
-@@ -831,6 +834,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
- 	    (payload > MAX_SPS_PPS_SIZE)) {
- 		dev_err(dev, "%s   invalid sps/pps size %d\n", pctx->name,
- 			payload);
-+		pctx->dbg.frame_errors++;
- 		return -EINVAL;
- 	}
- 
-@@ -842,6 +846,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
- 						   (u8 *)stream->vaddr,
- 						   &payload)) {
- 		dev_err(dev, "%s   fail to get SEI nal\n", pctx->name);
-+		pctx->dbg.frame_errors++;
- 		return -EINVAL;
- 	}
- 
-@@ -963,6 +968,7 @@ err_seq_info:
- err_ctx:
- 	devm_kfree(dev, ctx);
- err:
-+	pctx->dbg.sys_errors++;
- 	return ret;
- }
- 
-diff --git a/drivers/media/platform/sti/hva/hva-hw.c b/drivers/media/platform/sti/hva/hva-hw.c
-index 8d9ad1c..c84b860 100644
---- a/drivers/media/platform/sti/hva/hva-hw.c
-+++ b/drivers/media/platform/sti/hva/hva-hw.c
-@@ -470,6 +470,7 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
- 
- 	if (pm_runtime_get_sync(dev) < 0) {
- 		dev_err(dev, "%s     failed to get pm_runtime\n", ctx->name);
-+		ctx->dbg.sys_errors++;
- 		ret = -EFAULT;
- 		goto out;
- 	}
-@@ -481,6 +482,7 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
- 		break;
- 	default:
- 		dev_dbg(dev, "%s     unknown command 0x%x\n", ctx->name, cmd);
-+		ctx->dbg.encode_errors++;
- 		ret = -EFAULT;
- 		goto out;
- 	}
-@@ -511,6 +513,7 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
- 					 msecs_to_jiffies(2000))) {
- 		dev_err(dev, "%s     %s: time out on completion\n", ctx->name,
- 			__func__);
-+		ctx->dbg.encode_errors++;
- 		ret = -EFAULT;
- 		goto out;
- 	}
-@@ -518,6 +521,8 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
- 	/* get encoding status */
- 	ret = ctx->hw_err ? -EFAULT : 0;
- 
-+	ctx->dbg.encode_errors += ctx->hw_err ? 1 : 0;
++       -  15
 +
- out:
- 	disable_irq(hva->irq_its);
- 	disable_irq(hva->irq_err);
-diff --git a/drivers/media/platform/sti/hva/hva-mem.c b/drivers/media/platform/sti/hva/hva-mem.c
-index 649f660..2b8ed81 100644
---- a/drivers/media/platform/sti/hva/hva-mem.c
-+++ b/drivers/media/platform/sti/hva/hva-mem.c
-@@ -17,14 +17,17 @@ int hva_mem_alloc(struct hva_ctx *ctx, u32 size, const char *name,
- 	void *base;
- 
- 	b = devm_kzalloc(dev, sizeof(*b), GFP_KERNEL);
--	if (!b)
-+	if (!b) {
-+		ctx->dbg.sys_errors++;
- 		return -ENOMEM;
-+	}
- 
- 	base = dma_alloc_attrs(dev, size, &paddr, GFP_KERNEL | GFP_DMA,
- 			       DMA_ATTR_WRITE_COMBINE);
- 	if (!base) {
- 		dev_err(dev, "%s %s : dma_alloc_attrs failed for %s (size=%d)\n",
- 			ctx->name, __func__, name, size);
-+		ctx->dbg.sys_errors++;
- 		devm_kfree(dev, b);
- 		return -ENOMEM;
- 	}
-diff --git a/drivers/media/platform/sti/hva/hva-v4l2.c b/drivers/media/platform/sti/hva/hva-v4l2.c
-index 1696e02..fb65816 100644
---- a/drivers/media/platform/sti/hva/hva-v4l2.c
-+++ b/drivers/media/platform/sti/hva/hva-v4l2.c
-@@ -614,19 +614,17 @@ static int hva_s_ctrl(struct v4l2_ctrl *ctrl)
- 		break;
- 	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
- 		ctx->ctrls.profile = ctrl->val;
--		if (ctx->flags & HVA_FLAG_STREAMINFO)
--			snprintf(ctx->streaminfo.profile,
--				 sizeof(ctx->streaminfo.profile),
--				 "%s profile",
--				 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
-+		snprintf(ctx->streaminfo.profile,
-+			 sizeof(ctx->streaminfo.profile),
-+			 "%s profile",
-+			 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
- 		break;
- 	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
- 		ctx->ctrls.level = ctrl->val;
--		if (ctx->flags & HVA_FLAG_STREAMINFO)
--			snprintf(ctx->streaminfo.level,
--				 sizeof(ctx->streaminfo.level),
--				 "level %s",
--				 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
-+		snprintf(ctx->streaminfo.level,
-+			 sizeof(ctx->streaminfo.level),
-+			 "level %s",
-+			 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
- 		break;
- 	case V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE:
- 		ctx->ctrls.entropy_mode = ctrl->val;
-@@ -793,6 +791,8 @@ static void hva_run_work(struct work_struct *work)
- 	/* protect instance against reentrancy */
- 	mutex_lock(&ctx->lock);
- 
-+	hva_dbg_perf_begin(ctx);
++       -  14
 +
- 	src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
- 	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+        -  13
  
-@@ -812,6 +812,8 @@ static void hva_run_work(struct work_struct *work)
- 		dst_buf->field = V4L2_FIELD_NONE;
- 		dst_buf->sequence = ctx->stream_num - 1;
+        -  12
+@@ -2867,6 +2871,10 @@ organization is given as an example for the first pixel only.
  
-+		hva_dbg_perf_end(ctx, stream);
+        -  -
+ 
++       -  -
 +
- 		v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
- 		v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
- 	}
-@@ -1026,6 +1028,8 @@ err:
- 			v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_QUEUED);
- 	}
- 
-+	ctx->dbg.sys_errors++;
++       -  -
 +
- 	return ret;
- }
+        -  b\ :sub:`7`
  
-@@ -1150,6 +1154,7 @@ static int hva_open(struct file *file)
- 	if (ret) {
- 		dev_err(dev, "%s [x:x] failed to setup controls\n",
- 			HVA_PREFIX);
-+		ctx->dbg.sys_errors++;
- 		goto err_fh;
- 	}
- 	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
-@@ -1162,6 +1167,7 @@ static int hva_open(struct file *file)
- 		ret = PTR_ERR(ctx->fh.m2m_ctx);
- 		dev_err(dev, "%s failed to initialize m2m context (%d)\n",
- 			HVA_PREFIX, ret);
-+		ctx->dbg.sys_errors++;
- 		goto err_ctrls;
- 	}
+        -  b\ :sub:`6`
+@@ -2902,6 +2910,10 @@ organization is given as an example for the first pixel only.
  
-@@ -1206,6 +1212,10 @@ static int hva_release(struct file *file)
- 		hva->nb_of_instances--;
- 	}
+        -  -
  
-+	/* trace a summary of instance before closing (debug purpose) */
-+	if (ctx->flags & HVA_FLAG_STREAMINFO)
-+		dev_info(dev, "%s %s\n", ctx->name, hva_dbg_summary(ctx));
++       -  -
 +
- 	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
- 
- 	v4l2_ctrl_handler_free(&ctx->ctrl_handler);
-diff --git a/drivers/media/platform/sti/hva/hva.h b/drivers/media/platform/sti/hva/hva.h
-index caa5808..badc5f4 100644
---- a/drivers/media/platform/sti/hva/hva.h
-+++ b/drivers/media/platform/sti/hva/hva.h
-@@ -153,6 +153,27 @@ struct hva_stream {
- #define to_hva_stream(vb) \
- 	container_of(vb, struct hva_stream, vbuf)
- 
-+/**
-+ * struct hva_ctx_dbg - instance context debug info
-+ *
-+ * @is_valid_period: true if the sequence is valid for performance
-+ * @begin:           start time of last HW task
-+ * @total_duration:  total HW processing durations in 0.1ms
-+ * @cnt_duration:    number of HW processings
-+ * @sys_errors:      number of system errors (memory, resource, pm..)
-+ * @encode_errors:   number of encoding errors (hw/driver errors)
-+ * @frame_errors:    number of frame errors (format, size, header...)
-+ */
-+struct hva_ctx_dbg {
-+	bool	is_valid_period;
-+	ktime_t	begin;
-+	u32	total_duration;
-+	u32	cnt_duration;
-+	u32	sys_errors;
-+	u32	encode_errors;
-+	u32	frame_errors;
-+};
++       -  -
 +
- struct hva_dev;
- struct hva_enc;
+        -  g\ :sub:`7`
  
-@@ -182,6 +203,7 @@ struct hva_enc;
-  * @priv:            private codec data for this instance, allocated
-  *                   by encoder @open time
-  * @hw_err:          true if hardware error detected
-+ * @dbg:             context debug info
-  */
- struct hva_ctx {
- 	struct hva_dev		        *hva_dev;
-@@ -207,6 +229,7 @@ struct hva_ctx {
- 	struct hva_enc			*enc;
- 	void				*priv;
- 	bool				hw_err;
-+	struct hva_ctx_dbg		dbg;
- };
+        -  g\ :sub:`6`
+@@ -2937,6 +2949,10 @@ organization is given as an example for the first pixel only.
  
- #define HVA_FLAG_STREAMINFO	0x0001
-@@ -312,4 +335,8 @@ struct hva_enc {
- 				  struct hva_stream *stream);
- };
+        -  -
  
-+char *hva_dbg_summary(struct hva_ctx *ctx);
-+void hva_dbg_perf_begin(struct hva_ctx *ctx);
-+void hva_dbg_perf_end(struct hva_ctx *ctx, struct hva_stream *stream);
++       -  -
 +
- #endif /* HVA_H */
++       -  -
++
+        -  g\ :sub:`7`
+ 
+        -  g\ :sub:`6`
+@@ -2972,6 +2988,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  r\ :sub:`7`
+ 
+        -  r\ :sub:`6`
+@@ -3007,6 +3027,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`7`
+ 
+        -  b\ :sub:`6`
+@@ -3042,6 +3066,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`7`
+ 
+        -  g\ :sub:`6`
+@@ -3077,6 +3105,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`7`
+ 
+        -  g\ :sub:`6`
+@@ -3112,6 +3144,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  r\ :sub:`7`
+ 
+        -  r\ :sub:`6`
+@@ -3147,6 +3183,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`7`
+ 
+        -  b\ :sub:`6`
+@@ -3182,6 +3222,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`7`
+ 
+        -  g\ :sub:`6`
+@@ -3217,6 +3261,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`7`
+ 
+        -  g\ :sub:`6`
+@@ -3252,6 +3300,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  r\ :sub:`7`
+ 
+        -  r\ :sub:`6`
+@@ -3287,6 +3339,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  0
+ 
+        -  0
+@@ -3320,6 +3376,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`7`
+ 
+        -  b\ :sub:`6`
+@@ -3355,6 +3415,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`7`
+ 
+        -  b\ :sub:`6`
+@@ -3388,6 +3452,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  0
+ 
+        -  0
+@@ -3423,6 +3491,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`9`
+ 
+        -  b\ :sub:`8`
+@@ -3456,6 +3528,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`1`
+ 
+        -  b\ :sub:`0`
+@@ -3491,6 +3567,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`1`
+ 
+        -  b\ :sub:`0`
+@@ -3524,6 +3604,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`9`
+ 
+        -  b\ :sub:`8`
+@@ -3555,6 +3639,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`9`
+ 
+        -  b\ :sub:`8`
+@@ -3590,6 +3678,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`9`
+ 
+        -  g\ :sub:`8`
+@@ -3625,6 +3717,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`9`
+ 
+        -  g\ :sub:`8`
+@@ -3660,6 +3756,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  r\ :sub:`9`
+ 
+        -  r\ :sub:`8`
+@@ -3691,6 +3791,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  b\ :sub:`11`
+ 
+        -  b\ :sub:`10`
+@@ -3726,6 +3830,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`11`
+ 
+        -  g\ :sub:`10`
+@@ -3761,6 +3869,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  g\ :sub:`11`
+ 
+        -  g\ :sub:`10`
+@@ -3796,6 +3908,10 @@ organization is given as an example for the first pixel only.
+ 
+        -  -
+ 
++       -  -
++
++       -  -
++
+        -  r\ :sub:`11`
+ 
+        -  r\ :sub:`10`
+@@ -3827,6 +3943,10 @@ organization is given as an example for the first pixel only.
+        -  0x3019
+ 
+        -
++       -  -
++
++       -  -
++
+        -  b\ :sub:`13`
+ 
+        -  b\ :sub:`12`
+@@ -3862,6 +3982,10 @@ organization is given as an example for the first pixel only.
+        -  0x301a
+ 
+        -
++       -  -
++
++       -  -
++
+        -  g\ :sub:`13`
+ 
+        -  g\ :sub:`12`
+@@ -3897,6 +4021,10 @@ organization is given as an example for the first pixel only.
+        -  0x301b
+ 
+        -
++       -  -
++
++       -  -
++
+        -  g\ :sub:`13`
+ 
+        -  g\ :sub:`12`
+@@ -3932,6 +4060,166 @@ organization is given as an example for the first pixel only.
+        -  0x301c
+ 
+        -
++       -  -
++
++       -  -
++
++       -  r\ :sub:`13`
++
++       -  r\ :sub:`12`
++
++       -  r\ :sub:`11`
++
++       -  r\ :sub:`10`
++
++       -  r\ :sub:`9`
++
++       -  r\ :sub:`8`
++
++       -  r\ :sub:`7`
++
++       -  r\ :sub:`6`
++
++       -  r\ :sub:`5`
++
++       -  r\ :sub:`4`
++
++       -  r\ :sub:`3`
++
++       -  r\ :sub:`2`
++
++       -  r\ :sub:`1`
++
++       -  r\ :sub:`0`
++
++    -  .. _MEDIA-BUS-FMT-SBGGR16-1X16:
++
++       -  MEDIA_BUS_FMT_SBGGR16_1X16
++
++       -  0x301d
++
++       -
++       -  b\ :sub:`15`
++
++       -  b\ :sub:`14`
++
++       -  b\ :sub:`13`
++
++       -  b\ :sub:`12`
++
++       -  b\ :sub:`11`
++
++       -  b\ :sub:`10`
++
++       -  b\ :sub:`9`
++
++       -  b\ :sub:`8`
++
++       -  b\ :sub:`7`
++
++       -  b\ :sub:`6`
++
++       -  b\ :sub:`5`
++
++       -  b\ :sub:`4`
++
++       -  b\ :sub:`3`
++
++       -  b\ :sub:`2`
++
++       -  b\ :sub:`1`
++
++       -  b\ :sub:`0`
++
++    -  .. _MEDIA-BUS-FMT-SGBRG16-1X16:
++
++       -  MEDIA_BUS_FMT_SGBRG16_1X16
++
++       -  0x301e
++
++       -
++       -  g\ :sub:`15`
++
++       -  g\ :sub:`14`
++
++       -  g\ :sub:`13`
++
++       -  g\ :sub:`12`
++
++       -  g\ :sub:`11`
++
++       -  g\ :sub:`10`
++
++       -  g\ :sub:`9`
++
++       -  g\ :sub:`8`
++
++       -  g\ :sub:`7`
++
++       -  g\ :sub:`6`
++
++       -  g\ :sub:`5`
++
++       -  g\ :sub:`4`
++
++       -  g\ :sub:`3`
++
++       -  g\ :sub:`2`
++
++       -  g\ :sub:`1`
++
++       -  g\ :sub:`0`
++
++    -  .. _MEDIA-BUS-FMT-SGRBG16-1X16:
++
++       -  MEDIA_BUS_FMT_SGRBG16_1X16
++
++       -  0x301f
++
++       -
++       -  g\ :sub:`15`
++
++       -  g\ :sub:`14`
++
++       -  g\ :sub:`13`
++
++       -  g\ :sub:`12`
++
++       -  g\ :sub:`11`
++
++       -  g\ :sub:`10`
++
++       -  g\ :sub:`9`
++
++       -  g\ :sub:`8`
++
++       -  g\ :sub:`7`
++
++       -  g\ :sub:`6`
++
++       -  g\ :sub:`5`
++
++       -  g\ :sub:`4`
++
++       -  g\ :sub:`3`
++
++       -  g\ :sub:`2`
++
++       -  g\ :sub:`1`
++
++       -  g\ :sub:`0`
++
++    -  .. _MEDIA-BUS-FMT-SRGGB16-1X16:
++
++       -  MEDIA_BUS_FMT_SRGGB16_1X16
++
++       -  0x3020
++
++       -
++       -  r\ :sub:`15`
++
++       -  r\ :sub:`14`
++
+        -  r\ :sub:`13`
+ 
+        -  r\ :sub:`12`
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 1dff459..2168759 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -97,7 +97,7 @@
+ #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
+ #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
+ 
+-/* Bayer - next is	0x301d */
++/* Bayer - next is	0x3021 */
+ #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
+ #define MEDIA_BUS_FMT_SGBRG8_1X8		0x3013
+ #define MEDIA_BUS_FMT_SGRBG8_1X8		0x3002
+@@ -126,6 +126,10 @@
+ #define MEDIA_BUS_FMT_SGBRG14_1X14		0x301a
+ #define MEDIA_BUS_FMT_SGRBG14_1X14		0x301b
+ #define MEDIA_BUS_FMT_SRGGB14_1X14		0x301c
++#define MEDIA_BUS_FMT_SBGGR16_1X16		0x301d
++#define MEDIA_BUS_FMT_SGBRG16_1X16		0x301e
++#define MEDIA_BUS_FMT_SGRBG16_1X16		0x301f
++#define MEDIA_BUS_FMT_SRGGB16_1X16		0x3020
+ 
+ /* JPEG compressed formats - next is	0x4002 */
+ #define MEDIA_BUS_FMT_JPEG_1X8			0x4001
 -- 
-1.9.1
+2.7.4
 
