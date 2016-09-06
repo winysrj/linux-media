@@ -1,64 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:64374 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752679AbcIBMUO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2016 08:20:14 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-        <Tiffany.lin@mediatek.com>, Tiffany Lin <tiffany.lin@mediatek.com>,
-        Wu-Cheng Li <wuchengli@chromium.org>
-Subject: [PATCH v5 8/9] Add documentation for V4L2_PIX_FMT_VP9.
-Date: Fri, 2 Sep 2016 20:19:59 +0800
-Message-ID: <1472818800-22558-9-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1472818800-22558-8-git-send-email-tiffany.lin@mediatek.com>
-References: <1472818800-22558-1-git-send-email-tiffany.lin@mediatek.com>
- <1472818800-22558-2-git-send-email-tiffany.lin@mediatek.com>
- <1472818800-22558-3-git-send-email-tiffany.lin@mediatek.com>
- <1472818800-22558-4-git-send-email-tiffany.lin@mediatek.com>
- <1472818800-22558-5-git-send-email-tiffany.lin@mediatek.com>
- <1472818800-22558-6-git-send-email-tiffany.lin@mediatek.com>
- <1472818800-22558-7-git-send-email-tiffany.lin@mediatek.com>
- <1472818800-22558-8-git-send-email-tiffany.lin@mediatek.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57480 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755379AbcIFMNT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Sep 2016 08:13:19 -0400
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 0BB0460093
+        for <linux-media@vger.kernel.org>; Tue,  6 Sep 2016 15:13:14 +0300 (EEST)
+Date: Tue, 6 Sep 2016 15:12:43 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.9] Add an operations callback struct for the media
+ device
+Message-ID: <20160906121243.GB3236@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation for V4L2_PIX_FMT_VP9.
+Hi Mauro,
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
----
- Documentation/media/uapi/v4l/pixfmt-013.rst |    8 ++++++++
- 1 file changed, 8 insertions(+)
+This request contains a single patch, one that moves the link_notify()
+callback to a separate struct.
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-013.rst b/Documentation/media/uapi/v4l/pixfmt-013.rst
-index bfef4f4..58e3ce6 100644
---- a/Documentation/media/uapi/v4l/pixfmt-013.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-013.rst
-@@ -129,3 +129,11 @@ Compressed Formats
-        -  'VP80'
- 
-        -  VP8 video elementary stream.
-+
-+    -  .. _V4L2-PIX-FMT-VP9:
-+
-+       -  ``V4L2_PIX_FMT_VP9``
-+
-+       -  'VP90'
-+
-+       -  VP9 video elementary stream.
+As the patch touches several drivers and is required by anything that's
+adding new callbacks to the media device, I think it makes sense to merge it
+now rather than later on.
+
+Please pull.
+
+
+The following changes since commit e62c30e76829d46bf11d170fd81b735f13a014ac:
+
+  [media] smiapp: Remove set_xclk() callback from hwconfig (2016-09-05 15:53:20 -0300)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git media-request-prepare
+
+for you to fetch changes up to ff299860f5ae379a336d462ee9d8c987c60e7de5:
+
+  media: Move media_device link_notify operation to an ops structure (2016-09-06 10:34:51 +0300)
+
+----------------------------------------------------------------
+Laurent Pinchart (1):
+      media: Move media_device link_notify operation to an ops structure
+
+ drivers/media/media-entity.c                  | 11 ++++++-----
+ drivers/media/platform/exynos4-is/media-dev.c |  6 +++++-
+ drivers/media/platform/omap3isp/isp.c         |  6 +++++-
+ drivers/staging/media/omap4iss/iss.c          |  6 +++++-
+ include/media/media-device.h                  | 16 ++++++++++++----
+ 5 files changed, 33 insertions(+), 12 deletions(-)
+
 -- 
-1.7.9.5
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
