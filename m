@@ -1,160 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52628 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751031AbcIOUyk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 16:54:40 -0400
-Date: Thu, 15 Sep 2016 23:54:04 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Helen Koike <helen.koike@collabora.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH] [v4l-utils] libv4l2subdev: Propagate format deep in the
- topology
-Message-ID: <20160915205404.GH5086@valkosipuli.retiisi.org.uk>
-References: <5776a3af5046c55b4efa3b936a1ca68466098207.1473796687.git.helen.koike@collabora.co.uk>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:39118
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932821AbcIFJ4l (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 05:56:41 -0400
+Date: Tue, 6 Sep 2016 06:56:17 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v4 1/5] media: Determine early whether an IOCTL is
+ supported
+Message-ID: <20160906065617.1295d104@vento.lan>
+In-Reply-To: <1470947358-31168-2-git-send-email-sakari.ailus@linux.intel.com>
+References: <1470947358-31168-1-git-send-email-sakari.ailus@linux.intel.com>
+        <1470947358-31168-2-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5776a3af5046c55b4efa3b936a1ca68466098207.1473796687.git.helen.koike@collabora.co.uk>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Helen,
+Em Thu, 11 Aug 2016 23:29:14 +0300
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-Thanks for the patch!
-
-On Tue, Sep 13, 2016 at 05:09:58PM -0300, Helen Koike wrote:
-> The format was only being propagated to the subdevices directly
-> connected to the node being changed.
-> Continue propagating the format to all the subdevices in the video pipe.
+> Preparation for refactoring media IOCTL handling to unify common parts.
 > 
-> Signed-off-by: Helen Koike <helen.koike@collabora.com>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
+>  drivers/media/media-device.c | 54 ++++++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 52 insertions(+), 2 deletions(-)
 > 
-> Only one level of propagation was not that useful for me so I made it to completely
-> propagate the format through the topology, I hope this patch to be useful to others.
-
-I'd say most of the time a single sub-device is configured at a time --- the
-current implementation does set the format set by the user on a source pad
-on the sink pad at the other end of an enabled link as well, but that's just
-for the convenience.
-
-Your patch changes this to do a lot more than that. I'm not saying that the
-functionality isn't needed, but it would have to be behind a specific flag
-as it only caters for the needs of a somewhat special case: you wish to
-propagate the same format all the way to the end of the pipeline.
-Additionally, just changing the behaviour does break the existing users of
-media-ctl.
-
-Sub-devices propagate the cropping and composing (i.e. scaling)
-configuration downstream inside a single sub-device. This (very likely)
-consequently changes the format on the source pads as well, and should be
-similarly propagated downstream.
-
-I think how this could be added to media-ctl is by adding a new command line
-option, and amending the functionality with propagating the selections as
-well.
-
-The propagation should only be performed after full configuration of a
-sub-device is done: a single command line may well first change the format
-on a sub-device sink pad, then cropping and finally composition
-configuration, all of which are internally propagated in the sub-device
-before the following configuration step is taken. I don't think we wish to
-propagate each step over the full pipeline downstream.
-
-As per where would I put this --- I'm not fully certain libv4l2subdev is the
-right place for the functionality, at least it'd widen the scope for the
-library somewhat. I started writing (but unfortunately not being able to
-finish it) a pipeline configuration library with the intent of providing
-functionality of a regular V4L2 device node on a device the full
-configuration (links, sub-device formats etc.) is up to the user. The
-library was called libautopipe, I think this could be a beginning of such a
-library.
-
-I wonder what Laurent thinks.
-
-> 
->  utils/media-ctl/libv4l2subdev.c | 43 +++++++++++++++++++++++------------------
->  1 file changed, 24 insertions(+), 19 deletions(-)
-> 
-> diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-> index 3dcf943..8333557 100644
-> --- a/utils/media-ctl/libv4l2subdev.c
-> +++ b/utils/media-ctl/libv4l2subdev.c
-> @@ -644,6 +644,28 @@ static int set_frame_interval(struct media_entity *entity,
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 1795abe..aedd64e 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -419,13 +419,41 @@ static long media_device_get_topology(struct media_device *mdev,
 >  	return 0;
 >  }
 >  
-> +static void propagate_set_fmt(struct media_entity *entity)
+> -static long media_device_ioctl(struct file *filp, unsigned int cmd,
+> -			       unsigned long arg)
+> +#define MEDIA_IOC(__cmd) \
+> +	[_IOC_NR(MEDIA_IOC_##__cmd)] = { .cmd = MEDIA_IOC_##__cmd }
+> +
+> +/* the table is indexed by _IOC_NR(cmd) */
+> +struct media_ioctl_info {
+> +	unsigned int cmd;
+> +};
+> +
+> +static const struct media_ioctl_info ioctl_info[] = {
+> +	MEDIA_IOC(DEVICE_INFO),
+> +	MEDIA_IOC(ENUM_ENTITIES),
+> +	MEDIA_IOC(ENUM_LINKS),
+> +	MEDIA_IOC(SETUP_LINK),
+> +	MEDIA_IOC(G_TOPOLOGY),
+> +};
+> +
+> +static inline long is_valid_ioctl(const struct media_ioctl_info *info,
+> +				  unsigned int cmd)
 > +{
-> +	unsigned int i;
-> +
-> +	for (i = 0; i < entity->num_links; ++i) {
-> +		struct media_link *link = &entity->links[i];
-> +		struct v4l2_mbus_framefmt format;
-> +
-> +		if (!(link->flags & MEDIA_LNK_FL_ENABLED))
-> +			continue;
-> +
-> +		/* If we found a source pad, propagate it's format to the remote sink */
-> +		if (link->source->entity == entity &&
-> +		    link->sink->entity->info.type == MEDIA_ENT_T_V4L2_SUBDEV) {
-> +
-> +			v4l2_subdev_get_format(entity, &format, link->source->index,
-> +						V4L2_SUBDEV_FORMAT_ACTIVE);
-> +			set_format(link->sink, &format);
-> +			propagate_set_fmt(link->sink->entity);
-> +		}
-> +	}
+> +	return (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
+> +		|| info[_IOC_NR(cmd)].cmd != cmd) ? -ENOIOCTLCMD : 0;
 > +}
+> +
+> +static long __media_device_ioctl(
+> +	struct file *filp, unsigned int cmd, void __user *arg,
+> +	const struct media_ioctl_info *info_array)
+>  {
+>  	struct media_devnode *devnode = media_devnode_data(filp);
+>  	struct media_device *dev = devnode->media_dev;
+>  	long ret;
 >  
->  static int v4l2_subdev_parse_setup_format(struct media_device *media,
->  					  const char *p, char **endp)
-> @@ -653,7 +675,6 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
->  	struct v4l2_rect crop = { -1, -1, -1, -1 };
->  	struct v4l2_rect compose = crop;
->  	struct v4l2_fract interval = { 0, 0 };
-> -	unsigned int i;
->  	char *end;
->  	int ret;
+> +	ret = is_valid_ioctl(info_array, cmd);
+> +	if (ret)
+> +		return ret;
+> +
+>  	mutex_lock(&dev->graph_mutex);
+>  	switch (cmd) {
+>  	case MEDIA_IOC_DEVICE_INFO:
+> @@ -461,6 +489,13 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  	return ret;
+>  }
 >  
-> @@ -690,24 +711,8 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
->  		return ret;
+> +static long media_device_ioctl(struct file *filp, unsigned int cmd,
+> +			       unsigned long arg)
+> +{
+> +	return __media_device_ioctl(
+> +		filp, cmd, (void __user *)arg, ioctl_info);
+> +}
+> +
+>  #ifdef CONFIG_COMPAT
 >  
+>  struct media_links_enum32 {
+> @@ -491,6 +526,14 @@ static long media_device_enum_links32(struct media_device *mdev,
 >  
-> -	/* If the pad is an output pad, automatically set the same format on
-> -	 * the remote subdev input pads, if any.
-> -	 */
-> -	if (pad->flags & MEDIA_PAD_FL_SOURCE) {
-> -		for (i = 0; i < pad->entity->num_links; ++i) {
-> -			struct media_link *link = &pad->entity->links[i];
-> -			struct v4l2_mbus_framefmt remote_format;
-> -
-> -			if (!(link->flags & MEDIA_LNK_FL_ENABLED))
-> -				continue;
-> -
-> -			if (link->source == pad &&
-> -			    link->sink->entity->info.type == MEDIA_ENT_T_V4L2_SUBDEV) {
-> -				remote_format = format;
-> -				set_format(link->sink, &remote_format);
-> -			}
-> -		}
-> -	}
-> +	/* Automaticaly propagate formats through the video pipe */
-> +	propagate_set_fmt(pad->entity);
->  
->  	*endp = end;
->  	return 0;
-> -- 
-> 1.9.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, struct media_links_enum32)
 
--- 
-Kind regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Hmm...
+
+> +static const struct media_ioctl_info compat_ioctl_info[] = {
+> +	MEDIA_IOC(DEVICE_INFO),
+> +	MEDIA_IOC(ENUM_ENTITIES),
+> +	MEDIA_IOC(ENUM_LINKS32),
+> +	MEDIA_IOC(SETUP_LINK),
+> +	MEDIA_IOC(G_TOPOLOGY),
+> +};
+> +
+>  static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+>  				      unsigned long arg)
+>  {
+> @@ -498,6 +541,13 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+>  	struct media_device *dev = devnode->media_dev;
+>  	long ret;
+>  
+> +	/*
+> +	 * The number of supported IOCTLs is the same for both regular and
+> +	 * compat cases. Instead of passing the sizes around, ensure that
+> +	 * they match.
+> +	 */
+> +	BUILD_BUG_ON(ARRAY_SIZE(ioctl_info) != ARRAY_SIZE(compat_ioctl_info));
+> +
+>  	switch (cmd) {
+>  	case MEDIA_IOC_ENUM_LINKS32:
+>  		mutex_lock(&dev->graph_mutex);
+
+
+Why do we need the above? The only ioctl that it is handled inside
+the compat logic is MEDIA_IOC_ENUM_LINKS. all the others fall back
+to the usual handler, and we don't intend to add any other new
+special case, as we're now using a different logic to handle 32 bit
+pointers passed to a 64 bit Kernel that it is compatible with both 32
+and 64 bits.
+
+So, we don't expect to have the V4L2 compat32 mess here, but, instead,
+to keep this untouched as we add more ioctl's.
+
+Regards,
+Mauro
