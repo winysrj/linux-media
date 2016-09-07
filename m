@@ -1,82 +1,302 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:52491 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753725AbcIHNJP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 09:09:15 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-CC: <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH v6 5/6] media: mtk-mdp: support pixelformat V4L2_PIX_FMT_MT21C
-Date: Thu, 8 Sep 2016 21:09:05 +0800
-Message-ID: <1473340146-6598-6-git-send-email-minghsiu.tsai@mediatek.com>
-In-Reply-To: <1473340146-6598-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1473340146-6598-1-git-send-email-minghsiu.tsai@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:36645 "EHLO
+        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S938957AbcIGLnH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 07:43:07 -0400
+Received: by mail-wm0-f43.google.com with SMTP id b187so111155136wme.1
+        for <linux-media@vger.kernel.org>; Wed, 07 Sep 2016 04:43:06 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2 0/8] Qualcomm video decoder/encoder driver
+Date: Wed,  7 Sep 2016 14:37:01 +0300
+Message-Id: <1473248229-5540-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add V4L2_PIX_FMT_MT21C in format list.
+Changes since v1:
+  - s/ENOTSUPP/EINVAL in vidc_set_color_format()
+  - use video_device_alloc
+  - fill struct device pointer in vb2_queue_init instead of .setup_queue
+  - fill device_caps in struct video_device instead of .vidioc_querycap
+  - fill colorspace, ycbcr_enc, quantization and xfer_func only when type
+    is V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
+  - delete rproc_boot|shutdown wrappers in core.c
+  - delete unused list_head in struct vidc_core
+  - delete mem.c|h and inline the function where they were used
+  - delete int_bufs.c|h files and move the functions in helpers.c, also
+    cleanup the code by removing buffer reuse mechanism
+  - inline INIT_VIDC_LIST macro
+  - rename queue to other_queue in .start_streaming for encoder and
+    decoder
+  - renamed vidc_buf_descs -> vidc_get_bufreq
+  - optimize instance checks in vidc_open
+  - moved resources structure in core.c and delete resources.c|h
+  - delete streamon and streamoff flags
 
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
----
- drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c  |    8 ++++++++
- drivers/media/platform/mtk-mdp/mtk_mdp_regs.c |    4 ++++
- 2 files changed, 12 insertions(+)
+The previous v1 can be found at [1].
 
-diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-index 0655027..a90972e 100644
---- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-+++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-@@ -54,6 +54,14 @@ static struct mtk_mdp_pix_align mtk_mdp_size_align = {
- 
- static const struct mtk_mdp_fmt mtk_mdp_formats[] = {
- 	{
-+		.pixelformat	= V4L2_PIX_FMT_MT21C,
-+		.depth		= { 8, 4 },
-+		.row_depth	= { 8, 8 },
-+		.num_planes	= 2,
-+		.num_comp	= 2,
-+		.align		= &mtk_mdp_size_align,
-+		.flags		= MTK_MDP_FMT_FLAG_OUTPUT,
-+	}, {
- 		.pixelformat	= V4L2_PIX_FMT_NV12M,
- 		.depth		= { 8, 4 },
- 		.row_depth	= { 8, 8 },
-diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_regs.c b/drivers/media/platform/mtk-mdp/mtk_mdp_regs.c
-index a5601e1..86d57f3 100644
---- a/drivers/media/platform/mtk-mdp/mtk_mdp_regs.c
-+++ b/drivers/media/platform/mtk-mdp/mtk_mdp_regs.c
-@@ -29,6 +29,8 @@ enum MDP_COLOR_ENUM {
- 	MDP_COLOR_NV12 = MDP_COLORFMT_PACK(0, 2, 1, 1, 1, 8, 1, 0, 12),
- 	MDP_COLOR_I420 = MDP_COLORFMT_PACK(0, 3, 0, 1, 1, 8, 1, 0, 8),
- 	MDP_COLOR_YV12 = MDP_COLORFMT_PACK(0, 3, 0, 1, 1, 8, 1, 1, 8),
-+	/* Mediatek proprietary format */
-+	MDP_COLOR_420_MT21 = MDP_COLORFMT_PACK(5, 2, 1, 1, 1, 256, 1, 0, 12),
- };
- 
- static int32_t mtk_mdp_map_color_format(int v4l2_format)
-@@ -37,6 +39,8 @@ static int32_t mtk_mdp_map_color_format(int v4l2_format)
- 	case V4L2_PIX_FMT_NV12M:
- 	case V4L2_PIX_FMT_NV12:
- 		return MDP_COLOR_NV12;
-+	case V4L2_PIX_FMT_MT21C:
-+		return MDP_COLOR_420_MT21;
- 	case V4L2_PIX_FMT_YUV420M:
- 	case V4L2_PIX_FMT_YUV420:
- 		return MDP_COLOR_I420;
+[1] https://lkml.org/lkml/2016/8/22/308
+
+The output of v4l2-compliance for decoder and encoder are:
+
+root@dragonboard-410c:/home/linaro# ./v4l2-compliance -d /dev/video0
+v4l2-compliance SHA   : abc1453dfe89f244dccd3460d8e1a2e3091cbadb
+
+Driver Info:
+        Driver name   : vidc
+        Card type     : video decoder
+        Bus info      : platform:vidc
+        Driver version: 4.8.0
+        Capabilities  : 0x84204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 7 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK (Not Supported)
+                test Scaling: OK
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+
+
+root@dragonboard-410c:/home/linaro# ./v4l2-compliance -d /dev/video1
+v4l2-compliance SHA   : abc1453dfe89f244dccd3460d8e1a2e3091cbadb
+
+Driver Info:
+        Driver name   : vidc
+        Card type     : video encoder
+        Bus info      : platform:vidc
+        Driver version: 4.8.0
+        Capabilities  : 0x84204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/video1 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 32 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK
+                test Composing: OK (Not Supported)
+                test Scaling: OK
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+
+
+Stanimir Varbanov (8):
+  doc: DT: vidc: binding document for Qualcomm video driver
+  media: vidc: adding core part and helper functions
+  media: vidc: decoder: add video decoder files
+  media: vidc: encoder: add video encoder files
+  media: vidc: add Host Firmware Interface (HFI)
+  media: vidc: add Venus HFI files
+  media: vidc: add Makefiles and Kconfig files
+  media: vidc: enable building of the video codec driver
+
+ .../devicetree/bindings/media/qcom,vidc.txt        |   61 +
+ drivers/media/platform/Kconfig                     |    1 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/qcom/Kconfig                |    8 +
+ drivers/media/platform/qcom/Makefile               |    6 +
+ drivers/media/platform/qcom/vidc/Makefile          |   15 +
+ drivers/media/platform/qcom/vidc/core.c            |  559 +++++++
+ drivers/media/platform/qcom/vidc/core.h            |  207 +++
+ drivers/media/platform/qcom/vidc/helpers.c         |  604 ++++++++
+ drivers/media/platform/qcom/vidc/helpers.h         |   43 +
+ drivers/media/platform/qcom/vidc/hfi.c             |  617 ++++++++
+ drivers/media/platform/qcom/vidc/hfi.h             |  272 ++++
+ drivers/media/platform/qcom/vidc/hfi_cmds.c        | 1261 ++++++++++++++++
+ drivers/media/platform/qcom/vidc/hfi_cmds.h        |  338 +++++
+ drivers/media/platform/qcom/vidc/hfi_helper.h      | 1143 +++++++++++++++
+ drivers/media/platform/qcom/vidc/hfi_msgs.c        | 1072 ++++++++++++++
+ drivers/media/platform/qcom/vidc/hfi_msgs.h        |  298 ++++
+ drivers/media/platform/qcom/vidc/hfi_venus.c       | 1534 ++++++++++++++++++++
+ drivers/media/platform/qcom/vidc/hfi_venus.h       |   25 +
+ drivers/media/platform/qcom/vidc/hfi_venus_io.h    |   98 ++
+ drivers/media/platform/qcom/vidc/vdec.c            | 1091 ++++++++++++++
+ drivers/media/platform/qcom/vidc/vdec.h            |   29 +
+ drivers/media/platform/qcom/vidc/vdec_ctrls.c      |  200 +++
+ drivers/media/platform/qcom/vidc/vdec_ctrls.h      |   21 +
+ drivers/media/platform/qcom/vidc/venc.c            | 1252 ++++++++++++++++
+ drivers/media/platform/qcom/vidc/venc.h            |   29 +
+ drivers/media/platform/qcom/vidc/venc_ctrls.c      |  396 +++++
+ drivers/media/platform/qcom/vidc/venc_ctrls.h      |   23 +
+ 28 files changed, 11204 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/qcom,vidc.txt
+ create mode 100644 drivers/media/platform/qcom/Kconfig
+ create mode 100644 drivers/media/platform/qcom/Makefile
+ create mode 100644 drivers/media/platform/qcom/vidc/Makefile
+ create mode 100644 drivers/media/platform/qcom/vidc/core.c
+ create mode 100644 drivers/media/platform/qcom/vidc/core.h
+ create mode 100644 drivers/media/platform/qcom/vidc/helpers.c
+ create mode 100644 drivers/media/platform/qcom/vidc/helpers.h
+ create mode 100644 drivers/media/platform/qcom/vidc/hfi.c
+ create mode 100644 drivers/media/platform/qcom/vidc/hfi.h
+ create mode 100644 drivers/media/platform/qcom/vidc/hfi_cmds.c
+ create mode 100644 drivers/media/platform/qcom/vidc/hfi_cmds.h
+ create mode 100644 drivers/media/platform/qcom/vidc/hfi_helper.h
+ create mode 100644 drivers/media/platform/qcom/vidc/hfi_msgs.c
+ create mode 100644 drivers/media/platform/qcom/vidc/hfi_msgs.h
+ create mode 100644 drivers/media/platform/qcom/vidc/hfi_venus.c
+ create mode 100644 drivers/media/platform/qcom/vidc/hfi_venus.h
+ create mode 100644 drivers/media/platform/qcom/vidc/hfi_venus_io.h
+ create mode 100644 drivers/media/platform/qcom/vidc/vdec.c
+ create mode 100644 drivers/media/platform/qcom/vidc/vdec.h
+ create mode 100644 drivers/media/platform/qcom/vidc/vdec_ctrls.c
+ create mode 100644 drivers/media/platform/qcom/vidc/vdec_ctrls.h
+ create mode 100644 drivers/media/platform/qcom/vidc/venc.c
+ create mode 100644 drivers/media/platform/qcom/vidc/venc.h
+ create mode 100644 drivers/media/platform/qcom/vidc/venc_ctrls.c
+ create mode 100644 drivers/media/platform/qcom/vidc/venc_ctrls.h
+
 -- 
-1.7.9.5
+2.7.4
 
