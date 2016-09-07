@@ -1,124 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:34431 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755345AbcIRDII (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Sep 2016 23:08:08 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id D64271803C3
-        for <linux-media@vger.kernel.org>; Sun, 18 Sep 2016 05:08:01 +0200 (CEST)
-Date: Sun, 18 Sep 2016 05:08:01 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54026 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752151AbcIGWY4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 18:24:56 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160918030801.D64271803C3@tschai.lan>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran@ksquared.org.uk>
+Subject: [PATCH v3 09/10] v4l: fdp1: Fix field validation when preparing buffer
+Date: Thu,  8 Sep 2016 01:25:09 +0300
+Message-Id: <1473287110-780-10-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1473287110-780-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1473287110-780-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Ensure that the buffer field matches the field configured for the
+format.
 
-Results of the daily build of media_tree:
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/rcar_fdp1.c | 40 +++++++++++++++++++++++++++++++-------
+ 1 file changed, 33 insertions(+), 7 deletions(-)
 
-date:		Sun Sep 18 04:00:15 CEST 2016
-git branch:	test
-git hash:	c3b809834db8b1a8891c7ff873a216eac119628d
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
+index 480f89381f15..c25531a919db 100644
+--- a/drivers/media/platform/rcar_fdp1.c
++++ b/drivers/media/platform/rcar_fdp1.c
+@@ -1884,17 +1884,43 @@ static int fdp1_buf_prepare(struct vb2_buffer *vb)
+ 
+ 	q_data = get_q_data(ctx, vb->vb2_queue->type);
+ 
+-	/* Default to Progressive if ANY selected */
+-	if (vbuf->field == V4L2_FIELD_ANY)
+-		vbuf->field = V4L2_FIELD_NONE;
++	if (V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
++		bool field_valid = true;
++
++		/* Validate the buffer field. */
++		switch (q_data->format.field) {
++		case V4L2_FIELD_NONE:
++			if (vbuf->field != V4L2_FIELD_NONE)
++				field_valid = false;
++			break;
++
++		case V4L2_FIELD_ALTERNATE:
++			if (vbuf->field != V4L2_FIELD_TOP &&
++			    vbuf->field != V4L2_FIELD_BOTTOM)
++				field_valid = false;
++			break;
+ 
+-	/* We only support progressive CAPTURE */
+-	if (!V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type) &&
+-	     vbuf->field != V4L2_FIELD_NONE) {
+-		dprintk(ctx->fdp1, "field isn't supported on capture\n");
++		case V4L2_FIELD_INTERLACED:
++		case V4L2_FIELD_SEQ_TB:
++		case V4L2_FIELD_SEQ_BT:
++		case V4L2_FIELD_INTERLACED_TB:
++		case V4L2_FIELD_INTERLACED_BT:
++			if (vbuf->field != q_data->format.field)
++				field_valid = false;
++			break;
++		}
++
++		if (!field_valid) {
++			dprintk(ctx->fdp1,
++				"buffer field %u invalid for format field %u\n",
++				vbuf->field, q_data->format.field);
+ 			return -EINVAL;
++		}
++	} else {
++		vbuf->field = V4L2_FIELD_NONE;
+ 	}
+ 
++	/* Validate the planes sizes. */
+ 	for (i = 0; i < q_data->format.num_planes; i++) {
+ 		unsigned long size = q_data->format.plane_fmt[i].sizeimage;
+ 
+-- 
+Regards,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: OK
-linux-4.8-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-linux-4.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+Laurent Pinchart
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
