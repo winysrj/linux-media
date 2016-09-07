@@ -1,58 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:64247 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932810AbcIFNeo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Sep 2016 09:34:44 -0400
-From: Jani Nikula <jani.nikula@intel.com>
-To: Jonathan Corbet <corbet@lwn.net>,
-        Markus Heiser <markus.heiser@darmarit.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Subject: Re: [PATCH 1/3] doc-rst:c-domain: fix sphinx version incompatibility
-In-Reply-To: <20160906061909.36aa2986@lwn.net>
-References: <1472657372-21039-1-git-send-email-markus.heiser@darmarit.de> <1472657372-21039-2-git-send-email-markus.heiser@darmarit.de> <20160906061909.36aa2986@lwn.net>
-Date: Tue, 06 Sep 2016 16:34:41 +0300
-Message-ID: <87k2epxiby.fsf@intel.com>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:2783 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932855AbcIGG44 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 02:56:56 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH 0/4] Add V4L2_PIX_FMT_MT21C format for MT8173 codec driver
+Date: Wed, 7 Sep 2016 14:56:39 +0800
+Message-ID: <1473231403-14900-1-git-send-email-tiffany.lin@mediatek.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 06 Sep 2016, Jonathan Corbet <corbet@lwn.net> wrote:
-> On Wed, 31 Aug 2016 17:29:30 +0200
-> Markus Heiser <markus.heiser@darmarit.de> wrote:
->
->> +            if major >= 1 and minor < 4:
->> +                # indexnode's tuple changed in 1.4
->> +                # https://github.com/sphinx-doc/sphinx/commit/e6a5a3a92e938fcd75866b4227db9e0524d58f7c
->> +                self.indexnode['entries'].append(
->> +                    ('single', indextext, targetname, ''))
->> +            else:
->> +                self.indexnode['entries'].append(
->> +                    ('single', indextext, targetname, '', None))
->
-> So this doesn't seem right.  We'll get the four-entry tuple behavior with
-> 1.3 and the five-entry behavior with 1.4...but what happens when 2.0
-> comes out?
->
-> Did you want maybe:
->
-> 	if major == 1 and minor < 4:
->
-> ?
->
-> (That will fail on 0.x, but we've already stated that we don't support
-> below 1.2).
+This patch series add Mediatek compressed block format V4L2_PIX_FMT_MT21C, the
+decoder driver will decoded bitstream to V4L2_PIX_FMT_MT21C format.
 
-Is there a way to check the number of entries expected in the tuples
-instead of trying to match the version?
+User space applications could use MT8173 MDP driver to convert V4L2_PIX_FMT_MT21C to
+V4L2_PIX_FMT_NV12M, V4L2_PIX_FMT_YUV420M and V4L2_PIX_FMT_YVU420.
 
-BR,
-Jani.
+MDP driver[1] is stand alone driver.
 
+Usage:
+MT21C -> MT8173 MDP -> NV12M/YUV420M/YVU420
+NV12M/NV21M/YUV420M/YVU420M -> mt8173 Encoder -> H264/VP8
+H264/VP8/VP9 -> mtk8173 Decoder -> MT21C
 
+When encode with MT21 source, the pipeline will be:
+MT21C -> MDP driver-> NV12M/NV21M/YUV420M/YVU420M -> Encoder -> H264/VP8
 
+When playback, the pipeline will be:
+H264/VP8/VP9 -> Decoder driver -> MT21C -> MDP Driver -> DRM
+
+[1]https://patchwork.kernel.org/patch/9305329/
+
+Tiffany Lin (4):
+  v4l: add Mediatek compressed video block format
+  docs-rst: Add compressed video formats used on MT8173 codec driver
+  vcodec: mediatek: Add V4L2_PIX_FMT_MT21C support for v4l2 decoder
+  arm64: dts: mediatek: Add Video Decoder for MT8173
+
+ Documentation/media/uapi/v4l/pixfmt-reserved.rst   |    6 +++
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi           |   44 ++++++++++++++++++++
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c |    7 +++-
+ drivers/media/v4l2-core/v4l2-ioctl.c               |    1 +
+ include/uapi/linux/videodev2.h                     |    1 +
+ 5 files changed, 58 insertions(+), 1 deletion(-)
 
 -- 
-Jani Nikula, Intel Open Source Technology Center
+1.7.9.5
+
