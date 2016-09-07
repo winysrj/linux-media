@@ -1,100 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:35178 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758238AbcIWNS0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Sep 2016 09:18:26 -0400
-Received: by mail-lf0-f65.google.com with SMTP id s64so5696316lfs.2
-        for <linux-media@vger.kernel.org>; Fri, 23 Sep 2016 06:18:25 -0700 (PDT)
-Date: Fri, 23 Sep 2016 15:18:18 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-        Alex Deucher <alexander.deucher@amd.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
-Subject: Re: [PATCH 08/11] dma-buf: Restart
- reservation_object_wait_timeout_rcu() after writes
-Message-ID: <20160923131818.GJ3988@dvetter-linux.ger.corp.intel.com>
-References: <20160829070834.22296-1-chris@chris-wilson.co.uk>
- <20160829070834.22296-8-chris@chris-wilson.co.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20160829070834.22296-8-chris@chris-wilson.co.uk>
+Received: from mga05.intel.com ([192.55.52.43]:43701 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752110AbcIGKba (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Sep 2016 06:31:30 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id 54CCF22E6F
+        for <linux-media@vger.kernel.org>; Wed,  7 Sep 2016 13:31:23 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 3/7] smiapp: Initialise media entity after sensor init
+Date: Wed,  7 Sep 2016 13:30:11 +0300
+Message-Id: <1473244215-19432-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1473244215-19432-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1473244215-19432-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 29, 2016 at 08:08:31AM +0100, Chris Wilson wrote:
-> In order to be completely generic, we have to double check the read
-> seqlock after acquiring a reference to the fence. If the driver is
-> allocating fences from a SLAB_DESTROY_BY_RCU, or similar freelist, then
-> within an RCU grace period a fence may be freed and reallocated. The RCU
-> read side critical section does not prevent this reallocation, instead
-> we have to inspect the reservation's seqlock to double check if the
-> fences have been reassigned as we were acquiring our reference.
-> 
-> Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-> Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-> Cc: Christian König <christian.koenig@amd.com>
-> Cc: Alex Deucher <alexander.deucher@amd.com>
-> Cc: Sumit Semwal <sumit.semwal@linaro.org>
-> Cc: linux-media@vger.kernel.org
-> Cc: dri-devel@lists.freedesktop.org
-> Cc: linaro-mm-sig@lists.linaro.org
+This allows determining the number of pads in the entity based on the
+sensor.
 
-Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-> ---
->  drivers/dma-buf/reservation.c | 11 +++++------
->  1 file changed, 5 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
-> index 10fd441dd4ed..3369e4668e96 100644
-> --- a/drivers/dma-buf/reservation.c
-> +++ b/drivers/dma-buf/reservation.c
-> @@ -388,9 +388,6 @@ retry:
->  		if (fobj)
->  			shared_count = fobj->shared_count;
->  
-> -		if (read_seqcount_retry(&obj->seq, seq))
-> -			goto unlock_retry;
-> -
->  		for (i = 0; i < shared_count; ++i) {
->  			struct fence *lfence = rcu_dereference(fobj->shared[i]);
->  
-> @@ -413,9 +410,6 @@ retry:
->  	if (!shared_count) {
->  		struct fence *fence_excl = rcu_dereference(obj->fence_excl);
->  
-> -		if (read_seqcount_retry(&obj->seq, seq))
-> -			goto unlock_retry;
-> -
->  		if (fence_excl &&
->  		    !test_bit(FENCE_FLAG_SIGNALED_BIT, &fence_excl->flags)) {
->  			if (!fence_get_rcu(fence_excl))
-> @@ -430,6 +424,11 @@ retry:
->  
->  	rcu_read_unlock();
->  	if (fence) {
-> +		if (read_seqcount_retry(&obj->seq, seq)) {
-> +			fence_put(fence);
-> +			goto retry;
-> +		}
-> +
->  		ret = fence_wait_timeout(fence, intr, ret);
->  		fence_put(fence);
->  		if (ret > 0 && wait_all && (i + 1 < shared_count))
-> -- 
-> 2.9.3
-> 
-
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 4f96797..fb0326d 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -3048,12 +3048,7 @@ static int smiapp_probe(struct i2c_client *client,
+ 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
+ 	sensor->src->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	sensor->src->sensor = sensor;
+-
+ 	sensor->src->pads[0].flags = MEDIA_PAD_FL_SOURCE;
+-	rval = media_entity_pads_init(&sensor->src->sd.entity, 2,
+-				 sensor->src->pads);
+-	if (rval < 0)
+-		return rval;
+ 
+ 	if (client->dev.of_node) {
+ 		rval = smiapp_init(sensor);
+@@ -3061,6 +3056,11 @@ static int smiapp_probe(struct i2c_client *client,
+ 			goto out_media_entity_cleanup;
+ 	}
+ 
++	rval = media_entity_pads_init(&sensor->src->sd.entity, 2,
++				 sensor->src->pads);
++	if (rval < 0)
++		goto out_media_entity_cleanup;
++
+ 	rval = v4l2_async_register_subdev(&sensor->src->sd);
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.7.4
+
