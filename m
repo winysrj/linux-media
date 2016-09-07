@@ -1,146 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39292 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1764599AbcIOLWl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 07:22:41 -0400
-Received: from lanttu.localdomain (unknown [192.168.15.166])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 6FA5E600AC
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 14:22:36 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 14/17] smiapp: Remove useless newlines and other small cleanups
-Date: Thu, 15 Sep 2016 14:22:28 +0300
-Message-Id: <1473938551-14503-15-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:38889 "EHLO
+        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756696AbcIGIZM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 04:25:12 -0400
+Received: by mail-wm0-f46.google.com with SMTP id 1so17778923wmz.1
+        for <linux-media@vger.kernel.org>; Wed, 07 Sep 2016 01:25:12 -0700 (PDT)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, zoltan.kuscsik@linaro.org,
+        sumit.semwal@linaro.org, cc.ma@mediatek.com,
+        joakim.bech@linaro.org, dan.caprita@windriver.com,
+        burt.lien@linaro.org
+Cc: linaro-mm-sig@lists.linaro.org, linaro-kernel@lists.linaro.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v9 0/3] Secure Memory Allocation Framework
+Date: Wed,  7 Sep 2016 10:24:53 +0200
+Message-Id: <1473236696-10002-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code probably has been unindented at some point but rewrapping has not
-been done. Do it now.
+version 9 changes:
+ - rebased on 4.8-rc5
+ - struct dma_attrs doesn't exist anymore so update CMA allocator
+   to compile with new dma_*_attr functions
+ - add example SMAF use case in cover letter
 
-Also remove a useless memory allocation failure message.
+version 8 changes:
+ - rework of the structures used within ioctl
+   by adding a version field and padding to be futur proof
+ - rename fake secure moduel to test secure module
+ - fix the various remarks done on the previous patcheset
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 33 +++++++++++++--------------------
- 1 file changed, 13 insertions(+), 20 deletions(-)
+version 7 changes:
+ - rebased on kernel 4.6-rc7
+ - simplify secure module API
+ - add vma ops to be able to detect mmap/munmap calls
+ - add ioctl to get number and allocator names
+ - update libsmaf with adding tests
+   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+ - add debug log in fake secure module
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 8b042e2..3548225 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -442,8 +442,7 @@ static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
- 			orient |= SMIAPP_IMAGE_ORIENTATION_VFLIP;
- 
- 		orient ^= sensor->hvflip_inv_mask;
--		rval = smiapp_write(sensor,
--				    SMIAPP_REG_U8_IMAGE_ORIENTATION,
-+		rval = smiapp_write(sensor, SMIAPP_REG_U8_IMAGE_ORIENTATION,
- 				    orient);
- 		if (rval < 0)
- 			return rval;
-@@ -458,10 +457,8 @@ static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
- 		__smiapp_update_exposure_limits(sensor);
- 
- 		if (exposure > sensor->exposure->maximum) {
--			sensor->exposure->val =
--				sensor->exposure->maximum;
--			rval = smiapp_set_ctrl(
--				sensor->exposure);
-+			sensor->exposure->val =	sensor->exposure->maximum;
-+			rval = smiapp_set_ctrl(sensor->exposure);
- 			if (rval < 0)
- 				return rval;
- 		}
-@@ -1318,8 +1315,7 @@ static int smiapp_power_on(struct smiapp_sensor *sensor)
- 	if (!sensor->pixel_array)
- 		return 0;
- 
--	rval = v4l2_ctrl_handler_setup(
--		&sensor->pixel_array->ctrl_handler);
-+	rval = v4l2_ctrl_handler_setup(&sensor->pixel_array->ctrl_handler);
- 	if (rval)
- 		goto out_cci_addr_fail;
- 
-@@ -1625,7 +1621,8 @@ static int __smiapp_get_format(struct v4l2_subdev *subdev,
- 	struct smiapp_subdev *ssd = to_smiapp_subdev(subdev);
- 
- 	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
--		fmt->format = *v4l2_subdev_get_try_format(subdev, cfg, fmt->pad);
-+		fmt->format = *v4l2_subdev_get_try_format(subdev, cfg,
-+							  fmt->pad);
- 	} else {
- 		struct v4l2_rect *r;
- 
-@@ -1725,7 +1722,6 @@ static void smiapp_propagate(struct v4l2_subdev *subdev,
- static const struct smiapp_csi_data_format
- *smiapp_validate_csi_data_format(struct smiapp_sensor *sensor, u32 code)
- {
--	const struct smiapp_csi_data_format *csi_format = sensor->csi_format;
- 	unsigned int i;
- 
- 	for (i = 0; i < ARRAY_SIZE(smiapp_csi_data_formats); i++) {
-@@ -1734,7 +1730,7 @@ static const struct smiapp_csi_data_format
- 			return &smiapp_csi_data_formats[i];
- 	}
- 
--	return csi_format;
-+	return sensor->csi_format;
- }
- 
- static int smiapp_set_format_source(struct v4l2_subdev *subdev,
-@@ -2068,8 +2064,7 @@ static int smiapp_set_compose(struct v4l2_subdev *subdev,
- 		smiapp_set_compose_scaler(subdev, cfg, sel, crops, comp);
- 
- 	*comp = sel->r;
--	smiapp_propagate(subdev, cfg, sel->which,
--			 V4L2_SEL_TGT_COMPOSE);
-+	smiapp_propagate(subdev, cfg, sel->which, V4L2_SEL_TGT_COMPOSE);
- 
- 	if (sel->which == V4L2_SUBDEV_FORMAT_ACTIVE)
- 		return smiapp_update_mode(sensor);
-@@ -2146,9 +2141,8 @@ static int smiapp_set_crop(struct v4l2_subdev *subdev,
- 				->height;
- 			src_size = &_r;
- 		} else {
--			src_size =
--				v4l2_subdev_get_try_compose(
--					subdev, cfg, ssd->sink_pad);
-+			src_size = v4l2_subdev_get_try_compose(
-+				subdev, cfg, ssd->sink_pad);
- 		}
- 	}
- 
-@@ -2617,7 +2611,8 @@ static int smiapp_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
- 	for (i = 0; i < ssd->npads; i++) {
- 		struct v4l2_mbus_framefmt *try_fmt =
- 			v4l2_subdev_get_try_format(sd, fh->pad, i);
--		struct v4l2_rect *try_crop = v4l2_subdev_get_try_crop(sd, fh->pad, i);
-+		struct v4l2_rect *try_crop =
-+			v4l2_subdev_get_try_crop(sd, fh->pad, i);
- 		struct v4l2_rect *try_comp;
- 
- 		smiapp_get_native_size(ssd, try_crop);
-@@ -2856,8 +2851,7 @@ static int smiapp_probe(struct i2c_client *client,
- 		return -EPROBE_DEFER;
- 	}
- 
--	rval = clk_set_rate(sensor->ext_clk,
--			    sensor->hwcfg->ext_clk);
-+	rval = clk_set_rate(sensor->ext_clk, sensor->hwcfg->ext_clk);
- 	if (rval < 0) {
- 		dev_err(&client->dev,
- 			"unable to set clock freq to %u\n",
-@@ -2958,7 +2952,6 @@ static int smiapp_probe(struct i2c_client *client,
- 		sensor->nvm = devm_kzalloc(&client->dev,
- 				sensor->hwcfg->nvm_size, GFP_KERNEL);
- 		if (sensor->nvm == NULL) {
--			dev_err(&client->dev, "nvm buf allocation failed\n");
- 			rval = -ENOMEM;
- 			goto out_cleanup;
- 		}
+version 6 changes:
+ - rebased on kernel 4.5-rc4
+ - fix mmapping bug while requested allocation size isn't a a multiple of
+   PAGE_SIZE (add a test for this in libsmaf)
+
+version 5 changes:
+ - rebased on kernel 4.3-rc6
+ - rework locking schema and make handle status use an atomic_t
+ - add a fake secure module to allow performing tests without trusted
+   environment
+
+version 4 changes:
+ - rebased on kernel 4.3-rc3
+ - fix missing EXPORT_SYMBOL for smaf_create_handle()
+
+version 3 changes:
+ - Remove ioctl for allocator selection instead provide the name of
+   the targeted allocator with allocation request.
+   Selecting allocator from userland isn't the prefered way of working
+   but is needed when the first user of the buffer is a software component.
+ - Fix issues in case of error while creating smaf handle.
+ - Fix module license.
+ - Update libsmaf and tests to care of the SMAF API evolution
+   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+
+version 2 changes:
+ - Add one ioctl to allow allocator selection from userspace.
+   This is required for the uses case where the first user of
+   the buffer is a software IP which can't perform dma_buf attachement.
+ - Add name and ranking to allocator structure to be able to sort them.
+ - Create a tiny library to test SMAF:
+   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+ - Fix one issue when try to secure buffer without secure module registered
+
+SMAF aim to solve two problems: allocating memory that fit with hardware IPs
+constraints and secure those data from bus point of view.
+
+One example of SMAF usage is camera preview: on SoC you may use either an USB
+webcam or the built-in camera interface and the frames could be send directly
+to the dipslay Ip or handle by GPU.
+Most of USB interfaces and GPU have mmu but almost all built-in camera
+interace and display Ips don't have mmu so when selecting how allocate
+buffer you need to be aware of each devices constraints (contiguous memroy,
+stride, boundary, alignment ...).
+ION has solve this problem by let userland decide which allocator (heap) to use
+but this require to adapt userland for each platform and sometime for each
+use case.
+
+To be sure to select the best allocation method for devices SMAF implement
+deferred allocation mechanism: memory allocation is only done when the first
+device effectively required it.
+Allocator modules have to implement a match() to let SMAF know if they are
+compatibles with devices needs.
+This patch set provide an example of allocator module which use
+dma_{alloc/free/mmap}_attrs() and check if at least one device have
+coherent_dma_mask set to DMA_BIT_MASK(32) in match function.
+
+In the same camera preview use case, SMAF allow to protect the data from being
+read by unauthorized IPs (i.e. a malware to dump camera stream).
+Until now I have only see access rights protection at process/thread level 
+(PKeys/MPK) or on file (SELinux) but nothing allow to drive data bus firewalls.
+SMAF propose an interface to control and implement those firewalls.
+Like IOMMU, firewalls IPs can help to protect memory from malicious/faulty devices
+that are attempting DMA attacks.
+
+Secure modules are responsibles of granting and revoking devices access rights
+on the memory. Secure module is also called to check if CPU map memory into
+kernel and user address spaces.
+An example of secure module implementation can be found here:
+http://git.linaro.org/people/benjamin.gaignard/optee-sdp.git
+This code isn't yet part of the patch set because it depends on generic TEE
+which is still under discussion (https://lwn.net/Articles/644646/)
+
+For allocation part of SMAF code I get inspirated by Sumit Semwal work about
+constraint aware allocator.
+
+Benjamin Gaignard (3):
+  create SMAF module
+  SMAF: add CMA allocator
+  SMAF: add test secure module
+
+ drivers/Kconfig                |   2 +
+ drivers/Makefile               |   1 +
+ drivers/smaf/Kconfig           |  17 +
+ drivers/smaf/Makefile          |   3 +
+ drivers/smaf/smaf-cma.c        | 186 ++++++++++
+ drivers/smaf/smaf-core.c       | 818 +++++++++++++++++++++++++++++++++++++++++
+ drivers/smaf/smaf-testsecure.c |  90 +++++
+ include/linux/smaf-allocator.h |  45 +++
+ include/linux/smaf-secure.h    |  65 ++++
+ include/uapi/linux/smaf.h      |  85 +++++
+ 10 files changed, 1312 insertions(+)
+ create mode 100644 drivers/smaf/Kconfig
+ create mode 100644 drivers/smaf/Makefile
+ create mode 100644 drivers/smaf/smaf-cma.c
+ create mode 100644 drivers/smaf/smaf-core.c
+ create mode 100644 drivers/smaf/smaf-testsecure.c
+ create mode 100644 include/linux/smaf-allocator.h
+ create mode 100644 include/linux/smaf-secure.h
+ create mode 100644 include/uapi/linux/smaf.h
+
 -- 
-2.1.4
+1.9.1
 
