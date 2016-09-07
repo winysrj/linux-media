@@ -1,92 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:32917 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932940AbcIBQq6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2016 12:46:58 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        sergei.shtylyov@cogentembedded.com, hans.verkuil@cisco.com
-Cc: slongerbeam@gmail.com, lars@metafoo.de, mchehab@kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv3 5/6] media: rcar-vin: fix height for TOP and BOTTOM fields
-Date: Fri,  2 Sep 2016 18:45:00 +0200
-Message-Id: <20160902164501.19535-6-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20160902164501.19535-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20160902164501.19535-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:52576 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751259AbcIGJYJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Sep 2016 05:24:09 -0400
+Subject: Re: [PATCH 2/4] docs-rst: Add compressed video formats used on MT8173
+ codec driver
+To: Tiffany Lin <tiffany.lin@mediatek.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+References: <1473231403-14900-1-git-send-email-tiffany.lin@mediatek.com>
+ <1473231403-14900-2-git-send-email-tiffany.lin@mediatek.com>
+ <1473231403-14900-3-git-send-email-tiffany.lin@mediatek.com>
+Cc: Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mediatek@lists.infradead.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <246f1aca-0b46-b2f1-edd0-158a2a07b1d9@xs4all.nl>
+Date: Wed, 7 Sep 2016 11:23:55 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1473231403-14900-3-git-send-email-tiffany.lin@mediatek.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The height used for V4L2_FIELD_TOP and V4L2_FIELD_BOTTOM where wrong.
-The frames only contain one field so the height should be half of the
-frame.
+On 09/07/16 08:56, Tiffany Lin wrote:
+> Add V4L2_PIX_FMT_MT21C documentation
+>
+> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> ---
+>  Documentation/media/uapi/v4l/pixfmt-reserved.rst |    6 ++++++
+>  1 file changed, 6 insertions(+)
+>
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-reserved.rst b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+> index 0dd2f7f..2e21fbc 100644
+> --- a/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+> +++ b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+> @@ -339,7 +339,13 @@ please make a proposal on the linux-media mailing list.
+>  	  array. Anything what's in between the UYVY lines is JPEG data and
+>  	  should be concatenated to form the JPEG stream.
+>
+> +    -  .. _V4L2-PIX-FMT-MT21C:
+>
+> +       -  ``V4L2_PIX_FMT_MT21C``
+> +
+> +       -  'MT21C'
+> +
+> +       -  Compressed two-planar YVU420 format used by Mediatek MT8173.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 29 +++++++++++++++++------------
- 1 file changed, 17 insertions(+), 12 deletions(-)
+This really needs to be expanded.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 47d8d97..1392514 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -125,6 +125,8 @@ static int rvin_reset_format(struct rvin_dev *vin)
- 	switch (vin->format.field) {
- 	case V4L2_FIELD_TOP:
- 	case V4L2_FIELD_BOTTOM:
-+		vin->format.height /= 2;
-+		break;
- 	case V4L2_FIELD_NONE:
- 	case V4L2_FIELD_INTERLACED_TB:
- 	case V4L2_FIELD_INTERLACED_BT:
-@@ -220,21 +222,13 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	/* Limit to source capabilities */
- 	__rvin_try_format_source(vin, which, pix, source);
- 
--	/* If source can't match format try if VIN can scale */
--	if (source->width != rwidth || source->height != rheight)
--		rvin_scale_try(vin, pix, rwidth, rheight);
--
--	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
--	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
--
--	/* Limit to VIN capabilities */
--	v4l_bound_align_image(&pix->width, 2, RVIN_MAX_WIDTH, walign,
--			      &pix->height, 4, RVIN_MAX_HEIGHT, 2, 0);
--
- 	switch (pix->field) {
--	case V4L2_FIELD_NONE:
- 	case V4L2_FIELD_TOP:
- 	case V4L2_FIELD_BOTTOM:
-+		pix->height /= 2;
-+		source->height /= 2;
-+		break;
-+	case V4L2_FIELD_NONE:
- 	case V4L2_FIELD_INTERLACED_TB:
- 	case V4L2_FIELD_INTERLACED_BT:
- 	case V4L2_FIELD_INTERLACED:
-@@ -244,6 +238,17 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 		break;
- 	}
- 
-+	/* If source can't match format try if VIN can scale */
-+	if (source->width != rwidth || source->height != rheight)
-+		rvin_scale_try(vin, pix, rwidth, rheight);
-+
-+	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
-+	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
-+
-+	/* Limit to VIN capabilities */
-+	v4l_bound_align_image(&pix->width, 2, RVIN_MAX_WIDTH, walign,
-+			      &pix->height, 4, RVIN_MAX_HEIGHT, 2, 0);
-+
- 	pix->bytesperline = max_t(u32, pix->bytesperline,
- 				  rvin_format_bytesperline(pix));
- 	pix->sizeimage = max_t(u32, pix->sizeimage,
--- 
-2.9.3
+Ideally this should reference the precise specification of this format if
+available.
 
+It certainly should explain which HW blocks of the mediatek SoC use this
+format, it should explain that is it meant as an opaque intermediate format
+between those blocks.
+
+If you have some characteristics (i.e. is it lossy or lossless 
+compression, I
+presume it's lossless), then that will be useful to add as well.
+
+We like to have as much information about formats as possible.
+
+Regards,
+
+	Hans
+
+>
+>  .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
+>
+>
