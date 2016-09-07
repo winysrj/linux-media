@@ -1,60 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:53154 "EHLO mail.kernel.org"
+Received: from smtp2.goneo.de ([85.220.129.33]:41642 "EHLO smtp2.goneo.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750971AbcISWxv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 18:53:51 -0400
-Date: Tue, 20 Sep 2016 00:53:38 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/5] smiapp: Implement support for autosuspend
-Message-ID: <20160919225337.cpbkq27krljafyvq@earth>
-References: <1473938961-16067-1-git-send-email-sakari.ailus@linux.intel.com>
- <1473938961-16067-6-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="jxn6ilfivuuxriwb"
-Content-Disposition: inline
-In-Reply-To: <1473938961-16067-6-git-send-email-sakari.ailus@linux.intel.com>
+        id S1750820AbcIGHNt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Sep 2016 03:13:49 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jani Nikula <jani.nikula@intel.com>
+Cc: Markus Heiser <markus.heiser@darmarit.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-doc@vger.kernel.org,
+        Markus Heiser <markus.heiser@darmarIT.de>
+Subject: [RFC v2 3/3] doc-rst:c-domain: function-like macros index entry
+Date: Wed,  7 Sep 2016 09:12:58 +0200
+Message-Id: <1473232378-11869-4-git-send-email-markus.heiser@darmarit.de>
+In-Reply-To: <1473232378-11869-1-git-send-email-markus.heiser@darmarit.de>
+References: <1473232378-11869-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
---jxn6ilfivuuxriwb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+For function-like macros, sphinx creates 'FOO (C function)' entries.
+With this patch 'FOO (C macro)' are created for function-like macros,
+which is the same for object-like macros.
 
-Hi,
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
+---
+ Documentation/sphinx/cdomain.py | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-On Thu, Sep 15, 2016 at 02:29:21PM +0300, Sakari Ailus wrote:
-> Delay suspending the device by 1000 ms by default.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+diff --git a/Documentation/sphinx/cdomain.py b/Documentation/sphinx/cdomain.py
+index df0419c..ead81b5 100644
+--- a/Documentation/sphinx/cdomain.py
++++ b/Documentation/sphinx/cdomain.py
+@@ -37,6 +37,7 @@ from docutils.parsers.rst import directives
+ 
+ import sphinx
+ from sphinx import addnodes
++from sphinx.locale import _
+ from sphinx.domains.c import c_funcptr_sig_re, c_sig_re
+ from sphinx.domains.c import CObject as Base_CObject
+ from sphinx.domains.c import CDomain as Base_CDomain
+@@ -65,6 +66,8 @@ class CObject(Base_CObject):
+         "name" : directives.unchanged
+     }
+ 
++    is_function_like_macro = False
++
+     def handle_func_like_macro(self, sig, signode):
+         u"""Handles signatures of function-like macros.
+ 
+@@ -104,6 +107,7 @@ class CObject(Base_CObject):
+             param += nodes.emphasis(argname, argname)
+             paramlist += param
+ 
++        self.is_function_like_macro = True
+         return fullname
+ 
+     def handle_signature(self, sig, signode):
+@@ -151,6 +155,12 @@ class CObject(Base_CObject):
+                 self.indexnode['entries'].append(
+                     ('single', indextext, targetname, '', None))
+ 
++    def get_index_text(self, name):
++        if self.is_function_like_macro:
++            return _('%s (C macro)') % name
++        else:
++            return super(CObject, self).get_index_text(name)
++
+ class CDomain(Base_CDomain):
+ 
+     """C language domain."""
+-- 
+2.7.4
 
-Reviewed-By: Sebastian Reichel <sre@kernel.org>
-
--- Sebastian
-
---jxn6ilfivuuxriwb
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJX4GxxAAoJENju1/PIO/qaakQP/2oGnazN340rxO7+3HvBWxv6
-Ykv4oR3ElVnRxMXZssEzg4/8J45NYLTk9N0VtWk+8NeW8sdRnjnC6nscEDyNCU+M
-3vFgUDfUQT5S2xHGdc0ZMD5SKesDfQEJle9RouqKQxVjw+Cn27ei7H2/yI8GoAUu
-anvDVB8ilB9wwYnK/VKW6oj56VozwRXgo/cQCCwutYpMT2yKHa8u03TbvG3o8ux8
-kGJ5Bu9S9VYBKYl2/6g+Td+zeX+5RZ4zBfMAF4kdFFAi+RPVs9xeYfAveqfwMPFe
-Y/K0Z2q17Tgh1yIyNzOL3mI/MUhsMY9jjkknW7dZt+RIXYaFxcffn3LI5IBrKa56
-xVpMdzK1J2yEiHWoFJ0EgKfafAqFhJFUa1e/tlt0kjMZfB6ZOCa3nOFnfmt1aLzO
-TjZt8Ex/tOnZ13Pb8C/1aHnZOj45c8cq+9E5UjEWrgG8OqCUy7p5IyBpvRzjt6hF
-lHM+5EN02a++CftmOeSH3YlpnOSTL6oOPgY/rLRBa9s6cfVg5ZLGNonnKGMaH4DY
-brfJ58/2zDD85mTGPgcETW/8CbjOOkgOA+xJPrUCHA83BdGOrRL7U6Uc5VDp07/L
-eqKl2sCbq8jz/hciug41aNfCJU2ce2DARbC42wWU/5+WS4dOJxGG/H4WyXEBEyae
-9JKDF1A/fz+SxhyTcGa2
-=yreM
------END PGP SIGNATURE-----
-
---jxn6ilfivuuxriwb--
