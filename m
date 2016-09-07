@@ -1,62 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43920 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754579AbcIEIZT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 04:25:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from smtp1.goneo.de ([85.220.129.30]:47080 "EHLO smtp1.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752420AbcIGF0j (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Sep 2016 01:26:39 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH 2/3] doc-rst:c-domain: function-like macros arguments
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <20160906062723.5125b89b@lwn.net>
+Date: Wed, 7 Sep 2016 07:26:27 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jani Nikula <jani.nikula@intel.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Subject: Re: [PATCH] [media] rcar-fcp: Make sure rcar_fcp_enable() returns 0 on success
-Date: Mon, 05 Sep 2016 11:25:46 +0300
-Message-ID: <2306869.36BMUujrVm@avalon>
-In-Reply-To: <CAMuHMdUzEsPNuqTn0pc0SwocoT3o5c0bxtrwKvUxJ6VvKRS7Yg@mail.gmail.com>
-References: <1470757001-4333-1-git-send-email-geert+renesas@glider.be> <9895129.d3fHn4vy22@avalon> <CAMuHMdUzEsPNuqTn0pc0SwocoT3o5c0bxtrwKvUxJ6VvKRS7Yg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        linux-doc@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <DD0DE746-C3A0-4863-A199-B9A7944F4CE4@darmarit.de>
+References: <1472657372-21039-1-git-send-email-markus.heiser@darmarit.de> <1472657372-21039-3-git-send-email-markus.heiser@darmarit.de> <20160906062723.5125b89b@lwn.net>
+To: Jonathan Corbet <corbet@lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
 
-On Monday 05 Sep 2016 10:20:52 Geert Uytterhoeven wrote:
-> On Mon, Sep 5, 2016 at 10:17 AM, Laurent Pinchart wrote:
-> >> BTW, it seems I missed a few more s2ram resume errors:
-> >>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-> >>     PM: Device fe920000.vsp failed to resume noirq: error -13
-> >>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-> >>     PM: Device fe960000.vsp failed to resume noirq: error -13
-> >>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-> >>     PM: Device fe9a0000.vsp failed to resume noirq: error -13
-> >>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-> >>     PM: Device fe9b0000.vsp failed to resume noirq: error -13
-> >>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-> >>     PM: Device fe9c0000.vsp failed to resume noirq: error -13
-> >>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-> >>     PM: Device fea20000.vsp failed to resume noirq: error -13
-> >>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-> >>     PM: Device fea28000.vsp failed to resume noirq: error -13
-> >>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -13
-> >>     PM: Device fea30000.vsp failed to resume noirq: error -13
-> >>     vsp1 fea38000.vsp: failed to reset wpf.0
-> >>     dpm_run_callback(): pm_genpd_resume_noirq+0x0/0x90 returns -110
-> >>     PM: Device fea38000.vsp failed to resume noirq: error -110
-> >> 
-> >> -13 == -EACCES, returned by rcar_fcp_enable() as pm_runtime_get_sync()
-> >> is called too early during system resume,
-> > 
-> > Do you have a fix for this ? :-)
+Am 06.09.2016 um 14:27 schrieb Jonathan Corbet <corbet@lwn.net>:
+
+> So I'm going into total nit-picking territory here, but since I'm looking
+> at it and I think the series needs a respin anyway...
 > 
-> Unfortuately not.
+> On Wed, 31 Aug 2016 17:29:31 +0200
+> Markus Heiser <markus.heiser@darmarit.de> wrote:
+> 
+>> +        m = c_funcptr_sig_re.match(sig)
+>> +        if m is None:
+>> +            m = c_sig_re.match(sig)
+>> +        if m is None:
+>> +            raise ValueError('no match')
+> 
+> How about we put that second test inside the first if block and avoid the
+> redundant None test if the first match works?  The energy saved may
+> prevent a hurricane someday :)
 
-Is this caused by the fact that pm_runtime_get_sync() is called on the FCP 
-device before the FCP gets system-resumed ? Lovely PM order dependency :-/
+And prohibit the MS-Windows update installer will save the climate ;)
+It is a habit of mine to avoid indentations, but you are right,
+it is not appropriate here.
 
--- 
-Regards,
+>> +
+>> +        rettype, fullname, arglist, _const = m.groups()
+>> +        if rettype or not arglist.strip():
+>> +            return False
+>> +
+>> +        arglist = arglist.replace('`', '').replace('\\ ', '').strip()  # remove markup
+>> +        arglist = [a.strip() for a in arglist.split(",")]
+> 
+> Similarly, stripping the args three times seems a bit much.  The middle
+> one is totally redundant and could go at a minimum.
 
-Laurent Pinchart
+Thanks for pointing this. You are right, I will fix it.
+
+-- Markus --
+
+> 
+> Thanks,
+> 
+> jon
 
