@@ -1,95 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-proxy002.phy.lolipop.jp ([157.7.104.43]:54505 "EHLO
-        smtp-proxy002.phy.lolipop.jp" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753461AbcIKDGp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Sep 2016 23:06:45 -0400
-Subject: Re: [RFC][PATCH 0/2] ALSA: control: export all of TLV related macros
- to user land
-To: Takashi Iwai <tiwai@suse.de>
-References: <1473483016-10529-1-git-send-email-o-takashi@sakamocchi.jp>
- <s5hr38s9ru2.wl-tiwai@suse.de>
- <f8ef81e9-37a9-505e-ed66-2df9ae8070e8@sakamocchi.jp>
- <s5hmvjfan34.wl-tiwai@suse.de>
-Cc: clemens@ladisch.de, alsa-devel@alsa-project.org,
-        linux-media@vger.kernel.org
-From: Takashi Sakamoto <o-takashi@sakamocchi.jp>
-Message-ID: <4bb2e266-61d5-29c0-65a0-c53ca0af3a69@sakamocchi.jp>
-Date: Sun, 11 Sep 2016 12:06:41 +0900
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:36089 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933904AbcIGMNo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 08:13:44 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com
+Cc: corbet@lwn.net, mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv3 1/2] v4l: Define a pixel format for the R-Car VSP1 2-D histogram engine
+Date: Wed,  7 Sep 2016 14:09:37 +0200
+Message-Id: <20160907120938.818-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20160907120938.818-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160907120938.818-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <s5hmvjfan34.wl-tiwai@suse.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sep 10 2016 22:41, Takashi Iwai wrote:
-> On Sat, 10 Sep 2016 09:25:31 +0200,
-> Takashi Sakamoto wrote:
->>
->> On Sep 10 2016 15:44, Takashi Iwai wrote:
->>> On Sat, 10 Sep 2016 06:50:14 +0200,
->>> Takashi Sakamoto wrote:
->>>>
->>>> Hi,
->>>>
->>>> Currently, TLV related protocol is not shared to user land. This is not
->>>> good in a point of application interfaces, because application developers
->>>> can't realize the protocol just to see UAPI headers.
->>>>
->>>> For this purpose, this patchset moves all of macros related to TLV to UAPI
->>>> header. As a result, a header just for kernel land is obsoleted. When adding
->>>> new items to the protocol, it's added to the UAPI header. This change affects
->>>> some drivers in media subsystem.
->>>>
->>>> In my concern, this change can break applications. When these macros are
->>>> already defined in application side and they includes tlv UAPI header
->>>> directly, 'redefined' warning is generated at preprocess time. But the
->>>> compilation will be success itself. If these two macros have different
->>>> content, the result of preprocess is dominated to the order to define.
->>>> However, the most applications are assumed to use TLV feature via libraries
->>>> such as alsa-lib, thus I'm optimistic to this concern.
->>>>
->>>> As another my concern, the name of these macros are quite simple, as
->>>> 'TLV_XXX'. It might be help application developers to rename them with a
->>>> prefix, as 'SNDRV_CTL_TLV_XXX'. (But not yet. I'm a lazy guy.)
->>>
->>> The second patch does simply wrong.  You must not obsolete
->>> include/sound/tlv.h.  Even if it includes only uapi/*, it should be
->>> still there.
->>
->> Any reasons?
-> 
-> The concept and the design.
-> 
-> Don't need to change the root inclusion, it's just to provide cleaner
-> uapi header files, and not meant to be included directly -- it was the
-> basic idea when uapi split was introduced.
+The format is used on the R-Car VSP1 video queues that carry
+2-D histogram statistics data.
 
-OK. I can see what you indicated in this post for UAPI idea[0]. I'm
-ready to drop the second patch.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/media/uapi/v4l/meta-formats.rst      |   1 +
+ .../media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst        | 120 +++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
+ include/uapi/linux/videodev2.h                     |   3 +-
+ 4 files changed, 124 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
 
-Well, how do you think about my concern of macro prefix? For example, we
-can apply below step:
+diff --git a/Documentation/media/uapi/v4l/meta-formats.rst b/Documentation/media/uapi/v4l/meta-formats.rst
+index 05ab91e..01e24e3 100644
+--- a/Documentation/media/uapi/v4l/meta-formats.rst
++++ b/Documentation/media/uapi/v4l/meta-formats.rst
+@@ -13,3 +13,4 @@ These formats are used for the :ref:`metadata` interface only.
+     :maxdepth: 1
+ 
+     pixfmt-meta-vsp1-hgo
++    pixfmt-meta-vsp1-hgt
+diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
+new file mode 100644
+index 0000000..6c62308
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
+@@ -0,0 +1,120 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _v4l2-meta-fmt-vsp1-hgt:
++
++*******************************
++V4L2_META_FMT_VSP1_HGT ('VSPT')
++*******************************
++
++Renesas R-Car VSP1 2-D Histogram Data
++
++
++Description
++===========
++
++This format describes histogram data generated by the Renesas R-Car VSP1
++2-D Histogram (HGT) engine.
++
++The VSP1 HGT is a histogram computation engine that operates on HSV
++data. It operates on a possibly cropped and subsampled input image and
++computes the sum, maximum and minimum of the S component as well as a
++weighted frequency histogram based on the H and S components.
++
++The histogram is a matrix of 6 Hue and 32 Saturation buckets, 192 in
++total. Each HSV value is added to one or more buckets with a weight
++between 1 and 16 depending on the Hue areas configuration. Finding the
++corresponding buckets is done by inspecting the H and S value independently.
++
++The Saturation position **n** (0 - 31) of the bucket in the matrix is
++found by the expression:
++
++    n = S / 8
++
++The Hue position **m** (0 - 5) of the bucket in the matrix depends on
++how the HGT Hue areas are configured. There are 6 user configurable Hue
++Areas which can be configured to cover overlapping Hue values:
++
++::
++
++         Area 0       Area 1       Area 2       Area 3       Area 4       Area 5
++        ________     ________     ________     ________     ________     ________
++   \   /|      |\   /|      |\   /|      |\   /|      |\   /|      |\   /|      |\   /
++    \ / |      | \ / |      | \ / |      | \ / |      | \ / |      | \ / |      | \ /
++     X  |      |  X  |      |  X  |      |  X  |      |  X  |      |  X  |      |  X
++    / \ |      | / \ |      | / \ |      | / \ |      | / \ |      | / \ |      | / \
++   /   \|      |/   \|      |/   \|      |/   \|      |/   \|      |/   \|      |/   \
++  5U   0L      0U   1L      1U   2L      2U   3L      3U   4L      4U   5L      5U   0L
++        <0..............................Hue Value............................255>
++
++When two consecutive areas don't overlap (n+1L is equal to nU) the boundary
++value is considered as part of the lower area.
++
++Pixels with a hue value included in the centre of an area (between nL and nU
++included) are attributed to that single area and given a weight of 16.
++Pixels with a hue value included in the overlapping region between two areas
++(between n+1L and nU excluded) are attributed to both areas and given a weight
++for each of these areas proportional to their position along the diagonal
++lines (rounded down).
++
++The Hue area setup must match one of the following constrains:
++
++::
++
++    0L <= 0U <= 1L <= 1U <= 2L <= 2U <= 3L <= 3U <= 4L <= 4U <= 5L <= 5U
++
++::
++
++    0U <= 1L <= 1U <= 2L <= 2U <= 3L <= 3U <= 4L <= 4U <= 5L <= 5U <= 0L
++
++**Byte Order.**
++All data is stored in memory in little endian format. Each cell in the tables
++contains one byte.
++
++.. flat-table:: VSP1 HGT Data - (776 bytes)
++    :header-rows:  2
++    :stub-columns: 0
++
++    * - Offset
++      - :cspan:`4` Memory
++    * -
++      - [31:24]
++      - [23:16]
++      - [15:8]
++      - [7:0]
++    * - 0
++      - -
++      - S max [7:0]
++      - -
++      - S min [7:0]
++    * - 4
++      - :cspan:`4` S sum [31:0]
++    * - 8
++      - :cspan:`4` Histogram bucket (m=0, n=0) [31:0]
++    * - 12
++      - :cspan:`4` Histogram bucket (m=0, n=1) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 132
++      - :cspan:`4` Histogram bucket (m=0, n=31) [31:0]
++    * - 136
++      - :cspan:`4` Histogram bucket (m=1, n=0) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 264
++      - :cspan:`4` Histogram bucket (m=2, n=0) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 392
++      - :cspan:`4` Histogram bucket (m=3, n=0) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 520
++      - :cspan:`4` Histogram bucket (m=4, n=0) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 648
++      - :cspan:`4` Histogram bucket (m=5, n=0) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 772
++      - :cspan:`4` Histogram bucket (m=5, n=31) [31:0]
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index b7f7d5f..f459c4f 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1259,6 +1259,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
+ 	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
+ 	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
++	case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
+ 
+ 	default:
+ 		/* Compressed formats */
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 1dbe52a..c8c046c 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -638,7 +638,8 @@ struct v4l2_pix_format {
+ #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
+ 
+ /* Meta-data formats */
+-#define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 Histogram */
++#define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 1-D Histogram */
++#define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */
+ 
+ /* priv field value to indicates that subsequent fields are valid. */
+ #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
+-- 
+2.9.3
 
-Put substantial macros with renaming to 'include/uapi.sound/tlv.h':
-#define SNDRV_CTL_TLV_DATA_LENGTH(...) \
-       ((unsigned int)sizeof((const unsigned int[]) { __VA_ARGS__ }))
-
-Then, put alias macros to 'include/sound/tlv.h':
-#include <uapi/sound/tlv.h>
-#define TLV_LENGTH SNDRV_CTL_TLV_DATA_LENGTH
-...
-
-Finally, applications can expand these macro with apparent names with
-prefix of 'SNDRV_CTL_TLV_DATA_XXX'. I think the prefix prevent
-application codes from name conflict by including 'uapi/sound/tlv.h'.
-
-
-Thanks
-
-[0] [PATCH 00/13] UAPI header file split
-https://lkml.org/lkml/2012/7/20/406
-
-
-Takashi Sakamoto
