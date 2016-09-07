@@ -1,173 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:35963 "EHLO
-        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751168AbcINJXM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Sep 2016 05:23:12 -0400
-Received: by mail-wm0-f50.google.com with SMTP id b187so36760609wme.1
-        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2016 02:23:11 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: hans.verkuil@cisco.com, linux-media@vger.kernel.org
-Cc: kernel@stlinux.com, arnd@arndb.de, robh@kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH 0/4] STIH CEC driver
-Date: Wed, 14 Sep 2016 11:22:00 +0200
-Message-Id: <1473844924-13895-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:34187 "EHLO
+        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754297AbcIGUio (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 16:38:44 -0400
+Received: by mail-oi0-f42.google.com with SMTP id m11so43128721oif.1
+        for <linux-media@vger.kernel.org>; Wed, 07 Sep 2016 13:38:35 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20160901114711.GF2893@katana>
+References: <1472729956-17475-1-git-send-email-s.nawrocki@samsung.com> <20160901114711.GF2893@katana>
+From: Linus Walleij <linus.walleij@linaro.org>
+Date: Wed, 7 Sep 2016 22:38:34 +0200
+Message-ID: <CACRpkdaFj58kMqniVHxC87K0XmHoPy3x-GHs=JrK-t2osKCZ1w@mail.gmail.com>
+Subject: Re: [PATCH 1/4] exynos4-is: Clear isp-i2c adapter power.ignore_children
+ flag
+To: Wolfram Sang <wsa@the-dreams.de>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+        stable <stable@vger.kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those patches implement HDMI CEC driver for stih4xx SoCs.
-I have used media_tree/fixes and the lastest v4l-utils branch.
+On Thu, Sep 1, 2016 at 1:47 PM, Wolfram Sang <wsa@the-dreams.de> wrote:
+> On Thu, Sep 01, 2016 at 01:39:16PM +0200, Sylwester Nawrocki wrote:
 
-The compliance tools have been run with the following sequence:
-cec-ctl --tuner -p 1.0.0.0
-cec-compliance -A
-and cec-follower running in a separate shell
+>> Since commit 04f59143b571161d25315dd52d7a2ecc022cb71a
+>> ("i2c: let I2C masters ignore their children for PM")
+>> the power.ignore_children flag is set when registering an I2C
+>> adapter. Since I2C transfers are not managed by the fimc-isp-i2c
+>> driver its clients use pm_runtime_* calls directly to communicate
+>> required power state of the bus controller.
+>> However when the power.ignore_children flag is set that doesn't
+>> work, so clear that flag back after registering the adapter.
+>> While at it drop pm_runtime_enable() call on the i2c_adapter
+>> as it is already done by the I2C subsystem when registering
+>> I2C adapter.
+>>
+>> Cc: <stable@vger.kernel.org> # 4.7+
+>> Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Compliance logs:
-cec-ctl --tuner -p 1.0.0.0 
-Driver Info:
-	Driver Name                : stih-cec
-	Adapter Name               : stih-cec
-	Capabilities               : 0x0000000f
-		Physical Address
-		Logical Addresses
-		Transmit
-		Passthrough
-	Driver version             : 4.8.0
-	Available Logical Addresses: 1
-	Physical Address           : 1.0.0.0
-	Logical Address Mask       : 0x0008
-	CEC Version                : 2.0
-	Vendor ID                  : 0x000c03
-	OSD Name                   : 'Tuner'
-	Logical Addresses          : 1
+I understand what the patch is doing but not this commit message.
 
-	  Logical Address          : 3 (Tuner 1)
-	    Primary Device Type    : Tuner
-	    Logical Address Type   : Tuner
-	    All Device Types       : Tuner
-	    RC TV Profile          : None
-	    Device Features        :
-		None
+What does it mean when you say "Since I2C transfers are not
+managed by the fimc-isp-i2c driver its clients use pm_runtime_*
+calls directly to communicate required power state of the bus
+controller."?
 
-cec-compliance -A 
-cec-compliance SHA                 : 56075a41f9294b21aa6bd80dc5e94cbd2b44087a
+I find it very hard to understand.
 
-Driver Info:
-	Driver Name                : stih-cec
-	Adapter Name               : stih-cec
-	Capabilities               : 0x0000000f
-		Physical Address
-		Logical Addresses
-		Transmit
-		Passthrough
-	Driver version             : 4.8.0
-	Available Logical Addresses: 1
-	Physical Address           : 1.0.0.0
-	Logical Address Mask       : 0x0008
-	CEC Version                : 2.0
-	Vendor ID                  : 0x000c03
-	Logical Addresses          : 1
+The intent of the commit is to decouple I2C slave devices'
+runtime PM state from their parents, so say a gyroscope on an
+I2C bus does not have to bring up it's host controller to be
+active, for example it usually has an IRQ line to wake up
+the driver and that will talk using I2C and the I2C traffic will
+wake up the I2C master.
 
-	  Logical Address          : 3
-	    Primary Device Type    : Tuner
-	    Logical Address Type   : Tuner
-	    All Device Types       : Tuner
-	    RC TV Profile          : None
-	    Device Features        :
-		None
+When I look at the driver it appears it is not even used for
+I2C traffic, just to take the clocks up and down and make it
+possible to manage a clock using runtime PM and interface
+with the DT logic... so I guess since it's likely and odd one-off
+and the driver is sufficiently weird anyways, it's fine to merge
+this patch making it even weirder.
 
-Compliance test for device /dev/cec0:
+Maybe a sort of mock adapter type should actually be
+created in the I2C core for these things so it can be handled
+there but who am I to say.
 
-    The test results mean the following:
-        OK                  Supported correctly by the device.
-        OK (Not Supported)  Not supported and not mandatory for the device.
-        OK (Presumed)       Presumably supported.  Manually check to confirm.
-        OK (Unexpected)     Supported correctly but is not expected to be supported for this device.
-        OK (Refused)        Supported by the device, but was refused.
-        FAIL                Failed and was expected to be supported by this device.
-
-Find remote devices:
-	Polling: OK
-
-CEC API:
-	CEC_ADAP_G_CAPS: OK
-	CEC_DQEVENT: OK
-	CEC_ADAP_G/S_PHYS_ADDR: OK
-	CEC_ADAP_G/S_LOG_ADDRS: OK
-	CEC_TRANSMIT: OK
-	CEC_RECEIVE: OK
-	CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
-	CEC_G/S_MODE: OK
-	CEC_EVENT_LOST_MSGS: OK
-
-Network topology:
-	System Information for device 0 (TV) from device 3 (Tuner 1):
-		CEC Version                : 1.4
-		Physical Address           : Tx, OK, Not Acknowledged (1), Rx, Timeout
-		Vendor ID                  : 0x00903e
-		OSD Name                   : 'TV'
-		Menu Language              : fre
-		Power Status               : On
-
-Total: 10, Succeeded: 10, Failed: 0, Warnings: 0
-
-cec-follower 
-cec-follower SHA                   : 56075a41f9294b21aa6bd80dc5e94cbd2b44087a
-
-Driver Info:
-	Driver Name                : stih-cec
-	Adapter Name               : stih-cec
-	Capabilities               : 0x0000000f
-		Physical Address
-		Logical Addresses
-		Transmit
-		Passthrough
-	Driver version             : 4.8.0
-	Available Logical Addresses: 1
-	Physical Address           : 1.0.0.0
-	Logical Address Mask       : 0x0008
-	CEC Version                : 2.0
-	Vendor ID                  : 0x000c03
-	Logical Addresses          : 1
-
-	  Logical Address          : 3
-	    Primary Device Type    : Tuner
-	    Logical Address Type   : Tuner
-	    All Device Types       : Tuner
-	    RC TV Profile          : None
-	    Device Features        :
-		None
-
-Initial Event: State Change: PA: 1.0.0.0, LA mask: 0x0008
-Event: State Change: PA: 1.0.0.0, LA mask: 0x0000
-Event: State Change: PA: 1.0.0.0, LA mask: 0x4000
-Event: State Change: PA: 1.0.0.0, LA mask: 0x0000
-Event: State Change: PA: 1.0.0.0, LA mask: 0x4000
-Event: State Change: PA: 1.0.0.0, LA mask: 0x0000
-Event: State Change: PA: 1.0.0.0, LA mask: 0x0008
-
-Benjamin Gaignard (4):
-  bindings for stih-cec driver
-  add stih-cec driver
-  add stih-cec driver into DT
-  add maintainer for stih-cec driver
-
- .../devicetree/bindings/media/stih-cec.txt         |  25 ++
- MAINTAINERS                                        |   7 +
- arch/arm/boot/dts/stih410.dtsi                     |  12 +
- drivers/staging/media/Kconfig                      |   2 +
- drivers/staging/media/Makefile                     |   1 +
- drivers/staging/media/st-cec/Kconfig               |   8 +
- drivers/staging/media/st-cec/Makefile              |   1 +
- drivers/staging/media/st-cec/stih-cec.c            | 377 +++++++++++++++++++++
- 8 files changed, 433 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/stih-cec.txt
- create mode 100644 drivers/staging/media/st-cec/Kconfig
- create mode 100644 drivers/staging/media/st-cec/Makefile
- create mode 100644 drivers/staging/media/st-cec/stih-cec.c
-
--- 
-1.9.1
-
+Yours,
+Linus Walleij
