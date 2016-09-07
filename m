@@ -1,50 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:36849 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757579AbcIUPNc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Sep 2016 11:13:32 -0400
-Received: by mail-pf0-f193.google.com with SMTP id n24so2507323pfb.3
-        for <linux-media@vger.kernel.org>; Wed, 21 Sep 2016 08:13:06 -0700 (PDT)
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Geunyoung Kim <nenggun.kim@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>, linux-media@vger.kernel.org
-Subject: [PATCH -next] [media] cx88: fix error return code in cx8802_dvb_probe()
-Date: Wed, 21 Sep 2016 15:12:58 +0000
-Message-Id: <1474470778-8469-1-git-send-email-weiyj.lk@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53098 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751952AbcIGMrt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 08:47:49 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        corbet@lwn.net, mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com
+Subject: Re: [PATCHv3 2/2] v4l: vsp1: Add HGT support
+Date: Wed, 07 Sep 2016 15:48:19 +0300
+Message-ID: <3579545.u5RR9atB6T@avalon>
+In-Reply-To: <20160907120938.818-3-niklas.soderlund+renesas@ragnatech.se>
+References: <20160907120938.818-1-niklas.soderlund+renesas@ragnatech.se> <20160907120938.818-3-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <weiyongjun1@huawei.com>
+Hi Niklas,
 
-Fix to return error code -ENODEV from the error handling case
-instead of 0(err maybe overwrited to 0 in the for loop), as
-done elsewhere in this function.
+Thank you for the patch.
 
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
----
- drivers/media/pci/cx88/cx88-dvb.c | 1 +
- 1 file changed, 1 insertion(+)
+On Wednesday 07 Sep 2016 14:09:38 Niklas S=F6derlund wrote:
+> The HGT is a Histogram Generator Two-Dimensions. It computes a weight=
+ed
+> frequency histograms for hue and saturation areas over a configurable=
 
-diff --git a/drivers/media/pci/cx88/cx88-dvb.c b/drivers/media/pci/cx88/cx88-dvb.c
-index ac2392d..d76a175 100644
---- a/drivers/media/pci/cx88/cx88-dvb.c
-+++ b/drivers/media/pci/cx88/cx88-dvb.c
-@@ -1779,6 +1779,7 @@ static int cx8802_dvb_probe(struct cx8802_driver *drv)
- 		if (fe == NULL) {
- 			printk(KERN_ERR "%s() failed to get frontend(%d)\n",
- 					__func__, i);
-+			err = -ENODEV;
- 			goto fail_probe;
- 		}
- 		q = &fe->dvb.dvbq;
+> region of the image with optional subsampling.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
+.se>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+However, please note that we might need to upstream HGT support before =
+HGO. To=20
+ease that, I've split the HGO patches in common code and HGO-specific c=
+ode,=20
+and rebased your patch on top of that. The result is available at
+
+=09git://linuxtv.org/pinchartl/media.git vsp1/next
+
+There will still be conflicts if we need to reorder the patches, but th=
+ey=20
+should be easier to handle now.
+
+> ---
+>  drivers/media/platform/vsp1/Makefile      |   2 +-
+>  drivers/media/platform/vsp1/vsp1.h        |   3 +
+>  drivers/media/platform/vsp1/vsp1_drv.c    |  33 ++++-
+>  drivers/media/platform/vsp1/vsp1_entity.c |  33 +++--
+>  drivers/media/platform/vsp1/vsp1_entity.h |   1 +
+>  drivers/media/platform/vsp1/vsp1_hgt.c    | 221 ++++++++++++++++++++=
++++++++
+>  drivers/media/platform/vsp1/vsp1_hgt.h    |  42 ++++++
+>  drivers/media/platform/vsp1/vsp1_pipe.c   |  16 +++
+>  drivers/media/platform/vsp1/vsp1_pipe.h   |   2 +
+>  drivers/media/platform/vsp1/vsp1_regs.h   |   9 ++
+>  drivers/media/platform/vsp1/vsp1_video.c  |  10 +-
+>  11 files changed, 356 insertions(+), 16 deletions(-)
+>  create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.c
+>  create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.h
+
+--=20
+Regards,
+
+Laurent Pinchart
 
