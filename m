@@ -1,51 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38501 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1757385AbcIGKjL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Sep 2016 06:39:11 -0400
-Received: from [10.47.79.81] (unknown [173.38.220.42])
-        by tschai.lan (Postfix) with ESMTPSA id E0BA218597A
-        for <linux-media@vger.kernel.org>; Wed,  7 Sep 2016 12:39:05 +0200 (CEST)
-To: linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] v4l-drivers/fourcc.rst: fix typo
-Message-ID: <23edb640-5a92-2eff-23a5-ce88bab7e2d7@xs4all.nl>
-Date: Wed, 7 Sep 2016 12:39:04 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:37977 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756944AbcIGIZS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 04:25:18 -0400
+Received: by mail-wm0-f50.google.com with SMTP id 1so17783914wmz.1
+        for <linux-media@vger.kernel.org>; Wed, 07 Sep 2016 01:25:18 -0700 (PDT)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, zoltan.kuscsik@linaro.org,
+        sumit.semwal@linaro.org, cc.ma@mediatek.com,
+        joakim.bech@linaro.org, dan.caprita@windriver.com,
+        burt.lien@linaro.org
+Cc: linaro-mm-sig@lists.linaro.org, linaro-kernel@lists.linaro.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v9 3/3] SMAF: add test secure module
+Date: Wed,  7 Sep 2016 10:24:56 +0200
+Message-Id: <1473236696-10002-4-git-send-email-benjamin.gaignard@linaro.org>
+In-Reply-To: <1473236696-10002-1-git-send-email-benjamin.gaignard@linaro.org>
+References: <1473236696-10002-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Linux4Linux -> Video4Linux
+This module is allow testing secure calls of SMAF.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 ---
-diff --git a/Documentation/media/v4l-drivers/fourcc.rst 
-b/Documentation/media/v4l-drivers/fourcc.rst
-index f7c8cef..9c82106 100644
---- a/Documentation/media/v4l-drivers/fourcc.rst
-+++ b/Documentation/media/v4l-drivers/fourcc.rst
-@@ -1,4 +1,4 @@
--Guidelines for Linux4Linux pixel format 4CCs
-+Guidelines for Video4Linux pixel format 4CCs
-  ============================================
+ drivers/smaf/Kconfig           |  6 +++
+ drivers/smaf/Makefile          |  1 +
+ drivers/smaf/smaf-testsecure.c | 90 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 97 insertions(+)
+ create mode 100644 drivers/smaf/smaf-testsecure.c
 
-  Guidelines for Video4Linux 4CC codes defined using v4l2_fourcc() are
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c 
-b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 9cfbb6e..f21cce1 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -109,7 +109,8 @@ static int __verify_length(struct vb2_buffer *vb, 
-const struct v4l2_buffer *b)
-  				return -EINVAL;
-  		}
-  	} else {
--		length = (b->memory == VB2_MEMORY_USERPTR)
-+		length = (b->memory == VB2_MEMORY_USERPTR ||
-+			  b->memory == VB2_MEMORY_DMABUF)
-  			? b->length : vb->planes[0].length;
+diff --git a/drivers/smaf/Kconfig b/drivers/smaf/Kconfig
+index cfdfffd..73f2ebf 100644
+--- a/drivers/smaf/Kconfig
++++ b/drivers/smaf/Kconfig
+@@ -9,3 +9,9 @@ config SMAF_CMA
+ 	depends on SMAF
+ 	help
+ 	  Choose this option to enable CMA allocation within SMAF
++
++config SMAF_TEST_SECURE
++	tristate "SMAF secure module for test"
++	depends on SMAF
++	help
++	  Choose this option to enable secure module for test purpose
+diff --git a/drivers/smaf/Makefile b/drivers/smaf/Makefile
+index 05bab01b..bca6b9c 100644
+--- a/drivers/smaf/Makefile
++++ b/drivers/smaf/Makefile
+@@ -1,2 +1,3 @@
+ obj-$(CONFIG_SMAF) += smaf-core.o
+ obj-$(CONFIG_SMAF_CMA) += smaf-cma.o
++obj-$(CONFIG_SMAF_TEST_SECURE) += smaf-testsecure.o
+diff --git a/drivers/smaf/smaf-testsecure.c b/drivers/smaf/smaf-testsecure.c
+new file mode 100644
+index 0000000..823d0dc
+--- /dev/null
++++ b/drivers/smaf/smaf-testsecure.c
+@@ -0,0 +1,90 @@
++/*
++ * smaf-testsecure.c
++ *
++ * Copyright (C) Linaro SA 2015
++ * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org> for Linaro.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/smaf-secure.h>
++
++#define MAGIC 0xDEADBEEF
++
++struct test_private {
++	int magic;
++};
++
++#define to_priv(x) (struct test_private *)(x)
++
++static void *smaf_testsecure_create(void)
++{
++	struct test_private *priv;
++
++	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
++	if (!priv)
++		return NULL;
++
++	priv->magic = MAGIC;
++
++	return priv;
++}
++
++static int smaf_testsecure_destroy(void *ctx)
++{
++	struct test_private *priv = to_priv(ctx);
++
++	WARN_ON(!priv || (priv->magic != MAGIC));
++	kfree(priv);
++
++	return 0;
++}
++
++static bool smaf_testsecure_grant_access(void *ctx,
++					 struct device *dev,
++					 size_t addr, size_t size,
++					 enum dma_data_direction direction)
++{
++	struct test_private *priv = to_priv(ctx);
++
++	WARN_ON(!priv || (priv->magic != MAGIC));
++	pr_debug("grant requested by device %s\n",
++		 dev->driver ? dev->driver->name : "cpu");
++
++	return priv->magic == MAGIC;
++}
++
++static void smaf_testsecure_revoke_access(void *ctx,
++					  struct device *dev,
++					  size_t addr, size_t size,
++					  enum dma_data_direction direction)
++{
++	struct test_private *priv = to_priv(ctx);
++
++	WARN_ON(!priv || (priv->magic != MAGIC));
++	pr_debug("revoke requested by device %s\n",
++		 dev->driver ? dev->driver->name : "cpu");
++}
++
++static struct smaf_secure test = {
++	.create_ctx = smaf_testsecure_create,
++	.destroy_ctx = smaf_testsecure_destroy,
++	.grant_access = smaf_testsecure_grant_access,
++	.revoke_access = smaf_testsecure_revoke_access,
++};
++
++static int __init smaf_testsecure_init(void)
++{
++	return smaf_register_secure(&test);
++}
++module_init(smaf_testsecure_init);
++
++static void __exit smaf_testsecure_deinit(void)
++{
++	smaf_unregister_secure(&test);
++}
++module_exit(smaf_testsecure_deinit);
++
++MODULE_DESCRIPTION("SMAF secure module for test purpose");
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Benjamin Gaignard <benjamin.gaignard@linaro.org>");
+-- 
+1.9.1
 
-  		if (b->bytesused > length)
