@@ -1,103 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:62866 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932160AbcIKTLl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Sep 2016 15:11:41 -0400
-Date: Sun, 11 Sep 2016 21:11:35 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Joe Perches <joe@perches.com>
-cc: Julia Lawall <Julia.Lawall@lip6.fr>,
-        linux-renesas-soc@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-can@vger.kernel.org,
-        Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Mustafa Ismail <mustafa.ismail@intel.com>,
-        Chien Tin Tung <chien.tin.tung@intel.com>,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-        linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        tpmdd-devel@lists.sourceforge.net, linux-scsi@vger.kernel.org,
-        linux-spi@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: Re: [PATCH 00/26] constify local structures
-In-Reply-To: <1473616576.19464.10.camel@perches.com>
-Message-ID: <alpine.DEB.2.10.1609112105250.3818@hadrien>
-References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr> <1473616576.19464.10.camel@perches.com>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:2783 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932548AbcIGG4z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 02:56:55 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH 1/4] v4l: add Mediatek compressed video block format
+Date: Wed, 7 Sep 2016 14:56:40 +0800
+Message-ID: <1473231403-14900-2-git-send-email-tiffany.lin@mediatek.com>
+In-Reply-To: <1473231403-14900-1-git-send-email-tiffany.lin@mediatek.com>
+References: <1473231403-14900-1-git-send-email-tiffany.lin@mediatek.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add V4L2_PIX_FMT_MT21C format used on MT8173 driver.
+It is compressed format and need MT8173 MDP driver to transfer to other
+standard format.
 
-On Sun, 11 Sep 2016, Joe Perches wrote:
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c |    1 +
+ include/uapi/linux/videodev2.h       |    1 +
+ 2 files changed, 2 insertions(+)
 
-> On Sun, 2016-09-11 at 15:05 +0200, Julia Lawall wrote:
-> > Constify local structures.
->
-> Thanks Julia.
->
-> A few suggestions & questions:
->
-> Perhaps the script should go into scripts/coccinelle/
-> so that future cases could be caught by the robot
-> and commit message referenced by the patch instances.
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 2bd1581..1d45c58 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1288,6 +1288,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 		case V4L2_PIX_FMT_JPGL:		descr = "JPEG Lite"; break;
+ 		case V4L2_PIX_FMT_SE401:	descr = "GSPCA SE401"; break;
+ 		case V4L2_PIX_FMT_S5C_UYVY_JPG:	descr = "S5C73MX interleaved UYVY/JPEG"; break;
++		case V4L2_PIX_FMT_MT21C:	descr = "Mediatek Compressed Format"; break;
+ 		default:
+ 			WARN(1, "Unknown pixelformat 0x%08x\n", fmt->pixelformat);
+ 			if (fmt->description[0])
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 43326c3..ddd0083 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -635,6 +635,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
+ #define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
+ #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
++#define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
+ 
+ /* SDR formats - used only for Software Defined Radio devices */
+ #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+-- 
+1.7.9.5
 
-OK.
-
-> Can you please compile the files modified using the
-> appropriate defconfig/allyesconfig and show the
-
-I currently send patches for this issue only for files that compile using
-the x86 allyesconfig.
-
-> movement from data to const by using
-> 	$ size <object>.new/old
-> and include that in the changelogs (maybe next time)?
-
-OK, thanks for the suggestion.
-
-> Is it possible for a rule to trace the instances where
-> an address of a struct or struct member is taken by
-> locally defined and declared function call where the
-> callee does not modify any dereferenced object?
->
-> ie:
->
-> struct foo {
-> 	int bar;
-> 	char *baz;
-> };
->
-> struct foo qux[] = {
-> 	{ 1, "description 1" },
-> 	{ 2, "dewcription 2" },
-> 	[ n, "etc" ]...,
-> };
->
-> void message(struct foo *msg)
-> {
-> 	printk("%d %s\n", msg->bar, msg->baz);
-> }
->
-> where some code uses
->
-> 	message(qux[index]);
->
-> So could a coccinelle script change:
->
-> struct foo qux[] = { to const struct foo quz[] = {
->
-> and
->
-> void message(struct foo *msg) to void message(const struct foo *msg)
-
-Yes, this could be possible too.
-
-Thanks for the feedback.
-
-julia
