@@ -1,65 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:52706 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754673AbcIHNJQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 09:09:16 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-CC: <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Houlong Wei <houlong.wei@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-Subject: [PATCH v6 6/6] media: mtk-mdp: add Maintainers entry for Mediatek MDP driver
-Date: Thu, 8 Sep 2016 21:09:06 +0800
-Message-ID: <1473340146-6598-7-git-send-email-minghsiu.tsai@mediatek.com>
-In-Reply-To: <1473340146-6598-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1473340146-6598-1-git-send-email-minghsiu.tsai@mediatek.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34133 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750820AbcIGHM4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 03:12:56 -0400
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <3631828.PadezLxMAk@avalon>
+References: <1473207273-16446-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <CAPybu_2sKsLNuVbL1Av5DNHjNizw_4wUM_RaVjpvBov5aG-+JQ@mail.gmail.com> <3631828.PadezLxMAk@avalon>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Wed, 7 Sep 2016 09:12:34 +0200
+Message-ID: <CAPybu_20uf6BPMcCfGMTopQ0iBCUve+OkaZiLrPtVdKMKtnDmQ@mail.gmail.com>
+Subject: Re: [PATCH] v4l: vsp1: Add support for capture and output in HSV formats
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-media <linux-media@vger.kernel.org>,
+        linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add Minghsiu Tsai, Houlong Wei and Andrew-CT Chen as
-maintainers for Mediatek MDP driver
+Hi Laurent,
 
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Signed-off-by: Houlong Wei <houlong.wei@mediatek.com>
-Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
----
- MAINTAINERS |    9 +++++++++
- 1 file changed, 9 insertions(+)
+On Wed, Sep 7, 2016 at 9:09 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>>
+>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>
+> Do you mean Acked-by ?
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 20bb1d0..e17e681 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -7605,6 +7605,15 @@ L:	netdev@vger.kernel.org
- S:	Maintained
- F:	drivers/net/ethernet/mediatek/
- 
-+MEDIATEK MDP DRIVER
-+M:	Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-+M:	Houlong Wei <houlong.wei@mediatek.com>
-+M:	Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-+S:	Supported
-+F:	drivers/media/platform/mtk-mdp/
-+F:	drivers/media/platform/mtk-vpu/
-+F:	Documentation/devicetree/bindings/media/mediatek-mdp.txt
-+
- MEDIATEK MT7601U WIRELESS LAN DRIVER
- M:	Jakub Kicinski <kubakici@wp.pl>
- L:	linux-wireless@vger.kernel.org
+Acked-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+
+Ups, my bad
+
+
+>
+> Feel free to take the patch in your tree to get it merged along with the HSV
+> series.
+
+
+I do not really have a tree, I have a github account that is it.
+
+Let me ask Hans on the irc how to procede from here.
+
+I really appreciate your help!
+
 -- 
-1.7.9.5
-
+Ricardo Ribalda
