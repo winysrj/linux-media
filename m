@@ -1,48 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:38858 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753471AbcICRGX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Sep 2016 13:06:23 -0400
-From: Colin King <colin.king@canonical.com>
-To: Jemma Denson <jdenson@gmail.com>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] cx24120: do not allow an invalid delivery system types
-Date: Sat,  3 Sep 2016 18:04:17 +0100
-Message-Id: <20160903170417.14061-1-colin.king@canonical.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:37944 "EHLO
+        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S939089AbcIGLnP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 07:43:15 -0400
+Received: by mail-wm0-f44.google.com with SMTP id 1so27127006wmz.1
+        for <linux-media@vger.kernel.org>; Wed, 07 Sep 2016 04:43:14 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2 8/8] media: vidc: enable building of the video codec driver
+Date: Wed,  7 Sep 2016 14:37:09 +0300
+Message-Id: <1473248229-5540-9-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1473248229-5540-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1473248229-5540-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+This adds changes in v4l2 platform directory to include the
+vidc driver and show it in kernel config.
 
-cx24120_set_frontend currently allows invalid delivery system types
-other than SYS_DVBS2 and SYS_DVBS.  Fix this by returning -EINVAL
-for invalid values.
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/media/dvb-frontends/cx24120.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/platform/Kconfig  | 1 +
+ drivers/media/platform/Makefile | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/cx24120.c b/drivers/media/dvb-frontends/cx24120.c
-index 066ee38..3112a32 100644
---- a/drivers/media/dvb-frontends/cx24120.c
-+++ b/drivers/media/dvb-frontends/cx24120.c
-@@ -1154,8 +1154,7 @@ static int cx24120_set_frontend(struct dvb_frontend *fe)
- 		dev_dbg(&state->i2c->dev,
- 			"delivery system(%d) not supported\n",
- 			c->delivery_system);
--		ret = -EINVAL;
--		break;
-+		return -EINVAL;
- 	}
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index f25344bc7912..e52640417b0a 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -111,6 +111,7 @@ source "drivers/media/platform/s5p-tv/Kconfig"
+ source "drivers/media/platform/am437x/Kconfig"
+ source "drivers/media/platform/xilinx/Kconfig"
+ source "drivers/media/platform/rcar-vin/Kconfig"
++source "drivers/media/platform/qcom/Kconfig"
  
- 	state->dnxt.delsys = c->delivery_system;
+ config VIDEO_TI_CAL
+ 	tristate "TI CAL (Camera Adaptation Layer) driver"
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 21771c1a13fb..d8fc75ddcc73 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -51,6 +51,7 @@ obj-$(CONFIG_VIDEO_RENESAS_JPU) 	+= rcar_jpu.o
+ obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
+ 
+ obj-y	+= omap/
++obj-y	+= qcom/
+ 
+ obj-$(CONFIG_VIDEO_AM437X_VPFE)		+= am437x/
+ 
 -- 
-2.9.3
+2.7.4
 
