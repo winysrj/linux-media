@@ -1,62 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:46549 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753580AbcIAV1U (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 17:27:20 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-        Andi Shyti <andi@etezian.org>
-Subject: [PATCH v2 4/7] [media] rc-ir-raw: do not generate any receiving thread
- for raw transmitters
-Date: Fri, 02 Sep 2016 02:16:26 +0900
-Message-id: <20160901171629.15422-5-andi.shyti@samsung.com>
-In-reply-to: <20160901171629.15422-1-andi.shyti@samsung.com>
-References: <20160901171629.15422-1-andi.shyti@samsung.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:1071 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754222AbcIGG3Z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 02:29:25 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+Subject: [PATCH v2] vcodec: mediatek: add Maintainers entry for Mediatek MT8173 vcodec drivers
+Date: Wed, 7 Sep 2016 14:29:16 +0800
+Message-ID: <1473229756-13424-1-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Raw IR transmitters do not need any thread listening for
-occurring events. Check the driver type before running the
-thread.
+Add Tiffany Lin and Andrew-CT Chen as maintainers for
+Mediatek MT8173 vcodec drivers
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
 ---
- drivers/media/rc/rc-ir-raw.c | 17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+v2: Rename MT8173 MEDIA DRIVER to MEDIATEK MEDIA DRIVER
+---
+ MAINTAINERS |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 144304c..64ddc3d 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -274,12 +274,19 @@ int ir_raw_event_register(struct rc_dev *dev)
- 	INIT_KFIFO(dev->raw->kfifo);
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0a16a82..96854c1 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7590,6 +7590,15 @@ F:	include/uapi/linux/meye.h
+ F:	include/uapi/linux/ivtv*
+ F:	include/uapi/linux/uvcvideo.h
  
- 	spin_lock_init(&dev->raw->lock);
--	dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
--				       "rc%u", dev->minor);
- 
--	if (IS_ERR(dev->raw->thread)) {
--		rc = PTR_ERR(dev->raw->thread);
--		goto out;
-+	/*
-+	 * raw transmitters do not need any event registration
-+	 * because the event is coming from userspace
-+	 */
-+	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
-+		dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
-+					       "rc%u", dev->minor);
++MEDIATEK MEDIA DRIVER
++M:	Tiffany Lin <tiffany.lin@mediatek.com>
++M:	Andrew-CT Chen <andrew-ct.chen@mediatek.com>
++S:	Supported
++F:	drivers/media/platform/mtk-vcodec/
++F:	drivers/media/platform/mtk-vpu/
++F:	Documentation/devicetree/bindings/media/mediatek-vcodec.txt
++F:	Documentation/devicetree/bindings/media/mediatek-vpu.txt
 +
-+		if (IS_ERR(dev->raw->thread)) {
-+			rc = PTR_ERR(dev->raw->thread);
-+			goto out;
-+		}
- 	}
- 
- 	mutex_lock(&ir_raw_handler_lock);
+ MEDIATEK ETHERNET DRIVER
+ M:	Felix Fietkau <nbd@openwrt.org>
+ M:	John Crispin <blogic@openwrt.org>
 -- 
-2.9.3
+1.7.9.5
 
