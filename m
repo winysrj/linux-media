@@ -1,80 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:57240 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752154AbcHIO7E (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Aug 2016 10:59:04 -0400
-Date: Tue, 9 Aug 2016 16:58:56 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Abylay Ospan <aospan@netup.ru>
-Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
-	linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
-	Sergey Kozlov <serjk@netup.ru>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/4] media: pci: netup_unidvb: don't print error when
- adding adapter fails
-Message-ID: <20160809145856.GC1666@katana>
-References: <1470742517-12774-1-git-send-email-wsa-dev@sang-engineering.com>
- <1470742517-12774-2-git-send-email-wsa-dev@sang-engineering.com>
- <CAK3bHNWmxQsAtefcUocoOcEwtWnpptiVxzhXR-+jVU524RmnPw@mail.gmail.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38501 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1757385AbcIGKjL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Sep 2016 06:39:11 -0400
+Received: from [10.47.79.81] (unknown [173.38.220.42])
+        by tschai.lan (Postfix) with ESMTPSA id E0BA218597A
+        for <linux-media@vger.kernel.org>; Wed,  7 Sep 2016 12:39:05 +0200 (CEST)
+To: linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] v4l-drivers/fourcc.rst: fix typo
+Message-ID: <23edb640-5a92-2eff-23a5-ce88bab7e2d7@xs4all.nl>
+Date: Wed, 7 Sep 2016 12:39:04 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XMCwj5IQnwKtuyBG"
-Content-Disposition: inline
-In-Reply-To: <CAK3bHNWmxQsAtefcUocoOcEwtWnpptiVxzhXR-+jVU524RmnPw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Linux4Linux -> Video4Linux
 
---XMCwj5IQnwKtuyBG
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/Documentation/media/v4l-drivers/fourcc.rst 
+b/Documentation/media/v4l-drivers/fourcc.rst
+index f7c8cef..9c82106 100644
+--- a/Documentation/media/v4l-drivers/fourcc.rst
++++ b/Documentation/media/v4l-drivers/fourcc.rst
+@@ -1,4 +1,4 @@
+-Guidelines for Linux4Linux pixel format 4CCs
++Guidelines for Video4Linux pixel format 4CCs
+  ============================================
 
+  Guidelines for Video4Linux 4CC codes defined using v4l2_fourcc() are
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c 
+b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 9cfbb6e..f21cce1 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -109,7 +109,8 @@ static int __verify_length(struct vb2_buffer *vb, 
+const struct v4l2_buffer *b)
+  				return -EINVAL;
+  		}
+  	} else {
+-		length = (b->memory == VB2_MEMORY_USERPTR)
++		length = (b->memory == VB2_MEMORY_USERPTR ||
++			  b->memory == VB2_MEMORY_DMABUF)
+  			? b->length : vb->planes[0].length;
 
-> Sometimes it better to show more message - especially in error conditions=
- :)
-
-Sure, if they contain additional information.
-
-> btw, do you make sanity check for "duplicate" log messages ?
-
-I checked all error messages if they contain additional information.
-
->     =C2=A0 =C2=A0 =C2=A0 =C2=A0 ret =3D i2c_add_adapter(&i2c->adap);
->     -=C2=A0 =C2=A0 =C2=A0 =C2=A0if (ret) {
->     -=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0dev_err(&ndev=
-->pci_dev->dev,
->     -=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0"%s(): failed to add I2C adapter\n", __func__);
->     +=C2=A0 =C2=A0 =C2=A0 =C2=A0if (ret)
->     =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return ret;
->     -=C2=A0 =C2=A0 =C2=A0 =C2=A0}
-
-IMHO, this one doesn't. __func__ is not helpful to users. And the error
-messages in the core will make sure that a developer knows where to
-start looking.
-
-
---XMCwj5IQnwKtuyBG
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXqe+wAAoJEBQN5MwUoCm2ZkwP/1vF0X1lQoqHci9o8z7a/vI/
-EHtLWcEvszMoTiwQDSzFi2GsI1LqGVTHGS+h7+WrHCSgHQbL1F+VUuTl3A3mxNk3
-8yanxLrEz/FT5OLxn040+rvDVeCftkzz/awhg4tsPBnyy0IQ6c0/YcRrY/pdKBUL
-ElfNsRIJndK5/9RkrOFkk+EjJ/eqRgE7orB32PwYwwT/wRmhlPfXvp0Ehilv878k
-315WxuBB1JyUa8S0mEeiD+kgGaPcAEPLfLc5bdmbBnqYMJO1QUvJ1youl1rzI5RN
-ymW3i6LtMBN5aqLc33F4U1q2er5BpH1LvVPVzeiMZTzuS2k973nrHhChe29rmpGk
-8Cb/kZHxsTv/VFnW5VvuM4Br64FNJOlI0YN8IPDTI/wsn+BXEQXdjU5gJpkqLcs1
-mu9Q8IpKBw+ESgN2sVVutec1Yy8WkqYUTne7FroSLJA/kM/qc/59Po6dCAjuSUO9
-EfON/IpnSWyORx9MDMDxS0PEi/qA/h+tvY1KgxRwHjrtbYFgJelhPMxou93nUt0B
-dIy1ly/CLB4uBEPhkOf0tbyrk7pTF1JPh9tatdLtp2D+c/gMbnAz+TQnR6jiXWrQ
-75miUJc+B6ToIj2PFBW7PQO0X8vcuyjW5wUpTfbNtNpYMOJ4BSVvOftk1/i1JHZ8
-10rxnwHOJEStUExkMB24
-=qqiA
------END PGP SIGNATURE-----
-
---XMCwj5IQnwKtuyBG--
+  		if (b->bytesused > length)
