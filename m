@@ -1,28 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out2-smtp.messagingengine.com ([66.111.4.26]:46484 "EHLO
-        out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1757366AbcIVWTQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Sep 2016 18:19:16 -0400
-Date: Fri, 23 Sep 2016 01:17:13 +0300
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: Marty Plummer <netz.kernel@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: TW2866 i2c driver and solo6x10
-Message-ID: <20160922221713.kvi3q4qcobye6m5b@acer>
-References: <25e70ffb-147a-33f4-76cf-3435ab555520@gmail.com>
- <75985f71-e1d6-cf22-91c0-6429955156e6@gmail.com>
- <20160919182033.qaom5ji4k43jsu24@acer>
- <57c69cbd-950e-ba01-5d6a-efdabe6f6d16@gmail.com>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:30768 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932471AbcIGG4y (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 02:56:54 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH 2/4] docs-rst: Add compressed video formats used on MT8173 codec driver
+Date: Wed, 7 Sep 2016 14:56:41 +0800
+Message-ID: <1473231403-14900-3-git-send-email-tiffany.lin@mediatek.com>
+In-Reply-To: <1473231403-14900-2-git-send-email-tiffany.lin@mediatek.com>
+References: <1473231403-14900-1-git-send-email-tiffany.lin@mediatek.com>
+ <1473231403-14900-2-git-send-email-tiffany.lin@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <57c69cbd-950e-ba01-5d6a-efdabe6f6d16@gmail.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-So is the actual machine x86 or ARM?
-Do the tw28xx chips behind the bus (i2c as you said) show up in any way
-at all? Is something like i2c controller available? Or it's ARM and we
-should tell kernel how to "find" the i2c line by feeding correct
-devicetree to it?
+Add V4L2_PIX_FMT_MT21C documentation
+
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+---
+ Documentation/media/uapi/v4l/pixfmt-reserved.rst |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/Documentation/media/uapi/v4l/pixfmt-reserved.rst b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+index 0dd2f7f..2e21fbc 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-reserved.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+@@ -339,7 +339,13 @@ please make a proposal on the linux-media mailing list.
+ 	  array. Anything what's in between the UYVY lines is JPEG data and
+ 	  should be concatenated to form the JPEG stream.
+ 
++    -  .. _V4L2-PIX-FMT-MT21C:
+ 
++       -  ``V4L2_PIX_FMT_MT21C``
++
++       -  'MT21C'
++
++       -  Compressed two-planar YVU420 format used by Mediatek MT8173.
+ 
+ .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
+ 
+-- 
+1.7.9.5
+
