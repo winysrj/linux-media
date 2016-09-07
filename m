@@ -1,93 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exsmtp01.microchip.com ([198.175.253.37]:26258 "EHLO
-        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755094AbcILHsv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Sep 2016 03:48:51 -0400
-From: Songjun Wu <songjun.wu@microchip.com>
-To: <nicolas.ferre@atmel.com>, Hans Verkuil <hans.verkuil@cisco.com>
-CC: Songjun Wu <songjun.wu@microchip.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] atmel-isc: set the format on the first open
-Date: Mon, 12 Sep 2016 15:47:24 +0800
-Message-ID: <1473666444-20271-1-git-send-email-songjun.wu@microchip.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from smtp2.goneo.de ([85.220.129.33]:41630 "EHLO smtp2.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750820AbcIGHNq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Sep 2016 03:13:46 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jani Nikula <jani.nikula@intel.com>
+Cc: Markus Heiser <markus.heiser@darmarit.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-doc@vger.kernel.org,
+        Markus Heiser <markus.heiser@darmarIT.de>
+Subject: [PATCH v2 1/3] doc-rst:c-domain: fix sphinx version incompatibility
+Date: Wed,  7 Sep 2016 09:12:56 +0200
+Message-Id: <1473232378-11869-2-git-send-email-markus.heiser@darmarit.de>
+In-Reply-To: <1473232378-11869-1-git-send-email-markus.heiser@darmarit.de>
+References: <1473232378-11869-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set the current format on the first open.
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
+The self.indexnode's tuple has changed in sphinx version 1.4, from a
+former 4 element tuple to a 5 element tuple.
+
+https://github.com/sphinx-doc/sphinx/commit/e6a5a3a92e938fcd75866b4227db9e0524d58f7c
+
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
 ---
+ Documentation/sphinx/cdomain.py | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
- drivers/media/platform/atmel/atmel-isc.c | 30 ++++++++++++++++++------------
- 1 file changed, 18 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-index db6773d..ed8050d 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -924,10 +924,16 @@ static int isc_open(struct file *file)
- 		goto unlock;
+diff --git a/Documentation/sphinx/cdomain.py b/Documentation/sphinx/cdomain.py
+index 9eb714a..5f0c7ed 100644
+--- a/Documentation/sphinx/cdomain.py
++++ b/Documentation/sphinx/cdomain.py
+@@ -29,11 +29,15 @@ u"""
  
- 	ret = v4l2_subdev_call(sd, core, s_power, 1);
--	if (ret < 0 && ret != -ENOIOCTLCMD)
-+	if (ret < 0 && ret != -ENOIOCTLCMD) {
- 		v4l2_fh_release(file);
--	else
--		ret = 0;
-+		goto unlock;
-+	}
+ from docutils.parsers.rst import directives
+ 
++import sphinx
+ from sphinx.domains.c import CObject as Base_CObject
+ from sphinx.domains.c import CDomain as Base_CDomain
+ 
+ __version__  = '1.0'
+ 
++# Get Sphinx version
++major, minor, patch = map(int, sphinx.__version__.split("."))
 +
-+	ret = isc_set_fmt(isc, &isc->fmt);
-+	if (ret) {
-+		v4l2_subdev_call(sd, core, s_power, 0);
-+		v4l2_fh_release(file);
-+	}
+ def setup(app):
  
- unlock:
- 	mutex_unlock(&isc->lock);
-@@ -1118,8 +1124,16 @@ static int isc_set_default_fmt(struct isc_device *isc)
- 			.pixelformat	= isc->user_formats[0]->fourcc,
- 		},
- 	};
-+	int ret;
+     app.override_domain(CDomain)
+@@ -85,8 +89,14 @@ class CObject(Base_CObject):
  
--	return isc_set_fmt(isc, &f);
-+	ret = isc_try_fmt(isc, &f, NULL);
-+	if (ret)
-+		return ret;
-+
-+	isc->current_fmt = isc->user_formats[0];
-+	isc->fmt = f;
-+
-+	return 0;
- }
+         indextext = self.get_index_text(name)
+         if indextext:
+-            self.indexnode['entries'].append(('single', indextext,
+-                                              targetname, '', None))
++            if major == 1 and minor < 4:
++                # indexnode's tuple changed in 1.4
++                # https://github.com/sphinx-doc/sphinx/commit/e6a5a3a92e938fcd75866b4227db9e0524d58f7c
++                self.indexnode['entries'].append(
++                    ('single', indextext, targetname, ''))
++            else:
++                self.indexnode['entries'].append(
++                    ('single', indextext, targetname, '', None))
  
- static int isc_async_complete(struct v4l2_async_notifier *notifier)
-@@ -1172,20 +1186,12 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
- 		return ret;
- 	}
+ class CDomain(Base_CDomain):
  
--	ret = v4l2_subdev_call(sd_entity->sd, core, s_power, 1);
--	if (ret < 0 && ret != -ENOIOCTLCMD)
--		return ret;
--
- 	ret = isc_set_default_fmt(isc);
- 	if (ret) {
- 		v4l2_err(&isc->v4l2_dev, "Could not set default format\n");
- 		return ret;
- 	}
- 
--	ret = v4l2_subdev_call(sd_entity->sd, core, s_power, 0);
--	if (ret < 0 && ret != -ENOIOCTLCMD)
--		return ret;
--
- 	/* Register video device */
- 	strlcpy(vdev->name, ATMEL_ISC_NAME, sizeof(vdev->name));
- 	vdev->release		= video_device_release_empty;
 -- 
 2.7.4
 
