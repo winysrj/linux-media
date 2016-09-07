@@ -1,56 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:59374 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754932AbcILIo3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Sep 2016 04:44:29 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Johan Fjeldtvedt <jaffe1@gmail.com>,
-        Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] pulse8-cec: avoid uninitialized data use
-Date: Mon, 12 Sep 2016 10:43:49 +0200
-Message-Id: <20160912084403.3577996-1-arnd@arndb.de>
+Received: from smtp1.goneo.de ([85.220.129.30]:39596 "EHLO smtp1.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932305AbcIGIBn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Sep 2016 04:01:43 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH 1/3] doc-rst:c-domain: fix sphinx version incompatibility
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <20160906125518.05a9d9fd@vento.lan>
+Date: Wed, 7 Sep 2016 10:01:10 +0200
+Cc: Jani Nikula <jani.nikula@intel.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-doc@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <597B1314-5C67-4F08-BD67-9F37BC5E264A@darmarit.de>
+References: <1472657372-21039-1-git-send-email-markus.heiser@darmarit.de> <1472657372-21039-2-git-send-email-markus.heiser@darmarit.de> <20160906061909.36aa2986@lwn.net> <87k2epxiby.fsf@intel.com> <3F2C3A86-D578-4978-AFFB-8B34DA758BE6@darmarit.de> <20160906125518.05a9d9fd@vento.lan>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Building with -Wmaybe-uninitialized reveals the use on an uninitialized
-variable containing the physical address of the device whenever
-firmware before version 2 is used:
 
-drivers/staging/media/pulse8-cec/pulse8-cec.c: In function 'pulse8_connect':
-drivers/staging/media/pulse8-cec/pulse8-cec.c:447:2: error: 'pa' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+Am 06.09.2016 um 17:55 schrieb Mauro Carvalho Chehab <mchehab@infradead.org>:
+...
+>> Sphinx has some more of these tuples with fixed length (remember
+>> conf.py, the latex_documents settings) where IMHO hash/value pairs
+>> (dicts) are more suitable.
+> 
+> Well, the LaTeX stuff at conf.py seems to have a new field on version
+> 1.4.x. At least, our config has:
+> 
+> # (source start file, name, description, authors, manual section).
+> 
+> but 1.4.x docs mentions another tuple: toctree_only.
 
-This sets the address to CEC_PHYS_ADDR_INVALID in this case, so we don't
-try to write back the uninitialized data to the device.
+Hmm, as far as I can see, toctree_only is supported since Release 0.3 
+(May 6, 2008):
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: e28a6c8b3fcc ("[media] pulse8-cec: sync configuration with adapter")
----
- drivers/staging/media/pulse8-cec/pulse8-cec.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+  https://github.com/sphinx-doc/sphinx/blob/master/CHANGES.old#L1025
 
-diff --git a/drivers/staging/media/pulse8-cec/pulse8-cec.c b/drivers/staging/media/pulse8-cec/pulse8-cec.c
-index 1158ba9f828f..64fffc709416 100644
---- a/drivers/staging/media/pulse8-cec/pulse8-cec.c
-+++ b/drivers/staging/media/pulse8-cec/pulse8-cec.c
-@@ -342,8 +342,10 @@ static int pulse8_setup(struct pulse8 *pulse8, struct serio *serio,
- 		return err;
- 	pulse8->vers = (data[0] << 8) | data[1];
- 	dev_info(pulse8->dev, "Firmware version %04x\n", pulse8->vers);
--	if (pulse8->vers < 2)
-+	if (pulse8->vers < 2) {
-+		*pa = CEC_PHYS_ADDR_INVALID;
- 		return 0;
-+	}
- 
- 	cmd[0] = MSGCODE_GET_BUILDDATE;
- 	err = pulse8_send_and_wait(pulse8, cmd, 1, cmd[0], 4);
--- 
-2.9.0
+But is was implemented optional (from the beginning):
+
+ https://github.com/sphinx-doc/sphinx/blame/master/sphinx/builders/latex.py#L104
+
+-- Markus --
+
+> 
+> Regards,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
