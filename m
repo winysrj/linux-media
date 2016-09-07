@@ -1,54 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:51083 "EHLO vena.lwn.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S964888AbcIPQC1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 12:02:27 -0400
-Date: Fri, 16 Sep 2016 10:02:26 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Subject: Re: [PATCH v2 0/3] doc-rst:c-domain: fix some issues in the
- c-domain
-Message-ID: <20160916100226.055683ed@lwn.net>
-In-Reply-To: <1473232378-11869-1-git-send-email-markus.heiser@darmarit.de>
-References: <1473232378-11869-1-git-send-email-markus.heiser@darmarit.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54026 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752159AbcIGWYy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 18:24:54 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran@ksquared.org.uk>
+Subject: [PATCH v3 07/10] v4l: fdp1: Remove unused struct fdp1_v4l2_buffer
+Date: Thu,  8 Sep 2016 01:25:07 +0300
+Message-Id: <1473287110-780-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1473287110-780-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1473287110-780-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed,  7 Sep 2016 09:12:55 +0200
-Markus Heiser <markus.heiser@darmarit.de> wrote:
+The structure is not used, remove it.
 
-> according to your remarks I fixed the first and second patch. The third patch is
-> resend unchanged;
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/rcar_fdp1.c | 13 -------------
+ 1 file changed, 13 deletions(-)
 
-OK, I've applied the first two, finally.
+diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
+index bbeacf1527b5..fdab41165f5a 100644
+--- a/drivers/media/platform/rcar_fdp1.c
++++ b/drivers/media/platform/rcar_fdp1.c
+@@ -514,19 +514,6 @@ enum fdp1_deint_mode {
+ 	 mode == FDP1_PREVFIELD)
+ 
+ /*
+- * fdp1_v4l2_buffer: Track v4l2_buffers with a reference count
+- *
+- * As buffers come in, they may be used for more than one field.
+- * It then becomes necessary to track the usage of these buffers,
+- * and only release when the last job has completed using this
+- * vb buffer.
+- */
+-struct fdp1_v4l2_buffer {
+-	struct vb2_v4l2_buffer	vb;
+-	struct list_head	list;
+-};
+-
+-/*
+  * FDP1 operates on potentially 3 fields, which are tracked
+  * from the VB buffers using this context structure.
+  * Will always be a field or a full frame, never two fields.
+-- 
+Regards,
 
-> > Am 06.09.2016 um 14:28 schrieb Jonathan Corbet <corbet@lwn.net>:
-> >
-> > As others have pointed out, we generally want to hide the difference
-> > between functions and macros, so this is probably one change we don't
-> > want.  
-> 
-> I read "probably", so there might be a chance to persuade you ;)
-> 
-> I'm not a friend of *information hiding* and since the index is sorted
-> alphabetical it does no matter if the entry is 'FOO (C function)' or 'FOO (C
-> macro)'. The last one has the right information e.g. for someone how is looking
-> for a macro. FOO is a function-like macro and not a function, if the author
-> describes the macro he might use the word "macro FOO" but in the index it is
-> tagged as C function.
+Laurent Pinchart
 
-Information hiding is the only way we can maintain the kernel and stay
-sane.  I have a hard time imagining why somebody would be looking for a
-macro in particular; the whole idea is that they really shouldn't have to
-care.  So my inclination is to leave this one out, sorry.
-
-Thanks,
-
-jon
