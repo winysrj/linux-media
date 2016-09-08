@@ -1,154 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp10.smtpout.orange.fr ([80.12.242.132]:28263 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755384AbcIFJMD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 05:12:03 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Jiri Kosina <trivial@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v6 06/14] media: platform: pxa_camera: introduce sensor_call
-Date: Tue,  6 Sep 2016 11:04:16 +0200
-Message-Id: <1473152664-5077-6-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
-References: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
+Received: from bombadil.infradead.org ([198.137.202.9]:56843 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936484AbcIHVhr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 17:37:47 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 04/15] [media] v4l2-mem2mem.h: document the public structures
+Date: Thu,  8 Sep 2016 18:37:30 -0300
+Message-Id: <34874b7352c128102e38d3daf8e386fd8af5200e.1473370390.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473370390.git.mchehab@s-opensource.com>
+References: <cover.1473370390.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473370390.git.mchehab@s-opensource.com>
+References: <cover.1473370390.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Introduce sensor_call(), which will be used for all sensor invocations.
-This is a preparation move to v4l2 device conversion, ie. soc_camera
-adherence removal.
+Most structures here are not documented. Add a documentation
+for them.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/soc_camera/pxa_camera.c | 27 ++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ include/media/v4l2-mem2mem.h | 67 +++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 51 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index 62e3f69a17ec..3091ec708a46 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -168,6 +168,9 @@
- 			CICR0_PERRM | CICR0_QDM | CICR0_CDM | CICR0_SOFM | \
- 			CICR0_EOFM | CICR0_FOM)
- 
-+#define sensor_call(cam, o, f, args...) \
-+	v4l2_subdev_call(sd, o, f, ##args)
-+
- /*
-  * Structures
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 78eadca27a21..f74ea7026c88 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -41,9 +41,9 @@
+  *		This function does not have to (and will usually not) wait
+  *		until the device enters a state when it can be stopped.
+  * @lock:	optional. Define a driver's own lock callback, instead of using
+- *		m2m_ctx->q_lock.
++ *		&v4l2_m2m_ctx->q_lock.
+  * @unlock:	optional. Define a driver's own unlock callback, instead of
+- *		using m2m_ctx->q_lock.
++ *		using &v4l2_m2m_ctx->q_lock.
   */
-@@ -731,7 +734,7 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
- 	unsigned long dw, bpp;
- 	u32 cicr0, cicr1, cicr2, cicr3, cicr4 = 0, y_skip_top;
--	int ret = v4l2_subdev_call(sd, sensor, g_skip_top_lines, &y_skip_top);
-+	int ret = sensor_call(pcdev, sensor, g_skip_top_lines, &y_skip_top);
+ struct v4l2_m2m_ops {
+ 	void (*device_run)(void *priv);
+@@ -53,31 +53,59 @@ struct v4l2_m2m_ops {
+ 	void (*unlock)(void *priv);
+ };
  
- 	if (ret < 0)
- 		y_skip_top = 0;
-@@ -1073,7 +1076,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
- 	if (ret < 0)
- 		return ret;
++/**
++ * struct v4l2_m2m_dev - opaque struct used to represent a V4L2 M2M device.
++ *
++ * This structure is has the per-device context for a memory to memory
++ * device, and it is used internally at v4l2-mem2mem.c.
++ */
+ struct v4l2_m2m_dev;
  
--	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
-+	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
- 	if (!ret) {
- 		common_flags = soc_mbus_config_compatible(&cfg,
- 							  bus_flags);
-@@ -1117,7 +1120,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
- 	}
++/**
++ * struct v4l2_m2m_queue_ctx - represents a queue for buffers ready to be
++ *	processed
++ *
++ * @q:		pointer to struct &vb2_queue
++ * @rdy_queue:	List of V4L2 mem-to-mem queues
++ * @rdy_spinlock: spin lock to protect the struct usage
++ * @num_rdy:	number of buffers ready to be processed
++ * @buffered:	is the queue buffered?
++ *
++ * Queue for buffers ready to be processed as soon as this
++ * instance receives access to the device.
++ */
++
+ struct v4l2_m2m_queue_ctx {
+-/* private: internal use only */
+ 	struct vb2_queue	q;
  
- 	cfg.flags = common_flags;
--	ret = v4l2_subdev_call(sd, video, s_mbus_config, &cfg);
-+	ret = sensor_call(pcdev, video, s_mbus_config, &cfg);
- 	if (ret < 0 && ret != -ENOIOCTLCMD) {
- 		dev_dbg(icd->parent, "camera s_mbus_config(0x%lx) returned %d\n",
- 			common_flags, ret);
-@@ -1144,7 +1147,7 @@ static int pxa_camera_try_bus_param(struct soc_camera_device *icd,
- 	if (ret < 0)
- 		return ret;
+-	/* Queue for buffers ready to be processed as soon as this
+-	 * instance receives access to the device */
+ 	struct list_head	rdy_queue;
+ 	spinlock_t		rdy_spinlock;
+ 	u8			num_rdy;
+ 	bool			buffered;
+ };
  
--	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
-+	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
- 	if (!ret) {
- 		common_flags = soc_mbus_config_compatible(&cfg,
- 							  bus_flags);
-@@ -1195,7 +1198,7 @@ static int pxa_camera_get_formats(struct soc_camera_device *icd, unsigned int id
- 	};
- 	const struct soc_mbus_pixelfmt *fmt;
++/**
++ * struct v4l2_m2m_ctx - Memory to memory context structure
++ *
++ * @q_lock: struct &mutex lock
++ * @m2m_dev: pointer to struct &v4l2_m2m_dev
++ * @cap_q_ctx: Capture (output to memory) queue context
++ * @out_q_ctx: Output (input from memory) queue context
++ * @queue: List of memory to memory contexts
++ * @job_flags: Job queue flags, used internally by v4l2-mem2mem.c:
++ * 		%TRANS_QUEUED, %TRANS_RUNNING and %TRANS_ABORT.
++ * @finished: Wait queue used to signalize when a job queue finished.
++ * @priv: Instance private data
++ */
+ struct v4l2_m2m_ctx {
+ 	/* optional cap/out vb2 queues lock */
+ 	struct mutex			*q_lock;
  
--	ret = v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code);
-+	ret = sensor_call(pcdev, pad, enum_mbus_code, NULL, &code);
- 	if (ret < 0)
- 		/* No more formats */
- 		return 0;
-@@ -1303,7 +1306,7 @@ static int pxa_camera_set_selection(struct soc_camera_device *icd,
- 	if (pcdev->platform_flags & PXA_CAMERA_PCLK_EN)
- 		icd->sense = &sense;
+-/* private: internal use only */
++	/* internal use only */
+ 	struct v4l2_m2m_dev		*m2m_dev;
  
--	ret = v4l2_subdev_call(sd, pad, set_selection, NULL, &sdsel);
-+	ret = sensor_call(pcdev, pad, set_selection, NULL, &sdsel);
+-	/* Capture (output to memory) queue context */
+ 	struct v4l2_m2m_queue_ctx	cap_q_ctx;
  
- 	icd->sense = NULL;
+-	/* Output (input from memory) queue context */
+ 	struct v4l2_m2m_queue_ctx	out_q_ctx;
  
-@@ -1314,7 +1317,7 @@ static int pxa_camera_set_selection(struct soc_camera_device *icd,
- 	}
- 	sel->r = sdsel.r;
+ 	/* For device job queue */
+@@ -85,10 +113,15 @@ struct v4l2_m2m_ctx {
+ 	unsigned long			job_flags;
+ 	wait_queue_head_t		finished;
  
--	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
-+	ret = sensor_call(pcdev, pad, get_fmt, NULL, &fmt);
- 	if (ret < 0)
- 		return ret;
+-	/* Instance private data */
+ 	void				*priv;
+ };
  
-@@ -1326,7 +1329,7 @@ static int pxa_camera_set_selection(struct soc_camera_device *icd,
- 		v4l_bound_align_image(&mf->width, 48, 2048, 1,
- 			&mf->height, 32, 2048, 0,
- 			fourcc == V4L2_PIX_FMT_YUV422P ? 4 : 0);
--		ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &fmt);
-+		ret = sensor_call(pcdev, pad, set_fmt, NULL, &fmt);
- 		if (ret < 0)
- 			return ret;
++/**
++ * struct v4l2_m2m_buffer - Memory to memory buffer
++ *
++ * @vb: pointer to struct &vb2_v4l2_buffer
++ * @list: list of m2m buffers
++ */
+ struct v4l2_m2m_buffer {
+ 	struct vb2_v4l2_buffer	vb;
+ 	struct list_head	list;
+@@ -145,9 +178,9 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx);
+  * Should be called as soon as possible after reaching a state which allows
+  * other instances to take control of the device.
+  *
+- * This function has to be called only after device_run() callback has been
+- * called on the driver. To prevent recursion, it should not be called directly
+- * from the device_run() callback though.
++ * This function has to be called only after &v4l2_m2m_ops->device_run
++ * callback has been called on the driver. To prevent recursion, it should
++ * not be called directly from the &v4l2_m2m_ops->device_run callback though.
+  */
+ void v4l2_m2m_job_finish(struct v4l2_m2m_dev *m2m_dev,
+ 			 struct v4l2_m2m_ctx *m2m_ctx);
+@@ -292,7 +325,9 @@ int v4l2_m2m_mmap(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+  *
+  * @m2m_ops: pointer to struct v4l2_m2m_ops
+  *
+- * Usually called from driver's probe() function.
++ * Usually called from driver's ``probe()`` function.
++ *
++ * Return: returns an opaque pointer to the internal data to handle M2M context
+  */
+ struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops);
  
-@@ -1391,7 +1394,7 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
- 	mf->colorspace	= pix->colorspace;
- 	mf->code	= xlate->code;
+@@ -301,7 +336,7 @@ struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops);
+  *
+  * @m2m_dev: pointer to struct &v4l2_m2m_dev
+  *
+- * Usually called from driver's remove() function.
++ * Usually called from driver's ``remove()`` function.
+  */
+ void v4l2_m2m_release(struct v4l2_m2m_dev *m2m_dev);
  
--	ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &format);
-+	ret = sensor_call(pcdev, pad, set_fmt, NULL, &format);
- 
- 	if (mf->code != xlate->code)
- 		return -EINVAL;
-@@ -1466,7 +1469,7 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
- 	mf->colorspace	= pix->colorspace;
- 	mf->code	= xlate->code;
- 
--	ret = v4l2_subdev_call(sd, pad, set_fmt, &pad_cfg, &format);
-+	ret = sensor_call(pcdev, pad, set_fmt, &pad_cfg, &format);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -1524,7 +1527,7 @@ static int pxa_camera_suspend(struct device *dev)
- 
- 	if (pcdev->soc_host.icd) {
- 		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
--		ret = v4l2_subdev_call(sd, core, s_power, 0);
-+		ret = sensor_call(pcdev, core, s_power, 0);
- 		if (ret == -ENOIOCTLCMD)
- 			ret = 0;
- 	}
-@@ -1546,7 +1549,7 @@ static int pxa_camera_resume(struct device *dev)
- 
- 	if (pcdev->soc_host.icd) {
- 		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
--		ret = v4l2_subdev_call(sd, core, s_power, 1);
-+		ret = sensor_call(pcdev, core, s_power, 1);
- 		if (ret == -ENOIOCTLCMD)
- 			ret = 0;
- 	}
+@@ -313,7 +348,7 @@ void v4l2_m2m_release(struct v4l2_m2m_dev *m2m_dev);
+  * @queue_init: a callback for queue type-specific initialization function
+  * 	to be used for initializing videobuf_queues
+  *
+- * Usually called from driver's open() function.
++ * Usually called from driver's ``open()`` function.
+  */
+ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
+ 		void *drv_priv,
+@@ -346,7 +381,7 @@ void v4l2_m2m_ctx_release(struct v4l2_m2m_ctx *m2m_ctx);
+  * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
+  * @vbuf: pointer to struct &vb2_v4l2_buffer
+  *
+- * Call from buf_queue(), videobuf_queue_ops callback.
++ * Call from videobuf_queue_ops->ops->buf_queue, videobuf_queue_ops callback.
+  */
+ void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx,
+ 			struct vb2_v4l2_buffer *vbuf);
 -- 
-2.1.4
+2.7.4
+
 
