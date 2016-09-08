@@ -1,110 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:37207
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753695AbcIVJr6 (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:64295 "EHLO
+        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750754AbcIIARG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Sep 2016 05:47:58 -0400
-Date: Thu, 22 Sep 2016 06:47:52 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v4.7-rc8] media fixes
-Message-ID: <20160922064752.5d05a0bd@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Thu, 8 Sep 2016 20:17:06 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: kernel-janitors@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH] [media] usb: constify vb2_ops structures
+Date: Fri,  9 Sep 2016 01:59:01 +0200
+Message-Id: <1473379141-17286-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Check for vb2_ops structures that are only stored in the ops field of a
+vb2_queue structure.  That field is declared const, so vb2_ops structures
+that have this property can be declared as const also.
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.8-7
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-For:
+// <smpl>
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct vb2_ops i@p = { ... };
 
-- several fixes for new drivers added for Kernel 4.8 addition
-  (cec core, pulse8 cec driver and Mediatek vcodec);
-- a regression fix for cx23885 and saa7134 drivers;
-- an important fix for rcar-fcp, making rcar_fcp_enable()
-  return 0 on success.
+@ok@
+identifier r.i;
+struct vb2_queue e;
+position p;
+@@
+e.ops = &i@p;
 
-Thanks!
-Mauro
+@bad@
+position p != {r.p,ok.p};
+identifier r.i;
+struct vb2_ops e;
+@@
+e@i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+ struct vb2_ops i = { ... };
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
 ---
+ drivers/media/usb/airspy/airspy.c       |    2 +-
+ drivers/media/usb/au0828/au0828-video.c |    2 +-
+ drivers/media/usb/em28xx/em28xx-video.c |    2 +-
+ drivers/media/usb/go7007/go7007-v4l2.c  |    2 +-
+ drivers/media/usb/hackrf/hackrf.c       |    2 +-
+ drivers/media/usb/msi2500/msi2500.c     |    2 +-
+ drivers/media/usb/pwc/pwc-if.c          |    2 +-
+ drivers/media/usb/s2255/s2255drv.c      |    2 +-
+ drivers/media/usb/stk1160/stk1160-v4l.c |    2 +-
+ drivers/media/usb/usbtv/usbtv-video.c   |    2 +-
+ drivers/media/usb/uvc/uvc_queue.c       |    2 +-
+ 11 files changed, 11 insertions(+), 11 deletions(-)
 
-
-The following changes since commit fa8410b355251fd30341662a40ac6b22d3e38468:
-
-  Linux 4.8-rc3 (2016-08-21 16:14:10 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.8-7
-
-for you to fetch changes up to d8feef9bd447381952a33e6284241006f394c080:
-
-  [media] cx23885/saa7134: assign q->dev to the PCI device (2016-09-19 12:38:05 -0300)
-
-----------------------------------------------------------------
-media fixes for v4.8-rc8
-
-----------------------------------------------------------------
-Geert Uytterhoeven (1):
-      [media] rcar-fcp: Make sure rcar_fcp_enable() returns 0 on success
-
-Hans Verkuil (17):
-      [media] cec: rename cec_devnode fhs_lock to just lock
-      [media] cec: improve locking
-      [media] cec-funcs.h: fix typo: && should be &
-      [media] cec-funcs.h: add reply argument for Record On/Off
-      [media] cec: improve dqevent documentation
-      [media] cec: add CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK flag
-      [media] cec: set unclaimed addresses to CEC_LOG_ADDR_INVALID
-      [media] cec: add item to TODO
-      [media] cec: ignore messages when log_addr_mask == 0
-      [media] mtk-vcodec: add HAS_DMA dependency
-      [media] pulse8-cec: set correct Signal Free Time
-      [media] pulse8-cec: fix error handling
-      [media] cec-edid: check for IEEE identifier
-      [media] cec-funcs.h: add missing vendor-specific messages
-      [media] cec: don't Feature Abort broadcast msgs when unregistered
-      [media] cec: fix ioctl return code when not registered
-      [media] cx23885/saa7134: assign q->dev to the PCI device
-
-Tiffany Lin (7):
-      [media] vcodec:mediatek:code refine for v4l2 Encoder driver
-      [media] vcodec:mediatek: Fix fops_vcodec_release flow for V4L2 Encoder
-      [media] vcodec:mediatek: Fix visible_height larger than coded_height issue in s_fmt_out
-      [media] vcodec:mediatek: Add timestamp and timecode copy for V4L2 Encoder
-      [media] vcodec:mediatek: change H264 profile default to profile high
-      [media] vcodec:mediatek: Refine H264 encoder driver
-      [media] vcodec:mediatek: Refine VP8 encoder driver
-
- .../media/uapi/cec/cec-ioc-adap-g-log-addrs.rst    | 21 +++++-
- Documentation/media/uapi/cec/cec-ioc-dqevent.rst   |  8 ++-
- drivers/media/cec-edid.c                           |  5 +-
- drivers/media/pci/cx23885/cx23885-417.c            |  1 +
- drivers/media/pci/saa7134/saa7134-dvb.c            |  1 +
- drivers/media/pci/saa7134/saa7134-empress.c        |  1 +
- drivers/media/platform/Kconfig                     |  2 +-
- drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h |  1 -
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c | 42 +++++++-----
- .../media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c |  6 +-
- .../media/platform/mtk-vcodec/mtk_vcodec_intr.h    |  1 -
- .../media/platform/mtk-vcodec/venc/venc_h264_if.c  | 16 ++---
- .../media/platform/mtk-vcodec/venc/venc_vp8_if.c   | 16 ++---
- drivers/media/platform/rcar-fcp.c                  |  8 ++-
- drivers/staging/media/cec/TODO                     |  1 +
- drivers/staging/media/cec/cec-adap.c               | 26 +++++---
- drivers/staging/media/cec/cec-api.c                | 12 ++--
- drivers/staging/media/cec/cec-core.c               | 27 ++++----
- drivers/staging/media/pulse8-cec/pulse8-cec.c      | 10 +--
- include/linux/cec-funcs.h                          | 78 +++++++++++++++++++++-
- include/linux/cec.h                                |  5 +-
- include/media/cec.h                                |  2 +-
- 22 files changed, 212 insertions(+), 78 deletions(-)
+diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
+index c2c8d12..75e0363 100644
+--- a/drivers/media/usb/hackrf/hackrf.c
++++ b/drivers/media/usb/hackrf/hackrf.c
+@@ -891,7 +891,7 @@ static void hackrf_stop_streaming(struct vb2_queue *vq)
+ 	mutex_unlock(&dev->v4l2_lock);
+ }
+ 
+-static struct vb2_ops hackrf_vb2_ops = {
++static const struct vb2_ops hackrf_vb2_ops = {
+ 	.queue_setup            = hackrf_queue_setup,
+ 	.buf_queue              = hackrf_buf_queue,
+ 	.start_streaming        = hackrf_start_streaming,
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 7968695..1f7fa05 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1204,7 +1204,7 @@ buffer_queue(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&dev->slock, flags);
+ }
+ 
+-static struct vb2_ops em28xx_video_qops = {
++static const struct vb2_ops em28xx_video_qops = {
+ 	.queue_setup    = queue_setup,
+ 	.buf_prepare    = buffer_prepare,
+ 	.buf_queue      = buffer_queue,
+diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+index c4454c9..ff65764 100644
+--- a/drivers/media/usb/pwc/pwc-if.c
++++ b/drivers/media/usb/pwc/pwc-if.c
+@@ -707,7 +707,7 @@ static void stop_streaming(struct vb2_queue *vq)
+ 	mutex_unlock(&pdev->v4l2_lock);
+ }
+ 
+-static struct vb2_ops pwc_vb_queue_ops = {
++static const struct vb2_ops pwc_vb_queue_ops = {
+ 	.queue_setup		= queue_setup,
+ 	.buf_init		= buffer_init,
+ 	.buf_prepare		= buffer_prepare,
+diff --git a/drivers/media/usb/go7007/go7007-v4l2.c b/drivers/media/usb/go7007/go7007-v4l2.c
+index af84589..4eaba0c 100644
+--- a/drivers/media/usb/go7007/go7007-v4l2.c
++++ b/drivers/media/usb/go7007/go7007-v4l2.c
+@@ -477,7 +477,7 @@ static void go7007_stop_streaming(struct vb2_queue *q)
+ 		go7007_write_addr(go, 0x3c82, 0x000d);
+ }
+ 
+-static struct vb2_ops go7007_video_qops = {
++static const struct vb2_ops go7007_video_qops = {
+ 	.queue_setup    = go7007_queue_setup,
+ 	.buf_queue      = go7007_buf_queue,
+ 	.buf_prepare    = go7007_buf_prepare,
+diff --git a/drivers/media/usb/airspy/airspy.c b/drivers/media/usb/airspy/airspy.c
+index 3c556ee..8251942 100644
+--- a/drivers/media/usb/airspy/airspy.c
++++ b/drivers/media/usb/airspy/airspy.c
+@@ -605,7 +605,7 @@ static void airspy_stop_streaming(struct vb2_queue *vq)
+ 	mutex_unlock(&s->v4l2_lock);
+ }
+ 
+-static struct vb2_ops airspy_vb2_ops = {
++static const struct vb2_ops airspy_vb2_ops = {
+ 	.queue_setup            = airspy_queue_setup,
+ 	.buf_queue              = airspy_buf_queue,
+ 	.start_streaming        = airspy_start_streaming,
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 13b8387..85dd9a8 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -928,7 +928,7 @@ void au0828_stop_vbi_streaming(struct vb2_queue *vq)
+ 	del_timer_sync(&dev->vbi_timeout);
+ }
+ 
+-static struct vb2_ops au0828_video_qops = {
++static const struct vb2_ops au0828_video_qops = {
+ 	.queue_setup     = queue_setup,
+ 	.buf_prepare     = buffer_prepare,
+ 	.buf_queue       = buffer_queue,
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index 9458eb0..c3a0e87 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -717,7 +717,7 @@ static void buffer_queue(struct vb2_buffer *vb)
+ static int start_streaming(struct vb2_queue *vq, unsigned int count);
+ static void stop_streaming(struct vb2_queue *vq);
+ 
+-static struct vb2_ops s2255_video_qops = {
++static const struct vb2_ops s2255_video_qops = {
+ 	.queue_setup = queue_setup,
+ 	.buf_prepare = buffer_prepare,
+ 	.buf_queue = buffer_queue,
+diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
+index 2a08975..6cbe4a2 100644
+--- a/drivers/media/usb/usbtv/usbtv-video.c
++++ b/drivers/media/usb/usbtv/usbtv-video.c
+@@ -689,7 +689,7 @@ static void usbtv_stop_streaming(struct vb2_queue *vq)
+ 		usbtv_stop(usbtv);
+ }
+ 
+-static struct vb2_ops usbtv_vb2_ops = {
++static const struct vb2_ops usbtv_vb2_ops = {
+ 	.queue_setup = usbtv_queue_setup,
+ 	.buf_queue = usbtv_buf_queue,
+ 	.start_streaming = usbtv_start_streaming,
+diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
+index 5fab3be..a005d26 100644
+--- a/drivers/media/usb/stk1160/stk1160-v4l.c
++++ b/drivers/media/usb/stk1160/stk1160-v4l.c
+@@ -742,7 +742,7 @@ static void stop_streaming(struct vb2_queue *vq)
+ 	stk1160_stop_streaming(dev);
+ }
+ 
+-static struct vb2_ops stk1160_video_qops = {
++static const struct vb2_ops stk1160_video_qops = {
+ 	.queue_setup		= queue_setup,
+ 	.buf_queue		= buffer_queue,
+ 	.start_streaming	= start_streaming,
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index 773fefb..77edd20 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -177,7 +177,7 @@ static void uvc_stop_streaming(struct vb2_queue *vq)
+ 	spin_unlock_irqrestore(&queue->irqlock, flags);
+ }
+ 
+-static struct vb2_ops uvc_queue_qops = {
++static const struct vb2_ops uvc_queue_qops = {
+ 	.queue_setup = uvc_queue_setup,
+ 	.buf_prepare = uvc_buffer_prepare,
+ 	.buf_queue = uvc_buffer_queue,
+diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
+index 367eb7e..bb3d31e 100644
+--- a/drivers/media/usb/msi2500/msi2500.c
++++ b/drivers/media/usb/msi2500/msi2500.c
+@@ -897,7 +897,7 @@ static void msi2500_stop_streaming(struct vb2_queue *vq)
+ 	mutex_unlock(&dev->v4l2_lock);
+ }
+ 
+-static struct vb2_ops msi2500_vb2_ops = {
++static const struct vb2_ops msi2500_vb2_ops = {
+ 	.queue_setup            = msi2500_queue_setup,
+ 	.buf_queue              = msi2500_buf_queue,
+ 	.start_streaming        = msi2500_start_streaming,
 
