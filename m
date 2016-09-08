@@ -1,60 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f48.google.com ([209.85.215.48]:34319 "EHLO
-        mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753168AbcICSgW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Sep 2016 14:36:22 -0400
-Received: by mail-lf0-f48.google.com with SMTP id p41so85059227lfi.1
-        for <linux-media@vger.kernel.org>; Sat, 03 Sep 2016 11:36:22 -0700 (PDT)
-Subject: Re: [PATCHv3 05/10] [media] rcar-vin: return correct error from
- platform_get_irq()
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
-        hverkuil@xs4all.nl
-References: <20160815150635.22637-1-niklas.soderlund+renesas@ragnatech.se>
- <20160815150635.22637-6-niklas.soderlund+renesas@ragnatech.se>
-Cc: linux-renesas-soc@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <50ff0f14-f11a-043d-11e4-7d2a06ae698f@cogentembedded.com>
-Date: Sat, 3 Sep 2016 21:36:18 +0300
-MIME-Version: 1.0
-In-Reply-To: <20160815150635.22637-6-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.220]:53601 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965152AbcIHRIv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 13:08:51 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Subject: Re: [PATCH] [media] ov9650: add support for asynchronous probing
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+In-Reply-To: <1473339940-24572-1-git-send-email-javier@osg.samsung.com>
+Date: Thu, 8 Sep 2016 19:08:38 +0200
+Cc: linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-media@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <28493A99-C0CF-4662-B4EF-6D8A3576593D@goldelico.com>
+References: <1473339940-24572-1-git-send-email-javier@osg.samsung.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/15/2016 06:06 PM, Niklas Söderlund wrote:
 
-> Fix a error from the original driver where the wrong error code is
-> returned if the driver fails to get a IRQ number from
-> platform_get_irq().
->
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Am 08.09.2016 um 15:05 schrieb Javier Martinez Canillas =
+<javier@osg.samsung.com>:
+>=20
+> Allow the sub-device to be probed asynchronously so a bridge driver =
+that's
+> waiting for the device can be notified and its .bound callback =
+executed.
+>=20
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+Tested-by: hns@goldelico.com
+
+>=20
 > ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index a1eb26b..3941134 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -282,8 +282,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
->  		return PTR_ERR(vin->base);
->
->  	irq = platform_get_irq(pdev, 0);
-> -	if (irq <= 0)
-> -		return ret;
-> +	if (irq < 0)
-
-    You don't explain this change. It's OK however (my patch fixing this 
-function not to return 0 on error is in GregKH's driver-core-next tree).
-
-> +		return irq;
->
->  	ret = rvin_dma_probe(vin, irq);
->  	if (ret)
-
-MBR, Sergei
+>=20
+> drivers/media/i2c/ov9650.c | 7 ++++++-
+> 1 file changed, 6 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+> index be5a7fd4f076..502c72238a4a 100644
+> --- a/drivers/media/i2c/ov9650.c
+> +++ b/drivers/media/i2c/ov9650.c
+> @@ -23,6 +23,7 @@
+> #include <linux/videodev2.h>
+>=20
+> #include <media/media-entity.h>
+> +#include <media/v4l2-async.h>
+> #include <media/v4l2-ctrls.h>
+> #include <media/v4l2-device.h>
+> #include <media/v4l2-event.h>
+> @@ -1520,6 +1521,10 @@ static int ov965x_probe(struct i2c_client =
+*client,
+> 	/* Update exposure time min/max to match frame format */
+> 	ov965x_update_exposure_ctrl(ov965x);
+>=20
+> +	ret =3D v4l2_async_register_subdev(sd);
+> +	if (ret < 0)
+> +		goto err_ctrls;
+> +
+> 	return 0;
+> err_ctrls:
+> 	v4l2_ctrl_handler_free(sd->ctrl_handler);
+> @@ -1532,7 +1537,7 @@ static int ov965x_remove(struct i2c_client =
+*client)
+> {
+> 	struct v4l2_subdev *sd =3D i2c_get_clientdata(client);
+>=20
+> -	v4l2_device_unregister_subdev(sd);
+> +	v4l2_async_unregister_subdev(sd);
+> 	v4l2_ctrl_handler_free(sd->ctrl_handler);
+> 	media_entity_cleanup(&sd->entity);
+>=20
+> --=20
+> 2.7.4
+>=20
 
