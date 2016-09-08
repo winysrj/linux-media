@@ -1,59 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f169.google.com ([209.85.192.169]:35774 "EHLO
-        mail-pf0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934194AbcIWWIf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Sep 2016 18:08:35 -0400
-Date: Fri, 23 Sep 2016 15:08:31 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Sean Young <sean@mess.org>, linux-input@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media/input] rc: report rc protocol type to userspace
- through input
-Message-ID: <20160923220831.GE25499@dtor-ws>
-References: <1474451661-28986-1-git-send-email-sean@mess.org>
- <20160922115713.7f341c46@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160922115713.7f341c46@vento.lan>
+Received: from bombadil.infradead.org ([198.137.202.9]:43978 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S941755AbcIHME0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:26 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 19/47] [media] v4l2-ctrls.h: Fix some c:type references
+Date: Thu,  8 Sep 2016 09:03:41 -0300
+Message-Id: <ecc2194ed8d4d76890fb3c518fc7d825d001b562.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 22, 2016 at 11:57:13AM -0300, Mauro Carvalho Chehab wrote:
-> Em Wed, 21 Sep 2016 10:54:21 +0100
-> Sean Young <sean@mess.org> escreveu:
-> 
-> > We might want to know what protocol a remote uses when we do not know. With
-> > this patch and another patch for v4l-utils (follows), you can do that with:
-> > 
-> > ./ir-keytable  -p rc-5,nec,rc-6,jvc,sony,sanyo,sharp,xmp -t
-> > Testing events. Please, press CTRL-C to abort.
-> > 1474415431.689685: event type EV_MSC(0x04): protocol = RC_TYPE_RC6_MCE
-> > 1474415431.689685: event type EV_MSC(0x04): scancode = 0x800f040e
-> > 1474415431.689685: event type EV_SYN(0x00).
-> > 
-> > This makes RC_TYPE_* part of the ABI. We also remove the enum rc_type,
-> > since in input-event-codes.h we cannot not use enums.
-> > 
-> > In addition, now that the input layer knows the rc protocol and scancode,
-> > at a later point we could add a feature where keymaps could be created
-> > based on both protocol and scancode, not just scancode.
-> 
-> We need Dmitry's ack in order to apply this one.
+Now that the uAPI is using c:type, let's use it here too.
 
-I'd rather not: I am trying to keep input API hardware-independent and
-the kind of device emitting keycodes (a remote control in the sense of
-drivers/media/rc or USB device or BT device) should not really matter to
-consumers. Similarly how we do not export whether device is USB1.1 or
-USB2 or USB3 (although we do have input->id.bustype, but it is more for
-identification purposes rather than for adjusting properties).
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ include/media/v4l2-ctrls.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-For configuration (like loading keymaps) we can examine
-parent hardware device and decide.
-
-Thanks.
-
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index ff2847705dac..86702037cf5d 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -973,9 +973,9 @@ extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
+  * v4l2_ctrl_replace - Function to be used as a callback to
+  *	&struct v4l2_subscribed_event_ops replace\(\)
+  *
+- * @old: pointer to :ref:`struct v4l2_event <v4l2-event>` with the reported
++ * @old: pointer to struct &v4l2_event with the reported
+  *	 event;
+- * @new: pointer to :ref:`struct v4l2_event <v4l2-event>` with the modified
++ * @new: pointer to struct &v4l2_event with the modified
+  *	 event;
+  */
+ void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
+@@ -984,9 +984,9 @@ void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
+  * v4l2_ctrl_merge - Function to be used as a callback to
+  *	&struct v4l2_subscribed_event_ops merge(\)
+  *
+- * @old: pointer to :ref:`struct v4l2_event <v4l2-event>` with the reported
++ * @old: pointer to struct &v4l2_event with the reported
+  *	 event;
+- * @new: pointer to :ref:`struct v4l2_event <v4l2-event>` with the merged
++ * @new: pointer to struct &v4l2_event with the merged
+  *	 event;
+  */
+ void v4l2_ctrl_merge(const struct v4l2_event *old, struct v4l2_event *new);
 -- 
-Dmitry
+2.7.4
+
+
