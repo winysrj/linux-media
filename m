@@ -1,113 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54136 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933143AbcIFJfq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Sep 2016 05:35:46 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: pavel@ucw.cz, mchehab@s-opensource.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 1/1] ad5820: Use bool for boolean values
-Date: Tue,  6 Sep 2016 12:35:41 +0300
-Message-Id: <1473154541-3983-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:44136 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965735AbcIHMEa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:30 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Markus Heiser <markus.heiser@darmarIT.de>
+Subject: [PATCH 31/47] [media] ca-get-slot-info.rst: document struct ca_slot_info
+Date: Thu,  8 Sep 2016 09:03:53 -0300
+Message-Id: <631221a3f5dfbf52d95e994ae2940cca9fd4ffd5.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver used integers for what boolean would have been a better fit.
-Use boolean instead.
+Add documentation for struct ca_slot_info and for the two
+sets of define used by it, according with what's there at the
+ca.h header.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/i2c/ad5820.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ Documentation/media/uapi/dvb/ca-get-slot-info.rst | 84 ++++++++++++++++++++++-
+ 1 file changed, 83 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
-index d7ad5c1..fd4c5f6 100644
---- a/drivers/media/i2c/ad5820.c
-+++ b/drivers/media/i2c/ad5820.c
-@@ -58,7 +58,7 @@ struct ad5820_device {
- 	struct mutex power_lock;
- 	int power_count;
+diff --git a/Documentation/media/uapi/dvb/ca-get-slot-info.rst b/Documentation/media/uapi/dvb/ca-get-slot-info.rst
+index fcecd80e30d4..4398aeb83eb7 100644
+--- a/Documentation/media/uapi/dvb/ca-get-slot-info.rst
++++ b/Documentation/media/uapi/dvb/ca-get-slot-info.rst
+@@ -26,7 +26,89 @@ Arguments
+   File descriptor returned by a previous call to :c:func:`open() <cec-open>`.
  
--	unsigned int standby : 1;
-+	bool standby;
- };
+ ``info``
+-  Undocumented.
++  Pointer to struct c:type:`ca_slot_info`.
++
++.. _ca_slot_info_type:
++
++.. flat-table:: ca_slot_info types
++    :header-rows:  1
++    :stub-columns: 0
++
++    -
++      - type
++      - name
++      - description
++    -
++       - CA_CI
++       - 1
++       - CI high level interface
++
++    -
++       - CA_CI_LINK
++       - 2
++       - CI link layer level interface
++
++    -
++       - CA_CI_PHYS
++       - 4
++       - CI physical layer level interface
++
++    -
++       - CA_DESCR
++       - 8
++       - built-in descrambler
++
++    -
++       - CA_SC
++       - 128
++       - simple smart card interface
++
++.. _ca_slot_info_flag:
++
++.. flat-table:: ca_slot_info flags
++    :header-rows:  1
++    :stub-columns: 0
++
++    -
++      - type
++      - name
++      - description
++
++    -
++       - CA_CI_MODULE_PRESENT
++       - 1
++       - module (or card) inserted
++
++    -
++       - CA_CI_MODULE_READY
++       - 2
++       -
++
++.. c:type:: ca_slot_info
++
++.. flat-table:: struct ca_slot_info
++    :header-rows:  1
++    :stub-columns: 0
++
++    -
++      - type
++      - name
++      - description
++
++    -
++       - int
++       - num
++       - slot number
++
++    -
++       - int
++       - type
++       - CA interface this slot supports, as defined at :ref:`ca_slot_info_type`.
++
++    -
++       - unsigned int
++       - flags
++       - flags as defined at :ref:`ca_slot_info_flag`.
  
- static int ad5820_write(struct ad5820_device *coil, u16 data)
-@@ -108,7 +108,7 @@ static int ad5820_update_hw(struct ad5820_device *coil)
- /*
-  * Power handling
-  */
--static int ad5820_power_off(struct ad5820_device *coil, int standby)
-+static int ad5820_power_off(struct ad5820_device *coil, bool standby)
- {
- 	int ret = 0, ret2;
  
-@@ -117,7 +117,7 @@ static int ad5820_power_off(struct ad5820_device *coil, int standby)
- 	 * (single power line control for both coil and sensor).
- 	 */
- 	if (standby) {
--		coil->standby = 1;
-+		coil->standby = true;
- 		ret = ad5820_update_hw(coil);
- 	}
- 
-@@ -127,7 +127,7 @@ static int ad5820_power_off(struct ad5820_device *coil, int standby)
- 	return ret2;
- }
- 
--static int ad5820_power_on(struct ad5820_device *coil, int restore)
-+static int ad5820_power_on(struct ad5820_device *coil, bool restore)
- {
- 	int ret;
- 
-@@ -137,7 +137,7 @@ static int ad5820_power_on(struct ad5820_device *coil, int restore)
- 
- 	if (restore) {
- 		/* Restore the hardware settings. */
--		coil->standby = 0;
-+		coil->standby = false;
- 		ret = ad5820_update_hw(coil);
- 		if (ret)
- 			goto fail;
-@@ -145,7 +145,7 @@ static int ad5820_power_on(struct ad5820_device *coil, int restore)
- 	return 0;
- 
- fail:
--	coil->standby = 1;
-+	coil->standby = true;
- 	regulator_disable(coil->vana);
- 
- 	return ret;
-@@ -227,7 +227,8 @@ ad5820_set_power(struct v4l2_subdev *subdev, int on)
- 	 * update the power state.
- 	 */
- 	if (coil->power_count == !on) {
--		ret = on ? ad5820_power_on(coil, 1) : ad5820_power_off(coil, 1);
-+		ret = on ? ad5820_power_on(coil, true) :
-+			ad5820_power_off(coil, true);
- 		if (ret < 0)
- 			goto done;
- 	}
-@@ -279,7 +280,7 @@ static int ad5820_suspend(struct device *dev)
- 	if (!coil->power_count)
- 		return 0;
- 
--	return ad5820_power_off(coil, 0);
-+	return ad5820_power_off(coil, false);
- }
- 
- static int ad5820_resume(struct device *dev)
-@@ -291,7 +292,7 @@ static int ad5820_resume(struct device *dev)
- 	if (!coil->power_count)
- 		return 0;
- 
--	return ad5820_power_on(coil, 1);
-+	return ad5820_power_on(coil, true);
- }
- 
- #else
+ Description
 -- 
-2.1.4
+2.7.4
+
 
