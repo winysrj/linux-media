@@ -1,229 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:45775 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755343AbcIEJBZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Sep 2016 05:01:25 -0400
-Subject: Re: [PATCH v5] [media] vimc: Virtual Media Controller core, capture
- and sensor
-To: Helen Koike <helen.koike@collabora.co.uk>,
-        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        jgebben@codeaurora.org, mchehab@osg.samsung.com
-References: <5aae6086-6ba3-c278-ec48-043b17b4aa33@xs4all.nl>
- <1471471756-6114-1-git-send-email-helen.koike@collabora.co.uk>
- <ee909db9-eb2b-d81a-347a-fe12112aa1cf@xs4all.nl>
- <f231cdc7-1b31-6ac1-8e88-37b8b89e9fc2@collabora.co.uk>
-Cc: Helen Fornazier <helen.fornazier@gmail.com>,
-        Helen Koike <helen.koike@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <700a9e7b-0bb6-7923-6528-12d65c4f62b4@xs4all.nl>
-Date: Mon, 5 Sep 2016 11:01:13 +0200
-MIME-Version: 1.0
-In-Reply-To: <f231cdc7-1b31-6ac1-8e88-37b8b89e9fc2@collabora.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:43969 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S941754AbcIHME0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:26 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Markus Heiser <markus.heiser@darmarIT.de>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 36/47] [media] docs-rst: fix cec bad cross-references
+Date: Thu,  8 Sep 2016 09:03:58 -0300
+Message-Id: <dadad27d19602965ca662c2c16d32bb891365820.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/04/2016 10:05 PM, Helen Koike wrote:
-> Hi Hans,
-> 
-> Thank you for your review.
-> 
-> On 2016-08-22 07:57 AM, Hans Verkuil wrote:
->> Hi Helen,
->>
->> A few small code comments are below.
->>
->> Note that if I try to capture I see these two messages in the kernel log:
->>
->> [588197.368145] vimc vimc.0: Entity type for entity Sensor A was not initialized!
->> [588197.368169] vimc vimc.0: Entity type for entity Sensor B was not initialized!
-> 
-> 
-> I correct this, I am sending it in v6.
-> 
-> 
->>
->> I also can't capture anything: v4l2-ctl --stream-mmap just sits there, waiting for
->> frames, I guess.
->>
->> I'm not sure if that has to do with the two warnings above.
-> 
-> 
-> This is weird, v4l2-ctl --stream-mmap works for me even with those 
-> messages above, could you try again with the v6 please?
+Fix some CEC cross references that are broken.
 
-Yup, v6 fixed it for me. Not sure what was the cause, but it's now working fine.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/cec.h.rst.exceptions                  |  6 ------
+ Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst | 10 +++++-----
+ Documentation/media/uapi/cec/cec-ioc-receive.rst          |  9 +++++----
+ 3 files changed, 10 insertions(+), 15 deletions(-)
 
-Once I have Laurent's Ack I'll take it.
+diff --git a/Documentation/media/cec.h.rst.exceptions b/Documentation/media/cec.h.rst.exceptions
+index b79339433718..b1687532742f 100644
+--- a/Documentation/media/cec.h.rst.exceptions
++++ b/Documentation/media/cec.h.rst.exceptions
+@@ -1,12 +1,6 @@
+ # Ignore header name
+ ignore define _CEC_UAPI_H
+ 
+-# Rename some symbols, to avoid namespace conflicts
+-replace struct cec_event_state_change cec-event-state-change_s
+-replace struct cec_event_lost_msgs cec-event-lost-msgs_s
+-replace enum cec_mode_initiator cec-mode-initiator_e
+-replace enum cec_mode_follower cec-mode-follower_e
+-
+ # define macros to ignore
+ 
+ ignore define CEC_MAX_MSG_SIZE
+diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
+index bd0756ff022e..6c314c2db73e 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
+@@ -30,7 +30,7 @@ Arguments
+     File descriptor returned by :c:func:`open() <cec-open>`.
+ 
+ ``argp``
+-    Pointer to struct cec_log_addrs
++    Pointer to struct :c:type:`cec_log_addrs`.
+ 
+ Description
+ ===========
+@@ -42,10 +42,10 @@ Description
+ 
+ To query the current CEC logical addresses, applications call
+ :ref:`ioctl CEC_ADAP_G_LOG_ADDRS <CEC_ADAP_G_LOG_ADDRS>` with a pointer to a
+-:c:type:`struct cec_log_addrs` where the driver stores the logical addresses.
++struct :c:type:`cec_log_addrs` where the driver stores the logical addresses.
+ 
+ To set new logical addresses, applications fill in
+-:c:type:`struct cec_log_addrs` and call :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
++struct :c:type:`cec_log_addrs` and call :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
+ with a pointer to this struct. The :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
+ is only available if ``CEC_CAP_LOG_ADDRS`` is set (the ``ENOTTY`` error code is
+ returned otherwise). The :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
+@@ -66,10 +66,10 @@ logical addresses are claimed or cleared.
+ Attempting to call :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>` when
+ logical address types are already defined will return with error ``EBUSY``.
+ 
+-.. tabularcolumns:: |p{1.0cm}|p{7.5cm}|p{8.0cm}|
+-
+ .. c:type:: cec_log_addrs
+ 
++.. tabularcolumns:: |p{1.0cm}|p{7.5cm}|p{8.0cm}|
++
+ .. cssclass:: longtable
+ 
+ .. flat-table:: struct cec_log_addrs
+diff --git a/Documentation/media/uapi/cec/cec-ioc-receive.rst b/Documentation/media/uapi/cec/cec-ioc-receive.rst
+index f015f1259b27..18620f81b7d9 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-receive.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-receive.rst
+@@ -40,7 +40,8 @@ Description
+    and is currently only available as a staging kernel module.
+ 
+ To receive a CEC message the application has to fill in the
+-``timeout`` field of :c:type:`struct cec_msg` and pass it to :ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`.
++``timeout`` field of struct :c:type:`cec_msg` and pass it to
++:ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`.
+ If the file descriptor is in non-blocking mode and there are no received
+ messages pending, then it will return -1 and set errno to the ``EAGAIN``
+ error code. If the file descriptor is in blocking mode and ``timeout``
+@@ -54,9 +55,9 @@ A received message can be:
+ 2. the result of an earlier non-blocking transmit (the ``sequence`` field will
+    be non-zero).
+ 
+-To send a CEC message the application has to fill in the
+-:c:type:`struct cec_msg` and pass it to
+-:ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>`. The :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>` is only available if
++To send a CEC message the application has to fill in the struct
++:c:type:` cec_msg` and pass it to :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>`.
++The :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>` is only available if
+ ``CEC_CAP_TRANSMIT`` is set. If there is no more room in the transmit
+ queue, then it will return -1 and set errno to the ``EBUSY`` error code.
+ The transmit queue has enough room for 18 messages (about 1 second worth
+-- 
+2.7.4
 
-Thanks for all your hard work, I'm sure you expected this to get in sooner, but
-better late than never!
 
-	Hans
-
-> 
-> 
->>
->> I am assuming that the initial pipeline is correct and that you should be able
->> to start streaming. If not, then attempting to start streaming should return an
->> error.
->>
->> On 08/18/2016 12:09 AM, Helen Koike wrote:
->>> From: Helen Fornazier <helen.fornazier@gmail.com>
->>>
->>> First version of the Virtual Media Controller.
->>> Add a simple version of the core of the driver, the capture and
->>> sensor nodes in the topology, generating a grey image in a hardcoded
->>> format.
->>>
->>> Signed-off-by: Helen Koike <helen.koike@collabora.com>
->>
->> <snip>
->>
->>> +static int vimc_cap_querycap(struct file *file, void *priv,
->>> +			     struct v4l2_capability *cap)
->>> +{
->>> +	struct vimc_cap_device *vcap = video_drvdata(file);
->>> +
->>> +	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
->>> +	strlcpy(cap->card, KBUILD_MODNAME, sizeof(cap->card));
->>> +	snprintf(cap->bus_info, sizeof(cap->bus_info),
->>> +		 "platform:%s", vcap->v4l2_dev->name);
->>> +
->>> +	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
->>
->> This line should be moved to vimc_cap_create:
->>
->> 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
->>
->> This is new. The v4l2 core will fill in the querycap capabilities for you
->> based on vdev->device_caps.
->>
->>> +
->>> +	return 0;
->>> +}
->>
->> <snip>
->>
->>> +static int vimc_device_register(struct vimc_device *vimc)
->>> +{
->>> +	unsigned int i;
->>> +	int ret = 0;
->>> +
->>> +	/* Allocate memory for the vimc_ent_devices pointers */
->>> +	vimc->ved = devm_kcalloc(vimc->mdev.dev, vimc->pipe_cfg->num_ents,
->>> +				 sizeof(*vimc->ved), GFP_KERNEL);
->>> +	if (!vimc->ved)
->>> +		return -ENOMEM;
->>> +
->>> +	/* Register the media device */
->>> +	ret = media_device_register(&vimc->mdev);
->>> +	if (ret) {
->>> +		dev_err(vimc->mdev.dev,
->>> +			"media device register failed (err=%d)\n", ret);
->>> +		return ret;
->>> +	}
->>> +
->>> +	/* Link the media device within the v4l2_device */
->>> +	vimc->v4l2_dev.mdev = &vimc->mdev;
->>> +
->>> +	/* Register the v4l2 struct */
->>> +	ret = v4l2_device_register(vimc->mdev.dev, &vimc->v4l2_dev);
->>> +	if (ret) {
->>> +		dev_err(vimc->mdev.dev,
->>> +			"v4l2 device register failed (err=%d)\n", ret);
->>> +		return ret;
->>> +	}
->>> +
->>> +	/* Initialize entities */
->>> +	for (i = 0; i < vimc->pipe_cfg->num_ents; i++) {
->>> +		struct vimc_ent_device *(*create_func)(struct v4l2_device *,
->>> +						       const char *const,
->>> +						       u16,
->>> +						       const unsigned long *);
->>> +
->>> +		/* Register the specific node */
->>> +		switch (vimc->pipe_cfg->ents[i].node) {
->>> +		case VIMC_ENT_NODE_SENSOR:
->>> +			create_func = vimc_sen_create;
->>> +			break;
->>> +
->>> +		case VIMC_ENT_NODE_CAPTURE:
->>> +			create_func = vimc_cap_create;
->>> +			break;
->>> +
->>> +		/* TODO: Instantiate the specific topology node */
->>> +		case VIMC_ENT_NODE_INPUT:
->>> +		case VIMC_ENT_NODE_DEBAYER:
->>> +		case VIMC_ENT_NODE_SCALER:
->>> +		default:
->>> +			/* TODO: remove this when all the entities specific
->>> +			 * code are implemented
->>> +			 */
->>> +			create_func = vimc_raw_create;
->>> +			break;
->>> +		}
->>> +
->>> +		vimc->ved[i] = create_func(&vimc->v4l2_dev,
->>> +					   vimc->pipe_cfg->ents[i].name,
->>> +					   vimc->pipe_cfg->ents[i].pads_qty,
->>> +					   vimc->pipe_cfg->ents[i].pads_flag);
->>> +		if (IS_ERR(vimc->ved[i])) {
->>> +			ret = PTR_ERR(vimc->ved[i]);
->>> +			vimc->ved[i] = NULL;
->>> +			goto err;
->>> +		}
->>> +
->>> +		/* Set use_count to keep track of the ved structure */
->>> +		vimc->ved[i]->ent->use_count = i;
->>> +	}
->>> +
->>> +	/* Initialize the links between entities */
->>> +	for (i = 0; i < vimc->pipe_cfg->num_links; i++) {
->>> +		const struct vimc_ent_link *link = &vimc->pipe_cfg->links[i];
->>> +
->>> +		ret = media_create_pad_link(vimc->ved[link->src_ent]->ent,
->>> +					    link->src_pad,
->>> +					    vimc->ved[link->sink_ent]->ent,
->>> +					    link->sink_pad,
->>> +					    link->flags);
->>> +		if (ret)
->>> +			goto err;
->>> +	}
->>> +
->>> +	/* Expose all subdev's nodes*/
->>> +	ret = v4l2_device_register_subdev_nodes(&vimc->v4l2_dev);
->>> +	if (ret) {
->>> +		dev_err(vimc->mdev.dev,
->>> +			"vimc subdev nodes registration failed (err=%d)\n",
->>> +			ret);
->>> +		goto err;
->>> +	}
->>> +
->>> +	return 0;
->>> +
->>> +err:
->>> +	/* Destroy de so far created topology */
->>
->> s/de/the/
->>
->>> +	vimc_device_unregister(vimc);
->>> +
->>> +	return ret;
->>> +}
->>
->> Regards,
->>
->> 	Hans
->>
-> 
-> 
-> Regards,
-> Helen
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
