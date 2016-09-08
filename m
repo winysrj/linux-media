@@ -1,54 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:52912 "EHLO
-        lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757748AbcION7W (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 09:59:22 -0400
-Date: Thu, 15 Sep 2016 14:58:57 +0100
-From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-To: Andrey Utkin <andrey_utkin@fastmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Krzysztof =?UTF-8?B?SGHFgmFzYQ==?= <khalasa@piap.pl>,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+Received: from bombadil.infradead.org ([198.137.202.9]:43810 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S941749AbcIHMES (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:18 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Ismael Luceno <ismael@iodev.co.uk>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>
-Subject: Re: solo6010 modprobe lockup since e1ceb25a (v4.3 regression)
-Message-ID: <20160915145857.5827a7a3@lxorguk.ukuu.org.uk>
-In-Reply-To: <20160915131952.rqiy55dqex4ggtnm@acer>
-References: <20160915130441.ji3f3jiiebsnsbct@acer>
-        <9cbb2079-f705-5312-d295-34bc3c8dadb9@xs4all.nl>
-        <20160915131952.rqiy55dqex4ggtnm@acer>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Markus Heiser <markus.heiser@darmarIT.de>
+Subject: [PATCH 46/47] [media] docs-rst: fix two wrong :name: tags
+Date: Thu,  8 Sep 2016 09:04:08 -0300
+Message-Id: <6c8ff3e3315a5032cc65b3952c8ba06145573f7c.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 15 Sep 2016 16:19:52 +0300
-Andrey Utkin <andrey_utkin@fastmail.com> wrote:
+There's a typo there, causing 4 warnings:
 
-> On Thu, Sep 15, 2016 at 03:15:53PM +0200, Hans Verkuil wrote:
-> > It could be related to the fact that a PCI write may be delayed unless
-> > it is followed by a read (see also the comments in drivers/media/pci/ivtv/ivtv-driver.h).  
-> 
-> Thanks for explanation!
-> 
-> > That was probably the reason for the pci_read_config_word in the reg_write
-> > code. Try putting that back (and just that).  
-> 
-> In this case reg_write becomes not atomic, thus spinlock would be
-> required again here, right?
+  Documentation/media/uapi/rc/lirc-read.rst:26: WARNING: c:type reference target not found: name
+  Documentation/media/uapi/rc/lirc-read.rst:26: WARNING: c:type reference target not found: lirc
+  Documentation/media/uapi/v4l/func-poll.rst:25: WARNING: c:type reference target not found: name
+  Documentation/media/uapi/v4l/func-poll.rst:25: WARNING: c:type reference target not found: v4l2
 
-No - PCI writes are ordered but may not complete until the next read or
-config access. That ordering isn't affected by things like spin locking
-as it is a property of the bus.
+ Fix them.
 
-Usually this only matters in obscure cases - timing is one of them, and
-the other is when freeing memory because writes are posted both ways so
-you need to write to stop the transfer, read to ensure the transfer has
-completed and then free the target memory.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/rc/lirc-read.rst  | 2 +-
+ Documentation/media/uapi/v4l/func-poll.rst | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Alan
+diff --git a/Documentation/media/uapi/rc/lirc-read.rst b/Documentation/media/uapi/rc/lirc-read.rst
+index 62bd3d8c9c67..4c678f60e872 100644
+--- a/Documentation/media/uapi/rc/lirc-read.rst
++++ b/Documentation/media/uapi/rc/lirc-read.rst
+@@ -21,7 +21,7 @@ Synopsis
+ 
+ 
+ .. c:function:: ssize_t read( int fd, void *buf, size_t count )
+-    :name lirc-read
++    :name: lirc-read
+ 
+ 
+ Arguments
+diff --git a/Documentation/media/uapi/v4l/func-poll.rst b/Documentation/media/uapi/v4l/func-poll.rst
+index 186cd61b6cd1..d0432dc09b05 100644
+--- a/Documentation/media/uapi/v4l/func-poll.rst
++++ b/Documentation/media/uapi/v4l/func-poll.rst
+@@ -21,7 +21,7 @@ Synopsis
+ 
+ 
+ .. c:function:: int poll( struct pollfd *ufds, unsigned int nfds, int timeout )
+-    name: v4l2-poll
++    :name: v4l2-poll
+ 
+ Arguments
+ =========
+-- 
+2.7.4
+
+
