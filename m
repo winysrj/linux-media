@@ -1,89 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55037 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933086AbcIEKcs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 06:32:48 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Michael Krufky <mkrufky@linuxtv.org>
-Subject: [PATCH v2 11/12] [media] tda18271: use prefix on all printk messages
-Date: Mon,  5 Sep 2016 07:32:39 -0300
-Message-Id: <a45df59548c13f3a3d3d9fd95b6e88434dc114ef.1473071468.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473071468.git.mchehab@s-opensource.com>
-References: <cover.1473071468.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473071468.git.mchehab@s-opensource.com>
-References: <cover.1473071468.git.mchehab@s-opensource.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:52706 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754673AbcIHNJQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 09:09:16 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Houlong Wei <houlong.wei@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+Subject: [PATCH v6 6/6] media: mtk-mdp: add Maintainers entry for Mediatek MDP driver
+Date: Thu, 8 Sep 2016 21:09:06 +0800
+Message-ID: <1473340146-6598-7-git-send-email-minghsiu.tsai@mediatek.com>
+In-Reply-To: <1473340146-6598-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1473340146-6598-1-git-send-email-minghsiu.tsai@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some messages have a hardcoded prefix; others not. Use the
-pr_fmt() to ensure that all messages will use the same prefix.
+Add Minghsiu Tsai, Houlong Wei and Andrew-CT Chen as
+maintainers for Mediatek MDP driver
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Signed-off-by: Houlong Wei <houlong.wei@mediatek.com>
+Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
 ---
- drivers/media/tuners/tda18271-fe.c   | 11 ++++++-----
- drivers/media/tuners/tda18271-priv.h |  2 ++
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ MAINTAINERS |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/tuners/tda18271-fe.c b/drivers/media/tuners/tda18271-fe.c
-index f8620741bb5f..2d50e8b1dce1 100644
---- a/drivers/media/tuners/tda18271-fe.c
-+++ b/drivers/media/tuners/tda18271-fe.c
-@@ -18,11 +18,12 @@
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 20bb1d0..e17e681 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7605,6 +7605,15 @@ L:	netdev@vger.kernel.org
+ S:	Maintained
+ F:	drivers/net/ethernet/mediatek/
  
--#include <linux/delay.h>
--#include <linux/videodev2.h>
- #include "tda18271-priv.h"
- #include "tda8290.h"
- 
-+#include <linux/delay.h>
-+#include <linux/videodev2.h>
++MEDIATEK MDP DRIVER
++M:	Minghsiu Tsai <minghsiu.tsai@mediatek.com>
++M:	Houlong Wei <houlong.wei@mediatek.com>
++M:	Andrew-CT Chen <andrew-ct.chen@mediatek.com>
++S:	Supported
++F:	drivers/media/platform/mtk-mdp/
++F:	drivers/media/platform/mtk-vpu/
++F:	Documentation/devicetree/bindings/media/mediatek-mdp.txt
 +
- int tda18271_debug;
- module_param_named(debug, tda18271_debug, int, 0644);
- MODULE_PARM_DESC(debug, "set debug level "
-@@ -646,7 +647,7 @@ static int tda18271_calc_rf_filter_curve(struct dvb_frontend *fe)
- 	unsigned int i;
- 	int ret;
- 
--	tda_info("tda18271: performing RF tracking filter calibration\n");
-+	tda_info("performing RF tracking filter calibration\n");
- 
- 	/* wait for die temperature stabilization */
- 	msleep(200);
-@@ -692,12 +693,12 @@ static int tda18271c2_rf_cal_init(struct dvb_frontend *fe)
- 	if (tda_fail(ret))
- 		goto fail;
- 
--	tda_info("tda18271: RF tracking filter calibration complete\n");
-+	tda_info("RF tracking filter calibration complete\n");
- 
- 	priv->cal_initialized = true;
- 	goto end;
- fail:
--	tda_info("tda18271: RF tracking filter calibration failed!\n");
-+	tda_info("RF tracking filter calibration failed!\n");
- end:
- 	return ret;
- }
-diff --git a/drivers/media/tuners/tda18271-priv.h b/drivers/media/tuners/tda18271-priv.h
-index cc80f544af34..0bcc735a0427 100644
---- a/drivers/media/tuners/tda18271-priv.h
-+++ b/drivers/media/tuners/tda18271-priv.h
-@@ -21,6 +21,8 @@
- #ifndef __TDA18271_PRIV_H__
- #define __TDA18271_PRIV_H__
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/kernel.h>
- #include <linux/types.h>
- #include <linux/mutex.h>
+ MEDIATEK MT7601U WIRELESS LAN DRIVER
+ M:	Jakub Kicinski <kubakici@wp.pl>
+ L:	linux-wireless@vger.kernel.org
 -- 
-2.7.4
-
+1.7.9.5
 
