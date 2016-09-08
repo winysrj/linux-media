@@ -1,68 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33212 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751786AbcIIH32 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2016 03:29:28 -0400
-Received: by mail-wm0-f66.google.com with SMTP id b187so1432289wme.0
-        for <linux-media@vger.kernel.org>; Fri, 09 Sep 2016 00:29:27 -0700 (PDT)
-Subject: Re: [PATCH v3 07/10] v4l: fdp1: Remove unused struct fdp1_v4l2_buffer
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org
-References: <1473287110-780-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1473287110-780-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org
-From: Kieran Bingham <kieran@ksquared.org.uk>
-Message-ID: <7643da9a-31cc-364e-36bc-59e903d4438b@bingham.xyz>
-Date: Fri, 9 Sep 2016 08:29:25 +0100
-MIME-Version: 1.0
-In-Reply-To: <1473287110-780-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:43886 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965320AbcIHMET (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:19 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Markus Heiser <markus.heiser@darmarIT.de>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 39/47] [media] fix clock_gettime cross-references
+Date: Thu,  8 Sep 2016 09:04:01 -0300
+Message-Id: <f4ef9aa04ce919791efec7e0de65788f63ce6bba.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Fix those warnings:
 
+	Documentation/media/uapi/cec/cec-ioc-dqevent.rst:124: WARNING: c:func reference target not found: clock_gettime(2)
 
-On 07/09/16 23:25, Laurent Pinchart wrote:
-> The structure is not used, remove it.
+By replacing it with the right function name, using this shell script:
 
-Ahh yes, looks like a left over from my first attempt at serialising
-input fields.
+	for i in `find Documentation/media -type f`; do sed 's,clock_gettime(2),clock_gettime,' <$i >a && mv a $i; done
 
-Reviewed-by: Kieran Bingham <kieran@bingham.xyz>
+Please notice that this will make the nitpick mode to shut up
+complaining about that, becasue clock_gettime is on its exclude list,
+but the cross reference will be undefined until someone documents
+this function at the core documentation.
 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  drivers/media/platform/rcar_fdp1.c | 13 -------------
->  1 file changed, 13 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
-> index bbeacf1527b5..fdab41165f5a 100644
-> --- a/drivers/media/platform/rcar_fdp1.c
-> +++ b/drivers/media/platform/rcar_fdp1.c
-> @@ -514,19 +514,6 @@ enum fdp1_deint_mode {
->  	 mode == FDP1_PREVFIELD)
->  
->  /*
-> - * fdp1_v4l2_buffer: Track v4l2_buffers with a reference count
-> - *
-> - * As buffers come in, they may be used for more than one field.
-> - * It then becomes necessary to track the usage of these buffers,
-> - * and only release when the last job has completed using this
-> - * vb buffer.
-> - */
-> -struct fdp1_v4l2_buffer {
-> -	struct vb2_v4l2_buffer	vb;
-> -	struct list_head	list;
-> -};
-> -
-> -/*
->   * FDP1 operates on potentially 3 fields, which are tracked
->   * from the VB buffers using this context structure.
->   * Will always be a field or a full frame, never two fields.
-> 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst | 2 +-
+ Documentation/media/uapi/cec/cec-ioc-receive.rst | 4 ++--
+ Documentation/media/uapi/v4l/buffer.rst          | 4 ++--
+ Documentation/media/uapi/v4l/vidioc-dqevent.rst  | 2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
+diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+index 06b79361254c..060c455380ce 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+@@ -122,7 +122,7 @@ it is guaranteed that the state did change in between the two events.
+        -  :cspan:`1` Timestamp of the event in ns.
+ 
+ 	  The timestamp has been taken from the ``CLOCK_MONOTONIC`` clock. To access
+-	  the same clock from userspace use :c:func:`clock_gettime(2)`.
++	  the same clock from userspace use :c:func:`clock_gettime`.
+ 
+     -  .. row 2
+ 
+diff --git a/Documentation/media/uapi/cec/cec-ioc-receive.rst b/Documentation/media/uapi/cec/cec-ioc-receive.rst
+index 18620f81b7d9..d585b1bba6ac 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-receive.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-receive.rst
+@@ -95,7 +95,7 @@ result.
+ 
+        -  Timestamp in ns of when the last byte of the message was transmitted.
+ 	  The timestamp has been taken from the ``CLOCK_MONOTONIC`` clock. To access
+-	  the same clock from userspace use :c:func:`clock_gettime(2)`.
++	  the same clock from userspace use :c:func:`clock_gettime`.
+ 
+     -  .. row 2
+ 
+@@ -105,7 +105,7 @@ result.
+ 
+        -  Timestamp in ns of when the last byte of the message was received.
+ 	  The timestamp has been taken from the ``CLOCK_MONOTONIC`` clock. To access
+-	  the same clock from userspace use :c:func:`clock_gettime(2)`.
++	  the same clock from userspace use :c:func:`clock_gettime`.
+ 
+     -  .. row 3
+ 
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index 7d2d81a771b1..e71a458712d3 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -712,7 +712,7 @@ Buffer Flags
+ 	  clock). Monotonic clock has been favoured in embedded systems
+ 	  whereas most of the drivers use the realtime clock. Either kinds
+ 	  of timestamps are available in user space via
+-	  :c:func:`clock_gettime(2)` using clock IDs ``CLOCK_MONOTONIC``
++	  :c:func:`clock_gettime` using clock IDs ``CLOCK_MONOTONIC``
+ 	  and ``CLOCK_REALTIME``, respectively.
+ 
+     -  .. _`V4L2-BUF-FLAG-TIMESTAMP-MONOTONIC`:
+@@ -723,7 +723,7 @@ Buffer Flags
+ 
+        -  The buffer timestamp has been taken from the ``CLOCK_MONOTONIC``
+ 	  clock. To access the same clock outside V4L2, use
+-	  :c:func:`clock_gettime(2)`.
++	  :c:func:`clock_gettime`.
+ 
+     -  .. _`V4L2-BUF-FLAG-TIMESTAMP-COPY`:
+ 
+diff --git a/Documentation/media/uapi/v4l/vidioc-dqevent.rst b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+index 3038f349049c..1e435ab674a2 100644
+--- a/Documentation/media/uapi/v4l/vidioc-dqevent.rst
++++ b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+@@ -152,7 +152,7 @@ call.
+        -
+        -  Event timestamp. The timestamp has been taken from the
+ 	  ``CLOCK_MONOTONIC`` clock. To access the same clock outside V4L2,
+-	  use :c:func:`clock_gettime(2)`.
++	  use :c:func:`clock_gettime`.
+ 
+     -  .. row 12
+ 
 -- 
-Regards
+2.7.4
 
-Kieran Bingham
+
