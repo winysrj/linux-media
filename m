@@ -1,56 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33277 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755788AbcIPJjv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 05:39:51 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        magnus.damm@gmail.com, ulrich.hecht+renesas@gmail.com,
-        laurent.pinchart@ideasonboard.com, william.towle@codethink.co.uk,
-        devicetree@vger.kernel.org
-Subject: [PATCH 2/2] media: adv7604: automatic "default-input" selection
-Date: Fri, 16 Sep 2016 11:39:42 +0200
-Message-Id: <20160916093942.17213-3-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <20160916093942.17213-1-ulrich.hecht+renesas@gmail.com>
-References: <20160916093942.17213-1-ulrich.hecht+renesas@gmail.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:52706 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752174AbcIHNJO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 09:09:14 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: [PATCH v6 1/6] VPU: mediatek: Add mdp support
+Date: Thu, 8 Sep 2016 21:09:01 +0800
+Message-ID: <1473340146-6598-2-git-send-email-minghsiu.tsai@mediatek.com>
+In-Reply-To: <1473340146-6598-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1473340146-6598-1-git-send-email-minghsiu.tsai@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fall back to input 0 if "default-input" property is not present.
+VPU driver add mdp support
 
-Documentation states that the "default-input" property should reside
-directly in the node for adv7612.  Hence, also adjust the parsing to make
-the implementation consistent with this.
-
-Based on patch by William Towle <william.towle@codethink.co.uk>.
-
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
 ---
- drivers/media/i2c/adv7604.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/media/platform/mtk-vpu/mtk_vpu.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 4003831..055c9df 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -3077,10 +3077,13 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	if (!of_property_read_u32(endpoint, "default-input", &v))
- 		state->pdata.default_input = v;
- 	else
--		state->pdata.default_input = -1;
-+		state->pdata.default_input = 0;
+diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.h b/drivers/media/platform/mtk-vpu/mtk_vpu.h
+index f457479..291ae46 100644
+--- a/drivers/media/platform/mtk-vpu/mtk_vpu.h
++++ b/drivers/media/platform/mtk-vpu/mtk_vpu.h
+@@ -53,6 +53,8 @@ typedef void (*ipi_handler_t) (void *data,
+ 			 handle H264 video encoder job, and vice versa.
+  * @IPI_VENC_VP8:	 The interrupt fro vpu is to notify kernel to
+ 			 handle VP8 video encoder job,, and vice versa.
++ * @IPI_MDP:		 The interrupt from vpu is to notify kernel to
++			 handle MDP (Media Data Path) job, and vice versa.
+  * @IPI_MAX:		 The maximum IPI number
+  */
  
- 	of_node_put(endpoint);
+@@ -63,6 +65,7 @@ enum ipi_id {
+ 	IPI_VDEC_VP9,
+ 	IPI_VENC_H264,
+ 	IPI_VENC_VP8,
++	IPI_MDP,
+ 	IPI_MAX,
+ };
  
-+	if (!of_property_read_u32(np, "default-input", &v))
-+		state->pdata.default_input = v;
-+
- 	flags = bus_cfg.bus.parallel.flags;
+@@ -71,11 +74,13 @@ enum ipi_id {
+  *
+  * @VPU_RST_ENC: encoder reset id
+  * @VPU_RST_DEC: decoder reset id
++ * @VPU_RST_MDP: MDP (Media Data Path) reset id
+  * @VPU_RST_MAX: maximum reset id
+  */
+ enum rst_id {
+ 	VPU_RST_ENC,
+ 	VPU_RST_DEC,
++	VPU_RST_MDP,
+ 	VPU_RST_MAX,
+ };
  
- 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
 -- 
-2.9.3
+1.7.9.5
 
