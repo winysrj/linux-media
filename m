@@ -1,119 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36628
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932234AbcIENZS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 09:25:18 -0400
-Date: Mon, 5 Sep 2016 10:25:11 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Chris Mayo <aklhfex@gmail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] v4l-utils: fixed dvbv5 vdr format
-Message-ID: <20160905102511.6de3dbe4@vento.lan>
-In-Reply-To: <28A9DFEA-1E94-4EE0-A2BB-B22D029683B9@darmarit.de>
-References: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de>
-        <1470822739-29519-3-git-send-email-markus.heiser@darmarit.de>
-        <20160824114927.3c6ab0d6@vento.lan>
-        <20160824115241.7e2c90ca@vento.lan>
-        <28A9DFEA-1E94-4EE0-A2BB-B22D029683B9@darmarit.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mailgw01.mediatek.com ([210.61.82.183]:2610 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1757880AbcIHMVp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:21:45 -0400
+Message-ID: <1473337299.17443.0.camel@mtksdaap41>
+Subject: Re: [PATCH v5 3/5] media: Add Mediatek MDP Driver
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
+Date: Thu, 8 Sep 2016 20:21:39 +0800
+In-Reply-To: <cb59f743-66b9-15cd-0281-54510d7f93ca@xs4all.nl>
+References: <1472559944-55114-1-git-send-email-minghsiu.tsai@mediatek.com>
+         <1472559944-55114-4-git-send-email-minghsiu.tsai@mediatek.com>
+         <cb59f743-66b9-15cd-0281-54510d7f93ca@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 5 Sep 2016 15:13:04 +0200
-Markus Heiser <markus.heiser@darmarit.de> escreveu:
-
-> Hi Mauro, (Hi Chris)
-> 
-> sorry for my late reply. I test the v4-utils on my HTPC,
-> where I'am not often have time for experimentation ;-)
-> 
-> Am 24.08.2016 um 16:52 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-> 
-> > Em Wed, 24 Aug 2016 11:49:27 -0300
-> > Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
-> >   
-> >> Hi Markus,
-> >> 
-> >> Em Wed, 10 Aug 2016 11:52:19 +0200
-> >> Markus Heiser <markus.heiser@darmarit.de> escreveu:
-> >>   
-> >>> From: Markus Heiser <markus.heiser@darmarIT.de>
-> >>> 
-> >>> From: Heiser, Markus <markus.heiser@darmarIT.de>
-> >>> 
-> >>> The vdr format was broken, I got '(null)' entries
-> >>> 
-> >>> HD:11494:S1HC23I0M5N1O35:S:(null):22000:5101:5102,5103,5106,5108:0:0:10301:0:0:0:
-> >>> 0-:1----:2--------------:3:4-----:
-> >>> 
-> >>> refering to the VDR Wikis ...
-> >>> 
-> >>> * LinuxTV: http://www.linuxtv.org/vdrwiki/index.php/Syntax_of_channels.conf
-> >>> * german comunity Wiki: http://www.vdr-wiki.de/wiki/index.php/Channels.conf#Parameter_ab_VDR-1.7.4
-> >>> 
-> >>> There is no field at position 4 / in between "Source" and "SRate" which
-> >>> might have a value. I suppose the '(null):' is the result of pointing
-> >>> to *nothing*.
-> >>> 
-> >>> An other mistake is the ending colon (":") at the line. It is not
-> >>> explicit specified but adding an collon to the end of an channel entry
-> >>> will prevent players (like mpv or mplayer) from parsing the line (they
-> >>> will ignore these lines).
-> >>> 
-> >>> At least: generating a channel list with
-> >>> 
-> >>>  dvbv5-scan --output-format=vdr ...
-> >>> 
-> >>> will result in the same defective channel entry, containing "(null):"
-> >>> and the leading collon ":".    
-> >> 
-> >> Sorry for taking too long to handle that. I usually stop handling
-> >> patches one week before the merge window, returning to merge only
-> >> after -rc1. This time, it took a little more time, due to the Sphinx
-> >> changes, as I was needing some patches to be merged upstream, in order
-> >> to change my handling scripts to work with the new way.
-> >> 
-> >> Anyway, with regards to this patch, not sure if you saw, but
-> >> Chris Mayo sent us a different fix for it:
-> >> 
-> >> 	https://patchwork.linuxtv.org/patch/35803/
-> >> 
-> >> With is meant to support VDR format as used on version 2.2. Not sure
-> >> if this format is backward-compatible with versions 1.x, but usually
-> >> VDR just adds new parameters to the lines.
-> >> 
-> >> So, I'm inclined to merge Chris patch instead of yours.
-> >> 
-> >> So, could you please test if his patch does what's needed?  
+On Mon, 2016-09-05 at 12:17 +0200, Hans Verkuil wrote:
+> On 08/30/2016 02:25 PM, Minghsiu Tsai wrote:
+> > Add MDP driver for MT8173
 > > 
-> > PS.: If the formats for v 1.x are not compatible with the ones for
-> > v2.x, then the best would be to change the code to add a new format
-> > for vdr v2.x, while keep supporting vdr v1.x.  
+> > Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+> > ---
+> >  drivers/media/platform/Kconfig                |   17 +
+> >  drivers/media/platform/Makefile               |    2 +
+> >  drivers/media/platform/mtk-mdp/Makefile       |    9 +
+> >  drivers/media/platform/mtk-mdp/mtk_mdp_comp.c |  159 ++++
+> >  drivers/media/platform/mtk-mdp/mtk_mdp_comp.h |   72 ++
+> >  drivers/media/platform/mtk-mdp/mtk_mdp_core.c |  294 ++++++
+> >  drivers/media/platform/mtk-mdp/mtk_mdp_core.h |  260 +++++
+> >  drivers/media/platform/mtk-mdp/mtk_mdp_ipi.h  |  126 +++
+> >  drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c  | 1270 +++++++++++++++++++++++++
+> >  drivers/media/platform/mtk-mdp/mtk_mdp_m2m.h  |   22 +
+> >  drivers/media/platform/mtk-mdp/mtk_mdp_regs.c |  152 +++
+> >  drivers/media/platform/mtk-mdp/mtk_mdp_regs.h |   31 +
+> >  drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c  |  145 +++
+> >  drivers/media/platform/mtk-mdp/mtk_mdp_vpu.h  |   41 +
+> >  14 files changed, 2600 insertions(+)
+> >  create mode 100644 drivers/media/platform/mtk-mdp/Makefile
+> >  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_comp.c
+> >  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_comp.h
+> >  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+> >  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_core.h
+> >  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_ipi.h
+> >  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> >  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_m2m.h
+> >  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_regs.c
+> >  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_regs.h
+> >  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c
+> >  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_vpu.h
+> > 
 > 
-> Hmm, I'am a bit confused about vdr's channel.conf v1.x and v2.x.
+> <snip>
 > 
-> I can't find any documentation on this and since there is no
-> version control system for vdr it is hard to dig the history.
-
-Yeah, I see your pain.
-
-> As far as I can see, Chris fixes an issue with DVB-T and the
-> issue with the leading ":".
+> > +static inline bool mtk_mdp_is_target_compose(u32 target)
+> > +{
+> > +	if (target == V4L2_SEL_TGT_COMPOSE_DEFAULT
+> > +	    || target == V4L2_SEL_TGT_COMPOSE_BOUNDS
+> > +	    || target == V4L2_SEL_TGT_COMPOSE)
+> > +		return true;
+> > +	return false;
+> > +}
+> > +
+> > +static inline bool mtk_mdp_is_target_crop(u32 target)
+> > +{
+> > +	if (target == V4L2_SEL_TGT_CROP_DEFAULT
+> > +	    || target == V4L2_SEL_TGT_CROP_BOUNDS
+> > +	    || target == V4L2_SEL_TGT_CROP)
+> > +		return true;
+> > +	return false;
+> > +}
+> > +
+> > +static int mtk_mdp_m2m_g_selection(struct file *file, void *fh,
+> > +				       struct v4l2_selection *s)
+> > +{
+> > +	struct mtk_mdp_frame *frame;
+> > +	struct mtk_mdp_ctx *ctx = fh_to_ctx(fh);
+> > +	bool valid = false;
+> > +
+> > +	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+> > +		if (mtk_mdp_is_target_compose(s->target))
+> > +			valid = true;
+> > +	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> > +		if (mtk_mdp_is_target_crop(s->target))
+> > +			valid = true;
+> > +	}
+> > +	if (!valid) {
+> > +		mtk_mdp_dbg(1, "[%d] invalid type:%d,%u", ctx->id, s->type,
+> > +			    s->target);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	frame = mtk_mdp_ctx_get_frame(ctx, s->type);
+> > +
+> > +	switch (s->target) {
+> > +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+> > +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+> > +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> > +	case V4L2_SEL_TGT_CROP_DEFAULT:
+> > +		s->r.left = 0;
+> > +		s->r.top = 0;
+> > +		s->r.width = frame->width;
+> > +		s->r.height = frame->height;
+> > +		return 0;
+> > +
+> > +	case V4L2_SEL_TGT_COMPOSE:
+> > +	case V4L2_SEL_TGT_CROP:
+> > +		s->r.left = frame->crop.left;
+> > +		s->r.top = frame->crop.top;
+> > +		s->r.width = frame->crop.width;
+> > +		s->r.height = frame->crop.height;
+> > +		return 0;
+> > +	}
+> > +
+> > +	return -EINVAL;
+> > +}
+> > +
+> > +static int mtk_mdp_check_scaler_ratio(struct mtk_mdp_variant *var, int src_w,
+> > +				      int src_h, int dst_w, int dst_h, int rot)
+> > +{
+> > +	int tmp_w, tmp_h;
+> > +
+> > +	if (rot == 90 || rot == 270) {
+> > +		tmp_w = dst_h;
+> > +		tmp_h = dst_w;
+> > +	} else {
+> > +		tmp_w = dst_w;
+> > +		tmp_h = dst_h;
+> > +	}
+> > +
+> > +	if ((src_w / tmp_w) > var->h_scale_down_max ||
+> > +	    (src_h / tmp_h) > var->v_scale_down_max ||
+> > +	    (tmp_w / src_w) > var->h_scale_up_max ||
+> > +	    (tmp_h / src_h) > var->v_scale_up_max)
+> > +		return -EINVAL;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
+> > +				   struct v4l2_selection *s)
+> > +{
+> > +	struct mtk_mdp_frame *frame;
+> > +	struct mtk_mdp_ctx *ctx = fh_to_ctx(fh);
+> > +	struct v4l2_rect new_r;
+> > +	struct mtk_mdp_variant *variant = ctx->mdp_dev->variant;
+> > +	int ret;
+> > +	bool valid = false;
+> > +
+> > +	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+> > +		if (mtk_mdp_is_target_compose(s->target))
+> > +			valid = true;
+> > +	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> > +		if (mtk_mdp_is_target_crop(s->target))
+> > +			valid = true;
+> > +	}
 > 
-> My patch fixes an issue with DVB-S/2 entry-location (and the
-> issue with the leading ":").
+> These tests are wrong: you can't set the _DEFAULT and _BOUNDS targets.
+> Those are read-only. It's easiest to just explicitly check for _CROP or
+> _COMPOSE here.
 > 
-> I will give it a try to merge my changes on top of Chris's
-> patch and test DVB-T & DVB-S2 on my HTPC with an vdr server.
+> I've added a check to v4l2-compliance to test for this.
+> 
 
-Ok, that would be great! it would also be good if either of you could
-take a look on how to allow libdvbv5 to support both VDR versions 1.x and
-2.x. I don't use VDR here (afaikt, it doesn't support ISDB-T - and nowadays
-I only have DVB/ATSC via my RF test generators), but, IMHO, being able to
-provide output on both formats can be useful for other VDR users.
+I will fix it in v6 and test with the latest v4l2-compliance. Thanks.
 
-Regards,
-Mauro
+
+> > +	if (!valid) {
+> > +		mtk_mdp_dbg(1, "[%d] invalid type:%d,%u", ctx->id, s->type,
+> > +			    s->target);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	new_r = s->r;
+> > +	ret = mtk_mdp_try_crop(ctx, s->type, &new_r);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	if (mtk_mdp_is_target_crop(s->target))
+> > +		frame = &ctx->s_frame;
+> > +	else
+> > +		frame = &ctx->d_frame;
+> > +
+> > +	/* Check to see if scaling ratio is within supported range */
+> > +	if (mtk_mdp_ctx_state_is_set(ctx, MTK_MDP_DST_FMT | MTK_MDP_SRC_FMT)) {
+> > +		if (V4L2_TYPE_IS_OUTPUT(s->type)) {
+> > +			ret = mtk_mdp_check_scaler_ratio(variant, new_r.width,
+> > +				new_r.height, ctx->d_frame.crop.width,
+> > +				ctx->d_frame.crop.height,
+> > +				ctx->ctrls.rotate->val);
+> > +		} else {
+> > +			ret = mtk_mdp_check_scaler_ratio(variant,
+> > +				ctx->s_frame.crop.width,
+> > +				ctx->s_frame.crop.height, new_r.width,
+> > +				new_r.height, ctx->ctrls.rotate->val);
+> > +		}
+> > +
+> > +		if (ret) {
+> > +			dev_info(&ctx->mdp_dev->pdev->dev,
+> > +				"Out of scaler range");
+> > +			return -EINVAL;
+> > +		}
+> > +	}
+> > +
+> > +	s->r = new_r;
+> > +	frame->crop = new_r;
+> > +
+> > +	return 0;
+> > +}
+> 
+> 
+> Regards,
+> 
+> 	Hans
+
+
