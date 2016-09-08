@@ -1,64 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.goneo.de ([85.220.129.33]:41618 "EHLO smtp2.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753696AbcIGHNo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Sep 2016 03:13:44 -0400
-From: Markus Heiser <markus.heiser@darmarit.de>
-To: Jonathan Corbet <corbet@lwn.net>,
+Received: from bombadil.infradead.org ([198.137.202.9]:44151 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S941752AbcIHMEZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:25 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jani Nikula <jani.nikula@intel.com>
-Cc: Markus Heiser <markus.heiser@darmarIT.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Subject: [PATCH v2 0/3] doc-rst:c-domain: fix some issues in the c-domain
-Date: Wed,  7 Sep 2016 09:12:55 +0200
-Message-Id: <1473232378-11869-1-git-send-email-markus.heiser@darmarit.de>
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 09/47] [media] mc-core.rst: Fix cross-references to the source
+Date: Thu,  8 Sep 2016 09:03:31 -0300
+Message-Id: <8688330d281cf2dccbc7025d06b2de2895ad21c8.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Heiser <markus.heiser@darmarIT.de>
+The cross-reference to "struct media_pad" was pointing to
+a place that doesn't exist. Fix it, and adjust the second
+reference on the same paragraph to use the same text.
 
-Hi Jon,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/kapi/mc-core.rst | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-according to your remarks I fixed the first and second patch. The third patch is
-resend unchanged;
-
-> Am 06.09.2016 um 14:28 schrieb Jonathan Corbet <corbet@lwn.net>:
->
-> As others have pointed out, we generally want to hide the difference
-> between functions and macros, so this is probably one change we don't
-> want.
-
-I read "probably", so there might be a chance to persuade you ;)
-
-I'm not a friend of *information hiding* and since the index is sorted
-alphabetical it does no matter if the entry is 'FOO (C function)' or 'FOO (C
-macro)'. The last one has the right information e.g. for someone how is looking
-for a macro. FOO is a function-like macro and not a function, if the author
-describes the macro he might use the word "macro FOO" but in the index it is
-tagged as C function.
-
-Macros and functions are totally different even if their notation looks
-similarly. So where is the benefit of entries like 'FOO (C function)', which is
-IMHO ambiguous.
-
-I tagged the 'function-like macros index entry' patch with 'RFC' and resend it
-within this series. If you and/or others have a different opinion, feel free to
-drop it.
-
-Thanks for review.
-
--- Markus --
-
-
-Markus Heiser (3):
-  doc-rst:c-domain: fix sphinx version incompatibility
-  doc-rst:c-domain: function-like macros arguments
-  doc-rst:c-domain: function-like macros index entry
-
- Documentation/sphinx/cdomain.py | 79 +++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 76 insertions(+), 3 deletions(-)
-
+diff --git a/Documentation/media/kapi/mc-core.rst b/Documentation/media/kapi/mc-core.rst
+index 569cfc4f01cd..fb839a6c1f46 100644
+--- a/Documentation/media/kapi/mc-core.rst
++++ b/Documentation/media/kapi/mc-core.rst
+@@ -85,8 +85,9 @@ a driver-specific structure.
+ Pads are identified by their entity and their 0-based index in the pads
+ array.
+ 
+-Both information are stored in the :c:type:`struct media_pad`, making the
+-:c:type:`media_pad` pointer the canonical way to store and pass link references.
++Both information are stored in the :c:type:`struct media_pad <media_pad>`,
++making the :c:type:`struct media_pad <media_pad>` pointer the canonical way
++to store and pass link references.
+ 
+ Pads have flags that describe the pad capabilities and state.
+ 
 -- 
 2.7.4
+
 
