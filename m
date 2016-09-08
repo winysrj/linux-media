@@ -1,86 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp10.smtpout.orange.fr ([80.12.242.132]:51818 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754068AbcIFItt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 04:49:49 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Jiri Kosina <trivial@kernel.org>, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH v5 00/13] pxa_camera transition to v4l2 standalone device
-References: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
-        <cb7496b2-cc64-7c6e-71b3-6c56e596c8dc@xs4all.nl>
-Date: Tue, 06 Sep 2016 10:49:44 +0200
-In-Reply-To: <cb7496b2-cc64-7c6e-71b3-6c56e596c8dc@xs4all.nl> (Hans Verkuil's
-        message of "Mon, 5 Sep 2016 14:40:05 +0200")
-Message-ID: <87inu9if9z.fsf@belgarion.home>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49664
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759256AbcIHSde (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 14:33:34 -0400
+Date: Thu, 8 Sep 2016 15:33:27 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: VDR User <user.vdr@gmail.com>
+Cc: Markus Heiser <markus.heiser@darmarit.de>,
+        Chris Mayo <aklhfex@gmail.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] v4l-utils: fixed dvbv5 vdr format
+Message-ID: <20160908153327.545961df@vento.lan>
+In-Reply-To: <CAA7C2qh-XGBxsZk_GdO+Oj2Q8x9SqA1XOAb+b0ZRbsNCR2eesw@mail.gmail.com>
+References: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de>
+        <1470822739-29519-3-git-send-email-markus.heiser@darmarit.de>
+        <20160824114927.3c6ab0d6@vento.lan>
+        <20160824115241.7e2c90ca@vento.lan>
+        <28A9DFEA-1E94-4EE0-A2BB-B22D029683B9@darmarit.de>
+        <20160905102511.6de3dbe4@vento.lan>
+        <eaa7b609-2c27-9943-5197-d9bec71b2db7@gmail.com>
+        <20160906064108.5bd84045@vento.lan>
+        <CAA7C2qj5ap3PoK2uenF+kqpCrqjO9znR4y5Y7h2UoaENDcT8XA@mail.gmail.com>
+        <20160906124723.6783fd39@vento.lan>
+        <7C627C3A-DF3F-4E50-9876-7130D9221D96@darmarit.de>
+        <CAA7C2qh-XGBxsZk_GdO+Oj2Q8x9SqA1XOAb+b0ZRbsNCR2eesw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+Em Wed, 7 Sep 2016 10:59:32 -0700
+VDR User <user.vdr@gmail.com> escreveu:
 
-> On 08/29/2016 07:55 PM, Robert Jarzmik wrote:
->> There is no change between v4 and v5, ie. the global diff is empty, only one
->> line was shifted to prevent breaking bisectablility.
->
-> Against which tree do you develop? Unfortunately this patch series doesn't apply
-> to the media_tree master branch anymore due to conflicts with a merged patch that
-> converts s/g_crop to s/g_selection in all subdev drivers.
-v4.8-rc1 is their base, so Linus's master.
+> I use nscan, which has easily been the
+> most successful of the scanners. An additional benefit to nscan is you
+> only supply a single transponder on the command line and it will
+> populate a channel list for the entire sat. You don't need to supply
+> an entire list of transponders to scan.
 
-> When you make the new patch series, please use the -M option with git send-email so
-> patches that move files around are handled cleanly. That makes it much easier
-> to review.
-Ok.
+Well, AFAIKT, nowadays, almost all scanners need just one frequency for
+satellite and cable to get all channels (and even for some DVB-T/T2
+broadcasters, but this is a way more commonly found on DVB-S/S2/C).
 
-> BTW, checkpatch reported issues in a switch statement in function
-> pxa_camera_get_formats():
-Yep, I noticed.
+If the extra transponders are listed via other NIT tables (it depends on
+the broadcaster), an extra parameter is needed (-N, in the case of
+dvbv5-scan), as the scan time per channel increases a lot if it has to
+wait to receive all NIT tables. So, most scanners default to use just
+the main NIT table, providing an option to parse the other ones.
 
->         switch (code.code) {
->         case MEDIA_BUS_FMT_UYVY8_2X8:
->                 formats++;
->                 if (xlate) {
->                         xlate->host_fmt = &pxa_camera_formats[0];
->                         xlate->code     = code.code;
->                         xlate++;
->                         dev_dbg(dev, "Providing format %s using code %d\n",
->                                 pxa_camera_formats[0].name, code.code);
->                 }
->         case MEDIA_BUS_FMT_VYUY8_2X8:
->         case MEDIA_BUS_FMT_YUYV8_2X8:
->         case MEDIA_BUS_FMT_YVYU8_2X8:
->         case MEDIA_BUS_FMT_RGB565_2X8_LE:
->         case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
->                 if (xlate)
->                         dev_dbg(dev, "Providing format %s packed\n",
->                                 fmt->name);
->                 break;
->         default:
->                 if (!pxa_camera_packing_supported(fmt))
->                         return 0;
->                 if (xlate)
->                         dev_dbg(dev,
->                                 "Providing format %s in pass-through mode\n",
->                                 fmt->name);
->         }
->
-> Before 'case MEDIA_BUS_FMT_VYUY8_2X8' should there be a break? If not, then
-> there should be a '/* fall through */' comment.
-There should have been a '/* fall through */' in the original code, even if that
-was not strictly "required" at the time of writing.
->
-> At the end of the default case there should also be a break statement.
->
-> This is already in the existing code, so just make a separate patch fixing
-> this.
-Ok, will do.
 
-Cheers.
-
---
-Robert
+Thanks,
+Mauro
