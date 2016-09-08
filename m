@@ -1,128 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:35525 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1034477AbcIWNta (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Sep 2016 09:49:30 -0400
-Received: by mail-lf0-f65.google.com with SMTP id s64so5744831lfs.2
-        for <linux-media@vger.kernel.org>; Fri, 23 Sep 2016 06:49:30 -0700 (PDT)
-Date: Fri, 23 Sep 2016 15:49:26 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-        intel-gfx@lists.freedesktop.org, linux-media@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [PATCH 10/11] dma-buf: Use seqlock to close RCU
- race in test_signaled_single
-Message-ID: <20160923134926.GL3988@dvetter-linux.ger.corp.intel.com>
-References: <20160829070834.22296-1-chris@chris-wilson.co.uk>
- <20160829070834.22296-10-chris@chris-wilson.co.uk>
-MIME-Version: 1.0
+Received: from smtp3-1.goneo.de ([85.220.129.38]:39316 "EHLO smtp3-1.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751252AbcIHHPd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Sep 2016 03:15:33 -0400
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160829070834.22296-10-chris@chris-wilson.co.uk>
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH 2/2] v4l-utils: fixed dvbv5 vdr format
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <CAA7C2qh-XGBxsZk_GdO+Oj2Q8x9SqA1XOAb+b0ZRbsNCR2eesw@mail.gmail.com>
+Date: Thu, 8 Sep 2016 09:15:13 +0200
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Chris Mayo <aklhfex@gmail.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <973834E5-E192-4EE3-AAAE-AD28086CF3D0@darmarit.de>
+References: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de> <1470822739-29519-3-git-send-email-markus.heiser@darmarit.de> <20160824114927.3c6ab0d6@vento.lan> <20160824115241.7e2c90ca@vento.lan> <28A9DFEA-1E94-4EE0-A2BB-B22D029683B9@darmarit.de> <20160905102511.6de3dbe4@vento.lan> <eaa7b609-2c27-9943-5197-d9bec71b2db7@gmail.com> <20160906064108.5bd84045@vento.lan> <CAA7C2qj5ap3PoK2uenF+kqpCrqjO9znR4y5Y7h2UoaENDcT8XA@mail.gmail.com> <20160906124723.6783fd39@vento.lan> <7C627C3A-DF3F-4E50-9876-7130D9221D96@darmarit.de> <CAA7C2qh-XGBxsZk_GdO+Oj2Q8x9SqA1XOAb+b0ZRbsNCR2eesw@mail.gmail.com>
+To: VDR User <user.vdr@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 29, 2016 at 08:08:33AM +0100, Chris Wilson wrote:
-> With the seqlock now extended to cover the lookup of the fence and its
-> testing, we can perform that testing solely under the seqlock guard and
-> avoid the effective locking and serialisation of acquiring a reference to
-> the request.  As the fence is RCU protected we know it cannot disappear
-> as we test it, the same guarantee that made it safe to acquire the
-> reference previously.  The seqlock tests whether the fence was replaced
-> as we are testing it telling us whether or not we can trust the result
-> (if not, we just repeat the test until stable).
+
+Am 07.09.2016 um 19:59 schrieb VDR User <user.vdr@gmail.com>:
+
+>> It is broken (see below). Have you ever used dvbv5 tools with vdr format
+>> output or did you know a "VDR user" who is using dvbv5-scan and not wscan?
 > 
-> Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-> Cc: Sumit Semwal <sumit.semwal@linaro.org>
-> Cc: linux-media@vger.kernel.org
-> Cc: dri-devel@lists.freedesktop.org
-> Cc: linaro-mm-sig@lists.linaro.org
-
-Not entirely sure this is safe for non-i915 drivers. We might now call
-->signalled on a zombie fence (i.e. refcount == 0, but not yet kfreed).
-i915 can do that, but other drivers might go boom.
-
-I think in generic code we can't do these kind of tricks unfortunately.
--Daniel
-
-> ---
->  drivers/dma-buf/reservation.c | 32 ++++----------------------------
->  1 file changed, 4 insertions(+), 28 deletions(-)
+> In my experience the v4l scanner, wscan, and VDR's internal scanner
+> has never worked well (for NA). I use nscan, which has easily been the
+> most successful of the scanners. An additional benefit to nscan is you
+> only supply a single transponder on the command line and it will
+> populate a channel list for the entire sat. You don't need to supply
+> an entire list of transponders to scan.
 > 
-> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
-> index e74493e7332b..1ddffa5adb5a 100644
-> --- a/drivers/dma-buf/reservation.c
-> +++ b/drivers/dma-buf/reservation.c
-> @@ -442,24 +442,6 @@ unlock_retry:
->  }
->  EXPORT_SYMBOL_GPL(reservation_object_wait_timeout_rcu);
->  
-> -
-> -static inline int
-> -reservation_object_test_signaled_single(struct fence *passed_fence)
-> -{
-> -	struct fence *fence, *lfence = passed_fence;
-> -	int ret = 1;
-> -
-> -	if (!test_bit(FENCE_FLAG_SIGNALED_BIT, &lfence->flags)) {
-> -		fence = fence_get_rcu(lfence);
-> -		if (!fence)
-> -			return -1;
-> -
-> -		ret = !!fence_is_signaled(fence);
-> -		fence_put(fence);
-> -	}
-> -	return ret;
-> -}
-> -
->  /**
->   * reservation_object_test_signaled_rcu - Test if a reservation object's
->   * fences have been signaled.
-> @@ -474,7 +456,7 @@ bool reservation_object_test_signaled_rcu(struct reservation_object *obj,
->  					  bool test_all)
->  {
->  	unsigned seq, shared_count;
-> -	int ret;
-> +	bool ret;
->  
->  	rcu_read_lock();
->  retry:
-> @@ -494,10 +476,8 @@ retry:
->  		for (i = 0; i < shared_count; ++i) {
->  			struct fence *fence = rcu_dereference(fobj->shared[i]);
->  
-> -			ret = reservation_object_test_signaled_single(fence);
-> -			if (ret < 0)
-> -				goto retry;
-> -			else if (!ret)
-> +			ret = fence_is_signaled(fence);
-> +			if (!ret)
->  				break;
->  		}
->  
-> @@ -509,11 +489,7 @@ retry:
->  		struct fence *fence_excl = rcu_dereference(obj->fence_excl);
->  
->  		if (fence_excl) {
-> -			ret = reservation_object_test_signaled_single(
-> -								fence_excl);
-> -			if (ret < 0)
-> -				goto retry;
-> -
-> +			ret = fence_is_signaled(fence_excl);
->  			if (read_seqcount_retry(&obj->seq, seq))
->  				goto retry;
->  		}
-> -- 
-> 2.9.3
+> As far as other VDR users, of which I know many being a long time
+> user, they tend to use whatever works best for them.
 > 
-> _______________________________________________
-> Linaro-mm-sig mailing list
-> Linaro-mm-sig@lists.linaro.org
-> https://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+>>> Well, the libdvbv5 VDR output support was written aiming VDR version 2.1.6.
+>>> I've no idea if it works with VDR 1.6.0.
+> 
+> It's not uncommon to find VDR users who run versions as old as 1.6.0*.
+> Some are completely satisfied leaving their perfectly stable system be
+> with no concern about updating it.
+> 
+>> Since these bugs are from the beginning and no one has rejected,
+>> I suppose, that these VDR 1.6.0 users are using wscan and not the
+>> dvbv5 tools. IMHO the VDR format has never been worked,
+>> so we can't break backwards compatible ;) and since there is wscan
+>> widely used by old vdr hats, we do not need to care pre-DVB-[T|S]-2
+>> formats.
+> 
+> Instead of making that kind of assumption, why not ask VDR users
+> directly on the VDR mailing list?
+> 
+>> As I said, it might be more helpful to place vdr in a public
+>> repository and to document channel's format well. It is always a
+>> hell for me to dig into the vdr sources without a version
+>> context and an ambiguous documentation ...
+> 
+> There is already a publicly available VDR repository offering the
+> current stable & developer versions, along with all previous versions:
+> http://www.tvdr.de/download.htm
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+?? these are tarballs, where is the version control system?
+
+> 
+>> Different formats (compare):
+>> * http://www.vdr-wiki.de/wiki/index.php/Channels.conf#Unterschiede
+>> * https://www.linuxtv.org/vdrwiki/index.php/Syntax_of_channels.conf#Differences
+> 
+> It's best to refer to VDRs packaged documention. You can get the
+> channels.conf format definition with `man 5 vdr`.
+
+Good point, but I have only 2.2 installed, so where get I the backward 
+informations .. should I extract all theses tarballs and read through
+them .. you see my point?
+
+
+>> VDR wiki recommends wscan
+>> * http://www.vdr-wiki.de/wiki/index.php/W_scan
+> 
+> That wiki shouldn't be viewed as a main reference point in general but
+> especially for scanning.
+
+And the main ref is https://www.linuxtv.org ... which is not updated?
+
+> As mentioned earlier, people tend to use what
+> works for them. In NA/SA nscan tends to be the top choice. Europe/Asia
+> tends to be other scanners.
+
+What I said, nobody use the vdr format of dvbv5-tools, since it 
+is broken and now, Chris and I want to fix it.
+
+> 
+>> I think, there is much room left to support developers and users
+>> outside the vdr community ;)
+>> 
+>> Would you like to test these patches from Chris and mine / Thanks
+>> that will be very helpful.
+> 
+> I'd recommend posting to the VDR mailing list where you'll find more
+> people who use and would be affected by these changes. Additionally,
+> you could inquire at vdr-portal.de, which is one of the most supported
+> VDR forums for both users and developers.
+
+Chris and I want to patch something in v4l-utils which is broken 
+and YOU make the assumption that our patches are not OK ... and now, #
+I have to ask someone other on a different projects ML and their portal?
+
+If you have a doubt about the patches from Chris and mine, make a test and
+if you see any regression it would be great to post your experience here ...
+
+thanks.
+
+-- Markus --
+
+
