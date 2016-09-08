@@ -1,85 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:39384 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933292AbcIALrV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 07:47:21 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, b.zolnierkie@samsung.com,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 1/3] exynos4-is: Add missing entity function initialization
-Date: Thu, 01 Sep 2016 13:47:05 +0200
-Message-id: <1472730427-17821-1-git-send-email-s.nawrocki@samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55458 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751786AbcIHMYp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:24:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>, Nick Dyer <nick@shmanahar.org>
+Subject: Re: [PATCH 22/47] [media] v4l2-dev.rst: fix a broken c domain reference
+Date: Thu, 08 Sep 2016 15:25:18 +0300
+Message-ID: <4201881.nk0lNdyhtj@avalon>
+In-Reply-To: <906d2519d19a3cf6914e440668494e8b479f216e.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com> <906d2519d19a3cf6914e440668494e8b479f216e.1473334905.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Suppresses following warnings:
+Hi Mauro,
 
-s5p-fimc-md camera: Entity type for entity FIMC.0 was not initialized!
-s5p-fimc-md camera: Entity type for entity FIMC.1 was not initialized!
-s5p-fimc-md camera: Entity type for entity s5p-mipi-csis.0 was not initialized!
-s5p-fimc-md camera: Entity type for entity s5p-mipi-csis.1 was not initialized!
-s5p-fimc-md camera: Entity type for entity FIMC-LITE.0 was not initialized!
-s5p-fimc-md camera: Entity type for entity FIMC-LITE.1 was not initialized!
-s5p-fimc-md camera: Entity type for entity FIMC-IS-ISP was not initialized!
+Thank you for the patch.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/exynos4-is/fimc-capture.c | 1 +
- drivers/media/platform/exynos4-is/fimc-isp.c     | 1 +
- drivers/media/platform/exynos4-is/fimc-lite.c    | 1 +
- drivers/media/platform/exynos4-is/mipi-csis.c    | 1 +
- 4 files changed, 4 insertions(+)
+On Thursday 08 Sep 2016 09:03:44 Mauro Carvalho Chehab wrote:
+> The "struct" were inside the reference, causing it to break.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-index fdec499..5bea9dd 100644
---- a/drivers/media/platform/exynos4-is/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -1796,6 +1796,7 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
- 	vid_cap->wb_fmt.code = fmt->mbus_code;
- 
- 	vid_cap->vd_pad.flags = MEDIA_PAD_FL_SINK;
-+	vfd->entity.function = MEDIA_ENT_F_PROC_VIDEO_SCALER;
- 	ret = media_entity_pads_init(&vfd->entity, 1, &vid_cap->vd_pad);
- 	if (ret)
- 		goto err_free_ctx;
-diff --git a/drivers/media/platform/exynos4-is/fimc-isp.c b/drivers/media/platform/exynos4-is/fimc-isp.c
-index 293b807..8efe916 100644
---- a/drivers/media/platform/exynos4-is/fimc-isp.c
-+++ b/drivers/media/platform/exynos4-is/fimc-isp.c
-@@ -705,6 +705,7 @@ int fimc_isp_subdev_create(struct fimc_isp *isp)
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	snprintf(sd->name, sizeof(sd->name), "FIMC-IS-ISP");
- 
-+	sd->entity.function = MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
- 	isp->subdev_pads[FIMC_ISP_SD_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
- 	isp->subdev_pads[FIMC_ISP_SD_PAD_SRC_FIFO].flags = MEDIA_PAD_FL_SOURCE;
- 	isp->subdev_pads[FIMC_ISP_SD_PAD_SRC_DMA].flags = MEDIA_PAD_FL_SOURCE;
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index a0f149f..e1c99e1 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -1432,6 +1432,7 @@ static int fimc_lite_create_capture_subdev(struct fimc_lite *fimc)
- 
- 	sd->ctrl_handler = handler;
- 	sd->internal_ops = &fimc_lite_subdev_internal_ops;
-+	sd->entity.function = MEDIA_ENT_F_PROC_VIDEO_SCALER;
- 	sd->entity.ops = &fimc_lite_subdev_media_ops;
- 	sd->owner = THIS_MODULE;
- 	v4l2_set_subdevdata(sd, fimc);
-diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-index 86e681d..befd9fc 100644
---- a/drivers/media/platform/exynos4-is/mipi-csis.c
-+++ b/drivers/media/platform/exynos4-is/mipi-csis.c
-@@ -853,6 +853,7 @@ static int s5pcsis_probe(struct platform_device *pdev)
- 	state->format.width = S5PCSIS_DEF_PIX_WIDTH;
- 	state->format.height = S5PCSIS_DEF_PIX_HEIGHT;
- 
-+	state->sd.entity.function = MEDIA_ENT_F_IO_V4L;
- 	state->pads[CSIS_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
- 	state->pads[CSIS_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
- 	ret = media_entity_pads_init(&state->sd.entity,
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  Documentation/media/kapi/v4l2-dev.rst | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/media/kapi/v4l2-dev.rst
+> b/Documentation/media/kapi/v4l2-dev.rst index 5782be725334..0a3b4503a89f
+> 100644
+> --- a/Documentation/media/kapi/v4l2-dev.rst
+> +++ b/Documentation/media/kapi/v4l2-dev.rst
+> 
+> @@ -56,7 +56,7 @@ You should also set these fields of 
+:c:type:`video_device`:
+>    :c:type:`video_device`->vfl_dir fields are used to disable ops that do
+>    :not
+> 
+>    match the type/dir combination. E.g. VBI ops are disabled for non-VBI
+> nodes, and output ops  are disabled for a capture device. This makes it
+> possible to -  provide just one :c:type:`v4l2_ioctl_ops struct` for both
+> vbi and +  provide just one :c:type:`v4l2_ioctl_ops` struct for both vbi
+> and video nodes.
+> 
+>  - :c:type:`video_device`->lock: leave to ``NULL`` if you want to do all the
+
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
 
