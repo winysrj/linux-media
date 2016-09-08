@@ -1,37 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49919 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1757055AbcIGKsr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Sep 2016 06:48:47 -0400
-Received: from [10.47.79.81] (unknown [173.38.220.42])
-        by tschai.lan (Postfix) with ESMTPSA id 7257F18597A
-        for <linux-media@vger.kernel.org>; Wed,  7 Sep 2016 12:48:42 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv2] v4l-drivers/fourcc.rst: fix typo
-To: linux-media@vger.kernel.org
-Message-ID: <eb8731b6-a61a-5a9a-31c0-6146a9d39f12@xs4all.nl>
-Date: Wed, 7 Sep 2016 12:48:41 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:56856 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936614AbcIHVhs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 17:37:48 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Markus Heiser <markus.heiser@darmarIT.de>,
+        linux-doc@vger.kernel.org
+Subject: [PATCH 06/15] [media] conf_nitpick.py: ignore an opaque struct from v4l2-mem2mem.h
+Date: Thu,  8 Sep 2016 18:37:32 -0300
+Message-Id: <32c72d1ca04a6637ce8dae7c9e2fea6461ed2075.1473370390.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473370390.git.mchehab@s-opensource.com>
+References: <cover.1473370390.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473370390.git.mchehab@s-opensource.com>
+References: <cover.1473370390.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Linux4Linux -> Video4Linux
+The v4l2_m2m_dev is opaque: its meaning is only known by
+v4l2-mem2mem.c. Ignore it on nitpick mode.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
---
-v1 had one diff too many :-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
-diff --git a/Documentation/media/v4l-drivers/fourcc.rst 
-b/Documentation/media/v4l-drivers/fourcc.rst
-index f7c8cef..9c82106 100644
---- a/Documentation/media/v4l-drivers/fourcc.rst
-+++ b/Documentation/media/v4l-drivers/fourcc.rst
-@@ -1,4 +1,4 @@
--Guidelines for Linux4Linux pixel format 4CCs
-+Guidelines for Video4Linux pixel format 4CCs
-  ============================================
+ Documentation/media/conf_nitpick.py | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-  Guidelines for Video4Linux 4CC codes defined using v4l2_fourcc() are
+diff --git a/Documentation/media/conf_nitpick.py b/Documentation/media/conf_nitpick.py
+index 1f3ef3ded2d4..f71bb947eb15 100644
+--- a/Documentation/media/conf_nitpick.py
++++ b/Documentation/media/conf_nitpick.py
+@@ -98,4 +98,8 @@ nitpick_ignore = [
+     ("c:type", "usb_interface"),
+     ("c:type", "v4l2_std_id"),
+     ("c:type", "video_system_t"),
++
++    # Opaque structures
++
++    ("c:type", "v4l2_m2m_dev"),
+ ]
+-- 
+2.7.4
+
+
