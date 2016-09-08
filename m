@@ -1,102 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35724 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757429AbcIPNJZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 09:09:25 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: horms@verge.net.au
-Cc: geert@linux-m68k.org, hans.verkuil@cisco.com,
-        niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
-        ulrich.hecht+renesas@gmail.com, laurent.pinchart@ideasonboard.com,
-        william.towle@codethink.co.uk, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 2/2] ARM: dts: koelsch: add HDMI input
-Date: Fri, 16 Sep 2016 15:09:09 +0200
-Message-Id: <20160916130909.21225-3-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <20160916130909.21225-1-ulrich.hecht+renesas@gmail.com>
-References: <20160916130909.21225-1-ulrich.hecht+renesas@gmail.com>
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.163]:20229 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932299AbcIHPyl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 11:54:41 -0400
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        arnd@arndb.de, hans.verkuil@cisco.com, tony@atomide.com,
+        letux-kernel@openphoenux.org,
+        "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH] [media] omap3isp: don't call of_node_put
+Date: Thu,  8 Sep 2016 17:48:33 +0200
+Message-Id: <b46d4d86d20d6b93ecc0b434f2c9b7312bcaa829.1473349712.git.hns@goldelico.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hverkuil@xs4all.nl>
+of_node_put() has already been called inside of_graph_get_next_endpoint().
 
-Add support in the dts for the HDMI input. Based on the Lager dts
-patch from Ulrich Hecht.
+Otherwise we may get warnings like
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-[uli: removed "renesas," prefixes from pfc nodes]
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+[   10.118286] omap3isp 480bc000.isp: parsing endpoint /ocp/isp@480bc000/ports/port@0/endpoint, interface 0
+[   10.118499] ERROR: Bad of_node_put() on /ocp/isp@480bc000/ports/port@0/endpoint
+[   10.118499] CPU: 0 PID: 968 Comm: udevd Not tainted 4.7.0-rc4-letux+ #376
+[   10.118530] Hardware name: Generic OMAP36xx (Flattened Device Tree)
+[   10.118560] [<c010f0e0>] (unwind_backtrace) from [<c010b6d8>] (show_stack+0x10/0x14)
+[   10.118591] [<c010b6d8>] (show_stack) from [<c03ecc50>] (dump_stack+0x98/0xd0)
+[   10.118591] [<c03ecc50>] (dump_stack) from [<c03eecac>] (kobject_release+0x60/0x74)
+[   10.118621] [<c03eecac>] (kobject_release) from [<c05ab128>] (__of_get_next_child+0x40/0x48)
+[   10.118652] [<c05ab128>] (__of_get_next_child) from [<c05ab158>] (of_get_next_child+0x28/0x44)
+[   10.118652] [<c05ab158>] (of_get_next_child) from [<c05ab350>] (of_graph_get_next_endpoint+0xe4/0x124)
+[   10.118804] [<c05ab350>] (of_graph_get_next_endpoint) from [<bf1c88a4>] (isp_probe+0xdc/0xd80 [omap3_isp])
+[   10.118896] [<bf1c88a4>] (isp_probe [omap3_isp]) from [<c0482008>] (platform_drv_probe+0x50/0xa0)
+[   10.118927] [<c0482008>] (platform_drv_probe) from [<c04800e8>] (driver_probe_device+0x134/0x29c)
+[   10.118957] [<c04800e8>] (driver_probe_device) from [<c04802d8>] (__driver_attach+0x88/0xac)
+[   10.118957] [<c04802d8>] (__driver_attach) from [<c047e7b8>] (bus_for_each_dev+0x6c/0x90)
+[   10.118957] [<c047e7b8>] (bus_for_each_dev) from [<c047f798>] (bus_add_driver+0xcc/0x1e8)
+[   10.118988] [<c047f798>] (bus_add_driver) from [<c0481228>] (driver_register+0xac/0xf4)
+[   10.118988] [<c0481228>] (driver_register) from [<c010192c>] (do_one_initcall+0xac/0x154)
+[   10.119018] [<c010192c>] (do_one_initcall) from [<c02015bc>] (do_init_module+0x58/0x39c)
+[   10.119049] [<c02015bc>] (do_init_module) from [<c01bd314>] (load_module+0xe5c/0x1004)
+[   10.119049] [<c01bd314>] (load_module) from [<c01bd68c>] (SyS_finit_module+0x88/0x90)
+[   10.119079] [<c01bd68c>] (SyS_finit_module) from [<c0107040>] (ret_fast_syscall+0x0/0x1c)
+
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/r8a7791-koelsch.dts | 41 +++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+ drivers/media/platform/omap3isp/isp.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/r8a7791-koelsch.dts b/arch/arm/boot/dts/r8a7791-koelsch.dts
-index f8a7d09..45b8b5f 100644
---- a/arch/arm/boot/dts/r8a7791-koelsch.dts
-+++ b/arch/arm/boot/dts/r8a7791-koelsch.dts
-@@ -393,6 +393,11 @@
- 		function = "usb1";
- 	};
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 5d54e2c..6e2624e 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2114,7 +2114,6 @@ static int isp_of_parse_nodes(struct device *dev,
  
-+	vin0_pins: vin0 {
-+		groups = "vin0_data24", "vin0_sync", "vin0_clkenb", "vin0_clk";
-+		function = "vin0";
-+	};
-+
- 	vin1_pins: vin1 {
- 		groups = "vin1_data8", "vin1_clk";
- 		function = "vin1";
-@@ -596,6 +601,21 @@
- 		};
- 	};
+ 		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+ 		if (!isd) {
+-			of_node_put(node);
+ 			return -ENOMEM;
+ 		}
  
-+	hdmi-in@4c {
-+		compatible = "adi,adv7612";
-+		reg = <0x4c>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
-+		remote = <&vin0>;
-+		default-input = <0>;
-+
-+		port {
-+			adv7612: endpoint {
-+				remote-endpoint = <&vin0ep>;
-+			};
-+		};
-+	};
-+
- 	eeprom@50 {
- 		compatible = "renesas,24c02";
- 		reg = <0x50>;
-@@ -672,6 +692,27 @@
- 	cpu0-supply = <&vdd_dvfs>;
- };
+@@ -2126,7 +2125,7 @@ static int isp_of_parse_nodes(struct device *dev,
+ 		}
  
-+/* HDMI video input */
-+&vin0 {
-+	status = "okay";
-+	pinctrl-0 = <&vin0_pins>;
-+	pinctrl-names = "default";
+ 		isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
+-		of_node_put(node);
 +
-+	port {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		vin0ep: endpoint {
-+			remote-endpoint = <&adv7612>;
-+			bus-width = <24>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+			data-active = <1>;
-+		};
-+	};
-+};
-+
- /* composite video input */
- &vin1 {
- 	status = "okay";
+ 		if (!isd->asd.match.of.node) {
+ 			dev_warn(dev, "bad remote port parent\n");
+ 			return -EINVAL;
 -- 
-2.9.3
+2.7.3
 
