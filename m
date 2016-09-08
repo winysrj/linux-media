@@ -1,102 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp10.smtpout.orange.fr ([80.12.242.132]:22435 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932970AbcIFJMG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 05:12:06 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Jiri Kosina <trivial@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v6 13/14] media: platform: pxa_camera: move pxa_camera out of soc_camera
-Date: Tue,  6 Sep 2016 11:04:23 +0200
-Message-Id: <1473152664-5077-13-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
-References: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:52491 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753725AbcIHNJP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 09:09:15 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: [PATCH v6 5/6] media: mtk-mdp: support pixelformat V4L2_PIX_FMT_MT21C
+Date: Thu, 8 Sep 2016 21:09:05 +0800
+Message-ID: <1473340146-6598-6-git-send-email-minghsiu.tsai@mediatek.com>
+In-Reply-To: <1473340146-6598-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1473340146-6598-1-git-send-email-minghsiu.tsai@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the conversion to a v4l2 standalone device is finished, move
-pxa_camera one directory up and finish severing any dependency to
-soc_camera.
+Add V4L2_PIX_FMT_MT21C in format list.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
 ---
- drivers/media/platform/Kconfig                       | 8 ++++++++
- drivers/media/platform/Makefile                      | 1 +
- drivers/media/platform/{soc_camera => }/pxa_camera.c | 0
- drivers/media/platform/soc_camera/Kconfig            | 8 --------
- drivers/media/platform/soc_camera/Makefile           | 1 -
- 5 files changed, 9 insertions(+), 9 deletions(-)
- rename drivers/media/platform/{soc_camera => }/pxa_camera.c (100%)
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c  |    8 ++++++++
+ drivers/media/platform/mtk-mdp/mtk_mdp_regs.c |    4 ++++
+ 2 files changed, 12 insertions(+)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 46f14ddeee65..09ad0659e1f8 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -91,6 +91,14 @@ config VIDEO_OMAP3_DEBUG
- 	---help---
- 	  Enable debug messages on OMAP 3 camera controller driver.
+diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+index 0655027..a90972e 100644
+--- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
++++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+@@ -54,6 +54,14 @@ static struct mtk_mdp_pix_align mtk_mdp_size_align = {
  
-+config VIDEO_PXA27x
-+	tristate "PXA27x Quick Capture Interface driver"
-+	depends on VIDEO_DEV && PXA27x && HAS_DMA
-+	select VIDEOBUF2_DMA_SG
-+	select SG_SPLIT
-+	---help---
-+	  This is a v4l2 driver for the PXA27x Quick Capture Interface
-+
- config VIDEO_S3C_CAMIF
- 	tristate "Samsung S3C24XX/S3C64XX SoC Camera Interface driver"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 536d1d8ef022..44baff208452 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -9,6 +9,7 @@ obj-$(CONFIG_VIDEO_CAFE_CCIC) += marvell-ccic/
- obj-$(CONFIG_VIDEO_MMP_CAMERA) += marvell-ccic/
+ static const struct mtk_mdp_fmt mtk_mdp_formats[] = {
+ 	{
++		.pixelformat	= V4L2_PIX_FMT_MT21C,
++		.depth		= { 8, 4 },
++		.row_depth	= { 8, 8 },
++		.num_planes	= 2,
++		.num_comp	= 2,
++		.align		= &mtk_mdp_size_align,
++		.flags		= MTK_MDP_FMT_FLAG_OUTPUT,
++	}, {
+ 		.pixelformat	= V4L2_PIX_FMT_NV12M,
+ 		.depth		= { 8, 4 },
+ 		.row_depth	= { 8, 8 },
+diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_regs.c b/drivers/media/platform/mtk-mdp/mtk_mdp_regs.c
+index a5601e1..86d57f3 100644
+--- a/drivers/media/platform/mtk-mdp/mtk_mdp_regs.c
++++ b/drivers/media/platform/mtk-mdp/mtk_mdp_regs.c
+@@ -29,6 +29,8 @@ enum MDP_COLOR_ENUM {
+ 	MDP_COLOR_NV12 = MDP_COLORFMT_PACK(0, 2, 1, 1, 1, 8, 1, 0, 12),
+ 	MDP_COLOR_I420 = MDP_COLORFMT_PACK(0, 3, 0, 1, 1, 8, 1, 0, 8),
+ 	MDP_COLOR_YV12 = MDP_COLORFMT_PACK(0, 3, 0, 1, 1, 8, 1, 1, 8),
++	/* Mediatek proprietary format */
++	MDP_COLOR_420_MT21 = MDP_COLORFMT_PACK(5, 2, 1, 1, 1, 256, 1, 0, 12),
+ };
  
- obj-$(CONFIG_VIDEO_OMAP3)	+= omap3isp/
-+obj-$(CONFIG_VIDEO_PXA27x)	+= pxa_camera.o soc_camera/soc_mediabus.o
- 
- obj-$(CONFIG_VIDEO_VIU) += fsl-viu.o
- 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-similarity index 100%
-rename from drivers/media/platform/soc_camera/pxa_camera.c
-rename to drivers/media/platform/pxa_camera.c
-diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-index 6b87b3a9d546..8b046dc49392 100644
---- a/drivers/media/platform/soc_camera/Kconfig
-+++ b/drivers/media/platform/soc_camera/Kconfig
-@@ -17,14 +17,6 @@ config SOC_CAMERA_PLATFORM
- 	help
- 	  This is a generic SoC camera platform driver, useful for testing
- 
--config VIDEO_PXA27x
--	tristate "PXA27x Quick Capture Interface driver"
--	depends on VIDEO_DEV && PXA27x && HAS_DMA
--	select VIDEOBUF2_DMA_SG
--	select SG_SPLIT
--	---help---
--	  This is a v4l2 driver for the PXA27x Quick Capture Interface
--
- config VIDEO_RCAR_VIN_OLD
- 	tristate "R-Car Video Input (VIN) support (DEPRECATED)"
- 	depends on VIDEO_DEV && SOC_CAMERA
-diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
-index ee8f9a4ae2a4..e189870a333d 100644
---- a/drivers/media/platform/soc_camera/Makefile
-+++ b/drivers/media/platform/soc_camera/Makefile
-@@ -7,6 +7,5 @@ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
- 
- # soc-camera host drivers have to be linked after camera drivers
- obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
--obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
- obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
- obj-$(CONFIG_VIDEO_RCAR_VIN_OLD)	+= rcar_vin.o
+ static int32_t mtk_mdp_map_color_format(int v4l2_format)
+@@ -37,6 +39,8 @@ static int32_t mtk_mdp_map_color_format(int v4l2_format)
+ 	case V4L2_PIX_FMT_NV12M:
+ 	case V4L2_PIX_FMT_NV12:
+ 		return MDP_COLOR_NV12;
++	case V4L2_PIX_FMT_MT21C:
++		return MDP_COLOR_420_MT21;
+ 	case V4L2_PIX_FMT_YUV420M:
+ 	case V4L2_PIX_FMT_YUV420:
+ 		return MDP_COLOR_I420;
 -- 
-2.1.4
+1.7.9.5
 
