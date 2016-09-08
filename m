@@ -1,118 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:45207 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932271AbcIELam (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 07:30:42 -0400
-Message-ID: <1473075036.23162.14.camel@mtksdaap41>
-Subject: Re: [PATCH v5 0/9] Add MT8173 Video Decoder Driver
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        "Yingjoe Chen" <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
-Date: Mon, 5 Sep 2016 19:30:36 +0800
-In-Reply-To: <f6a217b4-7343-4758-c179-c4cc25079620@xs4all.nl>
-References: <1472818800-22558-1-git-send-email-tiffany.lin@mediatek.com>
-         <616d95a4-e6f3-5c42-d435-eb73795bd82c@xs4all.nl>
-         <1473069011.23162.7.camel@mtksdaap41>
-         <2d332670-edfd-5f2e-2c7f-4346e60baf75@xs4all.nl>
-         <91bd60ab-868a-78b8-a09d-544376913387@xs4all.nl>
-         <1473072735.23162.12.camel@mtksdaap41>
-         <f6a217b4-7343-4758-c179-c4cc25079620@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+Received: from bombadil.infradead.org ([198.137.202.9]:56862 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S937116AbcIHVhs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 17:37:48 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 08/15] [media] videobuf2-core.h: document enum vb2_memory
+Date: Thu,  8 Sep 2016 18:37:34 -0300
+Message-Id: <4fb634acfd16e6e0f0ba79a97af55b1d111713e9.1473370390.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473370390.git.mchehab@s-opensource.com>
+References: <cover.1473370390.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473370390.git.mchehab@s-opensource.com>
+References: <cover.1473370390.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This enum was not documented. Document it.
 
-On Mon, 2016-09-05 at 13:26 +0200, Hans Verkuil wrote:
-> On 09/05/2016 12:52 PM, Tiffany Lin wrote:
-> > Hi Hans,
-> > 
-> > On Mon, 2016-09-05 at 12:09 +0200, Hans Verkuil wrote:
-> >> On 09/05/2016 11:53 AM, Hans Verkuil wrote:
-> >>> On 09/05/2016 11:50 AM, Tiffany Lin wrote:
-> >>>> Hi Hans,
-> >>>>
-> >>>> On Mon, 2016-09-05 at 11:33 +0200, Hans Verkuil wrote:
-> >>>>> On 09/02/2016 02:19 PM, Tiffany Lin wrote:
-> >>>>>> ==============
-> >>>>>>  Introduction
-> >>>>>> ==============
-> >>>>>>
-> >>>>>> The purpose of this series is to add the driver for video codec hw embedded in the Mediatek's MT8173 SoCs.
-> >>>>>> Mediatek Video Codec is able to handle video decoding and encoding of in a range of formats.
-> >>>>>>
-> >>>>>> This patch series rely on MTK VPU driver that have been merged in v4.8-rc1.
-> >>>>>> Mediatek Video Decoder driver rely on VPU driver to load, communicate with VPU.
-> >>>>>>
-> >>>>>> Internally the driver uses videobuf2 framework, and MTK IOMMU and MTK SMI both have been merged in v4.6-rc1.
-> >>>>>>
-> >>>>>> [1]https://chromium-review.googlesource.com/#/c/245241/
-> >>>>>
-> >>>>> This patch series fails to apply to the media_tree master (patch 3/9). Can you rebase and repost?
-> >>>>>
-> >>>>> I'm ready to make a pull request for this, so I hope you can fix this soon.
-> >>>>>
-> >>>> I saw Encoder fix patches in fixes branch.
-> >>>> This patch series is base on Encoder fix patches. 
-> >>>>
-> >>>> [media] vcodec:mediatek: Refine VP8 encoder driver
-> >>>> [media] vcodec:mediatek: Refine H264 encoder driver
-> >>>> [media] vcodec:mediatek: change H264 profile default to profile high
-> >>>> [media] vcodec:mediatek: Add timestamp and timecode copy for V4L2
-> >>>> Encoder
-> >>>> [media] vcodec:mediatek: Fix visible_height larger than coded_height
-> >>>> issue in s_fmt_out
-> >>>> [media] vcodec:mediatek: Fix fops_vcodec_release flow for V4L2 Encoder
-> >>>> [media] vcodec:mediatek:code refine for v4l2 Encoder driver
-> >>>> [media] dvb_frontend: Use memdup_user() rather than duplicating its
-> >>>> implementation
-> >>>>
-> >>>>
-> >>>> If I do not rebase decoder patch series base on Encoder fix pathces.
-> >>>> Then it will fail after Encoder fix patches merged.
-> >>>>
-> >>>> May I know what parent patch I need to rebase to to fix this issue?
-> >>>
-> >>> Ah, OK. I will retest placing this on top of those fixes. I forgot about the
-> >>> pending fixes. I'll handle this.
-> >>
-> >> OK, that works much better when it is on top of the fixes.
-> >>
-> >> Only one thing is missing: an entry in the MAINTAINERS file. Strange that that
-> >> wasn't done for the encoder driver, we must have missed that. So can you make a
-> >> patch adding the en/decoder driver to this file? I'm ready to make the pull
-> >> request once I have that.
-> >>
-> > Got it. I will check and update it.
-> > 
-> > I have a question about decoder device node.
-> > In v5 decoder patch series, I do not add device node patch at end of
-> > patch series.
-> > I plain to put it in MT21C format patch series, is it ok?
-> 
-> What is the reason for not adding it in the decoder patch series?
-> 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ include/media/videobuf2-core.h | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-It is because our decoder HW only support MT21C format.
-
-
-best regards,
-Tiffany
-
-> Regards,
-> 
-> 	Hans
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 68f93dacb38f..65eeca83687a 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -20,6 +20,20 @@
+ #define VB2_MAX_FRAME	(32)
+ #define VB2_MAX_PLANES	(8)
+ 
++/**
++ * enum vb2_memory - type of memory model used to make the buffers visible
++ *	on userspace.
++ *
++ * @VB2_MEMORY_UNKNOWN:	Buffer status is unknown or it is not used yet on
++ *			userspace.
++ * @VB2_MEMORY_MMAP:	The buffers are allocated by the Kernel and it is
++ *			memory mapped via mmap() ioctl. This model is
++ *			also used when the user is using the buffers via
++ *			read() or write() system calls.
++ * @VB2_MEMORY_USERPTR:	The buffers was allocated in userspace and it is
++ *			memory mapped via mmap() ioctl.
++ * @VB2_MEMORY_DMABUF:	The buffers are passed to userspace via DMA buffer.
++ */
+ enum vb2_memory {
+ 	VB2_MEMORY_UNKNOWN	= 0,
+ 	VB2_MEMORY_MMAP		= 1,
+-- 
+2.7.4
 
 
