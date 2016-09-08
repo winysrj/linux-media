@@ -1,60 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out2-smtp.messagingengine.com ([66.111.4.26]:37359 "EHLO
-        out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755535AbcITRMQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Sep 2016 13:12:16 -0400
-Date: Tue, 20 Sep 2016 20:10:15 +0300
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: andrey.utkin@corp.bluecherry.net, chall@corp.bluecherry.net,
-        artem.rusanov@gmail.com, maintainers@bluecherrydvr.com
-Subject: tw5864 - call to hardware owners
-Message-ID: <20160920171015.hnmf4y5qwmqhzpdw@acer>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from bombadil.infradead.org ([198.137.202.9]:44042 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965459AbcIHMEX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:23 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 17/47] [media] v4l2-ctrls.h: fix doc reference for prepare_ext_ctrls()
+Date: Thu,  8 Sep 2016 09:03:39 -0300
+Message-Id: <0721477aaecb1a2dffb75820023ec69ab8be63b6.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+The prepare_ext_ctrls() function is actually internal to the
+v4l2-ctrls.c implementation, so it doesn't have a declaration
+for the kAPI header to reference it.
 
-I would love to hear from anybody who owns any sample of PCIE board with
-TW5864 chip.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ include/media/v4l2-ctrls.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-It is possible to buy from here
-http://www.provideo.com.tw/Products.htm?link=web/DVR%20Card_Hardward.htm
-I guess there are more companies selling boards with it.
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index a63f37044f1c..ff2847705dac 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -239,7 +239,7 @@ struct v4l2_ctrl {
+  * @next:	Single-link list node for the hash.
+  * @ctrl:	The actual control information.
+  * @helper:	Pointer to helper struct. Used internally in
+- *		prepare_ext_ctrls().
++ *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
+  *
+  * Each control handler has a list of these refs. The list_head is used to
+  * keep a sorted-by-control-ID list of all controls, while the next pointer
+-- 
+2.7.4
 
-So there is a driver, "tw5864", submitted and accepted upstream,
-currently in linux-next, I guess it will get into Linux v4.9.
-https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/tree/drivers/media/pci/tw5864
 
-Then there is a pile of sources from vendor, obfuscated and bloated, not
-very human-readable, but that is what our painful development started
-with:
-http://lizard.bluecherry.net/~autkin/tw5864/TW-3XX_Linux.rar
-
-TW5864 datasheet from manufacturer:
-http://lizard.bluecherry.net/~autkin/tw5864/tw5864b1-ds.pdf
-
-Recently a developer from another company contacted us, reporting that
-our driver doesn't work well on samples they had, and sharing quite
-different driver sources from their vendor, which work fine. Those
-sources were also obfuscated, but much less, and they have successfully
-deobfuscated by them. Link to the code:
-https://github.com/bluecherrydvr/linux/tree/master/drivers/media/pci/Isil5864
-
-This second driver is interesting because on some samples it really
-works well, despite the upstreamed driver gives worse picture. I cannot
-work on that productively because my hardware sample is not affected.
-That's why some communication with other owners would be useful.
-
-Oh and of course Intersil (current owner of Techwell labs) technical
-support is useless, just stating that development team was dismissed
-several years ago.
-
-(By the way, if anybody is aware of different PCI Express boards with
-both analog input decoders and video compression encoders, except
-solo6x10, which are easy to buy and to run on Linux, please let us
-know).
