@@ -1,95 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:34578 "EHLO
-        mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753030AbcI2AxO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Sep 2016 20:53:14 -0400
-Received: by mail-pa0-f43.google.com with SMTP id dw4so8014281pac.1
-        for <linux-media@vger.kernel.org>; Wed, 28 Sep 2016 17:53:13 -0700 (PDT)
-Subject: Re: [PATCH v2 4/8] media: vidc: encoder: add video encoder files
-To: Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from bombadil.infradead.org ([198.137.202.9]:43781 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S941738AbcIHMES (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:18 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1473248229-5540-1-git-send-email-stanimir.varbanov@linaro.org>
- <1473248229-5540-5-git-send-email-stanimir.varbanov@linaro.org>
- <18374b1c-f3b3-4eda-6c05-cf364b1bef81@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <7538007e-1337-2dcb-78b1-5900adb871a2@linaro.org>
-Date: Thu, 29 Sep 2016 03:53:09 +0300
-MIME-Version: 1.0
-In-Reply-To: <18374b1c-f3b3-4eda-6c05-cf364b1bef81@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 07/47] [media] dvb_ringbuffer.h: document the define macros
+Date: Thu,  8 Sep 2016 09:03:29 -0300
+Message-Id: <eb1db69a9b57034169bb0b441fe529cb959a6ac5.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+There are a few define macros not documented, because the ReST
+output was causing more warnings.
 
-On 09/19/2016 01:15 PM, Hans Verkuil wrote:
-> Many of my review comments for the decoder apply to the encoder as well,
-> so I won't repeat those.
+Now that this got fixed, document them. While here, fix the
+remaining coding style issues.
 
-Sure, will address them too.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/dvb_ringbuffer.h | 27 +++++++++++++++++++--------
+ 1 file changed, 19 insertions(+), 8 deletions(-)
 
-> 
-> On 09/07/2016 01:37 PM, Stanimir Varbanov wrote:
->> This adds encoder part of the driver plus encoder controls.
->>
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->> ---
->>  drivers/media/platform/qcom/vidc/venc.c       | 1252 +++++++++++++++++++++++++
->>  drivers/media/platform/qcom/vidc/venc.h       |   29 +
->>  drivers/media/platform/qcom/vidc/venc_ctrls.c |  396 ++++++++
->>  drivers/media/platform/qcom/vidc/venc_ctrls.h |   23 +
->>  4 files changed, 1700 insertions(+)
->>  create mode 100644 drivers/media/platform/qcom/vidc/venc.c
->>  create mode 100644 drivers/media/platform/qcom/vidc/venc.h
->>  create mode 100644 drivers/media/platform/qcom/vidc/venc_ctrls.c
->>  create mode 100644 drivers/media/platform/qcom/vidc/venc_ctrls.h
->>
->> diff --git a/drivers/media/platform/qcom/vidc/venc.c b/drivers/media/platform/qcom/vidc/venc.c
->> new file mode 100644
->> index 000000000000..3b65f851a807
->> --- /dev/null
->> +++ b/drivers/media/platform/qcom/vidc/venc.c
->> @@ -0,0 +1,1252 @@
-> 
-> <snip>
-> 
->> +static int venc_s_selection(struct file *file, void *fh,
->> +			    struct v4l2_selection *s)
->> +{
->> +	return -EINVAL;
->> +}
-> 
-> Huh? Either remove this, or implement this correctly.
-
-OK, I cannot remember why I keep it this way, might be v4l2-compliance
-
-> 
-> <snip>
-> 
->> +static int venc_subscribe_event(struct v4l2_fh *fh,
->> +				const struct  v4l2_event_subscription *sub)
->> +{
->> +	switch (sub->type) {
->> +	case V4L2_EVENT_EOS:
->> +		return v4l2_event_subscribe(fh, sub, 2, NULL);
->> +	case V4L2_EVENT_SOURCE_CHANGE:
->> +		return v4l2_src_change_event_subscribe(fh, sub);
-> 
-> These two events aren't used in this driver AFAICT, so this can be dropped.
-> 
-> Since that leaves just V4L2_EVENT_CTRL this function can be replaced by
-> v4l2_ctrl_subscribe_event().
-
-sure I can remove it.
-
+diff --git a/drivers/media/dvb-core/dvb_ringbuffer.h b/drivers/media/dvb-core/dvb_ringbuffer.h
+index f64bd86fe5fd..eae3f091b6a0 100644
+--- a/drivers/media/dvb-core/dvb_ringbuffer.h
++++ b/drivers/media/dvb-core/dvb_ringbuffer.h
+@@ -97,7 +97,6 @@ extern ssize_t dvb_ringbuffer_avail(struct dvb_ringbuffer *rbuf);
+  */
+ extern void dvb_ringbuffer_reset(struct dvb_ringbuffer *rbuf);
+ 
+-
+ /*
+  * read routines & macros
+  */
+@@ -117,11 +116,21 @@ extern void dvb_ringbuffer_flush(struct dvb_ringbuffer *rbuf);
+  */
+ extern void dvb_ringbuffer_flush_spinlock_wakeup(struct dvb_ringbuffer *rbuf);
+ 
+-/* DVB_RINGBUFFER_PEEK - peek at byte @offs: in the buffer */
++/**
++ * DVB_RINGBUFFER_PEEK - peek at byte @offs in the buffer
++ *
++ * @rbuf: pointer to struct dvb_ringbuffer
++ * @offs: offset inside the ringbuffer
++ */
+ #define DVB_RINGBUFFER_PEEK(rbuf, offs)	\
+-			(rbuf)->data[((rbuf)->pread + (offs)) % (rbuf)->size]
++			((rbuf)->data[((rbuf)->pread + (offs)) % (rbuf)->size])
+ 
+-/* advance read ptr by @num: bytes */
++/**
++ * DVB_RINGBUFFER_SKIP - advance read ptr by @num bytes
++ *
++ * @rbuf: pointer to struct dvb_ringbuffer
++ * @num: number of bytes to advance
++ */
+ #define DVB_RINGBUFFER_SKIP(rbuf, num)	{\
+ 			(rbuf)->pread = ((rbuf)->pread + (num)) % (rbuf)->size;\
+ }
+@@ -155,12 +164,16 @@ extern ssize_t dvb_ringbuffer_read_user(struct dvb_ringbuffer *rbuf,
+ extern void dvb_ringbuffer_read(struct dvb_ringbuffer *rbuf,
+ 				   u8 *buf, size_t len);
+ 
+-
+ /*
+  * write routines & macros
+  */
+ 
+-/* write single byte to ring buffer */
++/**
++ * DVB_RINGBUFFER_WRITE_BYTE - write single byte to ring buffer
++ *
++ * @rbuf: pointer to struct dvb_ringbuffer
++ * @byte: byte to write
++ */
+ #define DVB_RINGBUFFER_WRITE_BYTE(rbuf, byte)	\
+ 			{ (rbuf)->data[(rbuf)->pwrite] = (byte); \
+ 			(rbuf)->pwrite = ((rbuf)->pwrite + 1) % (rbuf)->size; }
+@@ -194,7 +207,6 @@ extern ssize_t dvb_ringbuffer_write(struct dvb_ringbuffer *rbuf, const u8 *buf,
+ extern ssize_t dvb_ringbuffer_write_user(struct dvb_ringbuffer *rbuf,
+ 					 const u8 __user *buf, size_t len);
+ 
+-
+ /**
+  * dvb_ringbuffer_pkt_write - Write a packet into the ringbuffer.
+  *
+@@ -265,5 +277,4 @@ extern void dvb_ringbuffer_pkt_dispose(struct dvb_ringbuffer *rbuf, size_t idx);
+ extern ssize_t dvb_ringbuffer_pkt_next(struct dvb_ringbuffer *rbuf,
+ 				       size_t idx, size_t *pktlen);
+ 
+-
+ #endif /* _DVB_RINGBUFFER_H_ */
 -- 
-regards,
-Stan
+2.7.4
+
+
