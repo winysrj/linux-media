@@ -1,87 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:38208 "EHLO
-        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965064AbcIGLpd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 07:45:33 -0400
-Received: by mail-wm0-f44.google.com with SMTP id 1so27232949wmz.1
-        for <linux-media@vger.kernel.org>; Wed, 07 Sep 2016 04:45:33 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v2 7/8] media: vidc: add Makefiles and Kconfig files
-Date: Wed,  7 Sep 2016 14:37:08 +0300
-Message-Id: <1473248229-5540-8-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1473248229-5540-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1473248229-5540-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:43780 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S941742AbcIHMES (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:18 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 02/47] docs-rst: parse-headers.pl: make debug a command line option
+Date: Thu,  8 Sep 2016 09:03:24 -0300
+Message-Id: <3319e6af28550dd76a7e9c725e0d13b842343048.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Makefile and Kconfig files to build the video codec driver.
+Add a parser for the --debug option, in order to allow
+seeing what the parser is doing.
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/qcom/Kconfig       |  8 ++++++++
- drivers/media/platform/qcom/Makefile      |  6 ++++++
- drivers/media/platform/qcom/vidc/Makefile | 15 +++++++++++++++
- 3 files changed, 29 insertions(+)
- create mode 100644 drivers/media/platform/qcom/Kconfig
- create mode 100644 drivers/media/platform/qcom/Makefile
- create mode 100644 drivers/media/platform/qcom/vidc/Makefile
+ Documentation/sphinx/parse-headers.pl | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/qcom/Kconfig b/drivers/media/platform/qcom/Kconfig
-new file mode 100644
-index 000000000000..4bad5c0f68e4
---- /dev/null
-+++ b/drivers/media/platform/qcom/Kconfig
-@@ -0,0 +1,8 @@
-+comment "Qualcomm V4L2 drivers"
+diff --git a/Documentation/sphinx/parse-headers.pl b/Documentation/sphinx/parse-headers.pl
+index 74089b0da798..531c710fc73f 100755
+--- a/Documentation/sphinx/parse-headers.pl
++++ b/Documentation/sphinx/parse-headers.pl
+@@ -2,12 +2,18 @@
+ use strict;
+ use Text::Tabs;
+ 
+-# Uncomment if debug is needed
+-#use Data::Dumper;
+-
+-# change to 1 to generate some debug prints
+ my $debug = 0;
+ 
++while ($ARGV[0] =~ m/^-(.*)/) {
++	my $cmd = shift @ARGV;
++	if ($cmd eq "--debug") {
++		require Data::Dumper;
++		$debug = 1;
++		next;
++	}
++	die "argument $cmd unknown";
++}
 +
-+menuconfig QCOM_VIDC
-+        tristate "Qualcomm V4L2 encoder/decoder driver"
-+        depends on ARCH_QCOM && VIDEO_V4L2
-+        depends on IOMMU_DMA
-+        depends on QCOM_VENUS_PIL
-+        select VIDEOBUF2_DMA_SG
-diff --git a/drivers/media/platform/qcom/Makefile b/drivers/media/platform/qcom/Makefile
-new file mode 100644
-index 000000000000..150892f6533b
---- /dev/null
-+++ b/drivers/media/platform/qcom/Makefile
-@@ -0,0 +1,6 @@
-+#
-+# Makefile for the QCOM spcific video device drivers
-+# based on V4L2.
-+#
-+
-+obj-$(CONFIG_QCOM_VIDC)     += vidc/
-diff --git a/drivers/media/platform/qcom/vidc/Makefile b/drivers/media/platform/qcom/vidc/Makefile
-new file mode 100644
-index 000000000000..f8b5f9a438ee
---- /dev/null
-+++ b/drivers/media/platform/qcom/vidc/Makefile
-@@ -0,0 +1,15 @@
-+# Makefile for Qualcomm vidc driver
-+
-+vidc-objs += \
-+		core.o \
-+		helpers.o \
-+		vdec.o \
-+		vdec_ctrls.o \
-+		venc.o \
-+		venc_ctrls.o \
-+		hfi_venus.o \
-+		hfi_msgs.o \
-+		hfi_cmds.o \
-+		hfi.o \
-+
-+obj-$(CONFIG_QCOM_VIDC) += vidc.o
+ if (scalar @ARGV < 2 || scalar @ARGV > 3) {
+ 	die "Usage:\n\t$0 <file in> <file out> [<exceptions file>]\n";
+ }
 -- 
 2.7.4
+
 
