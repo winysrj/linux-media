@@ -1,92 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55774 "EHLO
-        devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933797AbcI1VWf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Sep 2016 17:22:35 -0400
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: [Patch 22/35] media: ti-vpe: vpdma: RGB data type yield inverted data
-Date: Wed, 28 Sep 2016 16:22:32 -0500
-Message-ID: <20160928212232.27310-1-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:43805 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S941747AbcIHMES (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:18 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Markus Heiser <markus.heiser@darmarIT.de>
+Subject: [PATCH 45/47] [media] media-ioc-g-topology.rst: fix a c domain reference
+Date: Thu,  8 Sep 2016 09:04:07 -0300
+Message-Id: <61ff79392c9eece5f0ba9443b4813d13aadda5c5.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VPDMA RGB data type definition have been updated
-to match with Errata i839.
+One reference there is still using :ref:. Fix it, to solve this
+warning:
+  Documentation/media/uapi/mediactl/media-ioc-g-topology.rst:236: WARNING: undefined label: media-v2-intf-devnode (if the link has no caption the label must precede a section header)
 
-But some of the ARGB definition appeared to be wrong
-in the document also. As they would yield RGBA instead.
-They have been corrected based on experimentation.
-
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/ti-vpe/vpdma_priv.h | 49 ++++++++++++++++++------------
- 1 file changed, 29 insertions(+), 20 deletions(-)
+ Documentation/media/uapi/mediactl/media-ioc-g-topology.rst | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma_priv.h b/drivers/media/platform/ti-vpe/vpdma_priv.h
-index f974a803fa27..72c7f13b4a9d 100644
---- a/drivers/media/platform/ti-vpe/vpdma_priv.h
-+++ b/drivers/media/platform/ti-vpe/vpdma_priv.h
-@@ -101,26 +101,35 @@
- #define DATA_TYPE_CBY422			0x27
- #define DATA_TYPE_CRY422			0x37
+diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+index 0b26fd865b72..48c9531f4db0 100644
+--- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
++++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+@@ -234,7 +234,7 @@ desired arrays with the media graph elements.
+        -  ``devnode``
  
--#define DATA_TYPE_RGB16_565			0x0
--#define DATA_TYPE_ARGB_1555			0x1
--#define DATA_TYPE_ARGB_4444			0x2
--#define DATA_TYPE_RGBA_5551			0x3
--#define DATA_TYPE_RGBA_4444			0x4
--#define DATA_TYPE_ARGB24_6666			0x5
--#define DATA_TYPE_RGB24_888			0x6
--#define DATA_TYPE_ARGB32_8888			0x7
--#define DATA_TYPE_RGBA24_6666			0x8
--#define DATA_TYPE_RGBA32_8888			0x9
--#define DATA_TYPE_BGR16_565			0x10
--#define DATA_TYPE_ABGR_1555			0x11
--#define DATA_TYPE_ABGR_4444			0x12
--#define DATA_TYPE_BGRA_5551			0x13
--#define DATA_TYPE_BGRA_4444			0x14
--#define DATA_TYPE_ABGR24_6666			0x15
--#define DATA_TYPE_BGR24_888			0x16
--#define DATA_TYPE_ABGR32_8888			0x17
--#define DATA_TYPE_BGRA24_6666			0x18
--#define DATA_TYPE_BGRA32_8888			0x19
-+/*
-+ * The RGB data type definition below are defined
-+ * to follow Errata i819.
-+ * The initial values were taken from:
-+ * VPDMA_data_type_mapping_v0.2vayu_c.pdf
-+ * But some of the ARGB definition appeared to be wrong
-+ * in the document also. As they would yield RGBA instead.
-+ * They have been corrected based on experimentation.
-+ */
-+#define DATA_TYPE_RGB16_565			0x10
-+#define DATA_TYPE_ARGB_1555			0x13
-+#define DATA_TYPE_ARGB_4444			0x14
-+#define DATA_TYPE_RGBA_5551			0x11
-+#define DATA_TYPE_RGBA_4444			0x12
-+#define DATA_TYPE_ARGB24_6666			0x18
-+#define DATA_TYPE_RGB24_888			0x16
-+#define DATA_TYPE_ARGB32_8888			0x17
-+#define DATA_TYPE_RGBA24_6666			0x15
-+#define DATA_TYPE_RGBA32_8888			0x19
-+#define DATA_TYPE_BGR16_565			0x0
-+#define DATA_TYPE_ABGR_1555			0x3
-+#define DATA_TYPE_ABGR_4444			0x4
-+#define DATA_TYPE_BGRA_5551			0x1
-+#define DATA_TYPE_BGRA_4444			0x2
-+#define DATA_TYPE_ABGR24_6666			0x8
-+#define DATA_TYPE_BGR24_888			0x6
-+#define DATA_TYPE_ABGR32_8888			0x7
-+#define DATA_TYPE_BGRA24_6666			0x5
-+#define DATA_TYPE_BGRA32_8888			0x9
+        -  Used only for device node interfaces. See
+-	  :ref:`media-v2-intf-devnode` for details..
++	  :c:type:`media_v2_intf_devnode` for details..
  
- #define DATA_TYPE_MV				0x3
  
+ .. tabularcolumns:: |p{1.6cm}|p{3.2cm}|p{12.7cm}|
 -- 
-2.9.0
+2.7.4
+
 
