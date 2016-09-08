@@ -1,66 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36624 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1765270AbcIPNJl (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:60124 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751081AbcIHC56 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 09:09:41 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: horms@verge.net.au
-Cc: geert@linux-m68k.org, hans.verkuil@cisco.com,
-        niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
-        ulrich.hecht+renesas@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH 1/3] ARM: dts: r8a7793: Enable VIN0, VIN1
-Date: Fri, 16 Sep 2016 15:09:33 +0200
-Message-Id: <20160916130935.21292-2-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <20160916130935.21292-1-ulrich.hecht+renesas@gmail.com>
-References: <20160916130935.21292-1-ulrich.hecht+renesas@gmail.com>
+        Wed, 7 Sep 2016 22:57:58 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 0154A1800E4
+        for <linux-media@vger.kernel.org>; Thu,  8 Sep 2016 04:57:52 +0200 (CEST)
+Date: Thu, 08 Sep 2016 04:57:51 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160908025752.0154A1800E4@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- arch/arm/boot/dts/r8a7793.dtsi | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-diff --git a/arch/arm/boot/dts/r8a7793.dtsi b/arch/arm/boot/dts/r8a7793.dtsi
-index 8d02aac..0898668 100644
---- a/arch/arm/boot/dts/r8a7793.dtsi
-+++ b/arch/arm/boot/dts/r8a7793.dtsi
-@@ -30,6 +30,8 @@
- 		i2c7 = &i2c7;
- 		i2c8 = &i2c8;
- 		spi0 = &qspi;
-+		vin0 = &vin0;
-+		vin1 = &vin1;
- 	};
- 
- 	cpus {
-@@ -852,6 +854,24 @@
- 		status = "disabled";
- 	};
- 
-+	vin0: video@e6ef0000 {
-+		compatible = "renesas,vin-r8a7793";
-+		reg = <0 0xe6ef0000 0 0x1000>;
-+		interrupts = <GIC_SPI 188 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&mstp8_clks R8A7793_CLK_VIN0>;
-+		power-domains = <&sysc R8A7793_PD_ALWAYS_ON>;
-+		status = "disabled";
-+	};
-+
-+	vin1: video@e6ef1000 {
-+		compatible = "renesas,vin-r8a7793";
-+		reg = <0 0xe6ef1000 0 0x1000>;
-+		interrupts = <GIC_SPI 189 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&mstp8_clks R8A7793_CLK_VIN1>;
-+		power-domains = <&sysc R8A7793_PD_ALWAYS_ON>;
-+		status = "disabled";
-+	};
-+
- 	qspi: spi@e6b10000 {
- 		compatible = "renesas,qspi-r8a7793", "renesas,qspi";
- 		reg = <0 0xe6b10000 0 0x2c>;
--- 
-2.9.3
+Results of the daily build of media_tree:
 
+date:		Thu Sep  8 04:00:15 CEST 2016
+git branch:	test
+git hash:	036bbb8213ecca49799217f30497dc0484178e53
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: WARNINGS
+linux-4.8-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: OK
+linux-4.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
