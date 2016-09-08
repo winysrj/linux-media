@@ -1,123 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:60124 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751081AbcIHC56 (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:33108 "EHLO
+        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751667AbcIHDIW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Sep 2016 22:57:58 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id 0154A1800E4
-        for <linux-media@vger.kernel.org>; Thu,  8 Sep 2016 04:57:52 +0200 (CEST)
-Date: Thu, 08 Sep 2016 04:57:51 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160908025752.0154A1800E4@tschai.lan>
+        Wed, 7 Sep 2016 23:08:22 -0400
+Date: Thu, 8 Sep 2016 11:08:06 +0800 (SGT)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Ismael Luceno <ismael@iodev.co.uk>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        Andy Walls <awalls@md.metrocast.net>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] pci: constify snd_pcm_ops structures
+In-Reply-To: <20160908022755.mr45eulz4r7vfoo5@zver>
+Message-ID: <alpine.DEB.2.10.1609081106070.6858@hadrien>
+References: <1473295479-24615-1-git-send-email-Julia.Lawall@lip6.fr> <20160908022755.mr45eulz4r7vfoo5@zver>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
 
-date:		Thu Sep  8 04:00:15 CEST 2016
-git branch:	test
-git hash:	036bbb8213ecca49799217f30497dc0484178e53
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+On Thu, 8 Sep 2016, Andrey Utkin wrote:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: WARNINGS
-linux-4.8-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-linux-4.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+> Thanks for looking into this.
+> I have tested that it compiles and passes checks (C=2) cleanly after
+> this patch.
+>
+> Acked-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+>
+> While we're at it, what about constification of
+> *-core.c:static struct pci_driver *_pci_driver = {
+> *-video.c:static struct vb2_ops *_video_qops = {
+> *-video.c:static struct video_device *_video_template = {
+>
+> in drivers/media/pci/? Also there are even more similar entries not
+> constified yet in drivers/media/, however I may be underestimating
+> complexity of making semantic rules for catching that all.
 
-Detailed results are available here:
+I will check on these.  Thanks for the suggestion.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+julia
